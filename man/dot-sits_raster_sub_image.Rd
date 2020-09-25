@@ -4,7 +4,7 @@
 \alias{.sits_raster_sub_image}
 \title{Find the dimensions and location of a spatial ROI in a data cube}
 \usage{
-.sits_raster_sub_image(cube, roi = NULL)
+.sits_raster_sub_image(cube, roi)
 }
 \arguments{
 \item{cube}{input data cube.}

@@ -6,8 +6,8 @@
 \usage{
 .sits_classify_multicores(
   cube,
-  samples,
   ml_model,
+  name,
   roi,
   filter,
   memsize,
@@ -17,11 +17,11 @@
 )
 }
 \arguments{
-\item{cube}{data cube}
-
-\item{samples}{samples used for training the classification model.}
+\item{cube}{data cube.}
 
 \item{ml_model}{model trained by \code{\link[sits]{sits_train}}.}
+
+\item{name}{name of the output data cube}
 
 \item{roi}{region of interest}
 

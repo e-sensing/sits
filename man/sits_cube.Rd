@@ -20,8 +20,8 @@ required parameters:
  \item{"WTSS": }{Web Time Series Service - see \code{\link{sits_cube.wtss_cube}}}
  \item{"SATVEG": }{ SATVEG Time Series Service - see \code{\link{sits_cube.satveg_cube}}}
  \item{"RASTER": }{Raster files - see \code{\link{sits_cube.raster_cube}}}
- \item{"BDC_TILE"}{A tile from the Brazil Data Cube - see \code{\link{sits_cube.bdc_cube}}}
- \item{"S2_L2A_AWS"}{A tile of Sentinel-2 data in AWS - see \code{\link{sits_cube.s2_l2a_aws_cube}}}
+ \item{"BDC_TILE"}{A set of tiles from the Brazil Data Cube - see \code{\link{sits_cube.bdc_cube}}}
+ \item{"S2_L2A_AWS"}{A set of tiles of Sentinel-2 data in AWS - see \code{\link{sits_cube.s2_l2a_aws_cube}}}
 }
 }
 \examples{

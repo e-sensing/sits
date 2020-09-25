@@ -31,12 +31,12 @@ roi <- c("lat_min" = -12.06618108, "lat_max" = -11.06869077,
 # shapefile
 # define the local CBERS data cube
 cbers_cube <- sits_cube(type = "BDC_TILE",
-                        name = "cbers_022024",
+                        name = "cbers_cerrado",
                         satellite = "CBERS-4",
                         sensor = "AWFI",
                         bands  = bands,
                         cube   = "CB4_64_16D_STK",
-                        tile   = "022024",
+                        tiles   = c("022023", "022024"),
                         version = "v001",
                         data_access = "local",
                         start_date  = start_date,
@@ -49,13 +49,7 @@ mapview1 <- plot(cbers_cube, red = "EVI", green = "NDVI", blue = "EVI", time = 2
 # train an XGB model
 svm_model <- sits_train(cbers_samples_022024, sits_svm())
 
-# classify the data (remember to set the appropriate memory size)
-cbers_probs_roi <- sits_classify(cbers_cube, svm_model, sf_region = sf_region, memsize = 24, multicores = 4)
-plot(cbers_probs_roi)
-
-cbers_label_roi <- sits_label_classification(cbers_probs_roi, smoothing = "bayesian")
-
-cbers_probs <- sits_classify(cbers_cube, svm_model, memsize = 24, multicores = 4)
+cbers_probs <- sits_classify(cbers_cube, svm_model, memsize = 48, multicores = 12)
 # plot the probabilities for each class
 plot(cbers_probs)
 
@@ -63,8 +57,9 @@ cbers_label <- sits_label_classification(cbers_probs, smoothing = "bayesian")
 
 plot(cbers_label, map = mapview1)
 
-sits_db_connect("./cubes.sql")
-conn <- sits_db_connect("./cubes.sql")
-sits_db_write(conn, "cbers_probs", cbers_probs)
-sits_db_write(conn, "cbers_label", cbers_label)
-sits_db_write(conn, "cbers_cube", cbers_cube)
+# classify the data (remember to set the appropriate memory size)
+cbers_probs_roi <- sits_classify(cbers_cube, svm_model, roi = roi, memsize = 24, multicores = 4)
+plot(cbers_probs_roi)
+
+cbers_label_roi <- sits_label_classification(cbers_probs_roi, smoothing = "bayesian")
+

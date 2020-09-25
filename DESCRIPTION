@@ -49,6 +49,7 @@ Imports:
     rgdal (>= 1.5),
     scales,
     sf (>= 0.9),
+    slider,
     stats,
     terra,
     tibble (>= 3.0),

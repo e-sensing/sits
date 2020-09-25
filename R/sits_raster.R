@@ -245,4 +245,105 @@
     return(block.lst)
 }
 
+#' @title Extract a time series from raster
+#' @name .sits_raster_get_ts
+#' @keywords internal
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
+#'
+#' @description Retrieve a set of time series for a raster data cube.
+#'
+#' @param cube              Metadata describing a raster data cube.
+#' @param points            tibble with points
+#' @param bands             Bands to be retrieved.
+#' @return                  A sits tibble with the time series.
+.sits_raster_get_ts <- function(cube, points, bands){
+
+    # ensure metadata tibble exists
+    assertthat::assert_that(NROW(cube) >= 1,
+                            msg = ".sits_raster_get_ts: need a valid metadata for data cube")
+
+    names <- c("longitude", "latitude", "label")
+
+    assertthat::assert_that(all(names %in% colnames(points)),
+                            msg = ".sits_raster_get_ts: data input is not valid")
+    # get XY
+    xy.tb <- .sits_latlong_to_proj(points$longitude, points$latitude, cube$crs)
+    # join lat-long with XY values in a single tibble
+    points <- dplyr::bind_cols(points, xy.tb)
+    # filter the points inside the data cube
+    points <- dplyr::filter(points, X > cube$xmin & X < cube$xmax & Y > cube$ymin &
+                                Y < cube$ymax)
+
+    # are there points to be retrieved from the cube?
+    if (nrow(points) == 0)
+        return(NULL)
+
+    # retain only xy inside the cube
+    xy <- matrix(c(points$X, points$Y), nrow = nrow(points), ncol = 2)
+    colnames(xy) <- c("X", "Y")
+    # get the timeline
+    timeline <- sits_timeline(cube)
+
+    # get the scale factors and missing values
+    missing_values <- unlist(cube$missing_values)
+    scale_factors  <- unlist(cube$scale_factors)
+
+    # Retrieve values on a band by band basis
+    ts_bands.lst <- bands %>%
+        purrr::map(function(band) {
+            # create a tibble to store the data for each band
+            ts_band.tb <- .sits_tibble()
+            # get the values of the time series (terra object)
+            t_obj <- .sits_cube_terra_obj_band(cube, band)
+            values <- terra::extract(t_obj, xy)
+            # terra includes an ID (remove it)
+            values <- values[,-1]
+            rm(t_obj)
+            # is the data valid?
+            assertthat::assert_that(nrow(values) > 0,
+                                    msg = "sits_ts_from_raster_shp - no data retrieved")
+            if (all(is.na(values))) {
+                message("point outside the raster extent - NULL returned")
+                return(NULL)
+            }
+
+            # each row of the values matrix is a spatial point
+            for (i in 1:nrow(values)) {
+                time_idx <- .sits_timeline_indexes(timeline = timeline,
+                                                   start_date = lubridate::as_date(points$start_date[i]),
+                                                   end_date   = lubridate::as_date(points$end_date[i]))
+                # select the valid dates in the timeline
+                timeline_row <- timeline[time_idx["start_idx"]:time_idx["end_idx"]]
+                # get only valid values for the timeline
+                values.vec <- as.vector(values[i, time_idx["start_idx"]:time_idx["end_idx"]])
+                # correct the values using the scale factor
+                values.vec <- values.vec*scale_factors[band]
+                # create a tibble for each band
+                ts.tb <- tibble::tibble(Index = timeline_row)
+                # put the values in the time series tibble together t
+                ts.tb$values <- values.vec
+                colnames(ts.tb) <- c("Index", band)
+
+                # insert a row on the tibble with the values for lat/long and the band
+                ts_band.tb <- tibble::add_row(ts_band.tb,
+                                              longitude    = dplyr::pull(points[i,"longitude"]),
+                                              latitude     = dplyr::pull(points[i,"latitude"]),
+                                              start_date   = timeline[time_idx["start_idx"]],
+                                              end_date     = timeline[time_idx["end_idx"]],
+                                              label        = as.character(dplyr::pull(points[i,"label"])),
+                                              cube         = cube$name,
+                                              time_series  = list(ts.tb)
+                )
+            }
+            return(ts_band.tb)
+        })
+
+    # merge the bands
+    data.tb <- .sits_tibble()
+    l <- length(ts_bands.lst)
+    for (i in 1:l) {
+        data.tb <- sits_merge(data.tb, ts_bands.lst[[i]])
+    }
+    return(data.tb)
+}
 

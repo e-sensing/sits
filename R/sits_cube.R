@@ -8,8 +8,8 @@
 #'  \item{"WTSS": }{Web Time Series Service - see \code{\link{sits_cube.wtss_cube}}}
 #'  \item{"SATVEG": }{ SATVEG Time Series Service - see \code{\link{sits_cube.satveg_cube}}}
 #'  \item{"RASTER": }{Raster files - see \code{\link{sits_cube.raster_cube}}}
-#'  \item{"BDC_TILE"}{A tile from the Brazil Data Cube - see \code{\link{sits_cube.bdc_cube}}}
-#'  \item{"S2_L2A_AWS"}{A tile of Sentinel-2 data in AWS - see \code{\link{sits_cube.s2_l2a_aws_cube}}}
+#'  \item{"BDC_TILE"}{A set of tiles from the Brazil Data Cube - see \code{\link{sits_cube.bdc_cube}}}
+#'  \item{"S2_L2A_AWS"}{A set of tiles of Sentinel-2 data in AWS - see \code{\link{sits_cube.s2_l2a_aws_cube}}}
 #' }
 #'
 #' @param type              Type of cube (one of "WTSS", "RASTER", "BDC_TILE",
@@ -271,21 +271,21 @@ sits_cube.raster_cube <- function(type = "RASTER", ...,
 #'              local access, the user should be logged in the BDC.
 #'              For more on BDC, please see http://brazildatacube.dpi.inpe.br/
 #'
-#' @param type              Type of cube
-#' @param ...               Other parameters to be passed for specific types
-#' @param name              Name of the output data cube.
-#' @param satellite         Name of satellite
-#' @param sensor            Name of sensor
-#' @param bands             Vector of bands.
-#' @param cube              Name of the input data cube (or image collection)
-#' @param tile              Name of the tile
-#' @param version           Version of the cube
-#' @param data_access       Type of access (local or web)
-#' @param start_date        Starting date of the cube
-#' @param end_date          Ending date of the cube
-#' @param .local            Directory for local access to the input cube (optional)
-#' @param .web              Directory for web access to the input cube (optional)
-#' @param .cloud_band       Include cloud band? (TRUE/FALSE)
+#' @param type              type of cube
+#' @param ...               other parameters to be passed for specific types
+#' @param name              output data cube.
+#' @param satellite         satellite
+#' @param sensor            sensor
+#' @param bands             bands.
+#' @param cube              name input data cube in BDC
+#' @param tiles             names of the tiles
+#' @param version           version of the cube
+#' @param data_access       access (local or web)
+#' @param start_date        starting date of the cube
+#' @param end_date          ending date of the cube
+#' @param .local            directory for local access to the input cube (optional)
+#' @param .web              directory for web access to the input cube (optional)
+#' @param .cloud_band       include cloud band? (TRUE/FALSE)
 #'
 #' @return                  A data cube
 #' @export
@@ -294,13 +294,13 @@ sits_cube.raster_cube <- function(type = "RASTER", ...,
 #' \donttest{
 #'
 #' # create a raster cube file based on the information about the files
-#' cbers_bdc_tile <- sits_cube(type       = "BDC_TILE",
-#'                             name       = "022024",
-#'                             satellite  = "CBERS-4",
-#'                             sensor     = "AWFI",
-#'                             cube       = "CB4_64_16D_STK",
-#'                             tile       = "022024",
-#'                             version    = "v001",
+#' cbers_bdc_tile <- sits_cube(type        = "BDC_TILE",
+#'                             name        = "022024",
+#'                             satellite   = "CBERS-4",
+#'                             sensor      = "AWFI",
+#'                             cube        = "CB4_64_16D_STK",
+#'                             tiles       = "022024",
+#'                             version     = "v001",
 #'                             data_access = "web",
 #'                             bands       = c("NDVI", "EVI"),
 #'                             start_date  = as.Date("2018-08-29"),
@@ -313,7 +313,7 @@ sits_cube.bdc_cube <- function(type        = "BDC_TILE", ...,
                                sensor      = NULL,
                                bands       = NULL,
                                cube        = NULL,
-                               tile        = NULL,
+                               tiles       = NULL,
                                version     = "v001",
                                data_access = "web",
                                start_date  = NULL,
@@ -322,44 +322,51 @@ sits_cube.bdc_cube <- function(type        = "BDC_TILE", ...,
                                .web        = NULL,
                                .cloud_band = FALSE) {
 
-    # Precondition
-    bdc_tile_ok <- .sits_bdc_check_tiles(satellite      = satellite,
-                                         sensor         = sensor,
-                                         bands          = bands,
-                                         cube           = cube,
-                                         tile           = tile,
-                                         version        = version,
-                                         data_access    = data_access,
-                                         start_date     = start_date,
-                                         end_date       = end_date)
+    # go through the vector of tiles
 
-    if (!bdc_tile_ok)
-        return(NULL)
+    tile.lst <- purrr::map(tiles, function(tile) {
+        # Precondition
+        bdc_tile_ok <- .sits_bdc_check_tiles(satellite      = satellite,
+                                             sensor         = sensor,
+                                             bands          = bands,
+                                             cube           = cube,
+                                             tile           = tile,
+                                             version        = version,
+                                             data_access    = data_access,
+                                             start_date     = start_date,
+                                             end_date       = end_date)
 
-    stack.tb <- .sits_bdc_info_tiles(satellite   = satellite,
-                                     sensor      = sensor,
-                                     bands       = bands,
-                                     cube        = cube,
-                                     tile        = tile,
-                                     version     = version,
-                                     data_access = data_access,
-                                     start_date  = start_date,
-                                     end_date    = end_date,
-                                     .local      = .local,
-                                     .web        = .web,
-                                     .cloud_band = .cloud_band)
+        if (!bdc_tile_ok)
+            return(NULL)
 
-    cube  <- .sits_bdc_tile_cube(satellite    = satellite,
-                                 sensor       = sensor,
-                                 name         = name,
-                                 bands        = bands,
-                                 cube         = cube,
-                                 tile         = tile,
-                                 file_info    = stack.tb)
+        stack.tb <- .sits_bdc_info_tiles(satellite   = satellite,
+                                         sensor      = sensor,
+                                         bands       = bands,
+                                         cube        = cube,
+                                         tile        = tile,
+                                         version     = version,
+                                         data_access = data_access,
+                                         start_date  = start_date,
+                                         end_date    = end_date,
+                                         .local      = .local,
+                                         .web        = .web,
+                                         .cloud_band = .cloud_band)
 
-    class(cube) <- c("raster_cube", class(cube))
+        cube_t  <- .sits_bdc_tile_cube(satellite    = satellite,
+                                       sensor       = sensor,
+                                       name         = name,
+                                       bands        = bands,
+                                       cube         = cube,
+                                       tile         = tile,
+                                       file_info    = stack.tb)
 
+        class(cube_t) <- c("raster_cube", class(cube_t))
+
+        return(cube_t)
+    })
+    cube <- dplyr::bind_rows(tile.lst)
     return(cube)
+
 }
 #' @title Defines a data cube for a Sentinel-2 L2A AWS cube
 #' @name sits_cube.s2_l2a_aws_cube
@@ -372,19 +379,18 @@ sits_cube.bdc_cube <- function(type        = "BDC_TILE", ...,
 #'              are "B02", "B03", "B04", "B05", "B06", "BO7", "B08", "B8A", "B11", and "B12".
 #'              All 12 bands are available at 60m resolution.
 #'
-#' @param type              Type of cube
-#' @param ...               Other parameters to be passed for specific types
-#' @param name              Name of the output data cube.
-#' @param bands             Vector of bands.
-#' @param cube              Name of the input data cube (or image collection)
-#' @param tile              Name of the tile
-#' @param start_date        Starting date of the cube
-#' @param end_date          Ending date of the cube
-#' @param s2_aws_resolution Resolution of Sentinel images in AWS ("10m", "20m" or "60m")
+#' @param type              type of cube
+#' @param ...               other parameters to be passed for specific types
+#' @param name              output data cube.
+#' @param bands             vector of bands.
+#' @param tiles             vector of tiles
+#' @param start_date        starting date of the cube
+#' @param end_date          ending date of the cube
+#' @param s2_aws_resolution resolution of Sentinel images in AWS ("10m", "20m" or "60m")
 #' @param access_key        AWS access key
 #' @param secret_key        AWS secret key
 #' @param region            AWS region
-#' @return                  A data cube
+#' @return                  data cube
 #' @export
 #'
 #' @examples
@@ -411,7 +417,6 @@ sits_cube.bdc_cube <- function(type        = "BDC_TILE", ...,
 sits_cube.s2_l2a_aws_cube <- function(type = "S2_L2A_AWS", ...,
                                       name = NULL,
                                       bands = NULL,
-                                      cube = NULL,
                                       tile = NULL,
                                       start_date = NULL,
                                       end_date = NULL,
@@ -425,20 +430,25 @@ sits_cube.s2_l2a_aws_cube <- function(type = "S2_L2A_AWS", ...,
     if (!aws_access_ok)
         return(NULL)
 
-    stack.tb  <- .sits_sentinel_aws_info_tiles(tile       = tile,
-                                               bands      = bands,
-                                               resolution = s2_aws_resolution,
-                                               start_date = start_date,
-                                               end_date   = end_date)
+    tile.lst <- purrr::map(tiles, function(tile) {
+
+        stack.tb  <- .sits_sentinel_aws_info_tiles(tile       = tile,
+                                                   bands      = bands,
+                                                   resolution = s2_aws_resolution,
+                                                   start_date = start_date,
+                                                   end_date   = end_date)
 
 
-    cube <- .sits_sentinel_aws_tile_cube(name      = name,
-                                         bands     = bands,
-                                         tile      = tile,
-                                         file_info = stack.tb)
+        cube_t <- .sits_sentinel_aws_tile_cube(name      = name,
+                                               bands     = bands,
+                                               tile      = tile,
+                                               file_info = stack.tb)
 
-    class(cube) <- c("raster_cube", class(cube))
-    return(cube)
+        class(cube_t) <- c("raster_cube", class(cube_t))
+        return(cube_t)
+
+    })
+    cube <- dplyr::bind_rows(tile.lst)
 }
 
 #' @title Default methods for sits_cube

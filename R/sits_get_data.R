@@ -10,20 +10,20 @@
 #' <longitude, latitude, start_date, end_date, label, cube, time_series>.
 #' There are many ways of retrieving time series:
 #' \itemize{
-#' \item{WTSS}{Retrieve data from Web Time Series Service (WTSS)
-#'            using a lat/long point (see  \code{\link[sits]{sits_get_data.wtss_cube}}),
-#'            a CSV file (see\code{\link[sits]{sits_get_data.csv_wtss_cube}})
-#'            or a SHP file (see code{\link[sits]{sits_get_data.shp_wtss_cube}})}
+#' \item{WTSS: }{Retrieve data from Web Time Series Service (WTSS)
+#'            using a lat/long point (\code{\link[sits]{sits_get_data.wtss_cube}}),
+#'            a CSV file (\code{\link[sits]{sits_get_data.csv_wtss_cube}})
+#'            or a SHP file (\code{\link[sits]{sits_get_data.shp_wtss_cube}})}
 #'
-#' \item{SATVEG}{Retrieve data from SATVEG service using a lat/long point
-#'               (see  \code{\link[sits]{sits_get_data.satveg_cube}}),
-#'               a CSV file (see\code{\link[sits]{sits_get_data.csv_satveg_cube}})
-#'               or a SHP file (see code{\link[sits]{sits_get_data.shp_satveg_cube}})}
+#' \item{SATVEG: }{Retrieve data from SATVEG service using a lat/long point
+#'                (\code{\link[sits]{sits_get_data.satveg_cube}}),
+#'               a CSV file (\code{\link[sits]{sits_get_data.csv_satveg_cube}})
+#'               or a SHP file (\code{\link[sits]{sits_get_data.shp_satveg_cube}})}
 #'
-#' \item{RASTER}{Retrieve data from a RASTER cube using a lat/long point
-#'              (see  \code{\link[sits]{sits_get_data.raster_cube}}),
-#'              a CSV file (see\code{\link[sits]{sits_get_data.csv_raster_cube}})
-#'              or a SHP file (see code{\link[sits]{sits_get_data.shp_raster_cube}})}
+#' \item{RASTER: }{Retrieve data from a RASTER cube using a lat/long point
+#'               (\code{\link[sits]{sits_get_data.raster_cube}}),
+#'               a CSV file (\code{\link[sits]{sits_get_data.csv_raster_cube}})
+#'               or a SHP file (\code{\link[sits]{sits_get_data.shp_raster_cube}})}
 #'
 #' }
 #'
@@ -455,12 +455,10 @@ sits_get_data.raster_cube <- function(cube,
                             start_date = start_end["start_date"],
                             end_date   = start_end["end_date"],
                             label      = label)
-    # transform ll.tb into a spatial points object
-    lat_long <- sf::st_as_sf(ll.tb, coords = c("longitude", "latitude"), crs = 4326)
 
-    data.tb <- .sits_ts_from_raster_shp(cube       = cube,
-                                        sf_shape   = lat_long,
-                                        bands      = bands)
+    data.tb <- .sits_raster_get_ts(cube    = cube,
+                                   points  = ll.tb,
+                                   bands   = bands)
 
     if (!("sits" %in% class(data)))
         class(data) <- c("sits", class(data))
@@ -497,10 +495,14 @@ sits_get_data.csv_raster_cube <- function(cube, file, ...,
     # transform to a spatial points object
     lat_long <- sf::st_as_sf(csv.tb, coords = c("longitude", "latitude"),
                              crs = 4326)
-    # get the data
-    data <- .sits_ts_from_raster_shp(cube       = cube,
-                                     sf_shape   = lat_long,
-                                     bands      = bands)
+
+    ts_rows.lst <- slider::slide(cube, function (row) {
+        # get the data
+        ts.tb <- .sits_raster_get_ts(cube    = row,
+                                     points  = csv.tb,
+                                     bands   = bands)
+    })
+    data <- dplyr::bind_rows(ts_rows.lst)
 
     if (!("sits" %in% class(data)))
         class(data) <- c("sits", class(data))
@@ -556,13 +558,19 @@ sits_get_data.shp_raster_cube <- function(cube, file, ...,
     points.tb$start_date <- start_end["start_date"]
     points.tb$end_date  <- start_end["end_date"]
 
-    # transform points.tb into a spatial points object
-    lat_long <- sf::st_as_sf(points.tb, coords = c("longitude", "latitude"), crs = 4326)
 
-    # retrieve the data from raster using an sf object
-    data <- .sits_ts_from_raster_shp(cube       = cube,
-                                     sf_shape   = lat_long,
+    # for each row of the cube, get the points inside
+    ts_rows.lst <- slider::slide(cube, function (row) {
+        # retrieve the data from raster
+        ts.tb <- .sits_raster_get_ts(cube       = row,
+                                     points     = points.tb,
                                      bands      = bands)
+    })
+    # join the results
+    data <- dplyr::bind_rows(ts_rows.lst)
+    # adjust for the class of the data
+    if (!("sits" %in% class(data)))
+        class(data) <- c("sits", class(data))
     return(data)
 }
 

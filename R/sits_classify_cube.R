@@ -14,9 +14,9 @@
 #' After all cores process their blocks, it joins the result and then writes it
 #' in the classified images for each corresponding year.
 #'
-#' @param  cube            data cube
-#' @param  samples         samples used for training the classification model.
+#' @param  cube            data cube.
 #' @param  ml_model        model trained by \code{\link[sits]{sits_train}}.
+#' @param  name            name of the output data cube
 #' @param  roi             region of interest
 #' @param  filter          smoothing filter to be applied to the data.
 #' @param  memsize         memory available for classification (in GB).
@@ -25,8 +25,8 @@
 #' @param  version         version of result
 #' @return List of the classified raster layers.
 .sits_classify_multicores <-  function(cube,
-                                       samples,
                                        ml_model,
+                                       name,
                                        roi,
                                        filter,
                                        memsize,
@@ -34,9 +34,26 @@
                                        output_dir,
                                        version) {
 
+    # retrieve the samples from the model
+    samples  <- environment(ml_model)$data
+    # precondition - are the samples correct?
+    assertthat::assert_that(NROW(samples) > 0,
+                            msg = "sits_classify: original samples not saved")
 
-    # define the sub_image (which may be the same size as the original)
-    sub_image <- .sits_raster_sub_image(cube = cube, roi = roi)
+    # precondition - are the cube bands the same as the sample bands?
+    cube_bands   <- .sits_cube_bands(cube)
+    sample_bands <- sits_bands(samples)
+    assertthat::assert_that(
+        all(sample_bands %in% cube_bands),
+        msg = "sits_classify: bands in samples different from cube bands")
+
+    # is there a region of interest?
+    if (purrr::is_null(roi))
+        sub_image <- .sits_raster_sub_image_default(cube)
+    else
+        # define the sub_image
+        sub_image <- .sits_raster_sub_image(cube = cube, roi = roi)
+
     if (purrr::is_null(sub_image)){
         message("region of interest outside of cube")
         return(NULL)
@@ -52,6 +69,7 @@
     # create the metadata for the classified cube
     cube_class <- .sits_cube_classified(cube       = cube,
                                         samples    = samples,
+                                        name       = name,
                                         sub_image  = sub_image,
                                         output_dir = output_dir,
                                         version    = version)

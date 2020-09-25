@@ -102,11 +102,12 @@
 #'
 #' @param  cube              input data cube.
 #' @param  samples           samples used for training the classification model.
+#' @param  name              name of the output cube
 #' @param  sub_image         bounding box of the ROI
 #' @param  output_dir        prefix of the output files.
 #' @param  version           version of the output files
 #' @return                   output data cube
-.sits_cube_classified <- function(cube, samples, sub_image,
+.sits_cube_classified <- function(cube, samples, name, sub_image,
 								  output_dir, version) {
 	# ensure metadata tibble exists
 	assertthat::assert_that(NROW(cube) > 0,
@@ -148,7 +149,7 @@
 	maximum_values  <- rep(1.0,    n_objs)
 
 	# loop through the list of dates and create list of raster layers
-	for (i in 1:n_objs) {
+	for (i in 1:n_objs){
 
 		# define the timeline for the raster data sets
 		start_date     <- subset_dates[[i]][1]
@@ -159,11 +160,11 @@
 		# define the filename for the classified image
 		files[i] <- .sits_raster_filename(output_dir = output_dir,
 										  version = version,
-										  name = cube$name,
+										  name = name,
 										  type = "probs",
 										  start_date = start_date,
 										  end_date = end_date)
-		bands[i] <- .sits_cube_class_band_name(name = cube$name, type = "probs",
+		bands[i] <- .sits_cube_class_band_name(name = name, type = "probs",
 											   start_date = start_date,
 											   end_date = end_date)
 	}
@@ -172,7 +173,7 @@
 
 	# generate a set of timelines for the file_info
 	times_probs <- vector(length = n_objs)
-	for (i in 1:n_objs) {
+	for (i in 1:n_objs){
 		times_probs[i] <- timelines[[i]][1]
 	}
 

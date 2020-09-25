@@ -6,11 +6,7 @@
 #' @param  roi             spatial region of interest
 #' @return                 vector with information on the subimage
 #'
-.sits_raster_sub_image <- function(cube, roi = NULL) {
-
-    # no ROI? return sub_image as entire image
-    if (purrr::is_null(roi))
-        return(.sits_raster_sub_image_default(cube))
+.sits_raster_sub_image <- function(cube, roi) {
 
     # if the ROI is defined, calculate the bounding box
     bbox_roi <- .sits_roi_bbox(roi, cube)

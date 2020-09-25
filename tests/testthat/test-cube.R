@@ -44,9 +44,7 @@ test_that("Reading a raster stack cube", {
     expect_true(all(unique(cbers_cube$file_info[[1]]$date) == cbers_cube$timeline[[1]][[1]]))
 })
 
-test_that("Reading a BDC data cube", {
-    # Create a raster cube based on CBERS data provided by the inSitu package
-    data_dir <- system.file("extdata/CBERS/", package = "inSitu")
+test_that("Reading a BDC data cube from the web", {
 
     # create a raster cube file based on the information about the files
     cbers_bdc_tile <- sits_cube(type       = "BDC_TILE",
@@ -54,7 +52,7 @@ test_that("Reading a BDC data cube", {
                                 satellite  = "CBERS-4",
                                 sensor     = "AWFI",
                                 cube       = "CB4_64_16D_STK",
-                                tile       = "022024",
+                                tiles       = "022024",
                                 version    = "v001",
                                 data_access = "web",
                                 start_date  = as.Date("2018-08-29"),

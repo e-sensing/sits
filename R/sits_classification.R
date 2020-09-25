@@ -245,31 +245,28 @@ sits_classify.raster_cube <- function(data, ml_model, ...,
         multicores <- 2L
     }
 
-    # retrieve the samples from the model
-    samples  <- environment(ml_model)$data
-    # precondition - are the samples correct?
-    assertthat::assert_that(NROW(samples) > 0,
-        msg = "sits_classify: original samples not saved")
+    # deal with the case where the cube has multiple rows
 
-    # precondition - are the cube bands the same as the sample bands?
-    cube_bands   <- .sits_cube_bands(data)
-    sample_bands <- sits_bands(samples)
-    assertthat::assert_that(
-        all(sample_bands %in% cube_bands),
-        msg = "sits_classify: bands in samples different from cube bands")
+    rows.lst <- slider::slide(data, function (row) {
 
-    # classify the data
-    cube_probs <- .sits_classify_multicores(cube        = data,
-                                            samples     = samples,
-                                            ml_model    = ml_model,
-                                            roi         = roi,
-                                            filter      = filter,
-                                            memsize     = memsize,
-                                            multicores  = multicores,
-                                            output_dir  = output_dir,
-                                            version = version)
+        # set the name of the cube
+        if (!is.na(row$tile))
+            row$name <- paste0(row$name,"_",row$tile)
 
-    return(cube_probs)
+        # classify the data
+        row_probs <- .sits_classify_multicores(cube         = row,
+                                                ml_model    = ml_model,
+                                                name        = row$name,
+                                                roi         = roi,
+                                                filter      = filter,
+                                                memsize     = memsize,
+                                                multicores  = multicores,
+                                                output_dir  = output_dir,
+                                                version = version)
+
+        return(row_probs)
+    })
+    cube_probs <- dplyr::bind_rows(rows.lst)
 }
 
 
