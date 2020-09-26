@@ -9,7 +9,7 @@
   ...,
   name = NULL,
   bands = NULL,
-  tile = NULL,
+  tiles = NULL,
   start_date = NULL,
   end_date = NULL,
   s2_aws_resolution = NULL,
@@ -27,6 +27,8 @@
 
 \item{bands}{vector of bands.}
 
+\item{tiles}{vector of tiles}
+
 \item{start_date}{starting date of the cube}
 
 \item{end_date}{ending date of the cube}
@@ -38,8 +40,6 @@
 \item{secret_key}{AWS secret key}
 
 \item{region}{AWS region}
-
-\item{tiles}{vector of tiles}
 }
 \value{
 data cube
