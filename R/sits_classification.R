@@ -182,6 +182,7 @@ sits_classify.sits <- function(data, ml_model, ...,
 #' @param  ...             other parameters to be passed to specific functions
 #' @param  roi             a region of interest (see above)
 #' @param  filter          smoothing filter to be applied (if desired).
+#' @param  impute_fn       impute function to replace NA
 #' @param  memsize         memory available for classification (in GB).
 #' @param  multicores      number of cores to be used for classification.
 #' @param  output_dir      directory for output file
@@ -225,6 +226,7 @@ sits_classify.sits <- function(data, ml_model, ...,
 sits_classify.raster_cube <- function(data, ml_model, ...,
                                      roi        = NULL,
                                      filter     = NULL,
+                                     impute_fn  = sits_impute_linear(),
                                      memsize    = 8,
                                      multicores = 2,
                                      output_dir = "./",
@@ -259,6 +261,7 @@ sits_classify.raster_cube <- function(data, ml_model, ...,
                                                 name        = row$name,
                                                 roi         = roi,
                                                 filter      = filter,
+                                                impute_fn   = impute_fn,
                                                 memsize     = memsize,
                                                 multicores  = multicores,
                                                 output_dir  = output_dir,

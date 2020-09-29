@@ -19,6 +19,7 @@
 #' @param  name            name of the output data cube
 #' @param  roi             region of interest
 #' @param  filter          smoothing filter to be applied to the data.
+#' @param  impute_fn       impute function to replace NA
 #' @param  memsize         memory available for classification (in GB).
 #' @param  multicores      number of cores.
 #' @param  output_dir      output directory
@@ -29,6 +30,7 @@
                                        name,
                                        roi,
                                        filter,
+                                       impute_fn,
                                        memsize,
                                        multicores,
                                        output_dir,
@@ -99,6 +101,13 @@
         t_obj <- .sits_cube_terra_obj_band(cube, b)
     })
 
+    # does the cube have a cloud band?
+    cld_band <- .sits_config_cloud_band(cube)
+    if (cld_band %in% sits_bands(cube))
+        t_obj_cld <- .sits_cube_terra_obj_band(cube, cld_band)
+    else
+        t_obj_cld <- NULL
+
     # get initial time for classification
     start_time <- lubridate::now()
     message(sprintf("Starting classification at %s", start_time))
@@ -113,9 +122,11 @@
         data_DT <- .sits_raster_read_data(cube         = cube,
                                           samples      = samples,
                                           t_obj.lst    = t_obj.lst,
+                                          t_obj_cld    = t_obj_cld,
                                           extent       = extent,
                                           stats        = stats,
                                           filter       = filter,
+                                          impute_fn    = impute_fn,
                                           multicores   = multicores)
 
         # process one temporal instance at a time

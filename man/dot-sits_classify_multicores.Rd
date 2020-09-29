@@ -10,6 +10,7 @@
   name,
   roi,
   filter,
+  impute_fn,
   memsize,
   multicores,
   output_dir,
@@ -26,6 +27,8 @@
 \item{roi}{region of interest}
 
 \item{filter}{smoothing filter to be applied to the data.}
+
+\item{impute_fn}{impute function to replace NA}
 
 \item{memsize}{memory available for classification (in GB).}
 

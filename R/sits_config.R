@@ -125,13 +125,29 @@ sits_config_show <- function() {
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'
 #' @return vector with names of the bands available in AWS for a given resolution
-.sits_config_cloud_band <- function(satellite) {
+.sits_config_cloud_band <- function(cube) {
 
-  sensor <- .sits_config_sensors(satellite)
-  cloud_band <- sits.env$config[[sensor]][["cloud_band"]]
+  cb <- paste0(cube$sensor[1],"_CLD_BAND")
+  cloud_band <- sits.env$config[["CLOUD"]][[cube$type[1]]][[cb]]
   assertthat::assert_that(!purrr::is_null(cloud_band),
                           msg = "Cloud band information not available")
   return(cloud_band)
+}
+
+#' @title Get the name of the band used for cloud information
+#' @name .sits_config_cloud_valid_values
+#' @keywords internal
+#' @param cube          data cube
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
+#'
+#' @return vector with names of the bands available in AWS for a given resolution
+.sits_config_cloud_valid_values <- function(cube) {
+
+  cv <- paste0(cube$sensor[1],"_cld_vls")
+  cloud_values <- sits.env$config[["CLOUD"]][[cube$type[1]]][[cv]]
+  assertthat::assert_that(!purrr::is_null(cloud_values),
+                          msg = "Cloud band values information not available")
+  return(cloud_values)
 }
 
 #' @title Check that the type is valid, based on the configuration file

@@ -13,7 +13,8 @@
   start_date = NULL,
   end_date = NULL,
   bands = NULL,
-  label = "NoClass"
+  label = "NoClass",
+  impute_fn = sits_impute_linear()
 )
 }
 \arguments{
@@ -36,6 +37,8 @@ in "YYYY-MM-DD" format (optional)}
 \item{bands}{Bands to be retrieved (optional)}
 
 \item{label}{Label to be assigned to the time series (optional)}
+
+\item{impute_fn}{Imputation function for NA values}
 }
 \value{
 A tibble with time series data and metadata.

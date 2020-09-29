@@ -33,7 +33,7 @@ sits_cloud_remove.s2_l2a_aws <- function(cube, data_dir, bands = NULL,
 										 multicores = 2, ...){
 
 	# precondition - is there cloud information available
-	cloud_band <- .sits_config_cloud_band(cube$satellite)
+	cloud_band <- .sits_config_cloud_band(cube)
 	assertthat::assert_that(cloud_band %in% sits_bands(cube),
 							msg = "cloud information band not available in cube")
 
@@ -162,7 +162,7 @@ sits_cloud_remove.s2_l2a_aws <- function(cube, data_dir, bands = NULL,
 							 msg = "invalid data directory")
 
 	# define the bands
-	cloud_band   <- .sits_config_cloud_band(cube$satellite)
+	cloud_band   <- .sits_config_cloud_band(cube)
 	bands_no_cloud <- bands[bands != cloud_band]
 
 	# create the new timeline

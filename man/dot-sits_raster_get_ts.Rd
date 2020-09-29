@@ -4,7 +4,13 @@
 \alias{.sits_raster_get_ts}
 \title{Extract a time series from raster}
 \usage{
-.sits_raster_get_ts(cube, points, bands)
+.sits_raster_get_ts(
+  cube,
+  points,
+  bands,
+  cld_band = NULL,
+  impute_fn = sits_impute_linear()
+)
 }
 \arguments{
 \item{cube}{Metadata describing a raster data cube.}
@@ -12,6 +18,10 @@
 \item{points}{tibble with points}
 
 \item{bands}{Bands to be retrieved.}
+
+\item{cld_band}{Cloud band (if available)}
+
+\item{impute_fn}{Imputation function for NA values}
 }
 \value{
 A sits tibble with the time series.

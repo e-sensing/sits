@@ -4,7 +4,7 @@
 \alias{sits_get_data.csv_raster_cube}
 \title{Obtain time series from brick based on CSV file}
 \usage{
-\method{sits_get_data}{csv_raster_cube}(cube, file, ..., bands = NULL)
+\method{sits_get_data}{csv_raster_cube}(cube, file, ..., bands = NULL, impute_fn = sits_impute_linear())
 }
 \arguments{
 \item{cube}{Data cube from where data is to be retrived.}
@@ -14,6 +14,8 @@
 \item{...}{Other parameters to be passed for specific types}
 
 \item{bands}{Bands to be retrieved (optional)}
+
+\item{impute_fn}{Imputation function for NA values}
 }
 \value{
 A tibble with time series data and metadata.

@@ -10,6 +10,7 @@
   ...,
   roi = NULL,
   filter = NULL,
+  impute_fn = sits_impute_linear(),
   memsize = 8,
   multicores = 2,
   output_dir = "./",
@@ -26,6 +27,8 @@
 \item{roi}{a region of interest (see above)}
 
 \item{filter}{smoothing filter to be applied (if desired).}
+
+\item{impute_fn}{impute function to replace NA}
 
 \item{memsize}{memory available for classification (in GB).}
 

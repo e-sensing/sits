@@ -7,30 +7,39 @@
 .sits_raster_preprocess_data(
   values.mx,
   band,
+  clouds.mx,
   missing_value,
   minimum_value,
+  maximum_value,
   scale_factor,
   stats,
   filter,
+  impute_fn,
   multicores
 )
 }
 \arguments{
-\item{values.mx}{Matrix of values retrieved from a brick.}
+\item{values.mx}{matrix of values retrieved from a raster object}
 
-\item{band}{Band to be processed.}
+\item{band}{band to be processed}
 
-\item{missing_value}{Missing value for the band.}
+\item{clouds.mx}{matrix of cloud values (optional)}
 
-\item{minimum_value}{Minimum values for the band.}
+\item{missing_value}{missing value for the band.}
 
-\item{scale_factor}{Scale factor for each band (only for raster data).}
+\item{minimum_value}{minimum values for the band.}
 
-\item{stats}{Normalization parameters.}
+\item{scale_factor}{scale factor for each band (only for raster data).}
 
-\item{filter}{Smoothing filter to be applied.}
+\item{stats}{normalization parameters.}
 
-\item{multicores}{Number of cores to process the time series.}
+\item{filter}{smoothing filter to be applied.}
+
+\item{impute_fn}{imputing function to be applied to replace NA}
+
+\item{multicores}{number of cores to process the time series.}
+
+\item{maximum_values}{maximum values for the band}
 }
 \value{
 Matrix with pre-processed values.

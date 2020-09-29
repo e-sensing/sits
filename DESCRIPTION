@@ -39,6 +39,7 @@ Imports:
     ggplot2,
     graphics,
     grDevices,
+    imputeTS,
     keras (>= 2.3.0),
     lubridate (>= 1.7.0),
     parallel,
@@ -67,7 +68,6 @@ Suggests:
     flexclust,
     gdalUtils,
     imager,
-    imputeTS,
     kohonen,
     knitr,
     MASS,
@@ -127,6 +127,7 @@ Collate:
     'sits_filters.R'
     'sits_get_data.R'
     'sits_indexes.R'
+    'sits_imputation.R'
     'sits_keras.R'
     'sits_kohonen.R'
     'sits_labels.R'

@@ -427,7 +427,8 @@ sits_get_data.shp_satveg_cube <- function(cube, file, ...,
 #'                        "YYYY-MM-DD" format (optional).
 #' @param bands           Bands to be retrieved (optional)
 #' @param label           Label to be assigned to the time series (optional)
-#' @return              A tibble with time series data and metadata.
+#' @param impute_fn       Imputation function for NA values
+#' @return                A tibble with time series data and metadata.
 #'
 #' @export
 #'
@@ -439,7 +440,8 @@ sits_get_data.raster_cube <- function(cube,
                                      start_date = NULL,
                                      end_date   = NULL,
                                      bands      = NULL,
-                                     label      = "NoClass") {
+                                     label      = "NoClass",
+                                     impute_fn  = sits_impute_linear()) {
 
     # Precondition - lat/long must be provided
     assertthat::assert_that(!purrr::is_null(latitude) && !purrr::is_null(longitude),
@@ -456,9 +458,23 @@ sits_get_data.raster_cube <- function(cube,
                             end_date   = start_end["end_date"],
                             label      = label)
 
-    data.tb <- .sits_raster_get_ts(cube    = cube,
-                                   points  = ll.tb,
-                                   bands   = bands)
+    # is the cloud band available?
+    cld_band <- .sits_config_cloud_band(cube)
+
+    if (cld_band %in% bands)
+        bands <- bands[bands != cld_band]
+    else
+        cld_band <- NULL
+
+    ts_rows.lst <- slider::slide(cube, function (row) {
+        # get the data
+        ts.tb <- .sits_raster_get_ts(cube    = row,
+                                     points  = ll.tb,
+                                     bands   = bands,
+                                     cld_band = cld_band,
+                                     impute_fn = impute_fn)
+    })
+    data <- dplyr::bind_rows(ts_rows.lst)
 
     if (!("sits" %in% class(data)))
         class(data) <- c("sits", class(data))
@@ -472,12 +488,14 @@ sits_get_data.raster_cube <- function(cube,
 #' @param file      File with information on the data to be retrieved
 #' @param ...       Other parameters to be passed for specific types
 #' @param bands     Bands to be retrieved (optional)
+#' @param impute_fn       Imputation function for NA values
 #' @return          A tibble with time series data and metadata.
 #'
 #' @export
 #'
 sits_get_data.csv_raster_cube <- function(cube, file, ...,
-                                          bands = NULL)  {
+                                          bands = NULL,
+                                          impute_fn = sits_impute_linear())  {
 
     # read sample information from CSV file and put it in a tibble
     csv.tb <- tibble::as_tibble(utils::read.csv(file))
@@ -492,15 +510,20 @@ sits_get_data.csv_raster_cube <- function(cube, file, ...,
     csv.tb$start_date <- lubridate::as_date(csv.tb$start_date)
     csv.tb$end_date   <- lubridate::as_date(csv.tb$end_date)
 
-    # transform to a spatial points object
-    lat_long <- sf::st_as_sf(csv.tb, coords = c("longitude", "latitude"),
-                             crs = 4326)
+    # is the cloud band available?
+    cld_band <- .sits_config_cloud_band(cube)
+    if (cld_band %in% bands)
+        bands <- bands[bands != cld_band]
+    else
+        cld_band <- NULL
 
     ts_rows.lst <- slider::slide(cube, function (row) {
         # get the data
-        ts.tb <- .sits_raster_get_ts(cube    = row,
-                                     points  = csv.tb,
-                                     bands   = bands)
+        ts.tb <- .sits_raster_get_ts(cube       = row,
+                                     points     = csv.tb,
+                                     bands      = bands,
+                                     cld_band   = cld_band,
+                                     impute_fn  = impute_fn)
     })
     data <- dplyr::bind_rows(ts_rows.lst)
 
@@ -523,6 +546,7 @@ sits_get_data.csv_raster_cube <- function(cube, file, ...,
 #' @param label           Label to be assigned to the time series (optional)
 #' @param shp_attr        Attribute in the shapefile to be used
 #'                        as a polygon label (for shapefiles only.
+#' @param impute_fn       Imputation function for NA values
 #' @param .n_shp_pol      Number of samples per polygon to be read
 #'                        (for POLYGON or MULTIPOLYGON shapes).
 #' @return          A tibble with time series data and metadata.
@@ -535,6 +559,7 @@ sits_get_data.shp_raster_cube <- function(cube, file, ...,
                                          bands      = NULL,
                                          label      = "NoClass",
                                          shp_attr   = NULL,
+                                         impute_fn  = sits_impute_linear(),
                                          .n_shp_pol = 30) {
 
     # precondition - check the validity of the shape file
@@ -558,13 +583,21 @@ sits_get_data.shp_raster_cube <- function(cube, file, ...,
     points.tb$start_date <- start_end["start_date"]
     points.tb$end_date  <- start_end["end_date"]
 
+    # is the cloud band available?
+    cld_band <- .sits_config_cloud_band(cube)
+    if (cld_band %in% bands)
+        bands <- bands[bands != cld_band]
+    else
+        cld_band <- NULL
 
     # for each row of the cube, get the points inside
     ts_rows.lst <- slider::slide(cube, function (row) {
         # retrieve the data from raster
         ts.tb <- .sits_raster_get_ts(cube       = row,
                                      points     = points.tb,
-                                     bands      = bands)
+                                     bands      = bands,
+                                     cld_band   = cld_band,
+                                     impute_fn  = impute_fn)
     })
     # join the results
     data <- dplyr::bind_rows(ts_rows.lst)

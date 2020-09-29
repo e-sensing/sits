@@ -59,6 +59,12 @@
     samples <- environment(ml_model)$data
     # get the number of bands
     nbands  <- length(sits_bands(samples))
+    # does the cube have a cloud band?
+    cube_bands <- sits_bands(cube)
+    cld_band <- .sits_config_cloud_band(cube)
+    # the cube has the cloud band, add one more band to the calculation
+    if (cld_band %in% cube_bands)
+        nbands <- nbands + 1
     # number of instances per classification interval
     ninterval <- nrow(samples[1,]$time_series[[1]])
     # number of bytes per pixel

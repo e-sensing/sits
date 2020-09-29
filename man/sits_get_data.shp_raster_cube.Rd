@@ -13,6 +13,7 @@
   bands = NULL,
   label = "NoClass",
   shp_attr = NULL,
+  impute_fn = sits_impute_linear(),
   .n_shp_pol = 30
 )
 }
@@ -35,6 +36,8 @@ in "YYYY-MM-DD" format (optional)}
 
 \item{shp_attr}{Attribute in the shapefile to be used
 as a polygon label (for shapefiles only.}
+
+\item{impute_fn}{Imputation function for NA values}
 
 \item{.n_shp_pol}{Number of samples per polygon to be read
 (for POLYGON or MULTIPOLYGON shapes).}
