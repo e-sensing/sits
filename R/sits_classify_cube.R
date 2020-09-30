@@ -14,29 +14,52 @@
 #' After all cores process their blocks, it joins the result and then writes it
 #' in the classified images for each corresponding year.
 #'
-#' @param  cube            Metadata cube derived from a raster brick.
-#' @param  samples         Samples used for training the classification model.
-#' @param  ml_model        A model trained by \code{\link[sits]{sits_train}}.
-#' @param  sf_region       an sf object with the region of interest
-#' @param  filter          Smoothing filter to be applied to the data.
-#' @param  memsize         Memory available for classification (in GB).
-#' @param  multicores      Number of cores.
-#' @param  output_dir      Output directory
-#' @param  version         Version of result
+#' @param  cube            data cube.
+#' @param  ml_model        model trained by \code{\link[sits]{sits_train}}.
+#' @param  name            name of the output data cube
+#' @param  roi             region of interest
+#' @param  filter          smoothing filter to be applied to the data.
+#' @param  impute_fn       impute function to replace NA
+#' @param  memsize         memory available for classification (in GB).
+#' @param  multicores      number of cores.
+#' @param  output_dir      output directory
+#' @param  version         version of result
 #' @return List of the classified raster layers.
 .sits_classify_multicores <-  function(cube,
-                                       samples,
                                        ml_model,
-                                       sf_region,
+                                       name,
+                                       roi,
                                        filter,
+                                       impute_fn,
                                        memsize,
                                        multicores,
                                        output_dir,
                                        version) {
 
+    # retrieve the samples from the model
+    samples  <- environment(ml_model)$data
+    # precondition - are the samples correct?
+    assertthat::assert_that(NROW(samples) > 0,
+                            msg = "sits_classify: original samples not saved")
 
-    # define the sub_image (which may be the same size as the original)
-    sub_image <- .sits_raster_sub_image(cube = cube, sf_region = sf_region)
+    # precondition - are the cube bands the same as the sample bands?
+    cube_bands   <- .sits_cube_bands(cube)
+    sample_bands <- sits_bands(samples)
+    assertthat::assert_that(
+        all(sample_bands %in% cube_bands),
+        msg = "sits_classify: bands in samples different from cube bands")
+
+    # is there a region of interest?
+    if (purrr::is_null(roi))
+        sub_image <- .sits_raster_sub_image_default(cube)
+    else
+        # define the sub_image
+        sub_image <- .sits_raster_sub_image(cube = cube, roi = roi)
+
+    if (purrr::is_null(sub_image)){
+        message("region of interest outside of cube")
+        return(NULL)
+    }
 
     # divide the input data in blocks
     block_info <- .sits_raster_blocks(cube       = cube,
@@ -48,6 +71,7 @@
     # create the metadata for the classified cube
     cube_class <- .sits_cube_classified(cube       = cube,
                                         samples    = samples,
+                                        name       = name,
                                         sub_image  = sub_image,
                                         output_dir = output_dir,
                                         version    = version)
@@ -77,6 +101,13 @@
         t_obj <- .sits_cube_terra_obj_band(cube, b)
     })
 
+    # does the cube have a cloud band?
+    cld_band <- .sits_config_cloud_band(cube)
+    if (cld_band %in% sits_bands(cube))
+        t_obj_cld <- .sits_cube_terra_obj_band(cube, cld_band)
+    else
+        t_obj_cld <- NULL
+
     # get initial time for classification
     start_time <- lubridate::now()
     message(sprintf("Starting classification at %s", start_time))
@@ -91,9 +122,11 @@
         data_DT <- .sits_raster_read_data(cube         = cube,
                                           samples      = samples,
                                           t_obj.lst    = t_obj.lst,
+                                          t_obj_cld    = t_obj_cld,
                                           extent       = extent,
                                           stats        = stats,
                                           filter       = filter,
+                                          impute_fn    = impute_fn,
                                           multicores   = multicores)
 
         # process one temporal instance at a time
@@ -197,7 +230,7 @@
 #' @keywords internal
 #' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
 #'
-#' @description This function normalizes values read from a raster brick.
+#' @description This function normalizes image values.
 #'
 #' @param  start_time     Initial processing time.
 #' @param  select.lst     List of time intervals.

@@ -14,7 +14,7 @@
 \item{crs}{Projection definition to be converted to.}
 }
 \value{
-Matrix with (x, y) coordinates.
+Tibble with X and Y coordinates
 }
 \description{
 Transform a latitude and longitude coordinate to a XY projection coordinate

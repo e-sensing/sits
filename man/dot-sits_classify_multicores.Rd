@@ -6,10 +6,11 @@
 \usage{
 .sits_classify_multicores(
   cube,
-  samples,
   ml_model,
-  sf_region,
+  name,
+  roi,
   filter,
+  impute_fn,
   memsize,
   multicores,
   output_dir,
@@ -17,23 +18,25 @@
 )
 }
 \arguments{
-\item{cube}{Metadata cube derived from a raster brick.}
+\item{cube}{data cube.}
 
-\item{samples}{Samples used for training the classification model.}
+\item{ml_model}{model trained by \code{\link[sits]{sits_train}}.}
 
-\item{ml_model}{A model trained by \code{\link[sits]{sits_train}}.}
+\item{name}{name of the output data cube}
 
-\item{sf_region}{an sf object with the region of interest}
+\item{roi}{region of interest}
 
-\item{filter}{Smoothing filter to be applied to the data.}
+\item{filter}{smoothing filter to be applied to the data.}
 
-\item{memsize}{Memory available for classification (in GB).}
+\item{impute_fn}{impute function to replace NA}
 
-\item{multicores}{Number of cores.}
+\item{memsize}{memory available for classification (in GB).}
 
-\item{output_dir}{Output directory}
+\item{multicores}{number of cores.}
 
-\item{version}{Version of result}
+\item{output_dir}{output directory}
+
+\item{version}{version of result}
 }
 \value{
 List of the classified raster layers.

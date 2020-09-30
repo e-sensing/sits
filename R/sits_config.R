@@ -125,13 +125,29 @@ sits_config_show <- function() {
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'
 #' @return vector with names of the bands available in AWS for a given resolution
-.sits_config_cloud_band <- function(satellite) {
+.sits_config_cloud_band <- function(cube) {
 
-  sensor <- .sits_config_sensors(satellite)
-  cloud_band <- sits.env$config[[sensor]][["cloud_band"]]
+  cb <- paste0(cube$sensor[1],"_CLD_BAND")
+  cloud_band <- sits.env$config[["CLOUD"]][[cube$type[1]]][[cb]]
   assertthat::assert_that(!purrr::is_null(cloud_band),
                           msg = "Cloud band information not available")
   return(cloud_band)
+}
+
+#' @title Get the name of the band used for cloud information
+#' @name .sits_config_cloud_valid_values
+#' @keywords internal
+#' @param cube          data cube
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
+#'
+#' @return vector with names of the bands available in AWS for a given resolution
+.sits_config_cloud_valid_values <- function(cube) {
+
+  cv <- paste0(cube$sensor[1],"_cld_vls")
+  cloud_values <- sits.env$config[["CLOUD"]][[cube$type[1]]][[cv]]
+  assertthat::assert_that(!purrr::is_null(cloud_values),
+                          msg = "Cloud band values information not available")
+  return(cloud_values)
 }
 
 #' @title Check that the type is valid, based on the configuration file
@@ -202,24 +218,6 @@ sits_config_show <- function() {
   }
   return(NULL)
 }
-#' @title Retrieve the classes of Raster objects associated to data cubes known to SITS
-#' @name .sits_config_cube_robj_class
-#' @keywords internal
-#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
-#' @description Retrieve the class name associated to a cube type
-#' @param cube  Data cube
-#' @return      class of robjects in data cubes ("brick", "raster", or "stack")
-.sits_config_cube_robj_class <- function(cube) {
-  # check that the cube is correct
-  if (.sits_config_check_type(cube$type)) {
-    # find out which cube types are supported
-    types   <- sits.env$config$cube_types
-    objs    <-  sits.env$config$cube_robjs
-    names(objs) <- types
-    return(unname(objs[cube$type]))
-  }
-  return(NULL)
-}
 
 #' @title Check that the cube class is valid, based on the configuration file
 #' @name .sits_config_cube_classes_chk
@@ -254,6 +252,23 @@ sits_config_show <- function() {
         return(FALSE)
 }
 
+#' @title meta-type for data
+#' @name .sits_config_data_meta_type
+#' @keywords internal
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
+#' @param  data    tibble (time series or cube)
+#'
+#' @return file path to the appended to data_dir
+.sits_config_data_meta_type <- function(data) {
+
+  if (grepl("sits", class(data)[[1]]) | grepl("patterns", class(data)[[1]])
+      | grepl("predicted", class(data)[[1]]))
+    return(data)
+  else {
+    class(data) <- c("cube", class(data))
+  }
+    return(data)
+}
 
 #' @title Standard files for data directory for cube type
 #' @name .sits_config_data_dir_path

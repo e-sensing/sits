@@ -367,8 +367,7 @@ sits_db_read <- function(conn, name) {
                                 name           = character())
 
     # build the parameters and bands tibble
-    for (i in 1:nrows) {
-        row <- data[i,]
+    params_data.lst <- slider::slide(data, function(row) {
         # build the tibble with the parameters
         params.lst <- purrr::pmap(list(row$bands, row$scale_factors,
                                        row$missing_values, row$minimum_values,
@@ -383,10 +382,13 @@ sits_db_read <- function(conn, name) {
                                           name           = row$name)
                                       return(params)
                                   })
-        # joint all lists of params into a single table
-        params.tb <- dplyr::bind_rows(params.tb, params.lst)
 
-    }
+        # joint all lists of params into a single table
+        params <- dplyr::bind_rows(params.tb, params.lst)
+        return(params)
+    })
+    params.tb <- dplyr::bind_rows(params_data.lst)
+
     # save the params tibble
     DBI::dbWriteTable(conn = conn, name = paste0(name,".par"),
                       value = as.data.frame(params.tb),
@@ -397,8 +399,7 @@ sits_db_read <- function(conn, name) {
                                    name = character(),
                                    instance = integer())
     # build the timelines tibble
-    for (i in 1:nrows) {
-        row <- data[i,]
+    time.lst <- slider::slide(data, function(row) {
         # transform information about the timelines into a tibble
         timelines <- row$timeline[[1]]
         n_instances <- length(timelines)
@@ -418,7 +419,9 @@ sits_db_read <- function(conn, name) {
                 timelines.tb <- tibble::add_row(timelines.tb, time.tb)
             }
         }
-    }
+        return(timelines.tb)
+    })
+    timelines.tb <- dplyr::bind_rows(time.lst)
     # save the timelines tibble
     DBI::dbWriteTable(conn = conn, name = paste0(name,".tim"),
                       value = as.data.frame(timelines.tb),
@@ -428,16 +431,16 @@ sits_db_read <- function(conn, name) {
     if (!purrr::is_null(data$labels)) {
         labels.tb <- tibble::tibble(label          = character(),
                                     name           = character())
-        for (i in 1:nrows) {
-            row <- data[i,]
+        lab.lst <- slider::slide(data, function(row){
             # build the labels table
             labels.lst <- purrr::pmap(row$labels, function(lab) {
                 lab.tb <- tibble::tibble(label = lab,
                                          name  = row$name)
             })
             # transform the list into a tibble
-            labels.tb <- dplyr::bind_rows(labels.tb, labels.lst)
-        }
+            lab.tb <- dplyr::bind_rows(labels.tb, labels.lst)
+        })
+        labels.tb <- dplyr::bind_rows(lab.lst)
         # save the labels tibble
         DBI::dbWriteTable(conn = conn, name = paste0(name,".lab"),
                           value = as.data.frame(labels.tb),
@@ -449,18 +452,19 @@ sits_db_read <- function(conn, name) {
                                        band  = character(),
                                        date  = as.Date(character()),
                                        path  = character())
-        for (i in 1:nrows) {
-            row <- data[i,]$file_info[[1]]
-            file_info.lst <- purrr::pmap(list(row$band, row$date, row$path),
+        fi.lst <- slider::slide(data, function(row){
+            fi <- row$file_info[[1]]
+            file_info.lst <- purrr::pmap(list(fi$band, fi$date, fi$path),
                                          function (b, d, p){
                                              fi.tb <- tibble::tibble(
                                                  band  = b,
                                                  date  = d,
                                                  path  = p)
                                          })
-            file_info.tb <- dplyr::bind_rows(file_info.tb, file_info.lst)
+            f_info.tb <- dplyr::bind_rows(file_info.tb, file_info.lst)
 
-        }
+        })
+        file_info.tb <- dplyr::bind_rows(fi.lst)
         # save the files tibble
         DBI::dbWriteTable(conn = conn, name = paste0(name,".fil"),
                           value = as.data.frame(file_info.tb),

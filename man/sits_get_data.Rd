@@ -22,25 +22,21 @@ has the metadata and data for each time series. The columns are
 <longitude, latitude, start_date, end_date, label, cube, time_series>.
 There are many ways of retrieving time series:
 \itemize{
-\item{WTSS}{Retrieve data from Web Time Series Service (WTSS)
-           using a lat/long point (see  \code{\link[sits]{sits_get_data.wtss_cube}}),
-           a CSV file (see\code{\link[sits]{sits_get_data.csv_wtss_cube}})
-           or a SHP file (see code{\link[sits]{sits_get_data.shp_wtss_cube}})}
+\item{WTSS: }{Retrieve data from Web Time Series Service (WTSS)
+           using a lat/long point (\code{\link[sits]{sits_get_data.wtss_cube}}),
+           a CSV file (\code{\link[sits]{sits_get_data.csv_wtss_cube}})
+           or a SHP file (\code{\link[sits]{sits_get_data.shp_wtss_cube}})}
 
-\item{SATVEG}{Retrieve data from SATVEG service using a lat/long point
-              (see  \code{\link[sits]{sits_get_data.satveg_cube}}),
-              a CSV file (see\code{\link[sits]{sits_get_data.csv_satveg_cube}})
-              or a SHP file (see code{\link[sits]{sits_get_data.shp_satveg_cube}})}
+\item{SATVEG: }{Retrieve data from SATVEG service using a lat/long point
+               (\code{\link[sits]{sits_get_data.satveg_cube}}),
+              a CSV file (\code{\link[sits]{sits_get_data.csv_satveg_cube}})
+              or a SHP file (\code{\link[sits]{sits_get_data.shp_satveg_cube}})}
 
-\item{BRICK}{Retrieve data from a BRICK cube using a lat/long point
-             (see  \code{\link[sits]{sits_get_data.brick_cube}}),
-             a CSV file (see\code{\link[sits]{sits_get_data.csv_brick_cube}})
-             or a SHP file (see code{\link[sits]{sits_get_data.shp_brick_cube}})}
+\item{RASTER: }{Retrieve data from a RASTER cube using a lat/long point
+              (\code{\link[sits]{sits_get_data.raster_cube}}),
+              a CSV file (\code{\link[sits]{sits_get_data.csv_raster_cube}})
+              or a SHP file (\code{\link[sits]{sits_get_data.shp_raster_cube}})}
 
-\item{STACK}{Retrieve data from a STACK cube (such as Brazil Data Cube or images in AWS)
-            using a lat/long point (see  \code{\link[sits]{sits_get_data.stack_cube}}),
-            a CSV file (see\code{\link[sits]{sits_get_data.csv_stack_cube}})
-            or a SHP file (see code{\link[sits]{sits_get_data.shp_stack_cube}})}
 }
 
 The URL and other parameters for accessing the time series services
@@ -84,7 +80,7 @@ files  <- c(system.file ("extdata/raster/mod13q1/sinop-crop-ndvi.tif",
 # define the timeline
 data(timeline_modis_392)
 # create a data cube based on the information about the files
-raster_cube <- sits_cube(type = "BRICK", satellite = "TERRA",
+raster_cube <- sits_cube(type = "RASTER", satellite = "TERRA",
                          sensor = "MODIS", name = "Sinop-crop",
                          timeline = timeline_modis_392,
                          bands = c("NDVI"), files = files)

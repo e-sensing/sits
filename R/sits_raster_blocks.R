@@ -1,11 +1,10 @@
-#' @title Define a reasonable block size to process a RasterBrick
+#' @title Define a reasonable block size to process an image subset
 #' @name .sits_raster_blocks
 #' @keywords internal
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'
-#' @description Defines the size of the block of a Raster Brick to be read.
-#' The total pixels of a RasterBrick  the size of the timeline
-#' with the number of rows and columns of the Brick. For example, a Raster Brick
+#' @description Defines the size of the block of an image to be read.
+#' For example, a Raster Brick
 #' with 500 rows and 500 columns and 400 time instances will have a total pixel size
 #' of 800 Mb if pixels are 64-bit.
 #'
@@ -60,6 +59,12 @@
     samples <- environment(ml_model)$data
     # get the number of bands
     nbands  <- length(sits_bands(samples))
+    # does the cube have a cloud band?
+    cube_bands <- sits_bands(cube)
+    cld_band <- .sits_config_cloud_band(cube)
+    # the cube has the cloud band, add one more band to the calculation
+    if (cld_band %in% cube_bands)
+        nbands <- nbands + 1
     # number of instances per classification interval
     ninterval <- nrow(samples[1,]$time_series[[1]])
     # number of bytes per pixel

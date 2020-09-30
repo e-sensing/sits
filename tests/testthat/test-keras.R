@@ -1,6 +1,6 @@
 context("Keras")
 test_that("keras read write",{
-    samples_mt_ndvi <- sits_select_bands(samples_mt_4bands, ndvi)
+    samples_mt_ndvi <- sits_select(samples_mt_4bands, "NDVI")
     model <- suppressMessages(suppressWarnings(sits_train(samples_mt_ndvi,
                                          sits_deeplearning(
                                              layers = c(128,128),

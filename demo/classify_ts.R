@@ -14,7 +14,7 @@ rfor_model <- sits_train(samples_mt_4bands, ml_method = sits_rfor())
 data(point_mt_6bands)
 
 # select the bands "ndvi", "evi", "nir", and "mir"
-point.tb <- sits_select_bands(point_mt_6bands, ndvi, evi, nir, mir)
+point.tb <- sits_select(point_mt_6bands, bands = c("NDVI", "EVI", "NIR", "MIR"))
 
 # classify the point
 class.tb <- sits_classify(point.tb, rfor_model)

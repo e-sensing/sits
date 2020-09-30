@@ -8,12 +8,12 @@ default:
     minimum_number_samples   : 1000
 
     # Data cube types known to sits
-    cube_types              : ["WTSS", "SATVEG", "BRICK", "STACK", "BDC_TILE", "S2_L2A_AWS", "PROBS", "CLASSIFIED"]
-    cube_classes_generic    : ["wtss_cube", "satveg_cube", "brick_cube", "stack_cube", "stack_cube", "stack_cube", "probs_cube", "classified_image"]
-    cube_classes_specific   : ["wtss_cube", "satveg_cube", "brick_cube", "stack_cube", "bdc_cube",  "s2_l2a_aws_cube", "probs_cube", "classified_image"]
-    cube_robjs              : ["no_raster", "no_raster", "brick", "stack", "stack", "stack", "raster", "raster"]
+    cube_types              : ["WTSS", "SATVEG", "RASTER", "BDC_TILE", "S2_L2A_AWS", "PROBS", "CLASSIFIED"]
+    cube_classes_generic    : ["wtss_cube", "satveg_cube", "raster_cube", "raster_cube", "raster_cube", "probs_cube", "classified_image"]
+    cube_classes_specific   : ["wtss_cube", "satveg_cube", "raster_cube", "bdc_cube",  "s2_l2a_aws_cube", "probs_cube", "classified_image"]
+    cube_robjs              : ["no_raster", "no_raster", "raster", "raster", "raster", "raster", "raster", "raster"]
     cube_services           : ["WTSS", "SATVEG"]
-    cube_raster             : ["BRICK", "STACK", "BDC_TILE", "S2_L2A_AWS", "PROBS", "CLASSIFIED"]
+    cube_raster             : ["RASTER", "BDC_TILE", "S2_L2A_AWS", "PROBS", "CLASSIFIED"]
 
     # BDC configuration for access to data
     bdc_web                 : "http://brazildatacube.dpi.inpe.br/Repository/Mosaic/"
@@ -26,7 +26,7 @@ default:
         parse_info          : ["sat", "res", "X1", "X2", "X3", "tile", "date", "X4", "band"]
         delim               : ["_"]
 
-    STACK                   :
+    RASTER                   :
         data_dir_path       : ["."]
         parse_info          : ["band", "date"]
         delim               : ["_"]
@@ -103,8 +103,7 @@ default:
         bands               :
             SITS            : &oli_bands_sits ["B2", "B3", "B4", "B5", "B6", "B7", "NDVI", "EVI"]
             BDC_TILE        : ["band2", "band3", "band4", "band5", "band6", "band7", "ndvi", "evi"]
-            STACK           : *oli_bands_sits
-            BRICK           : *oli_bands_sits
+            RASTER          : *oli_bands_sits
         missing_value       :
             NDVI            : -9999
             EVI             : -9999
@@ -156,25 +155,29 @@ default:
 
     AWFI                    :
         bands               :
-            SITS            : &awfi_bands_sits ["B13", "B14", "B15", "B16", "NDVI", "EVI"]
-            BDC_TILE        : ["BAND13", "BAND14", "BAND15", "BAND16", "NDVI", "EVI"]
-            STACK           : *awfi_bands_sits
-            BRICK           : *awfi_bands_sits
+            SITS            : &awfi_bands_sits ["B13", "B14", "B15", "B16", "NDVI", "EVI", "CMASK"]
+            BDC_TILE        : ["BAND13", "BAND14", "BAND15", "BAND16", "NDVI", "EVI", "CMASK"]
+            RASTER          : *awfi_bands_sits
+            cloud_band      : "CMASK"
+
+
         missing_value       :
-            NDVI            : 0
-            EVI             : 0
-            B13             : 0
-            B14             : 0
-            B15             : 0
-            B16             : 0
+            NDVI            : -9999
+            EVI             : -9999
+            B13             : -9999
+            B14             : -9999
+            B15             : -9999
+            B16             : -9999
+            CMASK           : 255
 
         minimum_value       :
-            NDVI            : 0
-            EVI             : 0
-            B13             : 0
-            B14             : 0
-            B15             : 0
-            B16             : 0
+            NDVI            : -10000
+            EVI             : -10000
+            B13             : 1
+            B14             : 1
+            B15             : 1
+            B16             : 1
+            CMASK           : 0
 
         maximum_value       :
             NDVI            : 10000
@@ -183,6 +186,7 @@ default:
             B14             : 10000
             B15             : 10000
             B16             : 10000
+            CMASK           : 4
 
         scale_factor:
             NDVI            : 0.0001
@@ -191,19 +195,24 @@ default:
             B14             : 0.0001
             B15             : 0.0001
             B16             : 0.0001
+            CMASK           : 1
 
         resolution          :
             xres            : 64
             yres            : 64
+
+        CMASK_values        :
+            no_clouds       : 0
+            clouds          : 4
 
     MSI                     :
         bands               :
             SITS            : &msi_bands_sits ["B01", "B02", "B03", "B04", "B05", "B06", "BO7", "B08", "B8A", "B09", "B10", "B11", "B12", "SCL"]
             S2_L2_AWS       : ["B01", "B02", "B03", "B04", "B05", "B06", "BO7", "B08", "B8A", "B09", "B10", "B11", "B12", "SCL"]
             BDC_TILE        : ["band1", "band2", "band3", "band4", "band5", "band6", "band7", "band8", "band8a", "band9", "band10", "band11", "band12"]
-            STACK           : *msi_bands_sits
-            BRICK           : *msi_bands_sits
+            RASTER          : *msi_bands_sits
             cloud_band      : "SCL"
+
         SCL_values          :
             0               : "missing_data"
             1               : "defective pixel"
@@ -217,6 +226,15 @@ default:
             9               : "cloud high"
             10              : "thin cirrus"
             11              : "snow or ice"
+
+        FMASK_values        :
+            0               : "clear land pixel"
+            1               : "clear water pixel"
+            2               : "cloud shadow"
+            3               : "snow"
+            4               : "cloud"
+            255             : "no observation"
+
         missing_value       :
             NDVI            : -9999
             EVI             : -9999
@@ -308,6 +326,30 @@ default:
         20m_bands           : ["B02", "B03", "B04", "B05", "B06", "BO7", "B08", "B8A", "B11", "B12", "SCL"]
         60m_bands           : ["B01", "B02", "B03", "B04", "B05", "B06", "BO7", "B08", "B8A", "B09", "B10", "B11", "B12", "SCL"]
         test_file           : "/vsis3/sentinel-s2-l2a/tiles/20/L/KP/2018/8/17/0/R20m/B02.jp2"
+
+    CLOUD                   :
+        BDC_TILE            :
+            AWFI_CLD_BAND   : "CMASK"
+            AWFI_cld_vls    : 4
+            MSI_CLD_BAND    : "FMASK"
+            MSI_cld_vls     : [2, 3, 4, 255]
+
+
+        S2_L2A_AWS          :
+            OLI_CLD_BAND    : "SCL"
+            OLI_cld_vls     : [0, 1, 2, 3, 7, 8, 9, 10, 11]
+
+        RASTER              :
+            AWFI_CLD_BAND   : "CMASK"
+            AWFI_cld_vls    : 4
+
+            MSI_CLD_BAND    : "SCL"
+            MSI_cld_vls     : [0, 1, 2, 3, 7, 8, 9, 10, 11]
+
+            MODIS_CLD_BAND  : "pixel reliability"
+            MODIS_cld_vls   : [2,3]
+
+
 
 
 

@@ -27,7 +27,7 @@ test_that("Apply",{
 })
 
 test_that("Bands",{
-    samples_mt_ndvi <- sits_select_bands(samples_mt_4bands, NDVI)
+    samples_mt_ndvi <- sits_select(samples_mt_4bands, bands = "NDVI")
     bands <- sits_bands(samples_mt_ndvi)
 
     expect_equal(length(bands), 1)
@@ -44,7 +44,7 @@ test_that("Merge", {
 })
 
 test_that("Mutate", {
-    savi.tb <- sits:::.sits_mutate_bands(samples_mt_6bands,
+    savi.tb <- sits_mutate_bands(samples_mt_6bands,
                                  SAVI = (1.5*(NIR - RED)/(NIR + RED + 0.5)))
 
     expect_equal(sum(sits_time_series(savi.tb)$SAVI),
@@ -80,7 +80,7 @@ test_that("Sample", {
 })
 
 test_that("Select",{
-    samples_mt_ndvi <- sits_select_bands(samples_mt_4bands, NDVI)
+    samples_mt_ndvi <- sits_select(samples_mt_4bands, bands = "NDVI")
     expect_equal(length(sits_bands(samples_mt_ndvi)), 1)
 
     samplesPasture <- samples_mt_ndvi %>% dplyr::filter(label == "Pasture")

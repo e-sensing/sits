@@ -2,7 +2,7 @@
 % Please edit documentation in R/sits_raster_blocks.R
 \name{.sits_raster_blocks}
 \alias{.sits_raster_blocks}
-\title{Define a reasonable block size to process a RasterBrick}
+\title{Define a reasonable block size to process an image subset}
 \usage{
 .sits_raster_blocks(cube, ml_model, sub_image, memsize, multicores)
 }
@@ -23,9 +23,8 @@ list with three attributes: n (number of blocks),
                         nrows (number of rows to read at each iteration).
 }
 \description{
-Defines the size of the block of a Raster Brick to be read.
-The total pixels of a RasterBrick  the size of the timeline
-with the number of rows and columns of the Brick. For example, a Raster Brick
+Defines the size of the block of an image to be read.
+For example, a Raster Brick
 with 500 rows and 500 columns and 400 time instances will have a total pixel size
 of 800 Mb if pixels are 64-bit.
 }

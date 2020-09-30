@@ -12,7 +12,7 @@
   sensor = NULL,
   bands = NULL,
   cube = NULL,
-  tile = NULL,
+  tiles = NULL,
   version = "v001",
   data_access = "web",
   start_date = NULL,
@@ -23,38 +23,38 @@
 )
 }
 \arguments{
-\item{type}{Type of cube}
+\item{type}{type of cube}
 
-\item{...}{Other parameters to be passed for specific types}
+\item{...}{other parameters to be passed for specific types}
 
-\item{name}{Name of the output data cube.}
+\item{name}{output data cube.}
 
-\item{satellite}{Name of satellite}
+\item{satellite}{satellite}
 
-\item{sensor}{Name of sensor}
+\item{sensor}{sensor}
 
-\item{bands}{Vector of bands.}
+\item{bands}{bands.}
 
-\item{cube}{Name of the input data cube (or image collection)}
+\item{cube}{name input data cube in BDC}
 
-\item{tile}{Name of the tile}
+\item{tiles}{names of the tiles}
 
-\item{version}{Version of the cube}
+\item{version}{version of the cube}
 
-\item{data_access}{Type of access (local or web)}
+\item{data_access}{access (local or web)}
 
-\item{start_date}{Starting date of the cube}
+\item{start_date}{starting date of the cube}
 
-\item{end_date}{Ending date of the cube}
+\item{end_date}{ending date of the cube}
 
-\item{.local}{Directory for local access to the input cube (optional)}
+\item{.local}{directory for local access to the input cube (optional)}
 
-\item{.web}{Directory for web access to the input cube (optional)}
+\item{.web}{directory for web access to the input cube (optional)}
 
-\item{.cloud_band}{Include cloud band? (TRUE/FALSE)}
+\item{.cloud_band}{include cloud band? (TRUE/FALSE)}
 }
 \value{
-A brick data cube
+A data cube
 }
 \description{
 Defines a cube to retrieve data from the Brazil Data Cube (BDC). The retrieval
@@ -66,13 +66,13 @@ Defines a cube to retrieve data from the Brazil Data Cube (BDC). The retrieval
 \donttest{
 
 # create a raster cube file based on the information about the files
-cbers_bdc_tile <- sits_cube(type       = "BDC_TILE",
-                            name       = "022024",
-                            satellite  = "CBERS-4",
-                            sensor     = "AWFI",
-                            cube       = "CB4_64_16D_STK",
-                            tile       = "022024",
-                            version    = "v001",
+cbers_bdc_tile <- sits_cube(type        = "BDC_TILE",
+                            name        = "022024",
+                            satellite   = "CBERS-4",
+                            sensor      = "AWFI",
+                            cube        = "CB4_64_16D_STK",
+                            tiles       = "022024",
+                            version     = "v001",
                             data_access = "web",
                             bands       = c("NDVI", "EVI"),
                             start_date  = as.Date("2018-08-29"),

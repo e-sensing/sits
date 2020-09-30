@@ -11,7 +11,7 @@ if (!requireNamespace("inSitu", quietly = TRUE)) {
 library(inSitu)
 
 #select the bands for classification
-samples_ndvi_evi <- sits_select_bands(samples_mt_4bands, ndvi, evi)
+samples_ndvi_evi <- sits_select(samples_mt_4bands, bands = c("NDVI", "EVI"))
 
 # build the classification model
 svm_model <- sits_train(samples_ndvi_evi, ml_method = sits_svm())
@@ -28,8 +28,7 @@ time_file <- system.file("extdata/Sinop", "timeline_2014.txt", package = "inSitu
 timeline_2013_2014 <- scan(time_file, character())
 
 # create a raster metadata file based on the information about the files
-# create a raster metadata file based on the information about the files
-sinop <- sits_cube(type = "BRICK",
+sinop <- sits_cube(type = "RASTER",
                    satellite = "TERRA",
                    sensor    = "MODIS",
                    name = "Sinop",

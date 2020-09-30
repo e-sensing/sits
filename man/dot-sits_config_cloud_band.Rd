@@ -4,7 +4,7 @@
 \alias{.sits_config_cloud_band}
 \title{Get the name of the band used for cloud information}
 \usage{
-.sits_config_cloud_band(satellite)
+.sits_config_cloud_band(cube)
 }
 \arguments{
 \item{satellite}{satellite}

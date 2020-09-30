@@ -9,8 +9,7 @@
   ...,
   name = NULL,
   bands = NULL,
-  cube = NULL,
-  tile = NULL,
+  tiles = NULL,
   start_date = NULL,
   end_date = NULL,
   s2_aws_resolution = NULL,
@@ -20,23 +19,21 @@
 )
 }
 \arguments{
-\item{type}{Type of cube}
+\item{type}{type of cube}
 
-\item{...}{Other parameters to be passed for specific types}
+\item{...}{other parameters to be passed for specific types}
 
-\item{name}{Name of the output data cube.}
+\item{name}{output data cube.}
 
-\item{bands}{Vector of bands.}
+\item{bands}{vector of bands.}
 
-\item{cube}{Name of the input data cube (or image collection)}
+\item{tiles}{vector of tiles}
 
-\item{tile}{Name of the tile}
+\item{start_date}{starting date of the cube}
 
-\item{start_date}{Starting date of the cube}
+\item{end_date}{ending date of the cube}
 
-\item{end_date}{Ending date of the cube}
-
-\item{s2_aws_resolution}{Resolution of Sentinel images in AWS ("10m", "20m" or "60m")}
+\item{s2_aws_resolution}{resolution of Sentinel images in AWS ("10m", "20m" or "60m")}
 
 \item{access_key}{AWS access key}
 
@@ -45,7 +42,7 @@
 \item{region}{AWS region}
 }
 \value{
-A brick data cube
+data cube
 }
 \description{
 Defines a cube to retrieve data from the Sentinel-2 Level 2A data

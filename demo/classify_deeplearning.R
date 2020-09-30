@@ -9,7 +9,7 @@ if (!requireNamespace("inSitu", quietly = TRUE)) {
 }
 library(inSitu)
 
-samples_ndvi_evi <- sits_select_bands(samples_mt_4bands, ndvi, evi)
+samples_ndvi_evi <- sits_select(samples_mt_4bands, bands = c("NDVI", "EVI"))
 
 # train the deep learning model
 dl_model <-  sits_train(samples_ndvi_evi,
@@ -35,13 +35,12 @@ time_file <- system.file("extdata/Sinop",
 timeline_2013_2014 <- scan(time_file, character())
 
 # create a raster metadata file based on the information about the files
-# create a raster metadata file based on the information about the files
-sinop <- sits_cube(type = "BRICK",
+sinop <- sits_cube(type = "RASTER",
                    satellite = "TERRA",
                    sensor    = "MODIS",
                    name = "Sinop",
                    timeline = timeline_2013_2014,
-                   bands = c("ndvi", "evi"),
+                   bands = c("NDVI", "EVI"),
                    files = files)
 
 # classify the raster image

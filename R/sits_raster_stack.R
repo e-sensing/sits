@@ -103,7 +103,7 @@
 	rast <- terra::rast(file_info$path[1])
 
 	# create a tibble to store the metadata
-	stack_cube <- .sits_cube_create(type      = "STACK",
+	stack_cube <- .sits_cube_create(type      = "RASTER",
 									URL       = NA,
 									satellite = satellite,
 									sensor    = sensor,

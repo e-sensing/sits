@@ -13,10 +13,10 @@
 
 \item{...}{further specifications for \link{plot}.}
 
-\item{bands}{Bands used for visualisation}
+\item{bands}{bands used for visualisation}
 }
 \value{
-Input sits tibble (useful for chaining functions).
+plot
 }
 \description{
 Given a sits tibble with a set of predictions, plot them

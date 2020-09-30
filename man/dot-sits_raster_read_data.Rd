@@ -8,6 +8,7 @@
   cube,
   samples,
   t_obj.lst,
+  t_obj_cld,
   extent,
   stats,
   filter,
@@ -19,7 +20,9 @@
 
 \item{samples}{tibble with samples.}
 
-\item{t_obj.lst}{list of terra objects to be read}
+\item{t_obj.lst}{list of terra objects to be read which match the input bands}
+
+\item{t_obj_cld}{terra object that points to the cube cloud band}
 
 \item{extent}{bounding box in (i,j) coordinates}
 
@@ -28,6 +31,8 @@
 \item{filter}{smoothing filter to be applied.}
 
 \item{multicores}{number of cores to process the time series.}
+
+\item{impute_fn}{impute function to replace NA}
 }
 \value{
 A data.table with values for classification.

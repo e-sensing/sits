@@ -14,7 +14,7 @@
 \item{...}{further specifications for \link{plot}.}
 }
 \value{
-Input sits tibble (useful for chaining functions).
+plot
 }
 \description{
 Given a sits tibble with a set of patterns, plot them.

@@ -3,10 +3,10 @@ test_that("Classify time series with TWDTW method", {
     #skip_on_cran()
     data("samples_mt_4bands")
     data("point_mt_6bands")
-    samples_mt_ndvi <- sits_select_bands(samples_mt_4bands, ndvi)
-    point_mt_ndvi <- sits_select_bands(point_mt_6bands, ndvi)
+    samples_mt_ndvi <- sits_select(samples_mt_4bands, bands = "NDVI")
+    point_mt_ndvi <- sits_select(point_mt_6bands, bands = "NDVI")
     patterns <- sits_patterns(samples_mt_ndvi)
-    matches <- sits_twdtw_classify(point_mt_ndvi, patterns, bands = "ndvi",
+    matches <- sits_twdtw_classify(point_mt_ndvi, patterns, bands = "NDVI",
                                    alpha = -0.1, beta = 100,
                                    theta = 0.5, keep = TRUE)
 
@@ -18,8 +18,8 @@ test_that("Test defaults with TWDTW method", {
     #skip_on_cran()
     data("samples_mt_4bands")
     data("point_mt_6bands")
-    samples_mt_ndvi <- sits_select_bands(samples_mt_4bands, ndvi)
-    point_mt_ndvi <- sits_select_bands(point_mt_6bands, ndvi)
+    samples_mt_ndvi <- sits_select(samples_mt_4bands, bands = "NDVI")
+    point_mt_ndvi <- sits_select(point_mt_6bands, bands = "NDVI")
     patterns <- sits_patterns(samples_mt_ndvi)
     matches <- sits_twdtw_classify(point_mt_ndvi, patterns,
                                    start_date = "2005-01-01",

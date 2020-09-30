@@ -3,7 +3,11 @@
 We are preparing to release the package on CRAN and are making relevant changes in the development version.
 
 # What's new in SITS version 0.9
-# 
+### New features in SITS version 0.9.7
+* Merging of BRICK and STACK type into a single RASTER type
+* Image access now uses the "terra" package (faster)
+* Image classification using region of interest (ROI)
+
 ### New features in SITS version 0.9.6
 * Access and processing of tiles of the Brazil Data Cube
 * Plotting of data cube and probability images
