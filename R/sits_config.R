@@ -50,6 +50,35 @@ sits_config <- function() {
     return(invisible(sits.env$config))
 }
 
+#' @title Information about configuration file
+#' @name sits_config_info
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
+#'
+#' @description Displays the local of sits configuration file. For details
+#' on how to set the configuration file, use \code{\link[sits]{sits_config}}.
+#'
+#' @return a message
+#' @examples
+#' sits_config_info()
+#' @export
+
+sits_config_info <- function() {
+  # the default configuration file
+  yml_file <- system.file("extdata", "config.yml", package = "sits")
+
+  msg1 <- paste0("Using configuration file: ", yml_file)
+
+  # try to find a valid user configuration file
+  user_yml_file   <- "~/.sits/config.yml"
+  if (file.exists(user_yml_file))
+    msg2 <- paste0("Additional configurations found in ", user_yml_file)
+  else
+    msg2 <- paste0("Users can provide additional configurations in ", user_yml_file)
+
+  return(message(msg1, "\n", msg2))
+
+}
+
 #' @title Shows the contents of the sits configuration file
 #' @name sits_config_show
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}

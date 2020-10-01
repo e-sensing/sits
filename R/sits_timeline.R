@@ -9,9 +9,9 @@
 #'  \item{"data cube": }{see \code{\link{sits_timeline.cube}}}
 #' }
 #' @param  data     either a sits tibble or data cube
-#' @param  index    index in the case of data cube
+#' @param  ...      other parameters
 #' @export
-sits_timeline <- function(data, index){
+sits_timeline <- function(data, ...){
     # get the meta-type (sits or cube)
     data <- .sits_config_data_meta_type(data)
 
@@ -21,9 +21,8 @@ sits_timeline <- function(data, index){
 #' @title Obtains the timeline for a set of time series
 #' @name sits_timeline.sits
 #' @param  data     A sits tibble
-#' @param  index    ignored
 #' @export
-sits_timeline.sits <- function(data, index = NULL){
+sits_timeline.sits <- function(data){
     timeline <-  NULL
 
     timeline <- lubridate::as_date(sits_time_series_dates(data))
@@ -37,9 +36,10 @@ sits_timeline.sits <- function(data, index = NULL){
 #' @title Obtains the timeline for a data cube
 #' @name sits_timeline.cube
 #' @param  data     A sits tibble (either a sits tibble or a raster metadata).
+#' @param  ...      other parameters
 #' @param  index    The index to obtain the timeline
 #' @export
-sits_timeline.cube <- function(data, index = 1){
+sits_timeline.cube <- function(data, ..., index = 1){
     timeline <-  NULL
     # is this a cube metadata?
     timeline <- lubridate::as_date(data$timeline[[1]][[index]])
