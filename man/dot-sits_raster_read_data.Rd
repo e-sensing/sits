@@ -12,6 +12,7 @@
   extent,
   stats,
   filter,
+  impute_fn,
   multicores
 )
 }
@@ -30,9 +31,9 @@
 
 \item{filter}{smoothing filter to be applied.}
 
-\item{multicores}{number of cores to process the time series.}
-
 \item{impute_fn}{impute function to replace NA}
+
+\item{multicores}{number of cores to process the time series.}
 }
 \value{
 A data.table with values for classification.
