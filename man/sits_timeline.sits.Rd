@@ -4,12 +4,10 @@
 \alias{sits_timeline.sits}
 \title{Obtains the timeline for a set of time series}
 \usage{
-\method{sits_timeline}{sits}(data, index = NULL)
+\method{sits_timeline}{sits}(data)
 }
 \arguments{
 \item{data}{A sits tibble}
-
-\item{index}{ignored}
 }
 \description{
 Obtains the timeline for a set of time series

@@ -4,12 +4,12 @@
 \alias{sits_timeline}
 \title{Obtains the timeline}
 \usage{
-sits_timeline(data, index)
+sits_timeline(data, ...)
 }
 \arguments{
 \item{data}{either a sits tibble or data cube}
 
-\item{index}{index in the case of data cube}
+\item{...}{other parameters}
 }
 \description{
 This function returns the timeline for a given data set

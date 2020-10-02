@@ -1,11 +1,12 @@
 # On load
 .onAttach <- function(lib, pkg){
-    packageStartupMessage("sits - satellite image time series analysis.")
+    packageStartupMessage("SITS - satellite image time series analysis.")
     packageStartupMessage(
         sprintf("Loaded sits v%s.
         See ?sits for help, citation(\"sits\") for use in publication.
         See demo(package = \"sits\") for examples.",
                 utils::packageDescription("sits")$Version) )
+    packageStartupMessage(sits_config_info())
 }
 
 .onLoad <- function(lib, pkg) {
