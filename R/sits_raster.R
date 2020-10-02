@@ -41,9 +41,13 @@
                                        ncols  = extent["ncols"],
                                        mat = TRUE)
         terra::readStop(t_obj_cld)
+        cld_index <- .sits_config_cloud_valid_values(cube)
     }
-    else
+    else{
         clouds.mx <- NULL
+        cld_index <- NULL
+    }
+
 
     # read the values from the raster bricks ordered by bands
     values.lst <- purrr::map2(bands, c(1:n_bands), function(band, b) {
@@ -61,6 +65,7 @@
         values.mx <- .sits_raster_preprocess_data(values.mx,
                                                   band,
                                                   clouds.mx,
+                                                  cld_index,
                                                   missing_values[band],
                                                   minimum_values[band],
                                                   maximum_values[band],
@@ -98,6 +103,7 @@
 #' @param  values.mx        matrix of values retrieved from a raster object
 #' @param  band             band to be processed
 #' @param  clouds.mx        matrix of cloud values (optional)
+#' @param  cld_index        index of values indicating clouds in the cloud band
 #' @param  missing_value    missing value for the band.
 #' @param  minimum_value    minimum values for the band.
 #' @param  maximum_values   maximum values for the band
@@ -110,6 +116,7 @@
 .sits_raster_preprocess_data <- function(values.mx,
                                          band,
                                          clouds.mx,
+                                         cld_index,
                                          missing_value,
                                          minimum_value,
                                          maximum_value,
@@ -127,7 +134,6 @@
 
     # change the points under clouds to NA
     if (!purrr::is_null(clouds.mx)) {
-        cld_index <- .sits_config_cloud_valid_values(cube)
         values.mx[clouds.mx %in% cld_index] <- NA
     }
     # are there NA values? interpolate them

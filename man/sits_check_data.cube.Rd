@@ -2,10 +2,9 @@
 % Please edit documentation in R/sits_data_generics.R
 \name{sits_check_data.cube}
 \alias{sits_check_data.cube}
-\alias{sits_check_data.sits}
 \title{Checks if a data cube is consistent}
 \usage{
-\method{sits_check_data}{sits}(data)
+\method{sits_check_data}{cube}(data)
 }
 \arguments{
 \item{data}{Valid sits tibble (time series or a cube)}

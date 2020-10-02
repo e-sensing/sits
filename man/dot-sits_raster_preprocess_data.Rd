@@ -8,6 +8,7 @@
   values.mx,
   band,
   clouds.mx,
+  cld_index,
   missing_value,
   minimum_value,
   maximum_value,
@@ -24,6 +25,8 @@
 \item{band}{band to be processed}
 
 \item{clouds.mx}{matrix of cloud values (optional)}
+
+\item{cld_index}{index of values indicating clouds in the cloud band}
 
 \item{missing_value}{missing value for the band.}
 

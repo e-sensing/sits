@@ -5,15 +5,11 @@
 \title{Checks if data is consistent}
 \usage{
 sits_check_data(data)
-
-sits_check_data(data)
 }
 \arguments{
 \item{data}{Valid sits tibble (time series or a cube)}
 }
 \value{
-Messages with warnings
-
 Messages with warnings
 }
 \description{
@@ -22,18 +18,8 @@ Check is timelines of data sets are consistent
  \item{"time series": }{see \code{\link{sits_check_data.sits}}}
  \item{"data cube": }{see \code{\link{sits_check_data.cube}}}
 }
-
-Check is timelines of data sets are consistent
-\itemize{
- \item{"time series": }{see \code{\link{sits_check_data.sits}}}
- \item{"data cube": }{see \code{\link{sits_check_data.cube}}}
-}
 }
 \author{
-Gilberto Camara, \email{gilberto.camara@inpe.br}
-
-Rolf Simoes, \email{rolf.simoes@inpe.br}
-
 Gilberto Camara, \email{gilberto.camara@inpe.br}
 
 Rolf Simoes, \email{rolf.simoes@inpe.br}
