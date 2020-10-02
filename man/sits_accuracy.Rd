@@ -4,13 +4,12 @@
 \alias{sits_accuracy}
 \title{Area-weighted classification accuracy assessment}
 \usage{
-sits_accuracy(validation, area)
+sits_accuracy(label_cube, validation_csv)
 }
 \arguments{
-\item{validation}{A SITS tibble or CSV file with validation data}
+\item{label_cube}{A tibble with metadata about the classified maps.}
 
-\item{area}{A named vector of the total area of each class on
-the map}
+\item{validation_csv}{A CSV file path with validation data}
 }
 \description{
 To use this function the input table should be
