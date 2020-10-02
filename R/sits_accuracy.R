@@ -26,43 +26,72 @@
 #' Remote Sensing of
 #' Environment, 148, pp. 42-57.
 #'
-#' @param validation       A SITS tibble or CSV file with validation data
+#' @param label_cube       A tibble with metadata about the classified maps.
 #'
-#' @param area             A named vector of the total area of each class on
-#'                         the map
+#' @param validation_csv   A CSV file path with validation data
 #'
 #' @export
-sits_accuracy <- function(validation, area){
+sits_accuracy <- function(label_cube, validation_csv) {
 
-    # assertthat::assert_that("classified_image" %in% class(label_cube),
-    #                         msg = "sits_accuracy requires a labelled cube")
-    #
-    #
+    assertthat::assert_that("classified_image" %in% class(label_cube),
+                            msg = "sits_accuracy requires a labelled cube")
 
-    # backward compatibility
-    class.tb <- .sits_tibble_rename(validation)
+    assertthat::assert_that(file.exists(validation_csv),
+                            msg = "sits_accuracy: validation file does not exist.")
+
+    # read sample information from CSV file and put it in a tibble
+    csv.tb <- tibble::as_tibble(utils::read.csv(validation_csv))
+
+    # Precondition - check if CSV file is correct
+    .sits_csv_check(csv.tb)
+
+    # get xy in cube projection
+    xy.tb <- .sits_latlong_to_proj(longitude = csv.tb$longitude,
+                                   latitude = csv.tb$latitude,
+                                   crs = label_cube$crs)
+
+    # join lat-long with XY values in a single tibble
+    points <- dplyr::bind_cols(csv.tb, xy.tb)
+
+    # filter the points inside the data cube
+    points_year <- dplyr::filter(points,
+                                 X > label_cube$xmin & X < label_cube$xmax &
+                                     Y > label_cube$ymin & Y < label_cube$ymax,
+                                 start_date == label_cube$file_info[[1]]$date)
+
+    # are there points to be retrieved from the cube?
+    assertthat::assert_that(nrow(points_year) != 0,
+                            msg = "No validation point intersects the map's spatiotemporal extent.")
+
+    # retain only xy inside the cube
+    xy <- matrix(c(points_year$X, points_year$Y),
+                 nrow = nrow(points_year), ncol = 2)
+    colnames(xy) <- c("X", "Y")
+
+    # open raster
+    t_obj <- .sits_cube_terra_obj_band(cube = label_cube,
+                                       band_cube = label_cube$bands)
+
+    # extract classes
+    predicted <- label_cube$labels[[1]][terra::extract(t_obj, xy)[,"lyr.1"]]
 
     # Get reference classes
-    references <- class.tb$label
-
-    # create a vector to store the result of the predictions
-    mapped <-
-        unlist(purrr::map(class.tb$predicted, function(r)
-            r$class))
-
-    # Get all labels
-    classes   <- unique(c(references, mapped))
+    references <- points_year$label
 
     # Create error matrix
-    error_matrix <-
-        table(
-            factor(mapped,     levels = classes, labels = classes),
-            factor(references, levels = classes, labels = classes)
-        )
+    error_matrix <- table(
+        factor(predicted, levels = label_cube$labels[[1]],
+               labels = label_cube$labels[[1]]),
+        factor(references, levels = label_cube$labels[[1]],
+               labels = label_cube$labels[[1]]))
 
     # Get area
-    if (purrr::is_null(area))
-        area <- rowSums(error_matrix)
+    freq <- tibble::as_tibble(terra::freq(t_obj))
+    area <- freq$count
+    names(area) <- label_cube$labels[[1]][freq$value]
+    area <- area[label_cube$labels[[1]]]
+    names(area) <- label_cube$labels[[1]]
+    area[is.na(area)] <- 0
 
     # Compute accuracy metrics
     assessment <- .sits_assess_accuracy_area(error_matrix, area)
@@ -81,11 +110,10 @@ sits_accuracy <- function(validation, area){
 #' @param area         A named vector of the total area of each class on
 #'                     the map
 #'
-#' @return             A list of lists: The error_matrix,
-#'                     the class_areas,
-#'                     confidence interval (confint95, a list of two numerics)
-#'                     and the accuracy (accuracy, a list of three numerics:
-#'                     overall, user, and producer)
+#' @return
+#' A list of lists: The error_matrix, the class_areas, the unbiased
+#' estimated areas, the standard error areas, confidence interval 95% areas,
+#' and the accuracy (user, producer, and overall).
 
 .sits_assess_accuracy_area <- function(error_matrix, area){
 
@@ -105,17 +133,20 @@ sits_accuracy <- function(validation, area){
     # Re-order vector elements.
     area <- area[colnames(error_matrix)]
 
-    W <- area/sum(area)
+    W <- area / sum(area)
     n <- rowSums(error_matrix)
 
-    if (any(n < 2))
-        stop("Undefined accuracy: one pixel in a class (division by zero).",
-             call. = FALSE)
+    # if (any(n < 2))
+    #     stop("Undefined accuracy: only one pixel in a class (division by zero).",
+    #          call. = FALSE)
+
     # n.mat <- matrix(rep(n, times = ncol(error_matrix)),
     #                 ncol = ncol(error_matrix))
     # p <- W * error_matrix / n.mat
     p <- W * error_matrix / n
-    error_adjusted_area_estimate <- colSums(p) * sum(area)
+    p[is.na(p)] <- 0
+
+    error_adjusted_area <- colSums(p) * sum(area)
 
     # Sphat_1 <- vapply(seq_len(ncol(error_matrix)), function(i){
     #     sqrt(sum(W^2 * error_matrix[, i]/n * (1 - error_matrix[, i]/n)/(n - 1)))
@@ -124,19 +155,21 @@ sits_accuracy <- function(validation, area){
 
     SAhat <- sum(area) * Sphat_1
     # Ahat_sup <- error_adjusted_area_estimate + 2 * SAhat
-    Ahat_sup <- error_adjusted_area_estimate + 1.96 * SAhat
+    #Ahat_sup <- error_adjusted_area_estimate + 1.96 * SAhat
     # Ahat_inf <- error_adjusted_area_estimate - 2 * SAhat
-    Ahat_inf <- error_adjusted_area_estimate - 1.96 * SAhat
+    #Ahat_inf <- error_adjusted_area_estimate - 1.96 * SAhat
     Ohat <- sum(diag(p))
     Uhat <- diag(p) / rowSums(p)
     Phat <- diag(p) / colSums(p)
 
     return(
         list(error_matrix = error_matrix,
-             area = area, SE_area = SAhat,
-             conf_95 = list(superior = Ahat_sup, inferior = Ahat_inf),
-             accuracy = list(overall = Ohat, user = Uhat, producer = Phat))
-    )
+             `area (pixels)` = area,
+             `estimated area (pixels)` = error_adjusted_area,
+             `area SE` = Sphat_1,
+             `area SE (pixels)` = SAhat,
+             `area CI 95% (pixels)` = 1.96 * SAhat,
+             accuracy = list(user = Uhat, producer = Phat, overall = Ohat)))
 }
 
 

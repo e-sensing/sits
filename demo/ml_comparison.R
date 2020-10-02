@@ -93,7 +93,7 @@ results[[length(results) + 1]] <- conf_mlr.mx
 conf_xgb.tb <- sits_kfold_validate(samples_mt_4bands,
                                    folds = 5,
                                    multicores = 32,
-                                   ml_method = sits_xgboost(nthread = 32))
+                                   ml_method = sits_xgboost())
 
 # print the accuracy of the Multinomial log-linear
 print("== Confusion Matrix = XGB =======================")
