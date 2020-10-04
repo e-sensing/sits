@@ -188,6 +188,8 @@ sits_label_classification <- function(cube,
 	bands     <- vector(length = n_objs)
 	files     <- vector(length = n_objs)
 	timelines <- vector("list", length = n_objs)
+	# generate a set of timelines for the file_info
+	times_probs <- vector(length = n_objs)
 
 	# set scale factors, missing values, minimum and maximum values
 	scale_factors   <- rep(1, n_objs)
@@ -204,9 +206,9 @@ sits_label_classification <- function(cube,
 	for (i in 1:n_objs) {
 
 		# define the timeline for the raster data sets
-		timelines[[i]] <- lubridate::as_date(sits_timeline(cube_probs, i))
-		start_date     <- timelines[[i]][1]
-		end_date       <- timelines[[i]][length(timelines[[i]])]
+		timeline       <- cube_probs$timeline[[1]][[i]]
+		start_date     <- timeline[1]
+		end_date       <- timeline[length(timeline)]
 
 		# # define the filename for the classified image
 		bands[i] <- .sits_cube_class_band_name(name = cube_probs[1,]$name,
@@ -219,12 +221,10 @@ sits_label_classification <- function(cube,
 										  type = type,
 										  start_date = start_date,
 										  end_date = end_date)
-	}
 
-	# generate a set of timelines for the file_info
-	times_probs <- vector(length = n_objs)
-	for (i in 1:n_objs){
-		times_probs[i] <- timelines[[i]][1]
+		times_probs[i] <- start_date
+
+		timelines[[i]] <- timeline
 	}
 
 	# get the file information

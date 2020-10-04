@@ -58,7 +58,7 @@ test_that("Reading a CSV file from RASTER", {
     points.tb <- sits_get_data(raster_cube, file = csv_raster_file)
     df_csv <- utils::read.csv(system.file("extdata/samples/samples_sinop_crop.csv",
                                           package = "sits"))
-    expect_true(NROW(points.tb) == NROW(df_csv))
+    expect_true(NROW(points.tb) <= NROW(df_csv))
 
     expect_true("Forest" %in% sits_labels(points.tb)$label)
     expect_equal(names(points.tb)[1], "longitude")

@@ -9,9 +9,8 @@
 #'  \item{"data cube": }{see \code{\link{sits_timeline.cube}}}
 #' }
 #' @param  data     either a sits tibble or data cube
-#' @param  ...      other parameters
 #' @export
-sits_timeline <- function(data, ...){
+sits_timeline <- function(data){
     # get the meta-type (sits or cube)
     data <- .sits_config_data_meta_type(data)
 
@@ -36,16 +35,17 @@ sits_timeline.sits <- function(data){
 #' @title Obtains the timeline for a data cube
 #' @name sits_timeline.cube
 #' @param  data     A sits tibble (either a sits tibble or a raster metadata).
-#' @param  ...      other parameters
-#' @param  index    The index to obtain the timeline
 #' @export
-sits_timeline.cube <- function(data, ..., index = 1){
+sits_timeline.cube <- function(data){
+
     timeline <-  NULL
     # is this a cube metadata?
-    timeline <- lubridate::as_date(data$timeline[[1]][[index]])
+    timeline <- lubridate::as_date(data$timeline[[1]][[1]])
 
     assertthat::assert_that(!purrr::is_null(timeline),
                             msg = "sits_timeline: input does not contain a valid timeline")
+
+    # check that all timelines are the same
     return(timeline)
 }
 

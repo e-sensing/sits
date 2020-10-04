@@ -141,7 +141,7 @@ sits_check_data.sits <-  function(data) {
 #'
 #' @export
 sits_check_data.cube <-  function(data) {
-    message("Checking a tibble with time series")
+    message("Checking a data cube")
 
     assertthat::assert_that(nrow(data) >= 2,
                             msg = "data has less than two rows")

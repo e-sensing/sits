@@ -4,14 +4,10 @@
 \alias{sits_timeline.cube}
 \title{Obtains the timeline for a data cube}
 \usage{
-\method{sits_timeline}{cube}(data, ..., index = 1)
+\method{sits_timeline}{cube}(data)
 }
 \arguments{
 \item{data}{A sits tibble (either a sits tibble or a raster metadata).}
-
-\item{...}{other parameters}
-
-\item{index}{The index to obtain the timeline}
 }
 \description{
 Obtains the timeline for a data cube

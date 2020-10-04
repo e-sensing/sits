@@ -1,5 +1,6 @@
 #' @title Area-weighted classification accuracy assessment
 #' @name sits_accuracy
+#' @author Rolf Simoes, \email{}
 #' @author Alber Sanchez, \email{alber.ipia@@inpe.br}
 #' @description To use this function the input table should be
 #' a set of results containing
@@ -94,9 +95,18 @@ sits_accuracy <- function(label_cube, validation_csv) {
     area[is.na(area)] <- 0
 
     # Compute accuracy metrics
-    assessment <- .sits_assess_accuracy_area(error_matrix, area)
+    assess <- .sits_assess_accuracy_area(error_matrix, area)
 
-    return(assessment)
+    # Print assessment values
+    tb <- t(dplyr::bind_rows(assess$accuracy$user, assess$accuracy$producer))
+    colnames(tb) <- c("User", "Producer")
+    #
+    print(knitr::kable(tb, digits = 2, caption = "Users and Producers Accuracy per Class"))
+
+    # print overall accuracy
+    print(paste0("\nOverall accuracy is ", assess$accuracy$overall))
+
+    return(assess)
 }
 
 
