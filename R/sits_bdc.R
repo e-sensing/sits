@@ -148,10 +148,10 @@
     # BDC uses a composite path
     # e.g. "2016-01-01_2016-01-16/CB4_64_16D_STK_v001_022024_2016-01-01_2016-01-16_BAND13.tif"
 
-    # convert the names of the bands to those used by SITS
-    bands_sits <- .sits_config_band_names_convert(satellite, sensor, type = "BDC_TILE")
+    # find out the band names used by SITS
+    bands_sits <- .sits_config_band_names_convert_bdc(satellite, sensor)
 
-    # find out the bands used by SITS in their original names
+    # use the original band names as part of a named vector
     bands_orig <- names(bands_sits)
 
     # list the image files
