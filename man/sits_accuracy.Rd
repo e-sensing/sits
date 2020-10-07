@@ -37,5 +37,7 @@ Remote Sensing of
 Environment, 148, pp. 42-57.
 }
 \author{
+Rolf Simoes, \email{}
+
 Alber Sanchez, \email{alber.ipia@inpe.br}
 }

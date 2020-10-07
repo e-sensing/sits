@@ -258,8 +258,6 @@
 	# get maximum values
 	maximum_values <- .sits_config_maximum_values(sensor, bands)
 
-
-
 	# create a tibble to store the metadata
 	cube <- .sits_cube_create(type           = "BDC_TILE",
 	                          satellite      = satellite,

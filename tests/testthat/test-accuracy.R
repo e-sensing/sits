@@ -11,38 +11,6 @@ test_that("XLS", {
     expect_true(file.remove("confusion_matrix.xlsx"))
 })
 
-test_that("Accuracy - 2 classes", {
-    cube_wtss <- sits_cube(type = "WTSS",
-                           URL = "http://www.esensing.dpi.inpe.br/wtss/",
-                           name = "MOD13Q1")
-
-    data <- sits_get_data(cube_wtss,
-                          file = system.file("extdata/samples/samples_matogrosso.csv",
-                                 package = "sits"),
-                          bands = c("ndvi", "evi"),
-                          .n_save = 0)
-
-    data("cerrado_2classes")
-    svm_model <- sits_train(cerrado_2classes, ml_method = sits_svm())
-    class.tb <- sits_classify(data, svm_model)
-
-    invisible(utils::capture.output(conf.mx <- sits_conf_matrix(class.tb)))
-
-    expect_equal(length(names(conf.mx)), 6)
-
-    # Error when the sum of any row in the error matrix is exactly 1.
-    testthat::expect_error(sits_accuracy_area(class.tb))
-
-    # Duplicate the rows to ensure all the rows sum to more than 1.
-    acc_ls <- sits_accuracy_area(rbind(class.tb, class.tb))
-    expect_true(acc_ls$accuracy$overall <= 1)
-    expect_true(all(acc_ls$accuracy$user <= 1))
-    expect_true(all(acc_ls$accuracy$producer <= 1))
-    expect_true(acc_ls$accuracy$overall >= 0)
-    expect_true(all(acc_ls$accuracy$user >= 0))
-    expect_true(all(acc_ls$accuracy$producer >= 0))
-})
-
 test_that("Accuracy - more than 2 classes", {
     data("samples_mt_4bands")
     samples <- sits_select(samples_mt_4bands, bands = c("NDVI", "EVI"))
@@ -63,3 +31,50 @@ test_that("Accuracy - more than 2 classes", {
     expect_true(conf2.mx$overall["Accuracy"] > 0.95)
     expect_true(conf2.mx$overall["Kappa"] > 0.95)
 })
+test_that("Accuracy areas", {
+    samples_mt_2bands <- sits_select(samples_mt_4bands, bands = c("NDVI", "EVI"))
+
+    samples_mt_2bands <- dplyr::filter(samples_mt_2bands, label %in%
+                                c("Forest", "Pasture", "Soy_Corn"))
+    xgb_model <- sits_train(samples_mt_2bands, sits_xgboost(nrounds = 30, verbose = FALSE))
+
+    ndvi_file <- c(system.file("extdata/raster/mod13q1/sinop-ndvi-2014.tif",
+                               package = "sits"))
+
+    evi_file <- c(system.file("extdata/raster/mod13q1/sinop-evi-2014.tif",
+                              package = "sits"))
+
+    data("timeline_2013_2014")
+
+    sinop_2014 <- sits_cube(name = "sinop-2014",
+                            timeline = timeline_2013_2014,
+                            satellite = "TERRA",
+                            sensor = "MODIS",
+                            bands = c("ndvi", "evi"),
+                            files = c(ndvi_file, evi_file))
+
+    sinop_2014_probs <- sits_classify(sinop_2014,
+                                      xgb_model,
+                                      memsize = 4,
+                                      multicores = 1)
+
+
+    expect_true(all(file.exists(unlist(sinop_2014_probs$file_info[[1]]$path))))
+    tc_obj <- suppressWarnings(terra::rast(sinop_2014_probs$file_info[[1]]$path[1]))
+    expect_true(terra::nrow(tc_obj) == sinop_2014_probs$nrows)
+
+    sinop_2014_label <- sits_label_classification(sinop_2014_probs,
+                                                  smoothing = "bayesian")
+
+    ground_truth <- system.file("extdata/samples/samples_sinop_crop.csv", package = "sits")
+    as <- suppressWarnings(sits_accuracy(sinop_2014_label, ground_truth))
+
+    expect_equal(as.numeric(as$accuracy$user["Forest"]), 1.0)
+    expect_equal(as.numeric(as$accuracy$producer["Pasture"]), 1.0)
+
+    expect_true(all(file.remove(unlist(sinop_2014_probs$file_info[[1]]$path))))
+    expect_true(all(file.remove(unlist(sinop_2014_label$file_info[[1]]$path))))
+
+
+})
+

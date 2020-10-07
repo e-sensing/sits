@@ -15,11 +15,9 @@ rows the results of the classification}
 the map}
 }
 \value{
-A list of lists: The error_matrix,
-                    the class_areas,
-                    confidence interval (confint95, a list of two numerics)
-                    and the accuracy (accuracy, a list of three numerics:
-                    overall, user, and producer)
+A list of lists: The error_matrix, the class_areas, the unbiased
+estimated areas, the standard error areas, confidence interval 95% areas,
+and the accuracy (user, producer, and overall).
 }
 \description{
 Support for Area-weighted post-classification accuracy

@@ -105,7 +105,7 @@ test_that("Multi-year, multi-core classification", {
 
 test_that("One-year, single core classification", {
     samples_mt_2bands <- sits_select(samples_mt_4bands, bands = c("NDVI", "EVI"))
-    rfor_model <- sits_train(samples_mt_2bands, sits_rfor(num_trees = 500))
+    xgb_model <- sits_train(samples_mt_2bands, sits_xgboost(verbose = FALSE))
 
     ndvi_file <- c(system.file("extdata/raster/mod13q1/sinop-ndvi-2014.tif",
                                package = "sits"))
@@ -123,7 +123,7 @@ test_that("One-year, single core classification", {
                             files = c(ndvi_file, evi_file))
 
     sinop_2014_probs <- sits_classify(sinop_2014,
-                                      rfor_model,
+                                      xgb_model,
                                       memsize = 4,
                                       multicores = 1)
 
@@ -131,7 +131,12 @@ test_that("One-year, single core classification", {
     tc_obj <- suppressWarnings(terra::rast(sinop_2014_probs$file_info[[1]]$path[1]))
     expect_true(terra::nrow(tc_obj) == sinop_2014_probs$nrows)
 
+    sinop_2014_label <- sits_label_classification(sinop_2014_probs,
+                                      smoothing = "bayesian")
+
     expect_true(all(file.remove(unlist(sinop_2014_probs$file_info[[1]]$path))))
+    expect_true(all(file.remove(unlist(sinop_2014_label$file_info[[1]]$path))))
+
 
 })
 

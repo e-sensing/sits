@@ -1105,12 +1105,13 @@ plot.keras_model <- function(x, y, ...) {
 .sits_plot_rgb_assign <- function(cube, red, green, blue, time){
 	# check if the selected bands are correct
 	bands <- sits_bands(cube)
+	all_bands <- paste0(bands, collapse = " ")
 	assertthat::assert_that(red %in% bands,
-							msg = paste0("R channel should be one of ", bands))
+							msg = paste0("R channel should be one of ", all_bands))
 	assertthat::assert_that(green %in% bands,
-							msg = paste0("G channel should be one of ", bands))
+							msg = paste0("G channel should be one of ", all_bands))
 	assertthat::assert_that(blue %in% bands,
-							msg = paste0("B channel should be one of ", bands))
+							msg = paste0("B channel should be one of ", all_bands))
 	# find out the number of instances
 	n_instances <- length(sits_timeline(cube))
 	# check if the selected temporal instance exists
