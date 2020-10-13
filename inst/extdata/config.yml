@@ -208,9 +208,10 @@ default:
     MSI                     :
         bands               :
             SITS            : &msi_bands_sits ["B01", "B02", "B03", "B04", "B05", "B06", "B07", "B08", "B8A", "B09", "B10", "B11", "B12", "SCL"]
-            S2_L2_AWS       : ["B01", "B02", "B03", "B04", "B05", "B06", "B07", "B08", "B8A", "B09", "B10", "B11", "B12", "SCL"]
+            S2_L2_AWS       : &msi_bands_aws ["B01", "B02", "B03", "B04", "B05", "B06", "B07", "B08", "B8A", "B09", "B10", "B11", "B12", "SCL"]
             BDC_TILE        : ["band1", "band2", "band3", "band4", "band5", "band6", "band7", "band8", "band8a", "band9", "band10", "band11", "band12"]
             RASTER          : *msi_bands_sits
+            AWS             : *msi_bands_aws
             cloud_band      : "SCL"
 
         SCL_values          :

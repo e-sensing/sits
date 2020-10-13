@@ -44,6 +44,7 @@ Imports:
     lubridate (>= 1.7.0),
     parallel,
     purrr  (>= 0.3.0),
+    randomForest,
     raster (>= 2.6),
     reshape2,
     readr,
@@ -137,6 +138,7 @@ Collate:
     'sits_patterns.R'
     'sits_pipe.R'
     'sits_plot.R'
+    'sits_processing_estimate.R'
     'sits_raster.R'
     'sits_raster_blocks.R'
     'sits_raster_brick.R'

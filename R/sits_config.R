@@ -114,7 +114,84 @@ sits_config_show <- function() {
 
     return(invisible())
 }
+#' @title Convert bands names from cube to SITS
+#' @name .sits_config_band_names_convert
+#' @keywords internal
+#'
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
+#'
+#' @description Convert the name of the band used by the origin data cube
+#'              to the name used by SITS
+#' @param satellite      Name of the satellite
+#' @param sensor         Name of sensor
+#' @param bands_files    Bands available in the files
+#' @return               Name of the bands used in SITS (named vector)
+#'
+.sits_config_band_names_convert <- function(satellite, sensor, bands_files){
 
+    # Precondition
+    .sits_raster_satellite_sensor(satellite, sensor)
+
+    # bands used by SITS
+    bands_sits <- sits.env$config[[sensor]][["bands"]][["SITS"]]
+    # Are these the right names?
+    if (all(bands_files %in% bands_sits)) {
+        bands_sits <- bands_sits[match(bands_files, bands_sits)]
+        names(bands_sits) <- bands_files
+      return(bands_sits)
+    }
+
+    # bands used by BDC
+    bands_bdc <- sits.env$config[[sensor]][["bands"]][["BDC_TILE"]]
+    # are the names those used by BDC?
+    if (all(bands_files %in% bands_bdc)) {
+        idx <- match(bands_files, bands_bdc)
+        bands_bdc <- bands_bdc[idx]
+        bands_sits <- bands_sits[idx]
+        names(bands_sits) <- bands_bdc
+        return(bands_sits)
+    }
+    # bands used by AWS
+    bands_aws <- sits.env$config[[sensor]][["bands"]][["AWS"]]
+    # are the names those used by AWS?
+    if (all(bands_files %in% bands_aws)) {
+        idx <- match(bands_files, bands_aws)
+        bands_aws <- bands_aws[idx]
+        bands_sits <- bands_sits[idx]
+        names(bands_sits) <- bands_aws
+        return(bands_sits)
+    }
+
+    stop("band names unknown by SITS configuration file. Please fix it")
+    return(NULL)
+}
+#' @title Convert bands names from BDC to SITS
+#' @name .sits_config_band_names_convert_bdc
+#' @keywords internal
+#'
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
+#'
+#' @description Convert the name of the band used by BDC
+#'              to the name used by SITS
+#' @param satellite      Name of the satellite
+#' @param sensor         Name of sensor
+#' @return               Name of the bands used in SITS (named vector)
+#'
+.sits_config_band_names_convert_bdc <- function(satellite, sensor){
+
+  # Precondition
+  .sits_raster_satellite_sensor(satellite, sensor)
+
+  # bands used by SITS
+  bands_sits <- sits.env$config[[sensor]][["bands"]][["SITS"]]
+
+  # bands used by BDC
+  bands_bdc <- sits.env$config[[sensor]][["bands"]][["BDC_TILE"]]
+
+  names(bands_sits) <- bands_bdc
+  return(bands_sits)
+
+}
 #' @title Directory to read the BDC information on the web
 #' @name .sits_config_bdc_web
 #' @keywords internal
@@ -123,7 +200,7 @@ sits_config_show <- function() {
 #' @return directory where BDC is accessible on the web
 .sits_config_bdc_web <- function() {
 
-  return(sits.env$config$bdc_web)
+    return(sits.env$config$bdc_web)
 }
 
 #' @title Directory to read the BDC information as local file
@@ -236,16 +313,16 @@ sits_config_show <- function() {
 #' @return      Class of data cube metadata
 #'
 .sits_config_cube_specific <- function(type) {
-  # check that the cube is correct
-  type <- toupper(type)
-  if (.sits_config_check_type(type)) {
-    # find out which cube types are supported
-    types   <- sits.env$config$cube_types
-    classes <-  sits.env$config$cube_classes_specific
-    names(classes) <- types
-    return(unname(classes[type]))
-  }
-  return(NULL)
+    # check that the cube is correct
+    type <- toupper(type)
+    if (.sits_config_check_type(type)) {
+      # find out which cube types are supported
+      types   <- sits.env$config$cube_types
+      classes <-  sits.env$config$cube_classes_specific
+      names(classes) <- types
+      return(unname(classes[type]))
+    }
+    return(NULL)
 }
 
 #' @title Check that the cube class is valid, based on the configuration file
@@ -629,23 +706,49 @@ sits_config_show <- function() {
 #'              to the name used by SITS
 #' @param satellite      Name of the satellite
 #' @param sensor         Name of sensor
-#' @param type           Type of data cube
+#' @param bands_files    Bands available in the files
 #' @return               Name of the bands used in SITS (named vector)
 #'
-.sits_config_band_names_convert <- function(satellite, sensor, type){
+.sits_config_band_names_convert <- function(satellite, sensor, bands_files){
 
-    # Precondition
-    .sits_raster_satellite_sensor(satellite, sensor)
+  # Precondition
+  .sits_raster_satellite_sensor(satellite, sensor)
 
-    # bands used by SITS
-    bands_sits <- sits.env$config[[sensor]][["bands"]][["SITS"]]
-    # bands used by the cube original
-    bands_orig <- sits.env$config[[sensor]][["bands"]][[type]]
-    # use the names to convert
-    names(bands_sits) <- bands_orig
-
+  # bands used by SITS
+  bands_sits <- sits.env$config[[sensor]][["bands"]][["SITS"]]
+  # Are these the right names?
+  if (all(bands_files %in% bands_sits)) {
+    bands_sits <- bands_sits[match(bands_files, bands_sits)]
+    names(bands_sits) <- bands_files
     return(bands_sits)
+  }
+
+  # bands used by BDC
+  bands_bdc <- sits.env$config[[sensor]][["bands"]][["BDC_TILE"]]
+  # are the names those used by BDC?
+  if (all(bands_files %in% bands_bdc)) {
+      idx <- match(bands_files, bands_bdc)
+      bands_bdc <- bands_bdc[idx]
+      bands_sits <- bands_sits[idx]
+      names(bands_sits) <- bands_bdc
+      return(bands_sits)
+  }
+  # bands used by AWS
+  bands_aws <- sits.env$config[[sensor]][["bands"]][["AWS"]]
+  # are the names those used by AWS?
+  if (all(bands_files %in% bands_aws)) {
+      idx <- match(bands_files, bands_aws)
+      bands_aws  <- bands_aws[idx]
+      bands_sits <- bands_sits[idx]
+      names(bands_sits) <- bands_aws
+      return(bands_sits)
+  }
+
+  stop("band names unknown by SITS configuration file. Please fix it")
+  return(NULL)
 }
+
+
 #' @title Get the bucket where Sentinel-2 level 2A images are available in AWS
 #' @name .sits_config_sentinel_aws_bucket
 #' @keywords internal

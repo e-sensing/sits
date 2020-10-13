@@ -14,7 +14,8 @@
   memsize = 8,
   multicores = 2,
   output_dir = "./",
-  version = "v1"
+  version = "v1",
+  .verbose = FALSE
 )
 }
 \arguments{
@@ -37,6 +38,8 @@
 \item{output_dir}{directory for output file}
 
 \item{version}{version of the output (for multiple classifications)}
+
+\item{.verbose}{print detailed information on processing steps}
 }
 \value{
 cube with the metadata of a brick of probabilities.

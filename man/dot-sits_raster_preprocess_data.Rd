@@ -5,21 +5,19 @@
 \title{Preprocess a set of values retrived from a raster brick}
 \usage{
 .sits_raster_preprocess_data(
+  cube,
   values.mx,
   band,
   clouds.mx,
   cld_index,
-  missing_value,
-  minimum_value,
-  maximum_value,
-  scale_factor,
-  stats,
-  filter,
   impute_fn,
-  multicores
+  multicores,
+  .verbose
 )
 }
 \arguments{
+\item{cube}{data cube being processed}
+
 \item{values.mx}{matrix of values retrieved from a raster object}
 
 \item{band}{band to be processed}
@@ -28,21 +26,11 @@
 
 \item{cld_index}{index of values indicating clouds in the cloud band}
 
-\item{missing_value}{missing value for the band.}
-
-\item{minimum_value}{minimum values for the band.}
-
-\item{scale_factor}{scale factor for each band (only for raster data).}
-
-\item{stats}{normalization parameters.}
-
-\item{filter}{smoothing filter to be applied.}
-
 \item{impute_fn}{imputing function to be applied to replace NA}
 
 \item{multicores}{number of cores to process the time series.}
 
-\item{maximum_values}{maximum values for the band}
+\item{.verbose}{prints information about processing times}
 }
 \value{
 Matrix with pre-processed values.

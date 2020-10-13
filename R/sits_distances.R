@@ -51,7 +51,8 @@
 									 ml_model, multicores) {
 
 	# keras-based models run in single-core mode
-	if ("keras_model" %in% class(ml_model) || "rfor_model" %in% class(ml_model))
+	if ("keras_model" %in% class(ml_model) | "ranger_model" %in% class(ml_model)
+	    | "xgb_model" %in% class(ml_model))
 		multicores <- 1
 	# define the column names
 	attr_names <- names(.sits_distances(environment(ml_model)$data[1,]))

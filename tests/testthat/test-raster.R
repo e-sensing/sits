@@ -24,6 +24,15 @@ test_that("Multi-year, single core classification", {
     # classify using one core
     sinop_probs <- sits_classify(sinop, rfor_model, memsize = 2, multicores = 1)
 
+    # Retrieve values and test them
+    probs1 <- sinop_probs$file_info[[1]]$path[1]
+    t_obj <- terra::rast(probs1)
+    max_lyr1 <- max(terra::values(t_obj)[,1])
+    expect_true(max_lyr1 > 9000)
+
+    max_lyr2 <- max(terra::values(t_obj)[,2])
+    expect_true(max_lyr2 < 1000)
+
     # retrieve the output raster layers
     expect_true(all(file.exists(unlist(sinop_probs$file_info[[1]]$path))))
     expect_true(all(file.remove(unlist(sinop_probs$file_info[[1]]$path))))
@@ -56,6 +65,12 @@ test_that("Multi-year, multi-core classification", {
     expect_true(all(file.exists(unlist(sinop_probs$file_info[[1]]$path))))
     tc_obj <- suppressWarnings(terra::rast(sinop_probs$file_info[[1]]$path[1]))
     expect_true(terra::nrow(tc_obj) == sinop_probs$nrows)
+
+    max_lyr1 <- max(terra::values(tc_obj)[,1])
+    expect_true(max_lyr1 > 9000)
+
+    max_lyr2 <- max(terra::values(tc_obj)[,2])
+    expect_true(max_lyr2 < 1000)
 
     expect_error(sits:::.sits_raster)
 
@@ -105,7 +120,12 @@ test_that("Multi-year, multi-core classification", {
 
 test_that("One-year, single core classification", {
     samples_mt_2bands <- sits_select(samples_mt_4bands, bands = c("NDVI", "EVI"))
-    xgb_model <- sits_train(samples_mt_2bands, sits_xgboost(verbose = FALSE))
+    dl_model <- sits_train(samples_mt_2bands, sits_deeplearning(
+        layers = c(512, 512, 512),
+        dropout_rates = c(0.5, 0.4, 0.3),
+        epochs = 100,
+        batch_size = 64,
+        verbose = 0))
 
     ndvi_file <- c(system.file("extdata/raster/mod13q1/sinop-ndvi-2014.tif",
                                package = "sits"))
@@ -123,13 +143,20 @@ test_that("One-year, single core classification", {
                             files = c(ndvi_file, evi_file))
 
     sinop_2014_probs <- sits_classify(sinop_2014,
-                                      xgb_model,
+                                      dl_model,
                                       memsize = 4,
                                       multicores = 1)
 
     expect_true(all(file.exists(unlist(sinop_2014_probs$file_info[[1]]$path))))
     tc_obj <- suppressWarnings(terra::rast(sinop_2014_probs$file_info[[1]]$path[1]))
     expect_true(terra::nrow(tc_obj) == sinop_2014_probs$nrows)
+
+    max_lyr1 <- max(terra::values(tc_obj)[,1])
+    expect_true(max_lyr1 < 4500)
+
+    max_lyr3 <- max(terra::values(tc_obj)[,3])
+    expect_true(max_lyr3 > 9000)
+
 
     sinop_2014_label <- sits_label_classification(sinop_2014_probs,
                                       smoothing = "bayesian")
@@ -163,6 +190,15 @@ test_that("One-year, multicore classification", {
     sinop_2014_probs <- sits_classify(sinop_2014, svm_model, memsize = 4, multicores = 2)
 
     expect_true(all(file.exists(unlist(sinop_2014_probs$file_info[[1]]$path))))
+    tc_obj <- suppressWarnings(terra::rast(sinop_2014_probs$file_info[[1]]$path[1]))
+    expect_true(terra::nrow(tc_obj) == sinop_2014_probs$nrows)
+
+    max_lyr2 <- max(terra::values(tc_obj)[,2])
+    expect_true(max_lyr2 < 1000)
+
+    max_lyr3 <- max(terra::values(tc_obj)[,3])
+    expect_true(max_lyr3 > 9000)
+
     expect_true(all(file.remove(unlist(sinop_2014_probs$file_info[[1]]$path))))
 
  })
@@ -232,6 +268,16 @@ test_that("One-year, multicore classification with filter", {
                                       multicores = 2)
 
     expect_true(all(file.exists(unlist(sinop_2014_probs$file_info[[1]]$path))))
+
+    tc_obj <- suppressWarnings(terra::rast(sinop_2014_probs$file_info[[1]]$path[1]))
+    expect_true(terra::nrow(tc_obj) == sinop_2014_probs$nrows)
+
+    max_lyr2 <- max(terra::values(tc_obj)[,2])
+    expect_true(max_lyr2 < 1000)
+
+    max_lyr3 <- max(terra::values(tc_obj)[,3])
+    expect_true(max_lyr3 > 9000)
+
 
     sinop_majority <- sits_label_classification(sinop_2014_probs,
                                                 smoothing = "majority")

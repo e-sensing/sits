@@ -4,12 +4,33 @@
 \alias{sits_cloud_remove}
 \title{Clean data cube to improve quality}
 \usage{
-sits_cloud_remove(cube, ...)
+sits_cloud_remove(
+  cube,
+  data_dir,
+  name,
+  impute_fn = sits_impute_linear(),
+  memsize = 8,
+  multicores = 2,
+  .verbose = FALSE
+)
 }
 \arguments{
 \item{cube}{input data cube}
 
-\item{...}{other parameters to be passed for specific types}
+\item{data_dir}{data directory where output data is written}
+
+\item{name}{name of the output data cube}
+
+\item{impute_fn}{imputing function to be applied to replace NA}
+
+\item{memsize}{size of memory}
+
+\item{multicores}{number of cores}
+
+\item{.verbose}{print information?}
+}
+\value{
+new data cube with interpolated cloud data
 }
 \description{
 Clean data cube to improve quality

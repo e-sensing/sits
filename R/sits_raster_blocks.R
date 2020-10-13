@@ -26,8 +26,7 @@
                                             memsize    = memsize,
                                             multicores = multicores)
 
-    block.lst <- .sits_raster_block_list(cube       = cube,
-                                         nblocks    = nblocks,
+    block.lst <- .sits_raster_block_list(nblocks    = nblocks,
                                          sub_image  = sub_image)
 
     return(block.lst)
@@ -97,7 +96,8 @@
     class_data_size <- input_class_data_size + output_class_data_size
 
     # memory required for processing depends on the model
-    if ("keras_model" %in% class(ml_model) || "rfor_model" %in% class(ml_model))
+    if ("keras_model" %in% class(ml_model) | "ranger_model" %in% class(ml_model)
+        | "xgb_model" %in% class(ml_model))
     {
         mem_required_processing <- (class_data_size +
                                         as.numeric(.sits_mem_used()))*proc_bloat
@@ -121,14 +121,13 @@
 #' @title Calculate a list of blocks to be read from disk to memory
 #' @name .sits_raster_block_list
 #' @keywords internal
-#' @param  cube            input data cube
 #' @param  nblocks         number of blocks to read from each image
 #' @param  sub_image       nrea of interest in the image
 #' @return        a list with n (number of blocks), row (vector of starting rows),
 #'                nrow (vector with number of rows for each block) and
 #'                size (vector with size of each block)
 #'
-.sits_raster_block_list <- function(cube, nblocks, sub_image){
+.sits_raster_block_list <- function(nblocks, sub_image){
     # number of rows per block
     block_rows <- ceiling(sub_image["nrows"]/nblocks)
 
@@ -154,14 +153,16 @@
     # col        first col
     # ncols      number of cols in each block
 
-    block.lst <- list(n = length(row.vec),
-                      row    = row.vec,
-                      nrows  = nrows.vec,
-                      col    = sub_image["first_col"],
-                      ncols  = sub_image["ncols"],
-                      size   = size.vec)
+    blocks <- list(n = length(row.vec),
+                   row    = row.vec,
+                   nrows  = nrows.vec,
+                   col    = sub_image["first_col"],
+                   ncols  = sub_image["ncols"],
+                   size   = size.vec)
 
-    return(block.lst)
+    message("Using ", blocks$n, " blocks of size ", blocks$nrows[1], " x ", blocks$ncols)
+
+    return(blocks)
 }
 #' @title Shows the memory used in GB
 #' @name .sits_mem_used

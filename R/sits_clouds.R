@@ -2,90 +2,61 @@
 #' @name  sits_cloud_remove
 #'
 #' @param cube       input data cube
-#' @param ...        other parameters to be passed for specific types
-#'
-#' @export
-#'
-sits_cloud_remove <- function(cube, ...) {
-
-	class_type <- .sits_config_cube_specific(cube$type)
-	class(cube) <- c(class_type, class(cube))
-	# Dispatch
-	UseMethod("sits_cube", cube)
-}
-
-#' @title Clean data cube to improve quality for S2 L2A AWS
-#' @name  sits_cloud_remove.s2_l2a_aws
-#'
-#' @param cube       input data cube
 #' @param data_dir   data directory where output data is written
-#' @param bands      bands to be processed
-#' @param interval   time between the output images
+#' @param name       name of the output data cube
+#' @param impute_fn  imputing function to be applied to replace NA
 #' @param memsize    size of memory
 #' @param multicores number of cores
-#' @param ...        other parameters to be passed for specific types
+#'
+#' @return           new data cube with interpolated cloud data
 #'
 #' @export
 #'
-sits_cloud_remove.s2_l2a_aws <- function(cube, data_dir, bands = NULL,
-										 interval = "16 day",
-										 memsize = 8,
-										 multicores = 2, ...){
+sits_cloud_remove <- function(cube,
+                              data_dir,
+                              name,
+                              impute_fn = sits_impute_linear(),
+                              memsize = 8,
+                              multicores = 2){
 
 	# precondition - is there cloud information available
 	cloud_band <- .sits_config_cloud_band(cube)
 	assertthat::assert_that(cloud_band %in% sits_bands(cube),
 							msg = "cloud information band not available in cube")
 
-	if (!purrr::is_null(bands)) {
-		assertthat::assert_that(all(bands %in% sits_bands(cube)),
-								msg = "bands not available in cube")
-		bands <- c(bands, cloud_band)
-	}
-	else
-		bands <- sits_bands(cube)
-
 	# precondition
-	assertthat::assert_that(lubridate::is.duration(lubridate::as.duration(interval)),
-							msg = "invalid interval specification")
+	assertthat::assert_that(assertthat::is.dir(data_dir),
+	                        msg = "invalid data directory")
+
 
 	# estimate the blocks to be read
-	blocks <- .sits_cloud_blocks_estimate(cube = cube, memsize = memsize)
-
-	# create the output bricks
-	bricks <- .sits_cloud_create_output(cube, bands, interval = "16 day", data_dir)
+	blocks <- .sits_clouds_blocks_estimate(cube = cube,
+	                                       memsize = memsize)
 
 	# interpolate the cloud bricks
-	file_info_out <- .sits_interpolate_clouds(cube       = cube,
-											  data_dir   = data_dir,
-											  bricks     = bricks,
-											  blocks     = blocks,
-										      multicores = multicores)
+	files <- .sits_clouds_interpolate(cube       = cube,
+	                                  data_dir   = data_dir,
+	                                  blocks     = blocks,
+	                                  impute_fn  = impute_fn,
+	                                  multicores = multicores)
 
-}
-#'
-#' @title Interpolate a series of bands based on the cloud information
-#' @name  .sits_interpolate_clouds
-#' @keywords internal
-#'
-#' @param  cube          input data cube
-#' @param  data_dir      data directory where output data is written
-#' @param  bricks        list of brick objects pointing to output files
-#' @param  blocks        list of blocks to read
-#' @param  multicores    number of cores to process
-#'
-#' @return file_info  file information on the output images
-#'
-.sits_interpolate_clouds <- function(cube, data_dir, bricks, blocks, multicores) {
+	# find out what are the bands of the cube
+	bands <- sits_bands(cube)
+	bands <- bands[bands != cloud_band]
 
-	# find out the new timeline
+	# create the output cube
+	cube_new <- .sits_raster_brick_cube(satellite = cube$satellite,
+	                                    sensor    = cube$sensor,
+	                                    name      = name,
+	                                    timeline  = sits_timeline(cube),
+	                                    bands     = bands,
+	                                    files     = files)
 
-
-
+	return(cube_new)
 
 }
 #' @title Estimate the number of blocks to correct for clouds
-#' @name .sits_cloud_blocks_estimate
+#' @name .sits_clouds_blocks_estimate
 #' @keywords internal
 #'
 #' @param cube    input data cube
@@ -97,7 +68,7 @@ sits_cloud_remove.s2_l2a_aws <- function(cube, data_dir, bands = NULL,
 #'                nrow (vector with number of rows for each block)
 #'                size (vector with size of each block)
 
-.sits_cloud_blocks_estimate <- function(cube, memsize) {
+.sits_clouds_blocks_estimate <- function(cube, memsize) {
 
 	# total number of instances
 	n_instances <- length(sits_timeline(cube))
@@ -137,69 +108,120 @@ sits_cloud_remove.s2_l2a_aws <- function(cube, data_dir, bands = NULL,
 }
 
 #' @title Create the bricks that will be the output of the cloud estimation procedure
-#' @name .sits_cloud_create_output
+#' @name .sits_clouds_interpolate
 #' @keywords internal
 #'
 #' @param cube        input data cube
-#' @param bands       bands to be included in the output
-#' @param interval    temporal interval between images of the cube
 #' @param data_dir    directory where data is to be stored
+#' @param blocks      block information
+#' @param impute_fn   imputation function to remove NA
+#' @param multicores  number of cores to use
 #'
-#' @return            A list of brick objects pointing to output files
+#' @return            a tibble with date, band and path information
 #'
-.sits_cloud_create_output <- function(cube, bands = NULL, interval = "16 day", data_dir) {
+.sits_clouds_interpolate <- function(cube, data_dir, blocks,
+                                    impute_fn, multicores) {
 
-	# precondition
-	if (purrr::is_null(bands))
-		bands <- sits_bands(cube)
-	assertthat::assert_that(all(bands %in% sits_bands),
-							msg = "requested bands not available in the data cube")
-	# precondition
-	assertthat::assert_that(lubridate::is.duration(lubridate::as.duration(interval)),
-							 msg = "invalid interval specification")
-	# precondition
-	assertthat::assert_that(assertthat::is.dir(data_dir),
-							 msg = "invalid data directory")
+    # get initial time for classification
+    start_time <- lubridate::now()
+    message(sprintf("Starting cloud conversion at %s", start_time))
 
 	# define the bands
 	cloud_band   <- .sits_config_cloud_band(cube)
+	bands        <- sits_bands(cube)
 	bands_no_cloud <- bands[bands != cloud_band]
 
-	# create the new timeline
-	timeline     <-  sits_timeline(cube)
-	new_indexes  <- .sits_timeline_indexes_interval(timeline = timeline,
-												    interval = interval)
-	new_timeline <- timeline[new_indexes]
-	start_date   <- new_timeline[1]
-	end_date     <- new_timeline[length(new_timeline)]
+	# define the cloud band
+    obj_cld <- .sits_cube_terra_obj_band(cube, cloud_band)
+    cld_index <- .sits_config_cloud_valid_values(cube)
 
-	# create the output bricks
-	n_objs <- length(bands_no_cloud)
-	bricks <- vector("list", n_objs)
+    # process the bands
+	file.lst <- purrr::map(bands_no_cloud, function(band){
+	    message(paste0("Removing clouds from band ", band))
+	    start_task_time <- lubridate::now()
 
-	bricks <- purrr::map(bricks, function(brick){
-		brick <- terra::rast(nrows  = cube$nrows,
-		                     ncols  = cube$ncols,
-		                     nlyrs  = n_objs,
-		                     xmin   = cube$xmin,
-		                     xmax   = cube$xmax,
-		                     ymin   = cube$ymin,
-		                     ymax   = cube$ymax,
-		                     crs    = cube$crs)
+	    # define the input band
+	    obj_band <- .sits_cube_terra_obj_band(cube, band)
+	    # read the blocks
+	    values.lst <- purrr::map(c(1:blocks$n), function (b) {
+	        # measure performance
+	        start_block_time <- lubridate::now()
+	        # define the extent
+	        extent <- c(blocks$row[b], blocks$nrows[b],
+	                    blocks$col, blocks$ncols)
+	        names(extent) <- (c("row", "nrows", "col", "ncols"))
+	        # read the cloud data
+	        terra::readStart(obj_cld)
+	        clouds.mx <- terra::readValues(x      = obj_cld,
+	                                       row    = extent["row"],
+	                                       nrows  = extent["nrows"],
+	                                       col    = extent["col"],
+	                                       ncols  = extent["ncols"],
+	                                       mat = TRUE)
+	        terra::readStop(obj_cld)
 
-		return(brick)
+	        # read the values
+	        terra::readStart(obj_band)
+	        values.mx    <- terra::readValues(x      = obj_band,
+	                                          row    = extent["row"],
+	                                          nrows  = extent["nrows"],
+	                                          col    = extent["col"],
+	                                          ncols  = extent["ncols"],
+	                                          mat = TRUE)
+	        terra::readStop(obj_band)
+
+	        # preprocess the input data
+	        values.mx <- .sits_raster_preprocess_data(cube,
+	                                                  values.mx,
+	                                                  band,
+	                                                  clouds.mx,
+	                                                  cld_index,
+	                                                  impute_fn,
+	                                                  multicores)
+
+	        task <- paste0("process block ", b, " of band ", band)
+	        .sits_processing_estimate_task_time(task, start_block_time)
+
+	        return(values.mx)
+	    })
+
+
+	    band_files <- dplyr::filter(cube$file_info[[1]], band == band)
+	    nlyrs <- nrow(band_files)
+
+	    brick <- terra::rast(nrows  = cube$nrows,
+	                         ncols  = cube$ncols,
+	                         nlyrs  = nlyrs,
+	                         xmin   = cube$xmin,
+	                         xmax   = cube$xmax,
+	                         ymin   = cube$ymin,
+	                         ymax   = cube$ymax,
+	                         crs    = cube$crs)
+	    terra::values(brick) <- do.call(rbind, values.lst)
+
+	    start_date <- band_files[1,]$date
+	    end_date   <- band_files[nlyrs,]$date
+
+	    filename <- paste0(data_dir, "/", cube$satellite, "_", cube$sensor, "_",
+	                       start_date,"_", end_date, "_",
+	                       bands_no_cloud[i], "_CLD_REM", ".tif")
+
+	    terra::writeRaster(brick,
+	                       filename = filename,
+	                       wopt     = list(filetype  = "GTiff",
+	                                       datatype = "INT2U"),
+	                       overwrite = TRUE)
+
+	    task <- paste0("Removed clouds from band ", band)
+	    .sits_processing_estimate_task_time(task, start_task_time)
+	    return(filename)
 	})
 
-	# initiate writing
-	bricks <- purrr::map2(bricks, c(1:n_objs), function(brick, i){
-		file_name <- paste0(data_dir, "/", bands_no_cloud[i], "_", start_date,"_", end_date, ".tif")
-		brick <- suppressWarnings(raster::writeStart(brick,
-													 filename  = file_name,
-													 format    = "GTiff",
-													 datatype  = "INT2U",
-													 overwrite = TRUE))
+	# report on time used for processing
+	task <- paste0("Removed clouds from all bands")
+	.sits_processing_estimate_task_time(task, start_time)
 
-		return(brick)
-	})
-	return(bricks)
+    # return the file info
+	files <- unlist(file.lst)
+	return(files)
 }

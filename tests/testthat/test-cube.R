@@ -58,7 +58,8 @@ test_that("Reading a BDC data cube from the web", {
                                 start_date  = as.Date("2018-08-29"),
                                 end_date    = as.Date("2019-08-13"))
 
-    bands_sits <- sits:::.sits_config_band_names_convert("CBERS-4", "AWFI", "BDC_TILE")
+    bands_bdc <- unique(cbers_bdc_tile$file_info[[1]]$band)
+    bands_sits <- sits:::.sits_config_band_names_convert("CBERS-4", "AWFI", bands_bdc)
 
     expect_true(all(sits_bands(cbers_bdc_tile) %in% bands_sits))
     rast <- terra::rast(cbers_bdc_tile$file_info[[1]]$path[1])

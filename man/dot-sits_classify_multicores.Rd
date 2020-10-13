@@ -14,7 +14,8 @@
   memsize,
   multicores,
   output_dir,
-  version
+  version,
+  .verbose
 )
 }
 \arguments{
@@ -37,6 +38,8 @@
 \item{output_dir}{output directory}
 
 \item{version}{version of result}
+
+\item{.verbose}{print information about processing steps}
 }
 \value{
 List of the classified raster layers.

@@ -500,7 +500,7 @@ sits_cube_copy <- function (cube, name, dest_dir, bands = NULL){
                              function (d,p){
                                  dest_file <- paste0(dest_dir,"/",
                                                      tools::file_path_sans_ext(basename(p)),
-                                                     "_",d,".jp2")
+                                                     "_",d,".tif")
                                  gdalUtils::gdal_translate(p, dest_file)
                                  return(dest_file)
                              })

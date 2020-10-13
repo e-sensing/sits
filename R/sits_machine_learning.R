@@ -132,8 +132,7 @@ sits_lda <- function(data = NULL, formula = sits_formula_logref(), ...) {
 
             return(prediction_DT)
         }
-        class(model_predict) <- append(class(model_predict), "lda_model",
-                                       after = 0)
+        class(model_predict) <- c("lda_model", class(model_predict))
         return(model_predict)
     }
 
@@ -210,8 +209,7 @@ sits_qda <- function(data = NULL, formula = sits_formula_logref(), ...) {
 
             return(prediction_DT)
         }
-        class(model_predict) <- append(class(model_predict), "qda_model",
-                                       after = 0)
+        class(model_predict) <- c("qda_model", class(model_predict))
         return(model_predict)
     }
     result <- .sits_factory_function(data, result_fun)
@@ -293,8 +291,7 @@ sits_mlr <- function(data = NULL, formula = sits_formula_linear(),
 
             return(prediction_DT)
         }
-        class(model_predict) <- append(class(model_predict), "mlr_model",
-                                       after = 0)
+        class(model_predict) <- c("mlr_model", class(model_predict))
         return(model_predict)
     }
 
@@ -302,7 +299,7 @@ sits_mlr <- function(data = NULL, formula = sits_formula_linear(),
     return(result)
 }
 #' @title Train a sits classifiction model using fast random forest algorithm
-#' @name sits_rfor
+#' @name sits_ranger
 #'
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #' @author Alexandre Ywata de Carvalho, \email{alexandre.ywata@@ipea.gov.br}
@@ -329,7 +326,7 @@ sits_mlr <- function(data = NULL, formula = sits_formula_linear(),
 #' samples_2bands <- sits_select(samples_mt_4bands, bands = c("NDVI", "EVI"))
 #'
 #' # Build a machine learning model based on deep learning
-#' ml_model <- sits_train (samples_2bands, sits_rfor())
+#' ml_model <- sits_train (samples_2bands, sits_ranger())
 #'
 #' # get a point and classify the point with the ml_model
 #' point.tb <- sits_select(point_mt_6bands, bands = c("NDVI", "EVI"))
@@ -337,9 +334,9 @@ sits_mlr <- function(data = NULL, formula = sits_formula_linear(),
 #' plot(class.tb, bands = c("NDVI", "EVI"))
 #' }
 #' @export
-sits_rfor <- function(data = NULL,
-                      num_trees = 2000,
-                      importance = "impurity", ...) {
+sits_ranger <- function(data = NULL,
+                        num_trees = 2000,
+                        importance = "impurity", ...) {
     # backward compatibility
     data <- .sits_tibble_rename(data)
 
@@ -355,12 +352,12 @@ sits_rfor <- function(data = NULL,
 
         # is the input data consistent?
         assertthat::assert_that(importance %in% valid_importance,
-                        msg = "sits_rfor: invalid variable importance value")
+                        msg = "sits_ranger: invalid variable importance value")
 
         # get the labels of the data
         labels <- sits_labels(data)$label
         assertthat::assert_that(length(labels) > 0,
-                             msg = "sits_rfor: invalid data - bad labels")
+                             msg = "sits_ranger: invalid data - bad labels")
         n_labels <- length(labels)
 
         # create a named vector with integers match the class labels
@@ -389,15 +386,67 @@ sits_rfor <- function(data = NULL,
 
             return(prediction_DT)
         }
-        class(model_predict) <- append(class(model_predict), "rfor_model",
-                                       after = 0)
+        class(model_predict) <- c("ranger_model", class(model_predict))
         return(model_predict)
     }
 
     result <- .sits_factory_function(data, result_fun)
     return(result)
 }
+#' @title Train a SITS classifiction model using random forest algorithm
+#' @name sits_rfor
+#'
+#' @author Alexandre Xavier Ywata de Carvalho, \email{alexandre.ywata@@ipea.gov.br}
+#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
+#'
+#' @description Use Random Forest algorithm to classify data.
+#' This function is a front-end to the "randomForest" method in the "randomForest" package.
+#' Please refer to the documentation in that package for more details.
+#'
+#' @param data.            time series with the training samples
+#' @param ntree            number of trees to grow. This should not be set to too small a number,
+#'                         to ensure that every input row gets predicted at least a few times. (default: 2000)
+#' @param nodesize         minimum size of terminal nodes (default 1 for classification)
+#' @param ...              other parameters to be passed to `randomForest::randomForest` function
+#' @return                 model fitted to input data
+#'                         (to be passed to \code{\link[sits]{sits_classify}})
+#' @examples
+#' \donttest{
+#' # Retrieve the set of samples for the Mato Grosso region (provided by EMBRAPA)
+#' data(samples_MT_ndvi)
+#' # Build a random forest model
+#' rfor_model <- sits_train(samples_MT_ndvi, sits_rfor())
+#' # get a point with a 16 year time series
+#' data(point_ndvi)
+#' # classify the point
+#' class.tb <- sits_classify (point_ndvi, rfor_model)
+#' }
+#' @export
+sits_rfor <- function(data = NULL, ntree = 2000, nodesize = 1, ...) {
 
+    # function that returns `randomForest::randomForest` model based on a sits sample tibble
+    result_fun <- function(data){
+
+        train_data_DT <- .sits_distances(data)
+
+        # call `randomForest::randomForest` method and return the trained model
+        reference <- train_data_DT[, reference]
+        result_rfor <- randomForest::randomForest(x = train_data_DT[,3:ncol(train_data_DT)],
+                                                  y = as.factor(reference),
+                                                  data = NULL, ntree = ntree, nodesize = 1,
+                                                  norm.votes = FALSE, ..., na.action = stats::na.fail)
+
+        # construct model predict enclosure function and returns
+        model_predict <- function(values_DT){
+            return(stats::predict(result_rfor, newdata = values_DT, type = "prob"))
+        }
+        return(model_predict)
+    }
+
+    result <- .sits_factory_function(data, result_fun)
+    return(result)
+}
 #' @title Train a sits classification model using a support vector machine
 #' @name sits_svm
 #'
@@ -495,8 +544,7 @@ sits_svm <- function(data = NULL, formula = sits_formula_logref(),
 
             return(prediction_DT)
         }
-        class(model_predict) <- append(class(model_predict), "svm_model",
-                                       after = 0)
+        class(model_predict) <- c("svm_model", class(model_predict))
         return(model_predict)
     }
     result <- .sits_factory_function(data, result_fun)
@@ -552,14 +600,13 @@ sits_svm <- function(data = NULL, formula = sits_formula_logref(),
 #' @examples
 #' \donttest{
 #' # Retrieve the set of samples for Mato Grosso (provided by EMBRAPA)
-#' samples_whit <- sits_whittaker(samples_mt_4bands, lambda = 0.5, bands_suffix = "")
+#'
 #' # Build a machine learning model based on xgboost
-#' xgb_model <- sits_train(samples_whit, sits_xgboost())
+#' xgb_model <- sits_train(samples_mt_4bands, sits_xgboost())
 #'
 #' # get a point and classify the point with the ml_model
 #' point.tb <- sits_select(point_mt_6bands, bands = c("NDVI", "EVI", "NIR", "MIR"))
-#' point_whit <- sits_whittaker(point.tb, lambda = 0.5, bands_suffix = "")
-#' class.tb <- sits_classify(point_whit, xgb_model)
+#' class.tb <- sits_classify(point.tb, xgb_model)
 #' plot(class.tb, bands = c("NDVI", "EVI"))
 #' }
 #' @export
@@ -626,12 +673,21 @@ sits_xgboost <- function(data = NULL,
         nrounds_best <- xgbcv$best_iteration
 
         # call xgboost method and return l
-        result_xgb <- xgboost::xgb.train(data = xgboost::xgb.DMatrix(
-            data = as.matrix(train_data_DT[, 3:length(train_data_DT)]),
-                             label = references),
+        # result_xgb <- xgboost::xgb.train(data = xgboost::xgb.DMatrix(
+        #     data = as.matrix(train_data_DT[, 3:length(train_data_DT)]),
+        #                      label = references),
+        #     num_class = length(labels),
+        #     params = params, nrounds = nrounds_best,
+        #     print_every_n = 10,  maximize = FALSE)
+        result_xgb <- xgboost::xgboost(
+            data      = as.matrix(train_data_DT[, 3:length(train_data_DT)]),
+            label    = references,
             num_class = length(labels),
-            params = params, nrounds = nrounds_best,
-            print_every_n = 10,  maximize = FALSE)
+            params = params,
+            nrounds = nrounds_best,
+            verbose = FALSE)
+
+        ntreelimit <- result_xgb$best_ntreelimit
 
         # construct model predict closure function and returns
         model_predict <- function(values_DT){
@@ -639,14 +695,14 @@ sits_xgboost <- function(data = NULL,
             # retrieve the prediction probabilities
             prediction_DT <- data.table::as.data.table(
                 stats::predict(result_xgb, data.matrix(values_DT[, -(1:2)]),
+                               ntreelimit = ntreelimit,
                                reshape = TRUE))
             # adjust the names of the columns of the probs
             colnames(prediction_DT) <- labels
             # retrieve the prediction results
             return(prediction_DT)
         }
-        class(model_predict) <- append(class(model_predict), "xgb_model",
-                                       after = 0)
+        class(model_predict) <- c("xgb_model", class(model_predict))
         return(model_predict)
     }
 

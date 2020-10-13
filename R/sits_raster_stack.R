@@ -38,8 +38,7 @@
 									  parse_info = NULL,
 									  delim = NULL) {
 
-	# convert the names of the bands to those used by SITS
-	bands_sits <- .sits_config_band_names_convert(satellite, sensor, type)
+
 
 	# list the image files
 	img_files <- list.files(data_dir)
@@ -65,10 +64,16 @@
 		# order by dates
 		dplyr::arrange(date) %>%
 		# filter to remove duplicate combinations of file and band
-		dplyr::distinct(band, date, .keep_all = TRUE) %>%
-		# convert the band names to SITS bands
-		dplyr::mutate(band = bands_sits[band])
+		dplyr::distinct(band, date, .keep_all = TRUE)
 
+	# extract the band names
+	bands_files <- dplyr::pull(dplyr::distinct(info.tb, band))
+
+	# convert the names of the bands to those used by SITS
+	bands_sits <- .sits_config_band_names_convert(satellite, sensor, bands_files)
+
+	# convert the band names to SITS bands
+	info.tb <- dplyr::mutate(info.tb, band = bands_sits[band])
 
 	if (!purrr::is_null(start_date) & !purrr::is_null(end_date))
 		# filter by starting date and end date

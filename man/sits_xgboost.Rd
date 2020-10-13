@@ -69,14 +69,13 @@ Please refer to the documentation in that package for more details.
 \examples{
 \donttest{
 # Retrieve the set of samples for Mato Grosso (provided by EMBRAPA)
-samples_whit <- sits_whittaker(samples_mt_4bands, lambda = 0.5, bands_suffix = "")
+
 # Build a machine learning model based on xgboost
-xgb_model <- sits_train(samples_whit, sits_xgboost())
+xgb_model <- sits_train(samples_mt_4bands, sits_xgboost())
 
 # get a point and classify the point with the ml_model
 point.tb <- sits_select(point_mt_6bands, bands = c("NDVI", "EVI", "NIR", "MIR"))
-point_whit <- sits_whittaker(point.tb, lambda = 0.5, bands_suffix = "")
-class.tb <- sits_classify(point_whit, xgb_model)
+class.tb <- sits_classify(point.tb, xgb_model)
 plot(class.tb, bands = c("NDVI", "EVI"))
 }
 }

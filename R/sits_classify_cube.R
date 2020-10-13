@@ -24,6 +24,7 @@
 #' @param  multicores      number of cores.
 #' @param  output_dir      output directory
 #' @param  version         version of result
+#' @param  .verbose        print information about processing steps
 #' @return List of the classified raster layers.
 .sits_classify_multicores <-  function(cube,
                                        ml_model,
@@ -34,7 +35,8 @@
                                        memsize,
                                        multicores,
                                        output_dir,
-                                       version) {
+                                       version,
+                                       .verbose) {
 
     # retrieve the samples from the model
     samples  <- environment(ml_model)$data
@@ -44,9 +46,9 @@
 
     # precondition - are the cube bands the same as the sample bands?
     cube_bands   <- .sits_cube_bands(cube)
-    sample_bands <- sits_bands(samples)
+    bands <- sits_bands(samples)
     assertthat::assert_that(
-        all(sample_bands %in% cube_bands),
+        all(bands %in% cube_bands),
         msg = "sits_classify: bands in samples different from cube bands")
 
     # is there a region of interest?
@@ -68,6 +70,11 @@
                                       memsize    = memsize,
                                       multicores = multicores)
 
+    if (.verbose) {
+        message(paste0("Using ", block_info$n,
+                       " blocks of size (", block_info$nrows[1], " x ", block_info$ncols[1]),")")
+    }
+
     # create the metadata for the classified cube
     cube_class <- .sits_cube_classified(cube       = cube,
                                         samples    = samples,
@@ -82,12 +89,6 @@
     # retrieve the normalization stats
     stats   <- environment(ml_model)$stats
 
-    # retrieve the samples
-    samples <- environment(ml_model)$data
-
-    # retrieve the bands
-    bands <- sits_bands(samples)
-
     # build a list with columns of data table to be processed for each interval
     select.lst <- .sits_timeline_raster_indexes(cube, samples)
 
@@ -100,13 +101,12 @@
     t_obj.lst <- purrr::map(bands, function(b){
         t_obj <- .sits_cube_terra_obj_band(cube, b)
     })
-
-    # does the cube have a cloud band?
+    # # does the cube have a cloud band?
     cld_band <- .sits_config_cloud_band(cube)
     if (cld_band %in% sits_bands(cube))
-        t_obj_cld <- .sits_cube_terra_obj_band(cube, cld_band)
+         t_obj_cld <- .sits_cube_terra_obj_band(cube, cld_band)
     else
-        t_obj_cld <- NULL
+         t_obj_cld <- NULL
 
     # get initial time for classification
     start_time <- lubridate::now()
@@ -119,15 +119,24 @@
                     block_info$col, block_info$ncols)
         names(extent) <- (c("row", "nrows", "col", "ncols"))
         # read the data
+        if (.verbose) {
+            message(paste0("Read and preprocess block ", b))
+            read_data_start_time <- lubridate::now
+        }
         data_DT <- .sits_raster_read_data(cube         = cube,
                                           samples      = samples,
-                                          t_obj.lst    = t_obj.lst,
-                                          t_obj_cld    = t_obj_cld,
+                                          obj.lst      = t_obj.lst,
+                                          obj_cld      = t_obj_cld,
                                           extent       = extent,
                                           stats        = stats,
                                           filter       = filter,
                                           impute_fn    = impute_fn,
-                                          multicores   = multicores)
+                                          multicores   = multicores,
+                                          .verbose     = .verbose)
+        if (.verbose)
+            .sits_processing_estimate_task_time("Read block", read_data_start_time)
+
+        if (.verbose) classify_start_time <- lubridate::now()
 
         # process one temporal instance at a time
         probs.lst <- purrr::pmap(list(select.lst, c(1:n_objs)),
@@ -157,15 +166,17 @@
                             gc()
 
                             # estimate processing time
-                            .sits_classify_estimate_processing_time(start_time = start_time,
-                                                                    select.lst = select.lst,
-                                                                    bs = block_info,
-                                                                    block = b,
-                                                                    time = iter)
+                            .sits_processing_estimate_classification_time(
+                                        start_time = start_time,
+                                        n_intervals = length(select.lst),
+                                        bs = block_info,
+                                        block = b,
+                                        time = iter)
                             return(probs)
                         })
 
         # save information about memory use for debugging later
+        if (.verbose) .sits_processing_estimate_task_time("Classify data", task_start_time)
 
         return(probs.lst)
 
@@ -225,47 +236,6 @@
     return(invisible(TRUE))
 }
 
-#' @title Estimate the processing time
-#' @name .sits_classify_estimate_processing_time
-#' @keywords internal
-#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
-#'
-#' @description This function normalizes image values.
-#'
-#' @param  start_time     Initial processing time.
-#' @param  select.lst     List of time intervals.
-#' @param  bs             Raster block parameters.
-#' @param  block          Current block.
-#' @param  time           Current interval.
-#' @return Scaled matrix.
-.sits_classify_estimate_processing_time <- function(start_time,
-                                                    select.lst,
-                                                    bs,
-                                                    block,
-                                                    time) {
-    # compute current time
-    current_time <- lubridate::now()
-
-    # compute elapsed time and estimates remaining time
-    elapsed_time <- lubridate::time_length(current_time - start_time,
-                                           unit = "minute")
-    elapsed_intervals <- (block - 1) * length(select.lst) + time
-    total_intervals   <- bs$n * length(select.lst)
-    if (elapsed_intervals < total_intervals) {
-        message(sprintf(
-            "Elapsed time %s minute(s).
-         Estimated total process time %s minute(s)...",
-            round(as.numeric(elapsed_time), 1),
-            round(as.numeric((total_intervals/elapsed_intervals) * elapsed_time),
-                  1)))
-    } else {
-        message(sprintf(
-            "Classification finished at %s. Total elapsed time: %s minute(s).",
-            current_time,
-            round(as.numeric(elapsed_time), 1)))
-    }
-    return(invisible(TRUE))
-}
 
 #' @title Classify one interval of data
 #' @name  .sits_classify_interval
@@ -280,10 +250,10 @@
 
 	nrows_DT <- nrow(DT)
 	proc_cores <- multicores
-	if (!(purrr::is_null(environment(ml_model)$model.keras)) ||
-		!(purrr::is_null(environment(ml_model)$result_ranger)) ) {
+	if ( "keras_model"   %in% class(ml_model)
+	    | "ranger_model" %in% class(ml_model)
+	    | "xgb_model"    %in% class(ml_model))
 		proc_cores <- 1
-	}
 
 	# classify a block of data (with data split)
 	classify_block <- function(block) {

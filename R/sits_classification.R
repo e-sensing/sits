@@ -187,6 +187,7 @@ sits_classify.sits <- function(data, ml_model, ...,
 #' @param  multicores      number of cores to be used for classification.
 #' @param  output_dir      directory for output file
 #' @param  version         version of the output (for multiple classifications)
+#' @param  .verbose        print detailed information on processing steps
 #' @return                 cube with the metadata of a brick of probabilities.
 #'
 #' @examples
@@ -230,7 +231,8 @@ sits_classify.raster_cube <- function(data, ml_model, ...,
                                      memsize    = 8,
                                      multicores = 2,
                                      output_dir = "./",
-                                     version    = "v1") {
+                                     version    = "v1",
+                                     .verbose   = FALSE) {
 
     # precondition - checks if the cube and ml_model are valid
     .sits_classify_check_params(data, ml_model)
@@ -265,7 +267,8 @@ sits_classify.raster_cube <- function(data, ml_model, ...,
                                                 memsize     = memsize,
                                                 multicores  = multicores,
                                                 output_dir  = output_dir,
-                                                version = version)
+                                                version     = version,
+                                                .verbose    = .verbose)
 
         return(row_probs)
     })
