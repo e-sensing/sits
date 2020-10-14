@@ -49,6 +49,7 @@ Imports:
     reshape2,
     readr,
     rgdal (>= 1.5),
+    rstac,
     scales,
     sf (>= 0.9),
     slider,
@@ -151,6 +152,7 @@ Collate:
     'sits_sentinel.R'
     'sits_shp.R'
     'sits_space_time_operations.R'
+    'sits_stac.R'
     'sits_TempCNN.R'
     'sits_tibble.R'
     'sits_tibble_aux_functions.R'
