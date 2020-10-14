@@ -10,8 +10,7 @@ sits_cloud_remove(
   name,
   impute_fn = sits_impute_linear(),
   memsize = 8,
-  multicores = 2,
-  .verbose = FALSE
+  multicores = 2
 )
 }
 \arguments{
@@ -26,8 +25,6 @@ sits_cloud_remove(
 \item{memsize}{size of memory}
 
 \item{multicores}{number of cores}
-
-\item{.verbose}{print information?}
 }
 \value{
 new data cube with interpolated cloud data

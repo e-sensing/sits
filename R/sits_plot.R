@@ -149,6 +149,10 @@ plot.raster_cube <- function(x , y, ..., red, green, blue, time = 1) {
 	if (!requireNamespace("mapview", quietly = TRUE)) {
 		stop("Please install package mapview.", call. = FALSE)
 	}
+    # verifies if raster package is installed
+    if (!requireNamespace("raster", quietly = TRUE)) {
+        stop("Please install package raster.", call. = FALSE)
+    }
     # set mapview options
     mapview::mapviewOptions(basemaps = c("GeoportailFrance.orthos","Esri.WorldImagery"))
 

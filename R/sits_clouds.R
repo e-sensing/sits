@@ -204,7 +204,7 @@ sits_cloud_remove <- function(cube,
 
 	    filename <- paste0(data_dir, "/", cube$satellite, "_", cube$sensor, "_",
 	                       start_date,"_", end_date, "_",
-	                       bands_no_cloud[i], "_CLD_REM", ".tif")
+	                       band, "_CLD_REM", ".tif")
 
 	    terra::writeRaster(brick,
 	                       filename = filename,

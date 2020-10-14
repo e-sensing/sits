@@ -40,7 +40,7 @@ test_that("Reading a raster stack cube", {
 
     expect_true(all(sits_bands(cbers_cube) %in% c("NDVI", "EVI")))
     rast <- suppressWarnings(terra::rast(cbers_cube$file_info[[1]]$path[1]))
-    expect_true(raster::nrow(rast) == cbers_cube[1,]$nrows)
+    expect_true(terra::nrow(rast) == cbers_cube[1,]$nrows)
     expect_true(all(unique(cbers_cube$file_info[[1]]$date) == cbers_cube$timeline[[1]][[1]]))
 })
 
