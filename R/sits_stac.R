@@ -27,9 +27,10 @@
     # get the name of the bands
     collection_bands <- sapply(collection_info$properties[["eo:bands"]],
                                `[[`, c("name"))
+
     # checks if the supplied bands match the product bands
     if (!is.null(bands)) {
-        assertthat::assert_that(!all(collection_bands %in% bands),
+        assertthat::assert_that(all(bands %in% collection_bands),
                                 msg = paste("The supplied bands do not match",
                                             "the data cube bands."))
 
@@ -101,9 +102,18 @@
         rstac_query <- rstac_query %>%
             rstac::ext_query(keys = "bdc:tile", ops = "%in%", values = tiles)
 
-    # making the request and fetching all the metadata
-    items_info <- rstac_query %>% rstac::post_request() %>%
-        rstac::items_fetch(progress = FALSE)
+    # making the request
+    items_info <- rstac_query %>% rstac::post_request()
+
+    # progress bar status
+    pgr_fetch  <- FALSE
+
+    # if more than 1000 items are found the progress bar is displayed
+    if (rstac::items_matched(items_info) > 1000)
+        pgr_fetch <- TRUE
+
+    # fetching all the metadata
+    items_info <- items_info %>% rstac::items_fetch(progress = pgr_fetch)
 
     return(items_info)
 }
@@ -217,30 +227,30 @@
     metadata_values  <- .sits_config_stac_values(collection_info, bands)
 
     # create a tibble to store the metadata
-    cube <- .sits_cube_create(type           = "BDC_STAC",
-                              URL            = url,
-                              satellite      = collection_info$properties$platform,
-                              sensor         = collection_info$properties$instruments,
-                              name           = name,
-                              cube           = cube,
-                              tile           = items_info$tile,
-                              bands          = collection_info$bands,
-                              labels         = labels,
+    cube <- .sits_cube_create(type      = "BDC_STAC",
+                              URL       = url,
+                              satellite = collection_info$properties$platform,
+                              sensor    = collection_info$properties$instruments,
+                              name      = name,
+                              cube      = cube,
+                              tile      = items_info$tile,
+                              bands     = collection_info$bands,
+                              labels    = labels,
                               scale_factors  = metadata_values$scale,
                               missing_values = metadata_values$nodata,
                               minimum_values = metadata_values$min,
                               maximum_values = metadata_values$max,
-                              timelines      = list(timeline),
-                              nrows          = params$nrows,
-                              ncols          = params$ncols,
-                              xmin           = params$xmin,
-                              xmax           = params$xmax,
-                              ymin           = params$ymin,
-                              ymax           = params$ymax,
-                              xres           = params$xres,
-                              yres           = params$yres,
-                              crs            = params$crs,
-                              file_info      = file_info)
+                              timelines = list(timeline),
+                              nrows     = params$nrows,
+                              ncols     = params$ncols,
+                              xmin      = params$xmin,
+                              xmax      = params$xmax,
+                              ymin      = params$ymin,
+                              ymax      = params$ymax,
+                              xres      = params$xres,
+                              yres      = params$yres,
+                              crs       = params$crs,
+                              file_info = file_info)
 
     return(cube)
 }
