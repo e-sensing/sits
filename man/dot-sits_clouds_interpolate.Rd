@@ -4,30 +4,18 @@
 \alias{.sits_clouds_interpolate}
 \title{Create the bricks that will be the output of the cloud estimation procedure}
 \usage{
-.sits_clouds_interpolate(
-  cube,
-  data_dir,
-  bricks,
-  blocks,
-  impute_ts,
-  multicores,
-  verbose
-)
+.sits_clouds_interpolate(cube, data_dir, blocks, impute_fn, multicores)
 }
 \arguments{
 \item{cube}{input data cube}
 
 \item{data_dir}{directory where data is to be stored}
 
-\item{bricks}{terra object pointing to output bricks}
-
 \item{blocks}{block information}
 
-\item{impute_ts}{imputation function to remove NA}
+\item{impute_fn}{imputation function to remove NA}
 
 \item{multicores}{number of cores to use}
-
-\item{.verbose}{print information about the processing}
 }
 \value{
 a tibble with date, band and path information

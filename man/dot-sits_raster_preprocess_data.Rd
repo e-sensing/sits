@@ -12,7 +12,7 @@
   cld_index,
   impute_fn,
   multicores,
-  .verbose
+  .verbose = FALSE
 )
 }
 \arguments{
