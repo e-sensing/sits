@@ -18,6 +18,28 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// linear_interp
+IntegerMatrix linear_interp(IntegerMatrix& mtx);
+RcppExport SEXP _sits_linear_interp(SEXP mtxSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< IntegerMatrix& >::type mtx(mtxSEXP);
+    rcpp_result_gen = Rcpp::wrap(linear_interp(mtx));
+    return rcpp_result_gen;
+END_RCPP
+}
+// linear_interp_vec
+IntegerVector linear_interp_vec(IntegerVector& vec);
+RcppExport SEXP _sits_linear_interp_vec(SEXP vecSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< IntegerVector& >::type vec(vecSEXP);
+    rcpp_result_gen = Rcpp::wrap(linear_interp_vec(vec));
+    return rcpp_result_gen;
+END_RCPP
+}
 // normalize_data
 NumericMatrix normalize_data(const NumericMatrix& data, const double& min, const double& max);
 RcppExport SEXP _sits_normalize_data(SEXP dataSEXP, SEXP minSEXP, SEXP maxSEXP) {
@@ -72,6 +94,8 @@ END_RCPP
 
 static const R_CallMethodDef CallEntries[] = {
     {"_sits_apply_transition_matrix", (DL_FUNC) &_sits_apply_transition_matrix, 3},
+    {"_sits_linear_interp", (DL_FUNC) &_sits_linear_interp, 1},
+    {"_sits_linear_interp_vec", (DL_FUNC) &_sits_linear_interp_vec, 1},
     {"_sits_normalize_data", (DL_FUNC) &_sits_normalize_data, 3},
     {"_sits_bayes_estimator_class", (DL_FUNC) &_sits_bayes_estimator_class, 3},
     {"_sits_scale_data", (DL_FUNC) &_sits_scale_data, 3},

@@ -5,6 +5,14 @@ apply_transition_matrix <- function(data_before, data, transition_matrix) {
     .Call(`_sits_apply_transition_matrix`, data_before, data, transition_matrix)
 }
 
+linear_interp <- function(mtx) {
+    .Call(`_sits_linear_interp`, mtx)
+}
+
+linear_interp_vec <- function(vec) {
+    .Call(`_sits_linear_interp_vec`, vec)
+}
+
 normalize_data <- function(data, min, max) {
     .Call(`_sits_normalize_data`, data, min, max)
 }

@@ -143,7 +143,7 @@ sits_cloud_remove <- function(cube,
 	    # define the input band
 	    obj_band <- .sits_cube_terra_obj_band(cube, band)
 	    # read the blocks
-	    values.lst <- purrr::map(c(1:blocks$n), function (b) {
+	    values.lst <- purrr::map(c(1:blocks$n), function(b) {
 	        # measure performance
 	        start_block_time <- lubridate::now()
 	        # define the extent
@@ -178,6 +178,8 @@ sits_cloud_remove <- function(cube,
 	                                                  cld_index,
 	                                                  impute_fn,
 	                                                  multicores)
+	        rm(clouds.mx)
+	        gc()
 
 	        task <- paste0("process block ", b, " of band ", band)
 	        .sits_processing_estimate_task_time(task, start_block_time)
@@ -185,6 +187,9 @@ sits_cloud_remove <- function(cube,
 	        return(values.mx)
 	    })
 
+	    new_values.mx <- do.call(rbind, values.lst)
+	    rm(values.lst)
+	    gc()
 
 	    band_files <- dplyr::filter(cube$file_info[[1]], band == band)
 	    nlyrs <- nrow(band_files)
@@ -197,7 +202,6 @@ sits_cloud_remove <- function(cube,
 	                         ymin   = cube$ymin,
 	                         ymax   = cube$ymax,
 	                         crs    = cube$crs)
-	    terra::values(brick) <- do.call(rbind, values.lst)
 
 	    start_date <- band_files[1,]$date
 	    end_date   <- band_files[nlyrs,]$date
@@ -206,11 +210,19 @@ sits_cloud_remove <- function(cube,
 	                       start_date,"_", end_date, "_",
 	                       band, "_CLD_REM", ".tif")
 
-	    terra::writeRaster(brick,
+	    terra::writeStart(brick,
 	                       filename = filename,
 	                       wopt     = list(filetype  = "GTiff",
 	                                       datatype = "INT2U"),
 	                       overwrite = TRUE)
+	    terra::writeValues(x = brick,
+	                       v = new_values.mx,
+	                       start = 1,
+	                       row = 1,
+	                       nrows = cube$nrows,
+	                       col = 1,
+	                       ncols = cube$ncols)
+	    terra::writeStop(brick)
 
 	    task <- paste0("Removed clouds from band ", band)
 	    .sits_processing_estimate_task_time(task, start_task_time)

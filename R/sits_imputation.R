@@ -1,4 +1,4 @@
-#' @title Linear imputation of NA values
+#' @title Linear imputation of NA values using C++ implementation
 #' @name sits_impute_linear
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'
@@ -10,9 +10,13 @@
 sits_impute_linear  <- function(data = NULL) {
 
     impute_fun <- function(data){
-        return(imputeTS::na_interpolation(data))
+        if ("matrix" %in% class(data))
+            return(linear_interp(data))
+        else
+            return(linear_interp_vec(data))
     }
     result <- .sits_factory_function(data, impute_fun)
+
     return(result)
 }
 #' @title Imputation of NA values by Stineman interpolation

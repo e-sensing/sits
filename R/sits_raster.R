@@ -168,7 +168,7 @@
 
     cld_remove_block <- function(block.mx) {
          # interpolate NA
-            block.mx <- t(apply(block.mx, 1, impute_fn))
+            block.mx <- impute_fn(block.mx)
     }
     # use multicores to speed up filtering
     if (multicores > 1) {
@@ -181,7 +181,7 @@
         gc()
     }
     else
-        values.mx <- t(apply(values.mx, 1, impute_fn))
+        values.mx <- impute_fn(values.mx)
 
     return(values.mx)
 
@@ -425,7 +425,7 @@
                 values.vec[values.vec > maximum_values[band]] <- NA
 
                 # are there NA values? interpolate them
-                if(any(is.na(values.vec)))
+                if (any(is.na(values.vec)))
                     values.vec <-  impute_fn(values.vec)
                 # correct the values using the scale factor
                 values.vec <- values.vec*scale_factors[band]

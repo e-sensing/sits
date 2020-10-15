@@ -4,7 +4,7 @@
 \alias{sits_cube_copy}
 \title{Creates the contents of a data cube}
 \usage{
-sits_cube_copy(cube, name, dest_dir, bands = NULL)
+sits_cube_copy(cube, name, dest_dir, bands = NULL, srcwin = NULL)
 }
 \arguments{
 \item{cube}{Input data cube}
@@ -14,6 +14,8 @@ sits_cube_copy(cube, name, dest_dir, bands = NULL)
 \item{dest_dir}{Destination directory}
 
 \item{bands}{Bands to include in output (optional)}
+
+\item{srcwin}{subwindow defined as c(xoff, yoff, xsize, ysize)}
 }
 \value{
 Output data cube
