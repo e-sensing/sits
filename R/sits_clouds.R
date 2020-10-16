@@ -131,6 +131,10 @@ sits_cloud_remove <- function(cube,
 	bands        <- sits_bands(cube)
 	bands_no_cloud <- bands[bands != cloud_band]
 
+	# find out the number of layers
+	band_files <- dplyr::filter(cube$file_info[[1]], band == bands_no_cloud[1])
+	nlyrs <- nrow(band_files)
+
 	# define the cloud band
     obj_cld <- .sits_cube_terra_obj_band(cube, cloud_band)
     cld_index <- .sits_config_cloud_valid_values(cube)
@@ -142,8 +146,34 @@ sits_cloud_remove <- function(cube,
 
 	    # define the input band
 	    obj_band <- .sits_cube_terra_obj_band(cube, band)
+
+	    # define the output band
+	    brick <- terra::rast(nrows  = cube$nrows,
+	                         ncols  = cube$ncols,
+	                         nlyrs  = nlyrs,
+	                         xmin   = cube$xmin,
+	                         xmax   = cube$xmax,
+	                         ymin   = cube$ymin,
+	                         ymax   = cube$ymax,
+	                         crs    = cube$crs)
+
+	    start_date <- band_files[1,]$date
+	    end_date   <- band_files[nlyrs,]$date
+
+	    filename <- paste0(data_dir, "/",
+	                       cube$satellite, "_",
+	                       cube$sensor, "_",
+	                       start_date,"_", end_date, "_",
+	                       band, "_CLD_REM", ".tif")
+
+
+	    terra::writeStart(brick,
+	                      filename = filename,
+	                      wopt     = list(filetype  = "GTiff",
+	                                      datatype = "INT2U"),
+	                      overwrite = TRUE)
 	    # read the blocks
-	    values.lst <- purrr::map(c(1:blocks$n), function(b) {
+	    blocks.lst <- purrr::map(c(1:blocks$n), function(b) {
 	        # measure performance
 	        start_block_time <- lubridate::now()
 	        # define the extent
@@ -181,49 +211,19 @@ sits_cloud_remove <- function(cube,
 	        rm(clouds.mx)
 	        gc()
 
+	        terra::writeValues(brick,
+	                           values.mx,
+	                           start = extent["row"],
+	                           nrows  = extent["nrows"])
+
 	        task <- paste0("process block ", b, " of band ", band)
 	        .sits_processing_estimate_task_time(task, start_block_time)
 
-	        return(values.mx)
+	        rm(values.mx)
+	        gc()
+	        return(b)
 	    })
-
-	    new_values.mx <- do.call(rbind, values.lst)
-	    rm(values.lst)
-	    gc()
-
-	    band_files <- dplyr::filter(cube$file_info[[1]], band == band)
-	    nlyrs <- nrow(band_files)
-
-	    brick <- terra::rast(nrows  = cube$nrows,
-	                         ncols  = cube$ncols,
-	                         nlyrs  = nlyrs,
-	                         xmin   = cube$xmin,
-	                         xmax   = cube$xmax,
-	                         ymin   = cube$ymin,
-	                         ymax   = cube$ymax,
-	                         crs    = cube$crs)
-
-	    start_date <- band_files[1,]$date
-	    end_date   <- band_files[nlyrs,]$date
-
-	    filename <- paste0(data_dir, "/", cube$satellite, "_", cube$sensor, "_",
-	                       start_date,"_", end_date, "_",
-	                       band, "_CLD_REM", ".tif")
-
-	    terra::writeStart(brick,
-	                       filename = filename,
-	                       wopt     = list(filetype  = "GTiff",
-	                                       datatype = "INT2U"),
-	                       overwrite = TRUE)
-	    terra::writeValues(x = brick,
-	                       v = new_values.mx,
-	                       start = 1,
-	                       row = 1,
-	                       nrows = cube$nrows,
-	                       col = 1,
-	                       ncols = cube$ncols)
 	    terra::writeStop(brick)
-
 	    task <- paste0("Removed clouds from band ", band)
 	    .sits_processing_estimate_task_time(task, start_task_time)
 	    return(filename)

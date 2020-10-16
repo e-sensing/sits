@@ -80,12 +80,12 @@ BEGIN_RCPP
 END_RCPP
 }
 // scale_matrix_integer
-IntegerMatrix scale_matrix_integer(NumericMatrix data, const double& scale_factor);
+IntegerMatrix scale_matrix_integer(NumericMatrix& data, const double& scale_factor);
 RcppExport SEXP _sits_scale_matrix_integer(SEXP dataSEXP, SEXP scale_factorSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< NumericMatrix >::type data(dataSEXP);
+    Rcpp::traits::input_parameter< NumericMatrix& >::type data(dataSEXP);
     Rcpp::traits::input_parameter< const double& >::type scale_factor(scale_factorSEXP);
     rcpp_result_gen = Rcpp::wrap(scale_matrix_integer(data, scale_factor));
     return rcpp_result_gen;
