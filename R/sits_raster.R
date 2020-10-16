@@ -140,7 +140,7 @@
     }
 
     # remove cloud pixels
-    if(any(is.na(values.mx))) {
+    if (any(is.na(values.mx))) {
         if (.verbose) task_start_time <- lubridate::now()
 
         values.mx <- .sits_raster_cld_remove(values.mx  = values.mx,

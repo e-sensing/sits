@@ -52,6 +52,8 @@ sits_cloud_remove <- function(cube,
 	                                    bands     = bands,
 	                                    files     = files)
 
+	class(cube_new) <- c("raster_cube", class(cube_new))
+
 	return(cube_new)
 
 }
