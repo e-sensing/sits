@@ -419,13 +419,12 @@ sits_cube.bdc_cube <- function(type        = "BDC_TILE", ...,
 #' \donttest{
 #'
 #' # create a raster cube file based on the information about the files
-# cbers_stac_tile <- sits_cube(type        = "BDC_STAC",
-#                              name        = "v01",
-#                              tiles       = c("021026", "021027"),
-#                              bands       = c("NDVI", "EVI"),
-#                              url         = "http://brazildatacube.dpi.inpe.br/stac/",
-#                              collection  = "CB4_64_16D_STK-1",
-#                              datetime    = "2018-09-01/2019-08-28")
+#' cbers_stac_tile <- sits_cube(type        = "BDC_STAC",
+#'                              name        = "v01",
+#'                              bands       = c("NDVI", "EVI"),
+#'                              url         = "http://brazildatacube.dpi.inpe.br/stac/",
+#'                              collection  = "CB4_64_16D_STK-1",
+#'                              datetime    = "2018-09-01/2019-08-28")
 #' }
 sits_cube.bdc_stac <- function(type       = "BDC_STAC",
                                name       = NULL,
@@ -474,6 +473,7 @@ sits_cube.bdc_stac <- function(type       = "BDC_STAC",
 
         return(cube_t)
     })
+
     cube <- dplyr::bind_rows(tile.lst)
 
     return(cube)

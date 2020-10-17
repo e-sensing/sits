@@ -76,6 +76,12 @@ Defines a cube to retrieve data from the Brazil Data Cube (BDC)
 \donttest{
 
 # create a raster cube file based on the information about the files
+cbers_stac_tile <- sits_cube(type        = "BDC_STAC",
+                             name        = "v01",
+                             bands       = c("NDVI", "EVI"),
+                             url         = "http://brazildatacube.dpi.inpe.br/stac/",
+                             collection  = "CB4_64_16D_STK-1",
+                             datetime    = "2018-09-01/2019-08-28")
 }
 }
 \references{

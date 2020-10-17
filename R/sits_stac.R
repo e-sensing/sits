@@ -19,6 +19,10 @@
                             msg = paste("sits_cube: for STAC_CUBE collections",
                                         "must be provided"))
 
+    assertthat::assert_that(!(length(collection) > 1),
+                            msg = paste("sits_cube: STAC_CUBE ",
+                                        "only one collection should be specified"))
+
     # creating a rstac object and making the requisition
     collection_info <- rstac::stac(url) %>%
         rstac::collections(collection_id = collection) %>%
@@ -137,6 +141,17 @@
     items_grouped <- purrr::map(items_grouped, function(x) {
         x$tile <- rstac::items_reap(x, fields = fields)[[1]]
 
+        # resolution
+        x$xres <- x$features[[1]]$properties[["eo:gsd"]]
+        x$yres <- x$features[[1]]$properties[["eo:gsd"]]
+
+        # size raster
+        attrib <- "bdc:raster_size"
+        if (is.null(x$features[[1]]$assets[[1]][[attrib]]))
+            attrib <- "raster_size"
+        x$ncols <- x$features[[1]]$assets[[1]][[attrib]]$x
+        x$nrows <- x$features[[1]]$assets[[1]][[attrib]]$y
+
         return(x)
     })
 
@@ -189,6 +204,29 @@
     })
     list_values
 }
+#' @title Get the STAC information corresponding to a bbox extent
+#' @name .sits_stac_get_bbox
+#' @keywords internal
+#'
+#' @param items_info      a \code{STACItemCollection} object returned by rstac
+#' package.
+#' @param collection_info a \code{STACCollection} object returned by rstac.
+#'
+#' @return  a \code{bbox} object from the sf package representing the tile bbox.
+.sits_stac_get_bbox <- function(items_info, collection_info) {
+
+    # get the extent points
+    extent_points <- items_info$features[[1]]$geometry$coordinates[[1]]
+
+    # create a polygon and transform the proj
+    polygon_ext <- sf::st_polygon(list(do.call(rbind, extent_points)))
+    polygon_ext <- sf::st_sfc(polygon_ext, crs = 4326) %>%
+        sf::st_transform(., collection_info[["bdc:crs"]])
+
+    bbox_ext <- sf::st_bbox(polygon_ext)
+
+    return(bbox_ext)
+}
 #' @title Get the STAC information corresponding to a tile.
 #' @name .sits_stac_tile_cube
 #' @keywords internal
@@ -215,10 +253,8 @@
     # set the labels
     labels <- c("NoClass")
 
-    # get the first image
-    full_path_1 <- .sits_raster_check_webfiles(file_info[1,]$path)
-    # obtain the parameters
-    params <- .sits_raster_params(terra::rast(full_path_1))
+    # obtain bbox extent
+    bbox_params <- .sits_stac_get_bbox(items_info, collection_info)
 
     # get the bands
     bands <- unique(file_info$band)
@@ -241,15 +277,15 @@
                               minimum_values = metadata_values$min,
                               maximum_values = metadata_values$max,
                               timelines = list(timeline),
-                              nrows     = params$nrows,
-                              ncols     = params$ncols,
-                              xmin      = params$xmin,
-                              xmax      = params$xmax,
-                              ymin      = params$ymin,
-                              ymax      = params$ymax,
-                              xres      = params$xres,
-                              yres      = params$yres,
-                              crs       = params$crs,
+                              nrows     = items_info$nrows,
+                              ncols     = items_info$ncols,
+                              xmin      = bbox_params$xmin[[1]],
+                              xmax      = bbox_params$xmax[[1]],
+                              ymin      = bbox_params$ymin[[1]],
+                              ymax      = bbox_params$ymax[[1]],
+                              xres      = items_info$xres,
+                              yres      = items_info$yres,
+                              crs       = collection_info[["bdc:crs"]],
                               file_info = file_info)
 
     return(cube)
