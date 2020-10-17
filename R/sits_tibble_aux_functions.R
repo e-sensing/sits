@@ -95,6 +95,10 @@
 								}
 								return(row)
 							})
+
+	# solve issue when a names list is returned
+	if (!is.null(names(rows.lst))) rows.lst <- unname(rows.lst)
+
 	data1.tb <- dplyr::bind_rows(data1.tb, rows.lst)
 	return(data1.tb)
 }
