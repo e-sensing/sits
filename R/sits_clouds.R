@@ -78,9 +78,6 @@ sits_cloud_remove <- function(cube,
 #'                size (vector with size of each block)
 
 .sits_clouds_blocks_estimate <- function(cube, n_bands, n_instances, memsize) {
-
-
-
 	# number of bytes per pixel
 	nbytes <-  8
 	# estimated memory bloat
@@ -296,7 +293,7 @@ sits_cloud_cbers <- function(cube, cld_band_name = "CMASK",
 
     # estimate the blocks to be read
     blocks <- .sits_clouds_blocks_estimate(cube = cube,
-                                           n_bands = 6,
+                                           n_bands = 8,
                                            n_instances = 1,
                                            memsize = memsize)
 
