@@ -18,6 +18,26 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// cbers4_cld_detect
+IntegerMatrix cbers4_cld_detect(const IntegerMatrix& b13, const IntegerMatrix& b14, const IntegerMatrix& b15, const IntegerMatrix& b16, const double& thres_1, const double& t2, const double& t3, const double& t4, const int& t5, const int& t6);
+RcppExport SEXP _sits_cbers4_cld_detect(SEXP b13SEXP, SEXP b14SEXP, SEXP b15SEXP, SEXP b16SEXP, SEXP thres_1SEXP, SEXP t2SEXP, SEXP t3SEXP, SEXP t4SEXP, SEXP t5SEXP, SEXP t6SEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< const IntegerMatrix& >::type b13(b13SEXP);
+    Rcpp::traits::input_parameter< const IntegerMatrix& >::type b14(b14SEXP);
+    Rcpp::traits::input_parameter< const IntegerMatrix& >::type b15(b15SEXP);
+    Rcpp::traits::input_parameter< const IntegerMatrix& >::type b16(b16SEXP);
+    Rcpp::traits::input_parameter< const double& >::type thres_1(thres_1SEXP);
+    Rcpp::traits::input_parameter< const double& >::type t2(t2SEXP);
+    Rcpp::traits::input_parameter< const double& >::type t3(t3SEXP);
+    Rcpp::traits::input_parameter< const double& >::type t4(t4SEXP);
+    Rcpp::traits::input_parameter< const int& >::type t5(t5SEXP);
+    Rcpp::traits::input_parameter< const int& >::type t6(t6SEXP);
+    rcpp_result_gen = Rcpp::wrap(cbers4_cld_detect(b13, b14, b15, b16, thres_1, t2, t3, t4, t5, t6));
+    return rcpp_result_gen;
+END_RCPP
+}
 // linear_interp
 IntegerMatrix linear_interp(IntegerMatrix& mtx);
 RcppExport SEXP _sits_linear_interp(SEXP mtxSEXP) {
@@ -94,6 +114,7 @@ END_RCPP
 
 static const R_CallMethodDef CallEntries[] = {
     {"_sits_apply_transition_matrix", (DL_FUNC) &_sits_apply_transition_matrix, 3},
+    {"_sits_cbers4_cld_detect", (DL_FUNC) &_sits_cbers4_cld_detect, 10},
     {"_sits_linear_interp", (DL_FUNC) &_sits_linear_interp, 1},
     {"_sits_linear_interp_vec", (DL_FUNC) &_sits_linear_interp_vec, 1},
     {"_sits_normalize_data", (DL_FUNC) &_sits_normalize_data, 3},

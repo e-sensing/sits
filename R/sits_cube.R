@@ -517,20 +517,25 @@ sits_cube_copy <- function (cube, name, dest_dir, bands = NULL, srcwin = NULL){
                                  if (!purrr::is_null(srcwin))
                                      gdalUtils::gdal_translate(
                                          src_dataset  = p,
-                                         dest_dataset = dest_file,
+                                         dst_dataset = dest_file,
                                          srcwin = srcwin)
                                  else
                                      gdalUtils::gdal_translate(
                                          src_dataset  = p,
-                                         dest_dataset = dest_file)
+                                         dst_dataset = dest_file)
                                  return(dest_file)
                              })
     # update file info
     new_paths <- unlist(paths.lst)
-    file_info_out$path <- new_paths
 
     # update cube
-    cube$file_info <- list(file_info_out)
+    cube$nrows <- srcwin["ysize"]
+    cube$ncols <- srcwin["xsize"]
+    cube$xmin  <- cube$xmin + srcwin["xoff"]*cube$xres
+    cube$ymin  <- cube$ymin + srcwin["yoff"]*cube$yres
+    cube$xmax  <- cube$xmin + (srcwin["xsize"] - 1)*cube$xres
+    cube$ymax  <- cube$ymin + (srcwin["ysize"] - 1)*cube$yres
+    cube$file_info[[1]]$path <- new_paths
     cube$name      <- name
     return(cube)
 }

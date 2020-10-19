@@ -4,10 +4,14 @@
 \alias{.sits_clouds_blocks_estimate}
 \title{Estimate the number of blocks to correct for clouds}
 \usage{
-.sits_clouds_blocks_estimate(cube, memsize)
+.sits_clouds_blocks_estimate(cube, n_bands, n_instances, memsize)
 }
 \arguments{
 \item{cube}{input data cube}
+
+\item{n_bands}{number of bands in memory for processing}
+
+\item{n_instances}{size of timeline}
 
 \item{memsize}{size of memory available}
 }
