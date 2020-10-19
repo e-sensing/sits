@@ -2,50 +2,74 @@
 #include <stdio.h>
 using namespace Rcpp;
 
-// This function preprocesses the raster brick data, by removing missing values and those
-// smaller than the minimum value
+// This function finds a vector of neighbours from a window of size
+// (nrows_window x ncols_window) of pixel (i,j)
+IntegerVector neigh_i_j(const IntegerMatrix& data,
+                        const int& nrows_window,
+                        const int& ncols_window,
+                        const int& i,
+                        const int& j) {
 
-IntegerVector build_neigh(const IntegerMatrix& data,
-                          const int& nrows,
-                          const int& ncols,
-                          const int& i,
-                          const int& j) {
+    // number of rows and cols in the matrix
+    int data_nrows = data.nrow();
+    int data_ncols = data.ncol();
 
-    IntegerVector neigh;
+    // number of rows and cols in the neighbourhood vector
+    // adjust for borders
+    int first_row = i - (nrows_window + 1)/2 + 1;
+    first_row = first_row > 0 ?  first_row : 0;
+    int last_row  = i + (nrows_window + 1)/2 - 1;
+    last_row  = last_row < data_nrows ? last_row : data_nrows - 1;
 
-    IntegerMatrix window(nrows, ncols);
+    int first_col = j - (ncols_window + 1)/2 + 1;
+    first_col = first_col > 0 ?  first_col : 0;
+    int last_col  = j + (ncols_window + 1)/2 - 1;
+    last_col  = last_col < data_ncols ? last_col : data_ncols - 1;
 
-    window = 1;
+    // number of points in the neighborhood
+    //
+    int npts_vec = (last_row - first_row + 1)*(last_col - first_row + 1);
 
-    for (int k = 0; k < nrows; ++k) {
-        for (int l = 0; l < ncols; ++l) {
-            int data_i = i + k - nrows / 2, data_j = j + l - ncols / 2;
+    IntegerVector neigh(npts_vec);
 
-            if (data_i >= 0 && data_j >= 0 &&
-                data_i < data.nrow() && data_j < data.ncol() && window(k, l) > 0 &&
-                !std::isnan(data(data_i, data_j))) {
-                neigh.push_back(data(data_i, data_j) * window(k, l));
-            }
+    IntegerVector::iterator it = neigh.begin();
+
+    for (int k = first_row; k <= last_row; ++k) {
+        for (int l = first_col; l <= last_col; ++l) {
+            *it++ = data(k, l);
         }
     }
 
     return neigh;
 }
-
-IntegerMatrix median_neigh(const IntegerMatrix& data,
-                           const int& nrows,
-                           const int& ncols){
-
-    IntegerMatrix median_data(nrows, ncols);
+// find the median value of the neighbours of a matrix
+// uses a window of size (nrows_window x ncols_window)
+IntegerMatrix median_neigh(IntegerMatrix& data,
+                           const int& nrows_window,
+                           const int& ncols_window){
 
     for (int i = 0; i < data.nrow(); i++){
         for (int j = 0; j < data.ncol(); j++) {
-            IntegerVector neigh = build_neigh(data, nrows, ncols, i, j);
-            Rcout << "neigh is " << neigh << std::endl;
-            median_data(i,j) = median(neigh);
+            data(i,j) = median(neigh_i_j(data, nrows_window, ncols_window, i, j));
         }
     }
-    return(median_data);
+    return(data);
+}
+
+bool cld_shd_neigh(IntegerMatrix& data,
+                   const int& nrows_window,
+                   const int& ncols_window,
+                   const int& i,
+                   const int& j){
+
+    IntegerVector neigh;
+    for (int i = 0; i < data.nrow(); i++){
+        for (int j = 0; j < data.ncol(); j++) {
+            neigh = neigh_i_j(data, nrows_window, ncols_window, i, j);
+        }
+    }
+    bool has_cld_neigh = is_true(any(neigh == 1));
+    return(has_cld_neigh);
 }
 
 // [[Rcpp::export]]
@@ -67,8 +91,6 @@ IntegerMatrix cbers4_cld_detect(const IntegerMatrix& b13, const IntegerMatrix& b
     for (int i = 0; i < nrows; i++)
         for (int j = 0; j < ncols; j++)
             mean_band(i,j) = (b13(i,j) + b14(i,j) + b15(i,j) + b16(i,j))/4;
-
-
 
     // calculate the mean of the mean band
     int m1 = mean(mean_band);
@@ -114,31 +136,28 @@ IntegerMatrix cbers4_cld_detect(const IntegerMatrix& b13, const IntegerMatrix& b
     for (int i = 0; i < nrows; i++) {
         for (int j = 0; j < ncols; j++){
             if (shd_band(i,j) == 1) {
-                // assume there are no shadows.
-                shd_band(i,j) = 0;
-                // build a large neighborhood to find if there are clouds there
-                IntegerVector neigh = build_neigh(cld_band, nrows_shd_window,
-                                                  ncols_shd_window, i, j);
-                // are there any clouds?
-                // if so, then assume there are shadows
-                IntegerVector::iterator it = neigh.begin();
-                while (it != neigh.end()){
-                    if (*it++ == 1){
-                        shd_band(i,j) = 1;
-                        break;
-                    }
-                }
+                bool has_cld_neigh = cld_shd_neigh(cld_band, nrows_shd_window,
+                                                   ncols_shd_window, i, j);
+                if (!has_cld_neigh)
+                    shd_band(i,j) = 0;
             }
         }
     }
     // filter the shadow band by the median
-    shd_band = median_neigh(cld_band, nrows_median_window, ncols_median_window);
+    shd_band = median_neigh(shd_band, nrows_median_window, ncols_median_window);
 
     for (int i = 0; i < nrows; i++)
         for (int j = 0; j < ncols; j++)
             if (shd_band(i,j) == 1)
                 cld_band(i,j) = 2;
 
+    Rcout << "cloud band" << std::endl;
+    for (int i = 1000; i < 1050; i++){
+        for (int j = 1000; j < 1050; j++) {
+            Rcout << cld_band(i,j);
+        }
+        Rcout << std::endl;
+    }
 
 
     return cld_band;
