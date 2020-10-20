@@ -72,7 +72,8 @@
 
     if (.verbose) {
         message(paste0("Using ", block_info$n,
-                       " blocks of size (", block_info$nrows[1], " x ", block_info$ncols[1]),")")
+                       " blocks of size (", block_info$nrows[1],
+                       " x ", block_info$ncols[1]),")")
     }
 
     # create the metadata for the classified cube
@@ -121,7 +122,7 @@
         # read the data
         if (.verbose) {
             message(paste0("Read and preprocess block ", b))
-            read_data_start_time <- lubridate::now
+            read_data_start_time <- lubridate::now()
         }
         data_DT <- .sits_raster_read_data(cube         = cube,
                                           samples      = samples,
@@ -134,52 +135,48 @@
                                           multicores   = multicores,
                                           .verbose     = .verbose)
         if (.verbose)
-            .sits_processing_estimate_task_time("Read block", read_data_start_time)
+            .sits_processing_estimate_task_time("Read block",
+                                                read_data_start_time)
 
         if (.verbose) classify_start_time <- lubridate::now()
 
         # process one temporal instance at a time
         probs.lst <- purrr::pmap(list(select.lst, c(1:n_objs)),
-                        function(time, iter) {
-                            # retrieve the values used for classification
-                            if (all(time))
-                                dist_DT <- data_DT
-                            else {
-                                dist_DT <- data_DT[, time, with = FALSE]
-                                # set column names for DT
-                            }
-                            colnames(dist_DT) <- attr_names
-                            # predict the classification values
-                            prediction_DT <- .sits_classify_interval(DT          = dist_DT,
-                                                                     ml_model   = ml_model,
-                                                                     multicores = multicores)
-                            # convert probabilities matrix to INT2U
-                            scale_factor_save <- 10000
-                            probs  <- .sits_raster_scale_matrix_integer(
-                                values.mx    = as.matrix(prediction_DT),
-                                scale_factor = scale_factor_save,
-                                multicores   = multicores)
+                    function(time, iter) {
+                        # retrieve the values used for classification
+                        if (all(time))
+                            dist_DT <- data_DT
+                        else {
+                            dist_DT <- data_DT[, time, with = FALSE]
+                            # set column names for DT
+                        }
+                        colnames(dist_DT) <- attr_names
+                        # predict the classification values
+                        prediction_DT <- .sits_classify_interval(DT          = dist_DT,
+                                                                 ml_model   = ml_model,
+                                                                 multicores = multicores)
+                        # convert probabilities matrix to INT2U
+                        scale_factor_save <- 10000
+                        probs  <- .sits_raster_scale_matrix_integer(
+                            values.mx    = as.matrix(prediction_DT),
+                            scale_factor = scale_factor_save,
+                            multicores   = multicores)
 
+                        # memory management
+                        rm(prediction_DT)
+                        gc()
 
-                            # memory management
-                            rm(prediction_DT)
-                            gc()
-
-                            # estimate processing time
-                            .sits_processing_estimate_classification_time(
-                                        start_time = start_time,
-                                        n_intervals = length(select.lst),
-                                        bs = block_info,
-                                        block = b,
-                                        time = iter)
-                            return(probs)
-                        })
-
-        # save information about memory use for debugging later
-        if (.verbose) .sits_processing_estimate_task_time("Classify data", task_start_time)
+                        # estimate processing time
+                        .sits_processing_estimate_classification_time(
+                            start_time = start_time,
+                            n_intervals = length(select.lst),
+                            bs = block_info,
+                            block = b,
+                            time = iter)
+                        return(probs)
+                    })
 
         return(probs.lst)
-
     })
     # now we have to untangle the probabilities
     n_blocks <- length(blocks.lst)
@@ -187,7 +184,6 @@
 
     # find out how many layers per brick
     n_layers  <- length(sits_labels(samples)$label)
-
 
     purrr::map(c(1:n_times), function (t) {
         b <- 1

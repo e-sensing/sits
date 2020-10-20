@@ -6,7 +6,7 @@ using namespace Rcpp;
 
 // [[Rcpp::export]]
 
-IntegerMatrix scale_matrix_integer(NumericMatrix data, const double& scale_factor) {
+IntegerMatrix scale_matrix_integer(NumericMatrix& data, const double& scale_factor) {
 
     int nrows = data.nrow();
     int ncols = data.ncol();

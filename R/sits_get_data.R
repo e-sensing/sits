@@ -517,7 +517,7 @@ sits_get_data.csv_raster_cube <- function(cube, file, ...,
     else
         cld_band <- NULL
 
-    ts_rows.lst <- slider::slide(cube, function (row) {
+    ts_rows.lst <- slider::slide(cube, function(row) {
         # get the data
         ts.tb <- .sits_raster_get_ts(cube       = row,
                                      points     = csv.tb,

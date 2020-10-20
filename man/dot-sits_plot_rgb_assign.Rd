@@ -4,10 +4,12 @@
 \alias{.sits_plot_rgb_assign}
 \title{Assign RGB channels to into image layers with many time instance}
 \usage{
-.sits_plot_rgb_assign(cube, red, green, blue, time)
+.sits_plot_rgb_assign(bands, timeline, red, green, blue, time)
 }
 \arguments{
-\item{cube}{Data cube}
+\item{bands}{bands of the data cube (excludes cloud band)}
+
+\item{timeline}{timeline of the data cube}
 
 \item{red}{Band to be assigned to R channel}
 

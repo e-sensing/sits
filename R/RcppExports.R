@@ -5,6 +5,18 @@ apply_transition_matrix <- function(data_before, data, transition_matrix) {
     .Call(`_sits_apply_transition_matrix`, data_before, data, transition_matrix)
 }
 
+cbers4_cld_detect <- function(b13, b14, b15, b16, thres_1 = 1, t2 = 0.125, t3 = 0.66, t4 = 0.80, t5 = 40L, t6 = 5L) {
+    .Call(`_sits_cbers4_cld_detect`, b13, b14, b15, b16, thres_1, t2, t3, t4, t5, t6)
+}
+
+linear_interp <- function(mtx) {
+    .Call(`_sits_linear_interp`, mtx)
+}
+
+linear_interp_vec <- function(vec) {
+    .Call(`_sits_linear_interp_vec`, vec)
+}
+
 normalize_data <- function(data, min, max) {
     .Call(`_sits_normalize_data`, data, min, max)
 }

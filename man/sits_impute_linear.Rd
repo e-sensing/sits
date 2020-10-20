@@ -2,7 +2,7 @@
 % Please edit documentation in R/sits_imputation.R
 \name{sits_impute_linear}
 \alias{sits_impute_linear}
-\title{Linear imputation of NA values}
+\title{Linear imputation of NA values using C++ implementation}
 \usage{
 sits_impute_linear(data = NULL)
 }

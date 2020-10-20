@@ -583,10 +583,11 @@ sits_cube.default <- function(type = NULL, ...){
 #' @param  name      Output cube name
 #' @param  dest_dir  Destination directory
 #' @param  bands     Bands to include in output (optional)
+#' @param  srcwin    subwindow defined as c(xoff, yoff, xsize, ysize)
 #' @return           Output data cube
 #' @export
 #'
-sits_cube_copy <- function (cube, name, dest_dir, bands = NULL){
+sits_cube_copy <- function (cube, name, dest_dir, bands = NULL, srcwin = NULL){
     # ensure input cube exists
     assertthat::assert_that(.sits_cube_check_validity(cube),
                             msg = "invalid input cube")
@@ -594,6 +595,18 @@ sits_cube_copy <- function (cube, name, dest_dir, bands = NULL){
                             msg = "cube has no bands")
     # does the output directory exist?
     assertthat::is.dir(dest_dir)
+
+    # check if subwindow has been defined
+    if (!purrr::is_null(srcwin)) {
+        assertthat::assert_that(all(srcwin > 0),
+                                msg = "srcwin values should be positive")
+        names(srcwin) <- c("xoff", "yoff", "xsize", "ysize")
+        assertthat::assert_that((srcwin["xoff"] + srcwin["xsize"]) < cube$ncols,
+                                msg = "srcwin x values bigger than cube size")
+        assertthat::assert_that((srcwin["yoff"] + srcwin["ysize"]) < cube$nrows,
+                                msg = "srcwin y values bigger than cube size")
+    }
+
 
     # if bands are not stated, use all those in the cube
     if (purrr::is_null(bands))
@@ -612,15 +625,28 @@ sits_cube_copy <- function (cube, name, dest_dir, bands = NULL){
                                  dest_file <- paste0(dest_dir,"/",
                                                      tools::file_path_sans_ext(basename(p)),
                                                      "_",d,".tif")
-                                 gdalUtils::gdal_translate(p, dest_file)
+                                 if (!purrr::is_null(srcwin))
+                                     gdalUtils::gdal_translate(
+                                         src_dataset  = p,
+                                         dst_dataset = dest_file,
+                                         srcwin = srcwin)
+                                 else
+                                     gdalUtils::gdal_translate(
+                                         src_dataset  = p,
+                                         dst_dataset = dest_file)
                                  return(dest_file)
                              })
     # update file info
     new_paths <- unlist(paths.lst)
-    file_info_out$path <- new_paths
 
     # update cube
-    cube$file_info <- list(file_info_out)
+    cube$nrows <- srcwin["ysize"]
+    cube$ncols <- srcwin["xsize"]
+    cube$xmin  <- cube$xmin + srcwin["xoff"]*cube$xres
+    cube$ymin  <- cube$ymin + srcwin["yoff"]*cube$yres
+    cube$xmax  <- cube$xmin + (srcwin["xsize"] - 1)*cube$xres
+    cube$ymax  <- cube$ymin + (srcwin["ysize"] - 1)*cube$yres
+    cube$file_info[[1]]$path <- new_paths
     cube$name      <- name
     return(cube)
 }

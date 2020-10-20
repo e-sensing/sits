@@ -404,7 +404,7 @@ sits_ranger <- function(data = NULL,
 #' This function is a front-end to the "randomForest" method in the "randomForest" package.
 #' Please refer to the documentation in that package for more details.
 #'
-#' @param data.            time series with the training samples
+#' @param data             time series with the training samples
 #' @param ntree            number of trees to grow. This should not be set to too small a number,
 #'                         to ensure that every input row gets predicted at least a few times. (default: 2000)
 #' @param nodesize         minimum size of terminal nodes (default 1 for classification)
@@ -425,6 +425,11 @@ sits_ranger <- function(data = NULL,
 #' @export
 sits_rfor <- function(data = NULL, ntree = 2000, nodesize = 1, ...) {
 
+    # verifies if ranger package is installed
+    if (!requireNamespace("randomForest", quietly = TRUE)) {
+        stop("randomForest required for this function to work.
+             Please install it.", call. = FALSE)
+    }
     # function that returns `randomForest::randomForest` model based on a sits sample tibble
     result_fun <- function(data){
 

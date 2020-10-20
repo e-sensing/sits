@@ -149,19 +149,36 @@ plot.raster_cube <- function(x , y, ..., red, green, blue, time = 1) {
 	if (!requireNamespace("mapview", quietly = TRUE)) {
 		stop("Please install package mapview.", call. = FALSE)
 	}
+    # verifies if raster package is installed
+    if (!requireNamespace("raster", quietly = TRUE)) {
+        stop("Please install package raster.", call. = FALSE)
+    }
     # set mapview options
     mapview::mapviewOptions(basemaps = c("GeoportailFrance.orthos","Esri.WorldImagery"))
 
-    inst.vec <- .sits_plot_rgb_assign(cube = x,
+    # get information about bands and files
+    file_info <- x$file_info[[1]]
+
+    # is there a cloud band?
+    # remove the cloud band from the file information
+    bands <- sits_bands(x)
+    cld_band <- .sits_config_cloud_band(x)
+    if (cld_band %in% bands) {
+        file_info <- dplyr::filter(file_info, band != cld_band)
+        bands <- bands[bands != cld_band]
+    }
+
+    inst.vec <- .sits_plot_rgb_assign(bands = bands,
+                                      timeline = sits_timeline(x),
                                       red   = toupper(red),
                                       green = toupper(green),
                                       blue  = toupper(blue),
                                       time = time)
 
     # is the data set a stack or a brick
-    if (nrow(x$file_info[[1]]) == length(sits_bands(x))) {
+    if (nrow(file_info) == length(bands)) {
         # use the raster package to obtain a "rast" object from a brick
-        rast <- suppressWarnings(raster::stack(x$file_info[[1]]$path))
+        rast <- suppressWarnings(raster::stack(file_info$path))
         # plot the RGB file
         mv <- suppressWarnings(mapview::viewRGB(rast,
                                                 r = inst.vec["red"],
@@ -171,7 +188,7 @@ plot.raster_cube <- function(x , y, ..., red, green, blue, time = 1) {
     }
     else {
         # use the raster package to obtain a "rast" object from a stack
-        rast <- suppressWarnings(raster::stack(x$file_info[[1]]$path[inst.vec]))
+        rast <- suppressWarnings(raster::stack(file_info$path[inst.vec]))
         # plot the RGB file
         mv <- suppressWarnings(mapview::viewRGB(rast, r = 1, g = 2, b = 3))
     }
@@ -1096,15 +1113,16 @@ plot.keras_model <- function(x, y, ...) {
 #' @description Obtain a vector with the correct layer to be plotted for
 #' an RGB assignment of a multi-temporal cube
 #'
-#' @param cube       Data cube
+#' @param bands      bands of the data cube (excludes cloud band)
+#' @param timeline   timeline of the data cube
 #' @param red        Band to be assigned to R channel
 #' @param green      Band to be assigned to G channel
 #' @param blue       Band to be assigned to G channel
 #' @param time       Temporal instance to be plotted
 #' @return           Named vector with the correct layers for RGB
-.sits_plot_rgb_assign <- function(cube, red, green, blue, time){
-	# check if the selected bands are correct
-	bands <- sits_bands(cube)
+.sits_plot_rgb_assign <- function(bands, timeline, red, green, blue, time){
+
+    # check if the selected bands are correct
 	all_bands <- paste0(bands, collapse = " ")
 	assertthat::assert_that(red %in% bands,
 							msg = paste0("R channel should be one of ", all_bands))
@@ -1113,7 +1131,7 @@ plot.keras_model <- function(x, y, ...) {
 	assertthat::assert_that(blue %in% bands,
 							msg = paste0("B channel should be one of ", all_bands))
 	# find out the number of instances
-	n_instances <- length(sits_timeline(cube))
+	n_instances <- length(timeline)
 	# check if the selected temporal instance exists
 	assertthat::assert_that(time <= n_instances, msg = "time out of bounds")
 	# locate the instances

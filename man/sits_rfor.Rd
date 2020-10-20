@@ -7,14 +7,14 @@
 sits_rfor(data = NULL, ntree = 2000, nodesize = 1, ...)
 }
 \arguments{
+\item{data}{time series with the training samples}
+
 \item{ntree}{number of trees to grow. This should not be set to too small a number,
 to ensure that every input row gets predicted at least a few times. (default: 2000)}
 
 \item{nodesize}{minimum size of terminal nodes (default 1 for classification)}
 
 \item{...}{other parameters to be passed to `randomForest::randomForest` function}
-
-\item{data.}{time series with the training samples}
 }
 \value{
 model fitted to input data
