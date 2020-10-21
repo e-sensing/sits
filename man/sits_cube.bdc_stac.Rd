@@ -6,6 +6,7 @@
 \usage{
 \method{sits_cube}{bdc_stac}(
   type = "BDC_STAC",
+  ...,
   name = NULL,
   tiles = NULL,
   bands = NULL,
@@ -21,6 +22,8 @@
 \arguments{
 \item{type}{a \code{character} with the type of cube.}
 
+\item{...}{other parameters to be passed for specific types}
+
 \item{name}{a \code{character} representing the output data cube.}
 
 \item{tiles}{a \code{character} representing the names of the tiles.}
@@ -33,7 +36,7 @@
 
 \item{ids}{a \code{character} vector with the items features ids.}
 
-\item{bbox}{a \code{numeric} vector with only features that have a
+\item{bbox}{a \code{numeric} vector with features that have a
 geometry that intersects the bounding box are selected. The bounding box is
 provided as four or six numbers, depending on whether the coordinate
 reference system includes a vertical axis (elevation or depth):

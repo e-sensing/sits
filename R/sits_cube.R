@@ -378,13 +378,14 @@ sits_cube.bdc_cube <- function(type        = "BDC_TILE", ...,
 #'              For more on BDC, please see http://brazildatacube.dpi.inpe.br/
 #'
 #' @param type       a \code{character} with the type of cube.
+#' @param ...        other parameters to be passed for specific types
 #' @param name       a \code{character} representing the output data cube.
 #' @param tiles      a \code{character} representing the names of the tiles.
 #' @param bands      a \code{character} with the bands names to be filtered.
 #' @param url        a \code{character} representing a URL for the BDC catalog.
 #' @param collection a \code{character} with the collection to be searched.
 #' @param ids        a \code{character} vector with the items features ids.
-#' @param bbox       a \code{numeric} vector with only features that have a
+#' @param bbox       a \code{numeric} vector with features that have a
 #' geometry that intersects the bounding box are selected. The bounding box is
 #' provided as four or six numbers, depending on whether the coordinate
 #' reference system includes a vertical axis (elevation or depth):
@@ -420,17 +421,17 @@ sits_cube.bdc_cube <- function(type        = "BDC_TILE", ...,
 #'
 #' # create a raster cube file based on the information about the files
 #' cbers_stac_tile <- sits_cube(type        = "BDC_STAC",
-#'                              name        = "v01",
+#'                              name        = "cbers_stac",
 #'                              bands       = c("NDVI", "EVI"),
 #'                              url         = "http://brazildatacube.dpi.inpe.br/stac/",
 #'                              collection  = "CB4_64_16D_STK-1",
 #'                              datetime    = "2018-09-01/2019-08-28")
 #' }
-sits_cube.bdc_stac <- function(type       = "BDC_STAC",
+sits_cube.bdc_stac <- function(type       = "BDC_STAC",...,
                                name       = NULL,
                                tiles      = NULL,
                                bands      = NULL,
-                               url        = NULL,
+                               url        = "http://brazildatacube.dpi.inpe.br/stac/",
                                collection = NULL,
                                ids        = NULL,
                                bbox       = NULL,
@@ -438,6 +439,11 @@ sits_cube.bdc_stac <- function(type       = "BDC_STAC",
                                intersects = NULL,
                                limit      = NULL) {
 
+    # require package
+    if (!requireNamespace("rstac", quietly = TRUE)) {
+        stop("Please install package rstac from brazil-data-cube github",
+             call. = FALSE)
+    }
     # retrieving information from the collection
     collection_info <- .sits_stac_collection(url        = url,
                                              collection = collection,

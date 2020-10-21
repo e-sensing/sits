@@ -47,7 +47,6 @@ Imports:
     reshape2,
     readr,
     rgdal (>= 1.5),
-    rstac,
     scales,
     sf (>= 0.9),
     slider,
@@ -86,6 +85,7 @@ Suggests:
     Rcpp,
     RCurl,
     RSQLite,
+    rstac,
     signal,
     sp,
     stars,
@@ -97,7 +97,7 @@ Suggests:
     zoo
 Remotes: 
     e-sensing/wtss,
-    e-sensing/inSitu
+    brazil-data-cube/rstac
 VignetteBuilder: knitr
 LinkingTo:
     Rcpp
