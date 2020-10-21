@@ -9,6 +9,7 @@
 #'  \item{"SATVEG": }{ SATVEG Time Series Service - see \code{\link{sits_cube.satveg_cube}}}
 #'  \item{"RASTER": }{Raster files - see \code{\link{sits_cube.raster_cube}}}
 #'  \item{"BDC_TILE"}{A set of tiles from the Brazil Data Cube - see \code{\link{sits_cube.bdc_cube}}}
+#'  \item{"BDC_STAC"}{A set of tiles from the STAC Brazil Data Cube - see \code{\link{sits_cube.bdc_stac}}}
 #'  \item{"S2_L2A_AWS"}{A set of tiles of Sentinel-2 data in AWS - see \code{\link{sits_cube.s2_l2a_aws_cube}}}
 #' }
 #'
@@ -366,6 +367,116 @@ sits_cube.bdc_cube <- function(type        = "BDC_TILE", ...,
     cube <- dplyr::bind_rows(tile.lst)
     return(cube)
 
+}
+#' @title Defines a data cube for a BDC STAC
+#' @name sits_cube.bdc_stac
+#'
+#' @references `rstac` package (https://github.com/brazil-data-cube/rstac)
+#'
+#' @description Defines a cube to retrieve data from the Brazil Data Cube (BDC)
+#'              STAC. The retrieval is based on tiles of a given cube.
+#'              For more on BDC, please see http://brazildatacube.dpi.inpe.br/
+#'
+#' @param type       a \code{character} with the type of cube.
+#' @param name       a \code{character} representing the output data cube.
+#' @param tiles      a \code{character} representing the names of the tiles.
+#' @param bands      a \code{character} with the bands names to be filtered.
+#' @param url        a \code{character} representing a URL for the BDC catalog.
+#' @param collection a \code{character} with the collection to be searched.
+#' @param ids        a \code{character} vector with the items features ids.
+#' @param bbox       a \code{numeric} vector with only features that have a
+#' geometry that intersects the bounding box are selected. The bounding box is
+#' provided as four or six numbers, depending on whether the coordinate
+#' reference system includes a vertical axis (elevation or depth):
+#' \itemize{ \item Lower left corner, coordinate axis 1
+#'           \item Lower left corner, coordinate axis 2
+#'           \item Lower left corner, coordinate axis 3 (optional)
+#'           \item Upper right corner, coordinate axis 1
+#'           \item Upper right corner, coordinate axis 2
+#'           \item Upper right corner, coordinate axis 3 (optional) }
+#'
+#' The coordinate reference system of the values is WGS84 longitude/latitude
+#' (\url{http://www.opengis.net/def/crs/OGC/1.3/CRS84}). The values are in
+#' most cases the sequence of minimum longitude, minimum latitude, maximum
+#' longitude and maximum latitude. However, in cases where the box spans the
+#' antimeridian the first value (west-most box edge) is larger than the third
+#' value (east-most box edge).
+#' @param datetime   a \code{character} with a date-time or an interval. Date
+#'  and time strings needs to conform RFC 3339. Intervals are expressed by
+#'  separating two date-time strings by \code{'/'} character. Open intervals are
+#'  expressed by using \code{'..'} in place of date-time.
+#' @param intersects a \code{character} value expressing GeoJSON geometries
+#' objects as specified in RFC 7946. Only returns items that intersect with
+#' the provided polygon.
+#' @param limit      an \code{integer} defining the maximum number of results
+#' to return. If not informed it defaults to the service implementation.
+#'
+#' @export
+#' @return           A \code{raster_cube} object with the information of the
+#'  created cube.
+#'
+#' @examples
+#' \donttest{
+#'
+#' # create a raster cube file based on the information about the files
+#' cbers_stac_tile <- sits_cube(type        = "BDC_STAC",
+#'                              name        = "v01",
+#'                              bands       = c("NDVI", "EVI"),
+#'                              url         = "http://brazildatacube.dpi.inpe.br/stac/",
+#'                              collection  = "CB4_64_16D_STK-1",
+#'                              datetime    = "2018-09-01/2019-08-28")
+#' }
+sits_cube.bdc_stac <- function(type       = "BDC_STAC",
+                               name       = NULL,
+                               tiles      = NULL,
+                               bands      = NULL,
+                               url        = NULL,
+                               collection = NULL,
+                               ids        = NULL,
+                               bbox       = NULL,
+                               datetime   = NULL,
+                               intersects = NULL,
+                               limit      = NULL) {
+
+    # retrieving information from the collection
+    collection_info <- .sits_stac_collection(url        = url,
+                                             collection = collection,
+                                             bands      = bands)
+
+    # retrieving item information
+    items_info  <- .sits_stac_items(url        = url,
+                                    collection = collection,
+                                    tiles      = tiles,
+                                    ids        = ids,
+                                    bbox       = bbox,
+                                    datetime   = datetime,
+                                    intersects = intersects,
+                                    limit      = limit)
+
+    # creating a group of items per tile
+    items_group <- .sits_stac_group(items_info, fields = c("properties", "bdc:tile"))
+
+    tile.lst <- purrr::map(items_group, function(items){
+
+        # retrieving the information from file_info
+        stack.tb <- .sits_stac_items_info(items, collection_info$bands)
+
+        # adding the information per tile
+        cube_t   <- .sits_stac_tile_cube(url             = url,
+                                         name            = name,
+                                         collection_info = collection_info,
+                                         items_info      = items,
+                                         cube            = collection,
+                                         file_info       = stack.tb)
+
+        class(cube_t) <- c("raster_cube", class(cube_t))
+
+        return(cube_t)
+    })
+
+    cube <- dplyr::bind_rows(tile.lst)
+
+    return(cube)
 }
 #' @title Defines a data cube for a Sentinel-2 L2A AWS cube
 #' @name sits_cube.s2_l2a_aws_cube
