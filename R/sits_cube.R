@@ -156,19 +156,18 @@ sits_cube.satveg_cube <- function(type = "SATVEG", ..., name = NULL) {
 #'
 #' @examples
 #' \donttest{
-#' # Create a raster cube based on CBERS data provided by the inSitu package
-#' data_dir <- system.file("extdata/CBERS/CB4_64_16D_STK/022024", package = "inSitu")
+#' # Create a raster cube based on CBERS data
+#' data_dir <- system.file("extdata/raster/cbers", package = "sits")
 #'
-#' # create a raster cube file based on the information about the files
-#' cbers_stack.tb <- sits_cube(type       = "RASTER",
-#'                             name       = "022024",
-#'                             satellite  = "CBERS-4",
-#'                             sensor     = "AWFI",
-#'                             resolution = "64m",
-#'                             data_dir   = data_dir,
-#'                             parse_info = c("X1", "X2", "X3", "X4", "X5", "date", "X7", "band"))
+#' cbers_cube <- sits_cube(name       = "022024",
+#'                      satellite  = "CBERS-4",
+#'                      sensor     = "AWFI",
+#'                      resolution = "64m",
+#'                      data_dir   = data_dir,
+#'                      delim      = "_",
+#'                      parse_info = c("X1", "X2", "X3", "X4", "X5", "X6", "X7", "X8", "band", "date"))
 #'
-#' #' # Create a raster cube based on bricks
+#' # Create a raster cube based on bricks
 #' # inform the files that make up a raster brick with 392 time instances
 #' files <- c(system.file("extdata/raster/mod13q1/sinop-crop-ndvi.tif",
 #'            package = "sits"))
