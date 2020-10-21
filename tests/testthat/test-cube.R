@@ -26,8 +26,8 @@ test_that("Reading a raster cube", {
 })
 
 test_that("Reading a raster stack cube", {
-    # Create a raster cube based on CBERS data provided by the inSitu package
-    data_dir <- system.file("extdata/CBERS/CB4_64_16D_STK/022024", package = "inSitu")
+    # Create a raster cube based on CBERS data
+    data_dir <- system.file("extdata/raster/cbers", package = "sits")
 
     # create a raster cube file based on the information about the files
     cbers_cube <- sits_cube(name       = "022024",
@@ -36,9 +36,9 @@ test_that("Reading a raster stack cube", {
                              resolution = "64m",
                              data_dir   = data_dir,
                              delim      = "_",
-                             parse_info = c("X1", "X2", "X3", "X4", "X5", "date", "X7", "band"))
+                             parse_info = c("X1", "X2", "X3", "X4", "X5", "X6", "X7", "X8", "band", "date"))
 
-    expect_true(all(sits_bands(cbers_cube) %in% c("NDVI", "EVI")))
+    expect_true(all(sits_bands(cbers_cube) %in% c("B13", "B14", "B15", "B16")))
     rast <- suppressWarnings(terra::rast(cbers_cube$file_info[[1]]$path[1]))
     expect_true(terra::nrow(rast) == cbers_cube[1,]$nrows)
     expect_true(all(unique(cbers_cube$file_info[[1]]$date) == cbers_cube$timeline[[1]][[1]]))

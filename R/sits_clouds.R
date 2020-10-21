@@ -266,9 +266,9 @@ sits_cloud_remove <- function(cube,
 #'  SITS supports the following models:
 #' \itemize{
 #'  \item{t1: } - (1,...,10) - default = 1
-#'  \item{t2: } - (0.1,..,0.5) - default = 0.125
-#'  \item{t3: } - (0.25,..,0.75) - default = 0.66
-#'  \item{t4: } - (0.5,..,0.90) - default = 0.80
+#'  \item{t2: } - (0.1,..,0.5) - default = 0.11
+#'  \item{t3: } - (0.25,..,0.75) - default = 0.50
+#'  \item{t4: } - (0.5,..,0.90) - default = 0.75
 #'  \item{t5: } - (30,..,90) - default = 40
 #'  \item{t6: } - (3,..,11) - default = 5
 #'  }
@@ -279,8 +279,8 @@ sits_cloud_remove <- function(cube,
 #' @export
 #'
 sits_cloud_cbers <- function(cube, cld_band_name = "CMASK",
-                             t1 = 1, t2 = 0.125, t3 = 0.66,
-                             t4 = 0.80, t5 = 40, t6 = 5,
+                             t1 = 1, t2 = 0.11, t3 = 0.50,
+                             t4 = 0.75, t5 = 40, t6 = 5,
                              memsize = 8, multicores = 2){
     # preconditions
     assertthat::assert_that(cube$satellite == "CBERS-4",
@@ -302,6 +302,7 @@ sits_cloud_cbers <- function(cube, cld_band_name = "CMASK",
 
     # get the timeline
     timeline <- sits_timeline(cube)
+
     # get the data dir
     data_dir <- dirname(file_info[1,]$path)
 
@@ -338,10 +339,13 @@ sits_cloud_cbers <- function(cube, cld_band_name = "CMASK",
             unlist()
 
         vec[length(vec)] <- cld_band_name
-
+        # compose the cloud file name
         cld_band_file <- vec %>%
             paste(sep = "_", collapse = "_") %>%
             paste0(".tif")
+
+        # include the data directory
+        cld_band_file <- paste0(data_dir, "/", cld_band_file)
 
         # create the output file
         terra::writeStart(cld_band,

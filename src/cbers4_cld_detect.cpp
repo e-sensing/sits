@@ -28,7 +28,9 @@ IntegerVector neigh_i_j(const IntegerMatrix& data,
 
     // number of points in the neighborhood
     //
-    int npts_vec = (last_row - first_row + 1)*(last_col - first_row + 1);
+    int npts_vec = (last_row - first_row + 1)*(last_col - first_col + 1);
+
+    //Rcout << "window " << first_row << first_col << last_row << last_col << std::endl;
 
     IntegerVector neigh(npts_vec);
 
@@ -44,16 +46,18 @@ IntegerVector neigh_i_j(const IntegerMatrix& data,
 }
 // find the median value of the neighbours of a matrix
 // uses a window of size (nrows_window x ncols_window)
-IntegerMatrix median_neigh(IntegerMatrix& data,
+IntegerMatrix median_neigh(const IntegerMatrix& data,
                            const int& nrows_window,
                            const int& ncols_window){
 
+    IntegerMatrix new_data(data.nrow(), data.ncol());
+
     for (int i = 0; i < data.nrow(); i++){
         for (int j = 0; j < data.ncol(); j++) {
-            data(i,j) = median(neigh_i_j(data, nrows_window, ncols_window, i, j));
+            new_data(i,j) = median(neigh_i_j(data, nrows_window, ncols_window, i, j));
         }
     }
-    return(data);
+    return(new_data);
 }
 
 bool cld_shd_neigh(IntegerMatrix& data,
@@ -62,12 +66,8 @@ bool cld_shd_neigh(IntegerMatrix& data,
                    const int& i,
                    const int& j){
 
-    IntegerVector neigh;
-    for (int i = 0; i < data.nrow(); i++){
-        for (int j = 0; j < data.ncol(); j++) {
-            neigh = neigh_i_j(data, nrows_window, ncols_window, i, j);
-        }
-    }
+    IntegerVector neigh = neigh_i_j(data, nrows_window, ncols_window, i, j);
+
     bool has_cld_neigh = is_true(any(neigh == 1));
     return(has_cld_neigh);
 }
@@ -75,9 +75,9 @@ bool cld_shd_neigh(IntegerMatrix& data,
 // [[Rcpp::export]]
 IntegerMatrix cbers4_cld_detect(const IntegerMatrix& b13, const IntegerMatrix& b14,
                                 const IntegerMatrix& b15, const IntegerMatrix& b16,
-                                const double& thres_1 = 1, const double& t2 = 0.125,
-                                const double& t3 = 0.66, const double& t4 = 0.80,
-                                const int& t5 = 40, const int& t6 = 5) {
+                                const double& thres_1, const double& t2,
+                                const double& t3, const double& t4,
+                                const int& t5, const int& t6) {
 
     int nrows = b13.nrow();
     int ncols = b13.ncol();
@@ -120,45 +120,60 @@ IntegerMatrix cbers4_cld_detect(const IntegerMatrix& b13, const IntegerMatrix& b
             shd_band(i,j) = (b16(i,j) < thres_3) && (b13(i,j) < thres_4);
         }
     }
+    if (0){
+        Rcout << "cloud band before" << std::endl;
+        for (int i = 1000; i < 1050; i++){
+            for (int j = 1000; j < 1050; j++) {
+                Rcout << cld_band(i,j);
+            }
+            Rcout << std::endl;
+        }
 
+        Rcout << "shadow band before" << std::endl;
+        for (int i = 1000; i < 1050; i++){
+            for (int j = 1000; j < 1050; j++) {
+                Rcout << shd_band(i,j);
+            }
+            Rcout << std::endl;
+        }
 
-    // Conduct post-processing with the median filter to remove
-    // noise/outliers for the cloud band
-    int nrows_median_window = t6;
-    int ncols_median_window = t6;
-    cld_band = median_neigh(cld_band, nrows_median_window, ncols_median_window);
+        // Conduct post-processing with the median filter to remove
+        // noise/outliers for the cloud band
+        int nrows_median_window = t6;
+        int ncols_median_window = t6;
+        cld_band = median_neigh(cld_band, nrows_median_window, ncols_median_window);
 
-    // Refine the cloud shadows with spatial matching with the
-    // help of the cloud detection result;
-    int nrows_shd_window = t5;
-    int ncols_shd_window = t5;
+        // Refine the cloud shadows with spatial matching with the
+        // help of the cloud detection result;
+        int nrows_shd_window = t5;
+        int ncols_shd_window = t5;
 
-    for (int i = 0; i < nrows; i++) {
-        for (int j = 0; j < ncols; j++){
-            if (shd_band(i,j) == 1) {
-                bool has_cld_neigh = cld_shd_neigh(cld_band, nrows_shd_window,
-                                                   ncols_shd_window, i, j);
-                if (!has_cld_neigh)
-                    shd_band(i,j) = 0;
+        for (int i = 0; i < nrows; i++) {
+            for (int j = 0; j < ncols; j++){
+                if (shd_band(i,j) == 1) {
+                    bool has_cld_neigh = cld_shd_neigh(cld_band, nrows_shd_window,
+                                                       ncols_shd_window, i, j);
+                    if (!has_cld_neigh)
+                        shd_band(i,j) = 0;
+                }
             }
         }
-    }
-    // filter the shadow band by the median
-    shd_band = median_neigh(shd_band, nrows_median_window, ncols_median_window);
+        // filter the shadow band by the median
+        shd_band = median_neigh(shd_band, nrows_median_window, ncols_median_window);
 
+                Rcout << "cloud band" << std::endl;
+                for (int i = 1000; i < 1050; i++){
+                    for (int j = 1000; j < 1050; j++) {
+                        Rcout << cld_band(i,j);
+                    }
+                    Rcout << std::endl;
+                }
+
+    }
+    // join shadow band and cloud band
     for (int i = 0; i < nrows; i++)
         for (int j = 0; j < ncols; j++)
             if (shd_band(i,j) == 1)
                 cld_band(i,j) = 2;
-
-    Rcout << "cloud band" << std::endl;
-    for (int i = 1000; i < 1050; i++){
-        for (int j = 1000; j < 1050; j++) {
-            Rcout << cld_band(i,j);
-        }
-        Rcout << std::endl;
-    }
-
-
     return cld_band;
 }
