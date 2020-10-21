@@ -8,9 +8,9 @@ sits_cloud_cbers(
   cube,
   cld_band_name = "CMASK",
   t1 = 1,
-  t2 = 0.125,
-  t3 = 0.66,
-  t4 = 0.8,
+  t2 = 0.11,
+  t3 = 0.5,
+  t4 = 0.75,
   t5 = 40,
   t6 = 5,
   memsize = 8,
@@ -51,9 +51,9 @@ This algorithm is an implementation of the paper by Zhai et al,
  SITS supports the following models:
 \itemize{
  \item{t1: } - (1,...,10) - default = 1
- \item{t2: } - (0.1,..,0.5) - default = 0.125
- \item{t3: } - (0.25,..,0.75) - default = 0.66
- \item{t4: } - (0.5,..,0.90) - default = 0.80
+ \item{t2: } - (0.1,..,0.5) - default = 0.11
+ \item{t3: } - (0.25,..,0.75) - default = 0.50
+ \item{t4: } - (0.5,..,0.90) - default = 0.75
  \item{t5: } - (30,..,90) - default = 40
  \item{t6: } - (3,..,11) - default = 5
  }
