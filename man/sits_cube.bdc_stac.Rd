@@ -10,13 +10,11 @@
   name = NULL,
   tiles = NULL,
   bands = NULL,
-  url = NULL,
+  url = "http://brazildatacube.dpi.inpe.br/stac/",
   collection = NULL,
   ids = NULL,
   bbox = NULL,
-  datetime = NULL,
-  intersects = NULL,
-  limit = NULL
+  datetime = NULL
 )
 }
 \arguments{
@@ -58,13 +56,6 @@ value (east-most box edge).}
 and time strings needs to conform RFC 3339. Intervals are expressed by
 separating two date-time strings by \code{'/'} character. Open intervals are
 expressed by using \code{'..'} in place of date-time.}
-
-\item{intersects}{a \code{character} value expressing GeoJSON geometries
-objects as specified in RFC 7946. Only returns items that intersect with
-the provided polygon.}
-
-\item{limit}{an \code{integer} defining the maximum number of results
-to return. If not informed it defaults to the service implementation.}
 }
 \value{
 A \code{raster_cube} object with the information of the
@@ -80,7 +71,7 @@ Defines a cube to retrieve data from the Brazil Data Cube (BDC)
 
 # create a raster cube file based on the information about the files
 cbers_stac_tile <- sits_cube(type        = "BDC_STAC",
-                             name        = "v01",
+                             name        = "cbers_stac",
                              bands       = c("NDVI", "EVI"),
                              url         = "http://brazildatacube.dpi.inpe.br/stac/",
                              collection  = "CB4_64_16D_STK-1",

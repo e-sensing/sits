@@ -406,11 +406,6 @@ sits_cube.bdc_cube <- function(type        = "BDC_TILE", ...,
 #'  and time strings needs to conform RFC 3339. Intervals are expressed by
 #'  separating two date-time strings by \code{'/'} character. Open intervals are
 #'  expressed by using \code{'..'} in place of date-time.
-#' @param intersects a \code{character} value expressing GeoJSON geometries
-#' objects as specified in RFC 7946. Only returns items that intersect with
-#' the provided polygon.
-#' @param limit      an \code{integer} defining the maximum number of results
-#' to return. If not informed it defaults to the service implementation.
 #'
 #' @export
 #' @return           A \code{raster_cube} object with the information of the
@@ -435,9 +430,7 @@ sits_cube.bdc_stac <- function(type       = "BDC_STAC",...,
                                collection = NULL,
                                ids        = NULL,
                                bbox       = NULL,
-                               datetime   = NULL,
-                               intersects = NULL,
-                               limit      = NULL) {
+                               datetime   = NULL) {
 
     # require package
     if (!requireNamespace("rstac", quietly = TRUE)) {
@@ -455,9 +448,7 @@ sits_cube.bdc_stac <- function(type       = "BDC_STAC",...,
                                     tiles      = tiles,
                                     ids        = ids,
                                     bbox       = bbox,
-                                    datetime   = datetime,
-                                    intersects = intersects,
-                                    limit      = limit)
+                                    datetime   = datetime)
 
     # creating a group of items per tile
     items_group <- .sits_stac_group(items_info, fields = c("properties", "bdc:tile"))
