@@ -14,13 +14,14 @@
   collection = NULL,
   ids = NULL,
   bbox = NULL,
-  datetime = NULL
+  start_date = NULL,
+  end_date = NULL
 )
 }
 \arguments{
 \item{type}{a \code{character} with the type of cube.}
 
-\item{...}{other parameters to be passed for specific types}
+\item{...}{other parameters to be passed for specific types.}
 
 \item{name}{a \code{character} representing the output data cube.}
 
@@ -52,10 +53,11 @@ longitude and maximum latitude. However, in cases where the box spans the
 antimeridian the first value (west-most box edge) is larger than the third
 value (east-most box edge).}
 
-\item{datetime}{a \code{character} with a date-time or an interval. Date
-and time strings needs to conform RFC 3339. Intervals are expressed by
-separating two date-time strings by \code{'/'} character. Open intervals are
-expressed by using \code{'..'} in place of date-time.}
+\item{start_date}{a \code{character} corresponds to the initial date when the
+cube will be created.}
+
+\item{end_date}{a \code{character} corresponds to the final date when the
+cube will be created.}
 }
 \value{
 A \code{raster_cube} object with the information of the
@@ -75,7 +77,8 @@ cbers_stac_tile <- sits_cube(type        = "BDC_STAC",
                              bands       = c("NDVI", "EVI"),
                              url         = "http://brazildatacube.dpi.inpe.br/stac/",
                              collection  = "CB4_64_16D_STK-1",
-                             datetime    = "2018-09-01/2019-08-28")
+                             start_date  = "2018-09-01",
+                             end_date    = "2019-08-28")
 }
 }
 \references{

@@ -378,7 +378,7 @@ sits_cube.bdc_cube <- function(type        = "BDC_TILE", ...,
 #'              For more on BDC, please see http://brazildatacube.dpi.inpe.br/
 #'
 #' @param type       a \code{character} with the type of cube.
-#' @param ...        other parameters to be passed for specific types
+#' @param ...        other parameters to be passed for specific types.
 #' @param name       a \code{character} representing the output data cube.
 #' @param tiles      a \code{character} representing the names of the tiles.
 #' @param bands      a \code{character} with the bands names to be filtered.
@@ -402,10 +402,10 @@ sits_cube.bdc_cube <- function(type        = "BDC_TILE", ...,
 #' longitude and maximum latitude. However, in cases where the box spans the
 #' antimeridian the first value (west-most box edge) is larger than the third
 #' value (east-most box edge).
-#' @param datetime   a \code{character} with a date-time or an interval. Date
-#'  and time strings needs to conform RFC 3339. Intervals are expressed by
-#'  separating two date-time strings by \code{'/'} character. Open intervals are
-#'  expressed by using \code{'..'} in place of date-time.
+#' @param start_date a \code{character} corresponds to the initial date when the
+#'  cube will be created.
+#' @param end_date   a \code{character} corresponds to the final date when the
+#'  cube will be created.
 #'
 #' @export
 #' @return           A \code{raster_cube} object with the information of the
@@ -420,9 +420,10 @@ sits_cube.bdc_cube <- function(type        = "BDC_TILE", ...,
 #'                              bands       = c("NDVI", "EVI"),
 #'                              url         = "http://brazildatacube.dpi.inpe.br/stac/",
 #'                              collection  = "CB4_64_16D_STK-1",
-#'                              datetime    = "2018-09-01/2019-08-28")
+#'                              start_date  = "2018-09-01",
+#'                              end_date    = "2019-08-28")
 #' }
-sits_cube.bdc_stac <- function(type       = "BDC_STAC",...,
+sits_cube.bdc_stac <- function(type       = "BDC_STAC", ...,
                                name       = NULL,
                                tiles      = NULL,
                                bands      = NULL,
@@ -430,17 +431,19 @@ sits_cube.bdc_stac <- function(type       = "BDC_STAC",...,
                                collection = NULL,
                                ids        = NULL,
                                bbox       = NULL,
-                               datetime   = NULL) {
+                               start_date = NULL,
+                               end_date   = NULL) {
 
     # require package
     if (!requireNamespace("rstac", quietly = TRUE)) {
         stop("Please install package rstac from brazil-data-cube github",
              call. = FALSE)
     }
+
     # retrieving information from the collection
     collection_info <- .sits_stac_collection(url        = url,
                                              collection = collection,
-                                             bands      = bands)
+                                             bands      = bands, ...)
 
     # retrieving item information
     items_info  <- .sits_stac_items(url        = url,
@@ -448,10 +451,12 @@ sits_cube.bdc_stac <- function(type       = "BDC_STAC",...,
                                     tiles      = tiles,
                                     ids        = ids,
                                     bbox       = bbox,
-                                    datetime   = datetime)
+                                    start_date = start_date,
+                                    end_date   = end_date, ...)
 
     # creating a group of items per tile
-    items_group <- .sits_stac_group(items_info, fields = c("properties", "bdc:tile"))
+    items_group <- .sits_stac_group(items_info,
+                                    fields = c("properties", "bdc:tile"))
 
     tile.lst <- purrr::map(items_group, function(items){
 

@@ -9,7 +9,7 @@
 #' @return            a \code{STACCollection} object returned by rstac.
 .sits_stac_collection <- function(url         = NULL,
                                   collection  = NULL,
-                                  bands       = NULL) {
+                                  bands       = NULL, ...) {
 
     assertthat::assert_that(!purrr::is_null(url),
                             msg = paste("sits_cube: for STAC_CUBE url must be",
@@ -26,7 +26,7 @@
     # creating a rstac object and making the requisition
     collection_info <- rstac::stac(url) %>%
         rstac::collections(collection_id = collection) %>%
-        rstac::get_request()
+        rstac::get_request(...)
 
     # get the name of the bands
     collection_bands <- sapply(collection_info$properties[["eo:bands"]],
@@ -83,23 +83,24 @@
 #'
 #' @return           a \code{STACItemCollection} object representing the search
 #'  by rstac.
-.sits_stac_items <- function(url             = NULL,
-                             collection      = NULL,
-                             tiles           = NULL,
-                             ids             = NULL,
-                             bbox            = NULL,
-                             datetime        = NULL,
-                             intersects      = NULL,
-                             limit           = NULL) {
+.sits_stac_items <- function(url        = NULL,
+                             collection = NULL,
+                             tiles      = NULL,
+                             ids        = NULL,
+                             bbox       = NULL,
+                             start_date = NULL,
+                             end_date   = NULL, ...) {
+
+
+    # obtain the datetime parameter for STAC like parameter
+    datetime <- .sits_stac_datetime(start_date, end_date)
 
     # creating a rstac object
     rstac_query <- rstac::stac(url) %>%
         rstac::stac_search(collection = collection,
                            ids        = ids,
                            bbox       = bbox,
-                           datetime   = datetime,
-                           intersects = intersects,
-                           limit      = limit)
+                           datetime   = datetime)
 
     # if specified, a filter per tile is added to the query
     if (!is.null(tiles))
@@ -107,7 +108,7 @@
             rstac::ext_query(keys = "bdc:tile", ops = "%in%", values = tiles)
 
     # making the request
-    items_info <- rstac_query %>% rstac::post_request()
+    items_info <- rstac_query %>% rstac::post_request(...)
 
     # progress bar status
     pgr_fetch  <- FALSE
@@ -157,6 +158,30 @@
 
     return(items_grouped)
 }
+#' @title Datetime format
+#' @name .sits_stac_datetime
+#' @keywords internal
+#'
+#' @param start_date a \code{character} corresponds to the initial date when the
+#'  cube will be created.
+#' @param end_date   a \code{character} corresponds to the final date when the
+#'  cube will be created.
+#'
+#' @return      a \code{character} formatted as parameter to STAC requisition.
+.sits_stac_datetime <- function(start_date, end_date) {
+
+    # ensuring that start_date and end_date were provided
+    assertthat::assert_that(all(!purrr::is_null(start_date),
+                                !purrr::is_null(end_date)),
+                            msg = paste("sits_cube: for STAC_CUBE start_date",
+                                        "and end_date must be provided"))
+
+    # adding the dates according to RFC 3339
+    datetime <- paste(start_date, end_date, sep = "/")
+
+    return(datetime)
+}
+
 #' @title Format assets
 #' @name .sits_stac_items_info
 #' @keywords internal

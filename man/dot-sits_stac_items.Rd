@@ -10,9 +10,9 @@
   tiles = NULL,
   ids = NULL,
   bbox = NULL,
-  datetime = NULL,
-  intersects = NULL,
-  limit = NULL
+  start_date = NULL,
+  end_date = NULL,
+  ...
 )
 }
 \arguments{
