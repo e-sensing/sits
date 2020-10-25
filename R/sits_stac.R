@@ -86,7 +86,6 @@
 .sits_stac_items <- function(url        = NULL,
                              collection = NULL,
                              tiles      = NULL,
-                             ids        = NULL,
                              bbox       = NULL,
                              start_date = NULL,
                              end_date   = NULL, ...) {
@@ -98,7 +97,6 @@
     # creating a rstac object
     rstac_query <- rstac::stac(url) %>%
         rstac::stac_search(collection = collection,
-                           ids        = ids,
                            bbox       = bbox,
                            datetime   = datetime)
 

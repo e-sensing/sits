@@ -384,7 +384,6 @@ sits_cube.bdc_cube <- function(type        = "BDC_TILE", ...,
 #' @param bands      a \code{character} with the bands names to be filtered.
 #' @param url        a \code{character} representing a URL for the BDC catalog.
 #' @param collection a \code{character} with the collection to be searched.
-#' @param ids        a \code{character} vector with the items features ids.
 #' @param bbox       a \code{numeric} vector with features that have a
 #' geometry that intersects the bounding box are selected. The bounding box is
 #' provided as four or six numbers, depending on whether the coordinate
@@ -449,7 +448,6 @@ sits_cube.bdc_stac <- function(type       = "BDC_STAC", ...,
     items_info  <- .sits_stac_items(url        = url,
                                     collection = collection,
                                     tiles      = tiles,
-                                    ids        = ids,
                                     bbox       = bbox,
                                     start_date = start_date,
                                     end_date   = end_date, ...)

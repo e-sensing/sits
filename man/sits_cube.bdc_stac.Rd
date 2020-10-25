@@ -33,8 +33,6 @@
 
 \item{collection}{a \code{character} with the collection to be searched.}
 
-\item{ids}{a \code{character} vector with the items features ids.}
-
 \item{bbox}{a \code{numeric} vector with features that have a
 geometry that intersects the bounding box are selected. The bounding box is
 provided as four or six numbers, depending on whether the coordinate

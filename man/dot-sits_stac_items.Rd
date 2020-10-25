@@ -8,7 +8,6 @@
   url = NULL,
   collection = NULL,
   tiles = NULL,
-  ids = NULL,
   bbox = NULL,
   start_date = NULL,
   end_date = NULL,
@@ -21,8 +20,6 @@
 \item{collection}{a \code{character} with the collection to be searched.}
 
 \item{tiles}{a \code{character} with the names of the tiles.}
-
-\item{ids}{a \code{character} vector with the items features ids.}
 
 \item{bbox}{a \code{numeric} vector with only features that have a
 geometry that intersects the bounding box are selected. The bounding box is
@@ -41,6 +38,8 @@ most cases the sequence of minimum longitude, minimum latitude, maximum
 longitude and maximum latitude. However, in cases where the box spans the
 antimeridian the first value (west-most box edge) is larger than the third
 value (east-most box edge).}
+
+\item{ids}{a \code{character} vector with the items features ids.}
 
 \item{datetime}{a \code{character} with a date-time or an interval. Date
 and time strings needs to conform RFC 3339. Intervals are expressed by
