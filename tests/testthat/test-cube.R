@@ -1,6 +1,6 @@
 context("Cube")
 test_that("Reading a raster cube", {
-    #skip_on_cran()
+
     file <- c(system.file("extdata/raster/mod13q1/sinop-crop-ndvi.tif",
                           package = "sits"))
     raster_cube <- sits_cube(name = "Sinop-crop",
@@ -45,7 +45,7 @@ test_that("Reading a raster stack cube", {
 })
 
 test_that("Reading a BDC data cube from the web", {
-
+    skip_on_cran()
     # create a raster cube file based on the information about the files
     cbers_bdc_tile <- sits_cube(type       = "BDC_TILE",
                                 name       = "022024",
@@ -65,4 +65,24 @@ test_that("Reading a BDC data cube from the web", {
     rast <- terra::rast(cbers_bdc_tile$file_info[[1]]$path[1])
     expect_true(terra::nrow(rast) == cbers_bdc_tile[1,]$nrows)
     expect_true(all(unique(cbers_bdc_tile$file_info[[1]]$date) == cbers_bdc_tile$timeline[[1]][[1]]))
+})
+
+test_that("Cube copy", {
+    data_dir <- system.file("extdata/raster/cbers", package = "sits")
+
+    cbers_022024 <- sits_cube(type = "RASTER",
+                              name = "cbers_022024",
+                              satellite = "CBERS-4",
+                              sensor = "AWFI",
+                              resolution = "64m",
+                              data_dir = data_dir,
+                              parse_info = c("X1", "X2","band", "date"))
+
+    cbers_022024_copy <- sits_cube_copy(cbers_022024, name = "cb_022024_cp",
+                                        dest_dir = tempdir(),
+                                        bands = "B13")
+    expect_true(sits_bands(cbers_022024_copy) == "B13")
+    expect_true(cbers_022024_copy$ncols == 50)
+    expect_true(cbers_022024_copy$xmin == cbers_022024$xmin)
+    expect_true(all(sits_timeline(cbers_022024_copy) == sits_timeline(cbers_022024)))
 })

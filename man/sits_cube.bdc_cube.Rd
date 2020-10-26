@@ -63,8 +63,9 @@ Defines a cube to retrieve data from the Brazil Data Cube (BDC). The retrieval
              For more on BDC, please see http://brazildatacube.dpi.inpe.br/
 }
 \examples{
-\donttest{
+\dontrun{
 
+# this code depends on an external service
 # create a raster cube file based on the information about the files
 cbers_bdc_tile <- sits_cube(type        = "BDC_TILE",
                             name        = "022024",

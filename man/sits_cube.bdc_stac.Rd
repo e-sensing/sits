@@ -10,7 +10,7 @@
   name = NULL,
   tiles = NULL,
   bands = NULL,
-  url = NULL,
+  url = "http://brazildatacube.dpi.inpe.br/stac/",
   collection = NULL,
   ids = NULL,
   bbox = NULL,
@@ -76,11 +76,13 @@ Defines a cube to retrieve data from the Brazil Data Cube (BDC)
              For more on BDC, please see http://brazildatacube.dpi.inpe.br/
 }
 \examples{
-\donttest{
+\dontrun{
+# this example requires access to an external service, so should not be run
+# by CRAN
 
 # create a raster cube file based on the information about the files
 cbers_stac_tile <- sits_cube(type        = "BDC_STAC",
-                             name        = "v01",
+                             name        = "cbers_stac",
                              bands       = c("NDVI", "EVI"),
                              url         = "http://brazildatacube.dpi.inpe.br/stac/",
                              collection  = "CB4_64_16D_STK-1",

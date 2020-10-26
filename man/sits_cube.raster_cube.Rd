@@ -74,7 +74,7 @@ Defines a cube to retrieve data from a set of image files.
 }
 }
 \examples{
-\donttest{
+
 # Create a raster cube based on CBERS data
 data_dir <- system.file("extdata/raster/cbers", package = "sits")
 
@@ -84,7 +84,7 @@ cbers_cube <- sits_cube(name       = "022024",
                      resolution = "64m",
                      data_dir   = data_dir,
                      delim      = "_",
-                     parse_info = c("X1", "X2", "X3", "X4", "X5", "X6", "X7", "X8", "band", "date"))
+                     parse_info = c("X1", "X2", "band", "date"))
 
 # Create a raster cube based on bricks
 # inform the files that make up a raster brick with 392 time instances
@@ -100,5 +100,5 @@ raster.tb <- sits_cube(type = "RASTER",
                        bands     = "NDVI",
                        files     = files)
 
-}
+
 }

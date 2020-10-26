@@ -14,7 +14,7 @@ test_that("XLS", {
 test_that("Accuracy - more than 2 classes", {
     data("samples_mt_4bands")
     samples <- sits_select(samples_mt_4bands, bands = c("NDVI", "EVI"))
-    pred_ref.tb <- sits_kfold_validate(samples, folds = 2)
+    pred_ref.tb <- sits_kfold_validate(samples, folds = 2, ml_method = sits_rfor(ntree = 100))
     invisible(capture.output(conf.mx <- sits_conf_matrix(pred_ref.tb)))
 
     expect_true(conf.mx$overall["Accuracy"] > 0.90)
@@ -36,7 +36,7 @@ test_that("Accuracy areas", {
 
     samples_mt_2bands <- dplyr::filter(samples_mt_2bands, label %in%
                                 c("Forest", "Pasture", "Soy_Corn"))
-    xgb_model <- sits_train(samples_mt_2bands, sits_xgboost(nrounds = 30, verbose = FALSE))
+    xgb_model <- sits_train(samples_mt_2bands, sits_xgboost(nrounds = 20, verbose = FALSE))
 
     ndvi_file <- c(system.file("extdata/raster/mod13q1/sinop-ndvi-2014.tif",
                                package = "sits"))
@@ -55,6 +55,7 @@ test_that("Accuracy areas", {
 
     sinop_2014_probs <- sits_classify(sinop_2014,
                                       xgb_model,
+                                      output_dir = tempdir(),
                                       memsize = 4,
                                       multicores = 1)
 
@@ -64,6 +65,7 @@ test_that("Accuracy areas", {
     expect_true(terra::nrow(tc_obj) == sinop_2014_probs$nrows)
 
     sinop_2014_label <- sits_label_classification(sinop_2014_probs,
+                                                  output_dir = tempdir(),
                                                   smoothing = "bayesian")
 
     ground_truth <- system.file("extdata/samples/samples_sinop_crop.csv", package = "sits")

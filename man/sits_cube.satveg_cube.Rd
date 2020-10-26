@@ -23,7 +23,7 @@ The SATVEG service is provided by the Embrapa Agricultural Informatics Centre
              and "comb" (combination of both satellites)
 }
 \examples{
-\donttest{
+\dontrun{
 # Create a data cube based on the SATVEG service
 cube_satveg <- sits_cube(type = "SATVEG",
                          name = "terra")

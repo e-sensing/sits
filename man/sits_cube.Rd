@@ -25,30 +25,3 @@ required parameters:
  \item{"S2_L2A_AWS"}{A set of tiles of Sentinel-2 data in AWS - see \code{\link{sits_cube.s2_l2a_aws_cube}}}
 }
 }
-\examples{
-\donttest{
-# Example 1. Create a data cube based on a WTSS service
-cube_wtss <- sits_cube(type = "WTSS",
-          name = "MOD13Q1",
-          URL = "http://www.esensing.dpi.inpe.br/wtss/")
-
-# Example 2. Create a data cube based on the SATVEG service
-cube_satveg <- sits_cube(type = "SATVEG",
-                         name = "terra")
-
-# Example 3. Create a raster cube
-# inform the files that make up a raster brick with 392 time instances
-files <- c(system.file("extdata/raster/mod13q1/sinop-crop-ndvi.tif",
-           package = "sits"))
-
-# create a raster cube file based on the information about the files
-raster.tb <- sits_cube(type = "RASTER",
-                       name      = "Sinop-crop",
-                       satellite = "TERRA",
-                       sensor    = "MODIS",
-                       timeline  = timeline_modis_392,
-                       bands     = "NDVI",
-                       files     = files)
-
-}
-}

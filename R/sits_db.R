@@ -181,7 +181,7 @@ sits_db_write <- function(conn, name, data){
     if ("sits" %in% class(data))
         # save a set of time series
         .sits_db_write_ts(conn, name, data)
-    else if (.sits_config_cube_classes_chk(class(data)[1]))
+    else if (.sits_config_cube_check(data))
         # save a data cube
         .sits_db_write_cube(conn, name, data)
     else
@@ -602,7 +602,7 @@ sits_db_read <- function(conn, name) {
     })
 
     data <- dplyr::bind_rows(rows.lst)
-    class_cube <- .sits_config_cube_class_generic(data[1,]$type)
+    class_cube <- .sits_config_cube_generic_class(data[1,]$type)
     if (purrr::is_null(class_cube)) {
         class(data) <- c("cube", class(data))
         message("Type of data cube not yet supported by sits")

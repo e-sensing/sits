@@ -79,6 +79,77 @@ sits_bands.patterns <- function(data) {
 
     return(bands)
 }
+#' @title Get the bounding box of the data
+#' @name sits_bbox
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
+#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
+#'
+#' @description  Obtain a vector of limits (either on lat/long for time series
+#'               or in projection coordinates in the case of cubes)
+#' \itemize{
+#'  \item{"time series": }{see \code{\link{sits_bbox.sits}}}
+#'  \item{"data cube": }{see \code{\link{sits_bbox.cube}}}
+#' }
+#'
+#' @param data      Valid sits tibble (time series or a cube)
+#' @return A vector with a
+#'
+#' @export
+sits_bbox <- function(data){
+    # get the meta-type (sits or cube)
+    data <- .sits_config_data_meta_type(data)
+
+    UseMethod("sits_bbox", data)
+
+}
+#' @title Get the bounding box of a set of time series
+#' @name sits_bbox.sits
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
+#'
+#' @description  Obtain a vector of limits in lat/long for time series
+
+#' @param data      Valid sits tibble with a set of time series
+#' @return named vector with bounding box ("lon_min", "lon_max",
+#'      "lat_min", "lat_max")
+#'
+#' @export
+sits_bbox.sits <- function(data){
+    # is the data a valid set of time series
+    .sits_test_tibble(data)
+
+    # get the max and min longitudes and latitudes
+    lon_max <- max(data$longitude)
+    lon_min <- min(data$longitude)
+    lat_max <- max(data$latitude)
+    lat_min <- min(data$latitude)
+    # create and return the bounding box
+    bbox <- c(lon_min, lon_max, lat_min, lat_max)
+    names(bbox) <- c("lon_min", "lon_max", "lat_min", "lat_max")
+    return(bbox)
+}
+
+#' @title Get the bounding box of a data cube
+#' @name sits_bbox.cube
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
+#'
+#' @description  Obtain a vector of limits for the cube
+
+#' @param data      Valid data cube
+#' @return named vector with bounding box ("xmin", "xmax", "ymin", "ymax")
+#'
+#' @export
+sits_bbox.cube <- function(data){
+
+    # create and return the bounding box
+    if (nrow(data) == 1)
+        bbox <- c(data$xmin, data$xmax, data$ymin, data$ymax)
+    else
+        bbox <- c(min(data$xmin), max(data$xmax), min(data$ymin), max(data$ymax))
+
+    names(bbox) <- c("xmin", "xmax", "ymin", "ymax")
+    return(bbox)
+}
+
 #' @title Checks if data is consistent
 #' @name sits_check_data
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
@@ -249,7 +320,35 @@ sits_merge.sits <-  function(data1, data2) {
 #' @export
 #'
 sits_merge.cube <- function(data1, data2){
-    message("not yet implemented")
+    # preconditions
+    assertthat::assert_that(nrow(data1) == 1 & nrow(data2) == 1,
+                            msg = "merge only works from simple cubes (one tibble row)")
+    assertthat::assert_that(data1$satellite == data2$satellite,
+                            msg = "cubes from different satellites")
+    assertthat::assert_that(data1$sensor == data2$sensor,
+                            msg = "cubes from different sensors")
+    assertthat::assert_that(all(sits_bands(data1) != sits_bands(data2)),
+                            msg = "merge cubes requires different bands in each cube")
+    assertthat::assert_that(all(sits_bbox(data1) == sits_bbox(data2)),
+                            msg = "merge cubes requires same bounding boxes")
+    assertthat::assert_that(data1$xres == data2$xres &
+                            data1$yres == data2$yres,
+                            msg = "merge cubes requires same resolution")
+    assertthat::assert_that(all(sits_timeline(data1) == sits_timeline(data2)),
+                            msg = "merge cubes requires same timeline")
+
+    # get the file information
+    file_info_1 <- data1$file_info[[1]]
+    file_info_2 <- data2$file_info[[1]]
+
+    file_info_1 <- file_info_1 %>%
+        dplyr::bind_rows(file_info_2) %>%
+        dplyr::arrange(date)
+    # merge the file info and the bands
+    data1$file_info[[1]] <- file_info_1
+    data1$bands[[1]] <- c(sits_bands(data1), sits_bands(data2))
+
+    return(data1)
 }
 
 #' @title Filter bands on a data set (tibble or cube)

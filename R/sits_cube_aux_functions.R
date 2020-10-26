@@ -267,7 +267,7 @@
 .sits_cube_check_validity <- function(cube){
 
 	# check that the service is valid
-	.sits_config_check_type(cube[1,]$type)
+	.sits_config_cube_check(cube)
 
 	check <- FALSE
 

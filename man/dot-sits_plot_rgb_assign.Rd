@@ -4,9 +4,11 @@
 \alias{.sits_plot_rgb_assign}
 \title{Assign RGB channels to into image layers with many time instance}
 \usage{
-.sits_plot_rgb_assign(bands, timeline, red, green, blue, time)
+.sits_plot_rgb_assign(is_brick, bands, timeline, red, green, blue, time)
 }
 \arguments{
+\item{is_brick}{is the data a brick or a stack?}
+
 \item{bands}{bands of the data cube (excludes cloud band)}
 
 \item{timeline}{timeline of the data cube}
