@@ -16,6 +16,6 @@ vector with names of the bands available in AWS for a given resolution
 Get the name of the band used for cloud information
 }
 \author{
-Gilberto Camara, \email{gilberto.camara@inpe.br}
+Gilberto Camara \email{gilberto.camara@inpe.br}
 }
 \keyword{internal}

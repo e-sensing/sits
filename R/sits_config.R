@@ -244,7 +244,7 @@ sits_config_show <- function() {
 #' @name .sits_config_cloud_valid_values
 #' @keywords internal
 #' @param cube          data cube
-#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
+#' @author Gilberto Camara \email{gilberto.camara@@inpe.br}
 #'
 #' @return vector with names of the bands available in AWS for a given resolution
 .sits_config_cloud_valid_values <- function(cube) {
@@ -256,20 +256,7 @@ sits_config_show <- function() {
   return(cloud_values)
 }
 
-#' @title Check that the type is valid, based on the configuration file
-#' @name .sits_config_check_type
-#' @keywords internal
-#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
-#'
-#' @param type       Type of data cube
-.sits_config_check_type <- function(type){
 
-    # find out which cube types are available
-    types <- sits.env$config$cube_types
-    assertthat::assert_that(type %in% types,
-                         msg = "sits_get_data: Invalid cube type")
-    return(TRUE)
-}
 
 #' @title Retrieve the color associated to a class in the configuration file
 #' @name sits_config_color
@@ -286,76 +273,64 @@ sits_config_show <- function() {
 }
 
 #' @title Retrieve the classes associated to data cubes known to SITS
-#' @name .sits_config_cube_class_generic
+#' @name .sits_config_cube_generic_class
 #' @keywords internal
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #' @description Retrieve the class name associated to a cube type
 #' @param type  Data cube type
 #' @return      Class of data cube
 #'
-.sits_config_cube_class_generic <- function(type) {
+.sits_config_cube_generic_class <- function(type) {
     # check that the cube is correct
-    if (.sits_config_check_type(type)) {
-        # find out which cube types are supported
-        types   <- sits.env$config$cube_types
-        classes <-  sits.env$config$cube_classes_generic
-        names(classes) <- types
-        return(unname(classes[type]))
-    }
-    return(NULL)
+    type <- toupper(type)
+    # find out which cube types are supported
+    types   <- sits.env$config$cube_types
+    assertthat::assert_that(type %in% types,
+                            msg = "unsupported cube type")
+    classes <-  sits.env$config$cube_classes_generic
+    names(classes) <- types
+    return(unname(classes[type]))
 }
 #' @title Retrieve the generic class associated to data cubes known to SITS
-#' @name .sits_config_cube_specific
+#' @name .sits_config_cube_specific_class
 #' @keywords internal
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #' @description Retrieve the metadata class name associated to a cube type
 #' @param type  Data cube type
 #' @return      Class of data cube metadata
 #'
-.sits_config_cube_specific <- function(type) {
+.sits_config_cube_specific_class <- function(type) {
     # check that the cube is correct
     type <- toupper(type)
-    if (.sits_config_check_type(type)) {
-      # find out which cube types are supported
-      types   <- sits.env$config$cube_types
-      classes <-  sits.env$config$cube_classes_specific
-      names(classes) <- types
-      return(unname(classes[type]))
-    }
-    return(NULL)
+    # find out which cube types are supported
+    types   <- sits.env$config$cube_types
+    assertthat::assert_that(type %in% types,
+                            msg = "unsupported cube type")
+    classes <-  sits.env$config$cube_classes_specific
+    names(classes) <- types
+    return(unname(classes[type]))
 }
-
-#' @title Check that the cube class is valid, based on the configuration file
-#' @name .sits_config_cube_classes_chk
+#' @title Check that the type is valid, based on the configuration file
+#' @name .sits_config_cube_check
 #' @keywords internal
-#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
+#' @author Gilberto Camara \email{gilberto.camara@@inpe.br}
 #'
-#' @param class       class of data cube
-.sits_config_cube_classes_chk <- function(class){
-
-    # find out which cube classes are supported
-    classes <-  sits.env$config$cube_classes_generic
-    if(class %in% classes)
-        return(TRUE)
-    else
-        return(FALSE)
-}
-
-
-#' @title Check the cube types available in the configuration file
-#' @name .sits_config_cube_types_chk
-#' @keywords internal
-#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
-#' @param  type type of data cube
+#' @param cube       Data cube
+#' @return           true/false is the type is valid
 #'
-#' @return List of cube types supported by SITS
-.sits_config_cube_types_chk <- function(type) {
+.sits_config_cube_check <- function(cube){
+  # precondition
+  assertthat::assert_that(!purrr::is_null(cube),
+                          msg = "invalid cube")
 
-    types <- sits.env$config$cube_types
-    if (type %in% types)
-        return(TRUE)
-    else
-        return(FALSE)
+  assertthat::assert_that(!purrr::is_null(cube[1,]$type),
+                          msg = "invalid cube type")
+
+  # find out which cube types are available
+  types <- sits.env$config$cube_types
+  assertthat::assert_that(cube[1,]$type %in% types,
+                          msg = "sits_get_data: Invalid cube type")
+  return(TRUE)
 }
 
 #' @title meta-type for data
@@ -371,6 +346,11 @@ sits_config_show <- function() {
       | grepl("predicted", class(data)[[1]]))
     return(data)
   else {
+    assertthat::assert_that(!purrr::is_null(data[1,]$type),
+                            msg = "data is not valid")
+    #check if data is a cube
+    .sits_config_cube_check(data)
+
     class(data) <- c("cube", class(data))
   }
     return(data)

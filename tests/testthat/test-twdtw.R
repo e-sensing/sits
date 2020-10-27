@@ -1,6 +1,6 @@
 context("TWDTW")
 test_that("Classify time series with TWDTW method", {
-    #skip_on_cran()
+    testthat::skip_on_cran()
     data("samples_mt_4bands")
     data("point_mt_6bands")
     samples_mt_ndvi <- sits_select(samples_mt_4bands, bands = "NDVI")

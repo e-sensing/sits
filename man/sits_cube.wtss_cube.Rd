@@ -23,7 +23,7 @@ Implements an interface to a web time series service (WTSS)
               that offers time series of remote sensing data using a simple API.
 }
 \examples{
-\donttest{
+\dontrun{
 # Create a data cube based on a WTSS service
 cube_wtss <- sits_cube(type = "WTSS",
           name = "MOD13Q1",

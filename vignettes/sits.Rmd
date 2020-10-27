@@ -88,12 +88,16 @@ These services are set on the SITS configuration file, which is described later 
 
 To define a data cube for the WTSS, in principle the following parameters should be provided: (a) the type of the service ("WTSS"); (b) the URL; (c) the satellite and sensor associated to the cube, and (d) name of the data cube in the remote service. The package will retrieve the information about the cube from the WTSS service.
 
-```{r}
+```{r, eval = FALSE}
 # define the data cube "MOD13Q1" using the WTSS service
 # In this case, the WTSS service is run by a server in INPE Brazil
 wtss_cube <- sits_cube(type = "WTSS", 
                        URL = "http://www.esensing.dpi.inpe.br/wtss",
                        name = "MOD13Q1")
+````
+
+```{r, include = FALSE}
+
 
 # get information on the data cube 
 wtss_cube %>% dplyr::select(type, URL, satellite, sensor)

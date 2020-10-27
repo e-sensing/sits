@@ -54,7 +54,9 @@ Defines a cube to retrieve data from the Brazil Data Cube (BDC)
              For more on BDC, please see http://brazildatacube.dpi.inpe.br/
 }
 \examples{
-\donttest{
+\dontrun{
+# this example requires access to an external service, so should not be run
+# by CRAN
 
 # create a raster cube file based on the information about the files
 cbers_stac_tile <- sits_cube(type        = "BDC_STAC",

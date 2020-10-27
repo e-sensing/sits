@@ -1,6 +1,6 @@
 #' @title Area-weighted classification accuracy assessment
 #' @name sits_accuracy
-#' @author Rolf Simoes, \email{}
+#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
 #' @author Alber Sanchez, \email{alber.ipia@@inpe.br}
 #' @description To use this function the input table should be
 #' a set of results containing
@@ -28,8 +28,46 @@
 #' Environment, 148, pp. 42-57.
 #'
 #' @param label_cube       A tibble with metadata about the classified maps.
-#'
 #' @param validation_csv   A CSV file path with validation data
+#'
+#' @examples
+#' # get the samples for Mato Grosso for bands NDVI and EVI
+#' samples_mt_2bands <- sits_select(samples_mt_4bands, bands = c("NDVI", "EVI"))
+#' # filter the samples for three classes (to simplify the example)
+#' samples_mt_2bands <- dplyr::filter(samples_mt_2bands, label %in%
+#'                                    c("Forest", "Pasture", "Soy_Corn"))
+#' # build an XGB model
+#' xgb_model <- sits_train(samples_mt_2bands,
+#'                         sits_xgboost(nrounds = 10, verbose = FALSE))
+#'
+#' # files that make up the data cube
+#' ndvi_file <- c(system.file("extdata/raster/mod13q1/sinop-ndvi-2014.tif",
+#'                package = "sits"))
+#' evi_file <- c(system.file("extdata/raster/mod13q1/sinop-evi-2014.tif",
+#'                package = "sits"))
+#' # create the data cube
+#' sinop_2014 <- sits_cube(name = "sinop-2014",
+#'                         timeline = timeline_2013_2014,
+#'                         satellite = "TERRA",
+#'                         sensor = "MODIS",
+#'                         bands = c("ndvi", "evi"),
+#'                         files = c(ndvi_file, evi_file))
+#'
+#' # classify the data cube with xgb model
+#' sinop_2014_probs <- sits_classify(sinop_2014,
+#'                                   xgb_model,
+#'                                   output_dir = tempdir(),
+#'                                   memsize = 4,
+#'                                   multicores = 1)
+#' # label the classification
+#' sinop_2014_label <- sits_label_classification(sinop_2014_probs,
+#'                     output_dir = tempdir(),
+#'                     smoothing = "bayesian")
+#' # get ground truth points
+#' ground_truth <- system.file("extdata/samples/samples_sinop_crop.csv",
+#'                              package = "sits")
+#' # calculate accuracy according to Olofsson's method
+#' as <- suppressWarnings(sits_accuracy(sinop_2014_label, ground_truth))
 #'
 #' @export
 sits_accuracy <- function(label_cube, validation_csv) {

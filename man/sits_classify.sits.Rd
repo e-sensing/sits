@@ -32,20 +32,17 @@ The model should be precomputed by the user. This model should be
 passed to the function using the parameter "ml_model".
 }
 \examples{
-\donttest{
+
 # Retrieve the samples for Mato Grosso
 # select band "NDVI"
 samples_ndvi <- sits_select(samples_mt_4bands, bands = "NDVI")
 
 #select a random forest model
-rfor_model <- sits_train(samples_ndvi, ml_method = sits_rfor())
+rfor_model <- sits_train(samples_ndvi, ml_method = sits_rfor(ntree = 100))
 
 # classify the point
 class.tb <- sits_classify(point_ndvi, rfor_model)
 
-# plot the classification
-plot(class.tb)
-}
 }
 \author{
 Gilberto Camara, \email{gilberto.camara@inpe.br}

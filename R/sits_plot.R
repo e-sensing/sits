@@ -139,7 +139,7 @@ plot.predicted <- function(x, y, ..., bands = "NDVI") {
 #'                         bands = c("NDVI", "EVI"),
 #'                         files = c(ndvi_file, evi_file))
 #' # plot the data cube
-#' plot(sinop_2014, red = "EVI", green = "NDVI", blue = "EVI")
+#' plot(sinop_2014, red = "EVI", green = "EVI", blue = "EVI")
 #' }
 #'
 #' @export
@@ -167,8 +167,13 @@ plot.raster_cube <- function(x , y, ..., red, green, blue, time = 1) {
         file_info <- dplyr::filter(file_info, band != cld_band)
         bands <- bands[bands != cld_band]
     }
+    if (nrow(file_info) == length(bands))
+        is_brick <- TRUE
+    else
+        is_brick <- FALSE
 
-    inst.vec <- .sits_plot_rgb_assign(bands = bands,
+    inst.vec <- .sits_plot_rgb_assign(is_brick = is_brick,
+                                      bands = bands,
                                       timeline = sits_timeline(x),
                                       red   = toupper(red),
                                       green = toupper(green),
@@ -176,7 +181,7 @@ plot.raster_cube <- function(x , y, ..., red, green, blue, time = 1) {
                                       time = time)
 
     # is the data set a stack or a brick
-    if (nrow(file_info) == length(bands)) {
+    if (is_brick) {
         # use the raster package to obtain a "rast" object from a brick
         rast <- suppressWarnings(raster::stack(file_info$path))
         # plot the RGB file
@@ -236,9 +241,15 @@ plot.raster_cube <- function(x , y, ..., red, green, blue, time = 1) {
 #'                         files = c(ndvi_file, evi_file))
 #'
 #' # classify the raster image
-#' sinop_probs <- sits_classify(sinop_2014, rfor_model, memsize = 4, multicores = 2)
+#' sinop_probs <- sits_classify(sinop_2014,
+#'                              rfor_model,
+#'                              output_dir = tempdir(),
+#'                              memsize = 4,
+#'                              multicores = 2)
 #'
 #' plot(sinop_probs)
+#'
+#'
 #' }
 #' @export
 plot.probs_cube <- function(x , y, ..., time = 1,
@@ -299,14 +310,17 @@ plot.probs_cube <- function(x , y, ..., time = 1,
 #'                         files = c(ndvi_file, evi_file))
 #'
 #' # classify the raster image
-#' sinop_probs <- sits_classify(sinop_2014, xgb_model, memsize = 4, multicores = 2)
+#' sinop_probs <- sits_classify(sinop_2014, xgb_model,
+#'                              output_dir = tempdir(),
+#'                              memsize = 4, multicores = 2)
 #' # smooth the result with a bayesian filter
-#' sinop_bayes <- sits_label_classification(sinop_probs, smoothing = "bayesian")
+#' sinop_bayes <- sits_label_classification(sinop_probs,
+#'                                          output_dir = tempdir(),
+#'                                          smoothing = "bayesian")
 #'
 #' # plot the smoothened image
 #' plot(sinop_bayes, title = "Sinop-Bayes")
 #'
-#' # remove the files (cleanup)
 #' }
 #' @export
 plot.classified_image <- function(x , y, ..., map = NULL, time = 1,
@@ -1098,6 +1112,7 @@ plot.keras_model <- function(x, y, ...) {
 #' @description Obtain a vector with the correct layer to be plotted for
 #' an RGB assignment of a multi-temporal cube
 #'
+#' @param is_brick   is the data a brick or a stack?
 #' @param bands      bands of the data cube (excludes cloud band)
 #' @param timeline   timeline of the data cube
 #' @param red        Band to be assigned to R channel
@@ -1105,7 +1120,7 @@ plot.keras_model <- function(x, y, ...) {
 #' @param blue       Band to be assigned to G channel
 #' @param time       Temporal instance to be plotted
 #' @return           Named vector with the correct layers for RGB
-.sits_plot_rgb_assign <- function(bands, timeline, red, green, blue, time){
+.sits_plot_rgb_assign <- function(is_brick, bands, timeline, red, green, blue, time){
 
     # check if the selected bands are correct
 	all_bands <- paste0(bands, collapse = " ")
@@ -1119,11 +1134,16 @@ plot.keras_model <- function(x, y, ...) {
 	n_instances <- length(timeline)
 	# check if the selected temporal instance exists
 	assertthat::assert_that(time <= n_instances, msg = "time out of bounds")
+
 	# locate the instances
 	instances.lst <- purrr::map(c(red, green, blue), function(b) {
-		inst <- grep(b, bands)
-		return(n_instances*(inst - 1) + time)
+	    inst <- grep(b, bands)
+	    if (is_brick)
+	        return(n_instances*(inst - 1) + time)
+	    else
+	        return((time - 1)*length(bands) + inst)
 	})
+
 	# create a named vector to store the RGB instances
 	inst.vec <- unlist(instances.lst)
 	names(inst.vec) = c("red", "green", "blue")

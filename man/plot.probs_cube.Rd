@@ -63,9 +63,15 @@ sinop_2014 <- sits_cube(name = "sinop-2014",
                         files = c(ndvi_file, evi_file))
 
 # classify the raster image
-sinop_probs <- sits_classify(sinop_2014, rfor_model, memsize = 4, multicores = 2)
+sinop_probs <- sits_classify(sinop_2014,
+                             rfor_model,
+                             output_dir = tempdir(),
+                             memsize = 4,
+                             multicores = 2)
 
 plot(sinop_probs)
+
+
 }
 }
 \author{

@@ -17,37 +17,11 @@
 #'                          "S2_L2A_AWS", "PROBS", "CLASSIFIED")
 #' @param ...               Other parameters to be passed for specific types
 #'
-#' @examples
-#' \donttest{
-#' # Example 1. Create a data cube based on a WTSS service
-#' cube_wtss <- sits_cube(type = "WTSS",
-#'           name = "MOD13Q1",
-#'           URL = "http://www.esensing.dpi.inpe.br/wtss/")
-#'
-#' # Example 2. Create a data cube based on the SATVEG service
-#' cube_satveg <- sits_cube(type = "SATVEG",
-#'                          name = "terra")
-#'
-#' # Example 3. Create a raster cube
-#' # inform the files that make up a raster brick with 392 time instances
-#' files <- c(system.file("extdata/raster/mod13q1/sinop-crop-ndvi.tif",
-#'            package = "sits"))
-#'
-#' # create a raster cube file based on the information about the files
-#' raster.tb <- sits_cube(type = "RASTER",
-#'                        name      = "Sinop-crop",
-#'                        satellite = "TERRA",
-#'                        sensor    = "MODIS",
-#'                        timeline  = timeline_modis_392,
-#'                        bands     = "NDVI",
-#'                        files     = files)
-#'
-#' }
 #' @export
 sits_cube <- function(type = "RASTER", ...) {
 
-    class_type <- .sits_config_cube_specific(type)
-    class(type) <- c(class_type, class(type))
+    spec_class <- .sits_config_cube_specific_class(type)
+    class(type) <- c(spec_class, class(type))
     # Dispatch
     UseMethod("sits_cube", type)
 }
@@ -66,7 +40,7 @@ sits_cube <- function(type = "RASTER", ...) {
 #' @export
 #'
 #' @examples
-#' \donttest{
+#' \dontrun{
 #' # Create a data cube based on a WTSS service
 #' cube_wtss <- sits_cube(type = "WTSS",
 #'           name = "MOD13Q1",
@@ -95,7 +69,7 @@ sits_cube.wtss_cube <- function(type = "WTSS", ..., name = NULL, URL = NULL) {
 #' @export
 #'
 #' @examples
-#' \donttest{
+#' \dontrun{
 #' # Create a data cube based on the SATVEG service
 #' cube_satveg <- sits_cube(type = "SATVEG",
 #'                          name = "terra")
@@ -152,10 +126,9 @@ sits_cube.satveg_cube <- function(type = "SATVEG", ..., name = NULL) {
 #' @param files             vector of file names for each band
 #'
 #' @return                  data cube
-#' @export
 #'
 #' @examples
-#' \donttest{
+#'
 #' # Create a raster cube based on CBERS data
 #' data_dir <- system.file("extdata/raster/cbers", package = "sits")
 #'
@@ -165,7 +138,7 @@ sits_cube.satveg_cube <- function(type = "SATVEG", ..., name = NULL) {
 #'                      resolution = "64m",
 #'                      data_dir   = data_dir,
 #'                      delim      = "_",
-#'                      parse_info = c("X1", "X2", "X3", "X4", "X5", "X6", "X7", "X8", "band", "date"))
+#'                      parse_info = c("X1", "X2", "band", "date"))
 #'
 #' # Create a raster cube based on bricks
 #' # inform the files that make up a raster brick with 392 time instances
@@ -181,7 +154,8 @@ sits_cube.satveg_cube <- function(type = "SATVEG", ..., name = NULL) {
 #'                        bands     = "NDVI",
 #'                        files     = files)
 #'
-#' }
+#'
+#' @export
 sits_cube.raster_cube <- function(type = "RASTER", ...,
                                  name,
                                  satellite,
@@ -291,8 +265,9 @@ sits_cube.raster_cube <- function(type = "RASTER", ...,
 #' @export
 #'
 #' @examples
-#' \donttest{
+#' \dontrun{
 #'
+#' # this code depends on an external service
 #' # create a raster cube file based on the information about the files
 #' cbers_bdc_tile <- sits_cube(type        = "BDC_TILE",
 #'                             name        = "022024",
@@ -399,7 +374,9 @@ sits_cube.bdc_cube <- function(type        = "BDC_TILE", ...,
 #'  created cube.
 #'
 #' @examples
-#' \donttest{
+#' \dontrun{
+#' # this example requires access to an external service, so should not be run
+#' # by CRAN
 #'
 #' # create a raster cube file based on the information about the files
 #' cbers_stac_tile <- sits_cube(type        = "BDC_STAC",
@@ -491,7 +468,9 @@ sits_cube.bdc_stac <- function(type       = "BDC_STAC", ...,
 #' @export
 #'
 #' @examples
-#' \donttest{
+#' \dontrun{
+#' # this example requires access to an external service, so should not be run
+#' # by CRAN
 #'
 #' # Provide your AWS credentials here
 #' # Sys.setenv(
@@ -571,6 +550,21 @@ sits_cube.default <- function(type = NULL, ...){
 #' @param  bands     Bands to include in output (optional)
 #' @param  srcwin    subwindow defined as c(xoff, yoff, xsize, ysize)
 #' @return           Output data cube
+#'
+#' @examples
+#' data_dir <- system.file("extdata/raster/cbers", package = "sits")
+#'
+#' cbers_022024 <- sits_cube(type = "RASTER",
+#'                           name = "cbers_022024",
+#'                           satellite = "CBERS-4",
+#'                           sensor = "AWFI",
+#'                           resolution = "64m",
+#'                           data_dir = data_dir,
+#'                           parse_info = c("X1", "X2","band", "date"))
+#'
+#' cbers_022024_copy <- sits_cube_copy(cbers_022024, name = "cb_022024_cp",
+#'                                     dest_dir = tempdir(),
+#'                                     bands = "B13")
 #' @export
 #'
 sits_cube_copy <- function (cube, name, dest_dir, bands = NULL, srcwin = NULL){
@@ -594,6 +588,7 @@ sits_cube_copy <- function (cube, name, dest_dir, bands = NULL, srcwin = NULL){
     }
 
 
+
     # if bands are not stated, use all those in the cube
     if (purrr::is_null(bands))
         bands <- sits_bands(cube)
@@ -604,21 +599,25 @@ sits_cube_copy <- function (cube, name, dest_dir, bands = NULL, srcwin = NULL){
     # get information on the file
     file_info <- cube$file_info[[1]]
     file_info_out <- dplyr::filter(file_info, band %in% bands)
+    # get the file extension
+    file_ext <- tools::file_ext(file_info_out$path[1])
 
     # save files with date information
-    paths.lst <- purrr::map2(file_info_out$date,file_info_out$path,
-                             function (d,p){
+    paths.lst <- slider::slide(file_info_out, function(row) {
                                  dest_file <- paste0(dest_dir,"/",
-                                                     tools::file_path_sans_ext(basename(p)),
-                                                     "_",d,".tif")
+                                                     cube$satellite,"_",
+                                                     cube$sensor, "_",
+                                                     row$band, "_",
+                                                     row$date, ".",
+                                                     file_ext)
                                  if (!purrr::is_null(srcwin))
                                      gdalUtils::gdal_translate(
-                                         src_dataset  = p,
+                                         src_dataset  = row$path,
                                          dst_dataset = dest_file,
                                          srcwin = srcwin)
                                  else
                                      gdalUtils::gdal_translate(
-                                         src_dataset  = p,
+                                         src_dataset  = row$path,
                                          dst_dataset = dest_file)
                                  return(dest_file)
                              })
@@ -626,14 +625,18 @@ sits_cube_copy <- function (cube, name, dest_dir, bands = NULL, srcwin = NULL){
     new_paths <- unlist(paths.lst)
 
     # update cube
-    cube$nrows <- srcwin["ysize"]
-    cube$ncols <- srcwin["xsize"]
-    cube$xmin  <- cube$xmin + srcwin["xoff"]*cube$xres
-    cube$ymin  <- cube$ymin + srcwin["yoff"]*cube$yres
-    cube$xmax  <- cube$xmin + (srcwin["xsize"] - 1)*cube$xres
-    cube$ymax  <- cube$ymin + (srcwin["ysize"] - 1)*cube$yres
-    cube$file_info[[1]]$path <- new_paths
-    cube$name      <- name
+    if (!purrr::is_null(srcwin)){
+        cube$nrows <- srcwin["ysize"]
+        cube$ncols <- srcwin["xsize"]
+        cube$xmin  <- cube$xmin + srcwin["xoff"]*cube$xres
+        cube$ymin  <- cube$ymin + srcwin["yoff"]*cube$yres
+        cube$xmax  <- cube$xmin + (srcwin["xsize"] - 1)*cube$xres
+        cube$ymax  <- cube$ymin + (srcwin["ysize"] - 1)*cube$yres
+    }
+    file_info_out$path <- new_paths
+    cube$file_info[[1]]<- file_info_out
+    cube$name  <- name
+    cube$bands[[1]] <- bands
     return(cube)
 }
 

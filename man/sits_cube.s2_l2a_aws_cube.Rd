@@ -54,7 +54,9 @@ Defines a cube to retrieve data from the Sentinel-2 Level 2A data
              All 12 bands are available at 60m resolution.
 }
 \examples{
-\donttest{
+\dontrun{
+# this example requires access to an external service, so should not be run
+# by CRAN
 
 # Provide your AWS credentials here
 # Sys.setenv(

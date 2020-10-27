@@ -9,6 +9,18 @@
 #'
 #' @param  class.tb  A SITS tibble that has been classified
 #' @return returns a tibble with the columns "from", "to", "class"
+#'
+#' @examples
+#' # Retrieve the samples for Mato Grosso
+#' # select band "NDVI"
+#' samples_ndvi <- sits_select(samples_mt_4bands, bands = "NDVI")
+#' #select a random forest model
+#' rfor_model <- sits_train(samples_ndvi, ml_method = sits_rfor(ntree = 100))
+#' # classify the point
+#' class.tb <- sits_classify(point_ndvi, rfor_model)
+#' # show the prediction
+#' sits_show_prediction(class.tb)
+#'
 #' @export
 sits_show_prediction <- function(class.tb) {
 	.sits_test_tibble(class.tb)

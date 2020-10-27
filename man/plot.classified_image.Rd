@@ -57,14 +57,17 @@ sinop_2014 <- sits_cube(name = "sinop-2014",
                         files = c(ndvi_file, evi_file))
 
 # classify the raster image
-sinop_probs <- sits_classify(sinop_2014, xgb_model, memsize = 4, multicores = 2)
+sinop_probs <- sits_classify(sinop_2014, xgb_model,
+                             output_dir = tempdir(),
+                             memsize = 4, multicores = 2)
 # smooth the result with a bayesian filter
-sinop_bayes <- sits_label_classification(sinop_probs, smoothing = "bayesian")
+sinop_bayes <- sits_label_classification(sinop_probs,
+                                         output_dir = tempdir(),
+                                         smoothing = "bayesian")
 
 # plot the smoothened image
 plot(sinop_bayes, title = "Sinop-Bayes")
 
-# remove the files (cleanup)
 }
 }
 \author{

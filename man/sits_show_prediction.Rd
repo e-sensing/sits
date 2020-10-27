@@ -16,6 +16,18 @@ returns a tibble with the columns "from", "to", "class"
 This function takes a tibble with a classified time series
 by a machine learning method and displays the result.
 }
+\examples{
+# Retrieve the samples for Mato Grosso
+# select band "NDVI"
+samples_ndvi <- sits_select(samples_mt_4bands, bands = "NDVI")
+#select a random forest model
+rfor_model <- sits_train(samples_ndvi, ml_method = sits_rfor(ntree = 100))
+# classify the point
+class.tb <- sits_classify(point_ndvi, rfor_model)
+# show the prediction
+sits_show_prediction(class.tb)
+
+}
 \author{
 Gilberto Camara, \email{gilberto.camara@inpe.br}
 }

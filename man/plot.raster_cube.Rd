@@ -44,7 +44,7 @@ sinop_2014 <- sits_cube(name = "sinop-2014",
                         bands = c("NDVI", "EVI"),
                         files = c(ndvi_file, evi_file))
 # plot the data cube
-plot(sinop_2014, red = "EVI", green = "NDVI", blue = "EVI")
+plot(sinop_2014, red = "EVI", green = "EVI", blue = "EVI")
 }
 
 }

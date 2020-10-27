@@ -41,7 +41,7 @@ sits_classify <- function(data, ml_model, ...) {
     # is the data a sits tibble? If not, it must be a cube
     if (!("sits" %in% class(data))){
       # find out the generic cube class it belongs to
-      class_data <- .sits_config_cube_class_generic(data[1,]$type)
+      class_data <- .sits_config_cube_generic_class(data[1,]$type)
       class(data) <- c(class_data, class(data))
     }
 
@@ -71,20 +71,17 @@ sits_classify <- function(data, ml_model, ...) {
 #' @return A tibble with the predicted labels for each input segment.
 #'
 #' @examples
-#' \donttest{
+#'
 #' # Retrieve the samples for Mato Grosso
 #' # select band "NDVI"
 #' samples_ndvi <- sits_select(samples_mt_4bands, bands = "NDVI")
 #'
 #' #select a random forest model
-#' rfor_model <- sits_train(samples_ndvi, ml_method = sits_rfor())
+#' rfor_model <- sits_train(samples_ndvi, ml_method = sits_rfor(ntree = 100))
 #'
 #' # classify the point
 #' class.tb <- sits_classify(point_ndvi, rfor_model)
 #'
-#' # plot the classification
-#' plot(class.tb)
-#' }
 #' @export
 #'
 sits_classify.sits <- function(data, ml_model, ...,
@@ -191,7 +188,6 @@ sits_classify.sits <- function(data, ml_model, ...,
 #' @return                 cube with the metadata of a brick of probabilities.
 #'
 #' @examples
-#' \donttest{
 #' # Classify a raster file with 23 instances for one year
 #' files <- c(system.file("extdata/raster/mod13q1/sinop-crop-ndvi.tif",
 #'                        package = "sits"))
@@ -201,28 +197,22 @@ sits_classify.sits <- function(data, ml_model, ...,
 #'                    timeline = timeline_modis_392,
 #'                    bands = c("NDVI"), files = files)
 #'
+#' # select band "NDVI"
+#' samples_ndvi <- sits_select(samples_mt_4bands, bands = "NDVI")
+#'
+#' #select a random forest model
+#' rfor_model <- sits_train(samples_ndvi, ml_method = sits_rfor(ntree = 100))
+#'
 #' # classify the raster image
 #' sinop_probs <- sits_classify(sinop, ml_model = rfor_model,
-#'                              memsize = 2, multicores = 1)
+#'                              output_dir = tempdir(),
+#'                              memsize = 4, multicores = 1)
 #'
 #' # label the classified image
-#' sinop_label <- sits_label_classification(sinop_probs)
+#' sinop_label <- sits_label_classification(sinop_probs,
+#'                                          output_dir = tempdir())
 #'
-#' # plot the raster image
-#' plot(sinop_label, time = 1, title = "Sinop-2013-2014")
 #'
-#' # smooth the result with a bayesian filter
-#' sinop_bayes <- sits_label_classification(sinop_probs,
-#'                                smoothing = "bayesian")
-#'
-#' # plot the smoothened image
-#' plot(sinop_bayes, time = 1, title = "Sinop-smooth")
-#'
-#' # remove the files (cleanup)
-#' file.remove(unlist(sinop_probs$files))
-#' file.remove(unlist(sinop_label$files))
-#' file.remove(unlist(sinop_bayes$files))
-#' }
 #' @export
 sits_classify.raster_cube <- function(data, ml_model, ...,
                                      roi        = NULL,
