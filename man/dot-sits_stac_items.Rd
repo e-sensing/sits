@@ -32,6 +32,8 @@ cube will be created.}
 
 \item{end_date}{a \code{character} corresponds to the final date when the
 cube will be created.}
+
+\item{...}{other parameters to be passed for specific types.}
 }
 \value{
 a \code{STACItemCollection} object representing the search

@@ -12,6 +12,8 @@
 \item{collection}{a \code{character} with the collection to be searched.}
 
 \item{bands}{a \code{character} with the bands names to be filtered.}
+
+\item{...}{other parameters to be passed for specific types.}
 }
 \value{
 a \code{STACCollection} object returned by rstac.
