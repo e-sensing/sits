@@ -384,23 +384,11 @@ sits_cube.bdc_cube <- function(type        = "BDC_TILE", ...,
 #' @param bands      a \code{character} with the bands names to be filtered.
 #' @param url        a \code{character} representing a URL for the BDC catalog.
 #' @param collection a \code{character} with the collection to be searched.
-#' @param bbox       a \code{numeric} vector with features that have a
-#' geometry that intersects the bounding box are selected. The bounding box is
-#' provided as four or six numbers, depending on whether the coordinate
-#' reference system includes a vertical axis (elevation or depth):
-#' \itemize{ \item Lower left corner, coordinate axis 1
-#'           \item Lower left corner, coordinate axis 2
-#'           \item Lower left corner, coordinate axis 3 (optional)
-#'           \item Upper right corner, coordinate axis 1
-#'           \item Upper right corner, coordinate axis 2
-#'           \item Upper right corner, coordinate axis 3 (optional) }
-#'
-#' The coordinate reference system of the values is WGS84 longitude/latitude
-#' (\url{http://www.opengis.net/def/crs/OGC/1.3/CRS84}). The values are in
-#' most cases the sequence of minimum longitude, minimum latitude, maximum
-#' longitude and maximum latitude. However, in cases where the box spans the
-#' antimeridian the first value (west-most box edge) is larger than the third
-#' value (east-most box edge).
+#' @param roi        the "roi" parameter defines a region of interest. It can be
+#'  an \code{sfc} or \code{sf} object from sf package, a \code{character} with
+#'  a GeoJSON following the rules from RFC 7946, or a \code{vector}
+#'  bounding box \code{vector} with named XY values
+#'  ("xmin", "xmax", "ymin", "ymax").
 #' @param start_date a \code{character} corresponds to the initial date when the
 #'  cube will be created.
 #' @param end_date   a \code{character} corresponds to the final date when the
@@ -428,8 +416,7 @@ sits_cube.bdc_stac <- function(type       = "BDC_STAC", ...,
                                bands      = NULL,
                                url        = "http://brazildatacube.dpi.inpe.br/stac/",
                                collection = NULL,
-                               ids        = NULL,
-                               bbox       = NULL,
+                               roi        = NULL,
                                start_date = NULL,
                                end_date   = NULL) {
 
@@ -448,7 +435,7 @@ sits_cube.bdc_stac <- function(type       = "BDC_STAC", ...,
     items_info  <- .sits_stac_items(url        = url,
                                     collection = collection,
                                     tiles      = tiles,
-                                    bbox       = bbox,
+                                    roi        = roi,
                                     start_date = start_date,
                                     end_date   = end_date, ...)
 
