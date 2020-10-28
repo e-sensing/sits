@@ -353,39 +353,21 @@ sits_cube.bdc_cube <- function(type        = "BDC_TILE", ...,
 #'              For more on BDC, please see http://brazildatacube.dpi.inpe.br/
 #'
 #' @param type       a \code{character} with the type of cube.
-#' @param ...        other parameters to be passed for specific types
+#' @param ...        other parameters to be passed for specific types.
 #' @param name       a \code{character} representing the output data cube.
 #' @param tiles      a \code{character} representing the names of the tiles.
 #' @param bands      a \code{character} with the bands names to be filtered.
 #' @param url        a \code{character} representing a URL for the BDC catalog.
 #' @param collection a \code{character} with the collection to be searched.
-#' @param ids        a \code{character} vector with the items features ids.
-#' @param bbox       a \code{numeric} vector with features that have a
-#' geometry that intersects the bounding box are selected. The bounding box is
-#' provided as four or six numbers, depending on whether the coordinate
-#' reference system includes a vertical axis (elevation or depth):
-#' \itemize{ \item Lower left corner, coordinate axis 1
-#'           \item Lower left corner, coordinate axis 2
-#'           \item Lower left corner, coordinate axis 3 (optional)
-#'           \item Upper right corner, coordinate axis 1
-#'           \item Upper right corner, coordinate axis 2
-#'           \item Upper right corner, coordinate axis 3 (optional) }
-#'
-#' The coordinate reference system of the values is WGS84 longitude/latitude
-#' (\url{http://www.opengis.net/def/crs/OGC/1.3/CRS84}). The values are in
-#' most cases the sequence of minimum longitude, minimum latitude, maximum
-#' longitude and maximum latitude. However, in cases where the box spans the
-#' antimeridian the first value (west-most box edge) is larger than the third
-#' value (east-most box edge).
-#' @param datetime   a \code{character} with a date-time or an interval. Date
-#'  and time strings needs to conform RFC 3339. Intervals are expressed by
-#'  separating two date-time strings by \code{'/'} character. Open intervals are
-#'  expressed by using \code{'..'} in place of date-time.
-#' @param intersects a \code{character} value expressing GeoJSON geometries
-#' objects as specified in RFC 7946. Only returns items that intersect with
-#' the provided polygon.
-#' @param limit      an \code{integer} defining the maximum number of results
-#' to return. If not informed it defaults to the service implementation.
+#' @param roi        the "roi" parameter defines a region of interest. It can be
+#'  an \code{sfc} or \code{sf} object from sf package, a \code{character} with
+#'  a GeoJSON following the rules from RFC 7946, or a \code{vector}
+#'  bounding box \code{vector} with named XY values
+#'  ("xmin", "xmax", "ymin", "ymax").
+#' @param start_date a \code{character} corresponds to the initial date when the
+#'  cube will be created.
+#' @param end_date   a \code{character} corresponds to the final date when the
+#'  cube will be created.
 #'
 #' @export
 #' @return           A \code{raster_cube} object with the information of the
@@ -402,42 +384,41 @@ sits_cube.bdc_cube <- function(type        = "BDC_TILE", ...,
 #'                              bands       = c("NDVI", "EVI"),
 #'                              url         = "http://brazildatacube.dpi.inpe.br/stac/",
 #'                              collection  = "CB4_64_16D_STK-1",
-#'                              datetime    = "2018-09-01/2019-08-28")
+#'                              start_date  = "2018-09-01",
+#'                              end_date    = "2019-08-28")
 #' }
-sits_cube.bdc_stac <- function(type       = "BDC_STAC",...,
+sits_cube.bdc_stac <- function(type       = "BDC_STAC", ...,
                                name       = NULL,
                                tiles      = NULL,
                                bands      = NULL,
                                url        = "http://brazildatacube.dpi.inpe.br/stac/",
                                collection = NULL,
-                               ids        = NULL,
-                               bbox       = NULL,
-                               datetime   = NULL,
-                               intersects = NULL,
-                               limit      = NULL) {
+                               roi        = NULL,
+                               start_date = NULL,
+                               end_date   = NULL) {
 
     # require package
     if (!requireNamespace("rstac", quietly = TRUE)) {
         stop("Please install package rstac from brazil-data-cube github",
              call. = FALSE)
     }
+
     # retrieving information from the collection
     collection_info <- .sits_stac_collection(url        = url,
                                              collection = collection,
-                                             bands      = bands)
+                                             bands      = bands, ...)
 
     # retrieving item information
     items_info  <- .sits_stac_items(url        = url,
                                     collection = collection,
                                     tiles      = tiles,
-                                    ids        = ids,
-                                    bbox       = bbox,
-                                    datetime   = datetime,
-                                    intersects = intersects,
-                                    limit      = limit)
+                                    roi        = roi,
+                                    start_date = start_date,
+                                    end_date   = end_date, ...)
 
     # creating a group of items per tile
-    items_group <- .sits_stac_group(items_info, fields = c("properties", "bdc:tile"))
+    items_group <- .sits_stac_group(items_info,
+                                    fields = c("properties", "bdc:tile"))
 
     tile.lst <- purrr::map(items_group, function(items){
 

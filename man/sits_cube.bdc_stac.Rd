@@ -12,17 +12,15 @@
   bands = NULL,
   url = "http://brazildatacube.dpi.inpe.br/stac/",
   collection = NULL,
-  ids = NULL,
-  bbox = NULL,
-  datetime = NULL,
-  intersects = NULL,
-  limit = NULL
+  roi = NULL,
+  start_date = NULL,
+  end_date = NULL
 )
 }
 \arguments{
 \item{type}{a \code{character} with the type of cube.}
 
-\item{...}{other parameters to be passed for specific types}
+\item{...}{other parameters to be passed for specific types.}
 
 \item{name}{a \code{character} representing the output data cube.}
 
@@ -34,37 +32,17 @@
 
 \item{collection}{a \code{character} with the collection to be searched.}
 
-\item{ids}{a \code{character} vector with the items features ids.}
+\item{roi}{the "roi" parameter defines a region of interest. It can be
+an \code{sfc} or \code{sf} object from sf package, a \code{character} with
+a GeoJSON following the rules from RFC 7946, or a \code{vector}
+bounding box \code{vector} with named XY values
+("xmin", "xmax", "ymin", "ymax").}
 
-\item{bbox}{a \code{numeric} vector with features that have a
-geometry that intersects the bounding box are selected. The bounding box is
-provided as four or six numbers, depending on whether the coordinate
-reference system includes a vertical axis (elevation or depth):
-\itemize{ \item Lower left corner, coordinate axis 1
-          \item Lower left corner, coordinate axis 2
-          \item Lower left corner, coordinate axis 3 (optional)
-          \item Upper right corner, coordinate axis 1
-          \item Upper right corner, coordinate axis 2
-          \item Upper right corner, coordinate axis 3 (optional) }
+\item{start_date}{a \code{character} corresponds to the initial date when the
+cube will be created.}
 
-The coordinate reference system of the values is WGS84 longitude/latitude
-(\url{http://www.opengis.net/def/crs/OGC/1.3/CRS84}). The values are in
-most cases the sequence of minimum longitude, minimum latitude, maximum
-longitude and maximum latitude. However, in cases where the box spans the
-antimeridian the first value (west-most box edge) is larger than the third
-value (east-most box edge).}
-
-\item{datetime}{a \code{character} with a date-time or an interval. Date
-and time strings needs to conform RFC 3339. Intervals are expressed by
-separating two date-time strings by \code{'/'} character. Open intervals are
-expressed by using \code{'..'} in place of date-time.}
-
-\item{intersects}{a \code{character} value expressing GeoJSON geometries
-objects as specified in RFC 7946. Only returns items that intersect with
-the provided polygon.}
-
-\item{limit}{an \code{integer} defining the maximum number of results
-to return. If not informed it defaults to the service implementation.}
+\item{end_date}{a \code{character} corresponds to the final date when the
+cube will be created.}
 }
 \value{
 A \code{raster_cube} object with the information of the
@@ -86,7 +64,8 @@ cbers_stac_tile <- sits_cube(type        = "BDC_STAC",
                              bands       = c("NDVI", "EVI"),
                              url         = "http://brazildatacube.dpi.inpe.br/stac/",
                              collection  = "CB4_64_16D_STK-1",
-                             datetime    = "2018-09-01/2019-08-28")
+                             start_date  = "2018-09-01",
+                             end_date    = "2019-08-28")
 }
 }
 \references{

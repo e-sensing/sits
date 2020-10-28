@@ -5,11 +5,13 @@
 #' @param url         a \code{character} representing a URL for the BDC catalog.
 #' @param collection  a \code{character} with the collection to be searched.
 #' @param bands       a \code{character} with the bands names to be filtered.
+#' @param ...        other parameters to be passed for specific types.
+
 #'
 #' @return            a \code{STACCollection} object returned by rstac.
 .sits_stac_collection <- function(url         = NULL,
                                   collection  = NULL,
-                                  bands       = NULL) {
+                                  bands       = NULL, ...) {
 
     assertthat::assert_that(!purrr::is_null(url),
                             msg = paste("sits_cube: for STAC_CUBE url must be",
@@ -26,7 +28,7 @@
     # creating a rstac object and making the requisition
     collection_info <- rstac::stac(url) %>%
         rstac::collections(collection_id = collection) %>%
-        rstac::get_request()
+        rstac::get_request(...)
 
     # get the name of the bands
     collection_bands <- sapply(collection_info$properties[["eo:bands"]],
@@ -46,60 +48,49 @@
 
     return(collection_info)
 }
-#' @title Get information from item
+#' @title Get information from items
 #' @name .sits_stac_items
 #' @keywords internal
 #'
 #' @param url        a \code{character} representing a URL for the BDC catalog.
 #' @param collection a \code{character} with the collection to be searched.
 #' @param tiles      a \code{character} with the names of the tiles.
-#' @param ids        a \code{character} vector with the items features ids.
-#' @param bbox       a \code{numeric} vector with only features that have a
-#' geometry that intersects the bounding box are selected. The bounding box is
-#' provided as four or six numbers, depending on whether the coordinate
-#' reference system includes a vertical axis (elevation or depth):
-#' \itemize{ \item Lower left corner, coordinate axis 1
-#'           \item Lower left corner, coordinate axis 2
-#'           \item Lower left corner, coordinate axis 3 (optional)
-#'           \item Upper right corner, coordinate axis 1
-#'           \item Upper right corner, coordinate axis 2
-#'           \item Upper right corner, coordinate axis 3 (optional) }
-#'
-#' The coordinate reference system of the values is WGS84 longitude/latitude
-#' (\url{http://www.opengis.net/def/crs/OGC/1.3/CRS84}). The values are in
-#' most cases the sequence of minimum longitude, minimum latitude, maximum
-#' longitude and maximum latitude. However, in cases where the box spans the
-#' antimeridian the first value (west-most box edge) is larger than the third
-#' value (east-most box edge).
-#' @param datetime   a \code{character} with a date-time or an interval. Date
-#'  and time strings needs to conform RFC 3339. Intervals are expressed by
-#'  separating two date-time strings by \code{'/'} character. Open intervals are
-#'  expressed by using \code{'..'} in place of date-time.
-#' @param intersects a \code{character} value expressing GeoJSON geometries
-#' objects as specified in RFC 7946. Only returns items that intersect with
-#' the provided polygon.
-#' @param limit      an \code{integer} defining the maximum number of results
-#' to return. If not informed it defaults to the service implementation.
+#' @param roi        the "roi" parameter defines a region of interest. It can be
+#'  an \code{sfc} or \code{sf} object from sf package, a \code{character} with
+#'  a GeoJSON following the rules from RFC 7946, or a \code{vector}
+#'  bounding box \code{vector} with named XY values
+#'  ("xmin", "xmax", "ymin", "ymax").
+#' @param start_date a \code{character} corresponds to the initial date when the
+#'  cube will be created.
+#' @param end_date   a \code{character} corresponds to the final date when the
+#'  cube will be created.
+#' @param ...        other parameters to be passed for specific types.
 #'
 #' @return           a \code{STACItemCollection} object representing the search
 #'  by rstac.
-.sits_stac_items <- function(url             = NULL,
-                             collection      = NULL,
-                             tiles           = NULL,
-                             ids             = NULL,
-                             bbox            = NULL,
-                             datetime        = NULL,
-                             intersects      = NULL,
-                             limit           = NULL) {
+.sits_stac_items <- function(url        = NULL,
+                             collection = NULL,
+                             tiles      = NULL,
+                             roi        = NULL,
+                             start_date = NULL,
+                             end_date   = NULL, ...) {
+
+    # obtain the datetime parameter for STAC like parameter
+    datetime <- .sits_stac_datetime(start_date, end_date)
+
+    # obtain the bbox and intersects parameters
+    if (!is.null(roi)) {
+        roi <- .sits_stac_roi(roi)
+    } else {
+        roi[c("bbox", "intersects")] <- list(NULL, NULL)
+    }
 
     # creating a rstac object
     rstac_query <- rstac::stac(url) %>%
         rstac::stac_search(collection = collection,
-                           ids        = ids,
-                           bbox       = bbox,
-                           datetime   = datetime,
-                           intersects = intersects,
-                           limit      = limit)
+                           bbox       = roi$bbox,
+                           intersects = roi$intersects,
+                           datetime   = datetime)
 
     # if specified, a filter per tile is added to the query
     if (!is.null(tiles))
@@ -107,7 +98,7 @@
             rstac::ext_query(keys = "bdc:tile", ops = "%in%", values = tiles)
 
     # making the request
-    items_info <- rstac_query %>% rstac::post_request()
+    items_info <- rstac_query %>% rstac::post_request(...)
 
     # progress bar status
     pgr_fetch  <- FALSE
@@ -157,6 +148,66 @@
 
     return(items_grouped)
 }
+#' @title Get bbox and intersects parameters
+#' @name .sits_stac_roi
+#' @keywords internal
+#'
+#' @param roi  the "roi" parameter defines a region of interest. It can be
+#'  an \code{sfc} or \code{sf} object from sf package, a \code{character} with
+#'  GeoJSON following the rules from RFC 7946, or a \code{vector}
+#'  bounding box \code{vector} with named XY values
+#'  ("xmin", "xmax", "ymin", "ymax").
+#'
+#' @return     A named \code{list} with the values of the intersection and bbox
+#'             parameters. If bbox is supplied, the intersection parameter gets
+#'             NULL, otherwise bbox gets NULL if intersects is specified.
+.sits_stac_roi <- function(roi) {
+
+    # list to store parameters values
+    roi_list <- list()
+
+    # verify the provided parameters
+    if (!("sf" %in% class(roi))) {
+        if (all(c("xmin", "xmax","ymin", "ymax") %in% names(roi)))
+            roi_list[c("bbox", "intersects")] <- list(roi, NULL)
+
+        else if (typeof(roi) == "character")
+            roi_list[c("bbox", "intersects")] <- list(NULL, roi)
+    } else {
+        roi_list[c("bbox", "intersects")] <- list(as.vector(sf::st_bbox(roi)),
+                                                  NULL)
+    }
+
+    # checks if the specified parameters names is contained in the list
+    assertthat::assert_that(!purrr::is_null(names(roi_list)),
+                            msg = "invalid definition of ROI")
+
+    return(roi_list)
+}
+#' @title Datetime format
+#' @name .sits_stac_datetime
+#' @keywords internal
+#'
+#' @param start_date a \code{character} corresponds to the initial date when the
+#'  cube will be created.
+#' @param end_date   a \code{character} corresponds to the final date when the
+#'  cube will be created.
+#'
+#' @return      a \code{character} formatted as parameter to STAC requisition.
+.sits_stac_datetime <- function(start_date, end_date) {
+
+    # ensuring that start_date and end_date were provided
+    assertthat::assert_that(all(!purrr::is_null(start_date),
+                                !purrr::is_null(end_date)),
+                            msg = paste("sits_cube: for STAC_CUBE start_date",
+                                        "and end_date must be provided"))
+
+    # adding the dates according to RFC 3339
+    datetime <- paste(start_date, end_date, sep = "/")
+
+    return(datetime)
+}
+
 #' @title Format assets
 #' @name .sits_stac_items_info
 #' @keywords internal
