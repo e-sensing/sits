@@ -31,12 +31,12 @@ on the statistics of the result of the clustering using SOM. It also provides
 samples that should be analysed.
 }
 \examples{
-\donttest{
+\dontrun{
 # Read a set of samples
 # Get a new subset of samples evaluated by clustering methods
-samples_mt <- sits_select(samples_mt_4bands, bands = c("NDVI", "EVI"))
-som_map <- sits_som_map(samples_mt, grid_xdim = 10, grid_ydim = 10,
-       distance = "euclidean", iterations = 50)
+samples_mt <- sits_select(samples_mt_4bands, bands = c("NDVI"))
+som_map <- sits_som_map(samples_mt, grid_xdim = 5, grid_ydim = 5,
+       distance = "euclidean", iterations = 10)
 new_samples <- sits_som_clean_samples(som_map)
 }
 }

@@ -80,7 +80,7 @@ and code available on github (https://github.com/charlotte-pel/temporalCNN).
 If you use this method, please cite the original tempCNN paper.
 }
 \examples{
-\donttest{
+\dontrun{
 # Retrieve the set of samples for the Mato Grosso (provided by EMBRAPA)
 
 # Build a machine learning model based on deep learning

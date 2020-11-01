@@ -40,3 +40,11 @@ A tibble with time series data and metadata.
 \description{
 Obtain time series from satveg
 }
+\examples{
+\dontrun{
+ cube_terra <- sits_cube(type = "SATVEG", name = "terra")
+ point_terra <- sits_get_data(cube_terra,
+                              longitude = -55.50563, latitude = -11.71557)
+ plot(point_terra)
+ }
+}

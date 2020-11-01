@@ -16,7 +16,7 @@ A tibble with all selected samples.
 Removes labels that are minority in each cluster.
 }
 \examples{
-\donttest{
+\dontrun{
 # Load the "dtwclust" package
 # library(dtwclust)
 # calculate the dendrogram and the best clusters

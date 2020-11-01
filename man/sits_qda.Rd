@@ -27,7 +27,6 @@ This function is a front-end to the "qda" method in the "MASS" package.
 Please refer to the documentation in that package for more details.
 }
 \examples{
-\donttest{
 # Retrieve the set of samples for Mato Grosso region (provided by EMBRAPA)
 # Select the NDVI band
 samples_mt_ndvi <- sits_select(samples_mt_4bands, bands = "NDVI")
@@ -37,7 +36,6 @@ qda_model <- sits_train(samples_mt_ndvi, sits_qda())
 class.tb <- sits_classify(point_ndvi, qda_model)
 # Plot results
 plot(class.tb)
-}
 }
 \author{
 Alexandre Ywata de Carvalho, \email{alexandre.ywata@ipea.gov.br}

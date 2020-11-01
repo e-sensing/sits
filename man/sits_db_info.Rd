@@ -17,9 +17,9 @@ This functions describes the time series and data cubes
 stored RSQLite database.
 }
 \examples{
-\donttest{
+\dontrun{
 # create a data base
-db_file <- paste0(Sys.getenv('HOME'),"/sits.sql")
+db_file <- paste0(tempdir(),"/sits.sql")
 conn <- sits_db_connect(db_file)
 # write a set of time series
 conn <- sits_db_write(conn, "cerrado_2classes", cerrado_2classes)

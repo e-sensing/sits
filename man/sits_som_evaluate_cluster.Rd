@@ -19,9 +19,9 @@ This function extracts metrics about the clusters calculating
 the percentage of mixture between a cluster and others.
 }
 \examples{
-\donttest{
+\dontrun{
 # Produce a Kohonen map for the time series samples
-samples_mt <- sits_select(samples_mt_4bands, bands = c("NDVI", "EVI"))
+samples_mt <- sits_select(samples_mt_4bands, bands = c("NDVI"))
 som_map <- sits_som_map(samples_mt)
 # Extract metrics about the clusters
 confusion_by_cluster <- sits_som_evaluate_cluster(som_map)

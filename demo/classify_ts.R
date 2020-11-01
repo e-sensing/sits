@@ -1,10 +1,9 @@
 # satellite image time series package (SITS)
 # example of the classification of a time series
-#devtools::install_github("gilbertocamara/sits")
 library(sits)
 
-# In this example, we are going to train a ML model and then will classify a point retrieved
-# from the WTSS server and then a set of samples retrieved from the server
+# In this example, we are going to train a ML model
+# and then will classify a point
 
 # use a sample with the bands "ndvi", "evi", "nir", and "mir"
 #select a random forest model

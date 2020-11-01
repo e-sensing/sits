@@ -106,7 +106,6 @@ sits_labels.patterns <- function(data) {
 #' @return                A new sits tibble with modified labels.
 #'
 #' @examples
-#' \donttest{
 #' # Read a set of time series with information on deforestation
 #' data(samples_mt_4bands)
 #' # Print the labels
@@ -123,7 +122,6 @@ sits_labels.patterns <- function(data) {
 #' new_data  <- sits_relabel(samples_mt_4bands, conv.lst)
 #' # show the new labels
 #' sits_labels(new_data)
-#' }
 #' @export
 sits_relabel <- function(data, conv.lst = list()){
     # backward compatibility

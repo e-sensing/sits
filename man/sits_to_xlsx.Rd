@@ -18,11 +18,12 @@ by the \code{\link[sits]{sits_conf_matrix}}
 function and save them in an Excel spreadsheet.
 }
 \examples{
-\donttest{
+\dontrun{
 # read a tibble with 400 samples of Cerrado and 346 samples of Pasture
 data(cerrado_2classes)
 # perform a 2 fold validation of this sample file
-pred_ref.tb <-  sits_kfold_validate(cerrado_2classes, folds = 2)
+pred_ref.tb <-  sits_kfold_validate(cerrado_2classes, folds = 2,
+                                    ml_method = sits_rfor(num_trees = 300))
 # calculate and print the confusion matrix
 conf.mx <- sits_conf_matrix(pred_ref.tb)
 # create a list to store the results
@@ -32,10 +33,8 @@ conf.mx$name <- "confusion_matrix"
 # add the confusion matrix to the results
 results[[length(results) + 1]] <- conf.mx
 # save the results to an XLSX file
-sits_to_xlsx(results, file = "confusion_matrix.xlsx")
-
-# cleanup (optional)
-file.remove("confusion_matrix.xlsx")
+xlsx_file <- paste0(tempdir(), "confusion_matrix.xlsx")
+sits_to_xlsx(results, file = xlsx_file)
 }
 }
 \author{

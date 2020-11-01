@@ -96,9 +96,7 @@ wtss_cube <- sits_cube(type = "WTSS",
                        name = "MOD13Q1")
 ````
 
-```{r, include = FALSE}
-
-
+```{r}
 # get information on the data cube 
 wtss_cube %>% dplyr::select(type, URL, satellite, sensor)
 # spatial dimensions of the data cube
@@ -171,14 +169,20 @@ sits_time_series(samples_mt_4bands[1,])[1:3,]
 
 To get a time series in SITS, one has to create a data cube first, as described above. Alternatively, the time series can also be converted from data stored  in the ZOO format [@Zeileis2005]. Users can request one or more time series points from a data cube by using `sits_get_data()`. This function provides a general means of access to image time series. Given data cue, the user provides the latitude and longitude of the desired location, the bands, and the start date and end date of the time series. If the start and end dates are not provided, it retrieves all the available period. The result is a tibble that can be visualized using `plot()`.
 
-```{r, fig.align="center", fig.height=3.1, fig.width=5, fig.cap="NDVI and EVI time series fetched from WTSS service."}
-# a point in the transition forest to pasture in Northern MT
+```{r, eval = FALSE}
+# a point in the transition forest to pasture and then to agriculture in Mato Grosso
 # obtain a time series from the WTSS server for this point
-series.tb <- sits_get_data(cube      = wtss_cube,
-                           longitude = -55.57320, 
-                           latitude  = -11.50566,
-                           bands     = c("NDVI", "EVI"))
-plot(series.tb)
+point_ndvi <- sits_get_data(cube      = wtss_cube,
+                           longitude = -55.50563, 
+                           latitude  = -11.71557,
+                           bands     = c("NDVI"))
+```
+
+
+
+```{r, fig.align="center", fig.height=3.1, fig.width=5, fig.cap="NDVI time series fetched from WTSS service."}
+
+plot(point_ndvi)
 ```
 
 # Filtering techniques 

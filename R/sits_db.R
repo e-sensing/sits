@@ -44,9 +44,9 @@ sits_db_connect <- function(name = NULL){
 #' @param  conn     SQLite connection
 #' @return          Description
 #' @examples
-#' \donttest{
+#' \dontrun{
 #' # create a data base
-#' db_file <- paste0(Sys.getenv('HOME'),"/sits.sql")
+#' db_file <- paste0(tempdir(),"/sits.sql")
 #' conn <- sits_db_connect(db_file)
 #' # write a set of time series
 #' conn <- sits_db_write(conn, "cerrado_2classes", cerrado_2classes)
@@ -133,7 +133,7 @@ sits_db_info <- function(conn){
     # collect all descriptions
     desc.tb <- dplyr::bind_rows(tables.lst)
 
-    print(knitr::kable(dplyr::select(desc.tb, name, start_date, end_date, bands, b_box),
+    print(knitr::kable(dplyr::select(desc.tb, name, bands, b_box),
                        padding = 0,
                        caption = paste0('Contents of database ', conn@dbname)))
 
@@ -155,14 +155,12 @@ sits_db_info <- function(conn){
 #' @param  data     Data to be stored
 #' @return          A connection to an RSQLite database
 #' @examples
-#' \donttest{
+#' \dontrun{
 #' # create RSQLite connection
-#' db_file <- paste0(Sys.getenv('HOME'),"/sits.sql")
+#' db_file <- paste0(tempdir(),"/sits.sql")
 #' conn <- sits_db_connect(db_file)
 #' # write a set of time series
 #' conn <- sits_db_write(conn, "cerrado_2classes", cerrado_2classes)
-#' # clean up
-#' unlink(db_file)
 #' }
 #' @export
 sits_db_write <- function(conn, name, data){
@@ -205,7 +203,7 @@ sits_db_write <- function(conn, name, data){
 #' @param  name     Name of the object to be read
 #' @return          Tibble with time series
 #' @examples
-#' \donttest{
+#' \dontrun{
 #' # create RSQLite connection
 #' conn <- sits_db_connect()
 #' # write a set of time series

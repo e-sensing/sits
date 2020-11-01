@@ -21,14 +21,12 @@ This functions write a set of time series or data cubes
 to an RSQLite database.
 }
 \examples{
-\donttest{
+\dontrun{
 # create RSQLite connection
-db_file <- paste0(Sys.getenv('HOME'),"/sits.sql")
+db_file <- paste0(tempdir(),"/sits.sql")
 conn <- sits_db_connect(db_file)
 # write a set of time series
 conn <- sits_db_write(conn, "cerrado_2classes", cerrado_2classes)
-# clean up
-unlink(db_file)
 }
 }
 \author{

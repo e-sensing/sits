@@ -49,7 +49,7 @@
 #' @return A fitted model to be passed to \code{\link[sits]{sits_classify}}
 #'
 #' @examples
-#' \donttest{
+#' \dontrun{
 #' # Retrieve the set of samples for the Mato Grosso (provided by EMBRAPA)
 #'
 #' # Build a machine learning model based on deep learning

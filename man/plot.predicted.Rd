@@ -22,7 +22,7 @@ plot
 Given a sits tibble with a set of predictions, plot them
 }
 \examples{
-\donttest{
+\dontrun{
 # Retrieve the set of samples for Mato Grosso region (provided by EMBRAPA)
 samples_mt_ndvi <- sits_select(samples_mt_4bands, bands = "NDVI")
 # classify the point

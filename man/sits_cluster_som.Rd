@@ -53,9 +53,9 @@ is generated. The parameters "conditonal_threshold" and "posterior_threshold" co
 good quality samples are selected, based on the Kohonen map.
 }
 \examples{
-\donttest{
+\dontrun{
 # Get a new subset of samples evaluated by SOM clustering methods
-samples_mt <- sits_select(samples_mt_4bands, bands = c("NDVI", "EVI"))
+samples_mt <- sits_select(samples_mt_4bands, bands = c("NDVI"))
 new_samples.tb <- sits_cluster_som(samples_mt)
 }
 }

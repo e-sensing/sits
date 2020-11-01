@@ -23,7 +23,7 @@ Plot a bar graph with informations about each cluster.
 The percentage of mixture between the clusters.
 }
 \examples{
-\donttest{
+\dontrun{
 # Produce a cluster map
 
 samples_mt_2bands <- sits_select(samples_mt_6bands, bands = c("NDVI", "EVI"))

@@ -62,6 +62,7 @@ Defines a cube to retrieve data from the Brazil Data Cube (BDC)
 cbers_stac_tile <- sits_cube(type        = "BDC_STAC",
                              name        = "cbers_stac",
                              bands       = c("NDVI", "EVI"),
+                             tiles       = "022024",
                              url         = "http://brazildatacube.dpi.inpe.br/stac/",
                              collection  = "CB4_64_16D_STK-1",
                              start_date  = "2018-09-01",

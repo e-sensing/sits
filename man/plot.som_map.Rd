@@ -30,7 +30,7 @@ The plot function produces different plots based on the input data:
 }
 }
 \examples{
-\donttest{
+\dontrun{
 # Produce a cluster map
 samples_mt_2bands <- sits_select(samples_mt_6bands, bands = c("NDVI", "EVI"))
 som_map <- sits_som_map(samples_mt_2bands)

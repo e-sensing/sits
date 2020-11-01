@@ -28,16 +28,14 @@
 #'                          to be passed to \code{\link[sits]{sits_classify}}
 #'
 #' @examples
-#' \donttest{
 #' # Retrieve the set of samples for Mato Grosso (provided by EMBRAPA)
 #' # fit a training model (RFOR model)
 #' samples_2bands <- sits_select(samples_mt_4bands, bands = c("NDVI", "EVI"))
-#' ml_model <- sits_train(samples_2bands, sits_rfor(num_trees = 1000))
+#' ml_model <- sits_train(samples_2bands, sits_rfor(num_trees = 500))
 #' # get a point and classify the point with the ml_model
 #' point.tb <- sits_select(point_mt_6bands, bands = c("NDVI", "EVI"))
 #' class.tb <- sits_classify(point.tb, ml_model)
 #' plot(class.tb, bands = c("NDVI", "EVI"))
-#' }
 #' @export
 sits_train <- function(data, ml_method = sits_svm()) {
     # backward compatibility
@@ -80,7 +78,6 @@ sits_train <- function(data, ml_method = sits_svm()) {
 #'                         to be passed to \code{\link[sits]{sits_classify}}
 #'
 #' @examples
-#' \donttest{
 #' # Retrieve the set of samples for Mato Grosso region (provided by EMBRAPA)
 #' samples_2bands <- sits_select(samples_mt_4bands, bands = c("NDVI", "EVI"))
 #'
@@ -91,7 +88,6 @@ sits_train <- function(data, ml_method = sits_svm()) {
 #' point.tb <- sits_select(point_mt_6bands, bands = c("NDVI", "EVI"))
 #' class.tb <- sits_classify(point.tb, ml_model)
 #' plot(class.tb, bands = c("NDVI", "EVI"))
-#' }
 #' @export
 sits_lda <- function(data = NULL, formula = sits_formula_logref(), ...) {
     # backward compatibility
@@ -162,7 +158,6 @@ sits_lda <- function(data = NULL, formula = sits_formula_logref(), ...) {
 #'                  (to be passed to \code{\link[sits]{sits_classify}})
 #'
 #' @examples
-#' \donttest{
 #' # Retrieve the set of samples for Mato Grosso region (provided by EMBRAPA)
 #' # Select the NDVI band
 #' samples_mt_ndvi <- sits_select(samples_mt_4bands, bands = "NDVI")
@@ -172,7 +167,6 @@ sits_lda <- function(data = NULL, formula = sits_formula_logref(), ...) {
 #' class.tb <- sits_classify(point_ndvi, qda_model)
 #' # Plot results
 #' plot(class.tb)
-#' }
 #' @export
 sits_qda <- function(data = NULL, formula = sits_formula_logref(), ...) {
     # backward compatibility
@@ -240,7 +234,6 @@ sits_qda <- function(data = NULL, formula = sits_formula_logref(), ...) {
 #' @return                 Model fitted to input data
 #'                        (to be passed to \code{\link[sits]{sits_classify}})
 #' @examples
-#' \donttest{
 #' # Retrieve the set of samples for  Mato Grosso region (provided by EMBRAPA)
 #' samples_2bands <- sits_select(samples_mt_4bands, bands = c("NDVI", "EVI"))
 #'
@@ -251,7 +244,6 @@ sits_qda <- function(data = NULL, formula = sits_formula_logref(), ...) {
 #' point.tb <- sits_select(point_mt_6bands, bands = c("NDVI", "EVI"))
 #' class.tb <- sits_classify(point.tb, ml_model)
 #' plot(class.tb, bands = c("NDVI", "EVI"))
-#' }
 #' @export
 sits_mlr <- function(data = NULL, formula = sits_formula_linear(),
                      n_weights = 20000, maxit = 2000, ...) {
@@ -321,18 +313,16 @@ sits_mlr <- function(data = NULL, formula = sits_formula_linear(),
 #' @return             Model fitted to input data
 #'                     (to be passed to \code{\link[sits]{sits_classify}})
 #' @examples
-#' \donttest{
 #' # Retrieve the set of samples for Mato Grosso  (provided by EMBRAPA)
 #' samples_2bands <- sits_select(samples_mt_4bands, bands = c("NDVI", "EVI"))
 #'
 #' # Build a machine learning model based on deep learning
-#' ml_model <- sits_train (samples_2bands, sits_ranger())
+#' ml_model <- sits_train (samples_2bands, sits_ranger(num_trees = 300))
 #'
 #' # get a point and classify the point with the ml_model
 #' point.tb <- sits_select(point_mt_6bands, bands = c("NDVI", "EVI"))
 #' class.tb <- sits_classify(point.tb, ml_model)
 #' plot(class.tb, bands = c("NDVI", "EVI"))
-#' }
 #' @export
 sits_ranger <- function(data = NULL,
                         num_trees = 2000,
@@ -405,25 +395,23 @@ sits_ranger <- function(data = NULL,
 #' Please refer to the documentation in that package for more details.
 #'
 #' @param data             time series with the training samples
-#' @param ntree            number of trees to grow. This should not be set to too small a number,
+#' @param num_trees        number of trees to grow. This should not be set to too small a number,
 #'                         to ensure that every input row gets predicted at least a few times. (default: 2000)
 #' @param nodesize         minimum size of terminal nodes (default 1 for classification)
 #' @param ...              other parameters to be passed to `randomForest::randomForest` function
 #' @return                 model fitted to input data
 #'                         (to be passed to \code{\link[sits]{sits_classify}})
 #' @examples
-#' \donttest{
 #' # Retrieve the set of samples for the Mato Grosso region (provided by EMBRAPA)
-#' data(samples_MT_ndvi)
+#' samples_MT_ndvi <- sits_select(samples_mt_4bands, bands = "NDVI")
 #' # Build a random forest model
-#' rfor_model <- sits_train(samples_MT_ndvi, sits_rfor())
+#' rfor_model <- sits_train(samples_MT_ndvi, sits_rfor(num_trees = 300))
 #' # get a point with a 16 year time series
 #' data(point_ndvi)
 #' # classify the point
 #' class.tb <- sits_classify (point_ndvi, rfor_model)
-#' }
 #' @export
-sits_rfor <- function(data = NULL, ntree = 2000, nodesize = 1, ...) {
+sits_rfor <- function(data = NULL, num_trees = 2000, nodesize = 1, ...) {
 
     # verifies if ranger package is installed
     if (!requireNamespace("randomForest", quietly = TRUE)) {
@@ -439,7 +427,7 @@ sits_rfor <- function(data = NULL, ntree = 2000, nodesize = 1, ...) {
         reference <- train_data_DT[, reference]
         result_rfor <- randomForest::randomForest(x = train_data_DT[,3:ncol(train_data_DT)],
                                                   y = as.factor(reference),
-                                                  data = NULL, ntree = ntree, nodesize = 1,
+                                                  data = NULL, ntree = num_trees, nodesize = 1,
                                                   norm.votes = FALSE, ..., na.action = stats::na.fail)
 
         # construct model predict enclosure function and returns
@@ -490,7 +478,7 @@ sits_rfor <- function(data = NULL, ntree = 2000, nodesize = 1, ...) {
 #' @return                 Model fitted to input data
 #'                         (to be passed to \code{\link[sits]{sits_classify}})
 #' @examples
-#' \donttest{
+#' \dontrun{
 #' # Retrieve the set of samples for  Mato Grosso  (provided by EMBRAPA)
 #' samples_2bands <- sits_select(samples_mt_4bands, bands = c("NDVI", "EVI"))
 #'
@@ -603,11 +591,11 @@ sits_svm <- function(data = NULL, formula = sits_formula_logref(),
 #'                         (to be passed to \code{\link[sits]{sits_classify}})
 #'
 #' @examples
-#' \donttest{
+#' \dontrun{
 #' # Retrieve the set of samples for Mato Grosso (provided by EMBRAPA)
 #'
 #' # Build a machine learning model based on xgboost
-#' xgb_model <- sits_train(samples_mt_4bands, sits_xgboost())
+#' xgb_model <- sits_train(samples_mt_4bands, sits_xgboost(nrounds = 10))
 #'
 #' # get a point and classify the point with the ml_model
 #' point.tb <- sits_select(point_mt_6bands, bands = c("NDVI", "EVI", "NIR", "MIR"))
@@ -913,9 +901,9 @@ sits_formula_linear <- function(predictors_index = -2:0){
         rows.lst  <- parallel::mclapply(chunk.lst, normalize_block, quant_2,
                                         quant_98, mc.cores = multicores)
         data.mx <- do.call(rbind, rows.lst)
-        rm(chunk.lst)
-        rm(rows.lst)
-        gc()
+        # rm(chunk.lst)
+        # rm(rows.lst)
+        # gc()
     }
     else
         data.mx <- normalize_data(data.mx, quant_2, quant_98)

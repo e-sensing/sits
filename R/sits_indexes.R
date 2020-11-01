@@ -5,12 +5,11 @@
 #' @param data       Valid sits tibble.
 #' @return A sits tibble with the SAVI index.
 #' @examples
-#' \donttest{
 #' # Retrieve data for time series with label samples in Mato Grosso in Brazil
 #' data (samples_mt_6bands)
 #' # Generate a new image with the tasseled cap
 #' savi.tb <- sits_savi(samples_mt_6bands)
-#' }
+#'
 #' @export
 sits_savi <- function(data){
     # backward compatibility
@@ -33,12 +32,12 @@ sits_savi <- function(data){
 #' @param data       A valid sits tibble.
 #' @return A sits tibble with the SAVI index.
 #' @examples
-#' \donttest{
+#'
 #' # Retrieve data for time series with label samples in Mato Grosso in Brazil
 #' data(samples_mt_6bands)
 #' # Generate a new image with the tasseled cap
 #' ndwi.tb <- sits_ndwi(samples_mt_6bands)
-#' }
+#'
 #' @export
 sits_ndwi <- function(data){
     # backward compatibility

@@ -72,7 +72,7 @@ Fawaz provides a reference code  in https://github.com/hfawaz/dl-4-tsc.
 If you use this function, please cite the references.
 }
 \examples{
-\donttest{
+\dontrun{
 # Retrieve the set of samples for the Mato Grosso (provided by EMBRAPA)
 
 # Build a machine learning model based on deep learning

@@ -45,7 +45,6 @@ Then it applies an spline interploation.
 Finally, the function applies a whitakker smoother.
 }
 \examples{
-\donttest{
 # Select the NDVI band of a point
 # Apply the filter
 point_ar <- sits_ndvi_arima(point_ndvi)
@@ -53,7 +52,6 @@ point_ar <- sits_ndvi_arima(point_ndvi)
 point2 <- sits_merge (point_ndvi, point_ar)
 # Plot the result
 plot(point2)
-}
 }
 \author{
 Gilberto Camara, \email{gilberto.camara@inpe.br}

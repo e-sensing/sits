@@ -206,14 +206,6 @@ sits_mutate_bands <- function(data, ...){
 #'                      See \code{\link[dplyr]{mutate}} help for more details.
 #' @return A sits tibble with same samples and the new bands.
 #'
-#' @examples
-#' \donttest{
-#' # Retrieve data for time series with label samples in Mato Grosso
-#' data(samples_mt_6bands)
-#' # Generate a new image with the SAVI (Soil-adjusted vegetation index)
-#' savi.tb <- sits:::.sits_transmute_bands(samples_mt_6bands,
-#'                                 SAVI = (1.5*(NIR - RED)/(NIR + RED + 0.5)))
-#' }
 #'
 .sits_transmute_bands <- function(data, ...){
 	# backward compatibility

@@ -52,6 +52,11 @@ sits_cube.wtss_cube <- function(type = "WTSS", ..., name = NULL, URL = NULL) {
     # create a cube
     if (wtss_ok)
         cube.tb <- .sits_wtss_cube(URL = URL, name = name)
+    else {
+        message("WTSS service not responding")
+        return(NULL)
+    }
+
     return(cube.tb)
 }
 
@@ -81,6 +86,11 @@ sits_cube.satveg_cube <- function(type = "SATVEG", ..., name = NULL) {
     # if OK, go ahead a create a SATVEG cube
     if (satveg_ok)
         cube.tb <- .sits_satveg_cube(name = name)
+    else {
+        message("SATVEG service not responding")
+        return(NULL)
+    }
+
     return(cube.tb)
 }
 
@@ -258,7 +268,7 @@ sits_cube.raster_cube <- function(type = "RASTER", ...,
 #' @param start_date        starting date of the cube
 #' @param end_date          ending date of the cube
 #' @param .local            directory for local access to the input cube (optional)
-#' @param .web              directory for web access to the input cube (optional)
+#' @param .web              URL for web access to the input cube (optional)
 #' @param .cloud_band       include cloud band? (TRUE/FALSE)
 #'
 #' @return                  A data cube
@@ -297,8 +307,12 @@ sits_cube.bdc_cube <- function(type        = "BDC_TILE", ...,
                                .web        = NULL,
                                .cloud_band = FALSE) {
 
-    # go through the vector of tiles
+    # test if BDC is accessible
+    if (data_access == "web")
+        if(!.sits_config_bdc_web_access(.web))
+            return(NULL)
 
+    # go through the vector of tiles
     tile.lst <- purrr::map(tiles, function(tile) {
         # Precondition
         bdc_tile_ok <- .sits_bdc_check_tiles(satellite      = satellite,
@@ -382,6 +396,7 @@ sits_cube.bdc_cube <- function(type        = "BDC_TILE", ...,
 #' cbers_stac_tile <- sits_cube(type        = "BDC_STAC",
 #'                              name        = "cbers_stac",
 #'                              bands       = c("NDVI", "EVI"),
+#'                              tiles       = "022024",
 #'                              url         = "http://brazildatacube.dpi.inpe.br/stac/",
 #'                              collection  = "CB4_64_16D_STK-1",
 #'                              start_date  = "2018-09-01",
@@ -402,6 +417,10 @@ sits_cube.bdc_stac <- function(type       = "BDC_STAC", ...,
         stop("Please install package rstac from brazil-data-cube github",
              call. = FALSE)
     }
+
+    # test if BDC is accessible
+    if(!.sits_config_bdc_stac_access(url))
+            return(NULL)
 
     # retrieving information from the collection
     collection_info <- .sits_stac_collection(url        = url,

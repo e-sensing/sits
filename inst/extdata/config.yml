@@ -17,6 +17,7 @@ default:
 
     # BDC configuration for access to data
     bdc_web                 : "http://brazildatacube.dpi.inpe.br/Repository/Mosaic/"
+    bdc_stac                : "http://brazildatacube.dpi.inpe.br/stac/"
     bdc_local               : "/gfs/Repository/Mosaic"
     bdc_extension           : ["tif"]
 
@@ -322,7 +323,7 @@ default:
 
     S2_L2A_AWS              : &sentinel
         bucket              : "sentinel-s2-l2a"
-        resolutions         : ["10m", "20m", "30m"]
+        resolutions         : ["10m", "20m", "60m"]
         10m_bands           : ["B02", "B03", "B04", "B08"]
         20m_bands           : ["B02", "B03", "B04", "B05", "B06", "BO7", "B08", "B8A", "B11", "B12", "SCL"]
         60m_bands           : ["B01", "B02", "B03", "B04", "B05", "B06", "BO7", "B08", "B8A", "B09", "B10", "B11", "B12", "SCL"]

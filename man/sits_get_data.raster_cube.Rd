@@ -46,3 +46,22 @@ A tibble with time series data and metadata.
 \description{
 Obtain time series from raster cube
 }
+\examples{
+# Read a point in a Raster Brick
+# define the file that has the raster brick
+files  <- c(system.file ("extdata/raster/mod13q1/sinop-crop-ndvi.tif",
+                         package = "sits"))
+# define the timeline
+data(timeline_modis_392)
+# create a data cube based on the information about the files
+raster_cube <- sits_cube(type = "RASTER", satellite = "TERRA",
+                         sensor = "MODIS", name = "Sinop-crop",
+                         timeline = timeline_modis_392,
+                         bands = c("NDVI"), files = files)
+
+# read the time series of the point from the raster
+point_ts <- sits_get_data(raster_cube, longitude = -55.554,
+                                       latitude = -11.525)
+plot(point_ts)
+
+}

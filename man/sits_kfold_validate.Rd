@@ -4,7 +4,7 @@
 \alias{sits_kfold_validate}
 \title{Cross-validate temporal patterns}
 \usage{
-sits_kfold_validate(data, folds = 5, ml_method = sits_rfor(), multicores = 1)
+sits_kfold_validate(data, folds = 5, ml_method = sits_rfor(), multicores = 2)
 }
 \arguments{
 \item{data}{A sits tibble.}
@@ -42,10 +42,11 @@ This function returns the confusion matrix, and Kappa values.
 \donttest{
 # read a set of samples
 data(cerrado_2classes)
-# perform a five fold validation with the SVM machine learning method
-conf_matrix1.mx <- sits_kfold_validate(cerrado_2classes)
+# perform a two fold validation with the Random Forest machine learning method
+conf_matrix.mx <- sits_kfold_validate(cerrado_2classes, folds = 2,
+                   ml_method = sits_rfor(num_trees = 300))
 # print the confidence matrix
-sits_conf_matrix(conf_matrix1.mx)
+sits_conf_matrix(conf_matrix.mx)
 }
 }
 \author{

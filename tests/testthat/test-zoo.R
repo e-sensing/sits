@@ -1,4 +1,4 @@
-context("WTSS")
+context("ZOO")
 
 test_that("Writing a zoo time series", {
     data(cerrado_2classes)

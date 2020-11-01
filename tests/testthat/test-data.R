@@ -1,28 +1,37 @@
 context("Data input")
 test_that("Creating a WTSS data cube", {
-    #skip_on_cran()
+    testthat::skip_on_cran()
     cube_wtss <- sits_cube(type = "WTSS",
                            URL = "http://www.esensing.dpi.inpe.br/wtss/",
                            name = "MOD13Q1")
+
+    if(purrr::is_null(cube_wtss))
+        skip("WTSS is not accessible")
 
     expect_true(cube_wtss$type == "WTSS")
     expect_true(length(cube_wtss$timeline[[1]][[1]]) > 1)
 })
 
 test_that("Creating a SATVEG data cube", {
-    #skip_on_cran()
+    testthat::skip_on_cran()
     cube_satveg <- sits_cube(type = "SATVEG", name = "terra")
+
+    if(purrr::is_null(cube_satveg))
+        skip("SATVEG is not accessible")
 
     expect_true(length(cube_satveg$timeline[[1]][[1]]) > 1)
 })
 
 test_that("Reading a CSV file from WTSS", {
-    #skip_on_cran()
+    testthat::skip_on_cran()
     csv_file <- system.file("extdata/samples/samples_matogrosso.csv",
                             package = "sits")
     cube_wtss <- sits_cube(type = "WTSS",
                            URL = "http://www.esensing.dpi.inpe.br/wtss/",
                            name = "MOD13Q1")
+
+    if(purrr::is_null(cube_wtss))
+        skip("WTSS is not accessible")
 
     points.tb <- sits_get_data(cube_wtss, file = csv_file)
 
@@ -68,10 +77,14 @@ test_that("Reading a CSV file from RASTER", {
 })
 
 test_that("Reading a point from WTSS ", {
-    #skip_on_cran()
+    testthat::skip_on_cran()
     cube_wtss <- sits_cube(type = "WTSS",
                            URL = "http://www.esensing.dpi.inpe.br/wtss/",
                            name = "MOD13Q1")
+
+    if(purrr::is_null(cube_wtss))
+        skip("WTSS is not accessible")
+
     point.tb <- sits_get_data(cube_wtss,
                               longitude = -55.50563, latitude = -11.71557)
     timeline <- lubridate::as_date(as.vector(sits_time_series_dates(point.tb)))
@@ -84,10 +97,13 @@ test_that("Reading a point from WTSS ", {
 })
 
 test_that("Reading a point from SATVEG ", {
-    #skip_on_cran()
+    testthat::skip_on_cran()
     cube_1 <- sits_cube(type = "SATVEG", name = "terra")
     cube_2 <- sits_cube(type = "SATVEG", name = "aqua")
     cube_3 <- sits_cube(type = "SATVEG", name = "comb")
+
+    if(purrr::is_null(cube_1))
+        skip("SATVEG is not accessible")
 
     point_terra <- sits_get_data(cube_1,
                                  longitude = -55.50563, latitude = -11.71557)
@@ -113,10 +129,13 @@ test_that("Reading a point from SATVEG ", {
 })
 
 test_that("Reading a POLYGON shapefile", {
-    #skip_on_cran()
+    testthat::skip_on_cran()
     cube_wtss <- sits_cube(type = "WTSS",
                            URL = "http://www.esensing.dpi.inpe.br/wtss/",
                            name = "MOD13Q1")
+    if(purrr::is_null(cube_wtss))
+        skip("WTSS is not accessible")
+
     shp_file <- system.file("extdata/shapefiles/agriculture/parcel_agriculture.shp",
                             package = "sits")
     parcel.tb <- sits_get_data(cube_wtss,
@@ -136,10 +155,13 @@ test_that("Reading a POLYGON shapefile", {
 })
 
 test_that("Reading a POINT shapefile", {
-    #skip_on_cran()
+    testthat::skip_on_cran()
     cube_wtss <- sits_cube(type = "WTSS",
                            URL = "http://www.esensing.dpi.inpe.br/wtss/",
                            name = "MOD13Q1")
+    if(purrr::is_null(cube_wtss))
+        skip("WTSS is not accessible")
+
     shp_file <- system.file("extdata/shapefiles/cerrado/cerrado_forested.shp",
                             package = "sits")
     points.tb <- sits_get_data(cube_wtss, file = shp_file,
@@ -167,4 +189,60 @@ test_that("Labels and re-label", {
     expect_equal(length(labels$label), 4)
     expect_equal(labels$label[1], "Cerrado")
     expect_equal(sum(labels$prop), 1)
+})
+
+test_that("Test reading shapefile from BDC data cube",{
+    testthat::skip_on_cran()
+    cbers_bdc_tile <- sits::sits_cube(type        = "BDC_TILE",
+                                      name        = "022024",
+                                      satellite   = "CBERS-4",
+                                      sensor      = "AWFI",
+                                      cube        = "CB4_64_16D_STK",
+                                      tiles       = "022024",
+                                      version     = "v001",
+                                      data_access = "web",
+                                      bands       = "NDVI",
+                                      start_date  = as.Date("2018-08-29"),
+                                      end_date    = as.Date("2019-08-13"))
+
+    if(purrr::is_null(cbers_bdc_tile))
+        skip("BDC is not accessible")
+
+    shp_path  <- system.file("extdata/shapefiles/bdc-test/samples.shp", package = "sits")
+
+    time_series_bdc <- sits::sits_get_data(cbers_bdc_tile, file = shp_path)
+    expect_equal(nrow(time_series_bdc), 10)
+    bbox <- sits_bbox(time_series_bdc)
+    expect_true(bbox["lon_min"] < -46.)
+    expect_true(all(sits_bands(time_series_bdc) %in% c("NDVI", "EVI")))
+    ts <- time_series_bdc$time_series[[1]]
+    expect_true(max(ts["NDVI"]) < 1.)
+
+
+})
+test_that("Test reading shapefile from BDC STAC",{
+    testthat::skip_on_cran()
+    # create a raster cube file based on the information about the files
+    cbers_stac_tile <- sits_cube(type        = "BDC_STAC",
+                                 name        = "cbers_stac",
+                                 bands       = c("NDVI", "EVI"),
+                                 tiles       = "022024",
+                                 url         = "http://brazildatacube.dpi.inpe.br/stac/",
+                                 collection  = "CB4_64_16D_STK-1",
+                                 start_date  = "2018-09-01",
+                                 end_date    = "2019-08-28")
+
+    if(purrr::is_null(cbers_stac_tile))
+        skip("BDC is not accessible")
+
+    shp_path  <- system.file("extdata/shapefiles/bdc-test/samples.shp", package = "sits")
+
+    time_series_bdc <- sits::sits_get_data(cbers_stac_tile, file = shp_path)
+    expect_equal(nrow(time_series_bdc), 10)
+    bbox <- sits_bbox(time_series_bdc)
+    expect_true(bbox["lon_min"] < -46.)
+    expect_true(all(sits_bands(time_series_bdc) %in% c("NDVI", "EVI")))
+    ts <- time_series_bdc$time_series[[1]]
+    expect_true(max(ts["EVI"]) < 1.)
+
 })

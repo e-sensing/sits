@@ -46,55 +46,7 @@
 #' @param cube            Data cube from where data is to be retrived.
 #' @param file            File with information on the data to be retrieved
 #' @param ...               Other parameters to be passed for specific types
-#'
-#' @examples
-#' \donttest{
-#' # Read a single lat long point from a WTSS server
-#'
-#' wtss_cube <- sits_cube(type = "WTSS",
-#'                        URL = "http://www.esensing.dpi.inpe.br/wtss/",
-#'                        name = "MOD13Q1")
-#' point.tb <- sits_get_data (wtss_cube, longitude = -55.50563,
-#'                                       latitude = -11.71557)
-#' plot(point.tb)
-#'
-#' # Read a set of points defined in a CSV file from a WTSS server
-#' csv_file <- system.file ("extdata/samples/samples_matogrosso.csv",
-#'                           package = "sits")
-#' points.tb <- sits_get_data (wtss_cube, file = csv_file)
-#' # show the points retrieved for the WTSS server
-#' plot(points.tb[1:3,])
-#'
-#'
-#' # define a shapefile and read from the points inside it from WTSS
-#' shp_file <- system.file("extdata/shapefiles/parcel_agriculture.shp",
-#'                          package = "sits")
-#' parcel.tb <- sits_get_data(wtss_cube, file = shp_file, .n_shp_pol = 5)
-#'
-#' # Read a point in a Raster Brick
-#' # define the file that has the raster brick
-#' files  <- c(system.file ("extdata/raster/mod13q1/sinop-crop-ndvi.tif",
-#'                          package = "sits"))
-#' # define the timeline
-#' data(timeline_modis_392)
-#' # create a data cube based on the information about the files
-#' raster_cube <- sits_cube(type = "RASTER", satellite = "TERRA",
-#'                          sensor = "MODIS", name = "Sinop-crop",
-#'                          timeline = timeline_modis_392,
-#'                          bands = c("NDVI"), files = files)
-#'
-#' # read the time series of the point from the raster
-#' point_ts <- sits_get_data(raster_cube, longitude = -55.554,
-#'                                        latitude = -11.525)
-#' plot(point_ts)
-#'
-#' #' # Read a CSV file in a Raster Brick
-#' csv_file <- system.file ("extdata/samples/samples_sinop_crop.csv",
-#'                          package = "sits")
-#' points.tb <- sits_get_data (raster_cube, file = csv_file)
-#' # show the points retrieved for the RASTER images
-#' plot(points.tb)
-#' }
+#
 #' @export
 sits_get_data <- function(cube, file  = NULL, ...) {
 
@@ -125,6 +77,19 @@ sits_get_data <- function(cube, file  = NULL, ...) {
 #' @param bands           Bands to be retrieved (optional)
 #' @param label           Label to be assigned to the time series (optional)
 #' @return                A tibble with time series data and metadata.
+#'
+#' @examples
+#' \dontrun{
+#' # Read a single lat long point from a WTSS server
+#' # Requires access to external service
+#'
+#' wtss_cube <- sits_cube(type = "WTSS",
+#'                        URL = "http://www.esensing.dpi.inpe.br/wtss/",
+#'                        name = "MOD13Q1")
+#' point.tb <- sits_get_data (wtss_cube, longitude = -55.50563,
+#'                                       latitude = -11.71557)
+#' plot(point.tb)
+#' }
 #'
 #' @export
 #'
@@ -176,7 +141,13 @@ sits_get_data.wtss_cube <- function(cube, file = NULL, ...,
 #'                        "YYYY-MM-DD" format (optional).
 #' @param label           Label to be assigned to the time series (optional)
 #' @return          A tibble with time series data and metadata.
-#'
+#' @examples
+#' \dontrun{
+#'  cube_terra <- sits_cube(type = "SATVEG", name = "terra")
+#'  point_terra <- sits_get_data(cube_terra,
+#'                               longitude = -55.50563, latitude = -11.71557)
+#'  plot(point_terra)
+#'  }
 #' @export
 #'
 sits_get_data.satveg_cube <- function(cube, file = NULL, ...,
@@ -217,6 +188,23 @@ sits_get_data.satveg_cube <- function(cube, file = NULL, ...,
 #' @param bands           Bands to be retrieved (optional)
 #'
 #' @return          A tibble with time series data and metadata.
+#'
+#' @examples
+#' \dontrun{
+#' # Read a single lat long point from a WTSS server
+#' # Requires access to external service
+#'
+#' wtss_cube <- sits_cube(type = "WTSS",
+#'                        URL = "http://www.esensing.dpi.inpe.br/wtss/",
+#'                        name = "MOD13Q1")
+#'
+#' # Read a set of points defined in a CSV file from a WTSS server
+#' csv_file <- system.file ("extdata/samples/samples_matogrosso.csv",
+#'                           package = "sits")
+#' points.tb <- sits_get_data (wtss_cube, file = csv_file)
+#' # show the points retrieved for the WTSS server
+#' plot(points.tb[1:3,])
+#' }
 #'
 #' @export
 #'
@@ -313,6 +301,19 @@ sits_get_data.csv_satveg_cube <- function(cube, file, ...) {
 #'                        (for POLYGON or MULTIPOLYGON shapes).
 #' @return          A tibble with time series data and metadata.
 #'
+#' @examples
+#' \dontrun{
+#'
+#' # Read an CSV from a WTSS server
+#' # Requires access to external service
+#' wtss_cube <- sits_cube(type = "WTSS",
+#'                        URL = "http://www.esensing.dpi.inpe.br/wtss/",
+#'                        name = "MOD13Q1")
+#' # define a shapefile and read from the points inside it from WTSS
+#' shp_file <- system.file("extdata/shapefiles/agriculture/parcel_agriculture.shp",
+#'                          package = "sits")
+#' parcel.tb <- sits_get_data(wtss_cube, file = shp_file, .n_shp_pol = 5)
+#' }
 #' @export
 #'
 sits_get_data.shp_wtss_cube <- function(cube, file, ...,
@@ -430,6 +431,24 @@ sits_get_data.shp_satveg_cube <- function(cube, file, ...,
 #' @param impute_fn       Imputation function for NA values
 #' @return                A tibble with time series data and metadata.
 #'
+#' @examples
+#' # Read a point in a Raster Brick
+#' # define the file that has the raster brick
+#' files  <- c(system.file ("extdata/raster/mod13q1/sinop-crop-ndvi.tif",
+#'                          package = "sits"))
+#' # define the timeline
+#' data(timeline_modis_392)
+#' # create a data cube based on the information about the files
+#' raster_cube <- sits_cube(type = "RASTER", satellite = "TERRA",
+#'                          sensor = "MODIS", name = "Sinop-crop",
+#'                          timeline = timeline_modis_392,
+#'                          bands = c("NDVI"), files = files)
+#'
+#' # read the time series of the point from the raster
+#' point_ts <- sits_get_data(raster_cube, longitude = -55.554,
+#'                                        latitude = -11.525)
+#' plot(point_ts)
+#'
 #' @export
 #'
 sits_get_data.raster_cube <- function(cube,
@@ -490,6 +509,25 @@ sits_get_data.raster_cube <- function(cube,
 #' @param bands     Bands to be retrieved (optional)
 #' @param impute_fn       Imputation function for NA values
 #' @return          A tibble with time series data and metadata.
+#' @examples
+#' #' Read a CSV in a Raster Brick
+#' # define the file that has the raster brick
+#' files  <- c(system.file ("extdata/raster/mod13q1/sinop-crop-ndvi.tif",
+#'                          package = "sits"))
+#' # define the timeline
+#' data(timeline_modis_392)
+#' # create a data cube based on the information about the files
+#' raster_cube <- sits_cube(type = "RASTER", satellite = "TERRA",
+#'                          sensor = "MODIS", name = "Sinop-crop",
+#'                          timeline = timeline_modis_392,
+#'                          bands = c("NDVI"), files = files)
+#' # read data from a CSV file
+#' csv_file <- system.file ("extdata/samples/samples_sinop_crop.csv",
+#'                          package = "sits")
+#' points.tb <- sits_get_data (raster_cube, file = csv_file)
+#'
+#' # show the points
+#' plot(points.tb)
 #'
 #' @export
 #'

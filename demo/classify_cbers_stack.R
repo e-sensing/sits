@@ -4,7 +4,6 @@
 # of the state of Bahia (Brazil)
 # with two bands (NDVI and EVI)
 library(sits)
-library(ranger)
 if (!requireNamespace("inSitu", quietly = TRUE)) {
 	if (!requireNamespace("devtools", quietly = TRUE))
 		install.packages("devtools")

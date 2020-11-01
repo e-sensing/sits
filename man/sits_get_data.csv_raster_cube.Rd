@@ -23,3 +23,24 @@ A tibble with time series data and metadata.
 \description{
 Obtain time series from brick based on CSV file
 }
+\examples{
+#' Read a CSV in a Raster Brick
+# define the file that has the raster brick
+files  <- c(system.file ("extdata/raster/mod13q1/sinop-crop-ndvi.tif",
+                         package = "sits"))
+# define the timeline
+data(timeline_modis_392)
+# create a data cube based on the information about the files
+raster_cube <- sits_cube(type = "RASTER", satellite = "TERRA",
+                         sensor = "MODIS", name = "Sinop-crop",
+                         timeline = timeline_modis_392,
+                         bands = c("NDVI"), files = files)
+# read data from a CSV file
+csv_file <- system.file ("extdata/samples/samples_sinop_crop.csv",
+                         package = "sits")
+points.tb <- sits_get_data (raster_cube, file = csv_file)
+
+# show the points
+plot(points.tb)
+
+}

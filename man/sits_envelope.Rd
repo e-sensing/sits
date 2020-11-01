@@ -23,15 +23,13 @@ streaming algorithm proposed by Lemire (2009).
 This functions calls `dtwclust::compute_envelope` function.
 }
 \examples{
-\donttest{
 # Select the NDVI band of a point in Mato Grosso
 # Apply the envelope filter
 point_env <- sits_envelope(point_ndvi)
 # Merge the filtered with the raw data
 point2 <- sits_merge (point_ndvi, point_env)
 # Plot the result
-plot(point2.tb)
-}
+plot(point2)
 }
 \author{
 Rolf Simoes, \email{rolf.simoes@inpe.br}

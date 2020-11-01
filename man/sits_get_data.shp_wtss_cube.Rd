@@ -45,3 +45,17 @@ A tibble with time series data and metadata.
 \description{
 Obtain time series from wtss based on SHP file
 }
+\examples{
+\dontrun{
+
+# Read an CSV from a WTSS server
+# Requires access to external service
+wtss_cube <- sits_cube(type = "WTSS",
+                       URL = "http://www.esensing.dpi.inpe.br/wtss/",
+                       name = "MOD13Q1")
+# define a shapefile and read from the points inside it from WTSS
+shp_file <- system.file("extdata/shapefiles/agriculture/parcel_agriculture.shp",
+                         package = "sits")
+parcel.tb <- sits_get_data(wtss_cube, file = shp_file, .n_shp_pol = 5)
+}
+}

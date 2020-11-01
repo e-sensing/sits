@@ -43,3 +43,17 @@ A tibble with time series data and metadata.
 \description{
 Obtain time series from wtss
 }
+\examples{
+\dontrun{
+# Read a single lat long point from a WTSS server
+# Requires access to external service
+
+wtss_cube <- sits_cube(type = "WTSS",
+                       URL = "http://www.esensing.dpi.inpe.br/wtss/",
+                       name = "MOD13Q1")
+point.tb <- sits_get_data (wtss_cube, longitude = -55.50563,
+                                      latitude = -11.71557)
+plot(point.tb)
+}
+
+}

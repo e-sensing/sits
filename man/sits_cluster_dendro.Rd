@@ -48,7 +48,7 @@ This is done in several steps:
 3. Cut the dendogram using the chosen validity index
 }
 \examples{
-\donttest{
+\dontrun{
 # Load the "dtwclust" package
 # library(dtwclust)
 # load a simple data set with two classes

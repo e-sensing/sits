@@ -192,6 +192,30 @@ sits_config_show <- function() {
   return(bands_sits)
 
 }
+#' @title Directory to read the BDC STAC catalogue
+#' @name .sits_config_bdc_stac
+#' @keywords internal
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
+#'
+#' @return directory where BDC is accessible on the web
+.sits_config_bdc_stac <- function() {
+
+  return(sits.env$config$bdc_stac)
+}
+#' @title Test if BDC STAC catalogue is available
+#' @name .sits_config_bdc_stac_access
+#' @keywords internal
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
+#' @param url  URL for access to the BDC STAC
+#'
+#' @return directory where BDC is accessible on the web
+.sits_config_bdc_stac_access <- function(url) {
+
+  if(purrr::is_null(url))
+    url <- .sits_config_bdc_stac()
+
+  return(RCurl::url.exists(url))
+}
 #' @title Directory to read the BDC information on the web
 #' @name .sits_config_bdc_web
 #' @keywords internal
@@ -202,7 +226,20 @@ sits_config_show <- function() {
 
     return(sits.env$config$bdc_web)
 }
+#' @title Test if the BDC is working
+#' @name .sits_config_bdc_web_access
+#' @keywords internal
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
+#' @param url  URL for access to the BDC
+#'
+#' @return TRUE/FALSE if BDC can be accessed
+.sits_config_bdc_web_access <- function(url = NULL) {
 
+  if (purrr::is_null(url))
+    url <- .sits_config_bdc_web()
+
+  return(RCurl::url.exists(url))
+}
 #' @title Directory to read the BDC information as local file
 #' @name .sits_config_bdc_local
 #' @keywords internal

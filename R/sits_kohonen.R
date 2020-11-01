@@ -28,9 +28,9 @@
 #'                      a new column presenting the probability that a sample
 #'                      belongs to a class described in column label.
 #' @examples
-#' \donttest{
+#' \dontrun{
 #' # Get a new subset of samples evaluated by SOM clustering methods
-#' samples_mt <- sits_select(samples_mt_4bands, bands = c("NDVI", "EVI"))
+#' samples_mt <- sits_select(samples_mt_4bands, bands = c("NDVI"))
 #' new_samples.tb <- sits_cluster_som(samples_mt)
 #' }
 #' @export
@@ -87,10 +87,11 @@ sits_cluster_som <- function(data,
 
 #'
 #' @examples
-#' \donttest{
+#' \dontrun{
 #' # Produce a cluster map
-#' samples_mt <- sits_select(samples_mt_4bands, bands = c("NDVI", "EVI"))
-#' som_cluster <- sits_som_map(samples_mt)
+#' samples_mt <- sits_select(samples_mt_4bands, bands = c("NDVI"))
+#' som_cluster <- sits_som_map(samples_mt, grid_xdim = 5, grid_ydim = 5,
+#'                                    iterations = 10)
 #' # plot the som map
 #' plot(som_cluster)
 #' # Clean the samples to get better quality ones
@@ -352,12 +353,12 @@ sits_som_map <- function(data,
 #'                                 The second has samples that need to be analysed
 #'
 #' @examples
-#' \donttest{
+#' \dontrun{
 #' # Read a set of samples
 #' # Get a new subset of samples evaluated by clustering methods
-#' samples_mt <- sits_select(samples_mt_4bands, bands = c("NDVI", "EVI"))
-#' som_map <- sits_som_map(samples_mt, grid_xdim = 10, grid_ydim = 10,
-#'        distance = "euclidean", iterations = 50)
+#' samples_mt <- sits_select(samples_mt_4bands, bands = c("NDVI"))
+#' som_map <- sits_som_map(samples_mt, grid_xdim = 5, grid_ydim = 5,
+#'        distance = "euclidean", iterations = 10)
 #' new_samples <- sits_som_clean_samples(som_map)
 #' }
 #' @export
@@ -403,9 +404,9 @@ sits_som_clean_samples <- function(som_map,
 #'                     a table with percentage of mixture between the clusters.
 #'
 #' @examples
-#' \donttest{
+#' \dontrun{
 #' # Produce a Kohonen map for the time series samples
-#' samples_mt <- sits_select(samples_mt_4bands, bands = c("NDVI", "EVI"))
+#' samples_mt <- sits_select(samples_mt_4bands, bands = c("NDVI"))
 #' som_map <- sits_som_map(samples_mt)
 #' # Extract metrics about the clusters
 #' confusion_by_cluster <- sits_som_evaluate_cluster(som_map)

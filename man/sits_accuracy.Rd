@@ -26,26 +26,24 @@ and error matrix (confusion matrix) according to [1-2].
 }
 \examples{
 # get the samples for Mato Grosso for bands NDVI and EVI
-samples_mt_2bands <- sits_select(samples_mt_4bands, bands = c("NDVI", "EVI"))
+samples_mt_ndvi <- sits_select(samples_mt_4bands, bands = c("NDVI"))
 # filter the samples for three classes (to simplify the example)
-samples_mt_2bands <- dplyr::filter(samples_mt_2bands, label \%in\%
+samples_mt_ndvi <- dplyr::filter(samples_mt_ndvi, label \%in\%
                                    c("Forest", "Pasture", "Soy_Corn"))
 # build an XGB model
-xgb_model <- sits_train(samples_mt_2bands,
+xgb_model <- sits_train(samples_mt_ndvi,
                         sits_xgboost(nrounds = 10, verbose = FALSE))
 
 # files that make up the data cube
 ndvi_file <- c(system.file("extdata/raster/mod13q1/sinop-ndvi-2014.tif",
-               package = "sits"))
-evi_file <- c(system.file("extdata/raster/mod13q1/sinop-evi-2014.tif",
                package = "sits"))
 # create the data cube
 sinop_2014 <- sits_cube(name = "sinop-2014",
                         timeline = timeline_2013_2014,
                         satellite = "TERRA",
                         sensor = "MODIS",
-                        bands = c("ndvi", "evi"),
-                        files = c(ndvi_file, evi_file))
+                        bands = c("NDVI"),
+                        files = c(ndvi_file))
 
 # classify the data cube with xgb model
 sinop_2014_probs <- sits_classify(sinop_2014,

@@ -17,7 +17,7 @@ Computes the contingency table between labels and clusters.
 This function needs as input a sits tibble with `cluster` column.
 }
 \examples{
-\donttest{
+\dontrun{
 # Load the "dtwclust" package
 # library(dtwclust)
 # create clusters by cutting a dendrogram

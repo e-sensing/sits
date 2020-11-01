@@ -18,7 +18,7 @@ After the Keras deeplearning model is compiled and fit, this
              and the evaluation results.
 }
 \examples{
-\donttest{
+\dontrun{
 # Retrieve the set of samples for the Mato Grosso (provided by EMBRAPA)
 data(cerrado_2classes)
  # obtain a DL model

@@ -27,7 +27,7 @@
 #' @return A sits tibble with the patterns.
 #'
 #' @examples
-#' \donttest{
+#' \dontrun{
 #' # Read a set of samples for two classes
 #' data(cerrado_2classes)
 #' # Estimate a set of patterns (one for each label)

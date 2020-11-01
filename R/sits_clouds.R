@@ -229,8 +229,8 @@ sits_cloud_remove <- function(cube,
 	                                                  cld_index,
 	                                                  impute_fn,
 	                                                  multicores)
-	        rm(clouds.mx)
-	        gc()
+	        # rm(clouds.mx)
+	        # gc()
 
 	        terra::writeValues(brick,
 	                           values.mx,
@@ -240,8 +240,8 @@ sits_cloud_remove <- function(cube,
 	        task <- paste0("process block ", b, " of band ", band)
 	        .sits_processing_estimate_task_time(task, start_block_time)
 
-	        rm(values.mx)
-	        gc()
+	        # rm(values.mx)
+	        # gc()
 	        return(b)
 	    })
 	    terra::writeStop(brick)
@@ -438,22 +438,22 @@ sits_cloud_cbers <- function(cube, cld_band_name = "CMASK",
                                                 b14.lst, b15.lst, b16.lst,
                                                 mc.cores = multicores)
                 clouds.mx <- do.call(rbind, clouds.lst)
-                rm(b13.lst)
-                rm(b14.lst)
-                rm(b15.lst)
-                rm(b16.lst)
-                rm(clouds.lst)
-                gc()
+                # rm(b13.lst)
+                # rm(b14.lst)
+                # rm(b15.lst)
+                # rm(b16.lst)
+                # rm(clouds.lst)
+                # gc()
             }
             else
                 clouds.mx <- cbers4_cld_detect(b13.mx, b14.mx,
                                                b15.mx, b16.mx,
                                                t1, t2, t3, t4, t5, t6)
-            rm(b13.mx)
-            rm(b14.mx)
-            rm(b15.mx)
-            rm(b16.mx)
-            gc()
+            # rm(b13.mx)
+            # rm(b14.mx)
+            # rm(b15.mx)
+            # rm(b16.mx)
+            # gc()
 
             terra::writeValues(cld_band,
                                clouds.mx,

@@ -46,10 +46,11 @@ that a sample was allocated in a neuron;
 to a cluster using data of neighbourhood.
 }
 \examples{
-\donttest{
+\dontrun{
 # Produce a cluster map
-samples_mt <- sits_select(samples_mt_4bands, bands = c("NDVI", "EVI"))
-som_cluster <- sits_som_map(samples_mt)
+samples_mt <- sits_select(samples_mt_4bands, bands = c("NDVI"))
+som_cluster <- sits_som_map(samples_mt, grid_xdim = 5, grid_ydim = 5,
+                                   iterations = 10)
 # plot the som map
 plot(som_cluster)
 # Clean the samples to get better quality ones

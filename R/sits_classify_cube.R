@@ -163,8 +163,8 @@
                             multicores   = multicores)
 
                         # memory management
-                        rm(prediction_DT)
-                        gc()
+                        # rm(prediction_DT)
+                        # gc()
 
                         # estimate processing time
                         .sits_processing_estimate_classification_time(
@@ -262,8 +262,8 @@
 		# estimate the list for breaking a block
 		block.lst <- .sits_raster_split_data(DT, proc_cores)
 		# memory management
-		rm(DT)
-		gc()
+		# rm(DT)
+		# gc()
 		# apply parallel processing to the split data
 		# (return the results in a list inside a prototype)
 		predictions.lst <- parallel::mclapply(block.lst,
@@ -271,21 +271,21 @@
 											  mc.cores = proc_cores)
 
 		#memory management
-		rm(block.lst)
-		gc()
+		# rm(block.lst)
+		# gc()
 		# compose result based on output from different cores
 		prediction_DT <- data.table::as.data.table(do.call(rbind,predictions.lst))
 		# memory management
-		rm(predictions.lst)
-		gc()
+		# rm(predictions.lst)
+		# gc()
 	}
 	else {
 
 		# estimate the prediction vector
 		prediction_DT <- ml_model(DT)
 		# memory management
-		rm(DT)
-		gc()
+		# rm(DT)
+		# gc()
 	}
 
 	# are the results consistent with the data input?

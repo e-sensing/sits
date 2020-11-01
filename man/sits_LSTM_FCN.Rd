@@ -70,7 +70,7 @@ and the code made available on github (https://github.com/titu1994/LSTM-FCN)
 If you use this method, please cite the original paper.
 }
 \examples{
-\donttest{
+\dontrun{
 # Retrieve the set of samples for the Mato Grosso (provided by EMBRAPA)
 
 # Build a machine learning model based on deep learning

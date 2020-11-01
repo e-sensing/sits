@@ -146,8 +146,8 @@
 
     # is the WTSS service working?
     coverages <- wtss::list_coverages(URL)
-    assertthat::assert_that(!purrr::is_null(coverages),
-                            msg = "sits_cube: WTSS service not responding")
+    if (purrr::is_null(coverages))
+        return(FALSE)
     # is the cube in the list of cubes?
     assertthat::assert_that(name %in% coverages,
                             msg = paste0("sits_cube: ", name,

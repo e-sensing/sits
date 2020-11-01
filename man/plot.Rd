@@ -47,7 +47,7 @@ will default to "all years". If there are more than 30 samples,
 it will default to "together".
 }
 \examples{
-\donttest{
+\dontrun{
 # Read a set of samples with 2 classes ("Cerrado" and "Pasture")
 # Plot all the samples together
 plot(cerrado_2classes)

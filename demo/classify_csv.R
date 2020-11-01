@@ -4,6 +4,9 @@ cube_wtss <- sits_cube(type  = "WTSS",
                        URL   = "http://www.esensing.dpi.inpe.br/wtss/",
                        name  = "MOD13Q1")
 
+if (purrr::is_null(cube_wtss))
+    stop("WTSS server not responding")
+
 # obtain a time series from the WTSS server for a set of 5 samples defined in a CSV file
 data <- sits_get_data(cube_wtss,
             file = system.file("extdata/samples/samples_matogrosso.csv",

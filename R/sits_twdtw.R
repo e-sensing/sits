@@ -35,7 +35,7 @@
 #' @param  overlap       Minimum overlapping between one match and the interval of classification.
 #' @return A dtwSat S4 object with the matches.
 #' @examples
-#' \donttest{
+#' \dontrun{
 #' # Retrieve the set of samples for the Mato Grosso region (provided by EMBRAPA)
 #' samples <- sits_select(samples_mt_6bands, bands = c("NDVI", "EVI"))
 #'

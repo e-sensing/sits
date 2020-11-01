@@ -31,7 +31,7 @@ This method is based on the "createPatterns" method of the dtwSat package, which
 described in the reference paper.
 }
 \examples{
-\donttest{
+\dontrun{
 # Read a set of samples for two classes
 data(cerrado_2classes)
 # Estimate a set of patterns (one for each label)

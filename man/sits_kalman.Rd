@@ -18,7 +18,7 @@ A tibble with smoothed sits time series.
 A simple Kalman filter implementation.
 }
 \examples{
-\donttest{
+\dontrun{
 # Read a set of samples
 # Select the NDVI band of a point in Mato Grosso
 point_kf <- sits_kalman(point_ndvi)

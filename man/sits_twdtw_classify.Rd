@@ -64,7 +64,7 @@ changes of natural and cultivated vegetation types. It also considers inter-annu
 seasonal variability.
 }
 \examples{
-\donttest{
+\dontrun{
 # Retrieve the set of samples for the Mato Grosso region (provided by EMBRAPA)
 samples <- sits_select(samples_mt_6bands, bands = c("NDVI", "EVI"))
 

@@ -22,7 +22,6 @@ between the original labels and new labels,
 returns a new sits tibble whose labels are changed.
 }
 \examples{
-\donttest{
 # Read a set of time series with information on deforestation
 data(samples_mt_4bands)
 # Print the labels
@@ -39,7 +38,6 @@ conv.lst = list(Soy_Corn = "Cropland",
 new_data  <- sits_relabel(samples_mt_4bands, conv.lst)
 # show the new labels
 sits_labels(new_data)
-}
 }
 \author{
 Gilberto Camara, \email{gilberto.camara@inpe.br}

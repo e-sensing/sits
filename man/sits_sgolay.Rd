@@ -34,14 +34,12 @@ the size of the temporal window uses the parameter `length` (default = 5),
 and the temporal expansion uses the parameter `scaling`.
 }
 \examples{
-\donttest{
 #' # Retrieve a time series with values of NDVI
 data(point_ndvi)
 # Filter the point using the Savitsky Golay smoother
 point_sg <- sits_filter(point_ndvi, sits_sgolay (order = 3, length  = 5))
 # Plot the two points to see the smoothing effect
 plot(sits_merge(point_ndvi, point_sg))
-}
 }
 \references{
 A. Savitzky, M. Golay, "Smoothing and Differentiation of Data by

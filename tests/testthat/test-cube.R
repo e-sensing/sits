@@ -36,9 +36,9 @@ test_that("Reading a raster stack cube", {
                              resolution = "64m",
                              data_dir   = data_dir,
                              delim      = "_",
-                             parse_info = c("X1", "X2", "date", "band"))
+                             parse_info = c("X1", "X2", "band", "date"))
 
-    expect_true(all(sits_bands(cbers_cube) %in% c("B13", "B14", "B15", "B16")))
+    expect_true(all(sits_bands(cbers_cube) %in% c("B13", "B14", "B15", "B16", "CMASK")))
     rast <- suppressWarnings(terra::rast(cbers_cube$file_info[[1]]$path[1]))
     expect_true(terra::nrow(rast) == cbers_cube[1,]$nrows)
     expect_true(all(unique(cbers_cube$file_info[[1]]$date) == cbers_cube$timeline[[1]][[1]]))
@@ -57,6 +57,9 @@ test_that("Reading a BDC data cube from the web", {
                                 data_access = "web",
                                 start_date  = as.Date("2018-08-29"),
                                 end_date    = as.Date("2019-08-13"))
+
+    if(purrr::is_null(cbers_bdc_tile))
+        skip("BDC is not accessible")
 
     bands_bdc <- unique(cbers_bdc_tile$file_info[[1]]$band)
     bands_sits <- sits:::.sits_config_band_names_convert("CBERS-4", "AWFI", bands_bdc)

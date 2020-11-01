@@ -26,7 +26,7 @@
 #' @return A tibble with the clusters or clusters' members.
 #'
 #' @examples
-#' \donttest{
+#' \dontrun{
 #' # Load the "dtwclust" package
 #' # library(dtwclust)
 #' # load a simple data set with two classes
@@ -106,7 +106,7 @@ sits_cluster_dendro <-  function(samples = NULL,
 #' @param samples          A tibble with `cluster` column.
 #' @return A matrix containing all frequencies of labels in clusters.
 #' @examples
-#' \donttest{
+#' \dontrun{
 #' # Load the "dtwclust" package
 #' # library(dtwclust)
 #' # create clusters by cutting a dendrogram
@@ -139,7 +139,7 @@ sits_cluster_frequency <-  function(samples) {
 #' @param samples          Tibble with `cluster` column.
 #' @return A tibble with all selected samples.
 #' @examples
-#' \donttest{
+#' \dontrun{
 #' # Load the "dtwclust" package
 #' # library(dtwclust)
 #' # calculate the dendrogram and the best clusters

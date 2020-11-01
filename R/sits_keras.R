@@ -63,7 +63,7 @@ sits_keras_load <-  function(hdffile, rdsfile){
 #' @return This function returns NULL. It only prints the model diagnostics.
 #'
 #' @examples
-#' \donttest{
+#' \dontrun{
 #' # Retrieve the set of samples for the Mato Grosso (provided by EMBRAPA)
 #' data(cerrado_2classes)
 #'  # obtain a DL model

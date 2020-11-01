@@ -28,7 +28,7 @@ mapview object
 plots a stack cube using terra
 }
 \examples{
-\donttest{
+\dontrun{
 # retrieve two files with NDVI and EVI from MODIS
 ndvi_file <- c(system.file("extdata/raster/mod13q1/sinop-ndvi-2014.tif",
                package = "sits"))

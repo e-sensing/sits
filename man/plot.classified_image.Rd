@@ -33,7 +33,7 @@
 plots a classified raster using ggplot.
 }
 \examples{
-\donttest{
+\dontrun{
 # Retrieve the samples for Mato Grosso
 # select the bands for classification
 samples_ndvi_evi <- sits_select(samples_mt_4bands, bands = c("EVI", "NDVI"))

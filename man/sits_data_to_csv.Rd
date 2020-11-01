@@ -21,15 +21,11 @@ Converts time series data from a sits tibble to a CSV file.
              This function is useful to export the data to external apps.
 }
 \examples{
-\donttest{
 # read a tibble with 400 samples of Cerrado and 346 samples of Pasture
 data(cerrado_2classes)
 # export a time series
-sits_data_to_csv(cerrado_2classes, file = "cerrado_2classes.csv")
-
-# cleanup (optional)
-file.remove("./cerrado_2classes.csv")
-}
+csv_file <- paste0(tempdir(),"/cerrado_2classes.csv")
+sits_data_to_csv(cerrado_2classes, file = csv_file)
 }
 \author{
 Gilberto Camara, \email{gilberto.camara@inpe.br}

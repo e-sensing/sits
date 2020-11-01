@@ -7,56 +7,18 @@
 #' @description Given a set of time series, filter them with one of
 #' the available filtering algorithms:
 #'
+#' \itemize{
+#'  \item{Whittaker smoother - see \code{\link{sits_whittaker}}}
+#'  \item{ Savitsky-Golay filter - see \code{\link{sits_sgolay}}}
+#'  \item{Envelope filter - see \code{\link{sits_envelope}}}
+#'  \item{Interpolation filter - see \code{\link{sits_interp}}}
+#'  \item{Kalman filter - see \code{\link{sits_kalman}}}
+#' }
+#'
 #' @param  data          Set of time series
 #' @param  filter        Filter to be applied to the data.
 #' @return               A set of filtered time series
 #'
-#' @examples
-#' \donttest{
-#' # Test the diffeent filters
-#' plot(point_ndvi)
-#'
-#' # Apply the envelope filter
-#' # Merge the filtered with the raw data
-#' # Plot the result
-#' point_ndvi %>%
-#'       sits_filter(filter = sits_envelope(bands_suffix = "env")) %>%
-#'       sits_merge (point_ndvi, .) %>%
-#'       plot()
-#'
-#' # Apply the ARIMA filter
-#' # Merge the filtered with the raw data
-#' # Plot the result
-#' point_ndvi %>%
-#'       sits_filter(filter = sits_ndvi_arima(bands_suffix = "arima")) %>%
-#'       sits_merge (point_ndvi, .) %>%
-#'       plot()
-#'
-#' # Apply the Whittaker smoother
-#' # Merge the filtered with the raw data
-#' # Plot the result
-#' point_ndvi %>%
-#'       sits_filter(filter =
-#'                   sits_whittaker (lambda = 3.0, bands_suffix = "whit")) %>%
-#'       sits_merge (point_ndvi, .) %>%
-#'       plot()
-#'
-#' # Apply the Savitsky-Golay smoother
-#' # Merge the filtered with the raw data
-#' # Plot the result
-#' point_ndvi %>%
-#'       sits_filter(filter = sits_sgolay(bands_suffix = "sg")) %>%
-#'       sits_merge (point_ndvi, .) %>%
-#'       plot()
-#'
-#' # interpolate three times more points
-#' # find out how many time instances are there in the time series
-#' n_times <- NROW(sits_time_series(point_ndvi))
-#' point_int <- sits_filter(point_ndvi, sits_linear_interp(n = 3*n_times))
-#' # plot the result
-#' plot(point_int)
-#'
-#' }
 #' @export
 sits_filter <- function(data, filter = sits_whittaker()) {
     # backward compatibility
@@ -87,15 +49,13 @@ sits_filter <- function(data, filter = sits_whittaker()) {
 #' @param bands_suffix Suffix of the resulting data.
 #' @return             A tibble with filtered time series values.
 #' @examples
-#' \donttest{
 #' # Select the NDVI band of a point in Mato Grosso
 #' # Apply the envelope filter
 #' point_env <- sits_envelope(point_ndvi)
 #' # Merge the filtered with the raw data
 #' point2 <- sits_merge (point_ndvi, point_env)
 #' # Plot the result
-#' plot(point2.tb)
-#' }
+#' plot(point2)
 #' @export
 sits_envelope <- function(data = NULL,
                           operations = "UULL",
@@ -153,7 +113,6 @@ sits_envelope <- function(data = NULL,
 #' @param ...           Additional parameters to be used by the fun function.
 #' @return A tibble with same samples and the new bands.
 #' @examples
-#' \donttest{
 #' # Retrieve a time series with values of NDVI
 #' data(point_ndvi)
 #' # find out how many time instances are there
@@ -162,7 +121,6 @@ sits_envelope <- function(data = NULL,
 #' point_int.tb <- sits_interp(point_ndvi, fun = stats::spline, n = 3 * n_times)
 #' # plot the result
 #' plot(point_int.tb)
-#' }
 #' @export
 sits_interp <- function(data = NULL, fun = stats::approx,
                         n = base::length, ...) {
@@ -193,7 +151,7 @@ sits_interp <- function(data = NULL, fun = stats::approx,
 #' @param bands_suffix The suffix to be appended to the smoothed filters.
 #' @return A tibble with smoothed sits time series.
 #' @examples
-#' \donttest{
+#' \dontrun{
 #' # Read a set of samples
 #' # Select the NDVI band of a point in Mato Grosso
 #' point_kf <- sits_kalman(point_ndvi)
@@ -305,7 +263,6 @@ sits_kalman <- function(data = NULL, bands_suffix = "kf"){
 #'                   between start date and end date.
 #' @return           A sits tibble with same samples and the new bands.
 #' @examples
-#' \donttest{
 #' # Retrieve a time series with values of NDVI
 #' data(point_ndvi)
 #' # find out how many time instances are there
@@ -314,7 +271,6 @@ sits_kalman <- function(data = NULL, bands_suffix = "kf"){
 #' point_int.tb <- sits_linear_interp(point_ndvi, n = 3*n_times)
 #' # plot the result
 #' plot(point_int.tb)
-#' }
 #' @export
 sits_linear_interp <- function(data = NULL, n = 23) {
     # backward compatibility
@@ -376,7 +332,6 @@ sits_missing_values <-  function(data, miss_value) {
 #' @return A sits tibble with same samples and the new bands.
 #'
 #' @examples
-#' \donttest{
 #' # Select the NDVI band of a point
 #' # Apply the filter
 #' point_ar <- sits_ndvi_arima(point_ndvi)
@@ -384,7 +339,6 @@ sits_missing_values <-  function(data, miss_value) {
 #' point2 <- sits_merge (point_ndvi, point_ar)
 #' # Plot the result
 #' plot(point2)
-#' }
 #' @export
 sits_ndvi_arima <- function(data = NULL, cutoff = -0.25,
                             p = 0, d = 0, q = 3,
@@ -462,14 +416,12 @@ sits_ndvi_arima <- function(data = NULL, cutoff = -0.25,
 #' @param bands_suffix  Suffix to be appended to the smoothed filters.
 #' @return              A tibble with smoothed sits time series.
 #' @examples
-#' \donttest{
 #' #' # Retrieve a time series with values of NDVI
 #' data(point_ndvi)
 #' # Filter the point using the Savitsky Golay smoother
 #' point_sg <- sits_filter(point_ndvi, sits_sgolay (order = 3, length  = 5))
 #' # Plot the two points to see the smoothing effect
 #' plot(sits_merge(point_ndvi, point_sg))
-#' }
 #' @export
 sits_sgolay <- function(data = NULL, order = 3,
                         length = 5, scaling = 1, bands_suffix = "sg") {
@@ -524,14 +476,12 @@ sits_sgolay <- function(data = NULL, order = 3,
 #' @return             A tibble with smoothed sits time series.
 #'
 #' @examples
-#' \donttest{
 #' # Retrieve a time series with values of NDVI
 #' data(point_ndvi)
 #' # Filter the point using the whittaker smoother
 #' point_whit <- sits_filter(point_ndvi, sits_whittaker(lambda = 3.0))
 #' # Plot the two points to see the smoothing effect
 #' plot(sits_merge(point_ndvi, point_whit))
-#' }
 #' @export
 sits_whittaker <- function(data = NULL, lambda = 1.0, bands_suffix = "wf") {
     # verifies if ptw package is installed

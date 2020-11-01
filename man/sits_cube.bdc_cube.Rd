@@ -49,7 +49,7 @@
 
 \item{.local}{directory for local access to the input cube (optional)}
 
-\item{.web}{directory for web access to the input cube (optional)}
+\item{.web}{URL for web access to the input cube (optional)}
 
 \item{.cloud_band}{include cloud band? (TRUE/FALSE)}
 }

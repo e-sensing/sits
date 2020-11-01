@@ -87,8 +87,8 @@
     data_DT <- data.table::as.data.table(do.call(cbind,values.lst))
 
     # memory cleanup
-    rm(values.lst)
-    gc()
+    # rm(values.lst)
+    # gc()
 
     # create two additional columns for prediction
     two_cols_DT <- data.table::data.table("original_row" = rep(1, nrow(data_DT)),
@@ -176,9 +176,9 @@
         rows.lst  <- parallel::mclapply(chunk.lst, cld_remove_block,
                                         mc.cores = multicores)
         values.mx <- do.call(rbind, rows.lst)
-        rm(chunk.lst)
-        rm(rows.lst)
-        gc()
+        # rm(chunk.lst)
+        # rm(rows.lst)
+        # gc()
     }
     else
         values.mx <- impute_fn(values.mx)
@@ -213,9 +213,9 @@
         rows.lst  <- parallel::mclapply(chunk.lst, filter_matrix_block,
                                         mc.cores = multicores)
         values.mx <- do.call(rbind, rows.lst)
-        rm(chunk.lst)
-        rm(rows.lst)
-        gc()
+        # rm(chunk.lst)
+        # rm(rows.lst)
+        # gc()
     }
     else
         values.mx <- filter(values.mx)
@@ -247,9 +247,9 @@
         rows.lst  <- parallel::mclapply(chunk.lst, scale_block,
                                         scale_factor, mc.cores = multicores)
         values.mx <- do.call(rbind, rows.lst)
-        rm(chunk.lst)
-        rm(rows.lst)
-        gc()
+        # rm(chunk.lst)
+        # rm(rows.lst)
+        # gc()
     }
     else
         values.mx <- scale_data(values.mx, scale_factor)
@@ -282,9 +282,9 @@
         rows.lst  <- parallel::mclapply(chunk.lst, scale_matrix_block,
                                         scale_factor, mc.cores = multicores)
         int_values.mx <- do.call(rbind, rows.lst)
-        rm(chunk.lst)
-        rm(rows.lst)
-        gc()
+        # rm(chunk.lst)
+        # rm(rows.lst)
+        # gc()
     }
     else
         int_values.mx <- scale_matrix_integer(values.mx, scale_factor)
@@ -437,8 +437,8 @@
 
                 # insert a row on the tibble with the values for lat/long and the band
                 ts_band.tb <- tibble::add_row(ts_band.tb,
-                                              longitude    = dplyr::pull(points[i,"longitude"]),
-                                              latitude     = dplyr::pull(points[i,"latitude"]),
+                                              longitude    = unname(dplyr::pull(points[i,"longitude"])),
+                                              latitude     = unname(dplyr::pull(points[i,"latitude"])),
                                               start_date   = timeline[time_idx["start_idx"]],
                                               end_date     = timeline[time_idx["end_idx"]],
                                               label        = as.character(dplyr::pull(points[i,"label"])),

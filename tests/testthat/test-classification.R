@@ -22,7 +22,7 @@ test_that("Classify a set time series with rfor + filter", {
     #single core
     samples_mt_2bands <- sits_select(samples_mt_4bands, bands = c("NDVI", "EVI"))
     samples_filt <- sits_sgolay(samples_mt_2bands, bands_suffix = "")
-    svm_model <- sits_train(samples_filt, sits_rfor(ntree = 100))
+    svm_model <- sits_train(samples_filt, sits_rfor(num_trees = 100))
 
     class1.tb <- sits_classify(data = cerrado_2classes, ml_model = svm_model,
                                filter = sits_sgolay(bands_suffix = ""), multicores = 1)

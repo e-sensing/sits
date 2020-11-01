@@ -49,55 +49,6 @@ of a data cube using the \code{\link[sits]{sits_cube}} function.
  The result is a tibble with the metadata and data for each time series
 <longitude, latitude, start_date, end_date, label, cube, time_series>
 }
-\examples{
-\donttest{
-# Read a single lat long point from a WTSS server
-
-wtss_cube <- sits_cube(type = "WTSS",
-                       URL = "http://www.esensing.dpi.inpe.br/wtss/",
-                       name = "MOD13Q1")
-point.tb <- sits_get_data (wtss_cube, longitude = -55.50563,
-                                      latitude = -11.71557)
-plot(point.tb)
-
-# Read a set of points defined in a CSV file from a WTSS server
-csv_file <- system.file ("extdata/samples/samples_matogrosso.csv",
-                          package = "sits")
-points.tb <- sits_get_data (wtss_cube, file = csv_file)
-# show the points retrieved for the WTSS server
-plot(points.tb[1:3,])
-
-
-# define a shapefile and read from the points inside it from WTSS
-shp_file <- system.file("extdata/shapefiles/parcel_agriculture.shp",
-                         package = "sits")
-parcel.tb <- sits_get_data(wtss_cube, file = shp_file, .n_shp_pol = 5)
-
-# Read a point in a Raster Brick
-# define the file that has the raster brick
-files  <- c(system.file ("extdata/raster/mod13q1/sinop-crop-ndvi.tif",
-                         package = "sits"))
-# define the timeline
-data(timeline_modis_392)
-# create a data cube based on the information about the files
-raster_cube <- sits_cube(type = "RASTER", satellite = "TERRA",
-                         sensor = "MODIS", name = "Sinop-crop",
-                         timeline = timeline_modis_392,
-                         bands = c("NDVI"), files = files)
-
-# read the time series of the point from the raster
-point_ts <- sits_get_data(raster_cube, longitude = -55.554,
-                                       latitude = -11.525)
-plot(point_ts)
-
-#' # Read a CSV file in a Raster Brick
-csv_file <- system.file ("extdata/samples/samples_sinop_crop.csv",
-                         package = "sits")
-points.tb <- sits_get_data (raster_cube, file = csv_file)
-# show the points retrieved for the RASTER images
-plot(points.tb)
-}
-}
 \references{
 Lubia Vinhas, Gilberto Queiroz, Karine Ferreira, Gilberto Camara,
 Web Services for Big Earth Observation Data.

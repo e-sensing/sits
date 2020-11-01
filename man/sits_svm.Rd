@@ -66,7 +66,7 @@ This function is a front-end to the "svm" method in the "e1071" package.
 Please refer to the documentation in that package for more details.
 }
 \examples{
-\donttest{
+\dontrun{
 # Retrieve the set of samples for  Mato Grosso  (provided by EMBRAPA)
 samples_2bands <- sits_select(samples_mt_4bands, bands = c("NDVI", "EVI"))
 

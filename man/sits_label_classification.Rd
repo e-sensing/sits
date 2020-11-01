@@ -43,14 +43,14 @@ Takes a set of classified raster layers with probabilities,
              and label them, with an optional bayesian smoothing process.
 }
 \examples{
-\donttest{
+\dontrun{
 # Retrieve the samples for Mato Grosso
 # select band "ndvi"
 
 samples_ndvi <- sits_select(samples_mt_4bands, bands = "NDVI")
 
 #select a random forest model
-rfor_model <- sits_train(samples_ndvi, ml_method = sits_rfor())
+rfor_model <- sits_train(samples_ndvi, ml_method = sits_rfor(num_trees = 500))
 
 # Classify a raster file with 23 instances for one year
 files <- c(system.file("extdata/raster/mod13q1/sinop-crop-ndvi.tif",
@@ -66,23 +66,13 @@ sinop <- sits_cube(type = "RASTER", satellite = "TERRA",
 # classify the raster image
 sinop_probs <- sits_classify(sinop, ml_model = rfor_model,
                              output_dir = tempdir(),
-                             memsize = 2, multicores = 1)
+                             memsize = 4, multicores = 2)
 
-# label the classified image
-sinop_label <- sits_label_classification(sinop_probs,
-                                         output_dir = tempdir())
-
-# plot the raster image
-plot(sinop_label, time = 1, title = "Sinop-2013-2014")
-
-# smooth the result with a bayesian filter
+# label the classification and smooth the result with a bayesian filter
 sinop_bayes <- sits_label_classification(sinop_probs,
                           output_dir = tempdir(), smoothing = "bayesian")
-
-# plot the smoothened image
-plot(sinop_bayes, time = 1, title = "Sinop-smooth")
-
 }
+
 }
 \author{
 Rolf Simoes, \email{rolf.simoes@inpe.br}

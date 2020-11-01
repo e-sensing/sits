@@ -35,7 +35,7 @@
 #' @return              plot
 #'
 #' @examples
-#' \donttest{
+#' \dontrun{
 #' # Read a set of samples with 2 classes ("Cerrado" and "Pasture")
 #' # Plot all the samples together
 #' plot(cerrado_2classes)
@@ -68,7 +68,7 @@ plot.sits <- function(x, y, ..., colors = "Dark2") {
 #' @return               plot
 #'
 #' @examples
-#' \donttest{
+#' \dontrun{
 #' # Read a set of samples with 2 classes ("Cerrado" and "Pasture")
 #' # Plot the patterns
 #' plot(sits_patterns(cerrado_2classes))
@@ -92,7 +92,7 @@ plot.patterns <- function(x, y, ...) {
 #' @return               plot
 #'
 #' @examples
-#' \donttest{
+#' \dontrun{
 #' # Retrieve the set of samples for Mato Grosso region (provided by EMBRAPA)
 #' samples_mt_ndvi <- sits_select(samples_mt_4bands, bands = "NDVI")
 #' # classify the point
@@ -123,7 +123,7 @@ plot.predicted <- function(x, y, ..., bands = "NDVI") {
 #' @return               mapview object
 #'
 #' @examples
-#' \donttest{
+#' \dontrun{
 #' # retrieve two files with NDVI and EVI from MODIS
 #' ndvi_file <- c(system.file("extdata/raster/mod13q1/sinop-ndvi-2014.tif",
 #'                package = "sits"))
@@ -217,7 +217,7 @@ plot.raster_cube <- function(x , y, ..., red, green, blue, time = 1) {
 #' @return               plot
 #'
 #' @examples
-#' \donttest{
+#' \dontrun{
 #' # Retrieve the samples for Mato Grosso
 #' # select the bands for classification
 #' samples_ndvi_evi <- sits_select(samples_mt_4bands, bands = c("EVI", "NDVI"))
@@ -286,7 +286,7 @@ plot.probs_cube <- function(x , y, ..., time = 1,
 #' @param  colors        color pallete.
 #'
 #' @examples
-#' \donttest{
+#' \dontrun{
 #' # Retrieve the samples for Mato Grosso
 #' # select the bands for classification
 #' samples_ndvi_evi <- sits_select(samples_mt_4bands, bands = c("EVI", "NDVI"))
@@ -377,7 +377,7 @@ plot.classified_image <- function(x , y, ..., map = NULL, time = 1,
 #' @param  title        title of plot. default is ""Confusion by cluster"".
 #' @return              plot
 #' @examples
-#' \donttest{
+#' \dontrun{
 #' # Produce a cluster map
 #'
 #' samples_mt_2bands <- sits_select(samples_mt_6bands, bands = c("NDVI", "EVI"))
@@ -414,7 +414,7 @@ plot.som_confusion <- function(x, y, ...,title = "Confusion by cluster")
 #' @return            plot
 #'
 #' @examples
-#' \donttest{
+#' \dontrun{
 #' # Produce a cluster map
 #' samples_mt_2bands <- sits_select(samples_mt_6bands, bands = c("NDVI", "EVI"))
 #' som_map <- sits_som_map(samples_mt_2bands)

@@ -23,14 +23,11 @@ Converts metadata from a sits tibble to a CSV file.
              "end_date", "cube", "label").
 }
 \examples{
-\donttest{
 # read a tibble with 400 samples of Cerrado and 346 samples of Pasture
 data(cerrado_2classes)
-# export a time series to zoo
-sits_metadata_to_csv (cerrado_2classes, file = "./cerrado_2classes.csv")
-# cleanup (optional)
-file.remove("./cerrado_2classes.csv")
-}
+# export a time series
+csv_file <- paste0(tempdir(),"/cerrado_2classes.csv")
+sits_metadata_to_csv (cerrado_2classes, file = csv_file)
 }
 \author{
 Gilberto Camara, \email{gilberto.camara@inpe.br}
