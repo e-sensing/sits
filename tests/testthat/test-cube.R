@@ -25,7 +25,7 @@ test_that("Reading a raster cube", {
 
 })
 
-test_that("Reading a raster stack cube", {
+test_that("Creating a raster stack cube and selecting bands", {
     # Create a raster cube based on CBERS data
     data_dir <- system.file("extdata/raster/cbers", package = "sits")
 
@@ -42,9 +42,12 @@ test_that("Reading a raster stack cube", {
     rast <- suppressWarnings(terra::rast(cbers_cube$file_info[[1]]$path[1]))
     expect_true(terra::nrow(rast) == cbers_cube[1,]$nrows)
     expect_true(all(unique(cbers_cube$file_info[[1]]$date) == cbers_cube$timeline[[1]][[1]]))
+
+    cbers_cube_B13 <- sits_select(cbers_cube, bands = "B13")
+    expect_true(all(sits_bands(cbers_cube_B13) == c("B13")))
 })
 
-test_that("Reading a BDC data cube from the web", {
+test_that("Creating a BDC data cube from the web", {
     skip_on_cran()
     # create a raster cube file based on the information about the files
     cbers_bdc_tile <- sits_cube(type       = "BDC_TILE",
@@ -58,7 +61,7 @@ test_that("Reading a BDC data cube from the web", {
                                 start_date  = as.Date("2018-08-29"),
                                 end_date    = as.Date("2019-08-13"))
 
-    if(purrr::is_null(cbers_bdc_tile))
+    if (purrr::is_null(cbers_bdc_tile))
         skip("BDC is not accessible")
 
     bands_bdc <- unique(cbers_bdc_tile$file_info[[1]]$band)
@@ -70,6 +73,34 @@ test_that("Reading a BDC data cube from the web", {
     expect_true(all(unique(cbers_bdc_tile$file_info[[1]]$date) == cbers_bdc_tile$timeline[[1]][[1]]))
 })
 
+test_that("Creating, merging cubes from BDC STAC",{
+    testthat::skip_on_cran()
+    # create a raster cube file based on the information about the files
+    cbers_022024_ndvi <- sits_cube(type      = "BDC_STAC",
+                                 name        = "cbers_022024_ndvi",
+                                 bands       = "NDVI",
+                                 tiles       = "022024",
+                                 url         = "http://brazildatacube.dpi.inpe.br/stac/",
+                                 collection  = "CB4_64_16D_STK-1",
+                                 start_date  = "2018-09-01",
+                                 end_date    = "2019-08-28")
+
+    if (purrr::is_null(cbers_022024_ndvi))
+        skip("BDC is not accessible")
+
+    cbers_022024_evi <- sits_cube(type        = "BDC_STAC",
+                                   name        = "cbers_022024_evi",
+                                   bands       = "EVI",
+                                   tiles       = "022024",
+                                   url         = "http://brazildatacube.dpi.inpe.br/stac/",
+                                   collection  = "CB4_64_16D_STK-1",
+                                   start_date  = "2018-09-01",
+                                   end_date    = "2019-08-28")
+
+    cbers_merge <- sits_merge(cbers_022024_ndvi, cbers_022024_evi)
+    expect_true(all(sits_bands(cbers_merge) %in% c("NDVI", "EVI")))
+    expect_true(all(sits_timeline(cbers_merge) ==  sits_timeline(cbers_022024_ndvi)))
+})
 test_that("Cube copy", {
     data_dir <- system.file("extdata/raster/cbers", package = "sits")
 
@@ -83,9 +114,10 @@ test_that("Cube copy", {
 
     cbers_022024_copy <- sits_cube_copy(cbers_022024, name = "cb_022024_cp",
                                         dest_dir = tempdir(),
-                                        bands = "B13")
+                                        bands = "B13",
+                                        srcwin = c(0, 0, 25, 25))
     expect_true(sits_bands(cbers_022024_copy) == "B13")
-    expect_true(cbers_022024_copy$ncols == 50)
+    expect_true(cbers_022024_copy$ncols == 25)
     expect_true(cbers_022024_copy$xmin == cbers_022024$xmin)
     expect_true(all(sits_timeline(cbers_022024_copy) == sits_timeline(cbers_022024)))
 })

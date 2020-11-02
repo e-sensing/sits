@@ -5,21 +5,31 @@ test_that("Creating a WTSS data cube", {
                            URL = "http://www.esensing.dpi.inpe.br/wtss/",
                            name = "MOD13Q1")
 
-    if(purrr::is_null(cube_wtss))
+    if (purrr::is_null(cube_wtss))
         skip("WTSS is not accessible")
 
     expect_true(cube_wtss$type == "WTSS")
     expect_true(length(cube_wtss$timeline[[1]][[1]]) > 1)
 })
 
-test_that("Creating a SATVEG data cube", {
+test_that("Reading a point from WTSS ", {
     testthat::skip_on_cran()
-    cube_satveg <- sits_cube(type = "SATVEG", name = "terra")
+    cube_wtss <- sits_cube(type = "WTSS",
+                           URL = "http://www.esensing.dpi.inpe.br/wtss/",
+                           name = "MOD13Q1")
 
-    if(purrr::is_null(cube_satveg))
-        skip("SATVEG is not accessible")
+    if (purrr::is_null(cube_wtss))
+        skip("WTSS is not accessible")
 
-    expect_true(length(cube_satveg$timeline[[1]][[1]]) > 1)
+    point.tb <- sits_get_data(cube_wtss,
+                              longitude = -55.50563, latitude = -11.71557)
+    timeline <- lubridate::as_date(as.vector(sits_time_series_dates(point.tb)))
+
+    expect_true(ncol(sits_time_series(point.tb)) == 7)
+    expect_equal(sum(sits_time_series(point.tb)$EVI[1:423]),
+                 157.3737, tolerance = 1e-3)
+    expect_true(point.tb$start_date == timeline[1])
+    expect_true(point.tb$end_date == timeline[length(timeline)])
 })
 
 test_that("Reading a CSV file from WTSS", {
@@ -30,7 +40,7 @@ test_that("Reading a CSV file from WTSS", {
                            URL = "http://www.esensing.dpi.inpe.br/wtss/",
                            name = "MOD13Q1")
 
-    if(purrr::is_null(cube_wtss))
+    if (purrr::is_null(cube_wtss))
         skip("WTSS is not accessible")
 
     points.tb <- sits_get_data(cube_wtss, file = csv_file)
@@ -52,57 +62,65 @@ test_that("Reading a CSV file from WTSS", {
     expect_true(NROW(points.tb) == NROW(df_csv))
 })
 
-test_that("Reading a CSV file from RASTER", {
-    #skip_on_cran()
-    file <- c(system.file("extdata/raster/mod13q1/sinop-crop-ndvi.tif",
-                          package = "sits"))
-    raster_cube <- sits_cube(name = "Sinop-crop",
-                             satellite = "TERRA",
-                             sensor    = "MODIS",
-                             timeline = sits::timeline_modis_392,
-                             bands = c("ndvi"),
-                             files = file)
-    csv_raster_file <- system.file("extdata/samples/samples_sinop_crop.csv",
-                                   package = "sits")
-    points.tb <- sits_get_data(raster_cube, file = csv_raster_file)
-    df_csv <- utils::read.csv(system.file("extdata/samples/samples_sinop_crop.csv",
-                                          package = "sits"))
-    expect_true(NROW(points.tb) <= NROW(df_csv))
-
-    expect_true("Forest" %in% sits_labels(points.tb)$label)
-    expect_equal(names(points.tb)[1], "longitude")
-    expect_equal(length(names(points.tb)), 7)
-    expect_true(ncol(sits_time_series(points.tb)) == 2)
-    expect_true(length(sits_time_series_dates(points.tb)) == 23)
-})
-
-test_that("Reading a point from WTSS ", {
+test_that("Reading a POLYGON shapefile from WTSS", {
     testthat::skip_on_cran()
     cube_wtss <- sits_cube(type = "WTSS",
                            URL = "http://www.esensing.dpi.inpe.br/wtss/",
                            name = "MOD13Q1")
-
-    if(purrr::is_null(cube_wtss))
+    if (purrr::is_null(cube_wtss))
         skip("WTSS is not accessible")
 
-    point.tb <- sits_get_data(cube_wtss,
-                              longitude = -55.50563, latitude = -11.71557)
-    timeline <- lubridate::as_date(as.vector(sits_time_series_dates(point.tb)))
+    shp_file <- system.file("extdata/shapefiles/agriculture/parcel_agriculture.shp",
+                            package = "sits")
+    parcel.tb <- sits_get_data(cube_wtss,
+                               file = shp_file,
+                               shp_attr = "ext_na",
+                               .n_shp_pol = 3)
 
-    expect_true(ncol(sits_time_series(point.tb)) == 7)
-    expect_equal(sum(sits_time_series(point.tb)$EVI[1:423]),
-                 157.3737, tolerance = 1e-3)
-    expect_true(point.tb$start_date == timeline[1])
-    expect_true(point.tb$end_date == timeline[length(timeline)])
+    sf_shape <- sf::read_sf(shp_file)
+    sf_shape <- sf::st_transform(sf_shape, crs = "EPSG:4326")
+    bbox <- sf::st_bbox(sf_shape)
+    longitudes_shp <- parcel.tb$longitude
+
+    expect_true(nrow(parcel.tb) > 1)
+    expect_true(all(unique(longitudes_shp) > bbox["xmin"]))
+    expect_true(all(unique(longitudes_shp) < bbox["xmax"]))
+    expect_true(all(parcel.tb$label == "Soja_Algodao"))
 })
 
+test_that("Reading a POINT shapefile from WTSS", {
+    testthat::skip_on_cran()
+    cube_wtss <- sits_cube(type = "WTSS",
+                           URL = "http://www.esensing.dpi.inpe.br/wtss/",
+                           name = "MOD13Q1")
+    if (purrr::is_null(cube_wtss))
+        skip("WTSS is not accessible")
+
+    shp_file <- system.file("extdata/shapefiles/cerrado/cerrado_forested.shp",
+                            package = "sits")
+    points.tb <- sits_get_data(cube_wtss, file = shp_file,
+                               label = "Cerrado_Forested")
+
+    expect_true(all(points.tb$label == "Cerrado_Forested"))
+})
+
+
+test_that("Creating a SATVEG data cube", {
+    testthat::skip_on_cran()
+    cube_satveg <- sits_cube(type = "SATVEG", name = "terra")
+
+    if (purrr::is_null(cube_satveg))
+        skip("SATVEG is not accessible")
+
+    expect_true(length(cube_satveg$timeline[[1]][[1]]) > 1)
+})
 test_that("Reading a point from SATVEG ", {
     testthat::skip_on_cran()
     cube_1 <- sits_cube(type = "SATVEG", name = "terra")
     cube_2 <- sits_cube(type = "SATVEG", name = "aqua")
     cube_3 <- sits_cube(type = "SATVEG", name = "comb")
 
-    if(purrr::is_null(cube_1))
+    if (purrr::is_null(cube_1))
         skip("SATVEG is not accessible")
 
     point_terra <- sits_get_data(cube_1,
@@ -128,17 +146,44 @@ test_that("Reading a point from SATVEG ", {
                     length(sits_time_series_dates(point_terra)))
 })
 
-test_that("Reading a POLYGON shapefile", {
+test_that("Reading a CSV file from SATVEG", {
     testthat::skip_on_cran()
-    cube_wtss <- sits_cube(type = "WTSS",
-                           URL = "http://www.esensing.dpi.inpe.br/wtss/",
-                           name = "MOD13Q1")
-    if(purrr::is_null(cube_wtss))
-        skip("WTSS is not accessible")
+    csv_file <- system.file("extdata/samples/samples_matogrosso.csv",
+                            package = "sits")
+    cube_satveg <- sits_cube(type = "SATVEG", name = "terra")
+
+    if (purrr::is_null(cube_satveg))
+        skip("SATVEG is not accessible")
+
+    points.tb <- sits_get_data(cube_satveg, file = csv_file)
+
+    expect_true(all(unique(points.tb$label) == c("Pasture", "Cerrado")))
+
+    expect_equal(min(points.tb$longitude), -55.0399, tolerance = 1e-5)
+    expect_equal(min(points.tb$latitude), -15.1933, tolerance = 1e-5)
+    expect_equal(max(points.tb$longitude), -46.407, tolerance = 1e-5)
+    expect_equal(max(points.tb$latitude), -10.4142, tolerance = 1e-5)
+
+    mylabels <- sits_labels(points.tb)
+
+    expect_equal(dplyr::filter(mylabels, label == "Cerrado")$count, 3)
+    expect_equal(dplyr::filter(mylabels, label == "Pasture")$count, 3)
+
+    df_csv <- utils::read.csv(system.file("extdata/samples/samples_matogrosso.csv",
+                                          package = "sits"))
+    expect_true(NROW(points.tb) == NROW(df_csv))
+})
+
+test_that("Reading a POLYGON shapefile from SATVEG", {
+    testthat::skip_on_cran()
+    cube_satveg <- sits_cube(type = "SATVEG", name = "terra")
+
+    if (purrr::is_null(cube_satveg))
+        skip("SATVEG is not accessible")
 
     shp_file <- system.file("extdata/shapefiles/agriculture/parcel_agriculture.shp",
                             package = "sits")
-    parcel.tb <- sits_get_data(cube_wtss,
+    parcel.tb <- sits_get_data(cube_satveg,
                                file = shp_file,
                                shp_attr = "ext_na",
                                .n_shp_pol = 3)
@@ -154,41 +199,50 @@ test_that("Reading a POLYGON shapefile", {
     expect_true(all(parcel.tb$label == "Soja_Algodao"))
 })
 
-test_that("Reading a POINT shapefile", {
-    testthat::skip_on_cran()
-    cube_wtss <- sits_cube(type = "WTSS",
-                           URL = "http://www.esensing.dpi.inpe.br/wtss/",
-                           name = "MOD13Q1")
-    if(purrr::is_null(cube_wtss))
-        skip("WTSS is not accessible")
+test_that("Reading a LAT/LONG from RASTER", {
+    #skip_on_cran()
+    file <- c(system.file("extdata/raster/mod13q1/sinop-crop-ndvi.tif",
+                          package = "sits"))
+    raster_cube <- sits_cube(name = "Sinop-crop",
+                             satellite = "TERRA",
+                             sensor    = "MODIS",
+                             timeline = sits::timeline_modis_392,
+                             bands = c("ndvi"),
+                             files = file)
 
-    shp_file <- system.file("extdata/shapefiles/cerrado/cerrado_forested.shp",
-                            package = "sits")
-    points.tb <- sits_get_data(cube_wtss, file = shp_file,
-                               label = "Cerrado_Forested")
+    point_ndvi.tb <- sits_get_data(raster_cube,
+                               longitude = -55.55527, latitude = -11.51782)
 
-    expect_true(all(points.tb$label == "Cerrado_Forested"))
+    expect_equal(names(point_ndvi.tb)[1], "longitude")
+    expect_true(ncol(sits_time_series(point_ndvi.tb)) == 2)
+    expect_true(length(sits_time_series_dates(point_ndvi.tb)) == 392)
 })
 
-test_that("Labels and re-label", {
+test_that("Reading a CSV file from RASTER", {
     #skip_on_cran()
-    data(samples_mt_4bands)
-    # Create a conversion list.
-    # Three classes will be converted to "Cropland".
-    conv.lst = list(Soy_Corn = "Cropland",
-                    Soy_Cotton  = "Cropland",
-                    Soy_Fallow  = "Cropland",
-                    Soy_Millet  = "Cropland",
-                    Soy_Sunflower  = "Cropland",
-                    Fallow_Cotton  = "Cropland")
+    file <- c(system.file("extdata/raster/mod13q1/sinop-crop-ndvi.tif",
+                          package = "sits"))
+    raster_cube <- sits_cube(name = "Sinop-crop",
+                             satellite = "TERRA",
+                             sensor    = "MODIS",
+                             timeline = sits::timeline_modis_392,
+                             bands = c("ndvi"),
+                             files = file)
 
-    new_data <- sits_relabel(samples_mt_4bands, conv.lst)
+    csv_raster_file <- system.file("extdata/samples/samples_sinop_crop.csv",
+                                   package = "sits")
+    points.tb <- sits_get_data(raster_cube, file = csv_raster_file)
+    expect_true(sits_check_data(points.tb))
 
-    labels <- sits_labels(new_data)
+    df_csv <- utils::read.csv(system.file("extdata/samples/samples_sinop_crop.csv",
+                                          package = "sits"))
+    expect_true(NROW(points.tb) <= NROW(df_csv))
 
-    expect_equal(length(labels$label), 4)
-    expect_equal(labels$label[1], "Cerrado")
-    expect_equal(sum(labels$prop), 1)
+    expect_true("Forest" %in% sits_labels(points.tb)$label)
+    expect_equal(names(points.tb)[1], "longitude")
+    expect_equal(length(names(points.tb)), 7)
+    expect_true(ncol(sits_time_series(points.tb)) == 2)
+    expect_true(length(sits_time_series_dates(points.tb)) == 23)
 })
 
 test_that("Test reading shapefile from BDC data cube",{
@@ -205,7 +259,7 @@ test_that("Test reading shapefile from BDC data cube",{
                                       start_date  = as.Date("2018-08-29"),
                                       end_date    = as.Date("2019-08-13"))
 
-    if(purrr::is_null(cbers_bdc_tile))
+    if (purrr::is_null(cbers_bdc_tile))
         skip("BDC is not accessible")
 
     shp_path  <- system.file("extdata/shapefiles/bdc-test/samples.shp", package = "sits")
@@ -226,14 +280,16 @@ test_that("Test reading shapefile from BDC STAC",{
     cbers_stac_tile <- sits_cube(type        = "BDC_STAC",
                                  name        = "cbers_stac",
                                  bands       = c("NDVI", "EVI"),
-                                 tiles       = "022024",
+                                 tiles       = c("022024","022025"),
                                  url         = "http://brazildatacube.dpi.inpe.br/stac/",
                                  collection  = "CB4_64_16D_STK-1",
                                  start_date  = "2018-09-01",
                                  end_date    = "2019-08-28")
 
-    if(purrr::is_null(cbers_stac_tile))
+    if (purrr::is_null(cbers_stac_tile))
         skip("BDC is not accessible")
+
+    expect_true(sits_check_data(cbers_stac_tile))
 
     shp_path  <- system.file("extdata/shapefiles/bdc-test/samples.shp", package = "sits")
 

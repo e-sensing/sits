@@ -58,7 +58,7 @@
         # define the sub_image
         sub_image <- .sits_raster_sub_image(cube = cube, roi = roi)
 
-    if (purrr::is_null(sub_image)){
+    if (purrr::is_null(sub_image)) {
         message("region of interest outside of cube")
         return(NULL)
     }

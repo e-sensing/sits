@@ -43,33 +43,6 @@
     return(ll)
 }
 
-#' @title Coordinate transformation (lat/long to image cell)
-#' @name .sits_latlong_to_cell
-#' @keywords internal
-#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
-#'
-#' @description Transform a latitude and longitude coordinate to a XY projection coordinate
-#'
-#' @param longitude       The longitude of the chosen location.
-#' @param latitude        The latitude of the chosen location.
-#' @param cube            data cube
-#' @return                Matrix with (x, y) coordinates.
-.sits_latlong_to_cell <- function(longitude, latitude, cube) {
-
-    xy <- tibble::tibble(long = longitude, lat = latitude) %>%
-        sf::st_as_sf(coords = c("long", "lat"), crs = "EPSG:4326") %>%
-        sf::st_transform(crs = cube$crs) %>%
-        sf::st_coordinates()
-
-    y <- floor((cube[1,]$ymax - xy[1,"Y"])/cube$yres)
-    x <- floor((xy[1,"X"] - cube[1,]$xmin)/cube$xres)
-
-    cell <- c(x,y)
-
-    return(cell)
-
-}
-
 #' @title Find the bounding box for a set of time series
 #' @name .sits_bbox_time_series
 #' @keywords internal
@@ -94,7 +67,7 @@
     return(bbox)
 }
 #' @title Intersection between a bounding box and a cube
-#' @name .sits_bbox_intesect
+#' @name .sits_bbox_intersect
 #' @keywords internal
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'

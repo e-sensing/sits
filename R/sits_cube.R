@@ -309,7 +309,7 @@ sits_cube.bdc_cube <- function(type        = "BDC_TILE", ...,
 
     # test if BDC is accessible
     if (data_access == "web")
-        if(!.sits_config_bdc_web_access(.web))
+        if (!.sits_config_bdc_web_access(.web))
             return(NULL)
 
     # go through the vector of tiles
@@ -597,7 +597,7 @@ sits_cube_copy <- function (cube, name, dest_dir, bands = NULL, srcwin = NULL){
 
     # check if subwindow has been defined
     if (!purrr::is_null(srcwin)) {
-        assertthat::assert_that(all(srcwin > 0),
+        assertthat::assert_that(all(srcwin >= 0),
                                 msg = "srcwin values should be positive")
         names(srcwin) <- c("xoff", "yoff", "xsize", "ysize")
         assertthat::assert_that((srcwin["xoff"] + srcwin["xsize"]) < cube$ncols,

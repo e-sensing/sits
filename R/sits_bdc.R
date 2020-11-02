@@ -31,7 +31,7 @@
 	.sits_raster_satellite_sensor(satellite, sensor)
 
 	# test if bands are provided
-	if (!purrr::is_null(bands)){
+	if (!purrr::is_null(bands)) {
 		bands_bdc <- .sits_config_band_names(sensor, "BDC_TILE")
 		bands_sits <- .sits_config_band_names(sensor, "SITS")
 		assertthat::assert_that(all(bands %in% bands_bdc) | all(bands %in% bands_sits),

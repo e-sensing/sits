@@ -243,7 +243,7 @@ sits_classify.raster_cube <- function(data, ml_model, ...,
 
     # deal with the case where the cube has multiple rows
 
-    rows.lst <- slider::slide(data, function (row) {
+    rows.lst <- slider::slide(data, function(row) {
 
         # set the name of the cube
         if (!is.na(row$tile))

@@ -485,7 +485,7 @@ sits_get_data.raster_cube <- function(cube,
     else
         cld_band <- NULL
 
-    ts_rows.lst <- slider::slide(cube, function (row) {
+    ts_rows.lst <- slider::slide(cube, function(row) {
         # get the data
         ts.tb <- .sits_raster_get_ts(cube    = row,
                                      points  = ll.tb,
@@ -564,6 +564,8 @@ sits_get_data.csv_raster_cube <- function(cube, file, ...,
                                      impute_fn  = impute_fn)
     })
     data <- dplyr::bind_rows(ts_rows.lst)
+    # check if data has been retrieved
+    .sits_get_data_check(nrow(csv.tb), nrow(data))
 
     if (!("sits" %in% class(data)))
         class(data) <- c("sits", class(data))
