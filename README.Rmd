@@ -142,12 +142,12 @@ The following example illustrate how to train a dataset and classify an individu
 ```{r}
 
 # Train a machine learning model for the mato grosso dataset using Extreme Gradient Boosting
-samples_mt_2bands <- sits_select_bands(samples_mt_4bands, ndvi, evi)
+samples_mt_2bands <- sits_select(samples_mt_4bands, bands = c("ndvi", "evi"))
 svm_model <- sits_train(data = samples_mt_2bands, 
                          ml_method = sits_svm())
 
 # get a point to be classified with four bands
-point_mt_2bands <- sits_select_bands(point_mt_6bands, ndvi, evi)
+point_mt_2bands <- sits_select(samples_mt_4bands, bands = c("ndvi", "evi"))
 
 # filter the point with a Whittaker smoother
 point_filtered <- sits_whittaker(point_mt_2bands, lambda = 0.2, bands_suffix = "") 
@@ -227,7 +227,7 @@ For more information, please see the vignettes
 |Code Build | [<img src="http://www.dpi.inpe.br/jenkins/buildStatus/icon?job=sits-build-ubuntu-16.04">](http://www.dpi.inpe.br/jenkins/job/sits-build-ubuntu-16.04/lastBuild/consoleFull)|
 |Code Check |[<img src="http://www.dpi.inpe.br/jenkins/buildStatus/icon?job=sits-check-ubuntu-16.04">](http://www.dpi.inpe.br/jenkins/job/sits-check-ubuntu-16.04/lastBuild/consoleFull)|
 |Code Documentation |[<img src="http://www.dpi.inpe.br/jenkins/buildStatus/icon?job=sits-documentation-ubuntu-16.04">](http://www.dpi.inpe.br/jenkins/job/sits-documentation-ubuntu-16.04/lastBuild/consoleFull)|
-|Code Coverage |[<img src="http://www.dpi.inpe.br/jenkins/buildStatus/icon?job=sits-covr-ubuntu-16.04">](http://www.dpi.inpe.br/jenkins/job/sits-covr-ubuntu-16.04/lastBuild/consoleFull)|
+|Code Coverage |[<img src="https://codecov.io/gh/e-sensing/sits/branch/master/graph/badge.svg?token=hZxdJgKGcE">](https://codecov.io/gh/e-sensing/sits)|
 | Test Coverage | [<img src="https://codecov.io/gh/e-sensing/sits/branch/master/graphs/badge.svg?branch=master">](https://codecov.io/github/e-sensing/sits?branch=master) |
 | Project Status | [<img src="http://www.repostatus.org/badges/latest/active.svg">](https://www.tidyverse.org/lifecycle/#maturing) |
 | Lifecycle | [<img src="https://img.shields.io/badge/lifecycle-maturing-blue.svg">](https://www.tidyverse.org/lifecycle/#maturing) |
