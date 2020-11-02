@@ -2,6 +2,10 @@ SITS - Satellite Image Time Series Analysis for Earth Observation Data
 Cubes
 ================
 
+<img src="inst/extdata/sticker/sits_sticker.png" alt="SITS icon"
+     width = "200" height = "200"
+     style="float:right; margin-right:10px"  />
+
 ### Overview
 
 The `sits` R package provides a set of tools for analysis, visualization
@@ -91,12 +95,13 @@ SITS”](https://github.com/e-sensing/sits-docs/blob/master/doc/timeseries.pdf).
 
 ### Visualization
 
-    #> Created logger for sits package - DEBUG level at /var/folders/21/g8ty6rhs2b350tzkmknqgwv00000gn/T//RtmpUDYgkk/sits_debug73375ab06965.log
-    #> Created logger for sits package - ERROR level at /var/folders/21/g8ty6rhs2b350tzkmknqgwv00000gn/T//RtmpUDYgkk/sits_error733773d79466.log
-    #> sits - satellite image time series analysis.
-    #> Loaded sits v0.9.6.
+    #> SITS - satellite image time series analysis.
+    #> Loaded sits v0.9.7.
     #>         See ?sits for help, citation("sits") for use in publication.
     #>         See demo(package = "sits") for examples.
+    #> Using configuration file: /Users/gilbertocamara/Library/R/4.0/library/sits/extdata/config.yml
+    #> Users can provide additional configurations in ~/.sits/config.yml
+    #> 
 
 ``` r
 cerrado_2classes[1:3,]
@@ -209,13 +214,13 @@ format using the function `sits_show_prediction` or graphically using
 
 ``` r
 
-# Train a machine learning model for the mato grosso dataset using Extreme Gradient Boosting
-samples_mt_2bands <- sits_select_bands(samples_mt_4bands, ndvi, evi)
+# Train a machine learning model for the mato grosso dataset using SVM
+samples_mt_2bands <- sits_select(samples_mt_4bands, bands = c("ndvi", "evi"))
 svm_model <- sits_train(data = samples_mt_2bands, 
                          ml_method = sits_svm())
 
 # get a point to be classified with four bands
-point_mt_2bands <- sits_select_bands(point_mt_6bands, ndvi, evi)
+point_mt_2bands <- sits_select(point_mt_6bands, bands = c("ndvi", "evi"))
 
 # filter the point with a Whittaker smoother
 point_filtered <- sits_whittaker(point_mt_2bands, lambda = 0.2, bands_suffix = "") 
@@ -304,12 +309,9 @@ For more information, please see the vignettes
 | Code Build         | [<img src="http://www.dpi.inpe.br/jenkins/buildStatus/icon?job=sits-build-ubuntu-16.04">](http://www.dpi.inpe.br/jenkins/job/sits-build-ubuntu-16.04/lastBuild/consoleFull)                 |
 | Code Check         | [<img src="http://www.dpi.inpe.br/jenkins/buildStatus/icon?job=sits-check-ubuntu-16.04">](http://www.dpi.inpe.br/jenkins/job/sits-check-ubuntu-16.04/lastBuild/consoleFull)                 |
 | Code Documentation | [<img src="http://www.dpi.inpe.br/jenkins/buildStatus/icon?job=sits-documentation-ubuntu-16.04">](http://www.dpi.inpe.br/jenkins/job/sits-documentation-ubuntu-16.04/lastBuild/consoleFull) |
-| Code Coverage      | [<img src="http://www.dpi.inpe.br/jenkins/buildStatus/icon?job=sits-covr-ubuntu-16.04">](http://www.dpi.inpe.br/jenkins/job/sits-covr-ubuntu-16.04/lastBuild/consoleFull)                   |
-| Test Coverage      | [<img src="https://codecov.io/gh/e-sensing/sits/branch/master/graphs/badge.svg?branch=master">](https://codecov.io/github/e-sensing/sits?branch=master)                                     |
+| Code Coverage      | [<img src="https://codecov.io/gh/e-sensing/sits/branch/master/graphs/badge.svg?branch=master">](https://codecov.io/github/e-sensing/sits?branch=master)                                     |
 | Project Status     | [<img src="http://www.repostatus.org/badges/latest/active.svg">](https://www.tidyverse.org/lifecycle/#maturing)                                                                             |
 | Lifecycle          | [<img src="https://img.shields.io/badge/lifecycle-maturing-blue.svg">](https://www.tidyverse.org/lifecycle/#maturing)                                                                       |
-
-[![DOI](https://zenodo.org/badge/98539507.svg)](https://zenodo.org/badge/latestdoi/98539507)
 
 #### License
 
