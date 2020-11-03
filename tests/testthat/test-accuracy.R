@@ -21,7 +21,7 @@ test_that("Accuracy - more than 2 classes", {
     expect_true(conf.mx$overall["Accuracy"] > 0.90)
     expect_true(conf.mx$overall["Kappa"] > 0.90)
 
-    conv.lst = list(Soy_Corn = "Cropland",
+    conv.lst <- list(Soy_Corn = "Cropland",
                     Soy_Cotton  = "Cropland",
                     Soy_Fallow  = "Cropland",
                     Soy_Millet  = "Cropland",

@@ -18,7 +18,7 @@
 #'  \item{random forests: }{see \code{\link[sits]{sits_rfor}}}
 #'  \item{linear discriminant analysis: }{see \code{\link[sits]{sits_lda}}}
 #'  \item{quadratic discriminant analysis: }{see \code{\link[sits]{sits_qda}}}
-#'  \item{multinomial logit, and its variants 'lasso' and ridge': }{see \code{\link[sits]{sits_mlr}}}
+#'  \item{multinomial logit, with 'lasso' and ridge': }{see \code{\link[sits]{sits_mlr}}}
 #'  \item{extreme gradient boosting: }{see \code{\link[sits]{sits_xgboost}}}
 #'  \item{multi-layer perceptrons: }{see \code{\link[sits]{sits_deeplearning}}}
 #'  \item{1D convolutional neural networks: see \code{\link[sits]{sits_FCN}}}
@@ -26,14 +26,14 @@
 #'  \item{1D version of ResNet: }{see \code{\link[sits]{sits_ResNet}}}
 #'  \item{combined LSTM-FCN model: }{see \code{\link[sits]{sits_LSTM_FCN}}}
 #'  }
-#' The model should be precomputed by the user using the function \code{\link[sits]{sits_train}}
+#' The model should be precomputed using \code{\link[sits]{sits_train}}
 #' and then passed to the "sits_classify" function using parameter "ml_model".
 #'
 #' @param  data              Tibble with time series metadata and data.
 #' @param  ml_model          Pre-built machine learning model
 #'                             (see \code{\link[sits]{sits_train}}).
 #' @param  ...               Other parameters to be passed to specific functions
-#' @return                   Predicted data (either a sits tibble or a probs data cube)
+#' @return                   Predicted data
 #'
 #' @export
 sits_classify <- function(data, ml_model, ...) {
@@ -77,7 +77,8 @@ sits_classify <- function(data, ml_model, ...) {
 #' samples_ndvi <- sits_select(samples_mt_4bands, bands = "NDVI")
 #'
 #' #select a random forest model
-#' rfor_model <- sits_train(samples_ndvi, ml_method = sits_rfor(num_trees = 300))
+#' rfor_model <- sits_train(samples_ndvi,
+#'                          ml_method = sits_rfor(num_trees = 300))
 #'
 #' # classify the point
 #' class.tb <- sits_classify(point_ndvi, rfor_model)
@@ -100,7 +101,7 @@ sits_classify.sits <- function(data, ml_model, ...,
 
 		# precondition -ensure the machine learning model has been built
 		assertthat::assert_that(!purrr::is_null(ml_model),
-							msg = "sits_classify_ts: please provide a trained ML model")
+					msg = "sits_classify_ts: please provide a trained ML model")
 
 		# Precondition
 		# only savitsky-golay and whittaker filters are supported
@@ -108,15 +109,16 @@ sits_classify.sits <- function(data, ml_model, ...,
 				call_names <-  deparse(sys.call())
 				assertthat::assert_that(any(grepl("sgolay", (call_names))) ||
 										any(grepl("whittaker", (call_names))),
-					 msg = "sits_classify_cube: only savitsky-golay and whittaker filters
-                  are supported")
+					 msg = "sits_classify_cube:
+					        only savitsky-golay and whittaker filters
+                            are supported")
 				data <- filter(data)
 		}
 
 		# precondition - are the samples valid?
 		samples <- environment(ml_model)$data
 		assertthat::assert_that(NROW(samples) > 0,
-								msg = "sits_classify_ts: missing original samples")
+							msg = "sits_classify_ts: missing original samples")
 		# how many samples per interval?
 		num_samples <- nrow(samples[1,]$time_series[[1]])
 
@@ -125,9 +127,10 @@ sits_classify.sits <- function(data, ml_model, ...,
 		# Has the data been normalised?
 		if (!purrr::is_null(stats))
 				# obtain the distances after normalizing data by band
-				distances_DT <- .sits_distances(.sits_normalize_data(data = data,
-																stats = stats,
-																multicores = multicores))
+				distances_DT <- .sits_distances(.sits_normalize_data
+				                                (data = data,
+												 stats = stats,
+												 multicores = multicores))
 		else
 		    # data has been already normalised
 		    distances_DT <- .sits_distances(data)
@@ -203,7 +206,8 @@ sits_classify.sits <- function(data, ml_model, ...,
 #' samples_ndvi <- sits_select(samples_mt_4bands, bands = "NDVI")
 #'
 #' #select a random forest model
-#' rfor_model <- sits_train(samples_ndvi, ml_method = sits_rfor(num_trees = 300))
+#' rfor_model <- sits_train(samples_ndvi,
+#'                          ml_method = sits_rfor(num_trees = 300))
 #'
 #' # classify the raster image
 #' sinop_probs <- sits_classify(sinop_2014, ml_model = rfor_model,

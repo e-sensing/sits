@@ -217,7 +217,7 @@
 #' @param type           type of output
 #' @param start_date     starting date of the time series classification.
 #' @param end_date       end date of the time series classification.
-#' @return               name of the classification file for the required interval.
+#' @return               classification file for the required interval.
 .sits_cube_class_band_name <- function(name, type, start_date, end_date){
 	y1 <- lubridate::year(start_date)
 	m1 <- lubridate::month(start_date)

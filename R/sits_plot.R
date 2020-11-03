@@ -263,7 +263,7 @@ plot.probs_cube <- function(x , y, ..., time = 1,
 		stop("Please install package stars.", call. = FALSE)
 	}
 	# define the output color pallete
-	col = grDevices::hcl.colors(10, colors, rev = TRUE)
+	col <-  grDevices::hcl.colors(10, colors, rev = TRUE)
 	# create a stars object
 	st <- stars::read_stars(x$file_info[[1]]$path[[time]])
 
@@ -1146,7 +1146,7 @@ plot.keras_model <- function(x, y, ...) {
 
 	# create a named vector to store the RGB instances
 	inst.vec <- unlist(instances.lst)
-	names(inst.vec) = c("red", "green", "blue")
+	names(inst.vec) <- c("red", "green", "blue")
 
 	return(inst.vec)
 }

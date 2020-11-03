@@ -29,7 +29,7 @@ sits_cube <- function(type = "RASTER", ...) {
 #' @name sits_cube.wtss_cube
 #'
 #' @description  Implements an interface to a web time series service (WTSS)
-#'               that offers time series of remote sensing data using a simple API.
+#'               offering time series of remote sensing data using a simple API.
 #'
 #' @param type              Type of cube
 #' @param ...               Other parameters to be passed for specific types
@@ -62,10 +62,10 @@ sits_cube.wtss_cube <- function(type = "WTSS", ..., name = NULL, URL = NULL) {
 
 #' @title Defines a data cube for the SATVEG service
 #' @name sits_cube.satveg_cube
-#' @description The SATVEG service is provided by the Embrapa Agricultural Informatics Centre
-#'              and provides access to time series from the MODIS sensor. There are three types
-#'              of time series: "terra" (from the TERRA satellite), "aqua" (from the AQUA satellite)
-#'              and "comb" (combination of both satellites)
+#' @description The SATVEG service is provided by the Embrapa Agricultural
+#'  Informatics Centre and provides access to time series from the MODIS sensor.
+#'  There are three types of time series: "terra" (from the TERRA satellite),
+#'  "aqua" (from the AQUA satellite) and "comb" (combination of both satellites)
 #' @param type              Type of cube
 #' @param ...               Other parameters to be passed for specific types
 #' @param name              Name of the input data ("terra", "aqua", "comb").

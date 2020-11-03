@@ -118,7 +118,7 @@
 #'                       first col, nrows, ncols
 #'
 .sits_sub_image_from_bbox <- function(bbox, cube){
-    sub_image = vector("double", length = 8)
+    sub_image <- vector("double", length = 8)
     names(sub_image) <- c("first_row", "first_col", "nrows", "ncols",
                           "xmin", "xmax", "ymin", "ymax")
 

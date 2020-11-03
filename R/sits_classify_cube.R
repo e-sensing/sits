@@ -96,7 +96,7 @@
     # get the attribute names
     attr_names <- names(.sits_distances(environment(ml_model)$data[1,]))
     assertthat::assert_that(length(attr_names) > 0,
-                            msg = "sits_classify_distances: training data not available")
+                msg = "sits_classify_distances: training data not available")
 
     # create the input raster objects
     t_obj.lst <- purrr::map(bands, function(b){
@@ -223,11 +223,11 @@
 .sits_classify_check_params <- function(cube, ml_model){
     # ensure metadata tibble exists
     assertthat::assert_that(NROW(cube) > 0,
-                            msg = "sits_classify: invalid metadata for the cube")
+                        msg = "sits_classify: invalid metadata for the cube")
 
     # ensure the machine learning model has been built
     assertthat::assert_that(!purrr::is_null(ml_model),
-                            msg = "sits-classify: trained ML model not available")
+                        msg = "sits-classify: trained ML model not available")
 
     return(invisible(TRUE))
 }

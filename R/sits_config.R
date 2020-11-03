@@ -63,20 +63,20 @@ sits_config <- function() {
 #' @export
 
 sits_config_info <- function() {
-  # the default configuration file
-  yml_file <- system.file("extdata", "config.yml", package = "sits")
+    # the default configuration file
+    yml_file <- system.file("extdata", "config.yml", package = "sits")
 
-  msg1 <- paste0("Using configuration file: ", yml_file)
+    msg1 <- paste0("Using configuration file: ", yml_file)
 
-  # try to find a valid user configuration file
-  user_yml_file   <- "~/.sits/config.yml"
-  if (file.exists(user_yml_file))
-    msg2 <- paste0("Additional configurations found in ", user_yml_file)
-  else
-    msg2 <- paste0("Users can provide additional configurations in ", user_yml_file)
+    # try to find a valid user configuration file
+    user_yml_file   <- "~/.sits/config.yml"
+    if (file.exists(user_yml_file))
+        msg2 <- paste0("Additional configurations found in ", user_yml_file)
+    else
+        msg2 <- paste0("Users can provide additional configurations in ",
+                   user_yml_file)
 
-  return(message(msg1, "\n", msg2))
-
+    return(message(msg1, "\n", msg2))
 }
 
 #' @title Shows the contents of the sits configuration file
@@ -267,7 +267,7 @@ sits_config_show <- function() {
 #' @param satellite            satellite
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'
-#' @return vector with names of the bands available in AWS for a given resolution
+#' @return vector with bands available in AWS for a given resolution
 .sits_config_cloud_band <- function(cube) {
 
   cb <- paste0(cube$sensor[1],"_CLD_BAND")
@@ -283,7 +283,7 @@ sits_config_show <- function() {
 #' @param cube          data cube
 #' @author Gilberto Camara \email{gilberto.camara@@inpe.br}
 #'
-#' @return vector with names of the bands available in AWS for a given resolution
+#' @return vector with bands available in AWS for a given resolution
 .sits_config_cloud_valid_values <- function(cube) {
 
   cv <- paste0(cube$sensor[1],"_cld_vls")
@@ -795,13 +795,13 @@ sits_config_show <- function() {
 .sits_config_sentinel_aws_resolutions <- function() {
     return(sits.env$config[["S2_L2A_AWS"]][["resolutions"]])
 }
-#' @title Get the the bands stored in AWS for Sentinel-2 ARD given the resolution
+#' @title Get the the bands in AWS for Sentinel-2 ARD given the resolution
 #' @name .sits_config_sentinel_bands
 #' @keywords internal
 #' @param resolution       Resolution of the bands
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'
-#' @return vector with names of the bands available in AWS for a given resolution
+#' @return vector with bands available in AWS for a given resolution
 .sits_config_sentinel_bands <- function(resolution) {
     s <- "S2_L2A_AWS"
     assertthat::assert_that(resolution %in% sits.env$config[[s]][["resolutions"]],

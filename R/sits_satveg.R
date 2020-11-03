@@ -183,7 +183,7 @@
 
         # did we get the data?
         if (grepl("Acesso", satveg.txt)) {
-            msg = "SATVEG service not accessible"
+            msg <- "SATVEG service not accessible"
             return(NULL)
         }
 
