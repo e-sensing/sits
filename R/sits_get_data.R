@@ -11,24 +11,24 @@
 #' There are many ways of retrieving time series:
 #' \itemize{
 #' \item{WTSS: }{Retrieve data from Web Time Series Service (WTSS)
-#'            using a lat/long point (\code{\link[sits]{sits_get_data.wtss_cube}}),
-#'            a CSV file (\code{\link[sits]{sits_get_data.csv_wtss_cube}})
-#'            or a SHP file (\code{\link[sits]{sits_get_data.shp_wtss_cube}})}
+#'   using a lat/long point (\code{\link[sits]{sits_get_data.wtss_cube}}),
+#'   a CSV file (\code{\link[sits]{sits_get_data.csv_wtss_cube}})
+#'   or a SHP file (\code{\link[sits]{sits_get_data.shp_wtss_cube}})}
 #'
 #' \item{SATVEG: }{Retrieve data from SATVEG service using a lat/long point
-#'                (\code{\link[sits]{sits_get_data.satveg_cube}}),
-#'               a CSV file (\code{\link[sits]{sits_get_data.csv_satveg_cube}})
-#'               or a SHP file (\code{\link[sits]{sits_get_data.shp_satveg_cube}})}
+#'  (\code{\link[sits]{sits_get_data.satveg_cube}}),
+#'  a CSV file (\code{\link[sits]{sits_get_data.csv_satveg_cube}})
+#'  or a SHP file (\code{\link[sits]{sits_get_data.shp_satveg_cube}})}
 #'
 #' \item{RASTER: }{Retrieve data from a RASTER cube using a lat/long point
-#'               (\code{\link[sits]{sits_get_data.raster_cube}}),
-#'               a CSV file (\code{\link[sits]{sits_get_data.csv_raster_cube}})
-#'               or a SHP file (\code{\link[sits]{sits_get_data.shp_raster_cube}})}
+#'  (\code{\link[sits]{sits_get_data.raster_cube}}),
+#'  a CSV file (\code{\link[sits]{sits_get_data.csv_raster_cube}})
+#'  or a SHP file (\code{\link[sits]{sits_get_data.shp_raster_cube}})}
 #'
 #' }
 #'
 #' The URL and other parameters for accessing the time series services
-#' are defined in the package configuration file. This file is called "config.yml".
+#' are defined in the package configuration file. This file is "config.yml".
 #' Please see the \code{\link[sits]{sits_config}} for more information.
 #'
 #' Before using this service, the user should create a valid description
@@ -158,12 +158,12 @@ sits_get_data.satveg_cube <- function(cube, file = NULL, ...,
                                       label = "NoClass") {
     # Precondition - is the SATVEG cube available
     assertthat::assert_that(.sits_satveg_check(),
-                    msg = "sits_get_data: satveg cube is not valid or not accessible")
+            msg = "sits_get_data: satveg cube is not valid or not accessible")
 
     # Precondition - lat/long must be provided
     assertthat::assert_that(!purrr::is_null(latitude) &&
                                 !purrr::is_null(longitude),
-                    msg = "sits_get_data - latitude/longitude must be provided")
+            msg = "sits_get_data - latitude/longitude must be provided")
 
     # Precondition - check and get start and end dates
     start_end <- .sits_timeline_check_cube(cube, start_date, end_date)
@@ -225,16 +225,16 @@ sits_get_data.csv_wtss_cube <- function(cube, file, ..., bands = NULL) {
                                  csv.tb$start_date,
                                  csv.tb$end_date,
                                  csv.tb$label),
-                            function(longitude, latitude, start_date, end_date, label){
-                                row <- .sits_from_wtss(cube = cube,
-                                                       longitude = longitude,
-                                                       latitude = latitude,
-                                                       start_date = lubridate::as_date(start_date),
-                                                       end_date = lubridate::as_date(end_date),
-                                                       bands = bands,
-                                                       label = label)
-                                return(row)
-                            })
+                    function(longitude, latitude, start_date, end_date, label){
+                            row <- .sits_from_wtss(cube = cube,
+                                                   longitude = longitude,
+                                                   latitude = latitude,
+                                                   start_date = lubridate::as_date(start_date),
+                                                   end_date = lubridate::as_date(end_date),
+                                                   bands = bands,
+                                                   label = label)
+                            return(row)
+                    })
     # unroll the list
     data <- dplyr::bind_rows(data.lst)
     # check if data has been retrieved
@@ -266,15 +266,15 @@ sits_get_data.csv_satveg_cube <- function(cube, file, ...) {
                                  csv.tb$start_date,
                                  csv.tb$end_date,
                                  csv.tb$label),
-                            function(long, lat, st_date, en_date, lab){
-                                row <- .sits_from_satveg(cube = cube,
-                                                       longitude = long,
-                                                       latitude = lat,
-                                                       start_date = lubridate::as_date(st_date),
-                                                       end_date = lubridate::as_date(en_date),
-                                                       label = lab)
-                                return(row)
-                            })
+                    function(long, lat, st_date, en_date, lab){
+                        row <- .sits_from_satveg(cube = cube,
+                                                 longitude = long,
+                                                 latitude = lat,
+                                                 start_date = lubridate::as_date(st_date),
+                                                 end_date = lubridate::as_date(en_date),
+                                                 label = lab)
+                        return(row)
+                    })
     # unroll the list
     data <- dplyr::bind_rows(data.lst)
 
@@ -400,15 +400,15 @@ sits_get_data.shp_satveg_cube <- function(cube, file, ...,
     data.lst <- purrr::pmap(list(points.tb$longitude,
                                  points.tb$latitude,
                                  points.tb$label),
-                            function(long, lat, lab){
-                                row <- .sits_from_satveg(cube = cube,
-                                                       longitude  = long,
-                                                       latitude   = lat,
-                                                       start_date = start_end["start_date"],
-                                                       end_date   = start_end["end_date"],
-                                                       label      = lab)
-                                return(row)
-                            })
+                    function(long, lat, lab){
+                        row <- .sits_from_satveg(cube = cube,
+                                                 longitude  = long,
+                                                 latitude   = lat,
+                                                 start_date = start_end["start_date"],
+                                                 end_date   = start_end["end_date"],
+                                                 label      = lab)
+                        return(row)
+                    })
     # unroll the list
     data <- dplyr::bind_rows(data.lst)
 

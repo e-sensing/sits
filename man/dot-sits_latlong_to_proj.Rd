@@ -17,7 +17,7 @@
 Tibble with X and Y coordinates
 }
 \description{
-Transform a latitude and longitude coordinate to a XY projection coordinate
+Transform a latitude and longitude coordinate to XY coordinate
 }
 \author{
 Gilberto Camara, \email{gilberto.camara@inpe.br}

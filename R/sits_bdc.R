@@ -34,22 +34,23 @@
 	if (!purrr::is_null(bands)) {
 		bands_bdc <- .sits_config_band_names(sensor, "BDC_TILE")
 		bands_sits <- .sits_config_band_names(sensor, "SITS")
-		assertthat::assert_that(all(bands %in% bands_bdc) | all(bands %in% bands_sits),
-								msg = "band names inconsistent - use those of SITS")
+		assertthat::assert_that(all(bands %in% bands_bdc) |
+		                            all(bands %in% bands_sits),
+						msg = "band names inconsistent - use those of SITS")
 	}
 	# test if cube and tile are provided
 	assertthat::assert_that(!purrr::is_null(cube),
-							msg = "sits_cube: for BDC_TILE cube name must be provided")
+           msg = "sits_cube: for BDC_TILE cube name must be provided")
 
 	assertthat::assert_that(!purrr::is_null(tile),
-							msg = "sits_cube: for BDC_TILE, the tile name must be provided")
+		   msg = "sits_cube: for BDC_TILE, the tile name must be provided")
 
 	assertthat::assert_that(!purrr::is_null(version),
-	                        msg = "sits_cube: for BDC_TILE, the version name must be provided")
+	       msg = "sits_cube: for BDC_TILE, the version name must be provided")
 
 	# test if data_access variable is correct
 	assertthat::assert_that(data_access %in% c("local", "web"),
-							msg = "sits_cube: for BDC_TILE data_access must one of (local, web)")
+           msg = "sits_cube: for BDC_TILE data_access must one of (local, web)")
 
 	# test if the dates are valid
 	if (!purrr::is_null(start_date)) {
@@ -145,8 +146,6 @@
                                   data_dir,
                                   data_access) {
 
-    # BDC uses a composite path
-    # e.g. "2016-01-01_2016-01-16/CB4_64_16D_STK_v001_022024_2016-01-01_2016-01-16_BAND13.tif"
 
     # find out the band names used by SITS
     bands_sits <- .sits_config_band_names_convert_bdc(satellite, sensor)
@@ -156,7 +155,8 @@
 
     # list the image files
     if (data_access == "local")
-        img_files_full_path <- paste0(data_dir, list.files(data_dir, recursive = TRUE))
+        img_files_full_path <- paste0(data_dir,
+                                      list.files(data_dir, recursive = TRUE))
     else
         img_files_full_path <- .sits_bdc_list_files_http(data_dir)
 
@@ -165,7 +165,8 @@
 
     # filter by BDC extension (to get only valid files)
     bdc_ext <- .sits_config_bdc_extension()
-    img_files_full_path <- img_files_full_path[grepl(bdc_ext, img_files_full_path)]
+    img_files_full_path <- img_files_full_path[grepl(bdc_ext,
+                                                     img_files_full_path)]
 
     # include the parse_info
     parse_info  <- .sits_config_data_parse_info(type = "BDC_TILE")
@@ -196,11 +197,11 @@
 
     if (!purrr::is_null(start_date) & !purrr::is_null(end_date))
         # filter by starting date and end date
-        info.tb <- dplyr::filter(info.tb, date >= start_date & date <=end_date)
+        info.tb <- dplyr::filter(info.tb, date >= start_date & date <= end_date)
 
     if (!purrr::is_null(bands)) {
         assertthat::assert_that(all(bands %in% bands_sits),
-                                msg = "bands do not match band names in SITS - see config file")
+            msg = "bands do not match band names in SITS - see config file")
         # select the bands
         info.tb <-  dplyr::filter(info.tb, band %in% bands)
     }

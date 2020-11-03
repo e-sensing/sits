@@ -59,22 +59,23 @@
 #' plot(lstm_cnn_model)
 #'
 #' # get a point and classify the point with the ml_model
-#' point.tb <- sits_select(point_mt_6bands, bands = c("NDVI", "EVI", "NIR", "MIR"))
+#' point.tb <- sits_select(point_mt_6bands,
+#'             bands = c("NDVI", "EVI", "NIR", "MIR"))
 #' class.tb <- sits_classify(point.tb, lstm_cnn_model)
 #' plot(class.tb, bands = c("NDVI", "EVI"))
 #' }
 #' @export
-sits_LSTM_FCN <- function(samples             =  NULL,
-                          lstm_units          = 8,
-                          lstm_dropout        = 0.80,
-                          cnn_layers          = c(128, 256, 128),
-                          cnn_kernels         = c(8, 5, 3),
-                          activation          = 'relu',
-                          optimizer           = keras::optimizer_adam(lr = 0.001),
-                          epochs              = 150,
-                          batch_size          = 128,
-                          validation_split    = 0.2,
-                          verbose             = 1) {
+sits_LSTM_FCN <- function(samples           =  NULL,
+                          lstm_units        = 8,
+                          lstm_dropout      = 0.80,
+                          cnn_layers        = c(128, 256, 128),
+                          cnn_kernels       = c(8, 5, 3),
+                          activation        = 'relu',
+                          optimizer         = keras::optimizer_adam(lr = 0.001),
+                          epochs            = 150,
+                          batch_size        = 128,
+                          validation_split  = 0.2,
+                          verbose           = 1) {
     # backward compatibility
     samples <- .sits_tibble_rename(samples)
 

@@ -40,7 +40,7 @@ sits_conf_matrix <- function(data, conv.lst = NULL) {
 
     # does the input data contain a set of predicted values?
     assertthat::assert_that("predicted" %in% names(data),
-                            msg = "sits_conf_matrix: input data without predicted values")
+                msg = "sits_conf_matrix: input data without predicted values")
 
     # recover predicted and reference vectors from input
     # is the input the result of a sits_classify?
@@ -63,7 +63,7 @@ sits_conf_matrix <- function(data, conv.lst = NULL) {
         names_ref <- unique(ref.vec)
         # are all input labels in the coversion list?
         assertthat::assert_that(all(names_ref %in% names(conv.lst)),
-                                msg = "sits_conf_matrix: missing reference labels")
+                            msg = "sits_conf_matrix: missing reference labels")
         pred.vec <- as.character(conv.lst[pred.vec])
         ref.vec  <- as.character(conv.lst[ref.vec])
     }
@@ -98,7 +98,8 @@ sits_conf_matrix <- function(data, conv.lst = NULL) {
 #' @seealso \code{\link[caret]{print.confusionMatrix}}
 #'
 .print_confusion_matrix <- function(x, mode = "sens_spec",
-                                    digits = max(3, getOption("digits") - 3), ...){
+                                    digits = max(3, getOption("digits") - 3),
+                                    ...){
     cat("Confusion Matrix and Statistics\n\n")
     print(x$table, ...)
 
@@ -132,8 +133,7 @@ sits_conf_matrix <- function(data, conv.lst = NULL) {
         print(out, quote = FALSE)
 
         cat("\nStatistics by Class:\n\n")
-        x$byClass <- x$byClass[,
-                               grepl("(Sensitivity)|(Specificity)|(Pos Pred Value)|(Neg Pred Value)",
+        x$byClass <- x$byClass[, grepl("(Sensitivity)|(Specificity)|(Pos Pred Value)|(Neg Pred Value)",
                                      colnames(x$byClass))]
         ass.mx <- t(x$byClass)
         rownames(ass.mx) <- c("Prod Acc (Sensitivity)", "Specificity",
@@ -145,8 +145,8 @@ sits_conf_matrix <- function(data, conv.lst = NULL) {
         # get the values of the User's and Producer's Accuracy
         # Names in caret are different from the usual names in Earth observation
         x$byClass <- x$byClass[
-            grepl("(Sensitivity)|(Specificity)|(Pos Pred Value)|(Neg Pred Value)",
-                  names(x$byClass))]
+          grepl("(Sensitivity)|(Specificity)|(Pos Pred Value)|(Neg Pred Value)",
+          names(x$byClass))]
         # get the names of the two classes
         nm <- row.names(x$table)
         # the first class (which is called the "positive" class by caret)

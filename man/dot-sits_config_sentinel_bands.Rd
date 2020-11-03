@@ -2,7 +2,7 @@
 % Please edit documentation in R/sits_config.R
 \name{.sits_config_sentinel_bands}
 \alias{.sits_config_sentinel_bands}
-\title{Get the the bands stored in AWS for Sentinel-2 ARD given the resolution}
+\title{Get the the bands in AWS for Sentinel-2 ARD given the resolution}
 \usage{
 .sits_config_sentinel_bands(resolution)
 }
@@ -10,10 +10,10 @@
 \item{resolution}{Resolution of the bands}
 }
 \value{
-vector with names of the bands available in AWS for a given resolution
+vector with bands available in AWS for a given resolution
 }
 \description{
-Get the the bands stored in AWS for Sentinel-2 ARD given the resolution
+Get the the bands in AWS for Sentinel-2 ARD given the resolution
 }
 \author{
 Gilberto Camara, \email{gilberto.camara@inpe.br}

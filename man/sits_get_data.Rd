@@ -23,24 +23,24 @@ has the metadata and data for each time series. The columns are
 There are many ways of retrieving time series:
 \itemize{
 \item{WTSS: }{Retrieve data from Web Time Series Service (WTSS)
-           using a lat/long point (\code{\link[sits]{sits_get_data.wtss_cube}}),
-           a CSV file (\code{\link[sits]{sits_get_data.csv_wtss_cube}})
-           or a SHP file (\code{\link[sits]{sits_get_data.shp_wtss_cube}})}
+  using a lat/long point (\code{\link[sits]{sits_get_data.wtss_cube}}),
+  a CSV file (\code{\link[sits]{sits_get_data.csv_wtss_cube}})
+  or a SHP file (\code{\link[sits]{sits_get_data.shp_wtss_cube}})}
 
 \item{SATVEG: }{Retrieve data from SATVEG service using a lat/long point
-               (\code{\link[sits]{sits_get_data.satveg_cube}}),
-              a CSV file (\code{\link[sits]{sits_get_data.csv_satveg_cube}})
-              or a SHP file (\code{\link[sits]{sits_get_data.shp_satveg_cube}})}
+ (\code{\link[sits]{sits_get_data.satveg_cube}}),
+ a CSV file (\code{\link[sits]{sits_get_data.csv_satveg_cube}})
+ or a SHP file (\code{\link[sits]{sits_get_data.shp_satveg_cube}})}
 
 \item{RASTER: }{Retrieve data from a RASTER cube using a lat/long point
-              (\code{\link[sits]{sits_get_data.raster_cube}}),
-              a CSV file (\code{\link[sits]{sits_get_data.csv_raster_cube}})
-              or a SHP file (\code{\link[sits]{sits_get_data.shp_raster_cube}})}
+ (\code{\link[sits]{sits_get_data.raster_cube}}),
+ a CSV file (\code{\link[sits]{sits_get_data.csv_raster_cube}})
+ or a SHP file (\code{\link[sits]{sits_get_data.shp_raster_cube}})}
 
 }
 
 The URL and other parameters for accessing the time series services
-are defined in the package configuration file. This file is called "config.yml".
+are defined in the package configuration file. This file is "config.yml".
 Please see the \code{\link[sits]{sits_config}} for more information.
 
 Before using this service, the user should create a valid description

@@ -21,9 +21,9 @@ by \code{\link[sits]{sits_som_map}}}
 (influenced by the SOM neighborhood)}
 }
 \value{
-A list with two sits tibbles
-                                The first tibble has clean samples
-                                The second has samples that need to be analysed
+List with two sits tibbles.
+        The first tibble has clean samples
+        The second has samples that need to be analysed.
 }
 \description{
 This function remove sample that do not have good quality based

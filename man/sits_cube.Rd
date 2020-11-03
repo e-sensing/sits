@@ -17,11 +17,11 @@ Defines a cube to retrieve data. This is a generic function.
 Cubes can be of the following types. See each function description for the
 required parameters:
 \itemize{
- \item{"WTSS": }{Web Time Series Service - see \code{\link{sits_cube.wtss_cube}}}
- \item{"SATVEG": }{ SATVEG Time Series Service - see \code{\link{sits_cube.satveg_cube}}}
- \item{"RASTER": }{Raster files - see \code{\link{sits_cube.raster_cube}}}
- \item{"BDC_TILE"}{A set of tiles from the Brazil Data Cube - see \code{\link{sits_cube.bdc_cube}}}
- \item{"BDC_STAC"}{A set of tiles from the STAC Brazil Data Cube - see \code{\link{sits_cube.bdc_stac}}}
- \item{"S2_L2A_AWS"}{A set of tiles of Sentinel-2 data in AWS - see \code{\link{sits_cube.s2_l2a_aws_cube}}}
+ \item{"WTSS": }{see \code{\link{sits_cube.wtss_cube}}}
+ \item{"SATVEG": }{ see \code{\link{sits_cube.satveg_cube}}}
+ \item{"RASTER": }{see \code{\link{sits_cube.raster_cube}}}
+ \item{"BDC_TILE"}{Brazil Data Cube - see \code{\link{sits_cube.bdc_cube}}}
+ \item{"BDC_STAC"}{STAC Brazil Data Cube - see \code{\link{sits_cube.bdc_stac}}}
+ \item{"S2_L2A_AWS"}{Sentinel-2 data in AWS - see \code{\link{sits_cube.s2_l2a_aws_cube}}}
 }
 }

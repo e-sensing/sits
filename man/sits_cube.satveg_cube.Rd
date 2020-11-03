@@ -17,10 +17,10 @@
 A valid data cube
 }
 \description{
-The SATVEG service is provided by the Embrapa Agricultural Informatics Centre
-             and provides access to time series from the MODIS sensor. There are three types
-             of time series: "terra" (from the TERRA satellite), "aqua" (from the AQUA satellite)
-             and "comb" (combination of both satellites)
+The SATVEG service is provided by the Embrapa Agricultural
+ Informatics Centre and provides access to time series from the MODIS sensor.
+ There are three types of time series: "terra" (from the TERRA satellite),
+ "aqua" (from the AQUA satellite) and "comb" (combination of both satellites)
 }
 \examples{
 \dontrun{

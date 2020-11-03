@@ -44,7 +44,7 @@ plots a probability cube using stars
 # select the bands for classification
 samples_ndvi_evi <- sits_select(samples_mt_4bands, bands = c("EVI", "NDVI"))
 # build the classification model
-rfor_model <- sits_train(samples_ndvi_evi, ml_method = sits_rfor(num_trees = 2000))
+rfor_model <- sits_train(samples_ndvi_evi, sits_rfor(num_trees = 2000))
 
 # select the bands "ndvi", "evi" provided by the SITS package
 ndvi_file <- c(system.file("extdata/raster/mod13q1/sinop-ndvi-2014.tif",

@@ -33,7 +33,7 @@
 
 \item{end_date}{ending date of the cube}
 
-\item{s2_aws_resolution}{resolution of Sentinel images in AWS ("10m", "20m" or "60m")}
+\item{s2_aws_resolution}{resolution of S2 images ("10m", "20m" or "60m")}
 
 \item{access_key}{AWS access key}
 
@@ -45,12 +45,13 @@
 data cube
 }
 \description{
-Defines a cube to retrieve data from the Sentinel-2 Level 2A data
-             available in AWS. To access this data, the user needs to be an AWS
+Defines a cube to retrieve data from the Sentinel-2 L2A data
+             available in AWS. Users need to be an AWS
              user and provide her access key and secret key. These keys may
-             be passed as environment variables. The bands available in AWS for
-             10m resolution are "B02", "B03", "B04", and "B08". The  20m bands
-             are "B02", "B03", "B04", "B05", "B06", "BO7", "B08", "B8A", "B11", and "B12".
+             be passed as environment variables. The AWS bands in
+             10m resolution are "B02", "B03", "B04", and "B08".
+             The  20m bands are "B02", "B03", "B04", "B05", "B06", "BO7",
+             "B08", "B8A", "B11", and "B12".
              All 12 bands are available at 60m resolution.
 }
 \examples{
@@ -63,6 +64,7 @@ Defines a cube to retrieve data from the Sentinel-2 Level 2A data
 # "AWS_ACCESS_KEY_ID"     = <your_access_key>,
 # "AWS_SECRET_ACCESS_KEY" = <your_secret_access_key>,
 # "AWS_DEFAULT_REGION"    = <your AWS region>,
+3 "AWS_ENDPOINT" = "sentinel-s2-l2a.s3.amazonaws.com",
 # "AWS_REQUEST_PAYER"     = "requester"
 # )
 

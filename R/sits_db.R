@@ -106,7 +106,8 @@ sits_db_info <- function(conn){
                     bands  <- paste(data$bands[[1]], collapse = ", ")
                 else
                     bands  <- paste0("[", band_info[1],",...,",
-                                     band_info[length(band_info)], "] (", length(band_info)," bds)")
+                                          band_info[length(band_info)],
+                                     "] (", length(band_info)," bds)")
 
                 ll_inf <- .sits_proj_to_latlong(data$xmin, data$ymin,
                                 as.character(data$crs))

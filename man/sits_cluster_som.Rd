@@ -23,13 +23,14 @@ sits_cluster_som(
 
 \item{grid_ydim}{Y dimension of the SOM grid.}
 
-\item{alpha}{Starting learning rate, which decreases according to number of iterations.}
+\item{alpha}{Starting learning rate,
+which decreases according to number of iterations.}
 
 \item{distance}{The similarity measure (distance).}
 
-\item{iterations}{The number of time to run the SOM cluster.}
+\item{iterations}{How many times to run the SOM cluster.}
 
-\item{rlen}{The number of time the dataset will be presented to the SOM.}
+\item{rlen}{How many times dataset will be presented to the SOM.}
 
 \item{conditonal_threshold}{Threshold of conditional probability
 (frequency of samples assigned to a same SOM neuron)}
@@ -45,12 +46,13 @@ A sits tibble with a new subset of samples and
 \description{
 This function uses self-organized maps to find clusters in
 satellite image time series for quality control of the  samples.
-It calls the function \code{\link[sits]{sits_som_map}} to generate the som map and
-\code{\link[sits]{sits_som_clean_samples}} to produce a cleaned set of samples.
+Calls \code{\link[sits]{sits_som_map}} to generate the som map and
+\code{\link[sits]{sits_som_clean_samples}} to produce a clean set of samples.
 The parameters "grid_xdim", "grid_ydim", "rlen", "distance", "alpha", and
-"iterations" are used by \code{\link[sits]{sits_som_map}} to control how the Kohonen map
-is generated. The parameters "conditonal_threshold" and "posterior_threshold" control how the
-good quality samples are selected, based on the Kohonen map.
+"iterations" are used by \code{\link[sits]{sits_som_map}} to control
+how the Kohonen map is generated.
+The parameters "conditonal_threshold" and "posterior_threshold" control
+how the good quality samples are selected, based on the Kohonen map.
 }
 \examples{
 \dontrun{

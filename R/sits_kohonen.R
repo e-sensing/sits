@@ -4,24 +4,26 @@
 #' @author Karine Ferreira. \email{karine.ferreira@@inpe.br}
 #' @description This function uses self-organized maps to find clusters in
 #' satellite image time series for quality control of the  samples.
-#' It calls the function \code{\link[sits]{sits_som_map}} to generate the som map and
-#' \code{\link[sits]{sits_som_clean_samples}} to produce a cleaned set of samples.
+#' Calls \code{\link[sits]{sits_som_map}} to generate the som map and
+#' \code{\link[sits]{sits_som_clean_samples}} to produce a clean set of samples.
 #' The parameters "grid_xdim", "grid_ydim", "rlen", "distance", "alpha", and
-#' "iterations" are used by \code{\link[sits]{sits_som_map}} to control how the Kohonen map
-#' is generated. The parameters "conditonal_threshold" and "posterior_threshold" control how the
-#' good quality samples are selected, based on the Kohonen map.
+#' "iterations" are used by \code{\link[sits]{sits_som_map}} to control
+#' how the Kohonen map is generated.
+#' The parameters "conditonal_threshold" and "posterior_threshold" control
+#' how the good quality samples are selected, based on the Kohonen map.
 #'
 #' @references `kohonen` package (https://CRAN.R-project.org/package=kohonen)
 #'
 #' @param data           A tibble with samples to be clustered.
 #' @param grid_xdim      X dimension of the SOM grid (default = 25).
 #' @param grid_ydim      Y dimension of the SOM grid.
-#' @param alpha          Starting learning rate, which decreases according to number of iterations.
+#' @param alpha          Starting learning rate,
+#'                       which decreases according to number of iterations.
 #' @param distance       The similarity measure (distance).
-#' @param iterations     The number of time to run the SOM cluster.
-#' @param rlen           The number of time the dataset will be presented to the SOM.
+#' @param iterations     How many times to run the SOM cluster.
+#' @param rlen           How many times dataset will be presented to the SOM.
 #' @param conditonal_threshold      Threshold of conditional probability
-#'                                  (frequency of samples assigned to a same SOM neuron)
+#'                          (frequency of samples assigned to a same SOM neuron)
 #' @param posterior_threshold       Threshold of posterior probability
 #'                                  (influenced by the SOM neighborhood)
 #' @return              A sits tibble with a new subset of samples and
@@ -57,15 +59,14 @@ sits_cluster_som <- function(data,
 
 
 
-#' @title Generate a Kohonen map for quality control of the samples and calculate parameters
+#' @title Generate a Kohonen map for sample quality control
 #' @name sits_som_map
 #' @author Lorena Alves, \email{lorena.santos@@inpe.br}
 #' @author Karine Ferreira. \email{karine.ferreira@@inpe.br}
 #'
-#' @description This function uses package self-organized maps to find clusters in
-#' satellite image time series to cluster the  samples. Besides that, this function
-#' evaluates the quality of each sample through SOM properties, such as evaluate each
-#' sample allocated in aneuron-cluster and its neighbourhood.
+#' @description This function uses package self-organized maps
+#' to find clusters in satellite image time series to cluster the  samples.
+#' It also evaluates the quality of each sample using SOM properties.
 #'
 #' The output tibble contains additional columns:
 #' (a) the probability of a sample belongs to a cluster based on a frequency
@@ -78,7 +79,8 @@ sits_cluster_som <- function(data,
 #' @param data           A tibble with samples to be clustered.
 #' @param grid_xdim      X dimension of the SOM grid (default = 25).
 #' @param grid_ydim      Y dimension of the SOM grid.
-#' @param alpha          Starting learning rate, which decreases according to number of iterations.
+#' @param alpha          Starting learning rate
+#'                       (decreases according to number of iterations).
 #' @param distance       The type of similarity measure (distance).
 #' @param iterations     The number of time to run the SOM cluster.
 #' @param rlen           Number of iterations to produce the SOM.
@@ -246,18 +248,18 @@ sits_som_map <- function(data,
             kohonen_obj <- .sits_som_paint_neurons(kohonen_obj)
 
         table_samples <- tibble::as_tibble(
-                            list(
-                                id_sample = as.integer(samples_probability_i.tb$id_sample),
-                                original_label = as.character(samples_probability_i.tb$label),
-                                neuron_label = as.character(samples_probability_i.tb$neuron_label),
-                                id_neuron = as.integer(samples_probability_i.tb$id_neuron),
-                                conditional_probability =
-                                  as.numeric(samples_probability_i.tb$conditional_probability),
-                                posterior_probability =
-                                  as.numeric(samples_probability_i.tb$posterior_probability),
-                                iteration = as.integer(k)
-                            )
-                        )
+            list(
+                id_sample = as.integer(samples_probability_i.tb$id_sample),
+                original_label = as.character(samples_probability_i.tb$label),
+                neuron_label = as.character(samples_probability_i.tb$neuron_label),
+                id_neuron = as.integer(samples_probability_i.tb$id_neuron),
+                conditional_probability =
+                    as.numeric(samples_probability_i.tb$conditional_probability),
+                posterior_probability =
+                    as.numeric(samples_probability_i.tb$posterior_probability),
+                iteration = as.integer(k)
+            )
+        )
 
         table_neurons$iteration <- k
 
@@ -348,9 +350,9 @@ sits_som_map <- function(data,
 #' @param posterior_threshold       Threshold of posterior probability
 #'                                  (influenced by the SOM neighborhood)
 #'
-#' @return                         A list with two sits tibbles
-#'                                 The first tibble has clean samples
-#'                                 The second has samples that need to be analysed
+#' @return List with two sits tibbles.
+#'         The first tibble has clean samples
+#'         The second has samples that need to be analysed.
 #'
 #' @examples
 #' \dontrun{
@@ -556,16 +558,16 @@ sits_som_evaluate_cluster <- function(som_map)
       			data.vec <- table(alloc_neurons_i$label)
 
       			result <- tibble::as_tibble(list(
-        											id_neuron = as.numeric(i),
-        											label_samples = names(data.vec),
-        											count = as.integer(data.vec),
-        											freq  = as.numeric(prop.table(data.vec))
+      			    id_neuron = as.numeric(i),
+      			    label_samples = names(data.vec),
+      			    count = as.integer(data.vec),
+      			    freq  = as.numeric(prop.table(data.vec))
       			))
 
       			max_class <- dplyr::summarize(result, max.pt = max(count))
 
       neuron_class <- dplyr::filter(result,
-                                    result$count == as.integer(max_class))$label_samples
+                        result$count == as.integer(max_class))$label_samples
 
     } else if (length(vb) == 0){
       neuron_class <- 'Noclass'
@@ -598,9 +600,10 @@ sits_som_evaluate_cluster <- function(som_map)
 #' @description This function does tie breaking for neurons
 #'              that have the same rate to belong a class.
 #'
-#' @param class_vector  A vector contained the labels of each neuron.
-#' @param kohonen_obj   The kohonen object returned by kohonen package.
-#' @param duplicated_id_neuron  A vector containing all the id of each neuron that has two majority labels.
+#' @param class_vector          vector with the labels of each neuron.
+#' @param kohonen_obj           object returned by kohonen package.
+#' @param duplicated_id_neuron  A vector containing all the id of each neuron
+#'                              that has two majority labels.
 #'
 #' @return Return a new majority label of a neuron based on its neighbourhood
 #'
@@ -619,7 +622,7 @@ sits_som_evaluate_cluster <- function(som_map)
     #remove duplicate neigbour
     datvec <- viz_neu[!(viz_neu %in% duplicated_id_neuron)]
 
-    #What is the class of this neihgbour?
+    #What is the class of this neighbor?
     class_neighbors.tb <- dplyr::filter(class_vector, class_vector$id_neuron %in% datvec)
     class_neighbors.tb <- unique(dplyr::select(class_neighbors.tb, id_neuron, neuron_class))
 
@@ -637,7 +640,7 @@ sits_som_evaluate_cluster <- function(som_map)
     if (verify_labels == FALSE)
       neuron_label <- label_samples_current_neuron[1]
 
-    if(neuron_label == "Noclass")
+    if(neuron_label == "NoClass")
       neuron_label <- unique(neuron$label_samples)[1]
 
     class_vector$neuron_class[class_vector$id_neuron == duplicated_id_neuron[i]] <- neuron_label
@@ -650,8 +653,8 @@ sits_som_evaluate_cluster <- function(som_map)
 #' @keywords internal
 #' @author Lorena Santos, \email{lorena.santos@@inpe.br}
 #'
-#' @description This function creates a table contained the information about all
-#' neighbor of one neuron of radius 1.
+#' @description This function creates a table with the information on all
+#' neighbors of each neuron of radius 1.
 #'
 #' @param class_vector          A vector contained the labels of each neuron.
 #' @param kohonen_obj           An object returned by kohonen package.
@@ -710,7 +713,9 @@ sits_som_evaluate_cluster <- function(som_map)
 #'
 #' @param data       A sits tibble with info of samples
 #'                   provided by sits_cluster_som.
-#' @return           a sits tibble with a new column indicating the probability of a sample belongs to a cluster and the majority cluster of a sample
+#' @return           a sits tibble with a new column indicating
+#'                   the probability of a sample belongs to a cluster
+#'                   and the majority cluster of a sample
 #'
 .sits_som_cluster_probability <- function(data)
 {
@@ -785,14 +790,19 @@ sits_som_evaluate_cluster <- function(som_map)
 #' @keywords internal
 #' @author Lorena Santos, \email{lorena.santos@@inpe.br}
 #'
-#' @description This function compute the probability of a sample belongs to a cluster using bayesian filter.
-#' @param kohonen_obj    Object Kohonen, this object contains all parameters of SOM provided by package Kohonen
-#' @param neurons_labelled.tb A tibble containing informations about each neuron.
-#' @param result A tibble with samples.
-#' @return Returns the probability of a sample belongs to a cluster based on class of neuron and its neighborhood.
+#' @description          Computes the probability of a sample belongs
+#'                       to a cluster using bayesian filter.
+#' @param kohonen_obj    object this object contains all parameters of SOM
+#'                       provided by Kohonen package
+#' @param neurons_labelled.tb A tibble containing information about each neuron.
+#' @param result         A tibble with samples.
+#' @return               Returns the probability of a sample belongs
+#'                       to a cluster based on the class of neuron
+#'                       and its neighborhood.
 
-.sits_som_bayesian_neighbourhood <- function(kohonen_obj, neurons_labelled.tb, result)
-{
+.sits_som_bayesian_neighbourhood <- function(kohonen_obj,
+                                             neurons_labelled.tb,
+                                             result){
   grid_size <- dim(kohonen_obj$grid$pts)[1]
   samples_probability_i.tb <- tibble::as_tibble()
 
@@ -800,7 +810,7 @@ sits_som_evaluate_cluster <- function(som_map)
   for (neuron_i in seq_len(grid_size))
   {
     #get general information about each neuron
-    current_id_neighbourhood.tb <-which(kohonen::unit.distances(kohonen_obj$grid)[, neuron_i] == 1)
+    current_id_neighbourhood.tb <- which(kohonen::unit.distances(kohonen_obj$grid)[, neuron_i] == 1)
 
     #amount of neighourhood
     size_neighbourhood <- length(current_id_neighbourhood.tb)

@@ -20,7 +20,7 @@ A valid data cube
 }
 \description{
 Implements an interface to a web time series service (WTSS)
-              that offers time series of remote sensing data using a simple API.
+              offering time series of remote sensing data using a simple API.
 }
 \examples{
 \dontrun{

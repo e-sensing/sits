@@ -75,7 +75,7 @@ sits_accuracy <- function(label_cube, validation_csv) {
                             msg = "sits_accuracy requires a labelled cube")
 
     assertthat::assert_that(file.exists(validation_csv),
-                            msg = "sits_accuracy: validation file does not exist.")
+                            msg = "sits_accuracy: validation file missing.")
 
     # read sample information from CSV file and put it in a tibble
     csv.tb <- tibble::as_tibble(utils::read.csv(validation_csv))
@@ -99,7 +99,7 @@ sits_accuracy <- function(label_cube, validation_csv) {
 
     # are there points to be retrieved from the cube?
     assertthat::assert_that(nrow(points_year) != 0,
-                            msg = "No validation point intersects the map's spatiotemporal extent.")
+        msg = "No validation point intersects the map's spatiotemporal extent.")
 
     # retain only xy inside the cube
     xy <- matrix(c(points_year$X, points_year$Y),
@@ -138,7 +138,8 @@ sits_accuracy <- function(label_cube, validation_csv) {
     tb <- t(dplyr::bind_rows(assess$accuracy$user, assess$accuracy$producer))
     colnames(tb) <- c("User", "Producer")
     #
-    print(knitr::kable(tb, digits = 2, caption = "Users and Producers Accuracy per Class"))
+    print(knitr::kable(tb, digits = 2,
+                       caption = "Users and Producers Accuracy per Class"))
 
     # print overall accuracy
     print(paste0("\nOverall accuracy is ", assess$accuracy$overall))
@@ -183,28 +184,14 @@ sits_accuracy <- function(label_cube, validation_csv) {
     W <- area / sum(area)
     n <- rowSums(error_matrix)
 
-    # if (any(n < 2))
-    #     stop("Undefined accuracy: only one pixel in a class (division by zero).",
-    #          call. = FALSE)
-
-    # n.mat <- matrix(rep(n, times = ncol(error_matrix)),
-    #                 ncol = ncol(error_matrix))
-    # p <- W * error_matrix / n.mat
     p <- W * error_matrix / n
     p[is.na(p)] <- 0
 
     error_adjusted_area <- colSums(p) * sum(area)
 
-    # Sphat_1 <- vapply(seq_len(ncol(error_matrix)), function(i){
-    #     sqrt(sum(W^2 * error_matrix[, i]/n * (1 - error_matrix[, i]/n)/(n - 1)))
-    # }, numeric(1))
     Sphat_1 <- sqrt(colSums((W * p - p ** 2) / (n - 1)))
 
     SAhat <- sum(area) * Sphat_1
-    # Ahat_sup <- error_adjusted_area_estimate + 2 * SAhat
-    #Ahat_sup <- error_adjusted_area_estimate + 1.96 * SAhat
-    # Ahat_inf <- error_adjusted_area_estimate - 2 * SAhat
-    #Ahat_inf <- error_adjusted_area_estimate - 1.96 * SAhat
     Ohat <- sum(diag(p))
     Uhat <- diag(p) / rowSums(p)
     Phat <- diag(p) / colSums(p)

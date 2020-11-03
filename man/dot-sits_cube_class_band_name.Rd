@@ -16,7 +16,7 @@
 \item{end_date}{end date of the time series classification.}
 }
 \value{
-name of the classification file for the required interval.
+classification file for the required interval.
 }
 \description{
 Creates a name for a raster layer based on timeline

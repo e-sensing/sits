@@ -3,11 +3,14 @@
 \docType{data}
 \name{samples_mt_4bands}
 \alias{samples_mt_4bands}
-\title{Samples of nine classes for the state of Mato Grosso used for classification}
+\title{Samples of nine classes for the state of Mato Grosso}
 \format{
-A tibble with 1892 rows and 7 variables: (a) longitude: East-west coordinate of the time series sample (WGS 84);
-  latitude (North-south coordinate of the time series sample in WGS 84), start_date (initial date of the time series),
-  end_date (final date of the time series), label (the class label associated to the sample),
+A tibble with 1892 rows and 7 variables:
+  longitude: East-west coordinate of the time series sample (WGS 84),
+  latitude (North-south coordinate of the time series sample in WGS 84),
+  start_date (initial date of the time series),
+  end_date (final date of the time series),
+  label (the class label associated to the sample),
   cube (the name of the cube associated with the data),
   time_series (list containing a tibble with the values of the time series).
 }
@@ -15,9 +18,12 @@ A tibble with 1892 rows and 7 variables: (a) longitude: East-west coordinate of 
 data(samples_mt_4bands)
 }
 \description{
-A dataset containing a tibble with time series samples for the Mato Grosso state in Brasil.
-  The time series come from MOD13Q1 collection 6 images. The data set has the following classes:
-  Cerrado(400 samples), Fallow_Cotton (29 samples), Forest (131 samples), Pasture (344 samples),
+A dataset containing a tibble with time series samples
+  for the Mato Grosso state in Brasil.
+  The time series come from MOD13Q1 collection 6 images.
+  The data set has the following classes:
+  Cerrado(400 samples), Fallow_Cotton (29 samples), Forest (131 samples),
+  Pasture (344 samples),
   Soy-Corn (364 samples),  Soy-Cotton (352 samples), Soy_Fallow (87 samples),
   Soy_Millet (180 samples), and Soy_Sunflower (26 samples).
 }

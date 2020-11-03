@@ -5,9 +5,12 @@
 \alias{cerrado_2classes}
 \title{Samples of classes Cerrado and Pasture}
 \format{
-A tibble with 736 rows and 7 variables: (a) longitude: East-west coordinate of the time series sample (WGS 84);
-  latitude (North-south coordinate of the time series sample in WGS 84), start_date (initial date of the time series),
-  end_date (final date of the time series), label (the class label associated to the sample),
+A tibble with 736 rows and 7 variables:
+  longitude: East-west coordinate of the time series sample (WGS 84),
+  latitude (North-south coordinate of the time series sample in WGS 84),
+  start_date (initial date of the time series),
+  end_date (final date of the time series),
+  label (the class label associated to the sample),
   cube (the name of the cube associated with the data),
   time_series (list containing a tibble with the values of the time series).
 }
@@ -15,7 +18,8 @@ A tibble with 736 rows and 7 variables: (a) longitude: East-west coordinate of t
 data(cerrado_2classes)
 }
 \description{
-A dataset containing a tibble with time series samples for the Cerrado and Pasture areas of the Mato Grosso state.
+A dataset containing a tibble with time series samples
+  for the Cerrado and Pasture areas of the Mato Grosso state.
   The time series come from MOD13Q1 collection 5 images.
 }
 \keyword{datasets}

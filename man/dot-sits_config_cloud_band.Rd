@@ -10,7 +10,7 @@
 \item{satellite}{satellite}
 }
 \value{
-vector with names of the bands available in AWS for a given resolution
+vector with bands available in AWS for a given resolution
 }
 \description{
 Get the name of the band used for cloud information

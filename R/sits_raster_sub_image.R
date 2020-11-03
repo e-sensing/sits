@@ -27,7 +27,7 @@
 #' @return                 vector with information on the subimage
 .sits_raster_sub_image_default <- function(cube){
     # by default, the sub_image has the same dimension as the main cube
-    sub_image = vector("integer", length = 8)
+    sub_image <- vector("integer", length = 8)
     names(sub_image) <- c("first_row", "first_col", "nrows", "ncols",
                           "xmin", "ymin", "xmax", "ymax")
 

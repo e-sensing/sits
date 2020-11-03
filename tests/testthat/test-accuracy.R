@@ -21,7 +21,7 @@ test_that("Accuracy - more than 2 classes", {
     expect_true(conf.mx$overall["Accuracy"] > 0.90)
     expect_true(conf.mx$overall["Kappa"] > 0.90)
 
-    conv.lst = list(Soy_Corn = "Cropland",
+    conv.lst <- list(Soy_Corn = "Cropland",
                     Soy_Cotton  = "Cropland",
                     Soy_Fallow  = "Cropland",
                     Soy_Millet  = "Cropland",
@@ -66,14 +66,13 @@ test_that("Accuracy areas", {
     expect_true(terra::nrow(tc_obj) == sinop_2014_probs$nrows)
 
     sinop_2014_label <- sits_label_classification(sinop_2014_probs,
-                                                  output_dir = tempdir(),
-                                                  smoothing = "bayesian")
+                                                  output_dir = tempdir())
 
     ground_truth <- system.file("extdata/samples/samples_sinop_crop.csv", package = "sits")
     as <- suppressWarnings(sits_accuracy(sinop_2014_label, ground_truth))
 
-    expect_true(as.numeric(as$accuracy$user["Forest"]) > 0.8)
-    expect_true(as.numeric(as$accuracy$producer["Pasture"]) > 0.8)
+    expect_true(as.numeric(as$accuracy$user["Forest"]) > 0.5)
+    expect_true(as.numeric(as$accuracy$producer["Pasture"]) > 0.5)
 
 
 })

@@ -21,20 +21,22 @@
     current_time <- lubridate::now()
 
     # compute elapsed time and estimates remaining time
-    elapsed_time <- lubridate::time_length(current_time - start_time,
-                                           unit = "minute")
-    elapsed_intervals <- (block - 1) * n_intervals + time
+    elaps_time <- lubridate::time_length(current_time - start_time,
+                                         unit = "minute")
+    elaps_intervals <- (block - 1) * n_intervals + time
     total_intervals   <- bs$n * n_intervals
-    if (elapsed_intervals < total_intervals) {
+    if (elaps_intervals < total_intervals) {
         message(sprintf(
             "Elapsed time %s minute(s).
          Estimated total process time %s minute(s)...",
-            round(as.numeric(elapsed_time), 1),
-            round(as.numeric((total_intervals/elapsed_intervals) * elapsed_time),
+            round(as.numeric(elaps_time), 1),
+            round(as.numeric((total_intervals/elaps_intervals) * elaps_time),
                   1)))
     } else {
         message(paste0("Classification finished at ", current_time,
-            ". Total elapsed time: ", round(as.numeric(elapsed_time), 1), "minute(s)."))
+            ". Total elapsed time: ",
+            round(as.numeric(elaps_time), 1),
+            "minute(s)."))
     }
     return(invisible(TRUE))
 }

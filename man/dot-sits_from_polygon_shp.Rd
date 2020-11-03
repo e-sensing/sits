@@ -2,7 +2,7 @@
 % Please edit documentation in R/sits_shp.R
 \name{.sits_from_polygon_shp}
 \alias{.sits_from_polygon_shp}
-\title{Obtain a tibble with latitude and longitude points from POLYGON geometry}
+\title{Obtain a tibble from POLYGON geometry}
 \usage{
 .sits_from_polygon_shp(sf_shape, shp_attr, label, .n_shp_pol)
 }
@@ -16,6 +16,6 @@
 \item{.n_shp_pol}{Number of samples per polygon to be read}
 }
 \description{
-Obtain a tibble with latitude and longitude points from POLYGON geometry
+Obtain a tibble from POLYGON geometry
 }
 \keyword{internal}

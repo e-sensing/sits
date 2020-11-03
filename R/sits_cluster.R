@@ -83,7 +83,8 @@ sits_cluster_dendro <-  function(samples = NULL,
                 c(0, cluster.obj$height)[length(cluster.obj$height) - k + 2]
         }
     }
-    result$cluster <- stats::cutree(cluster.obj, cut.vec["k"], cut.vec["height"])
+    result$cluster <- stats::cutree(cluster.obj, cut.vec["k"],
+                                    cut.vec["height"])
 
     # plot the dendrogram
     if (!silent) message("Plotting dendrogram...")

@@ -44,7 +44,7 @@
 #' @param type           Type of output
 #' @param start_date     Starting date of the time series classification.
 #' @param end_date       End date of the time series classification.
-#' @return               Name of the classification file for the required interval.
+#' @return               Classification file for the required interval.
 .sits_raster_filename <- function(output_dir,
                                   version,
                                   name,
@@ -124,15 +124,15 @@
     sats <- .sits_config_satellites()
     my_sats <- paste0(sats, collapse = ", ")
     assertthat::assert_that(satellite %in% sats,
-                            msg = paste0("satellite ", satellite, " not supported - ",
-                                         "use one of ", my_sats))
+            msg = paste0("satellite ", satellite, " not supported - ",
+                         "use one of ", my_sats))
     # is the sensor supported by SITS?
     sensor <- toupper(sensor)
     sensors <- .sits_config_sensors(satellite)
     my_sensors <- paste0(sensors, collapse = ", ")
     assertthat::assert_that(sensor %in% sensors,
-                            msg = paste0("sensor ", sensors, " not supported - ",
-                                         "use one of ", my_sensors))
+            msg = paste0("sensor ", sensors, " not supported - ",
+                         "use one of ", my_sensors))
 
     return(invisible(TRUE))
 }

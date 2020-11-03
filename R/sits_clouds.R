@@ -100,11 +100,11 @@ sits_cloud_remove <- function(cube,
 	bloat <- as.numeric(.sits_config_memory_bloat())
 
 	# number of rows and cols
-	nrows <- cube$nrows
-	ncols <- cube$ncols
+	nrows <- as.numeric(cube$nrows)
+	ncols <- as.numeric(cube$ncols)
 
 	# single instance depends on the number of bands
-	single_data_size <- as.numeric(nrows)*as.numeric(ncols)*as.numeric(nbytes)*n_bands
+	single_data_size <- nrows*ncols*nbytes*n_bands
 
 	# estimated full size of the data
 	full_size <- as.numeric(n_instances)*single_data_size
@@ -128,7 +128,7 @@ sits_cloud_remove <- function(cube,
 
 }
 
-#' @title Create the bricks that will be the output of the cloud estimation procedure
+#' @title Create the output of the cloud estimation procedure
 #' @name .sits_clouds_interpolate
 #' @keywords internal
 #'
@@ -268,15 +268,15 @@ sits_cloud_remove <- function(cube,
 #' @param t2            controls the brightness properties of cloud
 #' @param t3            controls the dark property of cloud shadows.
 #' @param t4            remove influence of water in the cloud shadow detection
-#' @param t5            size of window to search for clouds when detecting shadows
+#' @param t5            size of window to search for clouds near shadows
 #' @param t6            size of window of median filter to remove outliers
 #' @param memsize       size of memory
 #' @param multicores    number of cores
 #'
 #' @description This algorithm is an implementation of the paper by Zhai et al,
 #' "Cloud/shadow detection based on spectral indices for multispectral
-#'  optical remote sensing imagery", ISPRS Journal of Photogrammetry and Remote Sensing,
-#'  volume 144, October 2018, Pages 235-253.
+#'  optical remote sensing imagery", ISPRS Journal of Photogrammetry
+#'  and Remote Sensing, volume 144, October 2018, Pages 235-253.
 #'
 #'  The authors recommend the following typical values for the parameters:
 #'  SITS supports the following models:
@@ -300,11 +300,12 @@ sits_cloud_cbers <- function(cube, cld_band_name = "CMASK",
                              memsize = 8, multicores = 2){
     # preconditions
     assertthat::assert_that(cube$satellite == "CBERS-4",
-                            msg = "sits_cloud_cbers works only with CBERS-4 data");
+                      msg = "sits_cloud_cbers works only with CBERS-4 data")
     assertthat::assert_that(cube$sensor == "AWFI",
-                            msg = "sits_cloud_cbers works only with AWFI data");
-    assertthat::assert_that(all(c("B13", "B14", "B15", "B16") %in% sits_bands(cube)),
-                            msg = "sits_cloud_cbers requires bands 13 to 16");
+                      msg = "sits_cloud_cbers works only with AWFI data")
+    assertthat::assert_that(all(c("B13", "B14", "B15", "B16") %in%
+                                    sits_bands(cube)),
+                    msg = "sits_cloud_cbers requires bands 13 to 16");
 
 
     # estimate the blocks to be read
@@ -422,7 +423,8 @@ sits_cloud_cbers <- function(cube, cld_band_name = "CMASK",
                              ncol = extent["ncols"])
             terra::readStop(t_b16)
 
-            cld_detect_block <- function(b_b13.mx, b_b14.mx, b_b15.mx, b_b16.mx) {
+            cld_detect_block <- function(b_b13.mx, b_b14.mx, b_b15.mx, b_b16.mx)
+            {
                 # interpolate NA
                 block.mx <- cbers4_cld_detect(b_b13.mx, b_b14.mx,
                                               b_b15.mx, b_b16.mx,
@@ -476,7 +478,8 @@ sits_cloud_cbers <- function(cube, cld_band_name = "CMASK",
     # add the information to the file info
 
     rows.lst <- purrr::map2(cld_files.lst, timeline, function(f, t){
-        row <- tibble::tibble(date = lubridate::as_date(t), band = cld_band_name,
+        row <- tibble::tibble(date = lubridate::as_date(t),
+                              band = cld_band_name,
                               path = f)
         return(row)
     })

@@ -11,7 +11,7 @@ A vector with 23 dates in YYYY-MM-DD format.
 data(timeline_2013_2014)
 }
 \description{
-The timeline for the time series used in the examples of the sits package
+The timeline for the time series used in the examples
    that use data for one year classification.
    There are 23 instances from 2013-09-14 until 2014-08-29.
 }

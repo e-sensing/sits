@@ -13,7 +13,7 @@ test_that("Relabel", {
     #skip_on_cran()
     data("samples_mt_4bands")
 
-    conv.lst = list(Soy_Corn = "Cropland",
+    conv.lst <- list(Soy_Corn = "Cropland",
                     Soy_Cotton  = "Cropland",
                     Soy_Fallow  = "Cropland",
                     Soy_Millet  = "Cropland",

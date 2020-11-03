@@ -154,7 +154,8 @@ plot.raster_cube <- function(x , y, ..., red, green, blue, time = 1) {
         stop("Please install package raster.", call. = FALSE)
     }
     # set mapview options
-    mapview::mapviewOptions(basemaps = c("GeoportailFrance.orthos","Esri.WorldImagery"))
+    mapview::mapviewOptions(basemaps = c("GeoportailFrance.orthos",
+                                         "Esri.WorldImagery"))
 
     # get information about bands and files
     file_info <- x$file_info[[1]]
@@ -222,7 +223,7 @@ plot.raster_cube <- function(x , y, ..., red, green, blue, time = 1) {
 #' # select the bands for classification
 #' samples_ndvi_evi <- sits_select(samples_mt_4bands, bands = c("EVI", "NDVI"))
 #' # build the classification model
-#' rfor_model <- sits_train(samples_ndvi_evi, ml_method = sits_rfor(num_trees = 2000))
+#' rfor_model <- sits_train(samples_ndvi_evi, sits_rfor(num_trees = 2000))
 #'
 #' # select the bands "ndvi", "evi" provided by the SITS package
 #' ndvi_file <- c(system.file("extdata/raster/mod13q1/sinop-ndvi-2014.tif",
@@ -263,7 +264,7 @@ plot.probs_cube <- function(x , y, ..., time = 1,
 		stop("Please install package stars.", call. = FALSE)
 	}
 	# define the output color pallete
-	col = grDevices::hcl.colors(10, colors, rev = TRUE)
+	col <-  grDevices::hcl.colors(10, colors, rev = TRUE)
 	# create a stars object
 	st <- stars::read_stars(x$file_info[[1]]$path[[time]])
 
@@ -331,7 +332,8 @@ plot.classified_image <- function(x , y, ..., map = NULL, time = 1,
         stop("Please install package mapview.", call. = FALSE)
     }
     # set mapview options
-    mapview::mapviewOptions(basemaps = c("GeoportailFrance.orthos","Esri.WorldImagery"))
+    mapview::mapviewOptions(basemaps = c("GeoportailFrance.orthos",
+                                         "Esri.WorldImagery"))
 
 	# get the labels and how many there are
 	labels <- .sits_cube_labels(x)
@@ -471,10 +473,11 @@ plot.keras_model <- function(x, y, ...) {
 .sits_plot_allyears <- function(data, colors) {
     locs <- dplyr::distinct(data, longitude, latitude)
 
-     p.lst <- purrr::pmap(list(locs$longitude, locs$latitude), function(long, lat) {
-         dplyr::filter(data, longitude == long, latitude == lat) %>%
-             .sits_ggplot_series(colors) %>%
-             graphics::plot()
+     p.lst <- purrr::pmap(list(locs$longitude, locs$latitude),
+                          function(long, lat) {
+                dplyr::filter(data, longitude == long, latitude == lat) %>%
+                .sits_ggplot_series(colors) %>%
+                graphics::plot()
 
     })
     return(invisible(p.lst[[1]]))
@@ -701,7 +704,9 @@ plot.keras_model <- function(x, y, ...) {
 	ts1 <- tidyr::pivot_longer(data, -Index)
 	g <- ggplot2::ggplot(data = ts1 %>%
 						 	dplyr::filter(name != "cld")) +
-		ggplot2::geom_col(ggplot2::aes(x = Index, y = value), fill = "sienna", alpha = 0.3,
+		ggplot2::geom_col(ggplot2::aes(x = Index, y = value),
+		                  fill = "sienna",
+		                  alpha = 0.3,
 						  data = ts1 %>%
 						  	dplyr::filter(name == "cld", !is.na(value))) +
 		ggplot2::geom_line(ggplot2::aes(x = Index, y = value, color = name)) +
@@ -784,86 +789,86 @@ plot.keras_model <- function(x, y, ...) {
     # put the time series in the data frame
     g.lst <- purrr::pmap(list(data$latitude, data$longitude, data$label,
                               data$time_series, data$predicted),
-                         function(row_lat, row_long, row_label,
-                                  row_time_series, row_predicted) {
-                             lb <- .sits_plot_title(row_lat, row_long, row_label)
-                             # extract the time series
-                             ts <- row_time_series
-                             # convert to data frame
-                             df.x <- data.frame(Time = ts$Index, ts[,bands],
-                                                Series = as.factor(lb))
-                             # melt the time series data for plotting
-                             df.x <- reshape2::melt(df.x, id.vars = c("Time", "Series"))
-                             # define a nice set of breaks for value plotting
-                             y.labels <-  scales::pretty_breaks()(range(df.x$value,
-                                                                        na.rm = TRUE))
-                             y.breaks <-  y.labels
+                function(row_lat, row_long, row_label,
+                         row_time_series, row_predicted) {
+                    lb <- .sits_plot_title(row_lat, row_long, row_label)
+                    # extract the time series
+                    ts <- row_time_series
+                    # convert to data frame
+                    df.x <- data.frame(Time = ts$Index, ts[,bands],
+                                       Series = as.factor(lb))
+                    # melt the time series data for plotting
+                    df.x <- reshape2::melt(df.x, id.vars = c("Time", "Series"))
+                    # define a nice set of breaks for value plotting
+                    y.labels <-  scales::pretty_breaks()(range(df.x$value,
+                                                               na.rm = TRUE))
+                    y.breaks <-  y.labels
 
-                             # get the predicted values as a tibble
+                    # get the predicted values as a tibble
 
-                             pred <- row_predicted
-                             df.pol <- data.frame()
+                    pred <- row_predicted
+                    df.pol <- data.frame()
 
-                             # create a data frame with values and intervals
-                             i <- 1
-                             purrr::pmap(list(row_predicted$from, row_predicted$to,
-                                              row_predicted$class),
-                                         function (rp_from, rp_to, rp_class) {
+                    # create a data frame with values and intervals
+                    i <- 1
+                    purrr::pmap(list(row_predicted$from, row_predicted$to,
+                                     row_predicted$class),
+                                function (rp_from, rp_to, rp_class) {
 
-                                             best_class <- as.character(rp_class)
+                                    best_class <- as.character(rp_class)
 
-                                             df.p <- data.frame(
-                                                 Time  = c(lubridate::as_date(rp_from),
-                                                           lubridate::as_date(rp_to),
-                                                           lubridate::as_date(rp_to),
-                                                           lubridate::as_date(rp_from)),
-                                                 Group = rep(i, 4),
-                                                 Class = rep(best_class, 4),
-                                                 value = rep(range(y.breaks,
-                                                                   na.rm = TRUE), each = 2)
-                                             )
-                                             i <<- i + 1
-                                             df.pol <<- rbind(df.pol, df.p)
+                                    df.p <- data.frame(
+                                        Time  = c(lubridate::as_date(rp_from),
+                                                  lubridate::as_date(rp_to),
+                                                  lubridate::as_date(rp_to),
+                                                  lubridate::as_date(rp_from)),
+                                        Group = rep(i, 4),
+                                        Class = rep(best_class, 4),
+                                        value = rep(range(y.breaks,
+                                                        na.rm = TRUE), each = 2)
+                                    )
+                                    i <<- i + 1
+                                    df.pol <<- rbind(df.pol, df.p)
 
-                                         })
+                                })
 
-                             df.pol$Group  <-  factor(df.pol$Group)
-                             df.pol$Class  <-  factor(df.pol$Class)
-                             df.pol$Series <-  rep(lb, length(df.pol$Time))
+                    df.pol$Group  <-  factor(df.pol$Group)
+                    df.pol$Class  <-  factor(df.pol$Class)
+                    df.pol$Series <-  rep(lb, length(df.pol$Time))
 
-                             I <-  min(df.pol$Time, na.rm = TRUE) - 30 <= df.x$Time &
-                                 df.x$Time <= max(df.pol$Time, na.rm = TRUE) + 30
+                    I <-  min(df.pol$Time, na.rm = TRUE) - 30 <= df.x$Time &
+                        df.x$Time <= max(df.pol$Time, na.rm = TRUE) + 30
 
-                             df.x <- df.x[I,,drop = FALSE]
+                    df.x <- df.x[I,,drop = FALSE]
 
-                             gp <-  ggplot2::ggplot() +
-                                 ggplot2::facet_wrap(~Series,
-                                                     scales = "free_x", ncol = 1) +
-                                 ggplot2::geom_polygon(data = df.pol,
-                                                       ggplot2::aes_string(x = 'Time',
-                                                                           y = 'value',
-                                                                           group = 'Group',
-                                                                           fill = 'Class'),
-                                                       alpha = .7) +
-                                 ggplot2::scale_fill_brewer(palette = "Set3") +
-                                 ggplot2::geom_line(data = df.x,
-                                                    ggplot2::aes_string(x = 'Time',
-                                                                        y = 'value',
-                                                                        colour = 'variable')) +
-                                 ggplot2::scale_y_continuous(expand = c(0, 0),
-                                                             breaks = y.breaks,
-                                                             labels = y.labels) +
-                                 ggplot2::scale_x_date(breaks = ggplot2::waiver(),
-                                                       labels = ggplot2::waiver()) +
-                                 ggplot2::theme(legend.position = "bottom") +
-                                 ggplot2::guides(colour =
-                                                     ggplot2::guide_legend(title = "Bands")) +
-                                 ggplot2::ylab("Value") +
-                                 ggplot2::xlab("Time")
+                    gp <-  ggplot2::ggplot() +
+                        ggplot2::facet_wrap(~Series,
+                                            scales = "free_x", ncol = 1) +
+                        ggplot2::geom_polygon(data = df.pol,
+                                        ggplot2::aes_string(x = 'Time',
+                                                            y = 'value',
+                                                            group = 'Group',
+                                                            fill = 'Class'),
+                                              alpha = .7) +
+                        ggplot2::scale_fill_brewer(palette = "Set3") +
+                        ggplot2::geom_line(data = df.x,
+                                    ggplot2::aes_string(x = 'Time',
+                                                        y = 'value',
+                                                        colour = 'variable')) +
+                        ggplot2::scale_y_continuous(expand = c(0, 0),
+                                                    breaks = y.breaks,
+                                                    labels = y.labels) +
+                        ggplot2::scale_x_date(breaks = ggplot2::waiver(),
+                                              labels = ggplot2::waiver()) +
+                        ggplot2::theme(legend.position = "bottom") +
+                        ggplot2::guides(colour =
+                                    ggplot2::guide_legend(title = "Bands")) +
+                        ggplot2::ylab("Value") +
+                        ggplot2::xlab("Time")
 
-                             g <- graphics::plot(gp)
+                    g <- graphics::plot(gp)
 
-                         })
+                })
     return(invisible(g.lst[[1]]))
 }
 
@@ -885,10 +890,10 @@ plot.keras_model <- function(x, y, ...) {
                               colors = NULL) {
     #precondition 1 - cube must be a labelled cube
     assertthat::assert_that(as.logical(grep("class",.sits_cube_bands(cube)[1])),
-                            msg = "sits_plot_raster: input cube must be a labelled one")
+                    msg = "sits_plot_raster: input cube must be a labelled one")
     #precondition 2 - time must be a positive integer
     assertthat::assert_that(time >= 1,
-                            msg = "sits_plot_raster: time must be a positive integer")
+                    msg = "sits_plot_raster: time must be a positive integer")
 
     # get the raster object
     r <- suppressWarnings(raster::raster(cube$files[[1]][time]))
@@ -1068,7 +1073,7 @@ plot.keras_model <- function(x, y, ...) {
 #' @description Plot a bar graph with informations about each cluster.
 #' The percentage of mixture between the clusters.
 #'
-#' @param data       Table containing the percentage of mixture between the clusters
+#' @param data       Percentage of mixture between the clusters
 #'                   (produced by \code{\link[sits]{sits_som_evaluate_cluster}})
 #' @param title      Title of plot.
 #' @return           ggplot2 object
@@ -1120,16 +1125,17 @@ plot.keras_model <- function(x, y, ...) {
 #' @param blue       Band to be assigned to G channel
 #' @param time       Temporal instance to be plotted
 #' @return           Named vector with the correct layers for RGB
-.sits_plot_rgb_assign <- function(is_brick, bands, timeline, red, green, blue, time){
+.sits_plot_rgb_assign <- function(is_brick, bands, timeline,
+                                  red, green, blue, time){
 
     # check if the selected bands are correct
 	all_bands <- paste0(bands, collapse = " ")
 	assertthat::assert_that(red %in% bands,
-							msg = paste0("R channel should be one of ", all_bands))
+					msg = paste0("R channel should be one of ", all_bands))
 	assertthat::assert_that(green %in% bands,
-							msg = paste0("G channel should be one of ", all_bands))
+					msg = paste0("G channel should be one of ", all_bands))
 	assertthat::assert_that(blue %in% bands,
-							msg = paste0("B channel should be one of ", all_bands))
+					msg = paste0("B channel should be one of ", all_bands))
 	# find out the number of instances
 	n_instances <- length(timeline)
 	# check if the selected temporal instance exists
@@ -1146,7 +1152,7 @@ plot.keras_model <- function(x, y, ...) {
 
 	# create a named vector to store the RGB instances
 	inst.vec <- unlist(instances.lst)
-	names(inst.vec) = c("red", "green", "blue")
+	names(inst.vec) <- c("red", "green", "blue")
 
 	return(inst.vec)
 }

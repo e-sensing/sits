@@ -63,7 +63,7 @@
     return(points.tb)
 }
 
-#' @title Obtain a tibble with latitude and longitude points from POLYGON geometry
+#' @title Obtain a tibble from POLYGON geometry
 #' @name .sits_from_polygon_shp
 #' @keywords internal
 #'
@@ -125,7 +125,7 @@
 
     # precondition - are all geometries compatible?
     assertthat::assert_that(all(sf::st_geometry_type(sf_shape) == geom_type),
-                            msg = "sits_from_shp: shapefile has different geometries")
+            msg = "sits_from_shp: shapefile has different geometries")
 
     # precondition - can the function deal with the geometry_type?
     assertthat::assert_that(
@@ -135,7 +135,7 @@
 
     # precondition - is the default label valid?
     assertthat::assert_that(!purrr::is_null(label) || !purrr::is_null(shp_attr),
-            msg = "sits_from_shp: default label or shape attribute should be valid")
+            msg = "sits_from_shp: label or shape attribute should be valid")
 
 
     # precondition - is the shape attribute valid?

@@ -55,16 +55,17 @@ Defines a cube to retrieve data from a set of image files.
 ' \itemize{
  \item{files with date and band information: }{In this case, the files
              contain date and band information in their names. This is
-             the usual case on files obtained from repositories such as Sentinel Hub
-             and AWS. The timeline and the bands are deduced from this information.
+             the case of files in repositories such as Sentinel Hub
+             and AWS. Timeline and the bands are deduced from filenames.
              Examples of valid image names include
              "CB4_64_16D_STK_022024_2018-08-29_2018-09-13_EVI.tif" and
              "B02_2018-07-18.jp2". In each case, the user has to provide
              appropriate parsing information that allows SITS to extract
              the band and the date. In the examples above, the parsing info
              would include "_" as a delimiter. In the first, the names of the
-             resulting columns after parsing are "X1", "X2", "X3", "X4", "X5",
-             "date", "X7", and "band". In the second, they are "band" and "date".}
+             resulting columns for parsing are "X1", "X2", "X3", "X4", "X5",
+             "date", "X7", and "band".
+             In the second, they are "band" and "date".}
  \item{bundled files with many images}: {in this case, each input band
              has to be organised as a raster brick, and the
              number of input files must match the number of bands.

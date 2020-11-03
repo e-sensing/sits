@@ -22,7 +22,7 @@
 
 \item{samples}{tibble with samples.}
 
-\item{obj.lst}{list of terra objects to be read which match the input bands}
+\item{obj.lst}{list of terra objects to be read}
 
 \item{obj_cld}{terra object that points to the cube cloud band}
 
