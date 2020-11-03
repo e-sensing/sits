@@ -3,7 +3,7 @@
 \docType{data}
 \name{samples_mt_4bands}
 \alias{samples_mt_4bands}
-\title{Samples of nine classes for the state of Mato Grosso used for classification}
+\title{Samples of nine classes for the state of Mato Grosso}
 \format{
 A tibble with 1892 rows and 7 variables:
   longitude: East-west coordinate of the time series sample (WGS 84),

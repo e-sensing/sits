@@ -11,7 +11,9 @@
 provided by sits_cluster_som.}
 }
 \value{
-a sits tibble with a new column indicating the probability of a sample belongs to a cluster and the majority cluster of a sample
+a sits tibble with a new column indicating
+                  the probability of a sample belongs to a cluster
+                  and the majority cluster of a sample
 }
 \description{
 This function summarizes the probability that a sample belongs

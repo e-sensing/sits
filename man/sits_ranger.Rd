@@ -18,7 +18,7 @@ at least a few times. (default: 2000).}
  'impurity', 'impurity_corrected', 'permutation'.
 The 'impurity' measure is the Gini index.}
 
-\item{...}{Other parameters to be passed to \code{\link[ranger]{ranger}} function.}
+\item{...}{Other \code{\link[ranger]{ranger}}  parameters}
 }
 \value{
 Model fitted to input data

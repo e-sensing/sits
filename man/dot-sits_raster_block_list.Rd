@@ -12,7 +12,8 @@
 \item{sub_image}{nrea of interest in the image}
 }
 \value{
-a list with n (number of blocks), row (vector of starting rows),
+a list with n (number of blocks),
+               row (vector of starting rows),
                nrow (vector with number of rows for each block) and
                size (vector with size of each block)
 }

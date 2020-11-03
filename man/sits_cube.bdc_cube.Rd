@@ -47,7 +47,7 @@
 
 \item{end_date}{ending date of the cube}
 
-\item{.local}{directory for local access to the input cube (optional)}
+\item{.local}{directory for local data (optional)}
 
 \item{.web}{URL for web access to the input cube (optional)}
 
@@ -57,10 +57,10 @@
 A data cube
 }
 \description{
-Defines a cube to retrieve data from the Brazil Data Cube (BDC). The retrieval
-             is based on tiles of a given cube. Allows local or web access. For
-             local access, the user should be logged in the BDC.
-             For more on BDC, please see http://brazildatacube.dpi.inpe.br/
+Defines a cube to work with data from Brazil Data Cube (BDC).
+Retrieval is based on tiles of a given cube. Allows local or web access. For
+local access, the user should be logged in the BDC.
+For more on BDC, please see http://brazildatacube.dpi.inpe.br/
 }
 \examples{
 \dontrun{

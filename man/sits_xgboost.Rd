@@ -36,14 +36,15 @@ and more likely to overfit. Default: 5.}
 \item{min_child_weight}{If the leaf node has a minimum sum of instance
 weights lower than min_child_weight,
 tree splitting stops. The larger min_child_weight is,
-the more conservative the algorithm will be. Default: 1.}
+the more conservative the algorithm is. Default: 1.}
 
 \item{max_delta_step}{Maximum delta step we allow each leaf output to be.
-If the value is set to 0, it means there is no constraint.
+If the value is set to 0, there is no constraint.
 If it is set to a positive value, it can help making
 the update step more conservative. Default: 1.}
 
-\item{subsample}{Percentage of samples supplied to a tree. Default: 0.8.}
+\item{subsample}{Percentage of samples supplied to a tree.
+Default: 0.8.}
 
 \item{nfold}{Number of the subsamples for the cross-validation.}
 
@@ -74,7 +75,8 @@ Please refer to the documentation in that package for more details.
 xgb_model <- sits_train(samples_mt_4bands, sits_xgboost(nrounds = 10))
 
 # get a point and classify the point with the ml_model
-point.tb <- sits_select(point_mt_6bands, bands = c("NDVI", "EVI", "NIR", "MIR"))
+point.tb <- sits_select(point_mt_6bands,
+                        bands = c("NDVI", "EVI", "NIR", "MIR"))
 class.tb <- sits_classify(point.tb, xgb_model)
 plot(class.tb, bands = c("NDVI", "EVI"))
 }

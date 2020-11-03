@@ -2,7 +2,7 @@
 % Please edit documentation in R/sits_kohonen.R
 \name{sits_som_map}
 \alias{sits_som_map}
-\title{Generate a Kohonen map for quality control of the samples and calculate parameters}
+\title{Generate a Kohonen map for sample quality control}
 \usage{
 sits_som_map(
   data,
@@ -21,7 +21,8 @@ sits_som_map(
 
 \item{grid_ydim}{Y dimension of the SOM grid.}
 
-\item{alpha}{Starting learning rate, which decreases according to number of iterations.}
+\item{alpha}{Starting learning rate
+(decreases according to number of iterations).}
 
 \item{rlen}{Number of iterations to produce the SOM.}
 
@@ -34,10 +35,9 @@ list of sits tibbles containing statistics
                       about the samples and the neuron in each iteration.
 }
 \description{
-This function uses package self-organized maps to find clusters in
-satellite image time series to cluster the  samples. Besides that, this function
-evaluates the quality of each sample through SOM properties, such as evaluate each
-sample allocated in aneuron-cluster and its neighbourhood.
+This function uses package self-organized maps
+to find clusters in satellite image time series to cluster the  samples.
+It also evaluates the quality of each sample using SOM properties.
 
 The output tibble contains additional columns:
 (a) the probability of a sample belongs to a cluster based on a frequency

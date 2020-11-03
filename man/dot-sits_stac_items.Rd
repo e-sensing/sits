@@ -21,14 +21,14 @@
 
 \item{tiles}{a \code{character} with the names of the tiles.}
 
-\item{roi}{the "roi" parameter defines a region of interest. It can be
-an \code{sfc} or \code{sf} object from sf package, a \code{character} with
-a GeoJSON following the rules from RFC 7946, or a \code{vector}
-bounding box \code{vector} with named XY values
-("xmin", "xmax", "ymin", "ymax").}
+\item{roi}{defines a region of interest. It can be
+an \code{sfc} or \code{sf} object from sf package,
+a \code{character} with a GeoJSON using RFC 7946,
+or a \code{vector} bounding box \code{vector}
+with named XY values ("xmin", "xmax", "ymin", "ymax").}
 
-\item{start_date}{a \code{character} corresponds to the initial date when the
-cube will be created.}
+\item{start_date}{a \code{character} corresponds to the initial date
+when the cube will be created.}
 
 \item{end_date}{a \code{character} corresponds to the final date when the
 cube will be created.}
@@ -36,8 +36,8 @@ cube will be created.}
 \item{...}{other parameters to be passed for specific types.}
 }
 \value{
-a \code{STACItemCollection} object representing the search
- by rstac.
+a \code{STACItemCollection} object
+                  representing the search by rstac.
 }
 \description{
 Get information from items

@@ -9,12 +9,16 @@ sits_rfor(data = NULL, num_trees = 2000, nodesize = 1, ...)
 \arguments{
 \item{data}{time series with the training samples}
 
-\item{num_trees}{number of trees to grow. This should not be set to too small a number,
-to ensure that every input row gets predicted at least a few times. (default: 2000)}
+\item{num_trees}{number of trees to grow.
+This should not be set to too small a number,
+to ensure that every input row gets predicted
+at least a few times. (default: 2000)}
 
-\item{nodesize}{minimum size of terminal nodes (default 1 for classification)}
+\item{nodesize}{minimum size of terminal nodes
+(default 1 for classification)}
 
-\item{...}{other parameters to be passed to `randomForest::randomForest` function}
+\item{...}{other parameters to be passed
+to `randomForest::randomForest` function}
 }
 \value{
 model fitted to input data
@@ -22,11 +26,11 @@ model fitted to input data
 }
 \description{
 Use Random Forest algorithm to classify data.
-This function is a front-end to the "randomForest" method in the "randomForest" package.
+This function is a front-end to the "randomForest" package.
 Please refer to the documentation in that package for more details.
 }
 \examples{
-# Retrieve the set of samples for the Mato Grosso region (provided by EMBRAPA)
+# Retrieve the set of samples for the Mato Grosso region
 samples_MT_ndvi <- sits_select(samples_mt_4bands, bands = "NDVI")
 # Build a random forest model
 rfor_model <- sits_train(samples_MT_ndvi, sits_rfor(num_trees = 300))

@@ -50,7 +50,7 @@ Takes a set of classified raster layers with probabilities,
 samples_ndvi <- sits_select(samples_mt_4bands, bands = "NDVI")
 
 #select a random forest model
-rfor_model <- sits_train(samples_ndvi, ml_method = sits_rfor(num_trees = 500))
+rfor_model <- sits_train(samples_ndvi, sits_rfor(num_trees = 500))
 
 # Classify a raster file with 23 instances for one year
 files <- c(system.file("extdata/raster/mod13q1/sinop-crop-ndvi.tif",

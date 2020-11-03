@@ -26,8 +26,8 @@ A sits tibble with information about
                              the vinicity of each neuron.
 }
 \description{
-This function creates a table contained the information about all
-neighbor of one neuron of radius 1.
+This function creates a table with the information on all
+neighbors of each neuron of radius 1.
 }
 \author{
 Lorena Santos, \email{lorena.santos@inpe.br}

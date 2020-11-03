@@ -11,11 +11,12 @@
 )
 }
 \arguments{
-\item{class_vector}{A vector contained the labels of each neuron.}
+\item{class_vector}{vector with the labels of each neuron.}
 
-\item{kohonen_obj}{The kohonen object returned by kohonen package.}
+\item{kohonen_obj}{object returned by kohonen package.}
 
-\item{duplicated_id_neuron}{A vector containing all the id of each neuron that has two majority labels.}
+\item{duplicated_id_neuron}{A vector containing all the id of each neuron
+that has two majority labels.}
 }
 \value{
 Return a new majority label of a neuron based on its neighbourhood
