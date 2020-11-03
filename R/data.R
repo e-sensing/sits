@@ -55,7 +55,7 @@ NULL
 #'   time_series (list containing a tibble with the values of the time series).
 NULL
 
-#' @title Samples of nine classes for the state of Mato Grosso used for classification
+#' @title Samples of nine classes for the state of Mato Grosso
 #'
 #' @description A dataset containing a tibble with time series samples
 #'   for the Mato Grosso state in Brasil.

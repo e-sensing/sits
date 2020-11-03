@@ -100,11 +100,11 @@ sits_cloud_remove <- function(cube,
 	bloat <- as.numeric(.sits_config_memory_bloat())
 
 	# number of rows and cols
-	nrows <- cube$nrows
-	ncols <- cube$ncols
+	nrows <- as.numeric(cube$nrows)
+	ncols <- as.numeric(cube$ncols)
 
 	# single instance depends on the number of bands
-	single_data_size <- as.numeric(nrows)*as.numeric(ncols)*as.numeric(nbytes)*n_bands
+	single_data_size <- nrows*ncols*nbytes*n_bands
 
 	# estimated full size of the data
 	full_size <- as.numeric(n_instances)*single_data_size
@@ -303,7 +303,8 @@ sits_cloud_cbers <- function(cube, cld_band_name = "CMASK",
                       msg = "sits_cloud_cbers works only with CBERS-4 data")
     assertthat::assert_that(cube$sensor == "AWFI",
                       msg = "sits_cloud_cbers works only with AWFI data")
-    assertthat::assert_that(all(c("B13", "B14", "B15", "B16") %in% sits_bands(cube)),
+    assertthat::assert_that(all(c("B13", "B14", "B15", "B16") %in%
+                                    sits_bands(cube)),
                     msg = "sits_cloud_cbers requires bands 13 to 16");
 
 

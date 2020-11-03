@@ -4,8 +4,8 @@
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'
 #' @description Defines the size of the block of an image to be read.
-#' For example, a Raster Brick
-#' with 500 rows and 500 columns and 400 time instances will have a total pixel size
+#' For example, a Raster Brick with 500 rows and 500 columns
+#' and 400 time instances will have a total pixel size
 #' of 800 Mb if pixels are 64-bit.
 #'
 #' @param  cube            input data cube.
@@ -123,7 +123,8 @@
 #' @keywords internal
 #' @param  nblocks         number of blocks to read from each image
 #' @param  sub_image       nrea of interest in the image
-#' @return        a list with n (number of blocks), row (vector of starting rows),
+#' @return        a list with n (number of blocks),
+#'                row (vector of starting rows),
 #'                nrow (vector with number of rows for each block) and
 #'                size (vector with size of each block)
 #'
@@ -131,13 +132,19 @@
     # number of rows per block
     block_rows <- ceiling(sub_image["nrows"]/nblocks)
 
+    first_row <- unname(sub_image["first_row"])
+    last_row  <- first_row + unname(sub_image["nrows"]) - 1
+
     # initial row of each block
-    row.vec <- seq.int(from = unname(sub_image["first_row"]),
-                       to   = unname(sub_image["first_row"]) + unname(sub_image["nrows"]) - 1,
+    row.vec <- seq.int(from = first_row,
+                       to   = last_row,
                        by   = block_rows)
 
     # number of rows in each block
-    nrows.vec <- rep.int(block_rows, length(row.vec))
+    n_rows <- length(row.vec)
+    assertthat::assert_that(n_rows > 0, msg = "empty row vector")
+    nrows.vec <- rep.int(block_rows, n_rows)
+
     # check that total number of rows is the same as the sum of all blocks
     # correct the last block for overflow
     if (sum(nrows.vec) != sub_image["nrows"])
@@ -160,7 +167,8 @@
                    ncols  = sub_image["ncols"],
                    size   = size.vec)
 
-    message("Using ", blocks$n, " blocks of size ", blocks$nrows[1], " x ", blocks$ncols)
+    message("Using ", blocks$n, " blocks of size ",
+             blocks$nrows[1], " x ", blocks$ncols)
 
     return(blocks)
 }

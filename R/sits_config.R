@@ -804,7 +804,8 @@ sits_config_show <- function() {
 #' @return vector with bands available in AWS for a given resolution
 .sits_config_sentinel_bands <- function(resolution) {
     s <- "S2_L2A_AWS"
-    assertthat::assert_that(resolution %in% sits.env$config[[s]][["resolutions"]],
+    assertthat::assert_that(resolution %in%
+                              sits.env$config[[s]][["resolutions"]],
                           msg = "Sentinel-2 in AWS - wrong resolution")
 
     r <- paste0(resolution,"_bands")

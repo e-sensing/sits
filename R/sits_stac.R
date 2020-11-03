@@ -18,12 +18,12 @@
                                         "provided"))
 
     assertthat::assert_that(!purrr::is_null(collection),
-                            msg = paste("sits_cube: for STAC_CUBE collections",
-                                        "must be provided"))
+                msg = paste("sits_cube: for STAC_CUBE collections",
+                            "must be provided"))
 
     assertthat::assert_that(!(length(collection) > 1),
-                            msg = paste("sits_cube: STAC_CUBE ",
-                                        "only one collection should be specified"))
+                msg = paste("sits_cube: STAC_CUBE ",
+                            "only one collection should be specified"))
 
     # creating a rstac object and making the requisition
     collection_info <- rstac::stac(url) %>%
@@ -55,19 +55,19 @@
 #' @param url        a \code{character} representing a URL for the BDC catalog.
 #' @param collection a \code{character} with the collection to be searched.
 #' @param tiles      a \code{character} with the names of the tiles.
-#' @param roi        the "roi" parameter defines a region of interest. It can be
-#'  an \code{sfc} or \code{sf} object from sf package, a \code{character} with
-#'  a GeoJSON following the rules from RFC 7946, or a \code{vector}
-#'  bounding box \code{vector} with named XY values
-#'  ("xmin", "xmax", "ymin", "ymax").
-#' @param start_date a \code{character} corresponds to the initial date when the
-#'  cube will be created.
+#' @param roi        defines a region of interest. It can be
+#'                   an \code{sfc} or \code{sf} object from sf package,
+#'                   a \code{character} with a GeoJSON using RFC 7946,
+#'                   or a \code{vector} bounding box \code{vector}
+#'                   with named XY values ("xmin", "xmax", "ymin", "ymax").
+#' @param start_date a \code{character} corresponds to the initial date
+#'                   when the cube will be created.
 #' @param end_date   a \code{character} corresponds to the final date when the
-#'  cube will be created.
+#'                   cube will be created.
 #' @param ...        other parameters to be passed for specific types.
 #'
-#' @return           a \code{STACItemCollection} object representing the search
-#'  by rstac.
+#' @return           a \code{STACItemCollection} object
+#'                   representing the search by rstac.
 .sits_stac_items <- function(url        = NULL,
                              collection = NULL,
                              tiles      = NULL,

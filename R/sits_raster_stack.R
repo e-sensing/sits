@@ -23,7 +23,7 @@
 #'              appropriate parsing information that allows SITS to extract
 #'              the band and the date. In the examples above, the parsing info
 #'              would include "_" as a delimiter. In the first, the names of the
-#'              resulting columns after parsing are "X1, X2, X3, X4, X5, date, X7, band".
+#'              columns for parsing are "X1, X2, X3, X4, X5, date, X7, band".
 #'              In the second, they are "band, date".
 #'
 #' @export

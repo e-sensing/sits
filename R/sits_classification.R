@@ -9,8 +9,8 @@
 #' (latitude/longitude), one time interval and a label.
 #' This is a generic function. The following specific functions are available:
 #' \itemize{
-#'  \item{"sits tibble": }{Classify a set of time series - see \code{\link{sits_classify.sits}}}
-#'  \item{"cube": }{ Classify a data cube - see \code{\link{sits_classify.raster_cube}}}
+#'  \item{"sits tibble": }{see \code{\link{sits_classify.sits}}}
+#'  \item{"cube": }{see \code{\link{sits_classify.raster_cube}}}
 #' }
 #' SITS supports the following models:
 #' \itemize{
@@ -18,7 +18,7 @@
 #'  \item{random forests: }{see \code{\link[sits]{sits_rfor}}}
 #'  \item{linear discriminant analysis: }{see \code{\link[sits]{sits_lda}}}
 #'  \item{quadratic discriminant analysis: }{see \code{\link[sits]{sits_qda}}}
-#'  \item{multinomial logit, with 'lasso' and ridge': }{see \code{\link[sits]{sits_mlr}}}
+#'  \item{multinomial logit: }{see \code{\link[sits]{sits_mlr}}}
 #'  \item{extreme gradient boosting: }{see \code{\link[sits]{sits_xgboost}}}
 #'  \item{multi-layer perceptrons: }{see \code{\link[sits]{sits_deeplearning}}}
 #'  \item{1D convolutional neural networks: see \code{\link[sits]{sits_FCN}}}

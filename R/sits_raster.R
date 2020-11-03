@@ -5,7 +5,7 @@
 #'
 #' @param  cube            input data cube.
 #' @param  samples         tibble with samples.
-#' @param  obj.lst         list of terra objects to be read which match the input bands
+#' @param  obj.lst         list of terra objects to be read
 #' @param  obj_cld         terra object that points to the cube cloud band
 #' @param  extent          bounding box in (i,j) coordinates
 #' @param  stats           normalization parameters.
@@ -86,13 +86,9 @@
     # create a data.table joining the values
     data_DT <- data.table::as.data.table(do.call(cbind,values.lst))
 
-    # memory cleanup
-    # rm(values.lst)
-    # gc()
-
     # create two additional columns for prediction
     two_cols_DT <- data.table::data.table("original_row" = rep(1, nrow(data_DT)),
-                                          "reference"    = rep("NoClass", nrow(data_DT)))
+                                "reference"    = rep("NoClass", nrow(data_DT)))
 
     # join the two columns with the data values
     data_DT <- data.table::as.data.table(cbind(two_cols_DT, data_DT))
@@ -147,7 +143,8 @@
                                              impute_fn  = impute_fn,
                                              multicores = multicores)
 
-        if (.verbose) .sits_processing_estimate_task_time("Impute NA", task_start_time)
+        if (.verbose) .sits_processing_estimate_task_time("Impute NA",
+                                                          task_start_time)
     }
 
 
@@ -344,11 +341,11 @@
 
     # ensure metadata tibble exists
     assertthat::assert_that(NROW(cube) >= 1,
-                            msg = ".sits_raster_get_ts: need a valid metadata for data cube")
+            msg = ".sits_raster_get_ts: need a valid metadata for data cube")
 
     names <- c("longitude", "latitude", "label")
     assertthat::assert_that(all(names %in% colnames(points)),
-                            msg = ".sits_raster_get_ts: data input is not valid")
+            msg = ".sits_raster_get_ts: data input is not valid")
 
     # get the scale factors, max, min and missing values
     maximum_values <- unlist(cube$maximum_values)
@@ -358,14 +355,15 @@
     # get the timeline
     timeline <- sits_timeline(cube)
     # make sure we get only the relevant columns
-    points <- dplyr::select(points, longitude, latitude, start_date, end_date, label)
+    points <- dplyr::select(points, longitude, latitude,
+                            start_date, end_date, label)
     # get XY
     xy.tb <- .sits_latlong_to_proj(points$longitude, points$latitude, cube$crs)
     # join lat-long with XY values in a single tibble
     points <- dplyr::bind_cols(points, xy.tb)
     # filter the points inside the data cube
-    points <- dplyr::filter(points, X > cube$xmin & X < cube$xmax & Y > cube$ymin &
-                                Y < cube$ymax)
+    points <- dplyr::filter(points, X > cube$xmin & X < cube$xmax
+                            & Y > cube$ymin & Y < cube$ymax)
 
     # are there points to be retrieved from the cube?
     if (nrow(points) == 0)
@@ -384,7 +382,7 @@
         cld_values <- tibble::as_tibble(terra::extract(t_cld_obj, xy))
         # is the data valid?
         assertthat::assert_that(nrow(cld_values) > 0,
-                msg = "sits_ts_from_raster_shp - no data retrieved for cloud band")
+                msg = "sits_get_data - no data retrieved for cloud band")
         # terra includes an ID (remove it)
         cld_values <- cld_values[,-1]
     }
@@ -405,7 +403,7 @@
             values <- values[,-1]
 
             # each row of the values matrix is a spatial point
-            for (i in 1:nrow(values)){
+            for (i in 1:nrow(values)) {
                 time_idx <- .sits_timeline_indexes(timeline = timeline,
                                                    start_date = lubridate::as_date(points$start_date[i]),
                                                    end_date   = lubridate::as_date(points$end_date[i]))

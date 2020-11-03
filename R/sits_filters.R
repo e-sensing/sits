@@ -198,7 +198,8 @@ sits_kalman <- function(data = NULL, bands_suffix = "kf"){
     if (purrr::is_null(initial_estimate) || is.na(initial_estimate)) {
         initial_estimate <- base::mean(measurement, na.rm = TRUE)
     }
-    if (purrr::is_null(initial_error_in_estimate) || is.na(initial_error_in_estimate))
+    if (purrr::is_null(initial_error_in_estimate) ||
+               is.na(initial_error_in_estimate))
     {
         initial_error_in_estimate <- base::abs(stats::sd(measurement,
                                                          na.rm = TRUE))

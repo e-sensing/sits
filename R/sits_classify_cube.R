@@ -142,39 +142,35 @@
 
         # process one temporal instance at a time
         probs.lst <- purrr::pmap(list(select.lst, c(1:n_objs)),
-                    function(time, iter) {
-                        # retrieve the values used for classification
-                        if (all(time))
-                            dist_DT <- data_DT
-                        else {
-                            dist_DT <- data_DT[, time, with = FALSE]
-                            # set column names for DT
-                        }
-                        colnames(dist_DT) <- attr_names
-                        # predict the classification values
-                        prediction_DT <- .sits_classify_interval(DT          = dist_DT,
-                                                                 ml_model   = ml_model,
-                                                                 multicores = multicores)
-                        # convert probabilities matrix to INT2U
-                        scale_factor_save <- 10000
-                        probs  <- .sits_raster_scale_matrix_integer(
-                            values.mx    = as.matrix(prediction_DT),
-                            scale_factor = scale_factor_save,
-                            multicores   = multicores)
+            function(time, iter) {
+                # retrieve the values used for classification
+                if (all(time))
+                    dist_DT <- data_DT
+                else {
+                    dist_DT <- data_DT[, time, with = FALSE]
+                    # set column names for DT
+                }
+                colnames(dist_DT) <- attr_names
+                # predict the classification values
+                prediction_DT <- .sits_classify_interval(DT          = dist_DT,
+                                                         ml_model   = ml_model,
+                                                        multicores = multicores)
+                # convert probabilities matrix to INT2U
+                scale_factor_save <- 10000
+                probs  <- .sits_raster_scale_matrix_integer(
+                    values.mx    = as.matrix(prediction_DT),
+                    scale_factor = scale_factor_save,
+                    multicores   = multicores)
 
-                        # memory management
-                        # rm(prediction_DT)
-                        # gc()
-
-                        # estimate processing time
-                        .sits_processing_estimate_classification_time(
-                            start_time = start_time,
-                            n_intervals = length(select.lst),
-                            bs = block_info,
-                            block = b,
-                            time = iter)
-                        return(probs)
-                    })
+                # estimate processing time
+                .sits_processing_estimate_classification_time(
+                    start_time = start_time,
+                    n_intervals = length(select.lst),
+                    bs = block_info,
+                    block = b,
+                    time = iter)
+                return(probs)
+            })
 
         return(probs.lst)
     })

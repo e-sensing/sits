@@ -67,7 +67,8 @@
 #' @return   tibble with information on s2 tile
 #'
 #'
-.sits_sentinel_aws_info_tiles <- function(tile, bands, resolution, start_date, end_date) {
+.sits_sentinel_aws_info_tiles <- function(tile, bands, resolution,
+                                          start_date, end_date) {
 
 	# pre-conditions
 	# for S2, tile must be given
@@ -235,11 +236,5 @@
 
 	return(cube)
 }
-# For the record, the additional bands in L2A S2 images are
-# AOT: Aerosol Optical Thickness map (at 550nm)
-# CLD: Raster mask values range from 0 for high confidence clear sky to 100 for high confidence cloudy
-# SCL: Scene Classification. The meaning of the values is indicated in the Category Names of the band.
-# SNW: Raster mask values range from 0 for high confidence NO snow/ice to 100 for high confidence snow/ice
-# WVP: Scene-average Water Vapour map
 
 

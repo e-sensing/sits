@@ -5,19 +5,22 @@
 #' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
 #'
 #' @description This function takes a set of time series samples as input
-#' estimates a set of patterns. The patterns are calculated based in a GAM model.
+#' estimates a set of patterns. The patterns are calculated using a GAM model.
 #' The idea is to use a formula of type y ~ s(x), where x is a temporal
-#' reference and y if the value of the signal. For each time, there will be as many predictions
-#' as there are sample values. The GAM model predicts a suitable
-#' approximation that fits the assumptions of the statistical model.
-#' By default, the GAM method produces an approximation based on a smooth function.
+#' reference and y if the value of the signal. For each time, there will
+#' be as many predictions as there are sample values.
+#' The GAM model predicts a suitable
+#' approximation that fits the assumptions of the statistical model,
+#' based on a smooth function.
 #'
-#' This method is based on the "createPatterns" method of the dtwSat package, which is also
+#' This method is based on the "createPatterns" method of the dtwSat package,
+#' which is also
 #' described in the reference paper.
 #'
-#' @references Maus V, Camara G, Cartaxo R, Sanchez A, Ramos FM, de Queiroz GR (2016).
-#' A Time-Weighted Dynamic Time Warping Method for Land-Use and Land-Cover Mapping.
-#' IEEE Journal of Selected Topics in Applied Earth Observations and Remote Sensing, 9(8):3729-3739,
+#' @references Maus V, Camara G, Cartaxo R, Sanchez A, Ramos F, Queiroz GR.
+#' A Time-Weighted Dynamic Time Warping Method for Land-Use
+#' and Land-Cover Mapping. IEEE Journal of Selected Topics in Applied
+#' Earth Observations and Remote Sensing, 9(8):3729-3739,
 #' August 2016. ISSN 1939-1404. doi:10.1109/JSTARS.2016.2517118.
 #'
 #' @param  data          A tibble in sits format with time series.
@@ -35,7 +38,7 @@
 #' # Show the patterns
 #' plot(patterns)
 #'
-#' # Read a set of samples for the state of Mato Grosso, Brazil, provided by EMBRAPA
+#' # Read a set of samples for the state of Mato Grosso, Brazil
 #' data(samples_mt_4bands)
 #' # Estimate a set of patterns (one for each label)
 #' patterns <- sits_patterns(samples_mt_4bands)
@@ -92,10 +95,10 @@ sits_patterns <- function(data = NULL, freq = 8, formula = y ~ s(x), ...){
                 # create a data frame to store the time instances
                 time <- data.frame(as.numeric(pred_time))
 
-                # name the time as the second variable of the formula (usually, this is x)
+                # name the time as the second variable of the formula
                 names(time) <- vars[2]
 
-                # create a tibble to store the time series associated to the pattern
+                # store the time series associated to the pattern
                 ind.tb <- tibble::tibble(Index = lubridate::as_date(pred_time))
 
                 # calculate the fit for each band
@@ -116,10 +119,10 @@ sits_patterns <- function(data = NULL, freq = 8, formula = y ~ s(x), ...){
                         fit <-  mgcv::gam(data = ts2, formula = formula)
 
                         # Takes a fitted gam object and produces predictions
-                        # for the desired dates in the sequence of prediction times
+                        # in the sequence of prediction times
                         pred_values <- mgcv::predict.gam(fit, newdata = time)
 
-                        #include the predicted values for the band in the results tibble
+                        # include the predicted values for the band
                         res.tb <- tibble::tibble(b = pred_values)
 
                         # rename the column to match the band names

@@ -3,7 +3,7 @@
 #' @keywords internal
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'
-#' @description Transform a latitude and longitude coordinate to a XY projection coordinate
+#' @description Transform a latitude and longitude coordinate to XY coordinate
 #'
 #' @param longitude       The longitude of the chosen location.
 #' @param latitude        The latitude of the chosen location.
@@ -26,7 +26,7 @@
 #' @keywords internal
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'
-#' @description Transform a XY projection coordinate to a latitude and longitude coordinate.
+#' @description Transform a XY coordinate to a latitude and longitude
 #'
 #' @param x               X coordinate of the chosen location.
 #' @param y               Y coordinateof the chosen location.

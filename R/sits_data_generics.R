@@ -283,7 +283,7 @@ sits_merge.sits <-  function(data1, data2) {
 
     # verify if data1.tb and data2.tb has the same number of rows
     assertthat::assert_that(NROW(data1) == NROW(data2),
-                            msg = "sits_merge: cannot merge tibbles of different sizes")
+                    msg = "sits_merge: cannot merge tibbles of different sizes")
 
     # are the names of the bands different?
     # if they are not
@@ -320,20 +320,20 @@ sits_merge.sits <-  function(data1, data2) {
 sits_merge.cube <- function(data1, data2){
     # preconditions
     assertthat::assert_that(nrow(data1) == 1 & nrow(data2) == 1,
-                            msg = "merge only works from simple cubes (one tibble row)")
+                    msg = "merge only works from simple cubes (one tibble row)")
     assertthat::assert_that(data1$satellite == data2$satellite,
-                            msg = "cubes from different satellites")
+                    msg = "cubes from different satellites")
     assertthat::assert_that(data1$sensor == data2$sensor,
-                            msg = "cubes from different sensors")
+                    msg = "cubes from different sensors")
     assertthat::assert_that(all(sits_bands(data1) != sits_bands(data2)),
-                            msg = "merge cubes requires different bands in each cube")
+                    msg = "merge cubes requires different bands in each cube")
     assertthat::assert_that(all(sits_bbox(data1) == sits_bbox(data2)),
-                            msg = "merge cubes requires same bounding boxes")
+                    msg = "merge cubes requires same bounding boxes")
     assertthat::assert_that(data1$xres == data2$xres &
                             data1$yres == data2$yres,
-                            msg = "merge cubes requires same resolution")
+                    msg = "merge cubes requires same resolution")
     assertthat::assert_that(all(sits_timeline(data1) == sits_timeline(data2)),
-                            msg = "merge cubes requires same timeline")
+                    msg = "merge cubes requires same timeline")
 
     # get the file information
     file_info_1 <- data1$file_info[[1]]
@@ -396,8 +396,8 @@ sits_select.sits <- function(data, bands) {
     data  <- sits_rename(data, names = toupper(sits_bands(data)))
 
     assertthat::assert_that(all(bands %in% sits_bands(data)),
-                            msg = paste0("sits_select: missing bands: ",
-                                         paste(bands[!bands %in% sits_bands(data)], collapse = ", ")))
+            msg = paste0("sits_select: missing bands: ",
+                paste(bands[!bands %in% sits_bands(data)], collapse = ", ")))
 
     # prepare result sits tibble
     result <- data
@@ -422,7 +422,7 @@ sits_select.sits <- function(data, bands) {
 #'
 sits_select.cube <- function(data, bands){
     assertthat::assert_that(bands %in% sits_bands(data),
-                            msg = "requested bands are not available in the data cube")
+                    msg = "requested bands are not available in the data cube")
     # assign the bands
     data$bands[[1]] <- bands
     # filter the file info

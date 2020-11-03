@@ -5,12 +5,12 @@
 #' Cubes can be of the following types. See each function description for the
 #' required parameters:
 #' \itemize{
-#'  \item{"WTSS": }{Web Time Series Service - see \code{\link{sits_cube.wtss_cube}}}
-#'  \item{"SATVEG": }{ SATVEG Time Series Service - see \code{\link{sits_cube.satveg_cube}}}
-#'  \item{"RASTER": }{Raster files - see \code{\link{sits_cube.raster_cube}}}
-#'  \item{"BDC_TILE"}{A set of tiles from the Brazil Data Cube - see \code{\link{sits_cube.bdc_cube}}}
-#'  \item{"BDC_STAC"}{A set of tiles from the STAC Brazil Data Cube - see \code{\link{sits_cube.bdc_stac}}}
-#'  \item{"S2_L2A_AWS"}{A set of tiles of Sentinel-2 data in AWS - see \code{\link{sits_cube.s2_l2a_aws_cube}}}
+#'  \item{"WTSS": }{see \code{\link{sits_cube.wtss_cube}}}
+#'  \item{"SATVEG": }{ see \code{\link{sits_cube.satveg_cube}}}
+#'  \item{"RASTER": }{see \code{\link{sits_cube.raster_cube}}}
+#'  \item{"BDC_TILE"}{Brazil Data Cube - see \code{\link{sits_cube.bdc_cube}}}
+#'  \item{"BDC_STAC"}{STAC Brazil Data Cube - see \code{\link{sits_cube.bdc_stac}}}
+#'  \item{"S2_L2A_AWS"}{Sentinel-2 data in AWS - see \code{\link{sits_cube.s2_l2a_aws_cube}}}
 #' }
 #'
 #' @param type              Type of cube (one of "WTSS", "RASTER", "BDC_TILE",
@@ -104,16 +104,17 @@ sits_cube.satveg_cube <- function(type = "SATVEG", ..., name = NULL) {
 #'' \itemize{
 #'  \item{files with date and band information: }{In this case, the files
 #'              contain date and band information in their names. This is
-#'              the usual case on files obtained from repositories such as Sentinel Hub
-#'              and AWS. The timeline and the bands are deduced from this information.
+#'              the case of files in repositories such as Sentinel Hub
+#'              and AWS. Timeline and the bands are deduced from filenames.
 #'              Examples of valid image names include
 #'              "CB4_64_16D_STK_022024_2018-08-29_2018-09-13_EVI.tif" and
 #'              "B02_2018-07-18.jp2". In each case, the user has to provide
 #'              appropriate parsing information that allows SITS to extract
 #'              the band and the date. In the examples above, the parsing info
 #'              would include "_" as a delimiter. In the first, the names of the
-#'              resulting columns after parsing are "X1", "X2", "X3", "X4", "X5",
-#'              "date", "X7", and "band". In the second, they are "band" and "date".}
+#'              resulting columns for parsing are "X1", "X2", "X3", "X4", "X5",
+#'              "date", "X7", and "band".
+#'              In the second, they are "band" and "date".}
 #'  \item{bundled files with many images}: {in this case, each input band
 #'              has to be organised as a raster brick, and the
 #'              number of input files must match the number of bands.
@@ -186,8 +187,9 @@ sits_cube.raster_cube <- function(type = "RASTER", ...,
         return(NULL)
     }
 
-    assertthat::assert_that((!purrr::is_null(data_dir) | !purrr::is_null(files)),
-                            msg = "either data_dir or files have to be provided")
+    assertthat::assert_that((!purrr::is_null(data_dir) |
+                             !purrr::is_null(files)),
+                        msg = "either data_dir or files have to be provided")
 
     if (!purrr::is_null(data_dir)) {
         # precondition - missing resolution
@@ -198,7 +200,7 @@ sits_cube.raster_cube <- function(type = "RASTER", ...,
                                 msg = "invalid parsing information")
 
         assertthat::assert_that(all(c("band", "date") %in% parse_info),
-                                msg = "parsing info need to contain valid columns for date and band")
+                                msg = "invalid columns for date and band")
 
         # get the file information
         file_info.tb <- .sits_raster_stack_info(type = "RASTER",
@@ -250,10 +252,10 @@ sits_cube.raster_cube <- function(type = "RASTER", ...,
 #' @title Defines a data cube for a BDC TILE
 #' @name sits_cube.bdc_cube
 #'
-#' @description Defines a cube to retrieve data from the Brazil Data Cube (BDC). The retrieval
-#'              is based on tiles of a given cube. Allows local or web access. For
-#'              local access, the user should be logged in the BDC.
-#'              For more on BDC, please see http://brazildatacube.dpi.inpe.br/
+#' @description Defines a cube to work with data from Brazil Data Cube (BDC).
+#' Retrieval is based on tiles of a given cube. Allows local or web access. For
+#' local access, the user should be logged in the BDC.
+#' For more on BDC, please see http://brazildatacube.dpi.inpe.br/
 #'
 #' @param type              type of cube
 #' @param ...               other parameters to be passed for specific types
@@ -267,7 +269,7 @@ sits_cube.raster_cube <- function(type = "RASTER", ...,
 #' @param data_access       access (local or web)
 #' @param start_date        starting date of the cube
 #' @param end_date          ending date of the cube
-#' @param .local            directory for local access to the input cube (optional)
+#' @param .local            directory for local data (optional)
 #' @param .web              URL for web access to the input cube (optional)
 #' @param .cloud_band       include cloud band? (TRUE/FALSE)
 #'
@@ -464,12 +466,13 @@ sits_cube.bdc_stac <- function(type       = "BDC_STAC", ...,
 #' @title Defines a data cube for a Sentinel-2 L2A AWS cube
 #' @name sits_cube.s2_l2a_aws_cube
 #'
-#' @description Defines a cube to retrieve data from the Sentinel-2 Level 2A data
-#'              available in AWS. To access this data, the user needs to be an AWS
+#' @description Defines a cube to retrieve data from the Sentinel-2 L2A data
+#'              available in AWS. Users need to be an AWS
 #'              user and provide her access key and secret key. These keys may
-#'              be passed as environment variables. The bands available in AWS for
-#'              10m resolution are "B02", "B03", "B04", and "B08". The  20m bands
-#'              are "B02", "B03", "B04", "B05", "B06", "BO7", "B08", "B8A", "B11", and "B12".
+#'              be passed as environment variables. The AWS bands in
+#'              10m resolution are "B02", "B03", "B04", and "B08".
+#'              The  20m bands are "B02", "B03", "B04", "B05", "B06", "BO7",
+#'              "B08", "B8A", "B11", and "B12".
 #'              All 12 bands are available at 60m resolution.
 #'
 #' @param type              type of cube
@@ -479,7 +482,7 @@ sits_cube.bdc_stac <- function(type       = "BDC_STAC", ...,
 #' @param tiles             vector of tiles
 #' @param start_date        starting date of the cube
 #' @param end_date          ending date of the cube
-#' @param s2_aws_resolution resolution of Sentinel images in AWS ("10m", "20m" or "60m")
+#' @param s2_aws_resolution resolution of S2 images ("10m", "20m" or "60m")
 #' @param access_key        AWS access key
 #' @param secret_key        AWS secret key
 #' @param region            AWS region
@@ -496,6 +499,7 @@ sits_cube.bdc_stac <- function(type       = "BDC_STAC", ...,
 #' # "AWS_ACCESS_KEY_ID"     = <your_access_key>,
 #' # "AWS_SECRET_ACCESS_KEY" = <your_secret_access_key>,
 #' # "AWS_DEFAULT_REGION"    = <your AWS region>,
+#' 3 "AWS_ENDPOINT" = "sentinel-s2-l2a.s3.amazonaws.com",
 #' # "AWS_REQUEST_PAYER"     = "requester"
 #' # )
 #'

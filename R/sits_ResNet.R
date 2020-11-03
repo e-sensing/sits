@@ -70,7 +70,8 @@
 #' plot(rn_model)
 #'
 #' # get a point and classify the point with the ml_model
-#' point.tb <- sits_select(point_mt_6bands, bands = c("NDVI", "EVI", "NIR", "MIR"))
+#' point.tb <- sits_select(point_mt_6bands,
+#'                         bands = c("NDVI", "EVI", "NIR", "MIR"))
 #' class.tb <- sits_classify(point.tb, rn_model)
 #' plot(class.tb, bands = c("NDVI", "EVI"))
 #' }

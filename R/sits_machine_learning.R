@@ -309,7 +309,7 @@ sits_mlr <- function(data = NULL, formula = sits_formula_linear(),
 #' @param importance   Variable importance mode, one of 'none',
 #'                      'impurity', 'impurity_corrected', 'permutation'.
 #'                     The 'impurity' measure is the Gini index.
-#' @param ...          Other parameters to be passed to \code{\link[ranger]{ranger}} function.
+#' @param ...          Other \code{\link[ranger]{ranger}}  parameters
 #' @return             Model fitted to input data
 #'                     (to be passed to \code{\link[sits]{sits_classify}})
 #' @examples
@@ -391,18 +391,22 @@ sits_ranger <- function(data = NULL,
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'
 #' @description Use Random Forest algorithm to classify data.
-#' This function is a front-end to the "randomForest" method in the "randomForest" package.
+#' This function is a front-end to the "randomForest" package.
 #' Please refer to the documentation in that package for more details.
 #'
 #' @param data             time series with the training samples
-#' @param num_trees        number of trees to grow. This should not be set to too small a number,
-#'                         to ensure that every input row gets predicted at least a few times. (default: 2000)
-#' @param nodesize         minimum size of terminal nodes (default 1 for classification)
-#' @param ...              other parameters to be passed to `randomForest::randomForest` function
+#' @param num_trees        number of trees to grow.
+#'                         This should not be set to too small a number,
+#'                         to ensure that every input row gets predicted
+#'                         at least a few times. (default: 2000)
+#' @param nodesize         minimum size of terminal nodes
+#'                         (default 1 for classification)
+#' @param ...              other parameters to be passed
+#'                         to `randomForest::randomForest` function
 #' @return                 model fitted to input data
 #'                         (to be passed to \code{\link[sits]{sits_classify}})
 #' @examples
-#' # Retrieve the set of samples for the Mato Grosso region (provided by EMBRAPA)
+#' # Retrieve the set of samples for the Mato Grosso region
 #' samples_MT_ndvi <- sits_select(samples_mt_4bands, bands = "NDVI")
 #' # Build a random forest model
 #' rfor_model <- sits_train(samples_MT_ndvi, sits_rfor(num_trees = 300))
@@ -418,7 +422,7 @@ sits_rfor <- function(data = NULL, num_trees = 2000, nodesize = 1, ...) {
         stop("randomForest required for this function to work.
              Please install it.", call. = FALSE)
     }
-    # function that returns `randomForest::randomForest` model based on a sits sample tibble
+    # function that returns `randomForest::randomForest` model
     result_fun <- function(data){
 
         train_data_DT <- .sits_distances(data)
@@ -427,12 +431,17 @@ sits_rfor <- function(data = NULL, num_trees = 2000, nodesize = 1, ...) {
         reference <- train_data_DT[, reference]
         result_rfor <- randomForest::randomForest(x = train_data_DT[,3:ncol(train_data_DT)],
                                                   y = as.factor(reference),
-                                                  data = NULL, ntree = num_trees, nodesize = 1,
-                                                  norm.votes = FALSE, ..., na.action = stats::na.fail)
+                                                  data = NULL,
+                                                  ntree = num_trees,
+                                                  nodesize = 1,
+                                                  norm.votes = FALSE, ...,
+                                                  na.action = stats::na.fail)
 
         # construct model predict enclosure function and returns
         model_predict <- function(values_DT){
-            return(stats::predict(result_rfor, newdata = values_DT, type = "prob"))
+            return(stats::predict(result_rfor,
+                                  newdata = values_DT,
+                                  type = "prob"))
         }
         return(model_predict)
     }
@@ -575,12 +584,13 @@ sits_svm <- function(data = NULL, formula = sits_formula_logref(),
 #' @param min_child_weight If the leaf node has a minimum sum of instance
 #'                         weights lower than min_child_weight,
 #'                         tree splitting stops. The larger min_child_weight is,
-#'                         the more conservative the algorithm will be. Default: 1.
+#'                         the more conservative the algorithm is. Default: 1.
 #' @param max_delta_step   Maximum delta step we allow each leaf output to be.
-#'                         If the value is set to 0, it means there is no constraint.
+#'                         If the value is set to 0, there is no constraint.
 #'                         If it is set to a positive value, it can help making
 #'                         the update step more conservative. Default: 1.
-#' @param subsample        Percentage of samples supplied to a tree. Default: 0.8.
+#' @param subsample        Percentage of samples supplied to a tree.
+#'                         Default: 0.8.
 #' @param nfold            Number of the subsamples for the cross-validation.
 #' @param nrounds          Number of rounds to iterate the cross-validation
 #'                         (default: 100)
@@ -598,7 +608,8 @@ sits_svm <- function(data = NULL, formula = sits_formula_logref(),
 #' xgb_model <- sits_train(samples_mt_4bands, sits_xgboost(nrounds = 10))
 #'
 #' # get a point and classify the point with the ml_model
-#' point.tb <- sits_select(point_mt_6bands, bands = c("NDVI", "EVI", "NIR", "MIR"))
+#' point.tb <- sits_select(point_mt_6bands,
+#'                         bands = c("NDVI", "EVI", "NIR", "MIR"))
 #' class.tb <- sits_classify(point.tb, xgb_model)
 #' plot(class.tb, bands = c("NDVI", "EVI"))
 #' }
