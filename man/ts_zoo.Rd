@@ -5,13 +5,14 @@
 \alias{ts_zoo}
 \title{A time series in the ZOO format}
 \format{
-A ZOO time series with two bands (NDVI and EVI) for a one year period
+A ZOO time series with bands NDVI and EVI for a one year period
 }
 \usage{
 data(ts_zoo)
 }
 \description{
-A dataset containing a one ZOO time series samples in the Mato Grosso state of Brazil.
+A dataset containing a one ZOO time series samples
+   in the Mato Grosso state of Brazil.
    The time series comes from MOD13Q1 collection 5 images.
 }
 \keyword{datasets}

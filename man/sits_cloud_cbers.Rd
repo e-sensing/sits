@@ -30,7 +30,7 @@ sits_cloud_cbers(
 
 \item{t4}{remove influence of water in the cloud shadow detection}
 
-\item{t5}{size of window to search for clouds when detecting shadows}
+\item{t5}{size of window to search for clouds near shadows}
 
 \item{t6}{size of window of median filter to remove outliers}
 
@@ -44,8 +44,8 @@ new data cube with cloud data
 \description{
 This algorithm is an implementation of the paper by Zhai et al,
 "Cloud/shadow detection based on spectral indices for multispectral
- optical remote sensing imagery", ISPRS Journal of Photogrammetry and Remote Sensing,
- volume 144, October 2018, Pages 235-253.
+ optical remote sensing imagery", ISPRS Journal of Photogrammetry
+ and Remote Sensing, volume 144, October 2018, Pages 235-253.
 
  The authors recommend the following typical values for the parameters:
  SITS supports the following models:

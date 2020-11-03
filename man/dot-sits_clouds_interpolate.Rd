@@ -2,7 +2,7 @@
 % Please edit documentation in R/sits_clouds.R
 \name{.sits_clouds_interpolate}
 \alias{.sits_clouds_interpolate}
-\title{Create the bricks that will be the output of the cloud estimation procedure}
+\title{Create the output of the cloud estimation procedure}
 \usage{
 .sits_clouds_interpolate(cube, data_dir, blocks, impute_fn, multicores)
 }
@@ -21,6 +21,6 @@
 a tibble with date, band and path information
 }
 \description{
-Create the bricks that will be the output of the cloud estimation procedure
+Create the output of the cloud estimation procedure
 }
 \keyword{internal}

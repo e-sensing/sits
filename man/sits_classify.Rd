@@ -15,7 +15,7 @@ sits_classify(data, ml_model, ...)
 \item{...}{Other parameters to be passed to specific functions}
 }
 \value{
-Predicted data (either a sits tibble or a probs data cube)
+Predicted data
 }
 \description{
 This function classifies a set of time series or data cube given
@@ -34,7 +34,7 @@ SITS supports the following models:
  \item{random forests: }{see \code{\link[sits]{sits_rfor}}}
  \item{linear discriminant analysis: }{see \code{\link[sits]{sits_lda}}}
  \item{quadratic discriminant analysis: }{see \code{\link[sits]{sits_qda}}}
- \item{multinomial logit, and its variants 'lasso' and ridge': }{see \code{\link[sits]{sits_mlr}}}
+ \item{multinomial logit, with 'lasso' and ridge': }{see \code{\link[sits]{sits_mlr}}}
  \item{extreme gradient boosting: }{see \code{\link[sits]{sits_xgboost}}}
  \item{multi-layer perceptrons: }{see \code{\link[sits]{sits_deeplearning}}}
  \item{1D convolutional neural networks: see \code{\link[sits]{sits_FCN}}}
@@ -42,7 +42,7 @@ SITS supports the following models:
  \item{1D version of ResNet: }{see \code{\link[sits]{sits_ResNet}}}
  \item{combined LSTM-FCN model: }{see \code{\link[sits]{sits_LSTM_FCN}}}
  }
-The model should be precomputed by the user using the function \code{\link[sits]{sits_train}}
+The model should be precomputed using \code{\link[sits]{sits_train}}
 and then passed to the "sits_classify" function using parameter "ml_model".
 }
 \author{

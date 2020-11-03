@@ -77,7 +77,8 @@ sinop_2014 <- sits_cube(name = "sinop-2014",
 samples_ndvi <- sits_select(samples_mt_4bands, bands = "NDVI")
 
 #select a random forest model
-rfor_model <- sits_train(samples_ndvi, ml_method = sits_rfor(num_trees = 300))
+rfor_model <- sits_train(samples_ndvi,
+                         ml_method = sits_rfor(num_trees = 300))
 
 # classify the raster image
 sinop_probs <- sits_classify(sinop_2014, ml_model = rfor_model,
