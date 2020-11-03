@@ -8,7 +8,7 @@ default:
     minimum_number_samples   : 1000
 
     # Data cube types known to sits
-    cube_types              : ["WTSS", "SATVEG", "RASTER", "BDC_TILE", "BDC_STAC", "2_L2A_AWS", "PROBS", "CLASSIFIED"]
+    cube_types              : ["WTSS", "SATVEG", "RASTER", "BDC_TILE", "BDC_STAC", "S2_L2A_AWS", "PROBS", "CLASSIFIED"]
     cube_classes_generic    : ["wtss_cube", "satveg_cube", "raster_cube", "raster_cube", "raster_cube", "raster_cube", "probs_cube", "classified_image"]
     cube_classes_specific   : ["wtss_cube", "satveg_cube", "raster_cube", "bdc_cube", "bdc_stac", "s2_l2a_aws_cube", "probs_cube", "classified_image"]
     cube_robjs              : ["no_raster", "no_raster", "raster", "raster", "raster", "raster", "raster", "raster"]
@@ -344,8 +344,8 @@ default:
 
 
         S2_L2A_AWS          :
-            OLI_CLD_BAND    : "SCL"
-            OLI_cld_vls     : [0, 1, 2, 3, 7, 8, 9, 10, 11]
+            MSI_CLD_BAND    : "SCL"
+            MSI_cld_vls     : [0, 1, 2, 3, 7, 8, 9, 10, 11]
 
         RASTER              :
             AWFI_CLD_BAND   : "CMASK"

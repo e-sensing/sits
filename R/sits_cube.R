@@ -503,7 +503,7 @@ sits_cube.bdc_stac <- function(type       = "BDC_STAC", ...,
 #'                      name       = "T20LKP_2018_2019",
 #'                      satellite  = "SENTINEL-2",
 #'                      sensor     = "MSI",
-#'                      tile       = "20LKP",
+#'                      tiles      = "20LKP",
 #'                      s2_aws_resolution = "20m",
 #'                      start_date = as.Date("2018-07-18"),
 #'                      end_date   = as.Date("2018-07-23"))
@@ -621,6 +621,11 @@ sits_cube_copy <- function (cube, name, dest_dir, bands = NULL, srcwin = NULL){
     # get the file extension
     file_ext <- tools::file_ext(file_info_out$path[1])
 
+    if (file_ext == "jp2")
+        gdal_of <- "JP2OpenJPEG"
+    else
+        gdal_of <- "GTiff"
+
     # save files with date information
     paths.lst <- slider::slide(file_info_out, function(row) {
                                  dest_file <- paste0(dest_dir,"/",
@@ -633,11 +638,13 @@ sits_cube_copy <- function (cube, name, dest_dir, bands = NULL, srcwin = NULL){
                                      gdalUtils::gdal_translate(
                                          src_dataset  = row$path,
                                          dst_dataset = dest_file,
+                                         of = gdal_of,
                                          srcwin = srcwin)
                                  else
                                      gdalUtils::gdal_translate(
                                          src_dataset  = row$path,
-                                         dst_dataset = dest_file)
+                                         dst_dataset = dest_file,
+                                         of = gdal_of)
                                  return(dest_file)
                              })
     # update file info
