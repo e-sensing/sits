@@ -31,6 +31,7 @@
 #' @param validation_csv   A CSV file path with validation data
 #'
 #' @examples
+#' \dontrun{
 #' # get the samples for Mato Grosso for bands NDVI and EVI
 #' samples_mt_ndvi <- sits_select(samples_mt_4bands, bands = c("NDVI"))
 #' # filter the samples for three classes (to simplify the example)
@@ -66,7 +67,7 @@
 #'                              package = "sits")
 #' # calculate accuracy according to Olofsson's method
 #' as <- suppressWarnings(sits_accuracy(sinop_2014_label, ground_truth))
-#'
+#' }
 #' @export
 sits_accuracy <- function(label_cube, validation_csv) {
 
