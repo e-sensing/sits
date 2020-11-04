@@ -305,7 +305,7 @@ sits_cloud_cbers <- function(cube, cld_band_name = "CMASK",
                       msg = "sits_cloud_cbers works only with AWFI data")
     assertthat::assert_that(all(c("B13", "B14", "B15", "B16") %in%
                                     sits_bands(cube)),
-                    msg = "sits_cloud_cbers requires bands 13 to 16");
+                    msg = "sits_cloud_cbers requires bands 13 to 16")
 
 
     # estimate the blocks to be read
