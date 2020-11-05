@@ -31,8 +31,8 @@
         rstac::get_request(...)
 
     # get the name of the bands
-    collection_bands <- sapply(collection_info$properties[["eo:bands"]],
-                               `[[`, c("name"))
+    collection_bands <- purrr::map_chr(collection_info$properties[["eo:bands"]],
+                                       `[[`, c("name"))
 
     # checks if the supplied bands match the product bands
     if (!is.null(bands)) {
