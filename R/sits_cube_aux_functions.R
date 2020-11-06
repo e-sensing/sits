@@ -131,6 +131,8 @@
 
 	# how many objects are to be created?
 	n_objs <- length(subset_dates)
+	assertthat::assert_that(n_objs > 0,
+	               msg = "cube timeline does not match dates of time series")
 
 	# labels come from samples.tb
 	labels <- sits_labels(samples)$label
@@ -149,7 +151,7 @@
 	maximum_values  <- rep(1.0,    n_objs)
 
 	# loop through the list of dates and create list of raster layers
-	for (i in 1:n_objs){
+	for (i in seq_len(n_objs)) {
 
 		# define the timeline for the raster data sets
 		start_date     <- subset_dates[[i]][1]
@@ -172,10 +174,10 @@
 	name   <-  paste0(cube[1,]$name, "_probs")
 
 	# generate a set of timelines for the file_info
-	times_probs <- vector(length = n_objs)
-	for (i in 1:n_objs){
-		times_probs[i] <- timelines[[i]][1]
-	}
+	times_probs.lst <- purrr::map(timelines, function(timeline) {
+	    time_prob <- timeline[1]
+	})
+	times_probs <- unlist(times_probs.lst)
 
 	# get the file information
 	file_info <- .sits_raster_file_info(bands, times_probs, files)

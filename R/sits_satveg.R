@@ -171,7 +171,6 @@
     # bands in SATVEG are lowercase
     bands <- tolower(bands)
 
-
     # read each of the bands separately
     for (b in bands) {
         # Build the URL to retrieve the time series

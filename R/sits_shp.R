@@ -78,7 +78,7 @@
     # get the db file
     shp_df <- sf::st_drop_geometry(sf_shape)
 
-    for (i in 1:nrow(sf_shape)) {
+    for (i in seq_len(nrow(sf_shape))) {
         # retrieve the class from the shape attribute
         if (!purrr::is_null(shp_attr))
             label <-  as.character(unname(shp_df[i, shp_attr]))

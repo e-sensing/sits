@@ -120,10 +120,12 @@
 		headers = list('x-amz-request-payer' = "requester"),
 		max = Inf)
 
+	assertthat::assert_that(length(bucket_s2a) > 0,
+	                        msg = "empty s3 bucket")
 	# get the files associated to the bucket
 	# filter image files (Sentinel-2 uses JPEG200)
-	s2_files <- purrr::map(1:length(bucket_s2a),
-						   function (i) return (bucket_s2a[i]$Contents$Key)) %>%
+	s2_files <- purrr::map(seq_len(length(bucket_s2a)),
+						   function(i) return(bucket_s2a[i]$Contents$Key)) %>%
 		unlist() %>%
 		.[grepl("jp2",.)]
 

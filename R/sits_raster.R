@@ -403,7 +403,7 @@
             values <- values[,-1]
 
             # each row of the values matrix is a spatial point
-            for (i in 1:nrow(values)) {
+            for (i in seq_len(nrow(values))) {
                 time_idx <- .sits_timeline_indexes(timeline = timeline,
                                                    start_date = lubridate::as_date(points$start_date[i]),
                                                    end_date   = lubridate::as_date(points$end_date[i]))

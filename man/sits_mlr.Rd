@@ -38,6 +38,7 @@ This function is a front-end to the "multinom" method in the "nnet" package.
 Please refer to the documentation in that package for more details.
 }
 \examples{
+\dontrun{
 # Retrieve the set of samples for  Mato Grosso region (provided by EMBRAPA)
 samples_2bands <- sits_select(samples_mt_4bands, bands = c("NDVI", "EVI"))
 
@@ -48,6 +49,7 @@ ml_model <- sits_train (samples_2bands, sits_mlr())
 point.tb <- sits_select(point_mt_6bands, bands = c("NDVI", "EVI"))
 class.tb <- sits_classify(point.tb, ml_model)
 plot(class.tb, bands = c("NDVI", "EVI"))
+}
 }
 \author{
 Alexandre Ywata de Carvalho, \email{alexandre.ywata@ipea.gov.br}

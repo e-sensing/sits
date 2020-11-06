@@ -25,6 +25,7 @@ Overall Accuracy, User's Accuracy, Producer's Accuracy
 and error matrix (confusion matrix) according to [1-2].
 }
 \examples{
+\dontrun{
 # get the samples for Mato Grosso for bands NDVI and EVI
 samples_mt_ndvi <- sits_select(samples_mt_4bands, bands = c("NDVI"))
 # filter the samples for three classes (to simplify the example)
@@ -60,7 +61,7 @@ ground_truth <- system.file("extdata/samples/samples_sinop_crop.csv",
                              package = "sits")
 # calculate accuracy according to Olofsson's method
 as <- suppressWarnings(sits_accuracy(sinop_2014_label, ground_truth))
-
+}
 }
 \references{
 [1] Olofsson, P., Foody, G.M., Stehman, S.V., Woodcock, C.E. (2013).

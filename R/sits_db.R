@@ -245,7 +245,7 @@ sits_db_read <- function(conn, name) {
         return(NULL)
     }
     # disconnect from database
-    if(!grepl("memory", conn@dbname))
+    if (!grepl("memory", conn@dbname))
         DBI::dbDisconnect(conn)
 
     return(data)
@@ -269,7 +269,7 @@ sits_db_read <- function(conn, name) {
                                                      "start_date", "end_date",
                                                      "label", "cube")]))
     # transform the time series into a list
-    ts.lst <- purrr::map2(data$time_series, 1:nrow(data),
+    ts.lst <- purrr::map2(data$time_series, seq_len(nrow(data)),
                           function(ts, i) {
                               ts <-  dplyr::mutate(ts, row = i) })
     # melt the list
@@ -402,6 +402,8 @@ sits_db_read <- function(conn, name) {
         # transform information about the timelines into a tibble
         timelines <- row$timeline[[1]]
         n_instances <- length(timelines)
+        assertthat::assert_that(n_instances > 0,
+                                msg = "invalid timeline in cube")
 
         # in a cube, a timeline is a list of timelines to account for the
         # classified image
@@ -410,6 +412,8 @@ sits_db_read <- function(conn, name) {
         for (n in 1:n_instances) {
             times_instance <- lubridate::as_date(timelines[[n]])
             n_times <- length(times_instance)
+            assertthat::assert_that(n_times > 0,
+                                    msg = "timeline with no dates")
             for (t in 1:n_times) {
                 time.tb <- tibble::tibble(
                     date = times_instance[t],

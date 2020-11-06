@@ -309,6 +309,21 @@ sits_config_show <- function() {
     return(rgb)
 }
 
+#' @title Retrieve the colors associated to classes
+#' @name sits_config_colors
+#' @keywords internal
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
+#' @description Retrieve the color associated a class label.
+#' @param labels  The class labels.
+#' @return colors  list of colors
+.sits_config_colors <- function(labels) {
+
+  colors.lst <- purrr::map(labels, function(l){
+      color <- .sits_config_color(l)
+  })
+  return(unlist(colors.lst))
+}
+
 #' @title Retrieve the classes associated to data cubes known to SITS
 #' @name .sits_config_cube_generic_class
 #' @keywords internal

@@ -341,9 +341,7 @@ plot.classified_image <- function(x , y, ..., map = NULL, time = 1,
 
 	# if colors are not specified, get them from the configuration file
 	if (purrr::is_null(colors)) {
-		colors <- vector(length = nclasses)
-		for (i in 1:nclasses)
-			colors[i] <- .sits_config_color(labels[i])
+		colors <- .sits_config_colors(labels)
 	}
 
 	# obtain the raster
@@ -913,9 +911,7 @@ plot.keras_model <- function(x, y, ...) {
 
     # if colors are not specified, get them from the configuration file
     if (purrr::is_null(colors)) {
-        colors <- vector(length = nclasses)
-        for (i in 1:nclasses)
-            colors[i] <- .sits_config_color(labels[i])
+        colors <- .sits_config_colors(labels)
     }
     # set the names of the color vector
     names(colors) <- as.character(c(1:nclasses))

@@ -357,19 +357,21 @@ sits_timeline.cube <- function(data){
 
     # retrieve the bands
     bands <- class_info.tb$bands[[1]]
-    nbands <- length(bands)
+    n_bands <- length(bands)
+    assertthat::assert_that(n_bands > 0,
+                            msg = "no bands in cube")
 
     #retrieve the time index
     time_index.lst  <- .sits_timeline_index_from_dates(dates_index.lst, timeline, bands)
 
-    size_lst <- nbands*ntimes + 2
+    size_lst <- n_bands*ntimes + 2
 
     select.lst <- purrr::map(time_index.lst, function(idx) {
         # for a given time index, build the data.table to be classified
         # build the classification matrix extracting the relevant columns
         select <- logical(length = size_lst)
         select[1:2] <- TRUE
-        for (b in 1:nbands) {
+        for (b in 1:n_bands) {
             i1 <- idx[(2*b - 1)] + 2
             i2 <- idx[2*b] + 2
             select[i1:i2] <- TRUE
@@ -405,16 +407,18 @@ sits_timeline.cube <- function(data){
     ntimes <- length(sits_timeline(cube))
 
     # get the bands in the same order as the samples
-    nbands <- length(sits_bands(samples))
+    n_bands <- length(sits_bands(samples))
+    assertthat::assert_that(n_bands > 0,
+                            msg = "no bands in samples")
 
-    size_lst <- nbands*ntimes + 2
+    size_lst <- n_bands*ntimes + 2
 
     select.lst <- purrr::map(time_index.lst, function(idx)  {
         # for a given time index, build the data.table to be classified
         # build the classification matrix extracting the relevant columns
         select <- logical(length = size_lst)
         select[1:2] <- TRUE
-        for (b in 1:nbands) {
+        for (b in 1:n_bands) {
             i1 <- idx[(2*b - 1)] + 2
             i2 <- idx[2*b] + 2
             select[i1:i2] <- TRUE
