@@ -32,7 +32,7 @@ Rcpp::IntegerVector na_linear_vector_interp(Rcpp::IntegerVector& x) {
         ++curr;
     }
     if (curr == x.end())
-        stop("All values are NA");
+        return x;
 
     while (first != curr) {
         *first++ = *curr;
@@ -90,6 +90,29 @@ IntegerMatrix linear_interp(IntegerMatrix& mtx) {
     for (int i = 0; i < nrows; i++) {
         IntegerVector vec = mtx(i, _);
         mtx(i, _) = na_linear_vector_interp(vec);
+    }
+
+
+    // fix all NA values by copying nearest non-NA pixel values
+    for (int i = 0; i < nrows; i++) {
+
+        if (IntegerVector::is_na(mtx(i, 0))) {
+
+            // increase a linear window to look for non-NA pixel values
+            for (int j = 1; j < nrows ; j++) {
+
+                // check first left pixel
+                if ((i - j >= 0) & !IntegerVector::is_na(mtx(i - j, 0))) {
+                    mtx(i, _) = mtx(i - j, _);
+                    break;
+                    // else check right pixel
+                } else if ((i + j < nrows) && !IntegerVector::is_na(mtx(i + j, 0))) {
+                    mtx(i, _) = mtx(i + j, _);
+                    break;
+                } else if (i - j < 0 || i + j >= nrows)
+                    stop("All values are NA.");
+            }
+        }
     }
 
     return mtx;
