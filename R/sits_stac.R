@@ -31,8 +31,10 @@
         rstac::get_request(...)
 
     # get the name of the bands
-    collection_bands <- purrr::map_chr(collection_info$properties[["eo:bands"]],
-                                       `[[`, c("name"))
+    collection_bands <- toupper(purrr::map_chr(collection_info$properties[["eo:bands"]],
+                                       `[[`, c("name")))
+
+    bands <- toupper(bands)
 
     # checks if the supplied bands match the product bands
     if (!is.null(bands)) {
@@ -109,6 +111,13 @@
 
     # fetching all the metadata
     items_info <- items_info %>% rstac::items_fetch(progress = pgr_fetch)
+
+    # converting to upper names
+    items_info$features <- purrr::map(items_info$features, function(x) {
+        names(x$assets) <- toupper(names(x$assets))
+
+        return(x)
+    })
 
     return(items_info)
 }
@@ -239,8 +248,8 @@
 
     # filters by the index of the bands that correspond to the collection
     index_bands <-
-        which(lapply(collection_info$properties$`eo:bands`,`[[`, c("name"))
-              %in% bands)
+        which(lapply(collection_info$properties$`eo:bands`, function(x) {
+            toupper(x$name) }) %in% bands)
 
     vect_values <- vector()
     list_values <- list()
