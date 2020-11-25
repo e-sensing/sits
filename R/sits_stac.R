@@ -33,10 +33,11 @@
     # converts bands name to upper case
     collection_info <- .sits_stac_toupper(collection_info)
 
-    bands <- toupper(bands)
-
     # checks if the supplied bands match the product bands
-    if (!is.null(bands)) {
+    if (!purrr::is_null(bands)) {
+
+        # converting to upper bands
+        bands <- toupper(bands)
         assertthat::assert_that(all(bands %in% collection_info$bands),
                                 msg = paste("The supplied bands do not match",
                                             "the data cube bands."))
