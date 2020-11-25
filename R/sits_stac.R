@@ -18,35 +18,32 @@
                                         "provided"))
 
     assertthat::assert_that(!purrr::is_null(collection),
-                msg = paste("sits_cube: for STAC_CUBE collections",
-                            "must be provided"))
+                            msg = paste("sits_cube: for STAC_CUBE collections",
+                                        "must be provided"))
 
     assertthat::assert_that(!(length(collection) > 1),
-                msg = paste("sits_cube: STAC_CUBE ",
-                            "only one collection should be specified"))
+                            msg = paste("sits_cube: STAC_CUBE ",
+                                        "only one collection should be specified"))
 
     # creating a rstac object and making the requisition
     collection_info <- rstac::stac(url) %>%
         rstac::collections(collection_id = collection) %>%
         rstac::get_request(...)
 
-    # get the name of the bands
-    collection_bands <- toupper(purrr::map_chr(collection_info$properties[["eo:bands"]],
-                                       `[[`, c("name")))
+    # converts bands name to upper case
+    collection_info <- .sits_stac_toupper(collection_info)
 
     bands <- toupper(bands)
 
     # checks if the supplied bands match the product bands
     if (!is.null(bands)) {
-        assertthat::assert_that(all(bands %in% collection_bands),
+        assertthat::assert_that(all(bands %in% collection_info$bands),
                                 msg = paste("The supplied bands do not match",
                                             "the data cube bands."))
 
-        collection_bands <- collection_bands[collection_bands %in% bands]
+        collection_info$bands <-
+            collection_info$bands[collection_info$bands %in% bands]
     }
-
-    # Add bands information as an attribute
-    collection_info$bands <- collection_bands
 
     return(collection_info)
 }
@@ -97,7 +94,7 @@
     # if specified, a filter per tile is added to the query
     if (!is.null(tiles))
         rstac_query <- rstac_query %>%
-            rstac::ext_query(keys = "bdc:tile", ops = "%in%", values = tiles)
+        rstac::ext_query(keys = "bdc:tile", ops = "%in%", values = tiles)
 
     # making the request
     items_info <- rstac_query %>% rstac::post_request(...)
@@ -120,6 +117,28 @@
     })
 
     return(items_info)
+}
+#' @title Converts bands name to upper case
+#' @name .sits_stac_toupper
+#' @keywords internal
+#'
+#' @param collection_info a \code{STACCollection} object returned by rstac.
+#'  package.
+#'
+#' @return       a \code{STACCollection} object with the bands in upper case.
+.sits_stac_toupper <- function(collection_info) {
+
+    collection_info$properties[["eo:bands"]] <-
+        purrr::map(collection_info$properties[["eo:bands"]], function(x) {
+            x$name <- toupper(x$name)
+            return(x) })
+
+    collection_info$bands <-
+        purrr::map_chr(collection_info$properties[["eo:bands"]],
+                       `[[`, c("name"))
+
+
+    return(collection_info)
 }
 #' @title Create a group of items
 #' @name .sits_stac_group
@@ -249,7 +268,7 @@
     # filters by the index of the bands that correspond to the collection
     index_bands <-
         which(lapply(collection_info$properties$`eo:bands`, function(x) {
-            toupper(x$name) }) %in% bands)
+            x$name }) %in% bands)
 
     vect_values <- vector()
     list_values <- list()
