@@ -64,7 +64,7 @@ Defines a cube to retrieve data from the Sentinel-2 L2A data
 # "AWS_ACCESS_KEY_ID"     = <your_access_key>,
 # "AWS_SECRET_ACCESS_KEY" = <your_secret_access_key>,
 # "AWS_DEFAULT_REGION"    = <your AWS region>,
-3 "AWS_ENDPOINT" = "sentinel-s2-l2a.s3.amazonaws.com",
+# "AWS_ENDPOINT" = "sentinel-s2-l2a.s3.amazonaws.com",
 # "AWS_REQUEST_PAYER"     = "requester"
 # )
 

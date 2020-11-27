@@ -34,15 +34,10 @@
 	# check if the files begin with http =:// or with vsicurl/
 	files <- .sits_raster_check_webfiles(files)
 	# check if the raster files can be read by GDAL
-	.sits_raster_check_gdal_access(files)
+	.sits_raster_api_check_gdal_access(files[1])
 
 	# are the files bricks?
-	tryCatch({
-		brick <- suppressWarnings(terra::rast(files[1]))
-	}, error = function(e){
-		msg <- paste0("Raster files are not bricks")
-		message(msg)
-	})
+    .sits_raster_api_check_brick(files[1])
 	return(TRUE)
 }
 
@@ -79,7 +74,9 @@
 	files <- .sits_raster_check_webfiles(files)
 
 	# obtain the parameters
-	params <- .sits_raster_params(terra::rast(files[1]))
+	params <- .sits_raster_api_params(files[1])
+	assertthat::assert_that(nrow(params) > 0,
+	           msg = ".sits_raster_brick_cube: error in retrieving raster params")
 
 	# bands in SITS are uppercase
 	bands <- toupper(bands)

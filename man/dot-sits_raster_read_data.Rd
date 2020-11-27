@@ -7,8 +7,6 @@
 .sits_raster_read_data(
   cube,
   samples,
-  obj.lst,
-  obj_cld,
   extent,
   stats,
   filter,
@@ -21,10 +19,6 @@
 \item{cube}{input data cube.}
 
 \item{samples}{tibble with samples.}
-
-\item{obj.lst}{list of terra objects to be read}
-
-\item{obj_cld}{terra object that points to the cube cloud band}
 
 \item{extent}{bounding box in (i,j) coordinates}
 

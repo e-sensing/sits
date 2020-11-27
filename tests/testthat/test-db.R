@@ -37,10 +37,10 @@ test_that("Access to RSQLite",{
     cube_raster <- sits_db_read(conn, "sinop")
 
     # test data
-    expect_equal(raster.tb$bands[[1]], cube_raster$bands[[1]])
-    expect_equal(raster.tb$crs, cube_raster$crs)
-    expect_equal(raster.tb$name, cube_raster$name)
-    expect_equal(raster.tb$timeline[[1]][[1]], cube_raster$timeline[[1]][[1]])
+    expect_true(all(sits_bands(raster.tb) %in% sits_bands(cube_raster)))
+    expect_true(raster.tb$crs == cube_raster$crs)
+    expect_true(raster.tb$name == cube_raster$name)
+    expect_true(all(sits_timeline(raster.tb) %in% sits_timeline(cube_raster)))
 
     samples_mt_ndvi <- sits_select(samples_mt_4bands, bands = "NDVI")
     rfor_model <- sits_train(samples_mt_ndvi, sits_rfor(num_trees = 100))

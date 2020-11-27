@@ -220,12 +220,12 @@ test_that("Reading a LAT/LONG from RASTER", {
 
 test_that("Reading a CSV file from RASTER", {
     #skip_on_cran()
-    file <- c(system.file("extdata/raster/mod13q1/sinop-crop-ndvi.tif",
+    file <- c(system.file("extdata/raster/mod13q1/sinop-ndvi-2014.tif",
                           package = "sits"))
     raster_cube <- sits_cube(name = "Sinop-crop",
                              satellite = "TERRA",
                              sensor    = "MODIS",
-                             timeline = sits::timeline_modis_392,
+                             timeline = sits::timeline_2013_2014,
                              bands = c("ndvi"),
                              files = file)
 
@@ -245,39 +245,10 @@ test_that("Reading a CSV file from RASTER", {
     expect_true(length(sits_time_series_dates(points.tb)) == 23)
 })
 
-test_that("Test reading shapefile from BDC data cube",{
-    testthat::skip_on_cran()
-    cbers_bdc_tile <- sits::sits_cube(type        = "BDC_TILE",
-                                      name        = "022024",
-                                      satellite   = "CBERS-4",
-                                      sensor      = "AWFI",
-                                      cube        = "CB4_64_16D_STK",
-                                      tiles       = "022024",
-                                      version     = "v001",
-                                      data_access = "web",
-                                      bands       = "NDVI",
-                                      start_date  = as.Date("2018-08-29"),
-                                      end_date    = as.Date("2019-08-13"))
-
-    if (purrr::is_null(cbers_bdc_tile))
-        skip("BDC is not accessible")
-
-    shp_path  <- system.file("extdata/shapefiles/bdc-test/samples.shp", package = "sits")
-
-    time_series_bdc <- sits::sits_get_data(cbers_bdc_tile, file = shp_path)
-    expect_equal(nrow(time_series_bdc), 10)
-    bbox <- sits_bbox(time_series_bdc)
-    expect_true(bbox["lon_min"] < -46.)
-    expect_true(all(sits_bands(time_series_bdc) %in% c("NDVI", "EVI")))
-    ts <- time_series_bdc$time_series[[1]]
-    expect_true(max(ts["NDVI"]) < 1.)
-
-
-})
-test_that("Test reading shapefile from BDC STAC",{
+test_that("Test reading shapefile from BDC",{
     testthat::skip_on_cran()
     # create a raster cube file based on the information about the files
-    cbers_stac_tile <- sits_cube(type        = "BDC_STAC",
+    cbers_stac_tile <- sits_cube(type        = "BDC",
                                  name        = "cbers_stac",
                                  bands       = c("NDVI", "EVI"),
                                  tiles       = c("022024","022025"),

@@ -40,6 +40,10 @@
 
     # retrieve the samples from the model
     samples  <- environment(ml_model)$data
+
+    # retrieve the normalization stats from the model
+    stats   <- environment(ml_model)$stats
+
     # precondition - are the samples correct?
     assertthat::assert_that(NROW(samples) > 0,
                             msg = "sits_classify: original samples not saved")
@@ -51,6 +55,11 @@
         all(bands %in% cube_bands),
         msg = "sits_classify: bands in samples different from cube bands")
 
+    # get the attribute names
+    attr_names <- names(.sits_distances(environment(ml_model)$data[1,]))
+    assertthat::assert_that(length(attr_names) > 0,
+        msg = "sits_classify: training data not available")
+
     # is there a region of interest?
     if (purrr::is_null(roi))
         sub_image <- .sits_raster_sub_image_default(cube)
@@ -58,6 +67,7 @@
         # define the sub_image
         sub_image <- .sits_raster_sub_image(cube = cube, roi = roi)
 
+    # postcondition for subimage
     if (purrr::is_null(sub_image)) {
         message("region of interest outside of cube")
         return(NULL)
@@ -87,34 +97,15 @@
     # number of output raster objects
     n_objs <- length(.sits_cube_files(cube_class))
 
-    # retrieve the normalization stats
-    stats   <- environment(ml_model)$stats
-
     # build a list with columns of data table to be processed for each interval
     select.lst <- .sits_timeline_raster_indexes(cube, samples)
-
-    # get the attribute names
-    attr_names <- names(.sits_distances(environment(ml_model)$data[1,]))
-    assertthat::assert_that(length(attr_names) > 0,
-                msg = "sits_classify_distances: training data not available")
-
-    # create the input raster objects
-    t_obj.lst <- purrr::map(bands, function(b){
-        t_obj <- .sits_cube_terra_obj_band(cube, b)
-    })
-    # # does the cube have a cloud band?
-    cld_band <- .sits_config_cloud_band(cube)
-    if (cld_band %in% sits_bands(cube))
-         t_obj_cld <- .sits_cube_terra_obj_band(cube, cld_band)
-    else
-         t_obj_cld <- NULL
 
     # get initial time for classification
     start_time <- lubridate::now()
     message(sprintf("Starting classification at %s", start_time))
 
     # read the blocks
-    blocks.lst <- purrr::map(c(1:block_info$n), function (b) {
+    blocks.lst <- purrr::map(c(1:block_info$n), function(b) {
         # define the extent
         extent <- c(block_info$row[b], block_info$nrows[b],
                     block_info$col, block_info$ncols)
@@ -126,8 +117,6 @@
         }
         data_DT <- .sits_raster_read_data(cube         = cube,
                                           samples      = samples,
-                                          obj.lst      = t_obj.lst,
-                                          obj_cld      = t_obj_cld,
                                           extent       = extent,
                                           stats        = stats,
                                           filter       = filter,
@@ -154,13 +143,10 @@
                 # predict the classification values
                 prediction_DT <- .sits_classify_interval(DT          = dist_DT,
                                                          ml_model   = ml_model,
-                                                        multicores = multicores)
+                                                         multicores = multicores)
                 # convert probabilities matrix to INT2U
                 scale_factor_save <- 10000
-                probs  <- .sits_raster_scale_matrix_integer(
-                    values.mx    = as.matrix(prediction_DT),
-                    scale_factor = scale_factor_save,
-                    multicores   = multicores)
+                prediction_DT <- scale_factor_save * prediction_DT
 
                 # estimate processing time
                 .sits_processing_estimate_classification_time(
@@ -169,7 +155,7 @@
                     bs = block_info,
                     block = b,
                     time = iter)
-                return(probs)
+                return(prediction_DT)
             })
 
         return(probs.lst)
@@ -178,32 +164,26 @@
     n_blocks <- length(blocks.lst)
     n_times  <- length(blocks.lst[[1]])
 
-    # find out how many layers per brick
-    n_layers  <- length(sits_labels(samples)$label)
+    # find out what are the labels
+    labels  <- sits_labels(samples)$label
 
-    purrr::map(c(1:n_times), function (t) {
+    purrr::map(c(1:n_times), function(t) {
         b <- 1
-        probs <- blocks.lst[[b]][[t]]
+        probs_DT <- blocks.lst[[b]][[t]]
         while (b < n_blocks)  {
             b <- b + 1
-            probs <- rbind(probs, blocks.lst[[b]][[t]])
+            probs_DT <- rbind(probs_DT, blocks.lst[[b]][[t]])
         }
-        t_obj <- terra::rast(nrows  = cube_class$nrows,
-                             ncols  = cube_class$ncols,
-                             nlyrs  = n_layers,
-                             xmin   = cube_class$xmin,
-                             xmax   = cube_class$xmax,
-                             ymin   = cube_class$ymin,
-                             ymax   = cube_class$ymax,
-                             crs    = cube_class$crs)
+        # define the file name of the raster file to be written
+        filename  <- .sits_cube_file(cube_class, t)
 
-        terra::values(t_obj) <- probs
+        # write the probabilities to a raster file
+        cube_class <- .sits_raster_api_write(cube       = cube_class,
+                                             num_layers = length(labels),
+                                             values     = probs_DT,
+                                             filename   = filename,
+                                             datatype   = "INT2U")
 
-        terra::writeRaster(t_obj,
-                           filename = .sits_cube_file(cube_class, t),
-                           wopt     = list(filetype  = "GTiff",
-                                           datatype = "INT2U"),
-                           overwrite = TRUE)
     })
     return(cube_class)
 }
@@ -257,31 +237,18 @@
 	if (proc_cores > 1) {
 		# estimate the list for breaking a block
 		block.lst <- .sits_raster_split_data(DT, proc_cores)
-		# memory management
-		# rm(DT)
-		# gc()
 		# apply parallel processing to the split data
 		# (return the results in a list inside a prototype)
 		predictions.lst <- parallel::mclapply(block.lst,
 											  classify_block,
 											  mc.cores = proc_cores)
 
-		#memory management
-		# rm(block.lst)
-		# gc()
 		# compose result based on output from different cores
 		prediction_DT <- data.table::as.data.table(do.call(rbind,predictions.lst))
-		# memory management
-		# rm(predictions.lst)
-		# gc()
 	}
 	else {
-
 		# estimate the prediction vector
 		prediction_DT <- ml_model(DT)
-		# memory management
-		# rm(DT)
-		# gc()
 	}
 
 	# are the results consistent with the data input?

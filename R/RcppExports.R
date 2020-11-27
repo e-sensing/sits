@@ -5,8 +5,16 @@ apply_transition_matrix <- function(data_before, data, transition_matrix) {
     .Call(`_sits_apply_transition_matrix`, data_before, data, transition_matrix)
 }
 
-cbers4_cld_detect <- function(b13, b14, b15, b16, thres_1, t2, t3, t4, t5, t6) {
-    .Call(`_sits_cbers4_cld_detect`, b13, b14, b15, b16, thres_1, t2, t3, t4, t5, t6)
+median_neigh <- function(data, nrows_window, ncols_window) {
+    .Call(`_sits_median_neigh`, data, nrows_window, ncols_window)
+}
+
+cbers4_cld_detect <- function(b13, b14, b15, b16, thres_1, t2, t3, t4, t5, t6, values) {
+    .Call(`_sits_cbers4_cld_detect`, b13, b14, b15, b16, thres_1, t2, t3, t4, t5, t6, values)
+}
+
+cbers4_cld_values <- function(b13, b14, b15, b16) {
+    .Call(`_sits_cbers4_cld_values`, b13, b14, b15, b16)
 }
 
 linear_interp <- function(mtx) {

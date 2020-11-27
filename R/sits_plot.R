@@ -185,6 +185,9 @@ plot.raster_cube <- function(x , y, ..., red, green, blue, time = 1) {
     if (is_brick) {
         # use the raster package to obtain a "rast" object from a brick
         rast <- suppressWarnings(raster::stack(file_info$path))
+        assertthat::assert_that(raster::ncol(rast) > 0 & raster::nrow(rast) > 1,
+                    msg = "plot.raster_cube: unable to retrive raster data")
+
         # plot the RGB file
         mv <- suppressWarnings(mapview::viewRGB(rast,
                                                 r = inst.vec["red"],
@@ -195,6 +198,8 @@ plot.raster_cube <- function(x , y, ..., red, green, blue, time = 1) {
     else {
         # use the raster package to obtain a "rast" object from a stack
         rast <- suppressWarnings(raster::stack(file_info$path[inst.vec]))
+        assertthat::assert_that(raster::ncol(rast) > 0 & raster::nrow(rast) > 1,
+                                msg = "plot.raster_cube: unable to retrive raster data")
         # plot the RGB file
         mv <- suppressWarnings(mapview::viewRGB(rast, r = 1, g = 2, b = 3))
     }
@@ -346,6 +351,8 @@ plot.classified_image <- function(x , y, ..., map = NULL, time = 1,
 
 	# obtain the raster
 	rl <- suppressWarnings(raster::raster(x$file_info[[1]]$path[time]))
+	assertthat::assert_that(raster::ncol(rl) > 0 & raster::nrow(rl) > 1,
+	               msg = "plot.raster_cube: unable to retrive raster data")
 	# create a RAT
 	rl <- raster::ratify(rl)
 	rat <- raster::levels(rl)[[1]]
@@ -895,6 +902,8 @@ plot.keras_model <- function(x, y, ...) {
 
     # get the raster object
     r <- suppressWarnings(raster::raster(cube$files[[1]][time]))
+    assertthat::assert_that(raster::ncol(r) > 0 & raster::nrow(r) > 1,
+                    msg = "plot.raster_cube: unable to retrive raster data")
 
     # convert from raster to points
     map.p <- raster::rasterToPoints(r)

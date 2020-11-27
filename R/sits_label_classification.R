@@ -67,21 +67,21 @@ sits_label_classification <- function(cube,
 	# precondition 1 - check if cube has probability data
 	file_name <- .sits_cube_file(cube)
 	assertthat::assert_that(as.logical(grep("probs",(file_name))),
-							msg = "sits_label_classification: input is not probability cube")
+			msg = "sits_label_classification: input is not probability cube")
 
 	# precondition 2 - test smoothing parameters
 	assertthat::assert_that(smoothing %in% c("none", "bayesian",
 											 "majority", "bayesian+majority"),
-							msg = "sits_label_classification: unknown smoothing method")
+			msg = "sits_label_classification: unknown smoothing method")
 
 	# precondition 3 - test window size
 	assertthat::assert_that(nrow(window) == ncol(window),
-							msg = "sits_label_classification: window must have equal sizes")
+			msg = "sits_label_classification: window must have equal sizes")
 
 	# prediction 4 - test variance
 	if (smoothing == "bayesian" || smoothing == "bayesian+majority")
 		assertthat::assert_that(variance > 1,
-								msg = "sits_label_classification: variance must be more than 1")
+			msg = "sits_label_classification: variance must be more than 1")
 
 
 	# find out how many labels exist
@@ -102,7 +102,7 @@ sits_label_classification <- function(cube,
 
 	purrr::map2(in_files, out_files, function(in_file, out_file) {
 
-	    for (b in 1:n_labels){
+	    for (b in 1:n_labels) {
 	        # read band values from file using GDAL
 	        data <- matrix(as.matrix(
 	            suppressWarnings(rgdal::readGDAL(
@@ -122,29 +122,13 @@ sits_label_classification <- function(cube,
 	            values[, b] <- t(data)
 
 		}
-		# create a raster object to write
-	    layer <- terra::rast(nrows = cube_labels$nrows,
-	                         ncols = cube_labels$ncols,
-	                         xmin  = cube_labels$xmin,
-	                         xmax  = cube_labels$xmax,
-	                         ymin  = cube_labels$ymin,
-	                         ymax  = cube_labels$ymax,
-	                         crs   = cube_labels$crs)
+		# write values into a file
 
-		# select the best class by choosing the maximum value
-		layer[] <- apply(values, 1, which.max)
+	    cube_labels <- .sits_raster_api_write_labelled(cube = cube_labels,
+	                                                   values = values,
+	                                                   smoothing = smoothing,
+	                                                   filename  = out_file)
 
-		# apply majority filter
-		if (smoothing == "majority" || smoothing == "bayesian+majority") {
-			layer <- terra::focal(x = layer, w = 3,
-			                      na.rm = TRUE, fun = terra::modal)
-		}
-		# save raster output to file
-		terra::writeRaster(layer,
-		                   filename = out_file,
-		                   wopt     = list(filetype  = "GTiff",
-		                                   datatype = "INT1U"),
-		                   overwrite = TRUE)
 	})
 	return(cube_labels)
 }

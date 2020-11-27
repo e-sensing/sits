@@ -4,17 +4,17 @@
 \alias{.sits_raster_scale_data}
 \title{Scale the time series values in the case of a matrix}
 \usage{
-.sits_raster_scale_data(values.mx, scale_factor, multicores)
+.sits_raster_scale_data(values, scale_factor, multicores)
 }
 \arguments{
-\item{values.mx}{Matrix of values.}
+\item{values}{Matrix of values.}
 
 \item{scale_factor}{Scaling factor.}
 
 \item{multicores}{Number of cores.}
 }
 \value{
-A scaled matrix.
+A scaled set of values
 }
 \description{
 Normalizes one band of the values read from a raster brick.

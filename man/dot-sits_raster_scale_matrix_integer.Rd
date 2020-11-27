@@ -4,10 +4,10 @@
 \alias{.sits_raster_scale_matrix_integer}
 \title{Scale the time series values in the case of a matrix}
 \usage{
-.sits_raster_scale_matrix_integer(values.mx, scale_factor, multicores)
+.sits_raster_scale_matrix_integer(values, scale_factor, multicores)
 }
 \arguments{
-\item{values.mx}{Matrix of values.}
+\item{values}{Matrix of values.}
 
 \item{scale_factor}{Scaling factor.}
 

@@ -63,8 +63,8 @@ Takes a data cube, whose metadata is
 }
 \examples{
 # Classify a raster file with 23 instances for one year
-ndvi_file <- c(system.file("extdata/raster/mod13q1/sinop-ndvi-2014.tif",
-                            package = "sits"))
+ndvi_file <- c(system.file("extdata/raster/mod13q1/sinop-ndvi-2014.tif", package = "sits"))
+
 # create a data cube based on the information about the files
 sinop_2014 <- sits_cube(name = "sinop-2014",
                         timeline = timeline_2013_2014,

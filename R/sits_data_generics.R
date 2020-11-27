@@ -290,7 +290,7 @@ sits_merge.sits <-  function(data1, data2) {
     bands1 <- sits_bands(data1)
     bands2 <- sits_bands(data2)
     if (any(bands1 %in% bands2) || any(bands2 %in% bands1)) {
-        if (!(any(".new" %in% bands1)) && !(any(".new" %in% bands2)))
+        if (!(any(".new" %in% bands1)) & !(any(".new" %in% bands2)))
             bands2 <- paste0(bands2, ".new")
         else
             bands2 <- paste0(bands2, ".nw")

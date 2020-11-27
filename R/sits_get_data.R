@@ -105,7 +105,7 @@ sits_get_data.wtss_cube <- function(cube, file = NULL, ...,
             msg = "sits_get_data: wtss cube is not valid or not accessible")
 
     # Precondition - lat/long must be provided
-    assertthat::assert_that(!purrr::is_null(latitude) &&
+    assertthat::assert_that(!purrr::is_null(latitude) &
                             !purrr::is_null(longitude),
                  msg = "sits_get_data - latitude/longitude must be provided")
 
@@ -161,7 +161,7 @@ sits_get_data.satveg_cube <- function(cube, file = NULL, ...,
             msg = "sits_get_data: satveg cube is not valid or not accessible")
 
     # Precondition - lat/long must be provided
-    assertthat::assert_that(!purrr::is_null(latitude) &&
+    assertthat::assert_that(!purrr::is_null(latitude) &
                                 !purrr::is_null(longitude),
             msg = "sits_get_data - latitude/longitude must be provided")
 
@@ -463,7 +463,7 @@ sits_get_data.raster_cube <- function(cube,
                                      impute_fn  = sits_impute_linear()) {
 
     # Precondition - lat/long must be provided
-    assertthat::assert_that(!purrr::is_null(latitude) && !purrr::is_null(longitude),
+    assertthat::assert_that(!purrr::is_null(latitude) & !purrr::is_null(longitude),
                     msg = "sits_get_data - latitude/longitude must be provided")
 
     # Precondition - check and get start and end dates
@@ -472,7 +472,9 @@ sits_get_data.raster_cube <- function(cube,
     # Precondition - check bands
     bands <- .sits_cube_bands_check(cube, bands)
 
-    ll.tb <- tibble::tibble(id = 1, longitude = longitude, latitude = latitude,
+    ll.tb <- tibble::tibble(id = 1,
+                            longitude = longitude,
+                            latitude = latitude,
                             start_date = start_end["start_date"],
                             end_date   = start_end["end_date"],
                             label      = label)
@@ -512,21 +514,24 @@ sits_get_data.raster_cube <- function(cube,
 #' @examples
 #' #' Read a CSV in a Raster Brick
 #' # define the file that has the raster brick
-#' files  <- c(system.file ("extdata/raster/mod13q1/sinop-crop-ndvi.tif",
-#'                          package = "sits"))
-#' # define the timeline
-#' data(timeline_modis_392)
-#' # create a data cube based on the information about the files
-#' raster_cube <- sits_cube(type = "RASTER", satellite = "TERRA",
-#'                          sensor = "MODIS", name = "Sinop-crop",
-#'                          timeline = timeline_modis_392,
-#'                          bands = c("NDVI"), files = files)
+#' ndvi_file <- c(system.file("extdata/raster/mod13q1/sinop-ndvi-2014.tif", package = "sits"))
+#'
+#' evi_file <- c(system.file("extdata/raster/mod13q1/sinop-evi-2014.tif", package = "sits"))
+#'
+#' # define the data cube based on files and known timeline
+#' sinop_2014 <- sits_cube(name = "sinop-2014",
+#'                         timeline = timeline_2013_2014,
+#'                         satellite = "TERRA",
+#'                         sensor = "MODIS",
+#'                         bands = c("ndvi", "evi"),
+#'                         files = c(ndvi_file, evi_file))
 #' # read data from a CSV file
 #' csv_file <- system.file ("extdata/samples/samples_sinop_crop.csv",
 #'                          package = "sits")
-#' points.tb <- sits_get_data (raster_cube, file = csv_file)
+#' points.tb <- sits_get_data (sinop_2014, file = csv_file)
 #'
 #' # show the points
+#'
 #' plot(points.tb)
 #'
 #' @export

@@ -4,36 +4,18 @@
 \alias{.sits_raster_stack_info}
 \title{Obtain the information about files that make up a stack cube}
 \usage{
-.sits_raster_stack_info(
-  type,
-  satellite,
-  sensor,
-  start_date = NULL,
-  end_date = NULL,
-  bands = NULL,
-  data_dir,
-  parse_info = NULL,
-  delim = NULL
-)
+.sits_raster_stack_info(satellite, sensor, data_dir, parse_info, delim)
 }
 \arguments{
-\item{type}{type of cube}
-
 \item{satellite}{name of satellite}
 
 \item{sensor}{name of sensor}
-
-\item{start_date}{start_date of the cube}
-
-\item{end_date}{end date of the cube}
-
-\item{bands}{bands to be retrieved}
 
 \item{data_dir}{directory where data is located}
 
 \item{parse_info}{parsing information}
 
-\item{delim}{delimitator}
+\item{delim}{delimiter}
 }
 \description{
 All image files should have the same spatial resolution

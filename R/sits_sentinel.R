@@ -45,7 +45,7 @@
 
 	# are the files bricks?
 	tryCatch({
-		r <- suppressWarnings(terra::rast(test_file))
+	    .sits_raster_api_check_gdal_access(test_file)
 	}, error = function(e){
 		msg <- paste0("Error in accessing AWS files")
 		message(msg)
@@ -129,10 +129,16 @@
 		unlist() %>%
 		.[grepl("jp2",.)]
 
+	# split the image name
+	s2_files.ls <- strsplit(s2_files, split = "/")
+	# joint the list into a tibble
+	s2_files.tb <- suppressWarnings(tibble::as_tibble(do.call(rbind,s2_files.ls)))
+
+	# read the image files into a tibble with added parse info
+	colnames(s2_files.tb) <- .sits_config_data_parse_info("S2_L2A_AWS")
+
 	# get the information on the required bands, dates and path
-	s2.tb <- s2_files %>%
-		# read the file path into a tibble
-		readr::read_delim(delim = "/", col_names = FALSE) %>%
+	s2.tb <- s2_files.tb %>%
 		# select the relevant parts
 		dplyr::select(X5, X6, X7, X9, X10) %>%
 		# rename the columns
@@ -196,10 +202,9 @@
 		assertthat::assert_that(all(bands %in% s2_bands),
 			msg = "mismatch btw requested bands and bands availabe in S2 AWS")
 
-
 	# get the first image
 	# obtain the parameters
-	params <- .sits_raster_params(terra::rast(file_info[1,]$path))
+	params <- .sits_raster_api_params(file_info[1,]$path)
 
 	# get scale factors
 	scale_factors  <- .sits_config_scale_factors(sensor, bands)

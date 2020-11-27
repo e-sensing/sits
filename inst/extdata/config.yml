@@ -8,21 +8,22 @@ default:
     minimum_number_samples   : 1000
 
     # Data cube types known to sits
-    cube_types              : ["WTSS", "SATVEG", "RASTER", "BDC_TILE", "BDC_STAC", "S2_L2A_AWS", "PROBS", "CLASSIFIED"]
+    cube_types              : ["WTSS", "SATVEG", "RASTER", "BDC", "S2_L2A_AWS", "PROBS", "CLASSIFIED"]
     cube_classes_generic    : ["wtss_cube", "satveg_cube", "raster_cube", "raster_cube", "raster_cube", "raster_cube", "probs_cube", "classified_image"]
-    cube_classes_specific   : ["wtss_cube", "satveg_cube", "raster_cube", "bdc_cube", "bdc_stac", "s2_l2a_aws_cube", "probs_cube", "classified_image"]
-    cube_robjs              : ["no_raster", "no_raster", "raster", "raster", "raster", "raster", "raster", "raster"]
+    cube_classes_specific   : ["wtss_cube", "satveg_cube", "raster_cube", "bdc_cube", "s2_l2a_aws_cube", "probs_cube", "classified_image"]
+    cube_robjs              : ["no_raster", "no_raster", "raster", "raster", "raster", "raster", "raster"]
     cube_services           : ["WTSS", "SATVEG"]
-    cube_raster             : ["RASTER", "BDC_TILE", "BDC_STAC", "S2_L2A_AWS", "PROBS", "CLASSIFIED"]
+    cube_raster             : ["RASTER", "BDC", "S2_L2A_AWS", "PROBS", "CLASSIFIED"]
+
+    # Image file extensions known to SITS
+    img_file_extensions     : ["tiff", "tif", "jp2", "hdf"]
 
     # BDC configuration for access to data
-    bdc_web                 : "http://brazildatacube.dpi.inpe.br/Repository/Mosaic/"
     bdc_stac                : "http://brazildatacube.dpi.inpe.br/stac/"
-    bdc_local               : "/gfs/Repository/Mosaic"
     bdc_extension           : ["tif"]
 
     # information to parse repositories
-    BDC_TILE                :
+    BDC               :
         data_dir_path       : ["cube", "version", "tile"]
         parse_info          : ["sat", "res", "X1", "X2", "X3", "tile", "date", "X4", "band"]
         delim               : ["_"]
@@ -103,7 +104,7 @@ default:
     OLI                     : &landsat
         bands               :
             SITS            : &oli_bands_sits ["B2", "B3", "B4", "B5", "B6", "B7", "NDVI", "EVI"]
-            BDC_TILE        : ["band2", "band3", "band4", "band5", "band6", "band7", "ndvi", "evi"]
+            BDC             : ["band2", "band3", "band4", "band5", "band6", "band7", "ndvi", "evi"]
             RASTER          : *oli_bands_sits
         missing_value       :
             NDVI            : -9999
@@ -157,7 +158,7 @@ default:
     AWFI                    :
         bands               :
             SITS            : &awfi_bands_sits ["B13", "B14", "B15", "B16", "NDVI", "EVI", "CMASK"]
-            BDC_TILE        : ["BAND13", "BAND14", "BAND15", "BAND16", "NDVI", "EVI", "CMASK"]
+            BDC             : ["BAND13", "BAND14", "BAND15", "BAND16", "NDVI", "EVI", "CMASK"]
             RASTER          : *awfi_bands_sits
             cloud_band      : "CMASK"
 
@@ -210,7 +211,7 @@ default:
         bands               :
             SITS            : &msi_bands_sits ["B01", "B02", "B03", "B04", "B05", "B06", "B07", "B08", "B8A", "B09", "B10", "B11", "B12", "SCL"]
             S2_L2_AWS       : &msi_bands_aws ["B01", "B02", "B03", "B04", "B05", "B06", "B07", "B08", "B8A", "B09", "B10", "B11", "B12", "SCL"]
-            BDC_TILE        : ["band1", "band2", "band3", "band4", "band5", "band6", "band7", "band8", "band8a", "band9", "band10", "band11", "band12"]
+            BDC             : ["band1", "band2", "band3", "band4", "band5", "band6", "band7", "band8", "band8a", "band9", "band10", "band11", "band12"]
             RASTER          : *msi_bands_sits
             AWS             : *msi_bands_aws
             cloud_band      : "SCL"
@@ -328,15 +329,11 @@ default:
         20m_bands           : ["B02", "B03", "B04", "B05", "B06", "BO7", "B08", "B8A", "B11", "B12", "SCL"]
         60m_bands           : ["B01", "B02", "B03", "B04", "B05", "B06", "BO7", "B08", "B8A", "B09", "B10", "B11", "B12", "SCL"]
         test_file           : "/vsis3/sentinel-s2-l2a/tiles/20/L/KP/2018/8/17/0/R20m/B02.jp2"
+        parse_info          : ["X1", "X2", "X3", "X4", "X5", "X6", "X7", "X8", "X9", "X10"]
+        delim               : ["/"]
 
     CLOUD                   :
-        BDC_TILE            :
-            AWFI_CLD_BAND   : "CMASK"
-            AWFI_cld_vls    : 4
-            MSI_CLD_BAND    : "FMASK"
-            MSI_cld_vls     : [2, 3, 4, 255]
-
-        BDC_STAC            :
+        BDC                 :
             AWFI_CLD_BAND   : "CMASK"
             AWFI_cld_vls    : 4
             MSI_CLD_BAND    : "FMASK"

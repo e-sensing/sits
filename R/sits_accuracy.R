@@ -94,7 +94,7 @@ sits_accuracy <- function(label_cube, validation_csv) {
     # filter the points inside the data cube
     points_year <- dplyr::filter(points,
                                  X > label_cube$xmin & X < label_cube$xmax &
-                                     Y > label_cube$ymin & Y < label_cube$ymax,
+                                 Y > label_cube$ymin & Y < label_cube$ymax,
                                  start_date == label_cube$file_info[[1]]$date)
 
     # are there points to be retrieved from the cube?
@@ -106,29 +106,30 @@ sits_accuracy <- function(label_cube, validation_csv) {
                  nrow = nrow(points_year), ncol = 2)
     colnames(xy) <- c("X", "Y")
 
-    # open raster
-    t_obj <- .sits_cube_terra_obj_band(cube = label_cube,
-                                       band_cube = label_cube$bands)
-
-    # extract classes
-    predicted <- label_cube$labels[[1]][terra::extract(t_obj, xy)[,"lyr.1"]]
-
+    # extract class values
+    values <- .sits_raster_api_extract(label_cube, label_cube$bands[[1]][1], xy)
+    # convert to a vector
+    val <- dplyr::pull(values[,1])
+    # get the labels
+    labels_cube <- label_cube$labels[[1]]
+    # get the predicted values
+    predicted <- labels_cube[val]
     # Get reference classes
     references <- points_year$label
 
     # Create error matrix
     error_matrix <- table(
-        factor(predicted, levels = label_cube$labels[[1]],
-               labels = label_cube$labels[[1]]),
-        factor(references, levels = label_cube$labels[[1]],
-               labels = label_cube$labels[[1]]))
+        factor(predicted, levels = labels_cube,
+               labels = labels_cube),
+        factor(references, levels = labels_cube,
+               labels = labels_cube))
 
     # Get area
-    freq <- tibble::as_tibble(terra::freq(t_obj))
+    freq <- .sits_raster_api_area_frequency(cube = label_cube)
     area <- freq$count
-    names(area) <- label_cube$labels[[1]][freq$value]
-    area <- area[label_cube$labels[[1]]]
-    names(area) <- label_cube$labels[[1]]
+    names(area) <- labels_cube[freq$value]
+    area <- area[labels_cube]
+    names(area) <- labels_cube
     area[is.na(area)] <- 0
 
     # Compute accuracy metrics

@@ -6,10 +6,10 @@
 \usage{
 .sits_raster_preprocess_data(
   cube,
-  values.mx,
-  band,
-  clouds.mx,
-  cld_index,
+  band_cube,
+  extent,
+  filter = NULL,
+  stats = NULL,
   impute_fn,
   multicores,
   .verbose = FALSE
@@ -18,13 +18,13 @@
 \arguments{
 \item{cube}{data cube being processed}
 
-\item{values.mx}{matrix of values retrieved from a raster object}
+\item{band_cube}{band to be processed}
 
-\item{band}{band to be processed}
+\item{extent}{extent to be read}
 
-\item{clouds.mx}{matrix of cloud values (optional)}
+\item{filter}{smoothing filter to be applied.}
 
-\item{cld_index}{index of values indicating clouds in the cloud band}
+\item{stats}{normalization parameters.}
 
 \item{impute_fn}{imputing function to be applied to replace NA}
 

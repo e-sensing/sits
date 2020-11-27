@@ -229,7 +229,8 @@
 .sits_stac_items_info <- function(items, bands) {
 
     assets_info <- rstac::assets_list(items, assets_names = bands) %>%
-        tibble::as_tibble() %>% dplyr::arrange(date)
+        tibble::as_tibble() %>% dplyr::arrange(date) %>%
+        dplyr::mutate(date = lubridate::as_date(as.character(date)))
 
     return(assets_info)
 }
@@ -323,7 +324,7 @@
     metadata_values  <- .sits_config_stac_values(collection_info, bands)
 
     # create a tibble to store the metadata
-    cube <- .sits_cube_create(type      = "BDC_STAC",
+    cube <- .sits_cube_create(type      = "BDC",
                               URL       = url,
                               satellite = collection_info$properties$platform,
                               sensor    = collection_info$properties$instruments,

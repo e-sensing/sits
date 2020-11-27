@@ -326,23 +326,6 @@
 	return(cube$labels[[1]])
 }
 
-#' @title Given a band, return the associated Raster object for the cube
-#' @name .sits_cube_terra_obj_band
-#' @keywords internal
-#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
-#'
-#' @description          Given a data cube, retrieve the timeline
-#' @param cube           Metadata about a data cube
-#' @param band_cube      Name of the band to the retrieved
-#' @return               Raster object associated to the indexed file
-#'
-.sits_cube_terra_obj_band <- function(cube, band_cube){
-
-    band.tb <- dplyr::filter(cube$file_info[[1]], band == band_cube)
-    t_obj <- suppressWarnings(terra::rast(band.tb$path))
-    return(t_obj)
-}
-
 #' @title Retrieve the missing values for a data cube
 #' @name .sits_cube_missing_values
 #' @keywords internal

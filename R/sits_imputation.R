@@ -4,7 +4,7 @@
 #'
 #' @description Remove NA by linear interpolation
 #'
-#' @param  data          A time series vector
+#' @param  data          A time series vector or matrix
 #' @return               A set of filtered time series
 #' @export
 sits_impute_linear  <- function(data = NULL) {

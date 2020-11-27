@@ -39,7 +39,7 @@
 sits_classify <- function(data, ml_model, ...) {
 
     # is the data a sits tibble? If not, it must be a cube
-    if (!("sits" %in% class(data))){
+    if (!("sits" %in% class(data))) {
       # find out the generic cube class it belongs to
       class_data <- .sits_config_cube_generic_class(data[1,]$type)
       class(data) <- c(class_data, class(data))
@@ -192,8 +192,8 @@ sits_classify.sits <- function(data, ml_model, ...,
 #'
 #' @examples
 #' # Classify a raster file with 23 instances for one year
-#' ndvi_file <- c(system.file("extdata/raster/mod13q1/sinop-ndvi-2014.tif",
-#'                             package = "sits"))
+#' ndvi_file <- c(system.file("extdata/raster/mod13q1/sinop-ndvi-2014.tif", package = "sits"))
+#'
 #' # create a data cube based on the information about the files
 #' sinop_2014 <- sits_cube(name = "sinop-2014",
 #'                         timeline = timeline_2013_2014,

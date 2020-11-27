@@ -7,10 +7,9 @@
 \method{sits_cube}{raster_cube}(
   type = "RASTER",
   ...,
-  name,
+  name = NULL,
   satellite,
   sensor,
-  resolution,
   data_dir = NULL,
   parse_info = NULL,
   delim = "_",
@@ -29,8 +28,6 @@
 \item{satellite}{satellite}
 
 \item{sensor}{sensor}
-
-\item{resolution}{sensor resolution}
 
 \item{data_dir}{directory where data is located}
 
@@ -82,7 +79,6 @@ data_dir <- system.file("extdata/raster/cbers", package = "sits")
 cbers_cube <- sits_cube(name       = "022024",
                      satellite  = "CBERS-4",
                      sensor     = "AWFI",
-                     resolution = "64m",
                      data_dir   = data_dir,
                      delim      = "_",
                      parse_info = c("X1", "X2", "band", "date"))

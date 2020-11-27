@@ -5,8 +5,6 @@
 #'
 #' @param  cube            input data cube.
 #' @param  samples         tibble with samples.
-#' @param  obj.lst         list of terra objects to be read
-#' @param  obj_cld         terra object that points to the cube cloud band
 #' @param  extent          bounding box in (i,j) coordinates
 #' @param  stats           normalization parameters.
 #' @param  filter          smoothing filter to be applied.
@@ -16,8 +14,6 @@
 #' @return A data.table with values for classification.
 .sits_raster_read_data <- function(cube,
                                    samples,
-                                   obj.lst,
-                                   obj_cld,
                                    extent,
                                    stats,
                                    filter,
@@ -25,66 +21,30 @@
                                    multicores,
                                    .verbose) {
 
-    # read the cloud data
-    if (!purrr::is_null(obj_cld)) {
-        terra::readStart(obj_cld)
-        clouds.mx <- terra::readValues(x      = obj_cld,
-                                       row    = extent["row"],
-                                       nrows  = extent["nrows"],
-                                       col    = extent["col"],
-                                       ncols  = extent["ncols"],
-                                       mat = TRUE)
-        terra::readStop(obj_cld)
-        cld_index <- .sits_config_cloud_valid_values(cube)
-    }
-    else {
-        clouds.mx <- NULL
-        cld_index <- NULL
-    }
+    # get the file information for the cube
+    file_info <- cube$file_info[[1]]
 
     # get the bands in the same order as the samples
     bands   <- sits_bands(samples)
     n_bands <- length(bands)
 
     # read the values from the raster bricks ordered by bands
-    values.lst <- purrr::map2(bands, c(1:n_bands), function(band, b) {
-        # read the values
-        terra::readStart(obj.lst[[b]])
-        values.mx    <- terra::readValues(x      = obj.lst[[b]],
-                                          row    = extent["row"],
-                                          nrows  = extent["nrows"],
-                                          col    = extent["col"],
-                                          ncols  = extent["ncols"],
-                                          mat = TRUE)
-        terra::readStop(obj.lst[[b]])
+    values.lst <- purrr::map(bands, function(band) {
 
         # preprocess the input data
-        values.mx <- .sits_raster_preprocess_data(cube,
-                                                  values.mx,
-                                                  band,
-                                                  clouds.mx,
-                                                  cld_index,
-                                                  impute_fn,
-                                                  multicores,
-                                                  .verbose)
-
-        # scale the data set
-        scale_factor <- cube$scale_factors[[1]][band]
-        values.mx <- scale_factor * values.mx
-
-        # filter the data
-        if (!(purrr::is_null(filter))) {
-            values.mx <- .sits_raster_filter_data(values.mx, filter, multicores)
-        }
-        # normalize the data
-        if (!purrr::is_null(stats)) {
-            values.mx <- .sits_normalize_matrix(values.mx, stats, band, multicores)
-        }
-        return(values.mx)
+        values.DT <- .sits_raster_preprocess_data(cube       = cube,
+                                                  band_cube  = band,
+                                                  extent     = extent,
+                                                  impute_fn  = impute_fn,
+                                                  stats      = stats,
+                                                  filter     = filter,
+                                                  multicores = multicores,
+                                                  .verbose   = .verbose)
+        return(values.DT)
     })
 
     # create a data.table joining the values
-    data_DT <- data.table::as.data.table(do.call(cbind,values.lst))
+    data_DT <- do.call(cbind,values.lst)
 
     # create two additional columns for prediction
     two_cols_DT <- data.table::data.table("original_row" = rep(1, nrow(data_DT)),
@@ -102,66 +62,97 @@
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'
 #' @param  cube             data cube being processed
-#' @param  values.mx        matrix of values retrieved from a raster object
-#' @param  band             band to be processed
-#' @param  clouds.mx        matrix of cloud values (optional)
-#' @param  cld_index        index of values indicating clouds in the cloud band
+#' @param  band_cube        band to be processed
+#' @param  extent           extent to be read
+#' @param  filter           smoothing filter to be applied.
+#' @param  stats            normalization parameters.
 #' @param  impute_fn        imputing function to be applied to replace NA
 #' @param  multicores       number of cores to process the time series.
 #' @param  .verbose         prints information about processing times
 #' @return Matrix with pre-processed values.
 .sits_raster_preprocess_data <- function(cube,
-                                         values.mx,
-                                         band,
-                                         clouds.mx,
-                                         cld_index,
+                                         band_cube,
+                                         extent,
+                                         filter = NULL,
+                                         stats = NULL,
                                          impute_fn,
                                          multicores,
                                          .verbose = FALSE) {
 
+    # get the file information for the cube
+    file_info <- cube$file_info[[1]]
+
+    # define the input raster files for band
+    bnd_files <- dplyr::filter(file_info, band == band_cube)$path
+
+    # read the values
+    values.mx <- .sits_raster_api_read_extent(bnd_files, extent)
 
     # get the missing values, minimum values and scale factors
-    missing_value <- unname(cube$missing_values[[1]][band])
-    minimum_value <- unname(cube$minimum_values[[1]][band])
-    maximum_value <- unname(cube$maximum_values[[1]][band])
+    missing_value <- unname(cube$missing_values[[1]][band_cube])
+    minimum_value <- unname(cube$minimum_values[[1]][band_cube])
+    maximum_value <- unname(cube$maximum_values[[1]][band_cube])
 
     # correct NA, minimum, maximum, and missing values
     values.mx[values.mx < minimum_value] <- NA
     values.mx[values.mx > maximum_value] <- NA
     values.mx[values.mx == missing_value] <- NA
 
+    # does the cube have a cloud band?
+    cld_band <- .sits_config_cloud_band(cube)
+
+    if (cld_band %in% sits_bands(cube)) {
+        cld_files <- dplyr::filter(file_info, band == cld_band)$path
+        clouds.mx <- .sits_raster_api_read_extent(cld_files, extent)
+    }
+    else
+        clouds.mx <- NULL
+
     # change the points under clouds to NA
     if (!purrr::is_null(clouds.mx)) {
+        cld_index <- .sits_config_cloud_valid_values(cube)
         values.mx[clouds.mx %in% cld_index] <- NA
     }
 
-    # remove cloud pixels
+    # remove NA pixels
     if (any(is.na(values.mx))) {
         if (.verbose) task_start_time <- lubridate::now()
 
-        values.mx <- .sits_raster_cld_remove(values.mx  = values.mx,
-                                             impute_fn  = impute_fn,
-                                             multicores = multicores)
+        values.mx <- .sits_raster_na_remove(values     = values.mx,
+                                            impute_fn  = impute_fn,
+                                            multicores = multicores)
 
         if (.verbose) .sits_processing_estimate_task_time("Impute NA",
                                                           task_start_time)
     }
+    # scale the data set
+    scale_factor <- cube$scale_factors[[1]][band_cube]
+    values.mx <- scale_factor * values.mx
 
+    # filter the data
+    if (!(purrr::is_null(filter))) {
+        values.mx <- .sits_raster_filter_data(values.mx, filter, multicores)
+    }
+    # normalize the data
+    if (!purrr::is_null(stats)) {
+        values.mx <- .sits_normalize_matrix(values.mx, stats, band_cube, multicores)
+    }
 
-    return(values.mx)
+    values <- data.table::as.data.table(values.mx)
+    return(values)
 }
 #' @title Remove cloud pixels and NA values by imputation
-#' @name  .sits_raster_cld_remove
+#' @name  .sits_raster_na_remove
 #' @keywords internal
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'
-#' @param  values.mx        matrix of values retrieved from a raster object
+#' @param  values           matrix of values retrieved from a raster object
 #' @param  impute_fn        imputing function to be applied to replace NA
 #' @param  multicores       number of cores to process the time series.
-#' @return Matrix with pre-processed values.
-.sits_raster_cld_remove <- function(values.mx,
-                                    impute_fn,
-                                    multicores) {
+#' @return Data.table with pre-processed values.
+.sits_raster_na_remove <- function(values,
+                                   impute_fn,
+                                   multicores) {
 
     cld_remove_block <- function(block.mx) {
          # interpolate NA
@@ -169,24 +160,16 @@
     }
     # use multicores to speed up filtering
     if (multicores > 1) {
-        chunk.lst <- .sits_raster_split_data(values.mx, multicores)
+        chunk.lst <- .sits_raster_split_data(values, multicores)
         rows.lst  <- parallel::mclapply(chunk.lst, cld_remove_block,
                                         mc.cores = multicores)
-        values.mx <- do.call(rbind, rows.lst)
-        # rm(chunk.lst)
-        # rm(rows.lst)
-        # gc()
+        values <- do.call(rbind, rows.lst)
     }
     else
-        values.mx <- impute_fn(values.mx)
+        values <- impute_fn(values)
 
-    return(values.mx)
-
-
+    return(values)
 }
-
-
-
 #' @title Filter the time series values in the case of a matrix
 #' @name .sits_raster_filter_data
 #' @keywords internal
@@ -194,32 +177,28 @@
 #'
 #' @description This function filters a matrix.
 #'
-#' @param  values.mx      Matrix of values.
+#' @param  values         matrix of values.
 #' @param  filter         Filter function to apply to matrix.
 #' @param  multicores     Number of cores.
-#' @return Scaled integer matrix.
-.sits_raster_filter_data <- function(values.mx, filter, multicores) {
-    # scale the data set
+#' @return Filtered matrix.
+.sits_raster_filter_data <- function(values, filter, multicores) {
+
     # auxiliary function to scale a block of data
     filter_matrix_block <- function(chunk) {
         filtered_block.mx <- filter(chunk)
     }
     # use multicores to speed up filtering
     if (multicores > 1) {
-        chunk.lst <- .sits_raster_split_data(values.mx, multicores)
+        chunk.lst <- .sits_raster_split_data(values, multicores)
         rows.lst  <- parallel::mclapply(chunk.lst, filter_matrix_block,
                                         mc.cores = multicores)
-        values.mx <- do.call(rbind, rows.lst)
-        # rm(chunk.lst)
-        # rm(rows.lst)
-        # gc()
+        values <- do.call(rbind, rows.lst)
     }
     else
-        values.mx <- filter(values.mx)
+        values <- filter(values)
 
-    return(values.mx)
+    return(values)
 }
-
 
 #' @title Scale the time series values in the case of a matrix
 #' @name .sits_raster_scale_data
@@ -228,30 +207,27 @@
 #'
 #' @description Normalizes one band of the values read from a raster brick.
 #'
-#' @param  values.mx      Matrix of values.
+#' @param  values         Matrix of values.
 #' @param  scale_factor   Scaling factor.
 #' @param  multicores     Number of cores.
-#' @return A scaled matrix.
-.sits_raster_scale_data <- function(values.mx, scale_factor, multicores) {
-    # scale the data set
+#' @return A scaled set of values
+.sits_raster_scale_data <- function(values, scale_factor, multicores) {
+
     # auxiliary function to scale a block of data
     scale_block <- function(chunk, scale_factor) {
-        scaled_block.mx <- scale_data(chunk, scale_factor)
+        scaled_block <- scale_data(chunk, scale_factor)
     }
     # use multicores to speed up scaling
     if (multicores > 1) {
-        chunk.lst <- .sits_raster_split_data(values.mx, multicores)
+        chunk.lst <- .sits_raster_split_data(values, multicores)
         rows.lst  <- parallel::mclapply(chunk.lst, scale_block,
                                         scale_factor, mc.cores = multicores)
-        values.mx <- do.call(rbind, rows.lst)
-        # rm(chunk.lst)
-        # rm(rows.lst)
-        # gc()
+        values <- do.call(rbind, rows.lst)
     }
     else
-        values.mx <- scale_data(values.mx, scale_factor)
+        values <- scale_data(values, scale_factor)
 
-    return(values.mx)
+    return(values)
 }
 
 #' @title Scale the time series values in the case of a matrix
@@ -261,32 +237,29 @@
 #'
 #' @description This function transforms a numerical matrix into an integer one.
 #'
-#' @param  values.mx      Matrix of values.
+#' @param  values         Matrix of values.
 #' @param  scale_factor   Scaling factor.
 #' @param  multicores     Number of cores.
 #' @return Scaled integer matrix.
-.sits_raster_scale_matrix_integer <- function(values.mx,
+.sits_raster_scale_matrix_integer <- function(values,
                                               scale_factor,
                                               multicores) {
     # scale the data set
     # auxiliary function to scale a block of data
     scale_matrix_block <- function(chunk, scale_factor) {
-        scaled_block.mx <- scale_matrix_integer(chunk, scale_factor)
+        scaled_block <- scale_matrix_integer(chunk, scale_factor)
     }
     # use multicores to speed up scaling
     if (multicores > 1) {
-        chunk.lst <- .sits_raster_split_data(values.mx, multicores)
+        chunk.lst <- .sits_raster_split_data(values, multicores)
         rows.lst  <- parallel::mclapply(chunk.lst, scale_matrix_block,
                                         scale_factor, mc.cores = multicores)
-        int_values.mx <- do.call(rbind, rows.lst)
-        # rm(chunk.lst)
-        # rm(rows.lst)
-        # gc()
+        int_values <- do.call(rbind, rows.lst)
     }
     else
-        int_values.mx <- scale_matrix_integer(values.mx, scale_factor)
+        int_values <- scale_matrix_integer(values, scale_factor)
 
-    return(int_values.mx)
+    return(int_values)
 }
 
 #' @title Split a data.table or a matrix for multicore processing
@@ -378,13 +351,7 @@
         # retrieve values that indicate clouds
         cld_index <- .sits_config_cloud_valid_values(cube)
         # get the values of the time series (terra object)
-        t_cld_obj <- .sits_cube_terra_obj_band(cube, cld_band)
-        cld_values <- tibble::as_tibble(terra::extract(t_cld_obj, xy))
-        # is the data valid?
-        assertthat::assert_that(nrow(cld_values) > 0,
-                msg = "sits_get_data - no data retrieved for cloud band")
-        # terra includes an ID (remove it)
-        cld_values <- cld_values[,-1]
+        cld_values <- .sits_raster_api_extract(cube, cld_band, xy)
     }
 
 
@@ -393,20 +360,14 @@
         purrr::map(function(band) {
             # create a tibble to store the data for each band
             ts_band.tb <- .sits_tibble()
-            # get the values of the time series (terra object)
-            t_obj <- .sits_cube_terra_obj_band(cube, band)
-            values <- tibble::as_tibble(terra::extract(t_obj, xy))
-            # is the data valid?
-            assertthat::assert_that(nrow(values) > 0,
-                        msg = "sits_ts_from_raster_shp - no data retrieved")
-            # terra includes an ID (remove it)
-            values <- values[,-1]
+            # get the values of the time series
+            values <- .sits_raster_api_extract(cube, band, xy)
 
             # each row of the values matrix is a spatial point
             for (i in seq_len(nrow(values))) {
                 time_idx <- .sits_timeline_indexes(timeline = timeline,
-                                                   start_date = lubridate::as_date(points$start_date[i]),
-                                                   end_date   = lubridate::as_date(points$end_date[i]))
+                                start_date = lubridate::as_date(points$start_date[i]),
+                                end_date   = lubridate::as_date(points$end_date[i]))
                 # select the valid dates in the timeline
                 timeline_row <- timeline[time_idx["start_idx"]:time_idx["end_idx"]]
                 # get only valid values for the timeline

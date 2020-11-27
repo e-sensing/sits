@@ -20,8 +20,7 @@ required parameters:
  \item{"WTSS": }{see \code{\link{sits_cube.wtss_cube}}}
  \item{"SATVEG": }{ see \code{\link{sits_cube.satveg_cube}}}
  \item{"RASTER": }{see \code{\link{sits_cube.raster_cube}}}
- \item{"BDC_TILE"}{Brazil Data Cube - see \code{\link{sits_cube.bdc_cube}}}
- \item{"BDC_STAC"}{STAC Brazil Data Cube - see \code{\link{sits_cube.bdc_stac}}}
+ \item{"BDC"}{Brazil Data Cube - see \code{\link{sits_cube.bdc_cube}}}
  \item{"S2_L2A_AWS"}{Sentinel-2 data in AWS - see \code{\link{sits_cube.s2_l2a_aws_cube}}}
 }
 }

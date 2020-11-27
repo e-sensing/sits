@@ -917,9 +917,6 @@ sits_formula_linear <- function(predictors_index = -2:0){
         rows.lst  <- parallel::mclapply(chunk.lst, normalize_block, quant_2,
                                         quant_98, mc.cores = multicores)
         data.mx <- do.call(rbind, rows.lst)
-        # rm(chunk.lst)
-        # rm(rows.lst)
-        # gc()
     }
     else
         data.mx <- normalize_data(data.mx, quant_2, quant_98)

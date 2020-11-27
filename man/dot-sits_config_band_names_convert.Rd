@@ -5,8 +5,6 @@
 \title{Convert bands names from cube to SITS}
 \usage{
 .sits_config_band_names_convert(satellite, sensor, bands_files)
-
-.sits_config_band_names_convert(satellite, sensor, bands_files)
 }
 \arguments{
 \item{satellite}{Name of the satellite}
@@ -17,19 +15,12 @@
 }
 \value{
 Name of the bands used in SITS (named vector)
-
-Name of the bands used in SITS (named vector)
 }
 \description{
 Convert the name of the band used by the origin data cube
              to the name used by SITS
-
-Convert the name of the band used by the origin data cube
-             to the name used by SITS
 }
 \author{
-Gilberto Camara, \email{gilberto.camara@inpe.br}
-
 Gilberto Camara, \email{gilberto.camara@inpe.br}
 }
 \keyword{internal}

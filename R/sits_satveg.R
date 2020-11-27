@@ -107,7 +107,7 @@
     ts.tb <- .sits_ts_from_satveg(longitude, latitude, cube$name)
 
     # filter the dates
-    if (!purrr::is_null(start_date) && !purrr::is_null(end_date))
+    if (!purrr::is_null(start_date) & !purrr::is_null(end_date))
         ts.tb <- dplyr::filter(ts.tb, dplyr::between(ts.tb$Index,
                                                      start_date, end_date))
     else {

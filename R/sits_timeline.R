@@ -502,4 +502,34 @@ sits_timeline.cube <- function(data){
     return(index_new)
 }
 
+#' @title Find if the date information is correct
+#' @name  .sits_timeline_check_date_format
+#' @keywords internal
+#'
+#' @description Given a information about dates, check if the date can be
+#'              interpreted by lubridate
+#'
+#' @param file_info     a tibble with date and band information
+#' @return              Tibble with corrected date information
+#'
+.sits_timeline_check_date_format <- function(date_band.tb){
 
+    assertthat::assert_that(nrow(date_band.tb) > 0,
+                            msg = "invalid date and band information")
+
+    assertthat::assert_that(all(colnames(date_band.tb) %in% c("date", "band")),
+                            msg = "error in obtaining date and band information")
+
+    # tries to convert date information to a lubridate known format
+    tryCatch({
+        date_band.tb <- dplyr::mutate(date_band.tb,
+                                      date = lubridate::as_date(as.character(date)))
+    }, error = function(e){
+        stop("Invalid date format in file", call. = FALSE)
+
+    }, warning = function(w){
+        stop("Invalid date format in file", call. = FALSE)
+    })
+
+    return(date_band.tb)
+}

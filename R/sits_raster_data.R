@@ -15,21 +15,6 @@
     return(files)
 }
 
-#' @title Check if the raster files are accessible by GDAL
-#' @name .sits_raster_check_gdal_access
-#' @keywords internal
-#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
-#'
-#' @param files         files associated to the raster data
-#' @return TRUE         true if filles are acessible
-.sits_raster_check_gdal_access <- function(files){
-    # verify if all files are reacheable
-    r <- suppressWarnings(rgdal::GDALinfo(files, silent = FALSE))
-    assertthat::assert_that(all(!purrr::is_null(r)),
-                            msg = "sits_cube: raster files cannot be accessed")
-    return(TRUE)
-}
-
 #' @title Define a filename associated to one classified raster layer
 #' @name .sits_raster_filename
 #' @keywords internal
@@ -61,30 +46,7 @@
 
     return(file_name)
 }
-#' @title Determine the cube params to write in the metadata
-#' @name .sits_raster_params
-#' @keywords internal
-#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
-#'
-#' @description    Based on the R object associated to a raster object,
-#'                 determine its params
-#' @param t_obj    A valid raster object
-#' @return A tibble with the cube params
-.sits_raster_params <- function(t_obj) {
 
-    params.tb <- tibble::tibble(
-        nrows = terra::nrow(t_obj),
-        ncols = terra::ncol(t_obj),
-        xmin  = terra::xmin(t_obj),
-        xmax  = terra::xmax(t_obj),
-        ymin  = terra::ymin(t_obj),
-        ymax  = terra::ymax(t_obj),
-        xres  = terra::xres(t_obj),
-        yres  = terra::yres(t_obj),
-        crs   = as.character(suppressWarnings(terra::crs(t_obj)))
-    )
-    return(params.tb)
-}
 #' @title Tests if an XY position is inside a ST Raster Brick
 #' @name .sits_raster_xy_inside
 #' @keywords internal
