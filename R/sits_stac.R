@@ -84,12 +84,16 @@
         roi[c("bbox", "intersects")] <- list(NULL, NULL)
     }
 
+    # get the limit items to be returned in each page
+    limit_items <- .sits_config_rstac_limit()
+
     # creating a rstac object
     rstac_query <- rstac::stac(url) %>%
         rstac::stac_search(collection = collection,
                            bbox       = roi$bbox,
                            intersects = roi$intersects,
-                           datetime   = datetime)
+                           datetime   = datetime,
+                           limit      = limit_items)
 
     # if specified, a filter per tile is added to the query
     if (!is.null(tiles))
@@ -107,7 +111,7 @@
         pgr_fetch <- TRUE
 
     # fetching all the metadata
-    items_info <- items_info %>% rstac::items_fetch(progress = pgr_fetch)
+    #items_info <- items_info %>% rstac::items_fetch(progress = pgr_fetch)
 
     # converting to upper names
     items_info$features <- purrr::map(items_info$features, function(x) {

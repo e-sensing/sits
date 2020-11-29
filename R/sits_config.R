@@ -595,6 +595,14 @@ sits_config_show <- function() {
     return(sits.env$config[["supported_satellites"]])
 }
 
+#' @title Get pagination limit
+#' @name .sits_config_rstac_limit
+#' @keywords internal
+#'
+#' @return number of items to be returned in each page
+.sits_config_rstac_limit <- function() {
+  return(sits.env$config[["rstac_pagination_limit"]])
+}
 
 #' @title Get the URL to be used to test for SATVEG access
 #' @name .sits_config_satveg_access
