@@ -4,6 +4,9 @@ default:
     R_memory_bloat           : 4
     R_processing_bloat       : 5
 
+    # number of items returned by stac service
+    rstac_pagination_limit   : 1000
+
     # minimum number of samples for multicore processing
     minimum_number_samples   : 1000
 
