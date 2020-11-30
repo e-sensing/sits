@@ -111,7 +111,7 @@
         pgr_fetch <- TRUE
 
     # fetching all the metadata
-    #items_info <- items_info %>% rstac::items_fetch(progress = pgr_fetch)
+    items_info <- items_info %>% rstac::items_fetch(progress = pgr_fetch)
 
     # converting to upper names
     items_info$features <- purrr::map(items_info$features, function(x) {
