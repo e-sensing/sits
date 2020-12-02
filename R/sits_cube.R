@@ -439,7 +439,7 @@ sits_cube.bdc_stac <- function(type       = "BDC_STAC", ...,
 
     # creating a group of items per tile
     items_group <- .sits_stac_group(items_info,
-                                    fields = c("properties", "bdc:tile"))
+                                    fields = c("properties", "bdc:tiles"))
 
     tile.lst <- purrr::map(items_group, function(items){
 
