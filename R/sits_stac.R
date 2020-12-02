@@ -98,7 +98,7 @@
     # if specified, a filter per tile is added to the query
     if (!is.null(tiles))
         rstac_query <- rstac_query %>%
-        rstac::ext_query(keys = "bdc:tiles", ops = "%in%", values = tiles)
+        rstac::ext_query(keys = "bdc:tile", ops = "%in%", values = tiles)
 
     # making the request
     items_info <- rstac_query %>% rstac::post_request(...)
