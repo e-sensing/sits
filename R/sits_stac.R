@@ -5,7 +5,7 @@
 #' @param url         a \code{character} representing a URL for the BDC catalog.
 #' @param collection  a \code{character} with the collection to be searched.
 #' @param bands       a \code{character} with the bands names to be filtered.
-#' @param ...        other parameters to be passed for specific types.
+#' @param ...         other parameters to be passed for specific types.
 #'
 #' @return            a \code{STACCollection} object returned by rstac.
 .sits_stac_collection <- function(url         = NULL,
@@ -239,7 +239,6 @@
 
     return(datetime)
 }
-
 #' @title Format assets
 #' @name .sits_stac_items_info
 #' @keywords internal
