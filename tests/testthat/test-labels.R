@@ -1,6 +1,6 @@
 context("Labels")
 test_that("Labels", {
-    #skip_on_cran()
+    # skip_on_cran()
 
     labels <- sits_labels(samples_mt_6bands)
 
@@ -10,17 +10,19 @@ test_that("Labels", {
 })
 
 test_that("Relabel", {
-    #skip_on_cran()
+    # skip_on_cran()
     data("samples_mt_4bands")
 
-    conv.lst <- list(Soy_Corn = "Cropland",
-                    Soy_Cotton  = "Cropland",
-                    Soy_Fallow  = "Cropland",
-                    Soy_Millet  = "Cropland",
-                    Soy_Sunflower  = "Cropland",
-                    Fallow_Cotton  = "Cropland")
+    conv_lst <- list(
+        Soy_Corn = "Cropland",
+        Soy_Cotton = "Cropland",
+        Soy_Fallow = "Cropland",
+        Soy_Millet = "Cropland",
+        Soy_Sunflower = "Cropland",
+        Fallow_Cotton = "Cropland"
+    )
 
-    new_data  <- sits_relabel(samples_mt_4bands, conv.lst)
+    new_data <- sits_relabel(samples_mt_4bands, conv_lst)
 
     labels <- sits_labels(new_data)
 

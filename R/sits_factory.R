@@ -21,10 +21,11 @@
 .sits_factory_function <- function(data, fun) {
     # if no data is given, we prepare a
     # function to be called as a parameter of other functions
-    if (purrr::is_null(data))
-        result <- fun
-    # ...otherwise compute the result on the input data
-    else
-        result <- fun(data)
+    if (purrr::is_null(data)) {
+          result <- fun
+      } # ...otherwise compute the result on the input data
+    else {
+          result <- fun(data)
+      }
     return(result)
 }

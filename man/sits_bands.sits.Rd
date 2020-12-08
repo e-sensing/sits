@@ -19,7 +19,6 @@ Finds the names of the bands of time series in a sits tibble
 # Retrieve the set of samples for Mato Grosso (provided by EMBRAPA)
 # show the bands
 sits_bands(samples_mt_6bands)
-
 }
 \author{
 Gilberto Camara, \email{gilberto.camara@inpe.br}

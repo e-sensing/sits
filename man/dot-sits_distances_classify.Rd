@@ -4,19 +4,19 @@
 \alias{.sits_distances_classify}
 \title{Classify a distances tibble using machine learning models}
 \usage{
-.sits_distances_classify(distances_DT, class_info.tb, ml_model, multicores)
+.sits_distances_classify(distances, class_info, ml_model, multicores)
 }
 \arguments{
-\item{distances_DT}{data.table with distances.}
+\item{distances}{data.table with distances.}
 
-\item{class_info.tb}{classification information.}
+\item{class_info}{tibble with classification information.}
 
 \item{ml_model}{model trained by \code{\link[sits]{sits_train}}.}
 
 \item{multicores}{number of threads to process the time series.}
 }
 \value{
-A vector with the predicted labels.
+A data.table with the predicted labels.
 }
 \description{
 Returns a sits tibble with the results of the ML classifier.

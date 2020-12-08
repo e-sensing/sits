@@ -37,10 +37,10 @@ rfor_model <- sits_train(samples_MT_ndvi, sits_rfor(num_trees = 300))
 # get a point with a 16 year time series
 data(point_ndvi)
 # classify the point
-class.tb <- sits_classify (point_ndvi, rfor_model)
+class.tb <- sits_classify(point_ndvi, rfor_model)
 }
 \author{
-Alexandre Xavier Ywata de Carvalho, \email{alexandre.ywata@ipea.gov.br}
+Alexandre Ywata de Carvalho, \email{alexandre.ywata@ipea.gov.br}
 
 Rolf Simoes, \email{rolf.simoes@inpe.br}
 

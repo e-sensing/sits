@@ -4,10 +4,12 @@
 \alias{.sits_raster_api_check_brick}
 \title{Check if file is a brick}
 \usage{
-.sits_raster_api_check_brick(file)
+.sits_raster_api_check_brick(file, timeline)
 }
 \arguments{
 \item{file}{A valid raster image}
+
+\item{timeline}{Timeline for the brick}
 }
 \value{
 TRUE/FALSE

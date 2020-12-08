@@ -27,13 +27,13 @@
 
 \item{values}{Vector of values for cloud detection}
 
-\item{t1}{controls the difference btw visible and infrared bands}
+\item{t1}{controls difference btw visible and infrared bands}
 
-\item{t2}{controls the brightness properties of cloud}
+\item{t2}{controls brightness properties of cloud}
 
-\item{t3}{controls the dark property of cloud shadows.}
+\item{t3}{controls dark property of cloud shadows.}
 
-\item{t4}{remove influence of water in the cloud shadow detection}
+\item{t4}{remove influence of water in shadow detection}
 
 \item{t5}{size of window to search for clouds near shadows}
 

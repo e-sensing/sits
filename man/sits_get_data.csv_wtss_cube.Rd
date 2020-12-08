@@ -26,16 +26,19 @@ Obtain time series from wtss based on CSV file
 # Read a single lat long point from a WTSS server
 # Requires access to external service
 
-wtss_cube <- sits_cube(type = "WTSS",
-                       URL = "http://www.esensing.dpi.inpe.br/wtss/",
-                       name = "MOD13Q1")
+wtss_cube <- sits_cube(
+    type = "WTSS",
+    URL = "http://www.esensing.dpi.inpe.br/wtss/",
+    name = "MOD13Q1"
+)
 
 # Read a set of points defined in a CSV file from a WTSS server
-csv_file <- system.file ("extdata/samples/samples_matogrosso.csv",
-                          package = "sits")
-points.tb <- sits_get_data (wtss_cube, file = csv_file)
+csv_file <- system.file("extdata/samples/samples_matogrosso.csv",
+    package = "sits"
+)
+points.tb <- sits_get_data(wtss_cube, file = csv_file)
 # show the points retrieved for the WTSS server
-plot(points.tb[1:3,])
+plot(points.tb[1:3, ])
 }
 
 }

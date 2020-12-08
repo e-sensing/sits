@@ -4,12 +4,12 @@
 \alias{.sits_labels_list}
 \title{Sits labels processing function}
 \usage{
-.sits_labels_list(data, list.lst = list(), fun_label = function(lb) lb)
+.sits_labels_list(data, label_lst, fun_label = function(lb) lb)
 }
 \arguments{
 \item{data}{A sits tibble (or a pred_ref tibble)}
 
-\item{list.lst}{Any named list whose names are unique labels
+\item{label_lst}{Any named list whose names are unique labels
 from data input. Non-informed labels will be completed
 according to fun_label function.}
 

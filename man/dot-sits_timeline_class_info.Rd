@@ -15,17 +15,19 @@
 A tibble with the classification information.
 }
 \description{
-Time series classification requires that users do a series of steps:
+Time series classification requires a series of steps:
 (a) Provide labelled samples that will be used as training data.
-(b) Provide information on how the classification will be performed, including data timeline,
-    and start and end dates per interval.
-(c) Clean the training data to ensure it meets the specifications of the classification info.
+(b) Provide information on how the classification will be performed,
+    including data timeline,and start and end dates per interval.
+(c) Clean the training data to ensure it meets the specifications
+    of the classification info.
 (d) Use the clean data to train a machine learning classifier.
 (e) Classify non-labelled data sets.
 
-In this set of steps, this function provides support for step (b). It requires the user
-to provide a timeline, the classification interval, and the start and end dates of
-the reference period. The results is a tibble with information that allows the user
+In this set of steps, this function provides support for step (b).
+It requires the user to provide a timeline, the classification interval,
+and the start and end dates of the reference period. T
+he results is a tibble with information that allows the user
 to perform steps (c) to (e).
 }
 \author{

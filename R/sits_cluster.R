@@ -20,7 +20,7 @@
 #'                        Default is 'ward.D2'.
 #' @param k               Desired number of clusters (overrides default value)
 #' @param colors          Color scheme as per `sits_color_name` function.
-#' @param silent          Should output be provided?
+#' @param .plot           Plot the dendogram?
 #' @param  ...            Additional parameters to be passed
 #'                        to dtwclust::tsclust() function.
 #' @return A tibble with the clusters or clusters' members.
@@ -32,16 +32,16 @@
 #' # load a simple data set with two classes
 #' data(cerrado_2classes)
 #' # calculate the dendrogram and the best clusters
-#' clusters <- sits_cluster_dendro (cerrado_2classes, bands = c("NDVI", "EVI"))
+#' clusters <- sits_cluster_dendro(cerrado_2classes, bands = c("NDVI", "EVI"))
 #' }
 #' @export
-sits_cluster_dendro <-  function(samples = NULL,
-                                 bands = NULL,
-                                 dist_method = "dtw_basic",
-                                 linkage = "ward.D2",
-                                 k = NULL,
-                                 colors = "RdYlGn",
-                                 silent = TRUE, ...) {
+sits_cluster_dendro <- function(samples = NULL,
+                                bands = NULL,
+                                dist_method = "dtw_basic",
+                                linkage = "ward.D2",
+                                k = NULL,
+                                colors = "RdYlGn",
+                                .plot = TRUE, ...) {
 
     # backward compatibility
     samples <- .sits_tibble_rename(samples)
@@ -52,47 +52,46 @@ sits_cluster_dendro <-  function(samples = NULL,
     # bands in sits are uppercase
     bands <- .sits_samples_bands_check(samples, bands)
 
-    # create a tibble to store the results
-    result <- samples
-
     # calculate the dendrogram object
-    if (!silent) message("calculating dendrogram...")
-    cluster.obj <- .sits_cluster_dendrogram(samples = samples,
-                                            bands = bands,
-                                            dist_method = dist_method,
-                                            linkage = linkage, ...)
+    message("calculating dendrogram...")
+    cluster <- .sits_cluster_dendrogram(
+        samples = samples,
+        bands = bands,
+        dist_method = dist_method,
+        linkage = linkage, ...
+    )
 
     # find the best cut for the dendrogram
-    if (!silent) message("finding the best cut...")
-    cut.vec <- .sits_cluster_dendro_bestcut(samples, cluster.obj)
-    msg1 <- paste0("best number of clusters = ", cut.vec["k"])
-    msg2 <- paste0("best height for cutting the dendrogram = ",
-                   cut.vec["height"])
-    if (!silent) message(msg1)
-    if (!silent) message(msg2)
+    message("finding the best cut...")
+    best_cut <- .sits_cluster_dendro_bestcut(samples, cluster)
+    message(paste0("best number of clusters = ", best_cut["k"]))
+    message(paste0("best height for cutting the dendrogram = ",
+        best_cut["height"]))
 
     # cut the tree (user-defined value overrides default)
-    if (!silent) message("cutting the tree...")
+    message("cutting the tree...")
     if (!purrr::is_null(k)) {
-        if (k != cut.vec["k"]) {
-            msg_k <- paste0("Caveat: desired number of clusters (", k, ")
-                            overrides best value")
-            if (!silent) message(msg_k)
-            cut.vec["k"] <- k
-            cut.vec["height"] <-
-                c(0, cluster.obj$height)[length(cluster.obj$height) - k + 2]
+        if (k != best_cut["k"]) {
+            message(paste0("Caveat: desired number of clusters (", k, ")
+                            overrides best value"))
+            best_cut["k"] <- k
+            best_cut["height"] <-
+                c(0, cluster$height)[length(cluster$height) - k + 2]
         }
     }
-    result$cluster <- stats::cutree(cluster.obj, cut.vec["k"],
-                                    cut.vec["height"])
+    samples$cluster <- stats::cutree(
+        cluster, best_cut["k"],
+        best_cut["height"]
+    )
 
     # plot the dendrogram
-    if (!silent) message("Plotting dendrogram...")
-    .sits_plot_dendrogram(samples, cluster.obj, cut.vec["height"], colors)
+    message("Plotting dendrogram...")
+    if (.plot)
+        .sits_plot_dendrogram(samples, cluster, best_cut["height"], colors)
 
     # return the result
-    if (!silent) message("result is a tibble with cluster indexes...")
-    return(result)
+    message("result is a tibble with cluster indexes...")
+    return(samples)
 }
 
 
@@ -116,19 +115,21 @@ sits_cluster_dendro <-  function(samples = NULL,
 #' sits_cluster_frequency(clusters)
 #' }
 #' @export
-sits_cluster_frequency <-  function(samples) {
+sits_cluster_frequency <- function(samples) {
     # is the input data the result of a cluster function?
     assertthat::assert_that("cluster" %in% names(samples),
-       msg = "sits_cluster_contigency: missing cluster column")
+        msg = "sits_cluster_contigency: missing cluster column"
+    )
 
-    # compute frequency table
-    result.mtx <- table(samples$label, samples$cluster)
+    # compute frequency table (matrix)
+    result <- table(samples$label, samples$cluster)
 
     # compute total row and col
-    result.mtx <- stats::addmargins(result.mtx,
-                                    FUN = list(Total = sum),
-                                    quiet = TRUE)
-    return(result.mtx)
+    result <- stats::addmargins(result,
+        FUN = list(Total = sum),
+        quiet = TRUE
+    )
+    return(result)
 }
 
 #' @title Cluster cleaner
@@ -161,26 +162,26 @@ sits_cluster_clean <- function(samples) {
 
     # is the input data the result of a cluster function?
     assertthat::assert_that("cluster" %in% names(samples),
-        msg = "sits_cluster_clean: input data does not contain cluster column")
+        msg = "sits_cluster_clean: input data does not contain cluster column"
+    )
 
-    # compute frequency table
-    result.mtx <- table(samples$label, samples$cluster)
-
-    # list of the clusters of the data table
+    # compute frequency table (matrix)
+    result <- table(samples$label, samples$cluster)
+    # list of number of clusters
     num_cls <- unique(samples$cluster)
     # get the labels of the data
     lbs <- unique(samples$label)
     # for each cluster, get the label with the maximum number of samples
-    lbs_max <- lbs[as.vector(apply(result.mtx, 2, which.max))]
+    lbs_max <- lbs[as.vector(apply(result, 2, which.max))]
 
     # compute the resulting table
-    row.lst <- purrr::map2(lbs_max, num_cls, function(lb, cl)
-    {
+    rows <- purrr::map2(lbs_max, num_cls, function(lb, cl) {
         partial <- dplyr::filter(samples, label == lb & cluster == cl)
         return(partial)
     })
-    result <- dplyr::bind_rows(row.lst)
-    return(result)
+    # join the list to get all cleaned clusters in a tibble
+    clean_clusters <- dplyr::bind_rows(rows)
+    return(clean_clusters)
 }
 
 #' @title Cluster validity indices
@@ -202,7 +203,7 @@ sits_cluster_clean <- function(samples) {
 #'
 #' @return A vector with four external validity indices.
 #'
-.sits_cluster_validity <-  function(samples) {
+.sits_cluster_validity <- function(samples) {
     # verifies if dtwclust package is installed
     if (!requireNamespace("dtwclust", quietly = TRUE)) {
         stop("dtwclust needed for this function to work.
@@ -211,13 +212,16 @@ sits_cluster_clean <- function(samples) {
 
     # is the input data the result of a cluster function?
     assertthat::assert_that("cluster" %in% names(samples),
-        msg = "sits_cluster_validity: input data does not have cluster column")
+        msg = "sits_cluster_validity: input data does not have cluster column"
+    )
 
     # compute CVIs and return
-    result <- dtwclust::cvi(a = factor(samples$cluster),
-                            b = factor(samples$label),
-                            type = "external",
-                            log.base = 10)
+    result <- dtwclust::cvi(
+        a = factor(samples$cluster),
+        b = factor(samples$label),
+        type = "external",
+        log.base = 10
+    )
     return(result)
 }
 
@@ -255,7 +259,7 @@ sits_cluster_clean <- function(samples) {
 .sits_cluster_dendrogram <- function(samples,
                                      bands,
                                      dist_method = "dtw_basic",
-                                     linkage = "ward.D2", ...){
+                                     linkage = "ward.D2", ...) {
     # verifies if dtwclust package is installed
     if (!requireNamespace("dtwclust", quietly = TRUE)) {
         stop("dtwclust needed for this function to work.
@@ -263,15 +267,16 @@ sits_cluster_clean <- function(samples) {
     }
 
     # get the values of the time series
-    values  <- sits_values(samples, bands, format = "cases_dates_bands")
+    values <- sits_values(samples, bands, format = "cases_dates_bands")
 
     # call dtwclust and get the resulting dendrogram
     dendro <- dtwclust::tsclust(values,
-                                type     = "hierarchical",
-                                k        = max(NROW(samples) - 1, 2),
-                                distance = dist_method,
-                    control  = dtwclust::hierarchical_control(method = linkage),
-                                ...)
+        type = "hierarchical",
+        k = max(NROW(samples) - 1, 2),
+        distance = dist_method,
+        control = dtwclust::hierarchical_control(method = linkage),
+        ...
+    )
 
     # return the dendrogram
     return(dendro)
@@ -296,7 +301,7 @@ sits_cluster_clean <- function(samples) {
 #'                         \code{\link[sits]{.sits_cluster_dendrogram}}.
 #' @return Vector with best number of clusters (k) and its respective height.
 #'
-.sits_cluster_dendro_bestcut <-  function(samples, dendro) {
+.sits_cluster_dendro_bestcut <- function(samples, dendro) {
 
     # verifies if flexclust package is installed
     if (!requireNamespace("flexclust", quietly = TRUE)) {
@@ -306,23 +311,24 @@ sits_cluster_clean <- function(samples) {
     # compute range
     k_range <- seq(2, max(length(dendro$height) - 1, 2))
 
-    # compute ARI for each k
-    ari.vec <-
+    # compute ARI for each k (vector)
+    ari <-
         k_range %>%
         purrr::map(function(k) {
             flexclust::randIndex(stats::cutree(dendro, k = k),
-                                 factor(samples$label),
-                                 correct = TRUE)
+                factor(samples$label),
+                correct = TRUE
+            )
         }) %>%
         unlist()
 
     # get the best ARI result
-    k_result <- k_range[which.max(ari.vec)]
+    k_result <- k_range[which.max(ari)]
 
     # compute each height corresponding to `k_result`
     h_result <- c(0, dendro$height)[length(dendro$height) - k_result + 2]
 
     # create a named vector and return
-    result.vec <- structure(c(k_result, h_result), .Names = c("k", "height"))
-    return(result.vec)
+    best_cut <- structure(c(k_result, h_result), .Names = c("k", "height"))
+    return(best_cut)
 }

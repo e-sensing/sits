@@ -1,1 +1,6 @@
-Sys.setenv(TZ="America/Sao_Paulo")
+Sys.setenv(TZ = "America/Sao_Paulo")
+Sys.setenv(AWS_ACCESS_KEY_ID = "AKIAYI22MLRP52QJ3AMF")
+Sys.setenv(AWS_SECRET_ACCESS_KEY = "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")
+Sys.setenv(AWS_DEFAULT_REGION = "eu-central-1")
+Sys.setenv(AWS_REQUEST_PAYER = "requester")
+Sys.setenv(NOT_CRAN = "true")

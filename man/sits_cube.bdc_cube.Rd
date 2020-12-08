@@ -55,13 +55,15 @@ Defines a cube to retrieve data from the Brazil Data Cube (BDC)
 # by CRAN
 
 # create a raster cube file based on the information about the files
-cbers_tile <- sits_cube(type        = "BDC",
-                        name        = "cbers_022024",
-                        bands       = c("NDVI", "EVI"),
-                        tiles       = "022024",
-                        collection  = "CB4_64_16D_STK-1",
-                        start_date  = "2018-09-01",
-                        end_date    = "2019-08-28")
+cbers_tile <- sits_cube(
+    type = "BDC",
+    name = "cbers_022024",
+    bands = c("NDVI", "EVI"),
+    tiles = "022024",
+    collection = "CB4_64_16D_STK-1",
+    start_date = "2018-09-01",
+    end_date = "2019-08-28"
+)
 }
 }
 \references{

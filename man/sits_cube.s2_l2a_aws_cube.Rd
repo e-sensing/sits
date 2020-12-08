@@ -68,14 +68,16 @@ Defines a cube to retrieve data from the Sentinel-2 L2A data
 # "AWS_REQUEST_PAYER"     = "requester"
 # )
 
-s2_cube <- sits_cube(type       = "S2_L2A_AWS",
-                     name       = "T20LKP_2018_2019",
-                     satellite  = "SENTINEL-2",
-                     sensor     = "MSI",
-                     tiles      = "20LKP",
-                     s2_aws_resolution = "20m",
-                     start_date = as.Date("2018-07-18"),
-                     end_date   = as.Date("2018-07-23"))
+s2_cube <- sits_cube(
+    type = "S2_L2A_AWS",
+    name = "T20LKP_2018_2019",
+    satellite = "SENTINEL-2",
+    sensor = "MSI",
+    tiles = "20LKP",
+    s2_aws_resolution = "20m",
+    start_date = as.Date("2018-07-18"),
+    end_date = as.Date("2018-07-23")
+)
 }
 
 }

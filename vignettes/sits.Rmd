@@ -125,15 +125,13 @@ Since GeoTiff files do not contain information about satellites and sensors, it 
 ndvi_file <- system.file("extdata/raster/mod13q1/sinop-crop-ndvi.tif", 
                          package = "sits")
 
-# Obtain the associated timeline
-timeline <- data("timeline_2000_2017")
 
 # create a raster metadata file based on the information about the files
-raster_cube <- sits_cube(type = "RASTER",
+raster_cube <- sits_cube(type = "BRICK",
                          name = "Sinop", 
                          satellite = "TERRA",
                          sensor = "MODIS",
-                         timeline = timeline,
+                         timeline = timeline_modis_392,
                          bands = c("NDVI"), 
                          files = c(ndvi_file))
 
@@ -329,7 +327,7 @@ time_file <- system.file("extdata/Sinop", "timeline_2014.txt", package = "inSitu
 timeline_2013_2014 <- scan(time_file, character())
 
 # create a raster metadata file based on the information about the files
-sinop <- sits_cube(type = "RASTER",
+sinop <- sits_cube(type = "BRICK",
                    satellite = "TERRA",
                    sensor  = "MODIS",
                    name = "Sinop",

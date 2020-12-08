@@ -4,10 +4,10 @@
 \alias{.sits_distances_sample}
 \title{Sample a percentage of a time series distance matrix}
 \usage{
-.sits_distances_sample(distances_DT, frac)
+.sits_distances_sample(distances, frac)
 }
 \arguments{
-\item{distances_DT}{Distances associated to a time series.}
+\item{distances}{Distances associated to a time series.}
 
 \item{frac}{Percentage of samples to pick.}
 }

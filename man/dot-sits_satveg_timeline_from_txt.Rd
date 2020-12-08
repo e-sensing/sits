@@ -4,10 +4,10 @@
 \alias{.sits_satveg_timeline_from_txt}
 \title{Retrieve a timeline from the SATVEG service based on text expression}
 \usage{
-.sits_satveg_timeline_from_txt(satveg.txt)
+.sits_satveg_timeline_from_txt(satveg)
 }
 \arguments{
-\item{satveg.txt}{Information retrieved from SATVEG (in text format).}
+\item{satveg}{Information retrieved from SATVEG (in text format).}
 }
 \description{
 Retrieves a time series from the SATVEG service.

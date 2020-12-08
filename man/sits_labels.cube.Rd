@@ -15,3 +15,39 @@ A list of labels
 \description{
 Returns the labels and its respective counting and frequency.
 }
+\examples{
+# Classify a raster file with 23 instances for one year
+ndvi_file <- c(system.file("extdata/raster/mod13q1/sinop-ndvi-2014.tif",
+package = "sits"))
+
+# create a data cube based on the information about the files
+sinop_2014 <- sits_cube(
+    type = "BRICK",
+    name = "sinop-2014",
+    timeline = timeline_2013_2014,
+    satellite = "TERRA",
+    sensor = "MODIS",
+    bands = c("ndvi"),
+    files = c(ndvi_file)
+)
+
+# select band "NDVI"
+samples_ndvi <- sits_select(samples_mt_4bands, bands = "NDVI")
+
+# select a random forest model
+rfor_model <- sits_train(samples_ndvi,
+              ml_method = sits_rfor(num_trees = 300))
+
+# classify the raster image
+sinop_probs <- sits_classify(sinop_2014,
+    ml_model = rfor_model,
+    output_dir = tempdir(),
+    memsize = 4, multicores = 2
+)
+
+# label the classified image
+sinop_label <- sits_label_classification(sinop_probs, output_dir = tempdir())
+
+# return the labels
+sits_labels(sinop_label)
+}

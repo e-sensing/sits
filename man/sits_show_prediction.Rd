@@ -4,10 +4,10 @@
 \alias{sits_show_prediction}
 \title{Shows the predicted labels for a classified tibble}
 \usage{
-sits_show_prediction(class.tb)
+sits_show_prediction(class)
 }
 \arguments{
-\item{class.tb}{A SITS tibble that has been classified}
+\item{class}{A SITS tibble that has been classified}
 }
 \value{
 returns a tibble with the columns "from", "to", "class"
@@ -20,13 +20,12 @@ by a machine learning method and displays the result.
 # Retrieve the samples for Mato Grosso
 # select band "NDVI"
 samples_ndvi <- sits_select(samples_mt_4bands, bands = "NDVI")
-#select a random forest model
+# select a random forest model
 rfor_model <- sits_train(samples_ndvi, sits_rfor(num_trees = 200))
 # classify the point
-class.tb <- sits_classify(point_ndvi, rfor_model)
+point_class <- sits_classify(point_ndvi, rfor_model)
 # show the prediction
-sits_show_prediction(class.tb)
-
+sits_show_prediction(point_class)
 }
 \author{
 Gilberto Camara, \email{gilberto.camara@inpe.br}

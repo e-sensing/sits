@@ -4,10 +4,10 @@
 \alias{.sits_csv_check}
 \title{Check if a CSV tibble is valid}
 \usage{
-.sits_csv_check(csv.tb)
+.sits_csv_check(csv)
 }
 \arguments{
-\item{csv.tb}{Tibble read from a CSV file}
+\item{csv}{Tibble read from a CSV file}
 }
 \value{
 TRUE/FALSE

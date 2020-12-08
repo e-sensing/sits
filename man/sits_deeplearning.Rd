@@ -62,16 +62,20 @@ Please refer to the documentation in that package for more details.
 data(samples_mt_4bands)
 samples_mt_ndvi <- sits_select(samples_mt_4bands, bands = "NDVI")
 # Build a machine learning model based on deep learning
-dl_model <- sits_train (samples_mt_ndvi,
-                        sits_deeplearning(layers = c(64, 64),
-                                          dropout_rates = c(0.50, 0.40),
-                                          epochs = 50))
+dl_model <- sits_train(
+    samples_mt_ndvi,
+    sits_deeplearning(
+        layers = c(64, 64),
+        dropout_rates = c(0.50, 0.40),
+        epochs = 50
+    )
+)
 # get a point with a 16 year time series
 data(point_ndvi)
 # classify the point
-class.tb <- sits_classify (point_ndvi, dl_model)
+point_class <- sits_classify(point_ndvi, dl_model)
 # plot the classified point
-plot(class.tb)
+plot(point_class)
 }
 }
 \author{

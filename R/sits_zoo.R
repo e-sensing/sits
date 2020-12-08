@@ -4,7 +4,7 @@
 #'
 #' @description Converts data from an instance of a zoo series to a sits tibble.
 #'
-#' @param ts.zoo        Zoo time series.
+#' @param ts_zoo        Zoo time series.
 #' @param longitude     Longitude of the chosen location.
 #' @param latitude      Latitude of the chosen location.
 #' @param label         Label to attach to the time series (optional).
@@ -15,46 +15,41 @@
 #' # Read a time series in ZOO format
 #' data(ts_zoo)
 #' # Convert the zoo series into a sits tibble
-#' data <- sits_from_zoo (ts_zoo, longitude = -54.2313, latitude = -14.0482,
-#'            label = "Cerrado", name = "mod13q1")
+#' data <- sits_from_zoo(ts_zoo,
+#'     longitude = -54.2313, latitude = -14.0482,
+#'     label = "Cerrado", name = "mod13q1"
+#' )
 #' @export
-sits_from_zoo <- function(ts.zoo, longitude = 0.00, latitude = 0.00,
-                          label = "NoClass", name  = "unknown"){
+sits_from_zoo <- function(ts_zoo, longitude = 0.00, latitude = 0.00,
+                          label = "NoClass", name = "unknown") {
     # verifies if zoo package is installed
     if (!requireNamespace("zoo", quietly = TRUE)) {
         stop("zoo needed for this function to work.
               Please install it.", call. = FALSE)
     }
     # preconditions
-    assertthat::assert_that(class(ts.zoo) == "zoo", msg = "input is not a zoo time series")
+    assertthat::assert_that(class(ts_zoo) == "zoo",
+                            msg = "input is not a zoo time series")
     assertthat::assert_that((longitude >= -180. & longitude <= 180.),
-                            msg = "invalid longitude value")
+                            msg = "invalid longitude value"
+    )
     assertthat::assert_that((latitude >= -90. & longitude <= 90.),
-                            msg = "invalid latitudevalue")
+                            msg = "invalid latitudevalue"
+    )
 
     # convert the data from the zoo format to a tibble used by sits
-    ts.tb <- tibble::as_tibble(zoo::fortify.zoo(ts.zoo))
-    # create a list to store the zoo time series
-    ts.lst <- list()
-    # put the time series in the list
-    ts.lst[[1]] <- ts.tb
-
-    # get the start date
-    start_date <- ts.tb[1, ]$Index
-    # get the end date
-    end_date <- ts.tb[NROW(ts.tb), ]$Index
+    ts <- tibble::as_tibble(zoo::fortify.zoo(ts_zoo))
 
     # create a tibble to store the data
-    data <- .sits_tibble()
-    # add one row to the tibble
-    data    <- tibble::add_row(data,
-                               longitude    = longitude,
-                               latitude     = latitude,
-                               start_date   = as.Date(start_date),
-                               end_date     = as.Date(end_date),
-                               label        = label,
-                               cube         = name,
-                               time_series  = ts.lst)
+    data <- tibble::tibble(
+        longitude = longitude,
+        latitude = latitude,
+        start_date = as.Date(ts[1, ]$Index),
+        end_date = as.Date(ts[nrow(ts), ]$Index),
+        label = label,
+        cube = name,
+        time_series = list(ts)
+    )
 
     return(data)
 }
@@ -66,28 +61,29 @@ sits_from_zoo <- function(ts.zoo, longitude = 0.00, latitude = 0.00,
 #' @description Converts data from a sits tibble to a list of a zoo series.
 #'
 #' @param  data       A sits tibble with time series.
-#' @param  band       Name of the band to be exported (if NULL all bands are exported).
+#' @param  band       Band to be exported (if NULL all bands are exported).
 #' @return List of time series in zoo format.
 #' @examples
 #' # read a tibble with 400 samples of Cerrado and 346 samples of Pasture
 #' data(cerrado_2classes)
 #' # export a time series to zoo
-#' zoo.lst <- sits_to_zoo (cerrado_2classes[1:5,])
+#' zoo.lst <- sits_to_zoo(cerrado_2classes[1:5, ])
 #' @export
-sits_to_zoo <- function(data, band = NULL){
+sits_to_zoo <- function(data, band = NULL) {
     # verifies if zoo package is installed
     if (!requireNamespace("zoo", quietly = TRUE)) {
         stop("zoo needed for this function to work.
               Please install it.", call. = FALSE)
     }
-    zoo.lst <- data$time_series %>%
+    zoo_lst <- data$time_series %>%
         purrr::map(function(ts) {
-            if (purrr::is_null(band))
-                band <-  colnames(ts[-1:0])
+            if (purrr::is_null(band)) {
+                  band <- colnames(ts[-1:0])
+              }
             # transform each sits time series to the zoo format
-            zoo.ts <- zoo::zoo(ts[, band, drop = FALSE], ts$Index)
-            return(zoo.ts)
+            ts_zoo <- zoo::zoo(ts[, band, drop = FALSE], ts$Index)
+            return(ts_zoo)
         })
 
-    return(zoo.lst)
+    return(zoo_lst)
 }

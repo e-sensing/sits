@@ -31,18 +31,23 @@ plots a stack cube using terra
 \dontrun{
 # retrieve two files with NDVI and EVI from MODIS
 ndvi_file <- c(system.file("extdata/raster/mod13q1/sinop-ndvi-2014.tif",
-               package = "sits"))
+    package = "sits"
+))
 evi_file <- c(system.file("extdata/raster/mod13q1/sinop-evi-2014.tif",
-               package = "sits"))
+    package = "sits"
+))
 # retrieve the timeline
 data("timeline_2013_2014")
 # create a data cube
-sinop_2014 <- sits_cube(name = "sinop-2014",
-                        timeline = timeline_2013_2014,
-                        satellite = "TERRA",
-                        sensor = "MODIS",
-                        bands = c("NDVI", "EVI"),
-                        files = c(ndvi_file, evi_file))
+sinop_2014 <- sits_cube(
+    type = "BRICK",
+    name = "sinop-2014",
+    timeline = timeline_2013_2014,
+    satellite = "TERRA",
+    sensor = "MODIS",
+    bands = c("NDVI", "EVI"),
+    files = c(ndvi_file, evi_file)
+)
 # plot the data cube
 plot(sinop_2014, red = "EVI", green = "EVI", blue = "EVI")
 }

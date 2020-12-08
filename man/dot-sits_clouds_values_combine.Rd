@@ -4,10 +4,10 @@
 \alias{.sits_clouds_values_combine}
 \title{Estimate values associated to cloud detection for a whole CBERS image}
 \usage{
-.sits_clouds_values_combine(values.lst)
+.sits_clouds_values_combine(values_lst)
 }
 \arguments{
-\item{values.lst}{List of values estimated for each extent}
+\item{values}{List of values estimated for each extent}
 }
 \value{
 Combined vector of estimated values

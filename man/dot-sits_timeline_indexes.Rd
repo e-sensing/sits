@@ -2,7 +2,7 @@
 % Please edit documentation in R/sits_timeline.R
 \name{.sits_timeline_indexes}
 \alias{.sits_timeline_indexes}
-\title{Given a start and end date, finding the corresponding indexes in a timeline}
+\title{Given a start and end date, find the indexes in a timeline}
 \usage{
 .sits_timeline_indexes(timeline, start_date = NULL, end_date = NULL)
 }
@@ -17,6 +17,6 @@
 Named vector with start and end indexes
 }
 \description{
-Given a start and end date, finding the corresponding indexes in a timeline
+Given a start and end date, find the indexes in a timeline
 }
 \keyword{internal}

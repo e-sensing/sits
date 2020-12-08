@@ -4,10 +4,10 @@
 \alias{.sits_extract}
 \title{Extract a subset of the data based on dates}
 \usage{
-.sits_extract(row.tb, start_date, end_date)
+.sits_extract(data, start_date, end_date)
 }
 \arguments{
-\item{row.tb}{A sits tibble.}
+\item{data}{A sits tibble.}
 
 \item{start_date}{Starting date of the time series segment.}
 

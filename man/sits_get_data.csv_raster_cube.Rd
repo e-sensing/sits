@@ -26,24 +26,29 @@ Obtain time series from brick based on CSV file
 \examples{
 #' Read a CSV in a Raster Brick
 # define the file that has the raster brick
-ndvi_file <- c(system.file("extdata/raster/mod13q1/sinop-ndvi-2014.tif", package = "sits"))
+ndvi_file <- c(system.file("extdata/raster/mod13q1/sinop-ndvi-2014.tif",
+               package = "sits"))
 
-evi_file <- c(system.file("extdata/raster/mod13q1/sinop-evi-2014.tif", package = "sits"))
+evi_file <- c(system.file("extdata/raster/mod13q1/sinop-evi-2014.tif",
+              package = "sits"))
 
 # define the data cube based on files and known timeline
-sinop_2014 <- sits_cube(name = "sinop-2014",
-                        timeline = timeline_2013_2014,
-                        satellite = "TERRA",
-                        sensor = "MODIS",
-                        bands = c("ndvi", "evi"),
-                        files = c(ndvi_file, evi_file))
+sinop_2014 <- sits_cube(
+    type = "BRICK",
+    name = "sinop-2014",
+    timeline = timeline_2013_2014,
+    satellite = "TERRA",
+    sensor = "MODIS",
+    bands = c("ndvi", "evi"),
+    files = c(ndvi_file, evi_file)
+)
 # read data from a CSV file
-csv_file <- system.file ("extdata/samples/samples_sinop_crop.csv",
-                         package = "sits")
-points.tb <- sits_get_data (sinop_2014, file = csv_file)
+csv_file <- system.file("extdata/samples/samples_sinop_crop.csv",
+    package = "sits"
+)
+points <- sits_get_data(sinop_2014, file = csv_file)
 
 # show the points
 
-plot(points.tb)
-
+plot(points)
 }
