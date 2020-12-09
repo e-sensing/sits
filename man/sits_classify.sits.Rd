@@ -37,13 +37,13 @@ passed to the function using the parameter "ml_model".
 # select band "NDVI"
 samples_ndvi <- sits_select(samples_mt_4bands, bands = "NDVI")
 
-#select a random forest model
+# select a random forest model
 rfor_model <- sits_train(samples_ndvi,
-                         ml_method = sits_rfor(num_trees = 300))
+    ml_method = sits_rfor(num_trees = 300)
+)
 
 # classify the point
-class.tb <- sits_classify(point_ndvi, rfor_model)
-
+point_class <- sits_classify(point_ndvi, rfor_model)
 }
 \author{
 Gilberto Camara, \email{gilberto.camara@inpe.br}

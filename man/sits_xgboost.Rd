@@ -76,7 +76,8 @@ xgb_model <- sits_train(samples_mt_4bands, sits_xgboost(nrounds = 10))
 
 # get a point and classify the point with the ml_model
 point.tb <- sits_select(point_mt_6bands,
-                        bands = c("NDVI", "EVI", "NIR", "MIR"))
+    bands = c("NDVI", "EVI", "NIR", "MIR")
+)
 class.tb <- sits_classify(point.tb, xgb_model)
 plot(class.tb, bands = c("NDVI", "EVI"))
 }

@@ -2,82 +2,70 @@
 % Please edit documentation in R/sits_cube.R
 \name{sits_cube.bdc_cube}
 \alias{sits_cube.bdc_cube}
-\title{Defines a data cube for a BDC TILE}
+\title{Defines a data cube for a BDC STAC}
 \usage{
 \method{sits_cube}{bdc_cube}(
-  type = "BDC_TILE",
+  type = "BDC",
   ...,
   name = NULL,
-  satellite = NULL,
-  sensor = NULL,
-  bands = NULL,
-  cube = NULL,
+  url = NULL,
+  collection = NULL,
   tiles = NULL,
-  version = "v001",
-  data_access = "web",
+  bands = NULL,
+  roi = NULL,
   start_date = NULL,
-  end_date = NULL,
-  .local = NULL,
-  .web = NULL,
-  .cloud_band = FALSE
+  end_date = NULL
 )
 }
 \arguments{
-\item{type}{type of cube}
+\item{type}{Type of cube.}
 
-\item{...}{other parameters to be passed for specific types}
+\item{...}{Other parameters to be passed for specific types.}
 
-\item{name}{output data cube.}
+\item{name}{Name of the output data cube (optional).}
 
-\item{satellite}{satellite}
+\item{url}{URL for the BDC catalog (mandatory).}
 
-\item{sensor}{sensor}
+\item{collection}{BDC collection to be searched (mandatory).}
 
-\item{bands}{bands.}
+\item{tiles}{Tile names to be searched (optional).}
 
-\item{cube}{name input data cube in BDC}
+\item{bands}{Bands names to be filtered (optional).}
 
-\item{tiles}{names of the tiles}
+\item{roi}{Region of interest (optional), expressed either as
+an \code{sfc} or \code{sf} object from sf package, a
+a GeoJSON following the rules from RFC 7946, or a
+bounding box with named XY values ("xmin", "xmax", "ymin", "ymax").}
 
-\item{version}{version of the cube}
+\item{start_date}{Initial date for the cube files (optional).}
 
-\item{data_access}{access (local or web)}
-
-\item{start_date}{starting date of the cube}
-
-\item{end_date}{ending date of the cube}
-
-\item{.local}{directory for local data (optional)}
-
-\item{.web}{URL for web access to the input cube (optional)}
-
-\item{.cloud_band}{include cloud band? (TRUE/FALSE)}
+\item{end_date}{Final date for the cube files (optional).}
 }
 \value{
-A data cube
+A data cube.
 }
 \description{
-Defines a cube to work with data from Brazil Data Cube (BDC).
-Retrieval is based on tiles of a given cube. Allows local or web access. For
-local access, the user should be logged in the BDC.
-For more on BDC, please see http://brazildatacube.dpi.inpe.br/
+Defines a cube to retrieve data from the Brazil Data Cube (BDC)
+             STAC. The retrieval is based on tiles of a given cube.
+             For more on BDC, please see http://brazildatacube.dpi.inpe.br/
 }
 \examples{
 \dontrun{
+# this example requires access to an external service, so should not be run
+# by CRAN
 
-# this code depends on an external service
 # create a raster cube file based on the information about the files
-cbers_bdc_tile <- sits_cube(type        = "BDC_TILE",
-                            name        = "022024",
-                            satellite   = "CBERS-4",
-                            sensor      = "AWFI",
-                            cube        = "CB4_64_16D_STK",
-                            tiles       = "022024",
-                            version     = "v001",
-                            data_access = "web",
-                            bands       = c("NDVI", "EVI"),
-                            start_date  = as.Date("2018-08-29"),
-                            end_date    = as.Date("2019-08-13"))
+cbers_tile <- sits_cube(
+    type = "BDC",
+    name = "cbers_022024",
+    bands = c("NDVI", "EVI"),
+    tiles = "022024",
+    collection = "CB4_64_16D_STK-1",
+    start_date = "2018-09-01",
+    end_date = "2019-08-28"
+)
 }
-
+}
+\references{
+`rstac` package (https://github.com/brazil-data-cube/rstac)
 }

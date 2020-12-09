@@ -52,7 +52,7 @@ it will default to "together".
 # Plot all the samples together
 plot(cerrado_2classes)
 # Plot the first 20 samples (defaults to "allyears")
-plot(cerrado_2classes[1:20,])
+plot(cerrado_2classes[1:20, ])
 }
 }
 \author{

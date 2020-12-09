@@ -27,9 +27,9 @@ Given a sits tibble with a set of predictions, plot them
 samples_mt_ndvi <- sits_select(samples_mt_4bands, bands = "NDVI")
 # classify the point
 model_svm <- sits_train(samples_mt_ndvi, ml_method = sits_svm())
-class_ndvi.tb <-  sits_classify (point_ndvi, model_svm)
+class_ndvi.tb <- sits_classify(point_ndvi, model_svm)
 # plot the classification
-plot (class_ndvi.tb)
+plot(class_ndvi.tb)
 }
 }
 \author{

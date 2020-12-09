@@ -25,8 +25,10 @@ Implements an interface to a web time series service (WTSS)
 \examples{
 \dontrun{
 # Create a data cube based on a WTSS service
-cube_wtss <- sits_cube(type = "WTSS",
-          name = "MOD13Q1",
-          URL = "http://www.esensing.dpi.inpe.br/wtss/")
+cube_wtss <- sits_cube(
+    type = "WTSS",
+    name = "MOD13Q1",
+    URL = "http://www.esensing.dpi.inpe.br/wtss/"
+)
 }
 }

@@ -32,15 +32,17 @@
 #' \donttest{
 #' # read a set of samples
 #' data(cerrado_2classes)
-#' # perform a two fold validation with the Random Forest machine learning method
-#' conf_matrix.mx <- sits_kfold_validate(cerrado_2classes, folds = 2,
-#'                    ml_method = sits_rfor(num_trees = 300))
+#' # two fold validation with random forest
+#' conf_matrix.mx <- sits_kfold_validate(cerrado_2classes,
+#'     folds = 2,
+#'     ml_method = sits_rfor(num_trees = 300)
+#' )
 #' # print the confidence matrix
 #' sits_conf_matrix(conf_matrix.mx)
 #' }
 #' @export
 sits_kfold_validate <- function(data, folds = 5,
-                                ml_method = sits_rfor(), multicores = 2){
+                                ml_method = sits_rfor(), multicores = 2) {
 
     # require package
     if (!requireNamespace("caret", quietly = TRUE)) {
@@ -60,51 +62,55 @@ sits_kfold_validate <- function(data, folds = 5,
 
     # is the data labelled?
     assertthat::assert_that(!("NoClass" %in% sits_labels(data)$label),
-        msg = "sits_cross_validate: requires labelled set of time series")
+        msg = "sits_cross_validate: requires labelled set of time series"
+    )
 
     # create partitions different splits of the input data
     data <- .sits_create_folds(data, folds = folds)
 
     # create prediction and reference vector
-    pred.vec <-  character()
-    ref.vec  <-  character()
+    pred_vec <- character()
+    ref_vec <- character()
 
-    conf.lst <- parallel::mclapply(X = 1:folds, FUN = function(k)
-    {
+    conf_lst <- parallel::mclapply(X = 1:folds, FUN = function(k) {
         # split data into training and test data sets
-        data_train <- data[data$folds != k,]
-        data_test  <- data[data$folds == k,]
+        data_train <- data[data$folds != k, ]
+        data_test <- data[data$folds == k, ]
 
         # create a machine learning model
         ml_model <- sits_train(data_train, ml_method)
 
         # has normalization been applied to the data?
-        stats   <- environment(ml_model)$stats
+        stats <- environment(ml_model)$stats
 
         # obtain the distances after normalizing data by band
-        if (!purrr::is_null(stats))
-            distances_DT <- .sits_distances(
-                .sits_normalize_data(data_test, stats, multicores))
-        else
-            distances_DT <- .sits_distances(data_test)
+        if (!purrr::is_null(stats)) {
+              distances <- .sits_distances(
+                  .sits_normalize_data(data_test, stats, multicores)
+              )
+          } else {
+              distances <- .sits_distances(data_test)
+          }
 
         # classify the test data
-        prediction_DT <- ml_model(distances_DT)
+        prediction <- ml_model(distances)
         # extract the values
-        values <-  names(int_labels[max.col(prediction_DT)])
+        values <- names(int_labels[max.col(prediction)])
 
-        ref.vec  <- c(ref.vec,  data_test$label)
-        pred.vec <- c(pred.vec, values)
+        ref_vec <- c(ref_vec, data_test$label)
+        pred_vec <- c(pred_vec, values)
 
-        return(list(pred = pred.vec, ref = ref.vec))
+        return(list(pred = pred_vec, ref = ref_vec))
     }, mc.cores = multicores)
 
-    pred.vec <- unlist(lapply(conf.lst, function(x) x$pred))
-    ref.vec  <- unlist(lapply(conf.lst, function(x) x$ref))
+    pred_vec <- unlist(lapply(conf_lst, function(x) x$pred))
+    ref_vec <- unlist(lapply(conf_lst, function(x) x$ref))
 
-    pred_ref.tb <- tibble::tibble("predicted" = pred.vec,
-                                  "reference" = ref.vec)
-    class(pred_ref.tb) <- c("pred_ref", class(pred_ref.tb))
+    pred_ref <- tibble::tibble(
+        "predicted" = pred_vec,
+        "reference" = ref_vec
+    )
+    class(pred_ref) <- c("pred_ref", class(pred_ref))
 
-    return(pred_ref.tb)
+    return(pred_ref)
 }

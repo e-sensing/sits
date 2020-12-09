@@ -36,16 +36,19 @@ Clean data cube to improve quality
 # define a data cube of CBERS-4 AWFI data
 data_dir <- system.file("extdata/raster/cbers", package = "sits")
 
-cbers_022024 <- sits_cube(type = "RASTER",
-                          name = "cbers_022024",
-                          satellite = "CBERS-4",
-                          sensor = "AWFI",
-                          resolution = "64m",
-                          data_dir = data_dir,
-                          parse_info = c("X1", "X2","band", "date"))
+cbers_022024 <- sits_cube(
+    type = "STACK",
+    name = "cbers_022024",
+    satellite = "CBERS-4",
+    sensor = "AWFI",
+    resolution = "64m",
+    data_dir = data_dir,
+    parse_info = c("X1", "X2", "band", "date")
+)
 
-cbers_022024_no_clds <- sits_cloud_remove(cube = cbers_022024,
-                                          data_dir = tempdir(),
-                                          name = "cbers_022024_no_cld")
-
+cbers_022024_no_clds <- sits_cloud_remove(
+    cube = cbers_022024,
+    data_dir = tempdir(),
+    name = "cbers_022024_no_cld"
+)
 }

@@ -2,13 +2,13 @@
 % Please edit documentation in R/sits_twdtw.R
 \name{sits_twdtw_classify}
 \alias{sits_twdtw_classify}
-\title{Find matches between a set of sits patterns and segments of sits tibble using TWDTW}
+\title{Find matches between patterns and time series using TWDTW}
 \usage{
 sits_twdtw_classify(
   samples,
   patterns,
   bands = NULL,
-  dist.method = "euclidean",
+  dist_method = "euclidean",
   alpha = -0.1,
   beta = 100,
   theta = 0.5,
@@ -17,7 +17,8 @@ sits_twdtw_classify(
   start_date = NULL,
   end_date = NULL,
   interval = "12 month",
-  overlap = 0.5
+  overlap = 0.5,
+  .plot = TRUE
 )
 }
 \arguments{
@@ -27,17 +28,20 @@ sits_twdtw_classify(
 
 \item{bands}{Names of the bands to be used for classification.}
 
-\item{dist.method}{Name of the method to derive the local cost matrix.}
+\item{dist_method}{Name of the method to derive the local cost matrix.}
 
-\item{alpha}{Steepness of the logistic function used for temporal weighting (a double value).}
+\item{alpha}{Steepness of the logistic function used for
+temporal weighting (a double value).}
 
-\item{beta}{Midpoint (in days) of the logistic function (an integer).}
+\item{beta}{Midpoint (in days) of the logistic function.}
 
-\item{theta}{Relative weight of the time distance compared to the dtw distance (a double value).}
+\item{theta}{Relative weight of the time distance compared
+to the dtw distance.}
 
-\item{span}{Minimum number of days between two matches of the same pattern in the time series (approximate).}
+\item{span}{Minimum number of days between two matches of the
+same pattern in the time series (approximate).}
 
-\item{keep}{Keep internal values for plotting matches? (A logical value).}
+\item{keep}{Keep internal values for plotting matches?}
 
 \item{start_date}{Start date of the classification period.}
 
@@ -45,27 +49,33 @@ sits_twdtw_classify(
 
 \item{interval}{Period between two classifications in months.}
 
-\item{overlap}{Minimum overlapping between one match and the interval of classification.}
+\item{overlap}{Minimum overlapping between one match and
+the interval of classification.}
+
+\item{.plot}{Plot the output?}
 }
 \value{
 A dtwSat S4 object with the matches.
 }
 \description{
 Returns  the results of the TWDTW matching function.
-The TWDTW matching function compares the values of a satellite image time series with
-the values of known patters and tries to match each pattern to a part of the time series
+The TWDTW matching function compares the values of a satellite image time
+series with the values of known patters and tries to match each pattern
+to a part of the time series
 
 The TWDTW (time-weighted dynamical time warping) is a version of the
-Dynamic Time Warping method for land use and land cover mapping using a sequence
-of multi-band satellite images. Methods based on dynamic time warping are flexible to
-handle irregular sampling and out-of-phase time series, and they have achieved significant
-results in time series analysis. In contrast to standard DTW, the TWDTW method is sensitive to seasonal
-changes of natural and cultivated vegetation types. It also considers inter-annual climatic and
+Dynamic Time Warping method for LUCC mapping using a sequence
+of multi-band satellite images. Methods based on dynamic time warping
+are flexible to handle irregular sampling and out-of-phase time series,
+and they have achieved significant
+results in time series analysis. In contrast to standard DTW, the TWDTW
+method is sensitive to seasonal changes of natural and cultivated
+vegetation types. It also considers inter-annual climatic and
 seasonal variability.
 }
 \examples{
 \dontrun{
-# Retrieve the set of samples for the Mato Grosso region (provided by EMBRAPA)
+# Retrieve the set of samples for the Mato Grosso region
 samples <- sits_select(samples_mt_6bands, bands = c("NDVI", "EVI"))
 
 # get a point and classify the point with the ml_model
@@ -78,16 +88,20 @@ plot(point)
 patterns <- sits_patterns(samples)
 plot(patterns)
 
-# find the matches between the patterns and the time series using the TWDTW algorithm
+# find the matches between the patterns and the time series
+# using the TWDTW algorithm
 # (uses the dtwSat R package)
-matches <- sits_twdtw_classify(point, patterns, bands = c("NDVI", "EVI"),
-alpha= -0.1, beta = 100, theta = 0.5, keep = TRUE)
+matches <- sits_twdtw_classify(point, patterns,
+    bands = c("NDVI", "EVI"),
+    alpha = -0.1, beta = 100, theta = 0.5, keep = TRUE
+)
 }
 }
 \references{
-Maus V, Camara G, Cartaxo R, Sanchez A, Ramos FM, de Queiroz GR (2016).
-A Time-Weighted Dynamic Time Warping Method for Land-Use and Land-Cover Mapping. IEEE
- Journal of Selected Topics in Applied Earth Observations and Remote Sensing, 9(8):3729-3739,
+Maus V, Camara G, Cartaxo R, Sanchez A, Ramos F, Queiroz G (2016).
+A Time-Weighted Dynamic Time Warping Method for Land-Use and
+Land-Cover Mapping. IEEE Journal of Selected Topics in Applied Earth
+Observations and Remote Sensing, 9(8):3729-3739,
  August 2016. ISSN 1939-1404. doi:10.1109/JSTARS.2016.2517118.
 }
 \author{

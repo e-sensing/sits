@@ -3,15 +3,11 @@
 #' @keywords internal
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'
-#' @param type              type of cube
 #' @param satellite         name of satellite
 #' @param sensor            name of sensor
-#' @param start_date        start_date of the cube
-#' @param end_date          end date of the cube
-#' @param bands             bands to be retrieved
 #' @param data_dir          directory where data is located
 #' @param parse_info        parsing information
-#' @param delim             delimitator
+#' @param delim             delimiter
 #'
 #' @description All image files should have the same spatial resolution
 #'              and same projection. In addition, image file names should
@@ -28,65 +24,61 @@
 #'
 #' @export
 #'
-.sits_raster_stack_info <-  function (type,
-									  satellite,
-									  sensor,
-									  start_date = NULL,
-									  end_date = NULL,
-									  bands    = NULL,
-									  data_dir,
-									  parse_info = NULL,
-									  delim = NULL) {
+.sits_raster_stack_info <- function(satellite,
+                                    sensor,
+                                    data_dir,
+                                    parse_info,
+                                    delim) {
 
+    # list the files in the data directory
+    img_files <- list.files(data_dir)
 
+    # how many of those files are images?
+    # retrieve the known file extensions
+    file_ext <- .sits_config_img_file_ext()
+    # filter by extension
+    matches <- purrr::map(file_ext, function(ext) {
+          img_files[grepl(ext, img_files)]
+      })
+    # get only valid files
+    img_files <- unlist(matches)
 
-	# list the image files
-	img_files <- list.files(data_dir)
+    # remove the extension
+    img_files_noext <- tools::file_path_sans_ext(img_files)
+    # split the file names
+    img_files_lst <- strsplit(img_files_noext, split = "_")
+    # joint the list into a tibble
+    img_files_tb <- suppressWarnings(
+      tibble::as_tibble(
+        do.call(rbind, img_files_lst)
+        )
+      )
+    # read the image files into a tibble with added parse info
+    colnames(img_files_tb) <- parse_info
 
-	# include the parse_info
-	if (purrr::is_null(parse_info))
-		parse_info  <- .sits_config_data_parse_info(type)
+    # get the information on the required bands, dates and path
+    info_tb <- img_files_tb %>%
+        # select the relevant parts
+        dplyr::select(date, band) %>%
+        # check the date format
+        .sits_timeline_date_format() %>%
+        # include path in the tibble
+        dplyr::mutate(path = paste0(data_dir, "/", img_files)) %>%
+        # order by dates
+        dplyr::arrange(date) %>%
+        # filter to remove duplicate combinations of file and band
+        dplyr::distinct(band, date, .keep_all = TRUE)
 
-	# get the delim information
-	if (purrr::is_null(delim))
-		delim <- .sits_config_data_delim(type)
+    # extract the band names
+    bands_files <- dplyr::pull(dplyr::distinct(info_tb, band))
 
-	# get the information on the required bands, dates and path
-	info.tb <- img_files %>%
-		# remove the extent
-		tools::file_path_sans_ext() %>%
-		# read the file path into a tibble
-		readr::read_delim(delim = delim, col_names = parse_info) %>%
-		# select the relevant parts
-		dplyr::select(date, band) %>%
-		# include path in the tibble
-		dplyr::mutate(path = paste0(data_dir,"/",img_files)) %>%
-		# order by dates
-		dplyr::arrange(date) %>%
-		# filter to remove duplicate combinations of file and band
-		dplyr::distinct(band, date, .keep_all = TRUE)
+    # convert the names of the bands to those used by SITS
+    bands_sits <- .sits_config_bands_convert(satellite, sensor, bands_files)
 
-	# extract the band names
-	bands_files <- dplyr::pull(dplyr::distinct(info.tb, band))
+    # convert the band names to SITS bands
+    info_tb <- dplyr::mutate(info_tb, band = bands_sits[band])
 
-	# convert the names of the bands to those used by SITS
-	bands_sits <- .sits_config_band_names_convert(satellite, sensor, bands_files)
-
-	# convert the band names to SITS bands
-	info.tb <- dplyr::mutate(info.tb, band = bands_sits[band])
-
-	if (!purrr::is_null(start_date) & !purrr::is_null(end_date))
-		# filter by starting date and end date
-		info.tb <- dplyr::filter(info.tb, date >= start_date & date <=end_date)
-
-	if (!purrr::is_null(bands)) {
-		assertthat::assert_that(bands %in% bands_sits,
-				msg = "bands do not match band names in SITS - see config file")
-		# select the bands
-		info.tb <-  dplyr::filter(info.tb, band %in% bands)
-	}
-
-	return(info.tb)
+    return(info_tb)
 }
 #' @title Create a stack cube from a set of files
 #' @name .sits_raster_stack_cube
@@ -100,35 +92,38 @@
 #'
 .sits_raster_stack_cube <- function(satellite, sensor, name, file_info) {
 
-	# get the bands
-	bands <- unique(file_info$band)
-	# get the timeline
-	timeline <- unique(file_info$date)
-	# get a raster object of one of the layers
-	rast <- terra::rast(file_info$path[1])
+    # get the bands
+    bands <- unique(file_info$band)
+    # get the timeline
+    timeline <- unique(file_info$date)
+    # get the parameters from the raster object of one of the layers
+    params <- .sits_raster_api_params(file_info$path[1])
 
-	# create a tibble to store the metadata
-	stack_cube <- .sits_cube_create(type      = "RASTER",
-									URL       = NA,
-									satellite = satellite,
-									sensor    = sensor,
-									name      = name,
-									bands     = bands,
-									scale_factors  = .sits_config_scale_factors(sensor, bands),
-									missing_values = .sits_config_missing_values(sensor, bands),
-									minimum_values = .sits_config_minimum_values(sensor, bands),
-									maximum_values = .sits_config_maximum_values(sensor, bands),
-									timelines      = list(timeline),
-									nrows = terra::nrow(rast),
-									ncols = terra::ncol(rast),
-									xmin  = terra::xmin(rast),
-									xmax  = terra::xmax(rast),
-									ymin  = terra::ymin(rast),
-									ymax  = terra::ymax(rast),
-									xres  = terra::xres(rast),
-									yres  = terra::yres(rast),
-									crs   = as.character(suppressWarnings(terra::crs(rast))),
-									file_info = file_info)
+    # create a tibble to store the metadata
+    stack_cube <- .sits_cube_create(
+        type = "STACK",
+        URL = NA,
+        satellite = satellite,
+        sensor = sensor,
+        name = name,
+        bands = bands,
+        scale_factors = .sits_config_scale_factors(sensor, bands),
+        missing_values = .sits_config_missing_values(sensor, bands),
+        minimum_values = .sits_config_minimum_values(sensor, bands),
+        maximum_values = .sits_config_maximum_values(sensor, bands),
+        timelines = list(timeline),
+        nrows = params$nrows,
+        ncols = params$ncols,
+        xmin = params$xmin,
+        xmax = params$xmax,
+        ymin = params$ymin,
+        ymax = params$ymax,
+        xres = params$xres,
+        yres = params$yres,
+        crs = params$crs,
+        file_info = file_info
+    )
 
-	return(stack_cube)
+
+    return(stack_cube)
 }

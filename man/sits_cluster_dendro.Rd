@@ -12,7 +12,7 @@ sits_cluster_dendro(
   linkage = "ward.D2",
   k = NULL,
   colors = "RdYlGn",
-  silent = TRUE,
+  .plot = TRUE,
   ...
 )
 }
@@ -31,7 +31,7 @@ Default is 'ward.D2'.}
 
 \item{colors}{Color scheme as per `sits_color_name` function.}
 
-\item{silent}{Should output be provided?}
+\item{.plot}{Plot the dendogram?}
 
 \item{...}{Additional parameters to be passed
 to dtwclust::tsclust() function.}
@@ -54,7 +54,7 @@ This is done in several steps:
 # load a simple data set with two classes
 data(cerrado_2classes)
 # calculate the dendrogram and the best clusters
-clusters <- sits_cluster_dendro (cerrado_2classes, bands = c("NDVI", "EVI"))
+clusters <- sits_cluster_dendro(cerrado_2classes, bands = c("NDVI", "EVI"))
 }
 }
 \references{

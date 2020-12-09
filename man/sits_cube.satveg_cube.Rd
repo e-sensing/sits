@@ -25,8 +25,10 @@ The SATVEG service is provided by the Embrapa Agricultural
 \examples{
 \dontrun{
 # Create a data cube based on the SATVEG service
-cube_satveg <- sits_cube(type = "SATVEG",
-                         name = "terra")
+cube_satveg <- sits_cube(
+    type = "SATVEG",
+    name = "terra"
+)
 }
 
 }

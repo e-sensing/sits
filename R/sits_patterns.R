@@ -46,17 +46,18 @@
 #' plot(patterns)
 #' }
 #' @export
-sits_patterns <- function(data = NULL, freq = 8, formula = y ~ s(x), ...){
+sits_patterns <- function(data = NULL, freq = 8, formula = y ~ s(x), ...) {
     # verifies if mgcv package is installed
     if (!requireNamespace("mgcv", quietly = TRUE)) {
         stop("mgcv required for this function to work.
               Please install it.", call. = FALSE)
     }
     # backward compatibility
-    if ("coverage" %in% names(data))
-        data <- .sits_tibble_rename(data)
+    if ("coverage" %in% names(data)) {
+          data <- .sits_tibble_rename(data)
+      }
     # function that is used to be called as a value from another function
-    result_fun <- function(tb){
+    result_fun <- function(tb) {
         # does the input data exist?
         .sits_test_tibble(tb)
 
@@ -71,26 +72,28 @@ sits_patterns <- function(data = NULL, freq = 8, formula = y ~ s(x), ...){
 
         # align all samples to the same time series intervals
         sample_dates <- lubridate::as_date(sits_time_series_dates(tb))
-        tb           <- .sits_align_dates(tb, sample_dates)
+        tb <- .sits_align_dates(tb, sample_dates)
 
         # extract the start and and dates
         start_date <- lubridate::as_date(utils::head(sample_dates, n = 1))
-        end_date   <- lubridate::as_date(utils::tail(sample_dates, n = 1))
+        end_date <- lubridate::as_date(utils::tail(sample_dates, n = 1))
 
 
         # determine the sequence of prediction times
-        pred_time <- seq(from = lubridate::as_date(start_date),
-                        to   = lubridate::as_date(end_date),
-                        by   = freq)
+        pred_time <- seq(
+            from = lubridate::as_date(start_date),
+            to = lubridate::as_date(end_date),
+            by = freq
+        )
 
         # how many different labels are there?
         labels <- dplyr::distinct(tb, label)$label
 
         # traverse labels
-        patterns.lst <- labels %>%
+        patterns_labels <- labels %>%
             purrr::map(function(lb) {
                 # filter only those rows with the same label
-                label.tb <- dplyr::filter(tb, label == lb)
+                label_rows <- dplyr::filter(tb, label == lb)
 
                 # create a data frame to store the time instances
                 time <- data.frame(as.numeric(pred_time))
@@ -99,61 +102,63 @@ sits_patterns <- function(data = NULL, freq = 8, formula = y ~ s(x), ...){
                 names(time) <- vars[2]
 
                 # store the time series associated to the pattern
-                ind.tb <- tibble::tibble(Index = lubridate::as_date(pred_time))
+                index <- tibble::tibble(Index = lubridate::as_date(pred_time))
 
                 # calculate the fit for each band
-                fit.lst <- bds %>%
+                fit_bands <- bds %>%
                     purrr::map(function(bd) {
                         # retrieve the time series for each band
-                        label_b.tb <- sits_select(label.tb, bd)
-                        ts <- label_b.tb$time_series
+                        label_b <- sits_select(label_rows, bd)
+                        ts <- label_b$time_series
 
                         # melt the time series for each band into a long table
                         # with all values together
                         ts2 <- ts %>%
                             reshape2::melt(id.vars = "Index") %>%
-                            dplyr::select(Index, value)       %>%
+                            dplyr::select(Index, value) %>%
                             dplyr::transmute(x = as.numeric(Index), y = value)
 
-                        #calculate the best fit for the data set
-                        fit <-  mgcv::gam(data = ts2, formula = formula)
+                        # calculate the best fit for the data set
+                        fit <- mgcv::gam(data = ts2, formula = formula)
 
                         # Takes a fitted gam object and produces predictions
                         # in the sequence of prediction times
                         pred_values <- mgcv::predict.gam(fit, newdata = time)
 
                         # include the predicted values for the band
-                        res.tb <- tibble::tibble(b = pred_values)
+                        patt_b <- tibble::tibble(b = pred_values)
 
                         # rename the column to match the band names
-                        names(res.tb)[names(res.tb) == "b"] <- bd
+                        names(patt_b)[names(patt_b) == "b"] <- bd
                         # return the tibble column to the list
-                        return(res.tb)
+                        return(patt_b)
                     }) # for each band
 
-                res.tb <- dplyr::bind_cols(fit.lst)
-                res.tb <- dplyr::bind_cols(ind.tb, res.tb)
+                res_label <- dplyr::bind_cols(fit_bands)
+                res_label <- dplyr::bind_cols(index, res_label)
 
                 # put the pattern in a list to store in a sits tibble
                 ts <- tibble::lst()
-                ts[[1]] <- res.tb
+                ts[[1]] <- res_label
 
                 # add the pattern to the results tibble
                 row <- tibble::tibble(
-                    longitude      = 0.0,
-                    latitude       = 0.0,
-                    start_date     = as.Date(start_date),
-                    end_date       = as.Date(end_date),
-                    label          = lb,
-                    cube           = label.tb[1,]$cube,
-                    time_series    = ts)
+                    longitude = 0.0,
+                    latitude = 0.0,
+                    start_date = as.Date(start_date),
+                    end_date = as.Date(end_date),
+                    label = lb,
+                    cube = "patterns",
+                    time_series = ts
+                )
                 return(row)
             })
 
-        patterns <- dplyr::bind_rows(patterns.lst)
+        patterns <- dplyr::bind_rows(patterns_labels)
         class(patterns) <- c("patterns", class(patterns))
         return(patterns)
     }
 
     result <- .sits_factory_function(data, result_fun)
+    return(result)
 }

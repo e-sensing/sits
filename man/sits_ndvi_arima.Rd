@@ -49,7 +49,7 @@ Finally, the function applies a whitakker smoother.
 # Apply the filter
 point_ar <- sits_ndvi_arima(point_ndvi)
 # Merge the filtered with the raw data
-point2 <- sits_merge (point_ndvi, point_ar)
+point2 <- sits_merge(point_ndvi, point_ar)
 # Plot the result
 plot(point2)
 }

@@ -22,9 +22,10 @@ Adds new bands and preserves existing in the time series
 \examples{
 \donttest{
 # Retrieve data for time series with label samples in Mato Grosso in Brazil
-data (samples_mt_6bands)
+data(samples_mt_6bands)
 # Generate a new image with the SAVI (Soil-adjusted vegetation index)
-savi.tb <- sits_mutate_bands(samples_mt_6bands, SAVI = (1.5*(NIR - RED)/(NIR + RED + 0.5)))
+savi.tb <- sits_mutate_bands(samples_mt_6bands,
+           SAVI = (1.5 * (NIR - RED) / (NIR + RED + 0.5)))
 }
 }
 \author{

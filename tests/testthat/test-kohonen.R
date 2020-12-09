@@ -1,43 +1,35 @@
 context("Evaluate samples using SOM")
 test_that("Creating clustering using Self-organizing Maps", {
-    #skip_on_cran()
+    # skip_on_cran()
     data("cerrado_2classes")
-    new_samples <-
-        suppressWarnings(sits_cluster_som(
+    new_samples <- sits_cluster_som(
             cerrado_2classes,
             grid_xdim = 5,
-            grid_ydim = 5,
-            alpha = 1,
-            distance = "euclidean",
-            iterations = 2))
+            grid_ydim = 5
+        )
 
-    expect_true("conditional_prob" %in% names(new_samples$clean_samples.tb))
-    expect_true("posterior_prob" %in% names(new_samples$clean_samples.tb))
+    expect_true(all(new_samples$eval %in% c("clean", "analyze", "remove")))
+    expect_true(new_samples[1, ]$post_prob > 0)
+    grid_size <- 25
+    expect_true(all(new_samples$id_neuron %in% c(1:grid_size)))
 
-    som_map <-
-        suppressWarnings(sits_som_map(
-            cerrado_2classes,
-            grid_xdim = 5,
-            grid_ydim = 5,
-            alpha = 1,
-            distance = "euclidean",
-            iterations = 4
-        ))
+    som_map <- sits_som_map(
+            samples_mt_4bands,
+            grid_xdim = 10,
+            grid_ydim = 10)
 
-    expect_equal(length(names(som_map$som_properties)), 17)
+    expect_true(all(colnames(som_map$labelled_neurons) %in%
+        c("id_neuron", "label_samples", "count", "prior_prob", "post_prob")))
+
+    expect_true(som_map$labelled_neurons[1, ]$prior_prob > 0)
+    expect_true(som_map$labelled_neurons[1, ]$post_prob > 0)
+    expect_true(all(unique(som_map$labelled_neurons$id_neuron) %in% 1:100))
 
     plot(som_map)
 
     cleaned_samples <- sits_som_clean_samples(som_map)
-    expect_true("conditional_prob" %in% names(cleaned_samples$clean_samples.tb))
-    expect_true("posterior_prob" %in% names(cleaned_samples$clean_samples.tb))
+    expect_true("eval" %in% names(cleaned_samples))
+    expect_true("post_prob" %in% names(cleaned_samples))
 
-    expect_true("conditional_prob" %in% names(cleaned_samples$make_analysis.tb))
-    expect_true("posterior_prob" %in% names(cleaned_samples$make_analysis.tb))
-
-    cluster_overall <- sits_som_evaluate_cluster(som_map)
-    expect_equal(length(names(cluster_overall$confusion_matrix)), 6)
-
-    plot(cluster_overall)
-
+    expect_true(cleaned_samples[1, ]$post_prob > 0)
 })

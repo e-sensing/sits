@@ -21,7 +21,6 @@ Adds new tasseled cap bands.
 data(samples_mt_6bands)
 # Generate a new image with the tasseled cap
 ndwi.tb <- sits_ndwi(samples_mt_6bands)
-
 }
 \author{
 Gilberto Camara, \email{gilberto.camara@inpe.br}

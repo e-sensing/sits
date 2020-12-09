@@ -4,16 +4,16 @@
 \alias{.sits_stac_tile_cube}
 \title{Get the STAC information corresponding to a tile.}
 \usage{
-.sits_stac_tile_cube(url, name, collection_info, items_info, cube, file_info)
+.sits_stac_tile_cube(url, name, collection, items, cube, file_info)
 }
 \arguments{
 \item{url}{a \code{character} representing URL for the BDC STAC.}
 
 \item{name}{a \code{character} representing the output data cube.}
 
-\item{collection_info}{a \code{STACCollection} object returned by rstac.}
+\item{collection}{a \code{STACCollection} object returned by rstac.}
 
-\item{items_info}{a \code{STACItemCollection} object returned by rstac.}
+\item{items}{a \code{STACItemCollection} object returned by rstac.}
 
 \item{cube}{a \code{character} with name input data cube in BDC.}
 

@@ -3,7 +3,7 @@ devAskNewPage(ask = FALSE)
 # This demo shows different machine learning methods for
 # clasification of time series
 
-#load the sits library
+# load the sits library
 library(sits)
 
 #  The data contain 1,892 time series samples for the Mato Grosso state in Brasil.
@@ -34,9 +34,10 @@ results <- list()
 
 ## SVM model
 conf_svm.tb <- sits_kfold_validate(samples_mt_4bands,
-                                   folds = 5,
-                                   multicores = 2,
-                            ml_method = sits_svm(kernel = "radial", cost = 10))
+    folds = 5,
+    multicores = 2,
+    ml_method = sits_svm(kernel = "radial", cost = 10)
+)
 
 print("== Confusion Matrix = SVM =======================")
 conf_svm.mx <- sits_conf_matrix(conf_svm.tb)
@@ -49,9 +50,10 @@ results[[length(results) + 1]] <- conf_svm.mx
 # =============== RFOR ==============================
 
 conf_rfor.tb <- sits_kfold_validate(samples_mt_4bands,
-                                    folds = 5,
-                                    multicores = 1,
-                                    ml_method = sits_rfor(num_trees = 500))
+    folds = 5,
+    multicores = 1,
+    ml_method = sits_rfor(num_trees = 500)
+)
 print("== Confusion Matrix = RFOR =======================")
 conf_rfor.mx <- sits_conf_matrix(conf_rfor.tb)
 conf_rfor.mx$name <- "rfor"
@@ -62,9 +64,10 @@ results[[length(results) + 1]] <- conf_rfor.mx
 
 # =============== LDA ==============================
 conf_lda.tb <- sits_kfold_validate(samples_mt_4bands,
-                                   folds = 5,
-                                   multicores = 2,
-                                   ml_method = sits_lda())
+    folds = 5,
+    multicores = 2,
+    ml_method = sits_lda()
+)
 
 print("== Confusion Matrix = LDA =======================")
 conf_lda.mx <- sits_conf_matrix(conf_lda.tb)
@@ -76,9 +79,10 @@ results[[length(results) + 1]] <- conf_lda.mx
 # =============== MLR ==============================
 # "multinomial log-linear (mlr)
 conf_mlr.tb <- sits_kfold_validate(samples_mt_4bands,
-                                   folds = 5,
-                                   multicores = 2,
-                                   ml_method = sits_mlr())
+    folds = 5,
+    multicores = 2,
+    ml_method = sits_mlr()
+)
 
 # print the accuracy of the Multinomial log-linear
 print("== Confusion Matrix = MLR =======================")
@@ -91,9 +95,10 @@ results[[length(results) + 1]] <- conf_mlr.mx
 # =============== XGBOOST ==============================
 # extreme gradient boosting
 conf_xgb.tb <- sits_kfold_validate(samples_mt_4bands,
-                                   folds = 5,
-                                   multicores = 32,
-                                   ml_method = sits_xgboost())
+    folds = 5,
+    multicores = 32,
+    ml_method = sits_xgboost()
+)
 
 # print the accuracy of the Multinomial log-linear
 print("== Confusion Matrix = XGB =======================")
@@ -103,8 +108,6 @@ conf_xgb.mx$name <- "xgboost"
 results[[length(results) + 1]] <- conf_xgb.mx
 
 
-WD = getwd()
+WD <- getwd()
 
 sits_to_xlsx(results, file = "./accuracy_mt_ml.xlsx")
-
-

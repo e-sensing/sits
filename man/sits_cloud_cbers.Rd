@@ -7,6 +7,7 @@
 sits_cloud_cbers(
   cube,
   cld_band_name = "CMASK",
+  data_dir = NULL,
   t1 = 1,
   t2 = 0.11,
   t3 = 0.5,
@@ -20,7 +21,9 @@ sits_cloud_cbers(
 \arguments{
 \item{cube}{input data cube}
 
-\item{cld_band_name}{name of the cloud band to be produced}
+\item{cld_band_name}{indication of the cloud band to be produced}
+
+\item{data_dir}{directory where cloud band will be written}
 
 \item{t1}{controls the difference btw visible and infrared bands}
 

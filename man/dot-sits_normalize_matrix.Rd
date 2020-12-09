@@ -4,10 +4,10 @@
 \alias{.sits_normalize_matrix}
 \title{Normalize the time series values in the case of a matrix}
 \usage{
-.sits_normalize_matrix(data.mx, stats, band, multicores)
+.sits_normalize_matrix(data, stats, band, multicores)
 }
 \arguments{
-\item{data.mx}{Matrix of values.}
+\item{data}{Matrix of values.}
 
 \item{stats}{Statistics for normalization.}
 

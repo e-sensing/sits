@@ -6,7 +6,7 @@
 \usage{
 sits_label_classification(
   cube,
-  smoothing = "none",
+  smoothing = "bayesian",
   window = matrix(1, nrow = 3, ncol = 3, byrow = TRUE),
   variance = 20,
   output_dir = "./",
@@ -49,28 +49,34 @@ Takes a set of classified raster layers with probabilities,
 
 samples_ndvi <- sits_select(samples_mt_4bands, bands = "NDVI")
 
-#select a random forest model
+# select a random forest model
 rfor_model <- sits_train(samples_ndvi, sits_rfor(num_trees = 500))
 
 # Classify a raster file with 23 instances for one year
 files <- c(system.file("extdata/raster/mod13q1/sinop-crop-ndvi.tif",
-                       package = "sits"))
+    package = "sits"
+))
 
 # create a data cube based on the information about the files
-sinop <- sits_cube(type = "RASTER", satellite = "TERRA",
-                   sensor = "MODIS", name = "Sinop-crop",
-                   timeline = timeline_modis_392,
-                   output_dir = tempdir(),
-                   bands = c("NDVI"), files = files)
+sinop <- sits_cube(
+    type = "BRICK", satellite = "TERRA",
+    sensor = "MODIS", name = "Sinop-crop",
+    timeline = timeline_modis_392,
+    output_dir = tempdir(),
+    bands = c("NDVI"), files = files
+)
 
 # classify the raster image
-sinop_probs <- sits_classify(sinop, ml_model = rfor_model,
-                             output_dir = tempdir(),
-                             memsize = 4, multicores = 2)
+sinop_probs <- sits_classify(sinop,
+    ml_model = rfor_model,
+    output_dir = tempdir(),
+    memsize = 4, multicores = 2
+)
 
 # label the classification and smooth the result with a bayesian filter
 sinop_bayes <- sits_label_classification(sinop_probs,
-                          output_dir = tempdir(), smoothing = "bayesian")
+    output_dir = tempdir(), smoothing = "bayesian"
+)
 }
 
 }

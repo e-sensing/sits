@@ -12,9 +12,9 @@
     bbox_roi <- .sits_roi_bbox(roi, cube)
 
     # calculate the intersection between the bbox of the ROI and the cube
-    bbox_in <-  .sits_bbox_intersect(bbox_roi, cube)
+    bbox_in <- .sits_bbox_intersect(bbox_roi, cube)
     # return the sub_image
-    sub_image <-  .sits_sub_image_from_bbox(bbox_in, cube)
+    sub_image <- .sits_sub_image_from_bbox(bbox_in, cube)
 
     return(sub_image)
 }
@@ -25,20 +25,22 @@
 #' @param  cube            input data cube.
 #' @param  sf_region       spatial region of interest (sf_object)
 #' @return                 vector with information on the subimage
-.sits_raster_sub_image_default <- function(cube){
+.sits_raster_sub_image_default <- function(cube) {
     # by default, the sub_image has the same dimension as the main cube
     sub_image <- vector("integer", length = 8)
-    names(sub_image) <- c("first_row", "first_col", "nrows", "ncols",
-                          "xmin", "ymin", "xmax", "ymax")
+    names(sub_image) <- c(
+        "first_row", "first_col", "nrows", "ncols",
+        "xmin", "ymin", "xmax", "ymax"
+    )
 
     sub_image["first_row"] <- 1
     sub_image["first_col"] <- 1
-    sub_image["nrows"]  <- cube[1,]$nrows
-    sub_image["ncols"]  <- cube[1,]$ncols
-    sub_image["xmin"]   <- cube[1,]$xmin
-    sub_image["xmax"]   <- cube[1,]$xmax
-    sub_image["ymin"]   <- cube[1,]$ymin
-    sub_image["ymax"]   <- cube[1,]$ymax
+    sub_image["nrows"] <- cube[1, ]$nrows
+    sub_image["ncols"] <- cube[1, ]$ncols
+    sub_image["xmin"] <- cube[1, ]$xmin
+    sub_image["xmax"] <- cube[1, ]$xmax
+    sub_image["ymin"] <- cube[1, ]$ymin
+    sub_image["ymax"] <- cube[1, ]$ymax
 
     return(sub_image)
 }

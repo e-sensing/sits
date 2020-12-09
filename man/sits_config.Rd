@@ -14,23 +14,16 @@ Reads a user-specified configuration file,
 located in a "config.yml" file in the working directory.
 If this file is not found, reads a default package configuration file.
 By default, the sits configuration file "config.yml" is located at
-the directory "extdata" of the
-package. The configuration file is an YAML file that
-should provide at least the following parameters:
+the directory "extdata" of the package.
 
-default:
-   ts_servers     :
-       - "WTSS"
-       - "SATVEG"
-   WTSS_server    : "http://www.dpi.inpe.br/tws/wtss"
-   SATVEG_server  : "https://www.satveg.cnptia.embrapa.br"
-   SATVEG_account : "/satvegws/ws/perfil/ZW46IXzr4pRzJlX/"
+The user can provide her additional configuration on an additional
+configuration file, which is located by default on ~/.sits/config.yml.
 
 To see the contents of the configuration file,
 please use \code{\link[sits]{sits_config_show}}.
 }
 \examples{
-# create configurtion file
+# create configuration file
 config_sits <- sits_config()
 # show configuration file
 sits_config_show()

@@ -7,20 +7,20 @@
 #' \itemize{
 #'  \item{"WTSS": }{see \code{\link{sits_cube.wtss_cube}}}
 #'  \item{"SATVEG": }{ see \code{\link{sits_cube.satveg_cube}}}
-#'  \item{"RASTER": }{see \code{\link{sits_cube.raster_cube}}}
-#'  \item{"BDC_TILE"}{Brazil Data Cube - see \code{\link{sits_cube.bdc_cube}}}
-#'  \item{"BDC_STAC"}{STAC Brazil Data Cube - see \code{\link{sits_cube.bdc_stac}}}
-#'  \item{"S2_L2A_AWS"}{Sentinel-2 data in AWS - see \code{\link{sits_cube.s2_l2a_aws_cube}}}
+#'  \item{"BRICK": }{see \code{\link{sits_cube.brick_cube}}}
+#'  \item{"STACK": }{see \code{\link{sits_cube.stack_cube}}}
+#'  \item{"BDC"}{Brazil Data Cube - see \code{\link{sits_cube.bdc_cube}}}
+#'  \item{"S2_L2A_AWS"}{Sentinel-2 data in AWS -
+#'                      see \code{\link{sits_cube.s2_l2a_aws_cube}}}
 #' }
 #'
-#' @param type              Type of cube (one of "WTSS", "RASTER", "BDC_TILE",
-#'                          "S2_L2A_AWS", "PROBS", "CLASSIFIED")
+#' @param type        Type of cube (one of "WTSS", "BRICK", "STACK",
+#'                    "BDC_TILE", "S2_L2A_AWS", "PROBS", "CLASSIFIED")
 #' @param ...               Other parameters to be passed for specific types
 #'
 #' @export
 sits_cube <- function(type = "RASTER", ...) {
-
-    spec_class <- .sits_config_cube_specific_class(type)
+    spec_class <- .sits_config_cube_specific(type)
     class(type) <- c(spec_class, class(type))
     # Dispatch
     UseMethod("sits_cube", type)
@@ -42,22 +42,24 @@ sits_cube <- function(type = "RASTER", ...) {
 #' @examples
 #' \dontrun{
 #' # Create a data cube based on a WTSS service
-#' cube_wtss <- sits_cube(type = "WTSS",
-#'           name = "MOD13Q1",
-#'           URL = "http://www.esensing.dpi.inpe.br/wtss/")
+#' cube_wtss <- sits_cube(
+#'     type = "WTSS",
+#'     name = "MOD13Q1",
+#'     URL = "http://www.esensing.dpi.inpe.br/wtss/"
+#' )
 #' }
 sits_cube.wtss_cube <- function(type = "WTSS", ..., name = NULL, URL = NULL) {
     # Pre-condition
     wtss_ok <- .sits_wtss_check(URL = URL, name = name)
     # create a cube
-    if (wtss_ok)
-        cube.tb <- .sits_wtss_cube(URL = URL, name = name)
-    else {
+    if (wtss_ok) {
+          cube <- .sits_wtss_cube(URL = URL, name = name)
+      } else {
         message("WTSS service not responding")
         return(NULL)
     }
 
-    return(cube.tb)
+    return(cube)
 }
 
 #' @title Defines a data cube for the SATVEG service
@@ -76,36 +78,51 @@ sits_cube.wtss_cube <- function(type = "WTSS", ..., name = NULL, URL = NULL) {
 #' @examples
 #' \dontrun{
 #' # Create a data cube based on the SATVEG service
-#' cube_satveg <- sits_cube(type = "SATVEG",
-#'                          name = "terra")
+#' cube_satveg <- sits_cube(
+#'     type = "SATVEG",
+#'     name = "terra"
+#' )
 #' }
 #'
 sits_cube.satveg_cube <- function(type = "SATVEG", ..., name = NULL) {
     # Pre-condition - check if SATVEG is working
     satveg_ok <- .sits_satveg_check()
     # if OK, go ahead a create a SATVEG cube
-    if (satveg_ok)
-        cube.tb <- .sits_satveg_cube(name = name)
-    else {
+    if (satveg_ok) {
+          cube <- .sits_satveg_cube(name = name)
+      } else {
         message("SATVEG service not responding")
         return(NULL)
     }
 
-    return(cube.tb)
+    return(cube)
+}
+#' @title Backward compatibility
+#' @name sits_cube.raster_cube
+#' @description Using "RASTER" as a type for a data cube is deprecated in favour
+#'              of "STACK" and "BRICK" types.
+#' @param type              Type of cube
+#' @param ...               Other parameters to be passed for specific types
+#' @param name              Name of the input data
+#' @return                  A message
+#'
+#' @export
+sits_cube.raster_cube <- function(type = "RASTER", ..., name = NULL) {
+    message("type RASTER is deprecated, please use BRICK or STACK")
 }
 
-#' @title Defines a cube to retrieve data from a set of image files
-#' @name sits_cube.raster_cube
+#' @title Defines a cube from a set of single image files
+#' @name sits_cube.stack_cube
 #'
 #' @description Defines a cube to retrieve data from a set of image files.
 #'              All image files should have the same spatial resolution
-#'              and same projection. There are two options for creating a cube
-#'              based on files:
-#'' \itemize{
-#'  \item{files with date and band information: }{In this case, the files
-#'              contain date and band information in their names. This is
-#'              the case of files in repositories such as Sentinel Hub
-#'              and AWS. Timeline and the bands are deduced from filenames.
+#'              and same projection. Each file contains a single image band
+#'              for a single date; its name contains date and band information.
+#'              This is the case of files in repositories such as Sentinel Hub
+#'              and AWS. This case is called an "image stack", following the
+#'              terminology used by the "raster" R package
+#'
+#'              Timeline and the bands are deduced from filenames.
 #'              Examples of valid image names include
 #'              "CB4_64_16D_STK_022024_2018-08-29_2018-09-13_EVI.tif" and
 #'              "B02_2018-07-18.jp2". In each case, the user has to provide
@@ -113,25 +130,94 @@ sits_cube.satveg_cube <- function(type = "SATVEG", ..., name = NULL) {
 #'              the band and the date. In the examples above, the parsing info
 #'              would include "_" as a delimiter. In the first, the names of the
 #'              resulting columns for parsing are "X1", "X2", "X3", "X4", "X5",
-#'              "date", "X7", and "band".
-#'              In the second, they are "band" and "date".}
-#'  \item{bundled files with many images}: {in this case, each input band
-#'              has to be organised as a raster brick, and the
-#'              number of input files must match the number of bands.
-#'              All input files must have the same spatial resolution and
-#'              share the same timeline (in order).
-#'              The timeline for the cube must be provided.}
-#' }
+#'              "date", "X7", and "band". In the second, only "band" and "date".
 #'
 #' @param type              type of cube
 #' @param name              name of output data cube
 #' @param ...               other parameters
 #' @param satellite         satellite
 #' @param sensor            sensor
-#' @param resolution        sensor resolution
 #' @param data_dir          directory where data is located
 #' @param delim             character to use as delimiter (default = "_")
 #' @param parse_info        parsing information (see above)
+#'
+#' @return                  data cube
+#'
+#' @examples
+#'
+#' # Create a cube based on a stack of CBERS data
+#' data_dir <- system.file("extdata/raster/cbers", package = "sits")
+#'
+#' cbers_cube <- sits_cube(
+#'     type = "STACK",
+#'     name = "022024",
+#'     satellite = "CBERS-4",
+#'     sensor = "AWFI",
+#'     data_dir = data_dir,
+#'     delim = "_",
+#'     parse_info = c("X1", "X2", "band", "date")
+#' )
+#' @export
+sits_cube.stack_cube <- function(type = "STACK", ...,
+                        name = "stack_cube",
+                        satellite,
+                        sensor,
+                        data_dir = NULL,
+                        parse_info = sits:::.sits_config_data_parse_info(type),
+                        delim = sits:::.sits_config_data_delim(type)) {
+
+    # precondition - check satellite and sensor
+    .sits_config_satellite_sensor(satellite, sensor)
+
+    assertthat::assert_that(!purrr::is_null(data_dir),
+        msg = "data_dir must be to be provided"
+    )
+
+    # precondition - check parsing info
+    assertthat::assert_that(length(parse_info) >= 2,
+        msg = "invalid parsing information"
+    )
+
+    assertthat::assert_that(all(c("band", "date") %in% parse_info),
+        msg = "invalid columns for date and band"
+    )
+
+    # get the file information
+    file_info <- .sits_raster_stack_info(
+        satellite = satellite,
+        sensor = sensor,
+        data_dir = data_dir,
+        parse_info = parse_info,
+        delim = delim
+    )
+    # create the data cube
+    cube <- .sits_raster_stack_cube(
+        satellite = satellite,
+        sensor = sensor,
+        name = name,
+        file_info = file_info
+    )
+
+    class(cube) <- c("raster_cube", class(cube))
+    return(cube)
+}
+#' @title Defines a cube from a set of image bricks
+#' @name sits_cube.brick_cube
+#'
+#' @description Defines a cube to retrieve data from a set of image files.
+#'              All image files should have the same spatial resolution
+#'              and same projection. Each input band
+#'              has to be organised as a raster brick, and the
+#'              number of input files must match the number of bands.
+#'              All input files must have the same spatial resolution and
+#'              share the same timeline (in order).
+#'              The timeline for the cube must be provided.
+#'
+#' @param type              type of cube
+#' @param name              name of output data cube
+#' @param ...               other parameters
+#' @param satellite         satellite
+#' @param sensor            sensor
 #' @param timeline          vector with timeline of the files
 #' @param bands             vector of bands associated to the files
 #' @param files             vector of file names for each band
@@ -140,227 +226,55 @@ sits_cube.satveg_cube <- function(type = "SATVEG", ..., name = NULL) {
 #'
 #' @examples
 #'
-#' # Create a raster cube based on CBERS data
-#' data_dir <- system.file("extdata/raster/cbers", package = "sits")
-#'
-#' cbers_cube <- sits_cube(name       = "022024",
-#'                      satellite  = "CBERS-4",
-#'                      sensor     = "AWFI",
-#'                      resolution = "64m",
-#'                      data_dir   = data_dir,
-#'                      delim      = "_",
-#'                      parse_info = c("X1", "X2", "band", "date"))
-#'
 #' # Create a raster cube based on bricks
 #' # inform the files that make up a raster brick with 392 time instances
 #' files <- c(system.file("extdata/raster/mod13q1/sinop-crop-ndvi.tif",
-#'            package = "sits"))
+#'     package = "sits"
+#' ))
 #'
 #' # create a raster cube file based on the information about the files
-#' raster.tb <- sits_cube(type = "RASTER",
-#'                        name      = "Sinop-crop",
-#'                        satellite = "TERRA",
-#'                        sensor    = "MODIS",
-#'                        timeline  = timeline_modis_392,
-#'                        bands     = "NDVI",
-#'                        files     = files)
-#'
-#'
+#' raster_cube <- sits_cube(
+#'     type = "BRICK",
+#'     name = "Sinop-crop",
+#'     satellite = "TERRA",
+#'     sensor = "MODIS",
+#'     timeline = timeline_modis_392,
+#'     bands = "NDVI",
+#'     files = files
+#' )
 #' @export
-sits_cube.raster_cube <- function(type = "RASTER", ...,
-                                 name,
+sits_cube.brick_cube <- function(type = "BRICK", ...,
+                                 name = "brick_cube",
                                  satellite,
                                  sensor,
-                                 resolution,
-                                 data_dir = NULL,
-                                 parse_info = NULL,
-                                 delim = "_",
                                  timeline = NULL,
                                  bands = NULL,
                                  files = NULL) {
 
-    # precondition - check satellite and sensor
-    ok <- .sits_raster_satellite_sensor(satellite, sensor)
+    # precondition - check if the files are bricks
+    .sits_raster_brick_check(
+        satellite = satellite,
+        sensor = sensor,
+        name = name,
+        timeline = timeline,
+        bands = bands,
+        files = files
+    )
 
-    if (!ok) {
-        message("invalid satellite sensor combination")
-        return(NULL)
-    }
-
-    assertthat::assert_that((!purrr::is_null(data_dir) |
-                             !purrr::is_null(files)),
-                        msg = "either data_dir or files have to be provided")
-
-    if (!purrr::is_null(data_dir)) {
-        # precondition - missing resolution
-        assertthat::assert_that(!purrr::is_null(resolution),
-                                msg = "missing resolution information")
-        # precondition - check parsing info
-        assertthat::assert_that(length(parse_info) >= 2,
-                                msg = "invalid parsing information")
-
-        assertthat::assert_that(all(c("band", "date") %in% parse_info),
-                                msg = "invalid columns for date and band")
-
-        # get the file information
-        file_info.tb <- .sits_raster_stack_info(type = "RASTER",
-                                                satellite  = satellite,
-                                                sensor     = sensor,
-                                                data_dir   = data_dir,
-                                                parse_info = parse_info,
-                                                delim      = delim)
-        # create the data cube
-        cube   <- .sits_raster_stack_cube(satellite    = satellite,
-                                          sensor       = sensor,
-                                          name         = name,
-                                          file_info    = file_info.tb)
-
-    }
-    else if (!purrr::is_null(files)) {
-
-        assertthat::assert_that(!purrr::is_null(bands),
-                                msg = "missing band information")
-        assertthat::assert_that(!purrr::is_null(timeline),
-                                msg = "missing timeline information")
-
-        # check if need to include "/vsicurl" to be read by GDAL
-        files <- .sits_raster_check_webfiles(files)
-        # check if the files are bricks
-        bricks_ok <- .sits_raster_brick_check(satellite = satellite,
-                                              sensor    = sensor,
-                                              name      = name,
-                                              timeline  = timeline,
-                                              bands     = bands,
-                                              files     = files)
-        if (bricks_ok)
-            cube <- .sits_raster_brick_cube(satellite = satellite,
-                                            sensor    = sensor,
-                                            name      = name,
-                                            timeline  = timeline,
-                                            bands     = bands,
-                                            files     = files)
-
-    }
-    else {
-        message("missing information to create data cube")
-    }
+    cube <- .sits_raster_brick_cube(
+        satellite = satellite,
+        sensor = sensor,
+        name = name,
+        timeline = timeline,
+        bands = bands,
+        files = files
+    )
 
     class(cube) <- c("raster_cube", class(cube))
     return(cube)
-
-}
-#' @title Defines a data cube for a BDC TILE
-#' @name sits_cube.bdc_cube
-#'
-#' @description Defines a cube to work with data from Brazil Data Cube (BDC).
-#' Retrieval is based on tiles of a given cube. Allows local or web access. For
-#' local access, the user should be logged in the BDC.
-#' For more on BDC, please see http://brazildatacube.dpi.inpe.br/
-#'
-#' @param type              type of cube
-#' @param ...               other parameters to be passed for specific types
-#' @param name              output data cube.
-#' @param satellite         satellite
-#' @param sensor            sensor
-#' @param bands             bands.
-#' @param cube              name input data cube in BDC
-#' @param tiles             names of the tiles
-#' @param version           version of the cube
-#' @param data_access       access (local or web)
-#' @param start_date        starting date of the cube
-#' @param end_date          ending date of the cube
-#' @param .local            directory for local data (optional)
-#' @param .web              URL for web access to the input cube (optional)
-#' @param .cloud_band       include cloud band? (TRUE/FALSE)
-#'
-#' @return                  A data cube
-#' @export
-#'
-#' @examples
-#' \dontrun{
-#'
-#' # this code depends on an external service
-#' # create a raster cube file based on the information about the files
-#' cbers_bdc_tile <- sits_cube(type        = "BDC_TILE",
-#'                             name        = "022024",
-#'                             satellite   = "CBERS-4",
-#'                             sensor      = "AWFI",
-#'                             cube        = "CB4_64_16D_STK",
-#'                             tiles       = "022024",
-#'                             version     = "v001",
-#'                             data_access = "web",
-#'                             bands       = c("NDVI", "EVI"),
-#'                             start_date  = as.Date("2018-08-29"),
-#'                             end_date    = as.Date("2019-08-13"))
-#' }
-#'
-sits_cube.bdc_cube <- function(type        = "BDC_TILE", ...,
-                               name        = NULL,
-                               satellite   = NULL,
-                               sensor      = NULL,
-                               bands       = NULL,
-                               cube        = NULL,
-                               tiles       = NULL,
-                               version     = "v001",
-                               data_access = "web",
-                               start_date  = NULL,
-                               end_date    = NULL,
-                               .local      = NULL,
-                               .web        = NULL,
-                               .cloud_band = FALSE) {
-
-    # test if BDC is accessible
-    if (data_access == "web")
-        if (!.sits_config_bdc_web_access(.web))
-            return(NULL)
-
-    # go through the vector of tiles
-    tile.lst <- purrr::map(tiles, function(tile) {
-        # Precondition
-        bdc_tile_ok <- .sits_bdc_check_tiles(satellite      = satellite,
-                                             sensor         = sensor,
-                                             bands          = bands,
-                                             cube           = cube,
-                                             tile           = tile,
-                                             version        = version,
-                                             data_access    = data_access,
-                                             start_date     = start_date,
-                                             end_date       = end_date)
-
-        if (!bdc_tile_ok)
-            return(NULL)
-
-        stack.tb <- .sits_bdc_info_tiles(satellite   = satellite,
-                                         sensor      = sensor,
-                                         bands       = bands,
-                                         cube        = cube,
-                                         tile        = tile,
-                                         version     = version,
-                                         data_access = data_access,
-                                         start_date  = start_date,
-                                         end_date    = end_date,
-                                         .local      = .local,
-                                         .web        = .web,
-                                         .cloud_band = .cloud_band)
-
-        cube_t  <- .sits_bdc_tile_cube(satellite    = satellite,
-                                       sensor       = sensor,
-                                       name         = name,
-                                       bands        = bands,
-                                       cube         = cube,
-                                       tile         = tile,
-                                       file_info    = stack.tb)
-
-        class(cube_t) <- c("raster_cube", class(cube_t))
-
-        return(cube_t)
-    })
-    cube <- dplyr::bind_rows(tile.lst)
-    return(cube)
-
 }
 #' @title Defines a data cube for a BDC STAC
-#' @name sits_cube.bdc_stac
+#' @name sits_cube.bdc_cube
 #'
 #' @references `rstac` package (https://github.com/brazil-data-cube/rstac)
 #'
@@ -368,26 +282,21 @@ sits_cube.bdc_cube <- function(type        = "BDC_TILE", ...,
 #'              STAC. The retrieval is based on tiles of a given cube.
 #'              For more on BDC, please see http://brazildatacube.dpi.inpe.br/
 #'
-#' @param type       a \code{character} with the type of cube.
-#' @param ...        other parameters to be passed for specific types.
-#' @param name       a \code{character} representing the output data cube.
-#' @param tiles      a \code{character} representing the names of the tiles.
-#' @param bands      a \code{character} with the bands names to be filtered.
-#' @param url        a \code{character} representing a URL for the BDC catalog.
-#' @param collection a \code{character} with the collection to be searched.
-#' @param roi        the "roi" parameter defines a region of interest. It can be
-#'  an \code{sfc} or \code{sf} object from sf package, a \code{character} with
-#'  a GeoJSON following the rules from RFC 7946, or a \code{vector}
-#'  bounding box \code{vector} with named XY values
-#'  ("xmin", "xmax", "ymin", "ymax").
-#' @param start_date a \code{character} corresponds to the initial date when the
-#'  cube will be created.
-#' @param end_date   a \code{character} corresponds to the final date when the
-#'  cube will be created.
+#' @param type       Type of cube.
+#' @param ...        Other parameters to be passed for specific types.
+#' @param name       Name of the output data cube (optional).
+#' @param url        URL for the BDC catalog (mandatory).
+#' @param collection BDC collection to be searched (mandatory).
+#' @param tiles      Tile names to be searched (optional).
+#' @param bands      Bands names to be filtered (optional).
+#' @param roi        Region of interest (optional), expressed either as
+#'  an \code{sfc} or \code{sf} object from sf package, a
+#'  a GeoJSON following the rules from RFC 7946, or a
+#'  bounding box with named XY values ("xmin", "xmax", "ymin", "ymax").
+#' @param start_date Initial date for the cube files (optional).
+#' @param end_date   Final date for the cube files (optional).
 #'
-#' @export
-#' @return           A \code{raster_cube} object with the information of the
-#'  created cube.
+#' @return           A data cube.
 #'
 #' @examples
 #' \dontrun{
@@ -395,71 +304,109 @@ sits_cube.bdc_cube <- function(type        = "BDC_TILE", ...,
 #' # by CRAN
 #'
 #' # create a raster cube file based on the information about the files
-#' cbers_stac_tile <- sits_cube(type        = "BDC_STAC",
-#'                              name        = "cbers_stac",
-#'                              bands       = c("NDVI", "EVI"),
-#'                              tiles       = "022024",
-#'                              url         = "http://brazildatacube.dpi.inpe.br/stac/",
-#'                              collection  = "CB4_64_16D_STK-1",
-#'                              start_date  = "2018-09-01",
-#'                              end_date    = "2019-08-28")
+#' cbers_tile <- sits_cube(
+#'     type = "BDC",
+#'     name = "cbers_022024",
+#'     bands = c("NDVI", "EVI"),
+#'     tiles = "022024",
+#'     collection = "CB4_64_16D_STK-1",
+#'     start_date = "2018-09-01",
+#'     end_date = "2019-08-28"
+#' )
 #' }
-sits_cube.bdc_stac <- function(type       = "BDC_STAC", ...,
-                               name       = NULL,
-                               tiles      = NULL,
-                               bands      = NULL,
-                               url        = "http://brazildatacube.dpi.inpe.br/stac/",
+#' @export
+sits_cube.bdc_cube <- function(type = "BDC", ...,
+                               name = NULL,
+                               url = NULL,
                                collection = NULL,
-                               roi        = NULL,
+                               tiles = NULL,
+                               bands = NULL,
+                               roi = NULL,
                                start_date = NULL,
-                               end_date   = NULL) {
+                               end_date = NULL) {
 
     # require package
     if (!requireNamespace("rstac", quietly = TRUE)) {
         stop("Please install package rstac from brazil-data-cube github",
-             call. = FALSE)
+            call. = FALSE
+        )
     }
+    if (purrr::is_null(url)) {
+          url <- .sits_config_bdc_stac()
+      }
 
     # test if BDC is accessible
-    if(!.sits_config_bdc_stac_access(url))
-            return(NULL)
+    if (!.sits_config_bdc_stac_access(url)) {
+          return(NULL)
+      }
 
-    # retrieving information from the collection
-    collection_info <- .sits_stac_collection(url        = url,
-                                             collection = collection,
-                                             bands      = bands, ...)
+    assertthat::assert_that(!purrr::is_null(url),
+        msg = paste(
+            "sits_cube: for STAC_CUBE url must be",
+            "provided"
+        )
+    )
 
-    # retrieving item information
-    items_info  <- .sits_stac_items(url        = url,
-                                    collection = collection,
-                                    tiles      = tiles,
-                                    roi        = roi,
-                                    start_date = start_date,
-                                    end_date   = end_date, ...)
+    assertthat::assert_that(!purrr::is_null(collection),
+        msg = paste(
+            "sits_cube: for STAC_CUBE collection",
+            "must be provided"
+        )
+    )
+
+    assertthat::assert_that(!(length(collection) > 1),
+        msg = paste(
+            "sits_cube: STAC_CUBE ",
+            "only one collection should be specified"
+        )
+    )
+
+    if (purrr::is_null(name)) {
+          name <- paste0("bdc_cube_", collection)
+      }
+
+    # retrieve information from the collection
+    collection_info <- .sits_stac_collection(
+        url = url,
+        collection = collection,
+        bands = bands, ...
+    )
+
+    # retrieve item information
+    items_info <- .sits_stac_items(
+        url = url,
+        collection = collection,
+        tiles = tiles,
+        roi = roi,
+        start_date = start_date,
+        end_date = end_date, ...
+    )
 
     # creating a group of items per tile
     items_group <- .sits_stac_group(items_info,
                                     fields = c("properties", "bdc:tiles"))
 
-    tile.lst <- purrr::map(items_group, function(items){
+
+    tiles <- purrr::map(items_group, function(items) {
 
         # retrieving the information from file_info
-        stack.tb <- .sits_stac_items_info(items, collection_info$bands)
+        stack <- .sits_stac_items_info(items, collection_info$bands)
 
         # adding the information per tile
-        cube_t   <- .sits_stac_tile_cube(url             = url,
-                                         name            = name,
-                                         collection_info = collection_info,
-                                         items_info      = items,
-                                         cube            = collection,
-                                         file_info       = stack.tb)
+        cube_t <- .sits_stac_tile_cube(
+            url = url,
+            name = name,
+            collection = collection_info,
+            items = items,
+            cube = collection,
+            file_info = stack
+        )
 
         class(cube_t) <- c("raster_cube", class(cube_t))
-
         return(cube_t)
     })
 
-    cube <- dplyr::bind_rows(tile.lst)
+    cube <- dplyr::bind_rows(tiles)
 
     return(cube)
 }
@@ -499,18 +446,20 @@ sits_cube.bdc_stac <- function(type       = "BDC_STAC", ...,
 #' # "AWS_ACCESS_KEY_ID"     = <your_access_key>,
 #' # "AWS_SECRET_ACCESS_KEY" = <your_secret_access_key>,
 #' # "AWS_DEFAULT_REGION"    = <your AWS region>,
-#' 3 "AWS_ENDPOINT" = "sentinel-s2-l2a.s3.amazonaws.com",
+#' # "AWS_ENDPOINT" = "sentinel-s2-l2a.s3.amazonaws.com",
 #' # "AWS_REQUEST_PAYER"     = "requester"
 #' # )
 #'
-#' s2_cube <- sits_cube(type       = "S2_L2A_AWS",
-#'                      name       = "T20LKP_2018_2019",
-#'                      satellite  = "SENTINEL-2",
-#'                      sensor     = "MSI",
-#'                      tiles      = "20LKP",
-#'                      s2_aws_resolution = "20m",
-#'                      start_date = as.Date("2018-07-18"),
-#'                      end_date   = as.Date("2018-07-23"))
+#' s2_cube <- sits_cube(
+#'     type = "S2_L2A_AWS",
+#'     name = "T20LKP_2018_2019",
+#'     satellite = "SENTINEL-2",
+#'     sensor = "MSI",
+#'     tiles = "20LKP",
+#'     s2_aws_resolution = "20m",
+#'     start_date = as.Date("2018-07-18"),
+#'     end_date = as.Date("2018-07-23")
+#' )
 #' }
 #'
 sits_cube.s2_l2a_aws_cube <- function(type = "S2_L2A_AWS", ...,
@@ -523,32 +472,48 @@ sits_cube.s2_l2a_aws_cube <- function(type = "S2_L2A_AWS", ...,
                                       access_key = NULL,
                                       secret_key = NULL,
                                       region = NULL) {
-    aws_access_ok <- .sits_sentinel_aws_check_access(access_key = access_key,
-                                                     secret_key = secret_key,
-                                                     region     = region)
-    if (!aws_access_ok)
-        return(NULL)
+    aws_access_ok <- .sits_sentinel_aws_check(
+        access_key = access_key,
+        secret_key = secret_key,
+        region = region
+    )
+    if (!aws_access_ok) {
+          return(NULL)
+      }
 
-    tile.lst <- purrr::map(tiles, function(tile) {
+    tiles_cube <- purrr::map(tiles, function(tile) {
+        stack <- .sits_sentinel_aws_info_tiles(
+            tile = tile,
+            bands = bands,
+            resolution = s2_aws_resolution,
+            start_date = start_date,
+            end_date = end_date
+        )
 
-        stack.tb  <- .sits_sentinel_aws_info_tiles(tile       = tile,
-                                                   bands      = bands,
-                                                   resolution = s2_aws_resolution,
-                                                   start_date = start_date,
-                                                   end_date   = end_date)
 
-
-        cube_t <- .sits_sentinel_aws_tile_cube(name      = name,
-                                               bands     = bands,
-                                               tile      = tile,
-                                               file_info = stack.tb)
+        cube_t <- .sits_sentinel_aws_tile_cube(
+            name = name,
+            bands = bands,
+            tile = tile,
+            file_info = stack
+        )
 
         class(cube_t) <- c("raster_cube", class(cube_t))
         return(cube_t)
-
     })
-    cube <- dplyr::bind_rows(tile.lst)
+    cube <- dplyr::bind_rows(tiles_cube)
+    return(cube)
 }
+
+# sits_cube <- function(
+#     type = "S2-L2A-AWS",
+#     satellite = "SENTINEL-2",
+#     sensor = "MSI",
+#     tiles = c('20LKP', '20LLP', .....),
+#     start_date = ...,
+#     end_date = ....,
+#     interval = "16d",
+#     agregg_fun = ....)
 
 #' @title Default methods for sits_cube
 #' @name sits_cube.default
@@ -557,8 +522,11 @@ sits_cube.s2_l2a_aws_cube <- function(type = "S2_L2A_AWS", ...,
 #' @param ...               Other parameters to be passed for specific types
 #'
 #' @export
-sits_cube.default <- function(type = NULL, ...){
-    stop("Could not create SITS cube - type unknown")
+sits_cube.default <- function(type = NULL, ...) {
+    stop(paste0(
+        "Error - cube type unkown \n",
+        "Valid cube types are ", .sits_config_cube_types()
+    ))
 }
 #' @title Creates the contents of a data cube
 #' @name sits_cube_copy
@@ -577,96 +545,117 @@ sits_cube.default <- function(type = NULL, ...){
 #' @examples
 #' data_dir <- system.file("extdata/raster/cbers", package = "sits")
 #'
-#' cbers_022024 <- sits_cube(type = "RASTER",
-#'                           name = "cbers_022024",
-#'                           satellite = "CBERS-4",
-#'                           sensor = "AWFI",
-#'                           resolution = "64m",
-#'                           data_dir = data_dir,
-#'                           parse_info = c("X1", "X2","band", "date"))
+#' cbers_022024 <- sits_cube(
+#'     type = "STACK",
+#'     name = "cbers_022024",
+#'     satellite = "CBERS-4",
+#'     sensor = "AWFI",
+#'     resolution = "64m",
+#'     data_dir = data_dir,
+#'     parse_info = c("X1", "X2", "band", "date")
+#' )
 #'
-#' cbers_022024_copy <- sits_cube_copy(cbers_022024, name = "cb_022024_cp",
-#'                                     dest_dir = tempdir(),
-#'                                     bands = "B13")
+#' cbers_022024_copy <- sits_cube_copy(cbers_022024,
+#'     name = "cb_022024_cp",
+#'     dest_dir = tempdir()
+#' )
 #' @export
 #'
-sits_cube_copy <- function (cube, name, dest_dir, bands = NULL, srcwin = NULL){
+sits_cube_copy <- function(cube, name, dest_dir, bands = NULL, srcwin = NULL) {
     # ensure input cube exists
     assertthat::assert_that(.sits_cube_check_validity(cube),
-                            msg = "invalid input cube")
+        msg = "invalid input cube"
+    )
     assertthat::assert_that(!purrr::is_null(sits_bands(cube)),
-                            msg = "cube has no bands")
+        msg = "cube has no bands"
+    )
     # does the output directory exist?
     assertthat::is.dir(dest_dir)
 
     # check if subwindow has been defined
     if (!purrr::is_null(srcwin)) {
         assertthat::assert_that(all(srcwin >= 0),
-                                msg = "srcwin values should be positive")
+            msg = "srcwin values should be positive"
+        )
         names(srcwin) <- c("xoff", "yoff", "xsize", "ysize")
         assertthat::assert_that((srcwin["xoff"] + srcwin["xsize"]) < cube$ncols,
-                                msg = "srcwin x values bigger than cube size")
+            msg = "srcwin x values bigger than cube size"
+        )
         assertthat::assert_that((srcwin["yoff"] + srcwin["ysize"]) < cube$nrows,
-                                msg = "srcwin y values bigger than cube size")
+            msg = "srcwin y values bigger than cube size"
+        )
     }
 
 
+    # the label cube may contain several classified images
+    cube_rows <- slider::slide(cube, function(row) {
+        # get information on the file
+        file_info <- row$file_info[[1]]
 
-    # if bands are not stated, use all those in the cube
-    if (purrr::is_null(bands))
-        bands <- sits_bands(cube)
-    else
-        assertthat::assert_that(all(bands %in% sits_bands(cube)),
-                                msg = "input bands not available in the cube")
+        # if bands are not stated, use all those in the cube
+        if (purrr::is_null(bands)) {
+              bands <- sits_bands(row)
+          } else {
+              assertthat::assert_that(all(bands %in% sits_bands(row)),
+                  msg = "input bands not available in the cube"
+              )
+          }
 
-    # get information on the file
-    file_info <- cube$file_info[[1]]
-    file_info_out <- dplyr::filter(file_info, band %in% bands)
-    # get the file extension
-    file_ext <- tools::file_ext(file_info_out$path[1])
+        # get all the bands which are requested
+        file_info_out <- dplyr::filter(file_info, band %in% bands)
+        # get the file extension
+        file_ext <- tools::file_ext(file_info_out$path[1])
 
-    if (file_ext == "jp2")
-        gdal_of <- "JP2OpenJPEG"
-    else
-        gdal_of <- "GTiff"
+        if (file_ext == "jp2") {
+              gdal_of <- "JP2OpenJPEG"
+          } else {
+              gdal_of <- "GTiff"
+          }
 
-    # save files with date information
-    paths.lst <- slider::slide(file_info_out, function(row) {
-                                 dest_file <- paste0(dest_dir,"/",
-                                                     cube$satellite,"_",
-                                                     cube$sensor, "_",
-                                                     row$band, "_",
-                                                     row$date, ".",
-                                                     file_ext)
-                                 if (!purrr::is_null(srcwin))
-                                     gdalUtils::gdal_translate(
-                                         src_dataset  = row$path,
-                                         dst_dataset = dest_file,
-                                         of = gdal_of,
-                                         srcwin = srcwin)
-                                 else
-                                     gdalUtils::gdal_translate(
-                                         src_dataset  = row$path,
-                                         dst_dataset = dest_file,
-                                         of = gdal_of)
-                                 return(dest_file)
-                             })
-    # update file info
-    new_paths <- unlist(paths.lst)
+        # save files with date information
+        paths <- slider::slide(file_info_out, function(file_row) {
+            dest_file <- paste0(
+                dest_dir, "/",
+                row$satellite, "_",
+                row$sensor, "_",
+                file_row$band, "_",
+                file_row$date, ".",
+                file_ext
+            )
+            if (!purrr::is_null(srcwin)) {
+                  gdalUtils::gdal_translate(
+                      src_dataset = file_row$path,
+                      dst_dataset = dest_file,
+                      of = gdal_of,
+                      srcwin = srcwin
+                  )
+              } else {
+                  gdalUtils::gdal_translate(
+                      src_dataset = file_row$path,
+                      dst_dataset = dest_file,
+                      of = gdal_of
+                  )
+              }
+            return(dest_file)
+        })
+        # update file info
+        new_paths <- unlist(paths)
 
-    # update cube
-    if (!purrr::is_null(srcwin)){
-        cube$nrows <- srcwin["ysize"]
-        cube$ncols <- srcwin["xsize"]
-        cube$xmin  <- cube$xmin + srcwin["xoff"]*cube$xres
-        cube$ymin  <- cube$ymin + srcwin["yoff"]*cube$yres
-        cube$xmax  <- cube$xmin + (srcwin["xsize"] - 1)*cube$xres
-        cube$ymax  <- cube$ymin + (srcwin["ysize"] - 1)*cube$yres
-    }
-    file_info_out$path <- new_paths
-    cube$file_info[[1]]<- file_info_out
-    cube$name  <- name
-    cube$bands[[1]] <- bands
+        # update cube
+        if (!purrr::is_null(srcwin)) {
+            row$nrows <- srcwin["ysize"]
+            row$ncols <- srcwin["xsize"]
+            row$xmin <- row$xmin + srcwin["xoff"] * row$xres
+            row$ymin <- row$ymin + srcwin["yoff"] * row$yres
+            row$xmax <- row$xmin + (srcwin["xsize"] - 1) * row$xres
+            row$ymax <- row$ymin + (srcwin["ysize"] - 1) * row$yres
+        }
+        file_info_out$path <- new_paths
+        row$file_info[[1]] <- file_info_out
+        row$name <- name
+        row$bands[[1]] <- bands
+        return(row)
+    })
+    cube <- do.call(rbind, cube_rows)
     return(cube)
 }
-

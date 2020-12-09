@@ -50,8 +50,11 @@ Apply a 1D generic function to a time series
 # Get a time series
 data(point_ndvi)
 # apply a normalization function
-point2 <- sits_apply (point_ndvi,
-                      fun = function (x) { (x - min (x))/(max(x) - min(x))})
+point2 <- sits_apply(point_ndvi,
+    fun = function(x) {
+        (x - min(x)) / (max(x) - min(x))
+    }
+)
 }
 \author{
 Rolf Simoes, \email{rolf.simoes@inpe.br}

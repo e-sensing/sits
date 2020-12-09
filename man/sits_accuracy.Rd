@@ -22,7 +22,7 @@ produce more reliable accuracy estimates at 95% confidence level.
 
 This function performs an accuracy assessment of the classified, including
 Overall Accuracy, User's Accuracy, Producer's Accuracy
-and error matrix (confusion matrix) according to [1-2].
+and error matrix (confusion matrix) according to [1-3].
 }
 \examples{
 \dontrun{
@@ -30,37 +30,46 @@ and error matrix (confusion matrix) according to [1-2].
 samples_mt_ndvi <- sits_select(samples_mt_4bands, bands = c("NDVI"))
 # filter the samples for three classes (to simplify the example)
 samples_mt_ndvi <- dplyr::filter(samples_mt_ndvi, label \%in\%
-                                   c("Forest", "Pasture", "Soy_Corn"))
+  c("Forest", "Pasture", "Soy_Corn"))
 # build an XGB model
-xgb_model <- sits_train(samples_mt_ndvi,
-                        sits_xgboost(nrounds = 10, verbose = FALSE))
+xgb_model <- sits_train(
+  samples_mt_ndvi,
+  sits_xgboost(nrounds = 10, verbose = FALSE)
+)
 
 # files that make up the data cube
 ndvi_file <- c(system.file("extdata/raster/mod13q1/sinop-ndvi-2014.tif",
-               package = "sits"))
+  package = "sits"
+))
 # create the data cube
-sinop_2014 <- sits_cube(name = "sinop-2014",
-                        timeline = timeline_2013_2014,
-                        satellite = "TERRA",
-                        sensor = "MODIS",
-                        bands = c("NDVI"),
-                        files = c(ndvi_file))
+sinop_2014 <- sits_cube(
+    type = "BRICK",
+    name = "sinop-2014",
+    timeline = timeline_2013_2014,
+    satellite = "TERRA",
+    sensor = "MODIS",
+    bands = c("NDVI"),
+    files = c(ndvi_file)
+)
 
 # classify the data cube with xgb model
 sinop_2014_probs <- sits_classify(sinop_2014,
-                                  xgb_model,
-                                  output_dir = tempdir(),
-                                  memsize = 4,
-                                  multicores = 1)
+  xgb_model,
+  output_dir = tempdir(),
+  memsize = 4,
+  multicores = 1
+)
 # label the classification
 sinop_2014_label <- sits_label_classification(sinop_2014_probs,
-                    output_dir = tempdir(),
-                    smoothing = "bayesian")
+  output_dir = tempdir(),
+  smoothing = "bayesian"
+)
 # get ground truth points
 ground_truth <- system.file("extdata/samples/samples_sinop_crop.csv",
-                             package = "sits")
+  package = "sits"
+)
 # calculate accuracy according to Olofsson's method
-as <- suppressWarnings(sits_accuracy(sinop_2014_label, ground_truth))
+accuracy <- suppressWarnings(sits_accuracy(sinop_2014_label, ground_truth))
 }
 }
 \references{
@@ -72,8 +81,10 @@ Remote Sensing of Environment, 129, pp.122-131.
 [2] Olofsson, P., Foody G.M., Herold M., Stehman, S.V.,
 Woodcock, C.E., Wulder, M.A. (2014)
 Good practices for estimating area and assessing accuracy of land change.
-Remote Sensing of
-Environment, 148, pp. 42-57.
+Remote Sensing of Environment, 148, pp. 42-57.
+
+[3] FAO, Map Accuracy Assessment and Area Estimation: A Practical Guide.
+National forest monitoring assessment working paper No.46/E, 2016.
 }
 \author{
 Rolf Simoes, \email{rolf.simoes@inpe.br}

@@ -29,7 +29,8 @@ sits_filter <- function(data, filter = sits_whittaker()) {
 
     # is the train method a function?
     assertthat::assert_that(class(filter) == "function",
-        msg = "sits_filter: filter is not a valid function")
+        msg = "sits_filter: filter is not a valid function"
+    )
 
     # compute the training method by the given data
     result <- filter(data)
@@ -53,13 +54,13 @@ sits_filter <- function(data, filter = sits_whittaker()) {
 #' # Apply the envelope filter
 #' point_env <- sits_envelope(point_ndvi)
 #' # Merge the filtered with the raw data
-#' point2 <- sits_merge (point_ndvi, point_env)
+#' point2 <- sits_merge(point_ndvi, point_env)
 #' # Plot the result
 #' plot(point2)
 #' @export
 sits_envelope <- function(data = NULL,
                           operations = "UULL",
-                          bands_suffix = "env"){
+                          bands_suffix = "env") {
     # verifies if dtwclust package is installed
     if (!requireNamespace("dtwclust", quietly = TRUE)) {
         stop("dtwclust needed for this function to work.
@@ -70,32 +71,38 @@ sits_envelope <- function(data = NULL,
 
     filter_fun <- function(data) {
         # definitions of operations
-        def_op <- list("U" = "upper", "L" = "lower",
-                       "u" = "upper", "l" = "lower")
+        def_op <- list(
+            "U" = "upper", "L" = "lower",
+            "u" = "upper", "l" = "lower"
+        )
 
         # split envelope operations
         operations <- strsplit(operations, "")[[1]]
 
         # verify if operations are either "U" or "L"
         assertthat::assert_that(all(operations %in% names(def_op)),
-            msg = "sits_envelope: invalid operation sequence")
+            msg = "sits_envelope: invalid operation sequence"
+        )
 
         # compute envelopes
         result <- sits_apply(data,
-                    fun = function(band) {
-                        for (op in operations) {
-                            upper_lower.lst <- dtwclust::compute_envelope(band,
-                                                            window.size = 1,
-                                                            error.check = FALSE)
-                            band <- upper_lower.lst[[def_op[[op]]]]
-                        }
-                        return(band)
-                    },
-                    fun_index = function(band) band,
-                                bands_suffix = bands_suffix)
+            fun = function(band) {
+                for (op in operations) {
+                    upper_lower <- dtwclust::compute_envelope(band,
+                        window.size = 1,
+                        error.check = FALSE
+                    )
+                    band <- upper_lower[[def_op[[op]]]]
+                }
+                return(band)
+            },
+            fun_index = function(band) band,
+            bands_suffix = bands_suffix
+        )
         return(result)
     }
     result <- .sits_factory_function(data, filter_fun)
+    return(result)
 }
 
 #' @title Interpolation function of the time series of a sits_tibble
@@ -129,17 +136,22 @@ sits_interp <- function(data = NULL, fun = stats::approx,
     filter_fun <- function(data) {
         # compute linear approximation
         result <- sits_apply(data,
-                                fun = function(band) {
-                                    if (class(n) == "function")
-                                        return(fun(band, n = n(band), ...)$y)
-                                    return(fun(band, n = n, ...)$y)
-                                },
-                                fun_index = function(band)
-                                    as.Date(fun(band, n = n, ...)$y,
-                                                origin = "1970-01-01"))
+            fun = function(band) {
+                if (class(n) == "function") {
+                      return(fun(band, n = n(band), ...)$y)
+                  }
+                return(fun(band, n = n, ...)$y)
+            },
+            fun_index = function(band) {
+                  as.Date(fun(band, n = n, ...)$y,
+                      origin = "1970-01-01"
+                  )
+              }
+        )
         return(result)
     }
     result <- .sits_factory_function(data, filter_fun)
+    return(result)
 }
 
 #' @title Kalman filter
@@ -156,21 +168,26 @@ sits_interp <- function(data = NULL, fun = stats::approx,
 #' # Select the NDVI band of a point in Mato Grosso
 #' point_kf <- sits_kalman(point_ndvi)
 #' # Merge the filtered with the raw data
-#' point2.tb <- sits_merge (point_ndvi, point_kf)
+#' point2.tb <- sits_merge(point_ndvi, point_kf)
 #' # Plot the result
 #' plot(point2.tb)
 #' }
 #' @export
-sits_kalman <- function(data = NULL, bands_suffix = "kf"){
+sits_kalman <- function(data = NULL, bands_suffix = "kf") {
     # backward compatibility
     data <- .sits_tibble_rename(data)
 
     filter_fun <- function(data) {
         result <- sits_apply(data,
-                                fun = function(band) .sits_kalman_filter(band,
-                                                            NULL, NULL, NULL),
-                                fun_index = function(band) band,
-                                bands_suffix = bands_suffix)
+            fun = function(band) {
+                .sits_kalman_filter(
+                    band,
+                    NULL, NULL, NULL
+                )
+            },
+            fun_index = function(band) band,
+            bands_suffix = bands_suffix
+        )
         return(result)
     }
     result <- .sits_factory_function(data, filter_fun)
@@ -189,7 +206,7 @@ sits_kalman <- function(data = NULL, bands_suffix = "kf"){
 .sits_kalman_filter <- function(measurement,
                                 error_in_measurement = NULL,
                                 initial_estimate = NULL,
-                                initial_error_in_estimate = NULL){
+                                initial_error_in_estimate = NULL) {
     kg <- vector(mode = "logical", length = length(measurement) + 1)
     est <- vector(mode = "logical", length = length(measurement) + 1)
     e_est <- vector(mode = "logical", length = length(measurement) + 1)
@@ -199,35 +216,36 @@ sits_kalman <- function(data = NULL, bands_suffix = "kf"){
         initial_estimate <- base::mean(measurement, na.rm = TRUE)
     }
     if (purrr::is_null(initial_error_in_estimate) ||
-               is.na(initial_error_in_estimate))
-    {
+        is.na(initial_error_in_estimate)) {
         initial_error_in_estimate <- base::abs(stats::sd(measurement,
-                                                         na.rm = TRUE))
+            na.rm = TRUE
+        ))
     }
     if (purrr::is_null(error_in_measurement)) {
         error_in_measurement <- rep(stats::sd(measurement, na.rm = TRUE),
-                                    length.out = base::length(measurement))
+            length.out = base::length(measurement)
+        )
     }
     #
     # Compute the Kalman gain
     # @param e_est    error in estimation
     # @param e_mea    error in measurement
     # @return         the Kalman gain
-    .KG <- function(e_est, e_mea){
-        return(e_est/(e_est + e_mea))
+    .kalman_gain <- function(e_est, e_mea) {
+        return(e_est / (e_est + e_mea))
     }
     # Compute the KF current estimate
     # @param kg        Kalman gain
     # @param est_t1    previous estimate
     # @param mea       measurement
     # @return          current estimate
-    .EST_t <- function(kg, est_t1, mea){
+    .estimate_t <- function(kg, est_t1, mea) {
         est_t1 + kg * (mea - est_t1)
     }
     # Compute the KF error in the estimation
     # @param kg        Kalman gain
     # @param e_est_t1  previous error in estimation
-    .E_EST_t <- function(kg, e_est_t1){
+    .estimated_error_t <- function(kg, e_est_t1) {
         (1 - kg) * e_est_t1
     }
     # add initial results
@@ -236,13 +254,13 @@ sits_kalman <- function(data = NULL, bands_suffix = "kf"){
     kg[1] <- NA
     # compute
     for (i in 2:(length(measurement) + 1)) {
-        kg[i] <- .KG(e_est[i - 1], error_in_measurement[i - 1])
+        kg[i] <- .kalman_gain(e_est[i - 1], error_in_measurement[i - 1])
         m <- measurement[i - 1]
         if (is.na(m)) {
             m <- est[i - 1] # measurement is missing, use estimation instead
         }
-        est[i] <- .EST_t(kg[i], est[i - 1], m)
-        e_est[i] <- .E_EST_t(kg[i], e_est[i - 1])
+        est[i] <- .estimate_t(kg[i], est[i - 1], m)
+        e_est[i] <- .estimated_error_t(kg[i], e_est[i - 1])
     }
     # format the results: remove the row before the first measurement (t-1)
     return(
@@ -269,7 +287,7 @@ sits_kalman <- function(data = NULL, bands_suffix = "kf"){
 #' # find out how many time instances are there
 #' n_times <- NROW(sits_time_series(point_ndvi))
 #' # interpolate three times more points
-#' point_int.tb <- sits_linear_interp(point_ndvi, n = 3*n_times)
+#' point_int.tb <- sits_linear_interp(point_ndvi, n = 3 * n_times)
 #' # plot the result
 #' plot(point_int.tb)
 #' @export
@@ -277,16 +295,20 @@ sits_linear_interp <- function(data = NULL, n = 23) {
     # backward compatibility
     data <- .sits_tibble_rename(data)
 
-    filter_fun <- function(data){
+    filter_fun <- function(data) {
         # compute linear approximation
         result <- sits_apply(data,
-                 fun = function(band) stats::approx(band, n = n, ties = mean)$y,
-                 fun_index = function(band)
-                           as.Date(stats::approx(band, n = n, ties = mean)$y,
-                                                        origin = "1970-01-01"))
+            fun = function(band) stats::approx(band, n = n, ties = mean)$y,
+            fun_index = function(band) {
+                  as.Date(stats::approx(band, n = n, ties = mean)$y,
+                      origin = "1970-01-01"
+                  )
+              }
+        )
         return(result)
     }
     result <- .sits_factory_function(data, filter_fun)
+    return(result)
 }
 
 #' @title Remove missing values
@@ -298,7 +320,7 @@ sits_linear_interp <- function(data = NULL, n = 23) {
 #' @param miss_value  Number indicating missing values in a time series.
 #' @return            Time series data and metadata (missing values removed).
 #' @export
-sits_missing_values <-  function(data, miss_value) {
+sits_missing_values <- function(data, miss_value) {
     # backward compatibility
     data <- .sits_tibble_rename(data)
 
@@ -306,8 +328,9 @@ sits_missing_values <-  function(data, miss_value) {
     .sits_test_tibble(data)
 
     # remove missing values by NAs
-    result <- sits_apply(data, fun = function(band)
-                              return(ifelse(band == miss_value, NA, band)))
+    result <- sits_apply(data, fun = function(band) {
+          return(ifelse(band == miss_value, NA, band))
+      })
     return(result)
 }
 
@@ -337,14 +360,14 @@ sits_missing_values <-  function(data, miss_value) {
 #' # Apply the filter
 #' point_ar <- sits_ndvi_arima(point_ndvi)
 #' # Merge the filtered with the raw data
-#' point2 <- sits_merge (point_ndvi, point_ar)
+#' point2 <- sits_merge(point_ndvi, point_ar)
 #' # Plot the result
 #' plot(point2)
 #' @export
 sits_ndvi_arima <- function(data = NULL, cutoff = -0.25,
                             p = 0, d = 0, q = 3,
                             bands_suffix = "ar", apply_whit = TRUE,
-                            lambda_whit = 1.0){
+                            lambda_whit = 1.0) {
     # backward compatibility
     data <- .sits_tibble_rename(data)
 
@@ -352,7 +375,8 @@ sits_ndvi_arima <- function(data = NULL, cutoff = -0.25,
         # find the bands of the data
         bands <- sits_bands(data)
         assertthat::assert_that("NDVI" %in% bands,
-                       msg = "data does not contain the NDVI band")
+            msg = "data does not contain the NDVI band"
+        )
 
         # predictive model for missing values
         pred_arima <- function(x, p, d, q) {
@@ -360,15 +384,15 @@ sits_ndvi_arima <- function(data = NULL, cutoff = -0.25,
             for (i in idx) {
                 prev3 <- x[(i - q):(i - 1)]
                 assertthat::assert_that(!anyNA(prev3),
-                    msg = "sits_ndvi_arima: please reduce filter order")
-                arima.ml <- stats::arima(prev3, c(p, d , q))
-                x[i] <- as.vector(stats::predict(arima.ml, n.ahead = 1)$pred)
+                    msg = "sits_ndvi_arima: please reduce filter order"
+                )
+                arima_model <- stats::arima(prev3, c(p, d, q))
+                x[i] <- as.vector(stats::predict(arima_model, n.ahead = 1)$pred)
             }
             return(x)
         }
         # prepare result sits tibble
         result <- data
-        env.tb <- sits_envelope(data, operations = "U")
 
         # select the chosen bands for the time series
         result$time_series <- data$time_series %>%
@@ -376,25 +400,28 @@ sits_ndvi_arima <- function(data = NULL, cutoff = -0.25,
                 ndvi <- dplyr::pull(ts[, "NDVI"])
                 idx <- which(c(0, diff(ndvi)) < cutoff)
                 idx <- idx[!idx %in% 1:q]
-                ts[,bands][idx,] <- NA
+                ts[, bands][idx, ] <- NA
                 # interpolate missing values
                 bands %>%
-                    purrr::map(function(b)
-                        ts[,b] <<- pred_arima(dplyr::pull(ts[,b]),
-                                              p = p, d = d, q = q))
+                    purrr::map(function(b) {
+                          ts[, b] <<- pred_arima(dplyr::pull(ts[, b]),
+                              p = p, d = d, q = q
+                          )
+                      })
                 return(ts)
             })
         # rename the output bands
         new_bands <- paste0(bands, ".", bands_suffix)
         result <- sits_rename(result, new_bands)
 
-        if (apply_whit)
-            result <- sits_whittaker(result, lambda = lambda_whit)
+        if (apply_whit) {
+              result <- sits_whittaker(result, lambda = lambda_whit)
+          }
 
         return(result)
-
     }
     result <- .sits_factory_function(data, filter_fun)
+    return(result)
 }
 
 #' @title Smooth the time series using Savitsky-Golay filter
@@ -420,7 +447,7 @@ sits_ndvi_arima <- function(data = NULL, cutoff = -0.25,
 #' #' # Retrieve a time series with values of NDVI
 #' data(point_ndvi)
 #' # Filter the point using the Savitsky Golay smoother
-#' point_sg <- sits_filter(point_ndvi, sits_sgolay (order = 3, length  = 5))
+#' point_sg <- sits_filter(point_ndvi, sits_sgolay(order = 3, length = 5))
 #' # Plot the two points to see the smoothing effect
 #' plot(sits_merge(point_ndvi, point_sg))
 #' @export
@@ -434,27 +461,33 @@ sits_sgolay <- function(data = NULL, order = 3,
     # backward compatibility
     data <- .sits_tibble_rename(data)
 
-    result <- NULL
     filter_fun <- function(data) {
         if ("tbl" %in% class(data)) {
             result <- sits_apply(data,
-                fun = function(band)
-                      signal::sgolayfilt(band, p = order,
-                                         n = length, ts = scale),
+                fun = function(band) {
+                      signal::sgolayfilt(band,
+                          p = order,
+                          n = length, ts = scale
+                      )
+                  },
                 fun_index = function(band) band,
-                       bands_suffix = bands_suffix)
+                bands_suffix = bands_suffix
+            )
         }
         if ("matrix" %in% class(data)) {
             result <- apply(data, 2, function(row) {
-                                     signal::sgolayfilt(row,
-                                                        p = order,
-                                                        n = length,
-                                                        ts = scale)})
+                signal::sgolayfilt(row,
+                    p = order,
+                    n = length,
+                    ts = scale
+                )
+            })
         }
         return(result)
     }
 
     result <- .sits_factory_function(data, filter_fun)
+    return(result)
 }
 
 #' @title Filter the time series using Whittaker smoother
@@ -497,21 +530,23 @@ sits_whittaker <- function(data = NULL, lambda = 1.0, bands_suffix = "wf") {
         result <- NULL
         if ("tbl" %in% class(data)) {
             result <- sits_apply(data,
-                                fun = function(band){
-                                    ptw::whit2(band, lambda = lambda)
-                                },
-                                fun_index = function(band) band,
-                                bands_suffix = bands_suffix)
+                fun = function(band) {
+                    ptw::whit2(band, lambda = lambda)
+                },
+                fun_index = function(band) band,
+                bands_suffix = bands_suffix
+            )
         }
         if ("matrix" %in% class(data)) {
-            result <- apply(data, 2,
-                            function(row) {ptw::whit2(row, lambda = lambda)})
+            result <- apply(
+                data, 2,
+                function(row) {
+                    ptw::whit2(row, lambda = lambda)
+                }
+            )
         }
         return(result)
     }
     result <- .sits_factory_function(data, filter_fun)
+    return(result)
 }
-
-
-
-

@@ -4,14 +4,12 @@
 \alias{.sits_config_stac_values}
 \title{Get the metadata values from STAC.}
 \usage{
-.sits_config_stac_values(collection_info, bands)
+.sits_config_stac_values(collection, bands)
 }
 \arguments{
-\item{collection_info}{a \code{STACCollection} object returned by rstac.
-package.}
+\item{bands}{a \code{character} bands names to be filtered.}
 
-\item{bands}{a \code{character} with the bands names to be
-filtered.}
+\item{collection_info}{a \code{STACCollection} object returned by rstac.}
 }
 \value{
 a \code{list} with the information of scale factors,

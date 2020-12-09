@@ -64,18 +64,20 @@ Defines a cube to retrieve data from the Sentinel-2 L2A data
 # "AWS_ACCESS_KEY_ID"     = <your_access_key>,
 # "AWS_SECRET_ACCESS_KEY" = <your_secret_access_key>,
 # "AWS_DEFAULT_REGION"    = <your AWS region>,
-3 "AWS_ENDPOINT" = "sentinel-s2-l2a.s3.amazonaws.com",
+# "AWS_ENDPOINT" = "sentinel-s2-l2a.s3.amazonaws.com",
 # "AWS_REQUEST_PAYER"     = "requester"
 # )
 
-s2_cube <- sits_cube(type       = "S2_L2A_AWS",
-                     name       = "T20LKP_2018_2019",
-                     satellite  = "SENTINEL-2",
-                     sensor     = "MSI",
-                     tiles      = "20LKP",
-                     s2_aws_resolution = "20m",
-                     start_date = as.Date("2018-07-18"),
-                     end_date   = as.Date("2018-07-23"))
+s2_cube <- sits_cube(
+    type = "S2_L2A_AWS",
+    name = "T20LKP_2018_2019",
+    satellite = "SENTINEL-2",
+    sensor = "MSI",
+    tiles = "20LKP",
+    s2_aws_resolution = "20m",
+    start_date = as.Date("2018-07-18"),
+    end_date = as.Date("2018-07-23")
+)
 }
 
 }

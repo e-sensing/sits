@@ -23,7 +23,7 @@ A simple Kalman filter implementation.
 # Select the NDVI band of a point in Mato Grosso
 point_kf <- sits_kalman(point_ndvi)
 # Merge the filtered with the raw data
-point2.tb <- sits_merge (point_ndvi, point_kf)
+point2.tb <- sits_merge(point_ndvi, point_kf)
 # Plot the result
 plot(point2.tb)
 }

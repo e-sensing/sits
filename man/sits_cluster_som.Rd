@@ -10,10 +10,10 @@ sits_cluster_som(
   grid_ydim = 10,
   alpha = 1,
   distance = "euclidean",
-  iterations = 50,
   rlen = 100,
-  conditonal_threshold = 0.6,
-  posterior_threshold = 0.6
+  prior_threshold = 0.6,
+  posterior_threshold = 0.6,
+  som_radius = 2
 )
 }
 \arguments{
@@ -28,20 +28,22 @@ which decreases according to number of iterations.}
 
 \item{distance}{The similarity measure (distance).}
 
-\item{iterations}{How many times to run the SOM cluster.}
-
 \item{rlen}{How many times dataset will be presented to the SOM.}
 
-\item{conditonal_threshold}{Threshold of conditional probability
+\item{prior_threshold}{Threshold of priot probability
 (frequency of samples assigned to a same SOM neuron)}
 
 \item{posterior_threshold}{Threshold of posterior probability
 (influenced by the SOM neighborhood)}
+
+\item{som_radius}{Radius of neighborhood on the SOM map
+(controls the size of the neighbourhood)}
 }
 \value{
-A sits tibble with a new subset of samples and
-                     a new column presenting the probability that a sample
-                     belongs to a class described in column label.
+A sits tibble with an evaluation column indicating if
+                     each samples is clean, should be analyzed or
+                     should be removed, and with a new column indicating
+                     the posterior probability of the sample
 }
 \description{
 This function uses self-organized maps to find clusters in
@@ -51,14 +53,13 @@ Calls \code{\link[sits]{sits_som_map}} to generate the som map and
 The parameters "grid_xdim", "grid_ydim", "rlen", "distance", "alpha", and
 "iterations" are used by \code{\link[sits]{sits_som_map}} to control
 how the Kohonen map is generated.
-The parameters "conditonal_threshold" and "posterior_threshold" control
+The parameters "prior_threshold" and "posterior_threshold" control
 how the good quality samples are selected, based on the Kohonen map.
 }
 \examples{
 \dontrun{
-# Get a new subset of samples evaluated by SOM clustering methods
-samples_mt <- sits_select(samples_mt_4bands, bands = c("NDVI"))
-new_samples.tb <- sits_cluster_som(samples_mt)
+# Evaluate the quality of the samples using SOM clustering
+new_samples <- sits_cluster_som(samples_mt_4bands)
 }
 }
 \references{

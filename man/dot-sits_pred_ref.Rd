@@ -4,10 +4,10 @@
 \alias{.sits_pred_ref}
 \title{Obtains the predicted value of a reference set}
 \usage{
-.sits_pred_ref(class.tb)
+.sits_pred_ref(class)
 }
 \arguments{
-\item{class.tb}{Set of classified samples whose labels are known.}
+\item{class}{Tibble with classified samples whose labels are known.}
 }
 \value{
 A tibble with predicted and reference values.

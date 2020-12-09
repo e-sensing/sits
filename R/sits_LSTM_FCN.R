@@ -53,43 +53,45 @@
 #' # Retrieve the set of samples for the Mato Grosso (provided by EMBRAPA)
 #'
 #' # Build a machine learning model based on deep learning
-#' lstm_cnn_model <- sits_train (samples_mt_4bands, sits_LSTM_FCN())
+#' lstm_cnn_model <- sits_train(samples_mt_4bands, sits_LSTM_FCN())
 #'
 #' # plot the model
 #' plot(lstm_cnn_model)
 #'
 #' # get a point and classify the point with the ml_model
-#' point.tb <- sits_select(point_mt_6bands,
-#'             bands = c("NDVI", "EVI", "NIR", "MIR"))
-#' class.tb <- sits_classify(point.tb, lstm_cnn_model)
-#' plot(class.tb, bands = c("NDVI", "EVI"))
+#' point <- sits_select(point_mt_6bands,
+#'     bands = c("NDVI", "EVI", "NIR", "MIR")
+#' )
+#' class <- sits_classify(point, lstm_cnn_model)
+#' plot(class, bands = c("NDVI", "EVI"))
 #' }
 #' @export
-sits_LSTM_FCN <- function(samples           =  NULL,
-                          lstm_units        = 8,
-                          lstm_dropout      = 0.80,
-                          cnn_layers        = c(128, 256, 128),
-                          cnn_kernels       = c(8, 5, 3),
-                          activation        = 'relu',
-                          optimizer         = keras::optimizer_adam(lr = 0.001),
-                          epochs            = 150,
-                          batch_size        = 128,
-                          validation_split  = 0.2,
-                          verbose           = 1) {
+sits_LSTM_FCN <- function(samples = NULL,
+                          lstm_units = 8,
+                          lstm_dropout = 0.80,
+                          cnn_layers = c(128, 256, 128),
+                          cnn_kernels = c(8, 5, 3),
+                          activation = "relu",
+                          optimizer = keras::optimizer_adam(lr = 0.001),
+                          epochs = 150,
+                          batch_size = 128,
+                          validation_split = 0.2,
+                          verbose = 1) {
     # backward compatibility
     samples <- .sits_tibble_rename(samples)
 
     # function that returns keras model based on a sits sample data.table
-    result_fun <- function(data){
-
+    result_fun <- function(data) {
         valid_activations <- c("relu", "elu", "selu", "sigmoid")
         # is the input data consistent?
 
         assertthat::assert_that(length(cnn_layers) == length(cnn_kernels),
-                msg = "sits_LSTM_FCN: 1D CNN layers must match 1D kernels")
+            msg = "sits_LSTM_FCN: 1D CNN layers must match 1D kernels"
+        )
 
         assertthat::assert_that(all(activation %in% valid_activations),
-                msg = "sits_LSTM_FCN: invalid CNN activation method")
+            msg = "sits_LSTM_FCN: invalid CNN activation method"
+        )
 
         # get the labels of the data
         labels <- sits_labels(data)$label
@@ -100,52 +102,60 @@ sits_LSTM_FCN <- function(samples           =  NULL,
 
         # number of bands and number of samples
         n_bands <- length(sits_bands(data))
-        n_times <- nrow(sits_time_series(data[1,]))
+        n_times <- nrow(sits_time_series(data[1, ]))
 
         # create the train and test datasets for keras
-        keras.data <- .sits_keras_prepare_data(data = data,
-                                        validation_split = validation_split,
-                                        int_labels = int_labels,
-                                        n_bands = n_bands,
-                                        n_times = n_times)
-        train.x <- keras.data$train.x
-        train.y <- keras.data$train.y
-        test.x  <- keras.data$test.x
-        test.y  <- keras.data$test.y
+        keras_data <- .sits_keras_prepare_data(
+            data = data,
+            validation_split = validation_split,
+            int_labels = int_labels,
+            n_bands = n_bands,
+            n_times = n_times
+        )
+        train_x <- keras_data$train_x
+        train_y <- keras_data$train_y
+        test_x <- keras_data$test_x
+        test_y <- keras_data$test_y
 
         # build the model step by step
         # create the input_tensor for 1D convolution
-        input_tensor  <- keras::layer_input(shape = c(n_times, n_bands))
+        input_tensor <- keras::layer_input(shape = c(n_times, n_bands))
         output_tensor <- input_tensor
 
         # build the LSTM node
         lstm_layer <- keras::layer_permute(input_tensor,
-                                           dims = c(2,1))
+            dims = c(2, 1)
+        )
         lstm_layer <- keras::layer_lstm(input_tensor,
-                                        units = lstm_units,
-                                        dropout = lstm_dropout)
+            units = lstm_units,
+            dropout = lstm_dropout
+        )
 
         # build the 1D nodes
         n_layers <- length(cnn_layers)
-        for (i in 1:n_layers) {
-            # Add a 1D CNN layer
-            output_tensor <- keras::layer_conv_1d(output_tensor,
-                                                  filters     = cnn_layers[i],
-                                                  kernel_size = cnn_kernels[i])
-
-            # batch normalisation
-            output_tensor <- keras::layer_batch_normalization(output_tensor)
-            # Layer activation
-            output_tensor <- keras::layer_activation(output_tensor,
-                                                     activation = activation)
-        }
+        seq_len(n_layers) %>%
+            purrr::map(function(i){
+                # Add a 1D CNN layer
+                ot <- keras::layer_conv_1d(output_tensor,
+                                           filters = cnn_layers[i],
+                                           kernel_size = cnn_kernels[i]
+                )
+                # batch normalisation
+                ot <- keras::layer_batch_normalization(ot)
+                # Layer activation
+                ot <- keras::layer_activation(ot, activation = activation)
+                # return the output tensor to the global environment
+                output_tensor <<- ot
+            })
 
         # Apply average pooling
         output_tensor <- keras::layer_global_average_pooling_1d(output_tensor)
 
         # Concatenate LSTM and CNN
-        output_tensor <- keras::layer_concatenate(list(lstm_layer,
-                                                       output_tensor))
+        output_tensor <- keras::layer_concatenate(list(
+            lstm_layer,
+            output_tensor
+        ))
 
         # reshape a tensor into a 2D shape
         output_tensor <- keras::layer_flatten(output_tensor)
@@ -154,32 +164,34 @@ sits_LSTM_FCN <- function(samples           =  NULL,
         model_loss <- "categorical_crossentropy"
         if (n_labels == 2) {
             output_tensor <- keras::layer_dense(output_tensor,
-                                                units = 1,
-                                                activation = "sigmoid")
+                units = 1,
+                activation = "sigmoid"
+            )
             model_loss <- "binary_crossentropy"
         }
         else {
             output_tensor <- keras::layer_dense(output_tensor,
-                                                units = n_labels,
-                                                activation = "softmax")
+                units = n_labels,
+                activation = "softmax"
+            )
             # keras requires categorical data to be put in a matrix
-            train.y <- keras::to_categorical(train.y, n_labels)
-            test.y  <- keras::to_categorical(test.y, n_labels)
+            train_y <- keras::to_categorical(train_y, n_labels)
+            test_y <- keras::to_categorical(test_y, n_labels)
         }
         # create the model
-        model.keras <- keras::keras_model(input_tensor, output_tensor)
+        model_keras <- keras::keras_model(input_tensor, output_tensor)
         # compile the model
-        model.keras %>% keras::compile(
+        model_keras %>% keras::compile(
             loss = model_loss,
             optimizer = optimizer,
             metrics = "accuracy"
         )
 
         # fit the model
-        history <- model.keras %>% keras::fit(
-            train.x, train.y,
+        history <- model_keras %>% keras::fit(
+            train_x, train_y,
             epochs = epochs, batch_size = batch_size,
-            validation_data = list(test.x, test.y),
+            validation_data = list(test_x, test_y),
             verbose = verbose, view_metrics = "auto"
         )
 
@@ -187,26 +199,31 @@ sits_LSTM_FCN <- function(samples           =  NULL,
         graphics::plot(history)
 
         # construct model predict closure function and returns
-        model_predict <- function(values_DT){
+        model_predict <- function(values) {
             # transform input (data.table) into a 3D tensor
             # (remove first two columns)
-            n_samples <- nrow(values_DT)
-            n_times   <- nrow(sits_time_series(data[1,]))
-            n_bands   <- length(sits_bands(data))
-            values.x <- array(data = as.matrix(values_DT[,3:ncol(values_DT)]),
-                              dim = c(n_samples, n_times, n_bands))
+            n_samples <- nrow(values)
+            n_times <- nrow(sits_time_series(data[1, ]))
+            n_bands <- length(sits_bands(data))
+            values_x <- array(
+                data = as.matrix(values[, 3:ncol(values)]),
+                dim = c(n_samples, n_times, n_bands)
+            )
             # retrieve the prediction probabilities
-            predict_DT <- data.table::as.data.table(stats::predict(model.keras,
-                                                                   values.x))
+            prediction <- data.table::as.data.table(stats::predict(
+                model_keras,
+                values_x
+            ))
             # If binary classification,
             # adjust the prediction values to match two-class classification
-            if (n_labels == 2)
-                predict_DT <- .sits_keras_binary_class(predict_DT)
+            if (n_labels == 2) {
+                  prediction <- .sits_keras_binary_class(prediction)
+              }
 
             # adjust the names of the columns of the probs
-            colnames(predict_DT) <- labels
+            colnames(prediction) <- labels
 
-            return(predict_DT)
+            return(prediction)
         }
         class(model_predict) <- c("keras_model", class(model_predict))
         return(model_predict)

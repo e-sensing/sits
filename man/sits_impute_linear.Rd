@@ -7,7 +7,7 @@
 sits_impute_linear(data = NULL)
 }
 \arguments{
-\item{data}{A time series vector}
+\item{data}{A time series vector or matrix}
 }
 \value{
 A set of filtered time series

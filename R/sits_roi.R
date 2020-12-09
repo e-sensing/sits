@@ -4,25 +4,30 @@
 #' @param  cube            input data cube.
 #' @param  roi             spatial region of interest
 #' @return                 vector with information on the subimage
-.sits_roi_bbox <- function(roi, cube){
+.sits_roi_bbox <- function(roi, cube) {
     if (!requireNamespace("plyr", quietly = TRUE)) {
         stop("plyr required for this function to work.
              Please install it.", call. = FALSE)
     }
     # help the user
-    if ("long_min" %in% names(roi))
-        roi <- plyr::rename(roi, replace = c("long_min" = "lon_min"))
-    if ("long_max" %in% names(roi))
-        roi <- plyr::rename(roi, replace = c("long_max" = "lon_max"))
+    if ("long_min" %in% names(roi)) {
+          roi <- plyr::rename(roi, replace = c("long_min" = "lon_min"))
+      }
+    if ("long_max" %in% names(roi)) {
+          roi <- plyr::rename(roi, replace = c("long_max" = "lon_max"))
+      }
 
     if (!("sf" %in% class(roi))) {
-        if (all(c("xmin", "xmax","ymin", "ymax") %in% names(roi)))
-           class(roi) <- c("bbox", class(roi))
-        else if (all(c("lon_min", "lon_max","lat_min", "lat_max") %in% names(roi)))
-           class(roi) <- c("bbox_ll", class(roi))
+        if (all(c("xmin", "xmax", "ymin", "ymax") %in% names(roi))) {
+              class(roi) <- c("bbox", class(roi))
+          } else if (all(
+            c("lon_min", "lon_max", "lat_min", "lat_max") %in% names(roi))) {
+              class(roi) <- c("bbox_ll", class(roi))
+          }
     }
     assertthat::assert_that(class(roi)[1] %in% c("sf", "bbox", "bbox_ll"),
-                            msg = "invalid definition of ROI")
+        msg = "invalid definition of ROI"
+    )
 
     UseMethod(".sits_roi_bbox", roi)
 }
@@ -32,9 +37,10 @@
 #' @param  cube            input data cube.
 #' @param  roi             spatial region of interest
 #' @return                 vector with information on the subimage
-.sits_roi_bbox.sf <- function(roi, cube){
+.sits_roi_bbox.sf <- function(roi, cube) {
     bbox_roi <- sf::st_bbox(suppressWarnings(sf::st_transform(roi,
-                                                crs = cube[1,]$crs)))
+        crs = cube[1, ]$crs
+    )))
     return(bbox_roi)
 }
 #' @title Find the bounding box for a spatial ROI defined as a bounding box
@@ -43,7 +49,7 @@
 #' @param  cube            input data cube.
 #' @param  roi             spatial region of interest
 #' @return                 vector with information on the subimage
-.sits_roi_bbox.bbox <- function(roi, cube){
+.sits_roi_bbox.bbox <- function(roi, cube) {
     return(roi)
 }
 #' @title Find the bounding box for a spatial ROI defined as a lat/lon box
@@ -52,7 +58,7 @@
 #' @param  cube            input data cube.
 #' @param  roi             spatial region of interest
 #' @return                 vector with information on the subimage
-.sits_roi_bbox.bbox_ll <- function(roi, cube){
+.sits_roi_bbox.bbox_ll <- function(roi, cube) {
     # region of interest
     df <- data.frame(
         lon = c(roi["lon_min"], roi["lon_max"], roi["lon_max"], roi["lon_min"]),
@@ -65,6 +71,7 @@
         sf::st_cast("POLYGON")
 
     bbox <- sf::st_bbox(suppressWarnings(sf::st_transform(sf_region,
-                                                          crs = cube[1,]$crs)))
+        crs = cube[1, ]$crs
+    )))
     return(bbox)
 }

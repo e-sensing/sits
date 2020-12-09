@@ -30,12 +30,17 @@
 #' # Get a time series
 #' data(point_ndvi)
 #' # apply a normalization function
-#' point2 <- sits_apply (point_ndvi,
-#'                       fun = function (x) { (x - min (x))/(max(x) - min(x))})
+#' point2 <- sits_apply(point_ndvi,
+#'     fun = function(x) {
+#'         (x - min(x)) / (max(x) - min(x))
+#'     }
+#' )
 #' @export
 sits_apply <- function(data,
                        fun,
-                       fun_index = function(index){ return(index) },
+                       fun_index = function(index) {
+                           return(index)
+                       },
                        bands_suffix = "",
                        multicores = 1) {
 
@@ -47,28 +52,33 @@ sits_apply <- function(data,
 
     # computes fun and fun_index for all time series
     data$time_series <- data$time_series %>%
-        purrr::map(function(ts.tb) {
-            ts_computed.lst <- dplyr::select(ts.tb, -Index) %>%
+        purrr::map(function(ts) {
+            ts_computed_lst <- dplyr::select(ts, -Index) %>%
                 purrr::map(fun)
 
             # append bands names' suffixes
-            if (nchar(bands_suffix) != 0)
-                names(ts_computed.lst) <- paste0(names(ts_computed.lst), ".",
-                                                 bands_suffix)
+            if (nchar(bands_suffix) != 0) {
+                  names(ts_computed_lst) <- paste0(
+                      names(ts_computed_lst), ".",
+                      bands_suffix
+                  )
+              }
 
             # unlist if there are more than one result from `fun`
-            if (is.recursive(ts_computed.lst[[1]]))
-                ts_computed.lst <- unlist(ts_computed.lst, recursive = FALSE)
+            if (is.recursive(ts_computed_lst[[1]])) {
+                  ts_computed_lst <- unlist(ts_computed_lst, recursive = FALSE)
+              }
 
             # convert to tibble
-            ts_computed.tb <- tibble::as_tibble(ts_computed.lst)
+            ts_computed <- tibble::as_tibble(ts_computed_lst)
 
             # compute Index column
-            ts_computed.tb <- dplyr::mutate(ts_computed.tb,
-                                            Index = fun_index(ts.tb$Index))
+            ts_computed <- dplyr::mutate(ts_computed,
+                Index = fun_index(ts$Index)
+            )
 
             # reorganizes time series tibble
-            return(dplyr::select(ts_computed.tb, Index, dplyr::everything()))
+            return(dplyr::select(ts_computed, Index, dplyr::everything()))
         })
     return(data)
 }
@@ -89,23 +99,24 @@ sits_apply <- function(data,
 #' # Retrieve a time series with one band
 #' data(point_ndvi)
 #' # Rename the band
-#' ndvi1.tb <- sits_rename (point_ndvi, names = c("VEG_INDEX"))
+#' ndvi1.tb <- sits_rename(point_ndvi, names = c("VEG_INDEX"))
 #' # print the names of the new band
 #' sits_bands(ndvi1.tb)
 #' @export
-sits_rename <- function(data, names){
+sits_rename <- function(data, names) {
     # backward compatibility
     data <- .sits_tibble_rename(data)
     # verify if the number of bands informed is the same
     # as the actual number of bands in input data
     assertthat::assert_that(length(names) == length(sits_bands(data)),
-     msg = "sits_bands: input bands and informed bands have different sizes.")
+        msg = "sits_bands: input bands and informed bands have different sizes."
+    )
     # bands in SITS are uppercase
     names <- toupper(names)
 
     # rename and return
     data$time_series <- data$time_series %>%
-        purrr::map(function(ts){
+        purrr::map(function(ts) {
             names(ts) <- c("Index", names)
             return(ts)
         })
@@ -138,7 +149,7 @@ sits_rename <- function(data, names){
 #' # Print the labels of the resulting tibble
 #' sits_labels(data)
 #' @export
-sits_sample <- function(data, n = NULL, frac = NULL){
+sits_sample <- function(data, n = NULL, frac = NULL) {
 
     # backward compatibility
     data <- .sits_tibble_rename(data)
@@ -148,26 +159,33 @@ sits_sample <- function(data, n = NULL, frac = NULL){
 
     # verify if either n or frac is informed
     assertthat::assert_that(!(purrr::is_null(n) & purrr::is_null(frac)),
-                msg = "sits_sample: neither n or frac parameters informed")
+        msg = "sits_sample: neither n or frac parameters informed"
+    )
 
     # prepare sampling function
-    sampling_fun <- if (!purrr::is_null(n))
-        function(tb) {
-            if (nrow(tb) >= n) return(dplyr::sample_n(tb, size = n,
-                                                      replace = FALSE))
-            else return(tb)
-        }
-    else if (frac <= 1)
-        function(tb) tb %>% dplyr::sample_frac(size = frac, replace = FALSE)
-    else
-        function(tb) tb %>% dplyr::sample_frac(size = frac, replace = TRUE)
+    sampling_fun <- if (!purrr::is_null(n)) {
+          function(tb) {
+              if (nrow(tb) >= n) {
+                  return(dplyr::sample_n(tb,
+                      size = n,
+                      replace = FALSE
+                  ))
+              } else {
+                  return(tb)
+              }
+          }
+      } else if (frac <= 1) {
+          function(tb) tb %>% dplyr::sample_frac(size = frac, replace = FALSE)
+      } else {
+          function(tb) tb %>% dplyr::sample_frac(size = frac, replace = TRUE)
+      }
 
     # compute sampling
     result <- .sits_tibble()
     labels <- sits_labels(data)$label
     labels %>%
-        purrr::map(function(l){
-            tb_l <- dplyr::filter (data, label == l)
+        purrr::map(function(l) {
+            tb_l <- dplyr::filter(data, label == l)
             tb_s <- sampling_fun(tb_l)
             result <<- dplyr::bind_rows(result, tb_s)
         })
@@ -231,27 +249,29 @@ sits_time_series <- function(data) {
 #' # Retrieve a set of time series with 2 classes
 #' data(cerrado_2classes)
 #' # retrieve the values split by bands
-#' sits_values(cerrado_2classes[1:2,], format = "bands_dates_cases")
+#' sits_values(cerrado_2classes[1:2, ], format = "bands_dates_cases")
 #' @export
-sits_values <- function(data, bands = NULL, format = "cases_dates_bands"){
+sits_values <- function(data, bands = NULL, format = "cases_dates_bands") {
     assertthat::assert_that(format == "cases_dates_bands" ||
-                            format == "bands_cases_dates" ||
-                            format == "bands_dates_cases",
-       msg = "sits_values: valid format parameter are
-             'cases_dates_bands', 'bands_cases_dates', or 'bands_dates_cases'")
+        format == "bands_cases_dates" ||
+        format == "bands_dates_cases",
+    msg = "sits_values: valid format parameter are
+             'cases_dates_bands', 'bands_cases_dates', or 'bands_dates_cases'"
+    )
 
     # backward compatibility
     data <- .sits_tibble_rename(data)
 
-    if (purrr::is_null(bands))
-        bands <- sits_bands(data)
+    if (purrr::is_null(bands)) {
+          bands <- sits_bands(data)
+      }
 
     # equivalent to former sits_values_rows()
     # used in sits_cluster input data
     # list elements: bands, matrix's rows: cases, matrix's cols: dates
     if (format == "cases_dates_bands") {
         # populates result
-        values.lst <- data$time_series %>%
+        values <- data$time_series %>%
             purrr::map(function(ts) {
                 data.matrix(dplyr::select(ts, dplyr::one_of(bands)))
             })
@@ -260,21 +280,22 @@ sits_values <- function(data, bands = NULL, format = "cases_dates_bands"){
         # used in sits_kohonen input
         # list elements: bands, matrix's rows: cases, matrix's cols: dates
     } else if (format == "bands_cases_dates") {
-        values.lst <- bands %>% purrr::map(function(band) {
+        values <- bands %>% purrr::map(function(band) {
             data$time_series %>%
                 purrr::map(function(ts) {
                     dplyr::select(ts, dplyr::one_of(band))
                 }) %>%
                 data.frame() %>%
                 tibble::as_tibble() %>%
-                as.matrix() %>% t()
+                as.matrix() %>%
+                t()
         })
 
-        names(values.lst) <- bands
+        names(values) <- bands
         # equivalent to former sits_values_cols()
         # list elements: bands, matrix's rows: dates, matrix's cols: cases
     } else if (format == "bands_dates_cases") {
-        values.lst <- bands %>% purrr::map(function(band) {
+        values <- bands %>% purrr::map(function(band) {
             data$time_series %>%
                 purrr::map(function(ts) {
                     dplyr::select(ts, dplyr::one_of(band))
@@ -284,10 +305,8 @@ sits_values <- function(data, bands = NULL, format = "cases_dates_bands"){
                 as.matrix()
         })
 
-        names(values.lst) <- bands
+        names(values) <- bands
     }
 
-    return(values.lst)
+    return(values)
 }
-
-

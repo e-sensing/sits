@@ -39,12 +39,14 @@ sits_labels.sits <- function(data) {
     data <- .sits_tibble_rename(data)
 
     # get frequency table
-    data.vec <- table(data$label)
+    data_labels <- table(data$label)
 
     # compose tibble containing labels, count and relative frequency columns
-    result  <- tibble::as_tibble(list(label = names(data.vec),
-                                    count = as.integer(data.vec),
-                                    prop  = as.numeric(prop.table(data.vec))))
+    result <- tibble::as_tibble(list(
+        label = names(data_labels),
+        count = as.integer(data_labels),
+        prop = as.numeric(prop.table(data_labels))
+    ))
     return(result)
 }
 
@@ -56,9 +58,44 @@ sits_labels.sits <- function(data) {
 #' @param data     A data cube
 #' @return         A list of labels
 #'
+#' @examples
+#' # Classify a raster file with 23 instances for one year
+#' ndvi_file <- c(system.file("extdata/raster/mod13q1/sinop-ndvi-2014.tif",
+#' package = "sits"))
+#'
+#' # create a data cube based on the information about the files
+#' sinop_2014 <- sits_cube(
+#'     type = "BRICK",
+#'     name = "sinop-2014",
+#'     timeline = timeline_2013_2014,
+#'     satellite = "TERRA",
+#'     sensor = "MODIS",
+#'     bands = c("ndvi"),
+#'     files = c(ndvi_file)
+#' )
+#'
+#' # select band "NDVI"
+#' samples_ndvi <- sits_select(samples_mt_4bands, bands = "NDVI")
+#'
+#' # select a random forest model
+#' rfor_model <- sits_train(samples_ndvi,
+#'               ml_method = sits_rfor(num_trees = 300))
+#'
+#' # classify the raster image
+#' sinop_probs <- sits_classify(sinop_2014,
+#'     ml_model = rfor_model,
+#'     output_dir = tempdir(),
+#'     memsize = 4, multicores = 2
+#' )
+#'
+#' # label the classified image
+#' sinop_label <- sits_label_classification(sinop_probs, output_dir = tempdir())
+#'
+#' # return the labels
+#' sits_labels(sinop_label)
 #' @export
 sits_labels.cube <- function(data) {
-    return(data[1,]$labels[[1]])
+    return(data[1, ]$labels[[1]])
 }
 
 #'
@@ -100,7 +137,7 @@ sits_labels.patterns <- function(data) {
 #' returns a new sits tibble whose labels are changed.
 #'
 #' @param  data           A sits tibble.
-#' @param  conv.lst       A named list used to convert labels to a new value.
+#' @param  conv_lst       A named list used to convert labels to a new value.
 #'                        Actual labels must be the names of the list elements.
 #'                        An empty list produces no difference.
 #' @return                A new sits tibble with modified labels.
@@ -112,38 +149,37 @@ sits_labels.patterns <- function(data) {
 #' sits_labels(samples_mt_4bands)
 #' # Create a conversion list.
 #' # Three classes will be converted to "Cropland".
-#' conv.lst = list(Soy_Corn = "Cropland",
-#'                 Soy_Cotton  = "Cropland",
-#'                 Soy_Fallow  = "Cropland",
-#'                 Soy_Millet  = "Cropland",
-#'                 Soy_Sunflower  = "Cropland",
-#'                 Fallow_Cotton  = "Cropland")
+#' conv_lst <- list(
+#'     Soy_Corn = "Cropland",
+#'     Soy_Cotton = "Cropland",
+#'     Soy_Fallow = "Cropland",
+#'     Soy_Millet = "Cropland",
+#'     Soy_Sunflower = "Cropland",
+#'     Fallow_Cotton = "Cropland"
+#' )
 #' # relabel the data
-#' new_data  <- sits_relabel(samples_mt_4bands, conv.lst)
+#' new_data <- sits_relabel(samples_mt_4bands, conv_lst)
 #' # show the new labels
 #' sits_labels(new_data)
 #' @export
-sits_relabel <- function(data, conv.lst = list()){
+sits_relabel <- function(data, conv_lst) {
     # backward compatibility
     data <- .sits_tibble_rename(data)
 
     # does the input data exist?
     .sits_test_tibble(data)
 
-    assertthat::assert_that(!purrr::is_null(conv.lst),
-        msg = "sits_relabel: conversion list not provided")
-
     # prepare result tibble
     result <- data
 
-    if (length(conv.lst) > 0) {
-        # get those labels not in conv.lst names
-        conv.lst <- .sits_labels_list(data, conv.lst)
+    if (length(conv_lst) > 0) {
+        # get those labels not in conversion lst names
+        conv_lst <- .sits_labels_list(data, conv_lst)
 
         # convert labels and return
-        result$label <- as.character(conv.lst[result$label])
+        result$label <- as.character(conv_lst[result$label])
     }
-    return (result)
+    return(result)
 }
 
 #' @title Sits labels processing function
@@ -156,7 +192,7 @@ sits_relabel <- function(data, conv.lst = list()){
 #'              to a given function that receives each label as an argument.
 #'
 #' @param  data        A sits tibble (or a pred_ref tibble)
-#' @param  list.lst    Any named list whose names are unique labels
+#' @param  label_lst    Any named list whose names are unique labels
 #'                     from data input. Non-informed labels will be completed
 #'                     according to fun_label function.
 #' @param  fun_label   A function that will be executed for each label
@@ -165,7 +201,7 @@ sits_relabel <- function(data, conv.lst = list()){
 #' @return             A list whose non informed values
 #'                     are filled by fun_label for each unique label in data.
 #'
-.sits_labels_list <- function(data, list.lst = list(),
+.sits_labels_list <- function(data, label_lst,
                               fun_label = function(lb) lb) {
 
     # get labels for sits tibble
@@ -178,30 +214,31 @@ sits_relabel <- function(data, conv.lst = list()){
         u_labels <- base::unique(data$label)
     }
     else {
-        if ("pred_ref" %in% class(data))
-            # get labels for pred_ref tibble
-            u_labels <- base::unique(data$reference)
-        else
-            stop("sits_labels_list - wrong class of input")
+        if ("pred_ref" %in% class(data)) {
+              # get labels for pred_ref tibble
+              u_labels <- base::unique(data$reference)
+          } else {
+              stop("sits_labels_list - wrong class of input")
+          }
     }
 
     # prepare result
-    result.lst <- list.lst
+    result <- label_lst
 
     # get non listed labels in list.lst
-    non_listed_values <- !(u_labels %in% names(list.lst))
+    non_listed_values <- !(u_labels %in% names(label_lst))
 
     # generate entries to those labels not listed in list.lst
     if (any(non_listed_values)) {
         # call fun_label for each label as an argument
-        identity.lst <- u_labels[non_listed_values] %>%
+        identity_lst <- u_labels[non_listed_values] %>%
             purrr::map(fun_label)
 
         # name resulting list
-        names(identity.lst) <- u_labels[non_listed_values]
+        names(identity_lst) <- u_labels[non_listed_values]
 
-        # concat with list.lst
-        result.lst <- c(result.lst, identity.lst)
+        # concat with results
+        result <- c(result, identity_lst)
     }
-    return(result.lst)
+    return(result)
 }

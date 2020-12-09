@@ -43,11 +43,13 @@ sits_train <- function(data, ml_method = sits_svm()) {
 
     # is the input data a valid sits tibble?
     assertthat::assert_that("label" %in% names(data),
-        msg = "sits_train: input data does not contain a valid sits tibble")
+        msg = "sits_train: input data does not contain a valid sits tibble"
+    )
 
     # is the train method a function?
     assertthat::assert_that(class(ml_method) == "function",
-        msg = "sits_train: ml_method is not a valid function")
+        msg = "sits_train: ml_method is not a valid function"
+    )
 
     # compute the training method by the given data
     result <- ml_method(data)
@@ -79,12 +81,12 @@ sits_train <- function(data, ml_method = sits_svm()) {
 #'
 #' @examples
 #' \dontrun{
-
+#'
 #' # Retrieve the set of samples for Mato Grosso region (provided by EMBRAPA)
 #' samples_2bands <- sits_select(samples_mt_4bands, bands = c("NDVI", "EVI"))
 #'
 #' # Build a machine learning model based on deep learning
-#' ml_model <- sits_train (samples_2bands, sits_lda())
+#' ml_model <- sits_train(samples_2bands, sits_lda())
 #'
 #' # get a point and classify the point with the ml_model
 #' point.tb <- sits_select(point_mt_6bands, bands = c("NDVI", "EVI"))
@@ -101,35 +103,39 @@ sits_lda <- function(data = NULL, formula = sits_formula_logref(), ...) {
              Please install it.", call. = FALSE)
     }
     # function that returns MASS::lda model based on a sits sample tibble
-    result_fun <- function(data){
+    result_fun <- function(data) {
 
         # data normalization
         stats <- .sits_normalization_param(data)
-        train_data_DT <- .sits_distances(.sits_normalize_data(data, stats))
+        train_data <- .sits_distances(.sits_normalize_data(data, stats))
 
         # is the input data the result of a TWDTW matching function?
-        assertthat::assert_that("reference" %in% names(train_data_DT),
-            msg = "sits_lda: input data does not contain distance")
+        assertthat::assert_that("reference" %in% names(train_data),
+            msg = "sits_lda: input data does not contain distance"
+        )
 
         # if parameter formula is a function
         # Call it passing as argument the input data sample.
         # The function must return a valid formula.
-        if (class(formula) == "function")
-            formula <- formula(train_data_DT)
+        if (class(formula) == "function") {
+              formula <- formula(train_data)
+          }
 
         # call MASS::lda method and return the trained lda model
-        result_lda <- MASS::lda(formula = formula,
-                                data = train_data_DT, ...,
-                                na.action = stats::na.fail)
+        result_lda <- MASS::lda(
+            formula = formula,
+            data = train_data, ...,
+            na.action = stats::na.fail
+        )
 
         # construct model predict closure function and returns
-        model_predict <- function(values_DT) {
+        model_predict <- function(values) {
             # retrieve the prediction (values and probs)
-            preds <- stats::predict(result_lda, newdata = values_DT)
+            preds <- stats::predict(result_lda, newdata = values)
             # return probabilities
-            prediction_DT <- data.table::as.data.table(preds$posterior)
+            prediction <- data.table::as.data.table(preds$posterior)
 
-            return(prediction_DT)
+            return(prediction)
         }
         class(model_predict) <- c("lda_model", class(model_predict))
         return(model_predict)
@@ -180,31 +186,34 @@ sits_qda <- function(data = NULL, formula = sits_formula_logref(), ...) {
              Please install it.", call. = FALSE)
     }
     # function that returns MASS::qda model based on a sits sample tibble
-    result_fun <- function(data){
+    result_fun <- function(data) {
 
         # data normalization
         stats <- .sits_normalization_param(data)
-        train_data_DT <- .sits_distances(.sits_normalize_data(data, stats))
+        train_data <- .sits_distances(.sits_normalize_data(data, stats))
 
         # If parameter formula is a function
         # Call it passing as argument the input data sample.
         # The function must return a valid formula.
-        if (class(formula) == "function")
-            formula <- formula(train_data_DT)
+        if (class(formula) == "function") {
+              formula <- formula(train_data)
+          }
 
         # call MASS::qda method and return the trained lda model
-        result_qda <- MASS::qda(formula = formula,
-                                data = train_data_DT, ...,
-                                na.action = stats::na.fail)
+        result_qda <- MASS::qda(
+            formula = formula,
+            data = train_data, ...,
+            na.action = stats::na.fail
+        )
 
         # construct model predict closure function and returns
-        model_predict <- function(values_DT){
+        model_predict <- function(values) {
             # retrieve the prediction (values and probs)
-            preds <- stats::predict(result_qda, newdata = values_DT)
+            preds <- stats::predict(result_qda, newdata = values)
             # return probabilities
-            prediction_DT <- data.table::as.data.table(preds$posterior)
+            prediction <- data.table::as.data.table(preds$posterior)
 
-            return(prediction_DT)
+            return(prediction)
         }
         class(model_predict) <- c("qda_model", class(model_predict))
         return(model_predict)
@@ -242,7 +251,7 @@ sits_qda <- function(data = NULL, formula = sits_formula_logref(), ...) {
 #' samples_2bands <- sits_select(samples_mt_4bands, bands = c("NDVI", "EVI"))
 #'
 #' # Build a machine learning model based on deep learning
-#' ml_model <- sits_train (samples_2bands, sits_mlr())
+#' ml_model <- sits_train(samples_2bands, sits_mlr())
 #'
 #' # get a point and classify the point with the ml_model
 #' point.tb <- sits_select(point_mt_6bands, bands = c("NDVI", "EVI"))
@@ -264,29 +273,33 @@ sits_mlr <- function(data = NULL, formula = sits_formula_linear(),
     result_fun <- function(data) {
         # data normalization
         stats <- .sits_normalization_param(data)
-        train_data_DT <- .sits_distances(.sits_normalize_data(data, stats))
+        train_data <- .sits_distances(.sits_normalize_data(data, stats))
 
         # if parameter formula is a function
         # call it passing as argument the input data sample.
         # The function must return a valid formula.
-        if (class(formula) == "function")
-            formula <- formula(train_data_DT)
+        if (class(formula) == "function") {
+              formula <- formula(train_data)
+          }
 
         # call nnet::multinom method and return the trained multinom model
-        result_mlr <- nnet::multinom(formula = formula,
-                                     data = train_data_DT,
-                                     maxit = maxit,
-                                     MaxNWts = n_weights,
-                                     trace = FALSE, ...,
-                                     na.action = stats::na.fail)
+        result_mlr <- nnet::multinom(
+            formula = formula,
+            data = train_data,
+            maxit = maxit,
+            MaxNWts = n_weights,
+            trace = FALSE, ...,
+            na.action = stats::na.fail
+        )
 
         # construct model predict closure function and returns
-        model_predict <- function(values_DT){
+        model_predict <- function(values) {
             # return probabilities
-            prediction_DT <- data.table::as.data.table(
-                stats::predict(result_mlr, newdata = values_DT, type = "probs"))
+            prediction <- data.table::as.data.table(
+                stats::predict(result_mlr, newdata = values, type = "probs")
+            )
 
-            return(prediction_DT)
+            return(prediction)
         }
         class(model_predict) <- c("mlr_model", class(model_predict))
         return(model_predict)
@@ -322,7 +335,7 @@ sits_mlr <- function(data = NULL, formula = sits_formula_linear(),
 #' samples_2bands <- sits_select(samples_mt_4bands, bands = c("NDVI", "EVI"))
 #'
 #' # Build a machine learning model based on deep learning
-#' ml_model <- sits_train (samples_2bands, sits_ranger(num_trees = 300))
+#' ml_model <- sits_train(samples_2bands, sits_ranger(num_trees = 300))
 #'
 #' # get a point and classify the point with the ml_model
 #' point.tb <- sits_select(point_mt_6bands, bands = c("NDVI", "EVI"))
@@ -341,18 +354,19 @@ sits_ranger <- function(data = NULL,
              Please install it.", call. = FALSE)
     }
     # function that returns a randomForest model based on a sits sample tibble
-    result_fun <- function(data){
-
+    result_fun <- function(data) {
         valid_importance <- c("none", "impurity", "permutation")
 
         # is the input data consistent?
         assertthat::assert_that(importance %in% valid_importance,
-                        msg = "sits_ranger: invalid variable importance value")
+            msg = "sits_ranger: invalid variable importance value"
+        )
 
         # get the labels of the data
         labels <- sits_labels(data)$label
         assertthat::assert_that(length(labels) > 0,
-                             msg = "sits_ranger: invalid data - bad labels")
+            msg = "sits_ranger: invalid data - bad labels"
+        )
         n_labels <- length(labels)
 
         # create a named vector with integers match the class labels
@@ -360,26 +374,30 @@ sits_ranger <- function(data = NULL,
         names(int_labels) <- labels
 
         # calculate the distances
-        train_data_DT <- .sits_distances(data)
+        train_data <- .sits_distances(data)
 
         # obtain a valid formula for training
-        formula <- sits_formula_linear()(train_data_DT)
+        formula <- sits_formula_linear()(train_data)
 
         # call `ranger::ranger` method and return the trained model
-        result_ranger <- ranger::ranger(formula = formula,
-                                 data = train_data_DT[,2:ncol(train_data_DT)],
-                                 probability = TRUE, importance = importance,
-                                 num.trees = num_trees, min.node.size = 1, ...)
+        result_ranger <- ranger::ranger(
+            formula = formula,
+            data = train_data[, 2:ncol(train_data)],
+            probability = TRUE, importance = importance,
+            num.trees = num_trees, min.node.size = 1, ...
+        )
 
         # construct model predict closure function and return it
-        model_predict <- function(values_DT){
+        model_predict <- function(values) {
             # retrieve the prediction results
-            preds  <-  stats::predict(result_ranger, data = values_DT,
-                                      type = "response")
+            preds <- stats::predict(result_ranger,
+                data = values,
+                type = "response"
+            )
             # return the prediction values and their probabilities
-            prediction_DT <- data.table::as.data.table(preds$predictions)
+            prediction <- data.table::as.data.table(preds$predictions)
 
-            return(prediction_DT)
+            return(prediction)
         }
         class(model_predict) <- c("ranger_model", class(model_predict))
         return(model_predict)
@@ -391,7 +409,7 @@ sits_ranger <- function(data = NULL,
 #' @title Train a SITS classifiction model using random forest algorithm
 #' @name sits_rfor
 #'
-#' @author Alexandre Xavier Ywata de Carvalho, \email{alexandre.ywata@@ipea.gov.br}
+#' @author Alexandre Ywata de Carvalho, \email{alexandre.ywata@@ipea.gov.br}
 #' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'
@@ -418,7 +436,7 @@ sits_ranger <- function(data = NULL,
 #' # get a point with a 16 year time series
 #' data(point_ndvi)
 #' # classify the point
-#' class.tb <- sits_classify (point_ndvi, rfor_model)
+#' class.tb <- sits_classify(point_ndvi, rfor_model)
 #' @export
 sits_rfor <- function(data = NULL, num_trees = 2000, nodesize = 1, ...) {
 
@@ -428,25 +446,27 @@ sits_rfor <- function(data = NULL, num_trees = 2000, nodesize = 1, ...) {
              Please install it.", call. = FALSE)
     }
     # function that returns `randomForest::randomForest` model
-    result_fun <- function(data){
-
-        train_data_DT <- .sits_distances(data)
+    result_fun <- function(data) {
+        train_data <- .sits_distances(data)
 
         # call `randomForest::randomForest` method and return the trained model
-        reference <- train_data_DT[, reference]
-        result_rfor <- randomForest::randomForest(x = train_data_DT[,3:ncol(train_data_DT)],
-                                                  y = as.factor(reference),
-                                                  data = NULL,
-                                                  ntree = num_trees,
-                                                  nodesize = 1,
-                                                  norm.votes = FALSE, ...,
-                                                  na.action = stats::na.fail)
+        reference <- train_data[, reference]
+        result_rfor <- randomForest::randomForest(
+            x = train_data[, 3:ncol(train_data)],
+            y = as.factor(reference),
+            data = NULL,
+            ntree = num_trees,
+            nodesize = 1,
+            norm.votes = FALSE, ...,
+            na.action = stats::na.fail
+        )
 
         # construct model predict enclosure function and returns
-        model_predict <- function(values_DT){
+        model_predict <- function(values) {
             return(stats::predict(result_rfor,
-                                  newdata = values_DT,
-                                  type = "prob"))
+                newdata = values,
+                type = "prob"
+            ))
         }
         return(model_predict)
     }
@@ -497,7 +517,7 @@ sits_rfor <- function(data = NULL, num_trees = 2000, nodesize = 1, ...) {
 #' samples_2bands <- sits_select(samples_mt_4bands, bands = c("NDVI", "EVI"))
 #'
 #' # Build a machine learning model based on deep learning
-#' ml_model <- sits_train (samples_2bands, sits_svm())
+#' ml_model <- sits_train(samples_2bands, sits_svm())
 #'
 #' # get a point and classify the point with the ml_model
 #' point.tb <- sits_select(point_mt_6bands, bands = c("NDVI", "EVI"))
@@ -518,38 +538,47 @@ sits_svm <- function(data = NULL, formula = sits_formula_logref(),
     # backward compatibility
     data <- .sits_tibble_rename(data)
     # function that returns e1071::svm model based on a sits sample tibble
-    result_fun <- function(data){
+    result_fun <- function(data) {
 
         # data normalization
         stats <- .sits_normalization_param(data)
-        train_data_DT <- .sits_distances(.sits_normalize_data(data, stats))
+        train_data <- .sits_distances(.sits_normalize_data(data, stats))
 
         # The function must return a valid formula.
-        if (class(formula) == "function")
-            formula <- formula(train_data_DT)
+        if (class(formula) == "function") {
+              formula <- formula(train_data)
+          }
 
         # call e1071::svm method and return the trained svm model
-        result_svm <- e1071::svm(formula = formula, data = train_data_DT,
-                                 scale = scale, kernel = kernel,
-                                 degree = degree, cost = cost, coef0 = coef0,
-                                 cachesize = cachesize, tolerance = tolerance,
-                                 epsilon = epsilon, cross = cross,
-                                 probability = TRUE, ...,
-                                 na.action = stats::na.fail)
+        result_svm <- e1071::svm(
+            formula = formula, data = train_data,
+            scale = scale, kernel = kernel,
+            degree = degree, cost = cost, coef0 = coef0,
+            cachesize = cachesize, tolerance = tolerance,
+            epsilon = epsilon, cross = cross,
+            probability = TRUE, ...,
+            na.action = stats::na.fail
+        )
 
         # construct model predict closure function and returns
-        model_predict <- function(values_DT){
+        model_predict <- function(values) {
             # get the prediction
-            preds <- stats::predict(result_svm, newdata = values_DT,
-                                    probability = TRUE)
+            preds <- stats::predict(result_svm,
+                newdata = values,
+                probability = TRUE
+            )
             # retrieve the predicted probabilities
-            prediction_DT <- data.table::as.data.table(attr(preds,
-                                                            "probabilities"))
+            prediction <- data.table::as.data.table(attr(
+                preds,
+                "probabilities"
+            ))
             # reorder the matrix according to the column names
-            data.table::setcolorder(prediction_DT,
-                                    sort(colnames(prediction_DT)))
+            data.table::setcolorder(
+                prediction,
+                sort(colnames(prediction))
+            )
 
-            return(prediction_DT)
+            return(prediction)
         }
         class(model_predict) <- c("svm_model", class(model_predict))
         return(model_predict)
@@ -614,21 +643,22 @@ sits_svm <- function(data = NULL, formula = sits_formula_logref(),
 #'
 #' # get a point and classify the point with the ml_model
 #' point.tb <- sits_select(point_mt_6bands,
-#'                         bands = c("NDVI", "EVI", "NIR", "MIR"))
+#'     bands = c("NDVI", "EVI", "NIR", "MIR")
+#' )
 #' class.tb <- sits_classify(point.tb, xgb_model)
 #' plot(class.tb, bands = c("NDVI", "EVI"))
 #' }
 #' @export
 #'
 sits_xgboost <- function(data = NULL,
-                         learning_rate     = 0.15,
-                         min_split_loss    = 1,
-                         max_depth         = 5,
-                         min_child_weight  = 1,
-                         max_delta_step    = 1,
-                         subsample         = 0.8,
-                         nfold             = 5,
-                         nrounds           = 100,
+                         learning_rate = 0.15,
+                         min_split_loss = 1,
+                         max_depth = 5,
+                         min_child_weight = 1,
+                         max_delta_step = 1,
+                         subsample = 0.8,
+                         nfold = 5,
+                         nrounds = 100,
                          early_stopping_rounds = 20,
                          verbose = TRUE) {
     # verifies if xgboost package is installed
@@ -637,16 +667,17 @@ sits_xgboost <- function(data = NULL,
              Please install it.", call. = FALSE)
     }
     # function that returns xgb model
-    result_fun <- function(data){
+    result_fun <- function(data) {
 
         # data normalization
         stats <- .sits_normalization_param(data)
-        train_data_DT <- .sits_distances(.sits_normalize_data(data, stats))
+        train_data <- .sits_distances(.sits_normalize_data(data, stats))
 
         # get the labels of the data
         labels <- sits_labels(data)$label
         assertthat::assert_that(length(labels) > 0,
-                             msg = "sits_rfor: invalid data - bad labels")
+            msg = "sits_rfor: invalid data - bad labels"
+        )
         n_labels <- length(labels)
 
         # create a named vector with integers match the class labels
@@ -654,62 +685,63 @@ sits_xgboost <- function(data = NULL,
         names(int_labels) <- labels
 
         # reference labels for each sample expressed as numerical values
-        references <- unname(int_labels[as.vector(train_data_DT$reference)]) - 1
+        references <- unname(int_labels[as.vector(train_data$reference)]) - 1
 
         # define the parameters of the model
-        params <- list(booster          = "gbtree",
-                       objective        = "multi:softprob",
-                       eta              = learning_rate,
-                       gamma            = min_split_loss,
-                       max_depth        = max_depth,
-                       min_child_weight = min_child_weight,
-                       max_delta_step   = max_delta_step,
-                       subsample        = subsample)
+        params <- list(
+            booster = "gbtree",
+            objective = "multi:softprob",
+            eta = learning_rate,
+            gamma = min_split_loss,
+            max_depth = max_depth,
+            min_child_weight = min_child_weight,
+            max_delta_step = max_delta_step,
+            subsample = subsample
+        )
 
         # run the cross-validation
-        xgbcv <- xgboost::xgb.cv(params = params,
-                    data      = as.matrix(train_data_DT[, 3:length(train_data_DT)]),
-                    label     = references,
-                    num_class = length(labels),
-                    nrounds   = nrounds,
-                    nfold     = nfold,
-                    early_stopping_rounds = early_stopping_rounds,
-                    print_every_n = 10,
-                    verbose   = verbose,
-                    maximize  = FALSE)
+        xgbcv <- xgboost::xgb.cv(
+            params = params,
+            data = as.matrix(train_data[, 3:length(train_data)]),
+            label = references,
+            num_class = length(labels),
+            nrounds = nrounds,
+            nfold = nfold,
+            early_stopping_rounds = early_stopping_rounds,
+            print_every_n = 10,
+            verbose = verbose,
+            maximize = FALSE
+        )
 
         # get the best iteration of the model based on the CV
         nrounds_best <- xgbcv$best_iteration
 
-        # call xgboost method and return l
-        # result_xgb <- xgboost::xgb.train(data = xgboost::xgb.DMatrix(
-        #     data = as.matrix(train_data_DT[, 3:length(train_data_DT)]),
-        #                      label = references),
-        #     num_class = length(labels),
-        #     params = params, nrounds = nrounds_best,
-        #     print_every_n = 10,  maximize = FALSE)
-        result_xgb <- xgboost::xgboost(
-            data      = as.matrix(train_data_DT[, 3:length(train_data_DT)]),
-            label    = references,
+        # define the model
+        model_xgb <- xgboost::xgboost(
+            data = as.matrix(train_data[, 3:length(train_data)]),
+            label = references,
             num_class = length(labels),
             params = params,
             nrounds = nrounds_best,
-            verbose = FALSE)
+            verbose = FALSE
+        )
 
-        ntreelimit <- result_xgb$best_ntreelimit
+        ntreelimit <- model_xgb$best_ntreelimit
 
         # construct model predict closure function and returns
-        model_predict <- function(values_DT){
+        model_predict <- function(values) {
             # transform input  into a matrix (remove first two columns)
             # retrieve the prediction probabilities
-            prediction_DT <- data.table::as.data.table(
-                stats::predict(result_xgb, data.matrix(values_DT[, -(1:2)]),
-                               ntreelimit = ntreelimit,
-                               reshape = TRUE))
+            prediction <- data.table::as.data.table(
+                stats::predict(model_xgb, data.matrix(values[, - (1:2)]),
+                    ntreelimit = ntreelimit,
+                    reshape = TRUE
+                )
+            )
             # adjust the names of the columns of the probs
-            colnames(prediction_DT) <- labels
+            colnames(prediction) <- labels
             # retrieve the prediction results
-            return(prediction_DT)
+            return(prediction)
         }
         class(model_predict) <- c("xgb_model", class(model_predict))
         return(model_predict)
@@ -738,28 +770,33 @@ sits_xgboost <- function(data = NULL,
 #' @return A function that computes a valid formula.
 #'
 #' @export
-sits_formula_logref <- function(predictors_index = -2:0){
+sits_formula_logref <- function(predictors_index = -2:0) {
     # store configuration information about model formula
-    sits.env$model_formula <- "log"
+    sits_env$model_formula <- "log"
 
     # this function returns a formula like
     # 'factor(reference~log(f1)+log(f2)+...+log(fn)' where f1, f2, ..., fn are
     # the predictor fields given by the predictor index.
-    result_fun <- function(tb){
+    result_fun <- function(tb) {
         assertthat::assert_that(NROW(tb) > 0,
-                             msg = "sits_formula_logref - invalid data")
+            msg = "sits_formula_logref - invalid data"
+        )
         n_rows_tb <- NROW(tb)
         # if no predictors_index are given, assume all tb's fields are used
-        if (purrr::is_null(predictors_index))
-            predictors_index <- 1:n_rows_tb
+        if (purrr::is_null(predictors_index)) {
+              predictors_index <- 1:n_rows_tb
+          }
 
         # get predictors names
         categories <- names(tb)[c(predictors_index)]
 
         # compute formula result
-        result_for <- stats::as.formula(paste0("factor(reference)~",
-                                    paste0(paste0('log(`', categories, '`)'),
-                                           collapse = "+")))
+        result_for <- stats::as.formula(paste0(
+            "factor(reference)~",
+            paste0(paste0("log(`", categories, "`)"),
+                collapse = "+"
+            )
+        ))
         return(result_for)
     }
     return(result_fun)
@@ -782,28 +819,33 @@ sits_formula_logref <- function(predictors_index = -2:0){
 #' @return A function that computes a valid formula.
 #'
 #' @export
-sits_formula_linear <- function(predictors_index = -2:0){
+sits_formula_linear <- function(predictors_index = -2:0) {
     # store configuration information about model formula
-    sits.env$model_formula <- "linear"
+    sits_env$model_formula <- "linear"
 
     # this function returns a formula
     # 'factor(reference~log(f1)+log(f2)+...+log(fn)' where f1, f2, ..., fn are
     #  the predictor fields.
-    result_fun <- function(tb){
+    result_fun <- function(tb) {
         assertthat::assert_that(NROW(tb) > 0,
-                             msg = "sits_formula_logref - invalid data")
+            msg = "sits_formula_logref - invalid data"
+        )
         n_rows_tb <- NROW(tb)
         # if no predictors_index are given, assume that all fields are used
-        if (purrr::is_null(predictors_index))
-            predictors_index <- 1:n_rows_tb
+        if (purrr::is_null(predictors_index)) {
+              predictors_index <- 1:n_rows_tb
+          }
 
         # get predictors names
         categories <- names(tb)[c(predictors_index)]
 
         # compute formula result
-        result_for <- stats::as.formula(paste0("factor(reference)~",
-                                               paste0(paste0(categories,
-                                                             collapse = "+"))))
+        result_for <- stats::as.formula(paste0(
+            "factor(reference)~",
+            paste0(paste0(categories,
+                collapse = "+"
+            ))
+        ))
         return(result_for)
     }
     return(result_fun)
@@ -823,66 +865,77 @@ sits_formula_linear <- function(predictors_index = -2:0){
 #' @param stats    Statistics for normalization.
 #' @param multicores  Number of cores to process.
 #' @return A normalized sits tibble.
-.sits_normalize_data <- function(data, stats, multicores = 1){
+.sits_normalize_data <- function(data, stats, multicores = 1) {
     # backward compatibility
     data <- .sits_tibble_rename(data)
     .sits_test_tibble(data)
     # find the number of cores
-    if (purrr::is_null(multicores))
-        multicores <- max(parallel::detectCores(logical = FALSE) - 1, 1)
+    if (purrr::is_null(multicores)) {
+          multicores <- max(parallel::detectCores(logical = FALSE) - 1, 1)
+      }
     # avoid overhead on multicore processing
-    if (nrow(data) < sits.env$config$minimum_number_samples)
-        multicores <- 1
+    if (nrow(data) < sits_env$config$minimum_number_samples) {
+          multicores <- 1
+      }
     # get the bands of the input data
     bands <- sits_bands(data)
     # check that input bands are included in the statistics already calculated
-    assertthat::assert_that(all(sort(bands) == sort(colnames(stats[,-1]))),
-                         msg = paste0("sits_normalize: bands in the data (",
-                                    paste(bands, collapse = ", "),
-                                    ") do not match bands in the model (",
-                                    paste(colnames(stats[,-1]),
-                                                 collapse = ", "), ")"))
+    assertthat::assert_that(all(sort(bands) == sort(colnames(stats[, -1]))),
+        msg = paste0(
+            "sits_normalize: data bands (",
+            paste(bands, collapse = ", "),
+            ") do not match model bands (",
+            paste(colnames(stats[, -1]),
+                collapse = ", "
+            ), ")"
+        )
+    )
 
     # extract the values of the time series to a list of tibbles
-    values.lst <- data$time_series
-    n_values <- length(values.lst)
+    values <- data$time_series
+    n_values <- length(values)
 
     # normalise values of time series
-    normalize_list <- function(chunk.lst) {
-        norm_chunk.lst <- chunk.lst %>%
+    normalize_chunk <- function(chunk) {
+        norm_chunk <- chunk %>%
             purrr::map(function(ts) {
-                norm.lst <- bands %>%
-                    purrr::map(function(b){
+                norm <- bands %>%
+                    purrr::map(function(b) {
                         # retrieve values from data table
                         # note the use of "..b" instead of ",b"
-                        med      <- as.numeric(stats[1, ..b])
-                        quant_2  <- as.numeric(stats[2, ..b])
+                        quant_2 <- as.numeric(stats[2, ..b])
                         quant_98 <- as.numeric(stats[3, ..b])
                         # call C++ for better performance
-                        m <- normalize_data(as.matrix(ts[,b]), quant_2,quant_98)
+                        m <- normalize_data(as.matrix(ts[, b]),
+                                            quant_2,
+                                            quant_98
+                        )
                         # give a name to the matrix column because
                         # tibble does not like matrices without names
                         colnames(m) <- b
-                        values <- tibble::as_tibble(m, .name_repair = "unique")
-                        return(values)
+                        val <- tibble::as_tibble(m, .name_repair = "unique")
+                        return(val)
                     })
-                ts.tb <- dplyr::bind_cols(norm.lst)
-                ts.tb <- dplyr::bind_cols(list(ts[,1], ts.tb))
-                colnames(ts.tb) <- colnames(ts)
-                return(ts.tb)
+                ts_tb <- dplyr::bind_cols(norm)
+                ts_tb <- dplyr::bind_cols(list(ts[, 1], ts_tb))
+                colnames(ts_tb) <- colnames(ts)
+                return(ts_tb)
             })
-        return(norm_chunk.lst)
+        return(norm_chunk)
     }
 
     if (multicores > 1) {
-        parts.lst <- split(values.lst, cut(1:n_values, 2, labels = FALSE))
-        norm.lst <- dplyr::combine(parallel::mclapply(parts.lst, normalize_list,
-                                                      mc.cores = multicores))
+        chunks <- split(values, cut(1:n_values, 2, labels = FALSE))
+        norm_values <- dplyr::combine(parallel::mclapply(chunks,
+                                                         normalize_chunk,
+                                                         mc.cores = multicores
+                                                         )
+        )
     }
     else
-        norm.lst <- normalize_list(values.lst)
+          norm_values <- normalize_chunk(values)
 
-    data$time_series <- norm.lst
+    data$time_series <- norm_values
     return(data)
 }
 
@@ -894,37 +947,38 @@ sits_formula_linear <- function(predictors_index = -2:0){
 #' @description this function normalizes one band of the values read
 #' from a raster
 #'
-#' @param  data.mx        Matrix of values.
+#' @param  data           Matrix of values.
 #' @param  stats          Statistics for normalization.
 #' @param  band           Band to be normalized.
 #' @param  multicores     Number of cores.
 #' @return                A normalized matrix.
-.sits_normalize_matrix <- function(data.mx, stats, band, multicores) {
+.sits_normalize_matrix <- function(data, stats, band, multicores) {
     # select the 2% and 98% quantiles
     # note the use of "..b" instead of ",b"
-    quant_2   <- as.numeric(stats[2, ..band])
-    quant_98  <- as.numeric(stats[3, ..band])
+    quant_2 <- as.numeric(stats[2, ..band])
+    quant_98 <- as.numeric(stats[3, ..band])
 
     # auxiliary function to normalize a block of data
     normalize_block <- function(chunk, quant_2, quant_98) {
         # normalize a block of data
-        values_block.mx <- normalize_data(chunk, quant_2, quant_98)
+        values_block <- normalize_data(chunk, quant_2, quant_98)
+        return(values_block)
     }
 
     # parallel processing for normalization
     if (multicores > 1) {
-        chunk.lst <- .sits_raster_split_data(data.mx, multicores)
-        rows.lst  <- parallel::mclapply(chunk.lst, normalize_block, quant_2,
-                                        quant_98, mc.cores = multicores)
-        data.mx <- do.call(rbind, rows.lst)
-        # rm(chunk.lst)
-        # rm(rows.lst)
-        # gc()
+        blocks <- .sits_raster_data_split(data, multicores)
+        rows <- parallel::mclapply(blocks, normalize_block, quant_2,
+            quant_98,
+            mc.cores = multicores
+        )
+        data <- do.call(rbind, rows)
     }
-    else
-        data.mx <- normalize_data(data.mx, quant_2, quant_98)
+    else {
+          data <- normalize_data(data, quant_2, quant_98)
+      }
 
-    return(data.mx)
+    return(data)
 }
 
 
@@ -941,18 +995,25 @@ sits_formula_linear <- function(predictors_index = -2:0){
 .sits_normalization_param <- function(data) {
     .sits_test_tibble(data)
 
-    DT <- data.table::data.table(dplyr::bind_rows(data$time_series))
-    DT[, Index := NULL]
+    dt <- data.table::data.table(dplyr::bind_rows(data$time_series))
+    dt[, Index := NULL]
 
     # compute statistics
-    DT_med      <- DT[, lapply(.SD, stats::median, na.rm = TRUE)]
-    DT_quant_2  <- DT[, lapply(.SD, function(x) stats::quantile(x, 0.02,
-                                                                na.rm = TRUE))]
-    DT_quant_98 <- DT[, lapply(.SD, function(x) stats::quantile(x, 0.98,
-                                                                na.rm = TRUE))]
-    stats <- dplyr::bind_cols(stats = c("med", "quant_2", "quant_98"),
-                            dplyr::bind_rows(DT_med, DT_quant_2, DT_quant_98))
+    dt_med <- dt[, lapply(.SD, stats::median, na.rm = TRUE)]
+    dt_quant_2 <- dt[, lapply(.SD, function(x) {
+        stats::quantile(x, 0.02,
+            na.rm = TRUE
+        )
+    })]
+    dt_quant_98 <- dt[, lapply(.SD, function(x) {
+        stats::quantile(x, 0.98,
+            na.rm = TRUE
+        )
+    })]
+    stats <- dplyr::bind_cols(
+        stats = c("med", "quant_2", "quant_98"),
+        dplyr::bind_rows(dt_med, dt_quant_2, dt_quant_98)
+    )
 
     return(stats)
 }
-

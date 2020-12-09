@@ -4,12 +4,12 @@
 \alias{sits_conf_matrix}
 \title{Accuracy assessment of classification based on a confusion matrix}
 \usage{
-sits_conf_matrix(data, conv.lst = NULL)
+sits_conf_matrix(data, conv_lst = NULL)
 }
 \arguments{
 \item{data}{Set of classified samples whose labels are known.}
 
-\item{conv.lst}{List with labels to be converted.
+\item{conv_lst}{List with labels to be converted.
 If NULL no conversion is done.}
 }
 \value{
@@ -31,10 +31,12 @@ Producer's Accuracy, error matrix (confusion matrix), and Kappa value.
 # read a tibble with 400 samples of Cerrado and 346 samples of Pasture
 data(cerrado_2classes)
 # perform a 2 fold validation of this sample file
-pred_ref.tb <- sits_kfold_validate(cerrado_2classes, folds = 2,
-               ml_method = sits_rfor(num_trees = 300))
+pred_ref <- sits_kfold_validate(cerrado_2classes,
+    folds = 2,
+    ml_method = sits_rfor(num_trees = 300)
+)
 # calculate and print the confusion matrix
-conf.mx <- sits_conf_matrix(pred_ref.tb)
+conf_matrix <- sits_conf_matrix(pred_ref)
 }
 \author{
 Rolf Simoes, \email{rolf.simoes@inpe.br}

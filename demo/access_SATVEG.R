@@ -6,9 +6,9 @@ message("comb combines data from TERRA and AQUA satellites")
 message("the bands available are ndvi and evi")
 
 # create three data cubes
-cube_terra <- sits_cube(type  = "SATVEG",  name = "terra")
-cube_aqua <- sits_cube(type   = "SATVEG",  name = "aqua")
-cube_comb <- sits_cube(type   = "SATVEG",  name = "comb")
+cube_terra <- sits_cube(type = "SATVEG", name = "terra")
+cube_aqua <- sits_cube(type = "SATVEG", name = "aqua")
+cube_comb <- sits_cube(type = "SATVEG", name = "comb")
 
 # retrieve the same point from three different data cubes
 point_terra.tb <- sits_get_data(cube_terra, longitude = -55.50563, latitude = -11.71557)
@@ -25,4 +25,3 @@ csv_file <- system.file("extdata/samples/samples_matogrosso.csv", package = "sit
 points.tb <- sits_get_data(cube_comb, file = csv_file)
 # show the points retrieved for the SATVEG server
 plot(points.tb)
-

@@ -1,17 +1,18 @@
 Package: sits
 Type: Package
 Title: Satellite Image Time Series Analysis For Remote Sensing Data Cubes
-Version: 0.9.7
+Version: 0.9.8
 Authors@R: c(person('Rolf', 'Simoes', role = c('aut'), email = 'rolf.simoes@inpe.br'),
              person('Gilberto', 'Camara', role = c('aut', 'cre'), email = 'gilberto.camara@inpe.br'),
+             person('Felipe', 'Souza', role = c('aut'), email = 'felipe.carvalho@inpe.br'),
              person('Pedro', 'Andrade', role = c('aut'), email = 'pedro.andrade@inpe.br'),
-             person('Victor', 'Maus', role = c('aut'), email = 'vwmaus1@gmail.com'),
-             person('Alexandre', 'Carvalho', role = c('aut'), email= 'alexandre.ywata@ipea.gov.br'),
              person('Lorena', 'Santos', role = c('aut'), email = 'lorena.santos@inpe.br'),
+             person('Alexandre', 'Carvalho', role = c('aut'), email= 'alexandre.ywata@ipea.gov.br'),
              person('Gilberto', 'Queiroz', role = c('aut'), email = 'gilberto.queiroz@inpe.br'),
              person('Karine', 'Ferreira', role = c('aut'), email = 'karine.ferreira@inpe.br'),
-             person('Alber', 'Sanchez', role = c('ctb')),
-             person('Adeline', 'Marinho', role = c('ctb'))
+             person('Alber', 'Sanchez', role = c('ctb'), email = 'alber.ipia@inpe.br'),
+             person('Adeline', 'Marinho', role = c('ctb'), email = 'adeline.maciel@inpe.br'),
+             person('Victor', 'Maus', role = c('aut'), email = 'vwmaus1@gmail.com')
              )
 Maintainer: Gilberto Camara <gilberto.camara@inpe.br>
 Description: A set of tools for working with satellite image time series, both as individual data or as part of data cubes.
@@ -34,29 +35,30 @@ Imports:
     magrittr,
     assertthat,
     config,
-    data.table (>= 1.12),
+    data.table (>= 1.13),
     dplyr (>= 1.0.0),
     ggplot2,
     graphics,
     grDevices,
+    jsonlite,
     keras (>= 2.3.0),
     lubridate (>= 1.7.0),
     parallel,
     purrr  (>= 0.3.0),
+    raster (>= 3.4),
     reshape2,
-    readr,
     RCurl,
     rgdal (>= 1.5),
     scales,
     sf (>= 0.9),
-    slider,
+    slider (>= 0.1.5),
     stats,
-    terra,
+    terra (>= 0.9),
     tibble (>= 3.0),
     tidyr,
     utils
 Suggests:
-    aws.s3,
+    aws.s3 (>= 0.3.21),
     caret,
     DBI,
     dendextend,
@@ -79,8 +81,7 @@ Suggests:
     plyr,
     proto,
     ptw,
-    raster (>= 2.6),
-    reticulate (>= 1.16),
+    reticulate (>= 1.18),
     randomForest,
     ranger,
     Rcpp,
@@ -107,17 +108,16 @@ Collate:
     'data.R'
     'sits-package.R'
     'sits_accuracy.R'
-    'sits_bdc.R'
     'sits_brewer.R'
     'sits_classification.R'
     'sits_classify_ts.R'
     'sits_classify_cube.R'
+    'sits_clouds.R'
     'sits_config.R'
     'sits_conf_matrix.R'
     'sits_csv.R'
     'sits_cube.R'
     'sits_cube_aux_functions.R'
-    'sits_clouds.R'
     'sits_cluster.R'
     'sits_data_generics.R'
     'sits_db.R'
@@ -140,7 +140,7 @@ Collate:
     'sits_pipe.R'
     'sits_plot.R'
     'sits_processing_estimate.R'
-    'sits_raster.R'
+    'sits_raster_api.R'
     'sits_raster_blocks.R'
     'sits_raster_brick.R'
     'sits_raster_data.R'

@@ -27,7 +27,7 @@ This functions calls `dtwclust::compute_envelope` function.
 # Apply the envelope filter
 point_env <- sits_envelope(point_ndvi)
 # Merge the filtered with the raw data
-point2 <- sits_merge (point_ndvi, point_env)
+point2 <- sits_merge(point_ndvi, point_env)
 # Plot the result
 plot(point2)
 }
