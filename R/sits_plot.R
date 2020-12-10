@@ -13,6 +13,7 @@
 #'  \item{raster cube:}{ see \code{\link{plot.raster_cube}}}
 #'  \item{classification probabilities:}{ see \code{\link{plot.probs_cube}}}
 #'  \item{classified image :}{see \code{\link{plot.classified_image}}}
+#'  \item{SOM evaluate cluster :}{see \code{\link{plot.evaluate_cluster}}}
 #' }
 #'
 #'
@@ -409,15 +410,16 @@ plot.classified_image <- function(x, y, ..., map = NULL, time = 1,
 }
 
 #' @title  Plot information about confunsion between clusters
-#' @name   plot.som_confusion
+#' @name   plot.som_evaluate_cluster
 #' @author Lorena Santos \email{lorena.santos@@inpe.br}
 #'
 #' @description Plot a bar graph with informations about each cluster.
 #' The percentage of mixture between the clusters.
 #'
-#' @param  x            object of class "som_confusion"
+#' @param  x            object of class "plot.som_evaluate_cluster"
 #' @param  y            ignored
 #' @param  ...          further specifications for \link{plot}.
+#' @param  name_cluster Choose the cluster to plot
 #' @param  title        title of plot. default is ""Confusion by cluster"".
 #' @return              plot
 #' @examples
@@ -432,10 +434,10 @@ plot.classified_image <- function(x, y, ..., map = NULL, time = 1,
 #' plot(cluster_overall)
 #' }
 #' @export
-plot.som_confusion <- function(x, y, ..., title = "Confusion by cluster") {
-    stopifnot(missing(y))
-    p <- .sits_plot_som_confusion(x, title)
-    return(invisible(p))
+plot.som_evaluate_cluster <- function(x, y, ..., name_cluster = NULL, title = "Confusion by cluster") {
+  stopifnot(missing(y))
+  p <- .sits_plot_som_evaluate_cluster(x, name_cluster, title)
+  return(invisible(p))
 }
 #' @title  Generic interface for plotting a SOM map
 #' @name   plot.som_map
@@ -1179,49 +1181,46 @@ plot.keras_model <- function(x, y, ...) {
 }
 
 #' @title  Plot information about confusion between clusters
-#' @name   .sits_plot_som_confusion
+#' @name   .sits_plot_som_evaluate_cluster
 #' @keywords internal
 #' @author Lorena Santos \email{lorena.santos@@inpe.br}
 #'
 #' @description Plot a bar graph with informations about each cluster.
 #' The percentage of mixture between the clusters.
 #'
-#' @param data       Percentage of mixture between the clusters
-#' @param title      Title of plot.
-#' @return           ggplot2 object
-.sits_plot_som_confusion <- function(data, title) {
-    if (!("som_confusion" %in% class(data))) {
+#' @param data          Percentage of mixture between the clusters
+#' @param  name_cluster Choose the cluster to plot
+#' @param title         Title of plot.
+#' @return              ggplot2 object
+.sits_plot_som_evaluate_cluster <- function(data, cluster_name = NULL, title = "Confusion by cluster") {
+    if (!("som_evaluate_cluster" %in% class(data))) {
         message("unable to plot - please run sits_som_evaluate_cluster")
         return(invisible(NULL))
     }
-    #
-    data <- data$mixture_samples_by_class
-    sample_class <- data$classes_confusion
 
+    # Filter the cluster to plot
+    if (!(is.null(cluster_name))){
+      data <- dplyr::filter(data, cluster %in% cluster_name)
+    }
     p <- ggplot2::ggplot() +
-        ggplot2::geom_bar(
-            ggplot2::aes(
-                y = mixture_percentage,
-                x = class,
-                fill = sample_class
-            ),
-            data = data,
-            stat = "identity",
-            position = ggplot2::position_dodge()
-        ) +
-        ggplot2::theme_minimal() +
-        ggplot2::theme(
-            axis.text.x =
-                ggplot2::element_text(angle = 60, hjust = 1)
-        ) +
-        ggplot2::labs(
-            x = "Classes", y = "Percentage of mixture",
-            colour = "Sample Class"
-        ) +
-        ggplot2::ggtitle(title)
+      ggplot2::geom_bar(
+        ggplot2::aes(
+          y = data$mixture_percentage,
+          x = data$cluster,
+          fill = data$class
+        ),
+        data = data,
+        stat = "identity",
+        position = ggplot2::position_dodge()
+      ) +
+      ggplot2::theme_minimal() +
+      ggplot2::theme(axis.text.x =
+                       ggplot2::element_text(angle = 60, hjust = 1)) +
+      ggplot2::labs(x = "Cluster", y = "Percentage of mixture") +
+      ggplot2::scale_fill_discrete(name = "Class label")+
+      ggplot2::ggtitle(title)
 
     p <- graphics::plot(p)
-
     return(invisible(p))
 }
 #' @title  Assign RGB channels to into image layers with many time instance

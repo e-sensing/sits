@@ -6,7 +6,7 @@ library(inSitu)
 # Clustering time series samples using self-organizing maps
 som_map <-
     sits_som_map(
-        br_mt_1_8K_9classes_6bands,
+        samples_mt_4bands,
         grid_xdim = 10,
         grid_ydim = 10,
         alpha = 1,
@@ -17,3 +17,6 @@ plot(som_map)
 
 # Remove samples that have  bad quality
 new_samples.tb <- sits_som_clean_samples(som_map)
+
+cluster_purity.tb <- sits_som_evaluate_cluster(som_map)
+plot(cluster_purity.tb)

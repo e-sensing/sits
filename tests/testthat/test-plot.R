@@ -143,3 +143,32 @@ test_that("SOM map plot", {
 
     expect_true(file.remove(file_plot))
 })
+
+test_that("SOM evaluate cluster plot", {
+    som_map <-
+        suppressWarnings(sits_som_map(
+            cerrado_2classes,
+            grid_xdim = 5,
+            grid_ydim = 5
+        ))
+
+    cluster_purity.tb <- sits_som_evaluate_cluster(som_map)
+
+    file_plot <- paste0(tempdir(), "/evaluate_cluster.jpg")
+    file_ref <- system.file("extdata/plot/evaluate_cluster.jpg", package = "sits")
+
+    jpeg(filename = file_plot)
+    plot(cluster_purity.tb)
+    invisible(dev.off())
+
+    img <- imager::load.image(file_plot)
+    img_ref <- imager::load.image(file_ref)
+
+    expect_true(all(dim(img) == dim(img_ref)))
+
+    mean_diff <- mean(imager::grayscale(img)) - mean(imager::grayscale(img_ref))
+
+    expect_true(abs(mean_diff) < 0.20)
+
+    expect_true(file.remove(file_plot))
+})
