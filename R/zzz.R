@@ -9,7 +9,7 @@
             utils::packageDescription("sits")$Version
         )
     )
-    packageStartupMessage(sits_config_info())
+    sits_config_info()
 }
 
 .onLoad <- function(lib, pkg) {
