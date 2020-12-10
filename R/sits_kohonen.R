@@ -282,6 +282,91 @@ sits_som_clean_samples <- function(som_map,
     return(data)
 }
 
+#' @title Evaluate cluster
+#' @name sits_som_evaluate_cluster
+#' @author Lorena Santos, \email{lorena.santos@@inpe.br}
+#' @author Karine Ferreira. \email{karine.ferreira@@inpe.br}
+#'
+#' @description This function evaluate the clusters created by
+#' SOM. Each cluster is a neuron or a set of neuron categorized with same label.
+#' It produces a sits tibble indicating the percentage of mixture
+#' of classes in each cluster.
+#'
+#' @param som_map                   An object returned
+#'                                  by \code{\link[sits]{sits_som_map}}
+#' @return A tibble with the cluster and the percentage of classes mixtured in each cluster.
+
+#' @examples
+#' \dontrun{
+#' # Read a set of samples
+#' # Get a new subset of samples evaluated by clustering methods
+#' som_map <- sits_som_map(samples_mt,
+#'     grid_xdim = 10, grid_ydim = 10,
+#'     distance = "euclidean"
+#' )
+#' cluster_purity <- sits_som_evaluate_cluster(som_map)
+#' }
+#' @export
+sits_som_evaluate_cluster <- function(som_map)
+{
+    # Sanity check
+    if (!("som_map" %in% class(som_map))) {
+        message("wrong input data; please run sits_som_map first")
+        return(invisible(NULL))
+    }
+
+    # Get neuron labels
+    neuron_label <- som_map$som_properties$neuron_label
+    id_neuron_label.tb <- tibble::tibble(id_neuron = 1:length(neuron_label), neuron_label = neuron_label)
+
+    # Agreegate in the sample dataset the label of each neuron
+    data <- som_map$data %>% dplyr::inner_join(id_neuron_label.tb)
+
+    # Get only id, label and neuron_label
+    temp.data <- unique(dplyr::select(data, id_sample, label, neuron_label))
+
+    # Get sample labels that was not assigned to a cluster
+    no_cluster <- dplyr::setdiff(temp.data$label, temp.data$neuron_label)
+
+    confusion.matrix <- addmargins(table(temp.data$label, temp.data$neuron_label))
+
+    #	get dimensions (rows and col)
+    #	represents the original classes of samples
+    dim_row <- dim(confusion.matrix)[1]
+
+    # represents clusters
+    dim_col <- dim(confusion.matrix)[2]
+
+    cluster_purity.lst <- seq_len(dim_col -1) %>%
+        purrr::map(function(d){
+
+            current_col <- confusion.matrix[1:dim_row - 1,d]
+            current_col_total <- confusion.matrix[dim_row, d]
+
+            mixture_percentage <-as.numeric((current_col / current_col_total) * 100)
+
+            current_class_ambiguity <-
+                dplyr::arrange(tibble::as_tibble(
+                    list(
+                        id_cluster = as.integer(d),
+                        cluster = colnames(confusion.matrix)[d],
+                        class = names(current_col),
+                        mixture_percentage = mixture_percentage),
+                    dplyr::desc(mixture_percentage))
+                )
+
+            # remove lines where mix_percentege is zero
+            current_class_ambiguity <- dplyr::filter(current_class_ambiguity,
+                                                     current_class_ambiguity$mixture_percentage > 0)
+
+            return(current_class_ambiguity)
+        })
+
+    purity_by_cluster <- do.call(rbind, cluster_purity.lst)
+    class(purity_by_cluster) <- c("som_evaluate_cluster", class(purity_by_cluster))
+    return(purity_by_cluster)
+}
+
 
 #' @title Label neurons
 #' @name .sits_som_label_neurons
@@ -441,7 +526,7 @@ sits_som_clean_samples <- function(som_map,
     pastel1 <- utils::head(unique(unlist(pallete3, use.names = FALSE)), -1)
 
     # build a mixed pallete with different colors
-    pallete <- c(pastel1, set1, accent)
+    pallete <- c(accent, pastel1, set1 )
 
     # unique label
     labels <- unique(kohonen_obj$neuron_label)

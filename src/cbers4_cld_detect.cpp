@@ -251,7 +251,7 @@ IntegerVector cbers4_cld_values(const IntegerMatrix& b13, const IntegerMatrix& b
         }
     }
     // calculate the mean of the mean band
-    int mean_mean_band = (int) std::round(sum_mean/n_valid_mean);
+    int mean_mean_band = (int) round(sum_mean/n_valid_mean);
     // save the values
     values(0) = mean_mean_band;
     values(1) = max_mean_band;
@@ -273,7 +273,7 @@ IntegerVector cbers4_cld_values(const IntegerMatrix& b13, const IntegerMatrix& b
         }
     }
     // calculate the mean of band 16
-    int mean_b16 = (int) std::round(sum_b16/n_valid_b16);
+    int mean_b16 = (int) round(sum_b16/n_valid_b16);
 
     // save the values
     values(3) = mean_b16;
@@ -295,7 +295,7 @@ IntegerVector cbers4_cld_values(const IntegerMatrix& b13, const IntegerMatrix& b
         }
     }
     // calculate the mean of band 13
-    int mean_b13 = (int) std::round(sum_b13/n_valid_b13);
+    int mean_b13 = (int) round(sum_b13/n_valid_b13);
 
     // save the values
     values(6) = mean_b13;
