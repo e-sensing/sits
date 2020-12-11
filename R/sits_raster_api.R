@@ -318,7 +318,7 @@
 #' @param format         Format to write the file
 #' @param compress       Compression method to be used
 #' @param overwrite      Overwrite the file
-#' @return               Data cube
+#' @return               Data cubevalues
 #'
 .sits_raster_api_write <- function(cube,
                                    num_layers,
@@ -348,7 +348,7 @@
     )
 
     assertthat::assert_that(terra::nrow(r_obj) == cube$nrows,
-        msg = ".sits_raster_api_write: unable to create raster object"
+                            msg = ".sits_raster_api_write: unable to create raster object"
     )
 
     # include the values in the raster object

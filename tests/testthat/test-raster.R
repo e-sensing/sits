@@ -150,9 +150,9 @@ test_that("Multi-year, multi-core classification", {
 test_that("One-year, single core classification", {
     samples_2bands <- sits_select(samples_mt_4bands, bands = c("NDVI", "EVI"))
     dl_model <- sits_train(samples_2bands, sits_deeplearning(
-        layers = c(128, 128),
-        dropout_rates = c(0.5, 0.4),
-        epochs = 30,
+        layers = c(256, 256, 256),
+        dropout_rates = c(0.5, 0.4, 0.3),
+        epochs = 80,
         batch_size = 64,
         verbose = 0
     ))
@@ -194,7 +194,7 @@ test_that("One-year, single core classification", {
     expect_true(max_lyr1 < 4500)
 
     max_lyr3 <- max(terra::values(rc_obj)[, 3])
-    expect_true(max_lyr3 > 8000)
+    expect_true(max_lyr3 > 7000)
 
     expect_true(all(file.remove(unlist(sinop_probs$file_info[[1]]$path))))
 })

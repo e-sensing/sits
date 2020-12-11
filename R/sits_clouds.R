@@ -613,7 +613,8 @@ sits_cloud_cbers <- function(cube,
         clouds <- do.call(rbind, clouds_lst)
     }
     else {
-        clouds <- cbers4_cld_detect(b13, b14, b15, b16)
+        clouds <- cbers4_cld_detect(b13, b14, b15, b16,
+                                    t1, t2, t3, t4, t5, t6, values)
       }
 
     # transform into data table
