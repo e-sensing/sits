@@ -226,7 +226,7 @@ sits_som_map <- function(data,
 #' \dontrun{
 #' # Read a set of samples
 #' # Get a new subset of samples evaluated by clustering methods
-#' som_map <- sits_som_map(samples_mt,
+#' som_map <- sits_som_map(samples_mt_4bands,
 #'     grid_xdim = 10, grid_ydim = 10,
 #'     distance = "euclidean"
 #' )
@@ -300,7 +300,7 @@ sits_som_clean_samples <- function(som_map,
 #' \dontrun{
 #' # Read a set of samples
 #' # Get a new subset of samples evaluated by clustering methods
-#' som_map <- sits_som_map(samples_mt,
+#' som_map <- sits_som_map(samples_mt_4bands,
 #'     grid_xdim = 10, grid_ydim = 10,
 #'     distance = "euclidean"
 #' )
@@ -317,53 +317,64 @@ sits_som_evaluate_cluster <- function(som_map)
 
     # Get neuron labels
     neuron_label <- som_map$som_properties$neuron_label
-    id_neuron_label.tb <- tibble::tibble(id_neuron = 1:length(neuron_label), neuron_label = neuron_label)
+    id_neuron_label_tb <- tibble::tibble(id_neuron = 1:length(neuron_label),
+                                         neuron_label = neuron_label)
 
     # Agreegate in the sample dataset the label of each neuron
-    data <- som_map$data %>% dplyr::inner_join(id_neuron_label.tb)
+    data <- som_map$data %>% dplyr::inner_join(id_neuron_label_tb)
 
     # Get only id, label and neuron_label
-    temp.data <- unique(dplyr::select(data, id_sample, label, neuron_label))
+    temp_data <- unique(dplyr::select(data, id_sample, label, neuron_label))
 
     # Get sample labels that was not assigned to a cluster
-    no_cluster <- dplyr::setdiff(temp.data$label, temp.data$neuron_label)
+    no_cluster <- dplyr::setdiff(temp_data$label,
+                                 temp_data$neuron_label
+    )
 
-    confusion.matrix <- addmargins(table(temp.data$label, temp.data$neuron_label))
+    confusion_matrix <- addmargins(table(temp_data$label,
+                                         temp_data$neuron_label)
+    )
 
     #	get dimensions (rows and col)
     #	represents the original classes of samples
-    dim_row <- dim(confusion.matrix)[1]
+    dim_row <- dim(confusion_matrix)[1]
 
     # represents clusters
-    dim_col <- dim(confusion.matrix)[2]
+    dim_col <- dim(confusion_matrix)[2]
 
-    cluster_purity.lst <- seq_len(dim_col -1) %>%
+    cluster_purity_lst <- seq_len(dim_col - 1) %>%
         purrr::map(function(d){
 
-            current_col <- confusion.matrix[1:dim_row - 1,d]
-            current_col_total <- confusion.matrix[dim_row, d]
+            current_col <- confusion_matrix[1:dim_row - 1,d]
+            current_col_total <- confusion_matrix[dim_row, d]
 
-            mixture_percentage <-as.numeric((current_col / current_col_total) * 100)
+            mixture_percentage <- as.numeric(
+                (current_col / current_col_total) * 100
+            )
 
             current_class_ambiguity <-
                 dplyr::arrange(tibble::as_tibble(
                     list(
                         id_cluster = as.integer(d),
-                        cluster = colnames(confusion.matrix)[d],
+                        cluster = colnames(confusion_matrix)[d],
                         class = names(current_col),
                         mixture_percentage = mixture_percentage),
                     dplyr::desc(mixture_percentage))
                 )
 
             # remove lines where mix_percentege is zero
-            current_class_ambiguity <- dplyr::filter(current_class_ambiguity,
-                                                     current_class_ambiguity$mixture_percentage > 0)
+            current_class_ambiguity <- dplyr::filter(
+                current_class_ambiguity,
+                current_class_ambiguity$mixture_percentage > 0
+            )
 
             return(current_class_ambiguity)
         })
 
-    purity_by_cluster <- do.call(rbind, cluster_purity.lst)
-    class(purity_by_cluster) <- c("som_evaluate_cluster", class(purity_by_cluster))
+    purity_by_cluster <- do.call(rbind, cluster_purity_lst)
+    class(purity_by_cluster) <- c("som_evaluate_cluster",
+                                  class(purity_by_cluster)
+    )
     return(purity_by_cluster)
 }
 

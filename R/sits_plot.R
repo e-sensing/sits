@@ -1205,9 +1205,9 @@ plot.keras_model <- function(x, y, ...) {
     p <- ggplot2::ggplot() +
       ggplot2::geom_bar(
         ggplot2::aes(
-          y = data$mixture_percentage,
-          x = data$cluster,
-          fill = data$class
+          y = mixture_percentage,
+          x = cluster,
+          fill = class
         ),
         data = data,
         stat = "identity",
@@ -1217,7 +1217,7 @@ plot.keras_model <- function(x, y, ...) {
       ggplot2::theme(axis.text.x =
                        ggplot2::element_text(angle = 60, hjust = 1)) +
       ggplot2::labs(x = "Cluster", y = "Percentage of mixture") +
-      ggplot2::scale_fill_discrete(name = "Class label")+
+      ggplot2::scale_fill_discrete(name = "Class label") +
       ggplot2::ggtitle(title)
 
     p <- graphics::plot(p)
