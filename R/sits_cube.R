@@ -327,8 +327,8 @@ sits_cube.bdc_cube <- function(type = "BDC", ...,
 
     # require package
     if (!requireNamespace("rstac", quietly = TRUE)) {
-        stop("Please install package rstac from brazil-data-cube github",
-            call. = FALSE
+        stop(paste("Please install package rstac from CRAN:",
+                   "'install.packages(rstac)'"), call. = FALSE
         )
     }
     if (purrr::is_null(url)) {
