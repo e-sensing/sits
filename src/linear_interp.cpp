@@ -10,16 +10,17 @@ using namespace Rcpp;
 
 bool detect_start_na(const int& a, const int& b){
     return (!Rcpp::IntegerVector::is_na(a) && Rcpp::IntegerVector::is_na(b));
-};
+}
 
 bool detect_end_na(const int& a, const int& b){
     return (Rcpp::IntegerVector::is_na(a) && !Rcpp::IntegerVector::is_na(b));
-};
+}
 
 int na_interp(int& first_val, int& next_val, const int& gaps, const int& i){
     // the minimum value of gaps is 2
     return (first_val + (i*(next_val - first_val)/gaps));
-};
+}
+
 Rcpp::IntegerVector na_linear_vector_interp(Rcpp::IntegerVector& x) {
     // This function linearly interpolates to fill sequences of NA
     // values surrounded by valid numbers.
