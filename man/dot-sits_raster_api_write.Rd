@@ -33,7 +33,7 @@
 \item{overwrite}{Overwrite the file}
 }
 \value{
-Data cube
+Data cubevalues
 }
 \description{
 Set the values of a raster object matrix

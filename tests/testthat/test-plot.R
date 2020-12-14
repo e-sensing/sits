@@ -46,7 +46,7 @@ test_that("Plot Time Series and Classification", {
         satellite = "TERRA",
         sensor = "MODIS",
         timeline = timeline_modis_392,
-        bands = "ndvi",
+        bands = "NDVI",
         files = files
     )
 
@@ -59,6 +59,10 @@ test_that("Plot Time Series and Classification", {
             output_dir = tempdir()
         )
     )
+    p_probs <- plot(sinop_probs)
+    expect_equal(p_probs$adj, 0.5)
+    expect_equal(p_probs$lend, "round")
+
     sinop_labels <- sits_label_classification(sinop_probs,
                                               output_dir = tempdir())
     p4 <- plot(sinop_labels, time = 15)

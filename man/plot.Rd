@@ -32,6 +32,7 @@ required parameters:
  \item{raster cube:}{ see \code{\link{plot.raster_cube}}}
  \item{classification probabilities:}{ see \code{\link{plot.probs_cube}}}
  \item{classified image :}{see \code{\link{plot.classified_image}}}
+ \item{SOM evaluate cluster :}{see \code{\link{plot.evaluate_cluster}}}
 }
 
 
