@@ -174,9 +174,10 @@ IntegerMatrix cbers4_cld_detect(const IntegerMatrix& b13, const IntegerMatrix& b
                 cld_band(i,j) = ((abs(cld_idx_1 - 1.0) < thres_1) || mean_band(i,j) > thres_2);
                 shd_band(i,j) = (b16(i,j) < thres_3) && (b13(i,j) < thres_4);
             }
-            else
+            else {
                 cld_band(i,j) = NA_INTEGER;
                 shd_band(i,j) = NA_INTEGER;
+            }
         }
     }
 
