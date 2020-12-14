@@ -5,7 +5,7 @@
 #' @param url         a \code{character} representing a URL for the BDC catalog.
 #' @param collection  a \code{character} with the collection to be searched.
 #' @param bands       a \code{character} with the bands names to be filtered.
-#' @param ...        other parameters to be passed for specific types.
+#' @param ...         other parameters to be passed for specific types.
 #'
 #' @return            a \code{STACCollection} object returned by rstac.
 .sits_stac_collection <- function(url         = NULL,
@@ -98,7 +98,7 @@
     # if specified, a filter per tile is added to the query
     if (!is.null(tiles))
         rstac_query <- rstac_query %>%
-        rstac::ext_query(keys = "bdc:tile", ops = "%in%", values = tiles)
+        rstac::ext_query("bdc:tile" %in% tiles)
 
     # making the request
     items_info <- rstac_query %>% rstac::post_request(...)
@@ -158,11 +158,11 @@
 
     # grouping the items according to fields provided
     items_grouped <- rstac::items_group(items  = items,
-                                        fields = fields)
+                                        field  = fields)
 
     # adding a tile attribute in the root
     items_grouped <- purrr::map(items_grouped, function(x) {
-        x$tile <- rstac::items_reap(x, fields = fields)[[1]]
+        x$tile <- rstac::items_reap(x, field = fields)[[1]]
 
         # resolution
         x$xres <- x$features[[1]]$properties[["eo:gsd"]]
@@ -239,7 +239,6 @@
 
     return(datetime)
 }
-
 #' @title Format assets
 #' @name .sits_stac_items_info
 #' @keywords internal
