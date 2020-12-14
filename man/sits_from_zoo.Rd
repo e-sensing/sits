@@ -5,7 +5,7 @@
 \title{Import time series in the zoo format to a sits tibble}
 \usage{
 sits_from_zoo(
-  ts.zoo,
+  ts_zoo,
   longitude = 0,
   latitude = 0,
   label = "NoClass",
@@ -13,7 +13,7 @@ sits_from_zoo(
 )
 }
 \arguments{
-\item{ts.zoo}{Zoo time series.}
+\item{ts_zoo}{Zoo time series.}
 
 \item{longitude}{Longitude of the chosen location.}
 
@@ -33,8 +33,10 @@ Converts data from an instance of a zoo series to a sits tibble.
 # Read a time series in ZOO format
 data(ts_zoo)
 # Convert the zoo series into a sits tibble
-data <- sits_from_zoo (ts_zoo, longitude = -54.2313, latitude = -14.0482,
-           label = "Cerrado", name = "mod13q1")
+data <- sits_from_zoo(ts_zoo,
+    longitude = -54.2313, latitude = -14.0482,
+    label = "Cerrado", name = "mod13q1"
+)
 }
 \author{
 Gilberto Camara, \email{gilberto.camara@inpe.br}

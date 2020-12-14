@@ -1,6 +1,6 @@
 context("Color")
 
-test_that("Colors",{
+test_that("Colors", {
     expect_equal(sits:::.sits_color_name("BluePurple"), "BuPu")
 
     expect_equal(sits:::.sits_max_colors("BuPu"), 19)

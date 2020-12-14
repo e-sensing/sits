@@ -25,3 +25,4 @@ The plot function produces different plots based on the input data:
 \author{
 Lorena Santos \email{lorena.santos@inpe.br}
 }
+\keyword{internal}

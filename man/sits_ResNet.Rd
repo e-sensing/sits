@@ -72,18 +72,20 @@ Fawaz provides a reference code  in https://github.com/hfawaz/dl-4-tsc.
 If you use this function, please cite the references.
 }
 \examples{
-\donttest{
+\dontrun{
 # Retrieve the set of samples for the Mato Grosso (provided by EMBRAPA)
 
 # Build a machine learning model based on deep learning
-rn_model <- sits_train (samples_mt_4bands, sits_ResNet(epochs = 75))
+rn_model <- sits_train(samples_mt_4bands, sits_ResNet(epochs = 75))
 # Plot the model
 plot(rn_model)
 
 # get a point and classify the point with the ml_model
-point.tb <- sits_select_bands(point_mt_6bands, ndvi, evi, nir, mir)
-class.tb <- sits_classify(point.tb, rn_model)
-plot(class.tb, bands = c("ndvi", "evi"))
+point <- sits_select(point_mt_6bands,
+    bands = c("NDVI", "EVI", "NIR", "MIR")
+)
+class <- sits_classify(point.tb, rn_model)
+plot(class, bands = c("NDVI", "EVI"))
 }
 }
 \references{

@@ -17,11 +17,11 @@ Computes the contingency table between labels and clusters.
 This function needs as input a sits tibble with `cluster` column.
 }
 \examples{
-\donttest{
+\dontrun{
 # Load the "dtwclust" package
 # library(dtwclust)
 # create clusters by cutting a dendrogram
-clusters <- sits_cluster_dendro(cerrado_2classes, bands = c("ndvi", "evi"))
+clusters <- sits_cluster_dendro(cerrado_2classes, bands = c("NDVI", "EVI"))
 # show clusters samples frequency
 sits_cluster_frequency(clusters)
 }

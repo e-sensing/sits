@@ -19,9 +19,11 @@ and data cubes associated to the "sits" suite of packages.
 }
 \examples{
 # name of file to store the RSQLite database
-db_file <- paste0(Sys.getenv('HOME'),"/sits.sql")
+db_file <- paste0(Sys.getenv("HOME"), "/sits.sql")
 # create RSQLite connection
 conn <- sits_db_connect(db_file)
+# clean up
+unlink(db_file)
 }
 \author{
 Gilberto Camara, \email{gilberto.camara@inpe.br}

@@ -15,3 +15,4 @@ Check that the SATVEG service is working
 \author{
 Gilberto Camara, \email{gilberto.camara@inpe.br}
 }
+\keyword{internal}

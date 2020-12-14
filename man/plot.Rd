@@ -18,12 +18,25 @@
 - default is "Dark2").}
 }
 \value{
-Input sits tibble (useful for chaining functions).
+plot
 }
 \description{
-Given a sits tibble with a set of time series, plot them.
+This is a generic function. Parameters depend on the specific
+type of input.  See each function description for the
+required parameters:
+\itemize{
+ \item{sits tibble:}{see \code{\link{plot.sits}}}
+ \item{patterns: }{ see \code{\link{plot.patterns}}}
+ \item{SOM map:}{ see \code{\link{plot.som_map}}}
+ \item{classified time series:}{ see \code{\link{plot.predicted}}}
+ \item{raster cube:}{ see \code{\link{plot.raster_cube}}}
+ \item{classification probabilities:}{ see \code{\link{plot.probs_cube}}}
+ \item{classified image :}{see \code{\link{plot.classified_image}}}
+}
 
-The plot function produces different plots based on the input data:
+
+In the case of time series, the plot function produces different plots
+based on the input data:
 \itemize{
  \item{"all years": }{Plot all samples from the same location together}
  \item{"together": }{Plot all samples of the same band and label together}
@@ -34,12 +47,12 @@ will default to "all years". If there are more than 30 samples,
 it will default to "together".
 }
 \examples{
-\donttest{
+\dontrun{
 # Read a set of samples with 2 classes ("Cerrado" and "Pasture")
 # Plot all the samples together
 plot(cerrado_2classes)
 # Plot the first 20 samples (defaults to "allyears")
-plot(cerrado_2classes[1:20,])
+plot(cerrado_2classes[1:20, ])
 }
 }
 \author{

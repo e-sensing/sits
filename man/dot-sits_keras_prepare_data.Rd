@@ -29,3 +29,4 @@ the data for keras training, providing test and training data.
 \author{
 Gilberto Camara, \email{gilberto.camara@inpe.br}
 }
+\keyword{internal}

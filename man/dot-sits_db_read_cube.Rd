@@ -23,3 +23,4 @@ to an RSQLite database.
 \author{
 Gilberto Camara, \email{gilberto.camara@inpe.br}
 }
+\keyword{internal}

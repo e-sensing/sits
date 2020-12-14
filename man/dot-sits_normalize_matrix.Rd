@@ -4,10 +4,10 @@
 \alias{.sits_normalize_matrix}
 \title{Normalize the time series values in the case of a matrix}
 \usage{
-.sits_normalize_matrix(data.mx, stats, band, multicores)
+.sits_normalize_matrix(data, stats, band, multicores)
 }
 \arguments{
-\item{data.mx}{Matrix of values.}
+\item{data}{Matrix of values.}
 
 \item{stats}{Statistics for normalization.}
 
@@ -20,8 +20,9 @@ A normalized matrix.
 }
 \description{
 this function normalizes one band of the values read
-from a raster brick.
+from a raster
 }
 \author{
 Gilberto Camara, \email{gilberto.camara@inpe.br}
 }
+\keyword{internal}

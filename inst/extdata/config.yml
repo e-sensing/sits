@@ -1,15 +1,40 @@
 default:
 
     # estimated relative growth size of R memory relative to block size
-    R_memory_bloat           : 2.5
+    R_memory_bloat           : 4
     R_processing_bloat       : 5
 
-    # minimum number of samples for multicore processing
+    # number of items returned by stac service
+    rstac_pagination_limit   : 1000
+
+    # minimim number of samples for multiprocessing
     minimum_number_samples   : 1000
 
     # Data cube types known to sits
-    cube_types              : ["WTSS", "SATVEG", "BRICK", "PROBS", "CLASSIFIED"]
-    cube_classes            : ["wtss_cube", "satveg_cube", "brick_cube", "probs_cube", "classified_image"]
+    cube_types              : ["WTSS", "SATVEG", "BRICK", "STACK", "RASTER", "BDC", "S2_L2A_AWS", "PROBS", "CLASSIFIED"]
+    cube_classes_generic    : ["wtss_cube", "satveg_cube", "raster_cube", "raster_cube", "raster_cube","raster_cube", "raster_cube", "raster_cube", "probs_cube", "classified_image"]
+    cube_classes_specific   : ["wtss_cube", "satveg_cube", "brick_cube", "stack_cube", "raster_cube", "bdc_cube", "s2_l2a_aws_cube", "probs_cube", "classified_image"]
+    cube_robjs              : ["no_raster", "no_raster", "raster", "raster", "raster", "raster", "raster"]
+    cube_services           : ["WTSS", "SATVEG"]
+    cube_raster             : ["RASTER", "BDC", "S2_L2A_AWS", "PROBS", "CLASSIFIED"]
+
+    # Image file extensions known to SITS
+    img_file_extensions     : ["tiff", "tif", "jp2", "hdf"]
+
+    # BDC configuration for access to data
+    bdc_stac                : "http://brazildatacube.dpi.inpe.br/stac/"
+    bdc_extension           : ["tif"]
+
+    # information to parse repositories
+    BDC               :
+        data_dir_path       : ["cube", "version", "tile"]
+        parse_info          : ["sat", "res", "X1", "X2", "X3", "tile", "date", "X4", "band"]
+        delim               : ["_"]
+
+    RASTER                   :
+        data_dir_path       : ["."]
+        parse_info          : ["band", "date"]
+        delim               : ["_"]
 
     # URL to access SATVEG
     SATVEG-EMBRAPA_server   : "https://www.satveg.cnptia.embrapa.br/satvegws/ws/perfil/ZW46IXzr4pRzJlX/"
@@ -29,110 +54,101 @@ default:
     CBERS-4_sensors         : ["AWFI"]
 
     MODIS                   :
+        bands               :
+            SITS            : ["BLUE", "RED", "NIR", "MIR"]
         missing_value       :
-            ndvi            : -3000
-            ndvi_spline     : -3000
-            ndvi_approx     : -3000
-            evi             : -3000
-            evi_spline      : -3000
-            evi_approx      : -3000
-            red             : -1000
-            nir             : -1000
-            blue            : -1000
-            mir             : -1000
-            savi            : -9999
-            ndmi            : -9999
-            ndwi2           : -9999
-            gemi            : -9999
+            NDVI            : -3000
+            EVI             : -3000
+            BLUE            : -1000
+            RED             : -1000
+            NIR             : -1000
+            MIR             : -1000
+            SAVI            : -9999
+            NDMI            : -9999
+            GEMI            : -9999
 
         minimum_value       :
-            ndvi            : -3000
-            ndvi_spline     : -3000
-            ndvi_approx     : -3000
-            evi             : -3000
-            evi_spline      : -3000
-            evi_approx      : -3000
-            red             : 0
-            blue            : 0
-            nir             : 0
-            mir             : 0
-            savi            : -10000
-            ndmi            : -10000
-            ndwi2           : -10000
-            gemi            : -10000
+            NDVI            : -3000
+            EVI             : -3000
+            BLUE            : 0
+            RED             : 0
+            NIR             : 0
+            MIR             : 0
+            SAVI            : -10000
+            NDMI            : -10000
+            GEMI            : -10000
 
         maximum_value       :
-            ndvi            : 10000
-            ndvi_spline     : 10000
-            ndvi_approx     : 10000
-            evi             : 10000
-            evi_spline      : 10000
-            evi_approx      : 10000
-            red             : 10000
-            blue            : 10000
-            nir             : 10000
-            mir             : 10000
-            savi            : 10000
-            ndmi            : 10000
-            ndwi2           : 10000
-            gemi            : 10000
+            NDVI            : 10000
+            EVI             : 10000
+            BLUE            : 10000
+            RED             : 10000
+            NIR             : 10000
+            MIR             : 10000
+            SAVI            : 10000
+            NDMI            : 10000
+            GEMI            : 10000
 
         scale_factor        :
-            ndvi            : 0.0001
-            ndvi_spline     : 0.0001
-            ndvi_approx     : 0.0001
-            evi             : 0.0001
-            evi_spline      : 0.0001
-            evi_approx      : 0.0001
-            red             : 0.0001
-            nir             : 0.0001
-            blue            : 0.0001
-            mir             : 0.0001
-            savi            : 0.0001
-            ndmi            : 0.0001
-            ndwi2           : 0.0001
-            gemi            : 0.0001
+            NDVI            : 0.0001
+            EVI             : 0.0001
+            BLUE            : 0.0001
+            RED             : 0.0001
+            NIR             : 0.0001
+            MIR             : 0.0001
+            SAVI            : 0.0001
+            NDMI            : 0.0001
+            GEMI            : 0.0001
 
         resolution          :
             xres            : 0.00208334
             yres            : 0.00208334
 
     OLI                     : &landsat
+        bands               :
+            SITS            : &oli_bands_sits ["B2", "B3", "B4", "B5", "B6", "B7", "NDVI", "EVI"]
+            BDC             : ["band2", "band3", "band4", "band5", "band6", "band7", "ndvi", "evi"]
+            RASTER          : *oli_bands_sits
         missing_value       :
-            ndvi            : -9999
-            evi             : -9999
-            blue            : -9999
-            red             : -9999
-            nir             : -9999
-            swir1           : -9999
-            swir2           : -9999
+            NDVI            : -9999
+            EVI             : -9999
+            B2              : -9999
+            B3              : -9999
+            B4              : -9999
+            B5              : -9999
+            B6              : -9999
+            B7              : -9999
+
 
         minimum_value       :
-            ndvi            : -3000
-            evi             : -3000
-            red             : 0
-            blue            : 0
-            nir             : 0
-            swir1           : 0
-            swir2           : 0
+            NDVI            : -3000
+            EVI             : -3000
+            B2              : 0
+            B3              : 0
+            B4              : 0
+            B5              : 0
+            B6              : 0
+            B7              : 0
 
         maximum_value       :
-            ndvi            : 10000
-            evi             : 10000
-            red             : 10000
-            blue            : 10000
-            nir             : 10000
-            swir1           : 10000
-            swir2           : 10000
+            NDVI            : 10000
+            EVI             : 10000
+            B2              : 10000
+            B3              : 10000
+            B4              : 10000
+            B5              : 10000
+            B6              : 10000
+            B7              : 10000
 
         scale_factor:
-            ndvi            : 0.0001
-            evi             : 0.0001
-            red             : 0.0001
-            blue            : 0.0001
-            nir             : 0.0001
-            swir1           : 0.0001
-            swir2           : 0.0001
+            NDVI            : 0.0001
+            EVI             : 0.0001
+            B2              : 0.0001
+            B3              : 0.0001
+            B4              : 0.0001
+            B5              : 0.0001
+            B6              : 0.0001
+            B7              : 0.0001
 
         resolution          :
             xres            : 30
@@ -143,167 +159,212 @@ default:
     ETM                     : *landsat
 
     AWFI                    :
+        bands               :
+            SITS            : &awfi_bands_sits ["B13", "B14", "B15", "B16", "NDVI", "EVI", "CMASK"]
+            BDC             : ["BAND13", "BAND14", "BAND15", "BAND16", "NDVI", "EVI", "CMASK"]
+            RASTER          : *awfi_bands_sits
+            cloud_band      : "CMASK"
+
+
         missing_value       :
-            ndvi            : 0
-            evi             : 0
-            nir             : 0
-            red             : 0
-            green           : 0
-            gndvi           : -9999
-            ndwi2           : -9999
-            pvr2            : -9999
-            gemi            : -9999
+            NDVI            : -9999
+            EVI             : -9999
+            B13             : -9999
+            B14             : -9999
+            B15             : -9999
+            B16             : -9999
+            CMASK           : 255
 
         minimum_value       :
-            ndvi            : 0
-            evi             : 0
-            nir             : 0
-            red             : 0
-            green           : 0
-            gndvi           : -10000
-            ndwi2           : -10000
-            pvr2            : -10000
-            gemi            : -10000
+            NDVI            : -10000
+            EVI             : -10000
+            B13             : 1
+            B14             : 1
+            B15             : 1
+            B16             : 1
+            CMASK           : 0
 
         maximum_value       :
-            ndvi            : 10000
-            evi             : 10000
-            nir             : 10000
-            red             : 10000
-            green           : 10000
-            gndvi           : 10000
-            ndwi2           : 10000
-            pvr2            : 10000
-            gemi            : 10000
+            NDVI            : 10000
+            EVI             : 10000
+            B13             : 10000
+            B14             : 10000
+            B15             : 10000
+            B16             : 10000
+            CMASK           : 4
 
         scale_factor:
-            ndvi            : 0.0001
-            evi             : 0.0001
-            nir             : 0.0001
-            red             : 0.0001
-            green           : 0.0001
-            gndvi           : 0.0001
-            ndwi2           : 0.0001
-            pvr2            : 0.0001
-            gemi            : 0.0001
+            NDVI            : 0.0001
+            EVI             : 0.0001
+            B13             : 0.0001
+            B14             : 0.0001
+            B15             : 0.0001
+            B16             : 0.0001
+            CMASK           : 1
 
         resolution          :
-            xres            : 60
-            yres            : 60
+            xres            : 64
+            yres            : 64
+
+        CMASK_values        :
+            no_clouds       : 0
+            clouds          : 4
 
     MSI                     :
+        bands               :
+            SITS            : &msi_bands_sits ["B01", "B02", "B03", "B04", "B05", "B06", "B07", "B08", "B8A", "B09", "B10", "B11", "B12", "SCL"]
+            S2_L2_AWS       : &msi_bands_aws ["B01", "B02", "B03", "B04", "B05", "B06", "B07", "B08", "B8A", "B09", "B10", "B11", "B12", "SCL"]
+            BDC             : ["band1", "band2", "band3", "band4", "band5", "band6", "band7", "band8", "band8a", "band9", "band10", "band11", "band12"]
+            RASTER          : *msi_bands_sits
+            AWS             : *msi_bands_aws
+            cloud_band      : "SCL"
+
+        SCL_values          :
+            0               : "missing_data"
+            1               : "defective pixel"
+            2               : "shadows"
+            3               : "cloud shadows"
+            4               : "vegetation"
+            5               : "non-vegetated"
+            6               : "water"
+            7               : "unclassified"
+            8               : "cloud medium"
+            9               : "cloud high"
+            10              : "thin cirrus"
+            11              : "snow or ice"
+
+        FMASK_values        :
+            0               : "clear land pixel"
+            1               : "clear water pixel"
+            2               : "cloud shadow"
+            3               : "snow"
+            4               : "cloud"
+            255             : "no observation"
+
         missing_value       :
-            evi             : -9999
-            savi            : -9999
-            ndvi            : -9999
-            ndmi            : -9999
-            blue            : -9999
-            red             : -9999
-            green           : -9999
-            bnir            : -9999
-            nnir            : -9999
-            swir1           : -9999
-            swir2           : -9999
+            NDVI            : -9999
+            EVI             : -9999
+            SAVI            : -9999
+            NDMI            : -9999
+            B01             : -9999
+            B02             : -9999
+            B03             : -9999
+            B04             : -9999
+            B05             : -9999
+            B06             : -9999
+            B07             : -9999
+            B08             : -9999
+            B8A             : -9999
+            B09             : -9999
+            B10             : -9999
+            B11             : -9999
+            B12             : -9999
+            SCL             : 0
 
         minimum_value       :
-            evi             : -9999
-            savi            : -9999
-            ndvi            : -9999
-            ndmi            : -9999
-            blue            : 0
-            red             : 0
-            green           : 0
-            bnir            : 0
-            nnir            : 0
-            swir1           : 0
-            swir2           : 0
+            EVI             : -9999
+            SAVI            : -9999
+            NDVI            : -9999
+            NDMI            : -9999
+            B01             : 0
+            B02             : 0
+            B03             : 0
+            B04             : 0
+            B05             : 0
+            B06             : 0
+            B07             : 0
+            B08             : 0
+            B8A             : 0
+            B09             : 0
+            B10             : 0
+            B11             : 0
+            B12             : 0
+            SCL             : 0
 
         maximum_value       :
-            evi             : 10000
-            savi            : 10000
-            ndvi            : 10000
-            ndmi            : 10000
-            blue            : 10000
-            red             : 10000
-            green           : 10000
-            bnir            : 10000
-            nnir            : 10000
-            swir1           : 10000
-            swir2           : 10000
+            EVI             : 10000
+            SAVI            : 10000
+            NDVI            : 10000
+            NDMI            : 10000
+            B01             : 10000
+            B02             : 10000
+            B03             : 10000
+            B04             : 10000
+            B05             : 10000
+            B06             : 10000
+            B07             : 10000
+            B08             : 10000
+            B8A             : 10000
+            B09             : 10000
+            B10             : 10000
+            B11             : 10000
+            B12             : 10000
+            SCL             : 1
 
         scale_factor:
-            evi             : 0.0001
-            savi            : 0.0001
-            ndvi            : 0.0001
-            ndmi            : 0.0001
-            blue            : 0.0001
-            red             : 0.0001
-            green           : 0.0001
-            bnir            : 0.0001
-            nnir            : 0.0001
-            swir1           : 0.0001
-            swir2           : 0.0001
+            EVI             : 0.0001
+            SAVI            : 0.0001
+            NDVI            : 0.0001
+            NDMI            : 0.0001
+            B01             : 0.0001
+            B02             : 0.0001
+            B03             : 0.0001
+            B04             : 0.0001
+            B05             : 0.0001
+            B06             : 0.0001
+            B07             : 0.0001
+            B08             : 0.0001
+            B8A             : 0.0001
+            B09             : 0.0001
+            B10             : 0.0001
+            B11             : 0.0001
+            B12             : 0.0001
+            SCL             : 1
 
         resolution          :
             xres            : 10
             yres            : 10
 
+    S2_L2A_AWS              : &sentinel
+        bucket              : "sentinel-s2-l2a"
+        resolutions         : ["10m", "20m", "60m"]
+        10m_bands           : ["B02", "B03", "B04", "B08"]
+        20m_bands           : ["B02", "B03", "B04", "B05", "B06", "BO7", "B08", "B8A", "B11", "B12", "SCL"]
+        60m_bands           : ["B01", "B02", "B03", "B04", "B05", "B06", "BO7", "B08", "B8A", "B09", "B10", "B11", "B12", "SCL"]
+        test_file           : "/vsis3/sentinel-s2-l2a/tiles/20/L/KP/2018/8/17/0/R20m/B02.jp2"
+        parse_info          : ["X1", "X2", "X3", "X4", "X5", "X6", "X7", "X8", "X9", "X10"]
+        delim               : ["/"]
 
-    tasseled_cap_coef       :
-        MODIS               :
-            brightness      :
-                 red        : 0.4395
-                 nir        : 0.5495
-                 blue       : 0.2460
-                 green      : 0.3918
-                 nir2       : 0.3506
-                 mir1       : 0.3506
-                 mir        : 0.2678
-            greenness       :
-                 red        : -0.4064
-                 nir        :  0.5129
-                 blue       : -0.2744
-                 green      : -0.2893
-                 nir2       :  0.4882
-                 mir1       : -0.036
-                 mir        : -0.4169
+    CLOUD                   :
+        BDC                 :
+            AWFI_CLD_BAND   : "CMASK"
+            AWFI_cld_vls    : 4
+            MSI_CLD_BAND    : "FMASK"
+            MSI_cld_vls     : [2, 3, 4, 255]
+            OLI_CLD_BAND    : "FMASK"
+            OLI_cld_vls     : [2, 3, 4, 255]
 
-            wetness         :
-                 red        : -0.4064
-                 nir        :  0.5129
-                 blue       : -0.2744
-                 green      : -0.2893
-                 nir2       :  0.4882
-                 mir1       : -0.036
-                 mir        : -0.4169
 
-        OLI                 :
-            brightness      :
-                 blue       : 0.3029
-                 green      : 0.2786
-                 red        : 0.4733
-                 nir        : 0.5599
-                 swir1      : 0.508
-                 swir2      : 0.1872
+        S2_L2A_AWS          :
+            MSI_CLD_BAND    : "SCL"
+            MSI_cld_vls     : [0, 1, 2, 3, 7, 8, 9, 10, 11]
 
-            greenness       :
-                 blue       : -0.2941
-                 green      : -0.243
-                 red        : -0.5424
-                 nir        :  0.7276
-                 swir1      :  0.0713
-                 swir2      : -0.1608
+        RASTER              : &raster_clouds
+            AWFI_CLD_BAND   : "CMASK"
+            AWFI_cld_vls    : 4
 
-            wetness         :
-                 blue       :  0.1511
-                 green      :  0.1973
-                 red        :  0.3283
-                 nir        :  0.3407
-                 swir1      : -0.7117
-                 swir2      : -0.4559
+            MSI_CLD_BAND    : "SCL"
+            MSI_cld_vls     : [0, 1, 2, 3, 7, 8, 9, 10, 11]
+
+            MODIS_CLD_BAND  : "pixel reliability"
+            MODIS_cld_vls   : [2,3]
+
+        BRICK               : *raster_clouds
+
+        STACK               : *raster_clouds
 
     SATVEG_bands            :
-        terra               : &bands-sv ["ndvi", "evi"]
+        terra               : &bands-sv ["NDVI", "EVI"]
         aqua                : *bands-sv
         comb                : *bands-sv
     SATVEG_bbox             :
@@ -342,28 +403,32 @@ default:
         comb                : *crs-wgs84
 
     colors:
-        Araguaia :          "#78c679"
-        Beans :             "#8c96c6"
-        Campo_Cerrado :     "#addd8e"
-        Cerradao     :      "#238443"
-        Cerrado :           "#41ab5d"
-        Cerrado_Rupestre :  "#d9f0a3"
-        Corn :              "#fcbba1"
-        Cotton:             "#fb6a4a"
-        Dunas :             "#fff7e6"
-        Fallow_Cotton :     "#fb6a4a"
-        Millet_Cotton :     "#fb6a4a"
-        Forest :            "#006837"
-        Pasture :           "#c6dbef"
-        Soy_Corn :          "#993404"
-        Soy_Cotton :        "#662506"
-        Soy_Fallow :        "#fec44f"
-        Soy_Sorghum:        "#ec7014"
-        Soy_Millet :        "#ec7014"
-        Soy_Sunflower :     "#fe9929"
-        Sugarcane :         "#8c6bb1"
-        Urban_Area :        "#969696"
-        Water      :        "#00008b"
+        Araguaia :          "palegreen3"
+        Beans :             "lightskyblue3"
+        Campo_Cerrado :     "darkseagreen3"
+        Cerradao     :      "forestgreen"
+        Cerrado :           "palegreen4"
+        Cerrado_Rupestre :  "lightgreen"
+        Corn :              "burlywood3"
+        Cotton:             "wheat2"
+        Cropland:           "orange4"
+        Dunas :             "honeydew3"
+        Deforestation:      "darkred"
+        Deforestatio:       "darkred"
+        Fallow_Cotton :     "wheat2"
+        Millet_Cotton :     "wheat4"
+        Forest :            "darkgreen"
+        Pasture :           "lightsteelblue2"
+        NonForest:          "lightsteelblue2"
+        Soy_Corn :          "orange2"
+        Soy_Cotton :        "orangered4"
+        Soy_Fallow :        "orange4"
+        Soy_Sorghum:        "darkorange3"
+        Soy_Millet :        "darkorange"
+        Soy_Sunflower :     "darkorange4"
+        Sugarcane :         "gold4"
+        Urban_Area :        "ivory4"
+        Water      :        "royalblue3"
 
 
 

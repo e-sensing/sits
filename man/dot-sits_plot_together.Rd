@@ -12,10 +12,11 @@
 \item{colors}{The color pallete to be used (default is "Set1").}
 }
 \value{
-The input sits tibble (useful for chaining functions).
+plot
 }
 \description{
 Plots all time series for the same label together.
 This function is useful to find out the spread of the values of
 the time series for a given label.
 }
+\keyword{internal}

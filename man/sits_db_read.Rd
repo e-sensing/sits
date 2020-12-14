@@ -19,13 +19,13 @@ This functions write a set of time series or data cubes
 to an RSQLite database.
 }
 \examples{
-\donttest{
+\dontrun{
 # create RSQLite connection
 conn <- sits_db_connect()
 # write a set of time series
 conn <- sits_db_write(conn, "cerrado_2classes", cerrado_2classes)
 # read a set of time series
-ts <-  sits_db_read(conn, "cerrado_2classes")
+ts <- sits_db_read(conn, "cerrado_2classes")
 }
 }
 \author{

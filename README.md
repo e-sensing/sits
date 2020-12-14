@@ -2,28 +2,80 @@ SITS - Satellite Image Time Series Analysis for Earth Observation Data
 Cubes
 ================
 
+<img src="inst/extdata/sticker/sits_sticker.png" alt="SITS icon"
+     width = "200" height = "200"
+     style="float:right; margin-right:10px"  />
+
 ### Overview
 
-The `sits` package provides a set of tools for analysis, visualization
+The `sits` R package provides a set of tools for analysis, visualization
 and classification of satellite image time series. It includes methods
 for filtering, clustering, classification, and post-processing.
 
-### Installation
+## Installation
 
-Please install the `sits` package from github, making sure you have the
-latest version of the other packages it requires:
+### Pre-Requisites
+
+The `sits` package relies on `sf` and `rgdal`, which in turn, require
+the installation of GDAL and PROJ library. Please follow the instruction
+for installing `sf` and `rgdal` available at the [RSpatial sf github
+repository](https://github.com/r-spatial/sf).
+
+### Required Packages
+
+Please follow the following steps.
 
 ``` r
-devtools::install_github("e-sensing/sits")
-library(sits)
+# Install devtools, rmarkdown, knitr, testthat and Rcpp if not already available
+install.packages(c("devtools", "rmarkdown", "Rcpp", "knitr", "testthat"))
 
+# Please install the Suggested packages that are used by sits
+install.packages(c("DBI","dendextend", "dtwclust","dtwSat", "e1071", "flexclust",
+                   "imager", "imputeTS", "kohonen", "lwgeom", "MASS", "methods",
+                   "mgcv", "nnet", "proto", "proxy", "ptw", "ranger", "RCurl",
+                   "RSQLite", "signal", "xgboost", "zoo"))
+
+# Please install the Keras package from the RStudio repository
+devtools::install_github("rstudio/reticulate")
+devtools::install_github("rstudio/keras")
+# Build the keras environment
+library(keras)
+keras::install_keras()
 # Retrieve the "wtss" package (used for data access to the WTSS service)
 devtools::install_github("e-sensing/wtss")
-
+library(wtss)
+# Please install the `sits` package from github
+devtools::install_github("e-sensing/sits")
+library(sits)
 # Retrieve the data available in the "inSitu" package (used for some examples)
 devtools::install_github("e-sensing/inSitu")
-library(inSitu)library(inSitu)
+library(inSitu)
 ```
+
+### AMI Image
+
+For users that have an AWS account, we have prepared a set of AMI
+(Amazon Machine Images that is optimized for running SITS in the Amazon
+Elastic Compute Cloud (or EC2). The AMI has the following settings: SITS
+0.9.6, Ubuntu 18.04, R 4.0.2, and Rstudio Server 1.3.959. All packages
+have been updated as of 21 August 2020. The AMI is avaliable for the
+following regions:
+
+  - [South America
+    (sa-east-1)](https://console.aws.amazon.com/ec2/home?region=sa-east-1#launchAmi=ami-0567d9e8bca925a8d)
+  - [Frankfurt(eu-central-1)](https://console.aws.amazon.com/ec2/home?region=eu-central-1#launchAmi=ami-088e0eb8b0c3a74e3)
+  - [US East
+    (us-east-1)](https://console.aws.amazon.com/ec2/home?region=us-east-1#launchAmi=ami-02aa6bc45d45f75b9)
+  - [Asia Pacific
+    Singapore(ap-southeast-1)](https://console.aws.amazon.com/ec2/home?region=ap-southeast-1#launchAmi=ami-025e0b3b65bedb145)
+
+When you create an EC2 instance based on this AMI, ensure that your
+‘security group’ settings allow incoming HTTP (port 80), HTTPS (port
+443) and SSH (port 20) traffic. After the EC2 instance is started, then
+copy-and-paste the ‘IPv4 Public IP’ address for your running instance to
+a web browser address bar. That should bring the RStudio server
+interface in your browser. Use “rstudio” as username and “e-sensing” as
+password.
 
 ### Data Access
 
@@ -43,12 +95,13 @@ SITS”](https://github.com/e-sensing/sits-docs/blob/master/doc/timeseries.pdf).
 
 ### Visualization
 
-    #> Created logger for sits package - DEBUG level at /var/folders/x7/1gfnkcgs5v79n6f4tl33ph2w0000gp/T//Rtmp61lQKa/sits_debugccd419268c2c.log
-    #> Created logger for sits package - ERROR level at /var/folders/x7/1gfnkcgs5v79n6f4tl33ph2w0000gp/T//Rtmp61lQKa/sits_errorccd431bca99a.log
-    #> sits - satellite image time series analysis.
-    #> Loaded sits v0.9.5.1.
+    #> SITS - satellite image time series analysis.
+    #> Loaded sits v0.9.7.
     #>         See ?sits for help, citation("sits") for use in publication.
     #>         See demo(package = "sits") for examples.
+    #> Using configuration file: /Users/gilbertocamara/Library/R/4.0/library/sits/extdata/config.yml
+    #> Users can provide additional configurations in ~/.sits/config.yml
+    #> 
 
 ``` r
 cerrado_2classes[1:3,]
@@ -161,13 +214,13 @@ format using the function `sits_show_prediction` or graphically using
 
 ``` r
 
-# Train a machine learning model for the mato grosso dataset using Extreme Gradient Boosting
-samples_mt_2bands <- sits_select_bands(samples_mt_4bands, ndvi, evi)
+# Train a machine learning model for the mato grosso dataset using SVM
+samples_mt_2bands <- sits_select(samples_mt_4bands, bands = c("ndvi", "evi"))
 svm_model <- sits_train(data = samples_mt_2bands, 
                          ml_method = sits_svm())
 
 # get a point to be classified with four bands
-point_mt_2bands <- sits_select_bands(point_mt_6bands, ndvi, evi)
+point_mt_2bands <- sits_select(point_mt_6bands, bands = c("ndvi", "evi"))
 
 # filter the point with a Whittaker smoother
 point_filtered <- sits_whittaker(point_mt_2bands, lambda = 0.2, bands_suffix = "") 
@@ -256,12 +309,9 @@ For more information, please see the vignettes
 | Code Build         | [<img src="http://www.dpi.inpe.br/jenkins/buildStatus/icon?job=sits-build-ubuntu-16.04">](http://www.dpi.inpe.br/jenkins/job/sits-build-ubuntu-16.04/lastBuild/consoleFull)                 |
 | Code Check         | [<img src="http://www.dpi.inpe.br/jenkins/buildStatus/icon?job=sits-check-ubuntu-16.04">](http://www.dpi.inpe.br/jenkins/job/sits-check-ubuntu-16.04/lastBuild/consoleFull)                 |
 | Code Documentation | [<img src="http://www.dpi.inpe.br/jenkins/buildStatus/icon?job=sits-documentation-ubuntu-16.04">](http://www.dpi.inpe.br/jenkins/job/sits-documentation-ubuntu-16.04/lastBuild/consoleFull) |
-| Code Coverage      | [<img src="http://www.dpi.inpe.br/jenkins/buildStatus/icon?job=sits-covr-ubuntu-16.04">](http://www.dpi.inpe.br/jenkins/job/sits-covr-ubuntu-16.04/lastBuild/consoleFull)                   |
-| Test Coverage      | [<img src="http://codecov.io/github/e-sensing/sits/coverage.svg?branch=master">](https://codecov.io/github/e-sensing/sits?branch=master)                                                    |
+| Code Coverage      | [<img src="https://codecov.io/gh/e-sensing/sits/branch/master/graphs/badge.svg?branch=master">](https://codecov.io/github/e-sensing/sits?branch=master)                                     |
 | Project Status     | [<img src="http://www.repostatus.org/badges/latest/active.svg">](https://www.tidyverse.org/lifecycle/#maturing)                                                                             |
 | Lifecycle          | [<img src="https://img.shields.io/badge/lifecycle-maturing-blue.svg">](https://www.tidyverse.org/lifecycle/#maturing)                                                                       |
-
-[![DOI](https://zenodo.org/badge/98539507.svg)](https://zenodo.org/badge/latestdoi/98539507)
 
 #### License
 

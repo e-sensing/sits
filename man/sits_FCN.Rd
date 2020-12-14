@@ -70,18 +70,20 @@ in https://github.com/hfawaz/dl-4-tsc.
 If you use this function, please cite the references.
 }
 \examples{
-\donttest{
+\dontrun{
 # Retrieve the set of samples for the Mato Grosso region
 
 # Build a machine learning model based on deep learning
-cnn_model <- sits_train (samples_mt_4bands, sits_FCN())
+fcn_model <- sits_train(samples_mt_4bands, sits_FCN())
 # Plot the model
-plot(cnn_model)
+plot(fcn_model)
 
 # get a point and classify the point with the ml_model
-point.tb <- sits_select_bands(point_mt_6bands, ndvi, evi, nir, mir)
-class.tb <- sits_classify(point.tb, cnn_model)
-plot(class.tb, bands = c("ndvi", "evi"))
+point <- sits_select(point_mt_6bands,
+    bands = c("NDVI", "EVI", "NIR", "MIR")
+)
+point_class <- sits_classify(point.tb, cnn_model)
+plot(point_class, bands = c("NDVI", "EVI"))
 }
 }
 \references{

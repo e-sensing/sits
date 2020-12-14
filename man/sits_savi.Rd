@@ -16,12 +16,10 @@ A sits tibble with the SAVI index.
 Adds new tasseled cap bands.
 }
 \examples{
-\donttest{
 # Retrieve data for time series with label samples in Mato Grosso in Brazil
-data (samples_mt_6bands)
+data(samples_mt_6bands)
 # Generate a new image with the tasseled cap
 savi.tb <- sits_savi(samples_mt_6bands)
-}
 }
 \author{
 Gilberto Camara, \email{gilberto.camara@inpe.br}

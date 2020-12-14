@@ -4,14 +4,16 @@
 \alias{.sits_from_twdtw_matches}
 \title{Transform patterns from TWDTW format to sits format}
 \usage{
-.sits_from_twdtw_matches(match.twdtw)
+.sits_from_twdtw_matches(match)
 }
 \arguments{
-\item{match.twdtw}{A TWDTW Matches object of class dtwSat::twdtwMatches (S4).}
+\item{match}{A TWDTW Matches object of class dtwSat::twdtwMatches}
 }
 \value{
-A tibble containing the matches information.
+A list with information on the matches
 }
 \description{
-Reads one TWDTW matches object and transforms it into a tibble ready to be stored into a sits tibble column.
+Reads one TWDTW matches object and transforms it into a
+             tibble ready to be stored into a sits tibble column.
 }
+\keyword{internal}

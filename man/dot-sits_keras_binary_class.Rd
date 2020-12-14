@@ -4,11 +4,12 @@
 \alias{.sits_keras_binary_class}
 \title{Adjust keras prediction for the binary classification case}
 \usage{
-.sits_keras_binary_class(prediction_DT)
+.sits_keras_binary_class(prediction)
 }
 \arguments{
-\item{prediction_DT}{Predicted values from the keras model
-for the binary classification case (one column)}
+\item{prediction}{Predicted values from the keras model
+for the binary classification case
+(data.table with one column)}
 }
 \value{
 Data.table with an additional column for multi-class
@@ -23,3 +24,4 @@ in the prediction values to match the results of multi-class classification.
 \author{
 Gilberto Camara, \email{gilberto.camara@inpe.br}
 }
+\keyword{internal}

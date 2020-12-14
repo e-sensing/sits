@@ -4,19 +4,20 @@
 \alias{.sits_timeline_index_blocks}
 \title{Find the time index of the blocks to be extracted for classification}
 \usage{
-.sits_timeline_index_blocks(class_info.tb)
+.sits_timeline_index_blocks(class_info)
 }
 \arguments{
-\item{class_info.tb}{Tibble with information required for classification.}
+\item{class_info}{Tibble with information required for classification.}
 }
 \value{
-List with indexes of the input data set associated to each time interval
+Indexes of the input data set associated to each time interval
 used for classification.
 }
 \description{
-Obtains the indexes of the blocks to be extract for each time interval
+Obtains the indexes of the blocks for each time interval
 associated with classification.
 }
 \author{
 Gilberto Camara, \email{gilberto.camara@inpe.br}
 }
+\keyword{internal}

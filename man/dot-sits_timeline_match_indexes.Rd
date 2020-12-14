@@ -4,16 +4,16 @@
 \alias{.sits_timeline_match_indexes}
 \title{Find indexes in a timeline that match the reference dates}
 \usage{
-.sits_timeline_match_indexes(timeline, ref_dates.lst)
+.sits_timeline_match_indexes(timeline, ref_dates)
 }
 \arguments{
 \item{timeline}{Timeline of input observations (vector).}
 
-\item{ref_dates.lst}{Breaks to be applied to the input data set.}
+\item{ref_dates}{List of breaks to be applied to the input data set.}
 }
 \value{
 A list of indexes that match the reference dates
-                             to the timelines.
+                     to the timelines.
 }
 \description{
 For correct classification, the time series of the input data
@@ -25,3 +25,4 @@ For correct classification, the time series of the input data
 \author{
 Gilberto Camara, \email{gilberto.camara@inpe.br}
 }
+\keyword{internal}

@@ -2,9 +2,23 @@
 #' @method plot sits
 #' @name plot
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
-#' @description Given a sits tibble with a set of time series, plot them.
+#' @description This is a generic function. Parameters depend on the specific
+#' type of input.  See each function description for the
+#' required parameters:
+#' \itemize{
+#'  \item{sits tibble:}{see \code{\link{plot.sits}}}
+#'  \item{patterns: }{ see \code{\link{plot.patterns}}}
+#'  \item{SOM map:}{ see \code{\link{plot.som_map}}}
+#'  \item{classified time series:}{ see \code{\link{plot.predicted}}}
+#'  \item{raster cube:}{ see \code{\link{plot.raster_cube}}}
+#'  \item{classification probabilities:}{ see \code{\link{plot.probs_cube}}}
+#'  \item{classified image :}{see \code{\link{plot.classified_image}}}
+#'  \item{SOM evaluate cluster :}{see \code{\link{plot.evaluate_cluster}}}
+#' }
 #'
-#' The plot function produces different plots based on the input data:
+#'
+#' In the case of time series, the plot function produces different plots
+#' based on the input data:
 #' \itemize{
 #'  \item{"all years": }{Plot all samples from the same location together}
 #'  \item{"together": }{Plot all samples of the same band and label together}
@@ -19,29 +33,29 @@
 #' @param ...           further specifications for \link{plot}.
 #' @param  colors       Color pallete to be used (based on Color Brewer
 #'                      - default is "Dark2").
-#' @return Input sits tibble (useful for chaining functions).
+#' @return              plot
 #'
 #' @examples
-#' \donttest{
+#' \dontrun{
 #' # Read a set of samples with 2 classes ("Cerrado" and "Pasture")
 #' # Plot all the samples together
 #' plot(cerrado_2classes)
 #' # Plot the first 20 samples (defaults to "allyears")
-#' plot(cerrado_2classes[1:20,])
+#' plot(cerrado_2classes[1:20, ])
 #' }
 #' @export
 plot.sits <- function(x, y, ..., colors = "Dark2") {
-
     stopifnot(missing(y))
 
     # Are there more than 30 samples? Plot them together!
-    if (nrow(x) > 30)
-        .sits_plot_together(x, colors)
-    # If no conditions are met, take "allyears" as the default
-    else
-        .sits_plot_allyears(x, colors)
-    # return the original sits tibble - useful for chaining
-    return(invisible(x))
+    if (nrow(x) > 30) {
+          p <- .sits_plot_together(x, colors)
+      } # If no conditions are met, take "allyears" as the default
+    else {
+          p <- .sits_plot_allyears(x, colors)
+      }
+    # return the plot
+    return(invisible(p))
 }
 
 #' @title  Generic interface for ploting patterns
@@ -52,10 +66,10 @@ plot.sits <- function(x, y, ..., colors = "Dark2") {
 #' @param  x             object of class "patterns"
 #' @param  y             ignored
 #' @param  ...           further specifications for \link{plot}.
-#' @return Input sits tibble (useful for chaining functions).
+#' @return               plot
 #'
 #' @examples
-#' \donttest{
+#' \dontrun{
 #' # Read a set of samples with 2 classes ("Cerrado" and "Pasture")
 #' # Plot the patterns
 #' plot(sits_patterns(cerrado_2classes))
@@ -63,11 +77,368 @@ plot.sits <- function(x, y, ..., colors = "Dark2") {
 #' @export
 plot.patterns <- function(x, y, ...) {
     stopifnot(missing(y))
-    .sits_plot_patterns(x)
-    return(invisible(x))
+    p <- .sits_plot_patterns(x)
+    return(invisible(p))
+}
+
+#' @title  Generic interface for ploting time series predictions
+#' @name   plot.predicted
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
+#' @description Given a sits tibble with a set of predictions, plot them
+#'
+#' @param  x             object of class "predicted"
+#' @param  y             ignored
+#' @param  ...           further specifications for \link{plot}.
+#' @param  bands         bands used for visualisation
+#' @return               plot
+#'
+#' @examples
+#' \dontrun{
+#' # Retrieve the set of samples for Mato Grosso region (provided by EMBRAPA)
+#' samples_mt_ndvi <- sits_select(samples_mt_4bands, bands = "NDVI")
+#' # classify the point
+#' model_svm <- sits_train(samples_mt_ndvi, ml_method = sits_svm())
+#' class_ndvi.tb <- sits_classify(point_ndvi, model_svm)
+#' # plot the classification
+#' plot(class_ndvi.tb)
+#' }
+#' @export
+plot.predicted <- function(x, y, ..., bands = "NDVI") {
+    stopifnot(missing(y))
+    p <- .sits_plot_classification(x, bands)
+    return(invisible(p))
+}
+#' @title  Generic interface for plotting probability cubes
+#' @name   plot.raster_cube
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
+#' @description plots a stack cube using terra
+#'
+#' @param  x             object of class "raster_cube"
+#' @param  y             ignored
+#' @param  ...           further specifications for \link{plot}.
+#' @param  red           band for red color.
+#' @param  green         band for green color.
+#' @param  blue          band for blue color.
+#' @param  time          temporal instance to be plotted
+#'
+#' @return               mapview object
+#'
+#' @examples
+#' \dontrun{
+#' # retrieve two files with NDVI and EVI from MODIS
+#' ndvi_file <- c(system.file("extdata/raster/mod13q1/sinop-ndvi-2014.tif",
+#'     package = "sits"
+#' ))
+#' evi_file <- c(system.file("extdata/raster/mod13q1/sinop-evi-2014.tif",
+#'     package = "sits"
+#' ))
+#' # retrieve the timeline
+#' data("timeline_2013_2014")
+#' # create a data cube
+#' sinop_2014 <- sits_cube(
+#'     type = "BRICK",
+#'     name = "sinop-2014",
+#'     timeline = timeline_2013_2014,
+#'     satellite = "TERRA",
+#'     sensor = "MODIS",
+#'     bands = c("NDVI", "EVI"),
+#'     files = c(ndvi_file, evi_file)
+#' )
+#' # plot the data cube
+#' plot(sinop_2014, red = "EVI", green = "EVI", blue = "EVI")
+#' }
+#'
+#' @export
+plot.raster_cube <- function(x, y, ..., red, green, blue, time = 1) {
+    stopifnot(missing(y))
+    # verifies if mapview package is installed
+    if (!requireNamespace("mapview", quietly = TRUE)) {
+        stop("Please install package mapview.", call. = FALSE)
+    }
+    # verifies if raster package is installed
+    if (!requireNamespace("raster", quietly = TRUE)) {
+        stop("Please install package raster.", call. = FALSE)
+    }
+    # set mapview options
+    mapview::mapviewOptions(basemaps = c(
+        "GeoportailFrance.orthos",
+        "Esri.WorldImagery"
+    ))
+
+    # get information about bands and files
+    file_info <- x$file_info[[1]]
+
+    # is there a cloud band?
+    # remove the cloud band from the file information
+    bands <- sits_bands(x)
+    cld_band <- .sits_config_cloud_band(x)
+    if (cld_band %in% bands) {
+        file_info <- dplyr::filter(file_info, band != cld_band)
+        bands <- bands[bands != cld_band]
+    }
+    if (nrow(file_info) == length(bands)) {
+          is_brick <- TRUE
+      } else {
+          is_brick <- FALSE
+      }
+
+    # index to assign which bands to plot
+    index <- .sits_plot_rgb_assign(
+        is_brick = is_brick,
+        bands = bands,
+        timeline = sits_timeline(x),
+        red = toupper(red),
+        green = toupper(green),
+        blue = toupper(blue),
+        time = time
+    )
+
+    # is the data set a stack or a brick
+    if (is_brick) {
+        # use the raster package to obtain a "rast" object from a brick
+        rast <- suppressWarnings(raster::stack(file_info$path))
+        assertthat::assert_that(raster::ncol(rast) > 0 & raster::nrow(rast) > 1,
+            msg = "plot.raster_cube: unable to retrive raster data"
+        )
+
+        # plot the RGB file
+        mv <- suppressWarnings(mapview::viewRGB(rast,
+            r = index["red"],
+            g = index["green"],
+            b = index["blue"]
+        ))
+    }
+    else {
+        # use the raster package to obtain a raster object from a stack
+        rast <- suppressWarnings(raster::stack(file_info$path[index]))
+        assertthat::assert_that(raster::ncol(rast) > 0 & raster::nrow(rast) > 1,
+            msg = "plot.raster_cube: unable to retrieve raster data"
+        )
+        # plot the RGB file
+        mv <- suppressWarnings(mapview::viewRGB(rast, r = 1, g = 2, b = 3))
+    }
+
+    return(mv)
+}
+#' @title  Generic interface for plotting probability cubes
+#' @name   plot.probs_cube
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
+#' @description plots a probability cube using stars
+#'
+#' @param  x             object of class "probs_image"
+#' @param  y             ignored
+#' @param  ...           further specifications for \link{plot}.
+#' @param time           temporal reference for plot.
+#' @param breaks         type of breaks
+#' @param title          string.
+#' @param colors         color palette.
+#' @param n_colors       number of colors.
+#'
+#' @return               plot
+#'
+#' @examples
+#' \dontrun{
+#' # Retrieve the samples for Mato Grosso
+#' # select the bands for classification
+#' samples_ndvi_evi <- sits_select(samples_mt_4bands, bands = c("EVI", "NDVI"))
+#' # build the classification model
+#' rfor_model <- sits_train(samples_ndvi_evi, sits_rfor(num_trees = 2000))
+#'
+#' # select the bands "ndvi", "evi" provided by the SITS package
+#' ndvi_file <- c(system.file("extdata/raster/mod13q1/sinop-ndvi-2014.tif",
+#'     package = "sits"
+#' ))
+#' evi_file <- c(system.file("extdata/raster/mod13q1/sinop-evi-2014.tif",
+#'     package = "sits"
+#' ))
+#' # select the timeline
+#' data("timeline_2013_2014")
+#' # build a data cube from files
+#'
+#' sinop_2014 <- sits_cube(
+#'     type = "BRICK",
+#'     name = "sinop-2014",
+#'     timeline = timeline_2013_2014,
+#'     satellite = "TERRA",
+#'     sensor = "MODIS",
+#'     bands = c("ndvi", "evi"),
+#'     files = c(ndvi_file, evi_file)
+#' )
+#'
+#' # classify the raster image
+#' sinop_probs <- sits_classify(sinop_2014,
+#'     rfor_model,
+#'     output_dir = tempdir(),
+#'     memsize = 4,
+#'     multicores = 2
+#' )
+#'
+#' plot(sinop_probs)
+#' }
+#' @export
+plot.probs_cube <- function(x, y, ..., time = 1,
+                            title = "Probabilities for Classes",
+                            breaks = "kmeans",
+                            colors = "YlGnBu",
+                            n_colors = 10) {
+    stopifnot(missing(y))
+    # verifies if stars package is installed
+    if (!requireNamespace("stars", quietly = TRUE)) {
+        stop("Please install package stars.", call. = FALSE)
+    }
+    # define the output color pallete
+    col <- grDevices::hcl.colors(10, colors, rev = TRUE)
+    # create a stars object
+    st <- stars::read_stars(x$file_info[[1]]$path[[time]])
+
+    p <- plot(st,
+              breaks = breaks,
+              nbreaks = 11,
+              col = col,
+              main = x$labels[[1]]
+    )
+    return(invisible(p))
 }
 
 
+#' @title  Generic interface for ploting classified images
+#' @name   plot.classified_image
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
+#' @description plots a classified raster using ggplot.
+#'
+#' @param  x             object of class "classified_image"
+#' @param  y             ignored
+#' @param  ...           further specifications for \link{plot}.
+#' @param  map           map to overlay (mapview object)
+#' @param  time          temporal reference for plot.
+#' @param  title         string.
+#' @param  colors        color pallete.
+#'
+#' @examples
+#' \dontrun{
+#' # Retrieve the samples for Mato Grosso
+#' # select the bands for classification
+#' samples_ndvi_evi <- sits_select(samples_mt_4bands, bands = c("EVI", "NDVI"))
+#' # build the classification model
+#' xgb_model <- sits_train(samples_ndvi_evi, ml_method = sits_xgboost())
+#'
+#' # select the bands "ndvi", "evi" provided by the SITS package
+#' ndvi_file <- c(system.file("extdata/raster/mod13q1/sinop-ndvi-2014.tif",
+#'     package = "sits"
+#' ))
+#' evi_file <- c(system.file("extdata/raster/mod13q1/sinop-evi-2014.tif",
+#'     package = "sits"
+#' ))
+#' # select the timeline
+#' data("timeline_2013_2014")
+#' # build a data cube from files
+#'
+#' sinop_2014 <- sits_cube(
+#'     type = "BRICK", name = "sinop-2014",
+#'     timeline = timeline_2013_2014,
+#'     satellite = "TERRA",
+#'     sensor = "MODIS",
+#'     bands = c("ndvi", "evi"),
+#'     files = c(ndvi_file, evi_file)
+#' )
+#'
+#' # classify the raster image
+#' sinop_probs <- sits_classify(sinop_2014, xgb_model,
+#'     output_dir = tempdir(),
+#'     memsize = 4, multicores = 2
+#' )
+#' # smooth the result with a bayesian filter
+#' sinop_bayes <- sits_label_classification(sinop_probs,
+#'     output_dir = tempdir(),
+#'     smoothing = "bayesian"
+#' )
+#'
+#' # plot the smoothened image
+#' plot(sinop_bayes, title = "Sinop-Bayes")
+#' }
+#' @export
+plot.classified_image <- function(x, y, ..., map = NULL, time = 1,
+                                  title = "Classified Image", colors = NULL) {
+    stopifnot(missing(y))
+    # verifies if mapview package is installed
+    if (!requireNamespace("mapview", quietly = TRUE)) {
+        stop("Please install package mapview.", call. = FALSE)
+    }
+    # set mapview options
+    mapview::mapviewOptions(basemaps = c(
+        "GeoportailFrance.orthos",
+        "Esri.WorldImagery"
+    ))
+
+    # get the labels
+    labels <- .sits_cube_labels(x)
+
+    # if colors are not specified, get them from the configuration file
+    if (purrr::is_null(colors)) {
+        colors <- .sits_config_colors(labels)
+    }
+
+    # obtain the raster
+    rl <- suppressWarnings(raster::raster(x$file_info[[1]]$path[time]))
+    assertthat::assert_that(raster::ncol(rl) > 0 & raster::nrow(rl) > 1,
+        msg = "plot.raster_cube: unable to retrive raster data"
+    )
+    # create a RAT
+    rl <- raster::ratify(rl)
+    rat <- raster::levels(rl)[[1]]
+    # include labels in the RAT
+    # be careful - some labels may not exist in the classified image
+    rat$landcover <- labels[rat$ID]
+    colors <- colors[rat$ID]
+    # assign the RAT to the raster object
+    levels(rl) <- rat
+
+    # use mapview
+    if (!purrr::is_null(map))
+          mv <- suppressWarnings(
+            mapview::mapview(rl,
+                             map = map,
+                             col.regions = colors)
+            )
+    else
+          mv <- suppressWarnings(
+            mapview::mapview(rl,
+                             col.regions = colors)
+            )
+
+    return(mv)
+}
+
+#' @title  Plot information about confunsion between clusters
+#' @name   plot.som_evaluate_cluster
+#' @author Lorena Santos \email{lorena.santos@@inpe.br}
+#'
+#' @description Plot a bar graph with informations about each cluster.
+#' The percentage of mixture between the clusters.
+#'
+#' @param  x            object of class "plot.som_evaluate_cluster"
+#' @param  y            ignored
+#' @param  ...          further specifications for \link{plot}.
+#' @param  name_cluster Choose the cluster to plot
+#' @param  title        title of plot. default is ""Confusion by cluster"".
+#' @return              plot
+#' @examples
+#' \dontrun{
+#' # Produce a cluster map
+#'
+#' samples_mt_2bands <- sits_select(samples_mt_6bands, bands = c("NDVI", "EVI"))
+#' som_map <- sits_som_map(samples_mt_2bands)
+#' # Evaluate the clusters
+#' cluster_overall <- sits_som_evaluate_cluster(som_map)
+#' # Plot confusion between the clusters
+#' plot(cluster_overall)
+#' }
+#' @export
+plot.som_evaluate_cluster <- function(x, y, ..., name_cluster = NULL, title = "Confusion by cluster") {
+  stopifnot(missing(y))
+  p <- .sits_plot_som_evaluate_cluster(x, name_cluster, title)
+  return(invisible(p))
+}
 #' @title  Generic interface for plotting a SOM map
 #' @name   plot.som_map
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
@@ -85,10 +456,13 @@ plot.patterns <- function(x, y, ...) {
 #'                    "mapping" for the number of samples allocated in a neuron.
 #' @param  whatmap    What data layer will be plotted.
 #'
+#' @return            plot
+#'
 #' @examples
-#' \donttest{
+#' \dontrun{
 #' # Produce a cluster map
-#' som_map <- sits_som_map(prodes_226_064)
+#' samples_mt_2bands <- sits_select(samples_mt_6bands, bands = c("NDVI", "EVI"))
+#' som_map <- sits_som_map(samples_mt_2bands)
 #' # Plot the clusters
 #' plot(som_map, type = "codes")
 #' # Plot kohonen map showing where the samples were allocated
@@ -98,121 +472,44 @@ plot.patterns <- function(x, y, ...) {
 plot.som_map <- function(x, y, ..., type = "codes", whatmap = 1) {
     stopifnot(missing(y))
     .sits_plot_som_map(x, type, whatmap)
-    return(invisible(x))
 }
 
-#' @title  Generic interface for ploting time series predictions
-#' @name   plot.predicted
+#' @title  Generic interface for plotting a Keras model
+#' @name   plot.keras_model
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
-#' @description Given a sits tibble with a set of predictions, plot them
+#' @description plots a deep learning model
 #'
-#' @param  x             object of class "predicted"
+#' @param  x             Object of class "keras_model"
 #' @param  y             ignored
 #' @param  ...           further specifications for \link{plot}.
-#' @param  bands         Bands used for visualisation
-#' @return Input sits tibble (useful for chaining functions).
+#' @return               plot
 #'
 #' @examples
 #' \donttest{
-#' # Retrieve the set of samples for Mato Grosso region (provided by EMBRAPA)
-#' samples_mt_ndvi <- sits_select_bands(samples_mt_4bands, ndvi)
-#' # classify the point
-#' model_svm <- sits_train(samples_mt_ndvi, ml_method = sits_svm())
-#' class_ndvi.tb <-  sits_classify (point_ndvi, model_svm)
-#' # plot the classification
-#' plot (class_ndvi.tb)
+#' # Get a set of samples
+#' samples_ndvi_evi <- sits_select(samples_mt_4bands, bands = c("NDVI", "EVI"))
+#'
+#' # train a deep learning model
+#' dl_model <- sits_train(samples_ndvi_evi, ml_method = sits_deeplearning(
+#'     layers = c(512, 512, 512),
+#'     activation = "relu",
+#'     dropout_rates = c(0.50, 0.40, 0.35),
+#'     epochs = 100,
+#'     batch_size = 128,
+#'     validation_split = 0.2
+#' ))
+#' plot(dl_model)
 #' }
 #' @export
-plot.predicted <- function(x, y, ..., bands = "ndvi") {
-	stopifnot(missing(y))
-	.sits_plot_classification(x, bands)
-	return(invisible(x))
-}
-
-
-#' @title  Generic interface for ploting classified images
-#' @name   plot.classified_image
-#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
-#' @description plots a classified raster using ggplot.
-#'
-#' @param  x             Object of class "classified_image"
-#' @param  y             Ignored
-#' @param  ...           Further specifications for \link{plot}.
-#' @param time           Temporal reference for plot.
-#' @param title          A string.
-#' @param colors         Color pallete.
-#'
-#' @examples
-#' \donttest{
-#' # Retrieve the samples for Mato Grosso
-#'
-#' # select the bands "ndvi", "evi"
-#' samples_ndvi <- sits_select_bands(samples_mt_4bands, ndvi)
-#'
-#' #select a random forest model
-#'
-#' rfor_model <- sits_train(samples_ndvi, ml_method = sits_rfor())
-#' # Classify a raster file with 23 instances for one year
-#' files <- c(system.file("extdata/raster/mod13q1/sinop-crop-ndvi.tif",
-#'            package = "sits"))
-#' # create a data cube based on the information about the files
-#' sinop <- sits_cube(type = "BRICK", satellite = "TERRA", sensor = "MODIS",
-#'          name = "Sinop-crop", timeline = timeline_modis_392,
-#'          bands = "ndvi", files = files)
-#'
-#' # classify the raster image
-#' sinop_probs <- sits_classify(sinop, ml_model = rfor_model,
-#'                              memsize = 2, multicores = 1)
-#'
-#' # label the classified image
-#' sinop_label <- sits_label_classification(sinop_probs)
-#'
-#' # plot the raster image
-#' plot(sinop_label, time = 1, title = "Sinop-2013-2014")
-#'
-#' # remove the files (cleanup)
-#' file.remove(unlist(sinop_probs$files))
-#' file.remove(unlist(sinop_label$files))
-#' }
-#' @export
-plot.classified_image <- function(x , y, ..., time = 1,
-								  title = "Classified Image", colors = NULL) {
-	stopifnot(missing(y))
-	.sits_plot_raster(cube = x, time = time, title = title, colors = colors)
-	return(invisible(x))
-}
-
-#' @title  Plot information about confunsion between clusters
-#' @name   plot.som_confusion
-#' @author Lorena Santos \email{lorena.santos@@inpe.br}
-#'
-#' @description Plot a bar graph with informations about each cluster.
-#' The percentage of mixture between the clusters.
-#'
-#' @param  x            object of class "som_confusion"
-#' @param  y            ignored
-#' @param ...           further specifications for \link{plot}.
-#' @param title         Title of plot. default is ""Confusion by cluster"".
-#' @return              input object (useful for chaining)
-#' @examples
-#' \donttest{
-#' # Produce a cluster map
-#' som_map <- sits_som_map(prodes_226_064)
-#' # Evaluate the clusters
-#' cluster_overall <- sits_som_evaluate_cluster(som_map)
-#' # Plot confusion between the clusters
-#' plot(cluster_overall)
-#' }
-#' @export
-plot.som_confusion <- function(x, y, ...,title = "Confusion by cluster")
-{
-	stopifnot(missing(y))
-	.sits_plot_som_confusion(x, title)
-	return(invisible(x))
+plot.keras_model <- function(x, y, ...) {
+    stopifnot(missing(y))
+    p <- graphics::plot(environment(x)$history)
+    return(invisible(p))
 }
 
 #' @title Plot all intervals of one time series for the same lat/long together
 #' @name .sits_plot_allyears
+#' @keywords internal
 #'
 #' @description For each lat/long location in the data, join temporal
 #' instances of the same place together for plotting.
@@ -221,42 +518,51 @@ plot.som_confusion <- function(x, y, ...,title = "Confusion by cluster")
 .sits_plot_allyears <- function(data, colors) {
     locs <- dplyr::distinct(data, longitude, latitude)
 
-     p.lst <- purrr::pmap(list(locs$longitude, locs$latitude), function(long, lat) {
-         dplyr::filter(data, longitude == long, latitude == lat) %>%
-             .sits_ggplot_series(colors) %>%
-             graphics::plot()
-
-    })
-    return(invisible(p.lst[[1]]))
+    plots <- purrr::pmap(
+        list(locs$longitude, locs$latitude),
+        function(long, lat) {
+            dplyr::filter(data, longitude == long, latitude == lat) %>%
+                .sits_ggplot_series(colors) %>%
+                graphics::plot()
+        }
+    )
+    return(invisible(plots[[1]]))
 }
 
 
 #' @title Plot classification patterns
 #' @name .sits_plot_patterns
+#' @keywords internal
 #' @author Victor Maus, \email{vwmaus1@@gmail.com}
 #' @description   Plots the patterns to be used for classification
 #'                (code is reused from the dtwSat package by Victor Maus).
-#' @param data    One or more time series containing patterns.
+#' @param data    one or more time series containing patterns.
+#'
+#' @return        plot
 #'
 .sits_plot_patterns <- function(data) {
     # prepare a data frame for plotting
     plot.df <- data.frame()
 
     # put the time series in the data frame
-    purrr::pmap(list(data$label, data$time_series),
-                     function(label, ts) {
-                         lb <- as.character(label)
-                         # extract the time series and convert
-                         df <- data.frame(Time = ts$Index, ts[-1], Pattern = lb)
-                         plot.df <<- rbind(plot.df, df)
-    })
+    purrr::pmap(
+        list(data$label, data$time_series),
+        function(label, ts) {
+            lb <- as.character(label)
+            # extract the time series and convert
+            df <- data.frame(Time = ts$Index, ts[-1], Pattern = lb)
+            plot.df <<- rbind(plot.df, df)
+        }
+    )
 
     plot.df <- reshape2::melt(plot.df, id.vars = c("Time", "Pattern"))
 
     # Plot temporal patterns
-    gp <-  ggplot2::ggplot(plot.df, ggplot2::aes_string(x = "Time",
-                                                        y = "value",
-                                                        colour = "variable") ) +
+    gp <- ggplot2::ggplot(plot.df, ggplot2::aes_string(
+        x = "Time",
+        y = "value",
+        colour = "variable"
+    )) +
         ggplot2::geom_line() +
         ggplot2::facet_wrap(~Pattern) +
         ggplot2::theme(legend.position = "bottom") +
@@ -272,6 +578,7 @@ plot.som_confusion <- function(x, y, ...,title = "Confusion by cluster")
 #' @title Plot a set of time series for the same spatio-temporal reference
 #'
 #' @name .sits_plot_together
+#' @keywords internal
 #'
 #' @description Plots all time series for the same label together.
 #' This function is useful to find out the spread of the values of
@@ -279,32 +586,34 @@ plot.som_confusion <- function(x, y, ...,title = "Confusion by cluster")
 #'
 #' @param    data    A sits tibble with the list of time series to be plotted.
 #' @param    colors  The color pallete to be used (default is "Set1").
-#' @return           The input sits tibble (useful for chaining functions).
+#' @return           plot
 #'
 .sits_plot_together <- function(data, colors) {
     # create a data frame with the median, and 25% and 75% quantiles
-    create_IQR <- function(DT, band) {
-        data.table::setnames(DT, band, "V1")
-        DT_med <- DT[,stats::median(V1), by = Index]
-        data.table::setnames(DT_med,"V1", "med")
-        DT_qt25 <- DT[,stats::quantile(V1, 0.25), by = Index]
-        data.table::setnames(DT_qt25,"V1", "qt25")
-        DT_qt75 <- DT[,stats::quantile(V1, 0.75), by = Index]
-        data.table::setnames(DT_qt75,"V1", "qt75")
-        DT_qts <- merge(DT_med, DT_qt25)
-        DT_qts <- merge(DT_qts, DT_qt75)
-        data.table::setnames(DT, "V1", band)
-        return(DT_qts)
+    create_iqr <- function(dt, band) {
+        data.table::setnames(dt, band, "V1")
+        dt_med <- dt[, stats::median(V1), by = Index]
+        data.table::setnames(dt_med, "V1", "med")
+        dt_qt25 <- dt[, stats::quantile(V1, 0.25), by = Index]
+        data.table::setnames(dt_qt25, "V1", "qt25")
+        dt_qt75 <- dt[, stats::quantile(V1, 0.75), by = Index]
+        data.table::setnames(dt_qt75, "V1", "qt75")
+        dt_qts <- merge(dt_med, dt_qt25)
+        dt_qts <- merge(dt_qts, dt_qt75)
+        data.table::setnames(dt, "V1", band)
+        return(dt_qts)
     }
     # this function plots the values of all time series together (for one band)
-    plot_samples <- function(DT, DT_qts, band, label, number) {
+    plot_samples <- function(dt, dt_qts, band, label, number) {
         # melt the data into long format (required for ggplot to work)
-        DT_melted <- data.table::melt(DT, id.vars = "Index")
+        dt_melted <- data.table::melt(dt, id.vars = "Index")
         # make the plot title
         title <- paste("Samples (", number, ") for class ",
-                       label, " in band = ", band, sep = "")
+            label, " in band = ", band,
+            sep = ""
+        )
         # plot all data together
-        g <- .sits_ggplot_together(DT_melted, DT_qts, title)
+        g <- .sits_ggplot_together(dt_melted, dt_qts, title)
         p <- graphics::plot(g)
         return(p)
     }
@@ -312,238 +621,357 @@ plot.som_confusion <- function(x, y, ...,title = "Confusion by cluster")
     # how many different labels are there?
     labels <- sits_labels(data)$label
 
-    pl.lst <- labels %>%
+    label_plots <- labels %>%
         purrr::map(function(l) {
             lb <- as.character(l)
             # filter only those rows with the same label
-            data2.tb <- dplyr::filter(data, label == lb)
+            data2 <- dplyr::filter(data, label == lb)
             # how many time series are to be plotted?
-            number <- nrow(data2.tb)
+            number <- nrow(data2)
             # what are the band names?
-            bands  <- sits_bands(data2.tb)
+            bands <- sits_bands(data2)
             # what are the reference dates?
-            ref_dates <- sits_time_series_dates(data2.tb)
+            ref_dates <- sits_time_series_dates(data2)
             # align all time series to the same dates
-            data2.tb <- sits_align_dates(data2.tb, ref_dates)
+            data2 <- .sits_align_dates(data2, ref_dates)
 
-
-            pb.lst <- bands %>%
+            band_plots <- bands %>%
                 purrr::map(function(band) {
                     # select the band to be shown
-                    band.tb <- .sits_select_bands_(data2.tb, band)
+                    band_tb <- sits_select(data2, band)
                     # create a list with all time series for this band
-                    DT.lst <- purrr::map(band.tb$time_series,
-                                function(ts) {
-                                    data.table::data.table(ts)
-                                    })
+                    dt_lst <- purrr::map(
+                        band_tb$time_series,
+                        function(ts) {
+                            data.table::data.table(ts)
+                        }
+                    )
                     # set "Index" as the key for all data.tables in the list
-                    DT.lst <- purrr::map(DT.lst,
-                                function(dt) {
-                                    data.table::setkey(dt, Index)
-                                    })
+                    dt_lst <- purrr::map(
+                        dt_lst,
+                        function(dt) {
+                            data.table::setkey(dt, Index)
+                        }
+                    )
                     # rename the columns of the data table prior to merging
-                    length_DT <- length(DT.lst)
-                    DT.lst <- purrr::map2(DT.lst, 1:length_DT,
-                                function(dt, i) {
-                                    data.table::setnames(dt, band,
-                                        paste0(band, ".", as.character(i)))
-                                    })
+                    length_dt <- length(dt_lst)
+                    dt_lst <- purrr::map2(
+                        dt_lst, 1:length_dt,
+                        function(dt, i) {
+                            data.table::setnames(
+                                dt, band,
+                                paste0(band, ".", as.character(i))
+                            )
+                        }
+                    )
                     # merge the list of data.tables into a single table
-                    DT <- Reduce(function(...) merge(..., all = T), DT.lst)
+                    dt <- Reduce(function(...) merge(..., all = T), dt_lst)
 
                     # create another data.table with all the rows together
                     # (required to compute the median and quartile values)
-                    ts <- band.tb$time_series
-                    DT_byrows <- data.table::data.table(dplyr::bind_rows(ts))
+                    ts <- band_tb$time_series
+                    dt_byrows <- data.table::data.table(dplyr::bind_rows(ts))
                     # compute the median and quartile values
-                    DT_qts <- create_IQR(DT_byrows, band)
+                    dt_qts <- create_iqr(dt_byrows, band)
                     # plot the time series together
                     # (highlighting the median and quartiles 25% and 75%)
-                    plot_samples(DT, DT_qts, band, lb, number)
+                    p <- plot_samples(dt, dt_qts, band, lb, number)
+                    return(p)
                 })
+            return(band_plots)
         })
-    return(invisible(pl.lst[[1]][[1]]))
+    return(invisible(label_plots[[1]][[1]]))
 }
 
 #' @title Plot one timeSeries using ggplot
 #'
 #' @name .sits_ggplot_series
+#' @keywords internal
 #'
 #' @description Plots a set of time series using ggplot. This function is used
 #' for showing the same lat/long location in a series of time steps.
 #'
-#' @param row         A row of a sits tibble with the time series to be plotted.
-#' @param colors      Brewer colors to be used for plotting.
+#' @param row         row of a sits tibble with the time series to be plotted.
+#' @param colors      brewer colors to be used for plotting.
+#' @return            plot
 .sits_ggplot_series <- function(row, colors = "Dark2") {
+    # Are there NAs in the data?
+    if (any(is.na(row$time_series[[1]]))) {
+          g <- .sits_ggplot_series_na(row, colors)
+      } else {
+          g <- .sits_ggplot_series_no_na(row, colors)
+      }
+    return(g)
+}
+#' @title Plot one timeSeries using ggplot (no NAs present)
+#'
+#' @name .sits_ggplot_series_no_na
+#' @keywords internal
+#'
+#' @description Plots a set of time series using ggplot in the case the series
+#'              has no NAs.
+#'
+#' @param row         row of a sits tibble with the time series to be plotted.
+#' @param colors      brewer colors to be used for plotting.
+#' @return            plot
+.sits_ggplot_series_no_na <- function(row, colors = "Dark2") {
     # create the plot title
     plot_title <- .sits_plot_title(row$latitude, row$longitude, row$label)
-    #extract the time series
-    data.ts <- row$time_series
+    # extract the time series
+    data_ts <- row$time_series
     # melt the data into long format
-    melted.ts <- data.ts %>%
+    melted_ts <- data_ts %>%
         reshape2::melt(id.vars = "Index") %>%
         as.data.frame()
     # plot the data with ggplot
-    g <- ggplot2::ggplot(melted.ts, ggplot2::aes(x = Index,
-                                                 y = value,
-                                                 group = variable)) +
+    g <- ggplot2::ggplot(melted_ts, ggplot2::aes(
+        x = Index,
+        y = value,
+        group = variable
+    )) +
         ggplot2::geom_line(ggplot2::aes(color = variable)) +
         ggplot2::labs(title = plot_title) +
         ggplot2::scale_color_brewer(palette = colors)
+    return(g)
+}
+#' @title Plot one timeSeries wih NAs using ggplot
+#'
+#' @name .sits_ggplot_series_na
+#' @keywords internal
+#'
+#' @description Plots a set of time series using ggplot, showing where NAs are.
+#'
+#' @param row         row of a sits tibble with the time series to be plotted.
+#' @param colors      brewer colors to be used for plotting.
+#' @return            plot
+.sits_ggplot_series_na <- function(row, colors = "Dark2") {
+
+    # define a function to replace the NAs for unique values
+    replace_na <- function(x) {
+        x[is.na(x)] <- -10000
+        x[x != -10000] <- NA
+        x[x == -10000] <- 1
+        return(x)
+    }
+    # create the plot title
+    plot_title <- .sits_plot_title(row$latitude, row$longitude, row$label)
+
+    # include a new band in the data to show the NAs
+    data <- row$time_series[[1]]
+    data <- data %>%
+        dplyr::select_if(function(x) any(is.na(x))) %>%
+        .[, 1] %>%
+        `colnames<-`(., "X1") %>%
+        dplyr::transmute(cld = replace_na(X1)) %>%
+        dplyr::bind_cols(data, .)
+
+    # prepare tibble to ggplot (fortify)
+    ts1 <- tidyr::pivot_longer(data, -Index)
+    g <- ggplot2::ggplot(data = ts1 %>%
+        dplyr::filter(name != "cld")) +
+        ggplot2::geom_col(ggplot2::aes(x = Index, y = value),
+            fill = "sienna",
+            alpha = 0.3,
+            data = ts1 %>%
+                dplyr::filter(name == "cld", !is.na(value))
+        ) +
+        ggplot2::geom_line(ggplot2::aes(x = Index, y = value, color = name)) +
+        ggplot2::geom_point(ggplot2::aes(x = Index, y = value, color = name)) +
+        ggplot2::labs(title = plot_title)
+
     return(g)
 }
 
 #' @title Plot many timeSeries together using ggplot
 #'
 #' @name .sits_ggplot_together
+#' @keywords internal
 #'
 #' @description Plots a set of  time series together.
 #'
-#' @param melted.tb   A tibble with the time series (already melted).
-#' @param means.tb    Means and std deviations of the time series.
-#' @param plot_title  The title for the plot.
-.sits_ggplot_together <- function(melted.tb, means.tb, plot_title) {
-    g <- ggplot2::ggplot(data = melted.tb, ggplot2::aes(x = Index,
-                                                        y = value,
-                                                        group = variable)) +
+#' @param melted         tibble with the time series (already melted).
+#' @param means          means and std deviations of the time series.
+#' @param plot_title     title for the plot.
+#' @return               plot
+.sits_ggplot_together <- function(melted, means, plot_title) {
+    g <- ggplot2::ggplot(data = melted, ggplot2::aes(
+        x = Index,
+        y = value,
+        group = variable
+    )) +
         ggplot2::geom_line(colour = "#819BB1", alpha = 0.5) +
         ggplot2::labs(title = plot_title) +
-        ggplot2::geom_line(data = means.tb,
-                           ggplot2::aes(x = Index, y = med),
-                           colour = "#B16240", size = 2, inherit.aes = FALSE) +
-        ggplot2::geom_line(data = means.tb,
-                           ggplot2::aes(x = Index, y = qt25),
-                           colour = "#B19540", size = 1, inherit.aes = FALSE) +
-        ggplot2::geom_line(data = means.tb,
-                           ggplot2::aes(x = Index, y = qt75),
-                           colour = "#B19540", size = 1, inherit.aes = FALSE)
+        ggplot2::geom_line(
+            data = means,
+            ggplot2::aes(x = Index, y = med),
+            colour = "#B16240", size = 2, inherit.aes = FALSE
+        ) +
+        ggplot2::geom_line(
+            data = means,
+            ggplot2::aes(x = Index, y = qt25),
+            colour = "#B19540", size = 1, inherit.aes = FALSE
+        ) +
+        ggplot2::geom_line(
+            data = means,
+            ggplot2::aes(x = Index, y = qt75),
+            colour = "#B19540", size = 1, inherit.aes = FALSE
+        )
     return(g)
 }
 
 #' @title Create a plot title to use with ggplot
 #' @name .sits_plot_title
+#' @keywords internal
 #'
 #' @description Creates a plot title from row information.
 #'
-#' @param latitude   Latitude of the location to be plotted.
-#' @param longitude  Longitude of the location to be plotted.
-#' @param label      Lable of the location to be plotted.
-#' @return A string with the title to be used in the plot.
+#' @param latitude   latitude of the location to be plotted.
+#' @param longitude  longitude of the location to be plotted.
+#' @param label      label of the location to be plotted.
+#' @return           title to be used in the plot.
 .sits_plot_title <- function(latitude, longitude, label) {
     title <- paste("location (",
-                   latitude,  ", ",
-                   longitude, ") - ",
-                   label,
-                   sep = "")
+        signif(latitude, digits = 4), ", ",
+        signif(longitude, digits = 4), ") - ",
+        label,
+        sep = ""
+    )
     return(title)
 }
 
 #' @title Plot classification results
 #' @name .sits_plot_classification
+#' @keywords internal
 #' @author Victor Maus, \email{vwmaus1@@gmail.com}
-#' @description        Plots the classification results
+#' @description        plots the classification results
 #'                     (code reused from the dtwSat package by Victor Maus).
-#' @param data         A sits tibble with classified time series.
-#' @param bands        Band for plotting the classification.
+#' @param data         sits tibble with classified time series.
+#' @param bands        band for plotting the classification.
+#'
+#' @return             plot
 #'
 .sits_plot_classification <- function(data, bands = NULL) {
-    if (purrr::is_null(bands))
-        bands <- sits_bands(data)[1]
-
-    # prepare a data frame for plotting
-
-    #get the labels
-    labels <- sits_labels(data)$label
+    if (purrr::is_null(bands)) {
+          bands <- sits_bands(data)[1]
+      }
+    # bands in SITS are in uppercase
+    bands <- toupper(bands)
 
     # put the time series in the data frame
-    g.lst <- purrr::pmap(list(data$latitude, data$longitude, data$label,
-                              data$time_series, data$predicted),
-                         function(row_lat, row_long, row_label,
-                                  row_time_series, row_predicted) {
-                             lb <- .sits_plot_title(row_lat, row_long, row_label)
-                             # extract the time series
-                             ts <- row_time_series
-                             # convert to data frame
-                             df.x <- data.frame(Time = ts$Index, ts[,bands],
-                                                Series = as.factor(lb))
-                             # melt the time series data for plotting
-                             df.x <- reshape2::melt(df.x, id.vars = c("Time", "Series"))
-                             # define a nice set of breaks for value plotting
-                             y.labels <-  scales::pretty_breaks()(range(df.x$value,
-                                                                        na.rm = TRUE))
-                             y.breaks <-  y.labels
+    g_lst <- purrr::pmap(
+        list(
+            data$latitude, data$longitude, data$label,
+            data$time_series, data$predicted
+        ),
+        function(row_lat, row_long, row_label,
+                 row_time_series, row_predicted) {
+            lb <- .sits_plot_title(row_lat, row_long, row_label)
+            # extract the time series
+            ts <- row_time_series
+            # convert to data frame
+            df_x <- data.frame(
+                Time = ts$Index, ts[, bands],
+                Series = as.factor(lb)
+            )
+            # melt the time series data for plotting
+            df_x <- reshape2::melt(df_x, id.vars = c("Time", "Series"))
+            # define a nice set of breaks for value plotting
+            y_labels <- scales::pretty_breaks()(range(df_x$value,
+                na.rm = TRUE
+            ))
+            y_breaks <- y_labels
 
-                             # get the predicted values as a tibble
+            # get the predicted values as a tibble
+            df_pol <- data.frame()
 
-                             pred <- row_predicted
-                             df.pol <- data.frame()
+            # create a data frame with values and intervals
+            i <- 1
+            purrr::pmap(
+                list(
+                    row_predicted$from, row_predicted$to,
+                    row_predicted$class
+                ),
+                function(rp_from, rp_to, rp_class) {
+                    best_class <- as.character(rp_class)
 
-                             # create a data frame with values and intervals
-                             i <- 1
-                             purrr::pmap(list(row_predicted$from, row_predicted$to,
-                                              row_predicted$class),
-                                         function (rp_from, rp_to, rp_class) {
+                    df_p <- data.frame(
+                        Time = c(
+                            lubridate::as_date(rp_from),
+                            lubridate::as_date(rp_to),
+                            lubridate::as_date(rp_to),
+                            lubridate::as_date(rp_from)
+                        ),
+                        Group = rep(i, 4),
+                        Class = rep(best_class, 4),
+                        value = rep(range(y_breaks,
+                            na.rm = TRUE
+                        ), each = 2)
+                    )
+                    i <<- i + 1
+                    df_pol <<- rbind(df_pol, df_p)
+                }
+            )
 
-                                             best_class <- as.character(rp_class)
+            df_pol$Group <- factor(df_pol$Group)
+            df_pol$Class <- factor(df_pol$Class)
+            df_pol$Series <- rep(lb, length(df_pol$Time))
 
-                                             df.p <- data.frame(
-                                                 Time  = c(lubridate::as_date(rp_from),
-                                                           lubridate::as_date(rp_to),
-                                                           lubridate::as_date(rp_to),
-                                                           lubridate::as_date(rp_from)),
-                                                 Group = rep(i, 4),
-                                                 Class = rep(best_class, 4),
-                                                 value = rep(range(y.breaks,
-                                                                   na.rm = TRUE), each = 2)
-                                             )
-                                             i <<- i + 1
-                                             df.pol <<- rbind(df.pol, df.p)
+            I <- min(df_pol$Time, na.rm = TRUE) - 30 <= df_x$Time &
+                df_x$Time <= max(df_pol$Time, na.rm = TRUE) + 30
 
-                                         })
+            df_x <- df_x[I, , drop = FALSE]
 
-                             df.pol$Group  <-  factor(df.pol$Group)
-                             df.pol$Class  <-  factor(df.pol$Class)
-                             df.pol$Series <-  rep(lb, length(df.pol$Time))
+            gp <- ggplot2::ggplot() +
+                ggplot2::facet_wrap(~Series,
+                    scales = "free_x", ncol = 1
+                ) +
+                ggplot2::geom_polygon(
+                    data = df_pol,
+                    ggplot2::aes_string(
+                        x = "Time",
+                        y = "value",
+                        group = "Group",
+                        fill = "Class"
+                    ),
+                    alpha = .7
+                ) +
+                ggplot2::scale_fill_brewer(palette = "Set3") +
+                ggplot2::geom_line(
+                    data = df_x,
+                    ggplot2::aes_string(
+                        x = "Time",
+                        y = "value",
+                        colour = "variable"
+                    )
+                ) +
+                ggplot2::scale_y_continuous(
+                    expand = c(0, 0),
+                    breaks = y_breaks,
+                    labels = y_labels
+                ) +
+                ggplot2::scale_x_date(
+                    breaks = ggplot2::waiver(),
+                    labels = ggplot2::waiver()
+                ) +
+                ggplot2::theme(legend.position = "bottom") +
+                ggplot2::guides(
+                    colour =
+                        ggplot2::guide_legend(title = "Bands")
+                ) +
+                ggplot2::ylab("Value") +
+                ggplot2::xlab("Time")
 
-                             I <-  min(df.pol$Time, na.rm = TRUE) - 30 <= df.x$Time &
-                                 df.x$Time <= max(df.pol$Time, na.rm = TRUE) + 30
-
-                             df.x <- df.x[I,,drop = FALSE]
-
-                             gp <-  ggplot2::ggplot() +
-                                 ggplot2::facet_wrap(~Series,
-                                                     scales = "free_x", ncol = 1) +
-                                 ggplot2::geom_polygon(data = df.pol,
-                                                       ggplot2::aes_string(x = 'Time',
-                                                                           y = 'value',
-                                                                           group = 'Group',
-                                                                           fill = 'Class'),
-                                                       alpha = .7) +
-                                 ggplot2::scale_fill_brewer(palette = "Set3") +
-                                 ggplot2::geom_line(data = df.x,
-                                                    ggplot2::aes_string(x = 'Time',
-                                                                        y = 'value',
-                                                                        colour = 'variable')) +
-                                 ggplot2::scale_y_continuous(expand = c(0, 0),
-                                                             breaks = y.breaks,
-                                                             labels = y.labels) +
-                                 ggplot2::scale_x_date(breaks = ggplot2::waiver(),
-                                                       labels = ggplot2::waiver()) +
-                                 ggplot2::theme(legend.position = "bottom") +
-                                 ggplot2::guides(colour =
-                                                     ggplot2::guide_legend(title = "Bands")) +
-                                 ggplot2::ylab("Value") +
-                                 ggplot2::xlab("Time")
-
-                             g <- graphics::plot(gp)
-
-                         })
-    return(invisible(g.lst[[1]]))
+            g <- graphics::plot(gp)
+            return(g)
+        }
+    )
+    return(invisible(g_lst[[1]]))
 }
 
 #' @title Plot a raster classified images
 #'
 #' @name .sits_plot_raster
+#' @keywords internal
 #'
 #' @description plots a raster using ggplot. This function is used
 #' for showing the same lat/long location in a series of time steps.
@@ -556,20 +984,26 @@ plot.som_confusion <- function(x, y, ...,title = "Confusion by cluster")
                               time = 1,
                               title = "Classified Image",
                               colors = NULL) {
-    #precondition 1 - cube must be a labelled cube
-    assertthat::assert_that(as.logical(grep("class",.sits_cube_bands(cube)[1])),
-                            msg = "sits_plot_raster: input cube must be a labelled one")
-    #precondition 2 - time must be a positive integer
+    # precondition 1 - cube must be a labelled cube
+    assertthat::assert_that(as.logical(
+      grep("class", .sits_cube_bands(cube)[1])
+      ), msg = "sits_plot_raster: input cube must be a labelled one"
+    )
+    # precondition 2 - time must be a positive integer
     assertthat::assert_that(time >= 1,
-                            msg = "sits_plot_raster: time must be a positive integer")
+        msg = "sits_plot_raster: time must be a positive integer"
+    )
 
     # get the raster object
-    r <- .sits_cube_robj(cube, time)
+    r <- suppressWarnings(raster::raster(cube$files[[1]][time]))
+    assertthat::assert_that(raster::ncol(r) > 0 & raster::nrow(r) > 1,
+        msg = "plot.raster_cube: unable to retrive raster data"
+    )
 
     # convert from raster to points
-    map.p <- raster::rasterToPoints(r)
+    map_points <- raster::rasterToPoints(r)
     # create a data frame
-    df <- data.frame(map.p)
+    df <- data.frame(map_points)
     # define the column names for the data frame
     colnames(df) <- c("x", "y", "class")
 
@@ -581,9 +1015,7 @@ plot.som_confusion <- function(x, y, ...,title = "Confusion by cluster")
 
     # if colors are not specified, get them from the configuration file
     if (purrr::is_null(colors)) {
-        colors <- vector(length = nclasses)
-        for (i in 1:nclasses)
-            colors[i] <- .sits_config_color(labels[i])
+        colors <- .sits_config_colors(labels)
     }
     # set the names of the color vector
     names(colors) <- as.character(c(1:nclasses))
@@ -592,8 +1024,10 @@ plot.som_confusion <- function(x, y, ...,title = "Confusion by cluster")
     g <- ggplot2::ggplot(df, ggplot2::aes(x, y)) +
         ggplot2::geom_raster(ggplot2::aes(fill = factor(class))) +
         ggplot2::labs(title = title) +
-        ggplot2::scale_fill_manual(values = colors, labels = labels,
-                            guide = ggplot2::guide_legend(title = "Classes"))
+        ggplot2::scale_fill_manual(
+            values = colors, labels = labels,
+            guide = ggplot2::guide_legend(title = "Classes")
+        )
 
     graphics::plot(g)
     return(g)
@@ -601,81 +1035,96 @@ plot.som_confusion <- function(x, y, ...,title = "Confusion by cluster")
 
 #' @title Plot a dendrogram
 #' @name .sits_plot_dendrogram
+#' @keywords internal
 #' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
 #'
 #' @description Plot a dendrogram
 #'
-#' @param data          A sits tibble with data used to extract the dendrogram.
-#' @param cluster.obj   Cluster object produced by `sits_cluster` function.
-#' @param cutree_height A dashed horizontal line to be drawn
+#' @param data          sits tibble with data used to extract the dendrogram.
+#' @param cluster_obj   cluster object produced by `sits_cluster` function.
+#' @param cutree_height dashed horizontal line to be drawn
 #'                      indicating the height of dendrogram cutting.
-#' @param colors        A color scheme as showed in `sits_color_name` function.
+#' @param colors        color scheme as per `sits_color_name` function.
+#'
+#' @return              plot
 .sits_plot_dendrogram <- function(data,
-                                  cluster.obj,
+                                  cluster_obj,
                                   cutree_height = NULL,
-                                  colors = "RdYlGn"){
+                                  colors = "RdYlGn") {
 
     # verifies if dendextend package is installed
     if (!requireNamespace("dendextend", quietly = TRUE)) {
-        stop("dendextend needed for this function to work.
-             Please install it.", call. = FALSE)
+        stop("Please install package dendextend.", call. = FALSE)
     }
     # verifies if methods package is installed
     if (!requireNamespace("methods", quietly = TRUE)) {
-        stop("methods needed for this function to work.
-             Please install it.", call. = FALSE)
+        stop("Please install package methods.", call. = FALSE)
     }
 
 
     # ensures that a cluster object  exists
-    assertthat::assert_that(!purrr::is_null(cluster.obj),
-       msg = "plot_dendrogram: no valid cluster object available")
+    assertthat::assert_that(!purrr::is_null(cluster_obj),
+        msg = "plot_dendrogram: no valid cluster object available"
+    )
 
     # get unique labels
     data_labels <- data$label
-    u_lb        <- base::unique(data_labels)
+    u_lb <- base::unique(data_labels)
 
     # warns if the number of available colors is insufficient to all labels
     if (length(u_lb) > (
-        length(.sits_brewerRGB[[.sits_color_name(colors)]]) - 1))
-        message("sits_plot_dendrogram: The number of labels
+        length(.sits_brewer_rgb[[.sits_color_name(colors)]]) - 1)) {
+          message("sits_plot_dendrogram: The number of labels
                 is greater than the number of available colors.")
+      }
 
     # extract the dendrogram object
-    hclust_cl <- methods::S3Part(cluster.obj, strictS3 = TRUE)
-    dend      <- hclust_cl %>% stats::as.dendrogram()
+    hclust_cl <- methods::S3Part(cluster_obj, strictS3 = TRUE)
+    dend <- hclust_cl %>% stats::as.dendrogram()
 
     # prepare labels color vector
     cols <- character(length(data_labels))
-    cols[] <- grDevices::rgb(0/255,   0/255,   0/255,   0/255)
+    cols[] <- grDevices::rgb(0 / 255, 0 / 255, 0 / 255, 0 / 255)
 
     i <- 1
     seq(u_lb) %>%
         purrr::map(function(i) {
-            cols[data_labels[cluster.obj$order] == u_lb[i]] <<-
-                .sits_brewerRGB[[.sits_color_name(colors)]][[length(u_lb)]][[i]]
+            cols[data_labels[cluster_obj$order] == u_lb[i]] <<-
+              .sits_brewer_rgb[[.sits_color_name(colors)]][[length(u_lb)]][[i]]
             i <<- i + 1
         })
 
     # plot the dendrogram
-    dend <- dendextend::set(dend, "labels",
-                            character(length = length(data_labels)))
-    dend <- dendextend::set(dend, "branches_k_color", value = cols,
-                        k = length(data_labels))
+    dend <- dendextend::set(
+        dend, "labels",
+        character(length = length(data_labels))
+    )
+    dend <- dendextend::set(dend, "branches_k_color",
+        value = cols,
+        k = length(data_labels)
+    )
 
-    graphics::plot(dend,
-                   ylab = paste(tools::file_path_sans_ext(cluster.obj@method),
-                    "linkage distance"))
+    p <- graphics::plot(dend,
+        ylab = paste(
+            tools::file_path_sans_ext(cluster_obj@method),
+            "linkage distance"
+        )
+    )
 
     # plot cutree line
-    if (!purrr::is_null(cutree_height))
-        graphics::abline(h = cutree_height, lty = 2)
+    if (!purrr::is_null(cutree_height)) {
+          graphics::abline(h = cutree_height, lty = 2)
+      }
 
     # plot legend
     graphics::legend("topright",
-            fill = as.character(
-                .sits_brewerRGB[[.sits_color_name(colors)]][[length(u_lb)]]),
-                     legend = u_lb)
+        fill = as.character(
+            .sits_brewer_rgb[[.sits_color_name(colors)]][[length(u_lb)]]
+        ),
+        legend = u_lb
+    )
+
+    return(invisible(p))
 }
 
 
@@ -683,6 +1132,7 @@ plot.som_confusion <- function(x, y, ...,title = "Confusion by cluster")
 
 #' @title  Plot the SOM grid with neurons labeled
 #' @name   .sits_plot_som_map
+#' @keywords internal
 #' @author Lorena Santos \email{lorena.santos@@inpe.br}
 #' @description Given a kohonen object with a set of time neurons, plot them.
 #'
@@ -694,25 +1144,26 @@ plot.som_confusion <- function(x, y, ...,title = "Confusion by cluster")
 #' @param  koh        SOM map produced by "sits_som_map" function
 #' @param  type       Type of plot ("codes" or "mapping")
 #' @param  whatmap    What data layer will be plotted.
-.sits_plot_som_map <- function(koh, type = "codes", whatmap = 1)
-{
-	# Sanity check
-	if (!("som_map" %in% class(koh))) {
-		message("wrong input data; please run sits_som_map first")
-		return(invisible(NULL))
-	}
+.sits_plot_som_map <- function(koh, type = "codes", whatmap = 1) {
+    # Sanity check
+    if (!("som_map" %in% class(koh))) {
+        message("wrong input data; please run sits_som_map first")
+        return(invisible(NULL))
+    }
     if (type == "mapping") {
         graphics::plot(koh$som_properties,
-                       bgcol = koh$som_properties$paint_map ,
-                       "mapping", whatmap = whatmap)
+            bgcol = koh$som_properties$paint_map,
+            "mapping", whatmap = whatmap
+        )
     }
-    else if (type == "codes" ) {
+    else if (type == "codes") {
         graphics::plot(koh$som_properties,
-                       bgcol = koh$som_properties$paint_map ,
-                       "codes", whatmap = whatmap)
+            bgcol = koh$som_properties$paint_map,
+            "codes", whatmap = whatmap
+        )
     }
 
-    #create a legend
+    # create a legend
     leg <- cbind(koh$som_properties$neuron_label, koh$som_properties$paint_map)
     graphics::legend(
         "bottomright",
@@ -722,5148 +1173,104 @@ plot.som_confusion <- function(x, y, ...,title = "Confusion by cluster")
         pt.cex = 2,
         cex = 1,
         text.col = "black",
-        #horiz = T ,
+        # horiz = T ,
         inset = c(0.0095, 0.05),
         xpd = TRUE,
-        ncol = 1)
+        ncol = 1
+    )
 }
 
 #' @title  Plot information about confusion between clusters
-#' @name   .sits_plot_som_confusion
+#' @name   .sits_plot_som_evaluate_cluster
+#' @keywords internal
 #' @author Lorena Santos \email{lorena.santos@@inpe.br}
 #'
 #' @description Plot a bar graph with informations about each cluster.
 #' The percentage of mixture between the clusters.
 #'
-#' @param data       Table containing the percentage of mixture between the clusters
-#'                   (produced by \code{\link[sits]{sits_som_evaluate_cluster}})
-#' @param title      Title of plot.
-#' @return           ggplot2 object
-.sits_plot_som_confusion <- function(data, title)
-{
-    if (!("som_confusion" %in% class(data))) {
+#' @param data          Percentage of mixture between the clusters
+#' @param  name_cluster Choose the cluster to plot
+#' @param title         Title of plot.
+#' @return              ggplot2 object
+.sits_plot_som_evaluate_cluster <- function(data, cluster_name = NULL, title = "Confusion by cluster") {
+    if (!("som_evaluate_cluster" %in% class(data))) {
         message("unable to plot - please run sits_som_evaluate_cluster")
         return(invisible(NULL))
     }
-    #
-    data <- data$mixture_samples_by_class
-    sample_class <- data$classes_confusion
 
+    # Filter the cluster to plot
+    if (!(is.null(cluster_name))){
+      data <- dplyr::filter(data, cluster %in% cluster_name)
+    }
     p <- ggplot2::ggplot() +
-        ggplot2::geom_bar(
-            ggplot2::aes(
-                y = mixture_percentage,
-                x = class,
-                fill = sample_class
-            ),
-            data = data,
-            stat = "identity",
-            position = ggplot2::position_dodge()
-        ) +
-        ggplot2::theme_minimal() +
-        ggplot2::theme(axis.text.x =
-                           ggplot2::element_text(angle = 60, hjust = 1)) +
-        ggplot2::labs(x = "Classes", y = "Percentage of mixture",
-                      colour = "Sample Class") +
-        ggplot2::ggtitle(title)
+      ggplot2::geom_bar(
+        ggplot2::aes(
+          y = mixture_percentage,
+          x = cluster,
+          fill = class
+        ),
+        data = data,
+        stat = "identity",
+        position = ggplot2::position_dodge()
+      ) +
+      ggplot2::theme_minimal() +
+      ggplot2::theme(axis.text.x =
+                       ggplot2::element_text(angle = 60, hjust = 1)) +
+      ggplot2::labs(x = "Cluster", y = "Percentage of mixture") +
+      ggplot2::scale_fill_discrete(name = "Class label") +
+      ggplot2::ggtitle(title)
 
     p <- graphics::plot(p)
-
-    return(p)
+    return(invisible(p))
 }
+#' @title  Assign RGB channels to into image layers with many time instance
+#' @name   .sits_plot_rgb_assign
+#' @keywords internal
+#' @author Gilberto Camara \email{gilberto.camara@@inpe.br}
+#'
+#' @description Obtain a vector with the correct layer to be plotted for
+#' an RGB assignment of a multi-temporal cube
+#'
+#' @param is_brick   is the data a brick or a stack?
+#' @param bands      bands of the data cube (excludes cloud band)
+#' @param timeline   timeline of the data cube
+#' @param red        Band to be assigned to R channel
+#' @param green      Band to be assigned to G channel
+#' @param blue       Band to be assigned to G channel
+#' @param time       Temporal instance to be plotted
+#' @return           Named vector with the correct layers for RGB
+.sits_plot_rgb_assign <- function(is_brick, bands, timeline,
+                                  red, green, blue, time) {
 
-#' @title Brewer color schemes
-#' @name .sits_color_name
-#'
-#' @description Brewer color schemes names
-#'
-#' @param name      name of the brewer color set.
-#' @return A string with the common color set name.
-.sits_color_name <- function(name = NULL){
-    # approximate equivalent names in ISCC-NBS system
-    # see http://en.wikipedia.or"g/wiki/ISCC-NBS_system
-    names <- tibble::lst("BuGn" = "BuGn",
-                         "BlueishGreens" = "BuGn",
-                         "BlueGreens" = "BuGn",
-                         "BlueGreen" = "BuGn",
-                         "BuPu" = "BuPu",
-                         "BlueishPurples" = "BuPu",
-                         "BluePurples" = "BuPu",
-                         "BluePurple" = "BuPu",
-                         "GnBu" = "GnBu",
-                         "GreenishBlues" = "GnBu",
-                         "GreenBlues" = "GnBu",
-                         "GreenBlue" = "GnBu",
-                         "OrRd" = "OrRd",
-                         "OrangishReds" = "OrRd",
-                         "OrangeReds" = "OrRd",
-                         "OrangeRed" = "OrRd",
-                         "PuBu" = "PuBu",
-                         "PurplishBlues" = "PuBu",
-                         "PurpleBlues" = "PuBu",
-                         "PurpleBlue" = "PuBu",
-                         "PuBuGn" = "PuBuGn",
-                         "PurplishBlueGreens" = "PuBuGn",
-                         "PurpleBlueGreens" = "PuBuGn",
-                         "PurpleBlueGreen" = "PuBuGn",
-                         "PuRd" = "PuRd",
-                         "PurplishReds" = "PuRd",
-                         "PurpleReds" = "PuRd",
-                         "PurpleRed" = "PuRd",
-                         "RdPu" = "RdPu",
-                         "ReddishPurples" = "RdPu",
-                         "RedPurples" = "RdPu",
-                         "RedPurple" = "RdPu",
-                         "YlGn" = "YlGn",
-                         "YellowishGreens" = "YlGn",
-                         "YellowGreens" = "YlGn",
-                         "YellowGreen" = "YlGn",
-                         "YlGnBu" = "YlGnBu",
-                         "YellowishGreenBlues" = "YlGnBu",
-                         "YellowGreenBlues" = "YlGnBu",
-                         "YellowGreenBlue" = "YlGnBu",
-                         "YlOrBr" = "YlOrBr",
-                         "YellowishOrangeBrowns" = "YlOrBr",
-                         "YellowOrangeBrowns" = "YlOrBr",
-                         "YellowOrangeBrown" = "YlOrBr",
-                         "YlOrRd" = "YlOrRd",
-                         "YellowishOrangereds" = "YlOrRd",
-                         "YellowOrangeReds" = "YlOrRd",
-                         "YellowOrangeRed" = "YlOrRd",
-                         "Blues" = "Blues",
-                         "Blue" = "Blues",
-                         "Greens" = "Greens",
-                         "Green" = "Greens",
-                         "Greys" = "Greys",
-                         "Grey" = "Greys",
-                         "Grays" = "Greys",
-                         "Gray" = "Greys",
-                         "Oranges" = "Oranges",
-                         "Orange" = "Oranges",
-                         "Purples" = "Purples",
-                         "Purple" = "Purples",
-                         "Reds" = "Reds",
-                         "Red" = "Reds",
-                         "BrBG" = "BrBG",
-                         "BrownsBlueGrens" = "BrBG",
-                         "BrownsWhiteBlueGreens" = "BrBG",
-                         "BrownsWhiteBlueGreen" = "BrBG",
-                         "BrownsBlueGreens" = "BrBG",
-                         "BrownBlueGreen" = "BrBG",
-                         "PiYG" = "PiYG",
-                         "PurplesWhiteYellowGreens" = "PiYG",
-                         "PurplesYellowGreens" = "PiYG",
-                         "PurplesYellowGreen" = "PiYG",
-                         "PurplesYellowsGreens" = "PiYG",
-                         "PRGn" = "PRGn",
-                         "PurpleRedsWhiteGreens" = "PRGn",
-                         "PurplesRedsWhiteGreens" = "PRGn",
-                         "PurplesRedsGreens" = "PRGn",
-                         "PurpleRedWhiteGreen" = "PRGn",
-                         "PurpleRedGreen" = "PRGn",
-                         "PuOr" = "PuOr",
-                         "PurplesWhiteOranges" = "PuOr",
-                         "PurplesOranges" = "PuOr",
-                         "PurpleOrange" = "PuOr",
-                         "RdBu" = "RdBu",
-                         "RedsWhiteBlues" = "RdBu",
-                         "RedWhiteBlue" = "RdBu",
-                         "RedBlue" = "RdBu",
-                         "RedsBlues" = "RdBu",
-                         "RdGy" = "RdGy",
-                         "RedsWhiteGreys" = "RdGy",
-                         "RedsGreys" = "RdGy",
-                         "RedGrey" = "RdGy",
-                         "RdYlBu" = "RdYlBu",
-                         "ReddishYellowWhiteBlues" = "RdYlBu",
-                         "RedsYellowsBlues" = "RdYlBu",
-                         "RedYellowWhiteBlue" = "RdYlBu",
-                         "RedYellowBlue" = "RdYlBu",
-                         "RdYlGn" = "RdYlGn",
-                         "ReddishYellowWhiteGreens" = "RdYlGn",
-                         "RedsYellowsWhitesGreens" = "RdYlGn",
-                         "RedYellowWhiteGreen" = "RdYlGn",
-                         "RedsYellowsGreens" = "RdYlGn",
-                         "RedYellowGreen" = "RdYlGn",
-                         "Spectral" = "Spectral",
-                         "Paired" = "Paired",
-                         "Pastel1" = "Pastel1",
-                         "Pastel2" = "Pastel2",
-                         "Set1" = "Set1",
-                         "Set2" = "Set2",
-                         "Set3" = "Set3",
-                         "Accent" = "Accent",
-                         "Dark" = "Dark2",
-                         "Dark2" = "Dark2"
+    # check if the selected bands are correct
+    all_bands <- paste0(bands, collapse = " ")
+    assertthat::assert_that(red %in% bands,
+        msg = paste0("R channel should be one of ", all_bands)
     )
-    if (purrr::is_null(name))
-        return(names)
-    return(names[[name]])
-}
-
-#' @title Brewer color schemes
-#' @name .sits_max_colors
-#'
-#' @description Number of colors available in brewer color schemes.
-#'
-#' @param brewer    name of the brewer color set.
-#' @return The number of available colors.
-.sits_max_colors <- function(brewer = NULL){
-    if (purrr::is_null(brewer))
-        return(.sits_brewerRGB %>% purrr::map(function(sch){
-            sum((sch %>%
-                     purrr::map(function(n) length(n)) %>%
-                     as.numeric()) > 1)
-        }))
-    return(sum((.sits_brewerRGB[[.sits_color_name(brewer)]] %>%
-                    purrr::map(function(n) length(n)) %>%
-                    as.numeric()) > 1))
-}
-
-# Brewer color set constant
-# based on http://colorbrewer2.org colors' schemes
-.sits_brewerRGB <- tibble::lst(
-    "Spectral" =  tibble::lst(
-        "1" = tibble::lst(grDevices::rgb(252 / 255, 141 / 255, 89 / 255)),
-        "2" = tibble::lst(grDevices::rgb(252 / 255, 141 / 255, 89 / 255),
-                          grDevices::rgb(153 / 255, 213 / 255, 148 / 255)),
-        "3" = tibble::lst(grDevices::rgb(252 / 255, 141 / 255, 89 / 255),
-                          grDevices::rgb(255 / 255, 255 / 255, 191 / 255),
-                          grDevices::rgb(153 / 255, 213 / 255, 148 / 255)),
-        "4" = tibble::lst(grDevices::rgb(215 / 255, 25 / 255, 28 / 255),
-                          grDevices::rgb(253 / 255, 174 / 255, 97 / 255),
-                          grDevices::rgb(171 / 255, 221 / 255, 164 / 255),
-                          grDevices::rgb(43 / 255, 131 / 255, 186 / 255)),
-        "5" = tibble::lst(grDevices::rgb(215 / 255, 25 / 255, 28 / 255),
-                          grDevices::rgb(253 / 255, 174 / 255, 97 / 255),
-                          grDevices::rgb(255 / 255, 255 / 255, 191 / 255),
-                          grDevices::rgb(171 / 255, 221 / 255, 164 / 255),
-                          grDevices::rgb(43 / 255, 131 / 255, 186 / 255)),
-        "6" = tibble::lst(grDevices::rgb(213 / 255, 62 / 255, 79 / 255),
-                          grDevices::rgb(252 / 255, 141 / 255, 89 / 255),
-                          grDevices::rgb(254 / 255, 224 / 255, 139 / 255),
-                          grDevices::rgb(230 / 255, 245 / 255, 152 / 255),
-                          grDevices::rgb(153 / 255, 213 / 255, 148 / 255),
-                          grDevices::rgb(50 / 255, 136 / 255, 189 / 255)),
-        "7" = tibble::lst(grDevices::rgb(213 / 255, 62 / 255, 79 / 255),
-                          grDevices::rgb(252 / 255, 141 / 255, 89 / 255),
-                          grDevices::rgb(254 / 255, 224 / 255, 139 / 255),
-                          grDevices::rgb(255 / 255, 255 / 255, 191 / 255),
-                          grDevices::rgb(230 / 255, 245 / 255, 152 / 255),
-                          grDevices::rgb(153 / 255, 213 / 255, 148 / 255),
-                          grDevices::rgb(50 / 255, 136 / 255, 189 / 255)),
-        "8" = tibble::lst(grDevices::rgb(213 / 255, 62 / 255, 79 / 255),
-                          grDevices::rgb(244 / 255, 109 / 255, 67 / 255),
-                          grDevices::rgb(253 / 255, 174 / 255, 97 / 255),
-                          grDevices::rgb(254 / 255, 224 / 255, 139 / 255),
-                          grDevices::rgb(230 / 255, 245 / 255, 152 / 255),
-                          grDevices::rgb(171 / 255, 221 / 255, 164 / 255),
-                          grDevices::rgb(102 / 255, 194 / 255, 165 / 255),
-                          grDevices::rgb(50 / 255, 136 / 255, 189 / 255)),
-        "9" = tibble::lst(grDevices::rgb(213 / 255, 62 / 255, 79 / 255),
-                          grDevices::rgb(244 / 255, 109 / 255, 67 / 255),
-                          grDevices::rgb(253 / 255, 174 / 255, 97 / 255),
-                          grDevices::rgb(254 / 255, 224 / 255, 139 / 255),
-                          grDevices::rgb(255 / 255, 255 / 255, 191 / 255),
-                          grDevices::rgb(230 / 255, 245 / 255, 152 / 255),
-                          grDevices::rgb(171 / 255, 221 / 255, 164 / 255),
-                          grDevices::rgb(102 / 255, 194 / 255, 165 / 255),
-                          grDevices::rgb(50 / 255, 136 / 255, 189 / 255)),
-        "10" = tibble::lst(grDevices::rgb(158 / 255, 1 / 255, 66 / 255),
-                           grDevices::rgb(213 / 255, 62 / 255, 79 / 255),
-                           grDevices::rgb(244 / 255, 109 / 255, 67 / 255),
-                           grDevices::rgb(253 / 255, 174 / 255, 97 / 255),
-                           grDevices::rgb(254 / 255, 224 / 255, 139 / 255),
-                           grDevices::rgb(230 / 255, 245 / 255, 152 / 255),
-                           grDevices::rgb(171 / 255, 221 / 255, 164 / 255),
-                           grDevices::rgb(102 / 255, 194 / 255, 165 / 255),
-                           grDevices::rgb(50 / 255, 136 / 255, 189 / 255),
-                           grDevices::rgb(94 / 255, 79 / 255, 162 / 255)),
-        "11" = tibble::lst(grDevices::rgb(158 / 255, 1 / 255, 66 / 255),
-                           grDevices::rgb(213 / 255, 62 / 255, 79 / 255),
-                           grDevices::rgb(244 / 255, 109 / 255, 67 / 255),
-                           grDevices::rgb(253 / 255, 174 / 255, 97 / 255),
-                           grDevices::rgb(254 / 255, 224 / 255, 139 / 255),
-                           grDevices::rgb(255 / 255, 255 / 255, 191 / 255),
-                           grDevices::rgb(230 / 255, 245 / 255, 152 / 255),
-                           grDevices::rgb(171 / 255, 221 / 255, 164 / 255),
-                           grDevices::rgb(102 / 255, 194 / 255, 165 / 255),
-                           grDevices::rgb(50 / 255, 136 / 255, 189 / 255),
-                           grDevices::rgb(94 / 255, 79 / 255, 162 / 255)),
-        "type" = "divergent"
-    ),
-    "RdYlGn" = tibble::lst(
-        "1" = tibble::lst(grDevices::rgb(255 / 255, 255 / 255, 191 / 255)),
-        "2" = tibble::lst(grDevices::rgb(252 / 255, 141 / 255, 89 / 255),
-                          grDevices::rgb(145 / 255, 207 / 255, 96 / 255)),
-        "3" = tibble::lst(grDevices::rgb(252 / 255, 141 / 255, 89 / 255),
-                          grDevices::rgb(255 / 255, 255 / 255, 191 / 255),
-                          grDevices::rgb(145 / 255, 207 / 255, 96 / 255)),
-        "4" = tibble::lst(grDevices::rgb(215 / 255, 25 / 255, 28 / 255),
-                          grDevices::rgb(253 / 255, 174 / 255, 97 / 255),
-                          grDevices::rgb(166 / 255, 217 / 255, 106 / 255),
-                          grDevices::rgb(26 / 255, 150 / 255, 65 / 255)),
-        "5" = tibble::lst(grDevices::rgb(215 / 255, 25 / 255, 28 / 255),
-                          grDevices::rgb(253 / 255, 174 / 255, 97 / 255),
-                          grDevices::rgb(255 / 255, 255 / 255, 191 / 255),
-                          grDevices::rgb(166 / 255, 217 / 255, 106 / 255),
-                          grDevices::rgb(26 / 255, 150 / 255, 65 / 255)),
-        "6" = tibble::lst(grDevices::rgb(215 / 255, 48 / 255, 39 / 255),
-                          grDevices::rgb(252 / 255, 141 / 255, 89 / 255),
-                          grDevices::rgb(254 / 255, 224 / 255, 139 / 255),
-                          grDevices::rgb(217 / 255, 239 / 255, 139 / 255),
-                          grDevices::rgb(145 / 255, 207 / 255, 96 / 255),
-                          grDevices::rgb(26 / 255, 152 / 255, 80 / 255)),
-        "7" = tibble::lst(grDevices::rgb(215 / 255, 48 / 255, 39 / 255),
-                          grDevices::rgb(252 / 255, 141 / 255, 89 / 255),
-                          grDevices::rgb(254 / 255, 224 / 255, 139 / 255),
-                          grDevices::rgb(255 / 255, 255 / 255, 191 / 255),
-                          grDevices::rgb(217 / 255, 239 / 255, 139 / 255),
-                          grDevices::rgb(145 / 255, 207 / 255, 96 / 255),
-                          grDevices::rgb(26 / 255, 152 / 255, 80 / 255)),
-        "8" = tibble::lst(grDevices::rgb(215 / 255, 48 / 255, 39 / 255),
-                          grDevices::rgb(244 / 255, 109 / 255, 67 / 255),
-                          grDevices::rgb(253 / 255, 174 / 255, 97 / 255),
-                          grDevices::rgb(254 / 255, 224 / 255, 139 / 255),
-                          grDevices::rgb(217 / 255, 239 / 255, 139 / 255),
-                          grDevices::rgb(166 / 255, 217 / 255, 106 / 255),
-                          grDevices::rgb(102 / 255, 189 / 255, 99 / 255),
-                          grDevices::rgb(26 / 255, 152 / 255, 80 / 255)),
-        "9" = tibble::lst(grDevices::rgb(215 / 255, 48 / 255, 39 / 255),
-                          grDevices::rgb(244 / 255, 109 / 255, 67 / 255),
-                          grDevices::rgb(253 / 255, 174 / 255, 97 / 255),
-                          grDevices::rgb(254 / 255, 224 / 255, 139 / 255),
-                          grDevices::rgb(255 / 255, 255 / 255, 191 / 255),
-                          grDevices::rgb(217 / 255, 239 / 255, 139 / 255),
-                          grDevices::rgb(166 / 255, 217 / 255, 106 / 255),
-                          grDevices::rgb(102 / 255, 189 / 255, 99 / 255),
-                          grDevices::rgb(26 / 255, 152 / 255, 80 / 255)),
-        "10" = tibble::lst(grDevices::rgb(165 / 255, 0 / 255, 38 / 255),
-                           grDevices::rgb(215 / 255, 48 / 255, 39 / 255),
-                           grDevices::rgb(244 / 255, 109 / 255, 67 / 255),
-                           grDevices::rgb(253 / 255, 174 / 255, 97 / 255),
-                           grDevices::rgb(254 / 255, 224 / 255, 139 / 255),
-                           grDevices::rgb(217 / 255, 239 / 255, 139 / 255),
-                           grDevices::rgb(166 / 255, 217 / 255, 106 / 255),
-                           grDevices::rgb(102 / 255, 189 / 255, 99 / 255),
-                           grDevices::rgb(26 / 255, 152 / 255, 80 / 255),
-                           grDevices::rgb(0 / 255, 104 / 255, 55 / 255)),
-        "11" = tibble::lst(grDevices::rgb(165 / 255, 0 / 255, 38 / 255),
-                           grDevices::rgb(215 / 255, 48 / 255, 39 / 255),
-                           grDevices::rgb(244 / 255, 109 / 255, 67 / 255),
-                           grDevices::rgb(253 / 255, 174 / 255, 97 / 255),
-                           grDevices::rgb(254 / 255, 224 / 255, 139 / 255),
-                           grDevices::rgb(255 / 255, 255 / 255, 191 / 255),
-                           grDevices::rgb(217 / 255, 239 / 255, 139 / 255),
-                           grDevices::rgb(166 / 255, 217 / 255, 106 / 255),
-                           grDevices::rgb(102 / 255, 189 / 255, 99 / 255),
-                           grDevices::rgb(26 / 255, 152 / 255, 80 / 255),
-                           grDevices::rgb(0 / 255, 104 / 255, 55 / 255)),
-        "type" = "divergent"
-    ),
-    "RdBu" = tibble::lst(
-        "1" = tibble::lst(grDevices::rgb(103 / 255, 169 / 255, 207 / 255)),
-        "2" = tibble::lst(grDevices::rgb(239 / 255, 138 / 255, 98 / 255),
-                          grDevices::rgb(103 / 255, 169 / 255, 207 / 255)),
-        "3" = tibble::lst(grDevices::rgb(239 / 255, 138 / 255, 98 / 255),
-                          grDevices::rgb(247 / 255, 247 / 255, 247 / 255),
-                          grDevices::rgb(103 / 255, 169 / 255, 207 / 255)),
-        "4" = tibble::lst(grDevices::rgb(202 / 255, 0 / 255, 32 / 255),
-                          grDevices::rgb(244 / 255, 165 / 255, 130 / 255),
-                          grDevices::rgb(146 / 255, 197 / 255, 222 / 255),
-                          grDevices::rgb(5 / 255, 113 / 255, 176 / 255)),
-        "5" = tibble::lst(grDevices::rgb(202 / 255, 0 / 255, 32 / 255),
-                          grDevices::rgb(244 / 255, 165 / 255, 130 / 255),
-                          grDevices::rgb(247 / 255, 247 / 255, 247 / 255),
-                          grDevices::rgb(146 / 255, 197 / 255, 222 / 255),
-                          grDevices::rgb(5 / 255, 113 / 255, 176 / 255)),
-        "6" = tibble::lst(grDevices::rgb(178 / 255, 24 / 255, 43 / 255),
-                          grDevices::rgb(239 / 255, 138 / 255, 98 / 255),
-                          grDevices::rgb(253 / 255, 219 / 255, 199 / 255),
-                          grDevices::rgb(209 / 255, 229 / 255, 240 / 255),
-                          grDevices::rgb(103 / 255, 169 / 255, 207 / 255),
-                          grDevices::rgb(33 / 255, 102 / 255, 172 / 255)),
-        "7" = tibble::lst(grDevices::rgb(178 / 255, 24 / 255, 43 / 255),
-                          grDevices::rgb(239 / 255, 138 / 255, 98 / 255),
-                          grDevices::rgb(253 / 255, 219 / 255, 199 / 255),
-                          grDevices::rgb(247 / 255, 247 / 255, 247 / 255),
-                          grDevices::rgb(209 / 255, 229 / 255, 240 / 255),
-                          grDevices::rgb(103 / 255, 169 / 255, 207 / 255),
-                          grDevices::rgb(33 / 255, 102 / 255, 172 / 255)),
-        "8" = tibble::lst(grDevices::rgb(178 / 255, 24 / 255, 43 / 255),
-                          grDevices::rgb(214 / 255, 96 / 255, 77 / 255),
-                          grDevices::rgb(244 / 255, 165 / 255, 130 / 255),
-                          grDevices::rgb(253 / 255, 219 / 255, 199 / 255),
-                          grDevices::rgb(209 / 255, 229 / 255, 240 / 255),
-                          grDevices::rgb(146 / 255, 197 / 255, 222 / 255),
-                          grDevices::rgb(67 / 255, 147 / 255, 195 / 255),
-                          grDevices::rgb(33 / 255, 102 / 255, 172 / 255)),
-        "9" = tibble::lst(grDevices::rgb(178 / 255, 24 / 255, 43 / 255),
-                          grDevices::rgb(214 / 255, 96 / 255, 77 / 255),
-                          grDevices::rgb(244 / 255, 165 / 255, 130 / 255),
-                          grDevices::rgb(253 / 255, 219 / 255, 199 / 255),
-                          grDevices::rgb(247 / 255, 247 / 255, 247 / 255),
-                          grDevices::rgb(209 / 255, 229 / 255, 240 / 255),
-                          grDevices::rgb(146 / 255, 197 / 255, 222 / 255),
-                          grDevices::rgb(67 / 255, 147 / 255, 195 / 255),
-                          grDevices::rgb(33 / 255, 102 / 255, 172 / 255)),
-        "10" = tibble::lst(grDevices::rgb(103 / 255, 0 / 255, 31 / 255),
-                           grDevices::rgb(178 / 255, 24 / 255, 43 / 255),
-                           grDevices::rgb(214 / 255, 96 / 255, 77 / 255),
-                           grDevices::rgb(244 / 255, 165 / 255, 130 / 255),
-                           grDevices::rgb(253 / 255, 219 / 255, 199 / 255),
-                           grDevices::rgb(209 / 255, 229 / 255, 240 / 255),
-                           grDevices::rgb(146 / 255, 197 / 255, 222 / 255),
-                           grDevices::rgb(67 / 255, 147 / 255, 195 / 255),
-                           grDevices::rgb(33 / 255, 102 / 255, 172 / 255),
-                           grDevices::rgb(5 / 255, 48 / 255, 97 / 255)),
-        "11" = tibble::lst(grDevices::rgb(103 / 255, 0 / 255, 31 / 255),
-                           grDevices::rgb(178 / 255, 24 / 255, 43 / 255),
-                           grDevices::rgb(214 / 255, 96 / 255, 77 / 255),
-                           grDevices::rgb(244 / 255, 165 / 255, 130 / 255),
-                           grDevices::rgb(253 / 255, 219 / 255, 199 / 255),
-                           grDevices::rgb(247 / 255, 247 / 255, 247 / 255),
-                           grDevices::rgb(209 / 255, 229 / 255, 240 / 255),
-                           grDevices::rgb(146 / 255, 197 / 255, 222 / 255),
-                           grDevices::rgb(67 / 255, 147 / 255, 195 / 255),
-                           grDevices::rgb(33 / 255, 102 / 255, 172 / 255),
-                           grDevices::rgb(5 / 255, 48 / 255, 97 / 255)),
-        "type" = "divergent"
-    ),
-    "PiYG" = tibble::lst(
-        "1" = tibble::lst(grDevices::rgb(161 / 255, 215 / 255, 106 / 255)),
-        "2" = tibble::lst(grDevices::rgb(233 / 255, 163 / 255, 201 / 255),
-                          grDevices::rgb(161 / 255, 215 / 255, 106 / 255)),
-        "3" = tibble::lst(grDevices::rgb(233 / 255, 163 / 255, 201 / 255),
-                          grDevices::rgb(247 / 255, 247 / 255, 247 / 255),
-                          grDevices::rgb(161 / 255, 215 / 255, 106 / 255)),
-        "4" = tibble::lst(grDevices::rgb(208 / 255, 28 / 255, 139 / 255),
-                          grDevices::rgb(241 / 255, 182 / 255, 218 / 255),
-                          grDevices::rgb(184 / 255, 225 / 255, 134 / 255),
-                          grDevices::rgb(77 / 255, 172 / 255, 38 / 255)),
-        "5" = tibble::lst(grDevices::rgb(208 / 255, 28 / 255, 139 / 255),
-                          grDevices::rgb(241 / 255, 182 / 255, 218 / 255),
-                          grDevices::rgb(247 / 255, 247 / 255, 247 / 255),
-                          grDevices::rgb(184 / 255, 225 / 255, 134 / 255),
-                          grDevices::rgb(77 / 255, 172 / 255, 38 / 255)),
-        "6" = tibble::lst(grDevices::rgb(197 / 255, 27 / 255, 125 / 255),
-                          grDevices::rgb(233 / 255, 163 / 255, 201 / 255),
-                          grDevices::rgb(253 / 255, 224 / 255, 239 / 255),
-                          grDevices::rgb(230 / 255, 245 / 255, 208 / 255),
-                          grDevices::rgb(161 / 255, 215 / 255, 106 / 255),
-                          grDevices::rgb(77 / 255, 146 / 255, 33 / 255)),
-        "7" = tibble::lst(grDevices::rgb(197 / 255, 27 / 255, 125 / 255),
-                          grDevices::rgb(233 / 255, 163 / 255, 201 / 255),
-                          grDevices::rgb(253 / 255, 224 / 255, 239 / 255),
-                          grDevices::rgb(247 / 255, 247 / 255, 247 / 255),
-                          grDevices::rgb(230 / 255, 245 / 255, 208 / 255),
-                          grDevices::rgb(161 / 255, 215 / 255, 106 / 255),
-                          grDevices::rgb(77 / 255, 146 / 255, 33 / 255)),
-        "8" = tibble::lst(grDevices::rgb(197 / 255, 27 / 255, 125 / 255),
-                          grDevices::rgb(222 / 255, 119 / 255, 174 / 255),
-                          grDevices::rgb(241 / 255, 182 / 255, 218 / 255),
-                          grDevices::rgb(253 / 255, 224 / 255, 239 / 255),
-                          grDevices::rgb(230 / 255, 245 / 255, 208 / 255),
-                          grDevices::rgb(184 / 255, 225 / 255, 134 / 255),
-                          grDevices::rgb(127 / 255, 188 / 255, 65 / 255),
-                          grDevices::rgb(77 / 255, 146 / 255, 33 / 255)),
-        "9" = tibble::lst(grDevices::rgb(197 / 255, 27 / 255, 125 / 255),
-                          grDevices::rgb(222 / 255, 119 / 255, 174 / 255),
-                          grDevices::rgb(241 / 255, 182 / 255, 218 / 255),
-                          grDevices::rgb(253 / 255, 224 / 255, 239 / 255),
-                          grDevices::rgb(247 / 255, 247 / 255, 247 / 255),
-                          grDevices::rgb(230 / 255, 245 / 255, 208 / 255),
-                          grDevices::rgb(184 / 255, 225 / 255, 134 / 255),
-                          grDevices::rgb(127 / 255, 188 / 255, 65 / 255),
-                          grDevices::rgb(77 / 255, 146 / 255, 33 / 255)),
-        "10" = tibble::lst(grDevices::rgb(142 / 255, 1 / 255, 82 / 255),
-                           grDevices::rgb(197 / 255, 27 / 255, 125 / 255),
-                           grDevices::rgb(222 / 255, 119 / 255, 174 / 255),
-                           grDevices::rgb(241 / 255, 182 / 255, 218 / 255),
-                           grDevices::rgb(253 / 255, 224 / 255, 239 / 255),
-                           grDevices::rgb(230 / 255, 245 / 255, 208 / 255),
-                           grDevices::rgb(184 / 255, 225 / 255, 134 / 255),
-                           grDevices::rgb(127 / 255, 188 / 255, 65 / 255),
-                           grDevices::rgb(77 / 255, 146 / 255, 33 / 255),
-                           grDevices::rgb(39 / 255, 100 / 255, 25 / 255)),
-        "11" = tibble::lst(grDevices::rgb(142 / 255, 1 / 255, 82 / 255),
-                           grDevices::rgb(197 / 255, 27 / 255, 125 / 255),
-                           grDevices::rgb(222 / 255, 119 / 255, 174 / 255),
-                           grDevices::rgb(241 / 255, 182 / 255, 218 / 255),
-                           grDevices::rgb(253 / 255, 224 / 255, 239 / 255),
-                           grDevices::rgb(247 / 255, 247 / 255, 247 / 255),
-                           grDevices::rgb(230 / 255, 245 / 255, 208 / 255),
-                           grDevices::rgb(184 / 255, 225 / 255, 134 / 255),
-                           grDevices::rgb(127 / 255, 188 / 255, 65 / 255),
-                           grDevices::rgb(77 / 255, 146 / 255, 33 / 255),
-                           grDevices::rgb(39 / 255, 100 / 255, 25 / 255)),
-        "type" = "divergent"
-    ),
-    "PRGn" = tibble::lst(
-        "1" = tibble::lst(grDevices::rgb(247 / 255, 247 / 255, 247 / 255)),
-        "2" = tibble::lst(grDevices::rgb(175 / 255, 141 / 255, 195 / 255),
-                          grDevices::rgb(127 / 255, 191 / 255, 123 / 255)),
-        "3" = tibble::lst(grDevices::rgb(175 / 255, 141 / 255, 195 / 255),
-                          grDevices::rgb(247 / 255, 247 / 255, 247 / 255),
-                          grDevices::rgb(127 / 255, 191 / 255, 123 / 255)),
-        "4" = tibble::lst(grDevices::rgb(123 / 255, 50 / 255, 148 / 255),
-                          grDevices::rgb(194 / 255, 165 / 255, 207 / 255),
-                          grDevices::rgb(166 / 255, 219 / 255, 160 / 255),
-                          grDevices::rgb(0 / 255, 136 / 255, 55 / 255)),
-        "5" = tibble::lst(grDevices::rgb(123 / 255, 50 / 255, 148 / 255),
-                          grDevices::rgb(194 / 255, 165 / 255, 207 / 255),
-                          grDevices::rgb(247 / 255, 247 / 255, 247 / 255),
-                          grDevices::rgb(166 / 255, 219 / 255, 160 / 255),
-                          grDevices::rgb(0 / 255, 136 / 255, 55 / 255)),
-        "6" = tibble::lst(grDevices::rgb(118 / 255, 42 / 255, 131 / 255),
-                          grDevices::rgb(175 / 255, 141 / 255, 195 / 255),
-                          grDevices::rgb(231 / 255, 212 / 255, 232 / 255),
-                          grDevices::rgb(217 / 255, 240 / 255, 211 / 255),
-                          grDevices::rgb(127 / 255, 191 / 255, 123 / 255),
-                          grDevices::rgb(27 / 255, 120 / 255, 55 / 255)),
-        "7" = tibble::lst(grDevices::rgb(118 / 255, 42 / 255, 131 / 255),
-                          grDevices::rgb(175 / 255, 141 / 255, 195 / 255),
-                          grDevices::rgb(231 / 255, 212 / 255, 232 / 255),
-                          grDevices::rgb(247 / 255, 247 / 255, 247 / 255),
-                          grDevices::rgb(217 / 255, 240 / 255, 211 / 255),
-                          grDevices::rgb(127 / 255, 191 / 255, 123 / 255),
-                          grDevices::rgb(27 / 255, 120 / 255, 55 / 255)),
-        "8" = tibble::lst(grDevices::rgb(118 / 255, 42 / 255, 131 / 255),
-                          grDevices::rgb(153 / 255, 112 / 255, 171 / 255),
-                          grDevices::rgb(194 / 255, 165 / 255, 207 / 255),
-                          grDevices::rgb(231 / 255, 212 / 255, 232 / 255),
-                          grDevices::rgb(217 / 255, 240 / 255, 211 / 255),
-                          grDevices::rgb(166 / 255, 219 / 255, 160 / 255),
-                          grDevices::rgb(90 / 255, 174 / 255, 97 / 255),
-                          grDevices::rgb(27 / 255, 120 / 255, 55 / 255)),
-        "9" = tibble::lst(grDevices::rgb(118 / 255, 42 / 255, 131 / 255),
-                          grDevices::rgb(153 / 255, 112 / 255, 171 / 255),
-                          grDevices::rgb(194 / 255, 165 / 255, 207 / 255),
-                          grDevices::rgb(231 / 255, 212 / 255, 232 / 255),
-                          grDevices::rgb(247 / 255, 247 / 255, 247 / 255),
-                          grDevices::rgb(217 / 255, 240 / 255, 211 / 255),
-                          grDevices::rgb(166 / 255, 219 / 255, 160 / 255),
-                          grDevices::rgb(90 / 255, 174 / 255, 97 / 255),
-                          grDevices::rgb(27 / 255, 120 / 255, 55 / 255)),
-        "10" = tibble::lst(grDevices::rgb(64 / 255, 0 / 255, 75 / 255),
-                           grDevices::rgb(118 / 255, 42 / 255, 131 / 255),
-                           grDevices::rgb(153 / 255, 112 / 255, 171 / 255),
-                           grDevices::rgb(194 / 255, 165 / 255, 207 / 255),
-                           grDevices::rgb(231 / 255, 212 / 255, 232 / 255),
-                           grDevices::rgb(217 / 255, 240 / 255, 211 / 255),
-                           grDevices::rgb(166 / 255, 219 / 255, 160 / 255),
-                           grDevices::rgb(90 / 255, 174 / 255, 97 / 255),
-                           grDevices::rgb(27 / 255, 120 / 255, 55 / 255),
-                           grDevices::rgb(0 / 255, 68 / 255, 27 / 255)),
-        "11" = tibble::lst(grDevices::rgb(64 / 255, 0 / 255, 75 / 255),
-                           grDevices::rgb(118 / 255, 42 / 255, 131 / 255),
-                           grDevices::rgb(153 / 255, 112 / 255, 171 / 255),
-                           grDevices::rgb(194 / 255, 165 / 255, 207 / 255),
-                           grDevices::rgb(231 / 255, 212 / 255, 232 / 255),
-                           grDevices::rgb(247 / 255, 247 / 255, 247 / 255),
-                           grDevices::rgb(217 / 255, 240 / 255, 211 / 255),
-                           grDevices::rgb(166 / 255, 219 / 255, 160 / 255),
-                           grDevices::rgb(90 / 255, 174 / 255, 97 / 255),
-                           grDevices::rgb(27 / 255, 120 / 255, 55 / 255),
-                           grDevices::rgb(0 / 255, 68 / 255, 27 / 255)),
-        "type" = "divergent"
-    ),
-    "RdYlBu" = tibble::lst(
-        "1" = tibble::lst(grDevices::rgb(255 / 255, 255 / 255, 191 / 255)),
-        "2" = tibble::lst(grDevices::rgb(252 / 255, 141 / 255, 89 / 255),
-                          grDevices::rgb(145 / 255, 191 / 255, 219 / 255)),
-        "3" = tibble::lst(grDevices::rgb(252 / 255, 141 / 255, 89 / 255),
-                          grDevices::rgb(255 / 255, 255 / 255, 191 / 255),
-                          grDevices::rgb(145 / 255, 191 / 255, 219 / 255)),
-        "4" = tibble::lst(grDevices::rgb(215 / 255, 25 / 255, 28 / 255),
-                          grDevices::rgb(253 / 255, 174 / 255, 97 / 255),
-                          grDevices::rgb(171 / 255, 217 / 255, 233 / 255),
-                          grDevices::rgb(44 / 255, 123 / 255, 182 / 255)),
-        "5" = tibble::lst(grDevices::rgb(215 / 255, 25 / 255, 28 / 255),
-                          grDevices::rgb(253 / 255, 174 / 255, 97 / 255),
-                          grDevices::rgb(255 / 255, 255 / 255, 191 / 255),
-                          grDevices::rgb(171 / 255, 217 / 255, 233 / 255),
-                          grDevices::rgb(44 / 255, 123 / 255, 182 / 255)),
-        "6" = tibble::lst(grDevices::rgb(215 / 255, 48 / 255, 39 / 255),
-                          grDevices::rgb(252 / 255, 141 / 255, 89 / 255),
-                          grDevices::rgb(254 / 255, 224 / 255, 144 / 255),
-                          grDevices::rgb(224 / 255, 243 / 255, 248 / 255),
-                          grDevices::rgb(145 / 255, 191 / 255, 219 / 255),
-                          grDevices::rgb(69 / 255, 117 / 255, 180 / 255)),
-        "7" = tibble::lst(grDevices::rgb(215 / 255, 48 / 255, 39 / 255),
-                          grDevices::rgb(252 / 255, 141 / 255, 89 / 255),
-                          grDevices::rgb(254 / 255, 224 / 255, 144 / 255),
-                          grDevices::rgb(255 / 255, 255 / 255, 191 / 255),
-                          grDevices::rgb(224 / 255, 243 / 255, 248 / 255),
-                          grDevices::rgb(145 / 255, 191 / 255, 219 / 255),
-                          grDevices::rgb(69 / 255, 117 / 255, 180 / 255)),
-        "8" = tibble::lst(grDevices::rgb(215 / 255, 48 / 255, 39 / 255),
-                          grDevices::rgb(244 / 255, 109 / 255, 67 / 255),
-                          grDevices::rgb(253 / 255, 174 / 255, 97 / 255),
-                          grDevices::rgb(254 / 255, 224 / 255, 144 / 255),
-                          grDevices::rgb(224 / 255, 243 / 255, 248 / 255),
-                          grDevices::rgb(171 / 255, 217 / 255, 233 / 255),
-                          grDevices::rgb(116 / 255, 173 / 255, 209 / 255),
-                          grDevices::rgb(69 / 255, 117 / 255, 180 / 255)),
-        "9" = tibble::lst(grDevices::rgb(215 / 255, 48 / 255, 39 / 255),
-                          grDevices::rgb(244 / 255, 109 / 255, 67 / 255),
-                          grDevices::rgb(253 / 255, 174 / 255, 97 / 255),
-                          grDevices::rgb(254 / 255, 224 / 255, 144 / 255),
-                          grDevices::rgb(255 / 255, 255 / 255, 191 / 255),
-                          grDevices::rgb(224 / 255, 243 / 255, 248 / 255),
-                          grDevices::rgb(171 / 255, 217 / 255, 233 / 255),
-                          grDevices::rgb(116 / 255, 173 / 255, 209 / 255),
-                          grDevices::rgb(69 / 255, 117 / 255, 180 / 255)),
-        "10" = tibble::lst(grDevices::rgb(165 / 255, 0 / 255, 38 / 255),
-                           grDevices::rgb(215 / 255, 48 / 255, 39 / 255),
-                           grDevices::rgb(244 / 255, 109 / 255, 67 / 255),
-                           grDevices::rgb(253 / 255, 174 / 255, 97 / 255),
-                           grDevices::rgb(254 / 255, 224 / 255, 144 / 255),
-                           grDevices::rgb(224 / 255, 243 / 255, 248 / 255),
-                           grDevices::rgb(171 / 255, 217 / 255, 233 / 255),
-                           grDevices::rgb(116 / 255, 173 / 255, 209 / 255),
-                           grDevices::rgb(69 / 255, 117 / 255, 180 / 255),
-                           grDevices::rgb(49 / 255, 54 / 255, 149 / 255)),
-        "11" = tibble::lst(grDevices::rgb(165 / 255, 0 / 255, 38 / 255),
-                           grDevices::rgb(215 / 255, 48 / 255, 39 / 255),
-                           grDevices::rgb(244 / 255, 109 / 255, 67 / 255),
-                           grDevices::rgb(253 / 255, 174 / 255, 97 / 255),
-                           grDevices::rgb(254 / 255, 224 / 255, 144 / 255),
-                           grDevices::rgb(255 / 255, 255 / 255, 191 / 255),
-                           grDevices::rgb(224 / 255, 243 / 255, 248 / 255),
-                           grDevices::rgb(171 / 255, 217 / 255, 233 / 255),
-                           grDevices::rgb(116 / 255, 173 / 255, 209 / 255),
-                           grDevices::rgb(69 / 255, 117 / 255, 180 / 255),
-                           grDevices::rgb(49 / 255, 54 / 255, 149 / 255)),
-        "type" = "divergent"
-    ),
-    "BrBG" = tibble::lst(
-        "1" = tibble::lst(grDevices::rgb(245 / 255, 245 / 255, 245 / 255)),
-        "2" = tibble::lst(grDevices::rgb(216 / 255, 179 / 255, 101 / 255),
-                          grDevices::rgb(90 / 255, 180 / 255, 172 / 255)),
-        "3" = tibble::lst(grDevices::rgb(216 / 255, 179 / 255, 101 / 255),
-                          grDevices::rgb(245 / 255, 245 / 255, 245 / 255),
-                          grDevices::rgb(90 / 255, 180 / 255, 172 / 255)),
-        "4" = tibble::lst(grDevices::rgb(166 / 255, 97 / 255, 26 / 255),
-                          grDevices::rgb(223 / 255, 194 / 255, 125 / 255),
-                          grDevices::rgb(128 / 255, 205 / 255, 193 / 255),
-                          grDevices::rgb(1 / 255, 133 / 255, 113 / 255)),
-        "5" = tibble::lst(grDevices::rgb(166 / 255, 97 / 255, 26 / 255),
-                          grDevices::rgb(223 / 255, 194 / 255, 125 / 255),
-                          grDevices::rgb(245 / 255, 245 / 255, 245 / 255),
-                          grDevices::rgb(128 / 255, 205 / 255, 193 / 255),
-                          grDevices::rgb(1 / 255, 133 / 255, 113 / 255)),
-        "6" = tibble::lst(grDevices::rgb(140 / 255, 81 / 255, 10 / 255),
-                          grDevices::rgb(216 / 255, 179 / 255, 101 / 255),
-                          grDevices::rgb(246 / 255, 232 / 255, 195 / 255),
-                          grDevices::rgb(199 / 255, 234 / 255, 229 / 255),
-                          grDevices::rgb(90 / 255, 180 / 255, 172 / 255),
-                          grDevices::rgb(1 / 255, 102 / 255, 94 / 255)),
-        "7" = tibble::lst(grDevices::rgb(140 / 255, 81 / 255, 10 / 255),
-                          grDevices::rgb(216 / 255, 179 / 255, 101 / 255),
-                          grDevices::rgb(246 / 255, 232 / 255, 195 / 255),
-                          grDevices::rgb(245 / 255, 245 / 255, 245 / 255),
-                          grDevices::rgb(199 / 255, 234 / 255, 229 / 255),
-                          grDevices::rgb(90 / 255, 180 / 255, 172 / 255),
-                          grDevices::rgb(1 / 255, 102 / 255, 94 / 255)),
-        "8" = tibble::lst(grDevices::rgb(140 / 255, 81 / 255, 10 / 255),
-                          grDevices::rgb(191 / 255, 129 / 255, 45 / 255),
-                          grDevices::rgb(223 / 255, 194 / 255, 125 / 255),
-                          grDevices::rgb(246 / 255, 232 / 255, 195 / 255),
-                          grDevices::rgb(199 / 255, 234 / 255, 229 / 255),
-                          grDevices::rgb(128 / 255, 205 / 255, 193 / 255),
-                          grDevices::rgb(53 / 255, 151 / 255, 143 / 255),
-                          grDevices::rgb(1 / 255, 102 / 255, 94 / 255)),
-        "9" = tibble::lst(grDevices::rgb(140 / 255, 81 / 255, 10 / 255),
-                          grDevices::rgb(191 / 255, 129 / 255, 45 / 255),
-                          grDevices::rgb(223 / 255, 194 / 255, 125 / 255),
-                          grDevices::rgb(246 / 255, 232 / 255, 195 / 255),
-                          grDevices::rgb(245 / 255, 245 / 255, 245 / 255),
-                          grDevices::rgb(199 / 255, 234 / 255, 229 / 255),
-                          grDevices::rgb(128 / 255, 205 / 255, 193 / 255),
-                          grDevices::rgb(53 / 255, 151 / 255, 143 / 255),
-                          grDevices::rgb(1 / 255, 102 / 255, 94 / 255)),
-        "10" = tibble::lst(grDevices::rgb(84 / 255, 48 / 255, 5 / 255),
-                           grDevices::rgb(140 / 255, 81 / 255, 10 / 255),
-                           grDevices::rgb(191 / 255, 129 / 255, 45 / 255),
-                           grDevices::rgb(223 / 255, 194 / 255, 125 / 255),
-                           grDevices::rgb(246 / 255, 232 / 255, 195 / 255),
-                           grDevices::rgb(199 / 255, 234 / 255, 229 / 255),
-                           grDevices::rgb(128 / 255, 205 / 255, 193 / 255),
-                           grDevices::rgb(53 / 255, 151 / 255, 143 / 255),
-                           grDevices::rgb(1 / 255, 102 / 255, 94 / 255),
-                           grDevices::rgb(0 / 255, 60 / 255, 48 / 255)),
-        "11" = tibble::lst(grDevices::rgb(84 / 255, 48 / 255, 5 / 255),
-                           grDevices::rgb(140 / 255, 81 / 255, 10 / 255),
-                           grDevices::rgb(191 / 255, 129 / 255, 45 / 255),
-                           grDevices::rgb(223 / 255, 194 / 255, 125 / 255),
-                           grDevices::rgb(246 / 255, 232 / 255, 195 / 255),
-                           grDevices::rgb(245 / 255, 245 / 255, 245 / 255),
-                           grDevices::rgb(199 / 255, 234 / 255, 229 / 255),
-                           grDevices::rgb(128 / 255, 205 / 255, 193 / 255),
-                           grDevices::rgb(53 / 255, 151 / 255, 143 / 255),
-                           grDevices::rgb(1 / 255, 102 / 255, 94 / 255),
-                           grDevices::rgb(0 / 255, 60 / 255, 48 / 255)),
-        "type" = "divergent"
-    ),
-    "RdGy" = tibble::lst(
-        "1" = tibble::lst(grDevices::rgb(255 / 255, 255 / 255, 255 / 255)),
-        "2" = tibble::lst(grDevices::rgb(239 / 255, 138 / 255, 98 / 255),
-                          grDevices::rgb(153 / 255, 153 / 255, 153 / 255)),
-        "3" = tibble::lst(grDevices::rgb(239 / 255, 138 / 255, 98 / 255),
-                          grDevices::rgb(255 / 255, 255 / 255, 255 / 255),
-                          grDevices::rgb(153 / 255, 153 / 255, 153 / 255)),
-        "4" = tibble::lst(grDevices::rgb(202 / 255, 0 / 255, 32 / 255),
-                          grDevices::rgb(244 / 255, 165 / 255, 130 / 255),
-                          grDevices::rgb(186 / 255, 186 / 255, 186 / 255),
-                          grDevices::rgb(64 / 255, 64 / 255, 64 / 255)),
-        "5" = tibble::lst(grDevices::rgb(202 / 255, 0 / 255, 32 / 255),
-                          grDevices::rgb(244 / 255, 165 / 255, 130 / 255),
-                          grDevices::rgb(255 / 255, 255 / 255, 255 / 255),
-                          grDevices::rgb(186 / 255, 186 / 255, 186 / 255),
-                          grDevices::rgb(64 / 255, 64 / 255, 64 / 255)),
-        "6" = tibble::lst(grDevices::rgb(178 / 255, 24 / 255, 43 / 255),
-                          grDevices::rgb(239 / 255, 138 / 255, 98 / 255),
-                          grDevices::rgb(253 / 255, 219 / 255, 199 / 255),
-                          grDevices::rgb(224 / 255, 224 / 255, 224 / 255),
-                          grDevices::rgb(153 / 255, 153 / 255, 153 / 255),
-                          grDevices::rgb(77 / 255, 77 / 255,77 / 255)),
-        "7" = tibble::lst(grDevices::rgb(178 / 255, 24 / 255, 43 / 255),
-                          grDevices::rgb(239 / 255, 138 / 255, 98 / 255),
-                          grDevices::rgb(253 / 255, 219 / 255, 199 / 255),
-                          grDevices::rgb(255 / 255, 255 / 255, 255 / 255),
-                          grDevices::rgb(224 / 255, 224 / 255, 224 / 255),
-                          grDevices::rgb(153 / 255, 153 / 255, 153 / 255),
-                          grDevices::rgb(77 / 255, 77 / 255,77 / 255)),
-        "8" = tibble::lst(grDevices::rgb(178 / 255, 24 / 255, 43 / 255),
-                          grDevices::rgb(214 / 255, 96 / 255, 77 / 255),
-                          grDevices::rgb(244 / 255, 165 / 255, 130 / 255),
-                          grDevices::rgb(253 / 255, 219 / 255, 199 / 255),
-                          grDevices::rgb(224 / 255, 224 / 255, 224 / 255),
-                          grDevices::rgb(186 / 255, 186 / 255, 186 / 255),
-                          grDevices::rgb(135 / 255, 135 / 255, 135 / 255),
-                          grDevices::rgb(77 / 255, 77 / 255,77 / 255)),
-        "9" = tibble::lst(grDevices::rgb(178 / 255, 24 / 255, 43 / 255),
-                          grDevices::rgb(214 / 255, 96 / 255, 77 / 255),
-                          grDevices::rgb(244 / 255, 165 / 255, 130 / 255),
-                          grDevices::rgb(253 / 255, 219 / 255, 199 / 255),
-                          grDevices::rgb(255 / 255, 255 / 255, 255 / 255),
-                          grDevices::rgb(224 / 255, 224 / 255, 224 / 255),
-                          grDevices::rgb(186 / 255, 186 / 255, 186 / 255),
-                          grDevices::rgb(135 / 255, 135 / 255, 135 / 255),
-                          grDevices::rgb(77 / 255, 77 / 255,77 / 255)),
-        "10" = tibble::lst(grDevices::rgb(103 / 255, 0 / 255, 31 / 255),
-                           grDevices::rgb(178 / 255, 24 / 255, 43 / 255),
-                           grDevices::rgb(214 / 255, 96 / 255, 77 / 255),
-                           grDevices::rgb(244 / 255, 165 / 255, 130 / 255),
-                           grDevices::rgb(253 / 255, 219 / 255, 199 / 255),
-                           grDevices::rgb(224 / 255, 224 / 255, 224 / 255),
-                           grDevices::rgb(186 / 255, 186 / 255, 186 / 255),
-                           grDevices::rgb(135 / 255, 135 / 255, 135 / 255),
-                           grDevices::rgb(77 / 255, 77 / 255,77 / 255),
-                           grDevices::rgb(26 / 255, 26 / 255, 26 / 255)),
-        "11" = tibble::lst(grDevices::rgb(103 / 255, 0 / 255, 31 / 255),
-                           grDevices::rgb(178 / 255, 24 / 255, 43 / 255),
-                           grDevices::rgb(214 / 255, 96 / 255, 77 / 255),
-                           grDevices::rgb(244 / 255, 165 / 255, 130 / 255),
-                           grDevices::rgb(253 / 255, 219 / 255, 199 / 255),
-                           grDevices::rgb(255 / 255, 255 / 255, 255 / 255),
-                           grDevices::rgb(224 / 255, 224 / 255, 224 / 255),
-                           grDevices::rgb(186 / 255, 186 / 255, 186 / 255),
-                           grDevices::rgb(135 / 255, 135 / 255, 135 / 255),
-                           grDevices::rgb(77 / 255, 77 / 255,77 / 255),
-                           grDevices::rgb(26 / 255, 26 / 255, 26 / 255)),
-        "type" = "divergent"
-    ),
-    "PuOr" = tibble::lst(
-        "1" = tibble::lst(grDevices::rgb(247 / 255, 247 / 255, 247 / 255)),
-        "2" = tibble::lst(grDevices::rgb(241 / 255, 163 / 255, 64 / 255),
-                          grDevices::rgb(153 / 255, 142 / 255, 195 / 255)),
-        "3" = tibble::lst(grDevices::rgb(241 / 255, 163 / 255, 64 / 255),
-                          grDevices::rgb(247 / 255, 247 / 255, 247 / 255),
-                          grDevices::rgb(153 / 255, 142 / 255, 195 / 255)),
-        "4" = tibble::lst(grDevices::rgb(230 / 255, 97 / 255, 1 / 255),
-                          grDevices::rgb(253 / 255, 184 / 255, 99 / 255),
-                          grDevices::rgb(178 / 255, 171 / 255, 210 / 255),
-                          grDevices::rgb(94 / 255, 60 / 255, 153 / 255)),
-        "5" = tibble::lst(grDevices::rgb(230 / 255, 97 / 255, 1 / 255),
-                          grDevices::rgb(253 / 255, 184 / 255, 99 / 255),
-                          grDevices::rgb(247 / 255, 247 / 255, 247 / 255),
-                          grDevices::rgb(178 / 255, 171 / 255, 210 / 255),
-                          grDevices::rgb(94 / 255, 60 / 255, 153 / 255)),
-        "6" = tibble::lst(grDevices::rgb(179 / 255, 88 / 255, 6 / 255),
-                          grDevices::rgb(241 / 255, 163 / 255, 64 / 255),
-                          grDevices::rgb(254 / 255, 224 / 255, 182 / 255),
-                          grDevices::rgb(216 / 255, 218 / 255, 235 / 255),
-                          grDevices::rgb(153 / 255, 142 / 255, 195 / 255),
-                          grDevices::rgb(84 / 255, 39 / 255, 136 / 255)),
-        "7" = tibble::lst(grDevices::rgb(179 / 255, 88 / 255, 6 / 255),
-                          grDevices::rgb(241 / 255, 163 / 255, 64 / 255),
-                          grDevices::rgb(254 / 255, 224 / 255, 182 / 255),
-                          grDevices::rgb(247 / 255, 247 / 255, 247 / 255),
-                          grDevices::rgb(216 / 255, 218 / 255, 235 / 255),
-                          grDevices::rgb(153 / 255, 142 / 255, 195 / 255),
-                          grDevices::rgb(84 / 255, 39 / 255, 136 / 255)),
-        "8" = tibble::lst(grDevices::rgb(179 / 255, 88 / 255, 6 / 255),
-                          grDevices::rgb(224 / 255, 130 / 255, 20 / 255),
-                          grDevices::rgb(253 / 255, 184 / 255, 99 / 255),
-                          grDevices::rgb(254 / 255, 224 / 255, 182 / 255),
-                          grDevices::rgb(216 / 255, 218 / 255, 235 / 255),
-                          grDevices::rgb(178 / 255, 171 / 255, 210 / 255),
-                          grDevices::rgb(128 / 255, 115 / 255, 172 / 255),
-                          grDevices::rgb(84 / 255, 39 / 255, 136 / 255)),
-        "9" = tibble::lst(grDevices::rgb(179 / 255, 88 / 255, 6 / 255),
-                          grDevices::rgb(224 / 255, 130 / 255, 20 / 255),
-                          grDevices::rgb(253 / 255, 184 / 255, 99 / 255),
-                          grDevices::rgb(254 / 255, 224 / 255, 182 / 255),
-                          grDevices::rgb(247 / 255, 247 / 255, 247 / 255),
-                          grDevices::rgb(216 / 255, 218 / 255, 235 / 255),
-                          grDevices::rgb(178 / 255, 171 / 255, 210 / 255),
-                          grDevices::rgb(128 / 255, 115 / 255, 172 / 255),
-                          grDevices::rgb(84 / 255, 39 / 255, 136 / 255)),
-        "10" = tibble::lst(grDevices::rgb(127 / 255, 59 / 255, 8 / 255),
-                           grDevices::rgb(179 / 255, 88 / 255, 6 / 255),
-                           grDevices::rgb(224 / 255, 130 / 255, 20 / 255),
-                           grDevices::rgb(253 / 255, 184 / 255, 99 / 255),
-                           grDevices::rgb(254 / 255, 224 / 255, 182 / 255),
-                           grDevices::rgb(216 / 255, 218 / 255, 235 / 255),
-                           grDevices::rgb(178 / 255, 171 / 255, 210 / 255),
-                           grDevices::rgb(128 / 255, 115 / 255, 172 / 255),
-                           grDevices::rgb(84 / 255, 39 / 255, 136 / 255),
-                           grDevices::rgb(45 / 255, 0 / 255, 75 / 255)),
-        "11" = tibble::lst(grDevices::rgb(127 / 255, 59 / 255, 8 / 255),
-                           grDevices::rgb(179 / 255, 88 / 255, 6 / 255),
-                           grDevices::rgb(224 / 255, 130 / 255, 20 / 255),
-                           grDevices::rgb(253 / 255, 184 / 255, 99 / 255),
-                           grDevices::rgb(254 / 255, 224 / 255, 182 / 255),
-                           grDevices::rgb(247 / 255, 247 / 255, 247 / 255),
-                           grDevices::rgb(216 / 255, 218 / 255, 235 / 255),
-                           grDevices::rgb(178 / 255, 171 / 255, 210 / 255),
-                           grDevices::rgb(128 / 255, 115 / 255, 172 / 255),
-                           grDevices::rgb(84 / 255, 39 / 255, 136 / 255),
-                           grDevices::rgb(45 / 255, 0 / 255, 75 / 255)),
-        "type" = "divergent"
-    ),
-    "Set2" = tibble::lst(
-        "1" = tibble::lst(grDevices::rgb(252 / 255, 141 / 255, 98 / 255)),
-        "2" = tibble::lst(grDevices::rgb(102 / 255, 194 / 255, 165 / 255),
-                          grDevices::rgb(141 / 255, 160 / 255, 203 / 255)),
-        "3" = tibble::lst(grDevices::rgb(102 / 255, 194 / 255, 165 / 255),
-                          grDevices::rgb(252 / 255, 141 / 255, 98 / 255),
-                          grDevices::rgb(141 / 255, 160 / 255, 203 / 255)),
-        "4" = tibble::lst(grDevices::rgb(102 / 255, 194 / 255, 165 / 255),
-                          grDevices::rgb(252 / 255, 141 / 255, 98 / 255),
-                          grDevices::rgb(141 / 255, 160 / 255, 203 / 255),
-                          grDevices::rgb(231 / 255, 138 / 255, 195 / 255)),
-        "5" = tibble::lst(grDevices::rgb(102 / 255, 194 / 255, 165 / 255),
-                          grDevices::rgb(252 / 255, 141 / 255, 98 / 255),
-                          grDevices::rgb(141 / 255, 160 / 255, 203 / 255),
-                          grDevices::rgb(231 / 255, 138 / 255, 195 / 255),
-                          grDevices::rgb(166 / 255, 216 / 255, 84 / 255)),
-        "6" = tibble::lst(grDevices::rgb(102 / 255, 194 / 255, 165 / 255),
-                          grDevices::rgb(252 / 255, 141 / 255, 98 / 255),
-                          grDevices::rgb(141 / 255, 160 / 255, 203 / 255),
-                          grDevices::rgb(231 / 255, 138 / 255, 195 / 255),
-                          grDevices::rgb(166 / 255, 216 / 255, 84 / 255),
-                          grDevices::rgb(255 / 255, 217 / 255, 47 / 255)),
-        "7" = tibble::lst(grDevices::rgb(102 / 255, 194 / 255, 165 / 255),
-                          grDevices::rgb(252 / 255, 141 / 255, 98 / 255),
-                          grDevices::rgb(141 / 255, 160 / 255, 203 / 255),
-                          grDevices::rgb(231 / 255, 138 / 255, 195 / 255),
-                          grDevices::rgb(166 / 255, 216 / 255, 84 / 255),
-                          grDevices::rgb(255 / 255, 217 / 255, 47 / 255),
-                          grDevices::rgb(229 / 255, 196 / 255, 148 / 255)),
-        "8" = tibble::lst(grDevices::rgb(102 / 255, 194 / 255, 165 / 255),
-                          grDevices::rgb(252 / 255, 141 / 255, 98 / 255),
-                          grDevices::rgb(141 / 255, 160 / 255, 203 / 255),
-                          grDevices::rgb(231 / 255, 138 / 255, 195 / 255),
-                          grDevices::rgb(166 / 255, 216 / 255, 84 / 255),
-                          grDevices::rgb(255 / 255, 217 / 255, 47 / 255),
-                          grDevices::rgb(229 / 255, 196 / 255, 148 / 255),
-                          grDevices::rgb(179 / 255, 179 / 255, 179 / 255)),
-        "type" = "qualitative"
-    ),
-    "Accent" =  tibble::lst(
-        "1" = tibble::lst(grDevices::rgb(190 / 255, 174 / 255, 212 / 255)),
-        "2" = tibble::lst(grDevices::rgb(127 / 255, 201 / 255, 127 / 255),
-                          grDevices::rgb(253 / 255, 192 / 255, 134 / 255)),
-        "3" = tibble::lst(grDevices::rgb(127 / 255, 201 / 255, 127 / 255),
-                          grDevices::rgb(190 / 255, 174 / 255, 212 / 255),
-                          grDevices::rgb(253 / 255, 192 / 255, 134 / 255)),
-        "4" = tibble::lst(grDevices::rgb(127 / 255, 201 / 255, 127 / 255),
-                          grDevices::rgb(190 / 255, 174 / 255, 212 / 255),
-                          grDevices::rgb(253 / 255, 192 / 255, 134 / 255),
-                          grDevices::rgb(255 / 255, 255 / 255, 153 / 255)),
-        "5" = tibble::lst(grDevices::rgb(127 / 255, 201 / 255, 127 / 255),
-                          grDevices::rgb(190 / 255, 174 / 255, 212 / 255),
-                          grDevices::rgb(253 / 255, 192 / 255, 134 / 255),
-                          grDevices::rgb(255 / 255, 255 / 255, 153 / 255),
-                          grDevices::rgb(56 / 255, 108 / 255, 176 / 255)),
-        "6" = tibble::lst(grDevices::rgb(127 / 255, 201 / 255, 127 / 255),
-                          grDevices::rgb(190 / 255, 174 / 255, 212 / 255),
-                          grDevices::rgb(253 / 255, 192 / 255, 134 / 255),
-                          grDevices::rgb(255 / 255, 255 / 255, 153 / 255),
-                          grDevices::rgb(56 / 255, 108 / 255, 176 / 255),
-                          grDevices::rgb(240 / 255, 2 / 255, 127 / 255)),
-        "7" = tibble::lst(grDevices::rgb(127 / 255, 201 / 255, 127 / 255),
-                          grDevices::rgb(190 / 255, 174 / 255, 212 / 255),
-                          grDevices::rgb(253 / 255, 192 / 255, 134 / 255),
-                          grDevices::rgb(255 / 255, 255 / 255, 153 / 255),
-                          grDevices::rgb(56 / 255, 108 / 255, 176 / 255),
-                          grDevices::rgb(240 / 255, 2 / 255, 127 / 255),
-                          grDevices::rgb(191 / 255, 91 / 255, 23 / 255)),
-        "8" = tibble::lst(grDevices::rgb(127 / 255, 201 / 255, 127 / 255),
-                          grDevices::rgb(190 / 255, 174 / 255, 212 / 255),
-                          grDevices::rgb(253 / 255, 192 / 255, 134 / 255),
-                          grDevices::rgb(255 / 255, 255 / 255, 153 / 255),
-                          grDevices::rgb(56 / 255, 108 / 255, 176 / 255),
-                          grDevices::rgb(240 / 255, 2 / 255, 127 / 255),
-                          grDevices::rgb(191 / 255, 91 / 255, 23 / 255),
-                          grDevices::rgb(102 / 255, 102 / 255, 102 / 255)),
-        "type" = "qualitative"
-    ),
-    "Set1" =  tibble::lst(
-        "1" = tibble::lst(grDevices::rgb(55 / 255, 126 / 255, 184 / 255)),
-        "2" = tibble::lst(grDevices::rgb(228 / 255, 26 / 255, 28 / 255),
-                          grDevices::rgb(77 / 255, 175 / 255, 74 / 255)),
-        "3" = tibble::lst(grDevices::rgb(228 / 255, 26 / 255, 28 / 255),
-                          grDevices::rgb(55 / 255, 126 / 255, 184 / 255),
-                          grDevices::rgb(77 / 255, 175 / 255, 74 / 255)),
-        "4" = tibble::lst(grDevices::rgb(228 / 255, 26 / 255, 28 / 255),
-                          grDevices::rgb(55 / 255, 126 / 255, 184 / 255),
-                          grDevices::rgb(77 / 255, 175 / 255, 74 / 255),
-                          grDevices::rgb(152 / 255,78 / 255, 163 / 255)),
-        "5" = tibble::lst(grDevices::rgb(228 / 255, 26 / 255, 28 / 255),
-                          grDevices::rgb(55 / 255, 126 / 255, 184 / 255),
-                          grDevices::rgb(77 / 255, 175 / 255, 74 / 255),
-                          grDevices::rgb(152 / 255,78 / 255, 163 / 255),
-                          grDevices::rgb(255 / 255, 127 / 255, 0 / 255)),
-        "6" = tibble::lst(grDevices::rgb(228 / 255, 26 / 255, 28 / 255),
-                          grDevices::rgb(55 / 255, 126 / 255, 184 / 255),
-                          grDevices::rgb(77 / 255, 175 / 255, 74 / 255),
-                          grDevices::rgb(152 / 255,78 / 255, 163 / 255),
-                          grDevices::rgb(255 / 255, 127 / 255, 0 / 255),
-                          grDevices::rgb(255 / 255, 255 / 255, 51 / 255)),
-        "7" = tibble::lst(grDevices::rgb(228 / 255, 26 / 255, 28 / 255),
-                          grDevices::rgb(55 / 255, 126 / 255, 184 / 255),
-                          grDevices::rgb(77 / 255, 175 / 255, 74 / 255),
-                          grDevices::rgb(152 / 255,78 / 255, 163 / 255),
-                          grDevices::rgb(255 / 255, 127 / 255, 0 / 255),
-                          grDevices::rgb(255 / 255, 255 / 255, 51 / 255),
-                          grDevices::rgb(166 / 255, 86 / 255, 40 / 255)),
-        "8" = tibble::lst(grDevices::rgb(228 / 255, 26 / 255, 28 / 255),
-                          grDevices::rgb(55 / 255, 126 / 255, 184 / 255),
-                          grDevices::rgb(77 / 255, 175 / 255, 74 / 255),
-                          grDevices::rgb(152 / 255,78 / 255, 163 / 255),
-                          grDevices::rgb(255 / 255, 127 / 255, 0 / 255),
-                          grDevices::rgb(255 / 255, 255 / 255, 51 / 255),
-                          grDevices::rgb(166 / 255, 86 / 255, 40 / 255),
-                          grDevices::rgb(247 / 255, 129 / 255, 191 / 255)),
-        "9" = tibble::lst(grDevices::rgb(228 / 255, 26 / 255, 28 / 255),
-                          grDevices::rgb(55 / 255, 126 / 255, 184 / 255),
-                          grDevices::rgb(77 / 255, 175 / 255, 74 / 255),
-                          grDevices::rgb(152 / 255,78 / 255, 163 / 255),
-                          grDevices::rgb(255 / 255, 127 / 255, 0 / 255),
-                          grDevices::rgb(255 / 255, 255 / 255, 51 / 255),
-                          grDevices::rgb(166 / 255, 86 / 255, 40 / 255),
-                          grDevices::rgb(247 / 255, 129 / 255, 191 / 255),
-                          grDevices::rgb(153 / 255, 153 / 255, 153 / 255)),
-        "type" = "qualitative"
-    ),
-    "Set3" = tibble::lst(
-        "1" = tibble::lst(grDevices::rgb(255 / 255, 255 / 255, 179 / 255)),
-        "2" = tibble::lst(grDevices::rgb(141 / 255, 211 / 255, 199 / 255),
-                          grDevices::rgb(190 / 255, 186 / 255, 218 / 255)),
-        "3" = tibble::lst(grDevices::rgb(141 / 255, 211 / 255, 199 / 255),
-                          grDevices::rgb(255 / 255, 255 / 255, 179 / 255),
-                          grDevices::rgb(190 / 255, 186 / 255, 218 / 255)),
-        "4" = tibble::lst(grDevices::rgb(141 / 255, 211 / 255, 199 / 255),
-                          grDevices::rgb(255 / 255, 255 / 255, 179 / 255),
-                          grDevices::rgb(190 / 255, 186 / 255, 218 / 255),
-                          grDevices::rgb(251 / 255, 128 / 255, 114 / 255)),
-        "5" = tibble::lst(grDevices::rgb(141 / 255, 211 / 255, 199 / 255),
-                          grDevices::rgb(255 / 255, 255 / 255, 179 / 255),
-                          grDevices::rgb(190 / 255, 186 / 255, 218 / 255),
-                          grDevices::rgb(251 / 255, 128 / 255, 114 / 255),
-                          grDevices::rgb(128 / 255, 177 / 255, 211 / 255)),
-        "6" = tibble::lst(grDevices::rgb(141 / 255, 211 / 255, 199 / 255),
-                          grDevices::rgb(255 / 255, 255 / 255, 179 / 255),
-                          grDevices::rgb(190 / 255, 186 / 255, 218 / 255),
-                          grDevices::rgb(251 / 255, 128 / 255, 114 / 255),
-                          grDevices::rgb(128 / 255, 177 / 255, 211 / 255),
-                          grDevices::rgb(253 / 255, 180 / 255, 98 / 255)),
-        "7" = tibble::lst(grDevices::rgb(141 / 255, 211 / 255, 199 / 255),
-                          grDevices::rgb(255 / 255, 255 / 255, 179 / 255),
-                          grDevices::rgb(190 / 255, 186 / 255, 218 / 255),
-                          grDevices::rgb(251 / 255, 128 / 255, 114 / 255),
-                          grDevices::rgb(128 / 255, 177 / 255, 211 / 255),
-                          grDevices::rgb(253 / 255, 180 / 255, 98 / 255),
-                          grDevices::rgb(179 / 255, 222 / 255, 105 / 255)),
-        "8" = tibble::lst(grDevices::rgb(141 / 255, 211 / 255, 199 / 255),
-                          grDevices::rgb(255 / 255, 255 / 255, 179 / 255),
-                          grDevices::rgb(190 / 255, 186 / 255, 218 / 255),
-                          grDevices::rgb(251 / 255, 128 / 255, 114 / 255),
-                          grDevices::rgb(128 / 255, 177 / 255, 211 / 255),
-                          grDevices::rgb(253 / 255, 180 / 255, 98 / 255),
-                          grDevices::rgb(179 / 255, 222 / 255, 105 / 255),
-                          grDevices::rgb(252 / 255, 205 / 255, 229 / 255)),
-        "9" = tibble::lst(grDevices::rgb(141 / 255, 211 / 255, 199 / 255),
-                          grDevices::rgb(255 / 255, 255 / 255, 179 / 255),
-                          grDevices::rgb(190 / 255, 186 / 255, 218 / 255),
-                          grDevices::rgb(251 / 255, 128 / 255, 114 / 255),
-                          grDevices::rgb(128 / 255, 177 / 255, 211 / 255),
-                          grDevices::rgb(253 / 255, 180 / 255, 98 / 255),
-                          grDevices::rgb(179 / 255, 222 / 255, 105 / 255),
-                          grDevices::rgb(252 / 255, 205 / 255, 229 / 255),
-                          grDevices::rgb(217 / 255, 217 / 255, 217 / 255)),
-        "10" = tibble::lst(grDevices::rgb(141 / 255, 211 / 255, 199 / 255),
-                           grDevices::rgb(255 / 255, 255 / 255, 179 / 255),
-                           grDevices::rgb(190 / 255, 186 / 255, 218 / 255),
-                           grDevices::rgb(251 / 255, 128 / 255, 114 / 255),
-                           grDevices::rgb(128 / 255, 177 / 255, 211 / 255),
-                           grDevices::rgb(253 / 255, 180 / 255, 98 / 255),
-                           grDevices::rgb(179 / 255, 222 / 255, 105 / 255),
-                           grDevices::rgb(252 / 255, 205 / 255, 229 / 255),
-                           grDevices::rgb(217 / 255, 217 / 255, 217 / 255),
-                           grDevices::rgb(188 / 255, 128 / 255, 189 / 255)),
-        "11" = tibble::lst(grDevices::rgb(141 / 255, 211 / 255, 199 / 255),
-                           grDevices::rgb(255 / 255, 255 / 255, 179 / 255),
-                           grDevices::rgb(190 / 255, 186 / 255, 218 / 255),
-                           grDevices::rgb(251 / 255, 128 / 255, 114 / 255),
-                           grDevices::rgb(128 / 255, 177 / 255, 211 / 255),
-                           grDevices::rgb(253 / 255, 180 / 255, 98 / 255),
-                           grDevices::rgb(179 / 255, 222 / 255, 105 / 255),
-                           grDevices::rgb(252 / 255, 205 / 255, 229 / 255),
-                           grDevices::rgb(217 / 255, 217 / 255, 217 / 255),
-                           grDevices::rgb(188 / 255, 128 / 255, 189 / 255),
-                           grDevices::rgb(204 / 255, 235 / 255, 197 / 255)),
-        "12" = tibble::lst(grDevices::rgb(141 / 255, 211 / 255, 199 / 255),
-                           grDevices::rgb(255 / 255, 255 / 255, 179 / 255),
-                           grDevices::rgb(190 / 255, 186 / 255, 218 / 255),
-                           grDevices::rgb(251 / 255, 128 / 255, 114 / 255),
-                           grDevices::rgb(128 / 255, 177 / 255, 211 / 255),
-                           grDevices::rgb(253 / 255, 180 / 255, 98 / 255),
-                           grDevices::rgb(179 / 255, 222 / 255, 105 / 255),
-                           grDevices::rgb(252 / 255, 205 / 255, 229 / 255),
-                           grDevices::rgb(217 / 255, 217 / 255, 217 / 255),
-                           grDevices::rgb(188 / 255, 128 / 255, 189 / 255),
-                           grDevices::rgb(204 / 255, 235 / 255, 197 / 255),
-                           grDevices::rgb(255 / 255, 237 / 255, 111 / 255)),
-        "type" = "qualitative"
-    ),
-    "Dark2" = tibble::lst(
-        "1" = tibble::lst(grDevices::rgb(217 / 255, 95 / 255, 2 / 255)),
-        "2" = tibble::lst(grDevices::rgb(27 / 255, 158 / 255, 119 / 255),
-                          grDevices::rgb(117 / 255, 112 / 255, 179 / 255)),
-        "3" = tibble::lst(grDevices::rgb(27 / 255, 158 / 255, 119 / 255),
-                          grDevices::rgb(217 / 255, 95 / 255, 2 / 255),
-                          grDevices::rgb(117 / 255, 112 / 255, 179 / 255)),
-        "4" = tibble::lst(grDevices::rgb(27 / 255, 158 / 255, 119 / 255),
-                          grDevices::rgb(217 / 255, 95 / 255, 2 / 255),
-                          grDevices::rgb(117 / 255, 112 / 255, 179 / 255),
-                          grDevices::rgb(231 / 255, 41 / 255, 138 / 255)),
-        "5" = tibble::lst(grDevices::rgb(27 / 255, 158 / 255, 119 / 255),
-                          grDevices::rgb(217 / 255, 95 / 255, 2 / 255),
-                          grDevices::rgb(117 / 255, 112 / 255, 179 / 255),
-                          grDevices::rgb(231 / 255, 41 / 255, 138 / 255),
-                          grDevices::rgb(102 / 255, 166 / 255, 30 / 255)),
-        "6" = tibble::lst(grDevices::rgb(27 / 255, 158 / 255, 119 / 255),
-                          grDevices::rgb(217 / 255, 95 / 255, 2 / 255),
-                          grDevices::rgb(117 / 255, 112 / 255, 179 / 255),
-                          grDevices::rgb(231 / 255, 41 / 255, 138 / 255),
-                          grDevices::rgb(102 / 255, 166 / 255, 30 / 255),
-                          grDevices::rgb(230 / 255, 171 / 255, 2 / 255)),
-        "7" = tibble::lst(grDevices::rgb(27 / 255, 158 / 255, 119 / 255),
-                          grDevices::rgb(217 / 255, 95 / 255, 2 / 255),
-                          grDevices::rgb(117 / 255, 112 / 255, 179 / 255),
-                          grDevices::rgb(231 / 255, 41 / 255, 138 / 255),
-                          grDevices::rgb(102 / 255, 166 / 255, 30 / 255),
-                          grDevices::rgb(230 / 255, 171 / 255, 2 / 255),
-                          grDevices::rgb(166 / 255, 118 / 255, 29 / 255)),
-        "8" = tibble::lst(grDevices::rgb(27 / 255, 158 / 255, 119 / 255),
-                          grDevices::rgb(217 / 255, 95 / 255, 2 / 255),
-                          grDevices::rgb(117 / 255, 112 / 255, 179 / 255),
-                          grDevices::rgb(231 / 255, 41 / 255, 138 / 255),
-                          grDevices::rgb(102 / 255, 166 / 255, 30 / 255),
-                          grDevices::rgb(230 / 255, 171 / 255, 2 / 255),
-                          grDevices::rgb(166 / 255, 118 / 255, 29 / 255),
-                          grDevices::rgb(102 / 255, 102 / 255, 102 / 255)),
-        "type" = "qualitative"
-    ),
-    "Paired" = tibble::lst(
-        "1" = tibble::lst(grDevices::rgb(31 / 255, 120 / 255, 180 / 255)),
-        "2" = tibble::lst(grDevices::rgb(166 / 255, 206 / 255, 227 / 255),
-                          grDevices::rgb(178 / 255, 223 / 255, 138 / 255)),
-        "3" = tibble::lst(grDevices::rgb(166 / 255, 206 / 255, 227 / 255),
-                          grDevices::rgb(31 / 255, 120 / 255, 180 / 255),
-                          grDevices::rgb(178 / 255, 223 / 255, 138 / 255)),
-        "4" = tibble::lst(grDevices::rgb(166 / 255, 206 / 255, 227 / 255),
-                          grDevices::rgb(31 / 255, 120 / 255, 180 / 255),
-                          grDevices::rgb(178 / 255, 223 / 255, 138 / 255),
-                          grDevices::rgb(51 / 255, 160 / 255, 44 / 255)),
-        "5" = tibble::lst(grDevices::rgb(166 / 255, 206 / 255, 227 / 255),
-                          grDevices::rgb(31 / 255, 120 / 255, 180 / 255),
-                          grDevices::rgb(178 / 255, 223 / 255, 138 / 255),
-                          grDevices::rgb(51 / 255, 160 / 255, 44 / 255),
-                          grDevices::rgb(251 / 255, 154 / 255, 153 / 255)),
-        "6" = tibble::lst(grDevices::rgb(166 / 255, 206 / 255, 227 / 255),
-                          grDevices::rgb(31 / 255, 120 / 255, 180 / 255),
-                          grDevices::rgb(178 / 255, 223 / 255, 138 / 255),
-                          grDevices::rgb(51 / 255, 160 / 255, 44 / 255),
-                          grDevices::rgb(251 / 255, 154 / 255, 153 / 255),
-                          grDevices::rgb(227 / 255, 26 / 255, 28 / 255)),
-        "7" = tibble::lst(grDevices::rgb(166 / 255, 206 / 255, 227 / 255),
-                          grDevices::rgb(31 / 255, 120 / 255, 180 / 255),
-                          grDevices::rgb(178 / 255, 223 / 255, 138 / 255),
-                          grDevices::rgb(51 / 255, 160 / 255, 44 / 255),
-                          grDevices::rgb(251 / 255, 154 / 255, 153 / 255),
-                          grDevices::rgb(227 / 255, 26 / 255, 28 / 255),
-                          grDevices::rgb(253 / 255, 191 / 255, 111 / 255)),
-        "8" = tibble::lst(grDevices::rgb(166 / 255, 206 / 255, 227 / 255),
-                          grDevices::rgb(31 / 255, 120 / 255, 180 / 255),
-                          grDevices::rgb(178 / 255, 223 / 255, 138 / 255),
-                          grDevices::rgb(51 / 255, 160 / 255, 44 / 255),
-                          grDevices::rgb(251 / 255, 154 / 255, 153 / 255),
-                          grDevices::rgb(227 / 255, 26 / 255, 28 / 255),
-                          grDevices::rgb(253 / 255, 191 / 255, 111 / 255),
-                          grDevices::rgb(255 / 255, 127 / 255, 0 / 255)),
-        "9" = tibble::lst(grDevices::rgb(166 / 255, 206 / 255, 227 / 255),
-                          grDevices::rgb(31 / 255, 120 / 255, 180 / 255),
-                          grDevices::rgb(178 / 255, 223 / 255, 138 / 255),
-                          grDevices::rgb(51 / 255, 160 / 255, 44 / 255),
-                          grDevices::rgb(251 / 255, 154 / 255, 153 / 255),
-                          grDevices::rgb(227 / 255, 26 / 255, 28 / 255),
-                          grDevices::rgb(253 / 255, 191 / 255, 111 / 255),
-                          grDevices::rgb(255 / 255, 127 / 255, 0 / 255),
-                          grDevices::rgb(202 / 255, 178 / 255, 214 / 255)),
-        "10" = tibble::lst(grDevices::rgb(166 / 255, 206 / 255, 227 / 255),
-                           grDevices::rgb(31 / 255, 120 / 255, 180 / 255),
-                           grDevices::rgb(178 / 255, 223 / 255, 138 / 255),
-                           grDevices::rgb(51 / 255, 160 / 255, 44 / 255),
-                           grDevices::rgb(251 / 255, 154 / 255, 153 / 255),
-                           grDevices::rgb(227 / 255, 26 / 255, 28 / 255),
-                           grDevices::rgb(253 / 255, 191 / 255, 111 / 255),
-                           grDevices::rgb(255 / 255, 127 / 255, 0 / 255),
-                           grDevices::rgb(202 / 255, 178 / 255, 214 / 255),
-                           grDevices::rgb(106 / 255, 61 / 255, 154 / 255)),
-        "11" = tibble::lst(grDevices::rgb(166 / 255, 206 / 255, 227 / 255),
-                           grDevices::rgb(31 / 255, 120 / 255, 180 / 255),
-                           grDevices::rgb(178 / 255, 223 / 255, 138 / 255),
-                           grDevices::rgb(51 / 255, 160 / 255, 44 / 255),
-                           grDevices::rgb(251 / 255, 154 / 255, 153 / 255),
-                           grDevices::rgb(227 / 255, 26 / 255, 28 / 255),
-                           grDevices::rgb(253 / 255, 191 / 255, 111 / 255),
-                           grDevices::rgb(255 / 255, 127 / 255, 0 / 255),
-                           grDevices::rgb(202 / 255, 178 / 255, 214 / 255),
-                           grDevices::rgb(106 / 255, 61 / 255, 154 / 255),
-                           grDevices::rgb(255 / 255, 255 / 255, 153 / 255)),
-        "12" = tibble::lst(grDevices::rgb(166 / 255, 206 / 255, 227 / 255),
-                           grDevices::rgb(31 / 255, 120 / 255, 180 / 255),
-                           grDevices::rgb(178 / 255, 223 / 255, 138 / 255),
-                           grDevices::rgb(51 / 255, 160 / 255, 44 / 255),
-                           grDevices::rgb(251 / 255, 154 / 255, 153 / 255),
-                           grDevices::rgb(227 / 255, 26 / 255, 28 / 255),
-                           grDevices::rgb(253 / 255, 191 / 255, 111 / 255),
-                           grDevices::rgb(255 / 255, 127 / 255, 0 / 255),
-                           grDevices::rgb(202 / 255, 178 / 255, 214 / 255),
-                           grDevices::rgb(106 / 255, 61 / 255, 154 / 255),
-                           grDevices::rgb(255 / 255, 255 / 255, 153 / 255),
-                           grDevices::rgb(177 / 255, 89 / 255, 40 / 255)),
-        "type" = "qualitative"
-    ),
-    "Pastel2" = tibble::lst(
-        "1" = tibble::lst(grDevices::rgb(203 / 255, 213 / 255, 232 / 255)),
-        "2" = tibble::lst(grDevices::rgb(179 / 255, 226 / 255, 205 / 255),
-                          grDevices::rgb(203 / 255, 213 / 255, 232 / 255)),
-        "3" = tibble::lst(grDevices::rgb(179 / 255, 226 / 255, 205 / 255),
-                          grDevices::rgb(253 / 255, 205 / 255, 172 / 255),
-                          grDevices::rgb(203 / 255, 213 / 255, 232 / 255)),
-        "4" = tibble::lst(grDevices::rgb(179 / 255, 226 / 255, 205 / 255),
-                          grDevices::rgb(253 / 255, 205 / 255, 172 / 255),
-                          grDevices::rgb(203 / 255, 213 / 255, 232 / 255),
-                          grDevices::rgb(244 / 255, 202 / 255, 228 / 255)),
-        "5" = tibble::lst(grDevices::rgb(179 / 255, 226 / 255, 205 / 255),
-                          grDevices::rgb(253 / 255, 205 / 255, 172 / 255),
-                          grDevices::rgb(203 / 255, 213 / 255, 232 / 255),
-                          grDevices::rgb(244 / 255, 202 / 255, 228 / 255),
-                          grDevices::rgb(230 / 255, 245 / 255, 201 / 255)),
-        "6" = tibble::lst(grDevices::rgb(179 / 255, 226 / 255, 205 / 255),
-                          grDevices::rgb(253 / 255, 205 / 255, 172 / 255),
-                          grDevices::rgb(203 / 255, 213 / 255, 232 / 255),
-                          grDevices::rgb(244 / 255, 202 / 255, 228 / 255),
-                          grDevices::rgb(230 / 255, 245 / 255, 201 / 255),
-                          grDevices::rgb(255 / 255, 242 / 255, 174 / 255)),
-        "7" = tibble::lst(grDevices::rgb(179 / 255, 226 / 255, 205 / 255),
-                          grDevices::rgb(253 / 255, 205 / 255, 172 / 255),
-                          grDevices::rgb(203 / 255, 213 / 255, 232 / 255),
-                          grDevices::rgb(244 / 255, 202 / 255, 228 / 255),
-                          grDevices::rgb(230 / 255, 245 / 255, 201 / 255),
-                          grDevices::rgb(255 / 255, 242 / 255, 174 / 255),
-                          grDevices::rgb(241 / 255, 226 / 255, 204 / 255)),
-        "8" = tibble::lst(grDevices::rgb(179 / 255, 226 / 255, 205 / 255),
-                          grDevices::rgb(253 / 255, 205 / 255, 172 / 255),
-                          grDevices::rgb(203 / 255, 213 / 255, 232 / 255),
-                          grDevices::rgb(244 / 255, 202 / 255, 228 / 255),
-                          grDevices::rgb(230 / 255, 245 / 255, 201 / 255),
-                          grDevices::rgb(255 / 255, 242 / 255, 174 / 255),
-                          grDevices::rgb(241 / 255, 226 / 255, 204 / 255),
-                          grDevices::rgb(204 / 255, 204 / 255, 204 / 255)),
-        "type" = "qualitative"
-    ),
-    "Pastel1" = tibble::lst(
-        "1" = tibble::lst(grDevices::rgb(204 / 255, 235 / 255, 197 / 255)),
-        "2" = tibble::lst(grDevices::rgb(251 / 255, 180 / 255, 174 / 255),
-                          grDevices::rgb(204 / 255, 235 / 255, 197 / 255)),
-        "3" = tibble::lst(grDevices::rgb(251 / 255, 180 / 255, 174 / 255),
-                          grDevices::rgb(179 / 255, 205 / 255, 227 / 255),
-                          grDevices::rgb(204 / 255, 235 / 255, 197 / 255)),
-        "4" = tibble::lst(grDevices::rgb(251 / 255, 180 / 255, 174 / 255),
-                          grDevices::rgb(179 / 255, 205 / 255, 227 / 255),
-                          grDevices::rgb(204 / 255, 235 / 255, 197 / 255),
-                          grDevices::rgb(222 / 255, 203 / 255, 228 / 255)),
-        "5" = tibble::lst(grDevices::rgb(251 / 255, 180 / 255, 174 / 255),
-                          grDevices::rgb(179 / 255, 205 / 255, 227 / 255),
-                          grDevices::rgb(204 / 255, 235 / 255, 197 / 255),
-                          grDevices::rgb(222 / 255, 203 / 255, 228 / 255),
-                          grDevices::rgb(254 / 255, 217 / 255, 166 / 255)),
-        "6" = tibble::lst(grDevices::rgb(251 / 255, 180 / 255, 174 / 255),
-                          grDevices::rgb(179 / 255, 205 / 255, 227 / 255),
-                          grDevices::rgb(204 / 255, 235 / 255, 197 / 255),
-                          grDevices::rgb(222 / 255, 203 / 255, 228 / 255),
-                          grDevices::rgb(254 / 255, 217 / 255, 166 / 255),
-                          grDevices::rgb(255 / 255, 255 / 255, 204 / 255)),
-        "7" = tibble::lst(grDevices::rgb(251 / 255, 180 / 255, 174 / 255),
-                          grDevices::rgb(179 / 255, 205 / 255, 227 / 255),
-                          grDevices::rgb(204 / 255, 235 / 255, 197 / 255),
-                          grDevices::rgb(222 / 255, 203 / 255, 228 / 255),
-                          grDevices::rgb(254 / 255, 217 / 255, 166 / 255),
-                          grDevices::rgb(255 / 255, 255 / 255, 204 / 255),
-                          grDevices::rgb(229 / 255, 216 / 255, 189 / 255)),
-        "8" = tibble::lst(grDevices::rgb(251 / 255, 180 / 255, 174 / 255),
-                          grDevices::rgb(179 / 255, 205 / 255, 227 / 255),
-                          grDevices::rgb(204 / 255, 235 / 255, 197 / 255),
-                          grDevices::rgb(222 / 255, 203 / 255, 228 / 255),
-                          grDevices::rgb(254 / 255, 217 / 255, 166 / 255),
-                          grDevices::rgb(255 / 255, 255 / 255, 204 / 255),
-                          grDevices::rgb(229 / 255, 216 / 255, 189 / 255),
-                          grDevices::rgb(253 / 255, 218 / 255, 236 / 255)),
-        "9" = tibble::lst(grDevices::rgb(251 / 255, 180 / 255, 174 / 255),
-                          grDevices::rgb(179 / 255, 205 / 255, 227 / 255),
-                          grDevices::rgb(204 / 255, 235 / 255, 197 / 255),
-                          grDevices::rgb(222 / 255, 203 / 255, 228 / 255),
-                          grDevices::rgb(254 / 255, 217 / 255, 166 / 255),
-                          grDevices::rgb(255 / 255, 255 / 255, 204 / 255),
-                          grDevices::rgb(229 / 255, 216 / 255, 189 / 255),
-                          grDevices::rgb(253 / 255, 218 / 255, 236 / 255),
-                          grDevices::rgb(242 / 255, 242 / 255, 242 / 255)),
-        "type" = "qualitative"
-    ),
-    "OrRd" = tibble::lst(
-        "1" = tibble::lst(grDevices::rgb(253 / 255, 187 / 255, 132 / 255)),
-        "2" = tibble::lst(grDevices::rgb(254 / 255, 232 / 255, 200 / 255),
-                          grDevices::rgb(227 / 255, 74 / 255, 51 / 255)),
-        "3" = tibble::lst(grDevices::rgb(254 / 255, 232 / 255, 200 / 255),
-                          grDevices::rgb(253 / 255, 187 / 255, 132 / 255),
-                          grDevices::rgb(227 / 255, 74 / 255, 51 / 255)),
-        "4" = tibble::lst(grDevices::rgb(254 / 255, 240 / 255, 217 / 255),
-                          grDevices::rgb(253 / 255, 204 / 255, 138 / 255),
-                          grDevices::rgb(252 / 255, 141 / 255, 89 / 255),
-                          grDevices::rgb(215 / 255, 48 / 255, 31 / 255)),
-        "5" = tibble::lst(grDevices::rgb(254 / 255, 240 / 255, 217 / 255),
-                          grDevices::rgb(253 / 255, 204 / 255, 138 / 255),
-                          grDevices::rgb(252 / 255, 141 / 255, 89 / 255),
-                          grDevices::rgb(227 / 255, 74 / 255, 51 / 255),
-                          grDevices::rgb(179 / 255, 0 / 255, 0 / 255)),
-        "6" = tibble::lst(grDevices::rgb(254 / 255, 240 / 255, 217 / 255),
-                          grDevices::rgb(253 / 255, 212 / 255, 158 / 255),
-                          grDevices::rgb(253 / 255, 187 / 255, 132 / 255),
-                          grDevices::rgb(252 / 255, 141 / 255, 89 / 255),
-                          grDevices::rgb(227 / 255, 74 / 255, 51 / 255),
-                          grDevices::rgb(179 / 255, 0 / 255, 0 / 255)),
-        "7" = tibble::lst(grDevices::rgb(254 / 255, 240 / 255, 217 / 255),
-                          grDevices::rgb(253 / 255, 212 / 255, 158 / 255),
-                          grDevices::rgb(253 / 255, 187 / 255, 132 / 255),
-                          grDevices::rgb(252 / 255, 141 / 255, 89 / 255),
-                          grDevices::rgb(239 / 255, 101 / 255, 72 / 255),
-                          grDevices::rgb(215 / 255, 48 / 255, 31 / 255),
-                          grDevices::rgb(153 / 255, 0 / 255, 0 / 255)),
-        "8" = tibble::lst(grDevices::rgb(255 / 255, 247 / 255, 236 / 255),
-                          grDevices::rgb(254 / 255, 232 / 255, 200 / 255),
-                          grDevices::rgb(253 / 255, 212 / 255, 158 / 255),
-                          grDevices::rgb(253 / 255, 187 / 255, 132 / 255),
-                          grDevices::rgb(252 / 255, 141 / 255, 89 / 255),
-                          grDevices::rgb(239 / 255, 101 / 255, 72 / 255),
-                          grDevices::rgb(215 / 255, 48 / 255, 31 / 255),
-                          grDevices::rgb(153 / 255, 0 / 255, 0 / 255)),
-        "9" = tibble::lst(grDevices::rgb(255 / 255, 247 / 255, 236 / 255),
-                          grDevices::rgb(254 / 255, 232 / 255, 200 / 255),
-                          grDevices::rgb(253 / 255, 212 / 255, 158 / 255),
-                          grDevices::rgb(253 / 255, 187 / 255, 132 / 255),
-                          grDevices::rgb(252 / 255, 141 / 255, 89 / 255),
-                          grDevices::rgb(239 / 255, 101 / 255, 72 / 255),
-                          grDevices::rgb(215 / 255, 48 / 255, 31 / 255),
-                          grDevices::rgb(179 / 255, 0 / 255, 0 / 255),
-                          grDevices::rgb(127 / 255, 0 / 255,0 / 255)),
-        "10" = tibble::lst(grDevices::rgb(255 / 255, 247 / 255, 235 / 255),
-                           grDevices::rgb(254 / 255, 235 / 255, 207 / 255),
-                           grDevices::rgb(253 / 255, 220 / 255, 176 / 255),
-                           grDevices::rgb(253 / 255, 203 / 255, 149 / 255),
-                           grDevices::rgb(253 / 255, 182 / 255, 127 / 255),
-                           grDevices::rgb(252 / 255, 146 / 255, 93 / 255),
-                           grDevices::rgb(243 / 255, 114 / 255, 77 / 255),
-                           grDevices::rgb(228 / 255,79 / 255, 53 / 255),
-                           grDevices::rgb(200 / 255, 39 / 255, 24 / 255),
-                           grDevices::rgb(153 / 255, 0 / 255, 0 / 255)),
-        "11" = tibble::lst(grDevices::rgb(255 / 255, 247 / 255, 235 / 255),
-                           grDevices::rgb(254 / 255, 236 / 255, 210 / 255),
-                           grDevices::rgb(253 / 255, 223 / 255, 183 / 255),
-                           grDevices::rgb(253 / 255, 209 / 255, 155 / 255),
-                           grDevices::rgb(253 / 255, 192 / 255, 137 / 255),
-                           grDevices::rgb(253 / 255, 164 / 255, 110 / 255),
-                           grDevices::rgb(249 / 255, 133 / 255, 85 / 255),
-                           grDevices::rgb(240 / 255, 105 / 255, 73 / 255),
-                           grDevices::rgb(224 / 255,71 / 255, 47 / 255),
-                           grDevices::rgb(196 / 255, 36 / 255, 21 / 255),
-                           grDevices::rgb(153 / 255, 0 / 255, 0 / 255)),
-        "12" = tibble::lst(grDevices::rgb(255 / 255, 247 / 255, 235 / 255),
-                           grDevices::rgb(254 / 255, 237 / 255, 213 / 255),
-                           grDevices::rgb(254 / 255, 226 / 255, 188 / 255),
-                           grDevices::rgb(253 / 255, 213 / 255, 161 / 255),
-                           grDevices::rgb(253 / 255, 198 / 255, 143 / 255),
-                           grDevices::rgb(253 / 255, 178 / 255, 124 / 255),
-                           grDevices::rgb(252 / 255, 149 / 255, 96 / 255),
-                           grDevices::rgb(246 / 255, 123 / 255, 81 / 255),
-                           grDevices::rgb(236 / 255, 96 / 255, 68 / 255),
-                           grDevices::rgb(221 / 255, 64 / 255, 42 / 255),
-                           grDevices::rgb(192 / 255, 33 / 255, 19 / 255),
-                           grDevices::rgb(153 / 255, 0 / 255, 0 / 255)),
-        "13" = tibble::lst(grDevices::rgb(255 / 255, 247 / 255, 235 / 255),
-                           grDevices::rgb(254 / 255, 238 / 255, 214 / 255),
-                           grDevices::rgb(254 / 255, 228 / 255, 192 / 255),
-                           grDevices::rgb(253 / 255, 216 / 255, 168 / 255),
-                           grDevices::rgb(253 / 255, 203 / 255, 149 / 255),
-                           grDevices::rgb(253 / 255, 189 / 255, 134 / 255),
-                           grDevices::rgb(253 / 255, 164 / 255, 110 / 255),
-                           grDevices::rgb(250 / 255, 137 / 255, 87 / 255),
-                           grDevices::rgb(243 / 255, 114 / 255, 77 / 255),
-                           grDevices::rgb(233 / 255, 89 / 255, 61 / 255),
-                           grDevices::rgb(219 / 255, 58 / 255, 37 / 255),
-                           grDevices::rgb(188 / 255, 31 / 255, 18 / 255),
-                           grDevices::rgb(153 / 255, 0 / 255, 0 / 255)),
-        "14" = tibble::lst(grDevices::rgb(255 / 255, 247 / 255, 235 / 255),
-                           grDevices::rgb(254 / 255, 238 / 255, 216 / 255),
-                           grDevices::rgb(254 / 255, 230 / 255, 196 / 255),
-                           grDevices::rgb(253 / 255, 219 / 255, 174 / 255),
-                           grDevices::rgb(253 / 255, 208 / 255, 153 / 255),
-                           grDevices::rgb(253 / 255, 194 / 255, 139 / 255),
-                           grDevices::rgb(253 / 255, 176 / 255, 121 / 255),
-                           grDevices::rgb(252 / 255, 151 / 255, 98 / 255),
-                           grDevices::rgb(248 / 255, 129 / 255, 83 / 255),
-                           grDevices::rgb(241 / 255, 107 / 255, 74 / 255),
-                           grDevices::rgb(230 / 255, 82 / 255, 56 / 255),
-                           grDevices::rgb(216 / 255, 52 / 255, 34 / 255),
-                           grDevices::rgb(185 / 255, 29 / 255, 16 / 255),
-                           grDevices::rgb(153 / 255, 0 / 255, 0 / 255)),
-        "15" = tibble::lst(grDevices::rgb(255 / 255, 247 / 255, 235 / 255),
-                           grDevices::rgb(254 / 255, 239 / 255, 217 / 255),
-                           grDevices::rgb(254 / 255, 231 / 255, 199 / 255),
-                           grDevices::rgb(253 / 255, 221 / 255, 178 / 255),
-                           grDevices::rgb(253 / 255, 211 / 255, 158 / 255),
-                           grDevices::rgb(253 / 255, 199 / 255, 144 / 255),
-                           grDevices::rgb(253 / 255, 186 / 255, 132 / 255),
-                           grDevices::rgb(253 / 255, 164 / 255, 110 / 255),
-                           grDevices::rgb(252 / 255, 140 / 255, 89 / 255),
-                           grDevices::rgb(245 / 255, 121 / 255, 80 / 255),
-                           grDevices::rgb(238 / 255, 101 / 255, 71 / 255),
-                           grDevices::rgb(227 / 255,76 / 255, 51 / 255),
-                           grDevices::rgb(215 / 255, 48 / 255, 31 / 255),
-                           grDevices::rgb(183 / 255, 27 / 255, 15 / 255),
-                           grDevices::rgb(153 / 255, 0 / 255, 0 / 255)),
-        "16" = tibble::lst(grDevices::rgb(255 / 255, 247 / 255, 235 / 255),
-                           grDevices::rgb(254 / 255, 239 / 255, 219 / 255),
-                           grDevices::rgb(254 / 255, 232 / 255, 202 / 255),
-                           grDevices::rgb(253 / 255, 223 / 255, 183 / 255),
-                           grDevices::rgb(253 / 255, 214 / 255, 163 / 255),
-                           grDevices::rgb(253 / 255, 203 / 255, 149 / 255),
-                           grDevices::rgb(253 / 255, 192 / 255, 137 / 255),
-                           grDevices::rgb(253 / 255, 174 / 255, 120 / 255),
-                           grDevices::rgb(252 / 255, 153 / 255, 100 / 255),
-                           grDevices::rgb(249 / 255, 133 / 255, 85 / 255),
-                           grDevices::rgb(243 / 255, 114 / 255, 77 / 255),
-                           grDevices::rgb(235 / 255, 94 / 255, 66 / 255),
-                           grDevices::rgb(224 / 255,71 / 255, 47 / 255),
-                           grDevices::rgb(210 / 255, 45 / 255, 28 / 255),
-                           grDevices::rgb(181 / 255, 26 / 255, 14 / 255),
-                           grDevices::rgb(153 / 255, 0 / 255, 0 / 255)),
-        "17" = tibble::lst(grDevices::rgb(255 / 255, 247 / 255, 235 / 255),
-                           grDevices::rgb(254 / 255, 240 / 255, 220 / 255),
-                           grDevices::rgb(254 / 255, 233 / 255, 204 / 255),
-                           grDevices::rgb(254 / 255, 225 / 255, 186 / 255),
-                           grDevices::rgb(253 / 255, 216 / 255, 168 / 255),
-                           grDevices::rgb(253 / 255, 207 / 255, 153 / 255),
-                           grDevices::rgb(253 / 255, 196 / 255, 141 / 255),
-                           grDevices::rgb(253 / 255, 184 / 255, 129 / 255),
-                           grDevices::rgb(253 / 255, 164 / 255, 110 / 255),
-                           grDevices::rgb(252 / 255, 143 / 255, 91 / 255),
-                           grDevices::rgb(247 / 255, 126 / 255, 82 / 255),
-                           grDevices::rgb(241 / 255, 108 / 255, 75 / 255),
-                           grDevices::rgb(233 / 255, 89 / 255, 61 / 255),
-                           grDevices::rgb(222 / 255, 66 / 255, 43 / 255),
-                           grDevices::rgb(207 / 255, 43 / 255, 27 / 255),
-                           grDevices::rgb(179 / 255, 24 / 255, 13 / 255),
-                           grDevices::rgb(153 / 255, 0 / 255, 0 / 255)),
-        "18" = tibble::lst(grDevices::rgb(255 / 255, 247 / 255, 235 / 255),
-                           grDevices::rgb(254 / 255, 240 / 255, 221 / 255),
-                           grDevices::rgb(254 / 255, 234 / 255, 206 / 255),
-                           grDevices::rgb(254 / 255, 227 / 255, 190 / 255),
-                           grDevices::rgb(253 / 255, 219 / 255, 172 / 255),
-                           grDevices::rgb(253 / 255, 210 / 255, 156 / 255),
-                           grDevices::rgb(253 / 255, 200 / 255, 145 / 255),
-                           grDevices::rgb(253 / 255, 189 / 255, 135 / 255),
-                           grDevices::rgb(253 / 255, 173 / 255, 119 / 255),
-                           grDevices::rgb(252 / 255, 154 / 255, 101 / 255),
-                           grDevices::rgb(250 / 255, 136 / 255, 86 / 255),
-                           grDevices::rgb(245 / 255, 120 / 255, 79 / 255),
-                           grDevices::rgb(239 / 255, 103 / 255, 72 / 255),
-                           grDevices::rgb(230 / 255, 84 / 255, 57 / 255),
-                           grDevices::rgb(220 / 255, 62 / 255, 40 / 255),
-                           grDevices::rgb(203 / 255, 41 / 255, 25 / 255),
-                           grDevices::rgb(178 / 255, 23 / 255, 12 / 255),
-                           grDevices::rgb(153 / 255, 0 / 255, 0 / 255)),
-        "19" = tibble::lst(grDevices::rgb(255 / 255, 247 / 255, 235 / 255),
-                           grDevices::rgb(254 / 255, 241 / 255, 221 / 255),
-                           grDevices::rgb(254 / 255, 235 / 255, 207 / 255),
-                           grDevices::rgb(254 / 255, 228 / 255, 192 / 255),
-                           grDevices::rgb(253 / 255, 220 / 255, 176 / 255),
-                           grDevices::rgb(253 / 255, 213 / 255, 160 / 255),
-                           grDevices::rgb(253 / 255, 203 / 255, 149 / 255),
-                           grDevices::rgb(253 / 255, 193 / 255, 139 / 255),
-                           grDevices::rgb(253 / 255, 182 / 255, 127 / 255),
-                           grDevices::rgb(253 / 255, 164 / 255, 110 / 255),
-                           grDevices::rgb(252 / 255, 146 / 255, 93 / 255),
-                           grDevices::rgb(248 / 255, 130 / 255, 84 / 255),
-                           grDevices::rgb(243 / 255, 114 / 255, 77 / 255),
-                           grDevices::rgb(237 / 255, 98 / 255, 69 / 255),
-                           grDevices::rgb(228 / 255,79 / 255, 53 / 255),
-                           grDevices::rgb(219 / 255, 58 / 255, 37 / 255),
-                           grDevices::rgb(200 / 255, 39 / 255, 24 / 255),
-                           grDevices::rgb(176 / 255, 22 / 255, 11 / 255),
-                           grDevices::rgb(153 / 255, 0 / 255, 0 / 255)),
-        "20" = tibble::lst(grDevices::rgb(255 / 255, 247 / 255, 235 / 255),
-                           grDevices::rgb(254 / 255, 241 / 255, 222 / 255),
-                           grDevices::rgb(254 / 255, 235 / 255, 209 / 255),
-                           grDevices::rgb(254 / 255, 229 / 255, 195 / 255),
-                           grDevices::rgb(253 / 255, 222 / 255, 180 / 255),
-                           grDevices::rgb(253 / 255, 215 / 255, 164 / 255),
-                           grDevices::rgb(253 / 255, 206 / 255, 152 / 255),
-                           grDevices::rgb(253 / 255, 197 / 255, 142 / 255),
-                           grDevices::rgb(253 / 255, 188 / 255, 133 / 255),
-                           grDevices::rgb(253 / 255, 172 / 255, 118 / 255),
-                           grDevices::rgb(252 / 255, 155 / 255, 102 / 255),
-                           grDevices::rgb(251 / 255, 138 / 255, 88 / 255),
-                           grDevices::rgb(246 / 255, 124 / 255, 81 / 255),
-                           grDevices::rgb(241 / 255, 109 / 255, 75 / 255),
-                           grDevices::rgb(235 / 255, 93 / 255, 65 / 255),
-                           grDevices::rgb(226 / 255,75 / 255, 50 / 255),
-                           grDevices::rgb(217 / 255, 54 / 255, 35 / 255),
-                           grDevices::rgb(198 / 255, 37 / 255, 22 / 255),
-                           grDevices::rgb(175 / 255, 21 / 255, 11 / 255),
-                           grDevices::rgb(153 / 255, 0 / 255, 0 / 255)),
-        "type" = "sequential"
-    ),
-    "PuBu" = tibble::lst(
-        "1" = tibble::lst(grDevices::rgb(166 / 255, 189 / 255, 219 / 255)),
-        "2" = tibble::lst(grDevices::rgb(236 / 255, 231 / 255, 242 / 255),
-                          grDevices::rgb(43 / 255, 140 / 255, 190 / 255)),
-        "3" = tibble::lst(grDevices::rgb(236 / 255, 231 / 255, 242 / 255),
-                          grDevices::rgb(166 / 255, 189 / 255, 219 / 255),
-                          grDevices::rgb(43 / 255, 140 / 255, 190 / 255)),
-        "4" = tibble::lst(grDevices::rgb(241 / 255, 238 / 255, 246 / 255),
-                          grDevices::rgb(189 / 255, 201 / 255, 225 / 255),
-                          grDevices::rgb(116 / 255, 169 / 255, 207 / 255),
-                          grDevices::rgb(5 / 255, 112 / 255, 176 / 255)),
-        "5" = tibble::lst(grDevices::rgb(241 / 255, 238 / 255, 246 / 255),
-                          grDevices::rgb(189 / 255, 201 / 255, 225 / 255),
-                          grDevices::rgb(116 / 255, 169 / 255, 207 / 255),
-                          grDevices::rgb(43 / 255, 140 / 255, 190 / 255),
-                          grDevices::rgb(4 / 255, 90 / 255, 141 / 255)),
-        "6" = tibble::lst(grDevices::rgb(241 / 255, 238 / 255, 246 / 255),
-                          grDevices::rgb(208 / 255, 209 / 255, 230 / 255),
-                          grDevices::rgb(166 / 255, 189 / 255, 219 / 255),
-                          grDevices::rgb(116 / 255, 169 / 255, 207 / 255),
-                          grDevices::rgb(43 / 255, 140 / 255, 190 / 255),
-                          grDevices::rgb(4 / 255, 90 / 255, 141 / 255)),
-        "7" = tibble::lst(grDevices::rgb(241 / 255, 238 / 255, 246 / 255),
-                          grDevices::rgb(208 / 255, 209 / 255, 230 / 255),
-                          grDevices::rgb(166 / 255, 189 / 255, 219 / 255),
-                          grDevices::rgb(116 / 255, 169 / 255, 207 / 255),
-                          grDevices::rgb(54 / 255, 144 / 255, 192 / 255),
-                          grDevices::rgb(5 / 255, 112 / 255, 176 / 255),
-                          grDevices::rgb(3 / 255, 78 / 255, 123 / 255)),
-        "8" = tibble::lst(grDevices::rgb(255 / 255, 247 / 255, 251 / 255),
-                          grDevices::rgb(236 / 255, 231 / 255, 242 / 255),
-                          grDevices::rgb(208 / 255, 209 / 255, 230 / 255),
-                          grDevices::rgb(166 / 255, 189 / 255, 219 / 255),
-                          grDevices::rgb(116 / 255, 169 / 255, 207 / 255),
-                          grDevices::rgb(54 / 255, 144 / 255, 192 / 255),
-                          grDevices::rgb(5 / 255, 112 / 255, 176 / 255),
-                          grDevices::rgb(3 / 255, 78 / 255, 123 / 255)),
-        "9" = tibble::lst(grDevices::rgb(255 / 255, 247 / 255, 251 / 255),
-                          grDevices::rgb(236 / 255, 231 / 255, 242 / 255),
-                          grDevices::rgb(208 / 255, 209 / 255, 230 / 255),
-                          grDevices::rgb(166 / 255, 189 / 255, 219 / 255),
-                          grDevices::rgb(116 / 255, 169 / 255, 207 / 255),
-                          grDevices::rgb(54 / 255, 144 / 255, 192 / 255),
-                          grDevices::rgb(5 / 255, 112 / 255, 176 / 255),
-                          grDevices::rgb(4 / 255, 90 / 255, 141 / 255),
-                          grDevices::rgb(2 / 255, 56 / 255, 88 / 255)),
-        "10" = tibble::lst(grDevices::rgb(255 / 255, 247 / 255, 250 / 255),
-                           grDevices::rgb(240 / 255, 234 / 255, 243 / 255),
-                           grDevices::rgb(220 / 255, 218 / 255, 235 / 255),
-                           grDevices::rgb(194 / 255, 202 / 255, 226 / 255),
-                           grDevices::rgb(160 / 255, 186 / 255, 217 / 255),
-                           grDevices::rgb(121 / 255, 171 / 255, 208 / 255),
-                           grDevices::rgb(78 / 255, 152 / 255, 197 / 255),
-                           grDevices::rgb(38 / 255, 129 / 255, 184 / 255),
-                           grDevices::rgb(4 / 255, 104 / 255, 163 / 255),
-                           grDevices::rgb(2 / 255, 77 / 255, 122 / 255)),
-        "11" = tibble::lst(grDevices::rgb(255 / 255, 247 / 255, 250 / 255),
-                           grDevices::rgb(241 / 255, 235 / 255, 244 / 255),
-                           grDevices::rgb(224 / 255, 222 / 255, 237 / 255),
-                           grDevices::rgb(203 / 255, 206 / 255, 228 / 255),
-                           grDevices::rgb(174 / 255, 192 / 255, 221 / 255),
-                           grDevices::rgb(141 / 255, 178 / 255, 213 / 255),
-                           grDevices::rgb(105 / 255, 163 / 255, 204 / 255),
-                           grDevices::rgb(62 / 255, 146 / 255, 193 / 255),
-                           grDevices::rgb(32 / 255, 124 / 255, 182 / 255),
-                           grDevices::rgb(4 / 255, 101 / 255, 159 / 255),
-                           grDevices::rgb(2 / 255, 77 / 255, 122 / 255)),
-        "12" = tibble::lst(grDevices::rgb(255 / 255, 247 / 255, 250 / 255),
-                           grDevices::rgb(242 / 255, 236 / 255, 245 / 255),
-                           grDevices::rgb(228 / 255, 224 / 255, 238 / 255),
-                           grDevices::rgb(210 / 255, 210 / 255, 231 / 255),
-                           grDevices::rgb(185 / 255, 198 / 255, 224 / 255),
-                           grDevices::rgb(157 / 255, 185 / 255, 216 / 255),
-                           grDevices::rgb(125 / 255, 172 / 255, 209 / 255),
-                           grDevices::rgb(91 / 255, 157 / 255, 200 / 255),
-                           grDevices::rgb(51 / 255, 141 / 255, 190 / 255),
-                           grDevices::rgb(25 / 255, 120 / 255, 180 / 255),
-                           grDevices::rgb(4 / 255, 99 / 255, 156 / 255),
-                           grDevices::rgb(2 / 255, 77 / 255, 122 / 255)),
-        "13" = tibble::lst(grDevices::rgb(255 / 255, 247 / 255, 250 / 255),
-                           grDevices::rgb(243 / 255, 237 / 255, 245 / 255),
-                           grDevices::rgb(231 / 255, 227 / 255, 239 / 255),
-                           grDevices::rgb(214 / 255, 214 / 255, 232 / 255),
-                           grDevices::rgb(194 / 255, 202 / 255, 226 / 255),
-                           grDevices::rgb(169 / 255, 190 / 255, 219 / 255),
-                           grDevices::rgb(141 / 255, 178 / 255, 213 / 255),
-                           grDevices::rgb(111 / 255, 166 / 255, 205 / 255),
-                           grDevices::rgb(78 / 255, 152 / 255, 197 / 255),
-                           grDevices::rgb(45 / 255, 135 / 255, 188 / 255),
-                           grDevices::rgb(19 / 255, 117 / 255, 178 / 255),
-                           grDevices::rgb(4 / 255, 97 / 255, 153 / 255),
-                           grDevices::rgb(2 / 255, 77 / 255, 122 / 255)),
-        "14" = tibble::lst(grDevices::rgb(255 / 255, 247 / 255, 250 / 255),
-                           grDevices::rgb(244 / 255, 238 / 255, 246 / 255),
-                           grDevices::rgb(233 / 255, 229 / 255, 241 / 255),
-                           grDevices::rgb(218 / 255, 217 / 255, 234 / 255),
-                           grDevices::rgb(201 / 255, 205 / 255, 228 / 255),
-                           grDevices::rgb(179 / 255, 195 / 255, 222 / 255),
-                           grDevices::rgb(155 / 255, 184 / 255, 216 / 255),
-                           grDevices::rgb(128 / 255, 173 / 255, 209 / 255),
-                           grDevices::rgb(99 / 255, 161 / 255, 202 / 255),
-                           grDevices::rgb(66 / 255, 147 / 255, 194 / 255),
-                           grDevices::rgb(40 / 255, 131 / 255, 185 / 255),
-                           grDevices::rgb(12 / 255, 114 / 255, 177 / 255),
-                           grDevices::rgb(4 / 255, 96 / 255, 151 / 255),
-                           grDevices::rgb(2 / 255, 77 / 255, 122 / 255)),
-        "15" = tibble::lst(grDevices::rgb(255 / 255, 247 / 255, 250 / 255),
-                           grDevices::rgb(245 / 255, 238 / 255, 246 / 255),
-                           grDevices::rgb(235 / 255, 230 / 255, 242 / 255),
-                           grDevices::rgb(221 / 255, 219 / 255, 235 / 255),
-                           grDevices::rgb(208 / 255, 209 / 255, 229 / 255),
-                           grDevices::rgb(187 / 255, 198 / 255, 224 / 255),
-                           grDevices::rgb(165 / 255, 189 / 255, 218 / 255),
-                           grDevices::rgb(141 / 255, 178 / 255, 213 / 255),
-                           grDevices::rgb(115 / 255, 169 / 255, 206 / 255),
-                           grDevices::rgb(88 / 255, 156 / 255, 199 / 255),
-                           grDevices::rgb(53 / 255, 144 / 255, 191 / 255),
-                           grDevices::rgb(36 / 255, 127 / 255, 184 / 255),
-                           grDevices::rgb(5 / 255, 112 / 255, 176 / 255),
-                           grDevices::rgb(3 / 255, 94 / 255, 149 / 255),
-                           grDevices::rgb(2 / 255, 77 / 255, 122 / 255)),
-        "16" = tibble::lst(grDevices::rgb(255 / 255, 247 / 255, 250 / 255),
-                           grDevices::rgb(246 / 255, 239 / 255, 246 / 255),
-                           grDevices::rgb(237 / 255, 232 / 255, 242 / 255),
-                           grDevices::rgb(224 / 255, 222 / 255, 237 / 255),
-                           grDevices::rgb(211 / 255, 211 / 255, 231 / 255),
-                           grDevices::rgb(194 / 255, 202 / 255, 226 / 255),
-                           grDevices::rgb(174 / 255, 192 / 255, 221 / 255),
-                           grDevices::rgb(153 / 255, 183 / 255, 215 / 255),
-                           grDevices::rgb(130 / 255, 174 / 255, 210 / 255),
-                           grDevices::rgb(105 / 255, 163 / 255, 204 / 255),
-                           grDevices::rgb(78 / 255, 152 / 255, 197 / 255),
-                           grDevices::rgb(49 / 255, 139 / 255, 189 / 255),
-                           grDevices::rgb(32 / 255, 124 / 255, 182 / 255),
-                           grDevices::rgb(4 / 255, 109 / 255, 172 / 255),
-                           grDevices::rgb(3 / 255, 93 / 255, 147 / 255),
-                           grDevices::rgb(2 / 255, 77 / 255, 122 / 255)),
-        "17" = tibble::lst(grDevices::rgb(255 / 255, 247 / 255, 250 / 255),
-                           grDevices::rgb(246 / 255, 239 / 255, 247 / 255),
-                           grDevices::rgb(238 / 255, 232 / 255, 243 / 255),
-                           grDevices::rgb(227 / 255, 224 / 255, 238 / 255),
-                           grDevices::rgb(214 / 255, 214 / 255, 232 / 255),
-                           grDevices::rgb(200 / 255, 205 / 255, 227 / 255),
-                           grDevices::rgb(181 / 255, 196 / 255, 223 / 255),
-                           grDevices::rgb(163 / 255, 187 / 255, 218 / 255),
-                           grDevices::rgb(141 / 255, 178 / 255, 213 / 255),
-                           grDevices::rgb(119 / 255, 170 / 255, 207 / 255),
-                           grDevices::rgb(95 / 255, 159 / 255, 201 / 255),
-                           grDevices::rgb(68 / 255, 148 / 255, 194 / 255),
-                           grDevices::rgb(45 / 255, 135 / 255, 188 / 255),
-                           grDevices::rgb(27 / 255, 121 / 255, 181 / 255),
-                           grDevices::rgb(4 / 255, 107 / 255, 169 / 255),
-                           grDevices::rgb(3 / 255, 92 / 255, 145 / 255),
-                           grDevices::rgb(2 / 255, 77 / 255, 122 / 255)),
-        "18" = tibble::lst(grDevices::rgb(255 / 255, 247 / 255, 250 / 255),
-                           grDevices::rgb(247 / 255, 240 / 255, 247 / 255),
-                           grDevices::rgb(239 / 255, 233 / 255, 243 / 255),
-                           grDevices::rgb(229 / 255, 225 / 255, 239 / 255),
-                           grDevices::rgb(217 / 255, 216 / 255, 234 / 255),
-                           grDevices::rgb(205 / 255, 207 / 255, 229 / 255),
-                           grDevices::rgb(188 / 255, 199 / 255, 224 / 255),
-                           grDevices::rgb(171 / 255, 191 / 255, 220 / 255),
-                           grDevices::rgb(151 / 255, 183 / 255, 215 / 255),
-                           grDevices::rgb(131 / 255, 174 / 255, 210 / 255),
-                           grDevices::rgb(109 / 255, 166 / 255, 205 / 255),
-                           grDevices::rgb(86 / 255, 155 / 255, 199 / 255),
-                           grDevices::rgb(58 / 255, 145 / 255, 192 / 255),
-                           grDevices::rgb(42 / 255, 132 / 255, 186 / 255),
-                           grDevices::rgb(23 / 255, 119 / 255, 179 / 255),
-                           grDevices::rgb(4 / 255, 105 / 255, 166 / 255),
-                           grDevices::rgb(3 / 255, 91 / 255, 144 / 255),
-                           grDevices::rgb(2 / 255, 77 / 255, 122 / 255)),
-        "19" = tibble::lst(grDevices::rgb(255 / 255, 247 / 255, 250 / 255),
-                           grDevices::rgb(247 / 255, 240 / 255, 247 / 255),
-                           grDevices::rgb(240 / 255, 234 / 255, 243 / 255),
-                           grDevices::rgb(231 / 255, 227 / 255, 239 / 255),
-                           grDevices::rgb(220 / 255, 218 / 255, 235 / 255),
-                           grDevices::rgb(209 / 255, 210 / 255, 230 / 255),
-                           grDevices::rgb(194 / 255, 202 / 255, 226 / 255),
-                           grDevices::rgb(177 / 255, 194 / 255, 222 / 255),
-                           grDevices::rgb(160 / 255, 186 / 255, 217 / 255),
-                           grDevices::rgb(141 / 255, 178 / 255, 213 / 255),
-                           grDevices::rgb(121 / 255, 171 / 255, 208 / 255),
-                           grDevices::rgb(101 / 255, 161 / 255, 202 / 255),
-                           grDevices::rgb(78 / 255, 152 / 255, 197 / 255),
-                           grDevices::rgb(52 / 255, 142 / 255, 191 / 255),
-                           grDevices::rgb(38 / 255, 129 / 255, 184 / 255),
-                           grDevices::rgb(19 / 255, 117 / 255, 178 / 255),
-                           grDevices::rgb(4 / 255, 104 / 255, 163 / 255),
-                           grDevices::rgb(3 / 255, 90 / 255, 143 / 255),
-                           grDevices::rgb(2 / 255, 77 / 255, 122 / 255)),
-        "20" = tibble::lst(grDevices::rgb(255 / 255, 247 / 255, 250 / 255),
-                           grDevices::rgb(247 / 255, 241 / 255, 247 / 255),
-                           grDevices::rgb(240 / 255, 235 / 255, 244 / 255),
-                           grDevices::rgb(233 / 255, 228 / 255, 240 / 255),
-                           grDevices::rgb(222 / 255, 220 / 255, 236 / 255),
-                           grDevices::rgb(212 / 255, 212 / 255, 231 / 255),
-                           grDevices::rgb(199 / 255, 204 / 255, 227 / 255),
-                           grDevices::rgb(183 / 255, 197 / 255, 223 / 255),
-                           grDevices::rgb(168 / 255, 190 / 255, 219 / 255),
-                           grDevices::rgb(150 / 255, 182 / 255, 215 / 255),
-                           grDevices::rgb(132 / 255, 175 / 255, 210 / 255),
-                           grDevices::rgb(113 / 255, 167 / 255, 206 / 255),
-                           grDevices::rgb(93 / 255, 158 / 255, 200 / 255),
-                           grDevices::rgb(70 / 255, 149 / 255, 195 / 255),
-                           grDevices::rgb(48 / 255, 138 / 255, 189 / 255),
-                           grDevices::rgb(35 / 255, 126 / 255, 183 / 255),
-                           grDevices::rgb(15 / 255, 115 / 255, 177 / 255),
-                           grDevices::rgb(4 / 255, 102 / 255, 161 / 255),
-                           grDevices::rgb(3 / 255, 90 / 255, 142 / 255),
-                           grDevices::rgb(2 / 255, 77 / 255, 122 / 255)),
-        "type" = "sequential"
-    ),
-    "BuPu" = tibble::lst(
-        "1" = tibble::lst(grDevices::rgb(158 / 255, 188 / 255, 218 / 255)),
-        "2" = tibble::lst(grDevices::rgb(224 / 255, 236 / 255, 244 / 255),
-                          grDevices::rgb(136 / 255, 86 / 255, 167 / 255)),
-        "3" = tibble::lst(grDevices::rgb(224 / 255, 236 / 255, 244 / 255),
-                          grDevices::rgb(158 / 255, 188 / 255, 218 / 255),
-                          grDevices::rgb(136 / 255, 86 / 255, 167 / 255)),
-        "4" = tibble::lst(grDevices::rgb(237 / 255, 248 / 255, 251 / 255),
-                          grDevices::rgb(179 / 255, 205 / 255, 227 / 255),
-                          grDevices::rgb(140 / 255, 150 / 255, 198 / 255),
-                          grDevices::rgb(136 / 255, 65 / 255, 157 / 255)),
-        "5" = tibble::lst(grDevices::rgb(237 / 255, 248 / 255, 251 / 255),
-                          grDevices::rgb(179 / 255, 205 / 255, 227 / 255),
-                          grDevices::rgb(140 / 255, 150 / 255, 198 / 255),
-                          grDevices::rgb(136 / 255, 86 / 255, 167 / 255),
-                          grDevices::rgb(129 / 255, 15 / 255, 124 / 255)),
-        "6" = tibble::lst(grDevices::rgb(237 / 255, 248 / 255, 251 / 255),
-                          grDevices::rgb(191 / 255, 211 / 255, 230 / 255),
-                          grDevices::rgb(158 / 255, 188 / 255, 218 / 255),
-                          grDevices::rgb(140 / 255, 150 / 255, 198 / 255),
-                          grDevices::rgb(136 / 255, 86 / 255, 167 / 255),
-                          grDevices::rgb(129 / 255, 15 / 255, 124 / 255)),
-        "7" = tibble::lst(grDevices::rgb(237 / 255, 248 / 255, 251 / 255),
-                          grDevices::rgb(191 / 255, 211 / 255, 230 / 255),
-                          grDevices::rgb(158 / 255, 188 / 255, 218 / 255),
-                          grDevices::rgb(140 / 255, 150 / 255, 198 / 255),
-                          grDevices::rgb(140 / 255, 107 / 255, 177 / 255),
-                          grDevices::rgb(136 / 255, 65 / 255, 157 / 255),
-                          grDevices::rgb(110 / 255, 1 / 255, 107 / 255)),
-        "8" = tibble::lst(grDevices::rgb(247 / 255, 252 / 255, 253 / 255),
-                          grDevices::rgb(224 / 255, 236 / 255, 244 / 255),
-                          grDevices::rgb(191 / 255, 211 / 255, 230 / 255),
-                          grDevices::rgb(158 / 255, 188 / 255, 218 / 255),
-                          grDevices::rgb(140 / 255, 150 / 255, 198 / 255),
-                          grDevices::rgb(140 / 255, 107 / 255, 177 / 255),
-                          grDevices::rgb(136 / 255, 65 / 255, 157 / 255),
-                          grDevices::rgb(110 / 255, 1 / 255, 107 / 255)),
-        "9" = tibble::lst(grDevices::rgb(247 / 255, 252 / 255, 253 / 255),
-                          grDevices::rgb(224 / 255, 236 / 255, 244 / 255),
-                          grDevices::rgb(191 / 255, 211 / 255, 230 / 255),
-                          grDevices::rgb(158 / 255, 188 / 255, 218 / 255),
-                          grDevices::rgb(140 / 255, 150 / 255, 198 / 255),
-                          grDevices::rgb(140 / 255, 107 / 255, 177 / 255),
-                          grDevices::rgb(136 / 255, 65 / 255, 157 / 255),
-                          grDevices::rgb(129 / 255, 15 / 255, 124 / 255),
-                          grDevices::rgb(77 / 255, 0 / 255, 75 / 255)),
-        "10" = tibble::lst(grDevices::rgb(247 / 255, 252 / 255, 253 / 255),
-                           grDevices::rgb(229 / 255, 239 / 255, 245 / 255),
-                           grDevices::rgb(205 / 255, 222 / 255, 236 / 255),
-                           grDevices::rgb(180 / 255, 203 / 255, 226 / 255),
-                           grDevices::rgb(156 / 255, 183 / 255, 215 / 255),
-                           grDevices::rgb(142 / 255, 154 / 255, 200 / 255),
-                           grDevices::rgb(140 / 255, 121 / 255, 183 / 255),
-                           grDevices::rgb(138 / 255, 89 / 255, 168 / 255),
-                           grDevices::rgb(130 / 255, 54 / 255, 145 / 255),
-                           grDevices::rgb(109 / 255, 0 / 255, 107 / 255)),
-        "11" = tibble::lst(grDevices::rgb(247 / 255, 252 / 255, 253 / 255),
-                           grDevices::rgb(230 / 255, 240 / 255, 246 / 255),
-                           grDevices::rgb(210 / 255, 225 / 255, 238 / 255),
-                           grDevices::rgb(187 / 255, 208 / 255, 228 / 255),
-                           grDevices::rgb(164 / 255, 192 / 255, 220 / 255),
-                           grDevices::rgb(149 / 255, 168 / 255, 207 / 255),
-                           grDevices::rgb(140 / 255, 141 / 255, 193 / 255),
-                           grDevices::rgb(140 / 255, 111 / 255, 179 / 255),
-                           grDevices::rgb(138 / 255, 82 / 255, 164 / 255),
-                           grDevices::rgb(128 / 255, 50 / 255, 141 / 255),
-                           grDevices::rgb(109 / 255, 0 / 255, 107 / 255)),
-        "12" = tibble::lst(grDevices::rgb(247 / 255, 252 / 255, 253 / 255),
-                           grDevices::rgb(232 / 255, 241 / 255, 247 / 255),
-                           grDevices::rgb(215 / 255, 229 / 255, 240 / 255),
-                           grDevices::rgb(194 / 255, 213 / 255, 231 / 255),
-                           grDevices::rgb(173 / 255, 198 / 255, 223 / 255),
-                           grDevices::rgb(154 / 255, 181 / 255, 214 / 255),
-                           grDevices::rgb(143 / 255, 156 / 255, 201 / 255),
-                           grDevices::rgb(140 / 255, 130 / 255, 188 / 255),
-                           grDevices::rgb(139 / 255, 103 / 255, 175 / 255),
-                           grDevices::rgb(137 / 255, 77 / 255, 162 / 255),
-                           grDevices::rgb(126 / 255, 46 / 255, 138 / 255),
-                           grDevices::rgb(109 / 255, 0 / 255, 107 / 255)),
-        "13" = tibble::lst(grDevices::rgb(247 / 255, 252 / 255, 253 / 255),
-                           grDevices::rgb(233 / 255, 242 / 255, 247 / 255),
-                           grDevices::rgb(218 / 255, 231 / 255, 241 / 255),
-                           grDevices::rgb(199 / 255, 217 / 255, 233 / 255),
-                           grDevices::rgb(180 / 255, 203 / 255, 226 / 255),
-                           grDevices::rgb(160 / 255, 189 / 255, 219 / 255),
-                           grDevices::rgb(149 / 255, 168 / 255, 207 / 255),
-                           grDevices::rgb(140 / 255, 146 / 255, 196 / 255),
-                           grDevices::rgb(140 / 255, 121 / 255, 183 / 255),
-                           grDevices::rgb(139 / 255, 97 / 255, 171 / 255),
-                           grDevices::rgb(136 / 255, 72 / 255, 160 / 255),
-                           grDevices::rgb(125 / 255, 43 / 255, 135 / 255),
-                           grDevices::rgb(109 / 255, 0 / 255, 107 / 255)),
-        "14" = tibble::lst(grDevices::rgb(247 / 255, 252 / 255, 253 / 255),
-                           grDevices::rgb(234 / 255, 243 / 255, 248 / 255),
-                           grDevices::rgb(221 / 255, 234 / 255, 242 / 255),
-                           grDevices::rgb(203 / 255, 220 / 255, 235 / 255),
-                           grDevices::rgb(185 / 255, 207 / 255, 228 / 255),
-                           grDevices::rgb(168 / 255, 195 / 255, 221 / 255),
-                           grDevices::rgb(153 / 255, 179 / 255, 213 / 255),
-                           grDevices::rgb(144 / 255, 158 / 255, 202 / 255),
-                           grDevices::rgb(140 / 255, 136 / 255, 191 / 255),
-                           grDevices::rgb(140 / 255, 113 / 255, 180 / 255),
-                           grDevices::rgb(138 / 255, 91 / 255, 169 / 255),
-                           grDevices::rgb(136 / 255, 68 / 255, 158 / 255),
-                           grDevices::rgb(124 / 255, 41 / 255, 133 / 255),
-                           grDevices::rgb(109 / 255, 0 / 255, 107 / 255)),
-        "15" = tibble::lst(grDevices::rgb(247 / 255, 252 / 255, 253 / 255),
-                           grDevices::rgb(235 / 255, 243 / 255, 248 / 255),
-                           grDevices::rgb(223 / 255, 235 / 255, 243 / 255),
-                           grDevices::rgb(207 / 255, 223 / 255, 236 / 255),
-                           grDevices::rgb(191 / 255, 210 / 255, 229 / 255),
-                           grDevices::rgb(174 / 255, 199 / 255, 224 / 255),
-                           grDevices::rgb(158 / 255, 187 / 255, 217 / 255),
-                           grDevices::rgb(149 / 255, 168 / 255, 207 / 255),
-                           grDevices::rgb(140 / 255, 150 / 255, 197 / 255),
-                           grDevices::rgb(140 / 255, 128 / 255, 187 / 255),
-                           grDevices::rgb(140 / 255, 107 / 255, 177 / 255),
-                           grDevices::rgb(138 / 255, 86 / 255, 166 / 255),
-                           grDevices::rgb(135 / 255, 64 / 255, 157 / 255),
-                           grDevices::rgb(123 / 255, 39 / 255, 131 / 255),
-                           grDevices::rgb(109 / 255, 0 / 255, 107 / 255)),
-        "16" = tibble::lst(grDevices::rgb(247 / 255, 252 / 255, 253 / 255),
-                           grDevices::rgb(236 / 255, 244 / 255, 248 / 255),
-                           grDevices::rgb(225 / 255, 237 / 255, 244 / 255),
-                           grDevices::rgb(210 / 255, 225 / 255, 238 / 255),
-                           grDevices::rgb(195 / 255, 214 / 255, 231 / 255),
-                           grDevices::rgb(180 / 255, 203 / 255, 226 / 255),
-                           grDevices::rgb(164 / 255, 192 / 255, 220 / 255),
-                           grDevices::rgb(153 / 255, 177 / 255, 212 / 255),
-                           grDevices::rgb(144 / 255, 160 / 255, 203 / 255),
-                           grDevices::rgb(140 / 255, 141 / 255, 193 / 255),
-                           grDevices::rgb(140 / 255, 121 / 255, 183 / 255),
-                           grDevices::rgb(139 / 255, 101 / 255, 174 / 255),
-                           grDevices::rgb(138 / 255, 82 / 255, 164 / 255),
-                           grDevices::rgb(134 / 255, 61 / 255, 153 / 255),
-                           grDevices::rgb(122 / 255, 37 / 255, 129 / 255),
-                           grDevices::rgb(109 / 255, 0 / 255, 107 / 255)),
-        "17" = tibble::lst(grDevices::rgb(247 / 255, 252 / 255, 253 / 255),
-                           grDevices::rgb(236 / 255, 244 / 255, 249 / 255),
-                           grDevices::rgb(226 / 255, 237 / 255, 245 / 255),
-                           grDevices::rgb(213 / 255, 228 / 255, 239 / 255),
-                           grDevices::rgb(199 / 255, 217 / 255, 233 / 255),
-                           grDevices::rgb(184 / 255, 206 / 255, 227 / 255),
-                           grDevices::rgb(170 / 255, 196 / 255, 222 / 255),
-                           grDevices::rgb(156 / 255, 185 / 255, 216 / 255),
-                           grDevices::rgb(149 / 255, 168 / 255, 207 / 255),
-                           grDevices::rgb(141 / 255, 152 / 255, 199 / 255),
-                           grDevices::rgb(140 / 255, 134 / 255, 190 / 255),
-                           grDevices::rgb(140 / 255, 115 / 255, 180 / 255),
-                           grDevices::rgb(139 / 255, 97 / 255, 171 / 255),
-                           grDevices::rgb(137 / 255, 78 / 255, 163 / 255),
-                           grDevices::rgb(132 / 255, 58 / 255, 150 / 255),
-                           grDevices::rgb(121 / 255, 35 / 255, 128 / 255),
-                           grDevices::rgb(109 / 255, 0 / 255, 107 / 255)),
-        "18" = tibble::lst(grDevices::rgb(247 / 255, 252 / 255, 253 / 255),
-                           grDevices::rgb(237 / 255, 245 / 255, 249 / 255),
-                           grDevices::rgb(228 / 255, 238 / 255, 245 / 255),
-                           grDevices::rgb(216 / 255, 230 / 255, 240 / 255),
-                           grDevices::rgb(202 / 255, 219 / 255, 234 / 255),
-                           grDevices::rgb(189 / 255, 209 / 255, 229 / 255),
-                           grDevices::rgb(175 / 255, 200 / 255, 224 / 255),
-                           grDevices::rgb(161 / 255, 190 / 255, 219 / 255),
-                           grDevices::rgb(152 / 255, 176 / 255, 212 / 255),
-                           grDevices::rgb(145 / 255, 161 / 255, 203 / 255),
-                           grDevices::rgb(140 / 255, 145 / 255, 195 / 255),
-                           grDevices::rgb(140 / 255, 127 / 255, 186 / 255),
-                           grDevices::rgb(140 / 255, 109 / 255, 178 / 255),
-                           grDevices::rgb(139 / 255, 92 / 255, 169 / 255),
-                           grDevices::rgb(137 / 255, 75 / 255, 161 / 255),
-                           grDevices::rgb(131 / 255, 56 / 255, 147 / 255),
-                           grDevices::rgb(121 / 255, 34 / 255, 127 / 255),
-                           grDevices::rgb(109 / 255, 0 / 255, 107 / 255)),
-        "19" = tibble::lst(grDevices::rgb(247 / 255, 252 / 255, 253 / 255),
-                           grDevices::rgb(238 / 255, 245 / 255, 249 / 255),
-                           grDevices::rgb(229 / 255, 239 / 255, 245 / 255),
-                           grDevices::rgb(218 / 255, 231 / 255, 241 / 255),
-                           grDevices::rgb(205 / 255, 222 / 255, 236 / 255),
-                           grDevices::rgb(192 / 255, 212 / 255, 230 / 255),
-                           grDevices::rgb(180 / 255, 203 / 255, 226 / 255),
-                           grDevices::rgb(167 / 255, 194 / 255, 221 / 255),
-                           grDevices::rgb(156 / 255, 183 / 255, 215 / 255),
-                           grDevices::rgb(149 / 255, 168 / 255, 207 / 255),
-                           grDevices::rgb(142 / 255, 154 / 255, 200 / 255),
-                           grDevices::rgb(140 / 255, 138 / 255, 192 / 255),
-                           grDevices::rgb(140 / 255, 121 / 255, 183 / 255),
-                           grDevices::rgb(139 / 255, 104 / 255, 175 / 255),
-                           grDevices::rgb(138 / 255, 89 / 255, 168 / 255),
-                           grDevices::rgb(136 / 255, 72 / 255, 160 / 255),
-                           grDevices::rgb(130 / 255, 54 / 255, 145 / 255),
-                           grDevices::rgb(120 / 255, 32 / 255, 126 / 255),
-                           grDevices::rgb(109 / 255, 0 / 255, 107 / 255)),
-        "20" = tibble::lst(grDevices::rgb(247 / 255, 252 / 255, 253 / 255),
-                           grDevices::rgb(238 / 255, 246 / 255, 249 / 255),
-                           grDevices::rgb(230 / 255, 240 / 255, 246 / 255),
-                           grDevices::rgb(220 / 255, 233 / 255, 242 / 255),
-                           grDevices::rgb(208 / 255, 224 / 255, 237 / 255),
-                           grDevices::rgb(196 / 255, 214 / 255, 232 / 255),
-                           grDevices::rgb(184 / 255, 206 / 255, 227 / 255),
-                           grDevices::rgb(172 / 255, 197 / 255, 223 / 255),
-                           grDevices::rgb(159 / 255, 189 / 255, 218 / 255),
-                           grDevices::rgb(152 / 255, 175 / 255, 211 / 255),
-                           grDevices::rgb(145 / 255, 161 / 255, 204 / 255),
-                           grDevices::rgb(140 / 255, 147 / 255, 196 / 255),
-                           grDevices::rgb(140 / 255, 132 / 255, 189 / 255),
-                           grDevices::rgb(140 / 255, 116 / 255, 181 / 255),
-                           grDevices::rgb(139 / 255, 100 / 255, 173 / 255),
-                           grDevices::rgb(138 / 255, 85 / 255, 166 / 255),
-                           grDevices::rgb(136 / 255, 69 / 255, 159 / 255),
-                           grDevices::rgb(129 / 255, 51 / 255, 143 / 255),
-                           grDevices::rgb(119 / 255, 31 / 255, 125 / 255),
-                           grDevices::rgb(109 / 255, 0 / 255, 107 / 255)),
-        "type" = "sequential"
-    ),
-    "Oranges" = tibble::lst(
-        "1" = tibble::lst(grDevices::rgb(230 / 255, 85 / 255, 13 / 255)),
-        "2" = tibble::lst(grDevices::rgb(254 / 255, 230 / 255, 206 / 255),
-                          grDevices::rgb(230 / 255, 85 / 255, 13 / 255)),
-        "3" = tibble::lst(grDevices::rgb(254 / 255, 230 / 255, 206 / 255),
-                          grDevices::rgb(253 / 255, 174 / 255, 107 / 255),
-                          grDevices::rgb(230 / 255, 85 / 255, 13 / 255)),
-        "4" = tibble::lst(grDevices::rgb(254 / 255, 237 / 255, 222 / 255),
-                          grDevices::rgb(253 / 255, 190 / 255, 133 / 255),
-                          grDevices::rgb(253 / 255, 141 / 255, 60 / 255),
-                          grDevices::rgb(217 / 255, 71 / 255, 1 / 255)),
-        "5" = tibble::lst(grDevices::rgb(254 / 255, 237 / 255, 222 / 255),
-                          grDevices::rgb(253 / 255, 190 / 255, 133 / 255),
-                          grDevices::rgb(253 / 255, 141 / 255, 60 / 255),
-                          grDevices::rgb(230 / 255, 85 / 255, 13 / 255),
-                          grDevices::rgb(166 / 255, 54 / 255, 3 / 255)),
-        "6" = tibble::lst(grDevices::rgb(254 / 255, 237 / 255, 222 / 255),
-                          grDevices::rgb(253 / 255, 208 / 255, 162 / 255),
-                          grDevices::rgb(253 / 255, 174 / 255, 107 / 255),
-                          grDevices::rgb(253 / 255, 141 / 255, 60 / 255),
-                          grDevices::rgb(230 / 255, 85 / 255, 13 / 255),
-                          grDevices::rgb(166 / 255, 54 / 255, 3 / 255)),
-        "7" = tibble::lst(grDevices::rgb(254 / 255, 237 / 255, 222 / 255),
-                          grDevices::rgb(253 / 255, 208 / 255, 162 / 255),
-                          grDevices::rgb(253 / 255, 174 / 255, 107 / 255),
-                          grDevices::rgb(253 / 255, 141 / 255, 60 / 255),
-                          grDevices::rgb(241 / 255, 105 / 255, 19 / 255),
-                          grDevices::rgb(217 / 255, 72 / 255, 1 / 255),
-                          grDevices::rgb(140 / 255, 45 / 255, 4 / 255)),
-        "8" = tibble::lst(grDevices::rgb(255 / 255, 245 / 255, 235 / 255),
-                          grDevices::rgb(254 / 255, 230 / 255, 206 / 255),
-                          grDevices::rgb(253 / 255, 208 / 255, 162 / 255),
-                          grDevices::rgb(253 / 255, 174 / 255, 107 / 255),
-                          grDevices::rgb(253 / 255, 141 / 255, 60 / 255),
-                          grDevices::rgb(241 / 255, 105 / 255, 19 / 255),
-                          grDevices::rgb(217 / 255, 72 / 255, 1 / 255),
-                          grDevices::rgb(140 / 255, 45 / 255, 4 / 255)),
-        "9" = tibble::lst(grDevices::rgb(255 / 255, 245 / 255, 235 / 255),
-                          grDevices::rgb(254 / 255, 230 / 255, 206 / 255),
-                          grDevices::rgb(253 / 255, 208 / 255, 162 / 255),
-                          grDevices::rgb(253 / 255, 174 / 255, 107 / 255),
-                          grDevices::rgb(253 / 255, 141 / 255, 60 / 255),
-                          grDevices::rgb(241 / 255, 105 / 255, 19 / 255),
-                          grDevices::rgb(217 / 255, 72 / 255, 1 / 255),
-                          grDevices::rgb(166 / 255, 54 / 255, 3 / 255),
-                          grDevices::rgb(127 / 255, 39 / 255, 4 / 255)),
-        "10" = tibble::lst(grDevices::rgb(255 / 255, 244 / 255, 235 / 255),
-                           grDevices::rgb(254 / 255, 233 / 255, 212 / 255),
-                           grDevices::rgb(253 / 255, 217 / 255, 181 / 255),
-                           grDevices::rgb(253 / 255, 196 / 255, 143 / 255),
-                           grDevices::rgb(253 / 255, 170 / 255, 101 / 255),
-                           grDevices::rgb(253 / 255, 144 / 255, 65 / 255),
-                           grDevices::rgb(245 / 255, 117 / 255, 34 / 255),
-                           grDevices::rgb(230 / 255, 90 / 255, 10 / 255),
-                           grDevices::rgb(199 / 255, 65 / 255, 2 / 255),
-                           grDevices::rgb(140 / 255, 44 / 255, 4 / 255)),
-        "11" = tibble::lst(grDevices::rgb(255 / 255, 244 / 255, 235 / 255),
-                           grDevices::rgb(254 / 255, 234 / 255, 214 / 255),
-                           grDevices::rgb(254 / 255, 221 / 255, 188 / 255),
-                           grDevices::rgb(253 / 255, 204 / 255, 156 / 255),
-                           grDevices::rgb(253 / 255, 180 / 255, 117 / 255),
-                           grDevices::rgb(253 / 255, 157 / 255, 83 / 255),
-                           grDevices::rgb(250 / 255, 134 / 255, 52 / 255),
-                           grDevices::rgb(242 / 255, 108 / 255, 24 / 255),
-                           grDevices::rgb(226 / 255, 85 / 255, 7 / 255),
-                           grDevices::rgb(193 / 255, 63 / 255, 2 / 255),
-                           grDevices::rgb(140 / 255, 44 / 255, 4 / 255)),
-        "12" = tibble::lst(grDevices::rgb(255 / 255, 244 / 255, 235 / 255),
-                           grDevices::rgb(254 / 255, 235 / 255, 216 / 255),
-                           grDevices::rgb(254 / 255, 223 / 255, 193 / 255),
-                           grDevices::rgb(253 / 255, 209 / 255, 165 / 255),
-                           grDevices::rgb(253 / 255, 189 / 255, 131 / 255),
-                           grDevices::rgb(253 / 255, 168 / 255, 98 / 255),
-                           grDevices::rgb(253 / 255, 147 / 255, 68 / 255),
-                           grDevices::rgb(247 / 255, 124 / 255, 43 / 255),
-                           grDevices::rgb(238 / 255, 102 / 255, 17 / 255),
-                           grDevices::rgb(223 / 255, 81 / 255, 5 / 255),
-                           grDevices::rgb(188 / 255, 61 / 255, 2 / 255),
-                           grDevices::rgb(140 / 255, 44 / 255, 4 / 255)),
-        "13" = tibble::lst(grDevices::rgb(255 / 255, 244 / 255, 235 / 255),
-                           grDevices::rgb(254 / 255, 236 / 255, 218 / 255),
-                           grDevices::rgb(254 / 255, 226 / 255, 198 / 255),
-                           grDevices::rgb(253 / 255, 213 / 255, 172 / 255),
-                           grDevices::rgb(253 / 255, 196 / 255, 143 / 255),
-                           grDevices::rgb(253 / 255, 176 / 255, 111 / 255),
-                           grDevices::rgb(253 / 255, 157 / 255, 83 / 255),
-                           grDevices::rgb(252 / 255, 138 / 255, 56 / 255),
-                           grDevices::rgb(245 / 255, 117 / 255, 34 / 255),
-                           grDevices::rgb(235 / 255, 97 / 255, 14 / 255),
-                           grDevices::rgb(221 / 255, 77 / 255, 3 / 255),
-                           grDevices::rgb(184 / 255, 60 / 255, 2 / 255),
-                           grDevices::rgb(140 / 255, 44 / 255, 4 / 255)),
-        "14" = tibble::lst(grDevices::rgb(255 / 255, 244 / 255, 235 / 255),
-                           grDevices::rgb(254 / 255, 236 / 255, 219 / 255),
-                           grDevices::rgb(254 / 255, 228 / 255, 202 / 255),
-                           grDevices::rgb(253 / 255, 216 / 255, 178 / 255),
-                           grDevices::rgb(253 / 255, 202 / 255, 153 / 255),
-                           grDevices::rgb(253 / 255, 184 / 255, 123 / 255),
-                           grDevices::rgb(253 / 255, 166 / 255, 96 / 255),
-                           grDevices::rgb(253 / 255, 148 / 255, 71 / 255),
-                           grDevices::rgb(249 / 255, 130 / 255, 48 / 255),
-                           grDevices::rgb(242 / 255, 110 / 255, 26 / 255),
-                           grDevices::rgb(231 / 255, 92 / 255, 11 / 255),
-                           grDevices::rgb(218 / 255, 74 / 255, 2 / 255),
-                           grDevices::rgb(180 / 255, 59 / 255, 3 / 255),
-                           grDevices::rgb(140 / 255, 44 / 255, 4 / 255)),
-        "15" = tibble::lst(grDevices::rgb(255 / 255, 244 / 255, 235 / 255),
-                           grDevices::rgb(254 / 255, 237 / 255, 220 / 255),
-                           grDevices::rgb(254 / 255, 229 / 255, 205 / 255),
-                           grDevices::rgb(253 / 255, 218 / 255, 183 / 255),
-                           grDevices::rgb(253 / 255, 208 / 255, 161 / 255),
-                           grDevices::rgb(253 / 255, 191 / 255, 134 / 255),
-                           grDevices::rgb(253 / 255, 173 / 255, 107 / 255),
-                           grDevices::rgb(253 / 255, 157 / 255, 83 / 255),
-                           grDevices::rgb(253 / 255, 140 / 255, 59 / 255),
-                           grDevices::rgb(247 / 255, 123 / 255, 41 / 255),
-                           grDevices::rgb(241 / 255, 104 / 255, 19 / 255),
-                           grDevices::rgb(229 / 255, 88 / 255, 9 / 255),
-                           grDevices::rgb(216 / 255, 71 / 255, 0 / 255),
-                           grDevices::rgb(177 / 255, 58 / 255, 3 / 255),
-                           grDevices::rgb(140 / 255, 44 / 255, 4 / 255)),
-        "16" = tibble::lst(grDevices::rgb(255 / 255, 244 / 255, 235 / 255),
-                           grDevices::rgb(254 / 255, 237 / 255, 221 / 255),
-                           grDevices::rgb(254 / 255, 230 / 255, 207 / 255),
-                           grDevices::rgb(254 / 255, 221 / 255, 188 / 255),
-                           grDevices::rgb(253 / 255, 210 / 255, 167 / 255),
-                           grDevices::rgb(253 / 255, 196 / 255, 143 / 255),
-                           grDevices::rgb(253 / 255, 180 / 255, 117 / 255),
-                           grDevices::rgb(253 / 255, 165 / 255, 94 / 255),
-                           grDevices::rgb(253 / 255, 149 / 255, 72 / 255),
-                           grDevices::rgb(250 / 255, 134 / 255, 52 / 255),
-                           grDevices::rgb(245 / 255, 117 / 255, 34 / 255),
-                           grDevices::rgb(237 / 255, 100 / 255, 16 / 255),
-                           grDevices::rgb(226 / 255, 85 / 255, 7 / 255),
-                           grDevices::rgb(211 / 255,70 / 255, 1 / 255),
-                           grDevices::rgb(175 / 255, 57 / 255, 3 / 255),
-                           grDevices::rgb(140 / 255, 44 / 255, 4 / 255)),
-        "17" = tibble::lst(grDevices::rgb(255 / 255, 244 / 255, 235 / 255),
-                           grDevices::rgb(254 / 255, 238 / 255, 222 / 255),
-                           grDevices::rgb(254 / 255, 231 / 255, 209 / 255),
-                           grDevices::rgb(254 / 255, 223 / 255, 192 / 255),
-                           grDevices::rgb(253 / 255, 213 / 255, 172 / 255),
-                           grDevices::rgb(253 / 255, 201 / 255, 151 / 255),
-                           grDevices::rgb(253 / 255, 186 / 255, 127 / 255),
-                           grDevices::rgb(253 / 255, 171 / 255, 104 / 255),
-                           grDevices::rgb(253 / 255, 157 / 255, 83 / 255),
-                           grDevices::rgb(253 / 255, 143 / 255, 63 / 255),
-                           grDevices::rgb(248 / 255, 127 / 255, 46 / 255),
-                           grDevices::rgb(243 / 255, 111 / 255, 28 / 255),
-                           grDevices::rgb(235 / 255, 97 / 255, 14 / 255),
-                           grDevices::rgb(224 / 255, 82 / 255, 5 / 255),
-                           grDevices::rgb(207 / 255, 68 / 255, 1 / 255),
-                           grDevices::rgb(172 / 255, 56 / 255, 3 / 255),
-                           grDevices::rgb(140 / 255, 44 / 255, 4 / 255)),
-        "18" = tibble::lst(grDevices::rgb(255 / 255, 244 / 255, 235 / 255),
-                           grDevices::rgb(254 / 255, 238 / 255, 223 / 255),
-                           grDevices::rgb(254 / 255, 232 / 255, 211 / 255),
-                           grDevices::rgb(254 / 255, 224 / 255, 195 / 255),
-                           grDevices::rgb(253 / 255, 215 / 255, 177 / 255),
-                           grDevices::rgb(253 / 255, 206 / 255, 158 / 255),
-                           grDevices::rgb(253 / 255, 192 / 255, 136 / 255),
-                           grDevices::rgb(253 / 255, 178 / 255, 113 / 255),
-                           grDevices::rgb(253 / 255, 164 / 255, 93 / 255),
-                           grDevices::rgb(253 / 255, 150 / 255, 74 / 255),
-                           grDevices::rgb(251 / 255, 136 / 255, 55 / 255),
-                           grDevices::rgb(246 / 255, 122 / 255, 40 / 255),
-                           grDevices::rgb(241 / 255, 107 / 255, 22 / 255),
-                           grDevices::rgb(232 / 255, 93 / 255, 12 / 255),
-                           grDevices::rgb(222 / 255, 80 / 255, 4 / 255),
-                           grDevices::rgb(202 / 255, 67 / 255, 1 / 255),
-                           grDevices::rgb(170 / 255, 55 / 255, 3 / 255),
-                           grDevices::rgb(140 / 255, 44 / 255, 4 / 255)),
-        "19" = tibble::lst(grDevices::rgb(255 / 255, 244 / 255, 235 / 255),
-                           grDevices::rgb(254 / 255, 239 / 255, 223 / 255),
-                           grDevices::rgb(254 / 255, 233 / 255, 212 / 255),
-                           grDevices::rgb(254 / 255, 226 / 255, 198 / 255),
-                           grDevices::rgb(253 / 255, 217 / 255, 181 / 255),
-                           grDevices::rgb(253 / 255, 209 / 255, 164 / 255),
-                           grDevices::rgb(253 / 255, 196 / 255, 143 / 255),
-                           grDevices::rgb(253 / 255, 183 / 255, 122 / 255),
-                           grDevices::rgb(253 / 255, 170 / 255, 101 / 255),
-                           grDevices::rgb(253 / 255, 157 / 255, 83 / 255),
-                           grDevices::rgb(253 / 255, 144 / 255, 65 / 255),
-                           grDevices::rgb(249 / 255, 131 / 255, 49 / 255),
-                           grDevices::rgb(245 / 255, 117 / 255, 34 / 255),
-                           grDevices::rgb(239 / 255, 103 / 255, 18 / 255),
-                           grDevices::rgb(230 / 255, 90 / 255, 10 / 255),
-                           grDevices::rgb(221 / 255, 77 / 255, 3 / 255),
-                           grDevices::rgb(199 / 255, 65 / 255, 2 / 255),
-                           grDevices::rgb(169 / 255, 55 / 255, 3 / 255),
-                           grDevices::rgb(140 / 255, 44 / 255, 4 / 255)),
-        "20" = tibble::lst(grDevices::rgb(255 / 255, 244 / 255, 235 / 255),
-                           grDevices::rgb(254 / 255, 239 / 255, 224 / 255),
-                           grDevices::rgb(254 / 255, 233 / 255, 213 / 255),
-                           grDevices::rgb(254 / 255, 227 / 255, 201 / 255),
-                           grDevices::rgb(253 / 255, 219 / 255, 185 / 255),
-                           grDevices::rgb(253 / 255, 211 / 255, 168 / 255),
-                           grDevices::rgb(253 / 255, 200 / 255, 150 / 255),
-                           grDevices::rgb(253 / 255, 188 / 255, 130 / 255),
-                           grDevices::rgb(253 / 255, 175 / 255, 109 / 255),
-                           grDevices::rgb(253 / 255, 163 / 255, 92 / 255),
-                           grDevices::rgb(253 / 255, 151 / 255, 75 / 255),
-                           grDevices::rgb(252 / 255, 139 / 255, 58 / 255),
-                           grDevices::rgb(248 / 255, 126 / 255, 44 / 255),
-                           grDevices::rgb(243 / 255, 112 / 255, 29 / 255),
-                           grDevices::rgb(237 / 255, 99 / 255, 16 / 255),
-                           grDevices::rgb(228 / 255, 88 / 255, 8 / 255),
-                           grDevices::rgb(219 / 255, 75 / 255, 2 / 255),
-                           grDevices::rgb(196 / 255, 64 / 255, 2 / 255),
-                           grDevices::rgb(167 / 255, 54 / 255, 3 / 255),
-                           grDevices::rgb(140 / 255, 44 / 255, 4 / 255)),
-        "type" = "sequential"
-    ),
-    "BuGn" = tibble::lst(
-        "1" = tibble::lst(grDevices::rgb(153 / 255, 216 / 255, 201 / 255)),
-        "2" = tibble::lst(grDevices::rgb(229 / 255, 245 / 255, 249 / 255),
-                          grDevices::rgb(44 / 255, 162 / 255, 95 / 255)),
-        "3" = tibble::lst(grDevices::rgb(229 / 255, 245 / 255, 249 / 255),
-                          grDevices::rgb(153 / 255, 216 / 255, 201 / 255),
-                          grDevices::rgb(44 / 255, 162 / 255, 95 / 255)),
-        "4" = tibble::lst(grDevices::rgb(237 / 255, 248 / 255, 251 / 255),
-                          grDevices::rgb(178 / 255, 226 / 255, 226 / 255),
-                          grDevices::rgb(102 / 255, 194 / 255, 164 / 255),
-                          grDevices::rgb(35 / 255, 139 / 255, 69 / 255)),
-        "5" = tibble::lst(grDevices::rgb(237 / 255, 248 / 255, 251 / 255),
-                          grDevices::rgb(178 / 255, 226 / 255, 226 / 255),
-                          grDevices::rgb(102 / 255, 194 / 255, 164 / 255),
-                          grDevices::rgb(44 / 255, 162 / 255, 95 / 255),
-                          grDevices::rgb(0 / 255, 109 / 255, 44 / 255)),
-        "6" = tibble::lst(grDevices::rgb(237 / 255, 248 / 255, 251 / 255),
-                          grDevices::rgb(204 / 255, 236 / 255, 230 / 255),
-                          grDevices::rgb(153 / 255, 216 / 255, 201 / 255),
-                          grDevices::rgb(102 / 255, 194 / 255, 164 / 255),
-                          grDevices::rgb(44 / 255, 162 / 255, 95 / 255),
-                          grDevices::rgb(0 / 255, 109 / 255, 44 / 255)),
-        "7" = tibble::lst(grDevices::rgb(237 / 255, 248 / 255, 251 / 255),
-                          grDevices::rgb(204 / 255, 236 / 255, 230 / 255),
-                          grDevices::rgb(153 / 255, 216 / 255, 201 / 255),
-                          grDevices::rgb(102 / 255, 194 / 255, 164 / 255),
-                          grDevices::rgb(65 / 255, 174 / 255, 118 / 255),
-                          grDevices::rgb(35 / 255, 139 / 255, 69 / 255),
-                          grDevices::rgb(0 / 255, 88 / 255, 36 / 255)),
-        "8" = tibble::lst(grDevices::rgb(247 / 255, 252 / 255, 253 / 255),
-                          grDevices::rgb(229 / 255, 245 / 255, 249 / 255),
-                          grDevices::rgb(204 / 255, 236 / 255, 230 / 255),
-                          grDevices::rgb(153 / 255, 216 / 255, 201 / 255),
-                          grDevices::rgb(102 / 255, 194 / 255, 164 / 255),
-                          grDevices::rgb(65 / 255, 174 / 255, 118 / 255),
-                          grDevices::rgb(35 / 255, 139 / 255, 69 / 255),
-                          grDevices::rgb(0 / 255, 88 / 255, 36 / 255)),
-        "9" = tibble::lst(grDevices::rgb(247 / 255, 252 / 255, 253 / 255),
-                          grDevices::rgb(229 / 255, 245 / 255, 249 / 255),
-                          grDevices::rgb(204 / 255, 236 / 255, 230 / 255),
-                          grDevices::rgb(153 / 255, 216 / 255, 201 / 255),
-                          grDevices::rgb(102 / 255, 194 / 255, 164 / 255),
-                          grDevices::rgb(65 / 255, 174 / 255, 118 / 255),
-                          grDevices::rgb(35 / 255, 139 / 255, 69 / 255),
-                          grDevices::rgb(0 / 255, 109 / 255, 44 / 255),
-                          grDevices::rgb(0 / 255, 68 / 255, 27 / 255)),
-        "10" = tibble::lst(grDevices::rgb(247 / 255, 252 / 255, 253 / 255),
-                           grDevices::rgb(233 / 255, 246 / 255, 249 / 255),
-                           grDevices::rgb(215 / 255, 240 / 255, 238 / 255),
-                           grDevices::rgb(187 / 255, 229 / 255, 220 / 255),
-                           grDevices::rgb(147 / 255, 213 / 255, 196 / 255),
-                           grDevices::rgb(108 / 255, 196 / 255, 168 / 255),
-                           grDevices::rgb(78 / 255, 180 / 255, 133 / 255),
-                           grDevices::rgb(52 / 255, 158 / 255, 96 / 255),
-                           grDevices::rgb(27 / 255, 127 / 255, 61 / 255),
-                           grDevices::rgb(0 / 255, 88 / 255, 36 / 255)),
-        "11" = tibble::lst(grDevices::rgb(247 / 255, 252 / 255, 253 / 255),
-                           grDevices::rgb(234 / 255, 247 / 255, 250 / 255),
-                           grDevices::rgb(219 / 255, 241 / 255, 241 / 255),
-                           grDevices::rgb(199 / 255, 234 / 255, 227 / 255),
-                           grDevices::rgb(163 / 255, 220 / 255, 206 / 255),
-                           grDevices::rgb(128 / 255, 205 / 255, 182 / 255),
-                           grDevices::rgb(95 / 255, 190 / 255, 154 / 255),
-                           grDevices::rgb(69 / 255, 176 / 255, 122 / 255),
-                           grDevices::rgb(47 / 255, 152 / 255, 88 / 255),
-                           grDevices::rgb(25 / 255, 123 / 255, 58 / 255),
-                           grDevices::rgb(0 / 255, 88 / 255, 36 / 255)),
-        "12" = tibble::lst(grDevices::rgb(247 / 255, 252 / 255, 253 / 255),
-                           grDevices::rgb(235 / 255, 247 / 255, 250 / 255),
-                           grDevices::rgb(222 / 255, 242 / 255, 243 / 255),
-                           grDevices::rgb(206 / 255, 236 / 255, 231 / 255),
-                           grDevices::rgb(176 / 255, 225 / 255, 214 / 255),
-                           grDevices::rgb(144 / 255, 212 / 255, 194 / 255),
-                           grDevices::rgb(111 / 255, 198 / 255, 170 / 255),
-                           grDevices::rgb(86 / 255, 184 / 255, 142 / 255),
-                           grDevices::rgb(62 / 255, 170 / 255, 113 / 255),
-                           grDevices::rgb(44 / 255, 148 / 255, 82 / 255),
-                           grDevices::rgb(23 / 255, 119 / 255, 56 / 255),
-                           grDevices::rgb(0 / 255, 88 / 255, 36 / 255)),
-        "13" = tibble::lst(grDevices::rgb(247 / 255, 252 / 255, 253 / 255),
-                           grDevices::rgb(236 / 255, 247 / 255, 250 / 255),
-                           grDevices::rgb(224 / 255, 243 / 255, 245 / 255),
-                           grDevices::rgb(210 / 255, 238 / 255, 234 / 255),
-                           grDevices::rgb(187 / 255, 229 / 255, 220 / 255),
-                           grDevices::rgb(157 / 255, 217 / 255, 203 / 255),
-                           grDevices::rgb(128 / 255, 205 / 255, 182 / 255),
-                           grDevices::rgb(99 / 255, 192 / 255, 160 / 255),
-                           grDevices::rgb(78 / 255, 180 / 255, 133 / 255),
-                           grDevices::rgb(58 / 255, 165 / 255, 105 / 255),
-                           grDevices::rgb(40 / 255, 144 / 255, 77 / 255),
-                           grDevices::rgb(21 / 255, 117 / 255, 54 / 255),
-                           grDevices::rgb(0 / 255, 88 / 255, 36 / 255)),
-        "14" = tibble::lst(grDevices::rgb(247 / 255, 252 / 255, 253 / 255),
-                           grDevices::rgb(237 / 255, 248 / 255, 250 / 255),
-                           grDevices::rgb(227 / 255, 244 / 255, 247 / 255),
-                           grDevices::rgb(213 / 255, 239 / 255, 237 / 255),
-                           grDevices::rgb(196 / 255, 232 / 255, 225 / 255),
-                           grDevices::rgb(168 / 255, 222 / 255, 209 / 255),
-                           grDevices::rgb(141 / 255, 210 / 255, 192 / 255),
-                           grDevices::rgb(114 / 255, 199 / 255, 172 / 255),
-                           grDevices::rgb(91 / 255, 187 / 255, 149 / 255),
-                           grDevices::rgb(71 / 255, 177 / 255, 125 / 255),
-                           grDevices::rgb(54 / 255, 160 / 255, 98 / 255),
-                           grDevices::rgb(37 / 255, 141 / 255, 72 / 255),
-                           grDevices::rgb(19 / 255, 114 / 255, 53 / 255),
-                           grDevices::rgb(0 / 255, 88 / 255, 36 / 255)),
-        "15" = tibble::lst(grDevices::rgb(247 / 255, 252 / 255, 253 / 255),
-                           grDevices::rgb(238 / 255, 248 / 255, 250 / 255),
-                           grDevices::rgb(229 / 255, 244 / 255, 248 / 255),
-                           grDevices::rgb(216 / 255, 240 / 255, 239 / 255),
-                           grDevices::rgb(204 / 255, 235 / 255, 229 / 255),
-                           grDevices::rgb(178 / 255, 226 / 255, 215 / 255),
-                           grDevices::rgb(153 / 255, 216 / 255, 201 / 255),
-                           grDevices::rgb(128 / 255, 205 / 255, 182 / 255),
-                           grDevices::rgb(102 / 255, 193 / 255, 164 / 255),
-                           grDevices::rgb(84 / 255, 184 / 255, 140 / 255),
-                           grDevices::rgb(64 / 255, 173 / 255, 118 / 255),
-                           grDevices::rgb(50 / 255, 156 / 255, 93 / 255),
-                           grDevices::rgb(34 / 255, 139 / 255, 69 / 255),
-                           grDevices::rgb(18 / 255, 112 / 255, 52 / 255),
-                           grDevices::rgb(0 / 255, 88 / 255, 36 / 255)),
-        "16" = tibble::lst(grDevices::rgb(247 / 255, 252 / 255, 253 / 255),
-                           grDevices::rgb(238 / 255, 248 / 255, 251 / 255),
-                           grDevices::rgb(230 / 255, 245 / 255, 249 / 255),
-                           grDevices::rgb(219 / 255, 241 / 255, 241 / 255),
-                           grDevices::rgb(207 / 255, 237 / 255, 232 / 255),
-                           grDevices::rgb(187 / 255, 229 / 255, 220 / 255),
-                           grDevices::rgb(163 / 255, 220 / 255, 206 / 255),
-                           grDevices::rgb(139 / 255, 210 / 255, 191 / 255),
-                           grDevices::rgb(116 / 255, 199 / 255, 173 / 255),
-                           grDevices::rgb(95 / 255, 190 / 255, 154 / 255),
-                           grDevices::rgb(78 / 255, 180 / 255, 133 / 255),
-                           grDevices::rgb(61 / 255, 169 / 255, 111 / 255),
-                           grDevices::rgb(47 / 255, 152 / 255, 88 / 255),
-                           grDevices::rgb(32 / 255, 135 / 255, 66 / 255),
-                           grDevices::rgb(17 / 255, 111 / 255, 51 / 255),
-                           grDevices::rgb(0 / 255, 88 / 255, 36 / 255)),
-        "17" = tibble::lst(grDevices::rgb(247 / 255, 252 / 255, 253 / 255),
-                           grDevices::rgb(239 / 255, 248 / 255, 251 / 255),
-                           grDevices::rgb(231 / 255, 245 / 255, 249 / 255),
-                           grDevices::rgb(221 / 255, 242 / 255, 243 / 255),
-                           grDevices::rgb(210 / 255, 238 / 255, 234 / 255),
-                           grDevices::rgb(194 / 255, 232 / 255, 224 / 255),
-                           grDevices::rgb(172 / 255, 223 / 255, 211 / 255),
-                           grDevices::rgb(149 / 255, 214 / 255, 198 / 255),
-                           grDevices::rgb(128 / 255, 205 / 255, 182 / 255),
-                           grDevices::rgb(105 / 255, 195 / 255, 166 / 255),
-                           grDevices::rgb(89 / 255, 186 / 255, 146 / 255),
-                           grDevices::rgb(72 / 255, 177 / 255, 126 / 255),
-                           grDevices::rgb(58 / 255, 165 / 255, 105 / 255),
-                           grDevices::rgb(45 / 255, 149 / 255, 84 / 255),
-                           grDevices::rgb(30 / 255, 132 / 255, 64 / 255),
-                           grDevices::rgb(15 / 255, 109 / 255, 50 / 255),
-                           grDevices::rgb(0 / 255, 88 / 255, 36 / 255)),
-        "18" = tibble::lst(grDevices::rgb(247 / 255, 252 / 255, 253 / 255),
-                           grDevices::rgb(239 / 255, 249 / 255, 251 / 255),
-                           grDevices::rgb(232 / 255, 246 / 255, 249 / 255),
-                           grDevices::rgb(223 / 255, 242 / 255, 244 / 255),
-                           grDevices::rgb(212 / 255, 239 / 255, 236 / 255),
-                           grDevices::rgb(201 / 255, 234 / 255, 228 / 255),
-                           grDevices::rgb(180 / 255, 226 / 255, 216 / 255),
-                           grDevices::rgb(159 / 255, 218 / 255, 204 / 255),
-                           grDevices::rgb(138 / 255, 209 / 255, 189 / 255),
-                           grDevices::rgb(117 / 255, 200 / 255, 174 / 255),
-                           grDevices::rgb(98 / 255, 191 / 255, 158 / 255),
-                           grDevices::rgb(83 / 255, 183 / 255, 139 / 255),
-                           grDevices::rgb(67 / 255, 175 / 255, 120 / 255),
-                           grDevices::rgb(55 / 255, 161 / 255, 100 / 255),
-                           grDevices::rgb(42 / 255, 147 / 255, 80 / 255),
-                           grDevices::rgb(29 / 255, 129 / 255, 62 / 255),
-                           grDevices::rgb(14 / 255, 108 / 255, 49 / 255),
-                           grDevices::rgb(0 / 255, 88 / 255, 36 / 255)),
-        "19" = tibble::lst(grDevices::rgb(247 / 255, 252 / 255, 253 / 255),
-                           grDevices::rgb(240 / 255, 249 / 255, 251 / 255),
-                           grDevices::rgb(233 / 255, 246 / 255, 249 / 255),
-                           grDevices::rgb(224 / 255, 243 / 255, 245 / 255),
-                           grDevices::rgb(215 / 255, 240 / 255, 238 / 255),
-                           grDevices::rgb(205 / 255, 236 / 255, 231 / 255),
-                           grDevices::rgb(187 / 255, 229 / 255, 220 / 255),
-                           grDevices::rgb(167 / 255, 221 / 255, 208 / 255),
-                           grDevices::rgb(147 / 255, 213 / 255, 196 / 255),
-                           grDevices::rgb(128 / 255, 205 / 255, 182 / 255),
-                           grDevices::rgb(108 / 255, 196 / 255, 168 / 255),
-                           grDevices::rgb(92 / 255, 188 / 255, 151 / 255),
-                           grDevices::rgb(78 / 255, 180 / 255, 133 / 255),
-                           grDevices::rgb(63 / 255, 172 / 255, 115 / 255),
-                           grDevices::rgb(52 / 255, 158 / 255, 96 / 255),
-                           grDevices::rgb(40 / 255, 144 / 255, 77 / 255),
-                           grDevices::rgb(27 / 255, 127 / 255, 61 / 255),
-                           grDevices::rgb(14 / 255, 107 / 255, 48 / 255),
-                           grDevices::rgb(0 / 255, 88 / 255, 36 / 255)),
-        "20" = tibble::lst(grDevices::rgb(247 / 255, 252 / 255, 253 / 255),
-                           grDevices::rgb(240 / 255, 249 / 255, 251 / 255),
-                           grDevices::rgb(233 / 255, 246 / 255, 250 / 255),
-                           grDevices::rgb(226 / 255, 244 / 255, 246 / 255),
-                           grDevices::rgb(217 / 255, 240 / 255, 239 / 255),
-                           grDevices::rgb(207 / 255, 237 / 255, 232 / 255),
-                           grDevices::rgb(193 / 255, 231 / 255, 223 / 255),
-                           grDevices::rgb(174 / 255, 224 / 255, 213 / 255),
-                           grDevices::rgb(155 / 255, 217 / 255, 202 / 255),
-                           grDevices::rgb(137 / 255, 209 / 255, 189 / 255),
-                           grDevices::rgb(118 / 255, 200 / 255, 175 / 255),
-                           grDevices::rgb(100 / 255, 192 / 255, 161 / 255),
-                           grDevices::rgb(87 / 255, 185 / 255, 144 / 255),
-                           grDevices::rgb(73 / 255, 178 / 255, 127 / 255),
-                           grDevices::rgb(60 / 255, 168 / 255, 110 / 255),
-                           grDevices::rgb(50 / 255, 155 / 255, 92 / 255),
-                           grDevices::rgb(38 / 255, 142 / 255, 74 / 255),
-                           grDevices::rgb(26 / 255, 125 / 255, 60 / 255),
-                           grDevices::rgb(13 / 255, 106 / 255, 47 / 255),
-                           grDevices::rgb(0 / 255, 88 / 255, 36 / 255)),
-        "type" = "sequential"
-    ),
-    "YlOrBr" = tibble::lst(
-        "1" = tibble::lst(grDevices::rgb(217 / 255, 95 / 255, 14 / 255)),
-        "2" = tibble::lst(grDevices::rgb(255 / 255, 247 / 255, 188 / 255),
-                          grDevices::rgb(217 / 255, 95 / 255, 14 / 255)),
-        "3" = tibble::lst(grDevices::rgb(255 / 255, 247 / 255, 188 / 255),
-                          grDevices::rgb(254 / 255, 196 / 255, 79 / 255),
-                          grDevices::rgb(217 / 255, 95 / 255, 14 / 255)),
-        "4" = tibble::lst(grDevices::rgb(255 / 255, 255 / 255, 212 / 255),
-                          grDevices::rgb(254 / 255, 217 / 255, 142 / 255),
-                          grDevices::rgb(254 / 255, 153 / 255, 41 / 255),
-                          grDevices::rgb(204 / 255, 76 / 255, 2 / 255)),
-        "5" = tibble::lst(grDevices::rgb(255 / 255, 255 / 255, 212 / 255),
-                          grDevices::rgb(254 / 255, 217 / 255, 142 / 255),
-                          grDevices::rgb(254 / 255, 153 / 255, 41 / 255),
-                          grDevices::rgb(217 / 255, 95 / 255, 14 / 255),
-                          grDevices::rgb(153 / 255, 52 / 255, 4 / 255)),
-        "6" = tibble::lst(grDevices::rgb(255 / 255, 255 / 255, 212 / 255),
-                          grDevices::rgb(254 / 255, 227 / 255, 145 / 255),
-                          grDevices::rgb(254 / 255, 196 / 255, 79 / 255),
-                          grDevices::rgb(254 / 255, 153 / 255, 41 / 255),
-                          grDevices::rgb(217 / 255, 95 / 255, 14 / 255),
-                          grDevices::rgb(153 / 255, 52 / 255, 4 / 255)),
-        "7" = tibble::lst(grDevices::rgb(255 / 255, 255 / 255, 212 / 255),
-                          grDevices::rgb(254 / 255, 227 / 255, 145 / 255),
-                          grDevices::rgb(254 / 255, 196 / 255, 79 / 255),
-                          grDevices::rgb(254 / 255, 153 / 255, 41 / 255),
-                          grDevices::rgb(236 / 255, 112 / 255, 20 / 255),
-                          grDevices::rgb(204 / 255, 76 / 255, 2 / 255),
-                          grDevices::rgb(140 / 255, 45 / 255, 4 / 255)),
-        "8" = tibble::lst(grDevices::rgb(255 / 255, 255 / 255, 229 / 255),
-                          grDevices::rgb(255 / 255, 247 / 255, 188 / 255),
-                          grDevices::rgb(254 / 255, 227 / 255, 145 / 255),
-                          grDevices::rgb(254 / 255, 196 / 255, 79 / 255),
-                          grDevices::rgb(254 / 255, 153 / 255, 41 / 255),
-                          grDevices::rgb(236 / 255, 112 / 255, 20 / 255),
-                          grDevices::rgb(204 / 255, 76 / 255, 2 / 255),
-                          grDevices::rgb(140 / 255, 45 / 255, 4 / 255)),
-        "9" = tibble::lst(grDevices::rgb(255 / 255, 255 / 255, 229 / 255),
-                          grDevices::rgb(255 / 255, 247 / 255, 188 / 255),
-                          grDevices::rgb(254 / 255, 227 / 255, 145 / 255),
-                          grDevices::rgb(254 / 255, 196 / 255, 79 / 255),
-                          grDevices::rgb(254 / 255, 153 / 255, 41 / 255),
-                          grDevices::rgb(236 / 255, 112 / 255, 20 / 255),
-                          grDevices::rgb(204 / 255, 76 / 255, 2 / 255),
-                          grDevices::rgb(153 / 255, 52 / 255, 4 / 255),
-                          grDevices::rgb(102 / 255, 37 / 255, 6 / 255)),
-        "10" = tibble::lst(grDevices::rgb(255 / 255, 255 / 255, 229 / 255),
-                           grDevices::rgb(255 / 255, 248 / 255, 197 / 255),
-                           grDevices::rgb(254 / 255, 235 / 255, 164 / 255),
-                           grDevices::rgb(254 / 255, 216 / 255, 123 / 255),
-                           grDevices::rgb(254 / 255, 191 / 255, 74 / 255),
-                           grDevices::rgb(254 / 255, 157 / 255, 45 / 255),
-                           grDevices::rgb(242 / 255, 125 / 255, 27 / 255),
-                           grDevices::rgb(221 / 255, 96 / 255, 11 / 255),
-                           grDevices::rgb(189 / 255, 68 / 255, 2 / 255),
-                           grDevices::rgb(140 / 255, 44 / 255, 4 / 255)),
-        "11" = tibble::lst(grDevices::rgb(255 / 255, 255 / 255, 229 / 255),
-                           grDevices::rgb(255 / 255, 249 / 255, 200 / 255),
-                           grDevices::rgb(254 / 255, 238 / 255, 170 / 255),
-                           grDevices::rgb(254 / 255, 223 / 255, 138 / 255),
-                           grDevices::rgb(254 / 255, 202 / 255, 92 / 255),
-                           grDevices::rgb(254 / 255, 174 / 255, 60 / 255),
-                           grDevices::rgb(250 / 255, 144 / 255, 36 / 255),
-                           grDevices::rgb(237 / 255, 116 / 255, 22 / 255),
-                           grDevices::rgb(216 / 255, 90 / 255, 8 / 255),
-                           grDevices::rgb(184 / 255, 66 / 255, 3 / 255),
-                           grDevices::rgb(140 / 255, 44 / 255, 4 / 255)),
-        "12" = tibble::lst(grDevices::rgb(255 / 255, 255 / 255, 229 / 255),
-                           grDevices::rgb(255 / 255, 249 / 255, 202 / 255),
-                           grDevices::rgb(255 / 255, 241 / 255, 176 / 255),
-                           grDevices::rgb(254 / 255, 228 / 255, 148 / 255),
-                           grDevices::rgb(254 / 255, 210 / 255, 109 / 255),
-                           grDevices::rgb(254 / 255, 188 / 255, 72 / 255),
-                           grDevices::rgb(254 / 255, 161 / 255, 48 / 255),
-                           grDevices::rgb(246 / 255, 134 / 255, 31 / 255),
-                           grDevices::rgb(233 / 255, 108 / 255, 18 / 255),
-                           grDevices::rgb(212 / 255, 85 / 255, 6 / 255),
-                           grDevices::rgb(180 / 255, 64 / 255, 3 / 255),
-                           grDevices::rgb(140 / 255, 44 / 255, 4 / 255)),
-        "13" = tibble::lst(grDevices::rgb(255 / 255, 255 / 255, 229 / 255),
-                           grDevices::rgb(255 / 255, 250 / 255, 205 / 255),
-                           grDevices::rgb(255 / 255, 243 / 255, 180 / 255),
-                           grDevices::rgb(254 / 255, 231 / 255, 155 / 255),
-                           grDevices::rgb(254 / 255, 216 / 255, 123 / 255),
-                           grDevices::rgb(254 / 255, 198 / 255, 84 / 255),
-                           grDevices::rgb(254 / 255, 174 / 255, 60 / 255),
-                           grDevices::rgb(252 / 255, 149 / 255, 39 / 255),
-                           grDevices::rgb(242 / 255, 125 / 255, 27 / 255),
-                           grDevices::rgb(227 / 255, 103 / 255, 15 / 255),
-                           grDevices::rgb(209 / 255, 82 / 255, 4 / 255),
-                           grDevices::rgb(176 / 255, 62 / 255, 3 / 255),
-                           grDevices::rgb(140 / 255, 44 / 255, 4 / 255)),
-        "14" = tibble::lst(grDevices::rgb(255 / 255, 255 / 255, 229 / 255),
-                           grDevices::rgb(255 / 255, 250 / 255, 206 / 255),
-                           grDevices::rgb(255 / 255, 245 / 255, 184 / 255),
-                           grDevices::rgb(254 / 255, 234 / 255, 161 / 255),
-                           grDevices::rgb(254 / 255, 222 / 255, 135 / 255),
-                           grDevices::rgb(254 / 255, 205 / 255, 100 / 255),
-                           grDevices::rgb(254 / 255, 186 / 255, 70 / 255),
-                           grDevices::rgb(254 / 255, 163 / 255, 50 / 255),
-                           grDevices::rgb(248 / 255, 140 / 255, 34 / 255),
-                           grDevices::rgb(238 / 255, 118 / 255, 23 / 255),
-                           grDevices::rgb(223 / 255, 98 / 255, 12 / 255),
-                           grDevices::rgb(206 / 255, 78 / 255, 3 / 255),
-                           grDevices::rgb(173 / 255, 61 / 255, 3 / 255),
-                           grDevices::rgb(140 / 255, 44 / 255, 4 / 255)),
-        "15" = tibble::lst(grDevices::rgb(255 / 255, 255 / 255, 229 / 255),
-                           grDevices::rgb(255 / 255, 250 / 255, 208 / 255),
-                           grDevices::rgb(255 / 255, 247 / 255, 187 / 255),
-                           grDevices::rgb(254 / 255, 236 / 255, 166 / 255),
-                           grDevices::rgb(254 / 255, 227 / 255, 145 / 255),
-                           grDevices::rgb(254 / 255, 211 / 255, 112 / 255),
-                           grDevices::rgb(254 / 255, 196 / 255, 78 / 255),
-                           grDevices::rgb(254 / 255, 174 / 255, 60 / 255),
-                           grDevices::rgb(254 / 255, 153 / 255, 40 / 255),
-                           grDevices::rgb(245 / 255, 132 / 255, 30 / 255),
-                           grDevices::rgb(235 / 255, 112 / 255, 19 / 255),
-                           grDevices::rgb(219 / 255, 94 / 255, 10 / 255),
-                           grDevices::rgb(204 / 255, 76 / 255, 1 / 255),
-                           grDevices::rgb(171 / 255, 60 / 255, 3 / 255),
-                           grDevices::rgb(140 / 255, 44 / 255, 4 / 255)),
-        "16" = tibble::lst(grDevices::rgb(255 / 255, 255 / 255, 229 / 255),
-                           grDevices::rgb(255 / 255, 251 / 255, 209 / 255),
-                           grDevices::rgb(255 / 255, 247 / 255, 190 / 255),
-                           grDevices::rgb(254 / 255, 238 / 255, 170 / 255),
-                           grDevices::rgb(254 / 255, 229 / 255, 150 / 255),
-                           grDevices::rgb(254 / 255, 216 / 255, 123 / 255),
-                           grDevices::rgb(254 / 255, 202 / 255, 92 / 255),
-                           grDevices::rgb(254 / 255, 184 / 255, 69 / 255),
-                           grDevices::rgb(254 / 255, 164 / 255, 51 / 255),
-                           grDevices::rgb(250 / 255, 144 / 255, 36 / 255),
-                           grDevices::rgb(242 / 255, 125 / 255, 27 / 255),
-                           grDevices::rgb(231 / 255, 107 / 255, 17 / 255),
-                           grDevices::rgb(216 / 255, 90 / 255, 8 / 255),
-                           grDevices::rgb(199 / 255, 73 / 255, 2 / 255),
-                           grDevices::rgb(169 / 255, 59 / 255, 3 / 255),
-                           grDevices::rgb(140 / 255, 44 / 255, 4 / 255)),
-        "17" = tibble::lst(grDevices::rgb(255 / 255, 255 / 255, 229 / 255),
-                           grDevices::rgb(255 / 255, 251 / 255, 211 / 255),
-                           grDevices::rgb(255 / 255, 247 / 255, 193 / 255),
-                           grDevices::rgb(255 / 255, 240 / 255, 174 / 255),
-                           grDevices::rgb(254 / 255, 231 / 255, 155 / 255),
-                           grDevices::rgb(254 / 255, 221 / 255, 133 / 255),
-                           grDevices::rgb(254 / 255, 207 / 255, 104 / 255),
-                           grDevices::rgb(254 / 255, 193 / 255, 76 / 255),
-                           grDevices::rgb(254 / 255, 174 / 255, 60 / 255),
-                           grDevices::rgb(254 / 255, 155 / 255, 43 / 255),
-                           grDevices::rgb(247 / 255, 137 / 255, 33 / 255),
-                           grDevices::rgb(239 / 255, 119 / 255, 24 / 255),
-                           grDevices::rgb(227 / 255, 103 / 255, 15 / 255),
-                           grDevices::rgb(213 / 255, 87 / 255, 6 / 255),
-                           grDevices::rgb(195 / 255, 72 / 255, 2 / 255),
-                           grDevices::rgb(167 / 255, 58 / 255, 3 / 255),
-                           grDevices::rgb(140 / 255, 44 / 255, 4 / 255)),
-        "18" = tibble::lst(grDevices::rgb(255 / 255, 255 / 255, 229 / 255),
-                           grDevices::rgb(255 / 255, 251 / 255, 212 / 255),
-                           grDevices::rgb(255 / 255, 248 / 255, 195 / 255),
-                           grDevices::rgb(255 / 255, 242 / 255, 177 / 255),
-                           grDevices::rgb(254 / 255, 234 / 255, 160 / 255),
-                           grDevices::rgb(254 / 255, 225 / 255, 141 / 255),
-                           grDevices::rgb(254 / 255, 212 / 255, 114 / 255),
-                           grDevices::rgb(254 / 255, 199 / 255, 87 / 255),
-                           grDevices::rgb(254 / 255, 183 / 255, 68 / 255),
-                           grDevices::rgb(254 / 255, 165 / 255, 52 / 255),
-                           grDevices::rgb(251 / 255, 148 / 255, 38 / 255),
-                           grDevices::rgb(244 / 255, 131 / 255, 30 / 255),
-                           grDevices::rgb(237 / 255, 114 / 255, 21 / 255),
-                           grDevices::rgb(224 / 255, 99 / 255, 13 / 255),
-                           grDevices::rgb(211 / 255, 84 / 255, 5 / 255),
-                           grDevices::rgb(192 / 255, 70 / 255, 2 / 255),
-                           grDevices::rgb(165 / 255, 57 / 255, 3 / 255),
-                           grDevices::rgb(140 / 255, 44 / 255, 4 / 255)),
-        "19" = tibble::lst(grDevices::rgb(255 / 255, 255 / 255, 229 / 255),
-                           grDevices::rgb(255 / 255, 251 / 255, 213 / 255),
-                           grDevices::rgb(255 / 255, 248 / 255, 197 / 255),
-                           grDevices::rgb(255 / 255, 243 / 255, 180 / 255),
-                           grDevices::rgb(254 / 255, 235 / 255, 164 / 255),
-                           grDevices::rgb(254 / 255, 228 / 255, 147 / 255),
-                           grDevices::rgb(254 / 255, 216 / 255, 123 / 255),
-                           grDevices::rgb(254 / 255, 204 / 255, 98 / 255),
-                           grDevices::rgb(254 / 255, 191 / 255, 74 / 255),
-                           grDevices::rgb(254 / 255, 174 / 255, 60 / 255),
-                           grDevices::rgb(254 / 255, 157 / 255, 45 / 255),
-                           grDevices::rgb(249 / 255, 141 / 255, 35 / 255),
-                           grDevices::rgb(242 / 255, 125 / 255, 27 / 255),
-                           grDevices::rgb(234 / 255, 110 / 255, 19 / 255),
-                           grDevices::rgb(221 / 255, 96 / 255, 11 / 255),
-                           grDevices::rgb(209 / 255, 82 / 255, 4 / 255),
-                           grDevices::rgb(189 / 255, 68 / 255, 2 / 255),
-                           grDevices::rgb(164 / 255, 56 / 255, 3 / 255),
-                           grDevices::rgb(140 / 255, 44 / 255, 4 / 255)),
-        "20" = tibble::lst(grDevices::rgb(255 / 255, 255 / 255, 229 / 255),
-                           grDevices::rgb(255 / 255, 252 / 255, 213 / 255),
-                           grDevices::rgb(255 / 255, 249 / 255, 198 / 255),
-                           grDevices::rgb(255 / 255, 244 / 255, 183 / 255),
-                           grDevices::rgb(254 / 255, 237 / 255, 167 / 255),
-                           grDevices::rgb(254 / 255, 230 / 255, 151 / 255),
-                           grDevices::rgb(254 / 255, 220 / 255, 131 / 255),
-                           grDevices::rgb(254 / 255, 209 / 255, 107 / 255),
-                           grDevices::rgb(254 / 255, 197 / 255, 82 / 255),
-                           grDevices::rgb(254 / 255, 182 / 255, 67 / 255),
-                           grDevices::rgb(254 / 255, 166 / 255, 53 / 255),
-                           grDevices::rgb(253 / 255, 150 / 255, 39 / 255),
-                           grDevices::rgb(246 / 255, 136 / 255, 32 / 255),
-                           grDevices::rgb(239 / 255, 120 / 255, 24 / 255),
-                           grDevices::rgb(230 / 255, 106 / 255, 17 / 255),
-                           grDevices::rgb(219 / 255, 93 / 255, 10 / 255),
-                           grDevices::rgb(207 / 255, 79 / 255, 3 / 255),
-                           grDevices::rgb(186 / 255, 67 / 255, 2 / 255),
-                           grDevices::rgb(163 / 255, 56 / 255, 3 / 255),
-                           grDevices::rgb(140 / 255, 44 / 255, 4 / 255)),
-        "type" = "sequential"
-    ),
-    "YlGn" = tibble::lst(
-        "1" = tibble::lst(grDevices::rgb(49 / 255, 163 / 255, 84 / 255)),
-        "2" = tibble::lst(grDevices::rgb(247 / 255, 252 / 255, 185 / 255),
-                          grDevices::rgb(49 / 255, 163 / 255, 84 / 255)),
-        "3" = tibble::lst(grDevices::rgb(247 / 255, 252 / 255, 185 / 255),
-                          grDevices::rgb(173 / 255, 221 / 255, 142 / 255),
-                          grDevices::rgb(49 / 255, 163 / 255, 84 / 255)),
-        "4" = tibble::lst(grDevices::rgb(255 / 255, 255 / 255, 204 / 255),
-                          grDevices::rgb(194 / 255, 230 / 255, 153 / 255),
-                          grDevices::rgb(120 / 255, 198 / 255, 121 / 255),
-                          grDevices::rgb(35 / 255, 132 / 255, 67 / 255)),
-        "5" = tibble::lst(grDevices::rgb(255 / 255, 255 / 255, 204 / 255),
-                          grDevices::rgb(194 / 255, 230 / 255, 153 / 255),
-                          grDevices::rgb(120 / 255, 198 / 255, 121 / 255),
-                          grDevices::rgb(49 / 255, 163 / 255, 84 / 255),
-                          grDevices::rgb(0 / 255, 104 / 255, 55 / 255)),
-        "6" = tibble::lst(grDevices::rgb(255 / 255, 255 / 255, 204 / 255),
-                          grDevices::rgb(217 / 255, 240 / 255, 163 / 255),
-                          grDevices::rgb(173 / 255, 221 / 255, 142 / 255),
-                          grDevices::rgb(120 / 255, 198 / 255, 121 / 255),
-                          grDevices::rgb(49 / 255, 163 / 255, 84 / 255),
-                          grDevices::rgb(0 / 255, 104 / 255, 55 / 255)),
-        "7" = tibble::lst(grDevices::rgb(255 / 255, 255 / 255, 204 / 255),
-                          grDevices::rgb(217 / 255, 240 / 255, 163 / 255),
-                          grDevices::rgb(173 / 255, 221 / 255, 142 / 255),
-                          grDevices::rgb(120 / 255, 198 / 255, 121 / 255),
-                          grDevices::rgb(65 / 255, 171 / 255, 93 / 255),
-                          grDevices::rgb(35 / 255, 132 / 255, 67 / 255),
-                          grDevices::rgb(0 / 255, 90 / 255, 50 / 255)),
-        "8" = tibble::lst(grDevices::rgb(255 / 255, 255 / 255, 229 / 255),
-                          grDevices::rgb(247 / 255, 252 / 255, 185 / 255),
-                          grDevices::rgb(217 / 255, 240 / 255, 163 / 255),
-                          grDevices::rgb(173 / 255, 221 / 255, 142 / 255),
-                          grDevices::rgb(120 / 255, 198 / 255, 121 / 255),
-                          grDevices::rgb(65 / 255, 171 / 255, 93 / 255),
-                          grDevices::rgb(35 / 255, 132 / 255, 67 / 255),
-                          grDevices::rgb(0 / 255, 90 / 255, 50 / 255)),
-        "9" = tibble::lst(grDevices::rgb(255 / 255, 255 / 255, 229 / 255),
-                          grDevices::rgb(247 / 255, 252 / 255, 185 / 255),
-                          grDevices::rgb(217 / 255, 240 / 255, 163 / 255),
-                          grDevices::rgb(173 / 255, 221 / 255, 142 / 255),
-                          grDevices::rgb(120 / 255, 198 / 255, 121 / 255),
-                          grDevices::rgb(65 / 255, 171 / 255, 93 / 255),
-                          grDevices::rgb(35 / 255, 132 / 255, 67 / 255),
-                          grDevices::rgb(0 / 255, 104 / 255, 55 / 255),
-                          grDevices::rgb(0 / 255, 69 / 255, 41 / 255)),
-        "10" = tibble::lst(grDevices::rgb(255 / 255, 255 / 255, 229 / 255),
-                           grDevices::rgb(248 / 255, 252 / 255, 194 / 255),
-                           grDevices::rgb(230 / 255, 245 / 255, 172 / 255),
-                           grDevices::rgb(202 / 255, 233 / 255, 155 / 255),
-                           grDevices::rgb(167 / 255, 218 / 255, 139 / 255),
-                           grDevices::rgb(126 / 255, 200 / 255, 123 / 255),
-                           grDevices::rgb(84 / 255, 179 / 255, 102 / 255),
-                           grDevices::rgb(51 / 255, 153 / 255, 81 / 255),
-                           grDevices::rgb(28 / 255, 122 / 255, 63 / 255),
-                           grDevices::rgb(0 / 255, 89 / 255, 50 / 255)),
-        "11" = tibble::lst(grDevices::rgb(255 / 255, 255 / 255, 229 / 255),
-                           grDevices::rgb(249 / 255, 252 / 255, 198 / 255),
-                           grDevices::rgb(235 / 255, 247 / 255, 176 / 255),
-                           grDevices::rgb(212 / 255, 238 / 255, 160 / 255),
-                           grDevices::rgb(181 / 255, 224 / 255, 146 / 255),
-                           grDevices::rgb(147 / 255, 209 / 255, 131 / 255),
-                           grDevices::rgb(109 / 255, 192 / 255, 115 / 255),
-                           grDevices::rgb(71 / 255, 173 / 255, 95 / 255),
-                           grDevices::rgb(47 / 255, 147 / 255, 77 / 255),
-                           grDevices::rgb(25 / 255, 119 / 255, 61 / 255),
-                           grDevices::rgb(0 / 255, 89 / 255, 50 / 255)),
-        "12" = tibble::lst(grDevices::rgb(255 / 255, 255 / 255, 229 / 255),
-                           grDevices::rgb(250 / 255, 253 / 255, 201 / 255),
-                           grDevices::rgb(238 / 255, 248 / 255, 178 / 255),
-                           grDevices::rgb(219 / 255, 241 / 255, 164 / 255),
-                           grDevices::rgb(193 / 255, 229 / 255, 151 / 255),
-                           grDevices::rgb(163 / 255, 216 / 255, 138 / 255),
-                           grDevices::rgb(130 / 255, 202 / 255, 124 / 255),
-                           grDevices::rgb(96 / 255, 185 / 255, 108 / 255),
-                           grDevices::rgb(62 / 255, 167 / 255, 90 / 255),
-                           grDevices::rgb(43 / 255, 142 / 255, 73 / 255),
-                           grDevices::rgb(23 / 255, 116 / 255, 60 / 255),
-                           grDevices::rgb(0 / 255, 89 / 255, 50 / 255)),
-        "13" = tibble::lst(grDevices::rgb(255 / 255, 255 / 255, 229 / 255),
-                           grDevices::rgb(250 / 255, 253 / 255, 203 / 255),
-                           grDevices::rgb(242 / 255, 250 / 255, 181 / 255),
-                           grDevices::rgb(224 / 255, 243 / 255, 168 / 255),
-                           grDevices::rgb(202 / 255, 233 / 255, 155 / 255),
-                           grDevices::rgb(176 / 255, 222 / 255, 143 / 255),
-                           grDevices::rgb(147 / 255, 209 / 255, 131 / 255),
-                           grDevices::rgb(115 / 255, 195 / 255, 118 / 255),
-                           grDevices::rgb(84 / 255, 179 / 255, 102 / 255),
-                           grDevices::rgb(57 / 255, 161 / 255, 86 / 255),
-                           grDevices::rgb(40 / 255, 138 / 255, 71 / 255),
-                           grDevices::rgb(21 / 255, 114 / 255, 59 / 255),
-                           grDevices::rgb(0 / 255, 89 / 255, 50 / 255)),
-        "14" = tibble::lst(grDevices::rgb(255 / 255, 255 / 255, 229 / 255),
-                           grDevices::rgb(251 / 255, 253 / 255, 205 / 255),
-                           grDevices::rgb(244 / 255, 251 / 255, 183 / 255),
-                           grDevices::rgb(228 / 255, 244 / 255, 171 / 255),
-                           grDevices::rgb(210 / 255, 237 / 255, 159 / 255),
-                           grDevices::rgb(186 / 255, 226 / 255, 148 / 255),
-                           grDevices::rgb(161 / 255, 215 / 255, 137 / 255),
-                           grDevices::rgb(132 / 255, 203 / 255, 125 / 255),
-                           grDevices::rgb(104 / 255, 189 / 255, 112 / 255),
-                           grDevices::rgb(74 / 255, 175 / 255, 97 / 255),
-                           grDevices::rgb(53 / 255, 155 / 255, 82 / 255),
-                           grDevices::rgb(37 / 255, 134 / 255, 68 / 255),
-                           grDevices::rgb(20 / 255, 112 / 255, 59 / 255),
-                           grDevices::rgb(0 / 255, 89 / 255, 50 / 255)),
-        "15" = tibble::lst(grDevices::rgb(255 / 255, 255 / 255, 229 / 255),
-                           grDevices::rgb(251 / 255, 253 / 255, 207 / 255),
-                           grDevices::rgb(247 / 255, 252 / 255, 184 / 255),
-                           grDevices::rgb(232 / 255, 246 / 255, 173 / 255),
-                           grDevices::rgb(216 / 255, 240 / 255, 163 / 255),
-                           grDevices::rgb(195 / 255, 230 / 255, 152 / 255),
-                           grDevices::rgb(172 / 255, 221 / 255, 141 / 255),
-                           grDevices::rgb(147 / 255, 209 / 255, 131 / 255),
-                           grDevices::rgb(120 / 255, 197 / 255, 121 / 255),
-                           grDevices::rgb(94 / 255, 184 / 255, 106 / 255),
-                           grDevices::rgb(64 / 255, 171 / 255, 93 / 255),
-                           grDevices::rgb(50 / 255, 151 / 255, 79 / 255),
-                           grDevices::rgb(34 / 255, 132 / 255, 67 / 255),
-                           grDevices::rgb(19 / 255, 110 / 255, 58 / 255),
-                           grDevices::rgb(0 / 255, 89 / 255, 50 / 255)),
-        "16" = tibble::lst(grDevices::rgb(255 / 255, 255 / 255, 229 / 255),
-                           grDevices::rgb(251 / 255, 253 / 255, 208 / 255),
-                           grDevices::rgb(247 / 255, 252 / 255, 187 / 255),
-                           grDevices::rgb(235 / 255, 247 / 255, 176 / 255),
-                           grDevices::rgb(221 / 255, 241 / 255, 165 / 255),
-                           grDevices::rgb(202 / 255, 233 / 255, 155 / 255),
-                           grDevices::rgb(181 / 255, 224 / 255, 146 / 255),
-                           grDevices::rgb(159 / 255, 214 / 255, 136 / 255),
-                           grDevices::rgb(134 / 255, 204 / 255, 126 / 255),
-                           grDevices::rgb(109 / 255, 192 / 255, 115 / 255),
-                           grDevices::rgb(84 / 255, 179 / 255, 102 / 255),
-                           grDevices::rgb(61 / 255, 165 / 255, 89 / 255),
-                           grDevices::rgb(47 / 255, 147 / 255, 77 / 255),
-                           grDevices::rgb(32 / 255, 129 / 255, 65 / 255),
-                           grDevices::rgb(17 / 255, 109 / 255, 57 / 255),
-                           grDevices::rgb(0 / 255, 89 / 255, 50 / 255)),
-        "17" = tibble::lst(grDevices::rgb(255 / 255, 255 / 255, 229 / 255),
-                           grDevices::rgb(251 / 255, 253 / 255, 209 / 255),
-                           grDevices::rgb(248 / 255, 252 / 255, 190 / 255),
-                           grDevices::rgb(237 / 255, 248 / 255, 178 / 255),
-                           grDevices::rgb(224 / 255, 243 / 255, 168 / 255),
-                           grDevices::rgb(208 / 255, 236 / 255, 159 / 255),
-                           grDevices::rgb(189 / 255, 228 / 255, 149 / 255),
-                           grDevices::rgb(169 / 255, 219 / 255, 140 / 255),
-                           grDevices::rgb(147 / 255, 209 / 255, 131 / 255),
-                           grDevices::rgb(123 / 255, 199 / 255, 122 / 255),
-                           grDevices::rgb(100 / 255, 187 / 255, 110 / 255),
-                           grDevices::rgb(76 / 255, 176 / 255, 98 / 255),
-                           grDevices::rgb(57 / 255, 161 / 255, 86 / 255),
-                           grDevices::rgb(44 / 255, 143 / 255, 74 / 255),
-                           grDevices::rgb(31 / 255, 126 / 255, 64 / 255),
-                           grDevices::rgb(16 / 255, 108 / 255, 57 / 255),
-                           grDevices::rgb(0 / 255, 89 / 255, 50 / 255)),
-        "18" = tibble::lst(grDevices::rgb(255 / 255, 255 / 255, 229 / 255),
-                           grDevices::rgb(252 / 255, 253 / 255, 210 / 255),
-                           grDevices::rgb(248 / 255, 252 / 255, 192 / 255),
-                           grDevices::rgb(239 / 255, 249 / 255, 179 / 255),
-                           grDevices::rgb(227 / 255, 244 / 255, 170 / 255),
-                           grDevices::rgb(214 / 255, 238 / 255, 161 / 255),
-                           grDevices::rgb(196 / 255, 231 / 255, 153 / 255),
-                           grDevices::rgb(178 / 255, 223 / 255, 144 / 255),
-                           grDevices::rgb(157 / 255, 214 / 255, 135 / 255),
-                           grDevices::rgb(136 / 255, 204 / 255, 127 / 255),
-                           grDevices::rgb(114 / 255, 194 / 255, 117 / 255),
-                           grDevices::rgb(92 / 255, 183 / 255, 106 / 255),
-                           grDevices::rgb(68 / 255, 172 / 255, 94 / 255),
-                           grDevices::rgb(54 / 255, 157 / 255, 83 / 255),
-                           grDevices::rgb(42 / 255, 141 / 255, 72 / 255),
-                           grDevices::rgb(29 / 255, 124 / 255, 63 / 255),
-                           grDevices::rgb(15 / 255, 106 / 255, 56 / 255),
-                           grDevices::rgb(0 / 255, 89 / 255, 50 / 255)),
-        "19" = tibble::lst(grDevices::rgb(255 / 255, 255 / 255, 229 / 255),
-                           grDevices::rgb(252 / 255, 253 / 255, 211 / 255),
-                           grDevices::rgb(248 / 255, 252 / 255, 194 / 255),
-                           grDevices::rgb(242 / 255, 250 / 255, 181 / 255),
-                           grDevices::rgb(230 / 255, 245 / 255, 172 / 255),
-                           grDevices::rgb(218 / 255, 240 / 255, 164 / 255),
-                           grDevices::rgb(202 / 255, 233 / 255, 155 / 255),
-                           grDevices::rgb(185 / 255, 226 / 255, 147 / 255),
-                           grDevices::rgb(167 / 255, 218 / 255, 139 / 255),
-                           grDevices::rgb(147 / 255, 209 / 255, 131 / 255),
-                           grDevices::rgb(126 / 255, 200 / 255, 123 / 255),
-                           grDevices::rgb(105 / 255, 190 / 255, 113 / 255),
-                           grDevices::rgb(84 / 255, 179 / 255, 102 / 255),
-                           grDevices::rgb(63 / 255, 168 / 255, 91 / 255),
-                           grDevices::rgb(51 / 255, 153 / 255, 81 / 255),
-                           grDevices::rgb(40 / 255, 138 / 255, 71 / 255),
-                           grDevices::rgb(28 / 255, 122 / 255, 63 / 255),
-                           grDevices::rgb(15 / 255, 105 / 255, 56 / 255),
-                           grDevices::rgb(0 / 255, 89 / 255, 50 / 255)),
-        "20" = tibble::lst(grDevices::rgb(255 / 255, 255 / 255, 229 / 255),
-                           grDevices::rgb(252 / 255, 253 / 255, 212 / 255),
-                           grDevices::rgb(249 / 255, 252 / 255, 196 / 255),
-                           grDevices::rgb(243 / 255, 250 / 255, 182 / 255),
-                           grDevices::rgb(232 / 255, 246 / 255, 174 / 255),
-                           grDevices::rgb(221 / 255, 241 / 255, 166 / 255),
-                           grDevices::rgb(207 / 255, 236 / 255, 158 / 255),
-                           grDevices::rgb(191 / 255, 229 / 255, 150 / 255),
-                           grDevices::rgb(175 / 255, 222 / 255, 143 / 255),
-                           grDevices::rgb(156 / 255, 213 / 255, 135 / 255),
-                           grDevices::rgb(137 / 255, 205 / 255, 127 / 255),
-                           grDevices::rgb(117 / 255, 196 / 255, 119 / 255),
-                           grDevices::rgb(98 / 255, 186 / 255, 109 / 255),
-                           grDevices::rgb(77 / 255, 176 / 255, 98 / 255),
-                           grDevices::rgb(60 / 255, 164 / 255, 88 / 255),
-                           grDevices::rgb(49 / 255, 150 / 255, 79 / 255),
-                           grDevices::rgb(38 / 255, 136 / 255, 69 / 255),
-                           grDevices::rgb(26 / 255, 120 / 255, 62 / 255),
-                           grDevices::rgb(14 / 255, 105 / 255, 56 / 255),
-                           grDevices::rgb(0 / 255, 89 / 255, 50 / 255)),
-        "type" = "sequential"
-    ),
-    "Reds" = tibble::lst(
-        "1" = tibble::lst(grDevices::rgb(222 / 255, 45 / 255, 38 / 255)),
-        "2" = tibble::lst(grDevices::rgb(254 / 255, 224 / 255, 210 / 255),
-                          grDevices::rgb(222 / 255, 45 / 255, 38 / 255)),
-        "3" = tibble::lst(grDevices::rgb(254 / 255, 224 / 255, 210 / 255),
-                          grDevices::rgb(252 / 255, 146 / 255, 114 / 255),
-                          grDevices::rgb(222 / 255, 45 / 255, 38 / 255)),
-        "4" = tibble::lst(grDevices::rgb(254 / 255, 229 / 255, 217 / 255),
-                          grDevices::rgb(252 / 255, 174 / 255, 145 / 255),
-                          grDevices::rgb(251 / 255, 106 / 255, 74 / 255),
-                          grDevices::rgb(203 / 255, 24 / 255, 29 / 255)),
-        "5" = tibble::lst(grDevices::rgb(254 / 255, 229 / 255, 217 / 255),
-                          grDevices::rgb(252 / 255, 174 / 255, 145 / 255),
-                          grDevices::rgb(251 / 255, 106 / 255, 74 / 255),
-                          grDevices::rgb(222 / 255, 45 / 255, 38 / 255),
-                          grDevices::rgb(165 / 255, 15 / 255, 21 / 255)),
-        "6" = tibble::lst(grDevices::rgb(254 / 255, 229 / 255, 217 / 255),
-                          grDevices::rgb(252 / 255, 187 / 255, 161 / 255),
-                          grDevices::rgb(252 / 255, 146 / 255, 114 / 255),
-                          grDevices::rgb(251 / 255, 106 / 255, 74 / 255),
-                          grDevices::rgb(222 / 255, 45 / 255, 38 / 255),
-                          grDevices::rgb(165 / 255, 15 / 255, 21 / 255)),
-        "7" = tibble::lst(grDevices::rgb(254 / 255, 229 / 255, 217 / 255),
-                          grDevices::rgb(252 / 255, 187 / 255, 161 / 255),
-                          grDevices::rgb(252 / 255, 146 / 255, 114 / 255),
-                          grDevices::rgb(251 / 255, 106 / 255, 74 / 255),
-                          grDevices::rgb(239 / 255, 59 / 255, 44 / 255),
-                          grDevices::rgb(203 / 255, 24 / 255, 29 / 255),
-                          grDevices::rgb(153 / 255, 0 / 255, 13 / 255)),
-        "8" = tibble::lst(grDevices::rgb(255 / 255, 245 / 255, 240 / 255),
-                          grDevices::rgb(254 / 255, 224 / 255, 210 / 255),
-                          grDevices::rgb(252 / 255, 187 / 255, 161 / 255),
-                          grDevices::rgb(252 / 255, 146 / 255, 114 / 255),
-                          grDevices::rgb(251 / 255, 106 / 255, 74 / 255),
-                          grDevices::rgb(239 / 255, 59 / 255, 44 / 255),
-                          grDevices::rgb(203 / 255, 24 / 255, 29 / 255),
-                          grDevices::rgb(153 / 255, 0 / 255, 13 / 255)),
-        "9" = tibble::lst(grDevices::rgb(255 / 255, 245 / 255, 240 / 255),
-                          grDevices::rgb(254 / 255, 224 / 255, 210 / 255),
-                          grDevices::rgb(252 / 255, 187 / 255, 161 / 255),
-                          grDevices::rgb(252 / 255, 146 / 255, 114 / 255),
-                          grDevices::rgb(251 / 255, 106 / 255, 74 / 255),
-                          grDevices::rgb(239 / 255, 59 / 255, 44 / 255),
-                          grDevices::rgb(203 / 255, 24 / 255, 29 / 255),
-                          grDevices::rgb(165 / 255, 15 / 255, 21 / 255),
-                          grDevices::rgb(103 / 255, 0 / 255, 13 / 255)),
-        "10" = tibble::lst(grDevices::rgb(255 / 255, 244 / 255, 240 / 255),
-                           grDevices::rgb(254 / 255, 228 / 255, 216 / 255),
-                           grDevices::rgb(253 / 255, 203 / 255, 182 / 255),
-                           grDevices::rgb(252 / 255, 173 / 255, 145 / 255),
-                           grDevices::rgb(252 / 255, 141 / 255, 109 / 255),
-                           grDevices::rgb(251 / 255, 110 / 255, 78 / 255),
-                           grDevices::rgb(243 / 255,76 / 255, 53 / 255),
-                           grDevices::rgb(222 / 255, 45 / 255, 37 / 255),
-                           grDevices::rgb(191 / 255, 18 / 255, 25 / 255),
-                           grDevices::rgb(153 / 255, 0 / 255, 12 / 255)),
-        "11" = tibble::lst(grDevices::rgb(255 / 255, 244 / 255, 240 / 255),
-                           grDevices::rgb(254 / 255, 230 / 255, 218 / 255),
-                           grDevices::rgb(253 / 255, 209 / 255, 190 / 255),
-                           grDevices::rgb(252 / 255, 182 / 255, 156 / 255),
-                           grDevices::rgb(252 / 255, 154 / 255, 123 / 255),
-                           grDevices::rgb(252 / 255, 126 / 255, 93 / 255),
-                           grDevices::rgb(248 / 255, 97 / 255, 67 / 255),
-                           grDevices::rgb(240 / 255, 64 / 255, 46 / 255),
-                           grDevices::rgb(217 / 255, 39 / 255, 34 / 255),
-                           grDevices::rgb(187 / 255, 17 / 255, 24 / 255),
-                           grDevices::rgb(153 / 255, 0 / 255, 12 / 255)),
-        "12" = tibble::lst(grDevices::rgb(255 / 255, 244 / 255, 240 / 255),
-                           grDevices::rgb(254 / 255, 231 / 255, 220 / 255),
-                           grDevices::rgb(254 / 255, 213 / 255, 196 / 255),
-                           grDevices::rgb(252 / 255, 190 / 255, 165 / 255),
-                           grDevices::rgb(252 / 255, 164 / 255, 135 / 255),
-                           grDevices::rgb(252 / 255, 139 / 255, 106 / 255),
-                           grDevices::rgb(251 / 255, 113 / 255, 81 / 255),
-                           grDevices::rgb(245 / 255, 86 / 255, 60 / 255),
-                           grDevices::rgb(235 / 255, 56 / 255, 42 / 255),
-                           grDevices::rgb(212 / 255, 35 / 255, 33 / 255),
-                           grDevices::rgb(184 / 255, 15 / 255, 23 / 255),
-                           grDevices::rgb(153 / 255, 0 / 255, 12 / 255)),
-        "13" = tibble::lst(grDevices::rgb(255 / 255, 244 / 255, 240 / 255),
-                           grDevices::rgb(254 / 255, 232 / 255, 222 / 255),
-                           grDevices::rgb(254 / 255, 217 / 255, 201 / 255),
-                           grDevices::rgb(253 / 255, 196 / 255, 173 / 255),
-                           grDevices::rgb(252 / 255, 173 / 255, 145 / 255),
-                           grDevices::rgb(252 / 255, 149 / 255, 117 / 255),
-                           grDevices::rgb(252 / 255, 126 / 255, 93 / 255),
-                           grDevices::rgb(250 / 255, 102 / 255, 71 / 255),
-                           grDevices::rgb(243 / 255, 76 / 255, 53 / 255),
-                           grDevices::rgb(229 / 255, 51 / 255, 40 / 255),
-                           grDevices::rgb(208 / 255, 31 / 255, 31 / 255),
-                           grDevices::rgb(181 / 255, 14 / 255, 22 / 255),
-                           grDevices::rgb(153 / 255, 0 / 255, 12 / 255)),
-        "14" = tibble::lst(grDevices::rgb(255 / 255, 244 / 255, 240 / 255),
-                           grDevices::rgb(254 / 255, 233 / 255, 223 / 255),
-                           grDevices::rgb(254 / 255, 221 / 255, 206 / 255),
-                           grDevices::rgb(253 / 255, 201 / 255, 179 / 255),
-                           grDevices::rgb(252 / 255, 180 / 255, 153 / 255),
-                           grDevices::rgb(252 / 255, 158 / 255, 128 / 255),
-                           grDevices::rgb(252 / 255, 137 / 255, 104 / 255),
-                           grDevices::rgb(251 / 255, 115 / 255, 83 / 255),
-                           grDevices::rgb(247 / 255, 93 / 255, 64 / 255),
-                           grDevices::rgb(240 / 255, 67 / 255, 48 / 255),
-                           grDevices::rgb(225 / 255, 46 / 255, 38 / 255),
-                           grDevices::rgb(205 / 255, 27 / 255, 30 / 255),
-                           grDevices::rgb(179 / 255, 13 / 255, 21 / 255),
-                           grDevices::rgb(153 / 255, 0 / 255, 12 / 255)),
-        "15" = tibble::lst(grDevices::rgb(255 / 255, 244 / 255, 240 / 255),
-                           grDevices::rgb(254 / 255, 234 / 255, 224 / 255),
-                           grDevices::rgb(254 / 255, 223 / 255, 210 / 255),
-                           grDevices::rgb(253 / 255, 205 / 255, 185 / 255),
-                           grDevices::rgb(252 / 255, 186 / 255, 160 / 255),
-                           grDevices::rgb(252 / 255, 166 / 255, 137 / 255),
-                           grDevices::rgb(252 / 255, 146 / 255, 114 / 255),
-                           grDevices::rgb(252 / 255, 126 / 255, 93 / 255),
-                           grDevices::rgb(250 / 255, 106 / 255, 74 / 255),
-                           grDevices::rgb(245 / 255, 84 / 255, 58 / 255),
-                           grDevices::rgb(238 / 255, 58 / 255, 44 / 255),
-                           grDevices::rgb(220 / 255, 43 / 255, 36 / 255),
-                           grDevices::rgb(203 / 255, 24 / 255, 29 / 255),
-                           grDevices::rgb(177 / 255, 12 / 255, 20 / 255),
-                           grDevices::rgb(153 / 255, 0 / 255, 12 / 255)),
-        "16" = tibble::lst(grDevices::rgb(255 / 255, 244 / 255, 240 / 255),
-                           grDevices::rgb(254 / 255, 235 / 255, 225 / 255),
-                           grDevices::rgb(254 / 255, 225 / 255, 211 / 255),
-                           grDevices::rgb(253 / 255, 209 / 255, 190 / 255),
-                           grDevices::rgb(252 / 255, 191 / 255, 167 / 255),
-                           grDevices::rgb(252 / 255, 173 / 255, 145 / 255),
-                           grDevices::rgb(252 / 255, 154 / 255, 123 / 255),
-                           grDevices::rgb(252 / 255, 135 / 255, 103 / 255),
-                           grDevices::rgb(251 / 255, 117 / 255, 84 / 255),
-                           grDevices::rgb(248 / 255, 97 / 255, 67 / 255),
-                           grDevices::rgb(243 / 255, 76 / 255, 53 / 255),
-                           grDevices::rgb(234 / 255, 54 / 255, 41 / 255),
-                           grDevices::rgb(217 / 255, 39 / 255, 34 / 255),
-                           grDevices::rgb(199 / 255, 22 / 255, 27 / 255),
-                           grDevices::rgb(176 / 255, 11 / 255, 20 / 255),
-                           grDevices::rgb(153 / 255, 0 / 255, 12 / 255)),
-        "17" = tibble::lst(grDevices::rgb(255 / 255, 244 / 255, 240 / 255),
-                           grDevices::rgb(254 / 255, 235 / 255, 226 / 255),
-                           grDevices::rgb(254 / 255, 226 / 255, 213 / 255),
-                           grDevices::rgb(253 / 255, 212 / 255, 194 / 255),
-                           grDevices::rgb(253 / 255, 196 / 255, 173 / 255),
-                           grDevices::rgb(252 / 255, 179 / 255, 152 / 255),
-                           grDevices::rgb(252 / 255, 161 / 255, 131 / 255),
-                           grDevices::rgb(252 / 255, 143 / 255, 111 / 255),
-                           grDevices::rgb(252 / 255, 126 / 255, 93 / 255),
-                           grDevices::rgb(251 / 255, 108 / 255, 76 / 255),
-                           grDevices::rgb(246 / 255, 90 / 255, 62 / 255),
-                           grDevices::rgb(241 / 255, 69 / 255, 49 / 255),
-                           grDevices::rgb(229 / 255, 51 / 255, 40 / 255),
-                           grDevices::rgb(214 / 255, 36 / 255, 33 / 255),
-                           grDevices::rgb(196 / 255, 21 / 255, 26 / 255),
-                           grDevices::rgb(174 / 255, 10 / 255, 19 / 255),
-                           grDevices::rgb(153 / 255, 0 / 255, 12 / 255)),
-        "18" = tibble::lst(grDevices::rgb(255 / 255, 244 / 255, 240 / 255),
-                           grDevices::rgb(254 / 255, 236 / 255, 227 / 255),
-                           grDevices::rgb(254 / 255, 227 / 255, 215 / 255),
-                           grDevices::rgb(254 / 255, 215 / 255, 198 / 255),
-                           grDevices::rgb(253 / 255, 200 / 255, 178 / 255),
-                           grDevices::rgb(252 / 255, 184 / 255, 158 / 255),
-                           grDevices::rgb(252 / 255, 167 / 255, 138 / 255),
-                           grDevices::rgb(252 / 255, 150 / 255, 119 / 255),
-                           grDevices::rgb(252 / 255, 134 / 255, 102 / 255),
-                           grDevices::rgb(251 / 255, 118 / 255, 85 / 255),
-                           grDevices::rgb(249 / 255, 101 / 255, 70 / 255),
-                           grDevices::rgb(244 / 255, 83 / 255, 58 / 255),
-                           grDevices::rgb(239 / 255, 62 / 255, 45 / 255),
-                           grDevices::rgb(226 / 255, 47 / 255, 38 / 255),
-                           grDevices::rgb(211 / 255, 33 / 255, 32 / 255),
-                           grDevices::rgb(193 / 255, 20 / 255, 26 / 255),
-                           grDevices::rgb(173 / 255, 9 / 255, 19 / 255),
-                           grDevices::rgb(153 / 255, 0 / 255, 12 / 255)),
-        "19" = tibble::lst(grDevices::rgb(255 / 255, 244 / 255, 240 / 255),
-                           grDevices::rgb(254 / 255, 236 / 255, 228 / 255),
-                           grDevices::rgb(254 / 255, 228 / 255, 216 / 255),
-                           grDevices::rgb(254 / 255, 217 / 255, 201 / 255),
-                           grDevices::rgb(253 / 255, 203 / 255, 182 / 255),
-                           grDevices::rgb(252 / 255, 189 / 255, 163 / 255),
-                           grDevices::rgb(252 / 255, 173 / 255, 145 / 255),
-                           grDevices::rgb(252 / 255, 157 / 255, 126 / 255),
-                           grDevices::rgb(252 / 255, 141 / 255, 109 / 255),
-                           grDevices::rgb(252 / 255, 126 / 255, 93 / 255),
-                           grDevices::rgb(251 / 255, 110 / 255, 78 / 255),
-                           grDevices::rgb(247 / 255, 94 / 255, 65 / 255),
-                           grDevices::rgb(243 / 255, 76 / 255, 53 / 255),
-                           grDevices::rgb(236 / 255, 57 / 255, 43 / 255),
-                           grDevices::rgb(222 / 255, 45 / 255, 37 / 255),
-                           grDevices::rgb(208 / 255, 31 / 255, 31 / 255),
-                           grDevices::rgb(191 / 255, 18 / 255, 25 / 255),
-                           grDevices::rgb(172 / 255, 9 / 255, 19 / 255),
-                           grDevices::rgb(153 / 255, 0 / 255, 12 / 255)),
-        "20" = tibble::lst(grDevices::rgb(255 / 255, 244 / 255, 240 / 255),
-                           grDevices::rgb(254 / 255, 237 / 255, 228 / 255),
-                           grDevices::rgb(254 / 255, 229 / 255, 217 / 255),
-                           grDevices::rgb(254 / 255, 220 / 255, 204 / 255),
-                           grDevices::rgb(253 / 255, 206 / 255, 186 / 255),
-                           grDevices::rgb(252 / 255, 192 / 255, 168 / 255),
-                           grDevices::rgb(252 / 255, 178 / 255, 150 / 255),
-                           grDevices::rgb(252 / 255, 163 / 255, 133 / 255),
-                           grDevices::rgb(252 / 255, 148 / 255, 116 / 255),
-                           grDevices::rgb(252 / 255, 133 / 255, 101 / 255),
-                           grDevices::rgb(251 / 255, 119 / 255, 86 / 255),
-                           grDevices::rgb(250 / 255, 103 / 255, 72 / 255),
-                           grDevices::rgb(246 / 255, 88 / 255, 61 / 255),
-                           grDevices::rgb(241 / 255, 70 / 255, 50 / 255),
-                           grDevices::rgb(233 / 255, 54 / 255, 41 / 255),
-                           grDevices::rgb(219 / 255, 42 / 255, 35 / 255),
-                           grDevices::rgb(206 / 255, 28 / 255, 30 / 255),
-                           grDevices::rgb(189 / 255, 17 / 255, 24 / 255),
-                           grDevices::rgb(171 / 255, 8 / 255, 18 / 255),
-                           grDevices::rgb(153 / 255, 0 / 255, 12 / 255)),
-        "type" = "sequential"
-    ),
-    "RdPu" = tibble::lst(
-        "1" = tibble::lst(grDevices::rgb(250 / 255, 159 / 255, 181 / 255)),
-        "2" = tibble::lst(grDevices::rgb(253 / 255, 224 / 255, 221 / 255),
-                          grDevices::rgb(197 / 255, 27 / 255, 138 / 255)),
-        "3" = tibble::lst(grDevices::rgb(253 / 255, 224 / 255, 221 / 255),
-                          grDevices::rgb(250 / 255, 159 / 255, 181 / 255),
-                          grDevices::rgb(197 / 255, 27 / 255, 138 / 255)),
-        "4" = tibble::lst(grDevices::rgb(254 / 255, 235 / 255, 226 / 255),
-                          grDevices::rgb(251 / 255, 180 / 255, 185 / 255),
-                          grDevices::rgb(247 / 255, 104 / 255, 161 / 255),
-                          grDevices::rgb(174 / 255, 1 / 255, 126 / 255)),
-        "5" = tibble::lst(grDevices::rgb(254 / 255, 235 / 255, 226 / 255),
-                          grDevices::rgb(251 / 255, 180 / 255, 185 / 255),
-                          grDevices::rgb(247 / 255, 104 / 255, 161 / 255),
-                          grDevices::rgb(197 / 255, 27 / 255, 138 / 255),
-                          grDevices::rgb(122 / 255, 1 / 255, 119 / 255)),
-        "6" = tibble::lst(grDevices::rgb(254 / 255, 235 / 255, 226 / 255),
-                          grDevices::rgb(252 / 255, 197 / 255, 192 / 255),
-                          grDevices::rgb(250 / 255, 159 / 255, 181 / 255),
-                          grDevices::rgb(247 / 255, 104 / 255, 161 / 255),
-                          grDevices::rgb(197 / 255, 27 / 255, 138 / 255),
-                          grDevices::rgb(122 / 255, 1 / 255, 119 / 255)),
-        "7" = tibble::lst(grDevices::rgb(254 / 255, 235 / 255, 226 / 255),
-                          grDevices::rgb(252 / 255, 197 / 255, 192 / 255),
-                          grDevices::rgb(250 / 255, 159 / 255, 181 / 255),
-                          grDevices::rgb(247 / 255, 104 / 255, 161 / 255),
-                          grDevices::rgb(221 / 255, 52 / 255, 151 / 255),
-                          grDevices::rgb(174 / 255, 1 / 255, 126 / 255),
-                          grDevices::rgb(122 / 255, 1 / 255, 119 / 255)),
-        "8" = tibble::lst(grDevices::rgb(255 / 255, 247 / 255, 243 / 255),
-                          grDevices::rgb(253 / 255, 224 / 255, 221 / 255),
-                          grDevices::rgb(252 / 255, 197 / 255, 192 / 255),
-                          grDevices::rgb(250 / 255, 159 / 255, 181 / 255),
-                          grDevices::rgb(247 / 255, 104 / 255, 161 / 255),
-                          grDevices::rgb(221 / 255, 52 / 255, 151 / 255),
-                          grDevices::rgb(174 / 255, 1 / 255, 126 / 255),
-                          grDevices::rgb(122 / 255, 1 / 255, 119 / 255)),
-        "9" = tibble::lst(grDevices::rgb(255 / 255, 247 / 255, 243 / 255),
-                          grDevices::rgb(253 / 255, 224 / 255, 221 / 255),
-                          grDevices::rgb(252 / 255, 197 / 255, 192 / 255),
-                          grDevices::rgb(250 / 255, 159 / 255, 181 / 255),
-                          grDevices::rgb(247 / 255, 104 / 255, 161 / 255),
-                          grDevices::rgb(221 / 255, 52 / 255, 151 / 255),
-                          grDevices::rgb(174 / 255, 1 / 255, 126 / 255),
-                          grDevices::rgb(122 / 255, 1 / 255, 119 / 255),
-                          grDevices::rgb(73 / 255, 0 / 255, 106 / 255)),
-        "10" = tibble::lst(grDevices::rgb(255 / 255, 247 / 255, 242 / 255),
-                           grDevices::rgb(253 / 255, 229 / 255, 225 / 255),
-                           grDevices::rgb(252 / 255, 209 / 255, 204 / 255),
-                           grDevices::rgb(251 / 255, 184 / 255, 188 / 255),
-                           grDevices::rgb(249 / 255, 153 / 255, 178 / 255),
-                           grDevices::rgb(247 / 255, 110 / 255, 163 / 255),
-                           grDevices::rgb(229 / 255, 71 / 255, 154 / 255),
-                           grDevices::rgb(199 / 255, 34 / 255, 139 / 255),
-                           grDevices::rgb(162 / 255, 0 / 255, 124 / 255),
-                           grDevices::rgb(121 / 255, 0 / 255, 119 / 255)),
-        "11" = tibble::lst(grDevices::rgb(255 / 255, 247 / 255, 242 / 255),
-                           grDevices::rgb(253 / 255, 230 / 255, 227 / 255),
-                           grDevices::rgb(252 / 255, 213 / 255, 209 / 255),
-                           grDevices::rgb(251 / 255, 193 / 255, 190 / 255),
-                           grDevices::rgb(250 / 255, 166 / 255, 183 / 255),
-                           grDevices::rgb(249 / 255, 132 / 255, 170 / 255),
-                           grDevices::rgb(241 / 255, 94 / 255, 159 / 255),
-                           grDevices::rgb(223 / 255, 58 / 255, 152 / 255),
-                           grDevices::rgb(192 / 255, 27 / 255, 135 / 255),
-                           grDevices::rgb(158 / 255, 0 / 255, 123 / 255),
-                           grDevices::rgb(121 / 255, 0 / 255, 119 / 255)),
-        "12" = tibble::lst(grDevices::rgb(255 / 255, 247 / 255, 242 / 255),
-                           grDevices::rgb(253 / 255, 232 / 255, 228 / 255),
-                           grDevices::rgb(252 / 255, 216 / 255, 213 / 255),
-                           grDevices::rgb(252 / 255, 199 / 255, 194 / 255),
-                           grDevices::rgb(251 / 255, 176 / 255, 186 / 255),
-                           grDevices::rgb(249 / 255, 149 / 255, 177 / 255),
-                           grDevices::rgb(247 / 255, 114 / 255, 164 / 255),
-                           grDevices::rgb(235 / 255, 82 / 255, 156 / 255),
-                           grDevices::rgb(216 / 255, 48 / 255, 148 / 255),
-                           grDevices::rgb(186 / 255, 20 / 255, 132 / 255),
-                           grDevices::rgb(155 / 255, 0 / 255, 123 / 255),
-                           grDevices::rgb(121 / 255, 0 / 255, 119 / 255)),
-        "13" = tibble::lst(grDevices::rgb(255 / 255, 247 / 255, 242 / 255),
-                           grDevices::rgb(253 / 255, 233 / 255, 230 / 255),
-                           grDevices::rgb(252 / 255, 219 / 255, 216 / 255),
-                           grDevices::rgb(252 / 255, 203 / 255, 199 / 255),
-                           grDevices::rgb(251 / 255, 184 / 255, 188 / 255),
-                           grDevices::rgb(250 / 255, 162 / 255, 181 / 255),
-                           grDevices::rgb(249 / 255, 132 / 255, 170 / 255),
-                           grDevices::rgb(244 / 255, 100 / 255, 160 / 255),
-                           grDevices::rgb(229 / 255, 71 / 255, 154 / 255),
-                           grDevices::rgb(209 / 255, 42 / 255, 144 / 255),
-                           grDevices::rgb(181 / 255, 14 / 255, 130 / 255),
-                           grDevices::rgb(152 / 255, 0 / 255, 123 / 255),
-                           grDevices::rgb(121 / 255, 0 / 255, 119 / 255)),
-        "14" = tibble::lst(grDevices::rgb(255 / 255, 247 / 255, 242 / 255),
-                           grDevices::rgb(254 / 255, 234 / 255, 231 / 255),
-                           grDevices::rgb(253 / 255, 221 / 255, 218 / 255),
-                           grDevices::rgb(252 / 255, 207 / 255, 203 / 255),
-                           grDevices::rgb(251 / 255, 191 / 255, 190 / 255),
-                           grDevices::rgb(250 / 255, 170 / 255, 184 / 255),
-                           grDevices::rgb(249 / 255, 147 / 255, 176 / 255),
-                           grDevices::rgb(248 / 255, 117 / 255, 165 / 255),
-                           grDevices::rgb(239 / 255, 89 / 255, 157 / 255),
-                           grDevices::rgb(225 / 255, 61 / 255, 152 / 255),
-                           grDevices::rgb(202 / 255, 36 / 255, 141 / 255),
-                           grDevices::rgb(177 / 255, 6 / 255, 127 / 255),
-                           grDevices::rgb(150 / 255, 0 / 255, 122 / 255),
-                           grDevices::rgb(121 / 255, 0 / 255, 119 / 255)),
-        "15" = tibble::lst(grDevices::rgb(255 / 255, 247 / 255, 242 / 255),
-                           grDevices::rgb(254 / 255, 235 / 255, 231 / 255),
-                           grDevices::rgb(253 / 255, 223 / 255, 221 / 255),
-                           grDevices::rgb(252 / 255, 210 / 255, 206 / 255),
-                           grDevices::rgb(252 / 255, 197 / 255, 191 / 255),
-                           grDevices::rgb(251 / 255, 178 / 255, 186 / 255),
-                           grDevices::rgb(249 / 255, 159 / 255, 180 / 255),
-                           grDevices::rgb(249 / 255, 132 / 255, 170 / 255),
-                           grDevices::rgb(247 / 255, 103 / 255, 160 / 255),
-                           grDevices::rgb(234 / 255, 80 / 255, 156 / 255),
-                           grDevices::rgb(221 / 255, 51 / 255, 151 / 255),
-                           grDevices::rgb(197 / 255, 31 / 255, 138 / 255),
-                           grDevices::rgb(173 / 255, 0 / 255, 126 / 255),
-                           grDevices::rgb(148 / 255, 0 / 255, 122 / 255),
-                           grDevices::rgb(121 / 255, 0 / 255, 119 / 255)),
-        "16" = tibble::lst(grDevices::rgb(255 / 255, 247 / 255, 242 / 255),
-                           grDevices::rgb(254 / 255, 236 / 255, 232 / 255),
-                           grDevices::rgb(253 / 255, 225 / 255, 222 / 255),
-                           grDevices::rgb(252 / 255, 213 / 255, 209 / 255),
-                           grDevices::rgb(252 / 255, 200 / 255, 195 / 255),
-                           grDevices::rgb(251 / 255, 184 / 255, 188 / 255),
-                           grDevices::rgb(250 / 255, 166 / 255, 183 / 255),
-                           grDevices::rgb(249 / 255, 145 / 255, 175 / 255),
-                           grDevices::rgb(248 / 255, 119 / 255, 166 / 255),
-                           grDevices::rgb(241 / 255, 94 / 255, 159 / 255),
-                           grDevices::rgb(229 / 255, 71 / 255, 154 / 255),
-                           grDevices::rgb(214 / 255, 46 / 255, 147 / 255),
-                           grDevices::rgb(192 / 255, 27 / 255, 135 / 255),
-                           grDevices::rgb(170 / 255, 0 / 255, 125 / 255),
-                           grDevices::rgb(146 / 255, 0 / 255, 122 / 255),
-                           grDevices::rgb(121 / 255, 0 / 255, 119 / 255)),
-        "17" = tibble::lst(grDevices::rgb(255 / 255, 247 / 255, 242 / 255),
-                           grDevices::rgb(254 / 255, 236 / 255, 233 / 255),
-                           grDevices::rgb(253 / 255, 226 / 255, 223 / 255),
-                           grDevices::rgb(252 / 255, 215 / 255, 211 / 255),
-                           grDevices::rgb(252 / 255, 203 / 255, 199 / 255),
-                           grDevices::rgb(251 / 255, 190 / 255, 189 / 255),
-                           grDevices::rgb(251 / 255, 173 / 255, 185 / 255),
-                           grDevices::rgb(249 / 255, 155 / 255, 179 / 255),
-                           grDevices::rgb(249 / 255, 132 / 255, 170 / 255),
-                           grDevices::rgb(247 / 255, 107 / 255, 162 / 255),
-                           grDevices::rgb(237 / 255, 86 / 255, 157 / 255),
-                           grDevices::rgb(225 / 255, 63 / 255, 152 / 255),
-                           grDevices::rgb(209 / 255, 42 / 255, 144 / 255),
-                           grDevices::rgb(188 / 255, 22 / 255, 133 / 255),
-                           grDevices::rgb(167 / 255, 0 / 255, 125 / 255),
-                           grDevices::rgb(144 / 255, 0 / 255, 122 / 255),
-                           grDevices::rgb(121 / 255, 0 / 255, 119 / 255)),
-        "18" = tibble::lst(grDevices::rgb(255 / 255, 247 / 255, 242 / 255),
-                           grDevices::rgb(254 / 255, 237 / 255, 233 / 255),
-                           grDevices::rgb(253 / 255, 228 / 255, 224 / 255),
-                           grDevices::rgb(252 / 255, 217 / 255, 214 / 255),
-                           grDevices::rgb(252 / 255, 206 / 255, 202 / 255),
-                           grDevices::rgb(251 / 255, 194 / 255, 191 / 255),
-                           grDevices::rgb(251 / 255, 179 / 255, 186 / 255),
-                           grDevices::rgb(250 / 255, 163 / 255, 182 / 255),
-                           grDevices::rgb(249 / 255, 143 / 255, 175 / 255),
-                           grDevices::rgb(248 / 255, 121 / 255, 166 / 255),
-                           grDevices::rgb(243 / 255, 98 / 255, 159 / 255),
-                           grDevices::rgb(233 / 255, 78 / 255, 155 / 255),
-                           grDevices::rgb(222 / 255, 55 / 255, 151 / 255),
-                           grDevices::rgb(204 / 255, 38 / 255, 142 / 255),
-                           grDevices::rgb(184 / 255, 18 / 255, 131 / 255),
-                           grDevices::rgb(164 / 255, 0 / 255, 124 / 255),
-                           grDevices::rgb(143 / 255, 0 / 255, 121 / 255),
-                           grDevices::rgb(121 / 255, 0 / 255, 119 / 255)),
-        "19" = tibble::lst(grDevices::rgb(255 / 255, 247 / 255, 242 / 255),
-                           grDevices::rgb(254 / 255, 238 / 255, 234 / 255),
-                           grDevices::rgb(253 / 255, 229 / 255, 225 / 255),
-                           grDevices::rgb(252 / 255, 219 / 255, 216 / 255),
-                           grDevices::rgb(252 / 255, 209 / 255, 204 / 255),
-                           grDevices::rgb(252 / 255, 198 / 255, 193 / 255),
-                           grDevices::rgb(251 / 255, 184 / 255, 188 / 255),
-                           grDevices::rgb(250 / 255, 169 / 255, 184 / 255),
-                           grDevices::rgb(249 / 255, 153 / 255, 178 / 255),
-                           grDevices::rgb(249 / 255, 132 / 255, 170 / 255),
-                           grDevices::rgb(247 / 255, 110 / 255, 163 / 255),
-                           grDevices::rgb(239 / 255, 91 / 255, 158 / 255),
-                           grDevices::rgb(229 / 255, 71 / 255, 154 / 255),
-                           grDevices::rgb(218 / 255, 49 / 255, 149 / 255),
-                           grDevices::rgb(199 / 255, 34 / 255, 139 / 255),
-                           grDevices::rgb(181 / 255, 14 / 255, 130 / 255),
-                           grDevices::rgb(162 / 255, 0 / 255, 124 / 255),
-                           grDevices::rgb(142 / 255, 0 / 255, 121 / 255),
-                           grDevices::rgb(121 / 255, 0 / 255, 119 / 255)),
-        "20" = tibble::lst(grDevices::rgb(255 / 255, 247 / 255, 242 / 255),
-                           grDevices::rgb(254 / 255, 238 / 255, 234 / 255),
-                           grDevices::rgb(253 / 255, 230 / 255, 226 / 255),
-                           grDevices::rgb(253 / 255, 221 / 255, 217 / 255),
-                           grDevices::rgb(252 / 255, 211 / 255, 207 / 255),
-                           grDevices::rgb(252 / 255, 201 / 255, 196 / 255),
-                           grDevices::rgb(251 / 255, 189 / 255, 189 / 255),
-                           grDevices::rgb(251 / 255, 175 / 255, 185 / 255),
-                           grDevices::rgb(250 / 255, 161 / 255, 181 / 255),
-                           grDevices::rgb(249 / 255, 142 / 255, 174 / 255),
-                           grDevices::rgb(248 / 255, 122 / 255, 167 / 255),
-                           grDevices::rgb(245 / 255, 101 / 255, 160 / 255),
-                           grDevices::rgb(236 / 255, 84 / 255, 156 / 255),
-                           grDevices::rgb(226 / 255, 64 / 255, 153 / 255),
-                           grDevices::rgb(213 / 255, 46 / 255, 147 / 255),
-                           grDevices::rgb(196 / 255, 30 / 255, 137 / 255),
-                           grDevices::rgb(178 / 255, 9 / 255, 128 / 255),
-                           grDevices::rgb(160 / 255, 0 / 255, 124 / 255),
-                           grDevices::rgb(141 / 255, 0 / 255, 121 / 255),
-                           grDevices::rgb(121 / 255, 0 / 255, 119 / 255)),
-        "type" = "sequential"
-    ),
-    "Greens" = tibble::lst(
-        "1" = tibble::lst(grDevices::rgb(161 / 255, 217 / 255, 155 / 255)),
-        "2" = tibble::lst(grDevices::rgb(229 / 255, 245 / 255, 224 / 255),
-                          grDevices::rgb(49 / 255, 163 / 255, 84 / 255)),
-        "3" = tibble::lst(grDevices::rgb(229 / 255, 245 / 255, 224 / 255),
-                          grDevices::rgb(161 / 255, 217 / 255, 155 / 255),
-                          grDevices::rgb(49 / 255, 163 / 255, 84 / 255)),
-        "4" = tibble::lst(grDevices::rgb(237 / 255, 248 / 255, 233 / 255),
-                          grDevices::rgb(186 / 255, 228 / 255, 179 / 255),
-                          grDevices::rgb(116 / 255, 196 / 255, 118 / 255),
-                          grDevices::rgb(35 / 255, 139 / 255, 69 / 255)),
-        "5" = tibble::lst(grDevices::rgb(237 / 255, 248 / 255, 233 / 255),
-                          grDevices::rgb(186 / 255, 228 / 255, 179 / 255),
-                          grDevices::rgb(116 / 255, 196 / 255, 118 / 255),
-                          grDevices::rgb(49 / 255, 163 / 255, 84 / 255),
-                          grDevices::rgb(0 / 255, 109 / 255, 44 / 255)),
-        "6" = tibble::lst(grDevices::rgb(237 / 255, 248 / 255, 233 / 255),
-                          grDevices::rgb(199 / 255, 233 / 255, 192 / 255),
-                          grDevices::rgb(161 / 255, 217 / 255, 155 / 255),
-                          grDevices::rgb(116 / 255, 196 / 255, 118 / 255),
-                          grDevices::rgb(49 / 255, 163 / 255, 84 / 255),
-                          grDevices::rgb(0 / 255, 109 / 255, 44 / 255)),
-        "7" = tibble::lst(grDevices::rgb(237 / 255, 248 / 255, 233 / 255),
-                          grDevices::rgb(199 / 255, 233 / 255, 192 / 255),
-                          grDevices::rgb(161 / 255, 217 / 255, 155 / 255),
-                          grDevices::rgb(116 / 255, 196 / 255, 118 / 255),
-                          grDevices::rgb(65 / 255, 171 / 255, 93 / 255),
-                          grDevices::rgb(35 / 255, 139 / 255, 69 / 255),
-                          grDevices::rgb(0 / 255, 90 / 255, 50 / 255)),
-        "8" = tibble::lst(grDevices::rgb(247 / 255, 252 / 255, 245 / 255),
-                          grDevices::rgb(229 / 255, 245 / 255, 224 / 255),
-                          grDevices::rgb(199 / 255, 233 / 255, 192 / 255),
-                          grDevices::rgb(161 / 255, 217 / 255, 155 / 255),
-                          grDevices::rgb(116 / 255, 196 / 255, 118 / 255),
-                          grDevices::rgb(65 / 255, 171 / 255, 93 / 255),
-                          grDevices::rgb(35 / 255, 139 / 255, 69 / 255),
-                          grDevices::rgb(0 / 255, 90 / 255, 50 / 255)),
-        "9" = tibble::lst(grDevices::rgb(247 / 255, 252 / 255, 245 / 255),
-                          grDevices::rgb(229 / 255, 245 / 255, 224 / 255),
-                          grDevices::rgb(199 / 255, 233 / 255, 192 / 255),
-                          grDevices::rgb(161 / 255, 217 / 255, 155 / 255),
-                          grDevices::rgb(116 / 255, 196 / 255, 118 / 255),
-                          grDevices::rgb(65 / 255, 171 / 255, 93 / 255),
-                          grDevices::rgb(35 / 255, 139 / 255, 69 / 255),
-                          grDevices::rgb(0 / 255, 109 / 255, 44 / 255),
-                          grDevices::rgb(0 / 255, 68 / 255, 27 / 255)),
-        "10" = tibble::lst(grDevices::rgb(247 / 255, 252 / 255, 244 / 255),
-                           grDevices::rgb(233 / 255, 246 / 255, 228 / 255),
-                           grDevices::rgb(212 / 255, 238 / 255, 206 / 255),
-                           grDevices::rgb(186 / 255, 227 / 255, 179 / 255),
-                           grDevices::rgb(156 / 255, 214 / 255, 150 / 255),
-                           grDevices::rgb(121 / 255, 198 / 255, 122 / 255),
-                           grDevices::rgb(83 / 255, 179 / 255, 101 / 255),
-                           grDevices::rgb(52 / 255, 156 / 255, 82 / 255),
-                           grDevices::rgb(28 / 255, 127 / 255, 64 / 255),
-                           grDevices::rgb(0 / 255, 89 / 255, 50 / 255)),
-        "11" = tibble::lst(grDevices::rgb(247 / 255, 252 / 255, 244 / 255),
-                           grDevices::rgb(234 / 255, 247 / 255, 230 / 255),
-                           grDevices::rgb(217 / 255, 240 / 255, 211 / 255),
-                           grDevices::rgb(195 / 255, 231 / 255, 188 / 255),
-                           grDevices::rgb(168 / 255, 220 / 255, 162 / 255),
-                           grDevices::rgb(138 / 255, 206 / 255, 136 / 255),
-                           grDevices::rgb(106 / 255, 190 / 255, 112 / 255),
-                           grDevices::rgb(70 / 255, 173 / 255, 95 / 255),
-                           grDevices::rgb(47 / 255, 151 / 255, 78 / 255),
-                           grDevices::rgb(25 / 255, 123 / 255, 63 / 255),
-                           grDevices::rgb(0 / 255, 89 / 255, 50 / 255)),
-        "12" = tibble::lst(grDevices::rgb(247 / 255, 252 / 255, 244 / 255),
-                           grDevices::rgb(235 / 255, 247 / 255, 231 / 255),
-                           grDevices::rgb(220 / 255, 241 / 255, 215 / 255),
-                           grDevices::rgb(201 / 255, 234 / 255, 194 / 255),
-                           grDevices::rgb(178 / 255, 224 / 255, 171 / 255),
-                           grDevices::rgb(153 / 255, 213 / 255, 148 / 255),
-                           grDevices::rgb(124 / 255, 199 / 255, 124 / 255),
-                           grDevices::rgb(94 / 255, 184 / 255, 106 / 255),
-                           grDevices::rgb(62 / 255, 168 / 255, 90 / 255),
-                           grDevices::rgb(43 / 255, 147 / 255, 75 / 255),
-                           grDevices::rgb(23 / 255, 120 / 255, 62 / 255),
-                           grDevices::rgb(0 / 255, 89 / 255, 50 / 255)),
-        "13" = tibble::lst(grDevices::rgb(247 / 255, 252 / 255, 244 / 255),
-                           grDevices::rgb(236 / 255, 247 / 255, 232 / 255),
-                           grDevices::rgb(224 / 255, 243 / 255, 218 / 255),
-                           grDevices::rgb(206 / 255, 236 / 255, 199 / 255),
-                           grDevices::rgb(186 / 255, 227 / 255, 179 / 255),
-                           grDevices::rgb(164 / 255, 218 / 255, 158 / 255),
-                           grDevices::rgb(138 / 255, 206 / 255, 136 / 255),
-                           grDevices::rgb(112 / 255, 193 / 255, 115 / 255),
-                           grDevices::rgb(83 / 255, 179 / 255, 101 / 255),
-                           grDevices::rgb(57 / 255, 162 / 255, 86 / 255),
-                           grDevices::rgb(40 / 255, 144 / 255, 72 / 255),
-                           grDevices::rgb(21 / 255, 118 / 255, 61 / 255),
-                           grDevices::rgb(0 / 255, 89 / 255, 50 / 255)),
-        "14" = tibble::lst(grDevices::rgb(247 / 255, 252 / 255, 244 / 255),
-                           grDevices::rgb(237 / 255, 248 / 255, 233 / 255),
-                           grDevices::rgb(226 / 255, 244 / 255, 221 / 255),
-                           grDevices::rgb(210 / 255, 237 / 255, 204 / 255),
-                           grDevices::rgb(193 / 255, 230 / 255, 186 / 255),
-                           grDevices::rgb(172 / 255, 221 / 255, 166 / 255),
-                           grDevices::rgb(150 / 255, 212 / 255, 146 / 255),
-                           grDevices::rgb(126 / 255, 200 / 255, 126 / 255),
-                           grDevices::rgb(101 / 255, 188 / 255, 110 / 255),
-                           grDevices::rgb(73 / 255, 174 / 255, 96 / 255),
-                           grDevices::rgb(53 / 255, 158 / 255, 83 / 255),
-                           grDevices::rgb(37 / 255, 141 / 255, 70 / 255),
-                           grDevices::rgb(20 / 255, 115 / 255, 60 / 255),
-                           grDevices::rgb(0 / 255, 89 / 255, 50 / 255)),
-        "15" = tibble::lst(grDevices::rgb(247 / 255, 252 / 255, 244 / 255),
-                           grDevices::rgb(238 / 255, 248 / 255, 234 / 255),
-                           grDevices::rgb(229 / 255, 244 / 255, 223 / 255),
-                           grDevices::rgb(214 / 255, 239 / 255, 207 / 255),
-                           grDevices::rgb(198 / 255, 233 / 255, 191 / 255),
-                           grDevices::rgb(180 / 255, 225 / 255, 173 / 255),
-                           grDevices::rgb(160 / 255, 216 / 255, 154 / 255),
-                           grDevices::rgb(138 / 255, 206 / 255, 136 / 255),
-                           grDevices::rgb(115 / 255, 196 / 255, 118 / 255),
-                           grDevices::rgb(91 / 255, 183 / 255, 105 / 255),
-                           grDevices::rgb(64 / 255, 171 / 255, 93 / 255),
-                           grDevices::rgb(50 / 255, 154 / 255, 80 / 255),
-                           grDevices::rgb(34 / 255, 139 / 255, 69 / 255),
-                           grDevices::rgb(18 / 255, 114 / 255, 59 / 255),
-                           grDevices::rgb(0 / 255, 89 / 255, 50 / 255)),
-        "16" = tibble::lst(grDevices::rgb(247 / 255, 252 / 255, 244 / 255),
-                           grDevices::rgb(238 / 255, 248 / 255, 235 / 255),
-                           grDevices::rgb(230 / 255, 245 / 255, 225 / 255),
-                           grDevices::rgb(217 / 255, 240 / 255, 211 / 255),
-                           grDevices::rgb(203 / 255, 234 / 255, 196 / 255),
-                           grDevices::rgb(186 / 255, 227 / 255, 179 / 255),
-                           grDevices::rgb(168 / 255, 220 / 255, 162 / 255),
-                           grDevices::rgb(149 / 255, 211 / 255, 145 / 255),
-                           grDevices::rgb(128 / 255, 201 / 255, 127 / 255),
-                           grDevices::rgb(106 / 255, 190 / 255, 112 / 255),
-                           grDevices::rgb(83 / 255, 179 / 255, 101 / 255),
-                           grDevices::rgb(61 / 255, 166 / 255, 89 / 255),
-                           grDevices::rgb(47 / 255, 151 / 255, 78 / 255),
-                           grDevices::rgb(32 / 255, 135 / 255, 67 / 255),
-                           grDevices::rgb(17 / 255, 112 / 255, 58 / 255),
-                           grDevices::rgb(0 / 255, 89 / 255, 50 / 255)),
-        "17" = tibble::lst(grDevices::rgb(247 / 255, 252 / 255, 244 / 255),
-                           grDevices::rgb(239 / 255, 248 / 255, 235 / 255),
-                           grDevices::rgb(231 / 255, 245 / 255, 226 / 255),
-                           grDevices::rgb(219 / 255, 241 / 255, 213 / 255),
-                           grDevices::rgb(206 / 255, 236 / 255, 199 / 255),
-                           grDevices::rgb(191 / 255, 230 / 255, 185 / 255),
-                           grDevices::rgb(175 / 255, 223 / 255, 168 / 255),
-                           grDevices::rgb(158 / 255, 215 / 255, 152 / 255),
-                           grDevices::rgb(138 / 255, 206 / 255, 136 / 255),
-                           grDevices::rgb(118 / 255, 197 / 255, 120 / 255),
-                           grDevices::rgb(98 / 255, 186 / 255, 108 / 255),
-                           grDevices::rgb(75 / 255, 175 / 255, 97 / 255),
-                           grDevices::rgb(57 / 255, 162 / 255, 86 / 255),
-                           grDevices::rgb(44 / 255, 148 / 255, 76 / 255),
-                           grDevices::rgb(31 / 255, 132 / 255, 66 / 255),
-                           grDevices::rgb(16 / 255, 110 / 255, 58 / 255),
-                           grDevices::rgb(0 / 255, 89 / 255, 50 / 255)),
-        "18" = tibble::lst(grDevices::rgb(247 / 255, 252 / 255, 244 / 255),
-                           grDevices::rgb(239 / 255, 249 / 255, 236 / 255),
-                           grDevices::rgb(232 / 255, 246 / 255, 227 / 255),
-                           grDevices::rgb(221 / 255, 242 / 255, 216 / 255),
-                           grDevices::rgb(209 / 255, 237 / 255, 203 / 255),
-                           grDevices::rgb(196 / 255, 232 / 255, 189 / 255),
-                           grDevices::rgb(181 / 255, 225 / 255, 174 / 255),
-                           grDevices::rgb(165 / 255, 218 / 255, 159 / 255),
-                           grDevices::rgb(148 / 255, 210 / 255, 144 / 255),
-                           grDevices::rgb(129 / 255, 202 / 255, 128 / 255),
-                           grDevices::rgb(110 / 255, 193 / 255, 115 / 255),
-                           grDevices::rgb(90 / 255, 182 / 255, 104 / 255),
-                           grDevices::rgb(68 / 255, 172 / 255, 94 / 255),
-                           grDevices::rgb(54 / 255, 159 / 255, 84 / 255),
-                           grDevices::rgb(42 / 255, 146 / 255, 74 / 255),
-                           grDevices::rgb(29 / 255, 130 / 255, 65 / 255),
-                           grDevices::rgb(15 / 255, 109 / 255, 57 / 255),
-                           grDevices::rgb(0 / 255, 89 / 255, 50 / 255)),
-        "19" = tibble::lst(grDevices::rgb(247 / 255, 252 / 255, 244 / 255),
-                           grDevices::rgb(240 / 255, 249 / 255, 236 / 255),
-                           grDevices::rgb(233 / 255, 246 / 255, 228 / 255),
-                           grDevices::rgb(224 / 255, 243 / 255, 218 / 255),
-                           grDevices::rgb(212 / 255, 238 / 255, 206 / 255),
-                           grDevices::rgb(200 / 255, 233 / 255, 193 / 255),
-                           grDevices::rgb(186 / 255, 227 / 255, 179 / 255),
-                           grDevices::rgb(171 / 255, 221 / 255, 165 / 255),
-                           grDevices::rgb(156 / 255, 214 / 255, 150 / 255),
-                           grDevices::rgb(138 / 255, 206 / 255, 136 / 255),
-                           grDevices::rgb(121 / 255, 198 / 255, 122 / 255),
-                           grDevices::rgb(102 / 255, 189 / 255, 110 / 255),
-                           grDevices::rgb(83 / 255, 179 / 255, 101 / 255),
-                           grDevices::rgb(63 / 255, 169 / 255, 91 / 255),
-                           grDevices::rgb(52 / 255, 156 / 255, 82 / 255),
-                           grDevices::rgb(40 / 255, 144 / 255, 72 / 255),
-                           grDevices::rgb(28 / 255, 127 / 255, 64 / 255),
-                           grDevices::rgb(14 / 255, 108 / 255, 57 / 255),
-                           grDevices::rgb(0 / 255, 89 / 255, 50 / 255)),
-        "20" = tibble::lst(grDevices::rgb(247 / 255, 252 / 255, 244 / 255),
-                           grDevices::rgb(240 / 255, 249 / 255, 237 / 255),
-                           grDevices::rgb(233 / 255, 246 / 255, 229 / 255),
-                           grDevices::rgb(225 / 255, 243 / 255, 220 / 255),
-                           grDevices::rgb(214 / 255, 239 / 255, 208 / 255),
-                           grDevices::rgb(203 / 255, 234 / 255, 197 / 255),
-                           grDevices::rgb(191 / 255, 229 / 255, 184 / 255),
-                           grDevices::rgb(177 / 255, 223 / 255, 170 / 255),
-                           grDevices::rgb(163 / 255, 217 / 255, 156 / 255),
-                           grDevices::rgb(147 / 255, 210 / 255, 143 / 255),
-                           grDevices::rgb(130 / 255, 202 / 255, 129 / 255),
-                           grDevices::rgb(113 / 255, 194 / 255, 116 / 255),
-                           grDevices::rgb(95 / 255, 185 / 255, 107 / 255),
-                           grDevices::rgb(76 / 255, 176 / 255, 98 / 255),
-                           grDevices::rgb(60 / 255, 165 / 255, 89 / 255),
-                           grDevices::rgb(49 / 255, 154 / 255, 80 / 255),
-                           grDevices::rgb(38 / 255, 142 / 255, 71 / 255),
-                           grDevices::rgb(26 / 255, 125 / 255, 63 / 255),
-                           grDevices::rgb(13 / 255, 107 / 255, 56 / 255),
-                           grDevices::rgb(0 / 255, 89 / 255, 50 / 255)),
-        "type" = "sequential"
-    ),
-    "YlGnBu" = tibble::lst(
-        "1" = tibble::lst(grDevices::rgb(127 / 255, 205 / 255, 187 / 255)),
-        "2" = tibble::lst(grDevices::rgb(237 / 255, 248 / 255, 177 / 255),
-                          grDevices::rgb(44 / 255, 127 / 255, 184 / 255)),
-        "3" = tibble::lst(grDevices::rgb(237 / 255, 248 / 255, 177 / 255),
-                          grDevices::rgb(127 / 255, 205 / 255, 187 / 255),
-                          grDevices::rgb(44 / 255, 127 / 255, 184 / 255)),
-        "4" = tibble::lst(grDevices::rgb(255 / 255, 255 / 255, 204 / 255),
-                          grDevices::rgb(161 / 255, 218 / 255, 180 / 255),
-                          grDevices::rgb(65 / 255, 182 / 255, 196 / 255),
-                          grDevices::rgb(34 / 255, 94 / 255, 168 / 255)),
-        "5" = tibble::lst(grDevices::rgb(255 / 255, 255 / 255, 204 / 255),
-                          grDevices::rgb(161 / 255, 218 / 255, 180 / 255),
-                          grDevices::rgb(65 / 255, 182 / 255, 196 / 255),
-                          grDevices::rgb(44 / 255, 127 / 255, 184 / 255),
-                          grDevices::rgb(37 / 255, 52 / 255, 148 / 255)),
-        "6" = tibble::lst(grDevices::rgb(255 / 255, 255 / 255, 204 / 255),
-                          grDevices::rgb(199 / 255, 233 / 255, 180 / 255),
-                          grDevices::rgb(127 / 255, 205 / 255, 187 / 255),
-                          grDevices::rgb(65 / 255, 182 / 255, 196 / 255),
-                          grDevices::rgb(44 / 255, 127 / 255, 184 / 255),
-                          grDevices::rgb(37 / 255, 52 / 255, 148 / 255)),
-        "7" = tibble::lst(grDevices::rgb(255 / 255, 255 / 255, 204 / 255),
-                          grDevices::rgb(199 / 255, 233 / 255, 180 / 255),
-                          grDevices::rgb(127 / 255, 205 / 255, 187 / 255),
-                          grDevices::rgb(65 / 255, 182 / 255, 196 / 255),
-                          grDevices::rgb(29 / 255, 145 / 255, 192 / 255),
-                          grDevices::rgb(34 / 255, 94 / 255, 168 / 255),
-                          grDevices::rgb(12 / 255, 44 / 255, 132 / 255)),
-        "8" = tibble::lst(grDevices::rgb(255 / 255, 255 / 255, 217 / 255),
-                          grDevices::rgb(237 / 255, 248 / 255, 177 / 255),
-                          grDevices::rgb(199 / 255, 233 / 255, 180 / 255),
-                          grDevices::rgb(127 / 255, 205 / 255, 187 / 255),
-                          grDevices::rgb(65 / 255, 182 / 255, 196 / 255),
-                          grDevices::rgb(29 / 255, 145 / 255, 192 / 255),
-                          grDevices::rgb(34 / 255, 94 / 255, 168 / 255),
-                          grDevices::rgb(12 / 255, 44 / 255, 132 / 255)),
-        "9" = tibble::lst(grDevices::rgb(255 / 255, 255 / 255, 217 / 255),
-                          grDevices::rgb(237 / 255, 248 / 255, 177 / 255),
-                          grDevices::rgb(199 / 255, 233 / 255, 180 / 255),
-                          grDevices::rgb(127 / 255, 205 / 255, 187 / 255),
-                          grDevices::rgb(65 / 255, 182 / 255, 196 / 255),
-                          grDevices::rgb(29 / 255, 145 / 255, 192 / 255),
-                          grDevices::rgb(34 / 255, 94 / 255, 168 / 255),
-                          grDevices::rgb(37 / 255, 52 / 255, 148 / 255),
-                          grDevices::rgb(8 / 255, 29 / 255, 88 / 255)),
-        "10" = tibble::lst(grDevices::rgb(255 / 255, 255 / 255, 216 / 255),
-                           grDevices::rgb(241 / 255, 249 / 255, 185 / 255),
-                           grDevices::rgb(216 / 255, 239 / 255, 178 / 255),
-                           grDevices::rgb(176 / 255, 223 / 255, 182 / 255),
-                           grDevices::rgb(121 / 255, 202 / 255, 188 / 255),
-                           grDevices::rgb(74 / 255, 184 / 255, 195 / 255),
-                           grDevices::rgb(44 / 255, 157 / 255, 193 / 255),
-                           grDevices::rgb(34 / 255, 122 / 255, 181 / 255),
-                           grDevices::rgb(31 / 255, 82 / 255, 159 / 255),
-                           grDevices::rgb(12 / 255, 44 / 255, 132 / 255)),
-        "11" = tibble::lst(grDevices::rgb(255 / 255, 255 / 255, 216 / 255),
-                           grDevices::rgb(242 / 255, 250 / 255, 189 / 255),
-                           grDevices::rgb(222 / 255, 242 / 255, 178 / 255),
-                           grDevices::rgb(192 / 255, 230 / 255, 180 / 255),
-                           grDevices::rgb(142 / 255, 210 / 255, 185 / 255),
-                           grDevices::rgb(100 / 255, 193 / 255, 191 / 255),
-                           grDevices::rgb(59 / 255, 174 / 255, 195 / 255),
-                           grDevices::rgb(34 / 255, 148 / 255, 192 / 255),
-                           grDevices::rgb(35 / 255, 114 / 255, 177 / 255),
-                           grDevices::rgb(29 / 255, 78 / 255, 157 / 255),
-                           grDevices::rgb(12 / 255, 44 / 255, 132 / 255)),
-        "12" = tibble::lst(grDevices::rgb(255 / 255, 255 / 255, 216 / 255),
-                           grDevices::rgb(243 / 255, 250 / 255, 191 / 255),
-                           grDevices::rgb(226 / 255, 243 / 255, 177 / 255),
-                           grDevices::rgb(202 / 255, 234 / 255, 179 / 255),
-                           grDevices::rgb(161 / 255, 217 / 255, 184 / 255),
-                           grDevices::rgb(117 / 255, 200 / 255, 188 / 255),
-                           grDevices::rgb(79 / 255, 186 / 255, 194 / 255),
-                           grDevices::rgb(52 / 255, 164 / 255, 194 / 255),
-                           grDevices::rgb(30 / 255, 140 / 255, 189 / 255),
-                           grDevices::rgb(35 / 255, 107 / 255, 174 / 255),
-                           grDevices::rgb(28 / 255, 75 / 255, 154 / 255),
-                           grDevices::rgb(12 / 255, 44 / 255, 132 / 255)),
-        "13" = tibble::lst(grDevices::rgb(255 / 255, 255 / 255, 216 / 255),
-                           grDevices::rgb(244 / 255, 250 / 255, 193 / 255),
-                           grDevices::rgb(230 / 255, 245 / 255, 177 / 255),
-                           grDevices::rgb(208 / 255, 236 / 255, 179 / 255),
-                           grDevices::rgb(176 / 255, 223 / 255, 182 / 255),
-                           grDevices::rgb(133 / 255, 207 / 255, 186 / 255),
-                           grDevices::rgb(100 / 255, 193 / 255, 191 / 255),
-                           grDevices::rgb(62 / 255, 178 / 255, 195 / 255),
-                           grDevices::rgb(44 / 255, 157 / 255, 193 / 255),
-                           grDevices::rgb(33 / 255, 132 / 255, 186 / 255),
-                           grDevices::rgb(34 / 255, 102 / 255, 172 / 255),
-                           grDevices::rgb(27 / 255, 72 / 255, 152 / 255),
-                           grDevices::rgb(12 / 255, 44 / 255, 132 / 255)),
-        "14" = tibble::lst(grDevices::rgb(255 / 255, 255 / 255, 216 / 255),
-                           grDevices::rgb(245 / 255, 251 / 255, 195 / 255),
-                           grDevices::rgb(234 / 255, 246 / 255, 177 / 255),
-                           grDevices::rgb(213 / 255, 238 / 255, 178 / 255),
-                           grDevices::rgb(188 / 255, 228 / 255, 181 / 255),
-                           grDevices::rgb(151 / 255, 213 / 255, 185 / 255),
-                           grDevices::rgb(115 / 255, 199 / 255, 189 / 255),
-                           grDevices::rgb(83 / 255, 187 / 255, 194 / 255),
-                           grDevices::rgb(56 / 255, 170 / 255, 194 / 255),
-                           grDevices::rgb(37 / 255, 150 / 255, 192 / 255),
-                           grDevices::rgb(34 / 255, 125 / 255, 182 / 255),
-                           grDevices::rgb(34 / 255, 97 / 255, 169 / 255),
-                           grDevices::rgb(26 / 255, 70 / 255, 151 / 255),
-                           grDevices::rgb(12 / 255, 44 / 255, 132 / 255)),
-        "15" = tibble::lst(grDevices::rgb(255 / 255, 255 / 255, 216 / 255),
-                           grDevices::rgb(246 / 255, 251 / 255, 197 / 255),
-                           grDevices::rgb(236 / 255, 248 / 255, 177 / 255),
-                           grDevices::rgb(218 / 255, 240 / 255, 178 / 255),
-                           grDevices::rgb(198 / 255, 233 / 255, 179 / 255),
-                           grDevices::rgb(165 / 255, 218 / 255, 183 / 255),
-                           grDevices::rgb(127 / 255, 204 / 255, 186 / 255),
-                           grDevices::rgb(100 / 255, 193 / 255, 191 / 255),
-                           grDevices::rgb(64 / 255, 182 / 255, 196 / 255),
-                           grDevices::rgb(50 / 255, 163 / 255, 194 / 255),
-                           grDevices::rgb(29 / 255, 145 / 255, 191 / 255),
-                           grDevices::rgb(35 / 255, 119 / 255, 180 / 255),
-                           grDevices::rgb(33 / 255, 94 / 255, 167 / 255),
-                           grDevices::rgb(26 / 255, 68 / 255, 149 / 255),
-                           grDevices::rgb(12 / 255, 44 / 255, 132 / 255)),
-        "16" = tibble::lst(grDevices::rgb(255 / 255, 255 / 255, 216 / 255),
-                           grDevices::rgb(246 / 255, 251 / 255, 198 / 255),
-                           grDevices::rgb(238 / 255, 248 / 255, 179 / 255),
-                           grDevices::rgb(222 / 255, 242 / 255, 178 / 255),
-                           grDevices::rgb(204 / 255, 235 / 255, 179 / 255),
-                           grDevices::rgb(176 / 255, 223 / 255, 182 / 255),
-                           grDevices::rgb(142 / 255, 210 / 255, 185 / 255),
-                           grDevices::rgb(113 / 255, 198 / 255, 189 / 255),
-                           grDevices::rgb(85 / 255, 188 / 255, 193 / 255),
-                           grDevices::rgb(59 / 255, 174 / 255, 195 / 255),
-                           grDevices::rgb(44 / 255, 157 / 255, 193 / 255),
-                           grDevices::rgb(31 / 255, 138 / 255, 188 / 255),
-                           grDevices::rgb(35 / 255, 114 / 255, 177 / 255),
-                           grDevices::rgb(33 / 255, 90 / 255, 165 / 255),
-                           grDevices::rgb(25 / 255, 67 / 255, 148 / 255),
-                           grDevices::rgb(12 / 255, 44 / 255, 132 / 255)),
-        "17" = tibble::lst(grDevices::rgb(255 / 255, 255 / 255, 216 / 255),
-                           grDevices::rgb(247 / 255, 251 / 255, 199 / 255),
-                           grDevices::rgb(239 / 255, 248 / 255, 182 / 255),
-                           grDevices::rgb(225 / 255, 243 / 255, 177 / 255),
-                           grDevices::rgb(208 / 255, 236 / 255, 179 / 255),
-                           grDevices::rgb(186 / 255, 227 / 255, 181 / 255),
-                           grDevices::rgb(156 / 255, 215 / 255, 184 / 255),
-                           grDevices::rgb(123 / 255, 203 / 255, 187 / 255),
-                           grDevices::rgb(100 / 255, 193 / 255, 191 / 255),
-                           grDevices::rgb(70 / 255, 183 / 255, 195 / 255),
-                           grDevices::rgb(54 / 255, 167 / 255, 194 / 255),
-                           grDevices::rgb(38 / 255, 151 / 255, 192 / 255),
-                           grDevices::rgb(33 / 255, 132 / 255, 186 / 255),
-                           grDevices::rgb(35 / 255, 109 / 255, 175 / 255),
-                           grDevices::rgb(32 / 255, 87 / 255, 163 / 255),
-                           grDevices::rgb(24 / 255, 65 / 255, 147 / 255),
-                           grDevices::rgb(12 / 255, 44 / 255, 132 / 255)),
-        "18" = tibble::lst(grDevices::rgb(255 / 255, 255 / 255, 216 / 255),
-                           grDevices::rgb(247 / 255, 252 / 255, 200 / 255),
-                           grDevices::rgb(240 / 255, 249 / 255, 184 / 255),
-                           grDevices::rgb(228 / 255, 244 / 255, 177 / 255),
-                           grDevices::rgb(212 / 255, 238 / 255, 178 / 255),
-                           grDevices::rgb(195 / 255, 231 / 255, 180 / 255),
-                           grDevices::rgb(167 / 255, 219 / 255, 183 / 255),
-                           grDevices::rgb(136 / 255, 208 / 255, 186 / 255),
-                           grDevices::rgb(111 / 255, 198 / 255, 189 / 255),
-                           grDevices::rgb(87 / 255, 188 / 255, 193 / 255),
-                           grDevices::rgb(61 / 255, 177 / 255, 195 / 255),
-                           grDevices::rgb(49 / 255, 162 / 255, 193 / 255),
-                           grDevices::rgb(32 / 255, 147 / 255, 192 / 255),
-                           grDevices::rgb(34 / 255, 126 / 255, 183 / 255),
-                           grDevices::rgb(35 / 255, 105 / 255, 173 / 255),
-                           grDevices::rgb(31 / 255, 85 / 255, 161 / 255),
-                           grDevices::rgb(24 / 255, 64 / 255, 146 / 255),
-                           grDevices::rgb(12 / 255, 44 / 255, 132 / 255)),
-        "19" = tibble::lst(grDevices::rgb(255 / 255, 255 / 255, 216 / 255),
-                           grDevices::rgb(248 / 255, 252 / 255, 201 / 255),
-                           grDevices::rgb(241 / 255, 249 / 255, 185 / 255),
-                           grDevices::rgb(230 / 255, 245 / 255, 177 / 255),
-                           grDevices::rgb(216 / 255, 239 / 255, 178 / 255),
-                           grDevices::rgb(201 / 255, 233 / 255, 179 / 255),
-                           grDevices::rgb(176 / 255, 223 / 255, 182 / 255),
-                           grDevices::rgb(148 / 255, 212 / 255, 185 / 255),
-                           grDevices::rgb(121 / 255, 202 / 255, 188 / 255),
-                           grDevices::rgb(100 / 255, 193 / 255, 191 / 255),
-                           grDevices::rgb(74 / 255, 184 / 255, 195 / 255),
-                           grDevices::rgb(57 / 255, 171 / 255, 194 / 255),
-                           grDevices::rgb(44 / 255, 157 / 255, 193 / 255),
-                           grDevices::rgb(30 / 255, 142 / 255, 190 / 255),
-                           grDevices::rgb(34 / 255, 122 / 255, 181 / 255),
-                           grDevices::rgb(34 / 255, 102 / 255, 172 / 255),
-                           grDevices::rgb(31 / 255, 82 / 255, 159 / 255),
-                           grDevices::rgb(23 / 255, 63 / 255, 145 / 255),
-                           grDevices::rgb(12 / 255, 44 / 255, 132 / 255)),
-        "20" = tibble::lst(grDevices::rgb(255 / 255, 255 / 255, 216 / 255),
-                           grDevices::rgb(248 / 255, 252 / 255, 202 / 255),
-                           grDevices::rgb(241 / 255, 249 / 255, 187 / 255),
-                           grDevices::rgb(233 / 255, 246 / 255, 177 / 255),
-                           grDevices::rgb(219 / 255, 240 / 255, 178 / 255),
-                           grDevices::rgb(205 / 255, 235 / 255, 179 / 255),
-                           grDevices::rgb(185 / 255, 227 / 255, 181 / 255),
-                           grDevices::rgb(159 / 255, 216 / 255, 184 / 255),
-                           grDevices::rgb(131 / 255, 206 / 255, 186 / 255),
-                           grDevices::rgb(110 / 255, 197 / 255, 189 / 255),
-                           grDevices::rgb(88 / 255, 189 / 255, 193 / 255),
-                           grDevices::rgb(63 / 255, 180 / 255, 195 / 255),
-                           grDevices::rgb(53 / 255, 166 / 255, 194 / 255),
-                           grDevices::rgb(39 / 255, 152 / 255, 192 / 255),
-                           grDevices::rgb(31 / 255, 136 / 255, 188 / 255),
-                           grDevices::rgb(35 / 255, 117 / 255, 179 / 255),
-                           grDevices::rgb(34 / 255, 99 / 255, 170 / 255),
-                           grDevices::rgb(30 / 255, 80 / 255, 158 / 255),
-                           grDevices::rgb(23 / 255, 62 / 255, 145 / 255),
-                           grDevices::rgb(12 / 255, 44 / 255, 132 / 255)),
-        "type" = "sequential"
-    ),
-    "Purples" = tibble::lst(
-        "1" = tibble::lst(grDevices::rgb(188 / 255, 189 / 255, 220 / 255)),
-        "2" = tibble::lst(grDevices::rgb(239 / 255, 237 / 255, 245 / 255),
-                          grDevices::rgb(117 / 255, 107 / 255, 177 / 255)),
-        "3" = tibble::lst(grDevices::rgb(239 / 255, 237 / 255, 245 / 255),
-                          grDevices::rgb(188 / 255, 189 / 255, 220 / 255),
-                          grDevices::rgb(117 / 255, 107 / 255, 177 / 255)),
-        "4" = tibble::lst(grDevices::rgb(242 / 255, 240 / 255, 247 / 255),
-                          grDevices::rgb(203 / 255, 201 / 255, 226 / 255),
-                          grDevices::rgb(158 / 255, 154 / 255, 200 / 255),
-                          grDevices::rgb(106 / 255, 81 / 255, 163 / 255)),
-        "5" = tibble::lst(grDevices::rgb(242 / 255, 240 / 255, 247 / 255),
-                          grDevices::rgb(203 / 255, 201 / 255, 226 / 255),
-                          grDevices::rgb(158 / 255, 154 / 255, 200 / 255),
-                          grDevices::rgb(117 / 255, 107 / 255, 177 / 255),
-                          grDevices::rgb(84 / 255, 39 / 255, 143 / 255)),
-        "6" = tibble::lst(grDevices::rgb(242 / 255, 240 / 255, 247 / 255),
-                          grDevices::rgb(218 / 255, 218 / 255, 235 / 255),
-                          grDevices::rgb(188 / 255, 189 / 255, 220 / 255),
-                          grDevices::rgb(158 / 255, 154 / 255, 200 / 255),
-                          grDevices::rgb(117 / 255, 107 / 255, 177 / 255),
-                          grDevices::rgb(84 / 255, 39 / 255, 143 / 255)),
-        "7" = tibble::lst(grDevices::rgb(242 / 255, 240 / 255, 247 / 255),
-                          grDevices::rgb(218 / 255, 218 / 255, 235 / 255),
-                          grDevices::rgb(188 / 255, 189 / 255, 220 / 255),
-                          grDevices::rgb(158 / 255, 154 / 255, 200 / 255),
-                          grDevices::rgb(128 / 255, 125 / 255, 186 / 255),
-                          grDevices::rgb(106 / 255, 81 / 255, 163 / 255),
-                          grDevices::rgb(74 / 255, 20 / 255, 134 / 255)),
-        "8" = tibble::lst(grDevices::rgb(252 / 255, 251 / 255, 253 / 255),
-                          grDevices::rgb(239 / 255, 237 / 255, 245 / 255),
-                          grDevices::rgb(218 / 255, 218 / 255, 235 / 255),
-                          grDevices::rgb(188 / 255, 189 / 255, 220 / 255),
-                          grDevices::rgb(158 / 255, 154 / 255, 200 / 255),
-                          grDevices::rgb(128 / 255, 125 / 255, 186 / 255),
-                          grDevices::rgb(106 / 255, 81 / 255, 163 / 255),
-                          grDevices::rgb(74 / 255, 20 / 255, 134 / 255)),
-        "9" = tibble::lst(grDevices::rgb(252 / 255, 251 / 255, 253 / 255),
-                          grDevices::rgb(239 / 255, 237 / 255, 245 / 255),
-                          grDevices::rgb(218 / 255, 218 / 255, 235 / 255),
-                          grDevices::rgb(188 / 255, 189 / 255, 220 / 255),
-                          grDevices::rgb(158 / 255, 154 / 255, 200 / 255),
-                          grDevices::rgb(128 / 255, 125 / 255, 186 / 255),
-                          grDevices::rgb(106 / 255, 81 / 255, 163 / 255),
-                          grDevices::rgb(84 / 255, 39 / 255, 143 / 255),
-                          grDevices::rgb(63 / 255, 0 / 255, 125 / 255)),
-        "10" = tibble::lst(grDevices::rgb(252 / 255, 250 / 255, 253 / 255),
-                           grDevices::rgb(241 / 255, 240 / 255, 246 / 255),
-                           grDevices::rgb(227 / 255, 226 / 255, 239 / 255),
-                           grDevices::rgb(207 / 255, 208 / 255, 229 / 255),
-                           grDevices::rgb(184 / 255, 185 / 255, 217 / 255),
-                           grDevices::rgb(161 / 255, 157 / 255, 202 / 255),
-                           grDevices::rgb(138 / 255, 134 / 255, 190 / 255),
-                           grDevices::rgb(118 / 255, 105 / 255, 175 / 255),
-                           grDevices::rgb(99 / 255, 68 / 255, 156 / 255),
-                           grDevices::rgb(74 / 255, 19 / 255, 133 / 255)),
-        "11" = tibble::lst(grDevices::rgb(252 / 255, 250 / 255, 253 / 255),
-                           grDevices::rgb(242 / 255, 241 / 255, 247 / 255),
-                           grDevices::rgb(230 / 255, 229 / 255, 241 / 255),
-                           grDevices::rgb(214 / 255, 215 / 255, 233 / 255),
-                           grDevices::rgb(193 / 255, 194 / 255, 223 / 255),
-                           grDevices::rgb(172 / 255, 171 / 255, 209 / 255),
-                           grDevices::rgb(152 / 255, 148 / 255, 197 / 255),
-                           grDevices::rgb(131 / 255, 127 / 255, 187 / 255),
-                           grDevices::rgb(115 / 255, 98 / 255, 172 / 255),
-                           grDevices::rgb(97 / 255, 64 / 255, 154 / 255),
-                           grDevices::rgb(74 / 255, 19 / 255, 133 / 255)),
-        "12" = tibble::lst(grDevices::rgb(252 / 255, 250 / 255, 253 / 255),
-                           grDevices::rgb(243 / 255, 242 / 255, 247 / 255),
-                           grDevices::rgb(233 / 255, 231 / 255, 242 / 255),
-                           grDevices::rgb(219 / 255, 219 / 255, 235 / 255),
-                           grDevices::rgb(201 / 255, 202 / 255, 226 / 255),
-                           grDevices::rgb(182 / 255, 182 / 255, 216 / 255),
-                           grDevices::rgb(163 / 255, 160 / 255, 203 / 255),
-                           grDevices::rgb(144 / 255, 140 / 255, 193 / 255),
-                           grDevices::rgb(126 / 255, 120 / 255, 183 / 255),
-                           grDevices::rgb(112 / 255, 92 / 255, 169 / 255),
-                           grDevices::rgb(95 / 255, 60 / 255, 152 / 255),
-                           grDevices::rgb(74 / 255, 19 / 255, 133 / 255)),
-        "13" = tibble::lst(grDevices::rgb(252 / 255, 250 / 255, 253 / 255),
-                           grDevices::rgb(244 / 255, 242 / 255, 248 / 255),
-                           grDevices::rgb(235 / 255, 233 / 255, 243 / 255),
-                           grDevices::rgb(223 / 255, 222 / 255, 237 / 255),
-                           grDevices::rgb(207 / 255, 208 / 255, 229 / 255),
-                           grDevices::rgb(190 / 255, 191 / 255, 221 / 255),
-                           grDevices::rgb(172 / 255, 171 / 255, 209 / 255),
-                           grDevices::rgb(155 / 255, 151 / 255, 198 / 255),
-                           grDevices::rgb(138 / 255, 134 / 255, 190 / 255),
-                           grDevices::rgb(122 / 255, 113 / 255, 180 / 255),
-                           grDevices::rgb(109 / 255, 88 / 255, 166 / 255),
-                           grDevices::rgb(93 / 255, 57 / 255, 150 / 255),
-                           grDevices::rgb(74 / 255, 19 / 255, 133 / 255)),
-        "14" = tibble::lst(grDevices::rgb(252 / 255, 250 / 255, 253 / 255),
-                           grDevices::rgb(244 / 255, 243 / 255, 248 / 255),
-                           grDevices::rgb(237 / 255, 235 / 255, 244 / 255),
-                           grDevices::rgb(226 / 255, 225 / 255, 238 / 255),
-                           grDevices::rgb(213 / 255, 213 / 255, 232 / 255),
-                           grDevices::rgb(197 / 255, 197 / 255, 224 / 255),
-                           grDevices::rgb(181 / 255, 180 / 255, 215 / 255),
-                           grDevices::rgb(164 / 255, 161 / 255, 204 / 255),
-                           grDevices::rgb(148 / 255, 144 / 255, 195 / 255),
-                           grDevices::rgb(132 / 255, 129 / 255, 188 / 255),
-                           grDevices::rgb(119 / 255, 108 / 255, 177 / 255),
-                           grDevices::rgb(107 / 255, 84 / 255, 164 / 255),
-                           grDevices::rgb(91 / 255, 55 / 255, 149 / 255),
-                           grDevices::rgb(74 / 255, 19 / 255, 133 / 255)),
-        "15" = tibble::lst(grDevices::rgb(252 / 255, 250 / 255, 253 / 255),
-                           grDevices::rgb(245 / 255, 243 / 255, 248 / 255),
-                           grDevices::rgb(238 / 255, 236 / 255, 244 / 255),
-                           grDevices::rgb(228 / 255, 227 / 255, 239 / 255),
-                           grDevices::rgb(217 / 255, 217 / 255, 235 / 255),
-                           grDevices::rgb(202 / 255, 203 / 255, 227 / 255),
-                           grDevices::rgb(187 / 255, 189 / 255, 220 / 255),
-                           grDevices::rgb(172 / 255, 171 / 255, 209 / 255),
-                           grDevices::rgb(158 / 255, 153 / 255, 199 / 255),
-                           grDevices::rgb(143 / 255, 139 / 255, 193 / 255),
-                           grDevices::rgb(127 / 255, 125 / 255, 185 / 255),
-                           grDevices::rgb(117 / 255, 102 / 255, 174 / 255),
-                           grDevices::rgb(106 / 255, 81 / 255, 163 / 255),
-                           grDevices::rgb(90 / 255, 52 / 255, 148 / 255),
-                           grDevices::rgb(74 / 255, 19 / 255, 133 / 255)),
-        "16" = tibble::lst(grDevices::rgb(252 / 255, 250 / 255, 253 / 255),
-                           grDevices::rgb(245 / 255, 244 / 255, 249 / 255),
-                           grDevices::rgb(239 / 255, 237 / 255, 245 / 255),
-                           grDevices::rgb(230 / 255, 229 / 255, 241 / 255),
-                           grDevices::rgb(220 / 255, 220 / 255, 236 / 255),
-                           grDevices::rgb(207 / 255, 208 / 255, 229 / 255),
-                           grDevices::rgb(193 / 255, 194 / 255, 223 / 255),
-                           grDevices::rgb(179 / 255, 179 / 255, 214 / 255),
-                           grDevices::rgb(165 / 255, 163 / 255, 205 / 255),
-                           grDevices::rgb(152 / 255, 148 / 255, 197 / 255),
-                           grDevices::rgb(138 / 255, 134 / 255, 190 / 255),
-                           grDevices::rgb(125 / 255, 119 / 255, 182 / 255),
-                           grDevices::rgb(115 / 255, 98 / 255, 172 / 255),
-                           grDevices::rgb(104 / 255, 77 / 255, 161 / 255),
-                           grDevices::rgb(89 / 255, 50 / 255, 147 / 255),
-                           grDevices::rgb(74 / 255, 19 / 255, 133 / 255)),
-        "17" = tibble::lst(grDevices::rgb(252 / 255, 250 / 255, 253 / 255),
-                           grDevices::rgb(246 / 255, 244 / 255, 249 / 255),
-                           grDevices::rgb(240 / 255, 238 / 255, 245 / 255),
-                           grDevices::rgb(232 / 255, 231 / 255, 241 / 255),
-                           grDevices::rgb(223 / 255, 222 / 255, 237 / 255),
-                           grDevices::rgb(212 / 255, 212 / 255, 232 / 255),
-                           grDevices::rgb(199 / 255, 199 / 255, 225 / 255),
-                           grDevices::rgb(186 / 255, 186 / 255, 218 / 255),
-                           grDevices::rgb(172 / 255, 171 / 255, 209 / 255),
-                           grDevices::rgb(159 / 255, 156 / 255, 201 / 255),
-                           grDevices::rgb(146 / 255, 142 / 255, 194 / 255),
-                           grDevices::rgb(133 / 255, 130 / 255, 188 / 255),
-                           grDevices::rgb(122 / 255, 113 / 255, 180 / 255),
-                           grDevices::rgb(113 / 255, 94 / 255, 170 / 255),
-                           grDevices::rgb(102 / 255, 74 / 255, 159 / 255),
-                           grDevices::rgb(88 / 255, 49 / 255, 146 / 255),
-                           grDevices::rgb(74 / 255, 19 / 255, 133 / 255)),
-        "18" = tibble::lst(grDevices::rgb(252 / 255, 250 / 255, 253 / 255),
-                           grDevices::rgb(246 / 255, 245 / 255, 249 / 255),
-                           grDevices::rgb(241 / 255, 239 / 255, 246 / 255),
-                           grDevices::rgb(234 / 255, 232 / 255, 242 / 255),
-                           grDevices::rgb(225 / 255, 224 / 255, 238 / 255),
-                           grDevices::rgb(216 / 255, 216 / 255, 234 / 255),
-                           grDevices::rgb(203 / 255, 204 / 255, 227 / 255),
-                           grDevices::rgb(191 / 255, 192 / 255, 221 / 255),
-                           grDevices::rgb(179 / 255, 178 / 255, 214 / 255),
-                           grDevices::rgb(166 / 255, 164 / 255, 205 / 255),
-                           grDevices::rgb(154 / 255, 150 / 255, 198 / 255),
-                           grDevices::rgb(142 / 255, 138 / 255, 192 / 255),
-                           grDevices::rgb(129 / 255, 126 / 255, 186 / 255),
-                           grDevices::rgb(120 / 255, 109 / 255, 177 / 255),
-                           grDevices::rgb(111 / 255, 91 / 255, 168 / 255),
-                           grDevices::rgb(100 / 255, 71 / 255, 157 / 255),
-                           grDevices::rgb(87 / 255, 47 / 255, 145 / 255),
-                           grDevices::rgb(74 / 255, 19 / 255, 133 / 255)),
-        "19" = tibble::lst(grDevices::rgb(252 / 255, 250 / 255, 253 / 255),
-                           grDevices::rgb(246 / 255, 245 / 255, 249 / 255),
-                           grDevices::rgb(241 / 255, 240 / 255, 246 / 255),
-                           grDevices::rgb(235 / 255, 233 / 255, 243 / 255),
-                           grDevices::rgb(227 / 255, 226 / 255, 239 / 255),
-                           grDevices::rgb(219 / 255, 219 / 255, 235 / 255),
-                           grDevices::rgb(207 / 255, 208 / 255, 229 / 255),
-                           grDevices::rgb(196 / 255, 196 / 255, 224 / 255),
-                           grDevices::rgb(184 / 255, 185 / 255, 217 / 255),
-                           grDevices::rgb(172 / 255, 171 / 255, 209 / 255),
-                           grDevices::rgb(161 / 255, 157 / 255, 202 / 255),
-                           grDevices::rgb(149 / 255, 145 / 255, 196 / 255),
-                           grDevices::rgb(138 / 255, 134 / 255, 190 / 255),
-                           grDevices::rgb(126 / 255, 122 / 255, 184 / 255),
-                           grDevices::rgb(118 / 255, 105 / 255, 175 / 255),
-                           grDevices::rgb(109 / 255, 88 / 255, 166 / 255),
-                           grDevices::rgb(99 / 255, 68 / 255, 156 / 255),
-                           grDevices::rgb(87 / 255, 46 / 255, 145 / 255),
-                           grDevices::rgb(74 / 255, 19 / 255, 133 / 255)),
-        "20" = tibble::lst(grDevices::rgb(252 / 255, 250 / 255, 253 / 255),
-                           grDevices::rgb(247 / 255, 245 / 255, 250 / 255),
-                           grDevices::rgb(242 / 255, 240 / 255, 247 / 255),
-                           grDevices::rgb(236 / 255, 234 / 255, 243 / 255),
-                           grDevices::rgb(229 / 255, 227 / 255, 240 / 255),
-                           grDevices::rgb(221 / 255, 220 / 255, 236 / 255),
-                           grDevices::rgb(211 / 255, 211 / 255, 231 / 255),
-                           grDevices::rgb(200 / 255, 201 / 255, 226 / 255),
-                           grDevices::rgb(189 / 255, 190 / 255, 220 / 255),
-                           grDevices::rgb(178 / 255, 177 / 255, 213 / 255),
-                           grDevices::rgb(167 / 255, 164 / 255, 206 / 255),
-                           grDevices::rgb(156 / 255, 152 / 255, 199 / 255),
-                           grDevices::rgb(145 / 255, 141 / 255, 194 / 255),
-                           grDevices::rgb(134 / 255, 131 / 255, 188 / 255),
-                           grDevices::rgb(124 / 255, 118 / 255, 182 / 255),
-                           grDevices::rgb(116 / 255, 101 / 255, 173 / 255),
-                           grDevices::rgb(108 / 255, 85 / 255, 165 / 255),
-                           grDevices::rgb(98 / 255, 66 / 255, 155 / 255),
-                           grDevices::rgb(86 / 255, 45 / 255, 144 / 255),
-                           grDevices::rgb(74 / 255, 19 / 255, 133 / 255)),
-        "type" = "sequential"
-    ),
-    "GnBu" = tibble::lst(
-        "1" = tibble::lst(grDevices::rgb(168 / 255, 221 / 255, 181 / 255)),
-        "2" = tibble::lst(grDevices::rgb(224 / 255, 243 / 255, 219 / 255),
-                          grDevices::rgb(67 / 255, 162 / 255, 202 / 255)),
-        "3" = tibble::lst(grDevices::rgb(224 / 255, 243 / 255, 219 / 255),
-                          grDevices::rgb(168 / 255, 221 / 255, 181 / 255),
-                          grDevices::rgb(67 / 255, 162 / 255, 202 / 255)),
-        "4" = tibble::lst(grDevices::rgb(240 / 255, 249 / 255, 232 / 255),
-                          grDevices::rgb(186 / 255, 228 / 255, 188 / 255),
-                          grDevices::rgb(123 / 255, 204 / 255, 196 / 255),
-                          grDevices::rgb(43 / 255, 140 / 255, 190 / 255)),
-        "5" = tibble::lst(grDevices::rgb(240 / 255, 249 / 255, 232 / 255),
-                          grDevices::rgb(186 / 255, 228 / 255, 188 / 255),
-                          grDevices::rgb(123 / 255, 204 / 255, 196 / 255),
-                          grDevices::rgb(67 / 255, 162 / 255, 202 / 255),
-                          grDevices::rgb(8 / 255, 104 / 255, 172 / 255)),
-        "6" = tibble::lst(grDevices::rgb(240 / 255, 249 / 255, 232 / 255),
-                          grDevices::rgb(204 / 255, 235 / 255, 197 / 255),
-                          grDevices::rgb(168 / 255, 221 / 255, 181 / 255),
-                          grDevices::rgb(123 / 255, 204 / 255, 196 / 255),
-                          grDevices::rgb(67 / 255, 162 / 255, 202 / 255),
-                          grDevices::rgb(8 / 255, 104 / 255, 172 / 255)),
-        "7" = tibble::lst(grDevices::rgb(240 / 255, 249 / 255, 232 / 255),
-                          grDevices::rgb(204 / 255, 235 / 255, 197 / 255),
-                          grDevices::rgb(168 / 255, 221 / 255, 181 / 255),
-                          grDevices::rgb(123 / 255, 204 / 255, 196 / 255),
-                          grDevices::rgb(78 / 255, 179 / 255, 211 / 255),
-                          grDevices::rgb(43 / 255, 140 / 255, 190 / 255),
-                          grDevices::rgb(8 / 255, 88 / 255, 158 / 255)),
-        "8" = tibble::lst(grDevices::rgb(247 / 255, 252 / 255, 240 / 255),
-                          grDevices::rgb(224 / 255, 243 / 255, 219 / 255),
-                          grDevices::rgb(204 / 255, 235 / 255, 197 / 255),
-                          grDevices::rgb(168 / 255, 221 / 255, 181 / 255),
-                          grDevices::rgb(123 / 255, 204 / 255, 196 / 255),
-                          grDevices::rgb(78 / 255, 179 / 255, 211 / 255),
-                          grDevices::rgb(43 / 255, 140 / 255, 190 / 255),
-                          grDevices::rgb(8 / 255, 88 / 255, 158 / 255)),
-        "9" = tibble::lst(grDevices::rgb(247 / 255, 252 / 255, 240 / 255),
-                          grDevices::rgb(224 / 255, 243 / 255, 219 / 255),
-                          grDevices::rgb(204 / 255, 235 / 255, 197 / 255),
-                          grDevices::rgb(168 / 255, 221 / 255, 181 / 255),
-                          grDevices::rgb(123 / 255, 204 / 255, 196 / 255),
-                          grDevices::rgb(78 / 255, 179 / 255, 211 / 255),
-                          grDevices::rgb(43 / 255, 140 / 255, 190 / 255),
-                          grDevices::rgb(8 / 255, 104 / 255, 172 / 255),
-                          grDevices::rgb(8 / 255, 64 / 255, 129 / 255)),
-        "10" = tibble::lst(grDevices::rgb(247 / 255, 252 / 255, 240 / 255),
-                           grDevices::rgb(229 / 255, 245 / 255, 223 / 255),
-                           grDevices::rgb(212 / 255, 238 / 255, 206 / 255),
-                           grDevices::rgb(192 / 255, 230 / 255, 191 / 255),
-                           grDevices::rgb(163 / 255, 219 / 255, 182 / 255),
-                           grDevices::rgb(128 / 255, 205 / 255, 194 / 255),
-                           grDevices::rgb(95 / 255, 187 / 255, 206 / 255),
-                           grDevices::rgb(63 / 255, 161 / 255, 201 / 255),
-                           grDevices::rgb(37 / 255, 128 / 255, 182 / 255),
-                           grDevices::rgb(7 / 255, 88 / 255, 158 / 255)),
-        "11" = tibble::lst(grDevices::rgb(247 / 255, 252 / 255, 240 / 255),
-                           grDevices::rgb(230 / 255, 245 / 255, 225 / 255),
-                           grDevices::rgb(216 / 255, 239 / 255, 210 / 255),
-                           grDevices::rgb(200 / 255, 233 / 255, 195 / 255),
-                           grDevices::rgb(175 / 255, 223 / 255, 184 / 255),
-                           grDevices::rgb(146 / 255, 212 / 255, 188 / 255),
-                           grDevices::rgb(115 / 255, 198 / 255, 199 / 255),
-                           grDevices::rgb(83 / 255, 181 / 255, 209 / 255),
-                           grDevices::rgb(58 / 255, 155 / 255, 198 / 255),
-                           grDevices::rgb(35 / 255, 124 / 255, 180 / 255),
-                           grDevices::rgb(7 / 255, 88 / 255, 158 / 255)),
-        "12" = tibble::lst(grDevices::rgb(247 / 255, 252 / 255, 240 / 255),
-                           grDevices::rgb(232 / 255, 246 / 255, 226 / 255),
-                           grDevices::rgb(218 / 255, 240 / 255, 212 / 255),
-                           grDevices::rgb(205 / 255, 235 / 255, 198 / 255),
-                           grDevices::rgb(184 / 255, 227 / 255, 188 / 255),
-                           grDevices::rgb(160 / 255, 217 / 255, 183 / 255),
-                           grDevices::rgb(132 / 255, 207 / 255, 193 / 255),
-                           grDevices::rgb(105 / 255, 192 / 255, 202 / 255),
-                           grDevices::rgb(75 / 255, 175 / 255, 209 / 255),
-                           grDevices::rgb(53 / 255, 150 / 255, 195 / 255),
-                           grDevices::rgb(34 / 255, 120 / 255, 178 / 255),
-                           grDevices::rgb(7 / 255, 88 / 255, 158 / 255)),
-        "13" = tibble::lst(grDevices::rgb(247 / 255, 252 / 255, 240 / 255),
-                           grDevices::rgb(233 / 255, 246 / 255, 227 / 255),
-                           grDevices::rgb(220 / 255, 241 / 255, 215 / 255),
-                           grDevices::rgb(209 / 255, 237 / 255, 202 / 255),
-                           grDevices::rgb(192 / 255, 230 / 255, 191 / 255),
-                           grDevices::rgb(171 / 255, 222 / 255, 182 / 255),
-                           grDevices::rgb(146 / 255, 212 / 255, 188 / 255),
-                           grDevices::rgb(119 / 255, 201 / 255, 197 / 255),
-                           grDevices::rgb(95 / 255, 187 / 255, 206 / 255),
-                           grDevices::rgb(70 / 255, 169 / 255, 205 / 255),
-                           grDevices::rgb(49 / 255, 146 / 255, 193 / 255),
-                           grDevices::rgb(32 / 255, 117 / 255, 176 / 255),
-                           grDevices::rgb(7 / 255, 88 / 255, 158 / 255)),
-        "14" = tibble::lst(grDevices::rgb(247 / 255, 252 / 255, 240 / 255),
-                           grDevices::rgb(234 / 255, 247 / 255, 228 / 255),
-                           grDevices::rgb(222 / 255, 242 / 255, 217 / 255),
-                           grDevices::rgb(211 / 255, 238 / 255, 205 / 255),
-                           grDevices::rgb(198 / 255, 232 / 255, 194 / 255),
-                           grDevices::rgb(179 / 255, 225 / 255, 185 / 255),
-                           grDevices::rgb(158 / 255, 217 / 255, 184 / 255),
-                           grDevices::rgb(134 / 255, 207 / 255, 192 / 255),
-                           grDevices::rgb(111 / 255, 196 / 255, 200 / 255),
-                           grDevices::rgb(86 / 255, 182 / 255, 208 / 255),
-                           grDevices::rgb(65 / 255, 163 / 255, 202 / 255),
-                           grDevices::rgb(46 / 255, 142 / 255, 191 / 255),
-                           grDevices::rgb(31 / 255, 115 / 255, 175 / 255),
-                           grDevices::rgb(7 / 255, 88 / 255, 158 / 255)),
-        "15" = tibble::lst(grDevices::rgb(247 / 255, 252 / 255, 240 / 255),
-                           grDevices::rgb(235 / 255, 247 / 255, 229 / 255),
-                           grDevices::rgb(223 / 255, 242 / 255, 218 / 255),
-                           grDevices::rgb(214 / 255, 239 / 255, 207 / 255),
-                           grDevices::rgb(204 / 255, 235 / 255, 197 / 255),
-                           grDevices::rgb(186 / 255, 228 / 255, 188 / 255),
-                           grDevices::rgb(167 / 255, 221 / 255, 180 / 255),
-                           grDevices::rgb(146 / 255, 212 / 255, 188 / 255),
-                           grDevices::rgb(122 / 255, 204 / 255, 196 / 255),
-                           grDevices::rgb(103 / 255, 191 / 255, 203 / 255),
-                           grDevices::rgb(77 / 255, 178 / 255, 210 / 255),
-                           grDevices::rgb(61 / 255, 159 / 255, 200 / 255),
-                           grDevices::rgb(43 / 255, 140 / 255, 190 / 255),
-                           grDevices::rgb(30 / 255, 113 / 255, 173 / 255),
-                           grDevices::rgb(7 / 255, 88 / 255, 158 / 255)),
-        "16" = tibble::lst(grDevices::rgb(247 / 255, 252 / 255, 240 / 255),
-                           grDevices::rgb(236 / 255, 247 / 255, 230 / 255),
-                           grDevices::rgb(225 / 255, 243 / 255, 220 / 255),
-                           grDevices::rgb(216 / 255, 239 / 255, 210 / 255),
-                           grDevices::rgb(206 / 255, 236 / 255, 199 / 255),
-                           grDevices::rgb(192 / 255, 230 / 255, 191 / 255),
-                           grDevices::rgb(175 / 255, 223 / 255, 184 / 255),
-                           grDevices::rgb(157 / 255, 216 / 255, 185 / 255),
-                           grDevices::rgb(136 / 255, 208 / 255, 192 / 255),
-                           grDevices::rgb(115 / 255, 198 / 255, 199 / 255),
-                           grDevices::rgb(95 / 255, 187 / 255, 206 / 255),
-                           grDevices::rgb(73 / 255, 173 / 255, 208 / 255),
-                           grDevices::rgb(58 / 255, 155 / 255, 198 / 255),
-                           grDevices::rgb(41 / 255, 136 / 255, 187 / 255),
-                           grDevices::rgb(29 / 255, 111 / 255, 172 / 255),
-                           grDevices::rgb(7 / 255, 88 / 255, 158 / 255)),
-        "17" = tibble::lst(grDevices::rgb(247 / 255, 252 / 255, 240 / 255),
-                           grDevices::rgb(236 / 255, 248 / 255, 230 / 255),
-                           grDevices::rgb(226 / 255, 244 / 255, 221 / 255),
-                           grDevices::rgb(217 / 255, 240 / 255, 212 / 255),
-                           grDevices::rgb(209 / 255, 237 / 255, 202 / 255),
-                           grDevices::rgb(197 / 255, 232 / 255, 193 / 255),
-                           grDevices::rgb(181 / 255, 226 / 255, 186 / 255),
-                           grDevices::rgb(165 / 255, 219 / 255, 181 / 255),
-                           grDevices::rgb(146 / 255, 212 / 255, 188 / 255),
-                           grDevices::rgb(126 / 255, 205 / 255, 195 / 255),
-                           grDevices::rgb(108 / 255, 194 / 255, 201 / 255),
-                           grDevices::rgb(88 / 255, 183 / 255, 208 / 255),
-                           grDevices::rgb(70 / 255, 169 / 255, 205 / 255),
-                           grDevices::rgb(55 / 255, 151 / 255, 196 / 255),
-                           grDevices::rgb(40 / 255, 133 / 255, 185 / 255),
-                           grDevices::rgb(28 / 255, 110 / 255, 171 / 255),
-                           grDevices::rgb(7 / 255, 88 / 255, 158 / 255)),
-        "18" = tibble::lst(grDevices::rgb(247 / 255, 252 / 255, 240 / 255),
-                           grDevices::rgb(237 / 255, 248 / 255, 231 / 255),
-                           grDevices::rgb(228 / 255, 244 / 255, 222 / 255),
-                           grDevices::rgb(219 / 255, 241 / 255, 213 / 255),
-                           grDevices::rgb(211 / 255, 237 / 255, 204 / 255),
-                           grDevices::rgb(201 / 255, 234 / 255, 196 / 255),
-                           grDevices::rgb(187 / 255, 228 / 255, 189 / 255),
-                           grDevices::rgb(172 / 255, 222 / 255, 182 / 255),
-                           grDevices::rgb(155 / 255, 215 / 255, 185 / 255),
-                           grDevices::rgb(137 / 255, 208 / 255, 191 / 255),
-                           grDevices::rgb(118 / 255, 201 / 255, 197 / 255),
-                           grDevices::rgb(101 / 255, 190 / 255, 204 / 255),
-                           grDevices::rgb(81 / 255, 180 / 255, 210 / 255),
-                           grDevices::rgb(66 / 255, 165 / 255, 203 / 255),
-                           grDevices::rgb(52 / 255, 149 / 255, 194 / 255),
-                           grDevices::rgb(38 / 255, 130 / 255, 184 / 255),
-                           grDevices::rgb(27 / 255, 108 / 255, 171 / 255),
-                           grDevices::rgb(7 / 255, 88 / 255, 158 / 255)),
-        "19" = tibble::lst(grDevices::rgb(247 / 255, 252 / 255, 240 / 255),
-                           grDevices::rgb(238 / 255, 248 / 255, 231 / 255),
-                           grDevices::rgb(229 / 255, 245 / 255, 223 / 255),
-                           grDevices::rgb(220 / 255, 241 / 255, 215 / 255),
-                           grDevices::rgb(212 / 255, 238 / 255, 206 / 255),
-                           grDevices::rgb(205 / 255, 235 / 255, 198 / 255),
-                           grDevices::rgb(192 / 255, 230 / 255, 191 / 255),
-                           grDevices::rgb(178 / 255, 224 / 255, 185 / 255),
-                           grDevices::rgb(163 / 255, 219 / 255, 182 / 255),
-                           grDevices::rgb(146 / 255, 212 / 255, 188 / 255),
-                           grDevices::rgb(128 / 255, 205 / 255, 194 / 255),
-                           grDevices::rgb(112 / 255, 196 / 255, 200 / 255),
-                           grDevices::rgb(95 / 255, 187 / 255, 206 / 255),
-                           grDevices::rgb(76 / 255, 176 / 255, 209 / 255),
-                           grDevices::rgb(63 / 255, 161 / 255, 201 / 255),
-                           grDevices::rgb(49 / 255, 146 / 255, 193 / 255),
-                           grDevices::rgb(37 / 255, 128 / 255, 182 / 255),
-                           grDevices::rgb(26 / 255, 107 / 255, 170 / 255),
-                           grDevices::rgb(7 / 255, 88 / 255, 158 / 255)),
-        "20" = tibble::lst(grDevices::rgb(247 / 255, 252 / 255, 240 / 255),
-                           grDevices::rgb(238 / 255, 248 / 255, 232 / 255),
-                           grDevices::rgb(230 / 255, 245 / 255, 224 / 255),
-                           grDevices::rgb(221 / 255, 242 / 255, 216 / 255),
-                           grDevices::rgb(214 / 255, 239 / 255, 208 / 255),
-                           grDevices::rgb(207 / 255, 236 / 255, 200 / 255),
-                           grDevices::rgb(196 / 255, 232 / 255, 193 / 255),
-                           grDevices::rgb(183 / 255, 226 / 255, 187 / 255),
-                           grDevices::rgb(169 / 255, 221 / 255, 181 / 255),
-                           grDevices::rgb(154 / 255, 215 / 255, 185 / 255),
-                           grDevices::rgb(138 / 255, 209 / 255, 191 / 255),
-                           grDevices::rgb(121 / 255, 202 / 255, 196 / 255),
-                           grDevices::rgb(106 / 255, 193 / 255, 202 / 255),
-                           grDevices::rgb(89 / 255, 184 / 255, 207 / 255),
-                           grDevices::rgb(73 / 255, 172 / 255, 207 / 255),
-                           grDevices::rgb(61 / 255, 158 / 255, 199 / 255),
-                           grDevices::rgb(47 / 255, 144 / 255, 192 / 255),
-                           grDevices::rgb(36 / 255, 125 / 255, 181 / 255),
-                           grDevices::rgb(25 / 255, 106 / 255, 169 / 255),
-                           grDevices::rgb(7 / 255, 88 / 255, 158 / 255)),
-        "type" = "sequential"
-    ),
-    "Greys" = tibble::lst(
-        "1" = tibble::lst(grDevices::rgb(189 / 255, 189 / 255, 189 / 255)),
-        "2" = tibble::lst(grDevices::rgb(240 / 255, 240 / 255, 240 / 255),
-                          grDevices::rgb(99 / 255, 99 / 255, 99 / 255)),
-        "3" = tibble::lst(grDevices::rgb(240 / 255, 240 / 255, 240 / 255),
-                          grDevices::rgb(189 / 255, 189 / 255, 189 / 255),
-                          grDevices::rgb(99 / 255, 99 / 255, 99 / 255)),
-        "4" = tibble::lst(grDevices::rgb(247 / 255, 247 / 255, 247 / 255),
-                          grDevices::rgb(204 / 255, 204 / 255, 204 / 255),
-                          grDevices::rgb(150 / 255, 150 / 255, 150 / 255),
-                          grDevices::rgb(82 / 255, 82 / 255, 82 / 255)),
-        "5" = tibble::lst(grDevices::rgb(247 / 255, 247 / 255, 247 / 255),
-                          grDevices::rgb(204 / 255, 204 / 255, 204 / 255),
-                          grDevices::rgb(150 / 255, 150 / 255, 150 / 255),
-                          grDevices::rgb(99 / 255, 99 / 255, 99 / 255),
-                          grDevices::rgb(37 / 255, 37 / 255, 37 / 255)),
-        "6" = tibble::lst(grDevices::rgb(247 / 255, 247 / 255, 247 / 255),
-                          grDevices::rgb(217 / 255, 217 / 255, 217 / 255),
-                          grDevices::rgb(189 / 255, 189 / 255, 189 / 255),
-                          grDevices::rgb(150 / 255, 150 / 255, 150 / 255),
-                          grDevices::rgb(99 / 255, 99 / 255, 99 / 255),
-                          grDevices::rgb(37 / 255, 37 / 255, 37 / 255)),
-        "7" = tibble::lst(grDevices::rgb(247 / 255, 247 / 255, 247 / 255),
-                          grDevices::rgb(217 / 255, 217 / 255, 217 / 255),
-                          grDevices::rgb(189 / 255, 189 / 255, 189 / 255),
-                          grDevices::rgb(150 / 255, 150 / 255, 150 / 255),
-                          grDevices::rgb(115 / 255, 115 / 255, 115 / 255),
-                          grDevices::rgb(82 / 255, 82 / 255, 82 / 255),
-                          grDevices::rgb(37 / 255, 37 / 255, 37 / 255)),
-        "8" = tibble::lst(grDevices::rgb(255 / 255, 255 / 255, 255 / 255),
-                          grDevices::rgb(240 / 255, 240 / 255, 240 / 255),
-                          grDevices::rgb(217 / 255, 217 / 255, 217 / 255),
-                          grDevices::rgb(189 / 255, 189 / 255, 189 / 255),
-                          grDevices::rgb(150 / 255, 150 / 255, 150 / 255),
-                          grDevices::rgb(115 / 255, 115 / 255, 115 / 255),
-                          grDevices::rgb(82 / 255, 82 / 255, 82 / 255),
-                          grDevices::rgb(37 / 255, 37 / 255, 37 / 255)),
-        "9" = tibble::lst(grDevices::rgb(255 / 255, 255 / 255, 255 / 255),
-                          grDevices::rgb(240 / 255, 240 / 255, 240 / 255),
-                          grDevices::rgb(217 / 255, 217 / 255, 217 / 255),
-                          grDevices::rgb(189 / 255, 189 / 255, 189 / 255),
-                          grDevices::rgb(150 / 255, 150 / 255, 150 / 255),
-                          grDevices::rgb(115 / 255, 115 / 255, 115 / 255),
-                          grDevices::rgb(82 / 255, 82 / 255, 82 / 255),
-                          grDevices::rgb(37 / 255, 37 / 255, 37 / 255),
-                          grDevices::rgb(0 / 255, 0 / 255, 0 / 255)),
-        "10" = tibble::lst(grDevices::rgb(255 / 255, 255 / 255, 255 / 255),
-                           grDevices::rgb(243 / 255, 243 / 255, 243 / 255),
-                           grDevices::rgb(227 / 255, 227 / 255, 227 / 255),
-                           grDevices::rgb(207 / 255, 207 / 255, 207 / 255),
-                           grDevices::rgb(184 / 255, 184 / 255, 184 / 255),
-                           grDevices::rgb(154 / 255, 154 / 255, 154 / 255),
-                           grDevices::rgb(126 / 255, 126 / 255, 126 / 255),
-                           grDevices::rgb(100 / 255, 100 / 255, 100 / 255),
-                           grDevices::rgb(71 / 255, 71 / 255,71 / 255),
-                           grDevices::rgb(37 / 255, 37 / 255, 37 / 255)),
-        "11" = tibble::lst(grDevices::rgb(255 / 255, 255 / 255, 255 / 255),
-                           grDevices::rgb(244 / 255, 244 / 255, 244 / 255),
-                           grDevices::rgb(230 / 255, 230 / 255, 230 / 255),
-                           grDevices::rgb(214 / 255, 214 / 255, 214 / 255),
-                           grDevices::rgb(194 / 255, 194 / 255, 194 / 255),
-                           grDevices::rgb(169 / 255, 169 / 255, 169 / 255),
-                           grDevices::rgb(142 / 255, 142 / 255, 142 / 255),
-                           grDevices::rgb(118 / 255, 118 / 255, 118 / 255),
-                           grDevices::rgb(94 / 255, 94 / 255, 94 / 255),
-                           grDevices::rgb(67 / 255, 67 / 255, 67 / 255),
-                           grDevices::rgb(37 / 255, 37 / 255, 37 / 255)),
-        "12" = tibble::lst(grDevices::rgb(255 / 255, 255 / 255, 255 / 255),
-                           grDevices::rgb(245 / 255, 245 / 255, 245 / 255),
-                           grDevices::rgb(233 / 255, 233 / 255, 233 / 255),
-                           grDevices::rgb(219 / 255, 219 / 255, 219 / 255),
-                           grDevices::rgb(201 / 255, 201 / 255, 201 / 255),
-                           grDevices::rgb(181 / 255, 181 / 255, 181 / 255),
-                           grDevices::rgb(156 / 255, 156 / 255, 156 / 255),
-                           grDevices::rgb(133 / 255, 133 / 255, 133 / 255),
-                           grDevices::rgb(111 / 255, 111 / 255, 111 / 255),
-                           grDevices::rgb(90 / 255, 90 / 255, 90 / 255),
-                           grDevices::rgb(64 / 255, 64 / 255, 64 / 255),
-                           grDevices::rgb(37 / 255, 37 / 255, 37 / 255)),
-        "13" = tibble::lst(grDevices::rgb(255 / 255, 255 / 255, 255 / 255),
-                           grDevices::rgb(246 / 255, 246 / 255, 246 / 255),
-                           grDevices::rgb(236 / 255, 236 / 255, 236 / 255),
-                           grDevices::rgb(222 / 255, 222 / 255, 222 / 255),
-                           grDevices::rgb(207 / 255, 207 / 255, 207 / 255),
-                           grDevices::rgb(191 / 255, 191 / 255, 191 / 255),
-                           grDevices::rgb(169 / 255, 169 / 255, 169 / 255),
-                           grDevices::rgb(147 / 255, 147 / 255, 147 / 255),
-                           grDevices::rgb(126 / 255, 126 / 255, 126 / 255),
-                           grDevices::rgb(106 / 255, 106 / 255, 106 / 255),
-                           grDevices::rgb(87 / 255, 87 / 255, 87 / 255),
-                           grDevices::rgb(62 / 255, 62 / 255, 62 / 255),
-                           grDevices::rgb(37 / 255, 37 / 255, 37 / 255)),
-        "14" = tibble::lst(grDevices::rgb(255 / 255, 255 / 255, 255 / 255),
-                           grDevices::rgb(246 / 255, 246 / 255, 246 / 255),
-                           grDevices::rgb(238 / 255, 238 / 255, 238 / 255),
-                           grDevices::rgb(225 / 255, 225 / 255, 225 / 255),
-                           grDevices::rgb(212 / 255, 212 / 255, 212 / 255),
-                           grDevices::rgb(197 / 255, 197 / 255, 197 / 255),
-                           grDevices::rgb(179 / 255, 179 / 255, 179 / 255),
-                           grDevices::rgb(158 / 255, 158 / 255, 158 / 255),
-                           grDevices::rgb(139 / 255, 139 / 255, 139 / 255),
-                           grDevices::rgb(120 / 255, 120 / 255, 120 / 255),
-                           grDevices::rgb(102 / 255, 102 / 255, 102 / 255),
-                           grDevices::rgb(84 / 255, 84 / 255, 84 / 255),
-                           grDevices::rgb(60 / 255, 60 / 255, 60 / 255),
-                           grDevices::rgb(37 / 255, 37 / 255, 37 / 255)),
-        "15" = tibble::lst(grDevices::rgb(255 / 255, 255 / 255, 255 / 255),
-                           grDevices::rgb(247 / 255, 247 / 255, 247 / 255),
-                           grDevices::rgb(240 / 255, 240 / 255, 240 / 255),
-                           grDevices::rgb(228 / 255, 228 / 255, 228 / 255),
-                           grDevices::rgb(216 / 255, 216 / 255, 216 / 255),
-                           grDevices::rgb(202 / 255, 202 / 255, 202 / 255),
-                           grDevices::rgb(189 / 255, 189 / 255, 189 / 255),
-                           grDevices::rgb(169 / 255, 169 / 255, 169 / 255),
-                           grDevices::rgb(150 / 255, 150 / 255, 150 / 255),
-                           grDevices::rgb(132 / 255, 132 / 255, 132 / 255),
-                           grDevices::rgb(114 / 255, 114 / 255, 114 / 255),
-                           grDevices::rgb(98 / 255, 98 / 255, 98 / 255),
-                           grDevices::rgb(82 / 255, 82 / 255, 82 / 255),
-                           grDevices::rgb(58 / 255, 58 / 255, 58 / 255),
-                           grDevices::rgb(37 / 255, 37 / 255, 37 / 255)),
-        "16" = tibble::lst(grDevices::rgb(255 / 255, 255 / 255, 255 / 255),
-                           grDevices::rgb(247 / 255, 247 / 255, 247 / 255),
-                           grDevices::rgb(240 / 255, 240 / 255, 240 / 255),
-                           grDevices::rgb(230 / 255, 230 / 255, 230 / 255),
-                           grDevices::rgb(220 / 255, 220 / 255, 220 / 255),
-                           grDevices::rgb(207 / 255, 207 / 255, 207 / 255),
-                           grDevices::rgb(194 / 255, 194 / 255, 194 / 255),
-                           grDevices::rgb(178 / 255, 178 / 255, 178 / 255),
-                           grDevices::rgb(160 / 255, 160 / 255, 160 / 255),
-                           grDevices::rgb(142 / 255, 142 / 255, 142 / 255),
-                           grDevices::rgb(126 / 255, 126 / 255, 126 / 255),
-                           grDevices::rgb(110 / 255, 110 / 255, 110 / 255),
-                           grDevices::rgb(94 / 255, 94 / 255, 94 / 255),
-                           grDevices::rgb(78 / 255, 78 / 255,78 / 255),
-                           grDevices::rgb(57 / 255, 57 / 255, 57 / 255),
-                           grDevices::rgb(37 / 255, 37 / 255, 37 / 255)),
-        "17" = tibble::lst(grDevices::rgb(255 / 255, 255 / 255, 255 / 255),
-                           grDevices::rgb(248 / 255, 248 / 255, 248 / 255),
-                           grDevices::rgb(241 / 255, 241 / 255, 241 / 255),
-                           grDevices::rgb(232 / 255, 232 / 255, 232 / 255),
-                           grDevices::rgb(222 / 255, 222 / 255, 222 / 255),
-                           grDevices::rgb(211 / 255, 211 / 255, 211 / 255),
-                           grDevices::rgb(199 / 255, 199 / 255, 199 / 255),
-                           grDevices::rgb(186 / 255, 186 / 255, 186 / 255),
-                           grDevices::rgb(169 / 255, 169 / 255, 169 / 255),
-                           grDevices::rgb(152 / 255, 152 / 255, 152 / 255),
-                           grDevices::rgb(136 / 255, 136 / 255, 136 / 255),
-                           grDevices::rgb(121 / 255, 121 / 255, 121 / 255),
-                           grDevices::rgb(106 / 255, 106 / 255, 106 / 255),
-                           grDevices::rgb(92 / 255, 92 / 255, 92 / 255),
-                           grDevices::rgb(76 / 255, 76 / 255,76 / 255),
-                           grDevices::rgb(55 / 255, 55 / 255, 55 / 255),
-                           grDevices::rgb(37 / 255, 37 / 255, 37 / 255)),
-        "18" = tibble::lst(grDevices::rgb(255 / 255, 255 / 255, 255 / 255),
-                           grDevices::rgb(248 / 255, 248 / 255, 248 / 255),
-                           grDevices::rgb(242 / 255, 242 / 255, 242 / 255),
-                           grDevices::rgb(234 / 255, 234 / 255, 234 / 255),
-                           grDevices::rgb(225 / 255, 225 / 255, 225 / 255),
-                           grDevices::rgb(215 / 255, 215 / 255, 215 / 255),
-                           grDevices::rgb(203 / 255, 203 / 255, 203 / 255),
-                           grDevices::rgb(192 / 255, 192 / 255, 192 / 255),
-                           grDevices::rgb(177 / 255, 177 / 255, 177 / 255),
-                           grDevices::rgb(161 / 255, 161 / 255, 161 / 255),
-                           grDevices::rgb(145 / 255, 145 / 255, 145 / 255),
-                           grDevices::rgb(131 / 255, 131 / 255, 131 / 255),
-                           grDevices::rgb(117 / 255, 117 / 255, 117 / 255),
-                           grDevices::rgb(103 / 255, 103 / 255, 103 / 255),
-                           grDevices::rgb(89 / 255, 89 / 255, 89 / 255),
-                           grDevices::rgb(73 / 255, 73 / 255,73 / 255),
-                           grDevices::rgb(54 / 255, 54 / 255, 54 / 255),
-                           grDevices::rgb(37 / 255, 37 / 255, 37 / 255)),
-        "19" = tibble::lst(grDevices::rgb(255 / 255, 255 / 255, 255 / 255),
-                           grDevices::rgb(249 / 255, 249 / 255, 249 / 255),
-                           grDevices::rgb(243 / 255, 243 / 255, 243 / 255),
-                           grDevices::rgb(236 / 255, 236 / 255, 236 / 255),
-                           grDevices::rgb(227 / 255, 227 / 255, 227 / 255),
-                           grDevices::rgb(218 / 255, 218 / 255, 218 / 255),
-                           grDevices::rgb(207 / 255, 207 / 255, 207 / 255),
-                           grDevices::rgb(196 / 255, 196 / 255, 196 / 255),
-                           grDevices::rgb(184 / 255, 184 / 255, 184 / 255),
-                           grDevices::rgb(169 / 255, 169 / 255, 169 / 255),
-                           grDevices::rgb(154 / 255, 154 / 255, 154 / 255),
-                           grDevices::rgb(140 / 255, 140 / 255, 140 / 255),
-                           grDevices::rgb(126 / 255, 126 / 255, 126 / 255),
-                           grDevices::rgb(113 / 255, 113 / 255, 113 / 255),
-                           grDevices::rgb(100 / 255, 100 / 255, 100 / 255),
-                           grDevices::rgb(87 / 255, 87 / 255, 87 / 255),
-                           grDevices::rgb(71 / 255, 71 / 255,71 / 255),
-                           grDevices::rgb(53 / 255, 53 / 255, 53 / 255),
-                           grDevices::rgb(37 / 255, 37 / 255, 37 / 255)),
-        "20" = tibble::lst(grDevices::rgb(255 / 255, 255 / 255, 255 / 255),
-                           grDevices::rgb(249 / 255, 249 / 255, 249 / 255),
-                           grDevices::rgb(243 / 255, 243 / 255, 243 / 255),
-                           grDevices::rgb(237 / 255, 237 / 255, 237 / 255),
-                           grDevices::rgb(229 / 255, 229 / 255, 229 / 255),
-                           grDevices::rgb(220 / 255, 220 / 255, 220 / 255),
-                           grDevices::rgb(211 / 255, 211 / 255, 211 / 255),
-                           grDevices::rgb(200 / 255, 200 / 255, 200 / 255),
-                           grDevices::rgb(190 / 255, 190 / 255, 190 / 255),
-                           grDevices::rgb(176 / 255, 176 / 255, 176 / 255),
-                           grDevices::rgb(162 / 255, 162 / 255, 162 / 255),
-                           grDevices::rgb(148 / 255, 148 / 255, 148 / 255),
-                           grDevices::rgb(135 / 255, 135 / 255, 135 / 255),
-                           grDevices::rgb(122 / 255, 122 / 255, 122 / 255),
-                           grDevices::rgb(109 / 255, 109 / 255, 109 / 255),
-                           grDevices::rgb(97 / 255, 97 / 255, 97 / 255),
-                           grDevices::rgb(85 / 255, 85 / 255, 85 / 255),
-                           grDevices::rgb(69 / 255, 69 / 255, 69 / 255),
-                           grDevices::rgb(52 / 255, 52 / 255, 52 / 255),
-                           grDevices::rgb(37 / 255, 37 / 255, 37 / 255)),
-        "type" = "sequential"
-    ),
-    "YlOrRd" = tibble::lst(
-        "1" = tibble::lst(grDevices::rgb(254 / 255, 178 / 255, 76 / 255)),
-        "2" = tibble::lst(grDevices::rgb(255 / 255, 237 / 255, 160 / 255),
-                          grDevices::rgb(240 / 255, 59 / 255, 32 / 255)),
-        "3" = tibble::lst(grDevices::rgb(255 / 255, 237 / 255, 160 / 255),
-                          grDevices::rgb(254 / 255, 178 / 255, 76 / 255),
-                          grDevices::rgb(240 / 255, 59 / 255, 32 / 255)),
-        "4" = tibble::lst(grDevices::rgb(255 / 255, 255 / 255, 178 / 255),
-                          grDevices::rgb(254 / 255, 204 / 255, 92 / 255),
-                          grDevices::rgb(253 / 255, 141 / 255, 60 / 255),
-                          grDevices::rgb(227 / 255, 26 / 255, 28 / 255)),
-        "5" = tibble::lst(grDevices::rgb(255 / 255, 255 / 255, 178 / 255),
-                          grDevices::rgb(254 / 255, 204 / 255, 92 / 255),
-                          grDevices::rgb(253 / 255, 141 / 255, 60 / 255),
-                          grDevices::rgb(240 / 255, 59 / 255, 32 / 255),
-                          grDevices::rgb(189 / 255, 0 / 255, 38 / 255)),
-        "6" = tibble::lst(grDevices::rgb(255 / 255, 255 / 255, 178 / 255),
-                          grDevices::rgb(254 / 255, 217 / 255, 118 / 255),
-                          grDevices::rgb(254 / 255, 178 / 255, 76 / 255),
-                          grDevices::rgb(253 / 255, 141 / 255, 60 / 255),
-                          grDevices::rgb(240 / 255, 59 / 255, 32 / 255),
-                          grDevices::rgb(189 / 255, 0 / 255, 38 / 255)),
-        "7" = tibble::lst(grDevices::rgb(255 / 255, 255 / 255, 178 / 255),
-                          grDevices::rgb(254 / 255, 217 / 255, 118 / 255),
-                          grDevices::rgb(254 / 255, 178 / 255, 76 / 255),
-                          grDevices::rgb(253 / 255, 141 / 255, 60 / 255),
-                          grDevices::rgb(252 / 255,78 / 255, 42 / 255),
-                          grDevices::rgb(227 / 255, 26 / 255, 28 / 255),
-                          grDevices::rgb(177 / 255, 0 / 255, 38 / 255)),
-        "8" = tibble::lst(grDevices::rgb(255 / 255, 255 / 255, 204 / 255),
-                          grDevices::rgb(255 / 255, 237 / 255, 160 / 255),
-                          grDevices::rgb(254 / 255, 217 / 255, 118 / 255),
-                          grDevices::rgb(254 / 255, 178 / 255, 76 / 255),
-                          grDevices::rgb(253 / 255, 141 / 255, 60 / 255),
-                          grDevices::rgb(252 / 255, 78 / 255, 42 / 255),
-                          grDevices::rgb(227 / 255, 26 / 255, 28 / 255),
-                          grDevices::rgb(177 / 255, 0 / 255, 38 / 255)),
-        "9" = tibble::lst(grDevices::rgb(255 / 255, 255 / 255, 204 / 255),
-                          grDevices::rgb(255 / 255, 239 / 255, 165 / 255),
-                          grDevices::rgb(254 / 255, 221 / 255, 128 / 255),
-                          grDevices::rgb(254 / 255, 192 / 255, 91 / 255),
-                          grDevices::rgb(253 / 255, 159 / 255, 67 / 255),
-                          grDevices::rgb(253 / 255, 119 / 255, 52 / 255),
-                          grDevices::rgb(245 / 255, 67 / 255, 38 / 255),
-                          grDevices::rgb(220 / 255, 23 / 255, 29 / 255),
-                          grDevices::rgb(177 / 255, 0 / 255, 38 / 255)),
-        "10" = tibble::lst(grDevices::rgb(255 / 255, 255 / 255, 204 / 255),
-                           grDevices::rgb(255 / 255, 240 / 255, 169 / 255),
-                           grDevices::rgb(254 / 255, 225 / 255, 136 / 255),
-                           grDevices::rgb(254 / 255, 204 / 255, 104 / 255),
-                           grDevices::rgb(254 / 255, 174 / 255, 74 / 255),
-                           grDevices::rgb(253 / 255, 145 / 255, 61 / 255),
-                           grDevices::rgb(252 / 255, 101 / 255, 47 / 255),
-                           grDevices::rgb(240 / 255, 58 / 255, 35 / 255),
-                           grDevices::rgb(215 / 255, 20 / 255, 30 / 255),
-                           grDevices::rgb(177 / 255, 0 / 255, 38 / 255)),
-        "11" = tibble::lst(grDevices::rgb(255 / 255, 255 / 255, 204 / 255),
-                           grDevices::rgb(255 / 255, 242 / 255, 173 / 255),
-                           grDevices::rgb(254 / 255, 228 / 255, 143 / 255),
-                           grDevices::rgb(254 / 255, 213 / 255, 113 / 255),
-                           grDevices::rgb(254 / 255, 185 / 255, 84 / 255),
-                           grDevices::rgb(253 / 255, 159 / 255, 67 / 255),
-                           grDevices::rgb(253 / 255, 129 / 255, 56 / 255),
-                           grDevices::rgb(252 / 255, 85 / 255, 43 / 255),
-                           grDevices::rgb(237 / 255, 51 / 255, 33 / 255),
-                           grDevices::rgb(211 / 255, 18 / 255, 31 / 255),
-                           grDevices::rgb(177 / 255, 0 / 255, 38 / 255)),
-        "12" = tibble::lst(grDevices::rgb(255 / 255, 255 / 255, 204 / 255),
-                           grDevices::rgb(255 / 255, 243 / 255, 175 / 255),
-                           grDevices::rgb(255 / 255, 231 / 255, 148 / 255),
-                           grDevices::rgb(254 / 255, 218 / 255, 121 / 255),
-                           grDevices::rgb(254 / 255, 195 / 255, 95 / 255),
-                           grDevices::rgb(254 / 255, 171 / 255, 73 / 255),
-                           grDevices::rgb(253 / 255, 147 / 255, 62 / 255),
-                           grDevices::rgb(253 / 255, 115 / 255, 51 / 255),
-                           grDevices::rgb(249 / 255,74 / 255, 40 / 255),
-                           grDevices::rgb(233 / 255, 44 / 255, 31 / 255),
-                           grDevices::rgb(208 / 255, 17 / 255, 32 / 255),
-                           grDevices::rgb(177 / 255, 0 / 255, 38 / 255)),
-        "13" = tibble::lst(grDevices::rgb(255 / 255, 255 / 255, 204 / 255),
-                           grDevices::rgb(255 / 255, 244 / 255, 178 / 255),
-                           grDevices::rgb(255 / 255, 233 / 255, 153 / 255),
-                           grDevices::rgb(254 / 255, 221 / 255, 128 / 255),
-                           grDevices::rgb(254 / 255, 204 / 255, 104 / 255),
-                           grDevices::rgb(254 / 255, 181 / 255, 79 / 255),
-                           grDevices::rgb(253 / 255, 159 / 255, 67 / 255),
-                           grDevices::rgb(253 / 255, 136 / 255, 58 / 255),
-                           grDevices::rgb(252 / 255, 101 / 255, 47 / 255),
-                           grDevices::rgb(245 / 255, 67 / 255, 38 / 255),
-                           grDevices::rgb(231 / 255, 38 / 255, 30 / 255),
-                           grDevices::rgb(205 / 255, 15 / 255, 33 / 255),
-                           grDevices::rgb(177 / 255, 0 / 255, 38 / 255)),
-        "14" = tibble::lst(grDevices::rgb(255 / 255, 255 / 255, 204 / 255),
-                           grDevices::rgb(255 / 255, 245 / 255, 180 / 255),
-                           grDevices::rgb(255 / 255, 235 / 255, 156 / 255),
-                           grDevices::rgb(254 / 255, 224 / 255, 134 / 255),
-                           grDevices::rgb(254 / 255, 211 / 255, 111 / 255),
-                           grDevices::rgb(254 / 255, 190 / 255, 89 / 255),
-                           grDevices::rgb(254 / 255, 169 / 255, 72 / 255),
-                           grDevices::rgb(253 / 255, 149 / 255, 63 / 255),
-                           grDevices::rgb(253 / 255, 123 / 255, 54 / 255),
-                           grDevices::rgb(252 / 255, 89 / 255, 44 / 255),
-                           grDevices::rgb(242 / 255, 61 / 255, 36 / 255),
-                           grDevices::rgb(228 / 255, 31 / 255, 29 / 255),
-                           grDevices::rgb(203 / 255, 14 / 255, 33 / 255),
-                           grDevices::rgb(177 / 255, 0 / 255, 38 / 255)),
-        "15" = tibble::lst(grDevices::rgb(255 / 255, 255 / 255, 204 / 255),
-                           grDevices::rgb(255 / 255, 245 / 255, 181 / 255),
-                           grDevices::rgb(255 / 255, 236 / 255, 159 / 255),
-                           grDevices::rgb(254 / 255, 226 / 255, 139 / 255),
-                           grDevices::rgb(254 / 255, 216 / 255, 118 / 255),
-                           grDevices::rgb(254 / 255, 197 / 255, 97 / 255),
-                           grDevices::rgb(254 / 255, 178 / 255, 76 / 255),
-                           grDevices::rgb(253 / 255, 159 / 255, 67 / 255),
-                           grDevices::rgb(253 / 255, 140 / 255, 59 / 255),
-                           grDevices::rgb(253 / 255, 112 / 255, 50 / 255),
-                           grDevices::rgb(252 / 255,77 / 255, 42 / 255),
-                           grDevices::rgb(239 / 255, 56 / 255, 34 / 255),
-                           grDevices::rgb(227 / 255, 25 / 255, 27 / 255),
-                           grDevices::rgb(201 / 255, 13 / 255, 33 / 255),
-                           grDevices::rgb(177 / 255, 0 / 255, 38 / 255)),
-        "16" = tibble::lst(grDevices::rgb(255 / 255, 255 / 255, 204 / 255),
-                           grDevices::rgb(255 / 255, 246 / 255, 183 / 255),
-                           grDevices::rgb(255 / 255, 238 / 255, 162 / 255),
-                           grDevices::rgb(254 / 255, 228 / 255, 143 / 255),
-                           grDevices::rgb(254 / 255, 219 / 255, 123 / 255),
-                           grDevices::rgb(254 / 255, 204 / 255, 104 / 255),
-                           grDevices::rgb(254 / 255, 185 / 255, 84 / 255),
-                           grDevices::rgb(253 / 255, 168 / 255, 71 / 255),
-                           grDevices::rgb(253 / 255, 151 / 255, 64 / 255),
-                           grDevices::rgb(253 / 255, 129 / 255, 56 / 255),
-                           grDevices::rgb(252 / 255, 101 / 255, 47 / 255),
-                           grDevices::rgb(248 / 255,72 / 255, 40 / 255),
-                           grDevices::rgb(237 / 255, 51 / 255, 33 / 255),
-                           grDevices::rgb(223 / 255, 24 / 255, 28 / 255),
-                           grDevices::rgb(200 / 255, 12 / 255, 34 / 255),
-                           grDevices::rgb(177 / 255, 0 / 255, 38 / 255)),
-        "17" = tibble::lst(grDevices::rgb(255 / 255, 255 / 255, 204 / 255),
-                           grDevices::rgb(255 / 255, 247 / 255, 184 / 255),
-                           grDevices::rgb(255 / 255, 239 / 255, 165 / 255),
-                           grDevices::rgb(255 / 255, 230 / 255, 146 / 255),
-                           grDevices::rgb(254 / 255, 221 / 255, 128 / 255),
-                           grDevices::rgb(254 / 255, 209 / 255, 110 / 255),
-                           grDevices::rgb(254 / 255, 192 / 255, 91 / 255),
-                           grDevices::rgb(254 / 255, 175 / 255, 74 / 255),
-                           grDevices::rgb(253 / 255, 159 / 255, 67 / 255),
-                           grDevices::rgb(253 / 255, 143 / 255, 60 / 255),
-                           grDevices::rgb(253 / 255, 119 / 255, 52 / 255),
-                           grDevices::rgb(252 / 255, 91 / 255, 45 / 255),
-                           grDevices::rgb(245 / 255, 67 / 255, 38 / 255),
-                           grDevices::rgb(234 / 255, 46 / 255, 32 / 255),
-                           grDevices::rgb(220 / 255, 23 / 255, 29 / 255),
-                           grDevices::rgb(198 / 255, 11 / 255, 34 / 255),
-                           grDevices::rgb(177 / 255, 0 / 255, 38 / 255)),
-        "18" = tibble::lst(grDevices::rgb(255 / 255, 255 / 255, 204 / 255),
-                           grDevices::rgb(255 / 255, 247 / 255, 185 / 255),
-                           grDevices::rgb(255 / 255, 240 / 255, 167 / 255),
-                           grDevices::rgb(255 / 255, 232 / 255, 150 / 255),
-                           grDevices::rgb(254 / 255, 224 / 255, 132 / 255),
-                           grDevices::rgb(254 / 255, 214 / 255, 115 / 255),
-                           grDevices::rgb(254 / 255, 198 / 255, 98 / 255),
-                           grDevices::rgb(254 / 255, 182 / 255, 81 / 255),
-                           grDevices::rgb(253 / 255, 167 / 255, 71 / 255),
-                           grDevices::rgb(253 / 255, 152 / 255, 64 / 255),
-                           grDevices::rgb(253 / 255, 134 / 255, 57 / 255),
-                           grDevices::rgb(253 / 255, 110 / 255, 50 / 255),
-                           grDevices::rgb(252 / 255, 82 / 255, 42 / 255),
-                           grDevices::rgb(243 / 255, 62 / 255, 36 / 255),
-                           grDevices::rgb(232 / 255, 42 / 255, 31 / 255),
-                           grDevices::rgb(218 / 255, 21 / 255, 30 / 255),
-                           grDevices::rgb(197 / 255, 11 / 255, 34 / 255),
-                           grDevices::rgb(177 / 255, 0 / 255, 38 / 255)),
-        "19" = tibble::lst(grDevices::rgb(255 / 255, 255 / 255, 204 / 255),
-                           grDevices::rgb(255 / 255, 247 / 255, 186 / 255),
-                           grDevices::rgb(255 / 255, 240 / 255, 169 / 255),
-                           grDevices::rgb(255 / 255, 233 / 255, 153 / 255),
-                           grDevices::rgb(254 / 255, 225 / 255, 136 / 255),
-                           grDevices::rgb(254 / 255, 218 / 255, 120 / 255),
-                           grDevices::rgb(254 / 255, 204 / 255, 104 / 255),
-                           grDevices::rgb(254 / 255, 188 / 255, 87 / 255),
-                           grDevices::rgb(254 / 255, 174 / 255, 74 / 255),
-                           grDevices::rgb(253 / 255, 159 / 255, 67 / 255),
-                           grDevices::rgb(253 / 255, 145 / 255, 61 / 255),
-                           grDevices::rgb(253 / 255, 125 / 255, 54 / 255),
-                           grDevices::rgb(252 / 255, 101 / 255, 47 / 255),
-                           grDevices::rgb(250 / 255,75 / 255, 41 / 255),
-                           grDevices::rgb(240 / 255, 58 / 255, 35 / 255),
-                           grDevices::rgb(231 / 255, 38 / 255, 30 / 255),
-                           grDevices::rgb(215 / 255, 20 / 255, 30 / 255),
-                           grDevices::rgb(196 / 255, 10 / 255, 34 / 255),
-                           grDevices::rgb(177 / 255, 0 / 255, 38 / 255)),
-        "20" = tibble::lst(grDevices::rgb(255 / 255, 255 / 255, 204 / 255),
-                           grDevices::rgb(255 / 255, 248 / 255, 187 / 255),
-                           grDevices::rgb(255 / 255, 241 / 255, 171 / 255),
-                           grDevices::rgb(255 / 255, 234 / 255, 155 / 255),
-                           grDevices::rgb(254 / 255, 227 / 255, 140 / 255),
-                           grDevices::rgb(254 / 255, 220 / 255, 124 / 255),
-                           grDevices::rgb(254 / 255, 208 / 255, 109 / 255),
-                           grDevices::rgb(254 / 255, 194 / 255, 93 / 255),
-                           grDevices::rgb(254 / 255, 180 / 255, 78 / 255),
-                           grDevices::rgb(253 / 255, 166 / 255,70 / 255),
-                           grDevices::rgb(253 / 255, 152 / 255, 64 / 255),
-                           grDevices::rgb(253 / 255, 138 / 255, 58 / 255),
-                           grDevices::rgb(253 / 255, 117 / 255, 52 / 255),
-                           grDevices::rgb(252 / 255, 93 / 255, 45 / 255),
-                           grDevices::rgb(248 / 255,71 / 255, 39 / 255),
-                           grDevices::rgb(238 / 255, 54 / 255, 34 / 255),
-                           grDevices::rgb(229 / 255, 33 / 255, 29 / 255),
-                           grDevices::rgb(213 / 255, 19 / 255, 31 / 255),
-                           grDevices::rgb(195 / 255, 9 / 255, 35 / 255),
-                           grDevices::rgb(177 / 255, 0 / 255, 38 / 255)),
-        "type" = "sequential"
-    ),
-    "PuRd" = tibble::lst(
-        "1" = tibble::lst(grDevices::rgb(201 / 255, 148 / 255, 199 / 255)),
-        "2" = tibble::lst(grDevices::rgb(231 / 255, 225 / 255, 239 / 255),
-                          grDevices::rgb(221 / 255, 28 / 255, 119 / 255)),
-        "3" = tibble::lst(grDevices::rgb(231 / 255, 225 / 255, 239 / 255),
-                          grDevices::rgb(201 / 255, 148 / 255, 199 / 255),
-                          grDevices::rgb(221 / 255, 28 / 255, 119 / 255)),
-        "4" = tibble::lst(grDevices::rgb(241 / 255, 238 / 255, 246 / 255),
-                          grDevices::rgb(215 / 255, 181 / 255, 216 / 255),
-                          grDevices::rgb(223 / 255, 101 / 255, 176 / 255),
-                          grDevices::rgb(206 / 255, 18 / 255, 86 / 255)),
-        "5" = tibble::lst(grDevices::rgb(241 / 255, 238 / 255, 246 / 255),
-                          grDevices::rgb(215 / 255, 181 / 255, 216 / 255),
-                          grDevices::rgb(223 / 255, 101 / 255, 176 / 255),
-                          grDevices::rgb(221 / 255, 28 / 255, 119 / 255),
-                          grDevices::rgb(152 / 255, 0 / 255, 67 / 255)),
-        "6" = tibble::lst(grDevices::rgb(241 / 255, 238 / 255, 246 / 255),
-                          grDevices::rgb(212 / 255, 185 / 255, 218 / 255),
-                          grDevices::rgb(201 / 255, 148 / 255, 199 / 255),
-                          grDevices::rgb(223 / 255, 101 / 255, 176 / 255),
-                          grDevices::rgb(221 / 255, 28 / 255, 119 / 255),
-                          grDevices::rgb(152 / 255, 0 / 255, 67 / 255)),
-        "7" = tibble::lst(grDevices::rgb(241 / 255, 238 / 255, 246 / 255),
-                          grDevices::rgb(212 / 255, 185 / 255, 218 / 255),
-                          grDevices::rgb(201 / 255, 148 / 255, 199 / 255),
-                          grDevices::rgb(223 / 255, 101 / 255, 176 / 255),
-                          grDevices::rgb(231 / 255, 41 / 255, 138 / 255),
-                          grDevices::rgb(206 / 255, 18 / 255, 86 / 255),
-                          grDevices::rgb(145 / 255, 0 / 255, 63 / 255)),
-        "8" = tibble::lst(grDevices::rgb(247 / 255, 244 / 255, 249 / 255),
-                          grDevices::rgb(231 / 255, 225 / 255, 239 / 255),
-                          grDevices::rgb(212 / 255, 185 / 255, 218 / 255),
-                          grDevices::rgb(201 / 255, 148 / 255, 199 / 255),
-                          grDevices::rgb(223 / 255, 101 / 255, 176 / 255),
-                          grDevices::rgb(231 / 255, 41 / 255, 138 / 255),
-                          grDevices::rgb(206 / 255, 18 / 255, 86 / 255),
-                          grDevices::rgb(145 / 255, 0 / 255, 63 / 255)),
-        "9" = tibble::lst(grDevices::rgb(247 / 255, 244 / 255, 249 / 255),
-                          grDevices::rgb(231 / 255, 225 / 255, 239 / 255),
-                          grDevices::rgb(212 / 255, 185 / 255, 218 / 255),
-                          grDevices::rgb(201 / 255, 148 / 255, 199 / 255),
-                          grDevices::rgb(223 / 255, 101 / 255, 176 / 255),
-                          grDevices::rgb(231 / 255, 41 / 255, 138 / 255),
-                          grDevices::rgb(206 / 255, 18 / 255, 86 / 255),
-                          grDevices::rgb(152 / 255, 0 / 255, 67 / 255),
-                          grDevices::rgb(103 / 255, 0 / 255, 31 / 255)),
-        "10" = tibble::lst(grDevices::rgb(247 / 255, 243 / 255, 248 / 255),
-                           grDevices::rgb(234 / 255, 229 / 255, 241 / 255),
-                           grDevices::rgb(220 / 255, 202 / 255, 227 / 255),
-                           grDevices::rgb(208 / 255, 172 / 255, 211 / 255),
-                           grDevices::rgb(203 / 255, 143 / 255, 196 / 255),
-                           grDevices::rgb(220 / 255, 106 / 255, 178 / 255),
-                           grDevices::rgb(229 / 255, 66 / 255, 150 / 255),
-                           grDevices::rgb(220 / 255, 31 / 255, 114 / 255),
-                           grDevices::rgb(192 / 255, 13 / 255, 80 / 255),
-                           grDevices::rgb(145 / 255, 0 / 255, 63 / 255)),
-        "11" = tibble::lst(grDevices::rgb(247 / 255, 243 / 255, 248 / 255),
-                           grDevices::rgb(235 / 255, 230 / 255, 241 / 255),
-                           grDevices::rgb(223 / 255, 208 / 255, 230 / 255),
-                           grDevices::rgb(210 / 255, 181 / 255, 216 / 255),
-                           grDevices::rgb(203 / 255, 155 / 255, 202 / 255),
-                           grDevices::rgb(213 / 255, 126 / 255, 187 / 255),
-                           grDevices::rgb(225 / 255, 91 / 255, 168 / 255),
-                           grDevices::rgb(230 / 255, 49 / 255, 141 / 255),
-                           grDevices::rgb(216 / 255, 27 / 255, 106 / 255),
-                           grDevices::rgb(187 / 255, 11 / 255, 78 / 255),
-                           grDevices::rgb(145 / 255, 0 / 255, 63 / 255)),
-        "12" = tibble::lst(grDevices::rgb(247 / 255, 243 / 255, 248 / 255),
-                           grDevices::rgb(236 / 255, 231 / 255, 242 / 255),
-                           grDevices::rgb(225 / 255, 214 / 255, 233 / 255),
-                           grDevices::rgb(213 / 255, 188 / 255, 219 / 255),
-                           grDevices::rgb(206 / 255, 164 / 255, 207 / 255),
-                           grDevices::rgb(205 / 255, 140 / 255, 194 / 255),
-                           grDevices::rgb(219 / 255, 110 / 255, 180 / 255),
-                           grDevices::rgb(227 / 255, 78 / 255, 158 / 255),
-                           grDevices::rgb(228 / 255, 39 / 255, 133 / 255),
-                           grDevices::rgb(213 / 255, 24 / 255, 99 / 255),
-                           grDevices::rgb(183 / 255, 10 / 255,77 / 255),
-                           grDevices::rgb(145 / 255, 0 / 255, 63 / 255)),
-        "13" = tibble::lst(grDevices::rgb(247 / 255, 243 / 255, 248 / 255),
-                           grDevices::rgb(237 / 255, 232 / 255, 243 / 255),
-                           grDevices::rgb(227 / 255, 218 / 255, 235 / 255),
-                           grDevices::rgb(216 / 255, 194 / 255, 223 / 255),
-                           grDevices::rgb(208 / 255, 172 / 255, 211 / 255),
-                           grDevices::rgb(201 / 255, 151 / 255, 200 / 255),
-                           grDevices::rgb(213 / 255, 126 / 255, 187 / 255),
-                           grDevices::rgb(223 / 255, 97 / 255, 172 / 255),
-                           grDevices::rgb(229 / 255, 66 / 255, 150 / 255),
-                           grDevices::rgb(224 / 255, 35 / 255, 124 / 255),
-                           grDevices::rgb(210 / 255, 22 / 255, 94 / 255),
-                           grDevices::rgb(180 / 255, 9 / 255, 76 / 255),
-                           grDevices::rgb(145 / 255, 0 / 255, 63 / 255)),
-        "14" = tibble::lst(grDevices::rgb(247 / 255, 243 / 255, 248 / 255),
-                           grDevices::rgb(238 / 255, 233 / 255, 243 / 255),
-                           grDevices::rgb(229 / 255, 221 / 255, 237 / 255),
-                           grDevices::rgb(219 / 255, 200 / 255, 226 / 255),
-                           grDevices::rgb(210 / 255, 179 / 255, 215 / 255),
-                           grDevices::rgb(204 / 255, 159 / 255, 204 / 255),
-                           grDevices::rgb(206 / 255, 138 / 255, 193 / 255),
-                           grDevices::rgb(218 / 255, 113 / 255, 181 / 255),
-                           grDevices::rgb(226 / 255, 86 / 255, 164 / 255),
-                           grDevices::rgb(230 / 255, 53 / 255, 143 / 255),
-                           grDevices::rgb(221 / 255, 32 / 255, 117 / 255),
-                           grDevices::rgb(208 / 255, 20 / 255, 89 / 255),
-                           grDevices::rgb(177 / 255, 8 / 255, 75 / 255),
-                           grDevices::rgb(145 / 255, 0 / 255, 63 / 255)),
-        "15" = tibble::lst(grDevices::rgb(247 / 255, 243 / 255, 248 / 255),
-                           grDevices::rgb(238 / 255, 234 / 255, 243 / 255),
-                           grDevices::rgb(230 / 255, 224 / 255, 238 / 255),
-                           grDevices::rgb(221 / 255, 204 / 255, 228 / 255),
-                           grDevices::rgb(211 / 255, 184 / 255, 217 / 255),
-                           grDevices::rgb(206 / 255, 166 / 255, 208 / 255),
-                           grDevices::rgb(201 / 255, 147 / 255, 198 / 255),
-                           grDevices::rgb(213 / 255, 126 / 255, 187 / 255),
-                           grDevices::rgb(223 / 255, 101 / 255, 176 / 255),
-                           grDevices::rgb(227 / 255, 76 / 255, 156 / 255),
-                           grDevices::rgb(230 / 255, 40 / 255, 138 / 255),
-                           grDevices::rgb(218 / 255, 30 / 255, 111 / 255),
-                           grDevices::rgb(205 / 255, 18 / 255, 85 / 255),
-                           grDevices::rgb(175 / 255,7 / 255,74 / 255),
-                           grDevices::rgb(145 / 255, 0 / 255, 63 / 255)),
-        "16" = tibble::lst(grDevices::rgb(247 / 255, 243 / 255, 248 / 255),
-                           grDevices::rgb(239 / 255, 235 / 255, 244 / 255),
-                           grDevices::rgb(232 / 255, 226 / 255, 239 / 255),
-                           grDevices::rgb(223 / 255, 208 / 255, 230 / 255),
-                           grDevices::rgb(214 / 255, 190 / 255, 220 / 255),
-                           grDevices::rgb(208 / 255, 172 / 255, 211 / 255),
-                           grDevices::rgb(203 / 255, 155 / 255, 202 / 255),
-                           grDevices::rgb(207 / 255, 136 / 255, 192 / 255),
-                           grDevices::rgb(217 / 255, 114 / 255, 182 / 255),
-                           grDevices::rgb(225 / 255, 91 / 255, 168 / 255),
-                           grDevices::rgb(229 / 255, 66 / 255, 150 / 255),
-                           grDevices::rgb(227 / 255, 38 / 255, 130 / 255),
-                           grDevices::rgb(216 / 255, 27 / 255, 106 / 255),
-                           grDevices::rgb(201 / 255, 16 / 255, 84 / 255),
-                           grDevices::rgb(172 / 255, 7 / 255,73 / 255),
-                           grDevices::rgb(145 / 255, 0 / 255, 63 / 255)),
-        "17" = tibble::lst(grDevices::rgb(247 / 255, 243 / 255, 248 / 255),
-                           grDevices::rgb(239 / 255, 235 / 255, 244 / 255),
-                           grDevices::rgb(232 / 255, 227 / 255, 240 / 255),
-                           grDevices::rgb(225 / 255, 212 / 255, 232 / 255),
-                           grDevices::rgb(216 / 255, 194 / 255, 223 / 255),
-                           grDevices::rgb(210 / 255, 178 / 255, 214 / 255),
-                           grDevices::rgb(205 / 255, 161 / 255, 206 / 255),
-                           grDevices::rgb(202 / 255, 145 / 255, 197 / 255),
-                           grDevices::rgb(213 / 255, 126 / 255, 187 / 255),
-                           grDevices::rgb(221 / 255, 104 / 255, 177 / 255),
-                           grDevices::rgb(226 / 255, 82 / 255, 161 / 255),
-                           grDevices::rgb(229 / 255, 56 / 255, 144 / 255),
-                           grDevices::rgb(224 / 255, 35 / 255, 124 / 255),
-                           grDevices::rgb(214 / 255, 25 / 255, 101 / 255),
-                           grDevices::rgb(198 / 255, 15 / 255, 83 / 255),
-                           grDevices::rgb(171 / 255, 6 / 255, 72 / 255),
-                           grDevices::rgb(145 / 255, 0 / 255, 63 / 255)),
-        "18" = tibble::lst(grDevices::rgb(247 / 255, 243 / 255, 248 / 255),
-                           grDevices::rgb(240 / 255, 236 / 255, 244 / 255),
-                           grDevices::rgb(233 / 255, 228 / 255, 240 / 255),
-                           grDevices::rgb(226 / 255, 215 / 255, 234 / 255),
-                           grDevices::rgb(218 / 255, 199 / 255, 225 / 255),
-                           grDevices::rgb(211 / 255, 182 / 255, 216 / 255),
-                           grDevices::rgb(207 / 255, 167 / 255, 209 / 255),
-                           grDevices::rgb(202 / 255, 152 / 255, 201 / 255),
-                           grDevices::rgb(208 / 255, 135 / 255, 192 / 255),
-                           grDevices::rgb(217 / 255, 116 / 255, 182 / 255),
-                           grDevices::rgb(224 / 255, 95 / 255, 171 / 255),
-                           grDevices::rgb(228 / 255, 74 / 255, 155 / 255),
-                           grDevices::rgb(230 / 255, 46 / 255, 140 / 255),
-                           grDevices::rgb(222 / 255, 33 / 255, 119 / 255),
-                           grDevices::rgb(212 / 255, 24 / 255, 97 / 255),
-                           grDevices::rgb(194 / 255, 14 / 255, 81 / 255),
-                           grDevices::rgb(169 / 255, 6 / 255,72 / 255),
-                           grDevices::rgb(145 / 255, 0 / 255, 63 / 255)),
-        "19" = tibble::lst(grDevices::rgb(247 / 255, 243 / 255, 248 / 255),
-                           grDevices::rgb(240 / 255, 236 / 255, 245 / 255),
-                           grDevices::rgb(234 / 255, 229 / 255, 241 / 255),
-                           grDevices::rgb(227 / 255, 218 / 255, 235 / 255),
-                           grDevices::rgb(220 / 255, 202 / 255, 227 / 255),
-                           grDevices::rgb(213 / 255, 187 / 255, 219 / 255),
-                           grDevices::rgb(208 / 255, 172 / 255, 211 / 255),
-                           grDevices::rgb(204 / 255, 158 / 255, 204 / 255),
-                           grDevices::rgb(203 / 255, 143 / 255, 196 / 255),
-                           grDevices::rgb(213 / 255, 126 / 255, 187 / 255),
-                           grDevices::rgb(220 / 255, 106 / 255, 178 / 255),
-                           grDevices::rgb(225 / 255, 87 / 255, 165 / 255),
-                           grDevices::rgb(229 / 255, 66 / 255, 150 / 255),
-                           grDevices::rgb(229 / 255, 39 / 255, 135 / 255),
-                           grDevices::rgb(220 / 255, 31 / 255, 114 / 255),
-                           grDevices::rgb(210 / 255, 22 / 255, 94 / 255),
-                           grDevices::rgb(192 / 255, 13 / 255, 80 / 255),
-                           grDevices::rgb(168 / 255, 5 / 255, 71 / 255),
-                           grDevices::rgb(145 / 255, 0 / 255, 63 / 255)),
-        "20" = tibble::lst(grDevices::rgb(247 / 255, 243 / 255, 248 / 255),
-                           grDevices::rgb(241 / 255, 236 / 255, 245 / 255),
-                           grDevices::rgb(235 / 255, 229 / 255, 241 / 255),
-                           grDevices::rgb(229 / 255, 220 / 255, 236 / 255),
-                           grDevices::rgb(222 / 255, 205 / 255, 229 / 255),
-                           grDevices::rgb(215 / 255, 191 / 255, 221 / 255),
-                           grDevices::rgb(209 / 255, 177 / 255, 213 / 255),
-                           grDevices::rgb(205 / 255, 163 / 255, 206 / 255),
-                           grDevices::rgb(201 / 255, 149 / 255, 199 / 255),
-                           grDevices::rgb(208 / 255, 134 / 255, 191 / 255),
-                           grDevices::rgb(216 / 255, 117 / 255, 183 / 255),
-                           grDevices::rgb(223 / 255, 98 / 255, 173 / 255),
-                           grDevices::rgb(227 / 255, 80 / 255, 159 / 255),
-                           grDevices::rgb(229 / 255, 58 / 255, 145 / 255),
-                           grDevices::rgb(227 / 255, 37 / 255, 129 / 255),
-                           grDevices::rgb(218 / 255, 29 / 255, 110 / 255),
-                           grDevices::rgb(208 / 255, 20 / 255, 91 / 255),
-                           grDevices::rgb(189 / 255, 12 / 255, 79 / 255),
-                           grDevices::rgb(167 / 255, 5 / 255,71 / 255),
-                           grDevices::rgb(145 / 255, 0 / 255, 63 / 255)),
-        "type" = "sequential"
-    ),
-    "Blues" = tibble::lst(
-        "1" = tibble::lst(grDevices::rgb(158 / 255, 202 / 255, 225 / 255)),
-        "2" = tibble::lst(grDevices::rgb(222 / 255, 235 / 255, 247 / 255),
-                          grDevices::rgb(49 / 255, 130 / 255, 189 / 255)),
-        "3" = tibble::lst(grDevices::rgb(222 / 255, 235 / 255, 247 / 255),
-                          grDevices::rgb(158 / 255, 202 / 255, 225 / 255),
-                          grDevices::rgb(49 / 255, 130 / 255, 189 / 255)),
-        "4" = tibble::lst(grDevices::rgb(239 / 255, 243 / 255, 255 / 255),
-                          grDevices::rgb(189 / 255, 215 / 255, 231 / 255),
-                          grDevices::rgb(107 / 255, 174 / 255, 214 / 255),
-                          grDevices::rgb(33 / 255, 113 / 255, 181 / 255)),
-        "5" = tibble::lst(grDevices::rgb(239 / 255, 243 / 255, 255 / 255),
-                          grDevices::rgb(189 / 255, 215 / 255, 231 / 255),
-                          grDevices::rgb(107 / 255, 174 / 255, 214 / 255),
-                          grDevices::rgb(49 / 255, 130 / 255, 189 / 255),
-                          grDevices::rgb(8 / 255, 81 / 255, 156 / 255)),
-        "6" = tibble::lst(grDevices::rgb(239 / 255, 243 / 255, 255 / 255),
-                          grDevices::rgb(198 / 255, 219 / 255, 239 / 255),
-                          grDevices::rgb(158 / 255, 202 / 255, 225 / 255),
-                          grDevices::rgb(107 / 255, 174 / 255, 214 / 255),
-                          grDevices::rgb(49 / 255, 130 / 255, 189 / 255),
-                          grDevices::rgb(8 / 255, 81 / 255, 156 / 255)),
-        "7" = tibble::lst(grDevices::rgb(239 / 255, 243 / 255, 255 / 255),
-                          grDevices::rgb(198 / 255, 219 / 255, 239 / 255),
-                          grDevices::rgb(158 / 255, 202 / 255, 225 / 255),
-                          grDevices::rgb(107 / 255, 174 / 255, 214 / 255),
-                          grDevices::rgb(66 / 255, 146 / 255, 198 / 255),
-                          grDevices::rgb(33 / 255, 113 / 255, 181 / 255),
-                          grDevices::rgb(8 / 255, 69 / 255, 148 / 255)),
-        "8" = tibble::lst(grDevices::rgb(247 / 255, 251 / 255, 255 / 255),
-                          grDevices::rgb(222 / 255, 235 / 255, 247 / 255),
-                          grDevices::rgb(198 / 255, 219 / 255, 239 / 255),
-                          grDevices::rgb(158 / 255, 202 / 255, 225 / 255),
-                          grDevices::rgb(107 / 255, 174 / 255, 214 / 255),
-                          grDevices::rgb(66 / 255, 146 / 255, 198 / 255),
-                          grDevices::rgb(33 / 255, 113 / 255, 181 / 255),
-                          grDevices::rgb(8 / 255, 69 / 255, 148 / 255)),
-        "9" = tibble::lst(grDevices::rgb(247 / 255, 251 / 255, 255 / 255),
-                          grDevices::rgb(222 / 255, 235 / 255, 247 / 255),
-                          grDevices::rgb(198 / 255, 219 / 255, 239 / 255),
-                          grDevices::rgb(158 / 255, 202 / 255, 225 / 255),
-                          grDevices::rgb(107 / 255, 174 / 255, 214 / 255),
-                          grDevices::rgb(66 / 255, 146 / 255, 198 / 255),
-                          grDevices::rgb(33 / 255, 113 / 255, 181 / 255),
-                          grDevices::rgb(8 / 255, 81 / 255, 156 / 255),
-                          grDevices::rgb(8 / 255, 48 / 255, 107 / 255)),
-        "10" = tibble::lst(grDevices::rgb(247 / 255, 250 / 255, 255 / 255),
-                           grDevices::rgb(227 / 255, 238 / 255, 248 / 255),
-                           grDevices::rgb(208 / 255, 226 / 255, 242 / 255),
-                           grDevices::rgb(184 / 255, 213 / 255, 234 / 255),
-                           grDevices::rgb(152 / 255, 198 / 255, 223 / 255),
-                           grDevices::rgb(113 / 255, 177 / 255, 215 / 255),
-                           grDevices::rgb(80 / 255, 155 / 255, 203 / 255),
-                           grDevices::rgb(53 / 255, 131 / 255, 190 / 255),
-                           grDevices::rgb(29 / 255, 102 / 255, 173 / 255),
-                           grDevices::rgb(7 / 255, 69 / 255, 147 / 255)),
-        "11" = tibble::lst(grDevices::rgb(247 / 255, 250 / 255, 255 / 255),
-                           grDevices::rgb(229 / 255, 239 / 255, 249 / 255),
-                           grDevices::rgb(212 / 255, 228 / 255, 243 / 255),
-                           grDevices::rgb(194 / 255, 217 / 255, 237 / 255),
-                           grDevices::rgb(166 / 255, 205 / 255, 227 / 255),
-                           grDevices::rgb(133 / 255, 187 / 255, 219 / 255),
-                           grDevices::rgb(99 / 255, 168 / 255, 210 / 255),
-                           grDevices::rgb(70 / 255, 148 / 255, 199 / 255),
-                           grDevices::rgb(48 / 255, 126 / 255, 187 / 255),
-                           grDevices::rgb(27 / 255, 99 / 255, 171 / 255),
-                           grDevices::rgb(7 / 255, 69 / 255, 147 / 255)),
-        "12" = tibble::lst(grDevices::rgb(247 / 255, 250 / 255, 255 / 255),
-                           grDevices::rgb(231 / 255, 240 / 255, 249 / 255),
-                           grDevices::rgb(215 / 255, 230 / 255, 244 / 255),
-                           grDevices::rgb(200 / 255, 220 / 255, 239 / 255),
-                           grDevices::rgb(176 / 255, 209 / 255, 231 / 255),
-                           grDevices::rgb(149 / 255, 196 / 255, 223 / 255),
-                           grDevices::rgb(117 / 255, 179 / 255, 216 / 255),
-                           grDevices::rgb(89 / 255, 161 / 255, 206 / 255),
-                           grDevices::rgb(63 / 255, 142 / 255, 196 / 255),
-                           grDevices::rgb(43 / 255, 121 / 255, 185 / 255),
-                           grDevices::rgb(26 / 255, 96 / 255, 168 / 255),
-                           grDevices::rgb(7 / 255, 69 / 255, 147 / 255)),
-        "13" = tibble::lst(grDevices::rgb(247 / 255, 250 / 255, 255 / 255),
-                           grDevices::rgb(232 / 255, 241 / 255, 250 / 255),
-                           grDevices::rgb(218 / 255, 232 / 255, 245 / 255),
-                           grDevices::rgb(204 / 255, 222 / 255, 241 / 255),
-                           grDevices::rgb(184 / 255, 213 / 255, 234 / 255),
-                           grDevices::rgb(161 / 255, 203 / 255, 226 / 255),
-                           grDevices::rgb(133 / 255, 187 / 255, 219 / 255),
-                           grDevices::rgb(103 / 255, 171 / 255, 212 / 255),
-                           grDevices::rgb(80 / 255, 155 / 255, 203 / 255),
-                           grDevices::rgb(59 / 255, 137 / 255, 193 / 255),
-                           grDevices::rgb(39 / 255, 118 / 255, 183 / 255),
-                           grDevices::rgb(25 / 255, 94 / 255, 167 / 255),
-                           grDevices::rgb(7 / 255, 69 / 255, 147 / 255)),
-        "14" = tibble::lst(grDevices::rgb(247 / 255, 250 / 255, 255 / 255),
-                           grDevices::rgb(233 / 255, 242 / 255, 250 / 255),
-                           grDevices::rgb(220 / 255, 233 / 255, 246 / 255),
-                           grDevices::rgb(207 / 255, 225 / 255, 242 / 255),
-                           grDevices::rgb(191 / 255, 216 / 255, 236 / 255),
-                           grDevices::rgb(170 / 255, 207 / 255, 229 / 255),
-                           grDevices::rgb(146 / 255, 195 / 255, 222 / 255),
-                           grDevices::rgb(119 / 255, 180 / 255, 216 / 255),
-                           grDevices::rgb(95 / 255, 165 / 255, 209 / 255),
-                           grDevices::rgb(73 / 255, 150 / 255, 200 / 255),
-                           grDevices::rgb(55 / 255, 133 / 255, 191 / 255),
-                           grDevices::rgb(36 / 255, 115 / 255, 182 / 255),
-                           grDevices::rgb(24 / 255, 92 / 255, 165 / 255),
-                           grDevices::rgb(7 / 255, 69 / 255, 147 / 255)),
-        "15" = tibble::lst(grDevices::rgb(247 / 255, 250 / 255, 255 / 255),
-                           grDevices::rgb(234 / 255, 242 / 255, 251 / 255),
-                           grDevices::rgb(222 / 255, 235 / 255, 247 / 255),
-                           grDevices::rgb(210 / 255, 226 / 255, 243 / 255),
-                           grDevices::rgb(197 / 255, 218 / 255, 238 / 255),
-                           grDevices::rgb(178 / 255, 210 / 255, 231 / 255),
-                           grDevices::rgb(158 / 255, 202 / 255, 224 / 255),
-                           grDevices::rgb(133 / 255, 187 / 255, 219 / 255),
-                           grDevices::rgb(107 / 255, 173 / 255, 214 / 255),
-                           grDevices::rgb(87 / 255, 159 / 255, 205 / 255),
-                           grDevices::rgb(65 / 255, 146 / 255, 197 / 255),
-                           grDevices::rgb(51 / 255, 129 / 255, 189 / 255),
-                           grDevices::rgb(32 / 255, 113 / 255, 180 / 255),
-                           grDevices::rgb(23 / 255, 90 / 255, 164 / 255),
-                           grDevices::rgb(7 / 255, 69 / 255, 147 / 255)),
-        "16" = tibble::lst(grDevices::rgb(247 / 255, 250 / 255, 255 / 255),
-                           grDevices::rgb(235 / 255, 243 / 255, 251 / 255),
-                           grDevices::rgb(223 / 255, 236 / 255, 247 / 255),
-                           grDevices::rgb(212 / 255, 228 / 255, 243 / 255),
-                           grDevices::rgb(201 / 255, 221 / 255, 240 / 255),
-                           grDevices::rgb(184 / 255, 213 / 255, 234 / 255),
-                           grDevices::rgb(166 / 255, 205 / 255, 227 / 255),
-                           grDevices::rgb(145 / 255, 194 / 255, 222 / 255),
-                           grDevices::rgb(121 / 255, 181 / 255, 216 / 255),
-                           grDevices::rgb(99 / 255, 168 / 255, 210 / 255),
-                           grDevices::rgb(80 / 255, 155 / 255, 203 / 255),
-                           grDevices::rgb(62 / 255, 141 / 255, 195 / 255),
-                           grDevices::rgb(48 / 255, 126 / 255, 187 / 255),
-                           grDevices::rgb(31 / 255, 109 / 255, 178 / 255),
-                           grDevices::rgb(22 / 255, 89 / 255, 163 / 255),
-                           grDevices::rgb(7 / 255, 69 / 255, 147 / 255)),
-        "17" = tibble::lst(grDevices::rgb(247 / 255, 250 / 255, 255 / 255),
-                           grDevices::rgb(236 / 255, 243 / 255, 251 / 255),
-                           grDevices::rgb(225 / 255, 236 / 255, 248 / 255),
-                           grDevices::rgb(214 / 255, 229 / 255, 244 / 255),
-                           grDevices::rgb(204 / 255, 222 / 255, 241 / 255),
-                           grDevices::rgb(190 / 255, 215 / 255, 236 / 255),
-                           grDevices::rgb(173 / 255, 208 / 255, 230 / 255),
-                           grDevices::rgb(155 / 255, 200 / 255, 224 / 255),
-                           grDevices::rgb(133 / 255, 187 / 255, 219 / 255),
-                           grDevices::rgb(110 / 255, 175 / 255, 214 / 255),
-                           grDevices::rgb(92 / 255, 163 / 255, 207 / 255),
-                           grDevices::rgb(74 / 255, 151 / 255, 200 / 255),
-                           grDevices::rgb(59 / 255, 137 / 255, 193 / 255),
-                           grDevices::rgb(45 / 255, 123 / 255, 186 / 255),
-                           grDevices::rgb(30 / 255, 107 / 255, 176 / 255),
-                           grDevices::rgb(22 / 255, 87 / 255, 162 / 255),
-                           grDevices::rgb(7 / 255, 69 / 255, 147 / 255)),
-        "18" = tibble::lst(grDevices::rgb(247 / 255, 250 / 255, 255 / 255),
-                           grDevices::rgb(236 / 255, 244 / 255, 251 / 255),
-                           grDevices::rgb(226 / 255, 237 / 255, 248 / 255),
-                           grDevices::rgb(216 / 255, 231 / 255, 245 / 255),
-                           grDevices::rgb(206 / 255, 224 / 255, 241 / 255),
-                           grDevices::rgb(195 / 255, 217 / 255, 238 / 255),
-                           grDevices::rgb(179 / 255, 210 / 255, 232 / 255),
-                           grDevices::rgb(162 / 255, 203 / 255, 226 / 255),
-                           grDevices::rgb(143 / 255, 193 / 255, 221 / 255),
-                           grDevices::rgb(122 / 255, 182 / 255, 217 / 255),
-                           grDevices::rgb(102 / 255, 170 / 255, 212 / 255),
-                           grDevices::rgb(86 / 255, 159 / 255, 205 / 255),
-                           grDevices::rgb(68 / 255, 147 / 255, 198 / 255),
-                           grDevices::rgb(55 / 255, 134 / 255, 192 / 255),
-                           grDevices::rgb(42 / 255, 120 / 255, 185 / 255),
-                           grDevices::rgb(30 / 255, 105 / 255, 175 / 255),
-                           grDevices::rgb(21 / 255, 86 / 255, 161 / 255),
-                           grDevices::rgb(7 / 255, 69 / 255, 147 / 255)),
-        "19" = tibble::lst(grDevices::rgb(247 / 255, 250 / 255, 255 / 255),
-                           grDevices::rgb(237 / 255, 244 / 255, 251 / 255),
-                           grDevices::rgb(227 / 255, 238 / 255, 248 / 255),
-                           grDevices::rgb(218 / 255, 232 / 255, 245 / 255),
-                           grDevices::rgb(208 / 255, 226 / 255, 242 / 255),
-                           grDevices::rgb(199 / 255, 219 / 255, 239 / 255),
-                           grDevices::rgb(184 / 255, 213 / 255, 234 / 255),
-                           grDevices::rgb(169 / 255, 206 / 255, 228 / 255),
-                           grDevices::rgb(152 / 255, 198 / 255, 223 / 255),
-                           grDevices::rgb(133 / 255, 187 / 255, 219 / 255),
-                           grDevices::rgb(113 / 255, 177 / 255, 215 / 255),
-                           grDevices::rgb(96 / 255, 166 / 255, 209 / 255),
-                           grDevices::rgb(80 / 255, 155 / 255, 203 / 255),
-                           grDevices::rgb(64 / 255, 144 / 255, 197 / 255),
-                           grDevices::rgb(53 / 255, 131 / 255, 190 / 255),
-                           grDevices::rgb(39 / 255, 118 / 255, 183 / 255),
-                           grDevices::rgb(29 / 255, 102 / 255, 173 / 255),
-                           grDevices::rgb(20 / 255, 85 / 255, 160 / 255),
-                           grDevices::rgb(7 / 255, 69 / 255, 147 / 255)),
-        "20" = tibble::lst(grDevices::rgb(247 / 255, 250 / 255, 255 / 255),
-                           grDevices::rgb(237 / 255, 245 / 255, 252 / 255),
-                           grDevices::rgb(228 / 255, 239 / 255, 249 / 255),
-                           grDevices::rgb(219 / 255, 233 / 255, 246 / 255),
-                           grDevices::rgb(210 / 255, 227 / 255, 243 / 255),
-                           grDevices::rgb(201 / 255, 221 / 255, 240 / 255),
-                           grDevices::rgb(189 / 255, 215 / 255, 236 / 255),
-                           grDevices::rgb(175 / 255, 209 / 255, 230 / 255),
-                           grDevices::rgb(160 / 255, 202 / 255, 225 / 255),
-                           grDevices::rgb(142 / 255, 193 / 255, 221 / 255),
-                           grDevices::rgb(124 / 255, 182 / 255, 217 / 255),
-                           grDevices::rgb(105 / 255, 172 / 255, 213 / 255),
-                           grDevices::rgb(90 / 255, 162 / 255, 207 / 255),
-                           grDevices::rgb(75 / 255, 151 / 255, 201 / 255),
-                           grDevices::rgb(61 / 255, 140 / 255, 195 / 255),
-                           grDevices::rgb(50 / 255, 128 / 255, 189 / 255),
-                           grDevices::rgb(37 / 255, 116 / 255, 182 / 255),
-                           grDevices::rgb(28 / 255, 101 / 255, 172 / 255),
-                           grDevices::rgb(20 / 255, 84 / 255, 160 / 255),
-                           grDevices::rgb(7 / 255, 69 / 255, 147 / 255)),
-        "type" = "sequential"
-    ),
-    "PuBuGn" = tibble::lst(
-        "1" = tibble::lst(grDevices::rgb(166 / 255, 189 / 255, 219 / 255)),
-        "2" = tibble::lst(grDevices::rgb(236 / 255, 226 / 255, 240 / 255),
-                          grDevices::rgb(28 / 255, 144 / 255, 153 / 255)),
-        "3" = tibble::lst(grDevices::rgb(236 / 255, 226 / 255, 240 / 255),
-                          grDevices::rgb(166 / 255, 189 / 255, 219 / 255),
-                          grDevices::rgb(28 / 255, 144 / 255, 153 / 255)),
-        "4" = tibble::lst(grDevices::rgb(246 / 255, 239 / 255, 247 / 255),
-                          grDevices::rgb(189 / 255, 201 / 255, 225 / 255),
-                          grDevices::rgb(103 / 255, 169 / 255, 207 / 255),
-                          grDevices::rgb(2 / 255, 129 / 255, 138 / 255)),
-        "5" = tibble::lst(grDevices::rgb(246 / 255, 239 / 255, 247 / 255),
-                          grDevices::rgb(189 / 255, 201 / 255, 225 / 255),
-                          grDevices::rgb(103 / 255, 169 / 255, 207 / 255),
-                          grDevices::rgb(28 / 255, 144 / 255, 153 / 255),
-                          grDevices::rgb(1 / 255, 108 / 255, 89 / 255)),
-        "6" = tibble::lst(grDevices::rgb(246 / 255, 239 / 255, 247 / 255),
-                          grDevices::rgb(208 / 255, 209 / 255, 230 / 255),
-                          grDevices::rgb(166 / 255, 189 / 255, 219 / 255),
-                          grDevices::rgb(103 / 255, 169 / 255, 207 / 255),
-                          grDevices::rgb(28 / 255, 144 / 255, 153 / 255),
-                          grDevices::rgb(1 / 255, 108 / 255, 89 / 255)),
-        "7" = tibble::lst(grDevices::rgb(246 / 255, 239 / 255, 247 / 255),
-                          grDevices::rgb(208 / 255, 209 / 255, 230 / 255),
-                          grDevices::rgb(166 / 255, 189 / 255, 219 / 255),
-                          grDevices::rgb(103 / 255, 169 / 255, 207 / 255),
-                          grDevices::rgb(54 / 255, 144 / 255, 192 / 255),
-                          grDevices::rgb(2 / 255, 129 / 255, 138 / 255),
-                          grDevices::rgb(1 / 255, 100 / 255, 80 / 255)),
-        "8" = tibble::lst(grDevices::rgb(255 / 255, 247 / 255, 251 / 255),
-                          grDevices::rgb(236 / 255, 226 / 255, 240 / 255),
-                          grDevices::rgb(208 / 255, 209 / 255, 230 / 255),
-                          grDevices::rgb(166 / 255, 189 / 255, 219 / 255),
-                          grDevices::rgb(103 / 255, 169 / 255, 207 / 255),
-                          grDevices::rgb(54 / 255, 144 / 255, 192 / 255),
-                          grDevices::rgb(2 / 255, 129 / 255, 138 / 255),
-                          grDevices::rgb(1 / 255, 100 / 255, 80 / 255)),
-        "9" = tibble::lst(grDevices::rgb(255 / 255, 247 / 255, 251 / 255),
-                          grDevices::rgb(236 / 255, 226 / 255, 240 / 255),
-                          grDevices::rgb(208 / 255, 209 / 255, 230 / 255),
-                          grDevices::rgb(166 / 255, 189 / 255, 219 / 255),
-                          grDevices::rgb(103 / 255, 169 / 255, 207 / 255),
-                          grDevices::rgb(54 / 255, 144 / 255, 192 / 255),
-                          grDevices::rgb(2 / 255, 129 / 255, 138 / 255),
-                          grDevices::rgb(1 / 255, 108 / 255, 89 / 255),
-                          grDevices::rgb(1 / 255, 70 / 255, 54 / 255)),
-        "10" = tibble::lst(grDevices::rgb(255 / 255, 247 / 255, 250 / 255),
-                           grDevices::rgb(240 / 255, 230 / 255, 242 / 255),
-                           grDevices::rgb(220 / 255, 216 / 255, 234 / 255),
-                           grDevices::rgb(194 / 255, 202 / 255, 226 / 255),
-                           grDevices::rgb(159 / 255, 186 / 255, 217 / 255),
-                           grDevices::rgb(110 / 255, 171 / 255, 208 / 255),
-                           grDevices::rgb(72 / 255, 152 / 255, 196 / 255),
-                           grDevices::rgb(37 / 255, 137 / 255, 167 / 255),
-                           grDevices::rgb(4 / 255, 122 / 255, 124 / 255),
-                           grDevices::rgb(0 / 255, 100 / 255, 80 / 255)),
-        "11" = tibble::lst(grDevices::rgb(255 / 255, 247 / 255, 250 / 255),
-                           grDevices::rgb(241 / 255, 232 / 255, 243 / 255),
-                           grDevices::rgb(224 / 255, 219 / 255, 235 / 255),
-                           grDevices::rgb(203 / 255, 206 / 255, 228 / 255),
-                           grDevices::rgb(174 / 255, 192 / 255, 221 / 255),
-                           grDevices::rgb(136 / 255, 179 / 255, 213 / 255),
-                           grDevices::rgb(94 / 255, 163 / 255, 203 / 255),
-                           grDevices::rgb(60 / 255, 146 / 255, 193 / 255),
-                           grDevices::rgb(31 / 255, 135 / 255, 159 / 255),
-                           grDevices::rgb(4 / 255, 120 / 255, 120 / 255),
-                           grDevices::rgb(0 / 255, 100 / 255, 80 / 255)),
-        "12" = tibble::lst(grDevices::rgb(255 / 255, 247 / 255, 250 / 255),
-                           grDevices::rgb(242 / 255, 233 / 255, 243 / 255),
-                           grDevices::rgb(228 / 255, 221 / 255, 237 / 255),
-                           grDevices::rgb(210 / 255, 210 / 255, 230 / 255),
-                           grDevices::rgb(185 / 255, 198 / 255, 224 / 255),
-                           grDevices::rgb(155 / 255, 185 / 255, 216 / 255),
-                           grDevices::rgb(115 / 255, 172 / 255, 209 / 255),
-                           grDevices::rgb(82 / 255, 157 / 255, 200 / 255),
-                           grDevices::rgb(51 / 255, 142 / 255, 186 / 255),
-                           grDevices::rgb(24 / 255, 133 / 255, 152 / 255),
-                           grDevices::rgb(5 / 255, 118 / 255, 116 / 255),
-                           grDevices::rgb(0 / 255, 100 / 255, 80 / 255)),
-        "13" = tibble::lst(grDevices::rgb(255 / 255, 247 / 255, 250 / 255),
-                           grDevices::rgb(243 / 255, 234 / 255, 244 / 255),
-                           grDevices::rgb(231 / 255, 223 / 255, 238 / 255),
-                           grDevices::rgb(215 / 255, 213 / 255, 232 / 255),
-                           grDevices::rgb(194 / 255, 202 / 255, 226 / 255),
-                           grDevices::rgb(169 / 255, 190 / 255, 219 / 255),
-                           grDevices::rgb(136 / 255, 179 / 255, 213 / 255),
-                           grDevices::rgb(99 / 255, 166 / 255, 205 / 255),
-                           grDevices::rgb(72 / 255, 152 / 255, 196 / 255),
-                           grDevices::rgb(45 / 255, 140 / 255, 178 / 255),
-                           grDevices::rgb(17 / 255, 131 / 255, 146 / 255),
-                           grDevices::rgb(5 / 255, 116 / 255, 113 / 255),
-                           grDevices::rgb(0 / 255, 100 / 255, 80 / 255)),
-        "14" = tibble::lst(grDevices::rgb(255 / 255, 247 / 255, 250 / 255),
-                           grDevices::rgb(244 / 255, 235 / 255, 245 / 255),
-                           grDevices::rgb(233 / 255, 224 / 255, 239 / 255),
-                           grDevices::rgb(218 / 255, 215 / 255, 233 / 255),
-                           grDevices::rgb(201 / 255, 205 / 255, 228 / 255),
-                           grDevices::rgb(179 / 255, 195 / 255, 222 / 255),
-                           grDevices::rgb(152 / 255, 184 / 255, 216 / 255),
-                           grDevices::rgb(119 / 255, 173 / 255, 209 / 255),
-                           grDevices::rgb(89 / 255, 161 / 255, 202 / 255),
-                           grDevices::rgb(63 / 255, 147 / 255, 194 / 255),
-                           grDevices::rgb(40 / 255, 138 / 255, 170 / 255),
-                           grDevices::rgb(9 / 255, 130 / 255, 142 / 255),
-                           grDevices::rgb(5 / 255, 115 / 255, 110 / 255),
-                           grDevices::rgb(0 / 255, 100 / 255, 80 / 255)),
-        "15" = tibble::lst(grDevices::rgb(255 / 255, 247 / 255, 250 / 255),
-                           grDevices::rgb(245 / 255, 236 / 255, 245 / 255),
-                           grDevices::rgb(235 / 255, 225 / 255, 240 / 255),
-                           grDevices::rgb(222 / 255, 217 / 255, 234 / 255),
-                           grDevices::rgb(208 / 255, 209 / 255, 229 / 255),
-                           grDevices::rgb(187 / 255, 198 / 255, 224 / 255),
-                           grDevices::rgb(165 / 255, 189 / 255, 218 / 255),
-                           grDevices::rgb(136 / 255, 179 / 255, 213 / 255),
-                           grDevices::rgb(102 / 255, 169 / 255, 206 / 255),
-                           grDevices::rgb(80 / 255, 156 / 255, 199 / 255),
-                           grDevices::rgb(53 / 255, 144 / 255, 191 / 255),
-                           grDevices::rgb(35 / 255, 136 / 255, 164 / 255),
-                           grDevices::rgb(1 / 255, 128 / 255, 138 / 255),
-                           grDevices::rgb(5 / 255, 114 / 255, 108 / 255),
-                           grDevices::rgb(0 / 255, 100 / 255, 80 / 255)),
-        "16" = tibble::lst(grDevices::rgb(255 / 255, 247 / 255, 250 / 255),
-                           grDevices::rgb(246 / 255, 237 / 255, 245 / 255),
-                           grDevices::rgb(237 / 255, 227 / 255, 240 / 255),
-                           grDevices::rgb(224 / 255, 219 / 255, 235 / 255),
-                           grDevices::rgb(211 / 255, 211 / 255, 231 / 255),
-                           grDevices::rgb(194 / 255, 202 / 255, 226 / 255),
-                           grDevices::rgb(174 / 255, 192 / 255, 221 / 255),
-                           grDevices::rgb(150 / 255, 183 / 255, 215 / 255),
-                           grDevices::rgb(121 / 255, 174 / 255, 210 / 255),
-                           grDevices::rgb(94 / 255, 163 / 255, 203 / 255),
-                           grDevices::rgb(72 / 255, 152 / 255, 196 / 255),
-                           grDevices::rgb(49 / 255, 142 / 255, 184 / 255),
-                           grDevices::rgb(31 / 255, 135 / 255, 159 / 255),
-                           grDevices::rgb(2 / 255, 127 / 255, 134 / 255),
-                           grDevices::rgb(4 / 255, 113 / 255, 106 / 255),
-                           grDevices::rgb(0 / 255, 100 / 255, 80 / 255)),
-        "17" = tibble::lst(grDevices::rgb(255 / 255, 247 / 255, 250 / 255),
-                           grDevices::rgb(246 / 255, 237 / 255, 246 / 255),
-                           grDevices::rgb(238 / 255, 228 / 255, 241 / 255),
-                           grDevices::rgb(227 / 255, 220 / 255, 236 / 255),
-                           grDevices::rgb(215 / 255, 213 / 255, 232 / 255),
-                           grDevices::rgb(200 / 255, 205 / 255, 227 / 255),
-                           grDevices::rgb(181 / 255, 196 / 255, 223 / 255),
-                           grDevices::rgb(162 / 255, 187 / 255, 218 / 255),
-                           grDevices::rgb(136 / 255, 179 / 255, 213 / 255),
-                           grDevices::rgb(107 / 255, 170 / 255, 207 / 255),
-                           grDevices::rgb(86 / 255, 159 / 255, 201 / 255),
-                           grDevices::rgb(64 / 255, 148 / 255, 194 / 255),
-                           grDevices::rgb(45 / 255, 140 / 255, 178 / 255),
-                           grDevices::rgb(26 / 255, 133 / 255, 154 / 255),
-                           grDevices::rgb(3 / 255, 125 / 255, 130 / 255),
-                           grDevices::rgb(4 / 255, 112 / 255, 104 / 255),
-                           grDevices::rgb(0 / 255, 100 / 255, 80 / 255)),
-        "18" = tibble::lst(grDevices::rgb(255 / 255, 247 / 255, 250 / 255),
-                           grDevices::rgb(247 / 255, 238 / 255, 246 / 255),
-                           grDevices::rgb(239 / 255, 229 / 255, 241 / 255),
-                           grDevices::rgb(229 / 255, 221 / 255, 237 / 255),
-                           grDevices::rgb(217 / 255, 214 / 255, 233 / 255),
-                           grDevices::rgb(205 / 255, 207 / 255, 229 / 255),
-                           grDevices::rgb(188 / 255, 199 / 255, 224 / 255),
-                           grDevices::rgb(171 / 255, 191 / 255, 220 / 255),
-                           grDevices::rgb(148 / 255, 183 / 255, 215 / 255),
-                           grDevices::rgb(123 / 255, 174 / 255, 210 / 255),
-                           grDevices::rgb(98 / 255, 166 / 255, 205 / 255),
-                           grDevices::rgb(79 / 255, 155 / 255, 199 / 255),
-                           grDevices::rgb(57 / 255, 145 / 255, 192 / 255),
-                           grDevices::rgb(41 / 255, 138 / 255, 172 / 255),
-                           grDevices::rgb(22 / 255, 132 / 255, 150 / 255),
-                           grDevices::rgb(4 / 255, 123 / 255, 127 / 255),
-                           grDevices::rgb(4 / 255, 111 / 255, 103 / 255),
-                           grDevices::rgb(0 / 255, 100 / 255, 80 / 255)),
-        "19" = tibble::lst(grDevices::rgb(255 / 255, 247 / 255, 250 / 255),
-                           grDevices::rgb(247 / 255, 238 / 255, 246 / 255),
-                           grDevices::rgb(240 / 255, 230 / 255, 242 / 255),
-                           grDevices::rgb(231 / 255, 223 / 255, 238 / 255),
-                           grDevices::rgb(220 / 255, 216 / 255, 234 / 255),
-                           grDevices::rgb(209 / 255, 209 / 255, 230 / 255),
-                           grDevices::rgb(194 / 255, 202 / 255, 226 / 255),
-                           grDevices::rgb(177 / 255, 194 / 255, 222 / 255),
-                           grDevices::rgb(159 / 255, 186 / 255, 217 / 255),
-                           grDevices::rgb(136 / 255, 179 / 255, 213 / 255),
-                           grDevices::rgb(110 / 255, 171 / 255, 208 / 255),
-                           grDevices::rgb(91 / 255, 161 / 255, 202 / 255),
-                           grDevices::rgb(72 / 255, 152 / 255, 196 / 255),
-                           grDevices::rgb(52 / 255, 143 / 255, 188 / 255),
-                           grDevices::rgb(37 / 255, 137 / 255, 167 / 255),
-                           grDevices::rgb(17 / 255, 131 / 255, 146 / 255),
-                           grDevices::rgb(4 / 255, 122 / 255, 124 / 255),
-                           grDevices::rgb(4 / 255, 111 / 255, 102 / 255),
-                           grDevices::rgb(0 / 255, 100 / 255, 80 / 255)),
-        "20" = tibble::lst(grDevices::rgb(255 / 255, 247 / 255, 250 / 255),
-                           grDevices::rgb(247 / 255, 239 / 255, 246 / 255),
-                           grDevices::rgb(240 / 255, 231 / 255, 242 / 255),
-                           grDevices::rgb(233 / 255, 224 / 255, 238 / 255),
-                           grDevices::rgb(222 / 255, 217 / 255, 235 / 255),
-                           grDevices::rgb(212 / 255, 211 / 255, 231 / 255),
-                           grDevices::rgb(199 / 255, 204 / 255, 227 / 255),
-                           grDevices::rgb(183 / 255, 197 / 255, 223 / 255),
-                           grDevices::rgb(168 / 255, 190 / 255, 219 / 255),
-                           grDevices::rgb(147 / 255, 182 / 255, 215 / 255),
-                           grDevices::rgb(124 / 255, 175 / 255, 210 / 255),
-                           grDevices::rgb(100 / 255, 167 / 255, 206 / 255),
-                           grDevices::rgb(84 / 255, 158 / 255, 200 / 255),
-                           grDevices::rgb(66 / 255, 149 / 255, 195 / 255),
-                           grDevices::rgb(48 / 255, 141 / 255, 183 / 255),
-                           grDevices::rgb(34 / 255, 136 / 255, 163 / 255),
-                           grDevices::rgb(12 / 255, 130 / 255, 143 / 255),
-                           grDevices::rgb(4 / 255, 121 / 255, 122 / 255),
-                           grDevices::rgb(4 / 255, 110 / 255, 100 / 255),
-                           grDevices::rgb(0 / 255, 100 / 255, 80 / 255)),
-        "type" = "sequential"
+    assertthat::assert_that(green %in% bands,
+        msg = paste0("G channel should be one of ", all_bands)
     )
-)
+    assertthat::assert_that(blue %in% bands,
+        msg = paste0("B channel should be one of ", all_bands)
+    )
+    # find out the number of instances
+    n_instances <- length(timeline)
+    # check if the selected temporal instance exists
+    assertthat::assert_that(time <= n_instances, msg = "time out of bounds")
 
-#' @title  Plot a set of satellite image time series (deprecated)
-#' @name   sits_plot
-#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
-#' @description Given a sits tibble with a set of time series, plot them.
-#'
-#' The plot function produces different plots based on the input data:
-#' \itemize{
-#'  \item{"all years": }{Plot all samples from the same location together}
-#'  \item{"patterns": }{Plot the patterns for a given set of classes}
-#'  \item{"together": }{Plot all samples of the same band and label together}
-#'  \item{"classification": }{Plot the results of a classification}
-#' }
-#' The sits_plot function makes an educated guess of what plot is required,
-#' based on the input data. If the input data has less than 30 samples, it
-#' will default to "all years". If there is only one sample per class, it will
-#' default to "patterns". If there are more than 30 samples, it will default to
-#' "together". If the input data has predicted values resulting from a classification, it will
-#' plot the classification.
-#'
-#' WARNING: This function is deprecated. Please use plot() instead.
-#'
-#'
-#' @param  data          Data to be plotted
-#' @param  bands         Bands used for visualisation
-#' @param  colors        Color pallete to be used
-#' @return               Input sits tibble (useful for chaining functions).
-#'
-#' @examples
-#' \donttest{
-#' # Read a set of samples with 2 classes ("Cerrado" and "Pasture")
-#' data ("cerrado_2classes")
-#' # Plot all the samples together
-#' sits_plot (cerrado_2classes)
-#' # Plot the first 20 samples (defaults to "allyears")
-#' sits_plot (cerrado_2classes[1:20,])
-#' # Plot the patterns
-#' sits_plot (sits_patterns(cerrado_2classes))
-#' # Retrieve the set of samples for Mato Grosso
-#' data(samples_mt_4bands)
-#' samples_mt_ndvi <- sits_select_bands(samples_mt_4bands, bands = ndvi)
-#' model_svm <- sits_train(samples_mt_ndvi, ml_method = sits_svm())
-#' # Retrieve a point
-#' data(point_ndvi)
-#' # classify the point
-#' class_ndvi.tb <-  sits_classify (point_ndvi, model_svm)
-#' # plot the classification
-#' sits_plot (class_ndvi.tb)
-#' }
-#' @export
-sits_plot <- function(data, bands = c("ndvi"), colors = "Dark2") {
-    warning("sits_plot is deprecated; please use plot() directly")
-    # backward compatibility
-    data <- .sits_tibble_rename(data)
-    # is there only one sample per label? Plot patterns!
-    if ("patterns" %in% class(data))
-        .sits_plot_patterns(data)
-    # Both data and prediction exist? Plot classification!
-    if ("predicted" %in% class(data))
-        .sits_plot_classification(data, bands = bands)
+    # locate the instances
+    instances_lst <- purrr::map(c(red, green, blue), function(b) {
+        inst <- grep(b, bands)
+        if (is_brick) {
+              return(n_instances * (inst - 1) + time)
+          } else {
+              return((time - 1) * length(bands) + inst)
+          }
+    })
 
-    # if data is a time series
-    if ("sits" %in% names(data)) {
-        # Are there more than 30 samples? Plot them together!
-        if (nrow(data) > 30) {
-            .sits_plot_together(data, colors)
-        }
-        # Take "allyears" as the default
-        else
-            .sits_plot_allyears(data, colors)
-    }
-    # return the original sits tibble - useful for chaining
-    return(invisible(data))
+    # create a named vector to store the RGB instances
+    index <- unlist(instances_lst)
+    names(index) <- c("red", "green", "blue")
+
+    return(index)
 }

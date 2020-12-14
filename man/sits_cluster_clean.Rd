@@ -16,11 +16,11 @@ A tibble with all selected samples.
 Removes labels that are minority in each cluster.
 }
 \examples{
-\donttest{
+\dontrun{
 # Load the "dtwclust" package
 # library(dtwclust)
 # calculate the dendrogram and the best clusters
-clusters <- sits_cluster_dendro(cerrado_2classes, bands = c("ndvi", "evi"))
+clusters <- sits_cluster_dendro(cerrado_2classes, bands = c("NDVI", "EVI"))
 # show clusters samples frequency
 sits_cluster_frequency(clusters)
 # remove cluster 3 from the samples

@@ -4,16 +4,15 @@
 \alias{.sits_wtss_cube}
 \title{Provides information about one cube of the WTSS service}
 \usage{
-.sits_wtss_cube(URL, name, bands)
+.sits_wtss_cube(URL, name)
 }
 \arguments{
 \item{URL}{URL of the service provider.}
 
 \item{name}{Name of the cube.}
-
-\item{bands}{Name of the bands.}
 }
 \description{
 Uses the WTSS services to print information and save metadata
 about a chosen cube.
 }
+\keyword{internal}

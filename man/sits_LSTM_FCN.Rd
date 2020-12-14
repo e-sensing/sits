@@ -70,19 +70,21 @@ and the code made available on github (https://github.com/titu1994/LSTM-FCN)
 If you use this method, please cite the original paper.
 }
 \examples{
-\donttest{
+\dontrun{
 # Retrieve the set of samples for the Mato Grosso (provided by EMBRAPA)
 
 # Build a machine learning model based on deep learning
-lstm_cnn_model <- sits_train (samples_mt_4bands, sits_LSTM_FCN())
+lstm_cnn_model <- sits_train(samples_mt_4bands, sits_LSTM_FCN())
 
 # plot the model
 plot(lstm_cnn_model)
 
 # get a point and classify the point with the ml_model
-point.tb <- sits_select_bands(point_mt_6bands, ndvi, evi, nir, mir)
-class.tb <- sits_classify(point.tb, lstm_cnn_model)
-plot(class.tb, bands = c("ndvi", "evi"))
+point <- sits_select(point_mt_6bands,
+    bands = c("NDVI", "EVI", "NIR", "MIR")
+)
+class <- sits_classify(point, lstm_cnn_model)
+plot(class, bands = c("NDVI", "EVI"))
 }
 }
 \references{

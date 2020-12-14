@@ -14,13 +14,13 @@
 \item{...}{further specifications for \link{plot}.}
 }
 \value{
-Input sits tibble (useful for chaining functions).
+plot
 }
 \description{
 Given a sits tibble with a set of patterns, plot them.
 }
 \examples{
-\donttest{
+\dontrun{
 # Read a set of samples with 2 classes ("Cerrado" and "Pasture")
 # Plot the patterns
 plot(sits_patterns(cerrado_2classes))

@@ -61,41 +61,45 @@
 #' @return A fitted model to be passed to \code{\link[sits]{sits_classify}}
 #'
 #' @examples
-#' \donttest{
+#' \dontrun{
 #' # Retrieve the set of samples for the Mato Grosso (provided by EMBRAPA)
 #'
 #' # Build a machine learning model based on deep learning
-#' rn_model <- sits_train (samples_mt_4bands, sits_ResNet(epochs = 75))
+#' rn_model <- sits_train(samples_mt_4bands, sits_ResNet(epochs = 75))
 #' # Plot the model
 #' plot(rn_model)
 #'
 #' # get a point and classify the point with the ml_model
-#' point.tb <- sits_select_bands(point_mt_6bands, ndvi, evi, nir, mir)
-#' class.tb <- sits_classify(point.tb, rn_model)
-#' plot(class.tb, bands = c("ndvi", "evi"))
+#' point <- sits_select(point_mt_6bands,
+#'     bands = c("NDVI", "EVI", "NIR", "MIR")
+#' )
+#' class <- sits_classify(point.tb, rn_model)
+#' plot(class, bands = c("NDVI", "EVI"))
 #' }
 #' @export
-sits_ResNet <- function(samples          = NULL,
-                        blocks           = c(64, 128, 128),
-                        kernels          = c(8, 5, 3),
-                        activation       = 'relu',
-                        optimizer        = keras::optimizer_adam(lr = 0.001),
-                        epochs           = 150,
-                        batch_size       = 128,
+sits_ResNet <- function(samples = NULL,
+                        blocks = c(64, 128, 128),
+                        kernels = c(8, 5, 3),
+                        activation = "relu",
+                        optimizer = keras::optimizer_adam(lr = 0.001),
+                        epochs = 150,
+                        batch_size = 128,
                         validation_split = 0.2,
-                        verbose          = 1) {
+                        verbose = 1) {
     # backward compatibility
-    data <- .sits_tibble_rename(samples)
+    samples <- .sits_tibble_rename(samples)
 
     # function that returns keras model based on a sits sample data.table
-    result_fun <- function(data){
+    result_fun <- function(data) {
         valid_activations <- c("relu", "elu", "selu", "sigmoid")
         # pre-conditions
         assertthat::assert_that(activation %in% valid_activations,
-                            msg = "sits_ResNet: invalid CNN activation method")
+            msg = "sits_ResNet: invalid CNN activation method"
+        )
 
         assertthat::assert_that(length(kernels) == 3,
-                    msg = "sits_ResNet: should inform size of three kernels")
+            msg = "sits_ResNet: should inform size of three kernels"
+        )
 
         # get the labels of the data
         labels <- sits_labels(data)$label
@@ -106,22 +110,24 @@ sits_ResNet <- function(samples          = NULL,
 
         # number of bands and number of samples
         n_bands <- length(sits_bands(data))
-        n_times <- nrow(sits_time_series(data[1,]))
+        n_times <- nrow(sits_time_series(data[1, ]))
 
         # create the train and test datasets for keras
-        keras.data <- .sits_keras_prepare_data(data = data,
-                                            validation_split = validation_split,
-                                            int_labels = int_labels,
-                                            n_bands = n_bands,
-                                            n_times = n_times)
-        train.x <- keras.data$train.x
-        train.y <- keras.data$train.y
-        test.x  <- keras.data$test.x
-        test.y  <- keras.data$test.y
+        keras_data <- .sits_keras_prepare_data(
+            data = data,
+            validation_split = validation_split,
+            int_labels = int_labels,
+            n_bands = n_bands,
+            n_times = n_times
+        )
+        train_x <- keras_data$train_x
+        train_y <- keras_data$train_y
+        test_x <- keras_data$test_x
+        test_y <- keras_data$test_y
 
         # build the model step by step
         # create the input_tensor for 1D convolution
-        input_tensor  <- keras::layer_input(shape = c(n_times, n_bands))
+        input_tensor <- keras::layer_input(shape = c(n_times, n_bands))
 
         # initial assignment
         output_tensor <- input_tensor
@@ -131,46 +137,53 @@ sits_ResNet <- function(samples          = NULL,
         for (i in 1:n_blocks) {
             # Add a Convolution1D
             output_tensor_x <- keras::layer_conv_1d(output_tensor,
-                                                    filters = blocks[i],
-                                                    kernel_size = kernels[1],
-                                                    padding = "same")
+                filters = blocks[i],
+                kernel_size = kernels[1],
+                padding = "same"
+            )
             # normalization
             output_tensor_x <- keras::layer_batch_normalization(output_tensor_x)
 
             # activation
             output_tensor_x <- keras::layer_activation(output_tensor_x,
-                                                       activation = activation)
+                activation = activation
+            )
 
             # Add a new convolution
             output_tensor_y <- keras::layer_conv_1d(output_tensor_x,
-                                                    filters = blocks[i],
-                                                    kernel_size = kernels[2],
-                                                    padding = "same")
+                filters = blocks[i],
+                kernel_size = kernels[2],
+                padding = "same"
+            )
             # normalization
             output_tensor_y <- keras::layer_batch_normalization(output_tensor_y)
 
             # activation
             output_tensor_y <- keras::layer_activation(output_tensor_y,
-                                                       activation = activation)
+                activation = activation
+            )
 
             # Add a third convolution
             output_tensor_z <- keras::layer_conv_1d(output_tensor_y,
-                                                    filters = blocks[i],
-                                                    kernel_size = kernels[3],
-                                                    padding = "same")
+                filters = blocks[i],
+                kernel_size = kernels[3],
+                padding = "same"
+            )
             output_tensor_z <- keras::layer_batch_normalization(output_tensor_z)
 
             # include the shortcut
             shortcut <- keras::layer_conv_1d(shortcut,
-                                             filters = blocks[i],
-                                             kernel_size = 1,
-                                             padding = "same")
+                filters = blocks[i],
+                kernel_size = 1,
+                padding = "same"
+            )
             shortcut <- keras::layer_batch_normalization(shortcut)
 
             # get the output tensor
             output_tensor <- keras::layer_add(list(shortcut, output_tensor_z))
             output_tensor <- keras::layer_activation(output_tensor,
-                                                     activation = activation)
+                activation = activation
+            )
             shortcut <- output_tensor
         }
 
@@ -183,63 +196,71 @@ sits_ResNet <- function(samples          = NULL,
         model_loss <- ""
         if (n_labels == 2) {
             output_tensor <- keras::layer_dense(output_tensor,
-                                                units = 1,
-                                                activation = "sigmoid")
+                units = 1,
+                activation = "sigmoid"
+            )
             model_loss <- "binary_crossentropy"
         }
         else {
             output_tensor <- keras::layer_dense(output_tensor,
-                                                units = n_labels,
-                                                activation = "softmax")
+                units = n_labels,
+                activation = "softmax"
+            )
             model_loss <- "categorical_crossentropy"
             # keras requires categorical data to be put in a matrix
-            train.y <- keras::to_categorical(train.y, n_labels)
-            test.y  <- keras::to_categorical(test.y, n_labels)
+            train_y <- keras::to_categorical(train_y, n_labels)
+            test_y <- keras::to_categorical(test_y, n_labels)
         }
         # create the model
-        model.keras <- keras::keras_model(input_tensor, output_tensor)
+        model_keras <- keras::keras_model(input_tensor, output_tensor)
         # compile the model
-        model.keras %>% keras::compile(
+        model_keras %>% keras::compile(
             loss = model_loss,
             optimizer = optimizer,
             metrics = "accuracy"
         )
 
         # fit the model
-        history <- model.keras %>% keras::fit(
-            train.x, train.y,
+        history <- model_keras %>% keras::fit(
+            train_x, train_y,
             epochs = epochs, batch_size = batch_size,
-            validation_data = list(test.x, test.y),
+            validation_data = list(test_x, test_y),
             verbose = verbose, view_metrics = "auto"
         )
         # show training evolution
         graphics::plot(history)
 
         # construct model predict closure function and returns
-        model_predict <- function(values_DT){
+        model_predict <- function(values) {
             # transform input (data.table) into a 3D tensor
-            n_samples <- nrow(values_DT)
-            n_timesteps <- nrow(sits_time_series(data[1,]))
+            n_samples <- nrow(values)
+            n_timesteps <- nrow(sits_time_series(data[1, ]))
             n_bands <- length(sits_bands(data))
-            values.x <- array(data = as.matrix(values_DT[,3:ncol(values_DT)]),
-                              dim = c(n_samples, n_timesteps, n_bands))
+            values_x <- array(
+                data = as.matrix(values[, 3:ncol(values)]),
+                dim = c(n_samples, n_timesteps, n_bands)
+            )
             # retrieve the prediction probabilities
-            predict_DT <- data.table::as.data.table(stats::predict(model.keras,
-                                                                   values.x))
+            prediction <- data.table::as.data.table(stats::predict(
+                model_keras,
+                values_x
+            ))
 
             # If binary classification,
             # adjust the prediction values for binary classification
-            if (n_labels == 2)
-                predict_DT <- .sits_keras_binary_class(predict_DT)
+            if (n_labels == 2) {
+                  prediction <- .sits_keras_binary_class(prediction)
+              }
 
             # adjust the names of the columns of the probs
-            colnames(predict_DT) <- labels
+            colnames(prediction) <- labels
 
-            return(predict_DT)
+            return(prediction)
         }
         class(model_predict) <- append(class(model_predict),
-                                       "keras_model",
-                                       after = 0)
+            "keras_model",
+            after = 0
+        )
         return(model_predict)
     }
 

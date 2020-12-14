@@ -23,3 +23,4 @@ standard deviation of all the time series.
 \author{
 Alber Sanchez, \email{alber.ipia@inpe.br}
 }
+\keyword{internal}

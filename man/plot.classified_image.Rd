@@ -4,55 +4,75 @@
 \alias{plot.classified_image}
 \title{Generic interface for ploting classified images}
 \usage{
-\method{plot}{classified_image}(x, y, ..., time = 1, title = "Classified Image", colors = NULL)
+\method{plot}{classified_image}(
+  x,
+  y,
+  ...,
+  map = NULL,
+  time = 1,
+  title = "Classified Image",
+  colors = NULL
+)
 }
 \arguments{
-\item{x}{Object of class "classified_image"}
+\item{x}{object of class "classified_image"}
 
-\item{y}{Ignored}
+\item{y}{ignored}
 
-\item{...}{Further specifications for \link{plot}.}
+\item{...}{further specifications for \link{plot}.}
 
-\item{time}{Temporal reference for plot.}
+\item{map}{map to overlay (mapview object)}
 
-\item{title}{A string.}
+\item{time}{temporal reference for plot.}
 
-\item{colors}{Color pallete.}
+\item{title}{string.}
+
+\item{colors}{color pallete.}
 }
 \description{
 plots a classified raster using ggplot.
 }
 \examples{
-\donttest{
+\dontrun{
 # Retrieve the samples for Mato Grosso
+# select the bands for classification
+samples_ndvi_evi <- sits_select(samples_mt_4bands, bands = c("EVI", "NDVI"))
+# build the classification model
+xgb_model <- sits_train(samples_ndvi_evi, ml_method = sits_xgboost())
 
-# select the bands "ndvi", "evi"
-samples_ndvi <- sits_select_bands(samples_mt_4bands, ndvi)
+# select the bands "ndvi", "evi" provided by the SITS package
+ndvi_file <- c(system.file("extdata/raster/mod13q1/sinop-ndvi-2014.tif",
+    package = "sits"
+))
+evi_file <- c(system.file("extdata/raster/mod13q1/sinop-evi-2014.tif",
+    package = "sits"
+))
+# select the timeline
+data("timeline_2013_2014")
+# build a data cube from files
 
-#select a random forest model
-
-rfor_model <- sits_train(samples_ndvi, ml_method = sits_rfor())
-# Classify a raster file with 23 instances for one year
-files <- c(system.file("extdata/raster/mod13q1/sinop-crop-ndvi.tif",
-           package = "sits"))
-# create a data cube based on the information about the files
-sinop <- sits_cube(type = "BRICK", satellite = "TERRA", sensor = "MODIS",
-         name = "Sinop-crop", timeline = timeline_modis_392,
-         bands = "ndvi", files = files)
+sinop_2014 <- sits_cube(
+    type = "BRICK", name = "sinop-2014",
+    timeline = timeline_2013_2014,
+    satellite = "TERRA",
+    sensor = "MODIS",
+    bands = c("ndvi", "evi"),
+    files = c(ndvi_file, evi_file)
+)
 
 # classify the raster image
-sinop_probs <- sits_classify(sinop, ml_model = rfor_model,
-                             memsize = 2, multicores = 1)
+sinop_probs <- sits_classify(sinop_2014, xgb_model,
+    output_dir = tempdir(),
+    memsize = 4, multicores = 2
+)
+# smooth the result with a bayesian filter
+sinop_bayes <- sits_label_classification(sinop_probs,
+    output_dir = tempdir(),
+    smoothing = "bayesian"
+)
 
-# label the classified image
-sinop_label <- sits_label_classification(sinop_probs)
-
-# plot the raster image
-plot(sinop_label, time = 1, title = "Sinop-2013-2014")
-
-# remove the files (cleanup)
-file.remove(unlist(sinop_probs$files))
-file.remove(unlist(sinop_label$files))
+# plot the smoothened image
+plot(sinop_bayes, title = "Sinop-Bayes")
 }
 }
 \author{

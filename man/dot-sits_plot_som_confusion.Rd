@@ -7,8 +7,7 @@
 .sits_plot_som_confusion(data, title)
 }
 \arguments{
-\item{data}{Table containing the percentage of mixture between the clusters
-(produced by \code{\link[sits]{sits_som_evaluate_cluster}})}
+\item{data}{Percentage of mixture between the clusters}
 
 \item{title}{Title of plot.}
 }
@@ -22,3 +21,4 @@ The percentage of mixture between the clusters.
 \author{
 Lorena Santos \email{lorena.santos@inpe.br}
 }
+\keyword{internal}

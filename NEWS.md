@@ -3,9 +3,24 @@
 We are preparing to release the package on CRAN and are making relevant changes in the development version.
 
 # What's new in SITS version 0.9
-# 
-# ### New features in SITS version 0.9.5
 
+### New features in SITS version 0.9.8
+* Access to Sentinel-2 level-2A images in AWS
+* Access to the Brazil Data Cube using STAC
+* Improved raster API 
+* Code revision with lintr and good practices packages
+* Improvement of assertions and code coverage
+* Examples and tests generate output in tempdir()
+
+### New features in SITS version 0.9.7
+* Image classification using region of interest (ROI)
+
+### New features in SITS version 0.9.6
+* Access and processing of tiles of the Brazil Data Cube
+* Plotting of data cube and probability images
+* Examples of using SITS with SENTINEL-2 and CBERS-4 images 
+
+### New features in SITS version 0.9.5
 * Time series tibbles and data cube metadata can now be saved and read in SQLite
 * Code coverage increased to 95%
 * Vignettes have been moved to "sits-docs" to reduce building time

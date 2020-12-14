@@ -14,10 +14,11 @@ to be converted to TWTDW time series.}
 An object of the twdtwTimeSeries class).
 }
 \description{
-Converts data from a sits tibble to an instance of a TWDTW time series class.
+Converts sits tibble to an instance of a TWDTW class.
 }
 \author{
 Victor Maus, \email{vwmaus1@gmail.com}
 
 Gilberto Camara, \email{gilberto.camara@inpe.br}
 }
+\keyword{internal}

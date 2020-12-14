@@ -16,7 +16,7 @@ sits_ndvi_arima(
 )
 }
 \arguments{
-\item{data}{Time series data and metadata (only the "ndvi" band).}
+\item{data}{Time series data and metadata (only the "NDVI" band).}
 
 \item{cutoff}{Maximum acceptable value of a NDVI difference.}
 
@@ -45,19 +45,13 @@ Then it applies an spline interploation.
 Finally, the function applies a whitakker smoother.
 }
 \examples{
-\donttest{
-# Read a set of samples of forest/non-forest in Amazonia
-# This is an area full of clouds
-data(prodes_226_064)
-# Select the NDVI band of the first point
-point_ndvi <- sits_select_bands(prodes_226_064[1,], ndvi)
-# Apply the cloud filter
-point_ar <- sits_filter(point_ndvi, sits_ndvi_arima())
+# Select the NDVI band of a point
+# Apply the filter
+point_ar <- sits_ndvi_arima(point_ndvi)
 # Merge the filtered with the raw data
-point2 <- sits_merge (point_ndvi, point_ar)
+point2 <- sits_merge(point_ndvi, point_ar)
 # Plot the result
 plot(point2)
-}
 }
 \author{
 Gilberto Camara, \email{gilberto.camara@inpe.br}

@@ -4,7 +4,7 @@
 \alias{plot.predicted}
 \title{Generic interface for ploting time series predictions}
 \usage{
-\method{plot}{predicted}(x, y, ..., bands = "ndvi")
+\method{plot}{predicted}(x, y, ..., bands = "NDVI")
 }
 \arguments{
 \item{x}{object of class "predicted"}
@@ -13,23 +13,23 @@
 
 \item{...}{further specifications for \link{plot}.}
 
-\item{bands}{Bands used for visualisation}
+\item{bands}{bands used for visualisation}
 }
 \value{
-Input sits tibble (useful for chaining functions).
+plot
 }
 \description{
 Given a sits tibble with a set of predictions, plot them
 }
 \examples{
-\donttest{
+\dontrun{
 # Retrieve the set of samples for Mato Grosso region (provided by EMBRAPA)
-samples_mt_ndvi <- sits_select_bands(samples_mt_4bands, ndvi)
+samples_mt_ndvi <- sits_select(samples_mt_4bands, bands = "NDVI")
 # classify the point
 model_svm <- sits_train(samples_mt_ndvi, ml_method = sits_svm())
-class_ndvi.tb <-  sits_classify (point_ndvi, model_svm)
+class_ndvi.tb <- sits_classify(point_ndvi, model_svm)
 # plot the classification
-plot (class_ndvi.tb)
+plot(class_ndvi.tb)
 }
 }
 \author{

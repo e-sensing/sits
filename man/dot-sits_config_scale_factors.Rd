@@ -20,3 +20,4 @@ Retrieve the scale factor for a given band for a data cube
 \author{
 Gilberto Camara, \email{gilberto.camara@inpe.br}
 }
+\keyword{internal}

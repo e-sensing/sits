@@ -5,9 +5,12 @@
 \alias{point_ndvi}
 \title{A time series sample for the NDVI band from 2000 to 2016}
 \format{
-A tibble with 1 rows and 7 variables: (a) longitude: East-west coordinate of the time series sample (WGS 84);
-  latitude (North-south coordinate of the time series sample in WGS 84), start_date (initial date of the time series),
-  end_date (final date of the time series), label (the class label associated to the sample),
+A tibble with 1 rows and 7 variables:
+  longitude: East-west coordinate of the time series sample (WGS 84),
+  latitude (North-south coordinate of the time series sample in WGS 84),
+  start_date (initial date of the time series),
+  end_date (final date of the time series),
+  label (the class label associated to the sample),
   cube (the name of the cube associated with the data),
   time_series (list containing a tibble with the values of the time series).
 }
@@ -15,7 +18,8 @@ A tibble with 1 rows and 7 variables: (a) longitude: East-west coordinate of the
 data(point_ndvi)
 }
 \description{
-A dataset containing a tibble with one time series samples in the Mato Grosso state of Brazil.
+A dataset containing a tibble with one time series samples
+   in the Mato Grosso state of Brazil.
    The time series comes from MOD13Q1 collection 5 images.
 }
 \keyword{datasets}

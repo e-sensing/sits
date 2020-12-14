@@ -1,84 +1,8 @@
-#' @title Accuracy assessment of classification based on a confusion matrix
-#' @name sits_conf_matrix
-#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
-#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
-#
-#' @description Evaluates the confusion matrix based on
-#' "reference" and "predicted" values
-#' provided in a sits tibble that has been classified.
-#' This function takes two kinds of input:
-#' (a) The output of the \code{\link[sits]{sits_classify}} function
-#' (a tibble with a list of predicted values);
-#' (b) The output of the \code{\link[sits]{sits_kfold_validate}} function
-#' (a tibble with two columns - predicted and reference).
-#' This function returns the Overall Accuracy, User's Accuracy,
-#' Producer's Accuracy, error matrix (confusion matrix), and Kappa value.
-#'
-#' @param  class.tb        Set of classified samples whose labels are known.
-#' @param  conv.lst        List with labels to be converted.
-#'                         If NULL no conversion is done.
-#' @return A confusion matrix assessment produced by the caret package.
-#'
-#' @examples
-#' \donttest{
-#' # read a tibble with 400 samples of Cerrado and 346 samples of Pasture
-#' data(cerrado_2classes)
-#' # perform a 2 fold validation of this sample file
-#' pred_ref.tb <- sits_kfold_validate(cerrado_2classes, folds = 2)
-#' # calculate and print the confusion matrix
-#' conf.mx <- sits_conf_matrix(pred_ref.tb)
-#' }
-#' @export
-sits_conf_matrix <- function(class.tb, conv.lst = NULL) {
-
-    # backward compatibility
-    class.tb <- .sits_tibble_rename(class.tb)
-
-    # does the input data contain a set of predicted values?
-    assertthat::assert_that("predicted" %in% names(class.tb),
-        msg = "sits_conf_matrix: input data without predicted values")
-
-    # recover predicted and reference vectors from input
-    # is the input the result of a sits_classify?
-    if ("label" %in% names(class.tb)) {
-        pred_ref.tb <- .sits_pred_ref(class.tb)
-        pred.vec <- pred_ref.tb$predicted
-        ref.vec  <- pred_ref.tb$reference
-    }
-    # is the input the result of the sits_kfold_validate?
-    else{
-        pred.vec <- class.tb$predicted
-        ref.vec  <- class.tb$reference
-    }
-
-    # convert class names
-    if (!purrr::is_null(conv.lst)) {
-        # select the label names
-        names_ref <- unique(ref.vec)
-        # are all input labels in the coversion list?
-        assertthat::assert_that(all(names_ref %in% names(conv.lst)),
-            msg = "sits_conf_matrix: missing reference labels")
-        pred.vec <- as.character(conv.lst[pred.vec])
-        ref.vec  <- as.character(conv.lst[ref.vec])
-    }
-
-    unique_ref <- unique(ref.vec)
-    pred.fac <- factor(pred.vec, levels = unique_ref)
-    ref.fac  <- factor(ref.vec, levels = unique_ref)
-    # call caret package to the classification statistics
-    caret_assess <- caret::confusionMatrix(pred.fac, ref.fac)
-
-    # print the result
-    .print_confusion_matrix(caret_assess)
-
-    # return invisible
-    return(invisible(caret_assess))
-}
-
 #' @title Area-weighted classification accuracy assessment
-#' @name sits_accuracy_area
+#' @name sits_accuracy
+#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
 #' @author Alber Sanchez, \email{alber.ipia@@inpe.br}
-#' @description To use this function, the input table should be
+#' @description To use this function the input table should be
 #' a set of results containing
 #' both the label assigned by the user and the classification result.
 #' Accuracy assessment set us a confusion matrix to determine the accuracy
@@ -88,7 +12,7 @@ sits_conf_matrix <- function(class.tb, conv.lst = NULL) {
 #'
 #' This function performs an accuracy assessment of the classified, including
 #' Overall Accuracy, User's Accuracy, Producer's Accuracy
-#' and error matrix (confusion matrix) according to [1-2].
+#' and error matrix (confusion matrix) according to [1-3].
 #'
 #' @references
 #' [1] Olofsson, P., Foody, G.M., Stehman, S.V., Woodcock, C.E. (2013).
@@ -100,68 +24,201 @@ sits_conf_matrix <- function(class.tb, conv.lst = NULL) {
 #' [2] Olofsson, P., Foody G.M., Herold M., Stehman, S.V.,
 #' Woodcock, C.E., Wulder, M.A. (2014)
 #' Good practices for estimating area and assessing accuracy of land change.
-#' Remote Sensing of
-#' Environment, 148, pp. 42-57.
+#' Remote Sensing of Environment, 148, pp. 42-57.
 #'
-#' @param class.tb      A sits tibble with a set of lat/long/time locations
-#'                      with known and trusted labels and
-#'                      with the result of classification method.
-#' @param area          A list with the area of each label.
+#' @references
+#' [3] FAO, Map Accuracy Assessment and Area Estimation: A Practical Guide.
+#' National forest monitoring assessment working paper No.46/E, 2016.
+#'
+#'
+#' @param label_cube       A tibble with metadata about the classified maps.
+#' @param validation_csv   A CSV file path with validation data
 #'
 #' @examples
-#' \donttest{
-#' # Retrieve the set of samples for the Mato Grosso (provided by EMBRAPA)
-#' samples_2bands <- sits_select_bands(samples_mt_6bands, ndvi, evi)
-#' set.seed(42)
+#' \dontrun{
+#' # get the samples for Mato Grosso for bands NDVI and EVI
+#' samples_mt_ndvi <- sits_select(samples_mt_4bands, bands = c("NDVI"))
+#' # filter the samples for three classes (to simplify the example)
+#' samples_mt_ndvi <- dplyr::filter(samples_mt_ndvi, label %in%
+#'   c("Forest", "Pasture", "Soy_Corn"))
+#' # build an XGB model
+#' xgb_model <- sits_train(
+#'   samples_mt_ndvi,
+#'   sits_xgboost(nrounds = 10, verbose = FALSE)
+#' )
 #'
-#' # Fit a randon forest model to the samples.
-#' rfor_model <- sits_train(samples_2bands, ml_method = sits_rfor())
+#' # files that make up the data cube
+#' ndvi_file <- c(system.file("extdata/raster/mod13q1/sinop-ndvi-2014.tif",
+#'   package = "sits"
+#' ))
+#' # create the data cube
+#' sinop_2014 <- sits_cube(
+#'     type = "BRICK",
+#'     name = "sinop-2014",
+#'     timeline = timeline_2013_2014,
+#'     satellite = "TERRA",
+#'     sensor = "MODIS",
+#'     bands = c("NDVI"),
+#'     files = c(ndvi_file)
+#' )
 #'
-#' # Classify samples.
-#' class.tb <- sits_classify(samples_2bands, rfor_model)
-#'
-#'
-#' # Simulate the area of each label in a reference map.
-#' n_labels <- nrow(sits_labels(class.tb))
-#' area <- sample(1:100 * 10^3, size = n_labels)
-#' names(area) <- unique(class.tb$label)
-#'
-#' # Compute the accuracy.
-#' sits_accuracy_area(class.tb, area)
+#' # classify the data cube with xgb model
+#' sinop_2014_probs <- sits_classify(sinop_2014,
+#'   xgb_model,
+#'   output_dir = tempdir(),
+#'   memsize = 4,
+#'   multicores = 1
+#' )
+#' # label the classification
+#' sinop_2014_label <- sits_label_classification(sinop_2014_probs,
+#'   output_dir = tempdir(),
+#'   smoothing = "bayesian"
+#' )
+#' # get ground truth points
+#' ground_truth <- system.file("extdata/samples/samples_sinop_crop.csv",
+#'   package = "sits"
+#' )
+#' # calculate accuracy according to Olofsson's method
+#' accuracy <- suppressWarnings(sits_accuracy(sinop_2014_label, ground_truth))
 #' }
 #' @export
-sits_accuracy_area <- function(class.tb, area = NULL){
+sits_accuracy <- function(label_cube, validation_csv) {
+    assertthat::assert_that("classified_image" %in% class(label_cube),
+        msg = "sits_accuracy requires a labelled cube"
+    )
+    assertthat::assert_that(file.exists(validation_csv),
+        msg = "sits_accuracy: validation file missing."
+    )
 
-    # backward compatibility
-    class.tb <- .sits_tibble_rename(class.tb)
+    # read sample information from CSV file and put it in a tibble
+    csv_tb <- tibble::as_tibble(utils::read.csv(validation_csv))
 
-    # Get reference classes
-    references <- class.tb$label
+    # Precondition - check if CSV file is correct
+    .sits_csv_check(csv_tb)
 
-    # create a vector to store the result of the predictions
-    mapped <-
-        unlist(purrr::map(class.tb$predicted, function(r)
-            r$class))
+    # find the labels of the cube
+    labels_cube <- sits_labels(label_cube)
 
-    # Get all labels
-    classes   <- unique(c(references, mapped))
+    # get xy in cube projection
+    xy_tb <- .sits_latlong_to_proj(
+        longitude = csv_tb$longitude,
+        latitude = csv_tb$latitude,
+        crs = label_cube$crs
+    )
 
-    # Create error matrix
-    error_matrix <-
-        table(
-            factor(mapped,     levels = classes, labels = classes),
-            factor(references, levels = classes, labels = classes)
+    # join lat-long with XY values in a single tibble
+    points <- dplyr::bind_cols(csv_tb, xy_tb)
+
+    # are there points to be retrieved from the cube?
+    assertthat::assert_that(nrow(points) != 0,
+        msg = "No validation point intersects the map's spatiotemporal extent."
+    )
+
+    # the label cube may contain several classified images
+    pred_ref_lst <- slider::slide(label_cube, function(row) {
+
+        # find the labelled band
+        labelled_band <- sits_bands(row)
+        # the labelled band must be unique
+        assertthat::assert_that(length(labelled_band) == 1,
+            msg = "sits_accuracy: invalid labelled cube"
         )
 
-    # Get area
-    if (purrr::is_null(area))
-        area <- rowSums(error_matrix)
+        # filter the points inside the data cube
+        points_row <- dplyr::filter(
+            points,
+            X > row$xmin & X < row$xmax &
+                Y > row$ymin & Y < row$ymax,
+            start_date == row$file_info[[1]]$date
+        )
+
+        # if there are no points in the cube, return an empty list
+        if (nrow(points_row) < 1) {
+            return(NULL)
+        }
+
+        # convert the tibble to a matrix
+        xy <- matrix(c(points_row$X, points_row$Y),
+                     nrow = nrow(points_row), ncol = 2)
+        colnames(xy) <- c("X", "Y")
+
+        # extract values from cube
+        values <- .sits_raster_api_extract(
+            cube = row,
+            band_cube = labelled_band,
+            xy = xy
+        )
+        # convert to a vector
+        val <- dplyr::pull(values[, 1])
+        # get the predicted values
+        predicted <- labels_cube[val]
+        # Get reference classes
+        reference <- points_row$label
+        # do the number of predicted and reference values match
+        assertthat::assert_that(length(reference) == length(predicted),
+            msg = "sits_accuracy: predicted and reference vector do not match"
+        )
+        # create a tibble to store the results
+        tb <- tibble::tibble(predicted = predicted, reference = reference)
+        # return the list
+        return(tb)
+    })
+    # retrieve the predicted and reference vectors for all rows of the cube
+    pred_ref <- do.call(rbind, pred_ref_lst)
+
+    # Create the error matrix
+    error_matrix <- table(
+        factor(pred_ref$predicted,
+            levels = labels_cube,
+            labels = labels_cube
+        ),
+        factor(pred_ref$reference,
+            levels = labels_cube,
+            labels = labels_cube
+        )
+    )
+
+    # # Get area for each class for each row of the cube
+    freq_lst <- slider::slide(label_cube, function(row) {
+
+        # get the frequency count and value for each labelled image
+        freq <- .sits_raster_api_area_freq(row)
+        # include class names
+        freq <- dplyr::mutate(freq, class = labels_cube[freq$value])
+        return(freq)
+    })
+    # get a tibble by binding the row (duplicated labels with different counts)
+    freq <- do.call(rbind, freq_lst)
+    # summarize the counts for each label
+    freq <- freq %>%
+        dplyr::group_by(class) %>%
+        dplyr::summarise(count = sum(count))
+
+    # area is taken as the sum of pixels
+    area <- freq$count
+    # names of area are the classes
+    names(area) <- freq$class
+    # NAs are set to 0
+    area[is.na(area)] <- 0
 
     # Compute accuracy metrics
-    assessment <- .sits_assess_accuracy_area(error_matrix, area)
+    assess <- .sits_assess_accuracy_area(error_matrix, area)
 
-    return(assessment)
+    # Print assessment values
+    tb <- t(dplyr::bind_rows(assess$accuracy$user, assess$accuracy$producer))
+    colnames(tb) <- c("User", "Producer")
+    #
+    print(knitr::kable(tb,
+        digits = 2,
+        caption = "Users and Producers Accuracy per Class"
+    ))
+
+    # print overall accuracy
+    print(paste0("\nOverall accuracy is ", assess$accuracy$overall))
+
+    return(assess)
 }
+
 
 #' @title Support for Area-weighted post-classification accuracy
 #' @name .sits_assess_accuracy_area
@@ -170,297 +227,87 @@ sits_accuracy_area <- function(class.tb, area = NULL){
 #' @param error_matrix A matrix given in sample counts.
 #'                     Columns represent the reference data and
 #'                     rows the results of the classification
-#' @param area         A vector of the total area of each class on the map
+#' @param area         A named vector of the total area of each class on
+#'                     the map
 #'
-#' @return             A list of lists: The error_matrix,
-#'                     the class_areas,
-#'                     confidence interval (confint95, a list of two numerics)
-#'                     and the accuracy (accuracy, a list of three numerics:
-#'                     overall, user, and producer)
+#' @references
+#' Olofsson, P., Foody G.M., Herold M., Stehman, S.V.,
+#' Woodcock, C.E., Wulder, M.A. (2014)
+#' Good practices for estimating area and assessing accuracy of land change.
+#' Remote Sensing of Environment, 148, pp. 42-57.
+#'
+#' @return
+#' A list of lists: The error_matrix, the class_areas, the unbiased
+#' estimated areas, the standard error areas, confidence interval 95% areas,
+#' and the accuracy (user, producer, and overall).
 
-.sits_assess_accuracy_area <- function(error_matrix, area){
-
-    if (any(dim(error_matrix) == 0))
-        stop("Invalid dimensions in error matrix.", call. = FALSE)
-    if (length(unique(dim(error_matrix))) != 1)
-        stop("The error matrix is not square.", call. = FALSE)
-    if (!all(colnames(error_matrix) == rownames(error_matrix)))
-        stop("Labels mismatch in error matrix.", call. = FALSE)
-    if (unique(dim(error_matrix)) != length(area))
-        stop("Mismatch between error matrix and area vector.",
-             call. = FALSE)
-    if (!all(names(area) %in% colnames(error_matrix)))
-        stop("Label mismatch between error matrix and area vector.",
-             call. = FALSE)
-
-    # Re-order vector elements.
-    area <- area[colnames(error_matrix)]
-
-    W <- area/sum(area)
-    n <- rowSums(error_matrix)
-    if (any(n < 2))
-        stop("Undefined accuracy: one pixel in a class (division by zero).",
-             call. = FALSE)
-    n.mat <- matrix(rep(n, times = ncol(error_matrix)),
-                    ncol = ncol(error_matrix))
-    p <- W * error_matrix / n.mat
-    error_adjusted_area_estimate <- colSums(p) * sum(area)
-    Sphat_1 <- vapply(seq_len(ncol(error_matrix)), function(i){
-        sqrt(sum(W^2 * error_matrix[, i]/n * (1 - error_matrix[, i]/n)/(n - 1)))
-    }, numeric(1))
-
-    SAhat <- sum(area) * Sphat_1
-    Ahat_sup <- error_adjusted_area_estimate + 2 * SAhat
-    Ahat_inf <- error_adjusted_area_estimate - 2 * SAhat
-    Ohat <- sum(diag(p))
-    Uhat <- diag(p) / rowSums(p)
-    Phat <- diag(p) / colSums(p)
-
-    return(
-        list(error_matrix = error_matrix, area = area,
-             confint95 = list(superior = Ahat_sup, inferior = Ahat_inf),
-             accuracy = list(overall = Ohat, user = Uhat, producer = Phat))
+.sits_assess_accuracy_area <- function(error_matrix, area) {
+  if (any(dim(error_matrix) == 0)) {
+    stop("Invalid dimensions in error matrix.", call. = FALSE)
+  }
+  if (length(unique(dim(error_matrix))) != 1) {
+    stop("The error matrix is not square.", call. = FALSE)
+  }
+  if (!all(colnames(error_matrix) == rownames(error_matrix))) {
+    stop("Labels mismatch in error matrix.", call. = FALSE)
+  }
+  if (unique(dim(error_matrix)) != length(area)) {
+    stop("Mismatch between error matrix and area vector.",
+      call. = FALSE
     )
-}
+  }
+  if (!all(names(area) %in% colnames(error_matrix))) {
+    stop("Label mismatch between error matrix and area vector.",
+      call. = FALSE
+    )
+  }
 
-#' @title Print the values of a confusion matrix
-#' @name .print_confusion_matrix
-#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
-#
-#' @description Adaptation of the caret::print.confusionMatrix method
-#'              for the more common usage in Earth Observation.
-#'
-#' @param x         An object of class \code{confusionMatrix}.
-#' @param mode      A single character string either "sens_spec",
-#'                  "prec_recall", or "everything".
-#' @param digits    Number of significant digits when printed.
-#' @param \dots     Optional arguments to pass to \code{print.table}.
-#' @return \code{x}   is invisibly returned.
-#'
-#' @seealso \code{\link{confusionMatrix}}
-.print_confusion_matrix <- function(x, mode = "sens_spec",
-                              digits = max(3, getOption("digits") - 3), ...){
-    cat("Confusion Matrix and Statistics\n\n")
-    print(x$table, ...)
+  # Reorder the area based on the error matrix
+  area <- area[colnames(error_matrix)]
+  #
+  weight <- area / sum(area)
+  class_areas <- rowSums(error_matrix)
 
-    # round the data to the significant digits
-    overall <- round(x$overall, digits = digits)
+  # proportion of area derived from the reference classification
+  # weighted by the area of the classes
+  # cf equation (1) of Olofsson et al (2014)
+  prop <- weight * error_matrix / class_areas
+  prop[is.na(prop)] <- 0
 
-    # get the values of the p-index
-    # pIndex <- grep("PValue", names(x$overall))
-    # tmp[pIndex] <- format.pval(x$overall[pIndex], digits = digits)
-    # overall <- tmp
+  # An unbiased estimator of the total area
+  # based on the reference classification
+  # cf equation (2) of Olofsson et al (2014)
+  error_adjusted_area <- colSums(prop) * sum(area)
 
-    accCI <- paste("(",
-                   paste(overall[ c("AccuracyLower", "AccuracyUpper")],
-                          collapse = ", "), ")",
-                   sep = "")
+  # Estimated standard error of the estimated area proportion
+  # cf equation (3) of Olofsson et al (2014)
+  stderr_prop <- sqrt(colSums((weight * prop - prop**2) / (class_areas - 1)))
 
-    overallText <- c(paste(overall["Accuracy"]), accCI, "",
-                     paste(overall["Kappa"]))
+  # Standard error of the error-adjusted estimated area
+  # cf equation (4) of Olofsson et al (2014)
+  stderr_area <- sum(area) * stderr_prop
 
-    overallNames <- c("Accuracy", "95% CI", "", "Kappa")
+  # area-weighted user's accuracy
+  # cf equation (6) of Olofsson et al (2014)
+  user_acc <- diag(prop) / rowSums(prop)
 
-    if (dim(x$table)[1] > 2) {
-        cat("\nOverall Statistics\n")
-        overallNames <- ifelse(overallNames == "",
-                               "",
-                               paste(overallNames, ":"))
-        out <- cbind(format(overallNames, justify = "right"), overallText)
-        colnames(out) <- rep("", ncol(out))
-        rownames(out) <- rep("", nrow(out))
+  # area-weigthed producer's accuracy
+  # cf equation (7) of Olofsson et al (2014)
+  prod_acc <- diag(prop) / colSums(prop)
 
-        print(out, quote = FALSE)
-
-        cat("\nStatistics by Class:\n\n")
-        x$byClass <- x$byClass[,
-        grepl("(Sensitivity)|(Specificity)|(Pos Pred Value)|(Neg Pred Value)",
-            colnames(x$byClass))]
-        ass.mx <- t(x$byClass)
-        rownames(ass.mx) <- c("Prod Acc (Sensitivity)", "Specificity",
-                              "User Acc (Pos Pred Value)", "Neg Pred Value" )
-        print(ass.mx, digits = digits)
-
-    } else {
-        # this is the case of ony two classes
-        # get the values of the User's and Producer's Accuracy
-        # Names in caret are different from the usual names in Earth observation
-        x$byClass <- x$byClass[
-        grepl("(Sensitivity)|(Specificity)|(Pos Pred Value)|(Neg Pred Value)",
-            names(x$byClass))]
-        # get the names of the two classes
-        nm <- row.names(x$table)
-        # the first class (which is called the "positive" class by caret)
-        c1 <- x$positive
-        # the second class
-        c2 <- nm[!(nm == x$positive)]
-        # make up the values of UA and PA for the two classes
-        pa1 <- paste("Prod Acc ", c1)
-        pa2 <- paste("Prod Acc ", c2)
-        ua1 <- paste("User Acc ", c1)
-        ua2 <- paste("User Acc ", c2)
-        names(x$byClass) <- c(pa1, pa2, ua1, ua2)
-
-        overallText <- c(overallText,
-                         "",
-                         format(x$byClass, digits = digits))
-        overallNames <- c(overallNames, "", names(x$byClass))
-        overallNames <- ifelse(overallNames == "", "", paste(overallNames, ":"))
-
-        out <- cbind(format(overallNames, justify = "right"), overallText)
-        colnames(out) <- rep("", ncol(out))
-        rownames(out) <- rep("", nrow(out))
-
-        out <- rbind(out, rep("", 2))
-
-        print(out, quote = FALSE)
-    }
-
-    invisible(x)
-}
-
-#' @title Obtains the predicted value of a reference set
-#' @name .sits_pred_ref
-#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
-#
-#' @description Obtains a tibble of predicted and reference values
-#' from a classified data set.
-#'
-#' @param  class.tb  Set of classified samples whose labels are known.
-#' @return           A tibble with predicted and reference values.
-.sits_pred_ref <- function(class.tb) {
-    # retrieve the predicted values
-    pred.vec <- unlist(purrr::map(class.tb$predicted, function(r) r$class))
-
-    # retrieve the reference labels
-    ref.vec <- class.tb$label
-    # does the input data contained valid reference labels?
-    assertthat::assert_that(!("NoClass" %in% (ref.vec)),
-        msg = "sits_accuracy: input data without labels")
-
-    # build the tibble
-    pred_ref.tb <- tibble::tibble("predicted" = pred.vec, "reference" = ref.vec)
+  # overall area-weighted accuracy
+  over_acc <- sum(diag(prop))
 
 
-    # return the tibble
-    return(pred_ref.tb)
-}
-
-#' @title Saves the results of accuracy assessments as Excel files
-#' @name sits_to_xlsx
-#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
-#
-#' @description Saves confusion matrices as Excel spreadsheets. This function
-#' takes the a list of confusion matrices generated
-#' by the \code{\link[sits]{sits_conf_matrix}}
-#' function and save them in an Excel spreadsheet.
-#'
-#' @param acc.lst        A list of confusion matrices.
-#' @param file           The file where the XLSX data is to be saved.
-#'
-#' @examples
-#' \donttest{
-#' # read a tibble with 400 samples of Cerrado and 346 samples of Pasture
-#' data(cerrado_2classes)
-#' # perform a 2 fold validation of this sample file
-#' pred_ref.tb <-  sits_kfold_validate(cerrado_2classes, folds = 2)
-#' # calculate and print the confusion matrix
-#' conf.mx <- sits_conf_matrix(pred_ref.tb)
-#' # create a list to store the results
-#' results <- list()
-#' # give a name to the confusion matrix
-#' conf.mx$name <- "confusion_matrix"
-#' # add the confusion matrix to the results
-#' results[[length(results) + 1]] <- conf.mx
-#' # save the results to an XLSX file
-#' sits_to_xlsx(results, file = "confusion_matrix.xlsx")
-#'
-#' # cleanup (optional)
-#' file.remove("confusion_matrix.xlsx")
-#' }
-#' @export
-sits_to_xlsx <- function(acc.lst, file){
-
-    # create a workbook to save the results
-    workbook <- openxlsx::createWorkbook("accuracy")
-    # eo_names of the accuracy assessment parameters
-    eo_n <- c("(Sensitivity)|(Specificity)|(Pos Pred Value)|(Neg Pred Value)")
-
-    ind <- 0
-
-    # save all elements of the list
-    acc.lst %>%
-        purrr::map(function(acc.mx) {
-
-            # create a sheet name"Conf
-            if (purrr::is_null(acc.mx$name)) {
-                ind <<- ind + 1
-                acc.mx$name <- paste0('sheet', ind)
-            }
-            sheet_name <- acc.mx$name
-
-            # add a worksheet
-            openxlsx::addWorksheet(workbook, sheet_name)
-
-            # use only the class names (without the "Class: " prefix)
-            new_names <- unlist(strsplit(colnames(acc.mx$table), split = ": "))
-
-            # remove prefix from confusion matrix table
-            colnames(acc.mx$table) <- new_names
-            # write the confusion matrix table in the worksheet
-            openxlsx::writeData(workbook, sheet_name, acc.mx$table)
-
-            # overall assessment (accuracy and kappa)
-            acc_kappa.mx <- as.matrix(acc.mx$overall[c(1:2)])
-
-            # save the accuracy data in the worksheet
-            openxlsx::writeData(wb    = workbook,
-                                sheet = sheet_name,
-                                x     = acc_kappa.mx,
-                                rowNames = TRUE,
-                                startRow = NROW(acc.mx$table) + 3,
-                                startCol = 1)
-
-            if (dim(acc.mx$table)[1] > 2) {
-                # per class accuracy assessment
-                acc_bc.mx <- t(acc.mx$byClass[,c(1:4)])
-                # remove prefix from confusion matrix table
-                colnames(acc_bc.mx)  <- new_names
-                row.names(acc_bc.mx) <- c("Sensitivity (PA)",
-                                          "Specificity",
-                                          "PosPredValue (UA)",
-                                          "NegPredValue")
-            }
-            else {
-                # this is the case of ony two classes
-                # get the values of the User's and Producer's Accuracy
-
-                acc_bc.mx <- acc.mx$byClass[grepl(eo_n, names(acc.mx$byClass))]
-                # get the names of the two classes
-                nm <- row.names(acc.mx$table)
-                # the first class (called the "positive" class by caret)
-                c1 <- acc.mx$positive
-                # the second class
-                c2 <- nm[!(nm == acc.mx$positive)]
-                # make up the values of UA and PA for the two classes
-                pa1 <- paste("Prod Acc ", c1)
-                pa2 <- paste("Prod Acc ", c2)
-                ua1 <- paste("User Acc ", c1)
-                ua2 <- paste("User Acc ", c2)
-                names(acc_bc.mx) <- c(pa1, pa2, ua1, ua2)
-                acc_bc.mx <- as.matrix(acc_bc.mx)
-            }
-            # save the perclass data in the worksheet
-            openxlsx::writeData(wb     = workbook,
-                                sheet = sheet_name,
-                                x     = acc_bc.mx,
-                                rowNames = TRUE,
-                                startRow = NROW(acc.mx$table) + 8,
-                                startCol = 1)
-        })
-
-    # write the worksheets to the XLSX file
-    openxlsx::saveWorkbook(workbook, file = file, overwrite = TRUE)
-
-    return(message(paste("Saved Excel file", file)))
+  return(
+    list(
+      error_matrix = error_matrix,
+      area_pixels = area,
+      error_ajusted_area = error_adjusted_area,
+      stderr_prop = stderr_prop,
+      stderr_area = stderr_area,
+      conf_interval = 1.96 * stderr_area,
+      accuracy = list(user = user_acc, producer = prod_acc, overall = over_acc)
+    )
+  )
 }

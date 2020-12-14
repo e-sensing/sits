@@ -80,19 +80,19 @@ and code available on github (https://github.com/charlotte-pel/temporalCNN).
 If you use this method, please cite the original tempCNN paper.
 }
 \examples{
-\donttest{
+\dontrun{
 # Retrieve the set of samples for the Mato Grosso (provided by EMBRAPA)
 
 # Build a machine learning model based on deep learning
-tc_model <- sits_train (samples_mt_4bands, sits_TempCNN(epochs = 75))
+tc_model <- sits_train(samples_mt_4bands, sits_TempCNN(epochs = 75))
 # Plot the model
 plot(tc_model)
 
 # get a point and classify the point with the ml_model
-point.tb <- sits_select_bands(point_mt_6bands, ndvi, evi, nir, mir)
-class.tb <- sits_classify(point.tb, tc_model)
+point <- sits_select(point_mt_6bands, bands = c("NDVI", "EVI", "NIR", "MIR"))
+class <- sits_classify(point, tc_model)
 
-plot(class.tb, bands = c("ndvi", "evi"))
+plot(class, bands = c("NDVI", "EVI"))
 }
 }
 \references{

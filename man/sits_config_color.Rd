@@ -16,3 +16,4 @@ Retrieve the color associated a class label.
 \author{
 Gilberto Camara, \email{gilberto.camara@inpe.br}
 }
+\keyword{internal}

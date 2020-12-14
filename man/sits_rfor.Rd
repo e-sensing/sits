@@ -2,51 +2,47 @@
 % Please edit documentation in R/sits_machine_learning.R
 \name{sits_rfor}
 \alias{sits_rfor}
-\title{Train a sits classifiction model using fast random forest algorithm}
+\title{Train a SITS classifiction model using random forest algorithm}
 \usage{
-sits_rfor(data = NULL, num_trees = 2000, importance = "impurity", ...)
+sits_rfor(data = NULL, num_trees = 2000, nodesize = 1, ...)
 }
 \arguments{
-\item{data}{Time series with the training samples.}
+\item{data}{time series with the training samples}
 
-\item{num_trees}{Number of trees to grow. This should not be set
-to too small a number,
+\item{num_trees}{number of trees to grow.
+This should not be set to too small a number,
 to ensure that every input row gets predicted
-at least a few times. (default: 2000).}
+at least a few times. (default: 2000)}
 
-\item{importance}{Variable importance mode, one of 'none',
- 'impurity', 'impurity_corrected', 'permutation'.
-The 'impurity' measure is the Gini index.}
+\item{nodesize}{minimum size of terminal nodes
+(default 1 for classification)}
 
-\item{...}{Other parameters to be passed to \code{\link[ranger]{ranger}} function.}
+\item{...}{other parameters to be passed
+to `randomForest::randomForest` function}
 }
 \value{
-Model fitted to input data
-                    (to be passed to \code{\link[sits]{sits_classify}})
+model fitted to input data
+                        (to be passed to \code{\link[sits]{sits_classify}})
 }
 \description{
-Use Fast Random Forest algorithm to classify data.
-This function is a front-end to the "ranger" method in the "ranger" package.
+Use Random Forest algorithm to classify data.
+This function is a front-end to the "randomForest" package.
 Please refer to the documentation in that package for more details.
 }
 \examples{
-\donttest{
-# Retrieve the set of samples for Mato Grosso  (provided by EMBRAPA)
-samples_2bands <- sits_select_bands(samples_mt_6bands, ndvi, evi)
-
-# Build a machine learning model based on deep learning
-ml_model <- sits_train (samples_2bands, sits_rfor())
-
-# get a point and classify the point with the ml_model
-point.tb <- sits_select_bands(point_mt_6bands, ndvi, evi)
-class.tb <- sits_classify(point.tb, ml_model)
-plot(class.tb, bands = c("ndvi", "evi"))
-}
+# Retrieve the set of samples for the Mato Grosso region
+samples_MT_ndvi <- sits_select(samples_mt_4bands, bands = "NDVI")
+# Build a random forest model
+rfor_model <- sits_train(samples_MT_ndvi, sits_rfor(num_trees = 300))
+# get a point with a 16 year time series
+data(point_ndvi)
+# classify the point
+class.tb <- sits_classify(point_ndvi, rfor_model)
 }
 \author{
-Gilberto Camara, \email{gilberto.camara@inpe.br}
-
 Alexandre Ywata de Carvalho, \email{alexandre.ywata@ipea.gov.br}
 
 Rolf Simoes, \email{rolf.simoes@inpe.br}
+
+Gilberto Camara, \email{gilberto.camara@inpe.br}
 }

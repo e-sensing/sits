@@ -20,16 +20,14 @@ Computes the linearly interpolated bands for a given resolution
               using the R base function approx.
 }
 \examples{
-\donttest{
 # Retrieve a time series with values of NDVI
 data(point_ndvi)
 # find out how many time instances are there
 n_times <- NROW(sits_time_series(point_ndvi))
 # interpolate three times more points
-point_int.tb <- sits_linear_interp(point_ndvi, n = 3*n_times)
+point_int.tb <- sits_linear_interp(point_ndvi, n = 3 * n_times)
 # plot the result
 plot(point_int.tb)
-}
 }
 \author{
 Rolf Simoes, \email{rolf.simoes@inpe.br}

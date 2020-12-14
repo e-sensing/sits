@@ -6,20 +6,23 @@
 \usage{
 .sits_plot_dendrogram(
   data,
-  cluster.obj,
+  cluster_obj,
   cutree_height = NULL,
   colors = "RdYlGn"
 )
 }
 \arguments{
-\item{data}{A sits tibble with data used to extract the dendrogram.}
+\item{data}{sits tibble with data used to extract the dendrogram.}
 
-\item{cluster.obj}{Cluster object produced by `sits_cluster` function.}
+\item{cluster_obj}{cluster object produced by `sits_cluster` function.}
 
-\item{cutree_height}{A dashed horizontal line to be drawn
+\item{cutree_height}{dashed horizontal line to be drawn
 indicating the height of dendrogram cutting.}
 
-\item{colors}{A color scheme as showed in `sits_color_name` function.}
+\item{colors}{color scheme as per `sits_color_name` function.}
+}
+\value{
+plot
 }
 \description{
 Plot a dendrogram
@@ -27,3 +30,4 @@ Plot a dendrogram
 \author{
 Rolf Simoes, \email{rolf.simoes@inpe.br}
 }
+\keyword{internal}

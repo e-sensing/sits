@@ -1,30 +1,31 @@
 Package: sits
 Type: Package
 Title: Satellite Image Time Series Analysis For Remote Sensing Data Cubes
-Version: 0.9.5.1
+Version: 0.9.8
 Authors@R: c(person('Rolf', 'Simoes', role = c('aut'), email = 'rolf.simoes@inpe.br'),
              person('Gilberto', 'Camara', role = c('aut', 'cre'), email = 'gilberto.camara@inpe.br'),
+             person('Felipe', 'Souza', role = c('aut'), email = 'felipe.carvalho@inpe.br'),
              person('Pedro', 'Andrade', role = c('aut'), email = 'pedro.andrade@inpe.br'),
-             person('Victor', 'Maus', role = c('aut'), email = 'vwmaus1@gmail.com'),
-             person('Alexandre', 'Carvalho', role = c('aut'), email= 'alexandre.ywata@ipea.gov.br'),
              person('Lorena', 'Santos', role = c('aut'), email = 'lorena.santos@inpe.br'),
+             person('Alexandre', 'Carvalho', role = c('aut'), email= 'alexandre.ywata@ipea.gov.br'),
              person('Gilberto', 'Queiroz', role = c('aut'), email = 'gilberto.queiroz@inpe.br'),
              person('Karine', 'Ferreira', role = c('aut'), email = 'karine.ferreira@inpe.br'),
-             person('Alber', 'Sanchez', role = c('ctb')),
-             person('Adeline', 'Marinho', role = c('ctb'))
+             person('Alber', 'Sanchez', role = c('ctb'), email = 'alber.ipia@inpe.br'),
+             person('Adeline', 'Marinho', role = c('ctb'), email = 'adeline.maciel@inpe.br'),
+             person('Victor', 'Maus', role = c('aut'), email = 'vwmaus1@gmail.com')
              )
 Maintainer: Gilberto Camara <gilberto.camara@inpe.br>
 Description: A set of tools for working with satellite image time series, both as individual data or as part of data cubes.
-    Supports data retrieval from a WTSS (web time series service) and EOCUBES data service.
+    Supports data retrieval from a WTSS (web time series service), Raster Bricks and cubes from the Brazilan Data Cube.
     Provides different visualisation methods for image time series.
     Provides smoothing methods for noisy time series.
     Enables different clustering methods, including dendrograms and SOM.
     Matches noiseless patterns with noisy time series using the TWDTW method for shape recognition.
     Provides machine learning methods for time series classification, including SVM, Random Forests and Deep Learning.
     Includes functions for smoothing based on Bayesian inference. 
-    Minimum recommended requirements: 4 GB RAM and 1 CPU dual-core.
+    Minimum recommended requirements: 8 GB RAM and 1 CPU dual-core.
 Encoding: UTF-8
-Depends: R (>= 3.6.0)
+Depends: R (>= 3.5.0)
 URL: https://github.com/e-sensing/sits/
 BugReports: https://github.com/e-sensing/sits/issues
 License: GPL-2 | file LICENSE
@@ -33,29 +34,32 @@ LazyData: true
 Imports:
     magrittr,
     assertthat,
-    caret,
     config,
-    data.table (>= 1.12),
+    data.table (>= 1.13),
     dplyr (>= 1.0.0),
     ggplot2,
     graphics,
     grDevices,
+    jsonlite,
     keras (>= 2.3.0),
-    log4r,
     lubridate (>= 1.7.0),
-    openxlsx,
     parallel,
     purrr  (>= 0.3.0),
-    raster (>= 2.6),
+    raster (>= 3.4),
     reshape2,
+    RCurl,
     rgdal (>= 1.5),
     scales,
     sf (>= 0.9),
+    slider (>= 0.1.5),
     stats,
+    terra (>= 0.9),
     tibble (>= 3.0),
-    utils,
-    wtss
+    tidyr,
+    utils
 Suggests:
+    aws.s3 (>= 0.3.21),
+    caret,
     DBI,
     dendextend,
     devtools,
@@ -63,30 +67,38 @@ Suggests:
     dtwSat,
     e1071,
     flexclust,
+    gdalUtils,
     imager,
-    imputeTS,
+    imputeTS, 
     kohonen,
     knitr,
-    lwgeom,
     MASS,
+    mapview,
     methods,
     mgcv,
     nnet,
+    openxlsx,
+    plyr,
     proto,
-    proxy,
     ptw,
-    reticulate (>= 1.16),
-    rmarkdown,
+    reticulate (>= 1.18),
+    randomForest,
     ranger,
     Rcpp,
-    RCurl,
     RSQLite,
+    rstac,
     signal,
+    sp,
+    stars,
+    stringr,
     testthat,
     xgboost,
+    xml2,
+    wtss,
     zoo
 Remotes: 
-    e-sensing/wtss
+    e-sensing/wtss,
+    brazil-data-cube/rstac
 VignetteBuilder: knitr
 LinkingTo:
     Rcpp
@@ -96,36 +108,54 @@ Collate:
     'data.R'
     'sits-package.R'
     'sits_accuracy.R'
+    'sits_brewer.R'
     'sits_classification.R'
+    'sits_classify_ts.R'
+    'sits_classify_cube.R'
+    'sits_clouds.R'
     'sits_config.R'
+    'sits_conf_matrix.R'
     'sits_csv.R'
     'sits_cube.R'
+    'sits_cube_aux_functions.R'
     'sits_cluster.R'
+    'sits_data_generics.R'
     'sits_db.R'
     'sits_deep_learning.R'
+    'sits_distances.R'
     'sits_dt_reference.R'
     'sits_factory.R'
     'sits_FCN.R'
     'sits_filters.R'
     'sits_get_data.R'
     'sits_indexes.R'
+    'sits_imputation.R'
     'sits_keras.R'
     'sits_kohonen.R'
     'sits_labels.R'
-    'sits_log.R'
+    'sits_label_classification.R'
     'sits_LSTM_FCN.R'
     'sits_machine_learning.R'
     'sits_patterns.R'
     'sits_pipe.R'
     'sits_plot.R'
-    'sits_raster.R'
+    'sits_processing_estimate.R'
+    'sits_raster_api.R'
+    'sits_raster_blocks.R'
+    'sits_raster_brick.R'
     'sits_raster_data.R'
+    'sits_raster_sub_image.R'
+    'sits_raster_stack.R'
     'sits_ResNet.R'
+    'sits_roi.R'
     'sits_satveg.R'
+    'sits_sentinel.R'
     'sits_shp.R'
     'sits_space_time_operations.R'
+    'sits_stac.R'
     'sits_TempCNN.R'
     'sits_tibble.R'
+    'sits_tibble_aux_functions.R'
     'sits_timeline.R'
     'sits_twdtw.R'
     'sits_validate.R'

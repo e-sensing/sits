@@ -4,77 +4,25 @@
 \alias{sits_cube}
 \title{Defines a data cube}
 \usage{
-sits_cube(
-  type = NULL,
-  name,
-  URL = NULL,
-  satellite = NULL,
-  sensor = NULL,
-  timeline = NULL,
-  bands = NULL,
-  files = NULL,
-  service = NULL
-)
+sits_cube(type = "RASTER", ...)
 }
 \arguments{
-\item{type}{Type of cube (one of "WTSS", "SATVEG", "BRICK")}
+\item{type}{Type of cube (one of "WTSS", "BRICK", "STACK",
+"BDC_TILE", "S2_L2A_AWS", "PROBS", "CLASSIFIED")}
 
-\item{name}{Name associated to local and remote data
-(deprecated)}
-
-\item{URL}{URL of the service provider (for WTSS).}
-
-\item{satellite}{Name of satellite}
-
-\item{sensor}{Name of sensor}
-
-\item{timeline}{Vector with the timeline of the collection
-(only for local files)}
-
-\item{bands}{Vector of bands.}
-
-\item{files}{Vector of file names for each band
-(only for raster data).}
-
-\item{service}{Name of the data service (deprecated)}
+\item{...}{Other parameters to be passed for specific types}
 }
 \description{
-Defines a cube to retrieve data. '
-Cubes can be of the following types:
+Defines a cube to retrieve data. This is a generic function.
+Cubes can be of the following types. See each function description for the
+required parameters:
 \itemize{
- \item{"WTSS": }{Web Time Series Service - used to get time series}
- \item{"SATVEG": }{ SATVEG Time Series Service - used to get time series}
- \item{"BRICK": }{Raster Brick files}
+ \item{"WTSS": }{see \code{\link{sits_cube.wtss_cube}}}
+ \item{"SATVEG": }{ see \code{\link{sits_cube.satveg_cube}}}
+ \item{"BRICK": }{see \code{\link{sits_cube.brick_cube}}}
+ \item{"STACK": }{see \code{\link{sits_cube.stack_cube}}}
+ \item{"BDC"}{Brazil Data Cube - see \code{\link{sits_cube.bdc_cube}}}
+ \item{"S2_L2A_AWS"}{Sentinel-2 data in AWS -
+                     see \code{\link{sits_cube.s2_l2a_aws_cube}}}
 }
-}
-\examples{
-\donttest{
-# Example 1. Create a data cube based on a WTSS service
-cube_wtss <- sits_cube(type = "WTSS",
-          name = "MOD13Q1",
-          URL = "http://www.esensing.dpi.inpe.br/wtss/")
-
-# Example 2. Create a data cube based on the SATVEG service
-cube_satveg <- sits_cube(type = "SATVEG",
-                         name = "terra")
-
-# Example 3. Create a raster cube based on bricks
-# inform the files that make up a raster brick with 392 time instances
-files <- c(system.file("extdata/raster/mod13q1/sinop-crop-ndvi.tif",
-           package = "sits"))
-
-# create a raster cube file based on the information about the files
-raster.tb <- sits_cube(type = "BRICK",
-                       name      = "Sinop-crop",
-                       satellite = "TERRA",
-                       sensor    = "MODIS",
-                       timeline  = timeline_modis_392,
-                       bands     = "ndvi",
-                       files     = files)
-
-}
-}
-\seealso{
-To see the available values for the parameters above
-use \code{\link{sits_config}} or \code{\link{sits_config_show}}.
 }

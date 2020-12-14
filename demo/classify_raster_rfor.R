@@ -5,15 +5,16 @@ library(sits)
 library(ranger)
 
 if (!requireNamespace("inSitu", quietly = TRUE)) {
-    if (!requireNamespace("devtools", quietly = TRUE))
-        install.packages("devtools")
+    if (!requireNamespace("devtools", quietly = TRUE)) {
+          install.packages("devtools")
+      }
     devtools::install_github("e-sensing/inSitu")
 }
 library(inSitu)
 
-#select the bands for classification
+# select the bands for classification
 samples <- inSitu::br_mt_1_8K_9classes_6bands
-samples_ndvi_evi <- sits_select_bands(samples, ndvi, evi)
+samples_ndvi_evi <- sits_select(samples, bands = c("EVI", "NDVI"))
 
 # build the classification model
 rfor_model <- sits_train(samples_ndvi_evi, ml_method = sits_rfor(num_trees = 2000))
@@ -28,27 +29,31 @@ time_file <- system.file("extdata/Sinop", "timeline_2014.txt", package = "inSitu
 timeline_2013_2014 <- scan(time_file, character())
 
 # create a raster metadata file based on the information about the files
-sinop <- sits_cube(type = "BRICK",
-                   satellite = "TERRA",
-                   sensor    = "MODIS",
-                   name = "Sinop",
-                   timeline = timeline_2013_2014,
-                   bands = c("ndvi", "evi"),
-                   files = files)
-
+sinop <- sits_cube(
+    type = "BRICK",
+    satellite = "TERRA",
+    sensor = "MODIS",
+    name = "Sinop",
+    timeline = timeline_2013_2014,
+    bands = c("NDVI", "EVI"),
+    files = files
+)
 
 # classify the raster image
-sinop_probs <- sits_classify(sinop, ml_model = rfor_model, memsize = 2, multicores = 1)
-
-# label the classified image
-sinop_label <- sits_label_classification(sinop_probs)
-
-# plot the raster image
-plot(sinop_label, time = 1, title = "Sinop")
+sinop_probs <- sits_classify(sinop,
+                             ml_model = rfor_model,
+                             memsize = 24,
+                             multicores = 4,
+                             output_dir = tempdir()
+                             )
+plot(sinop_probs)
 
 # smooth the result with a bayesian filter
-sinop_bayes <- sits_label_classification(sinop_probs, smoothing = "bayesian")
+sinop_bayes <- sits_label_classification(sinop_probs,
+                                         smoothing = "bayesian",
+                                         output_dir = tempdir()
+                                         )
 
+map_1 <- plot(sinop, red = "evi", green = "ndvi", blue = "evi", time = 23)
 # plot the smoothened image
-plot(sinop_bayes, time = 1, title = "Sinop-Bayes")
-
+plot(sinop_bayes, map = map_1, time = 1, title = "Sinop-Bayes")

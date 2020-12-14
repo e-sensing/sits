@@ -11,17 +11,22 @@
 Columns represent the reference data and
 rows the results of the classification}
 
-\item{area}{A vector of the total area of each class on the map}
+\item{area}{A named vector of the total area of each class on
+the map}
 }
 \value{
-A list of lists: The error_matrix,
-                    the class_areas,
-                    confidence interval (confint95, a list of two numerics)
-                    and the accuracy (accuracy, a list of three numerics:
-                    overall, user, and producer)
+A list of lists: The error_matrix, the class_areas, the unbiased
+estimated areas, the standard error areas, confidence interval 95% areas,
+and the accuracy (user, producer, and overall).
 }
 \description{
 Support for Area-weighted post-classification accuracy
+}
+\references{
+Olofsson, P., Foody G.M., Herold M., Stehman, S.V.,
+Woodcock, C.E., Wulder, M.A. (2014)
+Good practices for estimating area and assessing accuracy of land change.
+Remote Sensing of Environment, 148, pp. 42-57.
 }
 \author{
 Alber Sanchez, \email{alber.ipia@inpe.br}

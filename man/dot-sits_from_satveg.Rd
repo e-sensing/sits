@@ -10,9 +10,7 @@
   latitude,
   start_date = NULL,
   end_date = NULL,
-  bands = NULL,
-  label = "NoClass",
-  .prefilter = "1"
+  label = "NoClass"
 )
 }
 \arguments{
@@ -26,13 +24,7 @@
 
 \item{end_date}{The end date of the period.}
 
-\item{bands}{The bands to be retrieved.}
-
 \item{label}{Label to attach to the time series (optional).}
-
-\item{.prefilter}{A string ("0" - none, "1" - no data correction,
-"2" - cloud correction,
-"3" - no data and cloud correction).}
 }
 \value{
 A sits tibble.
@@ -48,3 +40,4 @@ Julio Esquerdo, \email{julio.esquerdo@embrapa.br}
 
 Gilberto Camara, \email{gilberto.camara@inpe.br}
 }
+\keyword{internal}

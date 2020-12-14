@@ -3,23 +3,26 @@ library(keras)
 # install_keras()
 
 if (!requireNamespace("inSitu", quietly = TRUE)) {
-    if (!requireNamespace("devtools", quietly = TRUE))
-        install.packages("devtools")
+    if (!requireNamespace("devtools", quietly = TRUE)) {
+          install.packages("devtools")
+      }
     devtools::install_github("e-sensing/inSitu")
 }
 library(inSitu)
 
-samples_ndvi_evi <- sits_select_bands(samples_mt_4bands, ndvi, evi)
+samples_ndvi_evi <- sits_select(samples_mt_4bands, bands = c("NDVI", "EVI"))
 
 # train the deep learning model
-dl_model <-  sits_train(samples_ndvi_evi,
-                        ml_method = sits_deeplearning(
-                             layers           = c(512, 512, 512),
-                             activation       = 'relu',
-                             dropout_rates    = c(0.50, 0.40, 0.35),
-                             epochs = 100,
-                             batch_size = 128,
-                             validation_split = 0.2))
+dl_model <- sits_train(samples_ndvi_evi,
+    ml_method = sits_deeplearning(
+        layers = c(512, 512, 512),
+        activation = "relu",
+        dropout_rates = c(0.50, 0.40, 0.35),
+        epochs = 100,
+        batch_size = 128,
+        validation_split = 0.2
+    )
+)
 
 sits_keras_diagnostics(dl_model)
 
@@ -30,31 +33,42 @@ ndvi_file <- system.file("extdata/Sinop", "Sinop_ndvi_2014.tif", package = "inSi
 files <- c(ndvi_file, evi_file)
 # define the timeline
 time_file <- system.file("extdata/Sinop",
-                         "timeline_2014.txt",
-                         package = "inSitu")
+    "timeline_2014.txt",
+    package = "inSitu"
+)
 timeline_2013_2014 <- scan(time_file, character())
 
 # create a raster metadata file based on the information about the files
-# create a raster metadata file based on the information about the files
-sinop <- sits_cube(type = "BRICK",
-                   satellite = "TERRA",
-                   sensor    = "MODIS",
-                   name = "Sinop",
-                   timeline = timeline_2013_2014,
-                   bands = c("ndvi", "evi"),
-                   files = files)
+sinop <- sits_cube(
+    type = "BRICK",
+    satellite = "TERRA",
+    sensor = "MODIS",
+    name = "Sinop",
+    timeline = timeline_2013_2014,
+    bands = c("NDVI", "EVI"),
+    files = files
+)
 
 # classify the raster image
-sinop_probs <- sits_classify(sinop, ml_model = dl_model, memsize = 4, multicores = 1)
+sinop_probs <- sits_classify(sinop,
+                             ml_model = dl_model,
+                             memsize = 12,
+                             multicores = 4,
+                             output_dir = tempdir()
+)
 
 # label the classified image
-sinop_label <- sits_label_classification(sinop_probs)
+sinop_label <- sits_label_classification(sinop_probs,
+                                         output_dir = tempdir()
+)
 
 # plot the raster image
 plot(sinop_label, time = 1, title = "Sinop-2013-2014")
 
 # smooth the result with a bayesian filter
-sinop_bayes <- sits_label_classification(sinop_probs, smoothing = "bayesian")
+sinop_bayes <- sits_label_classification(sinop_probs,
+                                         smoothing = "bayesian",
+                                         output_dir = tempdir())
 
 # plot the smoothened image
 plot(sinop_bayes, time = 1, title = "Sinop-smooth")

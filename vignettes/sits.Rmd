@@ -1,12 +1,6 @@
 ---
-output:
-    pdf_document:
-      citation_package: natbib
-      df_print: tibble
-      fig_caption: yes
-      keep_tex: no
-      template: "../inst/extdata/markdown/latex-ms.tex"
-title: 'SITS: Data Analysis and Machine Learning for Data Cubes using Satellite Image Time Series'
+title: 'SITS: Data Analysis and Machine Learning for Data Cubes using Satellite Image
+  Time Series'
 author:
 - affiliation: National Institute for Space Research (INPE), Brazil
   name: Rolf Simoes
@@ -25,14 +19,31 @@ author:
 - affiliation: National Institute for Space Research (INPE), Brazil
   name: Gilberto Queiroz
 date: "`r format(Sys.time(), '%B %d, %Y')`"
-endnote: false
+output:
+  pdf_document:
+    citation_package: natbib
+    df_print: tibble
+    fig_caption: yes
+    keep_tex: no
+    template: ../inst/extdata/markdown/latex-ms.tex
+  html_document:
+    df_print: paged
 fontfamily: mathdesign
 fontfamilyoptions: adobe-utopia
-fontsize: 11pt
-graphics: true
-mathtools: true
+endnote: no
+graphics: yes
+mathtools: yes
 bibliography: ../inst/extdata/markdown/references-sits.bib
-abstract: Using time series derived from big Earth Observation data sets is one of the leading research trends in Land Use Science and Remote Sensing. One of the more promising uses of satellite time series is its application for classification of land use and land cover, since our growing demand for natural resources has caused major environmental impacts. Here, we present an open source *R* package for satellite image time series analysis called `sits`. Package `sits` provides support on how to use statistical learning techniques with image time series obtained from data cubes. These methods include linear and quadratic discrimination analysis, support vector machines, random forests, boosting, deep learning and convolution neural networks.
+abstract: Using time series derived from big Earth Observation data sets is one of
+  the leading research trends in Land Use Science and Remote Sensing. One of the more
+  promising uses of satellite time series is its application for classification of
+  land use and land cover, since our growing demand for natural resources has caused
+  major environmental impacts. Here, we present an open source *R* package for satellite
+  image time series analysis called `sits`. Package `sits` provides support on how
+  to use statistical learning techniques with image time series obtained from data
+  cubes. These methods include linear and quadratic discrimination analysis, support
+  vector machines, random forests, boosting, deep learning and convolution neural
+  networks.
 vignette: |
   %\VignetteEncoding{UTF-8} 
   %\VignetteEngine{knitr::rmarkdown} 
@@ -77,13 +88,15 @@ These services are set on the SITS configuration file, which is described later 
 
 To define a data cube for the WTSS, in principle the following parameters should be provided: (a) the type of the service ("WTSS"); (b) the URL; (c) the satellite and sensor associated to the cube, and (d) name of the data cube in the remote service. The package will retrieve the information about the cube from the WTSS service.
 
-```{r}
+```{r, eval = FALSE}
 # define the data cube "MOD13Q1" using the WTSS service
 # In this case, the WTSS service is run by a server in INPE Brazil
 wtss_cube <- sits_cube(type = "WTSS", 
                        URL = "http://www.esensing.dpi.inpe.br/wtss",
                        name = "MOD13Q1")
+````
 
+```{r}
 # get information on the data cube 
 wtss_cube %>% dplyr::select(type, URL, satellite, sensor)
 # spatial dimensions of the data cube
@@ -112,20 +125,18 @@ Since GeoTiff files do not contain information about satellites and sensors, it 
 ndvi_file <- system.file("extdata/raster/mod13q1/sinop-crop-ndvi.tif", 
                          package = "sits")
 
-# Obtain the associated timeline
-timeline <- data("timeline_2000_2017")
 
 # create a raster metadata file based on the information about the files
 raster_cube <- sits_cube(type = "BRICK",
                          name = "Sinop", 
                          satellite = "TERRA",
                          sensor = "MODIS",
-                         timeline = timeline,
-                         bands = c("ndvi"), 
+                         timeline = timeline_modis_392,
+                         bands = c("NDVI"), 
                          files = c(ndvi_file))
 
 # get information on the data cube 
-raster_cube %>% dplyr::select(type, URL, satellite, sensor)
+raster_cube %>% dplyr::select(type, satellite, sensor)
 # get information on the coverage
 raster_cube %>% dplyr::select(xmin, xmax, ymin, ymax)
 ```
@@ -156,14 +167,20 @@ sits_time_series(samples_mt_4bands[1,])[1:3,]
 
 To get a time series in SITS, one has to create a data cube first, as described above. Alternatively, the time series can also be converted from data stored  in the ZOO format [@Zeileis2005]. Users can request one or more time series points from a data cube by using `sits_get_data()`. This function provides a general means of access to image time series. Given data cue, the user provides the latitude and longitude of the desired location, the bands, and the start date and end date of the time series. If the start and end dates are not provided, it retrieves all the available period. The result is a tibble that can be visualized using `plot()`.
 
-```{r, fig.align="center", fig.height=3.1, fig.width=5, fig.cap="NDVI and EVI time series fetched from WTSS service."}
-# a point in the transition forest to pasture in Northern MT
+```{r, eval = FALSE}
+# a point in the transition forest to pasture and then to agriculture in Mato Grosso
 # obtain a time series from the WTSS server for this point
-series.tb <- sits_get_data(cube      = wtss_cube,
-                           longitude = -55.57320, 
-                           latitude  = -11.50566,
-                           bands     = c("ndvi", "evi"))
-plot(series.tb)
+point_ndvi <- sits_get_data(cube      = wtss_cube,
+                           longitude = -55.50563, 
+                           latitude  = -11.71557,
+                           bands     = c("NDVI"))
+```
+
+
+
+```{r, fig.align="center", fig.height=3.1, fig.width=5, fig.cap="NDVI time series fetched from WTSS service."}
+
+plot(point_ndvi)
 ```
 
 # Filtering techniques 
@@ -210,10 +227,10 @@ When a dataset of time series organised as a SITS tibble is taken as input to th
 
 #select the data for classification
 # get a point to be classified
-point_2bands <- sits_select_bands(point_mt_6bands, ndvi, evi)
+point_2bands <- sits_select(point_mt_6bands, bands = c("NDVI", "EVI"))
 
 # Train a machine learning model using Random Forest
-samples_mt_2bands <- sits_select_bands(samples_mt_4bands, ndvi, evi)
+samples_mt_2bands <- sits_select(samples_mt_4bands, bands = c("NDVI", "EVI"))
 model <- sits_train(data = samples_mt_2bands, 
                     ml_method = sits_rfor(num_trees = 100))
 
@@ -285,19 +302,43 @@ The first parameter is `memsize`. It controls the size of the main memory (in GB
 Based on current experience, the classification of a MODIS tile (4800 x 4800) with four bands and 400 time instances, covering 15 years of data, using SVM with a training data set of about 10,000 samples, takes about 24 hours using 20 cores and a memory size of 60 GB, in a server with 2.4GHz Xeon CPU and 96 GB of memory to produce the yearly classification maps.
 
 ```{r, eval = FALSE}
+# install the inSitu package with some realistic examples
+if (!requireNamespace("inSitu", quietly = TRUE)) {
+    if (!requireNamespace("devtools", quietly = TRUE))
+        install.packages("devtools")
+    devtools::install_github("e-sensing/inSitu")
+}
+library(inSitu)
 # Retrieve the set of samples for the Mato Grosso region 
 # Select the data for classification
 mato_grosso_samples <- inSitu::br_mt_1_8K_9classes_6bands
-mato_grosso_2bands  <- sits_select_bands(mato_grosso_samples, ndvi, evi)
+mato_grosso_2bands  <- sits_select(mato_grosso_samples, bands = c("NDVI", "EVI"))
 
 # build a machine learning model for this area
-xbg_model <- sits_train(mato_grosso_2bands, sits_xgboost())
+svm_model <- sits_train(mato_grosso_2bands, sits_svm())
 
-# Use the raster cube created in the section 
-# "Defining a data cube using files" above
+# select the bands "ndvi", "evi" from the "inSitu" package
+evi_file <- system.file("extdata/Sinop", "Sinop_evi_2014.tif", package = "inSitu")
+ndvi_file <- system.file("extdata/Sinop", "Sinop_ndvi_2014.tif", package = "inSitu")
+
+files <- c(ndvi_file, evi_file)
+# define the timeline
+time_file <- system.file("extdata/Sinop", "timeline_2014.txt", package = "inSitu")
+timeline_2013_2014 <- scan(time_file, character())
+
+# create a raster metadata file based on the information about the files
+sinop <- sits_cube(type = "BRICK",
+                   satellite = "TERRA",
+                   sensor  = "MODIS",
+                   name = "Sinop",
+                   timeline = timeline_2013_2014,
+                   bands = c("NDVI", "EVI"),
+                   files = files)
+
+# Use the sinop raster cube created in the section 
 # Classify the raster cube, generating a probability file
-probs_cube <- sits_classify(raster_cube, ml_model = xbg_model, 
-                            memsize = 2, multicores = 1)
+probs_cube <- sits_classify(sinop, ml_model = svm_model, 
+                            memsize = 16, multicores = 4)
 
 # label the probability file 
 # (by default selecting the class with higher probability)

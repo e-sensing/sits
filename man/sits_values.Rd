@@ -29,7 +29,7 @@ that require values that are rowwise or colwise organised.
 # Retrieve a set of time series with 2 classes
 data(cerrado_2classes)
 # retrieve the values split by bands
-sits_values(cerrado_2classes[1:2,], format = "bands_dates_cases")
+sits_values(cerrado_2classes[1:2, ], format = "bands_dates_cases")
 }
 \author{
 Rolf Simoes, \email{rolf.simoes@inpe.br}

@@ -4,15 +4,19 @@
 \alias{.sits_ggplot_together}
 \title{Plot many timeSeries together using ggplot}
 \usage{
-.sits_ggplot_together(melted.tb, means.tb, plot_title)
+.sits_ggplot_together(melted, means, plot_title)
 }
 \arguments{
-\item{melted.tb}{A tibble with the time series (already melted).}
+\item{melted}{tibble with the time series (already melted).}
 
-\item{means.tb}{Means and std deviations of the time series.}
+\item{means}{means and std deviations of the time series.}
 
-\item{plot_title}{The title for the plot.}
+\item{plot_title}{title for the plot.}
+}
+\value{
+plot
 }
 \description{
 Plots a set of  time series together.
 }
+\keyword{internal}

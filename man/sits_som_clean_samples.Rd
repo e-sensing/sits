@@ -6,7 +6,7 @@
 \usage{
 sits_som_clean_samples(
   som_map,
-  conditonal_threshold = 0.6,
+  prior_threshold = 0.6,
   posterior_threshold = 0.6
 )
 }
@@ -14,28 +14,33 @@ sits_som_clean_samples(
 \item{som_map}{An object returned
 by \code{\link[sits]{sits_som_map}}}
 
-\item{conditonal_threshold}{Threshold of conditional probability
+\item{prior_threshold}{Threshold of conditional probability
 (frequency of samples assigned to the same SOM neuron)}
 
 \item{posterior_threshold}{Threshold of posterior probability
 (influenced by the SOM neighborhood)}
 }
 \value{
-A list with two sits tibbles
-                                The first tibble has clean samples
-                                The second has samples that need to be analysed
+List with two sits tibbles.
+        The first tibble has clean samples
+        The second has samples that need to be analysed.
 }
 \description{
-This function remove sample that do not have good quality based
-on the statistics of the result of the clustering using SOM. It also provides
-samples that should be analysed.
+This function evaluate the quality of the samples
+based on the results of the SOM map. It produces
+a sits tibble with an evaluation column indicating if
+each sample is clean, should be analyzed or
+should be removed, and with a new column indicating
+the posterior probability of the sample
 }
 \examples{
-\donttest{
+\dontrun{
 # Read a set of samples
 # Get a new subset of samples evaluated by clustering methods
-som_map <- sits_som_map(prodes_226_064, grid_xdim = 10, grid_ydim = 10,
-       distance = "euclidean", iterations = 50)
+som_map <- sits_som_map(samples_mt,
+    grid_xdim = 10, grid_ydim = 10,
+    distance = "euclidean"
+)
 new_samples <- sits_som_clean_samples(som_map)
 }
 }

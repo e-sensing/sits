@@ -66,17 +66,17 @@ This function is a front-end to the "svm" method in the "e1071" package.
 Please refer to the documentation in that package for more details.
 }
 \examples{
-\donttest{
+\dontrun{
 # Retrieve the set of samples for  Mato Grosso  (provided by EMBRAPA)
-samples_2bands <- sits_select_bands(samples_mt_6bands, ndvi, evi)
+samples_2bands <- sits_select(samples_mt_4bands, bands = c("NDVI", "EVI"))
 
 # Build a machine learning model based on deep learning
-ml_model <- sits_train (samples_2bands, sits_svm())
+ml_model <- sits_train(samples_2bands, sits_svm())
 
 # get a point and classify the point with the ml_model
-point.tb <- sits_select_bands(point_mt_6bands, ndvi, evi)
+point.tb <- sits_select(point_mt_6bands, bands = c("NDVI", "EVI"))
 class.tb <- sits_classify(point.tb, ml_model)
-plot(class.tb, bands = c("ndvi", "evi"))
+plot(class.tb, bands = c("NDVI", "EVI"))
 }
 }
 \author{

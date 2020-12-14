@@ -17,61 +17,13 @@ A set of filtered time series
 \description{
 Given a set of time series, filter them with one of
 the available filtering algorithms:
-}
-\examples{
-\donttest{
-# Test the diffeent filters
-plot(point_ndvi)
 
-# Apply the cloud filter
-# Merge the filtered with the raw data
-# Plot the result
-point_ndvi \%>\%
-      sits_filter(filter = sits_cloud_removal(bands_suffix = "cf")) \%>\%
-      sits_merge (point_ndvi, .) \%>\%
-      plot()
-
-
-# Apply the envelope filter
-# Merge the filtered with the raw data
-# Plot the result
-point_ndvi \%>\%
-      sits_filter(filter = sits_envelope(bands_suffix = "env")) \%>\%
-      sits_merge (point_ndvi, .) \%>\%
-      plot()
-
-# Apply the ARIMA filter
-# Merge the filtered with the raw data
-# Plot the result
-point_ndvi \%>\%
-      sits_filter(filter = sits_ndvi_arima(bands_suffix = "arima")) \%>\%
-      sits_merge (point_ndvi, .) \%>\%
-      plot()
-
-# Apply the Whittaker smoother
-# Merge the filtered with the raw data
-# Plot the result
-point_ndvi \%>\%
-      sits_filter(filter =
-                  sits_whittaker (lambda = 3.0, bands_suffix = "whit")) \%>\%
-      sits_merge (point_ndvi, .) \%>\%
-      plot()
-
-# Apply the Savitsky-Golay smoother
-# Merge the filtered with the raw data
-# Plot the result
-point_ndvi \%>\%
-      sits_filter(filter = sits_sgolay(bands_suffix = "sg")) \%>\%
-      sits_merge (point_ndvi, .) \%>\%
-      plot()
-
-# interpolate three times more points
-# find out how many time instances are there in the time series
-n_times <- NROW(sits_time_series(point_ndvi))
-point_int <- sits_filter(point_ndvi, sits_linear_interp(n = 3*n_times))
-# plot the result
-plot(point_int)
-
+\itemize{
+ \item{Whittaker smoother - see \code{\link{sits_whittaker}}}
+ \item{ Savitsky-Golay filter - see \code{\link{sits_sgolay}}}
+ \item{Envelope filter - see \code{\link{sits_envelope}}}
+ \item{Interpolation filter - see \code{\link{sits_interp}}}
+ \item{Kalman filter - see \code{\link{sits_kalman}}}
 }
 }
 \author{
