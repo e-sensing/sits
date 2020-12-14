@@ -150,9 +150,9 @@ test_that("Multi-year, multi-core classification", {
 test_that("One-year, single core classification", {
     samples_2bands <- sits_select(samples_mt_4bands, bands = c("NDVI", "EVI"))
     dl_model <- sits_train(samples_2bands, sits_deeplearning(
-        layers = c(128, 128),
-        dropout_rates = c(0.5, 0.4),
-        epochs = 30,
+        layers = c(256, 256, 256),
+        dropout_rates = c(0.5, 0.4, 0.3),
+        epochs = 80,
         batch_size = 64,
         verbose = 0
     ))
@@ -194,7 +194,7 @@ test_that("One-year, single core classification", {
     expect_true(max_lyr1 < 4500)
 
     max_lyr3 <- max(terra::values(rc_obj)[, 3])
-    expect_true(max_lyr3 > 8000)
+    expect_true(max_lyr3 > 7000)
 
     expect_true(all(file.remove(unlist(sinop_probs$file_info[[1]]$path))))
 })
@@ -392,58 +392,7 @@ test_that("One-year, multicore classification", {
 
     expect_true(all(file.remove(unlist(sinop_probs$file_info[[1]]$path))))
 })
-test_that("One-year, multicore classification with ROI", {
-    samples_2bands <- sits_select(samples_mt_4bands, bands = c("NDVI", "EVI"))
 
-    svm_model <- sits_train(samples_2bands, sits_svm())
-
-    ndvi_file <- c(system.file("extdata/raster/mod13q1/sinop-evi-2014.tif",
-        package = "sits"
-    ))
-
-    evi_file <- c(system.file("extdata/raster/mod13q1/sinop-evi-2014.tif",
-        package = "sits"
-    ))
-
-    data("timeline_2013_2014")
-
-    sinop <- sits_cube(
-        type = "BRICK",
-        name = "sinop-2014",
-        timeline = timeline_2013_2014,
-        satellite = "TERRA",
-        sensor = "MODIS",
-        bands = c("ndvi", "evi"),
-        files = c(ndvi_file, evi_file)
-    )
-
-    bbox <- sits_bbox(sinop)
-    bbox["xmax"] <- (bbox["xmax"] - bbox["xmin"]) / 2 + bbox["xmin"]
-    bbox["ymax"] <- (bbox["ymax"] - bbox["ymin"]) / 2 + bbox["ymin"]
-
-    sinop_probs <- suppressMessages(
-        sits_classify(sinop,
-                      svm_model,
-                      output_dir = tempdir(),
-                      roi = bbox,
-                      memsize = 4, multicores = 2
-        )
-    )
-
-    expect_true(all(file.exists(unlist(sinop_probs$file_info[[1]]$path))))
-    rc_obj <- suppressWarnings(terra::rast(sinop_probs$file_info[[1]]$path[1]))
-    expect_true(terra::nrow(rc_obj) == sinop_probs$nrows)
-
-    expect_true(all(sits_bbox(sinop_probs) == bbox))
-
-    max_lyr2 <- max(terra::values(rc_obj)[, 2])
-    expect_true(max_lyr2 < 1000)
-
-    max_lyr3 <- max(terra::values(rc_obj)[, 3])
-    expect_true(max_lyr3 > 8000)
-
-    expect_true(all(file.remove(unlist(sinop_probs$file_info[[1]]$path))))
-})
 
 test_that("Check GDAL access", {
     files <- c(system.file("extdata/raster/mod13q1/sinop-crop-ndvi.tif",

@@ -13,6 +13,7 @@
 #'  \item{raster cube:}{ see \code{\link{plot.raster_cube}}}
 #'  \item{classification probabilities:}{ see \code{\link{plot.probs_cube}}}
 #'  \item{classified image :}{see \code{\link{plot.classified_image}}}
+#'  \item{SOM evaluate cluster :}{see \code{\link{plot.evaluate_cluster}}}
 #' }
 #'
 #'
@@ -409,15 +410,16 @@ plot.classified_image <- function(x, y, ..., map = NULL, time = 1,
 }
 
 #' @title  Plot information about confunsion between clusters
-#' @name   plot.som_confusion
+#' @name   plot.som_evaluate_cluster
 #' @author Lorena Santos \email{lorena.santos@@inpe.br}
 #'
 #' @description Plot a bar graph with informations about each cluster.
 #' The percentage of mixture between the clusters.
 #'
-#' @param  x            object of class "som_confusion"
+#' @param  x            object of class "plot.som_evaluate_cluster"
 #' @param  y            ignored
 #' @param  ...          further specifications for \link{plot}.
+#' @param  name_cluster Choose the cluster to plot
 #' @param  title        title of plot. default is ""Confusion by cluster"".
 #' @return              plot
 #' @examples
@@ -432,10 +434,10 @@ plot.classified_image <- function(x, y, ..., map = NULL, time = 1,
 #' plot(cluster_overall)
 #' }
 #' @export
-plot.som_confusion <- function(x, y, ..., title = "Confusion by cluster") {
-    stopifnot(missing(y))
-    p <- .sits_plot_som_confusion(x, title)
-    return(invisible(p))
+plot.som_evaluate_cluster <- function(x, y, ..., name_cluster = NULL, title = "Confusion by cluster") {
+  stopifnot(missing(y))
+  p <- .sits_plot_som_evaluate_cluster(x, name_cluster, title)
+  return(invisible(p))
 }
 #' @title  Generic interface for plotting a SOM map
 #' @name   plot.som_map
@@ -966,71 +968,6 @@ plot.keras_model <- function(x, y, ...) {
     return(invisible(g_lst[[1]]))
 }
 
-#' @title Plot a raster classified images
-#'
-#' @name .sits_plot_raster
-#' @keywords internal
-#'
-#' @description plots a raster using ggplot. This function is used
-#' for showing the same lat/long location in a series of time steps.
-#'
-#' @param cube        A tibble with the metadata for a labelled data cube.
-#' @param time        Temporal reference for plot.
-#' @param title       A string.
-#' @param colors      Color pallete.
-.sits_plot_raster <- function(cube,
-                              time = 1,
-                              title = "Classified Image",
-                              colors = NULL) {
-    # precondition 1 - cube must be a labelled cube
-    assertthat::assert_that(as.logical(
-      grep("class", .sits_cube_bands(cube)[1])
-      ), msg = "sits_plot_raster: input cube must be a labelled one"
-    )
-    # precondition 2 - time must be a positive integer
-    assertthat::assert_that(time >= 1,
-        msg = "sits_plot_raster: time must be a positive integer"
-    )
-
-    # get the raster object
-    r <- suppressWarnings(raster::raster(cube$files[[1]][time]))
-    assertthat::assert_that(raster::ncol(r) > 0 & raster::nrow(r) > 1,
-        msg = "plot.raster_cube: unable to retrive raster data"
-    )
-
-    # convert from raster to points
-    map_points <- raster::rasterToPoints(r)
-    # create a data frame
-    df <- data.frame(map_points)
-    # define the column names for the data frame
-    colnames(df) <- c("x", "y", "class")
-
-    # get the labels and how many there are
-    labels <- .sits_cube_labels(cube)
-    nclasses <- length(labels)
-    # create a mapping from classes to labels
-    names(labels) <- as.character(c(1:nclasses))
-
-    # if colors are not specified, get them from the configuration file
-    if (purrr::is_null(colors)) {
-        colors <- .sits_config_colors(labels)
-    }
-    # set the names of the color vector
-    names(colors) <- as.character(c(1:nclasses))
-
-    # plot the data with ggplot
-    g <- ggplot2::ggplot(df, ggplot2::aes(x, y)) +
-        ggplot2::geom_raster(ggplot2::aes(fill = factor(class))) +
-        ggplot2::labs(title = title) +
-        ggplot2::scale_fill_manual(
-            values = colors, labels = labels,
-            guide = ggplot2::guide_legend(title = "Classes")
-        )
-
-    graphics::plot(g)
-    return(g)
-}
-
 #' @title Plot a dendrogram
 #' @name .sits_plot_dendrogram
 #' @keywords internal
@@ -1179,49 +1116,46 @@ plot.keras_model <- function(x, y, ...) {
 }
 
 #' @title  Plot information about confusion between clusters
-#' @name   .sits_plot_som_confusion
+#' @name   .sits_plot_som_evaluate_cluster
 #' @keywords internal
 #' @author Lorena Santos \email{lorena.santos@@inpe.br}
 #'
 #' @description Plot a bar graph with informations about each cluster.
 #' The percentage of mixture between the clusters.
 #'
-#' @param data       Percentage of mixture between the clusters
-#' @param title      Title of plot.
-#' @return           ggplot2 object
-.sits_plot_som_confusion <- function(data, title) {
-    if (!("som_confusion" %in% class(data))) {
+#' @param data          Percentage of mixture between the clusters
+#' @param  name_cluster Choose the cluster to plot
+#' @param title         Title of plot.
+#' @return              ggplot2 object
+.sits_plot_som_evaluate_cluster <- function(data, cluster_name = NULL, title = "Confusion by cluster") {
+    if (!("som_evaluate_cluster" %in% class(data))) {
         message("unable to plot - please run sits_som_evaluate_cluster")
         return(invisible(NULL))
     }
-    #
-    data <- data$mixture_samples_by_class
-    sample_class <- data$classes_confusion
 
+    # Filter the cluster to plot
+    if (!(is.null(cluster_name))){
+      data <- dplyr::filter(data, cluster %in% cluster_name)
+    }
     p <- ggplot2::ggplot() +
-        ggplot2::geom_bar(
-            ggplot2::aes(
-                y = mixture_percentage,
-                x = class,
-                fill = sample_class
-            ),
-            data = data,
-            stat = "identity",
-            position = ggplot2::position_dodge()
-        ) +
-        ggplot2::theme_minimal() +
-        ggplot2::theme(
-            axis.text.x =
-                ggplot2::element_text(angle = 60, hjust = 1)
-        ) +
-        ggplot2::labs(
-            x = "Classes", y = "Percentage of mixture",
-            colour = "Sample Class"
-        ) +
-        ggplot2::ggtitle(title)
+      ggplot2::geom_bar(
+        ggplot2::aes(
+          y = mixture_percentage,
+          x = cluster,
+          fill = class
+        ),
+        data = data,
+        stat = "identity",
+        position = ggplot2::position_dodge()
+      ) +
+      ggplot2::theme_minimal() +
+      ggplot2::theme(axis.text.x =
+                       ggplot2::element_text(angle = 60, hjust = 1)) +
+      ggplot2::labs(x = "Cluster", y = "Percentage of mixture") +
+      ggplot2::scale_fill_discrete(name = "Class label") +
+      ggplot2::ggtitle(title)
 
     p <- graphics::plot(p)
-
     return(invisible(p))
 }
 #' @title  Assign RGB channels to into image layers with many time instance
