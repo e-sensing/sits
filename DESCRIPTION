@@ -98,7 +98,6 @@ Suggests:
     zoo
 Remotes: 
     e-sensing/wtss,
-    brazil-data-cube/rstac
 VignetteBuilder: knitr
 LinkingTo:
     Rcpp

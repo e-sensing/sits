@@ -327,8 +327,8 @@ sits_cube.bdc_cube <- function(type = "BDC", ...,
 
     # require package
     if (!requireNamespace("rstac", quietly = TRUE)) {
-        stop("Please install package rstac from brazil-data-cube github",
-            call. = FALSE
+        stop(paste("Please install package rstac from CRAN:",
+                   "'install.packages(rstac)'"), call. = FALSE
         )
     }
     if (purrr::is_null(url)) {
@@ -384,8 +384,8 @@ sits_cube.bdc_cube <- function(type = "BDC", ...,
 
     # creating a group of items per tile
     items_group <- .sits_stac_group(items_info,
-        fields = c("properties", "bdc:tile")
-    )
+                                    fields = c("properties", "bdc:tiles"))
+
 
     tiles <- purrr::map(items_group, function(items) {
 

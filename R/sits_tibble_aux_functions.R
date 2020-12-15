@@ -264,40 +264,6 @@ sits_mutate_bands <- function(data, ...) {
 
     return(data)
 }
-#' @title Extract a subset of the data based on dates
-#' @name .sits_extract
-#' @keywords internal
-#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
-#'
-#' @description Returns a vector containing the dates of a sits tibble.
-#'
-#' @param  data       A sits tibble.
-#' @param  start_date Starting date of the time series segment.
-#' @param  end_date   End date of the time series segment.
-#' @return A tibble in sits format with the chosen subset.
-.sits_extract <- function(data, start_date, end_date) {
-
-    # pre-conditions
-    assertthat::assert_that(start_date %in% sits_timeline(data),
-                            msg = ".sits_extract: invalid start_date")
-    assertthat::assert_that(end_date %in% sits_timeline(data),
-                          msg = ".sits_extract: invalid end_date")
-    assertthat::assert_that(as.Date(start_date) < as.Date(end_date),
-                            msg = ".sits_extract: start_date is after end_date")
-
-    # filter the time series by start and end dates
-    rows <- data %>%
-      slider::slide(function(row) {
-        ts <- sits_time_series(row)
-        indexes <- dplyr::between(ts$Index, start_date, end_date)
-        row$time_series <- list(ts[indexes, ])
-        row$start_date <- start_date
-        row$end_date <- end_date
-        return(row)
-      })
-    data <- do.call(rbind, rows)
-    return(data)
-}
 
 #' @title Check that the requested bands exist in the samples
 #' @name .sits_samples_bands_check
@@ -351,27 +317,6 @@ sits_mutate_bands <- function(data, ...) {
 
     return(TRUE)
 }
-
-#' @title Store the results of CSV samples that could not be read
-#' @name .sits_tibble_csv
-#' @keywords internal
-#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
-#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
-#'
-#' @description Create an empty tibble to store the results of classification.
-#'
-#' @return A tibble to store the result of classifications.
-.sits_tibble_csv <- function() {
-    result <- tibble::tibble(
-        longitude = double(),
-        latitude = double(),
-        start_date = as.Date(character()),
-        end_date = as.Date(character()),
-        label = character()
-    )
-    return(result)
-}
-
 
 #' @title Rename a tibble to use "cube" instead of "coverage"
 #' @name .sits_tibble_rename
