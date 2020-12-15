@@ -4,7 +4,7 @@
 #'
 #' @description Takes a Keras model and saves it in two files.
 #' One file is the keras model itself (saved as hdf5)
-#' and the other is the R enviroment required for sits
+#' and the other is the R environment required for sits
 #' to work with the model.
 #'
 #' @param  model           An R Keras model.
@@ -30,7 +30,7 @@ sits_keras_save <- function(model,
 #' @description Takes a save Keras model
 #' been saved in two files and loads it in memory for further processing.
 #' One file is the keras model itself (saved as hdf5)
-#' and the other is the R enviroment required for sits
+#' and the other is the R environment required for sits
 #' to work with the model.
 #'
 #' @param  hdffile         An hdf5 file where the keras model is to be saved.

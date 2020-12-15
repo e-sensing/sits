@@ -322,7 +322,7 @@ sits_mutate_bands <- function(data, ...) {
 #' @name .sits_tibble_rename
 #' @keywords internal
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
-#' @param data   Tibble with
+#' @param data   A sits tibble.
 .sits_tibble_rename <- function(data) {
     # is the input data a valid sits tibble?
     if ("coverage" %in% names(data)) {

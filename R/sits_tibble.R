@@ -15,8 +15,8 @@
 #'  and each element vector will generate a new band which name composed
 #'  by concatenating original band name and the corresponding list element name.
 #'
-#'   If a suffix is provided in `bands_suffix`, all resulting band
-#'   names will end with provided suffix separated by a ".".
+#'  If a suffix is provided in `bands_suffix`, all resulting band
+#'  names will end with provided suffix separated by a ".".
 #'
 #' @param data          Valid sits tibble
 #' @param fun           Function with one parameter as input

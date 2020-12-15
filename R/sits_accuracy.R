@@ -178,7 +178,7 @@ sits_accuracy <- function(label_cube, validation_csv) {
         )
     )
 
-    # # Get area for each class for each row of the cube
+    # Get area for each class for each row of the cube
     freq_lst <- slider::slide(label_cube, function(row) {
 
         # get the frequency count and value for each labelled image
@@ -207,7 +207,7 @@ sits_accuracy <- function(label_cube, validation_csv) {
     # Print assessment values
     tb <- t(dplyr::bind_rows(assess$accuracy$user, assess$accuracy$producer))
     colnames(tb) <- c("User", "Producer")
-    #
+
     print(knitr::kable(tb,
         digits = 2,
         caption = "Users and Producers Accuracy per Class"

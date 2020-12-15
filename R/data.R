@@ -63,7 +63,7 @@ NULL
 #'   The data set has the following classes:
 #'   Cerrado(400 samples), Fallow_Cotton (29 samples), Forest (131 samples),
 #'   Pasture (344 samples),
-#'   Soy-Corn (364 samples),  Soy-Cotton (352 samples), Soy_Fallow (87 samples),
+#'   Soy_Corn (364 samples),  Soy_Cotton (352 samples), Soy_Fallow (87 samples),
 #'   Soy_Millet (180 samples), and Soy_Sunflower (26 samples).
 #'
 #' @docType data
@@ -87,7 +87,7 @@ NULL
 #'   The time series come from MOD13Q1 collection 6 images.
 #'   The data set has the following classes:
 #'   Cerrado, Fallow_Cotton, Forest, Pasture,
-#'   Soy-Corn,  Soy-Cotton, Soy_Fallow,
+#'   Soy_Corn, Soy_Cotton, Soy_Fallow,
 #'   Soy_Millet, and Soy_Sunflower.
 #'
 #' @docType data
