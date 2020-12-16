@@ -34,6 +34,11 @@
 #' @param label_cube       A tibble with metadata about the classified maps.
 #' @param validation_csv   A CSV file path with validation data
 #'
+#' @return
+#' A list of lists: The error_matrix, the class_areas, the unbiased
+#' estimated areas, the standard error areas, confidence interval 95% areas,
+#' and the accuracy (user, producer, and overall), or NULL if the data is empty.
+#'
 #' @examples
 #' \dontrun{
 #' # get the samples for Mato Grosso for bands NDVI and EVI

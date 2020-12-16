@@ -571,11 +571,11 @@ sits_get_data.raster_cube <- function(cube,
 #' @title Obtain time series from brick based on CSV file
 #' @name sits_get_data.csv_raster_cube
 #'
-#' @param file      File with information on the data to be retrieved
-#' @param ...       Other parameters to be passed for specific types
-#' @param bands     Bands to be retrieved (optional)
-#' @param impute_fn       Imputation function for NA values
 #' @param cube      Data cube from where data is to be retrieved.
+#' @param file      File with information on the data to be retrieved.
+#' @param ...       Other parameters to be passed for specific types.
+#' @param bands     Bands to be retrieved (optional).
+#' @param impute_fn Imputation function for NA values.
 #' @return          A tibble with time series data and metadata.
 #' @examples
 #' #' Read a CSV in a Raster Brick
@@ -656,9 +656,9 @@ sits_get_data.csv_raster_cube <- function(cube, file, ...,
 #' @title Obtain time series from brick based on SHP file
 #' @name sits_get_data.shp_raster_cube
 #'
-#' @param file            SHP File with information on the data to be retrieved
-#' @param ...             Other parameters to be passed for specific types
 #' @param cube            Data cube from where data is to be retrieved.
+#' @param file            SHP File with information on the data to be retrieved.
+#' @param ...             Other parameters to be passed for specific types.
 #' @param start_date      Start of the interval for the time series
 #'                        in "YYYY-MM-DD" format (optional)
 #' @param end_date        End of the interval for the time series in
