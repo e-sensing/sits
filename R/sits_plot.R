@@ -6,14 +6,14 @@
 #' type of input.  See each function description for the
 #' required parameters:
 #' \itemize{
-#'  \item{sits tibble:}{see \code{\link{plot.sits}}}
-#'  \item{patterns: }{ see \code{\link{plot.patterns}}}
-#'  \item{SOM map:}{ see \code{\link{plot.som_map}}}
-#'  \item{classified time series:}{ see \code{\link{plot.predicted}}}
-#'  \item{raster cube:}{ see \code{\link{plot.raster_cube}}}
-#'  \item{classification probabilities:}{ see \code{\link{plot.probs_cube}}}
-#'  \item{classified image :}{see \code{\link{plot.classified_image}}}
-#'  \item{SOM evaluate cluster :}{see \code{\link{plot.evaluate_cluster}}}
+#'  \item{sits tibble: }                 {see \code{\link{plot.sits}}}
+#'  \item{patterns: }                    {see \code{\link{plot.patterns}}}
+#'  \item{SOM map: }                     {see \code{\link{plot.som_map}}}
+#'  \item{classified time series: }      {see \code{\link{plot.predicted}}}
+#'  \item{raster cube: }                 {see \code{\link{plot.raster_cube}}}
+#'  \item{classification probabilities: }{see \code{\link{plot.probs_cube}}}
+#'  \item{classified image: }            {see \code{\link{plot.classified_image}}}
+#'  \item{SOM evaluate cluster: }        {see \code{\link{plot.som_evaluate_cluster}}}
 #' }
 #'
 #'
@@ -709,7 +709,7 @@ plot.keras_model <- function(x, y, ...) {
 #' @keywords internal
 #'
 #' @description Plots a set of time series using ggplot in the case the series
-#'              has no NAs.
+#'              has no NA values.
 #'
 #' @param row         row of a sits tibble with the time series to be plotted.
 #' @param colors      brewer colors to be used for plotting.

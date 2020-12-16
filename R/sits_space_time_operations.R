@@ -28,7 +28,7 @@
 #' @description Transform a XY coordinate to a latitude and longitude
 #'
 #' @param x               X coordinate of the chosen location.
-#' @param y               Y coordinateof the chosen location.
+#' @param y               Y coordinate of the chosen location.
 #' @param crs             Projection definition to be converted from.
 #' @return Matrix with latlong coordinates.
 .sits_proj_to_latlong <- function(x, y, crs) {

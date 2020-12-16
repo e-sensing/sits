@@ -433,10 +433,11 @@ sits_select.sits <- function(data, bands) {
 #' @name sits_select.cube
 #' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
 #'
-#' @description Returns a data cube with the selected bands.
+#' @description Filter only the selected bands from a data cube.
 #'
 #' @param data         data cube
 #' @param bands        vector with the names of the bands
+#' @return A data cube with the selected bands.
 #'
 #' @export
 #'

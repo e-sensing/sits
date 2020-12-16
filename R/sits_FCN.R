@@ -25,9 +25,7 @@
 #' A strong baseline",
 #' 2017 international joint conference on neural networks (IJCNN).
 #'
-#'
-#'
-#' @param samples            Time series with the training samples.
+#' @param samples           Time series with the training samples.
 #' @param layers            Vector with size of the 1D convolutional filters
 #'                          for each layer.
 #' @param kernels           Vector with size of the 1D convolutional kernels.

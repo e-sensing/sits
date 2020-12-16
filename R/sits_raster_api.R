@@ -84,7 +84,7 @@
         msg = ".sits_raster_api_check_access works with single files"
     )
 
-    # verify if all files are reacheable
+    # verify if all files are reachable
     r <- suppressWarnings(rgdal::GDALinfo(file, silent = FALSE))
     assertthat::assert_that(all(!purrr::is_null(r)),
         msg = "sits_cube: raster files cannot be accessed"
