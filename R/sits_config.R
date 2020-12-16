@@ -268,7 +268,7 @@ sits_config_show <- function() {
 #' @title Get the name of the band used for cloud information
 #' @name .sits_config_cloud_band
 #' @keywords internal
-#' @param satellite            satellite
+#' @param cube          data cube.
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'
 #' @return vector with bands available in AWS for a given resolution
@@ -318,7 +318,7 @@ sits_config_show <- function() {
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #' @description Retrieve the color associated a class label.
 #' @param labels  The class labels.
-#' @return colors  list of colors
+#' @return list of colors.
 .sits_config_colors <- function(labels) {
     colors <- purrr::map(labels, function(l) {
         color <- .sits_config_color(l)

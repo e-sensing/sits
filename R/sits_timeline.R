@@ -453,9 +453,9 @@ sits_timeline.cube <- function(data) {
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'
 #' @param  dates_index  A list of dates with the subsets of the input data.
-#' @param  timeline         The timeline of the data set.
-#' @param  bands            Bands used for classification.
-#' @return The subsets of the timeline.
+#' @param  timeline     The timeline of the data set.
+#' @param  bands        Bands used for classification.
+#' @return              The subsets of the timeline.
 .sits_timeline_idx_from_dates <- function(dates_index, timeline, bands) {
     # transform the dates index (a list of dates) to a list of indexes
     # this speeds up extracting the distances for classification

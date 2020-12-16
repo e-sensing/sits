@@ -9,7 +9,7 @@
 #'
 #' \itemize{
 #'  \item{Whittaker smoother - see \code{\link{sits_whittaker}}}
-#'  \item{ Savitsky-Golay filter - see \code{\link{sits_sgolay}}}
+#'  \item{Savitsky-Golay filter - see \code{\link{sits_sgolay}}}
 #'  \item{Envelope filter - see \code{\link{sits_envelope}}}
 #'  \item{Interpolation filter - see \code{\link{sits_interp}}}
 #'  \item{Kalman filter - see \code{\link{sits_kalman}}}
@@ -198,7 +198,7 @@ sits_kalman <- function(data = NULL, bands_suffix = "kf") {
 #' @keywords internal
 #'
 #' @param measurement                    A vector of measurements.
-#' @param error_in_measurement           A vector of errors in the measuments.
+#' @param error_in_measurement           A vector of errors in the measurements.
 #' @param initial_estimate               A first estimation of the measurement.
 #' @param initial_error_in_estimate      A first error in the estimation.
 #' @return                               A matrix of 3 columns: estimate,
