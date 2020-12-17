@@ -41,7 +41,7 @@ sits_classify <- function(data, ml_model, ...) {
     # is the data a sits tibble? If not, it must be a cube
     if (!("sits" %in% class(data))) {
         # find out the generic cube class it belongs to
-        class_data <- .sits_config_cube_generic(data[1, ]$type)
+        class_data <- .sits_config_cube_class(data[1, ]$type)
         class(data) <- c(class_data, class(data))
     }
 
@@ -227,7 +227,7 @@ sits_classify.sits <- function(data, ml_model, ...,
 #' sinop_probs <- sits_classify(sinop_2014,
 #'     ml_model = rfor_model,
 #'     output_dir = tempdir(),
-#'     memsize = 4, multicores = 2
+#'     memsize = 4, multicores = 1
 #' )
 #'
 #' # label the classified image
