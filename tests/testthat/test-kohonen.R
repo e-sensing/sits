@@ -34,7 +34,8 @@ test_that("Creating clustering using Self-organizing Maps", {
 
     cluster_purity <- suppressMessages(sits_som_evaluate_cluster(som_map))
 
-    expect_true(cluster_purity[1, ]$mixture_percentage > 90.0)
-    expect_true(cluster_purity[2, ]$mixture_percentage < 5.0)
+    expect_true("cluster" %in% names(cluster_purity))
+    expect_true("class" %in% names(cluster_purity))
+    expect_true("mixture_percentage" %in% names(cluster_purity))
 
 })

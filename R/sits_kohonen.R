@@ -294,7 +294,7 @@ sits_som_clean_samples <- function(som_map,
 #'
 #' @param som_map                   An object returned
 #'                                  by \code{\link[sits]{sits_som_map}}
-#' @return A tibble with the cluster and the percentage of classes mixtured in each cluster.
+#' @return A tibble with the cluster and the percentage of classes in each cluster.
 
 #' @examples
 #' \dontrun{
