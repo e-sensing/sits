@@ -34,19 +34,18 @@
 #' Before using this service, the user should create a valid description
 #' of a data cube using the \code{\link[sits]{sits_cube}} function.
 #'
-#'  The result is a tibble with the metadata and data for each time series
-#' <longitude, latitude, start_date, end_date, label, cube, time_series>
-#'
 #' @references
 #' Lubia Vinhas, Gilberto Queiroz, Karine Ferreira, Gilberto Camara,
 #' Web Services for Big Earth Observation Data.
 #' In: XVII Brazilian Symposium on Geoinformatics, 2016, Campos do Jordao.
 #' Proceedings of GeoInfo 2016. Sao Jose dos Campos: INPE/SBC, 2016. p.166-177.
 #'
-#' @param cube            Data cube from where data is to be retrived.
-#' @param file            File with information on the data to be retrieved
-#' @param ...               Other parameters to be passed for specific types
 #
+#' @param cube            Data cube from where data is to be retrieved.
+#' @param file            File with information on the data to be retrieved.
+#' @param ...             Other parameters to be passed for specific types.
+#' @return A tibble with the metadata and data for each time series
+#' <longitude, latitude, start_date, end_date, label, cube, time_series>.
 #' @export
 sits_get_data <- function(cube, file = NULL, ...) {
 
@@ -71,17 +70,17 @@ sits_get_data <- function(cube, file = NULL, ...) {
 
 #' @title Obtain time series from wtss
 #' @name sits_get_data.wtss_cube
-#' @param cube            Data cube from where data is to be retrived.
-#' @param file            File with information on the data to be retrieved
-#' @param ...             Other parameters to be passed for specific types
+#' @param cube            Data cube from where data is to be retrieved.
+#' @param file            File with information on the data to be retrieved.
+#' @param ...             Other parameters to be passed for specific types.
 #' @param longitude       Longitude of the chosen location.
 #' @param latitude        Latitude of the chosen location.
 #' @param start_date      Start of the interval for the time series
-#'                        in "YYYY-MM-DD" format (optional)
+#'                        in "YYYY-MM-DD" format (optional).
 #' @param end_date        End of the interval for the time series in
 #'                        "YYYY-MM-DD" format (optional).
-#' @param bands           Bands to be retrieved (optional)
-#' @param label           Label to be assigned to the time series (optional)
+#' @param bands           Bands to be retrieved (optional).
+#' @param label           Label to be assigned to the time series (optional).
 #' @return                A tibble with time series data and metadata.
 #'
 #' @examples
@@ -145,17 +144,17 @@ sits_get_data.wtss_cube <- function(cube, file = NULL, ...,
 #' @title Obtain time series from satveg
 #' @name sits_get_data.satveg_cube
 #'
-#' @param cube      Data cube from where data is to be retrived.
-#' @param file            File with information on the data to be retrieved
-#' @param ...               Other parameters to be passed for specific types
+#' @param cube            Data cube from where data is to be retrieved.
+#' @param file            File with information on the data to be retrieved.
+#' @param ...             Other parameters to be passed for specific types.
 #' @param longitude       Longitude of the chosen location.
 #' @param latitude        Latitude of the chosen location.
 #' @param start_date      Start of the interval for the time series
-#'                        in "YYYY-MM-DD" format (optional)
+#'                        in "YYYY-MM-DD" format (optional).
 #' @param end_date        End of the interval for the time series in
 #'                        "YYYY-MM-DD" format (optional).
-#' @param label           Label to be assigned to the time series (optional)
-#' @return          A tibble with time series data and metadata.
+#' @param label           Label to be assigned to the time series (optional).
+#' @return                A tibble with time series data and metadata.
 #' @examples
 #' \dontrun{
 #' cube_terra <- sits_cube(type = "SATVEG", name = "terra")
@@ -322,17 +321,17 @@ sits_get_data.csv_satveg_cube <- function(cube, file, ...) {
 #' @title Obtain time series from wtss based on SHP file
 #' @name sits_get_data.shp_wtss_cube
 #'
-#' @param cube            Data cube from where data is to be retrived.
-#' @param file            SHP File with information on the data to be retrieved
-#' @param ...             Other parameters to be passed for specific types
+#' @param cube            Data cube from where data is to be retrieved.
+#' @param file            SHP File with information on the data to be retrieved.
+#' @param ...             Other parameters to be passed for specific types.
 #' @param start_date      Start of the interval for the time series
-#'                        in "YYYY-MM-DD" format
+#'                        in "YYYY-MM-DD" format.
 #' @param end_date        End of the interval for the time series in
-#'                        "YYYY-MM-DD" format
-#' @param bands           Bands to be retrieved
-#' @param label           Label to be assigned to the time series (optional)
+#'                        "YYYY-MM-DD" format.
+#' @param bands           Bands to be retrieved.
+#' @param label           Label to be assigned to the time series (optional).
 #' @param shp_attr        Attribute in the shapefile to be used
-#'                        as a polygon label
+#'                        as a polygon label.
 #' @param .n_shp_pol      Number of samples per polygon to be read
 #'                        (for POLYGON or MULTIPOLYGON shapes).
 #' @return          A tibble with time series data and metadata.
@@ -408,16 +407,16 @@ sits_get_data.shp_wtss_cube <- function(cube, file, ...,
 #' @title Obtain time series from SATVEG based on SHP file
 #' @name sits_get_data.shp_satveg_cube
 #'
-#' @param cube            Data cube from where data is to be retrived.
-#' @param file            SHP File with information on the data to be retrieved
-#' @param ...             Other parameters to be passed for specific types
+#' @param cube            Data cube from where data is to be retrieved.
+#' @param file            SHP File with information on the data to be retrieved.
+#' @param ...             Other parameters to be passed for specific types.
 #' @param start_date      Start of the interval for the time series
-#'                        in "YYYY-MM-DD" format
+#'                        in "YYYY-MM-DD" format.
 #' @param end_date        End of the interval for the time series in
-#'                        "YYYY-MM-DD" format
-#' @param label           Label to be assigned to the time series (optional)
+#'                        "YYYY-MM-DD" format.
+#' @param label           Label to be assigned to the time series (optional).
 #' @param shp_attr        Attribute in the shapefile to be used
-#'                        as a polygon label
+#'                        as a polygon label.
 #' @param .n_shp_pol      Number of samples per polygon to be read
 #'                        (for POLYGON or MULTIPOLYGON shapes).
 #' @return          A tibble with time series data and metadata.
@@ -476,18 +475,18 @@ sits_get_data.shp_satveg_cube <- function(cube, file, ...,
 #' @title Obtain time series from raster cube
 #' @name sits_get_data.raster_cube
 #'
-#' @param cube            Data cube from where data is to be retrived.
-#' @param file            File with information on the data to be retrieved
+#' @param cube            Data cube from where data is to be retrieved.
+#' @param file            File with information on the data to be retrieved.
 #' @param ...             Other parameters to be passed for specific types
 #' @param longitude       Longitude of the chosen location.
 #' @param latitude        Latitude of the chosen location.
 #' @param start_date      Start of the interval for the time series
-#'                        in "YYYY-MM-DD" format (optional)
+#'                        in "YYYY-MM-DD" format (optional).
 #' @param end_date        End of the interval for the time series in
 #'                        "YYYY-MM-DD" format (optional).
-#' @param bands           Bands to be retrieved (optional)
-#' @param label           Label to be assigned to the time series (optional)
-#' @param impute_fn       Imputation function for NA values
+#' @param bands           Bands to be retrieved (optional).
+#' @param label           Label to be assigned to the time series (optional).
+#' @param impute_fn       Imputation function for NA values.
 #' @return                A tibble with time series data and metadata.
 #'
 #' @examples
@@ -577,11 +576,11 @@ sits_get_data.raster_cube <- function(cube,
 #' @title Obtain time series from brick based on CSV file
 #' @name sits_get_data.csv_raster_cube
 #'
-#' @param cube      Data cube from where data is to be retrived.
-#' @param file      File with information on the data to be retrieved
-#' @param ...       Other parameters to be passed for specific types
-#' @param bands     Bands to be retrieved (optional)
-#' @param impute_fn       Imputation function for NA values
+#' @param cube      Data cube from where data is to be retrieved.
+#' @param file      File with information on the data to be retrieved.
+#' @param ...       Other parameters to be passed for specific types.
+#' @param bands     Bands to be retrieved (optional).
+#' @param impute_fn Imputation function for NA values.
 #' @return          A tibble with time series data and metadata.
 #' @examples
 #' #' Read a CSV in a Raster Brick
@@ -662,9 +661,9 @@ sits_get_data.csv_raster_cube <- function(cube, file, ...,
 #' @title Obtain time series from brick based on SHP file
 #' @name sits_get_data.shp_raster_cube
 #'
-#' @param cube            Data cube from where data is to be retrived.
-#' @param file            SHP File with information on the data to be retrieved
-#' @param ...             Other parameters to be passed for specific types
+#' @param cube            Data cube from where data is to be retrieved.
+#' @param file            SHP File with information on the data to be retrieved.
+#' @param ...             Other parameters to be passed for specific types.
 #' @param start_date      Start of the interval for the time series
 #'                        in "YYYY-MM-DD" format (optional)
 #' @param end_date        End of the interval for the time series in

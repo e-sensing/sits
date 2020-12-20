@@ -34,6 +34,11 @@
 #' @param label_cube       A tibble with metadata about the classified maps.
 #' @param validation_csv   A CSV file path with validation data
 #'
+#' @return
+#' A list of lists: The error_matrix, the class_areas, the unbiased
+#' estimated areas, the standard error areas, confidence interval 95% areas,
+#' and the accuracy (user, producer, and overall), or NULL if the data is empty.
+#'
 #' @examples
 #' \dontrun{
 #' # get the samples for Mato Grosso for bands NDVI and EVI
@@ -177,7 +182,7 @@ sits_accuracy <- function(label_cube, validation_csv) {
         )
     )
 
-    # # Get area for each class for each row of the cube
+    # Get area for each class for each row of the cube
     freq_lst <- slider::slide(label_cube, function(row) {
 
         # get the frequency count and value for each labelled image
@@ -206,7 +211,7 @@ sits_accuracy <- function(label_cube, validation_csv) {
     # Print assessment values
     tb <- t(dplyr::bind_rows(assess$accuracy$user, assess$accuracy$producer))
     colnames(tb) <- c("User", "Producer")
-    #
+
     print(knitr::kable(tb,
         digits = 2,
         caption = "Users and Producers Accuracy per Class"
