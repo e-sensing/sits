@@ -17,7 +17,7 @@ test_that("Reading a raster cube", {
     bands <- sits:::.sits_cube_bands(raster_cube)
     expect_true(bands %in% c("NDVI"))
 
-    params <- sits:::.sits_raster_api_params(raster_cube$file_info[[1]]$path)
+    params <- sits:::.sits_raster_api_params_file(raster_cube$file_info[[1]]$path)
     expect_true(params$nrows == 11)
     expect_true(params$ncols == 14)
     expect_true(params$xres >= 231.5)

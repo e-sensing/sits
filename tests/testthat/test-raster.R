@@ -87,14 +87,13 @@ test_that("Multi-year, multi-core classification", {
 
     expect_error(sits:::.sits_raster)
 
+
     sinop_class <- sits::sits_label_classification(sinop_probs,
-        smoothing = "none",
         output_dir = tempdir()
     )
     expect_true(all(file.exists(unlist(sinop_class$file_info[[1]]$path))))
 
-    sinop_bayes <- sits::sits_label_classification(sinop_probs,
-        smoothing = "bayesian",
+    sinop_bayes <- sits::sits_smooth_bayes(sinop_probs,
         output_dir = tempdir()
     )
     expect_true(all(file.exists(unlist(sinop_bayes$file_info[[1]]$path))))
@@ -103,8 +102,7 @@ test_that("Multi-year, multi-core classification", {
     expect_true(terra::nrow(rc_obj2) == sinop_bayes$nrows)
     expect_true(terra::nrow(rc_obj2) == terra::nrow(rc_obj))
 
-    sinop_majority <- sits_label_classification(sinop_probs,
-        smoothing = "majority",
+    sinop_majority <- sits_label_majority(sinop_class,
         output_dir = tempdir()
     )
     expect_true(all(file.exists(unlist(sinop_majority$file_info[[1]]$path))))
@@ -114,21 +112,8 @@ test_that("Multi-year, multi-core classification", {
     expect_true(terra::nrow(rc_obj2) == sinop_majority$nrows)
     expect_true(terra::nrow(rc_obj3) == terra::nrow(rc_obj))
 
-
-    sinop_maj_bay <- sits_label_classification(sinop_probs,
-        smoothing = "bayesian+majority",
-        output_dir = tempdir()
-    )
-
-    expect_true(all(file.exists(unlist(sinop_maj_bay$file_info[[1]]$path))))
-    rc_obj4 <- suppressWarnings(
-        terra::rast(sinop_maj_bay$file_info[[1]]$path[1])
-    )
-    expect_true(terra::nrow(rc_obj4) == sinop_majority$nrows)
-    expect_true(terra::nrow(rc_obj4) == terra::nrow(rc_obj))
-
-    expect_true(length(sits_timeline(sinop_maj_bay)) ==
-                    length(sits_timeline(sinop_probs))
+    sinop_bay_label <- sits_label_classification(sinop_bayes,
+                                                 output_dir = tempdir()
     )
     expect_true(length(sits_timeline(sinop_bayes)) ==
                     length(sits_timeline(sinop_probs))
@@ -144,7 +129,6 @@ test_that("Multi-year, multi-core classification", {
     expect_true(all(file.remove(unlist(sinop_probs$file_info[[1]]$path))))
     expect_true(all(file.remove(unlist(sinop_bayes$file_info[[1]]$path))))
     expect_true(all(file.remove(unlist(sinop_majority$file_info[[1]]$path))))
-    expect_true(all(file.remove(unlist(sinop_maj_bay$file_info[[1]]$path))))
 })
 
 test_that("One-year, single core classification", {
@@ -200,6 +184,7 @@ test_that("One-year, single core classification", {
 })
 
 test_that("One-year, multicore classification", {
+
     samples_2bands <- sits_select(samples_mt_4bands, bands = c("NDVI", "EVI"))
 
     svm_model <- sits_train(samples_2bands, sits_svm())
@@ -232,6 +217,7 @@ test_that("One-year, multicore classification", {
                       multicores = 2
         )
     )
+    sinop_bayes <- sits_smooth_bayes(sinop_probs, output_dir = tempdir())
 
     expect_true(all(file.exists(unlist(sinop_probs$file_info[[1]]$path))))
     rc_obj <- suppressWarnings(terra::rast(sinop_probs$file_info[[1]]$path[1]))
@@ -243,7 +229,17 @@ test_that("One-year, multicore classification", {
     max_lyr3 <- max(terra::values(rc_obj)[, 3])
     expect_true(max_lyr3 > 8000)
 
+    rb_obj <- suppressWarnings(terra::rast(sinop_bayes$file_info[[1]]$path[1]))
+    expect_true(terra::nrow(rb_obj) == sinop_bayes$nrows)
+
+    max_lyrb2 <- max(terra::values(rb_obj)[, 2])
+    expect_true(max_lyrb2 < 1000)
+
+    max_lyrb3 <- max(terra::values(rb_obj)[, 3])
+    expect_true(max_lyrb3 > 8000)
+
     expect_true(all(file.remove(unlist(sinop_probs$file_info[[1]]$path))))
+    expect_true(all(file.remove(unlist(sinop_bayes$file_info[[1]]$path))))
 })
 
 test_that("One-year, single core classification with filter", {
@@ -321,7 +317,6 @@ test_that("One-year, multicore classification with filter", {
             multicores = 2
         )
     )
-
     expect_true(all(file.exists(unlist(sinop_2014_probs$file_info[[1]]$path))))
 
     rc_obj <- suppressWarnings(
@@ -336,13 +331,12 @@ test_that("One-year, multicore classification with filter", {
     expect_true(max_lyr3 > 8000)
 
 
-    sinop_majority <- sits_label_classification(sinop_2014_probs,
-        output_dir = tempdir(),
-        smoothing = "majority"
+    sinop_label <- sits_label_classification(sinop_2014_probs,
+        output_dir = tempdir()
     )
 
     expect_true(all(file.remove(unlist(sinop_2014_probs$file_info[[1]]$path))))
-    expect_true(all(file.remove(unlist(sinop_majority$file_info[[1]]$path))))
+    expect_true(all(file.remove(unlist(sinop_label$file_info[[1]]$path))))
 })
 
 test_that("One-year, multicore classification", {

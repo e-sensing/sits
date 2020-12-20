@@ -53,14 +53,19 @@ sits_get_data <- function(cube, file = NULL, ...) {
     # is there a shapefile or a CSV file?
     if (!purrr::is_null(file)) {
         if (tolower(tools::file_ext(file)) == "csv") {
-              class(cube)[1] <- paste0("csv_", class(cube)[1])
+              if ("raster_cube" %in% class(cube))
+                  class(cube) <- c("csv_raster_cube", class(cube))
+              else
+                  class(cube)[1] <- paste0("csv_", class(cube)[1])
           } else if (tolower(tools::file_ext(file)) == "shp") {
-              class(cube)[1] <- paste0("shp_", class(cube)[1])
+              if ("raster_cube" %in% class(cube))
+                  class(cube) <- c("shp_raster_cube", class(cube))
+              else
+                  class(cube)[1] <- paste0("shp_", class(cube)[1])
           } else {
               stop("sits_get_data - file must either be a CSV or SHP")
           }
     }
-
     UseMethod("sits_get_data", cube)
 }
 

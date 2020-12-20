@@ -166,8 +166,8 @@
                 multicores = multicores
               )
               # convert probabilities matrix to INT2U
-              scale_factor_save <- 10000
-              prediction <- scale_factor_save * prediction
+              scale_factor_save <- round(1/cube[1,]$scale_factors[[1]][1])
+              prediction <- round(scale_factor_save * prediction, digits = 0)
 
               # estimate processing time
               .sits_est_class_time(
@@ -202,7 +202,7 @@
 
         # write the probabilities to a raster file
         .sits_raster_api_write(
-            cube = cube_class,
+            params = .sits_raster_api_params_cube(cube_class),
             num_layers = length(labels),
             values = probs_time,
             filename = filename,

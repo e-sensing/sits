@@ -20,7 +20,7 @@
 #'
 #' @export
 sits_cube <- function(type = "RASTER", ...) {
-    spec_class <- .sits_config_cube_specific(type)
+    spec_class <- .sits_config_cube_class(type)
     class(type) <- c(spec_class, class(type))
     # Dispatch
     UseMethod("sits_cube", type)
@@ -198,7 +198,7 @@ sits_cube.stack_cube <- function(type = "STACK", ...,
         file_info = file_info
     )
 
-    class(cube) <- c("raster_cube", class(cube))
+    class(cube) <- c("stack_cube", "raster_cube", class(cube))
     return(cube)
 }
 #' @title Defines a cube from a set of image bricks
@@ -270,7 +270,7 @@ sits_cube.brick_cube <- function(type = "BRICK", ...,
         files = files
     )
 
-    class(cube) <- c("raster_cube", class(cube))
+    class(cube) <- c("brick_cube", "raster_cube", class(cube))
     return(cube)
 }
 #' @title Defines a data cube for a BDC STAC
@@ -402,7 +402,7 @@ sits_cube.bdc_cube <- function(type = "BDC", ...,
             file_info = stack
         )
 
-        class(cube_t) <- c("raster_cube", class(cube_t))
+        class(cube_t) <- c("stack_cube", "raster_cube", class(cube_t))
         return(cube_t)
     })
 
@@ -425,6 +425,7 @@ sits_cube.bdc_cube <- function(type = "BDC", ...,
 #' @param type              type of cube
 #' @param ...               other parameters to be passed for specific types
 #' @param name              output data cube.
+#' @param bucket            name of S3 bucket
 #' @param bands             vector of bands.
 #' @param tiles             vector of tiles
 #' @param start_date        starting date of the cube
@@ -440,6 +441,8 @@ sits_cube.bdc_cube <- function(type = "BDC", ...,
 #' \dontrun{
 #' # this example requires access to an external service, so should not be run
 #' # by CRAN
+#'
+#' # s3://sentinel-cogs/sentinel-s2-l2a-cogs/2017/S2A_35MNR_20171025_0_L2A/
 #'
 #' # Provide your AWS credentials here
 #' # Sys.setenv(
@@ -464,6 +467,7 @@ sits_cube.bdc_cube <- function(type = "BDC", ...,
 #'
 sits_cube.s2_l2a_aws_cube <- function(type = "S2_L2A_AWS", ...,
                                       name = NULL,
+                                      bucket = NULL,
                                       bands = NULL,
                                       tiles = NULL,
                                       start_date = NULL,
@@ -498,7 +502,7 @@ sits_cube.s2_l2a_aws_cube <- function(type = "S2_L2A_AWS", ...,
             file_info = stack
         )
 
-        class(cube_t) <- c("raster_cube", class(cube_t))
+        class(cube_t) <- c("stack_cube", "aster_cube", class(cube_t))
         return(cube_t)
     })
     cube <- dplyr::bind_rows(tiles_cube)

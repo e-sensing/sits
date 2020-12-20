@@ -201,6 +201,8 @@ sits_classify.sits <- function(data, ml_model, ...,
 #' @return                 cube with the metadata of a brick of probabilities.
 #'
 #' @examples
+#'
+#' \dontrun{
 #' # Classify a raster file with 23 instances for one year
 #' ndvi_file <- c(system.file("extdata/raster/mod13q1/sinop-ndvi-2014.tif",
 #' package = "sits"))
@@ -217,11 +219,10 @@ sits_classify.sits <- function(data, ml_model, ...,
 #' )
 #'
 #' # select band "NDVI"
-#' samples_ndvi <- sits_select(samples_mt_4bands, bands = "NDVI")
+#' samples <- sits_select(samples_mt_4bands, bands = "NDVI")
 #'
 #' # select a random forest model
-#' rfor_model <- sits_train(samples_ndvi,
-#'               ml_method = sits_rfor(num_trees = 300))
+#' rfor_model <- sits_train(samples, ml_method = sits_rfor(num_trees = 300))
 #'
 #' # classify the raster image
 #' sinop_probs <- sits_classify(sinop_2014,
@@ -231,9 +232,8 @@ sits_classify.sits <- function(data, ml_model, ...,
 #' )
 #'
 #' # label the classified image
-#' sinop_label <- sits_label_classification(sinop_probs,
-#'     output_dir = tempdir()
-#' )
+#' sinop_label <- sits_label_classification(sinop_probs, output_dir = tempdir())
+#' }
 #' @export
 sits_classify.raster_cube <- function(data, ml_model, ...,
                                       roi = NULL,

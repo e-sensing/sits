@@ -5,13 +5,10 @@
 \title{Create a set of RasterLayer objects
        to store data cube classification results (labelled classes)}
 \usage{
-.sits_label_cube(cube_probs, smoothing, output_dir, version)
+.sits_label_cube(cube_probs, output_dir, version)
 }
 \arguments{
 \item{cube_probs}{Metadata about the input data cube (probability).}
-
-\item{smoothing}{(optional) smoothing method to be applied
-("none", "bayesian", "majority")}
 
 \item{output_dir}{Output directory where to put the files}
 

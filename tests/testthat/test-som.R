@@ -2,7 +2,7 @@ context("Evaluate samples using SOM")
 test_that("Creating clustering using Self-organizing Maps", {
     # skip_on_cran()
     data("cerrado_2classes")
-    new_samples <- sits_cluster_som(
+    new_samples <- sits_som_cluster(
             cerrado_2classes,
             grid_xdim = 5,
             grid_ydim = 5

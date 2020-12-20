@@ -25,14 +25,10 @@ cbers_samples_022024 <- sits_select(cbers_samples_022024,
                                     bands = c("NDVI", "EVI"))
 bands <- sits_bands(cbers_samples_022024)
 
-# region of interest
-roi <- c(
-    "lat_min" = -12.06618108, "lat_max" = -11.06869077,
-    "lon_min" = -46.67404746, "lon_max" = -45.09037986
-)
+
 
 # define the local CBERS data cube
-cbers <- sits_cube(
+cbers_cube <- sits_cube(
     type = "BDC",
     name = "cbers_022024",
     satellite = "CBERS-4",
@@ -44,25 +40,39 @@ cbers <- sits_cube(
     end_date = end_date
 )
 
+# region of interest
+roi <- c(
+  "xmin" = 5970958, "xmax" = 6034958,
+  "ymin" = 9876672, "ymax" = 9940672
+)
 
 # plot the image (last instances) - save the mapview for the
 # future
-map1 <- plot(cbers, red = "EVI", green = "NDVI", blue = "EVI", time = 23)
+map1 <- plot(cbers_cube, red = "EVI", green = "NDVI", blue = "EVI", time = 23)
 
 # train an XGB model
-svm_model <- sits_train(cbers, sits_svm())
+svm_model <- sits_train(cbers_samples_022024, sits_svm())
 
 # classify the data (remember to set the appropriate memory size)
 cbers_probs <- sits_classify(cbers_cube,
                              svm_model,
                              roi = roi,
                              output_dir = tempdir(),
-                             memsize = 24,
-                             multicores = 4
+                             memsize = 6,
+                             multicores = 2
 )
+# plot the classification result
 plot(cbers_probs)
-
-cbers_label <- sits_label_classification(cbers_probs, smoothing = "bayesian",
-                                         output_dir = tempdir())
-
+# label each pixel with the highest probability
+cbers_label <- sits_label_classification(cbers_probs, output_dir = tempdir())
+# plot the labelled image
 plot(cbers_label, map = map1)
+# post process probabilities map with bayesian smoothing
+cbers_bayes <- sits_smooth_bayes(cbers_probs, output_dir = tempdir())
+# plot the smoothened probs
+plot(cbers_bayes)
+# label the smoothened image
+cbers_lbayes <- sits_label_classification(cbers_bayes, output_dir = tempdir())
+
+
+plot(cbers_lbayes, map = map1)

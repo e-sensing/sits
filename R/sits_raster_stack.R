@@ -97,7 +97,7 @@
     # get the timeline
     timeline <- unique(file_info$date)
     # get the parameters from the raster object of one of the layers
-    params <- .sits_raster_api_params(file_info$path[1])
+    params <- .sits_raster_api_params_file(file_info$path[1])
 
     # create a tibble to store the metadata
     stack_cube <- .sits_cube_create(

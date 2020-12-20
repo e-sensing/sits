@@ -4,7 +4,7 @@
 \alias{.sits_raster_api_read_extent}
 \title{Read a part of a raster file and return a matrix}
 \usage{
-.sits_raster_api_read_extent(r_files, extent)
+.sits_raster_api_read_extent(r_files, extent = NULL)
 }
 \arguments{
 \item{r_files}{Files associated to the raster object}

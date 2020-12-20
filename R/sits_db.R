@@ -78,7 +78,11 @@ sits_db_info <- function(conn) {
     tables <- DBI::dbListTables(conn)
 
     # filter all extensions and leave only the original tables
-    tables <- tables[!grepl(".par|.tim|.lab|.ts|.fil", tables)]
+    patterns <- c(".par", ".tim", ".lab", ".ts", ".fil")
+    matches <- patterns %>%
+      purrr::map(function(p) {stringr::str_detect(tables, stringr::fixed(p))})
+
+    tables <- tables[!Reduce("|",matches)]
 
     tables_lst <- tables %>%
         purrr::map(function(tab) {
@@ -657,7 +661,7 @@ sits_db_read <- function(conn, name) {
     })
 
     data <- dplyr::bind_rows(rows)
-    class_cube <- .sits_config_cube_generic(data[1, ]$type)
+    class_cube <- .sits_config_cube_class(data[1, ]$type)
     if (purrr::is_null(class_cube)) {
         class(data) <- c("cube", class(data))
         message("Type of data cube not yet supported by sits")

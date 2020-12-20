@@ -49,11 +49,12 @@ sinop_probs <- sits_classify(sinop,
 plot(sinop_probs)
 
 # smooth the result with a bayesian filter
-sinop_bayes <- sits_label_classification(sinop_probs,
-                                         smoothing = "bayesian",
+sinop_bayes <- sits_smooth_bayes(sinop_probs, output_dir = tempdir())
+
+sinop_label <- sits_label_classification(sinop_bayes,
                                          output_dir = tempdir()
-                                         )
+)
 
 map_1 <- plot(sinop, red = "evi", green = "ndvi", blue = "evi", time = 23)
 # plot the smoothened image
-plot(sinop_bayes, map = map_1, time = 1, title = "Sinop-Bayes")
+plot(sinop_label, map = map_1, time = 1, title = "Sinop-Bayes")

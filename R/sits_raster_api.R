@@ -1,5 +1,5 @@
-#' @title Determine the cube params to write in the metadata
-#' @name .sits_raster_api_params
+#' @title Determine the file params to write in the metadata
+#' @name .sits_raster_api_params_file
 #' @keywords internal
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'
@@ -7,38 +7,59 @@
 #'                 determine its params
 #' @param file     A valid raster image
 #' @return A tibble with the cube params
-.sits_raster_api_params <- function(file) {
-    rg_obj <- suppressWarnings(rgdal::GDALinfo(file))
+.sits_raster_api_params_file <- function(file) {
 
-    # extract parameters from gdal
-    nrows <- as.numeric(rg_obj["rows"])
-    ncols <- as.numeric(rg_obj["columns"])
-    xres <- as.numeric(rg_obj["res.x"])
-    yres <- as.numeric(rg_obj["res.y"])
-    xmin <- as.numeric(rg_obj["ll.x"])
-    ymin <- as.numeric(rg_obj["ll.y"])
-    xmax <- floor(xmin + ncols * xres + 0.5)
-    ymax <- floor(ymin + nrows * yres + 0.5)
-    crs <- attr(rg_obj, "projection")
+    # create a terra object
+    t_obj <- terra::rast(file)
 
     # post conditions
-    assertthat::assert_that(nrows > 0 & ncols > 0,
-        msg = ".sits_raster_api_params: invalid raster object"
+    assertthat::assert_that(terra::nrow(t_obj) > 0 & terra::ncol(t_obj) > 0,
+                    msg = ".sits_raster_api_params_file: invalid raster object"
     )
-    assertthat::assert_that(xmax > xmin & ymax > ymin,
-        msg = ".sits_raster_api_params: invalid raster object"
+    assertthat::assert_that(terra::xmax(t_obj) > terra::xmin(t_obj) &
+                            terra::ymax(t_obj) > terra::ymin(t_obj),
+                    msg = ".sits_raster_api_params_file: invalid raster object"
+    )
+    assertthat::assert_that(terra::xres(t_obj) > 0 &
+                            terra::yres(t_obj) > 0,
+                    msg = ".sits_raster_api_params_file: invalid raster object"
     )
 
     params <- tibble::tibble(
-        nrows = nrows,
-        ncols = ncols,
-        xres = xres,
-        yres = yres,
-        xmin = xmin,
-        ymin = ymin,
-        xmax = xmax,
-        ymax = ymax,
-        crs = crs
+        nrows = terra::nrow(t_obj),
+        ncols = terra::ncol(t_obj),
+        xmin  = terra::xmin(t_obj),
+        xmax  = terra::xmax(t_obj),
+        ymin  = terra::ymin(t_obj),
+        ymax  = terra::ymax(t_obj),
+        xres  = terra::xres(t_obj),
+        yres  = terra::yres(t_obj),
+        crs   = as.character(suppressWarnings(terra::crs(t_obj)))
+    )
+    return(params)
+}
+
+#' @title Determine the cube params to write in the metadata
+#' @name .sits_raster_api_params_cube
+#' @keywords internal
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
+#'
+#' @description    Based on the R object associated to a raster object,
+#'                 determine its params
+#' @param file     A valid raster image
+#' @return A tibble with the cube params
+.sits_raster_api_params_cube <- function(cube) {
+
+    params <- tibble::tibble(
+        nrows = cube$nrows,
+        ncols = cube$ncols,
+        xmin  = cube$xmin,
+        xmax  = cube$xmax,
+        ymin  = cube$ymin,
+        ymax  = cube$ymax,
+        xres  = cube$xres,
+        yres  = cube$yres,
+        crs   = cube$crs
     )
     return(params)
 }
@@ -132,7 +153,6 @@
             cube$name
         )
     )
-
     # filter the files that contain the band
     band <- dplyr::filter(cube$file_info[[1]], band == band_cube)
     # create a terra object
@@ -141,7 +161,6 @@
     values <- tibble::as_tibble(terra::extract(rast, xy))
     # terra includes an ID (remove it)
     values <- values[, -1]
-
     # is the data valid?
     assertthat::assert_that(nrow(values) == nrow(xy),
         msg = ".sits_raster_api_extract - error in retrieving data"
@@ -220,86 +239,42 @@
 #' @param  r_files        Files associated to the raster object
 #' @param  extent         Image extent to be read.
 #' @return                Data.table of values
-.sits_raster_api_read_extent <- function(r_files, extent) {
+.sits_raster_api_read_extent <- function(r_files, extent = NULL) {
 
     # verify if the files can be read
     rg_obj <- suppressWarnings(rgdal::GDALinfo(r_files[1]))
     assertthat::assert_that(!purrr::is_null(rg_obj),
         msg = ".sits_raster_api_read_extent; invalid file"
     )
-    # get number of bands in the file
-    n_bands_file <- rg_obj["bands"]
-
-    assertthat::assert_that(n_bands_file >= 1,
-        msg = ".sits_raster_api_read_extent; invalid number of bands"
-    )
-
-    # set the offset and the region dimensions (rgdal starts in (0,0))
-    first_row <- extent["row"] - 1
-    first_col <- extent["col"] - 1
-
-    # we have to consider three situations
-    # (1) one file, one band per file (a.k.a. "raster layer")
-    # (2) one file, many bands per file (a.k.a. "raster brick")
-    # (3) many files, one bands per file (a.k.a. "raster stack")
-
-    if (length(r_files) == 1) {
-        if (n_bands_file == 1) {
-            # case (1) - "raster layer"
-            values <- matrix(as.matrix(suppressWarnings(
-                rgdal::readGDAL(
-                    fname = r_files[1],
-                    offset = c(first_row, first_col),
-                    region.dim = c(extent["nrows"], extent["ncols"]),
-                    silent = TRUE
-                )@data
-            )),
-            nrow = extent["nrows"],
-            byrow = TRUE
-            )
-
-            assertthat::assert_that(nrow(values) == extent["nrows"] &
-                ncol(values) == extent["ncols"],
-            msg = ".sits_raster_api_read_extent: error in reading a raster file"
-            )
-        }
-        else {
-            # case (2) - "raster brick"
-            values <- as.matrix(suppressWarnings(
-                rgdal::readGDAL(
-                    fname = r_files[1],
-                    offset = c(first_row, first_col),
-                    region.dim = c(extent["nrows"], extent["ncols"]),
-                    silent = TRUE
-                )@data
-            ))
-            assertthat::assert_that(
-                nrow(values) == extent["nrows"] * extent["ncols"] &
-                    ncol(values) == n_bands_file,
-                msg = ".sits_raster_api_read_extent: error reading file"
-            )
-        }
+    if (purrr::is_null(extent)) {
+        extent <- c("row" = 1,
+                    "nrows" = as.numeric(rg_obj["rows"]),
+                    "col" = 1,
+                    "ncols" = as.numeric(rg_obj["columns"]))
     }
-    else {
-        # case (3) - "raster stack"
-        values_lst <- purrr::map(r_files, function(f) {
-            data <- as.matrix(suppressWarnings(
-                rgdal::readGDAL(
-                    fname = f,
-                    offset = c(first_row, first_col),
-                    region.dim = c(extent["nrows"], extent["ncols"]),
-                    silent = TRUE
-                )@data
-            ))
-            return(data)
-        })
-        values <- do.call(cbind, values_lst)
-        assertthat::assert_that(
-            nrow(values) == extent["nrows"] * extent["ncols"] &
-            ncol(values) == length(r_files),
-        msg = ".sits_raster_api_read_extent: error in reading a raster file"
+
+    t_obj <- terra::rast(r_files)
+    terra::readStart(t_obj)
+    if (terra::nlyr(t_obj) == 1) {
+        values <- matrix(
+            as.matrix(
+                terra::readValues(x      = t_obj,
+                                  row    = extent["row"],
+                                  nrows  = extent["nrows"],
+                                  col    = extent["col"],
+                                  ncols  = extent["ncols"])
+            ), nrow = extent["nrows"], byrow = TRUE
         )
+
+    } else {
+        values <- terra::readValues(x      = t_obj,
+                                    row    = extent["row"],
+                                    nrows  = extent["nrows"],
+                                    col    = extent["col"],
+                                    ncols  = extent["ncols"],
+                                    mat = TRUE)
     }
+    terra::readStop(t_obj)
 
     return(values)
 }
@@ -310,7 +285,7 @@
 #' @keywords internal
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'
-#' @param cube           Data cube
+#' @param params         Output file params
 #' @param num_layers     Number of layers
 #' @param values         Data.table with values to be written
 #' @param filename       Filename of the raster image file
@@ -320,7 +295,7 @@
 #' @param overwrite      Overwrite the file
 #' @return               Data cubevalues
 #'
-.sits_raster_api_write <- function(cube,
+.sits_raster_api_write <- function(params,
                                    num_layers,
                                    values,
                                    filename,
@@ -336,19 +311,19 @@
     # create a raster object
     r_obj <- suppressWarnings(
         terra::rast(
-            nrows = cube$nrows,
-            ncols = cube$ncols,
+            nrows = params$nrows,
+            ncols = params$ncols,
             nlyrs = num_layers,
-            xmin = cube$xmin,
-            xmax = cube$xmax,
-            ymin = cube$ymin,
-            ymax = cube$ymax,
-            crs = cube$crs
+            xmin = params$xmin,
+            xmax = params$xmax,
+            ymin = params$ymin,
+            ymax = params$ymax,
+            crs = params$crs
         )
     )
 
-    assertthat::assert_that(terra::nrow(r_obj) == cube$nrows,
-                            msg = ".sits_raster_api_write: unable to create raster object"
+    assertthat::assert_that(terra::nrow(r_obj) == params$nrows,
+            msg = ".sits_raster_api_write: unable to create raster object"
     )
 
     # include the values in the raster object
@@ -376,66 +351,6 @@
     return(invisible(TRUE))
 }
 
-#' @title Set the values of a labelled raster object
-#' @name .sits_raster_api_write_lab
-#' @keywords internal
-#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
-#'
-#' @param cube           Data cube
-#' @param values         Matrix with values to be written
-#' @param smoothing      Smoothing procedure to apply
-#' @param filename       Filename of the raster image file
-#' @return               Data cube
-#'
-.sits_raster_api_write_lab <- function(cube,
-                                            values,
-                                            smoothing = "none",
-                                            filename) {
-    # create a raster object to write
-    layer <- suppressWarnings(
-        terra::rast(
-            nrows = cube$nrows,
-            ncols = cube$ncols,
-            xmin = cube$xmin,
-            xmax = cube$xmax,
-            ymin = cube$ymin,
-            ymax = cube$ymax,
-            crs = cube$crs
-        )
-    )
-
-
-    # select the best class by choosing the maximum value
-    layer[] <- apply(values, 1, which.max)
-
-    # apply majority filter
-    if (smoothing == "majority" ||
-        smoothing == "bayesian+majority") {
-        layer <- terra::focal(
-            x = layer,
-            w = 3,
-            na.rm = TRUE,
-            fun = terra::modal
-        )
-    }
-    # save raster output to file
-    suppressWarnings(terra::writeRaster(
-        layer,
-        filename = filename,
-        wopt = list(
-            filetype = "GTiff",
-            datatype = "INT1U",
-            gdal = c("COMPRESS=LZW")
-        ),
-        overwrite = TRUE
-    ))
-    # was the file written correctly?
-    assertthat::assert_that(file.info(filename)$size > 0,
-        msg = "sits_label_classification : unable to save raster object"
-    )
-
-    return(cube)
-}
 
 #' @title Given a labelled cube, return the band information
 #' @name .sits_raster_api_area_freq

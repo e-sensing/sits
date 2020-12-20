@@ -150,10 +150,13 @@
     timelines <- vector("list", length = n_objs)
 
     # set scale factors, missing values, minimum and maximum values for probs
-    scale_factors <- rep(0.001, n_objs)
-    missing_values <- rep(-9999, n_objs)
-    minimum_values <- rep(0.0, n_objs)
-    maximum_values <- rep(1.0, n_objs)
+    #
+    cube_sf <- cube$scale_factors[[1]][1]
+    max  <- round(1/cube_sf)
+    scale_factors <- rep(cube_sf, n_objs)
+    missing_values <- rep(NA, n_objs)
+    minimum_values <- rep(0, n_objs)
+    maximum_values <- rep(max, n_objs)
 
     # loop through the list of dates and create list of raster layers
     timelines <- seq_len(n_objs) %>%
@@ -232,6 +235,7 @@
     class(cube_probs) <- c("probs_cube", class(cube_probs))
     return(cube_probs)
 }
+
 #' @title Define a name for classified band
 #' @name .sits_cube_class_band_name
 #' @keywords internal
@@ -420,4 +424,33 @@
         )
     }
     return(bands)
+}
+
+#' @title Clone a data cube
+#' @name .sits_cube_clone
+#' @keywords internal
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
+#'
+#'
+#' @param  cube              input data cube
+#' @param  ext               extension
+#' @param  output_dir        prefix of the output files
+#' @param  version           version of the output files
+#' @return                   output data cube
+.sits_cube_clone <- function(cube, ext, output_dir, version) {
+
+    # copy the cube information
+    cube_clone <- cube
+
+    # update the file information for the new files
+    file_info <- cube_clone$file_info[[1]]
+    newb <- paste0(file_info$band, ext)
+    newp <- paste0(output_dir, "/", newb, "_", version, ".tif")
+    file_info$band <- newb
+    file_info$path <- newp
+    # update the cube information
+    cube_clone$file_info <- list(file_info)
+
+    class(cube_clone) <- class(cube)
+    return(cube_clone)
 }
