@@ -25,9 +25,7 @@ cbers_samples_022024 <- sits_select(cbers_samples_022024,
                                     bands = c("NDVI", "EVI"))
 bands <- sits_bands(cbers_samples_022024)
 
-
-
-# define the local CBERS data cube
+# define a CBERS data cube using the Brazil Data Cube
 cbers_cube <- sits_cube(
     type = "BDC",
     name = "cbers_022024",
@@ -50,7 +48,7 @@ roi <- c(
 # future
 map1 <- plot(cbers_cube, red = "EVI", green = "NDVI", blue = "EVI", time = 23)
 
-# train an XGB model
+# train an SVM model
 svm_model <- sits_train(cbers_samples_022024, sits_svm())
 
 # classify the data (remember to set the appropriate memory size)
@@ -69,10 +67,9 @@ cbers_label <- sits_label_classification(cbers_probs, output_dir = tempdir())
 plot(cbers_label, map = map1)
 # post process probabilities map with bayesian smoothing
 cbers_bayes <- sits_smooth_bayes(cbers_probs, output_dir = tempdir())
-# plot the smoothened probs
+# plot the new probs
 plot(cbers_bayes)
-# label the smoothened image
+# label the smoothed image
 cbers_lbayes <- sits_label_classification(cbers_bayes, output_dir = tempdir())
-
-
+# plot the labeled image with bayesian smoothing
 plot(cbers_lbayes, map = map1)
