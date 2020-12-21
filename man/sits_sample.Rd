@@ -21,8 +21,8 @@ Takes a sits tibble with different labels and
              returns a new tibble. For a given field as a group criterion,
              this new tibble contains a given number or percentage
              of the total number of samples per group.
-             Parameter n:  number of random samples with reposition.
-             Parameter frac: a fraction of random samples without reposition.
+             Parameter n: number of random samples with replacement.
+             Parameter frac: a fraction of random samples without replacement.
              If frac > 1, no sampling is done.
 }
 \examples{

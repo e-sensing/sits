@@ -30,17 +30,17 @@ This is a generic function. The following specific functions are available:
 }
 SITS supports the following models:
 \itemize{
- \item{support vector machines: }{See \code{\link[sits]{sits_svm}}}
- \item{random forests: }{see \code{\link[sits]{sits_rfor}}}
- \item{linear discriminant analysis: }{see \code{\link[sits]{sits_lda}}}
- \item{quadratic discriminant analysis: }{see \code{\link[sits]{sits_qda}}}
- \item{multinomial logit: }{see \code{\link[sits]{sits_mlr}}}
- \item{extreme gradient boosting: }{see \code{\link[sits]{sits_xgboost}}}
- \item{multi-layer perceptrons: }{see \code{\link[sits]{sits_deeplearning}}}
- \item{1D convolutional neural networks: see \code{\link[sits]{sits_FCN}}}
- \item{mixed 1D and MLP networks: }{ see \code{\link[sits]{sits_TempCNN}}}
- \item{1D version of ResNet: }{see \code{\link[sits]{sits_ResNet}}}
- \item{combined LSTM-FCN model: }{see \code{\link[sits]{sits_LSTM_FCN}}}
+ \item{support vector machines: }         {see \code{\link[sits]{sits_svm}}}
+ \item{random forests: }                  {see \code{\link[sits]{sits_rfor}}}
+ \item{linear discriminant analysis: }    {see \code{\link[sits]{sits_lda}}}
+ \item{quadratic discriminant analysis: } {see \code{\link[sits]{sits_qda}}}
+ \item{multinomial logit: }               {see \code{\link[sits]{sits_mlr}}}
+ \item{extreme gradient boosting: }       {see \code{\link[sits]{sits_xgboost}}}
+ \item{multi-layer perceptrons: }         {see \code{\link[sits]{sits_deeplearning}}}
+ \item{1D convolutional neural networks: }{see \code{\link[sits]{sits_FCN}}}
+ \item{mixed 1D and MLP networks: }       {see \code{\link[sits]{sits_TempCNN}}}
+ \item{1D version of ResNet: }            {see \code{\link[sits]{sits_ResNet}}}
+ \item{combined LSTM-FCN model: }         {see \code{\link[sits]{sits_LSTM_FCN}}}
  }
 The model should be precomputed using \code{\link[sits]{sits_train}}
 and then passed to the "sits_classify" function using parameter "ml_model".

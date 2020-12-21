@@ -17,24 +17,24 @@
 )
 }
 \arguments{
-\item{cube}{Data cube from where data is to be retrived.}
+\item{cube}{Data cube from where data is to be retrieved.}
 
-\item{file}{SHP File with information on the data to be retrieved}
+\item{file}{SHP File with information on the data to be retrieved.}
 
-\item{...}{Other parameters to be passed for specific types}
+\item{...}{Other parameters to be passed for specific types.}
 
 \item{start_date}{Start of the interval for the time series
-in "YYYY-MM-DD" format}
+in "YYYY-MM-DD" format.}
 
 \item{end_date}{End of the interval for the time series in
-"YYYY-MM-DD" format}
+"YYYY-MM-DD" format.}
 
-\item{bands}{Bands to be retrieved}
+\item{bands}{Bands to be retrieved.}
 
-\item{label}{Label to be assigned to the time series (optional)}
+\item{label}{Label to be assigned to the time series (optional).}
 
 \item{shp_attr}{Attribute in the shapefile to be used
-as a polygon label}
+as a polygon label.}
 
 \item{.n_shp_pol}{Number of samples per polygon to be read
 (for POLYGON or MULTIPOLYGON shapes).}

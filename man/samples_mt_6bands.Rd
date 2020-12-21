@@ -23,7 +23,7 @@ A dataset containing a tibble with time series samples
   The time series come from MOD13Q1 collection 6 images.
   The data set has the following classes:
   Cerrado, Fallow_Cotton, Forest, Pasture,
-  Soy-Corn,  Soy-Cotton, Soy_Fallow,
+  Soy_Corn, Soy_Cotton, Soy_Fallow,
   Soy_Millet, and Soy_Sunflower.
 }
 \keyword{datasets}

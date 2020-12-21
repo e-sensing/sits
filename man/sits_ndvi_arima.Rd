@@ -37,7 +37,7 @@ the data has had past values subtracted).}
 A sits tibble with same samples and the new bands.
 }
 \description{
-This function tries to remove clouds in the ndvi band of
+This function tries to remove clouds in the NDVI band of
 a time series. It looks for points where the value of the NDVI
 band goes down abruptly. These points are those whose difference is more
 than a cutoff value which is set by the user.

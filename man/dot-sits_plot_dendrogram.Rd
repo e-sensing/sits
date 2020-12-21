@@ -22,7 +22,7 @@ indicating the height of dendrogram cutting.}
 \item{colors}{color scheme as per `sits_color_name` function.}
 }
 \value{
-plot
+The plot itself.
 }
 \description{
 Plot a dendrogram

@@ -7,7 +7,7 @@
 .sits_tibble_rename(data)
 }
 \arguments{
-\item{data}{Tibble with}
+\item{data}{A sits tibble.}
 }
 \description{
 Rename a tibble to use "cube" instead of "coverage"

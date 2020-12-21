@@ -12,7 +12,7 @@
 \item{bands}{band for plotting the classification.}
 }
 \value{
-plot
+The plot itself.
 }
 \description{
 plots the classification results

@@ -21,7 +21,7 @@
 ggplot2 object
 }
 \description{
-Plot a bar graph with informations about each cluster.
+Plot a bar graph with information about each cluster.
 The percentage of mixture between the clusters.
 }
 \author{

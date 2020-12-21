@@ -33,7 +33,7 @@
 \item{n_colors}{number of colors.}
 }
 \value{
-plot
+The plot itself.
 }
 \description{
 plots a probability cube using stars

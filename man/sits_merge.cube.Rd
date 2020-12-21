@@ -11,8 +11,12 @@
 
 \item{data2}{The second cube to be merged.}
 }
+\value{
+A data cube.
+}
 \description{
-Merge two data cubes
+Merge two simple data cubes (one tibble row) from the same satellite,
+with the same sensor, resolution, bounding box, and timeline, and different bands.
 }
 \author{
 Gilberto Camara, \email{gilberto.camara@inpe.br}

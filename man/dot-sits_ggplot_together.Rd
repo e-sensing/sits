@@ -14,7 +14,7 @@
 \item{plot_title}{title for the plot.}
 }
 \value{
-plot
+The plot itself.
 }
 \description{
 Plots a set of  time series together.
