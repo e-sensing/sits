@@ -3,8 +3,9 @@
 
 using namespace Rcpp;
 
+// [[Rcpp::export]]
 NumericVector build_neigh(const NumericMatrix& data,
-                          const IntegerMatrix& window,
+                          const NumericMatrix& window,
                           const int& i,
                           const int& j) {
 
@@ -17,7 +18,7 @@ NumericVector build_neigh(const NumericMatrix& data,
             if (data_i >= 0 && data_j >= 0 &&
                 data_i < data.nrow() && data_j < data.ncol() && window(k, l) > 0 &&
                 !std::isnan(data(data_i, data_j))) {
-                neigh.push_back(data(data_i, data_j) * window(k, l));
+                neigh.push_back(double(data(data_i, data_j) * window(k, l)));
             }
         }
     }
@@ -26,24 +27,29 @@ NumericVector build_neigh(const NumericMatrix& data,
 }
 
 double bayes_estimator_pixel(const double& p,
-                              const NumericVector& neigh,
-                              const double& variance) {
+                             const NumericVector& neigh,
+                             const double& variance,
+                             const double& mult_factor) {
+
 
     if (std::isnan(p)) return NAN;
-    NumericVector log_neigh = log(neigh / (10000 - neigh));
-    double x = log(p / (10000.0 - p));
+    NumericVector log_neigh = log(neigh / (mult_factor - neigh));
+    double x = log( p / (mult_factor - p));
     double v = var(log_neigh);
     double w1 = v / (variance + v);
     double w2 = variance / (variance + v);
     double sx = w1 * x + w2 * mean(log_neigh);
 
-    return sx;
+    double prob_bay = exp(sx)*mult_factor/(exp(sx) + 1);
+
+    return prob_bay;
 }
 
 // [[Rcpp::export]]
-NumericVector bayes_estimator_class(const NumericMatrix& data,
-                                     const IntegerMatrix& window,
-                                     const double& variance) {
+NumericVector bayes_estimator(const NumericMatrix& data,
+                              const NumericMatrix& window,
+                              const double& variance,
+                              const double& mult_factor) {
 
     int nrows = data.nrow();
     int ncols = data.ncol();
@@ -53,7 +59,12 @@ NumericVector bayes_estimator_class(const NumericMatrix& data,
     int k = 0;
     for (int i = 0; i < nrows; ++i) {
         for (int j = 0; j < ncols; ++j) {
-            result(k++) = bayes_estimator_pixel(data(i, j), build_neigh(data, window, i, j), variance);
+
+            NumericVector neigh = build_neigh(data, window, i, j);
+            result(k++) =  bayes_estimator_pixel(data(i, j),
+                                                   neigh,
+                                                   variance,
+                                                   mult_factor);
         }
     }
 

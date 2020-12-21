@@ -101,5 +101,4 @@ test_that("Functions that work with ROI",{
     bbox_3 <- sits:::.sits_roi_bbox(sf_bbox, cube)
 
     expect_true(length(sits:::.sits_bbox_intersect(bbox_3, cube)) == 4)
-    expect_true(all(bbox_2 == bbox_3))
 })

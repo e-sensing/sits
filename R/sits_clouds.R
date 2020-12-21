@@ -84,7 +84,7 @@ sits_cloud_remove <- function(cube,
         files = files
     )
 
-    class(cube_new) <- c("raster_cube", class(cube_new))
+    class(cube_new) <- c("brick_cube", "raster_class", class(cube_new))
 
     return(cube_new)
 }
@@ -229,7 +229,7 @@ sits_cloud_remove <- function(cube,
 
         # write the interpolated values
         .sits_raster_api_write(
-            cube = cube,
+            params = .sits_raster_api_params_cube(cube),
             num_layers = num_layers,
             values = values_cld_free,
             filename = filename,
@@ -388,7 +388,7 @@ sits_cloud_cbers <- function(cube,
 
         # write the probabilities to a raster file
         .sits_raster_api_write(
-            cube = cube,
+            params = .sits_raster_api_params_cube(cube),
             num_layers = 1,
             values = cloud_values,
             filename = cld_band_file,

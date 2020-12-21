@@ -1,5 +1,5 @@
 #' @title Clustering a set of satellite image time series using SOM
-#' @name sits_cluster_som
+#' @name sits_som_cluster
 #' @author Lorena Alves, \email{lorena.santos@@inpe.br}
 #' @author Karine Ferreira. \email{karine.ferreira@@inpe.br}
 #' @description This function uses self-organized maps to find clusters in
@@ -34,10 +34,10 @@
 #' @examples
 #' \dontrun{
 #' # Evaluate the quality of the samples using SOM clustering
-#' new_samples <- sits_cluster_som(samples_mt_4bands)
+#' new_samples <- sits_som_cluster(samples_mt_4bands)
 #' }
 #' @export
-sits_cluster_som <- function(data,
+sits_som_cluster <- function(data,
                              grid_xdim = 10,
                              grid_ydim = 10,
                              alpha = 1.0,
@@ -331,7 +331,7 @@ sits_som_evaluate_cluster <- function(som_map)
                                  temp_data$neuron_label
     )
 
-    confusion_matrix <- addmargins(table(temp_data$label,
+    confusion_matrix <- stats::addmargins(table(temp_data$label,
                                          temp_data$neuron_label)
     )
 
@@ -351,17 +351,13 @@ sits_som_evaluate_cluster <- function(som_map)
             mixture_percentage <- as.numeric(
                 (current_col / current_col_total) * 100
             )
-
-            current_class_ambiguity <-
-                dplyr::arrange(tibble::as_tibble(
-                    list(
-                        id_cluster = as.integer(d),
-                        cluster = colnames(confusion_matrix)[d],
-                        class = names(current_col),
-                        mixture_percentage = mixture_percentage),
-                    dplyr::desc(mixture_percentage))
-                )
-
+            nrows <- length(mixture_percentage)
+            current_class_ambiguity <- tibble::tibble(
+                id_cluster = rep(d, nrows),
+                cluster = rep(colnames(confusion_matrix)[d], nrows),
+                class = names(current_col),
+                mixture_percentage = mixture_percentage
+            )
             # remove lines where mix_percentege is zero
             current_class_ambiguity <- dplyr::filter(
                 current_class_ambiguity,

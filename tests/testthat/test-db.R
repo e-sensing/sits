@@ -72,24 +72,23 @@ test_that("Access to RSQLite", {
     )
 
     # label classification
-    sinop_bayes <- sits::sits_label_classification(sinop_probs,
-        smoothing = "bayesian",
+    sinop_label <- sits::sits_label_classification(sinop_probs,
         output_dir = tempdir()
     )
 
     # save a classified image to the DB
-    conn <- sits_db_write(conn, "sinop_bayes", sinop_bayes)
+    conn <- sits_db_write(conn, "sinop_label", sinop_label)
     # read a classified image
-    cube_bayes <- sits_db_read(conn, "sinop_bayes")
+    cube_label <- sits_db_read(conn, "sinop_label")
 
-    expect_true(nrow(sinop_bayes) == nrow(cube_bayes))
-    expect_true(all(sinop_bayes$file_info[[1]]$path ==
-                        cube_bayes$file_info[[1]]$path)
+    expect_true(nrow(sinop_label) == nrow(cube_label))
+    expect_true(all(sinop_label$file_info[[1]]$path ==
+                        cube_label$file_info[[1]]$path)
     )
     db <- sits_db_info(conn)
 
     expect_true(nrow(db) == 4)
-    cube_classes <- sits:::sits_env$config$cube_classes_generic
+    cube_classes <- sits:::sits_env$config$cube_classes
     db_classes <- c("sits", cube_classes)
 
     expect_true(all(db$class %in% db_classes))
@@ -97,7 +96,7 @@ test_that("Access to RSQLite", {
     expect_true("sinop" %in% db$name)
 
     expect_true(all(file.remove(unlist(sinop_probs$file_info[[1]]$path))))
-    expect_true(all(file.remove(unlist(sinop_bayes$file_info[[1]]$path))))
+    expect_true(all(file.remove(unlist(sinop_label$file_info[[1]]$path))))
 
     unlink(db_file)
 })

@@ -72,18 +72,14 @@ sits_deeplearning <- function(samples = NULL,
             msg = "sits_deeplearning: number of layers does not match
                         number of dropout rates"
         )
-
+        assertthat::assert_that(length(activation) == 1,
+            msg = "sits_deeplearning: use only one activation function"
+        )
         valid_activations <- c("relu", "elu", "selu", "sigmoid")
         assertthat::assert_that(activation %in% valid_activations,
             msg = "sits_deeplearning: invalid node activation method"
         )
 
-        assertthat::assert_that(length(activation) == length(dropout_rates) ||
-            length(activation) == 1,
-        msg = "sits_deeplearning:
-                       activation vectors should be one string or a
-                       set of strings that match the number of units"
-        )
 
         # data normalization
         stats <- .sits_normalization_param(data)
@@ -130,17 +126,8 @@ sits_deeplearning <- function(samples = NULL,
         test_x <- data.matrix(test_data[, -(1:2)])
         test_y <- unname(int_labels[as.vector(test_data$reference)]) - 1
 
-        # set the activation vector
-        act_vec <- vector()
 
-        n_layers <- length(layers)
-        for (i in 1:n_layers) {
-            if (length(activation) == 1) {
-                  act_vec[i] <- activation
-              } else {
-                  act_vec <- activation
-              }
-        }
+
 
         # build the model step by step
         # create the input_tensor
@@ -148,10 +135,11 @@ sits_deeplearning <- function(samples = NULL,
         output_tensor <- input_tensor
 
         # build the nodes
+        n_layers <- length(layers)
         for (i in 1:n_layers) {
             output_tensor <- keras::layer_dense(output_tensor,
                 units = layers[i],
-                activation = act_vec[i]
+                activation = activation
             )
             output_tensor <- keras::layer_dropout(output_tensor,
                 rate = dropout_rates[i]

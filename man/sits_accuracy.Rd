@@ -61,8 +61,7 @@ sinop_2014_probs <- sits_classify(sinop_2014,
 )
 # label the classification
 sinop_2014_label <- sits_label_classification(sinop_2014_probs,
-  output_dir = tempdir(),
-  smoothing = "bayesian"
+  output_dir = tempdir()
 )
 # get ground truth points
 ground_truth <- system.file("extdata/samples/samples_sinop_crop.csv",

@@ -81,7 +81,7 @@
     files <- .sits_raster_api_check_url(files)
 
     # obtain the parameters
-    params <- .sits_raster_api_params(files[1])
+    params <- .sits_raster_api_params_file(files[1])
     assertthat::assert_that(nrow(params) > 0,
         msg = ".sits_raster_brick_cube: error in retrieving raster params"
     )

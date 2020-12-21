@@ -29,9 +29,8 @@
 #' @export
 .sits_roi_bbox.sf <- function(roi, cube) {
     bbox <- roi %>%
-      sf::st_bbox() %>%
-      sf::st_as_sfc() %>%
       sf::st_transform(crs = cube[1,]$crs) %>%
+      suppressWarnings() %>%
       sf::st_bbox()
 
     return(bbox)
@@ -55,16 +54,16 @@
 #' @export
 .sits_roi_bbox.ll <- function(roi, cube) {
     # region of interest defined by two points
-    p1 <- sf::st_point(c(roi["lon_min"], roi["lat_min"]))
-    p2 <- sf::st_point(c(roi["lon_max"], roi["lat_max"]))
-    p3 <- sf::st_point(c(roi["lon_max"], roi["lat_min"]))
-    p4 <- sf::st_point(c(roi["lon_min"], roi["lat_max"]))
-    # create an sfc object
-    points <- c(p1, p2, p3, p4)
+    df <- data.frame(
+      lon = c(roi["lon_min"], roi["lon_max"], roi["lon_max"], roi["lon_min"]),
+      lat = c(roi["lat_min"], roi["lat_min"], roi["lat_max"], roi["lat_max"])
+    )
 
-    bbox <- points %>%
-      sf::st_sfc(crs = 4326) %>%
-      sf::st_transform(crs = cube[1, ]$crs) %>%
-      sf::st_bbox()
-    return(bbox)
+    sf_region <- df %>%
+      sf::st_as_sf(coords = c("lon", "lat"), crs = 4326) %>%
+      dplyr::summarise(geometry = sf::st_combine(geometry)) %>%
+      sf::st_cast("POLYGON")
+
+    bbox <- sf::st_bbox(suppressWarnings(sf::st_transform(sf_region,
+                                                          crs = cube[1,]$crs)))
 }

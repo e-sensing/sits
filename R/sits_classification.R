@@ -41,7 +41,7 @@ sits_classify <- function(data, ml_model, ...) {
     # is the data a sits tibble? If not, it must be a cube
     if (!("sits" %in% class(data))) {
         # find out the generic cube class it belongs to
-        class_data <- .sits_config_cube_generic(data[1, ]$type)
+        class_data <- .sits_config_cube_class(data[1, ]$type)
         class(data) <- c(class_data, class(data))
     }
 
@@ -201,6 +201,8 @@ sits_classify.sits <- function(data, ml_model, ...,
 #' @return                 cube with the metadata of a brick of probabilities.
 #'
 #' @examples
+#'
+#' \dontrun{
 #' # Classify a raster file with 23 instances for one year
 #' ndvi_file <- c(system.file("extdata/raster/mod13q1/sinop-ndvi-2014.tif",
 #' package = "sits"))
@@ -217,23 +219,21 @@ sits_classify.sits <- function(data, ml_model, ...,
 #' )
 #'
 #' # select band "NDVI"
-#' samples_ndvi <- sits_select(samples_mt_4bands, bands = "NDVI")
+#' samples <- sits_select(samples_mt_4bands, bands = "NDVI")
 #'
 #' # select a random forest model
-#' rfor_model <- sits_train(samples_ndvi,
-#'               ml_method = sits_rfor(num_trees = 300))
+#' rfor_model <- sits_train(samples, ml_method = sits_rfor(num_trees = 300))
 #'
 #' # classify the raster image
 #' sinop_probs <- sits_classify(sinop_2014,
 #'     ml_model = rfor_model,
 #'     output_dir = tempdir(),
-#'     memsize = 4, multicores = 2
+#'     memsize = 4, multicores = 1
 #' )
 #'
 #' # label the classified image
-#' sinop_label <- sits_label_classification(sinop_probs,
-#'     output_dir = tempdir()
-#' )
+#' sinop_label <- sits_label_classification(sinop_probs, output_dir = tempdir())
+#' }
 #' @export
 sits_classify.raster_cube <- function(data, ml_model, ...,
                                       roi = NULL,

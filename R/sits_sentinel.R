@@ -234,7 +234,7 @@
 
     # get the first image
     # obtain the parameters
-    params <- .sits_raster_api_params(file_info[1, ]$path)
+    params <- .sits_raster_api_params_file(file_info[1, ]$path)
 
     # get scale factors
     scale_factors <- .sits_config_scale_factors(sensor, bands)

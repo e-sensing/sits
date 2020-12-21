@@ -67,8 +67,7 @@ sinop_probs <- sits_classify(sinop_2014, xgb_model,
 )
 # smooth the result with a bayesian filter
 sinop_bayes <- sits_label_classification(sinop_probs,
-    output_dir = tempdir(),
-    smoothing = "bayesian"
+    output_dir = tempdir()
 )
 
 # plot the smoothened image
