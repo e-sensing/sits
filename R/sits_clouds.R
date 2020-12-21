@@ -7,6 +7,8 @@
 #' @param impute_fn  imputing function to be applied to replace NA
 #' @param memsize    size of memory
 #' @param multicores number of cores
+#' @description Remove cloud data from a cube by interpolating cloud data
+#' over time.
 #'
 #' @return           new data cube with interpolated cloud data
 #'
