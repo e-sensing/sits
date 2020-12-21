@@ -421,7 +421,7 @@ sits_ranger <- function(data = NULL,
 #' @param num_trees        number of trees to grow.
 #'                         This should not be set to too small a number,
 #'                         to ensure that every input row gets predicted
-#'                         at least a few times. (default: 2000)
+#'                         at least a few times (default: 2000).
 #' @param nodesize         minimum size of terminal nodes
 #'                         (default 1 for classification)
 #' @param ...              other parameters to be passed

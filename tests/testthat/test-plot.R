@@ -83,7 +83,7 @@ test_that("Plot Time Series and Classification", {
     invisible(dev.off())
     invisible(file.remove(paste0(tempdir(), "/plot.jpg")))
 })
-test_that("Dendogram Plot", {
+test_that("Dendrogram Plot", {
     # verifies if imager package is installed
     if (!requireNamespace("imager", quietly = TRUE)) {
         stop("imager required for this function to work.
