@@ -38,56 +38,58 @@
 #' data(samples_mt_4bands)
 #' samples_mt_ndvi <- sits_select(samples_mt_4bands, bands = "NDVI")
 #' # Build a machine learning model based on deep learning
-#' dl_model <- sits_train (samples_mt_ndvi,
-#'                         sits_deeplearning(layers = c(64, 64),
-#'                                           dropout_rates = c(0.50, 0.40),
-#'                                           epochs = 50))
+#' dl_model <- sits_train(
+#'     samples_mt_ndvi,
+#'     sits_deeplearning(
+#'         layers = c(64, 64),
+#'         dropout_rates = c(0.50, 0.40),
+#'         epochs = 50
+#'     )
+#' )
 #' # get a point with a 16 year time series
 #' data(point_ndvi)
 #' # classify the point
-#' class.tb <- sits_classify (point_ndvi, dl_model)
+#' point_class <- sits_classify(point_ndvi, dl_model)
 #' # plot the classified point
-#' plot(class.tb)
+#' plot(point_class)
 #' }
 #' @export
-sits_deeplearning <- function(samples          = NULL,
-                        layers           = c(512, 512, 512, 512, 512),
-                        activation       = 'elu',
-                        dropout_rates    = c(0.50, 0.40, 0.35, 0.30, 0.20),
-                        optimizer        = keras::optimizer_adam(lr = 0.001),
-                        epochs           = 500,
-                        batch_size       = 128,
-                        validation_split = 0.2,
-                        verbose          = 1) {
-    # backward compatibility
-    samples <- .sits_tibble_rename(samples)
+sits_deeplearning <- function(samples = NULL,
+                              layers = c(512, 512, 512, 512, 512),
+                              activation = "elu",
+                              dropout_rates = c(0.50, 0.40, 0.35, 0.30, 0.20),
+                              optimizer = keras::optimizer_adam(lr = 0.001),
+                              epochs = 500,
+                              batch_size = 128,
+                              validation_split = 0.2,
+                              verbose = 1) {
 
-    # function that returns keras model based on a sits sample data.table
-    result_fun <- function(data){
+    # function that returns a keras model based on samples
+    result_fun <- function(data) {
 
         # pre-conditions
         assertthat::assert_that(length(layers) == length(dropout_rates),
-                msg = "sits_deeplearning: number of layers does not match
-                        number of dropout rates")
-
+            msg = "sits_deeplearning: number of layers does not match
+                        number of dropout rates"
+        )
+        assertthat::assert_that(length(activation) == 1,
+            msg = "sits_deeplearning: use only one activation function"
+        )
         valid_activations <- c("relu", "elu", "selu", "sigmoid")
         assertthat::assert_that(activation %in% valid_activations,
-                msg = "sits_deeplearning: invalid node activation method")
+            msg = "sits_deeplearning: invalid node activation method"
+        )
 
-        assertthat::assert_that(length(activation) == length(dropout_rates) ||
-                                length(activation) == 1,
-                       msg = "sits_deeplearning:
-                       activation vectors should be one string or a
-                       set of strings that match the number of units")
 
         # data normalization
         stats <- .sits_normalization_param(data)
-        train_data_DT <- .sits_distances(.sits_normalize_data(data, stats))
+        train_data <- .sits_distances(.sits_normalize_data(data, stats))
 
-        # is the train data correct?
-        assertthat::assert_that("reference" %in% names(train_data_DT),
+        # is the training data correct?
+        assertthat::assert_that("reference" %in% names(train_data),
             msg = "sits_deeplearning:
-                   input data does not contain distances")
+                   input data does not contain distances"
+        )
 
         # get the labels of the data
         labels <- sits_labels(data)$label
@@ -99,116 +101,115 @@ sits_deeplearning <- function(samples          = NULL,
 
         # split the data into training and validation data sets
         # create partitions different splits of the input data
-        test_data_DT <- .sits_distances_sample(train_data_DT,
-                                               frac = validation_split)
+        test_data <- .sits_distances_sample(train_data,
+            frac = validation_split
+        )
 
         # remove the lines used for validation
-        train_data_DT <- train_data_DT[!test_data_DT, on = "original_row"]
+        train_data <- train_data[!test_data, on = "original_row"]
 
         # shuffle the data
-        train_data_DT <- train_data_DT[sample(nrow(train_data_DT),
-                                              nrow(train_data_DT)),]
-        test_data_DT  <- test_data_DT[sample(nrow(test_data_DT),
-                                             nrow(test_data_DT)),]
+        train_data <- train_data[sample(
+            nrow(train_data),
+            nrow(train_data)
+        ), ]
+        test_data <- test_data[sample(
+            nrow(test_data),
+            nrow(test_data)
+        ), ]
 
         # organize data for model training
-        train.x <- data.matrix(train_data_DT[, -(1:2)])
-        train.y <- unname(int_labels[as.vector(train_data_DT$reference)]) - 1
+        train_x <- data.matrix(train_data[, -(1:2)])
+        train_y <- unname(int_labels[as.vector(train_data$reference)]) - 1
 
         # create the test data for keras
-        test.x <- data.matrix(test_data_DT[, -(1:2)])
-        test.y <- unname(int_labels[as.vector(test_data_DT$reference)]) - 1
+        test_x <- data.matrix(test_data[, -(1:2)])
+        test_y <- unname(int_labels[as.vector(test_data$reference)]) - 1
 
-        # set the activation vector
-        act_vec <- vector()
 
-        n_layers <- length(layers)
-        for (i in 1:n_layers) {
-            if (length(activation) == 1)
-                act_vec[i] <- activation
-            else
-                act_vec <- activation
-        }
+
 
         # build the model step by step
         # create the input_tensor
-        input_tensor  <- keras::layer_input(shape = c(NCOL(train.x)))
+        input_tensor <- keras::layer_input(shape = c(NCOL(train_x)))
         output_tensor <- input_tensor
 
         # build the nodes
+        n_layers <- length(layers)
         for (i in 1:n_layers) {
             output_tensor <- keras::layer_dense(output_tensor,
-                                                units = layers[i],
-                                                activation = act_vec[i])
+                units = layers[i],
+                activation = activation
+            )
             output_tensor <- keras::layer_dropout(output_tensor,
-                                                  rate = dropout_rates[i])
+                rate = dropout_rates[i]
+            )
             output_tensor <- keras::layer_batch_normalization(output_tensor)
         }
         # create the final tensor
-        model_loss <- "categorical_crossentropy"
         if (n_labels == 2) {
             output_tensor <- keras::layer_dense(output_tensor,
-                                                units = 1,
-                                                activation = "sigmoid")
+                units = 1,
+                activation = "sigmoid"
+            )
             model_loss <- "binary_crossentropy"
         }
         else {
             output_tensor <- keras::layer_dense(output_tensor,
-                                                units = n_labels,
-                                                activation = "softmax")
+                units = n_labels,
+                activation = "softmax"
+            )
             # keras requires categorical data to be put in a matrix
-            train.y <- keras::to_categorical(train.y, n_labels)
-            test.y  <- keras::to_categorical(test.y, n_labels)
+            train_y <- keras::to_categorical(train_y, n_labels)
+            test_y <- keras::to_categorical(test_y, n_labels)
+            model_loss <- "categorical_crossentropy"
         }
         # create the model
-        model.keras <- keras::keras_model(input_tensor, output_tensor)
+        model_keras <- keras::keras_model(input_tensor, output_tensor)
         # compile the model
-        model.keras %>% keras::compile(
+        model_keras %>% keras::compile(
             loss = model_loss,
             optimizer = optimizer,
             metrics = "accuracy"
         )
 
-        prev.fit_verbose <- getOption("keras.fit_verbose")
         options(keras.fit_verbose = verbose)
 
         # fit the model
-        history <- model.keras %>% keras::fit(
-            train.x, train.y,
+        history <- model_keras %>% keras::fit(
+            train_x, train_y,
             epochs = epochs, batch_size = batch_size,
-            validation_data = list(test.x, test.y),
+            validation_data = list(test_x, test_y),
             verbose = verbose, view_metrics = "auto"
         )
 
         graphics::plot(history)
 
-        # construct model predict closure function and returns
-        model_predict <- function(values_DT){
+        # build predict closure function
+        model_predict <- function(values) {
             # transform input (data.table) into a matrix
             # (remove first two columns)
-            values.x         <- data.matrix(values_DT[, -(1:2)])
+            values <- data.matrix(values[, - (1:2)])
             # retrieve the prediction probabilities
-            predict_DT <- data.table::as.data.table(
-                                   stats::predict(model.keras, values.x))
+            predicted <- data.table::as.data.table(
+                stats::predict(model_keras, values)
+            )
 
-            # for the binary classification case
-            # adjust the prediction values
-            # to match the multi-class classification
-            if (n_labels == 2)
-                predict_DT <- .sits_keras_binary_class(predict_DT)
+            # binary classification case
+            # adjust prediction values to match binary classification
+            if (n_labels == 2) {
+                  predicted <- .sits_keras_binary_class(predicted)
+              }
 
             # add the class labels as the column names
-            colnames(predict_DT) <- labels
+            colnames(predicted) <- labels
 
-            return(predict_DT)
+            return(predicted)
         }
-        class(model_predict) <- append(class(model_predict),
-                                       "keras_model",
-                                       after = 0)
+        class(model_predict) <- c("keras_model", class(model_predict))
         return(model_predict)
     }
 
     result <- .sits_factory_function(samples, result_fun)
     return(result)
 }
-

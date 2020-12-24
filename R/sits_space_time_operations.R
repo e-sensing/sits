@@ -10,7 +10,6 @@
 #' @param crs             Projection definition to be converted to.
 #' @return                Tibble with X and Y coordinates
 .sits_latlong_to_proj <- function(longitude, latitude, crs) {
-
     t <- tibble::tibble(long = longitude, lat = latitude) %>%
         sf::st_as_sf(coords = c("long", "lat"), crs = "EPSG:4326") %>%
         sf::st_transform(crs = crs) %>%
@@ -29,15 +28,14 @@
 #' @description Transform a XY coordinate to a latitude and longitude
 #'
 #' @param x               X coordinate of the chosen location.
-#' @param y               Y coordinateof the chosen location.
+#' @param y               Y coordinate of the chosen location.
 #' @param crs             Projection definition to be converted from.
 #' @return Matrix with latlong coordinates.
 .sits_proj_to_latlong <- function(x, y, crs) {
-
     ll <- tibble::tibble(xc = x, yc = y) %>%
-                sf::st_as_sf(coords = c("xc", "yc"), crs = crs) %>%
-                sf::st_transform(crs = "EPSG:4326") %>%
-                sf::st_coordinates()
+        sf::st_as_sf(coords = c("xc", "yc"), crs = crs) %>%
+        sf::st_transform(crs = "EPSG:4326") %>%
+        sf::st_coordinates()
 
     colnames(ll) <- c("longitude", "latitude")
     return(ll)
@@ -52,11 +50,11 @@
 #'
 #' @param data            A tibble with a set of time series
 #' @return A vector the bounding box
-.sits_bbox_time_series <- function(data){
+.sits_bbox_time_series <- function(data) {
     # check if the data is a time series
     .sits_test_tibble(data)
     # return the bounding box
-    bbox        <- vector(length = 4)
+    bbox <- vector(length = 4)
     names(bbox) <- c("xmin", "xmax", "ymin", "ymax")
 
     bbox["xmin"] <- min(data$longitude)
@@ -82,28 +80,33 @@
     if (bbox["xmin"] > cube$xmax |
         bbox["xmax"] < cube$xmin |
         bbox["ymin"] > cube$ymax |
-        bbox["ymax"] < cube$ymin )
-        return(NULL)
+        bbox["ymax"] < cube$ymin) {
+          return(NULL)
+      }
 
-    if (bbox["xmin"] < cube$xmin)
-        bbox_out["xmin"] <- cube$xmin
-    else
-        bbox_out["xmin"] <- bbox["xmin"]
+    if (bbox["xmin"] < cube$xmin) {
+          bbox_out["xmin"] <- cube$xmin
+      } else {
+          bbox_out["xmin"] <- bbox["xmin"]
+      }
 
-    if (bbox["xmax"] > cube$xmax)
-        bbox_out["xmax"] <- cube$xmax
-    else
-        bbox_out["xmax"] <- bbox["xmax"]
+    if (bbox["xmax"] > cube$xmax) {
+          bbox_out["xmax"] <- cube$xmax
+      } else {
+          bbox_out["xmax"] <- bbox["xmax"]
+      }
 
-    if (bbox["ymin"] < cube$ymin)
-        bbox_out["ymin"] <- cube$ymin
-    else
-        bbox_out["ymin"] <- bbox["ymin"]
+    if (bbox["ymin"] < cube$ymin) {
+          bbox_out["ymin"] <- cube$ymin
+      } else {
+          bbox_out["ymin"] <- bbox["ymin"]
+      }
 
-    if (bbox["ymax"] > cube$ymax)
-        bbox_out["ymax"] <- cube$ymax
-    else
-        bbox_out["ymax"] <- bbox["ymax"]
+    if (bbox["ymax"] > cube$ymax) {
+          bbox_out["ymax"] <- cube$ymax
+      } else {
+          bbox_out["ymax"] <- bbox["ymax"]
+      }
 
     return(bbox_out)
 }
@@ -117,41 +120,49 @@
 #' @return               sub_image with additional info on first row,
 #'                       first col, nrows, ncols
 #'
-.sits_sub_image_from_bbox <- function(bbox, cube){
-    sub_image <- vector("double", length = 8)
-    names(sub_image) <- c("first_row", "first_col", "nrows", "ncols",
-                          "xmin", "xmax", "ymin", "ymax")
+.sits_sub_image_from_bbox <- function(bbox, cube) {
+    si <- vector("double", length = 8)
+    names(si) <- c("first_row", "first_col", "nrows", "ncols",
+                   "xmin", "xmax", "ymin", "ymax")
 
-    sub_image[c("xmin", "xmax", "ymin", "ymax")] <- bbox[c("xmin", "xmax", "ymin", "ymax")]
+    si[c("xmin", "xmax", "ymin", "ymax")] <-
+        bbox[c("xmin", "xmax", "ymin", "ymax")]
 
     if (bbox["xmin"] == cube$xmin)
-        sub_image["first_col"] <- 1
+        si["first_col"] <- 1
     else {
-        sub_image["first_col"] <- floor((bbox["xmin"] - cube$xmin)/cube$xres) + 1
-        sub_image["xmin"] <- cube$xmin + cube$xres * (sub_image["first_col"] - 1)
+        si["first_col"] <- unname(
+            floor((bbox["xmin"] - cube$xmin)/cube$xres)
+        ) + 1
+        si["xmin"] <- cube$xmin + cube$xres * (si["first_col"] - 1)
     }
 
     if (bbox["ymax"]  == cube$ymax)
-        sub_image["first_row"] <- 1
+        si["first_row"] <- 1
     else {
-        sub_image["first_row"] <- unname(floor((cube$ymax - bbox["ymax"])/cube$yres)) + 1
-        sub_image["ymax"] <- cube$ymax - cube$yres * (sub_image["first_row"] - 1)
+        si["first_row"] <- unname(
+            floor((cube$ymax - bbox["ymax"])/cube$yres)
+        ) + 1
+        si["ymax"] <- cube$ymax - cube$yres * (si["first_row"] - 1)
     }
 
     if (bbox["ymin"] == cube$ymin)
-        sub_image["nrows"] <- cube$nrows - unname(sub_image["first_row"]) + 1
+        si["nrows"] <- cube$nrows - unname(si["first_row"]) + 1
     else {
-        sub_image["nrows"] <- unname(floor((bbox["ymax"] - bbox["ymin"])/cube$yres)) + 1
-        sub_image["ymin"] <- sub_image["ymax"] - cube$yres * sub_image["nrows"]
+        si["nrows"] <- unname(
+            floor((bbox["ymax"] - bbox["ymin"])/cube$yres)
+        ) + 1
+        si["ymin"] <- si["ymax"] - cube$yres * si["nrows"]
     }
 
-    if (sub_image["xmax"] == cube$xmax)
-        sub_image["ncols"] <- cube$ncols - unname(sub_image["first_col"]) + 1
+    if (si["xmax"] == cube$xmax)
+        si["ncols"] <- cube$ncols - unname(si["first_col"]) + 1
     else {
-        sub_image["ncols"] <- unname(floor((bbox["xmax"] - bbox["xmin"])/cube$xres)) + 1
-        sub_image["xmax"] <- sub_image["xmin"] + cube$yres * sub_image["ncols"]
+        si["ncols"] <- unname(
+            floor((bbox["xmax"] - bbox["xmin"])/cube$xres)
+        ) + 1
+        si["xmax"] <- si["xmin"] + cube$yres * si["ncols"]
     }
 
-    return(sub_image)
+    return(si)
 }
-

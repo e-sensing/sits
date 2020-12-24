@@ -5,6 +5,14 @@ apply_transition_matrix <- function(data_before, data, transition_matrix) {
     .Call(`_sits_apply_transition_matrix`, data_before, data, transition_matrix)
 }
 
+build_neigh <- function(data, window, i, j) {
+    .Call(`_sits_build_neigh`, data, window, i, j)
+}
+
+bayes_estimator <- function(data, window, variance, mult_factor) {
+    .Call(`_sits_bayes_estimator`, data, window, variance, mult_factor)
+}
+
 median_neigh <- function(data, nrows_window, ncols_window) {
     .Call(`_sits_median_neigh`, data, nrows_window, ncols_window)
 }
@@ -27,10 +35,6 @@ linear_interp_vec <- function(vec) {
 
 normalize_data <- function(data, min, max) {
     .Call(`_sits_normalize_data`, data, min, max)
-}
-
-bayes_estimator_class <- function(data, window, variance) {
-    .Call(`_sits_bayes_estimator_class`, data, window, variance)
 }
 
 scale_data <- function(data, scale_factor, adj_val = 0.0) {

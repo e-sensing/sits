@@ -16,31 +16,33 @@
 #' # read a tibble with 400 samples of Cerrado and 346 samples of Pasture
 #' data(cerrado_2classes)
 #' # export a time series
-#' csv_file <- paste0(tempdir(),"/cerrado_2classes.csv")
-#' sits_metadata_to_csv (cerrado_2classes, file = csv_file)
+#' csv_file <- paste0(tempdir(), "/cerrado_2classes.csv")
+#' sits_metadata_to_csv(cerrado_2classes, file = csv_file)
 #' @export
-sits_metadata_to_csv <- function(data, file){
+sits_metadata_to_csv <- function(data, file) {
     # backward compatibility
     data <- .sits_tibble_rename(data)
     assertthat::assert_that(suppressWarnings(file.create(file)),
-                         msg = "sits_metadata_to_csv - file is not writable")
+        msg = "sits_metadata_to_csv - file is not writable"
+    )
 
     csv_columns <- c("longitude", "latitude", "start_date", "end_date", "label")
 
-    #select the parts of the tibble to be saved
-    csv.tb <- dplyr::select(data, csv_columns)
+    # select the parts of the tibble to be saved
+    csv <- dplyr::select(data, csv_columns)
 
-    assertthat::assert_that(NROW(csv.tb) > 0,
-                         msg = "sits_metadata_to_csv: invalid csv file")
-    n_rows_csv <- NROW(csv.tb)
+    assertthat::assert_that(NROW(csv) > 0,
+        msg = "sits_metadata_to_csv: invalid csv file"
+    )
+    n_rows_csv <- NROW(csv)
     # create a column with the id
-    id.tb <- tibble::tibble(id = 1:n_rows_csv)
+    id <- tibble::tibble(id = 1:n_rows_csv)
 
     # join the two tibbles
-    csv.tb <- dplyr::bind_cols(id.tb, csv.tb)
+    csv <- dplyr::bind_cols(id, csv)
 
     # write the CSV file
-    utils::write.csv(csv.tb, file, row.names = FALSE, quote = FALSE)
+    utils::write.csv(csv, file, row.names = FALSE, quote = FALSE)
 
     return(invisible(TRUE))
 }
@@ -61,22 +63,23 @@ sits_metadata_to_csv <- function(data, file){
 #' # read a tibble with 400 samples of Cerrado and 346 samples of Pasture
 #' data(cerrado_2classes)
 #' # export a time series
-#' csv_file <- paste0(tempdir(),"/cerrado_2classes.csv")
+#' csv_file <- paste0(tempdir(), "/cerrado_2classes.csv")
 #' sits_data_to_csv(cerrado_2classes, file = csv_file)
 #' @export
-sits_data_to_csv <- function(data, file){
+sits_data_to_csv <- function(data, file) {
     # backward compatibility
     data <- .sits_tibble_rename(data)
     # check if data is valid
     .sits_test_tibble(data)
 
     assertthat::assert_that(suppressWarnings(file.create(file)),
-                         msg = "sits_data_to_csv - file is not writable")
+        msg = "sits_data_to_csv - file is not writable"
+    )
 
-    distances_DT <- .sits_distances(data)
+    distances <- .sits_distances(data)
 
     # write the CSV file
-    utils::write.csv(distances_DT, file, row.names = FALSE, quote = FALSE)
+    utils::write.csv(distances, file, row.names = FALSE, quote = FALSE)
 
     return(invisible(TRUE))
 }
@@ -85,14 +88,15 @@ sits_data_to_csv <- function(data, file){
 #' @name  .sits_csv_check
 #' @keywords internal
 #'
-#' @param  csv.tb    Tibble read from a CSV file
+#' @param  csv       Tibble read from a CSV file
 #' @return           TRUE/FALSE
 #'
-.sits_csv_check <- function(csv.tb){
+.sits_csv_check <- function(csv) {
     # check if required col names are available
     assertthat::assert_that(
-        all(c("longitude", "latitude","start_date", "end_date", "label")
-            %in% colnames(csv.tb)),
-        msg = "invalid csv file")
+        all(c("longitude", "latitude", "start_date", "end_date", "label")
+        %in% colnames(csv)),
+        msg = "invalid csv file"
+    )
     return(invisible(TRUE))
 }

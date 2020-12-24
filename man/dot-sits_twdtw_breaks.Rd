@@ -14,9 +14,10 @@
 )
 }
 \arguments{
-\item{matches}{A dtwSat S4 object with the matches that have been produced by the sits_TWTDW_matches function.}
+\item{matches}{A dtwSat S4 object with the matches
+produced by the sits_TWTDW_matches function.}
 
-\item{samples}{A sits tibble used as input for the TWDTW matching function.}
+\item{samples}{Input for the TWDTW matching function.}
 
 \item{start_date}{The start date of the classification period.}
 
@@ -24,7 +25,8 @@
 
 \item{interval}{The period between two classifications.}
 
-\item{overlap}{Minimum overlapping between one match and the interval of classification.}
+\item{overlap}{Minimum overlap between one match and
+the interval of classification.}
 }
 \value{
 A sits tibble with the information on matches for the data.
@@ -36,9 +38,10 @@ find the best alignments of these matches in intervals chosen by the user
 }
 \references{
 Maus V, Camara G, Cartaxo R, Sanchez A, Ramos FM, de Queiroz GR (2016).
-A Time-Weighted Dynamic Time Warping Method for Land-Use and Land-Cover Mapping. IEEE
- Journal of Selected Topics in Applied Earth Observations and Remote Sensing, 9(8):3729-3739,
- August 2016. ISSN 1939-1404. doi:10.1109/JSTARS.2016.2517118.
+A Time-Weighted Dynamic Time Warping Method for Land-Use and Land-Cover
+Mapping. IEEE Journal of Selected Topics in Applied Earth Observations
+and Remote Sensing, 9(8):3729-3739, August 2016.
+ISSN 1939-1404. doi:10.1109/JSTARS.2016.2517118.
 }
 \author{
 Victor Maus, \email{vwmaus1@gmail.com}

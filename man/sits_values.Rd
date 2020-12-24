@@ -28,8 +28,12 @@ that require values that are rowwise or colwise organised.
 \examples{
 # Retrieve a set of time series with 2 classes
 data(cerrado_2classes)
-# retrieve the values split by bands
-sits_values(cerrado_2classes[1:2,], format = "bands_dates_cases")
+# retrieve the values split by bands and dates
+ls1 <- sits_values(cerrado_2classes[1:2, ], format = "bands_dates_cases")
+# retrieve the values split by cases (occurences)
+ls2 <- sits_values(cerrado_2classes[1:2, ], format = "cases_dates_bands")
+#' # retrieve the values split by bands and cases (occurences)
+ls3 <- sits_values(cerrado_2classes[1:2, ], format = "bands_dates_cases")
 }
 \author{
 Rolf Simoes, \email{rolf.simoes@inpe.br}

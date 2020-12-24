@@ -1,7 +1,7 @@
 Package: sits
 Type: Package
-Title: Satellite Image Time Series Analysis For Remote Sensing Data Cubes
-Version: 0.9.7.1
+Version: 0.9.8
+Title: Satellite Image Time Series Analysis for Remote Sensing Data Cubes
 Authors@R: c(person('Rolf', 'Simoes', role = c('aut'), email = 'rolf.simoes@inpe.br'),
              person('Gilberto', 'Camara', role = c('aut', 'cre'), email = 'gilberto.camara@inpe.br'),
              person('Felipe', 'Souza', role = c('aut'), email = 'felipe.carvalho@inpe.br'),
@@ -16,13 +16,13 @@ Authors@R: c(person('Rolf', 'Simoes', role = c('aut'), email = 'rolf.simoes@inpe
              )
 Maintainer: Gilberto Camara <gilberto.camara@inpe.br>
 Description: A set of tools for working with satellite image time series, both as individual data or as part of data cubes.
-    Supports data retrieval from a WTSS (web time series service), Raster Bricks and cubes from the Brazilan Data Cube.
+    Supports data retrieval from a web time series service (WTSS), raster bricks and cubes from the Brazilan Data Cube.
     Provides different visualisation methods for image time series.
     Provides smoothing methods for noisy time series.
-    Enables different clustering methods, including dendrograms and SOM.
-    Matches noiseless patterns with noisy time series using the TWDTW method for shape recognition.
-    Provides machine learning methods for time series classification, including SVM, Random Forests and Deep Learning.
     Includes functions for smoothing based on Bayesian inference. 
+    Enables different clustering methods, including dendrograms and self-organized maps (SOM).
+    Matches noiseless patterns with noisy time series using the time-weighted dynamic time warping (TWDTW) method for shape recognition.
+    Provides machine learning methods for time series classification, including support vector machines (SVM), random forests and deep learning.
     Minimum recommended requirements: 8 GB RAM and 1 CPU dual-core.
 Encoding: UTF-8
 Depends: R (>= 3.5.0)
@@ -98,7 +98,6 @@ Suggests:
     zoo
 Remotes: 
     e-sensing/wtss,
-    brazil-data-cube/rstac
 VignetteBuilder: knitr
 LinkingTo:
     Rcpp
@@ -131,7 +130,6 @@ Collate:
     'sits_indexes.R'
     'sits_imputation.R'
     'sits_keras.R'
-    'sits_kohonen.R'
     'sits_labels.R'
     'sits_label_classification.R'
     'sits_LSTM_FCN.R'
@@ -140,7 +138,6 @@ Collate:
     'sits_pipe.R'
     'sits_plot.R'
     'sits_processing_estimate.R'
-    'sits_raster.R'
     'sits_raster_api.R'
     'sits_raster_blocks.R'
     'sits_raster_brick.R'
@@ -152,6 +149,8 @@ Collate:
     'sits_satveg.R'
     'sits_sentinel.R'
     'sits_shp.R'
+    'sits_smooth.R'
+    'sits_som.R'
     'sits_space_time_operations.R'
     'sits_stac.R'
     'sits_TempCNN.R'

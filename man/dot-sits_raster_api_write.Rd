@@ -5,7 +5,7 @@
 \title{Set the values of a raster object matrix}
 \usage{
 .sits_raster_api_write(
-  cube,
+  params,
   num_layers,
   values,
   filename,
@@ -16,7 +16,7 @@
 )
 }
 \arguments{
-\item{cube}{Data cube}
+\item{params}{Output file params}
 
 \item{num_layers}{Number of layers}
 
@@ -33,7 +33,7 @@
 \item{overwrite}{Overwrite the file}
 }
 \value{
-Data cube
+Data cubevalues
 }
 \description{
 Set the values of a raster object matrix

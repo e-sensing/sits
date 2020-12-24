@@ -5,7 +5,7 @@
 #' @param url         a \code{character} representing a URL for the BDC catalog.
 #' @param collection  a \code{character} with the collection to be searched.
 #' @param bands       a \code{character} with the bands names to be filtered.
-#' @param ...        other parameters to be passed for specific types.
+#' @param ...         other parameters to be passed for specific types.
 #'
 #' @return            a \code{STACCollection} object returned by rstac.
 .sits_stac_collection <- function(url         = NULL,
@@ -22,7 +22,7 @@
 
     assertthat::assert_that(!(length(collection) > 1),
                             msg = paste("sits_cube: STAC_CUBE ",
-                                        "only one collection should be specified"))
+                                    "only one collection should be specified"))
 
     # creating a rstac object and making the requisition
     collection_info <- rstac::stac(url) %>%
@@ -98,7 +98,7 @@
     # if specified, a filter per tile is added to the query
     if (!is.null(tiles))
         rstac_query <- rstac_query %>%
-        rstac::ext_query(keys = "bdc:tile", ops = "%in%", values = tiles)
+        rstac::ext_query("bdc:tile" %in% tiles)
 
     # making the request
     items_info <- rstac_query %>% rstac::post_request(...)
@@ -158,11 +158,11 @@
 
     # grouping the items according to fields provided
     items_grouped <- rstac::items_group(items  = items,
-                                        fields = fields)
+                                        field  = fields)
 
     # adding a tile attribute in the root
     items_grouped <- purrr::map(items_grouped, function(x) {
-        x$tile <- rstac::items_reap(x, fields = fields)[[1]]
+        x$tile <- rstac::items_reap(x, field = fields)[[1]]
 
         # resolution
         x$xres <- x$features[[1]]$properties[["eo:gsd"]]
@@ -200,7 +200,7 @@
 
     # verify the provided parameters
     if (!("sf" %in% class(roi))) {
-        if (all(c("xmin", "xmax","ymin", "ymax") %in% names(roi)))
+        if (all(c("xmin", "xmax", "ymin", "ymax") %in% names(roi)))
             roi_list[c("bbox", "intersects")] <- list(roi, NULL)
 
         else if (typeof(roi) == "character")
@@ -239,7 +239,6 @@
 
     return(datetime)
 }
-
 #' @title Format assets
 #' @name .sits_stac_items_info
 #' @keywords internal
@@ -251,8 +250,10 @@
 #'  by the date.
 .sits_stac_items_info <- function(items, bands) {
 
-    assets_info <- rstac::assets_list(items, assets_names = bands) %>%
-        tibble::as_tibble() %>% dplyr::arrange(date) %>%
+    assets_info <- items %>%
+        rstac::assets_list(assets_names = bands) %>%
+        tibble::as_tibble() %>%
+        dplyr::arrange(date) %>%
         dplyr::mutate(date = lubridate::as_date(as.character(date)))
 
     return(assets_info)
@@ -262,18 +263,18 @@
 #' @keywords internal
 #'
 #' @param collection_info a \code{STACCollection} object returned by rstac.
-#'  package.
-#' @param bands           a \code{character} with the bands names to be
-#'  filtered.
+#' @param bands           a \code{character} bands names to be filtered.
 #'
 #' @return                a \code{list} with the information of scale factors,
 #'  missing, minimum, and maximum values.
-.sits_config_stac_values <- function(collection_info, bands) {
+.sits_config_stac_values <- function(collection, bands) {
 
     # filters by the index of the bands that correspond to the collection
     index_bands <-
-        which(lapply(collection_info$properties$`eo:bands`, function(x) {
-            x$name }) %in% bands)
+        which(lapply(collection$properties$`eo:bands`,
+                     function(x) {
+                         x$name }) %in% bands
+              )
 
     vect_values <- vector()
     list_values <- list()
@@ -281,31 +282,30 @@
     # creating a named list of the metadata values
     purrr::map(c("min", "max", "nodata", "scale"), function(field) {
         purrr::map(index_bands, function(index) {
-            vect_values[collection_info$properties$`eo:bands`[[index]]$name] <<-
-                as.numeric(collection_info$properties$`eo:bands`[[index]][[field]])
+          vect_values[collection$properties$`eo:bands`[[index]]$name] <<-
+            as.numeric(collection$properties$`eo:bands`[[index]][[field]])
         })
         list_values[[field]] <<- vect_values
     })
-    list_values
+    return(list_values)
 }
 #' @title Get the STAC information corresponding to a bbox extent
 #' @name .sits_stac_get_bbox
 #' @keywords internal
 #'
-#' @param items_info      a \code{STACItemCollection} object returned by rstac
-#' package.
-#' @param collection_info a \code{STACCollection} object returned by rstac.
+#' @param items      a \code{STACItemCollection} object returned by rstac.
+#' @param collection a \code{STACCollection} object returned by rstac.
 #'
 #' @return  a \code{bbox} object from the sf package representing the tile bbox.
-.sits_stac_get_bbox <- function(items_info, collection_info) {
+.sits_stac_get_bbox <- function(items, collection) {
 
     # get the extent points
-    extent_points <- items_info$features[[1]]$geometry$coordinates[[1]]
+    extent_points <- items$features[[1]]$geometry$coordinates[[1]]
 
     # create a polygon and transform the proj
     polygon_ext <- sf::st_polygon(list(do.call(rbind, extent_points)))
     polygon_ext <- sf::st_sfc(polygon_ext, crs = 4326) %>%
-        sf::st_transform(., collection_info[["bdc:crs"]])
+        sf::st_transform(., collection[["bdc:crs"]])
 
     bbox_ext <- sf::st_bbox(polygon_ext)
 
@@ -317,8 +317,8 @@
 #'
 #' @param url             a \code{character} representing URL for the BDC STAC.
 #' @param name            a \code{character} representing the output data cube.
-#' @param collection_info a \code{STACCollection} object returned by rstac.
-#' @param items_info      a \code{STACItemCollection} object returned by rstac.
+#' @param collection      a \code{STACCollection} object returned by rstac.
+#' @param items           a \code{STACItemCollection} object returned by rstac.
 #' @param cube            a \code{character} with name input data cube in BDC.
 #' @param file_info       a \code{tbl_df} with the information from STAC.
 #'
@@ -326,10 +326,10 @@
 #'  raster data set.
 .sits_stac_tile_cube <- function(url,
                                  name,
-                                 collection_info,
-                                 items_info,
+                                 collection,
+                                 items,
                                  cube,
-                                 file_info){
+                                 file_info) {
 
     # obtain the timeline
     timeline <- unique(lubridate::as_date(file_info$date))
@@ -338,38 +338,38 @@
     labels <- c("NoClass")
 
     # obtain bbox extent
-    bbox_params <- .sits_stac_get_bbox(items_info, collection_info)
+    bbox <- .sits_stac_get_bbox(items, collection)
 
     # get the bands
     bands <- unique(file_info$band)
 
     # get scale factors, missing, minimum, and maximum values
-    metadata_values  <- .sits_config_stac_values(collection_info, bands)
+    metadata_values  <- .sits_config_stac_values(collection, bands)
 
     # create a tibble to store the metadata
     cube <- .sits_cube_create(type      = "BDC",
                               URL       = url,
-                              satellite = collection_info$properties$platform,
-                              sensor    = collection_info$properties$instruments,
+                              satellite = collection$properties$platform,
+                              sensor    = collection$properties$instruments,
                               name      = name,
                               cube      = cube,
-                              tile      = items_info$tile,
-                              bands     = collection_info$bands,
+                              tile      = items$tile,
+                              bands     = collection$bands,
                               labels    = labels,
                               scale_factors  = metadata_values$scale,
                               missing_values = metadata_values$nodata,
                               minimum_values = metadata_values$min,
                               maximum_values = metadata_values$max,
                               timelines = list(timeline),
-                              nrows     = items_info$nrows,
-                              ncols     = items_info$ncols,
-                              xmin      = bbox_params$xmin[[1]],
-                              xmax      = bbox_params$xmax[[1]],
-                              ymin      = bbox_params$ymin[[1]],
-                              ymax      = bbox_params$ymax[[1]],
-                              xres      = items_info$xres,
-                              yres      = items_info$yres,
-                              crs       = collection_info[["bdc:crs"]],
+                              nrows     = items$nrows,
+                              ncols     = items$ncols,
+                              xmin      = bbox$xmin[[1]],
+                              xmax      = bbox$xmax[[1]],
+                              ymin      = bbox$ymin[[1]],
+                              ymax      = bbox$ymax[[1]],
+                              xres      = items$xres,
+                              yres      = items$yres,
+                              crs       = collection[["bdc:crs"]],
                               file_info = file_info)
 
     return(cube)

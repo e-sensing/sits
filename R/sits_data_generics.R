@@ -36,14 +36,14 @@ sits_bands <- function(data) {
 #' # Retrieve the set of samples for Mato Grosso (provided by EMBRAPA)
 #' # show the bands
 #' sits_bands(samples_mt_6bands)
-#'
 #' @export
 sits_bands.sits <- function(data) {
     # backward compatibility
     data <- .sits_tibble_rename(data)
 
     bands <- sits_time_series(data) %>%
-            colnames() %>% .[2:length(.)]
+        colnames() %>%
+        .[2:length(.)]
 
     return(bands)
 }
@@ -58,8 +58,8 @@ sits_bands.sits <- function(data) {
 #' @return A string vector with the names of the bands.
 #'
 #' @export
-sits_bands.cube <- function(data){
-    return(data[1,]$bands[[1]])
+sits_bands.cube <- function(data) {
+    return(data[1, ]$bands[[1]])
 }
 
 #' @title Informs the names of the bands of a set of timeseries
@@ -74,7 +74,6 @@ sits_bands.cube <- function(data){
 #'
 #' @export
 sits_bands.patterns <- function(data) {
-
     bands <- sits_bands.sits(data)
 
     return(bands)
@@ -95,12 +94,11 @@ sits_bands.patterns <- function(data) {
 #' @return A vector with a
 #'
 #' @export
-sits_bbox <- function(data){
+sits_bbox <- function(data) {
     # get the meta-type (sits or cube)
     data <- .sits_config_data_meta_type(data)
 
     UseMethod("sits_bbox", data)
-
 }
 #' @title Get the bounding box of a set of time series
 #' @name sits_bbox.sits
@@ -113,7 +111,7 @@ sits_bbox <- function(data){
 #'      "lat_min", "lat_max")
 #'
 #' @export
-sits_bbox.sits <- function(data){
+sits_bbox.sits <- function(data) {
     # is the data a valid set of time series
     .sits_test_tibble(data)
 
@@ -138,13 +136,16 @@ sits_bbox.sits <- function(data){
 #' @return named vector with bounding box ("xmin", "xmax", "ymin", "ymax")
 #'
 #' @export
-sits_bbox.cube <- function(data){
+sits_bbox.cube <- function(data) {
 
     # create and return the bounding box
-    if (nrow(data) == 1)
-        bbox <- c(data$xmin, data$xmax, data$ymin, data$ymax)
-    else
-        bbox <- c(min(data$xmin), max(data$xmax), min(data$ymin), max(data$ymax))
+    if (nrow(data) == 1) {
+          bbox <- c(data$xmin, data$xmax, data$ymin, data$ymax)
+      } else {
+          bbox <- c(min(data$xmin), max(data$xmax),
+                    min(data$ymin), max(data$ymax)
+                    )
+      }
 
     names(bbox) <- c("xmin", "xmax", "ymin", "ymax")
     return(bbox)
@@ -165,12 +166,11 @@ sits_bbox.cube <- function(data){
 #' @return Messages with warnings
 #'
 #' @export
-sits_check_data <- function(data){
+sits_check_data <- function(data) {
     # get the meta-type (sits or cube)
     data <- .sits_config_data_meta_type(data)
 
     UseMethod("sits_check_data", data)
-
 }
 #' @title Checks if a set of time series is consistent
 #' @name sits_check_data.sits
@@ -182,18 +182,19 @@ sits_check_data <- function(data){
 #' @return Messages with warnings
 #'
 #' @export
-sits_check_data.sits <-  function(data) {
+sits_check_data.sits <- function(data) {
     message("Checking a tibble with time series")
 
     assertthat::assert_that(nrow(data) >= 2,
-                            msg = "data has less than two rows")
+        msg = "data has less than two rows"
+    )
 
     all_ok <- TRUE
     message("1. Checking timeline...")
 
-    time1 <- sits_timeline(data[1,])
+    time1 <- sits_timeline(data[1, ])
     for (i in 2:nrow(data)) {
-        if (!all(time1 == sits_timeline(data[i,]))) {
+        if (!all(time1 == sits_timeline(data[i, ]))) {
             message(paste0("row ", i, "has different timeline"))
             all_ok <- FALSE
         }
@@ -211,18 +212,19 @@ sits_check_data.sits <-  function(data) {
 #' @return Messages with warnings
 #'
 #' @export
-sits_check_data.cube <-  function(data) {
+sits_check_data.cube <- function(data) {
     message("Checking a data cube")
 
     assertthat::assert_that(nrow(data) >= 2,
-                            msg = "data has less than two rows")
+        msg = "data has less than two rows"
+    )
 
     all_ok <- TRUE
     message("1. Checking timeline...")
 
-    time1 <- sits_timeline(data[1,])
+    time1 <- sits_timeline(data[1, ])
     for (i in 2:nrow(data)) {
-        if (!all(time1 == sits_timeline(data[i,]))) {
+        if (!all(time1 == sits_timeline(data[i, ]))) {
             message(paste0("cube ", i, " has different timeline"))
             all_ok <- FALSE
         }
@@ -270,42 +272,50 @@ sits_merge <- function(data1, data2) {
 #' # Plot the two points to see the smoothing effect
 #' plot(sits_merge(point_ndvi, point_ws.tb))
 #' @export
-sits_merge.sits <-  function(data1, data2) {
+sits_merge.sits <- function(data1, data2) {
+
+    # precondition
+    .sits_test_tibble(data1)
+    .sits_test_tibble(data2)
+
     # backward compatibility
     data1 <- .sits_tibble_rename(data1)
     data2 <- .sits_tibble_rename(data2)
 
     # if some parameter is empty returns the another one
-    if (NROW(data1) == 0)
-        return(data2)
-    if (NROW(data2) == 0)
-        return(data1)
+    assertthat::assert_that(nrow(data1) > 0 & nrow(data2) > 0,
+        msg = "sits_merge: invalid input data"
+    )
 
     # verify if data1.tb and data2.tb has the same number of rows
     assertthat::assert_that(NROW(data1) == NROW(data2),
-                    msg = "sits_merge: cannot merge tibbles of different sizes")
+        msg = "sits_merge: cannot merge tibbles of different sizes"
+    )
 
     # are the names of the bands different?
     # if they are not
     bands1 <- sits_bands(data1)
     bands2 <- sits_bands(data2)
     if (any(bands1 %in% bands2) || any(bands2 %in% bands1)) {
-        if (!(any(".new" %in% bands1)) & !(any(".new" %in% bands2)))
-            bands2 <- paste0(bands2, ".new")
-        else
-            bands2 <- paste0(bands2, ".nw")
-        data2.tb <- sits_rename(data2, bands2)
+        if (!(any(".new" %in% bands1)) & !(any(".new" %in% bands2))) {
+              bands2 <- paste0(bands2, ".new")
+          } else {
+              bands2 <- paste0(bands2, ".nw")
+          }
+        data2 <- sits_rename(data2, bands2)
     }
     # prepare result
     result <- data1
 
     # merge time series
-    result$time_series <- purrr::map2(data1$time_series,
-                                      data2$time_series,
-                                      function(ts1.tb, ts2.tb) {
-                                          ts3.tb <- dplyr::bind_cols(ts1.tb, dplyr::select(ts2.tb, -Index))
-                                          return(ts3.tb)
-                                      })
+    result$time_series <- purrr::map2(
+        data1$time_series,
+        data2$time_series,
+        function(ts1, ts2) {
+            ts3 <- dplyr::bind_cols(ts1, dplyr::select(ts2, -Index))
+            return(ts3)
+        }
+    )
     return(result)
 }
 
@@ -317,23 +327,30 @@ sits_merge.sits <-  function(data1, data2) {
 #' @param data2      The second cube to be merged.
 #' @export
 #'
-sits_merge.cube <- function(data1, data2){
+sits_merge.cube <- function(data1, data2) {
     # preconditions
     assertthat::assert_that(nrow(data1) == 1 & nrow(data2) == 1,
-                    msg = "merge only works from simple cubes (one tibble row)")
+        msg = "merge only works from simple cubes (one tibble row)"
+    )
     assertthat::assert_that(data1$satellite == data2$satellite,
-                    msg = "cubes from different satellites")
+        msg = "cubes from different satellites"
+    )
     assertthat::assert_that(data1$sensor == data2$sensor,
-                    msg = "cubes from different sensors")
+        msg = "cubes from different sensors"
+    )
     assertthat::assert_that(all(sits_bands(data1) != sits_bands(data2)),
-                    msg = "merge cubes requires different bands in each cube")
+        msg = "merge cubes requires different bands in each cube"
+    )
     assertthat::assert_that(all(sits_bbox(data1) == sits_bbox(data2)),
-                    msg = "merge cubes requires same bounding boxes")
+        msg = "merge cubes requires same bounding boxes"
+    )
     assertthat::assert_that(data1$xres == data2$xres &
-                            data1$yres == data2$yres,
-                    msg = "merge cubes requires same resolution")
+        data1$yres == data2$yres,
+    msg = "merge cubes requires same resolution"
+    )
     assertthat::assert_that(all(sits_timeline(data1) == sits_timeline(data2)),
-                    msg = "merge cubes requires same timeline")
+        msg = "merge cubes requires same timeline"
+    )
 
     # get the file information
     file_info_1 <- data1$file_info[[1]]
@@ -362,7 +379,7 @@ sits_merge.cube <- function(data1, data2){
 #'  \item{"data cube": }{see \code{\link{sits_select.cube}}}
 #' }
 #' @export
-sits_select <- function(data, bands){
+sits_select <- function(data, bands) {
     # get the meta-type (sits or cube)
     data <- .sits_config_data_meta_type(data)
 
@@ -384,7 +401,7 @@ sits_select <- function(data, bands){
 #' # Print the original bands
 #' sits_bands(cerrado_2classes)
 #' # Select only the NDVI band
-#' data <- sits_select (cerrado_2classes, bands = c("NDVI"))
+#' data <- sits_select(cerrado_2classes, bands = c("NDVI"))
 #' # Print the labels of the resulting tibble
 #' sits_bands(data)
 #' @export
@@ -393,11 +410,14 @@ sits_select.sits <- function(data, bands) {
     data <- .sits_tibble_rename(data)
     # bands names in SITS are uppercase
     bands <- toupper(bands)
-    data  <- sits_rename(data, names = toupper(sits_bands(data)))
+    data <- sits_rename(data, names = toupper(sits_bands(data)))
 
     assertthat::assert_that(all(bands %in% sits_bands(data)),
-            msg = paste0("sits_select: missing bands: ",
-                paste(bands[!bands %in% sits_bands(data)], collapse = ", ")))
+        msg = paste0(
+            "sits_select: missing bands: ",
+            paste(bands[!bands %in% sits_bands(data)], collapse = ", ")
+        )
+    )
 
     # prepare result sits tibble
     result <- data
@@ -413,16 +433,18 @@ sits_select.sits <- function(data, bands) {
 #' @name sits_select.cube
 #' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
 #'
-#' @description Returns a data cube with the selected bands.
+#' @description Filter only the selected bands from a data cube.
 #'
 #' @param data         data cube
 #' @param bands        vector with the names of the bands
+#' @return A data cube with the selected bands.
 #'
 #' @export
 #'
-sits_select.cube <- function(data, bands){
+sits_select.cube <- function(data, bands) {
     assertthat::assert_that(bands %in% sits_bands(data),
-                    msg = "requested bands are not available in the data cube")
+        msg = "requested bands are not available in the data cube"
+    )
     # assign the bands
     data$bands[[1]] <- bands
     # filter the file info
@@ -444,9 +466,7 @@ sits_select.cube <- function(data, bands){
 #' @return A tibble in sits format with the selected bands.
 #' @export
 sits_select.patterns <- function(data, bands) {
-
     result <- sits_select.sits(data, bands)
 
     return(result)
 }
-

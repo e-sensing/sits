@@ -37,7 +37,7 @@ and the temporal expansion uses the parameter `scaling`.
 #' # Retrieve a time series with values of NDVI
 data(point_ndvi)
 # Filter the point using the Savitsky Golay smoother
-point_sg <- sits_filter(point_ndvi, sits_sgolay (order = 3, length  = 5))
+point_sg <- sits_filter(point_ndvi, sits_sgolay(order = 3, length = 5))
 # Plot the two points to see the smoothing effect
 plot(sits_merge(point_ndvi, point_sg))
 }

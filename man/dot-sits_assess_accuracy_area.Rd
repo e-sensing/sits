@@ -22,6 +22,12 @@ and the accuracy (user, producer, and overall).
 \description{
 Support for Area-weighted post-classification accuracy
 }
+\references{
+Olofsson, P., Foody G.M., Herold M., Stehman, S.V.,
+Woodcock, C.E., Wulder, M.A. (2014)
+Good practices for estimating area and assessing accuracy of land change.
+Remote Sensing of Environment, 148, pp. 42-57.
+}
 \author{
 Alber Sanchez, \email{alber.ipia@inpe.br}
 }

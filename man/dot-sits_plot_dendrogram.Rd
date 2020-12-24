@@ -6,7 +6,7 @@
 \usage{
 .sits_plot_dendrogram(
   data,
-  cluster.obj,
+  cluster_obj,
   cutree_height = NULL,
   colors = "RdYlGn"
 )
@@ -14,7 +14,7 @@
 \arguments{
 \item{data}{sits tibble with data used to extract the dendrogram.}
 
-\item{cluster.obj}{cluster object produced by `sits_cluster` function.}
+\item{cluster_obj}{cluster object produced by `sits_cluster` function.}
 
 \item{cutree_height}{dashed horizontal line to be drawn
 indicating the height of dendrogram cutting.}

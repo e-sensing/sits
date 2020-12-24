@@ -25,7 +25,7 @@ data(point_ndvi)
 # find out how many time instances are there
 n_times <- NROW(sits_time_series(point_ndvi))
 # interpolate three times more points
-point_int.tb <- sits_linear_interp(point_ndvi, n = 3*n_times)
+point_int.tb <- sits_linear_interp(point_ndvi, n = 3 * n_times)
 # plot the result
 plot(point_int.tb)
 }

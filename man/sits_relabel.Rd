@@ -4,12 +4,12 @@
 \alias{sits_relabel}
 \title{Relabels a sits tibble}
 \usage{
-sits_relabel(data, conv.lst = list())
+sits_relabel(data, conv_lst)
 }
 \arguments{
 \item{data}{A sits tibble.}
 
-\item{conv.lst}{A named list used to convert labels to a new value.
+\item{conv_lst}{A named list used to convert labels to a new value.
 Actual labels must be the names of the list elements.
 An empty list produces no difference.}
 }
@@ -28,14 +28,16 @@ data(samples_mt_4bands)
 sits_labels(samples_mt_4bands)
 # Create a conversion list.
 # Three classes will be converted to "Cropland".
-conv.lst = list(Soy_Corn = "Cropland",
-                Soy_Cotton  = "Cropland",
-                Soy_Fallow  = "Cropland",
-                Soy_Millet  = "Cropland",
-                Soy_Sunflower  = "Cropland",
-                Fallow_Cotton  = "Cropland")
+conv_lst <- list(
+    Soy_Corn = "Cropland",
+    Soy_Cotton = "Cropland",
+    Soy_Fallow = "Cropland",
+    Soy_Millet = "Cropland",
+    Soy_Sunflower = "Cropland",
+    Fallow_Cotton = "Cropland"
+)
 # relabel the data
-new_data  <- sits_relabel(samples_mt_4bands, conv.lst)
+new_data <- sits_relabel(samples_mt_4bands, conv_lst)
 # show the new labels
 sits_labels(new_data)
 }

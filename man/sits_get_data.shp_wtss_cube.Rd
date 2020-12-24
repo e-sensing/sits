@@ -50,12 +50,15 @@ Obtain time series from wtss based on SHP file
 
 # Read an CSV from a WTSS server
 # Requires access to external service
-wtss_cube <- sits_cube(type = "WTSS",
-                       URL = "http://www.esensing.dpi.inpe.br/wtss/",
-                       name = "MOD13Q1")
+wtss_cube <- sits_cube(
+    type = "WTSS",
+    URL = "http://www.esensing.dpi.inpe.br/wtss/",
+    name = "MOD13Q1"
+)
 # define a shapefile and read from the points inside it from WTSS
-shp_file <- system.file("extdata/shapefiles/agriculture/parcel_agriculture.shp",
-                         package = "sits")
-parcel.tb <- sits_get_data(wtss_cube, file = shp_file, .n_shp_pol = 5)
+shp <- system.file("extdata/shapefiles/agriculture/parcel_agriculture.shp",
+    package = "sits"
+)
+parcel <- sits_get_data(wtss_cube, file = shp, .n_shp_pol = 5)
 }
 }

@@ -2,9 +2,10 @@
 % Please edit documentation in R/sits_config.R
 \name{.sits_config_band_names_convert}
 \alias{.sits_config_band_names_convert}
+\alias{.sits_config_bands_convert}
 \title{Convert bands names from cube to SITS}
 \usage{
-.sits_config_band_names_convert(satellite, sensor, bands_files)
+.sits_config_bands_convert(satellite, sensor, bands_files)
 }
 \arguments{
 \item{satellite}{Name of the satellite}

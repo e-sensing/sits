@@ -18,6 +18,34 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// build_neigh
+NumericVector build_neigh(const NumericMatrix& data, const NumericMatrix& window, const int& i, const int& j);
+RcppExport SEXP _sits_build_neigh(SEXP dataSEXP, SEXP windowSEXP, SEXP iSEXP, SEXP jSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< const NumericMatrix& >::type data(dataSEXP);
+    Rcpp::traits::input_parameter< const NumericMatrix& >::type window(windowSEXP);
+    Rcpp::traits::input_parameter< const int& >::type i(iSEXP);
+    Rcpp::traits::input_parameter< const int& >::type j(jSEXP);
+    rcpp_result_gen = Rcpp::wrap(build_neigh(data, window, i, j));
+    return rcpp_result_gen;
+END_RCPP
+}
+// bayes_estimator
+NumericVector bayes_estimator(const NumericMatrix& data, const NumericMatrix& window, const double& variance, const double& mult_factor);
+RcppExport SEXP _sits_bayes_estimator(SEXP dataSEXP, SEXP windowSEXP, SEXP varianceSEXP, SEXP mult_factorSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< const NumericMatrix& >::type data(dataSEXP);
+    Rcpp::traits::input_parameter< const NumericMatrix& >::type window(windowSEXP);
+    Rcpp::traits::input_parameter< const double& >::type variance(varianceSEXP);
+    Rcpp::traits::input_parameter< const double& >::type mult_factor(mult_factorSEXP);
+    rcpp_result_gen = Rcpp::wrap(bayes_estimator(data, window, variance, mult_factor));
+    return rcpp_result_gen;
+END_RCPP
+}
 // median_neigh
 IntegerMatrix median_neigh(const IntegerMatrix& data, const int& nrows_window, const int& ncols_window);
 RcppExport SEXP _sits_median_neigh(SEXP dataSEXP, SEXP nrows_windowSEXP, SEXP ncols_windowSEXP) {
@@ -101,19 +129,6 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
-// bayes_estimator_class
-NumericVector bayes_estimator_class(const NumericMatrix& data, const IntegerMatrix& window, const double& variance);
-RcppExport SEXP _sits_bayes_estimator_class(SEXP dataSEXP, SEXP windowSEXP, SEXP varianceSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< const NumericMatrix& >::type data(dataSEXP);
-    Rcpp::traits::input_parameter< const IntegerMatrix& >::type window(windowSEXP);
-    Rcpp::traits::input_parameter< const double& >::type variance(varianceSEXP);
-    rcpp_result_gen = Rcpp::wrap(bayes_estimator_class(data, window, variance));
-    return rcpp_result_gen;
-END_RCPP
-}
 // scale_data
 NumericMatrix scale_data(NumericMatrix data, const double& scale_factor, const double& adj_val);
 RcppExport SEXP _sits_scale_data(SEXP dataSEXP, SEXP scale_factorSEXP, SEXP adj_valSEXP) {
@@ -142,13 +157,14 @@ END_RCPP
 
 static const R_CallMethodDef CallEntries[] = {
     {"_sits_apply_transition_matrix", (DL_FUNC) &_sits_apply_transition_matrix, 3},
+    {"_sits_build_neigh", (DL_FUNC) &_sits_build_neigh, 4},
+    {"_sits_bayes_estimator", (DL_FUNC) &_sits_bayes_estimator, 4},
     {"_sits_median_neigh", (DL_FUNC) &_sits_median_neigh, 3},
     {"_sits_cbers4_cld_detect", (DL_FUNC) &_sits_cbers4_cld_detect, 11},
     {"_sits_cbers4_cld_values", (DL_FUNC) &_sits_cbers4_cld_values, 4},
     {"_sits_linear_interp", (DL_FUNC) &_sits_linear_interp, 1},
     {"_sits_linear_interp_vec", (DL_FUNC) &_sits_linear_interp_vec, 1},
     {"_sits_normalize_data", (DL_FUNC) &_sits_normalize_data, 3},
-    {"_sits_bayes_estimator_class", (DL_FUNC) &_sits_bayes_estimator_class, 3},
     {"_sits_scale_data", (DL_FUNC) &_sits_scale_data, 3},
     {"_sits_scale_matrix_integer", (DL_FUNC) &_sits_scale_matrix_integer, 2},
     {NULL, NULL, 0}

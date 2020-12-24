@@ -15,3 +15,5 @@
 ^appveyor\.yml$
 ^tic\.R$
 ^codemeta\.json$
+^CONDUCT\.md$
+CODE_OF_CONDUCT.md$

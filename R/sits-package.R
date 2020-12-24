@@ -1,5 +1,6 @@
 #' @title sits
-#' @description Satellite Image Time Series Analysis for Earth Observation Data Cubes
+#' @description Satellite Image Time Series Analysis
+#'              for Earth Observation Data Cubes
 #'
 #' @section SITS API:
 #'

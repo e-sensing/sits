@@ -125,15 +125,13 @@ Since GeoTiff files do not contain information about satellites and sensors, it 
 ndvi_file <- system.file("extdata/raster/mod13q1/sinop-crop-ndvi.tif", 
                          package = "sits")
 
-# Obtain the associated timeline
-timeline <- data("timeline_2000_2017")
 
 # create a raster metadata file based on the information about the files
-raster_cube <- sits_cube(type = "RASTER",
+raster_cube <- sits_cube(type = "BRICK",
                          name = "Sinop", 
                          satellite = "TERRA",
                          sensor = "MODIS",
-                         timeline = timeline,
+                         timeline = timeline_modis_392,
                          bands = c("NDVI"), 
                          files = c(ndvi_file))
 
@@ -329,7 +327,7 @@ time_file <- system.file("extdata/Sinop", "timeline_2014.txt", package = "inSitu
 timeline_2013_2014 <- scan(time_file, character())
 
 # create a raster metadata file based on the information about the files
-sinop <- sits_cube(type = "RASTER",
+sinop <- sits_cube(type = "BRICK",
                    satellite = "TERRA",
                    sensor  = "MODIS",
                    name = "Sinop",
@@ -339,12 +337,11 @@ sinop <- sits_cube(type = "RASTER",
 
 # Use the sinop raster cube created in the section 
 # Classify the raster cube, generating a probability file
-probs_cube <- sits_classify(sinop, ml_model = svm_model, 
+probs <- sits_classify(sinop, ml_model = svm_model, 
                             memsize = 16, multicores = 4)
 
-# label the probability file 
-# (by default selecting the class with higher probability)
-label_cube <- sits_label_classification(probs_cube)
+# label the classified image
+sinop_label <- sits_label_classification(sinop_bayes, output_dir = tempdir())
 ```
 
 # Smoothing of raster data after classification
@@ -353,12 +350,13 @@ Post-processing is a desirable step in any classification process. Most statisti
 
 Smoothing methods are an important complement to machine learning algorithms for image classification. Since these methods are mostly pixel-based, it is useful to complement them with post-processing smoothing to include spatial information in the result. For each pixel, machine learning and other statistical algorithms provide the probabilities of that pixel belonging to each of the classes. As a first step in obtaining a result, each pixel is assigned to the class whose probability is higher. After this step, smoothing methods use class probabilities to detect and correct outliers or misclassified pixels. SITS uses a Bayesian smoothing method, which provides the means to incorporate prior knowledge in data analysis. For more details on the smoothing procedure, please see the vignette "Post classification smoothing using Bayesian techniques in SITS". 
 
-Doing post-processing using Bayesian smoothing in SITS is straightforward. The result of the `sits_classify` function applied to a data cube is  set of more probability images, one per requested clasification interval. The next step is to apply the `sits_label_classification` function. By default, this function selects the most likely class for each pixel considering only the probabilities of each class for each pixel. To allow for Bayesian smooting, it suffices to include the `smoothing = bayesian` parameter. If desired, the `variance` parameter (associated to the hyperparameter $\sigma^2_k$ described above) can control the degree of smoothness. The following example takes the previously produced classification output and applies a Bayesian smoothing. 
+Doing post-processing using Bayesian smoothing in SITS is straightforward. The result of the `sits_classify` function applied to a data cube is  set of more probability images, one per requested clasification interval. The next step is to apply the `sits_smooth_bayes` function. By default, this function selects the most likely class for each pixel considering a Bayesian estimator that takes into account the neighbours. The following example takes the previously produced classification output and applies a Bayesian smoothing. 
 
 ```{r, eval = FALSE}
 # smooth the result with a bayesian filter
-label_bayes <- sits_label_classification(probs_cube, 
-                                         smoothing = "bayesian")
+sinop_bayes <- sits_smooth_bayes(probs, output_dir = tempdir())
+# label the resulting image
+label_bayes <- sits_label_classification(sinop_bayes, output_dir = tempdir())
 
 # plot the image
 plot(label_bayes, time = 1, title = "Sinop-smooth")
