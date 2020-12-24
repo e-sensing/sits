@@ -82,12 +82,12 @@
 		return(prediction_DT)
 	}
 
-	join_blocks <- function(blocks.lst) {
-		pred.mtx <-
-			blocks.lst %>%
-			dplyr::bind_rows()
-		return(pred.mtx)
-	}
+	# join_blocks <- function(blocks.lst) {
+	# 	pred.mtx <-
+	# 		blocks.lst %>%
+	# 		dplyr::bind_rows()
+	# 	return(pred.mtx)
+	# }
 	n_rows_dist <- nrow(distances_DT)
 	if (multicores > 1) {
 		blocks.lst <- split.data.frame(distances_DT, cut(1:n_rows_dist,
@@ -95,7 +95,10 @@
 		# apply parallel processing to the split dat
 		results.lst <- parallel::mclapply(blocks.lst, classify_block,
 										  mc.cores = multicores)
-		pred.mtx <- join_blocks(results.lst)
+
+		# bind all results
+		pred.mtx <- do.call(rbind, results.lst)
+		# pred.mtx <- join_blocks(results.lst)
 	}
 	else
 		pred.mtx <- classify_block(distances_DT)
