@@ -126,23 +126,31 @@
 
     if (bbox["xmin"] == cube$xmin)
         sub_image["first_col"] <- 1
-    else
+    else {
         sub_image["first_col"] <- floor((bbox["xmin"] - cube$xmin)/cube$xres) + 1
+        sub_image["xmin"] <- cube$xmin + cube$xres * (sub_image["first_col"] - 1)
+    }
 
     if (bbox["ymax"]  == cube$ymax)
         sub_image["first_row"] <- 1
-    else
+    else {
         sub_image["first_row"] <- unname(floor((cube$ymax - bbox["ymax"])/cube$yres)) + 1
+        sub_image["ymax"] <- cube$ymax - cube$yres * (sub_image["first_row"] - 1)
+    }
 
     if (bbox["ymin"] == cube$ymin)
         sub_image["nrows"] <- cube$nrows - unname(sub_image["first_row"]) + 1
-    else
-        sub_image["nrows"] <- unname(floor((sub_image["ymax"] - sub_image["ymin"])/cube$yres)) + 1
+    else {
+        sub_image["nrows"] <- unname(floor((bbox["ymax"] - bbox["ymin"])/cube$yres)) + 1
+        sub_image["ymin"] <- sub_image["ymax"] - cube$yres * sub_image["nrows"]
+    }
 
     if (sub_image["xmax"] == cube$xmax)
         sub_image["ncols"] <- cube$ncols - unname(sub_image["first_col"]) + 1
-    else
-        sub_image["ncols"] <- unname(floor((sub_image["xmax"] - sub_image["xmin"])/cube$xres)) + 1
+    else {
+        sub_image["ncols"] <- unname(floor((bbox["xmax"] - bbox["xmin"])/cube$xres)) + 1
+        sub_image["xmax"] <- sub_image["xmin"] + cube$yres * sub_image["ncols"]
+    }
 
     return(sub_image)
 }
