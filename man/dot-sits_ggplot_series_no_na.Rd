@@ -16,6 +16,6 @@ plot
 }
 \description{
 Plots a set of time series using ggplot in the case the series
-             has no NAs.
+             has no NA values.
 }
 \keyword{internal}

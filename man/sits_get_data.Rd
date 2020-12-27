@@ -7,11 +7,15 @@
 sits_get_data(cube, file = NULL, ...)
 }
 \arguments{
-\item{cube}{Data cube from where data is to be retrived.}
+\item{cube}{Data cube from where data is to be retrieved.}
 
-\item{file}{File with information on the data to be retrieved}
+\item{file}{File with information on the data to be retrieved.}
 
-\item{...}{Other parameters to be passed for specific types}
+\item{...}{Other parameters to be passed for specific types.}
+}
+\value{
+A tibble with the metadata and data for each time series
+<longitude, latitude, start_date, end_date, label, cube, time_series>.
 }
 \description{
 Retrieve a set of time series and puts it in a "sits tibble".
@@ -45,9 +49,6 @@ Please see the \code{\link[sits]{sits_config}} for more information.
 
 Before using this service, the user should create a valid description
 of a data cube using the \code{\link[sits]{sits_cube}} function.
-
- The result is a tibble with the metadata and data for each time series
-<longitude, latitude, start_date, end_date, label, cube, time_series>
 }
 \references{
 Lubia Vinhas, Gilberto Queiroz, Karine Ferreira, Gilberto Camara,

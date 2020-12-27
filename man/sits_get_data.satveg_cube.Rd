@@ -16,23 +16,23 @@
 )
 }
 \arguments{
-\item{cube}{Data cube from where data is to be retrived.}
+\item{cube}{Data cube from where data is to be retrieved.}
 
-\item{file}{File with information on the data to be retrieved}
+\item{file}{File with information on the data to be retrieved.}
 
-\item{...}{Other parameters to be passed for specific types}
+\item{...}{Other parameters to be passed for specific types.}
 
 \item{longitude}{Longitude of the chosen location.}
 
 \item{latitude}{Latitude of the chosen location.}
 
 \item{start_date}{Start of the interval for the time series
-in "YYYY-MM-DD" format (optional)}
+in "YYYY-MM-DD" format (optional).}
 
 \item{end_date}{End of the interval for the time series in
 "YYYY-MM-DD" format (optional).}
 
-\item{label}{Label to be assigned to the time series (optional)}
+\item{label}{Label to be assigned to the time series (optional).}
 }
 \value{
 A tibble with time series data and metadata.

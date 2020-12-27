@@ -11,8 +11,11 @@
 
 \item{bands}{vector with the names of the bands}
 }
+\value{
+A data cube with the selected bands.
+}
 \description{
-Returns a data cube with the selected bands.
+Filter only the selected bands from a data cube.
 }
 \author{
 Rolf Simoes, \email{rolf.simoes@inpe.br}

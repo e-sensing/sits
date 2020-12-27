@@ -10,7 +10,7 @@
 \item{file}{file associated to the raster data}
 }
 \value{
-TRUE         true if filles are acessible
+TRUE         true if files are accessible
 }
 \description{
 Check if the raster files are accessible by GDAL

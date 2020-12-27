@@ -14,7 +14,7 @@
 \arguments{
 \item{measurement}{A vector of measurements.}
 
-\item{error_in_measurement}{A vector of errors in the measuments.}
+\item{error_in_measurement}{A vector of errors in the measurements.}
 
 \item{initial_estimate}{A first estimation of the measurement.}
 

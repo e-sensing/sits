@@ -24,7 +24,7 @@ A dataset containing a tibble with time series samples
   The data set has the following classes:
   Cerrado(400 samples), Fallow_Cotton (29 samples), Forest (131 samples),
   Pasture (344 samples),
-  Soy-Corn (364 samples),  Soy-Cotton (352 samples), Soy_Fallow (87 samples),
+  Soy_Corn (364 samples),  Soy_Cotton (352 samples), Soy_Fallow (87 samples),
   Soy_Millet (180 samples), and Soy_Sunflower (26 samples).
 }
 \keyword{datasets}

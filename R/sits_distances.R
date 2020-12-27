@@ -97,12 +97,17 @@
     }
     n_rows_dist <- nrow(distances)
     if (multicores > 1) {
-        blocks <- split.data.frame(distances, cut(1:n_rows_dist,
-            multicores,
-            labels = FALSE
-        ))
+        blocks <- split.data.frame(
+            distances,
+            cut(1:n_rows_dist,
+                multicores,
+                labels = FALSE
+            )
+        )
         # apply parallel processing to the split data
-        results <- parallel::mclapply(blocks, classify_block,
+        results <- parallel::mclapply(
+            blocks,
+            classify_block,
             mc.cores = multicores
         )
         predicted <- join_blocks(results)

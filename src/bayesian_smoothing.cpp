@@ -28,19 +28,26 @@ NumericVector build_neigh(const NumericMatrix& data,
 
 double bayes_estimator_pixel(const double& p,
                              const NumericVector& neigh,
-                             const double& variance,
-                             const double& mult_factor) {
+                             const double& smoothness,
+                             const double& max_prob) {
 
 
     if (std::isnan(p)) return NAN;
-    NumericVector log_neigh = log(neigh / (mult_factor - neigh));
-    double x = log( p / (mult_factor - p));
-    double v = var(log_neigh);
-    double w1 = v / (variance + v);
-    double w2 = variance / (variance + v);
-    double sx = w1 * x + w2 * mean(log_neigh);
-
-    double prob_bay = exp(sx)*mult_factor/(exp(sx) + 1);
+    // calculate the log of the odds (p/1-p)
+    NumericVector logit_neigh = log(neigh / (max_prob - neigh));
+    double logit_p = log( p / (max_prob - p));
+    // estimate variance of the neighborhood
+    double local_var = var(logit_neigh);
+    // w1 is controlled by the local variance
+    // (higher local variances decrease confidence in the neighbors)
+    double w1 = local_var / (smoothness + local_var);
+    // w2 is controlled by local smoothness
+    // (lower local variance increase confidence in the neighbors)
+    double w2 = smoothness / (smoothness +  local_var);
+    // calculate the bayesian logit value for the pixel
+    double smooth_logit = w1 * logit_p + w2 * mean(logit_neigh);
+    // calculate the bayesian probability for the pixel
+    double prob_bay = exp(smooth_logit)*max_prob/(exp(smooth_logit) + 1);
 
     return prob_bay;
 }
@@ -48,8 +55,8 @@ double bayes_estimator_pixel(const double& p,
 // [[Rcpp::export]]
 NumericVector bayes_estimator(const NumericMatrix& data,
                               const NumericMatrix& window,
-                              const double& variance,
-                              const double& mult_factor) {
+                              const double& smoothness,
+                              const double& max_prob) {
 
     int nrows = data.nrow();
     int ncols = data.ncol();
@@ -63,8 +70,8 @@ NumericVector bayes_estimator(const NumericMatrix& data,
             NumericVector neigh = build_neigh(data, window, i, j);
             result(k++) =  bayes_estimator_pixel(data(i, j),
                                                    neigh,
-                                                   variance,
-                                                   mult_factor);
+                                                   smoothness,
+                                                   max_prob);
         }
     }
 

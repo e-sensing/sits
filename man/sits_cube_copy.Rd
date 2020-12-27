@@ -4,7 +4,13 @@
 \alias{sits_cube_copy}
 \title{Creates the contents of a data cube}
 \usage{
-sits_cube_copy(cube, name, dest_dir, bands = NULL, srcwin = NULL)
+sits_cube_copy(
+  cube,
+  name,
+  dest_dir,
+  bands = sits_bands(cube),
+  srcwin = c(0, 0, cube$ncols, cube$nrows)
+)
 }
 \arguments{
 \item{cube}{Input data cube}

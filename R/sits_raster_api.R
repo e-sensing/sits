@@ -14,15 +14,15 @@
 
     # post conditions
     assertthat::assert_that(terra::nrow(t_obj) > 0 & terra::ncol(t_obj) > 0,
-                    msg = ".sits_raster_api_params_file: invalid raster object"
+                            msg = ".sits_raster_api_params_file: invalid raster object"
     )
     assertthat::assert_that(terra::xmax(t_obj) > terra::xmin(t_obj) &
-                            terra::ymax(t_obj) > terra::ymin(t_obj),
-                    msg = ".sits_raster_api_params_file: invalid raster object"
+                                terra::ymax(t_obj) > terra::ymin(t_obj),
+                            msg = ".sits_raster_api_params_file: invalid raster object"
     )
     assertthat::assert_that(terra::xres(t_obj) > 0 &
-                            terra::yres(t_obj) > 0,
-                    msg = ".sits_raster_api_params_file: invalid raster object"
+                                terra::yres(t_obj) > 0,
+                            msg = ".sits_raster_api_params_file: invalid raster object"
     )
 
     params <- tibble::tibble(
@@ -38,7 +38,6 @@
     )
     return(params)
 }
-
 #' @title Determine the cube params to write in the metadata
 #' @name .sits_raster_api_params_cube
 #' @keywords internal
@@ -99,16 +98,18 @@
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'
 #' @param  file         file associated to the raster data
-#' @return TRUE         true if filles are acessible
+#' @return TRUE         true if files are accessible
 .sits_raster_api_check_access <- function(file) {
     assertthat::assert_that(length(file) == 1,
-        msg = ".sits_raster_api_check_access works with single files"
+        msg = ".sits_raster_api_check_access: works with single files"
     )
 
     # verify if all files are reachable
-    r <- suppressWarnings(rgdal::GDALinfo(file, silent = FALSE))
+    r <- suppressWarnings(terra::rast(file))
     assertthat::assert_that(all(!purrr::is_null(r)),
-        msg = "sits_cube: raster files cannot be accessed"
+        msg = paste0(".sits_raster_api_check_access: file ", file,
+                     " cannot be accessed"
+        )
     )
     return(TRUE)
 }
@@ -241,19 +242,9 @@
 #' @return                Data.table of values
 .sits_raster_api_read_extent <- function(r_files, extent = NULL) {
 
-    # verify if the files can be read
-    rg_obj <- suppressWarnings(rgdal::GDALinfo(r_files[1]))
-    assertthat::assert_that(!purrr::is_null(rg_obj),
-        msg = ".sits_raster_api_read_extent; invalid file"
-    )
-    if (purrr::is_null(extent)) {
-        extent <- c("row" = 1,
-                    "nrows" = as.numeric(rg_obj["rows"]),
-                    "col" = 1,
-                    "ncols" = as.numeric(rg_obj["columns"]))
-    }
-
+    # create terra objects
     t_obj <- terra::rast(r_files)
+    # start reading
     terra::readStart(t_obj)
     if (terra::nlyr(t_obj) == 1) {
         values <- matrix(
@@ -279,6 +270,32 @@
     return(values)
 }
 
+#' @title Read a raster file and return a matrix
+#' @name .sits_raster_api_read_file
+#' @keywords internal
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
+#'
+#' @param  r_file        Files associated to the raster object
+#' @return                Data.table of values
+.sits_raster_api_read_file <- function(r_file) {
+
+    # precondition
+    assertthat::assert_that(length(r_file) == 1,
+            msg = ".sits_raster_api_read_file: only one file can be read")
+
+    # create terra objects
+    t_obj <- terra::rast(r_file)
+    # check that there are multiple layers
+    assertthat::assert_that(terra::nlyr(t_obj) > 1,
+            msg = ".sits_raster_api_read_file: file must have multiple layers")
+    # start reading
+    terra::readStart(t_obj)
+
+    values <- terra::readValues(x = t_obj, mat = TRUE)
+    terra::readStop(t_obj)
+
+    return(values)
+}
 
 #' @title Set the values of a raster object matrix
 #' @name .sits_raster_api_write

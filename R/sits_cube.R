@@ -168,16 +168,15 @@ sits_cube.stack_cube <- function(type = "STACK", ...,
 
     # precondition - check satellite and sensor
     .sits_config_satellite_sensor(satellite, sensor)
-
+    # precondition - data directory must be provided
     assertthat::assert_that(!purrr::is_null(data_dir),
         msg = "data_dir must be to be provided"
     )
-
-    # precondition - check parsing info
+    # precondition - check parse info
     assertthat::assert_that(length(parse_info) >= 2,
         msg = "invalid parsing information"
     )
-
+    # precondition - does the parse info have band and date?
     assertthat::assert_that(all(c("band", "date") %in% parse_info),
         msg = "invalid columns for date and band"
     )
@@ -190,7 +189,7 @@ sits_cube.stack_cube <- function(type = "STACK", ...,
         parse_info = parse_info,
         delim = delim
     )
-    # create the data cube
+    # create a data cube
     cube <- .sits_raster_stack_cube(
         satellite = satellite,
         sensor = sensor,
@@ -295,6 +294,7 @@ sits_cube.brick_cube <- function(type = "BRICK", ...,
 #'  bounding box with named XY values ("xmin", "xmax", "ymin", "ymax").
 #' @param start_date Initial date for the cube files (optional).
 #' @param end_date   Final date for the cube files (optional).
+#' @param access_key Access key to BDC
 #'
 #' @return           A data cube.
 #'
@@ -302,6 +302,11 @@ sits_cube.brick_cube <- function(type = "BRICK", ...,
 #' \dontrun{
 #' # this example requires access to an external service, so should not be run
 #' # by CRAN
+#'
+#' #' # Provide your BDC credentials here
+#' # Sys.setenv(
+#' # "BDC_SECRET_ACCESS_KEY" = <your_secret_access_key>
+#' # )
 #'
 #' # create a raster cube file based on the information about the files
 #' cbers_tile <- sits_cube(
@@ -316,14 +321,15 @@ sits_cube.brick_cube <- function(type = "BRICK", ...,
 #' }
 #' @export
 sits_cube.bdc_cube <- function(type = "BDC", ...,
-                               name = NULL,
+                               name = "bdc_cube",
                                url = NULL,
                                collection = NULL,
                                tiles = NULL,
                                bands = NULL,
                                roi = NULL,
                                start_date = NULL,
-                               end_date = NULL) {
+                               end_date = NULL,
+                               access_key = NULL) {
 
     # require package
     if (!requireNamespace("rstac", quietly = TRUE)) {
@@ -331,39 +337,26 @@ sits_cube.bdc_cube <- function(type = "BDC", ...,
                    "install.packages('rstac')"), call. = FALSE
         )
     }
+    # precondition - is the url correct?
     if (purrr::is_null(url)) {
           url <- .sits_config_bdc_stac()
       }
 
     # test if BDC is accessible
-    if (!.sits_config_bdc_stac_access(url)) {
-          return(NULL)
-      }
-
-    assertthat::assert_that(!purrr::is_null(url),
-        msg = paste(
-            "sits_cube: for STAC_CUBE url must be",
-            "provided"
-        )
+    assertthat::assert_that(.sits_config_bdc_stac_access(url),
+                            msg = "BDC is not accessible"
     )
-
+    # precondition - is the collection name valid?
     assertthat::assert_that(!purrr::is_null(collection),
-        msg = paste(
-            "sits_cube: for STAC_CUBE collection",
-            "must be provided"
-        )
+          msg = "sits_cube: BDC collection must be provided"
     )
 
     assertthat::assert_that(!(length(collection) > 1),
-        msg = paste(
-            "sits_cube: STAC_CUBE ",
-            "only one collection should be specified"
-        )
+        msg = "sits_cube: only one BDC collection should be specified"
     )
 
-    if (purrr::is_null(name)) {
-          name <- paste0("bdc_cube_", collection)
-      }
+    # verify  bdc access credentials
+    access_key <- .sits_bdc_access_check(access_key)
 
     # retrieve information from the collection
     collection_info <- .sits_stac_collection(
@@ -384,15 +377,16 @@ sits_cube.bdc_cube <- function(type = "BDC", ...,
 
     # creating a group of items per tile
     items_group <- .sits_stac_group(items_info,
-                                    fields = c("properties", "bdc:tiles"))
+                                    fields = c("properties", "bdc:tiles")
+    )
 
 
     tiles <- purrr::map(items_group, function(items) {
 
-        # retrieving the information from file_info
+        # retrieve the information from STAC
         stack <- .sits_stac_items_info(items, collection_info$bands)
 
-        # adding the information per tile
+        # add the information for each tile
         cube_t <- .sits_stac_tile_cube(
             url = url,
             name = name,
@@ -405,8 +399,10 @@ sits_cube.bdc_cube <- function(type = "BDC", ...,
         class(cube_t) <- c("stack_cube", "raster_cube", class(cube_t))
         return(cube_t)
     })
-
     cube <- dplyr::bind_rows(tiles)
+
+    # include access key information in file
+    cube <- .sits_bdc_access_info(cube, access_key)
 
     return(cube)
 }
@@ -476,26 +472,25 @@ sits_cube.s2_l2a_aws_cube <- function(type = "S2_L2A_AWS", ...,
                                       access_key = NULL,
                                       secret_key = NULL,
                                       region = NULL) {
-    aws_access_ok <- .sits_sentinel_aws_check(
+    # precondition - is AWS access available?
+    aws_access_ok <- .sits_aws_check_access(
+        type = type,
         access_key = access_key,
         secret_key = secret_key,
         region = region
     )
-    if (!aws_access_ok) {
+    if (!aws_access_ok)
           return(NULL)
-      }
 
     tiles_cube <- purrr::map(tiles, function(tile) {
-        stack <- .sits_sentinel_aws_info_tiles(
+        stack <- .sits_s2_l2a_aws_info_tiles(
             tile = tile,
             bands = bands,
             resolution = s2_aws_resolution,
             start_date = start_date,
             end_date = end_date
         )
-
-
-        cube_t <- .sits_sentinel_aws_tile_cube(
+        cube_t <- .sits_s2_l2a_aws_tile_cube(
             name = name,
             bands = bands,
             tile = tile,
@@ -565,45 +560,39 @@ sits_cube.default <- function(type = NULL, ...) {
 #' )
 #' @export
 #'
-sits_cube_copy <- function(cube, name, dest_dir, bands = NULL, srcwin = NULL) {
+sits_cube_copy <- function(cube,
+                           name,
+                           dest_dir,
+                           bands = sits_bands(cube),
+                           srcwin = c(0, 0, cube$ncols, cube$nrows)) {
     # ensure input cube exists
     assertthat::assert_that(.sits_cube_check_validity(cube),
         msg = "invalid input cube"
     )
-    assertthat::assert_that(!purrr::is_null(sits_bands(cube)),
-        msg = "cube has no bands"
-    )
     # does the output directory exist?
     assertthat::is.dir(dest_dir)
 
-    # check if subwindow has been defined
-    if (!purrr::is_null(srcwin)) {
-        assertthat::assert_that(all(srcwin >= 0),
-            msg = "srcwin values should be positive"
-        )
-        names(srcwin) <- c("xoff", "yoff", "xsize", "ysize")
-        assertthat::assert_that((srcwin["xoff"] + srcwin["xsize"]) < cube$ncols,
-            msg = "srcwin x values bigger than cube size"
-        )
-        assertthat::assert_that((srcwin["yoff"] + srcwin["ysize"]) < cube$nrows,
-            msg = "srcwin y values bigger than cube size"
-        )
-    }
-
+    # test subwindow
+    assertthat::assert_that(all(srcwin >= 0),
+                            msg = "srcwin values should be positive"
+    )
+    names(srcwin) <- c("xoff", "yoff", "xsize", "ysize")
+    assertthat::assert_that((srcwin["xoff"] + srcwin["xsize"]) <= cube$ncols,
+                            msg = "srcwin x values bigger than cube size"
+    )
+    assertthat::assert_that((srcwin["yoff"] + srcwin["ysize"]) <= cube$nrows,
+                            msg = "srcwin y values bigger than cube size"
+    )
 
     # the label cube may contain several classified images
     cube_rows <- slider::slide(cube, function(row) {
         # get information on the file
         file_info <- row$file_info[[1]]
 
-        # if bands are not stated, use all those in the cube
-        if (purrr::is_null(bands)) {
-              bands <- sits_bands(row)
-          } else {
-              assertthat::assert_that(all(bands %in% sits_bands(row)),
+        # are the selected bands in the cube?
+        assertthat::assert_that(all(bands %in% sits_bands(row)),
                   msg = "input bands not available in the cube"
-              )
-          }
+        )
 
         # get all the bands which are requested
         file_info_out <- dplyr::filter(file_info, band %in% bands)
@@ -626,34 +615,26 @@ sits_cube_copy <- function(cube, name, dest_dir, bands = NULL, srcwin = NULL) {
                 file_row$date, ".",
                 file_ext
             )
-            if (!purrr::is_null(srcwin)) {
-                  gdalUtils::gdal_translate(
-                      src_dataset = file_row$path,
-                      dst_dataset = dest_file,
-                      of = gdal_of,
-                      srcwin = srcwin
-                  )
-              } else {
-                  gdalUtils::gdal_translate(
-                      src_dataset = file_row$path,
-                      dst_dataset = dest_file,
-                      of = gdal_of
-                  )
-              }
+
+            gdalUtils::gdal_translate(
+              src_dataset = file_row$path,
+              dst_dataset = dest_file,
+              of = gdal_of,
+              srcwin = srcwin
+            )
             return(dest_file)
         })
         # update file info
         new_paths <- unlist(paths)
 
         # update cube
-        if (!purrr::is_null(srcwin)) {
-            row$nrows <- srcwin["ysize"]
-            row$ncols <- srcwin["xsize"]
-            row$xmin <- row$xmin + srcwin["xoff"] * row$xres
-            row$ymin <- row$ymin + srcwin["yoff"] * row$yres
-            row$xmax <- row$xmin + (srcwin["xsize"] - 1) * row$xres
-            row$ymax <- row$ymin + (srcwin["ysize"] - 1) * row$yres
-        }
+
+        row$nrows <- srcwin["ysize"]
+        row$ncols <- srcwin["xsize"]
+        row$xmin <- row$xmin + srcwin["xoff"] * row$xres
+        row$ymin <- row$ymin + srcwin["yoff"] * row$yres
+        row$xmax <- row$xmin + (srcwin["xsize"] - 1) * row$xres
+        row$ymax <- row$ymin + (srcwin["ysize"] - 1) * row$yres
         file_info_out$path <- new_paths
         row$file_info[[1]] <- file_info_out
         row$name <- name

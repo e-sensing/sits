@@ -11,6 +11,11 @@ sits_accuracy(label_cube, validation_csv)
 
 \item{validation_csv}{A CSV file path with validation data}
 }
+\value{
+A list of lists: The error_matrix, the class_areas, the unbiased
+estimated areas, the standard error areas, confidence interval 95% areas,
+and the accuracy (user, producer, and overall), or NULL if the data is empty.
+}
 \description{
 To use this function the input table should be
 a set of results containing

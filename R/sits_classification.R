@@ -124,21 +124,21 @@ sits_classify.sits <- function(data, ml_model, ...,
 
     # get normalization params
     stats <- environment(ml_model)$stats
-    # has the data been normalised?
-    if (!purrr::is_null(stats)) {
-          # if not, obtain the distances after normalizing data by band
+    # has the training data been normalized?
+    if (!purrr::is_null(stats))
+          # yes, then normalize the input data
           distances <- .sits_distances(.sits_normalize_data
           (
               data = data,
               stats = stats,
               multicores = multicores
           ))
-      } else {
-          # data has been already normalised
+     else
+          # no, input data does not need to be normalized
           distances <- .sits_distances(data)
-      }
 
-    # postcondition: test valid result
+
+    # post condition: is distance data valid?
     assertthat::assert_that(NROW(distances) > 0,
         msg = "sits_classify.sits: problem with normalization"
     )
@@ -247,19 +247,6 @@ sits_classify.raster_cube <- function(data, ml_model, ...,
 
     # precondition - checks if the cube and ml_model are valid
     .sits_classify_check_params(data, ml_model)
-
-    # find the number of cores
-    if (purrr::is_null(multicores)) {
-          multicores <- max(parallel::detectCores(logical = FALSE) - 1, 1)
-      }
-
-    # CRAN limits the number of cores to 2
-    chk <- Sys.getenv("_R_CHECK_LIMIT_CORES_", "")
-    # if running on check mode, multicores must be 2
-    if (nzchar(chk) && chk == "TRUE") {
-        # use 2 cores in CRAN/Travis/AppVeyor
-        multicores <- 2L
-    }
 
     # deal with the case where the cube has multiple rows
     probs_rows <- slider::slide(data, function(row) {

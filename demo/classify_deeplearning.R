@@ -53,7 +53,7 @@ sinop <- sits_cube(
 sinop_probs <- sits_classify(sinop,
                              ml_model = dl_model,
                              memsize = 12,
-                             multicores = 4,
+                             multicores = 2,
                              output_dir = tempdir()
 )
 

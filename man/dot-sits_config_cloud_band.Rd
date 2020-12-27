@@ -7,7 +7,7 @@
 .sits_config_cloud_band(cube)
 }
 \arguments{
-\item{satellite}{satellite}
+\item{cube}{data cube.}
 }
 \value{
 vector with bands available in AWS for a given resolution

@@ -18,11 +18,11 @@
 )
 }
 \arguments{
-\item{cube}{Data cube from where data is to be retrived.}
+\item{cube}{Data cube from where data is to be retrieved.}
 
-\item{file}{SHP File with information on the data to be retrieved}
+\item{file}{SHP File with information on the data to be retrieved.}
 
-\item{...}{Other parameters to be passed for specific types}
+\item{...}{Other parameters to be passed for specific types.}
 
 \item{start_date}{Start of the interval for the time series
 in "YYYY-MM-DD" format (optional)}

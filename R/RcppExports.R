@@ -9,8 +9,8 @@ build_neigh <- function(data, window, i, j) {
     .Call(`_sits_build_neigh`, data, window, i, j)
 }
 
-bayes_estimator <- function(data, window, variance, mult_factor) {
-    .Call(`_sits_bayes_estimator`, data, window, variance, mult_factor)
+bayes_estimator <- function(data, window, smoothness, max_prob) {
+    .Call(`_sits_bayes_estimator`, data, window, smoothness, max_prob)
 }
 
 median_neigh <- function(data, nrows_window, ncols_window) {
