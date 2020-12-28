@@ -74,14 +74,14 @@ sits_gdalcubes_raster <- function(cube, path_db,
     }
 
     # test if provided object if a stack_cube
-    assertthat::assert_that(!("stack_cube" %in% class(cube)),
-                            msg = paste("The provided object is invalid, ",
+    assertthat::assert_that("stack_cube" %in% class(cube),
+                            msg = paste("The provided object is invalid,",
                                         "please provide a 'stack_cube' object.")
     )
 
     # test if the provided path is valid
-    assertthat::assert_that(!(dir.exists(path_db)),
-                            msg = paste("The provided dir does not exist. ",
+    assertthat::assert_that(dir.exists(path_db),
+                            msg = paste("The provided dir does not exist.",
                                         "Please provided a valid path.")
     )
 
@@ -158,15 +158,15 @@ sits_gdalcubes_raster <- function(cube, path_db,
 sits_gdalcubes_aggregation <- function(gdalcubes_list, path_images, ...) {
 
     # verifies the provided object
-    assertthat::assert_that(!("gdalcubes_list" %in% class(gdalcubes_list)),
+    assertthat::assert_that("gdalcubes_list" %in% class(gdalcubes_list),
                             msg = paste("The provided object must be a ",
-                                        "'gdalcubes_list' object. Please see ",
+                                        "'gdalcubes_list' object. Please see",
                                         "'sits_gdalcubes_raster' function.")
     )
 
     # verifies the path to save the images
-    assertthat::assert_that(!(dir.exists(path_images)),
-                            msg = paste("The provided dir does not exist. ",
+    assertthat::assert_that(dir.exists(path_images),
+                            msg = paste("The provided dir does not exist.",
                                         "Please provided a valid path.")
 
     )
@@ -190,8 +190,8 @@ sits_gdalcubes_aggregation <- function(gdalcubes_list, path_images, ...) {
 .sits_gdalcubes_image_collection <- function(cube, path_db) {
 
     # error if a cube other than S2_L2A_AWS is provided
-    assertthat::assert_that(cube[1,]$type != "S2_L2A_AWS",
-                            msg = paste("For now, only 'S2_L2A_AWS' cubes ",
+    assertthat::assert_that(!(cube[1,]$type != "S2_L2A_AWS"),
+                            msg = paste("For now, only 'S2_L2A_AWS' cubes",
                                         "can be aggregated.")
     )
 
@@ -236,7 +236,7 @@ sits_gdalcubes_aggregation <- function(gdalcubes_list, path_images, ...) {
 
     assertthat::assert_that(!purrr::is_null(period),
                             msg = paste("sits_gdalcubes: for ",
-                                        "sits_gdalcubes_raster 'period' must ",
+                                        "sits_gdalcubes_raster 'period' must",
                                         "be provided"))
 
     assertthat::assert_that(!purrr::is_null(method),
