@@ -79,12 +79,6 @@ sits_gdalcubes_raster <- function(cube, path_db,
                                         "please provide a 'stack_cube' object.")
     )
 
-    # test if the provided path is valid
-    assertthat::assert_that(dir.exists(path_db),
-                            msg = paste("The provided dir does not exist.",
-                                        "Please provided a valid path.")
-    )
-
     # create an image collection
     img_col <- .sits_gdalcubes_image_collection(cube, path_db)
 
