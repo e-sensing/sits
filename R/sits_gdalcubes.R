@@ -223,7 +223,7 @@ sits_gdalcubes_aggregation <- function(gdalcubes_list, path_images, ...) {
 #'  '?gdalcubes::cube_view'.
 #'
 #' @return a \code{list} with a cube_view objects.
-.sits_gdalcubes_cube_view <- function(img_col,
+.sits_gdalcubes_cube_view <- function(cube,
                                       period,
                                       method,
                                       resampling, ...) {
@@ -239,18 +239,18 @@ sits_gdalcubes_aggregation <- function(gdalcubes_list, path_images, ...) {
                                         "be provided"))
 
     # create a list of cube view
-    cv_list <- slider::slide(sits_cube, function(cube) {
+    cv_list <- slider::slide(cube, function(c_tile) {
         gdalcubes::cube_view(
-            extent = list(left   = cube$xmin,
-                          right  = cube$xmax,
-                          bottom = cube$ymin,
-                          top    = cube$ymax,
-                          t0 = min(cube$file_info[[1]]$date),
-                          t1 = max(cube$file_info[[1]]$date)),
-            srs = cube$crs[[1]],
+            extent = list(left   = c_tile$xmin,
+                          right  = c_tile$xmax,
+                          bottom = c_tile$ymin,
+                          top    = c_tile$ymax,
+                          t0 = format(min(cube$file_info[[1]]$date), "%Y-%m"),
+                          t1 = format(max(cube$file_info[[1]]$date), "%Y-%m")),
+            srs = c_tile$crs[[1]],
             dt  = period,
-            nx  = cube$ncol[[1]],
-            ny  = cube$nrow[[1]],
+            nx  = c_tile$ncols[[1]],
+            ny  = c_tile$nrows[[1]],
             aggregation = method,
             resampling  = resampling,
             ...)})
