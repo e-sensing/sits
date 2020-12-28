@@ -16,7 +16,7 @@
 \item{bands}{bands used for visualisation}
 }
 \value{
-plot
+The plot itself.
 }
 \description{
 Given a sits tibble with a set of predictions, plot them

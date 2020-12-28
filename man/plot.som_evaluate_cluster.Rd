@@ -18,7 +18,7 @@
 \item{title}{title of plot. default is ""Confusion by cluster"".}
 }
 \value{
-plot
+The plot itself.
 }
 \description{
 Plot a bar graph with informations about each cluster.

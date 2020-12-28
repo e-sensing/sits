@@ -7,10 +7,11 @@
 sits_bbox(data)
 }
 \arguments{
-\item{data}{Valid sits tibble (time series or a cube)}
+\item{data}{Valid sits tibble (time series or a cube).}
 }
 \value{
-A vector with a
+named vector with bounding box ("lon_min", "lon_max",
+     "lat_min", "lat_max").
 }
 \description{
 Obtain a vector of limits (either on lat/long for time series

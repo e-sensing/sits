@@ -31,7 +31,7 @@ Default is 'ward.D2'.}
 
 \item{colors}{Color scheme as per `sits_color_name` function.}
 
-\item{.plot}{Plot the dendogram?}
+\item{.plot}{Plot the dendrogram?}
 
 \item{...}{Additional parameters to be passed
 to dtwclust::tsclust() function.}
@@ -43,9 +43,9 @@ A tibble with the clusters or clusters' members.
 Takes a SITS tibble and produces a sits tibble
 with an added "cluster" column.
 This is done in several steps:
-1. Calculation of the dendogram
-2. Get validity index for best cluster using the adjusted Rand Index
-3. Cut the dendogram using the chosen validity index
+1. Calculation of the dendrogram;
+2. Get validity index for best cluster using the adjusted Rand Index;
+3. Cut the dendrogram using the chosen validity index.
 }
 \examples{
 \dontrun{

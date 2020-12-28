@@ -18,7 +18,7 @@
 - default is "Dark2").}
 }
 \value{
-plot
+The plot itself.
 }
 \description{
 This is a generic function. Parameters depend on the specific
