@@ -64,7 +64,7 @@
 sits_gdalcubes_raster <- function(cube, path_db,
                                   period     = NULL,
                                   method     = NULL,
-                                  resampling = "bilinear") {
+                                  resampling = "bilinear", ...) {
 
     # require gdalcubes package
     if (!requireNamespace("gdalcubes", quietly = TRUE)) {

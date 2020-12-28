@@ -9,7 +9,8 @@ sits_gdalcubes_raster(
   path_db,
   period = NULL,
   method = NULL,
-  resampling = "bilinear"
+  resampling = "bilinear",
+  ...
 )
 }
 \arguments{
