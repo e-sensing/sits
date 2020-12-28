@@ -83,7 +83,7 @@ sits_gdalcubes_raster <- function(cube, path_db,
     img_col <- .sits_gdalcubes_image_collection(cube, path_db)
 
     # create a cube view
-    cube_view <- .sits_gdalcubes_cube_view(sits_cube,
+    cube_view <- .sits_gdalcubes_cube_view(cube,
                                            img_col,
                                            period,
                                            method,
