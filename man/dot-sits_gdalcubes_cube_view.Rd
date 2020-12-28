@@ -4,7 +4,7 @@
 \alias{.sits_gdalcubes_cube_view}
 \title{Create a cube_view object}
 \usage{
-.sits_gdalcubes_cube_view(img_col, period, method, resampling, ...)
+.sits_gdalcubes_cube_view(cube, period, method, resampling, ...)
 }
 \arguments{
 \item{period}{a \code{character} with the The period of time in which it
