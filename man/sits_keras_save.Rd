@@ -20,7 +20,7 @@ sits_keras_save(
 \description{
 Takes a Keras model and saves it in two files.
 One file is the keras model itself (saved as hdf5)
-and the other is the R enviroment required for sits
+and the other is the R environment required for sits
 to work with the model.
 }
 \author{

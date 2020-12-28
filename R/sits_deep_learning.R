@@ -79,8 +79,6 @@ sits_deeplearning <- function(samples = NULL,
         assertthat::assert_that(activation %in% valid_activations,
             msg = "sits_deeplearning: invalid node activation method"
         )
-
-
         # data normalization
         stats <- .sits_normalization_param(data)
         train_data <- .sits_distances(.sits_normalize_data(data, stats))
@@ -125,9 +123,6 @@ sits_deeplearning <- function(samples = NULL,
         # create the test data for keras
         test_x <- data.matrix(test_data[, -(1:2)])
         test_y <- unname(int_labels[as.vector(test_data$reference)]) - 1
-
-
-
 
         # build the model step by step
         # create the input_tensor

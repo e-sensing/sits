@@ -51,20 +51,17 @@ sits_get_data <- function(cube, file = NULL, ...) {
 
     # is there a shapefile or a CSV file?
     if (!purrr::is_null(file)) {
-        if (tolower(tools::file_ext(file)) == "csv") {
-              if ("raster_cube" %in% class(cube))
-                  class(cube) <- c("csv_raster_cube", class(cube))
-              else
-                  class(cube)[1] <- paste0("csv_", class(cube)[1])
-          } else if (tolower(tools::file_ext(file)) == "shp") {
-              if ("raster_cube" %in% class(cube))
-                  class(cube) <- c("shp_raster_cube", class(cube))
-              else
-                  class(cube)[1] <- paste0("shp_", class(cube)[1])
-          } else {
-              stop("sits_get_data - file must either be a CSV or SHP")
-          }
+      # get the file extension
+      file_ext <- tolower(tools::file_ext(file))
+      # sits only accepts "csv" or "shp" files
+      assertthat::assert_that(file_ext %in% c("csv", "shp"),
+                        msg = "sits_get_data accepts only csv and shp files"
+      )
+      # append "csv" or "shp" to the cube class to call the correct function
+      class(cube) <- c(paste0(file_ext,"_", class(cube)[1]),
+                       paste0(file_ext,"_raster_cube"), class(cube))
     }
+    # Dispatch
     UseMethod("sits_get_data", cube)
 }
 

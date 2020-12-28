@@ -9,7 +9,7 @@
 \arguments{
 \item{x}{X coordinate of the chosen location.}
 
-\item{y}{Y coordinateof the chosen location.}
+\item{y}{Y coordinate of the chosen location.}
 
 \item{crs}{Projection definition to be converted from.}
 }

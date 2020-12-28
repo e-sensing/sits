@@ -311,6 +311,6 @@ sits_label_majority <- function(cube,
     )
 
 
-    class(cube_labels) <- c("classified_image", class(cube_labels))
+    class(cube_labels) <- c("classified_image", "raster_cube", class(cube_labels))
     return(cube_labels)
 }

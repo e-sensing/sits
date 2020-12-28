@@ -232,7 +232,7 @@
         file_info = file_info
     )
 
-    class(cube_probs) <- c("probs_cube", class(cube_probs))
+    class(cube_probs) <- c("probs_cube", "raster_cube", class(cube_probs))
     return(cube_probs)
 }
 

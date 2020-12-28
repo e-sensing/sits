@@ -4,7 +4,7 @@
 \alias{.sits_normalize_data}
 \title{Normalize the time series in the given sits_tibble}
 \usage{
-.sits_normalize_data(data, stats, multicores = 1)
+.sits_normalize_data(data, stats, multicores = 2)
 }
 \arguments{
 \item{data}{A sits tibble.}

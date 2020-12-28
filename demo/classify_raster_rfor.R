@@ -43,7 +43,7 @@ sinop <- sits_cube(
 sinop_probs <- sits_classify(sinop,
                              ml_model = rfor_model,
                              memsize = 24,
-                             multicores = 4,
+                             multicores = 2,
                              output_dir = tempdir()
                              )
 plot(sinop_probs)

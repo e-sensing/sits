@@ -799,16 +799,7 @@ sits_config_show <- function() {
     s <- "S2_L2A_AWS"
     return(sits_env$config[[s]][["bucket"]])
 }
-#' @title File to test access to Sentinel-2 level 2A images in AWS
-#' @name .sits_config_s2_aws_test_file
-#' @keywords internal
-#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
-#'
-#' @return name of the bucket
-.sits_config_s2_aws_test_file <- function() {
-    s <- "S2_L2A_AWS"
-    return(sits_env$config[[s]][["test_file"]])
-}
+
 #' @title Get the the resolutions for Sentinel-2 ARD in AWS
 #' @name .sits_config_s2_aws_res
 #' @keywords internal
@@ -863,4 +854,14 @@ sits_config_show <- function() {
         )
     )
     return(scale_f)
+}
+#' @title File to test access to cloud services
+#' @name .sits_config_test_file
+#' @keywords internal
+#' @param  type    Data cube type
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
+#'
+#' @return name of the bucket
+.sits_config_test_file <- function(type) {
+  return(sits_env$config[[type]][["test_file"]])
 }

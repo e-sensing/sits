@@ -60,20 +60,13 @@ sits_db_connect <- function(name = NULL) {
 #' }
 #' @export
 sits_db_info <- function(conn) {
-    # verifies if knitr package is installed
-    if (!requireNamespace("knitr", quietly = TRUE)) {
-        stop("knitr needed for this function to work. Please install it.",
-            call. = FALSE
-        )
-    }
     # connect to the database
-    if (!grepl("memory", conn@dbname)) {
-          conn <- DBI::dbConnect(conn)
-      }
+    conn <- DBI::dbConnect(conn)
     # assert that the connection is valid
     assertthat::assert_that(DBI::dbIsValid(conn),
         msg = "Invalid database connection"
     )
+
     # list all tables available
     tables <- DBI::dbListTables(conn)
 
@@ -87,7 +80,7 @@ sits_db_info <- function(conn) {
     tables_lst <- tables %>%
         purrr::map(function(tab) {
             data <- sits_db_read(conn, tab)
-            # is it a time series tibble?
+            # process the data
             if ("sits" %in% class(data)) {
                 bbox <- .sits_bbox_time_series(data)
                 desc <- tibble::tibble(
@@ -156,9 +149,7 @@ sits_db_info <- function(conn) {
     desc <- dplyr::bind_rows(tables_lst)
 
     # disconnect from database
-    if (!grepl("memory", conn@dbname)) {
-          DBI::dbDisconnect(conn)
-      }
+    DBI::dbDisconnect(conn)
 
     return(desc)
 }
@@ -187,97 +178,17 @@ sits_db_write <- function(conn, name, data) {
     # does the data exist
     assertthat::assert_that(nrow(data) > 0, msg = "no data to save")
 
-    # connect to the database
-    if (!grepl("memory", conn@dbname)) {
-          conn <- DBI::dbConnect(conn)
-      }
-    # assert that the connection is valid
-    assertthat::assert_that(DBI::dbIsValid(conn),
-        msg = "Invalid database connection"
-    )
 
+    assertthat::assert_that("sits" %in% class(data) |
+                              "raster_cube" %in% class(data),
+                            msg = "sits_db_write: data class not supported"
+    )
     # write a set of time series stored as a sits tibble
-    if ("sits" %in% class(data)) {
-          # save a set of time series
-          .sits_db_write_ts(conn, name, data)
-      } else if (.sits_config_cube_check(data)) {
-          # save a data cube
-          .sits_db_write_cube(conn, name, data)
-      } else {
-          message("sits_db_write: data class not supported")
-      }
+    UseMethod("sits_db_write", data)
 
-    # disconnect from database
-    if (!grepl("memory", conn@dbname)) {
-          DBI::dbDisconnect(conn)
-      }
-
-    return(conn)
-}
-
-#' @title Read time series and data cubes information on an SQLite database
-#' @name sits_db_read
-#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
-#'
-#' @description This functions write a set of time series or data cubes
-#' to an RSQLite database.
-#'
-#' @param  conn     SQLite connection
-#' @param  name     Name of the object to be read
-#' @return          Tibble with time series
-#' @examples
-#' \dontrun{
-#' # create RSQLite connection
-#' conn <- sits_db_connect()
-#' # write a set of time series
-#' conn <- sits_db_write(conn, "cerrado_2classes", cerrado_2classes)
-#' # read a set of time series
-#' ts <- sits_db_read(conn, "cerrado_2classes")
-#' }
-#' @export
-sits_db_read <- function(conn, name) {
-
-    # connect to the database
-    if (!grepl("memory", conn@dbname)) {
-          conn <- DBI::dbConnect(conn)
-      }
-    # assert that the connection is valid
-    assertthat::assert_that(DBI::dbIsValid(conn),
-        msg = "Invalid database connection"
-    )
-    # assert that the table exists
-    assertthat::assert_that(DBI::dbExistsTable(conn, name),
-        msg = "Table does not exist in the database"
-    )
-
-    # read the metadata on the database
-    data <- tibble::as_tibble(DBI::dbReadTable(conn, name))
-
-    # assert that there is data in the table
-    assertthat::assert_that(nrow(data) > 0,
-        msg = "Table contains no data"
-    )
-
-    # find out what is the object that is being read
-    if ("latitude" %in% names(data)) {
-        data <- .sits_db_read_ts(conn, name, data)
-    }
-    else if ("crs" %in% names(data)) {
-        data <- .sits_db_read_cube(conn, name, data)
-    }
-    else {
-        message("Table is unknown format to sits")
-        return(NULL)
-    }
-    # disconnect from database
-    if (!grepl("memory", conn@dbname)) {
-          DBI::dbDisconnect(conn)
-      }
-
-    return(data)
 }
 #' @title Write time series on an SQLite database
-#' @name .sits_db_write_ts
+#' @name sits_db_write.sits
 #' @keywords internal
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'
@@ -285,25 +196,33 @@ sits_db_read <- function(conn, name) {
 #' to an RSQLite database.
 #'
 #' @param  conn     SQLite connection
-#' @param  name     Name of the object to be storeed
+#' @param  name     Name of the object to be stored
 #' @param  data     Data to be stored
 #' @return          A connection to an RSQLite database
-.sits_db_write_ts <- function(conn, name, data) {
+#' @export
+sits_db_write.sits <- function(conn, name, data) {
+    # connect to the database
+    conn <- DBI::dbConnect(conn)
+    # assert that the connection is valid
+    assertthat::assert_that(DBI::dbIsValid(conn),
+                          msg = "invalid database connection"
+    )
     # save the metadata on the database
     DBI::dbWriteTable(
         conn = conn, name = name, overwrite = TRUE,
         value = as.data.frame(data[, c(
-            "longitude", "latitude",
-            "start_date", "end_date",
-            "label", "cube"
-        )])
+                "longitude", "latitude",
+                "start_date", "end_date",
+                "label", "cube"
+                )]
+        )
     )
     # transform the time series into a list
     ts_lst <- purrr::map2(
         data$time_series, seq_len(nrow(data)),
-        function(ts, i) {
-            ts <- dplyr::mutate(ts, row = i)
-        }
+            function(ts, i) {
+                 ts <- dplyr::mutate(ts, row = i)
+            }
     )
     # melt the list
     ts_melt <- dplyr::bind_rows(ts_lst)
@@ -313,45 +232,11 @@ sits_db_read <- function(conn, name) {
         value = as.data.frame(ts_melt),
         overwrite = TRUE
     )
-}
-#' @title Read time series from an SQLite database
-#' @name .sits_db_read_ts
-#' @keywords internal
-#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
-#'
-#' @description This function reads a set of time series
-#' to an RSQLite database.
-#'
-#' @param  conn     SQLite connection
-#' @param  name     Name of the object to be storeed
-#' @param  data     Data to be retrived
-#' @return          A sits tibble
-.sits_db_read_ts <- function(conn, name, data) {
-    n_rows <- nrow(data)
-    # set the start and end dates
-    data$start_date <- lubridate::as_date(data$start_date)
-    data$end_date <- lubridate::as_date(data$end_date)
-    data <- tibble::as_tibble(data)
-
-    # read the melted time series
-    ts_melt <- DBI::dbReadTable(conn, paste0(name, ".ts"))
-    ts_melt$Index <- lubridate::as_date(ts_melt$Index)
-
-    # reconstruct the time series list
-    ts2_lst <- purrr::map(1:n_rows, function(i) {
-        dplyr::filter(ts_melt, row == i) %>%
-            dplyr::select(-c(row)) %>%
-            tibble::as_tibble()
-    })
-    # insert the time series in the database
-    data$time_series <- ts2_lst
-
-    class(data) <- c("sits", class(data))
-
-    return(data)
+    DBI::dbDisconnect(conn)
+    return(conn)
 }
 #' @title Write cube on an SQLite database
-#' @name .sits_db_write_cube
+#' @name sits_db_write.raster_cube
 #' @keywords internal
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'
@@ -362,8 +247,11 @@ sits_db_read <- function(conn, name) {
 #' @param  name     Name of the object to be storeed
 #' @param  data     Data to be stored
 #' @return          A connection to an RSQLite database
-.sits_db_write_cube <- function(conn, name, data) {
-
+#' @export
+#'
+sits_db_write.raster_cube <- function(conn, name, data) {
+    # connect to the database
+    conn <- DBI::dbConnect(conn)
     # save the metadata on the database
     DBI::dbWriteTable(
         conn = conn, name = name,
@@ -409,7 +297,6 @@ sits_db_read <- function(conn, name) {
                 return(par)
             }
         )
-
         # joint all lists of params into a single table
         pars_one_table <- dplyr::bind_rows(params)
         return(pars_one_table)
@@ -435,7 +322,7 @@ sits_db_read <- function(conn, name) {
         timeline_row <- row$timeline[[1]]
         n_instances  <- length(timeline_row)
         assertthat::assert_that(n_instances > 0,
-            msg = "invalid timeline in cube"
+                                msg = "invalid timeline in cube"
         )
 
         # in a cube, a timeline is a list of timelines to account for the
@@ -444,23 +331,23 @@ sits_db_read <- function(conn, name) {
 
         timelines_inst_lst <- seq_len(n_instances) %>%
             purrr::map(function(n){
-              times_instance <- lubridate::as_date(timeline_row[[n]])
-              n_times <- length(times_instance)
-              assertthat::assert_that(n_times > 0,
-                                      msg = "timeline with no dates"
-              )
-              times <- seq_len(n_times) %>%
-                  purrr::map(function(t) {
-                    time <- tibble::tibble(
-                      date = times_instance[t],
-                      name = row$name,
-                      instance = t
+                times_instance <- lubridate::as_date(timeline_row[[n]])
+                n_times <- length(times_instance)
+                assertthat::assert_that(n_times > 0,
+                                        msg = "timeline with no dates"
                 )
-                return(time)
-              })
-            timeline_inst <- dplyr::bind_rows(times)
-            return(timeline_inst)
-          })
+                times <- seq_len(n_times) %>%
+                    purrr::map(function(t) {
+                        time <- tibble::tibble(
+                            date = times_instance[t],
+                            name = row$name,
+                            instance = t
+                        )
+                        return(time)
+                    })
+                timeline_inst <- dplyr::bind_rows(times)
+                return(timeline_inst)
+            })
         timelines_std <- dplyr::bind_rows(timelines_inst_lst)
         return(timelines_std)
     })
@@ -500,35 +387,128 @@ sits_db_read <- function(conn, name) {
         )
     }
     # file_info
-    if (!purrr::is_null(data$file_info)) {
-        file_info_std <- tibble::tibble(
-            res = character(),
-            band = character(),
-            date = as.Date(character()),
-            path = character()
-        )
-        fi_rows <- slider::slide(data, function(row) {
-            fi <- row$file_info[[1]]
-            fs <- purrr::pmap(list(fi$band, fi$date, fi$path),
-                    function(b, d, p) {
-                      f <- tibble::tibble(band = b, date = d, path = p)
-                      return(f)
-            })
-            fi_row <- dplyr::bind_rows(file_info_std, fs)
-            return(fi_row)
-        })
-        file_info <- dplyr::bind_rows(fi_rows)
-        # save the files tibble
-        DBI::dbWriteTable(
-            conn = conn, name = paste0(name, ".fil"),
-            value = as.data.frame(file_info),
-            overwrite = TRUE
-        )
-    }
+    file_info_std <- tibble::tibble(
+        res = character(),
+        band = character(),
+        date = as.Date(character()),
+        path = character()
+    )
+    fi_rows <- slider::slide(data, function(row) {
+        fi <- row$file_info[[1]]
+        fs <- purrr::pmap(list(fi$band, fi$date, fi$path),
+                          function(b, d, p) {
+                              f <- tibble::tibble(band = b,
+                                                  date = d,
+                                                  path = p
+                              )
+                              return(f)
+                          })
+        fi_row <- dplyr::bind_rows(file_info_std, fs)
+        return(fi_row)
+    })
+    file_info <- dplyr::bind_rows(fi_rows)
+    # save the files tibble
+    DBI::dbWriteTable(
+        conn = conn, name = paste0(name, ".fil"),
+        value = as.data.frame(file_info),
+        overwrite = TRUE
+    )
+    DBI::dbDisconnect(conn)
+    return(conn)
+}
+#' @title Read time series and data cubes information on an SQLite database
+#' @name sits_db_read
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
+#'
+#' @description This functions write a set of time series or data cubes
+#' to an RSQLite database.
+#'
+#' @param  conn     SQLite connection
+#' @param  name     Name of the object to be read
+#' @return          Tibble with time series
+#' @examples
+#' \dontrun{
+#' # create RSQLite connection
+#' conn <- sits_db_connect()
+#' # write a set of time series
+#' conn <- sits_db_write(conn, "cerrado_2classes", cerrado_2classes)
+#' # read a set of time series
+#' ts <- sits_db_read(conn, "cerrado_2classes")
+#' }
+#' @export
+sits_db_read <- function(conn, name) {
+
+    conn <- DBI::dbConnect(conn)
+    # assert that the connection is valid
+    assertthat::assert_that(DBI::dbIsValid(conn),
+        msg = "Invalid database connection"
+    )
+    # assert that the table exists
+    assertthat::assert_that(DBI::dbExistsTable(conn, name),
+        msg = "Table does not exist in the database"
+    )
+
+    # read the metadata on the database
+    data <- tibble::as_tibble(DBI::dbReadTable(conn, name))
+
+    # assert that there is data in the table
+    assertthat::assert_that(nrow(data) > 0,
+        msg = "Table contains no data"
+    )
+    if ("longitude" %in% names(data))
+        class(data) <- c("sits", class(data))
+    else
+        class(data) <- c("raster_cube", class(data))
+
+    UseMethod("sits_db_read", data)
 }
 
+#' @title Read time series from an SQLite database
+#' @name sits_db_read.sits
+#' @keywords internal
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
+#'
+#' @description This function reads a set of time series
+#' to an RSQLite database.
+#'
+#' @param  conn     SQLite connection
+#' @param  name     Name of the object to be storeed
+#' @param  data     Data to be retrived
+#' @return          A sits tibble
+#' @export
+sits_db_read.sits <- function(conn, name) {
+    conn <- DBI::dbConnect(conn)
+    # read the metadata on the database
+    data <- tibble::as_tibble(DBI::dbReadTable(conn, name))
+    n_rows <- nrow(data)
+    # set the start and end dates
+    data$start_date <- lubridate::as_date(data$start_date)
+    data$end_date <- lubridate::as_date(data$end_date)
+    data <- tibble::as_tibble(data)
+
+    # read the melted time series
+    ts_melt <- DBI::dbReadTable(conn, paste0(name, ".ts"))
+    ts_melt$Index <- lubridate::as_date(ts_melt$Index)
+
+    # reconstruct the time series list
+    ts2_lst <- purrr::map(1:n_rows, function(i) {
+        dplyr::filter(ts_melt, row == i) %>%
+            dplyr::select(-c(row)) %>%
+            tibble::as_tibble()
+    })
+    # insert the time series in the database
+    data$time_series <- ts2_lst
+
+    class(data) <- c("sits", class(data))
+    # disconnect
+    DBI::dbDisconnect(conn)
+
+    return(data)
+}
+
+
 #' @title Read cube information from an SQLite database
-#' @name .sits_db_read_cube
+#' @name sits_db_read.raster_cube
 #' @keywords internal
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'
@@ -537,11 +517,13 @@ sits_db_read <- function(conn, name) {
 #'
 #' @param  conn      SQLite connection
 #' @param  name      Name of the cube table to be retrieved
-#' @param  cubes     Tibble with cubes information
 #' @return  data     Tibble with metadata about the cube
-.sits_db_read_cube <- function(conn, name, cubes) {
+#' @export
+sits_db_read.raster_cube <- function(conn, name) {
 
-
+    conn <- DBI::dbConnect(conn)
+    # read the metadata on the database
+    cubes <- tibble::as_tibble(DBI::dbReadTable(conn, name))
     # go through the rows of the table
     rows <- purrr::map(list(cubes), function(row) {
         meta <- dplyr::filter(cubes, name == row$name)
@@ -662,12 +644,10 @@ sits_db_read <- function(conn, name) {
 
     data <- dplyr::bind_rows(rows)
     class_cube <- .sits_config_cube_class(data[1, ]$type)
-    if (purrr::is_null(class_cube)) {
-        class(data) <- c("cube", class(data))
-        message("Type of data cube not yet supported by sits")
-    }
-    else {
-          class(data) <- c(class_cube, class(data))
-      }
+    class(data) <- c(class_cube, "raster_cube", class(data))
+
+    # disconnect
+    DBI::dbDisconnect(conn)
+
     return(data)
 }

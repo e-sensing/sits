@@ -11,7 +11,7 @@
 \item{labels}{The class labels.}
 }
 \value{
-colors  list of colors
+list of colors.
 }
 \description{
 Retrieve the color associated a class label.
