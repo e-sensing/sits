@@ -1,4 +1,4 @@
-#' @title Create a list of a gdal_cubes raster.
+#' @title Create a list of a gdal_cubes raster object.
 #' @name sits_gdalcubes_raster
 #'
 #' @references `gdalcubes` package (https://github.com/appelmar/gdalcubes_R)
@@ -96,7 +96,7 @@ sits_gdalcubes_raster <- function(cube, path_db,
                                            resampling, ...)
     # create a list of raster cube
     rc_list <- purrr::map(cube_view, function(cv) {
-        gdalcubes::raster_cube(img_col, cv)
+        # gdalcubes::raster_cube(img_col, cv)
     })
 
     # defines the object class

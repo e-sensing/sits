@@ -2,7 +2,7 @@
 % Please edit documentation in R/sits_gdalcubes.R
 \name{sits_gdalcubes_raster}
 \alias{sits_gdalcubes_raster}
-\title{Create a list of a gdal_cubes raster.}
+\title{Create a list of a gdal_cubes raster object.}
 \usage{
 sits_gdalcubes_raster(
   cube,
