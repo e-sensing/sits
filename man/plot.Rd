@@ -29,10 +29,11 @@ required parameters:
  \item{patterns: }                    {see \code{\link{plot.patterns}}}
  \item{SOM map: }                     {see \code{\link{plot.som_map}}}
  \item{classified time series: }      {see \code{\link{plot.predicted}}}
- \item{raster cube: }                 {see \code{\link{plot.raster_cube}}}
+ \item{brick  cube: }                 {see \code{\link{plot.brick_cube}}}
+ \item{stack  cube: }                 {see \code{\link{plot.stack_cube}}}
  \item{classification probabilities: }{see \code{\link{plot.probs_cube}}}
  \item{classified image: }            {see \code{\link{plot.classified_image}}}
- \item{SOM evaluate cluster: }        {see \code{\link{plot.evaluate_cluster}}}
+ \item{SOM evaluate cluster: }        {see \code{\link{plot.som_evaluate_cluster}}}
 }
 
 In the case of time series, the plot function produces different plots

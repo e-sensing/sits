@@ -107,6 +107,8 @@ Collate:
     'data.R'
     'sits-package.R'
     'sits_accuracy.R'
+    'sits_aws.R'
+    'sits_bdc.R'
     'sits_brewer.R'
     'sits_classification.R'
     'sits_classify_ts.R'

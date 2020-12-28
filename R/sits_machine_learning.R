@@ -669,10 +669,6 @@ sits_xgboost <- function(data = NULL,
     # function that returns xgb model
     result_fun <- function(data) {
 
-        # data normalization
-        stats <- .sits_normalization_param(data)
-        train_data <- .sits_distances(.sits_normalize_data(data, stats))
-
         # get the labels of the data
         labels <- sits_labels(data)$label
         assertthat::assert_that(length(labels) > 0,
@@ -683,6 +679,9 @@ sits_xgboost <- function(data = NULL,
         # create a named vector with integers match the class labels
         int_labels <- c(1:n_labels)
         names(int_labels) <- labels
+
+        # get the training data
+        train_data <- .sits_distances(data)
 
         # reference labels for each sample expressed as numerical values
         references <- unname(int_labels[as.vector(train_data$reference)]) - 1
@@ -865,18 +864,11 @@ sits_formula_linear <- function(predictors_index = -2:0) {
 #' @param stats    Statistics for normalization.
 #' @param multicores  Number of cores to process.
 #' @return A normalized sits tibble.
-.sits_normalize_data <- function(data, stats, multicores = 1) {
+.sits_normalize_data <- function(data, stats, multicores = 2) {
     # backward compatibility
     data <- .sits_tibble_rename(data)
     .sits_test_tibble(data)
-    # find the number of cores
-    if (purrr::is_null(multicores)) {
-          multicores <- max(parallel::detectCores(logical = FALSE) - 1, 1)
-      }
-    # avoid overhead on multicore processing
-    if (nrow(data) < sits_env$config$minimum_number_samples) {
-          multicores <- 1
-      }
+
     # get the bands of the input data
     bands <- sits_bands(data)
     # check that input bands are included in the statistics already calculated
@@ -968,7 +960,10 @@ sits_formula_linear <- function(predictors_index = -2:0) {
     # parallel processing for normalization
     if (multicores > 1) {
         blocks <- .sits_raster_data_split(data, multicores)
-        rows <- parallel::mclapply(blocks, normalize_block, quant_2,
+        rows <- parallel::mclapply(
+            blocks,
+            normalize_block,
+            quant_2,
             quant_98,
             mc.cores = multicores
         )

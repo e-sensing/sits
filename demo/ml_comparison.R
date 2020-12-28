@@ -96,7 +96,7 @@ results[[length(results) + 1]] <- conf_mlr.mx
 # extreme gradient boosting
 conf_xgb.tb <- sits_kfold_validate(samples_mt_4bands,
     folds = 5,
-    multicores = 32,
+    multicores = 2,
     ml_method = sits_xgboost()
 )
 

@@ -15,7 +15,7 @@ test_that("Generic filter-error", {
 })
 
 test_that("Envelope filter", {
-    # skip_on_cran()
+    testthat::skip_on_cran()
     library(dtwclust)
     point_env <- sits_envelope(point_ndvi, bands_suffix = "env")
     expect_true(all(sits_time_series(point_env)$NDVI.env

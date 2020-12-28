@@ -31,7 +31,7 @@ sits_som_map(
 \item{som_radius}{Radius of SOM neighborhood}
 }
 \value{
-list of sits tibbles containing statistics
+A list of tibbles containing statistics
                       about the samples and the neuron in each iteration.
 }
 \description{

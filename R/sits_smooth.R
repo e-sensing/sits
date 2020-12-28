@@ -14,7 +14,7 @@
 #'                           i = floor(nrows(window)/2)+1 and
 #'                           j = floor(ncols(window)/2)+1.
 #'                           Elements '0' are excluded from window.
-#' @param  variance          Estimated variance of logit of class_probs
+#' @param  smoothness        Estimated variance of logit of class_probs
 #'                           (Bayesian smoothing parameter).
 #' @param  output_dir        Output directory where to out the file
 #' @param  version           Version of resulting image
@@ -64,7 +64,7 @@ sits_smooth_bayes <- function(cube,
                                               ncol = 3,
                                               byrow = TRUE
                               ),
-                              variance = 20,
+                              smoothness = 20,
                               output_dir = "./",
                               version = "v1") {
 
@@ -79,8 +79,8 @@ sits_smooth_bayes <- function(cube,
     )
 
     # prediction 3 - test variance
-    assertthat::assert_that(variance > 1,
-            msg = "sits_smooth_bayes: variance must be more than 1"
+    assertthat::assert_that(smoothness > 1,
+            msg = "sits_smooth_bayes: smoothness must be more than 1"
     )
 
     # find out how many labels exist
@@ -107,7 +107,7 @@ sits_smooth_bayes <- function(cube,
 
     purrr::map2(in_files, out_files,
                 function(in_file, out_file) {
-                    values <- .sits_raster_api_read_extent(in_file)
+                    values <- .sits_raster_api_read_file(in_file)
                     # avoid extreme values
                     values[values < 1] <- 1
                     values[values > 9999] <- 9999
@@ -122,7 +122,7 @@ sits_smooth_bayes <- function(cube,
                         # calculate the bayes smoothing
                         values[, b] <- bayes_estimator(band,
                                                        window,
-                                                       variance,
+                                                       smoothness,
                                                        mult_factor)
                     }
                     # write values into a file

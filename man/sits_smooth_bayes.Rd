@@ -7,7 +7,7 @@
 sits_smooth_bayes(
   cube,
   window = matrix(1, nrow = 3, ncol = 3, byrow = TRUE),
-  variance = 20,
+  smoothness = 20,
   output_dir = "./",
   version = "v1"
 )
@@ -22,7 +22,7 @@ i = floor(nrows(window)/2)+1 and
 j = floor(ncols(window)/2)+1.
 Elements '0' are excluded from window.}
 
-\item{variance}{Estimated variance of logit of class_probs
+\item{smoothness}{Estimated variance of logit of class_probs
 (Bayesian smoothing parameter).}
 
 \item{output_dir}{Output directory where to out the file}

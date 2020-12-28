@@ -294,7 +294,6 @@ test_that("Reading a CSV file from RASTER", {
         package = "sits"
     )
     points <- sits_get_data(raster_cube, file = csv_raster_file)
-    expect_true(sits_check_data(points))
 
     df_csv <- utils::read.csv(
       system.file("extdata/samples/samples_sinop_crop.csv",
@@ -326,8 +325,6 @@ test_that("Test reading shapefile from BDC", {
     if (purrr::is_null(cbers_stac_tile)) {
           skip("BDC is not accessible")
       }
-
-    expect_true(sits_check_data(cbers_stac_tile))
 
     shp_path <- system.file("extdata/shapefiles/bdc-test/samples.shp",
                             package = "sits"

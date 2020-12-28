@@ -33,16 +33,16 @@ BEGIN_RCPP
 END_RCPP
 }
 // bayes_estimator
-NumericVector bayes_estimator(const NumericMatrix& data, const NumericMatrix& window, const double& variance, const double& mult_factor);
-RcppExport SEXP _sits_bayes_estimator(SEXP dataSEXP, SEXP windowSEXP, SEXP varianceSEXP, SEXP mult_factorSEXP) {
+NumericVector bayes_estimator(const NumericMatrix& data, const NumericMatrix& window, const double& smoothness, const double& max_prob);
+RcppExport SEXP _sits_bayes_estimator(SEXP dataSEXP, SEXP windowSEXP, SEXP smoothnessSEXP, SEXP max_probSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< const NumericMatrix& >::type data(dataSEXP);
     Rcpp::traits::input_parameter< const NumericMatrix& >::type window(windowSEXP);
-    Rcpp::traits::input_parameter< const double& >::type variance(varianceSEXP);
-    Rcpp::traits::input_parameter< const double& >::type mult_factor(mult_factorSEXP);
-    rcpp_result_gen = Rcpp::wrap(bayes_estimator(data, window, variance, mult_factor));
+    Rcpp::traits::input_parameter< const double& >::type smoothness(smoothnessSEXP);
+    Rcpp::traits::input_parameter< const double& >::type max_prob(max_probSEXP);
+    rcpp_result_gen = Rcpp::wrap(bayes_estimator(data, window, smoothness, max_prob));
     return rcpp_result_gen;
 END_RCPP
 }
