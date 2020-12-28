@@ -84,13 +84,12 @@ sits_gdalcubes_raster <- function(cube, path_db,
 
     # create a cube view
     cube_view <- .sits_gdalcubes_cube_view(cube,
-                                           img_col,
                                            period,
                                            method,
                                            resampling, ...)
     # create a list of raster cube
     rc_list <- purrr::map(cube_view, function(cv) {
-        # gdalcubes::raster_cube(img_col, cv)
+        gdalcubes::raster_cube(img_col, cv)
     })
 
     # defines the object class
