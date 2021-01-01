@@ -503,7 +503,72 @@ sits_cube.s2_l2a_aws_cube <- function(type = "S2_L2A_AWS", ...,
     cube <- dplyr::bind_rows(tiles_cube)
     return(cube)
 }
+#' TODO: documentar
+#' TODO: explicitar a maneira em que o 'period' deve ser fornecido.
+#' @title ...
+#' @name ...
+#'
+#' @description  ...
+#'
+#' @param type       ...
+#' @param cube       ...
+#' @param path_db    ...
+#' @param period     ...
+#' @param method     ...
+#' @param resampling ...
+#' @param cloud_mask ...
+#'
+#' @return cube ...
+#'
+#' @export
+sits_cube.gdalcubes_cube <- function(type = "GDALCUBES", ...,
+                                     cube,
+                                     path_db,
+                                     path_images,
+                                     period     = NULL,
+                                     method     = NULL,
+                                     resampling = "bilinear",
+                                     cloud_mask = TRUE) {
+  # require gdalcubes package
+  if (!requireNamespace("gdalcubes", quietly = TRUE)) {
+    stop(paste("Please install package gdalcubes from CRAN:",
+               "install.packages('gdalcubes')"), call. = FALSE
+    )
+  }
 
+  # test if provided object its a sits cube
+  assertthat::assert_that("stack_cube" %in% class(cube[1,]),
+                          msg = paste("The provided cube is invalid,",
+                                      "please provide a 'stack_cube' object.",
+                                      "See '?sits_cube' for more information.")
+  )
+
+  # create an image collection
+  img_col <- .sits_gdalcubes_image_collection(cube, path_db)
+
+  # create a cube view
+  # TODO: Ver quais outros parametros podem ser fornecidos no elipses
+  cube_view <- .sits_gdalcubes_cube_view(cube,
+                                         period,
+                                         method,
+                                         resampling, ...)
+
+  # create a list of raster cube
+  # TODO: ver sobre a mascara de nuvem e o chunking (precisa de chunking para o writing)
+  cube_list <- purrr::map(cube_view, function(cv) {
+    #if (cloud_mask) {
+      #.check_gc_cloud_mask(cube)
+      #gdalcubes::raster_cube(img_col, cv, mask = ...)
+    #} else
+    gdalcubes::raster_cube(img_col, cv)
+  })
+
+  gc_cube <- sits_cube_compose(cube_list, cube, path_images)
+
+  # TODO: add a classe do cubo settado no config.yml
+
+  return(gc_cube)
+}
 # sits_cube <- function(
 #     type = "S2-L2A-AWS",
 #     satellite = "SENTINEL-2",

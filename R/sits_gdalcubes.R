@@ -1,3 +1,123 @@
+#' @title Save the images based on an aggregation method.
+#' @name sits_cube_compose
+#'
+#' @description Based on the defined parameters in 'sits_gdalcubes_raster'
+#'  function, this function materializes the cubes created in the .tif format.
+#'
+#' @param gdalcubes_list a \code{gdalcubes_list} object returned by
+#'  sits_gdalcubes_raster function.
+#' @param path_images    a \code{character} with the path where the aggregated
+#'  images will be writed.
+#' @param ...            Additional parameters that can be included. See
+#'  '?gdalcubes::write_tif'.
+#'
+#' @return  an invisible return of "gdalcubes_list" object.
+#'
+#' @examples
+#' \dontrun{
+#' # this example requires access to an external service, so should not be run
+#' # by CRAN
+#'
+#' # s3://sentinel-cogs/sentinel-s2-l2a-cogs/2017/S2A_35MNR_20171025_0_L2A/
+#'
+#' # Provide your AWS credentials here
+#' # Sys.setenv(
+#' # "AWS_ACCESS_KEY_ID"     = <your_access_key>,
+#' # "AWS_SECRET_ACCESS_KEY" = <your_secret_access_key>,
+#' # "AWS_DEFAULT_REGION"    = <your AWS region>,
+#' # "AWS_ENDPOINT" = "sentinel-s2-l2a.s3.amazonaws.com",
+#' # "AWS_REQUEST_PAYER"     = "requester"
+#' # )
+#'
+#' s2_cube <- sits_cube(
+#'     type = "S2_L2A_AWS",
+#'     name = "T20LKP_2018_2019",
+#'     satellite = "SENTINEL-2",
+#'     sensor = "MSI",
+#'     tiles = "20LKP",
+#'     s2_aws_resolution = "20m",
+#'     start_date = as.Date("2018-07-18"),
+#'     end_date = as.Date("2018-09-18")
+#' )
+#'
+#' r_cube <- sits_gdalcubes_raster(s2_cube, path_db = "my/path/cube.db",
+#'                                 period     = "P1M",
+#'                                 method     = "median",
+#'                                 resampling = "bilinear")
+#'
+#' sits_gdalcubes_aggregation(r_cube, "my/images/dir/")
+#' }
+#'
+#' @export
+sits_cube_compose <- function(raster_list, cube, path_images, ...,
+                              version = "v1") {
+
+    # verifies the path to save the images
+    assertthat::assert_that(dir.exists(path_images),
+                            msg = paste("The provided dir does not exist.",
+                                        "Please provided a valid path.")
+
+    )
+
+    # TODO: documentar
+    cube_gc <- .sits_cube_clone(
+        cube = cube,
+        ext = "",
+        output_dir = path_images,
+        version = version)
+
+    cube_gc$file_info <- NULL
+
+    # TODO: add path do database do gdalcubes
+    # add path db
+    # cube_gc$gdalcubes_db <- path_db
+
+    # create file info column (better solve? think so)
+    file_info <- tibble::tibble(res  = character(),
+                                band = character(),
+                                date = character(),
+                                path = character())
+
+     cube_gc <- tibble::add_column(cube_gc, file_info = list(file_info))
+    # TODO: será que vale passar para for? eu acho melhor pq o purrr n ta
+    # retornando nada
+    # write the aggregated cubes
+    purrr::map(seq_along(nrow(cube_gc)), function(i) {
+        s_tile <- cube_gc[i,]
+
+        purrr::map_chr(s_tile$bands[[1]], function(band) {
+            path_write <- gdalcubes::write_tif(
+                gdalcubes::select_bands(raster_list[[i]], band),
+                dir = path_images,
+                prefix = paste("cube", s_tile$tile, band, "", sep = "_"),
+                write_json_descr = TRUE, ...)
+
+            # retrieving image date
+            images_date <- .get_gc_date(path_write)
+            res <- cube[i,]$file_info[[1]]$res
+
+            # set file info values
+            cube_gc[i,]$file_info[[1]] <- tibble::add_row(
+                cube_gc[i,]$file_info[[1]],
+                path = path_write,
+                date = images_date,
+                band = rep(band, length(path_write)),
+                res  = rep(res, length(path_write)))
+            })
+    })
+
+    return(cube_gc)
+}
+#' TODO: documentar
+.get_gc_date <- function(dir_images) {
+
+    date_files <-
+        purrr::map_chr(strsplit(dir_images, "_"), function(split_path) {
+            tools::file_path_sans_ext(split_path[[4]])
+    })
+
+    return(date_files)
+}
 #' @title Create a list of a gdal_cubes raster object.
 #' @name sits_gdalcubes_raster
 #'
@@ -97,79 +217,6 @@ sits_gdalcubes_raster <- function(cube, path_db,
 
     return(rc_list)
 }
-#' @title Save the images based on an aggregation method.
-#' @name sits_gdalcubes_aggregation
-#'
-#' @description Based on the defined parameters in 'sits_gdalcubes_raster'
-#'  function, this function materializes the cubes created in the .tif format.
-#'
-#' @param gdalcubes_list a \code{gdalcubes_list} object returned by
-#'  sits_gdalcubes_raster function.
-#' @param path_images    a \code{character} with the path where the aggregated
-#'  images will be writed.
-#' @param ...            Additional parameters that can be included. See
-#'  '?gdalcubes::write_tif'.
-#'
-#' @return  an invisible return of "gdalcubes_list" object.
-#'
-#' @examples
-#' \dontrun{
-#' # this example requires access to an external service, so should not be run
-#' # by CRAN
-#'
-#' # s3://sentinel-cogs/sentinel-s2-l2a-cogs/2017/S2A_35MNR_20171025_0_L2A/
-#'
-#' # Provide your AWS credentials here
-#' # Sys.setenv(
-#' # "AWS_ACCESS_KEY_ID"     = <your_access_key>,
-#' # "AWS_SECRET_ACCESS_KEY" = <your_secret_access_key>,
-#' # "AWS_DEFAULT_REGION"    = <your AWS region>,
-#' # "AWS_ENDPOINT" = "sentinel-s2-l2a.s3.amazonaws.com",
-#' # "AWS_REQUEST_PAYER"     = "requester"
-#' # )
-#'
-#' s2_cube <- sits_cube(
-#'     type = "S2_L2A_AWS",
-#'     name = "T20LKP_2018_2019",
-#'     satellite = "SENTINEL-2",
-#'     sensor = "MSI",
-#'     tiles = "20LKP",
-#'     s2_aws_resolution = "20m",
-#'     start_date = as.Date("2018-07-18"),
-#'     end_date = as.Date("2018-09-18")
-#' )
-#'
-#' r_cube <- sits_gdalcubes_raster(s2_cube, path_db = "my/path/cube.db",
-#'                                 period     = "P1M",
-#'                                 method     = "median",
-#'                                 resampling = "bilinear")
-#'
-#' sits_gdalcubes_aggregation(r_cube, "my/path/images/")
-#' }
-#'
-#' @export
-sits_gdalcubes_aggregation <- function(gdalcubes_list, path_images, ...) {
-
-    # verifies the provided object
-    assertthat::assert_that("gdalcubes_list" %in% class(gdalcubes_list),
-                            msg = paste("The provided object must be a ",
-                                        "'gdalcubes_list' object. Please see",
-                                        "'sits_gdalcubes_raster' function.")
-    )
-
-    # verifies the path to save the images
-    assertthat::assert_that(dir.exists(path_images),
-                            msg = paste("The provided dir does not exist.",
-                                        "Please provided a valid path.")
-
-    )
-
-    # write the aggregated cubes
-    purrr::map(gdalcubes_list, gdalcubes::write_tif, path_images,
-               write_json_descr = TRUE, ...)
-
-    return(invisible(gdalcubes_list))
-}
 #' @title Create an image_collection object
 #' @name .sits_gdalcubes_image_collection
 #' @keywords internal
@@ -192,12 +239,12 @@ sits_gdalcubes_aggregation <- function(gdalcubes_list, path_images, ...) {
     full_images <- dplyr::bind_rows(cube$file_info)
 
     # retrieving the s2_la_aws format
-    format_cube <- system.file("extdata/gdalcubes/s2la_aws.json",
-                             package = "sits")
+    format_col <- system.file("extdata/gdalcubes/s2la_aws.json",
+                              package = "sits")
 
     # create image collection cube
     ic_cube <- gdalcubes::create_image_collection(files    = full_images$path,
-                                                  format   = format_cube,
+                                                  format   = format_col,
                                                   out_file = path_db)
     return(ic_cube)
 }
@@ -238,6 +285,7 @@ sits_gdalcubes_aggregation <- function(gdalcubes_list, path_images, ...) {
                                         "be provided"))
 
     # create a list of cube view
+    # TODO: no t0 a data precisa ser no formato %Y-%m ?
     cv_list <- slider::slide(cube, function(c_tile) {
         gdalcubes::cube_view(
             extent = list(left   = c_tile$xmin,
