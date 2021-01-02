@@ -558,8 +558,6 @@ sits_cube.gdalcubes_cube <- function(type = "GDALCUBES", ...,
                                          method,
                                          resampling, ...)
 
-  print(cube_view[[1]])
-
   # create a list of raster cube
   # TODO: ver sobre a mascara de nuvem e o chunking (precisa de chunking para o writing)
   cube_list <- purrr::map(cube_view, function(cv) {
