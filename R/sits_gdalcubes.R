@@ -94,7 +94,7 @@ sits_cube_compose <- function(raster_list, cube, path_images, ...,
 
             # retrieving image date
             images_date <- .get_gc_date(path_write)
-            res <- cube[i,]$file_info[[1]]$res
+            res <- cube[i,]$file_info[[1]]$res[[1]]
 
             # set file info values
             cube_gc[i,]$file_info[[1]] <- tibble::add_row(
