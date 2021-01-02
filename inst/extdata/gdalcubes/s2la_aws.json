@@ -76,6 +76,9 @@
             "nodata" : 0,
             "scale" : 0.0001,
             "pattern" : ".+B12\\.jp2"
+        },
+        "SCL" : {
+            "pattern" : ".+SCL\\.jp2"
         }
     }
 }
