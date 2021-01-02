@@ -510,21 +510,22 @@ sits_cube.s2_l2a_aws_cube <- function(type = "S2_L2A_AWS", ...,
 #'
 #' @description  ...
 #'
-#' @param type       ...
-#' @param cube       ...
-#' @param path_db    ...
-#' @param period     ...
-#' @param method     ...
-#' @param resampling ...
-#' @param cloud_mask ...
+#' @param type        ...
+#' @param cube        ...
+#' @param path_images ...
+#' @param path_db     ...
+#' @param period      ...
+#' @param method      ...
+#' @param resampling  ...
+#' @param cloud_mask  ...
 #'
 #' @return cube ...
 #'
 #' @export
 sits_cube.gdalcubes_cube <- function(type = "GDALCUBES", ...,
                                      cube,
-                                     path_db,
                                      path_images,
+                                     path_db    = NULL,
                                      period     = NULL,
                                      method     = NULL,
                                      resampling = "bilinear",
@@ -543,6 +544,10 @@ sits_cube.gdalcubes_cube <- function(type = "GDALCUBES", ...,
                                       "See '?sits_cube' for more information.")
   )
 
+  # if null, a temp dir is generated
+  if (is.null(path_db))
+    path_db <- file.path(tempdir(), "cube.db")
+
   # create an image collection
   img_col <- .sits_gdalcubes_image_collection(cube, path_db)
 
@@ -553,17 +558,20 @@ sits_cube.gdalcubes_cube <- function(type = "GDALCUBES", ...,
                                          method,
                                          resampling, ...)
 
+  print(cube_view[[1]])
+
   # create a list of raster cube
   # TODO: ver sobre a mascara de nuvem e o chunking (precisa de chunking para o writing)
   cube_list <- purrr::map(cube_view, function(cv) {
-    #if (cloud_mask) {
-      #.check_gc_cloud_mask(cube)
-      #gdalcubes::raster_cube(img_col, cv, mask = ...)
-    #} else
-    gdalcubes::raster_cube(img_col, cv)
+    if (cloud_mask) {
+      mask_band <- .get_gc_cloud_mask(cube)
+      gdalcubes::raster_cube(img_col, cv, mask = mask_band, chunking = c(1, 1024, 1024))
+    } else {
+      gdalcubes::raster_cube(img_col, cv)
+    }
   })
 
-  gc_cube <- sits_cube_compose(cube_list, cube, path_images)
+  gc_cube <- sits_cube_compose(cube_list, cube, path_db, path_images)
 
   # TODO: add a classe do cubo settado no config.yml
 

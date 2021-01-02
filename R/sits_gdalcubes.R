@@ -8,6 +8,7 @@
 #'  sits_gdalcubes_raster function.
 #' @param path_images    a \code{character} with the path where the aggregated
 #'  images will be writed.
+#' @param path_db ...
 #' @param ...            Additional parameters that can be included. See
 #'  '?gdalcubes::write_tif'.
 #'
@@ -49,7 +50,7 @@
 #' }
 #'
 #' @export
-sits_cube_compose <- function(raster_list, cube, path_images, ...,
+sits_cube_compose <- function(raster_list, cube, path_db, path_images, ...,
                               version = "v1") {
 
     # verifies the path to save the images
@@ -82,10 +83,10 @@ sits_cube_compose <- function(raster_list, cube, path_images, ...,
     # TODO: será que vale passar para for? eu acho melhor pq o purrr n ta
     # retornando nada
     # write the aggregated cubes
-    purrr::map(seq_along(nrow(cube_gc)), function(i) {
+    for (i in seq_along(nrow(cube_gc))) {
         s_tile <- cube_gc[i,]
 
-        purrr::map_chr(s_tile$bands[[1]], function(band) {
+        for (band in s_tile$bands[[1]]) {
             path_write <- gdalcubes::write_tif(
                 gdalcubes::select_bands(raster_list[[i]], band),
                 dir = path_images,
@@ -94,7 +95,7 @@ sits_cube_compose <- function(raster_list, cube, path_images, ...,
 
             # retrieving image date
             images_date <- .get_gc_date(path_write)
-            res <- cube[i,]$file_info[[1]]$res[[1]]
+            res <- dplyr::filter(cube[i,]$file_info[[1]], band == band)$res[[1]]
 
             # set file info values
             cube_gc[i,]$file_info[[1]] <- tibble::add_row(
@@ -103,8 +104,8 @@ sits_cube_compose <- function(raster_list, cube, path_images, ...,
                 date = images_date,
                 band = rep(band, length(path_write)),
                 res  = rep(res, length(path_write)))
-            })
-    })
+            }
+    }
 
     return(cube_gc)
 }
@@ -117,6 +118,21 @@ sits_cube_compose <- function(raster_list, cube, path_images, ...,
     })
 
     return(date_files)
+}
+#' TODO: documentar
+.get_gc_cloud_mask <- function(cube) {
+
+    # checks if the cube has a cloud band
+    assertthat::assert_that("SCL" %in% unique(cube$file_info[[1]]$band),
+                            msg = paste("It was not possible to use the cloud",
+                                        "mask, please include the cloud band",
+                                        "in your cube. For S2LA_AWS, use",
+                                        "'SCL' band.")
+    )
+
+    mask_values <- gdalcubes::image_mask("SCL", values = c(3,8,9))
+
+    return(mask_values)
 }
 #' @title Create a list of a gdal_cubes raster object.
 #' @name sits_gdalcubes_raster
