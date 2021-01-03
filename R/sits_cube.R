@@ -560,16 +560,21 @@ sits_cube.gdalcubes_cube <- function(type = "GDALCUBES", ...,
 
   # create a list of raster cube
   # TODO: ver sobre a mascara de nuvem e o chunking (precisa de chunking para o writing)
-  cube_list <- purrr::map(cube_view, function(cv) {
-    if (cloud_mask) {
-      mask_band <- .get_gc_cloud_mask(cube)
-      gdalcubes::raster_cube(img_col, cv, mask = mask_band, chunking = c(1, 1024, 1024))
-    } else {
-      gdalcubes::raster_cube(img_col, cv)
-    }
-  })
+  # cube_list <- purrr::map(seq_along(length(cube_view)), function(i) {
+  #
+  #   brick_cube <- purrr::map(cube[i,]$bands[[1]], function(band) {
+  #     if (cloud_mask) {
+  #       mask_band <- .get_gc_cloud_mask(cube)
+  #       gdalcubes::raster_cube(img_col, cube_view[[i]], mask = mask_band, chunking = c(1, 1024, 1024))
+  #     } else {
+  #       gdalcubes::raster_cube(img_col, cube_view[[i]])
+  #     }
+  #   })
+  #   names(brick_cube[[i]]) <- cube[i,]$bands[[1]]
+  # })
 
-  gc_cube <- sits_cube_compose(cube_list, cube, path_db, path_images)
+  gc_cube <- sits_cube_compose(cube_view, cube, path_db, path_images,
+                               cloud_mask, img_col)
 
   # TODO: add a classe do cubo settado no config.yml
 

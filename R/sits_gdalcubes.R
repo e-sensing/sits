@@ -9,6 +9,8 @@
 #' @param path_images    a \code{character} with the path where the aggregated
 #'  images will be writed.
 #' @param path_db ...
+#' @param cloud_mask ...
+#' @param img_col ...
 #' @param ...            Additional parameters that can be included. See
 #'  '?gdalcubes::write_tif'.
 #'
@@ -50,8 +52,8 @@
 #' }
 #'
 #' @export
-sits_cube_compose <- function(raster_list, cube, path_db, path_images, ...,
-                              version = "v1") {
+sits_cube_compose <- function(cube_view, cube, path_db, path_images, cloud_mask,
+                              img_col, ..., version = "v1") {
 
     # verifies the path to save the images
     assertthat::assert_that(dir.exists(path_images),
@@ -86,9 +88,21 @@ sits_cube_compose <- function(raster_list, cube, path_db, path_images, ...,
     for (i in seq_along(nrow(cube_gc))) {
         s_tile <- cube_gc[i,]
 
-        for (band in s_tile$bands[[1]]) {
+        for (band in (s_tile$bands[[1]])) {
+            # TODO: criar função para criar raster cube
+            # get_gc_raster_cube(cube, img_col, cube_view[[i]])
+            if (cloud_mask) {
+                mask_band  <- .get_gc_cloud_mask(cube)
+                cube_brick <-
+                    gdalcubes::raster_cube(img_col, cube_view[[i]],
+                                           mask = mask_band,
+                                           chunking = c(1, 1024, 1024))
+            } else {
+                cube_brick <- gdalcubes::raster_cube(img_col, cube_view[[i]])
+            }
+
             path_write <- gdalcubes::write_tif(
-                gdalcubes::select_bands(raster_list[[i]], band),
+                gdalcubes::select_bands(cube_brick, band),
                 dir = path_images,
                 prefix = paste("cube", s_tile$tile, band, "", sep = "_"),
                 write_json_descr = TRUE, ...)
