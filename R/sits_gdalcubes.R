@@ -85,7 +85,7 @@ sits_cube_compose <- function(cube_view, cube, path_db, path_images, cloud_mask,
     # TODO: será que vale passar para for? eu acho melhor pq o purrr n ta
     # retornando nada
     # write the aggregated cubes
-    for (i in seq_along(nrow(cube_gc))) {
+    for (i in seq_len(nrow(cube_gc))) {
         s_tile <- cube_gc[i,]
 
         for (band in (s_tile$bands[[1]])) {
