@@ -56,6 +56,9 @@
             cube_brick <-
                 .sits_gc_brick(cube, img_col, cv_list[[i]], cloud_mask)
 
+            message(paste("Writing images of band", band, "and tile",
+                          c_tile$tile))
+
             # write the aggregated cubes
             path_write <- gdalcubes::write_tif(
                 gdalcubes::select_bands(cube_brick, band),
@@ -89,8 +92,11 @@
 #' @return a \code{character} vector with the dates extracted.
 .sits_gc_date <- function(dir_images) {
 
+    # get image name
+    image_name <- basename(dir_images)
+
     date_files <-
-        purrr::map_chr(strsplit(dir_images, "_"), function(split_path) {
+        purrr::map_chr(strsplit(image_name, "_"), function(split_path) {
             tools::file_path_sans_ext(split_path[[4]])
         })
 
@@ -115,7 +121,7 @@
         mask_band  <- .sits_gc_cloud_mask(cube)
         cube_brick <- gdalcubes::raster_cube(img_col, cube_view,
                                              mask = mask_band,
-                                             chunking = c(1, 1024, 1024))
+                                             chunking = c(1, 2048, 2048))
     } else {
         cube_brick <- gdalcubes::raster_cube(img_col,
                                              cube_view,
@@ -172,6 +178,7 @@
     format_col <- system.file("extdata/gdalcubes/s2la_aws.json",
                               package = "sits")
 
+    message("Creating database of images...")
     # create image collection cube
     ic_cube <- gdalcubes::create_image_collection(files    = full_images$path,
                                                   format   = format_col,
