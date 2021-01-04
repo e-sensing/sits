@@ -503,25 +503,73 @@ sits_cube.s2_l2a_aws_cube <- function(type = "S2_L2A_AWS", ...,
     cube <- dplyr::bind_rows(tiles_cube)
     return(cube)
 }
-#' TODO: documentar
 #' TODO: explicitar a maneira em que o 'period' deve ser fornecido.
-#' @title ...
-#' @name ...
+#' @title Create a composed data cube for a Sentinel-2 L2A AWS cube
+#' @name sits_cube.gdalcubes_cube
 #'
-#' @description  ...
+#' @description  Creates composed cubes using the gdalcubes package as a base.
+#'  For now, only Sentinel-2 L2A AWS cube can be composed.
 #'
-#' @param type        ...
-#' @param cube        ...
-#' @param path_images ...
-#' @param path_db     ...
-#' @param period      ...
-#' @param method      ...
-#' @param resampling  ...
-#' @param cloud_mask  ...
+#' @param type        Type of cube.
+#' @param ...         Other parameters to be passed for specific types.
+#' @param cube        A Sentinel-2 L2A AWS data cube
+#' @param path_images A \code{character} with the path where the aggregated
+#'  images will be writed.
+#' @param path_db     A \code{character} with the path and name where the
+#'  database will be create. E.g. "my/path/gdalcubes.db"
+#' @param period      A \code{character} with the period of time in which it
+#'  is desired to apply in the cube, must be provided based on ISO8601, where 1
+#'  number and a unit are provided, for example "P16D" for 16 days. For unit,
+#'  use "D", "M" and "Y" for days, month and year, respectively.
+#' @param method      A \code{character} with the method that will be applied in
+#'  the aggregation, the following are available: "min", "max", "mean",
+#'  "median" or "first".
+#' @param resampling  A \code{character} with the method that will be applied
+#'  in the resampling in mosaic operation. The following are available: "near",
+#'  "bilinear", "bicubic" or others supported by gdalwarp
+#'  (see https://gdal.org/programs/gdalwarp.html).
+#' @param cloud_mask  A \code{logical} corresponds to the use of the cloud band
+#'  for aggregation.
 #'
-#' @return cube ...
-#'
+#' @return A data cube.
 #' @export
+#'
+#' @examples
+#' \dontrun{
+#' # this example requires access to an external service, so should not be run
+#' # by CRAN
+#'
+#' # s3://sentinel-cogs/sentinel-s2-l2a-cogs/2017/S2A_35MNR_20171025_0_L2A/
+#'
+#' # Provide your AWS credentials here
+#' # Sys.setenv(
+#' # "AWS_ACCESS_KEY_ID"     = <your_access_key>,
+#' # "AWS_SECRET_ACCESS_KEY" = <your_secret_access_key>,
+#' # "AWS_DEFAULT_REGION"    = <your AWS region>,
+#' # "AWS_ENDPOINT" = "sentinel-s2-l2a.s3.amazonaws.com",
+#' # "AWS_REQUEST_PAYER"     = "requester"
+#' # )
+#'
+#' s2_cube <- sits_cube(
+#'     type = "S2_L2A_AWS",
+#'     name = "T20LKP_2018_2019",
+#'     satellite = "SENTINEL-2",
+#'     sensor = "MSI",
+#'     tiles = "20LKP",
+#'     s2_aws_resolution = "20m",
+#'     start_date = as.Date("2018-07-18"),
+#'     end_date = as.Date("2018-07-23")
+#' )
+#'
+#' gc_cube <- sits_cube(type        = "GDALCUBES",
+#'                      cube        = s2_cube,
+#'                      path_db     = "/my/path/cube.db",
+#'                      path_images = "/my/path/images/",
+#'                      period      = "P1M",
+#'                      method      = "median",
+#'                      resampling  = "bilinear")
+#' }
+#'
 sits_cube.gdalcubes_cube <- function(type = "GDALCUBES", ...,
                                      cube,
                                      path_images,
@@ -544,37 +592,19 @@ sits_cube.gdalcubes_cube <- function(type = "GDALCUBES", ...,
                                       "See '?sits_cube' for more information.")
   )
 
-  # if null, a temp dir is generated
+  # in case of null path a temporary directory is generated
   if (is.null(path_db))
     path_db <- file.path(tempdir(), "cube.db")
 
   # create an image collection
-  img_col <- .sits_gdalcubes_image_collection(cube, path_db)
+  img_col <- .sits_gc_database(cube, path_db)
 
-  # create a cube view
-  # TODO: Ver quais outros parametros podem ser fornecidos no elipses
-  cube_view <- .sits_gdalcubes_cube_view(cube,
-                                         period,
-                                         method,
-                                         resampling, ...)
+  # create a list of cube view object
+  cv_list <- .sits_gc_cube(cube, period, method, resampling)
 
-  # create a list of raster cube
-  # TODO: ver sobre a mascara de nuvem e o chunking (precisa de chunking para o writing)
-  # cube_list <- purrr::map(seq_along(length(cube_view)), function(i) {
-  #
-  #   brick_cube <- purrr::map(cube[i,]$bands[[1]], function(band) {
-  #     if (cloud_mask) {
-  #       mask_band <- .get_gc_cloud_mask(cube)
-  #       gdalcubes::raster_cube(img_col, cube_view[[i]], mask = mask_band, chunking = c(1, 1024, 1024))
-  #     } else {
-  #       gdalcubes::raster_cube(img_col, cube_view[[i]])
-  #     }
-  #   })
-  #   names(brick_cube[[i]]) <- cube[i,]$bands[[1]]
-  # })
-
-  gc_cube <- sits_cube_compose(cube_view, cube, path_db, path_images,
-                               cloud_mask, img_col)
+  # create of the aggregate cubes
+  gc_cube <- .sits_gc_compose(cube, cv_list, img_col, path_db, path_images,
+                              cloud_mask)
 
   # TODO: add a classe do cubo settado no config.yml
 
