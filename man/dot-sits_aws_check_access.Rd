@@ -4,21 +4,10 @@
 \alias{.sits_aws_check_access}
 \title{Check access rights on AWS}
 \usage{
-.sits_aws_check_access(
-  type,
-  access_key = NULL,
-  secret_key = NULL,
-  region = NULL
-)
+.sits_aws_check_access(type)
 }
 \arguments{
 \item{type}{cube type}
-
-\item{access_key}{AWS access key}
-
-\item{secret_key}{AWS secret key}
-
-\item{region}{AWS region}
 }
 \value{
 TRUE if access is granted

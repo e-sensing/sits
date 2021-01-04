@@ -918,11 +918,9 @@ sits_formula_linear <- function(predictors_index = -2:0) {
 
     if (multicores > 1) {
         chunks <- split(values, cut(1:n_values, 2, labels = FALSE))
-        norm_values <- dplyr::combine(parallel::mclapply(chunks,
-                                                         normalize_chunk,
-                                                         mc.cores = multicores
-                                                         )
-        )
+        norm_values <- chunks %>%
+          parallel::mclapply(normalize_chunk, mc.cores = multicores) %>%
+          unlist(recursive = FALSE)
     }
     else
           norm_values <- normalize_chunk(values)

@@ -294,7 +294,6 @@ sits_cube.brick_cube <- function(type = "BRICK", ...,
 #'  bounding box with named XY values ("xmin", "xmax", "ymin", "ymax").
 #' @param start_date Initial date for the cube files (optional).
 #' @param end_date   Final date for the cube files (optional).
-#' @param access_key Access key to BDC
 #'
 #' @return           A data cube.
 #'
@@ -303,9 +302,9 @@ sits_cube.brick_cube <- function(type = "BRICK", ...,
 #' # this example requires access to an external service, so should not be run
 #' # by CRAN
 #'
-#' #' # Provide your BDC credentials here
+#' # Provide your BDC credentials as enviroment variables
 #' # Sys.setenv(
-#' # "BDC_SECRET_ACCESS_KEY" = <your_secret_access_key>
+#' # "BDC_ACCESS_KEY" = <your_bdc_access_key>
 #' # )
 #'
 #' # create a raster cube file based on the information about the files
@@ -328,8 +327,7 @@ sits_cube.bdc_cube <- function(type = "BDC", ...,
                                bands = NULL,
                                roi = NULL,
                                start_date = NULL,
-                               end_date = NULL,
-                               access_key = NULL) {
+                               end_date = NULL) {
 
     # require package
     if (!requireNamespace("rstac", quietly = TRUE)) {
@@ -356,7 +354,7 @@ sits_cube.bdc_cube <- function(type = "BDC", ...,
     )
 
     # verify  bdc access credentials
-    access_key <- .sits_bdc_access_check(access_key)
+    access_key <- .sits_bdc_access_check()
 
     # retrieve information from the collection
     collection_info <- .sits_stac_collection(
@@ -427,9 +425,6 @@ sits_cube.bdc_cube <- function(type = "BDC", ...,
 #' @param start_date        starting date of the cube
 #' @param end_date          ending date of the cube
 #' @param s2_aws_resolution resolution of S2 images ("10m", "20m" or "60m")
-#' @param access_key        AWS access key
-#' @param secret_key        AWS secret key
-#' @param region            AWS region
 #' @return                  data cube
 #' @export
 #'
@@ -468,17 +463,9 @@ sits_cube.s2_l2a_aws_cube <- function(type = "S2_L2A_AWS", ...,
                                       tiles = NULL,
                                       start_date = NULL,
                                       end_date = NULL,
-                                      s2_aws_resolution = NULL,
-                                      access_key = NULL,
-                                      secret_key = NULL,
-                                      region = NULL) {
+                                      s2_aws_resolution = NULL) {
     # precondition - is AWS access available?
-    aws_access_ok <- .sits_aws_check_access(
-        type = type,
-        access_key = access_key,
-        secret_key = secret_key,
-        region = region
-    )
+    aws_access_ok <- .sits_aws_check_access(type = type)
     if (!aws_access_ok)
           return(NULL)
 
@@ -497,22 +484,12 @@ sits_cube.s2_l2a_aws_cube <- function(type = "S2_L2A_AWS", ...,
             file_info = stack
         )
 
-        class(cube_t) <- c("stack_cube", "aster_cube", class(cube_t))
+        class(cube_t) <- c("stack_cube", "raster_cube", class(cube_t))
         return(cube_t)
     })
     cube <- dplyr::bind_rows(tiles_cube)
     return(cube)
 }
-
-# sits_cube <- function(
-#     type = "S2-L2A-AWS",
-#     satellite = "SENTINEL-2",
-#     sensor = "MSI",
-#     tiles = c('20LKP', '20LLP', .....),
-#     start_date = ...,
-#     end_date = ....,
-#     interval = "16d",
-#     agregg_fun = ....)
 
 #' @title Default methods for sits_cube
 #' @name sits_cube.default

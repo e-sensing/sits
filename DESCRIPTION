@@ -40,7 +40,6 @@ Imports:
     ggplot2,
     graphics,
     grDevices,
-    jsonlite,
     keras (>= 2.3.0),
     lubridate (>= 1.7.0),
     parallel,
