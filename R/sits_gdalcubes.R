@@ -42,7 +42,7 @@
     # create file info column
     file_info <- tibble::tibble(res  = character(),
                                 band = character(),
-                                date = character(),
+                                date = lubridate::as_date(""),
                                 path = character())
     # add file info and path db columns
     cube_gc <- tibble::add_column(cube_gc, file_info = list(file_info),
@@ -77,6 +77,9 @@
                 date = images_date,
                 band = rep(band, length(path_write)),
                 res  = rep(res, length(path_write)))
+
+            # set timeline dates
+            cube_gc[i,]$timeline[[i]][[1]] <- c(images_date)
         }
     }
 
@@ -99,6 +102,17 @@
         purrr::map_chr(strsplit(image_name, "_"), function(split_path) {
             tools::file_path_sans_ext(split_path[[4]])
         })
+
+    # check type of date interval
+    if (length(strsplit(date_files, "-")[[1]]) == 1)
+        date_files <- lubridate::fast_strptime(date_files,  "%Y")
+    else if (length(strsplit(date_files, "-")[[1]]) == 2)
+        date_files <- lubridate::fast_strptime(date_files,  "%Y-%m")
+    else
+        date_files <- lubridate::fast_strptime(date_files,  "%Y-%m-%d")
+
+    # transform to date object
+    date_files <- lubridate::as_date(date_files)
 
     return(date_files)
 }
