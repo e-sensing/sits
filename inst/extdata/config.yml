@@ -8,8 +8,8 @@ default:
     rstac_pagination_limit   : 1000
 
     # Data cube types known to sits
-    cube_types              : ["WTSS", "SATVEG", "BRICK", "STACK", "RASTER", "BDC", "S2_L2A_AWS", "PROBS", "CLASSIFIED"]
-    cube_classes            : ["wtss_cube", "satveg_cube", "brick_cube", "stack_cube", "raster_cube", "bdc_cube", "s2_l2a_aws_cube", "probs_cube", "classified_image"]
+    cube_types              : ["WTSS", "SATVEG", "BRICK", "STACK", "RASTER", "BDC", "S2_L2A_AWS", "GDALCUBES", "PROBS", "CLASSIFIED"]
+    cube_classes            : ["wtss_cube", "satveg_cube", "brick_cube", "stack_cube", "raster_cube", "bdc_cube", "s2_l2a_aws_cube", "gdalcubes_cube",  "probs_cube", "classified_image"]
 
     # Image file extensions known to SITS
     img_file_extensions     : ["tiff", "tif", "jp2", "hdf"]
