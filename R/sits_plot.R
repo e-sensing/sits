@@ -33,7 +33,7 @@
 #' @param ...           further specifications for \link{plot}.
 #' @param  colors       Color palette to be used (based on Color Brewer
 #'                      - default is "Dark2").
-#' @return              plot
+#' @return              The plot itself.
 #'
 #' @examples
 #' \dontrun{
@@ -66,7 +66,7 @@ plot.sits <- function(x, y, ..., colors = "Dark2") {
 #' @param  x             object of class "patterns"
 #' @param  y             ignored
 #' @param  ...           further specifications for \link{plot}.
-#' @return               plot
+#' @return               The plot itself.
 #'
 #' @examples
 #' \dontrun{
@@ -90,7 +90,7 @@ plot.patterns <- function(x, y, ...) {
 #' @param  y             ignored
 #' @param  ...           further specifications for \link{plot}.
 #' @param  bands         bands used for visualisation
-#' @return               plot
+#' @return               The plot itself.
 #'
 #' @examples
 #' \dontrun{
@@ -291,7 +291,7 @@ plot.stack_cube <- function(x, y, ..., red, green, blue, time = 1) {
 #' @param colors         color palette.
 #' @param n_colors       number of colors.
 #'
-#' @return               plot
+#' @return               The plot itself.
 #'
 #' @examples
 #' \dontrun{
@@ -477,7 +477,7 @@ plot.classified_image <- function(x, y, ..., map = NULL, time = 1,
 #' @param  ...          further specifications for \link{plot}.
 #' @param  name_cluster Choose the cluster to plot
 #' @param  title        title of plot. default is ""Confusion by cluster"".
-#' @return              plot
+#' @return              The plot itself.
 #' @examples
 #' \dontrun{
 #' # Produce a cluster map
@@ -512,7 +512,7 @@ plot.som_evaluate_cluster <- function(x, y, ..., name_cluster = NULL, title = "C
 #'                    "mapping" for the number of samples allocated in a neuron.
 #' @param  whatmap    What data layer will be plotted.
 #'
-#' @return            plot
+#' @return            The plot itself.
 #'
 #' @examples
 #' \dontrun{
@@ -538,7 +538,7 @@ plot.som_map <- function(x, y, ..., type = "codes", whatmap = 1) {
 #' @param  x             Object of class "keras_model"
 #' @param  y             ignored
 #' @param  ...           further specifications for \link{plot}.
-#' @return               plot
+#' @return               The plot itself.
 #'
 #' @examples
 #' \donttest{
@@ -642,8 +642,7 @@ plot.keras_model <- function(x, y, ...) {
 #'
 #' @param    data    A sits tibble with the list of time series to be plotted.
 #' @param    colors  The color pallete to be used (default is "Set1").
-#' @return           plot
-#'
+#' @return           The plot itself.
 .sits_plot_together <- function(data, colors) {
     # create a data frame with the median, and 25% and 75% quantiles
     create_iqr <- function(dt, band) {
@@ -749,7 +748,7 @@ plot.keras_model <- function(x, y, ...) {
 #'
 #' @param row         row of a sits tibble with the time series to be plotted.
 #' @param colors      brewer colors to be used for plotting.
-#' @return            plot
+#' @return            The plot itself.
 .sits_ggplot_series <- function(row, colors = "Dark2") {
     # Are there NAs in the data?
     if (any(is.na(row$time_series[[1]]))) {
@@ -769,7 +768,7 @@ plot.keras_model <- function(x, y, ...) {
 #'
 #' @param row         row of a sits tibble with the time series to be plotted.
 #' @param colors      brewer colors to be used for plotting.
-#' @return            plot
+#' @return            The plot itself.
 .sits_ggplot_series_no_na <- function(row, colors = "Dark2") {
     # create the plot title
     plot_title <- .sits_plot_title(row$latitude, row$longitude, row$label)
@@ -799,7 +798,7 @@ plot.keras_model <- function(x, y, ...) {
 #'
 #' @param row         row of a sits tibble with the time series to be plotted.
 #' @param colors      brewer colors to be used for plotting.
-#' @return            plot
+#' @return            The plot itself.
 .sits_ggplot_series_na <- function(row, colors = "Dark2") {
 
     # define a function to replace the NAs for unique values
@@ -848,7 +847,7 @@ plot.keras_model <- function(x, y, ...) {
 #' @param melted         tibble with the time series (already melted).
 #' @param means          means and std deviations of the time series.
 #' @param plot_title     title for the plot.
-#' @return               plot
+#' @return               The plot itself.
 .sits_ggplot_together <- function(melted, means, plot_title) {
     g <- ggplot2::ggplot(data = melted, ggplot2::aes(
         x = Index,
@@ -904,8 +903,7 @@ plot.keras_model <- function(x, y, ...) {
 #' @param data         sits tibble with classified time series.
 #' @param bands        band for plotting the classification.
 #'
-#' @return             plot
-#'
+#' @return             The plot itself.
 .sits_plot_classification <- function(data, bands = NULL) {
     if (purrr::is_null(bands)) {
           bands <- sits_bands(data)[1]
@@ -1037,7 +1035,7 @@ plot.keras_model <- function(x, y, ...) {
 #'                      indicating the height of dendrogram cutting.
 #' @param colors        color scheme as per `sits_color_name` function.
 #'
-#' @return              plot
+#' @return              The plot itself.
 .sits_plot_dendrogram <- function(data,
                                   cluster_obj,
                                   cutree_height = NULL,
@@ -1176,7 +1174,7 @@ plot.keras_model <- function(x, y, ...) {
 #' @keywords internal
 #' @author Lorena Santos \email{lorena.santos@@inpe.br}
 #'
-#' @description Plot a bar graph with informations about each cluster.
+#' @description Plot a bar graph with information about each cluster.
 #' The percentage of mixture between the clusters.
 #'
 #' @param data          Percentage of mixture between the clusters

@@ -124,6 +124,36 @@ sits_config_show <- function() {
 
     return(invisible(TRUE))
 }
+#' @title Read the AWS default region from configuration file
+#' @name .sits_config_aws_default_region
+#' @param type  Type of data cube
+#' @keywords internal
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
+#'
+#' @return directory where BDC is accessible on the web
+.sits_config_aws_default_region <- function(type) {
+    return(sits_env$config[["AWS_DEFAULT_REGION"]][[type]])
+}
+#' @title Read the AWS end point from configuration file
+#' @name .sits_config_aws_endpoint
+#' @param type  Type of data cube
+#' @keywords internal
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
+#'
+#' @return directory where BDC is accessible on the web
+.sits_config_aws_endpoint <- function(type) {
+    return(sits_env$config[["AWS_ENDPOINT"]][[type]])
+}
+#' @title Read the AWS end point from configuration file
+#' @name .sits_config_aws_request_payer
+#' @param type  Type of data cube
+#' @keywords internal
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
+#'
+#' @return directory where BDC is accessible on the web
+.sits_config_aws_request_payer <- function(type) {
+    return(sits_env$config[["AWS_REQUEST_PAYER"]][[type]])
+}
 #' @title Obtain the name of the bands used by a cube or by SITS
 #' @name .sits_config_band_names
 #' @keywords internal
@@ -211,7 +241,6 @@ sits_config_show <- function() {
     }
   return(bands)
 }
-
 #' @title Directory to read the BDC STAC catalogue
 #' @name .sits_config_bdc_stac
 #' @keywords internal
@@ -233,7 +262,6 @@ sits_config_show <- function() {
     if (purrr::is_null(url)) {
           url <- .sits_config_bdc_stac()
       }
-
     return(RCurl::url.exists(url))
 }
 
@@ -258,27 +286,7 @@ sits_config_show <- function() {
     if (purrr::is_null(url)) {
           url <- .sits_config_bdc_web()
       }
-
     return(RCurl::url.exists(url))
-}
-
-#' @title Directory to read the BDC information as local file
-#' @name .sits_config_bdc_local
-#' @keywords internal
-#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
-#'
-#' @return directory where BDC is accessible on the web
-.sits_config_bdc_local <- function() {
-    return(sits_env$config$bdc_local)
-}
-#' @title File extension used by BDC
-#' @name .sits_config_bdc_extension
-#' @keywords internal
-#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
-#'
-#' @return extension of BDC files
-.sits_config_bdc_extension <- function() {
-    return(sits_env$config$bdc_extension)
 }
 
 #' @title Get the name of the band used for cloud information

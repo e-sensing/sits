@@ -14,8 +14,7 @@
   bands = NULL,
   roi = NULL,
   start_date = NULL,
-  end_date = NULL,
-  access_key = NULL
+  end_date = NULL
 )
 }
 \arguments{
@@ -41,8 +40,6 @@ bounding box with named XY values ("xmin", "xmax", "ymin", "ymax").}
 \item{start_date}{Initial date for the cube files (optional).}
 
 \item{end_date}{Final date for the cube files (optional).}
-
-\item{access_key}{Access key to BDC}
 }
 \value{
 A data cube.
@@ -57,9 +54,9 @@ Defines a cube to retrieve data from the Brazil Data Cube (BDC)
 # this example requires access to an external service, so should not be run
 # by CRAN
 
-#' # Provide your BDC credentials here
+# Provide your BDC credentials as enviroment variables
 # Sys.setenv(
-# "BDC_SECRET_ACCESS_KEY" = <your_secret_access_key>
+# "BDC_ACCESS_KEY" = <your_bdc_access_key>
 # )
 
 # create a raster cube file based on the information about the files

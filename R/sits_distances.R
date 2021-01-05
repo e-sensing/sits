@@ -110,6 +110,8 @@
             classify_block,
             mc.cores = multicores
         )
+
+        # equivalent: predicted <- do.call(rbind, results.lst)
         predicted <- join_blocks(results)
     }
     else {

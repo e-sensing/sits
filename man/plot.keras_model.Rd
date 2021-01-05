@@ -14,7 +14,7 @@
 \item{...}{further specifications for \link{plot}.}
 }
 \value{
-plot
+The plot itself.
 }
 \description{
 plots a deep learning model

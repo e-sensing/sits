@@ -12,7 +12,7 @@
 \item{colors}{brewer colors to be used for plotting.}
 }
 \value{
-plot
+The plot itself.
 }
 \description{
 Plots a set of time series using ggplot. This function is used

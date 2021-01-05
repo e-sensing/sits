@@ -4,7 +4,7 @@
 \alias{.sits_bdc_access_check}
 \title{Check access rigths on BDC}
 \usage{
-.sits_bdc_access_check(access_key = NULL)
+.sits_bdc_access_check()
 }
 \arguments{
 \item{access_key}{BDC access key}

@@ -14,7 +14,7 @@
 \item{...}{further specifications for \link{plot}.}
 }
 \value{
-plot
+The plot itself.
 }
 \description{
 Given a sits tibble with a set of patterns, plot them.

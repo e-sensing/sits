@@ -18,8 +18,6 @@
 \item{multicores}{number of cores to use}
 }
 \value{
-a tibble with date, band and path information
-
 a tibble with date, band and path information.
 }
 \description{

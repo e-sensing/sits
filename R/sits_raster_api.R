@@ -305,13 +305,13 @@
 #' @param params         Output file params
 #' @param num_layers     Number of layers
 #' @param values         Data.table with values to be written
-#' @param filename       Filename of the raster image file
 #' @param datatype       Data type
 #' @param format         Format to write the file
 #' @param compress       Compression method to be used
-#' @param overwrite      Overwrite the file
-#' @return               Data cubevalues
+#' @param filename       File name of the raster image file.
+#' @param overwrite      Overwrite the file?
 #'
+#' @return               Data cube values.
 .sits_raster_api_write <- function(params,
                                    num_layers,
                                    values,

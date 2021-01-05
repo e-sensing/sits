@@ -123,41 +123,52 @@
 .sits_sub_image_from_bbox <- function(bbox, cube) {
     si <- vector("double", length = 8)
     names(si) <- c("first_row", "first_col", "nrows", "ncols",
-        "xmin", "xmax", "ymin", "ymax"
-    )
+                   "xmin", "xmax", "ymin", "ymax")
 
     si[c("xmin", "xmax", "ymin", "ymax")] <-
-      bbox[c("xmin", "xmax", "ymin", "ymax")]
+        bbox[c("xmin", "xmax", "ymin", "ymax")]
 
-    if (bbox["xmin"] == cube$xmin) {
-          si["first_col"] <- 1
-      } else {
-          si["first_col"] <- floor((si["xmin"] - cube$xmin) / cube$xres) + 1
-      }
+    # find the first row (remember that rows runs from top to bottom and
+    # Y coordinates increase from bottom to top)
+    if (bbox["ymax"]  == cube$ymax)
+      si["first_row"] <- 1
+    else {
+      si["first_row"] <- unname(
+        floor((cube$ymax - bbox["ymax"])/cube$yres)) + 1
+      # adjust to fit bbox in cube resolution
+      si["ymax"] <- cube$ymax - cube$yres * (si["first_row"] - 1)
+    }
+    # find the first col (remember that rows runs from left to right and
+    # X coordinates increase from left to right)
+    if (bbox["xmin"] == cube$xmin)
+        si["first_col"] <- 1
+    else {
+        si["first_col"] <- unname(
+            floor((bbox["xmin"] - cube$xmin)/cube$xres)
+        ) + 1
+        # adjust to fit bbox in cube resolution
+        si["xmin"] <- cube$xmin + cube$xres * (si["first_col"] - 1)
+    }
 
-    if (bbox["ymax"] == cube$ymax) {
-          si["first_row"] <- 1
-      } else {
-          si["first_row"] <- unname(
-            floor((cube$ymax - si["ymax"]) / cube$yres)
-            ) + 1
-      }
+    # find the number of rows (remember that rows runs from top to bottom and
+    # Y coordinates increase from bottom to top)
+    if (bbox["ymin"] == cube$ymin)
+        si["nrows"] <- cube$nrows - unname(si["first_row"]) + 1
+    else {
+        si["nrows"] <- unname(
+            floor((bbox["ymax"] - bbox["ymin"])/cube$yres)) + 1
+        # adjust to fit bbox in cube resolution
+        si["ymin"] <- si["ymax"] - cube$yres * si["nrows"]
+    }
 
-    if (bbox["ymin"] == cube$ymin) {
-          si["nrows"] <- cube$nrows - unname(si["first_row"]) + 1
-      } else {
-          si["nrows"] <- unname(
-            floor((si["ymax"] - si["ymin"]) / cube$yres)
-            ) + 1
-      }
-
-    if (bbox["xmax"] == cube$xmax) {
-          si["ncols"] <- cube$ncols - unname(si["first_col"]) + 1
-      } else {
-          si["ncols"] <- unname(
-            floor((si["xmax"] - si["xmin"]) / cube$xres)
-            ) + 1
-      }
+    if (si["xmax"] == cube$xmax)
+        si["ncols"] <- cube$ncols - unname(si["first_col"]) + 1
+    else {
+        si["ncols"] <- unname(
+            floor((bbox["xmax"] - bbox["xmin"])/cube$xres)) + 1
+        # adjust to fit bbox in cube resolution
+        si["xmax"] <- si["xmin"] + cube$yres * si["ncols"]
+    }
 
     return(si)
 }

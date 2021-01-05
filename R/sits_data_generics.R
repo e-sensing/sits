@@ -90,8 +90,9 @@ sits_bands.patterns <- function(data) {
 #'  \item{"data cube": }{see \code{\link{sits_bbox.cube}}}
 #' }
 #'
-#' @param data      Valid sits tibble (time series or a cube)
-#' @return A vector with a
+#' @param data      Valid sits tibble (time series or a cube).
+#' @return named vector with bounding box ("lon_min", "lon_max",
+#'      "lat_min", "lat_max").
 #'
 #' @export
 sits_bbox <- function(data) {
@@ -241,10 +242,13 @@ sits_merge.sits <- function(data1, data2) {
 
 #' @title Merge two data cubes
 #' @name sits_merge.cube
+#' @description Merge two simple data cubes (one tibble row) from the same satellite,
+#' with the same sensor, resolution, bounding box, and timeline, and different bands.
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'
 #' @param data1      The first cube to be merged.
 #' @param data2      The second cube to be merged.
+#' @return A data cube.
 #' @export
 #'
 sits_merge.cube <- function(data1, data2) {

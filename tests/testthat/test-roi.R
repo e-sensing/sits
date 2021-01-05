@@ -27,8 +27,6 @@ test_that("One-year, multicore classification with ROI", {
     bbox["xmax"] <- (bbox["xmax"] - bbox["xmin"]) / 2 + bbox["xmin"]
     bbox["ymax"] <- (bbox["ymax"] - bbox["ymin"]) / 2 + bbox["ymin"]
 
-
-
     sinop_probs <- suppressMessages(
         sits_classify(sinop,
                       svm_model,
@@ -37,13 +35,15 @@ test_that("One-year, multicore classification with ROI", {
                       memsize = 4, multicores = 2
         )
     )
-
     expect_true(all(file.exists(unlist(sinop_probs$file_info[[1]]$path))))
     rc_obj <- suppressWarnings(terra::rast(sinop_probs$file_info[[1]]$path[1]))
     expect_true(terra::nrow(rc_obj) == sinop_probs$nrows)
 
-
-    expect_true(all(sits_bbox(sinop_probs) == bbox))
+    bbox_p <- sits_bbox(sinop_probs)
+    expect_lte(bbox["xmax"], bbox_p["xmax"])
+    expect_lte(bbox["xmin"], bbox_p["xmin"])
+    expect_lte(bbox["ymax"], bbox_p["ymax"])
+    expect_lte(bbox["ymin"], bbox_p["ymin"])
 
     max_lyr2 <- max(terra::values(rc_obj)[, 2])
     expect_true(max_lyr2 < 1000)

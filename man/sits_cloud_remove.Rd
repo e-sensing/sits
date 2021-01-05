@@ -30,7 +30,7 @@ sits_cloud_remove(
 new data cube with interpolated cloud data
 }
 \description{
-Clean data cube to improve quality
+Interpolate data over time to fill cloud pixels.
 }
 \examples{
 # define a data cube of CBERS-4 AWFI data

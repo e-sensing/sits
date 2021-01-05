@@ -6,9 +6,9 @@
 #' @description Takes a SITS tibble and produces a sits tibble
 #' with an added "cluster" column.
 #' This is done in several steps:
-#' 1. Calculation of the dendogram
-#' 2. Get validity index for best cluster using the adjusted Rand Index
-#' 3. Cut the dendogram using the chosen validity index
+#' 1. Calculation of the dendrogram;
+#' 2. Get validity index for best cluster using the adjusted Rand Index;
+#' 3. Cut the dendrogram using the chosen validity index.
 #'
 #' @references "dtwclust" package (https://CRAN.R-project.org/package=dtwclust)
 #'
@@ -20,7 +20,7 @@
 #'                        Default is 'ward.D2'.
 #' @param k               Desired number of clusters (overrides default value)
 #' @param colors          Color scheme as per `sits_color_name` function.
-#' @param .plot           Plot the dendogram?
+#' @param .plot           Plot the dendrogram?
 #' @param  ...            Additional parameters to be passed
 #'                        to dtwclust::tsclust() function.
 #' @return A tibble with the clusters or clusters' members.

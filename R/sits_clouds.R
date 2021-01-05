@@ -1,5 +1,6 @@
 #' @title Clean data cube to improve quality
 #' @name  sits_cloud_remove
+#' @description Interpolate data over time to fill cloud pixels.
 #'
 #' @param cube       input data cube
 #' @param data_dir   data directory where output data is written
@@ -145,7 +146,6 @@ sits_cloud_remove <- function(cube,
 #' @param impute_fn   imputation function to remove NA
 #' @param multicores  number of cores to use
 #'
-#' @return            a tibble with date, band and path information
 #'
 #' @return            a tibble with date, band and path information.
 .sits_clouds_interpolate <- function(cube,

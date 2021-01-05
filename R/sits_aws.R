@@ -4,51 +4,43 @@
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'
 #' @param type           cube type
-#' @param access_key     AWS access key
-#' @param secret_key     AWS secret key
-#' @param region         AWS region
 #'
 #' @return  TRUE if access is granted
 #'
-.sits_aws_check_access <- function(type,
-                                   access_key = NULL,
-                                   secret_key = NULL,
-                                   region = NULL) {
+.sits_aws_check_access <- function(type) {
 
     # require package
     if (!requireNamespace("aws.s3", quietly = TRUE)) {
         stop("Please install package aws.s3", call. = FALSE)
     }
-    if (purrr::is_null(access_key)) {
-        env_access_key <- Sys.getenv("AWS_ACCESS_KEY_ID")
-        assertthat::assert_that(nchar(env_access_key) > 1,
-                                msg = "AWS access key needs to be provided"
-        )
+    # check "AWS_ACCESS_KEY_ID" - mandatory one per user
+    aws_access_key_id <- Sys.getenv("AWS_ACCESS_KEY_ID")
+    assertthat::assert_that(nchar(aws_access_key_id) > 0,
+            msg = "AWS_ACCESS_KEY_ID environment variable missing"
+    )
+    # check "AWS_SECRET_ACCESS_KEY" - mandatory one per user
+    aws_secret_access_key <- Sys.getenv("AWS_SECRET_ACCESS_KEY")
+    assertthat::assert_that(nchar(aws_secret_access_key) > 0,
+            msg = "AWS_SECRET_ACCESS_KEY environment variable missing"
+    )
+    # check "AWS_DEFAULT_REGION" - if not available, use the default
+    aws_region <- Sys.getenv("AWS_DEFAULT_REGION")
+    if (nchar(aws_region) == 0) {
+        aws_region <- .sits_config_aws_default_region(type)
+        Sys.setenv("AWS_DEFAULT_REGION", aws_region)
     }
-    else {
-        Sys.setenv("AWS_ACCESS_KEY_ID", access_key)
+    # check "AWS_ENDPOINT" - if not available, use the default
+    aws_endpoint <- Sys.getenv("AWS_ENDPOINT")
+    if (nchar(aws_endpoint) == 0) {
+        aws_endpoint <- .sits_config_aws_endpoint(type)
+        Sys.setenv("AWS_ENDPOINT", aws_endpoint)
     }
-
-    if (purrr::is_null(secret_key)) {
-        env_secret_key <- Sys.getenv("AWS_SECRET_ACCESS_KEY")
-        assertthat::assert_that(nchar(env_secret_key) > 1,
-                                msg = "AWS secret key needs to be provided"
-        )
+    # check "AWS_REQUEST_PAYER" - if not available, use the default
+    aws_request_payer <- Sys.getenv("AWS_REQUEST_PAYER")
+    if (nchar(aws_request_payer) == 0) {
+        aws_request_payer <- .sits_config_aws_request_payer(type)
+        Sys.setenv("AWS_REQUEST_PAYER", aws_request_payer)
     }
-    else {
-        Sys.setenv("AWS_SECRET_ACCESS_KEY", secret_key)
-    }
-
-    if (purrr::is_null(region)) {
-        env_region <- Sys.getenv("AWS_DEFAULT_REGION")
-        assertthat::assert_that(nchar(env_region) > 1,
-                                msg = "AWS region needs to be provided"
-        )
-    }
-    else {
-        Sys.setenv("AWS_DEFAULT_REGION", region)
-    }
-
     test_file <- .sits_config_test_file(type)
 
     # are the files accessible?
