@@ -56,7 +56,7 @@
             cube_brick <-
                 .sits_gc_brick(cube, img_col, cv_list[[i]], cloud_mask)
 
-            message(paste("Writing images of band", band, "and tile",
+            message(paste("Writing images of band", band, "of tile",
                           c_tile$tile))
 
             # write the aggregated cubes
@@ -131,16 +131,16 @@
 #'  about the cube brick metadata.
 .sits_gc_brick <- function(cube, img_col, cube_view, cloud_mask) {
 
-    if (cloud_mask) {
-        mask_band  <- .sits_gc_cloud_mask(cube)
-        cube_brick <- gdalcubes::raster_cube(img_col, cube_view,
-                                             mask = mask_band,
-                                             chunking = c(1, 2048, 2048))
-    } else {
-        cube_brick <- gdalcubes::raster_cube(img_col,
-                                             cube_view,
-                                             chunking = c(1, 1024, 1024))
-    }
+    # defining the chunk size
+    c_size <- c(t = 1, rows = floor(cube$nrows/4), cols = floor(cube$ncols/4))
+
+    mask_band <- NULL
+    if (cloud_mask)
+        mask_band <- .sits_gc_cloud_mask(cube)
+
+    # create a brick of raster_cube object
+    cube_brick <- gdalcubes::raster_cube(img_col, cube_view, mask = mask_band,
+                                         chunking = c_size)
 
     return(cube_brick)
 }
