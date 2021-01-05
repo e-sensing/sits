@@ -503,30 +503,37 @@ sits_cube.s2_l2a_aws_cube <- function(type = "S2_L2A_AWS", ...,
     cube <- dplyr::bind_rows(tiles_cube)
     return(cube)
 }
-#' TODO: explicitar a maneira em que o 'period' deve ser fornecido.
 #' @title Create a composed data cube for a Sentinel-2 L2A AWS cube
 #' @name sits_cube.gdalcubes_cube
 #'
-#' @description  Creates composed cubes using the gdalcubes package as a base.
-#'  For now, only Sentinel-2 L2A AWS cube can be composed.
+#' @description Creates composed cubes using the gdalcubes package.
+#' Cubes can be composed of the following functions: "min", "max", "mean",
+#' "median" or "first". To create the composition it is necessary to provide an
+#' image period, in which it is used to apply the composition function.
+#' For now, only Sentinel-2 L2A AWS cube can be composed.
+#'
+#' @references APPEL, Marius; PEBESMA, Edzer. On-demand processing of data cubes
+#'  from satellite image collections with the gdalcubes library. Data, v. 4,
+#'  n. 3, p. 92, 2019. DOI: 10.3390/data4030092
 #'
 #' @param type        Type of cube.
-#' @param ...         Other parameters to be passed for specific types.
+#' @param ...         Other parameters to be passed for the function
+#'  \code{write_tif} of gdalcubes package.
 #' @param cube        A Sentinel-2 L2A AWS data cube
-#' @param path_images A \code{character} with the path where the aggregated
-#'  images will be writed.
+#' @param path_images A \code{character} with the path where the
+#'  aggregated images will be write.
 #' @param path_db     A \code{character} with the path and name where the
 #'  database will be create. E.g. "my/path/gdalcubes.db"
-#' @param period      A \code{character} with the period of time in which it
-#'  is desired to apply in the cube, must be provided based on ISO8601, where 1
-#'  number and a unit are provided, for example "P16D" for 16 days. For unit,
+#' @param period      A \code{character} with the period of time in which
+#'  it is desired to apply in the cube, must be provided based on ISO8601, where
+#'  1 number and a unit are provided, for example "P16D" for 16 days. For unit,
 #'  use "D", "M" and "Y" for days, month and year, respectively.
-#' @param method      A \code{character} with the method that will be applied in
+#' @param agg_method  A \code{character} with the method that will be applied in
 #'  the aggregation, the following are available: "min", "max", "mean",
 #'  "median" or "first".
-#' @param resampling  A \code{character} with the method that will be applied
-#'  in the resampling in mosaic operation. The following are available: "near",
-#'  "bilinear", "bicubic" or others supported by gdalwarp
+#' @param resampling  A \code{character} with the method that will be
+#'  applied in the resampling in mosaic operation. The following are available:
+#'  "near", "bilinear", "bicubic" or others supported by gdalwarp
 #'  (see https://gdal.org/programs/gdalwarp.html).
 #' @param cloud_mask  A \code{logical} corresponds to the use of the cloud band
 #'  for aggregation.
@@ -566,16 +573,16 @@ sits_cube.s2_l2a_aws_cube <- function(type = "S2_L2A_AWS", ...,
 #'                      path_db     = "/my/path/cube.db",
 #'                      path_images = "/my/path/images/",
 #'                      period      = "P1M",
-#'                      method      = "median",
+#'                      agg_method  = "median",
 #'                      resampling  = "bilinear")
 #' }
 #'
 sits_cube.gdalcubes_cube <- function(type = "GDALCUBES", ...,
                                      cube,
                                      path_images,
-                                     path_db    = NULL,
-                                     period     = NULL,
-                                     method     = NULL,
+                                     path_db = NULL,
+                                     period  = NULL,
+                                     agg_method = NULL,
                                      resampling = "bilinear",
                                      cloud_mask = TRUE) {
   # require gdalcubes package
@@ -600,13 +607,11 @@ sits_cube.gdalcubes_cube <- function(type = "GDALCUBES", ...,
   img_col <- .sits_gc_database(cube, path_db)
 
   # create a list of cube view object
-  cv_list <- .sits_gc_cube(cube, period, method, resampling)
+  cv_list <- .sits_gc_cube(cube, period, agg_method, resampling)
 
   # create of the aggregate cubes
   gc_cube <- .sits_gc_compose(cube, cv_list, img_col, path_db, path_images,
                               cloud_mask)
-
-  # TODO: add a classe do cubo settado no config.yml
 
   return(gc_cube)
 }

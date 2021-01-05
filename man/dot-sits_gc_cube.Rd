@@ -4,7 +4,7 @@
 \alias{.sits_gc_cube}
 \title{Create a cube_view object}
 \usage{
-.sits_gc_cube(cube, period, method, resampling, ...)
+.sits_gc_cube(cube, period, method, resampling)
 }
 \arguments{
 \item{period}{A \code{character} with the The period of time in which it
@@ -19,9 +19,6 @@ the aggregation, the following are available: "min", "max", "mean",
 in the resampling in mosaic operation. The following are available: "near",
 "bilinear", "bicubic" or others supported by gdalwarp
 (see https://gdal.org/programs/gdalwarp.html).}
-
-\item{...}{Aditional parameters that can be included. See
-'?gdalcubes::cube_view'.}
 
 \item{path_db}{A \code{character} with the path and name where the
 database will be create. E.g. "my/path/gdalcubes.db"}
