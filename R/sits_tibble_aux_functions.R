@@ -107,57 +107,7 @@
 }
 
 
-#' @title Add new sits bands.
-#' @name sits_mutate_bands
-#' @keywords internal
-#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
-#' @description Adds new bands and preserves existing in the time series
-#'              of a sits tibble using \code{dplyr::mutate} function.
-#' @param data       Valid sits tibble.
-#' @param ...        Expressions written as `name = value`.
-#'                   See \code{dplyr::mutate()} help for more details.
-#' @return           A sits tibble with same samples and the selected bands.
-#' @examples
-#' \donttest{
-#' # Retrieve data for time series with label samples in Mato Grosso in Brazil
-#' data(samples_mt_6bands)
-#' # Generate a new image with the SAVI (Soil-adjusted vegetation index)
-#' savi.tb <- sits_mutate_bands(samples_mt_6bands,
-#'            SAVI = (1.5 * (NIR - RED) / (NIR + RED + 0.5)))
-#' }
-#' @export
-sits_mutate_bands <- function(data, ...) {
 
-    # backward compatibility
-    data <- .sits_tibble_rename(data)
-
-    # verify if data has values
-    .sits_test_tibble(data)
-    # bands in SITS are uppercase
-    data <- sits_rename(data, names = toupper(sits_bands(data)))
-
-    # compute mutate for each time_series tibble
-    proc_fun <- function(...) {
-        data$time_series <- data$time_series %>%
-            purrr::map(function(ts) {
-                ts_computed <- ts %>%
-                    dplyr::mutate(...)
-                return(ts_computed)
-            })
-    }
-
-    # compute mutate for each time_series tibble
-    tryCatch({
-            data$time_series <- proc_fun(...)
-        },
-        error = function(e) {
-            msg <- paste0("Error - Are your band names all uppercase?")
-            message(msg)
-        }
-    )
-
-    return(data)
-}
 
 #' @title Checks that the timeline of all time series of a data set are equal
 #' @name .sits_prune

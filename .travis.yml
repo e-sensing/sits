@@ -1,0 +1,29 @@
+language: r
+
+r_build_args: --compact-vignettes=gs+qpdf
+r_check_args: --as-cran
+
+
+r_github_packages:
+    - r-lib/covr
+    - e-sensing/wtss
+
+addons:
+    apt:
+        update: true
+        packages:
+            - libgs-dev
+            - qpdf
+            - ghostscript
+            - libudunits2-dev
+            - libxml2-dev
+            - libgdal-dev
+            - libgeos-dev
+            - libproj-dev
+
+env:
+    - PKG_TARBALL=sits_0.9.8.tar.gz
+
+after_success:
+      - tar -C .. -xf $PKG_TARBALL
+      - xvfb-run Rscript -e 'covr::codecov(type=c("tests", "vignettes", "examples"))'
