@@ -56,7 +56,7 @@
             cube_brick <-
                 .sits_gc_brick(cube, img_col, cv_list[[i]], cloud_mask)
 
-            message(paste("Writing images of band", band, "and tile",
+            message(paste("Writing images of band", band, "of tile",
                           c_tile$tile))
 
             # write the aggregated cubes
@@ -105,11 +105,11 @@
 
     # check type of date interval
     if (length(strsplit(date_files, "-")[[1]]) == 1)
-        date_files <- lubridate::fast_strptime(date_files,  "%Y")
+        date_files <- lubridate::fast_strptime(date_files, "%Y")
     else if (length(strsplit(date_files, "-")[[1]]) == 2)
-        date_files <- lubridate::fast_strptime(date_files,  "%Y-%m")
+        date_files <- lubridate::fast_strptime(date_files, "%Y-%m")
     else
-        date_files <- lubridate::fast_strptime(date_files,  "%Y-%m-%d")
+        date_files <- lubridate::fast_strptime(date_files, "%Y-%m-%d")
 
     # transform to date object
     date_files <- lubridate::as_date(date_files)
@@ -131,16 +131,16 @@
 #'  about the cube brick metadata.
 .sits_gc_brick <- function(cube, img_col, cube_view, cloud_mask) {
 
-    if (cloud_mask) {
-        mask_band  <- .sits_gc_cloud_mask(cube)
-        cube_brick <- gdalcubes::raster_cube(img_col, cube_view,
-                                             mask = mask_band,
-                                             chunking = c(1, 2048, 2048))
-    } else {
-        cube_brick <- gdalcubes::raster_cube(img_col,
-                                             cube_view,
-                                             chunking = c(1, 1024, 1024))
-    }
+    # defining the chunk size
+    c_size <- c(t = 1, rows = floor(cube$nrows/4), cols = floor(cube$ncols/4))
+
+    mask_band <- NULL
+    if (cloud_mask)
+        mask_band <- .sits_gc_cloud_mask(cube)
+
+    # create a brick of raster_cube object
+    cube_brick <- gdalcubes::raster_cube(img_col, cube_view, mask = mask_band,
+                                         chunking = c_size)
 
     return(cube_brick)
 }
@@ -148,7 +148,7 @@
 #' @name .sits_gc_cloud_mask
 #' @keywords internal
 #'
-#' @param cube      Data cube from where data is to be retrieved.
+#' @param cube Data cube from where data is to be retrieved.
 #'
 #' @return A \code{object} 'image_mask' from gdalcubes containing information
 #'  about the mask band.
@@ -216,11 +216,8 @@
 #'  "bilinear", "bicubic" or others supported by gdalwarp
 #'  (see https://gdal.org/programs/gdalwarp.html).
 #'
-#' @param ...        Aditional parameters that can be included. See
-#'  '?gdalcubes::cube_view'.
-#'
 #' @return a \code{list} with a cube_view objects.
-.sits_gc_cube <- function(cube, period, method, resampling, ...) {
+.sits_gc_cube <- function(cube, period, method, resampling) {
 
     assertthat::assert_that(!purrr::is_null(period),
                             msg = paste("sits_gdalcubes: the parameter",
@@ -246,8 +243,7 @@
             nx  = c_tile$ncols[[1]],
             ny  = c_tile$nrows[[1]],
             aggregation = method,
-            resampling  = resampling,
-            ...)})
+            resampling  = resampling)})
 
     return(cv_list)
 }

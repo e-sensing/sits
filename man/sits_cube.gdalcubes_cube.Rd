@@ -11,7 +11,7 @@
   path_images,
   path_db = NULL,
   period = NULL,
-  method = NULL,
+  agg_method = NULL,
   resampling = "bilinear",
   cloud_mask = TRUE
 )
@@ -19,28 +19,29 @@
 \arguments{
 \item{type}{Type of cube.}
 
-\item{...}{Other parameters to be passed for specific types.}
+\item{...}{Other parameters to be passed for the function
+\code{write_tif} of gdalcubes package.}
 
 \item{cube}{A Sentinel-2 L2A AWS data cube}
 
-\item{path_images}{A \code{character} with the path where the aggregated
-images will be writed.}
+\item{path_images}{A \code{character} with the path where the
+aggregated images will be write.}
 
 \item{path_db}{A \code{character} with the path and name where the
 database will be create. E.g. "my/path/gdalcubes.db"}
 
-\item{period}{A \code{character} with the period of time in which it
-is desired to apply in the cube, must be provided based on ISO8601, where 1
-number and a unit are provided, for example "P16D" for 16 days. For unit,
+\item{period}{A \code{character} with the period of time in which
+it is desired to apply in the cube, must be provided based on ISO8601, where
+1 number and a unit are provided, for example "P16D" for 16 days. For unit,
 use "D", "M" and "Y" for days, month and year, respectively.}
 
-\item{method}{A \code{character} with the method that will be applied in
+\item{agg_method}{A \code{character} with the method that will be applied in
 the aggregation, the following are available: "min", "max", "mean",
 "median" or "first".}
 
-\item{resampling}{A \code{character} with the method that will be applied
-in the resampling in mosaic operation. The following are available: "near",
-"bilinear", "bicubic" or others supported by gdalwarp
+\item{resampling}{A \code{character} with the method that will be
+applied in the resampling in mosaic operation. The following are available:
+"near", "bilinear", "bicubic" or others supported by gdalwarp
 (see https://gdal.org/programs/gdalwarp.html).}
 
 \item{cloud_mask}{A \code{logical} corresponds to the use of the cloud band
@@ -50,11 +51,11 @@ for aggregation.}
 A data cube.
 }
 \description{
-Creates composed cubes using the gdalcubes package as a base.
- For now, only Sentinel-2 L2A AWS cube can be composed.
-}
-\details{
-TODO: explicitar a maneira em que o 'period' deve ser fornecido.
+Creates composed cubes using the gdalcubes package.
+Cubes can be composed of the following functions: "min", "max", "mean",
+"median" or "first". To create the composition it is necessary to provide an
+image period, in which it is used to apply the composition function.
+For now, only Sentinel-2 L2A AWS cube can be composed.
 }
 \examples{
 \dontrun{
@@ -88,8 +89,13 @@ gc_cube <- sits_cube(type        = "GDALCUBES",
                      path_db     = "/my/path/cube.db",
                      path_images = "/my/path/images/",
                      period      = "P1M",
-                     method      = "median",
+                     agg_method  = "median",
                      resampling  = "bilinear")
 }
 
+}
+\references{
+APPEL, Marius; PEBESMA, Edzer. On-demand processing of data cubes
+ from satellite image collections with the gdalcubes library. Data, v. 4,
+ n. 3, p. 92, 2019. DOI: 10.3390/data4030092
 }
