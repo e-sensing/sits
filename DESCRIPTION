@@ -66,6 +66,7 @@ Suggests:
     dtwSat,
     e1071,
     flexclust,
+    gdalcubes,
     gdalUtils,
     imager,
     imputeTS, 
@@ -127,6 +128,7 @@ Collate:
     'sits_factory.R'
     'sits_FCN.R'
     'sits_filters.R'
+    'sits_gdalcubes.R'
     'sits_get_data.R'
     'sits_indexes.R'
     'sits_imputation.R'
