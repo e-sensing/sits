@@ -3,10 +3,9 @@ language: r
 r_build_args: --compact-vignettes=gs+qpdf
 r_check_args: --as-cran
 
+r_packages: covr
 
-r_github_packages:
-    - r-lib/covr
-    - e-sensing/wtss
+r_github_packages: e-sensing/wtss
 
 addons:
     apt:
