@@ -13,10 +13,7 @@
   tiles = NULL,
   start_date = NULL,
   end_date = NULL,
-  s2_aws_resolution = NULL,
-  access_key = NULL,
-  secret_key = NULL,
-  region = NULL
+  s2_aws_resolution = NULL
 )
 }
 \arguments{
@@ -37,12 +34,6 @@
 \item{end_date}{ending date of the cube}
 
 \item{s2_aws_resolution}{resolution of S2 images ("10m", "20m" or "60m")}
-
-\item{access_key}{AWS access key}
-
-\item{secret_key}{AWS secret key}
-
-\item{region}{AWS region}
 }
 \value{
 data cube

@@ -8,7 +8,8 @@ sits_cube(type = "RASTER", ...)
 }
 \arguments{
 \item{type}{Type of cube (one of "WTSS", "BRICK", "STACK",
-"BDC_TILE", "S2_L2A_AWS", "PROBS", "CLASSIFIED")}
+"BDC_TILE", "S2_L2A_AWS", "GDALCUBES", "PROBS",
+"CLASSIFIED")}
 
 \item{...}{Other parameters to be passed for specific types}
 }
@@ -24,5 +25,8 @@ required parameters:
  \item{"BDC"}{Brazil Data Cube - see \code{\link{sits_cube.bdc_cube}}}
  \item{"S2_L2A_AWS"}{Sentinel-2 data in AWS -
                      see \code{\link{sits_cube.s2_l2a_aws_cube}}}
+ \item{"GDALCUBES"}{gdalcubes compose function -
+                     see \code{\link{sits_cube.gdalcubes_cube}}}
+
 }
 }

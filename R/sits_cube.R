@@ -12,10 +12,14 @@
 #'  \item{"BDC"}{Brazil Data Cube - see \code{\link{sits_cube.bdc_cube}}}
 #'  \item{"S2_L2A_AWS"}{Sentinel-2 data in AWS -
 #'                      see \code{\link{sits_cube.s2_l2a_aws_cube}}}
+#'  \item{"GDALCUBES"}{gdalcubes compose function -
+#'                      see \code{\link{sits_cube.gdalcubes_cube}}}
+#'
 #' }
 #'
 #' @param type        Type of cube (one of "WTSS", "BRICK", "STACK",
-#'                    "BDC_TILE", "S2_L2A_AWS", "PROBS", "CLASSIFIED")
+#'                    "BDC_TILE", "S2_L2A_AWS", "GDALCUBES", "PROBS",
+#'                    "CLASSIFIED")
 #' @param ...               Other parameters to be passed for specific types
 #'
 #' @export
@@ -294,7 +298,6 @@ sits_cube.brick_cube <- function(type = "BRICK", ...,
 #'  bounding box with named XY values ("xmin", "xmax", "ymin", "ymax").
 #' @param start_date Initial date for the cube files (optional).
 #' @param end_date   Final date for the cube files (optional).
-#' @param access_key Access key to BDC
 #'
 #' @return           A data cube.
 #'
@@ -303,9 +306,9 @@ sits_cube.brick_cube <- function(type = "BRICK", ...,
 #' # this example requires access to an external service, so should not be run
 #' # by CRAN
 #'
-#' #' # Provide your BDC credentials here
+#' # Provide your BDC credentials as enviroment variables
 #' # Sys.setenv(
-#' # "BDC_SECRET_ACCESS_KEY" = <your_secret_access_key>
+#' # "BDC_ACCESS_KEY" = <your_bdc_access_key>
 #' # )
 #'
 #' # create a raster cube file based on the information about the files
@@ -328,8 +331,7 @@ sits_cube.bdc_cube <- function(type = "BDC", ...,
                                bands = NULL,
                                roi = NULL,
                                start_date = NULL,
-                               end_date = NULL,
-                               access_key = NULL) {
+                               end_date = NULL) {
 
     # require package
     if (!requireNamespace("rstac", quietly = TRUE)) {
@@ -356,7 +358,7 @@ sits_cube.bdc_cube <- function(type = "BDC", ...,
     )
 
     # verify  bdc access credentials
-    access_key <- .sits_bdc_access_check(access_key)
+    access_key <- .sits_bdc_access_check()
 
     # retrieve information from the collection
     collection_info <- .sits_stac_collection(
@@ -427,9 +429,6 @@ sits_cube.bdc_cube <- function(type = "BDC", ...,
 #' @param start_date        starting date of the cube
 #' @param end_date          ending date of the cube
 #' @param s2_aws_resolution resolution of S2 images ("10m", "20m" or "60m")
-#' @param access_key        AWS access key
-#' @param secret_key        AWS secret key
-#' @param region            AWS region
 #' @return                  data cube
 #' @export
 #'
@@ -468,17 +467,9 @@ sits_cube.s2_l2a_aws_cube <- function(type = "S2_L2A_AWS", ...,
                                       tiles = NULL,
                                       start_date = NULL,
                                       end_date = NULL,
-                                      s2_aws_resolution = NULL,
-                                      access_key = NULL,
-                                      secret_key = NULL,
-                                      region = NULL) {
+                                      s2_aws_resolution = NULL) {
     # precondition - is AWS access available?
-    aws_access_ok <- .sits_aws_check_access(
-        type = type,
-        access_key = access_key,
-        secret_key = secret_key,
-        region = region
-    )
+    aws_access_ok <- .sits_aws_check_access(type = type)
     if (!aws_access_ok)
           return(NULL)
 
@@ -497,23 +488,124 @@ sits_cube.s2_l2a_aws_cube <- function(type = "S2_L2A_AWS", ...,
             file_info = stack
         )
 
-        class(cube_t) <- c("stack_cube", "aster_cube", class(cube_t))
+        class(cube_t) <- c("stack_cube", "raster_cube", class(cube_t))
         return(cube_t)
     })
     cube <- dplyr::bind_rows(tiles_cube)
     return(cube)
 }
+#' @title Create a composed data cube for a Sentinel-2 L2A AWS cube
+#' @name sits_cube.gdalcubes_cube
+#'
+#' @description Creates composed cubes using the gdalcubes package.
+#' Cubes can be composed of the following functions: "min", "max", "mean",
+#' "median" or "first". To create the composition it is necessary to provide an
+#' image period, in which it is used to apply the composition function.
+#' For now, only Sentinel-2 L2A AWS cube can be composed.
+#'
+#' @references APPEL, Marius; PEBESMA, Edzer. On-demand processing of data cubes
+#'  from satellite image collections with the gdalcubes library. Data, v. 4,
+#'  n. 3, p. 92, 2019. DOI: 10.3390/data4030092
+#'
+#' @param type        Type of cube.
+#' @param ...         Other parameters to be passed for the function
+#'  \code{write_tif} of gdalcubes package.
+#' @param cube        A Sentinel-2 L2A AWS data cube
+#' @param path_images A \code{character} with the path where the
+#'  aggregated images will be write.
+#' @param path_db     A \code{character} with the path and name where the
+#'  database will be create. E.g. "my/path/gdalcubes.db"
+#' @param period      A \code{character} with the period of time in which
+#'  it is desired to apply in the cube, must be provided based on ISO8601, where
+#'  1 number and a unit are provided, for example "P16D" for 16 days. For unit,
+#'  use "D", "M" and "Y" for days, month and year, respectively.
+#' @param agg_method  A \code{character} with the method that will be applied in
+#'  the aggregation, the following are available: "min", "max", "mean",
+#'  "median" or "first".
+#' @param resampling  A \code{character} with the method that will be
+#'  applied in the resampling in mosaic operation. The following are available:
+#'  "near", "bilinear", "bicubic" or others supported by gdalwarp
+#'  (see https://gdal.org/programs/gdalwarp.html).
+#' @param cloud_mask  A \code{logical} corresponds to the use of the cloud band
+#'  for aggregation.
+#'
+#' @return A data cube.
+#' @export
+#'
+#' @examples
+#' \dontrun{
+#' # this example requires access to an external service, so should not be run
+#' # by CRAN
+#'
+#' # s3://sentinel-cogs/sentinel-s2-l2a-cogs/2017/S2A_35MNR_20171025_0_L2A/
+#'
+#' # Provide your AWS credentials here
+#' # Sys.setenv(
+#' # "AWS_ACCESS_KEY_ID"     = <your_access_key>,
+#' # "AWS_SECRET_ACCESS_KEY" = <your_secret_access_key>,
+#' # "AWS_DEFAULT_REGION"    = <your AWS region>,
+#' # "AWS_ENDPOINT" = "sentinel-s2-l2a.s3.amazonaws.com",
+#' # "AWS_REQUEST_PAYER"     = "requester"
+#' # )
+#'
+#' s2_cube <- sits_cube(
+#'     type = "S2_L2A_AWS",
+#'     name = "T20LKP_2018_2019",
+#'     satellite = "SENTINEL-2",
+#'     sensor = "MSI",
+#'     tiles = "20LKP",
+#'     s2_aws_resolution = "20m",
+#'     start_date = as.Date("2018-07-18"),
+#'     end_date = as.Date("2018-07-23")
+#' )
+#'
+#' gc_cube <- sits_cube(type        = "GDALCUBES",
+#'                      cube        = s2_cube,
+#'                      path_db     = "/my/path/cube.db",
+#'                      path_images = "/my/path/images/",
+#'                      period      = "P1M",
+#'                      agg_method  = "median",
+#'                      resampling  = "bilinear")
+#' }
+#'
+sits_cube.gdalcubes_cube <- function(type = "GDALCUBES", ...,
+                                     cube,
+                                     path_images,
+                                     path_db = NULL,
+                                     period  = NULL,
+                                     agg_method = NULL,
+                                     resampling = "bilinear",
+                                     cloud_mask = TRUE) {
+  # require gdalcubes package
+  if (!requireNamespace("gdalcubes", quietly = TRUE)) {
+    stop(paste("Please install package gdalcubes from CRAN:",
+               "install.packages('gdalcubes')"), call. = FALSE
+    )
+  }
 
-# sits_cube <- function(
-#     type = "S2-L2A-AWS",
-#     satellite = "SENTINEL-2",
-#     sensor = "MSI",
-#     tiles = c('20LKP', '20LLP', .....),
-#     start_date = ...,
-#     end_date = ....,
-#     interval = "16d",
-#     agregg_fun = ....)
+  # test if provided object its a sits cube
+  assertthat::assert_that("stack_cube" %in% class(cube[1,]),
+                          msg = paste("The provided cube is invalid,",
+                                      "please provide a 'stack_cube' object.",
+                                      "See '?sits_cube' for more information.")
+  )
 
+  # in case of null path a temporary directory is generated
+  if (is.null(path_db))
+    path_db <- file.path(tempdir(), "cube.db")
+
+  # create an image collection
+  img_col <- .sits_gc_database(cube, path_db)
+
+  # create a list of cube view object
+  cv_list <- .sits_gc_cube(cube, period, agg_method, resampling)
+
+  # create of the aggregate cubes
+  gc_cube <- .sits_gc_compose(cube, cv_list, img_col, path_db, path_images,
+                              cloud_mask)
+
+  return(gc_cube)
+}
 #' @title Default methods for sits_cube
 #' @name sits_cube.default
 #'

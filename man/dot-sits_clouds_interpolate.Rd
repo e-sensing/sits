@@ -18,7 +18,7 @@
 \item{multicores}{number of cores to use}
 }
 \value{
-a tibble with date, band and path information
+a tibble with date, band and path information.
 }
 \description{
 Create the output of the cloud estimation procedure

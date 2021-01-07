@@ -3,24 +3,18 @@
 #' @keywords internal
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'
-#' @param access_key     BDC access key
-#'
 #' @return  access_key
 #'
-.sits_bdc_access_check <- function(access_key = NULL) {
+.sits_bdc_access_check <- function() {
 
-    if (purrr::is_null(access_key)) {
-        access_key <- Sys.getenv("BDC_SECRET_ACCESS_KEY")
-        assertthat::assert_that(nchar(access_key) > 1,
-                                msg = "BDC access key needs to be provided"
-        )
-    }
-    else {
-        Sys.setenv("BDC_SECRET_ACCESS_KEY" = access_key)
-    }
-
+    # Try to find the access key as an environment variable
+    bdc_access_key <- Sys.getenv("BDC_ACCESS_KEY")
+    assertthat::assert_that(nchar(bdc_access_key) != 0,
+                            msg = "BDC_ACCESS_KEY needs to be provided"
+    )
+    # test file access to BDC
     test_file <- paste0(.sits_config_test_file("BDC"),
-                        "?access_token=", access_key
+                        "?access_token=", bdc_access_key
     )
 
     # are the files accessible?
@@ -28,11 +22,12 @@
         .sits_raster_api_check_access(test_file)
     },
     error = function(e) {
-        msg <- paste0("Error in accessing cloud files")
+        msg <- paste0("Error in accessing BDC")
         message(msg)
     }
     )
-    return(access_key)
+
+    return(bdc_access_key)
 }
 #' @title Include BDC access info
 #' @name  .sits_bdc_access_info

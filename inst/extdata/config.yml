@@ -8,8 +8,8 @@ default:
     rstac_pagination_limit   : 1000
 
     # Data cube types known to sits
-    cube_types              : ["WTSS", "SATVEG", "BRICK", "STACK", "RASTER", "BDC", "S2_L2A_AWS", "PROBS", "CLASSIFIED"]
-    cube_classes            : ["wtss_cube", "satveg_cube", "brick_cube", "stack_cube", "raster_cube", "bdc_cube", "s2_l2a_aws_cube", "probs_cube", "classified_image"]
+    cube_types              : ["WTSS", "SATVEG", "BRICK", "STACK", "RASTER", "BDC", "S2_L2A_AWS", "GDALCUBES", "PROBS", "CLASSIFIED"]
+    cube_classes            : ["wtss_cube", "satveg_cube", "brick_cube", "stack_cube", "raster_cube", "bdc_cube", "s2_l2a_aws_cube", "gdalcubes_cube",  "probs_cube", "classified_image"]
 
     # Image file extensions known to SITS
     img_file_extensions     : ["tiff", "tif", "jp2", "hdf"]
@@ -18,8 +18,18 @@ default:
     bdc_stac                : "http://brazildatacube.dpi.inpe.br/stac/"
     bdc_extension           : ["tif"]
 
+    # AWS configuration
+    AWS_DEFAULT_REGION      :
+        S2_L2A_AWS          : "eu-central-1"
+
+    AWS_ENDPOINT            :
+        S2_L2A_AWS          : "sentinel-s2-l2a.s3.amazonaws.com"
+
+    AWS_REQUEST_PAYER       :
+        S2_L2A_AWS          : "requester"
+
     # information to parse repositories
-    BDC               :
+    BDC                     :
         data_dir_path       : ["cube", "version", "tile"]
         parse_info          : ["sat", "res", "X1", "X2", "X3", "tile", "date", "X4", "band"]
         delim               : ["_"]

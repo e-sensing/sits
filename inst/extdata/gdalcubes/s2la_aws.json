@@ -1,0 +1,84 @@
+{
+    "description" : "Image collection format for Sentinel 2 Level 2A data in AWS",
+    "references" : "https://roda.sentinel-hub.com/sentinel-s2-l2a/readme.html",
+    "example" : "/vsis3/sentinel-s2-l2a/tiles/20/L/KP/2018/10/21/0/R20m/B03.jp2",
+    "tags" : ["Sentinel", "Copernicus", "ESA", "TOA"],
+    "pattern" : ".+.jp2",
+    "images" : {
+        "pattern" : ".*tiles((?:/[A-Za-z0-9]+){7})/.*"
+    },
+    "datetime" : {
+        "pattern" : ".*tiles(?:/[A-Za-z0-9]+){3}((?:/[A-Za-z0-9]+){3}).*",
+        "format" : "/%Y/%m/%d"
+    },
+    "bands" : {
+        "B01" : {
+            "nodata" : 0,
+            "scale" : 0.0001,
+            "pattern" : ".+B01\\.jp2"
+        },
+        "B02" : {
+            "nodata" : 0,
+            "scale" : 0.0001,
+            "pattern" : ".+B02\\.jp2"
+        },
+        "B03" : {
+            "nodata" : 0,
+            "scale" : 0.0001,
+            "pattern" : ".+B03\\.jp2"
+        },
+        "B04" : {
+            "nodata" : 0,
+            "scale" : 0.0001,
+            "pattern" : ".+B04\\.jp2"
+        },
+        "B05" : {
+            "nodata" : 0,
+            "scale" : 0.0001,
+            "pattern" : ".+B05\\.jp2"
+        },
+        "B06" : {
+            "nodata" : 0,
+            "scale" : 0.0001,
+            "pattern" : ".+B06\\.jp2"
+        },
+        "B07" : {
+            "nodata" : 0,
+            "scale" : 0.0001,
+            "pattern" : ".+B07\\.jp2"
+        },
+        "B08" : {
+            "nodata" : 0,
+            "scale" : 0.0001,
+            "pattern" : ".+B08\\.jp2"
+        },
+        "B8A" : {
+            "nodata" : 0,
+            "scale" : 0.0001,
+            "pattern" : ".+B8A\\.jp2"
+        },
+        "B09" : {
+            "nodata" : 0,
+            "scale" : 0.0001,
+            "pattern" : ".+B09\\.jp2"
+        },
+        "B10" : {
+            "nodata" : 0,
+            "scale" : 0.0001,
+            "pattern" : ".+B10\\.jp2"
+        },
+        "B11" : {
+            "nodata" : 0,
+            "scale" : 0.0001,
+            "pattern" : ".+B11\\.jp2"
+        },
+        "B12" : {
+            "nodata" : 0,
+            "scale" : 0.0001,
+            "pattern" : ".+B12\\.jp2"
+        },
+        "SCL" : {
+            "pattern" : ".+SCL\\.jp2"
+        }
+    }
+}
