@@ -233,8 +233,10 @@ plot.brick_cube <- function(x, y, ..., red, green, blue, time = 1) {
 #' }
 #'
 #' @export
-plot.stack_cube <- function(x, y, ..., red, green, blue, time = 1) {
+plot.stack_cube <- function(x, y, ..., red, green, blue, time = 1, roi = NULL) {
+
     stopifnot(missing(y))
+
     # verifies if mapview package is installed
     if (!requireNamespace("mapview", quietly = TRUE)) {
         stop("Please install package mapview.", call. = FALSE)
@@ -269,6 +271,18 @@ plot.stack_cube <- function(x, y, ..., red, green, blue, time = 1) {
 
     # use the raster package to obtain a raster object from a stack
     rast <- suppressWarnings(raster::stack(file_info$path[index]))
+
+    if (!purrr::is_null(roi)) {
+
+        if (!requireNamespace("sf", quietly = TRUE)) {
+            stop("Please install package sf.", call. = FALSE)
+        }
+
+        roi <- raster::extent(sf::st_bbox(
+            sf::st_transform(roi, crs = raster::crs(rast))))
+
+        rast <- suppressWarnings(raster::crop(rast, roi))
+    }
     assertthat::assert_that(raster::ncol(rast) > 0 & raster::nrow(rast) > 1,
                     msg = "plot.stack_cube: unable to retrieve raster data"
     )
