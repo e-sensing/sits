@@ -18,7 +18,7 @@
 #'  '?gdalcubes::write_tif'.
 #' @param version     A \code{character} with version of the output files.
 #'
-#' @return  A data cube with the information used in its creation.
+#' @return  A data cube with information used in its creation.
 .sits_gc_compose <- function(cube, cv_list, img_col, path_db, path_images,
                              cloud_mask, ..., version = "v1") {
 
@@ -51,7 +51,7 @@
     for (i in seq_len(nrow(cube_gc))) {
         c_tile <- cube_gc[i,]
 
-        for (band in (c_tile$bands[[1]])) {
+        for (band in c_tile$bands[[1]]) {
             # create a raster_cube object from gdalcubes
             cube_brick <-
                 .sits_gc_brick(cube, img_col, cv_list[[i]], cloud_mask)

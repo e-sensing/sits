@@ -38,7 +38,7 @@ for aggregation.}
 \item{version}{A \code{character} with version of the output files.}
 }
 \value{
-A data cube with the information used in its creation.
+A data cube with information used in its creation.
 }
 \description{
 Save the images based on an aggregation method.
