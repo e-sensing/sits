@@ -1,3 +1,24 @@
+#' @title Informs if a spatial ROI intersects a data cube
+#' @name .sits_raster_sub_image_intersects
+#' @keywords internal
+
+#' @param  cube            input data cube.
+#' @param  roi             spatial region of interest
+#' @return                 logical
+#'
+.sits_raster_sub_image_intersects <- function(cube, roi) {
+
+    # if roi is null, returns TRUE
+    if (purrr::is_null(roi)) return(TRUE)
+
+    # if the ROI is defined, calculate the bounding box
+    bbox_roi <- .sits_roi_bbox(roi, cube)
+
+    # calculate the intersection between the bbox of the ROI and the cube
+    bbox_in <- .sits_bbox_intersect(bbox_roi, cube)
+
+    return(!purrr::is_null(bbox_in))
+}
 #' @title Find the dimensions and location of a spatial ROI in a data cube
 #' @name .sits_raster_sub_image
 #' @keywords internal
@@ -13,6 +34,7 @@
 
     # calculate the intersection between the bbox of the ROI and the cube
     bbox_in <- .sits_bbox_intersect(bbox_roi, cube)
+
     # return the sub_image
     sub_image <- .sits_sub_image_from_bbox(bbox_in, cube)
 
