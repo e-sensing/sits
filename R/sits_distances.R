@@ -25,7 +25,8 @@
     # create a list with the time series transposed from columns to rows
     ts <- data$time_series %>%
         purrr::map(function(ts) {
-            as.data.frame(t(unlist(ts[-1])))
+            names(ts) <- paste0(names(ts), ".")
+            dplyr::as_tibble(t(unlist(ts[-1])))
         })
     # bind the lists of time series together
     dist <- data.table::rbindlist(ts, use.names = FALSE)
