@@ -66,6 +66,7 @@ Suggests:
     dtwSat,
     e1071,
     flexclust,
+    gdalcubes,
     gdalUtils,
     imager,
     imputeTS, 
