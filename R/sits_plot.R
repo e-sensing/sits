@@ -211,7 +211,8 @@ plot.brick_cube <- function(x, y, ..., red, green, blue, time = 1) {
 #' @param  red           band for red color.
 #' @param  green         band for green color.
 #' @param  blue          band for blue color.
-#' @param  time          temporal instance to be plotted
+#' @param  time          temporal instances to be plotted.
+#' @param  roi           sf object giving a region of interest.
 #'
 #' @return               mapview object
 #'
@@ -245,12 +246,31 @@ plot.stack_cube <- function(x, y, ..., red, green, blue, time = 1, roi = NULL) {
     if (!requireNamespace("raster", quietly = TRUE)) {
         stop("Please install package raster.", call. = FALSE)
     }
+    # verify sf package if roi is informed
+    if (!purrr::is_null(roi)) {
+        if (!requireNamespace("sf", quietly = TRUE)) {
+            stop("Please install package sf.", call. = FALSE)
+        }
+
+        # filter only intersecting tiles
+        intersects <- slider::slide(x, function(row) {
+
+            .sits_raster_sub_image_intersects(row, roi)
+        }) %>% unlist()
+
+        if (!any(intersects)) {
+            stop("Informed roi does not intersect cube.", call. = FALSE)
+        }
+        x <- x[intersects,]
+    }
+
     # set mapview options
     mapview::mapviewOptions(basemaps = c(
         "GeoportailFrance.orthos",
         "Esri.WorldImagery"
     ))
 
+    # plot only the first tile
     # get information about bands and files
     file_info <- x[1,]$file_info[[1]]
 
@@ -274,20 +294,21 @@ plot.stack_cube <- function(x, y, ..., red, green, blue, time = 1, roi = NULL) {
 
     if (!purrr::is_null(roi)) {
 
-        if (!requireNamespace("sf", quietly = TRUE)) {
-            stop("Please install package sf.", call. = FALSE)
-        }
-
         roi <- raster::extent(sf::st_bbox(
             sf::st_transform(roi, crs = raster::crs(rast))))
 
         rast <- suppressWarnings(raster::crop(rast, roi))
+
     }
+
     assertthat::assert_that(raster::ncol(rast) > 0 & raster::nrow(rast) > 1,
                     msg = "plot.stack_cube: unable to retrieve raster data"
     )
+
     # plot the RGB file
-    mv <- suppressWarnings(mapview::viewRGB(rast, r = 1, g = 2, b = 3))
+    mv <- suppressWarnings(mapview::viewRGB(
+        rast, r = 1, g = 2, b = 3,
+        layer.name = paste0("Time ", time)))
 
     return(mv)
 }
@@ -1305,7 +1326,8 @@ plot.keras_model <- function(x, y, ...) {
     # find out the number of instances
     n_instances <- length(timeline)
     # check if the selected temporal instance exists
-    assertthat::assert_that(time <= n_instances, msg = "time out of bounds")
+    assertthat::assert_that(time <= n_instances,
+                            msg = sprintf("Time '%s' is out of bounds.", time))
 
     # locate the instances
     instances_lst <- purrr::map(c(red, green, blue),
