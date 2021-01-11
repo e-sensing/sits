@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.14159265-2.6-1.40.21 (TeX Live 2020) (preloaded format=pdflatex 2020.7.30)  22 DEC 2020 17:44
+This is pdfTeX, Version 3.14159265-2.6-1.40.21 (TeX Live 2020) (preloaded format=pdflatex 2020.7.30)  10 JAN 2021 21:18
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
@@ -981,14 +981,14 @@ Package pdftex.def Info: /Users/gilbertocamara/sits/vignettes/sits_files/figure
 8-1.pdf>] [8 </Users/gilbertocamara/sits/vignettes/sits_files/figure-latex/unna
 med-chunk-9-1.pdf>]
 </Users/gilbertocamara/sits/vignettes/sits_files/figure-latex/unnamed-chunk-10-
-1.pdf, id=226, 397.485pt x 230.8625pt>
+1.pdf, id=226, 392.46625pt x 230.8625pt>
 File: /Users/gilbertocamara/sits/vignettes/sits_files/figure-latex/unnamed-chun
 k-10-1.pdf Graphic file (type pdf)
 <use /Users/gilbertocamara/sits/vignettes/sits_files/figure-latex/unnamed-chunk
 -10-1.pdf>
 Package pdftex.def Info: /Users/gilbertocamara/sits/vignettes/sits_files/figure
 -latex/unnamed-chunk-10-1.pdf  used on input line 820.
-(pdftex.def)             Requested size: 397.48402pt x 230.86192pt.
+(pdftex.def)             Requested size: 392.46527pt x 230.86192pt.
 [9]
 
 Package hyperref Warning: Suppressing link with empty target on input line 861.
@@ -1047,7 +1047,7 @@ y.pfb></usr/local/texlive/2020/texmf-dist/fonts/type1/public/mathdesign/mdput/m
 d-utri7m.pfb></usr/local/texlive/2020/texmf-dist/fonts/type1/adobe/utopia/putr8
 a.pfb></usr/local/texlive/2020/texmf-dist/fonts/type1/adobe/utopia/putri8a.pfb>
 </usr/local/texlive/2020/texmf-dist/fonts/type1/urw/helvetic/uhvb8a.pfb>
-Output written on sits.pdf (17 pages, 297879 bytes).
+Output written on sits.pdf (17 pages, 297872 bytes).
 PDF statistics:
  393 PDF objects out of 1000 (max. 8388607)
  348 compressed objects within 4 object streams

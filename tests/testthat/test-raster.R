@@ -93,7 +93,7 @@ test_that("Multi-year, multi-core classification", {
     )
     expect_true(all(file.exists(unlist(sinop_class$file_info[[1]]$path))))
 
-    sinop_bayes <- sits::sits_smooth_bayes(sinop_probs,
+    sinop_bayes <- sits::sits_smooth(sinop_probs,
         output_dir = tempdir()
     )
     expect_true(all(file.exists(unlist(sinop_bayes$file_info[[1]]$path))))
@@ -217,7 +217,7 @@ test_that("One-year, multicore classification", {
                       multicores = 2
         )
     )
-    sinop_bayes <- sits_smooth_bayes(sinop_probs, output_dir = tempdir())
+    sinop_bayes <- sits_smooth(sinop_probs, output_dir = tempdir())
 
     expect_true(all(file.exists(unlist(sinop_probs$file_info[[1]]$path))))
     rc_obj <- suppressWarnings(terra::rast(sinop_probs$file_info[[1]]$path[1]))

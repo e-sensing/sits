@@ -66,12 +66,16 @@ sinop_probs <- sits_classify(sinop_2014, xgb_model,
     memsize = 4, multicores = 2
 )
 # smooth the result with a bayesian filter
-sinop_bayes <- sits_label_classification(sinop_probs,
+
+sinop_bayes <- sits_smooth(sinop_probs,
+    output_dir = tempdir())
+
+sinop_label <- sits_label_classification(sinop_bayes,
     output_dir = tempdir()
 )
 
 # plot the smoothened image
-plot(sinop_bayes, title = "Sinop-Bayes")
+plot(sinop_label, title = "Sinop-Bayes")
 }
 }
 \author{

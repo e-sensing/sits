@@ -49,7 +49,7 @@ sinop_probs <- sits_classify(sinop,
 plot(sinop_probs)
 
 # smooth the result with a bayesian filter
-sinop_bayes <- sits_smooth_bayes(sinop_probs, output_dir = tempdir())
+sinop_bayes <- sits_smooth(type = "bayes", sinop_probs, output_dir = tempdir())
 
 sinop_label <- sits_label_classification(sinop_bayes,
                                          output_dir = tempdir()

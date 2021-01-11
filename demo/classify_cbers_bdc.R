@@ -66,7 +66,7 @@ cbers_label <- sits_label_classification(cbers_probs, output_dir = tempdir())
 # plot the labelled image
 plot(cbers_label, map = map1)
 # post process probabilities map with bayesian smoothing
-cbers_bayes <- sits_smooth_bayes(cbers_probs, output_dir = tempdir())
+cbers_bayes <- sits_smooth(cbers_probs, output_dir = tempdir())
 # plot the new probs
 plot(cbers_bayes)
 # label the smoothed image
