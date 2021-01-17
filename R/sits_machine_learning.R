@@ -690,6 +690,7 @@ sits_xgboost <- function(data = NULL,
         params <- list(
             booster = "gbtree",
             objective = "multi:softprob",
+            eval_metric = "mlogloss",
             eta = learning_rate,
             gamma = min_split_loss,
             max_depth = max_depth,

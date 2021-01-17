@@ -7,6 +7,7 @@
 \method{sits_smooth}{gaussian}(
   cube,
   type = "gaussian",
+  ...,
   window_size = 5,
   sigma = 0.85,
   output_dir = "./",

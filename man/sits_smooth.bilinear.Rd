@@ -7,6 +7,7 @@
 \method{sits_smooth}{bilinear}(
   cube,
   type = "bilinear",
+  ...,
   window_size = 5,
   sigma = 0.85,
   tau = 0.5,
