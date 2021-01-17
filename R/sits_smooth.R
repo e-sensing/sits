@@ -7,8 +7,8 @@
 #'              whose metadata is]created by \code{\link[sits]{sits_cube}},
 #'              and applies a smoothing function
 #'
+#' @param  cube              Probability data cube
 #' @param  type              Type of smoothing
-#' @param  cube              Classified image data cube.
 #' @param  ....              Parameters for specific functions
 #' @return A tibble with metadata about the output raster objects.
 #' @examples
@@ -43,14 +43,15 @@
 #' )
 #'
 #' # label the classification and smooth the result with a bayesian filter
-#' sinop_bayes <- sits_smooth(type = "bayes", sinop_probs,
+#' sinop_bayes <- sits_smooth(sinop_probs,
 #'     output_dir = tempdir()
 #'     )
 #' }
 #'
 #' @export
-sits_smooth <- function(type = "bayes",
-                        cube, ...) {
+sits_smooth <- function(cube,
+                        type = "bayes",
+                        ...) {
 
     # precondition 1 - check if cube has probability data
     assertthat::assert_that("probs_cube" %in% class(cube[1,]),
@@ -68,8 +69,8 @@ sits_smooth <- function(type = "bayes",
 #'              whose metadata is]created by \code{\link[sits]{sits_cube}},
 #'              and apply a bayesian smoothing process.
 #'
+#' @param  cube              Probability data cube
 #' @param  type              Type of smoothing
-#' @param  cube              Classified image data cube.
 #' @param  ....              Parameters for specific functions
 #' @param  window_size       Size of the neighbourhood.
 #' @param  smoothness        Estimated variance of logit of class_probs
@@ -110,15 +111,15 @@ sits_smooth <- function(type = "bayes",
 #' )
 #'
 #' # label the classification and smooth the result with a bayesian filter
-#' sinop_bayes <- sits_smooth(type = "bayes", sinop_probs,
-#'     output_dir = tempdir()
+#' sinop_bayes <- sits_smooth(sinop_probs, output_dir = tempdir()
 #'     )
 #' }
 #'
 #' @export
-sits_smooth.bayes <- function(type = "bayes",
-                              cube, ...,
-                              window_size = 3,
+sits_smooth.bayes <- function(cube,
+                              type = "bayes",
+                              ...,
+                              window_size = 5,
                               smoothness = 20,
                               output_dir = "./",
                               version = "v1") {
@@ -205,8 +206,8 @@ sits_smooth.bayes <- function(type = "bayes",
 #'             IEEE Transactions on Geoscience and Remote Sensing,
 #'             50 (11), 4534-4545, 2012.
 #'
+#' @param  cube              Probability data cube
 #' @param  type              Type of smoothing
-#' @param  cube              Classified image data cube.
 #' @param  ....              Parameters for specific functions
 #' @param  window_size       Size of the neighbourhood.
 #' @param  sigma             Standard deviation of the spatial gaussian kernel
@@ -246,15 +247,15 @@ sits_smooth.bayes <- function(type = "bayes",
 #' )
 #'
 #' # smooth the result with a gaussian filter
-#' sinop_gauss <- sits_smooth(type = "gaussian",
-#'     sinop_probs,
+#' sinop_gauss <- sits_smooth(sinop_probs,
+#'     type = "gaussian",
 #'     output_dir = tempdir()
 #'     )
 #' }
 #'
 #' @export
-sits_smooth.gaussian <- function(type = "gaussian",
-                                 cube,
+sits_smooth.gaussian <- function(cube,
+                                 type = "gaussian",
                                  window_size = 5,
                                  sigma = 0.85,
                                  output_dir = "./",
@@ -342,13 +343,13 @@ sits_smooth.gaussian <- function(type = "gaussian",
 #'             IEEE Transactions on Geoscience and Remote Sensing,
 #'             50 (11), 4534-4545, 2012.
 #'
+#' @param  cube              Probability data cube
 #' @param  type              Type of smoothing
-#' @param  cube              Classified image data cube.
 #' @param  ....              Parameters for specific functions
 #' @param  window_size       Size of the neighbourhood.
 #' @param  sigma             Standard deviation of the spatial gaussian kernel
 #' @param  tau               Standard deviation of the class probs value
-#' @param  output_dir        Output directory where to out the file
+#' @param  output_dir        Output directory
 #' @param  version           Version of resulting image
 #'                           (in the case of multiple tests)
 #' @return A tibble with metadata about the output raster objects.
@@ -384,18 +385,18 @@ sits_smooth.gaussian <- function(type = "gaussian",
 #' )
 #'
 #' # smooth the result with a bilinear filter
-#' sinop_bil <- sits_smooth(type = "bilinear",
-#'     sinop_probs,
+#' sinop_bil <- sits_smooth(sinop_probs,
+#'     type = "bilinear",
 #'     output_dir = tempdir()
 #'     )
 #' }
 #'
 #' @export
-sits_smooth.bilinear <- function(type = "bilinear",
-                                 cube,
+sits_smooth.bilinear <- function(cube,
+                                 type = "bilinear",
                                  window_size = 5,
                                  sigma = 0.85,
-                                 tau = 0.1,
+                                 tau = 0.5,
                                  output_dir = "./",
                                  version = "v1") {
 
@@ -406,12 +407,16 @@ sits_smooth.bilinear <- function(type = "bilinear",
 
     # precondition 2 - test window size
     assertthat::assert_that(window_size %% 2 != 0,
-                            msg = "sits_smooth: window_size must be an odd number"
+                            msg = "sits_smooth: window_size must be an odd"
     )
 
     # prediction 3 - test variance
     assertthat::assert_that(sigma > 0,
-                            msg = "sits_smooth: smoothness must be positive"
+                            msg = "sits_smooth: sigma must be positive"
+    )
+    # prediction 3 - test variance
+    assertthat::assert_that(tau > 0,
+                            msg = "sits_smooth: tau must be positive"
     )
     # create output window
     gauss_kernel <- matrix(1, nrow = window_size, ncol = window_size)
@@ -439,7 +444,6 @@ sits_smooth.bilinear <- function(type = "bilinear",
 
     # retrieve the scale factor
     scale_factor <- cube[1,]$scale_factors[[1]][1]
-    mult_factor <- 1/scale_factor
 
     purrr::map2(in_files, out_files,
                 function(in_file, out_file) {
@@ -458,7 +462,8 @@ sits_smooth.bilinear <- function(type = "bilinear",
                         # calculate the smoothing
                         val <- kernel_estimator_non_linear(band,
                                                            gauss_kernel,
-                                                           tau)
+                                                           tau,
+                                                           scale_factor)
                         values[, b] <- val
                     }
                     # write values into a file

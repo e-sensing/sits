@@ -34,6 +34,7 @@ double conv_2D(const NumericMatrix& data,
 double conv_2D_non_linear(const NumericMatrix& data,
                           const NumericMatrix& kernel,
                           const double& tau,
+                          const double& scale_factor,
                           const int& i,
                           const int& j) {
 
@@ -49,7 +50,8 @@ double conv_2D_non_linear(const NumericMatrix& data,
                 d_i < data.nrow() &&
                 d_j < data.ncol() &&
                 !std::isnan(data(d_i, d_j))) {
-                double smoother = exp(pow(data(i,j) - data(d_i, d_j), 2.0)/(2*pow(tau, 2.0)));
+                double diff = abs(data(i,j) - data(d_i, d_j))*scale_factor;
+                double smoother = exp(-diff/(2*pow(tau, 2.0)));
                 value = value + data(d_i, d_j) * kernel(k, l) * smoother;
                 w_sum = w_sum + kernel(k, l)*smoother;
             }
@@ -82,7 +84,8 @@ NumericVector kernel_estimator(const NumericMatrix& data,
 // [[Rcpp::export]]
 NumericVector kernel_estimator_non_linear(const NumericMatrix& data,
                                           const NumericMatrix& kernel,
-                                          const double& tau) {
+                                          const double& tau,
+                                          const double& scale_factor) {
 
     int nrows = data.nrow();
     int ncols = data.ncol();
@@ -92,7 +95,8 @@ NumericVector kernel_estimator_non_linear(const NumericMatrix& data,
     int k = 0;
     for (int i = 0; i < nrows; ++i) {
         for (int j = 0; j < ncols; ++j) {
-            result(k++) = conv_2D_non_linear(data, kernel, tau, i, j);
+            result(k++) = conv_2D_non_linear(data, kernel, tau,
+                   scale_factor, i, j);
         }
     }
     return result;

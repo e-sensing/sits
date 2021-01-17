@@ -5,19 +5,19 @@
 \title{Post-process a classified data raster probs using bilinear smoothing}
 \usage{
 \method{sits_smooth}{bilinear}(
-  type = "bilinear",
   cube,
+  type = "bilinear",
   window_size = 5,
   sigma = 0.85,
-  tau = 0.1,
+  tau = 0.5,
   output_dir = "./",
   version = "v1"
 )
 }
 \arguments{
-\item{type}{Type of smoothing}
+\item{cube}{Probability data cube}
 
-\item{cube}{Classified image data cube.}
+\item{type}{Type of smoothing}
 
 \item{window_size}{Size of the neighbourhood.}
 
@@ -25,7 +25,7 @@
 
 \item{tau}{Standard deviation of the class probs value}
 
-\item{output_dir}{Output directory where to out the file}
+\item{output_dir}{Output directory}
 
 \item{version}{Version of resulting image
 (in the case of multiple tests)}
@@ -71,9 +71,9 @@ sinop_probs <- sits_classify(sinop,
     memsize = 4, multicores = 2
 )
 
-# label the classification and smooth the result with a bayesian filter
-sinop_gauss <- sits_smooth(type = "bilinear",
-    sinop_probs,
+# smooth the result with a bilinear filter
+sinop_bil <- sits_smooth(sinop_probs,
+    type = "bilinear",
     output_dir = tempdir()
     )
 }

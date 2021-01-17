@@ -5,19 +5,19 @@
 \title{Post-process a classified data raster probs using bayesian smoothing}
 \usage{
 \method{sits_smooth}{bayes}(
-  type = "bayes",
   cube,
+  type = "bayes",
   ...,
-  window_size = 3,
+  window_size = 5,
   smoothness = 20,
   output_dir = "./",
   version = "v1"
 )
 }
 \arguments{
-\item{type}{Type of smoothing}
+\item{cube}{Probability data cube}
 
-\item{cube}{Classified image data cube.}
+\item{type}{Type of smoothing}
 
 \item{window_size}{Size of the neighbourhood.}
 
@@ -71,8 +71,7 @@ sinop_probs <- sits_classify(sinop,
 )
 
 # label the classification and smooth the result with a bayesian filter
-sinop_bayes <- sits_smooth(type = "bayes", sinop_probs,
-    output_dir = tempdir()
+sinop_bayes <- sits_smooth(sinop_probs, output_dir = tempdir()
     )
 }
 

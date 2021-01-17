@@ -85,50 +85,7 @@ test_that("Multi-year, multi-core classification", {
     max_lyr2 <- max(terra::values(rc_obj)[, 2])
     expect_true(max_lyr2 < 1000)
 
-    expect_error(sits:::.sits_raster)
-
-
-    sinop_class <- sits::sits_label_classification(sinop_probs,
-        output_dir = tempdir()
-    )
-    expect_true(all(file.exists(unlist(sinop_class$file_info[[1]]$path))))
-
-    sinop_bayes <- sits::sits_smooth(sinop_probs,
-        output_dir = tempdir()
-    )
-    expect_true(all(file.exists(unlist(sinop_bayes$file_info[[1]]$path))))
-
-    rc_obj2 <- suppressWarnings(terra::rast(sinop_bayes$file_info[[1]]$path[1]))
-    expect_true(terra::nrow(rc_obj2) == sinop_bayes$nrows)
-    expect_true(terra::nrow(rc_obj2) == terra::nrow(rc_obj))
-
-    sinop_majority <- sits_label_majority(sinop_class,
-        output_dir = tempdir()
-    )
-    expect_true(all(file.exists(unlist(sinop_majority$file_info[[1]]$path))))
-    rc_obj3 <- suppressWarnings(
-        terra::rast(sinop_majority$file_info[[1]]$path[1])
-    )
-    expect_true(terra::nrow(rc_obj2) == sinop_majority$nrows)
-    expect_true(terra::nrow(rc_obj3) == terra::nrow(rc_obj))
-
-    sinop_bay_label <- sits_label_classification(sinop_bayes,
-                                                 output_dir = tempdir()
-    )
-    expect_true(length(sits_timeline(sinop_bayes)) ==
-                    length(sits_timeline(sinop_probs))
-    )
-    expect_true(length(sits_timeline(sinop_class)) ==
-                    length(sits_timeline(sinop_probs))
-    )
-
-    expect_true(sits_timeline(sinop_class)[1] == sits_timeline(sinop_probs)[1])
-    expect_true(sits_timeline(sinop_bayes)[1] == sits_timeline(sinop_probs)[1])
-
-    expect_true(all(file.remove(unlist(sinop_class$file_info[[1]]$path))))
     expect_true(all(file.remove(unlist(sinop_probs$file_info[[1]]$path))))
-    expect_true(all(file.remove(unlist(sinop_bayes$file_info[[1]]$path))))
-    expect_true(all(file.remove(unlist(sinop_majority$file_info[[1]]$path))))
 })
 
 test_that("One-year, single core classification", {
@@ -217,7 +174,6 @@ test_that("One-year, multicore classification", {
                       multicores = 2
         )
     )
-    sinop_bayes <- sits_smooth(sinop_probs, output_dir = tempdir())
 
     expect_true(all(file.exists(unlist(sinop_probs$file_info[[1]]$path))))
     rc_obj <- suppressWarnings(terra::rast(sinop_probs$file_info[[1]]$path[1]))
@@ -229,17 +185,7 @@ test_that("One-year, multicore classification", {
     max_lyr3 <- max(terra::values(rc_obj)[, 3])
     expect_true(max_lyr3 > 8000)
 
-    rb_obj <- suppressWarnings(terra::rast(sinop_bayes$file_info[[1]]$path[1]))
-    expect_true(terra::nrow(rb_obj) == sinop_bayes$nrows)
-
-    max_lyrb2 <- max(terra::values(rb_obj)[, 2])
-    expect_true(max_lyrb2 < 1000)
-
-    max_lyrb3 <- max(terra::values(rb_obj)[, 3])
-    expect_true(max_lyrb3 > 8000)
-
     expect_true(all(file.remove(unlist(sinop_probs$file_info[[1]]$path))))
-    expect_true(all(file.remove(unlist(sinop_bayes$file_info[[1]]$path))))
 })
 
 test_that("One-year, single core classification with filter", {
@@ -330,16 +276,10 @@ test_that("One-year, multicore classification with filter", {
     max_lyr3 <- max(terra::values(rc_obj)[, 3])
     expect_true(max_lyr3 > 8000)
 
-
-    sinop_label <- sits_label_classification(sinop_2014_probs,
-        output_dir = tempdir()
-    )
-
     expect_true(all(file.remove(unlist(sinop_2014_probs$file_info[[1]]$path))))
-    expect_true(all(file.remove(unlist(sinop_label$file_info[[1]]$path))))
 })
 
-test_that("One-year, multicore classification", {
+test_that("One-year, multicore classification with post-processing", {
     samples_2bands <- sits_select(samples_mt_4bands, bands = c("NDVI", "EVI"))
 
     svm_model <- sits_train(samples_2bands, sits_svm())
@@ -375,14 +315,87 @@ test_that("One-year, multicore classification", {
     )
 
     expect_true(all(file.exists(unlist(sinop_probs$file_info[[1]]$path))))
-    rc_obj <- suppressWarnings(terra::rast(sinop_probs$file_info[[1]]$path[1]))
-    expect_true(terra::nrow(rc_obj) == sinop_probs$nrows)
 
-    max_lyr2 <- max(terra::values(rc_obj)[, 2])
-    expect_true(max_lyr2 < 1000)
+    sinop_class <- sits::sits_label_classification(sinop_probs,
+                                                   output_dir = tempdir()
+    )
+    expect_true(all(file.exists(unlist(sinop_class$file_info[[1]]$path))))
 
-    max_lyr3 <- max(terra::values(rc_obj)[, 3])
-    expect_true(max_lyr3 > 8000)
+    expect_true(length(sits_timeline(sinop_class)) ==
+                    length(sits_timeline(sinop_probs))
+    )
+
+    r_obj <- terra::rast(sinop_class$file_info[[1]]$path[1])
+    max_lab <- max(terra::values(r_obj))
+    min_lab <- min(terra::values(r_obj))
+    expect_equal(max_lab, 6)
+    expect_equal(min_lab, 1)
+
+    sinop_majority <- sits_label_majority(sinop_class,
+                                          output_dir = tempdir()
+    )
+    expect_true(all(file.exists(unlist(sinop_majority$file_info[[1]]$path))))
+    r_maj <- suppressWarnings(
+        terra::rast(sinop_majority$file_info[[1]]$path[1])
+    )
+    max_maj <- max(terra::values(r_maj))
+    min_maj <- min(terra::values(r_maj))
+    expect_equal(max_maj, 6)
+    expect_equal(min_maj, 1)
+
+
+    sinop_bayes <- sits::sits_smooth(sinop_probs,
+                                     output_dir = tempdir()
+    )
+    expect_true(all(file.exists(unlist(sinop_bayes$file_info[[1]]$path))))
+
+    expect_true(length(sits_timeline(sinop_bayes)) ==
+                    length(sits_timeline(sinop_probs))
+    )
+
+    r_bay <- suppressWarnings(terra::rast(sinop_bayes$file_info[[1]]$path[1]))
+    expect_true(terra::nrow(r_bay) == sinop_probs$nrows)
+
+    max_bay2 <- max(terra::values(r_bay)[, 2])
+    expect_true(max_bay2 < 1000)
+
+    max_bay3 <- max(terra::values(r_bay)[, 3])
+    expect_true(max_bay3 > 8000)
+
+    sinop_gauss <- sits::sits_smooth(sinop_probs, type = "gaussian",
+                                     output_dir = tempdir()
+    )
+    expect_true(all(file.exists(unlist(sinop_gauss$file_info[[1]]$path))))
+
+    r_gau <- suppressWarnings(terra::rast(sinop_gauss$file_info[[1]]$path[1]))
+    expect_true(terra::nrow(r_gau) == sinop_probs$nrows)
+
+    max_gau2 <- max(terra::values(r_gau)[, 2])
+    expect_true(max_gau2 < 1000)
+
+    max_gau3 <- max(terra::values(r_gau)[, 3])
+    expect_true(max_gau3 > 8000)
+
+    sinop_bil <- sits::sits_smooth(sinop_probs, type = "bilinear",
+                                     output_dir = tempdir()
+    )
+    expect_true(all(file.exists(unlist(sinop_bil$file_info[[1]]$path))))
+
+    r_bil <- suppressWarnings(terra::rast(sinop_bil$file_info[[1]]$path[1]))
+    expect_true(terra::nrow(r_bil) == sinop_probs$nrows)
+
+    max_bil2 <- max(terra::values(r_bil)[, 2])
+    expect_true(max_bil2 < 1000)
+
+    max_bil3 <- max(terra::values(r_bil)[, 3])
+    expect_true(max_bil3 > 8000)
+
+
+    expect_true(all(file.remove(unlist(sinop_class$file_info[[1]]$path))))
+    expect_true(all(file.remove(unlist(sinop_bayes$file_info[[1]]$path))))
+    expect_true(all(file.remove(unlist(sinop_gauss$file_info[[1]]$path))))
+    expect_true(all(file.remove(unlist(sinop_bil$file_info[[1]]$path))))
+    expect_true(all(file.remove(unlist(sinop_majority$file_info[[1]]$path))))
 
     expect_true(all(file.remove(unlist(sinop_probs$file_info[[1]]$path))))
 })

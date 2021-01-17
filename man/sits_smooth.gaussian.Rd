@@ -5,8 +5,8 @@
 \title{Post-process a classified data raster probs using gaussian smoothing}
 \usage{
 \method{sits_smooth}{gaussian}(
-  type = "gaussian",
   cube,
+  type = "gaussian",
   window_size = 5,
   sigma = 0.85,
   output_dir = "./",
@@ -14,9 +14,9 @@
 )
 }
 \arguments{
-\item{type}{Type of smoothing}
+\item{cube}{Probability data cube}
 
-\item{cube}{Classified image data cube.}
+\item{type}{Type of smoothing}
 
 \item{window_size}{Size of the neighbourhood.}
 
@@ -68,9 +68,9 @@ sinop_probs <- sits_classify(sinop,
     memsize = 4, multicores = 2
 )
 
-# label the classification and smooth the result with a bayesian filter
-sinop_gauss <- sits_smooth(type = "gaussian",
-    sinop_probs,
+# smooth the result with a gaussian filter
+sinop_gauss <- sits_smooth(sinop_probs,
+    type = "gaussian",
     output_dir = tempdir()
     )
 }

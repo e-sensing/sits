@@ -4,12 +4,12 @@
 \alias{sits_smooth}
 \title{Post-process a classified data raster probs using smoothing}
 \usage{
-sits_smooth(type = "bayes", cube, ...)
+sits_smooth(cube, type = "bayes", ...)
 }
 \arguments{
-\item{type}{Type of smoothing}
+\item{cube}{Probability data cube}
 
-\item{cube}{Classified image data cube.}
+\item{type}{Type of smoothing}
 
 \item{....}{Parameters for specific functions}
 }
@@ -53,7 +53,7 @@ sinop_probs <- sits_classify(sinop,
 )
 
 # label the classification and smooth the result with a bayesian filter
-sinop_bayes <- sits_smooth(type = "bayes", sinop_probs,
+sinop_bayes <- sits_smooth(sinop_probs,
     output_dir = tempdir()
     )
 }
