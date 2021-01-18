@@ -7,7 +7,6 @@
 \method{sits_smooth}{bayes}(
   cube,
   type = "bayes",
-  ...,
   window_size = 5,
   smoothness = 20,
   output_dir = "./",
@@ -28,8 +27,6 @@
 
 \item{version}{Version of resulting image
 (in the case of multiple tests)}
-
-\item{....}{Parameters for specific functions}
 }
 \value{
 A tibble with metadata about the output raster objects.

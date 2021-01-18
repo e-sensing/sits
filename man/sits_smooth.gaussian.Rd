@@ -7,7 +7,6 @@
 \method{sits_smooth}{gaussian}(
   cube,
   type = "gaussian",
-  ...,
   window_size = 5,
   sigma = 0.85,
   output_dir = "./",
@@ -27,8 +26,6 @@
 
 \item{version}{Version of resulting image
 (in the case of multiple tests)}
-
-\item{....}{Parameters for specific functions}
 }
 \value{
 A tibble with metadata about the output raster objects.

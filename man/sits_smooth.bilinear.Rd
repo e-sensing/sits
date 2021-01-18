@@ -7,7 +7,6 @@
 \method{sits_smooth}{bilinear}(
   cube,
   type = "bilinear",
-  ...,
   window_size = 5,
   sigma = 0.85,
   tau = 0.5,
@@ -30,8 +29,6 @@
 
 \item{version}{Version of resulting image
 (in the case of multiple tests)}
-
-\item{....}{Parameters for specific functions}
 }
 \value{
 A tibble with metadata about the output raster objects.
