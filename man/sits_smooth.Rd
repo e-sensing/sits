@@ -11,7 +11,7 @@ sits_smooth(cube, type = "bayes", ...)
 
 \item{type}{Type of smoothing}
 
-\item{....}{Parameters for specific functions}
+\item{...}{Parameters for specific functions}
 }
 \value{
 A tibble with metadata about the output raster objects.

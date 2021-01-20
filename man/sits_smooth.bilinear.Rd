@@ -7,6 +7,7 @@
 \method{sits_smooth}{bilinear}(
   cube,
   type = "bilinear",
+  ...,
   window_size = 5,
   sigma = 0.85,
   tau = 0.5,
@@ -18,6 +19,8 @@
 \item{cube}{Probability data cube}
 
 \item{type}{Type of smoothing}
+
+\item{...}{Parameters for specific functions}
 
 \item{window_size}{Size of the neighbourhood.}
 

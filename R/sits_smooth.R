@@ -9,7 +9,7 @@
 #'
 #' @param  cube              Probability data cube
 #' @param  type              Type of smoothing
-#' @param  ....              Parameters for specific functions
+#' @param  ...               Parameters for specific functions
 #' @return A tibble with metadata about the output raster objects.
 #' @examples
 #' \dontrun{
@@ -71,6 +71,7 @@ sits_smooth <- function(cube,
 #'
 #' @param  cube              Probability data cube
 #' @param  type              Type of smoothing
+#' @param  ...               Parameters for specific functions
 #' @param  window_size       Size of the neighbourhood.
 #' @param  smoothness        Estimated variance of logit of class_probs
 #'                           (Bayesian smoothing parameter).
@@ -117,6 +118,7 @@ sits_smooth <- function(cube,
 #' @export
 sits_smooth.bayes <- function(cube,
                               type = "bayes",
+                              ...,
                               window_size = 5,
                               smoothness = 20,
                               output_dir = "./",
@@ -206,6 +208,7 @@ sits_smooth.bayes <- function(cube,
 #'
 #' @param  cube              Probability data cube
 #' @param  type              Type of smoothing
+#' @param  ...               Parameters for specific functions
 #' @param  window_size       Size of the neighbourhood.
 #' @param  sigma             Standard deviation of the spatial gaussian kernel
 #' @param  output_dir        Output directory where to out the file
@@ -253,6 +256,7 @@ sits_smooth.bayes <- function(cube,
 #' @export
 sits_smooth.gaussian <- function(cube,
                                  type = "gaussian",
+                                 ...,
                                  window_size = 5,
                                  sigma = 0.85,
                                  output_dir = "./",
@@ -342,6 +346,7 @@ sits_smooth.gaussian <- function(cube,
 #'
 #' @param  cube              Probability data cube
 #' @param  type              Type of smoothing
+#' @param  ...               Parameters for specific functions
 #' @param  window_size       Size of the neighbourhood.
 #' @param  sigma             Standard deviation of the spatial gaussian kernel
 #' @param  tau               Standard deviation of the class probs value
@@ -390,6 +395,7 @@ sits_smooth.gaussian <- function(cube,
 #' @export
 sits_smooth.bilinear <- function(cube,
                                  type = "bilinear",
+                                 ...,
                                  window_size = 5,
                                  sigma = 0.85,
                                  tau = 0.5,

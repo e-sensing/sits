@@ -97,7 +97,7 @@ Suggests:
     wtss,
     zoo
 Remotes: 
-    e-sensing/wtss,
+    e-sensing/wtss
 VignetteBuilder: knitr
 LinkingTo:
     Rcpp

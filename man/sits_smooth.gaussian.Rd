@@ -7,6 +7,7 @@
 \method{sits_smooth}{gaussian}(
   cube,
   type = "gaussian",
+  ...,
   window_size = 5,
   sigma = 0.85,
   output_dir = "./",
@@ -17,6 +18,8 @@
 \item{cube}{Probability data cube}
 
 \item{type}{Type of smoothing}
+
+\item{...}{Parameters for specific functions}
 
 \item{window_size}{Size of the neighbourhood.}
 
