@@ -43,12 +43,12 @@
 #'
 .sits_bdc_access_info <- function(cube, access_key) {
 
-    # get the file information
-    file_info <- cube$file_info[[1]]
     # append access token to path
-    file_info$path <- paste0(file_info$path,"?access_token=",access_key)
-    # include information in the cube
-    cube$file_info[[1]] <- file_info
+    cube <- slider::slide_dfr(cube, function(tile){
+        tile$file_info[[1]]$path <- paste0(tile$file_info[[1]]$path,
+                                           "?access_token=",access_key)
+        tile
+    })
 
     return(cube)
 }
