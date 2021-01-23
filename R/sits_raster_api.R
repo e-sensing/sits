@@ -160,8 +160,11 @@
     rast <- suppressWarnings(terra::rast(band$path))
     # extract the values
     values <- tibble::as_tibble(terra::extract(rast, xy))
+    # get the timeline
+    timeline <- sits_timeline(cube)
     # terra includes an ID (remove it)
-    values <- values[, -1]
+    if (ncol(values) > length(timeline))
+        values <- values[, -1]
     # is the data valid?
     assertthat::assert_that(nrow(values) == nrow(xy),
         msg = ".sits_raster_api_extract - error in retrieving data"
@@ -355,7 +358,7 @@
         overwrite = overwrite,
         wopt = list(
             gdal = opt_comp,
-            format = format,
+            filetype = format,
             datatype = datatype
         )
     ))
