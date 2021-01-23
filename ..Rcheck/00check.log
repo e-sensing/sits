@@ -1,9 +1,0 @@
-* using log directory ‘/Users/gilbertocamara/sits/..Rcheck’
-* using R version 4.0.3 (2020-10-10)
-* using platform: x86_64-apple-darwin17.0 (64-bit)
-* using session charset: UTF-8
-* checking for file ‘./DESCRIPTION’ ... ERROR
-Champ requis mais manquant ou vide :
-  ‘Author’
-* DONE
-Status: 1 ERROR

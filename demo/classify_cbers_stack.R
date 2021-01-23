@@ -54,7 +54,7 @@ cbers_probs <- sits_classify(cbers_cube,
 plot(cbers_probs)
 
 # smoothen the probabibilities with bayesian estimator
-cbers_bayes <- sits_smooth_bayes(cbers_probs, output_dir = tempdir())
+cbers_bayes <- sits_smooth(cbers_probs, output_dir = tempdir())
 # label the resulting probs maps
 cbers_label <- sits_label_classification(cbers_bayes, output_dir = tempdir())
 

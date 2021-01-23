@@ -55,7 +55,7 @@ s2_probs <- sits_classify(s2_cube,
 # plot the probabilities
 plot(s2_probs)
 
-s2_bayes <- sits_smooth_bayes(s2_probs, output_dir = tempdir())
+s2_bayes <- sits_smooth(s2_probs, output_dir = tempdir())
 
 s2_label <- sits_label_classification(s2_bayes, output_dir = tempdir())
 

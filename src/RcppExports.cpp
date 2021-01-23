@@ -94,6 +94,32 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// kernel_estimator
+NumericVector kernel_estimator(const NumericMatrix& data, const NumericMatrix& kernel);
+RcppExport SEXP _sits_kernel_estimator(SEXP dataSEXP, SEXP kernelSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< const NumericMatrix& >::type data(dataSEXP);
+    Rcpp::traits::input_parameter< const NumericMatrix& >::type kernel(kernelSEXP);
+    rcpp_result_gen = Rcpp::wrap(kernel_estimator(data, kernel));
+    return rcpp_result_gen;
+END_RCPP
+}
+// kernel_estimator_non_linear
+NumericVector kernel_estimator_non_linear(const NumericMatrix& data, const NumericMatrix& kernel, const double& tau, const double& scale_factor);
+RcppExport SEXP _sits_kernel_estimator_non_linear(SEXP dataSEXP, SEXP kernelSEXP, SEXP tauSEXP, SEXP scale_factorSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< const NumericMatrix& >::type data(dataSEXP);
+    Rcpp::traits::input_parameter< const NumericMatrix& >::type kernel(kernelSEXP);
+    Rcpp::traits::input_parameter< const double& >::type tau(tauSEXP);
+    Rcpp::traits::input_parameter< const double& >::type scale_factor(scale_factorSEXP);
+    rcpp_result_gen = Rcpp::wrap(kernel_estimator_non_linear(data, kernel, tau, scale_factor));
+    return rcpp_result_gen;
+END_RCPP
+}
 // linear_interp
 IntegerMatrix linear_interp(IntegerMatrix& mtx);
 RcppExport SEXP _sits_linear_interp(SEXP mtxSEXP) {
@@ -162,6 +188,8 @@ static const R_CallMethodDef CallEntries[] = {
     {"_sits_median_neigh", (DL_FUNC) &_sits_median_neigh, 3},
     {"_sits_cbers4_cld_detect", (DL_FUNC) &_sits_cbers4_cld_detect, 11},
     {"_sits_cbers4_cld_values", (DL_FUNC) &_sits_cbers4_cld_values, 4},
+    {"_sits_kernel_estimator", (DL_FUNC) &_sits_kernel_estimator, 2},
+    {"_sits_kernel_estimator_non_linear", (DL_FUNC) &_sits_kernel_estimator_non_linear, 4},
     {"_sits_linear_interp", (DL_FUNC) &_sits_linear_interp, 1},
     {"_sits_linear_interp_vec", (DL_FUNC) &_sits_linear_interp_vec, 1},
     {"_sits_normalize_data", (DL_FUNC) &_sits_normalize_data, 3},
