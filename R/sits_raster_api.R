@@ -355,7 +355,7 @@
         overwrite = overwrite,
         wopt = list(
             gdal = opt_comp,
-            format = format,
+            filetype = format,
             datatype = datatype
         )
     ))

@@ -5,19 +5,22 @@ citEntry(entry = "Manual",
          author       = personList(as.person("Rolf Simoes"),
                                    as.person("Gilberto Camara"),
                                    as.person("Pedro Andrade"),
-                                   as.person("Alexandre Ywata de Carvalho"),
                                    as.person("Lorena Santos"),
                                    as.person("Karine Ferreira"),
-                                   as.person("Victor Maus"),
-                                   as.person("Gilberto Queiroz")),
+                                   as.person("Gilberto Queiroz"),
+                                   as.person("Felipe Souza"),
+                                   as.person("Alexandre Ywata de Carvalho"),
+                                   as.person("Victor Maus")
+                                   ),
          organization = "INPE - Brazilian National Institute for Space Research",
          address      = "Sao Jose dos Campos, Brazil",
-         year         = "2019",
+         year         = "2021",
          url          = "https://github.com/e-sensing/sits",
 
          textVersion  =
-             paste("Rolf Simoes, Gilberto Camara, Pedro Andrade, Alexandre Carvalho,
-             Lorena Santos, Karine Ferreira, Victor Maus, Gilberto Queiroz (2019).",
+             paste("Rolf Simoes, Gilberto Camara, Pedro Andrade,
+             Lorena Santos, Karine Ferreira, Gilberto Queiroz, Felipe Souza,
+             Alexandre Carvalho, Victor Maus,  (2021).",
                    "SITS: Data Analysis and Machine Learning using Satellite Image Time Series.",
                    "URL https://github.com/e-sensing/sits.")
 )

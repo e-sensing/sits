@@ -39,13 +39,12 @@ Authors:
   \item Alexandre Carvalho \email{alexandre.ywata@ipea.gov.br}
   \item Gilberto Queiroz \email{gilberto.queiroz@inpe.br}
   \item Karine Ferreira \email{karine.ferreira@inpe.br}
-  \item Victor Maus \email{vwmaus1@gmail.com}
 }
 
 Other contributors:
 \itemize{
   \item Alber Sanchez \email{alber.ipia@inpe.br} [contributor]
-  \item Adeline Marinho \email{adeline.maciel@inpe.br} [contributor]
+  \item Victor Maus \email{vwmaus1@gmail.com} [contributor]
 }
 
 }

@@ -10,12 +10,12 @@
 .sits_wtss_cube <- function(URL, name) {
 
     # verifies if wtss package is installed
-    if (!requireNamespace("wtss", quietly = TRUE)) {
-        stop("Please install package wtss.", call. = FALSE)
+    if (!requireNamespace("Rwtss", quietly = TRUE)) {
+        stop("Please install package Rwtss.", call. = FALSE)
     }
 
     # describe the cube based on the WTSS API
-    cov <- wtss::describe_coverage(URL, name, .print = FALSE)
+    cov <- Rwtss::describe_coverage(URL, name, .print = FALSE)
     assertthat::assert_that(!purrr::is_null(cov),
         msg = ".sits_wtss_cube: failed to get cube description in WTSS"
     )
@@ -88,8 +88,8 @@
                             label = "NoClass") {
 
     # verifies if wtss package is installed
-    if (!requireNamespace("wtss", quietly = TRUE)) {
-        stop("Please install package wtss.", call. = FALSE)
+    if (!requireNamespace("Rwtss", quietly = TRUE)) {
+        stop("Please install package Rwtss.", call. = FALSE)
     }
 
     # check start and end dates
@@ -101,12 +101,12 @@
           end_date <- lubridate::as_date(timeline[length(timeline)])
       }
 
-    # Temporary hack - WTSS in URL "http://www.esensing.dpi.inpe.br/wtss"
+    # WTSS in URL "http://www.esensing.dpi.inpe.br/wtss"
     # is configured for lowercase bands
     wtss_attributes <- tolower(bands)
 
     # retrieve the time series from the service
-    ts <- wtss::time_series(cube$URL,
+    ts <- Rwtss::time_series(cube$URL,
         name = cube$name,
         attributes = wtss_attributes,
         longitude = longitude,
@@ -142,8 +142,8 @@
 #' @return check     TRUE or FALSE
 .sits_wtss_check <- function(URL, name) {
     # verifies if wtss package is installed
-    if (!requireNamespace("wtss", quietly = TRUE)) {
-        stop("Please install package wtss.", call. = FALSE)
+    if (!requireNamespace("Rwtss", quietly = TRUE)) {
+        stop("Please install package Rwtss.", call. = FALSE)
     }
 
     # check that URL of the WTSS service has been provided
@@ -152,7 +152,7 @@
     )
 
     # is the WTSS service working?
-    coverages <- wtss::list_coverages(URL)
+    coverages <- Rwtss::list_coverages(URL)
     if (purrr::is_null(coverages)) {
           return(FALSE)
       }
