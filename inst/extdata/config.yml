@@ -111,7 +111,7 @@ default:
     OLI                     : &landsat
         bands               :
             SITS            : &oli_bands_sits ["B1", "B2", "B3", "B4", "B5", "B6", "B7", "NDVI", "EVI", "FMASK4"]
-            BDC             : ["band1", "band2", "band3", "band4", "band5", "band6", "band7", "ndvi", "evi", "Fmask4"]
+            BDC             : ["BAND1", "BAND2", "BAND3", "BAND4", "BAND5", "BAND6", "BAND7", "NDVI", "EVI", "FMASK4"]
             RASTER          : *oli_bands_sits
             cloud_band      : "FMASK4"
 
