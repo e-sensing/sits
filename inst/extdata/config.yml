@@ -343,9 +343,9 @@ default:
         BDC                 :
             AWFI_CLD_BAND   : "CMASK"
             AWFI_cld_vls    : 4
-            MSI_CLD_BAND    : "FMASK"
+            MSI_CLD_BAND    : "FMASK4"
             MSI_cld_vls     : [2, 3, 4, 255]
-            OLI_CLD_BAND    : "FMASK"
+            OLI_CLD_BAND    : "FMASK4"
             OLI_cld_vls     : [2, 3, 4, 255]
 
 
