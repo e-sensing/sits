@@ -38,7 +38,7 @@ devtools::install_github("rstudio/keras")
 # Build the keras environment
 library(keras)
 keras::install_keras()
-# Retrieve the "wtss" package (used for data access to the WTSS service)
+# Retrieve the "Rwtss" package (used for data access to the WTSS service)
 devtools::install_github("e-sensing/Rwtss")
 library(wtss)
 # Please install the `sits` package from github
@@ -81,8 +81,8 @@ organised data cubes. Data cubes can be available in the cloud or in a
 local machine. Methods of data input for time series samples include (a)
 obtain data from a time series web services such as INPE’s WTSS (Web
 Series Time Service) or EMBRAPA’s SATVEG; (b) read data stored in a time
-series in the ZOO format \[@Zeileis2005\]; (c) Read a time series from a
-`raster bricks`. Currently, raster classification requires that data
+series in the ZOO format \[@Zeileis2005\]; (c) read a time series from a
+`raster bricks`; (d) read a time series from [Brazil Data Cube](http://brazildatacube.org/) products. Currently, raster classification requires that data
 cubes are organised as a `raster bricks` which can reside on a local or
 remote service.
 
