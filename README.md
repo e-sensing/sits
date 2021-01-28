@@ -3,7 +3,7 @@ Cubes
 ================
 
 <img src="inst/extdata/sticker/sits_sticker.png" alt="SITS icon"
-     width = "200" height = "200"
+     width = "150" height = "150"
      style="float:right; margin-right:10px"  />
 
 ### Overview
