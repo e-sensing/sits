@@ -33,7 +33,7 @@ install.packages(c("devtools", "rmarkdown", "Rcpp", "knitr", "testthat"))
 install.packages(c("DBI","dendextend", "dtwclust","dtwSat", "e1071", "flexclust",
                    "imager", "imputeTS", "kohonen", "lwgeom", "MASS", "methods",
                    "mgcv", "nnet", "proto", "proxy", "ptw", "ranger", "RCurl",
-                   "RSQLite", "signal", "xgboost", "zoo"))
+                   "RSQLite", "signal", "xgboost", "zoo", "rstac"))
 
 # Please install the Keras package from the RStudio repository
 devtools::install_github("rstudio/reticulate")
@@ -42,7 +42,7 @@ devtools::install_github("rstudio/keras")
 library(keras)
 keras::install_keras()
 # Retrieve the "wtss" package (used for data access to the WTSS service)
-devtools::install_github("e-sensing/wtss")
+devtools::install_github("e-sensing/Rwtss")
 library(wtss)
 # Please install the `sits` package from github
 devtools::install_github("e-sensing/sits")
@@ -126,7 +126,7 @@ interval.
 
 ``` r
 # select the "ndvi" band
-samples_ndvi <- sits_select_bands(samples_mt_4bands, ndvi)
+samples_ndvi <- sits_select(samples_mt_4bands, "NDVI")
 # select only the samples with the cerrado label
 samples_cerrado <- dplyr::filter(samples_ndvi, 
                   label == "Cerrado")
@@ -255,7 +255,7 @@ probs_cube <- sits_classify(raster_cube, ml_model = rfor_model)
 
 # label the probability file (by default selecting the class with higher probability)
 # apply a bayesian smoothing to remove outliers
-label_cube <- sits_label_classification(probs_cube, smoothing = "bayesian")
+label_cube <- sits_smooth(probs_cube)
 
 # plot the first raster object with a selected color pallete
 # make a title, define the colors and the labels)
