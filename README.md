@@ -1,10 +1,7 @@
-SITS - Satellite Image Time Series Analysis for Earth Observation Data
-Cubes
-================
+# SITS - Satellite Image Time Series Analysis for Earth Observation Data Cubes <img src="inst/extdata/sticker/sits_sticker.png" alt="SITS icon" align="right" height="150" width="150"/>
 
-<img src="inst/extdata/sticker/sits_sticker.png" alt="SITS icon"
-     width = "150" height = "150"
-     style="float:right; margin-right:10px"  />
+
+
 
 ### Overview
 
