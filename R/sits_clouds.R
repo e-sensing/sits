@@ -112,6 +112,8 @@ sits_cloud_remove <- function(cube,
     nrows <- as.numeric(cube$nrows)
     ncols <- as.numeric(cube$ncols)
 
+    # the full output band
+
     # single instance depends on the number of bands
     single_data_size <- nrows * ncols * nbytes * n_bands
 
@@ -171,11 +173,12 @@ sits_cloud_remove <- function(cube,
     # get the file information from the cube
     file_info <- cube$file_info[[1]]
 
+    # define the parameters for the output files
+    params = .sits_raster_api_params_cube(cube)
     # process the bands
     file_list <- purrr::map(bands_no_cloud, function(bnd) {
         message(paste0("Removing clouds from band ", bnd))
         start_task_time <- lubridate::now()
-
         # find out the information about the band
         info_band <- dplyr::filter(file_info, band == bnd)
         # what is the number of layers?
@@ -185,8 +188,46 @@ sits_cloud_remove <- function(cube,
         start_date <- info_band[1, ]$date
         end_date <- info_band[num_layers, ]$date
 
+        # define the output filename
+        filename <- paste0(
+          data_dir, "/",
+          cube$satellite, "_",
+          cube$sensor, "_",
+          start_date, "_", end_date, "_",
+          bnd, "_CLD_REM", ".tif"
+        )
+
+        # create a raster object
+        r_obj <- suppressWarnings(
+          terra::rast(
+            nrows = params$nrows,
+            ncols = params$ncols,
+            nlyrs = num_layers,
+            xmin = params$xmin,
+            xmax = params$xmax,
+            ymin = params$ymin,
+            ymax = params$ymax,
+            crs = params$crs
+          )
+        )
+
+        assertthat::assert_that(terra::nrow(r_obj) == params$nrows,
+                msg = ".sits_raster_api_write: unable to create raster object"
+        )
+        # open the file with writeStart
+        suppressWarnings(terra::writeStart(
+          r_obj,
+          filename = filename,
+          overwrite = TRUE,
+          wopt = list(
+            gdal = c("COMPRESS = LZW"),
+            filetype = "GTiff",
+            datatype = "INT2U"
+          )
+        ))
+
         # read the blocks
-        values <- purrr::map(c(1:blocks$n), function(b) {
+        bs <- purrr::map(c(1:blocks$n), function(b) {
             # measure performance
             start_block_time <- lubridate::now()
             # define the extent
@@ -205,35 +246,22 @@ sits_cloud_remove <- function(cube,
                 impute_fn = impute_fn,
                 multicores = multicores
             )
-
+            # rescale the data
+            mult_factor <- 1/as.numeric(cube$scale_factors[[1]][b])
+            values_block <- mult_factor * values_block
+            # write a block of values
+            terra::writeValues(r_obj,
+                               as.matrix(values_block),
+                               start = blocks$row[b],
+                               nrows = blocks$nrows[b])
 
             task <- paste0("process block ", b, " of band ", bnd)
             .sits_processing_task_time(task, start_block_time)
 
-            return(values_block)
+            return(b)
         })
-
-        # join the values to make up the output band
-        # create a data.table joining the values
-        values_cld_free <- data.table::as.data.table(do.call(rbind, values))
-
-        # define the output filename
-        filename <- paste0(
-            data_dir, "/",
-            cube$satellite, "_",
-            cube$sensor, "_",
-            start_date, "_", end_date, "_",
-            bnd, "_CLD_REM", ".tif"
-        )
-
-        # write the interpolated values
-        .sits_raster_api_write(
-            params = .sits_raster_api_params_cube(cube),
-            num_layers = num_layers,
-            values = values_cld_free,
-            filename = filename,
-            datatype = "INT2U"
-        )
+        # close the file
+        terra::writeStop(r_obj)
 
         task <- paste0("Removed clouds from band ", bnd)
         .sits_processing_task_time(task, start_task_time)

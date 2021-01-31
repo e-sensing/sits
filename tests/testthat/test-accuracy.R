@@ -42,7 +42,7 @@ test_that("Accuracy areas", {
 
     samples_mt_2bands <- dplyr::filter(samples_mt_2bands, label %in%
         c("Forest", "Pasture", "Soy_Corn"))
-    rfor_model <- sits_train(samples_mt_2bands, sits_rfor(num_trees = 200))
+    rfor_model <- sits_train(samples_mt_2bands, sits_rfor(num_trees = 1000))
 
     ndvi_file <- c(system.file("extdata/raster/mod13q1/sinop-ndvi-2014.tif",
         package = "sits"
@@ -90,6 +90,6 @@ test_that("Accuracy areas", {
         sits_accuracy(sinop_2014_label, ground_truth)))
         )
 
-    expect_true(as.numeric(as$accuracy$user["Forest"]) > 0.5)
+    expect_true(as.numeric(as$accuracy$user["Forest"]) > 0.8)
     expect_true(as.numeric(as$accuracy$producer["Pasture"]) > 0.5)
 })
