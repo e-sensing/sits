@@ -11,8 +11,7 @@ Authors@R: c(person('Rolf', 'Simoes', role = c('aut'), email = 'rolf.simoes@inpe
              person('Gilberto', 'Queiroz', role = c('aut'), email = 'gilberto.queiroz@inpe.br'),
              person('Karine', 'Ferreira', role = c('aut'), email = 'karine.ferreira@inpe.br'),
              person('Alber', 'Sanchez', role = c('ctb'), email = 'alber.ipia@inpe.br'),
-             person('Adeline', 'Marinho', role = c('ctb'), email = 'adeline.maciel@inpe.br'),
-             person('Victor', 'Maus', role = c('aut'), email = 'vwmaus1@gmail.com')
+             person('Victor', 'Maus', role = c('ctb'), email = 'vwmaus1@gmail.com')
              )
 Maintainer: Gilberto Camara <gilberto.camara@inpe.br>
 Description: A set of tools for working with satellite image time series, both as individual data or as part of data cubes.
@@ -87,6 +86,7 @@ Suggests:
     Rcpp,
     RSQLite,
     rstac,
+    Rwtss,
     signal,
     sp,
     stars,
@@ -94,10 +94,9 @@ Suggests:
     testthat,
     xgboost,
     xml2,
-    wtss,
     zoo
 Remotes: 
-    e-sensing/wtss
+    e-sensing/Rwtss
 VignetteBuilder: knitr
 LinkingTo:
     Rcpp

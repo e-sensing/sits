@@ -61,12 +61,12 @@ Elastic Compute Cloud (or EC2). The AMI has the following settings: SITS
 have been updated as of 21 August 2020. The AMI is avaliable for the
 following regions:
 
-  - [South America
+-   [South America
     (sa-east-1)](https://console.aws.amazon.com/ec2/home?region=sa-east-1#launchAmi=ami-0567d9e8bca925a8d)
-  - [Frankfurt(eu-central-1)](https://console.aws.amazon.com/ec2/home?region=eu-central-1#launchAmi=ami-088e0eb8b0c3a74e3)
-  - [US East
+-   [Frankfurt(eu-central-1)](https://console.aws.amazon.com/ec2/home?region=eu-central-1#launchAmi=ami-088e0eb8b0c3a74e3)
+-   [US East
     (us-east-1)](https://console.aws.amazon.com/ec2/home?region=us-east-1#launchAmi=ami-02aa6bc45d45f75b9)
-  - [Asia Pacific
+-   [Asia Pacific
     Singapore(ap-southeast-1)](https://console.aws.amazon.com/ec2/home?region=ap-southeast-1#launchAmi=ami-025e0b3b65bedb145)
 
 When you create an EC2 instance based on this AMI, ensure that your
@@ -96,12 +96,11 @@ SITS”](https://github.com/e-sensing/sits-docs/blob/master/doc/timeseries.pdf).
 ### Visualization
 
     #> SITS - satellite image time series analysis.
-    #> Loaded sits v0.9.7.
+    #> Loaded sits v0.9.8.
     #>         See ?sits for help, citation("sits") for use in publication.
     #>         See demo(package = "sits") for examples.
     #> Using configuration file: /Users/gilbertocamara/Library/R/4.0/library/sits/extdata/config.yml
     #> Users can provide additional configurations in ~/.sits/config.yml
-    #> 
 
 ``` r
 cerrado_2classes[1:3,]
@@ -137,11 +136,8 @@ plot(samples_cerrado)
 <div class="figure" style="text-align: center">
 
 <img src="./inst/extdata/markdown/figures/samples_cerrado.png" alt="Samples for NDVI band for Cerrado class" width="480" />
-
 <p class="caption">
-
 Samples for NDVI band for Cerrado class
-
 </p>
 
 </div>
@@ -165,8 +161,8 @@ data archives, methods for satellite image time series analysis need to
 deal with data sets that are *noisy* and *non-homogeneous*. For data
 filtering, `sits` supports Savitzky–Golay (`sits_sgolay()`), Whittaker
 (`sits_whittaker()`), envelope (`sits_envelope()`) and the “cloud
-filter” (`sits_cloud_filter()`). As an example, we show how to apply
-the Whitakker smoother to a 16-year NDVI time series. For more details,
+filter” (`sits_cloud_filter()`). As an example, we show how to apply the
+Whitakker smoother to a 16-year NDVI time series. For more details,
 please see the vignette [“Satellite Image Time Series Filtering with
 SITS”](https://github.com/e-sensing/sits-docs/blob/master/vignettes/filtering.pdf)
 
@@ -188,19 +184,19 @@ SITS provides support for the classification of both individual time
 series as well as data cubes. The following machine learning methods are
 available in SITS:
 
-  - Linear discriminant analysis (`sits_lda`)
-  - Quadratic discriminant analysis (`sits_qda`)
-  - Multinomial logit and its variants ‘lasso’ and ‘ridge’ (`sits_mlr`)
-  - Support vector machines (`sits_svm`)
-  - Random forests (`sits_rfor`)
-  - Extreme gradient boosting (`sits_xgboost`)
-  - Deep learning (DL) using multi-layer perceptrons
+-   Linear discriminant analysis (`sits_lda`)
+-   Quadratic discriminant analysis (`sits_qda`)
+-   Multinomial logit and its variants ‘lasso’ and ‘ridge’ (`sits_mlr`)
+-   Support vector machines (`sits_svm`)
+-   Random forests (`sits_rfor`)
+-   Extreme gradient boosting (`sits_xgboost`)
+-   Deep learning (DL) using multi-layer perceptrons
     (`sits_deeplearning`)
-  - DL with 1D convolutional neural networks (`sits_FCN`)
-  - DL combining 1D CNN and multi-layer perceptron networks
+-   DL with 1D convolutional neural networks (`sits_FCN`)
+-   DL combining 1D CNN and multi-layer perceptron networks
     (`sits_TempCNN`)
-  - DL using 1D version of ResNet (`sits_ResNet`)
-  - DL using a combination of long-short term memory (LSTM) and 1D CNN
+-   DL using 1D version of ResNet (`sits_ResNet`)
+-   DL using a combination of long-short term memory (LSTM) and 1D CNN
     (`sits_LSTM_FCN`)
 
 The following example illustrate how to train a dataset and classify an
@@ -213,7 +209,6 @@ format using the function `sits_show_prediction` or graphically using
 `plot`.
 
 ``` r
-
 # Train a machine learning model for the mato grosso dataset using SVM
 samples_mt_2bands <- sits_select(samples_mt_4bands, bands = c("ndvi", "evi"))
 svm_model <- sits_train(data = samples_mt_2bands, 
@@ -270,11 +265,8 @@ plot(label_cube, time = 1, title = "SINOP-MT - 2013/2014")
 <div class="figure" style="text-align: center">
 
 <img src="./inst/extdata/markdown/figures/sinop_bayes.png" alt="Image classified with XGBoost" width="700" />
-
 <p class="caption">
-
 Image classified with XGBoost
-
 </p>
 
 </div>
@@ -283,29 +275,29 @@ Image classified with XGBoost
 
 For more information, please see the vignettes
 
-  - [“SITS: Data analysis and machine learning for data cubes using
+-   [“SITS: Data analysis and machine learning for data cubes using
     satellite image time
     series”](https://github.com/e-sensing/sits-docs/blob/master/doc/sits.pdf)
 
-  - [“Accessing time series information in
+-   [“Accessing time series information in
     SITS”](https://github.com/e-sensing/sits-docs/blob/master/doc/timeseries.pdf)
 
-  - [“Clustering of satellite image time series with
+-   [“Clustering of satellite image time series with
     SITS”](https://github.com/e-sensing/sits-docs/blob/master/doc/clustering.pdf)
 
-  - [“Satellite image time series filtering with
+-   [“Satellite image time series filtering with
     SITS”](https://github.com/e-sensing/sits-docs/blob/master/doc/filters.pdf)
 
-  - [“Time series classification using machine
+-   [“Time series classification using machine
     learning”](https://github.com/e-sensing/sits-docs/blob/master/doc/machinelearning.pdf)
 
-  - [“Post classification smoothing using Bayesian techniques in
+-   [“Post classification smoothing using Bayesian techniques in
     SITS”](https://github.com/e-sensing/sits-docs/blob/master/doc/smoothing.pdf)
 
 #### Package status of SITS
 
 |                    | Status                                                                                                                                                                                      |
-| ------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+|--------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
 | Code Build         | [<img src="http://www.dpi.inpe.br/jenkins/buildStatus/icon?job=sits-build-ubuntu-16.04">](http://www.dpi.inpe.br/jenkins/job/sits-build-ubuntu-16.04/lastBuild/consoleFull)                 |
 | Code Check         | [<img src="http://www.dpi.inpe.br/jenkins/buildStatus/icon?job=sits-check-ubuntu-16.04">](http://www.dpi.inpe.br/jenkins/job/sits-check-ubuntu-16.04/lastBuild/consoleFull)                 |
 | Code Documentation | [<img src="http://www.dpi.inpe.br/jenkins/buildStatus/icon?job=sits-documentation-ubuntu-16.04">](http://www.dpi.inpe.br/jenkins/job/sits-documentation-ubuntu-16.04/lastBuild/consoleFull) |
