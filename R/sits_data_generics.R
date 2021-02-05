@@ -78,6 +78,86 @@ sits_bands.patterns <- function(data) {
 
     return(bands)
 }
+#' @title Replaces the names of the bands
+#' @name sits_bands<-
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
+#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
+#'
+#' @description  Replace the names of the bands of time series in a sits tibble
+#'               or in a metadata cube
+#'               For details see:
+#' \itemize{
+#'  \item{"time series": }{see \code{\link{"sits_bands<-.sits"}}}
+#'  \item{"data cube": }{see \code{\link{"sits_bands<-.cube"}}}
+#' }
+#'
+#' @param x         Valid sits tibble (time series or a cube)
+#' @param value     Vector of bands
+#' @return An updated data set with the new bands.
+#'
+#' @export
+"sits_bands<-" = function(x, value) {
+    # get the meta-type (sits or cube)
+    x <- .sits_config_data_meta_type(x)
+
+    UseMethod("sits_bands<-", x)
+}
+#' @title Replaces the names of the bands of a set of timeseries
+#' @name sits_bands<-.sits
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
+#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
+#'
+#' @description  Replaces the names of the bands of time series in a sits tibble
+#'
+#' @param x         Valid sits tibble (time series or a cube)
+#' @param value     Vector of bands
+#' @return An updated data set with the new bands.
+#'
+#' @examples
+#' # Replace the name of bands for the samples for Mato Grosso
+#' sits_bands(samples_mt_4bands) <- c("ndvi", "evi", "nir", "mir")
+#' @export
+"sits_bands<-.sits" =  function(x, value) {
+    # backward compatibility
+    x <- .sits_tibble_rename(x)
+
+    ts <- sits_time_series(x)
+    assertthat::assert_that(ncol(ts) == length(value) + 1,
+                          msg = "Invalid number of bands to be replaced")
+
+    rows <- slider::slide(x, function(row){
+        ts <- sits_time_series(row)
+        names(ts) <- c("Index", value)
+        row$time_series[[1]] <- ts
+        return(row)
+    })
+    x <- dplyr::bind_rows(rows)
+
+  return(x)
+}
+#' @title Replaces the names of the bands of a cube
+#' @name sits_bands<-.cube
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
+#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
+#'
+#' @description  Finds the names of the bands of a cube
+#'
+#' @param x         Valid sits tibble (time series or a cube)
+#' @param value     Vector of bands
+#' @return An updated data cube with the new bands.
+#'
+#' @export
+"sits_bands<-.cube" = function(x, value) {
+    rows <- slider::slide(x, function(row){
+        old_bands <- row$bands[[1]]
+        assertthat::assert_that(length(old_bands) == length(value),
+                                msg = "replacement bands have wrong length")
+        row$bands[[1]] <- value
+        return(row)
+    })
+    x <- dplyr::bind_rows(rows)
+    return(x)
+}
 #' @title Get the bounding box of the data
 #' @name sits_bbox
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
@@ -163,7 +243,7 @@ sits_bbox.cube <- function(data) {
 #'  \item{"time series": }{see \code{\link{sits_merge.sits}}}
 #'  \item{"data cube": }{see \code{\link{sits_merge.cube}}}
 #' }
-#'
+#' @return merged data sets
 #' @export
 sits_merge <- function(data1, data2) {
     # get the meta-type (sits or cube)
@@ -302,6 +382,7 @@ sits_merge.cube <- function(data1, data2) {
 #'  \item{"time series": }{see \code{\link{sits_select.sits}}}
 #'  \item{"data cube": }{see \code{\link{sits_select.cube}}}
 #' }
+#' @return data sets with only the bands selected
 #' @export
 sits_select <- function(data, bands) {
     # get the meta-type (sits or cube)

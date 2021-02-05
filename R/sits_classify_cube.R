@@ -46,7 +46,7 @@
         msg = "sits_classify: original samples not saved"
     )
     # precondition - are the cube bands the same as the sample bands?
-    cube_bands <- .sits_cube_bands(cube)
+    cube_bands <- sits_bands(cube)
     bands <- sits_bands(samples)
     assertthat::assert_that(
       all(bands %in% cube_bands),

@@ -148,7 +148,6 @@ sits_cloud_remove <- function(cube,
 #' @param impute_fn   imputation function to remove NA
 #' @param multicores  number of cores to use
 #'
-#'
 #' @return            a tibble with date, band and path information.
 .sits_clouds_interpolate <- function(cube,
                                      data_dir,

@@ -29,6 +29,8 @@
 #' @param crs                CRS for cube (EPSG code or PROJ4 string).
 #' @param file_info          Tibble with information about stacks (for stacks)
 #'
+#' @return  A tibble containing a data cube
+#'
 .sits_cube_create <- function(type,
                               URL = NA,
                               satellite,
@@ -110,6 +112,7 @@
 #' @param  output_dir        prefix of the output files.
 #' @param  version           version of the output files
 #' @return                   output data cube
+#'
 .sits_cube_classified <- function(cube, samples, name, sub_image,
                                   output_dir, version) {
     # ensure metadata tibble exists
@@ -248,6 +251,7 @@
 #' @param start_date     starting date of the time series classification.
 #' @param end_date       end date of the time series classification.
 #' @return               classification file for the required interval.
+#'
 .sits_cube_class_band_name <- function(name, type, start_date, end_date) {
     y1 <- lubridate::year(start_date)
     m1 <- lubridate::month(start_date)
@@ -257,33 +261,6 @@
     band_name <- paste0(name, "_", type, "_", y1, "_", m1, "_", y2, "_", m2)
 
     return(band_name)
-}
-
-#' @title Find the bands associated to a cube
-#' @name .sits_cube_bands
-#' @keywords internal
-#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
-#'
-#' @description    Given a data cube, retrieves the bands
-#'
-#' @param cube          Metadata about a data cube
-#' @return  Vector of bands available in the data cube
-.sits_cube_bands <- function(cube) {
-    return(cube$bands[[1]])
-}
-#' @title Set the bands associated to a cube
-#' @name .sits_cube_bands_set
-#' @keywords internal
-#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
-#'
-#' @description    Given a data cube and a set of bands, sets the bands
-#'
-#' @param cube          Metadata about a data cube
-#' @param bands         Bands to be assigned to the cube
-#' @return  Vector of bands available in the data cube
-.sits_cube_bands_set <- function(cube, bands) {
-    cube$bands[[1]] <- bands
-    return(cube)
 }
 
 #' @title Check that the cube is valid

@@ -11,6 +11,9 @@ sits_select(data, bands)
 
 \item{bands}{Character vector with the names of the bands}
 }
+\value{
+data sets with only the bands selected
+}
 \description{
 For details see:
 \itemize{

@@ -14,7 +14,7 @@ test_that("Reading a raster cube", {
     )
 
     # get bands names
-    bands <- sits:::.sits_cube_bands(raster_cube)
+    bands <- sits_bands(raster_cube)
     expect_true(bands %in% c("NDVI"))
 
     params <- sits:::.sits_raster_api_params_file(raster_cube$file_info[[1]]$path)
