@@ -226,7 +226,7 @@ plot(class.tb, bands = c("ndvi", "evi"))
 ![](man/figures/README-unnamed-chunk-8-1.png)<!-- -->
 
 The following example shows how to classify a data cube organised as a
-set of raster bricks. First, we ned to build a model based on the the
+set of raster bricks. First, we need to build a model based on the the
 same bands as the data cube.
 
 ``` r
