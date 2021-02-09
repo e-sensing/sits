@@ -4,12 +4,12 @@
 \alias{sits_bands<-}
 \title{Replaces the names of the bands}
 \usage{
-sits_bands(x, bands) <- value
+sits_bands(x) <- value
 }
 \arguments{
 \item{x}{Valid sits tibble (time series or a cube)}
 
-\item{bands}{Vector of bands}
+\item{value}{Vector of bands}
 }
 \value{
 An updated data set with the new bands.
