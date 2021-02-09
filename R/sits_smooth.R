@@ -210,25 +210,24 @@ sits_smooth.bayes <- function(cube,
         res <- raster::brick(chunk, nl = raster::nlayers(chunk))
 
         # process bayesian
-        res[] <- bmv::bayes_multiv_smooth(m = logit,
-                                          m_nrow = raster::nrow(chunk),
-                                          m_ncol = raster::ncol(chunk),
-                                          w = window,
-                                          sigma = smoothness,
-                                          nu = 1,
-                                          covar = covar)
+        res[] <- bayes_multiv_smooth(m = logit,
+                                     m_nrow = raster::nrow(chunk),
+                                     m_ncol = raster::ncol(chunk),
+                                     w = window,
+                                     sigma = smoothness,
+                                     covar = covar)
         return(res)
     }
 
     purrr::map2(in_files, out_files,
                 function(in_file, out_file) {
-                    .sits_split_cluster(x = in_file,
+                    .sits_split_cluster(file = in_file,
                                         n_tiles = n_tiles,
                                         pad_rows = ceiling(window_size / 2) - 1,
                                         fun = .do_bayes,
                                         args = list(
                                             window = window,
-                                            sigma = smoothness,
+                                            smoothness = smoothness,
                                             covar = covar
                                         ),
                                         cl = cl,
