@@ -14,7 +14,7 @@ test_that("Reading a raster cube", {
     )
 
     # get bands names
-    bands <- sits:::.sits_cube_bands(raster_cube)
+    bands <- sits_bands(raster_cube)
     expect_true(bands %in% c("NDVI"))
 
     params <- sits:::.sits_raster_api_params_file(raster_cube$file_info[[1]]$path)
@@ -54,8 +54,12 @@ test_that("Creating a raster stack cube and selecting bands", {
 test_that("Creating, merging cubes from BDC", {
     testthat::skip_on_cran()
 
-    # create a raster cube file based on the information about the files
-    cbers_022024_ndvi <- sits_cube(
+    # Try to find the access key as an environment variable
+    bdc_access_key <- Sys.getenv("BDC_ACCESS_KEY")
+
+    if (nchar(bdc_access_key) > 0) {
+      # create a raster cube file based on the information about the files
+      cbers_022024_ndvi <- sits_cube(
         type = "BDC",
         name = "cbers_022024_ndvi",
         bands = "NDVI",
@@ -64,13 +68,13 @@ test_that("Creating, merging cubes from BDC", {
         collection = "CB4_64_16D_STK-1",
         start_date = "2018-09-01",
         end_date = "2019-08-28"
-    )
+      )
 
-    if (purrr::is_null(cbers_022024_ndvi)) {
-          skip("BDC is not accessible")
+      if (purrr::is_null(cbers_022024_ndvi)) {
+        skip("BDC is not accessible")
       }
 
-    cbers_022024_evi <- sits_cube(
+      cbers_022024_evi <- sits_cube(
         type = "BDC",
         name = "cbers_022024_evi",
         bands = "EVI",
@@ -79,13 +83,71 @@ test_that("Creating, merging cubes from BDC", {
         collection = "CB4_64_16D_STK-1",
         start_date = "2018-09-01",
         end_date = "2019-08-28"
-    )
+      )
 
-    cbers_merge <- sits_merge(cbers_022024_ndvi, cbers_022024_evi)
-    expect_true(all(sits_bands(cbers_merge) %in% c("NDVI", "EVI")))
-    expect_true(all(sits_timeline(cbers_merge) ==
-                      sits_timeline(cbers_022024_ndvi)))
+      cbers_merge <- sits_merge(cbers_022024_ndvi, cbers_022024_evi)
+      expect_true(all(sits_bands(cbers_merge) %in% c("NDVI", "EVI")))
+      expect_true(all(sits_timeline(cbers_merge) ==
+                        sits_timeline(cbers_022024_ndvi)))
+    }
+
+
 })
+
+test_that("Creating cubes from AWS", {
+    testthat::skip_on_cran()
+    # check "AWS_ACCESS_KEY_ID" - mandatory one per user
+    aws_access_key_id <- Sys.getenv("AWS_ACCESS_KEY_ID")
+    # check "AWS_SECRET_ACCESS_KEY" - mandatory one per user
+    aws_secret_access_key <- Sys.getenv("AWS_SECRET_ACCESS_KEY")
+
+    if (nchar(aws_access_key_id) > 0 & nchar(aws_secret_access_key) > 0) {
+
+      s2_cube <- sits_cube(
+          type = "S2_L2A_AWS",
+          name = "T20LKP_2018_2019",
+          satellite = "SENTINEL-2",
+          sensor = "MSI",
+          tiles = "20LKP",
+          bands = c("B08", "SCL"),
+          s2_aws_resolution = "60m",
+          start_date = as.Date("2018-07-18"),
+          end_date = as.Date("2018-07-23")
+      )
+
+      expect_true(all(sits_bands(s2_cube) %in% c("B08", "SCL")))
+
+      file_info <- s2_cube$file_info[[1]]
+      r <- terra::rast(file_info[1,]$path)
+
+      expect_equal(s2_cube$nrows, terra::nrow(r))
+      expect_equal(s2_cube$ncols, terra::ncol(r))
+      expect_equal(s2_cube$xmax, terra::xmax(r))
+      expect_equal(s2_cube$xmin, terra::xmin(r))
+
+      path_images <-  paste0(tempdir(),"/images/")
+      suppressWarnings(dir.create(path_images))
+
+      gc_cube <- sits_cube(type        = "GDALCUBES",
+                           cube        = s2_cube,
+                           path_db     = paste0(tempdir(), "/cube.db"),
+                           path_images = path_images,
+                           period      = "P5D",
+                           agg_method  = "median",
+                           resampling  = "bilinear")
+    }
+
+    expect_equal(s2_cube$nrows, gc_cube$nrows)
+    expect_equal(s2_cube$ncols, gc_cube$ncols)
+    expect_equal(s2_cube$xmax, gc_cube$xmax)
+    expect_equal(s2_cube$xmin, gc_cube$xmin)
+
+    file_info2 <- gc_cube$file_info[[1]]
+
+    expect_equal(nrow(file_info), nrow(file_info2))
+
+})
+
 test_that("Cube copy", {
     data_dir <- system.file("extdata/raster/cbers", package = "sits")
 

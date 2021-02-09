@@ -8,7 +8,6 @@
   type = "S2_L2A_AWS",
   ...,
   name = NULL,
-  bucket = NULL,
   bands = NULL,
   tiles = NULL,
   start_date = NULL,
@@ -22,8 +21,6 @@
 \item{...}{other parameters to be passed for specific types}
 
 \item{name}{output data cube.}
-
-\item{bucket}{name of S3 bucket}
 
 \item{bands}{vector of bands.}
 

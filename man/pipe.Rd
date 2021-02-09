@@ -6,6 +6,9 @@
 \arguments{
 \item{lhs, rhs}{A visualisation and a function to apply to it.}
 }
+\value{
+Apply lhs as input to rhs function
+}
 \description{
 Magrittr compound assignment pipe-operator.
 }

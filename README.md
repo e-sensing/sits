@@ -1,10 +1,7 @@
-SITS - Satellite Image Time Series Analysis for Earth Observation Data
-Cubes
-================
+# SITS - Satellite Image Time Series Analysis for Earth Observation Data Cubes <img src="inst/extdata/sticker/sits_sticker.png" alt="SITS icon" align="right" height="150" width="150"/>
 
-<img src="inst/extdata/sticker/sits_sticker.png" alt="SITS icon"
-     width = "200" height = "200"
-     style="float:right; margin-right:10px"  />
+
+
 
 ### Overview
 
@@ -33,7 +30,7 @@ install.packages(c("devtools", "rmarkdown", "Rcpp", "knitr", "testthat"))
 install.packages(c("DBI","dendextend", "dtwclust","dtwSat", "e1071", "flexclust",
                    "imager", "imputeTS", "kohonen", "lwgeom", "MASS", "methods",
                    "mgcv", "nnet", "proto", "proxy", "ptw", "ranger", "RCurl",
-                   "RSQLite", "signal", "xgboost", "zoo"))
+                   "RSQLite", "signal", "xgboost", "zoo", "rstac"))
 
 # Please install the Keras package from the RStudio repository
 devtools::install_github("rstudio/reticulate")
@@ -41,8 +38,8 @@ devtools::install_github("rstudio/keras")
 # Build the keras environment
 library(keras)
 keras::install_keras()
-# Retrieve the "wtss" package (used for data access to the WTSS service)
-devtools::install_github("e-sensing/wtss")
+# Retrieve the "Rwtss" package (used for data access to the WTSS service)
+devtools::install_github("e-sensing/Rwtss")
 library(wtss)
 # Please install the `sits` package from github
 devtools::install_github("e-sensing/sits")
@@ -84,8 +81,8 @@ organised data cubes. Data cubes can be available in the cloud or in a
 local machine. Methods of data input for time series samples include (a)
 obtain data from a time series web services such as INPE’s WTSS (Web
 Series Time Service) or EMBRAPA’s SATVEG; (b) read data stored in a time
-series in the ZOO format \[@Zeileis2005\]; (c) Read a time series from a
-`raster bricks`. Currently, raster classification requires that data
+series in the ZOO format \[@Zeileis2005\]; (c) read a time series from a
+`raster bricks`; (d) read a time series from [Brazil Data Cube](http://brazildatacube.org/) products. Currently, raster classification requires that data
 cubes are organised as a `raster bricks` which can reside on a local or
 remote service.
 
@@ -126,7 +123,7 @@ interval.
 
 ``` r
 # select the "ndvi" band
-samples_ndvi <- sits_select_bands(samples_mt_4bands, ndvi)
+samples_ndvi <- sits_select(samples_mt_4bands, "NDVI")
 # select only the samples with the cerrado label
 samples_cerrado <- dplyr::filter(samples_ndvi, 
                   label == "Cerrado")
@@ -255,7 +252,7 @@ probs_cube <- sits_classify(raster_cube, ml_model = rfor_model)
 
 # label the probability file (by default selecting the class with higher probability)
 # apply a bayesian smoothing to remove outliers
-label_cube <- sits_label_classification(probs_cube, smoothing = "bayesian")
+label_cube <- sits_smooth(probs_cube)
 
 # plot the first raster object with a selected color pallete
 # make a title, define the colors and the labels)

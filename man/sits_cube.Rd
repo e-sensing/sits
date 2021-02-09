@@ -13,6 +13,9 @@ sits_cube(type = "RASTER", ...)
 
 \item{...}{Other parameters to be passed for specific types}
 }
+\value{
+The description of a sits cube
+}
 \description{
 Defines a cube to retrieve data. This is a generic function.
 Cubes can be of the following types. See each function description for the

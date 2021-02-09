@@ -51,7 +51,7 @@ Imports:
     sf (>= 0.9),
     slider (>= 0.1.5),
     stats,
-    terra (>= 0.9),
+    terra (>= 1.0.10),
     tibble (>= 3.0),
     tidyr,
     utils

@@ -21,6 +21,7 @@
 #'                    "BDC_TILE", "S2_L2A_AWS", "GDALCUBES", "PROBS",
 #'                    "CLASSIFIED")
 #' @param ...               Other parameters to be passed for specific types
+#' @return  The description of a sits cube
 #'
 #' @export
 sits_cube <- function(type = "RASTER", ...) {
@@ -423,7 +424,6 @@ sits_cube.bdc_cube <- function(type = "BDC", ...,
 #' @param type              type of cube
 #' @param ...               other parameters to be passed for specific types
 #' @param name              output data cube.
-#' @param bucket            name of S3 bucket
 #' @param bands             vector of bands.
 #' @param tiles             vector of tiles
 #' @param start_date        starting date of the cube
@@ -462,7 +462,6 @@ sits_cube.bdc_cube <- function(type = "BDC", ...,
 #'
 sits_cube.s2_l2a_aws_cube <- function(type = "S2_L2A_AWS", ...,
                                       name = NULL,
-                                      bucket = NULL,
                                       bands = NULL,
                                       tiles = NULL,
                                       start_date = NULL,

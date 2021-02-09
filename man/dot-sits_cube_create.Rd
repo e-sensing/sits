@@ -80,6 +80,9 @@
 
 \item{file_info}{Tibble with information about stacks (for stacks)}
 }
+\value{
+A tibble containing a data cube
+}
 \description{
 Print information and save metadata about a data cube.
 }

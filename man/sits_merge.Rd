@@ -11,6 +11,9 @@ sits_merge(data1, data2)
 
 \item{data2}{sits tibble or cube to be merged.}
 }
+\value{
+merged data sets
+}
 \description{
 For details see:
 \itemize{
