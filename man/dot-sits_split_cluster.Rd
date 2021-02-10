@@ -4,14 +4,23 @@
 \alias{.sits_split_cluster}
 \title{parallel raster brick}
 \usage{
-.sits_split_cluster(file, n_tiles, pad_rows, fun, args = NULL, cl = NULL, ...)
+.sits_split_cluster(
+  file,
+  n_tiles,
+  overlapping_rows,
+  fun,
+  args = NULL,
+  cl = NULL,
+  ...
+)
 }
 \arguments{
-\item{file}{a path to raster file.}
+\item{file}{a path to raster (brick) file.}
 
-\item{n_tiles}{number of horizontal chunks to break the raster.}
+\item{n_tiles}{number of vertical chunks to break the raster.
+For now, only vertical blocking is supported.}
 
-\item{pad_rows}{number of overlaping rows of each chunk.}
+\item{overlapping_rows}{number of overlapping rows of each chunk.}
 
 \item{fun}{a function that receives RasterBrick and
 returns any Raster*.}

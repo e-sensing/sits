@@ -12,6 +12,7 @@
   smoothness = 20,
   covar = FALSE,
   multicores = 1,
+  memory = 1,
   output_dir = "./",
   version = "v1"
 )
@@ -34,6 +35,9 @@ matrix must be computed as the prior covariance.}
 
 \item{multicores}{Number of process to run the Bayesian smoothing in
 snow subprocess.}
+
+\item{memory}{Maximul overall memory (in GB) to run the Bayesian
+smoothing.}
 
 \item{output_dir}{Output directory where to out the file}
 

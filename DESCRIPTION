@@ -42,7 +42,7 @@ Imports:
     keras (>= 2.3.0),
     lubridate (>= 1.7.0),
     parallel,
-    purrr  (>= 0.3.0),
+    purrr (>= 0.3.0),
     raster (>= 3.4),
     reshape2,
     RCurl,
@@ -96,8 +96,6 @@ Suggests:
     xgboost,
     xml2,
     zoo
-Remotes: 
-    e-sensing/Rwtss
 VignetteBuilder: knitr
 LinkingTo:
     Rcpp,

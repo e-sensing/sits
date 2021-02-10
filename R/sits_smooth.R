@@ -60,6 +60,7 @@ sits_smooth <- function(cube,
     class(type) <- c(type, class(type))
     UseMethod("sits_smooth", type)
 }
+
 #' @title Post-process a classified data raster probs using bayesian smoothing
 #'
 #' @name  sits_smooth.bayes
@@ -82,6 +83,8 @@ sits_smooth <- function(cube,
 #'                           matrix must be computed as the prior covariance.
 #' @param  multicores        Number of process to run the Bayesian smoothing in
 #'                           snow subprocess.
+#' @param  memory            Maximul overall memory (in GB) to run the Bayesian
+#'                           smoothing.
 #' @param  output_dir        Output directory where to out the file
 #' @param  version           Version of resulting image
 #'                           (in the case of multiple tests)
@@ -130,11 +133,12 @@ sits_smooth.bayes <- function(cube,
                               smoothness = 20,
                               covar = FALSE,
                               multicores = 1,
+                              memory = 1,
                               output_dir = "./",
                               version = "v1") {
 
     # precondition 1 - check if cube has probability data
-    assertthat::assert_that("probs_cube" %in% class(cube[1,]),
+    assertthat::assert_that(inherits(cube, "probs_cube"),
             msg = "sits_smooth: input is not probability cube"
     )
 
@@ -143,9 +147,8 @@ sits_smooth.bayes <- function(cube,
             msg = "sits_smooth: window_size must be an odd number"
     )
 
-
     # find out how many labels exist
-    n_labels <- length(.sits_cube_labels(cube[1,])) #
+    n_labels <- length(.sits_cube_labels(cube[1,]))
 
     # precondition 3 - test variance
     if (is.matrix(smoothness)) {
@@ -161,9 +164,14 @@ sits_smooth.bayes <- function(cube,
         smoothness <- diag(smoothness, nrow = n_labels, ncol = n_labels)
     }
 
-    # precondition 3 - test variance
+    # precondition 4 - multicores
     assertthat::assert_that(multicores >= 1,
                             msg = "sits_smooth: multicores must be at least 1"
+    )
+
+    # precondition 5 - memory
+    assertthat::assert_that(memory >= 1,
+                            msg = "sits_smooth: memory must be at least 1"
     )
 
     # create a window
@@ -184,16 +192,6 @@ sits_smooth.bayes <- function(cube,
     scale_factor <- cube[1,]$scale_factors[[1]][1]
     mult_factor <- 1/scale_factor
 
-    # make snow cluster
-    cl <- NULL
-    if (multicores > 1) {
-        cl <- snow::makeCluster(multicores)
-        on.exit(snow::stopCluster(cl))
-    }
-
-    # compute how many tiles to be computed
-    n_tiles <- 100
-
     .do_bayes <- function(chunk, window, smoothness, covar) {
 
         data <- unname(raster::values(chunk))
@@ -204,26 +202,50 @@ sits_smooth.bayes <- function(cube,
         data[data > maxprob] <- maxprob
 
         # compute logit
-        logit <- log(data / (rowSums(data) - data))
-
-        # create cube smooth
-        res <- raster::brick(chunk, nl = raster::nlayers(chunk))
+        data <- log(data / (rowSums(data) - data))
 
         # process bayesian
-        res[] <- bayes_multiv_smooth(m = logit,
+        data <- bayes_multiv_smooth(m = data,
                                      m_nrow = raster::nrow(chunk),
                                      m_ncol = raster::ncol(chunk),
                                      w = window,
                                      sigma = smoothness,
                                      covar = covar)
+
+        # calculate the bayesian probability for the pixel
+        data <- exp(data) * mult_factor / (exp(data) + 1);
+
+        # create cube smooth
+        res <- raster::brick(chunk, nl = raster::nlayers(chunk))
+        res[] <- data
+
         return(res)
+    }
+
+    # compute how many tiles to be computed
+    blocks <- .sits_split_probs_blocks_estimate(cube = cube,
+                                                multicores = multicores,
+                                                memory = memory)
+
+    # updates multicores if it is above upper bound limit
+    multicores <- min(blocks[["max_multicores"]], multicores)
+
+    # for now, only vertical blocks are allowed, i.e 'x_blocks' is 1
+    n_tiles <- blocks[["y_blocks"]]
+
+    # make snow cluster
+    cl <- NULL
+    if (multicores > 1) {
+        cl <- parallel::makeCluster(multicores)
+        on.exit(parallel::stopCluster(cl))
     }
 
     purrr::map2(in_files, out_files,
                 function(in_file, out_file) {
                     .sits_split_cluster(file = in_file,
                                         n_tiles = n_tiles,
-                                        pad_rows = ceiling(window_size / 2) - 1,
+                                        overlapping_rows =
+                                            ceiling(window_size / 2) - 1,
                                         fun = .do_bayes,
                                         args = list(
                                             window = window,
