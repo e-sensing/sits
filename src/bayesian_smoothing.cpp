@@ -7,8 +7,11 @@ using namespace Rcpp;
 
 
 // [[Rcpp::export]]
-arma::mat neighborhood(const arma::mat& m, int m_nrow, int m_ncol,
-                       const arma::mat& w, int m_i, int m_j) {
+arma::mat neighborhood(const arma::mat& m,
+                       const unsigned int m_nrow,
+                       const unsigned int m_ncol,
+                       const arma::mat& w,
+                       int m_i, int m_j) {
 
     if (m_nrow * m_ncol != m.n_rows)
         throw std::invalid_argument("Invalid matriz size");
@@ -20,8 +23,8 @@ arma::mat neighborhood(const arma::mat& m, int m_nrow, int m_ncol,
         throw std::invalid_argument("Index out of bounds");
 
     //  compute window intersection...
-    int w_nrow = w.n_rows, w_ncol = w.n_cols;
-    int w_legi = w.n_rows / 2, w_legj = w.n_cols / 2;
+    unsigned int w_nrow = w.n_rows, w_ncol = w.n_cols;
+    unsigned int w_legi = w.n_rows / 2, w_legj = w.n_cols / 2;
 
     // ...compute window size
     w_nrow = w.n_rows - (w_legi > m_i ? w_legi - m_i : 0)
@@ -47,8 +50,10 @@ arma::mat neighborhood(const arma::mat& m, int m_nrow, int m_ncol,
 }
 
 // [[Rcpp::export]]
-arma::colvec post_mean_x(const arma::colvec& x, const arma::mat& sigma,
-                         const arma::colvec& mu0, const arma::mat& sigma0) {
+arma::colvec post_mean_x(const arma::colvec& x,
+                         const arma::mat& sigma,
+                         const arma::colvec& mu0,
+                         const arma::mat& sigma0) {
 
     // inverse sigma0
     arma::mat inv_sum_weights(arma::size(sigma0));
@@ -61,7 +66,8 @@ arma::colvec post_mean_x(const arma::colvec& x, const arma::mat& sigma,
 
 // [[Rcpp::export]]
 arma::mat bayes_multiv_smooth(const arma::mat& m,
-                              int m_nrow, int m_ncol,
+                              const unsigned int m_nrow,
+                              const unsigned int m_ncol,
                               const arma::mat& w,
                               const arma::mat& sigma,
                               bool covar) {
@@ -84,7 +90,7 @@ arma::mat bayes_multiv_smooth(const arma::mat& m,
     // initialize result matrix
     arma::mat res(arma::size(m), arma::fill::zeros);
 
-    // optimize navigation (col first, row later)
+    // optimize navigation
     for (int i = 0; i < m_nrow; ++i) {
         for (int j = 0; j < m_ncol; ++j) {
 

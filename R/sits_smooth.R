@@ -170,8 +170,8 @@ sits_smooth.bayes <- function(cube,
     )
 
     # precondition 5 - memory
-    assertthat::assert_that(memory >= 1,
-                            msg = "sits_smooth: memory must be at least 1"
+    assertthat::assert_that(memory > 0,
+                            msg = "sits_smooth: memory must be positive"
     )
 
     # create a window
@@ -202,18 +202,18 @@ sits_smooth.bayes <- function(cube,
         data[data > maxprob] <- maxprob
 
         # compute logit
-        data <- log(data / (rowSums(data) - data))
+        logit <- log(data / (rowSums(data) - data))
 
         # process bayesian
-        data <- bayes_multiv_smooth(m = data,
-                                     m_nrow = raster::nrow(chunk),
-                                     m_ncol = raster::ncol(chunk),
-                                     w = window,
-                                     sigma = smoothness,
-                                     covar = covar)
+        data <- bayes_multiv_smooth(m = logit,
+                                    m_nrow = raster::nrow(chunk),
+                                    m_ncol = raster::ncol(chunk),
+                                    w = window,
+                                    sigma = smoothness,
+                                    covar = covar)
 
         # calculate the bayesian probability for the pixel
-        data <- exp(data) * mult_factor / (exp(data) + 1);
+        data <- exp(data) * mult_factor / (exp(data) + 1)
 
         # create cube smooth
         res <- raster::brick(chunk, nl = raster::nlayers(chunk))
@@ -231,7 +231,7 @@ sits_smooth.bayes <- function(cube,
     multicores <- min(blocks[["max_multicores"]], multicores)
 
     # for now, only vertical blocks are allowed, i.e 'x_blocks' is 1
-    n_tiles <- blocks[["y_blocks"]]
+    block_y_size <- blocks[["block_y_size"]]
 
     # make snow cluster
     cl <- NULL
@@ -243,17 +243,17 @@ sits_smooth.bayes <- function(cube,
     purrr::map2(in_files, out_files,
                 function(in_file, out_file) {
                     .sits_split_cluster(file = in_file,
-                                        n_tiles = n_tiles,
-                                        overlapping_rows =
+                                        block_y_size = block_y_size,
+                                        overlapping_y_size =
                                             ceiling(window_size / 2) - 1,
-                                        fun = .do_bayes,
-                                        args = list(
+                                        func = .do_bayes,
+                                        func_args = list(
                                             window = window,
                                             smoothness = smoothness,
                                             covar = covar
                                         ),
+                                        out_file = out_file,
                                         cl = cl,
-                                        filename = out_file,
                                         datatype = "INT2U",
                                         options = c("COMPRESS=LZW",
                                                     "BIGTIFF=YES"))

@@ -8,7 +8,7 @@
 #'
 #' @return  returns a list with following information:
 #'             - multicores theoretical upper bound;
-#'             - how many blocks? horizontal (x) and vertical (y)
+#'             - block x_size (horizontal) and y_size (vertical)
 #'
 .sits_split_probs_blocks_estimate <- function(cube, multicores, memory) {
 
@@ -27,64 +27,34 @@
     needed_memory <- x_size * y_size * n_layers * bloat_mem * n_bytes * 1E-09
 
     # minimum block size
-    # horizontal
     min_block_x_size <- x_size # for now, only allowing vertical blocking
-    # vertical
     min_block_y_size <- 1
 
     # compute factors
     memory_factor <- needed_memory / memory
     blocking_factor <- x_size / min_block_x_size * y_size / min_block_y_size
 
-    # stop if blocking factor is less than memory factor
-    # the provided memory is not enough
+    # stop if blocking factor is less than memory factor!
+    # reason: the provided memory is not enough to process the data by
+    # breaking it into small chunks
     assertthat::assert_that(memory_factor <= blocking_factor,
         msg = "sits_smooth: provided memory not enough to run the job"
     )
 
-    # this function computes horizontal and vertical best block allocation
-    .best_blocking <- function(block_memproc_ratio, x_blocking_factor,
-                               y_blocking_factor) {
-
-        x_blocking_factor = max(floor(x_blocking_factor), 1)
-        y_blocking_factor = max(floor(y_blocking_factor), 1)
-
-        m <- 1
-        res <- list(x_min_blocks = 1, y_min_blocks = 1)
-        for (j in seq_len(x_blocking_factor)) {
-            # try to maximize vertical block size (second order maximization)...
-            i <- min(floor(block_memproc_ratio / j), y_blocking_factor)
-            x <- i * j
-            # ...but maximize first 'block_memproc_ratio' resulting ratio
-            if (x > m) {
-                m <- x
-                res[["x_min_blocks"]] <- j
-                res[["y_min_blocks"]] <- i
-            }
-        }
-        # number of minimum blocks in x and y axis
-        res
-    }
-
-    # maximum processes to run given available memory and blocking factor
+    # update multicores to the maximum possible processes given the available
+    # memory and blocking factor
     multicores <- min(floor(blocking_factor / memory_factor), multicores)
 
     # compute blocking allocation that maximizes the
-    #  block / (memory * multicores) ratio, i.e. maximize parallel processes
-    blocking <- .best_blocking(block_memproc_ratio = blocking_factor /
-                                   memory_factor / multicores,
-                               x_blocking_factor = x_size / min_block_x_size,
-                               y_blocking_factor = y_size / min_block_y_size)
-
-    # returns the following information:
+    # block / (memory * multicores) ratio, i.e. maximize parallel processes
+    # and returns the following information:
     # - multicores theoretical upper bound;
-    # - how many blocks? horizontal (x) and vertical (y)
+    # - block x_size (horizontal) and y_size (vertical)
     blocks <- list(
         max_multicores = floor(blocking_factor / memory_factor),
-        x_blocks = ceiling(x_size / (blocking[["x_min_blocks"]] *
-                                         min_block_x_size)),
-        y_blocks = ceiling(y_size / (blocking[["y_min_blocks"]] *
-                                         min_block_y_size))
+        block_x_size = floor(min_block_x_size),
+        block_y_size = min(floor(blocking_factor / memory_factor / multicores),
+                           y_size)
     )
 
     return(blocks)
@@ -96,111 +66,119 @@
 #' @description Process chunks of raster brick in parallel.
 #'
 #' @param file               a path to raster (brick) file.
-#' @param n_tiles            number of vertical chunks to break the raster.
+#' @param block_y_size       number of vertical chunks to break the raster.
 #'                           For now, only vertical blocking is supported.
 #' @param overlapping_rows   number of overlapping rows of each chunk.
-#' @param fun                a function that receives RasterBrick and
+#' @param func               a function that receives RasterBrick and
 #'                           returns any Raster*.
 #' @param args               additional arguments to pass to \code{fun} function.
+#' @param out_file           file path of output raster.
 #' @param cl                 snow cluster object
 #' @param ...                optional arguments to merge final raster
 #'                           (see \link[raster]{writeRaster} function)
 #'
 #' @return  RasterBrick object
 #'
-.sits_split_cluster <- function(file, n_tiles, overlapping_rows, fun, args = NULL,
+.sits_split_cluster <- function(file, block_y_size, overlapping_y_size = 0,
+                                func, func_args = NULL, out_file,
                                 cl = NULL, ...) {
 
-    # precondition 1 - number of vertical blocks (n_tiles) must be positive
-    assertthat::assert_that(n_tiles > 0,
+    # precondition 1 - number of vertical blocks (block_y_size) must be positive
+    assertthat::assert_that(block_y_size > 0,
             msg = "sits_smooth: number of blocks must be positive"
     )
 
-    # precondition 2 - overlaping rows must be non negative
-    assertthat::assert_that(overlapping_rows >= 0,
+    # precondition 2 - overlapping rows must be non negative
+    assertthat::assert_that(overlapping_y_size >= 0,
             msg = "sits_smooth: overlaping rows must be non negative"
     )
 
-    # open brick
-    b <- suppressWarnings(raster::brick(file))
-
-    # define blocks
-    blocks <- ceiling(seq(1, nrow(b) + 1, length.out = n_tiles + 1))
-    blocks <- mapply(list,
-                     r1 = ifelse(blocks - overlapping_rows <= 0, 1,
-                                 blocks - overlapping_rows)[seq_len(n_tiles)],
-                     r2 = ifelse(blocks + overlapping_rows - 1 > nrow(b), nrow(b),
-                                 blocks + overlapping_rows - 1)[-1:0], SIMPLIFY = FALSE,
-                     orig1 = ifelse(blocks - overlapping_rows <= 0, 1,
-                                    overlapping_rows + 1)[seq_len(n_tiles)],
-                     orig2 = ifelse(blocks - overlapping_rows <= 0,
-                                    blocks[-1:0] - blocks[seq_len(n_tiles)],
-                                    blocks[-1:0] - blocks[seq_len(n_tiles)]
-                                    + overlapping_rows + 1)[-1:0])
 
     # run on workers...
-    .sits_cluster_block_fun <- function(block, file, fun, ...) {
+    .sits_cluster_worker_fun <- function(block, file, func, args) {
 
         # open brick
         b <- suppressWarnings(raster::brick(file))
 
         # crop adding overlaps
-        file <- raster::crop(b, raster::extent(b,
-                                            r1 = block$r1,
-                                            r2 = block$r2,
-                                            c1 = 1,
-                                            c2 = ncol(b)))
+        chunk <- raster::crop(b, raster::extent(b,
+                                                r1 = block$r1,
+                                                r2 = block$r2,
+                                                c1 = 1,
+                                                c2 = ncol(b)))
 
         # process it
-        res <- fun(file, ...)
+        res <- do.call(func, args = c(list(chunk = chunk), args))
         stopifnot(inherits(res, c("RasterLayer", "RasterStack", "RasterBrick")))
 
         # crop removing overlaps
         res <- raster::crop(res, raster::extent(res,
-                                                r1 = block$orig1,
-                                                r2 = block$orig2,
+                                                r1 = block$o1,
+                                                r2 = block$o2,
                                                 c1 = 1,
                                                 c2 = ncol(res)))
 
         # export to temp file
         filename <- tempfile(fileext = ".tif")
-        raster::writeRaster(res, filename = filename, overwrite = TRUE)
+        raster::writeRaster(res, filename = filename, overwrite = TRUE,
+                            datatype = "FLT8S")
 
         filename
     }
 
-    .apply_cluster <- function() {
+    # open brick
+    b <- suppressWarnings(raster::brick(file))
 
-        if (purrr::is_null(cl)) {
+    # get vertical size
+    img_y_size <- nrow(b)
 
-            # do serial
-            res <- lapply(X = blocks,
-                          FUN = .sits_cluster_block_fun,
-                          file = file,
-                          fun = fun, ...)
-        } else {
+    # compute blocks
+    r1 <- ceiling(seq(1, img_y_size - 1, by = block_y_size))
+    r2 <- c(r1[-1] - 1, img_y_size)
+    ovr_r1 <- c(1, c(r1[-1] - overlapping_y_size))
+    ovr_r2 <- c(r2[-length(r2)] + overlapping_y_size, img_y_size)
 
-            # do parallel
-            res <- parallel::clusterApplyLB(cl = cl,
-                                            x = blocks,
-                                            fun = .sits_cluster_block_fun,
-                                            file = file,
-                                            fun = fun, ...)
-        }
-
-        return(res)
-    }
+    # define blocks
+    blocks <- mapply(list,
+                     r1 = ovr_r1,
+                     r2 = ovr_r2,
+                     o1 = r1 - ovr_r1 + 1,
+                     o2 = r2 - ovr_r1 + 1,
+                     SIMPLIFY = FALSE)
 
     # apply function to blocks
-    tmp_tiles <- .apply_cluster()
+    if (purrr::is_null(cl)) {
+
+        # do serial
+        tmp_blocks <- lapply(X = blocks,
+                             FUN = .sits_cluster_worker_fun,
+                             file = file,
+                             func = func,
+                             args = func_args)
+    } else {
+
+        # do parallel
+        tmp_blocks <- parallel::clusterApplyLB(cl = cl,
+                                               x = blocks,
+                                               fun = .sits_cluster_worker_fun,
+                                               file = file,
+                                               func = func,
+                                               args = func_args)
+    }
 
     # on exit, remove temp files
-    on.exit(unlink(tmp_tiles))
+    on.exit(unlink(tmp_blocks))
 
     # merge to save final result with '...' parameters
+    # if there is only one block
+    if (length(tmp_blocks) == 1)
+        return(raster::writeRaster(raster::brick(tmp_blocks), overwrite = TRUE,
+                                   filename = out_file, ...))
+
     suppressWarnings(
-        do.call(raster::merge, c(list(overwrite = TRUE),
-                                 lapply(tmp_tiles, raster::brick), list(...)))
+        do.call(raster::merge, c(lapply(tmp_blocks, raster::brick),
+                                 list(overwrite = TRUE, filename = out_file),
+                                 list(...)))
     )
 }
 
