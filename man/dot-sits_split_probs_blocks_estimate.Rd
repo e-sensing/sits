@@ -16,7 +16,7 @@
 \value{
 returns a list with following information:
             - multicores theoretical upper bound;
-            - how many blocks? horizontal (x) and vertical (y)
+            - block x_size (horizontal) and y_size (vertical)
 }
 \description{
 Estimate the number of blocks to run .sits_split_cluster

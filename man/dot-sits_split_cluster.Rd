@@ -6,10 +6,11 @@
 \usage{
 .sits_split_cluster(
   file,
-  n_tiles,
-  overlapping_rows,
-  fun,
-  args = NULL,
+  block_y_size,
+  overlapping_y_size = 0,
+  func,
+  func_args = NULL,
+  out_file,
   cl = NULL,
   ...
 )
@@ -17,20 +18,22 @@
 \arguments{
 \item{file}{a path to raster (brick) file.}
 
-\item{n_tiles}{number of vertical chunks to break the raster.
+\item{block_y_size}{number of vertical chunks to break the raster.
 For now, only vertical blocking is supported.}
 
-\item{overlapping_rows}{number of overlapping rows of each chunk.}
-
-\item{fun}{a function that receives RasterBrick and
+\item{func}{a function that receives RasterBrick and
 returns any Raster*.}
 
-\item{args}{additional arguments to pass to \code{fun} function.}
+\item{out_file}{file path of output raster.}
 
 \item{cl}{snow cluster object}
 
 \item{...}{optional arguments to merge final raster
 (see \link[raster]{writeRaster} function)}
+
+\item{overlapping_rows}{number of overlapping rows of each chunk.}
+
+\item{args}{additional arguments to pass to \code{fun} function.}
 }
 \value{
 RasterBrick object
