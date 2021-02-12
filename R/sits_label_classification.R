@@ -89,10 +89,6 @@ sits_label_classification <- function(cube,
                     t_obj <- terra::rast(in_file)
                     data_values <- terra::values(t_obj)
 
-                    # avoid extreme values
-                    data_values[data_values < 1] <- 1
-                    data_values[data_values > 9999] <- 9999
-
                     # select the best class by choosing the maximum value
                     lab_values[] <- apply(data_values, 1, which.max)
 
