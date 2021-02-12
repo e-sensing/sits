@@ -19,46 +19,16 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
-// neighborhood
-arma::mat neighborhood(const arma::mat& m, int m_nrow, int m_ncol, const arma::mat& w, int m_i, int m_j);
-RcppExport SEXP _sits_neighborhood(SEXP mSEXP, SEXP m_nrowSEXP, SEXP m_ncolSEXP, SEXP wSEXP, SEXP m_iSEXP, SEXP m_jSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< const arma::mat& >::type m(mSEXP);
-    Rcpp::traits::input_parameter< int >::type m_nrow(m_nrowSEXP);
-    Rcpp::traits::input_parameter< int >::type m_ncol(m_ncolSEXP);
-    Rcpp::traits::input_parameter< const arma::mat& >::type w(wSEXP);
-    Rcpp::traits::input_parameter< int >::type m_i(m_iSEXP);
-    Rcpp::traits::input_parameter< int >::type m_j(m_jSEXP);
-    rcpp_result_gen = Rcpp::wrap(neighborhood(m, m_nrow, m_ncol, w, m_i, m_j));
-    return rcpp_result_gen;
-END_RCPP
-}
-// post_mean_x
-arma::colvec post_mean_x(const arma::colvec& x, const arma::mat& sigma, const arma::colvec& mu0, const arma::mat& sigma0);
-RcppExport SEXP _sits_post_mean_x(SEXP xSEXP, SEXP sigmaSEXP, SEXP mu0SEXP, SEXP sigma0SEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< const arma::colvec& >::type x(xSEXP);
-    Rcpp::traits::input_parameter< const arma::mat& >::type sigma(sigmaSEXP);
-    Rcpp::traits::input_parameter< const arma::colvec& >::type mu0(mu0SEXP);
-    Rcpp::traits::input_parameter< const arma::mat& >::type sigma0(sigma0SEXP);
-    rcpp_result_gen = Rcpp::wrap(post_mean_x(x, sigma, mu0, sigma0));
-    return rcpp_result_gen;
-END_RCPP
-}
 // bayes_multiv_smooth
-arma::mat bayes_multiv_smooth(const arma::mat& m, int m_nrow, int m_ncol, const arma::mat& w, const arma::mat& sigma, bool covar);
+arma::mat bayes_multiv_smooth(const arma::mat& m, const arma::uword m_nrow, const arma::uword m_ncol, const arma::imat& w, const arma::mat& sigma, bool covar);
 RcppExport SEXP _sits_bayes_multiv_smooth(SEXP mSEXP, SEXP m_nrowSEXP, SEXP m_ncolSEXP, SEXP wSEXP, SEXP sigmaSEXP, SEXP covarSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< const arma::mat& >::type m(mSEXP);
-    Rcpp::traits::input_parameter< int >::type m_nrow(m_nrowSEXP);
-    Rcpp::traits::input_parameter< int >::type m_ncol(m_ncolSEXP);
-    Rcpp::traits::input_parameter< const arma::mat& >::type w(wSEXP);
+    Rcpp::traits::input_parameter< const arma::uword >::type m_nrow(m_nrowSEXP);
+    Rcpp::traits::input_parameter< const arma::uword >::type m_ncol(m_ncolSEXP);
+    Rcpp::traits::input_parameter< const arma::imat& >::type w(wSEXP);
     Rcpp::traits::input_parameter< const arma::mat& >::type sigma(sigmaSEXP);
     Rcpp::traits::input_parameter< bool >::type covar(covarSEXP);
     rcpp_result_gen = Rcpp::wrap(bayes_multiv_smooth(m, m_nrow, m_ncol, w, sigma, covar));
@@ -202,8 +172,6 @@ END_RCPP
 
 static const R_CallMethodDef CallEntries[] = {
     {"_sits_apply_transition_matrix", (DL_FUNC) &_sits_apply_transition_matrix, 3},
-    {"_sits_neighborhood", (DL_FUNC) &_sits_neighborhood, 6},
-    {"_sits_post_mean_x", (DL_FUNC) &_sits_post_mean_x, 4},
     {"_sits_bayes_multiv_smooth", (DL_FUNC) &_sits_bayes_multiv_smooth, 6},
     {"_sits_median_neigh", (DL_FUNC) &_sits_median_neigh, 3},
     {"_sits_cbers4_cld_detect", (DL_FUNC) &_sits_cbers4_cld_detect, 11},

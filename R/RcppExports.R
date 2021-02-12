@@ -5,14 +5,6 @@ apply_transition_matrix <- function(data_before, data, transition_matrix) {
     .Call(`_sits_apply_transition_matrix`, data_before, data, transition_matrix)
 }
 
-neighborhood <- function(m, m_nrow, m_ncol, w, m_i, m_j) {
-    .Call(`_sits_neighborhood`, m, m_nrow, m_ncol, w, m_i, m_j)
-}
-
-post_mean_x <- function(x, sigma, mu0, sigma0) {
-    .Call(`_sits_post_mean_x`, x, sigma, mu0, sigma0)
-}
-
 bayes_multiv_smooth <- function(m, m_nrow, m_ncol, w, sigma, covar) {
     .Call(`_sits_bayes_multiv_smooth`, m, m_nrow, m_ncol, w, sigma, covar)
 }
