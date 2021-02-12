@@ -175,7 +175,7 @@ sits_smooth.bayes <- function(cube,
     )
 
     # create a window
-    window <- matrix(1, nrow = window_size, ncol = window_size, byrow = TRUE)
+    window <- matrix(1, nrow = window_size, ncol = window_size)
 
     # create metadata for labeled raster cube
     cube_bayes <- .sits_cube_clone(
@@ -190,7 +190,7 @@ sits_smooth.bayes <- function(cube,
 
     # retrieve the scale factor
     scale_factor <- cube[1,]$scale_factors[[1]][1]
-    mult_factor <- 1/scale_factor
+    mult_factor <- 1 / scale_factor
 
     .do_bayes <- function(chunk, window, smoothness, covar) {
 
