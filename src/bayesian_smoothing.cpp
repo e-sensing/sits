@@ -5,70 +5,71 @@
 
 using namespace Rcpp;
 
+inline void filter_finite(arma::mat& m) {
 
-// [[Rcpp::export]]
-arma::mat neighborhood(const arma::mat& m,
-                       const unsigned int m_nrow,
-                       const unsigned int m_ncol,
-                       const arma::mat& w,
-                       int m_i, int m_j) {
-
-    if (m_nrow * m_ncol != m.n_rows)
-        throw std::invalid_argument("Invalid matriz size");
-
-    if (w.n_cols % 2 == 0 || w.n_rows % 2 == 0)
-        throw std::invalid_argument("Window size must be odd");
-
-    if (m_i >= m_nrow || m_j >= m_ncol)
-        throw std::invalid_argument("Index out of bounds");
-
-    //  compute window intersection...
-    unsigned int w_nrow = w.n_rows, w_ncol = w.n_cols;
-    unsigned int w_legi = w.n_rows / 2, w_legj = w.n_cols / 2;
-
-    // ...compute window size
-    w_nrow = w.n_rows - (w_legi > m_i ? w_legi - m_i : 0)
-        - (w_legi > m_nrow - m_i - 1 ? w_legi + m_i + 1 - m_nrow : 0);
-    w_ncol = w.n_cols - (w_legj > m_j ? w_legj - m_j : 0)
-        - (w_legj > m_ncol - m_j - 1 ? w_legj + m_j + 1 - m_ncol : 0);
-
-    // ...offset matrix m
-    m_i = m_i - (w_legi > m_i ? m_i : w_legi);
-    m_j = m_j - (w_legj > m_j ? m_j : w_legj);
-
-    // initialize result matrix
-    arma::mat res(w_nrow * w_ncol, m.n_cols);
-
-    // optimize navigation (col first, row later)
-    for (int i = 0; i < w_nrow; ++i) {
-        for (int j = 0; j < w_ncol; ++j) {
-            res.row(j + i * w_ncol) =
-                m.row((j + m_j) + (i + m_i) * m_ncol) * w(i, j);
-        }
+    arma::mat res(arma::size(m));
+    arma::uword k = 0;
+    for(arma::uword i = 0; i < m.n_rows; i++) {
+        if (!m.row(i).has_inf() && !m.row(i).has_nan())
+            res.row(k++) = m.row(i);
     }
-    return res;
+    for(arma::uword i = 0; i < k; i++)
+        m.row(i) = res.row(i);
+    m.resize(k, m.n_cols);
 }
 
-// [[Rcpp::export]]
-arma::colvec post_mean_x(const arma::colvec& x,
-                         const arma::mat& sigma,
-                         const arma::colvec& mu0,
-                         const arma::mat& sigma0) {
+void neighbours(arma::mat& res,
+                const arma::mat& m,
+                const arma::uword m_nrow,
+                const arma::uword m_ncol,
+                const arma::imat& w,
+                const arma::uword m_i,
+                const arma::uword m_j) {
+
+    // compute half window size
+    arma::uword w_legi = w.n_rows / 2, w_legj = w.n_cols / 2;
+
+    // max(m_i - w_legi, 0)
+    arma::uword r1 = m_i > w_legi ? m_i - w_legi : 0;
+
+    // min(m_i + w_legi, m_nrow - 1)
+    arma::uword r2 = m_i + w_legi < m_nrow ? m_i + w_legi : m_nrow - 1;
+
+    // max(m_j - w_legj, 0)
+    arma::uword c1 = m_j > w_legj ? m_j - w_legj : 0;
+
+    // min(m_j + w_legj, m_ncol - 1)
+    arma::uword c2 = m_j + w_legj < m_ncol ? m_j + w_legj : m_ncol - 1;
+
+    // optimize navigation C standard
+    arma::uword k = 0;
+    for (arma::uword i = r1; i <= r2; ++i) {
+        for (arma::uword j = c1; j <= c2; ++j) {
+            if (w(i - m_i + w_legi, j - m_j + w_legj))
+                res.row(k++) = m.row(j + i * m_ncol);
+        }
+    }
+    res.resize(k, m.n_cols);
+}
+
+inline arma::colvec nm_post_mean_x(const arma::colvec& x,
+                                   const arma::mat& sigma,
+                                   const arma::colvec& mu0,
+                                   const arma::mat& sigma0) {
 
     // inverse sigma0
     arma::mat inv_sum_weights(arma::size(sigma0));
     inv_sum_weights = arma::inv(sigma + sigma0);
 
-    return sigma * inv_sum_weights * mu0
-        + sigma0 * inv_sum_weights * x;
+    return sigma * inv_sum_weights * mu0 + sigma0 * inv_sum_weights * x;
 }
 
 
 // [[Rcpp::export]]
 arma::mat bayes_multiv_smooth(const arma::mat& m,
-                              const unsigned int m_nrow,
-                              const unsigned int m_ncol,
-                              const arma::mat& w,
+                              const arma::uword m_nrow,
+                              const arma::uword m_ncol,
+                              const arma::imat& w,
                               const arma::mat& sigma,
                               bool covar) {
 
@@ -78,6 +79,9 @@ arma::mat bayes_multiv_smooth(const arma::mat& m,
     if (m.n_cols != sigma.n_rows || m.n_cols != sigma.n_cols)
         throw std::invalid_argument("Invalid sigma matrix size");
 
+    if (w.n_rows % 2 == 0 || w.n_cols % 2 == 0)
+        throw std::invalid_argument("Invalid window matrix size");
+
     // prior mean vector (neighborhood)
     arma::colvec mu0(m.n_cols, arma::fill::zeros);
 
@@ -85,16 +89,22 @@ arma::mat bayes_multiv_smooth(const arma::mat& m,
     arma::mat sigma0(arma::size(sigma), arma::fill::zeros);
 
     // neighborhood window values
-    arma::mat neigh(arma::size(w), arma::fill::zeros);
+    arma::mat neigh(w.n_rows * w.n_cols, m.n_cols, arma::fill::zeros);
 
     // initialize result matrix
     arma::mat res(arma::size(m), arma::fill::zeros);
 
     // optimize navigation
-    for (int i = 0; i < m_nrow; ++i) {
-        for (int j = 0; j < m_ncol; ++j) {
+    for (arma::uword i = 0; i < m_nrow; ++i) {
+        for (arma::uword j = 0; j < m_ncol; ++j) {
 
-            neigh = neighborhood(m, m_nrow, m_ncol, w, i, j);
+            neigh.set_size(w.n_rows * w.n_cols, m.n_cols);
+
+            neighbours(neigh, m, m_nrow, m_ncol, w, i, j);
+
+            filter_finite(neigh);
+
+            if (neigh.n_rows == 0) continue;
 
             mu0 = arma::mean(neigh).as_col();
 
@@ -110,8 +120,8 @@ arma::mat bayes_multiv_smooth(const arma::mat& m,
 
             // evaluate multivariate bayesian
             res.row(j + i * m_ncol) =
-                post_mean_x(m.row(j + i * m_ncol).as_col(),
-                            sigma, mu0, sigma0).as_row();
+                nm_post_mean_x(m.row(j + i * m_ncol).as_col(),
+                               sigma, mu0, sigma0).as_row();
         }
     }
     return res;
