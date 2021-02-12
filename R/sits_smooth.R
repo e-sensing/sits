@@ -134,7 +134,7 @@ sits_smooth.bayes <- function(cube,
                               covar = FALSE,
                               multicores = 1,
                               memory = 1,
-                              output_dir = "./",
+                              output_dir = getwd(),
                               version = "v1") {
 
     # precondition 1 - check if cube has probability data
@@ -184,9 +184,6 @@ sits_smooth.bayes <- function(cube,
         output_dir = output_dir,
         version = version
     )
-    # retrieve the files to be read and written
-    in_files <- .sits_cube_files(cube)
-    out_files <- .sits_cube_files(cube_bayes)
 
     # retrieve the scale factor
     scale_factor <- cube[1,]$scale_factors[[1]][1]
@@ -222,42 +219,22 @@ sits_smooth.bayes <- function(cube,
         return(res)
     }
 
-    # compute how many tiles to be computed
-    blocks <- .sits_split_probs_blocks_estimate(cube = cube,
-                                                multicores = multicores,
-                                                memory = memory)
+    .sits_split_cluster(cube = cube,
+                        cube_out = cube_bayes,
+                        overlapping_y_size =
+                            ceiling(window_size / 2) - 1,
+                        func = .do_bayes,
+                        func_args = list(
+                            window = window,
+                            smoothness = smoothness,
+                            covar = covar
+                        ),
+                        multicores = multicores,
+                        memory = memory,
+                        datatype = "INT2U",
+                        options = c("COMPRESS=LZW",
+                                    "BIGTIFF=YES"))
 
-    # updates multicores if it is above upper bound limit
-    multicores <- min(blocks[["max_multicores"]], multicores)
-
-    # for now, only vertical blocks are allowed, i.e 'x_blocks' is 1
-    block_y_size <- blocks[["block_y_size"]]
-
-    # make snow cluster
-    cl <- NULL
-    if (multicores > 1) {
-        cl <- parallel::makeCluster(multicores)
-        on.exit(parallel::stopCluster(cl))
-    }
-
-    purrr::map2(in_files, out_files,
-                function(in_file, out_file) {
-                    .sits_split_cluster(file = in_file,
-                                        block_y_size = block_y_size,
-                                        overlapping_y_size =
-                                            ceiling(window_size / 2) - 1,
-                                        func = .do_bayes,
-                                        func_args = list(
-                                            window = window,
-                                            smoothness = smoothness,
-                                            covar = covar
-                                        ),
-                                        out_file = out_file,
-                                        cl = cl,
-                                        datatype = "INT2U",
-                                        options = c("COMPRESS=LZW",
-                                                    "BIGTIFF=YES"))
-                })
     return(cube_bayes)
 }
 

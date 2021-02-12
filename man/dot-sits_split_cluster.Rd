@@ -5,28 +5,29 @@
 \title{parallel raster brick}
 \usage{
 .sits_split_cluster(
-  file,
-  block_y_size,
+  cube,
+  cube_out,
   overlapping_y_size = 0,
   func,
   func_args = NULL,
-  out_file,
-  cl = NULL,
+  multicores = 1,
+  memory = 1,
   ...
 )
 }
 \arguments{
-\item{file}{a path to raster (brick) file.}
+\item{cube}{Probability data cube}
 
-\item{block_y_size}{number of vertical chunks to break the raster.
-For now, only vertical blocking is supported.}
+\item{cube_out}{Output probability data cube}
 
 \item{func}{a function that receives RasterBrick and
 returns any Raster*.}
 
-\item{out_file}{file path of output raster.}
+\item{multicores}{Number of process to run the Bayesian smoothing in
+snow subprocess.}
 
-\item{cl}{snow cluster object}
+\item{memory}{Maximul overall memory (in GB) to run the Bayesian
+smoothing.}
 
 \item{...}{optional arguments to merge final raster
 (see \link[raster]{writeRaster} function)}

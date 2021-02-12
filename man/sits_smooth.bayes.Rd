@@ -13,7 +13,7 @@
   covar = FALSE,
   multicores = 1,
   memory = 1,
-  output_dir = "./",
+  output_dir = getwd(),
   version = "v1"
 )
 }
