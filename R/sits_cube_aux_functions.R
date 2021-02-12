@@ -155,6 +155,7 @@
     # set scale factors, missing values, minimum and maximum values for probs
     #
     cube_sf <- cube$scale_factors[[1]][1]
+    names(cube_sf) <- "PROBS"
     max  <- round(1/cube_sf)
     scale_factors <- rep(cube_sf, n_objs)
     missing_values <- rep(NA, n_objs)
