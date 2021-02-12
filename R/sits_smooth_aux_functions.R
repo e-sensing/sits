@@ -101,27 +101,33 @@
         b <- suppressWarnings(raster::brick(file))
 
         # crop adding overlaps
-        chunk <- raster::crop(b, raster::extent(b,
-                                                r1 = block$r1,
-                                                r2 = block$r2,
-                                                c1 = 1,
-                                                c2 = ncol(b)))
+        chunk <- suppressWarnings(raster::crop(
+            b, raster::extent(b,
+                              r1 = block$r1,
+                              r2 = block$r2,
+                              c1 = 1,
+                              c2 = ncol(b))
+        ))
 
         # process it
         res <- do.call(func, args = c(list(chunk = chunk), args))
         stopifnot(inherits(res, c("RasterLayer", "RasterStack", "RasterBrick")))
 
         # crop removing overlaps
-        res <- raster::crop(res, raster::extent(res,
-                                                r1 = block$o1,
-                                                r2 = block$o2,
-                                                c1 = 1,
-                                                c2 = ncol(res)))
+        res <- suppressWarnings(raster::crop(
+            res, raster::extent(res,
+                                r1 = block$o1,
+                                r2 = block$o2,
+                                c1 = 1,
+                                c2 = ncol(res))
+        ))
 
         # export to temp file
         filename <- tempfile(fileext = ".tif")
-        raster::writeRaster(res, filename = filename, overwrite = TRUE,
-                            datatype = "FLT8S")
+        suppressWarnings(
+            raster::writeRaster(res, filename = filename, overwrite = TRUE,
+                                datatype = "FLT8S")
+        )
 
         filename
     }
@@ -172,8 +178,11 @@
     # merge to save final result with '...' parameters
     # if there is only one block
     if (length(tmp_blocks) == 1)
-        return(raster::writeRaster(raster::brick(tmp_blocks), overwrite = TRUE,
-                                   filename = out_file, ...))
+        return(suppressWarnings(
+            raster::writeRaster(raster::brick(tmp_blocks),
+                                overwrite = TRUE,
+                                filename = out_file, ...)
+        ))
 
     suppressWarnings(
         do.call(raster::merge, c(lapply(tmp_blocks, raster::brick),
