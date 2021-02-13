@@ -77,33 +77,37 @@ sits_label_classification <- function(cube,
     extent <- vector(mode = "integer", length = 4)
     names(extent) <- c("row", "nrows", "col", "ncols")
 
-    slider::slide2(cube, cube_labels,
-                   function(cube_row, cube_labels_row) {
+    # traverse all tiles
+    slider::slide2(cube, cube_labels, function(cube_row, cube_labels_row) {
 
-                       # allocate matrix of probabilities
-                       cube_size <- cube_row$nrows * cube_row$ncols
-                       lab_values <- matrix(NA, nrow = cube_size, ncol = n_labels)
+        # allocate matrix of probabilities
+        cube_size <- cube_row$nrows * cube_row$ncols
+        lab_values <- matrix(NA, nrow = cube_size, ncol = 1)
 
-                       # retrieve the files to be read and written
-                       in_file <- .sits_cube_files(cube_row)
-                       out_file <- .sits_cube_files(cube_labels_row)
+        # retrieve the files to be read and written
+        in_files <- .sits_cube_files(cube_row)
+        out_files <- .sits_cube_files(cube_labels_row)
 
-                       # read values from file
-                       t_obj <- terra::rast(in_file)
-                       data_values <- terra::values(t_obj)
+        # traverse all years
+        purrr::map2(in_files, out_files, function(in_file, out_file) {
 
-                       # select the best class by choosing the maximum value
-                       lab_values[] <- apply(data_values, 1, which.max)
+            # read values from file
+            t_obj <- terra::rast(in_file)
+            data_values <- terra::values(t_obj)
 
-                       # write values into a file
-                       cube_labels <- .sits_raster_api_write(
-                           params = .sits_raster_api_params_cube(cube_row),
-                           num_layers = 1,
-                           values = lab_values,
-                           filename = out_file,
-                           datatype = "INT1U"
-                       )
-                   })
+            # select the best class by choosing the maximum value
+            lab_values[] <- apply(data_values, 1, which.max)
+
+            # write values into a file
+            cube_labels <- .sits_raster_api_write(
+                params = .sits_raster_api_params_cube(cube_row),
+                num_layers = 1,
+                values = lab_values,
+                filename = out_file,
+                datatype = "INT1U"
+            )
+        })
+    })
     return(cube_labels)
 }
 #' @title Post-process a classified data raster with a majority filter
@@ -253,15 +257,15 @@ sits_label_majority <- function(cube,
         times_probs <- seq_len(n_objs) %>%
             purrr::map(function(i){
                 # define the timeline for the raster data sets
-                timeline <- cube_probs_row$timeline[[i]][[1]]
+                timeline <- cube_probs_row$timeline[[1]][[i]]
                 start_date <- timeline[1]
                 return(start_date)
             })
         bands <- seq_len(n_objs) %>%
             purrr::map(function(i){
-                timeline <- cube_probs_row$timeline[[i]][[1]]
+                timeline <- cube_probs_row$timeline[[1]][[i]]
                 band <- .sits_cube_class_band_name(
-                    name = cube_probs_row$name[[i]],
+                    name = cube_probs_row$name,
                     type = "class",
                     start_date = timeline[1],
                     end_date = timeline[length(timeline)]
@@ -271,11 +275,11 @@ sits_label_majority <- function(cube,
         # define the filename for the classified image
         files <- seq_len(n_objs) %>%
             purrr::map(function(i){
-                timeline <- cube_probs_row$timeline[[i]][[1]]
+                timeline <- cube_probs_row$timeline[[1]][[i]]
                 file <- .sits_raster_api_filename(
                     output_dir = output_dir,
                     version = version,
-                    name = cube_probs_row$name[[i]],
+                    name = cube_probs_row$name,
                     type = "class",
                     start_date = timeline[1],
                     end_date = timeline[length(timeline)]
