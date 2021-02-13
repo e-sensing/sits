@@ -1,7 +1,22 @@
-# SITS - Satellite Image Time Series Analysis for Earth Observation Data Cubes <img src="inst/extdata/sticker/sits_sticker.png" alt="SITS icon" align="right" height="150" width="150"/>
+SITS - Satellite Image Time Series Analysis for Earth Observation Data
+Cubes
+================
 
+<!-- README.md is generated from README.Rmd. Please edit that file -->
 
+<img src="inst/extdata/sticker/sits_sticker.png" alt="SITS icon" align="right" height="150" width="150"/>
 
+<!-- badges: start -->
+
+[![Build
+Status](https://drone.dpi.inpe.br/api/badges/e-sensing/sits/status.svg)](https://drone.dpi.inpe.br/e-sensing/sits)
+[![codecov](https://codecov.io/gh/e-sensing/sits/branch/master/graph/badge.svg?token=hZxdJgKGcE)](https://codecov.io/gh/e-sensing/sits)
+[![Software Life
+Cycle](https://img.shields.io/badge/lifecycle-maturing-blue.svg)](https://www.tidyverse.org/lifecycle/#maturing)
+[![Software
+License](https://img.shields.io/badge/license-GPL--2-green)](https://github.com/e-sensing/sits/blob/master/LICENSE)
+
+<!-- badges: end -->
 
 ### Overview
 
@@ -14,9 +29,9 @@ for filtering, clustering, classification, and post-processing.
 ### Pre-Requisites
 
 The `sits` package relies on `sf` and `rgdal`, which in turn, require
-the installation of the GDAL and PROJ libraries. Please follow the instructions
-for installing `sf` and `rgdal` available at the [RSpatial sf github
-repository](https://github.com/r-spatial/sf).
+the installation of the GDAL and PROJ libraries. Please follow the
+instructions for installing `sf` and `rgdal` available at the [RSpatial
+sf github repository](https://github.com/r-spatial/sf).
 
 ### Required Packages
 
@@ -78,13 +93,14 @@ password.
 
 SITS has been designed to work with big satellite image data sets
 organised data cubes. Data cubes can be available in the cloud or in a
-local machine. Methods of data input for time series samples include (a)
+local machine. Methods of data input for time series samples include: a)
 obtain data from a time series web services such as INPE’s WTSS (Web
-Series Time Service) or EMBRAPA’s SATVEG; (b) read data stored in a time
-series in the ZOO format \[@Zeileis2005\]; (c) read a time series from a
-`raster bricks`; (d) read a time series from [Brazil Data Cube](http://brazildatacube.org/) products. Currently, raster classification requires that data
-cubes are organised as a `raster bricks` which can reside on a local or
-remote service.
+Series Time Service) or EMBRAPA’s SATVEG; b) read data stored in a time
+series in the [zoo](https://cran.r-project.org/package=zoo) format; c)
+read a time series from a `raster bricks`; d) read a time series from
+[Brazil Data Cube](http://brazildatacube.org/) products. Currently,
+raster classification requires that data cubes are organised as a
+`raster bricks` which can reside on a local or remote service.
 
 For more details on data access, please see the vignette [“Accessing
 time series information in
@@ -93,10 +109,10 @@ SITS”](https://github.com/e-sensing/sits-docs/blob/master/doc/timeseries.pdf).
 ### Visualization
 
     #> SITS - satellite image time series analysis.
-    #> Loaded sits v0.9.8.
+    #> Loaded sits v0.10.0.
     #>         See ?sits for help, citation("sits") for use in publication.
     #>         See demo(package = "sits") for examples.
-    #> Using configuration file: /Users/gilbertocamara/Library/R/4.0/library/sits/extdata/config.yml
+    #> Using configuration file: /home/rolf/R/x86_64-pc-linux-gnu-library/4.0/sits/extdata/config.yml
     #> Users can provide additional configurations in ~/.sits/config.yml
 
 ``` r
@@ -252,9 +268,12 @@ probs_cube <- sits_classify(raster_cube, ml_model = rfor_model)
 
 # label the probability file (by default selecting the class with higher probability)
 # apply a bayesian smoothing to remove outliers
-label_cube <- sits_smooth(probs_cube)
+bayes_cube <- sits_smooth(probs_cube)
 
-# plot the first raster object with a selected color pallete
+# generate thematic map
+label_cube <- sits_label_classification(bayes_cube)
+
+# plot the first raster object with a selected color palette
 # make a title, define the colors and the labels)
 plot(label_cube, time = 1, title = "SINOP-MT - 2013/2014")
 ```
@@ -291,18 +310,9 @@ For more information, please see the vignettes
 -   [“Post classification smoothing using Bayesian techniques in
     SITS”](https://github.com/e-sensing/sits-docs/blob/master/doc/smoothing.pdf)
 
-#### Package status of SITS
+## Code of Conduct
 
-|                    | Status                                                                                                                                                                                      |
-|--------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| Code Build         | [<img src="http://www.dpi.inpe.br/jenkins/buildStatus/icon?job=sits-build-ubuntu-16.04">](http://www.dpi.inpe.br/jenkins/job/sits-build-ubuntu-16.04/lastBuild/consoleFull)                 |
-| Code Check         | [<img src="http://www.dpi.inpe.br/jenkins/buildStatus/icon?job=sits-check-ubuntu-16.04">](http://www.dpi.inpe.br/jenkins/job/sits-check-ubuntu-16.04/lastBuild/consoleFull)                 |
-| Code Documentation | [<img src="http://www.dpi.inpe.br/jenkins/buildStatus/icon?job=sits-documentation-ubuntu-16.04">](http://www.dpi.inpe.br/jenkins/job/sits-documentation-ubuntu-16.04/lastBuild/consoleFull) |
-| Code Coverage      | [<img src="https://codecov.io/gh/e-sensing/sits/branch/master/graphs/badge.svg?branch=master">](https://codecov.io/github/e-sensing/sits?branch=master)                                     |
-| Project Status     | [<img src="http://www.repostatus.org/badges/latest/active.svg">](https://www.tidyverse.org/lifecycle/#maturing)                                                                             |
-| Lifecycle          | [<img src="https://img.shields.io/badge/lifecycle-maturing-blue.svg">](https://www.tidyverse.org/lifecycle/#maturing)                                                                       |
-
-#### License
-
-The **sits** package is licensed under the GPLv3
-(<http://www.gnu.org/licenses/gpl.html>).
+Please note that the tibble project is released with a [Contributor Code
+of
+Conduct](https://github.com/e-sensing/sits/blob/master/CODE_OF_CONDUCT.md).
+By contributing to this project, you agree to abide by its terms.

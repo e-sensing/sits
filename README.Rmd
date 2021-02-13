@@ -1,13 +1,11 @@
 ---
 title: "SITS - Satellite Image Time Series Analysis for Earth Observation Data Cubes"
 authors: Rolf Simoes, Gilberto Camara, Pedro Andrade, Alexandre Carvalho, Gilberto Queiroz, Lorena Santos, Karine Ferreira, Victor Maus 
-output:
-    github_document
+output: github_document
 ---
 
-<img src="inst/extdata/sticker/sits_sticker.png" alt="SITS icon"
-     width = "200" height = "200"
-     style="float:right; margin-right:10px"  />
+<!-- README.md is generated from README.Rmd. Please edit that file -->
+
 ```{r, echo = FALSE}
 knitr::opts_chunk$set(
   collapse = TRUE,
@@ -16,16 +14,32 @@ knitr::opts_chunk$set(
 )
 ```
 
+<img src="inst/extdata/sticker/sits_sticker.png" alt="SITS icon" align="right" height="150" width="150"/>
+
+<!-- badges: start -->
+
+[![Build Status](https://drone.dpi.inpe.br/api/badges/e-sensing/sits/status.svg)](https://drone.dpi.inpe.br/e-sensing/sits)
+[![codecov](https://codecov.io/gh/e-sensing/sits/branch/master/graph/badge.svg?token=hZxdJgKGcE)](https://codecov.io/gh/e-sensing/sits)
+[![Software Life Cycle](https://img.shields.io/badge/lifecycle-maturing-blue.svg)](https://www.tidyverse.org/lifecycle/#maturing)
+[![Software License](https://img.shields.io/badge/license-GPL--2-green)](https://github.com/e-sensing/sits/blob/master/LICENSE)
+
+<!-- badges: end -->
+
 ### Overview
 
-The `sits` R package provides a set of tools for analysis, visualization and classification of satellite image time series. It includes methods for filtering, clustering, classification, and post-processing.
+The `sits` R package provides a set of tools for analysis, visualization
+and classification of satellite image time series. It includes methods
+for filtering, clustering, classification, and post-processing.
 
 ## Installation
 
 ### Pre-Requisites
-The `sits` package relies on `sf` and `rgdal`, which in turn, require the installation of GDAL and PROJ library. Please follow the instruction for installing `sf` and `rgdal` available at the [RSpatial sf github repository](https://github.com/r-spatial/sf). 
 
-    
+The `sits` package relies on `sf` and `rgdal`, which in turn, require
+the installation of the GDAL and PROJ libraries. Please follow the instructions
+for installing `sf` and `rgdal` available at the [RSpatial sf github
+repository](https://github.com/r-spatial/sf).
+
 ### Required Packages
 
 Please follow the following steps.
@@ -38,7 +52,7 @@ install.packages(c("devtools", "rmarkdown", "Rcpp", "knitr", "testthat"))
 install.packages(c("DBI","dendextend", "dtwclust","dtwSat", "e1071", "flexclust",
                    "imager", "imputeTS", "kohonen", "lwgeom", "MASS", "methods",
                    "mgcv", "nnet", "proto", "proxy", "ptw", "ranger", "RCurl",
-                   "RSQLite", "signal", "xgboost", "zoo"))
+                   "RSQLite", "signal", "xgboost", "zoo", "rstac"))
 
 # Please install the Keras package from the RStudio repository
 devtools::install_github("rstudio/reticulate")
@@ -46,8 +60,8 @@ devtools::install_github("rstudio/keras")
 # Build the keras environment
 library(keras)
 keras::install_keras()
-# Retrieve the "wtss" package (used for data access to the WTSS service)
-devtools::install_github("e-sensing/wtss")
+# Retrieve the "Rwtss" package (used for data access to the WTSS service)
+devtools::install_github("e-sensing/Rwtss")
 library(wtss)
 # Please install the `sits` package from github
 devtools::install_github("e-sensing/sits")
@@ -57,25 +71,46 @@ devtools::install_github("e-sensing/inSitu")
 library(inSitu)
 ```
 
-### AMI Image 
+### AMI Image
 
-For users that have an AWS account, we have prepared 
-a set of AMI (Amazon Machine Images that is optimized for running SITS in the Amazon Elastic Compute Cloud (or EC2). The AMI has the following settings: SITS 0.9.6, Ubuntu 18.04, R 4.0.2, and Rstudio Server 1.3.959. All packages have been updated as of 21 August 2020. The AMI is avaliable for the following regions:
+For users that have an AWS account, we have prepared a set of AMI
+(Amazon Machine Images that are optimized for running SITS in the Amazon
+Elastic Compute Cloud (or EC2). The AMI has the following settings: SITS
+0.9.6, Ubuntu 18.04, R 4.0.2, and Rstudio Server 1.3.959. All packages
+have been updated as of 21 August 2020. The AMI is avaliable for the
+following regions:
 
-* [South America (sa-east-1)](https://console.aws.amazon.com/ec2/home?region=sa-east-1#launchAmi=ami-0567d9e8bca925a8d) 
-* [Frankfurt(eu-central-1)](https://console.aws.amazon.com/ec2/home?region=eu-central-1#launchAmi=ami-088e0eb8b0c3a74e3)
-* [US East (us-east-1)](https://console.aws.amazon.com/ec2/home?region=us-east-1#launchAmi=ami-02aa6bc45d45f75b9)
-* [Asia Pacific Singapore(ap-southeast-1)](https://console.aws.amazon.com/ec2/home?region=ap-southeast-1#launchAmi=ami-025e0b3b65bedb145)
+-   [South America
+    (sa-east-1)](https://console.aws.amazon.com/ec2/home?region=sa-east-1#launchAmi=ami-0567d9e8bca925a8d)
+-   [Frankfurt(eu-central-1)](https://console.aws.amazon.com/ec2/home?region=eu-central-1#launchAmi=ami-088e0eb8b0c3a74e3)
+-   [US East
+    (us-east-1)](https://console.aws.amazon.com/ec2/home?region=us-east-1#launchAmi=ami-02aa6bc45d45f75b9)
+-   [Asia Pacific
+    Singapore(ap-southeast-1)](https://console.aws.amazon.com/ec2/home?region=ap-southeast-1#launchAmi=ami-025e0b3b65bedb145)
 
+When you create an EC2 instance based on this AMI, ensure that your
+‘security group’ settings allow incoming HTTP (port 80), HTTPS (port
+443) and SSH (port 20) traffic. After the EC2 instance is started, then
+copy-and-paste the ‘IPv4 Public IP’ address for your running instance to
+a web browser address bar. That should bring the RStudio server
+interface in your browser. Use “rstudio” as username and “e-sensing” as
+password.
 
-When you create an EC2 instance based on this AMI, ensure that your ‘security group’ settings allow incoming HTTP (port 80), HTTPS (port 443) and SSH (port 20) traffic. After the EC2 instance is started, then copy-and-paste the ‘IPv4 Public IP’ address for your running instance to a web browser address bar. That should bring the RStudio server interface in your browser. Use "rstudio" as username and "e-sensing" as password.
+### Data Access
 
-### Data Access 
+SITS has been designed to work with big satellite image data sets
+organised data cubes. Data cubes can be available in the cloud or in a
+local machine. Methods of data input for time series samples include: a)
+obtain data from a time series web services such as INPE’s WTSS (Web
+Series Time Service) or EMBRAPA’s SATVEG; b) read data stored in a time
+series in the [zoo](https://cran.r-project.org/package=zoo) format; c) read a 
+time series from a `raster bricks`; d) read a time series from [Brazil Data Cube](http://brazildatacube.org/) products. Currently, raster classification 
+requires that data cubes are organised as a `raster bricks` which can reside 
+on a local or remote service.
 
-SITS has been designed to work with big satellite image data sets organised data cubes. Data cubes can be available in the cloud or in a local machine. Methods of data input for time series samples include (a) obtain data from a time series web services such as INPE's WTSS (Web Series Time Service) or EMBRAPA's SATVEG; (b) read data stored in a time series in the ZOO format [@Zeileis2005]; (c) Read a time series from a `raster bricks`. Currently, raster classification requires that data cubes are organised as a `raster bricks` which can reside on a local or remote service.
-
-For more details on data access, please see the vignette ["Accessing time series information in 
-SITS"](https://github.com/e-sensing/sits-docs/blob/master/doc/timeseries.pdf). 
+For more details on data access, please see the vignette [“Accessing
+time series information in
+SITS”](https://github.com/e-sensing/sits-docs/blob/master/doc/timeseries.pdf).
 
 ### Visualization
 
@@ -89,11 +124,21 @@ library(tibble)
 cerrado_2classes[1:3,]
 ```
 
-After a time series is imported, it is loaded in a tibble. The first six columns contain the metadata: spatial and temporal location, label assigned to the sample, and coverage from where the data has been extracted. The spatial location is given in longitude and latitude coordinates for the "WGS84" ellipsoid. For example, the first sample has been labelled "Pasture", at location (-55.1852, -10.8387), and is considered valid for the period (2013-09-14, 2014-08-29). To display the time series, use the `plot()` function. For a large number of samples, where the amount of individual plots would be substantial, the default visualisation combines all samples together in a single temporal interval. 
+After a time series is imported, it is loaded in a tibble. The first six
+columns contain the metadata: spatial and temporal location, label
+assigned to the sample, and coverage from where the data has been
+extracted. The spatial location is given in longitude and latitude
+coordinates for the “WGS84” ellipsoid. For example, the first sample has
+been labelled “Pasture”, at location (-55.1852, -10.8387), and is
+considered valid for the period (2013-09-14, 2014-08-29). To display the
+time series, use the `plot()` function. For a large number of samples,
+where the amount of individual plots would be substantial, the default
+visualisation combines all samples together in a single temporal
+interval.
 
 ```{r eval = FALSE}
 # select the "ndvi" band
-samples_ndvi <- sits_select_bands(samples_mt_4bands, ndvi)
+samples_ndvi <- sits_select(samples_mt_4bands, "NDVI")
 # select only the samples with the cerrado label
 samples_cerrado <- dplyr::filter(samples_ndvi, 
                   label == "Cerrado")
@@ -106,11 +151,27 @@ knitr::include_graphics("./inst/extdata/markdown/figures/samples_cerrado.png")
 
 ### Clustering
 
-Clustering methods in SITS improve the quality of the samples and to remove those that might have been wrongly labeled or that have low discriminatory power. Good samples lead to good classification maps. `sits` provides support for two clustering methods to test sample quality: (a) Agglomerative Hierarchical Clustering (AHC); (b)  Self-organizing Maps (SOM). For more details, please see the vignette [“Clustering of Satellite Image Time Series with SITS”](https://github.com/e-sensing/sits-docs/blob/master/doc/clustering.pdf)
+Clustering methods in SITS improve the quality of the samples and to
+remove those that might have been wrongly labeled or that have low
+discriminatory power. Good samples lead to good classification maps.
+`sits` provides support for two clustering methods to test sample
+quality: (a) Agglomerative Hierarchical Clustering (AHC); (b)
+Self-organizing Maps (SOM). For more details, please see the vignette
+[“Clustering of Satellite Image Time Series with
+SITS”](https://github.com/e-sensing/sits-docs/blob/master/doc/clustering.pdf)
 
 ## Filtering
 
-Satellite image time series are contaminated by atmospheric influence and directional effects. To make the best use of available satellite data archives, methods for satellite image time series analysis need to deal with data sets that are *noisy* and *non-homogeneous*. For data filtering, `sits` supports Savitzky–Golay (`sits_sgolay()`), Whittaker (`sits_whittaker()`), envelope (`sits_envelope()`) and the "cloud filter" (`sits_cloud_filter()`). As an example, we show how to apply the Whitakker smoother to a 16-year NDVI time series. For more details, please see the vignette [“Satellite Image Time Series Filtering with SITS”](https://github.com/e-sensing/sits-docs/blob/master/vignettes/filtering.pdf)
+Satellite image time series are contaminated by atmospheric influence
+and directional effects. To make the best use of available satellite
+data archives, methods for satellite image time series analysis need to
+deal with data sets that are *noisy* and *non-homogeneous*. For data
+filtering, `sits` supports Savitzky–Golay (`sits_sgolay()`), Whittaker
+(`sits_whittaker()`), envelope (`sits_envelope()`) and the “cloud
+filter” (`sits_cloud_filter()`). As an example, we show how to apply the
+Whitakker smoother to a 16-year NDVI time series. For more details,
+please see the vignette [“Satellite Image Time Series Filtering with
+SITS”](https://github.com/e-sensing/sits-docs/blob/master/vignettes/filtering.pdf)
 
 
 ```{r}
@@ -123,28 +184,37 @@ point_whit %>%
   plot()
 ```
 
-
 ## Time Series classification using machine learning 
 
-SITS provides support for the classification of both individual time series as well as data cubes. The following machine learning methods are available in SITS:
+SITS provides support for the classification of both individual time
+series as well as data cubes. The following machine learning methods are
+available in SITS:
 
-* Linear discriminant analysis (`sits_lda`)
-* Quadratic discriminant analysis (`sits_qda`)
-* Multinomial logit and its variants 'lasso' and 'ridge' (`sits_mlr`)
-* Support vector machines (`sits_svm`)
-* Random forests (`sits_rfor`)
-* Extreme gradient boosting (`sits_xgboost`)
-* Deep learning (DL) using multi-layer perceptrons (`sits_deeplearning`)
-* DL with 1D convolutional neural networks (`sits_FCN`) 
-* DL combining 1D CNN and multi-layer perceptron networks (`sits_TempCNN`)
-* DL using 1D version of ResNet (`sits_ResNet`)
-* DL using a combination of long-short term memory (LSTM) and 1D CNN (`sits_LSTM_FCN`)
+-   Linear discriminant analysis (`sits_lda`)
+-   Quadratic discriminant analysis (`sits_qda`)
+-   Multinomial logit and its variants ‘lasso’ and ‘ridge’ (`sits_mlr`)
+-   Support vector machines (`sits_svm`)
+-   Random forests (`sits_rfor`)
+-   Extreme gradient boosting (`sits_xgboost`)
+-   Deep learning (DL) using multi-layer perceptrons
+    (`sits_deeplearning`)
+-   DL with 1D convolutional neural networks (`sits_FCN`)
+-   DL combining 1D CNN and multi-layer perceptron networks
+    (`sits_TempCNN`)
+-   DL using 1D version of ResNet (`sits_ResNet`)
+-   DL using a combination of long-short term memory (LSTM) and 1D CNN
+    (`sits_LSTM_FCN`)
 
-
-The following example illustrate how to train a dataset and classify an individual time series. First we use the `sits_train` function with two parameters: the training dataset (described above) and the chosen machine learning model (in this case, a random forest classifier). The trained model is then used to classify a time series from Mato Grosso Brazilian state, using `sits_classify`. The results can be shown in text format using the function `sits_show_prediction` or graphically using `plot`.
+The following example illustrate how to train a dataset and classify an
+individual time series. First we use the `sits_train` function with two
+parameters: the training dataset (described above) and the chosen
+machine learning model (in this case, a random forest classifier). The
+trained model is then used to classify a time series from Mato Grosso
+Brazilian state, using `sits_classify`. The results can be shown in text
+format using the function `sits_show_prediction` or graphically using
+`plot`.
 
 ```{r}
-
 # Train a machine learning model for the mato grosso dataset using SVM
 samples_mt_2bands <- sits_select(samples_mt_4bands, bands = c("ndvi", "evi"))
 svm_model <- sits_train(data = samples_mt_2bands, 
@@ -162,7 +232,9 @@ class.tb <- sits_classify(point_filtered, svm_model)
 plot(class.tb, bands = c("ndvi", "evi"))
 ```
 
-The following example shows how to classify a data cube organised as a set of raster bricks. First, we ned to build a model based on the the same bands as the data cube.
+The following example shows how to classify a data cube organised as a
+set of raster bricks. First, we need to build a model based on the the
+same bands as the data cube.
 
 ```{r, eval = FALSE}
 # estimate a model only for bands "ndvi" and "evi"
@@ -187,9 +259,12 @@ probs_cube <- sits_classify(raster_cube, ml_model = rfor_model)
 
 # label the probability file (by default selecting the class with higher probability)
 # apply a bayesian smoothing to remove outliers
-label_cube <- sits_label_classification(probs_cube, smoothing = "bayesian")
+bayes_cube <- sits_smooth(probs_cube)
 
-# plot the first raster object with a selected color pallete
+# generate thematic map
+label_cube <- sits_label_classification(bayes_cube)
+
+# plot the first raster object with a selected color palette
 # make a title, define the colors and the labels)
 plot(label_cube, time = 1, title = "SINOP-MT - 2013/2014")
 ```
@@ -199,43 +274,29 @@ knitr::include_graphics("./inst/extdata/markdown/figures/sinop_bayes.png")
 ```
 
 
-### Additional information 
+### Additional information
 
-For more information, please see the vignettes 
+For more information, please see the vignettes
 
-  - [“SITS: Data analysis and machine learning for data cubes using
+-   [“SITS: Data analysis and machine learning for data cubes using
     satellite image time
     series”](https://github.com/e-sensing/sits-docs/blob/master/doc/sits.pdf)
-  
-  - ["Accessing time series information in 
-      SITS"](https://github.com/e-sensing/sits-docs/blob/master/doc/timeseries.pdf)
 
-  - [“Clustering of satellite image time series with
+-   [“Accessing time series information in
+    SITS”](https://github.com/e-sensing/sits-docs/blob/master/doc/timeseries.pdf)
+
+-   [“Clustering of satellite image time series with
     SITS”](https://github.com/e-sensing/sits-docs/blob/master/doc/clustering.pdf)
 
-  - [“Satellite image time series filtering with
+-   [“Satellite image time series filtering with
     SITS”](https://github.com/e-sensing/sits-docs/blob/master/doc/filters.pdf)
 
-  - [“Time series classification using machine
+-   [“Time series classification using machine
     learning”](https://github.com/e-sensing/sits-docs/blob/master/doc/machinelearning.pdf)
 
-  - [“Post classification smoothing using Bayesian techniques in
+-   [“Post classification smoothing using Bayesian techniques in
     SITS”](https://github.com/e-sensing/sits-docs/blob/master/doc/smoothing.pdf)
 
+## Code of Conduct
 
-
-#### Package status of SITS
-
-| |Status|
-|---|---|
-|Code Build | [<img src="http://www.dpi.inpe.br/jenkins/buildStatus/icon?job=sits-build-ubuntu-16.04">](http://www.dpi.inpe.br/jenkins/job/sits-build-ubuntu-16.04/lastBuild/consoleFull)|
-|Code Check |[<img src="http://www.dpi.inpe.br/jenkins/buildStatus/icon?job=sits-check-ubuntu-16.04">](http://www.dpi.inpe.br/jenkins/job/sits-check-ubuntu-16.04/lastBuild/consoleFull)|
-|Code Documentation |[<img src="http://www.dpi.inpe.br/jenkins/buildStatus/icon?job=sits-documentation-ubuntu-16.04">](http://www.dpi.inpe.br/jenkins/job/sits-documentation-ubuntu-16.04/lastBuild/consoleFull)|
-| Code Coverage | [<img src="https://codecov.io/gh/e-sensing/sits/branch/master/graphs/badge.svg?branch=master">](https://codecov.io/github/e-sensing/sits?branch=master) |
-| Project Status | [<img src="http://www.repostatus.org/badges/latest/active.svg">](https://www.tidyverse.org/lifecycle/#maturing) |
-| Lifecycle | [<img src="https://img.shields.io/badge/lifecycle-maturing-blue.svg">](https://www.tidyverse.org/lifecycle/#maturing) |
-
-
-#### License
-
-The **sits** package is licensed under the GPLv3 (<http://www.gnu.org/licenses/gpl.html>).
+Please note that the tibble project is released with a [Contributor Code of Conduct](https://github.com/e-sensing/sits/blob/master/CODE_OF_CONDUCT.md). By contributing to this project, you agree to abide by its terms.
