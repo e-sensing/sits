@@ -79,7 +79,7 @@ sits_bands.patterns <- function(data) {
     return(bands)
 }
 #' @title Replaces the names of the bands
-#' @name sits_bands<-
+#' @name `sits_bands<-`
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
 #'
@@ -87,8 +87,8 @@ sits_bands.patterns <- function(data) {
 #'               or in a metadata cube
 #'               For details see:
 #' \itemize{
-#'  \item{"time series": }{see \code{\link{"sits_bands<-.sits"}}}
-#'  \item{"data cube": }{see \code{\link{"sits_bands<-.cube"}}}
+#'  \item{"time series": }{see \code{\link{sits_bands<-.sits}}}
+#'  \item{"data cube": }{see \code{\link{sits_bands<-.cube}}}
 #' }
 #'
 #' @param x         Valid sits tibble (time series or a cube)
@@ -96,14 +96,14 @@ sits_bands.patterns <- function(data) {
 #' @return An updated data set with the new bands.
 #'
 #' @export
-"sits_bands<-" = function(x, value) {
+`sits_bands<-` = function(x, value) {
     # get the meta-type (sits or cube)
     x <- .sits_config_data_meta_type(x)
 
     UseMethod("sits_bands<-", x)
 }
 #' @title Replaces the names of the bands of a set of timeseries
-#' @name sits_bands<-.sits
+#' @name `sits_bands<-.sits`
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
 #'
@@ -117,7 +117,7 @@ sits_bands.patterns <- function(data) {
 #' # Replace the name of bands for the samples for Mato Grosso
 #' sits_bands(samples_mt_4bands) <- c("ndvi", "evi", "nir", "mir")
 #' @export
-"sits_bands<-.sits" =  function(x, value) {
+`sits_bands<-.sits` =  function(x, value) {
     # backward compatibility
     x <- .sits_tibble_rename(x)
 
@@ -136,7 +136,7 @@ sits_bands.patterns <- function(data) {
   return(x)
 }
 #' @title Replaces the names of the bands of a cube
-#' @name sits_bands<-.cube
+#' @name `sits_bands<-.cube`
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
 #'
@@ -147,7 +147,7 @@ sits_bands.patterns <- function(data) {
 #' @return An updated data cube with the new bands.
 #'
 #' @export
-"sits_bands<-.cube" = function(x, value) {
+`sits_bands<-.cube` = function(x, value) {
     rows <- slider::slide(x, function(row){
         old_bands <- row$bands[[1]]
         assertthat::assert_that(length(old_bands) == length(value),

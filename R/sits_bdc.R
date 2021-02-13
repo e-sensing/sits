@@ -3,8 +3,6 @@
 #' @keywords internal
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'
-#' @param access_key     BDC access key
-#'
 #' @return  access_key
 #'
 .sits_bdc_access_check <- function() {
@@ -12,11 +10,11 @@
     # Try to find the access key as an environment variable
     bdc_access_key <- Sys.getenv("BDC_ACCESS_KEY")
     assertthat::assert_that(nchar(bdc_access_key) != 0,
-                    msg = "BDC access key needs to be provided"
+                            msg = "BDC_ACCESS_KEY needs to be provided"
     )
     # test file access to BDC
     test_file <- paste0(.sits_config_test_file("BDC"),
-                        "?access_token=",bdc_access_key
+                        "?access_token=", bdc_access_key
     )
 
     # are the files accessible?

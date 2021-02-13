@@ -5,12 +5,8 @@ apply_transition_matrix <- function(data_before, data, transition_matrix) {
     .Call(`_sits_apply_transition_matrix`, data_before, data, transition_matrix)
 }
 
-build_neigh <- function(data, window, i, j) {
-    .Call(`_sits_build_neigh`, data, window, i, j)
-}
-
-bayes_estimator <- function(data, window, smoothness, max_prob) {
-    .Call(`_sits_bayes_estimator`, data, window, smoothness, max_prob)
+bayes_multiv_smooth <- function(m, m_nrow, m_ncol, w, sigma, covar) {
+    .Call(`_sits_bayes_multiv_smooth`, m, m_nrow, m_ncol, w, sigma, covar)
 }
 
 median_neigh <- function(data, nrows_window, ncols_window) {

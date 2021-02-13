@@ -155,6 +155,7 @@
     # set scale factors, missing values, minimum and maximum values for probs
     #
     cube_sf <- cube$scale_factors[[1]][1]
+    names(cube_sf) <- "PROBS"
     max  <- round(1/cube_sf)
     scale_factors <- rep(cube_sf, n_objs)
     missing_values <- rep(NA, n_objs)
@@ -419,14 +420,17 @@
     # copy the cube information
     cube_clone <- cube
 
-    # update the file information for the new files
-    file_info <- cube_clone$file_info[[1]]
-    newb <- paste0(file_info$band, ext)
-    newp <- paste0(output_dir, "/", newb, "_", version, ".tif")
-    file_info$band <- newb
-    file_info$path <- newp
     # update the cube information
-    cube_clone$file_info <- list(file_info)
+    cube_clone$file_info <-
+      purrr::map(cube_clone$file_info, function(file_info) {
+
+        newb <- paste0(file_info$band, ext)
+        newp <- paste0(output_dir, "/", newb, "_", version, ".tif")
+        file_info$band <- newb
+        file_info$path <- newp
+
+        file_info
+      })
 
     class(cube_clone) <- class(cube)
     return(cube_clone)
