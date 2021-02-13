@@ -1,4 +1,14 @@
 context("Cube")
+test_that("Creating a SATVEG data cube", {
+  testthat::skip_on_cran()
+  cube_satveg <- sits_cube(type = "SATVEG", name = "terra")
+
+  if (purrr::is_null(cube_satveg)) {
+    skip("SATVEG is not accessible")
+  }
+
+  expect_true(length(cube_satveg$timeline[[1]][[1]]) > 1)
+})
 test_that("Reading a raster cube", {
     file <- c(system.file("extdata/raster/mod13q1/sinop-crop-ndvi.tif",
         package = "sits"
