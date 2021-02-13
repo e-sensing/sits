@@ -100,7 +100,7 @@ sits_bands.patterns <- function(data) {
     # get the meta-type (sits or cube)
     x <- .sits_config_data_meta_type(x)
 
-    UseMethod(`sits_bands<-`, x)
+    UseMethod("sits_bands<-", x)
 }
 #' @title Replaces the names of the bands of a set of timeseries
 #' @name `sits_bands<-.sits`
