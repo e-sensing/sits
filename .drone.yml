@@ -6,7 +6,7 @@ steps:
   image: brazildatacube/sits-r:latest
   commands:
   - R CMD build .
-  - R CMD check *.tar.gz --as-cran >&1 | tee stdfile && cat stdfile | grep -E "(WARNING)" > /dev/null | test $? -eq 1
+  - R CMD check *.tar.gz --as-cran
 
 - name: coverage
   image: brazildatacube/sits-r:latest
