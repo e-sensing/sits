@@ -20,8 +20,8 @@ Replace the names of the bands of time series in a sits tibble
               or in a metadata cube
               For details see:
 \itemize{
- \item{"time series": }{see \code{\link{`sits_bands<-.sits`}}}
- \item{"data cube": }{see \code{\link{`sits_bands<-.cube`}}}
+ \item{"time series": }{see \code{\link{"sits_bands<-.sits"}}}
+ \item{"data cube": }{see \code{\link{"sits_bands<-.cube"}}}
 }
 }
 \author{
