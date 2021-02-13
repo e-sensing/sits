@@ -24,9 +24,9 @@
 
     # create a list with the time series transposed from columns to rows
     ts <- data$time_series %>%
-        purrr::map(function(ts) {
-            as.data.frame(t(unlist(ts[-1])))
-        })
+      purrr::map(function(ts) {
+        as.data.frame(t(unlist(ts[-1])))
+      })
     # bind the lists of time series together
     dist <- data.table::rbindlist(ts, use.names = FALSE)
     # create a data frame with the first two columns for training
@@ -111,8 +111,10 @@
             mc.cores = multicores
         )
 
-        # equivalent: predicted <- do.call(rbind, results.lst)
-        predicted <- join_blocks(results)
+        # fix 'Error: Tibble columns must have compatible sizes'
+        predicted <- do.call(rbind, results)
+
+        # predicted <- join_blocks(results)
     }
     else {
           predicted <- classify_block(distances)

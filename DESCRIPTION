@@ -1,6 +1,6 @@
 Package: sits
 Type: Package
-Version: 0.9.8
+Version: 0.10.0
 Title: Satellite Image Time Series Analysis for Remote Sensing Data Cubes
 Authors@R: c(person('Rolf', 'Simoes', role = c('aut'), email = 'rolf.simoes@inpe.br'),
              person('Gilberto', 'Camara', role = c('aut', 'cre'), email = 'gilberto.camara@inpe.br'),
@@ -42,7 +42,7 @@ Imports:
     keras (>= 2.3.0),
     lubridate (>= 1.7.0),
     parallel,
-    purrr  (>= 0.3.0),
+    purrr (>= 0.3.0),
     raster (>= 3.4),
     reshape2,
     RCurl,
@@ -84,6 +84,7 @@ Suggests:
     randomForest,
     ranger,
     Rcpp,
+    RcppArmadillo,
     RSQLite,
     rstac,
     Rwtss,
@@ -95,11 +96,10 @@ Suggests:
     xgboost,
     xml2,
     zoo
-Remotes: 
-    e-sensing/Rwtss
 VignetteBuilder: knitr
 LinkingTo:
-    Rcpp
+    Rcpp,
+    RcppArmadillo
 RoxygenNote: 7.1.1
 Collate: 
     'RcppExports.R'
@@ -152,6 +152,7 @@ Collate:
     'sits_sentinel.R'
     'sits_shp.R'
     'sits_smooth.R'
+    'sits_smooth_aux_functions.R'
     'sits_som.R'
     'sits_space_time_operations.R'
     'sits_stac.R'

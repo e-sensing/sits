@@ -65,9 +65,6 @@ sits_label_classification <- function(cube,
     )
     # find out how many labels exist
     n_labels <- length(.sits_cube_labels(cube[1, ]))
-    # allocate matrix of probabilities
-    cube_size <- cube[1, ]$nrows * cube[1, ]$ncols
-    lab_values <- matrix(NA, nrow = cube_size, ncol = n_labels)
 
     # create metadata for labeled raster cube
     cube_labels <- .sits_label_cube(
@@ -75,35 +72,41 @@ sits_label_classification <- function(cube,
         output_dir = output_dir,
         version = version
     )
-    # retrieve the files to be read and written
-    in_files <- .sits_cube_files(cube)
-    out_files <- .sits_cube_files(cube_labels)
 
     # define the extent to be read
     extent <- vector(mode = "integer", length = 4)
     names(extent) <- c("row", "nrows", "col", "ncols")
 
-    purrr::map2(in_files, out_files,
-                function(in_file, out_file) {
-                    # read values from file
-                    t_obj <- terra::rast(in_file)
-                    data_values <- terra::values(t_obj)
+    # traverse all tiles
+    slider::slide2(cube, cube_labels, function(cube_row, cube_labels_row) {
 
-                    # avoid extreme values
-                    data_values[data_values < 1] <- 1
-                    data_values[data_values > 9999] <- 9999
+        # allocate matrix of probabilities
+        cube_size <- cube_row$nrows * cube_row$ncols
+        lab_values <- matrix(NA, nrow = cube_size, ncol = 1)
 
-                    # select the best class by choosing the maximum value
-                    lab_values[] <- apply(data_values, 1, which.max)
+        # retrieve the files to be read and written
+        in_files <- .sits_cube_files(cube_row)
+        out_files <- .sits_cube_files(cube_labels_row)
 
-                    # write values into a file
-                    cube_labels <- .sits_raster_api_write(
-                        params = .sits_raster_api_params_cube(cube),
-                        num_layers = 1,
-                        values = lab_values,
-                        filename = out_file,
-                        datatype = "INT1U"
-                    )
+        # traverse all years
+        purrr::map2(in_files, out_files, function(in_file, out_file) {
+
+            # read values from file
+            t_obj <- terra::rast(in_file)
+            data_values <- terra::values(t_obj)
+
+            # select the best class by choosing the maximum value
+            lab_values[] <- apply(data_values, 1, which.max)
+
+            # write values into a file
+            cube_labels <- .sits_raster_api_write(
+                params = .sits_raster_api_params_cube(cube_row),
+                num_layers = 1,
+                values = lab_values,
+                filename = out_file,
+                datatype = "INT1U"
+            )
+        })
     })
     return(cube_labels)
 }
@@ -233,84 +236,91 @@ sits_label_majority <- function(cube,
 #' @return                   Metadata about the output RasterLayer objects.
 .sits_label_cube <- function(cube_probs, output_dir, version) {
 
-    # labels come from the input cube
-    labels <- .sits_cube_labels(cube_probs)
+    labels_lst <- slider::slide(cube_probs, function(cube_probs_row) {
 
-    # how many objects are to be created?
-    n_objs <- length(.sits_cube_files(cube_probs))
+        # labels come from the input cube
+        labels <- .sits_cube_labels(cube_probs_row)
 
-    # set scale factors, missing values, minimum and maximum values
-    scale_factors <- rep(1, n_objs)
-    missing_values <- rep(-9999, n_objs)
-    minimum_values <- rep(1, n_objs)
-    maximum_values <- rep(length(labels), n_objs)
+        # how many objects are to be created?
+        n_objs <- length(.sits_cube_files(cube_probs_row))
 
-    # name of the cube
-    name <- paste0(cube_probs[1, ]$name, "_class")
+        # set scale factors, missing values, minimum and maximum values
+        scale_factors <- rep(1, n_objs)
+        missing_values <- rep(-9999, n_objs)
+        minimum_values <- rep(1, n_objs)
+        maximum_values <- rep(length(labels), n_objs)
 
-    # loop through the list of dates and create list of raster layers
-    times_probs <- seq_len(n_objs) %>%
-        purrr::map(function(i){
-            # define the timeline for the raster data sets
-            timeline <- cube_probs$timeline[[1]][[i]]
-            start_date <- timeline[1]
-            return(start_date)
-        })
-    bands <- seq_len(n_objs) %>%
-        purrr::map(function(i){
-            timeline <- cube_probs$timeline[[1]][[i]]
-            band <- .sits_cube_class_band_name(
-                name = cube_probs[1, ]$name,
-                type = "class",
-                start_date = timeline[1],
-                end_date = timeline[length(timeline)]
-            )
-            return(band)
-        })
-    # define the filename for the classified image
-    files <- seq_len(n_objs) %>%
-        purrr::map(function(i){
-            timeline <- cube_probs$timeline[[1]][[i]]
-            file <- .sits_raster_api_filename(
-                output_dir = output_dir,
-                version = version,
-                name = cube_probs[1, ]$name,
-                type = "class",
-                start_date = timeline[1],
-                end_date = timeline[length(timeline)]
-            )
-            return(file)
-        })
+        # name of the cube
+        name <- paste0(cube_probs_row$name, "_class")
 
-    # get the file information
-    file_info <- .sits_raster_api_file_info(bands, times_probs, files)
+        # loop through the list of dates and create list of raster layers
+        times_probs <- seq_len(n_objs) %>%
+            purrr::map(function(i){
+                # define the timeline for the raster data sets
+                timeline <- cube_probs_row$timeline[[1]][[i]]
+                start_date <- timeline[1]
+                return(start_date)
+            })
+        bands <- seq_len(n_objs) %>%
+            purrr::map(function(i){
+                timeline <- cube_probs_row$timeline[[1]][[i]]
+                band <- .sits_cube_class_band_name(
+                    name = cube_probs_row$name,
+                    type = "class",
+                    start_date = timeline[1],
+                    end_date = timeline[length(timeline)]
+                )
+                return(band)
+            })
+        # define the filename for the classified image
+        files <- seq_len(n_objs) %>%
+            purrr::map(function(i){
+                timeline <- cube_probs_row$timeline[[1]][[i]]
+                file <- .sits_raster_api_filename(
+                    output_dir = output_dir,
+                    version = version,
+                    name = cube_probs_row$name,
+                    type = "class",
+                    start_date = timeline[1],
+                    end_date = timeline[length(timeline)]
+                )
+                return(file)
+            })
 
-    # create a new RasterLayer for a defined period and generate metadata
-    cube_labels <- .sits_cube_create(
-        type = "CLASSIFIED",
-        satellite = cube_probs$satellite,
-        sensor = cube_probs$sensor,
-        name = name,
-        bands = bands,
-        labels = labels,
-        scale_factors = scale_factors,
-        missing_values = missing_values,
-        minimum_values = minimum_values,
-        maximum_values = maximum_values,
-        timelines = cube_probs$timeline[[1]],
-        nrows = cube_probs$nrows,
-        ncols = cube_probs$ncols,
-        xmin = cube_probs$xmin,
-        xmax = cube_probs$xmax,
-        ymin = cube_probs$ymin,
-        ymax = cube_probs$ymax,
-        xres = cube_probs$xres,
-        yres = cube_probs$yres,
-        crs = cube_probs$crs,
-        file_info = file_info
-    )
+        # get the file information
+        file_info <- .sits_raster_api_file_info(bands, times_probs, files)
 
+        # create a new RasterLayer for a defined period and generate metadata
+        cube_labels <- .sits_cube_create(
+            type = "CLASSIFIED",
+            satellite = cube_probs_row$satellite,
+            sensor = cube_probs_row$sensor,
+            name = name,
+            bands = bands,
+            labels = labels,
+            scale_factors = scale_factors,
+            missing_values = missing_values,
+            minimum_values = minimum_values,
+            maximum_values = maximum_values,
+            timelines = cube_probs_row$timeline[[1]],
+            nrows = cube_probs_row$nrows,
+            ncols = cube_probs_row$ncols,
+            xmin = cube_probs_row$xmin,
+            xmax = cube_probs_row$xmax,
+            ymin = cube_probs_row$ymin,
+            ymax = cube_probs_row$ymax,
+            xres = cube_probs_row$xres,
+            yres = cube_probs_row$yres,
+            crs = cube_probs_row$crs,
+            file_info = file_info
+        )
 
-    class(cube_labels) <- c("classified_image", "raster_cube", class(cube_labels))
+        return(cube_labels)
+    })
+
+    cube_labels <- dplyr::bind_rows(labels_lst)
+
+    class(cube_labels) <- c("classified_image", "raster_cube",
+                            class(cube_labels))
     return(cube_labels)
 }

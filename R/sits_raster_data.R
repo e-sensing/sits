@@ -299,8 +299,7 @@
         points,
         X > cube$xmin & X < cube$xmax &
             Y > cube$ymin & Y < cube$ymax &
-            start_date >= as.Date(timeline[1]) &
-            end_date <= as.Date(timeline[length(timeline)])
+            start_date >= as.Date(timeline[1])
     )
 
     # are there points to be retrieved from the cube?

@@ -4,7 +4,7 @@
 \alias{plot.stack_cube}
 \title{Generic interface for plotting stack cubes}
 \usage{
-\method{plot}{stack_cube}(x, y, ..., red, green, blue, time = 1)
+\method{plot}{stack_cube}(x, y, ..., red, green, blue, time = 1, roi = NULL)
 }
 \arguments{
 \item{x}{object of class "stack_cube"}
@@ -19,7 +19,9 @@
 
 \item{blue}{band for blue color.}
 
-\item{time}{temporal instance to be plotted}
+\item{time}{temporal instances to be plotted.}
+
+\item{roi}{sf object giving a region of interest.}
 }
 \value{
 mapview object

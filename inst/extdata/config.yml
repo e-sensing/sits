@@ -110,49 +110,58 @@ default:
 
     OLI                     : &landsat
         bands               :
-            SITS            : &oli_bands_sits ["B2", "B3", "B4", "B5", "B6", "B7", "NDVI", "EVI"]
-            BDC             : ["band2", "band3", "band4", "band5", "band6", "band7", "ndvi", "evi", "Fmask4"]
+            SITS            : &oli_bands_sits ["B1", "B2", "B3", "B4", "B5", "B6", "B7", "NDVI", "EVI", "FMASK4"]
+            BDC             : ["BAND1", "BAND2", "BAND3", "BAND4", "BAND5", "BAND6", "BAND7", "NDVI", "EVI", "FMASK4"]
             RASTER          : *oli_bands_sits
+            cloud_band      : "FMASK4"
+
         missing_value       :
             NDVI            : -9999
             EVI             : -9999
+            B1              : -9999
             B2              : -9999
             B3              : -9999
             B4              : -9999
             B5              : -9999
             B6              : -9999
             B7              : -9999
-
+            FMASK           : 255
 
         minimum_value       :
             NDVI            : -3000
             EVI             : -3000
+            B1              : 0
             B2              : 0
             B3              : 0
             B4              : 0
             B5              : 0
             B6              : 0
             B7              : 0
+            FMASK           : 0
 
         maximum_value       :
             NDVI            : 10000
             EVI             : 10000
+            B1              : 10000
             B2              : 10000
             B3              : 10000
             B4              : 10000
             B5              : 10000
             B6              : 10000
             B7              : 10000
+            FMASK           : 255
 
         scale_factor:
             NDVI            : 0.0001
             EVI             : 0.0001
+            B1              : 0.0001
             B2              : 0.0001
             B3              : 0.0001
             B4              : 0.0001
             B5              : 0.0001
             B6              : 0.0001
             B7              : 0.0001
+            FMASK           : 1
 
         resolution          :
             xres            : 30
@@ -168,7 +177,6 @@ default:
             BDC             : ["BAND13", "BAND14", "BAND15", "BAND16", "NDVI", "EVI", "CMASK"]
             RASTER          : *awfi_bands_sits
             cloud_band      : "CMASK"
-
 
         missing_value       :
             NDVI            : -9999

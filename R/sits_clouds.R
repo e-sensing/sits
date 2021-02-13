@@ -246,7 +246,7 @@ sits_cloud_remove <- function(cube,
                 multicores = multicores
             )
             # rescale the data
-            mult_factor <- 1/as.numeric(cube$scale_factors[[1]][b])
+            mult_factor <- 1/as.numeric(cube$scale_factors[[1]][bnd])
             values_block <- mult_factor * values_block
             # write a block of values
             terra::writeValues(r_obj,

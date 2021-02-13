@@ -1,6 +1,6 @@
 ^.*\.Rproj$
 ^\.Rproj\.user$
-.travis.yml$
+.drone.yml$
 ^packrat/
 .Rprofile$
 .RData$

@@ -14,7 +14,7 @@ for filtering, clustering, classification, and post-processing.
 ### Pre-Requisites
 
 The `sits` package relies on `sf` and `rgdal`, which in turn, require
-the installation of GDAL and PROJ library. Please follow the instruction
+the installation of the GDAL and PROJ libraries. Please follow the instructions
 for installing `sf` and `rgdal` available at the [RSpatial sf github
 repository](https://github.com/r-spatial/sf).
 
@@ -52,7 +52,7 @@ library(inSitu)
 ### AMI Image
 
 For users that have an AWS account, we have prepared a set of AMI
-(Amazon Machine Images that is optimized for running SITS in the Amazon
+(Amazon Machine Images that are optimized for running SITS in the Amazon
 Elastic Compute Cloud (or EC2). The AMI has the following settings: SITS
 0.9.6, Ubuntu 18.04, R 4.0.2, and Rstudio Server 1.3.959. All packages
 have been updated as of 21 August 2020. The AMI is avaliable for the
@@ -226,7 +226,7 @@ plot(class.tb, bands = c("ndvi", "evi"))
 ![](man/figures/README-unnamed-chunk-8-1.png)<!-- -->
 
 The following example shows how to classify a data cube organised as a
-set of raster bricks. First, we ned to build a model based on the the
+set of raster bricks. First, we need to build a model based on the the
 same bands as the data cube.
 
 ``` r

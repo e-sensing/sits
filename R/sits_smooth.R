@@ -60,21 +60,31 @@ sits_smooth <- function(cube,
     class(type) <- c(type, class(type))
     UseMethod("sits_smooth", type)
 }
+
 #' @title Post-process a classified data raster probs using bayesian smoothing
 #'
 #' @name  sits_smooth.bayes
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'
-#' @description Takes a set of classified raster layers with probabilities,
-#'              whose metadata is]created by \code{\link[sits]{sits_cube}},
+#' @description Takes a set of raster bricks with probabilities,
+#'              whose metadata is created by \code{\link[sits]{sits_cube}},
 #'              and apply a bayesian smoothing process.
+#'              If \code{covar} is \code{FALSE} only main diagonal of
+#'              covariance prior matrix will be computed.
 #'
 #' @param  cube              Probability data cube
 #' @param  type              Type of smoothing
 #' @param  ...               Parameters for specific functions
 #' @param  window_size       Size of the neighbourhood.
 #' @param  smoothness        Estimated variance of logit of class_probs
-#'                           (Bayesian smoothing parameter).
+#'                           (Bayesian smoothing parameter). It can be either
+#'                           a matrix or a scalar.
+#' @param  covar             a logical argument indicating if a covariance
+#'                           matrix must be computed as the prior covariance.
+#' @param  multicores        Number of process to run the Bayesian smoothing in
+#'                           snow subprocess.
+#' @param  memory            Maximul overall memory (in GB) to run the Bayesian
+#'                           smoothing.
 #' @param  output_dir        Output directory where to out the file
 #' @param  version           Version of resulting image
 #'                           (in the case of multiple tests)
@@ -121,11 +131,14 @@ sits_smooth.bayes <- function(cube,
                               ...,
                               window_size = 5,
                               smoothness = 20,
-                              output_dir = "./",
+                              covar = FALSE,
+                              multicores = 1,
+                              memory = 1,
+                              output_dir = getwd(),
                               version = "v1") {
 
     # precondition 1 - check if cube has probability data
-    assertthat::assert_that("probs_cube" %in% class(cube[1,]),
+    assertthat::assert_that(inherits(cube, "probs_cube"),
             msg = "sits_smooth: input is not probability cube"
     )
 
@@ -134,15 +147,35 @@ sits_smooth.bayes <- function(cube,
             msg = "sits_smooth: window_size must be an odd number"
     )
 
-    # prediction 3 - test variance
-    assertthat::assert_that(smoothness > 1,
-            msg = "sits_smooth: smoothness must be more than 1"
+    # find out how many labels exist
+    n_labels <- length(.sits_cube_labels(cube[1,]))
+
+    # precondition 3 - test variance
+    if (is.matrix(smoothness)) {
+        assertthat::assert_that((nrow(smoothness) == ncol(smoothness)) &&
+                                    (ncol(smoothness) == n_labels),
+           msg = paste("sits_smooth: smoothness must be square matrix of",
+                       "the same length as the number of labels")
+        )
+    } else {
+        assertthat::assert_that(smoothness > 1,
+                                msg = "sits_smooth: smoothness must be more than 1"
+        )
+        smoothness <- diag(smoothness, nrow = n_labels, ncol = n_labels)
+    }
+
+    # precondition 4 - multicores
+    assertthat::assert_that(multicores >= 1,
+                            msg = "sits_smooth: multicores must be at least 1"
+    )
+
+    # precondition 5 - memory
+    assertthat::assert_that(memory > 0,
+                            msg = "sits_smooth: memory must be positive"
     )
 
     # create a window
-    window <- matrix(1, nrow = window_size, ncol = window_size, byrow = TRUE)
-    # find out how many labels exist
-    n_labels <- length(.sits_cube_labels(cube[1,]))
+    window <- matrix(1, nrow = window_size, ncol = window_size)
 
     # create metadata for labeled raster cube
     cube_bayes <- .sits_cube_clone(
@@ -151,44 +184,59 @@ sits_smooth.bayes <- function(cube,
         output_dir = output_dir,
         version = version
     )
-    # retrieve the files to be read and written
-    in_files <- .sits_cube_files(cube)
-    out_files <- .sits_cube_files(cube_bayes)
 
     # retrieve the scale factor
     scale_factor <- cube[1,]$scale_factors[[1]][1]
-    mult_factor <- 1/scale_factor
+    mult_factor <- 1 / scale_factor
 
-    purrr::map2(in_files, out_files,
-                function(in_file, out_file) {
-                    values <- .sits_raster_api_read_file(in_file)
-                    # avoid extreme values
-                    values[values < 1] <- 1
-                    values[values > 9999] <- 9999
-                    for (b in 1:n_labels) {
-                        # create a matrix with the values of each label
-                        band <- matrix(
-                            as.matrix(values[ ,b]),
-                            nrow = cube[1,]$nrows,
-                            ncol = cube[1,]$ncols,
-                            byrow = TRUE
-                        )
-                        # calculate the bayes smoothing
-                        values[, b] <- bayes_estimator(band,
-                                                       window,
-                                                       smoothness,
-                                                       mult_factor)
-                    }
-                    # write values into a file
-                    cube_bayes <- .sits_raster_api_write(
-                        params = .sits_raster_api_params_cube(cube_bayes[1, ]),
-                        num_layers = n_labels,
-                        values = values,
-                        filename = out_file,
-                        datatype = "INT2U",
+    # bayesian inference to be executed  by workers cluster
+    .do_bayes <- function(chunk, window, smoothness, covar) {
 
-                    )
-                })
+        data <- unname(raster::values(chunk))
+
+        # fix probs
+        maxprob <- mult_factor - ncol(data) + 1
+        data[data == 0] <- 1
+        data[data > maxprob] <- maxprob
+
+        # compute logit
+        logit <- log(data / (rowSums(data) - data))
+
+        # process bayesian
+        data <- bayes_multiv_smooth(m = logit,
+                                    m_nrow = raster::nrow(chunk),
+                                    m_ncol = raster::ncol(chunk),
+                                    w = window,
+                                    sigma = smoothness,
+                                    covar = covar)
+
+        # calculate the bayesian probability for the pixel
+        data <- exp(data) * mult_factor / (exp(data) + 1)
+
+        # create cube smooth
+        res <- raster::brick(chunk, nl = raster::nlayers(chunk))
+        res[] <- data
+
+        return(res)
+    }
+
+    # process each brick layer (each time step) individually
+    .sits_map_layer_cluster(cube = cube,
+                            cube_out = cube_bayes,
+                            overlapping_y_size =
+                                ceiling(window_size / 2) - 1,
+                            func = .do_bayes,
+                            func_args = list(
+                                window = window,
+                                smoothness = smoothness,
+                                covar = covar
+                            ),
+                            multicores = multicores,
+                            memory = memory,
+                            datatype = "INT2U",
+                            options = c("COMPRESS=LZW",
+                                        "BIGTIFF=YES"))
+
     return(cube_bayes)
 }
 
