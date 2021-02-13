@@ -132,24 +132,6 @@
         filename
     }
 
-    # open probability file
-    in_files <- .sits_cube_files(cube)
-
-    # retrieve the files to be read and written
-    out_files <- .sits_cube_files(cube_out)
-
-
-    # compute how many tiles to be computed
-    blocks <- .sits_split_probs_blocks_estimate(cube = cube,
-                                                multicores = multicores,
-                                                memory = memory)
-
-    # updates multicores if it is above upper bound limit
-    multicores <- min(blocks[["max_multicores"]], multicores)
-
-    # for now, only vertical blocks are allowed, i.e 'x_blocks' is 1
-    block_y_size <- blocks[["block_y_size"]]
-
     # make snow cluster
     cl <- NULL
     if (multicores > 1) {
@@ -160,13 +142,28 @@
         on.exit(parallel::stopCluster(cl))
     }
 
-    purrr::map2(in_files, out_files, function(in_file, out_file) {
+    slider::slide2(cube, cube_out, function(cube_row, out_file_row) {
 
-        # open brick
-        b <- suppressWarnings(raster::brick(in_file))
+
+        # compute how many tiles to be computed
+        blocks <- .sits_split_probs_blocks_estimate(cube = cube_row,
+                                                    multicores = multicores,
+                                                    memory = memory)
+
+        # # updates multicores if it is above upper bound limit
+        # multicores <- min(blocks[["max_multicores"]], multicores)
+
+        # for now, only vertical blocks are allowed, i.e 'x_blocks' is 1
+        block_y_size <- blocks[["block_y_size"]]
+
+        # open probability file
+        in_file <- .sits_cube_files(cube_row)
+
+        # retrieve the files to be read and written
+        out_file <- .sits_cube_files(out_file_row)
 
         # get vertical size
-        img_y_size <- nrow(b)
+        img_y_size <- cube_row$nrows
 
         # compute blocks
         r1 <- ceiling(seq(1, img_y_size - 1, by = block_y_size))
