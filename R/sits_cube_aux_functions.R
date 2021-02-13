@@ -420,14 +420,17 @@
     # copy the cube information
     cube_clone <- cube
 
-    # update the file information for the new files
-    file_info <- cube_clone$file_info[[1]]
-    newb <- paste0(file_info$band, ext)
-    newp <- paste0(output_dir, "/", newb, "_", version, ".tif")
-    file_info$band <- newb
-    file_info$path <- newp
     # update the cube information
-    cube_clone$file_info <- list(file_info)
+    cube_clone$file_info <-
+      purrr::map(cube_clone$file_info, function(file_info) {
+
+        newb <- paste0(file_info$band, ext)
+        newp <- paste0(output_dir, "/", newb, "_", version, ".tif")
+        file_info$band <- newb
+        file_info$path <- newp
+
+        file_info
+      })
 
     class(cube_clone) <- class(cube)
     return(cube_clone)
