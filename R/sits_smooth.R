@@ -189,6 +189,7 @@ sits_smooth.bayes <- function(cube,
     scale_factor <- cube[1,]$scale_factors[[1]][1]
     mult_factor <- 1 / scale_factor
 
+    # bayesian inference to be executed  by workers cluster
     .do_bayes <- function(chunk, window, smoothness, covar) {
 
         data <- unname(raster::values(chunk))
@@ -219,21 +220,22 @@ sits_smooth.bayes <- function(cube,
         return(res)
     }
 
-    .sits_split_cluster(cube = cube,
-                        cube_out = cube_bayes,
-                        overlapping_y_size =
-                            ceiling(window_size / 2) - 1,
-                        func = .do_bayes,
-                        func_args = list(
-                            window = window,
-                            smoothness = smoothness,
-                            covar = covar
-                        ),
-                        multicores = multicores,
-                        memory = memory,
-                        datatype = "INT2U",
-                        options = c("COMPRESS=LZW",
-                                    "BIGTIFF=YES"))
+    # process each brick layer (each time step) individually
+    .sits_map_layer_cluster(cube = cube,
+                            cube_out = cube_bayes,
+                            overlapping_y_size =
+                                ceiling(window_size / 2) - 1,
+                            func = .do_bayes,
+                            func_args = list(
+                                window = window,
+                                smoothness = smoothness,
+                                covar = covar
+                            ),
+                            multicores = multicores,
+                            memory = memory,
+                            datatype = "INT2U",
+                            options = c("COMPRESS=LZW",
+                                        "BIGTIFF=YES"))
 
     return(cube_bayes)
 }

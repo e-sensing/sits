@@ -101,41 +101,43 @@ test_that("Creating cubes from AWS", {
     # check "AWS_SECRET_ACCESS_KEY" - mandatory one per user
     aws_secret_access_key <- Sys.getenv("AWS_SECRET_ACCESS_KEY")
 
-    if (nchar(aws_access_key_id) > 0 & nchar(aws_secret_access_key) > 0) {
+    testthat::skip_if(nchar(aws_access_key_id) == 0,
+                      message = "No AWS_ACCESS_KEY_ID defined in environment.")
 
-      s2_cube <- sits_cube(
-          type = "S2_L2A_AWS",
-          name = "T20LKP_2018_2019",
-          satellite = "SENTINEL-2",
-          sensor = "MSI",
-          tiles = "20LKP",
-          bands = c("B08", "SCL"),
-          s2_aws_resolution = "60m",
-          start_date = as.Date("2018-07-18"),
-          end_date = as.Date("2018-07-23")
-      )
+    testthat::skip_if(nchar(aws_secret_access_key) == 0,
+                      message = "No AWS_SECRET_ACCESS_KEY defined in environment.")
 
-      expect_true(all(sits_bands(s2_cube) %in% c("B08", "SCL")))
+    s2_cube <- sits_cube(type = "S2_L2A_AWS",
+                         name = "T20LKP_2018_2019",
+                         satellite = "SENTINEL-2",
+                         sensor = "MSI",
+                         tiles = "20LKP",
+                         bands = c("B08", "SCL"),
+                         s2_aws_resolution = "60m",
+                         start_date = as.Date("2018-07-18"),
+                         end_date = as.Date("2018-07-23")
+    )
 
-      file_info <- s2_cube$file_info[[1]]
-      r <- terra::rast(file_info[1,]$path)
+    expect_true(all(sits_bands(s2_cube) %in% c("B08", "SCL")))
 
-      expect_equal(s2_cube$nrows, terra::nrow(r))
-      expect_equal(s2_cube$ncols, terra::ncol(r))
-      expect_equal(s2_cube$xmax, terra::xmax(r))
-      expect_equal(s2_cube$xmin, terra::xmin(r))
+    file_info <- s2_cube$file_info[[1]]
+    r <- terra::rast(file_info[1,]$path)
 
-      path_images <-  paste0(tempdir(),"/images/")
-      suppressWarnings(dir.create(path_images))
+    expect_equal(s2_cube$nrows, terra::nrow(r))
+    expect_equal(s2_cube$ncols, terra::ncol(r))
+    expect_equal(s2_cube$xmax, terra::xmax(r))
+    expect_equal(s2_cube$xmin, terra::xmin(r))
 
-      gc_cube <- sits_cube(type        = "GDALCUBES",
-                           cube        = s2_cube,
-                           path_db     = paste0(tempdir(), "/cube.db"),
-                           path_images = path_images,
-                           period      = "P5D",
-                           agg_method  = "median",
-                           resampling  = "bilinear")
-    }
+    path_images <-  paste0(tempdir(),"/images/")
+    suppressWarnings(dir.create(path_images))
+
+    gc_cube <- sits_cube(type        = "GDALCUBES",
+                         cube        = s2_cube,
+                         path_db     = paste0(tempdir(), "/cube.db"),
+                         path_images = path_images,
+                         period      = "P5D",
+                         agg_method  = "median",
+                         resampling  = "bilinear")
 
     expect_equal(s2_cube$nrows, gc_cube$nrows)
     expect_equal(s2_cube$ncols, gc_cube$ncols)
