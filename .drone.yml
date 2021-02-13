@@ -6,7 +6,7 @@ steps:
   image: brazildatacube/sits-r:latest
   commands:
   - R CMD build .
-  - R CMD check *.tar.gz --as-cran
+  - set -e; R CMD check *.tar.gz --as-cran >&1 | tee stdfile && cat stdfile | (grep -E "(WARNING)" > /dev/null) && exit 1 || exit 0
 
 - name: coverage
   image: brazildatacube/sits-r:latest
@@ -18,13 +18,3 @@ steps:
   when:
     event:
     - push
-
-- name: discord-notify
-  image: brazildatacube/bdc-drone-discord
-  settings:
-    webhook:
-      from_secret: discord_webhook
-  when:
-    status:
-      - failure
-      - success
