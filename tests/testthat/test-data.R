@@ -310,6 +310,13 @@ test_that("Reading a CSV file from RASTER", {
 
 test_that("Test reading shapefile from BDC", {
     testthat::skip_on_cran()
+
+    # check "BDC_ACCESS_KEY" - mandatory one per user
+    bdc_access_key <- Sys.getenv("BDC_ACCESS_KEY")
+
+    testthat::skip_if(nchar(bdc_access_key) == 0,
+                      message = "No BDC_ACCESS_KEY defined in environment.")
+
     # create a raster cube file based on the information about the files
     cbers_stac_tile <- sits_cube(
         type = "BDC",
