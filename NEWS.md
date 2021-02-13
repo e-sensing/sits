@@ -2,6 +2,18 @@
 
 We are preparing to release the package on CRAN and are making relevant changes in the development version.
 
+# What's new in SITS version 0.10
+
+### New features in SITS version 0.10.0
+* Version update 0.10.0
+* Continuous Integration (drone.io)
+* Bayesian smoothing improvement
+* Introduces Snow multiprocessing architecture
+* cube plot allow region of interest (roi)
+* Support for multiple tiles
+* Update documentation
+* Bugs fix
+
 # What's new in SITS version 0.9
 
 ### New features in SITS version 0.9.8
