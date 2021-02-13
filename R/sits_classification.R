@@ -248,6 +248,14 @@ sits_classify.raster_cube <- function(data, ml_model, ...,
     # precondition - checks if the cube and ml_model are valid
     .sits_classify_check_params(data, ml_model)
 
+    # filter only intersecting tiles
+    intersects <- slider::slide(data, function(row) {
+
+        .sits_raster_sub_image_intersects(row, roi)
+    }) %>% unlist()
+
+    data <- data[intersects,]
+
     # deal with the case where the cube has multiple rows
     probs_rows <- slider::slide(data, function(row) {
 

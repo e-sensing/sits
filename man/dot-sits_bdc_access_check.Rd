@@ -6,9 +6,6 @@
 \usage{
 .sits_bdc_access_check()
 }
-\arguments{
-\item{access_key}{BDC access key}
-}
 \value{
 access_key
 }

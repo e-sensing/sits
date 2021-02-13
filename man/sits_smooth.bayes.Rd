@@ -10,7 +10,10 @@
   ...,
   window_size = 5,
   smoothness = 20,
-  output_dir = "./",
+  covar = FALSE,
+  multicores = 1,
+  memory = 1,
+  output_dir = getwd(),
   version = "v1"
 )
 }
@@ -24,7 +27,17 @@
 \item{window_size}{Size of the neighbourhood.}
 
 \item{smoothness}{Estimated variance of logit of class_probs
-(Bayesian smoothing parameter).}
+(Bayesian smoothing parameter). It can be either
+a matrix or a scalar.}
+
+\item{covar}{a logical argument indicating if a covariance
+matrix must be computed as the prior covariance.}
+
+\item{multicores}{Number of process to run the Bayesian smoothing in
+snow subprocess.}
+
+\item{memory}{Maximul overall memory (in GB) to run the Bayesian
+smoothing.}
 
 \item{output_dir}{Output directory where to out the file}
 
@@ -35,9 +48,11 @@
 A tibble with metadata about the output raster objects.
 }
 \description{
-Takes a set of classified raster layers with probabilities,
-             whose metadata is]created by \code{\link[sits]{sits_cube}},
+Takes a set of raster bricks with probabilities,
+             whose metadata is created by \code{\link[sits]{sits_cube}},
              and apply a bayesian smoothing process.
+             If \code{covar} is \code{FALSE} only main diagonal of
+             covariance prior matrix will be computed.
 }
 \examples{
 \dontrun{
