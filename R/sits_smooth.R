@@ -54,9 +54,10 @@ sits_smooth <- function(cube,
                         ...) {
 
     # precondition 1 - check if cube has probability data
-    assertthat::assert_that("probs_cube" %in% class(cube[1,]),
-                            msg = "sits_smooth: input is not probability cube"
+    assertthat::assert_that(inherits(cube, "probs_cube"),
+          msg = "sits_smooth: input is not probability cube"
     )
+
     class(type) <- c(type, class(type))
     UseMethod("sits_smooth", type)
 }
@@ -76,14 +77,14 @@ sits_smooth <- function(cube,
 #' @param  type              Type of smoothing
 #' @param  ...               Parameters for specific functions
 #' @param  window_size       Size of the neighbourhood.
-#' @param  smoothness        Estimated variance of logit of class_probs
+#' @param  smoothness        Estimated variance of logit of class probabilities
 #'                           (Bayesian smoothing parameter). It can be either
 #'                           a matrix or a scalar.
 #' @param  covar             a logical argument indicating if a covariance
 #'                           matrix must be computed as the prior covariance.
 #' @param  multicores        Number of process to run the Bayesian smoothing in
 #'                           snow subprocess.
-#' @param  memory            Maximul overall memory (in GB) to run the Bayesian
+#' @param  memsize           Maximum overall memory (in GB) to run the Bayesian
 #'                           smoothing.
 #' @param  output_dir        Output directory where to out the file
 #' @param  version           Version of resulting image
@@ -120,7 +121,7 @@ sits_smooth <- function(cube,
 #'     memsize = 4, multicores = 2
 #' )
 #'
-#' # label the classification and smooth the result with a bayesian filter
+#' # label the classification and smooth the result with a Bayesian filter
 #' sinop_bayes <- sits_smooth(sinop_probs, output_dir = tempdir()
 #'     )
 #' }
@@ -133,7 +134,7 @@ sits_smooth.bayes <- function(cube,
                               smoothness = 20,
                               covar = FALSE,
                               multicores = 1,
-                              memory = 1,
+                              memsize = 1,
                               output_dir = getwd(),
                               version = "v1") {
 
@@ -170,14 +171,14 @@ sits_smooth.bayes <- function(cube,
     )
 
     # precondition 5 - memory
-    assertthat::assert_that(memory > 0,
-                            msg = "sits_smooth: memory must be positive"
+    assertthat::assert_that(memsize > 0,
+                            msg = "sits_smooth: memsize must be positive"
     )
 
     # create a window
     window <- matrix(1, nrow = window_size, ncol = window_size)
 
-    # create metadata for labeled raster cube
+    # create metadata for labelled raster cube
     cube_bayes <- .sits_cube_clone(
         cube = cube,
         name = paste0(cube$name, "_bayes"),
@@ -190,12 +191,12 @@ sits_smooth.bayes <- function(cube,
     scale_factor <- cube[1,]$scale_factors[[1]][1]
     mult_factor <- 1 / scale_factor
 
-    # bayesian inference to be executed  by workers cluster
-    .do_bayes <- function(chunk, window, smoothness, covar) {
+    # Bayesian smoother to be executed by workers cluster
+    .do_bayes <- function(chunk) {
 
         data <- unname(raster::values(chunk))
 
-        # fix probs
+        # fix probabilities
         maxprob <- mult_factor - ncol(data) + 1
         data[data == 0] <- 1
         data[data > maxprob] <- maxprob
@@ -203,15 +204,15 @@ sits_smooth.bayes <- function(cube,
         # compute logit
         logit <- log(data / (rowSums(data) - data))
 
-        # process bayesian
-        data <- bayes_multiv_smooth(m = logit,
-                                    m_nrow = raster::nrow(chunk),
-                                    m_ncol = raster::ncol(chunk),
-                                    w = window,
-                                    sigma = smoothness,
-                                    covar = covar)
+        # process Bayesian
+        data <- bayes_smoother(m = logit,
+                               m_nrow = raster::nrow(chunk),
+                               m_ncol = raster::ncol(chunk),
+                               w = window,
+                               sigma = smoothness,
+                               covar_sigma0 = covar)
 
-        # calculate the bayesian probability for the pixel
+        # calculate the Bayesian probability for the pixel
         data <- exp(data) * mult_factor / (exp(data) + 1)
 
         # create cube smooth
@@ -227,13 +228,8 @@ sits_smooth.bayes <- function(cube,
                             overlapping_y_size =
                                 ceiling(window_size / 2) - 1,
                             func = .do_bayes,
-                            func_args = list(
-                                window = window,
-                                smoothness = smoothness,
-                                covar = covar
-                            ),
                             multicores = multicores,
-                            memory = memory,
+                            memsize = memsize,
                             datatype = "INT2U",
                             options = c("COMPRESS=LZW",
                                         "BIGTIFF=YES"))
@@ -241,14 +237,14 @@ sits_smooth.bayes <- function(cube,
     return(cube_bayes)
 }
 
-#' @title Post-process a classified data raster probs using gaussian smoothing
+#' @title Post-process a classified data raster probs using Gaussian smoothing
 #'
 #' @name  sits_smooth.gaussian
-#' @author @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'
 #' @description Takes a set of classified raster layers with probabilities,
 #'              whose metadata is]created by \code{\link[sits]{sits_cube}},
-#'              and apply gaussian smoothing process.
+#'              and apply Gaussian smoothing process.
 #'
 #' @references K. Schindler, "An Overview and Comparison of Smooth Labeling
 #'             Methods for Land-Cover Classification",
@@ -259,7 +255,11 @@ sits_smooth.bayes <- function(cube,
 #' @param  type              Type of smoothing
 #' @param  ...               Parameters for specific functions
 #' @param  window_size       Size of the neighbourhood.
-#' @param  sigma             Standard deviation of the spatial gaussian kernel
+#' @param  sigma             Standard deviation of the spatial Gaussian kernel
+#' @param  multicores        Number of process to run the Bayesian smoothing in
+#'                           snow subprocess.
+#' @param  memsize           Maximum overall memory (in GB) to run the Bayesian
+#'                           smoothing.
 #' @param  output_dir        Output directory where to out the file
 #' @param  version           Version of resulting image
 #'                           (in the case of multiple tests)
@@ -307,13 +307,15 @@ sits_smooth.gaussian <- function(cube,
                                  type = "gaussian",
                                  ...,
                                  window_size = 5,
-                                 sigma = 0.85,
-                                 output_dir = "./",
+                                 sigma = 1,
+                                 multicores = 1,
+                                 memsize = 1,
+                                 output_dir = getwd(),
                                  version = "v1") {
 
     # precondition 1 - check if cube has probability data
-    assertthat::assert_that("probs_cube" %in% class(cube[1,]),
-                            msg = "sits_smooth: input is not probability cube"
+    assertthat::assert_that(inherits(cube, "probs_cube"),
+            msg = "sits_smooth: input is not probability cube"
     )
 
     # precondition 2 - test window size
@@ -325,20 +327,22 @@ sits_smooth.gaussian <- function(cube,
     assertthat::assert_that(sigma > 0,
                             msg = "sits_smooth: smoothness must be positive"
     )
-    # create output window
-    gauss_kernel <- matrix(1, nrow = window_size, ncol = window_size)
-    center_i <- floor(window_size/2 + 1)
-    center_j <- floor(window_size/2 + 1)
-    for (i in 1:window_size) {
-        for (j in 1:window_size) {
-            h <- (i - center_i)^2 + (j - center_j)^2
-            gauss_kernel[i,j] <- exp(-h/(2*sigma^2))
-        }
-    }
-    # find out how many labels exist
-    n_labels <- length(.sits_cube_labels(cube[1,]))
 
-    # create metadata for labeled raster cube
+    # precondition 4 - multicores
+    assertthat::assert_that(multicores >= 1,
+                            msg = "sits_smooth: multicores must be at least 1"
+    )
+
+    # precondition 5 - memsize
+    assertthat::assert_that(memsize > 0,
+                            msg = "sits_smooth: memsize must be positive"
+    )
+
+    # create output window
+    gauss_kernel <- .sits_gauss_kernel(window_size = window_size,
+                                       sigma = sigma)
+
+    # create metadata for Gauss smoothed raster cube
     cube_gauss <- .sits_cube_clone(
         cube = cube,
         name = paste0(cube$name, "_gauss"),
@@ -346,38 +350,43 @@ sits_smooth.gaussian <- function(cube,
         output_dir = output_dir,
         version = version
     )
-    # retrieve the files to be read and written
-    in_files <- .sits_cube_files(cube)
-    out_files <- .sits_cube_files(cube_gauss)
 
-    purrr::map2(in_files, out_files,
-                function(in_file, out_file) {
-                    values <- .sits_raster_api_read_file(in_file)
-                    # avoid extreme values
-                    values[values < 1] <- 1
-                    values[values > 9999] <- 9999
-                    for (b in 1:n_labels) {
-                        # create a matrix with the values of each label
-                        band <- matrix(
-                            as.matrix(values[ ,b]),
-                            nrow = cube[1,]$nrows,
-                            ncol = cube[1,]$ncols,
-                            byrow = TRUE
-                        )
-                        # calculate the smoothing
-                        values[, b] <- kernel_estimator(band,
-                                                        gauss_kernel)
-                    }
-                    # write values into a file
-                    cube_gauss <- .sits_raster_api_write(
-                        params = .sits_raster_api_params_cube(cube_gauss[1, ]),
-                        num_layers = n_labels,
-                        values = values,
-                        filename = out_file,
-                        datatype = "INT2U",
+    # retrieve the scale factor
+    scale_factor <- cube[1,]$scale_factors[[1]][1]
+    mult_factor <- 1 / scale_factor
 
-                    )
-                })
+    # Gaussian smoother to be executed by workers cluster
+    .do_gauss <- function(chunk) {
+
+        # scale probabilities
+        data <- unname(raster::values(chunk) * scale_factor)
+
+        # process Gaussian smoother
+        data <- kernel_smoother(m = data,
+                                m_nrow = raster::nrow(chunk),
+                                m_ncol = raster::ncol(chunk),
+                                w = gauss_kernel,
+                                normalised = TRUE)
+
+        # create cube smooth
+        res <- raster::brick(chunk, nl = raster::nlayers(chunk))
+        res[] <- data * mult_factor
+
+        return(res)
+    }
+
+    # process each brick layer (each time step) individually
+    .sits_map_layer_cluster(cube = cube,
+                            cube_out = cube_gauss,
+                            overlapping_y_size =
+                                ceiling(window_size / 2) - 1,
+                            func = .do_gauss,
+                            multicores = multicores,
+                            memsize = memsize,
+                            datatype = "INT2U",
+                            options = c("COMPRESS=LZW",
+                                        "BIGTIFF=YES"))
+
     return(cube_gauss)
 }
 #' @title Post-process a classified data raster probs using bilinear smoothing
@@ -400,6 +409,10 @@ sits_smooth.gaussian <- function(cube,
 #' @param  window_size       Size of the neighbourhood.
 #' @param  sigma             Standard deviation of the spatial gaussian kernel
 #' @param  tau               Standard deviation of the class probs value
+#' @param  multicores        Number of process to run the Bayesian smoothing in
+#'                           snow subprocess.
+#' @param  memsize           Maximum overall memory (in GB) to run the Bayesian
+#'                           smoothing.
 #' @param  output_dir        Output directory
 #' @param  version           Version of resulting image
 #'                           (in the case of multiple tests)
@@ -447,43 +460,48 @@ sits_smooth.bilinear <- function(cube,
                                  type = "bilinear",
                                  ...,
                                  window_size = 5,
-                                 sigma = 0.85,
-                                 tau = 0.5,
-                                 output_dir = "./",
+                                 sigma = 1,
+                                 tau = 0.25,
+                                 multicores = 1,
+                                 memsize = 1,
+                                 output_dir = getwd(),
                                  version = "v1") {
 
     # precondition 1 - check if cube has probability data
-    assertthat::assert_that("probs_cube" %in% class(cube[1,]),
-                            msg = "sits_smooth: input is not probability cube"
+    assertthat::assert_that(inherits(cube, "probs_cube"),
+            msg = "sits_smooth: input is not probability cube"
     )
 
     # precondition 2 - test window size
     assertthat::assert_that(window_size %% 2 != 0,
-                            msg = "sits_smooth: window_size must be an odd"
+                            msg = "sits_smooth: window_size must be an odd number"
     )
 
     # prediction 3 - test variance
     assertthat::assert_that(sigma > 0,
-                            msg = "sits_smooth: sigma must be positive"
+                            msg = "sits_smooth: smoothness must be positive"
     )
-    # prediction 3 - test variance
-    assertthat::assert_that(tau > 0,
-                            msg = "sits_smooth: tau must be positive"
-    )
-    # create output window
-    gauss_kernel <- matrix(1, nrow = window_size, ncol = window_size)
-    center_i <- floor(window_size/2 + 1)
-    center_j <- floor(window_size/2 + 1)
-    for (i in 1:window_size) {
-        for (j in 1:window_size) {
-            h <- (i - center_i)^2 + (j - center_i)^2
-            gauss_kernel[i,j] <- exp(-h/(2*sigma^2))
-        }
-    }
-    # find out how many labels exist
-    n_labels <- length(.sits_cube_labels(cube[1,]))
 
-    # create metadata for labeled raster cube
+    # prediction 4 - test variance
+    assertthat::assert_that(sigma > 0,
+                            msg = "sits_smooth: smoothness must be positive"
+    )
+
+    # precondition 5 - multicores
+    assertthat::assert_that(multicores >= 1,
+                            msg = "sits_smooth: multicores must be at least 1"
+    )
+
+    # precondition 6 - memsize
+    assertthat::assert_that(memsize > 0,
+                            msg = "sits_smooth: memsize must be positive"
+    )
+
+    # create output window
+    gauss_kernel <- .sits_gauss_kernel(window_size = window_size,
+                                       sigma = sigma)
+
+    # create metadata for bilinear smoothed raster cube
     cube_bilinear <- .sits_cube_clone(
         cube = cube,
         name = paste0(cube$name, "_bil"),
@@ -491,43 +509,42 @@ sits_smooth.bilinear <- function(cube,
         output_dir = output_dir,
         version = version
     )
-    # retrieve the files to be read and written
-    in_files <- .sits_cube_files(cube)
-    out_files <- .sits_cube_files(cube_bilinear)
 
     # retrieve the scale factor
     scale_factor <- cube[1,]$scale_factors[[1]][1]
+    mult_factor <- 1 / scale_factor
 
-    purrr::map2(in_files, out_files,
-                function(in_file, out_file) {
-                    values <- .sits_raster_api_read_file(in_file)
-                    # avoid extreme values
-                    values[values < 1] <- 1
-                    values[values > 9999] <- 9999
-                    for (b in 1:n_labels) {
-                        # create a matrix with the values of each label
-                        band <- matrix(
-                            as.matrix(values[ ,b]),
-                            nrow = cube[1,]$nrows,
-                            ncol = cube[1,]$ncols,
-                            byrow = TRUE
-                        )
-                        # calculate the smoothing
-                        val <- kernel_estimator_non_linear(band,
-                                                           gauss_kernel,
-                                                           tau,
-                                                           scale_factor)
-                        values[, b] <- val
-                    }
-                    # write values into a file
-                    cube_bilinear <- .sits_raster_api_write(
-                        params = .sits_raster_api_params_cube(cube_bilinear[1, ]),
-                        num_layers = n_labels,
-                        values = values,
-                        filename = out_file,
-                        datatype = "INT2U",
+    # Gaussian smoother to be executed by workers cluster
+    .do_bilinear <- function(chunk) {
 
-                    )
-                })
+        # scale probabilities
+        data <- unname(raster::values(chunk) * scale_factor)
+
+        # process bilinear smoother
+        data <- bilinear_smoother(m = data,
+                                  m_nrow = raster::nrow(chunk),
+                                  m_ncol = raster::ncol(chunk),
+                                  w = gauss_kernel,
+                                  tau = tau)
+
+        # create cube smooth
+        res <- raster::brick(chunk, nl = raster::nlayers(chunk))
+        res[] <- data * mult_factor
+
+        return(res)
+    }
+
+    # process each brick layer (each time step) individually
+    .sits_map_layer_cluster(cube = cube,
+                            cube_out = cube_bilinear,
+                            overlapping_y_size =
+                                ceiling(window_size / 2) - 1,
+                            func = .do_bilinear,
+                            multicores = multicores,
+                            memsize = memsize,
+                            datatype = "INT2U",
+                            options = c("COMPRESS=LZW",
+                                        "BIGTIFF=YES"))
+
     return(cube_bilinear)
 }

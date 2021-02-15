@@ -11,7 +11,7 @@
   func,
   func_args = NULL,
   multicores = 1,
-  memory = 1,
+  memsize = 1,
   ...
 )
 }
@@ -26,7 +26,7 @@ returns any Raster*.}
 \item{multicores}{Number of process to run the Bayesian smoothing in
 snow subprocess.}
 
-\item{memory}{Maximul overall memory (in GB) to run the Bayesian
+\item{memsize}{Maximum overall memory (in GB) to run the Bayesian
 smoothing.}
 
 \item{...}{optional arguments to merge final raster

@@ -19,19 +19,49 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
-// bayes_multiv_smooth
-arma::mat bayes_multiv_smooth(const arma::mat& m, const arma::uword m_nrow, const arma::uword m_ncol, const arma::imat& w, const arma::mat& sigma, bool covar);
-RcppExport SEXP _sits_bayes_multiv_smooth(SEXP mSEXP, SEXP m_nrowSEXP, SEXP m_ncolSEXP, SEXP wSEXP, SEXP sigmaSEXP, SEXP covarSEXP) {
+// bayes_smoother
+arma::mat bayes_smoother(const arma::mat& m, const arma::uword m_nrow, const arma::uword m_ncol, const arma::mat& w, const arma::mat& sigma, bool covar_sigma0);
+RcppExport SEXP _sits_bayes_smoother(SEXP mSEXP, SEXP m_nrowSEXP, SEXP m_ncolSEXP, SEXP wSEXP, SEXP sigmaSEXP, SEXP covar_sigma0SEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< const arma::mat& >::type m(mSEXP);
     Rcpp::traits::input_parameter< const arma::uword >::type m_nrow(m_nrowSEXP);
     Rcpp::traits::input_parameter< const arma::uword >::type m_ncol(m_ncolSEXP);
-    Rcpp::traits::input_parameter< const arma::imat& >::type w(wSEXP);
+    Rcpp::traits::input_parameter< const arma::mat& >::type w(wSEXP);
     Rcpp::traits::input_parameter< const arma::mat& >::type sigma(sigmaSEXP);
-    Rcpp::traits::input_parameter< bool >::type covar(covarSEXP);
-    rcpp_result_gen = Rcpp::wrap(bayes_multiv_smooth(m, m_nrow, m_ncol, w, sigma, covar));
+    Rcpp::traits::input_parameter< bool >::type covar_sigma0(covar_sigma0SEXP);
+    rcpp_result_gen = Rcpp::wrap(bayes_smoother(m, m_nrow, m_ncol, w, sigma, covar_sigma0));
+    return rcpp_result_gen;
+END_RCPP
+}
+// kernel_smoother
+arma::mat kernel_smoother(const arma::mat& m, const arma::uword m_nrow, const arma::uword m_ncol, const arma::mat& w, const bool normalised);
+RcppExport SEXP _sits_kernel_smoother(SEXP mSEXP, SEXP m_nrowSEXP, SEXP m_ncolSEXP, SEXP wSEXP, SEXP normalisedSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< const arma::mat& >::type m(mSEXP);
+    Rcpp::traits::input_parameter< const arma::uword >::type m_nrow(m_nrowSEXP);
+    Rcpp::traits::input_parameter< const arma::uword >::type m_ncol(m_ncolSEXP);
+    Rcpp::traits::input_parameter< const arma::mat& >::type w(wSEXP);
+    Rcpp::traits::input_parameter< const bool >::type normalised(normalisedSEXP);
+    rcpp_result_gen = Rcpp::wrap(kernel_smoother(m, m_nrow, m_ncol, w, normalised));
+    return rcpp_result_gen;
+END_RCPP
+}
+// bilinear_smoother
+arma::mat bilinear_smoother(const arma::mat& m, const arma::uword m_nrow, const arma::uword m_ncol, const arma::mat& w, double tau);
+RcppExport SEXP _sits_bilinear_smoother(SEXP mSEXP, SEXP m_nrowSEXP, SEXP m_ncolSEXP, SEXP wSEXP, SEXP tauSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< const arma::mat& >::type m(mSEXP);
+    Rcpp::traits::input_parameter< const arma::uword >::type m_nrow(m_nrowSEXP);
+    Rcpp::traits::input_parameter< const arma::uword >::type m_ncol(m_ncolSEXP);
+    Rcpp::traits::input_parameter< const arma::mat& >::type w(wSEXP);
+    Rcpp::traits::input_parameter< double >::type tau(tauSEXP);
+    rcpp_result_gen = Rcpp::wrap(bilinear_smoother(m, m_nrow, m_ncol, w, tau));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -172,7 +202,9 @@ END_RCPP
 
 static const R_CallMethodDef CallEntries[] = {
     {"_sits_apply_transition_matrix", (DL_FUNC) &_sits_apply_transition_matrix, 3},
-    {"_sits_bayes_multiv_smooth", (DL_FUNC) &_sits_bayes_multiv_smooth, 6},
+    {"_sits_bayes_smoother", (DL_FUNC) &_sits_bayes_smoother, 6},
+    {"_sits_kernel_smoother", (DL_FUNC) &_sits_kernel_smoother, 5},
+    {"_sits_bilinear_smoother", (DL_FUNC) &_sits_bilinear_smoother, 5},
     {"_sits_median_neigh", (DL_FUNC) &_sits_median_neigh, 3},
     {"_sits_cbers4_cld_detect", (DL_FUNC) &_sits_cbers4_cld_detect, 11},
     {"_sits_cbers4_cld_values", (DL_FUNC) &_sits_cbers4_cld_values, 4},

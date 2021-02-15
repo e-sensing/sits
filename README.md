@@ -11,6 +11,7 @@ Cubes
 [![Build
 Status](https://drone.dpi.inpe.br/api/badges/e-sensing/sits/status.svg)](https://drone.dpi.inpe.br/e-sensing/sits)
 [![codecov](https://codecov.io/gh/e-sensing/sits/branch/master/graph/badge.svg?token=hZxdJgKGcE)](https://codecov.io/gh/e-sensing/sits)
+[![Documentation](https://img.shields.io/badge/docs-online-blueviolet)](https://github.com/e-sensing/sits-docs)
 [![Software Life
 Cycle](https://img.shields.io/badge/lifecycle-maturing-blue.svg)](https://www.tidyverse.org/lifecycle/#maturing)
 [![Software
@@ -201,6 +202,28 @@ plot(points[1,])
 
 ![](man/figures/README-unnamed-chunk-6-1.png)<!-- -->
 
+For a large number of samples, where the amount of individual plots
+would be substantial, the default visualisation combines all samples
+together in a single temporal interval.
+
+``` r
+# select the "ndvi" band
+samples_ndvi <- sits_select(samples_mt_4bands, "NDVI")
+# select only the samples with the cerrado label
+samples_cerrado <- dplyr::filter(samples_ndvi, 
+                  label == "Cerrado")
+plot(samples_cerrado)
+```
+
+<div class="figure" style="text-align: center">
+
+<img src="./inst/extdata/markdown/figures/samples_cerrado.png" alt="Samples for NDVI band for Cerrado class" width="480" />
+<p class="caption">
+Samples for NDVI band for Cerrado class
+</p>
+
+</div>
+
 ### Clustering
 
 Clustering methods in SITS improve the quality of the samples and to
@@ -223,7 +246,7 @@ filtering, `sits` supports Savitzky–Golay (`sits_sgolay()`), Whittaker
 filter” (`sits_cloud_filter()`). As an example, we show how to apply the
 Whitakker smoother to a 16-year NDVI time series. For more details,
 please see the vignette [“Satellite Image Time Series Filtering with
-SITS”](https://github.com/e-sensing/sits-docs/blob/master/vignettes/filtering.pdf)
+SITS”](https://github.com/e-sensing/sits-docs/blob/master/doc/filters.pdf)
 
 ``` r
 # apply Whitaker filter to a time series sample for the NDVI band from 2000 to 2016
@@ -235,7 +258,14 @@ point_whit %>%
   plot()
 ```
 
-![](man/figures/README-unnamed-chunk-7-1.png)<!-- -->
+<div class="figure" style="text-align: center">
+
+<img src="man/figures/README-unnamed-chunk-9-1.png" alt="Whitaler filter of NDVI time series"  />
+<p class="caption">
+Whitaler filter of NDVI time series
+</p>
+
+</div>
 
 ## Time Series classification using machine learning
 
@@ -281,11 +311,19 @@ point_filtered <- sits_whittaker(point_mt_2bands, lambda = 0.2, bands_suffix = "
 
 # Classify using random forest model and plot the result
 class.tb <- sits_classify(point_filtered, svm_model)
+
 # plot the results of the prediction
 plot(class.tb, bands = c("ndvi", "evi"))
 ```
 
-![](man/figures/README-unnamed-chunk-8-1.png)<!-- -->
+<div class="figure" style="text-align: center">
+
+<img src="man/figures/README-unnamed-chunk-10-1.png" alt="Time series classification using SVM"  />
+<p class="caption">
+Time series classification using SVM
+</p>
+
+</div>
 
 The following example shows how to classify a data cube organised as a
 set of raster bricks. First, we need to build a model based on the the
@@ -356,7 +394,7 @@ For more information, please see the vignettes
 -   [“Post classification smoothing using Bayesian techniques in
     SITS”](https://github.com/e-sensing/sits-docs/blob/master/doc/smoothing.pdf)
 
-## Code of Conduct
+## How to contribute
 
 The SITS project is released with a [Contributor Code of
 Conduct](https://github.com/e-sensing/sits/blob/master/CODE_OF_CONDUCT.md).
