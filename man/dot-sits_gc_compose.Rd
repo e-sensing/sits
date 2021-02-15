@@ -6,6 +6,7 @@
 \usage{
 .sits_gc_compose(
   cube,
+  name,
   cv_list,
   img_col,
   path_db,
@@ -17,6 +18,8 @@
 }
 \arguments{
 \item{cube}{Data cube from where data is to be retrieved.}
+
+\item{name}{Name of the new data cube}
 
 \item{cv_list}{A \code{list} 'cube_view' with values from cube.}
 

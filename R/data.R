@@ -153,13 +153,3 @@ NULL
 #' @usage data(timeline_2013_2014)
 #' @format A vector with 23 dates in YYYY-MM-DD format.
 NULL
-
-#' @title Description of a WTSS cube
-#'
-#' @description The metadata for a cube derived from Web Time Series Services.
-#' @docType data
-#' @keywords datasets
-#' @name wtss_cube
-#' @usage data(wtss_cube)
-#' @format A tibble with information about a WTSS cube
-NULL

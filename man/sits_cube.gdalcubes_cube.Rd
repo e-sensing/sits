@@ -6,6 +6,7 @@
 \usage{
 \method{sits_cube}{gdalcubes_cube}(
   type = "GDALCUBES",
+  name,
   ...,
   cube,
   path_images,
@@ -18,6 +19,8 @@
 }
 \arguments{
 \item{type}{Type of cube.}
+
+\item{name}{Name of output data cube.}
 
 \item{...}{Other parameters to be passed for the function
 \code{write_tif} of gdalcubes package.}
@@ -62,17 +65,6 @@ For now, only Sentinel-2 L2A AWS cube can be composed.
 # this example requires access to an external service, so should not be run
 # by CRAN
 
-# s3://sentinel-cogs/sentinel-s2-l2a-cogs/2017/S2A_35MNR_20171025_0_L2A/
-
-# Provide your AWS credentials here
-# Sys.setenv(
-# "AWS_ACCESS_KEY_ID"     = <your_access_key>,
-# "AWS_SECRET_ACCESS_KEY" = <your_secret_access_key>,
-# "AWS_DEFAULT_REGION"    = <your AWS region>,
-# "AWS_ENDPOINT" = "sentinel-s2-l2a.s3.amazonaws.com",
-# "AWS_REQUEST_PAYER"     = "requester"
-# )
-
 s2_cube <- sits_cube(
     type = "S2_L2A_AWS",
     name = "T20LKP_2018_2019",
@@ -85,6 +77,7 @@ s2_cube <- sits_cube(
 )
 
 gc_cube <- sits_cube(type        = "GDALCUBES",
+                     name        = "T20LKP_2018_2019_1M",
                      cube        = s2_cube,
                      path_db     = "/my/path/cube.db",
                      path_images = "/my/path/images/",

@@ -380,10 +380,9 @@
 #' @keywords internal
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'
-#'
 #' @param  cube              input data cube
 #' @param  name              name of the new cube
-#' @param  ext               extension
+#' @param  ext               file extension
 #' @param  output_dir        prefix of the output files
 #' @param  version           version of the output files
 #' @return                   output data cube

@@ -4,12 +4,14 @@
 \alias{sits_cube}
 \title{Defines a data cube}
 \usage{
-sits_cube(type = "RASTER", ...)
+sits_cube(type = "RASTER", name, ...)
 }
 \arguments{
 \item{type}{Type of cube (one of "WTSS", "BRICK", "STACK",
 "BDC_TILE", "S2_L2A_AWS", "GDALCUBES", "PROBS",
 "CLASSIFIED")}
+
+\item{name}{Name of the output data cube.}
 
 \item{...}{Other parameters to be passed for specific types}
 }
@@ -21,7 +23,6 @@ Defines a cube to retrieve data. This is a generic function.
 Cubes can be of the following types. See each function description for the
 required parameters:
 \itemize{
- \item{"WTSS": }{see \code{\link{sits_cube.wtss_cube}}}
  \item{"SATVEG": }{ see \code{\link{sits_cube.satveg_cube}}}
  \item{"BRICK": }{see \code{\link{sits_cube.brick_cube}}}
  \item{"STACK": }{see \code{\link{sits_cube.stack_cube}}}
@@ -30,6 +31,8 @@ required parameters:
                      see \code{\link{sits_cube.s2_l2a_aws_cube}}}
  \item{"GDALCUBES"}{gdalcubes compose function -
                      see \code{\link{sits_cube.gdalcubes_cube}}}
+ \item{"PROBS"}{create a cube from a classified image -
+                     see \code{\link{sits_cube.probs_cube}}}
 
 }
 }

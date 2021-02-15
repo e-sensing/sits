@@ -4,12 +4,14 @@
 \alias{.sits_cube_clone}
 \title{Clone a data cube}
 \usage{
-.sits_cube_clone(cube, ext, output_dir, version)
+.sits_cube_clone(cube, name, ext, output_dir, version)
 }
 \arguments{
 \item{cube}{input data cube}
 
-\item{ext}{extension}
+\item{name}{name of the new cube}
+
+\item{ext}{file extension}
 
 \item{output_dir}{prefix of the output files}
 

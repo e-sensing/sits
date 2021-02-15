@@ -2,7 +2,7 @@
 % Please edit documentation in R/sits_get_data.R
 \name{sits_get_data.csv_satveg_cube}
 \alias{sits_get_data.csv_satveg_cube}
-\title{Obtain time series from wtss based on SATVEG file}
+\title{Obtain time series from SATVEG}
 \usage{
 \method{sits_get_data}{csv_satveg_cube}(cube, file, ...)
 }
@@ -17,5 +17,5 @@
 A tibble with time series data and metadata.
 }
 \description{
-Obtain time series from wtss based on SATVEG file
+Obtain time series from SATVEG
 }

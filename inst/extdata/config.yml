@@ -414,6 +414,13 @@ default:
         aqua                : *crs-wgs84
         comb                : *crs-wgs84
 
+
+    PROBS                   :
+        scale_factor        : 0.0001
+        minimum_value       : 0
+        maximum_value       : 10000
+        missing_value       : -9999
+
     colors:
         Araguaia :          "palegreen3"
         Beans :             "lightskyblue3"

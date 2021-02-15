@@ -179,6 +179,7 @@ sits_label_majority <- function(cube,
     )
 
     cube_maj <- .sits_cube_clone(cube = cube,
+                                 name = paste0(cube$name,"_maj"),
                                  ext = "_maj",
                                  output_dir = output_dir,
                                  version = version)

@@ -5,7 +5,6 @@
 #' Cubes can be of the following types. See each function description for the
 #' required parameters:
 #' \itemize{
-#'  \item{"WTSS": }{see \code{\link{sits_cube.wtss_cube}}}
 #'  \item{"SATVEG": }{ see \code{\link{sits_cube.satveg_cube}}}
 #'  \item{"BRICK": }{see \code{\link{sits_cube.brick_cube}}}
 #'  \item{"STACK": }{see \code{\link{sits_cube.stack_cube}}}
@@ -14,58 +13,26 @@
 #'                      see \code{\link{sits_cube.s2_l2a_aws_cube}}}
 #'  \item{"GDALCUBES"}{gdalcubes compose function -
 #'                      see \code{\link{sits_cube.gdalcubes_cube}}}
+#'  \item{"PROBS"}{create a cube from a classified image -
+#'                      see \code{\link{sits_cube.probs_cube}}}
 #'
 #' }
 #'
 #' @param type        Type of cube (one of "WTSS", "BRICK", "STACK",
 #'                    "BDC_TILE", "S2_L2A_AWS", "GDALCUBES", "PROBS",
 #'                    "CLASSIFIED")
+#' @param name              Name of the output data cube.
 #' @param ...               Other parameters to be passed for specific types
 #' @return  The description of a sits cube
 #'
 #' @export
-sits_cube <- function(type = "RASTER", ...) {
+sits_cube <- function(type = "RASTER", name, ...) {
     spec_class <- .sits_config_cube_class(type)
     class(type) <- c(spec_class, class(type))
     # Dispatch
     UseMethod("sits_cube", type)
 }
-#' @title Defines a data cube for the WTSS service
-#' @name sits_cube.wtss_cube
-#'
-#' @description  Implements an interface to a web time series service (WTSS)
-#'               offering time series of remote sensing data using a simple API.
-#'
-#' @param type              Type of cube
-#' @param ...               Other parameters to be passed for specific types
-#' @param URL               URL of the service provider.
-#' @param name              Name of the output data cube.
-#' @return                  A valid data cube
-#'
-#' @export
-#'
-#' @examples
-#' \dontrun{
-#' # Create a data cube based on a WTSS service
-#' cube_wtss <- sits_cube(
-#'     type = "WTSS",
-#'     name = "MOD13Q1",
-#'     URL = "http://www.esensing.dpi.inpe.br/wtss/"
-#' )
-#' }
-sits_cube.wtss_cube <- function(type = "WTSS", ..., name = NULL, URL = NULL) {
-    # Pre-condition
-    wtss_ok <- .sits_wtss_check(URL = URL, name = name)
-    # create a cube
-    if (wtss_ok) {
-          cube <- .sits_wtss_cube(URL = URL, name = name)
-      } else {
-        message("WTSS service not responding")
-        return(NULL)
-    }
 
-    return(cube)
-}
 
 #' @title Defines a data cube for the SATVEG service
 #' @name sits_cube.satveg_cube
@@ -74,8 +41,8 @@ sits_cube.wtss_cube <- function(type = "WTSS", ..., name = NULL, URL = NULL) {
 #'  There are three types of time series: "terra" (from the TERRA satellite),
 #'  "aqua" (from the AQUA satellite) and "comb" (combination of both satellites)
 #' @param type              Type of cube
-#' @param ...               Other parameters to be passed for specific types
 #' @param name              Name of the input data ("terra", "aqua", "comb").
+#' @param ...               Other parameters to be passed for specific types
 #' @return                  A valid data cube
 #'
 #' @export
@@ -89,7 +56,7 @@ sits_cube.wtss_cube <- function(type = "WTSS", ..., name = NULL, URL = NULL) {
 #' )
 #' }
 #'
-sits_cube.satveg_cube <- function(type = "SATVEG", ..., name = NULL) {
+sits_cube.satveg_cube <- function(type = "SATVEG", name = NULL, ...) {
     # Pre-condition - check if SATVEG is working
     satveg_ok <- .sits_satveg_check()
     # if OK, go ahead a create a SATVEG cube
@@ -112,7 +79,7 @@ sits_cube.satveg_cube <- function(type = "SATVEG", ..., name = NULL) {
 #' @return                  A message
 #'
 #' @export
-sits_cube.raster_cube <- function(type = "RASTER", ..., name = NULL) {
+sits_cube.raster_cube <- function(type = "RASTER",  name = NULL, ...) {
     message("type RASTER is deprecated, please use BRICK or STACK")
 }
 
@@ -163,8 +130,9 @@ sits_cube.raster_cube <- function(type = "RASTER", ..., name = NULL) {
 #'     parse_info = c("X1", "X2", "band", "date")
 #' )
 #' @export
-sits_cube.stack_cube <- function(type = "STACK", ...,
+sits_cube.stack_cube <- function(type = "STACK",
                         name = "stack_cube",
+                        ...,
                         satellite,
                         sensor,
                         data_dir = NULL,
@@ -247,8 +215,9 @@ sits_cube.stack_cube <- function(type = "STACK", ...,
 #'     files = files
 #' )
 #' @export
-sits_cube.brick_cube <- function(type = "BRICK", ...,
+sits_cube.brick_cube <- function(type = "BRICK",
                                  name = "brick_cube",
+                                 ...,
                                  satellite,
                                  sensor,
                                  timeline = NULL,
@@ -287,8 +256,8 @@ sits_cube.brick_cube <- function(type = "BRICK", ...,
 #'              For more on BDC, please see http://brazildatacube.dpi.inpe.br/
 #'
 #' @param type       Type of cube.
+#' @param name       Name of the output data cube.
 #' @param ...        Other parameters to be passed for specific types.
-#' @param name       Name of the output data cube (optional).
 #' @param url        URL for the BDC catalog (mandatory).
 #' @param collection BDC collection to be searched (mandatory).
 #' @param tiles      Tile names to be searched (optional).
@@ -324,8 +293,9 @@ sits_cube.brick_cube <- function(type = "BRICK", ...,
 #' )
 #' }
 #' @export
-sits_cube.bdc_cube <- function(type = "BDC", ...,
+sits_cube.bdc_cube <- function(type = "BDC",
                                name = "bdc_cube",
+                               ...,
                                url = NULL,
                                collection = NULL,
                                tiles = NULL,
@@ -421,9 +391,18 @@ sits_cube.bdc_cube <- function(type = "BDC", ...,
 #'              "B08", "B8A", "B11", and "B12".
 #'              All 12 bands are available at 60m resolution.
 #'
+#'    Users need to provide AWS credentials in their environmental variables\cr
+#' Sys.setenv(\cr
+#'      "AWS_ACCESS_KEY_ID"     = <your_access_key>, \cr
+#'      "AWS_SECRET_ACCESS_KEY" = <your_secret_access_key>,\cr
+#'      "AWS_DEFAULT_REGION"    = <your AWS region>, \cr
+#'      "AWS_ENDPOINT" = "sentinel-s2-l2a.s3.amazonaws.com", \cr
+#'      "AWS_REQUEST_PAYER"     = "requester" \cr
+#' )
+#'
 #' @param type              type of cube
-#' @param ...               other parameters to be passed for specific types
 #' @param name              output data cube.
+#' @param ...               other parameters to be passed for specific types
 #' @param bands             vector of bands.
 #' @param tiles             vector of tiles
 #' @param start_date        starting date of the cube
@@ -460,8 +439,9 @@ sits_cube.bdc_cube <- function(type = "BDC", ...,
 #' )
 #' }
 #'
-sits_cube.s2_l2a_aws_cube <- function(type = "S2_L2A_AWS", ...,
+sits_cube.s2_l2a_aws_cube <- function(type = "S2_L2A_AWS",
                                       name = NULL,
+                                      ...,
                                       bands = NULL,
                                       tiles = NULL,
                                       start_date = NULL,
@@ -507,6 +487,7 @@ sits_cube.s2_l2a_aws_cube <- function(type = "S2_L2A_AWS", ...,
 #'  n. 3, p. 92, 2019. DOI: 10.3390/data4030092
 #'
 #' @param type        Type of cube.
+#' @param name        Name of output data cube.
 #' @param ...         Other parameters to be passed for the function
 #'  \code{write_tif} of gdalcubes package.
 #' @param cube        A Sentinel-2 L2A AWS data cube
@@ -535,17 +516,7 @@ sits_cube.s2_l2a_aws_cube <- function(type = "S2_L2A_AWS", ...,
 #' \dontrun{
 #' # this example requires access to an external service, so should not be run
 #' # by CRAN
-#'
-#' # s3://sentinel-cogs/sentinel-s2-l2a-cogs/2017/S2A_35MNR_20171025_0_L2A/
-#'
-#' # Provide your AWS credentials here
-#' # Sys.setenv(
-#' # "AWS_ACCESS_KEY_ID"     = <your_access_key>,
-#' # "AWS_SECRET_ACCESS_KEY" = <your_secret_access_key>,
-#' # "AWS_DEFAULT_REGION"    = <your AWS region>,
-#' # "AWS_ENDPOINT" = "sentinel-s2-l2a.s3.amazonaws.com",
-#' # "AWS_REQUEST_PAYER"     = "requester"
-#' # )
+#
 #'
 #' s2_cube <- sits_cube(
 #'     type = "S2_L2A_AWS",
@@ -559,6 +530,7 @@ sits_cube.s2_l2a_aws_cube <- function(type = "S2_L2A_AWS", ...,
 #' )
 #'
 #' gc_cube <- sits_cube(type        = "GDALCUBES",
+#'                      name        = "T20LKP_2018_2019_1M",
 #'                      cube        = s2_cube,
 #'                      path_db     = "/my/path/cube.db",
 #'                      path_images = "/my/path/images/",
@@ -567,7 +539,9 @@ sits_cube.s2_l2a_aws_cube <- function(type = "S2_L2A_AWS", ...,
 #'                      resampling  = "bilinear")
 #' }
 #'
-sits_cube.gdalcubes_cube <- function(type = "GDALCUBES", ...,
+sits_cube.gdalcubes_cube <- function(type = "GDALCUBES",
+                                     name,
+                                     ...,
                                      cube,
                                      path_images,
                                      path_db = NULL,
@@ -575,35 +549,140 @@ sits_cube.gdalcubes_cube <- function(type = "GDALCUBES", ...,
                                      agg_method = NULL,
                                      resampling = "bilinear",
                                      cloud_mask = TRUE) {
-  # require gdalcubes package
-  if (!requireNamespace("gdalcubes", quietly = TRUE)) {
-    stop(paste("Please install package gdalcubes from CRAN:",
-               "install.packages('gdalcubes')"), call. = FALSE
+    # require gdalcubes package
+    if (!requireNamespace("gdalcubes", quietly = TRUE)) {
+        stop(paste("Please install package gdalcubes from CRAN:",
+                   "install.packages('gdalcubes')"), call. = FALSE
+        )
+    }
+
+    # test if provided object its a sits cube
+    assertthat::assert_that("stack_cube" %in% class(cube[1,]),
+                            msg = paste("The provided cube is invalid,",
+                                        "please provide a 'stack_cube' object.",
+                                        "See '?sits_cube' for more information.")
     )
-  }
 
-  # test if provided object its a sits cube
-  assertthat::assert_that("stack_cube" %in% class(cube[1,]),
-                          msg = paste("The provided cube is invalid,",
-                                      "please provide a 'stack_cube' object.",
-                                      "See '?sits_cube' for more information.")
-  )
+    # in case of null path a temporary directory is generated
+    if (is.null(path_db))
+        path_db <- file.path(tempdir(), "cube.db")
 
-  # in case of null path a temporary directory is generated
-  if (is.null(path_db))
-    path_db <- file.path(tempdir(), "cube.db")
+    # create an image collection
+    img_col <- .sits_gc_database(cube, path_db)
 
-  # create an image collection
-  img_col <- .sits_gc_database(cube, path_db)
+    # create a list of cube view object
+    cv_list <- .sits_gc_cube(cube, period, agg_method, resampling)
 
-  # create a list of cube view object
-  cv_list <- .sits_gc_cube(cube, period, agg_method, resampling)
+    # create of the aggregate cubes
+    gc_cube <- .sits_gc_compose(cube, name, cv_list, img_col, path_db, path_images,
+                                cloud_mask)
 
-  # create of the aggregate cubes
-  gc_cube <- .sits_gc_compose(cube, cv_list, img_col, path_db, path_images,
-                              cloud_mask)
+    return(gc_cube)
+}
+#' @title Defines a cube from a set of image bricks
+#' @name sits_cube.probs_cube
+#'
+#' @description Defines a cube to retrieve data from a set of image files
+#'              that have been classified.
+#'              All image files should have the same spatial resolution
+#'              and same projection. Each probs image
+#'              has to be organised as a raster brick, and the
+#'              number of layers must match the number of labels.
+#'              All input files must have the same spatial resolution and
+#'              share the same timeline (in order).
+#'              The timeline for the cube must be provided.
+#'
+#' @param type              type of cube
+#' @param name              name of output data cube
+#' @param ...               other parameters
+#' @param satellite         satellite
+#' @param sensor            sensor
+#' @param timeline          vector with timeline of the files
+#' @param labels            vector of labels associated to the probs cube
+#' @param files             vector of file names for each band
+#'
+#' @return                  data cube
+#'
+#' @examples
+#'
+#' # Create a raster cube based on bricks
+#' # inform the files that make up a raster probs brick with 23 time instances
+#' file <- c(system.file("extdata/raster/mod13q1/sinop-2014_probs_2013_9_2014_8_v1.tif",
+#'     package = "sits"
+#' ))
+#'
+#' # inform the labels
+#' labels <- c("Cerrado", "Fallow_Cotton", "Forest", "Pasture", "Soy_Corn",
+#' "Soy_Cotton", "Soy_Fallow", "Soy_Millet", "Soy_Sunflower")
+#'
+#'
+#' # create a raster cube file based on the information about the files
+#' probs_cube <- sits_cube(
+#'     type = "PROBS",
+#'     name = "Sinop-crop-probs",
+#'     satellite = "TERRA",
+#'     sensor  = "MODIS",
+#'     timeline = timeline_2013_2014,
+#'     labels = labels,
+#'     files = file
+#' )
+#' @export
+sits_cube.probs_cube <- function(type = "PROBS",
+                                 name = "probs_cube",
+                                 ...,
+                                 satellite,
+                                 sensor,
+                                 timeline,
+                                 labels,
+                                 files) {
 
-  return(gc_cube)
+    # iterate through the input files
+    rows <- purrr::map(files, function(f){
+        # precondition - check if labels match files
+        # read the information from the files using GDAL
+        rg_obj <- suppressWarnings(rgdal::GDALinfo(f))
+        n_layers <- as.numeric(rg_obj["bands"])
+        assertthat::assert_that(n_layers == length(labels),
+                                msg = paste0("mismatch btw labels and bands in file ", f))
+
+        # get the file params
+        params <- .sits_raster_api_params_file(f)
+        # build the file information
+        file_info <- tibble::tibble(
+            band = "probs",
+            date = as.Date(timeline[1]),
+            path = f
+        )
+        # go row by row
+        row <- tibble::tibble(
+            type = "PROBS",
+            satellite = satellite,
+            sensor = sensor,
+            name = name,
+            bands = list("probs"),
+            labels = list(labels),
+            scale_factors  = list(.sits_config_probs_scale_factor()),
+            missing_values = list(.sits_config_probs_missing_value()),
+            minimum_values = list(.sits_config_probs_minimum_value()),
+            maximum_values = list(.sits_config_probs_maximum_value()),
+            timeline = list(list(timeline)),
+            nrows = params$nrows,
+            ncols = params$ncols,
+            xmin  = params$xmin,
+            xmax  = params$xmax,
+            ymin  = params$ymin,
+            ymax  = params$ymax,
+            xres  = params$xres,
+            yres  = params$yres,
+            crs   = params$crs,
+            file_info = list(file_info),
+        )
+        return(row)
+    })
+    probs_cube <- dplyr::bind_rows(rows)
+
+    class(probs_cube) <- c("probs_cube", "raster_cube", class(probs_cube))
+    return(probs_cube)
 }
 #' @title Default methods for sits_cube
 #' @name sits_cube.default
@@ -613,10 +692,8 @@ sits_cube.gdalcubes_cube <- function(type = "GDALCUBES", ...,
 #'
 #' @export
 sits_cube.default <- function(type = NULL, ...) {
-    stop(paste0(
-        "Error - cube type unkown \n",
-        "Valid cube types are ", .sits_config_cube_types()
-    ))
+    stop("Error - cube type unknown"
+    )
 }
 #' @title Creates the contents of a data cube
 #' @name sits_cube_copy
@@ -656,10 +733,7 @@ sits_cube_copy <- function(cube,
                            dest_dir,
                            bands = sits_bands(cube),
                            srcwin = c(0, 0, cube$ncols, cube$nrows)) {
-    # ensure input cube exists
-    assertthat::assert_that(.sits_cube_check_validity(cube),
-        msg = "invalid input cube"
-    )
+
     # does the output directory exist?
     assertthat::is.dir(dest_dir)
 

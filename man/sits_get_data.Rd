@@ -26,11 +26,6 @@ has the metadata and data for each time series. The columns are
 <longitude, latitude, start_date, end_date, label, cube, time_series>.
 There are many ways of retrieving time series:
 \itemize{
-\item{WTSS: }{Retrieve data from Web Time Series Service (WTSS)
-  using a lat/long point (\code{\link[sits]{sits_get_data.wtss_cube}}),
-  a CSV file (\code{\link[sits]{sits_get_data.csv_wtss_cube}})
-  or a SHP file (\code{\link[sits]{sits_get_data.shp_wtss_cube}})}
-
 \item{SATVEG: }{Retrieve data from SATVEG service using a lat/long point
  (\code{\link[sits]{sits_get_data.satveg_cube}}),
  a CSV file (\code{\link[sits]{sits_get_data.csv_satveg_cube}})

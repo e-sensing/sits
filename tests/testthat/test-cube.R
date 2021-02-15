@@ -143,6 +143,7 @@ test_that("Creating cubes from AWS", {
 
     gc_cube <- sits_cube(type        = "GDALCUBES",
                          cube        = s2_cube,
+                         name        = "T20LKP_2018_2019_P5D",
                          path_db     = paste0(tempdir(), "/cube.db"),
                          path_images = path_images,
                          period      = "P5D",
@@ -158,6 +159,34 @@ test_that("Creating cubes from AWS", {
 
     expect_equal(nrow(file_info), nrow(file_info2))
 
+})
+test_that("Creating cubes from classified images", {
+    # Create a raster cube based on bricks
+    # inform the files that make up a raster probs brick with 23 time instances
+    file <- c(system.file("extdata/raster/mod13q1/sinop-2014_probs_2013_9_2014_8_v1.tif",
+                          package = "sits"
+    ))
+
+    # inform the labels
+    labels <- c("Cerrado", "Fallow_Cotton", "Forest", "Pasture", "Soy_Corn",
+                "Soy_Cotton", "Soy_Fallow", "Soy_Millet", "Soy_Sunflower")
+
+
+    # create a raster cube file based on the information about the files
+    probs_cube <- sits_cube(
+        type = "PROBS",
+        name = "Sinop-crop-probs",
+        satellite = "TERRA",
+        sensor  = "MODIS",
+        timeline = timeline_2013_2014,
+        labels = labels,
+        files = file
+    )
+    expect_equal(probs_cube$ncols, 50)
+    expect_equal(sits_bands(probs_cube), "probs")
+    file_info <- probs_cube$file_info[[1]]
+    expect_equal(file_info$band, "probs")
+    expect_equal(file_info$path, file)
 })
 
 test_that("Cube copy", {
@@ -185,3 +214,5 @@ test_that("Cube copy", {
     expect_true(all(sits_timeline(cbers_022024_copy) ==
                       sits_timeline(cbers_022024)))
 })
+
+

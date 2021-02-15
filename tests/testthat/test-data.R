@@ -1,10 +1,4 @@
 context("Data input")
-
-
-
-
-
-
 test_that("Reading a point from SATVEG ", {
     testthat::skip_on_cran()
     cube_1 <- sits_cube(type = "SATVEG", name = "terra")
@@ -120,6 +114,7 @@ test_that("Reading a LAT/LONG from RASTER", {
         bands = c("ndvi"),
         files = file
     )
+
 
     point_ndvi <- sits_get_data(raster_cube,
         longitude = -55.55527, latitude = -11.51782
