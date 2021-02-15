@@ -2,15 +2,17 @@
 % Please edit documentation in R/sits_smooth.R
 \name{sits_smooth.gaussian}
 \alias{sits_smooth.gaussian}
-\title{Post-process a classified data raster probs using gaussian smoothing}
+\title{Post-process a classified data raster probs using Gaussian smoothing}
 \usage{
 \method{sits_smooth}{gaussian}(
   cube,
   type = "gaussian",
   ...,
   window_size = 5,
-  sigma = 0.85,
-  output_dir = "./",
+  sigma = 1,
+  multicores = 1,
+  memsize = 1,
+  output_dir = getwd(),
   version = "v1"
 )
 }
@@ -23,7 +25,13 @@
 
 \item{window_size}{Size of the neighbourhood.}
 
-\item{sigma}{Standard deviation of the spatial gaussian kernel}
+\item{sigma}{Standard deviation of the spatial Gaussian kernel}
+
+\item{multicores}{Number of process to run the Bayesian smoothing in
+snow subprocess.}
+
+\item{memsize}{Maximum overall memory (in GB) to run the Bayesian
+smoothing.}
 
 \item{output_dir}{Output directory where to out the file}
 
@@ -36,7 +44,7 @@ A tibble with metadata about the output raster objects.
 \description{
 Takes a set of classified raster layers with probabilities,
              whose metadata is]created by \code{\link[sits]{sits_cube}},
-             and apply gaussian smoothing process.
+             and apply Gaussian smoothing process.
 }
 \examples{
 \dontrun{
@@ -84,5 +92,5 @@ K. Schindler, "An Overview and Comparison of Smooth Labeling
             50 (11), 4534-4545, 2012.
 }
 \author{
-@author Gilberto Camara, \email{gilberto.camara@inpe.br}
+Gilberto Camara, \email{gilberto.camara@inpe.br}
 }

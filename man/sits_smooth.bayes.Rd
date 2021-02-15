@@ -12,7 +12,7 @@
   smoothness = 20,
   covar = FALSE,
   multicores = 1,
-  memory = 1,
+  memsize = 1,
   output_dir = getwd(),
   version = "v1"
 )
@@ -26,7 +26,7 @@
 
 \item{window_size}{Size of the neighbourhood.}
 
-\item{smoothness}{Estimated variance of logit of class_probs
+\item{smoothness}{Estimated variance of logit of class probabilities
 (Bayesian smoothing parameter). It can be either
 a matrix or a scalar.}
 
@@ -36,7 +36,7 @@ matrix must be computed as the prior covariance.}
 \item{multicores}{Number of process to run the Bayesian smoothing in
 snow subprocess.}
 
-\item{memory}{Maximul overall memory (in GB) to run the Bayesian
+\item{memsize}{Maximum overall memory (in GB) to run the Bayesian
 smoothing.}
 
 \item{output_dir}{Output directory where to out the file}
@@ -85,7 +85,7 @@ sinop_probs <- sits_classify(sinop,
     memsize = 4, multicores = 2
 )
 
-# label the classification and smooth the result with a bayesian filter
+# label the classification and smooth the result with a Bayesian filter
 sinop_bayes <- sits_smooth(sinop_probs, output_dir = tempdir()
     )
 }

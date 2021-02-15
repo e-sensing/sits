@@ -4,14 +4,14 @@
 \alias{.sits_probs_blocks_size_estimate}
 \title{Estimate the number of blocks to run .sits_split_cluster}
 \usage{
-.sits_probs_blocks_size_estimate(cube, multicores, memory)
+.sits_probs_blocks_size_estimate(cube, multicores, memsize)
 }
 \arguments{
 \item{cube}{input data cube}
 
 \item{multicores}{number of processes to split up the data}
 
-\item{memory}{maximum overall memory size (in GB)}
+\item{memsize}{maximum overall memory size (in GB)}
 }
 \value{
 returns a list with following information:

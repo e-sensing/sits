@@ -1,16 +1,38 @@
+#' @title Compute the 2-D Gaussian kernel
+#' @name .sits_gauss_kernel
+#' @keywords internal
+#'
+#' @param window_size   Size of the neighbourhood.
+#' @param sigma         Standard deviation of the spatial Gaussian kernel
+#'
+#' @return  returns a squared matrix filled with Gaussian function
+#'
+.sits_gauss_kernel <- function(window_size, sigma = 1) {
+
+    stopifnot(window_size %% 2 != 0)
+
+    w_center <- ceiling(window_size / 2)
+    w_seq <- seq_len(window_size)
+    x <- stats::dnorm(
+        (abs(rep(w_seq, each = window_size) - w_center) ^ 2 +
+             abs(rep(w_seq, window_size) - w_center) ^ 2) ^ (1 / 2),
+        sd = sigma) / stats::dnorm(0)
+    matrix(x / sum(x), nrow = window_size, byrow = T)
+}
+
 #' @title Estimate the number of blocks to run .sits_split_cluster
 #' @name .sits_probs_blocks_size_estimate
 #' @keywords internal
 #'
 #' @param cube         input data cube
 #' @param multicores   number of processes to split up the data
-#' @param memory       maximum overall memory size (in GB)
+#' @param memsize      maximum overall memory size (in GB)
 #'
 #' @return  returns a list with following information:
 #'             - multicores theoretical upper bound;
 #'             - block x_size (horizontal) and y_size (vertical)
 #'
-.sits_probs_blocks_size_estimate <- function(cube, multicores, memory) {
+.sits_probs_blocks_size_estimate <- function(cube, multicores, memsize) {
 
     # precondition 1 - check if cube has probability data
     assertthat::assert_that(inherits(cube, "probs_cube"),
@@ -31,7 +53,7 @@
     min_block_y_size <- 1
 
     # compute factors
-    memory_factor <- needed_memory / memory
+    memory_factor <- needed_memory / memsize
     blocking_factor <- x_size / min_block_x_size * y_size / min_block_y_size
 
     # stop if blocking factor is less than memory factor!
@@ -51,7 +73,7 @@
     # - multicores theoretical upper bound;
     # - block x_size (horizontal) and y_size (vertical)
     blocks <- list(
-        # max_multicores = floor(blocking_factor / memory_factor),
+        # theoretical max_multicores = floor(blocking_factor / memory_factor),
         block_x_size = floor(min_block_x_size),
         block_y_size = min(floor(blocking_factor / memory_factor / multicores),
                            y_size)
@@ -73,7 +95,7 @@
 #' @param args               additional arguments to pass to \code{fun} function.
 #' @param multicores         Number of process to run the Bayesian smoothing in
 #'                           snow subprocess.
-#' @param memory             Maximul overall memory (in GB) to run the Bayesian
+#' @param memsize            Maximum overall memory (in GB) to run the Bayesian
 #'                           smoothing.
 #' @param ...                optional arguments to merge final raster
 #'                           (see \link[raster]{writeRaster} function)
@@ -82,7 +104,7 @@
 #'
 .sits_map_layer_cluster <- function(cube, cube_out, overlapping_y_size = 0,
                                     func, func_args = NULL, multicores = 1,
-                                    memory = 1, ...) {
+                                    memsize = 1, ...) {
 
     # precondition 1 - check if cube has probability data
     assertthat::assert_that(inherits(cube, "probs_cube"),
@@ -196,10 +218,13 @@
     # make snow cluster
     cl <- NULL
     if (multicores > 1) {
+        # start clusters
         cl <- parallel::makeCluster(multicores)
+        # make sure library paths is the same as actual environment
         lib_paths <- .libPaths()
         parallel::clusterExport(cl, "lib_paths", envir = environment())
         parallel::clusterEvalQ(cl, .libPaths(lib_paths))
+        # stop all workers when finish
         on.exit(parallel::stopCluster(cl))
     }
 
@@ -215,12 +240,9 @@
         # compute how many tiles to be computed
         block_size <- .sits_probs_blocks_size_estimate(cube = cube_row,
                                                        multicores = multicores,
-                                                       memory = memory)
+                                                       memsize = memsize)
 
-        # # updates multicores if it is above upper bound limit
-        # multicores <- min(blocks[["max_multicores"]], multicores)
-
-        # for now, only vertical blocks are allowed, i.e 'x_blocks' is 1
+        # for now, only vertical blocks are allowed, i.e. 'x_blocks' is 1
         blocks <- .sits_compute_blocks(
             img_y_size = cube_row$nrows,
             block_y_size = block_size[["block_y_size"]],
