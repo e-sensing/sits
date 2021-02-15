@@ -9,9 +9,11 @@
   type = "bilinear",
   ...,
   window_size = 5,
-  sigma = 0.85,
-  tau = 0.5,
-  output_dir = "./",
+  sigma = 1,
+  tau = 0.25,
+  multicores = 1,
+  memsize = 1,
+  output_dir = getwd(),
   version = "v1"
 )
 }
@@ -27,6 +29,12 @@
 \item{sigma}{Standard deviation of the spatial gaussian kernel}
 
 \item{tau}{Standard deviation of the class probs value}
+
+\item{multicores}{Number of process to run the Bayesian smoothing in
+snow subprocess.}
+
+\item{memsize}{Maximum overall memory (in GB) to run the Bayesian
+smoothing.}
 
 \item{output_dir}{Output directory}
 
