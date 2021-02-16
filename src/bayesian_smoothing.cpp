@@ -24,14 +24,13 @@ void neigh_vec(neigh_t& n,
                const arma::uword m_i,
                const arma::uword m_j) {
 
-    arma::uword w_leg_i = w.n_rows, w_leg_j = w.n_cols;
+    arma::uword w_leg_i = w.n_rows / 2, w_leg_j = w.n_cols / 2;
 
     // copy values
     arma::uword k = 0;
     for (arma::uword i = 0; i < w.n_rows; ++i)
         for (arma::uword j = 0; j < w.n_cols; ++j)
-            if (m_i + i >= w_leg_i &&
-                m_j + j >= w_leg_j &&
+            if (m_i + i >= w_leg_i && m_j + j >= w_leg_j &&
                 m_i + i < w_leg_i + m_nrow &&
                 m_j + j < w_leg_j + m_ncol &&
                 arma::is_finite(m(m_j + m_i * m_ncol, 0))) {
@@ -61,15 +60,6 @@ arma::mat bayes_smoother(const arma::mat& m,
                          const arma::mat& w,
                          const arma::mat& sigma,
                          bool covar_sigma0) {
-
-    if (m_nrow * m_ncol != m.n_rows)
-        throw std::invalid_argument("Invalid matrix size");
-
-    if (w.n_rows % 2 == 0 || w.n_cols % 2 == 0)
-        throw std::invalid_argument("Invalid window matrix size");
-
-    if (m.n_cols != sigma.n_rows || m.n_cols != sigma.n_cols)
-        throw std::invalid_argument("Invalid sigma matrix size");
 
     // initialize result matrix
     arma::mat res(arma::size(m), arma::fill::none);
@@ -125,12 +115,6 @@ arma::mat kernel_smoother(const arma::mat& m,
                           const arma::mat& w,
                           const bool normalised) {
 
-    if (m_nrow * m_ncol != m.n_rows)
-        throw std::invalid_argument("Invalid matrix size");
-
-    if (w.n_rows % 2 == 0 || w.n_cols % 2 == 0)
-        throw std::invalid_argument("Invalid window matrix size");
-
     // initialize result matrix
     arma::mat res(arma::size(m), arma::fill::none);
     res.fill(arma::datum::nan);
@@ -166,24 +150,12 @@ arma::mat bilinear_smoother(const arma::mat& m,
                             const arma::mat& w,
                             double tau) {
 
-    if (m_nrow * m_ncol != m.n_rows)
-        throw std::invalid_argument("Invalid matrix size");
-
-    if (w.n_rows % 2 == 0 || w.n_cols % 2 == 0)
-        throw std::invalid_argument("Invalid window matrix size");
-
-    if (tau <= 0)
-        throw std::invalid_argument("Invalid tau value");
-
     // initialize result matrix
     arma::mat res(arma::size(m), arma::fill::none);
     res.fill(arma::datum::nan);
 
     // neighbourhood
     neigh_t neigh(m, w);
-
-    // bilinear weights
-    arma::colvec bln_weight;
 
     // compute values for each pixel
     for (arma::uword b = 0; b < m.n_cols; ++b)
@@ -196,7 +168,7 @@ arma::mat bilinear_smoother(const arma::mat& m,
                 if (neigh.n_rows == 0) continue;
 
                 // compute bilinear weight
-                bln_weight = neigh.weights % arma::normpdf(
+                arma::colvec bln_weight = neigh.weights % arma::normpdf(
                     neigh.data.col(b) - m(j + i * m_ncol, b), 0, tau);
 
                 // normalise weight values
