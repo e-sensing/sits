@@ -346,7 +346,7 @@ sits_smooth.gaussian <- function(cube,
     cube_gauss <- .sits_cube_clone(
         cube = cube,
         name = paste0(cube$name, "_gauss"),
-        ext = "gauss",
+        ext = "_gauss",
         output_dir = output_dir,
         version = version
     )
@@ -504,8 +504,8 @@ sits_smooth.bilinear <- function(cube,
     # create metadata for bilinear smoothed raster cube
     cube_bilinear <- .sits_cube_clone(
         cube = cube,
-        name = paste0(cube$name, "_bil"),
-        ext = "_bil",
+        name = paste0(cube$name, "_bilin"),
+        ext = "_bilin",
         output_dir = output_dir,
         version = version
     )
