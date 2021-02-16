@@ -1,8 +1,6 @@
-access_WTSS              Access time series using the WTSS service
 access_SATVEG            Access time series using the SATVEG service
 classify_cbers_bdc       Classify a stack of CBERS AWFI images in the Brazil Data Cube
 classify_cbers_stack     Classify a stack of CBERS AWFI images
-classify_csv             Classify a set of labelled samples in the CSV format
 classify_ts              Classify a time series using SVM
 classify_raster_rfor     Classify MODIS image (RasterBricks) using random forest
 classify_raster_svm      Classify MODIS image (RasterBricks) using SVM

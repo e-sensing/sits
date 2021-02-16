@@ -3,6 +3,7 @@
 #' @keywords internal
 #'
 #' @param cube        Data cube from where data is to be retrieved.
+#' @param name        Name of the new data cube
 #' @param img_col     A \code{object} 'image_collection' containing information
 #'  about the images metadata.
 #' @param cv_list     A \code{list} 'cube_view' with values from cube.
@@ -19,7 +20,7 @@
 #' @param version     A \code{character} with version of the output files.
 #'
 #' @return  A data cube with information used in its creation.
-.sits_gc_compose <- function(cube, cv_list, img_col, path_db, path_images,
+.sits_gc_compose <- function(cube, name, cv_list, img_col, path_db, path_images,
                              cloud_mask, ..., version = "v1") {
 
     # verifies the path to save the images
@@ -32,6 +33,7 @@
     # create a clone cube
     cube_gc <- .sits_cube_clone(
         cube = cube,
+        name = name,
         ext = "",
         output_dir = path_images,
         version = version)

@@ -181,6 +181,7 @@ sits_smooth.bayes <- function(cube,
     # create metadata for labelled raster cube
     cube_bayes <- .sits_cube_clone(
         cube = cube,
+        name = paste0(cube$name, "_bayes"),
         ext = "_bayes",
         output_dir = output_dir,
         version = version
@@ -344,7 +345,8 @@ sits_smooth.gaussian <- function(cube,
     # create metadata for Gauss smoothed raster cube
     cube_gauss <- .sits_cube_clone(
         cube = cube,
-        ext = "_gauss",
+        name = paste0(cube$name, "_gauss"),
+        ext = "gauss",
         output_dir = output_dir,
         version = version
     )
@@ -502,7 +504,8 @@ sits_smooth.bilinear <- function(cube,
     # create metadata for bilinear smoothed raster cube
     cube_bilinear <- .sits_cube_clone(
         cube = cube,
-        ext = "_bilinear",
+        name = paste0(cube$name, "_bil"),
+        ext = "_bil",
         output_dir = output_dir,
         version = version
     )

@@ -7,15 +7,15 @@ author:
 - affiliation: National Institute for Space Research (INPE), Brazil
   name: Gilberto Camara
 - affiliation: National Institute for Space Research (INPE), Brazil
+  name: Felipe Souza
+- affiliation: National Institute for Space Research (INPE), Brazil
+  name: Lorena Santos
+- affiliation: National Institute for Space Research (INPE), Brazil
   name: Pedro R. Andrade
 - affiliation: Institute for Applied Economics Research (IPEA), Brazil
   name: Alexandre Carvalho
 - affiliation: National Institute for Space Research (INPE), Brazil
-  name: Lorena Santos
-- affiliation: National Institute for Space Research (INPE), Brazil
   name: Karine Ferreira
-- affiliation: University of Vienna, Austria
-  name: Victor Maus
 - affiliation: National Institute for Space Research (INPE), Brazil
   name: Gilberto Queiroz
 date: "`r format(Sys.time(), '%B %d, %Y')`"
@@ -68,54 +68,75 @@ In this work, we present SITS, an open source R package for satellite image time
 
 Most studies using satellite image time series for land cover classification use a \emph{space-first, time-later} approach. For multiyear studies, researchers first derive best-fit yearly composites and then classify each composite image. For a review of these methods for land use and land cover classification using time series, see [@Gomez2016]. As an alternative to \emph{Space-first, time-later} methods, the SITS package provides support for classification of time series, preserving the full temporal resolution of the input data, using a \emph{time-first, space-later} approach. SITS uses all data in the image time series to create larger dimensional spaces for machine learning. The idea is to have as many temporal attributes as possible, increasing the dimension of the classification space. Each temporal instance of a time series is taken as an independent dimension in the feature space of the classifier. To the authors' best knowledge, the classification techniques for image time series included in the package are not previoulsy available in other R or python packages. Furthermore, the package includes methods for filtering, clustering and post-processing that also have not been published in the literature. 
 
+## SITS Workflow
+
+The main aim of SITS is to support land cover and land change classification 
+of image data cubes using machine learning methods. The basic workflow in SITS is:
+
+1. Create a data cube using image collections available in the cloud or in local 
+machines.
+2. Extract time series from the data cube which are used as training data.
+3. Perform quality control and filtering on the samples. 
+4. Train a machine learning model using the extracted samples.
+5. Classify the data cube using the trained model.
+6. Post-process the classified images. 
+
 # Image data cubes as the basis for big Earth observation data analysis
 
 In broad terms, the cloud computing model is one where large satellite-generated data sets are archived on cloud services, which also provide computing facilities to process them. By using cloud services, users can share big Earth observation databases and minimize the amount of data download. Investment in infrastructure is minimised and sharing of data and software increases. However, data available in the cloud is best organised for analysis by creating data cubes. 
 
 Generalising @Appel2019, we consider that a data cube is a four-dimensional structure with dimensions x (longitude or easting), y (latitude or northing), time, and bands. Its spatial dimensions refer to a single spatial reference system (SRS). Cells of a data cube have a constant spatial size (with regard to the cube’s SRS). The temporal dimension is specified by a set of intervals. For every combination of dimensions, a cell has a single value. Data cubes are particularly amenable for machine learning techniques; their data cane be transformed into arrays in memory, which can be fed to training and classification algorithms. Given the widespread availability of large data sets of Earth observation data, there is a growing interest in organising large sets of data into "data cubes".
 
-As explained below, a data cube is the data type used in `sits` to handle dense raster data. Many of the operations involve creating, transforming and analysing data cubes.
+# Using STAC to Access Image Data Cubes
 
-## Using Web Data Services to Access Image Data Cubes
+One of the distinguishing features of SITS is that it has been designed to work with big satellite image data sets which reside on the cloud and with data cubes. Many *R* packages that work with remote sensing images require data to be accessible in a local computer. However, with the coming of age of big Earth observation data, it is not always practical to transfer large data sets. Users have to rely on web services to provide access to these data sets. In this context, SITS is based on access to data cubes using information provided by STAC (Spatio-temporal Access Catalogue).
 
-One of the distinguishing features of SITS is that it has been designed to work with big satellite image data sets which reside on the cloud and with data cubes. Many *R* packages that work with remote sensing images require data to be accessible in a local computer. However, with the coming of age of big Earth observation data, it is not always practical to transfer large data sets. Users have to rely on web services to provide access to these data sets. In this context, SITS is based on access to data cubes using web services.
+Currently, SITS supports data cubes available in the following cloud services:
 
-A web service is software system designed to support remote access to image collections through APIs. These are machine-to-machine protocols that allow access to image collections and to generate *data cubes*. Currently, `sits` uses the WTSS ("Web Time Series Serice").  WTSS is a light-weight service for retrieval of time series data for selected locations and periods [@Vinhas2016]. The WTSS R client is available in the CRAN archive using the `wtss` package.
+1. Sentinel-2/2A level 2A images in AWS.
+2. Collections of Sentinel, Landsat and CBERS images in the Brazil Data Cube (BDC).
+3. Collections available in Digital Earth Africa.
+4. Data cubes produced by the "gdalcubes" package.
+5. Local image collections organized as RasterStacks of RasterBricks.
 
-These services are set on the SITS configuration file, which is described later in this document. For each services, the above function lists the names of the data cubes available and additional information. 
+The user can define a data cube by selecting a collection in a cloud service and then defining
+a space-time extent. For example, the following code will define a data cube of Sentinel-2/2A images
+using AWS. 
 
-## Defining a data cube using the WTSS service
+```{r, eval = FALSE, echo = TRUE}
+s2_cube <- sits_cube(
+    type = "S2_L2A_AWS",
+    name = "T20LKP_2018_2019",
+    satellite = "SENTINEL-2",
+    sensor = "MSI",
+    tiles = "20LKP",
+    s2_aws_resolution = "20m",
+    start_date = as.Date("2018-07-18"),
+    end_date = as.Date("2018-07-23")
+)
+```
+In the above example, the user has selected the "Sentinel-2 Level 2" collection in 
+the AWS cloud services. The geographical area of the data cube is defined by the tile "20LKP", and the temporal extent by a start and end date. Access to other cloud services works in similar ways.
 
-To define a data cube for the WTSS, in principle the following parameters should be provided: (a) the type of the service ("WTSS"); (b) the URL; (c) the satellite and sensor associated to the cube, and (d) name of the data cube in the remote service. The package will retrieve the information about the cube from the WTSS service.
+Users can derive data cubes from ARD data which have pre-defined temporal 
+resolutions. For example, a user may want to define the best Sentinel-2 pixel in a
+one month period, as shown below. This can be done in SITS using the "gdalcubes" package. 
+For details in gdalcubes, please see [https://github.com/appelmar/gdalcubes](https://github.com/appelmar/gdalcubes).
 
-```{r, eval = FALSE}
-# define the data cube "MOD13Q1" using the WTSS service
-# In this case, the WTSS service is run by a server in INPE Brazil
-wtss_cube <- sits_cube(type = "WTSS", 
-                       URL = "http://www.esensing.dpi.inpe.br/wtss",
-                       name = "MOD13Q1")
-````
-
-```{r}
-# get information on the data cube 
-wtss_cube %>% dplyr::select(type, URL, satellite, sensor)
-# spatial dimensions of the data cube
-wtss_cube %>% dplyr::select(xmin, xmax, ymin, ymax)
-# temporal dimension of the data cube
-timeline <- sits_timeline(wtss_cube)
-# first date of the data cube
-timeline[1]
-# last date of the data cube
-timeline[length(timeline)]
-# number of steps in the data cube
-length(timeline)
-# bands of the data cube
-sits_bands(wtss_cube)
+```{r, eval = FALSE, echo = TRUE}
+gc_cube <- sits_cube(type        = "GDALCUBES",
+                     name        = "T20LKP_2018_2019_1M",
+                     cube        = s2_cube,
+                     path_db     = "/my/path/cube.db",
+                     path_images = "/my/path/images/",
+                     period      = "P1M",
+                     agg_method  = "median",
+                     resampling  = "bilinear")
 ```
 
-# Defining a data cube using files organised as raster bricks
+# Defining a data cube using local files organised as RasterBricks
 
-The SITS package enables uses to create data cube based on files. In this case, these files should be organized as `raster bricks`. A RasterBrick is a multi-layer raster object used by the \emph{R} `raster` package.  Each brick is a multi-layer file, containing different time instances of one spectral band. To allow users to create data cubes based on files, SITS needs to know what is the timeline of the data sets and what are the names of the files that contain the RasterBricks.  The example below shows one bricks containing 392 time instances of the "ndvi" band for the years 2000 to 2016. The timeline is available as part of the SITS package. In this example, as in most cases using raster bricks, images are stored as GeoTiff files.
+A RasterBrick is a multi-layer raster object used by the \emph{R} `raster` package.  Each brick is a multi-layer file, containing different time instances of one spectral band. To allow users to create data cubes based on files, SITS needs to know what is the timeline of the data sets and what are the names of the files that contain the RasterBricks.  The example below shows one bricks containing 392 time instances of the "ndvi" band for the years 2000 to 2016. In this example, as in most cases using raster bricks, images are stored as GeoTiff files.
 
 Since GeoTiff files do not contain information about satellites and sensors, it is best practice to provide information on satellite and sensor. 
 
@@ -143,6 +164,40 @@ raster_cube %>% dplyr::select(xmin, xmax, ymin, ymax)
 
 To create the raster cube, we a set of consistent raster bricks (one for each satellite band) and a `timeline` that matches the input images of the raster brick. Once created, the coverage can be used either to retrieve time series data from the raster bricks using `sits_get_data()` or to do the raster classification by calling the function `sits_classify`.
  
+# Defining a data cube using local files organised as RasterStacks
+
+A RasterStack is a multi-file raster object used by the \emph{R} `raster` package.  Each file 
+contains one time instance of one spectral band. To allow users to create data cubes based on many files, all image files should have the same spatial resolution and same projection. 
+The name of the file should contains date and band information. This is the case of files in repositories such as Sentinel Hub and AWS. 
+
+Time instances and bands are deduced from filenames. An examples of valid image names include
+ "CBERS-4_AWFI_B13_2018-02-02.tif". 
+In each case, the user has to provide appropriate parsing information that allows SITS to extract
+the band and the date. In the examples above, the parsing info would include "_" as a delimiter. 
+In this example, the names of the resulting columns for parsing are "X1", "X2", 
+"band", and "date". In the second, only "band" and "date". The following 
+examples shows how a data cube is created from a set of files.
+
+```{r}
+# Create a cube based on a stack of CBERS data
+data_dir <- system.file("extdata/raster/cbers", package = "sits")
+
+# files are named using the convention: "CBERS-4_AWFI_B13_2018-02-02.tif".
+
+cbers_cube <- sits_cube(
+      type = "STACK",
+      name = "022024",
+      satellite = "CBERS-4",
+      sensor = "AWFI",
+      data_dir = data_dir,
+      delim = "_",
+      parse_info = c("X1", "X2", "band", "date")
+)
+# print the timeline of the cube
+sits_timeline(cbers_cube)
+# print the bounding box of the cube
+sits_bbox(cbers_cube)
+```
 
 # Data structures for satellite image time series
 
@@ -165,22 +220,31 @@ sits_time_series(samples_mt_4bands[1,])[1:3,]
 
 # Obtaining time series data
 
-To get a time series in SITS, one has to create a data cube first, as described above. Alternatively, the time series can also be converted from data stored  in the ZOO format [@Zeileis2005]. Users can request one or more time series points from a data cube by using `sits_get_data()`. This function provides a general means of access to image time series. Given data cue, the user provides the latitude and longitude of the desired location, the bands, and the start date and end date of the time series. If the start and end dates are not provided, it retrieves all the available period. The result is a tibble that can be visualized using `plot()`.
+To get a time series in SITS, one has to create a data cube first, as described above. Users can request one or more time series points from a data cube by using `sits_get_data()`. This function provides a general means of access to image time series. Given data cue, the user provides the latitude and longitude of the desired location, the bands, and the start date and end date of the time series. If the start and end dates are not provided, it retrieves all the available period. The result is a tibble that can be visualized using `plot()`.
 
-```{r, eval = FALSE}
-# a point in the transition forest to pasture and then to agriculture in Mato Grosso
-# obtain a time series from the WTSS server for this point
-point_ndvi <- sits_get_data(cube      = wtss_cube,
-                           longitude = -55.50563, 
-                           latitude  = -11.71557,
-                           bands     = c("NDVI"))
-```
-
-
-
-```{r, fig.align="center", fig.height=3.1, fig.width=5, fig.cap="NDVI time series fetched from WTSS service."}
-
-plot(point_ndvi)
+```{r}
+library(sits)
+# create a cube from a local file 
+file <- c(system.file("extdata/raster/mod13q1/sinop-ndvi-2014.tif",
+                      package = "sits"
+))
+raster_cube <- sits_cube(
+    type = "BRICK",
+    name = "Sinop-crop",
+    satellite = "TERRA",
+    sensor = "MODIS",
+    timeline = sits::timeline_2013_2014,
+    bands = c("ndvi"),
+    files = file
+)
+# obtain a set of locations defined by a CSV file
+csv_raster_file <- system.file("extdata/samples/samples_sinop_crop.csv",
+                               package = "sits"
+)
+# retrieve the points from the data cube
+points <- sits_get_data(raster_cube, file = csv_raster_file)
+# plot the first point
+plot(points[1,])
 ```
 
 # Filtering techniques 
@@ -406,7 +470,7 @@ For more information, please see the vignettes
 
 The authors would like to thank all the researchers that provided data samples used in the examples: Alexandre Coutinho, Julio Esquerdo and Joao Antunes (Brazilian Agricultural Research Agency, Brazil) who provided ground samples for "soybean-fallow", "fallow-cotton", "soybean-cotton", "soybean-corn", "soybean-millet", "soybean-sunflower", and "pasture" classes; Rodrigo Bergotti (National Institute for Space Research, Brazil) who provided samples for "cerrado" and "forest" classes; and Damien Arvor (Rennes University, France) who provided ground samples for "soybean-fallow" class. 
 
-This work was partially funded by the São Paulo Research Foundation (FAPESP) through eScience Program grant 2014/08398-6. We thank the Coordination for the Improvement of Higher Education Personnel (CAPES) and National Council for Scientific and Technological Development (CNPq) grants 312151/2014-4 (GC) and 140684/2016-6 (RS). We thank Ricardo Cartaxo, Lúbia Vinhas, and Karine Ferreira who provided insight and expertise to support this paper.
+This work was partially funded by the São Paulo Research Foundation (FAPESP) through eScience Program grant 2014/08398-6. We thank the Coordination for the Improvement of Higher Education Personnel (CAPES) and National Council for Scientific and Technological Development (CNPq) grants 312151/2014-4 (GC) and 140684/2016-6 (RS). We thank Ricardo Cartaxo and Lúbia Vinhas who provided insight and expertise to support this paper.
 
 This work has also been supported  by the International Climate Initiative of the Germany Federal Ministry for the Environment, Nature Conservation, Building and Nuclear Safety under Grant Agreement 17-III-084-Global-A-RESTORE+ (``RESTORE+: Addressing Landscape Restoration on Degraded Land in Indonesia and Brazil''). 
 

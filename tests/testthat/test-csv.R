@@ -36,28 +36,4 @@ test_that("Metadata to CSV - error", {
     )
 })
 
-test_that("Reading a CSV file from WTSS", {
-    skip_on_cran()
-    csv_file <- system.file("extdata/samples/samples_matogrosso.csv",
-        package = "sits"
-    )
-    cube_wtss <- suppressMessages(
-      sits_cube(
-        type = "WTSS",
-        URL = "http://www.esensing.dpi.inpe.br/wtss/",
-        name = "MOD13Q1"
-      )
-    )
 
-    if (purrr::is_null(cube_wtss)) {
-          skip("WTSS is not accessible")
-      }
-
-    points <- sits_get_data(
-        cube = cube_wtss,
-        file = csv_file,
-        bands = c("ndvi")
-    )
-
-    expect_true(all(unique(points$label) %in% c("Pasture", "Cerrado")))
-})

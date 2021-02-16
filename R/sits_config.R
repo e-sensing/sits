@@ -573,6 +573,37 @@ sits_config_show <- function() {
     names(mis_val) <- bands
     return(mis_val)
 }
+#' @title Retrieve the scale factor for a probs cube
+#' @name .sits_config_probs_scale_factor
+#' @keywords internal
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
+.sits_config_probs_scale_factor  <- function(){
+    return(sits_env$config[["PROBS"]][["scale_factor"]])
+}
+
+#' @title Retrieve the missing value for a probs cube
+#' @name .sits_config_probs_missing_value
+#' @keywords internal
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
+.sits_config_probs_missing_value  <- function(){
+  return(sits_env$config[["PROBS"]][["missing_value"]])
+}
+
+#' @title Retrieve the minimum value for a probs cube
+#' @name .sits_config_probs_minimum_value
+#' @keywords internal
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
+.sits_config_probs_minimum_value  <- function(){
+  return(sits_env$config[["PROBS"]][["minimum_value"]])
+}
+
+#' @title Retrieve the maximum value for a probs cube
+#' @name .sits_config_probs_maximum_value
+#' @keywords internal
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
+.sits_config_probs_maximum_value  <- function(){
+  return(sits_env$config[["PROBS"]][["maximum_value"]])
+}
 
 #' @title Retrieve the estimated value of R memory bloat
 #' @name .sits_config_processing_bloat
@@ -873,3 +904,6 @@ sits_config_show <- function() {
 .sits_config_test_file <- function(type) {
   return(sits_env$config[[type]][["test_file"]])
 }
+
+
+

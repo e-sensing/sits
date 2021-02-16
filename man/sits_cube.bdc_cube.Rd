@@ -6,8 +6,8 @@
 \usage{
 \method{sits_cube}{bdc_cube}(
   type = "BDC",
-  ...,
   name = "bdc_cube",
+  ...,
   url = NULL,
   collection = NULL,
   tiles = NULL,
@@ -20,9 +20,9 @@
 \arguments{
 \item{type}{Type of cube.}
 
-\item{...}{Other parameters to be passed for specific types.}
+\item{name}{Name of the output data cube.}
 
-\item{name}{Name of the output data cube (optional).}
+\item{...}{Other parameters to be passed for specific types.}
 
 \item{url}{URL for the BDC catalog (mandatory).}
 

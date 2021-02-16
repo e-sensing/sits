@@ -15,7 +15,7 @@ Authors@R: c(person('Rolf', 'Simoes', role = c('aut'), email = 'rolf.simoes@inpe
              )
 Maintainer: Gilberto Camara <gilberto.camara@inpe.br>
 Description: A set of tools for working with satellite image time series, both as individual data or as part of data cubes.
-    Supports data retrieval from a web time series service (WTSS), raster bricks and cubes from the Brazilan Data Cube.
+    Builds data cubes from collections in AWS, Brazil Data Cube, and Digital Earth Africa.
     Provides different visualisation methods for image time series.
     Provides smoothing methods for noisy time series.
     Includes functions for smoothing based on Bayesian inference. 
@@ -87,9 +87,7 @@ Suggests:
     RcppArmadillo,
     RSQLite,
     rstac,
-    Rwtss,
     signal,
-    sp,
     stars,
     stringr,
     testthat,
@@ -162,6 +160,5 @@ Collate:
     'sits_timeline.R'
     'sits_twdtw.R'
     'sits_validate.R'
-    'sits_wtss.R'
     'sits_zoo.R'
     'zzz.R'

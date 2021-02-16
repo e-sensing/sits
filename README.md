@@ -22,8 +22,18 @@ License](https://img.shields.io/badge/license-GPL--2-green)](https://github.com/
 ### Overview
 
 The `sits` R package provides a set of tools for analysis, visualization
-and classification of satellite image time series. It includes methods
-for filtering, clustering, classification, and post-processing.
+and classification of satellite image time series. The main aim of SITS
+is to support land cover and land change classification of image data
+cubes using machine learning methods. The basic workflow in SITS is:
+
+1.  Create a data cube using image collections available in the cloud or
+    in local machines.
+2.  Extract time series from the data cube which are used as training
+    data.
+3.  Perform quality control and filtering on the samples.
+4.  Train a machine learning model using the extracted samples.
+5.  Classify the data cube using the trained model.
+6.  Post-process the classified images.
 
 ## Installation
 
@@ -34,35 +44,14 @@ the installation of the GDAL and PROJ libraries. Please follow the
 instructions for installing `sf` and `rgdal` available at the [RSpatial
 sf github repository](https://github.com/r-spatial/sf).
 
-### Required Packages
+### Obtaining SITS
 
-Please follow the following steps.
+SITS is currently available on github, as follows:
 
 ``` r
-# Install devtools, rmarkdown, knitr, testthat and Rcpp if not already available
-install.packages(c("devtools", "rmarkdown", "Rcpp", "knitr", "testthat"))
-
-# Please install the Suggested packages that are used by sits
-install.packages(c("DBI","dendextend", "dtwclust","dtwSat", "e1071", "flexclust",
-                   "imager", "imputeTS", "kohonen", "lwgeom", "MASS", "methods",
-                   "mgcv", "nnet", "proto", "proxy", "ptw", "ranger", "RCurl",
-                   "RSQLite", "signal", "xgboost", "zoo", "rstac"))
-
-# Please install the Keras package from the RStudio repository
-devtools::install_github("rstudio/reticulate")
-devtools::install_github("rstudio/keras")
-# Build the keras environment
-library(keras)
-keras::install_keras()
-# Retrieve the "Rwtss" package (used for data access to the WTSS service)
-devtools::install_github("e-sensing/Rwtss")
-library(wtss)
 # Please install the `sits` package from github
 devtools::install_github("e-sensing/sits")
 library(sits)
-# Retrieve the data available in the "inSitu" package (used for some examples)
-devtools::install_github("e-sensing/inSitu")
-library(inSitu)
 ```
 
 ### AMI Image
@@ -90,53 +79,132 @@ a web browser address bar. That should bring the RStudio server
 interface in your browser. Use “rstudio” as username and “e-sensing” as
 password.
 
-### Data Access
+### Data Cubes
 
 SITS has been designed to work with big satellite image data sets
-organised data cubes. Data cubes can be available in the cloud or in a
-local machine. Methods of data input for time series samples include: a)
-obtain data from a time series web services such as INPE’s WTSS (Web
-Series Time Service) or EMBRAPA’s SATVEG; b) read data stored in a time
-series in the [zoo](https://cran.r-project.org/package=zoo) format; c)
-read a time series from a `raster bricks`; d) read a time series from
-[Brazil Data Cube](http://brazildatacube.org/) products. Currently,
-raster classification requires that data cubes are organised as a
-`raster bricks` which can reside on a local or remote service.
+organised as data cubes. Data cubes can be available in the cloud or in
+a local machine. Currently, SITS supports data cubes available in the
+following cloud services:
 
-For more details on data access, please see the vignette [“Accessing
-time series information in
-SITS”](https://github.com/e-sensing/sits-docs/blob/master/doc/timeseries.pdf).
+1.  Sentinel-2/2A level 2A images in AWS.
+2.  Collections of Sentinel, Landsat and CBERS images in the Brazil Data
+    Cube (BDC).
+3.  Collections available in Digital Earth Africa.
+4.  Data cubes produced by the “gdalcubes” package.
+5.  Local image collections organized as RasterStacks of RasterBricks.
 
-### Visualization
-
-    #> SITS - satellite image time series analysis.
-    #> Loaded sits v0.10.0.
-    #>         See ?sits for help, citation("sits") for use in publication.
-    #>         See demo(package = "sits") for examples.
-    #> Using configuration file: /home/rolf/R/x86_64-pc-linux-gnu-library/4.0/sits/extdata/config.yml
-    #> Users can provide additional configurations in ~/.sits/config.yml
+SITS relies on STAC services provided by these cloud services. The user
+can define a data cube by selecting a collection in a cloud service and
+then defining a space-time extent. For example, the following code will
+define a data cube of Sentinel-2/2A images using AWS.
 
 ``` r
-cerrado_2classes[1:3,]
-#> # A tibble: 3 x 7
-#>   longitude latitude start_date end_date   label   cube    time_series      
-#>       <dbl>    <dbl> <date>     <date>     <chr>   <chr>   <list>           
-#> 1     -54.2    -14.0 2000-09-13 2001-08-29 Cerrado MOD13Q1 <tibble [23 × 3]>
-#> 2     -54.2    -14.0 2001-09-14 2002-08-29 Cerrado MOD13Q1 <tibble [23 × 3]>
-#> 3     -54.2    -14.0 2002-09-14 2003-08-29 Cerrado MOD13Q1 <tibble [23 × 3]>
+s2_cube <- sits_cube(
+    type = "S2_L2A_AWS",
+    name = "T20LKP_2018_2019",
+    satellite = "SENTINEL-2",
+    sensor = "MSI",
+    tiles = "20LKP",
+    s2_aws_resolution = "20m",
+    start_date = as.Date("2018-07-18"),
+    end_date = as.Date("2018-07-23")
+)
+```
+
+In the above example, the user has selected the “Sentinel-2 Level 2”
+collection in the AWS cloud services. The geographical area of the data
+cube is defined by the tile “20LKP”, and the temporal extent by a start
+and end date. Access to other cloud services works in similar ways.
+
+Users can derive data cubes from ARD data which have pre-defined
+temporal resolutions. For example, a user may want to define the best
+Sentinel-2 pixel in a one month period, as shown below. This can be done
+in SITS using the “gdalcubes” package. For details in gdalcubes, please
+see <https://github.com/appelmar/gdalcubes>.
+
+``` r
+gc_cube <- sits_cube(type        = "GDALCUBES",
+                     name        = "T20LKP_2018_2019_1M",
+                     cube        = s2_cube,
+                     path_db     = "/my/path/cube.db",
+                     path_images = "/my/path/images/",
+                     period      = "P1M",
+                     agg_method  = "median",
+                     resampling  = "bilinear")
+```
+
+### Data Access - Individual time series
+
+SITS has been designed to use satellite image time series to derive
+machine learning models. After the data cube has been created, time
+series can be retreived individually or by using CSV or SHP files, as in
+the following example.
+
+``` r
+library(sits)
+#> SITS - satellite image time series analysis.
+#> Loaded sits v0.10.0.
+#>         See ?sits for help, citation("sits") for use in publication.
+#>         See demo(package = "sits") for examples.
+#> Using configuration file: /Users/gilbertocamara/Library/R/4.0/library/sits/extdata/config.yml
+#> Users can provide additional configurations in ~/.sits/config.yml
+# create a cube from a local file 
+file <- c(system.file("extdata/raster/mod13q1/sinop-ndvi-2014.tif",
+                      package = "sits"
+))
+raster_cube <- sits_cube(
+  type = "BRICK",
+  name = "Sinop-crop",
+  satellite = "TERRA",
+  sensor = "MODIS",
+  timeline = sits::timeline_2013_2014,
+  bands = c("ndvi"),
+  files = file
+)
+# obtain a set of locations defined by a CSV file
+csv_raster_file <- system.file("extdata/samples/samples_sinop_crop.csv",
+                               package = "sits"
+)
+# retrieve the points from the data cube
+points <- sits_get_data(raster_cube, file = csv_raster_file)
+#> All points have been retrieved
+# show the points
+points
+#> # A tibble: 12 x 7
+#>    longitude latitude start_date end_date   label    cube       time_series     
+#>        <dbl>    <dbl> <date>     <date>     <chr>    <chr>      <list>          
+#>  1     -55.7    -11.8 2013-09-14 2014-08-29 Pasture  Sinop-crop <tibble [23 × 2…
+#>  2     -55.6    -11.8 2013-09-14 2014-08-29 Pasture  Sinop-crop <tibble [23 × 2…
+#>  3     -55.7    -11.8 2013-09-14 2014-08-29 Forest   Sinop-crop <tibble [23 × 2…
+#>  4     -55.6    -11.8 2013-09-14 2014-08-29 Pasture  Sinop-crop <tibble [23 × 2…
+#>  5     -55.7    -11.8 2013-09-14 2014-08-29 Forest   Sinop-crop <tibble [23 × 2…
+#>  6     -55.6    -11.7 2013-09-14 2014-08-29 Forest   Sinop-crop <tibble [23 × 2…
+#>  7     -55.7    -11.7 2013-09-14 2014-08-29 Soy_Corn Sinop-crop <tibble [23 × 2…
+#>  8     -55.7    -11.7 2013-09-14 2014-08-29 Soy_Corn Sinop-crop <tibble [23 × 2…
+#>  9     -55.7    -11.7 2013-09-14 2014-08-29 Soy_Corn Sinop-crop <tibble [23 × 2…
+#> 10     -55.6    -11.8 2013-09-14 2014-08-29 Soy_Corn Sinop-crop <tibble [23 × 2…
+#> 11     -55.6    -11.8 2013-09-14 2014-08-29 Soy_Corn Sinop-crop <tibble [23 × 2…
+#> 12     -55.6    -11.8 2013-09-14 2014-08-29 Soy_Corn Sinop-crop <tibble [23 × 2…
 ```
 
 After a time series is imported, it is loaded in a tibble. The first six
 columns contain the metadata: spatial and temporal location, label
 assigned to the sample, and coverage from where the data has been
 extracted. The spatial location is given in longitude and latitude
-coordinates for the “WGS84” ellipsoid. For example, the first sample has
-been labelled “Pasture”, at location (-55.1852, -10.8387), and is
-considered valid for the period (2013-09-14, 2014-08-29). To display the
-time series, use the `plot()` function. For a large number of samples,
-where the amount of individual plots would be substantial, the default
-visualisation combines all samples together in a single temporal
-interval.
+coordinates. The first sample has been labelled “Pasture”, at location
+(-55.65931, -11.76267), and is considered valid for the period
+(2013-09-14, 2014-08-29). To display the time series, use the `plot()`
+function.
+
+``` r
+plot(points[1,])
+```
+
+![](man/figures/README-unnamed-chunk-6-1.png)<!-- -->
+
+For a large number of samples, where the amount of individual plots
+would be substantial, the default visualisation combines all samples
+together in a single temporal interval.
 
 ``` r
 # select the "ndvi" band
@@ -192,7 +260,7 @@ point_whit %>%
 
 <div class="figure" style="text-align: center">
 
-<img src="man/figures/README-unnamed-chunk-7-1.png" alt="Whitaler filter of NDVI time series"  />
+<img src="man/figures/README-unnamed-chunk-9-1.png" alt="Whitaler filter of NDVI time series"  />
 <p class="caption">
 Whitaler filter of NDVI time series
 </p>
@@ -250,7 +318,7 @@ plot(class.tb, bands = c("ndvi", "evi"))
 
 <div class="figure" style="text-align: center">
 
-<img src="man/figures/README-unnamed-chunk-8-1.png" alt="Time series classification using SVM"  />
+<img src="man/figures/README-unnamed-chunk-10-1.png" alt="Time series classification using SVM"  />
 <p class="caption">
 Time series classification using SVM
 </p>
@@ -328,7 +396,6 @@ For more information, please see the vignettes
 
 ## How to contribute
 
-Please note that the sits project is released with a [Contributor Code
-of
+The SITS project is released with a [Contributor Code of
 Conduct](https://github.com/e-sensing/sits/blob/master/CODE_OF_CONDUCT.md).
 By contributing to this project, you agree to abide by its terms.

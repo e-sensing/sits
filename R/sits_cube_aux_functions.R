@@ -264,35 +264,6 @@
     return(band_name)
 }
 
-#' @title Check that the cube is valid
-#' @name .sits_cube_check_validity
-#' @keywords internal
-#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
-#'
-#' @description     Given a data cube, retrieve the scale factors
-#' @param cube      Metadata about a data cube
-#' @return          Boolean value
-.sits_cube_check_validity <- function(cube) {
-
-    # check that the service is valid
-    .sits_config_cube_check(cube)
-
-    check <- FALSE
-
-    # check is WTSS service is working
-    if (cube$type == "WTSS") {
-          check <- .sits_wtss_check(cube$URL, cube$name)
-      } # check is SATVEG service is working
-    else if (cube$type == "SATVEG") {
-          check <- .sits_satveg_check()
-      } # raster cubes have been checked before
-    else {
-          check <- TRUE
-      }
-
-    return(invisible(check))
-}
-
 #' @title Return a file associated to a data cube, given an index
 #' @name .sits_cube_file
 #' @keywords internal
@@ -398,7 +369,7 @@
       } else {
         bands <- toupper(bands)
         assertthat::assert_that(all(bands %in% cb_bands),
-            msg = "sits_from_wtss: bands are not available in the cube"
+            msg = "bands are not available in the cube"
         )
     }
     return(bands)
@@ -409,16 +380,17 @@
 #' @keywords internal
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'
-#'
 #' @param  cube              input data cube
-#' @param  ext               extension
+#' @param  name              name of the new cube
+#' @param  ext               file extension
 #' @param  output_dir        prefix of the output files
 #' @param  version           version of the output files
 #' @return                   output data cube
-.sits_cube_clone <- function(cube, ext, output_dir, version) {
+.sits_cube_clone <- function(cube, name, ext, output_dir, version) {
 
     # copy the cube information
     cube_clone <- cube
+    cube_clone$name <- name
 
     # update the cube information
     cube_clone$file_info <-

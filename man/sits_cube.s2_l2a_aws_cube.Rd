@@ -6,8 +6,8 @@
 \usage{
 \method{sits_cube}{s2_l2a_aws_cube}(
   type = "S2_L2A_AWS",
-  ...,
   name = NULL,
+  ...,
   bands = NULL,
   tiles = NULL,
   start_date = NULL,
@@ -18,9 +18,9 @@
 \arguments{
 \item{type}{type of cube}
 
-\item{...}{other parameters to be passed for specific types}
-
 \item{name}{output data cube.}
+
+\item{...}{other parameters to be passed for specific types}
 
 \item{bands}{vector of bands.}
 
@@ -44,6 +44,15 @@ Defines a cube to retrieve data from the Sentinel-2 L2A data
              The  20m bands are "B02", "B03", "B04", "B05", "B06", "BO7",
              "B08", "B8A", "B11", and "B12".
              All 12 bands are available at 60m resolution.
+
+   Users need to provide AWS credentials in their environmental variables\cr
+Sys.setenv(\cr
+     "AWS_ACCESS_KEY_ID"     = <your_access_key>, \cr
+     "AWS_SECRET_ACCESS_KEY" = <your_secret_access_key>,\cr
+     "AWS_DEFAULT_REGION"    = <your AWS region>, \cr
+     "AWS_ENDPOINT" = "sentinel-s2-l2a.s3.amazonaws.com", \cr
+     "AWS_REQUEST_PAYER"     = "requester" \cr
+)
 }
 \examples{
 \dontrun{
