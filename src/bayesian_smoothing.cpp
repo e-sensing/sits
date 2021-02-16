@@ -35,7 +35,8 @@ void neigh_vec(neigh_t& n,
                 m_j + j < w_leg_j + m_ncol &&
                 arma::is_finite(m(m_j + m_i * m_ncol, 0))) {
 
-                n.data(k, m_b) = m(m_j + m_i * m_ncol, m_b);
+                n.data(k, m_b) = m((m_j + j - w_leg_j) +
+                    (m_i + i - w_leg_i) * m_ncol, m_b);
                 n.weights(k++) = w(i, j);
             }
     n.n_rows = k;
@@ -85,10 +86,10 @@ arma::mat bayes_smoother(const arma::mat& m,
             if (neigh.n_rows == 0) continue;
 
             // compute prior mean
-            mu0 = arma::mean(neigh.data, 0).as_col();
+            mu0 = arma::mean(neigh.data.rows(0, neigh.n_rows - 1), 0).as_col();
 
             // compute prior sigma
-            sigma0 = arma::cov(neigh.data, 0);
+            sigma0 = arma::cov(neigh.data.rows(0, neigh.n_rows - 1), 0);
 
             // prior sigma covariance
             if (!covar_sigma0) {
@@ -134,11 +135,13 @@ arma::mat kernel_smoother(const arma::mat& m,
 
                 // normalise weight values
                 if (normalised)
-                    neigh.weights = neigh.weights / arma::sum(neigh.weights);
+                    neigh.weights = neigh.weights /
+                        arma::sum(neigh.weights.subvec(0, neigh.n_rows - 1));
 
                 // compute kernel neighbourhood weighted mean
                 res(j + i * m_ncol, b) = arma::as_scalar(
-                    neigh.weights.as_row() * neigh.data.col(b));
+                    neigh.weights.subvec(0, neigh.n_rows - 1).as_row() *
+                        neigh.data.col(b).subvec(0, neigh.n_rows - 1));
             }
     return res;
 }
@@ -172,11 +175,13 @@ arma::mat bilinear_smoother(const arma::mat& m,
                     neigh.data.col(b) - m(j + i * m_ncol, b), 0, tau);
 
                 // normalise weight values
-                bln_weight = bln_weight / arma::sum(bln_weight);
+                bln_weight = bln_weight /
+                    arma::sum(bln_weight.subvec(0, neigh.n_rows - 1));
 
                 // compute kernel neighbourhood weighted mean
-                res(j + i * m_ncol, b) = arma::as_scalar(bln_weight.as_row() *
-                    neigh.data.col(b));
+                res(j + i * m_ncol, b) = arma::as_scalar(
+                    bln_weight.subvec(0, neigh.n_rows - 1).as_row() *
+                    neigh.data.col(b).subvec(0, neigh.n_rows - 1));
             }
     return res;
 }
