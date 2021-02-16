@@ -62,7 +62,7 @@ sits_smooth <- function(cube,
     UseMethod("sits_smooth", type)
 }
 
-#' @title Post-process a classified data raster probs using bayesian smoothing
+#' @title Post-process a classified data raster probs using Bayesian smoothing
 #'
 #' @name  sits_smooth.bayes
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
@@ -160,7 +160,7 @@ sits_smooth.bayes <- function(cube,
         )
     } else {
         assertthat::assert_that(smoothness > 1,
-                                msg = "sits_smooth: smoothness must be more than 1"
+                   msg = "sits_smooth: smoothness must be more than 1"
         )
         smoothness <- diag(smoothness, nrow = n_labels, ncol = n_labels)
     }
@@ -315,12 +315,12 @@ sits_smooth.gaussian <- function(cube,
 
     # precondition 1 - check if cube has probability data
     assertthat::assert_that(inherits(cube, "probs_cube"),
-            msg = "sits_smooth: input is not probability cube"
+                            msg = "sits_smooth: input is not probability cube"
     )
 
     # precondition 2 - test window size
     assertthat::assert_that(window_size %% 2 != 0,
-                            msg = "sits_smooth: window_size must be an odd number"
+                        msg = "sits_smooth: window_size must be an odd number"
     )
 
     # prediction 3 - test variance
@@ -474,7 +474,7 @@ sits_smooth.bilinear <- function(cube,
 
     # precondition 2 - test window size
     assertthat::assert_that(window_size %% 2 != 0,
-                            msg = "sits_smooth: window_size must be an odd number"
+                        msg = "sits_smooth: window_size must be an odd number"
     )
 
     # prediction 3 - test variance

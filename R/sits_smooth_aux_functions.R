@@ -87,18 +87,18 @@
 #'
 #' @description Process chunks of raster brick individually in parallel.
 #'
-#' @param cube               Probability data cube
-#' @param cube_out           Output probability data cube
-#' @param overlapping_rows   number of overlapping rows of each chunk.
-#' @param func               a function that receives RasterBrick and
-#'                           returns any Raster*.
-#' @param args               additional arguments to pass to \code{fun} function.
-#' @param multicores         Number of process to run the Bayesian smoothing in
-#'                           snow subprocess.
-#' @param memsize            Maximum overall memory (in GB) to run the Bayesian
-#'                           smoothing.
-#' @param ...                optional arguments to merge final raster
-#'                           (see \link[raster]{writeRaster} function)
+#' @param cube              Probability data cube
+#' @param cube_out          Output probability data cube
+#' @param overlapping_rows  number of overlapping rows of each chunk.
+#' @param func              a function that receives RasterBrick and
+#'                          returns any Raster*.
+#' @param args              additional arguments to pass to \code{fun} function.
+#' @param multicores        Number of process to run the Bayesian smoothing in
+#'                          snow subprocess.
+#' @param memsize           Maximum overall memory (in GB) to run the Bayesian
+#'                          smoothing.
+#' @param ...               optional arguments to merge final raster
+#'                          (see \link[raster]{writeRaster} function)
 #'
 #' @return  RasterBrick object
 #'
@@ -180,20 +180,22 @@
         if (purrr::is_null(cl)) {
 
             # do serial
-            tmp_blocks <- lapply(X = blocks,
-                                 FUN = .sits_cluster_worker_fun,
-                                 in_file = in_file,
-                                 func = func,
-                                 args = func_args)
+            tmp_blocks <- lapply(
+                X = blocks,
+                FUN = .sits_cluster_worker_fun,
+                in_file = in_file,
+                func = func,
+                args = func_args)
         } else {
 
             # do parallel
-            tmp_blocks <- parallel::clusterApplyLB(cl = cl,
-                                                   x = blocks,
-                                                   fun = .sits_cluster_worker_fun,
-                                                   in_file = in_file,
-                                                   func = func,
-                                                   args = func_args)
+            tmp_blocks <- parallel::clusterApplyLB(
+                cl = cl,
+                x = blocks,
+                fun = .sits_cluster_worker_fun,
+                in_file = in_file,
+                func = func,
+                args = func_args)
         }
 
         # on exit, remove temp files
@@ -209,9 +211,10 @@
             ))
         # ... else call raster::merge.
         suppressWarnings(
-            do.call(raster::merge, c(lapply(tmp_blocks, raster::brick),
-                                     list(overwrite = TRUE, filename = out_file),
-                                     list(...)))
+            do.call(raster::merge,
+                    c(lapply(tmp_blocks, raster::brick),
+                      list(overwrite = TRUE, filename = out_file),
+                      list(...)))
         )
     }
 
