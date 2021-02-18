@@ -2,7 +2,7 @@
 % Please edit documentation in R/sits_smooth.R
 \name{sits_smooth.bayes}
 \alias{sits_smooth.bayes}
-\title{Post-process a classified data raster probs using bayesian smoothing}
+\title{Post-process a classified data raster probs using Bayesian smoothing}
 \usage{
 \method{sits_smooth}{bayes}(
   cube,

@@ -10,6 +10,9 @@
   ...,
   satellite,
   sensor,
+  bands = NULL,
+  start_date = NULL,
+  end_date = NULL,
   data_dir = NULL,
   parse_info = sits:::.sits_config_data_parse_info(type),
   delim = sits:::.sits_config_data_delim(type)
@@ -25,6 +28,12 @@
 \item{satellite}{satellite}
 
 \item{sensor}{sensor}
+
+\item{bands}{bands to be used (optional)}
+
+\item{start_date}{starting date of the cube (optional)}
+
+\item{end_date}{ending date of the cube (optional)}
 
 \item{data_dir}{directory where data is located}
 

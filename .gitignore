@@ -25,3 +25,5 @@ Meta
 Makevars
 Makevars.*
 *.json
+*.gcda
+*.gcno

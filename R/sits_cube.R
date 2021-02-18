@@ -754,7 +754,7 @@ sits_cube_copy <- function(cube,
         bbox <- .sits_roi_bbox(roi, cube)
 
     # Get the subimage
-    si <- sits:::.sits_sub_image_from_bbox(bbox, cube)
+    si <- .sits_sub_image_from_bbox(bbox, cube)
 
     # test subwindow
     srcwin <- vector("double", length = 4)
