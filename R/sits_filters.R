@@ -412,7 +412,7 @@ sits_ndvi_arima <- function(data = NULL, cutoff = -0.25,
             })
         # rename the output bands
         new_bands <- paste0(bands, ".", bands_suffix)
-        result <- sits_rename(result, new_bands)
+        sits_bands(result) <- new_bands
 
         if (apply_whit) {
               result <- sits_whittaker(result, lambda = lambda_whit)

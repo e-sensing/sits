@@ -174,31 +174,6 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
-// scale_data
-NumericMatrix scale_data(NumericMatrix data, const double& scale_factor, const double& adj_val);
-RcppExport SEXP _sits_scale_data(SEXP dataSEXP, SEXP scale_factorSEXP, SEXP adj_valSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< NumericMatrix >::type data(dataSEXP);
-    Rcpp::traits::input_parameter< const double& >::type scale_factor(scale_factorSEXP);
-    Rcpp::traits::input_parameter< const double& >::type adj_val(adj_valSEXP);
-    rcpp_result_gen = Rcpp::wrap(scale_data(data, scale_factor, adj_val));
-    return rcpp_result_gen;
-END_RCPP
-}
-// scale_matrix_integer
-IntegerMatrix scale_matrix_integer(NumericMatrix& data, const double& scale_factor);
-RcppExport SEXP _sits_scale_matrix_integer(SEXP dataSEXP, SEXP scale_factorSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< NumericMatrix& >::type data(dataSEXP);
-    Rcpp::traits::input_parameter< const double& >::type scale_factor(scale_factorSEXP);
-    rcpp_result_gen = Rcpp::wrap(scale_matrix_integer(data, scale_factor));
-    return rcpp_result_gen;
-END_RCPP
-}
 
 static const R_CallMethodDef CallEntries[] = {
     {"_sits_apply_transition_matrix", (DL_FUNC) &_sits_apply_transition_matrix, 3},
@@ -213,8 +188,6 @@ static const R_CallMethodDef CallEntries[] = {
     {"_sits_linear_interp", (DL_FUNC) &_sits_linear_interp, 1},
     {"_sits_linear_interp_vec", (DL_FUNC) &_sits_linear_interp_vec, 1},
     {"_sits_normalize_data", (DL_FUNC) &_sits_normalize_data, 3},
-    {"_sits_scale_data", (DL_FUNC) &_sits_scale_data, 3},
-    {"_sits_scale_matrix_integer", (DL_FUNC) &_sits_scale_matrix_integer, 2},
     {NULL, NULL, 0}
 };
 

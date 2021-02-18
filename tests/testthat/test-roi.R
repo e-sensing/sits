@@ -102,3 +102,51 @@ test_that("Functions that work with ROI",{
 
     expect_true(length(sits:::.sits_bbox_intersect(bbox_3, cube)) == 4)
 })
+
+test_that("Internal functions in ROI",{
+
+    ndvi_file <- c(system.file("extdata/raster/mod13q1/sinop-evi-2014.tif",
+                               package = "sits"
+    ))
+    evi_file <- c(system.file("extdata/raster/mod13q1/sinop-evi-2014.tif",
+                              package = "sits"
+    ))
+
+    cube <- sits_cube(
+        type = "BRICK",
+        name = "sinop-2014",
+        timeline = timeline_2013_2014,
+        satellite = "TERRA",
+        sensor = "MODIS",
+        bands = c("ndvi", "evi"),
+        files = c(ndvi_file, evi_file)
+    )
+
+    # create a roi
+    roi <- sits_bbox(cube)
+    x_size <- as.numeric(roi["xmax"] - roi["xmin"])
+    y_size <- as.numeric(roi["ymax"] - roi["ymin"])
+
+    roi["xmax"] <- roi["xmax"] - 2*x_size
+    roi["xmin"] <- roi["xmin"] - 2*x_size
+    expect_null(sits:::.sits_bbox_intersect(roi, cube))
+
+    bbox <- sits_bbox(cube)
+    bbox["xmax"] <- bbox["xmax"] + x_size
+    bbox["xmin"] <- bbox["xmin"] - x_size
+    bbox["ymax"] <- bbox["ymax"] + x_size
+    bbox["ymin"] <- bbox["ymin"] - x_size
+
+    int_bbox <- sits:::.sits_bbox_intersect(bbox, cube)
+    expect_true(all(int_bbox == sits_bbox(cube)))
+
+    bb <- sits_bbox(cube)
+    bb["xmin"] <- bb["xmin"] + x_size/4
+    bb["ymin"] <- bb["ymin"] + x_size/4
+
+    si <- sits:::.sits_sub_image_from_bbox(bb, cube)
+    expect_true(si["first_row"] == 1)
+    expect_true(si["first_col"] == 13)
+    expect_true(si["nrows"] == 38)
+    expect_true(si["ncols"] == 38)
+})

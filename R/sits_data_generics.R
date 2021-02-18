@@ -135,6 +135,7 @@ sits_bands.patterns <- function(data) {
 
   return(x)
 }
+
 #' @title Replaces the names of the bands of a cube
 #' @name `sits_bands<-.cube`
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
@@ -157,6 +158,43 @@ sits_bands.patterns <- function(data) {
     })
     x <- dplyr::bind_rows(rows)
     return(x)
+}
+
+#' @title Replaces the names of the bands of a set of patterns
+#' @name `sits_bands<-.patterns`
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
+#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
+#'
+#' @description  Replaces the names of the bands of time series in a sits tibble
+#'
+#' @param x         Valid sits tibble (time series or a cube)
+#' @param value     Vector of bands
+#' @return An updated data set with the new bands.
+#'
+#' @examples
+#' # Replace the name of bands for the samples for Mato Grosso
+#' sits_bands(samples_mt_4bands) <- c("ndvi", "evi", "nir", "mir")
+#' @export
+`sits_bands<-.patterns` =  function(x, value) {
+    return(`sits_bands<-.sits`(x, value))
+}
+#' @title Replaces the names of the bands of a set of predictions
+#' @name `sits_bands<-.predicted`
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
+#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
+#'
+#' @description  Replaces the names of the bands of time series in a sits tibble
+#'
+#' @param x         Valid sits tibble (time series or a cube)
+#' @param value     Vector of bands
+#' @return An updated data set with the new bands.
+#'
+#' @examples
+#' # Replace the name of bands for the samples for Mato Grosso
+#' sits_bands(samples_mt_4bands) <- c("ndvi", "evi", "nir", "mir")
+#' @export
+`sits_bands<-.predicted` =  function(x, value) {
+    return(`sits_bands<-.sits`(x, value))
 }
 #' @title Get the bounding box of the data
 #' @name sits_bbox
@@ -303,7 +341,7 @@ sits_merge.sits <- function(data1, data2) {
           } else {
               bands2 <- paste0(bands2, ".nw")
           }
-        data2 <- sits_rename(data2, bands2)
+        sits_bands(data2) <- bands2
     }
     # prepare result
     result <- data1
@@ -415,7 +453,7 @@ sits_select.sits <- function(data, bands) {
     data <- .sits_tibble_rename(data)
     # bands names in SITS are uppercase
     bands <- toupper(bands)
-    data <- sits_rename(data, names = toupper(sits_bands(data)))
+    sits_bands(data) <- toupper(sits_bands(data))
 
     assertthat::assert_that(all(bands %in% sits_bands(data)),
         msg = paste0(

@@ -71,8 +71,9 @@ test_that("Prune", {
 })
 
 test_that("Rename", {
-    ndvi1 <- sits_rename(point_ndvi, names = "VEGINDEX")
-    expect_equal(sits_bands(ndvi1), "VEGINDEX")
+    point_new <- point_ndvi
+    sits_bands(point_new) <- "VEGINDEX"
+    expect_equal(sits_bands(point_new), "VEGINDEX")
 })
 
 test_that("Sample", {

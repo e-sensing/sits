@@ -363,7 +363,9 @@ test_that("One-year, multicore classification with post-processing", {
     expect_true(max_bay3 > 8000)
 
     sinop_gauss <- sits::sits_smooth(sinop_probs, type = "gaussian",
-                                     output_dir = tempdir()
+                                     output_dir = tempdir(),
+                                     memsize = 4,
+                                     multicores = 2
     )
     expect_true(all(file.exists(unlist(sinop_gauss$file_info[[1]]$path))))
 

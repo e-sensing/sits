@@ -50,7 +50,7 @@ Defines a cube to retrieve data from a set of image files
 
 # Create a raster cube based on bricks
 # inform the files that make up a raster probs brick with 23 time instances
-file <- c(system.file("extdata/raster/mod13q1/sinop-2014_probs_2013_9_2014_8_v1.tif",
+probs_file <- c(system.file("extdata/raster/mod13q1/sinop-2014_probs_2013_9_2014_8_v1.tif",
     package = "sits"
 ))
 
@@ -60,13 +60,13 @@ labels <- c("Cerrado", "Fallow_Cotton", "Forest", "Pasture", "Soy_Corn",
 
 
 # create a raster cube file based on the information about the files
-raster_cube <- sits_cube(
+probs_cube <- sits_cube(
     type = "PROBS",
     name = "Sinop-crop-probs",
     satellite = "TERRA",
     sensor  = "MODIS",
     timeline = timeline_2013_2014,
     labels = labels,
-    files = file
+    files = probs_file
 )
 }

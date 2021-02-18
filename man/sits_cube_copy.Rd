@@ -4,13 +4,7 @@
 \alias{sits_cube_copy}
 \title{Creates the contents of a data cube}
 \usage{
-sits_cube_copy(
-  cube,
-  name,
-  dest_dir,
-  bands = sits_bands(cube),
-  srcwin = c(0, 0, cube$ncols, cube$nrows)
-)
+sits_cube_copy(cube, name, dest_dir, bands = sits_bands(cube), roi = NULL)
 }
 \arguments{
 \item{cube}{Input data cube}
@@ -21,7 +15,7 @@ sits_cube_copy(
 
 \item{bands}{Bands to include in output (optional)}
 
-\item{srcwin}{subwindow defined as c(xoff, yoff, xsize, ysize)}
+\item{roi}{Region of interest (either "sf", "xy", or "latlong")}
 }
 \value{
 Output data cube
@@ -29,7 +23,9 @@ Output data cube
 \description{
 Copies the metadata and data of a cube to a different
 directory. This function can be use to transfer data on the cloud
-to a local machine
+to a local machine. The region of interest (roi) should be either
+an "sf" object, a box in XY coordinates ("xmin", "xmax", "ymin", "ymax") or
+a box in lat-long coordinates ("lon_min", "lon_max", "lat_min", "lat_max").
 }
 \examples{
 data_dir <- system.file("extdata/raster/cbers", package = "sits")

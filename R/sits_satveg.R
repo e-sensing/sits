@@ -131,7 +131,7 @@
         time_series = list(ts)
     )
     # rename the SATVEG bands to uppercase
-    data <- sits_rename(data, .sits_config_satveg_bands())
+    sits_bands(data) <- .sits_config_satveg_bands()
     return(data)
 }
 

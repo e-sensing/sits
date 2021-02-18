@@ -8,6 +8,9 @@
 #' @param data_dir          directory where data is located
 #' @param parse_info        parsing information
 #' @param delim             delimiter
+#' @param bands             bands to be used (optional)
+#' @param start_date        starting date of the cube (optional)
+#' @param end_date          ending date of the cube (optional)
 #'
 #' @description All image files should have the same spatial resolution
 #'              and same projection. In addition, image file names should
@@ -28,7 +31,10 @@
                                     sensor,
                                     data_dir,
                                     parse_info,
-                                    delim) {
+                                    delim,
+                                    bands,
+                                    start_date,
+                                    end_date) {
 
     # list the files in the data directory
     img_files <- list.files(data_dir)
@@ -77,6 +83,23 @@
 
     # convert the band names to SITS bands
     info_tb <- dplyr::mutate(info_tb, band = bands_sits[band])
+
+    # filter bands
+    if (!purrr::is_null(bands)) {
+        # get the bands of the cube
+        bands_info <- dplyr::pull(dplyr::distinct(info_tb, band))
+        # verify that the requested bands exist
+        assertthat::assert_that(all(bands %in% bands_info),
+                    msg = "requested bands not available in cube")
+        # select the requested bands
+        info_tb <- dplyr::filter(info_tb, band %in% bands)
+    }
+    # filter start and end dates
+    if (!purrr::is_null(start_date) & !purrr::is_null(end_date)) {
+        info_tb <- dplyr::filter(info_tb,
+                                 date >= start_date & date <= end_date)
+
+    }
 
     return(info_tb)
 }

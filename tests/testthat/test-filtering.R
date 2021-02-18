@@ -68,7 +68,7 @@ test_that("Arima filter", {
 
     # filtered data has less sd
     expect_true(sd(sits_time_series(point_ndvi)$NDVI) >
-        sd(sits_time_series(point_cld)$NDVI.AR.wf))
+        sd(sits_time_series(point_cld)$NDVI.ar.wf))
 })
 
 test_that("Missing values", {

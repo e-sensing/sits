@@ -109,6 +109,9 @@ sits_cube.raster_cube <- function(type = "RASTER",  name = NULL, ...) {
 #' @param ...               other parameters
 #' @param satellite         satellite
 #' @param sensor            sensor
+#' @param bands             bands to be used (optional)
+#' @param start_date        starting date of the cube (optional)
+#' @param end_date          ending date of the cube (optional)
 #' @param data_dir          directory where data is located
 #' @param delim             character to use as delimiter (default = "_")
 #' @param parse_info        parsing information (see above)
@@ -135,6 +138,9 @@ sits_cube.stack_cube <- function(type = "STACK",
                         ...,
                         satellite,
                         sensor,
+                        bands = NULL,
+                        start_date = NULL,
+                        end_date = NULL,
                         data_dir = NULL,
                         parse_info = sits:::.sits_config_data_parse_info(type),
                         delim = sits:::.sits_config_data_delim(type)) {
@@ -160,7 +166,10 @@ sits_cube.stack_cube <- function(type = "STACK",
         sensor = sensor,
         data_dir = data_dir,
         parse_info = parse_info,
-        delim = delim
+        delim = delim,
+        bands = bands,
+        start_date = start_date,
+        end_date = end_date
     )
     # create a data cube
     cube <- .sits_raster_stack_cube(
@@ -607,7 +616,7 @@ sits_cube.gdalcubes_cube <- function(type = "GDALCUBES",
 #'
 #' # Create a raster cube based on bricks
 #' # inform the files that make up a raster probs brick with 23 time instances
-#' file <- c(system.file("extdata/raster/mod13q1/sinop-2014_probs_2013_9_2014_8_v1.tif",
+#' probs_file <- c(system.file("extdata/raster/mod13q1/sinop-2014_probs_2013_9_2014_8_v1.tif",
 #'     package = "sits"
 #' ))
 #'
@@ -624,7 +633,7 @@ sits_cube.gdalcubes_cube <- function(type = "GDALCUBES",
 #'     sensor  = "MODIS",
 #'     timeline = timeline_2013_2014,
 #'     labels = labels,
-#'     files = file
+#'     files = probs_file
 #' )
 #' @export
 sits_cube.probs_cube <- function(type = "PROBS",
@@ -700,13 +709,15 @@ sits_cube.default <- function(type = NULL, ...) {
 #'
 #' @description Copies the metadata and data of a cube to a different
 #' directory. This function can be use to transfer data on the cloud
-#' to a local machine
+#' to a local machine. The region of interest (roi) should be either
+#' an "sf" object, a box in XY coordinates ("xmin", "xmax", "ymin", "ymax") or
+#' a box in lat-long coordinates ("lon_min", "lon_max", "lat_min", "lat_max").
 #'
 #' @param  cube      Input data cube
 #' @param  name      Output cube name
 #' @param  dest_dir  Destination directory
 #' @param  bands     Bands to include in output (optional)
-#' @param  srcwin    subwindow defined as c(xoff, yoff, xsize, ysize)
+#' @param  roi       Region of interest (either "sf", "xy", or "latlong")
 #' @return           Output data cube
 #'
 #' @examples
@@ -732,16 +743,27 @@ sits_cube_copy <- function(cube,
                            name,
                            dest_dir,
                            bands = sits_bands(cube),
-                           srcwin = c(0, 0, cube$ncols, cube$nrows)) {
+                           roi = NULL) {
 
     # does the output directory exist?
     assertthat::is.dir(dest_dir)
+    if (purrr::is_null(roi))
+        bbox <- sits_bbox(cube)
+    else
+        # get the bounding box
+        bbox <- .sits_roi_bbox(roi, cube)
+
+    # Get the subimage
+    si <- sits:::.sits_sub_image_from_bbox(bbox, cube)
 
     # test subwindow
-    assertthat::assert_that(all(srcwin >= 0),
-                            msg = "srcwin values should be positive"
-    )
+    srcwin <- vector("double", length = 4)
     names(srcwin) <- c("xoff", "yoff", "xsize", "ysize")
+    srcwin["xoff"] <- si["first_col"] - 1
+    srcwin["yoff"] <- si["first_row"] - 1
+    srcwin["xsize"] <- si["ncols"]
+    srcwin["ysize"] <- si["nrows"]
+
     assertthat::assert_that((srcwin["xoff"] + srcwin["xsize"]) <= cube$ncols,
                             msg = "srcwin x values bigger than cube size"
     )

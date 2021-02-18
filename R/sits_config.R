@@ -154,28 +154,8 @@ sits_config_show <- function() {
 .sits_config_aws_request_payer <- function(type) {
     return(sits_env$config[["AWS_REQUEST_PAYER"]][[type]])
 }
-#' @title Obtain the name of the bands used by a cube or by SITS
-#' @name .sits_config_band_names
-#' @keywords internal
-#'
-#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
-#'
-#' @description Obtain the name of the bands used by a cube or by SITS
-#' @param sensor         Name of the sensor
-#' @param type           Type of the data cube (or "SITS")
-#'
-#' @return               Name of the bands used in that data cube or by SITS
-#'
-.sits_config_band_names <- function(sensor, type) {
-    bands <- sits_env$config[[sensor]][["bands"]][[type]]
-    assertthat::assert_that(!purrr::is_null(bands),
-        msg = "band names inconsistent with cube type"
-    )
-
-    return(bands)
-}
 #' @title Convert bands names from cube to SITS
-#' @name .sits_config_band_names_convert
+#' @name .sits_config_bands_convert
 #' @keywords internal
 #'
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
@@ -199,7 +179,6 @@ sits_config_show <- function() {
         names(bands_sits) <- bands_files
         return(bands_sits)
     }
-
     # bands used by BDC
     bands_bdc <-
         sits_env$config[[sensor]][["bands"]][["BDC"]]
@@ -221,7 +200,6 @@ sits_config_show <- function() {
         names(bands_sits) <- bands_aws
         return(bands_sits)
     }
-
     stop("band names unknown by SITS configuration file. Please fix it")
     return(NULL)
 }
@@ -261,30 +239,6 @@ sits_config_show <- function() {
 .sits_config_bdc_stac_access <- function(url) {
     if (purrr::is_null(url)) {
           url <- .sits_config_bdc_stac()
-      }
-    return(RCurl::url.exists(url))
-}
-
-#' @title Directory to read the BDC information on the web
-#' @name .sits_config_bdc_web
-#' @keywords internal
-#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
-#'
-#' @return directory where BDC is accessible on the web
-.sits_config_bdc_web <- function() {
-    return(sits_env$config$bdc_web)
-}
-
-#' @title Test if the BDC is working
-#' @name .sits_config_bdc_web_access
-#' @keywords internal
-#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
-#' @param url  URL for access to the BDC
-#'
-#' @return TRUE/FALSE if BDC can be accessed
-.sits_config_bdc_web_access <- function(url = NULL) {
-    if (purrr::is_null(url)) {
-          url <- .sits_config_bdc_web()
       }
     return(RCurl::url.exists(url))
 }
@@ -397,16 +351,7 @@ sits_config_show <- function() {
     return(TRUE)
 }
 
-#' @title Retrieve the types associated to data cubes known to SITS
-#' @name .sits_config_cube_types
-#' @keywords internal
-#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
-#' @description Retrieve the class name associated to a cube type
-#' @return      Class of data cube
-#'
-.sits_config_cube_types <- function() {
-    return(sits_env$config$cube_types)
-}
+
 #' @title meta-type for data
 #' @name .sits_config_data_meta_type
 #' @keywords internal
@@ -430,18 +375,6 @@ sits_config_show <- function() {
     }
     return(data)
 }
-
-#' @title Standard files for data directory for cube type
-#' @name .sits_config_data_dir_path
-#' @keywords internal
-#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
-#' @param  type    cube_type
-#'
-#' @return file path to the appended to data_dir
-.sits_config_data_dir_path <- function(type) {
-    return(sits_env$config[[type]][["data_dir_path"]])
-}
-
 #' @title Standard files for data directory for cube type
 #' @name .sits_config_data_parse_info
 #' @keywords internal

@@ -49,11 +49,3 @@ normalize_data <- function(data, min, max) {
     .Call(`_sits_normalize_data`, data, min, max)
 }
 
-scale_data <- function(data, scale_factor, adj_val = 0.0) {
-    .Call(`_sits_scale_data`, data, scale_factor, adj_val)
-}
-
-scale_matrix_integer <- function(data, scale_factor) {
-    .Call(`_sits_scale_matrix_integer`, data, scale_factor)
-}
-
