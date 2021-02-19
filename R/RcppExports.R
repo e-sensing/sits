@@ -29,14 +29,6 @@ cbers4_cld_values <- function(b13, b14, b15, b16) {
     .Call(`_sits_cbers4_cld_values`, b13, b14, b15, b16)
 }
 
-kernel_estimator <- function(data, kernel) {
-    .Call(`_sits_kernel_estimator`, data, kernel)
-}
-
-kernel_estimator_non_linear <- function(data, kernel, tau, scale_factor) {
-    .Call(`_sits_kernel_estimator_non_linear`, data, kernel, tau, scale_factor)
-}
-
 linear_interp <- function(mtx) {
     .Call(`_sits_linear_interp`, mtx)
 }
