@@ -13,8 +13,24 @@ steps:
   environment:
     CODECOV_TOKEN:
       from_secret: codecov_token
+    BDC_ACCESS_KEY:
+      from_secret: bdc_token
+    AWS_ACCESS_KEY_ID:
+      from_secret: aws_access_key
+    AWS_SECRET_ACCESS_KEY:
+      from_secret: aws_secret_key
   commands:
-  - R -e 'library(covr); codecov(quiet = FALSE)'
+  - R -e 'withr::with_envvar(c(NOT_CRAN="true"), covr::codecov(quiet = FALSE))'
   when:
     event:
     - push
+
+- name: discord-notify
+  image: brazildatacube/bdc-drone-discord
+  settings:
+    webhook:
+      from_secret: discord_webhook
+  when:
+    status:
+      - failure
+      - success
