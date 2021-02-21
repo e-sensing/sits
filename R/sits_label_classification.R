@@ -8,6 +8,10 @@
 #'
 #' @param  cube              Classified image data cube.
 #' @param  smoothing         (deprecated)
+#' @param  multicores        Number of process to label the classification in
+#'                           snow subprocess.
+#' @param  memsize           Maximum overall memory (in GB) to label the
+#'                           classification.
 #' @param  output_dir        Output directory where to out the file
 #' @param  version           Version of resulting image
 #'                           (in the case of multiple tests)
@@ -50,6 +54,8 @@
 #' @export
 sits_label_classification <- function(cube,
                                       smoothing = NULL,
+                                      multicores = 1,
+                                      memsize = 1,
                                       output_dir = "./",
                                       version = "v1") {
 
@@ -63,8 +69,6 @@ sits_label_classification <- function(cube,
     assertthat::assert_that("probs_cube" %in% class(cube),
         msg = "sits_label_classification: input is not probability cube"
     )
-    # find out how many labels exist
-    n_labels <- length(.sits_cube_labels(cube[1, ]))
 
     # create metadata for labeled raster cube
     cube_labels <- .sits_label_cube(
@@ -73,41 +77,28 @@ sits_label_classification <- function(cube,
         version = version
     )
 
-    # define the extent to be read
-    extent <- vector(mode = "integer", length = 4)
-    names(extent) <- c("row", "nrows", "col", "ncols")
+    # mapping function to be executed by workers cluster
+    .do_map <- function(chunk) {
 
-    # traverse all tiles
-    slider::slide2(cube, cube_labels, function(cube_row, cube_labels_row) {
+        # create cube smooth
+        res <- raster::brick(chunk, nl = 1)
 
-        # allocate matrix of probabilities
-        cube_size <- cube_row$nrows * cube_row$ncols
-        lab_values <- matrix(NA, nrow = cube_size, ncol = 1)
+        res[] <- apply(unname(raster::values(chunk)), 1, which.max)
 
-        # retrieve the files to be read and written
-        in_files <- .sits_cube_files(cube_row)
-        out_files <- .sits_cube_files(cube_labels_row)
+        return(res)
+    }
 
-        # traverse all years
-        purrr::map2(in_files, out_files, function(in_file, out_file) {
+    # process each brick layer (each time step) individually
+    .sits_map_layer_cluster(cube = cube,
+                            cube_out = cube_labels,
+                            overlapping_y_size = 0,
+                            func = .do_map,
+                            multicores = multicores,
+                            memsize = memsize,
+                            datatype = "INT1U",
+                            options = c("COMPRESS=LZW",
+                                        "BIGTIFF=YES"))
 
-            # read values from file
-            t_obj <- terra::rast(in_file)
-            data_values <- terra::values(t_obj)
-
-            # select the best class by choosing the maximum value
-            lab_values[] <- apply(data_values, 1, which.max)
-
-            # write values into a file
-            cube_labels <- .sits_raster_api_write(
-                params = .sits_raster_api_params_cube(cube_row),
-                num_layers = 1,
-                values = lab_values,
-                filename = out_file,
-                datatype = "INT1U"
-            )
-        })
-    })
     return(cube_labels)
 }
 #' @title Post-process a classified data raster with a majority filter
