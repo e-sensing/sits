@@ -38,18 +38,21 @@ test_that("Classify a set time series with rfor + filter", {
 test_that("Classify time series with TWDTW method", {
     testthat::skip_on_cran()
     samples_mt_ndvi <- sits_select(samples_mt_4bands, bands = "NDVI")
-    point_mt_ndvi <- sits_select(point_mt_6bands, bands = "NDVI")
+    points_mt_6bands <- samples_mt_6bands[1:15,]
+    points_mt_ndvi <- sits_select(points_mt_6bands, bands = "NDVI")
     patterns <- sits_patterns(samples_mt_ndvi)
-    matches <- sits_twdtw_classify(point_mt_ndvi,
+    expect_true(all(sits_labels(patterns) %in% sits_labels(samples_mt_ndvi)$label))
+    matches <- sits_twdtw_classify(points_mt_ndvi,
                                    patterns,
                                    bands = "NDVI",
                                    alpha = -0.1,
                                    beta = 100,
                                    theta = 0.5,
                                    keep = TRUE,
-                                   .plot = FALSE
+                                   .plot = TRUE
 
     )
+
 
     expect_true(all(unique(matches$predicted[[1]]$predicted) %in%
         sits_labels(samples_mt_ndvi)$label))

@@ -273,33 +273,6 @@
     return(values)
 }
 
-#' @title Read a raster file and return a matrix
-#' @name .sits_raster_api_read_file
-#' @keywords internal
-#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
-#'
-#' @param  r_file        Files associated to the raster object
-#' @return                Data.table of values
-.sits_raster_api_read_file <- function(r_file) {
-
-    # precondition
-    assertthat::assert_that(length(r_file) == 1,
-            msg = ".sits_raster_api_read_file: only one file can be read")
-
-    # create terra objects
-    t_obj <- terra::rast(r_file)
-    # check that there are multiple layers
-    assertthat::assert_that(terra::nlyr(t_obj) > 1,
-            msg = ".sits_raster_api_read_file: file must have multiple layers")
-    # start reading
-    terra::readStart(t_obj)
-
-    values <- terra::readValues(x = t_obj, mat = TRUE)
-    terra::readStop(t_obj)
-
-    return(values)
-}
-
 #' @title Set the values of a raster object matrix
 #' @name .sits_raster_api_write
 #' @keywords internal

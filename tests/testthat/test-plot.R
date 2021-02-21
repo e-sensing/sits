@@ -6,7 +6,7 @@ if (!requireNamespace("proto", quietly = TRUE)) {
     library(proto)
 }
 library(proto)
-test_that("Plot Time Series and Classification", {
+test_that("Plot Time Series and Images", {
     data("cerrado_2classes")
 
     cerrado_ndvi <- sits_select(cerrado_2classes, "NDVI")
@@ -49,6 +49,9 @@ test_that("Plot Time Series and Classification", {
         bands = "NDVI",
         files = files
     )
+    p_brick <- plot(sinop, red = "NDVI", blue = "NDVI", green = "NDVI")
+    expect_equal(raster::nrow(p_brick@object[[1]]), 11)
+    expect_equal(p_brick@map[[1]]$options$maxZoom, 52)
 
     sinop_probs <- suppressMessages(
         sits_classify(
@@ -65,8 +68,8 @@ test_that("Plot Time Series and Classification", {
 
     sinop_labels <- sits_label_classification(sinop_probs,
                                               output_dir = tempdir())
-    p4 <- plot(sinop_labels, time = 15)
-
+    p4 <- plot(sinop_labels, map = p_brick, time = 15)
+    expect_equal(raster::nrow(p4@object[[1]]), 11)
     expect_equal(p4@map$x$options$maxZoom, 52)
     expect_true(all(file.remove(unlist(sinop_probs$file_info[[1]]$path))))
     expect_true(all(file.remove(unlist(sinop_labels$file_info[[1]]$path))))
@@ -83,6 +86,30 @@ test_that("Plot Time Series and Classification", {
     invisible(dev.off())
     invisible(file.remove(paste0(tempdir(), "/plot.jpg")))
 })
+
+test_that("Plot Stack Images", {
+    # Create a raster cube based on CBERS data
+    cld_data_dir <- system.file("extdata/raster/clouds", package = "sits")
+
+    # create a raster cube file based on the information about the files
+    cbers_clds <- sits_cube(
+        type = "STACK",
+        name = "022024",
+        satellite = "CBERS-4",
+        sensor = "AWFI",
+        resolution = "64m",
+        start_date = "2017-11-17",
+        end_date = "2017-11-17",
+        data_dir = cld_data_dir,
+        delim = "_",
+        parse_info = c("X1", "X2", "band", "date")
+    )
+    p_cbers <- plot(cbers_clds, red = "B15", green = "B16", blue = "B13")
+    expect_equal(raster::nrow(p_cbers@object[[1]]), 122)
+    expect_equal(p_cbers@map[[1]]$options$maxZoom, 52)
+})
+
+
 test_that("Dendrogram Plot", {
     # verifies if imager package is installed
     if (!requireNamespace("imager", quietly = TRUE)) {

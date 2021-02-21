@@ -124,7 +124,7 @@ sits_labels.predicted <- function(data) {
 #'
 #' @export
 sits_labels.patterns <- function(data) {
-    return(data$labels)
+    return(data$label)
 }
 
 #' @title Relabels a sits tibble

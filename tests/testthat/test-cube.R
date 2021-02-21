@@ -61,8 +61,11 @@ test_that("Creating a raster stack cube and selecting bands", {
     expect_true(all(sits_bands(cbers_cube_b13) == c("B13")))
 })
 
-test_that("Creating, merging cubes from BDC", {
+test_that("Creating cubes from BDC", {
     testthat::skip_on_cran()
+
+    if (!sits:::.sits_config_bdc_stac_access())
+        skip("BDC is not accessible")
 
     # Try to find the access key as an environment variable
     bdc_access_key <- Sys.getenv("BDC_ACCESS_KEY")
@@ -74,15 +77,10 @@ test_that("Creating, merging cubes from BDC", {
         name = "cbers_022024_ndvi",
         bands = c("NDVI", "EVI"),
         tiles = c("022024","022023"),
-        url = "http://brazildatacube.dpi.inpe.br/stac/",
         collection = "CB4_64_16D_STK-1",
         start_date = "2018-09-01",
         end_date = "2019-08-28"
       )
-
-      if (purrr::is_null(cbers_cube)) {
-        skip("BDC is not accessible")
-      }
       expect_true(all(sits_bands(cbers_cube) %in% c("NDVI", "EVI")))
       bbox <- sits_bbox(cbers_cube)
       int_bbox <- sits:::.sits_bbox_intersect(bbox, cbers_cube[1,])
@@ -102,7 +100,7 @@ test_that("Creating, merging cubes from BDC", {
     }
 
 })
-test_that("Creating, merging cubes from BDC", {
+test_that("Merging cubes", {
 
     ndvi_file <- c(system.file("extdata/raster/mod13q1/sinop-evi-2014.tif",
                                package = "sits"
@@ -152,6 +150,10 @@ test_that("Creating cubes from AWS", {
 
     testthat::skip_if(nchar(aws_secret_access_key) == 0,
                       message = "No AWS_SECRET_ACCESS_KEY defined in environment.")
+
+    Sys.unsetenv("AWS_DEFAULT_REGION")
+    Sys.unsetenv("AWS_ENDPOINT")
+    Sys.unsetenv("AWS_REQUEST_PAYER")
 
     s2_cube <- sits_cube(type = "S2_L2A_AWS",
                          name = "T20LKP_2018_2019",
@@ -275,6 +277,25 @@ test_that("Creating a raster stack cube and renaming bands", {
     sits_bands(cbers_cube2) <- c("BAND13", "BAND14", "BAND15", "BAND16", "CLOUD")
     expect_true(all(sits_bands(cbers_cube2) %in%
                         c("BAND13", "BAND14", "BAND15", "BAND16", "CLOUD")))
+
+})
+
+test_that("Creating a raster stack cube with BDC band names", {
+  # Create a raster cube based on CBERS data
+  data_dir <- system.file("extdata/raster/bdc", package = "sits")
+
+  # create a raster cube file based on the information about the files
+  cbers_cube_bdc <- sits_cube(
+    type = "STACK",
+    name = "022024",
+    satellite = "CBERS-4",
+    sensor = "AWFI",
+    resolution = "64m",
+    data_dir = data_dir,
+    parse_info = c("X1", "X2", "X3", "X4", "X5", "X6", "date", "X7", "band")
+  )
+  expect_true(all(sits_bands(cbers_cube_bdc) %in%
+                    c("B13", "B14", "B15", "B16", "CMASK")))
 
 })
 

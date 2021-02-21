@@ -1,0 +1,8 @@
+default:
+
+    colors:
+        Cropland:           "khaki"
+        Deforestation:      "sienna"
+        Forest :            "darkgreen"
+        Grassland :         "lightgreen"
+        NonForest:          "lightsteelblue2"

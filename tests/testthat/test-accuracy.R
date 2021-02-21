@@ -1,4 +1,24 @@
 context("Accuracy")
+test_that("conf_matrix -2 classes", {
+    data(cerrado_2classes)
+    train_data <- sits_sample(cerrado_2classes, n = 100)
+    test_data <- sits_sample(cerrado_2classes, n = 25)
+    rfor_model <- sits_train(train_data, sits_rfor(num_trees = 100))
+    points_class <- sits_classify(test_data, rfor_model)
+    invisible(capture.output(conf_mx <- sits_conf_matrix(points_class)))
+    expect_true(conf_mx$overall["Accuracy"] > 0.90)
+    expect_true(conf_mx$overall["Kappa"] > 0.80)
+})
+test_that("conf_matrix - more than 2 classes", {
+    data(samples_mt_4bands)
+    train_data <- sits_sample(samples_mt_4bands, n = 25)
+    test_data <- sits_sample(samples_mt_4bands, n = 25)
+    rfor_model <- sits_train(train_data, sits_rfor(num_trees = 100))
+    points_class <- sits_classify(test_data, rfor_model)
+    invisible(capture.output(conf_mx <- sits_conf_matrix(points_class)))
+    expect_true(conf_mx$overall["Accuracy"] > 0.85)
+    expect_true(conf_mx$overall["Kappa"] > 0.80)
+})
 test_that("XLS", {
     data(cerrado_2classes)
     pred_ref <- sits_kfold_validate(cerrado_2classes, folds = 2,

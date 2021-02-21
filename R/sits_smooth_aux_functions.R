@@ -170,7 +170,7 @@
                                 datatype = "FLT8S")
         )
 
-        filename
+        return(filename)
     }
 
     # function to call workers clusters and merge its results

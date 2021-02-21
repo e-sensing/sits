@@ -56,7 +56,8 @@ test_that("Finding clouds in CBERS-4 images", {
     cbers_with_cld_band <- suppressMessages(
         sits_cloud_cbers(cbers_clds,
                          cld_band_name = "CLD",
-                         data_dir = tempdir()
+                         data_dir = tempdir(),
+                         multicores = 1
     ))
 
     file_info <- cbers_with_cld_band$file_info[[1]]
