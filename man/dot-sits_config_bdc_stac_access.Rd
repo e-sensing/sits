@@ -4,7 +4,7 @@
 \alias{.sits_config_bdc_stac_access}
 \title{Test if BDC STAC catalogue is available}
 \usage{
-.sits_config_bdc_stac_access(url)
+.sits_config_bdc_stac_access(url = NULL)
 }
 \arguments{
 \item{url}{URL for access to the BDC STAC}
