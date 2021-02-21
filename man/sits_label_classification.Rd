@@ -7,6 +7,8 @@
 sits_label_classification(
   cube,
   smoothing = NULL,
+  multicores = 1,
+  memsize = 1,
   output_dir = "./",
   version = "v1"
 )
@@ -15,6 +17,12 @@ sits_label_classification(
 \item{cube}{Classified image data cube.}
 
 \item{smoothing}{(deprecated)}
+
+\item{multicores}{Number of process to label the classification in
+snow subprocess.}
+
+\item{memsize}{Maximum overall memory (in GB) to label the
+classification.}
 
 \item{output_dir}{Output directory where to out the file}
 
