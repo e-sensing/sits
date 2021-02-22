@@ -19,6 +19,8 @@ steps:
       from_secret: aws_access_key
     AWS_SECRET_ACCESS_KEY:
       from_secret: aws_secret_key
+    SITS_USER_CONFIG_FILE:
+      from_secret: sits_user_config_file
   commands:
   - R -e 'withr::with_envvar(c(NOT_CRAN="true"), covr::codecov(quiet = FALSE))'
   when:

@@ -16,8 +16,9 @@ If this file is not found, reads a default package configuration file.
 By default, the sits configuration file "config.yml" is located at
 the directory "extdata" of the package.
 
-The user can provide her additional configuration on an additional
-configuration file, which is located by default on ~/.sits/config.yml.
+Users can provide additional configuration files, by specifying the
+location of their file in the environmental variable
+SITS_USER_CONFIG_FILE
 
 To see the contents of the configuration file,
 please use \code{\link[sits]{sits_config_show}}.
