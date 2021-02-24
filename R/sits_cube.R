@@ -9,6 +9,8 @@
 #'  \item{"BRICK": }{see \code{\link{sits_cube.brick_cube}}}
 #'  \item{"STACK": }{see \code{\link{sits_cube.stack_cube}}}
 #'  \item{"BDC"}{Brazil Data Cube - see \code{\link{sits_cube.bdc_cube}}}
+#'  \item{"DEAFRICA"}{Digital Earth Africa -
+#'                     see \code{\link{sits_cube.deafrica_cube}}}
 #'  \item{"S2_L2A_AWS"}{Sentinel-2 data in AWS -
 #'                      see \code{\link{sits_cube.s2_l2a_aws_cube}}}
 #'  \item{"GDALCUBES"}{gdalcubes compose function -
@@ -271,10 +273,13 @@ sits_cube.brick_cube <- function(type = "BRICK",
 #' @param collection BDC collection to be searched (mandatory).
 #' @param tiles      Tile names to be searched (optional).
 #' @param bands      Bands names to be filtered (optional).
-#' @param roi        Region of interest (optional), expressed either as
-#'  an \code{sfc} or \code{sf} object from sf package, a
-#'  a GeoJSON following the rules from RFC 7946, or a
-#'  bounding box with named XY values ("xmin", "xmax", "ymin", "ymax").
+#' @param roi        Selects images (tiles) that intersect according to the
+#'  region of interest provided. Expressed either as an \code{sfc} or \code{sf}
+#'  object from sf package, a \code{character} with GeoJSON Geometry following
+#'  the rules from RFC 7946, or a \code{vector} with bounding box named XY
+#'  values in WGS 84 ("xmin", "ymin", "xmax", "ymax").
+#'  Obs.: This parameter does not crop a region, but only selects the images
+#'  that intersect with it.
 #' @param start_date Initial date for the cube files (optional).
 #' @param end_date   Final date for the cube files (optional).
 #'
@@ -385,6 +390,139 @@ sits_cube.bdc_cube <- function(type = "BDC",
 
     # include access key information in file
     cube <- .sits_bdc_access_info(cube, access_key)
+
+    return(cube)
+}
+#' @title Defines a data cube for Digital Earth Africa STAC
+#' @name sits_cube.deafrica_cube
+#'
+#' @references `rstac` package (https://github.com/brazil-data-cube/rstac)
+#'
+#' @description Defines a cube to retrieve data from the Digital Earth Africa
+#'  (DEAFRICA) STAC. The retrieval is based on tiles of a given cube.
+#'  For more on DEAfrica, please see https://www.digitalearthafrica.org/
+#'
+#' @note For now, we only support the collections 'ga_s2_gm' and 's2_l2a'.
+#' We are working on supporting the other products offered by DEAfrica STAC.
+#'
+#' @param type       Type of cube.
+#' @param ...        Other parameters to be passed for specific types.
+#' @param name       Name of the output data cube (optional).
+#' @param url        URL for the DEAfrica catalog (mandatory).
+#' @param collection DEAFRICA collection to be searched (mandatory).
+#' @param tiles      Tile names to be searched (optional).
+#' @param bands      Bands names to be filtered (optional).
+#' @param roi        Selects images (tiles) that intersect according to the
+#'  region of interest provided. Expressed either as an \code{sfc} or \code{sf}
+#'  object from sf package, a \code{character} with GeoJSON following the rules
+#'  from RFC 7946, or a \code{vector} with bounding box named XY values in
+#'  WGS 84 ("xmin", "ymin", "xmax", "ymax").
+#'  Obs.: This parameter does not crop a region, but only selects the images
+#'  that intersect with it.
+#' @param start_date Initial date for the cube files (optional).
+#' @param end_date   Final date for the cube files (optional).
+#'
+#' @return           A data cube.
+#'
+#' @examples
+#' \dontrun{
+#' # this example requires access to an external service, so should not be run
+#' # by CRAN
+#'
+#' # Provide your AWS credentials here
+#' # Sys.setenv(
+#' # "AWS_ACCESS_KEY_ID"     = <your_access_key>,
+#' # "AWS_SECRET_ACCESS_KEY" = <your_secret_access_key>,
+#' # "AWS_DEFAULT_REGION"    = <your AWS region>,
+#' # "AWS_ENDPOINT" = "sentinel-s2-l2a.s3.amazonaws.com",
+#' # "AWS_REQUEST_PAYER"     = "requester"
+#' # )
+#'
+#' # create a raster cube file based on the information about the files
+#' cube_dea <- sits::sits_cube(type = "DEAFRICA",
+#'                            name = "deafrica_cube",
+#'                            collection = "ga_s2_gm",
+#'                            bands = c("B04", "B08"),
+#'                            roi = c("xmin" = 17.379,
+#'                                   "ymin" = 1.1573,
+#'                                   "xmax" = 17.410,
+#'                                   "ymax" = 1.1910),
+#'                            start_date = "2019-01-01",
+#'                            end_date = "2019-10-28")
+#' }
+#' @export
+sits_cube.deafrica_cube <- function(type = "DEAFRICA", ...,
+                                    name = "deafrica_cube",
+                                    url = NULL,
+                                    collection = NULL,
+                                    tiles = NULL,
+                                    bands = NULL,
+                                    roi = NULL,
+                                    start_date = NULL,
+                                    end_date = NULL) {
+    # require package
+    if (!requireNamespace("rstac", quietly = TRUE)) {
+        stop(paste("Please install package rstac from CRAN:",
+                   "install.packages('rstac')"), call. = FALSE
+        )
+    }
+
+    # precondition - is the url correct?
+    if (purrr::is_null(url)) {
+        url <- .sits_config_deafrica_stac()
+    }
+
+    # test if DEA is accessible
+    assertthat::assert_that(.sits_config_bdc_stac_access(url),
+                            msg = "DEAfrica is not accessible"
+    )
+
+    # precondition - is the collection name valid?
+    assertthat::assert_that(!purrr::is_null(collection),
+                            msg = paste("sits_cube: DEAfrica collection must",
+                                        "be provided")
+    )
+
+    assertthat::assert_that(!(length(collection) > 1),
+                            msg = paste("sits_cube: for STAC_DEAFRICA one",
+                                        "collection should be specified")
+    )
+
+    # retrieve item information
+    items_info <- .sits_deafrica_items(
+        url = url,
+        collection = collection,
+        tiles = tiles,
+        roi = roi,
+        start_date = start_date,
+        end_date  = end_date,
+        bands = bands,
+        ...
+    )
+
+    # creating a group of items per tile
+    items_group <- .sits_stac_group(items_info,
+                                    fields = c("properties", "odc:region_code")
+    )
+
+    tiles <- purrr::map(items_group, function(items) {
+
+        # retrieve the information from STAC
+        stack <- .sits_stac_items_info(items, items$bands)
+
+        # add the information for each tile
+        cube_t <- .sits_deafrica_tile_cube(
+            url = url,
+            name = name,
+            items = items,
+            cube = collection,
+            file_info = stack
+        )
+
+        class(cube_t) <- c("stack_cube", "raster_cube", class(cube_t))
+        return(cube_t)
+    })
+    cube <- dplyr::bind_rows(tiles)
 
     return(cube)
 }
