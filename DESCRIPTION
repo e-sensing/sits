@@ -119,6 +119,7 @@ Collate:
     'sits_cluster.R'
     'sits_data_generics.R'
     'sits_db.R'
+    'sits_deafrica.R'
     'sits_deep_learning.R'
     'sits_distances.R'
     'sits_dt_reference.R'
