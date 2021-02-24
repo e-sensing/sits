@@ -740,7 +740,7 @@ sits_cube.gdalcubes_cube <- function(type = "GDALCUBES",
 #'              The timeline for the cube must be provided.
 #'
 #' @param type              type of cube
-#' @param name              name of output data cube
+#' @param names             names of output data cube
 #' @param ...               other parameters
 #' @param satellite         satellite
 #' @param sensor            sensor
@@ -775,7 +775,7 @@ sits_cube.gdalcubes_cube <- function(type = "GDALCUBES",
 #' )
 #' @export
 sits_cube.probs_cube <- function(type = "PROBS",
-                                 name = "probs_cube",
+                                 names = "probs_cube",
                                  ...,
                                  satellite,
                                  sensor,
@@ -783,29 +783,36 @@ sits_cube.probs_cube <- function(type = "PROBS",
                                  labels,
                                  files) {
 
+    # test if provided object its a sits cube
+    assertthat::assert_that(length(names) == length(files),
+                            msg = paste("The length provided names must",
+                                        "match the length of files.")
+    )
+
+
     # iterate through the input files
-    rows <- purrr::map(files, function(f){
+    rows <- purrr::map(seq_along(files), function(i) {
         # precondition - check if labels match files
         # read the information from the files using GDAL
-        rg_obj <- suppressWarnings(rgdal::GDALinfo(f))
+        rg_obj <- suppressWarnings(rgdal::GDALinfo(files[[i]]))
         n_layers <- as.numeric(rg_obj["bands"])
         assertthat::assert_that(n_layers == length(labels),
-                                msg = paste0("mismatch btw labels and bands in file ", f))
+             msg = paste0("mismatch btw labels and bands in file ", files[[i]]))
 
         # get the file params
-        params <- .sits_raster_api_params_file(f)
+        params <- .sits_raster_api_params_file(files[[i]])
         # build the file information
         file_info <- tibble::tibble(
             band = "probs",
             date = as.Date(timeline[1]),
-            path = f
+            path = files[[i]]
         )
         # go row by row
         row <- tibble::tibble(
             type = "PROBS",
             satellite = satellite,
             sensor = sensor,
-            name = name,
+            name = names[[i]],
             bands = list("probs"),
             labels = list(labels),
             scale_factors  = list(.sits_config_probs_scale_factor()),
