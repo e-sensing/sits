@@ -166,11 +166,12 @@
         regex_pattern <- "[^\\/|^_\\&\\?]+\\.\\w{3,4}(?=([\\?&].*$|$))"
         file_name <- bands[["href"]][[1]]
 
-        purrr::map_chr(file_name, function(file){
-            reg_band <- regexpr(regex_pattern, file, perl = TRUE)
+        # extract band name and extension
+        reg_band <- regexpr(regex_pattern, file_name, perl = TRUE)
 
-            tools::file_path_sans_ext(substring(file, reg_band))
-        })
+        # remove extension
+        tools::file_path_sans_ext(substring(file_name, reg_band))
+
     }) %>% unname()
 
     # checks if the bands in the name property match with the name of the bands
