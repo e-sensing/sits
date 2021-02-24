@@ -100,6 +100,48 @@ test_that("Creating cubes from BDC", {
     }
 
 })
+
+test_that("Creating cubes from DEA", {
+  testthat::skip_on_cran()
+
+  testthat::skip_on_cran()
+  # check "AWS_ACCESS_KEY_ID" - mandatory one per user
+  aws_access_key_id <- Sys.getenv("AWS_ACCESS_KEY_ID")
+  # check "AWS_SECRET_ACCESS_KEY" - mandatory one per user
+  aws_secret_access_key <- Sys.getenv("AWS_SECRET_ACCESS_KEY")
+
+  testthat::skip_if(nchar(aws_access_key_id) == 0,
+                    message = "No AWS_ACCESS_KEY_ID defined in environment.")
+
+  testthat::skip_if(nchar(aws_secret_access_key) == 0,
+                    message = "No AWS_SECRET_ACCESS_KEY defined in environment.")
+
+  Sys.unsetenv("AWS_DEFAULT_REGION")
+  Sys.unsetenv("AWS_ENDPOINT")
+  Sys.unsetenv("AWS_REQUEST_PAYER")
+
+  dea_cube <- sits_cube(type = "DEAFRICA",
+                        name = "deafrica_cube",
+                        collection = "ga_s2_gm",
+                        bands = c("B04", "B08"),
+                        roi = c("xmin" = 17.379,
+                                "ymin" = 1.1573,
+                                "xmax" = 17.410,
+                                "ymax" = 1.1910),
+                        start_date = "2019-01-01",
+                        end_date = "2019-10-28")
+
+  expect_true(all(sits_bands(dea_cube) %in% c("B04", "B08")))
+
+  file_info <- dea_cube$file_info[[1]]
+  r <- terra::rast(file_info[1,]$path)
+
+  expect_equal(dea_cube$nrows, terra::nrow(r))
+  expect_equal(dea_cube$ncols, terra::ncol(r))
+  expect_equal(dea_cube$xmax[[1]], terra::xmax(r))
+  expect_equal(dea_cube$xmin[[1]], terra::xmin(r))
+})
+
 test_that("Merging cubes", {
 
     ndvi_file <- c(system.file("extdata/raster/mod13q1/sinop-evi-2014.tif",

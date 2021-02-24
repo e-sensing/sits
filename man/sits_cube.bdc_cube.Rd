@@ -32,10 +32,13 @@
 
 \item{bands}{Bands names to be filtered (optional).}
 
-\item{roi}{Region of interest (optional), expressed either as
-an \code{sfc} or \code{sf} object from sf package, a
-a GeoJSON following the rules from RFC 7946, or a
-bounding box with named XY values ("xmin", "xmax", "ymin", "ymax").}
+\item{roi}{Selects images (tiles) that intersect according to the
+region of interest provided. Expressed either as an \code{sfc} or \code{sf}
+object from sf package, a \code{character} with GeoJSON Geometry following
+the rules from RFC 7946, or a \code{vector} with bounding box named XY
+values in WGS 84 ("xmin", "ymin", "xmax", "ymax").
+Obs.: This parameter does not crop a region, but only selects the images
+that intersect with it.}
 
 \item{start_date}{Initial date for the cube files (optional).}
 

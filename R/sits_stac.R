@@ -200,8 +200,9 @@
 
     # verify the provided parameters
     if (!("sf" %in% class(roi))) {
-        if (all(c("xmin", "xmax", "ymin", "ymax") %in% names(roi)))
-            roi_list[c("bbox", "intersects")] <- list(roi, NULL)
+        if (all(c("xmin", "ymin", "xmax", "ymax") %in% names(roi)))
+            roi_list[c("bbox", "intersects")] <-
+                list(roi[c("xmin", "ymin", "xmax", "ymax")], NULL)
 
         else if (typeof(roi) == "character")
             roi_list[c("bbox", "intersects")] <- list(NULL, roi)
@@ -293,11 +294,11 @@
 #' @name .sits_stac_get_bbox
 #' @keywords internal
 #'
-#' @param items      a \code{STACItemCollection} object returned by rstac.
-#' @param collection a \code{STACCollection} object returned by rstac.
+#' @param items a \code{STACItemCollection} object returned by rstac.
+#' @param crs   a \code{character} with proj code.
 #'
 #' @return  a \code{bbox} object from the sf package representing the tile bbox.
-.sits_stac_get_bbox <- function(items, collection) {
+.sits_stac_get_bbox <- function(items, crs) {
 
     # get the extent points
     extent_points <- items$features[[1]]$geometry$coordinates[[1]]
@@ -305,7 +306,7 @@
     # create a polygon and transform the proj
     polygon_ext <- sf::st_polygon(list(do.call(rbind, extent_points)))
     polygon_ext <- sf::st_sfc(polygon_ext, crs = 4326) %>%
-        sf::st_transform(., collection[["bdc:crs"]])
+        sf::st_transform(., crs)
 
     bbox_ext <- sf::st_bbox(polygon_ext)
 
@@ -338,7 +339,7 @@
     labels <- c("NoClass")
 
     # obtain bbox extent
-    bbox <- .sits_stac_get_bbox(items, collection)
+    bbox <- .sits_stac_get_bbox(items, collection[["bdc:crs"]])
 
     # get the bands
     bands <- unique(file_info$band)

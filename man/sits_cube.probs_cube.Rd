@@ -6,7 +6,7 @@
 \usage{
 \method{sits_cube}{probs_cube}(
   type = "PROBS",
-  name = "probs_cube",
+  names = "probs_cube",
   ...,
   satellite,
   sensor,
@@ -18,7 +18,7 @@
 \arguments{
 \item{type}{type of cube}
 
-\item{name}{name of output data cube}
+\item{names}{names of output data cube}
 
 \item{...}{other parameters}
 

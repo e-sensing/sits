@@ -149,6 +149,24 @@ sits_config_show <- function() {
 .sits_config_aws_request_payer <- function(type) {
     return(sits_env$config[["AWS_REQUEST_PAYER"]][[type]])
 }
+#' @title Directory to read the DEAFRICA STAC catalogue
+#' @name .sits_config_deafrica_stac
+#' @keywords internal
+#'
+#' @return directory where DEAFRICA is accessible on the web
+.sits_config_deafrica_stac <- function() {
+  return(sits_env$config$deafrica_stac)
+}
+#' @title Retrieve the bands associated to DEAfrica STAC
+#' @name sits_config_satveg_bands
+#' @param sensor  Type of sensor of cube
+#' @keywords internal
+#' @description Retrieve the cubes associated to the STAC service from DEAfrica
+#'
+#' @return         Names of DEAfrica available bands
+.sits_config_deafrica_bands <- function(sensor) {
+  return(sits_env$config[[sensor]][["bands"]][["DEAFRICA"]])
+}
 #' @title Convert bands names from cube to SITS
 #' @name .sits_config_bands_convert
 #' @keywords internal
@@ -161,6 +179,7 @@ sits_config_show <- function() {
 #' @param sensor         Name of sensor
 #' @param bands_files    Bands available in the files
 #' @return               Name of the bands used in SITS (named vector)
+#'
 #'
 .sits_config_bands_convert <- function(satellite, sensor, bands_files) {
     # Precondition
