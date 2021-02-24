@@ -4,12 +4,12 @@
 \alias{.sits_stac_get_bbox}
 \title{Get the STAC information corresponding to a bbox extent}
 \usage{
-.sits_stac_get_bbox(items, collection)
+.sits_stac_get_bbox(items, crs)
 }
 \arguments{
 \item{items}{a \code{STACItemCollection} object returned by rstac.}
 
-\item{collection}{a \code{STACCollection} object returned by rstac.}
+\item{crs}{a \code{character} with proj code.}
 }
 \value{
 a \code{bbox} object from the sf package representing the tile bbox.

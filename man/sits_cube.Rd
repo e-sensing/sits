@@ -27,6 +27,8 @@ required parameters:
  \item{"BRICK": }{see \code{\link{sits_cube.brick_cube}}}
  \item{"STACK": }{see \code{\link{sits_cube.stack_cube}}}
  \item{"BDC"}{Brazil Data Cube - see \code{\link{sits_cube.bdc_cube}}}
+ \item{"DEAFRICA"}{Digital Earth Africa -
+                    see \code{\link{sits_cube.deafrica_cube}}}
  \item{"S2_L2A_AWS"}{Sentinel-2 data in AWS -
                      see \code{\link{sits_cube.s2_l2a_aws_cube}}}
  \item{"GDALCUBES"}{gdalcubes compose function -
