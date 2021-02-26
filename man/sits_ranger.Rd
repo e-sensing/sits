@@ -31,15 +31,13 @@ Please refer to the documentation in that package for more details.
 }
 \examples{
 # Retrieve the set of samples for Mato Grosso  (provided by EMBRAPA)
-samples_2bands <- sits_select(samples_mt_4bands, bands = c("NDVI", "EVI"))
+samples_ndvi <- sits_select(samples_mt_6bands, bands = c("NDVI"))
 
 # Build a machine learning model based on deep learning
-ml_model <- sits_train(samples_2bands, sits_ranger(num_trees = 300))
+ml_model <- sits_train(samples_ndvi, sits_ranger(num_trees = 100))
 
 # get a point and classify the point with the ml_model
-point.tb <- sits_select(point_mt_6bands, bands = c("NDVI", "EVI"))
-class.tb <- sits_classify(point.tb, ml_model)
-plot(class.tb, bands = c("NDVI", "EVI"))
+class <- sits_classify(point_ndvi, ml_model)
 }
 \author{
 Gilberto Camara, \email{gilberto.camara@inpe.br}

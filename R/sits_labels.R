@@ -59,6 +59,7 @@ sits_labels.sits <- function(data) {
 #' @return         A list of labels
 #'
 #' @examples
+#' \donttest{
 #' # Classify a raster file with 23 instances for one year
 #' ndvi_file <- c(system.file("extdata/raster/mod13q1/sinop-ndvi-2014.tif",
 #' package = "sits"))
@@ -93,6 +94,7 @@ sits_labels.sits <- function(data) {
 #'
 #' # return the labels
 #' sits_labels(sinop_label)
+#' }
 #' @export
 sits_labels.cube <- function(data) {
     return(data[1, ]$labels[[1]])

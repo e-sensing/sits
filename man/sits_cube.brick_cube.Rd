@@ -6,8 +6,8 @@
 \usage{
 \method{sits_cube}{brick_cube}(
   type = "BRICK",
-  name = "brick_cube",
   ...,
+  name = "brick_cube",
   satellite,
   sensor,
   timeline = NULL,
@@ -18,9 +18,9 @@
 \arguments{
 \item{type}{type of cube}
 
-\item{name}{name of output data cube}
-
 \item{...}{other parameters}
+
+\item{name}{name of output data cube}
 
 \item{satellite}{satellite}
 

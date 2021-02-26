@@ -76,9 +76,7 @@ sits_config_info <- function() {
               )
             )
       } else {
-          message("To provide additional configurations, \n
-                  create an yml file and set environment variable \n
-                  SITS_USER_CONFIG_FILE to point to it"
+          message("To provide additional configurations, create an yml file and set environment variable SITS_USER_CONFIG_FILE to point to it"
           )
       }
 

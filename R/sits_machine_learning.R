@@ -30,12 +30,10 @@
 #' @examples
 #' # Retrieve the set of samples for Mato Grosso (provided by EMBRAPA)
 #' # fit a training model (RFOR model)
-#' samples_2bands <- sits_select(samples_mt_4bands, bands = c("NDVI", "EVI"))
-#' ml_model <- sits_train(samples_2bands, sits_rfor(num_trees = 500))
+#' samples <- sits_select(samples_mt_6bands, bands = c("NDVI"))
+#' ml_model <- sits_train(samples, sits_rfor(num_trees = 100))
 #' # get a point and classify the point with the ml_model
-#' point.tb <- sits_select(point_mt_6bands, bands = c("NDVI", "EVI"))
-#' class.tb <- sits_classify(point.tb, ml_model)
-#' plot(class.tb, bands = c("NDVI", "EVI"))
+#' class <- sits_classify(point_ndvi, ml_model)
 #' @export
 sits_train <- function(data, ml_method = sits_svm()) {
     # backward compatibility
@@ -173,9 +171,7 @@ sits_lda <- function(data = NULL, formula = sits_formula_logref(), ...) {
 #' # Train a QDA model
 #' qda_model <- sits_train(samples_mt_ndvi, sits_qda())
 #' # Classify a point
-#' class.tb <- sits_classify(point_ndvi, qda_model)
-#' # Plot results
-#' plot(class.tb)
+#' class <- sits_classify(point_ndvi, qda_model)
 #' @export
 sits_qda <- function(data = NULL, formula = sits_formula_logref(), ...) {
     # backward compatibility
@@ -332,15 +328,13 @@ sits_mlr <- function(data = NULL, formula = sits_formula_linear(),
 #'                     (to be passed to \code{\link[sits]{sits_classify}})
 #' @examples
 #' # Retrieve the set of samples for Mato Grosso  (provided by EMBRAPA)
-#' samples_2bands <- sits_select(samples_mt_4bands, bands = c("NDVI", "EVI"))
+#' samples_ndvi <- sits_select(samples_mt_6bands, bands = c("NDVI"))
 #'
 #' # Build a machine learning model based on deep learning
-#' ml_model <- sits_train(samples_2bands, sits_ranger(num_trees = 300))
+#' ml_model <- sits_train(samples_ndvi, sits_ranger(num_trees = 100))
 #'
 #' # get a point and classify the point with the ml_model
-#' point.tb <- sits_select(point_mt_6bands, bands = c("NDVI", "EVI"))
-#' class.tb <- sits_classify(point.tb, ml_model)
-#' plot(class.tb, bands = c("NDVI", "EVI"))
+#' class <- sits_classify(point_ndvi, ml_model)
 #' @export
 sits_ranger <- function(data = NULL,
                         num_trees = 2000,

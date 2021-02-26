@@ -6,8 +6,8 @@
 \usage{
 \method{sits_cube}{probs_cube}(
   type = "PROBS",
-  names = "probs_cube",
   ...,
+  names = "probs_cube",
   satellite,
   sensor,
   timeline,
@@ -18,9 +18,9 @@
 \arguments{
 \item{type}{type of cube}
 
-\item{names}{names of output data cube}
-
 \item{...}{other parameters}
+
+\item{names}{names of output data cube}
 
 \item{satellite}{satellite}
 
@@ -62,7 +62,7 @@ labels <- c("Cerrado", "Fallow_Cotton", "Forest", "Pasture", "Soy_Corn",
 # create a raster cube file based on the information about the files
 probs_cube <- sits_cube(
     type = "PROBS",
-    name = "Sinop-crop-probs",
+    names = "Sinop-crop-probs",
     satellite = "TERRA",
     sensor  = "MODIS",
     timeline = timeline_2013_2014,

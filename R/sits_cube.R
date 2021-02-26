@@ -23,12 +23,11 @@
 #' @param type        Type of cube (one of "WTSS", "BRICK", "STACK",
 #'                    "BDC_TILE", "S2_L2A_AWS", "GDALCUBES", "PROBS",
 #'                    "CLASSIFIED")
-#' @param name              Name of the output data cube.
 #' @param ...               Other parameters to be passed for specific types
 #' @return  The description of a sits cube
 #'
 #' @export
-sits_cube <- function(type = "RASTER", name, ...) {
+sits_cube <- function(type = "RASTER", ...) {
     spec_class <- .sits_config_cube_class(type)
     class(type) <- c(spec_class, class(type))
     # Dispatch
@@ -43,8 +42,8 @@ sits_cube <- function(type = "RASTER", name, ...) {
 #'  There are three types of time series: "terra" (from the TERRA satellite),
 #'  "aqua" (from the AQUA satellite) and "comb" (combination of both satellites)
 #' @param type              Type of cube
-#' @param name              Name of the input data ("terra", "aqua", "comb").
 #' @param ...               Other parameters to be passed for specific types
+#' @param name              Name of the input data ("terra", "aqua", "comb").
 #' @return                  A valid data cube
 #'
 #' @export
@@ -58,7 +57,7 @@ sits_cube <- function(type = "RASTER", name, ...) {
 #' )
 #' }
 #'
-sits_cube.satveg_cube <- function(type = "SATVEG", name = NULL, ...) {
+sits_cube.satveg_cube <- function(type = "SATVEG", ..., name) {
     # Pre-condition - check if SATVEG is working
     satveg_ok <- .sits_satveg_check()
     # if OK, go ahead a create a SATVEG cube
@@ -81,7 +80,7 @@ sits_cube.satveg_cube <- function(type = "SATVEG", name = NULL, ...) {
 #' @return                  A message
 #'
 #' @export
-sits_cube.raster_cube <- function(type = "RASTER",  name = NULL, ...) {
+sits_cube.raster_cube <- function(type = "RASTER", ...,  name = NULL) {
     message("type RASTER is deprecated, please use BRICK or STACK")
 }
 
@@ -107,8 +106,8 @@ sits_cube.raster_cube <- function(type = "RASTER",  name = NULL, ...) {
 #'              "date", "X7", and "band". In the second, only "band" and "date".
 #'
 #' @param type              type of cube
-#' @param name              name of output data cube
 #' @param ...               other parameters
+#' @param name              name of output data cube
 #' @param satellite         satellite
 #' @param sensor            sensor
 #' @param bands             bands to be used (optional)
@@ -136,8 +135,8 @@ sits_cube.raster_cube <- function(type = "RASTER",  name = NULL, ...) {
 #' )
 #' @export
 sits_cube.stack_cube <- function(type = "STACK",
-                        name = "stack_cube",
                         ...,
+                        name = "stack_cube",
                         satellite,
                         sensor,
                         bands = NULL,
@@ -197,8 +196,8 @@ sits_cube.stack_cube <- function(type = "STACK",
 #'              The timeline for the cube must be provided.
 #'
 #' @param type              type of cube
-#' @param name              name of output data cube
 #' @param ...               other parameters
+#' @param name              name of output data cube
 #' @param satellite         satellite
 #' @param sensor            sensor
 #' @param timeline          vector with timeline of the files
@@ -227,8 +226,8 @@ sits_cube.stack_cube <- function(type = "STACK",
 #' )
 #' @export
 sits_cube.brick_cube <- function(type = "BRICK",
-                                 name = "brick_cube",
                                  ...,
+                                 name = "brick_cube",
                                  satellite,
                                  sensor,
                                  timeline = NULL,
@@ -267,8 +266,8 @@ sits_cube.brick_cube <- function(type = "BRICK",
 #'              For more on BDC, please see http://brazildatacube.dpi.inpe.br/
 #'
 #' @param type       Type of cube.
-#' @param name       Name of the output data cube.
 #' @param ...        Other parameters to be passed for specific types.
+#' @param name       Name of the output data cube.
 #' @param url        URL for the BDC catalog (mandatory).
 #' @param collection BDC collection to be searched (mandatory).
 #' @param tiles      Tile names to be searched (optional).
@@ -308,8 +307,8 @@ sits_cube.brick_cube <- function(type = "BRICK",
 #' }
 #' @export
 sits_cube.bdc_cube <- function(type = "BDC",
-                               name = "bdc_cube",
                                ...,
+                               name = "bdc_cube",
                                url = NULL,
                                collection = NULL,
                                tiles = NULL,
@@ -434,7 +433,7 @@ sits_cube.bdc_cube <- function(type = "BDC",
 #' # "AWS_ACCESS_KEY_ID"     = <your_access_key>,
 #' # "AWS_SECRET_ACCESS_KEY" = <your_secret_access_key>,
 #' # "AWS_DEFAULT_REGION"    = <your AWS region>,
-#' # "AWS_ENDPOINT" = "sentinel-s2-l2a.s3.amazonaws.com",
+#' # "AWS_ENDPOINT" = <your_end_point>,
 #' # "AWS_REQUEST_PAYER"     = "requester"
 #' # )
 #'
@@ -451,7 +450,8 @@ sits_cube.bdc_cube <- function(type = "BDC",
 #'                            end_date = "2019-10-28")
 #' }
 #' @export
-sits_cube.deafrica_cube <- function(type = "DEAFRICA", ...,
+sits_cube.deafrica_cube <- function(type = "DEAFRICA",
+                                    ...,
                                     name = "deafrica_cube",
                                     url = NULL,
                                     collection = NULL,
@@ -548,8 +548,8 @@ sits_cube.deafrica_cube <- function(type = "DEAFRICA", ...,
 #' )
 #'
 #' @param type              type of cube
-#' @param name              output data cube.
 #' @param ...               other parameters to be passed for specific types
+#' @param name              output data cube.
 #' @param bands             vector of bands.
 #' @param tiles             vector of tiles
 #' @param start_date        starting date of the cube
@@ -562,8 +562,6 @@ sits_cube.deafrica_cube <- function(type = "DEAFRICA", ...,
 #' \dontrun{
 #' # this example requires access to an external service, so should not be run
 #' # by CRAN
-#'
-#' # s3://sentinel-cogs/sentinel-s2-l2a-cogs/2017/S2A_35MNR_20171025_0_L2A/
 #'
 #' # Provide your AWS credentials here
 #' # Sys.setenv(
@@ -587,8 +585,8 @@ sits_cube.deafrica_cube <- function(type = "DEAFRICA", ...,
 #' }
 #'
 sits_cube.s2_l2a_aws_cube <- function(type = "S2_L2A_AWS",
-                                      name = NULL,
                                       ...,
+                                      name = NULL,
                                       bands = NULL,
                                       tiles = NULL,
                                       start_date = NULL,
@@ -634,8 +632,8 @@ sits_cube.s2_l2a_aws_cube <- function(type = "S2_L2A_AWS",
 #'  n. 3, p. 92, 2019. DOI: 10.3390/data4030092
 #'
 #' @param type        Type of cube.
-#' @param name        Name of output data cube.
 #' @param ...         Other parameters to be passed for the function
+#' @param name        Name of output data cube.
 #'  \code{write_tif} of gdalcubes package.
 #' @param cube        A Sentinel-2 L2A AWS data cube
 #' @param path_images A \code{character} with the path where the
@@ -687,8 +685,8 @@ sits_cube.s2_l2a_aws_cube <- function(type = "S2_L2A_AWS",
 #' }
 #'
 sits_cube.gdalcubes_cube <- function(type = "GDALCUBES",
-                                     name,
                                      ...,
+                                     name,
                                      cube,
                                      path_images,
                                      path_db = NULL,
@@ -740,8 +738,8 @@ sits_cube.gdalcubes_cube <- function(type = "GDALCUBES",
 #'              The timeline for the cube must be provided.
 #'
 #' @param type              type of cube
-#' @param names             names of output data cube
 #' @param ...               other parameters
+#' @param names             names of output data cube
 #' @param satellite         satellite
 #' @param sensor            sensor
 #' @param timeline          vector with timeline of the files
@@ -766,7 +764,7 @@ sits_cube.gdalcubes_cube <- function(type = "GDALCUBES",
 #' # create a raster cube file based on the information about the files
 #' probs_cube <- sits_cube(
 #'     type = "PROBS",
-#'     name = "Sinop-crop-probs",
+#'     names = "Sinop-crop-probs",
 #'     satellite = "TERRA",
 #'     sensor  = "MODIS",
 #'     timeline = timeline_2013_2014,
@@ -775,8 +773,8 @@ sits_cube.gdalcubes_cube <- function(type = "GDALCUBES",
 #' )
 #' @export
 sits_cube.probs_cube <- function(type = "PROBS",
-                                 names = "probs_cube",
                                  ...,
+                                 names = "probs_cube",
                                  satellite,
                                  sensor,
                                  timeline,

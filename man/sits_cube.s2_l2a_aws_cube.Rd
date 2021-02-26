@@ -6,8 +6,8 @@
 \usage{
 \method{sits_cube}{s2_l2a_aws_cube}(
   type = "S2_L2A_AWS",
-  name = NULL,
   ...,
+  name = NULL,
   bands = NULL,
   tiles = NULL,
   start_date = NULL,
@@ -18,9 +18,9 @@
 \arguments{
 \item{type}{type of cube}
 
-\item{name}{output data cube.}
-
 \item{...}{other parameters to be passed for specific types}
+
+\item{name}{output data cube.}
 
 \item{bands}{vector of bands.}
 
@@ -58,8 +58,6 @@ Sys.setenv(\cr
 \dontrun{
 # this example requires access to an external service, so should not be run
 # by CRAN
-
-# s3://sentinel-cogs/sentinel-s2-l2a-cogs/2017/S2A_35MNR_20171025_0_L2A/
 
 # Provide your AWS credentials here
 # Sys.setenv(

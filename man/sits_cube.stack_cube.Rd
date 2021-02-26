@@ -6,8 +6,8 @@
 \usage{
 \method{sits_cube}{stack_cube}(
   type = "STACK",
-  name = "stack_cube",
   ...,
+  name = "stack_cube",
   satellite,
   sensor,
   bands = NULL,
@@ -21,9 +21,9 @@
 \arguments{
 \item{type}{type of cube}
 
-\item{name}{name of output data cube}
-
 \item{...}{other parameters}
+
+\item{name}{name of output data cube}
 
 \item{satellite}{satellite}
 

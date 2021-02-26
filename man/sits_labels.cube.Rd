@@ -16,6 +16,7 @@ A list of labels
 Returns the labels and its respective counting and frequency.
 }
 \examples{
+\donttest{
 # Classify a raster file with 23 instances for one year
 ndvi_file <- c(system.file("extdata/raster/mod13q1/sinop-ndvi-2014.tif",
 package = "sits"))
@@ -50,4 +51,5 @@ sinop_label <- sits_label_classification(sinop_probs, output_dir = tempdir())
 
 # return the labels
 sits_labels(sinop_label)
+}
 }

@@ -6,8 +6,8 @@
 \usage{
 \method{sits_cube}{gdalcubes_cube}(
   type = "GDALCUBES",
-  name,
   ...,
+  name,
   cube,
   path_images,
   path_db = NULL,
@@ -20,9 +20,9 @@
 \arguments{
 \item{type}{Type of cube.}
 
-\item{name}{Name of output data cube.}
+\item{...}{Other parameters to be passed for the function}
 
-\item{...}{Other parameters to be passed for the function
+\item{name}{Name of output data cube.
 \code{write_tif} of gdalcubes package.}
 
 \item{cube}{A Sentinel-2 L2A AWS data cube}

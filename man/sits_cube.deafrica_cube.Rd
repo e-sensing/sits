@@ -66,7 +66,7 @@ We are working on supporting the other products offered by DEAfrica STAC.
 # "AWS_ACCESS_KEY_ID"     = <your_access_key>,
 # "AWS_SECRET_ACCESS_KEY" = <your_secret_access_key>,
 # "AWS_DEFAULT_REGION"    = <your AWS region>,
-# "AWS_ENDPOINT" = "sentinel-s2-l2a.s3.amazonaws.com",
+# "AWS_ENDPOINT" = <your_end_point>,
 # "AWS_REQUEST_PAYER"     = "requester"
 # )
 

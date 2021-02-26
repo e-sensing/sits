@@ -4,14 +4,12 @@
 \alias{sits_cube}
 \title{Defines a data cube}
 \usage{
-sits_cube(type = "RASTER", name, ...)
+sits_cube(type = "RASTER", ...)
 }
 \arguments{
 \item{type}{Type of cube (one of "WTSS", "BRICK", "STACK",
 "BDC_TILE", "S2_L2A_AWS", "GDALCUBES", "PROBS",
 "CLASSIFIED")}
-
-\item{name}{Name of the output data cube.}
 
 \item{...}{Other parameters to be passed for specific types}
 }

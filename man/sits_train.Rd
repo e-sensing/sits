@@ -36,12 +36,10 @@ and different deep learning functions, including multi-layer perceptrons
 \examples{
 # Retrieve the set of samples for Mato Grosso (provided by EMBRAPA)
 # fit a training model (RFOR model)
-samples_2bands <- sits_select(samples_mt_4bands, bands = c("NDVI", "EVI"))
-ml_model <- sits_train(samples_2bands, sits_rfor(num_trees = 500))
+samples <- sits_select(samples_mt_6bands, bands = c("NDVI"))
+ml_model <- sits_train(samples, sits_rfor(num_trees = 100))
 # get a point and classify the point with the ml_model
-point.tb <- sits_select(point_mt_6bands, bands = c("NDVI", "EVI"))
-class.tb <- sits_classify(point.tb, ml_model)
-plot(class.tb, bands = c("NDVI", "EVI"))
+class <- sits_classify(point_ndvi, ml_model)
 }
 \author{
 Rolf Simoes, \email{rolf.simoes@inpe.br}
