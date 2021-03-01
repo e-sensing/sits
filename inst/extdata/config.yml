@@ -114,10 +114,10 @@ default:
 
     OLI                     : &landsat
         bands               :
-            SITS            : &oli_bands_sits ["B1", "B2", "B3", "B4", "B5", "B6", "B7", "NDVI", "EVI", "FMASK"]
-            BDC             : ["BAND1", "BAND2", "BAND3", "BAND4", "BAND5", "BAND6", "BAND7", "NDVI", "EVI", "FMASK"]
+            SITS            : &oli_bands_sits ["B1", "B2", "B3", "B4", "B5", "B6", "B7", "NDVI", "EVI", "FMASK4"]
+            BDC             : ["BAND1", "BAND2", "BAND3", "BAND4", "BAND5", "BAND6", "BAND7", "NDVI", "EVI", "FMASK4"]
             RASTER          : *oli_bands_sits
-            cloud_band      : "FMASK"
+            cloud_band      : "FMASK4"
 
         missing_value       :
             NDVI            : -9999
@@ -129,7 +129,7 @@ default:
             B5              : -9999
             B6              : -9999
             B7              : -9999
-            FMASK           : 255
+            FMASK4          : 255
 
         minimum_value       :
             NDVI            : -3000
@@ -141,7 +141,7 @@ default:
             B5              : 0
             B6              : 0
             B7              : 0
-            FMASK           : 0
+            FMASK4          : 0
 
         maximum_value       :
             NDVI            : 10000
@@ -153,7 +153,7 @@ default:
             B5              : 10000
             B6              : 10000
             B7              : 10000
-            FMASK           : 255
+            FMASK4          : 255
 
         scale_factor:
             NDVI            : 0.0001
@@ -165,7 +165,7 @@ default:
             B5              : 0.0001
             B6              : 0.0001
             B7              : 0.0001
-            FMASK           : 1
+            FMASK4          : 1
 
         resolution          :
             xres            : 30
@@ -392,6 +392,7 @@ default:
         terra               : &bands-sv ["NDVI", "EVI"]
         aqua                : *bands-sv
         comb                : *bands-sv
+
     SATVEG_bbox             :
         terra               :
             xmin            : &xmin_satveg -81.2341
@@ -418,10 +419,12 @@ default:
         comb                :
             nrows           : *nrows_satveg
             ncols           : *ncols_satveg
+
     SATVEG_prefilter        :
         terra               : &prefilter ["0", "1", "2", "3"] # "0" - none, "1" - no data correction, "2" - cloud correction, "3" - no data and cloud correction
         aqua                : *prefilter
         comb                : *prefilter
+
     SATVEG_crs              :
         terra               : &crs-wgs84 "+proj=longlat +ellps=WGS84 +datum=WGS84 +no_defs"
         aqua                : *crs-wgs84
