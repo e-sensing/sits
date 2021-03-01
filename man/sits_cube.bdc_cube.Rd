@@ -58,9 +58,6 @@ Defines a cube to retrieve data from the Brazil Data Cube (BDC)
 # by CRAN
 
 # Provide your BDC credentials as enviroment variables
-# Sys.setenv(
-# "BDC_ACCESS_KEY" = <your_bdc_access_key>
-# )
 
 # create a raster cube file based on the information about the files
 cbers_tile <- sits_cube(
