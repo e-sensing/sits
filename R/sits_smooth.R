@@ -299,9 +299,7 @@ sits_smooth.bayes <- function(cube, type = "bayes", ...,
 #' }
 #'
 #' @export
-sits_smooth.gaussian <- function(cube,
-                                 type = "gaussian",
-                                 ...,
+sits_smooth.gaussian <- function(cube, type = "gaussian", ...,
                                  window_size = 5,
                                  sigma = 1,
                                  multicores = 1,
