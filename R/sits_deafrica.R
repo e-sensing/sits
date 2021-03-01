@@ -2,7 +2,7 @@
 #' @name .sits_deafrica_items
 #' @keywords internal
 #'
-#' @param url        a \code{character} representing a URL for the BDC catalog.
+#' @param url        a \code{character} representing a URL for the DEA catalog.
 #' @param collection a \code{character} with the collection to be searched.
 #' @param tiles      a \code{character} with the names of the tiles.
 #' @param roi        selects images (tiles) that intersect according to the
@@ -152,7 +152,8 @@
     item_prop <- items$features[[1]]$properties
 
     # get bands from sensor and application
-    bands_sensor <- .sits_config_deafrica_bands(item_prop$instruments)
+    bands_sensor <- .sits_config_sensor_bands(sensor = item_prop$instruments,
+                                              cube = "DEAFRICA")
 
     # get bands name from assets list name property
     bands_product <- purrr::map_chr(items$features[[1]]$assets, function(bands){

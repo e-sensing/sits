@@ -16,7 +16,7 @@
 )
 }
 \arguments{
-\item{url}{a \code{character} representing a URL for the BDC catalog.}
+\item{url}{a \code{character} representing a URL for the DEA catalog.}
 
 \item{collection}{a \code{character} with the collection to be searched.}
 
