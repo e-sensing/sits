@@ -12,7 +12,7 @@ default:
     cube_classes            : ["wtss_cube", "satveg_cube", "brick_cube", "stack_cube", "raster_cube", "bdc_cube", "deafrica_cube", "s2_l2a_aws_cube", "gdalcubes_cube",  "probs_cube", "classified_image"]
 
     # Image file extensions known to SITS
-    img_file_extensions     : ["tiff", "tif", "jp2", "hdf"]
+    img_file_extensions     : ["tiff", "tif", "jp2", "hdf", "vrt"]
 
     # BDC configuration for access to data
     bdc_stac                : "https://brazildatacube.dpi.inpe.br/stac/"
@@ -63,7 +63,7 @@ default:
 
     MODIS                   :
         bands               :
-            SITS            : ["BLUE", "RED", "NIR", "MIR"]
+            SITS            : ["NDVI", "EVI", "BLUE", "RED", "NIR", "MIR"]
         missing_value       :
             NDVI            : -3000
             EVI             : -3000
@@ -114,10 +114,10 @@ default:
 
     OLI                     : &landsat
         bands               :
-            SITS            : &oli_bands_sits ["B1", "B2", "B3", "B4", "B5", "B6", "B7", "NDVI", "EVI", "FMASK4"]
-            BDC             : ["BAND1", "BAND2", "BAND3", "BAND4", "BAND5", "BAND6", "BAND7", "NDVI", "EVI", "FMASK4"]
+            SITS            : &oli_bands_sits ["B1", "B2", "B3", "B4", "B5", "B6", "B7", "NDVI", "EVI", "FMASK"]
+            BDC             : ["BAND1", "BAND2", "BAND3", "BAND4", "BAND5", "BAND6", "BAND7", "NDVI", "EVI", "FMASK"]
             RASTER          : *oli_bands_sits
-            cloud_band      : "FMASK4"
+            cloud_band      : "FMASK"
 
         missing_value       :
             NDVI            : -9999
@@ -250,7 +250,7 @@ default:
             10              : "thin cirrus"
             11              : "snow or ice"
 
-        FMASK_values        :
+        FMASK4_values       :
             0               : "clear land pixel"
             1               : "clear water pixel"
             2               : "cloud shadow"
@@ -277,6 +277,7 @@ default:
             B11             : -9999
             B12             : -9999
             SCL             : 0
+            FMASK4          : 255
 
         minimum_value       :
             EVI             : -9999
@@ -297,6 +298,7 @@ default:
             B11             : 0
             B12             : 0
             SCL             : 0
+            FMASK4          : 0
 
         maximum_value       :
             EVI             : 10000
@@ -317,6 +319,7 @@ default:
             B11             : 10000
             B12             : 10000
             SCL             : 1
+            FMASK4          : 255
 
         scale_factor:
             EVI             : 0.0001
@@ -337,6 +340,7 @@ default:
             B11             : 0.0001
             B12             : 0.0001
             SCL             : 1
+            FMASK4          : 1
 
         resolution          :
             xres            : 10
