@@ -290,9 +290,9 @@ sits_cube.brick_cube <- function(type = "BRICK",
 #' # by CRAN
 #'
 #' # Provide your BDC credentials as enviroment variables
-#' # Sys.setenv(
-#' # "BDC_ACCESS_KEY" = <your_bdc_access_key>
-#' # )
+# Sys.setenv(
+# "BDC_ACCESS_KEY" = <your_bdc_access_key>
+# )
 #'
 #' # create a raster cube file based on the information about the files
 #' cbers_tile <- sits_cube(
@@ -547,15 +547,20 @@ sits_cube.deafrica_cube <- function(type = "DEAFRICA",
 #'      "AWS_REQUEST_PAYER"     = "requester" \cr
 #' )
 #'
-#' @param type              type of cube
-#' @param ...               other parameters to be passed for specific types
-#' @param name              output data cube.
-#' @param bands             vector of bands.
-#' @param tiles             vector of tiles
-#' @param start_date        starting date of the cube
-#' @param end_date          ending date of the cube
-#' @param s2_aws_resolution resolution of S2 images ("10m", "20m" or "60m")
-#' @return                  data cube
+#' @param type          type of cube
+#' @param ...           other parameters to be passed for specific types
+#' @param name          output data cube.
+#' @param collection    AWS collection to be searched (mandatory).
+#' @param tiles         Tile names to be searched (optional).
+#' @param bands         Bands names to be filtered (optional).
+#' @param s2_resolution resolution of S2 images ("10m", "20m" or "60m");
+#' @param roi           selects images (tiles) that intersect according to the
+#'  region of interest provided. Expressed either as an \code{sfc} or \code{sf}
+#'  object from sf package, or a \code{vector} with bounding box named XY values
+#'  in WGS 84 ("xmin", "xmax", "ymin", "ymax").
+#' @param start_date    Initial date for the cube files (optional).
+#' @param end_date      Final date for the cube files (optional).
+#' @return              data cube
 #' @export
 #'
 #' @examples
@@ -572,51 +577,100 @@ sits_cube.deafrica_cube <- function(type = "DEAFRICA",
 #' # "AWS_REQUEST_PAYER"     = "requester"
 #' # )
 #'
-#' s2_cube <- sits_cube(
-#'     type = "S2_L2A_AWS",
-#'     name = "T20LKP_2018_2019",
-#'     satellite = "SENTINEL-2",
-#'     sensor = "MSI",
-#'     tiles = "20LKP",
-#'     s2_aws_resolution = "20m",
-#'     start_date = as.Date("2018-07-18"),
-#'     end_date = as.Date("2018-07-23")
-#' )
+#' cube_s2 <- sits::sits_cube(type = "S2_L2A_AWS",
+#'                            name = "s2_cube",
+#'                            collection = "sentinel-s2-l2a",
+#'                            bands = c("B04", "B08"),
+#'                            s2_resolution = "20m",
+#'                            roi = c("xmin" = 17.379,
+#'                                    "ymin" = 1.1573,
+#'                                    "xmax" = 17.410,
+#'                                    "ymax" = 1.1910),
+#'                            start_date = "2019-01-01",
+#'                            end_date = "2019-10-28")
+#'
 #' }
 #'
 sits_cube.s2_l2a_aws_cube <- function(type = "S2_L2A_AWS",
                                       ...,
                                       name = NULL,
-                                      bands = NULL,
+                                      url = NULL,
+                                      collection = NULL,
                                       tiles = NULL,
+                                      bands = NULL,
+                                      s2_resolution = NULL,
+                                      roi = NULL,
                                       start_date = NULL,
-                                      end_date = NULL,
-                                      s2_aws_resolution = NULL) {
-    # precondition - is AWS access available?
-    aws_access_ok <- .sits_aws_check_access(type = type)
-    if (!aws_access_ok)
-          return(NULL)
+                                      end_date = NULL) {
 
-    tiles_cube <- purrr::map(tiles, function(tile) {
-        stack <- .sits_s2_l2a_aws_info_tiles(
-            tile = tile,
-            bands = bands,
-            resolution = s2_aws_resolution,
-            start_date = start_date,
-            end_date = end_date
-        )
-        cube_t <- .sits_s2_l2a_aws_tile_cube(
-            name = name,
-            bands = bands,
-            tile = tile,
-            file_info = stack
-        )
+  # require package
+  if (!requireNamespace("rstac", quietly = TRUE)) {
+    stop(paste("Please install package rstac from CRAN:",
+               "install.packages('rstac')"), call. = FALSE
+    )
+  }
 
-        class(cube_t) <- c("stack_cube", "raster_cube", class(cube_t))
-        return(cube_t)
-    })
-    cube <- dplyr::bind_rows(tiles_cube)
-    return(cube)
+  # precondition - is the url correct?
+  if (purrr::is_null(url)) {
+    url <- .sits_config_aws_stac()
+  }
+
+  # test if AWS STAC is accessible
+  assertthat::assert_that(.sits_config_bdc_stac_access(url),
+                          msg = "AWS STAC is not accessible"
+  )
+
+  # precondition - is the collection name valid?
+  assertthat::assert_that(!purrr::is_null(collection),
+                          msg = paste("sits_cube: AWS STAC collection must",
+                                      "be provided")
+  )
+
+  assertthat::assert_that(!(length(collection) > 1),
+                          msg = paste("sits_cube: for AWS STAC one",
+                                      "collection should be specified")
+  )
+
+  bands <- .sits_aws_check_bands(bands, s2_resolution)
+
+  # retrieve item information
+  items_info <- .sits_aws_items(
+    url = url,
+    collection = collection,
+    tiles = tiles,
+    roi = roi,
+    start_date = start_date,
+    end_date  = end_date,
+    bands = bands,
+    ...
+  )
+
+  # creating a group of items per tile
+  items_group <- .sits_stac_group(items_info,
+                                  fields = c("properties", "tile")
+  )
+
+  tiles <- purrr::map(items_group, function(items) {
+
+    # retrieve the information from STAC
+    stack <- .sits_stac_items_info(items, items$bands)
+
+    # add the information for each tile
+    cube_t <- .sits_aws_tile_cube(
+      url = url,
+      name = name,
+      items = items,
+      cube = collection,
+      resolution = s2_resolution,
+      file_info = stack
+    )
+
+    class(cube_t) <- c("stack_cube", "raster_cube", class(cube_t))
+    return(cube_t)
+  })
+  cube <- dplyr::bind_rows(tiles)
+
+  return(cube)
 }
 #' @title Create a composed data cube for a Sentinel-2 L2A AWS cube
 #' @name sits_cube.gdalcubes_cube
