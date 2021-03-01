@@ -290,9 +290,9 @@ sits_cube.brick_cube <- function(type = "BRICK",
 #' # by CRAN
 #'
 #' # Provide your BDC credentials as enviroment variables
-# Sys.setenv(
-# "BDC_ACCESS_KEY" = <your_bdc_access_key>
-# )
+#' #Sys.setenv(
+#' #"BDC_ACCESS_KEY" = <your_bdc_access_key>
+#' #)
 #'
 #' # create a raster cube file based on the information about the files
 #' cbers_tile <- sits_cube(
@@ -631,6 +631,7 @@ sits_cube.s2_l2a_aws_cube <- function(type = "S2_L2A_AWS",
                                       "collection should be specified")
   )
 
+  # select bands by resolution
   bands <- .sits_aws_check_bands(bands, s2_resolution)
 
   # retrieve item information
