@@ -125,9 +125,7 @@ sits_smooth <- function(cube, type = "bayes", ...) {
 #' }
 #'
 #' @export
-sits_smooth.bayes <- function(cube,
-                              type = "bayes",
-                              ...,
+sits_smooth.bayes <- function(cube, type = "bayes", ...,
                               window_size = 5,
                               smoothness = 20,
                               covar = FALSE,
