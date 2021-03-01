@@ -268,7 +268,8 @@ sits_cube.brick_cube <- function(type = "BRICK",
 #' @param type       Type of cube.
 #' @param ...        Other parameters to be passed for specific types.
 #' @param name       Name of the output data cube.
-#' @param url        URL for the BDC catalog (mandatory).
+#' @param url        URL for the BDC catalog (optional). By default,
+#' 'https://brazildatacube.dpi.inpe.br/stac/' will be used.
 #' @param collection BDC collection to be searched (mandatory).
 #' @param tiles      Tile names to be searched (optional).
 #' @param bands      Bands names to be filtered (optional).
@@ -407,7 +408,8 @@ sits_cube.bdc_cube <- function(type = "BDC",
 #' @param type       Type of cube.
 #' @param ...        Other parameters to be passed for specific types.
 #' @param name       Name of the output data cube (optional).
-#' @param url        URL for the DEAfrica catalog (mandatory).
+#' @param url        URL for the DEAfrica catalog (optional). By default,
+#' 'https://explorer.digitalearth.africa/stac/' will be used.
 #' @param collection DEAFRICA collection to be searched (mandatory).
 #' @param tiles      Tile names to be searched (optional).
 #' @param bands      Bands names to be filtered (optional).
@@ -550,6 +552,8 @@ sits_cube.deafrica_cube <- function(type = "DEAFRICA",
 #' @param type          type of cube
 #' @param ...           other parameters to be passed for specific types
 #' @param name          output data cube.
+#' @param url           URL for the STAC AWS catalog (optional). By default,
+#' 'https://earth-search.aws.element84.com/v0/' will be used.
 #' @param collection    AWS collection to be searched (mandatory).
 #' @param tiles         Tile names to be searched (optional).
 #' @param bands         Bands names to be filtered (optional).

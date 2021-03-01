@@ -25,6 +25,9 @@
 
 \item{name}{output data cube.}
 
+\item{url}{URL for the STAC AWS catalog (optional). By default,
+'https://earth-search.aws.element84.com/v0/' will be used.}
+
 \item{collection}{AWS collection to be searched (mandatory).}
 
 \item{tiles}{Tile names to be searched (optional).}

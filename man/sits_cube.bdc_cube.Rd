@@ -24,7 +24,8 @@
 
 \item{name}{Name of the output data cube.}
 
-\item{url}{URL for the BDC catalog (mandatory).}
+\item{url}{URL for the BDC catalog (optional). By default,
+'https://brazildatacube.dpi.inpe.br/stac/' will be used.}
 
 \item{collection}{BDC collection to be searched (mandatory).}
 
