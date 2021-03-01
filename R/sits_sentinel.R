@@ -56,11 +56,12 @@
         rstac_query <- rstac_query %>%
             rstac::ext_query("sentinel:utm_zone" %in% sep_tile$utm_zone,
                              "sentinel:latitude_band" %in% sep_tile$lat_band,
-                             "sentinel:grid_square" %in% sep_tile$grid_square)
+                             "sentinel:grid_square" %in% sep_tile$grid_square,
+                             ...)
     }
 
     # making the request
-    items_info <- rstac_query %>% rstac::post_request(...)
+    items_info <- rstac_query %>% rstac::post_request()
 
     # checks if the collection returned any items
     assertthat::assert_that(!(rstac::items_length(items_info) == 0),
