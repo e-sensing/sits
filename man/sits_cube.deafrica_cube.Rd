@@ -24,7 +24,8 @@
 
 \item{name}{Name of the output data cube (optional).}
 
-\item{url}{URL for the DEAfrica catalog (mandatory).}
+\item{url}{URL for the DEAfrica catalog (optional). By default,
+'https://explorer.digitalearth.africa/stac/' will be used.}
 
 \item{collection}{DEAFRICA collection to be searched (mandatory).}
 

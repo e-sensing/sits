@@ -24,7 +24,8 @@
 
 \item{name}{Name of the output data cube.}
 
-\item{url}{URL for the BDC catalog (mandatory).}
+\item{url}{URL for the BDC catalog (optional). By default,
+'https://brazildatacube.dpi.inpe.br/stac/' will be used.}
 
 \item{collection}{BDC collection to be searched (mandatory).}
 
@@ -58,9 +59,9 @@ Defines a cube to retrieve data from the Brazil Data Cube (BDC)
 # by CRAN
 
 # Provide your BDC credentials as enviroment variables
-# Sys.setenv(
-# "BDC_ACCESS_KEY" = <your_bdc_access_key>
-# )
+#Sys.setenv(
+#"BDC_ACCESS_KEY" = <your_bdc_access_key>
+#)
 
 # create a raster cube file based on the information about the files
 cbers_tile <- sits_cube(
