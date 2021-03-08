@@ -332,9 +332,6 @@
                                  cube,
                                  file_info) {
 
-    # obtain the timeline
-    timeline <- unique(lubridate::as_date(file_info$date))
-
     # set the labels
     labels <- c("NoClass")
 
@@ -357,11 +354,6 @@
                               tile      = items$tile,
                               bands     = collection$bands,
                               labels    = labels,
-                              scale_factors  = metadata_values$scale,
-                              missing_values = metadata_values$nodata,
-                              minimum_values = metadata_values$min,
-                              maximum_values = metadata_values$max,
-                              timelines = list(timeline),
                               nrows     = items$nrows,
                               ncols     = items$ncols,
                               xmin      = bbox$xmin[[1]],

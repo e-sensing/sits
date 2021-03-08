@@ -156,8 +156,6 @@
     # set the satellite and the sensor
     satellite <- "SENTINEL-2"
     sensor <- "MSI"
-    # obtain the timeline
-    timeline <- unique(lubridate::as_date(file_info$date))
 
     # set the labels
     labels <- c("NoClass")
@@ -175,15 +173,6 @@
     # obtain the parameters
     params <- .sits_raster_api_params_file(file_info$path[1])
 
-    # get scale factors
-    scale_factors <- .sits_config_scale_factors(sensor, bands)
-    # get missing values
-    missing_values <- .sits_config_missing_values(sensor, bands)
-    # get minimum values
-    minimum_values <- .sits_config_minimum_values(sensor, bands)
-    # get maximum values
-    maximum_values <- .sits_config_maximum_values(sensor, bands)
-
 
     # create a tibble to store the metadata
     cube <- .sits_cube_create(
@@ -195,11 +184,6 @@
         tile = tile,
         bands = bands,
         labels = labels,
-        scale_factors = scale_factors,
-        missing_values = missing_values,
-        minimum_values = minimum_values,
-        maximum_values = maximum_values,
-        timelines = list(timeline),
         nrows = params$nrows,
         ncols = params$ncols,
         xmin = params$xmin,

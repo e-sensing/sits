@@ -105,7 +105,26 @@
     data1 <- dplyr::bind_rows(data1, rows)
     return(data1)
 }
+#' @title Checks that the timeline of all time series of a data set are equal
+#' @name .sits_check_timeline
+#' @keywords internal
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
+#'
+#' @description This function tests if all time series in a sits tibble
+#' have the same number of samples
+#'
+#' @param  data  Either a sits tibble
+#' @return       TRUE if the length of time series is unique
+#'
+.sits_check_timeline <- function(data) {
 
+    .sits_test_tibble(data)
+
+    if (length(unique(lapply(data$time_series, nrow))) == 1)
+        return(TRUE)
+    else
+        return(FALSE)
+}
 
 
 

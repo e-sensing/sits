@@ -8,8 +8,8 @@ default:
     rstac_pagination_limit   : 1000
 
     # Data cube types known to sits
-    cube_types              : ["WTSS", "SATVEG", "BRICK", "STACK", "RASTER", "BDC", "DEAFRICA", "S2_L2A_AWS", "GDALCUBES", "PROBS", "CLASSIFIED"]
-    cube_classes            : ["wtss_cube", "satveg_cube", "brick_cube", "stack_cube", "raster_cube", "bdc_cube", "deafrica_cube", "s2_l2a_aws_cube", "gdalcubes_cube",  "probs_cube", "classified_image"]
+    cube_types              : ["WTSS", "SATVEG", "STACK", "RASTER", "BDC", "DEAFRICA", "S2_L2A_AWS", "GDALCUBES", "PROBS", "CLASSIFIED"]
+    cube_classes            : ["wtss_cube", "satveg_cube", "stack_cube", "raster_cube", "bdc_cube", "deafrica_cube", "s2_l2a_aws_cube", "gdalcubes_cube",  "probs_cube", "classified_image"]
 
     # Image file extensions known to SITS
     img_file_extensions     : ["tiff", "tif", "jp2", "hdf"]
@@ -63,7 +63,7 @@ default:
 
     MODIS                   :
         bands               :
-            SITS            : ["BLUE", "RED", "NIR", "MIR"]
+            SITS            : ["BLUE", "RED", "NIR", "MIR", "NDVI", "EVI"]
         missing_value       :
             NDVI            : -3000
             EVI             : -3000
@@ -71,9 +71,6 @@ default:
             RED             : -1000
             NIR             : -1000
             MIR             : -1000
-            SAVI            : -9999
-            NDMI            : -9999
-            GEMI            : -9999
 
         minimum_value       :
             NDVI            : -3000
@@ -82,9 +79,6 @@ default:
             RED             : 0
             NIR             : 0
             MIR             : 0
-            SAVI            : -10000
-            NDMI            : -10000
-            GEMI            : -10000
 
         maximum_value       :
             NDVI            : 10000
@@ -93,9 +87,6 @@ default:
             RED             : 10000
             NIR             : 10000
             MIR             : 10000
-            SAVI            : 10000
-            NDMI            : 10000
-            GEMI            : 10000
 
         scale_factor        :
             NDVI            : 0.0001
@@ -104,9 +95,6 @@ default:
             RED             : 0.0001
             NIR             : 0.0001
             MIR             : 0.0001
-            SAVI            : 0.0001
-            NDMI            : 0.0001
-            GEMI            : 0.0001
 
         resolution          :
             xres            : 0.00208334
@@ -428,6 +416,12 @@ default:
         scale_factor        : 0.0001
         minimum_value       : 0
         maximum_value       : 10000
+        missing_value       : -9999
+
+    CLASSIFIED              :
+        scale_factor        : 1
+        minimum_value       : 1
+        maximum_value       : 1000
         missing_value       : -9999
 
     colors:

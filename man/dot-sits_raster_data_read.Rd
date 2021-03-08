@@ -2,7 +2,7 @@
 % Please edit documentation in R/sits_raster_data.R
 \name{.sits_raster_data_read}
 \alias{.sits_raster_data_read}
-\title{Read a block of values retrieved from a set of raster bricks}
+\title{Read a block of values retrieved from a set of raster images}
 \usage{
 .sits_raster_data_read(
   cube,
@@ -11,8 +11,9 @@
   stats,
   filter,
   impute_fn,
-  multicores,
-  .verbose
+  interp_fn,
+  compose_fn,
+  multicores
 )
 }
 \arguments{
@@ -28,15 +29,17 @@
 
 \item{impute_fn}{impute function to replace NA}
 
-\item{multicores}{number of cores to process the time series.}
+\item{interp_fn}{function to interpolate points from cube to match samples}
 
-\item{.verbose}{print processing information}
+\item{compose_fn}{function to compose points from cube to match samples}
+
+\item{multicores}{number of cores to process the time series.}
 }
 \value{
 A data.table with values for classification.
 }
 \description{
-Read a block of values retrieved from a set of raster bricks
+Read a block of values retrieved from a set of raster images
 }
 \author{
 Gilberto Camara, \email{gilberto.camara@inpe.br}

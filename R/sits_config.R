@@ -520,6 +520,37 @@ sits_config_show <- function() {
     names(mis_val) <- bands
     return(mis_val)
 }
+#' @title Retrieve the scale factor for a label cube
+#' @name .sits_config_label_scale_factor
+#' @keywords internal
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
+.sits_config_label_scale_factor  <- function(){
+    return(sits_env$config[["CLASSIFIED"]][["scale_factor"]])
+}
+
+#' @title Retrieve the missing value for a label cube
+#' @name .sits_config_label_missing_value
+#' @keywords internal
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
+.sits_config_label_missing_value  <- function(){
+    return(sits_env$config[["CLASSIFIED"]][["missing_value"]])
+}
+
+#' @title Retrieve the minimum value for a label cube
+#' @name .sits_config_label_minimum_value
+#' @keywords internal
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
+.sits_config_label_minimum_value  <- function(){
+    return(sits_env$config[["CLASSIFIED"]][["minimum_value"]])
+}
+
+#' @title Retrieve the maximum value for a label cube
+#' @name .sits_config_label_maximum_value
+#' @keywords internal
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
+.sits_config_label_maximum_value  <- function(){
+    return(sits_env$config[["CLASSIFIED"]][["maximum_value"]])
+}
 #' @title Retrieve the scale factor for a probs cube
 #' @name .sits_config_probs_scale_factor
 #' @keywords internal

@@ -2,9 +2,74 @@
 % Please edit documentation in R/sits_get_data.R
 \name{sits_get_data}
 \alias{sits_get_data}
+\alias{sits_get_data.satveg_cube}
+\alias{sits_get_data.csv_satveg_cube}
+\alias{sits_get_data.shp_satveg_cube}
+\alias{sits_get_data.raster_cube}
+\alias{sits_get_data.csv_raster_cube}
+\alias{sits_get_data.shp_raster_cube}
 \title{Obtain time series from different sources}
 \usage{
 sits_get_data(cube, file = NULL, ...)
+
+\method{sits_get_data}{satveg_cube}(
+  cube,
+  file = NULL,
+  ...,
+  longitude = NULL,
+  latitude = NULL,
+  start_date = NULL,
+  end_date = NULL,
+  label = "NoClass"
+)
+
+\method{sits_get_data}{csv_satveg_cube}(cube, file, ...)
+
+\method{sits_get_data}{shp_satveg_cube}(
+  cube,
+  file,
+  ...,
+  start_date = NULL,
+  end_date = NULL,
+  label = "NoClass",
+  shp_attr = NULL,
+  .n_shp_pol = 30
+)
+
+\method{sits_get_data}{raster_cube}(
+  cube,
+  file = NULL,
+  ...,
+  longitude = NULL,
+  latitude = NULL,
+  start_date = NULL,
+  end_date = NULL,
+  bands = NULL,
+  label = "NoClass",
+  impute_fn = sits_impute_linear()
+)
+
+\method{sits_get_data}{csv_raster_cube}(
+  cube,
+  file,
+  ...,
+  bands = NULL,
+  impute_fn = sits_impute_linear(),
+  .n_pts_csv = NULL
+)
+
+\method{sits_get_data}{shp_raster_cube}(
+  cube,
+  file,
+  ...,
+  start_date = NULL,
+  end_date = NULL,
+  bands = NULL,
+  label = "NoClass",
+  impute_fn = sits_impute_linear(),
+  shp_attr = NULL,
+  .n_shp_pol = 30
+)
 }
 \arguments{
 \item{cube}{Data cube from where data is to be retrieved.}
@@ -12,6 +77,30 @@ sits_get_data(cube, file = NULL, ...)
 \item{file}{File with information on the data to be retrieved.}
 
 \item{...}{Other parameters to be passed for specific types.}
+
+\item{longitude}{Longitude of the chosen location.}
+
+\item{latitude}{Latitude of the chosen location.}
+
+\item{start_date}{Start of the interval for the time series
+in "YYYY-MM-DD" format (optional).}
+
+\item{end_date}{End of the interval for the time series in
+"YYYY-MM-DD" format (optional).}
+
+\item{label}{Label to be assigned to the time series (optional).}
+
+\item{shp_attr}{Attribute in the shapefile to be used
+as a polygon label.}
+
+\item{.n_shp_pol}{Number of samples per polygon to be read
+(for POLYGON or MULTIPOLYGON shapefile).}
+
+\item{bands}{Bands to be retrieved (optional).}
+
+\item{impute_fn}{Imputation function for NA values.}
+
+\item{.n_pts_csv}{Number of points from CSV file to be retrieved.}
 }
 \value{
 A tibble with the metadata and data for each time series
@@ -27,14 +116,14 @@ has the metadata and data for each time series. The columns are
 There are many ways of retrieving time series:
 \itemize{
 \item{SATVEG: }{Retrieve data from SATVEG service using a lat/long point
- (\code{\link[sits]{sits_get_data.satveg_cube}}),
- a CSV file (\code{\link[sits]{sits_get_data.csv_satveg_cube}})
- or a SHP file (\code{\link[sits]{sits_get_data.shp_satveg_cube}})}
+ (see S3 method for class 'satveg_cube'),
+ a CSV file (see S3 method for class 'csv_satveg_cube')
+ or a SHP file (see S3 method for class 'shp_satveg_cube')}
 
-\item{RASTER: }{Retrieve data from a RASTER cube using a lat/long point
- (\code{\link[sits]{sits_get_data.raster_cube}}),
- a CSV file (\code{\link[sits]{sits_get_data.csv_raster_cube}})
- or a SHP file (\code{\link[sits]{sits_get_data.shp_raster_cube}})}
+\item{RASTER: }{Retrieve data from any raster cube using a lat/long point
+ (see S3 method for class 'raster_cube'),
+ a CSV file (see S3 method for class 'csv_raster_cube')
+ or a SHP file (see S3 method for class 'shp_raster_cube')}
 
 }
 
@@ -44,6 +133,45 @@ Please see the \code{\link[sits]{sits_config}} for more information.
 
 Before using this service, the user should create a valid description
 of a data cube using the \code{\link[sits]{sits_cube}} function.
+}
+\examples{
+\dontrun{
+# -- Extracting data from SATVEG service
+cube_terra <- sits_cube(type = "SATVEG", name = "terra")
+point_terra <- sits_get_data(cube_terra,
+    longitude = -55.50563, latitude = -11.71557
+)
+plot(point_terra)
+}
+
+# -- Read a point in a raster data cube
+
+# Create a data cube based on files
+data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
+raster_cube <- sits_cube(
+    type = "STACK",
+    name = "sinop-2014",
+    satellite = "TERRA",
+    sensor = "MODIS",
+    data_dir = data_dir,
+    delim = "_",
+    parse_info = c("X1", "X2", "band", "date")
+)
+
+# read the time series of the point from the raster
+point_ts <- sits_get_data(raster_cube,
+    longitude = -55.554,
+    latitude = -11.525
+)
+
+# --- Read a set of points described by a CSV file
+
+# read data from a CSV file
+csv_file <- system.file("extdata/samples/samples_sinop_crop.csv",
+    package = "sits"
+)
+points_csv <- sits_get_data(raster_cube, file = csv_file)
+
 }
 \references{
 Lubia Vinhas, Gilberto Queiroz, Karine Ferreira, Gilberto Camara,

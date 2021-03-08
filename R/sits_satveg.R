@@ -11,14 +11,8 @@
     # get the bands
     bands <- .sits_config_satveg_bands()
 
-    # get scale factors, missing values and minimum values
-    scale_factors <- .sits_config_scale_factors(sensor, bands)
-    missing_values <- .sits_config_missing_values(sensor, bands)
-    minimum_values <- .sits_config_minimum_values(sensor, bands)
-    maximum_values <- .sits_config_maximum_values(sensor, bands)
-
     # get the timeline
-    timeline <- lubridate::as_date(.sits_satveg_timeline())
+    # timeline <- lubridate::as_date(.sits_satveg_timeline())
 
     # get the size of the cube
     size <- .sits_config_satveg_size(name)
@@ -50,11 +44,6 @@
         sensor = sensor,
         name = name,
         bands = bands,
-        scale_factors = scale_factors,
-        missing_values = missing_values,
-        minimum_values = minimum_values,
-        maximum_values = maximum_values,
-        timelines = list(timeline),
         nrows = nrows,
         ncols = ncols,
         xmin = xmin,

@@ -39,26 +39,28 @@ files <- c(system.file("extdata/raster/mod13q1/sinop-crop-ndvi.tif",
 ))
 
 # create a data cube based on the information about the files
-sinop <- sits_cube(
-    type = "BRICK", satellite = "TERRA",
-    sensor = "MODIS", name = "Sinop-crop",
-    timeline = timeline_modis_392,
-    output_dir = tempdir(),
-    bands = c("NDVI"), files = files
+cube <- sits_cube(
+    type = "STACK",
+    name = "sinop-2014",
+    satellite = "TERRA",
+    sensor = "MODIS",
+    data_dir = data_dir,
+    delim = "_",
+    parse_info = c("X1", "X2", "band", "date")
 )
 
 # classify the raster image
-sinop_probs <- sits_classify(sinop,
+probs_cube <- sits_classify(cube,
     ml_model = rfor_model,
     output_dir = tempdir(),
     memsize = 4, multicores = 2
 )
 
 # label the classification and smooth the result with a bayesian filter
-sinop_label <- sits_label_classification(sinop_probs, output_dir = tempdir())
+label_cube <- sits_label_classification(probs_cube, output_dir = tempdir())
 
 # smooth the result with a majority filter
-sinop_label_maj <- sits_label_majority(sinop_label, output_dir = tempdir())
+label_maj_cube <- sits_label_majority(label_cube, output_dir = tempdir())
 
 }
 }

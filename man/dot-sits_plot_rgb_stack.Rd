@@ -24,7 +24,7 @@ Named vector with the correct layers for RGB
 }
 \description{
 Obtain a vector with the correct layer to be plotted for
-an RGB assignment of a multi-temporal brick cube
+an RGB assignment of a multi-temporal set of images
 }
 \author{
 Gilberto Camara \email{gilberto.camara@inpe.br}

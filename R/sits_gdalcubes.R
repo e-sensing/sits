@@ -79,9 +79,6 @@
                 date = images_date,
                 band = rep(band, length(path_write)),
                 res  = rep(res, length(path_write)))
-
-            # set timeline dates
-            cube_gc[i,]$timeline[[i]][[1]] <- c(images_date)
         }
     }
 

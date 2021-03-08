@@ -102,42 +102,38 @@ test_that("Reading a POLYGON shapefile from SATVEG", {
 
 test_that("Reading a LAT/LONG from RASTER", {
     # skip_on_cran()
-    file <- c(system.file("extdata/raster/mod13q1/sinop-crop-ndvi.tif",
-        package = "sits"
-    ))
+    data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
     raster_cube <- sits_cube(
-        type = "BRICK",
-        name = "Sinop-crop",
+        type = "STACK",
+        name = "sinop-2014",
         satellite = "TERRA",
         sensor = "MODIS",
-        timeline = sits::timeline_modis_392,
-        bands = c("ndvi"),
-        files = file
+        data_dir = data_dir,
+        delim = "_",
+        parse_info = c("X1", "X2", "band", "date")
     )
 
 
     point_ndvi <- sits_get_data(raster_cube,
-        longitude = -55.55527, latitude = -11.51782
+        longitude = -55.66738, latitude = -11.76990
     )
 
     expect_equal(names(point_ndvi)[1], "longitude")
-    expect_true(ncol(sits_time_series(point_ndvi)) == 2)
-    expect_true(length(sits_time_series_dates(point_ndvi)) == 392)
+    expect_true(ncol(sits_time_series(point_ndvi)) == 3)
+    expect_true(length(sits_time_series_dates(point_ndvi)) == 23)
 })
 
 test_that("Reading a CSV file from RASTER", {
     # skip_on_cran()
-    file <- c(system.file("extdata/raster/mod13q1/sinop-ndvi-2014.tif",
-        package = "sits"
-    ))
+    data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
     raster_cube <- sits_cube(
-        type = "BRICK",
-        name = "Sinop-crop",
+        type = "STACK",
+        name = "sinop-2014",
         satellite = "TERRA",
         sensor = "MODIS",
-        timeline = sits::timeline_2013_2014,
-        bands = c("ndvi"),
-        files = file
+        data_dir = data_dir,
+        delim = "_",
+        parse_info = c("X1", "X2", "band", "date")
     )
 
     csv_raster_file <- system.file("extdata/samples/samples_sinop_crop.csv",
@@ -154,7 +150,7 @@ test_that("Reading a CSV file from RASTER", {
     expect_true("Forest" %in% sits_labels(points)$label)
     expect_equal(names(points)[1], "longitude")
     expect_equal(length(names(points)), 7)
-    expect_true(ncol(sits_time_series(points)) == 2)
+    expect_true(ncol(sits_time_series(points)) == 3)
     expect_true(length(sits_time_series_dates(points)) == 23)
 })
 

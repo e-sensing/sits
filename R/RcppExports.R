@@ -17,18 +17,6 @@ bilinear_smoother <- function(m, m_nrow, m_ncol, w, tau) {
     .Call(`_sits_bilinear_smoother`, m, m_nrow, m_ncol, w, tau)
 }
 
-median_neigh <- function(data, nrows_window, ncols_window) {
-    .Call(`_sits_median_neigh`, data, nrows_window, ncols_window)
-}
-
-cbers4_cld_detect <- function(b13, b14, b15, b16, thres_1, t2, t3, t4, t5, t6, values) {
-    .Call(`_sits_cbers4_cld_detect`, b13, b14, b15, b16, thres_1, t2, t3, t4, t5, t6, values)
-}
-
-cbers4_cld_values <- function(b13, b14, b15, b16) {
-    .Call(`_sits_cbers4_cld_values`, b13, b14, b15, b16)
-}
-
 linear_interp <- function(mtx) {
     .Call(`_sits_linear_interp`, mtx)
 }

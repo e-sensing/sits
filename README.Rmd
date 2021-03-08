@@ -56,7 +56,8 @@ SITS is currently available on github, as follows:
 
 ```{r, eval = FALSE}
 # Please install the `sits` package from github
-devtools::install_github("e-sensing/sits")
+# and its dependencies
+devtools::install_github("e-sensing/sits", dependencies = TRUE)
 library(sits)
 ```
 

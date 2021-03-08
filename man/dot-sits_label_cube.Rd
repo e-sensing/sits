@@ -5,23 +5,22 @@
 \title{Create a set of RasterLayer objects
        to store data cube classification results (labelled classes)}
 \usage{
-.sits_label_cube(cube_probs, output_dir, version)
+.sits_label_cube(probs_cube, output_dir, version)
 }
 \arguments{
-\item{cube_probs}{Metadata about the input data cube (probability).}
+\item{probs_cube}{Metadata about the input data cube (probability).}
 
 \item{output_dir}{Output directory where to put the files}
 
 \item{version}{Name of the version of the result}
 }
 \value{
-Metadata about the output RasterLayer objects.
+Metadata about the output data cube.
 }
 \description{
 Takes a tibble containing metadata about a data cube wuth
 classification probabilites and and creates a
-set of RasterLayers to store the classification result. Each RasterLayer is
-to one time step. The time steps are specified in a list of dates.
+data cube to store the classification result.
 }
 \author{
 Gilberto Camara, \email{gilberto.camara@inpe.br}

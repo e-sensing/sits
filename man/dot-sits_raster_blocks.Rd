@@ -7,7 +7,7 @@
 .sits_raster_blocks(cube, ml_model, sub_image, memsize, multicores)
 }
 \arguments{
-\item{cube}{input data cube.}
+\item{cube}{input data cube tile.}
 
 \item{ml_model}{machine learning model.}
 
@@ -24,11 +24,10 @@ list with three attributes: n (number of blocks),
 }
 \description{
 Defines the size of the block of an image to be read.
-For example, a Raster Brick with 500 rows and 500 columns
-and 400 time instances will have a total pixel size
-of 800 Mb if pixels are 64-bit.
 }
 \author{
+Rolf Simoes, \email{rolf.simoes@inpe.br}
+
 Gilberto Camara, \email{gilberto.camara@inpe.br}
 }
 \keyword{internal}

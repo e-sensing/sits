@@ -5,31 +5,33 @@
 \title{Classify a chunk of raster data  using multicores}
 \usage{
 .sits_classify_multicores(
-  cube,
+  tile,
   ml_model,
-  name,
   roi,
   filter,
   impute_fn,
+  interp_fn,
+  compose_fn,
   memsize,
   multicores,
   output_dir,
-  version,
-  .verbose
+  version
 )
 }
 \arguments{
-\item{cube}{data cube.}
+\item{tile}{a single tile of a data cube.}
 
 \item{ml_model}{model trained by \code{\link[sits]{sits_train}}.}
-
-\item{name}{name of the output data cube}
 
 \item{roi}{region of interest}
 
 \item{filter}{smoothing filter to be applied to the data.}
 
 \item{impute_fn}{impute function to replace NA}
+
+\item{interp_fn}{function to interpolate points from cube to match samples}
+
+\item{compose_fn}{function to compose points from cube to match samples}
 
 \item{memsize}{memory available for classification (in GB).}
 
@@ -38,8 +40,6 @@
 \item{output_dir}{output directory}
 
 \item{version}{version of result}
-
-\item{.verbose}{print information about processing steps}
 }
 \value{
 List of the classified raster layers.
@@ -57,6 +57,8 @@ After all cores process their blocks, it joins the result and then writes it
 in the classified images for each corresponding year.
 }
 \author{
+Rolf Simoes, \email{rolf.simoes@inpe.br}
+
 Gilberto Camara, \email{gilberto.camara@inpe.br}
 }
 \keyword{internal}

@@ -3,24 +3,15 @@ test_that("One-year, multicore classification with ROI", {
 
     svm_model <- sits_train(samples_2bands, sits_svm())
 
-    ndvi_file <- c(system.file("extdata/raster/mod13q1/sinop-evi-2014.tif",
-                               package = "sits"
-    ))
-
-    evi_file <- c(system.file("extdata/raster/mod13q1/sinop-evi-2014.tif",
-                              package = "sits"
-    ))
-
-    data("timeline_2013_2014")
-
+    data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
     sinop <- sits_cube(
-        type = "BRICK",
+        type = "STACK",
         name = "sinop-2014",
-        timeline = timeline_2013_2014,
         satellite = "TERRA",
         sensor = "MODIS",
-        bands = c("ndvi", "evi"),
-        files = c(ndvi_file, evi_file)
+        data_dir = data_dir,
+        delim = "_",
+        parse_info = c("X1", "X2", "band", "date")
     )
 
     bbox <- sits_bbox(sinop)
@@ -55,21 +46,15 @@ test_that("One-year, multicore classification with ROI", {
 })
 test_that("Functions that work with ROI",{
 
-    ndvi_file <- c(system.file("extdata/raster/mod13q1/sinop-evi-2014.tif",
-                               package = "sits"
-    ))
-    evi_file <- c(system.file("extdata/raster/mod13q1/sinop-evi-2014.tif",
-                              package = "sits"
-    ))
-
+    data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
     cube <- sits_cube(
-        type = "BRICK",
+        type = "STACK",
         name = "sinop-2014",
-        timeline = timeline_2013_2014,
         satellite = "TERRA",
         sensor = "MODIS",
-        bands = c("ndvi", "evi"),
-        files = c(ndvi_file, evi_file)
+        data_dir = data_dir,
+        delim = "_",
+        parse_info = c("X1", "X2", "band", "date")
     )
     # create a roi
     roi <- sits_bbox(cube)
@@ -105,23 +90,16 @@ test_that("Functions that work with ROI",{
 
 test_that("Internal functions in ROI",{
 
-    ndvi_file <- c(system.file("extdata/raster/mod13q1/sinop-evi-2014.tif",
-                               package = "sits"
-    ))
-    evi_file <- c(system.file("extdata/raster/mod13q1/sinop-evi-2014.tif",
-                              package = "sits"
-    ))
-
+    data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
     cube <- sits_cube(
-        type = "BRICK",
+        type = "STACK",
         name = "sinop-2014",
-        timeline = timeline_2013_2014,
         satellite = "TERRA",
         sensor = "MODIS",
-        bands = c("ndvi", "evi"),
-        files = c(ndvi_file, evi_file)
+        data_dir = data_dir,
+        delim = "_",
+        parse_info = c("X1", "X2", "band", "date")
     )
-
     # create a roi
     roi <- sits_bbox(cube)
     x_size <- as.numeric(roi["xmax"] - roi["xmin"])

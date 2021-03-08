@@ -21,29 +21,27 @@
 #' # select a random forest model
 #' rfor_model <- sits_train(samples_ndvi, sits_rfor(num_trees = 500))
 #'
-#' # Classify a raster file with 23 instances for one year
-#' files <- c(system.file("extdata/raster/mod13q1/sinop-crop-ndvi.tif",
-#'     package = "sits"
-#' ))
-#'
 #' # create a data cube based on the information about the files
-#' sinop <- sits_cube(
-#'     type = "BRICK", satellite = "TERRA",
-#'     sensor = "MODIS", name = "Sinop-crop",
-#'     timeline = timeline_modis_392,
-#'     output_dir = tempdir(),
-#'     bands = c("NDVI"), files = files
+#' data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
+#' cube <- sits_cube(
+#'     type = "STACK",
+#'     name = "sinop-2014",
+#'     satellite = "TERRA",
+#'     sensor = "MODIS",
+#'     data_dir = data_dir,
+#'     delim = "_",
+#'     parse_info = c("X1", "X2", "band", "date")
 #' )
 #'
 #' # classify the raster image
-#' sinop_probs <- sits_classify(sinop,
+#' probs_cube <- sits_classify(cube,
 #'     ml_model = rfor_model,
 #'     output_dir = tempdir(),
 #'     memsize = 4, multicores = 2
 #' )
 #'
 #' # label the classification and smooth the result with a bayesian filter
-#' sinop_bayes <- sits_smooth(sinop_probs,
+#' bayes_cube <- sits_smooth(probs_cube,
 #'     output_dir = tempdir()
 #'     )
 #' }
@@ -100,30 +98,27 @@ sits_smooth <- function(cube,
 #' # select a random forest model
 #' rfor_model <- sits_train(samples_ndvi, sits_rfor(num_trees = 500))
 #'
-#' # Classify a raster file with 23 instances for one year
-#' files <- c(system.file("extdata/raster/mod13q1/sinop-crop-ndvi.tif",
-#'     package = "sits"
-#' ))
-#'
-#' # create a data cube based on the information about the files
-#' sinop <- sits_cube(
-#'     type = "BRICK", satellite = "TERRA",
-#'     sensor = "MODIS", name = "Sinop-crop",
-#'     timeline = timeline_modis_392,
-#'     output_dir = tempdir(),
-#'     bands = c("NDVI"), files = files
+#' # create a data cube based on files
+#' data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
+#' cube <- sits_cube(
+#'     type = "STACK",
+#'     name = "sinop-2014",
+#'     satellite = "TERRA",
+#'     sensor = "MODIS",
+#'     data_dir = data_dir,
+#'     delim = "_",
+#'     parse_info = c("X1", "X2", "band", "date")
 #' )
 #'
 #' # classify the raster image
-#' sinop_probs <- sits_classify(sinop,
+#' probs_cube <- sits_classify(cube,
 #'     ml_model = rfor_model,
 #'     output_dir = tempdir(),
 #'     memsize = 4, multicores = 2
 #' )
 #'
 #' # label the classification and smooth the result with a Bayesian filter
-#' sinop_bayes <- sits_smooth(sinop_probs, output_dir = tempdir()
-#'     )
+#' bayes_cube <- sits_smooth(probs_cube, output_dir = tempdir())
 #' }
 #'
 #' @export
@@ -188,7 +183,7 @@ sits_smooth.bayes <- function(cube,
     )
 
     # retrieve the scale factor
-    scale_factor <- cube[1,]$scale_factors[[1]][1]
+    scale_factor <- .sits_config_probs_scale_factor()
     mult_factor <- 1 / scale_factor
 
     # Bayesian smoother to be executed by workers cluster
@@ -274,29 +269,27 @@ sits_smooth.bayes <- function(cube,
 #' # select a random forest model
 #' rfor_model <- sits_train(samples_ndvi, sits_rfor(num_trees = 500))
 #'
-#' # Classify a raster file with 23 instances for one year
-#' files <- c(system.file("extdata/raster/mod13q1/sinop-crop-ndvi.tif",
-#'     package = "sits"
-#' ))
-#'
-#' # create a data cube based on the information about the files
-#' sinop <- sits_cube(
-#'     type = "BRICK", satellite = "TERRA",
-#'     sensor = "MODIS", name = "Sinop-crop",
-#'     timeline = timeline_modis_392,
-#'     output_dir = tempdir(),
-#'     bands = c("NDVI"), files = files
+#' # create a data cube based on files
+#' data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
+#' cube <- sits_cube(
+#'     type = "STACK",
+#'     name = "sinop-2014",
+#'     satellite = "TERRA",
+#'     sensor = "MODIS",
+#'     data_dir = data_dir,
+#'     delim = "_",
+#'     parse_info = c("X1", "X2", "band", "date")
 #' )
 #'
 #' # classify the raster image
-#' sinop_probs <- sits_classify(sinop,
+#' probs_cube <- sits_classify(cube,
 #'     ml_model = rfor_model,
 #'     output_dir = tempdir(),
 #'     memsize = 4, multicores = 2
 #' )
 #'
 #' # smooth the result with a gaussian filter
-#' sinop_gauss <- sits_smooth(sinop_probs,
+#' gauss_cube <- sits_smooth(probs_cube,
 #'     type = "gaussian",
 #'     output_dir = tempdir()
 #'     )
@@ -352,7 +345,7 @@ sits_smooth.gaussian <- function(cube,
     )
 
     # retrieve the scale factor
-    scale_factor <- cube[1,]$scale_factors[[1]][1]
+    scale_factor <- .sits_config_probs_scale_factor()
     mult_factor <- 1 / scale_factor
 
     # Gaussian smoother to be executed by workers cluster
@@ -427,29 +420,27 @@ sits_smooth.gaussian <- function(cube,
 #' # select a random forest model
 #' rfor_model <- sits_train(samples_ndvi, sits_rfor(num_trees = 500))
 #'
-#' # Classify a raster file with 23 instances for one year
-#' files <- c(system.file("extdata/raster/mod13q1/sinop-crop-ndvi.tif",
-#'     package = "sits"
-#' ))
-#'
-#' # create a data cube based on the information about the files
-#' sinop <- sits_cube(
-#'     type = "BRICK", satellite = "TERRA",
-#'     sensor = "MODIS", name = "Sinop-crop",
-#'     timeline = timeline_modis_392,
-#'     output_dir = tempdir(),
-#'     bands = c("NDVI"), files = files
+#' # create a data cube based on files
+#' data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
+#' cube <- sits_cube(
+#'     type = "STACK",
+#'     name = "sinop-2014",
+#'     satellite = "TERRA",
+#'     sensor = "MODIS",
+#'     data_dir = data_dir,
+#'     delim = "_",
+#'     parse_info = c("X1", "X2", "band", "date")
 #' )
 #'
 #' # classify the raster image
-#' sinop_probs <- sits_classify(sinop,
+#' probs_cube <- sits_classify(cube,
 #'     ml_model = rfor_model,
 #'     output_dir = tempdir(),
 #'     memsize = 4, multicores = 2
 #' )
 #'
 #' # smooth the result with a bilinear filter
-#' sinop_bil <- sits_smooth(sinop_probs,
+#' bil_cube <- sits_smooth(probs_cube,
 #'     type = "bilinear",
 #'     output_dir = tempdir()
 #'     )
@@ -511,7 +502,7 @@ sits_smooth.bilinear <- function(cube,
     )
 
     # retrieve the scale factor
-    scale_factor <- cube[1,]$scale_factors[[1]][1]
+    scale_factor <- .sits_config_probs_scale_factor()
     mult_factor <- 1 / scale_factor
 
     # Gaussian smoother to be executed by workers cluster

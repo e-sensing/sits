@@ -10,7 +10,6 @@
 #'  \item{patterns: }                    {see \code{\link{plot.patterns}}}
 #'  \item{SOM map: }                     {see \code{\link{plot.som_map}}}
 #'  \item{classified time series: }      {see \code{\link{plot.predicted}}}
-#'  \item{brick  cube: }                 {see \code{\link{plot.brick_cube}}}
 #'  \item{stack  cube: }                 {see \code{\link{plot.stack_cube}}}
 #'  \item{classification probabilities: }{see \code{\link{plot.probs_cube}}}
 #'  \item{classified image: }            {see \code{\link{plot.classified_image}}}
@@ -108,98 +107,7 @@ plot.predicted <- function(x, y, ..., bands = "NDVI") {
     p <- .sits_plot_classification(x, bands)
     return(invisible(p))
 }
-#' @title  Generic interface for plotting brick cubes
-#' @name   plot.brick_cube
-#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
-#' @description plots a stack cube using terra
-#'
-#' @param  x             object of class "brick_cube"
-#' @param  y             ignored
-#' @param  ...           further specifications for \link{plot}.
-#' @param  red           band for red color.
-#' @param  green         band for green color.
-#' @param  blue          band for blue color.
-#' @param  time          temporal instance to be plotted
-#'
-#' @return               mapview object
-#'
-#' @examples
-#' \dontrun{
-#' # retrieve two files with NDVI and EVI from MODIS
-#' ndvi_file <- c(system.file("extdata/raster/mod13q1/sinop-ndvi-2014.tif",
-#'     package = "sits"
-#' ))
-#' evi_file <- c(system.file("extdata/raster/mod13q1/sinop-evi-2014.tif",
-#'     package = "sits"
-#' ))
-#' # retrieve the timeline
-#' data("timeline_2013_2014")
-#' # create a data cube
-#' sinop_2014 <- sits_cube(
-#'     type = "BRICK",
-#'     name = "sinop-2014",
-#'     timeline = timeline_2013_2014,
-#'     satellite = "TERRA",
-#'     sensor = "MODIS",
-#'     bands = c("NDVI", "EVI"),
-#'     files = c(ndvi_file, evi_file)
-#' )
-#' # plot the data cube
-#' plot(sinop_2014, red = "EVI", green = "EVI", blue = "EVI")
-#' }
-#'
-#' @export
-plot.brick_cube <- function(x, y, ..., red, green, blue, time = 1) {
-    stopifnot(missing(y))
-    # verifies if mapview package is installed
-    if (!requireNamespace("mapview", quietly = TRUE)) {
-        stop("Please install package mapview.", call. = FALSE)
-    }
-    # verifies if raster package is installed
-    if (!requireNamespace("raster", quietly = TRUE)) {
-        stop("Please install package raster.", call. = FALSE)
-    }
-    # set mapview options
-    mapview::mapviewOptions(basemaps = c(
-        "GeoportailFrance.orthos",
-        "Esri.WorldImagery"
-    ))
 
-    # get information about bands and files
-    file_info <- x[1,]$file_info[[1]]
-
-    # is there a cloud band?
-    # remove the cloud band from the file information
-    bands <- .sits_config_bands_no_cloud(x[1,])
-    file_info <- dplyr::filter(file_info, band %in% bands)
-
-
-    # index to assign which bands to plot
-    index <- .sits_plot_rgb_brick(
-        bands = bands,
-        timeline = sits_timeline(x),
-        red = toupper(red),
-        green = toupper(green),
-        blue = toupper(blue),
-        time = time
-    )
-
-    # is the data set a stack or a brick
-
-    # use the raster package to obtain a "rast" object from a brick
-    rast <- suppressWarnings(raster::stack(file_info$path))
-    assertthat::assert_that(raster::ncol(rast) > 0 & raster::nrow(rast) > 1,
-                      msg = "plot.brick_cube: unable to retrive raster data"
-    )
-
-    # plot the RGB file
-    mv <- suppressWarnings(mapview::viewRGB(rast,
-                                            r = index["red"],
-                                            g = index["green"],
-                                            b = index["blue"]
-    ))
-    return(mv)
-}
 #' @title  Generic interface for plotting stack cubes
 #' @name   plot.stack_cube
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
@@ -328,45 +236,6 @@ plot.stack_cube <- function(x, y, ..., red, green, blue, time = 1, roi = NULL) {
 #'
 #' @return               The plot itself.
 #'
-#' @examples
-#' \dontrun{
-#' # Retrieve the samples for Mato Grosso
-#' # select the bands for classification
-#' samples_ndvi_evi <- sits_select(samples_mt_4bands, bands = c("EVI", "NDVI"))
-#' # build the classification model
-#' rfor_model <- sits_train(samples_ndvi_evi, sits_rfor(num_trees = 2000))
-#'
-#' # select the bands "ndvi", "evi" provided by the SITS package
-#' ndvi_file <- c(system.file("extdata/raster/mod13q1/sinop-ndvi-2014.tif",
-#'     package = "sits"
-#' ))
-#' evi_file <- c(system.file("extdata/raster/mod13q1/sinop-evi-2014.tif",
-#'     package = "sits"
-#' ))
-#' # select the timeline
-#' data("timeline_2013_2014")
-#' # build a data cube from files
-#'
-#' sinop_2014 <- sits_cube(
-#'     type = "BRICK",
-#'     name = "sinop-2014",
-#'     timeline = timeline_2013_2014,
-#'     satellite = "TERRA",
-#'     sensor = "MODIS",
-#'     bands = c("ndvi", "evi"),
-#'     files = c(ndvi_file, evi_file)
-#' )
-#'
-#' # classify the raster image
-#' sinop_probs <- sits_classify(sinop_2014,
-#'     rfor_model,
-#'     output_dir = tempdir(),
-#'     memsize = 4,
-#'     multicores = 2
-#' )
-#'
-#' plot(sinop_probs)
-#' }
 #' @export
 plot.probs_cube <- function(x, y, ..., time = 1,
                             title = "Probabilities for Classes",
@@ -406,51 +275,7 @@ plot.probs_cube <- function(x, y, ..., time = 1,
 #' @param  title         string.
 #' @param  colors        color pallete.
 #'
-#' @examples
-#' \dontrun{
-#' # Retrieve the samples for Mato Grosso
-#' # select the bands for classification
-#' samples_ndvi_evi <- sits_select(samples_mt_4bands, bands = c("EVI", "NDVI"))
-#' # build the classification model
-#' xgb_model <- sits_train(samples_ndvi_evi, ml_method = sits_xgboost())
 #'
-#' # select the bands "ndvi", "evi" provided by the SITS package
-#' ndvi_file <- c(system.file("extdata/raster/mod13q1/sinop-ndvi-2014.tif",
-#'     package = "sits"
-#' ))
-#' evi_file <- c(system.file("extdata/raster/mod13q1/sinop-evi-2014.tif",
-#'     package = "sits"
-#' ))
-#' # select the timeline
-#' data("timeline_2013_2014")
-#' # build a data cube from files
-#'
-#' sinop_2014 <- sits_cube(
-#'     type = "BRICK", name = "sinop-2014",
-#'     timeline = timeline_2013_2014,
-#'     satellite = "TERRA",
-#'     sensor = "MODIS",
-#'     bands = c("ndvi", "evi"),
-#'     files = c(ndvi_file, evi_file)
-#' )
-#'
-#' # classify the raster image
-#' sinop_probs <- sits_classify(sinop_2014, xgb_model,
-#'     output_dir = tempdir(),
-#'     memsize = 4, multicores = 2
-#' )
-#' # smooth the result with a bayesian filter
-#'
-#' sinop_bayes <- sits_smooth(sinop_probs,
-#'     output_dir = tempdir())
-#'
-#' sinop_label <- sits_label_classification(sinop_bayes,
-#'     output_dir = tempdir()
-#' )
-#'
-#' # plot the smoothened image
-#' plot(sinop_label, title = "Sinop-Bayes")
-#' }
 #' @export
 plot.classified_image <- function(x, y, ..., map = NULL, time = 1,
                                   title = "Classified Image", colors = NULL) {
@@ -1251,60 +1076,13 @@ plot.keras_model <- function(x, y, ...) {
     p <- graphics::plot(p)
     return(invisible(p))
 }
-#' @title  Assign RGB channels to into image layers with many time instance
-#' @name   .sits_plot_rgb_brick
-#' @keywords internal
-#' @author Gilberto Camara \email{gilberto.camara@@inpe.br}
-#'
-#' @description Obtain a vector with the correct layer to be plotted for
-#' an RGB assignment of a multi-temporal brick cube
-#'
-#' @param bands      bands of the data cube (excludes cloud band)
-#' @param timeline   timeline of the data cube
-#' @param red        Band to be assigned to R channel
-#' @param green      Band to be assigned to G channel
-#' @param blue       Band to be assigned to G channel
-#' @param time       Temporal instance to be plotted
-#' @return           Named vector with the correct layers for RGB
-.sits_plot_rgb_brick <- function(bands, timeline,
-                                 red, green, blue, time) {
-
-    # check if the selected bands are correct
-    all_bands <- paste0(bands, collapse = " ")
-    assertthat::assert_that(red %in% bands,
-        msg = paste0("R channel should be one of ", all_bands)
-    )
-    assertthat::assert_that(green %in% bands,
-        msg = paste0("G channel should be one of ", all_bands)
-    )
-    assertthat::assert_that(blue %in% bands,
-        msg = paste0("B channel should be one of ", all_bands)
-    )
-    # find out the number of instances
-    n_instances <- length(timeline)
-    # check if the selected temporal instance exists
-    assertthat::assert_that(time <= n_instances, msg = "time out of bounds")
-
-    # locate the instances
-    instances_lst <- purrr::map(c(red, green, blue),
-          function(b) {
-              inst <- grep(b, bands)
-              return(n_instances * (inst - 1) + time)
-    })
-
-    # create a named vector to store the RGB instances
-    index <- unlist(instances_lst)
-    names(index) <- c("red", "green", "blue")
-
-    return(index)
-}
 #' @title  Assign RGB channels to for raster stack cubes
 #' @name   .sits_plot_rgb_stack
 #' @keywords internal
 #' @author Gilberto Camara \email{gilberto.camara@@inpe.br}
 #'
 #' @description Obtain a vector with the correct layer to be plotted for
-#' an RGB assignment of a multi-temporal brick cube
+#' an RGB assignment of a multi-temporal set of images
 #'
 #' @param bands      bands of the data cube (excludes cloud band)
 #' @param timeline   timeline of the data cube

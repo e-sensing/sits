@@ -11,14 +11,14 @@
 #' There are many ways of retrieving time series:
 #' \itemize{
 #' \item{SATVEG: }{Retrieve data from SATVEG service using a lat/long point
-#'  (\code{\link[sits]{sits_get_data.satveg_cube}}),
-#'  a CSV file (\code{\link[sits]{sits_get_data.csv_satveg_cube}})
-#'  or a SHP file (\code{\link[sits]{sits_get_data.shp_satveg_cube}})}
+#'  (see S3 method for class 'satveg_cube'),
+#'  a CSV file (see S3 method for class 'csv_satveg_cube')
+#'  or a SHP file (see S3 method for class 'shp_satveg_cube')}
 #'
-#' \item{RASTER: }{Retrieve data from a RASTER cube using a lat/long point
-#'  (\code{\link[sits]{sits_get_data.raster_cube}}),
-#'  a CSV file (\code{\link[sits]{sits_get_data.csv_raster_cube}})
-#'  or a SHP file (\code{\link[sits]{sits_get_data.shp_raster_cube}})}
+#' \item{RASTER: }{Retrieve data from any raster cube using a lat/long point
+#'  (see S3 method for class 'raster_cube'),
+#'  a CSV file (see S3 method for class 'csv_raster_cube')
+#'  or a SHP file (see S3 method for class 'shp_raster_cube')}
 #'
 #' }
 #'
@@ -39,10 +39,66 @@
 #' @param cube            Data cube from where data is to be retrieved.
 #' @param file            File with information on the data to be retrieved.
 #' @param ...             Other parameters to be passed for specific types.
+#' @param longitude       Longitude of the chosen location.
+#' @param latitude        Latitude of the chosen location.
+#' @param start_date      Start of the interval for the time series
+#'                        in "YYYY-MM-DD" format (optional).
+#' @param end_date        End of the interval for the time series in
+#'                        "YYYY-MM-DD" format (optional).
+#' @param label           Label to be assigned to the time series (optional).
+#' @param bands           Bands to be retrieved (optional).
+#' @param impute_fn       Imputation function for NA values.
+#' @param shp_attr        Attribute in the shapefile to be used
+#'                        as a polygon label.
+#' @param .n_pts_csv      Number of points from CSV file to be retrieved.
+#' @param .n_shp_pol      Number of samples per polygon to be read
+#'                        (for POLYGON or MULTIPOLYGON shapefile).
+#'
 #' @return A tibble with the metadata and data for each time series
 #' <longitude, latitude, start_date, end_date, label, cube, time_series>.
+#'
+#' @examples
+#' \dontrun{
+#' # -- Extracting data from SATVEG service
+#' cube_terra <- sits_cube(type = "SATVEG", name = "terra")
+#' point_terra <- sits_get_data(cube_terra,
+#'     longitude = -55.50563, latitude = -11.71557
+#' )
+#' plot(point_terra)
+#' }
+#'
+#' # -- Read a point in a raster data cube
+#'
+#' # Create a data cube based on files
+#' data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
+#' raster_cube <- sits_cube(
+#'     type = "STACK",
+#'     name = "sinop-2014",
+#'     satellite = "TERRA",
+#'     sensor = "MODIS",
+#'     data_dir = data_dir,
+#'     delim = "_",
+#'     parse_info = c("X1", "X2", "band", "date")
+#' )
+#'
+#' # read the time series of the point from the raster
+#' point_ts <- sits_get_data(raster_cube,
+#'     longitude = -55.554,
+#'     latitude = -11.525
+#' )
+#'
+#' # --- Read a set of points described by a CSV file
+#'
+#' # read data from a CSV file
+#' csv_file <- system.file("extdata/samples/samples_sinop_crop.csv",
+#'     package = "sits"
+#' )
+#' points_csv <- sits_get_data(raster_cube, file = csv_file)
+#'
 #' @export
-sits_get_data <- function(cube, file = NULL, ...) {
+sits_get_data <- function(cube,
+                          file = NULL,
+                          ...) {
 
     # is there a shapefile or a CSV file?
     if (!purrr::is_null(file)) {
@@ -59,34 +115,12 @@ sits_get_data <- function(cube, file = NULL, ...) {
     # Dispatch
     UseMethod("sits_get_data", cube)
 }
-
-
-
-#' @title Obtain time series from satveg
-#' @name sits_get_data.satveg_cube
-#'
-#' @param cube            Data cube from where data is to be retrieved.
-#' @param file            File with information on the data to be retrieved.
-#' @param ...             Other parameters to be passed for specific types.
-#' @param longitude       Longitude of the chosen location.
-#' @param latitude        Latitude of the chosen location.
-#' @param start_date      Start of the interval for the time series
-#'                        in "YYYY-MM-DD" format (optional).
-#' @param end_date        End of the interval for the time series in
-#'                        "YYYY-MM-DD" format (optional).
-#' @param label           Label to be assigned to the time series (optional).
-#' @return                A tibble with time series data and metadata.
-#' @examples
-#' \dontrun{
-#' cube_terra <- sits_cube(type = "SATVEG", name = "terra")
-#' point_terra <- sits_get_data(cube_terra,
-#'     longitude = -55.50563, latitude = -11.71557
-#' )
-#' plot(point_terra)
-#' }
+#' @title Get lat/long data from SATVEG cube
+#' @rdname sits_get_data
 #' @export
-#'
-sits_get_data.satveg_cube <- function(cube, file = NULL, ...,
+sits_get_data.satveg_cube <- function(cube,
+                                      file = NULL,
+                                      ...,
                                       longitude = NULL,
                                       latitude = NULL,
                                       start_date = NULL,
@@ -103,15 +137,12 @@ sits_get_data.satveg_cube <- function(cube, file = NULL, ...,
     msg = "sits_get_data - latitude/longitude must be provided"
     )
 
-    # Precondition - check and get start and end dates
-    start_end <- .sits_timeline_check_cube(cube, start_date, end_date)
-
     data <- .sits_from_satveg(
         cube = cube,
         longitude = longitude,
         latitude = latitude,
-        start_date = start_end["start_date"],
-        end_date = start_end["end_date"],
+        start_date = start_date,
+        end_date = end_date,
         label = label
     )
 
@@ -120,23 +151,22 @@ sits_get_data.satveg_cube <- function(cube, file = NULL, ...,
       }
     return(data)
 }
-#' @title Obtain time series from SATVEG
-#' @name sits_get_data.csv_satveg_cube
-#'
-#' @param cube      Data cube from where data is to be retrived.
-#' @param file      CSV File with information on the data to be retrieved
-#' @param ...       Other parameters to be passed for specific types
-#'
-#' @return          A tibble with time series data and metadata.
+#' @title Get data from SATVEG based on CSV file
+#' @rdname sits_get_data
 #' @export
-#'
-sits_get_data.csv_satveg_cube <- function(cube, file, ...) {
+sits_get_data.csv_satveg_cube <- function(cube,
+                                          file,
+                                          ...) {
 
     # read sample information from CSV file and put it in a tibble
     csv <- tibble::as_tibble(utils::read.csv(file))
 
     # Precondition - check if CSV file is correct
     .sits_csv_check(csv)
+    # get the cube timeline
+    timeline <- sits_timeline(cube)
+    start_date_cube <- timeline[1]
+    end_date_cube <- timeline[length(timeline)]
 
     # for each row of the input, retrieve the time series
     data_lst <- purrr::pmap(
@@ -148,6 +178,10 @@ sits_get_data.csv_satveg_cube <- function(cube, file, ...) {
             csv$label
         ),
         function(long, lat, st_date, en_date, lab) {
+            if (as.Date(st_date) < start_date_cube)
+                st_date <- start_date_cube
+            if (as.Date(en_date) > end_date_cube)
+                en_date <- end_date_cube
             row <- .sits_from_satveg(
                 cube = cube,
                 longitude = long,
@@ -169,33 +203,18 @@ sits_get_data.csv_satveg_cube <- function(cube, file, ...) {
 }
 
 #' @title Obtain time series from SATVEG based on SHP file
-#' @name sits_get_data.shp_satveg_cube
-#'
-#' @param cube            Data cube from where data is to be retrieved.
-#' @param file            SHP File with information on the data to be retrieved.
-#' @param ...             Other parameters to be passed for specific types.
-#' @param start_date      Start of the interval for the time series
-#'                        in "YYYY-MM-DD" format.
-#' @param end_date        End of the interval for the time series in
-#'                        "YYYY-MM-DD" format.
-#' @param label           Label to be assigned to the time series (optional).
-#' @param shp_attr        Attribute in the shapefile to be used
-#'                        as a polygon label.
-#' @param .n_shp_pol      Number of samples per polygon to be read
-#'                        (for POLYGON or MULTIPOLYGON shapes).
-#' @return          A tibble with time series data and metadata.
+#' @rdname sits_get_data
 #'
 #' @export
 #'
-sits_get_data.shp_satveg_cube <- function(cube, file, ...,
+sits_get_data.shp_satveg_cube <- function(cube,
+                                          file,
+                                          ...,
                                           start_date = NULL,
                                           end_date = NULL,
                                           label = "NoClass",
                                           shp_attr = NULL,
                                           .n_shp_pol = 30) {
-
-    # Precondition - check that the timelines are compatible with the cube
-    start_end <- .sits_timeline_check_cube(cube, start_date, end_date)
 
     # precondition - check the shape file and its attribute
     sf_shape <- .sits_shp_check_validity(
@@ -224,8 +243,8 @@ sits_get_data.shp_satveg_cube <- function(cube, file, ...,
                 cube = cube,
                 longitude = long,
                 latitude = lat,
-                start_date = start_end["start_date"],
-                end_date = start_end["end_date"],
+                start_date = start_date,
+                end_date = end_date,
                 label = lab
             )
             return(row)
@@ -237,44 +256,8 @@ sits_get_data.shp_satveg_cube <- function(cube, file, ...,
     return(data)
 }
 #' @title Obtain time series from raster cube
-#' @name sits_get_data.raster_cube
+#' @rdname sits_get_data
 #'
-#' @param cube            Data cube from where data is to be retrieved.
-#' @param file            File with information on the data to be retrieved.
-#' @param ...             Other parameters to be passed for specific types
-#' @param longitude       Longitude of the chosen location.
-#' @param latitude        Latitude of the chosen location.
-#' @param start_date      Start of the interval for the time series
-#'                        in "YYYY-MM-DD" format (optional).
-#' @param end_date        End of the interval for the time series in
-#'                        "YYYY-MM-DD" format (optional).
-#' @param bands           Bands to be retrieved (optional).
-#' @param label           Label to be assigned to the time series (optional).
-#' @param impute_fn       Imputation function for NA values.
-#' @return                A tibble with time series data and metadata.
-#'
-#' @examples
-#' # Read a point in a Raster Brick
-#' # define the file that has the raster brick
-#' files <- c(system.file("extdata/raster/mod13q1/sinop-crop-ndvi.tif",
-#'     package = "sits"
-#' ))
-#' # define the timeline
-#' data(timeline_modis_392)
-#' # create a data cube based on the information about the files
-#' raster_cube <- sits_cube(
-#'     type = "BRICK", satellite = "TERRA",
-#'     sensor = "MODIS", name = "Sinop-crop",
-#'     timeline = timeline_modis_392,
-#'     bands = c("NDVI"), files = files
-#' )
-#'
-#' # read the time series of the point from the raster
-#' point_ts <- sits_get_data(raster_cube,
-#'     longitude = -55.554,
-#'     latitude = -11.525
-#' )
-#' plot(point_ts)
 #' @export
 #'
 sits_get_data.raster_cube <- function(cube,
@@ -338,46 +321,12 @@ sits_get_data.raster_cube <- function(cube,
 }
 
 #' @title Obtain time series from brick based on CSV file
-#' @name sits_get_data.csv_raster_cube
-#'
-#' @param cube       Data cube from where data is to be retrieved.
-#' @param file       File with information on the data to be retrieved.
-#' @param ...        Other parameters to be passed for specific types.
-#' @param bands      Bands to be retrieved (optional).
-#' @param impute_fn  Imputation function for NA values.
-#' @param .n_pts_csv Number of points from CSV file to be retrieved.
-#' @return           A tibble with time series data and metadata.
-#' @examples
-#' #' Read a CSV in a Raster Brick
-#' # define the file that has the raster brick
-#' ndvi_file <- c(system.file("extdata/raster/mod13q1/sinop-ndvi-2014.tif",
-#'                package = "sits"))
-#'
-#' evi_file <- c(system.file("extdata/raster/mod13q1/sinop-evi-2014.tif",
-#'               package = "sits"))
-#'
-#' # define the data cube based on files and known timeline
-#' sinop_2014 <- sits_cube(
-#'     type = "BRICK",
-#'     name = "sinop-2014",
-#'     timeline = timeline_2013_2014,
-#'     satellite = "TERRA",
-#'     sensor = "MODIS",
-#'     bands = c("ndvi", "evi"),
-#'     files = c(ndvi_file, evi_file)
-#' )
-#' # read data from a CSV file
-#' csv_file <- system.file("extdata/samples/samples_sinop_crop.csv",
-#'     package = "sits"
-#' )
-#' points <- sits_get_data(sinop_2014, file = csv_file)
-#'
-#' # show the points
-#'
-#' plot(points)
+#' @rdname sits_get_data
 #' @export
 #'
-sits_get_data.csv_raster_cube <- function(cube, file, ...,
+sits_get_data.csv_raster_cube <- function(cube,
+                                          file,
+                                          ...,
                                           bands = NULL,
                                           impute_fn = sits_impute_linear(),
                                           .n_pts_csv = NULL) {
@@ -408,18 +357,19 @@ sits_get_data.csv_raster_cube <- function(cube, file, ...,
           cld_band <- NULL
       }
 
-    ts_rows <- slider::slide(cube, function(row) {
-        # get the data
-        ts <- .sits_raster_data_get_ts(
-            cube = row,
-            points = csv,
-            bands = bands,
-            cld_band = cld_band,
-            impute_fn = impute_fn
-        )
-        return(ts)
+    ts_rows <- slider::slide(cube, function(tile) {
+      # get the data
+      ts <- .sits_raster_data_get_ts(
+        cube = tile,
+        points = csv,
+        bands = bands,
+        cld_band = cld_band,
+        impute_fn = impute_fn
+      )
+      return(ts)
     })
     data <- dplyr::bind_rows(ts_rows)
+
     # check if data has been retrieved
     .sits_get_data_check(nrow(csv), nrow(data))
 
@@ -430,33 +380,19 @@ sits_get_data.csv_raster_cube <- function(cube, file, ...,
 }
 
 #' @title Obtain time series from brick based on SHP file
-#' @name sits_get_data.shp_raster_cube
-#'
-#' @param cube            Data cube from where data is to be retrieved.
-#' @param file            SHP File with information on the data to be retrieved.
-#' @param ...             Other parameters to be passed for specific types.
-#' @param start_date      Start of the interval for the time series
-#'                        in "YYYY-MM-DD" format (optional)
-#' @param end_date        End of the interval for the time series in
-#'                        "YYYY-MM-DD" format (optional).
-#' @param bands           Bands to be retrieved (optional)
-#' @param label           Label to be assigned to the time series (optional)
-#' @param shp_attr        Attribute in the shapefile to be used
-#'                        as a polygon label (for shapefiles only.
-#' @param impute_fn       Imputation function for NA values
-#' @param .n_shp_pol      Number of samples per polygon to be read
-#'                        (for POLYGON or MULTIPOLYGON shapes).
-#' @return          A tibble with time series data and metadata.
+#' @rdname sits_get_data
 #'
 #' @export
 #'
-sits_get_data.shp_raster_cube <- function(cube, file, ...,
+sits_get_data.shp_raster_cube <- function(cube,
+                                          file,
+                                          ...,
                                           start_date = NULL,
                                           end_date = NULL,
                                           bands = NULL,
                                           label = "NoClass",
-                                          shp_attr = NULL,
                                           impute_fn = sits_impute_linear(),
+                                          shp_attr = NULL,
                                           .n_shp_pol = 30) {
 
     # precondition - check the validity of the shape file
@@ -524,11 +460,11 @@ sits_get_data.shp_raster_cube <- function(cube, file, ...,
 .sits_get_data_check <- function(n_rows_input, n_rows_output) {
     # Have all input rows being read?
     if (n_rows_output == 0) {
-        message("No points have been retrieved - see log file")
+        message("No points have been retrieved")
         return(invisible(FALSE))
     }
     if (n_rows_output < n_rows_input) {
-          message("Some points could not be retrieved - see log file")
+          message("Some points could not be retrieved")
       } else {
           message("All points have been retrieved")
       }

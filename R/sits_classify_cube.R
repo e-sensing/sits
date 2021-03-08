@@ -1,6 +1,7 @@
 #' @title Classify a chunk of raster data  using multicores
 #' @name .sits_classify_multicores
 #' @keywords internal
+#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'
 #' @description Classifies a block of data using multicores. It breaks
@@ -14,104 +15,80 @@
 #' After all cores process their blocks, it joins the result and then writes it
 #' in the classified images for each corresponding year.
 #'
-#' @param  cube            data cube.
+#' @param  tile            a single tile of a data cube.
 #' @param  ml_model        model trained by \code{\link[sits]{sits_train}}.
-#' @param  name            name of the output data cube
 #' @param  roi             region of interest
 #' @param  filter          smoothing filter to be applied to the data.
 #' @param  impute_fn       impute function to replace NA
+#' @param  interp_fn       function to interpolate points from cube to match samples
+#' @param  compose_fn      function to compose points from cube to match samples
 #' @param  memsize         memory available for classification (in GB).
 #' @param  multicores      number of cores.
 #' @param  output_dir      output directory
 #' @param  version         version of result
-#' @param  .verbose        print information about processing steps
 #' @return List of the classified raster layers.
-.sits_classify_multicores <- function(cube,
+.sits_classify_multicores <- function(tile,
                                       ml_model,
-                                      name,
                                       roi,
                                       filter,
                                       impute_fn,
+                                      interp_fn,
+                                      compose_fn,
                                       memsize,
                                       multicores,
                                       output_dir,
-                                      version,
-                                      .verbose) {
+                                      version) {
 
     # retrieve the samples from the model
     samples <- environment(ml_model)$data
+    # retrieve the labels
+    labels <- sits_labels(samples)$label
 
     # precondition - are the samples empty?
     assertthat::assert_that(nrow(samples) > 0,
         msg = "sits_classify: original samples not saved"
     )
-    # precondition - are the cube bands the same as the sample bands?
-    cube_bands <- sits_bands(cube)
+    # precondition - are the sample bands contained in the cube bands?
+    tile_bands <- sits_bands(tile)
     bands <- sits_bands(samples)
     assertthat::assert_that(
-      all(bands %in% cube_bands),
-      msg = "sits_classify: bands in samples different from cube bands"
+      all(bands %in% tile_bands),
+      msg = "sits_classify: some bands in samples are not in cube"
     )
 
     # retrieve the normalization stats from the model
     stats <- environment(ml_model)$stats
 
-    # get the attribute names
-    attr_names <- names(.sits_distances(environment(ml_model)$data[1, ]))
-    assertthat::assert_that(length(attr_names) > 0,
-        msg = "sits_classify: training data not available"
-    )
-
     # is there a region of interest?
     if (purrr::is_null(roi)) {
-          sub_image <- .sits_raster_sub_image_default(cube)
+          sub_image <- .sits_raster_sub_image_default(tile)
       } else {
           # define the sub_image
-          sub_image <- .sits_raster_sub_image(cube = cube, roi = roi)
+          sub_image <- .sits_raster_sub_image(cube = tile, roi = roi)
       }
-
-    # postcondition for subimage
-    if (purrr::is_null(sub_image)) {
-        message("region of interest outside of cube")
-        return(NULL)
-    }
 
     # divide the input data in blocks
     block_info <- .sits_raster_blocks(
-        cube = cube,
+        cube = tile,
         ml_model = ml_model,
         sub_image = sub_image,
         memsize = memsize,
         multicores = multicores
     )
 
-    if (.verbose) {
-        message(paste0(
+    message(paste0(
             "Using ", block_info$n,
             " blocks of size (", block_info$nrows[1],
-            " x ", block_info$ncols[1]
-        ), ")")
-    }
-
-    # create the metadata for the classified cube
-    cube_class <- .sits_cube_classified(
-        cube = cube,
+            " x ", block_info$ncols[1]), ")"
+    )
+    # create the metadata for the probability cube
+    probs_cube <- .sits_cube_probs(
+        tile = tile,
         samples = samples,
-        name = name,
         sub_image = sub_image,
         output_dir = output_dir,
         version = version
     )
-
-    # number of output raster objects
-    n_objs <- length(.sits_cube_files(cube_class))
-
-    # build a list with columns of data table to be processed for each interval
-    select_lst <- .sits_timeline_raster_indexes(cube, samples)
-
-    # number of classified cubes has to be equal the number of time instances
-    assertthat::assert_that(n_objs == length(select_lst),
-                        msg = "sits_classify_cube: problems with time indexes")
 
     # get initial time for classification
     start_time <- lubridate::now()
@@ -125,91 +102,61 @@
             block_info$col, block_info$ncols
         )
         names(extent) <- (c("row", "nrows", "col", "ncols"))
+
         # read the data
-        if (.verbose) {
-            message(paste0("Read and preprocess block ", b))
-            read_data_start_time <- lubridate::now()
-        }
-        data <- .sits_raster_data_read(
-            cube = cube,
+        distances <- .sits_raster_data_read(
+            cube = tile,
             samples = samples,
             extent = extent,
             stats = stats,
             filter = filter,
             impute_fn = impute_fn,
-            multicores = multicores,
-            .verbose = .verbose
-        )
-        if (.verbose) {
-              .sits_processing_task_time(
-                  "Read block",
-                  read_data_start_time
-              )
-          }
-
-        # process one temporal instance at a time
-        probs_time <- purrr::pmap(
-            list(select_lst, c(1:n_objs)),
-            function(time, iter) {
-              # retrieve the values to be used for classification
-              if (all(time)) {
-                distances <- data
-              } else {
-                distances <- data[, time, with = FALSE]
-              }
-              # set column names for DT
-              colnames(distances) <- attr_names
-              # predict the classification values
-              prediction <- .sits_classify_interval(
-                data = distances,
-                ml_model = ml_model,
-                multicores = multicores
-              )
-              # convert probabilities matrix to INT2U
-              scale_factor_save <- round(1/cube[1,]$scale_factors[[1]][1])
-              prediction <- round(scale_factor_save * prediction, digits = 0)
-
-              # estimate processing time
-              .sits_est_class_time(
-                start_time = start_time,
-                n_intervals = length(select_lst),
-                bs = block_info,
-                block = b,
-                time = iter
-              )
-              return(prediction)
-            }
+            interp_fn = interp_fn,
+            compose_fn = compose_fn,
+            multicores = multicores
         )
 
-        return(probs_time)
+        # get the attribute names
+        attr_names <- names(.sits_distances(samples[1, ]))
+        assertthat::assert_that(length(attr_names) > 0,
+                      msg = "sits_classify: training data not available"
+        )
+        # set column names for DT
+        colnames(distances) <- attr_names
+        # predict the classification values
+        prediction <- .sits_classify_interval(
+            data = distances,
+            ml_model = ml_model,
+            multicores = multicores
+        )
+        # convert probabilities matrix to INT2U
+        scale_factor_save <- round(1/.sits_config_probs_scale_factor())
+        prediction <- round(scale_factor_save * prediction, digits = 0)
+
+        # estimate processing time
+        .sits_est_class_time(
+            start_time = start_time,
+            n_blocks = block_info$n,
+            block = b
+        )
+
+        return(prediction)
     })
-    # now we have to untangle the probabilities
-    n_blocks <- length(probs_blocks)
-    n_times <- length(probs_blocks[[1]])
+    # combine the image to make a probability cube
+    probs <- do.call(rbind, probs_blocks)
 
-    # find out what are the labels
-    labels <- sits_labels(samples)$label
+    # define the file name of the raster file to be written
+    filename <- probs_cube$file_info[[1]]$path
 
-    purrr::map(c(1:n_times), function(t) {
-        b <- 1
-        probs_time <- probs_blocks[[b]][[t]]
-        while (b < n_blocks) {
-            b <- b + 1
-            probs_time <- rbind(probs_time, probs_blocks[[b]][[t]])
-        }
-        # define the file name of the raster file to be written
-        filename <- .sits_cube_file(cube_class, t)
-
-        # write the probabilities to a raster file
-        .sits_raster_api_write(
-            params = .sits_raster_api_params_cube(cube_class),
-            num_layers = length(labels),
-            values = probs_time,
-            filename = filename,
-            datatype = "INT2U"
-        )
-    })
-    return(cube_class)
+    # write the probabilities to a raster file
+    .sits_raster_api_write(
+        params = .sits_raster_api_params_cube(probs_cube),
+        num_layers = length(labels),
+        values = probs,
+        filename = filename,
+        datatype = "INT2U"
+    )
+    return(probs_cube)
 }
 #' @title Check clasification parameters
 #' @name .sits_classify_check_params

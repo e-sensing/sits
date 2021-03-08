@@ -62,36 +62,6 @@
     )
     return(params)
 }
-
-#' @title Check if file is a brick
-#' @name .sits_raster_api_check_brick
-#' @keywords internal
-#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
-#'
-#' @description    Check if file is a valid raster brick
-#' @param file     A valid raster image
-#' @param timeline Timeline for the brick
-#' @return TRUE/FALSE
-#'
-.sits_raster_api_check_brick <- function(file, timeline) {
-
-    # read the information from the file using GDAL
-    rg_obj <- suppressWarnings(rgdal::GDALinfo(file))
-
-    # object parameters
-    nbands <- as.numeric(rg_obj["bands"])
-    nrows <- as.numeric(rg_obj["rows"])
-    ncols <- as.numeric(rg_obj["columns"])
-
-    assertthat::assert_that(nbands >= 1 & ncols > 1 & nrows > 1,
-        msg = ".sits_raster_api_check_brick: invalid bricks"
-    )
-    assertthat::assert_that(nbands == length(timeline),
-        msg = ".sits_raster_api_check_brick: mismatch btw timeline and bricks"
-    )
-
-    return(invisible(TRUE))
-}
 #' @title Check if the raster files are accessible by GDAL
 #' @name .sits_raster_api_check_access
 #' @keywords internal
@@ -113,23 +83,6 @@
     )
     return(TRUE)
 }
-#' @title Check if the raster files are on the web
-#' @name .sits_raster_api_check_url
-#' @keywords internal
-#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
-#'
-#' @param files         files associated to the raster data
-#' @return files        Updated files with  information for GDAL access
-.sits_raster_api_check_url <- function(files) {
-    # are there webfiles?
-    if (grepl("http", c(files[1]))) {
-        # append "vsicurl" prefix for all web files if it is not there
-        if (!grepl("vsicurl", c(files[1]))) {
-              files <- paste0("/vsicurl/", files)
-          }
-    }
-    return(files)
-}
 
 #' @title Given a band, return a set of values for chosen location
 #' @name .sits_raster_api_extract
@@ -141,7 +94,7 @@
 #' @param cube           Metadata about a data cube
 #' @param band_cube      Name of the band to the retrieved
 #' @param xy             Matrix with XY location
-#' @return               Tibble with values extracted from image files
+#' @return               Matrix with values extracted from image files
 #'
 .sits_raster_api_extract <- function(cube, band_cube, xy) {
     # preconditions
@@ -159,7 +112,7 @@
     # create a terra object
     rast <- suppressWarnings(terra::rast(band$path))
     # extract the values
-    values <- tibble::as_tibble(terra::extract(rast, xy))
+    values <- terra::extract(rast, xy)
     # get the timeline
     timeline <- sits_timeline(cube)
     # terra includes an ID (remove it)
@@ -170,70 +123,6 @@
         msg = ".sits_raster_api_extract - error in retrieving data"
     )
     return(values)
-}
-#' @title Define a filename associated to one classified raster layer
-#' @name .sits_raster_api_filename
-#' @keywords internal
-#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
-#'
-#' @description    Creates a filename for a raster layer
-#'                 with associated temporal information,
-#'                 given a basic filename.
-#' @param output_dir     Output directory
-#' @param version        Output version
-#' @param name           Original cube name (without temporal information).
-#' @param type           Type of output
-#' @param start_date     Starting date of the time series classification.
-#' @param end_date       End date of the time series classification.
-#' @return               Classification file for the required interval.
-.sits_raster_api_filename <- function(output_dir,
-                                      version,
-                                      name,
-                                      type,
-                                      start_date,
-                                      end_date) {
-    y1 <- lubridate::year(start_date)
-    m1 <- lubridate::month(start_date)
-    y2 <- lubridate::year(end_date)
-    m2 <- lubridate::month(end_date)
-
-    file_name <- paste0(output_dir, "/", name, "_", type,
-                        "_", y1, "_", m1, "_", y2, "_", m2, "_",
-                        version, ".tif"
-    )
-
-    return(file_name)
-}
-
-#' @title Create a tibble with file information to include in the cube
-#' @name  .sits_raster_api_file_info
-#' @keywords internal
-#'
-#' @param  bands    List of spectral bands
-#' @param  timeline Cube timeline
-#' @param  files    List of files associated to the
-.sits_raster_api_file_info <- function(bands, timeline, files) {
-    # create a tibble to store the file info
-    # iterate through the list of bands and files
-    assertthat::assert_that(length(bands) == length(timeline) &
-                            length(files) == length(timeline),
-        msg = ".sits_raster_api_file_info: unmatched bands, files and timeline")
-
-    # create the file info
-    file_info_lst <- purrr::pmap(
-        list(bands, timeline, files),
-        function(b, t, f) {
-            fil <- tibble::tibble(
-                band = b,
-                date = lubridate::as_date(t),
-                path = f
-            )
-            return(fil)
-        })
-    # join the list into a tibble
-    file_info <- dplyr::bind_rows(file_info_lst)
-
-    return(file_info)
 }
 #' @title Read a part of a raster file and return a matrix
 #' @name .sits_raster_api_read_extent

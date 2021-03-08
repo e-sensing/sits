@@ -18,5 +18,5 @@ A message
 }
 \description{
 Using "RASTER" as a type for a data cube is deprecated in favour
-             of "STACK" and "BRICK" types.
+             of "STACK" type.
 }

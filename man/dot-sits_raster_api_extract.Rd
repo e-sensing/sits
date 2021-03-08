@@ -14,7 +14,7 @@
 \item{xy}{Matrix with XY location}
 }
 \value{
-Tibble with values extracted from image files
+Matrix with values extracted from image files
 }
 \description{
 Given a data cube, retrieve the timeline

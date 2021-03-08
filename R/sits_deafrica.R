@@ -227,9 +227,6 @@
     # store items properties attributes
     item_prop <- items$features[[1]]$properties
 
-    # obtain the timeline
-    timeline <- unique(lubridate::as_date(file_info$date))
-
     # set the labels
     labels <- c("NoClass")
 
@@ -258,11 +255,6 @@
         tile      = item_prop[["odc:region_code"]],
         bands     = bands,
         labels    = labels,
-        scale_factors  = .sits_config_scale_factors(sensor, bands),
-        missing_values = .sits_config_missing_values(sensor, bands),
-        minimum_values = .sits_config_minimum_values(sensor, bands),
-        maximum_values = .sits_config_maximum_values(sensor, bands),
-        timelines = list(timeline),
         nrows = item_prop[["proj:shape"]][[1]],
         ncols = item_prop[["proj:shape"]][[2]],
         xmin = bbox$xmin,

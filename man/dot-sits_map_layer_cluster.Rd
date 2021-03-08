@@ -2,7 +2,7 @@
 % Please edit documentation in R/sits_smooth_aux_functions.R
 \name{.sits_map_layer_cluster}
 \alias{.sits_map_layer_cluster}
-\title{parallel raster brick}
+\title{Parallel processing of classified images}
 \usage{
 .sits_map_layer_cluster(
   cube,
@@ -40,6 +40,6 @@ smoothing.}
 RasterBrick object
 }
 \description{
-Process chunks of raster brick individually in parallel.
+Process chunks of raster bricks individually in parallel.
 }
 \keyword{internal}

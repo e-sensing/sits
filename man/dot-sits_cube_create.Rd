@@ -14,11 +14,6 @@
   tile = NA,
   bands,
   labels = NA,
-  scale_factors,
-  missing_values,
-  minimum_values,
-  maximum_values,
-  timelines,
   nrows,
   ncols,
   xmin,
@@ -49,16 +44,6 @@
 \item{bands}{Vector with the names of the bands.}
 
 \item{labels}{Vector with labels (only for classified data).}
-
-\item{scale_factors}{Vector with scale factor for each band.}
-
-\item{missing_values}{Vector with missing values for each band.}
-
-\item{minimum_values}{Vector with minimum values for each band.}
-
-\item{maximum_values}{Vector with maximum values for each band.}
-
-\item{timelines}{List with vectors of valid timelines for each band.}
 
 \item{nrows}{Number of rows in the cube.}
 

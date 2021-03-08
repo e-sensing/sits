@@ -13,11 +13,6 @@
 #' @param tile               Name of the input data tile (optional)
 #' @param bands              Vector with the names of the bands.
 #' @param labels             Vector with labels (only for classified data).
-#' @param scale_factors      Vector with scale factor for each band.
-#' @param missing_values     Vector with missing values for each band.
-#' @param minimum_values     Vector with minimum values for each band.
-#' @param maximum_values     Vector with maximum values for each band.
-#' @param timelines          List with vectors of valid timelines for each band.
 #' @param nrows              Number of rows in the cube.
 #' @param ncols              Number of columns in the cube.
 #' @param xmin               Spatial extent (xmin).
@@ -40,11 +35,6 @@
                               tile = NA,
                               bands,
                               labels = NA,
-                              scale_factors,
-                              missing_values,
-                              minimum_values,
-                              maximum_values,
-                              timelines,
                               nrows,
                               ncols,
                               xmin,
@@ -68,11 +58,6 @@
         tile = tile,
         bands = list(bands),
         labels = list(labels),
-        scale_factors = list(scale_factors),
-        missing_values = list(missing_values),
-        minimum_values = list(minimum_values),
-        maximum_values = list(maximum_values),
-        timeline = list(timelines),
         nrows = nrows,
         ncols = ncols,
         xmin = xmin,
@@ -95,173 +80,78 @@
 
 #' @title Create a set of RasterLayer objects to store
 #' data cube classification results (only the probs)
-#' @name .sits_cube_classified
+#' @name .sits_cube_probs
 #' @keywords internal
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'
 #' @description Take a tibble containing metadata about a data cube
-#' containing time series (each Brick has information for one band) and create a
+#' containing time series and create a
 #' set of RasterLayers to store the classification result.
 #' Each RasterLayer corresponds to one time step.
 #' The time steps are specified in a list of dates.
 #'
-#' @param  cube              input data cube.
+#' @param  tile              input tile (subset of a data cube).
 #' @param  samples           samples used for training the classification model.
-#' @param  name              name of the output cube
 #' @param  sub_image         bounding box of the ROI
 #' @param  output_dir        prefix of the output files.
 #' @param  version           version of the output files
 #' @return                   output data cube
 #'
-.sits_cube_classified <- function(cube, samples, name, sub_image,
+.sits_cube_probs <- function(tile, samples, sub_image,
                                   output_dir, version) {
     # ensure metadata tibble exists
-    assertthat::assert_that(NROW(cube) > 0,
-        msg = ".sits_classify_cube: need a valid metadata for cube"
+    assertthat::assert_that(NROW(tile) == 1,
+        msg = ".sits_cube_probs: accepts only one tile at a time"
     )
+
+    # set the name of the output cube
+    name <- paste0(tile$name,"_probs")
 
     # get the timeline of of the data cube
-    timeline <- lubridate::as_date(sits_timeline(cube))
+    timeline <- lubridate::as_date(sits_timeline(tile))
+    start_date = as.Date(timeline[1])
+    end_date = as.Date(timeline[length(timeline)])
 
-    # Get the reference start date and end date from the samples
-    ref_start_date <- lubridate::as_date(samples[1, ]$start_date)
-    ref_end_date <- lubridate::as_date(samples[1, ]$end_date)
-
-    # number of samples
-    num_samples <- nrow(samples[1, ]$time_series[[1]])
-
-    # produce the breaks used to generate the output rasters
-    subset_dates <- .sits_timeline_match(
-        timeline = timeline,
-        ref_start_date = ref_start_date,
-        ref_end_date = ref_end_date,
-        num_samples = num_samples
-    )
-
-    # how many objects are to be created?
-    n_objs <- length(subset_dates)
-    assertthat::assert_that(n_objs > 0,
-        msg = "cube timeline does not match dates of time series"
-    )
-
-    # labels come from samples.tb
+    # labels come from samples
     labels <- sits_labels(samples)$label
 
-    # create vectors and lists to store the content of the probabilities
-    bands <- vector(length = n_objs)
-    files <- vector(length = n_objs)
-    timelines <- vector("list", length = n_objs)
-
-    # set scale factors, missing values, minimum and maximum values for probs
-    #
-    cube_sf <- cube$scale_factors[[1]][1]
-    names(cube_sf) <- "PROBS"
-    max  <- round(1/cube_sf)
-    scale_factors <- rep(cube_sf, n_objs)
-    missing_values <- rep(NA, n_objs)
-    minimum_values <- rep(0, n_objs)
-    maximum_values <- rep(max, n_objs)
-
-    # loop through the list of dates and create list of raster layers
-    timelines <- seq_len(n_objs) %>%
-        purrr::map(function(i){
-            # define the timeline for the raster data sets
-            start_date <- subset_dates[[i]][1]
-            end_date <- subset_dates[[i]][2]
-            timeline_i <- timeline[lubridate::as_date(timeline) >= start_date &
-                                   lubridate::as_date(timeline) <= end_date]
-            return(timeline_i)
-        })
-
     # define the file names for the classified images
-    files <- timelines %>%
-        purrr::map(function(timeline){
-            file <- .sits_raster_api_filename(
-                output_dir = output_dir,
-                version = version,
-                name = name,
-                type = "probs",
-                start_date = timeline[1],
-                end_date = timeline[length(timeline)]
-            )
-            return(file)
-    })
-    # define the band names for the classified images
-    bands <- timelines %>%
-        purrr::map(function(timeline){
-            band <- .sits_cube_class_band_name(
-                name = name,
-                type = "probs",
-                start_date = timeline[1],
-                end_date = timeline[length(timeline)]
-            )
-            return(band)
-    })
+    file_name <- paste0(output_dir, "/", name, "_",
+                        start_date, "_", end_date,"_", version, ".tif"
+    )
 
-    # generate a set of timelines for the file_info
-    times_info_lst <- purrr::map(timelines, function(timeline) {
-        time_info <- timeline[1]
-        return(time_info)
-    })
-    times_info <- unlist(times_info_lst)
-
+    # define the band name
+    band <- "PROBS"
     # get the file information
-    file_info <- .sits_raster_api_file_info(bands, times_info, files)
-
-    # get the name of the cube
-    cube_name <- paste0(cube[1, ]$name, "_probs")
+    file_info <- tibble::tibble(
+         band = band,
+         start_date = start_date,
+         end_date = end_date,
+         path = file_name
+    )
 
     # set the metadata for the probability cube
-    cube_probs <- .sits_cube_create(
+    probs_cube <- .sits_cube_create(
         type = "PROBS",
-        satellite = cube$satellite,
-        sensor = cube$sensor,
-        name = cube_name,
-        bands = unlist(bands),
+        satellite = tile$satellite,
+        sensor = tile$sensor,
+        name = name,
+        bands = band,
         labels = labels,
-        scale_factors = scale_factors,
-        missing_values = missing_values,
-        minimum_values = minimum_values,
-        maximum_values = maximum_values,
-        timelines = timelines,
         nrows = unname(sub_image["nrows"]),
         ncols = unname(sub_image["ncols"]),
         xmin = unname(sub_image["xmin"]),
         xmax = unname(sub_image["xmax"]),
         ymin = unname(sub_image["ymin"]),
         ymax = unname(sub_image["ymax"]),
-        xres = cube$xres,
-        yres = cube$yres,
-        crs = cube$crs,
+        xres = tile$xres,
+        yres = tile$yres,
+        crs = tile$crs,
         file_info = file_info
     )
 
-    class(cube_probs) <- c("probs_cube", "raster_cube", class(cube_probs))
-    return(cube_probs)
-}
-
-#' @title Define a name for classified band
-#' @name .sits_cube_class_band_name
-#' @keywords internal
-#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
-#'
-#' @description    Creates a name for a raster layer based on timeline
-#'
-#' @param name           original cube name (without temporal information).
-#' @param type           type of output
-#' @param start_date     starting date of the time series classification.
-#' @param end_date       end date of the time series classification.
-#' @return               classification file for the required interval.
-#'
-.sits_cube_class_band_name <- function(name, type, start_date, end_date) {
-    y1 <- lubridate::year(start_date)
-    m1 <- lubridate::month(start_date)
-    y2 <- lubridate::year(end_date)
-    m2 <- lubridate::month(end_date)
-
-    band_name <- paste0(name, "_", type, "_", y1, "_", m1, "_", y2, "_", m2)
-
-    return(band_name)
+    class(probs_cube) <- c("probs_cube", "raster_cube", class(probs_cube))
+    return(probs_cube)
 }
 
 #' @title Return a file associated to a data cube, given an index
@@ -305,52 +195,7 @@
     return(cube$labels[[1]])
 }
 
-#' @title Retrieve the missing values for a data cube
-#' @name .sits_cube_missing_values
-#' @keywords internal
-#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
-#'
-#' @description     Given a data cube, retrieve the missing values
-#' @param cube      Metadata about a data cube
-#' @return          Vector of missing values.
-.sits_cube_missing_values <- function(cube) {
-    return(cube$missing_values[[1]])
-}
 
-#' @title Retrieve the minimum values for a data cube
-#' @name .sits_cube_minimum_values
-#' @keywords internal
-#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
-#'
-#' @description     Given a data cube, retrieve the minimum values
-#' @param cube      Metadata about a data cube
-#' @return          Vector of minimum values.
-.sits_cube_minimum_values <- function(cube) {
-    return(cube$minimum_values[[1]])
-}
-#' @title Retrieve the minimum values for a data cube
-#' @name .sits_cube_maximum_values
-#' @keywords internal
-#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
-#'
-#' @description     Given a data cube, retrieve the maximum values
-#' @param cube      Metadata about a data cube
-#' @return          Vector of maximum values.
-.sits_cube_maximum_values <- function(cube) {
-    return(cube$maximum_value[[1]])
-}
-
-#' @title Retrieve the scale factors for a data cube
-#' @name .sits_cube_scale_factors
-#' @keywords internal
-#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
-#'
-#' @description     Given a data cube, retrieve the scale factors
-#' @param cube      Metadata about a data cube
-#' @return          Vector of scale factors
-.sits_cube_scale_factors <- function(cube) {
-    return(cube$scale_factors[[1]])
-}
 
 #' @title Check that the requested bands exist in the cube
 #' @name .sits_cube_bands_check
@@ -406,4 +251,46 @@
 
     class(cube_clone) <- class(cube)
     return(cube_clone)
+}
+#' @title Extract a temporal interval from the cube to select
+#' only the images to be used for classification
+#'
+#' @name .sits_cube_sub_interval
+#' @keywords internal
+#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
+#'
+#' @param cube           Metadata about a data cube tile
+#' @param samples        Samples used for training
+#' @param start_date     Starting date for the classification
+#' @param end_date       End date for the classification
+#' @return          Name of file
+.sits_cube_sub_interval <- function(cube, samples, start_date, end_date){
+    assertthat::assert_that(nrow(cube) == 1,
+                          msg = "sits_cube_sub_interval accepts one tile only")
+
+    # get the cube timeline
+    cube_timeline <- sits_timeline(cube)
+
+    # if start and end dates are not provided, use the samples
+    if (purrr::is_null(start_date) || purrr::is_null(end_date)) {
+        # start date of the first sample
+        start_date <- samples$start_date[[1]]
+        # end date of the first sample
+        end_date <- samples$end_date[[1]]
+
+        message(paste0("No start/end date for classification provided", "\n",
+                       "Using period from ", start_date, " to ", end_date, "\n",
+                       "inferred from the samples"))
+    }
+    # verify if the dates are part of the cube timeline
+    assertthat::assert_that(as.Date(start_date) <= cube_timeline[length(cube_timeline)],
+                            msg = "start_date is not inside the cube timeline"
+    )
+    assertthat::assert_that(as.Date(end_date) >= cube_timeline[1],
+                            msg = "end_date is not inside the cube timeline"
+    )
+
+
+    return(cube)
 }
