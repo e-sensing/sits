@@ -58,7 +58,6 @@ sits_labels.sits <- function(data) {
 #' @param data     A data cube
 #' @return         A list of labels
 #'
-#'
 #' @export
 sits_labels.cube <- function(data) {
     return(data[1, ]$labels[[1]])

@@ -76,9 +76,7 @@ sits_config_info <- function() {
               )
             )
       } else {
-          message("To provide additional configurations, \n
-                  create an yml file and set environment variable \n
-                  SITS_USER_CONFIG_FILE to point to it"
+          message("To provide additional configurations, create an yml file and set environment variable SITS_USER_CONFIG_FILE to point to it"
           )
       }
 
@@ -157,15 +155,24 @@ sits_config_show <- function() {
 .sits_config_deafrica_stac <- function() {
   return(sits_env$config$deafrica_stac)
 }
+#' @title Directory to read the AWS STAC catalogue
+#' @name .sits_config_aws_stac
+#' @keywords internal
+#'
+#' @return directory where DEAFRICA is accessible on the web
+.sits_config_aws_stac <- function() {
+  return(sits_env$config$aws_stac)
+}
 #' @title Retrieve the bands associated to DEAfrica STAC
 #' @name sits_config_satveg_bands
-#' @param sensor  Type of sensor of cube
+#' @param sensor Type of sensor of cube
+#' @param cube   Cube in which bands will be searched
 #' @keywords internal
 #' @description Retrieve the cubes associated to the STAC service from DEAfrica
 #'
 #' @return         Names of DEAfrica available bands
-.sits_config_deafrica_bands <- function(sensor) {
-  return(sits_env$config[[sensor]][["bands"]][["DEAFRICA"]])
+.sits_config_sensor_bands <- function(sensor, cube) {
+  return(sits_env$config[[sensor]][["bands"]][[cube]])
 }
 #' @title Convert bands names from cube to SITS
 #' @name .sits_config_bands_convert

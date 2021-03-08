@@ -22,6 +22,9 @@ default:
     deafrica_stac           : "https://explorer.digitalearth.africa/stac/"
     deafrica_extension      : ["tif"]
 
+    # aws configuration for access to data
+    aws_stac                : "https://earth-search.aws.element84.com/v0/"
+
     # AWS configuration
     AWS_DEFAULT_REGION      :
         S2_L2A_AWS          : "eu-central-1"

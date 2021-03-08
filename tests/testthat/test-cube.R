@@ -187,13 +187,12 @@ test_that("Creating cubes from AWS", {
 
     s2_cube <- sits_cube(type = "S2_L2A_AWS",
                          name = "T20LKP_2018_2019",
-                         satellite = "SENTINEL-2",
-                         sensor = "MSI",
+                         collection = "sentinel-s2-l2a",
+                         s2_resolution = "60m",
                          tiles = "20LKP",
                          bands = c("B08", "SCL"),
-                         s2_aws_resolution = "60m",
-                         start_date = as.Date("2018-07-18"),
-                         end_date = as.Date("2018-07-23")
+                         start_date = "2018-07-18",
+                         end_date = "2018-07-23"
     )
 
     expect_true(all(sits_bands(s2_cube) %in% c("B08", "SCL")))
