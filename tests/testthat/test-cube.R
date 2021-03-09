@@ -168,7 +168,6 @@ test_that("Creating cubes from AWS", {
     testthat::skip_on_cran()
     # check "AWS_ACCESS_KEY_ID" - mandatory one per user
     aws_access_key_id <- Sys.getenv("AWS_ACCESS_KEY_ID")
-    print(paste0("AWS_ACCESS_KEY_ID  ", aws_access_key_id))
     # check "AWS_SECRET_ACCESS_KEY" - mandatory one per user
     aws_secret_access_key <- Sys.getenv("AWS_SECRET_ACCESS_KEY")
 
@@ -206,7 +205,7 @@ test_that("Creating cubes from AWS", {
     suppressWarnings(dir.create(path_images))
 
     gc_cube <- sits_cube(type        = "GDALCUBES",
-                         uneven_cube        = s2_cube,
+                         uneven_cube = s2_cube,
                          name        = "T20LKP_2018_2019_P5D",
                          path_db     = paste0(tempdir(), "/cube.db"),
                          path_images = path_images,
