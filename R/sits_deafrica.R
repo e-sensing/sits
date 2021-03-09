@@ -231,6 +231,9 @@
     # set the labels
     labels <- c("NoClass")
 
+    # format stac crs
+    item_prop[["proj:epsg"]] <- .sits_format_crs(item_prop[["proj:epsg"]])
+
     # obtain bbox extent
     bbox <- .sits_stac_get_bbox(items, item_prop[["proj:epsg"]])
 

@@ -539,7 +539,8 @@ sits_cube.s2_l2a_aws_cube <- function(type = "S2_L2A_AWS",
             msg = "sits_cube: AWS STAC collection must be provided"
   )
   assertthat::assert_that(!(length(collection) > 1),
-            msg = paste("sits_cube: for AWS STAC one only collection should be specified")
+            msg = paste("sits_cube: for AWS STAC one only collection should",
+                        "be specified")
   )
 
   # select bands by resolution

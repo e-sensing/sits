@@ -237,7 +237,11 @@
     # set the labels
     labels <- c("NoClass")
 
-    file_info <- .sits_aws_add_res(file_info, resolution)
+    # select bands by provided resolution
+    file_info <-.sits_aws_add_res(file_info, resolution)
+
+    # format stac crs
+    item_prop[["proj:epsg"]] <- .sits_format_crs(item_prop[["proj:epsg"]])
 
     # get the bands
     bands <- items[["bands"]]
