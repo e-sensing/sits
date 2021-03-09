@@ -7,6 +7,7 @@
 \alias{sits_cube.bdc_cube}
 \alias{sits_cube.deafrica_cube}
 \alias{sits_cube.s2_l2a_aws_cube}
+\alias{sits_cube.gdalcubes_cube}
 \alias{sits_cube.probs_cube}
 \title{Defines a data cube}
 \usage{
@@ -68,10 +69,23 @@ sits_cube(type, name, ...)
   end_date = NULL
 )
 
+\method{sits_cube}{gdalcubes_cube}(
+  type = "GDALCUBES",
+  ...,
+  uneven_cube,
+  name,
+  path_images,
+  path_db = NULL,
+  period = NULL,
+  agg_method = NULL,
+  resampling = "bilinear",
+  cloud_mask = TRUE
+)
+
 \method{sits_cube}{probs_cube}(
   type = "PROBS",
   ...,
-  names = "probs_cube",
+  name = "probs_cube",
   satellite,
   sensor,
   start_date,
@@ -118,11 +132,7 @@ object from sf package, a GeoJSON geometry (RFC 7946), or a named \code{vector}
 ("xmin", "ymin", "xmax", "ymax") with values in WGS 84 . This parameter does
 not crop a region, but only selects the images that intersect with it.}
 
-\item{probs_labels}{Labels associated to a probabilities cube}
-
-\item{probs_files}{File names (used for creating a cube from probabilities)}
-
-\item{s2_aws_resolution}{Resolution of S2 images ("10m", "20m" or "60m") used for AWS cubes}
+\item{s2_resolution}{Resolution of S2 images ("10m", "20m" or "60m") used to build cubes}
 
 \item{uneven_cube}{A cube whose spacing of observation times is not constant
 and will be regularized by the "gdalcubes" packges}
@@ -149,6 +159,10 @@ or others supported by gdalwarp
 (see https://gdal.org/programs/gdalwarp.html).}
 
 \item{cloud_mask}{Use cloud band for aggregation by \code{gdalcubes}? (TRUE/FALSE)}
+
+\item{probs_labels}{Labels associated to a probabilities cube}
+
+\item{probs_files}{File names (used for creating a cube from probabilities)}
 }
 \value{
 The description of a data cube

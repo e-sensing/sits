@@ -237,7 +237,7 @@
                                       "%Y-%m-%d"),
                           t1 = format(max(c_tile$file_info[[1]]$date),
                                       "%Y-%m-%d")),
-            srs = c_tile$crs[[1]],
+            srs = as.character(c_tile$crs[[1]]),
             dt  = period,
             nx  = c_tile$ncols[[1]],
             ny  = c_tile$nrows[[1]],

@@ -111,10 +111,6 @@ test_that("Creating cubes from DEA", {
   testthat::skip_if(nchar(aws_secret_access_key) == 0,
                     message = "No AWS_SECRET_ACCESS_KEY defined in environment.")
 
-  Sys.unsetenv("AWS_DEFAULT_REGION")
-  Sys.unsetenv("AWS_ENDPOINT")
-  Sys.unsetenv("AWS_REQUEST_PAYER")
-
   dea_cube <- sits_cube(type = "DEAFRICA",
                         name = "deafrica_cube",
                         collection = "ga_s2_gm",
@@ -172,6 +168,7 @@ test_that("Creating cubes from AWS", {
     testthat::skip_on_cran()
     # check "AWS_ACCESS_KEY_ID" - mandatory one per user
     aws_access_key_id <- Sys.getenv("AWS_ACCESS_KEY_ID")
+    print(paste0("AWS_ACCESS_KEY_ID  ", aws_access_key_id))
     # check "AWS_SECRET_ACCESS_KEY" - mandatory one per user
     aws_secret_access_key <- Sys.getenv("AWS_SECRET_ACCESS_KEY")
 

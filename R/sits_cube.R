@@ -84,7 +84,7 @@
 #'  not crop a region, but only selects the images that intersect with it.
 #' @param start_date        Initial date for the cube (optional).
 #' @param end_date          Final date for the cube  (optional)
-#' @param s2_aws_resolution Resolution of S2 images ("10m", "20m" or "60m") used for AWS cubes
+#' @param s2_resolution     Resolution of S2 images ("10m", "20m" or "60m") used to build cubes
 #' @param uneven_cube       A cube whose spacing of observation times is not constant
 #'                          and will be regularized by the "gdalcubes" packges
 #' @param path_images       Directory where the regularized images will be
@@ -432,6 +432,11 @@ sits_cube.deafrica_cube <- function(type = "DEAFRICA",
                    "install.packages('rstac')"), call. = FALSE
         )
     }
+    # DE Africa runs on AWS
+    # precondition - is AWS access available?
+    aws_access_ok <- .sits_aws_check_access(type = type)
+    if (!aws_access_ok)
+        return(NULL)
 
     # precondition - is the url correct?
     if (purrr::is_null(url)) {
@@ -439,7 +444,7 @@ sits_cube.deafrica_cube <- function(type = "DEAFRICA",
     }
 
     # test if DEA is accessible
-    assertthat::assert_that(.sits_config_bdc_stac_access(url),
+    assertthat::assert_that(RCurl::url.exists(url),
                             msg = "DEAfrica is not accessible"
     )
 
@@ -514,26 +519,27 @@ sits_cube.s2_l2a_aws_cube <- function(type = "S2_L2A_AWS",
                "install.packages('rstac')"), call. = FALSE
     )
   }
+  # precondition - is AWS access available?
+  aws_access_ok <- .sits_aws_check_access(type = type)
+  if (!aws_access_ok)
+      return(NULL)
 
   # precondition - is the url correct?
   if (purrr::is_null(url)) {
-    url <- .sits_config_aws_stac()
+      url <- .sits_config_aws_stac()
   }
 
   # test if AWS STAC is accessible
-  assertthat::assert_that(.sits_config_bdc_stac_access(url),
+  assertthat::assert_that(RCurl::url.exists(url),
                           msg = "AWS STAC is not accessible"
   )
 
   # precondition - is the collection name valid?
   assertthat::assert_that(!purrr::is_null(collection),
-                          msg = paste("sits_cube: AWS STAC collection must",
-                                      "be provided")
+            msg = "sits_cube: AWS STAC collection must be provided"
   )
-
   assertthat::assert_that(!(length(collection) > 1),
-                          msg = paste("sits_cube: for AWS STAC one",
-                                      "collection should be specified")
+            msg = paste("sits_cube: for AWS STAC one only collection should be specified")
   )
 
   # select bands by resolution
@@ -578,6 +584,9 @@ sits_cube.s2_l2a_aws_cube <- function(type = "S2_L2A_AWS",
 
   return(cube)
 }
+#' @title Creates a regularized data cube from an irregular one
+#' @rdname sits_cube
+#' @export
 sits_cube.gdalcubes_cube <- function(type = "GDALCUBES",
                                      ...,
                                      uneven_cube,
@@ -625,7 +634,7 @@ sits_cube.gdalcubes_cube <- function(type = "GDALCUBES",
 #' @export
 sits_cube.probs_cube <- function(type = "PROBS",
                                  ...,
-                                 names = "probs_cube",
+                                 name = "probs_cube",
                                  satellite,
                                  sensor,
                                  start_date,
