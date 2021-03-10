@@ -68,7 +68,7 @@ sits_classify <- function(data, ml_model, ...) {
 #' @param  ml_model          Pre-built machine learning model
 #'                             (see \code{\link[sits]{sits_train}}).
 #' @param  ...               Other parameters to be passed to specific functions
-#' @param  filter            Smoothing filter to be applied (if desired).
+#' @param  filter_fn         Smoothing filter to be applied (if desired).
 #' @param  multicores        Number of cores to be used for classification.
 #' @return A tibble with the predicted labels for each input segment.
 #'
@@ -88,7 +88,7 @@ sits_classify <- function(data, ml_model, ...) {
 #' @export
 #'
 sits_classify.sits <- function(data, ml_model, ...,
-                               filter = NULL,
+                               filter_fn = NULL,
                                multicores = 2) {
 
     # check if we are running in Windows
@@ -108,14 +108,14 @@ sits_classify.sits <- function(data, ml_model, ...,
     )
 
     # Precondition: only savitsky-golay and whittaker filters are supported
-    if (!purrr::is_null(filter)) {
+    if (!purrr::is_null(filter_fn)) {
         call_names <- deparse(sys.call())
         assertthat::assert_that(any(grepl("sgolay", (call_names))) ||
             any(grepl("whittaker", (call_names))),
         msg = "sits_classify_cube: only savitsky-golay and whittaker filters
                             are supported"
         )
-        data <- filter(data)
+        data <- filter_fn(data)
     }
 
     # precondition - are the samples valid?
@@ -194,7 +194,7 @@ sits_classify.sits <- function(data, ml_model, ...,
 #' @param  ml_model          R model trained by \code{\link[sits]{sits_train}}.
 #' @param  ...               other parameters to be passed to specific functions
 #' @param  roi               a region of interest (see above)
-#' @param  filter            smoothing filter to be applied (if desired).
+#' @param  filter_fn         smoothing filter to be applied (if desired).
 #' @param  impute_fn         impute function to replace NA
 #' @param  interp_fn         function to interpolate points from cube to match samples
 #' @param  compose_fn        function to compose points from cube to match samples
@@ -241,7 +241,7 @@ sits_classify.sits <- function(data, ml_model, ...,
 #' @export
 sits_classify.raster_cube <- function(data, ml_model, ...,
                                       roi = NULL,
-                                      filter = NULL,
+                                      filter_fn = NULL,
                                       impute_fn = sits_impute_linear(),
                                       interp_fn = NULL,
                                       compose_fn = NULL,
@@ -314,7 +314,7 @@ sits_classify.raster_cube <- function(data, ml_model, ...,
             tile       = tile,
             ml_model   = ml_model,
             roi        = roi,
-            filter     = filter,
+            filter_fn  = filter_fn,
             impute_fn  = impute_fn,
             compose_fn = compose_fn,
             interp_fn  = interp_fn,

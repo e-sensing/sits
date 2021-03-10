@@ -18,7 +18,7 @@
 #' @param  tile            a single tile of a data cube.
 #' @param  ml_model        model trained by \code{\link[sits]{sits_train}}.
 #' @param  roi             region of interest
-#' @param  filter          smoothing filter to be applied to the data.
+#' @param  filter_fn       smoothing filter function to be applied to the data.
 #' @param  impute_fn       impute function to replace NA
 #' @param  interp_fn       function to interpolate points from cube to match samples
 #' @param  compose_fn      function to compose points from cube to match samples
@@ -30,7 +30,7 @@
 .sits_classify_multicores <- function(tile,
                                       ml_model,
                                       roi,
-                                      filter,
+                                      filter_fn,
                                       impute_fn,
                                       interp_fn,
                                       compose_fn,
@@ -109,7 +109,7 @@
             samples = samples,
             extent = extent,
             stats = stats,
-            filter = filter,
+            filter_fn = filter_fn,
             impute_fn = impute_fn,
             interp_fn = interp_fn,
             compose_fn = compose_fn,

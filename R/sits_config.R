@@ -174,6 +174,68 @@ sits_config_show <- function() {
 .sits_config_sensor_bands <- function(sensor, cube) {
   return(sits_env$config[[sensor]][["bands"]][[cube]])
 }
+
+#' @title Convert bands names from SITS to cube
+#' @name .sits_config_bands_stac_read
+#' @keywords internal
+#'
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
+#'
+#' @description Convert the name of the band used by SITS to
+#'     the names used by the STAC provider
+#'
+#' @param stac_provider     Name of the STAC provider
+#' @param sensor         Name of sensor
+#' @param bands          Bands requested to be read
+#' @return               Name of the bands used in the STAC provider
+#'
+#'
+.sits_config_bands_stac_read <- function(stac_provider, sensor, bands){
+
+    bands_sits <- .sits_config_sensor_bands(sensor, "SITS")
+    bands_stac <- .sits_config_sensor_bands(sensor, stac_provider)
+
+    # are the bands specified as cloud provider bands or as sits bands?
+    assertthat::assert_that(all(bands %in% bands_stac) || all(bands %in% bands_sits),
+                            msg = paste0("required bands not available in ", stac_provider))
+    if (all(bands %in% bands_stac))
+        return(bands)
+    else {
+        bands_stac <- bands_stac[match(bands, bands_sits)]
+        return(bands_stac)
+    }
+}
+
+#' @title Convert bands names from cube to SITS
+#' @name .sits_config_bands_stac_write
+#' @keywords internal
+#'
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
+#'
+#' @description Convert the name of the band used by the origin data cube
+#'              to the name used by SITS
+#' @param tile      Data cube tile
+#' @return          Data cube tile with SITS bands
+#'
+#'
+.sits_config_bands_stac_write <- function(tile){
+
+  bands_sits <- .sits_config_sensor_bands(tile$sensor, "SITS")
+  bands_stac <- .sits_config_sensor_bands(tile$sensor, tile$type)
+  # create a named vector
+  names(bands_sits) <- bands_stac
+  # are the bands specified as cloud provider bands or as sits bands?
+  bands_tile <- tile$bands[[1]]
+  assertthat::assert_that(all(bands_tile %in% bands_stac) || all(bands_tile %in% bands_sits),
+                          msg = paste0("required bands not available in ", tile$type))
+  if (!all(bands_tile %in% bands_sits)) {
+      tile$bands[[1]] <- unname(bands_sits[tile$bands[[1]]])
+      tile$file_info[[1]]$band <- unname(bands_sits[tile$file_info[[1]]$band])
+  }
+
+  return(tile)
+}
+
 #' @title Convert bands names from cube to SITS
 #' @name .sits_config_bands_convert
 #' @keywords internal

@@ -9,7 +9,7 @@
   samples,
   extent,
   stats,
-  filter,
+  filter_fn,
   impute_fn,
   interp_fn,
   compose_fn,
@@ -25,7 +25,7 @@
 
 \item{stats}{normalization parameters.}
 
-\item{filter}{smoothing filter to be applied.}
+\item{filter_fn}{smoothing filter to be applied.}
 
 \item{impute_fn}{impute function to replace NA}
 
