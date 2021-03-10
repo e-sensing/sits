@@ -27,13 +27,16 @@ default:
 
     # AWS configuration
     AWS_DEFAULT_REGION      :
-        S2_L2A_AWS          : "eu-central-1"
+        S2_L2A_AWS          : &s2_l2a_region "eu-central-1"
+        DEAFRICA            : *s2_l2a_region
 
     AWS_ENDPOINT            :
-        S2_L2A_AWS          : "sentinel-s2-l2a.s3.amazonaws.com"
+        S2_L2A_AWS          : &s2_l2a_endpoint "sentinel-s2-l2a.s3.amazonaws.com"
+        DEAFRICA            : *s2_l2a_endpoint
 
     AWS_REQUEST_PAYER       :
-        S2_L2A_AWS          : "requester"
+        S2_L2A_AWS          : &s2_l2a_payer "requester"
+        DEAFRICA            : *s2_l2a_payer
 
     # information to parse repositories
     BDC                     :
