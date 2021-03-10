@@ -320,7 +320,7 @@ sits_cube.stack_cube <- function(type = "STACK",
         file_info = file_info
     )
 
-    class(cube) <- c("stack_cube", "raster_cube", class(cube))
+    class(cube) <- c("raster_cube", class(cube))
     return(cube)
 }
 
@@ -366,6 +366,7 @@ sits_cube.bdc_cube <- function(type = "BDC",
     # verify  bdc access credentials
     access_key <- .sits_bdc_access_check()
 
+
     # retrieve information from the collection
     collection_info <- .sits_stac_collection(
         url = url,
@@ -388,7 +389,6 @@ sits_cube.bdc_cube <- function(type = "BDC",
                                     fields = c("properties", "bdc:tiles")
     )
 
-
     tiles <- purrr::map(items_group, function(items) {
 
         # retrieve the information from STAC
@@ -410,7 +410,7 @@ sits_cube.bdc_cube <- function(type = "BDC",
     # include access key information in file
     cube <- .sits_bdc_access_info(cube, access_key)
 
-    class(cube) <- c("stack_cube", "raster_cube", class(cube))
+    class(cube) <- c("raster_cube", class(cube))
     return(cube)
 }
 #' @title Defines a data cube for Digital Earth Africa STAC
@@ -493,7 +493,7 @@ sits_cube.deafrica_cube <- function(type = "DEAFRICA",
     })
     # join the tiles
     cube <- dplyr::bind_rows(tiles)
-    class(cube) <- c("stack_cube", "raster_cube", class(cube))
+    class(cube) <- c("raster_cube", class(cube))
 
     return(cube)
 }
@@ -578,7 +578,7 @@ sits_cube.s2_l2a_aws_cube <- function(type = "S2_L2A_AWS",
       file_info = stack
     )
 
-    class(cube_t) <- c("stack_cube", "raster_cube", class(cube_t))
+    class(cube_t) <- c("raster_cube", class(cube_t))
     return(cube_t)
   })
   cube <- dplyr::bind_rows(tiles)
@@ -606,9 +606,9 @@ sits_cube.gdalcubes_cube <- function(type = "GDALCUBES",
     }
 
     # test if provided object its a sits cube
-    assertthat::assert_that("stack_cube" %in% class(uneven_cube),
+    assertthat::assert_that("raster_cube" %in% class(uneven_cube),
                             msg = paste("The provided cube is invalid,",
-                                        "please provide a 'stack_cube' object.",
+                                        "please provide a 'raster_cube' object.",
                                         "See '?sits_cube' for more information.")
     )
 
@@ -626,7 +626,7 @@ sits_cube.gdalcubes_cube <- function(type = "GDALCUBES",
     gc_cube <- .sits_gc_compose(uneven_cube, name, cv_list, img_col,
                                 path_db, path_images, cloud_mask)
 
-    class(gc_cube) <- c("stack_cube", "raster_cube", class(gc_cube))
+    class(gc_cube) <- c("raster_cube", class(gc_cube))
 
     return(gc_cube)
 }

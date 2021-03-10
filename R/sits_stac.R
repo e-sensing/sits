@@ -31,12 +31,18 @@
 
     # converts bands name to upper case
     collection_info <- .sits_stac_toupper(collection_info)
+    sensor <- collection_info$properties$instruments
 
     # checks if the supplied bands match the product bands
     if (!purrr::is_null(bands)) {
 
         # converting to upper bands
         bands <- toupper(bands)
+        # convert bands to those known by the cloud provider
+        bands <- .sits_config_bands_stac_read(stac_provider = "BDC",
+                                              sensor = sensor,
+                                              bands = bands)
+        # check bands
         assertthat::assert_that(all(bands %in% collection_info$bands),
                                 msg = paste("The supplied bands do not match",
                                             "the data cube bands."))
@@ -357,11 +363,8 @@
     # get the bands
     bands <- unique(file_info$band)
 
-    # get scale factors, missing, minimum, and maximum values
-    metadata_values  <- .sits_config_stac_values(collection, bands)
-
     # create a tibble to store the metadata
-    cube <- .sits_cube_create(type      = "BDC",
+    tile <- .sits_cube_create(type      = "BDC",
                               URL       = url,
                               satellite = collection$properties$platform,
                               sensor    = collection$properties$instruments,
@@ -381,5 +384,7 @@
                               crs       = collection[["bdc:crs"]],
                               file_info = file_info)
 
-    return(cube)
+    tile <- .sits_config_bands_stac_write(tile)
+
+    return(tile)
 }

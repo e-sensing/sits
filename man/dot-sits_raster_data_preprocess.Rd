@@ -8,7 +8,7 @@
   cube,
   band_cube,
   extent,
-  filter = NULL,
+  filter_fn = NULL,
   stats = NULL,
   impute_fn,
   multicores,
@@ -22,7 +22,7 @@
 
 \item{extent}{extent to be read}
 
-\item{filter}{smoothing filter to be applied.}
+\item{filter_fn}{smoothing filter to be applied.}
 
 \item{stats}{normalization parameters.}
 

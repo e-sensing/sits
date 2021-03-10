@@ -259,7 +259,7 @@
         res[c("xres", "yres")] <- .sits_config_resolution(sensor)
 
     # create a tibble to store the metadata
-    cube <- .sits_cube_create(
+    tile <- .sits_cube_create(
         type  = "S2_L2A_AWS",
         URL       = url,
         satellite = toupper(item_prop[["constellation"]]),
@@ -280,5 +280,7 @@
         crs = item_prop[["proj:epsg"]],
         file_info = file_info)
 
-    return(cube)
+    tile <- .sits_config_bands_stac_write(tile)
+
+    return(tile)
 }

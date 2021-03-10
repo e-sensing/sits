@@ -4,12 +4,12 @@
 \alias{.sits_raster_data_filter}
 \title{Filter the time series values in the case of a matrix}
 \usage{
-.sits_raster_data_filter(values, filter, multicores)
+.sits_raster_data_filter(values, filter_fn, multicores)
 }
 \arguments{
 \item{values}{matrix of values.}
 
-\item{filter}{Filter function to apply to matrix.}
+\item{filter_fn}{Filter function to apply to matrix.}
 
 \item{multicores}{Number of cores.}
 }

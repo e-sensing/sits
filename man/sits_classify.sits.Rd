@@ -4,7 +4,7 @@
 \alias{sits_classify.sits}
 \title{Classify a set of time series using machine learning models}
 \usage{
-\method{sits_classify}{sits}(data, ml_model, ..., filter = NULL, multicores = 2)
+\method{sits_classify}{sits}(data, ml_model, ..., filter_fn = NULL, multicores = 2)
 }
 \arguments{
 \item{data}{Tibble with time series metadata and data.}
@@ -14,7 +14,7 @@
 
 \item{...}{Other parameters to be passed to specific functions}
 
-\item{filter}{Smoothing filter to be applied (if desired).}
+\item{filter_fn}{Smoothing filter to be applied (if desired).}
 
 \item{multicores}{Number of cores to be used for classification.}
 }

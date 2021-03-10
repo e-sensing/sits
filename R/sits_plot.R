@@ -10,7 +10,7 @@
 #'  \item{patterns: }                    {see \code{\link{plot.patterns}}}
 #'  \item{SOM map: }                     {see \code{\link{plot.som_map}}}
 #'  \item{classified time series: }      {see \code{\link{plot.predicted}}}
-#'  \item{stack  cube: }                 {see \code{\link{plot.stack_cube}}}
+#'  \item{raster  cube: }                {see \code{\link{plot.raster_cube}}}
 #'  \item{classification probabilities: }{see \code{\link{plot.probs_cube}}}
 #'  \item{classified image: }            {see \code{\link{plot.classified_image}}}
 #'  \item{SOM evaluate cluster: }        {see \code{\link{plot.som_evaluate_cluster}}}
@@ -109,11 +109,11 @@ plot.predicted <- function(x, y, ..., bands = "NDVI") {
 }
 
 #' @title  Generic interface for plotting stack cubes
-#' @name   plot.stack_cube
+#' @name   plot.raster_cube
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #' @description plots a stack cube using terra
 #'
-#' @param  x             object of class "stack_cube"
+#' @param  x             object of class "raster_cube"
 #' @param  y             ignored
 #' @param  ...           further specifications for \link{plot}.
 #' @param  red           band for red color.
@@ -142,7 +142,7 @@ plot.predicted <- function(x, y, ..., bands = "NDVI") {
 #' }
 #'
 #' @export
-plot.stack_cube <- function(x, y, ..., red, green, blue, time = 1, roi = NULL) {
+plot.raster_cube <- function(x, y, ..., red, green, blue, time = 1, roi = NULL) {
 
     stopifnot(missing(y))
 
@@ -210,7 +210,7 @@ plot.stack_cube <- function(x, y, ..., red, green, blue, time = 1, roi = NULL) {
     }
 
     assertthat::assert_that(raster::ncol(rast) > 0 & raster::nrow(rast) > 1,
-                    msg = "plot.stack_cube: unable to retrieve raster data"
+                    msg = "plot.raster_cube: unable to retrieve raster data"
     )
 
     # plot the RGB file

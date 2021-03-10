@@ -9,7 +9,7 @@
   ml_model,
   ...,
   roi = NULL,
-  filter = NULL,
+  filter_fn = NULL,
   impute_fn = sits_impute_linear(),
   interp_fn = NULL,
   compose_fn = NULL,
@@ -30,7 +30,7 @@
 
 \item{roi}{a region of interest (see above)}
 
-\item{filter}{smoothing filter to be applied (if desired).}
+\item{filter_fn}{smoothing filter to be applied (if desired).}
 
 \item{impute_fn}{impute function to replace NA}
 

@@ -7,7 +7,7 @@
 #' @param  samples         tibble with samples.
 #' @param  extent          bounding box in (i,j) coordinates
 #' @param  stats           normalization parameters.
-#' @param  filter          smoothing filter to be applied.
+#' @param  filter_fn          smoothing filter to be applied.
 #' @param  impute_fn       impute function to replace NA
 #' @param  interp_fn       function to interpolate points from cube to match samples
 #' @param  compose_fn      function to compose points from cube to match samples
@@ -17,7 +17,7 @@
                                    samples,
                                    extent,
                                    stats,
-                                   filter,
+                                   filter_fn,
                                    impute_fn,
                                    interp_fn,
                                    compose_fn,
@@ -36,7 +36,7 @@
             extent = extent,
             impute_fn = impute_fn,
             stats = stats,
-            filter = filter,
+            filter_fn = filter_fn,
             multicores = multicores
         )
         return(values)
@@ -63,7 +63,7 @@
 #' @param  cube             data cube being processed
 #' @param  band_cube        band to be processed
 #' @param  extent           extent to be read
-#' @param  filter           smoothing filter to be applied.
+#' @param  filter_fn           smoothing filter to be applied.
 #' @param  stats            normalization parameters.
 #' @param  impute_fn        imputing function to be applied to replace NA
 #' @param  multicores       number of cores to process the time series.
@@ -72,7 +72,7 @@
 .sits_raster_data_preprocess <- function(cube,
                                          band_cube,
                                          extent,
-                                         filter = NULL,
+                                         filter_fn = NULL,
                                          stats = NULL,
                                          impute_fn,
                                          multicores,
@@ -142,8 +142,8 @@
     values <- scale_factor * values
 
     # filter the data
-    if (!(purrr::is_null(filter))) {
-        values <- .sits_raster_data_filter(values, filter, multicores)
+    if (!(purrr::is_null(filter_fn))) {
+        values <- .sits_raster_data_filter(values, filter_fn, multicores)
     }
     # normalize the data
     if (!purrr::is_null(stats)) {
@@ -192,14 +192,14 @@
 #' @description This function filters a matrix.
 #'
 #' @param  values         matrix of values.
-#' @param  filter         Filter function to apply to matrix.
+#' @param  filter_fn      Filter function to apply to matrix.
 #' @param  multicores     Number of cores.
 #' @return Filtered matrix.
-.sits_raster_data_filter <- function(values, filter, multicores) {
+.sits_raster_data_filter <- function(values, filter_fn, multicores) {
 
     # auxiliary function to scale a block of data
     filter_matrix_block <- function(chunk) {
-        filtered_block <- filter(chunk)
+        filtered_block <- filter_fn(chunk)
         return(filtered_block)
     }
     # use multicores to speed up filtering
@@ -212,7 +212,7 @@
         values <- do.call(rbind, rows)
     }
     else {
-          values <- filter(values)
+          values <- filter_fn(values)
       }
 
     return(values)

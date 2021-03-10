@@ -203,11 +203,18 @@
     if (!purrr::is_null(bands)) {
 
         # converting to upper bands
-        assertthat::assert_that(all(bands %in% items$bands),
+        bands <- toupper(bands)
+        # convert bands to those known by the cloud provider
+        bands_stac <- .sits_config_bands_stac_read(stac_provider = "DEAFRICA",
+                                              sensor = item_prop$instruments,
+                                              bands = bands)
+
+        # converting to upper bands
+        assertthat::assert_that(all(bands_stac %in% items$bands),
                                 msg = paste("The supplied bands do not match",
                                             "the data cube bands."))
 
-        items$bands <- items$bands[items$bands %in% bands]
+        items$bands <- items$bands[items$bands %in% bands_stac]
     }
 
     return(items)
@@ -249,7 +256,7 @@
         res[c("xres", "yres")] <- .sits_config_resolution(sensor)
 
     # create a tibble to store the metadata
-    cube <- .sits_cube_create(
+    tile <- .sits_cube_create(
         type  = "DEAFRICA",
         URL       = url,
         satellite = item_prop[["platform"]],
@@ -270,5 +277,7 @@
         crs = item_prop[["proj:epsg"]],
         file_info = file_info)
 
-    return(cube)
+    tile <- .sits_config_bands_stac_write(tile)
+
+    return(tile)
 }

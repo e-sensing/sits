@@ -153,7 +153,10 @@ sits_bands.patterns <- function(data) {
         old_bands <- row$bands[[1]]
         assertthat::assert_that(length(old_bands) == length(value),
                                 msg = "replacement bands have wrong length")
-        row$bands[[1]] <- value
+        # rename bands
+        names(value) <- row$bands[[1]]
+        row$bands[[1]] <- unname(value)
+        row$file_info[[1]]$bands <- unname(value[row$file_info[[1]]$band])
         return(row)
     })
     x <- dplyr::bind_rows(rows)

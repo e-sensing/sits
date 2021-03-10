@@ -8,7 +8,7 @@
   tile,
   ml_model,
   roi,
-  filter,
+  filter_fn,
   impute_fn,
   interp_fn,
   compose_fn,
@@ -25,7 +25,7 @@
 
 \item{roi}{region of interest}
 
-\item{filter}{smoothing filter to be applied to the data.}
+\item{filter_fn}{smoothing filter function to be applied to the data.}
 
 \item{impute_fn}{impute function to replace NA}
 
