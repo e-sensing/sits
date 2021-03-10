@@ -117,8 +117,6 @@
 
     # get the bands
     bands <- unique(file_info$band)
-    # get the timeline
-    timeline <- unique(file_info$date)
     # get the parameters from the raster object of one of the layers
     # the assumptions is that all layers are consistent
     params <- .sits_raster_api_params_file(file_info$path[1])
@@ -131,11 +129,6 @@
         sensor = sensor,
         name = name,
         bands = bands,
-        scale_factors = .sits_config_scale_factors(sensor, bands),
-        missing_values = .sits_config_missing_values(sensor, bands),
-        minimum_values = .sits_config_minimum_values(sensor, bands),
-        maximum_values = .sits_config_maximum_values(sensor, bands),
-        timelines = list(timeline),
         nrows = params$nrows,
         ncols = params$ncols,
         xmin = params$xmin,

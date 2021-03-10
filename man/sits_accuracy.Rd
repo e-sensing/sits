@@ -33,39 +33,39 @@ and error matrix (confusion matrix) according to [1-3].
 \dontrun{
 # get the samples for Mato Grosso for bands NDVI and EVI
 samples_mt_ndvi <- sits_select(samples_mt_4bands, bands = c("NDVI"))
+
 # filter the samples for three classes (to simplify the example)
 samples_mt_ndvi <- dplyr::filter(samples_mt_ndvi, label \%in\%
   c("Forest", "Pasture", "Soy_Corn"))
-# build an XGB model
+
+# build an extreme gradient boosting model
 xgb_model <- sits_train(
   samples_mt_ndvi,
   sits_xgboost(nrounds = 10, verbose = FALSE)
 )
 
-# files that make up the data cube
-ndvi_file <- c(system.file("extdata/raster/mod13q1/sinop-ndvi-2014.tif",
-  package = "sits"
-))
-# create the data cube
-sinop_2014 <- sits_cube(
-    type = "BRICK",
+# create a data cube based on files
+data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
+cube <- sits_cube(
+    type = "STACK",
     name = "sinop-2014",
-    timeline = timeline_2013_2014,
     satellite = "TERRA",
     sensor = "MODIS",
-    bands = c("NDVI"),
-    files = c(ndvi_file)
+    data_dir = data_dir,
+    delim = "_",
+    parse_info = c("X1", "X2", "band", "date")
 )
 
+
 # classify the data cube with xgb model
-sinop_2014_probs <- sits_classify(sinop_2014,
+probs_cube <- sits_classify(cube,
   xgb_model,
   output_dir = tempdir(),
   memsize = 4,
   multicores = 1
 )
 # label the classification
-sinop_2014_label <- sits_label_classification(sinop_2014_probs,
+label_cube <- sits_label_classification(probs_cube,
   output_dir = tempdir()
 )
 # get ground truth points
@@ -73,7 +73,7 @@ ground_truth <- system.file("extdata/samples/samples_sinop_crop.csv",
   package = "sits"
 )
 # calculate accuracy according to Olofsson's method
-accuracy <- suppressWarnings(sits_accuracy(sinop_2014_label, ground_truth))
+accuracy <- suppressWarnings(sits_accuracy(label_cube, ground_truth))
 }
 }
 \references{

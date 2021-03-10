@@ -2,7 +2,7 @@
 % Please edit documentation in R/sits_raster_data.R
 \name{.sits_raster_data_preprocess}
 \alias{.sits_raster_data_preprocess}
-\title{Preprocess a set of values retrieved from a raster brick}
+\title{Preprocess a set of values retrieved from a raster}
 \usage{
 .sits_raster_data_preprocess(
   cube,
@@ -36,7 +36,7 @@
 Matrix with pre-processed values.
 }
 \description{
-Preprocess a set of values retrieved from a raster brick
+Preprocess a set of values retrieved from a raster
 }
 \author{
 Gilberto Camara, \email{gilberto.camara@inpe.br}

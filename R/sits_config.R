@@ -155,15 +155,24 @@ sits_config_show <- function() {
 .sits_config_deafrica_stac <- function() {
   return(sits_env$config$deafrica_stac)
 }
+#' @title Directory to read the AWS STAC catalogue
+#' @name .sits_config_aws_stac
+#' @keywords internal
+#'
+#' @return directory where DEAFRICA is accessible on the web
+.sits_config_aws_stac <- function() {
+  return(sits_env$config$aws_stac)
+}
 #' @title Retrieve the bands associated to DEAfrica STAC
 #' @name sits_config_satveg_bands
-#' @param sensor  Type of sensor of cube
+#' @param sensor Type of sensor of cube
+#' @param cube   Cube in which bands will be searched
 #' @keywords internal
 #' @description Retrieve the cubes associated to the STAC service from DEAfrica
 #'
 #' @return         Names of DEAfrica available bands
-.sits_config_deafrica_bands <- function(sensor) {
-  return(sits_env$config[[sensor]][["bands"]][["DEAFRICA"]])
+.sits_config_sensor_bands <- function(sensor, cube) {
+  return(sits_env$config[[sensor]][["bands"]][[cube]])
 }
 #' @title Convert bands names from cube to SITS
 #' @name .sits_config_bands_convert
@@ -517,6 +526,37 @@ sits_config_show <- function() {
 
     names(mis_val) <- bands
     return(mis_val)
+}
+#' @title Retrieve the scale factor for a label cube
+#' @name .sits_config_label_scale_factor
+#' @keywords internal
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
+.sits_config_label_scale_factor  <- function(){
+    return(sits_env$config[["CLASSIFIED"]][["scale_factor"]])
+}
+
+#' @title Retrieve the missing value for a label cube
+#' @name .sits_config_label_missing_value
+#' @keywords internal
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
+.sits_config_label_missing_value  <- function(){
+    return(sits_env$config[["CLASSIFIED"]][["missing_value"]])
+}
+
+#' @title Retrieve the minimum value for a label cube
+#' @name .sits_config_label_minimum_value
+#' @keywords internal
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
+.sits_config_label_minimum_value  <- function(){
+    return(sits_env$config[["CLASSIFIED"]][["minimum_value"]])
+}
+
+#' @title Retrieve the maximum value for a label cube
+#' @name .sits_config_label_maximum_value
+#' @keywords internal
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
+.sits_config_label_maximum_value  <- function(){
+    return(sits_env$config[["CLASSIFIED"]][["maximum_value"]])
 }
 #' @title Retrieve the scale factor for a probs cube
 #' @name .sits_config_probs_scale_factor

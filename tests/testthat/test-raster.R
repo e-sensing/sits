@@ -1,93 +1,5 @@
 context("Raster classification")
 
-
-test_that("Multi-year, single core classification", {
-    #
-    samples_mt_ndvi <- sits_select(samples_mt_4bands, bands = "NDVI")
-    rfor_model <- sits_train(samples_mt_ndvi, sits_rfor(num_trees = 200))
-    files <- c(system.file("extdata/raster/mod13q1/sinop-crop-ndvi.tif",
-        package = "sits"
-    ))
-    data("timeline_modis_392")
-    sinop <- sits_cube(
-        type = "BRICK",
-        name = "sinop-crop",
-        timeline = timeline_modis_392,
-        satellite = "TERRA",
-        sensor = "MODIS",
-        bands = "NDVI",
-        files = files
-    )
-    # classify using one core
-    sinop_probs <- suppressMessages(
-        sits_classify(sinop,
-                      rfor_model,
-                      output_dir = tempdir(),
-                      memsize = 2,
-                      multicores = 1
-        )
-    )
-
-    # Retrieve values and test them
-    probs1 <- sinop_probs$file_info[[1]]$path[1]
-    r_obj <- suppressWarnings(terra::rast(probs1))
-    max_lyr1 <- max(terra::values(r_obj)[, 1])
-    expect_true(max_lyr1 > 8000)
-
-    max_lyr2 <- max(terra::values(r_obj)[, 2])
-    expect_true(max_lyr2 < 1000)
-
-    # retrieve the output raster layers
-    expect_true(all(file.exists(unlist(sinop_probs$file_info[[1]]$path))))
-    expect_true(all(file.remove(unlist(sinop_probs$file_info[[1]]$path))))
-})
-
-test_that("Multi-year, multi-core classification", {
-    # skip_on_cran()
-    files <- c(system.file("extdata/raster/mod13q1/sinop-crop-ndvi.tif",
-        package = "sits"
-    ))
-    data("timeline_modis_392")
-    sinop <- sits_cube(
-        type = "BRICK",
-        name = "sinop-crop",
-        timeline = timeline_modis_392,
-        satellite = "TERRA",
-        sensor = "MODIS",
-        bands = "ndvi",
-        files = files
-    )
-
-    r_obj <- suppressWarnings(terra::rast(sinop$file_info[[1]]$path[1]))
-    expect_true(terra::nrow(r_obj) == sinop$nrows)
-    expect_true(terra::xmin(r_obj) == sinop$xmin)
-
-    samples_mt_ndvi <- sits_select(samples_mt_4bands, bands = "NDVI")
-    svm_model <- sits_train(samples_mt_ndvi, sits_svm())
-
-    # classify using multicores
-    sinop_probs <- suppressMessages(
-        sits_classify(sinop,
-                      svm_model,
-                      output_dir = tempdir(),
-                      memsize = 4,
-                      multicores = 2
-        )
-    )
-
-    expect_true(all(file.exists(unlist(sinop_probs$file_info[[1]]$path))))
-    rc_obj <- suppressWarnings(terra::rast(sinop_probs$file_info[[1]]$path[1]))
-    expect_true(terra::nrow(rc_obj) == sinop_probs$nrows)
-
-    max_lyr1 <- max(terra::values(rc_obj)[, 1])
-    expect_true(max_lyr1 > 9000)
-
-    max_lyr2 <- max(terra::values(rc_obj)[, 2])
-    expect_true(max_lyr2 < 1000)
-
-    expect_true(all(file.remove(unlist(sinop_probs$file_info[[1]]$path))))
-})
-
 test_that("One-year, single core classification", {
     samples_2bands <- sits_select(samples_mt_4bands, bands = c("NDVI", "EVI"))
     dl_model <- sits_train(samples_2bands, sits_deeplearning(
@@ -98,28 +10,18 @@ test_that("One-year, single core classification", {
         verbose = 0
     ))
 
-    ndvi_file <- c(system.file("extdata/raster/mod13q1/sinop-ndvi-2014.tif",
-        package = "sits"
-    ))
-
-    evi_file <- c(system.file("extdata/raster/mod13q1/sinop-evi-2014.tif",
-        package = "sits"
-    ))
-
-    data("timeline_2013_2014")
-
-    sinop_cube <- sits_cube(
-        type = "BRICK",
+    data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
+    sinop <- sits_cube(
+        type = "STACK",
         name = "sinop-2014",
-        timeline = timeline_2013_2014,
         satellite = "TERRA",
         sensor = "MODIS",
-        bands = c("ndvi", "evi"),
-        files = c(ndvi_file, evi_file)
+        data_dir = data_dir,
+        delim = "_",
+        parse_info = c("X1", "X2", "band", "date")
     )
-
     sinop_probs <- suppressMessages(
-        sits_classify(sinop_cube,
+        sits_classify(sinop,
                       dl_model,
                       output_dir = tempdir(),
                       memsize = 4,
@@ -146,28 +48,19 @@ test_that("One-year, multicore classification", {
 
     svm_model <- sits_train(samples_2bands, sits_svm())
 
-    ndvi_file <- c(system.file("extdata/raster/mod13q1/sinop-ndvi-2014.tif",
-        package = "sits"
-    ))
-
-    evi_file <- c(system.file("extdata/raster/mod13q1/sinop-evi-2014.tif",
-        package = "sits"
-    ))
-
-    data("timeline_2013_2014")
-
-    sinop_cube <- sits_cube(
-        type = "BRICK",
+    data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
+    sinop <- sits_cube(
+        type = "STACK",
         name = "sinop-2014",
-        timeline = timeline_2013_2014,
         satellite = "TERRA",
         sensor = "MODIS",
-        bands = c("ndvi", "evi"),
-        files = c(ndvi_file, evi_file)
+        data_dir = data_dir,
+        delim = "_",
+        parse_info = c("X1", "X2", "band", "date")
     )
 
     sinop_probs <- suppressMessages(
-        sits_classify(sinop_cube,
+        sits_classify(sinop,
                       svm_model,
                       output_dir = tempdir(),
                       memsize = 4,
@@ -193,29 +86,20 @@ test_that("One-year, single core classification with filter", {
     samples_filt <- sits_whittaker(samples_2bands, bands_suffix = "")
     svm_model <- sits_train(samples_filt, sits_svm())
 
-    ndvi_file <- c(system.file("extdata/raster/mod13q1/sinop-ndvi-2014.tif",
-        package = "sits"
-    ))
-
-    evi_file <- c(system.file("extdata/raster/mod13q1/sinop-evi-2014.tif",
-        package = "sits"
-    ))
-
-    data("timeline_2013_2014")
-
-    sinop_cube <- sits_cube(
-        type = "BRICK",
+    data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
+    sinop <- sits_cube(
+        type = "STACK",
         name = "sinop-2014",
-        timeline = timeline_2013_2014,
         satellite = "TERRA",
         sensor = "MODIS",
-        bands = c("ndvi", "evi"),
-        files = c(ndvi_file, evi_file)
+        data_dir = data_dir,
+        delim = "_",
+        parse_info = c("X1", "X2", "band", "date")
     )
 
     sinop_probs <- suppressMessages(
         sits_classify(
-            data = sinop_cube,
+            data = sinop,
             ml_model = svm_model,
             filter = sits_whittaker(lambda = 3.0),
             output_dir = tempdir(),
@@ -233,29 +117,20 @@ test_that("One-year, multicore classification with filter", {
     samples_filt <- sits_sgolay(samples_2bands, bands_suffix = "")
     svm_model <- sits_train(samples_filt, sits_svm())
 
-    ndvi_file <- c(system.file("extdata/raster/mod13q1/sinop-ndvi-2014.tif",
-        package = "sits"
-    ))
-
-    evi_file <- c(system.file("extdata/raster/mod13q1/sinop-evi-2014.tif",
-        package = "sits"
-    ))
-
-    data("timeline_2013_2014")
-
-    sinop_2014 <- sits_cube(
-        type = "BRICK",
+    data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
+    sinop <- sits_cube(
+        type = "STACK",
         name = "sinop-2014",
-        timeline = timeline_2013_2014,
         satellite = "TERRA",
         sensor = "MODIS",
-        bands = c("ndvi", "evi"),
-        files = c(ndvi_file, evi_file)
+        data_dir = data_dir,
+        delim = "_",
+        parse_info = c("X1", "X2", "band", "date")
     )
 
     sinop_2014_probs <- suppressMessages(
         sits_classify(
-            data = sinop_2014,
+            data = sinop,
             ml_model = svm_model,
             filter = sits_whittaker(lambda = 3.0),
             output_dir = tempdir(),
@@ -284,29 +159,20 @@ test_that("One-year, multicore classification with post-processing", {
 
     svm_model <- sits_train(samples_2bands, sits_svm())
 
-    ndvi_file <- c(system.file("extdata/raster/mod13q1/sinop-ndvi-2014.tif",
-        package = "sits"
-    ))
-
-    evi_file <- c(system.file("extdata/raster/mod13q1/sinop-evi-2014.tif",
-        package = "sits"
-    ))
-
-    data("timeline_2013_2014")
-
-    sinop_cube <- sits_cube(
-        type = "BRICK",
+    data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
+    sinop <- sits_cube(
+        type = "STACK",
         name = "sinop-2014",
-        timeline = timeline_2013_2014,
         satellite = "TERRA",
         sensor = "MODIS",
-        bands = c("ndvi", "evi"),
-        files = c(ndvi_file, evi_file)
+        data_dir = data_dir,
+        delim = "_",
+        parse_info = c("X1", "X2", "band", "date")
     )
 
     sinop_probs <- suppressMessages(
         sits_classify(
-            sinop_cube,
+            sinop,
             svm_model,
             output_dir = tempdir(),
             memsize = 4,
@@ -404,21 +270,8 @@ test_that("One-year, multicore classification with post-processing", {
 
 
 test_that("Check GDAL access", {
-    files <- c(system.file("extdata/raster/mod13q1/sinop-crop-ndvi.tif",
+    file <- c(system.file("extdata/raster/mod13q1/MODIS_Sinop_EVI_2013-09-14.tif",
         package = "sits"
     ))
-    expect_true(sits:::.sits_raster_api_check_access(files[1]))
-})
-
-test_that("Raster filename", {
-    file <- sits:::.sits_raster_api_filename(
-        output_dir = "./",
-        version = "v1",
-        name = "sinop",
-        type = "probs",
-        start_date = "2018-08-01",
-        end_date = "2019-07-31"
-    )
-
-    expect_true(as.logical(grep("sinop_probs_2018_8_2019_7", file)))
+    expect_true(sits:::.sits_raster_api_check_access(file))
 })

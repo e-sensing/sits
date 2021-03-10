@@ -49,6 +49,9 @@ sits_train <- function(data, ml_method = sits_svm()) {
         msg = "sits_train: ml_method is not a valid function"
     )
 
+    assertthat::assert_that(.sits_check_timeline(data) == TRUE,
+        msg = paste0("Samples have different timeline lengths", "\n",
+                     "Use sits_prune or sits_fix_timeline"))
     # compute the training method by the given data
     result <- ml_method(data)
 

@@ -180,6 +180,22 @@
 
     return(items_grouped)
 }
+
+#' @title Checks if the crs provided is valid
+#' @name .sits_check_crs
+#' @keywords internal
+#'
+#' @param stac_crs a \code{numeric} or \code{character} with CRS provided by
+#'  STAC.
+#'
+#' @return  a \code{character} with the formatted CRS.
+.sits_format_crs <- function(stac_crs) {
+    if (is.null(stac_crs))
+        stop(paste("sits_cube: The CRS in this catalog is null, please enter",
+                   "a valid CRS."))
+
+    return(sf::st_crs(stac_crs)[["input"]])
+}
 #' @title Get bbox and intersects parameters
 #' @name .sits_stac_roi
 #' @keywords internal
@@ -332,9 +348,6 @@
                                  cube,
                                  file_info) {
 
-    # obtain the timeline
-    timeline <- unique(lubridate::as_date(file_info$date))
-
     # set the labels
     labels <- c("NoClass")
 
@@ -357,11 +370,6 @@
                               tile      = items$tile,
                               bands     = collection$bands,
                               labels    = labels,
-                              scale_factors  = metadata_values$scale,
-                              missing_values = metadata_values$nodata,
-                              minimum_values = metadata_values$min,
-                              maximum_values = metadata_values$max,
-                              timelines = list(timeline),
                               nrows     = items$nrows,
                               ncols     = items$ncols,
                               xmin      = bbox$xmin[[1]],

@@ -46,5 +46,7 @@ The model should be precomputed using \code{\link[sits]{sits_train}}
 and then passed to the "sits_classify" function using parameter "ml_model".
 }
 \author{
+Rolf Simoes, \email{rolf.simoes@inpe.br}
+
 Gilberto Camara, \email{gilberto.camara@inpe.br}
 }

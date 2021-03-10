@@ -11,11 +11,14 @@
   roi = NULL,
   filter = NULL,
   impute_fn = sits_impute_linear(),
+  interp_fn = NULL,
+  compose_fn = NULL,
+  start_date = NULL,
+  end_date = NULL,
   memsize = 8,
   multicores = 2,
   output_dir = "./",
-  version = "v1",
-  .verbose = FALSE
+  version = "v1"
 )
 }
 \arguments{
@@ -31,6 +34,14 @@
 
 \item{impute_fn}{impute function to replace NA}
 
+\item{interp_fn}{function to interpolate points from cube to match samples}
+
+\item{compose_fn}{function to compose points from cube to match samples}
+
+\item{start_date}{starting date for the classification}
+
+\item{end_date}{end date for the classification}
+
 \item{memsize}{memory available for classification (in GB).}
 
 \item{multicores}{number of cores to be used for classification.}
@@ -38,8 +49,6 @@
 \item{output_dir}{directory for output file}
 
 \item{version}{version of the output (for multiple classifications)}
-
-\item{.verbose}{print detailed information on processing steps}
 }
 \value{
 cube with the metadata of a brick of probabilities.
@@ -62,21 +71,18 @@ Takes a data cube, whose metadata is
    the amount of memory available for classification.
 }
 \examples{
-
 \dontrun{
-# Classify a raster file with 23 instances for one year
-ndvi_file <- c(system.file("extdata/raster/mod13q1/sinop-ndvi-2014.tif",
-package = "sits"))
 
-# create a data cube based on the information about the files
-sinop_2014 <- sits_cube(
-    type = "BRICK",
+# create a data cube based on files
+data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
+cube <- sits_cube(
+    type = "STACK",
     name = "sinop-2014",
-    timeline = timeline_2013_2014,
     satellite = "TERRA",
     sensor = "MODIS",
-    bands = c("ndvi"),
-    files = c(ndvi_file)
+    data_dir = data_dir,
+    delim = "_",
+    parse_info = c("X1", "X2", "band", "date")
 )
 
 # select band "NDVI"
@@ -86,16 +92,19 @@ samples <- sits_select(samples_mt_4bands, bands = "NDVI")
 rfor_model <- sits_train(samples, ml_method = sits_rfor(num_trees = 300))
 
 # classify the raster image
-sinop_probs <- sits_classify(sinop_2014,
+probs_cube <- sits_classify(cube,
     ml_model = rfor_model,
     output_dir = tempdir(),
-    memsize = 4, multicores = 1
+    memsize = 4, multicores = 2
 )
 
 # label the classified image
-sinop_label <- sits_label_classification(sinop_probs, output_dir = tempdir())
+label_cube <- sits_label_classification(probs_cube, output_dir = tempdir())
 }
+
 }
 \author{
+Rolf Simoes, \email{rolf.simoes@inpe.br}
+
 Gilberto Camara, \email{gilberto.camara@inpe.br}
 }

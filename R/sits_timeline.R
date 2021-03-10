@@ -2,12 +2,8 @@
 #' @name sits_timeline
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'
-#' @description This function returns the timeline for a given data set
-#'              For details see:
-#' \itemize{
-#'  \item{"time series": }{see \code{\link{sits_timeline.sits}}}
-#'  \item{"data cube": }{see \code{\link{sits_timeline.cube}}}
-#' }
+#' @description This function returns the timeline for a given data set, either
+#'              a set of time series or a data cube
 #' @param  data     either a sits tibble or data cube
 #' @export
 sits_timeline <- function(data) {
@@ -18,7 +14,7 @@ sits_timeline <- function(data) {
 }
 #'
 #' @title Obtains the timeline for a set of time series
-#' @name sits_timeline.sits
+#' @rdname sits_timeline
 #' @param  data     A sits tibble
 #' @export
 sits_timeline.sits <- function(data) {
@@ -33,23 +29,66 @@ sits_timeline.sits <- function(data) {
     return(timeline)
 }
 #'
-#' @title Obtains the timeline for a data cube
-#' @name sits_timeline.cube
-#' @param  data     A sits tibble (either a sits tibble or a raster metadata).
+#' @title Obtains the timeline for a raster data cube
+#' @rdname sits_timeline
 #' @export
-sits_timeline.cube <- function(data) {
-    timeline <- NULL
-    # is this a cube metadata?
-    timeline <- lubridate::as_date(data$timeline[[1]][[1]])
+sits_timeline.raster_cube <- function(data) {
 
-    assertthat::assert_that(!purrr::is_null(timeline),
-        msg = "sits_timeline: input does not contain a valid timeline"
-    )
+    timeline_first <-  unique(lubridate::as_date(data$file_info[[1]]$date))
 
-    # check that all timelines are the same
-    return(timeline)
+    slider::slide(data, function(tile){
+        timeline_tile <- unique(lubridate::as_date(tile$file_info[[1]]$date))
+        assertthat::assert_that(all(timeline_tile %in% timeline_first),
+                    msg = "data cube tiles have different timelines")
+    })
+
+    # return the timeline of the cube
+    return(timeline_first)
+}
+#'
+#' @title Obtains the timeline for a raster data cube
+#' @rdname sits_timeline
+#' @export
+sits_timeline.satveg_cube <- function(data) {
+
+  # retrieve the time series
+  ts <- .sits_ts_from_satveg(longitude = -55.50563,
+                             latitude = -11.71557,
+                             data$name)
+
+  # return the timeline of the cube
+  return(as.Date(ts$Index))
 }
 
+#'
+#' @title Obtains the timeline for a probs data cube
+#' @rdname sits_timeline
+#' @export
+sits_timeline.probs_cube <- function(data) {
+
+  assertthat::assert_that(nrow(data) == 1,
+                          msg = "sits_timeline requires a single cube tile")
+
+  # return the timeline of the cube
+  start_date <- lubridate::as_date(data$file_info[[1]]$start_date)
+  end_date <- lubridate::as_date(data$file_info[[1]]$end_date)
+  timeline <- c(start_date, end_date)
+  return(timeline)
+}
+#' @title Obtains the timeline for a classified data cube
+#' @rdname sits_timeline
+#' @export
+sits_timeline.classified_image <- function(data) {
+
+  assertthat::assert_that(nrow(data) == 1,
+                          msg = "sits_timeline requires a single cube tile")
+
+  # return the timeline of the cube
+  start_date <- lubridate::as_date(data$file_info[[1]]$start_date)
+  end_date <- lubridate::as_date(data$file_info[[1]]$end_date)
+  timeline <- c(start_date, end_date)
+  return(timeline)
+}
 #' @title Check cube timeline against requested start and end dates
 #' @name .sits_timeline_check_cube
 #' @keywords internal
@@ -159,33 +198,6 @@ sits_timeline.cube <- function(data) {
         dates_index = list(dates_index)
     )
     return(class_info)
-}
-
-#' @title Find the time index of the blocks to be extracted for classification
-#' @name .sits_timeline_index_blocks
-#' @keywords internal
-#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
-#'
-#' @description Obtains the indexes of the blocks for each time interval
-#' associated with classification.
-#'
-#' @param class_info Tibble with information required for classification.
-#' @return Indexes of the input data set associated to each time interval
-#' used for classification.
-.sits_timeline_index_blocks <- function(class_info) {
-    # find the subsets of the input data
-    dates_index <- class_info$dates_index[[1]]
-
-    # retrieve the timeline of the data
-    timeline <- class_info$timeline[[1]]
-
-    # retrieve the bands
-    bands <- class_info$bands[[1]]
-
-    # retrieve the time index
-    time_index <- .sits_timeline_idx_from_dates(dates_index, timeline, bands)
-
-    return(time_index)
 }
 
 #' @title Test if date fits with the timeline
@@ -399,53 +411,7 @@ sits_timeline.cube <- function(data) {
     return(dist_indexes)
 }
 
-#' @title Provide a list of indexes to extract data from a raster-derived
-#'        data table for classification
-#' @name .sits_timeline_raster_indexes
-#' @keywords internal
-#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
-#'
-#' @description Given a list of time indexes that indicate the start and end
-#'              of the values to be extracted to classify each band,
-#'              obtain a list of indexes that will be used to extract values
-#'              from a combined distance tibble
-#'              (which has all the bands put together).
-#'
-#' @param  cube               Data cube with input data set.
-#' @param  samples            Tibble with samples used for classification.
-#' @return List of values to be extracted for each classification interval.
-.sits_timeline_raster_indexes <- function(cube, samples) {
-    # define the classification info parameters
-    class_info <- .sits_timeline_class_info(data = cube, samples = samples)
 
-    # define the time indexes required for classification
-    time_indexes <- .sits_timeline_index_blocks(class_info)
-
-    # find the length of the timeline
-    ntimes <- length(sits_timeline(cube))
-
-    # get the bands in the same order as the samples
-    n_bands <- length(sits_bands(samples))
-    assertthat::assert_that(n_bands > 0,
-        msg = "no bands in samples"
-    )
-
-    size_lst <- n_bands * ntimes + 2
-
-    select_lst <- purrr::map(time_indexes, function(idx) {
-        # for a given time index, build the data.table to be classified
-        # build the classification matrix extracting the relevant columns
-        select <- logical(length = size_lst)
-        select[1:2] <- TRUE
-        for (b in 1:n_bands) {
-            i1 <- idx[(2 * b - 1)] + 2
-            i2 <- idx[2 * b] + 2
-            select[i1:i2] <- TRUE
-        }
-        return(select)
-    })
-    return(select_lst)
-}
 
 #' @title Create a list of time indexes from the dates index
 #' @name  .sits_timeline_idx_from_dates
@@ -473,31 +439,32 @@ sits_timeline.cube <- function(data) {
         })
     return(time_index)
 }
-#' @title Given a start and end date, find the indexes in a timeline
-#' @name  .sits_timeline_indexes
+#' @title Find the subset of a timeline that is contained
+#'        in an interval defined by start_date and end_date
+#' @name  .sits_timeline_during
 #' @keywords internal
 #'
 #' @param timeline      A valid timeline
-#' @param start_date    A date inside the timeline
-#' @param end_date      A date inside the timeline
-#' @return              Named vector with start and end indexes
+#' @param start_date    A date which encloses the start of timeline
+#' @param end_date      A date which encloses the end of timeline
+#' @return              A timeline
 #'
-.sits_timeline_indexes <- function(timeline,
+.sits_timeline_during <- function(timeline,
                                    start_date = NULL,
                                    end_date = NULL) {
-    # indexes for extracting data from the timeline
-    start_idx <- 1
-    end_idx <- length(timeline)
     # obtain the start and end indexes
     if (!purrr::is_null(start_date)) {
-        start_idx <- which.min(abs(lubridate::as_date(start_date) - timeline))
+        start_date <- timeline[1]
     }
     if (!purrr::is_null(end_date)) {
-        end_idx <- which.min(abs(lubridate::as_date(end_date) - timeline))
+        timeline[length(timeline)]
     }
-    time_idx <- c(start_idx, end_idx)
-    names(time_idx) <- c("start_idx", "end_idx")
-    return(time_idx)
+    valid <- timeline >= lubridate::as_date(start_date) &
+             timeline <= lubridate::as_date(end_date)
+    assertthat::assert_that(any(valid),
+        msg = paste0(".sits_timeline_during: no valid data between ",
+                     as.Date(start_date), " and ", as.Date(end_date)))
+    return(timeline[valid])
 }
 
 #' @title Find if the date information is correct

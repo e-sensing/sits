@@ -2,7 +2,7 @@
 #' @name .sits_deafrica_items
 #' @keywords internal
 #'
-#' @param url        a \code{character} representing a URL for the BDC catalog.
+#' @param url        a \code{character} representing a URL for the DEA catalog.
 #' @param collection a \code{character} with the collection to be searched.
 #' @param tiles      a \code{character} with the names of the tiles.
 #' @param roi        selects images (tiles) that intersect according to the
@@ -152,7 +152,8 @@
     item_prop <- items$features[[1]]$properties
 
     # get bands from sensor and application
-    bands_sensor <- .sits_config_deafrica_bands(item_prop$instruments)
+    bands_sensor <- .sits_config_sensor_bands(sensor = item_prop$instruments,
+                                              cube = "DEAFRICA")
 
     # get bands name from assets list name property
     bands_product <- purrr::map_chr(items$features[[1]]$assets, function(bands){
@@ -227,11 +228,11 @@
     # store items properties attributes
     item_prop <- items$features[[1]]$properties
 
-    # obtain the timeline
-    timeline <- unique(lubridate::as_date(file_info$date))
-
     # set the labels
     labels <- c("NoClass")
+
+    # format stac crs
+    item_prop[["proj:epsg"]] <- .sits_format_crs(item_prop[["proj:epsg"]])
 
     # obtain bbox extent
     bbox <- .sits_stac_get_bbox(items, item_prop[["proj:epsg"]])
@@ -258,11 +259,6 @@
         tile      = item_prop[["odc:region_code"]],
         bands     = bands,
         labels    = labels,
-        scale_factors  = .sits_config_scale_factors(sensor, bands),
-        missing_values = .sits_config_missing_values(sensor, bands),
-        minimum_values = .sits_config_minimum_values(sensor, bands),
-        maximum_values = .sits_config_maximum_values(sensor, bands),
-        timelines = list(timeline),
         nrows = item_prop[["proj:shape"]][[1]],
         ncols = item_prop[["proj:shape"]][[2]],
         xmin = bbox$xmin,

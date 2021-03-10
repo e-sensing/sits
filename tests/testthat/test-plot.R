@@ -36,22 +36,19 @@ test_that("Plot Time Series and Images", {
     expect_equal(p3$labels$x, "Time")
     expect_equal(p3$theme$legend.position, "bottom")
 
-    files <- c(system.file("extdata/raster/mod13q1/sinop-crop-ndvi.tif",
-        package = "sits"
-    ))
-    data(timeline_modis_392)
+    data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
     sinop <- sits_cube(
-        type = "BRICK",
-        name = "Sinop-crop",
+        type = "STACK",
+        name = "sinop-2014",
         satellite = "TERRA",
         sensor = "MODIS",
-        timeline = timeline_modis_392,
-        bands = "NDVI",
-        files = files
+        data_dir = data_dir,
+        delim = "_",
+        parse_info = c("X1", "X2", "band", "date")
     )
-    p_brick <- plot(sinop, red = "NDVI", blue = "NDVI", green = "NDVI")
-    expect_equal(raster::nrow(p_brick@object[[1]]), 11)
-    expect_equal(p_brick@map[[1]]$options$maxZoom, 52)
+    p_stack <- plot(sinop, red = "NDVI", blue = "NDVI", green = "NDVI")
+    expect_equal(raster::nrow(p_stack@object[[1]]), 50)
+    expect_equal(p_stack@map[[1]]$options$maxZoom, 52)
 
     sinop_probs <- suppressMessages(
         sits_classify(
@@ -68,20 +65,11 @@ test_that("Plot Time Series and Images", {
 
     sinop_labels <- sits_label_classification(sinop_probs,
                                               output_dir = tempdir())
-    p4 <- plot(sinop_labels, map = p_brick, time = 15)
-    expect_equal(raster::nrow(p4@object[[1]]), 11)
+    p4 <- plot(sinop_labels, map = p_stack, time = 1)
+    expect_equal(raster::nrow(p4@object[[1]]), 50)
     expect_equal(p4@map$x$options$maxZoom, 52)
     expect_true(all(file.remove(unlist(sinop_probs$file_info[[1]]$path))))
     expect_true(all(file.remove(unlist(sinop_labels$file_info[[1]]$path))))
-
-    sql_file <- system.file("/extdata/cloud_data/s2_cloud_data.sql",
-                            package = "sits"
-    )
-    conn <- sits_db_connect(sql_file)
-    cloud_data <- suppressWarnings(sits_db_read(conn, "s2_cloud_data"))
-    p1 <- suppressWarnings(plot(cloud_data[1, ]))
-
-    expect_equal(p1$labels$title, "location (-10.3, -65.74) - NoClass")
 
     invisible(dev.off())
     invisible(file.remove(paste0(tempdir(), "/plot.jpg")))

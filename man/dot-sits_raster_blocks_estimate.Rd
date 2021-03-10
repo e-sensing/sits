@@ -4,19 +4,12 @@
 \alias{.sits_raster_blocks_estimate}
 \title{Estimate the number of blocks}
 \usage{
-.sits_raster_blocks_estimate(
-  cube,
-  ml_model,
-  sub_image,
-  timeline,
-  memsize,
-  multicores
-)
+.sits_raster_blocks_estimate(cube, ml_model, sub_image, memsize, multicores)
 }
 \arguments{
 \item{cube}{input data cube}
 
-\item{ml_model}{machine learning model.}
+\item{ml_model}{machine learning model}
 
 \item{sub_image}{area of interest in the image}
 
@@ -28,7 +21,7 @@
 Number of blocks to be read.
 }
 \description{
-Defines the number of blocks of a Raster Brick
+Defines the number of blocks of a set of images
              to be read into memory.
 }
 \author{

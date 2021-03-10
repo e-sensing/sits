@@ -4,23 +4,17 @@
 \alias{.sits_est_class_time}
 \title{Estimate the processing time}
 \usage{
-.sits_est_class_time(start_time, n_intervals, bs, block, time)
+.sits_est_class_time(start_time, n_blocks, block)
 }
 \arguments{
 \item{start_time}{initial processing time.}
 
-\item{n_intervals}{number of time intervals}
-
-\item{bs}{raster block parameters.}
+\item{n_blocks}{number of blocks}
 
 \item{block}{current block.}
-
-\item{time}{current interval.}
-
-\item{task}{task to be performed}
 }
 \value{
-Scaled matrix.
+Expected time to complete the function.
 }
 \description{
 This function normalizes image values.

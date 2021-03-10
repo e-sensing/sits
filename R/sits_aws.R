@@ -41,16 +41,5 @@
         aws_request_payer <- .sits_config_aws_request_payer(type)
         Sys.setenv(AWS_REQUEST_PAYER = aws_request_payer)
     }
-    test_file <- .sits_config_test_file(type)
-
-    # are the files accessible?
-    tryCatch({
-        .sits_raster_api_check_access(test_file)
-    },
-    error = function(e) {
-        msg <- paste0("Error in accessing AWS files")
-        message(msg)
-    }
-    )
     return(TRUE)
 }

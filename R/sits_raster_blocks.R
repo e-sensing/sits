@@ -1,14 +1,12 @@
 #' @title Define a reasonable block size to process an image subset
 #' @name .sits_raster_blocks
 #' @keywords internal
+#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'
 #' @description Defines the size of the block of an image to be read.
-#' For example, a Raster Brick with 500 rows and 500 columns
-#' and 400 time instances will have a total pixel size
-#' of 800 Mb if pixels are 64-bit.
 #'
-#' @param  cube            input data cube.
+#' @param  cube            input data cube tile.
 #' @param  ml_model        machine learning model.
 #' @param  sub_image       bounding box of the ROI
 #' @param  memsize         memory available for classification (in GB).
@@ -19,6 +17,7 @@
 #'
 .sits_raster_blocks <- function(cube, ml_model, sub_image,
                                 memsize, multicores) {
+
 
     # get the number of blocks
     nblocks <- .sits_raster_blocks_estimate(
@@ -41,11 +40,11 @@
 #' @keywords internal
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'
-#' @description Defines the number of blocks of a Raster Brick
+#' @description Defines the number of blocks of a set of images
 #'              to be read into memory.
 #'
 #' @param  cube            input data cube
-#' @param  ml_model        machine learning model.
+#' @param  ml_model        machine learning model
 #' @param  sub_image       area of interest in the image
 #' @param  memsize         Memory available for classification (in GB).
 #' @param  multicores      Number of threads to process the time series.
@@ -53,14 +52,13 @@
 .sits_raster_blocks_estimate <- function(cube,
                                          ml_model,
                                          sub_image,
-                                         timeline,
                                          memsize,
                                          multicores) {
-    # total number of instances
-    timeline <- sits_timeline(cube[1, ])
-    ninstances <- length(timeline)
+
     # retrieve the samples
     samples <- environment(ml_model)$data
+    # total number of instances
+    n_instances <- length(sits_timeline(cube))
     # get the number of bands
     nbands <- length(sits_bands(samples))
     # does the cube have a cloud band?
@@ -70,35 +68,33 @@
     if (cld_band %in% cube_bands) {
           nbands <- nbands + 1
       }
-    # number of instances per classification interval
-    ninterval <- nrow(samples[1, ]$time_series[[1]])
     # number of bytes per pixel
     nbytes <- 8
     # estimated memory bloat
     bloat <- as.numeric(.sits_config_memory_bloat())
     # estimated processing bloat
     proc_bloat <- as.numeric(.sits_config_processing_bloat())
-    if (proc_bloat == 0) proc_bloat <- multicores
 
     # number of rows and cols
     nrows <- as.numeric(sub_image["nrows"])
     ncols <- as.numeric(sub_image["ncols"])
     # single instance size
     single_data_size <- nrows * ncols * nbytes
+
     # total size including all bands
     nbands_data_size <- single_data_size * nbands
 
     # estimated full size of the data
-    full_size <- as.numeric(ninstances) * nbands_data_size
+    full_size <- n_instances * nbands_data_size
 
     # estimated size of memory required for scaling and normalization
     mem_required_scaling <- (full_size + as.numeric(.sits_mem_used())) * bloat
 
     # number of labels
-    nlabels <- length(sits_labels(environment(ml_model)$data)$label)
+    n_labels <- length(sits_labels(samples)$label)
     # estimated size of the data for classification
-    input_class_data_size <- as.numeric(ninterval) * nbands_data_size
-    output_class_data_size <- as.numeric(nlabels) * single_data_size
+    input_class_data_size <- as.numeric(n_instances) * nbands_data_size
+    output_class_data_size <- as.numeric(n_labels) * single_data_size
     class_data_size <- input_class_data_size + output_class_data_size
 
     # memory required for processing depends on the model
@@ -109,13 +105,8 @@
     }
     else {
         # test two different cases
-        if (ninstances == ninterval) { # one interval only
-              mem_required_processing <- as.numeric(multicores) *
+        mem_required_processing <- as.numeric(multicores) *
                   (class_data_size + as.numeric(.sits_mem_used()))
-          } else {
-              mem_required_processing <- as.numeric(multicores) *
-                  (.sits_mem_used() + class_data_size + full_size)
-          }
     }
 
     # number of passes to read the full data sets

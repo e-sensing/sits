@@ -81,11 +81,11 @@
 
     return(blocks)
 }
-#' @title parallel raster brick
+#' @title Parallel processing of classified images
 #' @name .sits_map_layer_cluster
 #' @keywords internal
 #'
-#' @description Process chunks of raster brick individually in parallel.
+#' @description Process chunks of raster bricks individually in parallel.
 #'
 #' @param cube              Probability data cube
 #' @param cube_out          Output probability data cube
@@ -235,10 +235,10 @@
     slider::slide2(cube, cube_out, function(cube_row, out_file_row) {
 
         # open probability file
-        in_files <- .sits_cube_files(cube_row)
+        in_files <- cube_row$file_info[[1]]$path
 
         # retrieve the files to be read and written
-        out_files <- .sits_cube_files(out_file_row)
+        out_files <- out_file_row$file_info[[1]]$path
 
         # compute how many tiles to be computed
         block_size <- .sits_probs_blocks_size_estimate(cube = cube_row,

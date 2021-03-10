@@ -29,7 +29,6 @@ required parameters:
  \item{patterns: }                    {see \code{\link{plot.patterns}}}
  \item{SOM map: }                     {see \code{\link{plot.som_map}}}
  \item{classified time series: }      {see \code{\link{plot.predicted}}}
- \item{brick  cube: }                 {see \code{\link{plot.brick_cube}}}
  \item{stack  cube: }                 {see \code{\link{plot.stack_cube}}}
  \item{classification probabilities: }{see \code{\link{plot.probs_cube}}}
  \item{classified image: }            {see \code{\link{plot.classified_image}}}

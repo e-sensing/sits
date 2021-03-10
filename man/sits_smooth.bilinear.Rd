@@ -59,29 +59,27 @@ samples_ndvi <- sits_select(samples_mt_4bands, bands = "NDVI")
 # select a random forest model
 rfor_model <- sits_train(samples_ndvi, sits_rfor(num_trees = 500))
 
-# Classify a raster file with 23 instances for one year
-files <- c(system.file("extdata/raster/mod13q1/sinop-crop-ndvi.tif",
-    package = "sits"
-))
-
-# create a data cube based on the information about the files
-sinop <- sits_cube(
-    type = "BRICK", satellite = "TERRA",
-    sensor = "MODIS", name = "Sinop-crop",
-    timeline = timeline_modis_392,
-    output_dir = tempdir(),
-    bands = c("NDVI"), files = files
+# create a data cube based on files
+data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
+cube <- sits_cube(
+    type = "STACK",
+    name = "sinop-2014",
+    satellite = "TERRA",
+    sensor = "MODIS",
+    data_dir = data_dir,
+    delim = "_",
+    parse_info = c("X1", "X2", "band", "date")
 )
 
 # classify the raster image
-sinop_probs <- sits_classify(sinop,
+probs_cube <- sits_classify(cube,
     ml_model = rfor_model,
     output_dir = tempdir(),
     memsize = 4, multicores = 2
 )
 
 # smooth the result with a bilinear filter
-sinop_bil <- sits_smooth(sinop_probs,
+bil_cube <- sits_smooth(probs_cube,
     type = "bilinear",
     output_dir = tempdir()
     )

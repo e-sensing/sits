@@ -1,5 +1,6 @@
 #' @title Classify time series or data cube using machine learning models
 #' @name sits_classify
+#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'
 #' @description This function classifies a set of time series or data cube given
@@ -51,6 +52,7 @@ sits_classify <- function(data, ml_model, ...) {
 
 #' @title Classify a set of time series using machine learning models
 #' @name sits_classify.sits
+#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'
 #' @description This function classifies a set of time series, given
@@ -169,6 +171,7 @@ sits_classify.sits <- function(data, ml_model, ...,
 
 #' @title Classify a data cube using multicore machines
 #' @name sits_classify.raster_cube
+#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'
 #' @description Takes a data cube, whose metadata is
@@ -187,35 +190,35 @@ sits_classify.sits <- function(data, ml_model, ...,
 #'    number of cores used for processing. The "memsize" parameter  controls
 #'    the amount of memory available for classification.
 #'
-#' @param  data            data cube
-#' @param  ml_model        R model trained by \code{\link[sits]{sits_train}}.
-#' @param  ...             other parameters to be passed to specific functions
-#' @param  roi             a region of interest (see above)
-#' @param  filter          smoothing filter to be applied (if desired).
-#' @param  impute_fn       impute function to replace NA
-#' @param  memsize         memory available for classification (in GB).
-#' @param  multicores      number of cores to be used for classification.
-#' @param  output_dir      directory for output file
-#' @param  version         version of the output (for multiple classifications)
-#' @param  .verbose        print detailed information on processing steps
-#' @return                 cube with the metadata of a brick of probabilities.
+#' @param  data              data cube
+#' @param  ml_model          R model trained by \code{\link[sits]{sits_train}}.
+#' @param  ...               other parameters to be passed to specific functions
+#' @param  roi               a region of interest (see above)
+#' @param  filter            smoothing filter to be applied (if desired).
+#' @param  impute_fn         impute function to replace NA
+#' @param  interp_fn         function to interpolate points from cube to match samples
+#' @param  compose_fn        function to compose points from cube to match samples
+#' @param  start_date        starting date for the classification
+#' @param  end_date          end date for the classification
+#' @param  memsize           memory available for classification (in GB).
+#' @param  multicores        number of cores to be used for classification.
+#' @param  output_dir        directory for output file
+#' @param  version           version of the output (for multiple classifications)
+#' @return                   cube with the metadata of a brick of probabilities.
 #'
 #' @examples
-#'
 #' \dontrun{
-#' # Classify a raster file with 23 instances for one year
-#' ndvi_file <- c(system.file("extdata/raster/mod13q1/sinop-ndvi-2014.tif",
-#' package = "sits"))
 #'
-#' # create a data cube based on the information about the files
-#' sinop_2014 <- sits_cube(
-#'     type = "BRICK",
+#' # create a data cube based on files
+#' data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
+#' cube <- sits_cube(
+#'     type = "STACK",
 #'     name = "sinop-2014",
-#'     timeline = timeline_2013_2014,
 #'     satellite = "TERRA",
 #'     sensor = "MODIS",
-#'     bands = c("ndvi"),
-#'     files = c(ndvi_file)
+#'     data_dir = data_dir,
+#'     delim = "_",
+#'     parse_info = c("X1", "X2", "band", "date")
 #' )
 #'
 #' # select band "NDVI"
@@ -225,61 +228,104 @@ sits_classify.sits <- function(data, ml_model, ...,
 #' rfor_model <- sits_train(samples, ml_method = sits_rfor(num_trees = 300))
 #'
 #' # classify the raster image
-#' sinop_probs <- sits_classify(sinop_2014,
+#' probs_cube <- sits_classify(cube,
 #'     ml_model = rfor_model,
 #'     output_dir = tempdir(),
-#'     memsize = 4, multicores = 1
+#'     memsize = 4, multicores = 2
 #' )
 #'
 #' # label the classified image
-#' sinop_label <- sits_label_classification(sinop_probs, output_dir = tempdir())
+#' label_cube <- sits_label_classification(probs_cube, output_dir = tempdir())
 #' }
+#'
 #' @export
 sits_classify.raster_cube <- function(data, ml_model, ...,
                                       roi = NULL,
                                       filter = NULL,
                                       impute_fn = sits_impute_linear(),
+                                      interp_fn = NULL,
+                                      compose_fn = NULL,
+                                      start_date = NULL,
+                                      end_date = NULL,
                                       memsize = 8,
                                       multicores = 2,
                                       output_dir = "./",
-                                      version = "v1",
-                                      .verbose = FALSE) {
+                                      version = "v1") {
 
     # precondition - checks if the cube and ml_model are valid
     .sits_classify_check_params(data, ml_model)
 
     # filter only intersecting tiles
-    intersects <- slider::slide(data, function(row) {
+    intersects <- slider::slide(data, function(tile) {
 
-        .sits_raster_sub_image_intersects(row, roi)
+        .sits_raster_sub_image_intersects(tile, roi)
     }) %>% unlist()
-
+    # retrive only intersecting tiles
     data <- data[intersects,]
 
-    # deal with the case where the cube has multiple rows
-    probs_rows <- slider::slide(data, function(row) {
+    # retrieve the samples from the model
+    samples <- environment(ml_model)$data
 
-        # set the name of the cube
-        if (!is.na(row$tile)) {
-              row$name <- paste0(row$name, "_", row$tile)
-          }
+
+    # deal with the case where the cube has multiple rows
+    probs_rows <- slider::slide(data, function(tile) {
+
+        # find out what is the row subset that is contained
+        # inside the start_date and end_date
+        if (!purrr::is_null(start_date) && !purrr::is_null(end_date)) {
+            old_timeline <- sits_timeline(tile)
+            new_timeline <- .sits_timeline_during(old_timeline,
+                                                  start_date,
+                                                  end_date)
+
+            # filter the cube by start and end dates
+            tile$file_info[[1]] <- dplyr::filter(tile$file_info[[1]],
+                                date >= new_timeline[1] &
+                                date <= new_timeline[length(new_timeline)]
+            )
+        }
+
+        #  There are three possible situations:
+        # (a) All samples have same number of time instances as the tile
+        #     in this case there is nothing to do
+        # (b) All samples have more time instances than tile
+        #     In this case we have to interpolate the time series of the tile
+        # (c) All samples have less time instances than tile
+        #     In this case we have to compose the tile time series to
+        #     match the sample size
+
+        # # The user can provide both interpolation and compositions functions
+        # if (!purrr::is_null(interp_fn))
+        #     interp_fn <- .sits_match_lin_interp()
+        #
+        # if (!purrr::is_null(compose_fn))
+        #     compose_fn <- .sits_match_compose()
+
+        # temporary fix
+        n_samples <- length(sits_timeline(samples))
+        n_tile <- length(sits_timeline(tile))
+
+        assertthat::assert_that(n_samples == n_tile,
+          msg = "sits_classify: number of instances of samples and cube differ")
+
 
         # classify the data
         probs_row <- .sits_classify_multicores(
-            cube = row,
-            ml_model = ml_model,
-            name = row$name,
-            roi = roi,
-            filter = filter,
-            impute_fn = impute_fn,
-            memsize = memsize,
+            tile       = tile,
+            ml_model   = ml_model,
+            roi        = roi,
+            filter     = filter,
+            impute_fn  = impute_fn,
+            compose_fn = compose_fn,
+            interp_fn  = interp_fn,
+            memsize    = memsize,
             multicores = multicores,
             output_dir = output_dir,
-            version = version,
-            .verbose = .verbose
+            version    = version
         )
         return(probs_row)
     })
-    cube_probs <- dplyr::bind_rows(probs_rows)
-    return(cube_probs)
+    probs_cube <- dplyr::bind_rows(probs_rows)
+    class(probs_cube) <- c("probs_cube", "raster_cube", class(probs_cube))
+    return(probs_cube)
 }

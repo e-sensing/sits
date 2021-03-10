@@ -7,29 +7,27 @@ test_that("Creating a SATVEG data cube", {
     skip("SATVEG is not accessible")
   }
 
-  expect_true(length(cube_satveg$timeline[[1]][[1]]) > 1)
+  expect_true(cube_satveg$ymin == -30.0)
 })
 test_that("Reading a raster cube", {
-    file <- c(system.file("extdata/raster/mod13q1/sinop-crop-ndvi.tif",
-        package = "sits"
-    ))
+    data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
     raster_cube <- sits_cube(
-        type = "BRICK",
-        name = "Sinop-crop",
-        timeline = sits::timeline_modis_392,
-        bands = c("ndvi"),
+        type = "STACK",
+        name = "sinop-2014",
         satellite = "TERRA",
         sensor = "MODIS",
-        files = file
+        data_dir = data_dir,
+        delim = "_",
+        parse_info = c("X1", "X2", "band", "date")
     )
 
     # get bands names
     bands <- sits_bands(raster_cube)
-    expect_true(bands %in% c("NDVI"))
+    expect_true(all(bands %in% c("NDVI", "EVI")))
 
     params <- sits:::.sits_raster_api_params_file(raster_cube$file_info[[1]]$path)
-    expect_true(params$nrows == 11)
-    expect_true(params$ncols == 14)
+    expect_true(params$nrows == 50)
+    expect_true(params$ncols == 50)
     expect_true(params$xres >= 231.5)
 })
 
@@ -53,9 +51,8 @@ test_that("Creating a raster stack cube and selecting bands", {
                       c("B13", "B14", "B15", "B16", "CMASK")))
     rast <- suppressWarnings(terra::rast(cbers_cube$file_info[[1]]$path[1]))
     expect_true(terra::nrow(rast) == cbers_cube[1, ]$nrows)
-    expect_true(all(unique(cbers_cube$file_info[[1]]$date) ==
-                      cbers_cube$timeline[[1]][[1]])
-                )
+    timeline <- sits_timeline(cbers_cube)
+    expect_true(timeline[1] == "2018-02-02")
 
     cbers_cube_b13 <- sits_select(cbers_cube, bands = "B13")
     expect_true(all(sits_bands(cbers_cube_b13) == c("B13")))
@@ -79,7 +76,7 @@ test_that("Creating cubes from BDC", {
         tiles = c("022024","022023"),
         collection = "CB4_64_16D_STK-1",
         start_date = "2018-09-01",
-        end_date = "2019-08-28"
+        end_date = "2019-08-29"
       )
       expect_true(all(sits_bands(cbers_cube) %in% c("NDVI", "EVI")))
       bbox <- sits_bbox(cbers_cube)
@@ -88,7 +85,7 @@ test_that("Creating cubes from BDC", {
 
       timeline <- sits_timeline(cbers_cube)
       expect_true(timeline[1] <= as.Date("2018-09-01"))
-      expect_true(timeline[length(timeline)] <= as.Date("2019-08-28"))
+      expect_true(timeline[length(timeline)] <= as.Date("2019-08-29"))
 
       gdal_info <- suppressWarnings(
         rgdal::GDALinfo(cbers_cube[1,]$file_info[[1]]$path[1]))
@@ -103,8 +100,6 @@ test_that("Creating cubes from BDC", {
 
 test_that("Creating cubes from DEA", {
   testthat::skip_on_cran()
-
-  testthat::skip_on_cran()
   # check "AWS_ACCESS_KEY_ID" - mandatory one per user
   aws_access_key_id <- Sys.getenv("AWS_ACCESS_KEY_ID")
   # check "AWS_SECRET_ACCESS_KEY" - mandatory one per user
@@ -115,10 +110,6 @@ test_that("Creating cubes from DEA", {
 
   testthat::skip_if(nchar(aws_secret_access_key) == 0,
                     message = "No AWS_SECRET_ACCESS_KEY defined in environment.")
-
-  Sys.unsetenv("AWS_DEFAULT_REGION")
-  Sys.unsetenv("AWS_ENDPOINT")
-  Sys.unsetenv("AWS_REQUEST_PAYER")
 
   dea_cube <- sits_cube(type = "DEAFRICA",
                         name = "deafrica_cube",
@@ -144,40 +135,33 @@ test_that("Creating cubes from DEA", {
 
 test_that("Merging cubes", {
 
-    ndvi_file <- c(system.file("extdata/raster/mod13q1/sinop-evi-2014.tif",
-                               package = "sits"
-    ))
-
-    evi_file <- c(system.file("extdata/raster/mod13q1/sinop-evi-2014.tif",
-                              package = "sits"
-    ))
-
-    data("timeline_2013_2014")
-
-    sinop_ndvi <- sits_cube(
-        type = "BRICK",
-        name = "sinop-2014_ndvi",
-        timeline = timeline_2013_2014,
+    data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
+    ndvi_cube <- sits_cube(
+        type = "STACK",
+        name = "sinop-2014",
         satellite = "TERRA",
         sensor = "MODIS",
-        bands = c("NDVI"),
-        files = ndvi_file
+        bands = "NDVI",
+        data_dir = data_dir,
+        delim = "_",
+        parse_info = c("X1", "X2", "band", "date")
     )
 
-    sinop_evi <- sits_cube(
-        type = "BRICK",
-        name = "sinop-2014_evi",
-        timeline = timeline_2013_2014,
-        satellite = "TERRA",
-        sensor = "MODIS",
-        bands = c("EVI"),
-        files = evi_file
+    evi_cube <- sits_cube(
+      type = "STACK",
+      name = "sinop-2014",
+      satellite = "TERRA",
+      sensor = "MODIS",
+      bands = "EVI",
+      data_dir = data_dir,
+      delim = "_",
+      parse_info = c("X1", "X2", "band", "date")
     )
-    cube_merge <- sits_merge(sinop_ndvi, sinop_evi)
+    cube_merge <- sits_merge(ndvi_cube, evi_cube)
 
     expect_true(all(sits_bands(cube_merge) %in% c("NDVI", "EVI")))
-    expect_true(cube_merge$xmin == sinop_ndvi$xmin)
-    expect_true(cube_merge$xmax == sinop_evi$xmax)
+    expect_true(cube_merge$xmin == ndvi_cube$xmin)
+    expect_true(cube_merge$xmax == evi_cube$xmax)
 })
 
 test_that("Creating cubes from AWS", {
@@ -199,13 +183,12 @@ test_that("Creating cubes from AWS", {
 
     s2_cube <- sits_cube(type = "S2_L2A_AWS",
                          name = "T20LKP_2018_2019",
-                         satellite = "SENTINEL-2",
-                         sensor = "MSI",
+                         collection = "sentinel-s2-l2a",
+                         s2_resolution = "60m",
                          tiles = "20LKP",
                          bands = c("B08", "SCL"),
-                         s2_aws_resolution = "60m",
-                         start_date = as.Date("2018-07-18"),
-                         end_date = as.Date("2018-07-23")
+                         start_date = "2018-07-18",
+                         end_date = "2018-07-23"
     )
 
     expect_true(all(sits_bands(s2_cube) %in% c("B08", "SCL")))
@@ -222,7 +205,7 @@ test_that("Creating cubes from AWS", {
     suppressWarnings(dir.create(path_images))
 
     gc_cube <- sits_cube(type        = "GDALCUBES",
-                         cube        = s2_cube,
+                         uneven_cube = s2_cube,
                          name        = "T20LKP_2018_2019_P5D",
                          path_db     = paste0(tempdir(), "/cube.db"),
                          path_images = path_images,
@@ -243,7 +226,7 @@ test_that("Creating cubes from AWS", {
 test_that("Creating cubes from classified images", {
     # Create a raster cube based on bricks
     # inform the files that make up a raster probs brick with 23 time instances
-    probs_file <- c(system.file("extdata/raster/mod13q1/sinop-2014_probs_2013_9_2014_8_v1.tif",
+    probs_file <- c(system.file("extdata/raster/probs/sinop-2014_probs_2013_9_2014_8_v1.tif",
                           package = "sits"
     ))
 
@@ -258,9 +241,10 @@ test_that("Creating cubes from classified images", {
         name = "Sinop-crop-probs",
         satellite = "TERRA",
         sensor  = "MODIS",
-        timeline = timeline_2013_2014,
-        labels = labels,
-        files = probs_file
+        start_date = as.Date("2013-09-14"),
+        end_date = as.Date("2014-08-29"),
+        probs_labels = labels,
+        probs_files = probs_file
     )
     expect_equal(probs_cube$ncols, 50)
     expect_equal(sits_bands(probs_cube), "probs")
