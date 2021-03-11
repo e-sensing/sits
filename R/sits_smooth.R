@@ -47,9 +47,7 @@
 #' }
 #'
 #' @export
-sits_smooth <- function(cube,
-                        type = "bayes",
-                        ...) {
+sits_smooth <- function(cube, type = "bayes", ...) {
 
     # precondition 1 - check if cube has probability data
     assertthat::assert_that(inherits(cube, "probs_cube"),
@@ -122,9 +120,7 @@ sits_smooth <- function(cube,
 #' }
 #'
 #' @export
-sits_smooth.bayes <- function(cube,
-                              type = "bayes",
-                              ...,
+sits_smooth.bayes <- function(cube, type = "bayes", ...,
                               window_size = 5,
                               smoothness = 20,
                               covar = FALSE,
@@ -296,9 +292,7 @@ sits_smooth.bayes <- function(cube,
 #' }
 #'
 #' @export
-sits_smooth.gaussian <- function(cube,
-                                 type = "gaussian",
-                                 ...,
+sits_smooth.gaussian <- function(cube, type = "gaussian", ...,
                                  window_size = 5,
                                  sigma = 1,
                                  multicores = 1,

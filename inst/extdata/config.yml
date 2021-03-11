@@ -12,7 +12,7 @@ default:
     cube_classes            : ["wtss_cube", "satveg_cube", "stack_cube", "raster_cube", "bdc_cube", "deafrica_cube", "s2_l2a_aws_cube", "gdalcubes_cube",  "probs_cube", "classified_image"]
 
     # Image file extensions known to SITS
-    img_file_extensions     : ["tiff", "tif", "jp2", "hdf"]
+    img_file_extensions     : ["tiff", "tif", "jp2", "hdf", "vrt"]
 
     # BDC configuration for access to data
     bdc_stac                : "https://brazildatacube.dpi.inpe.br/stac/"
@@ -123,7 +123,7 @@ default:
             B5              : -9999
             B6              : -9999
             B7              : -9999
-            FMASK           : 255
+            FMASK4          : 255
 
         minimum_value       :
             NDVI            : -3000
@@ -135,7 +135,7 @@ default:
             B5              : 0
             B6              : 0
             B7              : 0
-            FMASK           : 0
+            FMASK4          : 0
 
         maximum_value       :
             NDVI            : 10000
@@ -147,7 +147,7 @@ default:
             B5              : 10000
             B6              : 10000
             B7              : 10000
-            FMASK           : 255
+            FMASK4          : 255
 
         scale_factor:
             NDVI            : 0.0001
@@ -159,7 +159,7 @@ default:
             B5              : 0.0001
             B6              : 0.0001
             B7              : 0.0001
-            FMASK           : 1
+            FMASK4          : 1
 
         resolution          :
             xres            : 30
@@ -244,7 +244,7 @@ default:
             10              : "thin cirrus"
             11              : "snow or ice"
 
-        FMASK_values        :
+        FMASK4_values       :
             0               : "clear land pixel"
             1               : "clear water pixel"
             2               : "cloud shadow"
@@ -271,6 +271,7 @@ default:
             B11             : -9999
             B12             : -9999
             SCL             : 0
+            FMASK4          : 255
 
         minimum_value       :
             EVI             : -9999
@@ -291,6 +292,7 @@ default:
             B11             : 0
             B12             : 0
             SCL             : 0
+            FMASK4          : 0
 
         maximum_value       :
             EVI             : 10000
@@ -311,6 +313,7 @@ default:
             B11             : 10000
             B12             : 10000
             SCL             : 1
+            FMASK4          : 255
 
         scale_factor:
             EVI             : 0.0001
@@ -331,6 +334,7 @@ default:
             B11             : 0.0001
             B12             : 0.0001
             SCL             : 1
+            FMASK4          : 1
 
         resolution          :
             xres            : 10
@@ -382,6 +386,7 @@ default:
         terra               : &bands-sv ["NDVI", "EVI"]
         aqua                : *bands-sv
         comb                : *bands-sv
+
     SATVEG_bbox             :
         terra               :
             xmin            : &xmin_satveg -81.2341
@@ -408,10 +413,12 @@ default:
         comb                :
             nrows           : *nrows_satveg
             ncols           : *ncols_satveg
+
     SATVEG_prefilter        :
         terra               : &prefilter ["0", "1", "2", "3"] # "0" - none, "1" - no data correction, "2" - cloud correction, "3" - no data and cloud correction
         aqua                : *prefilter
         comb                : *prefilter
+
     SATVEG_crs              :
         terra               : &crs-wgs84 "+proj=longlat +ellps=WGS84 +datum=WGS84 +no_defs"
         aqua                : *crs-wgs84
