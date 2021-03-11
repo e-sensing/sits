@@ -457,7 +457,7 @@ sits_timeline.classified_image <- function(data) {
         start_date <- timeline[1]
     }
     if (purrr::is_null(end_date)) {
-        timeline[length(timeline)]
+        end_date <- timeline[length(timeline)]
     }
     valid <- timeline >= lubridate::as_date(start_date) &
              timeline <= lubridate::as_date(end_date)
