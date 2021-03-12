@@ -19,21 +19,25 @@
 
     # check the sits tibble
     .sits_test_tibble(data)
+
     # get the number of samples
     n_rows_data <- nrow(data)
 
     # create a list with the time series transposed from columns to rows
     ts <- data$time_series %>%
-      purrr::map(function(ts) {
-        as.data.frame(t(unlist(ts[-1])))
-      })
+        purrr::map(function(ts) {
+            as.data.frame(t(unlist(ts[-1])))
+        })
+
     # bind the lists of time series together
     dist <- data.table::rbindlist(ts, use.names = FALSE)
+
     # create a data frame with the first two columns for training
     distances <- data.table::data.table(
         "original_row" = 1:n_rows_data,
         "reference" = data$label
     )
+
     # join the two references columns with the data values
     distances <- data.table::as.data.table(cbind(distances, dist))
 
@@ -57,13 +61,13 @@
 
     # keras-based models run in single-core mode
     if ("keras_model" %in% class(ml_model) | "ranger_model" %in% class(ml_model)
-    | "xgb_model" %in% class(ml_model)) {
-          multicores <- 1
-      }
+        | "xgb_model" %in% class(ml_model)) {
+        multicores <- 1
+    }
     # define the column names
     attr_names <- names(.sits_distances(environment(ml_model)$data[1, ]))
     assertthat::assert_that(length(attr_names) > 0,
-        msg = "sits_classify_distances: training data not available"
+                            msg = "sits_classify_distances: training data not available"
     )
 
     # select the data table indexes for each time index
@@ -117,8 +121,8 @@
         # predicted <- join_blocks(results)
     }
     else {
-          predicted <- classify_block(distances)
-      }
+        predicted <- classify_block(distances)
+    }
     return(predicted)
 }
 
