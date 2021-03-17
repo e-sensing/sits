@@ -23,10 +23,13 @@
     # get the number of samples
     n_rows_data <- nrow(data)
 
+    # get bands order
+    bands <- names(data$time_series[[1]][-1])
+
     # create a list with the time series transposed from columns to rows
     ts <- data$time_series %>%
         purrr::map(function(ts) {
-            as.data.frame(t(unlist(ts[-1])))
+            as.data.frame(t(unlist(ts[bands])))
         })
 
     # bind the lists of time series together
