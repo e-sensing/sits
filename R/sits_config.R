@@ -589,6 +589,29 @@ sits_config_show <- function() {
     names(mis_val) <- bands
     return(mis_val)
 }
+
+#' @title Retrieve the resmapling method for bands of a sensor
+#' @name .sits_config_resampling
+#' @keywords internal
+#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
+#'
+#' @param sensor         Name of the sensor
+#' @param bands          Vector of bands.
+#' @return The resampling methods.
+.sits_config_resampling <- function(sensor, bands) {
+
+  # pre-condition
+  assertthat::assert_that(
+    all(bands %in% names(sits_env$config[[sensor]][["resampling"]])),
+    msg = paste(".sits_config_resampling: some bands not found.",
+                "Edit configuration file.")
+  )
+
+  res <- sits_env$config[[sensor]][["resampling"]][bands]
+
+  return(res)
+}
+
 #' @title Retrieve the scale factor for a label cube
 #' @name .sits_config_label_scale_factor
 #' @keywords internal
