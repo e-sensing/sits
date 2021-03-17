@@ -1,5 +1,5 @@
-#' @title Get information from items
-#' @name .sits_aws_items
+#' @title Get information from items related to Sentinel-2 in AWS
+#' @name .sits_s2_aws_items
 #' @keywords internal
 #'
 #' @param url        a \code{character} representing a URL for the AWS catalog.
@@ -19,14 +19,14 @@
 #'
 #' @return           a \code{STACItemCollection} object representing the search
 #'                   by rstac.
-.sits_aws_items <- function(url        = NULL,
-                            collection = NULL,
-                            tiles      = NULL,
-                            roi        = NULL,
-                            start_date = NULL,
-                            end_date   = NULL,
-                            bands      = NULL,
-                            ...) {
+.sits_s2_aws_items <- function(url        = NULL,
+                               collection = NULL,
+                               tiles      = NULL,
+                               roi        = NULL,
+                               start_date = NULL,
+                               end_date   = NULL,
+                               bands      = NULL,
+                               ...) {
 
     # obtain the datetime parameter for STAC like parameter
     datetime <- .sits_stac_datetime(start_date, end_date)
@@ -51,7 +51,7 @@
 
     # if specified, a filter per tile is added to the query
     if (!is.null(tiles)) {
-        sep_tile <- .sits_aws_tiles(tiles)
+        sep_tile <- .sits_s2_aws_tiles(tiles)
 
         rstac_query <- rstac_query %>%
             rstac::ext_query("sentinel:utm_zone" %in% sep_tile$utm_zone,
@@ -78,7 +78,7 @@
     items_info <- items_info %>% rstac::items_fetch(progress = pgr_fetch)
 
     # getting bands name
-    items_info <- .sits_aws_bands(items_info, bands)
+    items_info <- .sits_stac_bands(items_info, bands, source = "AWS")
 
     # store tile info in items object
     items_info$features <- purrr::map(items_info$features, function(features) {
@@ -93,12 +93,13 @@
     return(items_info)
 }
 #' @title Verify items tiles
+#' @name .sits_s2_aws_tiles
 #' @keywords internal
 #'
 #' @param tiles  Tile names to be searched.
 #'
 #' @return a \code{tibble} with information of tiles to be searched in STAC AWS.
-.sits_aws_tiles <- function(tiles) {
+.sits_s2_aws_tiles <- function(tiles) {
 
     # regex pattern
     pattern_s2 <- "[0-9]{2}[A-Z]{3}"
@@ -122,53 +123,9 @@
 
     return(tiles_tbl)
 }
-#' @title Get bands names from items
-#' @name .sits_aws_bands
-#' @keywords internal
-#'
-#' @param items      a \code{STACItemCollection} object returned by rstac
-#' package.
-#' @param bands      a \code{character} vector with the bands name.
-#'
-#' @return           a \code{STACItemCollection} object representing the search
-#'                   by rstac.
-.sits_aws_bands <- function(items, bands) {
 
-    sensor <- toupper(items$features[[1]]$properties$instruments)
-
-    # get bands from sensor
-    bands_sensor <- .sits_config_sensor_bands(sensor = sensor,
-                                              cube = "S2_L2_AWS")
-
-    # get bands name from assets list name property
-    bands_product <- names(items$features[[1]]$assets)
-
-    # selects the subset of bands supported by sits
-    bands_product <- bands_product[bands_product %in% bands_sensor]
-
-    if (length(bands_product) == 0)
-        stop(paste("The bands contained in this product are not mapped",
-                   "in the SITS package, if you want to include them,",
-                   "please provide a configuration file."))
-
-    # store bands product in bands attribute
-    items$bands <- bands_product
-
-    # checks if the supplied bands match the product bands
-    if (!purrr::is_null(bands)) {
-
-        # converting to upper bands
-        assertthat::assert_that(all(bands %in% items$bands),
-                                msg = paste("The supplied bands do not match",
-                                            "the data cube bands."))
-
-        items$bands <- items$bands[items$bands %in% bands]
-    }
-
-    return(items)
-}
 #' @title Check bands by resolution
-#' @name .sits_aws_check_bands
+#' @name .sits_s2_check_bands
 #' @keywords internal
 #'
 #' @param bands         a \code{character} vector with the bands name.
@@ -176,7 +133,7 @@
 #'  ("10m", "20m" or "60m")
 #'
 #' @return           a \code{character} vector with the selected bands.
-.sits_aws_check_bands <- function(bands, s2_resolution) {
+.sits_s2_check_bands <- function(bands, s2_resolution) {
 
     # bands supported by provided resolution
     bands_s2 <- .sits_config_s2_bands(s2_resolution)
@@ -193,40 +150,37 @@
     return(bands_s2)
 }
 #' @title Get bands names from items
-#' @name .sits_aws_bands
+#' @name .sits_s2_aws_add_res
 #' @keywords internal
 #'
-#' @param fileinfo   a \code{tibble} with date, band and path information.
-#' @param resolution a \code{character} with resolution of S2 images
-#'  ("10m", "20m" or "60m")
+#' @param fileinfo    Tibble with date, band and path information.
+#' @param resolution  Resolution of S2 images (10, 20 or 60)
 #'
 #' @return a \code{tibble} with date, band, res and path information,
 #'  arranged by the date.
-.sits_aws_add_res <- function(file_info, resolution) {
+.sits_s2_aws_add_res <- function(file_info, resolution) {
 
     # Adding the spatial resolution in the band URL
     file_info <-
         dplyr::mutate(file_info,
-                      path = gsub("R[0-9]{2}m", paste0("R", resolution), path),
-                      res = resolution, .before = "date")
+                      path = gsub("R[0-9]{2}m", paste0("R", resolution, "m"), path),
+                      res = as.integer(resolution), .before = path)
     return(file_info)
 }
 
 #' @title Get the STAC information corresponding to a tile.
-#' @name .sits_aws_tile_cube
+#' @name .sits_s2_aws_tile_cube
 #' @keywords internal
 #'
-#' @param url        a \code{character} representing URL for the AWS STAC.
-#' @param name       a \code{character} representing the output data cube.
-#' @param items      a \code{STACItemCollection} object returned by rstac.
-#' @param cube       a \code{character} with name input data cube in AWS
-#' @param resolution a \code{character} withh resolution of S2 images
-#'  ("10m", "20m" or "60m")
-#' @param file_info  a \code{tbl_df} with the information from STAC.
+#' @param name         Name of output data cube.
+#' @param items        \code{STACItemCollection} object returned by rstac.
+#' @param collection   AWS collection
+#' @param resolution   S2 image resolution (10, 20 or 60)
+#' @param file_info    file information information from STAC.
 #'
 #' @return           a \code{tibble} with metadata information about a
 #'                   raster data set.
-.sits_aws_tile_cube <- function(url, name, items, cube, resolution, file_info) {
+.sits_s2_aws_tile_cube <- function(name, items, collection, resolution, file_info) {
 
     # store items properties attributes
     item_prop <- items$features[[1]]$properties
@@ -234,11 +188,8 @@
     # obtain the timeline
     timeline <- unique(lubridate::as_date(file_info$date))
 
-    # set the labels
-    labels <- c("NoClass")
-
     # select bands by provided resolution
-    file_info <-.sits_aws_add_res(file_info, resolution)
+    file_info <- .sits_s2_aws_add_res(file_info, resolution)
 
     # format stac crs
     item_prop[["proj:epsg"]] <- .sits_format_crs(item_prop[["proj:epsg"]])
@@ -255,30 +206,29 @@
 
     # get resolution
     res <- list(xres = item_prop[["gsd"]], yres = item_prop[["gsd"]])
-    if (length(item_prop[["gsd"]]) == 0)
-        res[c("xres", "yres")] <- .sits_config_resolution(sensor)
-
+    if (length(item_prop[["gsd"]]) == 0) {
+        res[["xres"]] <- resolution
+        res[["yres"]] <- res[["xres"]]
+    }
     # create a tibble to store the metadata
     tile <- .sits_cube_create(
-        type  = "S2_L2A_AWS",
-        URL       = url,
-        satellite = toupper(item_prop[["constellation"]]),
-        sensor    = sensor,
-        name      = name,
-        cube      = cube,
-        tile      = item_prop$tile,
-        bands     = bands,
-        labels    = labels,
-        nrows = params$nrows,
-        ncols = params$ncols,
-        xmin = params$xmin,
-        xmax = params$xmax,
-        ymin = params$ymin,
-        ymax = params$ymax,
-        xres = res[["xres"]],
-        yres = res[["yres"]],
-        crs = item_prop[["proj:epsg"]],
-        file_info = file_info)
+        name       = name,
+        source     = "AWS",
+        collection = collection,
+        satellite  = toupper(item_prop[["constellation"]]),
+        sensor     = sensor,
+        tile       = item_prop$tile,
+        bands      = bands,
+        nrows      = params$nrows,
+        ncols      = params$ncols,
+        xmin       = params$xmin,
+        xmax       = params$xmax,
+        ymin       = params$ymin,
+        ymax       = params$ymax,
+        xres       = res[["xres"]],
+        yres       = res[["yres"]],
+        crs        = item_prop[["proj:epsg"]],
+        file_info  = file_info)
 
     tile <- .sits_config_bands_stac_write(tile)
 

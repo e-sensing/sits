@@ -38,7 +38,7 @@ test_that("Plot Time Series and Images", {
 
     data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
     sinop <- sits_cube(
-        type = "STACK",
+        source = "LOCAL",
         name = "sinop-2014",
         satellite = "TERRA",
         sensor = "MODIS",
@@ -77,23 +77,21 @@ test_that("Plot Time Series and Images", {
 
 test_that("Plot Stack Images", {
     # Create a raster cube based on CBERS data
-    cld_data_dir <- system.file("extdata/raster/clouds", package = "sits")
+    data_dir <- system.file("extdata/raster/cbers", package = "sits")
 
     # create a raster cube file based on the information about the files
-    cbers_clds <- sits_cube(
-        type = "STACK",
+    cbers_cube <- sits_cube(
+        source = "LOCAL",
         name = "022024",
         satellite = "CBERS-4",
         sensor = "AWFI",
         resolution = "64m",
-        start_date = "2017-11-17",
-        end_date = "2017-11-17",
-        data_dir = cld_data_dir,
+        data_dir = data_dir,
         delim = "_",
         parse_info = c("X1", "X2", "band", "date")
     )
-    p_cbers <- plot(cbers_clds, red = "B15", green = "B16", blue = "B13")
-    expect_equal(raster::nrow(p_cbers@object[[1]]), 122)
+    p_cbers <- plot(cbers_cube, red = "B15", green = "B16", blue = "B13")
+    expect_equal(raster::nrow(p_cbers@object[[1]]), 50)
     expect_equal(p_cbers@map[[1]]$options$maxZoom, 52)
 })
 

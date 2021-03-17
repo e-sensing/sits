@@ -153,7 +153,7 @@
 
     # get bands from sensor and application
     bands_sensor <- .sits_config_sensor_bands(sensor = item_prop$instruments,
-                                              cube = "DEAFRICA")
+                                              source = "DEAFRICA")
 
     # get bands name from assets list name property
     bands_product <- purrr::map_chr(items$features[[1]]$assets, function(bands){
@@ -223,20 +223,16 @@
 #' @name .sits_deafrica_tile_cube
 #' @keywords internal
 #'
-#' @param url       a \code{character} representing URL for the DEA STAC.
-#' @param name      a \code{character} representing the output data cube.
-#' @param items     a \code{STACItemCollection} object returned by rstac.
-#' @param cube      a \code{character} with name input data cube in DEA
-#' @param file_info a \code{tbl_df} with the information from STAC.
+#' @param name        Name of output data cube.
+#' @param items       \code{STACItemCollection} object returned by rstac.
+#' @param collection  Image collection in DEA
+#' @param file_info   file information with date/time.
 #'
 #' @return          a \code{tibble} with metadata information about a
 #'                  raster data set.
-.sits_deafrica_tile_cube <- function(url, name, items, cube, file_info) {
+.sits_deafrica_tile_cube <- function(name, items, collection, file_info) {
     # store items properties attributes
     item_prop <- items$features[[1]]$properties
-
-    # set the labels
-    labels <- c("NoClass")
 
     # format stac crs
     item_prop[["proj:epsg"]] <- .sits_format_crs(item_prop[["proj:epsg"]])
@@ -253,29 +249,32 @@
     # get resolution
     res <- list(xres = item_prop[["gsd"]], yres = item_prop[["gsd"]])
     if (length(item_prop[["gsd"]]) == 0)
-        res[c("xres", "yres")] <- .sits_config_resolution(sensor)
+        res[c("xres", "yres")] <- c(20, 20)
+
+    res_dea = .sits_config_defrica_bands_res(sensor, file_info$band)
+    file_info <- dplyr::mutate(file_info, res = res_dea, .before = path)
+
 
     # create a tibble to store the metadata
     tile <- .sits_cube_create(
-        type  = "DEAFRICA",
-        URL       = url,
-        satellite = item_prop[["platform"]],
-        sensor    = sensor,
-        name      = name,
-        cube      = cube,
-        tile      = item_prop[["odc:region_code"]],
-        bands     = bands,
-        labels    = labels,
-        nrows = item_prop[["proj:shape"]][[1]],
-        ncols = item_prop[["proj:shape"]][[2]],
-        xmin = bbox$xmin,
-        xmax = bbox$xmax,
-        ymin = bbox$ymin,
-        ymax = bbox$ymax,
-        xres = res[["xres"]],
-        yres = res[["yres"]],
-        crs = item_prop[["proj:epsg"]],
-        file_info = file_info)
+        name       = name,
+        source     = "DEAFRICA",
+        collection = collection,
+        satellite  = item_prop[["platform"]],
+        sensor     = sensor,
+        tile       = item_prop[["odc:region_code"]],
+        bands      = bands,
+        labels     = labels,
+        nrows      = item_prop[["proj:shape"]][[1]],
+        ncols      = item_prop[["proj:shape"]][[2]],
+        xmin       = bbox$xmin,
+        xmax       = bbox$xmax,
+        ymin       = bbox$ymin,
+        ymax       = bbox$ymax,
+        xres       = res[["xres"]],
+        yres       = res[["yres"]],
+        crs        = item_prop[["proj:epsg"]],
+        file_info  = file_info)
 
     tile <- .sits_config_bands_stac_write(tile)
 

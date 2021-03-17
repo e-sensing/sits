@@ -50,7 +50,8 @@ SITS is currently available on github, as follows:
 
 ``` r
 # Please install the `sits` package from github
-devtools::install_github("e-sensing/sits")
+# and its dependencies
+devtools::install_github("e-sensing/sits", dependencies = TRUE)
 library(sits)
 ```
 
@@ -89,25 +90,24 @@ following cloud services:
 1.  Sentinel-2/2A level 2A images in AWS.
 2.  Collections of Sentinel, Landsat and CBERS images in the Brazil Data
     Cube (BDC).
-3.  Collections available in Digital Earth Africa.
+3.  Sentinel-2/2A collections available in Digital Earth Africa.
 4.  Data cubes produced by the “gdalcubes” package.
-5.  Local image collections organized as RasterStacks of RasterBricks.
+5.  Local image collections organized as raster stacks.
 
 SITS relies on STAC services provided by these cloud services. The user
 can define a data cube by selecting a collection in a cloud service and
 then defining a space-time extent. For example, the following code will
-define a data cube of Sentinel-2/2A images using AWS.
+define a data cube of Sentinel-2/2A images using AWS. Users need to
+provide AWS credentials using environment variables.
 
 ``` r
-s2_cube <- sits_cube(
-    type = "S2_L2A_AWS",
-    name = "T20LKP_2018_2019",
-    satellite = "SENTINEL-2",
-    sensor = "MSI",
-    tiles = "20LKP",
-    s2_aws_resolution = "20m",
-    start_date = as.Date("2018-07-18"),
-    end_date = as.Date("2018-07-23")
+s2_cube <- sits_cube(source = "AWS",
+                     name = "T20LKP_2018_2019",
+                     collection = "sentinel-s2-l2a",
+                     tiles = c("20LKP"),
+                     start_date = as.Date("2018-07-18"),
+                     end_date = as.Date("2018-07-23"),
+                     s2_resolution = 20
 )
 ```
 
@@ -119,18 +119,19 @@ and end date. Access to other cloud services works in similar ways.
 Users can derive data cubes from ARD data which have pre-defined
 temporal resolutions. For example, a user may want to define the best
 Sentinel-2 pixel in a one month period, as shown below. This can be done
-in SITS using the “gdalcubes” package. For details in gdalcubes, please
-see <https://github.com/appelmar/gdalcubes>.
+in SITS by the `sits_regularize` which calls the “gdalcubes” package.
+For details in gdalcubes, please see
+<https://github.com/appelmar/gdalcubes>.
 
 ``` r
-gc_cube <- sits_cube(type        = "GDALCUBES",
-                     name        = "T20LKP_2018_2019_1M",
-                     cube        = s2_cube,
-                     path_db     = "/my/path/cube.db",
-                     path_images = "/my/path/images/",
-                     period      = "P1M",
-                     agg_method  = "median",
-                     resampling  = "bilinear")
+gc_cube <- sits_regularize(cube        = s2_cube,
+                           name        = "T20LKP_2018_2019_1M",
+                           path_db     = "/my/path/cube.db",
+                           path_images = "/my/path/images/",
+                           period      = "P1M",
+                           agg_method  = "median",
+                           resampling  = "bilinear"
+)
 ```
 
 ### Data Access - Individual time series
@@ -143,23 +144,21 @@ the following example.
 ``` r
 library(sits)
 #> SITS - satellite image time series analysis.
-#> Loaded sits v0.10.0.
+#> Loaded sits v0.11.0.
 #>         See ?sits for help, citation("sits") for use in publication.
 #>         See demo(package = "sits") for examples.
 #> Using configuration file: /Users/gilbertocamara/Library/R/4.0/library/sits/extdata/config.yml
-#> Users can provide additional configurations in ~/.sits/config.yml
+#> Additional configurations found in /Users/gilbertocamara/Library/R/4.0/library/sits/extdata/config_user_example.yml
 # create a cube from a local file 
-file <- c(system.file("extdata/raster/mod13q1/sinop-ndvi-2014.tif",
-                      package = "sits"
-))
+data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
 raster_cube <- sits_cube(
-  type = "BRICK",
-  name = "Sinop-crop",
-  satellite = "TERRA",
-  sensor = "MODIS",
-  timeline = sits::timeline_2013_2014,
-  bands = c("ndvi"),
-  files = file
+        source = "LOCAL",
+        name = "sinop-2014",
+        satellite = "TERRA",
+        sensor = "MODIS",
+        data_dir = data_dir,
+        delim = "_",
+        parse_info = c("X1", "X2", "band", "date")
 )
 # obtain a set of locations defined by a CSV file
 csv_raster_file <- system.file("extdata/samples/samples_sinop_crop.csv",
@@ -173,18 +172,18 @@ points
 #> # A tibble: 12 x 7
 #>    longitude latitude start_date end_date   label    cube       time_series     
 #>        <dbl>    <dbl> <date>     <date>     <chr>    <chr>      <list>          
-#>  1     -55.7    -11.8 2013-09-14 2014-08-29 Pasture  Sinop-crop <tibble [23 × 2…
-#>  2     -55.6    -11.8 2013-09-14 2014-08-29 Pasture  Sinop-crop <tibble [23 × 2…
-#>  3     -55.7    -11.8 2013-09-14 2014-08-29 Forest   Sinop-crop <tibble [23 × 2…
-#>  4     -55.6    -11.8 2013-09-14 2014-08-29 Pasture  Sinop-crop <tibble [23 × 2…
-#>  5     -55.7    -11.8 2013-09-14 2014-08-29 Forest   Sinop-crop <tibble [23 × 2…
-#>  6     -55.6    -11.7 2013-09-14 2014-08-29 Forest   Sinop-crop <tibble [23 × 2…
-#>  7     -55.7    -11.7 2013-09-14 2014-08-29 Soy_Corn Sinop-crop <tibble [23 × 2…
-#>  8     -55.7    -11.7 2013-09-14 2014-08-29 Soy_Corn Sinop-crop <tibble [23 × 2…
-#>  9     -55.7    -11.7 2013-09-14 2014-08-29 Soy_Corn Sinop-crop <tibble [23 × 2…
-#> 10     -55.6    -11.8 2013-09-14 2014-08-29 Soy_Corn Sinop-crop <tibble [23 × 2…
-#> 11     -55.6    -11.8 2013-09-14 2014-08-29 Soy_Corn Sinop-crop <tibble [23 × 2…
-#> 12     -55.6    -11.8 2013-09-14 2014-08-29 Soy_Corn Sinop-crop <tibble [23 × 2…
+#>  1     -55.7    -11.8 2013-09-14 2014-08-29 Pasture  sinop-2014 <tibble [23 × 3…
+#>  2     -55.6    -11.8 2013-09-14 2014-08-29 Pasture  sinop-2014 <tibble [23 × 3…
+#>  3     -55.7    -11.8 2013-09-14 2014-08-29 Forest   sinop-2014 <tibble [23 × 3…
+#>  4     -55.6    -11.8 2013-09-14 2014-08-29 Pasture  sinop-2014 <tibble [23 × 3…
+#>  5     -55.7    -11.8 2013-09-14 2014-08-29 Forest   sinop-2014 <tibble [23 × 3…
+#>  6     -55.6    -11.7 2013-09-14 2014-08-29 Forest   sinop-2014 <tibble [23 × 3…
+#>  7     -55.7    -11.7 2013-09-14 2014-08-29 Soy_Corn sinop-2014 <tibble [23 × 3…
+#>  8     -55.7    -11.7 2013-09-14 2014-08-29 Soy_Corn sinop-2014 <tibble [23 × 3…
+#>  9     -55.7    -11.7 2013-09-14 2014-08-29 Soy_Corn sinop-2014 <tibble [23 × 3…
+#> 10     -55.6    -11.8 2013-09-14 2014-08-29 Soy_Corn sinop-2014 <tibble [23 × 3…
+#> 11     -55.6    -11.8 2013-09-14 2014-08-29 Soy_Corn sinop-2014 <tibble [23 × 3…
+#> 12     -55.6    -11.8 2013-09-14 2014-08-29 Soy_Corn sinop-2014 <tibble [23 × 3…
 ```
 
 After a time series is imported, it is loaded in a tibble. The first six
@@ -330,25 +329,35 @@ set of raster bricks. First, we need to build a model based on the the
 same bands as the data cube.
 
 ``` r
-# estimate a model only for bands "ndvi" and "evi"
-samples_mt_2bands <- sits_select_bands(samples_mt_4bands, ndvi, evi)
-rfor_model <- sits_train(samples_mt_2bands, ml_method = sits_rfor(num_trees = 300))
-# Create a data cube from two raster bricks
-evi_file <- system.file("extdata/Sinop", "Sinop_evi_2014.tif", package = "inSitu")
-ndvi_file <- system.file("extdata/Sinop", "Sinop_ndvi_2014.tif", package = "inSitu")
+if (!requireNamespace("sitsdata", quietly = TRUE)) {
+    if (!requireNamespace("devtools", quietly = TRUE)) {
+          install.packages("devtools")
+      }
+    devtools::install_github("e-sensing/sitsdata")
+}
+library(sitsdata)
 
-# Obtain the associated timeline
-time_file <- system.file("extdata/Sinop", "timeline_2014.txt", package = "inSitu")
-timeline_2013_2014 <- scan(time_file, character(), quiet = TRUE)
+# select the samples and bands for classification
+data(br_mt_1_8K_9classes_6bands)
+samples_ndvi_evi <- sits_select(br_mt_1_8K_9classes_6bands, bands = c("EVI", "NDVI"))
 
-# create a raster metadata file based on the information about the files
-raster_cube <- sits_cube(type = "BRICK", name = "Sinop", 
-                         satellite = "TERRA", sensor = "MODIS",
-                         timeline = timeline_2013_2014, 
-                         bands = c("ndvi", "evi"), 
-                         files = c(ndvi_file, evi_file))
+# build the classification model
+rfor_model <- sits_train(samples_ndvi_evi, ml_method = sits_rfor(num_trees = 2000))
+
+# create a data cube to be classified
+# Cube is composed of MOD13Q1 images from the Sinop region in Mato Grosso (Brazil)
+data_dir <- system.file("extdata/sinop", package = "sitsdata")
+sinop <- sits_cube(
+    source = "LOCAL",
+    name = "sinop-2014",
+    satellite = "TERRA",
+    sensor = "MODIS",
+    data_dir = data_dir,
+    delim = "_",
+    parse_info = c("X1", "X2", "band", "date")
+)
 # Classify the raster cube, generating a probability file
-probs_cube <- sits_classify(raster_cube, ml_model = rfor_model)
+probs_cube <- sits_classify(sinop, ml_model = rfor_model)
 
 # label the probability file (by default selecting the class with higher probability)
 # apply a bayesian smoothing to remove outliers
@@ -359,7 +368,7 @@ label_cube <- sits_label_classification(bayes_cube)
 
 # plot the first raster object with a selected color palette
 # make a title, define the colors and the labels)
-plot(label_cube, time = 1, title = "SINOP-MT - 2013/2014")
+plot(label_cube)
 ```
 
 <div class="figure" style="text-align: center">

@@ -24,7 +24,7 @@
 #' # create a data cube based on the information about the files
 #' data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
 #' cube <- sits_cube(
-#'     type = "STACK",
+#'     source = "LOCAL",
 #'     name = "sinop-2014",
 #'     satellite = "TERRA",
 #'     sensor = "MODIS",
@@ -99,7 +99,7 @@ sits_smooth <- function(cube, type = "bayes", ...) {
 #' # create a data cube based on files
 #' data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
 #' cube <- sits_cube(
-#'     type = "STACK",
+#'     source = "LOCAL",
 #'     name = "sinop-2014",
 #'     satellite = "TERRA",
 #'     sensor = "MODIS",
@@ -268,7 +268,7 @@ sits_smooth.bayes <- function(cube, type = "bayes", ...,
 #' # create a data cube based on files
 #' data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
 #' cube <- sits_cube(
-#'     type = "STACK",
+#'     source = "LOCAL",
 #'     name = "sinop-2014",
 #'     satellite = "TERRA",
 #'     sensor = "MODIS",
@@ -417,7 +417,7 @@ sits_smooth.gaussian <- function(cube, type = "gaussian", ...,
 #' # create a data cube based on files
 #' data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
 #' cube <- sits_cube(
-#'     type = "STACK",
+#'     source = "LOCAL",
 #'     name = "sinop-2014",
 #'     satellite = "TERRA",
 #'     sensor = "MODIS",

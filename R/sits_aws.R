@@ -3,11 +3,11 @@
 #' @keywords internal
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'
-#' @param type           cube type
+#' @param source           data source
 #'
 #' @return  TRUE if access is granted
 #'
-.sits_aws_check_access <- function(type) {
+.sits_aws_check_access <- function(source) {
 
     # require package
     if (!requireNamespace("aws.s3", quietly = TRUE)) {
@@ -26,19 +26,19 @@
     # check "AWS_DEFAULT_REGION" - if not available, use the default
     aws_region <- Sys.getenv("AWS_DEFAULT_REGION")
     if (nchar(aws_region) == 0) {
-        aws_region <- .sits_config_aws_default_region(type)
+        aws_region <- .sits_config_aws_default_region(source)
         Sys.setenv(AWS_DEFAULT_REGION = aws_region)
     }
     # check "AWS_ENDPOINT" - if not available, use the default
     aws_endpoint <- Sys.getenv("AWS_ENDPOINT")
     if (nchar(aws_endpoint) == 0) {
-        aws_endpoint <- .sits_config_aws_endpoint(type)
+        aws_endpoint <- .sits_config_aws_endpoint(source)
         Sys.setenv(AWS_ENDPOINT = aws_endpoint)
     }
     # check "AWS_REQUEST_PAYER" - if not available, use the default
     aws_request_payer <- Sys.getenv("AWS_REQUEST_PAYER")
     if (nchar(aws_request_payer) == 0) {
-        aws_request_payer <- .sits_config_aws_request_payer(type)
+        aws_request_payer <- .sits_config_aws_request_payer(source)
         Sys.setenv(AWS_REQUEST_PAYER = aws_request_payer)
     }
     return(TRUE)

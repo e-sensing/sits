@@ -4,47 +4,40 @@
 library(sits)
 library(randomForest)
 
-if (!requireNamespace("inSitu", quietly = TRUE)) {
+if (!requireNamespace("sitsdata", quietly = TRUE)) {
     if (!requireNamespace("devtools", quietly = TRUE)) {
           install.packages("devtools")
       }
-    devtools::install_github("e-sensing/inSitu")
+    devtools::install_github("e-sensing/sitsdata")
 }
-library(inSitu)
+library(sitsdata)
 
 # select the bands for classification
-samples <- inSitu::br_mt_1_8K_9classes_6bands
-samples_ndvi_evi <- sits_select(samples, bands = c("EVI", "NDVI"))
+data(br_mt_1_8K_9classes_6bands)
+samples_ndvi_evi <- sits_select(br_mt_1_8K_9classes_6bands, bands = c("EVI", "NDVI"))
 
 # build the classification model
-rfor_model <- sits_train(samples_ndvi_evi, ml_method = sits_rfor(num_trees = 2000))
+xgb_model <- sits_train(samples_ndvi_evi, ml_method = sits_xgboost())
 
-# select the bands "ndvi", "evi" from the "inSitu" package
-evi_file <- system.file("extdata/Sinop", "Sinop_evi_2014.tif", package = "inSitu")
-ndvi_file <- system.file("extdata/Sinop", "Sinop_ndvi_2014.tif", package = "inSitu")
-
-files <- c(ndvi_file, evi_file)
-# define the timeline
-time_file <- system.file("extdata/Sinop", "timeline_2014.txt", package = "inSitu")
-timeline_2013_2014 <- scan(time_file, character())
-
-# create a raster metadata file based on the information about the files
+# create a data cube to be classified
+# Cube is composed of MOD13Q1 images from the Sinop region in Mato Grosso (Brazil)
+data_dir <- system.file("extdata/sinop", package = "sitsdata")
 sinop <- sits_cube(
-    type = "BRICK",
+    source = "LOCAL",
+    name = "sinop-2014",
     satellite = "TERRA",
     sensor = "MODIS",
-    name = "Sinop",
-    timeline = timeline_2013_2014,
-    bands = c("NDVI", "EVI"),
-    files = files
+    data_dir = data_dir,
+    delim = "_",
+    parse_info = c("X1", "X2", "band", "date")
 )
 
 # classify the raster image
 sinop_probs <- sits_classify(sinop,
-                             ml_model = rfor_model,
-                             memsize = 2,
+                             ml_model = xgb_model,
+                             memsize = 8,
                              multicores = 2,
-                             output_dir = getwd())
+                             output_dir = tempdir())
 plot(sinop_probs)
 
 # smooth the result with a Bayesian filter
@@ -70,4 +63,4 @@ sinop_label <- sits_label_classification(sinop_bayes,
 
 # plot the smoothened image
 map_1 <- plot(sinop, red = "evi", green = "ndvi", blue = "evi", time = 23)
-plot(sinop_label, map = map_1, time = 1, title = "Sinop-Bayes")
+plot(sinop_label, map = map_1)

@@ -55,6 +55,8 @@ point2 <- sits_apply(point_ndvi,
         (x - min(x)) / (max(x) - min(x))
     }
 )
+
+
 }
 \author{
 Rolf Simoes, \email{rolf.simoes@inpe.br}

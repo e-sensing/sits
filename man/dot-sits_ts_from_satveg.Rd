@@ -11,7 +11,7 @@
 
 \item{latitude}{The latitude of the chosen location.}
 
-\item{name}{Name of the desired data cube in SATVEG}
+\item{collection}{SATVEG Image Collection}
 }
 \value{
 A tibble containing a time series

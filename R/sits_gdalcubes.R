@@ -42,7 +42,7 @@
     cube_gc$file_info <- NULL
 
     # create file info column
-    file_info <- tibble::tibble(res  = character(),
+    file_info <- tibble::tibble(res  = numeric(),
                                 band = character(),
                                 date = lubridate::as_date(""),
                                 path = character())
@@ -179,7 +179,7 @@
 .sits_gc_database <- function(cube, path_db) {
 
     # error if a cube other than S2_L2A_AWS is provided
-    assertthat::assert_that(!(cube[1,]$type != "S2_L2A_AWS"),
+    assertthat::assert_that(!(cube[1,]$source != "AWS"),
                             msg = paste("For now, only 'S2_L2A_AWS' cubes",
                                         "can be aggregated.")
     )

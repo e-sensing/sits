@@ -1,16 +1,18 @@
 library(sits)
 library(keras)
-# install_keras()
 
-if (!requireNamespace("inSitu", quietly = TRUE)) {
-    if (!requireNamespace("devtools", quietly = TRUE)) {
-          install.packages("devtools")
-      }
-    devtools::install_github("e-sensing/inSitu")
+# load the sitsdata library
+if (!requireNamespace("sitsdata", quietly = TRUE)) {
+  if (!requireNamespace("devtools", quietly = TRUE)) {
+    install.packages("devtools")
+  }
+  devtools::install_github("e-sensing/sitsdata")
 }
-library(inSitu)
+library(sitsdata)
+# load a time series samples for the Mato Grosso region
+data(br_mt_1_8K_9classes_6bands)
 
-samples_ndvi_evi <- sits_select(samples_mt_4bands, bands = c("NDVI", "EVI"))
+samples_ndvi_evi <- sits_select(br_mt_1_8K_9classes_6bands, bands = c("NDVI", "EVI"))
 
 # train the deep learning model
 dl_model <- sits_train(samples_ndvi_evi,
@@ -27,9 +29,10 @@ dl_model <- sits_train(samples_ndvi_evi,
 sits_keras_diagnostics(dl_model)
 
 # create a data cube to be classified
-data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
+# Cube is composed of MOD13Q1 images from the Sinop region in Mato Grosso (Brazil)
+data_dir <- system.file("extdata/sinop", package = "sitsdata")
 sinop <- sits_cube(
-    type = "STACK",
+    source = "LOCAL",
     name = "sinop-2014",
     satellite = "TERRA",
     sensor = "MODIS",
@@ -47,8 +50,12 @@ sinop_probs <- sits_classify(sinop,
 
 # smoothen with bayesian filter
 sinop_bayes <- sits_smooth(sinop_probs, output_dir = tempdir())
+# plot the smoothed image
+plot(sinop_bayes)
+
 # label the classified image
 sinop_label <- sits_label_classification(sinop_bayes, output_dir = tempdir())
+# plot the classified image
+plot(sinop_label)
 
-# plot the smoothed image
-plot(sinop_bayes, time = 1, title = "Sinop-smooth")
+

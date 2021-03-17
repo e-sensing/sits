@@ -129,11 +129,11 @@ plot.predicted <- function(x, y, ..., bands = "NDVI") {
 #' data_dir <- system.file("extdata/raster/cbers", package = "sits")
 #'
 #' cbers_022024 <- sits_cube(
-#'     type = "STACK",
+#'     source = "LOCAL",
 #'     name = "cbers_022024",
 #'     satellite = "CBERS-4",
 #'     sensor = "AWFI",
-#'     resolution = "64m",
+#'     resolution = 64,
 #'     data_dir = data_dir,
 #'     parse_info = c("X1", "X2", "band", "date")
 #' )

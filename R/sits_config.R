@@ -119,33 +119,33 @@ sits_config_show <- function() {
 }
 #' @title Read the AWS default region from configuration file
 #' @name .sits_config_aws_default_region
-#' @param type  Type of data cube
+#' @param source  Source of data cube
 #' @keywords internal
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'
 #' @return directory where BDC is accessible on the web
-.sits_config_aws_default_region <- function(type) {
-    return(sits_env$config[["AWS_DEFAULT_REGION"]][[type]])
+.sits_config_aws_default_region <- function(source) {
+    return(sits_env$config[["AWS_DEFAULT_REGION"]][[source]])
 }
 #' @title Read the AWS end point from configuration file
 #' @name .sits_config_aws_endpoint
-#' @param type  Type of data cube
+#' @param source  Source of data cube
 #' @keywords internal
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'
 #' @return directory where BDC is accessible on the web
-.sits_config_aws_endpoint <- function(type) {
-    return(sits_env$config[["AWS_ENDPOINT"]][[type]])
+.sits_config_aws_endpoint <- function(source) {
+    return(sits_env$config[["AWS_ENDPOINT"]][[source]])
 }
 #' @title Read the AWS end point from configuration file
 #' @name .sits_config_aws_request_payer
-#' @param type  Type of data cube
+#' @param source  Source of data cube
 #' @keywords internal
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'
 #' @return directory where BDC is accessible on the web
-.sits_config_aws_request_payer <- function(type) {
-    return(sits_env$config[["AWS_REQUEST_PAYER"]][[type]])
+.sits_config_aws_request_payer <- function(source) {
+    return(sits_env$config[["AWS_REQUEST_PAYER"]][[source]])
 }
 #' @title Directory to read the DEAFRICA STAC catalogue
 #' @name .sits_config_deafrica_stac
@@ -164,15 +164,15 @@ sits_config_show <- function() {
   return(sits_env$config$aws_stac)
 }
 #' @title Retrieve the bands associated to DEAfrica STAC
-#' @name sits_config_satveg_bands
-#' @param sensor Type of sensor of cube
-#' @param cube   Cube in which bands will be searched
+#' @name .sits_config_sensor_bands
+#' @param sensor   Type of sensor of cube
+#' @param source  Data source
 #' @keywords internal
-#' @description Retrieve the cubes associated to the STAC service from DEAfrica
+#' @description Retrieve the cubes associated to the STAC service
 #'
-#' @return         Names of DEAfrica available bands
-.sits_config_sensor_bands <- function(sensor, cube) {
-  return(sits_env$config[[sensor]][["bands"]][[cube]])
+#' @return         Names of bands available for sensor in data source
+.sits_config_sensor_bands <- function(sensor, source) {
+  return(sits_env$config[[sensor]][["bands"]][[source]])
 }
 
 #' @title Convert bands names from SITS to cube
@@ -221,13 +221,13 @@ sits_config_show <- function() {
 .sits_config_bands_stac_write <- function(tile){
 
   bands_sits <- .sits_config_sensor_bands(tile$sensor, "SITS")
-  bands_stac <- .sits_config_sensor_bands(tile$sensor, tile$type)
+  bands_stac <- .sits_config_sensor_bands(tile$sensor, tile$source)
   # create a named vector
   names(bands_sits) <- bands_stac
   # are the bands specified as cloud provider bands or as sits bands?
   bands_tile <- tile$bands[[1]]
   assertthat::assert_that(all(bands_tile %in% bands_stac) || all(bands_tile %in% bands_sits),
-                          msg = paste0("required bands not available in ", tile$type))
+                          msg = paste0("required bands not available in ", tile$source))
   if (!all(bands_tile %in% bands_sits)) {
       tile$bands[[1]] <- unname(bands_sits[tile$bands[[1]]])
       tile$file_info[[1]]$band <- unname(bands_sits[tile$file_info[[1]]$band])
@@ -335,7 +335,7 @@ sits_config_show <- function() {
 #' @return vector with bands available in AWS for a given resolution
 .sits_config_cloud_band <- function(cube) {
     cb <- paste0(cube[1,]$sensor, "_CLD_BAND")
-    cloud_band <- sits_env$config[["CLOUD"]][[cube$type[1]]][[cb]]
+    cloud_band <- sits_env$config[["CLOUD"]][[cube$source[1]]][[cb]]
     assertthat::assert_that(!purrr::is_null(cloud_band),
         msg = "Cloud band information not available"
     )
@@ -351,7 +351,7 @@ sits_config_show <- function() {
 #' @return vector with bands available in AWS for a given resolution
 .sits_config_cloud_values <- function(cube) {
     cv <- paste0(cube$sensor[1], "_cld_vls")
-    cloud_values <- sits_env$config[["CLOUD"]][[cube$type[1]]][[cv]]
+    cloud_values <- sits_env$config[["CLOUD"]][[cube$source[1]]][[cv]]
     assertthat::assert_that(!purrr::is_null(cloud_values),
         msg = "Cloud band values information not available"
     )
@@ -393,22 +393,22 @@ sits_config_show <- function() {
 #' @keywords internal
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #' @description Retrieve the class name associated to a cube type
-#' @param type  Data cube type
-#' @return      Class of data cube
+#' @param source  Data cube source
+#' @return        Class of data cube
 #'
-.sits_config_cube_class <- function(type) {
+.sits_config_cube_class <- function(source) {
     # check that the cube is correct
-    type <- toupper(type)
+    source <- toupper(source)
     # find out which cube types are supported
-    types <- sits_env$config$cube_types
-    assertthat::assert_that(type %in% types,
-                            msg = "unsupported cube type"
+    sources <- sits_env$config$data_sources
+    assertthat::assert_that(source %in% sources,
+                            msg = "unsupported data source"
     )
     cube_classes <- sits_env$config$cube_classes
-    names(cube_classes) <- sits_env$config$cube_types
-    return(unname(cube_classes[type]))
+    names(cube_classes) <- sits_env$config$data_sources
+    return(unname(cube_classes[source]))
 }
-#' @title Check that the type is valid, based on the configuration file
+#' @title Check that the cube data source is valid, based on the configuration file
 #' @name .sits_config_cube_check
 #' @keywords internal
 #' @author Gilberto Camara \email{gilberto.camara@@inpe.br}
@@ -422,14 +422,14 @@ sits_config_show <- function() {
         msg = "invalid cube"
     )
 
-    assertthat::assert_that(!purrr::is_null(cube[1, ]$type),
-        msg = "invalid cube type"
+    assertthat::assert_that(!purrr::is_null(cube[1, ]$source),
+        msg = "invalid data source"
     )
 
-    # find out which cube types are available
-    types <- sits_env$config$cube_types
-    assertthat::assert_that(cube[1, ]$type %in% types,
-        msg = "sits_get_data: Invalid cube type"
+    # find out which data sources are available
+    sources <- sits_env$config$data_sources
+    assertthat::assert_that(cube[1, ]$source %in% sources,
+        msg = "sits_get_data: Invalid data source"
     )
     return(TRUE)
 }
@@ -448,7 +448,7 @@ sits_config_show <- function() {
     | grepl("predicted", class(data)[[1]])) {
           return(data)
       } else {
-        assertthat::assert_that(!purrr::is_null(data[1, ]$type),
+        assertthat::assert_that(!purrr::is_null(data[1, ]$source),
             msg = "data is not valid"
         )
         # check if data is a cube
@@ -458,25 +458,19 @@ sits_config_show <- function() {
     }
     return(data)
 }
-#' @title Standard files for data directory for cube type
-#' @name .sits_config_data_parse_info
+#' @title Resolution for S2 bands in DEAFRICA
+#' @name .sits_config_defrica_bands_res
 #' @keywords internal
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
-#' @param  type    cube_type
+#' @param  source   cube source
 #'
-#' @return parsing information
-.sits_config_data_parse_info <- function(type) {
-    return(sits_env$config[[type]][["parse_info"]])
-}
-#' @title Delimiter for data type
-#' @name .sits_config_data_delim
-#' @keywords internal
-#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
-#' @param  type    cube_type
-#'
-#' @return delimiter information
-.sits_config_data_delim <- function(type) {
-    return(sits_env$config[[type]][["delim"]])
+#' @return resolution information
+.sits_config_defrica_bands_res <- function(sensor, bands) {
+  assertthat::assert_that(all(bands %in% sits_env$config[["DEAFRICA"]][[sensor]][["bands"]]),
+                          msg = "Bands not available in DEAFRICA")
+  res <- as.numeric(sits_env$config[["DEAFRICA"]][[sensor]][["resolution"]])
+  names(res) <- sits_env$config[["DEAFRICA"]][[sensor]][["bands"]]
+  return(unname(res[bands]))
 }
 
 #' @title Returns the file extensions known to SITS
@@ -699,12 +693,12 @@ sits_config_show <- function() {
 
     names(res) %>%
         purrr::map(function(c) {
-            res[c] <<- sits_env$config[[sensor]][["resolution"]][[c]]
+            res[c] <<- as.numeric(sits_env$config[[sensor]][["resolution"]][[c]])
         })
 
     # post-condition
     assertthat::assert_that(
-        as.numeric(res["xres"]) > 0,
+        res["xres"] > 0,
         msg = paste0(
             "Horizontal resolution unavailable for ",
             sensor,
@@ -712,7 +706,7 @@ sits_config_show <- function() {
         )
     )
     assertthat::assert_that(
-        as.numeric(res["yres"]) > 0,
+        res["yres"] > 0,
         msg = paste0(
             "Vertical resolution unavailable for ",
             sensor,
@@ -898,26 +892,6 @@ sits_config_show <- function() {
     return(sensors)
 }
 
-#' @title Get the bucket where Sentinel-2 level 2A images are available in AWS
-#' @name .sits_config_s2_aws_bucket
-#' @keywords internal
-#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
-#'
-#' @return name of the bucket
-.sits_config_s2_aws_bucket <- function() {
-    s <- "S2_L2A_AWS"
-    return(sits_env$config[[s]][["bucket"]])
-}
-
-#' @title Get the the resolutions for Sentinel-2 ARD in AWS
-#' @name .sits_config_s2_aws_res
-#' @keywords internal
-#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
-#'
-#' @return vector with names of the resolutions available in AWS for S2 L2A
-.sits_config_s2_aws_res <- function() {
-    return(sits_env$config[["S2_L2A_AWS"]][["resolutions"]])
-}
 #' @title Get the the bands in AWS for Sentinel-2 ARD given the resolution
 #' @name .sits_config_s2_bands
 #' @keywords internal
@@ -926,14 +900,14 @@ sits_config_show <- function() {
 #'
 #' @return vector with bands available in AWS for a given resolution
 .sits_config_s2_bands <- function(resolution) {
-    s <- "S2_L2A_AWS"
+    sensor <- "MSI"
     assertthat::assert_that(resolution %in%
-        sits_env$config[[s]][["resolutions"]],
-    msg = "Sentinel-2 in AWS - wrong resolution"
+        sits_env$config[[sensor]][["resolutions"]],
+        msg = "Sentinel-2 in AWS - wrong resolution"
     )
 
-    r <- paste0(resolution, "_bands")
-    return(sits_env$config[[s]][[r]])
+    r <- paste0("bands_",resolution, "m")
+    return(sits_env$config[[sensor]][[r]])
 }
 
 
@@ -967,12 +941,12 @@ sits_config_show <- function() {
 #' @title File to test access to cloud services
 #' @name .sits_config_test_file
 #' @keywords internal
-#' @param  type    Data cube type
+#' @param  source    Data source
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'
 #' @return name of the bucket
-.sits_config_test_file <- function(type) {
-  return(sits_env$config[[type]][["test_file"]])
+.sits_config_test_file <- function(source) {
+  return(sits_env$config[[source]][["test_file"]])
 }
 #' @title Number of parallel data access
 #' @name .sits_config_download_maxcores

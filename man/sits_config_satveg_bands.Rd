@@ -2,27 +2,15 @@
 % Please edit documentation in R/sits_config.R
 \name{sits_config_satveg_bands}
 \alias{sits_config_satveg_bands}
-\alias{.sits_config_sensor_bands}
 \alias{.sits_config_satveg_bands}
-\title{Retrieve the bands associated to DEAfrica STAC}
+\title{Retrieve the bands associated to SATVEG}
 \usage{
-.sits_config_sensor_bands(sensor, cube)
-
 .sits_config_satveg_bands()
 }
-\arguments{
-\item{sensor}{Type of sensor of cube}
-
-\item{cube}{Cube in which bands will be searched}
-}
 \value{
-Names of DEAfrica available bands
-
 Names of SATVEG bands
 }
 \description{
-Retrieve the cubes associated to the STAC service from DEAfrica
-
 Retrieve the cubes associated to the SATVEG service
 }
 \author{

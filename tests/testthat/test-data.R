@@ -1,9 +1,9 @@
 context("Data input")
 test_that("Reading a point from SATVEG ", {
     testthat::skip_on_cran()
-    cube_1 <- sits_cube(type = "SATVEG", name = "terra")
-    cube_2 <- sits_cube(type = "SATVEG", name = "aqua")
-    cube_3 <- sits_cube(type = "SATVEG", name = "comb")
+    cube_1 <- sits_cube(source = "SATVEG", collection = "terra")
+    cube_2 <- sits_cube(source = "SATVEG", collection = "aqua")
+    cube_3 <- sits_cube(source = "SATVEG", collection = "comb")
 
     if (purrr::is_null(cube_1)) {
           skip("SATVEG is not accessible")
@@ -46,7 +46,7 @@ test_that("Reading a CSV file from SATVEG", {
     csv_file <- system.file("extdata/samples/samples_matogrosso.csv",
         package = "sits"
     )
-    cube_satveg <- sits_cube(type = "SATVEG", name = "terra")
+    cube_satveg <- sits_cube(source = "SATVEG", collection = "terra")
 
     if (purrr::is_null(cube_satveg)) {
           skip("SATVEG is not accessible")
@@ -74,7 +74,7 @@ test_that("Reading a CSV file from SATVEG", {
 
 test_that("Reading a POLYGON shapefile from SATVEG", {
     testthat::skip_on_cran()
-    cube_satveg <- sits_cube(type = "SATVEG", name = "terra")
+    cube_satveg <- sits_cube(source = "SATVEG", collection = "terra")
 
     if (purrr::is_null(cube_satveg)) {
           skip("SATVEG is not accessible")
@@ -101,10 +101,10 @@ test_that("Reading a POLYGON shapefile from SATVEG", {
 })
 
 test_that("Reading a LAT/LONG from RASTER", {
-    # skip_on_cran()
+
     data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
     raster_cube <- sits_cube(
-        type = "STACK",
+        source = "LOCAL",
         name = "sinop-2014",
         satellite = "TERRA",
         sensor = "MODIS",
@@ -127,7 +127,7 @@ test_that("Reading a CSV file from RASTER", {
     # skip_on_cran()
     data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
     raster_cube <- sits_cube(
-        type = "STACK",
+        source = "LOCAL",
         name = "sinop-2014",
         satellite = "TERRA",
         sensor = "MODIS",
@@ -165,12 +165,12 @@ test_that("Test reading shapefile from BDC", {
 
     # create a raster cube file based on the information about the files
     cbers_stac_tile <- sits_cube(
-        type = "BDC",
+        source = "BDC",
+        collection = "CB4_64_16D_STK-1",
         name = "cbers_stac",
         bands = c("NDVI", "EVI"),
         tiles = c("022024", "022025"),
         url = "http://brazildatacube.dpi.inpe.br/stac/",
-        collection = "CB4_64_16D_STK-1",
         start_date = "2018-09-01",
         end_date = "2019-08-28"
     )

@@ -1,7 +1,7 @@
 context("Cube")
 test_that("Creating a SATVEG data cube", {
   testthat::skip_on_cran()
-  cube_satveg <- sits_cube(type = "SATVEG", name = "terra")
+  cube_satveg <- sits_cube(source = "SATVEG", collection = "terra")
 
   if (purrr::is_null(cube_satveg)) {
     skip("SATVEG is not accessible")
@@ -12,7 +12,7 @@ test_that("Creating a SATVEG data cube", {
 test_that("Reading a raster cube", {
     data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
     raster_cube <- sits_cube(
-        type = "STACK",
+        source = "LOCAL",
         name = "sinop-2014",
         satellite = "TERRA",
         sensor = "MODIS",
@@ -37,7 +37,7 @@ test_that("Creating a raster stack cube and selecting bands", {
 
     # create a raster cube file based on the information about the files
     cbers_cube <- sits_cube(
-        type = "STACK",
+        source = "LOCAL",
         name = "022024",
         satellite = "CBERS-4",
         sensor = "AWFI",
@@ -70,11 +70,11 @@ test_that("Creating cubes from BDC", {
     if (nchar(bdc_access_key) > 0) {
       # create a raster cube file based on the information about the files
       cbers_cube <- sits_cube(
-        type = "BDC",
+        source = "BDC",
         name = "cbers_022024_ndvi",
+        collection = "CB4_64_16D_STK-1",
         bands = c("NDVI", "EVI"),
         tiles = c("022024","022023"),
-        collection = "CB4_64_16D_STK-1",
         start_date = "2018-09-01",
         end_date = "2019-08-29"
       )
@@ -111,33 +111,31 @@ test_that("Creating cubes from DEA", {
   testthat::skip_if(nchar(aws_secret_access_key) == 0,
                     message = "No AWS_SECRET_ACCESS_KEY defined in environment.")
 
-  dea_cube <- sits_cube(type = "DEAFRICA",
+  dea_cube <- sits_cube(source = "DEAFRICA",
                         name = "deafrica_cube",
-                        collection = "ga_s2_gm",
-                        bands = c("B04", "B08"),
-                        roi = c("xmin" = 17.379,
+                        collection = "s2_l2a",
+                        bands = c("B01", "B04", "B05"),
+                        bbox = c("xmin" = 17.379,
                                 "ymin" = 1.1573,
                                 "xmax" = 17.410,
                                 "ymax" = 1.1910),
                         start_date = "2019-01-01",
                         end_date = "2019-10-28")
 
-  expect_true(all(sits_bands(dea_cube) %in% c("B04", "B08")))
+  expect_true(all(sits_bands(dea_cube) %in% c("B01", "B04", "B05")))
 
   file_info <- dea_cube$file_info[[1]]
   r <- terra::rast(file_info[1,]$path)
 
-  expect_equal(dea_cube$nrows, terra::nrow(r))
-  expect_equal(dea_cube$ncols, terra::ncol(r))
-  expect_equal(dea_cube$xmax[[1]], terra::xmax(r))
-  expect_equal(dea_cube$xmin[[1]], terra::xmin(r))
+  expect_equal(dea_cube$xmax[[1]], terra::xmax(r), tolerance = 1)
+  expect_equal(dea_cube$xmin[[1]], terra::xmin(r), tolerance = 1)
 })
 
 test_that("Merging cubes", {
 
     data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
     ndvi_cube <- sits_cube(
-        type = "STACK",
+        source = "LOCAL",
         name = "sinop-2014",
         satellite = "TERRA",
         sensor = "MODIS",
@@ -148,7 +146,7 @@ test_that("Merging cubes", {
     )
 
     evi_cube <- sits_cube(
-      type = "STACK",
+      source = "LOCAL",
       name = "sinop-2014",
       satellite = "TERRA",
       sensor = "MODIS",
@@ -164,7 +162,7 @@ test_that("Merging cubes", {
     expect_true(cube_merge$xmax == evi_cube$xmax)
 })
 
-test_that("Creating cubes from AWS", {
+test_that("Creating cubes from AWS and regularizing them", {
     testthat::skip_on_cran()
     # check "AWS_ACCESS_KEY_ID" - mandatory one per user
     aws_access_key_id <- Sys.getenv("AWS_ACCESS_KEY_ID")
@@ -181,10 +179,10 @@ test_that("Creating cubes from AWS", {
     Sys.unsetenv("AWS_ENDPOINT")
     Sys.unsetenv("AWS_REQUEST_PAYER")
 
-    s2_cube <- sits_cube(type = "S2_L2A_AWS",
+    s2_cube <- sits_cube(source = "AWS",
                          name = "T20LKP_2018_2019",
                          collection = "sentinel-s2-l2a",
-                         s2_resolution = "60m",
+                         s2_resolution = "60",
                          tiles = "20LKP",
                          bands = c("B08", "SCL"),
                          start_date = "2018-07-18",
@@ -204,14 +202,15 @@ test_that("Creating cubes from AWS", {
     path_images <-  paste0(tempdir(),"/images/")
     suppressWarnings(dir.create(path_images))
 
-    gc_cube <- sits_cube(type        = "GDALCUBES",
-                         uneven_cube = s2_cube,
-                         name        = "T20LKP_2018_2019_P5D",
-                         path_db     = paste0(tempdir(), "/cube.db"),
-                         path_images = path_images,
-                         period      = "P5D",
-                         agg_method  = "median",
-                         resampling  = "bilinear")
+    gc_cube <- sits_regularize(
+      cube = s2_cube,
+      name        = "T20LKP_2018_2019_P5D",
+      path_db     = paste0(tempdir(), "/cube.db"),
+      path_images = path_images,
+      period      = "P5D",
+      agg_method  = "median",
+      resampling  = "bilinear"
+    )
 
     expect_equal(s2_cube$nrows, gc_cube$nrows)
     expect_equal(s2_cube$ncols, gc_cube$ncols)
@@ -237,7 +236,7 @@ test_that("Creating cubes from classified images", {
 
     # create a raster cube file based on the information about the files
     probs_cube <- sits_cube(
-        type = "PROBS",
+        source = "PROBS",
         name = "Sinop-crop-probs",
         satellite = "TERRA",
         sensor  = "MODIS",
@@ -257,7 +256,7 @@ test_that("Cube copy", {
     data_dir <- system.file("extdata/raster/cbers", package = "sits")
 
     cbers_022024 <- sits_cube(
-        type = "STACK",
+        source = "LOCAL",
         name = "cbers_022024",
         satellite = "CBERS-4",
         sensor = "AWFI",
@@ -289,7 +288,7 @@ test_that("Creating a raster stack cube and renaming bands", {
 
     # create a raster cube file based on the information about the files
     cbers_cube2 <- sits_cube(
-        type = "STACK",
+        source = "LOCAL",
         name = "022024",
         satellite = "CBERS-4",
         sensor = "AWFI",
@@ -312,7 +311,7 @@ test_that("Creating a raster stack cube with BDC band names", {
 
   # create a raster cube file based on the information about the files
   cbers_cube_bdc <- sits_cube(
-    type = "STACK",
+    source = "LOCAL",
     name = "022024",
     satellite = "CBERS-4",
     sensor = "AWFI",

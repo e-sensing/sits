@@ -4,10 +4,10 @@
 \alias{.sits_config_aws_request_payer}
 \title{Read the AWS end point from configuration file}
 \usage{
-.sits_config_aws_request_payer(type)
+.sits_config_aws_request_payer(source)
 }
 \arguments{
-\item{type}{Type of data cube}
+\item{source}{Source of data cube}
 }
 \value{
 directory where BDC is accessible on the web

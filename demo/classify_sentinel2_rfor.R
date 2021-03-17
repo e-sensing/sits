@@ -1,38 +1,54 @@
 # This is a demonstration of classification of a Sentinel-2 image
-# tile T20LKP in Rondonia Brazil
-library(sits)
-library(ranger)
+# tile T20LKP in Rondonia Brazil from data on AWS
 
-if (!requireNamespace("inSitu", quietly = TRUE)) {
+# Users need to provide AWS credentials using environment variables.
+# Sys.setenv(
+#    "AWS_ACCESS_KEY_ID"     = <your_access_key>,
+#    "AWS_SECRET_ACCESS_KEY" = <your_secret_access_key>,
+#    "AWS_DEFAULT_REGION"    = <your AWS region>,
+#    "AWS_ENDPOINT" = "sentinel-s2-l2a.s3.amazonaws.com",
+#    "AWS_REQUEST_PAYER"     = "requester"
+# )
+
+# Sentinel-2/2A level 2A files in AWS are organized by sensor
+# resolution. The AWS bands in 10m resolution are "B02", "B03", "B04", and "B08".
+# The 20m bands are "B02", "B03", "B04", "B05", "B06", "BO7", B08", "B8A", "B11", and "B12".
+# All 12 bands are available at 60m resolution. For creating data cubes from
+# Sentinel-2/2A, users have to specify the `s2_resolution` parameter.
+
+library(sits)
+if (!requireNamespace("sitsdata", quietly = TRUE)) {
     if (!requireNamespace("devtools", quietly = TRUE)) {
           install.packages("devtools")
       }
-    devtools::install_github("e-sensing/inSitu")
+    devtools::install_github("e-sensing/sitsdata")
 }
-library(inSitu)
-# load the samples for the Sentinel data set
-data(samples_S2_T20LKP_2018_2019)
-# get the timeline
-timeline <- sits_timeline(samples_S2_T20LKP_2018_2019)
-start_date <- as.Date(timeline[1])
-end_date <- as.Date(timeline[length(timeline)])
-
-# get the files and the bands
-s2_dir <- system.file("extdata/Sentinel/T20LKP", package = "inSitu")
-s2_bricks <- list.files(s2_dir)
-s2_files <- paste0(s2_dir, "/", s2_bricks)
-s2_bands <- c("B03", "B04", "B08", "B11")
-
+library(sitsdata)
 # define the cube
-s2_cube <- sits_cube(
-    type = "BRICK",
-    name = "T20LKP",
-    satellite = "SENTINEL-2",
-    sensor = "MSI",
-    timeline = timeline,
-    bands = s2_bands,
-    files = s2_files
+s2_cube <- sits_cube(source = "AWS",
+                     name = "T20LKP_2018_2019",
+                     collection = "sentinel-s2-l2a",
+                     tiles = c("20LKP", "20LLP"),
+                     bands = c("B03", "B04", "B05", "B06", "B07", "B08", "B8A", "B11", "B12", "SCL"),
+                     start_date = as.Date("2018-07-12"),
+                     end_date = as.Date("2019-07-28"),
+                     s2_resolution = 60
 )
+dir.create(path = "~/sentinel2")
+dir.create(path = "~/sentinel2/images")
+s2_regular_cube <- sits_regularize(
+    cube = s2_cube,
+    name = "T20LKP_2018_2019_regular",
+    path_db = "~/sentinel2",
+    path_images = "~/sentinel2/images",
+    period = "P16D",
+    agg_method = "median",
+    cloud_mask = TRUE
+)
+
+csv_file <- system.file("/extdata/Sentinel-2/samples_amazonia_sentinel2.csv", package = "sitsdata")
+
+samples_S2_20LKP_20LLP_2018_2019 <- sits_get_data(s2_cube, file = csv_file)
 
 # plot the first date as a SWIR composite (B11, B08, B04)
 # map_1 <- plot(s2_cube, red = "B11", green = "B08", blue = "B04", time = 1)
@@ -43,11 +59,22 @@ s2_cube <- sits_cube(
 # train a random forest model
 samples_s2_3bands <- sits_select(samples_S2_T20LKP_2018_2019,
                                  bands = c("B03", "B08", "B11"))
-rfor_model <- sits_train(samples_s2_3bands, sits_rfor())
+
+# train the deep learning model
+dl_model <- sits_train(samples_s2_3bands,
+                       ml_method = sits_deeplearning(
+                           layers = c(512, 512, 512, 512, 512, 512),
+                           activation = "elu",
+                           dropout_rates = c(0.60, 0.55, 0.50, 0.45, 0.40, 0.35),
+                           epochs = 400,
+                           batch_size = 128,
+                           validation_split = 0.1
+                       )
+)
 
 # classify the cube using an rfor model
 s2_probs <- sits_classify(s2_cube,
-                          rfor_model,
+                          dl_model,
                           memsize = 24,
                           multicores = 4,
                           output_dir = tempdir()

@@ -4,13 +4,12 @@
 #'
 #' @description Print information and save metadata about a data cube.
 #'
-#' @param type               Type of cube
-#' @param URL                URL of the provider (optional)
+#' @param name               Name of the data cube (mandatory)
+#' @param source             Source of data
+#' @param collection         Image collection
 #' @param satellite          Name of satellite
 #' @param sensor             Name of sensor
-#' @param name               Name of the data cube (mandatory)
-#' @param cube               Name of the input data cube (optional)
-#' @param tile               Name of the input data tile (optional)
+#' @param tile               Tile of the image collection
 #' @param bands              Vector with the names of the bands.
 #' @param labels             Vector with labels (only for classified data).
 #' @param nrows              Number of rows in the cube.
@@ -26,12 +25,11 @@
 #'
 #' @return  A tibble containing a data cube
 #'
-.sits_cube_create <- function(type,
-                              URL = NA,
+.sits_cube_create <- function(name,
+                              source,
+                              collection = NA,
                               satellite,
                               sensor,
-                              name,
-                              cube = NA,
                               tile = NA,
                               bands,
                               labels = NA,
@@ -49,13 +47,12 @@
 
     # create a tibble to store the metadata (mandatory parameters)
     cube <- tibble::tibble(
-        type = type,
-        URL = URL,
+        name = name,
+        source = source,
+        collection = collection,
         satellite = satellite,
         sensor = sensor,
-        name = name,
-        cube = cube,
-        tile = tile,
+        tile  = tile,
         bands = list(bands),
         labels = list(labels),
         nrows = nrows,
@@ -132,10 +129,11 @@
 
     # set the metadata for the probability cube
     probs_cube <- .sits_cube_create(
-        type = "PROBS",
+        name = name,
+        source = "PROBS",
+        collection = NA,
         satellite = tile$satellite,
         sensor = tile$sensor,
-        name = name,
         bands = band,
         labels = labels,
         nrows = unname(sub_image["nrows"]),
@@ -246,7 +244,7 @@
         file_info$band <- newb
         file_info$path <- newp
 
-        file_info
+        return(file_info)
       })
 
     class(cube_clone) <- class(cube)

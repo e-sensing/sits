@@ -4,45 +4,45 @@
 #'
 #' @description Creates a tibble with metadata about a given cube.
 #'
-#' @param name       Name of the cube.
-.sits_satveg_cube <- function(name) {
+#' @param collection      SATVEG collection to be used.
+.sits_satveg_cube <- function(collection) {
+
+    assertthat::assert_that(collection %in% c("terra", "aqua", "comb"),
+                            msg = "invalid SATVEG collection")
     satellite <- "TERRA"
     sensor <- "MODIS"
     # get the bands
     bands <- .sits_config_satveg_bands()
 
-    # get the timeline
-    # timeline <- lubridate::as_date(.sits_satveg_timeline())
-
     # get the size of the cube
-    size <- .sits_config_satveg_size(name)
+    size <- .sits_config_satveg_size(collection)
     nrows <- as.integer(size["nrows"])
     ncols <- as.integer(size["ncols"])
 
     # get the bounding box of the cube
-    bbox <- .sits_config_satveg_bbox(name)
+    bbox <- .sits_config_satveg_bbox(collection)
     xmin <- as.numeric(bbox["xmin"])
     xmax <- as.numeric(bbox["xmax"])
     ymin <- as.numeric(bbox["ymin"])
     ymax <- as.numeric(bbox["ymax"])
 
+    # get the projection of the SATVEG data
+    crs <- .sits_config_satveg_projection(collection)
+
     # get the resolution of the product
     res <- .sits_config_resolution(sensor)
-    xres <- as.numeric(res["xres"])
-    yres <- as.numeric(res["yres"])
-
-    # get the projection of the SATVEG data
-    crs <- .sits_config_satveg_projection(name)
+    xres <- res["xres"]
+    yres <- res["yres"]
 
     URL <- .sits_config_satveg_access()
 
     # create a tibble to store the metadata
     cube_satveg <- .sits_cube_create(
-        type = "SATVEG",
-        URL = URL,
+        name = "satveg",
+        source = "SATVEG",
+        collection = collection,
         satellite = satellite,
         sensor = sensor,
-        name = name,
         bands = bands,
         nrows = nrows,
         ncols = ncols,
@@ -94,7 +94,7 @@
     )
 
     # retrieve the time series
-    ts <- .sits_ts_from_satveg(longitude, latitude, cube$name)
+    ts <- .sits_ts_from_satveg(longitude, latitude, cube$collection)
 
     # filter the dates
     if (!purrr::is_null(start_date) & !purrr::is_null(end_date)) {
@@ -134,7 +134,7 @@
 #'
 #' @param longitude       The longitude of the chosen location.
 #' @param latitude        The latitude of the chosen location.
-#' @param name            Name of the desired data cube in SATVEG
+#' @param collection      SATVEG Image Collection
 #' @return                A tibble containing a time series
 .sits_ts_from_satveg <- function(longitude, latitude, name) {
     # verifies if RCurl package is installed

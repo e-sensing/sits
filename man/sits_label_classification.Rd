@@ -48,7 +48,7 @@ rfor_model <- sits_train(samples_ndvi, sits_rfor(num_trees = 500))
 # create a data cube based on the information about the files
 data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
 cube <- sits_cube(
-    type = "STACK",
+    source = "LOCAL",
     name = "sinop_2014",
     satellite = "TERRA",
     sensor = "MODIS",

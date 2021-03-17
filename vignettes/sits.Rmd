@@ -123,18 +123,19 @@ the AWS cloud services. The geographical area of the data cube is defined by the
 
 Users can derive data cubes from ARD data which have pre-defined temporal 
 resolutions. For example, a user may want to define the best Sentinel-2 pixel in a
-one month period, as shown below. This can be done in **sits** using the "gdalcubes" package. 
+one month period, as shown below. This can be done in SITS by the
+`sits_regularize` which calls the "gdalcubes" package. 
 For details in gdalcubes, please see [https://github.com/appelmar/gdalcubes](https://github.com/appelmar/gdalcubes).
 
 ```{r, eval = FALSE, echo = TRUE}
-gc_cube <- sits_cube(type        = "GDALCUBES",
-                     name        = "T20LKP_2018_2019_1M",
-                     uneven_cube        = s2_cube,
-                     path_db     = "/my/path/cube.db",
-                     path_images = "/my/path/images/",
-                     period      = "P1M",
-                     agg_method  = "median",
-                     resampling  = "bilinear")
+gc_cube <- sits_regularize(cube        = s2_cube,
+                           name        = "T20LKP_2018_2019_1M",
+                           path_db     = "/my/path/cube.db",
+                           path_images = "/my/path/images/",
+                           period      = "P1M",
+                           agg_method  = "median",
+                           resampling  = "bilinear"
+)
 ```
 
 ## Defining a data cube using files
@@ -148,7 +149,7 @@ data_dir <- system.file("extdata/raster/cbers", package = "sits")
 # files are named using the convention: "CBERS-4_AWFI_B13_2018-02-02.tif".
 
 cbers_cube <- sits_cube(
-      type = "STACK",
+      source = "LOCAL",
       name = "022024",
       satellite = "CBERS-4",
       sensor = "AWFI",
@@ -191,7 +192,7 @@ To get a time series in **sits**, one has to first create a data cube first. Use
 library(sits)
 data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
 modis_cube <- sits_cube(
-    type = "STACK",
+    source = "LOCAL",
     name = "sinop-2014",
     satellite = "TERRA",
     sensor = "MODIS",
@@ -344,31 +345,42 @@ mato_grosso_2bands  <- sits_select(mato_grosso_samples, bands = c("NDVI", "EVI")
 # build a machine learning model for this area
 svm_model <- sits_train(mato_grosso_2bands, sits_svm())
 
-# select the bands "ndvi", "evi" from the "inSitu" package
-evi_file <- system.file("extdata/Sinop", "Sinop_evi_2014.tif", package = "inSitu")
-ndvi_file <- system.file("extdata/Sinop", "Sinop_ndvi_2014.tif", package = "inSitu")
+if (!requireNamespace("sitsdata", quietly = TRUE)) {
+    if (!requireNamespace("devtools", quietly = TRUE)) {
+          install.packages("devtools")
+      }
+    devtools::install_github("e-sensing/sitsdata")
+}
+library(sitsdata)
 
-files <- c(ndvi_file, evi_file)
-# define the timeline
-time_file <- system.file("extdata/Sinop", "timeline_2014.txt", package = "inSitu")
-timeline_2013_2014 <- scan(time_file, character())
+# select the samples and bands for classification
+data(br_mt_1_8K_9classes_6bands)
+samples_ndvi_evi <- sits_select(br_mt_1_8K_9classes_6bands, bands = c("EVI", "NDVI"))
 
-# create a raster metadata file based on the information about the files
-sinop <- sits_cube(type = "BRICK",
-                   satellite = "TERRA",
-                   sensor  = "MODIS",
-                   name = "Sinop",
-                   timeline = timeline_2013_2014,
-                   bands = c("NDVI", "EVI"),
-                   files = files)
+# build the classification model
+rfor_model <- sits_train(samples_ndvi_evi, ml_method = sits_rfor(num_trees = 2000))
 
-# Use the sinop raster cube created in the section 
+# create a data cube to be classified
+# Cube is composed of MOD13Q1 images from the Sinop region in Mato Grosso (Brazil)
+data_dir <- system.file("extdata/sinop", package = "sitsdata")
+sinop <- sits_cube(
+    source = "LOCAL",
+    name = "sinop-2014",
+    satellite = "TERRA",
+    sensor = "MODIS",
+    data_dir = data_dir,
+    delim = "_",
+    parse_info = c("X1", "X2", "band", "date")
+)
 # Classify the raster cube, generating a probability file
-probs <- sits_classify(sinop, ml_model = svm_model, 
-                            memsize = 16, multicores = 4)
+probs_cube <- sits_classify(sinop, ml_model = rfor_model)
 
-# label the classified image
-sinop_label <- sits_label_classification(sinop_bayes, output_dir = tempdir())
+# generate thematic map
+label_cube <- sits_label_classification(bayes_cube)
+
+# plot the first raster object with a selected color palette
+# make a title, define the colors and the labels)
+plot(label_cube)
 ```
 
 # Smoothing of raster data after classification
@@ -381,12 +393,12 @@ Doing post-processing using Bayesian smoothing in SITS is straightforward. The r
 
 ```{r, eval = FALSE}
 # smooth the result with a bayesian filter
-sinop_bayes <- sits_smooth(probs, output_dir = tempdir())
+sinop_bayes <- sits_smooth(probs_cube, output_dir = tempdir())
 # label the resulting image
 label_bayes <- sits_label_classification(sinop_bayes, output_dir = tempdir())
 
 # plot the image
-plot(label_bayes, time = 1, title = "Sinop-smooth")
+plot(label_bayes)
 ```
 
 ```{r, out.width = "90%", out.height = "90%", echo = FALSE, fig.align="center", fig.cap="Classified image post-processed with Bayesian smoothing. The image coordinates ({\\it meters}) shown at vertical and horizontal axis are in MODIS sinusoidal projection."}

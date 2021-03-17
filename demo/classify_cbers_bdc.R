@@ -5,35 +5,33 @@
 # with two bands (NDVI and EVI)
 library(sits)
 
-if (!requireNamespace("inSitu", quietly = TRUE)) {
-    if (!requireNamespace("devtools", quietly = TRUE)) {
-          install.packages("devtools")
-      }
-    devtools::install_github("e-sensing/inSitu")
+if (!requireNamespace("sitsdata", quietly = TRUE)) {
+  if (!requireNamespace("devtools", quietly = TRUE)) {
+    install.packages("devtools")
+  }
+  devtools::install_github("e-sensing/sitsdata")
 }
-# load the inSitu library
-library(inSitu)
+# load the sitsdata library
+library(sitsdata)
 # load the samples
 data("cbers_samples_022024")
-# obtain the timeline
-timeline <- sits_timeline(cbers_samples_022024)
-# get the start and end dates
-start_date <- as.Date(timeline[1])
-end_date <- as.Date(timeline[length(timeline)])
 # set up the bands
-cbers_samples_022024 <- sits_select(cbers_samples_022024,
-                                    bands = c("NDVI", "EVI"))
-bands <- sits_bands(cbers_samples_022024)
+bands <- c("NDVI", "EVI")
+# select only the samples for the chosen bands
+cbers_samples_2bands <- sits_select(cbers_samples_022024, bands = bands)
+
+# define the start and end dates for selection the images
+timeline_samples <- sits_timeline(cbers_samples_2bands)
+start_date <- timeline_samples[1]
+end_date <- timeline_samples[length(timeline_samples)]
 
 # define a CBERS data cube using the Brazil Data Cube
 cbers_cube <- sits_cube(
-    type = "BDC",
+    source = "BDC",
+    collection = "CB4_64_16D_STK-1",
     name = "cbers_022024",
-    satellite = "CBERS-4",
-    sensor = "AWFI",
     bands = bands,
     tiles = "022024",
-    collection = "CB4_64_16D_STK-1",
     start_date = start_date,
     end_date = end_date
 )
@@ -49,7 +47,7 @@ roi <- c(
 map1 <- plot(cbers_cube, red = "EVI", green = "NDVI", blue = "EVI", time = 23)
 
 # train an SVM model
-svm_model <- sits_train(cbers_samples_022024, sits_svm())
+svm_model <- sits_train(cbers_samples_2bands, sits_svm())
 
 # classify the data (remember to set the appropriate memory size)
 cbers_probs <- sits_classify(cbers_cube,

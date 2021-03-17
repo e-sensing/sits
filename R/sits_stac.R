@@ -128,6 +128,44 @@
 
     return(items_info)
 }
+#' @title Get bands names from items
+#' @name .sits_stac_bands
+#' @keywords internal
+#'
+#' @param items      a \code{STACItemCollection} object returned by rstac
+#' package.
+#' @param bands      a \code{character} vector with the bands name.
+#' @param source     Data source
+#'
+#' @return           a \code{STACItemCollection} object representing the search
+#'                   by rstac.
+.sits_stac_bands <- function(items, bands, source) {
+
+    sensor <- toupper(items$features[[1]]$properties$instruments)
+
+    # get bands from sensor
+    bands_sensor <- .sits_config_sensor_bands(sensor = sensor, source = source)
+
+    # get bands name from assets list name property
+    bands_product <- names(items$features[[1]]$assets)
+
+    # selects the subset of bands supported by sits
+    bands_product <- bands_product[bands_product %in% bands_sensor]
+
+    if (length(bands_product) == 0)
+        stop(paste("The bands contained in this product are not mapped",
+                   "in the SITS package, if you want to include them,",
+                   "please provide a configuration file."))
+
+    # store bands product in bands attribute
+    items$bands <- bands_product
+
+    # checks if the supplied bands match the product bands
+    if (!purrr::is_null(bands))
+        items$bands <- items$bands[items$bands %in% bands]
+
+    return(items)
+}
 #' @title Converts bands name to upper case
 #' @name .sits_stac_toupper
 #' @keywords internal
@@ -338,51 +376,45 @@
 #' @name .sits_stac_tile_cube
 #' @keywords internal
 #'
-#' @param url             a \code{character} representing URL for the BDC STAC.
-#' @param name            a \code{character} representing the output data cube.
-#' @param collection      a \code{STACCollection} object returned by rstac.
-#' @param items           a \code{STACItemCollection} object returned by rstac.
-#' @param cube            a \code{character} with name input data cube in BDC.
-#' @param file_info       a \code{tbl_df} with the information from STAC.
+#' @param name             Name of output data cube.
+#' @param collection       Name of image collection in  BDC.
+#' @param collection_info  STACCollection object returned by rstac.
+#' @param items            STACItemCollection object returned by rstac.
+#' @param file_info        Tibble with the information from STAC.
 #'
 #' @return                a \code{tibble} with metadata information about a
 #'  raster data set.
-.sits_stac_tile_cube <- function(url,
-                                 name,
+.sits_stac_tile_cube <- function(name,
                                  collection,
+                                 collection_info,
                                  items,
-                                 cube,
                                  file_info) {
 
-    # set the labels
-    labels <- c("NoClass")
-
     # obtain bbox extent
-    bbox <- .sits_stac_get_bbox(items, collection[["bdc:crs"]])
+    bbox <- .sits_stac_get_bbox(items, collection_info[["bdc:crs"]])
 
-    # get the bands
-    bands <- unique(file_info$band)
+    # add resolution to file_info
+    file_info <- dplyr::mutate(file_info, res = as.numeric(items$xres), .before = path)
 
     # create a tibble to store the metadata
-    tile <- .sits_cube_create(type      = "BDC",
-                              URL       = url,
-                              satellite = collection$properties$platform,
-                              sensor    = collection$properties$instruments,
-                              name      = name,
-                              cube      = cube,
-                              tile      = items$tile,
-                              bands     = collection$bands,
-                              labels    = labels,
-                              nrows     = items$nrows,
-                              ncols     = items$ncols,
-                              xmin      = bbox$xmin[[1]],
-                              xmax      = bbox$xmax[[1]],
-                              ymin      = bbox$ymin[[1]],
-                              ymax      = bbox$ymax[[1]],
-                              xres      = items$xres,
-                              yres      = items$yres,
-                              crs       = collection[["bdc:crs"]],
-                              file_info = file_info)
+    tile <- .sits_cube_create(
+        name       = name,
+        source     = "BDC",
+        collection = collection,
+        satellite  = collection_info$properties$platform,
+        sensor     = collection_info$properties$instruments,
+        tile       = items$tile,
+        bands      = collection_info$bands,
+        nrows      = items$nrows,
+        ncols      = items$ncols,
+        xmin       = bbox$xmin[[1]],
+        xmax       = bbox$xmax[[1]],
+        ymin       = bbox$ymin[[1]],
+        ymax       = bbox$ymax[[1]],
+        xres       = items$xres,
+        yres       = items$yres,
+        crs        = collection_info[["bdc:crs"]],
+        file_info  = file_info)
 
     tile <- .sits_config_bands_stac_write(tile)
 

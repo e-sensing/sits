@@ -4,10 +4,10 @@
 \alias{sits_cube.default}
 \title{Default methods for sits_cube}
 \usage{
-\method{sits_cube}{default}(type = NULL, ...)
+\method{sits_cube}{default}(source = NULL, ...)
 }
 \arguments{
-\item{type}{Type of cube}
+\item{source}{Source of data}
 
 \item{...}{Other parameters to be passed for specific types}
 }

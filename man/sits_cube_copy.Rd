@@ -28,14 +28,15 @@ an "sf" object, a box in XY coordinates ("xmin", "xmax", "ymin", "ymax") or
 a box in lat-long coordinates ("lon_min", "lon_max", "lat_min", "lat_max").
 }
 \examples{
+\donttest{
 data_dir <- system.file("extdata/raster/cbers", package = "sits")
 
 cbers_022024 <- sits_cube(
-    type = "STACK",
+    source = "LOCAL",
     name = "cbers_022024",
     satellite = "CBERS-4",
+    band = "NDVI",
     sensor = "AWFI",
-    resolution = "64m",
     data_dir = data_dir,
     parse_info = c("X1", "X2", "band", "date")
 )
@@ -44,4 +45,5 @@ cbers_022024_copy <- sits_cube_copy(cbers_022024,
     name = "cb_022024_cp",
     dest_dir = tempdir()
 )
+}
 }

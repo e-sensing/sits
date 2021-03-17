@@ -10,8 +10,8 @@ sits_ResNet(
   kernels = c(8, 5, 3),
   activation = "relu",
   optimizer = keras::optimizer_adam(lr = 0.001),
-  epochs = 150,
-  batch_size = 128,
+  epochs = 300,
+  batch_size = 64,
   validation_split = 0.2,
   verbose = 1
 )

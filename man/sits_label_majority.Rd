@@ -34,13 +34,10 @@ samples_ndvi <- sits_select(samples_mt_4bands, bands = "NDVI")
 rfor_model <- sits_train(samples_ndvi, sits_rfor(num_trees = 500))
 
 # Classify a raster file with 23 instances for one year
-files <- c(system.file("extdata/raster/mod13q1/sinop-crop-ndvi.tif",
-    package = "sits"
-))
-
+data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
 # create a data cube based on the information about the files
 cube <- sits_cube(
-    type = "STACK",
+    source = "LOCAL",
     name = "sinop-2014",
     satellite = "TERRA",
     sensor = "MODIS",

@@ -4,10 +4,10 @@
 \alias{.sits_config_test_file}
 \title{File to test access to cloud services}
 \usage{
-.sits_config_test_file(type)
+.sits_config_test_file(source)
 }
 \arguments{
-\item{type}{Data cube type}
+\item{source}{Data source}
 }
 \value{
 name of the bucket

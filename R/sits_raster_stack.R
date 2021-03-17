@@ -63,7 +63,7 @@
     colnames(img_files_tb) <- parse_info
 
     # get the information on the required bands, dates and path
-    info_tb <- img_files_tb %>%
+    file_info <- img_files_tb %>%
         # select the relevant parts
         dplyr::select(date, band) %>%
         # check the date format
@@ -76,32 +76,35 @@
         dplyr::distinct(band, date, .keep_all = TRUE)
 
     # extract the band names
-    bands_files <- dplyr::pull(dplyr::distinct(info_tb, band))
+    bands_files <- dplyr::pull(dplyr::distinct(file_info, band))
 
     # convert the names of the bands to those used by SITS
     bands_sits <- .sits_config_bands_convert(satellite, sensor, bands_files)
 
     # convert the band names to SITS bands
-    info_tb <- dplyr::mutate(info_tb, band = bands_sits[band])
+    file_info <- dplyr::mutate(file_info, band = bands_sits[band])
 
     # filter bands
     if (!purrr::is_null(bands)) {
         # get the bands of the cube
-        bands_info <- dplyr::pull(dplyr::distinct(info_tb, band))
+        bands_info <- dplyr::pull(dplyr::distinct(file_info, band))
         # verify that the requested bands exist
         assertthat::assert_that(all(bands %in% bands_info),
                     msg = "requested bands not available in cube")
         # select the requested bands
-        info_tb <- dplyr::filter(info_tb, band %in% bands)
+        file_info <- dplyr::filter(file_info, band %in% bands)
     }
     # filter start and end dates
-    if (!purrr::is_null(start_date) & !purrr::is_null(end_date)) {
-        info_tb <- dplyr::filter(info_tb,
+    if (!purrr::is_null(start_date) & !purrr::is_null(end_date))
+      file_info <- dplyr::filter(file_info,
                                  date >= start_date & date <= end_date)
 
-    }
+    res_xy <- .sits_config_resolution(sensor)
+    resolution <- unname(res_xy["xres"])
+    file_info <- dplyr::mutate(file_info,
+                    res = resolution, .before = path)
 
-    return(info_tb)
+    return(file_info)
 }
 #' @title Create a stack cube from a set of files
 #' @name .sits_raster_stack_cube
@@ -123,11 +126,10 @@
 
     # create a tibble to store the metadata
     stack_cube <- .sits_cube_create(
-        type = "STACK",
-        URL = NA,
+        name = name,
+        source = "LOCAL",
         satellite = satellite,
         sensor = sensor,
-        name = name,
         bands = bands,
         nrows = params$nrows,
         ncols = params$ncols,
