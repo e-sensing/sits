@@ -44,11 +44,19 @@ default:
         parse_info          : ["sat", "res", "X1", "X2", "X3", "tile", "date", "X4", "band"]
         delim               : ["_"]
         test_file           : "/vsicurl/http://brazildatacube.dpi.inpe.br/data/d006/Warped/CB4_64/v001/021024/2018-12-31/CB4_64_v001_021024_2018-12-31_BAND13.tif"
+        access_maxcores     : 4
 
     RASTER                  :
         data_dir_path       : ["."]
         parse_info          : ["band", "date"]
         delim               : ["_"]
+        access_maxcores     : 1
+
+    S2_L2A_AWS              :
+        access_maxcores     : 4
+
+    DEAFRICA:
+        access_maxcores     : 4
 
     # URL to access SATVEG
     SATVEG-EMBRAPA_server   : "https://www.satveg.cnptia.embrapa.br/satvegws/ws/perfil/ZW46IXzr4pRzJlX/"
@@ -101,6 +109,14 @@ default:
             RED             : 0.0001
             NIR             : 0.0001
             MIR             : 0.0001
+
+        resampling          : "bilinear"
+            NDVI            : "bilinear"
+            EVI             : "bilinear"
+            BLUE            : "bilinear"
+            RED             : "bilinear"
+            NIR             : "bilinear"
+            MIR             : "bilinear"
 
         resolution          :
             xres            : 0.00208334
@@ -161,6 +177,18 @@ default:
             B7              : 0.0001
             FMASK4          : 1
 
+        resampling:
+            NDVI            : "bilinear"
+            EVI             : "bilinear"
+            B1              : "bilinear"
+            B2              : "bilinear"
+            B3              : "bilinear"
+            B4              : "bilinear"
+            B5              : "bilinear"
+            B6              : "bilinear"
+            B7              : "bilinear"
+            FMASK4          : "ngb"
+
         resolution          :
             xres            : 30
             yres            : 30
@@ -211,6 +239,15 @@ default:
             B15             : 0.0001
             B16             : 0.0001
             CMASK           : 1
+
+        resampling:
+            NDVI            : "bilinear"
+            EVI             : "bilinear"
+            B13             : "bilinear"
+            B14             : "bilinear"
+            B15             : "bilinear"
+            B16             : "bilinear"
+            CMASK           : "ngb"
 
         resolution          :
             xres            : 64
@@ -335,6 +372,27 @@ default:
             B12             : 0.0001
             SCL             : 1
             FMASK4          : 1
+
+        resampling:
+            EVI             : "bilinear"
+            SAVI            : "bilinear"
+            NDVI            : "bilinear"
+            NDMI            : "bilinear"
+            B01             : "bilinear"
+            B02             : "bilinear"
+            B03             : "bilinear"
+            B04             : "bilinear"
+            B05             : "bilinear"
+            B06             : "bilinear"
+            B07             : "bilinear"
+            B08             : "bilinear"
+            B8A             : "bilinear"
+            B09             : "bilinear"
+            B10             : "bilinear"
+            B11             : "bilinear"
+            B12             : "bilinear"
+            SCL             : "ngb"
+            FMASK4          : "ngb"
 
         resolution          :
             xres            : 10
