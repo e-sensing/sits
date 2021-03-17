@@ -57,21 +57,28 @@
 
     # retrieve the samples
     samples <- environment(ml_model)$data
+
     # total number of instances
     n_instances <- length(sits_timeline(cube))
+
     # get the number of bands
     nbands <- length(sits_bands(samples))
+
     # does the cube have a cloud band?
     cube_bands <- sits_bands(cube)
     cld_band <- .sits_config_cloud_band(cube)
+
     # the cube has the cloud band, add one more band to the calculation
     if (cld_band %in% cube_bands) {
-          nbands <- nbands + 1
-      }
+        nbands <- nbands + 1
+    }
+
     # number of bytes per pixel
     nbytes <- 8
+
     # estimated memory bloat
     bloat <- as.numeric(.sits_config_memory_bloat())
+
     # estimated processing bloat
     proc_bloat <- as.numeric(.sits_config_processing_bloat())
 
@@ -92,6 +99,7 @@
 
     # number of labels
     n_labels <- length(sits_labels(samples)$label)
+
     # estimated size of the data for classification
     input_class_data_size <- as.numeric(n_instances) * nbands_data_size
     output_class_data_size <- as.numeric(n_labels) * single_data_size

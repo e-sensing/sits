@@ -279,9 +279,10 @@ sits_classify.raster_cube <- function(data, ml_model, ...,
                                                   end_date)
 
             # filter the cube by start and end dates
-            tile$file_info[[1]] <- dplyr::filter(tile$file_info[[1]],
-                                date >= new_timeline[1] &
-                                date <= new_timeline[length(new_timeline)]
+            tile$file_info[[1]] <- dplyr::filter(
+                tile$file_info[[1]],
+                date >= new_timeline[1] &
+                    date <= new_timeline[length(new_timeline)]
             )
         }
 
@@ -305,9 +306,11 @@ sits_classify.raster_cube <- function(data, ml_model, ...,
         n_samples <- length(sits_timeline(samples))
         n_tile <- length(sits_timeline(tile))
 
-        assertthat::assert_that(n_samples == n_tile,
-          msg = "sits_classify: number of instances of samples and cube differ")
-
+        assertthat::assert_that(
+            n_samples == n_tile,
+            msg = paste("sits_classify: number of instances of",
+                        "samples and cube differ")
+        )
 
         # classify the data
         probs_row <- .sits_classify_multicores(
@@ -323,8 +326,10 @@ sits_classify.raster_cube <- function(data, ml_model, ...,
             output_dir = output_dir,
             version    = version
         )
+
         return(probs_row)
     })
+
     probs_cube <- dplyr::bind_rows(probs_rows)
     class(probs_cube) <- c("probs_cube", "raster_cube", class(probs_cube))
     return(probs_cube)

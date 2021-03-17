@@ -41,13 +41,16 @@
 
     # retrieve the samples from the model
     samples <- environment(ml_model)$data
+
     # retrieve the labels
     labels <- sits_labels(samples)$label
 
     # precondition - are the samples empty?
-    assertthat::assert_that(nrow(samples) > 0,
-                            msg = "sits_classify: original samples not saved"
+    assertthat::assert_that(
+        nrow(samples) > 0,
+        msg = "sits_classify: original samples not saved"
     )
+
     # precondition - are the sample bands contained in the cube bands?
     tile_bands <- sits_bands(tile)
     bands <- sits_bands(samples)
@@ -81,6 +84,7 @@
         " blocks of size (", block_info$nrows[1],
         " x ", block_info$ncols[1]), ")"
     )
+
     # create the metadata for the probability cube
     probs_cube <- .sits_cube_probs(
         tile = tile,

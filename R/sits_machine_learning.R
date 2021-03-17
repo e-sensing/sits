@@ -40,18 +40,21 @@ sits_train <- function(data, ml_method = sits_svm()) {
     data <- .sits_tibble_rename(data)
 
     # is the input data a valid sits tibble?
-    assertthat::assert_that("label" %in% names(data),
-                            msg = "sits_train: input data does not contain a valid sits tibble"
+    assertthat::assert_that(
+        "label" %in% names(data),
+        msg = "sits_train: input data does not contain a valid sits tibble"
     )
 
     # is the train method a function?
-    assertthat::assert_that(class(ml_method) == "function",
-                            msg = "sits_train: ml_method is not a valid function"
+    assertthat::assert_that(
+        class(ml_method) == "function",
+        msg = "sits_train: ml_method is not a valid function"
     )
 
-    assertthat::assert_that(.sits_check_timeline(data) == TRUE,
-                            msg = paste0("Samples have different timeline lengths", "\n",
-                                         "Use sits_prune or sits_fix_timeline"))
+    assertthat::assert_that(
+        .sits_check_timeline(data) == TRUE,
+        msg = paste0("Samples have different timeline lengths", "\n",
+                     "Use sits_prune or sits_fix_timeline"))
 
     # compute the training method by the given data
     result <- ml_method(data)
@@ -114,8 +117,9 @@ sits_lda <- function(data = NULL, formula = sits_formula_logref(), ...) {
         train_data <- .sits_distances(.sits_normalize_data(data, stats))
 
         # is the input data the result of a TWDTW matching function?
-        assertthat::assert_that("reference" %in% names(train_data),
-                                msg = "sits_lda: input data does not contain distance"
+        assertthat::assert_that(
+            "reference" %in% names(train_data),
+            msg = "sits_lda: input data does not contain distance"
         )
 
         # if parameter formula is a function
@@ -363,14 +367,16 @@ sits_ranger <- function(data = NULL,
         valid_importance <- c("none", "impurity", "permutation")
 
         # is the input data consistent?
-        assertthat::assert_that(importance %in% valid_importance,
-                                msg = "sits_ranger: invalid variable importance value"
+        assertthat::assert_that(
+            importance %in% valid_importance,
+            msg = "sits_ranger: invalid variable importance value"
         )
 
         # get the labels of the data
         labels <- sits_labels(data)$label
-        assertthat::assert_that(length(labels) > 0,
-                                msg = "sits_ranger: invalid data - bad labels"
+        assertthat::assert_that(
+            length(labels) > 0,
+            msg = "sits_ranger: invalid data - bad labels"
         )
         n_labels <- length(labels)
 
@@ -670,18 +676,21 @@ sits_xgboost <- function(data = NULL,
                          nrounds = 100,
                          early_stopping_rounds = 20,
                          verbose = TRUE) {
+
     # verifies if xgboost package is installed
     if (!requireNamespace("xgboost", quietly = TRUE)) {
         stop("xgboost required for this function to work.
              Please install it.", call. = FALSE)
     }
+
     # function that returns xgb model
     result_fun <- function(data) {
 
         # get the labels of the data
         labels <- sits_labels(data)$label
-        assertthat::assert_that(length(labels) > 0,
-                                msg = "sits_rfor: invalid data - bad labels"
+        assertthat::assert_that(
+            length(labels) > 0,
+            msg = "sits_rfor: invalid data - bad labels"
         )
         n_labels <- length(labels)
 
@@ -787,8 +796,9 @@ sits_formula_logref <- function(predictors_index = -2:0) {
     # 'factor(reference~log(f1)+log(f2)+...+log(fn)' where f1, f2, ..., fn are
     # the predictor fields given by the predictor index.
     result_fun <- function(tb) {
-        assertthat::assert_that(NROW(tb) > 0,
-                                msg = "sits_formula_logref - invalid data"
+        assertthat::assert_that(
+            NROW(tb) > 0,
+            msg = "sits_formula_logref - invalid data"
         )
         n_rows_tb <- NROW(tb)
 
@@ -837,8 +847,9 @@ sits_formula_linear <- function(predictors_index = -2:0) {
     # 'factor(reference~log(f1)+log(f2)+...+log(fn)' where f1, f2, ..., fn are
     #  the predictor fields.
     result_fun <- function(tb) {
-        assertthat::assert_that(NROW(tb) > 0,
-                                msg = "sits_formula_logref - invalid data"
+        assertthat::assert_that(
+            NROW(tb) > 0,
+            msg = "sits_formula_logref - invalid data"
         )
         n_rows_tb <- NROW(tb)
         # if no predictors_index are given, assume that all fields are used
@@ -884,15 +895,15 @@ sits_formula_linear <- function(predictors_index = -2:0) {
     bands <- sits_bands(data)
 
     # check that input bands are included in the statistics already calculated
-    assertthat::assert_that(all(sort(bands) == sort(colnames(stats[, -1]))),
-                            msg = paste0(
-                                "sits_normalize: data bands (",
-                                paste(bands, collapse = ", "),
-                                ") do not match model bands (",
-                                paste(colnames(stats[, -1]),
-                                      collapse = ", "
-                                ), ")"
-                            )
+    assertthat::assert_that(
+        all(sort(bands) == sort(colnames(stats[, -1]))),
+        msg = paste0("sits_normalize: data bands (",
+                     paste(bands, collapse = ", "),
+                     ") do not match model bands (",
+                     paste(colnames(stats[, -1]),
+                           collapse = ", "
+                     ), ")"
+        )
     )
 
     # extract the values of the time series to a list of tibbles
