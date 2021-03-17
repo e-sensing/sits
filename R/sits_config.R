@@ -974,6 +974,13 @@ sits_config_show <- function() {
 .sits_config_test_file <- function(type) {
   return(sits_env$config[[type]][["test_file"]])
 }
-
-
-
+#' @title Number of parallel data access
+#' @name .sits_config_download_maxcores
+#' @keywords internal
+#' @param  type    Data cube type
+#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
+#'
+#' @return name of the bucket
+.sits_config_access_maxcores <- function(source) {
+  return(sits_env$config[[source]][["access_maxcores"]])
+}
