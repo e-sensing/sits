@@ -6,9 +6,9 @@ message("comb combines data from TERRA and AQUA satellites")
 message("the bands available are ndvi and evi")
 
 # create three data cubes
-cube_terra <- sits_cube(type = "SATVEG", name = "terra")
-cube_aqua <- sits_cube(type = "SATVEG", name = "aqua")
-cube_comb <- sits_cube(type = "SATVEG", name = "comb")
+cube_terra <- sits_cube(source = "SATVEG", collection = "terra")
+cube_aqua <- sits_cube(source = "SATVEG", collection = "aqua")
+cube_comb <- sits_cube(source = "SATVEG", collection = "comb")
 
 # retrieve the same point from three different data cubes
 point_terra.tb <- sits_get_data(cube_terra, longitude = -55.50563, latitude = -11.71557)

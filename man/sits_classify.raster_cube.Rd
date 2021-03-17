@@ -76,7 +76,7 @@ Takes a data cube, whose metadata is
 # create a data cube based on files
 data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
 cube <- sits_cube(
-    type = "STACK",
+    source = "LOCAL",
     name = "sinop-2014",
     satellite = "TERRA",
     sensor = "MODIS",

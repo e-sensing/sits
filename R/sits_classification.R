@@ -42,7 +42,7 @@ sits_classify <- function(data, ml_model, ...) {
     # is the data a sits tibble? If not, it must be a cube
     if (!("sits" %in% class(data))) {
         # find out the generic cube class it belongs to
-        class_data <- .sits_config_cube_class(data[1, ]$type)
+        class_data <- .sits_config_cube_class(data[1, ]$source)
         class(data) <- c(class_data, class(data))
     }
 
@@ -212,7 +212,7 @@ sits_classify.sits <- function(data, ml_model, ...,
 #' # create a data cube based on files
 #' data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
 #' cube <- sits_cube(
-#'     type = "STACK",
+#'     source = "LOCAL",
 #'     name = "sinop-2014",
 #'     satellite = "TERRA",
 #'     sensor = "MODIS",

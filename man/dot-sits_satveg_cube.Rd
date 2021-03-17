@@ -4,10 +4,10 @@
 \alias{.sits_satveg_cube}
 \title{Provides information about one cube of the SATVEG time series service}
 \usage{
-.sits_satveg_cube(name)
+.sits_satveg_cube(collection)
 }
 \arguments{
-\item{name}{Name of the cube.}
+\item{collection}{SATVEG collection to be used.}
 }
 \description{
 Creates a tibble with metadata about a given cube.

@@ -21,11 +21,8 @@
     UseMethod(".sits_roi_bbox", roi)
 }
 #' @title Find the bounding box for a spatial ROI defined as an sf object
-#' @name .sits_roi_bbox.sf
+#' @rdname .sits_roi_bbox
 #' @keywords internal
-#' @param  roi             spatial region of interest
-#' @param  cube            input data cube.
-#' @return                 vector with information on the subimage
 #' @export
 .sits_roi_bbox.sf <- function(roi, cube) {
     bbox <- roi %>%
@@ -36,21 +33,15 @@
     return(bbox)
 }
 #' @title Find the bounding box for a spatial ROI defined as a bounding box
-#' @name .sits_roi_bbox.xy
+#' @rdname .sits_roi_bbox
 #' @keywords internal
-#' @param  cube            input data cube.
-#' @param  roi             spatial region of interest
-#' @return                 vector with information on the subimage
 #' @export
 .sits_roi_bbox.xy <- function(roi, cube) {
     return(roi)
 }
 #' @title Find the bounding box for a spatial ROI defined as a lat/lon box
-#' @name .sits_roi_bbox.ll
+#' @rdname .sits_roi_bbox
 #' @keywords internal
-#' @param  cube            input data cube.
-#' @param  roi             spatial region of interest
-#' @return                 vector with information on the subimage
 #' @export
 .sits_roi_bbox.ll <- function(roi, cube) {
     # region of interest defined by two points

@@ -1,32 +1,27 @@
 # This is a demonstration of classification of using
-# stack data (images organised by tiles)
+# local data (images organised by tiles)
 # The input is a CBERS-4 data set covering an area in the Cerrado
 # of the state of Bahia (Brazil)
 # with two bands (NDVI and EVI)
 library(sits)
-if (!requireNamespace("inSitu", quietly = TRUE)) {
+if (!requireNamespace("sitsdata", quietly = TRUE)) {
     if (!requireNamespace("devtools", quietly = TRUE)) {
           install.packages("devtools")
       }
-    devtools::install_github("e-sensing/inSitu")
+    devtools::install_github("e-sensing/sitsdata")
 }
-# load the inSitu library
-library(inSitu)
+# load the sitsdata library
+library(sitsdata)
 # load the samples
 data("cbers_samples_022024")
-# obtain the timeline
-timeline <- sits_timeline(cbers_samples_022024)
-# get the start and end dates
-start_date <- as.Date(timeline[1])
-end_date <- as.Date(timeline[length(timeline)])
 # set up the bands
 bands <- c("NDVI", "EVI")
 # define the local directory to load the images
-local_dir <- system.file("extdata/CBERS/CB4_64_16D_STK/022024", package = "inSitu")
+local_dir <- system.file("extdata/CBERS", package = "sitsdata")
 
 # define the local CBERS data cube
 cbers_cube <- sits_cube(
-    type = "STACK",
+    source = "LOCAL",
     name = "cbers_022024",
     satellite = "CBERS-4",
     sensor = "AWFI",

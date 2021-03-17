@@ -76,8 +76,8 @@
     proc_bloat <- as.numeric(.sits_config_processing_bloat())
 
     # number of rows and cols
-    nrows <- as.numeric(sub_image["nrows"])
-    ncols <- as.numeric(sub_image["ncols"])
+    nrows <- as.integer(sub_image["nrows"])
+    ncols <- as.integer(sub_image["ncols"])
     # single instance size
     single_data_size <- nrows * ncols * nbytes
 
@@ -93,8 +93,8 @@
     # number of labels
     n_labels <- length(sits_labels(samples)$label)
     # estimated size of the data for classification
-    input_class_data_size <- as.numeric(n_instances) * nbands_data_size
-    output_class_data_size <- as.numeric(n_labels) * single_data_size
+    input_class_data_size <- as.integer(n_instances) * nbands_data_size
+    output_class_data_size <- as.integer(n_labels) * single_data_size
     class_data_size <- input_class_data_size + output_class_data_size
 
     # memory required for processing depends on the model
@@ -105,7 +105,7 @@
     }
     else {
         # test two different cases
-        mem_required_processing <- as.numeric(multicores) *
+        mem_required_processing <- as.integer(multicores) *
                   (class_data_size + as.numeric(.sits_mem_used()))
     }
 

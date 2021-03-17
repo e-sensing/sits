@@ -35,6 +35,8 @@
 #'         (x - min(x)) / (max(x) - min(x))
 #'     }
 #' )
+#'
+#'
 #' @export
 sits_apply <- function(data,
                        fun,

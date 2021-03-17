@@ -12,7 +12,7 @@ test_that("One-year, single core classification", {
 
     data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
     sinop <- sits_cube(
-        type = "STACK",
+        source = "LOCAL",
         name = "sinop-2014",
         satellite = "TERRA",
         sensor = "MODIS",
@@ -50,7 +50,7 @@ test_that("One-year, multicore classification", {
 
     data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
     sinop <- sits_cube(
-        type = "STACK",
+        source = "LOCAL",
         name = "sinop-2014",
         satellite = "TERRA",
         sensor = "MODIS",
@@ -88,7 +88,7 @@ test_that("One-year, single core classification with filter", {
 
     data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
     sinop <- sits_cube(
-        type = "STACK",
+        source = "LOCAL",
         name = "sinop-2014",
         satellite = "TERRA",
         sensor = "MODIS",
@@ -119,7 +119,7 @@ test_that("One-year, multicore classification with filter", {
 
     data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
     sinop <- sits_cube(
-        type = "STACK",
+        source = "LOCAL",
         name = "sinop-2014",
         satellite = "TERRA",
         sensor = "MODIS",
@@ -161,7 +161,7 @@ test_that("One-year, multicore classification with post-processing", {
 
     data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
     sinop <- sits_cube(
-        type = "STACK",
+        source = "LOCAL",
         name = "sinop-2014",
         satellite = "TERRA",
         sensor = "MODIS",

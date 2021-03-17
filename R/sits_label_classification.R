@@ -28,7 +28,7 @@
 #' # create a data cube based on the information about the files
 #' data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
 #' cube <- sits_cube(
-#'     type = "STACK",
+#'     source = "LOCAL",
 #'     name = "sinop_2014",
 #'     satellite = "TERRA",
 #'     sensor = "MODIS",
@@ -121,13 +121,10 @@ sits_label_classification <- function(cube,
 #' rfor_model <- sits_train(samples_ndvi, sits_rfor(num_trees = 500))
 #'
 #' # Classify a raster file with 23 instances for one year
-#' files <- c(system.file("extdata/raster/mod13q1/sinop-crop-ndvi.tif",
-#'     package = "sits"
-#' ))
-#'
+#' data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
 #' # create a data cube based on the information about the files
 #' cube <- sits_cube(
-#'     type = "STACK",
+#'     source = "LOCAL",
 #'     name = "sinop-2014",
 #'     satellite = "TERRA",
 #'     sensor = "MODIS",
@@ -268,10 +265,10 @@ sits_label_majority <- function(cube,
 
         # create a new RasterLayer for a defined period and generate metadata
         label_row <- .sits_cube_create(
-            type = "CLASSIFIED",
+            name    = name,
+            source = "CLASSIFIED",
             satellite = probs_row$satellite,
             sensor    = probs_row$sensor,
-            name   = name,
             bands  = band,
             labels = labels,
             nrows = probs_row$nrows,

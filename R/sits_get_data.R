@@ -2,7 +2,9 @@
 #' @name sits_get_data
 #' @author Gilberto Camara
 #'
-#' @description Retrieve a set of time series and puts it in a "sits tibble".
+#' @description Retrieve a set of time series from a data cube or from
+#' a time series service. Data cubes
+#'  and puts it in a "sits tibble".
 #' Sits tibbles are the main structures of sits package.
 #' They contain both the satellite image time series and their metadata.
 #' A sits tibble is a tibble with pre-defined columns that
@@ -10,7 +12,7 @@
 #' <longitude, latitude, start_date, end_date, label, cube, time_series>.
 #' There are many ways of retrieving time series:
 #' \itemize{
-#' \item{SATVEG: }{Retrieve data from SATVEG service using a lat/long point
+#' \item{SATVEG:}{Retrieve data from SATVEG service using a lat/long point
 #'  (see S3 method for class 'satveg_cube'),
 #'  a CSV file (see S3 method for class 'csv_satveg_cube')
 #'  or a SHP file (see S3 method for class 'shp_satveg_cube')}
@@ -60,7 +62,7 @@
 #' @examples
 #' \dontrun{
 #' # -- Extracting data from SATVEG service
-#' cube_terra <- sits_cube(type = "SATVEG", name = "terra")
+#' cube_terra <- sits_cube(source = "SATVEG", collection = "terra")
 #' point_terra <- sits_get_data(cube_terra,
 #'     longitude = -55.50563, latitude = -11.71557
 #' )
@@ -72,7 +74,7 @@
 #' # Create a data cube based on files
 #' data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
 #' raster_cube <- sits_cube(
-#'     type = "STACK",
+#'     source = "LOCAL",
 #'     name = "sinop-2014",
 #'     satellite = "TERRA",
 #'     sensor = "MODIS",

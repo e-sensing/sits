@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.14159265-2.6-1.40.21 (TeX Live 2020) (preloaded format=pdflatex 2020.7.30)  8 MAR 2021 10:41
+This is pdfTeX, Version 3.14159265-2.6-1.40.21 (TeX Live 2020) (preloaded format=pdflatex 2020.7.30)  15 MAR 2021 06:19
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
@@ -874,77 +874,77 @@ Package microtype Info: Loading generic protrusion settings for font family
 (microtype)             For optimal results, create family-specific settings.
 (microtype)             See the microtype manual for details.
 LaTeX Font Info:    Font shape `OT1/mdput/m/n' will be
-(Font)              scaled to size 6.58002pt on input line 455.
+(Font)              scaled to size 6.58002pt on input line 456.
 LaTeX Font Info:    Font shape `OT1/mdput/m/n' will be
-(Font)              scaled to size 4.70001pt on input line 455.
+(Font)              scaled to size 4.70001pt on input line 456.
 LaTeX Font Info:    Trying to load font information for OML+mdput on input line
- 455.
+ 456.
 (/usr/local/texlive/2020/texmf-dist/tex/latex/mathdesign/mdput/omlmdput.fd
 File: omlmdput.fd 2013/08/29 Fontinst v1.933 font definitions for OML/mdput.
 )
 LaTeX Font Info:    Font shape `OML/mdput/m/it' will be
-(Font)              scaled to size 9.40002pt on input line 455.
+(Font)              scaled to size 9.40002pt on input line 456.
 LaTeX Font Info:    Font shape `OML/mdput/m/it' will be
-(Font)              scaled to size 6.58002pt on input line 455.
+(Font)              scaled to size 6.58002pt on input line 456.
 LaTeX Font Info:    Font shape `OML/mdput/m/it' will be
-(Font)              scaled to size 4.70001pt on input line 455.
+(Font)              scaled to size 4.70001pt on input line 456.
 LaTeX Font Info:    Trying to load font information for OMS+mdput on input line
- 455.
+ 456.
 (/usr/local/texlive/2020/texmf-dist/tex/latex/mathdesign/mdput/omsmdput.fd
 File: omsmdput.fd 2013/08/29 Fontinst v1.933 font definitions for OMS/mdput.
 )
 LaTeX Font Info:    Font shape `OMS/mdput/m/n' will be
-(Font)              scaled to size 9.40002pt on input line 455.
+(Font)              scaled to size 9.40002pt on input line 456.
 LaTeX Font Info:    Font shape `OMS/mdput/m/n' will be
-(Font)              scaled to size 6.58002pt on input line 455.
+(Font)              scaled to size 6.58002pt on input line 456.
 LaTeX Font Info:    Font shape `OMS/mdput/m/n' will be
-(Font)              scaled to size 4.70001pt on input line 455.
+(Font)              scaled to size 4.70001pt on input line 456.
 LaTeX Font Info:    Trying to load font information for OMX+mdput on input line
- 455.
+ 456.
 (/usr/local/texlive/2020/texmf-dist/tex/latex/mathdesign/mdput/omxmdput.fd
 File: omxmdput.fd 2013/08/29 Fontinst v1.933 font definitions for OMX/mdput.
 )
 LaTeX Font Info:    Font shape `OMX/mdput/m/n' will be
-(Font)              scaled to size 9.40002pt on input line 455.
+(Font)              scaled to size 9.40002pt on input line 456.
 LaTeX Font Info:    Font shape `OMX/mdput/m/n' will be
-(Font)              scaled to size 6.58002pt on input line 455.
+(Font)              scaled to size 6.58002pt on input line 456.
 LaTeX Font Info:    Font shape `OMX/mdput/m/n' will be
-(Font)              scaled to size 4.70001pt on input line 455.
+(Font)              scaled to size 4.70001pt on input line 456.
 LaTeX Font Info:    Font shape `OML/mdput/m/n' will be
-(Font)              scaled to size 9.40002pt on input line 455.
+(Font)              scaled to size 9.40002pt on input line 456.
 LaTeX Font Info:    Font shape `OML/mdput/m/n' will be
-(Font)              scaled to size 6.58002pt on input line 455.
+(Font)              scaled to size 6.58002pt on input line 456.
 LaTeX Font Info:    Font shape `OML/mdput/m/n' will be
-(Font)              scaled to size 4.70001pt on input line 455.
+(Font)              scaled to size 4.70001pt on input line 456.
 LaTeX Font Info:    Trying to load font information for MDA+mdput on input line
- 455.
+ 456.
 (/usr/local/texlive/2020/texmf-dist/tex/latex/mathdesign/mdput/mdamdput.fd
 File: mdamdput.fd 2013/08/29 Fontinst v1.933 font definitions for MDA/mdput.
 )
 LaTeX Font Info:    Font shape `MDA/mdput/m/n' will be
-(Font)              scaled to size 9.40002pt on input line 455.
+(Font)              scaled to size 9.40002pt on input line 456.
 LaTeX Font Info:    Font shape `MDA/mdput/m/n' will be
-(Font)              scaled to size 6.58002pt on input line 455.
+(Font)              scaled to size 6.58002pt on input line 456.
 LaTeX Font Info:    Font shape `MDA/mdput/m/n' will be
-(Font)              scaled to size 4.70001pt on input line 455.
+(Font)              scaled to size 4.70001pt on input line 456.
 LaTeX Font Info:    Trying to load font information for MDB+mdput on input line
- 455.
+ 456.
 (/usr/local/texlive/2020/texmf-dist/tex/latex/mathdesign/mdput/mdbmdput.fd
 File: mdbmdput.fd 2013/08/29 Fontinst v1.933 font definitions for MDB/mdput.
 )
 LaTeX Font Info:    Font shape `MDB/mdput/m/n' will be
-(Font)              scaled to size 9.40002pt on input line 455.
+(Font)              scaled to size 9.40002pt on input line 456.
 LaTeX Font Info:    Font shape `MDB/mdput/m/n' will be
-(Font)              scaled to size 6.58002pt on input line 455.
+(Font)              scaled to size 6.58002pt on input line 456.
 LaTeX Font Info:    Font shape `MDB/mdput/m/n' will be
-(Font)              scaled to size 4.70001pt on input line 455.
+(Font)              scaled to size 4.70001pt on input line 456.
 [3]
 
 LaTeX Font Warning: Font shape `T1/zi4/m/it' undefined
-(Font)              using `T1/zi4/m/n' instead on input line 487.
+(Font)              using `T1/zi4/m/n' instead on input line 488.
 
 LaTeX Font Info:    Font shape `T1/zi4/m/it' will be
-(Font)              scaled to size 10.0pt on input line 490.
+(Font)              scaled to size 10.0pt on input line 491.
 [4] [5]
 </Users/gilbertocamara/sits/vignettes/sits_files/figure-latex/unnamed-chunk-7-1
 .pdf, id=170, 453.695pt x 313.17pt>
@@ -953,22 +953,22 @@ k-7-1.pdf Graphic file (type pdf)
 <use /Users/gilbertocamara/sits/vignettes/sits_files/figure-latex/unnamed-chunk
 -7-1.pdf>
 Package pdftex.def Info: /Users/gilbertocamara/sits/vignettes/sits_files/figure
--latex/unnamed-chunk-7-1.pdf  used on input line 657.
+-latex/unnamed-chunk-7-1.pdf  used on input line 658.
 (pdftex.def)             Requested size: 398.33902pt x 274.95966pt.
 
-Overfull \hbox (15.00043pt too wide) in paragraph at lines 657--658
+Overfull \hbox (15.00043pt too wide) in paragraph at lines 658--659
 [][] 
  []
 
 [6]
 LaTeX Font Info:    Trying to load font information for TS1+erewhon-TLF on inpu
-t line 670.
+t line 671.
 (/usr/local/texlive/2020/texmf-dist/tex/latex/erewhon/TS1erewhon-TLF.fd
 File: TS1erewhon-TLF.fd 2014/09/11 (autoinst) Font definitions for TS1/erewhon-
 TLF.
 )
 LaTeX Font Info:    Font shape `TS1/erewhon-TLF/m/n' will be
-(Font)              scaled to size 10.0pt on input line 670.
+(Font)              scaled to size 10.0pt on input line 671.
 Package microtype Info: Loading generic protrusion settings for font family
 (microtype)             `erewhon-TLF' (encoding: TS1).
 (microtype)             For optimal results, create family-specific settings.
@@ -982,7 +982,7 @@ k-8-1.pdf Graphic file (type pdf)
 <use /Users/gilbertocamara/sits/vignettes/sits_files/figure-latex/unnamed-chunk
 -8-1.pdf>
 Package pdftex.def Info: /Users/gilbertocamara/sits/vignettes/sits_files/figure
--latex/unnamed-chunk-8-1.pdf  used on input line 711.
+-latex/unnamed-chunk-8-1.pdf  used on input line 712.
 (pdftex.def)             Requested size: 345.2944pt x 212.7977pt.
 [8 </Users/gilbertocamara/sits/vignettes/sits_files/figure-latex/unnamed-chunk-
 8-1.pdf>] [9]
@@ -993,39 +993,39 @@ k-9-1.pdf Graphic file (type pdf)
 <use /Users/gilbertocamara/sits/vignettes/sits_files/figure-latex/unnamed-chunk
 -9-1.pdf>
 Package pdftex.def Info: /Users/gilbertocamara/sits/vignettes/sits_files/figure
--latex/unnamed-chunk-9-1.pdf  used on input line 842.
+-latex/unnamed-chunk-9-1.pdf  used on input line 843.
 (pdftex.def)             Requested size: 387.44655pt x 230.86192pt.
 [10 </Users/gilbertocamara/sits/vignettes/sits_files/figure-latex/unnamed-chunk
 -9-1.pdf>]
 
-Package hyperref Warning: Suppressing link with empty target on input line 883.
+Package hyperref Warning: Suppressing link with empty target on input line 884.
 
 
 [11] [12]
 LaTeX Font Info:    Font shape `T1/zi4/b/n' will be
-(Font)              scaled to size 10.0pt on input line 1033.
+(Font)              scaled to size 10.0pt on input line 1034.
 [13]
 </Users/gilbertocamara/sits/inst/extdata/markdown/figures/sinop_bayes.png, id=2
-95, 702.625pt x 433.62pt>
+94, 702.625pt x 433.62pt>
 File: /Users/gilbertocamara/sits/inst/extdata/markdown/figures/sinop_bayes.png 
 Graphic file (type png)
 <use /Users/gilbertocamara/sits/inst/extdata/markdown/figures/sinop_bayes.png>
 Package pdftex.def Info: /Users/gilbertocamara/sits/inst/extdata/markdown/figur
-es/sinop_bayes.png  used on input line 1130.
+es/sinop_bayes.png  used on input line 1142.
 (pdftex.def)             Requested size: 358.51627pt x 221.25575pt.
 [14]
 
 Package hyperref Warning: Difference (2) between bookmark levels is greater 
-(hyperref)                than one, level fixed on input line 1163.
+(hyperref)                than one, level fixed on input line 1175.
 
 [15 </Users/gilbertocamara/sits/inst/extdata/markdown/figures/sinop_bayes.png>]
 [16] (./sits.bbl [17])
-Package atveryend Info: Empty hook `BeforeClearDocument' on input line 1218.
+Package atveryend Info: Empty hook `BeforeClearDocument' on input line 1230.
 [18]
-Package atveryend Info: Empty hook `AfterLastShipout' on input line 1218.
+Package atveryend Info: Empty hook `AfterLastShipout' on input line 1230.
 (./sits.aux)
-Package atveryend Info: Executing hook `AtVeryEndDocument' on input line 1218.
-Package atveryend Info: Executing hook `AtEndAfterFileList' on input line 1218.
+Package atveryend Info: Executing hook `AtVeryEndDocument' on input line 1230.
+Package atveryend Info: Executing hook `AtEndAfterFileList' on input line 1230.
 
 Package rerunfilecheck Info: File `sits.out' has not changed.
 (rerunfilecheck)             Checksum: 65A79F2A4C1C681A10C62884448F783E;4166.
@@ -1057,7 +1057,7 @@ y.pfb></usr/local/texlive/2020/texmf-dist/fonts/type1/public/mathdesign/mdput/m
 d-utri7m.pfb></usr/local/texlive/2020/texmf-dist/fonts/type1/adobe/utopia/putr8
 a.pfb></usr/local/texlive/2020/texmf-dist/fonts/type1/adobe/utopia/putri8a.pfb>
 </usr/local/texlive/2020/texmf-dist/fonts/type1/urw/helvetic/uhvb8a.pfb>
-Output written on sits.pdf (18 pages, 277426 bytes).
+Output written on sits.pdf (18 pages, 278101 bytes).
 PDF statistics:
  412 PDF objects out of 1000 (max. 8388607)
  366 compressed objects within 4 object streams

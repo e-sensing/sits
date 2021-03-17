@@ -3,21 +3,21 @@ test_that("conf_matrix -2 classes", {
     data(cerrado_2classes)
     train_data <- sits_sample(cerrado_2classes, n = 100)
     test_data <- sits_sample(cerrado_2classes, n = 25)
-    rfor_model <- sits_train(train_data, sits_rfor(num_trees = 100))
-    points_class <- sits_classify(test_data, rfor_model)
+    xgb_model <- sits_train(train_data, sits_xgboost(verbose = FALSE))
+    points_class <- sits_classify(test_data, xgb_model)
     invisible(capture.output(conf_mx <- sits_conf_matrix(points_class)))
-    expect_true(conf_mx$overall["Accuracy"] > 0.90)
-    expect_true(conf_mx$overall["Kappa"] > 0.80)
+    expect_true(conf_mx$overall["Accuracy"] > 0.70)
+    expect_true(conf_mx$overall["Kappa"] > 0.70)
 })
 test_that("conf_matrix - more than 2 classes", {
     data(samples_mt_4bands)
     train_data <- sits_sample(samples_mt_4bands, n = 25)
     test_data <- sits_sample(samples_mt_4bands, n = 25)
-    rfor_model <- sits_train(train_data, sits_rfor(num_trees = 100))
-    points_class <- sits_classify(test_data, rfor_model)
+    xgb_model <- sits_train(train_data, sits_xgboost(verbose = FALSE))
+    points_class <- sits_classify(test_data, xgb_model)
     invisible(capture.output(conf_mx <- sits_conf_matrix(points_class)))
-    expect_true(conf_mx$overall["Accuracy"] > 0.85)
-    expect_true(conf_mx$overall["Kappa"] > 0.80)
+    expect_true(conf_mx$overall["Accuracy"] > 0.70)
+    expect_true(conf_mx$overall["Kappa"] > 0.70)
 })
 test_that("XLS", {
     data(cerrado_2classes)
@@ -66,7 +66,7 @@ test_that("Accuracy areas", {
 
     data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
     cube <- sits_cube(
-        type = "STACK",
+        source = "LOCAL",
         name = "sinop-2014",
         satellite = "TERRA",
         sensor = "MODIS",
@@ -101,6 +101,6 @@ test_that("Accuracy areas", {
         sits_accuracy(label_cube, ground_truth)))
         )
 
-    expect_true(as.numeric(as$accuracy$user["Forest"]) > 0.8)
-    expect_true(as.numeric(as$accuracy$producer["Pasture"]) > 0.5)
+    expect_true(as.numeric(as$area_pixels["Forest"]) > as$area_pixels["Pasture"])
+    expect_true(as.numeric(as$accuracy$overall) > 0.75)
 })

@@ -5,12 +5,11 @@
 \title{Creates the description of a data cube}
 \usage{
 .sits_cube_create(
-  type,
-  URL = NA,
+  name,
+  source,
+  collection = NA,
   satellite,
   sensor,
-  name,
-  cube = NA,
   tile = NA,
   bands,
   labels = NA,
@@ -27,19 +26,17 @@
 )
 }
 \arguments{
-\item{type}{Type of cube}
+\item{name}{Name of the data cube (mandatory)}
 
-\item{URL}{URL of the provider (optional)}
+\item{source}{Source of data}
+
+\item{collection}{Image collection}
 
 \item{satellite}{Name of satellite}
 
 \item{sensor}{Name of sensor}
 
-\item{name}{Name of the data cube (mandatory)}
-
-\item{cube}{Name of the input data cube (optional)}
-
-\item{tile}{Name of the input data tile (optional)}
+\item{tile}{Tile of the image collection}
 
 \item{bands}{Vector with the names of the bands.}
 

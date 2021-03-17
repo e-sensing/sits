@@ -4,10 +4,10 @@
 \alias{.sits_aws_check_access}
 \title{Check access rights on AWS}
 \usage{
-.sits_aws_check_access(type)
+.sits_aws_check_access(source)
 }
 \arguments{
-\item{type}{cube type}
+\item{source}{data source}
 }
 \value{
 TRUE if access is granted

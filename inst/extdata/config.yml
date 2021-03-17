@@ -8,8 +8,8 @@ default:
     rstac_pagination_limit   : 1000
 
     # Data cube types known to sits
-    cube_types              : ["WTSS", "SATVEG", "STACK", "RASTER", "BDC", "DEAFRICA", "S2_L2A_AWS", "GDALCUBES", "PROBS", "CLASSIFIED"]
-    cube_classes            : ["wtss_cube", "satveg_cube", "stack_cube", "raster_cube", "bdc_cube", "deafrica_cube", "s2_l2a_aws_cube", "gdalcubes_cube",  "probs_cube", "classified_image"]
+    data_sources            : ["WTSS", "SATVEG", "LOCAL", "RASTER", "BDC", "DEAFRICA", "AWS", "PROBS", "CLASSIFIED"]
+    cube_classes            : ["wtss_cube", "satveg_cube", "local_cube", "raster_cube", "bdc_cube", "deafrica_cube", "aws_cube",  "probs_cube", "classified_image"]
 
     # Image file extensions known to SITS
     img_file_extensions     : ["tiff", "tif", "jp2", "hdf", "vrt"]
@@ -27,28 +27,20 @@ default:
 
     # AWS configuration
     AWS_DEFAULT_REGION      :
-        S2_L2A_AWS          : &s2_l2a_region "eu-central-1"
-        DEAFRICA            : *s2_l2a_region
+        AWS                 : "eu-central-1"
+        DEAFRICA            : "af-south-1"
+        USGS                : "us-west-2"
 
     AWS_ENDPOINT            :
-        S2_L2A_AWS          : &s2_l2a_endpoint "sentinel-s2-l2a.s3.amazonaws.com"
-        DEAFRICA            : *s2_l2a_endpoint
+        AWS                 : "sentinel-s2-l2a.s3.amazonaws.com"
+        DEAFRICA            : "sentinel-s2-l2a-cogs.s3.amazonaws.com"
+        USGS                : "usgs-landsat.s3.amazonaws.com"
 
     AWS_REQUEST_PAYER       :
-        S2_L2A_AWS          : &s2_l2a_payer "requester"
-        DEAFRICA            : *s2_l2a_payer
+        AWS                 : "requester"
+        DEAFRICA            : "requester"
+        USGS                : "requester"
 
-    # information to parse repositories
-    BDC                     :
-        data_dir_path       : ["cube", "version", "tile"]
-        parse_info          : ["sat", "res", "X1", "X2", "X3", "tile", "date", "X4", "band"]
-        delim               : ["_"]
-        test_file           : "/vsicurl/http://brazildatacube.dpi.inpe.br/data/d006/Warped/CB4_64/v001/021024/2018-12-31/CB4_64_v001_021024_2018-12-31_BAND13.tif"
-
-    RASTER                  :
-        data_dir_path       : ["."]
-        parse_info          : ["band", "date"]
-        delim               : ["_"]
 
     # URL to access SATVEG
     SATVEG-EMBRAPA_server   : "https://www.satveg.cnptia.embrapa.br/satvegws/ws/perfil/ZW46IXzr4pRzJlX/"
@@ -103,14 +95,15 @@ default:
             MIR             : 0.0001
 
         resolution          :
-            xres            : 0.00208334
-            yres            : 0.00208334
+            xres            : 250
+            yres            : 250
 
     OLI                     : &landsat
         bands               :
             SITS            : &oli_bands_sits ["B1", "B2", "B3", "B4", "B5", "B6", "B7", "NDVI", "EVI", "FMASK4"]
             BDC             : ["BAND1", "BAND2", "BAND3", "BAND4", "BAND5", "BAND6", "BAND7", "NDVI", "EVI", "FMASK4"]
-            RASTER          : *oli_bands_sits
+            USGS            : ["SR_B1", "SR_B2", "SR_B3", "SR_B4", "SR_B5", "SR_B6", "SR_B7", "NDVI", "EVI", "FMASK4"]
+            LOCAL           : *oli_bands_sits
             cloud_band      : "FMASK4"
 
         missing_value       :
@@ -173,7 +166,7 @@ default:
         bands               :
             SITS            : &awfi_bands_sits ["B13", "B14", "B15", "B16", "NDVI", "EVI", "CMASK"]
             BDC             : ["BAND13", "BAND14", "BAND15", "BAND16", "NDVI", "EVI", "CMASK"]
-            RASTER          : *awfi_bands_sits
+            LOCAL           : *awfi_bands_sits
             cloud_band      : "CMASK"
 
         missing_value       :
@@ -223,11 +216,10 @@ default:
     MSI                     :
         bands               :
             SITS            : &msi_bands_sits ["B01", "B02", "B03", "B04", "B05", "B06", "B07", "B08", "B8A", "B09", "B10", "B11", "B12", "SCL"]
-            S2_L2_AWS       : &msi_bands_aws ["B01", "B02", "B03", "B04", "B05", "B06", "B07", "B08", "B8A", "B09", "B10", "B11", "B12", "SCL"]
+            AWS             : *msi_bands_sits
             BDC             : ["band1", "band2", "band3", "band4", "band5", "band6", "band7", "band8", "band8a", "band9", "band10", "band11", "band12", "Fmask4"]
-            RASTER          : *msi_bands_sits
-            AWS             : *msi_bands_aws
-            DEAFRICA        : *msi_bands_aws
+            LOCAL           : *msi_bands_sits
+            DEAFRICA        : *msi_bands_sits
             cloud_band      : "SCL"
 
         SCL_values          :
@@ -336,19 +328,16 @@ default:
             SCL             : 1
             FMASK4          : 1
 
-        resolution          :
-            xres            : 10
-            yres            : 10
+        resolutions         : [10, 20, 60]
+        bands_10m           : ["B02", "B03", "B04", "B08"]
+        bands_20m           : ["B02", "B03", "B04", "B05", "B06", "B07", "B08", "B8A", "B11", "B12", "SCL"]
+        bands_60m           : ["B01", "B02", "B03", "B04", "B05", "B06", "B07", "B08", "B8A", "B09", "B10", "B11", "B12", "SCL"]
 
-    S2_L2A_AWS              : &sentinel
-        bucket              : "sentinel-s2-l2a"
-        resolutions         : ["10m", "20m", "60m"]
-        10m_bands           : ["B02", "B03", "B04", "B08"]
-        20m_bands           : ["B02", "B03", "B04", "B05", "B06", "BO7", "B08", "B8A", "B11", "B12", "SCL"]
-        60m_bands           : ["B01", "B02", "B03", "B04", "B05", "B06", "BO7", "B08", "B8A", "B09", "B10", "B11", "B12", "SCL"]
-        test_file           : "/vsis3/sentinel-s2-l2a/tiles/20/L/KP/2018/8/17/0/R20m/B02.jp2"
-        parse_info          : ["X1", "X2", "X3", "X4", "X5", "X6", "X7", "X8", "X9", "X10"]
-        delim               : ["/"]
+
+    DEAFRICA                :
+        MSI                 :
+            bands           : ["B01", "B02", "B03", "B04", "B05", "B06", "BO7", "B08", "B8A", "B09", "B10", "B11", "B12", "SCL"]
+            resolution      : [60, 10, 10, 10, 20, 20, 20, 10, 20, 60, 60, 20, 20, 20 ]
 
     CLOUD                   :
         BDC                 :
@@ -360,7 +349,7 @@ default:
             OLI_cld_vls     : [2, 3, 4, 255]
 
 
-        S2_L2A_AWS          :
+        AWS                 :
             MSI_CLD_BAND    : "SCL"
             MSI_cld_vls     : [0, 1, 2, 3, 7, 8, 9, 10, 11]
 
@@ -368,7 +357,7 @@ default:
             MSI_CLD_BAND    : "SCL"
             MSI_cld_vls     : [0, 1, 2, 3, 7, 8, 9, 10, 11]
 
-        RASTER              : &raster_clouds
+        LOCAL               : &raster_clouds
             AWFI_CLD_BAND   : "CMASK"
             AWFI_cld_vls    : 4
 
@@ -377,10 +366,6 @@ default:
 
             MODIS_CLD_BAND  : "pixel reliability"
             MODIS_cld_vls   : [2,3]
-
-        BRICK               : *raster_clouds
-
-        STACK               : *raster_clouds
 
     SATVEG_bands            :
         terra               : &bands-sv ["NDVI", "EVI"]

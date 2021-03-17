@@ -15,7 +15,6 @@ sits_timeline <- function(data) {
 #'
 #' @title Obtains the timeline for a set of time series
 #' @rdname sits_timeline
-#' @param  data     A sits tibble
 #' @export
 sits_timeline.sits <- function(data) {
     timeline <- NULL
@@ -54,7 +53,7 @@ sits_timeline.satveg_cube <- function(data) {
   # retrieve the time series
   ts <- .sits_ts_from_satveg(longitude = -55.50563,
                              latitude = -11.71557,
-                             data$name)
+                             data$collection)
 
   # return the timeline of the cube
   return(as.Date(ts$Index))
@@ -66,28 +65,28 @@ sits_timeline.satveg_cube <- function(data) {
 #' @export
 sits_timeline.probs_cube <- function(data) {
 
-  assertthat::assert_that(nrow(data) == 1,
+    assertthat::assert_that(nrow(data) == 1,
                           msg = "sits_timeline requires a single cube tile")
 
-  # return the timeline of the cube
-  start_date <- lubridate::as_date(data$file_info[[1]]$start_date)
-  end_date <- lubridate::as_date(data$file_info[[1]]$end_date)
-  timeline <- c(start_date, end_date)
-  return(timeline)
+    # return the timeline of the cube
+    start_date <- lubridate::as_date(data$file_info[[1]]$start_date)
+    end_date <- lubridate::as_date(data$file_info[[1]]$end_date)
+    timeline <- c(start_date, end_date)
+    return(timeline)
 }
 #' @title Obtains the timeline for a classified data cube
 #' @rdname sits_timeline
 #' @export
 sits_timeline.classified_image <- function(data) {
 
-  assertthat::assert_that(nrow(data) == 1,
+    assertthat::assert_that(nrow(data) == 1,
                           msg = "sits_timeline requires a single cube tile")
 
-  # return the timeline of the cube
-  start_date <- lubridate::as_date(data$file_info[[1]]$start_date)
-  end_date <- lubridate::as_date(data$file_info[[1]]$end_date)
-  timeline <- c(start_date, end_date)
-  return(timeline)
+    # return the timeline of the cube
+    start_date <- lubridate::as_date(data$file_info[[1]]$start_date)
+    end_date <- lubridate::as_date(data$file_info[[1]]$end_date)
+    timeline <- c(start_date, end_date)
+    return(timeline)
 }
 #' @title Check cube timeline against requested start and end dates
 #' @name .sits_timeline_check_cube
