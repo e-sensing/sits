@@ -2,29 +2,27 @@
 #' @name .sits_gc_compose
 #' @keywords internal
 #'
-#' @param cube        Data cube from where data is to be retrieved.
+#' @param c_tile        Tile from data cube from where data is to be retrieved.
 #' @param name        Name of the new data cube
 #' @param img_col     A \code{object} 'image_collection' containing information
 #'  about the images metadata.
 #' @param cv_list     A \code{list} 'cube_view' with values from cube.
 #' @param cloud_mask  A \code{logical} corresponds to the use of the cloud band
 #'  for aggregation.
-#' @param path_db     A \code{character} with the path and name where the
-#'  database will be create. E.g. "my/path/gdalcubes.db"
-#' @param path_images A \code{character} with the path where the aggregated
-#'  images will be writed.
+#' @param db_file     Database to be created by gdalcubes
+#' @param dir_images  Directory where the aggregated images will be written.
 #' @param cloud_mask  A \code{logical} corresponds to the use of the cloud band
 #'  for aggregation.
 #' @param ...         Additional parameters that can be included. See
 #'  '?gdalcubes::write_tif'.
 #' @param version     A \code{character} with version of the output files.
 #'
-#' @return  A data cube with information used in its creation.
-.sits_gc_compose <- function(cube, name, cv_list, img_col, path_db, path_images,
+#' @return  A data cube tile with information used in its creation.
+.sits_gc_compose <- function(c_tile, name, cv_list, img_col, db_file, dir_images,
                              cloud_mask, ..., version = "v1") {
 
     # verifies the path to save the images
-    assertthat::assert_that(dir.exists(path_images),
+    assertthat::assert_that(dir.exists(dir_images),
                             msg = paste("The provided dir does not exist.",
                                         "Please provided a valid path.")
 
@@ -32,54 +30,49 @@
 
     # create a clone cube
     cube_gc <- .sits_cube_clone(
-        cube = cube,
+        cube = c_tile,
         name = name,
         ext = "",
-        output_dir = path_images,
+        output_dir = dir_images,
         version = version)
 
     # delete file info column
     cube_gc$file_info <- NULL
 
     # create file info column
-    file_info <- tibble::tibble(res  = numeric(),
-                                band = character(),
+    file_info <- tibble::tibble(band = character(),
                                 date = lubridate::as_date(""),
+                                res  = numeric(),
                                 path = character())
     # add file info and path db columns
-    cube_gc <- tibble::add_column(cube_gc, file_info = list(file_info),
-                                  cube_database = path_db)
+    cube_gc <- tibble::add_column(cube_gc, file_info = list(file_info))
 
-    for (i in seq_len(nrow(cube_gc))) {
-        c_tile <- cube_gc[i,]
+    for (band in c_tile$bands[[1]]) {
+        # create a raster_cube object from gdalcubes
+        cube_brick <- .sits_gc_brick(c_tile, img_col, cv_list, cloud_mask)
 
-        for (band in c_tile$bands[[1]]) {
-            # create a raster_cube object from gdalcubes
-            cube_brick <-
-                .sits_gc_brick(cube, img_col, cv_list[[i]], cloud_mask)
+        message(paste("Writing images of band", band, "of tile",
+                      c_tile$tile))
 
-            message(paste("Writing images of band", band, "of tile",
-                          c_tile$tile))
+        # write the aggregated cubes
+        path_write <- gdalcubes::write_tif(
+            gdalcubes::select_bands(cube_brick, band),
+            dir = dir_images,
+            prefix = paste("cube", c_tile$tile, band, "", sep = "_"),
+            write_json_descr = TRUE, ...)
 
-            # write the aggregated cubes
-            path_write <- gdalcubes::write_tif(
-                gdalcubes::select_bands(cube_brick, band),
-                dir = path_images,
-                prefix = paste("cube", c_tile$tile, band, "", sep = "_"),
-                write_json_descr = TRUE, ...)
+        # retrieving image date
+        images_date <- .sits_gc_date(path_write)
+        res <- dplyr::filter(c_tile$file_info[[1]], band == band)$res[[1]]
 
-            # retrieving image date
-            images_date <- .sits_gc_date(path_write)
-            res <- dplyr::filter(cube[i,]$file_info[[1]], band == band)$res[[1]]
-
-            # set file info values
-            cube_gc[i,]$file_info[[1]] <- tibble::add_row(
-                cube_gc[i,]$file_info[[1]],
-                path = path_write,
-                date = images_date,
-                band = rep(band, length(path_write)),
-                res  = rep(res, length(path_write)))
-        }
+        # set file info values
+        cube_gc$file_info[[1]] <- tibble::add_row(
+            cube_gc$file_info[[1]],
+            band = rep(band, length(path_write)),
+            date = images_date,
+            res  = rep(res, length(path_write)),
+            path = path_write
+        )
     }
 
     return(cube_gc)
@@ -202,8 +195,7 @@
 #' @name .sits_gc_cube
 #' @keywords internal
 #'
-#' @param path_db    A \code{character} with the path and name where the
-#'  database will be create. E.g. "my/path/gdalcubes.db"
+#' @param c_tile       A tile of a data cube
 #' @param period     A \code{character} with the The period of time in which it
 #'  is desired to apply in the cube, must be provided based on ISO8601, where 1
 #'  number and a unit are provided, for example "P16D".
@@ -216,7 +208,7 @@
 #'  (see https://gdal.org/programs/gdalwarp.html).
 #'
 #' @return a \code{list} with a cube_view objects.
-.sits_gc_cube <- function(cube, period, method, resampling) {
+.sits_gc_cube <- function(c_tile, period, method, resampling) {
 
     assertthat::assert_that(!purrr::is_null(period),
                             msg = paste("sits_gdalcubes: the parameter",
@@ -227,8 +219,7 @@
                                         "'method' must be provided."))
 
     # create a list of cube view
-    cv_list <- slider::slide(cube, function(c_tile) {
-        gdalcubes::cube_view(
+    cv_list <- gdalcubes::cube_view(
             extent = list(left   = c_tile$xmin,
                           right  = c_tile$xmax,
                           bottom = c_tile$ymin,
@@ -242,7 +233,8 @@
             nx  = c_tile$ncols[[1]],
             ny  = c_tile$nrows[[1]],
             aggregation = method,
-            resampling  = resampling)})
+            resampling  = resampling
+    )
 
     return(cv_list)
 }

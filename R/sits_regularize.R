@@ -25,24 +25,22 @@
 #' # create a directory to store the resulting images
 #' dir.create(paste0(tempdir(),"/images/"))
 #'
-#'  #' # Build a data cube of equal intervals using the "gdalcubes" package
+#'  # Build a data cube of equal intervals using the "gdalcubes" package
 #' gc_cube <- sits_regularize(cube   = s2_cube,
 #'                      name          = "T20LKP_2018_2019_1M",
-#'                      path_db       = paste0(tempdir(),"/cube.db"),
-#'                      path_images   = paste0(tempdir(),"/images/"),
+#'                      dir_images   = paste0(tempdir(),"/images/"),
 #'                      period        = "P1M",
 #'                      agg_method    = "median",
 #'                      resampling    = "bilinear",
 #'                      cloud_mask    = TRUE)
 #' }
+#' }
 #'
 #' @param cube              A cube whose spacing of observation times is not constant
 #'                          and will be regularized by the "gdalcubes" packges
 #' @param name              Name of the output data cube
-#' @param path_images       Directory where the regularized images will be
+#' @param dir_images        Directory where the regularized images will be
 #'                          written by \code{gdalcubes}.
-#' @param path_db           Path and name where the \code{gdalcubes}
-#'                          database will be create. E.g. "my/path/gdalcubes.db"
 #' @param period            ISO8601 time period for regular data cubes
 #'                          produced by \code{gdalcubes},
 #'                          with number and unit, e.g., "P16D" for 16 days.
@@ -59,8 +57,7 @@
 #' @export
 sits_regularize <- function(cube,
                             name,
-                            path_images,
-                            path_db = NULL,
+                            dir_images,
                             period  = NULL,
                             agg_method = NULL,
                             resampling = "bilinear",
@@ -80,18 +77,26 @@ sits_regularize <- function(cube,
     )
 
     # in case of null path a temporary directory is generated
-    if (is.null(path_db))
-        path_db <- file.path(tempdir(), "cube.db")
 
-    # create an image collection
-    img_col <- .sits_gc_database(cube, path_db)
 
-    # create a list of cube view object
-    cv_list <- .sits_gc_cube(cube, period, agg_method, resampling)
+    gc_tile_list <- slider::slide(cube, function(tile){
+        db_file <- tempfile(pattern = tile$tile, fileext = ".db")
+        # create an image collection
+        img_col <- .sits_gc_database(tile, db_file)
 
-    # create of the aggregate cubes
-    gc_cube <- .sits_gc_compose(cube, name, cv_list, img_col,
-                                path_db, path_images, cloud_mask)
+        # create a list of cube view object
+        cv_list <- .sits_gc_cube(tile, period, agg_method, resampling)
+
+        # create of the aggregate cubes
+        gc_tile <- .sits_gc_compose(c_tile = tile, name = name, cv_list = cv_list,
+                                    img_col = img_col,
+                                    db_file = db_file,
+                                    dir_images = dir_images,
+                                    cloud_mask = cloud_mask)
+        return(gc_tile)
+
+    })
+    gc_cube <- dplyr::bind_rows(gc_tile_list)
 
     class(gc_cube) <- c("raster_cube", class(gc_cube))
 
