@@ -4,6 +4,7 @@
 #' @param  cube            input data cube.
 #' @param  roi             spatial region of interest
 #' @return                 vector with information on the subimage
+#' @export
 .sits_roi_bbox <- function(roi, cube) {
 
     if (!("sf" %in% class(roi))) {

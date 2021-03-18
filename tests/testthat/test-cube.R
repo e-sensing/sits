@@ -182,11 +182,11 @@ test_that("Creating cubes from AWS and regularizing them", {
     s2_cube <- sits_cube(source = "AWS",
                          name = "T20LKP_2018_2019",
                          collection = "sentinel-s2-l2a",
-                         s2_resolution = "60",
-                         tiles = "20LKP",
+                         s2_resolution = 60,
+                         tiles = c("20LKP","20LLP"),
                          bands = c("B08", "SCL"),
                          start_date = "2018-07-18",
-                         end_date = "2018-07-23"
+                         end_date = "2018-07-30"
     )
 
     expect_true(all(sits_bands(s2_cube) %in% c("B08", "SCL")))
@@ -199,14 +199,14 @@ test_that("Creating cubes from AWS and regularizing them", {
     expect_equal(s2_cube$xmax, terra::xmax(r))
     expect_equal(s2_cube$xmin, terra::xmin(r))
 
-    path_images <-  paste0(tempdir(),"/images/")
-    suppressWarnings(dir.create(path_images))
+    dir_images <-  paste0(tempdir(),"/images/")
+    if (!dir.exists(dir_images))
+        suppressWarnings(dir.create(dir_images))
 
     gc_cube <- sits_regularize(
-      cube = s2_cube,
+      cube        = s2_cube,
       name        = "T20LKP_2018_2019_P5D",
-      path_db     = paste0(tempdir(), "/cube.db"),
-      path_images = path_images,
+      dir_images  =  dir_images,
       period      = "P5D",
       agg_method  = "median",
       resampling  = "bilinear"

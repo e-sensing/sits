@@ -5,19 +5,19 @@
 \title{Save the images based on an aggregation method.}
 \usage{
 .sits_gc_compose(
-  cube,
+  c_tile,
   name,
   cv_list,
   img_col,
-  path_db,
-  path_images,
+  db_file,
+  dir_images,
   cloud_mask,
   ...,
   version = "v1"
 )
 }
 \arguments{
-\item{cube}{Data cube from where data is to be retrieved.}
+\item{c_tile}{Tile from data cube from where data is to be retrieved.}
 
 \item{name}{Name of the new data cube}
 
@@ -26,11 +26,9 @@
 \item{img_col}{A \code{object} 'image_collection' containing information
 about the images metadata.}
 
-\item{path_db}{A \code{character} with the path and name where the
-database will be create. E.g. "my/path/gdalcubes.db"}
+\item{db_file}{Database to be created by gdalcubes}
 
-\item{path_images}{A \code{character} with the path where the aggregated
-images will be writed.}
+\item{dir_images}{Directory where the aggregated images will be written.}
 
 \item{cloud_mask}{A \code{logical} corresponds to the use of the cloud band
 for aggregation.}
@@ -41,7 +39,7 @@ for aggregation.}
 \item{version}{A \code{character} with version of the output files.}
 }
 \value{
-A data cube with information used in its creation.
+A data cube tile with information used in its creation.
 }
 \description{
 Save the images based on an aggregation method.

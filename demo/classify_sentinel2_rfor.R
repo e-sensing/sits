@@ -29,18 +29,15 @@ s2_cube <- sits_cube(source = "AWS",
                      name = "T20LKP_2018_2019",
                      collection = "sentinel-s2-l2a",
                      tiles = c("20LKP", "20LLP"),
-                     bands = c("B03", "B04", "B05", "B06", "B07", "B08", "B8A", "B11", "B12", "SCL"),
+                     bands = c("B04", "B08", "B11", "SCL"),
                      start_date = as.Date("2018-07-12"),
-                     end_date = as.Date("2019-07-28"),
+                     end_date = as.Date("2018-09-30"),
                      s2_resolution = 60
 )
-dir.create(path = "~/sentinel2")
-dir.create(path = "~/sentinel2/images")
 s2_regular_cube <- sits_regularize(
     cube = s2_cube,
     name = "T20LKP_2018_2019_regular",
-    path_db = "~/sentinel2",
-    path_images = "~/sentinel2/images",
+    dir_images = "~/sentinel2/images",
     period = "P16D",
     agg_method = "median",
     cloud_mask = TRUE

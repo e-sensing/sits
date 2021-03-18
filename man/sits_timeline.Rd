@@ -22,7 +22,7 @@ sits_timeline(data)
 \method{sits_timeline}{classified_image}(data)
 }
 \arguments{
-\item{data}{A sits tibble}
+\item{data}{either a sits tibble or data cube}
 }
 \description{
 This function returns the timeline for a given data set, either

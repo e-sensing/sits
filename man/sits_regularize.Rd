@@ -7,8 +7,7 @@
 sits_regularize(
   cube,
   name,
-  path_images,
-  path_db = NULL,
+  dir_images,
   period = NULL,
   agg_method = NULL,
   resampling = "bilinear",
@@ -21,11 +20,8 @@ and will be regularized by the "gdalcubes" packges}
 
 \item{name}{Name of the output data cube}
 
-\item{path_images}{Directory where the regularized images will be
+\item{dir_images}{Directory where the regularized images will be
 written by \code{gdalcubes}.}
-
-\item{path_db}{Path and name where the \code{gdalcubes}
-database will be create. E.g. "my/path/gdalcubes.db"}
 
 \item{period}{ISO8601 time period for regular data cubes
 produced by \code{gdalcubes},
@@ -49,6 +45,35 @@ Creates cubes with regular time intervals
  using the gdalcubes package. Cubes are composed using "min", "max", "mean",
 "median" or "first" functions. Users need to provide an
  time interval which is used by the composition function.
+}
+\examples{
+{
+\donttest{
+# define an AWS data cube
+  s2_cube <- sits_cube(source = "AWS",
+                      name = "T20LKP_2018_2019",
+                      collection = "sentinel-s2-l2a",
+                      bands = c("B08", "SCL"),
+                      tiles = c("20LKP"),
+                      start_date = as.Date("2018-07-18"),
+                      end_date = as.Date("2018-08-18"),
+                      s2_resolution = 60
+)
+
+# create a directory to store the resulting images
+dir.create(paste0(tempdir(),"/images/"))
+
+ # Build a data cube of equal intervals using the "gdalcubes" package
+gc_cube <- sits_regularize(cube   = s2_cube,
+                     name          = "T20LKP_2018_2019_1M",
+                     dir_images   = paste0(tempdir(),"/images/"),
+                     period        = "P1M",
+                     agg_method    = "median",
+                     resampling    = "bilinear",
+                     cloud_mask    = TRUE)
+}
+}
+
 }
 \references{
 APPEL, Marius; PEBESMA, Edzer. On-demand processing of data cubes
