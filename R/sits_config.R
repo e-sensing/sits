@@ -418,11 +418,13 @@ sits_config_show <- function() {
 #'
 .sits_config_cube_check <- function(cube) {
     # precondition
-    assertthat::assert_that(!purrr::is_null(cube),
+    assertthat::assert_that(
+        !purrr::is_null(cube),
         msg = "invalid cube"
     )
 
-    assertthat::assert_that(!purrr::is_null(cube[1, ]$source),
+    assertthat::assert_that(
+        !purrr::is_null(cube$source),
         msg = "invalid data source"
     )
 
@@ -443,13 +445,12 @@ sits_config_show <- function() {
 #'
 #' @return file path to the appended to data_dir
 .sits_config_data_meta_type <- function(data) {
-    if (grepl("sits", class(data)[[1]]) |
-        grepl("patterns", class(data)[[1]])
-    | grepl("predicted", class(data)[[1]])) {
-          return(data)
-      } else {
+
+    if (inherits(data, "sits", "patterns", "predicted")) {
+        return(data)
+    } else {
         assertthat::assert_that(!purrr::is_null(data[1, ]$source),
-            msg = "data is not valid"
+                                msg = "data is not valid"
         )
         # check if data is a cube
         .sits_config_cube_check(data)

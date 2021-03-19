@@ -75,11 +75,11 @@ sits_conf_matrix <- function(data, conv_lst = NULL) {
     # call caret package to the classification statistics
     caret_assess <- caret::confusionMatrix(pred_fac, ref_fac)
 
-    # print the result
-    .print_confusion_matrix(caret_assess)
+    # # print the result
+    # .print_confusion_matrix(caret_assess)
 
     # return invisible
-    return(invisible(caret_assess))
+    return(caret_assess)
 }
 #' @title Print the values of a confusion matrix
 #' @name .print_confusion_matrix

@@ -289,14 +289,18 @@
 
 #' @title Rename a tibble to use "cube" instead of "coverage"
 #' @name .sits_tibble_rename
+#'
 #' @keywords internal
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #' @param data   A sits tibble.
+#'
 .sits_tibble_rename <- function(data) {
+
     # is the input data a valid sits tibble?
     if ("coverage" %in% names(data)) {
-          data <- data %>% dplyr::rename(cube = coverage)
-      }
+
+        data <- dplyr::rename(data, cube = "coverage")
+    }
 
     return(data)
 }
