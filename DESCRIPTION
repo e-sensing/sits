@@ -154,6 +154,7 @@ Collate:
     'sits_som.R'
     'sits_space_time_operations.R'
     'sits_stac.R'
+    'sits_summary.R'
     'sits_TempCNN.R'
     'sits_tibble.R'
     'sits_tibble_aux_functions.R'
