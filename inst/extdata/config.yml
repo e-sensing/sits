@@ -1,11 +1,11 @@
 default:
 
     # estimated relative growth size of R memory relative to block size
-    R_memory_bloat           : 4
-    R_processing_bloat       : 5
+    R_memory_bloat          : 4
+    R_processing_bloat      : 5
 
     # number of items returned by stac service
-    rstac_pagination_limit   : 1000
+    rstac_pagination_limit  : 1000
 
     # Data cube types known to sits
     data_sources            : ["WTSS", "SATVEG", "LOCAL", "RASTER", "BDC", "DEAFRICA", "AWS", "PROBS", "CLASSIFIED"]
@@ -41,13 +41,6 @@ default:
         DEAFRICA            : "requester"
         USGS                : "requester"
 
-    # information to parse repositories
-    BDC                     :
-        access_maxcores     : 4
-
-    LOCAL                   :
-        access_maxcores     : 1
-
     # URL to access SATVEG
     SATVEG-EMBRAPA_server   : "https://www.satveg.cnptia.embrapa.br/satvegws/ws/perfil/ZW46IXzr4pRzJlX/"
     SATVEG_EMBRAPA_test     : "https://www.satveg.cnptia.embrapa.br/satvegws/ws/perfil/ZW46IXzr4pRzJlX/ndvi/ponto/-55.50563/-11.71557/terra/1//"
@@ -68,6 +61,7 @@ default:
     MODIS                   :
         bands               :
             SITS            : ["BLUE", "RED", "NIR", "MIR", "NDVI", "EVI"]
+
         missing_value       :
             NDVI            : -3000
             EVI             : -3000
@@ -100,7 +94,7 @@ default:
             NIR             : 0.0001
             MIR             : 0.0001
 
-        resampling          : "bilinear"
+        resampling          :
             NDVI            : "bilinear"
             EVI             : "bilinear"
             BLUE            : "bilinear"
@@ -156,7 +150,7 @@ default:
             B7              : 10000
             FMASK4          : 255
 
-        scale_factor:
+        scale_factor        :
             NDVI            : 0.0001
             EVI             : 0.0001
             B1              : 0.0001
@@ -168,7 +162,7 @@ default:
             B7              : 0.0001
             FMASK4          : 1
 
-        resampling:
+        resampling          :
             NDVI            : "bilinear"
             EVI             : "bilinear"
             B1              : "bilinear"
@@ -222,7 +216,7 @@ default:
             B16             : 10000
             CMASK           : 4
 
-        scale_factor:
+        scale_factor        :
             NDVI            : 0.0001
             EVI             : 0.0001
             B13             : 0.0001
@@ -231,7 +225,7 @@ default:
             B16             : 0.0001
             CMASK           : 1
 
-        resampling:
+        resampling          :
             NDVI            : "bilinear"
             EVI             : "bilinear"
             B13             : "bilinear"
@@ -342,7 +336,7 @@ default:
             SCL             : 1
             FMASK4          : 255
 
-        scale_factor:
+        scale_factor        :
             EVI             : 0.0001
             SAVI            : 0.0001
             NDVI            : 0.0001
@@ -363,7 +357,7 @@ default:
             SCL             : 1
             FMASK4          : 1
 
-        resampling:
+        resampling          :
             EVI             : "bilinear"
             SAVI            : "bilinear"
             NDVI            : "bilinear"
@@ -384,26 +378,29 @@ default:
             SCL             : "ngb"
             FMASK4          : "ngb"
 
-    S2_L2A_AWS              : &sentinel
-        access_maxcores     : 4
-        bucket              : "sentinel-s2-l2a"
-        resolutions         : ["10m", "20m", "60m"]
-        10m_bands           : ["B02", "B03", "B04", "B08"]
-        20m_bands           : ["B02", "B03", "B04", "B05", "B06", "BO7", "B08", "B8A", "B11", "B12", "SCL"]
-        60m_bands           : ["B01", "B02", "B03", "B04", "B05", "B06", "BO7", "B08", "B8A", "B09", "B10", "B11", "B12", "SCL"]
-        test_file           : "/vsis3/sentinel-s2-l2a/tiles/20/L/KP/2018/8/17/0/R20m/B02.jp2"
-        parse_info          : ["X1", "X2", "X3", "X4", "X5", "X6", "X7", "X8", "X9", "X10"]
-        delim               : ["/"]
         resolutions         : [10, 20, 60]
         bands_10m           : ["B02", "B03", "B04", "B08"]
         bands_20m           : ["B02", "B03", "B04", "B05", "B06", "B07", "B08", "B8A", "B11", "B12", "SCL"]
         bands_60m           : ["B01", "B02", "B03", "B04", "B05", "B06", "B07", "B08", "B8A", "B09", "B10", "B11", "B12", "SCL"]
 
+    # information to parse repositories
+    BDC                     :
+        access_maxcores     : 4
+
+    LOCAL                   :
+        access_maxcores     : 1
+
+    RASTER                  :
+        access_maxcores     : 1
+
+    AWS                     :
+        access_maxcores     : 4
+
     DEAFRICA                :
         access_maxcores     : 4
         MSI                 :
             bands           : ["B01", "B02", "B03", "B04", "B05", "B06", "BO7", "B08", "B8A", "B09", "B10", "B11", "B12", "SCL"]
-            resolution      : [60, 10, 10, 10, 20, 20, 20, 10, 20, 60, 60, 20, 20, 20 ]
+            resolution      : [60, 10, 10, 10, 20, 20, 20, 10, 20, 60, 60, 20, 20, 20]
 
     CLOUD                   :
         BDC                 :
