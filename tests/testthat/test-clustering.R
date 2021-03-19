@@ -26,7 +26,7 @@ test_that("Creating a dendrogram and clustering the results", {
 
     freq_clusters <- sits_cluster_frequency(clusters)
     expect_true(nrow(freq_clusters) ==
-        (length(sits_labels(cerrado_2classes)$label) + 1))
+        (length(sits_labels(cerrado_2classes)) + 1))
 
     clusters_new <- dplyr::filter(clusters, cluster != 3)
     clean <- sits_cluster_clean(clusters_new)

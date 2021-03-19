@@ -538,7 +538,7 @@ plot.keras_model <- function(x, y, ...) {
     }
 
     # how many different labels are there?
-    labels <- sits_labels(data)$label
+    labels <- sits_labels(data)
 
     label_plots <- labels %>%
         purrr::map(function(l) {

@@ -53,7 +53,7 @@ sits_kfold_validate <- function(data, folds = 5,
     data <- .sits_tibble_rename(data)
 
     # get the labels of the data
-    labels <- sits_labels(data)$label
+    labels <- sits_labels(data)
 
     # create a named vector with integers match the class labels
     n_labels <- length(labels)
@@ -61,7 +61,7 @@ sits_kfold_validate <- function(data, folds = 5,
     names(int_labels) <- labels
 
     # is the data labelled?
-    assertthat::assert_that(!("NoClass" %in% sits_labels(data)$label),
+    assertthat::assert_that(!("NoClass" %in% sits_labels(data)),
         msg = "sits_cross_validate: requires labelled set of time series"
     )
 

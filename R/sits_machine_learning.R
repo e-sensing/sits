@@ -373,7 +373,7 @@ sits_ranger <- function(data = NULL,
         )
 
         # get the labels of the data
-        labels <- sits_labels(data)$label
+        labels <- sits_labels(data)
         assertthat::assert_that(
             length(labels) > 0,
             msg = "sits_ranger: invalid data - bad labels"
@@ -687,7 +687,7 @@ sits_xgboost <- function(data = NULL,
     result_fun <- function(data) {
 
         # get the labels of the data
-        labels <- sits_labels(data)$label
+        labels <- sits_labels(data)
         assertthat::assert_that(
             length(labels) > 0,
             msg = "sits_rfor: invalid data - bad labels"

@@ -43,7 +43,7 @@
     samples <- .sits_ml_model_samples(ml_model)
 
     # retrieve the labels
-    labels <- sits_labels(samples)$label
+    labels <- sits_labels(samples)
 
     # precondition - are the samples empty?
     assertthat::assert_that(

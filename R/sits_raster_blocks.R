@@ -98,7 +98,7 @@
     mem_required_scaling <- (full_size + as.numeric(.sits_mem_used())) * bloat
 
     # number of labels
-    n_labels <- length(sits_labels(samples)$label)
+    n_labels <- length(sits_labels(samples))
 
     # estimated size of the data for classification
     input_class_data_size <- as.integer(n_instances) * nbands_data_size

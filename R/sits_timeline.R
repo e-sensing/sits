@@ -164,7 +164,7 @@ sits_timeline.classified_image <- function(data) {
     .sits_test_tibble(samples)
 
     # find the labels
-    labels <- sits_labels(samples)$label
+    labels <- sits_labels(samples)
     # find the bands
     bands <- sits_bands(samples)
 

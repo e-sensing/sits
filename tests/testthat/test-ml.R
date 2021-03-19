@@ -12,10 +12,10 @@ test_that("SVM  - Formula logref", {
     )
     point_class <- sits_classify(point_ndvi, svm_model)
 
-    expect_true(sits_labels(point_class)$label == "NoClass")
+    expect_true(sits_labels(point_class) == "NoClass")
 
     expect_true(all(point_class$predicted[[1]]$class %in%
-        sits_labels(samples_mt_ndvi)$label))
+        sits_labels(samples_mt_ndvi)))
     expect_true(nrow(sits_show_prediction(point_class)) == 16)
 })
 
@@ -38,7 +38,7 @@ test_that("SVM  - Formula logref - difference", {
     )
 
     expect_true(all(point_class$predicted[[1]]$class %in%
-        sits_labels(samples_mt_2bands)$label))
+        sits_labels(samples_mt_2bands)))
     expect_true(nrow(sits_show_prediction(point_class)) == 100)
 })
 
@@ -56,7 +56,7 @@ test_that("SVM - Formula linear", {
     point_class <- sits_classify(point_ndvi, svm_model)
 
     expect_true(all(point_class$predicted[[1]]$class %in%
-        sits_labels(samples_mt_ndvi)$label))
+        sits_labels(samples_mt_ndvi)))
     expect_true(nrow(sits_show_prediction(point_class)) == 16)
 })
 
@@ -67,7 +67,7 @@ test_that("Random Forest", {
     point_class <- sits_classify(point_ndvi, rfor_model)
 
     expect_true(all(point_class$predicted[[1]]$class %in%
-        sits_labels(samples_mt_ndvi)$label))
+        sits_labels(samples_mt_ndvi)))
     expect_true(nrow(sits_show_prediction(point_class)) == 16)
 })
 
@@ -77,7 +77,7 @@ test_that("Random Forest - Ranger", {
     point_class <- sits_classify(point_ndvi, ranger_model)
 
     expect_true(all(point_class$predicted[[1]]$class %in%
-                        sits_labels(samples_mt_ndvi)$label))
+                        sits_labels(samples_mt_ndvi)))
     expect_true(nrow(sits_show_prediction(point_class)) == 16)
 })
 
@@ -87,7 +87,7 @@ test_that("LDA", {
     point_class <- sits_classify(point_ndvi, lda_model)
 
     expect_true(all(point_class$predicted[[1]]$class %in%
-        sits_labels(samples_mt_ndvi)$label))
+        sits_labels(samples_mt_ndvi)))
     expect_true(nrow(sits_show_prediction(point_class)) == 16)
 })
 
@@ -97,7 +97,7 @@ test_that("QDA", {
     point_class <- sits_classify(point_ndvi, qda_model)
 
     expect_true(all(point_class$predicted[[1]]$class %in%
-        sits_labels(samples_mt_ndvi)$label))
+        sits_labels(samples_mt_ndvi)))
     expect_true(nrow(sits_show_prediction(point_class)) == 16)
 })
 test_that("MLR", {
@@ -108,7 +108,7 @@ test_that("MLR", {
     point_class <- sits_classify(point_ndvi, model)
 
     expect_true(all(point_class$predicted[[1]]$class %in%
-        sits_labels(samples_mt_ndvi)$label))
+        sits_labels(samples_mt_ndvi)))
     expect_true(nrow(sits_show_prediction(point_class)) == 16)
 })
 
@@ -123,7 +123,7 @@ test_that("XGBoost", {
     point_class <- sits_classify(point_ndvi, model)
 
     expect_true(all(point_class$predicted[[1]]$class %in%
-        sits_labels(samples_mt_ndvi)$label))
+        sits_labels(samples_mt_ndvi)))
     expect_true(nrow(sits_show_prediction(point_class)) == 16)
 })
 test_that("DL-MLP", {
@@ -149,7 +149,7 @@ test_that("DL-MLP", {
     point_class <- sits_classify(point_2bands, model)
 
     expect_true(all(point_class$predicted[[1]]$class %in%
-        sits_labels(samples_mt_2bands)$label))
+        sits_labels(samples_mt_2bands)))
     expect_true(nrow(sits_show_prediction(point_class)) == 17)
 })
 
@@ -175,7 +175,7 @@ test_that("DL-MLP-2classes", {
     point_class <- sits_classify(cerrado_2classes[1:60, ], model)
 
     expect_true(all(point_class$predicted[[1]]$class %in%
-        sits_labels(samples_mt_2bands)$label))
+        sits_labels(samples_mt_2bands)))
     expect_true(nrow(sits_show_prediction(point_class)) == 60)
 })
 test_that("1D CNN model", {
@@ -198,7 +198,7 @@ test_that("1D CNN model", {
     point_class <- sits_classify(point_ndvi, model)
 
     expect_true(all(point_class$predicted[[1]]$class %in%
-        sits_labels(samples_mt_ndvi)$label))
+        sits_labels(samples_mt_ndvi)))
     expect_true(nrow(sits_show_prediction(point_class)) == 16)
 })
 test_that("tempCNN model", {
@@ -225,7 +225,7 @@ test_that("tempCNN model", {
     point_class <- sits_classify(point_ndvi, model)
 
     expect_true(all(point_class$predicted[[1]]$class %in%
-        sits_labels(samples_mt_ndvi)$label))
+        sits_labels(samples_mt_ndvi)))
     expect_true(nrow(sits_show_prediction(point_class)) == 16)
 })
 test_that("ResNet", {
@@ -244,7 +244,7 @@ test_that("ResNet", {
     point_class <- sits_classify(point_ndvi, model)
 
     expect_true(all(point_class$predicted[[1]]$class %in%
-        sits_labels(samples_mt_ndvi)$label))
+        sits_labels(samples_mt_ndvi)))
     expect_true(nrow(sits_show_prediction(point_class)) == 16)
 })
 
@@ -258,7 +258,7 @@ test_that("LSTM", {
     point_class <- sits_classify(point_ndvi, model)
 
     expect_true(all(point_class$predicted[[1]]$class %in%
-        sits_labels(samples_mt_ndvi)$label))
+        sits_labels(samples_mt_ndvi)))
     expect_true(nrow(sits_show_prediction(point_class)) == 16)
 })
 

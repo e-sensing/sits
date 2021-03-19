@@ -26,7 +26,7 @@ test_that("Relabel", {
 
     labels <- sits_labels(new_data)
 
-    expect_true("Cropland" %in% sits_labels(new_data)$label)
+    expect_true("Cropland" %in% sits_labels(new_data))
     expect_equal(length(labels$label), 4)
     expect_equal(labels$label[1], "Cerrado")
     expect_equal(sum(labels$prop), 1)

@@ -9,13 +9,13 @@ test_that("Classify with random forest - single core and multicore", {
 
     expect_true(nrow(class_ndvi$predicted[[1]]) == 16)
     expect_true(all(class_ndvi$predicted[[1]]$class %in%
-        sits_labels(samples_mt_ndvi)$label))
+        sits_labels(samples_mt_ndvi)))
 
     class_ndvi <- sits_classify(point_ndvi, rfor_model, multicores = 2)
 
     expect_true(nrow(class_ndvi$predicted[[1]]) == 16)
     expect_true(all(class_ndvi$predicted[[1]]$class %in%
-        sits_labels(samples_mt_ndvi)$label))
+        sits_labels(samples_mt_ndvi)))
 })
 
 test_that("Classify a set time series with rfor + filter", {
@@ -33,7 +33,7 @@ test_that("Classify a set time series with rfor + filter", {
     )
 
     expect_true(class1$predicted[[1]]$class %in%
-                    sits_labels(cerrado_2classes)$label)
+                    sits_labels(cerrado_2classes))
 })
 test_that("Classify time series with TWDTW method", {
     testthat::skip_on_cran()
@@ -41,7 +41,7 @@ test_that("Classify time series with TWDTW method", {
     points_mt_6bands <- samples_mt_6bands[1:15,]
     points_mt_ndvi <- sits_select(points_mt_6bands, bands = "NDVI")
     patterns <- sits_patterns(samples_mt_ndvi)
-    expect_true(all(sits_labels(patterns) %in% sits_labels(samples_mt_ndvi)$label))
+    expect_true(all(sits_labels(patterns) %in% sits_labels(samples_mt_ndvi)))
     matches <- sits_twdtw_classify(points_mt_ndvi,
                                    patterns,
                                    bands = "NDVI",
@@ -55,7 +55,7 @@ test_that("Classify time series with TWDTW method", {
 
 
     expect_true(all(unique(matches$predicted[[1]]$predicted) %in%
-        sits_labels(samples_mt_ndvi)$label))
+        sits_labels(samples_mt_ndvi)))
 })
 
 test_that("Classify error bands 1", {

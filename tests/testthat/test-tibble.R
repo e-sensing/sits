@@ -99,7 +99,7 @@ test_that("Select", {
 test_that("Transmute", {
     data <- sits_sample(cerrado_2classes, n = 10)
 
-    expect_equal(sits_labels(cerrado_2classes)$label, sits_labels(data)$label)
+    expect_equal(sits_labels(cerrado_2classes), sits_labels(data))
     expect_equal(dim(data)[1], 20)
 })
 

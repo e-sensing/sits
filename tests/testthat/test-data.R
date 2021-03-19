@@ -147,7 +147,7 @@ test_that("Reading a CSV file from RASTER", {
     ))
     expect_true(nrow(points) <= NROW(df_csv))
 
-    expect_true("Forest" %in% sits_labels(points)$label)
+    expect_true("Forest" %in% sits_labels(points))
     expect_equal(names(points)[1], "longitude")
     expect_equal(length(names(points)), 7)
     expect_true(ncol(sits_time_series(points)) == 3)

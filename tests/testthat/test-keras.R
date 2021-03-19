@@ -20,7 +20,7 @@ test_that("keras read write", {
     point_class <- sits_classify(point_ndvi, saved_model)
 
     expect_true(all(point_class$predicted[[1]]$class %in%
-        sits_labels(samples_mt_ndvi)$label))
+        sits_labels(samples_mt_ndvi)))
     expect_true(nrow(sits_show_prediction(point_class)) == 16)
 
     unlink(hdffile)
