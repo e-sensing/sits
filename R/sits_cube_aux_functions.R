@@ -97,7 +97,8 @@
 .sits_cube_probs <- function(tile, samples, sub_image,
                                   output_dir, version) {
     # ensure metadata tibble exists
-    assertthat::assert_that(NROW(tile) == 1,
+    assertthat::assert_that(
+        nrow(tile) == 1,
         msg = ".sits_cube_probs: accepts only one tile at a time"
     )
 
@@ -162,7 +163,8 @@
 #' @param index     Index for file to be retrived
 #' @return          Name of file
 .sits_cube_file <- function(cube, index = 1) {
-    assertthat::assert_that(index <= length(cube$file_info[[1]]$path),
+    assertthat::assert_that(
+        index <= length(cube$file_info[[1]]$path),
         msg = ".sits_cube_file: index is out of range"
     )
     return(cube$file_info[[1]]$path[index])
@@ -211,8 +213,10 @@
           bands <- cb_bands
       } else {
         bands <- toupper(bands)
-        assertthat::assert_that(all(bands %in% cb_bands),
-            msg = "bands are not available in the cube"
+        assertthat::assert_that(
+            all(bands %in% cb_bands),
+            msg = paste(".sits_cube_bands_check: bands are not available",
+                        "in the cube")
         )
     }
     return(bands)
@@ -264,8 +268,9 @@
 #' @param end_date       End date for the classification
 #' @return          Name of file
 .sits_cube_sub_interval <- function(cube, samples, start_date, end_date){
-    assertthat::assert_that(nrow(cube) == 1,
-                          msg = "sits_cube_sub_interval accepts one tile only")
+    assertthat::assert_that(
+        nrow(cube) == 1,
+        msg = "sits_cube_sub_interval: accepts one tile only")
 
     # get the cube timeline
     cube_timeline <- sits_timeline(cube)

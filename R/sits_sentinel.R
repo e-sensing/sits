@@ -64,8 +64,10 @@
     items_info <- rstac_query %>% rstac::post_request()
 
     # checks if the collection returned any items
-    assertthat::assert_that(!(rstac::items_length(items_info) == 0),
-                            msg = "The provided search returned 0 items found.")
+    assertthat::assert_that(
+        !(rstac::items_length(items_info) == 0),
+        msg = ".sits_s2_aws_items: the provided search returned no item."
+    )
 
     # progress bar status
     pgr_fetch  <- FALSE
@@ -139,10 +141,11 @@
     bands_s2 <- .sits_config_s2_bands(s2_resolution)
 
     if (!purrr::is_null(bands)) {
-        assertthat::assert_that(all(bands %in% bands_s2),
-                                msg = paste("The provided bands do not match",
-                                            "to the bands supported by the",
-                                            s2_resolution, "resolution")
+        assertthat::assert_that(
+            all(bands %in% bands_s2),
+            msg = paste(".sits_s2_check_bands: the provided bands do not",
+                        "match the bands supported by ", s2_resolution,
+                        "resolution")
         )
         bands_s2 <- bands_s2[bands_s2 %in% bands]
     }

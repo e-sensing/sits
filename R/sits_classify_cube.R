@@ -175,7 +175,7 @@
 .sits_classify_check_params <- function(cube, ml_model) {
     # ensure metadata tibble exists
     assertthat::assert_that(
-        NROW(cube) > 0,
+        nrow(cube) > 0,
         msg = "sits_classify: invalid metadata for the cube"
     )
 
@@ -238,9 +238,8 @@
     # are the results consistent with the data input?
     assertthat::assert_that(
         nrow(prediction) == nrow(data),
-        msg = paste(".sits_classify_cube -",
-                    "number of rows of probability matrix",
-                    "is different from number of input pixels")
+        msg = paste(".sits_classify_cube: number of rows of probability",
+                    "matrix is different from number of input pixels")
     )
 
     return(prediction)

@@ -172,9 +172,10 @@
 .sits_gc_database <- function(cube, path_db) {
 
     # error if a cube other than S2_L2A_AWS is provided
-    assertthat::assert_that(!(cube[1,]$source != "AWS"),
-                            msg = paste("For now, only 'S2_L2A_AWS' cubes",
-                                        "can be aggregated.")
+    assertthat::assert_that(
+        .sits_cube_source(cube) != "AWS",
+        msg = paste("For now, only 'S2_L2A_AWS' cubes",
+                    "can be aggregated.")
     )
 
     # joining the bands of all tiles

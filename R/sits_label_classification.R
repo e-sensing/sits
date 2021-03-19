@@ -63,7 +63,8 @@ sits_label_classification <- function(cube,
         stop()
     }
     # precondition - check if cube has probability data
-    assertthat::assert_that("probs_cube" %in% class(cube),
+    assertthat::assert_that(
+        inherits(cube, "probs_cube"),
         msg = "sits_label_classification: input is not probability cube"
     )
 
@@ -154,13 +155,15 @@ sits_label_majority <- function(cube,
                                 version = "v1") {
 
     # precondition 1 - check if cube has classification info
-    assertthat::assert_that("classified_image" %in% class(cube),
-            msg = "sits_label_majority: input is not classified cube"
+    assertthat::assert_that(
+        inherits(cube, "classified_image"),
+        msg = "sits_label_majority: input is not classified cube"
     )
 
     # precondition 2 - test window size
-    assertthat::assert_that(window_size >= 3,
-            msg = "sits_label_majority: window size must be >= 3"
+    assertthat::assert_that(
+        window_size >= 3,
+        msg = "sits_label_majority: window size must be >= 3"
     )
 
     cube_maj <- .sits_cube_clone(cube = cube,
@@ -173,31 +176,32 @@ sits_label_majority <- function(cube,
     in_files <- cube$file_info[[1]]$path
     out_files <- cube_maj$file_info[[1]]$path
 
-    purrr::map2(in_files, out_files,
-        function(in_file, out_file) {
-            # read the input classified image
-            layer <- terra::rast(in_file)
-            # calculate the majority values
-            layer <- terra::focal(
-                x = layer,
-                w = window_size,
-                na.rm = TRUE,
-                fun = terra::modal
-            )
+    purrr::map2(in_files, out_files, function(in_file, out_file) {
+        # read the input classified image
+        layer <- terra::rast(in_file)
+        # calculate the majority values
+        layer <- terra::focal(
+            x = layer,
+            w = window_size,
+            na.rm = TRUE,
+            fun = terra::modal
+        )
         # write the result
-            suppressWarnings(terra::writeRaster(
-                layer,
-                filename = out_file,
-                wopt = list(
-                    filetype = "GTiff",
-                    datatype = "INT1U",
-                    gdal = c("COMPRESS=LZW")
-                ),
-                overwrite = TRUE
-            ))
+        suppressWarnings(terra::writeRaster(
+            layer,
+            filename = out_file,
+            wopt = list(
+                filetype = "GTiff",
+                datatype = "INT1U",
+                gdal = c("COMPRESS=LZW")
+            ),
+            overwrite = TRUE
+        ))
+
         # was the file written correctly?
-        assertthat::assert_that(file.info(out_file)$size > 0,
-            msg = "sits_label_majority : unable to save raster object"
+        assertthat::assert_that(
+            file.info(out_file)$size > 0,
+            msg = "sits_label_majority: unable to save raster object"
         )
 
     })

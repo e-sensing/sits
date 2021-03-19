@@ -28,7 +28,8 @@ sits_filter <- function(data, filter = sits_whittaker()) {
     .sits_test_tibble(data)
 
     # is the train method a function?
-    assertthat::assert_that(class(filter) == "function",
+    assertthat::assert_that(
+        class(filter) == "function",
         msg = "sits_filter: filter is not a valid function"
     )
 
@@ -80,7 +81,8 @@ sits_envelope <- function(data = NULL,
         operations <- strsplit(operations, "")[[1]]
 
         # verify if operations are either "U" or "L"
-        assertthat::assert_that(all(operations %in% names(def_op)),
+        assertthat::assert_that(
+            all(operations %in% names(def_op)),
             msg = "sits_envelope: invalid operation sequence"
         )
 
@@ -374,8 +376,9 @@ sits_ndvi_arima <- function(data = NULL, cutoff = -0.25,
     filter_fun <- function(data) {
         # find the bands of the data
         bands <- sits_bands(data)
-        assertthat::assert_that("NDVI" %in% bands,
-            msg = "data does not contain the NDVI band"
+        assertthat::assert_that(
+            "NDVI" %in% bands,
+            msg = "sits_ndvi_arima: data does not contain the NDVI band"
         )
 
         # predictive model for missing values
@@ -383,7 +386,8 @@ sits_ndvi_arima <- function(data = NULL, cutoff = -0.25,
             idx <- which(is.na(x))
             for (i in idx) {
                 prev3 <- x[(i - q):(i - 1)]
-                assertthat::assert_that(!anyNA(prev3),
+                assertthat::assert_that(
+                    !anyNA(prev3),
                     msg = "sits_ndvi_arima: please reduce filter order"
                 )
                 arima_model <- stats::arima(prev3, c(p, d, q))

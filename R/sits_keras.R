@@ -148,8 +148,9 @@ sits_keras_diagnostics <- function(dl_model) {
                                      n_bands,
                                      n_times) {
     # pre-condition
-    assertthat::assert_that(validation_split > 0.0 && validation_split < 0.5,
-        msg = ".sits_dl_prepare_data - invalid validation split"
+    assertthat::assert_that(
+        validation_split > 0.0 && validation_split < 0.5,
+        msg = ".sits_dl_prepare_data: invalid validation split"
     )
 
     # data normalization
@@ -157,7 +158,8 @@ sits_keras_diagnostics <- function(dl_model) {
     train_data <- .sits_distances(.sits_normalize_data(data, stats))
 
     # is the train data correct?
-    assertthat::assert_that("reference" %in% names(train_data),
+    assertthat::assert_that(
+        "reference" %in% names(train_data),
         msg = "sits_deeplearning: input data does not contain distances"
     )
 

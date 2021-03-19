@@ -15,8 +15,9 @@
               class(roi) <- c("ll", class(roi))
           }
     }
-    assertthat::assert_that(class(roi)[1] %in% c("sf", "xy", "ll"),
-        msg = "invalid definition of ROI"
+    assertthat::assert_that(
+      inherits(roi, c("sf", "xy", "ll")),
+      msg = ".sits_roi_bbox: invalid definition of ROI"
     )
 
     UseMethod(".sits_roi_bbox", roi)

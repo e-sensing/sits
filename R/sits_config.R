@@ -226,8 +226,12 @@ sits_config_show <- function() {
   names(bands_sits) <- bands_stac
   # are the bands specified as cloud provider bands or as sits bands?
   bands_tile <- tile$bands[[1]]
-  assertthat::assert_that(all(bands_tile %in% bands_stac) || all(bands_tile %in% bands_sits),
-                          msg = paste0("required bands not available in ", tile$source))
+  assertthat::assert_that(
+      all(bands_tile %in% bands_stac) || all(bands_tile %in% bands_sits),
+      msg = paste(".sits_config_bands_stac_write: required bands not",
+                  "available in", .sits_cube_source(tile))
+  )
+
   if (!all(bands_tile %in% bands_sits)) {
       tile$bands[[1]] <- unname(bands_sits[tile$bands[[1]]])
       tile$file_info[[1]]$band <- unname(bands_sits[tile$file_info[[1]]$band])
@@ -430,8 +434,8 @@ sits_config_show <- function() {
 
     # find out which data sources are available
     sources <- sits_env$config$data_sources
-    assertthat::assert_that(cube[1, ]$source %in% sources,
-        msg = "sits_get_data: Invalid data source"
+    assertthat::assert_that(.sits_cube_source(cube) %in% sources,
+        msg = ".sits_config_cube_check: Invalid data source"
     )
     return(TRUE)
 }
@@ -448,10 +452,14 @@ sits_config_show <- function() {
 
     if (inherits(data, "sits", "patterns", "predicted")) {
         return(data)
+
     } else {
-        assertthat::assert_that(!purrr::is_null(data[1, ]$source),
-                                msg = "data is not valid"
+
+        assertthat::assert_that(
+            !purrr::is_null(data$source),
+            msg = ".sits_config_data_meta_type: data is not valid"
         )
+
         # check if data is a cube
         .sits_config_cube_check(data)
 

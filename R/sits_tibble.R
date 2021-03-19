@@ -174,7 +174,8 @@ sits_sample <- function(data, n = NULL, frac = NULL) {
     .sits_test_tibble(data)
 
     # verify if either n or frac is informed
-    assertthat::assert_that(!(purrr::is_null(n) & purrr::is_null(frac)),
+    assertthat::assert_that(
+        !(purrr::is_null(n) & purrr::is_null(frac)),
         msg = "sits_sample: neither n or frac parameters informed"
     )
 
@@ -273,12 +274,15 @@ sits_time_series <- function(data) {
 #' @export
 sits_values <- function(data, bands = NULL, format = "cases_dates_bands") {
     assertthat::assert_that(
-        format == "cases_dates_bands" ||
-        format == "bands_cases_dates" ||
-        format == "bands_dates_cases",
-    msg = "sits_values: valid format parameter are
-             'cases_dates_bands', 'bands_cases_dates', or 'bands_dates_cases'"
+        format %in% c("cases_dates_bands",
+                      "bands_cases_dates",
+                      "bands_dates_cases"),
+
+        msg = paste("sits_values: valid format parameter are",
+                    "'cases_dates_bands', 'bands_cases_dates'",
+                    "or 'bands_dates_cases'")
     )
+
     class(format) <- c(format, class(format))
     UseMethod("sits_values", format)
 }

@@ -250,8 +250,10 @@
           bands <- toupper(sp_bands)
       } else {
         bands <- toupper(bands)
-        assertthat::assert_that(all(bands %in% sp_bands),
-            msg = "required bands are not available in the samples"
+        assertthat::assert_that(
+            all(bands %in% sp_bands),
+            msg = paste(".sits_samples_bands_check: required bands are not",
+                        "available in the samples")
         )
     }
     return(bands)
@@ -268,20 +270,21 @@
 #' @param data  A sits tibble.
 #' @return Returns TRUE if data has data.
 .sits_test_tibble <- function(data) {
-    assertthat::assert_that(!purrr::is_null(data),
-        msg = "input data not provided"
+    assertthat::assert_that(
+        !purrr::is_null(data),
+        msg = ".sits_test_tibble: input data not provided"
     )
-    assertthat::assert_that(NROW(data) > 0,
-        msg = "input data is empty"
-    )
-
-    names <- c(
-        "longitude", "latitude", "start_date", "end_date",
-        "label", "cube", "time_series"
+    assertthat::assert_that(
+        nrow(data) > 0,
+        msg = ".sits_test_tibble: input data is empty"
     )
 
-    assertthat::assert_that(all(names %in% colnames(data)),
-        msg = "data input is not a valid sits tibble"
+    names <- c("longitude", "latitude", "start_date", "end_date",
+               "label", "cube", "time_series")
+
+    assertthat::assert_that(
+        all(names %in% colnames(data)),
+        msg = ".sits_test_tibble: data input is not a valid sits tibble"
     )
 
     return(TRUE)

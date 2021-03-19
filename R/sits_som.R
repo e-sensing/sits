@@ -125,15 +125,19 @@ sits_som_map <- function(data,
         stop("kohonen needed for this function to work.
               Please install it.", call. = FALSE)
     }
+
     # backward compatibility
     data <- .sits_tibble_rename(data)
+
     # does the input data exist?
     .sits_test_tibble(data)
+
     # is are there more neurons than samples?
     n_samples <- nrow(data)
-    assertthat::assert_that(n_samples > grid_xdim * grid_ydim,
-        msg = "sits_som_map: number of samples should be
-               greater than number of neurons"
+    assertthat::assert_that(
+        n_samples > grid_xdim * grid_ydim,
+        msg = paste("sits_som_map: number of samples should be",
+                    "greater than number of neurons")
     )
 
     # get the time series
