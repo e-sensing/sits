@@ -56,7 +56,7 @@
                                          multicores) {
 
     # retrieve the samples
-    samples <- environment(ml_model)$data
+    samples <- .sits_ml_model_samples(ml_model)
 
     # total number of instances
     n_instances <- length(sits_timeline(cube))

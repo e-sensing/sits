@@ -119,7 +119,7 @@ sits_classify.sits <- function(data, ml_model, ...,
     }
 
     # precondition - are the samples valid?
-    samples <- environment(ml_model)$data
+    samples <- .sits_ml_model_samples(ml_model)
     assertthat::assert_that(NROW(samples) > 0,
         msg = "sits_classify_ts: missing original samples"
     )
@@ -256,16 +256,14 @@ sits_classify.raster_cube <- function(data, ml_model, ...,
     .sits_classify_check_params(data, ml_model)
 
     # filter only intersecting tiles
-    intersects <- slider::slide(data, function(tile) {
+    intersects <- slider::slide_lgl(data,
+                                    .sits_raster_sub_image_intersects, roi)
 
-        .sits_raster_sub_image_intersects(tile, roi)
-    }) %>% unlist()
     # retrive only intersecting tiles
     data <- data[intersects,]
 
     # retrieve the samples from the model
-    samples <- environment(ml_model)$data
-
+    samples <- .sits_ml_model_samples(ml_model)
 
     # deal with the case where the cube has multiple rows
     probs_rows <- slider::slide(data, function(tile) {

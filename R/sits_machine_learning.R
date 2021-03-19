@@ -997,7 +997,6 @@ sits_formula_linear <- function(predictors_index = -2:0) {
     return(data)
 }
 
-
 #' @title Normalize the time series in the given sits_tibble
 #' @name .sits_normalization_param
 #' @keywords internal
@@ -1032,4 +1031,19 @@ sits_formula_linear <- function(predictors_index = -2:0) {
     )
 
     return(stats)
+}
+#' @title Get the samples from a ml_model
+#' @name .sits_ml_model_samples
+#' @keywords internal
+#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
+#'
+#' @description this function get the samples from a ml_model object.
+#'
+#' @param ml_model     A trained model.
+#'
+#' @return A tibble with samples used to train model
+#'
+.sits_ml_model_samples <- function(ml_model) {
+
+    return(environment(ml_model)$data)
 }

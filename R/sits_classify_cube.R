@@ -40,7 +40,7 @@
                                       version) {
 
     # retrieve the samples from the model
-    samples <- environment(ml_model)$data
+    samples <- .sits_ml_model_samples(ml_model)
 
     # retrieve the labels
     labels <- sits_labels(samples)$label
@@ -60,7 +60,7 @@
     )
 
     # retrieve the normalization stats from the model
-    stats <- environment(ml_model)$stats
+    stats <- .sits_ml_model_samples(ml_model)
 
     # is there a region of interest?
     if (purrr::is_null(roi)) {
