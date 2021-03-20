@@ -94,9 +94,8 @@
         version = version
     )
 
-    # get initial time for classification
-    start_time <- lubridate::now()
-    message(sprintf("Starting classification at %s", start_time))
+    # show initial time for classification
+    message(sprintf("Starting classification at %s", lubridate::now()))
 
     # save original future plan
     oplan <- future::plan("cluster", workers = multicores)
@@ -104,6 +103,7 @@
 
     # read the blocks and compute the probabilities
     probs_blocks <- furrr::future_map(c(1:block_info$n), function(b) {
+
         # define the extent for each block
         extent <- c(
             block_info$row[b], block_info$nrows[b],
@@ -120,8 +120,7 @@
             filter_fn = filter_fn,
             impute_fn = impute_fn,
             interp_fn = interp_fn,
-            compose_fn = compose_fn,
-            multicores = multicores
+            compose_fn = compose_fn
         )
 
         # get the attribute names
@@ -130,23 +129,26 @@
             length(attr_names) > 0,
             msg = "sits_classify: training data not available"
         )
+
         # set column names for DT
         colnames(distances) <- attr_names
+
         # predict the classification values
         prediction <- .sits_classify_interval(
             data = distances,
             ml_model = ml_model
         )
+
         # convert probabilities matrix to INT2U
         scale_factor_save <- round(1 / .sits_config_probs_scale_factor())
         prediction <- round(scale_factor_save * prediction, digits = 0)
 
-        # estimate processing time
-        .sits_est_class_time(
-            start_time = start_time,
-            n_blocks = block_info$n,
-            block = b
-        )
+        # # estimate processing time
+        # .sits_est_class_time(
+        #     start_time = start_time,
+        #     n_blocks = block_info$n,
+        #     block = b
+        # )
 
         return(prediction)
     }, .progress = TRUE)
@@ -168,6 +170,10 @@
         filename = filename,
         datatype = "INT2U"
     )
+
+    # show final time for classification
+    message(sprintf("End classification at %s", lubridate::now()))
+
     return(probs_cube)
 }
 #' @title Check clasification parameters

@@ -11,7 +11,6 @@
 #' @param  impute_fn       impute function to replace NA
 #' @param  interp_fn       function to interpolate points from cube to match samples
 #' @param  compose_fn      function to compose points from cube to match samples
-#' @param  multicores      number of cores to process the time series.
 #' @return A data.table with values for classification.
 .sits_raster_data_read <- function(cube,
                                    samples,
@@ -20,8 +19,7 @@
                                    filter_fn,
                                    impute_fn,
                                    interp_fn,
-                                   compose_fn,
-                                   multicores) {
+                                   compose_fn) {
 
     # get the bands in the same order as the samples
     bands <- sits_bands(samples)
@@ -36,8 +34,7 @@
             extent = extent,
             impute_fn = impute_fn,
             stats = stats,
-            filter_fn = filter_fn,
-            multicores = multicores
+            filter_fn = filter_fn
         )
         return(values)
     })
@@ -66,7 +63,6 @@
 #' @param  filter_fn           smoothing filter to be applied.
 #' @param  stats            normalization parameters.
 #' @param  impute_fn        imputing function to be applied to replace NA
-#' @param  multicores       number of cores to process the time series.
 #' @param  .verbose         prints information about processing times
 #' @return Matrix with pre-processed values.
 .sits_raster_data_preprocess <- function(cube,
@@ -75,7 +71,6 @@
                                          filter_fn = NULL,
                                          stats = NULL,
                                          impute_fn,
-                                         multicores,
                                          .verbose = FALSE) {
 
     # get the file information for the cube
@@ -111,8 +106,8 @@
         clouds <- .sits_raster_api_read_extent(cld_files, extent)
     }
     else {
-          clouds <- NULL
-      }
+        clouds <- NULL
+    }
 
     # change the points under clouds to NA
     if (!purrr::is_null(clouds)) {
@@ -121,14 +116,10 @@
     }
 
     # remove NA pixels
-    if (any(is.na(values))) {
+    if (!purrr::is_null(impute_fn) && any(is.na(values))) {
         if (.verbose) task_start_time <- lubridate::now()
 
-        values <- .sits_raster_data_na_remove(
-            values = values,
-            impute_fn = impute_fn,
-            multicores = multicores
-        )
+        values <- impute_fn(values)
 
         if (.verbose) {
             .sits_processing_task_time(
@@ -137,85 +128,23 @@
             )
         }
     }
+
     # scale the data set
     scale_factor <- .sits_config_scale_factors(cube$sensor, band_cube)
     values <- scale_factor * values
 
     # filter the data
     if (!(purrr::is_null(filter_fn))) {
-        values <- .sits_raster_data_filter(values, filter_fn, multicores)
+        values <- filter_fn(values)
     }
+
     # normalize the data
     if (!purrr::is_null(stats)) {
-        values <- .sits_normalize_matrix(values, stats, band_cube, multicores)
+        values <- .sits_normalize_matrix(values, stats, band_cube)
     }
 
     values_dt <- data.table::as.data.table(values)
     return(values_dt)
-}
-#' @title Remove cloud pixels and NA values by imputation
-#' @name  .sits_raster_data_na_remove
-#' @keywords internal
-#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
-#'
-#' @param  values           matrix of values retrieved from a raster object
-#' @param  impute_fn        imputing function to be applied to replace NA
-#' @param  multicores       number of cores to process the time series.
-#' @return Data.table with pre-processed values.
-.sits_raster_data_na_remove <- function(values,
-                                        impute_fn,
-                                        multicores) {
-    cld_remove_block <- function(block) {
-        # interpolate NA
-        block <- impute_fn(block)
-    }
-    # use multicores to speed up filtering
-    if (multicores > 1) {
-        chunks <- .sits_raster_data_split(values, multicores)
-        rows <- parallel::mclapply(chunks,
-                                   cld_remove_block,
-                                   mc.cores = multicores
-        )
-        values <- do.call(rbind, rows)
-    }
-    else {
-          values <- impute_fn(values)
-      }
-
-    return(values)
-}
-#' @title Filter the time series values in the case of a matrix
-#' @name .sits_raster_data_filter
-#' @keywords internal
-#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
-#'
-#' @description This function filters a matrix.
-#'
-#' @param  values         matrix of values.
-#' @param  filter_fn      Filter function to apply to matrix.
-#' @param  multicores     Number of cores.
-#' @return Filtered matrix.
-.sits_raster_data_filter <- function(values, filter_fn, multicores) {
-
-    # auxiliary function to scale a block of data
-    filter_matrix_block <- function(chunk) {
-        filtered_block <- filter_fn(chunk)
-        return(filtered_block)
-    }
-    # use multicores to speed up filtering
-    if (multicores > 1) {
-        chunks <- .sits_raster_data_split(values, multicores)
-        rows <- parallel::mclapply(chunks,
-                                   filter_matrix_block,
-                                   mc.cores = multicores
-        )
-        values <- do.call(rbind, rows)
-    }
-    else {
-          values <- filter_fn(values)
-      }
-
-    return(values)
 }
 
 #' @title Split a data.table or a matrix for multicore processing

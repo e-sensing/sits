@@ -884,9 +884,10 @@ sits_formula_linear <- function(predictors_index = -2:0) {
 #'
 #' @param data     A sits tibble.
 #' @param stats    Statistics for normalization.
-#' @param multicores  Number of cores to process.
+#'
 #' @return A normalized sits tibble.
-.sits_normalize_data <- function(data, stats, multicores = 2) {
+.sits_normalize_data <- function(data, stats) {
+
     # backward compatibility
     data <- .sits_tibble_rename(data)
     .sits_test_tibble(data)
@@ -912,6 +913,7 @@ sits_formula_linear <- function(predictors_index = -2:0) {
 
     # normalise values of time series
     normalize_chunk <- function(chunk) {
+
         norm_chunk <- chunk %>%
             purrr::map(function(ts) {
                 norm <- bands %>%
@@ -939,14 +941,7 @@ sits_formula_linear <- function(predictors_index = -2:0) {
         return(norm_chunk)
     }
 
-    if (multicores > 1) {
-        chunks <- split(values, cut(1:n_values, 2, labels = FALSE))
-        norm_values <- chunks %>%
-            parallel::mclapply(normalize_chunk, mc.cores = multicores) %>%
-            unlist(recursive = FALSE)
-    }
-    else
-        norm_values <- normalize_chunk(values)
+    norm_values <- normalize_chunk(values)
 
     data$time_series <- norm_values
     return(data)
@@ -963,9 +958,8 @@ sits_formula_linear <- function(predictors_index = -2:0) {
 #' @param  data           Matrix of values.
 #' @param  stats          Statistics for normalization.
 #' @param  band           Band to be normalized.
-#' @param  multicores     Number of cores.
 #' @return                A normalized matrix.
-.sits_normalize_matrix <- function(data, stats, band, multicores) {
+.sits_normalize_matrix <- function(data, stats, band) {
     # select the 2% and 98% quantiles
     # note the use of "..b" instead of ",b"
     quant_2 <- as.numeric(stats[2, ..band])
@@ -978,21 +972,7 @@ sits_formula_linear <- function(predictors_index = -2:0) {
         return(values_block)
     }
 
-    # parallel processing for normalization
-    if (multicores > 1) {
-        blocks <- .sits_raster_data_split(data, multicores)
-        rows <- parallel::mclapply(
-            blocks,
-            normalize_block,
-            quant_2,
-            quant_98,
-            mc.cores = multicores
-        )
-        data <- do.call(rbind, rows)
-    }
-    else {
-        data <- normalize_data(data, quant_2, quant_98)
-    }
+    data <- normalize_data(data, quant_2, quant_98)
 
     return(data)
 }
