@@ -29,7 +29,6 @@
 #' @param  roi             spatial region of interest
 #' @param  cube            input data cube.
 #' @return                 vector with information on the subimage
-#' @export
 .sits_roi_bbox.sf <- function(roi, cube) {
     bbox <- roi %>%
         sf::st_transform(crs = cube[1,]$crs) %>%
@@ -44,7 +43,6 @@
 #' @param  cube            input data cube.
 #' @param  roi             spatial region of interest
 #' @return                 vector with information on the subimage
-#' @export
 .sits_roi_bbox.xy <- function(roi, cube) {
     return(roi)
 }
@@ -54,7 +52,6 @@
 #' @param  cube            input data cube.
 #' @param  roi             spatial region of interest
 #' @return                 vector with information on the subimage
-#' @export
 .sits_roi_bbox.ll <- function(roi, cube) {
     # region of interest defined by two points
     df <- data.frame(

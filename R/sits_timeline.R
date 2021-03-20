@@ -15,7 +15,6 @@ sits_timeline <- function(data) {
 #'
 #' @title Obtains the timeline for a set of time series
 #' @rdname sits_timeline
-#' @export
 sits_timeline.sits <- function(data) {
 
     timeline <- NULL
@@ -31,7 +30,6 @@ sits_timeline.sits <- function(data) {
 #'
 #' @title Obtains the timeline for a raster data cube
 #' @rdname sits_timeline
-#' @export
 sits_timeline.raster_cube <- function(data) {
 
     timeline_first <-  unique(lubridate::as_date(data$file_info[[1]]$date))
@@ -50,7 +48,6 @@ sits_timeline.raster_cube <- function(data) {
 #'
 #' @title Obtains the timeline for a raster data cube
 #' @rdname sits_timeline
-#' @export
 sits_timeline.satveg_cube <- function(data) {
 
   # retrieve the time series
@@ -65,7 +62,6 @@ sits_timeline.satveg_cube <- function(data) {
 #'
 #' @title Obtains the timeline for a probs data cube
 #' @rdname sits_timeline
-#' @export
 sits_timeline.probs_cube <- function(data) {
 
     assertthat::assert_that(
@@ -81,7 +77,6 @@ sits_timeline.probs_cube <- function(data) {
 }
 #' @title Obtains the timeline for a classified data cube
 #' @rdname sits_timeline
-#' @export
 sits_timeline.classified_image <- function(data) {
 
     assertthat::assert_that(
