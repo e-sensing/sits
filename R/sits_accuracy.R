@@ -31,7 +31,7 @@
 #' National forest monitoring assessment working paper No.46/E, 2016.
 #'
 #'
-#' @param label_cube       A tibble with metadata about the classified maps.
+#' @param label_cube       A data cube with classified images.
 #' @param validation_csv   A CSV file path with validation data
 #'
 #' @return

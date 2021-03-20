@@ -2,9 +2,50 @@
 % Please edit documentation in R/sits_smooth.R
 \name{sits_smooth}
 \alias{sits_smooth}
+\alias{sits_smooth.bayes}
+\alias{sits_smooth.gaussian}
+\alias{sits_smooth.bilinear}
 \title{Post-process a classified data raster probs using smoothing}
 \usage{
 sits_smooth(cube, type = "bayes", ...)
+
+\method{sits_smooth}{bayes}(
+  cube,
+  type = "bayes",
+  ...,
+  window_size = 5,
+  smoothness = 20,
+  covar = FALSE,
+  multicores = 2,
+  memsize = 4,
+  output_dir = getwd(),
+  version = "v1"
+)
+
+\method{sits_smooth}{gaussian}(
+  cube,
+  type = "gaussian",
+  ...,
+  window_size = 5,
+  sigma = 1,
+  multicores = 2,
+  memsize = 4,
+  output_dir = getwd(),
+  version = "v1"
+)
+
+\method{sits_smooth}{bilinear}(
+  cube,
+  type = "bilinear",
+  ...,
+  window_size = 5,
+  sigma = 1,
+  tau = 0.25,
+  multicores = 2,
+  memsize = 4,
+  output_dir = getwd(),
+  version = "v1"
+)
 }
 \arguments{
 \item{cube}{Probability data cube}
@@ -12,6 +53,31 @@ sits_smooth(cube, type = "bayes", ...)
 \item{type}{Type of smoothing}
 
 \item{...}{Parameters for specific functions}
+
+\item{window_size}{Size of the neighbourhood.}
+
+\item{smoothness}{Estimated variance of logit of class probabilities
+(Bayesian smoothing parameter). It can be either
+a matrix or a scalar.}
+
+\item{covar}{a logical argument indicating if a covariance
+matrix must be computed as the prior covariance
+for bayesian smoothing.}
+
+\item{multicores}{Number of cores to run the smoothing function}
+
+\item{memsize}{Maximum overall memory (in GB) to run the smoothing.}
+
+\item{output_dir}{Output directory where to out the file}
+
+\item{version}{Version of resulting image
+(in the case of multiple tests)}
+
+\item{sigma}{Standard deviation of the spatial Gaussian kernel
+(for gaussian and bilinear smoothing)}
+
+\item{tau}{Standard deviation of the class probs value
+(for bilinear smoothing)}
 }
 \value{
 A tibble with metadata about the output raster objects.
@@ -19,7 +85,14 @@ A tibble with metadata about the output raster objects.
 \description{
 Takes a set of classified raster layers with probabilities,
              whose metadata is]created by \code{\link[sits]{sits_cube}},
-             and applies a smoothing function
+             and applies a smoothing function. There are three options,
+             defined by the "type" parameter:
+\itemize{
+   \item{"bayes": }{Use a bayesian smoother}
+   \item{"gaussian": }{Use a gaussian smoother}
+   \item{"bilinear: }{Use a bilinear smoother}
+
+}
 }
 \examples{
 \dontrun{
@@ -50,13 +123,31 @@ probs_cube <- sits_classify(cube,
     memsize = 4, multicores = 2
 )
 
-# label the classification and smooth the result with a bayesian filter
+# smooth the result with a bayesian filter
 bayes_cube <- sits_smooth(probs_cube,
-    output_dir = tempdir()
-    )
+     type = "bayes", output_dir = tempdir()
+)
+
+# smooth the result with a gaussian filter
+gauss_cube <- sits_smooth(probs_cube,
+    type = "gaussian", output_dir = tempdir()
+)
+
+# smooth the result with a bilinear filter
+bil_cube <- sits_smooth(probs_cube,
+    type = "bilinear", output_dir = tempdir()
+)
 }
 
 }
+\references{
+K. Schindler, "An Overview and Comparison of Smooth Labeling
+            Methods for Land-Cover Classification",
+            IEEE Transactions on Geoscience and Remote Sensing,
+            50 (11), 4534-4545, 2012 (for gaussian and bilinear smoothing)
+}
 \author{
 Gilberto Camara, \email{gilberto.camara@inpe.br}
+
+Rolf Simoes, \email{rolf.simoes@inpe.br}
 }

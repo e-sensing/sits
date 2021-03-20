@@ -348,8 +348,9 @@
         cld_values <- .sits_raster_api_extract(cube, cld_band, xy)
     }
     # Retrieve values on a band by band basis
+    # using parallel processing
     ts_bands <- bands %>%
-        purrr::map(function(band) {
+        furrr::future_map(function(band) {
             # get the values of the time series as matrix
             values_band <- .sits_raster_api_extract(cube, band, xy)
 
@@ -390,7 +391,8 @@
                       })
             # return the values of all points xy for one band
             return(ts_band_lst)
-        })
+    })
+
 
     # now we have to transpose the data
     ts_samples <- ts_bands %>%

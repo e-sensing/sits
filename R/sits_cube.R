@@ -206,7 +206,6 @@ sits_cube <- function(source, ...) {
 #' @title Defines a data cube for a BDC STAC
 #' @rdname sits_cube
 #'
-#' @export
 sits_cube.bdc_cube <- function(source = "BDC",
                                ...,
                                name = "bdc_cube",

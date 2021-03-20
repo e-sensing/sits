@@ -36,6 +36,7 @@ Imports:
     config,
     data.table (>= 1.13),
     dplyr (>= 1.0.0),
+    furrr,
     ggplot2,
     graphics,
     grDevices,
@@ -65,6 +66,7 @@ Suggests:
     dtwSat,
     e1071,
     flexclust,
+    future,
     gdalcubes,
     gdalUtils,
     imager,
@@ -105,6 +107,8 @@ Collate:
     'sits-package.R'
     'sits_accuracy.R'
     'sits_aws.R'
+    'sits_bands.R'
+    'sits_bbox.R'
     'sits_bdc.R'
     'sits_brewer.R'
     'sits_classification.R'
@@ -116,7 +120,6 @@ Collate:
     'sits_cube.R'
     'sits_cube_aux_functions.R'
     'sits_cluster.R'
-    'sits_data_generics.R'
     'sits_deafrica.R'
     'sits_deep_learning.R'
     'sits_distances.R'
@@ -133,6 +136,7 @@ Collate:
     'sits_label_classification.R'
     'sits_LSTM_FCN.R'
     'sits_machine_learning.R'
+    'sits_merge.R'
     'sits_patterns.R'
     'sits_pipe.R'
     'sits_plot.R'
@@ -146,6 +150,7 @@ Collate:
     'sits_ResNet.R'
     'sits_roi.R'
     'sits_satveg.R'
+    'sits_select.R'
     'sits_sentinel.R'
     'sits_shp.R'
     'sits_smooth.R'
