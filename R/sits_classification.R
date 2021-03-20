@@ -42,7 +42,7 @@ sits_classify <- function(data, ml_model, ...) {
     # is the data a sits tibble? If not, it must be a cube
     if (!("sits" %in% class(data))) {
         # find out the generic cube class it belongs to
-        class_data <- .sits_config_cube_class(data[1, ]$source)
+        class_data <- .sits_config_cube_class(.sits_cube_source(data))
         class(data) <- c(class_data, class(data))
     }
 
@@ -103,24 +103,27 @@ sits_classify.sits <- function(data, ml_model, ...,
     .sits_test_tibble(data)
 
     # precondition: ensure the machine learning model has been built
-    assertthat::assert_that(!purrr::is_null(ml_model),
+    assertthat::assert_that(
+        !purrr::is_null(ml_model),
         msg = "sits_classify_ts: please provide a trained ML model"
     )
 
     # Precondition: only savitsky-golay and whittaker filters are supported
     if (!purrr::is_null(filter_fn)) {
         call_names <- deparse(sys.call())
-        assertthat::assert_that(any(grepl("sgolay", (call_names))) ||
-            any(grepl("whittaker", (call_names))),
-        msg = "sits_classify_cube: only savitsky-golay and whittaker filters
-                            are supported"
+        assertthat::assert_that(
+            any(grepl("sgolay", (call_names))) ||
+                any(grepl("whittaker", (call_names))),
+            msg = paste("sits_classify_cube: only savitsky-golay and",
+                        "whittaker filters are supported")
         )
         data <- filter_fn(data)
     }
 
     # precondition - are the samples valid?
     samples <- .sits_ml_model_samples(ml_model)
-    assertthat::assert_that(NROW(samples) > 0,
+    assertthat::assert_that(
+        nrow(samples) > 0,
         msg = "sits_classify_ts: missing original samples"
     )
 
@@ -141,7 +144,8 @@ sits_classify.sits <- function(data, ml_model, ...,
 
 
     # post condition: is distance data valid?
-    assertthat::assert_that(NROW(distances) > 0,
+    assertthat::assert_that(
+        nrow(distances) > 0,
         msg = "sits_classify.sits: problem with normalization"
     )
 
@@ -257,9 +261,10 @@ sits_classify.raster_cube <- function(data, ml_model, ...,
 
     # filter only intersecting tiles
     intersects <- slider::slide_lgl(data,
-                                    .sits_raster_sub_image_intersects, roi)
+                                    .sits_raster_sub_image_intersects,
+                                    roi)
 
-    # retrive only intersecting tiles
+    # retrieve only intersecting tiles
     data <- data[intersects,]
 
     # retrieve the samples from the model
