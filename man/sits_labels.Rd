@@ -26,11 +26,16 @@ A string vector with the labels.
 }
 \description{
 Finds labels in a sits tibble or data cube
-              For details see:
-\itemize{
- \item{"time series": }{see \code{\link{sits_labels.sits}}}
- \item{"data cube": }{see \code{\link{sits_labels.cube}}}
 }
+\details{
+sits_labels.cube: returns the information about labels of a
+data cube
+
+sits_labels.predicted: returns the information about labels of a
+predicted tibble
+
+sits_labels.patterns: returns the information about labels of
+patterns tibble
 }
 \examples{
 # read a tibble with 400 samples of Cerrado and 346 samples of Pasture

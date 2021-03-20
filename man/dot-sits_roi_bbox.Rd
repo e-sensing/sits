@@ -12,7 +12,7 @@
 \item{cube}{input data cube.}
 }
 \value{
-
+vector with information on the subimage
 }
 \description{
 Find the bounding box for a spatial ROI in a data cube
