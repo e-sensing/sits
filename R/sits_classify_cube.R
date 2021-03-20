@@ -143,13 +143,6 @@
         scale_factor_save <- round(1 / .sits_config_probs_scale_factor())
         prediction <- round(scale_factor_save * prediction, digits = 0)
 
-        # # estimate processing time
-        # .sits_est_class_time(
-        #     start_time = start_time,
-        #     n_blocks = block_info$n,
-        #     block = b
-        # )
-
         return(prediction)
     }, .progress = TRUE)
 
