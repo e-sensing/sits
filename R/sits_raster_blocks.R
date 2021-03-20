@@ -105,17 +105,9 @@
     output_class_data_size <- as.integer(n_labels) * single_data_size
     class_data_size <- input_class_data_size + output_class_data_size
 
-    # memory required for processing depends on the model
-    if ("keras_model" %in% class(ml_model) | "ranger_model" %in% class(ml_model)
-    | "xgb_model" %in% class(ml_model)) {
-        mem_required_processing <- (class_data_size +
-            as.numeric(.sits_mem_used())) * proc_bloat
-    }
-    else {
-        # test two different cases
-        mem_required_processing <- as.integer(multicores) *
-                  (class_data_size + as.numeric(.sits_mem_used()))
-    }
+    # memory required for processing
+    mem_required_processing <- as.integer(multicores) *
+        (class_data_size + as.numeric(.sits_mem_used())) * proc_bloat
 
     # number of passes to read the full data sets
     nblocks <- max(

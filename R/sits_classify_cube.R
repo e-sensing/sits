@@ -98,8 +98,12 @@
     start_time <- lubridate::now()
     message(sprintf("Starting classification at %s", start_time))
 
+    # save original future plan
+    oplan <- future::plan("cluster", workers = multicores)
+    on.exit(future::plan(oplan), add = TRUE)
+
     # read the blocks and compute the probabilities
-    probs_blocks <- purrr::map(c(1:block_info$n), function(b) {
+    probs_blocks <- furrr::future_map(c(1:block_info$n), function(b) {
         # define the extent for each block
         extent <- c(
             block_info$row[b], block_info$nrows[b],
@@ -131,11 +135,10 @@
         # predict the classification values
         prediction <- .sits_classify_interval(
             data = distances,
-            ml_model = ml_model,
-            multicores = multicores
+            ml_model = ml_model
         )
         # convert probabilities matrix to INT2U
-        scale_factor_save <- round(1/.sits_config_probs_scale_factor())
+        scale_factor_save <- round(1 / .sits_config_probs_scale_factor())
         prediction <- round(scale_factor_save * prediction, digits = 0)
 
         # estimate processing time
@@ -146,7 +149,11 @@
         )
 
         return(prediction)
-    })
+    }, .progress = TRUE)
+
+    # close cluster workers
+    future::plan("sequential")
+
     # combine the image to make a probability cube
     probs <- do.call(rbind, probs_blocks)
 
@@ -188,7 +195,6 @@
     return(invisible(TRUE))
 }
 
-
 #' @title Classify one interval of data
 #' @name  .sits_classify_interval
 #' @keywords internal
@@ -196,44 +202,12 @@
 #'
 #' @param  data              A data.table with distance values.
 #' @param  ml_model          Machine learning model to be applied.
-#' @param  multicores        Number of cores to process the time series.
 #' @return                   A data table with predicted values of probs
-.sits_classify_interval <- function(data, ml_model, multicores) {
+.sits_classify_interval <- function(data, ml_model) {
 
-    # keras, ranger and xgb models do internal parallel processing
-    if ("keras_model" %in% class(ml_model)
-        | "ranger_model" %in% class(ml_model)
-        | "xgb_model" %in% class(ml_model)) {
-        multicores <- 1
-    }
-
-    # classify a block of data (with data split)
-    classify_block <- function(block) {
-        # predict the values for each time interval
-        pred_block <- ml_model(block)
-        return(pred_block)
-    }
-    # set up multicore processing
-    if (multicores > 1) {
-        # estimate the list for breaking a block
-        data_blocks <- .sits_raster_data_split(data, multicores)
-        # apply parallel processing to the split data
-        # (return the results in a list inside a prototype)
-        prediction_blocks <- parallel::mclapply(data_blocks,
-                                                classify_block,
-                                                mc.cores = multicores
-        )
-
-        # compose result based on output from different cores
-        prediction <- data.table::as.data.table(
-            do.call(rbind, prediction_blocks)
-        )
-    }
-    else {
-        # single core
-        # estimate the prediction vector
-        prediction <- ml_model(data)
-    }
+    # single core
+    # estimate the prediction vector
+    prediction <- ml_model(data)
 
     # are the results consistent with the data input?
     assertthat::assert_that(
