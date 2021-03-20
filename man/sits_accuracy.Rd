@@ -7,7 +7,7 @@
 sits_accuracy(label_cube, validation_csv)
 }
 \arguments{
-\item{label_cube}{A tibble with metadata about the classified maps.}
+\item{label_cube}{A data cube with classified images.}
 
 \item{validation_csv}{A CSV file path with validation data}
 }

@@ -4,10 +4,10 @@
 \alias{.sits_gc_cloud_mask}
 \title{Create an object image_mask with information about mask band}
 \usage{
-.sits_gc_cloud_mask(cube)
+.sits_gc_cloud_mask(tile)
 }
 \arguments{
-\item{cube}{Data cube from where data is to be retrieved.}
+\item{tile}{Data cube tile from where data is to be retrieved.}
 }
 \value{
 A \code{object} 'image_mask' from gdalcubes containing information

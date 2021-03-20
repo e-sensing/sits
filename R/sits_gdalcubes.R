@@ -140,22 +140,25 @@
 #' @name .sits_gc_cloud_mask
 #' @keywords internal
 #'
-#' @param cube Data cube from where data is to be retrieved.
+#' @param tile Data cube tile from where data is to be retrieved.
 #'
 #' @return A \code{object} 'image_mask' from gdalcubes containing information
 #'  about the mask band.
-.sits_gc_cloud_mask <- function(cube) {
+.sits_gc_cloud_mask <- function(tile) {
+
+    bands <- sits_bands(tile)
+    cloud_band <- .sits_config_cloud_band(tile)
 
     # checks if the cube has a cloud band
-    assertthat::assert_that("SCL" %in% unique(cube$file_info[[1]]$band),
+    assertthat::assert_that(cloud_band %in% unique(bands),
                             msg = paste("It was not possible to use the cloud",
                                         "mask, please include the cloud band",
-                                        "in your cube. For S2LA_AWS, use",
-                                        "'SCL' band.")
+                                        "in your cube")
     )
 
     # create a image mask object
-    mask_values <- gdalcubes::image_mask("SCL", values = c(3,8,9))
+    mask_values <- gdalcubes::image_mask(cloud_band,
+                                         values = .sits_config_cloud_values(tile))
 
     return(mask_values)
 }

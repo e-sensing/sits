@@ -17,35 +17,30 @@
 # Sentinel-2/2A, users have to specify the `s2_resolution` parameter.
 
 library(sits)
-if (!requireNamespace("sitsdata", quietly = TRUE)) {
-    if (!requireNamespace("devtools", quietly = TRUE)) {
-          install.packages("devtools")
-      }
-    devtools::install_github("e-sensing/sitsdata")
-}
-library(sitsdata)
+library(profvis)
 # define the cube
 s2_cube <- sits_cube(source = "AWS",
                      name = "T20LKP_2018_2019",
                      collection = "sentinel-s2-l2a",
                      tiles = c("20LKP", "20LLP"),
-                     bands = c("B04", "B08", "B11", "SCL"),
+                     bands = c("B03", "B04", "B08", "B11", "B12", "SCL"),
                      start_date = as.Date("2018-07-12"),
-                     end_date = as.Date("2018-09-30"),
+                     end_date = as.Date("2019-07-28"),
                      s2_resolution = 60
 )
-s2_regular_cube <- sits_regularize(
-    cube = s2_cube,
-    name = "T20LKP_2018_2019_regular",
-    dir_images = "~/sentinel2/images",
-    period = "P16D",
-    agg_method = "median",
-    cloud_mask = TRUE
-)
+# s2_regular_cube <- sits_regularize(
+#     cube = s2_cube,
+#     name = "T20LKP_2018_2019_regular",
+#     dir_images = "~/sentinel2/images",
+#     period = "P16D",
+#     agg_method = "median",
+#     cloud_mask = TRUE
+# )
 
-csv_file <- system.file("/extdata/Sentinel-2/samples_amazonia_sentinel2.csv", package = "sitsdata")
 
-samples_S2_20LKP_20LLP_2018_2019 <- sits_get_data(s2_cube, file = csv_file)
+csv_file <- system.file("/extdata/samples/samples_amazonia_sentinel2.csv", package = "sits")
+
+samples_S2_T20LKP_2018_2019 <- sits_get_data(s2_cube, file = csv_file, .n_pts_csv = 30)
 
 # plot the first date as a SWIR composite (B11, B08, B04)
 # map_1 <- plot(s2_cube, red = "B11", green = "B08", blue = "B04", time = 1)

@@ -18,18 +18,18 @@ test_that("Classify with random forest - single core and multicore", {
         sits_labels(samples_mt_ndvi)))
 })
 
-test_that("Classify a set time series with rfor + filter", {
+test_that("Classify a set of time series with svm + filter", {
     # single core
     samples_mt_2bands <- sits_select(samples_mt_4bands,
                                      bands = c("NDVI", "EVI"))
     samples_filt <- sits_sgolay(samples_mt_2bands, bands_suffix = "")
-    rfor_model <- sits_train(samples_filt, sits_rfor(num_trees = 100))
+    svm_model <- sits_train(samples_filt, sits_svm())
 
     class1 <- sits_classify(
         data = cerrado_2classes,
-        ml_model = rfor_model,
+        ml_model = svm_model,
         filter = sits_sgolay(bands_suffix = ""),
-        multicores = 1
+        multicores = 2
     )
 
     expect_true(class1$predicted[[1]]$class %in%

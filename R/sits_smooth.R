@@ -2,15 +2,45 @@
 #'
 #' @name  sits_smooth
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
+#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
 #'
 #' @description Takes a set of classified raster layers with probabilities,
 #'              whose metadata is]created by \code{\link[sits]{sits_cube}},
-#'              and applies a smoothing function
+#'              and applies a smoothing function. There are three options,
+#'              defined by the "type" parameter:
+#' \itemize{
+#'    \item{"bayes": }{Use a bayesian smoother}
+#'    \item{"gaussian": }{Use a gaussian smoother}
+#'    \item{"bilinear: }{Use a bilinear smoother}
 #'
+#' }
 #' @param  cube              Probability data cube
 #' @param  type              Type of smoothing
 #' @param  ...               Parameters for specific functions
+#' @param  window_size       Size of the neighbourhood.
+#' @param  smoothness        Estimated variance of logit of class probabilities
+#'                           (Bayesian smoothing parameter). It can be either
+#'                           a matrix or a scalar.
+#' @param  covar             a logical argument indicating if a covariance
+#'                           matrix must be computed as the prior covariance
+#'                           for bayesian smoothing.
+#' @param  sigma             Standard deviation of the spatial Gaussian kernel
+#'                           (for gaussian and bilinear smoothing)
+#' @param  tau               Standard deviation of the class probs value
+#'                           (for bilinear smoothing)
+#' @param  multicores        Number of cores to run the smoothing function
+#' @param  memsize           Maximum overall memory (in GB) to run the smoothing.
+#' @param  output_dir        Output directory where to out the file
+#' @param  version           Version of resulting image
+#'                           (in the case of multiple tests)
+#'
 #' @return A tibble with metadata about the output raster objects.
+#'
+#' @references K. Schindler, "An Overview and Comparison of Smooth Labeling
+#'             Methods for Land-Cover Classification",
+#'             IEEE Transactions on Geoscience and Remote Sensing,
+#'             50 (11), 4534-4545, 2012 (for gaussian and bilinear smoothing)
+#'
 #' @examples
 #' \dontrun{
 #' # Retrieve the samples for Mato Grosso
@@ -40,10 +70,20 @@
 #'     memsize = 4, multicores = 2
 #' )
 #'
-#' # label the classification and smooth the result with a bayesian filter
+#' # smooth the result with a bayesian filter
 #' bayes_cube <- sits_smooth(probs_cube,
-#'     output_dir = tempdir()
-#'     )
+#'      type = "bayes", output_dir = tempdir()
+#' )
+#'
+#' # smooth the result with a gaussian filter
+#' gauss_cube <- sits_smooth(probs_cube,
+#'     type = "gaussian", output_dir = tempdir()
+#' )
+#'
+#' # smooth the result with a bilinear filter
+#' bil_cube <- sits_smooth(probs_cube,
+#'     type = "bilinear", output_dir = tempdir()
+#' )
 #' }
 #'
 #' @export
@@ -61,72 +101,15 @@ sits_smooth <- function(cube, type = "bayes", ...) {
 
 #' @title Post-process a classified data raster probs using Bayesian smoothing
 #'
-#' @name  sits_smooth.bayes
-#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
-#'
-#' @description Takes a set of raster bricks with probabilities,
-#'              whose metadata is created by \code{\link[sits]{sits_cube}},
-#'              and apply a bayesian smoothing process.
-#'              If \code{covar} is \code{FALSE} only main diagonal of
-#'              covariance prior matrix will be computed.
-#'
-#' @param  cube              Probability data cube
-#' @param  type              Type of smoothing
-#' @param  ...               Parameters for specific functions
-#' @param  window_size       Size of the neighbourhood.
-#' @param  smoothness        Estimated variance of logit of class probabilities
-#'                           (Bayesian smoothing parameter). It can be either
-#'                           a matrix or a scalar.
-#' @param  covar             a logical argument indicating if a covariance
-#'                           matrix must be computed as the prior covariance.
-#' @param  multicores        Number of process to run the Bayesian smoothing in
-#'                           snow subprocess.
-#' @param  memsize           Maximum overall memory (in GB) to run the Bayesian
-#'                           smoothing.
-#' @param  output_dir        Output directory where to out the file
-#' @param  version           Version of resulting image
-#'                           (in the case of multiple tests)
-#' @return A tibble with metadata about the output raster objects.
-#' @examples
-#' \dontrun{
-#' # Retrieve the samples for Mato Grosso
-#' # select band "ndvi"
-#'
-#' samples_ndvi <- sits_select(samples_mt_4bands, bands = "NDVI")
-#'
-#' # select a random forest model
-#' rfor_model <- sits_train(samples_ndvi, sits_rfor(num_trees = 500))
-#'
-#' # create a data cube based on files
-#' data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
-#' cube <- sits_cube(
-#'     source = "LOCAL",
-#'     name = "sinop-2014",
-#'     satellite = "TERRA",
-#'     sensor = "MODIS",
-#'     data_dir = data_dir,
-#'     delim = "_",
-#'     parse_info = c("X1", "X2", "band", "date")
-#' )
-#'
-#' # classify the raster image
-#' probs_cube <- sits_classify(cube,
-#'     ml_model = rfor_model,
-#'     output_dir = tempdir(),
-#'     memsize = 4, multicores = 2
-#' )
-#'
-#' # label the classification and smooth the result with a Bayesian filter
-#' bayes_cube <- sits_smooth(probs_cube, output_dir = tempdir())
-#' }
+#' @rdname  sits_smooth
 #'
 #' @export
 sits_smooth.bayes <- function(cube, type = "bayes", ...,
                               window_size = 5,
                               smoothness = 20,
                               covar = FALSE,
-                              multicores = 1,
-                              memsize = 1,
+                              multicores = 2,
+                              memsize = 4,
                               output_dir = getwd(),
                               version = "v1") {
 
@@ -235,75 +218,15 @@ sits_smooth.bayes <- function(cube, type = "bayes", ...,
     return(cube_bayes)
 }
 
-#' @title Post-process a classified data raster probs using Gaussian smoothing
-#'
-#' @name  sits_smooth.gaussian
-#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
-#'
-#' @description Takes a set of classified raster layers with probabilities,
-#'              whose metadata is]created by \code{\link[sits]{sits_cube}},
-#'              and apply Gaussian smoothing process.
-#'
-#' @references K. Schindler, "An Overview and Comparison of Smooth Labeling
-#'             Methods for Land-Cover Classification",
-#'             IEEE Transactions on Geoscience and Remote Sensing,
-#'             50 (11), 4534-4545, 2012.
-#'
-#' @param  cube              Probability data cube
-#' @param  type              Type of smoothing
-#' @param  ...               Parameters for specific functions
-#' @param  window_size       Size of the neighbourhood.
-#' @param  sigma             Standard deviation of the spatial Gaussian kernel
-#' @param  multicores        Number of process to run the Bayesian smoothing in
-#'                           snow subprocess.
-#' @param  memsize           Maximum overall memory (in GB) to run the Bayesian
-#'                           smoothing.
-#' @param  output_dir        Output directory where to out the file
-#' @param  version           Version of resulting image
-#'                           (in the case of multiple tests)
-#' @return A tibble with metadata about the output raster objects.
-#' @examples
-#' \dontrun{
-#' # Retrieve the samples for Mato Grosso
-#' # select band "ndvi"
-#'
-#' samples_ndvi <- sits_select(samples_mt_4bands, bands = "NDVI")
-#'
-#' # select a random forest model
-#' rfor_model <- sits_train(samples_ndvi, sits_rfor(num_trees = 500))
-#'
-#' # create a data cube based on files
-#' data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
-#' cube <- sits_cube(
-#'     source = "LOCAL",
-#'     name = "sinop-2014",
-#'     satellite = "TERRA",
-#'     sensor = "MODIS",
-#'     data_dir = data_dir,
-#'     delim = "_",
-#'     parse_info = c("X1", "X2", "band", "date")
-#' )
-#'
-#' # classify the raster image
-#' probs_cube <- sits_classify(cube,
-#'     ml_model = rfor_model,
-#'     output_dir = tempdir(),
-#'     memsize = 4, multicores = 2
-#' )
-#'
-#' # smooth the result with a gaussian filter
-#' gauss_cube <- sits_smooth(probs_cube,
-#'     type = "gaussian",
-#'     output_dir = tempdir()
-#'     )
-#' }
+#' @title Post-process a probability cube using Gaussian smoothing
+#' @rdname  sits_smooth
 #'
 #' @export
 sits_smooth.gaussian <- function(cube, type = "gaussian", ...,
                                  window_size = 5,
                                  sigma = 1,
-                                 multicores = 1,
-                                 memsize = 1,
+                                 multicores = 2,
+                                 memsize = 4,
                                  output_dir = getwd(),
                                  version = "v1") {
 
@@ -388,70 +311,8 @@ sits_smooth.gaussian <- function(cube, type = "gaussian", ...,
 
     return(cube_gauss)
 }
-#' @title Post-process a classified data raster probs using bilinear smoothing
-#'
-#' @name  sits_smooth.bilinear
-#' @author @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
-#'
-#' @description Takes a set of classified raster layers with probabilities,
-#'              whose metadata is]created by \code{\link[sits]{sits_cube}},
-#'              and apply bilinear smoothing process.
-#'
-#' @references K. Schindler, "An Overview and Comparison of Smooth Labeling
-#'             Methods for Land-Cover Classification",
-#'             IEEE Transactions on Geoscience and Remote Sensing,
-#'             50 (11), 4534-4545, 2012.
-#'
-#' @param  cube              Probability data cube
-#' @param  type              Type of smoothing
-#' @param  ...               Parameters for specific functions
-#' @param  window_size       Size of the neighbourhood.
-#' @param  sigma             Standard deviation of the spatial gaussian kernel
-#' @param  tau               Standard deviation of the class probs value
-#' @param  multicores        Number of process to run the Bayesian smoothing in
-#'                           snow subprocess.
-#' @param  memsize           Maximum overall memory (in GB) to run the Bayesian
-#'                           smoothing.
-#' @param  output_dir        Output directory
-#' @param  version           Version of resulting image
-#'                           (in the case of multiple tests)
-#' @return A tibble with metadata about the output raster objects.
-#' @examples
-#' \dontrun{
-#' # Retrieve the samples for Mato Grosso
-#' # select band "ndvi"
-#'
-#' samples_ndvi <- sits_select(samples_mt_4bands, bands = "NDVI")
-#'
-#' # select a random forest model
-#' rfor_model <- sits_train(samples_ndvi, sits_rfor(num_trees = 500))
-#'
-#' # create a data cube based on files
-#' data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
-#' cube <- sits_cube(
-#'     source = "LOCAL",
-#'     name = "sinop-2014",
-#'     satellite = "TERRA",
-#'     sensor = "MODIS",
-#'     data_dir = data_dir,
-#'     delim = "_",
-#'     parse_info = c("X1", "X2", "band", "date")
-#' )
-#'
-#' # classify the raster image
-#' probs_cube <- sits_classify(cube,
-#'     ml_model = rfor_model,
-#'     output_dir = tempdir(),
-#'     memsize = 4, multicores = 2
-#' )
-#'
-#' # smooth the result with a bilinear filter
-#' bil_cube <- sits_smooth(probs_cube,
-#'     type = "bilinear",
-#'     output_dir = tempdir()
-#'     )
-#' }
-#'
+#' @title Post-process a probability cube using using bilinear smoothing
+#' @rdname  sits_smooth
 #' @export
 sits_smooth.bilinear <- function(cube,
                                  type = "bilinear",
@@ -459,8 +320,8 @@ sits_smooth.bilinear <- function(cube,
                                  window_size = 5,
                                  sigma = 1,
                                  tau = 0.25,
-                                 multicores = 1,
-                                 memsize = 1,
+                                 multicores = 2,
+                                 memsize = 4,
                                  output_dir = getwd(),
                                  version = "v1") {
 
