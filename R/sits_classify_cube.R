@@ -60,7 +60,7 @@
     )
 
     # retrieve the normalization stats from the model
-    stats <- .sits_ml_model_samples(ml_model)
+    stats <- environment(ml_model)$stats
 
     # is there a region of interest?
     if (purrr::is_null(roi)) {
