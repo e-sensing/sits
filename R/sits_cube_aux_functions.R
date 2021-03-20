@@ -287,13 +287,60 @@
                        "inferred from the samples"))
     }
     # verify if the dates are part of the cube timeline
-    assertthat::assert_that(as.Date(start_date) <= cube_timeline[length(cube_timeline)],
-                            msg = "start_date is not inside the cube timeline"
+    assertthat::assert_that(
+        as.Date(start_date) <= cube_timeline[length(cube_timeline)],
+        msg = paste(".sits_cube_sub_interval: start_date is not",
+                    "inside the cube timeline")
     )
-    assertthat::assert_that(as.Date(end_date) >= cube_timeline[1],
-                            msg = "end_date is not inside the cube timeline"
+    assertthat::assert_that(
+        as.Date(end_date) >= cube_timeline[1],
+        msg = paste(".sits_cube_sub_interval: end_date is not inside the",
+                    "cube timeline")
     )
-
-
     return(cube)
+}
+#' @title Update informations of a data cube
+#' @name .sits_cube_update_raster_params
+#' @keywords internal
+#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
+#'
+#' @param  cube              input data cube
+#' @return                   output data cube
+.sits_cube_update_raster_params <- function(cube) {
+
+    res <- slider::slide_dfr(cube, function(tile) {
+        layer_obj <- suppressWarnings(
+            raster::raster(tile$file_info[[1]]$path[[1]])
+        )
+        dplyr::mutate(tile,
+                      nrows = raster::nrow(layer_obj),
+                      ncols = raster::ncol(layer_obj),
+                      xmin  = raster::xmin(layer_obj),
+                      xmax  = raster::xmax(layer_obj),
+                      ymin  = raster::ymin(layer_obj),
+                      ymax  = raster::ymax(layer_obj),
+                      xres  = raster::xres(layer_obj),
+                      yres  = raster::yres(layer_obj))
+    })
+
+    return(res)
+}
+#' @title Get cube source
+#' @name .sits_cube_source
+#' @keywords internal
+#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
+#'
+#' @param  cube              input data cube
+#'
+#' @return A character string
+.sits_cube_source <- function(cube) {
+
+    res <- unique(cube$source)
+
+    assertthat::assert_that(
+        length(res) == 1,
+        msg = ".sits_cube_source: cube has different sources."
+    )
+
+    return(res)
 }
