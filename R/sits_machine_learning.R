@@ -813,10 +813,10 @@ sits_formula_logref <- function(predictors_index = -2:0) {
     # the predictor fields given by the predictor index.
     result_fun <- function(tb) {
         assertthat::assert_that(
-            NROW(tb) > 0,
+            nrow(tb) > 0,
             msg = "sits_formula_logref - invalid data"
         )
-        n_rows_tb <- NROW(tb)
+        n_rows_tb <- nrow(tb)
 
         # if no predictors_index are given, assume all tb's fields are used
         if (purrr::is_null(predictors_index)) {
@@ -865,10 +865,10 @@ sits_formula_linear <- function(predictors_index = -2:0) {
     #  the predictor fields.
     result_fun <- function(tb) {
         assertthat::assert_that(
-            NROW(tb) > 0,
+            nrow(tb) > 0,
             msg = "sits_formula_logref - invalid data"
         )
-        n_rows_tb <- NROW(tb)
+        n_rows_tb <- nrow(tb)
         # if no predictors_index are given, assume that all fields are used
         if (purrr::is_null(predictors_index)) {
             predictors_index <- 1:n_rows_tb
