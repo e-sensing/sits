@@ -137,14 +137,14 @@ Before using this service, the user should create a valid description
 of a data cube using the \code{\link[sits]{sits_cube}} function.
 }
 \examples{
-\dontrun{
+\donttest{
 # -- Extracting data from SATVEG service
 cube_terra <- sits_cube(source = "SATVEG", collection = "terra")
 point_terra <- sits_get_data(cube_terra,
     longitude = -55.50563, latitude = -11.71557
 )
 plot(point_terra)
-}
+
 
 # -- Read a point in a raster data cube
 
@@ -173,7 +173,7 @@ csv_file <- system.file("extdata/samples/samples_sinop_crop.csv",
     package = "sits"
 )
 points_csv <- sits_get_data(raster_cube, file = csv_file)
-
+}
 }
 \references{
 Lubia Vinhas, Gilberto Queiroz, Karine Ferreira, Gilberto Camara,

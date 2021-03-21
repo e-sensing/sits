@@ -60,14 +60,14 @@
 #' <longitude, latitude, start_date, end_date, label, cube, time_series>.
 #'
 #' @examples
-#' \dontrun{
+#' \donttest{
 #' # -- Extracting data from SATVEG service
 #' cube_terra <- sits_cube(source = "SATVEG", collection = "terra")
 #' point_terra <- sits_get_data(cube_terra,
 #'     longitude = -55.50563, latitude = -11.71557
 #' )
 #' plot(point_terra)
-#' }
+#'
 #'
 #' # -- Read a point in a raster data cube
 #'
@@ -96,7 +96,7 @@
 #'     package = "sits"
 #' )
 #' points_csv <- sits_get_data(raster_cube, file = csv_file)
-#'
+#' }
 #' @export
 sits_get_data <- function(cube,
                           file = NULL,

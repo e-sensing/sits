@@ -25,27 +25,22 @@ sits_bands <- function(x) {
     UseMethod("sits_bands", x)
 }
 #' @rdname sits_bands
-#'
+#' @export
 sits_bands.sits <- function(x) {
-    # backward compatibility
-    x <- .sits_tibble_rename(x)
-
     bands <- sits_time_series(x) %>%
         colnames() %>%
         .[2:length(.)]
-
     return(bands)
 }
 #' @rdname sits_bands
-#'
+#' @export
 sits_bands.cube <- function(x) {
     return(x[1, ]$bands[[1]])
 }
 #' @rdname sits_bands
-#'
+#' @export
 sits_bands.patterns <- function(x) {
     bands <- sits_bands.sits(x)
-
     return(bands)
 }
 #' @rdname sits_bands
@@ -58,7 +53,7 @@ sits_bands.patterns <- function(x) {
     UseMethod("sits_bands<-", x)
 }
 #' @rdname sits_bands
-#'
+#' @export
 `sits_bands<-.sits` =  function(x, value) {
     # backward compatibility
     x <- .sits_tibble_rename(x)
@@ -78,7 +73,7 @@ sits_bands.patterns <- function(x) {
     return(x)
 }
 #' @rdname sits_bands
-#'
+#' @export
 `sits_bands<-.cube` = function(x, value) {
     rows <- slider::slide(x, function(row){
         old_bands <- row$bands[[1]]
@@ -94,12 +89,12 @@ sits_bands.patterns <- function(x) {
     return(x)
 }
 #' @rdname sits_bands
-#'
+#' @export
 `sits_bands<-.patterns` =  function(x, value) {
     return(`sits_bands<-.sits`(x, value))
 }
 #' @rdname sits_bands
-#'
+#' @export
 `sits_bands<-.predicted` =  function(x, value) {
     return(`sits_bands<-.sits`(x, value))
 }

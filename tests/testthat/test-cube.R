@@ -26,8 +26,8 @@ test_that("Reading a raster cube", {
     expect_true(all(bands %in% c("NDVI", "EVI")))
 
     params <- sits:::.sits_raster_api_params_file(raster_cube$file_info[[1]]$path)
-    expect_true(params$nrows == 50)
-    expect_true(params$ncols == 50)
+    expect_true(params$nrows == 144)
+    expect_true(params$ncols == 254)
     expect_true(params$xres >= 231.5)
 })
 
@@ -194,10 +194,10 @@ test_that("Creating cubes from AWS and regularizing them", {
     file_info <- s2_cube$file_info[[1]]
     r <- terra::rast(file_info[1,]$path)
 
-    expect_equal(s2_cube$nrows, terra::nrow(r))
-    expect_equal(s2_cube$ncols, terra::ncol(r))
-    expect_equal(s2_cube$xmax, terra::xmax(r))
-    expect_equal(s2_cube$xmin, terra::xmin(r))
+    expect_equal(s2_cube[1,]$nrows, terra::nrow(r))
+    expect_equal(s2_cube[1,]$ncols, terra::ncol(r))
+    expect_equal(s2_cube[1,]$xmax, terra::xmax(r))
+    expect_equal(s2_cube[1,]$xmin, terra::xmin(r))
 
     dir_images <-  paste0(tempdir(),"/images/")
     if (!dir.exists(dir_images))

@@ -62,7 +62,7 @@ test_that("Accuracy areas", {
 
     samples_mt_2bands <- dplyr::filter(samples_mt_2bands, label %in%
         c("Forest", "Pasture", "Soy_Corn"))
-    rfor_model <- sits_train(samples_mt_2bands, sits_rfor(num_trees = 1000))
+    xgb_model <- sits_train(samples_mt_2bands, sits_xgboost(verbose = FALSE))
 
     data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
     cube <- sits_cube(
@@ -77,7 +77,7 @@ test_that("Accuracy areas", {
 
     probs_cube <- suppressMessages(
         sits_classify(cube,
-                      rfor_model,
+                      xgb_model,
                       output_dir = tempdir(),
                       memsize = 4,
                       multicores = 2
