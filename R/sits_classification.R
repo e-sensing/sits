@@ -1,9 +1,12 @@
 #' @title Classify time series or data cube using machine learning models
+#'
 #' @name sits_classify
+#'
 #' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'
-#' @description This function classifies a set of time series or data cube given
+#' @description
+#' This function classifies a set of time series or data cube given
 #' a set of training samples, an inference model, and an interval.
 #' To perform the classification, users should provide a set of
 #' labelled samples. Each samples should be associated to one spatial location
@@ -13,6 +16,7 @@
 #'  \item{"sits tibble": }{see \code{\link{sits_classify.sits}}}
 #'  \item{"cube": }{see \code{\link{sits_classify.raster_cube}}}
 #' }
+#'
 #' SITS supports the following models:
 #' \itemize{
 #'  \item{support vector machines: }         {see \code{\link[sits]{sits_svm}}}
@@ -30,13 +34,15 @@
 #' The model should be precomputed using \code{\link[sits]{sits_train}}
 #' and then passed to the "sits_classify" function using parameter "ml_model".
 #'
-#' @param  data              Tibble with time series metadata and data.
-#' @param  ml_model          Pre-built machine learning model
-#'                             (see \code{\link[sits]{sits_train}}).
-#' @param  ...               Other parameters to be passed to specific functions
-#' @return                   Predicted data
+#' @param  data      Tibble with time series metadata and data.
+#' @param  ml_model  Pre-built machine learning model
+#'                   (see \code{\link[sits]{sits_train}}).
+#' @param  ...       Other parameters to be passed to specific functions
+#'
+#' @return Predicted data
 #'
 #' @export
+#'
 sits_classify <- function(data, ml_model, ...) {
 
     # is the data a sits tibble? If not, it must be a cube
@@ -51,7 +57,9 @@ sits_classify <- function(data, ml_model, ...) {
 }
 
 #' @title Classify a set of time series using machine learning models
+#'
 #' @name sits_classify.sits
+#'
 #' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'
@@ -85,6 +93,8 @@ sits_classify <- function(data, ml_model, ...) {
 #'
 #' # classify the point
 #' point_class <- sits_classify(point_ndvi, rfor_model)
+#'
+#' @export
 #'
 sits_classify.sits <- function(data, ml_model, ...,
                                filter_fn = NULL,
@@ -173,7 +183,9 @@ sits_classify.sits <- function(data, ml_model, ...,
 
 
 #' @title Classify a data cube using multicore machines
+#'
 #' @name sits_classify.raster_cube
+#'
 #' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'
@@ -240,6 +252,8 @@ sits_classify.sits <- function(data, ml_model, ...,
 #' # label the classified image
 #' label_cube <- sits_label_classification(probs_cube, output_dir = tempdir())
 #' }
+#'
+#' @export
 #'
 sits_classify.raster_cube <- function(data, ml_model, ...,
                                       roi = NULL,
