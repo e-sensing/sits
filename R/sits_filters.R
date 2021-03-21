@@ -125,7 +125,7 @@ sits_envelope <- function(data = NULL,
 #' # Retrieve a time series with values of NDVI
 #' data(point_ndvi)
 #' # find out how many time instances are there
-#' n_times <- NROW(sits_time_series(point_ndvi))
+#' n_times <- nrow(sits_time_series(point_ndvi))
 #' # interpolate three times more points
 #' point_int.tb <- sits_interp(point_ndvi, fun = stats::spline, n = 3 * n_times)
 #' # plot the result
@@ -287,7 +287,7 @@ sits_kalman <- function(data = NULL, bands_suffix = "kf") {
 #' # Retrieve a time series with values of NDVI
 #' data(point_ndvi)
 #' # find out how many time instances are there
-#' n_times <- NROW(sits_time_series(point_ndvi))
+#' n_times <- nrow(sits_time_series(point_ndvi))
 #' # interpolate three times more points
 #' point_int.tb <- sits_linear_interp(point_ndvi, n = 3 * n_times)
 #' # plot the result
