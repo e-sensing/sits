@@ -11,10 +11,10 @@ test_that("Data to CSV", {
 test_that("Data to CSV - error", {
     data(cerrado_2classes)
     expect_error(
-        sits_data_to_csv(cerrado_2classes,
+        sits_data_to_csv(
+            cerrado_2classes,
             file = "/non-existent-directory/cerrado_2classes.csv"
-        ),
-        "sits_data_to_csv - file is not writable"
+        )
     )
 })
 
@@ -31,8 +31,7 @@ test_that("Metadata to CSV - error", {
     expect_error(
         sits_metadata_to_csv(cerrado_2classes,
             file = "/non-existent-directory/cerrado_2classes.csv"
-        ),
-        "sits_metadata_to_csv - file is not writable"
+        )
     )
 })
 

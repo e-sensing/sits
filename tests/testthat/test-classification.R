@@ -64,8 +64,7 @@ test_that("Classify error bands 1", {
     model <- sits_train(samples_mt_ndvi, sits_svm())
     point <- sits_select(point_mt_6bands, "EVI")
 
-    expect_error(sits_classify(point, model),
-        "sits_normalize: data bands (EVI) do not match model bands (NDVI)",
-        fixed = TRUE
+    expect_error(
+        sits_classify(point, model)
     )
 })

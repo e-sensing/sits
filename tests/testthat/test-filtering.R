@@ -9,8 +9,7 @@ test_that("Generic filter", {
 test_that("Generic filter-error", {
     lambda <- 2
     expect_error(
-        sits_filter(point_ndvi, lambda),
-        "sits_filter: filter is not a valid function"
+        sits_filter(point_ndvi, lambda)
     )
 })
 

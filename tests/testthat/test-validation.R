@@ -16,7 +16,6 @@ test_that("Does k-fold validate and build confusion matrix", {
     cerrado_2classes$label <- "NoClass"
 
     expect_error(
-        sits_kfold_validate(cerrado_2classes),
-        "sits_cross_validate: requires labelled set of time series"
+        sits_kfold_validate(cerrado_2classes)
     )
 })
