@@ -265,9 +265,9 @@ test_that("LSTM", {
 test_that("normalization", {
     stats <- sits:::.sits_normalization_param(cerrado_2classes)
 
-    norm1 <- sits:::.sits_normalize_data(cerrado_2classes,
-        stats,
-        multicores = 1
+    norm1 <- sits:::.sits_normalize_data(
+        cerrado_2classes,
+        stats
     )
 
     stats1 <- sits:::.sits_normalization_param(norm1)
@@ -275,8 +275,7 @@ test_that("normalization", {
     expect_true(stats1[3, NDVI] > 0.99)
 
     norm2 <- sits:::.sits_normalize_data(cerrado_2classes,
-        stats,
-        multicores = 2
+        stats
     )
 
     stats2 <- sits:::.sits_normalization_param(norm2)
