@@ -141,11 +141,9 @@ sits_classify.sits <- function(data, ml_model, ...,
     # has the training data been normalized?
     if (!purrr::is_null(stats))
           # yes, then normalize the input data
-          distances <- .sits_distances(.sits_normalize_data
-          (
+          distances <- .sits_distances(.sits_normalize_data(
               data = data,
-              stats = stats,
-              multicores = multicores
+              stats = stats
           ))
      else
           # no, input data does not need to be normalized

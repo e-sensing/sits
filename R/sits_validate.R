@@ -89,7 +89,7 @@ sits_kfold_validate <- function(data, folds = 5,
         # obtain the distances after normalizing data by band
         if (!purrr::is_null(stats)) {
             distances <- .sits_distances(
-                .sits_normalize_data(data_test, stats, multicores)
+                .sits_normalize_data(data_test, stats)
             )
         } else {
             distances <- .sits_distances(data_test)
