@@ -176,9 +176,8 @@
 
     # error if a cube other than S2_L2A_AWS is provided
     assertthat::assert_that(
-        .sits_cube_source(cube) != "AWS",
-        msg = paste("For now, only 'S2_L2A_AWS' cubes",
-                    "can be aggregated.")
+        .sits_cube_source(cube) == "AWS",
+        msg = ".sits_gc_database: for now, only 'AWS' cubes can be aggregated."
     )
 
     # joining the bands of all tiles
