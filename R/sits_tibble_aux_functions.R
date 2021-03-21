@@ -152,7 +152,7 @@
 
     data$time_series %>%
         purrr::map(function(t) {
-            n_samples[length(n_samples) + 1] <<- NROW(t)
+            n_samples[length(n_samples) + 1] <<- nrow(t)
         })
 
     # check if all time indices are equal to the median
