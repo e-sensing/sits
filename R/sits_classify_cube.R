@@ -102,7 +102,7 @@
     on.exit(future::plan(oplan), add = TRUE)
 
     # read the blocks and compute the probabilities
-    probs_blocks <- furrr::future_map(c(1:block_info$n), function(b) {
+    probs <- furrr::future_map(c(1:block_info$n), function(b) {
 
         # define the extent for each block
         extent <- c(
@@ -150,7 +150,10 @@
     future::plan("sequential")
 
     # combine the image to make a probability cube
-    probs <- do.call(rbind, probs_blocks)
+    if (length(probs) > 1)
+        probs <- do.call(rbind, probs)
+    else
+        probs <- probs[[1]]
 
     # define the file name of the raster file to be written
     filename <- probs_cube$file_info[[1]]$path
