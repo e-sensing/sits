@@ -104,17 +104,18 @@ sits_train <- function(data, ml_method = sits_svm()) {
 #' @export
 #'
 sits_lda <- function(data = NULL, formula = sits_formula_logref(), ...) {
+
     # backward compatibility
     data <- .sits_tibble_rename(data)
 
-    # verifies if MASS package is installed
-    if (!requireNamespace("MASS", quietly = TRUE)) {
-        stop("MASS required for this function to work.
-             Please install it.", call. = FALSE)
-    }
-
     # function that returns MASS::lda model based on a sits sample tibble
     result_fun <- function(data) {
+
+        # verifies if MASS package is installed
+        if (!requireNamespace("MASS", quietly = TRUE)) {
+            stop(paste("MASS required for this function to work.",
+                       "Please install it."), call. = FALSE)
+        }
 
         # data normalization
         stats <- .sits_normalization_param(data)
@@ -142,8 +143,16 @@ sits_lda <- function(data = NULL, formula = sits_formula_logref(), ...) {
 
         # construct model predict closure function and returns
         model_predict <- function(values) {
+
+            # verifies if MASS package is installed
+            if (!requireNamespace("MASS", quietly = TRUE)) {
+                stop(paste("MASS required for this function to work.",
+                           "Please install it."), call. = FALSE)
+            }
+
             # retrieve the prediction (values and probs)
             preds <- stats::predict(result_lda, newdata = values)
+
             # return probabilities
             prediction <- data.table::as.data.table(preds$posterior)
 
@@ -193,14 +202,14 @@ sits_qda <- function(data = NULL, formula = sits_formula_logref(), ...) {
     # backward compatibility
     data <- .sits_tibble_rename(data)
 
-    # verifies if MASS package is installed
-    if (!requireNamespace("MASS", quietly = TRUE)) {
-        stop("MASS required for this function to work.
-             Please install it.", call. = FALSE)
-    }
-
     # function that returns MASS::qda model based on a sits sample tibble
     result_fun <- function(data) {
+
+        # verifies if MASS package is installed
+        if (!requireNamespace("MASS", quietly = TRUE)) {
+            stop(paste("MASS required for this function to work.",
+                       "Please install it."), call. = FALSE)
+        }
 
         # data normalization
         stats <- .sits_normalization_param(data)
@@ -222,6 +231,13 @@ sits_qda <- function(data = NULL, formula = sits_formula_logref(), ...) {
 
         # construct model predict closure function and returns
         model_predict <- function(values) {
+
+            # verifies if MASS package is installed
+            if (!requireNamespace("MASS", quietly = TRUE)) {
+                stop(paste("MASS required for this function to work.",
+                           "Please install it."), call. = FALSE)
+            }
+
             # retrieve the prediction (values and probs)
             preds <- stats::predict(result_qda, newdata = values)
             # return probabilities
@@ -278,17 +294,18 @@ sits_qda <- function(data = NULL, formula = sits_formula_logref(), ...) {
 sits_mlr <- function(data = NULL, formula = sits_formula_linear(),
                      n_weights = 20000, maxit = 2000, ...) {
 
-    # verifies if nnet package is installed
-    if (!requireNamespace("nnet", quietly = TRUE)) {
-        stop("nnet required for this function to work.
-             Please install it.", call. = FALSE)
-    }
-
     # backward compatibility
     data <- .sits_tibble_rename(data)
 
     # function that returns nnet::multinom model based on a sits sample tibble
     result_fun <- function(data) {
+
+        # verifies if nnet package is installed
+        if (!requireNamespace("nnet", quietly = TRUE)) {
+            stop(paste("nnet required for this function to work.",
+                       "Please install it."), call. = FALSE)
+        }
+
         # data normalization
         stats <- .sits_normalization_param(data)
         train_data <- .sits_distances(.sits_normalize_data(data, stats))
@@ -312,6 +329,13 @@ sits_mlr <- function(data = NULL, formula = sits_formula_linear(),
 
         # construct model predict closure function and returns
         model_predict <- function(values) {
+
+            # verifies if nnet package is installed
+            if (!requireNamespace("nnet", quietly = TRUE)) {
+                stop(paste("nnet required for this function to work.",
+                           "Please install it."), call. = FALSE)
+            }
+
             # return probabilities
             prediction <- data.table::as.data.table(
                 stats::predict(result_mlr, newdata = values, type = "probs")
@@ -366,14 +390,15 @@ sits_ranger <- function(data = NULL,
     # backward compatibility
     data <- .sits_tibble_rename(data)
 
-    # verifies if ranger package is installed
-    if (!requireNamespace("ranger", quietly = TRUE)) {
-        stop("ranger required for this function to work.
-             Please install it.", call. = FALSE)
-    }
-
     # function that returns a randomForest model based on a sits sample tibble
     result_fun <- function(data) {
+
+        # verifies if ranger package is installed
+        if (!requireNamespace("ranger", quietly = TRUE)) {
+            stop(paste("ranger required for this function to work.",
+                       "Please install it."), call. = FALSE)
+        }
+
         valid_importance <- c("none", "impurity", "permutation")
 
         # is the input data consistent?
@@ -410,11 +435,19 @@ sits_ranger <- function(data = NULL,
 
         # construct model predict closure function and return it
         model_predict <- function(values) {
+
+            # verifies if ranger package is installed
+            if (!requireNamespace("ranger", quietly = TRUE)) {
+                stop(paste("ranger required for this function to work.",
+                           "Please install it."), call. = FALSE)
+            }
+
             # retrieve the prediction results
             preds <- stats::predict(result_ranger,
                                     data = values,
                                     type = "response"
             )
+
             # return the prediction values and their probabilities
             prediction <- data.table::as.data.table(preds$predictions)
 
@@ -463,15 +496,15 @@ sits_ranger <- function(data = NULL,
 #'
 sits_rfor <- function(data = NULL, num_trees = 2000, nodesize = 1, ...) {
 
-    # verifies if ranger package is installed
-    if (!requireNamespace("randomForest", quietly = TRUE)) {
-        stop("randomForest required for this function to work.
-             Please install it.", call. = FALSE)
-    }
-
     # function that returns `randomForest::randomForest` model
     result_fun <- function(data) {
         train_data <- .sits_distances(data)
+
+        # verifies if ranger package is installed
+        if (!requireNamespace("randomForest", quietly = TRUE)) {
+            stop(paste("randomForest required for this function to work.",
+                       "Please install it."), call. = FALSE)
+        }
 
         # call `randomForest::randomForest` method and return the trained model
         reference <- train_data[, reference]
@@ -487,6 +520,13 @@ sits_rfor <- function(data = NULL, num_trees = 2000, nodesize = 1, ...) {
 
         # construct model predict enclosure function and returns
         model_predict <- function(values) {
+
+            # verifies if ranger package is installed
+            if (!requireNamespace("randomForest", quietly = TRUE)) {
+                stop(paste("randomForest required for this function to work.",
+                           "Please install it."), call. = FALSE)
+            }
+
             return(stats::predict(result_rfor,
                                   newdata = values,
                                   type = "prob"
@@ -557,17 +597,17 @@ sits_svm <- function(data = NULL, formula = sits_formula_logref(),
                      cost = 10, tolerance = 0.001,
                      epsilon = 0.1, cross = 0, ...) {
 
-    # verifies if e1071 package is installed
-    if (!requireNamespace("e1071", quietly = TRUE)) {
-        stop("e1071 required for this function to work.
-             Please install it.", call. = FALSE)
-    }
-
     # backward compatibility
     data <- .sits_tibble_rename(data)
 
     # function that returns e1071::svm model based on a sits sample tibble
     result_fun <- function(data) {
+
+        # verifies if e1071 package is installed
+        if (!requireNamespace("e1071", quietly = TRUE)) {
+            stop(paste("e1071 required for this function to work.",
+                       "Please install it."), call. = FALSE)
+        }
 
         # data normalization
         stats <- .sits_normalization_param(data)
@@ -591,6 +631,13 @@ sits_svm <- function(data = NULL, formula = sits_formula_logref(),
 
         # construct model predict closure function and returns
         model_predict <- function(values) {
+
+            # verifies if e1071 package is installed
+            if (!requireNamespace("e1071", quietly = TRUE)) {
+                stop(paste("e1071 required for this function to work.",
+                           "Please install it."), call. = FALSE)
+            }
+
             # get the prediction
             preds <- stats::predict(result_svm,
                                     newdata = values,
@@ -692,14 +739,14 @@ sits_xgboost <- function(data = NULL,
                          early_stopping_rounds = 20,
                          verbose = TRUE) {
 
-    # verifies if xgboost package is installed
-    if (!requireNamespace("xgboost", quietly = TRUE)) {
-        stop("xgboost required for this function to work.
-             Please install it.", call. = FALSE)
-    }
-
     # function that returns xgb model
     result_fun <- function(data) {
+
+        # verifies if xgboost package is installed
+        if (!requireNamespace("xgboost", quietly = TRUE)) {
+            stop(paste("xgboost required for this function to work.",
+                       "Please install it."), call. = FALSE)
+        }
 
         # get the labels of the data
         labels <- sits_labels(data)
@@ -763,6 +810,13 @@ sits_xgboost <- function(data = NULL,
 
         # construct model predict closure function and returns
         model_predict <- function(values) {
+
+            # verifies if xgboost package is installed
+            if (!requireNamespace("xgboost", quietly = TRUE)) {
+                stop(paste("xgboost required for this function to work.",
+                           "Please install it."), call. = FALSE)
+            }
+
             # transform input  into a matrix (remove first two columns)
             # retrieve the prediction probabilities
             prediction <- data.table::as.data.table(
@@ -888,8 +942,6 @@ sits_formula_linear <- function(predictors_index = -2:0) {
     }
     return(result_fun)
 }
-
-
 
 #' @title Normalize the time series in the given sits_tibble
 #' @name .sits_normalize_data
