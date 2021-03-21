@@ -41,6 +41,7 @@
 #' sits_conf_matrix(conf_matrix.mx)
 #' }
 #'
+#' @export
 #'
 sits_kfold_validate <- function(data, folds = 5,
                                 ml_method = sits_rfor(), multicores = 2) {
@@ -62,7 +63,8 @@ sits_kfold_validate <- function(data, folds = 5,
     names(int_labels) <- labels
 
     # is the data labelled?
-    assertthat::assert_that(!("NoClass" %in% sits_labels(data)),
+    assertthat::assert_that(
+        !("NoClass" %in% sits_labels(data)),
         msg = "sits_cross_validate: requires labelled set of time series"
     )
 
@@ -86,12 +88,12 @@ sits_kfold_validate <- function(data, folds = 5,
 
         # obtain the distances after normalizing data by band
         if (!purrr::is_null(stats)) {
-              distances <- .sits_distances(
-                  .sits_normalize_data(data_test, stats, multicores)
-              )
-          } else {
-              distances <- .sits_distances(data_test)
-          }
+            distances <- .sits_distances(
+                .sits_normalize_data(data_test, stats, multicores)
+            )
+        } else {
+            distances <- .sits_distances(data_test)
+        }
 
         # classify the test data
         prediction <- ml_model(distances)
