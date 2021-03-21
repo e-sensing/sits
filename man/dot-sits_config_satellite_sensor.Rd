@@ -9,10 +9,10 @@
 \arguments{
 \item{satellite}{Name of the satellite}
 
-\item{sensor}{Name of the senor}
+\item{sensor}{Name of the sensor}
 }
 \value{
-TRUE/FALSE
+A logical value
 }
 \description{
 Tests is satellite and sensor are known to SITS

@@ -81,6 +81,7 @@ point.tb <- sits_select(point_mt_6bands,
 class.tb <- sits_classify(point.tb, xgb_model)
 plot(class.tb, bands = c("NDVI", "EVI"))
 }
+
 }
 \references{
 Tianqi Chen, Carlos Guestrin,

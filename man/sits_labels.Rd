@@ -2,21 +2,9 @@
 % Please edit documentation in R/sits_labels.R
 \name{sits_labels}
 \alias{sits_labels}
-\alias{sits_labels.sits}
-\alias{sits_labels.cube}
-\alias{sits_labels.predicted}
-\alias{sits_labels.patterns}
 \title{Returns the information about labels of a data set (tibble or cube)}
 \usage{
 sits_labels(data)
-
-\method{sits_labels}{sits}(data)
-
-\method{sits_labels}{cube}(data)
-
-\method{sits_labels}{predicted}(data)
-
-\method{sits_labels}{patterns}(data)
 }
 \arguments{
 \item{data}{Valid sits tibble (time series or a cube)}
@@ -26,16 +14,6 @@ A string vector with the labels.
 }
 \description{
 Finds labels in a sits tibble or data cube
-}
-\details{
-sits_labels.cube: returns the information about labels of a
-data cube
-
-sits_labels.predicted: returns the information about labels of a
-predicted tibble
-
-sits_labels.patterns: returns the information about labels of
-patterns tibble
 }
 \examples{
 # read a tibble with 400 samples of Cerrado and 346 samples of Pasture

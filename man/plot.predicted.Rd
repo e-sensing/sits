@@ -31,6 +31,7 @@ class_ndvi.tb <- sits_classify(point_ndvi, model_svm)
 # plot the classification
 plot(class_ndvi.tb)
 }
+
 }
 \author{
 Gilberto Camara, \email{gilberto.camara@inpe.br}

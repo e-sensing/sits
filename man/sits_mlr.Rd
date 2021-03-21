@@ -50,6 +50,7 @@ point.tb <- sits_select(point_mt_6bands, bands = c("NDVI", "EVI"))
 class.tb <- sits_classify(point.tb, ml_model)
 plot(class.tb, bands = c("NDVI", "EVI"))
 }
+
 }
 \author{
 Alexandre Ywata de Carvalho, \email{alexandre.ywata@ipea.gov.br}

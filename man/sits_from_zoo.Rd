@@ -37,6 +37,7 @@ data <- sits_from_zoo(ts_zoo,
     longitude = -54.2313, latitude = -14.0482,
     label = "Cerrado", name = "mod13q1"
 )
+
 }
 \author{
 Gilberto Camara, \email{gilberto.camara@inpe.br}

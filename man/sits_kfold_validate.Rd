@@ -50,6 +50,7 @@ conf_matrix.mx <- sits_kfold_validate(cerrado_2classes,
 # print the confidence matrix
 sits_conf_matrix(conf_matrix.mx)
 }
+
 }
 \author{
 Rolf Simoes, \email{rolf.simoes@inpe.br}

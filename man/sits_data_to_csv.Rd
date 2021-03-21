@@ -26,6 +26,7 @@ data(cerrado_2classes)
 # export a time series
 csv_file <- paste0(tempdir(), "/cerrado_2classes.csv")
 sits_data_to_csv(cerrado_2classes, file = csv_file)
+
 }
 \author{
 Gilberto Camara, \email{gilberto.camara@inpe.br}

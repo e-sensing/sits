@@ -86,6 +86,7 @@ point <- sits_select(point_mt_6bands,
 class <- sits_classify(point, lstm_cnn_model)
 plot(class, bands = c("NDVI", "EVI"))
 }
+
 }
 \references{
 Fazle Karim, Somshubra Majumdar, Houshang Darabi, Sun Chen,

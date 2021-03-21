@@ -46,6 +46,7 @@ cbers_022024 <- sits_cube(
 plot(cbers_022024, red = "B15", green = "B16", blue = "B13", time = 1)
 }
 
+
 }
 \author{
 Gilberto Camara, \email{gilberto.camara@inpe.br}

@@ -38,6 +38,7 @@ rfor_model <- sits_train(samples_MT_ndvi, sits_rfor(num_trees = 300))
 data(point_ndvi)
 # classify the point
 class.tb <- sits_classify(point_ndvi, rfor_model)
+
 }
 \author{
 Alexandre Ywata de Carvalho, \email{alexandre.ywata@ipea.gov.br}

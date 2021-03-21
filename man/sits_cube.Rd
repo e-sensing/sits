@@ -291,6 +291,7 @@ probs_cube <- sits_cube(
     probs_files = probs_file
 )
 }
+
 }
 \references{
 `rstac` package (https://github.com/brazil-data-cube/rstac)

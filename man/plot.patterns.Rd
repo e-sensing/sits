@@ -25,6 +25,7 @@ Given a sits tibble with a set of patterns, plot them.
 # Plot the patterns
 plot(sits_patterns(cerrado_2classes))
 }
+
 }
 \author{
 Gilberto Camara, \email{gilberto.camara@inpe.br}

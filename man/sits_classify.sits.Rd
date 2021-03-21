@@ -44,6 +44,7 @@ rfor_model <- sits_train(samples_ndvi,
 
 # classify the point
 point_class <- sits_classify(point_ndvi, rfor_model)
+
 }
 \author{
 Rolf Simoes, \email{rolf.simoes@inpe.br}

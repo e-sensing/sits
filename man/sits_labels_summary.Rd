@@ -2,12 +2,9 @@
 % Please edit documentation in R/sits_labels_summary.R
 \name{sits_labels_summary}
 \alias{sits_labels_summary}
-\alias{sits_labels_summary.sits}
 \title{Returns the information about labels of a tibble data set}
 \usage{
 sits_labels_summary(data)
-
-\method{sits_labels_summary}{sits}(data)
 }
 \arguments{
 \item{data}{Valid sits tibble}

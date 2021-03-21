@@ -12,7 +12,7 @@
 \item{n_rows_output}{Number of rows in output}
 }
 \value{
-TRUE/FALSE
+A logical value
 }
 \description{
 check if all points have been retrieved
