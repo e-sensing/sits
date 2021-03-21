@@ -1,6 +1,7 @@
 #' @title Post-process a classified data raster probs using smoothing
 #'
 #' @name  sits_smooth
+#'
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
 #'
@@ -14,6 +15,7 @@
 #'    \item{"bilinear: }{Use a bilinear smoother}
 #'
 #' }
+#'
 #' @param  cube              Probability data cube
 #' @param  type              Type of smoothing
 #' @param  ...               Parameters for specific functions
@@ -87,6 +89,7 @@
 #' }
 #'
 #' @export
+#'
 sits_smooth <- function(cube, type = "bayes", ...) {
 
     # precondition 1 - check if cube has probability data
@@ -100,9 +103,9 @@ sits_smooth <- function(cube, type = "bayes", ...) {
     UseMethod("sits_smooth", type)
 }
 
-#' @title Post-process a classified data raster probs using Bayesian smoothing
+#' @rdname sits_smooth
 #'
-#' @rdname  sits_smooth
+#' @export
 #'
 sits_smooth.bayes <- function(cube, type = "bayes", ...,
                               window_size = 5,
@@ -218,8 +221,9 @@ sits_smooth.bayes <- function(cube, type = "bayes", ...,
     return(cube_bayes)
 }
 
-#' @title Post-process a probability cube using Gaussian smoothing
-#' @rdname  sits_smooth
+#' @rdname sits_smooth
+#'
+#' @export
 #'
 sits_smooth.gaussian <- function(cube, type = "gaussian", ...,
                                  window_size = 5,
@@ -310,8 +314,11 @@ sits_smooth.gaussian <- function(cube, type = "gaussian", ...,
 
     return(cube_gauss)
 }
-#' @title Post-process a probability cube using using bilinear smoothing
-#' @rdname  sits_smooth
+
+#' @rdname sits_smooth
+#'
+#' @export
+#'
 sits_smooth.bilinear <- function(cube,
                                  type = "bilinear",
                                  ...,
