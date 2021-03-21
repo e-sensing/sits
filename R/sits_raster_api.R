@@ -244,8 +244,9 @@
 #'
 .sits_raster_api_area_freq <- function(cube) {
     # precondition
-    assertthat::assert_that("classified_image" %in% class(cube),
-        msg = ".sits_raster_api_area_freq requires a labelled cube"
+    assertthat::assert_that(
+        inherits(cube, "classified_image"),
+        msg = ".sits_raster_api_area_freq: requires a labelled cube"
     )
     # retrieve the r object associated to the labelled cube
     file_info <- cube$file_info[[1]]

@@ -96,6 +96,7 @@ sits_smooth <- function(cube, type = "bayes", ...) {
     )
 
     class(type) <- c(type, class(type))
+
     UseMethod("sits_smooth", type)
 }
 

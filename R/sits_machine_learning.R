@@ -49,7 +49,7 @@ sits_train <- function(data, ml_method = sits_svm()) {
 
     # is the train method a function?
     assertthat::assert_that(
-        class(ml_method) == "function",
+        inherits(ml_method, "function"),
         msg = "sits_train: ml_method is not a valid function"
     )
 
@@ -129,7 +129,7 @@ sits_lda <- function(data = NULL, formula = sits_formula_logref(), ...) {
         # if parameter formula is a function
         # Call it passing as argument the input data sample.
         # The function must return a valid formula.
-        if (class(formula) == "function") {
+        if (inherits(formula, "function")) {
             formula <- formula(train_data)
         }
 
@@ -209,7 +209,7 @@ sits_qda <- function(data = NULL, formula = sits_formula_logref(), ...) {
         # If parameter formula is a function
         # Call it passing as argument the input data sample.
         # The function must return a valid formula.
-        if (class(formula) == "function") {
+        if (inherits(formula, "function")) {
             formula <- formula(train_data)
         }
 
@@ -296,7 +296,7 @@ sits_mlr <- function(data = NULL, formula = sits_formula_linear(),
         # if parameter formula is a function
         # call it passing as argument the input data sample.
         # The function must return a valid formula.
-        if (class(formula) == "function") {
+        if (inherits(formula, "function")) {
             formula <- formula(train_data)
         }
 
@@ -574,7 +574,7 @@ sits_svm <- function(data = NULL, formula = sits_formula_logref(),
         train_data <- .sits_distances(.sits_normalize_data(data, stats))
 
         # The function must return a valid formula.
-        if (class(formula) == "function") {
+        if (inherits(formula, "function")) {
             formula <- formula(train_data)
         }
 

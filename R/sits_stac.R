@@ -259,7 +259,7 @@
     roi_list <- list()
 
     # verify the provided parameters
-    if (!("sf" %in% class(roi))) {
+    if (!inherits(roi, "sf")) {
         if (all(c("xmin", "ymin", "xmax", "ymax") %in% names(roi)))
             roi_list[c("bbox", "intersects")] <-
                 list(roi[c("xmin", "ymin", "xmax", "ymax")], NULL)

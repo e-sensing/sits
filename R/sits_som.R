@@ -243,7 +243,7 @@ sits_som_clean_samples <- function(som_map,
                                    posterior_threshold = 0.6) {
 
     # Sanity check
-    if (!("som_map" %in% class(som_map))) {
+    if (!inherits(som_map, "som_map")) {
         message("wrong input data; please run sits_som_map first")
         return(invisible(NULL))
     }
@@ -314,7 +314,7 @@ sits_som_clean_samples <- function(som_map,
 sits_som_evaluate_cluster <- function(som_map)
 {
     # Sanity check
-    if (!("som_map" %in% class(som_map))) {
+    if (!inherits(som_map, "som_map")) {
         message("wrong input data; please run sits_som_map first")
         return(invisible(NULL))
     }

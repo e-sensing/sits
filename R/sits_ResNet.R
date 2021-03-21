@@ -260,10 +260,9 @@ sits_ResNet <- function(samples = NULL,
 
             return(prediction)
         }
-        class(model_predict) <- append(class(model_predict),
-            "keras_model",
-            after = 0
-        )
+
+        class(model_predict) <- c("keras_model", class(model_predict))
+
         return(model_predict)
     }
 

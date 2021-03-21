@@ -63,14 +63,14 @@
                                      ml_model, multicores) {
 
     # keras-based models run in single-core mode
-    if ("keras_model" %in% class(ml_model) | "ranger_model" %in% class(ml_model)
-        | "xgb_model" %in% class(ml_model)) {
+    if (inherits(ml_model, c("keras_model", "ranger_model", "xgb_model"))) {
         multicores <- 1
     }
     # define the column names
-    attr_names <- names(.sits_distances(environment(ml_model)$data[1, ]))
-    assertthat::assert_that(length(attr_names) > 0,
-                            msg = "sits_classify_distances: training data not available"
+    attr_names <- names(.sits_distances(.sits_ml_model_samples(ml_model)[1, ]))
+    assertthat::assert_that(
+        length(attr_names) > 0,
+        msg = "sits_classify_distances: training data not available"
     )
 
     # select the data table indexes for each time index

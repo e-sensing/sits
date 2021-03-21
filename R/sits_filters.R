@@ -29,7 +29,7 @@ sits_filter <- function(data, filter = sits_whittaker()) {
 
     # is the train method a function?
     assertthat::assert_that(
-        class(filter) == "function",
+        inherits(filter, "function"),
         msg = "sits_filter: filter is not a valid function"
     )
 
@@ -139,7 +139,7 @@ sits_interp <- function(data = NULL, fun = stats::approx,
         # compute linear approximation
         result <- sits_apply(data,
             fun = function(band) {
-                if (class(n) == "function") {
+                if (inherits(n, "function")) {
                       return(fun(band, n = n(band), ...)$y)
                   }
                 return(fun(band, n = n, ...)$y)
@@ -466,7 +466,7 @@ sits_sgolay <- function(data = NULL, order = 3,
     data <- .sits_tibble_rename(data)
 
     filter_fun <- function(data) {
-        if ("tbl" %in% class(data)) {
+        if (inherits(data, "tbl")) {
             result <- sits_apply(data,
                 fun = function(band) {
                       signal::sgolayfilt(band,
@@ -478,7 +478,7 @@ sits_sgolay <- function(data = NULL, order = 3,
                 bands_suffix = bands_suffix
             )
         }
-        if ("matrix" %in% class(data)) {
+        if (inherits(data, "matrix")) {
             result <- apply(data, 2, function(row) {
                 signal::sgolayfilt(row,
                     p = order,
@@ -532,7 +532,7 @@ sits_whittaker <- function(data = NULL, lambda = 1.0, bands_suffix = "wf") {
 
     filter_fun <- function(data) {
         result <- NULL
-        if ("tbl" %in% class(data)) {
+        if (inherits(data, "tbl")) {
             result <- sits_apply(data,
                 fun = function(band) {
                     ptw::whit2(band, lambda = lambda)
@@ -541,7 +541,7 @@ sits_whittaker <- function(data = NULL, lambda = 1.0, bands_suffix = "wf") {
                 bands_suffix = bands_suffix
             )
         }
-        if ("matrix" %in% class(data)) {
+        if (inherits(data, "matrix")) {
             result <- apply(
                 data, 2,
                 function(row) {

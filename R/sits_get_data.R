@@ -148,9 +148,9 @@ sits_get_data.satveg_cube <- function(cube,
         label = label
     )
 
-    if (!("sits" %in% class(data))) {
-          class(data) <- c("sits", class(data))
-      }
+    if (!inherits(data, "sits")) {
+        class(data) <- c("sits", class(data))
+    }
     return(data)
 }
 #' @title Get data from SATVEG based on CSV file
@@ -312,7 +312,7 @@ sits_get_data.raster_cube <- function(cube,
     })
     data <- dplyr::bind_rows(ts_rows)
 
-    if (!("sits" %in% class(data))) {
+    if (!inherits(data, "sits")) {
           class(data) <- c("sits", class(data))
       }
     return(data)
@@ -370,7 +370,7 @@ sits_get_data.csv_raster_cube <- function(cube,
     # check if data has been retrieved
     .sits_get_data_check(nrow(csv), nrow(data))
 
-    if (!("sits" %in% class(data))) {
+    if (!inherits(data, "sits")) {
           class(data) <- c("sits", class(data))
       }
     return(data)
@@ -438,9 +438,9 @@ sits_get_data.shp_raster_cube <- function(cube,
     # join the results
     data <- dplyr::bind_rows(ts_rows)
     # adjust for the class of the data
-    if (!("sits" %in% class(data))) {
-          class(data) <- c("sits", class(data))
-      }
+    if (!inherits(data, "sits")) {
+        class(data) <- c("sits", class(data))
+    }
     return(data)
 }
 

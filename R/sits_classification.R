@@ -40,7 +40,7 @@
 sits_classify <- function(data, ml_model, ...) {
 
     # is the data a sits tibble? If not, it must be a cube
-    if (!("sits" %in% class(data))) {
+    if (!inherits(data, "sits")) {
         # find out the generic cube class it belongs to
         class_data <- .sits_config_cube_class(.sits_cube_source(data))
         class(data) <- c(class_data, class(data))

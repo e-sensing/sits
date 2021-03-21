@@ -999,7 +999,7 @@ plot.keras_model <- function(x, y, ...) {
 #' @param  whatmap    What data layer will be plotted.
 .sits_plot_som_map <- function(koh, type = "codes", whatmap = 1) {
     # Sanity check
-    if (!("som_map" %in% class(koh))) {
+    if (!inherits(koh, "som_map")) {
         message("wrong input data; please run sits_som_map first")
         return(invisible(NULL))
     }
@@ -1046,7 +1046,7 @@ plot.keras_model <- function(x, y, ...) {
 #' @param title         Title of plot.
 #' @return              ggplot2 object
 .sits_plot_som_evaluate_cluster <- function(data, cluster_name = NULL, title = "Confusion by cluster") {
-    if (!("som_evaluate_cluster" %in% class(data))) {
+    if (!inherits(data, "som_evaluate_cluster")) {
         message("unable to plot - please run sits_som_evaluate_cluster")
         return(invisible(NULL))
     }

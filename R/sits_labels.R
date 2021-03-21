@@ -135,7 +135,7 @@ sits_relabel <- function(data, conv_lst) {
                               fun_label = function(lb) lb) {
 
     # get labels for sits tibble
-    if ("sits" %in% class(data)) {
+    if (inherits(data, "sits")) {
         # backward compatibility
         data <- .sits_tibble_rename(data)
         # verify if data is correct
@@ -144,12 +144,12 @@ sits_relabel <- function(data, conv_lst) {
         u_labels <- base::unique(data$label)
     }
     else {
-        if ("pred_ref" %in% class(data)) {
-              # get labels for pred_ref tibble
-              u_labels <- base::unique(data$reference)
-          } else {
-              stop("sits_labels_list - wrong class of input")
-          }
+        if (inherits(data, "pred_ref")) {
+            # get labels for pred_ref tibble
+            u_labels <- base::unique(data$reference)
+        } else {
+            stop("sits_labels_list - wrong class of input")
+        }
     }
 
     # prepare result
