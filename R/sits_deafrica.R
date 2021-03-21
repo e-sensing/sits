@@ -69,8 +69,11 @@
         items_info <- .sits_deafrica_search_tiles(items_info, tiles)
 
     # checks if the collection returned any items
-    assertthat::assert_that(!(rstac::items_length(items_info) == 0),
-                            msg = "The provided search returned 0 items found.")
+    assertthat::assert_that(
+        rstac::items_length(items_info) != 0,
+        msg = paste(".sits_deafrica_items: the provided search returned",
+                    "0 items found.")
+    )
 
     # getting bands name
     items_info <- .sits_deafrica_bands(items_info, bands)
@@ -120,8 +123,11 @@
     items$features <- items$features[index_features]
 
     # checks if the search return zero items
-    assertthat::assert_that(!(rstac::items_length(items) == 0),
-                            msg = "The supplied tile(s) were not found.")
+    assertthat::assert_that(
+        rstac::items_length(items) != 0,
+        msg = paste(".sits_deafrica_search_tiles: the supplied tile(s) were",
+                    "not found.")
+    )
 
     return(items)
 }
@@ -204,15 +210,19 @@
 
         # converting to upper bands
         bands <- toupper(bands)
+
         # convert bands to those known by the cloud provider
-        bands_stac <- .sits_config_bands_stac_read(stac_provider = "DEAFRICA",
-                                              sensor = item_prop$instruments,
-                                              bands = bands)
+        bands_stac <- .sits_config_bands_stac_read(
+            stac_provider = "DEAFRICA",
+            sensor = item_prop$instruments,
+            bands = bands)
 
         # converting to upper bands
-        assertthat::assert_that(all(bands_stac %in% items$bands),
-                                msg = paste("The supplied bands do not match",
-                                            "the data cube bands."))
+        assertthat::assert_that(
+            all(bands_stac %in% items$bands),
+            msg = paste(".sits_deafrica_bands: The supplied bands do not",
+                        "match the data cube bands.")
+        )
 
         items$bands <- items$bands[items$bands %in% bands_stac]
     }
