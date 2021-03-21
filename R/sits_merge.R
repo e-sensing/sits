@@ -1,5 +1,7 @@
 #' @title Merge two data sets (time series or cubes)
+#'
 #' @name sits_merge
+#'
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'
 #' @description To merge two series, we consider that they contain different
@@ -13,6 +15,7 @@
 #'
 #' @param data1      sits tibble or cube to be merged.
 #' @param data2      sits tibble or cube to be merged.
+#'
 #' @return merged data sets
 #'
 #' @examples {
@@ -22,17 +25,18 @@
 #' point_ws.tb <- sits_whittaker(point_ndvi, lambda = 3.0)
 #' # Plot the two points to see the smoothing effect
 #' plot(sits_merge(point_ndvi, point_ws.tb))
-#'
-#'
 #' }
+#'
 #' @export
+#'
 sits_merge <- function(data1, data2) {
     # get the meta-type (sits or cube)
     data1 <- .sits_config_data_meta_type(data1)
 
     UseMethod("sits_merge", data1)
 }
-#' @rdname sits_merge
+
+#' @export
 #'
 sits_merge.sits <- function(data1, data2) {
 
@@ -45,13 +49,15 @@ sits_merge.sits <- function(data1, data2) {
     data2 <- .sits_tibble_rename(data2)
 
     # if some parameter is empty returns the another one
-    assertthat::assert_that(nrow(data1) > 0 & nrow(data2) > 0,
-                            msg = "sits_merge: invalid input data"
+    assertthat::assert_that(
+        nrow(data1) > 0 & nrow(data2) > 0,
+        msg = "sits_merge: invalid input data"
     )
 
     # verify if data1.tb and data2.tb has the same number of rows
-    assertthat::assert_that(NROW(data1) == NROW(data2),
-                            msg = "sits_merge: cannot merge tibbles of different sizes"
+    assertthat::assert_that(
+        nrow(data1) == nrow(data2),
+        msg = "sits_merge: cannot merge tibbles of different sizes"
     )
 
     # are the names of the bands different?
@@ -80,31 +86,40 @@ sits_merge.sits <- function(data1, data2) {
     )
     return(result)
 }
-#' @rdname sits_merge
+
+#' @export
 #'
 sits_merge.cube <- function(data1, data2) {
+
     # preconditions
-    assertthat::assert_that(nrow(data1) == 1 & nrow(data2) == 1,
-                            msg = "merge only works from simple cubes (one tibble row)"
+    assertthat::assert_that(
+        nrow(data1) == 1 & nrow(data2) == 1,
+        msg = "sits_merge: merge only works from simple cubes (one tibble row)"
     )
-    assertthat::assert_that(data1$satellite == data2$satellite,
-                            msg = "cubes from different satellites"
+    assertthat::assert_that(
+        data1$satellite == data2$satellite,
+        msg = "sits_merge: cubes from different satellites"
     )
-    assertthat::assert_that(data1$sensor == data2$sensor,
-                            msg = "cubes from different sensors"
+    assertthat::assert_that(
+        data1$sensor == data2$sensor,
+        msg = "sits_merge: cubes from different sensors"
     )
-    assertthat::assert_that(all(sits_bands(data1) != sits_bands(data2)),
-                            msg = "merge cubes requires different bands in each cube"
+    assertthat::assert_that(
+        all(sits_bands(data1) != sits_bands(data2)),
+        msg = "sits_merge: merge cubes requires different bands in each cube"
     )
-    assertthat::assert_that(all(sits_bbox(data1) == sits_bbox(data2)),
-                            msg = "merge cubes requires same bounding boxes"
+    assertthat::assert_that(
+        all(sits_bbox(data1) == sits_bbox(data2)),
+        msg = "sits_merge: merge cubes requires same bounding boxes"
     )
-    assertthat::assert_that(data1$xres == data2$xres &
-                                data1$yres == data2$yres,
-                            msg = "merge cubes requires same resolution"
+    assertthat::assert_that(
+        data1$xres == data2$xres &&
+            data1$yres == data2$yres,
+        msg = "sits_merge: merge cubes requires same resolution"
     )
-    assertthat::assert_that(all(sits_timeline(data1) == sits_timeline(data2)),
-                            msg = "merge cubes requires same timeline"
+    assertthat::assert_that(
+        all(sits_timeline(data1) == sits_timeline(data2)),
+        msg = "sits_merge: merge cubes requires same timeline"
     )
 
     # get the file information
@@ -114,6 +129,7 @@ sits_merge.cube <- function(data1, data2) {
     file_info_1 <- file_info_1 %>%
         dplyr::bind_rows(file_info_2) %>%
         dplyr::arrange(date)
+
     # merge the file info and the bands
     data1$file_info[[1]] <- file_info_1
     data1$bands[[1]] <- c(sits_bands(data1), sits_bands(data2))
