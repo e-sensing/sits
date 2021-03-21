@@ -22,11 +22,13 @@
 #' sits_show_prediction(point_class)
 #' @export
 sits_show_prediction <- function(class) {
+
     .sits_test_tibble(class)
-    assertthat::assert_that(all(names(class$predicted[[1]])
-    %in% c("from", "to", "class", "probs")),
-    msg = "sits_show_prediction: tibble has not been classified"
+    assertthat::assert_that(
+        all(names(class$predicted[[1]]) %in% c("from", "to", "class", "probs")),
+        msg = "sits_show_prediction: tibble has not been classified"
     )
+
     return(dplyr::select(
         dplyr::bind_rows(class$predicted),
         c("from", "to", "class")
