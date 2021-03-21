@@ -29,7 +29,9 @@
 #' )
 #' # calculate and print the confusion matrix
 #' conf_matrix <- sits_conf_matrix(pred_ref)
+#'
 #' @export
+#'
 sits_conf_matrix <- function(data, conv_lst = NULL) {
 
     # require package
@@ -248,7 +250,9 @@ sits_conf_matrix <- function(data, conv_lst = NULL) {
 #' xlsx_file <- paste0(tempdir(), "confusion_matrix.xlsx")
 #' sits_to_xlsx(results, file = xlsx_file)
 #' }
+#'
 #' @export
+#'
 sits_to_xlsx <- function(conf_lst, file) {
 
     # create a workbook to save the results

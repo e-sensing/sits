@@ -37,7 +37,7 @@ sits_select <- function(data, bands) {
 #' data <- sits_select(cerrado_2classes, bands = c("NDVI"))
 #' # Print the labels of the resulting tibble
 #' sits_bands(data)
-#' @export
+#'
 sits_select.sits <- function(data, bands) {
     # backward compatibility
     data <- .sits_tibble_rename(data)
@@ -72,8 +72,6 @@ sits_select.sits <- function(data, bands) {
 #' @param bands        vector with the names of the bands
 #' @return A data cube with the selected bands.
 #'
-#' @export
-#'
 sits_select.cube <- function(data, bands) {
     assertthat::assert_that(bands %in% sits_bands(data),
         msg = "requested bands are not available in the data cube"
@@ -96,8 +94,9 @@ sits_select.cube <- function(data, bands) {
 #'
 #' @param data         A sits tibble metadata and data on time series.
 #' @param bands        Character vector with the names of the bands
+#'
 #' @return A tibble in sits format with the selected bands.
-#' @export
+#'
 sits_select.patterns <- function(data, bands) {
     result <- sits_select.sits(data, bands)
 

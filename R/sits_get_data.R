@@ -119,7 +119,7 @@ sits_get_data <- function(cube,
 }
 #' @title Get lat/long data from SATVEG cube
 #' @rdname sits_get_data
-#' @export
+#'
 sits_get_data.satveg_cube <- function(cube,
                                       file = NULL,
                                       ...,
@@ -155,7 +155,7 @@ sits_get_data.satveg_cube <- function(cube,
 }
 #' @title Get data from SATVEG based on CSV file
 #' @rdname sits_get_data
-#' @export
+#'
 sits_get_data.csv_satveg_cube <- function(cube,
                                           file,
                                           ...) {
@@ -207,8 +207,6 @@ sits_get_data.csv_satveg_cube <- function(cube,
 #' @title Obtain time series from SATVEG based on SHP file
 #' @rdname sits_get_data
 #'
-#' @export
-#'
 sits_get_data.shp_satveg_cube <- function(cube,
                                           file,
                                           ...,
@@ -259,8 +257,6 @@ sits_get_data.shp_satveg_cube <- function(cube,
 }
 #' @title Obtain time series from raster cube
 #' @rdname sits_get_data
-#'
-#' @export
 #'
 sits_get_data.raster_cube <- function(cube,
                                       file = NULL,
@@ -324,7 +320,6 @@ sits_get_data.raster_cube <- function(cube,
 
 #' @title Obtain time series from brick based on CSV file
 #' @rdname sits_get_data
-#' @export
 #'
 sits_get_data.csv_raster_cube <- function(cube,
                                           file,
@@ -383,8 +378,6 @@ sits_get_data.csv_raster_cube <- function(cube,
 
 #' @title Obtain time series from brick based on SHP file
 #' @rdname sits_get_data
-#'
-#' @export
 #'
 sits_get_data.shp_raster_cube <- function(cube,
                                           file,

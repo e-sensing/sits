@@ -68,15 +68,18 @@ sits_deeplearning <- function(samples = NULL,
     result_fun <- function(data) {
 
         # pre-conditions
-        assertthat::assert_that(length(layers) == length(dropout_rates),
+        assertthat::assert_that(
+            length(layers) == length(dropout_rates),
             msg = "sits_deeplearning: number of layers does not match
                         number of dropout rates"
         )
-        assertthat::assert_that(length(activation) == 1,
+        assertthat::assert_that(
+            length(activation) == 1,
             msg = "sits_deeplearning: use only one activation function"
         )
         valid_activations <- c("relu", "elu", "selu", "sigmoid")
-        assertthat::assert_that(activation %in% valid_activations,
+        assertthat::assert_that(
+            activation %in% valid_activations,
             msg = "sits_deeplearning: invalid node activation method"
         )
         # data normalization
@@ -84,7 +87,8 @@ sits_deeplearning <- function(samples = NULL,
         train_data <- .sits_distances(.sits_normalize_data(data, stats))
 
         # is the training data correct?
-        assertthat::assert_that("reference" %in% names(train_data),
+        assertthat::assert_that(
+            "reference" %in% names(train_data),
             msg = "sits_deeplearning:
                    input data does not contain distances"
         )

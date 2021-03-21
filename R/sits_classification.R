@@ -85,7 +85,6 @@ sits_classify <- function(data, ml_model, ...) {
 #'
 #' # classify the point
 #' point_class <- sits_classify(point_ndvi, rfor_model)
-#' @export
 #'
 sits_classify.sits <- function(data, ml_model, ...,
                                filter_fn = NULL,
@@ -242,7 +241,6 @@ sits_classify.sits <- function(data, ml_model, ...,
 #' label_cube <- sits_label_classification(probs_cube, output_dir = tempdir())
 #' }
 #'
-#' @export
 sits_classify.raster_cube <- function(data, ml_model, ...,
                                       roi = NULL,
                                       filter_fn = NULL,

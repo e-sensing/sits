@@ -14,6 +14,7 @@
 #' sits_labels(cerrado_2classes)
 #'
 #' @export
+#'
 sits_labels <- function(data) {
 
     # get the meta-type (sits or cube)
@@ -88,7 +89,9 @@ sits_labels.patterns <- function(data) {
 #' new_data <- sits_relabel(samples_mt_4bands, conv_lst)
 #' # show the new labels
 #' sits_labels(new_data)
+#'
 #' @export
+#'
 sits_relabel <- function(data, conv_lst) {
     # backward compatibility
     data <- .sits_tibble_rename(data)

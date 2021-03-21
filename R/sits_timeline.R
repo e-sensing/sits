@@ -273,7 +273,6 @@ sits_timeline.classified_image <- function(data) {
 #' nsamples <- 23
 #' dates <- sits:::.sits_timeline_match(timeline_2000_2017,
 #'                  ref_start_date, ref_end_date, nsamples)
-#' @export
 .sits_timeline_match <- function(timeline,
                                  ref_start_date,
                                  ref_end_date,

@@ -40,7 +40,8 @@
 #' # print the confidence matrix
 #' sits_conf_matrix(conf_matrix.mx)
 #' }
-#' @export
+#'
+#'
 sits_kfold_validate <- function(data, folds = 5,
                                 ml_method = sits_rfor(), multicores = 2) {
 

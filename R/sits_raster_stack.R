@@ -25,8 +25,6 @@
 #'              columns for parsing are "X1, X2, X3, X4, X5, date, X7, band".
 #'              In the second, they are "band, date".
 #'
-#' @export
-#'
 .sits_raster_stack_info <- function(satellite,
                                     sensor,
                                     data_dir,

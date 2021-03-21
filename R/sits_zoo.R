@@ -19,7 +19,9 @@
 #'     longitude = -54.2313, latitude = -14.0482,
 #'     label = "Cerrado", name = "mod13q1"
 #' )
+#'
 #' @export
+#'
 sits_from_zoo <- function(ts_zoo, longitude = 0.00, latitude = 0.00,
                           label = "NoClass", name = "unknown") {
     # verifies if zoo package is installed
@@ -68,7 +70,9 @@ sits_from_zoo <- function(ts_zoo, longitude = 0.00, latitude = 0.00,
 #' data(cerrado_2classes)
 #' # export a time series to zoo
 #' zoo.lst <- sits_to_zoo(cerrado_2classes[1:5, ])
+#'
 #' @export
+#'
 sits_to_zoo <- function(data, band = NULL) {
     # verifies if zoo package is installed
     if (!requireNamespace("zoo", quietly = TRUE)) {

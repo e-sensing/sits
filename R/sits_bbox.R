@@ -18,7 +18,7 @@ sits_bbox <- function(data) {
     UseMethod("sits_bbox", data)
 }
 #' @rdname sits_bbox
-#' @export
+#'
 sits_bbox.sits <- function(data) {
     # is the data a valid set of time series
     .sits_test_tibble(data)
@@ -34,7 +34,7 @@ sits_bbox.sits <- function(data) {
     return(bbox)
 }
 #' @rdname sits_bbox
-#' @export
+#'
 sits_bbox.cube <- function(data) {
 
     # create and return the bounding box

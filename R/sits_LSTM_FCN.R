@@ -65,7 +65,9 @@
 #' class <- sits_classify(point, lstm_cnn_model)
 #' plot(class, bands = c("NDVI", "EVI"))
 #' }
+#'
 #' @export
+#'
 sits_LSTM_FCN <- function(samples = NULL,
                           lstm_units = 8,
                           lstm_dropout = 0.80,

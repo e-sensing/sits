@@ -194,7 +194,9 @@
 #'     probs_files = probs_file
 #' )
 #' }
+#'
 #' @export
+#'
 sits_cube <- function(source, ...) {
 
     spec_class <- .sits_config_cube_class(source)
@@ -294,7 +296,7 @@ sits_cube.bdc_cube <- function(source = "BDC",
 }
 #' @title Defines a data cube for Digital Earth Africa STAC
 #' @rdname sits_cube
-#' @export
+#'
 sits_cube.deafrica_cube <- function(source = "DEAFRICA",
                                     ...,
                                     name = "deafrica_cube",
@@ -377,7 +379,6 @@ sits_cube.deafrica_cube <- function(source = "DEAFRICA",
 }
 #' @title Defines a data cube for a Sentinel-2 L2A AWS cube
 #' @rdname sits_cube
-#' @export
 #'
 sits_cube.aws_cube <- function(source = "AWS",
                                ...,
@@ -465,7 +466,6 @@ sits_cube.aws_cube <- function(source = "AWS",
 #' @title Defines a cube from a set of single image files
 #' @rdname sits_cube
 #'
-#' @export
 sits_cube.local_cube <- function(source = "LOCAL",
                                  ...,
                                  name   = "local_cube",
@@ -519,7 +519,7 @@ sits_cube.local_cube <- function(source = "LOCAL",
 
 #' @title Defines a cube from a classified image
 #' @rdname sits_cube
-#' @export
+#'
 sits_cube.probs_cube <- function(source = "PROBS",
                                  ...,
                                  name = "probs_cube",
@@ -578,7 +578,6 @@ sits_cube.probs_cube <- function(source = "PROBS",
 }
 #' @title Defines a data cube for the SATVEG service
 #' @rdname sits_cube
-#' @export
 #'
 sits_cube.satveg_cube <- function(source = "SATVEG",
                                   ...,
@@ -601,10 +600,8 @@ sits_cube.satveg_cube <- function(source = "SATVEG",
 #' @param source            Source of data
 #' @param ...               Other parameters to be passed for specific types
 #'
-#' @export
 sits_cube.default <- function(source = NULL, ...) {
-    stop("Error - cube source unknown"
-    )
+    stop("Error - cube source unknown")
 }
 #' @title Creates the contents of a data cube
 #' @name sits_cube_copy

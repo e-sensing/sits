@@ -33,7 +33,7 @@ sits_merge <- function(data1, data2) {
     UseMethod("sits_merge", data1)
 }
 #' @rdname sits_merge
-#' @export
+#'
 sits_merge.sits <- function(data1, data2) {
 
     # precondition
@@ -81,7 +81,6 @@ sits_merge.sits <- function(data1, data2) {
     return(result)
 }
 #' @rdname sits_merge
-#' @export
 #'
 sits_merge.cube <- function(data1, data2) {
     # preconditions

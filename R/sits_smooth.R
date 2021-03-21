@@ -103,7 +103,6 @@ sits_smooth <- function(cube, type = "bayes", ...) {
 #'
 #' @rdname  sits_smooth
 #'
-#' @export
 sits_smooth.bayes <- function(cube, type = "bayes", ...,
                               window_size = 5,
                               smoothness = 20,
@@ -221,7 +220,6 @@ sits_smooth.bayes <- function(cube, type = "bayes", ...,
 #' @title Post-process a probability cube using Gaussian smoothing
 #' @rdname  sits_smooth
 #'
-#' @export
 sits_smooth.gaussian <- function(cube, type = "gaussian", ...,
                                  window_size = 5,
                                  sigma = 1,
@@ -313,7 +311,6 @@ sits_smooth.gaussian <- function(cube, type = "gaussian", ...,
 }
 #' @title Post-process a probability cube using using bilinear smoothing
 #' @rdname  sits_smooth
-#' @export
 sits_smooth.bilinear <- function(cube,
                                  type = "bilinear",
                                  ...,

@@ -34,7 +34,9 @@
 #' ml_model <- sits_train(samples, sits_rfor(num_trees = 100))
 #' # get a point and classify the point with the ml_model
 #' class <- sits_classify(point_ndvi, ml_model)
+#'
 #' @export
+#'
 sits_train <- function(data, ml_method = sits_svm()) {
     # backward compatibility
     data <- .sits_tibble_rename(data)
@@ -98,7 +100,9 @@ sits_train <- function(data, ml_method = sits_svm()) {
 #' class.tb <- sits_classify(point.tb, ml_model)
 #' plot(class.tb, bands = c("NDVI", "EVI"))
 #' }
+#'
 #' @export
+#'
 sits_lda <- function(data = NULL, formula = sits_formula_logref(), ...) {
     # backward compatibility
     data <- .sits_tibble_rename(data)
@@ -182,7 +186,9 @@ sits_lda <- function(data = NULL, formula = sits_formula_logref(), ...) {
 #' qda_model <- sits_train(samples_mt_ndvi, sits_qda())
 #' # Classify a point
 #' class <- sits_classify(point_ndvi, qda_model)
+#'
 #' @export
+#'
 sits_qda <- function(data = NULL, formula = sits_formula_logref(), ...) {
     # backward compatibility
     data <- .sits_tibble_rename(data)
@@ -266,7 +272,9 @@ sits_qda <- function(data = NULL, formula = sits_formula_logref(), ...) {
 #' class.tb <- sits_classify(point.tb, ml_model)
 #' plot(class.tb, bands = c("NDVI", "EVI"))
 #' }
+#'
 #' @export
+#'
 sits_mlr <- function(data = NULL, formula = sits_formula_linear(),
                      n_weights = 20000, maxit = 2000, ...) {
 
@@ -349,7 +357,9 @@ sits_mlr <- function(data = NULL, formula = sits_formula_linear(),
 #'
 #' # get a point and classify the point with the ml_model
 #' class <- sits_classify(point_ndvi, ml_model)
+#'
 #' @export
+#'
 sits_ranger <- function(data = NULL,
                         num_trees = 2000,
                         importance = "impurity", ...) {
@@ -448,7 +458,9 @@ sits_ranger <- function(data = NULL,
 #' data(point_ndvi)
 #' # classify the point
 #' class.tb <- sits_classify(point_ndvi, rfor_model)
+#'
 #' @export
+#'
 sits_rfor <- function(data = NULL, num_trees = 2000, nodesize = 1, ...) {
 
     # verifies if ranger package is installed
@@ -536,7 +548,9 @@ sits_rfor <- function(data = NULL, num_trees = 2000, nodesize = 1, ...) {
 #' class.tb <- sits_classify(point.tb, ml_model)
 #' plot(class.tb, bands = c("NDVI", "EVI"))
 #' }
+#'
 #' @export
+#'
 sits_svm <- function(data = NULL, formula = sits_formula_logref(),
                      scale = FALSE, cachesize = 1000,
                      kernel = "radial", degree = 3, coef0 = 0,
@@ -663,6 +677,7 @@ sits_svm <- function(data = NULL, formula = sits_formula_logref(),
 #' class.tb <- sits_classify(point.tb, xgb_model)
 #' plot(class.tb, bands = c("NDVI", "EVI"))
 #' }
+#'
 #' @export
 #'
 sits_xgboost <- function(data = NULL,
@@ -788,6 +803,7 @@ sits_xgboost <- function(data = NULL,
 #' @return A function that computes a valid formula.
 #'
 #' @export
+#'
 sits_formula_logref <- function(predictors_index = -2:0) {
     # store configuration information about model formula
     sits_env$model_formula <- "log"
@@ -839,6 +855,7 @@ sits_formula_logref <- function(predictors_index = -2:0) {
 #' @return A function that computes a valid formula.
 #'
 #' @export
+#'
 sits_formula_linear <- function(predictors_index = -2:0) {
     # store configuration information about model formula
     sits_env$model_formula <- "linear"
