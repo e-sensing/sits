@@ -61,7 +61,7 @@ test_that("Reading a CSV file from SATVEG", {
     expect_equal(max(points$longitude), -46.407, tolerance = 1e-5)
     expect_equal(max(points$latitude), -10.4142, tolerance = 1e-5)
 
-    mylabels <- sits_labels(points)
+    mylabels <- sits_labels_summary(points)
 
     expect_equal(dplyr::filter(mylabels, label == "Cerrado")$count, 3)
     expect_equal(dplyr::filter(mylabels, label == "Pasture")$count, 3)

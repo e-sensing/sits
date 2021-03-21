@@ -19,7 +19,7 @@ Finds labels in a sits tibble
 # read a tibble with 400 samples of Cerrado and 346 samples of Pasture
 data(cerrado_2classes)
 # print the labels
-sits_summary(cerrado_2classes)
+sits_labels_summary(cerrado_2classes)
 
 }
 \author{

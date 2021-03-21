@@ -14,13 +14,13 @@
 #' # read a tibble with 400 samples of Cerrado and 346 samples of Pasture
 #' data(cerrado_2classes)
 #' # print the labels
-#' sits_summary(cerrado_2classes)
+#' sits_labels_summary(cerrado_2classes)
 #'
 #' @export
 #'
 sits_labels_summary <- function(data) {
 
-    UseMethod("sits_summary", data)
+    UseMethod("sits_labels_summary", data)
 }
 
 #' @export
