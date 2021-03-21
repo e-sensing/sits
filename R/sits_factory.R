@@ -60,7 +60,7 @@
 
         # evaluate the expression
         if (!is.null(old_fn)) {
-            data <- modifyList(old_fn(data))
+            data <- utils::modifyList(old_fn(data))
         }
 
         return(eval(.dots, envir = data))
