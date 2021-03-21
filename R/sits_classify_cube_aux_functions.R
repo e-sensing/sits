@@ -49,7 +49,7 @@
                 dst_dataset = tempfile(fileext = ".tif"),
                 b = 1,
                 tr = c(resolution, resolution),
-                r = sits:::.sits_config_resampling(cube_tile$sensor, band),
+                r = .sits_config_resampling(cube_tile$sensor, band),
                 srcwin = c(block$c1,
                            block$r1,
                            block$c2 - block$c1 + 1,
