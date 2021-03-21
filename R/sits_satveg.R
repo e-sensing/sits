@@ -7,10 +7,14 @@
 #' @param collection      SATVEG collection to be used.
 .sits_satveg_cube <- function(collection) {
 
-    assertthat::assert_that(collection %in% c("terra", "aqua", "comb"),
-                            msg = "invalid SATVEG collection")
+    assertthat::assert_that(
+        collection %in% c("terra", "aqua", "comb"),
+        msg = ".sits_satveg_cube: invalid SATVEG collection"
+    )
+
     satellite <- "TERRA"
     sensor <- "MODIS"
+
     # get the bands
     bands <- .sits_config_satveg_bands()
 
@@ -86,10 +90,12 @@
                               label = "NoClass") {
 
     # check parameters
-    assertthat::assert_that(!purrr::is_null(longitude),
+    assertthat::assert_that(
+        !purrr::is_null(longitude),
         msg = "sits_from_satveg: Missing longitude info"
     )
-    assertthat::assert_that(!purrr::is_null(latitude),
+    assertthat::assert_that(
+        !purrr::is_null(latitude),
         msg = "sits_from_satveg: Missing latitude info"
     )
 
@@ -98,26 +104,26 @@
 
     # filter the dates
     if (!purrr::is_null(start_date) & !purrr::is_null(end_date)) {
-          ts <- dplyr::filter(ts, dplyr::between(
-              ts$Index,
-              start_date, end_date
-          ))
-      } else {
+        ts <- dplyr::filter(ts, dplyr::between(
+            ts$Index,
+            start_date, end_date
+        ))
+    } else {
         start_date <- as.Date(ts$Index[1])
-        end_date <- as.Date(ts$Index[NROW(ts)])
+        end_date <- as.Date(ts$Index[nrow(ts)])
     }
 
     # create a tibble to store the SATVEG data
     data <- .sits_tibble()
     # add one row to the tibble
     data <- tibble::add_row(data,
-        longitude = longitude,
-        latitude = latitude,
-        start_date = start_date,
-        end_date = end_date,
-        label = label,
-        cube = cube$name,
-        time_series = list(ts)
+                            longitude = longitude,
+                            latitude = latitude,
+                            start_date = start_date,
+                            end_date = end_date,
+                            label = label,
+                            cube = cube$name,
+                            time_series = list(ts)
     )
     # rename the SATVEG bands to uppercase
     sits_bands(data) <- .sits_config_satveg_bands()
@@ -160,20 +166,19 @@
     get_times[1] <- TRUE
 
     # read each of the bands separately
-    ts_bands_lst <- purrr::map2(bands, get_times,
-                                function(b, gt) {
+    ts_bands_lst <- purrr::map2(bands, get_times, function(b, gt) {
         # Build the URL to retrieve the time series
         url_ts <- paste0(
-          url, b, "/ponto", "/", longitude, "/", latitude, "/",
-          name, "/", .prefilter, "/", filter, "/", filter_par
+            url, b, "/ponto", "/", longitude, "/", latitude, "/",
+            name, "/", .prefilter, "/", filter, "/", filter_par
         )
         # Get the data from SATVEG service
         satveg <- RCurl::getURL(url_ts)
 
         # did we get the data?
         if (grepl("Acesso", satveg)) {
-          message("SATVEG service not accessible")
-          return(NULL)
+            message("SATVEG service not accessible")
+            return(NULL)
         }
         # Retrieve the time series
         # find the place where the series ends and the dates start
@@ -187,14 +192,14 @@
         names(ts) <- b
         # read the timeline only once
         if (gt) {
-          timeline <- .sits_satveg_timeline_from_txt(satveg)
-          # create a tibble to store the data
-          index <- tibble::tibble(Index = timeline)
-          # store the band in the tibble
-          ts <- dplyr::bind_cols(index, ts)
+            timeline <- .sits_satveg_timeline_from_txt(satveg)
+            # create a tibble to store the data
+            index <- tibble::tibble(Index = timeline)
+            # store the band in the tibble
+            ts <- dplyr::bind_cols(index, ts)
         }
         return(ts)
-      })
+    })
 
     ts_satveg <- tibble::as_tibble(do.call(cbind, ts_bands_lst))
     return(ts_satveg)
@@ -283,19 +288,19 @@
     check <- tryCatch({
         # tries to connect to the SATVEG service
         satveg <- RCurl::getURL(url_test)
-        assertthat::assert_that(length(satveg) > 0,
-                              msg = "SATVEG service not available"
-                               )
-        },
-        error = function(e) {
-            msg <- paste0("SATVEG service not available")
-            message(msg)
-        }
-    )
+        assertthat::assert_that(
+            length(satveg) > 0,
+            msg = ".sits_satveg_check: SATVEG service not available"
+        )
+    }, error = function(e) {
+        msg <- paste0("SATVEG service not available")
+        message(msg)
+    })
+
     # did we get an error?
     if (inherits(check, "error")) {
-          return(FALSE)
-      } else {
-          return(TRUE)
-      }
+        return(FALSE)
+    } else {
+        return(TRUE)
+    }
 }
