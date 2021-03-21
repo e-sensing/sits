@@ -40,7 +40,8 @@ sits_conf_matrix <- function(data, conv_lst = NULL) {
     }
 
     # does the input data contain a set of predicted values?
-    assertthat::assert_that("predicted" %in% names(data),
+    assertthat::assert_that(
+        "predicted" %in% names(data),
         msg = "sits_conf_matrix: input data without predicted values"
     )
 
@@ -64,7 +65,8 @@ sits_conf_matrix <- function(data, conv_lst = NULL) {
         # select the label names
         names_ref <- unique(ref)
         # are all input labels in the coversion list?
-        assertthat::assert_that(all(names_ref %in% names(conv_lst)),
+        assertthat::assert_that(
+            all(names_ref %in% names(conv_lst)),
             msg = "sits_conf_matrix: missing reference labels"
         )
         pred <- as.character(conv_lst[pred])
@@ -110,10 +112,10 @@ sits_conf_matrix <- function(data, conv_lst = NULL) {
     overall <- round(x$overall, digits = digits)
 
     accuracy_ci <- paste("(",
-        paste(overall[c("AccuracyLower", "AccuracyUpper")],
-            collapse = ", "
-        ), ")",
-        sep = ""
+                         paste(overall[c("AccuracyLower", "AccuracyUpper")],
+                               collapse = ", "
+                         ), ")",
+                         sep = ""
     )
 
     overall_text <- c(
@@ -126,8 +128,8 @@ sits_conf_matrix <- function(data, conv_lst = NULL) {
     if (dim(x$table)[1] > 2) {
         cat("\nOverall Statistics\n")
         overall_names <- ifelse(overall_names == "",
-            "",
-            paste(overall_names, ":")
+                                "",
+                                paste(overall_names, ":")
         )
         out <- cbind(format(overall_names, justify = "right"), overall_text)
         colnames(out) <- rep("", ncol(out))
@@ -207,7 +209,8 @@ sits_conf_matrix <- function(data, conv_lst = NULL) {
     # retrieve the reference labels
     ref <- class$label
     # does the input data contained valid reference labels?
-    assertthat::assert_that(!("NoClass" %in% (ref)),
+    assertthat::assert_that(
+        !("NoClass" %in% (ref)),
         msg = "sits_accuracy: input data without labels"
     )
 
@@ -261,8 +264,9 @@ sits_to_xlsx <- function(conf_lst, file) {
     eo_n <- c("(Sensitivity)|(Specificity)|(Pos Pred Value)|(Neg Pred Value)")
 
     num_sheets <- length(conf_lst)
-    assertthat::assert_that(length(num_sheets) > 0,
-                            msg = "number of sheets should be at least one")
+    assertthat::assert_that(
+        length(num_sheets) > 0,
+        msg = "sits_to_xlsx: number of sheets should be at least one")
 
     # save all elements of the list
     purrr::map2(conf_lst, 1:num_sheets, function(cf_mat, ind) {
@@ -293,7 +297,7 @@ sits_to_xlsx <- function(conf_lst, file) {
             sheet = sheet_name,
             x = acc_kappa,
             rowNames = TRUE,
-            startRow = NROW(cf_mat$table) + 3,
+            startRow = nrow(cf_mat$table) + 3,
             startCol = 1
         )
 
@@ -334,7 +338,7 @@ sits_to_xlsx <- function(conf_lst, file) {
             sheet = sheet_name,
             x = acc_bc,
             rowNames = TRUE,
-            startRow = NROW(cf_mat$table) + 8,
+            startRow = nrow(cf_mat$table) + 8,
             startCol = 1
         )
     })
