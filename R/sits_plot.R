@@ -209,8 +209,9 @@ plot.raster_cube <- function(x, y, ..., red, green, blue, time = 1, roi = NULL) 
 
     }
 
-    assertthat::assert_that(raster::ncol(rast) > 0 & raster::nrow(rast) > 1,
-                    msg = "plot.raster_cube: unable to retrieve raster data"
+    assertthat::assert_that(
+        raster::ncol(rast) > 0 & raster::nrow(rast) > 1,
+        msg = "plot.raster_cube: unable to retrieve raster data"
     )
 
     # plot the RGB file
@@ -300,7 +301,8 @@ plot.classified_image <- function(x, y, ..., map = NULL, time = 1,
 
     # obtain the raster
     rl <- suppressWarnings(raster::raster(x$file_info[[1]]$path[time]))
-    assertthat::assert_that(raster::ncol(rl) > 0 & raster::nrow(rl) > 1,
+    assertthat::assert_that(
+        raster::ncol(rl) > 0 & raster::nrow(rl) > 1,
         msg = "plot.classified_image: unable to retrive raster data"
     )
     # create a RAT
@@ -916,7 +918,8 @@ plot.keras_model <- function(x, y, ...) {
 
 
     # ensures that a cluster object  exists
-    assertthat::assert_that(!purrr::is_null(cluster_obj),
+    assertthat::assert_that(
+        !purrr::is_null(cluster_obj),
         msg = "plot_dendrogram: no valid cluster object available"
     )
 
@@ -984,9 +987,13 @@ plot.keras_model <- function(x, y, ...) {
 
 
 #' @title  Plot the SOM grid with neurons labeled
+#'
 #' @name   .sits_plot_som_map
+#'
 #' @keywords internal
+#'
 #' @author Lorena Santos \email{lorena.santos@@inpe.br}
+#'
 #' @description Given a kohonen object with a set of time neurons, plot them.
 #'
 #' The plot function produces different plots based on the input data:
@@ -994,9 +1001,11 @@ plot.keras_model <- function(x, y, ...) {
 #'  \item{"codes": }{Plot the vector weight for each neuron.}
 #'  \item{"mapping": }{Shows where samples are mapped.}
 #' }
+#'
 #' @param  koh        SOM map produced by "sits_som_map" function
 #' @param  type       Type of plot ("codes" or "mapping")
 #' @param  whatmap    What data layer will be plotted.
+#'
 .sits_plot_som_map <- function(koh, type = "codes", whatmap = 1) {
     # Sanity check
     if (!inherits(koh, "som_map")) {
@@ -1034,8 +1043,11 @@ plot.keras_model <- function(x, y, ...) {
 }
 
 #' @title  Plot information about confusion between clusters
+#'
 #' @name   .sits_plot_som_evaluate_cluster
+#'
 #' @keywords internal
+#'
 #' @author Lorena Santos \email{lorena.santos@@inpe.br}
 #'
 #' @description Plot a bar graph with information about each cluster.
@@ -1044,6 +1056,7 @@ plot.keras_model <- function(x, y, ...) {
 #' @param data          Percentage of mixture between the clusters
 #' @param  name_cluster Choose the cluster to plot
 #' @param title         Title of plot.
+#'
 #' @return              ggplot2 object
 .sits_plot_som_evaluate_cluster <- function(data, cluster_name = NULL, title = "Confusion by cluster") {
     if (!inherits(data, "som_evaluate_cluster")) {
@@ -1076,9 +1089,13 @@ plot.keras_model <- function(x, y, ...) {
     p <- graphics::plot(p)
     return(invisible(p))
 }
+
 #' @title  Assign RGB channels to for raster stack cubes
+#'
 #' @name   .sits_plot_rgb_stack
+#'
 #' @keywords internal
+#'
 #' @author Gilberto Camara \email{gilberto.camara@@inpe.br}
 #'
 #' @description Obtain a vector with the correct layer to be plotted for
@@ -1090,26 +1107,39 @@ plot.keras_model <- function(x, y, ...) {
 #' @param green      Band to be assigned to G channel
 #' @param blue       Band to be assigned to G channel
 #' @param time       Temporal instance to be plotted
+#'
 #' @return           Named vector with the correct layers for RGB
-.sits_plot_rgb_stack <- function(bands, timeline,
-                                 red, green, blue, time) {
+.sits_plot_rgb_stack <- function(bands, timeline, red, green, blue, time) {
 
     # check if the selected bands are correct
     all_bands <- paste0(bands, collapse = " ")
-    assertthat::assert_that(red %in% bands,
-                          msg = paste0("R channel should be one of ", all_bands)
+
+    assertthat::assert_that(
+        red %in% bands,
+        msg = paste(".sits_plot_rgb_stack: R channel should be one of",
+                    all_bands)
     )
-    assertthat::assert_that(green %in% bands,
-                          msg = paste0("G channel should be one of ", all_bands)
+
+    assertthat::assert_that(
+        green %in% bands,
+        msg = paste(".sits_plot_rgb_stack: G channel should be one of",
+                    all_bands)
     )
-    assertthat::assert_that(blue %in% bands,
-                          msg = paste0("B channel should be one of ", all_bands)
+
+    assertthat::assert_that(
+        blue %in% bands,
+        msg = paste0(".sits_plot_rgb_stack: B channel should be one of ",
+                     all_bands)
     )
+
     # find out the number of instances
     n_instances <- length(timeline)
     # check if the selected temporal instance exists
-    assertthat::assert_that(time <= n_instances,
-                            msg = sprintf("Time '%s' is out of bounds.", time))
+    assertthat::assert_that(
+        time <= n_instances,
+        msg = paste0(".sits_plot_rgb_stack: time '", time,
+                     "' is out of bounds.")
+    )
 
     # locate the instances
     instances_lst <- purrr::map(c(red, green, blue),
