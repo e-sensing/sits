@@ -11,7 +11,6 @@
   filter_fn = NULL,
   stats = NULL,
   impute_fn,
-  multicores,
   .verbose = FALSE
 )
 }
@@ -27,8 +26,6 @@
 \item{stats}{normalization parameters.}
 
 \item{impute_fn}{imputing function to be applied to replace NA}
-
-\item{multicores}{number of cores to process the time series.}
 
 \item{.verbose}{prints information about processing times}
 }

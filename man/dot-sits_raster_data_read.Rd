@@ -12,8 +12,7 @@
   filter_fn,
   impute_fn,
   interp_fn,
-  compose_fn,
-  multicores
+  compose_fn
 )
 }
 \arguments{
@@ -32,8 +31,6 @@
 \item{interp_fn}{function to interpolate points from cube to match samples}
 
 \item{compose_fn}{function to compose points from cube to match samples}
-
-\item{multicores}{number of cores to process the time series.}
 }
 \value{
 A data.table with values for classification.

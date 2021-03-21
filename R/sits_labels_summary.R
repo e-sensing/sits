@@ -1,5 +1,5 @@
 #' @title Returns the information about labels of a tibble data set
-#' @name sits_summary
+#' @name sits_labels_summary
 #' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
 #'
 #' @description  Finds labels in a sits tibble
@@ -14,15 +14,14 @@
 #' sits_summary(cerrado_2classes)
 #'
 #' @export
-sits_summary <- function(data) {
-
+sits_labels_summary <- function(data) {
 
     UseMethod("sits_summary", data)
 }
 
-#' @rdname sits_summary
+#' @rdname sits_labels_summary
 #'
-sits_summary.sits <- function(data) {
+sits_labels_summary.sits <- function(data) {
 
     # backward compatibility
     data <- .sits_tibble_rename(data)
