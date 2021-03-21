@@ -1,10 +1,13 @@
 #' @title Returns the information about labels of a data set (tibble or cube)
+#'
 #' @name sits_labels
+#'
 #' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
 #'
 #' @description  Finds labels in a sits tibble or data cube
 #'
 #' @param data      Valid sits tibble (time series or a cube)
+#'
 #' @return A string vector with the labels.
 #'
 #' @examples
@@ -22,33 +25,29 @@ sits_labels <- function(data) {
 
     UseMethod("sits_labels", data)
 }
-#' @rdname sits_labels
+
+#' @export
 #'
 sits_labels.sits <- function(data) {
 
     return(sort(unique(data$label)))
 }
 
-#' @details sits_labels.cube: returns the information about labels of a
-#' data cube
-#' @rdname sits_labels
+#' @export
 #'
 sits_labels.cube <- function(data) {
 
     return(data$labels[[1]])
 }
 
-#' @details sits_labels.predicted: returns the information about labels of a
-#' predicted tibble
-#' @rdname sits_labels
+#' @export
 #'
 sits_labels.predicted <- function(data) {
 
     return(sits_labels.sits(data))
 }
-#' @details sits_labels.patterns: returns the information about labels of
-#' patterns tibble
-#' @rdname sits_labels
+
+#' @export
 #'
 sits_labels.patterns <- function(data) {
 
@@ -56,7 +55,9 @@ sits_labels.patterns <- function(data) {
 }
 
 #' @title Relabels a sits tibble
+#'
 #' @name sits_relabel
+#'
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
 #'
