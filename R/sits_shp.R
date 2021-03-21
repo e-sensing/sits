@@ -29,11 +29,11 @@
                                           label)
     }
     else {
-          points.tb <- .sits_from_polygon_shp(sf_shape,
-                                              shp_attr,
-                                              label,
-                                              .n_shp_pol)
-      }
+        points.tb <- .sits_from_polygon_shp(sf_shape,
+                                            shp_attr,
+                                            label,
+                                            .n_shp_pol)
+    }
 
     return(points.tb)
 }
@@ -86,28 +86,28 @@
     shp_df <- sf::st_drop_geometry(sf_shape)
 
     points_lst <- seq_len(nrow(sf_shape)) %>%
-      purrr::map(function(i){
-        # retrieve the class from the shape attribute
-        if (!purrr::is_null(shp_attr)) {
-          label <- as.character(unname(shp_df[i, shp_attr]))
-        }
-        # obtain a set of samples based on polygons
-        points <- list(sf::st_sample(sf_shape[i, ], size = .n_shp_pol))
-        # get one time series per sample
-        rows <- points %>%
-          purrr::pmap(function(p) {
-            pll <- sf::st_geometry(p)[[1]]
-            row <- tibble::tibble(
-              longitude = pll[1],
-              latitude = pll[2],
-              label = label
-            )
-            return(row)
-          })
-        # combine rows to make SITS tibble
-        pts <- dplyr::bind_rows(rows)
-        return(pts)
-      })
+        purrr::map(function(i){
+            # retrieve the class from the shape attribute
+            if (!purrr::is_null(shp_attr)) {
+                label <- as.character(unname(shp_df[i, shp_attr]))
+            }
+            # obtain a set of samples based on polygons
+            points <- list(sf::st_sample(sf_shape[i, ], size = .n_shp_pol))
+            # get one time series per sample
+            rows <- points %>%
+                purrr::pmap(function(p) {
+                    pll <- sf::st_geometry(p)[[1]]
+                    row <- tibble::tibble(
+                        longitude = pll[1],
+                        latitude = pll[2],
+                        label = label
+                    )
+                    return(row)
+                })
+            # combine rows to make SITS tibble
+            pts <- dplyr::bind_rows(rows)
+            return(pts)
+        })
     # join all the points for all shapefiles
     points_tb <- dplyr::bind_rows(points_lst)
     return(points_tb)
@@ -124,14 +124,16 @@
 .sits_shp_check_validity <- function(shp_file, shp_attr = NULL, label = NULL) {
 
     # pre-condition - does the shapefile exist?
-    assertthat::assert_that(file.exists(shp_file),
+    assertthat::assert_that(
+        file.exists(shp_file),
         msg = "sits_from_shp: shapefile does not exist"
     )
 
     # read the shapefile
     sf_shape <- sf::read_sf(shp_file)
     # pre-condition - is the default label valid?
-    assertthat::assert_that(nrow(sf_shape) > 0,
+    assertthat::assert_that(
+        nrow(sf_shape) > 0,
         msg = "sits_from_shp: shapefile has no content"
     )
 
@@ -140,7 +142,8 @@
     # get the data frame associated to the shapefile
 
     # precondition - are all geometries compatible?
-    assertthat::assert_that(all(sf::st_geometry_type(sf_shape) == geom_type),
+    assertthat::assert_that(
+        all(sf::st_geometry_type(sf_shape) == geom_type),
         msg = "sits_from_shp: shapefile has different geometries"
     )
 
@@ -152,7 +155,8 @@
     )
 
     # precondition - is the default label valid?
-    assertthat::assert_that(!purrr::is_null(label) || !purrr::is_null(shp_attr),
+    assertthat::assert_that(
+        !purrr::is_null(label) || !purrr::is_null(shp_attr),
         msg = "sits_from_shp: label or shape attribute should be valid"
     )
 
@@ -161,11 +165,11 @@
     # get the data frame associated to the shapefile
     shp_df <- sf::st_drop_geometry(sf_shape)
     if (!purrr::is_null(shp_attr)) {
-          assertthat::assert_that(
-              length(as.character(unname(shp_df[1, (shp_attr)]))) > 0,
-              msg = "sits_from_shp: invalid shapefile attribute"
-          )
-      }
+        assertthat::assert_that(
+            length(as.character(unname(shp_df[1, (shp_attr)]))) > 0,
+            msg = "sits_from_shp: invalid shapefile attribute"
+        )
+    }
 
 
     return(sf_shape)
