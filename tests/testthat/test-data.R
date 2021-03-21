@@ -145,7 +145,7 @@ test_that("Reading a CSV file from RASTER", {
       system.file("extdata/samples/samples_sinop_crop.csv",
         package = "sits"
     ))
-    expect_true(nrow(points) <= NROW(df_csv))
+    expect_true(nrow(points) <= nrow(df_csv))
 
     expect_true("Forest" %in% sits_labels(points))
     expect_equal(names(points)[1], "longitude")
