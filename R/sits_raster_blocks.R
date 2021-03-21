@@ -143,7 +143,10 @@
 
     # number of rows in each block
     n_rows <- length(row_vec)
-    assertthat::assert_that(n_rows > 0, msg = "empty row vector")
+    assertthat::assert_that(
+        n_rows > 0,
+        msg = ".sits_raster_block_list: empty row vector"
+    )
     nrows_vec <- rep.int(block_rows, n_rows)
 
     # check that total number of rows is the same as the sum of all blocks
