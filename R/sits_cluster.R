@@ -117,7 +117,8 @@ sits_cluster_dendro <- function(samples = NULL,
 #' @export
 sits_cluster_frequency <- function(samples) {
     # is the input data the result of a cluster function?
-    assertthat::assert_that("cluster" %in% names(samples),
+    assertthat::assert_that(
+        "cluster" %in% names(samples),
         msg = "sits_cluster_contigency: missing cluster column"
     )
 
@@ -161,7 +162,8 @@ sits_cluster_frequency <- function(samples) {
 sits_cluster_clean <- function(samples) {
 
     # is the input data the result of a cluster function?
-    assertthat::assert_that("cluster" %in% names(samples),
+    assertthat::assert_that(
+        "cluster" %in% names(samples),
         msg = "sits_cluster_clean: input data does not contain cluster column"
     )
 
@@ -211,7 +213,8 @@ sits_cluster_clean <- function(samples) {
     }
 
     # is the input data the result of a cluster function?
-    assertthat::assert_that("cluster" %in% names(samples),
+    assertthat::assert_that(
+        "cluster" %in% names(samples),
         msg = "sits_cluster_validity: input data does not have cluster column"
     )
 
@@ -272,7 +275,7 @@ sits_cluster_clean <- function(samples) {
     # call dtwclust and get the resulting dendrogram
     dendro <- dtwclust::tsclust(values,
         type = "hierarchical",
-        k = max(NROW(samples) - 1, 2),
+        k = max(nrow(samples) - 1, 2),
         distance = dist_method,
         control = dtwclust::hierarchical_control(method = linkage),
         ...
