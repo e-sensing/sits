@@ -16,11 +16,7 @@ For sits tibble, returns a sits tibble with the selected bands.
 For data cube, a data cube with the selected bands.
 }
 \description{
-For details see:
-\itemize{
- \item{"time series": }{see \code{\link{sits_select.sits}}}
- \item{"data cube": }{see \code{\link{sits_select.cube}}}
-}
+Filter only the selected bands from a tibble or a data cube.
 }
 \examples{
 # Retrieve a set of time series with 2 classes

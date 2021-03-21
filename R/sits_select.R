@@ -6,11 +6,7 @@
 #' @param data         A sits tibble or data cube
 #' @param bands        Character vector with the names of the bands
 #'
-#' @description For details see:
-#' \itemize{
-#'  \item{"time series": }{see \code{\link{sits_select.sits}}}
-#'  \item{"data cube": }{see \code{\link{sits_select.cube}}}
-#' }
+#' @description Filter only the selected bands from a tibble or a data cube.
 #'
 #' @examples
 #' # Retrieve a set of time series with 2 classes

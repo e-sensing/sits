@@ -23,17 +23,6 @@ For correct classification, the input data set
              should be aligned to that of the reference data set.
              This function aligns these data sets.
 }
-\examples{
-# get a timeline for MODIS data
-data("timeline_2000_2017")
-# get a set of subsets for a period of 10 years
-ref_start_date <- lubridate::ymd("2000-08-28")
-ref_end_date <- lubridate::ymd("2000-08-13")
-nsamples <- 23
-dates <- sits:::.sits_timeline_match(timeline_2000_2017,
-                 ref_start_date, ref_end_date, nsamples)
-
-}
 \author{
 Gilberto Camara, \email{gilberto.camara@inpe.br}
 }

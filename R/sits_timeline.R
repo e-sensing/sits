@@ -18,7 +18,6 @@ sits_timeline <- function(data) {
     UseMethod("sits_timeline", data)
 }
 
-#' @title Obtains the timeline for a set of time series
 #' @export
 #'
 sits_timeline.sits <- function(data) {
@@ -34,7 +33,6 @@ sits_timeline.sits <- function(data) {
     return(timeline)
 }
 
-#' @title Obtains the timeline for a raster data cube
 #' @export
 #'
 sits_timeline.raster_cube <- function(data) {
@@ -53,7 +51,6 @@ sits_timeline.raster_cube <- function(data) {
     return(timeline_first)
 }
 
-#' @title Obtains the timeline for a raster data cube
 #' @export
 #'
 sits_timeline.satveg_cube <- function(data) {
@@ -67,7 +64,6 @@ sits_timeline.satveg_cube <- function(data) {
   return(as.Date(ts$Index))
 }
 
-#' @title Obtains the timeline for a probs data cube
 #' @export
 #'
 sits_timeline.probs_cube <- function(data) {
@@ -84,7 +80,6 @@ sits_timeline.probs_cube <- function(data) {
     return(timeline)
 }
 
-#' @title Obtains the timeline for a classified data cube
 #' @export
 #'
 sits_timeline.classified_image <- function(data) {
@@ -292,16 +287,6 @@ sits_timeline.classified_image <- function(data) {
 #' @param num_samples           number of samples.
 #'
 #' @return A list of breaks that will be applied to the input data set.
-#'
-#' @examples
-#' # get a timeline for MODIS data
-#' data("timeline_2000_2017")
-#' # get a set of subsets for a period of 10 years
-#' ref_start_date <- lubridate::ymd("2000-08-28")
-#' ref_end_date <- lubridate::ymd("2000-08-13")
-#' nsamples <- 23
-#' dates <- sits:::.sits_timeline_match(timeline_2000_2017,
-#'                  ref_start_date, ref_end_date, nsamples)
 #'
 .sits_timeline_match <- function(timeline,
                                  ref_start_date,
