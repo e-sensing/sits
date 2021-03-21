@@ -36,7 +36,6 @@
 #' Web Services for Big Earth Observation Data.
 #' In: XVII Brazilian Symposium on Geoinformatics, 2016, Campos do Jordao.
 #' Proceedings of GeoInfo 2016. Sao Jose dos Campos: INPE/SBC, 2016. p.166-177.
-#'
 #
 #' @param cube            Data cube from where data is to be retrieved.
 #' @param file            File with information on the data to be retrieved.
@@ -98,27 +97,31 @@
 #' points_csv <- sits_get_data(raster_cube, file = csv_file)
 #'
 #' @export
+#'
 sits_get_data <- function(cube,
                           file = NULL,
                           ...) {
 
     # is there a shapefile or a CSV file?
     if (!purrr::is_null(file)) {
-      # get the file extension
-      file_ext <- tolower(tools::file_ext(file))
-      # sits only accepts "csv" or "shp" files
-      assertthat::assert_that(file_ext %in% c("csv", "shp"),
-                        msg = "sits_get_data accepts only csv and shp files"
-      )
-      # append "csv" or "shp" to the cube class to call the correct function
-      class(cube) <- c(paste0(file_ext,"_", class(cube)[1]),
-                       paste0(file_ext,"_raster_cube"), class(cube))
+        # get the file extension
+        file_ext <- tolower(tools::file_ext(file))
+        # sits only accepts "csv" or "shp" files
+        assertthat::assert_that(
+            file_ext %in% c("csv", "shp"),
+            msg = "sits_get_data: accepts only csv and shp files"
+        )
+        # append "csv" or "shp" to the cube class to call the correct function
+        class(cube) <- c(paste0(file_ext,"_", class(cube)[1]),
+                         paste0(file_ext,"_raster_cube"), class(cube))
     }
     # Dispatch
     UseMethod("sits_get_data", cube)
 }
-#' @title Get lat/long data from SATVEG cube
+
 #' @rdname sits_get_data
+#'
+#' @export
 #'
 sits_get_data.satveg_cube <- function(cube,
                                       file = NULL,
@@ -129,14 +132,15 @@ sits_get_data.satveg_cube <- function(cube,
                                       end_date = NULL,
                                       label = "NoClass") {
     # Precondition - is the SATVEG cube available
-    assertthat::assert_that(.sits_satveg_check(),
+    assertthat::assert_that(
+        .sits_satveg_check(),
         msg = "sits_get_data: satveg cube is not valid or not accessible"
     )
 
     # Precondition - lat/long must be provided
-    assertthat::assert_that(!purrr::is_null(latitude) &
-        !purrr::is_null(longitude),
-    msg = "sits_get_data - latitude/longitude must be provided"
+    assertthat::assert_that(
+        !purrr::is_null(latitude) && !purrr::is_null(longitude),
+        msg = "sits_get_data: latitude/longitude must be provided"
     )
 
     data <- .sits_from_satveg(
@@ -153,12 +157,11 @@ sits_get_data.satveg_cube <- function(cube,
     }
     return(data)
 }
-#' @title Get data from SATVEG based on CSV file
 #' @rdname sits_get_data
 #'
-sits_get_data.csv_satveg_cube <- function(cube,
-                                          file,
-                                          ...) {
+#' @export
+#'
+sits_get_data.csv_satveg_cube <- function(cube, file, ...) {
 
     # read sample information from CSV file and put it in a tibble
     csv <- tibble::as_tibble(utils::read.csv(file))
@@ -204,12 +207,11 @@ sits_get_data.csv_satveg_cube <- function(cube,
     return(data)
 }
 
-#' @title Obtain time series from SATVEG based on SHP file
 #' @rdname sits_get_data
 #'
-sits_get_data.shp_satveg_cube <- function(cube,
-                                          file,
-                                          ...,
+#' @export
+#'
+sits_get_data.shp_satveg_cube <- function(cube, file, ...,
                                           start_date = NULL,
                                           end_date = NULL,
                                           label = "NoClass",
@@ -255,12 +257,12 @@ sits_get_data.shp_satveg_cube <- function(cube,
 
     return(data)
 }
-#' @title Obtain time series from raster cube
+
 #' @rdname sits_get_data
 #'
-sits_get_data.raster_cube <- function(cube,
-                                      file = NULL,
-                                      ...,
+#' @export
+#'
+sits_get_data.raster_cube <- function(cube, file = NULL, ...,
                                       longitude = NULL,
                                       latitude = NULL,
                                       start_date = NULL,
@@ -270,9 +272,9 @@ sits_get_data.raster_cube <- function(cube,
                                       impute_fn = sits_impute_linear()) {
 
     # Precondition - lat/long must be provided
-    assertthat::assert_that(!purrr::is_null(latitude) &
-                              !purrr::is_null(longitude),
-        msg = "sits_get_data - latitude/longitude must be provided"
+    assertthat::assert_that(
+        !purrr::is_null(latitude) && !purrr::is_null(longitude),
+        msg = "sits_get_data: latitude/longitude must be provided"
     )
 
     # Precondition - check and get start and end dates
@@ -294,10 +296,10 @@ sits_get_data.raster_cube <- function(cube,
     cld_band <- .sits_config_cloud_band(cube)
 
     if (cld_band %in% bands) {
-          bands <- bands[bands != cld_band]
-      } else {
-          cld_band <- NULL
-      }
+        bands <- bands[bands != cld_band]
+    } else {
+        cld_band <- NULL
+    }
 
     ts_rows <- slider::slide(cube, function(row) {
         # get the data
@@ -313,27 +315,26 @@ sits_get_data.raster_cube <- function(cube,
     data <- dplyr::bind_rows(ts_rows)
 
     if (!inherits(data, "sits")) {
-          class(data) <- c("sits", class(data))
-      }
+        class(data) <- c("sits", class(data))
+    }
     return(data)
 }
 
-#' @title Obtain time series from brick based on CSV file
 #' @rdname sits_get_data
 #'
-sits_get_data.csv_raster_cube <- function(cube,
-                                          file,
-                                          ...,
+#' @export
+#'
+sits_get_data.csv_raster_cube <- function(cube, file, ...,
                                           bands = NULL,
                                           impute_fn = sits_impute_linear(),
                                           .n_pts_csv = NULL) {
 
     # read sample information from CSV file and put it in a tibble
     csv <- tibble::as_tibble(utils::read.csv(file))
+
     # check if user has requested fewer points than full csv file
-    if (!purrr::is_null(.n_pts_csv)) {
-        if (.n_pts_csv <= nrow(csv))
-          csv <- csv[1:.n_pts_csv,]
+    if (!purrr::is_null(.n_pts_csv) && .n_pts_csv <= nrow(csv)) {
+        csv <- csv[1:.n_pts_csv,]
     }
 
     # precondition - csv has to contain valid columns
@@ -349,21 +350,21 @@ sits_get_data.csv_raster_cube <- function(cube,
     # is the cloud band available?
     cld_band <- .sits_config_cloud_band(cube)
     if (cld_band %in% bands) {
-          bands <- bands[bands != cld_band]
-      } else {
-          cld_band <- NULL
-      }
+        bands <- bands[bands != cld_band]
+    } else {
+        cld_band <- NULL
+    }
 
     ts_rows <- slider::slide(cube, function(tile) {
-      # get the data
-      ts <- .sits_raster_data_get_ts(
-        cube = tile,
-        points = csv,
-        bands = bands,
-        cld_band = cld_band,
-        impute_fn = impute_fn
-      )
-      return(ts)
+        # get the data
+        ts <- .sits_raster_data_get_ts(
+            cube = tile,
+            points = csv,
+            bands = bands,
+            cld_band = cld_band,
+            impute_fn = impute_fn
+        )
+        return(ts)
     })
     data <- dplyr::bind_rows(ts_rows)
 
@@ -371,17 +372,16 @@ sits_get_data.csv_raster_cube <- function(cube,
     .sits_get_data_check(nrow(csv), nrow(data))
 
     if (!inherits(data, "sits")) {
-          class(data) <- c("sits", class(data))
-      }
+        class(data) <- c("sits", class(data))
+    }
     return(data)
 }
 
-#' @title Obtain time series from brick based on SHP file
 #' @rdname sits_get_data
 #'
-sits_get_data.shp_raster_cube <- function(cube,
-                                          file,
-                                          ...,
+#' @export
+#'
+sits_get_data.shp_raster_cube <- function(cube, file, ...,
                                           start_date = NULL,
                                           end_date = NULL,
                                           bands = NULL,
@@ -418,10 +418,10 @@ sits_get_data.shp_raster_cube <- function(cube,
     # is the cloud band available?
     cld_band <- .sits_config_cloud_band(cube)
     if (cld_band %in% bands) {
-          bands <- bands[bands != cld_band]
-      } else {
-          cld_band <- NULL
-      }
+        bands <- bands[bands != cld_band]
+    } else {
+        cld_band <- NULL
+    }
 
     # for each row of the cube, get the points inside
     ts_rows <- slider::slide(cube, function(row) {
@@ -445,23 +445,29 @@ sits_get_data.shp_raster_cube <- function(cube,
 }
 
 #' @title check if all points have been retrieved
+#'
 #' @name .sits_get_data_check
+#'
 #' @keywords internal
 #'
 #' @param n_rows_input     Number of rows in input
 #' @param n_rows_output    Number of rows in output
-#' @return         TRUE/FALSE
+#'
+#' @return A logical value
 #'
 .sits_get_data_check <- function(n_rows_input, n_rows_output) {
+
     # Have all input rows being read?
     if (n_rows_output == 0) {
         message("No points have been retrieved")
         return(invisible(FALSE))
     }
+
     if (n_rows_output < n_rows_input) {
-          message("Some points could not be retrieved")
-      } else {
-          message("All points have been retrieved")
-      }
+        message("Some points could not be retrieved")
+    } else {
+        message("All points have been retrieved")
+    }
+
     return(invisible(TRUE))
 }
