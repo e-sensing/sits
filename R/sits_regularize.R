@@ -53,8 +53,10 @@
 #'                          Options: "near", "bilinear", "bicubic"
 #'                          or others supported by gdalwarp
 #'                          (see https://gdal.org/programs/gdalwarp.html).
-#' @param cloud_mask        Use cloud band for aggregation by \code{gdalcubes}? (TRUE/FALSE)
+#' @param cloud_mask        Use cloud band for aggregation by \code{gdalcubes}?
+#'
 #' @export
+#'
 sits_regularize <- function(cube,
                             name,
                             dir_images,
