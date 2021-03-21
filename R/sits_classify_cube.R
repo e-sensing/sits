@@ -98,11 +98,15 @@
     message(sprintf("Starting classification at %s", lubridate::now()))
 
     # save original future plan
-    oplan <- future::plan("cluster", workers = multicores)
+    if (multicores > 1) {
+        oplan <- future::plan("cluster", workers = multicores)
+    } else {
+        oplan <- future::plan("sequential")
+    }
     on.exit(future::plan(oplan), add = TRUE)
 
     # read the blocks and compute the probabilities
-    probs <- furrr::future_map(c(1:block_info$n), function(b) {
+    probs <- furrr::future_map(seq_len(block_info$n), function(b) {
 
         # define the extent for each block
         extent <- c(
