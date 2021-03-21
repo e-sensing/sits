@@ -12,17 +12,20 @@
                                   collection  = NULL,
                                   bands       = NULL, ...) {
 
-    assertthat::assert_that(!purrr::is_null(url),
-                            msg = paste("sits_cube: for STAC_CUBE url must be",
-                                        "provided"))
+    assertthat::assert_that(
+        !purrr::is_null(url),
+        msg = "sits_cube: for STAC_CUBE url must be provided"
+    )
 
-    assertthat::assert_that(!purrr::is_null(collection),
-                            msg = paste("sits_cube: for STAC_CUBE collections",
-                                        "must be provided"))
+    assertthat::assert_that(
+        !purrr::is_null(collection),
+        msg = "sits_cube: for STAC_CUBE collections must be provided"
+    )
 
-    assertthat::assert_that(!(length(collection) > 1),
-                            msg = paste("sits_cube: STAC_CUBE ",
-                                    "only one collection should be specified"))
+    assertthat::assert_that(
+        !(length(collection) > 1),
+        msg = "sits_cube: STAC_CUBE only one collection should be specified"
+    )
 
     # creating a rstac object and making the requisition
     collection_info <- rstac::stac(url) %>%
@@ -43,9 +46,11 @@
                                               sensor = sensor,
                                               bands = bands)
         # check bands
-        assertthat::assert_that(all(bands %in% collection_info$bands),
-                                msg = paste("The supplied bands do not match",
-                                            "the data cube bands."))
+        assertthat::assert_that(
+            all(bands %in% collection_info$bands),
+            msg = paste(".sits_stac_collection: The supplied bands do not",
+                        "match the data cube bands.")
+        )
 
         collection_info$bands <-
             collection_info$bands[collection_info$bands %in% bands]
@@ -272,8 +277,10 @@
     }
 
     # checks if the specified parameters names is contained in the list
-    assertthat::assert_that(!purrr::is_null(names(roi_list)),
-                            msg = "invalid definition of ROI")
+    assertthat::assert_that(
+        !purrr::is_null(names(roi_list)),
+        msg = ".sits_stac_roi: invalid definition of ROI"
+    )
 
     return(roi_list)
 }
@@ -290,10 +297,10 @@
 .sits_stac_datetime <- function(start_date, end_date) {
 
     # ensuring that start_date and end_date were provided
-    assertthat::assert_that(all(!purrr::is_null(start_date),
-                                !purrr::is_null(end_date)),
-                            msg = paste("sits_cube: for STAC_CUBE start_date",
-                                        "and end_date must be provided"))
+    assertthat::assert_that(
+        !purrr::is_null(start_date) && !purrr::is_null(end_date),
+        msg = paste("sits_cube: for STAC_CUBE start_date",
+                    "and end_date must be provided"))
 
     # adding the dates according to RFC 3339
     datetime <- paste(start_date, end_date, sep = "/")
@@ -335,7 +342,7 @@
         which(lapply(collection$properties$`eo:bands`,
                      function(x) {
                          x$name }) %in% bands
-              )
+        )
 
     vect_values <- vector()
     list_values <- list()
@@ -343,8 +350,8 @@
     # creating a named list of the metadata values
     purrr::map(c("min", "max", "nodata", "scale"), function(field) {
         purrr::map(index_bands, function(index) {
-          vect_values[collection$properties$`eo:bands`[[index]]$name] <<-
-            as.numeric(collection$properties$`eo:bands`[[index]][[field]])
+            vect_values[collection$properties$`eo:bands`[[index]]$name] <<-
+                as.numeric(collection$properties$`eo:bands`[[index]][[field]])
         })
         list_values[[field]] <<- vect_values
     })
