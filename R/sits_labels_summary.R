@@ -1,10 +1,13 @@
 #' @title Returns the information about labels of a tibble data set
+#'
 #' @name sits_labels_summary
+#'
 #' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
 #'
 #' @description  Finds labels in a sits tibble
 #'
 #' @param data      Valid sits tibble
+#'
 #' @return A tibble with labels frequency.
 #'
 #' @examples
@@ -14,12 +17,13 @@
 #' sits_summary(cerrado_2classes)
 #'
 #' @export
+#'
 sits_labels_summary <- function(data) {
 
     UseMethod("sits_summary", data)
 }
 
-#' @rdname sits_labels_summary
+#' @export
 #'
 sits_labels_summary.sits <- function(data) {
 
