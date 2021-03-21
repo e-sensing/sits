@@ -43,6 +43,8 @@
 #' plot(cerrado_2classes[1:20, ])
 #' }
 #'
+#' @export
+#'
 plot.sits <- function(x, y, ..., colors = "Dark2") {
     stopifnot(missing(y))
 
@@ -74,6 +76,8 @@ plot.sits <- function(x, y, ..., colors = "Dark2") {
 #' plot(sits_patterns(cerrado_2classes))
 #' }
 #'
+#' @export
+#'
 plot.patterns <- function(x, y, ...) {
     stopifnot(missing(y))
     p <- .sits_plot_patterns(x)
@@ -101,6 +105,8 @@ plot.patterns <- function(x, y, ...) {
 #' # plot the classification
 #' plot(class_ndvi.tb)
 #' }
+#'
+#' @export
 #'
 plot.predicted <- function(x, y, ..., bands = "NDVI") {
     stopifnot(missing(y))
@@ -141,6 +147,8 @@ plot.predicted <- function(x, y, ..., bands = "NDVI") {
 #' plot(cbers_022024, red = "B15", green = "B16", blue = "B13", time = 1)
 #' }
 #'
+#'
+#' @export
 #'
 plot.raster_cube <- function(x, y, ..., red, green, blue, time = 1, roi = NULL) {
 
@@ -237,6 +245,7 @@ plot.raster_cube <- function(x, y, ..., red, green, blue, time = 1, roi = NULL) 
 #'
 #' @return               The plot itself.
 #'
+#' @export
 #'
 plot.probs_cube <- function(x, y, ..., time = 1,
                             title = "Probabilities for Classes",
@@ -276,7 +285,7 @@ plot.probs_cube <- function(x, y, ..., time = 1,
 #' @param  title         string.
 #' @param  colors        color pallete.
 #'
-#'
+#' @export
 #'
 plot.classified_image <- function(x, y, ..., map = NULL, time = 1,
                                   title = "Classified Image", colors = NULL) {
@@ -356,6 +365,8 @@ plot.classified_image <- function(x, y, ..., map = NULL, time = 1,
 #' plot(cluster_overall)
 #' }
 #'
+#' @export
+#'
 plot.som_evaluate_cluster <- function(x, y, ..., name_cluster = NULL, title = "Confusion by cluster") {
   stopifnot(missing(y))
   p <- .sits_plot_som_evaluate_cluster(x, name_cluster, title)
@@ -391,6 +402,8 @@ plot.som_evaluate_cluster <- function(x, y, ..., name_cluster = NULL, title = "C
 #' plot(som_map, type = "mapping")
 #' }
 #'
+#' @export
+#'
 plot.som_map <- function(x, y, ..., type = "codes", whatmap = 1) {
     stopifnot(missing(y))
     .sits_plot_som_map(x, type, whatmap)
@@ -422,6 +435,8 @@ plot.som_map <- function(x, y, ..., type = "codes", whatmap = 1) {
 #' ))
 #' plot(dl_model)
 #' }
+#'
+#' @export
 #'
 plot.keras_model <- function(x, y, ...) {
     stopifnot(missing(y))
