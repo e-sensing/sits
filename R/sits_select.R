@@ -1,33 +1,13 @@
 #' @title Filter bands on a data set (tibble or cube)
+#'
 #' @name sits_select
 #' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
 #'
 #' @param data         A sits tibble or data cube
 #' @param bands        Character vector with the names of the bands
 #'
-#' @description For details see:
-#' \itemize{
-#'  \item{"time series": }{see \code{\link{sits_select.sits}}}
-#'  \item{"data cube": }{see \code{\link{sits_select.cube}}}
-#' }
-#' @return data sets with only the bands selected
-#' @export
-sits_select <- function(data, bands) {
-    # get the meta-type (sits or cube)
-    data <- .sits_config_data_meta_type(data)
-
-    UseMethod("sits_select", data)
-}
-
-#' @title Filter bands on a data set (tibble or cube)
-#' @name sits_select.sits
-#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
+#' @description Filter only the selected bands from a tibble or a data cube.
 #'
-#' @description Returns a sits tibble with the selected bands.
-#'
-#' @param data         A sits tibble metadata and data on time series.
-#' @param bands        Character vector with the names of the bands
-#' @return A tibble in sits format with the selected bands.
 #' @examples
 #' # Retrieve a set of time series with 2 classes
 #' data(cerrado_2classes)
@@ -37,19 +17,36 @@ sits_select <- function(data, bands) {
 #' data <- sits_select(cerrado_2classes, bands = c("NDVI"))
 #' # Print the labels of the resulting tibble
 #' sits_bands(data)
+#'
+#' @return
+#' For sits tibble, returns a sits tibble with the selected bands.
+#' For data cube, a data cube with the selected bands.
+#'
 #' @export
+#'
+sits_select <- function(data, bands) {
+    # get the meta-type (sits or cube)
+    data <- .sits_config_data_meta_type(data)
+
+    UseMethod("sits_select", data)
+}
+
+#' @export
+#'
 sits_select.sits <- function(data, bands) {
+
     # backward compatibility
     data <- .sits_tibble_rename(data)
+
     # bands names in SITS are uppercase
     bands <- toupper(bands)
     sits_bands(data) <- toupper(sits_bands(data))
 
-    assertthat::assert_that(all(bands %in% sits_bands(data)),
-        msg = paste0(
-            "sits_select: missing bands: ",
-            paste(bands[!bands %in% sits_bands(data)], collapse = ", ")
-        )
+    assertthat::assert_that(
+        all(bands %in% sits_bands(data)),
+        msg = paste("sits_select: missing bands:",
+                    paste(bands[!bands %in% sits_bands(data)],
+                          collapse = ", "))
     )
 
     # prepare result sits tibble
@@ -62,24 +59,19 @@ sits_select.sits <- function(data, bands) {
     # return the result
     return(result)
 }
-#' @title Filter bands on a data cube
-#' @name sits_select.cube
-#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
-#'
-#' @description Filter only the selected bands from a data cube.
-#'
-#' @param data         data cube
-#' @param bands        vector with the names of the bands
-#' @return A data cube with the selected bands.
-#'
+
 #' @export
 #'
 sits_select.cube <- function(data, bands) {
-    assertthat::assert_that(bands %in% sits_bands(data),
-        msg = "requested bands are not available in the data cube"
+
+    assertthat::assert_that(
+        bands %in% sits_bands(data),
+        msg = "sits_select: requested bands are not available in the data cube"
     )
+
     # assign the bands
     data$bands[[1]] <- bands
+
     # filter the file info
     db_info <- data$file_info[[1]]
     db_info <- dplyr::filter(db_info, band %in% bands)
@@ -88,18 +80,9 @@ sits_select.cube <- function(data, bands) {
     return(data)
 }
 
-#' @title Filter bands on a data set (tibble or cube)
-#' @name sits_select.patterns
-#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
-#'
-#' @description Returns a sits tibble with the selected bands.
-#'
-#' @param data         A sits tibble metadata and data on time series.
-#' @param bands        Character vector with the names of the bands
-#' @return A tibble in sits format with the selected bands.
 #' @export
+#'
 sits_select.patterns <- function(data, bands) {
-    result <- sits_select.sits(data, bands)
 
-    return(result)
+    return(sits_select.sits(data, bands))
 }

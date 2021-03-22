@@ -125,15 +125,19 @@ sits_som_map <- function(data,
         stop("kohonen needed for this function to work.
               Please install it.", call. = FALSE)
     }
+
     # backward compatibility
     data <- .sits_tibble_rename(data)
+
     # does the input data exist?
     .sits_test_tibble(data)
+
     # is are there more neurons than samples?
     n_samples <- nrow(data)
-    assertthat::assert_that(n_samples > grid_xdim * grid_ydim,
-        msg = "sits_som_map: number of samples should be
-               greater than number of neurons"
+    assertthat::assert_that(
+        n_samples > grid_xdim * grid_ydim,
+        msg = paste("sits_som_map: number of samples should be",
+                    "greater than number of neurons")
     )
 
     # get the time series
@@ -239,7 +243,7 @@ sits_som_clean_samples <- function(som_map,
                                    posterior_threshold = 0.6) {
 
     # Sanity check
-    if (!("som_map" %in% class(som_map))) {
+    if (!inherits(som_map, "som_map")) {
         message("wrong input data; please run sits_som_map first")
         return(invisible(NULL))
     }
@@ -310,7 +314,7 @@ sits_som_clean_samples <- function(som_map,
 sits_som_evaluate_cluster <- function(som_map)
 {
     # Sanity check
-    if (!("som_map" %in% class(som_map))) {
+    if (!inherits(som_map, "som_map")) {
         message("wrong input data; please run sits_som_map first")
         return(invisible(NULL))
     }

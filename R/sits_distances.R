@@ -19,21 +19,28 @@
 
     # check the sits tibble
     .sits_test_tibble(data)
+
     # get the number of samples
     n_rows_data <- nrow(data)
 
+    # get bands order
+    bands <- names(data$time_series[[1]][-1])
+
     # create a list with the time series transposed from columns to rows
     ts <- data$time_series %>%
-      purrr::map(function(ts) {
-        as.data.frame(t(unlist(ts[-1])))
-      })
+        purrr::map(function(ts) {
+            as.data.frame(t(unlist(ts[bands])))
+        })
+
     # bind the lists of time series together
     dist <- data.table::rbindlist(ts, use.names = FALSE)
+
     # create a data frame with the first two columns for training
     distances <- data.table::data.table(
         "original_row" = 1:n_rows_data,
         "reference" = data$label
     )
+
     # join the two references columns with the data values
     distances <- data.table::as.data.table(cbind(distances, dist))
 
@@ -56,13 +63,13 @@
                                      ml_model, multicores) {
 
     # keras-based models run in single-core mode
-    if ("keras_model" %in% class(ml_model) | "ranger_model" %in% class(ml_model)
-    | "xgb_model" %in% class(ml_model)) {
-          multicores <- 1
-      }
+    if (inherits(ml_model, c("keras_model", "ranger_model", "xgb_model"))) {
+        multicores <- 1
+    }
     # define the column names
-    attr_names <- names(.sits_distances(environment(ml_model)$data[1, ]))
-    assertthat::assert_that(length(attr_names) > 0,
+    attr_names <- names(.sits_distances(.sits_ml_model_samples(ml_model)[1, ]))
+    assertthat::assert_that(
+        length(attr_names) > 0,
         msg = "sits_classify_distances: training data not available"
     )
 
@@ -117,8 +124,8 @@
         # predicted <- join_blocks(results)
     }
     else {
-          predicted <- classify_block(distances)
-      }
+        predicted <- classify_block(distances)
+    }
     return(predicted)
 }
 

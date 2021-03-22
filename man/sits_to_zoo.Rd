@@ -22,6 +22,7 @@ Converts data from a sits tibble to a list of a zoo series.
 data(cerrado_2classes)
 # export a time series to zoo
 zoo.lst <- sits_to_zoo(cerrado_2classes[1:5, ])
+
 }
 \author{
 Gilberto Camara, \email{gilberto.camara@inpe.br}

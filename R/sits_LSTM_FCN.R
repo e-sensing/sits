@@ -65,7 +65,9 @@
 #' class <- sits_classify(point, lstm_cnn_model)
 #' plot(class, bands = c("NDVI", "EVI"))
 #' }
+#'
 #' @export
+#'
 sits_LSTM_FCN <- function(samples = NULL,
                           lstm_units = 8,
                           lstm_dropout = 0.80,
@@ -85,16 +87,18 @@ sits_LSTM_FCN <- function(samples = NULL,
         valid_activations <- c("relu", "elu", "selu", "sigmoid")
         # is the input data consistent?
 
-        assertthat::assert_that(length(cnn_layers) == length(cnn_kernels),
+        assertthat::assert_that(
+            length(cnn_layers) == length(cnn_kernels),
             msg = "sits_LSTM_FCN: 1D CNN layers must match 1D kernels"
         )
 
-        assertthat::assert_that(all(activation %in% valid_activations),
+        assertthat::assert_that(
+            all(activation %in% valid_activations),
             msg = "sits_LSTM_FCN: invalid CNN activation method"
         )
 
         # get the labels of the data
-        labels <- sits_labels(data)$label
+        labels <- sits_labels(data)
         # create a named vector with integers match the class labels
         n_labels <- length(labels)
         int_labels <- c(1:n_labels)
@@ -124,11 +128,11 @@ sits_LSTM_FCN <- function(samples = NULL,
 
         # build the LSTM node
         lstm_layer <- keras::layer_permute(input_tensor,
-            dims = c(2, 1)
+                                           dims = c(2, 1)
         )
         lstm_layer <- keras::layer_lstm(input_tensor,
-            units = lstm_units,
-            dropout = lstm_dropout
+                                        units = lstm_units,
+                                        dropout = lstm_dropout
         )
 
         # build the 1D nodes
@@ -164,15 +168,15 @@ sits_LSTM_FCN <- function(samples = NULL,
         model_loss <- "categorical_crossentropy"
         if (n_labels == 2) {
             output_tensor <- keras::layer_dense(output_tensor,
-                units = 1,
-                activation = "sigmoid"
+                                                units = 1,
+                                                activation = "sigmoid"
             )
             model_loss <- "binary_crossentropy"
         }
         else {
             output_tensor <- keras::layer_dense(output_tensor,
-                units = n_labels,
-                activation = "softmax"
+                                                units = n_labels,
+                                                activation = "softmax"
             )
             # keras requires categorical data to be put in a matrix
             train_y <- keras::to_categorical(train_y, n_labels)
@@ -217,8 +221,8 @@ sits_LSTM_FCN <- function(samples = NULL,
             # If binary classification,
             # adjust the prediction values to match two-class classification
             if (n_labels == 2) {
-                  prediction <- .sits_keras_binary_class(prediction)
-              }
+                prediction <- .sits_keras_binary_class(prediction)
+            }
 
             # adjust the names of the columns of the probs
             colnames(prediction) <- labels

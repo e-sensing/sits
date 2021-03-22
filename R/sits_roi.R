@@ -6,7 +6,8 @@
 #' @return                 vector with information on the subimage
 .sits_roi_bbox <- function(roi, cube) {
 
-    if (!("sf" %in% class(roi))) {
+    if (!(inherits(roi, "sf"))) {
+
         if (all(c("xmin", "xmax", "ymin", "ymax") %in% names(roi))) {
             class(roi) <- c("xy", class(roi))
         } else if (all(
@@ -14,8 +15,10 @@
             class(roi) <- c("ll", class(roi))
         }
     }
-    assertthat::assert_that(class(roi)[1] %in% c("sf", "xy", "ll"),
-                            msg = "invalid definition of ROI"
+
+    assertthat::assert_that(
+      inherits(roi, c("sf", "xy", "ll")),
+      msg = ".sits_roi_bbox: invalid definition of ROI"
     )
 
     UseMethod(".sits_roi_bbox", roi)
@@ -26,7 +29,6 @@
 #' @param  roi             spatial region of interest
 #' @param  cube            input data cube.
 #' @return                 vector with information on the subimage
-#' @export
 .sits_roi_bbox.sf <- function(roi, cube) {
     bbox <- roi %>%
         sf::st_transform(crs = cube[1,]$crs) %>%
@@ -41,7 +43,6 @@
 #' @param  cube            input data cube.
 #' @param  roi             spatial region of interest
 #' @return                 vector with information on the subimage
-#' @export
 .sits_roi_bbox.xy <- function(roi, cube) {
     return(roi)
 }
@@ -51,7 +52,6 @@
 #' @param  cube            input data cube.
 #' @param  roi             spatial region of interest
 #' @return                 vector with information on the subimage
-#' @export
 .sits_roi_bbox.ll <- function(roi, cube) {
     # region of interest defined by two points
     df <- data.frame(

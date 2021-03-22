@@ -2,24 +2,9 @@
 % Please edit documentation in R/sits_timeline.R
 \name{sits_timeline}
 \alias{sits_timeline}
-\alias{sits_timeline.sits}
-\alias{sits_timeline.raster_cube}
-\alias{sits_timeline.satveg_cube}
-\alias{sits_timeline.probs_cube}
-\alias{sits_timeline.classified_image}
 \title{Obtains the timeline}
 \usage{
 sits_timeline(data)
-
-\method{sits_timeline}{sits}(data)
-
-\method{sits_timeline}{raster_cube}(data)
-
-\method{sits_timeline}{satveg_cube}(data)
-
-\method{sits_timeline}{probs_cube}(data)
-
-\method{sits_timeline}{classified_image}(data)
 }
 \arguments{
 \item{data}{either a sits tibble or data cube}

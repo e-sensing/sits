@@ -40,6 +40,7 @@ conv_lst <- list(
 new_data <- sits_relabel(samples_mt_4bands, conv_lst)
 # show the new labels
 sits_labels(new_data)
+
 }
 \author{
 Gilberto Camara, \email{gilberto.camara@inpe.br}

@@ -152,7 +152,7 @@
 
     data$time_series %>%
         purrr::map(function(t) {
-            n_samples[length(n_samples) + 1] <<- NROW(t)
+            n_samples[length(n_samples) + 1] <<- nrow(t)
         })
 
     # check if all time indices are equal to the median
@@ -250,8 +250,10 @@
           bands <- toupper(sp_bands)
       } else {
         bands <- toupper(bands)
-        assertthat::assert_that(all(bands %in% sp_bands),
-            msg = "required bands are not available in the samples"
+        assertthat::assert_that(
+            all(bands %in% sp_bands),
+            msg = paste(".sits_samples_bands_check: required bands are not",
+                        "available in the samples")
         )
     }
     return(bands)
@@ -268,20 +270,21 @@
 #' @param data  A sits tibble.
 #' @return Returns TRUE if data has data.
 .sits_test_tibble <- function(data) {
-    assertthat::assert_that(!purrr::is_null(data),
-        msg = "input data not provided"
+    assertthat::assert_that(
+        !purrr::is_null(data),
+        msg = ".sits_test_tibble: input data not provided"
     )
-    assertthat::assert_that(NROW(data) > 0,
-        msg = "input data is empty"
-    )
-
-    names <- c(
-        "longitude", "latitude", "start_date", "end_date",
-        "label", "cube", "time_series"
+    assertthat::assert_that(
+        nrow(data) > 0,
+        msg = ".sits_test_tibble: input data is empty"
     )
 
-    assertthat::assert_that(all(names %in% colnames(data)),
-        msg = "data input is not a valid sits tibble"
+    names <- c("longitude", "latitude", "start_date", "end_date",
+               "label", "cube", "time_series")
+
+    assertthat::assert_that(
+        all(names %in% colnames(data)),
+        msg = ".sits_test_tibble: data input is not a valid sits tibble"
     )
 
     return(TRUE)
@@ -289,14 +292,18 @@
 
 #' @title Rename a tibble to use "cube" instead of "coverage"
 #' @name .sits_tibble_rename
+#'
 #' @keywords internal
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #' @param data   A sits tibble.
+#'
 .sits_tibble_rename <- function(data) {
+
     # is the input data a valid sits tibble?
     if ("coverage" %in% names(data)) {
-          data <- data %>% dplyr::rename(cube = coverage)
-      }
+
+        data <- dplyr::rename(data, cube = "coverage")
+    }
 
     return(data)
 }

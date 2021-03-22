@@ -1,11 +1,11 @@
 default:
 
     # estimated relative growth size of R memory relative to block size
-    R_memory_bloat           : 4
-    R_processing_bloat       : 5
+    R_memory_bloat          : 4
+    R_processing_bloat      : 5
 
     # number of items returned by stac service
-    rstac_pagination_limit   : 1000
+    rstac_pagination_limit  : 1000
 
     # Data cube types known to sits
     data_sources            : ["WTSS", "SATVEG", "LOCAL", "RASTER", "BDC", "DEAFRICA", "AWS", "PROBS", "CLASSIFIED"]
@@ -41,7 +41,6 @@ default:
         DEAFRICA            : "requester"
         USGS                : "requester"
 
-
     # URL to access SATVEG
     SATVEG-EMBRAPA_server   : "https://www.satveg.cnptia.embrapa.br/satvegws/ws/perfil/ZW46IXzr4pRzJlX/"
     SATVEG_EMBRAPA_test     : "https://www.satveg.cnptia.embrapa.br/satvegws/ws/perfil/ZW46IXzr4pRzJlX/ndvi/ponto/-55.50563/-11.71557/terra/1//"
@@ -62,6 +61,7 @@ default:
     MODIS                   :
         bands               :
             SITS            : ["BLUE", "RED", "NIR", "MIR", "NDVI", "EVI"]
+
         missing_value       :
             NDVI            : -3000
             EVI             : -3000
@@ -93,6 +93,14 @@ default:
             RED             : 0.0001
             NIR             : 0.0001
             MIR             : 0.0001
+
+        resampling          :
+            NDVI            : "bilinear"
+            EVI             : "bilinear"
+            BLUE            : "bilinear"
+            RED             : "bilinear"
+            NIR             : "bilinear"
+            MIR             : "bilinear"
 
         resolution          :
             xres            : 250
@@ -142,7 +150,7 @@ default:
             B7              : 10000
             FMASK4          : 255
 
-        scale_factor:
+        scale_factor        :
             NDVI            : 0.0001
             EVI             : 0.0001
             B1              : 0.0001
@@ -153,6 +161,18 @@ default:
             B6              : 0.0001
             B7              : 0.0001
             FMASK4          : 1
+
+        resampling          :
+            NDVI            : "bilinear"
+            EVI             : "bilinear"
+            B1              : "bilinear"
+            B2              : "bilinear"
+            B3              : "bilinear"
+            B4              : "bilinear"
+            B5              : "bilinear"
+            B6              : "bilinear"
+            B7              : "bilinear"
+            FMASK4          : "ngb"
 
         resolution          :
             xres            : 30
@@ -196,7 +216,7 @@ default:
             B16             : 10000
             CMASK           : 4
 
-        scale_factor:
+        scale_factor        :
             NDVI            : 0.0001
             EVI             : 0.0001
             B13             : 0.0001
@@ -204,6 +224,15 @@ default:
             B15             : 0.0001
             B16             : 0.0001
             CMASK           : 1
+
+        resampling          :
+            NDVI            : "bilinear"
+            EVI             : "bilinear"
+            B13             : "bilinear"
+            B14             : "bilinear"
+            B15             : "bilinear"
+            B16             : "bilinear"
+            CMASK           : "ngb"
 
         resolution          :
             xres            : 64
@@ -307,7 +336,7 @@ default:
             SCL             : 1
             FMASK4          : 255
 
-        scale_factor:
+        scale_factor        :
             EVI             : 0.0001
             SAVI            : 0.0001
             NDVI            : 0.0001
@@ -328,16 +357,50 @@ default:
             SCL             : 1
             FMASK4          : 1
 
+        resampling          :
+            EVI             : "bilinear"
+            SAVI            : "bilinear"
+            NDVI            : "bilinear"
+            NDMI            : "bilinear"
+            B01             : "bilinear"
+            B02             : "bilinear"
+            B03             : "bilinear"
+            B04             : "bilinear"
+            B05             : "bilinear"
+            B06             : "bilinear"
+            B07             : "bilinear"
+            B08             : "bilinear"
+            B8A             : "bilinear"
+            B09             : "bilinear"
+            B10             : "bilinear"
+            B11             : "bilinear"
+            B12             : "bilinear"
+            SCL             : "ngb"
+            FMASK4          : "ngb"
+
         resolutions         : [10, 20, 60]
         bands_10m           : ["B02", "B03", "B04", "B08"]
         bands_20m           : ["B02", "B03", "B04", "B05", "B06", "B07", "B08", "B8A", "B11", "B12", "SCL"]
         bands_60m           : ["B01", "B02", "B03", "B04", "B05", "B06", "B07", "B08", "B8A", "B09", "B10", "B11", "B12", "SCL"]
 
+    # information to parse repositories
+    BDC                     :
+        access_maxcores     : 4
+
+    LOCAL                   :
+        access_maxcores     : 1
+
+    RASTER                  :
+        access_maxcores     : 1
+
+    AWS                     :
+        access_maxcores     : 4
 
     DEAFRICA                :
+        access_maxcores     : 4
         MSI                 :
             bands           : ["B01", "B02", "B03", "B04", "B05", "B06", "BO7", "B08", "B8A", "B09", "B10", "B11", "B12", "SCL"]
-            resolution      : [60, 10, 10, 10, 20, 20, 20, 10, 20, 60, 60, 20, 20, 20 ]
+            resolution      : [60, 10, 10, 10, 20, 20, 20, 10, 20, 60, 60, 20, 20, 20]
 
     CLOUD                   :
         BDC                 :

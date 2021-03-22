@@ -10,7 +10,7 @@
 \item{cube}{Data cube}
 }
 \value{
-true/false is the type is valid
+A logical value
 }
 \description{
 Check that the cube data source is valid, based on the configuration file

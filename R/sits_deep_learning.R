@@ -68,15 +68,18 @@ sits_deeplearning <- function(samples = NULL,
     result_fun <- function(data) {
 
         # pre-conditions
-        assertthat::assert_that(length(layers) == length(dropout_rates),
+        assertthat::assert_that(
+            length(layers) == length(dropout_rates),
             msg = "sits_deeplearning: number of layers does not match
                         number of dropout rates"
         )
-        assertthat::assert_that(length(activation) == 1,
+        assertthat::assert_that(
+            length(activation) == 1,
             msg = "sits_deeplearning: use only one activation function"
         )
         valid_activations <- c("relu", "elu", "selu", "sigmoid")
-        assertthat::assert_that(activation %in% valid_activations,
+        assertthat::assert_that(
+            activation %in% valid_activations,
             msg = "sits_deeplearning: invalid node activation method"
         )
         # data normalization
@@ -84,13 +87,14 @@ sits_deeplearning <- function(samples = NULL,
         train_data <- .sits_distances(.sits_normalize_data(data, stats))
 
         # is the training data correct?
-        assertthat::assert_that("reference" %in% names(train_data),
+        assertthat::assert_that(
+            "reference" %in% names(train_data),
             msg = "sits_deeplearning:
                    input data does not contain distances"
         )
 
         # get the labels of the data
-        labels <- sits_labels(data)$label
+        labels <- sits_labels(data)
 
         # create a named vector with integers match the class labels
         n_labels <- length(labels)
@@ -178,13 +182,21 @@ sits_deeplearning <- function(samples = NULL,
             verbose = verbose, view_metrics = "auto"
         )
 
+        # import model to R
+        R_model_keras <- keras::serialize_model(model_keras)
+
         graphics::plot(history)
 
         # build predict closure function
         model_predict <- function(values) {
+
+            # restore model keras
+            model_keras <- keras::unserialize_model(R_model_keras)
+
             # transform input (data.table) into a matrix
             # (remove first two columns)
-            values <- data.matrix(values[, - (1:2)])
+            values <- data.matrix(values[, -(1:2)])
+
             # retrieve the prediction probabilities
             predicted <- data.table::as.data.table(
                 stats::predict(model_keras, values)
@@ -193,8 +205,8 @@ sits_deeplearning <- function(samples = NULL,
             # binary classification case
             # adjust prediction values to match binary classification
             if (n_labels == 2) {
-                  predicted <- .sits_keras_binary_class(predicted)
-              }
+                predicted <- .sits_keras_binary_class(predicted)
+            }
 
             # add the class labels as the column names
             colnames(predicted) <- labels

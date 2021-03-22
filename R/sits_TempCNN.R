@@ -93,28 +93,33 @@ sits_TempCNN <- function(samples = NULL,
         # pre-conditions
         valid_activations <- c("relu", "elu", "selu", "sigmoid")
 
-        assertthat::assert_that(length(cnn_layers) == length(cnn_kernels),
+        assertthat::assert_that(
+            length(cnn_layers) == length(cnn_kernels),
             msg = "sits_tempCNN: 1D layers must match 1D kernel sizes"
         )
 
-        assertthat::assert_that(length(cnn_layers) == length(cnn_dropout_rates),
+        assertthat::assert_that(
+            length(cnn_layers) == length(cnn_dropout_rates),
             msg = "sits_tempCNN: 1D layers must match 1D dropout rates"
         )
 
-        assertthat::assert_that(length(mlp_layers) == length(mlp_dropout_rates),
+        assertthat::assert_that(
+            length(mlp_layers) == length(mlp_dropout_rates),
             msg = "sits_tempCNN: 2D units must match 2D dropout rates"
         )
 
-        assertthat::assert_that(cnn_activation %in% valid_activations,
+        assertthat::assert_that(
+            cnn_activation %in% valid_activations,
             msg = "sits_tempCNN: invalid CNN activation method"
         )
 
-        assertthat::assert_that(mlp_activation %in% valid_activations,
+        assertthat::assert_that(
+            mlp_activation %in% valid_activations,
             msg = "sits_tempCNN: invalid node activation method"
         )
 
         # get the labels of the data
-        labels <- sits_labels(data)$label
+        labels <- sits_labels(data)
         # create a named vector with integers match the class labels
         n_labels <- length(labels)
         int_labels <- c(1:n_labels)
@@ -148,11 +153,12 @@ sits_TempCNN <- function(samples = NULL,
         seq_len(n_layers) %>%
             purrr::map(function(i){
                 # Add a Convolution1D
-                ot <- keras::layer_conv_1d(output_tensor,
-                            filters = cnn_layers[i],
-                            kernel_size = cnn_kernels[i],
-                            kernel_regularizer = keras::regularizer_l2(
-                                l = cnn_L2_rate)
+                ot <- keras::layer_conv_1d(
+                    output_tensor,
+                    filters = cnn_layers[i],
+                    kernel_size = cnn_kernels[i],
+                    kernel_regularizer = keras::regularizer_l2(
+                        l = cnn_L2_rate)
                 )
                 # Apply layer dropout
                 ot <- keras::layer_dropout(ot, rate = cnn_dropout_rates[i])
@@ -160,7 +166,7 @@ sits_TempCNN <- function(samples = NULL,
                 ot <- keras::layer_activation(ot, activation = cnn_activation)
                 # export to global environment
                 output_tensor <<- ot
-        })
+            })
 
         # reshape a tensor into a 2D shape
         output_tensor <- keras::layer_flatten(output_tensor)
@@ -169,27 +175,30 @@ sits_TempCNN <- function(samples = NULL,
         n_mlp_layers <- length(mlp_layers)
         seq_len(n_mlp_layers) %>%
             purrr::map(function(i) {
-                ot <- keras::layer_dense(output_tensor,
-                                         units = mlp_layers[i],
-                                         activation = mlp_activation
+                ot <- keras::layer_dense(
+                    output_tensor,
+                    units = mlp_layers[i],
+                    activation = mlp_activation
                 )
                 ot <- keras::layer_dropout(ot, rate = mlp_dropout_rates[i])
                 ot <- keras::layer_batch_normalization(ot)
                 # export to global environment
                 output_tensor <<- ot
-        })
+            })
 
         # create the final tensor
         model_loss <- "categorical_crossentropy"
         if (n_labels == 2) {
-            output_tensor <- keras::layer_dense(output_tensor,
+            output_tensor <- keras::layer_dense(
+                output_tensor,
                 units = 1,
                 activation = "sigmoid"
             )
             model_loss <- "binary_crossentropy"
         }
         else {
-            output_tensor <- keras::layer_dense(output_tensor,
+            output_tensor <- keras::layer_dense(
+                output_tensor,
                 units = n_labels,
                 activation = "softmax"
             )
@@ -236,18 +245,15 @@ sits_TempCNN <- function(samples = NULL,
             # If binary classification,
             # adjust the prediction values to match binary classification
             if (n_labels == 2) {
-                  prediction <- .sits_keras_binary_class(prediction)
-              }
+                prediction <- .sits_keras_binary_class(prediction)
+            }
 
             # adjust the names of the columns of the probs
             colnames(prediction) <- labels
 
             return(prediction)
         }
-        class(model_predict) <- append(class(model_predict),
-            "keras_model",
-            after = 0
-        )
+        class(model_predict) <- c("keras_model", class(model_predict))
         return(model_predict)
     }
 

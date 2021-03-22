@@ -38,6 +38,7 @@ results[[length(results) + 1]] <- conf
 xlsx_file <- paste0(tempdir(), "confusion_matrix.xlsx")
 sits_to_xlsx(results, file = xlsx_file)
 }
+
 }
 \author{
 Gilberto Camara, \email{gilberto.camara@inpe.br}

@@ -37,6 +37,7 @@ pred_ref <- sits_kfold_validate(cerrado_2classes,
 )
 # calculate and print the confusion matrix
 conf_matrix <- sits_conf_matrix(pred_ref)
+
 }
 \author{
 Rolf Simoes, \email{rolf.simoes@inpe.br}

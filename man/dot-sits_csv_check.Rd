@@ -10,7 +10,7 @@
 \item{csv}{Tibble read from a CSV file}
 }
 \value{
-TRUE/FALSE
+A logical value
 }
 \description{
 Check if a CSV tibble is valid

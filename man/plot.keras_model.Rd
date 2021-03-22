@@ -35,6 +35,7 @@ dl_model <- sits_train(samples_ndvi_evi, ml_method = sits_deeplearning(
 ))
 plot(dl_model)
 }
+
 }
 \author{
 Gilberto Camara, \email{gilberto.camara@inpe.br}

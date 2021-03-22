@@ -203,10 +203,11 @@ modis_cube <- sits_cube(
 
 # obtain a set of locations defined by a CSV file
 csv_raster_file <- system.file("extdata/samples/samples_sinop_crop.csv",
-                               package = "sits"
-)
+                               package = "sits")
+
 # retrieve the points from the data cube
 points <- sits_get_data(modis_cube, file = csv_raster_file)
+
 # plot the first point
 plot(points[1,])
 ```

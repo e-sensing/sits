@@ -2,9 +2,6 @@
 % Please edit documentation in R/sits_bands.R
 \name{sits_bands}
 \alias{sits_bands}
-\alias{sits_bands.sits}
-\alias{sits_bands.cube}
-\alias{sits_bands.patterns}
 \alias{sits_bands<-}
 \alias{sits_bands<-.sits}
 \alias{sits_bands<-.cube}
@@ -13,12 +10,6 @@
 \title{Informs and replaces the names of the bands}
 \usage{
 sits_bands(x)
-
-\method{sits_bands}{sits}(x)
-
-\method{sits_bands}{cube}(x)
-
-\method{sits_bands}{patterns}(x)
 
 sits_bands(x) <- value
 
@@ -50,6 +41,7 @@ sits_bands(samples_mt_6bands)
 # Replace the name of bands for the samples for Mato Grosso
 sits_bands(samples_mt_4bands) <- c("ndvi", "evi", "nir", "mir")
 }
+
 }
 \author{
 Gilberto Camara, \email{gilberto.camara@inpe.br}

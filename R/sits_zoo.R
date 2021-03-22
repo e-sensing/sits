@@ -19,7 +19,9 @@
 #'     longitude = -54.2313, latitude = -14.0482,
 #'     label = "Cerrado", name = "mod13q1"
 #' )
+#'
 #' @export
+#'
 sits_from_zoo <- function(ts_zoo, longitude = 0.00, latitude = 0.00,
                           label = "NoClass", name = "unknown") {
     # verifies if zoo package is installed
@@ -28,13 +30,17 @@ sits_from_zoo <- function(ts_zoo, longitude = 0.00, latitude = 0.00,
               Please install it.", call. = FALSE)
     }
     # preconditions
-    assertthat::assert_that(class(ts_zoo) == "zoo",
-                            msg = "input is not a zoo time series")
-    assertthat::assert_that((longitude >= -180. & longitude <= 180.),
-                            msg = "invalid longitude value"
+    assertthat::assert_that(
+        inherits(ts_zoo, "zoo"),
+        msg = "sits_from_zoo: input is not a zoo time series"
     )
-    assertthat::assert_that((latitude >= -90. & longitude <= 90.),
-                            msg = "invalid latitudevalue"
+    assertthat::assert_that(
+        (longitude >= -180. & longitude <= 180.),
+        msg = "sits_from_zoo: invalid longitude value"
+    )
+    assertthat::assert_that(
+        (latitude >= -90. & longitude <= 90.),
+        msg = "sits_from_zoo: invalid latitudevalue"
     )
 
     # convert the data from the zoo format to a tibble used by sits
@@ -68,7 +74,9 @@ sits_from_zoo <- function(ts_zoo, longitude = 0.00, latitude = 0.00,
 #' data(cerrado_2classes)
 #' # export a time series to zoo
 #' zoo.lst <- sits_to_zoo(cerrado_2classes[1:5, ])
+#'
 #' @export
+#'
 sits_to_zoo <- function(data, band = NULL) {
     # verifies if zoo package is installed
     if (!requireNamespace("zoo", quietly = TRUE)) {

@@ -93,16 +93,19 @@ sits_ResNet <- function(samples = NULL,
     result_fun <- function(data) {
         valid_activations <- c("relu", "elu", "selu", "sigmoid")
         # pre-conditions
-        assertthat::assert_that(activation %in% valid_activations,
+        assertthat::assert_that(
+            activation %in% valid_activations,
             msg = "sits_ResNet: invalid CNN activation method"
         )
 
-        assertthat::assert_that(length(kernels) == 3,
+        assertthat::assert_that(
+            length(kernels) == 3,
             msg = "sits_ResNet: should inform size of three kernels"
         )
 
         # get the labels of the data
-        labels <- sits_labels(data)$label
+        labels <- sits_labels(data)
+
         # create a named vector with integers match the class labels
         n_labels <- length(labels)
         int_labels <- c(1:n_labels)
@@ -257,10 +260,9 @@ sits_ResNet <- function(samples = NULL,
 
             return(prediction)
         }
-        class(model_predict) <- append(class(model_predict),
-            "keras_model",
-            after = 0
-        )
+
+        class(model_predict) <- c("keras_model", class(model_predict))
+
         return(model_predict)
     }
 

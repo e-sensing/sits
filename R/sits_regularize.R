@@ -53,8 +53,10 @@
 #'                          Options: "near", "bilinear", "bicubic"
 #'                          or others supported by gdalwarp
 #'                          (see https://gdal.org/programs/gdalwarp.html).
-#' @param cloud_mask        Use cloud band for aggregation by \code{gdalcubes}? (TRUE/FALSE)
+#' @param cloud_mask        Use cloud band for aggregation by \code{gdalcubes}?
+#'
 #' @export
+#'
 sits_regularize <- function(cube,
                             name,
                             dir_images,
@@ -70,10 +72,11 @@ sits_regularize <- function(cube,
     }
 
     # test if provided object its a sits cube
-    assertthat::assert_that("raster_cube" %in% class(cube),
-                            msg = paste("The provided cube is invalid,",
-                                        "please provide a 'raster_cube' object.",
-                                        "See '?sits_cube' for more information.")
+    assertthat::assert_that(
+        inherits(cube, "raster_cube"),
+        msg = paste("The provided cube is invalid,",
+                    "please provide a 'raster_cube' object.",
+                    "See '?sits_cube' for more information.")
     )
 
     # in case of null path a temporary directory is generated

@@ -97,7 +97,8 @@
 .sits_cube_probs <- function(tile, samples, sub_image,
                                   output_dir, version) {
     # ensure metadata tibble exists
-    assertthat::assert_that(NROW(tile) == 1,
+    assertthat::assert_that(
+        nrow(tile) == 1,
         msg = ".sits_cube_probs: accepts only one tile at a time"
     )
 
@@ -110,7 +111,7 @@
     end_date = as.Date(timeline[length(timeline)])
 
     # labels come from samples
-    labels <- sits_labels(samples)$label
+    labels <- sits_labels(samples)
 
     # define the file names for the classified images
     file_name <- paste0(output_dir, "/", name, "_",
@@ -162,7 +163,8 @@
 #' @param index     Index for file to be retrived
 #' @return          Name of file
 .sits_cube_file <- function(cube, index = 1) {
-    assertthat::assert_that(index <= length(cube$file_info[[1]]$path),
+    assertthat::assert_that(
+        index <= length(cube$file_info[[1]]$path),
         msg = ".sits_cube_file: index is out of range"
     )
     return(cube$file_info[[1]]$path[index])
@@ -211,8 +213,10 @@
           bands <- cb_bands
       } else {
         bands <- toupper(bands)
-        assertthat::assert_that(all(bands %in% cb_bands),
-            msg = "bands are not available in the cube"
+        assertthat::assert_that(
+            all(bands %in% cb_bands),
+            msg = paste(".sits_cube_bands_check: bands are not available",
+                        "in the cube")
         )
     }
     return(bands)
@@ -264,8 +268,9 @@
 #' @param end_date       End date for the classification
 #' @return          Name of file
 .sits_cube_sub_interval <- function(cube, samples, start_date, end_date){
-    assertthat::assert_that(nrow(cube) == 1,
-                          msg = "sits_cube_sub_interval accepts one tile only")
+    assertthat::assert_that(
+        nrow(cube) == 1,
+        msg = "sits_cube_sub_interval: accepts one tile only")
 
     # get the cube timeline
     cube_timeline <- sits_timeline(cube)
@@ -282,13 +287,60 @@
                        "inferred from the samples"))
     }
     # verify if the dates are part of the cube timeline
-    assertthat::assert_that(as.Date(start_date) <= cube_timeline[length(cube_timeline)],
-                            msg = "start_date is not inside the cube timeline"
+    assertthat::assert_that(
+        as.Date(start_date) <= cube_timeline[length(cube_timeline)],
+        msg = paste(".sits_cube_sub_interval: start_date is not",
+                    "inside the cube timeline")
     )
-    assertthat::assert_that(as.Date(end_date) >= cube_timeline[1],
-                            msg = "end_date is not inside the cube timeline"
+    assertthat::assert_that(
+        as.Date(end_date) >= cube_timeline[1],
+        msg = paste(".sits_cube_sub_interval: end_date is not inside the",
+                    "cube timeline")
     )
-
-
     return(cube)
+}
+#' @title Update informations of a data cube
+#' @name .sits_cube_update_raster_params
+#' @keywords internal
+#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
+#'
+#' @param  cube              input data cube
+#' @return                   output data cube
+.sits_cube_update_raster_params <- function(cube) {
+
+    res <- slider::slide_dfr(cube, function(tile) {
+        layer_obj <- suppressWarnings(
+            raster::raster(tile$file_info[[1]]$path[[1]])
+        )
+        dplyr::mutate(tile,
+                      nrows = raster::nrow(layer_obj),
+                      ncols = raster::ncol(layer_obj),
+                      xmin  = raster::xmin(layer_obj),
+                      xmax  = raster::xmax(layer_obj),
+                      ymin  = raster::ymin(layer_obj),
+                      ymax  = raster::ymax(layer_obj),
+                      xres  = raster::xres(layer_obj),
+                      yres  = raster::yres(layer_obj))
+    })
+
+    return(res)
+}
+#' @title Get cube source
+#' @name .sits_cube_source
+#' @keywords internal
+#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
+#'
+#' @param  cube              input data cube
+#'
+#' @return A character string
+.sits_cube_source <- function(cube) {
+
+    res <- unique(cube$source)
+
+    assertthat::assert_that(
+        length(res) == 1,
+        msg = ".sits_cube_source: cube has different sources."
+    )
+
+    return(res)
 }

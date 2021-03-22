@@ -88,17 +88,19 @@ sits_FCN <- function(samples = NULL,
     # function that returns keras model based on a sits sample data.table
     result_fun <- function(data) {
         # pre-conditions
-        assertthat::assert_that(length(layers) == length(kernels),
+        assertthat::assert_that(
+            length(layers) == length(kernels),
             msg = "sits_FCN: 1D layers must match 1D kernels"
         )
 
         valid_activations <- c("relu", "elu", "selu", "sigmoid")
-        assertthat::assert_that(all(activation %in% valid_activations),
+        assertthat::assert_that(
+            all(activation %in% valid_activations),
             msg = "sits_FCN: invalid CNN activation method"
         )
 
         # get the labels of the data
-        labels <- sits_labels(data)$label
+        labels <- sits_labels(data)
         # create a named vector with integers match the class labels
         n_labels <- length(labels)
         int_labels <- c(1:n_labels)

@@ -1,6 +1,7 @@
 #' @title Post-process a classified data raster probs using smoothing
 #'
 #' @name  sits_smooth
+#'
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
 #'
@@ -14,6 +15,7 @@
 #'    \item{"bilinear: }{Use a bilinear smoother}
 #'
 #' }
+#'
 #' @param  cube              Probability data cube
 #' @param  type              Type of smoothing
 #' @param  ...               Parameters for specific functions
@@ -87,22 +89,24 @@
 #' }
 #'
 #' @export
+#'
 sits_smooth <- function(cube, type = "bayes", ...) {
 
     # precondition 1 - check if cube has probability data
-    assertthat::assert_that(inherits(cube, "probs_cube"),
-          msg = "sits_smooth: input is not probability cube"
+    assertthat::assert_that(
+        inherits(cube, "probs_cube"),
+        msg = "sits_smooth: input is not probability cube"
     )
 
     class(type) <- c(type, class(type))
+
     UseMethod("sits_smooth", type)
 }
 
-#' @title Post-process a classified data raster probs using Bayesian smoothing
-#'
-#' @rdname  sits_smooth
+#' @rdname sits_smooth
 #'
 #' @export
+#'
 sits_smooth.bayes <- function(cube, type = "bayes", ...,
                               window_size = 5,
                               smoothness = 20,
@@ -113,13 +117,15 @@ sits_smooth.bayes <- function(cube, type = "bayes", ...,
                               version = "v1") {
 
     # precondition 1 - check if cube has probability data
-    assertthat::assert_that(inherits(cube, "probs_cube"),
-            msg = "sits_smooth: input is not probability cube"
+    assertthat::assert_that(
+        inherits(cube, "probs_cube"),
+        msg = "sits_smooth: input is not probability cube"
     )
 
     # precondition 2 - test window size
-    assertthat::assert_that(window_size %% 2 != 0,
-            msg = "sits_smooth: window_size must be an odd number"
+    assertthat::assert_that(
+        window_size %% 2 != 0,
+        msg = "sits_smooth: window_size must be an odd number"
     )
 
     # find out how many labels exist
@@ -127,26 +133,30 @@ sits_smooth.bayes <- function(cube, type = "bayes", ...,
 
     # precondition 3 - test variance
     if (is.matrix(smoothness)) {
-        assertthat::assert_that((nrow(smoothness) == ncol(smoothness)) &&
-                                    (ncol(smoothness) == n_labels),
-           msg = paste("sits_smooth: smoothness must be square matrix of",
-                       "the same length as the number of labels")
+        assertthat::assert_that(
+            (nrow(smoothness) == ncol(smoothness)) &&
+                (ncol(smoothness) == n_labels),
+            msg = paste("sits_smooth: smoothness must be square matrix of",
+                        "the same length as the number of labels")
         )
     } else {
-        assertthat::assert_that(smoothness > 1,
-                   msg = "sits_smooth: smoothness must be more than 1"
+        assertthat::assert_that(
+            smoothness > 1,
+            msg = "sits_smooth: smoothness must be more than 1"
         )
         smoothness <- diag(smoothness, nrow = n_labels, ncol = n_labels)
     }
 
     # precondition 4 - multicores
-    assertthat::assert_that(multicores >= 1,
-                            msg = "sits_smooth: multicores must be at least 1"
+    assertthat::assert_that(
+        multicores >= 1,
+        msg = "sits_smooth: multicores must be at least 1"
     )
 
     # precondition 5 - memory
-    assertthat::assert_that(memsize > 0,
-                            msg = "sits_smooth: memsize must be positive"
+    assertthat::assert_that(
+        memsize > 0,
+        msg = "sits_smooth: memsize must be positive"
     )
 
     # create a window
@@ -211,10 +221,10 @@ sits_smooth.bayes <- function(cube, type = "bayes", ...,
     return(cube_bayes)
 }
 
-#' @title Post-process a probability cube using Gaussian smoothing
-#' @rdname  sits_smooth
+#' @rdname sits_smooth
 #'
 #' @export
+#'
 sits_smooth.gaussian <- function(cube, type = "gaussian", ...,
                                  window_size = 5,
                                  sigma = 1,
@@ -224,28 +234,33 @@ sits_smooth.gaussian <- function(cube, type = "gaussian", ...,
                                  version = "v1") {
 
     # precondition 1 - check if cube has probability data
-    assertthat::assert_that(inherits(cube, "probs_cube"),
-                            msg = "sits_smooth: input is not probability cube"
+    assertthat::assert_that(
+        inherits(cube, "probs_cube"),
+        msg = "sits_smooth: input is not probability cube"
     )
 
     # precondition 2 - test window size
-    assertthat::assert_that(window_size %% 2 != 0,
-                        msg = "sits_smooth: window_size must be an odd number"
+    assertthat::assert_that(
+        window_size %% 2 != 0,
+        msg = "sits_smooth: window_size must be an odd number"
     )
 
     # prediction 3 - test variance
-    assertthat::assert_that(sigma > 0,
-                            msg = "sits_smooth: smoothness must be positive"
+    assertthat::assert_that(
+        sigma > 0,
+        msg = "sits_smooth: smoothness must be positive"
     )
 
     # precondition 4 - multicores
-    assertthat::assert_that(multicores >= 1,
-                            msg = "sits_smooth: multicores must be at least 1"
+    assertthat::assert_that(
+        multicores >= 1,
+        msg = "sits_smooth: multicores must be at least 1"
     )
 
     # precondition 5 - memsize
-    assertthat::assert_that(memsize > 0,
-                            msg = "sits_smooth: memsize must be positive"
+    assertthat::assert_that(
+        memsize > 0,
+        msg = "sits_smooth: memsize must be positive"
     )
 
     # create output window
@@ -299,9 +314,11 @@ sits_smooth.gaussian <- function(cube, type = "gaussian", ...,
 
     return(cube_gauss)
 }
-#' @title Post-process a probability cube using using bilinear smoothing
-#' @rdname  sits_smooth
+
+#' @rdname sits_smooth
+#'
 #' @export
+#'
 sits_smooth.bilinear <- function(cube,
                                  type = "bilinear",
                                  ...,
@@ -314,33 +331,39 @@ sits_smooth.bilinear <- function(cube,
                                  version = "v1") {
 
     # precondition 1 - check if cube has probability data
-    assertthat::assert_that(inherits(cube, "probs_cube"),
-            msg = "sits_smooth: input is not probability cube"
+    assertthat::assert_that(
+        inherits(cube, "probs_cube"),
+        msg = "sits_smooth: input is not probability cube"
     )
 
     # precondition 2 - test window size
-    assertthat::assert_that(window_size %% 2 != 0,
-                        msg = "sits_smooth: window_size must be an odd number"
+    assertthat::assert_that(
+        window_size %% 2 != 0,
+        msg = "sits_smooth: window_size must be an odd number"
     )
 
     # prediction 3 - test variance
-    assertthat::assert_that(sigma > 0,
-                            msg = "sits_smooth: smoothness must be positive"
+    assertthat::assert_that(
+        sigma > 0,
+        msg = "sits_smooth: smoothness must be positive"
     )
 
     # prediction 4 - test variance
-    assertthat::assert_that(sigma > 0,
-                            msg = "sits_smooth: smoothness must be positive"
+    assertthat::assert_that(
+        sigma > 0,
+        msg = "sits_smooth: smoothness must be positive"
     )
 
     # precondition 5 - multicores
-    assertthat::assert_that(multicores >= 1,
-                            msg = "sits_smooth: multicores must be at least 1"
+    assertthat::assert_that(
+        multicores >= 1,
+        msg = "sits_smooth: multicores must be at least 1"
     )
 
     # precondition 6 - memsize
-    assertthat::assert_that(memsize > 0,
-                            msg = "sits_smooth: memsize must be positive"
+    assertthat::assert_that(
+        memsize > 0,
+        msg = "sits_smooth: memsize must be positive"
     )
 
     # create output window

@@ -46,4 +46,5 @@ cbers_022024_copy <- sits_cube_copy(cbers_022024,
     dest_dir = tempdir()
 )
 }
+
 }

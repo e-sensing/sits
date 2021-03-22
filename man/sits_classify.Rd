@@ -28,6 +28,7 @@ This is a generic function. The following specific functions are available:
  \item{"sits tibble": }{see \code{\link{sits_classify.sits}}}
  \item{"cube": }{see \code{\link{sits_classify.raster_cube}}}
 }
+
 SITS supports the following models:
 \itemize{
  \item{support vector machines: }         {see \code{\link[sits]{sits_svm}}}

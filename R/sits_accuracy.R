@@ -87,10 +87,12 @@
 #' }
 #' @export
 sits_accuracy <- function(label_cube, validation_csv) {
-    assertthat::assert_that("classified_image" %in% class(label_cube),
-        msg = "sits_accuracy requires a labelled cube"
+    assertthat::assert_that(
+        inherits(label_cube, "classified_image"),
+        msg = "sits_accuracy: requires a labelled cube"
     )
-    assertthat::assert_that(file.exists(validation_csv),
+    assertthat::assert_that(
+        file.exists(validation_csv),
         msg = "sits_accuracy: validation file missing."
     )
 
@@ -114,8 +116,10 @@ sits_accuracy <- function(label_cube, validation_csv) {
     points <- dplyr::bind_cols(csv_tb, xy_tb)
 
     # are there points to be retrieved from the cube?
-    assertthat::assert_that(nrow(points) != 0,
-        msg = "No validation point intersects the map's spatiotemporal extent."
+    assertthat::assert_that(
+        nrow(points) != 0,
+        msg = paste("sits_accuracy: no validation point intersects the map's",
+                    "spatiotemporal extent.")
     )
 
     # the label cube may contain several classified images
@@ -124,7 +128,8 @@ sits_accuracy <- function(label_cube, validation_csv) {
         # find the labelled band
         labelled_band <- sits_bands(row)
         # the labelled band must be unique
-        assertthat::assert_that(length(labelled_band) == 1,
+        assertthat::assert_that(
+            length(labelled_band) == 1,
             msg = "sits_accuracy: invalid labelled cube"
         )
 
@@ -157,7 +162,8 @@ sits_accuracy <- function(label_cube, validation_csv) {
         # Get reference classes
         reference <- points_row$label
         # do the number of predicted and reference values match
-        assertthat::assert_that(length(reference) == length(predicted),
+        assertthat::assert_that(
+            length(reference) == length(predicted),
             msg = "sits_accuracy: predicted and reference vector do not match"
         )
         # create a tibble to store the results

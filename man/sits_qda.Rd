@@ -34,6 +34,7 @@ samples_mt_ndvi <- sits_select(samples_mt_4bands, bands = "NDVI")
 qda_model <- sits_train(samples_mt_ndvi, sits_qda())
 # Classify a point
 class <- sits_classify(point_ndvi, qda_model)
+
 }
 \author{
 Alexandre Ywata de Carvalho, \email{alexandre.ywata@ipea.gov.br}

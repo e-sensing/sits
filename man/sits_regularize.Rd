@@ -38,7 +38,7 @@ Options: "near", "bilinear", "bicubic"
 or others supported by gdalwarp
 (see https://gdal.org/programs/gdalwarp.html).}
 
-\item{cloud_mask}{Use cloud band for aggregation by \code{gdalcubes}? (TRUE/FALSE)}
+\item{cloud_mask}{Use cloud band for aggregation by \code{gdalcubes}?}
 }
 \description{
 Creates cubes with regular time intervals

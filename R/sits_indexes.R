@@ -16,7 +16,8 @@ sits_savi <- function(data) {
 
     bands <- sits_bands(data)
     bands_savi <- c("NIR", "RED")
-    assertthat::assert_that(all(bands_savi %in% (bands)),
+    assertthat::assert_that(
+        all(bands_savi %in% (bands)),
         msg = "sits_savi: not enough bands to compute"
     )
 
@@ -41,11 +42,14 @@ sits_savi <- function(data) {
 #' ndwi.tb <- sits_ndwi(samples_mt_6bands)
 #' @export
 sits_ndwi <- function(data) {
+
     # backward compatibility
     data <- .sits_tibble_rename(data)
     bands <- sits_bands(data)
     bands_ndwi <- c("NIR", "MIR")
-    assertthat::assert_that(all(bands_ndwi %in% (bands)),
+
+    assertthat::assert_that(
+        all(bands_ndwi %in% (bands)),
         msg = "sits_ndwi: not enough bands to compute"
     )
 

@@ -39,6 +39,7 @@ plot(som_map, type = "codes")
 # Plot kohonen map showing where the samples were allocated
 plot(som_map, type = "mapping")
 }
+
 }
 \author{
 Gilberto Camara, \email{gilberto.camara@inpe.br}

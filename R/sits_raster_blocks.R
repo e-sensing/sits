@@ -56,22 +56,29 @@
                                          multicores) {
 
     # retrieve the samples
-    samples <- environment(ml_model)$data
+    samples <- .sits_ml_model_samples(ml_model)
+
     # total number of instances
     n_instances <- length(sits_timeline(cube))
+
     # get the number of bands
     nbands <- length(sits_bands(samples))
+
     # does the cube have a cloud band?
     cube_bands <- sits_bands(cube)
     cld_band <- .sits_config_cloud_band(cube)
+
     # the cube has the cloud band, add one more band to the calculation
     if (cld_band %in% cube_bands) {
-          nbands <- nbands + 1
-      }
+        nbands <- nbands + 1
+    }
+
     # number of bytes per pixel
     nbytes <- 8
+
     # estimated memory bloat
     bloat <- as.numeric(.sits_config_memory_bloat())
+
     # estimated processing bloat
     proc_bloat <- as.numeric(.sits_config_processing_bloat())
 
@@ -91,23 +98,16 @@
     mem_required_scaling <- (full_size + as.numeric(.sits_mem_used())) * bloat
 
     # number of labels
-    n_labels <- length(sits_labels(samples)$label)
+    n_labels <- length(sits_labels(samples))
+
     # estimated size of the data for classification
     input_class_data_size <- as.integer(n_instances) * nbands_data_size
     output_class_data_size <- as.integer(n_labels) * single_data_size
     class_data_size <- input_class_data_size + output_class_data_size
 
-    # memory required for processing depends on the model
-    if ("keras_model" %in% class(ml_model) | "ranger_model" %in% class(ml_model)
-    | "xgb_model" %in% class(ml_model)) {
-        mem_required_processing <- (class_data_size +
-            as.numeric(.sits_mem_used())) * proc_bloat
-    }
-    else {
-        # test two different cases
-        mem_required_processing <- as.integer(multicores) *
-                  (class_data_size + as.numeric(.sits_mem_used()))
-    }
+    # memory required for processing
+    mem_required_processing <- as.integer(multicores) *
+        (class_data_size + as.numeric(.sits_mem_used())) * proc_bloat
 
     # number of passes to read the full data sets
     nblocks <- max(
@@ -143,7 +143,10 @@
 
     # number of rows in each block
     n_rows <- length(row_vec)
-    assertthat::assert_that(n_rows > 0, msg = "empty row vector")
+    assertthat::assert_that(
+        n_rows > 0,
+        msg = ".sits_raster_block_list: empty row vector"
+    )
     nrows_vec <- rep.int(block_rows, n_rows)
 
     # check that total number of rows is the same as the sum of all blocks
@@ -184,7 +187,6 @@
 #' @keywords internal
 #' @description Calls the gc() and rounds the result in GB.
 #' @return Memory used in GB.
-#' @export
 .sits_mem_used <- function() {
     dt <- gc()
     return(sum(dt[, 2] / 1000))

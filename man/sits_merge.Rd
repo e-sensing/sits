@@ -2,15 +2,9 @@
 % Please edit documentation in R/sits_merge.R
 \name{sits_merge}
 \alias{sits_merge}
-\alias{sits_merge.sits}
-\alias{sits_merge.cube}
 \title{Merge two data sets (time series or cubes)}
 \usage{
 sits_merge(data1, data2)
-
-\method{sits_merge}{sits}(data1, data2)
-
-\method{sits_merge}{cube}(data1, data2)
 }
 \arguments{
 \item{data1}{sits tibble or cube to be merged.}
@@ -38,9 +32,8 @@ data(point_ndvi)
 point_ws.tb <- sits_whittaker(point_ndvi, lambda = 3.0)
 # Plot the two points to see the smoothing effect
 plot(sits_merge(point_ndvi, point_ws.tb))
-
-
 }
+
 }
 \author{
 Gilberto Camara, \email{gilberto.camara@inpe.br}

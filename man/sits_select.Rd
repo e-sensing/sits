@@ -12,14 +12,22 @@ sits_select(data, bands)
 \item{bands}{Character vector with the names of the bands}
 }
 \value{
-data sets with only the bands selected
+For sits tibble, returns a sits tibble with the selected bands.
+For data cube, a data cube with the selected bands.
 }
 \description{
-For details see:
-\itemize{
- \item{"time series": }{see \code{\link{sits_select.sits}}}
- \item{"data cube": }{see \code{\link{sits_select.cube}}}
+Filter only the selected bands from a tibble or a data cube.
 }
+\examples{
+# Retrieve a set of time series with 2 classes
+data(cerrado_2classes)
+# Print the original bands
+sits_bands(cerrado_2classes)
+# Select only the NDVI band
+data <- sits_select(cerrado_2classes, bands = c("NDVI"))
+# Print the labels of the resulting tibble
+sits_bands(data)
+
 }
 \author{
 Rolf Simoes, \email{rolf.simoes@inpe.br}

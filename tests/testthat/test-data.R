@@ -61,7 +61,7 @@ test_that("Reading a CSV file from SATVEG", {
     expect_equal(max(points$longitude), -46.407, tolerance = 1e-5)
     expect_equal(max(points$latitude), -10.4142, tolerance = 1e-5)
 
-    mylabels <- sits_labels(points)
+    mylabels <- sits_labels_summary(points)
 
     expect_equal(dplyr::filter(mylabels, label == "Cerrado")$count, 3)
     expect_equal(dplyr::filter(mylabels, label == "Pasture")$count, 3)
@@ -145,9 +145,9 @@ test_that("Reading a CSV file from RASTER", {
       system.file("extdata/samples/samples_sinop_crop.csv",
         package = "sits"
     ))
-    expect_true(nrow(points) <= NROW(df_csv))
+    expect_true(nrow(points) <= nrow(df_csv))
 
-    expect_true("Forest" %in% sits_labels(points)$label)
+    expect_true("Forest" %in% sits_labels(points))
     expect_equal(names(points)[1], "longitude")
     expect_equal(length(names(points)), 7)
     expect_true(ncol(sits_time_series(points)) == 3)

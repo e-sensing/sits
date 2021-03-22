@@ -22,10 +22,10 @@
                              cloud_mask, ..., version = "v1") {
 
     # verifies the path to save the images
-    assertthat::assert_that(dir.exists(dir_images),
-                            msg = paste("The provided dir does not exist.",
-                                        "Please provided a valid path.")
-
+    assertthat::assert_that(
+        dir.exists(dir_images),
+        msg = paste("The provided dir does not exist.",
+                    "Please provided a valid path.")
     )
 
     # create a clone cube
@@ -150,10 +150,10 @@
     cloud_band <- .sits_config_cloud_band(tile)
 
     # checks if the cube has a cloud band
-    assertthat::assert_that(cloud_band %in% unique(bands),
-                            msg = paste("It was not possible to use the cloud",
-                                        "mask, please include the cloud band",
-                                        "in your cube")
+    assertthat::assert_that(
+        cloud_band %in% unique(bands),
+        msg = paste("It was not possible to use the cloud",
+                    "mask, please include the cloud band in your cube")
     )
 
     # create a image mask object
@@ -175,9 +175,9 @@
 .sits_gc_database <- function(cube, path_db) {
 
     # error if a cube other than S2_L2A_AWS is provided
-    assertthat::assert_that(!(cube[1,]$source != "AWS"),
-                            msg = paste("For now, only 'S2_L2A_AWS' cubes",
-                                        "can be aggregated.")
+    assertthat::assert_that(
+        .sits_cube_source(cube) == "AWS",
+        msg = ".sits_gc_database: for now, only 'AWS' cubes can be aggregated."
     )
 
     # joining the bands of all tiles
@@ -213,30 +213,32 @@
 #' @return a \code{list} with a cube_view objects.
 .sits_gc_cube <- function(c_tile, period, method, resampling) {
 
-    assertthat::assert_that(!purrr::is_null(period),
-                            msg = paste("sits_gdalcubes: the parameter",
-                                        "'period' must be provided."))
+    assertthat::assert_that(
+        !purrr::is_null(period),
+        msg = "sits_gdalcubes: the parameter 'period' must be provided."
+    )
 
-    assertthat::assert_that(!purrr::is_null(method),
-                            msg = paste("sits_gdalcubes: the parameter",
-                                        "'method' must be provided."))
+    assertthat::assert_that(
+        !purrr::is_null(method),
+        msg = "sits_gdalcubes: the parameter 'method' must be provided."
+    )
 
     # create a list of cube view
     cv_list <- gdalcubes::cube_view(
-            extent = list(left   = c_tile$xmin,
-                          right  = c_tile$xmax,
-                          bottom = c_tile$ymin,
-                          top    = c_tile$ymax,
-                          t0 = format(min(c_tile$file_info[[1]]$date),
-                                      "%Y-%m-%d"),
-                          t1 = format(max(c_tile$file_info[[1]]$date),
-                                      "%Y-%m-%d")),
-            srs = c_tile$crs[[1]],
-            dt  = period,
-            nx  = c_tile$ncols[[1]],
-            ny  = c_tile$nrows[[1]],
-            aggregation = method,
-            resampling  = resampling
+        extent = list(left   = c_tile$xmin,
+                      right  = c_tile$xmax,
+                      bottom = c_tile$ymin,
+                      top    = c_tile$ymax,
+                      t0 = format(min(c_tile$file_info[[1]]$date),
+                                  "%Y-%m-%d"),
+                      t1 = format(max(c_tile$file_info[[1]]$date),
+                                  "%Y-%m-%d")),
+        srs = c_tile$crs[[1]],
+        dt  = period,
+        nx  = c_tile$ncols[[1]],
+        ny  = c_tile$nrows[[1]],
+        aggregation = method,
+        resampling  = resampling
     )
 
     return(cv_list)

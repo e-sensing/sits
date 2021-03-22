@@ -35,6 +35,7 @@ cluster_overall <- sits_som_evaluate_cluster(som_map)
 # Plot confusion between the clusters
 plot(cluster_overall)
 }
+
 }
 \author{
 Lorena Santos \email{lorena.santos@inpe.br}

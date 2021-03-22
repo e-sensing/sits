@@ -37,6 +37,7 @@ Imports:
     data.table (>= 1.13),
     dplyr (>= 1.0.0),
     furrr,
+    gdalUtilities,
     ggplot2,
     graphics,
     grDevices,
@@ -114,6 +115,7 @@ Collate:
     'sits_classification.R'
     'sits_classify_ts.R'
     'sits_classify_cube.R'
+    'sits_classify_cube_aux_functions.R'
     'sits_config.R'
     'sits_conf_matrix.R'
     'sits_csv.R'
@@ -134,6 +136,7 @@ Collate:
     'sits_keras.R'
     'sits_labels.R'
     'sits_label_classification.R'
+    'sits_labels_summary.R'
     'sits_LSTM_FCN.R'
     'sits_machine_learning.R'
     'sits_merge.R'

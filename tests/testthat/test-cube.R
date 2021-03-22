@@ -192,12 +192,12 @@ test_that("Creating cubes from AWS and regularizing them", {
     expect_true(all(sits_bands(s2_cube) %in% c("B08", "SCL")))
 
     file_info <- s2_cube$file_info[[1]]
-    r <- terra::rast(file_info[1,]$path)
+    r <- terra::rast(file_info$path[[1]])
 
-    expect_equal(s2_cube[1,]$nrows, terra::nrow(r))
-    expect_equal(s2_cube[1,]$ncols, terra::ncol(r))
-    expect_equal(s2_cube[1,]$xmax, terra::xmax(r))
-    expect_equal(s2_cube[1,]$xmin, terra::xmin(r))
+    expect_equal(s2_cube$nrows[[1]], terra::nrow(r))
+    expect_equal(s2_cube$ncols[[1]], terra::ncol(r))
+    expect_equal(s2_cube$xmax[[1]], terra::xmax(r))
+    expect_equal(s2_cube$xmin[[1]], terra::xmin(r))
 
     dir_images <-  paste0(tempdir(),"/images/")
     if (!dir.exists(dir_images))

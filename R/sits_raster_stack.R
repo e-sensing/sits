@@ -25,8 +25,6 @@
 #'              columns for parsing are "X1, X2, X3, X4, X5, date, X7, band".
 #'              In the second, they are "band, date".
 #'
-#' @export
-#'
 .sits_raster_stack_info <- function(satellite,
                                     sensor,
                                     data_dir,
@@ -44,8 +42,8 @@
     file_ext <- .sits_config_img_file_ext()
     # filter by extension
     matches <- purrr::map(file_ext, function(ext) {
-          img_files[grepl(ext, img_files)]
-      })
+        img_files[grepl(ext, img_files)]
+    })
     # get only valid files
     img_files <- unlist(matches)
 
@@ -55,10 +53,10 @@
     img_files_lst <- strsplit(img_files_noext, split = "_")
     # joint the list into a tibble
     img_files_tb <- suppressWarnings(
-      tibble::as_tibble(
-        do.call(rbind, img_files_lst)
+        tibble::as_tibble(
+            do.call(rbind, img_files_lst)
         )
-      )
+    )
     # read the image files into a tibble with added parse info
     colnames(img_files_tb) <- parse_info
 
@@ -86,23 +84,30 @@
 
     # filter bands
     if (!purrr::is_null(bands)) {
+
         # get the bands of the cube
         bands_info <- dplyr::pull(dplyr::distinct(file_info, band))
+
         # verify that the requested bands exist
-        assertthat::assert_that(all(bands %in% bands_info),
-                    msg = "requested bands not available in cube")
+        assertthat::assert_that(
+            all(bands %in% bands_info),
+            msg = paste(".sits_raster_stack_info: requested bands not",
+                        "available in cube")
+        )
+
         # select the requested bands
         file_info <- dplyr::filter(file_info, band %in% bands)
     }
+
     # filter start and end dates
     if (!purrr::is_null(start_date) & !purrr::is_null(end_date))
-      file_info <- dplyr::filter(file_info,
-                                 date >= start_date & date <= end_date)
+        file_info <- dplyr::filter(file_info,
+                                   date >= start_date & date <= end_date)
 
     res_xy <- .sits_config_resolution(sensor)
     resolution <- unname(res_xy["xres"])
     file_info <- dplyr::mutate(file_info,
-                    res = resolution, .before = path)
+                               res = resolution, .before = path)
 
     return(file_info)
 }

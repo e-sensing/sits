@@ -28,7 +28,8 @@ sits_filter <- function(data, filter = sits_whittaker()) {
     .sits_test_tibble(data)
 
     # is the train method a function?
-    assertthat::assert_that(class(filter) == "function",
+    assertthat::assert_that(
+        inherits(filter, "function"),
         msg = "sits_filter: filter is not a valid function"
     )
 
@@ -80,7 +81,8 @@ sits_envelope <- function(data = NULL,
         operations <- strsplit(operations, "")[[1]]
 
         # verify if operations are either "U" or "L"
-        assertthat::assert_that(all(operations %in% names(def_op)),
+        assertthat::assert_that(
+            all(operations %in% names(def_op)),
             msg = "sits_envelope: invalid operation sequence"
         )
 
@@ -123,7 +125,7 @@ sits_envelope <- function(data = NULL,
 #' # Retrieve a time series with values of NDVI
 #' data(point_ndvi)
 #' # find out how many time instances are there
-#' n_times <- NROW(sits_time_series(point_ndvi))
+#' n_times <- nrow(sits_time_series(point_ndvi))
 #' # interpolate three times more points
 #' point_int.tb <- sits_interp(point_ndvi, fun = stats::spline, n = 3 * n_times)
 #' # plot the result
@@ -137,7 +139,7 @@ sits_interp <- function(data = NULL, fun = stats::approx,
         # compute linear approximation
         result <- sits_apply(data,
             fun = function(band) {
-                if (class(n) == "function") {
+                if (inherits(n, "function")) {
                       return(fun(band, n = n(band), ...)$y)
                   }
                 return(fun(band, n = n, ...)$y)
@@ -285,7 +287,7 @@ sits_kalman <- function(data = NULL, bands_suffix = "kf") {
 #' # Retrieve a time series with values of NDVI
 #' data(point_ndvi)
 #' # find out how many time instances are there
-#' n_times <- NROW(sits_time_series(point_ndvi))
+#' n_times <- nrow(sits_time_series(point_ndvi))
 #' # interpolate three times more points
 #' point_int.tb <- sits_linear_interp(point_ndvi, n = 3 * n_times)
 #' # plot the result
@@ -374,8 +376,9 @@ sits_ndvi_arima <- function(data = NULL, cutoff = -0.25,
     filter_fun <- function(data) {
         # find the bands of the data
         bands <- sits_bands(data)
-        assertthat::assert_that("NDVI" %in% bands,
-            msg = "data does not contain the NDVI band"
+        assertthat::assert_that(
+            "NDVI" %in% bands,
+            msg = "sits_ndvi_arima: data does not contain the NDVI band"
         )
 
         # predictive model for missing values
@@ -383,7 +386,8 @@ sits_ndvi_arima <- function(data = NULL, cutoff = -0.25,
             idx <- which(is.na(x))
             for (i in idx) {
                 prev3 <- x[(i - q):(i - 1)]
-                assertthat::assert_that(!anyNA(prev3),
+                assertthat::assert_that(
+                    !anyNA(prev3),
                     msg = "sits_ndvi_arima: please reduce filter order"
                 )
                 arima_model <- stats::arima(prev3, c(p, d, q))
@@ -462,7 +466,7 @@ sits_sgolay <- function(data = NULL, order = 3,
     data <- .sits_tibble_rename(data)
 
     filter_fun <- function(data) {
-        if ("tbl" %in% class(data)) {
+        if (inherits(data, "tbl")) {
             result <- sits_apply(data,
                 fun = function(band) {
                       signal::sgolayfilt(band,
@@ -474,7 +478,7 @@ sits_sgolay <- function(data = NULL, order = 3,
                 bands_suffix = bands_suffix
             )
         }
-        if ("matrix" %in% class(data)) {
+        if (inherits(data, "matrix")) {
             result <- apply(data, 2, function(row) {
                 signal::sgolayfilt(row,
                     p = order,
@@ -528,7 +532,7 @@ sits_whittaker <- function(data = NULL, lambda = 1.0, bands_suffix = "wf") {
 
     filter_fun <- function(data) {
         result <- NULL
-        if ("tbl" %in% class(data)) {
+        if (inherits(data, "tbl")) {
             result <- sits_apply(data,
                 fun = function(band) {
                     ptw::whit2(band, lambda = lambda)
@@ -537,7 +541,7 @@ sits_whittaker <- function(data = NULL, lambda = 1.0, bands_suffix = "wf") {
                 bands_suffix = bands_suffix
             )
         }
-        if ("matrix" %in% class(data)) {
+        if (inherits(data, "matrix")) {
             result <- apply(
                 data, 2,
                 function(row) {

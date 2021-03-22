@@ -13,16 +13,18 @@
     t_obj <- terra::rast(file)
 
     # post conditions
-    assertthat::assert_that(terra::nrow(t_obj) > 0 & terra::ncol(t_obj) > 0,
-                            msg = ".sits_raster_api_params_file: invalid raster object"
+    assertthat::assert_that(
+        terra::nrow(t_obj) > 0 && terra::ncol(t_obj) > 0,
+        msg = ".sits_raster_api_params_file: invalid raster object"
     )
-    assertthat::assert_that(terra::xmax(t_obj) > terra::xmin(t_obj) &
-                                terra::ymax(t_obj) > terra::ymin(t_obj),
-                            msg = ".sits_raster_api_params_file: invalid raster object"
+    assertthat::assert_that(
+        terra::xmax(t_obj) > terra::xmin(t_obj) &&
+            terra::ymax(t_obj) > terra::ymin(t_obj),
+        msg = ".sits_raster_api_params_file: invalid raster object"
     )
-    assertthat::assert_that(terra::xres(t_obj) > 0 &
-                                terra::yres(t_obj) > 0,
-                            msg = ".sits_raster_api_params_file: invalid raster object"
+    assertthat::assert_that(
+        terra::xres(t_obj) > 0 && terra::yres(t_obj) > 0,
+        msg = ".sits_raster_api_params_file: invalid raster object"
     )
 
     params <- tibble::tibble(
@@ -36,6 +38,7 @@
         yres  = terra::yres(t_obj),
         crs   = as.character(suppressWarnings(terra::crs(t_obj)))
     )
+
     return(params)
 }
 #' @title Determine the cube params to write in the metadata
@@ -70,16 +73,18 @@
 #' @param  file         file associated to the raster data
 #' @return TRUE         true if files are accessible
 .sits_raster_api_check_access <- function(file) {
-    assertthat::assert_that(length(file) == 1,
+
+    assertthat::assert_that(
+        length(file) == 1,
         msg = ".sits_raster_api_check_access: works with single files"
     )
 
     # verify if all files are reachable
     r <- suppressWarnings(terra::rast(file))
-    assertthat::assert_that(all(!purrr::is_null(r)),
-        msg = paste0(".sits_raster_api_check_access: file ", file,
-                     " cannot be accessed"
-        )
+    assertthat::assert_that(
+        all(!purrr::is_null(r)),
+        msg = paste(".sits_raster_api_check_access: file", file,
+                    "cannot be accessed")
     )
     return(TRUE)
 }
@@ -97,6 +102,7 @@
 #' @return               Matrix with values extracted from image files
 #'
 .sits_raster_api_extract <- function(cube, band_cube, xy) {
+
     # preconditions
     assertthat::assert_that(
         band_cube %in% sits_bands(cube),
@@ -107,20 +113,27 @@
             cube$name
         )
     )
+
     # filter the files that contain the band
     band <- dplyr::filter(cube$file_info[[1]], band == band_cube)
+
     # create a terra object
     rast <- suppressWarnings(terra::rast(band$path))
+
     # extract the values
     values <- terra::extract(rast, xy)
+
     # get the timeline
     timeline <- sits_timeline(cube)
+
     # terra includes an ID (remove it)
     if (ncol(values) > length(timeline))
         values <- values[, -1]
+
     # is the data valid?
-    assertthat::assert_that(nrow(values) == nrow(xy),
-        msg = ".sits_raster_api_extract - error in retrieving data"
+    assertthat::assert_that(
+        nrow(values) == nrow(xy),
+        msg = ".sits_raster_api_extract: error in retrieving data"
     )
     return(values)
 }
@@ -186,7 +199,8 @@
                                    compress = "LZW",
                                    overwrite = TRUE) {
     # preconditions
-    assertthat::assert_that(num_layers >= 1,
+    assertthat::assert_that(
+        num_layers >= 1,
         msg = ".sits_raster_api_write_raster: invalid number of layers"
     )
 
@@ -204,8 +218,9 @@
         )
     )
 
-    assertthat::assert_that(terra::nrow(r_obj) == params$nrows,
-            msg = ".sits_raster_api_write: unable to create raster object"
+    assertthat::assert_that(
+        terra::nrow(r_obj) == params$nrows,
+        msg = ".sits_raster_api_write: unable to create raster object"
     )
 
     # include the values in the raster object
@@ -226,7 +241,8 @@
     ))
 
     # was the file written correctly?
-    assertthat::assert_that(file.info(filename)$size > 0,
+    assertthat::assert_that(
+        file.info(filename)$size > 0,
         msg = ".sits_raster_api_write_raster: unable to wriye raster object"
     )
 
@@ -244,12 +260,14 @@
 #'
 .sits_raster_api_area_freq <- function(cube) {
     # precondition
-    assertthat::assert_that("classified_image" %in% class(cube),
-        msg = ".sits_raster_api_area_freq requires a labelled cube"
+    assertthat::assert_that(
+        inherits(cube, "classified_image"),
+        msg = ".sits_raster_api_area_freq: requires a labelled cube"
     )
     # retrieve the r object associated to the labelled cube
     file_info <- cube$file_info[[1]]
-    assertthat::assert_that(nrow(file_info) == 1,
+    assertthat::assert_that(
+        nrow(file_info) == 1,
         msg = ".sits_raster_api_area_freq: more than one classified image"
     )
     r_obj <- terra::rast(file_info$path)

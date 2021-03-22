@@ -1,15 +1,13 @@
 #' @title Returns the information about labels of a data set (tibble or cube)
+#'
 #' @name sits_labels
+#'
 #' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
 #'
 #' @description  Finds labels in a sits tibble or data cube
-#'               For details see:
-#' \itemize{
-#'  \item{"time series": }{see \code{\link{sits_labels.sits}}}
-#'  \item{"data cube": }{see \code{\link{sits_labels.cube}}}
-#' }
 #'
 #' @param data      Valid sits tibble (time series or a cube)
+#'
 #' @return A string vector with the labels.
 #'
 #' @examples
@@ -19,62 +17,47 @@
 #' sits_labels(cerrado_2classes)
 #'
 #' @export
+#'
 sits_labels <- function(data) {
+
     # get the meta-type (sits or cube)
     data <- .sits_config_data_meta_type(data)
 
     UseMethod("sits_labels", data)
 }
-#'
-#' @title Returns the information about labels of a set of time series
-#' @rdname sits_labels
-#'
+
 #' @export
+#'
 sits_labels.sits <- function(data) {
-    # backward compatibility
-    data <- .sits_tibble_rename(data)
 
-    # get frequency table
-    data_labels <- table(data$label)
-
-    # compose tibble containing labels, count and relative frequency columns
-    result <- tibble::as_tibble(list(
-        label = names(data_labels),
-        count = as.integer(data_labels),
-        prop = as.numeric(prop.table(data_labels))
-    ))
-    return(result)
+    return(sort(unique(data$label)))
 }
 
-#'
-#' @title Returns the information about labels of a data cube
-#' @rdname sits_labels
-#'
 #' @export
+#'
 sits_labels.cube <- function(data) {
-    return(data[1, ]$labels[[1]])
+
+    return(data$labels[[1]])
 }
 
-#'
-#' @title Returns the information about labels of a predicted tibble
-#' @rdname sits_labels
-#'
 #' @export
+#'
 sits_labels.predicted <- function(data) {
-    labels <- sits_labels.sits(data)
-    return(labels)
+
+    return(sits_labels.sits(data))
 }
-#'
-#' @title Returns the information about labels of patterns tibble
-#' @rdname sits_labels
-#'
+
 #' @export
+#'
 sits_labels.patterns <- function(data) {
+
     return(data$label)
 }
 
 #' @title Relabels a sits tibble
+#'
 #' @name sits_relabel
+#'
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
 #'
@@ -107,7 +90,9 @@ sits_labels.patterns <- function(data) {
 #' new_data <- sits_relabel(samples_mt_4bands, conv_lst)
 #' # show the new labels
 #' sits_labels(new_data)
+#'
 #' @export
+#'
 sits_relabel <- function(data, conv_lst) {
     # backward compatibility
     data <- .sits_tibble_rename(data)
@@ -151,7 +136,7 @@ sits_relabel <- function(data, conv_lst) {
                               fun_label = function(lb) lb) {
 
     # get labels for sits tibble
-    if ("sits" %in% class(data)) {
+    if (inherits(data, "sits")) {
         # backward compatibility
         data <- .sits_tibble_rename(data)
         # verify if data is correct
@@ -160,12 +145,12 @@ sits_relabel <- function(data, conv_lst) {
         u_labels <- base::unique(data$label)
     }
     else {
-        if ("pred_ref" %in% class(data)) {
-              # get labels for pred_ref tibble
-              u_labels <- base::unique(data$reference)
-          } else {
-              stop("sits_labels_list - wrong class of input")
-          }
+        if (inherits(data, "pred_ref")) {
+            # get labels for pred_ref tibble
+            u_labels <- base::unique(data$reference)
+        } else {
+            stop("sits_labels_list - wrong class of input")
+        }
     }
 
     # prepare result

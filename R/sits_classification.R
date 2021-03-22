@@ -1,9 +1,12 @@
 #' @title Classify time series or data cube using machine learning models
+#'
 #' @name sits_classify
+#'
 #' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'
-#' @description This function classifies a set of time series or data cube given
+#' @description
+#' This function classifies a set of time series or data cube given
 #' a set of training samples, an inference model, and an interval.
 #' To perform the classification, users should provide a set of
 #' labelled samples. Each samples should be associated to one spatial location
@@ -13,6 +16,7 @@
 #'  \item{"sits tibble": }{see \code{\link{sits_classify.sits}}}
 #'  \item{"cube": }{see \code{\link{sits_classify.raster_cube}}}
 #' }
+#'
 #' SITS supports the following models:
 #' \itemize{
 #'  \item{support vector machines: }         {see \code{\link[sits]{sits_svm}}}
@@ -30,19 +34,21 @@
 #' The model should be precomputed using \code{\link[sits]{sits_train}}
 #' and then passed to the "sits_classify" function using parameter "ml_model".
 #'
-#' @param  data              Tibble with time series metadata and data.
-#' @param  ml_model          Pre-built machine learning model
-#'                             (see \code{\link[sits]{sits_train}}).
-#' @param  ...               Other parameters to be passed to specific functions
-#' @return                   Predicted data
+#' @param  data      Tibble with time series metadata and data.
+#' @param  ml_model  Pre-built machine learning model
+#'                   (see \code{\link[sits]{sits_train}}).
+#' @param  ...       Other parameters to be passed to specific functions
+#'
+#' @return Predicted data
 #'
 #' @export
+#'
 sits_classify <- function(data, ml_model, ...) {
 
     # is the data a sits tibble? If not, it must be a cube
-    if (!("sits" %in% class(data))) {
+    if (!inherits(data, "sits")) {
         # find out the generic cube class it belongs to
-        class_data <- .sits_config_cube_class(data[1, ]$source)
+        class_data <- .sits_config_cube_class(.sits_cube_source(data))
         class(data) <- c(class_data, class(data))
     }
 
@@ -51,7 +57,9 @@ sits_classify <- function(data, ml_model, ...) {
 }
 
 #' @title Classify a set of time series using machine learning models
+#'
 #' @name sits_classify.sits
+#'
 #' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'
@@ -85,6 +93,7 @@ sits_classify <- function(data, ml_model, ...) {
 #'
 #' # classify the point
 #' point_class <- sits_classify(point_ndvi, rfor_model)
+#'
 #' @export
 #'
 sits_classify.sits <- function(data, ml_model, ...,
@@ -103,24 +112,27 @@ sits_classify.sits <- function(data, ml_model, ...,
     .sits_test_tibble(data)
 
     # precondition: ensure the machine learning model has been built
-    assertthat::assert_that(!purrr::is_null(ml_model),
+    assertthat::assert_that(
+        !purrr::is_null(ml_model),
         msg = "sits_classify_ts: please provide a trained ML model"
     )
 
     # Precondition: only savitsky-golay and whittaker filters are supported
     if (!purrr::is_null(filter_fn)) {
         call_names <- deparse(sys.call())
-        assertthat::assert_that(any(grepl("sgolay", (call_names))) ||
-            any(grepl("whittaker", (call_names))),
-        msg = "sits_classify_cube: only savitsky-golay and whittaker filters
-                            are supported"
+        assertthat::assert_that(
+            any(grepl("sgolay", (call_names))) ||
+                any(grepl("whittaker", (call_names))),
+            msg = paste("sits_classify_cube: only savitsky-golay and",
+                        "whittaker filters are supported")
         )
         data <- filter_fn(data)
     }
 
     # precondition - are the samples valid?
-    samples <- environment(ml_model)$data
-    assertthat::assert_that(NROW(samples) > 0,
+    samples <- .sits_ml_model_samples(ml_model)
+    assertthat::assert_that(
+        nrow(samples) > 0,
         msg = "sits_classify_ts: missing original samples"
     )
 
@@ -129,11 +141,9 @@ sits_classify.sits <- function(data, ml_model, ...,
     # has the training data been normalized?
     if (!purrr::is_null(stats))
           # yes, then normalize the input data
-          distances <- .sits_distances(.sits_normalize_data
-          (
+          distances <- .sits_distances(.sits_normalize_data(
               data = data,
-              stats = stats,
-              multicores = multicores
+              stats = stats
           ))
      else
           # no, input data does not need to be normalized
@@ -141,7 +151,8 @@ sits_classify.sits <- function(data, ml_model, ...,
 
 
     # post condition: is distance data valid?
-    assertthat::assert_that(NROW(distances) > 0,
+    assertthat::assert_that(
+        nrow(distances) > 0,
         msg = "sits_classify.sits: problem with normalization"
     )
 
@@ -170,7 +181,9 @@ sits_classify.sits <- function(data, ml_model, ...,
 
 
 #' @title Classify a data cube using multicore machines
+#'
 #' @name sits_classify.raster_cube
+#'
 #' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'
@@ -239,6 +252,7 @@ sits_classify.sits <- function(data, ml_model, ...,
 #' }
 #'
 #' @export
+#'
 sits_classify.raster_cube <- function(data, ml_model, ...,
                                       roi = NULL,
                                       filter_fn = NULL,
@@ -256,16 +270,15 @@ sits_classify.raster_cube <- function(data, ml_model, ...,
     .sits_classify_check_params(data, ml_model)
 
     # filter only intersecting tiles
-    intersects <- slider::slide(data, function(tile) {
+    intersects <- slider::slide_lgl(data,
+                                    .sits_raster_sub_image_intersects,
+                                    roi)
 
-        .sits_raster_sub_image_intersects(tile, roi)
-    }) %>% unlist()
-    # retrive only intersecting tiles
+    # retrieve only intersecting tiles
     data <- data[intersects,]
 
     # retrieve the samples from the model
-    samples <- environment(ml_model)$data
-
+    samples <- .sits_ml_model_samples(ml_model)
 
     # deal with the case where the cube has multiple rows
     probs_rows <- slider::slide(data, function(tile) {
@@ -279,9 +292,10 @@ sits_classify.raster_cube <- function(data, ml_model, ...,
                                                   end_date)
 
             # filter the cube by start and end dates
-            tile$file_info[[1]] <- dplyr::filter(tile$file_info[[1]],
-                                date >= new_timeline[1] &
-                                date <= new_timeline[length(new_timeline)]
+            tile$file_info[[1]] <- dplyr::filter(
+                tile$file_info[[1]],
+                date >= new_timeline[1] &
+                    date <= new_timeline[length(new_timeline)]
             )
         }
 
@@ -305,9 +319,11 @@ sits_classify.raster_cube <- function(data, ml_model, ...,
         n_samples <- length(sits_timeline(samples))
         n_tile <- length(sits_timeline(tile))
 
-        assertthat::assert_that(n_samples == n_tile,
-          msg = "sits_classify: number of instances of samples and cube differ")
-
+        assertthat::assert_that(
+            n_samples == n_tile,
+            msg = paste("sits_classify: number of instances of",
+                        "samples and cube differ")
+        )
 
         # classify the data
         probs_row <- .sits_classify_multicores(
@@ -323,8 +339,10 @@ sits_classify.raster_cube <- function(data, ml_model, ...,
             output_dir = output_dir,
             version    = version
         )
+
         return(probs_row)
     })
+
     probs_cube <- dplyr::bind_rows(probs_rows)
     class(probs_cube) <- c("probs_cube", "raster_cube", class(probs_cube))
     return(probs_cube)

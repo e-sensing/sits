@@ -25,8 +25,7 @@ test_that("One-year, single core classification", {
                       dl_model,
                       output_dir = tempdir(),
                       memsize = 4,
-                      multicores = 1
-        )
+                      multicores = 1)
     )
 
     expect_true(all(file.exists(unlist(sinop_probs$file_info[[1]]$path))))
