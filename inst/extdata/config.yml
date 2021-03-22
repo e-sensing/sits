@@ -111,7 +111,7 @@ default:
             SITS            : &oli_bands_sits ["B1", "B2", "B3", "B4", "B5", "B6", "B7", "NDVI", "EVI", "FMASK4"]
             BDC             : ["BAND1", "BAND2", "BAND3", "BAND4", "BAND5", "BAND6", "BAND7", "NDVI", "EVI", "FMASK4"]
             USGS            : ["SR_B1", "SR_B2", "SR_B3", "SR_B4", "SR_B5", "SR_B6", "SR_B7", "NDVI", "EVI", "FMASK4"]
-            LOCAL           : *oli_bands_sits
+            LOCAL           : ["band1", "band2", "band3", "band4", "band5", "band6", "band7", "NDVI", "EVI", "Fmask4"]
             cloud_band      : "FMASK4"
 
         missing_value       :
