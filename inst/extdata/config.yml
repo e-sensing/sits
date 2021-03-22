@@ -423,12 +423,12 @@ default:
         LOCAL               : &raster_clouds
             AWFI_CLD_BAND   : "CMASK"
             AWFI_cld_vls    : 4
-
             MSI_CLD_BAND    : "SCL"
             MSI_cld_vls     : [0, 1, 2, 3, 7, 8, 9, 10, 11]
-
             MODIS_CLD_BAND  : "pixel reliability"
             MODIS_cld_vls   : [2,3]
+            OLI_CLD_BAND    : "FMASK4"
+            OLI_cld_vls     : [2, 3, 4, 255]
 
     SATVEG_bands            :
         terra               : &bands-sv ["NDVI", "EVI"]
