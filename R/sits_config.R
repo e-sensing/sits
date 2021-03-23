@@ -291,6 +291,16 @@ sits_config_show <- function() {
         names(bands_sits) <- bands_aws
         return(bands_sits)
     }
+    # bands used by LOCAL
+    bands_local <- sits_env$config[[sensor]][["bands"]][["LOCAL"]]
+    # are the names those used by LOCAL?
+    if (all(bands_files %in% bands_local)) {
+      idx <- match(bands_files, bands_local)
+      bands_local <- bands_local[idx]
+      bands_sits <- bands_sits[idx]
+      names(bands_sits) <- bands_local
+      return(bands_sits)
+    }
     stop("band names unknown by SITS configuration file. Please fix it")
     return(NULL)
 }
