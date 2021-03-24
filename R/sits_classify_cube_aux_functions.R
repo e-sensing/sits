@@ -214,21 +214,42 @@
     .sits_compute_blocks <- function(img_x_size,
                                      img_y_size,
                                      block_x_size,
-                                     block_y_size) {
+                                     block_y_size,
+                                     subimg_x_off,
+                                     subimg_y_off,
+                                     subimg_x_size,
+                                     subimg_y_size) {
 
+        # compute columns
         c1 <- ceiling(seq(1, img_x_size - 1, by = block_x_size))
-        c2 <- c(c1[-1] - 1, img_x_size)
+        c2 <- c(c1[-1] - 1)
+
+        # filter only intersecting subimg columns
+        c1 <- c(subimg_x_off,
+                c1[c1 > subimg_x_off & c1 <= subimg_x_off + subimg_x_size])
+        c2 <- c(c2[c2 >= subimg_x_off & c2 < subimg_x_off + subimg_x_size],
+                subimg_x_off + subimg_x_size - 1)
+
+        # compute rows
         r1 <- ceiling(seq(1, img_y_size - 1, by = block_y_size))
-        r2 <- c(r1[-1] - 1, img_y_size)
+        r2 <- c(r1[-1] - 1)
+
+        # filter only intersecting subimg columns
+        r1 <- c(subimg_y_off,
+                r1[r1 > subimg_y_off & r1 <= subimg_y_off + subimg_y_size])
+        r2 <- c(r2[r2 >= subimg_y_off & r2 < subimg_y_off + subimg_y_size],
+                subimg_y_off + subimg_y_size - 1)
 
         # define each block as a list element with names r1, r2, c1, c2
-        do.call(mapply,
-                args = c(list(FUN = list, SIMPLIFY = FALSE),
-                         merge(dplyr::tibble(r1 = r1,
-                                             r2 = r2),
-                               dplyr::tibble(c1 = c1,
-                                             c2 = c2)))
+        res <- do.call(mapply,
+                       args = c(list(FUN = list, SIMPLIFY = FALSE),
+                                merge(dplyr::tibble(r1 = r1,
+                                                    r2 = r2),
+                                      dplyr::tibble(c1 = c1,
+                                                    c2 = c2)))
         )
+
+        res
     }
 
 
@@ -243,73 +264,6 @@
             sits_proc_fn = sits_proc_fn
         )
     }
-
-    # function to call workers clusters and merge its results
-    .sits_call_workers_cluster <- function(in_files, out_file, blocks) {
-
-        # apply function to blocks
-        if (purrr::is_null(cl)) {
-
-            # do serial
-            cube_by_blocks <- lapply(
-                X = blocks,
-                FUN = .sits_cluster_worker_fun)
-        } else {
-
-            # do parallel
-            cube_by_blocks <- parallel::clusterApplyLB(
-                cl = cl,
-                x = blocks,
-                fun = .sits_cluster_worker_fun)
-        }
-
-        # bind together all cubes blocks
-        blocks_cube <- dplyr::bind_rows(cube_by_blocks)
-
-        # bind together all cubes blocks file info
-        blocks_file_info <- dplyr::bind_rows(blocks_cube$file_info)
-
-        # on exit, remove temp files
-        on.exit(unlink(tmp_blocks))
-
-        # merge to save final result with '...' parameters
-        # if there is only one block...
-        if (length(tmp_blocks) == 1)
-            return(suppressWarnings(
-                raster::writeRaster(raster::brick(tmp_blocks),
-                                    overwrite = TRUE,
-                                    filename = out_file, ...)
-            ))
-        # ... else call raster::merge.
-        suppressWarnings(
-            do.call(raster::merge,
-                    c(lapply(tmp_blocks, raster::brick),
-                      list(overwrite = TRUE, filename = out_file),
-                      list(...)))
-        )
-    }
-
-    # traverse all tiles
-    slider::slide2(cube_in, cube_out, function(cube_row, out_file_row) {
-
-        # open raster file
-        in_files <- .sits_cube_files(cube_row)
-
-        # retrieve the files to be read and written
-        out_files <- .sits_cube_files(out_file_row)
-
-        # compute how many tiles to be computed
-        block_size <- .sits_raster_blocks_size_estimate(cube = cube_row,
-                                                        multicores = multicores,
-                                                        memsize = memsize)
-
-        # for now, only vertical blocks are allowed, i.e. 'x_blocks' is 1
-        blocks <- .sits_compute_blocks(
-            img_y_size = cube_row$nrows,
-            block_y_size = block_size[["block_y_size"]],
-            overlapping_y_size = 0)
-
-    })
 
     return(invisible(cube_out))
 }

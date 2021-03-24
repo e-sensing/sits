@@ -149,27 +149,21 @@
 
     # create terra objects
     t_obj <- terra::rast(r_files)
-    # start reading
-    terra::readStart(t_obj)
-    if (terra::nlyr(t_obj) == 1) {
-        values <- matrix(
-            as.matrix(
-                terra::readValues(x      = t_obj,
-                                  row    = extent["row"],
-                                  nrows  = extent["nrows"],
-                                  col    = extent["col"],
-                                  ncols  = extent["ncols"])
-            ), nrow = extent["nrows"], byrow = TRUE
-        )
 
+    # start read
+    terra::readStart(t_obj)
+    if (purrr::is_null(extent)) {
+        values  <- terra::readValues(x     = t_obj,
+                                     mat   = TRUE)
     } else {
         values <- terra::readValues(x      = t_obj,
-                                    row    = extent["row"],
-                                    nrows  = extent["nrows"],
-                                    col    = extent["col"],
-                                    ncols  = extent["ncols"],
-                                    mat = TRUE)
+                                    row    = extent[["row"]],
+                                    nrows  = extent[["nrows"]],
+                                    col    = extent[["col"]],
+                                    ncols  = extent[["ncols"]],
+                                    mat    = TRUE)
     }
+    # end read
     terra::readStop(t_obj)
 
     return(values)
@@ -227,7 +221,7 @@
     terra::values(r_obj) <- as.matrix(values)
 
     # options for compression
-    opt_comp <- paste0("COMPRESS =", compress)
+    opt_comp <- paste0("COMPRESS=", compress)
 
     suppressWarnings(terra::writeRaster(
         r_obj,
@@ -242,8 +236,8 @@
 
     # was the file written correctly?
     assertthat::assert_that(
-        file.info(filename)$size > 0,
-        msg = ".sits_raster_api_write_raster: unable to wriye raster object"
+        file.exists(filename),
+        msg = ".sits_raster_api_write_raster: unable to write raster object"
     )
 
     return(invisible(TRUE))
@@ -275,4 +269,41 @@
     freq <- tibble::as_tibble(terra::freq(r_obj))
 
     return(freq)
+}
+
+#' @title Merge all input files into one raster file
+#' @name .sits_raster_api_merge
+#' @keywords internal
+#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
+#'
+#' @param in_files       Input file paths
+#' @param out_file       Output raster file path
+#' @param datatype       Data type
+#' @param format         Format to write the file
+#' @param compress       Compression method to be used
+#' @param filename       File name of the raster image file.
+#' @param overwrite      Overwrite the file?
+#'
+#' @return Output file path
+#'
+.sits_raster_api_merge <- function(in_files,
+                                   out_file,
+                                   datatype,
+                                   format = "GTiff",
+                                   compress = "LZW",
+                                   overwrite = TRUE) {
+
+    # precondition
+    assertthat::assert_that(
+        all(file.exists(in_files)),
+        msg = ".sits_raster_api_merge: file does not exist"
+    )
+
+    # retrieve the r object associated to the labelled cube
+    gdalUtilities::gdalwarp(srcfile = in_files, dstfile = out_file,
+                            ot = datatype, of = format,
+                            co = paste0("COMPRESS=", compress),
+                            overwrite = overwrite)
+
+    return(out_file)
 }

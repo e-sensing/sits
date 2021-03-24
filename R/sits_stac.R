@@ -36,25 +36,30 @@
     collection_info <- .sits_stac_toupper(collection_info)
     sensor <- collection_info$properties$instruments
 
-    # checks if the supplied bands match the product bands
-    if (!purrr::is_null(bands)) {
+    # get default bands parameter
+    if (purrr::is_null(bands)) {
 
-        # converting to upper bands
-        bands <- toupper(bands)
-        # convert bands to those known by the cloud provider
-        bands <- .sits_config_bands_stac_read(stac_provider = "BDC",
-                                              sensor = sensor,
-                                              bands = bands)
-        # check bands
-        assertthat::assert_that(
-            all(bands %in% collection_info$bands),
-            msg = paste(".sits_stac_collection: The supplied bands do not",
-                        "match the data cube bands.")
-        )
-
-        collection_info$bands <-
-            collection_info$bands[collection_info$bands %in% bands]
+        bands <- .sits_config_sensor_bands(sensor = sensor,
+                                           source = "BDC")
     }
+
+    # checks if the supplied bands match the product bands
+    # converting to upper bands
+    bands <- toupper(bands)
+
+    # convert bands to those known by the cloud provider
+    bands <- .sits_config_bands_stac_read(stac_provider = "BDC",
+                                          sensor = sensor,
+                                          bands = bands)
+    # check bands
+    assertthat::assert_that(
+        all(bands %in% collection_info$bands),
+        msg = paste(".sits_stac_collection: The supplied bands do not",
+                    "match the data cube bands.")
+    )
+
+    collection_info$bands <-
+        collection_info$bands[collection_info$bands %in% bands]
 
     return(collection_info)
 }

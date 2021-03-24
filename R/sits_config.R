@@ -707,7 +707,7 @@ sits_config_show <- function() {
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #' @description Retrieve the expected memory bloat associated to R.
 .sits_config_processing_bloat <- function() {
-    return(sits_env$config$R_processing_bloat)
+    return(as.numeric(sits_env$config$R_processing_bloat))
 }
 
 
