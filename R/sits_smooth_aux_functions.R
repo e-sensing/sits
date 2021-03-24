@@ -214,11 +214,16 @@
                                     filename = out_file, ...)
             ))
         # ... else call raster::merge.
+        mosaic <- function(in_files, out_file, options, datatype){
+            gdalUtilities::gdalwarp(srcfile = unlist(in_files),
+                                    dstfile = out_file,
+                                    co = options,
+                                    ot = datatype)
+        }
         suppressWarnings(
-            do.call(raster::merge,
-                    c(lapply(tmp_blocks, raster::brick),
-                      list(overwrite = TRUE, filename = out_file),
-                      list(...)))
+            do.call(mosaic, c(list(in_files = tmp_blocks,
+                                   out_file = out_file),
+                              list(...)))
         )
     }
 
