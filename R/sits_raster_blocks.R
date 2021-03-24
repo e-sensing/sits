@@ -1,4 +1,57 @@
-#' @title Define a reasonable block size to process an image subset
+#' @title Get the raster block size
+#' @name .sits_raster_block_size
+#' @keywords internal
+#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
+#'
+#' @description Retrieves the block size of an image.
+#'
+#' @param  cube            input data cube tile.
+#' @return                 list with two attributes: n_rows, n_cols
+#'
+.sits_raster_block_size <- function(cube) {
+
+    # call gdalinfo
+    info_str <- gdalUtils::gdalinfo(cube$file_info[[1]]$path[[1]])
+
+    # get first block band
+    info_str <- stringr::str_subset(string = info_str,
+                                    pattern = "Band 1 Block")
+
+    # extract block size string
+    info_str <- stringr::str_extract(string = info_str,
+                                     pattern = "[0-9]+x[0-9]+")
+
+    # post condition 1: block_size length == 1
+    assertthat::assert_that(
+        length(info_str) == 1,
+        msg = ".sits_raster_block_size: gdalinfo output is not reconizable"
+    )
+
+    # split string
+    block_size <- as.numeric(stringr::str_split(string = info_str,
+                                                pattern = "x")[[1]])
+
+    # check result
+    # post condition 1: block_size length == 2
+    assertthat::assert_that(
+        length(block_size) == 2,
+        msg = ".sits_raster_block_size: block size length is wrong"
+    )
+
+    # post condition 2: block_size values are strictly positive
+    assertthat::assert_that(
+        all(block_size > 0),
+        msg = ".sits_raster_block_size: block size value must be positive"
+    )
+
+    # prepare result
+    block_size <- lapply(block_size, c)
+    names(block_size) <- c("n_cols", "n_rows")
+
+    return(block_size)
+}
+
+#' @title Calculate a list of blocks to be read from disk to memory
 #' @name .sits_raster_blocks
 #' @keywords internal
 #' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
@@ -18,42 +71,50 @@
 .sits_raster_blocks <- function(cube, ml_model, sub_image,
                                 memsize, multicores) {
 
+    # get image block size
+    block_size <- .sits_raster_block_size(cube = cube)
 
     # get the number of blocks
-    nblocks <- .sits_raster_blocks_estimate(
+    block_lst <- .sits_raster_block_list(
         cube = cube,
         ml_model = ml_model,
         sub_image = sub_image,
+        block_x_size = block_size[["n_cols"]],
+        block_y_size = block_size[["n_rows"]],
         memsize = memsize,
         multicores = multicores
     )
 
-    block_lst <- .sits_raster_block_list(
-        nblocks = nblocks,
-        sub_image = sub_image
-    )
-
     return(block_lst)
 }
-#' @title Estimate the number of blocks
-#' @name .sits_raster_blocks_estimate
+#' @title Calculate a list of blocks to be read from disk to memory
+#' @name .sits_raster_block_list
 #' @keywords internal
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
+#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
 #'
 #' @description Defines the number of blocks of a set of images
-#'              to be read into memory.
+#'              to be read into memory and compute its range.
 #'
 #' @param  cube            input data cube
 #' @param  ml_model        machine learning model
 #' @param  sub_image       area of interest in the image
+#' @param  block_x_size    raster block cols
+#' @param  block_y_size    raster block rows
 #' @param  memsize         Memory available for classification (in GB).
 #' @param  multicores      Number of threads to process the time series.
-#' @return Number of blocks to be read.
-.sits_raster_blocks_estimate <- function(cube,
-                                         ml_model,
-                                         sub_image,
-                                         memsize,
-                                         multicores) {
+#' @return
+#' a list with block elements. Each element containing:
+#'   c1, c2 (start and end columns for the block), r1, and r2
+#'   (start and end rows for the block)
+#'
+.sits_raster_block_list <- function(cube,
+                                    ml_model,
+                                    sub_image,
+                                    block_x_size,
+                                    block_y_size,
+                                    memsize,
+                                    multicores) {
 
     # retrieve the samples
     samples <- .sits_ml_model_samples(ml_model)
@@ -62,122 +123,111 @@
     n_instances <- length(sits_timeline(cube))
 
     # get the number of bands
-    nbands <- length(sits_bands(samples))
+    n_bands <- length(sits_bands(samples))
 
     # does the cube have a cloud band?
-    cube_bands <- sits_bands(cube)
     cld_band <- .sits_config_cloud_band(cube)
 
     # the cube has the cloud band, add one more band to the calculation
-    if (cld_band %in% cube_bands) {
-        nbands <- nbands + 1
+    if (cld_band %in% sits_bands(cube)) {
+
+        n_bands <- n_bands + 1
     }
 
     # number of bytes per pixel
-    nbytes <- 8
-
-    # estimated memory bloat
-    bloat <- as.numeric(.sits_config_memory_bloat())
+    n_bytes <- 8
 
     # estimated processing bloat
-    proc_bloat <- as.numeric(.sits_config_processing_bloat())
+    proc_bloat <- .sits_config_processing_bloat()
 
-    # number of rows and cols
-    nrows <- as.integer(sub_image["nrows"])
-    ncols <- as.integer(sub_image["ncols"])
-    # single instance size
-    single_data_size <- nrows * ncols * nbytes
-
-    # total size including all bands
-    nbands_data_size <- single_data_size * nbands
-
-    # estimated full size of the data
-    full_size <- n_instances * nbands_data_size
-
-    # estimated size of memory required for scaling and normalization
-    mem_required_scaling <- (full_size + as.numeric(.sits_mem_used())) * bloat
-
-    # number of labels
-    n_labels <- length(sits_labels(samples))
-
-    # estimated size of the data for classification
-    input_class_data_size <- as.integer(n_instances) * nbands_data_size
-    output_class_data_size <- as.integer(n_labels) * single_data_size
-    class_data_size <- input_class_data_size + output_class_data_size
-
-    # memory required for processing
-    mem_required_processing <- as.integer(multicores) *
-        (class_data_size + as.numeric(.sits_mem_used())) * proc_bloat
-
-    # number of passes to read the full data sets
-    nblocks <- max(
-        ceiling(mem_required_scaling / (memsize * 1e+09)),
-        ceiling(mem_required_processing / (memsize * 1e+09))
+    # number of blocks to process at a time
+    # this number is the minimum between multicores and number of blocks
+    # to cover all sub_image
+    num_blocks <- min(
+        as.integer(sub_image[["ncols"]] * sub_image[["nrows"]] /
+                       block_x_size / block_y_size),
+        multicores
     )
 
-    return(nblocks)
-}
-#' @title Calculate a list of blocks to be read from disk to memory
-#' @name .sits_raster_block_list
-#' @keywords internal
-#' @param  nblocks         number of blocks to read from each image
-#' @param  sub_image       nrea of interest in the image
-#' @return        a list with n (number of blocks),
-#'                row (vector of starting rows),
-#'                nrow (vector with number of rows for each block) and
-#'                size (vector with size of each block)
-#'
-.sits_raster_block_list <- function(nblocks, sub_image) {
-    # number of rows per block
-    block_rows <- ceiling(sub_image["nrows"] / nblocks)
+    # total estimated block size in GB
+    estimated_block_mem <- block_x_size *
+        block_y_size * n_bands * n_bytes *
+        n_instances * proc_bloat * num_blocks * 1e-09
 
-    first_row <- unname(sub_image["first_row"])
-    last_row <- first_row + unname(sub_image["nrows"]) - 1
-
-    # initial row of each block
-    row_vec <- seq.int(
-        from = first_row,
-        to = last_row,
-        by = block_rows
-    )
-
-    # number of rows in each block
-    n_rows <- length(row_vec)
+    # check if memsize is sufficient to process a block in each core
     assertthat::assert_that(
-        n_rows > 0,
-        msg = ".sits_raster_block_list: empty row vector"
-    )
-    nrows_vec <- rep.int(block_rows, n_rows)
-
-    # check that total number of rows is the same as the sum of all blocks
-    # correct the last block for overflow
-    if (sum(nrows_vec) != sub_image["nrows"]) {
-          nrows_vec[length(nrows_vec)] <-
-            sub_image["nrows"] - sum(nrows_vec[1:(length(nrows_vec) - 1)])
-      }
-
-    # find out the size of the block in pixels
-    size_vec <- nrows_vec * sub_image["ncols"]
-
-    # elements of the block list
-    # n          number of blocks
-    # row        starting row in each block (vector)
-    # nrows      number of rows in each block (vector)
-    # col        first col
-    # ncols      number of cols in each block
-
-    blocks <- list(
-        n = length(row_vec),
-        row = row_vec,
-        nrows = nrows_vec,
-        col = sub_image["first_col"],
-        ncols = sub_image["ncols"],
-        size = size_vec
+        memsize >= estimated_block_mem,
+        msg = paste(".sits_raster_blocks_estimate: insuficient memory to",
+                    "process", num_blocks, "block(s) at a time")
     )
 
-    message(
-        "Using ", blocks$n, " blocks of size ",
-        blocks$nrows[1], " x ", blocks$ncols
+    # check if it is possible to process two or more blocks at a time
+    mem_factor <- memsize / estimated_block_mem
+
+    # increase vertically first
+    if (mem_factor >= 2) {
+
+        # block_y_size <- min(sub_image[["nrows"]],
+        #                     as.integer(mem_factor) * block_y_size)
+        block_y_size <- min(
+            as.integer(mem_factor) * block_y_size,
+            ceiling(sub_image[["nrows"]] / block_y_size) * block_y_size
+        )
+    }
+
+    # compute new estimated block size in GB
+    estimated_block_mem <- block_x_size *
+        block_y_size * n_bands * n_bytes *
+        n_instances * proc_bloat * num_blocks * 1e-09
+
+    # check if it is possible to process even more blocks
+    mem_factor <- memsize / estimated_block_mem
+
+    # increase horizontally now
+    if (mem_factor >= 2) {
+
+        # block_x_size <- min(sub_image[["ncols"]],
+        #                     as.integer(mem_factor) * block_x_size)
+        block_x_size <- min(
+            as.integer(mem_factor) * block_x_size,
+            ceiling(sub_image[["ncols"]] / block_x_size) * block_x_size
+        )
+    }
+
+    # generate blocks list
+    # compute columns
+    img_x_size <- cube$ncols
+    c1 <- ceiling(seq(1, img_x_size - 1, by = block_x_size))
+    c2 <- c(c1[-1] - 1)
+
+    # filter only intersecting sub_image columns
+    c1 <- c(sub_image[["first_col"]],
+            c1[c1 > sub_image[["first_col"]] &
+                   c1 <= sub_image[["first_col"]] + sub_image[["ncols"]]])
+    c2 <- c(c2[c2 >= sub_image[["first_col"]] &
+                   c2 < sub_image[["first_col"]] + sub_image[["ncols"]]],
+            sub_image[["first_col"]] + sub_image[["ncols"]] - 1)
+
+    # compute rows
+    img_y_size <- cube$nrows
+    r1 <- ceiling(seq(1, img_y_size - 1, by = block_y_size))
+    r2 <- c(r1[-1] - 1)
+
+    # filter only intersecting sub_image rows
+    r1 <- c(sub_image[["first_row"]],
+            r1[r1 > sub_image[["first_row"]] &
+                   r1 <= sub_image[["first_row"]] + sub_image[["nrows"]]])
+    r2 <- c(r2[r2 >= sub_image[["first_row"]] &
+                   r2 < sub_image[["first_row"]] + sub_image[["nrows"]]],
+            sub_image[["first_row"]] + sub_image[["nrows"]] - 1)
+
+    # define each block as a list element with names r1, r2, c1, c2
+    blocks <- do.call(mapply,
+                      args = c(list(FUN = list, SIMPLIFY = FALSE),
+                               merge(dplyr::tibble(row = r1,
+                                                   nrows = r2 - r1 + 1),
+                                     dplyr::tibble(col = c1,
+                                                   ncols = c2 - c1 + 1)))
     )
 
     return(blocks)
