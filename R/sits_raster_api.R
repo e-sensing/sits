@@ -276,3 +276,39 @@
 
     return(freq)
 }
+
+#' @title Merge all input files into one raster file
+#' @name .sits_raster_api_merge
+#' @keywords internal
+#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
+#'
+#' @param in_files       Input file paths
+#' @param out_file       Output raster file path
+#' @param datatype       Data type
+#' @param format         Format to write the file
+#' @param compress       Compression method to be used
+#' @param filename       File name of the raster image file.
+#' @param overwrite      Overwrite the file?
+#'
+#' @return Output file path
+#'
+.sits_raster_api_merge <- function(in_files,
+                                   out_file,
+                                   datatype,
+                                   format = "GTiff",
+                                   compress = "LZW",
+                                   overwrite = TRUE) {
+
+    # precondition
+    assertthat::assert_that(
+        all(file.exists(in_files)),
+        msg = ".sits_raster_api_merge: file does not exist"
+    )
+
+    # retrieve the r object associated to the labelled cube
+    gdalUtilities::gdalwarp(srcfile = in_files, dstfile = out_file,
+                            ot = datatype, of = format,
+                            co = paste0("COMPRESS=", compress),
+                            overwrite = overwrite)
+
+    return(out_file)
