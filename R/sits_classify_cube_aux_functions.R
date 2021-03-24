@@ -214,21 +214,42 @@
     .sits_compute_blocks <- function(img_x_size,
                                      img_y_size,
                                      block_x_size,
-                                     block_y_size) {
+                                     block_y_size,
+                                     subimg_x_off,
+                                     subimg_y_off,
+                                     subimg_x_size,
+                                     subimg_y_size) {
 
+        # compute columns
         c1 <- ceiling(seq(1, img_x_size - 1, by = block_x_size))
-        c2 <- c(c1[-1] - 1, img_x_size)
+        c2 <- c(c1[-1] - 1)
+
+        # filter only intersecting subimg columns
+        c1 <- c(subimg_x_off,
+                c1[c1 > subimg_x_off & c1 <= subimg_x_off + subimg_x_size])
+        c2 <- c(c2[c2 >= subimg_x_off & c2 < subimg_x_off + subimg_x_size],
+                subimg_x_off + subimg_x_size - 1)
+
+        # compute rows
         r1 <- ceiling(seq(1, img_y_size - 1, by = block_y_size))
-        r2 <- c(r1[-1] - 1, img_y_size)
+        r2 <- c(r1[-1] - 1)
+
+        # filter only intersecting subimg columns
+        r1 <- c(subimg_y_off,
+                r1[r1 > subimg_y_off & r1 <= subimg_y_off + subimg_y_size])
+        r2 <- c(r2[r2 >= subimg_y_off & r2 < subimg_y_off + subimg_y_size],
+                subimg_y_off + subimg_y_size - 1)
 
         # define each block as a list element with names r1, r2, c1, c2
-        do.call(mapply,
-                args = c(list(FUN = list, SIMPLIFY = FALSE),
-                         merge(dplyr::tibble(r1 = r1,
-                                             r2 = r2),
-                               dplyr::tibble(c1 = c1,
-                                             c2 = c2)))
+        res <- do.call(mapply,
+                       args = c(list(FUN = list, SIMPLIFY = FALSE),
+                                merge(dplyr::tibble(r1 = r1,
+                                                    r2 = r2),
+                                      dplyr::tibble(c1 = c1,
+                                                    c2 = c2)))
         )
+
+        res
     }
 
 
