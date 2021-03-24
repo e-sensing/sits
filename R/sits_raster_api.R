@@ -149,27 +149,21 @@
 
     # create terra objects
     t_obj <- terra::rast(r_files)
-    # start reading
-    terra::readStart(t_obj)
-    if (terra::nlyr(t_obj) == 1) {
-        values <- matrix(
-            as.matrix(
-                terra::readValues(x      = t_obj,
-                                  row    = extent["row"],
-                                  nrows  = extent["nrows"],
-                                  col    = extent["col"],
-                                  ncols  = extent["ncols"])
-            ), nrow = extent["nrows"], byrow = TRUE
-        )
 
+    # start read
+    terra::readStart(t_obj)
+    if (purrr::is_null(extent)) {
+        values  <- terra::readValues(x     = t_obj,
+                                     mat   = TRUE)
     } else {
         values <- terra::readValues(x      = t_obj,
-                                    row    = extent["row"],
-                                    nrows  = extent["nrows"],
-                                    col    = extent["col"],
-                                    ncols  = extent["ncols"],
-                                    mat = TRUE)
+                                    row    = extent[["row"]],
+                                    nrows  = extent[["nrows"]],
+                                    col    = extent[["col"]],
+                                    ncols  = extent[["ncols"]],
+                                    mat    = TRUE)
     }
+    # end read
     terra::readStop(t_obj)
 
     return(values)
@@ -227,7 +221,7 @@
     terra::values(r_obj) <- as.matrix(values)
 
     # options for compression
-    opt_comp <- paste0("COMPRESS =", compress)
+    opt_comp <- paste0("COMPRESS=", compress)
 
     suppressWarnings(terra::writeRaster(
         r_obj,
@@ -242,8 +236,8 @@
 
     # was the file written correctly?
     assertthat::assert_that(
-        file.info(filename)$size > 0,
-        msg = ".sits_raster_api_write_raster: unable to wriye raster object"
+        file.exists(filename),
+        msg = ".sits_raster_api_write_raster: unable to write raster object"
     )
 
     return(invisible(TRUE))
@@ -312,3 +306,4 @@
                             overwrite = overwrite)
 
     return(out_file)
+}
