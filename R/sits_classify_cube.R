@@ -71,7 +71,7 @@
     }
 
     # divide the input data in blocks
-    block_info <- .sits_raster_blocks(
+    blocks <- .sits_raster_blocks(
         cube = tile,
         ml_model = ml_model,
         sub_image = sub_image,
@@ -79,11 +79,8 @@
         multicores = multicores
     )
 
-    message(paste0(
-        "Using ", block_info$n,
-        " blocks of size (", block_info$nrows[1],
-        " x ", block_info$ncols[1]), ")"
-    )
+    # show blocks
+    message(paste("Processing", length(blocks), "block(s)"))
 
     # create the metadata for the probability cube
     probs_cube <- .sits_cube_probs(
@@ -106,14 +103,7 @@
     on.exit(future::plan(oplan), add = TRUE)
 
     # read the blocks and compute the probabilities
-    probs <- furrr::future_map(seq_len(block_info$n), function(b) {
-
-        # define the extent for each block
-        extent <- c(
-            block_info$row[b], block_info$nrows[b],
-            block_info$col, block_info$ncols
-        )
-        names(extent) <- (c("row", "nrows", "col", "ncols"))
+    probs_files <- furrr::future_map(blocks, function(extent) {
 
         # read the data
         distances <- .sits_raster_data_read(
@@ -147,28 +137,48 @@
         scale_factor_save <- round(1 / .sits_config_probs_scale_factor())
         prediction <- round(scale_factor_save * prediction, digits = 0)
 
-        return(prediction)
+        # save temp file
+        filename <- tempfile(fileext = ".tif")
+
+        # parameters to save temporary file
+        params_block <- list(
+            nrows = extent[["nrows"]],
+            ncols = extent[["ncols"]],
+            xmin  = probs_cube[["xmin"]] +
+                (extent[["col"]] - 1) * probs_cube[["xres"]],
+            xmax = probs_cube[["xmin"]] +
+                (extent[["col"]] + extent[["ncols"]] - 1) *
+                probs_cube[["xres"]],
+            ymax = probs_cube[["ymax"]] -
+                (extent[["row"]] - 1) * probs_cube[["yres"]],
+            ymin = probs_cube[["ymax"]] -
+                (extent[["row"]] + extent[["nrows"]] - 1) *
+                probs_cube[["yres"]],
+            xres = probs_cube[["xres"]],
+            probs_cube[["yres"]],
+            crs = probs_cube[["crs"]]
+        )
+
+        # write the probabilities to a raster file
+        .sits_raster_api_write(
+            params = params_block,
+            num_layers = length(labels),
+            values = prediction,
+            filename = filename,
+            datatype = "INT2U"
+        )
+
+        return(filename)
     }, .progress = TRUE)
-
-    # close cluster workers
-    future::plan("sequential")
-
-    # combine the image to make a probability cube
-    if (length(probs) > 1)
-        probs <- do.call(rbind, probs)
-    else
-        probs <- probs[[1]]
 
     # define the file name of the raster file to be written
     filename <- probs_cube$file_info[[1]]$path
 
-    # write the probabilities to a raster file
-    .sits_raster_api_write(
-        params = .sits_raster_api_params_cube(probs_cube),
-        num_layers = length(labels),
-        values = probs,
-        filename = filename,
-        datatype = "INT2U"
+    # combine the image to make a probability cube
+    .sits_raster_api_merge(
+        in_files = unlist(probs_files),
+        out_file = filename,
+        datatype = "Int16"
     )
 
     # show final time for classification
