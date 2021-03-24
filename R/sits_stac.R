@@ -46,6 +46,7 @@
     # checks if the supplied bands match the product bands
     # converting to upper bands
     bands <- toupper(bands)
+
     # convert bands to those known by the cloud provider
     bands <- .sits_config_bands_stac_read(stac_provider = "BDC",
                                           sensor = sensor,
