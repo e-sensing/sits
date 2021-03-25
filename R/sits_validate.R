@@ -72,13 +72,17 @@ sits_kfold_validate <- function(data, folds = 5,
     # create prediction and reference vector
     pred_vec <- character()
     ref_vec <- character()
+    # save original future plan
+    if (multicores > 1) {
+        oplan <- future::plan("multisession", workers = multicores)
+    } else {
+        oplan <- future::plan("sequential")
+    }
+    on.exit(future::plan(oplan), add = TRUE)
 
-    # change future plan
-    oplan <- future::plan("multisession", workers = multicores)
-    on.exit(future::plan(oplan))
+    # read the blocks and compute the probabilities
+    conf_lst <- furrr::future_map(seq_len(folds), function(k) {
 
-    # process
-    conf_lst <- furrr::future_map(1:folds, function(k) {
         # split data into training and test data sets
         data_train <- data[data$folds != k, ]
         data_test <- data[data$folds == k, ]

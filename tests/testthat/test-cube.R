@@ -186,7 +186,7 @@ test_that("Creating cubes from AWS and regularizing them", {
                          tiles = c("20LKP","20LLP"),
                          bands = c("B08", "SCL"),
                          start_date = "2018-07-30",
-                         end_date = "2018-08-30"
+                         end_date = "2018-09-30"
     )
 
     expect_true(all(sits_bands(s2_cube) %in% c("B08", "SCL")))

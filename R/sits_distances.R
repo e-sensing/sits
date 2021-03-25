@@ -112,13 +112,12 @@
                 labels = FALSE
             )
         )
-
-        # change future plan
         oplan <- future::plan("multisession", workers = multicores)
-        on.exit(future::plan(oplan))
-
+        on.exit(future::plan(oplan), add = TRUE)
         # apply parallel processing to the split data
-        results <- furrr::future_map(blocks, classify_block)
+        results <- furrr::future_map(blocks, function(b){
+            classify_block(b)}
+        )
 
         # fix 'Error: Tibble columns must have compatible sizes'
         predicted <- do.call(rbind, results)
