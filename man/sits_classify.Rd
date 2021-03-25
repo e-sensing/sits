@@ -25,7 +25,7 @@ sits_classify(data, ml_model, ...)
   multicores = 2,
   output_dir = "./",
   version = "v1",
-  verbose = TRUE
+  verbose = FALSE
 )
 }
 \arguments{

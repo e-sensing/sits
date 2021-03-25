@@ -74,7 +74,7 @@
 
     # divide the input data in blocks
     block_info <- .sits_raster_blocks(
-        cube = cube,
+        cube = tile,
         ml_model = ml_model,
         sub_image = sub_image,
         memsize = memsize,
@@ -111,7 +111,6 @@
 
     # read the blocks and compute the probabilities
     pred_blocks <- furrr::future_map(seq_len(block_info$n), function(b) {
-
         # define the extent for each block
         extent <- c(
             block_info$row[b], block_info$nrows[b],
@@ -148,7 +147,7 @@
 
         # convert probabilities matrix to INT2U
         scale_factor_save <- round(1 / .sits_config_probs_scale_factor())
-        pred_block <- as.integer(round(scale_factor_save * pred_block, digits = 0))
+        pred_block <- round(scale_factor_save * pred_block, digits = 0)
 
         return(pred_block)
     }, .progress = TRUE)
