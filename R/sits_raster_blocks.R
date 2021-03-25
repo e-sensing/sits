@@ -158,7 +158,9 @@
     assertthat::assert_that(
         memsize >= estimated_block_mem,
         msg = paste(".sits_raster_blocks_estimate: insuficient memory to",
-                    "process", num_blocks, "block(s) at a time")
+                    "process", num_blocks, "block(s) at a time.",
+                    "Consider to increase memsize or decrease the number of",
+                    "multicores.")
     )
 
     # check if it is possible to process two or more blocks at a time
