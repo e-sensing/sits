@@ -37,6 +37,7 @@ samples_ndvi <- sits_select(samples_mt_6bands, bands = c("NDVI"))
 ml_model <- sits_train(samples_ndvi, sits_ranger(num_trees = 100))
 
 # get a point and classify the point with the ml_model
+point_ndvi <- sits_select(point_mt_6bands, bands = "NDVI")
 class <- sits_classify(point_ndvi, ml_model)
 
 }

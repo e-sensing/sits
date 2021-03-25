@@ -24,6 +24,7 @@ This functions calls `dtwclust::compute_envelope` function.
 }
 \examples{
 # Select the NDVI band of a point in Mato Grosso
+point_ndvi <- sits_select(point_mt_6bands, bands = "NDVI")
 # Apply the envelope filter
 point_env <- sits_envelope(point_ndvi)
 # Merge the filtered with the raw data

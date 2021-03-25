@@ -28,7 +28,7 @@ Computes the linearly interpolated bands
 }
 \examples{
 # Retrieve a time series with values of NDVI
-data(point_ndvi)
+point_ndvi <- sits_select(point_mt_6bands, bands = "NDVI")
 # find out how many time instances are there
 n_times <- nrow(sits_time_series(point_ndvi))
 # interpolate three times more points

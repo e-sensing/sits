@@ -98,9 +98,10 @@ plot.patterns <- function(x, y, ...) {
 #' @examples
 #' \dontrun{
 #' # Retrieve the set of samples for Mato Grosso region (provided by EMBRAPA)
-#' samples_mt_ndvi <- sits_select(samples_mt_4bands, bands = "NDVI")
+#' samples_mt_ndvi <- sits_select(samples_modis_4bands, bands = "NDVI")
 #' # classify the point
 #' model_svm <- sits_train(samples_mt_ndvi, ml_method = sits_svm())
+#' point_ndvi <- sits_select(point_mt_6bands, bands = "NDVI")
 #' class_ndvi.tb <- sits_classify(point_ndvi, model_svm)
 #' # plot the classification
 #' plot(class_ndvi.tb)
@@ -262,11 +263,11 @@ plot.probs_cube <- function(x, y, ..., time = 1,
     # create a stars object
     st <- stars::read_stars(x$file_info[[1]]$path[[time]])
 
-    p <- plot(st,
-              breaks = breaks,
-              nbreaks = 11,
-              col = col,
-              main = x$labels[[1]]
+    p <- suppressWarnings(plot(st,
+                              breaks = breaks,
+                              nbreaks = 11,
+                              col = col,
+                              main = x$labels[[1]])
     )
     return(invisible(p))
 }
@@ -283,12 +284,12 @@ plot.probs_cube <- function(x, y, ..., time = 1,
 #' @param  map           map to overlay (mapview object)
 #' @param  time          temporal reference for plot.
 #' @param  title         string.
-#' @param  colors        color pallete.
+#' @param  legend        named vector that associated labels to colors
 #'
 #' @export
 #'
 plot.classified_image <- function(x, y, ..., map = NULL, time = 1,
-                                  title = "Classified Image", colors = NULL) {
+                                  title = "Classified Image", legend = NULL) {
     stopifnot(missing(y))
     # verifies if mapview package is installed
     if (!requireNamespace("mapview", quietly = TRUE)) {
@@ -301,11 +302,11 @@ plot.classified_image <- function(x, y, ..., map = NULL, time = 1,
     ))
 
     # get the labels
-    labels <- .sits_cube_labels(x)
-
+    labels <- sits_labels(x)
     # if colors are not specified, get them from the configuration file
-    if (purrr::is_null(colors)) {
-        colors <- .sits_config_colors(labels)
+    if (purrr::is_null(legend)) {
+        legend <- .sits_config_colors(labels)
+        names(legend) <- labels
     }
 
     # obtain the raster
@@ -320,7 +321,7 @@ plot.classified_image <- function(x, y, ..., map = NULL, time = 1,
     # include labels in the RAT
     # be careful - some labels may not exist in the classified image
     rat$landcover <- labels[rat$ID]
-    colors <- colors[rat$ID]
+    colors <- unname(legend[rat$landcover])
     # assign the RAT to the raster object
     levels(rl) <- rat
 
@@ -422,7 +423,7 @@ plot.som_map <- function(x, y, ..., type = "codes", whatmap = 1) {
 #' @examples
 #' \donttest{
 #' # Get a set of samples
-#' samples_ndvi_evi <- sits_select(samples_mt_4bands, bands = c("NDVI", "EVI"))
+#' samples_ndvi_evi <- sits_select(samples_modis_4bands, bands = c("NDVI", "EVI"))
 #'
 #' # train a deep learning model
 #' dl_model <- sits_train(samples_ndvi_evi, ml_method = sits_deeplearning(
@@ -567,7 +568,7 @@ plot.keras_model <- function(x, y, ...) {
             # what are the band names?
             bands <- sits_bands(data2)
             # what are the reference dates?
-            ref_dates <- sits_time_series_dates(data2)
+            ref_dates <- sits_timeline(data2)
             # align all time series to the same dates
             data2 <- .sits_align_dates(data2, ref_dates)
 

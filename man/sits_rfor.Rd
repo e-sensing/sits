@@ -31,11 +31,11 @@ Please refer to the documentation in that package for more details.
 }
 \examples{
 # Retrieve the set of samples for the Mato Grosso region
-samples_MT_ndvi <- sits_select(samples_mt_4bands, bands = "NDVI")
+samples_MT_ndvi <- sits_select(samples_modis_4bands, bands = "NDVI")
 # Build a random forest model
 rfor_model <- sits_train(samples_MT_ndvi, sits_rfor(num_trees = 300))
 # get a point with a 16 year time series
-data(point_ndvi)
+point_ndvi <- sits_select(point_mt_6bands, bands = "NDVI")
 # classify the point
 class.tb <- sits_classify(point_ndvi, rfor_model)
 

@@ -29,10 +29,11 @@ Please refer to the documentation in that package for more details.
 \examples{
 # Retrieve the set of samples for Mato Grosso region (provided by EMBRAPA)
 # Select the NDVI band
-samples_mt_ndvi <- sits_select(samples_mt_4bands, bands = "NDVI")
+samples_mt_ndvi <- sits_select(samples_modis_4bands, bands = "NDVI")
 # Train a QDA model
 qda_model <- sits_train(samples_mt_ndvi, sits_qda())
 # Classify a point
+point_ndvi <- sits_select(point_mt_6bands, bands = "NDVI")
 class <- sits_classify(point_ndvi, qda_model)
 
 }

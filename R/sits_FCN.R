@@ -60,7 +60,7 @@
 #' # Retrieve the set of samples for the Mato Grosso region
 #'
 #' # Build a machine learning model based on deep learning
-#' fcn_model <- sits_train(samples_mt_4bands, sits_FCN())
+#' fcn_model <- sits_train(samples_modis_4bands, sits_FCN())
 #' # Plot the model
 #' plot(fcn_model)
 #'
@@ -82,11 +82,16 @@ sits_FCN <- function(samples = NULL,
                      batch_size = 128,
                      validation_split = 0.2,
                      verbose = 1) {
-    # backward compatibility
-    samples <- .sits_tibble_rename(samples)
 
     # function that returns keras model based on a sits sample data.table
     result_fun <- function(data) {
+
+        # verifies if keras package is installed
+        if (!requireNamespace("keras", quietly = TRUE)) {
+            stop(paste("keras required for this function to work.",
+                       "Please install it."), call. = FALSE)
+        }
+
         # pre-conditions
         assertthat::assert_that(
             length(layers) == length(kernels),

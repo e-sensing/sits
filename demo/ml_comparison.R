@@ -1,42 +1,18 @@
 devAskNewPage(ask = FALSE)
 
 # This demo shows different machine learning methods for
-# clasification of time series
+# classification of time series
 
 # load the sits library
 library(sits)
 
-#  The data contain 1,892 time series samples for the Mato Grosso state in Brasil.
-#  The time series come from MOD13Q1 collection 6 images, with 6 bands
-#  ("blue", "red", "nir", "mir",  "evi",  and "ndvi")
-#  The data set has the following classes:
-#  Cerrado(379 samples), Fallow_Cotton (29 samples), Forest (131 samples),
-#  Pasture (344 samples), Soy-Corn (364 samples),  Soy-Cotton (352 samples),
-#  Soy_Fallow (87 samples), Soy_Millet (186 samples),
-#  and Soy_Sunflower (26 samples).
-#  The tibble has 7 variables:
-#  (a) longitude: East-west coordinate of the time series sample (WGS 84);
-#  (b) latitude (North-south coordinate of the time series sample in WGS 84),
-#  (c) start_date (initial date of the time series),
-#  (d) end_date (final date of the time series),
-#  (e) label (the class label associated to the sample),
-#  (f) cube (the name of the cube associated with the data),
-#  (g) time_series (tibble with the values of the time series).
-
-# load the sitsdata library
-if (!requireNamespace("sitsdata", quietly = TRUE)) {
-    if (!requireNamespace("devtools", quietly = TRUE)) {
-        install.packages("devtools")
-    }
-    devtools::install_github("e-sensing/sitsdata")
-}
-library(sitsdata)
-
-# Select a data set containing a sits tibble
-# with time series samples from Brazilian Mato Grosso State
-# (Amazon and Cerrado biomes).
-
-samples <- sitsdata::br_mt_1_8K_9classes_6bands
+# A dataset containing a tibble with time series samples
+# for the Mato Grosso state in Brasil.
+# The time series come from MOD13Q1 collection 6 images.
+# The data set has the following classes:
+# Cerrado(379 samples), Forest (131 samples),
+# Pasture (344 samples), and Soy_Corn (364 samples).
+data("samples_modis_4bands")
 
 # create a list to store the results
 results <- list()
@@ -44,81 +20,60 @@ results <- list()
 # adjust the multicores parameters to suit your machine
 
 ## SVM model
-conf_svm <- sits_kfold_validate(samples,
+print("== Accuracy Assessment = SVM =======================")
+acc_svm <- sits_kfold_validate(samples_modis_4bands,
     folds = 5,
     multicores = 2,
     ml_method = sits_svm(kernel = "radial", cost = 10)
 )
+acc_svm$name <- "svm_10"
 
-print("== Confusion Matrix = SVM =======================")
-conf_svm.mx <- sits_conf_matrix(conf_svm)
-
-conf_svm.mx$name <- "svm_10"
-
-results[[length(results) + 1]] <- conf_svm.mx
+results[[length(results) + 1]] <- acc_svm
 
 
 # =============== RFOR ==============================
-
-conf_rfor <- sits_kfold_validate(samples,
+print("== Accuracy Assessment = RFOR =======================")
+acc_rfor <- sits_kfold_validate(samples_modis_4bands,
     folds = 5,
-    multicores = 1,
+    multicores = 2,
     ml_method = sits_rfor(num_trees = 2000)
 )
-print("== Confusion Matrix = RFOR =======================")
-conf_rfor.mx <- sits_conf_matrix(conf_rfor)
-conf_rfor.mx$name <- "rfor"
+acc_rfor$name <- "rfor"
 
-results[[length(results) + 1]] <- conf_rfor.mx
-
-
+results[[length(results) + 1]] <- acc_rfor
 
 # =============== LDA ==============================
-conf_lda <- sits_kfold_validate(samples,
+print("== Accuracy Assessment = LDA =======================")
+acc_lda <- sits_kfold_validate(samples_modis_4bands,
     folds = 5,
     multicores = 2,
     ml_method = sits_lda()
 )
-
-print("== Confusion Matrix = LDA =======================")
-conf_lda.mx <- sits_conf_matrix(conf_lda)
-conf_lda.mx$name <- "lda"
-
-results[[length(results) + 1]] <- conf_lda.mx
+acc_lda$name <- "lda"
+results[[length(results) + 1]] <- acc_lda
 
 
 # =============== MLR ==============================
-# "multinomial log-linear (mlr)
-conf_mlr <- sits_kfold_validate(samples,
+print("== Accuracy Assessment = MLR =======================")
+acc_mlr <- sits_kfold_validate(samples_modis_4bands,
     folds = 5,
     multicores = 2,
     ml_method = sits_mlr()
 )
-
-# print the accuracy of the Multinomial log-linear
-print("== Confusion Matrix = MLR =======================")
-conf_mlr.mx <- sits_conf_matrix(conf_mlr)
-conf_mlr.mx$name <- "mlr"
-
-results[[length(results) + 1]] <- conf_mlr.mx
-
+acc_mlr$name <- "MLR"
+results[[length(results) + 1]] <- acc_mlr
 
 # =============== XGBOOST ==============================
 # extreme gradient boosting
-conf_xgb <- sits_kfold_validate(samples,
+print("== Accuracy Assessment = XGB =======================")
+acc_xgb <- sits_kfold_validate(samples_modis_4bands,
     folds = 5,
     multicores = 2,
     ml_method = sits_xgboost()
 )
+acc_xgb$name <- "xgboost"
 
-# print the accuracy of the extreme gradient boosting classification
-print("== Confusion Matrix = XGB =======================")
-conf_xgb.mx <- sits_conf_matrix(conf_xgb)
-conf_xgb.mx$name <- "xgboost"
-
-results[[length(results) + 1]] <- conf_xgb.mx
+results[[length(results) + 1]] <- acc_xgb
 
 
-WD <- getwd()
-
-sits_to_xlsx(results, file = "./accuracy_mt_ml.xlsx")
+sits_to_xlsx(results, file = paste0(tempdir(),"/accuracy_mt_ml.xlsx"))

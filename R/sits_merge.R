@@ -20,7 +20,7 @@
 #'
 #' @examples {
 #' # Retrieve a time series with values of NDVI
-#' data(point_ndvi)
+#' point_ndvi <- sits_select(point_mt_6bands, bands = "NDVI")
 #' # Filter the point using the whittaker smoother
 #' point_ws.tb <- sits_whittaker(point_ndvi, lambda = 3.0)
 #' # Plot the two points to see the smoothing effect

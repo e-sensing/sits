@@ -31,3 +31,4 @@ Remote Sensing of Environment, 148, pp. 42-57.
 \author{
 Alber Sanchez, \email{alber.ipia@inpe.br}
 }
+\keyword{internal}

@@ -58,7 +58,7 @@
 #' # Retrieve the set of samples for the Mato Grosso (provided by EMBRAPA)
 #'
 #' # Build a machine learning model based on deep learning
-#' tc_model <- sits_train(samples_mt_4bands, sits_TempCNN(epochs = 75))
+#' tc_model <- sits_train(samples_modis_4bands, sits_TempCNN(epochs = 75))
 #' # Plot the model
 #' plot(tc_model)
 #'
@@ -84,11 +84,15 @@ sits_TempCNN <- function(samples = NULL,
                          validation_split = 0.2,
                          verbose = 1) {
 
-    # backward compatibility
-    samples <- .sits_tibble_rename(samples)
 
     # function that returns keras model based on a sits sample data.table
     result_fun <- function(data) {
+
+        # verifies if keras package is installed
+        if (!requireNamespace("keras", quietly = TRUE)) {
+            stop(paste("keras required for this function to work.",
+                       "Please install it."), call. = FALSE)
+        }
 
         # pre-conditions
         valid_activations <- c("relu", "elu", "selu", "sigmoid")

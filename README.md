@@ -207,7 +207,7 @@ together in a single temporal interval.
 
 ``` r
 # select the "ndvi" band
-samples_ndvi <- sits_select(samples_mt_4bands, "NDVI")
+samples_ndvi <- sits_select(samples_modis_4bands, "NDVI")
 # select only the samples with the cerrado label
 samples_cerrado <- dplyr::filter(samples_ndvi, 
                   label == "Cerrado")
@@ -251,6 +251,7 @@ SITS”](https://github.com/e-sensing/sits-docs/blob/master/doc/filters.pdf)
 # apply Whitaker filter to a time series sample for the NDVI band from 2000 to 2016
 # merge with the original data
 # plot the original and the modified series
+point_ndvi <- sits_select(point_mt_6bands, bands = "NDVI")
 point_whit <- sits_filter(point_ndvi, sits_whittaker(lambda = 10))
 point_whit %>% 
   sits_merge(point_ndvi) %>% 
@@ -297,19 +298,16 @@ format using the function `sits_show_prediction` or graphically using
 `plot`.
 
 ``` r
-# Train a machine learning model for the mato grosso dataset using SVM
-samples_mt_2bands <- sits_select(samples_mt_4bands, bands = c("ndvi", "evi"))
-svm_model <- sits_train(data = samples_mt_2bands, 
-                         ml_method = sits_svm())
+# Train a machine learning model for the mato grosso dataset
+samples_mt_2bands <- sits_select(samples_modis_4bands, bands = c("ndvi", "evi"))
+xgb_model <- sits_train(data = samples_mt_2bands, 
+                         ml_method = sits_xgboost(verbose = FALSE))
 
 # get a point to be classified with four bands
 point_mt_2bands <- sits_select(point_mt_6bands, bands = c("ndvi", "evi"))
 
-# filter the point with a Whittaker smoother
-point_filtered <- sits_whittaker(point_mt_2bands, lambda = 0.2, bands_suffix = "") 
-
 # Classify using random forest model and plot the result
-class.tb <- sits_classify(point_filtered, svm_model)
+class.tb <- sits_classify(point_mt_2bands , xgb_model)
 
 # plot the results of the prediction
 plot(class.tb, bands = c("ndvi", "evi"))
@@ -325,28 +323,22 @@ Time series classification using SVM
 </div>
 
 The following example shows how to classify a data cube organised as a
-set of raster bricks. First, we need to build a model based on the the
+set of raster image. First, we need to build a model based on the the
 same bands as the data cube.
 
 ``` r
-if (!requireNamespace("sitsdata", quietly = TRUE)) {
-    if (!requireNamespace("devtools", quietly = TRUE)) {
-          install.packages("devtools")
-      }
-    devtools::install_github("e-sensing/sitsdata")
-}
-library(sitsdata)
-
 # select the samples and bands for classification
-data(br_mt_1_8K_9classes_6bands)
-samples_ndvi_evi <- sits_select(br_mt_1_8K_9classes_6bands, bands = c("EVI", "NDVI"))
+# Retrieve the set of samples for the Mato Grosso region 
+# Select the data for classification
+samples_2bands  <- sits_select(samples_modis_4bands, 
+                               bands = c("NDVI", "EVI"))
 
-# build the classification model
-rfor_model <- sits_train(samples_ndvi_evi, ml_method = sits_rfor(num_trees = 2000))
+# build a machine learning model for this area
+svm_model <- sits_train(samples_2bands, sits_svm())
 
 # create a data cube to be classified
 # Cube is composed of MOD13Q1 images from the Sinop region in Mato Grosso (Brazil)
-data_dir <- system.file("extdata/sinop", package = "sitsdata")
+data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
 sinop <- sits_cube(
     source = "LOCAL",
     name = "sinop-2014",
@@ -357,9 +349,10 @@ sinop <- sits_cube(
     parse_info = c("X1", "X2", "band", "date")
 )
 # Classify the raster cube, generating a probability file
-probs_cube <- sits_classify(sinop, ml_model = rfor_model)
-
-# label the probability file (by default selecting the class with higher probability)
+probs_cube <- sits_classify(sinop, 
+                            ml_model = svm_model, 
+                            output_dir = tempdir(),
+                            verbose = FALSE)
 # apply a bayesian smoothing to remove outliers
 bayes_cube <- sits_smooth(probs_cube)
 
@@ -373,9 +366,9 @@ plot(label_cube)
 
 <div class="figure" style="text-align: center">
 
-<img src="./inst/extdata/markdown/figures/sinop_bayes.png" alt="Image classified with XGBoost" width="700" />
+<img src="/Users/gilbertocamara/Library/R/4.0/library/sits/extdata/markdown/figures/plot_image_classification.png" alt="Classified Image" width="664" />
 <p class="caption">
-Image classified with XGBoost
+Classified Image
 </p>
 
 </div>

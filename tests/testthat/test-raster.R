@@ -1,7 +1,7 @@
 context("Raster classification")
 
 test_that("One-year, single core classification", {
-    samples_2bands <- sits_select(samples_mt_4bands, bands = c("NDVI", "EVI"))
+    samples_2bands <- sits_select(samples_modis_4bands, bands = c("NDVI", "EVI"))
     dl_model <- sits_train(samples_2bands, sits_deeplearning(
         layers = c(256, 256, 256),
         dropout_rates = c(0.5, 0.4, 0.3),
@@ -43,7 +43,7 @@ test_that("One-year, single core classification", {
 
 test_that("One-year, multicore classification", {
 
-    samples_2bands <- sits_select(samples_mt_4bands, bands = c("NDVI", "EVI"))
+    samples_2bands <- sits_select(samples_modis_4bands, bands = c("NDVI", "EVI"))
 
     svm_model <- sits_train(samples_2bands, sits_svm())
 
@@ -81,7 +81,7 @@ test_that("One-year, multicore classification", {
 })
 
 test_that("One-year, single core classification with filter", {
-    samples_2bands <- sits_select(samples_mt_4bands, bands = c("NDVI", "EVI"))
+    samples_2bands <- sits_select(samples_modis_4bands, bands = c("NDVI", "EVI"))
     samples_filt <- sits_whittaker(samples_2bands, bands_suffix = "")
     svm_model <- sits_train(samples_filt, sits_svm())
 
@@ -112,7 +112,7 @@ test_that("One-year, single core classification with filter", {
 })
 
 test_that("One-year, multicore classification with filter", {
-    samples_2bands <- sits_select(samples_mt_4bands, bands = c("NDVI", "EVI"))
+    samples_2bands <- sits_select(samples_modis_4bands, bands = c("NDVI", "EVI"))
     samples_filt <- sits_sgolay(samples_2bands, bands_suffix = "")
     svm_model <- sits_train(samples_filt, sits_svm())
 
@@ -154,7 +154,7 @@ test_that("One-year, multicore classification with filter", {
 })
 
 test_that("One-year, multicore classification with post-processing", {
-    samples_2bands <- sits_select(samples_mt_4bands, bands = c("NDVI", "EVI"))
+    samples_2bands <- sits_select(samples_modis_4bands, bands = c("NDVI", "EVI"))
 
     svm_model <- sits_train(samples_2bands, sits_svm())
 

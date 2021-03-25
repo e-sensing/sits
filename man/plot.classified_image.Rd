@@ -11,7 +11,7 @@
   map = NULL,
   time = 1,
   title = "Classified Image",
-  colors = NULL
+  legend = NULL
 )
 }
 \arguments{
@@ -27,7 +27,7 @@
 
 \item{title}{string.}
 
-\item{colors}{color pallete.}
+\item{legend}{named vector that associated labels to colors}
 }
 \description{
 plots a classified raster using ggplot.

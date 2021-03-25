@@ -74,7 +74,7 @@ If you use this method, please cite the original paper.
 # Retrieve the set of samples for the Mato Grosso (provided by EMBRAPA)
 
 # Build a machine learning model based on deep learning
-lstm_cnn_model <- sits_train(samples_mt_4bands, sits_LSTM_FCN())
+lstm_cnn_model <- sits_train(samples_modis_4bands, sits_LSTM_FCN())
 
 # plot the model
 plot(lstm_cnn_model)

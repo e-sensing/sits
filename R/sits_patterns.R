@@ -39,9 +39,9 @@
 #' plot(patterns)
 #'
 #' # Read a set of samples for the state of Mato Grosso, Brazil
-#' data(samples_mt_4bands)
+#' data(samples_modis_4bands)
 #' # Estimate a set of patterns (one for each label)
-#' patterns <- sits_patterns(samples_mt_4bands)
+#' patterns <- sits_patterns(samples_modis_4bands)
 #' # Show the patterns
 #' plot(patterns)
 #' }
@@ -71,7 +71,7 @@ sits_patterns <- function(data = NULL, freq = 8, formula = y ~ s(x), ...) {
         vars <- all.vars(formula)
 
         # align all samples to the same time series intervals
-        sample_dates <- lubridate::as_date(sits_time_series_dates(tb))
+        sample_dates <- lubridate::as_date(sits_timeline(tb))
         tb <- .sits_align_dates(tb, sample_dates)
 
         # extract the start and and dates

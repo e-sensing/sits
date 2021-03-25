@@ -34,7 +34,7 @@
 #' @examples
 #' \dontrun{
 #' # Evaluate the quality of the samples using SOM clustering
-#' new_samples <- sits_som_cluster(samples_mt_4bands)
+#' new_samples <- sits_som_cluster(samples_modis_4bands)
 #' }
 #' @export
 sits_som_cluster <- function(data,
@@ -105,7 +105,7 @@ sits_som_cluster <- function(data,
 #' @examples
 #' \dontrun{
 #' # Produce a cluster map
-#' som_cluster <- sits_som_map(samples_mt_4bands)
+#' som_cluster <- sits_som_map(samples_modis_4bands)
 #' # plot the som map
 #' plot(som_cluster)
 #' # Clean the samples to get better quality ones
@@ -230,7 +230,7 @@ sits_som_map <- function(data,
 #' \dontrun{
 #' # Read a set of samples
 #' # Get a new subset of samples evaluated by clustering methods
-#' som_map <- sits_som_map(samples_mt_4bands,
+#' som_map <- sits_som_map(samples_modis_4bands,
 #'     grid_xdim = 10, grid_ydim = 10,
 #'     distance = "euclidean"
 #' )
@@ -304,7 +304,7 @@ sits_som_clean_samples <- function(som_map,
 #' \dontrun{
 #' # Read a set of samples
 #' # Get a new subset of samples evaluated by clustering methods
-#' som_map <- sits_som_map(samples_mt_4bands,
+#' som_map <- sits_som_map(samples_modis_4bands,
 #'     grid_xdim = 10, grid_ydim = 10,
 #'     distance = "euclidean"
 #' )

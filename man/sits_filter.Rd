@@ -23,7 +23,6 @@ the available filtering algorithms:
  \item{Savitsky-Golay filter - see \code{\link{sits_sgolay}}}
  \item{Envelope filter - see \code{\link{sits_envelope}}}
  \item{Interpolation filter - see \code{\link{sits_interp}}}
- \item{Kalman filter - see \code{\link{sits_kalman}}}
 }
 }
 \author{

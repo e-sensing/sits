@@ -1,5 +1,5 @@
 test_that("One-year, multicore classification with ROI", {
-    samples_2bands <- sits_select(samples_mt_4bands, bands = c("NDVI", "EVI"))
+    samples_2bands <- sits_select(samples_modis_4bands, bands = c("NDVI", "EVI"))
 
     svm_model <- sits_train(samples_2bands, sits_svm())
 
@@ -37,10 +37,10 @@ test_that("One-year, multicore classification with ROI", {
     expect_lte(bbox["ymin"], bbox_p["ymin"])
 
     max_lyr2 <- max(terra::values(rc_obj)[, 2])
-    expect_true(max_lyr2 < 1000)
+    expect_true(max_lyr2 <= 10000)
 
     max_lyr3 <- max(terra::values(rc_obj)[, 3])
-    expect_true(max_lyr3 > 8000)
+    expect_true(max_lyr3 > 7000)
 
     expect_true(all(file.remove(unlist(sinop_probs$file_info[[1]]$path))))
 })

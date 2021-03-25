@@ -2,29 +2,12 @@
 % Please edit documentation in R/sits_bands.R
 \name{sits_bands}
 \alias{sits_bands}
-\alias{sits_bands<-}
-\alias{sits_bands<-.sits}
-\alias{sits_bands<-.cube}
-\alias{sits_bands<-.patterns}
-\alias{sits_bands<-.predicted}
-\title{Informs and replaces the names of the bands}
+\title{Informs the names of the bands}
 \usage{
 sits_bands(x)
-
-sits_bands(x) <- value
-
-\method{sits_bands}{sits}(x) <- value
-
-\method{sits_bands}{cube}(x) <- value
-
-\method{sits_bands}{patterns}(x) <- value
-
-\method{sits_bands}{predicted}(x) <- value
 }
 \arguments{
 \item{x}{Valid sits tibble (time series or a cube)}
-
-\item{value}{Vector of bands}
 }
 \value{
 A string vector with the names of the bands.
@@ -38,8 +21,6 @@ Finds/replaces the names of the bands of
 # Retrieve the set of samples for Mato Grosso (provided by EMBRAPA)
 # show the bands
 sits_bands(samples_mt_6bands)
-# Replace the name of bands for the samples for Mato Grosso
-sits_bands(samples_mt_4bands) <- c("ndvi", "evi", "nir", "mir")
 }
 
 }

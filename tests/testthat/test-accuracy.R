@@ -5,63 +5,46 @@ test_that("conf_matrix -2 classes", {
     test_data <- sits_sample(cerrado_2classes, n = 25)
     xgb_model <- sits_train(train_data, sits_xgboost(verbose = FALSE))
     points_class <- sits_classify(test_data, xgb_model)
-    invisible(capture.output(conf_mx <- sits_conf_matrix(points_class)))
-    expect_true(conf_mx$overall["Accuracy"] > 0.70)
-    expect_true(conf_mx$overall["Kappa"] > 0.70)
+    invisible(capture.output(acc <- sits_accuracy(points_class)))
+    expect_true(acc$overall["Accuracy"] > 0.70)
+    expect_true(acc$overall["Kappa"] > 0.70)
 })
 test_that("conf_matrix - more than 2 classes", {
-    data(samples_mt_4bands)
-    train_data <- sits_sample(samples_mt_4bands, n = 25)
-    test_data <- sits_sample(samples_mt_4bands, n = 25)
+    data(samples_modis_4bands)
+    train_data <- sits_sample(samples_modis_4bands, n = 25)
+    test_data <- sits_sample(samples_modis_4bands, n = 25)
     xgb_model <- sits_train(train_data, sits_xgboost(verbose = FALSE))
     points_class <- sits_classify(test_data, xgb_model)
-    invisible(capture.output(conf_mx <- sits_conf_matrix(points_class)))
-    expect_true(conf_mx$overall["Accuracy"] > 0.70)
-    expect_true(conf_mx$overall["Kappa"] > 0.70)
+    invisible(capture.output(acc <- sits_accuracy(points_class)))
+    expect_true(acc$overall["Accuracy"] > 0.70)
+    expect_true(acc$overall["Kappa"] > 0.70)
 })
 test_that("XLS", {
     data(cerrado_2classes)
-    pred_ref <- sits_kfold_validate(cerrado_2classes, folds = 2,
+    acc <- sits_kfold_validate(cerrado_2classes, folds = 2,
                                        ml_method = sits_rfor(num_trees = 100))
-    invisible(capture.output(conf_mx <- sits_conf_matrix(pred_ref)))
     results <- list()
-    conf_mx$name <- "confusion_matrix"
-    results[[length(results) + 1]] <- conf_mx
-    xls_file <- paste0(tempdir(), "/confusion_matrix.xlsx")
+    acc$name <- "cerrado_2classes"
+    results[[length(results) + 1]] <- acc
+    xls_file <- paste0(tempdir(), "/accuracy.xlsx")
     sits_to_xlsx(results, file = xls_file)
 
     expect_true(file.remove(xls_file))
 })
 
 test_that("Accuracy - more than 2 classes", {
-    data("samples_mt_4bands")
-    samples <- sits_select(samples_mt_4bands, bands = c("NDVI", "EVI"))
-    pred_ref <- sits_kfold_validate(samples, folds = 2,
+    data("samples_modis_4bands")
+    samples <- sits_select(samples_modis_4bands, bands = c("NDVI", "EVI"))
+    acc <- sits_kfold_validate(samples, folds = 2,
                                     ml_method = sits_rfor(num_trees = 100))
-    invisible(capture.output(conf <- sits_conf_matrix(pred_ref)))
 
-    expect_true(conf$overall["Accuracy"] > 0.90)
-    expect_true(conf$overall["Kappa"] > 0.90)
-
-    conv_lst <- list(
-        Soy_Corn = "Cropland",
-        Soy_Cotton = "Cropland",
-        Soy_Fallow = "Cropland",
-        Soy_Millet = "Cropland",
-        Soy_Sunflower = "Cropland",
-        Fallow_Cotton = "Cropland"
-    )
-    invisible(capture.output(conf2 <- sits_conf_matrix(pred_ref, conv_lst)))
-
-    expect_true(conf2$overall["Accuracy"] > 0.95)
-    expect_true(conf2$overall["Kappa"] > 0.95)
+    expect_true(acc$overall["Accuracy"] > 0.90)
+    expect_true(acc$overall["Kappa"] > 0.90)
 })
 test_that("Accuracy areas", {
-    samples_mt_2bands <- sits_select(samples_mt_4bands,
+    samples_mt_2bands <- sits_select(samples_modis_4bands,
                                      bands = c("NDVI", "EVI"))
 
-    samples_mt_2bands <- dplyr::filter(samples_mt_2bands, label %in%
-        c("Forest", "Pasture", "Soy_Corn"))
     xgb_model <- sits_train(samples_mt_2bands, sits_xgboost(verbose = FALSE))
 
     data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
@@ -98,7 +81,7 @@ test_that("Accuracy areas", {
     ground_truth <- system.file("extdata/samples/samples_sinop_crop.csv",
                                 package = "sits")
     invisible(capture.output(as <- suppressWarnings(
-        sits_accuracy(label_cube, ground_truth)))
+        sits_accuracy(label_cube, validation_csv = ground_truth)))
         )
 
     expect_true(as.numeric(as$area_pixels["Forest"]) > as$area_pixels["Pasture"])

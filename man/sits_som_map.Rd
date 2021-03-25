@@ -53,7 +53,7 @@ using data for the neighbours on the SOM map.
 \examples{
 \dontrun{
 # Produce a cluster map
-som_cluster <- sits_som_map(samples_mt_4bands)
+som_cluster <- sits_som_map(samples_modis_4bands)
 # plot the som map
 plot(som_cluster)
 # Clean the samples to get better quality ones

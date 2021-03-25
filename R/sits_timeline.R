@@ -21,16 +21,7 @@ sits_timeline <- function(data) {
 #' @export
 #'
 sits_timeline.sits <- function(data) {
-
-    timeline <- NULL
-    timeline <- lubridate::as_date(sits_time_series_dates(data))
-
-    assertthat::assert_that(
-        !purrr::is_null(timeline),
-        msg = "sits_timeline: input does not contain a valid timeline"
-    )
-
-    return(timeline)
+    return(data$time_series[[1]]$Index)
 }
 
 #' @export

@@ -4,11 +4,11 @@ citEntry(entry = "Manual",
          title        = "sits: Data Analysis and Machine Learning using Satellite Image Time Series",
          author       = personList(as.person("Rolf Simoes"),
                                    as.person("Gilberto Camara"),
+                                   as.person("Felipe Souza"),
                                    as.person("Pedro Andrade"),
                                    as.person("Lorena Santos"),
                                    as.person("Karine Ferreira"),
                                    as.person("Gilberto Queiroz"),
-                                   as.person("Felipe Souza"),
                                    as.person("Alexandre Ywata de Carvalho"),
                                    as.person("Victor Maus")
                                    ),
@@ -18,9 +18,9 @@ citEntry(entry = "Manual",
          url          = "https://github.com/e-sensing/sits",
 
          textVersion  =
-             paste("Rolf Simoes, Gilberto Camara, Pedro Andrade,
-             Lorena Santos, Karine Ferreira, Gilberto Queiroz, Felipe Souza,
-             Alexandre Carvalho, Victor Maus,  (2021).",
-                   "SITS: Data Analysis and Machine Learning using Satellite Image Time Series.",
+             paste("Rolf Simoes, Gilberto Camara, Felipe Souza, Pedro Andrade,
+             Lorena Santos, Karine Ferreira, Gilberto Queiroz,
+             Alexandre Carvalho, Victor Maus (2021),",
+            "SITS: Data Analysis and Machine Learning using Satellite Image Time Series.",
                    "URL https://github.com/e-sensing/sits.")
 )

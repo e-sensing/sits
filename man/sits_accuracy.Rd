@@ -2,12 +2,21 @@
 % Please edit documentation in R/sits_accuracy.R
 \name{sits_accuracy}
 \alias{sits_accuracy}
+\alias{sits_accuracy.sits}
+\alias{sits_accuracy.classified_image}
 \title{Area-weighted classification accuracy assessment}
 \usage{
-sits_accuracy(label_cube, validation_csv)
+sits_accuracy(data, ...)
+
+\method{sits_accuracy}{sits}(data, ...)
+
+\method{sits_accuracy}{classified_image}(data, ..., validation_csv)
 }
 \arguments{
-\item{label_cube}{A data cube with classified images.}
+\item{data}{Either a data cube with classified images or
+a set of time series}
+
+\item{\dots}{Specific parameters}
 
 \item{validation_csv}{A CSV file path with validation data}
 }
@@ -15,33 +24,47 @@ sits_accuracy(label_cube, validation_csv)
 A list of lists: The error_matrix, the class_areas, the unbiased
 estimated areas, the standard error areas, confidence interval 95% areas,
 and the accuracy (user, producer, and overall), or NULL if the data is empty.
+A confusion matrix assessment produced by the caret package.
 }
 \description{
-To use this function the input table should be
-a set of results containing
-both the label assigned by the user and the classification result.
-Accuracy assessment set us a confusion matrix to determine the accuracy
-of your classified result.
-This function uses an area-weighted technique proposed by Olofsson et al. to
-produce more reliable accuracy estimates at 95% confidence level.
+This function calculates the accuracy of the classification result.
+For a set of time series, it creates a confusion matrix and then calculates
+the resulting statistics using the R packge "caret".
+The time series needs to be classified using \code{\link[sits]{sits_classify}}.
 
-This function performs an accuracy assessment of the classified, including
-Overall Accuracy, User's Accuracy, Producer's Accuracy
-and error matrix (confusion matrix) according to [1-3].
+Classified images are generated using \code{\link[sits]{sits_classify}}
+followed by \code{\link[sits]{sits_label_classification}}.
+For a classified image, the function uses an area-weighted technique proposed by
+Olofsson et al. according to [1-3] to produce more reliable accuracy estimates
+at 95% confidence level.
+
+In both cases, it provides an accuracy assessment of the classified, including
+Overall Accuracy, Kappa, User's Accuracy, Producer's Accuracy
+and error matrix (confusion matrix)
 }
 \examples{
-\dontrun{
-# get the samples for Mato Grosso for bands NDVI and EVI
-samples_mt_ndvi <- sits_select(samples_mt_4bands, bands = c("NDVI"))
+\donttest{
+# Case (1) - Accuracy for classification of time series
+# read a tibble with 400 time series of Cerrado and 346 of Pasture
+data(cerrado_2classes)
+# create a model for classification of time series
+svm_model <- sits_train(cerrado_2classes, sits_svm())
+# classify the time series
+predicted <- sits_classify(cerrado_2classes, svm_model)
+# calculate the classification accuracy
+acc <- sits_accuracy(predicted)
 
+# Case (2) - Accuracy for classification of raster data
+# select a training set with two bands
+samples_modis_2bands <- sits_select(samples_modis_4bands, bands = c("NDVI", "EVI"))
 # filter the samples for three classes (to simplify the example)
-samples_mt_ndvi <- dplyr::filter(samples_mt_ndvi, label \%in\%
+samples_modis_2bands <- dplyr::filter(samples_modis_2bands, label \%in\%
   c("Forest", "Pasture", "Soy_Corn"))
 
 # build an extreme gradient boosting model
 xgb_model <- sits_train(
-  samples_mt_ndvi,
-  sits_xgboost(nrounds = 10, verbose = FALSE)
+  samples_modis_2bands,
+  sits_xgboost(nrounds = 50, verbose = FALSE)
 )
 
 # create a data cube based on files
@@ -62,7 +85,7 @@ probs_cube <- sits_classify(cube,
   xgb_model,
   output_dir = tempdir(),
   memsize = 4,
-  multicores = 1
+  multicores = 2
 )
 # label the classification
 label_cube <- sits_label_classification(probs_cube,
@@ -73,7 +96,8 @@ ground_truth <- system.file("extdata/samples/samples_sinop_crop.csv",
   package = "sits"
 )
 # calculate accuracy according to Olofsson's method
-accuracy <- suppressWarnings(sits_accuracy(label_cube, ground_truth))
+accuracy <- suppressWarnings(sits_accuracy(label_cube,
+            validation_csv = ground_truth))
 }
 }
 \references{

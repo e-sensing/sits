@@ -7,7 +7,7 @@ library(sits)
 
 # use a sample with the bands "ndvi", "evi", "nir", and "mir"
 # select a random forest model
-rfor_model <- sits_train(samples_mt_4bands, ml_method = sits_rfor())
+rfor_model <- sits_train(samples_modis_4bands, ml_method = sits_rfor())
 
 # Retrieve a time series
 data(point_mt_6bands)

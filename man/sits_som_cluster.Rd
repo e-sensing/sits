@@ -59,7 +59,7 @@ how the good quality samples are selected, based on the Kohonen map.
 \examples{
 \dontrun{
 # Evaluate the quality of the samples using SOM clustering
-new_samples <- sits_som_cluster(samples_mt_4bands)
+new_samples <- sits_som_cluster(samples_modis_4bands)
 }
 }
 \references{

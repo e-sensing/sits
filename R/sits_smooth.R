@@ -48,7 +48,7 @@
 #' # Retrieve the samples for Mato Grosso
 #' # select band "ndvi"
 #'
-#' samples_ndvi <- sits_select(samples_mt_4bands, bands = "NDVI")
+#' samples_ndvi <- sits_select(samples_modis_4bands, bands = "NDVI")
 #'
 #' # select a random forest model
 #' rfor_model <- sits_train(samples_ndvi, sits_rfor(num_trees = 500))
@@ -129,7 +129,7 @@ sits_smooth.bayes <- function(cube, type = "bayes", ...,
     )
 
     # find out how many labels exist
-    n_labels <- length(.sits_cube_labels(cube[1,]))
+    n_labels <- length(sits_labels(cube[1,]))
 
     # precondition 3 - test variance
     if (is.matrix(smoothness)) {

@@ -12,7 +12,7 @@ test_that("Labels", {
 
 test_that("Relabel", {
     # skip_on_cran()
-    data("samples_mt_4bands")
+    data("samples_modis_4bands")
 
     conv_lst <- list(
         Soy_Corn = "Cropland",
@@ -23,7 +23,7 @@ test_that("Relabel", {
         Fallow_Cotton = "Cropland"
     )
 
-    new_data <- sits_relabel(samples_mt_4bands, conv_lst)
+    new_data <- sits_relabel(samples_modis_4bands, conv_lst)
 
     labels <- sits_labels_summary(new_data)
 

@@ -12,6 +12,6 @@ test_that("All", {
     expect_equal(as.numeric(reproj[1, 2]), -20)
 })
 test_that("Time Series Dates", {
-    times <- sits_time_series_dates(cerrado_2classes)
+    times <- sits_timeline(cerrado_2classes)
     expect_true(length(times) == 23)
 })

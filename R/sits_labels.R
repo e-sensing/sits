@@ -73,9 +73,9 @@ sits_labels.patterns <- function(data) {
 #'
 #' @examples
 #' # Read a set of time series with information on deforestation
-#' data(samples_mt_4bands)
+#' data(samples_modis_4bands)
 #' # Print the labels
-#' sits_labels(samples_mt_4bands)
+#' sits_labels(samples_modis_4bands)
 #' # Create a conversion list.
 #' # Three classes will be converted to "Cropland".
 #' conv_lst <- list(
@@ -87,7 +87,7 @@ sits_labels.patterns <- function(data) {
 #'     Fallow_Cotton = "Cropland"
 #' )
 #' # relabel the data
-#' new_data <- sits_relabel(samples_mt_4bands, conv_lst)
+#' new_data <- sits_relabel(samples_modis_4bands, conv_lst)
 #' # show the new labels
 #' sits_labels(new_data)
 #'

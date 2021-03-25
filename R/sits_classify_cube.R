@@ -26,6 +26,7 @@
 #' @param  multicores      number of cores.
 #' @param  output_dir      output directory
 #' @param  version         version of result
+#' @param  verbose         print processing information?
 #' @return List of the classified raster layers.
 .sits_classify_multicores <- function(tile,
                                       ml_model,
@@ -37,7 +38,8 @@
                                       memsize,
                                       multicores,
                                       output_dir,
-                                      version) {
+                                      version,
+                                      verbose) {
 
     # retrieve the samples from the model
     samples <- .sits_ml_model_samples(ml_model)
@@ -78,12 +80,14 @@
         memsize = memsize,
         multicores = multicores
     )
+    if (verbose) {
+        message(paste0(
+            "Using ", block_info$n,
+            " blocks of size (", block_info$nrows[1],
+            " x ", block_info$ncols[1]), ")"
+        )
+    }
 
-    message(paste0(
-        "Using ", block_info$n,
-        " blocks of size (", block_info$nrows[1],
-        " x ", block_info$ncols[1]), ")"
-    )
 
     # create the metadata for the probability cube
     probs_cube <- .sits_cube_probs(
@@ -95,7 +99,8 @@
     )
 
     # show initial time for classification
-    message(sprintf("Starting classification at %s", lubridate::now()))
+    if (verbose)
+        message(sprintf("Starting classification at %s", lubridate::now()))
 
     # save original future plan
     if (multicores > 1) {
@@ -172,7 +177,8 @@
     )
 
     # show final time for classification
-    message(sprintf("End classification at %s", lubridate::now()))
+    if (verbose)
+        message(sprintf("End classification at %s", lubridate::now()))
 
     return(probs_cube)
 }

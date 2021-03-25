@@ -36,8 +36,8 @@ test_that("Reading a point from SATVEG ", {
                  290.3342, tolerance = 2
     )
 
-    expect_true(length(sits_time_series_dates(point_comb)) >=
-        length(sits_time_series_dates(point_terra))
+    expect_true(length(sits_timeline(point_comb)) >=
+        length(sits_timeline(point_terra))
     )
 })
 
@@ -113,14 +113,14 @@ test_that("Reading a LAT/LONG from RASTER", {
         parse_info = c("X1", "X2", "band", "date")
     )
 
-
+    point_ndvi <- sits_select(point_mt_6bands, bands = "NDVI")
     point_ndvi <- sits_get_data(raster_cube,
         longitude = -55.66738, latitude = -11.76990
     )
 
     expect_equal(names(point_ndvi)[1], "longitude")
     expect_true(ncol(sits_time_series(point_ndvi)) == 3)
-    expect_true(length(sits_time_series_dates(point_ndvi)) == 23)
+    expect_true(length(sits_timeline(point_ndvi)) == 23)
 })
 
 test_that("Reading a CSV file from RASTER", {
@@ -151,7 +151,7 @@ test_that("Reading a CSV file from RASTER", {
     expect_equal(names(points)[1], "longitude")
     expect_equal(length(names(points)), 7)
     expect_true(ncol(sits_time_series(points)) == 3)
-    expect_true(length(sits_time_series_dates(points)) == 23)
+    expect_true(length(sits_timeline(points)) == 23)
 })
 
 test_that("Test reading shapefile from BDC", {
@@ -178,7 +178,12 @@ test_that("Test reading shapefile from BDC", {
     if (purrr::is_null(cbers_stac_tile)) {
           skip("BDC is not accessible")
       }
-
+    check <- tryCatch({
+        # tries to connect to the BDC
+        invisible(suppressWarnings(rgdal::GDALinfo(cbers_stac_tile$file_info[[1]]$path[1])))
+    }, error = function(e) {
+      skip("BDC access not available")
+    })
     shp_path <- system.file("extdata/shapefiles/bdc-test/samples.shp",
                             package = "sits"
     )

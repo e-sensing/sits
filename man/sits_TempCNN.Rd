@@ -84,7 +84,7 @@ If you use this method, please cite the original tempCNN paper.
 # Retrieve the set of samples for the Mato Grosso (provided by EMBRAPA)
 
 # Build a machine learning model based on deep learning
-tc_model <- sits_train(samples_mt_4bands, sits_TempCNN(epochs = 75))
+tc_model <- sits_train(samples_modis_4bands, sits_TempCNN(epochs = 75))
 # Plot the model
 plot(tc_model)
 

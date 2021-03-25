@@ -33,12 +33,10 @@
 #' # read a set of samples
 #' data(cerrado_2classes)
 #' # two fold validation with random forest
-#' conf_matrix.mx <- sits_kfold_validate(cerrado_2classes,
+#' acc <- sits_kfold_validate(cerrado_2classes,
 #'     folds = 2,
 #'     ml_method = sits_rfor(num_trees = 300)
 #' )
-#' # print the confidence matrix
-#' sits_conf_matrix(conf_matrix.mx)
 #' }
 #'
 #' @export
@@ -106,14 +104,17 @@ sits_kfold_validate <- function(data, folds = 5,
         return(list(pred = pred_vec, ref = ref_vec))
     }, mc.cores = multicores)
 
-    pred_vec <- unlist(lapply(conf_lst, function(x) x$pred))
-    ref_vec <- unlist(lapply(conf_lst, function(x) x$ref))
+    pred <- unlist(lapply(conf_lst, function(x) x$pred))
+    ref  <- unlist(lapply(conf_lst, function(x) x$ref))
 
-    pred_ref <- tibble::tibble(
-        "predicted" = pred_vec,
-        "reference" = ref_vec
-    )
-    class(pred_ref) <- c("pred_ref", class(pred_ref))
+    # call caret to provide assessment
+    unique_ref <- unique(ref)
+    pred_fac   <- factor(pred, levels = unique_ref)
+    ref_fac    <- factor(ref, levels = unique_ref)
+    # call caret package to the classification statistics
+    caret_assess <- caret::confusionMatrix(pred_fac, ref_fac)
+    # print confusion matrix
+    .sits_conf_matrix_show(caret_assess)
 
-    return(pred_ref)
+    return(caret_assess)
 }

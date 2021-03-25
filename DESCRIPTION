@@ -40,8 +40,6 @@ Imports:
     gdalUtilities,
     ggplot2,
     graphics,
-    grDevices,
-    keras (>= 2.3.0),
     lubridate (>= 1.7.0),
     parallel,
     purrr (>= 0.3.0),
@@ -72,6 +70,7 @@ Suggests:
     gdalUtils,
     imager,
     imputeTS, 
+    keras (>= 2.3.0),
     kohonen,
     knitr,
     MASS,
@@ -109,13 +108,13 @@ Collate:
     'sits_accuracy.R'
     'sits_aws.R'
     'sits_bands.R'
+    'sits_bands_set.R'
     'sits_bbox.R'
     'sits_bdc.R'
     'sits_brewer.R'
     'sits_classification.R'
     'sits_classify_ts.R'
     'sits_classify_cube.R'
-    'sits_classify_cube_aux_functions.R'
     'sits_config.R'
     'sits_conf_matrix.R'
     'sits_csv.R'
@@ -167,5 +166,7 @@ Collate:
     'sits_timeline.R'
     'sits_twdtw.R'
     'sits_validate.R'
+    'sits_values.R'
+    'sits_xlsx.R'
     'sits_zoo.R'
     'zzz.R'

@@ -33,6 +33,7 @@
 #' samples <- sits_select(samples_mt_6bands, bands = c("NDVI"))
 #' ml_model <- sits_train(samples, sits_rfor(num_trees = 100))
 #' # get a point and classify the point with the ml_model
+#' point_ndvi <- sits_select(point_mt_6bands, bands = "NDVI")
 #' class <- sits_classify(point_ndvi, ml_model)
 #'
 #' @export
@@ -90,7 +91,7 @@ sits_train <- function(data, ml_method = sits_svm()) {
 #' \dontrun{
 #'
 #' # Retrieve the set of samples for Mato Grosso region (provided by EMBRAPA)
-#' samples_2bands <- sits_select(samples_mt_4bands, bands = c("NDVI", "EVI"))
+#' samples_2bands <- sits_select(samples_modis_4bands, bands = c("NDVI", "EVI"))
 #'
 #' # Build a machine learning model based on deep learning
 #' ml_model <- sits_train(samples_2bands, sits_lda())
@@ -190,10 +191,11 @@ sits_lda <- function(data = NULL, formula = sits_formula_logref(), ...) {
 #' @examples
 #' # Retrieve the set of samples for Mato Grosso region (provided by EMBRAPA)
 #' # Select the NDVI band
-#' samples_mt_ndvi <- sits_select(samples_mt_4bands, bands = "NDVI")
+#' samples_mt_ndvi <- sits_select(samples_modis_4bands, bands = "NDVI")
 #' # Train a QDA model
 #' qda_model <- sits_train(samples_mt_ndvi, sits_qda())
 #' # Classify a point
+#' point_ndvi <- sits_select(point_mt_6bands, bands = "NDVI")
 #' class <- sits_classify(point_ndvi, qda_model)
 #'
 #' @export
@@ -278,7 +280,7 @@ sits_qda <- function(data = NULL, formula = sits_formula_logref(), ...) {
 #' @examples
 #' \dontrun{
 #' # Retrieve the set of samples for  Mato Grosso region (provided by EMBRAPA)
-#' samples_2bands <- sits_select(samples_mt_4bands, bands = c("NDVI", "EVI"))
+#' samples_2bands <- sits_select(samples_modis_4bands, bands = c("NDVI", "EVI"))
 #'
 #' # Build a machine learning model based on deep learning
 #' ml_model <- sits_train(samples_2bands, sits_mlr())
@@ -380,6 +382,7 @@ sits_mlr <- function(data = NULL, formula = sits_formula_linear(),
 #' ml_model <- sits_train(samples_ndvi, sits_ranger(num_trees = 100))
 #'
 #' # get a point and classify the point with the ml_model
+#' point_ndvi <- sits_select(point_mt_6bands, bands = "NDVI")
 #' class <- sits_classify(point_ndvi, ml_model)
 #'
 #' @export
@@ -484,11 +487,11 @@ sits_ranger <- function(data = NULL,
 #'                         (to be passed to \code{\link[sits]{sits_classify}})
 #' @examples
 #' # Retrieve the set of samples for the Mato Grosso region
-#' samples_MT_ndvi <- sits_select(samples_mt_4bands, bands = "NDVI")
+#' samples_MT_ndvi <- sits_select(samples_modis_4bands, bands = "NDVI")
 #' # Build a random forest model
 #' rfor_model <- sits_train(samples_MT_ndvi, sits_rfor(num_trees = 300))
 #' # get a point with a 16 year time series
-#' data(point_ndvi)
+#' point_ndvi <- sits_select(point_mt_6bands, bands = "NDVI")
 #' # classify the point
 #' class.tb <- sits_classify(point_ndvi, rfor_model)
 #'
@@ -578,7 +581,7 @@ sits_rfor <- function(data = NULL, num_trees = 2000, nodesize = 1, ...) {
 #' @examples
 #' \dontrun{
 #' # Retrieve the set of samples for  Mato Grosso  (provided by EMBRAPA)
-#' samples_2bands <- sits_select(samples_mt_4bands, bands = c("NDVI", "EVI"))
+#' samples_2bands <- sits_select(samples_modis_4bands, bands = c("NDVI", "EVI"))
 #'
 #' # Build a machine learning model based on deep learning
 #' ml_model <- sits_train(samples_2bands, sits_svm())
@@ -715,7 +718,7 @@ sits_svm <- function(data = NULL, formula = sits_formula_logref(),
 #' # Retrieve the set of samples for Mato Grosso (provided by EMBRAPA)
 #'
 #' # Build a machine learning model based on xgboost
-#' xgb_model <- sits_train(samples_mt_4bands, sits_xgboost(nrounds = 10))
+#' xgb_model <- sits_train(samples_modis_4bands, sits_xgboost(nrounds = 10))
 #'
 #' # get a point and classify the point with the ml_model
 #' point.tb <- sits_select(point_mt_6bands,

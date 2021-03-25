@@ -56,7 +56,7 @@ sits_from_zoo <- function(ts_zoo, longitude = 0.00, latitude = 0.00,
         cube = name,
         time_series = list(ts)
     )
-
+    class(data) <- c("sits", class(data))
     return(data)
 }
 

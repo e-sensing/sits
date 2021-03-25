@@ -152,51 +152,6 @@
     class(probs_cube) <- c("probs_cube", "raster_cube", class(probs_cube))
     return(probs_cube)
 }
-
-#' @title Return a file associated to a data cube, given an index
-#' @name .sits_cube_file
-#' @keywords internal
-#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
-#'
-#' @description     Given a data cube and an index, retrieve the file
-#' @param cube      Metadata about a data cube
-#' @param index     Index for file to be retrived
-#' @return          Name of file
-.sits_cube_file <- function(cube, index = 1) {
-    assertthat::assert_that(
-        index <= length(cube$file_info[[1]]$path),
-        msg = ".sits_cube_file: index is out of range"
-    )
-    return(cube$file_info[[1]]$path[index])
-}
-
-#' @title Return all file associated to a data cube
-#' @name .sits_cube_files
-#' @keywords internal
-#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
-#'
-#' @description    Given a data cube and an index, retrieve the files
-#' @param cube     Metadata about a data cube
-#' @return         Vector of files
-.sits_cube_files <- function(cube) {
-    return(cube$file_info[[1]]$path)
-}
-
-
-#' @title Return all labels associated to a data cube
-#' @name .sits_cube_labels
-#' @keywords internal
-#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
-#'
-#' @description    Given a data cube, retrieve the ;abels
-#' @param cube     Metadata about a data cube
-#' @return         Vector of labels
-.sits_cube_labels <- function(cube) {
-    return(cube$labels[[1]])
-}
-
-
-
 #' @title Check that the requested bands exist in the cube
 #' @name .sits_cube_bands_check
 #' @keywords internal
@@ -253,77 +208,6 @@
 
     class(cube_clone) <- class(cube)
     return(cube_clone)
-}
-#' @title Extract a temporal interval from the cube to select
-#' only the images to be used for classification
-#'
-#' @name .sits_cube_sub_interval
-#' @keywords internal
-#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
-#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
-#'
-#' @param cube           Metadata about a data cube tile
-#' @param samples        Samples used for training
-#' @param start_date     Starting date for the classification
-#' @param end_date       End date for the classification
-#' @return          Name of file
-.sits_cube_sub_interval <- function(cube, samples, start_date, end_date){
-    assertthat::assert_that(
-        nrow(cube) == 1,
-        msg = "sits_cube_sub_interval: accepts one tile only")
-
-    # get the cube timeline
-    cube_timeline <- sits_timeline(cube)
-
-    # if start and end dates are not provided, use the samples
-    if (purrr::is_null(start_date) || purrr::is_null(end_date)) {
-        # start date of the first sample
-        start_date <- samples$start_date[[1]]
-        # end date of the first sample
-        end_date <- samples$end_date[[1]]
-
-        message(paste0("No start/end date for classification provided", "\n",
-                       "Using period from ", start_date, " to ", end_date, "\n",
-                       "inferred from the samples"))
-    }
-    # verify if the dates are part of the cube timeline
-    assertthat::assert_that(
-        as.Date(start_date) <= cube_timeline[length(cube_timeline)],
-        msg = paste(".sits_cube_sub_interval: start_date is not",
-                    "inside the cube timeline")
-    )
-    assertthat::assert_that(
-        as.Date(end_date) >= cube_timeline[1],
-        msg = paste(".sits_cube_sub_interval: end_date is not inside the",
-                    "cube timeline")
-    )
-    return(cube)
-}
-#' @title Update informations of a data cube
-#' @name .sits_cube_update_raster_params
-#' @keywords internal
-#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
-#'
-#' @param  cube              input data cube
-#' @return                   output data cube
-.sits_cube_update_raster_params <- function(cube) {
-
-    res <- slider::slide_dfr(cube, function(tile) {
-        layer_obj <- suppressWarnings(
-            raster::raster(tile$file_info[[1]]$path[[1]])
-        )
-        dplyr::mutate(tile,
-                      nrows = raster::nrow(layer_obj),
-                      ncols = raster::ncol(layer_obj),
-                      xmin  = raster::xmin(layer_obj),
-                      xmax  = raster::xmax(layer_obj),
-                      ymin  = raster::ymin(layer_obj),
-                      ymax  = raster::ymax(layer_obj),
-                      xres  = raster::xres(layer_obj),
-                      yres  = raster::yres(layer_obj))
-    })
-
-    return(res)
 }
 #' @title Get cube source
 #' @name .sits_cube_source

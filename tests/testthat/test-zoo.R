@@ -18,5 +18,5 @@ test_that("Reading a ZOO time series", {
     )
 
     expect_equal(sum(sits_time_series(data)$ndvi), 13.6291, tolerance = 1e-3)
-    expect_true(nrow(ts_zoo) == length(sits_time_series_dates(data)))
+    expect_true(nrow(ts_zoo) == length(sits_timeline(data)))
 })

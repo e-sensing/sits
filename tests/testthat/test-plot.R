@@ -28,7 +28,7 @@ test_that("Plot Time Series and Images", {
     expect_equal(p2$theme$legend.position, "bottom")
 
     samples_mt_ndvi <- sits_select(samples_mt_6bands, bands = "NDVI")
-    data(point_ndvi)
+    point_ndvi <- sits_select(point_mt_6bands, bands = "NDVI")
     rfor_model <- sits_train(samples_mt_ndvi, ml_method = sits_rfor())
     point_class <- sits_classify(point_ndvi, rfor_model)
     p3 <- plot(point_class)

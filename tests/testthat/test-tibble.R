@@ -1,7 +1,7 @@
 context("Tibble")
 
 test_that("Align dates", {
-    data("samples_mt_4bands")
+    data("samples_modis_4bands")
     data("timeline_2000_2017")
     timeline <- lubridate::as_date(timeline_2000_2017)
     start_date <- lubridate::as_date("2001-08-01")
@@ -10,15 +10,16 @@ test_that("Align dates", {
     ref_dates <- timeline[timeline > start_date]
     ref_dates <- ref_dates[ref_dates < end_date]
 
-    new_data <- sits:::.sits_align_dates(samples_mt_4bands, ref_dates)
+    new_data <- sits:::.sits_align_dates(samples_modis_4bands, ref_dates)
 
-    ts_dates <- sits_time_series_dates(new_data)
+    ts_dates <- sits_timeline(new_data)
 
     expect_true(start_date <= lubridate::as_date(ts_dates[1]))
     expect_true(end_date >= lubridate::as_date(ts_dates[length(ts_dates)]))
 })
 
 test_that("Apply", {
+    point_ndvi <- sits_select(point_mt_6bands, bands = "NDVI")
     point2 <- sits_apply(point_ndvi,
         fun = function(x) {
             (x - min(x)) / (max(x) - min(x))
@@ -26,13 +27,13 @@ test_that("Apply", {
     )
 
     expect_equal(sum((sits_time_series(point2))$NDVI),
-        219.068,
-        tolerance = 0.01
+                 216.6617,
+                 tolerance = 0.1
     )
 })
 
 test_that("Bands", {
-    samples_mt_ndvi <- sits_select(samples_mt_4bands, bands = "NDVI")
+    samples_mt_ndvi <- sits_select(samples_modis_4bands, bands = "NDVI")
     bands <- sits_bands(samples_mt_ndvi)
 
     expect_equal(length(bands), 1)
@@ -40,11 +41,11 @@ test_that("Bands", {
 })
 
 test_that("Merge", {
-    data(point_ndvi)
+    point_ndvi <- sits_select(point_mt_6bands, bands = "NDVI")
     point_ws <- sits_whittaker(point_ndvi, lambda = 3.0)
     result <- sits_merge(point_ndvi, point_ws)
 
-    expect_true(length(sits_time_series_dates(result)) == 392)
+    expect_true(length(sits_timeline(result)) == 412)
     expect_true(ncol(sits_time_series(result)) == 3)
 })
 
@@ -71,6 +72,7 @@ test_that("Prune", {
 })
 
 test_that("Rename", {
+    point_ndvi <- sits_select(point_mt_6bands, bands = "NDVI")
     point_new <- point_ndvi
     sits_bands(point_new) <- "VEGINDEX"
     expect_equal(sits_bands(point_new), "VEGINDEX")
@@ -88,7 +90,7 @@ test_that("Sample", {
 })
 
 test_that("Select", {
-    samples_mt_ndvi <- sits_select(samples_mt_4bands, bands = "NDVI")
+    samples_mt_ndvi <- sits_select(samples_modis_4bands, bands = "NDVI")
     expect_equal(length(sits_bands(samples_mt_ndvi)), 1)
 
     samples_pasture <- samples_mt_ndvi %>% dplyr::filter(label == "Pasture")

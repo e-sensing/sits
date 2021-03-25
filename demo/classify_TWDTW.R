@@ -9,7 +9,7 @@ plot(point_mt_6bands)
 
 # retrieve a set of samples for MatoGrosso
 # obtain a set of patterns for these samples
-patterns <- sits_patterns(samples_mt_4bands)
+patterns <- sits_patterns(samples_modis_4bands)
 
 plot(patterns)
 

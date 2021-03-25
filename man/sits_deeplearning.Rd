@@ -59,8 +59,8 @@ Please refer to the documentation in that package for more details.
 \examples{
 \dontrun{
 # Retrieve the set of samples for the Mato Grosso region
-data(samples_mt_4bands)
-samples_mt_ndvi <- sits_select(samples_mt_4bands, bands = "NDVI")
+data(samples_modis_4bands)
+samples_mt_ndvi <- sits_select(samples_modis_4bands, bands = "NDVI")
 # Build a machine learning model based on deep learning
 dl_model <- sits_train(
     samples_mt_ndvi,
@@ -71,7 +71,7 @@ dl_model <- sits_train(
     )
 )
 # get a point with a 16 year time series
-data(point_ndvi)
+point_ndvi <- sits_select(point_mt_6bands, bands = "NDVI")
 # classify the point
 point_class <- sits_classify(point_ndvi, dl_model)
 # plot the classified point

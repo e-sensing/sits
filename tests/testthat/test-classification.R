@@ -1,26 +1,26 @@
 context("Classification of time series")
 test_that("Classify with random forest - single core and multicore", {
-    samples_mt_ndvi <- sits_select(samples_mt_4bands, bands = "NDVI")
+    samples_mt_ndvi <- sits_select(samples_modis_4bands, bands = "NDVI")
     rfor_model <- sits_train(samples_mt_ndvi, sits_rfor(num_trees = 100))
 
     expect_type(rfor_model, "closure")
-
+    point_ndvi <- sits_select(point_mt_6bands, bands = "NDVI")
     class_ndvi <- sits_classify(point_ndvi, rfor_model)
 
-    expect_true(nrow(class_ndvi$predicted[[1]]) == 16)
+    expect_true(nrow(class_ndvi$predicted[[1]]) == 17)
     expect_true(all(class_ndvi$predicted[[1]]$class %in%
         sits_labels(samples_mt_ndvi)))
-
+    point_ndvi <- sits_select(point_mt_6bands, bands = "NDVI")
     class_ndvi <- sits_classify(point_ndvi, rfor_model, multicores = 2)
 
-    expect_true(nrow(class_ndvi$predicted[[1]]) == 16)
+    expect_true(nrow(class_ndvi$predicted[[1]]) == 17)
     expect_true(all(class_ndvi$predicted[[1]]$class %in%
         sits_labels(samples_mt_ndvi)))
 })
 
 test_that("Classify a set of time series with svm + filter", {
     # single core
-    samples_mt_2bands <- sits_select(samples_mt_4bands,
+    samples_mt_2bands <- sits_select(samples_modis_4bands,
                                      bands = c("NDVI", "EVI"))
     samples_filt <- sits_sgolay(samples_mt_2bands, bands_suffix = "")
     svm_model <- sits_train(samples_filt, sits_svm())
@@ -37,7 +37,7 @@ test_that("Classify a set of time series with svm + filter", {
 })
 test_that("Classify time series with TWDTW method", {
     testthat::skip_on_cran()
-    samples_mt_ndvi <- sits_select(samples_mt_4bands, bands = "NDVI")
+    samples_mt_ndvi <- sits_select(samples_modis_4bands, bands = "NDVI")
     points_mt_6bands <- samples_mt_6bands[1:15,]
     points_mt_ndvi <- sits_select(points_mt_6bands, bands = "NDVI")
     patterns <- sits_patterns(samples_mt_ndvi)
@@ -59,7 +59,7 @@ test_that("Classify time series with TWDTW method", {
 })
 
 test_that("Classify error bands 1", {
-    samples_mt_ndvi <- sits_select(samples_mt_4bands, bands = "NDVI")
+    samples_mt_ndvi <- sits_select(samples_modis_4bands, bands = "NDVI")
 
     model <- sits_train(samples_mt_ndvi, sits_svm())
     point <- sits_select(point_mt_6bands, "EVI")

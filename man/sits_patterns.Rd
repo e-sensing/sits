@@ -42,9 +42,9 @@ patterns <- sits_patterns(cerrado_2classes)
 plot(patterns)
 
 # Read a set of samples for the state of Mato Grosso, Brazil
-data(samples_mt_4bands)
+data(samples_modis_4bands)
 # Estimate a set of patterns (one for each label)
-patterns <- sits_patterns(samples_mt_4bands)
+patterns <- sits_patterns(samples_modis_4bands)
 # Show the patterns
 plot(patterns)
 }

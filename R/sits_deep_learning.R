@@ -35,8 +35,8 @@
 #' @examples
 #' \dontrun{
 #' # Retrieve the set of samples for the Mato Grosso region
-#' data(samples_mt_4bands)
-#' samples_mt_ndvi <- sits_select(samples_mt_4bands, bands = "NDVI")
+#' data(samples_modis_4bands)
+#' samples_mt_ndvi <- sits_select(samples_modis_4bands, bands = "NDVI")
 #' # Build a machine learning model based on deep learning
 #' dl_model <- sits_train(
 #'     samples_mt_ndvi,
@@ -47,7 +47,7 @@
 #'     )
 #' )
 #' # get a point with a 16 year time series
-#' data(point_ndvi)
+#' point_ndvi <- sits_select(point_mt_6bands, bands = "NDVI")
 #' # classify the point
 #' point_class <- sits_classify(point_ndvi, dl_model)
 #' # plot the classified point
@@ -66,6 +66,12 @@ sits_deeplearning <- function(samples = NULL,
 
     # function that returns a keras model based on samples
     result_fun <- function(data) {
+
+        # verifies if keras package is installed
+        if (!requireNamespace("keras", quietly = TRUE)) {
+            stop(paste("keras required for this function to work.",
+                       "Please install it."), call. = FALSE)
+        }
 
         # pre-conditions
         assertthat::assert_that(

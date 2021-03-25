@@ -23,7 +23,7 @@ of classes in each cluster.
 \dontrun{
 # Read a set of samples
 # Get a new subset of samples evaluated by clustering methods
-som_map <- sits_som_map(samples_mt_4bands,
+som_map <- sits_som_map(samples_modis_4bands,
     grid_xdim = 10, grid_ydim = 10,
     distance = "euclidean"
 )

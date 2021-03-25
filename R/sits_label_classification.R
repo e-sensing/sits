@@ -20,7 +20,7 @@
 #' \dontrun{
 #' # Retrieve the samples for Mato Grosso
 #' # select band "ndvi"
-#' samples_ndvi <- sits_select(samples_mt_4bands, bands = "NDVI")
+#' samples_ndvi <- sits_select(samples_modis_4bands, bands = "NDVI")
 #'
 #' # select a random forest model
 #' rfor_model <- sits_train(samples_ndvi, sits_rfor(num_trees = 500))
@@ -116,7 +116,7 @@ sits_label_classification <- function(cube,
 #' # Retrieve the samples for Mato Grosso
 #' # select band "ndvi"
 #'
-#' samples_ndvi <- sits_select(samples_mt_4bands, bands = "NDVI")
+#' samples_ndvi <- sits_select(samples_modis_4bands, bands = "NDVI")
 #'
 #' # select a random forest model
 #' rfor_model <- sits_train(samples_ndvi, sits_rfor(num_trees = 500))
@@ -228,7 +228,7 @@ sits_label_majority <- function(cube,
     labels_lst <- slider::slide(probs_cube, function(probs_row) {
 
         # labels come from the input cube
-        labels <- .sits_cube_labels(probs_row)
+        labels <- sits_labels(probs_row)
         # get timeline from input cube
         timeline <- sits_timeline(probs_row)
 

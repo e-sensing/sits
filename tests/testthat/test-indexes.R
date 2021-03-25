@@ -1,7 +1,7 @@
 context("Indexes")
 
 test_that("NDWI", {
-    ndwi <- sits_ndwi(samples_mt_4bands)
+    ndwi <- sits_ndwi(samples_modis_4bands)
 
     expect_true("NDVI" %in% names(ndwi$time_series[[1]]))
 })

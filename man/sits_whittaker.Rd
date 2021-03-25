@@ -24,7 +24,7 @@ and lambda = 5.0 for strong smoothing.
 }
 \examples{
 # Retrieve a time series with values of NDVI
-data(point_ndvi)
+point_ndvi <- sits_select(point_mt_6bands, bands = "NDVI")
 # Filter the point using the whittaker smoother
 point_whit <- sits_filter(point_ndvi, sits_whittaker(lambda = 3.0))
 # Plot the two points to see the smoothing effect

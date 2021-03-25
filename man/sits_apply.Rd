@@ -48,7 +48,7 @@ Apply a 1D generic function to a time series
 }
 \examples{
 # Get a time series
-data(point_ndvi)
+point_ndvi <- sits_select(point_mt_6bands, bands = "NDVI")
 # apply a normalization function
 point2 <- sits_apply(point_ndvi,
     fun = function(x) {

@@ -2,17 +2,20 @@
 #' @name sits_accuracy
 #' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
 #' @author Alber Sanchez, \email{alber.ipia@@inpe.br}
-#' @description To use this function the input table should be
-#' a set of results containing
-#' both the label assigned by the user and the classification result.
-#' Accuracy assessment set us a confusion matrix to determine the accuracy
-#' of your classified result.
-#' This function uses an area-weighted technique proposed by Olofsson et al. to
-#' produce more reliable accuracy estimates at 95% confidence level.
+#' @description This function calculates the accuracy of the classification result.
+#' For a set of time series, it creates a confusion matrix and then calculates
+#' the resulting statistics using the R packge "caret".
+#' The time series needs to be classified using \code{\link[sits]{sits_classify}}.
 #'
-#' This function performs an accuracy assessment of the classified, including
-#' Overall Accuracy, User's Accuracy, Producer's Accuracy
-#' and error matrix (confusion matrix) according to [1-3].
+#' Classified images are generated using \code{\link[sits]{sits_classify}}
+#' followed by \code{\link[sits]{sits_label_classification}}.
+#' For a classified image, the function uses an area-weighted technique proposed by
+#' Olofsson et al. according to [1-3] to produce more reliable accuracy estimates
+#' at 95% confidence level.
+#'
+#' In both cases, it provides an accuracy assessment of the classified, including
+#' Overall Accuracy, Kappa, User's Accuracy, Producer's Accuracy
+#' and error matrix (confusion matrix)
 #'
 #' @references
 #' [1] Olofsson, P., Foody, G.M., Stehman, S.V., Woodcock, C.E. (2013).
@@ -30,28 +33,40 @@
 #' [3] FAO, Map Accuracy Assessment and Area Estimation: A Practical Guide.
 #' National forest monitoring assessment working paper No.46/E, 2016.
 #'
-#'
-#' @param label_cube       A data cube with classified images.
+#' @param data             Either a data cube with classified images or
+#'                         a set of time series
+#' @param \dots            Specific parameters
 #' @param validation_csv   A CSV file path with validation data
 #'
 #' @return
 #' A list of lists: The error_matrix, the class_areas, the unbiased
 #' estimated areas, the standard error areas, confidence interval 95% areas,
 #' and the accuracy (user, producer, and overall), or NULL if the data is empty.
-#'
+#' A confusion matrix assessment produced by the caret package.
+#
 #' @examples
-#' \dontrun{
-#' # get the samples for Mato Grosso for bands NDVI and EVI
-#' samples_mt_ndvi <- sits_select(samples_mt_4bands, bands = c("NDVI"))
+#' \donttest{
+#' # Case (1) - Accuracy for classification of time series
+#' # read a tibble with 400 time series of Cerrado and 346 of Pasture
+#' data(cerrado_2classes)
+#' # create a model for classification of time series
+#' svm_model <- sits_train(cerrado_2classes, sits_svm())
+#' # classify the time series
+#' predicted <- sits_classify(cerrado_2classes, svm_model)
+#' # calculate the classification accuracy
+#' acc <- sits_accuracy(predicted)
 #'
+#' # Case (2) - Accuracy for classification of raster data
+#' # select a training set with two bands
+#' samples_modis_2bands <- sits_select(samples_modis_4bands, bands = c("NDVI", "EVI"))
 #' # filter the samples for three classes (to simplify the example)
-#' samples_mt_ndvi <- dplyr::filter(samples_mt_ndvi, label %in%
+#' samples_modis_2bands <- dplyr::filter(samples_modis_2bands, label %in%
 #'   c("Forest", "Pasture", "Soy_Corn"))
 #'
 #' # build an extreme gradient boosting model
 #' xgb_model <- sits_train(
-#'   samples_mt_ndvi,
-#'   sits_xgboost(nrounds = 10, verbose = FALSE)
+#'   samples_modis_2bands,
+#'   sits_xgboost(nrounds = 50, verbose = FALSE)
 #' )
 #'
 #' # create a data cube based on files
@@ -72,7 +87,7 @@
 #'   xgb_model,
 #'   output_dir = tempdir(),
 #'   memsize = 4,
-#'   multicores = 1
+#'   multicores = 2
 #' )
 #' # label the classification
 #' label_cube <- sits_label_classification(probs_cube,
@@ -83,17 +98,69 @@
 #'   package = "sits"
 #' )
 #' # calculate accuracy according to Olofsson's method
-#' accuracy <- suppressWarnings(sits_accuracy(label_cube, ground_truth))
+#' accuracy <- suppressWarnings(sits_accuracy(label_cube,
+#'             validation_csv = ground_truth))
 #' }
 #' @export
-sits_accuracy <- function(label_cube, validation_csv) {
+#'
+#'
+sits_accuracy <- function(data, ...){
+    UseMethod("sits_accuracy", data)
+}
+#' @rdname sits_accuracy
+#' @export
+sits_accuracy.sits <- function(data, ...){
+
+    # require package
+    if (!requireNamespace("caret", quietly = TRUE)) {
+      stop("Please install package caret.", call. = FALSE)
+    }
+
+    # does the input data contain a set of predicted values?
     assertthat::assert_that(
-        inherits(label_cube, "classified_image"),
-        msg = "sits_accuracy: requires a labelled cube"
+      "predicted" %in% names(data),
+      msg = "sits_accuracy: input data without predicted values"
     )
+
+    # recover predicted and reference vectors from input
+    # is the input the result of a sits_classify?
+    if ("label" %in% names(data)) {
+      pred_ref <- .sits_pred_ref(data)
+      pred     <- pred_ref$predicted
+      ref      <- pred_ref$reference
+    }
+    # is the input the result of the sits_kfold_validate?
+    else {
+      pred <- data$predicted
+      ref  <- data$reference
+    }
+
+    unique_ref <- unique(ref)
+    pred_fac   <- factor(pred, levels = unique_ref)
+    ref_fac    <- factor(ref, levels = unique_ref)
+    # call caret package to the classification statistics
+    caret_assess <- caret::confusionMatrix(pred_fac, ref_fac)
+
+    # print confusion matrix
+    .sits_conf_matrix_show(caret_assess)
+
+    # return caret confusion matrix
+    return(caret_assess)
+
+}
+#' @rdname sits_accuracy
+#' @export
+sits_accuracy.classified_image <- function(data, ..., validation_csv) {
     assertthat::assert_that(
         file.exists(validation_csv),
         msg = "sits_accuracy: validation file missing."
+    )
+    # get the file extension
+    file_ext <- tolower(tools::file_ext(validation_csv))
+    # sits only accepts "csv" files
+    assertthat::assert_that(
+        file_ext == c("csv"),
+        msg = "sits_accuracy: csv file not available"
     )
 
     # read sample information from CSV file and put it in a tibble
@@ -103,13 +170,13 @@ sits_accuracy <- function(label_cube, validation_csv) {
     .sits_csv_check(csv_tb)
 
     # find the labels of the cube
-    labels_cube <- sits_labels(label_cube)
+    labels_cube <- sits_labels(data)
 
     # get xy in cube projection
     xy_tb <- .sits_latlong_to_proj(
         longitude = csv_tb$longitude,
         latitude = csv_tb$latitude,
-        crs = label_cube$crs
+        crs = data$crs
     )
 
     # join lat-long with XY values in a single tibble
@@ -123,7 +190,7 @@ sits_accuracy <- function(label_cube, validation_csv) {
     )
 
     # the label cube may contain several classified images
-    pred_ref_lst <- slider::slide(label_cube, function(row) {
+    pred_ref_lst <- slider::slide(data, function(row) {
 
         # find the labelled band
         labelled_band <- sits_bands(row)
@@ -187,7 +254,7 @@ sits_accuracy <- function(label_cube, validation_csv) {
     )
 
     # Get area for each class for each row of the cube
-    freq_lst <- slider::slide(label_cube, function(row) {
+    freq_lst <- slider::slide(data, function(row) {
 
         # get the frequency count and value for each labelled image
         freq <- .sits_raster_api_area_freq(row)
@@ -231,7 +298,7 @@ sits_accuracy <- function(label_cube, validation_csv) {
 #' @title Support for Area-weighted post-classification accuracy
 #' @name .sits_assess_accuracy_area
 #' @author Alber Sanchez, \email{alber.ipia@@inpe.br}
-#'
+#' @keywords internal
 #' @param error_matrix A matrix given in sample counts.
 #'                     Columns represent the reference data and
 #'                     rows the results of the classification

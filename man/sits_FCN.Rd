@@ -74,7 +74,7 @@ If you use this function, please cite the references.
 # Retrieve the set of samples for the Mato Grosso region
 
 # Build a machine learning model based on deep learning
-fcn_model <- sits_train(samples_mt_4bands, sits_FCN())
+fcn_model <- sits_train(samples_modis_4bands, sits_FCN())
 # Plot the model
 plot(fcn_model)
 

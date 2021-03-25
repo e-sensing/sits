@@ -76,7 +76,7 @@ If you use this function, please cite the references.
 # Retrieve the set of samples for the Mato Grosso (provided by EMBRAPA)
 
 # Build a machine learning model based on deep learning
-rn_model <- sits_train(samples_mt_4bands, sits_ResNet(epochs = 75))
+rn_model <- sits_train(samples_modis_4bands, sits_ResNet(epochs = 75))
 # Plot the model
 plot(rn_model)
 

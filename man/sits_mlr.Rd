@@ -40,7 +40,7 @@ Please refer to the documentation in that package for more details.
 \examples{
 \dontrun{
 # Retrieve the set of samples for  Mato Grosso region (provided by EMBRAPA)
-samples_2bands <- sits_select(samples_mt_4bands, bands = c("NDVI", "EVI"))
+samples_2bands <- sits_select(samples_modis_4bands, bands = c("NDVI", "EVI"))
 
 # Build a machine learning model based on deep learning
 ml_model <- sits_train(samples_2bands, sits_mlr())
