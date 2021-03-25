@@ -144,19 +144,19 @@
         params_block <- list(
             nrows = extent[["nrows"]],
             ncols = extent[["ncols"]],
-            xmin  = probs_cube[["xmin"]] +
-                (extent[["col"]] - 1) * probs_cube[["xres"]],
-            xmax = probs_cube[["xmin"]] +
+            xmin  = tile[["xmin"]] +
+                (extent[["col"]] - 1) * tile[["xres"]],
+            xmax = tile[["xmin"]] +
                 (extent[["col"]] + extent[["ncols"]] - 1) *
-                probs_cube[["xres"]],
-            ymax = probs_cube[["ymax"]] -
-                (extent[["row"]] - 1) * probs_cube[["yres"]],
-            ymin = probs_cube[["ymax"]] -
+                tile[["xres"]],
+            ymax = tile[["ymax"]] -
+                (extent[["row"]] - 1) * tile[["yres"]],
+            ymin = tile[["ymax"]] -
                 (extent[["row"]] + extent[["nrows"]] - 1) *
-                probs_cube[["yres"]],
-            xres = probs_cube[["xres"]],
-            probs_cube[["yres"]],
-            crs = probs_cube[["crs"]]
+                tile[["yres"]],
+            xres = tile[["xres"]],
+            yres = tile[["yres"]],
+            crs = tile[["crs"]]
         )
 
         # write the probabilities to a raster file
