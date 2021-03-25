@@ -91,7 +91,7 @@ sits_label_classification <- function(cube,
                             func = .do_map,
                             multicores = multicores,
                             memsize = memsize,
-                            datatype = "INT1U",
+                            datatype = "Byte",
                             options = c("COMPRESS=LZW",
                                         "BIGTIFF=YES"))
 

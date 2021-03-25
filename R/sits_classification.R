@@ -167,21 +167,21 @@ sits_classify.sits <- function(data,
     samples <- .sits_ml_model_samples(ml_model)
     assertthat::assert_that(
         nrow(samples) > 0,
-        msg = "sits_classify_ts: missing original samples"
+        msg = "sits_classify: missing original samples"
     )
 
     # get normalization params
     stats <- environment(ml_model)$stats
     # has the training data been normalized?
     if (!purrr::is_null(stats))
-          # yes, then normalize the input data
-          distances <- .sits_distances(.sits_normalize_data(
-              data = data,
-              stats = stats
-          ))
-     else
-          # no, input data does not need to be normalized
-          distances <- .sits_distances(data)
+        # yes, then normalize the input data
+        distances <- .sits_distances(.sits_normalize_data(
+            data = data,
+            stats = stats
+        ))
+    else
+        # no, input data does not need to be normalized
+        distances <- .sits_distances(data)
 
 
     # post condition: is distance data valid?
@@ -227,7 +227,7 @@ sits_classify.raster_cube <- function(data, ml_model, ...,
                                       multicores = 2,
                                       output_dir = "./",
                                       version = "v1",
-                                      verbose = TRUE) {
+                                      verbose = FALSE) {
 
     # precondition - checks if the cube and ml_model are valid
     .sits_classify_check_params(data, ml_model)

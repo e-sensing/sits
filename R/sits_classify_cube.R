@@ -74,7 +74,7 @@
 
     # divide the input data in blocks
     block_info <- .sits_raster_blocks(
-        cube = tile,
+        cube = cube,
         ml_model = ml_model,
         sub_image = sub_image,
         memsize = memsize,
@@ -87,7 +87,6 @@
             " x ", block_info$ncols[1]), ")"
         )
     }
-
 
     # create the metadata for the probability cube
     probs_cube <- .sits_cube_probs(
@@ -104,14 +103,14 @@
 
     # save original future plan
     if (multicores > 1) {
-        oplan <- future::plan("cluster", workers = multicores)
+        oplan <- future::plan("multisession", workers = multicores)
     } else {
         oplan <- future::plan("sequential")
     }
     on.exit(future::plan(oplan), add = TRUE)
 
     # read the blocks and compute the probabilities
-    probs <- furrr::future_map(seq_len(block_info$n), function(b) {
+    pred_blocks <- furrr::future_map(seq_len(block_info$n), function(b) {
 
         # define the extent for each block
         extent <- c(
@@ -119,7 +118,6 @@
             block_info$col, block_info$ncols
         )
         names(extent) <- (c("row", "nrows", "col", "ncols"))
-
         # read the data
         distances <- .sits_raster_data_read(
             cube = tile,
@@ -143,27 +141,20 @@
         colnames(distances) <- attr_names
 
         # predict the classification values
-        prediction <- .sits_classify_interval(
+        pred_block <- .sits_classify_interval(
             data = distances,
             ml_model = ml_model
         )
 
         # convert probabilities matrix to INT2U
         scale_factor_save <- round(1 / .sits_config_probs_scale_factor())
-        prediction <- round(scale_factor_save * prediction, digits = 0)
+        pred_block <- as.integer(round(scale_factor_save * pred_block, digits = 0))
 
-        return(prediction)
+        return(pred_block)
     }, .progress = TRUE)
 
-    # close cluster workers
-    future::plan("sequential")
-
-    # combine the image to make a probability cube
-    if (length(probs) > 1)
-        probs <- do.call(rbind, probs)
-    else
-        probs <- probs[[1]]
-
+    # Join the predictions
+    prediction <- do.call(rbind, pred_blocks)
     # define the file name of the raster file to be written
     filename <- probs_cube$file_info[[1]]$path
 
@@ -171,7 +162,7 @@
     .sits_raster_api_write(
         params = .sits_raster_api_params_cube(probs_cube),
         num_layers = length(labels),
-        values = probs,
+        values = prediction,
         filename = filename,
         datatype = "INT2U"
     )

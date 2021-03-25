@@ -165,7 +165,7 @@ sits_smooth.bayes <- function(cube, type = "bayes", ...,
     # create metadata for labelled raster cube
     cube_bayes <- .sits_cube_clone(
         cube = cube,
-        name = paste0(cube$name, "_bayes"),
+        name = cube$name,
         ext = "_bayes",
         output_dir = output_dir,
         version = version
@@ -214,7 +214,7 @@ sits_smooth.bayes <- function(cube, type = "bayes", ...,
                             func = .do_bayes,
                             multicores = multicores,
                             memsize = memsize,
-                            datatype = "INT2U",
+                            datatype = "Int16",
                             options = c("COMPRESS=LZW",
                                         "BIGTIFF=YES"))
 
@@ -308,7 +308,7 @@ sits_smooth.gaussian <- function(cube, type = "gaussian", ...,
                             func = .do_gauss,
                             multicores = multicores,
                             memsize = memsize,
-                            datatype = "INT2U",
+                            datatype = "Int16",
                             options = c("COMPRESS=LZW",
                                         "BIGTIFF=YES"))
 
@@ -411,7 +411,7 @@ sits_smooth.bilinear <- function(cube,
                             func = .do_bilinear,
                             multicores = multicores,
                             memsize = memsize,
-                            datatype = "INT2U",
+                            datatype = "Int16",
                             options = c("COMPRESS=LZW",
                                         "BIGTIFF=YES"))
 

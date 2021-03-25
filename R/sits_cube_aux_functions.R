@@ -199,7 +199,7 @@
       purrr::map(cube_clone$file_info, function(file_info) {
 
         newb <- paste0(file_info$band, ext)
-        newp <- paste0(output_dir, "/", newb, "_", version, ".tif")
+        newp <- paste0(output_dir, "/", name, "_", newb, "_", version, ".tif")
         file_info$band <- newb
         file_info$path <- newp
 
