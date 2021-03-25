@@ -73,7 +73,12 @@ sits_kfold_validate <- function(data, folds = 5,
     pred_vec <- character()
     ref_vec <- character()
 
-    conf_lst <- parallel::mclapply(X = 1:folds, FUN = function(k) {
+    # change future plan
+    oplan <- future::plan("multisession", workers = multicores)
+    on.exit(future::plan(oplan))
+
+    # process
+    conf_lst <- furrr::future_map(1:folds, function(k) {
         # split data into training and test data sets
         data_train <- data[data$folds != k, ]
         data_test <- data[data$folds == k, ]
@@ -102,7 +107,7 @@ sits_kfold_validate <- function(data, folds = 5,
         pred_vec <- c(pred_vec, values)
 
         return(list(pred = pred_vec, ref = ref_vec))
-    }, mc.cores = multicores)
+    })
 
     pred <- unlist(lapply(conf_lst, function(x) x$pred))
     ref  <- unlist(lapply(conf_lst, function(x) x$ref))
