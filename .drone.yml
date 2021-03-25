@@ -5,6 +5,7 @@ steps:
 - name: test
   image: brazildatacube/sits-r:latest
   commands:
+  - R -e 'install.packages("pacman"); pacman::p_load(desc::desc_get_deps()[desc::desc_get_deps()[["type"]] != "Depends",][["package"]], install = T, update = F, character.only = T)'
   - R CMD build .
   - set -e; R CMD check *.tar.gz --as-cran >&1 | tee stdfile && cat stdfile | (grep -E "(WARNING|ERROR)" > /dev/null) && exit 1 || exit 0
 
