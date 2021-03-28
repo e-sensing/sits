@@ -112,8 +112,8 @@ sits_get_data <- function(cube,
             msg = "sits_get_data: accepts only csv and shp files"
         )
         # append "csv" or "shp" to the cube class to call the correct function
-        class(cube) <- c(paste0(file_ext,"_", class(cube)[1]),
-                         paste0(file_ext,"_raster_cube"), class(cube))
+        class(cube) <- c(paste0(file_ext, "_", class(cube)[1]),
+                         paste0(file_ext, "_raster_cube"), class(cube))
     }
     # Dispatch
     UseMethod("sits_get_data", cube)
@@ -334,7 +334,7 @@ sits_get_data.csv_raster_cube <- function(cube, file, ...,
 
     # check if user has requested fewer points than full csv file
     if (!purrr::is_null(.n_pts_csv) && .n_pts_csv <= nrow(csv)) {
-        csv <- csv[1:.n_pts_csv,]
+        csv <- csv[1:.n_pts_csv, ]
     }
 
     # precondition - csv has to contain valid columns
