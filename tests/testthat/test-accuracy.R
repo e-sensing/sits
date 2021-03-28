@@ -69,7 +69,8 @@ test_that("Accuracy areas", {
     tc_obj <- .sits_raster_api_open_rast(probs_cube$file_info[[1]]$path[[1]])
     expect_true(nrow(tc_obj) == probs_cube$nrows)
 
-    label_cube <- sits_label_classification(probs_cube,
+    label_cube <- sits_label_classification(
+        probs_cube,
         output_dir = tempdir()
     )
 
