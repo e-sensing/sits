@@ -994,3 +994,19 @@ sits_config_show <- function() {
 .sits_config_access_maxcores <- function(source) {
   return(sits_env$config[[source]][["access_maxcores"]])
 }
+#' @title Raster package to be used
+#' @name .sits_config_raster_package
+#' @keywords internal
+#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
+#'
+#' @return name of the raster package
+.sits_config_raster_package <- function() {
+
+  # read config value
+  pkg_name <- sits_env$config[["R_raster_pkg"]]
+
+  # default raster package
+  if (purrr::is_null(pkg_name)) pkg_name <- "raster"
+
+  return(pkg_name)
+}

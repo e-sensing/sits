@@ -219,7 +219,7 @@ plot.raster_cube <- function(x, y, ..., red, green, blue, time = 1, roi = NULL) 
     }
 
     assertthat::assert_that(
-        raster::ncol(rast) > 0 & raster::nrow(rast) > 1,
+      .sits_raster_api_ncols(rast) > 0 && .sits_raster_api_nrows(rast) > 0,
         msg = "plot.raster_cube: unable to retrieve raster data"
     )
 
@@ -312,7 +312,7 @@ plot.classified_image <- function(x, y, ..., map = NULL, time = 1,
     # obtain the raster
     rl <- suppressWarnings(raster::raster(x$file_info[[1]]$path[time]))
     assertthat::assert_that(
-        raster::ncol(rl) > 0 & raster::nrow(rl) > 1,
+      .sits_raster_api_ncols(rl) > 0 && .sits_raster_api_nrows(rl) > 0,
         msg = "plot.classified_image: unable to retrive raster data"
     )
     # create a RAT

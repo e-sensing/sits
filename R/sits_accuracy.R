@@ -219,7 +219,7 @@ sits_accuracy.classified_image <- function(data, ..., validation_csv) {
         colnames(xy) <- c("X", "Y")
 
         # extract values from cube
-        values <- .sits_raster_api_extract(
+        values <- .sits_cube_extract(
             cube = row,
             band_cube = labelled_band,
             xy = xy
@@ -254,10 +254,10 @@ sits_accuracy.classified_image <- function(data, ..., validation_csv) {
     )
 
     # Get area for each class for each row of the cube
-    freq_lst <- slider::slide(data, function(row) {
+    freq_lst <- slider::slide(data, function(tile) {
 
         # get the frequency count and value for each labelled image
-        freq <- .sits_raster_api_area_freq(row)
+        freq <- .sits_cube_area_freq(tile)
         # include class names
         freq <- dplyr::mutate(freq, class = labels_cube[freq$value])
         return(freq)

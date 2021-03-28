@@ -74,10 +74,10 @@
 
     # divide the input data in blocks
     block_info <- .sits_raster_blocks(
-        cube = tile,
-        ml_model = ml_model,
-        sub_image = sub_image,
-        memsize = memsize,
+        cube       = tile,
+        ml_model   = ml_model,
+        sub_image  = sub_image,
+        memsize    = memsize,
         multicores = multicores
     )
     if (verbose) {
@@ -90,11 +90,11 @@
 
     # create the metadata for the probability cube
     probs_cube <- .sits_cube_probs(
-        tile = tile,
-        samples = samples,
-        sub_image = sub_image,
+        tile       = tile,
+        samples    = samples,
+        sub_image  = sub_image,
         output_dir = output_dir,
-        version = version
+        version    = version
     )
 
     # show initial time for classification
@@ -119,13 +119,13 @@
         names(extent) <- (c("row", "nrows", "col", "ncols"))
         # read the data
         distances <- .sits_raster_data_read(
-            cube = tile,
-            samples = samples,
-            extent = extent,
-            stats = stats,
-            filter_fn = filter_fn,
-            impute_fn = impute_fn,
-            interp_fn = interp_fn,
+            cube       = tile,
+            samples    = samples,
+            extent     = extent,
+            stats      = stats,
+            filter_fn  = filter_fn,
+            impute_fn  = impute_fn,
+            interp_fn  = interp_fn,
             compose_fn = compose_fn
         )
 
@@ -157,13 +157,28 @@
     # define the file name of the raster file to be written
     filename <- probs_cube$file_info[[1]]$path
 
-    # write the probabilities to a raster file
-    .sits_raster_api_write(
-        params = .sits_raster_api_params_cube(probs_cube),
-        num_layers = length(labels),
-        values = prediction,
-        filename = filename,
-        datatype = "INT2U"
+    # create probabilities raster object
+    r_obj <- .sits_raster_api_new_rast(
+        nrows = probs_cube$nrows,
+        ncols = probs_cube$ncols,
+        xmin  = probs_cube$xmin,
+        xmax  = probs_cube$xmax,
+        ymin  = probs_cube$ymin,
+        ymax  = probs_cube$ymax,
+        crs   = probs_cube$crs
+    )
+
+    # copy values
+    .sits_raster_api_values(r_obj) <- prediction
+
+    # write to raster file
+    .sits_raster_api_write_rast(
+        r_obj     = r_obj,
+        file      = filename,
+        data_type = "INT2U",
+        format    = "GTiff",
+        options   = "COMPRESS=LZW",
+        overwrite = TRUE
     )
 
     # show final time for classification

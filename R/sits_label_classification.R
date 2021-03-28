@@ -177,30 +177,31 @@ sits_label_majority <- function(cube,
     out_files <- cube_maj$file_info[[1]]$path
 
     purrr::map2(in_files, out_files, function(in_file, out_file) {
+
         # read the input classified image
-        layer <- terra::rast(in_file)
+        layer <- .sits_raster_api_open_rast(in_file)
+
         # calculate the majority values
-        layer <- terra::focal(
-            x = layer,
-            w = window_size,
-            na.rm = TRUE,
-            fun = terra::modal
+        layer <- .sits_raster_api_focal(
+            r_obj = layer,
+            window_size = window_size,
+            fun = "modal",
+            na.rm = TRUE
         )
+
         # write the result
-        suppressWarnings(terra::writeRaster(
-            layer,
-            filename = out_file,
-            wopt = list(
-                filetype = "GTiff",
-                datatype = "INT1U",
-                gdal = c("COMPRESS=LZW")
-            ),
+        .sits_raster_api_write_rast(
+            r_obj = layer,
+            file = out_file,
+            format = "GTiff",
+            data_type = "INT1U",
+            options = "COMPRESS=LZW",
             overwrite = TRUE
-        ))
+        )
 
         # was the file written correctly?
         assertthat::assert_that(
-            file.info(out_file)$size > 0,
+            file.exists(out_file),
             msg = "sits_label_majority: unable to save raster object"
         )
 

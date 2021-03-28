@@ -190,8 +190,8 @@ sits_smooth.bayes <- function(cube, type = "bayes", ...,
 
         # process Bayesian
         data <- bayes_smoother(m = logit,
-                               m_nrow = raster::nrow(chunk),
-                               m_ncol = raster::ncol(chunk),
+                               m_nrow = .sits_raster_api_nrows(chunk),
+                               m_ncol = .sits_raster_api_ncols(chunk),
                                w = window,
                                sigma = smoothness,
                                covar_sigma0 = covar)
@@ -288,8 +288,8 @@ sits_smooth.gaussian <- function(cube, type = "gaussian", ...,
 
         # process Gaussian smoother
         data <- kernel_smoother(m = data,
-                                m_nrow = raster::nrow(chunk),
-                                m_ncol = raster::ncol(chunk),
+                                m_nrow = .sits_raster_api_nrows(chunk),
+                                m_ncol = .sits_raster_api_ncols(chunk),
                                 w = gauss_kernel,
                                 normalised = TRUE)
 
@@ -391,8 +391,8 @@ sits_smooth.bilinear <- function(cube,
 
         # process bilinear smoother
         data <- bilinear_smoother(m = data,
-                                  m_nrow = raster::nrow(chunk),
-                                  m_ncol = raster::ncol(chunk),
+                                  m_nrow = .sits_raster_api_nrows(chunk),
+                                  m_ncol = .sits_raster_api_ncols(chunk),
                                   w = gauss_kernel,
                                   tau = tau)
 

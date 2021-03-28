@@ -277,7 +277,7 @@
         # retrieve values that indicate clouds
         cld_index <- .sits_config_cloud_values(cube)
         # get the values of the time series (terra object)
-        cld_values <- .sits_raster_api_extract(cube, cld_band, xy)
+        cld_values <- .sits_cube_extract(cube, cld_band, xy)
     }
     # Retrieve values on a band by band basis
     # using parallel processing
@@ -286,7 +286,7 @@
     ts_bands <- bands %>%
         furrr::future_map(function(band) {
             # get the values of the time series as matrix
-            values_band <- .sits_raster_api_extract(cube, band, xy)
+            values_band <- .sits_cube_extract(cube, band, xy)
 
             # each row of the values matrix is a spatial point
             ts_band_lst <- seq_len(nrow(values_band)) %>%
