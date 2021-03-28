@@ -8,7 +8,7 @@
 #' sits_bands(samples_modis_4bands) <- c("ndvi", "evi", "nir", "mir")
 #' @export
 #'
-`sits_bands<-` = function(x, value) {
+`sits_bands<-` <- function(x, value) {
     # get the meta-type (sits or cube)
     x <- .sits_config_data_meta_type(x)
 
@@ -16,7 +16,7 @@
 }
 #' @export
 #'
-`sits_bands<-.sits` =  function(x, value) {
+`sits_bands<-.sits` <- function(x, value) {
     # backward compatibility
     x <- .sits_tibble_rename(x)
 
@@ -25,7 +25,7 @@
         ncol(ts) == length(value) + 1,
         msg = "sits_bands: invalid number of bands to be replaced")
 
-    rows <- slider::slide(x, function(row){
+    rows <- slider::slide(x, function(row) {
         ts <- sits_time_series(row)
         names(ts) <- c("Index", value)
         row$time_series[[1]] <- ts
@@ -37,8 +37,8 @@
 }
 #' @export
 #'
-`sits_bands<-.cube` = function(x, value) {
-    rows <- slider::slide(x, function(row){
+`sits_bands<-.cube` <- function(x, value) {
+    rows <- slider::slide(x, function(row) {
         old_bands <- row$bands[[1]]
         assertthat::assert_that(
             length(old_bands) == length(value),
@@ -54,11 +54,11 @@
 }
 #' @export
 #'
-`sits_bands<-.patterns` =  function(x, value) {
+`sits_bands<-.patterns` <- function(x, value) {
     return(`sits_bands<-.sits`(x, value))
 }
 #' @export
 #'
-`sits_bands<-.predicted` =  function(x, value) {
+`sits_bands<-.predicted` <- function(x, value) {
     return(`sits_bands<-.sits`(x, value))
 }
