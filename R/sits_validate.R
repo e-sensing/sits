@@ -74,7 +74,7 @@ sits_kfold_validate <- function(data, folds = 5,
     ref_vec <- character()
     # save original future plan
     if (multicores > 1) {
-        oplan <- future::plan("multisession", workers = multicores)
+        oplan <- future::plan("multicore", workers = multicores)
     } else {
         oplan <- future::plan("sequential")
     }

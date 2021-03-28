@@ -111,7 +111,7 @@
                 labels = FALSE
             )
         )
-        oplan <- future::plan("multisession", workers = multicores)
+        oplan <- future::plan("multicore", workers = multicores)
         on.exit(future::plan(oplan), add = TRUE)
         # apply parallel processing to the split data
         results <- furrr::future_map(blocks, function(b){

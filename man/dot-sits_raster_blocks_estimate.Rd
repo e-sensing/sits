@@ -5,7 +5,7 @@
 \title{Estimate the number of blocks}
 \usage{
 .sits_raster_blocks_estimate(
-  cube,
+  tile,
   ml_model,
   sub_image,
   timeline,
@@ -14,7 +14,7 @@
 )
 }
 \arguments{
-\item{cube}{input data cube}
+\item{tile}{tile of data cube}
 
 \item{ml_model}{machine learning model.}
 

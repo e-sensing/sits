@@ -7,7 +7,7 @@
 .sits_raster_api_merge(
   in_files,
   out_file,
-  datatype,
+  gdal_datatype,
   format = "GTiff",
   compress = "LZW",
   overwrite = TRUE
@@ -18,7 +18,7 @@
 
 \item{out_file}{Output raster file path}
 
-\item{datatype}{Data type}
+\item{gdal_datatype}{Data type in gdal format}
 
 \item{format}{Format to write the file}
 

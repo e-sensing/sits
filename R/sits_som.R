@@ -221,10 +221,25 @@ sits_som_map <- function(data,
 #'                (frequency of samples assigned to the same SOM neuron)
 #' @param posterior_threshold       Threshold of posterior probability
 #'                                  (influenced by the SOM neighborhood)
+#' @param keep                 Samples evaluation to be maintained in the data
 #'
 #' @return List with two sits tibbles.
 #'         The first tibble has clean samples
 #'         The second has samples that need to be analysed.
+#'
+#' @note
+#'     The algorithm identifies noisy samples, using `prior_threshold` for
+#'     the prior probability and `posterior_threshold` for the posterior probability.
+#'     Each sample receives an evaluation tag, according to the following rule:
+#'     (a) If the prior probability is $ < `prior_threshold`$, the sample is tagged as "remove";
+#'     (b) If the prior probability is $ \geq `prior_threshold`$ and the posterior probability
+#'     is $ \geq `posterior_threshold`$, the sample is tagged as "clean";
+#'     (c) If the prior probability is $\geq `posterior_threshold`$ and
+#'     the posterior probability is $< `posterior_threshold`$, the sample is tagged as "analyze"
+#'     for further inspection.
+#'
+#'     The user can define which tagged samples will be returned using the "keep"
+#'     parameter, with the following options: "clean", "analyze", "remove", "all"
 #'
 #' @examples
 #' \dontrun{
@@ -240,13 +255,18 @@ sits_som_map <- function(data,
 
 sits_som_clean_samples <- function(som_map,
                                    prior_threshold = 0.6,
-                                   posterior_threshold = 0.6) {
+                                   posterior_threshold = 0.6,
+                                   keep = c("clean", "analyze")) {
 
     # Sanity check
     if (!inherits(som_map, "som_map")) {
         message("wrong input data; please run sits_som_map first")
         return(invisible(NULL))
     }
+    assertthat::assert_that(
+        all(keep %in% c("clean", "analyze", "remove")),
+        msg = "sits_som_clean_samples: invalid keep parameter"
+    )
 
     # original_samples
     data <- som_map$data
@@ -283,6 +303,8 @@ sits_som_clean_samples <- function(som_map,
         return(sample_prob$post_prob)
     })
     data$post_prob <- unlist(post_probs)
+
+    data <- dplyr::filter(data, eval %in% keep)
     return(data)
 }
 

@@ -4,10 +4,10 @@
 \alias{.sits_raster_blocks}
 \title{Define a reasonable block size to process an image subset}
 \usage{
-.sits_raster_blocks(cube, ml_model, sub_image, memsize, multicores)
+.sits_raster_blocks(tile, ml_model, sub_image, memsize, multicores)
 }
 \arguments{
-\item{cube}{input data cube.}
+\item{tile}{tile of input data cube.}
 
 \item{ml_model}{machine learning model.}
 

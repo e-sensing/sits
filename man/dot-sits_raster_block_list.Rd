@@ -12,10 +12,7 @@
 \item{sub_image}{nrea of interest in the image}
 }
 \value{
-a list with n (number of blocks),
-               row (vector of starting rows),
-               nrow (vector with number of rows for each block) and
-               size (vector with size of each block)
+a list with named vectors ("row", "nrows", "col", "ncols")
 }
 \description{
 Calculate a list of blocks to be read from disk to memory

@@ -8,7 +8,7 @@
 #' and 400 time instances will have a total pixel size
 #' of 800 Mb if pixels are 64-bit.
 #'
-#' @param  cube            input data cube.
+#' @param  tile            tile of input data cube.
 #' @param  ml_model        machine learning model.
 #' @param  sub_image       bounding box of the ROI
 #' @param  memsize         memory available for classification (in GB).
@@ -17,24 +17,24 @@
 #'                         rows (list of rows to begin),
 #'                         nrows (number of rows to read at each iteration).
 #'
-.sits_raster_blocks <- function(cube, ml_model, sub_image,
+.sits_raster_blocks <- function(tile, ml_model, sub_image,
                                 memsize, multicores) {
 
     # get the number of blocks
     nblocks <- .sits_raster_blocks_estimate(
-        cube = cube,
+        tile = tile,
         ml_model = ml_model,
         sub_image = sub_image,
         memsize = memsize,
         multicores = multicores
     )
 
-    block_lst <- .sits_raster_block_list(
+    blocks <- .sits_raster_block_list(
         nblocks = nblocks,
         sub_image = sub_image
     )
 
-    return(block_lst)
+    return(blocks)
 }
 #' @title Estimate the number of blocks
 #' @name .sits_raster_blocks_estimate
@@ -44,28 +44,27 @@
 #' @description Defines the number of blocks of a Raster Brick
 #'              to be read into memory.
 #'
-#' @param  cube            input data cube
+#' @param  tile            tile of data cube
 #' @param  ml_model        machine learning model.
 #' @param  sub_image       area of interest in the image
 #' @param  memsize         Memory available for classification (in GB).
 #' @param  multicores      Number of threads to process the time series.
 #' @return Number of blocks to be read.
-.sits_raster_blocks_estimate <- function(cube,
+.sits_raster_blocks_estimate <- function(tile,
                                          ml_model,
                                          sub_image,
                                          timeline,
                                          memsize,
                                          multicores) {
-    # total number of instances
-    timeline <- sits_timeline(cube[1, ])
-    ninstances <- length(timeline)
+    # total number of instances in the time
+    ninstances <- length(sits_timeline(tile))
     # retrieve the samples
     samples <- environment(ml_model)$data
     # get the number of bands
     nbands <- length(sits_bands(samples))
     # does the cube have a cloud band?
-    cube_bands <- sits_bands(cube)
-    cld_band <- .sits_config_cloud_band(cube)
+    cube_bands <- sits_bands(tile)
+    cld_band <- .sits_config_cloud_band(tile)
     # the cube has the cloud band, add one more band to the calculation
     if (cld_band %in% cube_bands) {
         nbands <- nbands + 1
@@ -74,8 +73,6 @@
     ninterval <- nrow(samples[1, ]$time_series[[1]])
     # number of bytes per pixel
     nbytes <- 8
-    # estimated memory bloat
-    bloat <- as.numeric(.sits_config_memory_bloat())
     # estimated processing bloat
     proc_bloat <- as.numeric(.sits_config_processing_bloat())
     if (proc_bloat == 0) proc_bloat <- multicores
@@ -88,41 +85,20 @@
     # total size including all bands
     nbands_data_size <- single_data_size * nbands
 
-    # estimated full size of the data
-    full_size <- as.numeric(ninstances) * nbands_data_size
-
-    # estimated size of memory required for scaling and normalization
-    mem_required_scaling <- (full_size + as.numeric(.sits_mem_used())) * bloat
-
     # number of labels
     nlabels <- length(sits_labels(environment(ml_model)$data))
     # estimated size of the data for classification
-    input_class_data_size <- as.numeric(ninterval) * nbands_data_size
-    output_class_data_size <- as.numeric(nlabels) * single_data_size
-    class_data_size <- input_class_data_size + output_class_data_size
+    input_data_size <- as.numeric(ninterval) * nbands_data_size
+    output_data_size <- as.numeric(nlabels) * single_data_size
+    class_data_size <- input_data_size + output_data_size
 
-    # memory required for processing depends on the model
-    if ("keras_model" %in% class(ml_model) | "ranger_model" %in% class(ml_model)
-        | "xgb_model" %in% class(ml_model)) {
-        mem_required_processing <- (class_data_size +
-                                        as.numeric(.sits_mem_used())) * proc_bloat
-    }
-    else {
-        # test two different cases
-        if (ninstances == ninterval) { # one interval only
-            mem_required_processing <- as.numeric(multicores) *
+    # memory required for processing
+    mem_required_processing <- as.numeric(multicores) *
                 (class_data_size + as.numeric(.sits_mem_used()))
-        } else {
-            mem_required_processing <- as.numeric(multicores) *
-                (.sits_mem_used() + class_data_size + full_size)
-        }
-    }
 
     # number of passes to read the full data sets
-    nblocks <- max(
-        ceiling(mem_required_scaling / (memsize * 1e+09)),
-        ceiling(mem_required_processing / (memsize * 1e+09))
-    )
+    nblocks <- ceiling(mem_required_processing / (memsize * 1e+09))
+
 
     return(nblocks)
 }
@@ -131,10 +107,7 @@
 #' @keywords internal
 #' @param  nblocks         number of blocks to read from each image
 #' @param  sub_image       nrea of interest in the image
-#' @return        a list with n (number of blocks),
-#'                row (vector of starting rows),
-#'                nrow (vector with number of rows for each block) and
-#'                size (vector with size of each block)
+#' @return        a list with named vectors ("row", "nrows", "col", "ncols")
 #'
 .sits_raster_block_list <- function(nblocks, sub_image) {
     # number of rows per block
@@ -166,28 +139,24 @@
     size_vec <- nrows_vec * sub_image["ncols"]
 
     # elements of the block list
-    # n          number of blocks
-    # row        starting row in each block (vector)
-    # nrows      number of rows in each block (vector)
+    # row        starting row in each block
+    # nrows      number of rows in each block
     # col        first col
     # ncols      number of cols in each block
 
-    blocks <- list(
-        n = length(row_vec),
-        row = row_vec,
-        nrows = nrows_vec,
-        col = sub_image["first_col"],
-        ncols = sub_image["ncols"],
-        size = size_vec
-    )
-
-    message(
-        "Using ", blocks$n, " blocks of size ",
-        blocks$nrows[1], " x ", blocks$ncols
-    )
-
+    blocks <- vector("list", length = nblocks)
+    for (i in 1:nblocks) {
+        block <- c("row"   = row_vec[i],
+                   "nrows" = nrows_vec[i],
+                   "col"   = unname(sub_image["first_col"]),
+                   "ncols" = unname(sub_image["ncols"])
+                   )
+        blocks[[i]] <- block
+    }
     return(blocks)
 }
+
+
 #' @title Shows the memory used in GB
 #' @name .sits_mem_used
 #' @keywords internal
