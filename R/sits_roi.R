@@ -31,7 +31,7 @@
 #' @return                 vector with information on the subimage
 .sits_roi_bbox.sf <- function(roi, cube) {
     bbox <- roi %>%
-        sf::st_transform(crs = cube[1,]$crs) %>%
+        sf::st_transform(crs = cube$crs[[1]]) %>%
         suppressWarnings() %>%
         sf::st_bbox()
 
@@ -65,5 +65,5 @@
         sf::st_cast("POLYGON")
 
     bbox <- sf::st_bbox(suppressWarnings(sf::st_transform(sf_region,
-                                                          crs = cube[1,]$crs)))
+                                                          crs = cube$crs[[1]])))
 }
