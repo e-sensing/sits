@@ -321,7 +321,7 @@ sits_som_evaluate_cluster <- function(som_map) {
 
     # Get neuron labels
     neuron_label <- som_map$som_properties$neuron_label
-    id_neuron_label_tb <- tibble::tibble(id_neuron = seq_len(neuron_label),
+    id_neuron_label_tb <- tibble::tibble(id_neuron = seq_along(neuron_label),
                                          neuron_label = neuron_label)
 
     # Agreegate in the sample dataset the label of each neuron

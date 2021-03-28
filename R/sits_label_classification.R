@@ -254,7 +254,7 @@ sits_label_majority <- function(cube,
             tools::file_path_sans_ext() %>%
             strsplit(split = "_") %>%
             unlist() %>%
-            .[seq_len(.) - 1] %>%
+            .[seq_along(.) - 1] %>%
             paste0(collapse = "_") %>%
             paste0(output_dir, "/", ., "_", version, ".tif")
 
