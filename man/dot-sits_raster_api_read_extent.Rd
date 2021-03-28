@@ -2,12 +2,13 @@
 % Please edit documentation in R/sits_raster_api.R
 \name{.sits_raster_api_read_extent}
 \alias{.sits_raster_api_read_extent}
+\alias{.sits_raster_api_read_stack.terra_package}
 \title{Read a part of a raster file and return a matrix}
 \usage{
-.sits_raster_api_read_extent(r_files, extent = NULL)
+\method{.sits_raster_api_read_stack}{terra_package}(files, extent = NULL, ...)
 }
 \arguments{
-\item{r_files}{Files associated to the raster object}
+\item{files}{Files associated to the raster object}
 
 \item{extent}{Image extent to be read.}
 }
