@@ -167,7 +167,7 @@ sits_label_majority <- function(cube,
     )
 
     cube_maj <- .sits_cube_clone(cube = cube,
-                                 name = paste0(cube$name,"_maj"),
+                                 name = paste0(cube$name, "_maj"),
                                  ext = "_maj",
                                  output_dir = output_dir,
                                  version = version)
@@ -230,8 +230,6 @@ sits_label_majority <- function(cube,
 
         # labels come from the input cube
         labels <- sits_labels(probs_row)
-        # get timeline from input cube
-        timeline <- sits_timeline(probs_row)
 
         # name of the cube
         name <- paste0(probs_row$name, "_class")
@@ -256,9 +254,9 @@ sits_label_majority <- function(cube,
             tools::file_path_sans_ext() %>%
             strsplit(split = "_") %>%
             unlist() %>%
-            .[1:length(.) - 1] %>%
+            .[seq_len(.) - 1] %>%
             paste0(collapse = "_") %>%
-            paste0(output_dir,"/", ., "_", version, ".tif")
+            paste0(output_dir, "/", ., "_", version, ".tif")
 
         # get the file information
         file_info <- tibble::tibble(
