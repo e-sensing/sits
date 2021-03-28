@@ -143,36 +143,40 @@
     .sits_cluster_worker_fun <- function(block, in_file, func, args) {
 
         # open brick
-        b <- suppressWarnings(raster::brick(in_file))
+        b <- .sits_raster_api_open_rast(in_file)
+
+        # create extent
+        ext_overlap <- list(row = block$r1,
+                            nrows = block$r2 - block$r1 + 1,
+                            col = 1,
+                            ncols = .sits_raster_api_ncols(b))
 
         # crop adding overlaps
-        chunk <- suppressWarnings(raster::crop(
-            b, raster::extent(b,
-                              r1 = block$r1,
-                              r2 = block$r2,
-                              c1 = 1,
-                              c2 = ncol(b))
-        ))
+        chunk <- .sits_raster_api_crop(b, extent = ext_overlap)
 
         # process it
         res <- do.call(func, args = c(list(chunk = chunk), args))
         stopifnot(inherits(res, c("RasterLayer", "RasterStack", "RasterBrick")))
 
+        # create extent
+        ext_no_overlap <- list(row = block$o1,
+                               nrows = block$o2 - block$o1 + 1,
+                               col = 1,
+                               ncols = .sits_raster_api_ncols(res))
+
         # crop removing overlaps
-        res <- suppressWarnings(raster::crop(
-            res, raster::extent(res,
-                                r1 = block$o1,
-                                r2 = block$o2,
-                                c1 = 1,
-                                c2 = ncol(res))
-        ))
+        res <- .sits_raster_api_crop(res, extent = ext_no_overlap)
 
         # export to temp file
         filename <- tempfile(fileext = ".tif")
-        suppressWarnings(
-            raster::writeRaster(res, filename = filename, overwrite = TRUE,
-                                datatype = "FLT8S")
-        )
+
+        # save chunk
+        .sits_raster_api_write_rast(r_obj = res,
+                                    file = filename,
+                                    format = "GTiff",
+                                    data_type = "FLT4S",
+                                    options = "COMPRESS=LZW",
+                                    overwrite = TRUE)
 
         return(filename)
     }
@@ -205,15 +209,7 @@
         # on exit, remove temp files
         on.exit(unlink(tmp_blocks))
 
-        # merge to save final result with '...' parameters
-        # if there is only one block...
-        if (length(tmp_blocks) == 1)
-            return(suppressWarnings(
-                raster::writeRaster(raster::brick(tmp_blocks),
-                                    overwrite = TRUE,
-                                    filename = out_file, ...)
-            ))
-        # ... else call raster::merge.
+        # merge to save final result
         mosaic <- function(in_files, out_file, options, datatype) {
             gdalUtilities::gdalwarp(srcfile = unlist(in_files),
                                     dstfile = out_file,

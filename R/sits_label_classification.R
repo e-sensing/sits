@@ -79,8 +79,13 @@ sits_label_classification <- function(cube,
     .do_map <- function(chunk) {
 
         # create cube smooth
-        res <- raster::brick(chunk, nl = 1)
-        res[] <- apply(unname(raster::values(chunk)), 1, which.max)
+        res <- .sits_raster_api_rast(r_obj = chunk, nlayers = 1)
+
+        # get layer of max probability
+        values <- apply(.sits_raster_api_get_values(chunk), 1, which.max)
+
+        # save result
+        res <- .sits_raster_api_set_values(r_obj = res, values = values)
         return(res)
     }
 

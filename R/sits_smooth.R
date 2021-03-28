@@ -179,7 +179,7 @@ sits_smooth.bayes <- function(cube, type = "bayes", ...,
     # Bayesian smoother to be executed by workers cluster
     .do_bayes <- function(chunk) {
 
-        data <- unname(raster::values(chunk))
+        data <- .sits_raster_api_get_values(chunk)
 
         # fix probabilities
         maxprob <- mult_factor - ncol(data) + 1
@@ -201,8 +201,12 @@ sits_smooth.bayes <- function(cube, type = "bayes", ...,
         data <- exp(data) * mult_factor / (exp(data) + 1)
 
         # create cube smooth
-        res <- raster::brick(chunk, nl = raster::nlayers(chunk))
-        res[] <- data
+        res <- .sits_raster_api_rast(r_obj = chunk,
+                                     nlayers = .sits_raster_api_nlayers(chunk))
+
+        # copy values
+        res <- .sits_raster_api_set_values(r_obj = res,
+                                           values = data)
 
         return(res)
     }
@@ -285,7 +289,7 @@ sits_smooth.gaussian <- function(cube, type = "gaussian", ...,
     .do_gauss <- function(chunk) {
 
         # scale probabilities
-        data <- unname(raster::values(chunk) * scale_factor)
+        data <- .sits_raster_api_get_values(chunk) * scale_factor
 
         # process Gaussian smoother
         data <- kernel_smoother(m = data,
@@ -295,9 +299,12 @@ sits_smooth.gaussian <- function(cube, type = "gaussian", ...,
                                 normalised = TRUE)
 
         # create cube smooth
-        res <- raster::brick(chunk, nl = raster::nlayers(chunk))
-        res[] <- data * mult_factor
+        res <- .sits_raster_api_rast(r_obj = chunk,
+                                     nlayers = .sits_raster_api_nlayers(chunk))
 
+        # copy values
+        res <- .sits_raster_api_set_values(r_obj = res,
+                                           values = data * mult_factor)
         return(res)
     }
 
@@ -388,7 +395,7 @@ sits_smooth.bilinear <- function(cube,
     .do_bilinear <- function(chunk) {
 
         # scale probabilities
-        data <- unname(raster::values(chunk) * scale_factor)
+        data <- .sits_raster_api_get_values(chunk) * scale_factor
 
         # process bilinear smoother
         data <- bilinear_smoother(m = data,
@@ -398,8 +405,12 @@ sits_smooth.bilinear <- function(cube,
                                   tau = tau)
 
         # create cube smooth
-        res <- raster::brick(chunk, nl = raster::nlayers(chunk))
-        res[] <- data * mult_factor
+        res <- .sits_raster_api_rast(r_obj = chunk,
+                                     nlayers = .sits_raster_api_nlayers(chunk))
+
+        # copy values
+        res <- .sits_raster_api_set_values(r_obj = res,
+                                           values = data * mult_factor)
 
         return(res)
     }
