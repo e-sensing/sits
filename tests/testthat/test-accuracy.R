@@ -58,14 +58,11 @@ test_that("Accuracy areas", {
         parse_info = c("X1", "X2", "band", "date")
     )
 
-    probs_cube <- suppressMessages(
-        sits_classify(cube,
-                      xgb_model,
-                      output_dir = tempdir(),
-                      memsize = 4,
-                      multicores = 2
-        )
-    )
+    probs_cube <- sits_classify(cube,
+                                xgb_model,
+                                output_dir = tempdir(),
+                                memsize = 4,
+                                multicores = 2)
 
 
     expect_true(all(file.exists(unlist(probs_cube$file_info[[1]]$path))))
@@ -80,8 +77,9 @@ test_that("Accuracy areas", {
                                 package = "sits")
     invisible(capture.output(as <- suppressWarnings(
         sits_accuracy(label_cube, validation_csv = ground_truth)))
-        )
+    )
 
-    expect_true(as.numeric(as$area_pixels["Forest"]) > as$area_pixels["Pasture"])
+    expect_true(as.numeric(as$area_pixels["Forest"]) >
+                    as$area_pixels["Pasture"])
     expect_true(as.numeric(as$accuracy$overall) > 0.75)
 })

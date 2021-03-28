@@ -1,7 +1,8 @@
 context("Raster classification")
 
 test_that("One-year, single core classification", {
-    samples_2bands <- sits_select(samples_modis_4bands, bands = c("NDVI", "EVI"))
+    samples_2bands <- sits_select(samples_modis_4bands,
+                                  bands = c("NDVI", "EVI"))
     dl_model <- sits_train(samples_2bands, sits_deeplearning(
         layers = c(256, 256, 256),
         dropout_rates = c(0.5, 0.4, 0.3),
@@ -29,9 +30,8 @@ test_that("One-year, single core classification", {
     )
 
     expect_true(all(file.exists(unlist(sinop_probs$file_info[[1]]$path))))
-    r_obj <- suppressWarnings(
-        .sits_raster_api_open_rast(sinop_probs$file_info[[1]]$path[1])
-    )
+    r_obj <- .sits_raster_api_open_rast(sinop_probs$file_info[[1]]$path[[1]])
+
     expect_true(.sits_raster_api_nrows(r_obj) == sinop_probs$nrows)
 
     max_lyr1 <- max(.sits_raster_api_values(r_obj)[, 1])
@@ -45,7 +45,8 @@ test_that("One-year, single core classification", {
 
 test_that("One-year, multicore classification", {
 
-    samples_2bands <- sits_select(samples_modis_4bands, bands = c("NDVI", "EVI"))
+    samples_2bands <- sits_select(samples_modis_4bands,
+                                  bands = c("NDVI", "EVI"))
 
     svm_model <- sits_train(samples_2bands, sits_svm())
 
@@ -83,7 +84,8 @@ test_that("One-year, multicore classification", {
 })
 
 test_that("One-year, single core classification with filter", {
-    samples_2bands <- sits_select(samples_modis_4bands, bands = c("NDVI", "EVI"))
+    samples_2bands <- sits_select(samples_modis_4bands,
+                                  bands = c("NDVI", "EVI"))
     samples_filt <- sits_whittaker(samples_2bands, bands_suffix = "")
     svm_model <- sits_train(samples_filt, sits_svm())
 
@@ -114,7 +116,8 @@ test_that("One-year, single core classification with filter", {
 })
 
 test_that("One-year, multicore classification with filter", {
-    samples_2bands <- sits_select(samples_modis_4bands, bands = c("NDVI", "EVI"))
+    samples_2bands <- sits_select(samples_modis_4bands,
+                                  bands = c("NDVI", "EVI"))
     samples_filt <- sits_sgolay(samples_2bands, bands_suffix = "")
     svm_model <- sits_train(samples_filt, sits_svm())
 
@@ -155,7 +158,8 @@ test_that("One-year, multicore classification with filter", {
 })
 
 test_that("One-year, multicore classification with post-processing", {
-    samples_2bands <- sits_select(samples_modis_4bands, bands = c("NDVI", "EVI"))
+    samples_2bands <- sits_select(samples_modis_4bands,
+                                  bands = c("NDVI", "EVI"))
 
     svm_model <- sits_train(samples_2bands, sits_svm())
 
@@ -267,7 +271,8 @@ test_that("One-year, multicore classification with post-processing", {
 
 test_that("Check GDAL access", {
 
-    file <- c(system.file("extdata/raster/mod13q1/TERRA_MODIS_EVI_2013-09-14.jp2",
+    file <- c(system.file(
+        "extdata/raster/mod13q1/TERRA_MODIS_EVI_2013-09-14.jp2",
         package = "sits"
     ))
 

@@ -169,13 +169,14 @@ test_that("SOM evaluate cluster plot", {
             grid_ydim = 5
         ))
 
-    cluster_purity.tb <- sits_som_evaluate_cluster(som_map)
+    cluster_purity_tb <- sits_som_evaluate_cluster(som_map)
 
     file_plot <- paste0(tempdir(), "/evaluate_cluster.jpg")
-    file_ref <- system.file("extdata/plot/evaluate_cluster.jpg", package = "sits")
+    file_ref <- system.file("extdata/plot/evaluate_cluster.jpg",
+                            package = "sits")
 
     jpeg(filename = file_plot)
-    plot(cluster_purity.tb)
+    plot(cluster_purity_tb)
     invisible(dev.off())
 
     img <- imager::load.image(file_plot)
