@@ -162,18 +162,19 @@
 #' @return              Checked bands (cube bands if bands are NULL)
 #'
 .sits_cube_bands_check <- function(cube, bands = NULL) {
-    # check the bands are available
-    cb_bands <- sits_bands(cube)
+
+    # if bands parameter is NULL return the cube bands
     if (purrr::is_null(bands)) {
-          bands <- cb_bands
-      } else {
-        bands <- toupper(bands)
-        assertthat::assert_that(
-            all(bands %in% cb_bands),
-            msg = paste(".sits_cube_bands_check: bands are not available",
-                        "in the cube")
-        )
+        return(sits_bands(cube))
     }
+
+    # check if bands are available
+    assertthat::assert_that(
+        all(bands %in% toupper(sits_bands(cube))),
+        msg = paste(".sits_cube_bands_check: bands are not available",
+                    "in the cube")
+    )
+
     return(bands)
 }
 
@@ -227,4 +228,24 @@
     )
 
     return(res)
+}
+#' @title Get cube file info
+#' @name .sits_cube_file_info
+#' @keywords internal
+#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
+#'
+#' @param  cube         input data cube
+#' @param  bands        bands to be filtered
+#'
+#' @return A file_info tibble
+.sits_cube_file_info <- function(cube, bands = NULL) {
+
+    # check bands
+    .sits_cube_bands_check(cube, bands = bands)
+
+    # get the first tile
+    file_info <- cube$file_info[[1]]
+
+    # return filter
+    return(file_info[file_info$band %in% bands, ])
 }
