@@ -560,7 +560,7 @@ sits_cube.probs_cube <- function(source = "PROBS", ...,
         n_layers <- as.numeric(rg_obj["bands"])
         assertthat::assert_that(
             n_layers == length(probs_labels),
-            msg = paste("sits_cube: mismatch btw labels and bands in file",
+            msg = paste("sits_cube: mismatch between labels and bands in file",
                         probs_files[[i]]))
 
         # get the file params
@@ -571,7 +571,7 @@ sits_cube.probs_cube <- function(source = "PROBS", ...,
             band = "probs",
             start_date = as.Date(start_date),
             end_date = as.Date(end_date),
-            res = as.numeric(params$xres),
+            res = params$xres,
             path = probs_files[[i]]
         )
 
