@@ -4,9 +4,9 @@
 #' @references `rstac` package (https://github.com/brazil-data-cube/rstac)
 #'
 #' @description Creates a data cube based on spatial and temporal restrictions
-#' on a collection available in repositories such as AWS, Brazil Data Cube (BDC), and
-#' Digital Earth Africa (DEA), using information provided by STAC end points.
-#' Users can also create data cubes from local files.
+#' on a collection available in repositories such as AWS, Brazil Data Cube
+#' (BDC), and Digital Earth Africa (DEA), using information provided by STAC
+#' end points. Users can also create data cubes from local files.
 #'
 #' A data cube does not contain actual data; it points to the files where the
 #' required data is archived. Other functions (e.g. `sits_classify`) use
@@ -15,7 +15,8 @@
 #' Currently, users can create data cube from the following sources:
 #' \itemize{
 #'  \item{"BDC": }{Brazil Data Cube (BDC), see also http://brazildatacube.org/}
-#'  \item{"DEAFRICA": }{Digital Earth Africa, see also https://www.digitalearthafrica.org/}
+#'  \item{"DEAFRICA": }{Digital Earth Africa, see also
+#'  https://www.digitalearthafrica.org/}
 #'  \item{"AWS": }{Amazon Web Services (AWS)}
 #'  \item{"STACK": }{Defines a cube from on a set of local files.}
 #'  \item{"PROBS": }{Defines a cube to from a set of classified image files}.
@@ -45,15 +46,17 @@
 #' # )
 #'
 #' @note Sentinel-2/2A level 2A files in AWS are organized by sensor
-#' resolution. The AWS bands in 10m resolution are "B02", "B03", "B04", and "B08".
-#' The  20m bands are "B02", "B03", "B04", "B05", "B06", "BO7", B08", "B8A", "B11", and "B12".
-#' All 12 bands are available at 60m resolution. For creating data cubes from
-#' Sentinel-2/2A, users also have to specify the `s2_resolution` parameter.
+#' resolution. The AWS bands in 10m resolution are "B02", "B03", "B04", and
+#' "B08". The  20m bands are "B02", "B03", "B04", "B05", "B06", "BO7", B08",
+#' "B8A", "B11", and "B12". All 12 bands are available at 60m resolution.
+#' For creating data cubes from Sentinel-2/2A, users also have to specify
+#' the `s2_resolution` parameter.
 #'
-#' @note For DEA, sits currently only works with collections 'ga_s2_gm' and 's2_l2a'.
-#' DEA users also need to provide their AWS credentials.
+#' @note For DEA, sits currently only works with collections 'ga_s2_gm' and
+#' 's2_l2a'. DEA users also need to provide their AWS credentials.
 #'
-#'@note BDC users need to provide their credentials using environmental variables.
+#'@note BDC users need to provide their credentials using environmental
+#' variables.
 #' # Sys.setenv(
 #' # "BDC_ACCESS_KEY" = <your_bdc_access_key>
 #' # )
@@ -71,7 +74,8 @@
 #' @note The SATVEG service is run by Embrapa Agricultural
 #'  Informatics Centre provides access to time series from the MODIS sensor.
 #'  There are three collections: "terra" (from the TERRA satellite),
-#'  "aqua" (from the AQUA satellite) and "comb" (combination of both satellites).
+#'  "aqua" (from the AQUA satellite) and "comb" (combination of
+#'  both satellites).
 #'
 #'
 #' @param source            Data source (one of "SATVEG", "LOCAL",
@@ -81,12 +85,13 @@
 #' @param url               URL for the STAC endpoint of the data source
 #' @param collection        Collection to be searched in the data source
 #' @param bands             Bands to be included
-#' @param tiles             Tiles from the collection to be included in the data cube
+#' @param tiles             Tiles from the collection to be included in the
+#'                          data cube
 #' @param bbox              Area of interest (see details below)
 #' @param start_date        Initial date for the cube (optional).
 #' @param end_date          Final date for the cube  (optional)
-#' @param s2_resolution     Resolution of S2 images ("10m", "20m" or "60m") used to build cubes
-#'                          (only for AWS cubes)
+#' @param s2_resolution     Resolution of S2 images ("10m", "20m" or "60m")
+#'                          used to build cubes (only for AWS cubes)
 #' @param satellite         Satellite that produced the images.
 #'                          (only for creating data cubes from local files)
 #' @param sensor            Sensor that produced the images.
@@ -94,16 +99,18 @@
 #'                          (only for creating data cubes from local files)
 #' @param delim             delimiter for parsing files without STAC information
 #'                          (only for creating data cubes from local files)
-#' @param parse_info        parsing information for files without STAC information
+#' @param parse_info        parsing information for files without STAC
+#'                          information
 #'                          (only for creating data cubes from local files)
-#' @param probs_files       File names (used for creating a cube from probabilities)
+#' @param probs_files       File names (used for creating a cube from
+#'                          probabilities)
 #' @param probs_labels      Labels associated to a probabilities cube
 #'
 #' @details  The "bbox" parameters allows a selection of an area of interest.
-#' Either using a named \code{vector} ("xmin", "ymin", "xmax", "ymax") with values in WGS 84,
-#' a \code{sfc} or \code{sf} object from sf package, or a GeoJSON geometry (RFC 7946).
-#' Note that this parameter does not crop a region,
-#' but only selects the images that intersect with it.
+#' Either using a named \code{vector} ("xmin", "ymin", "xmax", "ymax") with
+#' values in WGS 84, a \code{sfc} or \code{sf} object from sf package, or a
+#' GeoJSON geometry (RFC 7946). Note that this parameter does not crop a
+#' region, but only selects the images that intersect with it.
 #'
 #' @return                  The description of a data cube
 #'
@@ -173,7 +180,8 @@
 #'
 #' # Create a raster cube based on files with probability information
 #' # inform the files that make up a raster probs brick with 23 time instances
-#' probs_file <- c(system.file("extdata/raster/probs/sinop-2014_probs_2013_9_2014_8_v1.tif",
+#' probs_file <- c(system.file(
+#'     "extdata/raster/probs/sinop-2014_probs_2013_9_2014_8_v1.tif",
 #'     package = "sits"
 #' ))
 #'
