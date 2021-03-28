@@ -18,8 +18,14 @@
 #' @param version     A \code{character} with version of the output files.
 #'
 #' @return  A data cube tile with information used in its creation.
-.sits_gc_compose <- function(c_tile, name, cv_list, img_col, db_file, dir_images,
-                             cloud_mask, ..., version = "v1") {
+.sits_gc_compose <- function(c_tile,
+                             name,
+                             cv_list,
+                             img_col,
+                             db_file,
+                             dir_images,
+                             cloud_mask, ...,
+                             version = "v1") {
 
     # verifies the path to save the images
     assertthat::assert_that(
@@ -124,7 +130,9 @@
 .sits_gc_brick <- function(cube, img_col, cube_view, cloud_mask) {
 
     # defining the chunk size
-    c_size <- c(t = 1, rows = floor(cube$nrows/4), cols = floor(cube$ncols/4))
+    c_size <- c(t = 1,
+                rows = floor(cube$nrows / 4),
+                cols = floor(cube$ncols / 4))
 
     mask_band <- NULL
     if (cloud_mask)
@@ -157,8 +165,10 @@
     )
 
     # create a image mask object
-    mask_values <- gdalcubes::image_mask(cloud_band,
-                                         values = .sits_config_cloud_values(tile))
+    mask_values <- gdalcubes::image_mask(
+        cloud_band,
+        values = .sits_config_cloud_values(tile)
+    )
 
     return(mask_values)
 }
