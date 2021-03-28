@@ -298,7 +298,8 @@ sits_som_clean_samples <- function(som_map,
 #'
 #' @param som_map                   An object returned
 #'                                  by \code{\link[sits]{sits_som_map}}
-#' @return A tibble with the cluster and the percentage of classes mixtured in each cluster.
+#' @return A tibble with the cluster and the percentage of classes
+#'  mixtured in each cluster.
 
 #' @examples
 #' \dontrun{
@@ -311,8 +312,7 @@ sits_som_clean_samples <- function(som_map,
 #' cluster_purity <- sits_som_evaluate_cluster(som_map)
 #' }
 #' @export
-sits_som_evaluate_cluster <- function(som_map)
-{
+sits_som_evaluate_cluster <- function(som_map) {
     # Sanity check
     if (!inherits(som_map, "som_map")) {
         message("wrong input data; please run sits_som_map first")
@@ -321,7 +321,7 @@ sits_som_evaluate_cluster <- function(som_map)
 
     # Get neuron labels
     neuron_label <- som_map$som_properties$neuron_label
-    id_neuron_label_tb <- tibble::tibble(id_neuron = 1:length(neuron_label),
+    id_neuron_label_tb <- tibble::tibble(id_neuron = seq_len(neuron_label),
                                          neuron_label = neuron_label)
 
     # Agreegate in the sample dataset the label of each neuron
@@ -347,9 +347,9 @@ sits_som_evaluate_cluster <- function(som_map)
     dim_col <- dim(confusion_matrix)[2]
 
     cluster_purity_lst <- seq_len(dim_col - 1) %>%
-        purrr::map(function(d){
+        purrr::map(function(d) {
 
-            current_col <- confusion_matrix[1:dim_row - 1,d]
+            current_col <- confusion_matrix[1:dim_row - 1, d]
             current_col_total <- confusion_matrix[dim_row, d]
 
             mixture_percentage <- as.numeric(
@@ -537,7 +537,7 @@ sits_som_evaluate_cluster <- function(som_map)
     pastel1 <- utils::head(unique(unlist(pallete3, use.names = FALSE)), -1)
 
     # build a mixed pallete with different colors
-    pallete <- c(accent, pastel1, set1 )
+    pallete <- c(accent, pastel1, set1)
 
     # unique label
     labels <- unique(kohonen_obj$neuron_label)
