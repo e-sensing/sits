@@ -144,7 +144,7 @@ test_that("One-year, multicore classification with filter", {
     )
     expect_true(all(file.exists(unlist(sinop_2014_probs$file_info[[1]]$path))))
 
-    r_obj <- .sits_raster_api_ratr(sinop_2014_probs$file_info[[1]]$path[[1]])
+    r_obj <- .sits_raster_api_open_rast(sinop_2014_probs$file_info[[1]]$path[[1]])
 
     expect_true(.sits_raster_api_nrows(r_obj) == sinop_2014_probs$nrows)
 
