@@ -140,7 +140,7 @@ test_that("One-year, multicore classification with filter", {
     expect_true(all(file.exists(unlist(sinop_2014_probs$file_info[[1]]$path))))
 
     rc_obj <- suppressWarnings(
-        terra::rast(sinop$file_info[[1]]$path[1])
+        terra::rast(sinop_2014_probs$file_info[[1]]$path[1])
     )
     expect_true(terra::nrow(rc_obj) == sinop_2014_probs$nrows)
 

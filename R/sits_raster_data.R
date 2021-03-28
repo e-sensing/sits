@@ -281,7 +281,7 @@
     }
     # Retrieve values on a band by band basis
     # using parallel processing
-    oplan <- future::plan(strategy = "multicore")
+    oplan <- future::plan(strategy = "multisession")
     on.exit(future::plan(oplan))
     ts_bands <- bands %>%
         furrr::future_map(function(band) {
