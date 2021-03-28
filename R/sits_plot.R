@@ -6,14 +6,14 @@
 #' type of input.  See each function description for the
 #' required parameters:
 #' \itemize{
-#'  \item{sits tibble: }                 {see \code{\link{plot.sits}}}
-#'  \item{patterns: }                    {see \code{\link{plot.patterns}}}
-#'  \item{SOM map: }                     {see \code{\link{plot.som_map}}}
-#'  \item{classified time series: }      {see \code{\link{plot.predicted}}}
-#'  \item{raster  cube: }                {see \code{\link{plot.raster_cube}}}
+#'  \item{sits tibble: }          {see \code{\link{plot.sits}}}
+#'  \item{patterns: }             {see \code{\link{plot.patterns}}}
+#'  \item{SOM map: }              {see \code{\link{plot.som_map}}}
+#'  \item{classified time series: } {see \code{\link{plot.predicted}}}
+#'  \item{raster  cube: }         {see \code{\link{plot.raster_cube}}}
 #'  \item{classification probabilities: }{see \code{\link{plot.probs_cube}}}
-#'  \item{classified image: }            {see \code{\link{plot.classified_image}}}
-#'  \item{SOM evaluate cluster: }        {see \code{\link{plot.som_evaluate_cluster}}}
+#'  \item{classified image: }     {see \code{\link{plot.classified_image}}}
+#'  \item{SOM evaluate cluster: } {see \code{\link{plot.som_evaluate_cluster}}}
 #' }
 #'
 #' In the case of time series, the plot function produces different plots
@@ -151,7 +151,12 @@ plot.predicted <- function(x, y, ..., bands = "NDVI") {
 #'
 #' @export
 #'
-plot.raster_cube <- function(x, y, ..., red, green, blue, time = 1, roi = NULL) {
+plot.raster_cube <- function(x, y, ...,
+                             red,
+                             green,
+                             blue,
+                             time = 1,
+                             roi = NULL) {
 
     stopifnot(missing(y))
 
@@ -178,7 +183,7 @@ plot.raster_cube <- function(x, y, ..., red, green, blue, time = 1, roi = NULL) 
         if (!any(intersects)) {
             stop("Informed roi does not intersect cube.", call. = FALSE)
         }
-        x <- x[intersects,]
+        x <- x[intersects, ]
     }
 
     # set mapview options
@@ -189,11 +194,11 @@ plot.raster_cube <- function(x, y, ..., red, green, blue, time = 1, roi = NULL) 
 
     # plot only the first tile
     # get information about bands and files
-    file_info <- x[1,]$file_info[[1]]
+    file_info <- x$file_info[[1]]
 
     # is there a cloud band?
     # remove the cloud band from the file information
-    bands <- .sits_config_bands_no_cloud(x[1,])
+    bands <- .sits_config_bands_no_cloud(x[1, ])
     file_info <- dplyr::filter(file_info, band %in% bands)
 
     # index to assign which bands to plot
@@ -368,7 +373,9 @@ plot.classified_image <- function(x, y, ..., map = NULL, time = 1,
 #'
 #' @export
 #'
-plot.som_evaluate_cluster <- function(x, y, ..., name_cluster = NULL, title = "Confusion by cluster") {
+plot.som_evaluate_cluster <- function(x, y, ...,
+                                      name_cluster = NULL,
+                                      title = "Confusion by cluster") {
   stopifnot(missing(y))
   p <- .sits_plot_som_evaluate_cluster(x, name_cluster, title)
   return(invisible(p))
@@ -423,7 +430,8 @@ plot.som_map <- function(x, y, ..., type = "codes", whatmap = 1) {
 #' @examples
 #' \donttest{
 #' # Get a set of samples
-#' samples_ndvi_evi <- sits_select(samples_modis_4bands, bands = c("NDVI", "EVI"))
+#' samples_ndvi_evi <- sits_select(samples_modis_4bands,
+#'                                 bands = c("NDVI", "EVI"))
 #'
 #' # train a deep learning model
 #' dl_model <- sits_train(samples_ndvi_evi, ml_method = sits_deeplearning(
@@ -1074,14 +1082,16 @@ plot.keras_model <- function(x, y, ...) {
 #' @param title         Title of plot.
 #'
 #' @return              ggplot2 object
-.sits_plot_som_evaluate_cluster <- function(data, cluster_name = NULL, title = "Confusion by cluster") {
+.sits_plot_som_evaluate_cluster <- function(data,
+                                            cluster_name = NULL,
+                                            title = "Confusion by cluster") {
     if (!inherits(data, "som_evaluate_cluster")) {
         message("unable to plot - please run sits_som_evaluate_cluster")
         return(invisible(NULL))
     }
 
     # Filter the cluster to plot
-    if (!(is.null(cluster_name))){
+    if (!(is.null(cluster_name))) {
       data <- dplyr::filter(data, cluster %in% cluster_name)
     }
     p <- ggplot2::ggplot() +
