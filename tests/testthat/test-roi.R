@@ -27,8 +27,8 @@ test_that("One-year, multicore classification with ROI", {
         )
     )
     expect_true(all(file.exists(unlist(sinop_probs$file_info[[1]]$path))))
-    rc_obj <- suppressWarnings(terra::rast(sinop_probs$file_info[[1]]$path[1]))
-    expect_true(terra::nrow(rc_obj) == sinop_probs$nrows)
+    rc_obj <- .sits_raster_api_open_rast(sinop_probs$file_info[[1]]$path[[1]])
+    expect_true(.sits_raster_api_nrows(rc_obj) == sinop_probs$nrows)
 
     bbox_p <- sits_bbox(sinop_probs)
     expect_lte(bbox["xmax"], bbox_p["xmax"])
@@ -36,10 +36,10 @@ test_that("One-year, multicore classification with ROI", {
     expect_lte(bbox["ymax"], bbox_p["ymax"])
     expect_lte(bbox["ymin"], bbox_p["ymin"])
 
-    max_lyr2 <- max(terra::values(rc_obj)[, 2])
+    max_lyr2 <- max(.sits_raster_api_values(rc_obj)[, 2])
     expect_true(max_lyr2 <= 10000)
 
-    max_lyr3 <- max(terra::values(rc_obj)[, 3])
+    max_lyr3 <- max(.sits_raster_api_values(rc_obj)[, 3])
     expect_true(max_lyr3 > 7000)
 
     expect_true(all(file.remove(unlist(sinop_probs$file_info[[1]]$path))))

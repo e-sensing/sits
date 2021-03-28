@@ -49,8 +49,8 @@ test_that("Creating a raster stack cube and selecting bands", {
 
     expect_true(all(sits_bands(cbers_cube) %in%
                       c("B13", "B14", "B15", "B16", "CMASK")))
-    rast <- suppressWarnings(terra::rast(cbers_cube$file_info[[1]]$path[1]))
-    expect_true(terra::nrow(rast) == cbers_cube[1, ]$nrows)
+    rast <- .sits_raster_api_open_rast(cbers_cube$file_info[[1]]$path[[1]])
+    expect_true(.sits_raster_api_nrows(rast) == cbers_cube$nrows[[1]])
     timeline <- sits_timeline(cbers_cube)
     expect_true(timeline[1] == "2018-02-02")
 
@@ -125,10 +125,10 @@ test_that("Creating cubes from DEA", {
   expect_true(all(sits_bands(dea_cube) %in% c("B01", "B04", "B05")))
 
   file_info <- dea_cube$file_info[[1]]
-  r <- terra::rast(file_info[1,]$path)
+  r <- .sits_raster_api_open_rast(file_info$path[[1]])
 
-  expect_equal(dea_cube$xmax[[1]], terra::xmax(r), tolerance = 1)
-  expect_equal(dea_cube$xmin[[1]], terra::xmin(r), tolerance = 1)
+  expect_equal(dea_cube$xmax[[1]], .sits_raster_api_xmax(r), tolerance = 1)
+  expect_equal(dea_cube$xmin[[1]], .sits_raster_api_xmin(r), tolerance = 1)
 })
 
 test_that("Merging cubes", {
@@ -192,12 +192,12 @@ test_that("Creating cubes from AWS and regularizing them", {
     expect_true(all(sits_bands(s2_cube) %in% c("B08", "SCL")))
 
     file_info <- s2_cube$file_info[[1]]
-    r <- terra::rast(file_info$path[[1]])
+    r <- .sits_raster_api_open_rast(file_info$path[[1]])
 
-    expect_equal(s2_cube$nrows[[1]], terra::nrow(r))
-    expect_equal(s2_cube$ncols[[1]], terra::ncol(r))
-    expect_equal(s2_cube$xmax[[1]], terra::xmax(r))
-    expect_equal(s2_cube$xmin[[1]], terra::xmin(r))
+    expect_equal(s2_cube$nrows[[1]], .sits_raster_api_nrows(r))
+    expect_equal(s2_cube$ncols[[1]], .sits_raster_api_ncols(r))
+    expect_equal(s2_cube$xmax[[1]], .sits_raster_api_xmax(r))
+    expect_equal(s2_cube$xmin[[1]], .sits_raster_api_xmin(r))
 
     dir_images <-  paste0(tempdir(),"/images/")
     if (!dir.exists(dir_images))

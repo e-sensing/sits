@@ -69,10 +69,8 @@ test_that("Accuracy areas", {
 
 
     expect_true(all(file.exists(unlist(probs_cube$file_info[[1]]$path))))
-    tc_obj <- suppressWarnings(
-        terra::rast(probs_cube$file_info[[1]]$path[1])
-        )
-    expect_true(terra::nrow(tc_obj) == probs_cube$nrows)
+    tc_obj <- .sits_raster_api_open_rast(probs_cube$file_info[[1]]$path[[1]])
+    expect_true(nrow(tc_obj) == probs_cube$nrows)
 
     label_cube <- sits_label_classification(probs_cube,
         output_dir = tempdir()

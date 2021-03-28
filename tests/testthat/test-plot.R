@@ -47,7 +47,7 @@ test_that("Plot Time Series and Images", {
         parse_info = c("X1", "X2", "band", "date")
     )
     p_stack <- plot(sinop, red = "NDVI", blue = "NDVI", green = "NDVI")
-    expect_equal(raster::nrow(p_stack@object[[1]]), 144)
+    expect_equal(.sits_raster_api_nrows(p_stack@object[[1]]), 144)
     expect_equal(p_stack@map[[1]]$options$maxZoom, 52)
 
     sinop_probs <- suppressMessages(
@@ -66,7 +66,7 @@ test_that("Plot Time Series and Images", {
     sinop_labels <- sits_label_classification(sinop_probs,
                                               output_dir = tempdir())
     p4 <- plot(sinop_labels, map = p_stack, time = 1)
-    expect_equal(raster::nrow(p4@object[[1]]), 144)
+    expect_equal(.sits_raster_api_nrows(p4@object[[1]]), 144)
     expect_equal(p4@map$x$options$maxZoom, 52)
     expect_true(all(file.remove(unlist(sinop_probs$file_info[[1]]$path))))
     expect_true(all(file.remove(unlist(sinop_labels$file_info[[1]]$path))))
@@ -91,7 +91,7 @@ test_that("Plot Stack Images", {
         parse_info = c("X1", "X2", "band", "date")
     )
     p_cbers <- plot(cbers_cube, red = "B15", green = "B16", blue = "B13")
-    expect_equal(raster::nrow(p_cbers@object[[1]]), 50)
+    expect_equal(.sits_raster_api_nrows(p_cbers@object[[1]]), 50)
     expect_equal(p_cbers@map[[1]]$options$maxZoom, 52)
 })
 
