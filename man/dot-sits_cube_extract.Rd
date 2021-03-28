@@ -13,9 +13,6 @@
 
 \item{xy}{Matrix with XY location}
 }
-\value{
-Matrix with values extracted from image files
-}
 \description{
 Given a data cube, retrieve the time series
                       of XY locations
