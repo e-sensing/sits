@@ -61,25 +61,21 @@ sits_config <- function() {
 #' @export
 
 sits_config_info <- function() {
+
     # the default configuration file
-    yml_file <-
-        system.file("extdata", "config.yml", package = "sits")
+    yml_file <- system.file("extdata", "config.yml", package = "sits")
 
     message(paste0("Using configuration file: ", yml_file))
 
     # try to find a valid user configuration file
     user_yml_file <- Sys.getenv("SITS_USER_CONFIG_FILE")
     if (file.exists(user_yml_file)) {
-          message(
-            paste0(
-              "Additional configurations found in ",
-              user_yml_file
-              )
-            )
-      } else {
-          message("To provide additional configurations, create an yml file and set environment variable SITS_USER_CONFIG_FILE to point to it"
-          )
-      }
+        message(paste("Additional configurations found in", user_yml_file))
+    } else {
+        message(paste("To provide additional configurations, create an",
+                      "yml file and set environment variable",
+                      "SITS_USER_CONFIG_FILE to point to it"))
+    }
 
     return(invisible(TRUE))
 }
@@ -192,7 +188,7 @@ sits_config_show <- function() {
 #' @return               Name of the bands used in the STAC provider
 #'
 #'
-.sits_config_bands_stac_read <- function(stac_provider, sensor, bands){
+.sits_config_bands_stac_read <- function(stac_provider, sensor, bands) {
 
     bands_sits <- .sits_config_sensor_bands(sensor, "SITS")
     bands_stac <- .sits_config_sensor_bands(sensor, stac_provider)
@@ -222,7 +218,7 @@ sits_config_show <- function() {
 #' @return          Data cube tile with SITS bands
 #'
 #'
-.sits_config_bands_stac_write <- function(tile){
+.sits_config_bands_stac_write <- function(tile) {
 
   bands_sits <- .sits_config_sensor_bands(tile$sensor, "SITS")
   bands_stac <- .sits_config_sensor_bands(tile$sensor, tile$source)
@@ -313,8 +309,8 @@ sits_config_show <- function() {
 #' @return vector with bands that are not cloud bands
 .sits_config_bands_no_cloud <- function(cube) {
 
-    bands <- sits_bands(cube[1,])
-    cld_band <- .sits_config_cloud_band(cube[1,])
+    bands <- sits_bands(cube[1, ])
+    cld_band <- .sits_config_cloud_band(cube[1, ])
     if (cld_band %in% bands) {
         bands <- bands[bands != cld_band]
     }
@@ -352,7 +348,7 @@ sits_config_show <- function() {
 #'
 #' @return vector with bands available in AWS for a given resolution
 .sits_config_cloud_band <- function(cube) {
-    cb <- paste0(cube[1,]$sensor, "_CLD_BAND")
+    cb <- paste0(cube$sensor[[1]], "_CLD_BAND")
     cloud_band <- sits_env$config[["CLOUD"]][[cube$source[1]]][[cb]]
     assertthat::assert_that(
         !purrr::is_null(cloud_band),
@@ -433,7 +429,8 @@ sits_config_show <- function() {
     return(unname(cube_classes[source]))
 }
 
-#' @title Check that the cube data source is valid, based on the configuration file
+#' @title Check that the cube data source is valid, based on the
+#' configuration file
 #' @name .sits_config_cube_check
 #' @keywords internal
 #' @author Gilberto Camara \email{gilberto.camara@@inpe.br}
@@ -642,7 +639,7 @@ sits_config_show <- function() {
 #' @name .sits_config_label_scale_factor
 #' @keywords internal
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
-.sits_config_label_scale_factor  <- function(){
+.sits_config_label_scale_factor  <- function() {
     return(sits_env$config[["CLASSIFIED"]][["scale_factor"]])
 }
 
@@ -650,7 +647,7 @@ sits_config_show <- function() {
 #' @name .sits_config_label_missing_value
 #' @keywords internal
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
-.sits_config_label_missing_value  <- function(){
+.sits_config_label_missing_value  <- function() {
     return(sits_env$config[["CLASSIFIED"]][["missing_value"]])
 }
 
@@ -658,7 +655,7 @@ sits_config_show <- function() {
 #' @name .sits_config_label_minimum_value
 #' @keywords internal
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
-.sits_config_label_minimum_value  <- function(){
+.sits_config_label_minimum_value  <- function() {
     return(sits_env$config[["CLASSIFIED"]][["minimum_value"]])
 }
 
@@ -666,14 +663,14 @@ sits_config_show <- function() {
 #' @name .sits_config_label_maximum_value
 #' @keywords internal
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
-.sits_config_label_maximum_value  <- function(){
+.sits_config_label_maximum_value  <- function() {
     return(sits_env$config[["CLASSIFIED"]][["maximum_value"]])
 }
 #' @title Retrieve the scale factor for a probs cube
 #' @name .sits_config_probs_scale_factor
 #' @keywords internal
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
-.sits_config_probs_scale_factor  <- function(){
+.sits_config_probs_scale_factor  <- function() {
     return(sits_env$config[["PROBS"]][["scale_factor"]])
 }
 
@@ -681,7 +678,7 @@ sits_config_show <- function() {
 #' @name .sits_config_probs_missing_value
 #' @keywords internal
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
-.sits_config_probs_missing_value  <- function(){
+.sits_config_probs_missing_value  <- function() {
   return(sits_env$config[["PROBS"]][["missing_value"]])
 }
 
@@ -689,7 +686,7 @@ sits_config_show <- function() {
 #' @name .sits_config_probs_minimum_value
 #' @keywords internal
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
-.sits_config_probs_minimum_value  <- function(){
+.sits_config_probs_minimum_value  <- function() {
   return(sits_env$config[["PROBS"]][["minimum_value"]])
 }
 
@@ -697,7 +694,7 @@ sits_config_show <- function() {
 #' @name .sits_config_probs_maximum_value
 #' @keywords internal
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
-.sits_config_probs_maximum_value  <- function(){
+.sits_config_probs_maximum_value  <- function() {
   return(sits_env$config[["PROBS"]][["maximum_value"]])
 }
 
@@ -725,7 +722,9 @@ sits_config_show <- function() {
 
     names(res) %>%
         purrr::map(function(c) {
-            res[c] <<- as.numeric(sits_env$config[[sensor]][["resolution"]][[c]])
+            res[c] <<- as.numeric(
+                sits_env$config[[sensor]][["resolution"]][[c]]
+            )
         })
 
     # post-condition
@@ -942,7 +941,7 @@ sits_config_show <- function() {
         msg = ".sits_config_s2_bands: Sentinel-2 in AWS - wrong resolution"
     )
 
-    r <- paste0("bands_",resolution, "m")
+    r <- paste0("bands_", resolution, "m")
     return(sits_env$config[[sensor]][[r]])
 }
 
