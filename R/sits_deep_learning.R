@@ -201,7 +201,7 @@ sits_deeplearning <- function(samples = NULL,
 
             # transform input (data.table) into a matrix
             # (remove first two columns)
-            values <- data.matrix(values[, -2:0)])
+            values <- data.matrix(values[, -2:0])
 
             # retrieve the prediction probabilities
             predicted <- data.table::as.data.table(
