@@ -36,8 +36,9 @@
 #' }
 #' }
 #'
-#' @param cube              A cube whose spacing of observation times is not constant
-#'                          and will be regularized by the "gdalcubes" packges
+#' @param cube              A cube whose spacing of observation times is
+#'                          not constant and will be regularized by the
+#'                          "gdalcubes" packges
 #' @param name              Name of the output data cube
 #' @param dir_images        Directory where the regularized images will be
 #'                          written by \code{gdalcubes}.
@@ -82,7 +83,7 @@ sits_regularize <- function(cube,
     # in case of null path a temporary directory is generated
 
 
-    gc_tile_list <- slider::slide(cube, function(tile){
+    gc_tile_list <- slider::slide(cube, function(tile) {
         db_file <- tempfile(pattern = tile$tile, fileext = ".db")
         # create an image collection
         img_col <- .sits_gc_database(tile, db_file)
@@ -91,7 +92,9 @@ sits_regularize <- function(cube,
         cv_list <- .sits_gc_cube(tile, period, agg_method, resampling)
 
         # create of the aggregate cubes
-        gc_tile <- .sits_gc_compose(c_tile = tile, name = name, cv_list = cv_list,
+        gc_tile <- .sits_gc_compose(c_tile = tile,
+                                    name = name,
+                                    cv_list = cv_list,
                                     img_col = img_col,
                                     db_file = db_file,
                                     dir_images = dir_images,
