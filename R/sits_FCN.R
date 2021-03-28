@@ -136,7 +136,7 @@ sits_FCN <- function(samples = NULL,
         n_layers <- length(layers)
         # build the 1D nodes
         seq_len(n_layers) %>%
-            purrr::map(function(i){
+            purrr::map(function(i) {
                 # Add a Convolution1D layer
                 ot <- keras::layer_conv_1d(output_tensor,
                         filters = layers[i],
