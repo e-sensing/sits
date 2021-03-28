@@ -20,7 +20,8 @@
 #' @param  roi             region of interest
 #' @param  filter_fn       smoothing filter function to be applied to the data.
 #' @param  impute_fn       impute function to replace NA
-#' @param  interp_fn       function to interpolate points from cube to match samples
+#' @param  interp_fn       function to interpolate points from cube to match
+#'                         samples
 #' @param  compose_fn      function to compose points from cube to match samples
 #' @param  memsize         memory available for classification (in GB).
 #' @param  multicores      number of cores.
@@ -43,9 +44,6 @@
 
     # retrieve the samples from the model
     samples <- .sits_ml_model_samples(ml_model)
-
-    # retrieve the labels
-    labels <- sits_labels(samples)
 
     # precondition - are the samples empty?
     assertthat::assert_that(
@@ -159,17 +157,18 @@
 
     # create probabilities raster object
     r_obj <- .sits_raster_api_new_rast(
-        nrows = probs_cube$nrows,
-        ncols = probs_cube$ncols,
-        xmin  = probs_cube$xmin,
-        xmax  = probs_cube$xmax,
-        ymin  = probs_cube$ymin,
-        ymax  = probs_cube$ymax,
-        crs   = probs_cube$crs
+        nrows   = probs_cube$nrows,
+        ncols   = probs_cube$ncols,
+        xmin    = probs_cube$xmin,
+        xmax    = probs_cube$xmax,
+        ymin    = probs_cube$ymin,
+        ymax    = probs_cube$ymax,
+        nlayers = length(sits_labels(samples)),
+        crs     = probs_cube$crs
     )
 
     # copy values
-    .sits_raster_api_values(r_obj) <- prediction
+    r_obj <- .sits_raster_api_set_values(r_obj = r_obj, values = prediction)
 
     # write to raster file
     .sits_raster_api_write_rast(
