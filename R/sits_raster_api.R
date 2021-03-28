@@ -1,270 +1,231 @@
-.sits_raster_api_check_package <- function(pkg) {
-
-    UseMethod(".sits_raster_api_check_package", pkg)
-
-}
-
-.sits_raster_api_values <- function(...) {
+#' @keywords internal
+.sits_raster_api_check_package <- function() {
 
     pkg_class <- paste0(.sits_config_raster_package(), "_package")
     class(pkg_class) <- pkg_class
 
-    # check package
-    .sits_raster_api_check_package(pkg_class)
-
-    UseMethod(".sits_raster_api_values", pkg_class)
+    UseMethod(".sits_raster_api_check_package", pkg_class)
 }
 
-`.sits_raster_api_values<-` <- function(...) {
+#' @keywords internal
+.sits_raster_api_check_package.default <- function() {
 
-    pkg_class <- paste0(.sits_config_raster_package(), "_package")
-    class(pkg_class) <- pkg_class
-
-    # check package
-    .sits_raster_api_check_package(pkg_class)
-
-    UseMethod(".sits_raster_api_values<-", pkg_class)
+    stop("No API defined for this raster package.")
 }
 
+#' @keywords internal
+.sits_raster_api_get_values <- function(...) {
+
+    # check package
+    pkg_class <- .sits_raster_api_check_package()
+
+    # call function
+    UseMethod(".sits_raster_api_get_values", pkg_class)
+}
+
+#' @keywords internal
+.sits_raster_api_set_values <- function(...) {
+
+    # check package
+    pkg_class <- .sits_raster_api_check_package()
+
+    UseMethod(".sits_raster_api_set_values", pkg_class)
+}
+
+#' @keywords internal
 .sits_raster_api_extract <- function(...) {
 
-    pkg_class <- paste0(.sits_config_raster_package(), "_package")
-    class(pkg_class) <- pkg_class
-
     # check package
-    .sits_raster_api_check_package(pkg_class)
+    pkg_class <- .sits_raster_api_check_package()
 
     UseMethod(".sits_raster_api_extract", pkg_class)
 }
 
+#' @keywords internal
 .sits_raster_api_rast <- function(...) {
 
-    pkg_class <- paste0(.sits_config_raster_package(), "_package")
-    class(pkg_class) <- pkg_class
-
     # check package
-    .sits_raster_api_check_package(pkg_class)
+    pkg_class <- .sits_raster_api_check_package()
 
     UseMethod(".sits_raster_api_rast", pkg_class)
 }
 
+#' @keywords internal
 .sits_raster_api_open_rast <- function(...) {
 
-    pkg_class <- paste0(.sits_config_raster_package(), "_package")
-    class(pkg_class) <- pkg_class
-
     # check package
-    .sits_raster_api_check_package(pkg_class)
+    pkg_class <- .sits_raster_api_check_package()
 
     UseMethod(".sits_raster_api_open_rast", pkg_class)
 }
 
+#' @keywords internal
 .sits_raster_api_read_rast <- function(...) {
 
-    pkg_class <- paste0(.sits_config_raster_package(), "_package")
-    class(pkg_class) <- pkg_class
-
     # check package
-    .sits_raster_api_check_package(pkg_class)
+    pkg_class <- .sits_raster_api_check_package()
 
     UseMethod(".sits_raster_api_read_rast", pkg_class)
 }
 
+#' @keywords internal
 .sits_raster_api_write_rast <- function(...) {
 
-    pkg_class <- paste0(.sits_config_raster_package(), "_package")
-    class(pkg_class) <- pkg_class
-
     # check package
-    .sits_raster_api_check_package(pkg_class)
+    pkg_class <- .sits_raster_api_check_package()
 
     UseMethod(".sits_raster_api_write_rast", pkg_class)
 }
 
+#' @keywords internal
 .sits_raster_api_new_rast <- function(...) {
 
-    pkg_class <- paste0(.sits_config_raster_package(), "_package")
-    class(pkg_class) <- pkg_class
-
     # check package
-    .sits_raster_api_check_package(pkg_class)
+    pkg_class <- .sits_raster_api_check_package()
 
     UseMethod(".sits_raster_api_new_rast", pkg_class)
 }
 
+#' @keywords internal
 .sits_raster_api_open_stack <- function(...) {
 
-    pkg_class <- paste0(.sits_config_raster_package(), "_package")
-    class(pkg_class) <- pkg_class
-
     # check package
-    .sits_raster_api_check_package(pkg_class)
+    pkg_class <- .sits_raster_api_check_package()
 
     UseMethod(".sits_raster_api_open_stack", pkg_class)
 }
 
+#' @keywords internal
 .sits_raster_api_read_stack <- function(...) {
 
-    pkg_class <- paste0(.sits_config_raster_package(), "_package")
-    class(pkg_class) <- pkg_class
-
     # check package
-    .sits_raster_api_check_package(pkg_class)
+    pkg_class <- .sits_raster_api_check_package()
 
     UseMethod(".sits_raster_api_read_stack", pkg_class)
 }
 
+#' @keywords internal
 .sits_raster_api_crop <- function(...) {
 
-    pkg_class <- paste0(.sits_config_raster_package(), "_package")
-    class(pkg_class) <- pkg_class
-
     # check package
-    .sits_raster_api_check_package(pkg_class)
+    pkg_class <- .sits_raster_api_check_package()
 
     UseMethod(".sits_raster_api_crop", pkg_class)
 }
 
+#' @keywords internal
 .sits_raster_api_nrows <- function(r_obj, ...) {
 
-    pkg_class <- paste0(.sits_config_raster_package(), "_package")
-    class(pkg_class) <- pkg_class
-
     # check package
-    .sits_raster_api_check_package(pkg_class)
+    pkg_class <- .sits_raster_api_check_package()
 
     UseMethod(".sits_raster_api_nrows", pkg_class)
 }
 
+#' @keywords internal
 .sits_raster_api_ncols <- function(r_obj, ...) {
 
-    pkg_class <- paste0(.sits_config_raster_package(), "_package")
-    class(pkg_class) <- pkg_class
-
     # check package
-    .sits_raster_api_check_package(pkg_class)
+    pkg_class <- .sits_raster_api_check_package()
 
     UseMethod(".sits_raster_api_ncols", pkg_class)
 }
 
+#' @keywords internal
 .sits_raster_api_nlayers <- function(r_obj, ...) {
 
-    pkg_class <- paste0(.sits_config_raster_package(), "_package")
-    class(pkg_class) <- pkg_class
-
     # check package
-    .sits_raster_api_check_package(pkg_class)
+    pkg_class <- .sits_raster_api_check_package()
 
     UseMethod(".sits_raster_api_nlayers", pkg_class)
 }
 
+#' @keywords internal
 .sits_raster_api_xmax <- function(...) {
 
-    pkg_class <- paste0(.sits_config_raster_package(), "_package")
-    class(pkg_class) <- pkg_class
-
     # check package
-    .sits_raster_api_check_package(pkg_class)
+    pkg_class <- .sits_raster_api_check_package()
 
     UseMethod(".sits_raster_api_xmax", pkg_class)
 }
 
+#' @keywords internal
 .sits_raster_api_xmin <- function(...) {
 
-    pkg_class <- paste0(.sits_config_raster_package(), "_package")
-    class(pkg_class) <- pkg_class
-
     # check package
-    .sits_raster_api_check_package(pkg_class)
+    pkg_class <- .sits_raster_api_check_package()
 
     UseMethod(".sits_raster_api_xmin", pkg_class)
 }
 
+#' @keywords internal
 .sits_raster_api_ymax <- function(...) {
 
-    pkg_class <- paste0(.sits_config_raster_package(), "_package")
-    class(pkg_class) <- pkg_class
-
     # check package
-    .sits_raster_api_check_package(pkg_class)
+    pkg_class <- .sits_raster_api_check_package()
 
     UseMethod(".sits_raster_api_ymax", pkg_class)
 }
 
+#' @keywords internal
 .sits_raster_api_ymin <- function(...) {
 
-    pkg_class <- paste0(.sits_config_raster_package(), "_package")
-    class(pkg_class) <- pkg_class
-
     # check package
-    .sits_raster_api_check_package(pkg_class)
+    pkg_class <- .sits_raster_api_check_package()
 
     UseMethod(".sits_raster_api_ymin", pkg_class)
 }
 
+#' @keywords internal
 .sits_raster_api_xres <- function(...) {
 
-    pkg_class <- paste0(.sits_config_raster_package(), "_package")
-    class(pkg_class) <- pkg_class
-
     # check package
-    .sits_raster_api_check_package(pkg_class)
+    pkg_class <- .sits_raster_api_check_package()
 
     UseMethod(".sits_raster_api_xres", pkg_class)
 }
 
+#' @keywords internal
 .sits_raster_api_yres <- function(...) {
 
-    pkg_class <- paste0(.sits_config_raster_package(), "_package")
-    class(pkg_class) <- pkg_class
-
     # check package
-    .sits_raster_api_check_package(pkg_class)
+    pkg_class <- .sits_raster_api_check_package()
 
     UseMethod(".sits_raster_api_yres", pkg_class)
 }
 
+#' @keywords internal
 .sits_raster_api_crs <- function(...) {
 
-    pkg_class <- paste0(.sits_config_raster_package(), "_package")
-    class(pkg_class) <- pkg_class
-
     # check package
-    .sits_raster_api_check_package(pkg_class)
+    pkg_class <- .sits_raster_api_check_package()
 
     UseMethod(".sits_raster_api_crs", pkg_class)
 }
 
+#' @keywords internal
 .sits_raster_api_freq <- function(...) {
 
-    pkg_class <- paste0(.sits_config_raster_package(), "_package")
-    class(pkg_class) <- pkg_class
-
     # check package
-    .sits_raster_api_check_package(pkg_class)
+    pkg_class <- .sits_raster_api_check_package()
 
     UseMethod(".sits_raster_api_freq", pkg_class)
 }
 
+#' @keywords internal
 .sits_raster_api_focal <- function(...) {
 
-    pkg_class <- paste0(.sits_config_raster_package(), "_package")
-    class(pkg_class) <- pkg_class
-
     # check package
-    .sits_raster_api_check_package(pkg_class)
+    pkg_class <- .sits_raster_api_check_package()
 
     UseMethod(".sits_raster_api_focal", pkg_class)
 }
 
-.sits_raster_api_package_error <- function()
-    stop("No API defined for this raster package.")
+#' @keywords internal
+#' @export
+.sits_raster_api_check_package.terra_package <- function() {
 
-.sits_raster_api_check_package.default <- function(...)
-    .sits_raster_api_package_error()
-
-.sits_raster_api_check_package.terra_package <- function(...) {
-
+    # package namespace
     pkg_name <- "terra"
 
     # check if raster package is available
@@ -275,29 +236,45 @@
                    "config file."), call. = FALSE)
     }
 
-    return(invisible(NULL))
+    class(pkg_name) <- paste0(pkg_name, "_package")
+
+    return(invisible(pkg_name))
 }
 
-.sits_raster_api_values.terra_package <- function(r_obj, ...) {
+#' @keywords internal
+#' @export
+.sits_raster_api_get_values.terra_package <- function(r_obj, ...) {
 
     terra::values(x = r_obj, mat = TRUE, ...)
 }
 
-`.sits_raster_api_values<-.terra_package` <- function(r_obj, value, ...) {
+#' @keywords internal
+#' @export
+.sits_raster_api_set_values.terra_package <- function(r_obj, values, ...) {
 
-    terra::values(x = r_obj) <- value
+    terra::values(x = r_obj) <- as.matrix(values)
+
+    return(invisible(r_obj))
 }
 
+#' @keywords internal
+#' @export
 .sits_raster_api_extract.terra_package <- function(r_obj, xy, ...) {
 
     terra::extract(x = r_obj, y = xy, fun = NULL, cells = FALSE, ...)
 }
 
+#' @keywords internal
+#' @export
 .sits_raster_api_rast.terra_package <- function(r_obj, nlayers = 1, ...) {
 
-    suppressWarnings(terra::rast(x = r_obj, nlyrs = nlayers, ...))
+    suppressWarnings(
+        terra::rast(x = r_obj, nlyrs = nlayers, ...)
+    )
 }
 
+#' @keywords internal
+#' @export
 .sits_raster_api_open_rast.terra_package <- function(file, ...) {
 
     # check for file length == 1
@@ -306,9 +283,13 @@
         msg = ".sits_raster_api_open_rast: more than one file were informed"
     )
 
-    suppressWarnings(terra::rast(x = file, ...))
+    suppressWarnings(
+        terra::rast(x = file, ...)
+    )
 }
 
+#' @keywords internal
+#' @export
 .sits_raster_api_read_rast.terra_package <- function(file,
                                                      extent = NULL, ...) {
 
@@ -323,6 +304,8 @@
 
 }
 
+#' @keywords internal
+#' @export
 .sits_raster_api_write_rast.terra_package <- function(r_obj,
                                                       file,
                                                       format,
@@ -367,6 +350,7 @@
 #' @param crs            Coordinate Reference System of the raster
 #'
 #' @return               Data cube values.
+#' @export
 .sits_raster_api_new_rast.terra_package <- function(nrows,
                                                     ncols,
                                                     xmin,
@@ -391,6 +375,8 @@
     )
 }
 
+#' @keywords internal
+#' @export
 .sits_raster_api_open_stack.terra_package <- function(files, ...) {
 
     # check for files length > 0
@@ -399,7 +385,9 @@
         msg = ".sits_raster_api_open_stack: no file informed"
     )
 
-    suppressWarnings(terra::rast(files, ...))
+    suppressWarnings(
+        terra::rast(files, ...)
+    )
 }
 
 #' @title Read a part of a raster file and return a matrix
@@ -410,6 +398,7 @@
 #' @param  files          Files associated to the raster object
 #' @param  extent         Image extent to be read.
 #' @return                Data.table of values
+#' @export
 .sits_raster_api_read_stack.terra_package <- function(files,
                                                       extent = NULL, ...) {
 
@@ -446,6 +435,8 @@
     return(values)
 }
 
+#' @keywords internal
+#' @export
 .sits_raster_api_crop.terra_package <- function(r_obj, extent, ...) {
 
     assertthat::assert_that(
@@ -471,51 +462,71 @@
     terra::crop(x = r_obj, y = extent)
 }
 
+#' @keywords internal
+#' @export
 .sits_raster_api_nrows.terra_package <- function(r_obj, ...) {
 
     terra::nrow(x = r_obj)
 }
 
+#' @keywords internal
+#' @export
 .sits_raster_api_ncols.terra_package <- function(r_obj, ...) {
 
     terra::ncol(x = r_obj)
 }
 
+#' @keywords internal
+#' @export
 .sits_raster_api_nlayers.terra_package <- function(r_obj, ...) {
 
     terra::nlyr(x = r_obj)
 }
 
+#' @keywords internal
+#' @export
 .sits_raster_api_xmax.terra_package <- function(r_obj, ...) {
 
     terra::xmax(x = r_obj)
 }
 
+#' @keywords internal
+#' @export
 .sits_raster_api_xmin.terra_package <- function(r_obj, ...) {
 
     terra::xmin(x = r_obj)
 }
 
+#' @keywords internal
+#' @export
 .sits_raster_api_ymax.terra_package <- function(r_obj, ...) {
 
     terra::ymax(x = r_obj)
 }
 
+#' @keywords internal
+#' @export
 .sits_raster_api_ymin.terra_package <- function(r_obj, ...) {
 
     terra::ymin(x = r_obj)
 }
 
+#' @keywords internal
+#' @export
 .sits_raster_api_xres.terra_package <- function(r_obj, ...) {
 
     terra::xres(x = r_obj)
 }
 
+#' @keywords internal
+#' @export
 .sits_raster_api_yres.terra_package <- function(r_obj, ...) {
 
     terra::yres(x = r_obj)
 }
 
+#' @keywords internal
+#' @export
 .sits_raster_api_crs.terra_package <- function(r_obj, ...) {
 
     suppressWarnings(
@@ -523,11 +534,15 @@
     )
 }
 
+#' @keywords internal
+#' @export
 .sits_raster_api_freq.terra_package <- function(r_obj, ...) {
 
     terra::freq(x = r_obj)
 }
 
+#' @keywords internal
+#' @export
 .sits_raster_api_focal.terra_package <- function(r_obj,
                                                  window_size,
                                                  fun, ...) {
@@ -552,8 +567,6 @@
             fun = fun, ...
         )
     )
-
-    return(invisible(NULL))
 }
 
 #' @title Determine the file params to write in the metadata
@@ -564,8 +577,18 @@
 #' @description    Based on the R object associated to a raster object,
 #'                 determine its params
 #' @param file     A valid raster image
+#'
 #' @return A tibble with the cube params
 .sits_raster_api_params_file <- function(file) {
+
+    # preconditions
+    assertthat::assert_that(
+        length(file) > 0,
+        msg = ".sits_raster_api_params_file: no file was informed"
+    )
+
+    # use first file
+    file <- file[[1]]
 
     # open file
     r_obj <- .sits_raster_api_open_rast(file = file)
@@ -595,8 +618,6 @@
 #' @param cube           Metadata about a data cube
 #' @param band_cube      Name of the band to the retrieved
 #' @param xy             Matrix with XY location
-#' @return               Matrix with values extracted from image files
-#'
 .sits_cube_extract <- function(cube, band_cube, xy) {
 
 
