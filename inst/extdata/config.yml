@@ -7,6 +7,9 @@ default:
     # number of items returned by stac service
     rstac_pagination_limit  : 1000
 
+    # default raster package
+    R_raster_pkg            : "terra"
+
     # Data cube types known to sits
     data_sources            : ["WTSS", "SATVEG", "LOCAL", "RASTER", "BDC", "DEAFRICA", "AWS", "PROBS", "CLASSIFIED"]
     cube_classes            : ["wtss_cube", "satveg_cube", "local_cube", "raster_cube", "bdc_cube", "deafrica_cube", "aws_cube",  "probs_cube", "classified_image"]
