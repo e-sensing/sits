@@ -104,8 +104,8 @@
     # memory required for processing depends on the model
     if ("keras_model" %in% class(ml_model) | "ranger_model" %in% class(ml_model)
         | "xgb_model" %in% class(ml_model)) {
-        mem_required_processing <- (class_data_size +
-                                        as.numeric(.sits_mem_used())) * proc_bloat
+        mem_required_processing <-
+            (class_data_size + as.numeric(.sits_mem_used())) * proc_bloat
     }
     else {
         # test two different cases
