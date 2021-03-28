@@ -155,7 +155,7 @@ sits_TempCNN <- function(samples = NULL,
         n_layers <- length(cnn_layers)
 
         seq_len(n_layers) %>%
-            purrr::map(function(i){
+            purrr::map(function(i) {
                 # Add a Convolution1D
                 ot <- keras::layer_conv_1d(
                     output_tensor,
