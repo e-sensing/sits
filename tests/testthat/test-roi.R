@@ -37,10 +37,10 @@ test_that("One-year, multicore classification with ROI", {
     expect_lte(bbox["ymax"], bbox_p["ymax"])
     expect_lte(bbox["ymin"], bbox_p["ymin"])
 
-    max_lyr2 <- max(.sits_raster_api_values(rc_obj)[, 2])
+    max_lyr2 <- max(.sits_raster_api_get_values(rc_obj)[, 2])
     expect_true(max_lyr2 <= 10000)
 
-    max_lyr3 <- max(.sits_raster_api_values(rc_obj)[, 3])
+    max_lyr3 <- max(.sits_raster_api_get_values(rc_obj)[, 3])
     expect_true(max_lyr3 > 7000)
 
     expect_true(all(file.remove(unlist(sinop_probs$file_info[[1]]$path))))
