@@ -22,8 +22,8 @@ Takes a sits tibble with different labels and
              this new tibble contains a given number or percentage
              of the total number of samples per group.
              Parameter n: number of random samples with replacement.
-             Parameter frac: a fraction of random samples without replacement.
-             If frac > 1, no sampling is done.
+             Parameter frac: a fraction of random samples without
+             replacement. If frac > 1, no sampling is done.
 }
 \examples{
 # Retrieve a set of time series with 2 classes

@@ -66,7 +66,8 @@ for bayesian smoothing.}
 
 \item{multicores}{Number of cores to run the smoothing function}
 
-\item{memsize}{Maximum overall memory (in GB) to run the smoothing.}
+\item{memsize}{Maximum overall memory (in GB) to run the
+smoothing.}
 
 \item{output_dir}{Output directory where to out the file}
 

@@ -43,9 +43,11 @@ sits_classify(data, ml_model, ...)
 
 \item{impute_fn}{impute function to replace NA}
 
-\item{interp_fn}{function to interpolate points from cube to match samples}
+\item{interp_fn}{function to interpolate points from cube to match
+samples}
 
-\item{compose_fn}{function to compose points from cube to match samples}
+\item{compose_fn}{function to compose points from cube to match
+samples}
 
 \item{start_date}{starting date for the classification}
 
@@ -55,7 +57,8 @@ sits_classify(data, ml_model, ...)
 
 \item{output_dir}{directory for output file}
 
-\item{version}{version of the output (for multiple classifications)}
+\item{version}{version of the output (for multiple
+classifications)}
 
 \item{verbose}{print information about processing time?}
 }
@@ -69,17 +72,17 @@ a trained model prediction model created by \code{\link[sits]{sits_train}}.
 
 SITS supports the following models:
 \itemize{
- \item{support vector machines: }         {see \code{\link[sits]{sits_svm}}}
- \item{random forests: }                  {see \code{\link[sits]{sits_rfor}}}
- \item{linear discriminant analysis: }    {see \code{\link[sits]{sits_lda}}}
+ \item{support vector machines: } {see \code{\link[sits]{sits_svm}}}
+ \item{random forests: }          {see \code{\link[sits]{sits_rfor}}}
+ \item{linear discriminant analysis: } {see \code{\link[sits]{sits_lda}}}
  \item{quadratic discriminant analysis: } {see \code{\link[sits]{sits_qda}}}
- \item{multinomial logit: }               {see \code{\link[sits]{sits_mlr}}}
- \item{extreme gradient boosting: }       {see \code{\link[sits]{sits_xgboost}}}
- \item{multi-layer perceptrons: }         {see \code{\link[sits]{sits_deeplearning}}}
- \item{1D convolutional neural networks: }{see \code{\link[sits]{sits_FCN}}}
- \item{mixed 1D and MLP networks: }       {see \code{\link[sits]{sits_TempCNN}}}
- \item{1D version of ResNet: }            {see \code{\link[sits]{sits_ResNet}}}
- \item{combined LSTM-FCN model: }         {see \code{\link[sits]{sits_LSTM_FCN}}}
+ \item{multinomial logit: }       {see \code{\link[sits]{sits_mlr}}}
+ \item{extreme gradient boosting: } {see \code{\link[sits]{sits_xgboost}}}
+ \item{multi-layer perceptrons: } {see \code{\link[sits]{sits_deeplearning}}}
+ \item{1D convolutional neural networks: } {see \code{\link[sits]{sits_FCN}}}
+ \item{mixed 1D and MLP networks: } {see \code{\link[sits]{sits_TempCNN}}}
+ \item{1D version of ResNet: }    {see \code{\link[sits]{sits_ResNet}}}
+ \item{combined LSTM-FCN model: } {see \code{\link[sits]{sits_LSTM_FCN}}}
  }
 }
 \note{
@@ -110,9 +113,9 @@ The "roi" parameter defines a region of interest. It can be
    to fit that of the samples.
 
    The "memsize" and "multicores" parameters are used for multiprocessing.
-   The "multicores" parameter defines the number of cores used for processing.
-   The "memsize" parameter  controls the amount of memory available
-   for classification.
+   The "multicores" parameter defines the number of cores used for
+   processing. The "memsize" parameter  controls the amount of memory
+   available for classification.
 }
 \examples{
 \donttest{

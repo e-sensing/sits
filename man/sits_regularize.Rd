@@ -15,8 +15,9 @@ sits_regularize(
 )
 }
 \arguments{
-\item{cube}{A cube whose spacing of observation times is not constant
-and will be regularized by the "gdalcubes" packges}
+\item{cube}{A cube whose spacing of observation times is
+not constant and will be regularized by the
+"gdalcubes" packges}
 
 \item{name}{Name of the output data cube}
 
