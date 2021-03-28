@@ -30,7 +30,7 @@ sits_timeline.raster_cube <- function(data) {
 
     timeline_first <-  unique(lubridate::as_date(data$file_info[[1]]$date))
 
-    slider::slide(data, function(tile){
+    slider::slide(data, function(tile) {
         timeline_tile <- unique(lubridate::as_date(tile$file_info[[1]]$date))
         assertthat::assert_that(
             all(timeline_tile %in% timeline_first),
@@ -457,7 +457,7 @@ sits_timeline.classified_image <- function(data) {
     time_index <- dates_index %>%
         purrr::map(function(idx) {
             idx_lst <- seq_len(n_bands) %>%
-              purrr::map(function(b){
+              purrr::map(function(b) {
                 idx1 <- idx[1] + (b - 1) * length(timeline)
                 idx2 <- idx[2] + (b - 1) * length(timeline)
                 return(c(idx1, idx2))
