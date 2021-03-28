@@ -214,7 +214,7 @@
                                     filename = out_file, ...)
             ))
         # ... else call raster::merge.
-        mosaic <- function(in_files, out_file, options, datatype){
+        mosaic <- function(in_files, out_file, options, datatype) {
             gdalUtilities::gdalwarp(srcfile = unlist(in_files),
                                     dstfile = out_file,
                                     co = options,
@@ -268,5 +268,3 @@
 
     return(invisible(cube_out))
 }
-
-
