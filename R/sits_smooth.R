@@ -31,7 +31,8 @@
 #' @param  tau               Standard deviation of the class probs value
 #'                           (for bilinear smoothing)
 #' @param  multicores        Number of cores to run the smoothing function
-#' @param  memsize           Maximum overall memory (in GB) to run the smoothing.
+#' @param  memsize           Maximum overall memory (in GB) to run the
+#'                           smoothing.
 #' @param  output_dir        Output directory where to out the file
 #' @param  version           Version of resulting image
 #'                           (in the case of multiple tests)
@@ -129,7 +130,7 @@ sits_smooth.bayes <- function(cube, type = "bayes", ...,
     )
 
     # find out how many labels exist
-    n_labels <- length(sits_labels(cube[1,]))
+    n_labels <- length(sits_labels(cube[1, ]))
 
     # precondition 3 - test variance
     if (is.matrix(smoothness)) {
