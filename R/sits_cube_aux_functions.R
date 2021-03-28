@@ -103,19 +103,19 @@
     )
 
     # set the name of the output cube
-    name <- paste0(tile$name,"_probs")
+    name <- paste0(tile$name, "_probs")
 
     # get the timeline of of the data cube
     timeline <- lubridate::as_date(sits_timeline(tile))
-    start_date = as.Date(timeline[1])
-    end_date = as.Date(timeline[length(timeline)])
+    start_date <- as.Date(timeline[1])
+    end_date <- as.Date(timeline[length(timeline)])
 
     # labels come from samples
     labels <- sits_labels(samples)
 
     # define the file names for the classified images
     file_name <- paste0(output_dir, "/", name, "_",
-                        start_date, "_", end_date,"_", version, ".tif"
+                        start_date, "_", end_date, "_", version, ".tif"
     )
 
     # define the band name
