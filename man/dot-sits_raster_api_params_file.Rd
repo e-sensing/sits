@@ -7,16 +7,18 @@
 .sits_raster_api_params_file(file)
 }
 \arguments{
-\item{file}{A valid raster image}
+\item{file}{A path to a raster file}
 }
 \value{
-A tibble with the cube params
+A tibble with the raster spatial parameters
 }
 \description{
 Based on the R object associated to a raster object,
-                determine its params
+                determine its spatial parameters
 }
 \author{
 Gilberto Camara, \email{gilberto.camara@inpe.br}
+
+Rolf Simoes, \email{rolf.simoes@inpe.br}
 }
 \keyword{internal}

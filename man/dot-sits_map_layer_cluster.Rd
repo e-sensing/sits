@@ -12,6 +12,8 @@
   func_args = NULL,
   multicores = 1,
   memsize = 1,
+  gdal_datatype,
+  gdal_options,
   ...
 )
 }
