@@ -7,7 +7,8 @@
 sits_som_clean_samples(
   som_map,
   prior_threshold = 0.6,
-  posterior_threshold = 0.6
+  posterior_threshold = 0.6,
+  keep = c("clean", "analyze")
 )
 }
 \arguments{
@@ -19,6 +20,8 @@ by \code{\link[sits]{sits_som_map}}}
 
 \item{posterior_threshold}{Threshold of posterior probability
 (influenced by the SOM neighborhood)}
+
+\item{keep}{Samples evaluation to be maintained in the data}
 }
 \value{
 List with two sits tibbles.
@@ -32,6 +35,20 @@ a sits tibble with an evaluation column indicating if
 each sample is clean, should be analyzed or
 should be removed, and with a new column indicating
 the posterior probability of the sample
+}
+\note{
+The algorithm identifies noisy samples, using `prior_threshold` for
+    the prior probability and `posterior_threshold` for the posterior probability.
+    Each sample receives an evaluation tag, according to the following rule:
+    (a) If the prior probability is < `prior_threshold`, the sample is tagged as "remove";
+    (b) If the prior probability is >= `prior_threshold` and the posterior probability
+    is >=`posterior_threshold`, the sample is tagged as "clean";
+    (c) If the prior probability is >= `posterior_threshold` and
+    the posterior probability is < `posterior_threshold`,
+    the sample is tagged as "analyze" for further inspection.
+
+    The user can define which tagged samples will be returned using the "keep"
+    parameter, with the following options: "clean", "analyze", "remove".
 }
 \examples{
 \dontrun{

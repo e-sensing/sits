@@ -42,6 +42,10 @@
                                       version,
                                       verbose) {
 
+    # some models have parallel processing built in
+    if ("keras_model" %in% class(ml_model) | "ranger_model" %in% class(ml_model)
+        | "xgb_model" %in% class(ml_model))
+        multicores <- 1
     # retrieve the samples from the model
     samples <- .sits_ml_model_samples(ml_model)
 
@@ -71,19 +75,18 @@
     }
 
     # divide the input data in blocks
-    block_info <- .sits_raster_blocks(
-        cube       = tile,
-        ml_model   = ml_model,
-        sub_image  = sub_image,
-        memsize    = memsize,
+    blocks <- .sits_raster_blocks(
+        tile = tile,
+        ml_model = ml_model,
+        sub_image = sub_image,
+        memsize = memsize,
         multicores = multicores
     )
     if (verbose) {
-        message(paste0(
-            "Using ", block_info$n,
-            " blocks of size (", block_info$nrows[1],
-            " x ", block_info$ncols[1]), ")"
-        )
+        message(paste0("Using ", length(blocks),
+            " blocks of size (", unname(blocks[[1]]["nrows"]),
+            " x ", unname(blocks[[1]]["ncols"]), ")"
+        ))
     }
 
     # create the metadata for the probability cube
@@ -108,76 +111,61 @@
     on.exit(future::plan(oplan), add = TRUE)
 
     # read the blocks and compute the probabilities
-    pred_blocks <- furrr::future_map(seq_len(block_info$n), function(b) {
-        # define the extent for each block
-        extent <- c(
-            block_info$row[b], block_info$nrows[b],
-            block_info$col, block_info$ncols
-        )
-        names(extent) <- (c("row", "nrows", "col", "ncols"))
+    filenames <- furrr::future_map(blocks, function(b) {
         # read the data
         distances <- .sits_raster_data_read(
-            cube       = tile,
-            samples    = samples,
-            extent     = extent,
-            stats      = stats,
-            filter_fn  = filter_fn,
-            impute_fn  = impute_fn,
-            interp_fn  = interp_fn,
+            cube = tile,
+            samples = samples,
+            extent = b,
+            stats = stats,
+            filter_fn = filter_fn,
+            impute_fn = impute_fn,
+            interp_fn = interp_fn,
             compose_fn = compose_fn
         )
 
         # get the attribute names
         attr_names <- names(.sits_distances(samples[1, ]))
-        assertthat::assert_that(
-            length(attr_names) > 0,
-            msg = "sits_classify: training data not available"
-        )
 
         # set column names for DT
         colnames(distances) <- attr_names
 
         # predict the classification values
-        pred_block <- .sits_classify_interval(
-            data = distances,
-            ml_model = ml_model
+        pred_block <- ml_model(distances)
+
+        # are the results consistent with the data input?
+        assertthat::assert_that(nrow(pred_block) == nrow(distances),
+            msg = paste(".sits_classify_cube: number of rows of probability",
+                        "matrix is different from number of input pixels")
         )
 
         # convert probabilities matrix to INT2U
         scale_factor_save <- round(1 / .sits_config_probs_scale_factor())
         pred_block <- round(scale_factor_save * pred_block, digits = 0)
 
-        return(pred_block)
+        # define the file name of the raster file to be written
+        filename_block <- paste0(
+            tools::file_path_sans_ext(probs_cube$file_info[[1]]$path),
+            "_block_", b["row"], ".tif"
+        )
+
+        # write the probabilities to a raster file
+        .sits_raster_api_write(
+            params = .sits_raster_api_params_block(probs_cube, b),
+            num_layers = length(labels),
+            values = pred_block,
+            filename = filename_block,
+            datatype = "INT2U"
+        )
+
+        return(filename_block)
     }, .progress = TRUE)
 
     # Join the predictions
-    prediction <- do.call(rbind, pred_blocks)
-    # define the file name of the raster file to be written
-    filename <- probs_cube$file_info[[1]]$path
-
-    # create probabilities raster object
-    r_obj <- .sits_raster_api_new_rast(
-        nrows   = probs_cube$nrows,
-        ncols   = probs_cube$ncols,
-        xmin    = probs_cube$xmin,
-        xmax    = probs_cube$xmax,
-        ymin    = probs_cube$ymin,
-        ymax    = probs_cube$ymax,
-        nlayers = length(sits_labels(samples)),
-        crs     = probs_cube$crs
-    )
-
-    # copy values
-    r_obj <- .sits_raster_api_set_values(r_obj = r_obj, values = prediction)
-
-    # write to raster file
-    .sits_raster_api_write_rast(
-        r_obj     = r_obj,
-        file      = filename,
-        data_type = "INT2U",
-        format    = "GTiff",
-        options   = "COMPRESS=LZW",
-        overwrite = TRUE
+    .sits_raster_api_merge(in_files = unlist(filenames),
+                           out_file = probs_cube$file_info[[1]]$path,
+                           gdal_datatype = "UInt16",
+                           overwrite = TRUE
     )
 
     # show final time for classification

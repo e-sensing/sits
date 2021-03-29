@@ -349,7 +349,7 @@
 #'
 #' @param in_files       Input file paths
 #' @param out_file       Output raster file path
-#' @param datatype       Data type
+#' @param gdal_datatype  Data type in gdal format
 #' @param format         Format to write the file
 #' @param compress       Compression method to be used
 #' @param filename       File name of the raster image file.
@@ -359,7 +359,7 @@
 #'
 .sits_raster_api_merge <- function(in_files,
                                    out_file,
-                                   datatype,
+                                   gdal_datatype,
                                    format = "GTiff",
                                    compress = "LZW",
                                    overwrite = TRUE) {
@@ -369,12 +369,43 @@
         all(file.exists(in_files)),
         msg = ".sits_raster_api_merge: file does not exist"
     )
+    if (file.exists(out_file))
+        unlink(out_file)
 
     # retrieve the r object associated to the labelled cube
     gdalUtilities::gdalwarp(srcfile = in_files, dstfile = out_file,
-                            ot = datatype, of = format,
+                            ot = gdal_datatype, of = format,
                             co = paste0("COMPRESS=", compress),
                             overwrite = overwrite)
+    unlink(in_files)
 
-    return(out_file)
+    return(invisible(TRUE))
+}
+
+#' @title Determine the block params to write in the metadata
+#' @name .sits_raster_api_params_block
+#' @keywords internal
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
+#'
+#' @description    Based on the R object associated to a raster object,
+#'                 determine its params
+#' @param cube     A valid cube
+#' @param block    A block insider the cube
+#' @return A tibble with the cube params
+.sits_raster_api_params_block <- function(cube, block) {
+
+    ymax  <-  cube$ymax - (block["row"] - 1)*(cube$yres)
+    ymin  <-  ymax - block["nrows"]*(cube$yres)
+    params <- tibble::tibble(
+        nrows = unname(block["nrows"]),
+        ncols = unname(block["ncols"]),
+        xmin  = cube$xmin,
+        xmax  = cube$xmax,
+        ymin  = ymin,
+        ymax  = ymax,
+        xres  = cube$xres,
+        yres  = cube$yres,
+        crs   = cube$crs
+    )
+    return(params)
 }

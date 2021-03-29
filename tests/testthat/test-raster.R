@@ -139,7 +139,7 @@ test_that("One-year, multicore classification with filter", {
             filter = sits_whittaker(lambda = 3.0),
             output_dir = tempdir(),
             memsize = 4,
-            multicores = 2
+            multicores = 1
         )
     )
     expect_true(all(file.exists(unlist(sinop_2014_probs$file_info[[1]]$path))))

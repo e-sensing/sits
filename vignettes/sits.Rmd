@@ -350,6 +350,8 @@ sinop <- sits_cube(
 probs_cube <- sits_classify(sinop, 
                             ml_model = svm_model, 
                             output_dir = tempdir(),
+                            memsize = 16,
+                            multicores = 4,
                             verbose = FALSE)
 
 # plot the probabilities cubes

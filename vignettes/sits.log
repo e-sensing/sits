@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.14159265-2.6-1.40.21 (TeX Live 2020) (preloaded format=pdflatex 2020.7.30)  25 MAR 2021 11:36
+This is pdfTeX, Version 3.14159265-2.6-1.40.21 (TeX Live 2020) (preloaded format=pdflatex 2020.7.30)  27 MAR 2021 09:21
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
@@ -855,7 +855,7 @@ k-11-1.pdf Graphic file (type pdf)
 <use /Users/gilbertocamara/sits/vignettes/sits_files/figure-latex/unnamed-chunk
 -11-1.pdf>
 Package pdftex.def Info: /Users/gilbertocamara/sits/vignettes/sits_files/figure
--latex/unnamed-chunk-11-1.pdf  used on input line 1062.
+-latex/unnamed-chunk-11-1.pdf  used on input line 1056.
 (pdftex.def)             Requested size: 398.35806pt x 276.11514pt.
 [13 </Users/gilbertocamara/sits/vignettes/sits_files/figure-latex/unnamed-chunk
 -11-1.pdf>]
@@ -866,28 +866,28 @@ ification.png Graphic file (type png)
 <use /Users/gilbertocamara/sits/inst/extdata/markdown/figures/plot_image_classi
 fication.png>
 Package pdftex.def Info: /Users/gilbertocamara/sits/inst/extdata/markdown/figur
-es/plot_image_classification.png  used on input line 1128.
+es/plot_image_classification.png  used on input line 1122.
 (pdftex.def)             Requested size: 358.50598pt x 260.7807pt.
 [14 </Users/gilbertocamara/sits/inst/extdata/markdown/figures/plot_image_classi
 fication.png>]
 
 Package hyperref Warning: Difference (2) between bookmark levels is greater 
-(hyperref)                than one, level fixed on input line 1161.
+(hyperref)                than one, level fixed on input line 1155.
 
 [15] (./sits.bbl [16])
-Package atveryend Info: Empty hook `BeforeClearDocument' on input line 1216.
+Package atveryend Info: Empty hook `BeforeClearDocument' on input line 1210.
 [17]
-Package atveryend Info: Empty hook `AfterLastShipout' on input line 1216.
+Package atveryend Info: Empty hook `AfterLastShipout' on input line 1210.
 (./sits.aux)
-Package atveryend Info: Executing hook `AtVeryEndDocument' on input line 1216.
-Package atveryend Info: Executing hook `AtEndAfterFileList' on input line 1216.
+Package atveryend Info: Executing hook `AtVeryEndDocument' on input line 1210.
+Package atveryend Info: Executing hook `AtEndAfterFileList' on input line 1210.
 
 Package rerunfilecheck Info: File `sits.out' has not changed.
 (rerunfilecheck)             Checksum: 6FF63391CFE434BD65D8FD3A7E4CCEC1;4242.
 
 LaTeX Font Warning: Some font shapes were not available, defaults substituted.
 
-Package atveryend Info: Empty hook `AtVeryVeryEnd' on input line 1216.
+Package atveryend Info: Empty hook `AtVeryVeryEnd' on input line 1210.
  ) 
 Here is how much of TeX's memory you used:
  15193 strings out of 480608
@@ -909,7 +909,7 @@ pia/putb8a.pfb></usr/local/texlive/2020/texmf-dist/fonts/type1/adobe/utopia/put
 r8a.pfb></usr/local/texlive/2020/texmf-dist/fonts/type1/adobe/utopia/putri8a.pf
 b></usr/local/texlive/2020/texmf-dist/fonts/type1/public/cm-super/sfrm1095.pfb>
 </usr/local/texlive/2020/texmf-dist/fonts/type1/public/cm-super/sftt1000.pfb>
-Output written on sits.pdf (17 pages, 456659 bytes).
+Output written on sits.pdf (17 pages, 452390 bytes).
 PDF statistics:
  415 PDF objects out of 1000 (max. 8388607)
  364 compressed objects within 4 object streams
