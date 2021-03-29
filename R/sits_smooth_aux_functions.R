@@ -104,9 +104,15 @@
 #'
 #' @return  RasterBrick object
 #'
-.sits_map_layer_cluster <- function(cube, cube_out, overlapping_y_size = 0,
-                                    func, func_args = NULL, multicores = 1,
-                                    memsize = 1, ...) {
+.sits_map_layer_cluster <- function(cube,
+                                    cube_out,
+                                    overlapping_y_size = 0,
+                                    func,
+                                    func_args = NULL,
+                                    multicores = 1,
+                                    memsize = 1,
+                                    gdal_datatype,
+                                    gdal_options, ...) {
 
     # precondition 1 - check if cube has probability data
     assertthat::assert_that(
@@ -143,35 +149,41 @@
     .sits_cluster_worker_fun <- function(block, in_file, func, args) {
 
         # open brick
-        b <- suppressWarnings(raster::brick(in_file))
+        b <- .sits_raster_api_open_rast(in_file)
+
+        # create extent
+        blk_overlap <- list(row = block$r1,
+                            nrows = block$r2 - block$r1 + 1,
+                            col = 1,
+                            ncols = .sits_raster_api_ncols(b))
 
         # crop adding overlaps
-        chunk <- suppressWarnings(raster::crop(
-            b, raster::extent(b,
-                              r1 = block$r1,
-                              r2 = block$r2,
-                              c1 = 1,
-                              c2 = ncol(b))
-        ))
+        chunk <- .sits_raster_api_crop(r_obj = b, block = blk_overlap)
 
         # process it
         res <- do.call(func, args = c(list(chunk = chunk), args))
-        stopifnot(inherits(res, c("RasterLayer", "RasterStack", "RasterBrick")))
+        # stopifnot(inherits(res, c("RasterLayer", "RasterStack", "RasterBrick")))
+
+        # create extent
+        blk_no_overlap <- list(row = block$o1,
+                               nrows = block$o2 - block$o1 + 1,
+                               col = 1,
+                               ncols = .sits_raster_api_ncols(res))
 
         # crop removing overlaps
-        res <- suppressWarnings(raster::crop(
-            res, raster::extent(res,
-                                r1 = block$o1,
-                                r2 = block$o2,
-                                c1 = 1,
-                                c2 = ncol(res))
-        ))
+        res <- .sits_raster_api_crop(res, block = blk_no_overlap)
 
         # export to temp file
         filename <- tempfile(fileext = ".tif")
-        suppressWarnings(
-            raster::writeRaster(res, filename = filename, overwrite = TRUE,
-                                datatype = "FLT8S")
+
+        # save chunk
+        .sits_raster_api_write_rast(
+            r_obj = res,
+            file = filename,
+            format = "GTiff",
+            data_type = .sits_raster_api_data_type("FLT4S"),
+            gdal_options = .sits_config_gtiff_default_options(),
+            overwrite = TRUE
         )
 
         return(filename)
@@ -202,28 +214,22 @@
                 args = func_args)
         }
 
+        tmp_blocks <- unlist(tmp_blocks)
+
         # on exit, remove temp files
         on.exit(unlink(tmp_blocks))
 
-        # merge to save final result with '...' parameters
-        # if there is only one block...
-        if (length(tmp_blocks) == 1)
-            return(suppressWarnings(
-                raster::writeRaster(raster::brick(tmp_blocks),
-                                    overwrite = TRUE,
-                                    filename = out_file, ...)
-            ))
-        # ... else call raster::merge.
-        mosaic <- function(in_files, out_file, options, datatype){
-            gdalUtilities::gdalwarp(srcfile = unlist(in_files),
-                                    dstfile = out_file,
-                                    co = options,
-                                    ot = datatype)
-        }
+        # merge to save final result
+
         suppressWarnings(
-            do.call(mosaic, c(list(in_files = tmp_blocks,
-                                   out_file = out_file),
-                              list(...)))
+            .sits_raster_api_merge(
+                in_files = tmp_blocks,
+                out_file = out_file,
+                format = "GTiff",
+                gdal_datatype = gdal_datatype,
+                gdal_options = gdal_options,
+                overwrite = TRUE
+            )
         )
     }
 
@@ -268,5 +274,3 @@
 
     return(invisible(cube_out))
 }
-
-

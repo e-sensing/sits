@@ -7,10 +7,10 @@
 .sits_raster_api_merge(
   in_files,
   out_file,
+  format,
   gdal_datatype,
-  format = "GTiff",
-  compress = "LZW",
-  overwrite = TRUE
+  gdal_options,
+  overwrite
 )
 }
 \arguments{
@@ -18,18 +18,13 @@
 
 \item{out_file}{Output raster file path}
 
-\item{gdal_datatype}{Data type in gdal format}
-
 \item{format}{Format to write the file}
 
-\item{compress}{Compression method to be used}
+\item{gdal_datatype}{Data type in gdal format}
+
+\item{gdal_options}{Compression method to be used}
 
 \item{overwrite}{Overwrite the file?}
-
-\item{filename}{File name of the raster image file.}
-}
-\value{
-Output file path
 }
 \description{
 Merge all input files into one raster file

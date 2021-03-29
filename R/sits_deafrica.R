@@ -61,7 +61,8 @@
         pgr_fetch <- TRUE
 
     # fetching all the metadata and updating to upper case instruments
-    items_info <- items_info %>% rstac::items_fetch(progress = pgr_fetch) %>%
+    items_info <- items_info %>%
+        rstac::items_fetch(progress = pgr_fetch) %>%
         .sits_deafrica_upper()
 
     # searching for tiles in the items
@@ -112,7 +113,7 @@
 .sits_deafrica_search_tiles <- function(items, tiles) {
 
     # checks if the supplied tiles are in the searched items
-    index_features <- purrr::map_lgl(items$features, function(feature){
+    index_features <- purrr::map_lgl(items$features, function(feature) {
         region_code <- feature[["properties"]][["odc:region_code"]]
         if (region_code %in% tiles)
             return(TRUE)
@@ -162,12 +163,13 @@
                                               source = "DEAFRICA")
 
     # get bands name from assets list name property
-    bands_product <- purrr::map_chr(items$features[[1]]$assets, function(bands){
-        bands[["eo:bands"]][[1]][["name"]]
-    }) %>% unname()
+    bands_product <-
+        purrr::map_chr(items$features[[1]]$assets, function(bands) {
+            bands[["eo:bands"]][[1]][["name"]]
+        }) %>% unname()
 
     # get bands name from href links property
-    bands_href <- purrr::map_chr(items$features[[1]]$assets, function(bands){
+    bands_href <- purrr::map_chr(items$features[[1]]$assets, function(bands) {
 
         # regex pattern to extract band name
         regex_pattern <- "[^\\/|^_\\&\\?]+\\.\\w{3,4}(?=([\\?&].*$|$))"
@@ -261,7 +263,7 @@
     if (length(item_prop[["gsd"]]) == 0)
         res[c("xres", "yres")] <- c(20, 20)
 
-    res_dea = .sits_config_defrica_bands_res(sensor, file_info$band)
+    res_dea <- .sits_config_defrica_bands_res(sensor, file_info$band)
     file_info <- dplyr::mutate(file_info, res = res_dea, .before = path)
 
 

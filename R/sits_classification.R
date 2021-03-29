@@ -11,17 +11,17 @@
 #'
 #' SITS supports the following models:
 #' \itemize{
-#'  \item{support vector machines: }         {see \code{\link[sits]{sits_svm}}}
-#'  \item{random forests: }                  {see \code{\link[sits]{sits_rfor}}}
-#'  \item{linear discriminant analysis: }    {see \code{\link[sits]{sits_lda}}}
+#'  \item{support vector machines: } {see \code{\link[sits]{sits_svm}}}
+#'  \item{random forests: }          {see \code{\link[sits]{sits_rfor}}}
+#'  \item{linear discriminant analysis: } {see \code{\link[sits]{sits_lda}}}
 #'  \item{quadratic discriminant analysis: } {see \code{\link[sits]{sits_qda}}}
-#'  \item{multinomial logit: }               {see \code{\link[sits]{sits_mlr}}}
-#'  \item{extreme gradient boosting: }       {see \code{\link[sits]{sits_xgboost}}}
-#'  \item{multi-layer perceptrons: }         {see \code{\link[sits]{sits_deeplearning}}}
-#'  \item{1D convolutional neural networks: }{see \code{\link[sits]{sits_FCN}}}
-#'  \item{mixed 1D and MLP networks: }       {see \code{\link[sits]{sits_TempCNN}}}
-#'  \item{1D version of ResNet: }            {see \code{\link[sits]{sits_ResNet}}}
-#'  \item{combined LSTM-FCN model: }         {see \code{\link[sits]{sits_LSTM_FCN}}}
+#'  \item{multinomial logit: }       {see \code{\link[sits]{sits_mlr}}}
+#'  \item{extreme gradient boosting: } {see \code{\link[sits]{sits_xgboost}}}
+#'  \item{multi-layer perceptrons: } {see \code{\link[sits]{sits_deeplearning}}}
+#'  \item{1D convolutional neural networks: } {see \code{\link[sits]{sits_FCN}}}
+#'  \item{mixed 1D and MLP networks: } {see \code{\link[sits]{sits_TempCNN}}}
+#'  \item{1D version of ResNet: }    {see \code{\link[sits]{sits_ResNet}}}
+#'  \item{combined LSTM-FCN model: } {see \code{\link[sits]{sits_LSTM_FCN}}}
 #'  }
 #'
 #' @param  data      Tibble with time series metadata and data.
@@ -35,14 +35,17 @@
 #' @param  roi               a region of interest (see above)
 #' @param  filter_fn         smoothing filter to be applied (if desired).
 #' @param  impute_fn         impute function to replace NA
-#' @param  interp_fn         function to interpolate points from cube to match samples
-#' @param  compose_fn        function to compose points from cube to match samples
+#' @param  interp_fn         function to interpolate points from cube to match
+#'                           samples
+#' @param  compose_fn        function to compose points from cube to match
+#'                           samples
 #' @param  start_date        starting date for the classification
 #' @param  end_date          end date for the classification
 #' @param  memsize           memory available for classification (in GB).
 #' @param  multicores        number of cores to be used for classification.
 #' @param  output_dir        directory for output file
-#' @param  version           version of the output (for multiple classifications)
+#' @param  version           version of the output (for multiple
+#'                           classifications)
 #' @param  verbose           print information about processing time?
 #' @return                   Predicted data (classified time series)
 #'                           or a data cube with probabilities for each class.
@@ -75,9 +78,9 @@
 #'    to fit that of the samples.
 #'
 #'    The "memsize" and "multicores" parameters are used for multiprocessing.
-#'    The "multicores" parameter defines the number of cores used for processing.
-#'    The "memsize" parameter  controls the amount of memory available
-#'    for classification.
+#'    The "multicores" parameter defines the number of cores used for
+#'    processing. The "memsize" parameter  controls the amount of memory
+#'    available for classification.
 #'
 #' @examples
 #' \donttest{
@@ -238,7 +241,7 @@ sits_classify.raster_cube <- function(data, ml_model, ...,
                                     roi)
 
     # retrieve only intersecting tiles
-    data <- data[intersects,]
+    data <- data[intersects, ]
 
     # retrieve the samples from the model
     samples <- .sits_ml_model_samples(ml_model)

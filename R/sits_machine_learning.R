@@ -823,7 +823,7 @@ sits_xgboost <- function(data = NULL,
             # transform input  into a matrix (remove first two columns)
             # retrieve the prediction probabilities
             prediction <- data.table::as.data.table(
-                stats::predict(model_xgb, data.matrix(values[, -(1:2)]),
+                stats::predict(model_xgb, data.matrix(values[, -2:0]),
                                ntreelimit = ntreelimit,
                                reshape = TRUE
                 )
@@ -981,7 +981,6 @@ sits_formula_linear <- function(predictors_index = -2:0) {
 
     # extract the values of the time series to a list of tibbles
     values <- data$time_series
-    n_values <- length(values)
 
     # normalise values of time series
     normalize_chunk <- function(chunk) {

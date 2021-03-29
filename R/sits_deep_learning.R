@@ -127,11 +127,11 @@ sits_deeplearning <- function(samples = NULL,
         ), ]
 
         # organize data for model training
-        train_x <- data.matrix(train_data[, -(1:2)])
+        train_x <- data.matrix(train_data[, -2:0])
         train_y <- unname(int_labels[as.vector(train_data$reference)]) - 1
 
         # create the test data for keras
-        test_x <- data.matrix(test_data[, -(1:2)])
+        test_x <- data.matrix(test_data[, -2:0])
         test_y <- unname(int_labels[as.vector(test_data$reference)]) - 1
 
         # build the model step by step
@@ -201,7 +201,7 @@ sits_deeplearning <- function(samples = NULL,
 
             # transform input (data.table) into a matrix
             # (remove first two columns)
-            values <- data.matrix(values[, -(1:2)])
+            values <- data.matrix(values[, -2:0])
 
             # retrieve the prediction probabilities
             predicted <- data.table::as.data.table(

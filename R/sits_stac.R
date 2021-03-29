@@ -406,7 +406,8 @@
     bbox <- .sits_stac_get_bbox(items, collection_info[["bdc:crs"]])
 
     # add resolution to file_info
-    file_info <- dplyr::mutate(file_info, res = as.numeric(items$xres), .before = path)
+    file_info <- dplyr::mutate(file_info, res = as.numeric(items$xres),
+                               .before = path)
 
     # create a tibble to store the metadata
     tile <- .sits_cube_create(

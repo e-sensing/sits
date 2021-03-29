@@ -2,19 +2,19 @@
 #' @name sits_accuracy
 #' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
 #' @author Alber Sanchez, \email{alber.ipia@@inpe.br}
-#' @description This function calculates the accuracy of the classification result.
-#' For a set of time series, it creates a confusion matrix and then calculates
-#' the resulting statistics using the R packge "caret".
-#' The time series needs to be classified using \code{\link[sits]{sits_classify}}.
+#' @description This function calculates the accuracy of the classification
+#' result. For a set of time series, it creates a confusion matrix and then
+#' calculates the resulting statistics using the R packge "caret". The time
+#' series needs to be classified using \code{\link[sits]{sits_classify}}.
 #'
 #' Classified images are generated using \code{\link[sits]{sits_classify}}
 #' followed by \code{\link[sits]{sits_label_classification}}.
-#' For a classified image, the function uses an area-weighted technique proposed by
-#' Olofsson et al. according to [1-3] to produce more reliable accuracy estimates
-#' at 95% confidence level.
+#' For a classified image, the function uses an area-weighted technique
+#' proposed by Olofsson et al. according to [1-3] to produce more reliable
+#' accuracy estimates at 95% confidence level.
 #'
-#' In both cases, it provides an accuracy assessment of the classified, including
-#' Overall Accuracy, Kappa, User's Accuracy, Producer's Accuracy
+#' In both cases, it provides an accuracy assessment of the classified,
+#' including Overall Accuracy, Kappa, User's Accuracy, Producer's Accuracy
 #' and error matrix (confusion matrix)
 #'
 #' @references
@@ -58,7 +58,8 @@
 #'
 #' # Case (2) - Accuracy for classification of raster data
 #' # select a training set with two bands
-#' samples_modis_2bands <- sits_select(samples_modis_4bands, bands = c("NDVI", "EVI"))
+#' samples_modis_2bands <- sits_select(samples_modis_4bands,
+#'                                     bands = c("NDVI", "EVI"))
 #' # filter the samples for three classes (to simplify the example)
 #' samples_modis_2bands <- dplyr::filter(samples_modis_2bands, label %in%
 #'   c("Forest", "Pasture", "Soy_Corn"))
@@ -104,12 +105,12 @@
 #' @export
 #'
 #'
-sits_accuracy <- function(data, ...){
+sits_accuracy <- function(data, ...) {
     UseMethod("sits_accuracy", data)
 }
 #' @rdname sits_accuracy
 #' @export
-sits_accuracy.sits <- function(data, ...){
+sits_accuracy.sits <- function(data, ...) {
 
     # require package
     if (!requireNamespace("caret", quietly = TRUE)) {
@@ -219,7 +220,7 @@ sits_accuracy.classified_image <- function(data, ..., validation_csv) {
         colnames(xy) <- c("X", "Y")
 
         # extract values from cube
-        values <- .sits_raster_api_extract(
+        values <- .sits_cube_extract(
             cube = row,
             band_cube = labelled_band,
             xy = xy
@@ -254,10 +255,10 @@ sits_accuracy.classified_image <- function(data, ..., validation_csv) {
     )
 
     # Get area for each class for each row of the cube
-    freq_lst <- slider::slide(data, function(row) {
+    freq_lst <- slider::slide(data, function(tile) {
 
         # get the frequency count and value for each labelled image
-        freq <- .sits_raster_api_area_freq(row)
+        freq <- .sits_cube_area_freq(tile)
         # include class names
         freq <- dplyr::mutate(freq, class = labels_cube[freq$value])
         return(freq)

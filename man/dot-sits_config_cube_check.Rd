@@ -2,7 +2,8 @@
 % Please edit documentation in R/sits_config.R
 \name{.sits_config_cube_check}
 \alias{.sits_config_cube_check}
-\title{Check that the cube data source is valid, based on the configuration file}
+\title{Check that the cube data source is valid, based on the
+configuration file}
 \usage{
 .sits_config_cube_check(cube)
 }
@@ -13,7 +14,8 @@
 A logical value
 }
 \description{
-Check that the cube data source is valid, based on the configuration file
+Check that the cube data source is valid, based on the
+configuration file
 }
 \author{
 Gilberto Camara \email{gilberto.camara@inpe.br}

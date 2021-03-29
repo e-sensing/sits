@@ -29,9 +29,10 @@
 #' @param  roi             spatial region of interest
 #' @param  cube            input data cube.
 #' @return                 vector with information on the subimage
+#' @export
 .sits_roi_bbox.sf <- function(roi, cube) {
     bbox <- roi %>%
-        sf::st_transform(crs = cube[1,]$crs) %>%
+        sf::st_transform(crs = cube$crs[[1]]) %>%
         suppressWarnings() %>%
         sf::st_bbox()
 
@@ -43,6 +44,7 @@
 #' @param  cube            input data cube.
 #' @param  roi             spatial region of interest
 #' @return                 vector with information on the subimage
+#' @export
 .sits_roi_bbox.xy <- function(roi, cube) {
     return(roi)
 }
@@ -52,6 +54,7 @@
 #' @param  cube            input data cube.
 #' @param  roi             spatial region of interest
 #' @return                 vector with information on the subimage
+#' @export
 .sits_roi_bbox.ll <- function(roi, cube) {
     # region of interest defined by two points
     df <- data.frame(
@@ -65,5 +68,5 @@
         sf::st_cast("POLYGON")
 
     bbox <- sf::st_bbox(suppressWarnings(sf::st_transform(sf_region,
-                                                          crs = cube[1,]$crs)))
+                                                          crs = cube$crs[[1]])))
 }

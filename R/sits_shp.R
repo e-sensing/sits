@@ -86,7 +86,7 @@
     shp_df <- sf::st_drop_geometry(sf_shape)
 
     points_lst <- seq_len(nrow(sf_shape)) %>%
-        purrr::map(function(i){
+        purrr::map(function(i) {
             # retrieve the class from the shape attribute
             if (!purrr::is_null(shp_attr)) {
                 label <- as.character(unname(shp_df[i, shp_attr]))

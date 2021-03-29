@@ -27,19 +27,19 @@ and the accuracy (user, producer, and overall), or NULL if the data is empty.
 A confusion matrix assessment produced by the caret package.
 }
 \description{
-This function calculates the accuracy of the classification result.
-For a set of time series, it creates a confusion matrix and then calculates
-the resulting statistics using the R packge "caret".
-The time series needs to be classified using \code{\link[sits]{sits_classify}}.
+This function calculates the accuracy of the classification
+result. For a set of time series, it creates a confusion matrix and then
+calculates the resulting statistics using the R packge "caret". The time
+series needs to be classified using \code{\link[sits]{sits_classify}}.
 
 Classified images are generated using \code{\link[sits]{sits_classify}}
 followed by \code{\link[sits]{sits_label_classification}}.
-For a classified image, the function uses an area-weighted technique proposed by
-Olofsson et al. according to [1-3] to produce more reliable accuracy estimates
-at 95% confidence level.
+For a classified image, the function uses an area-weighted technique
+proposed by Olofsson et al. according to [1-3] to produce more reliable
+accuracy estimates at 95% confidence level.
 
-In both cases, it provides an accuracy assessment of the classified, including
-Overall Accuracy, Kappa, User's Accuracy, Producer's Accuracy
+In both cases, it provides an accuracy assessment of the classified,
+including Overall Accuracy, Kappa, User's Accuracy, Producer's Accuracy
 and error matrix (confusion matrix)
 }
 \examples{
@@ -56,7 +56,8 @@ acc <- sits_accuracy(predicted)
 
 # Case (2) - Accuracy for classification of raster data
 # select a training set with two bands
-samples_modis_2bands <- sits_select(samples_modis_4bands, bands = c("NDVI", "EVI"))
+samples_modis_2bands <- sits_select(samples_modis_4bands,
+                                    bands = c("NDVI", "EVI"))
 # filter the samples for three classes (to simplify the example)
 samples_modis_2bands <- dplyr::filter(samples_modis_2bands, label \%in\%
   c("Forest", "Pasture", "Soy_Corn"))

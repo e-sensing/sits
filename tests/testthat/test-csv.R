@@ -34,5 +34,3 @@ test_that("Metadata to CSV - error", {
         )
     )
 })
-
-

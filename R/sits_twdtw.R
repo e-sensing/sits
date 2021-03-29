@@ -94,18 +94,6 @@ sits_twdtw_classify <- function(samples,
     # does the input data exist?
     .sits_test_tibble(samples)
 
-    # add a progress bar
-    progress_bar <- NULL
-    if (nrow(samples) > 10) {
-        message("Matching patterns to time series...")
-        progress_bar <- utils::txtProgressBar(
-            min = 0,
-            max = nrow(samples),
-            style = 3
-        )
-        i <- 0
-    }
-
     # check the bands
     bands <- .sits_samples_bands_check(samples, bands)
 
@@ -140,13 +128,6 @@ sits_twdtw_classify <- function(samples,
             )
             return(matches)
         })
-
-    # update progress bar
-    if (!purrr::is_null(progress_bar)) {
-            i <- i + 1
-            utils::setTxtProgressBar(progress_bar, i)
-    }
-    if (!purrr::is_null(progress_bar)) close(progress_bar)
 
     if (.plot)
         .sits_plot_twdtw_alignments(matches_lst)

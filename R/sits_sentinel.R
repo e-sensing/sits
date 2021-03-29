@@ -114,9 +114,9 @@
     # list to store the info about the tiles to provide the query in STAC
     list_tiles <- list()
     list_tiles <- purrr::map(tiles, function(tile) {
-        list_tiles$utm_zone = substring(tile, 1, 2)
-        list_tiles$lat_band = substring(tile, 3, 3)
-        list_tiles$grid_square = substring(tile, 4, 5)
+        list_tiles$utm_zone <- substring(tile, 1, 2)
+        list_tiles$lat_band <- substring(tile, 3, 3)
+        list_tiles$grid_square <- substring(tile, 4, 5)
 
         list_tiles
     })
@@ -166,8 +166,11 @@
     # Adding the spatial resolution in the band URL
     file_info <-
         dplyr::mutate(file_info,
-                      path = gsub("R[0-9]{2}m", paste0("R", resolution, "m"), path),
-                      res = as.integer(resolution), .before = path)
+                      path = gsub("R[0-9]{2}m",
+                                  paste0("R", resolution, "m"),
+                                  path),
+                      res = as.integer(resolution),
+                      .before = path)
     return(file_info)
 }
 
@@ -183,13 +186,14 @@
 #'
 #' @return           a \code{tibble} with metadata information about a
 #'                   raster data set.
-.sits_s2_aws_tile_cube <- function(name, items, collection, resolution, file_info) {
+.sits_s2_aws_tile_cube <- function(name,
+                                   items,
+                                   collection,
+                                   resolution,
+                                   file_info) {
 
     # store items properties attributes
     item_prop <- items$features[[1]]$properties
-
-    # obtain the timeline
-    timeline <- unique(lubridate::as_date(file_info$date))
 
     # select bands by provided resolution
     file_info <- .sits_s2_aws_add_res(file_info, resolution)

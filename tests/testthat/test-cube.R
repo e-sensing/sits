@@ -25,7 +25,7 @@ test_that("Reading a raster cube", {
     bands <- sits_bands(raster_cube)
     expect_true(all(bands %in% c("NDVI", "EVI")))
 
-    params <- sits:::.sits_raster_api_params_file(raster_cube$file_info[[1]]$path)
+    params <- .sits_raster_api_params_file(raster_cube$file_info[[1]]$path)
     expect_true(params$nrows == 144)
     expect_true(params$ncols == 254)
     expect_true(params$xres >= 231.5)
@@ -49,8 +49,8 @@ test_that("Creating a raster stack cube and selecting bands", {
 
     expect_true(all(sits_bands(cbers_cube) %in%
                       c("B13", "B14", "B15", "B16", "CMASK")))
-    rast <- suppressWarnings(terra::rast(cbers_cube$file_info[[1]]$path[1]))
-    expect_true(terra::nrow(rast) == cbers_cube[1, ]$nrows)
+    rast <- .sits_raster_api_open_rast(cbers_cube$file_info[[1]]$path[[1]])
+    expect_true(.sits_raster_api_nrows(rast) == cbers_cube$nrows[[1]])
     timeline <- sits_timeline(cbers_cube)
     expect_true(timeline[1] == "2018-02-02")
 
@@ -74,26 +74,26 @@ test_that("Creating cubes from BDC", {
         name = "cbers_022024_ndvi",
         collection = "CB4_64_16D_STK-1",
         bands = c("NDVI", "EVI"),
-        tiles = c("022024","022023"),
+        tiles = c("022024", "022023"),
         start_date = "2018-09-01",
         end_date = "2019-08-29"
       )
       expect_true(all(sits_bands(cbers_cube) %in% c("NDVI", "EVI")))
       bbox <- sits_bbox(cbers_cube)
-      int_bbox <- sits:::.sits_bbox_intersect(bbox, cbers_cube[1,])
-      expect_true(all(int_bbox == sits_bbox(cbers_cube[1,])))
+      int_bbox <- sits:::.sits_bbox_intersect(bbox, cbers_cube[1, ])
+      expect_true(all(int_bbox == sits_bbox(cbers_cube[1, ])))
 
       timeline <- sits_timeline(cbers_cube)
       expect_true(timeline[1] <= as.Date("2018-09-01"))
       expect_true(timeline[length(timeline)] <= as.Date("2019-08-29"))
 
       gdal_info <- suppressWarnings(
-        rgdal::GDALinfo(cbers_cube[1,]$file_info[[1]]$path[1]))
-      expect_true(gdal_info["rows"] == cbers_cube[1,]$nrows)
+        rgdal::GDALinfo(cbers_cube$file_info[[1]]$path[1]))
+      expect_true(gdal_info["rows"] == cbers_cube$nrows[[1]])
 
       gdal_info2 <- suppressWarnings(
-        rgdal::GDALinfo(cbers_cube[2,]$file_info[[1]]$path[1]))
-      expect_true(gdal_info2["rows"] == cbers_cube[2,]$nrows)
+        rgdal::GDALinfo(cbers_cube$file_info[[2]]$path[1]))
+      expect_true(gdal_info2["rows"] == cbers_cube$nrows[[2]])
     }
 
 })
@@ -125,10 +125,10 @@ test_that("Creating cubes from DEA", {
   expect_true(all(sits_bands(dea_cube) %in% c("B01", "B04", "B05")))
 
   file_info <- dea_cube$file_info[[1]]
-  r <- terra::rast(file_info[1,]$path)
+  r <- .sits_raster_api_open_rast(file_info$path[[1]])
 
-  expect_equal(dea_cube$xmax[[1]], terra::xmax(r), tolerance = 1)
-  expect_equal(dea_cube$xmin[[1]], terra::xmin(r), tolerance = 1)
+  expect_equal(dea_cube$xmax[[1]], .sits_raster_api_xmax(r), tolerance = 1)
+  expect_equal(dea_cube$xmin[[1]], .sits_raster_api_xmin(r), tolerance = 1)
 })
 
 test_that("Merging cubes", {
@@ -169,11 +169,15 @@ test_that("Creating cubes from AWS and regularizing them", {
     # check "AWS_SECRET_ACCESS_KEY" - mandatory one per user
     aws_secret_access_key <- Sys.getenv("AWS_SECRET_ACCESS_KEY")
 
-    testthat::skip_if(nchar(aws_access_key_id) == 0,
-                      message = "No AWS_ACCESS_KEY_ID defined in environment.")
+    testthat::skip_if(
+        nchar(aws_access_key_id) == 0,
+        message = "No AWS_ACCESS_KEY_ID defined in environment."
+    )
 
-    testthat::skip_if(nchar(aws_secret_access_key) == 0,
-                      message = "No AWS_SECRET_ACCESS_KEY defined in environment.")
+    testthat::skip_if(
+        nchar(aws_secret_access_key) == 0,
+        message = "No AWS_SECRET_ACCESS_KEY defined in environment."
+    )
 
     Sys.unsetenv("AWS_DEFAULT_REGION")
     Sys.unsetenv("AWS_ENDPOINT")
@@ -183,7 +187,7 @@ test_that("Creating cubes from AWS and regularizing them", {
                          name = "T20LKP_2018_2019",
                          collection = "sentinel-s2-l2a",
                          s2_resolution = 60,
-                         tiles = c("20LKP","20LLP"),
+                         tiles = c("20LKP", "20LLP"),
                          bands = c("B08", "SCL"),
                          start_date = "2018-07-30",
                          end_date = "2018-09-30"
@@ -192,14 +196,14 @@ test_that("Creating cubes from AWS and regularizing them", {
     expect_true(all(sits_bands(s2_cube) %in% c("B08", "SCL")))
 
     file_info <- s2_cube$file_info[[1]]
-    r <- terra::rast(file_info$path[[1]])
+    r <- .sits_raster_api_open_rast(file_info$path[[1]])
 
-    expect_equal(s2_cube$nrows[[1]], terra::nrow(r))
-    expect_equal(s2_cube$ncols[[1]], terra::ncol(r))
-    expect_equal(s2_cube$xmax[[1]], terra::xmax(r))
-    expect_equal(s2_cube$xmin[[1]], terra::xmin(r))
+    expect_equal(s2_cube$nrows[[1]], .sits_raster_api_nrows(r))
+    expect_equal(s2_cube$ncols[[1]], .sits_raster_api_ncols(r))
+    expect_equal(s2_cube$xmax[[1]], .sits_raster_api_xmax(r))
+    expect_equal(s2_cube$xmin[[1]], .sits_raster_api_xmin(r))
 
-    dir_images <-  paste0(tempdir(),"/images/")
+    dir_images <-  paste0(tempdir(), "/images/")
     if (!dir.exists(dir_images))
         suppressWarnings(dir.create(dir_images))
 
@@ -225,8 +229,9 @@ test_that("Creating cubes from AWS and regularizing them", {
 test_that("Creating cubes from classified images", {
     # Create a raster cube based on bricks
     # inform the files that make up a raster probs brick with 23 time instances
-    probs_file <- c(system.file("extdata/raster/probs/sinop-2014_probs_2013_9_2014_8_v1.tif",
-                          package = "sits"
+    probs_file <- c(system.file(
+        "extdata/raster/probs/sinop-2014_probs_2013_9_2014_8_v1.tif",
+        package = "sits"
     ))
 
     # inform the labels
@@ -267,7 +272,7 @@ test_that("Cube copy", {
 
     bbox <- sits_bbox(cbers_022024)
     x_size <- bbox["xmax"] - bbox["xmin"]
-    bbox["xmax"] <- bbox["xmin"] + x_size/2
+    bbox["xmax"] <- bbox["xmin"] + x_size / 2
 
     cbers_022024_copy <- sits_cube_copy(cbers_022024,
         name = "cb_022024_cp",
@@ -299,7 +304,8 @@ test_that("Creating a raster stack cube and renaming bands", {
     )
     expect_true(all(sits_bands(cbers_cube2) %in%
                         c("B13", "B14", "B15", "B16", "CMASK")))
-    sits_bands(cbers_cube2) <- c("BAND13", "BAND14", "BAND15", "BAND16", "CLOUD")
+    sits_bands(cbers_cube2) <- c("BAND13", "BAND14", "BAND15",
+                                 "BAND16", "CLOUD")
     expect_true(all(sits_bands(cbers_cube2) %in%
                         c("BAND13", "BAND14", "BAND15", "BAND16", "CLOUD")))
 
@@ -323,4 +329,3 @@ test_that("Creating a raster stack cube with BDC band names", {
                     c("B13", "B14", "B15", "B16", "CMASK")))
 
 })
-

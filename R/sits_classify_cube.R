@@ -20,7 +20,8 @@
 #' @param  roi             region of interest
 #' @param  filter_fn       smoothing filter function to be applied to the data.
 #' @param  impute_fn       impute function to replace NA
-#' @param  interp_fn       function to interpolate points from cube to match samples
+#' @param  interp_fn       function to interpolate points from cube to match
+#'                         samples
 #' @param  compose_fn      function to compose points from cube to match samples
 #' @param  memsize         memory available for classification (in GB).
 #' @param  multicores      number of cores.
@@ -45,10 +46,11 @@
     if ("keras_model" %in% class(ml_model) | "ranger_model" %in% class(ml_model)
         | "xgb_model" %in% class(ml_model))
         multicores <- 1
+
     # retrieve the samples from the model
     samples <- .sits_ml_model_samples(ml_model)
 
-    # retrieve the labels
+    # get samples labels
     labels <- sits_labels(samples)
 
     # precondition - are the samples empty?
@@ -93,11 +95,11 @@
 
     # create the metadata for the probability cube
     probs_cube <- .sits_cube_probs(
-        tile = tile,
-        samples = samples,
-        sub_image = sub_image,
+        tile       = tile,
+        samples    = samples,
+        sub_image  = sub_image,
         output_dir = output_dir,
-        version = version
+        version    = version
     )
 
     # show initial time for classification
@@ -151,23 +153,48 @@
             "_block_", b["row"], ".tif"
         )
 
+        # compute block spatial parameters
+        params <- .sits_cube_params_block(probs_cube, b)
+
+        # create a new raster
+        r_obj <- .sits_raster_api_new_rast(
+            nrows = params$nrows,
+            ncols = params$ncols,
+            xmin = params$xmin,
+            xmax = params$xmax,
+            ymin = params$ymin,
+            ymax = params$ymax,
+            nlayers = length(labels),
+            crs = params$crs
+        )
+
+        # copy values
+        r_obj <- .sits_raster_api_set_values(r_obj = r_obj,
+                                             values = pred_block)
+
         # write the probabilities to a raster file
-        .sits_raster_api_write(
-            params = .sits_raster_api_params_block(probs_cube, b),
-            num_layers = length(labels),
-            values = pred_block,
-            filename = filename_block,
-            datatype = "INT2U"
+        .sits_raster_api_write_rast(
+            r_obj = r_obj,
+            file = filename_block,
+            format = "GTiff",
+            data_type = .sits_raster_api_data_type("INT2U"),
+            gdal_options = .sits_config_gtiff_default_options(),
+            overwrite = TRUE
         )
 
         return(filename_block)
     }, .progress = TRUE)
 
+    filenames <- unlist(filenames)
+
     # Join the predictions
-    .sits_raster_api_merge(in_files = unlist(filenames),
-                           out_file = probs_cube$file_info[[1]]$path,
-                           gdal_datatype = "UInt16",
-                           overwrite = TRUE
+    .sits_raster_api_merge(
+        in_files = filenames,
+        out_file = probs_cube$file_info[[1]]$path,
+        format = "GTiff",
+        gdal_datatype = .sits_raster_api_gdal_datatype("INT2U"),
+        gdal_options = .sits_config_gtiff_default_options(),
+        overwrite = TRUE
     )
 
     # show final time for classification

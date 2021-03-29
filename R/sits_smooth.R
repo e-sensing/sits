@@ -31,7 +31,8 @@
 #' @param  tau               Standard deviation of the class probs value
 #'                           (for bilinear smoothing)
 #' @param  multicores        Number of cores to run the smoothing function
-#' @param  memsize           Maximum overall memory (in GB) to run the smoothing.
+#' @param  memsize           Maximum overall memory (in GB) to run the
+#'                           smoothing.
 #' @param  output_dir        Output directory where to out the file
 #' @param  version           Version of resulting image
 #'                           (in the case of multiple tests)
@@ -129,7 +130,7 @@ sits_smooth.bayes <- function(cube, type = "bayes", ...,
     )
 
     # find out how many labels exist
-    n_labels <- length(sits_labels(cube[1,]))
+    n_labels <- length(sits_labels(cube[1, ]))
 
     # precondition 3 - test variance
     if (is.matrix(smoothness)) {
@@ -178,7 +179,7 @@ sits_smooth.bayes <- function(cube, type = "bayes", ...,
     # Bayesian smoother to be executed by workers cluster
     .do_bayes <- function(chunk) {
 
-        data <- unname(raster::values(chunk))
+        data <- .sits_raster_api_get_values(chunk)
 
         # fix probabilities
         maxprob <- mult_factor - ncol(data) + 1
@@ -190,8 +191,8 @@ sits_smooth.bayes <- function(cube, type = "bayes", ...,
 
         # process Bayesian
         data <- bayes_smoother(m = logit,
-                               m_nrow = raster::nrow(chunk),
-                               m_ncol = raster::ncol(chunk),
+                               m_nrow = .sits_raster_api_nrows(chunk),
+                               m_ncol = .sits_raster_api_ncols(chunk),
                                w = window,
                                sigma = smoothness,
                                covar_sigma0 = covar)
@@ -200,23 +201,28 @@ sits_smooth.bayes <- function(cube, type = "bayes", ...,
         data <- exp(data) * mult_factor / (exp(data) + 1)
 
         # create cube smooth
-        res <- raster::brick(chunk, nl = raster::nlayers(chunk))
-        res[] <- data
+        res <- .sits_raster_api_rast(r_obj = chunk,
+                                     nlayers = .sits_raster_api_nlayers(chunk))
+
+        # copy values
+        res <- .sits_raster_api_set_values(r_obj = res,
+                                           values = data)
 
         return(res)
     }
 
     # process each brick layer (each time step) individually
-    .sits_map_layer_cluster(cube = cube,
-                            cube_out = cube_bayes,
-                            overlapping_y_size =
-                                ceiling(window_size / 2) - 1,
-                            func = .do_bayes,
-                            multicores = multicores,
-                            memsize = memsize,
-                            datatype = "Int16",
-                            options = c("COMPRESS=LZW",
-                                        "BIGTIFF=YES"))
+    .sits_map_layer_cluster(
+        cube = cube,
+        cube_out = cube_bayes,
+        overlapping_y_size =
+            ceiling(window_size / 2) - 1,
+        func = .do_bayes,
+        multicores = multicores,
+        memsize = memsize,
+        gdal_datatype = .sits_raster_api_gdal_datatype("INT2U"),
+        gdal_options = .sits_config_gtiff_default_options()
+    )
 
     return(cube_bayes)
 }
@@ -284,33 +290,37 @@ sits_smooth.gaussian <- function(cube, type = "gaussian", ...,
     .do_gauss <- function(chunk) {
 
         # scale probabilities
-        data <- unname(raster::values(chunk) * scale_factor)
+        data <- .sits_raster_api_get_values(chunk) * scale_factor
 
         # process Gaussian smoother
         data <- kernel_smoother(m = data,
-                                m_nrow = raster::nrow(chunk),
-                                m_ncol = raster::ncol(chunk),
+                                m_nrow = .sits_raster_api_nrows(chunk),
+                                m_ncol = .sits_raster_api_ncols(chunk),
                                 w = gauss_kernel,
                                 normalised = TRUE)
 
         # create cube smooth
-        res <- raster::brick(chunk, nl = raster::nlayers(chunk))
-        res[] <- data * mult_factor
+        res <- .sits_raster_api_rast(r_obj = chunk,
+                                     nlayers = .sits_raster_api_nlayers(chunk))
 
+        # copy values
+        res <- .sits_raster_api_set_values(r_obj = res,
+                                           values = data * mult_factor)
         return(res)
     }
 
     # process each brick layer (each time step) individually
-    .sits_map_layer_cluster(cube = cube,
-                            cube_out = cube_gauss,
-                            overlapping_y_size =
-                                ceiling(window_size / 2) - 1,
-                            func = .do_gauss,
-                            multicores = multicores,
-                            memsize = memsize,
-                            datatype = "Int16",
-                            options = c("COMPRESS=LZW",
-                                        "BIGTIFF=YES"))
+    .sits_map_layer_cluster(
+        cube = cube,
+        cube_out = cube_gauss,
+        overlapping_y_size =
+            ceiling(window_size / 2) - 1,
+        func = .do_gauss,
+        multicores = multicores,
+        memsize = memsize,
+        gdal_datatype = .sits_raster_api_gdal_datatype("INT2U"),
+        gdal_options = .sits_config_gtiff_default_options()
+    )
 
     return(cube_gauss)
 }
@@ -387,33 +397,38 @@ sits_smooth.bilinear <- function(cube,
     .do_bilinear <- function(chunk) {
 
         # scale probabilities
-        data <- unname(raster::values(chunk) * scale_factor)
+        data <- .sits_raster_api_get_values(chunk) * scale_factor
 
         # process bilinear smoother
         data <- bilinear_smoother(m = data,
-                                  m_nrow = raster::nrow(chunk),
-                                  m_ncol = raster::ncol(chunk),
+                                  m_nrow = .sits_raster_api_nrows(chunk),
+                                  m_ncol = .sits_raster_api_ncols(chunk),
                                   w = gauss_kernel,
                                   tau = tau)
 
         # create cube smooth
-        res <- raster::brick(chunk, nl = raster::nlayers(chunk))
-        res[] <- data * mult_factor
+        res <- .sits_raster_api_rast(r_obj = chunk,
+                                     nlayers = .sits_raster_api_nlayers(chunk))
+
+        # copy values
+        res <- .sits_raster_api_set_values(r_obj = res,
+                                           values = data * mult_factor)
 
         return(res)
     }
 
     # process each brick layer (each time step) individually
-    .sits_map_layer_cluster(cube = cube,
-                            cube_out = cube_bilinear,
-                            overlapping_y_size =
-                                ceiling(window_size / 2) - 1,
-                            func = .do_bilinear,
-                            multicores = multicores,
-                            memsize = memsize,
-                            datatype = "Int16",
-                            options = c("COMPRESS=LZW",
-                                        "BIGTIFF=YES"))
+    .sits_map_layer_cluster(
+        cube = cube,
+        cube_out = cube_bilinear,
+        overlapping_y_size =
+            ceiling(window_size / 2) - 1,
+        func = .do_bilinear,
+        multicores = multicores,
+        memsize = memsize,
+        gdal_datatype = .sits_raster_api_gdal_datatype("INT2U"),
+        gdal_options = .sits_config_gtiff_default_options()
+    )
 
     return(cube_bilinear)
 }

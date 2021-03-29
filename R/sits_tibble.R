@@ -148,8 +148,8 @@ sits_mutate_bands <- function(data, ...) {
 #'              this new tibble contains a given number or percentage
 #'              of the total number of samples per group.
 #'              Parameter n: number of random samples with replacement.
-#'              Parameter frac: a fraction of random samples without replacement.
-#'              If frac > 1, no sampling is done.
+#'              Parameter frac: a fraction of random samples without
+#'              replacement. If frac > 1, no sampling is done.
 #'
 #' @param  data       Input sits tibble.
 #' @param  n          Number of samples to pick from each group of data.

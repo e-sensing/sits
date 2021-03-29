@@ -11,7 +11,8 @@ sits_som_evaluate_cluster(som_map)
 by \code{\link[sits]{sits_som_map}}}
 }
 \value{
-A tibble with the cluster and the percentage of classes mixtured in each cluster.
+A tibble with the cluster and the percentage of classes
+ mixtured in each cluster.
 }
 \description{
 This function evaluate the clusters created by

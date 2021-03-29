@@ -38,8 +38,6 @@
     xres <- res["xres"]
     yres <- res["yres"]
 
-    URL <- .sits_config_satveg_access()
-
     # create a tibble to store the metadata
     cube_satveg <- .sits_cube_create(
         name = "satveg",

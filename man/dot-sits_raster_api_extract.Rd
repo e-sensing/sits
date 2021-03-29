@@ -2,25 +2,24 @@
 % Please edit documentation in R/sits_raster_api.R
 \name{.sits_raster_api_extract}
 \alias{.sits_raster_api_extract}
-\title{Given a band, return a set of values for chosen location}
+\title{Raster package internal extract values function}
 \usage{
-.sits_raster_api_extract(cube, band_cube, xy)
+.sits_raster_api_extract(r_obj, xy, ...)
 }
 \arguments{
-\item{cube}{Metadata about a data cube}
+\item{r_obj}{raster package object}
 
-\item{band_cube}{Name of the band to the retrieved}
+\item{xy}{numeric matrix with coordinates}
 
-\item{xy}{Matrix with XY location}
+\item{...}{additional parameters to be passed to raster package}
 }
 \value{
-Matrix with values extracted from image files
+numeric matrix with raster values for each coordinate
 }
 \description{
-Given a data cube, retrieve the timeline
-                      (uses the terra package which is faster than raster)
+Raster package internal extract values function
 }
 \author{
-Gilberto Camara, \email{gilberto.camara@inpe.br}
+Rolf Simoes, \email{rolf.simoes@inpe.br}
 }
 \keyword{internal}

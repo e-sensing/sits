@@ -18,11 +18,11 @@ test_that("Internal", {
 })
 
 test_that("Show", {
-    con <- file(paste0(tempdir(),"config.txt"))
+    con <- file(paste0(tempdir(), "config.txt"))
     writeLines(capture.output(sits_config_show()), con)
     close(con)
 
-    lin <- readLines(paste0(tempdir(),"config.txt"))
+    lin <- readLines(paste0(tempdir(), "config.txt"))
 
     expect_equal(lin[1], "default:")
     expect_true(grepl("bloat", lin[5]))

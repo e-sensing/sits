@@ -79,21 +79,27 @@ sits_label_classification <- function(cube,
     .do_map <- function(chunk) {
 
         # create cube smooth
-        res <- raster::brick(chunk, nl = 1)
-        res[] <- apply(unname(raster::values(chunk)), 1, which.max)
+        res <- .sits_raster_api_rast(r_obj = chunk, nlayers = 1)
+
+        # get layer of max probability
+        values <- apply(.sits_raster_api_get_values(chunk), 1, which.max)
+
+        # save result
+        res <- .sits_raster_api_set_values(r_obj = res, values = values)
         return(res)
     }
 
     # process each brick layer (each tile) individually
-    .sits_map_layer_cluster(cube = cube,
-                            cube_out = label_cube,
-                            overlapping_y_size = 0,
-                            func = .do_map,
-                            multicores = multicores,
-                            memsize = memsize,
-                            datatype = "Byte",
-                            options = c("COMPRESS=LZW",
-                                        "BIGTIFF=YES"))
+    .sits_map_layer_cluster(
+        cube = cube,
+        cube_out = label_cube,
+        overlapping_y_size = 0,
+        func = .do_map,
+        multicores = multicores,
+        memsize = memsize,
+        gdal_datatype = .sits_raster_api_gdal_datatype("INT1U"),
+        gdal_options = .sits_config_gtiff_default_options()
+    )
 
     return(label_cube)
 }
@@ -167,7 +173,7 @@ sits_label_majority <- function(cube,
     )
 
     cube_maj <- .sits_cube_clone(cube = cube,
-                                 name = paste0(cube$name,"_maj"),
+                                 name = paste0(cube$name, "_maj"),
                                  ext = "_maj",
                                  output_dir = output_dir,
                                  version = version)
@@ -177,30 +183,31 @@ sits_label_majority <- function(cube,
     out_files <- cube_maj$file_info[[1]]$path
 
     purrr::map2(in_files, out_files, function(in_file, out_file) {
+
         # read the input classified image
-        layer <- terra::rast(in_file)
+        r_obj <- .sits_raster_api_open_rast(in_file)
+
         # calculate the majority values
-        layer <- terra::focal(
-            x = layer,
-            w = window_size,
-            na.rm = TRUE,
-            fun = terra::modal
+        r_obj <- .sits_raster_api_focal(
+            r_obj = r_obj,
+            window_size = window_size,
+            fn = "modal",
+            na.rm = TRUE
         )
+
         # write the result
-        suppressWarnings(terra::writeRaster(
-            layer,
-            filename = out_file,
-            wopt = list(
-                filetype = "GTiff",
-                datatype = "INT1U",
-                gdal = c("COMPRESS=LZW")
-            ),
+        .sits_raster_api_write_rast(
+            r_obj = r_obj,
+            file = out_file,
+            format = "GTiff",
+            data_type = .sits_raster_api_data_type("INT1U"),
+            gdal_options = .sits_config_gtiff_default_options(),
             overwrite = TRUE
-        ))
+        )
 
         # was the file written correctly?
         assertthat::assert_that(
-            file.info(out_file)$size > 0,
+            file.exists(out_file),
             msg = "sits_label_majority: unable to save raster object"
         )
 
@@ -229,8 +236,6 @@ sits_label_majority <- function(cube,
 
         # labels come from the input cube
         labels <- sits_labels(probs_row)
-        # get timeline from input cube
-        timeline <- sits_timeline(probs_row)
 
         # name of the cube
         name <- paste0(probs_row$name, "_class")
@@ -255,9 +260,9 @@ sits_label_majority <- function(cube,
             tools::file_path_sans_ext() %>%
             strsplit(split = "_") %>%
             unlist() %>%
-            .[1:length(.) - 1] %>%
+            .[seq_along(.) - 1] %>%
             paste0(collapse = "_") %>%
-            paste0(output_dir,"/", ., "_", version, ".tif")
+            paste0(output_dir, "/", ., "_", version, ".tif")
 
         # get the file information
         file_info <- tibble::tibble(

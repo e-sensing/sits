@@ -134,7 +134,7 @@
       si["first_row"] <- 1
     else {
       si["first_row"] <- unname(
-        floor((cube$ymax - bbox["ymax"])/cube$yres)) + 1
+        floor((cube$ymax - bbox["ymax"]) / cube$yres)) + 1
       # adjust to fit bbox in cube resolution
       si["ymax"] <- cube$ymax - cube$yres * (si["first_row"] - 1)
     }
@@ -144,7 +144,7 @@
         si["first_col"] <- 1
     else {
         si["first_col"] <- unname(
-            floor((bbox["xmin"] - cube$xmin)/cube$xres)
+            floor((bbox["xmin"] - cube$xmin) / cube$xres)
         ) + 1
         # adjust to fit bbox in cube resolution
         si["xmin"] <- cube$xmin + cube$xres * (si["first_col"] - 1)
@@ -156,7 +156,7 @@
         si["nrows"] <- cube$nrows - unname(si["first_row"]) + 1
     else {
         si["nrows"] <- unname(
-            floor((bbox["ymax"] - bbox["ymin"])/cube$yres)) + 1
+            floor((bbox["ymax"] - bbox["ymin"]) / cube$yres)) + 1
         # adjust to fit bbox in cube resolution
         si["ymin"] <- si["ymax"] - cube$yres * si["nrows"]
     }
@@ -165,7 +165,7 @@
         si["ncols"] <- cube$ncols - unname(si["first_col"]) + 1
     else {
         si["ncols"] <- unname(
-            floor((bbox["xmax"] - bbox["xmin"])/cube$xres)) + 1
+            floor((bbox["xmax"] - bbox["xmin"]) / cube$xres)) + 1
         # adjust to fit bbox in cube resolution
         si["xmax"] <- si["xmin"] + cube$yres * si["ncols"]
     }

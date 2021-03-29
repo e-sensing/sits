@@ -9,7 +9,8 @@
 #' @param  stats           normalization parameters.
 #' @param  filter_fn          smoothing filter to be applied.
 #' @param  impute_fn       impute function to replace NA
-#' @param  interp_fn       function to interpolate points from cube to match samples
+#' @param  interp_fn       function to interpolate points from cube to
+#'                         match samples
 #' @param  compose_fn      function to compose points from cube to match samples
 #' @return A data.table with values for classification.
 .sits_raster_data_read <- function(cube,
@@ -87,7 +88,8 @@
     )
 
     # read the values
-    values <- .sits_raster_api_read_extent(bnd_files, extent)
+    values <- .sits_raster_api_read_stack(files  = bnd_files,
+                                          block = extent)
 
     # get the missing values, minimum values and scale factors
     missing_value <- .sits_config_missing_values(cube$sensor, band_cube)
@@ -104,7 +106,8 @@
 
     if (cld_band %in% sits_bands(cube)) {
         cld_files <- dplyr::filter(file_info, band == cld_band)$path
-        clouds <- .sits_raster_api_read_extent(cld_files, extent)
+        clouds <- .sits_raster_api_read_stack(files  = cld_files,
+                                              block = extent)
     }
     else {
         clouds <- NULL
@@ -277,7 +280,7 @@
         # retrieve values that indicate clouds
         cld_index <- .sits_config_cloud_values(cube)
         # get the values of the time series (terra object)
-        cld_values <- .sits_raster_api_extract(cube, cld_band, xy)
+        cld_values <- .sits_cube_extract(cube, cld_band, xy)
     }
     # Retrieve values on a band by band basis
     # using parallel processing
@@ -286,7 +289,7 @@
     ts_bands <- bands %>%
         furrr::future_map(function(band) {
             # get the values of the time series as matrix
-            values_band <- .sits_raster_api_extract(cube, band, xy)
+            values_band <- .sits_cube_extract(cube, band, xy)
 
             # each row of the values matrix is a spatial point
             ts_band_lst <- seq_len(nrow(values_band)) %>%

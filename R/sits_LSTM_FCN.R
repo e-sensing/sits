@@ -142,7 +142,7 @@ sits_LSTM_FCN <- function(samples = NULL,
         # build the 1D nodes
         n_layers <- length(cnn_layers)
         seq_len(n_layers) %>%
-            purrr::map(function(i){
+            purrr::map(function(i) {
                 # Add a 1D CNN layer
                 ot <- keras::layer_conv_1d(output_tensor,
                                            filters = cnn_layers[i],

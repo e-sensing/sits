@@ -28,7 +28,8 @@
 
 \item{impute_fn}{impute function to replace NA}
 
-\item{interp_fn}{function to interpolate points from cube to match samples}
+\item{interp_fn}{function to interpolate points from cube to
+match samples}
 
 \item{compose_fn}{function to compose points from cube to match samples}
 }

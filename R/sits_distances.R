@@ -104,6 +104,7 @@
     }
     n_rows_dist <- nrow(distances)
     if (multicores > 1) {
+
         blocks <- split.data.frame(
             distances,
             cut(1:n_rows_dist,
@@ -113,15 +114,14 @@
         )
         oplan <- future::plan("multisession", workers = multicores)
         on.exit(future::plan(oplan), add = TRUE)
+
         # apply parallel processing to the split data
-        results <- furrr::future_map(blocks, function(b){
-            classify_block(b)}
-        )
+        results <- furrr::future_map(blocks, function(b) {
+            classify_block(b)
+        })
 
         # fix 'Error: Tibble columns must have compatible sizes'
         predicted <- do.call(rbind, results)
-
-        # predicted <- join_blocks(results)
     }
     else {
         predicted <- classify_block(distances)
