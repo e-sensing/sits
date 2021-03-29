@@ -23,7 +23,7 @@ sits_classify(data, ml_model, ...)
   end_date = NULL,
   memsize = 8,
   multicores = 2,
-  output_dir = "./",
+  output_dir = tempdir(),
   version = "v1",
   verbose = FALSE
 )
