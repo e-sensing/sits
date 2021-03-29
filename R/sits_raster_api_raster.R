@@ -200,7 +200,7 @@
 #' @export
 .sits_raster_api_nlayers.raster <- function(r_obj, ...) {
 
-    raster::nlyr(x = r_obj)
+    raster::nlayers(x = r_obj)
 }
 
 #' @keywords internal
