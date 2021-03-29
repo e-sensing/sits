@@ -89,7 +89,7 @@
 
     # read the values
     values <- .sits_raster_api_read_stack(files  = bnd_files,
-                                          extent = extent)
+                                          block = extent)
 
     # get the missing values, minimum values and scale factors
     missing_value <- .sits_config_missing_values(cube$sensor, band_cube)
@@ -107,7 +107,7 @@
     if (cld_band %in% sits_bands(cube)) {
         cld_files <- dplyr::filter(file_info, band == cld_band)$path
         clouds <- .sits_raster_api_read_stack(files  = cld_files,
-                                              extent = extent)
+                                              block = extent)
     }
     else {
         clouds <- NULL

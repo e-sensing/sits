@@ -1009,3 +1009,14 @@ sits_config_show <- function() {
 
   return(pkg_name)
 }
+#' @title GDAL GTiff creation options
+#' @name .sits_config_gtiff_default_options
+#' @keywords internal
+#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
+#'
+#' @return character vector with GDAL creation options
+.sits_config_gtiff_default_options <- function() {
+
+  # return
+  return(sits_env$config[["GTiff_default_options"]])
+}

@@ -212,16 +212,17 @@ sits_smooth.bayes <- function(cube, type = "bayes", ...,
     }
 
     # process each brick layer (each time step) individually
-    .sits_map_layer_cluster(cube = cube,
-                            cube_out = cube_bayes,
-                            overlapping_y_size =
-                                ceiling(window_size / 2) - 1,
-                            func = .do_bayes,
-                            multicores = multicores,
-                            memsize = memsize,
-                            datatype = "Int16",
-                            options = c("COMPRESS=LZW",
-                                        "BIGTIFF=YES"))
+    .sits_map_layer_cluster(
+        cube = cube,
+        cube_out = cube_bayes,
+        overlapping_y_size =
+            ceiling(window_size / 2) - 1,
+        func = .do_bayes,
+        multicores = multicores,
+        memsize = memsize,
+        gdal_datatype = .sits_raster_api_gdal_datatype("INT2U"),
+        gdal_options = .sits_config_gtiff_default_options()
+    )
 
     return(cube_bayes)
 }
@@ -309,16 +310,17 @@ sits_smooth.gaussian <- function(cube, type = "gaussian", ...,
     }
 
     # process each brick layer (each time step) individually
-    .sits_map_layer_cluster(cube = cube,
-                            cube_out = cube_gauss,
-                            overlapping_y_size =
-                                ceiling(window_size / 2) - 1,
-                            func = .do_gauss,
-                            multicores = multicores,
-                            memsize = memsize,
-                            datatype = "Int16",
-                            options = c("COMPRESS=LZW",
-                                        "BIGTIFF=YES"))
+    .sits_map_layer_cluster(
+        cube = cube,
+        cube_out = cube_gauss,
+        overlapping_y_size =
+            ceiling(window_size / 2) - 1,
+        func = .do_gauss,
+        multicores = multicores,
+        memsize = memsize,
+        gdal_datatype = .sits_raster_api_gdal_datatype("INT2U"),
+        gdal_options = .sits_config_gtiff_default_options()
+    )
 
     return(cube_gauss)
 }
@@ -416,16 +418,17 @@ sits_smooth.bilinear <- function(cube,
     }
 
     # process each brick layer (each time step) individually
-    .sits_map_layer_cluster(cube = cube,
-                            cube_out = cube_bilinear,
-                            overlapping_y_size =
-                                ceiling(window_size / 2) - 1,
-                            func = .do_bilinear,
-                            multicores = multicores,
-                            memsize = memsize,
-                            datatype = "Int16",
-                            options = c("COMPRESS=LZW",
-                                        "BIGTIFF=YES"))
+    .sits_map_layer_cluster(
+        cube = cube,
+        cube_out = cube_bilinear,
+        overlapping_y_size =
+            ceiling(window_size / 2) - 1,
+        func = .do_bilinear,
+        multicores = multicores,
+        memsize = memsize,
+        gdal_datatype = .sits_raster_api_gdal_datatype("INT2U"),
+        gdal_options = .sits_config_gtiff_default_options()
+    )
 
     return(cube_bilinear)
 }

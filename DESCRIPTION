@@ -144,6 +144,8 @@ Collate:
     'sits_plot.R'
     'sits_processing_estimate.R'
     'sits_raster_api.R'
+    'sits_raster_api_raster.R'
+    'sits_raster_api_terra.R'
     'sits_raster_blocks.R'
     'sits_raster_data.R'
     'sits_raster_sub_image.R'

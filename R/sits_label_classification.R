@@ -90,15 +90,16 @@ sits_label_classification <- function(cube,
     }
 
     # process each brick layer (each tile) individually
-    .sits_map_layer_cluster(cube = cube,
-                            cube_out = label_cube,
-                            overlapping_y_size = 0,
-                            func = .do_map,
-                            multicores = multicores,
-                            memsize = memsize,
-                            datatype = "Byte",
-                            options = c("COMPRESS=LZW",
-                                        "BIGTIFF=YES"))
+    .sits_map_layer_cluster(
+        cube = cube,
+        cube_out = label_cube,
+        overlapping_y_size = 0,
+        func = .do_map,
+        multicores = multicores,
+        memsize = memsize,
+        gdal_datatype = .sits_raster_api_gdal_datatype("INT1U"),
+        gdal_options = .sits_config_gtiff_default_options()
+    )
 
     return(label_cube)
 }
@@ -184,23 +185,23 @@ sits_label_majority <- function(cube,
     purrr::map2(in_files, out_files, function(in_file, out_file) {
 
         # read the input classified image
-        layer <- .sits_raster_api_open_rast(in_file)
+        r_obj <- .sits_raster_api_open_rast(in_file)
 
         # calculate the majority values
-        layer <- .sits_raster_api_focal(
-            r_obj = layer,
+        r_obj <- .sits_raster_api_focal(
+            r_obj = r_obj,
             window_size = window_size,
-            fun = "modal",
+            fn = "modal",
             na.rm = TRUE
         )
 
         # write the result
         .sits_raster_api_write_rast(
-            r_obj = layer,
+            r_obj = r_obj,
             file = out_file,
             format = "GTiff",
-            data_type = "INT1U",
-            options = "COMPRESS=LZW",
+            data_type = .sits_raster_api_data_type("INT1U"),
+            gdal_options = .sits_config_gtiff_default_options(),
             overwrite = TRUE
         )
 
