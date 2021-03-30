@@ -122,7 +122,9 @@ sits_kfold_validate <- function(data, folds = 5,
     ref_fac    <- factor(ref, levels = unique_ref)
 
     # call caret package to the classification statistics
-    caret_assess <- caret::confusionMatrix(pred_fac, ref_fac)
+    assess <- caret::confusionMatrix(pred_fac, ref_fac)
 
-    return(caret_assess)
+    class(assess) <- c("sits_assessment", class(assess))
+
+    return(assess)
 }

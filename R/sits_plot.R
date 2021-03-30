@@ -118,122 +118,19 @@ plot.predicted <- function(x, y, ..., bands = "NDVI") {
 #' @title  Generic interface for plotting stack cubes
 #' @name   plot.raster_cube
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
-#' @description plots a stack cube using terra
+#' @description This function is deprecated and replaced by sits_view
 #'
 #' @param  x             object of class "raster_cube"
 #' @param  y             ignored
 #' @param  ...           further specifications for \link{plot}.
-#' @param  red           band for red color.
-#' @param  green         band for green color.
-#' @param  blue          band for blue color.
-#' @param  time          temporal instances to be plotted.
-#' @param  roi           sf object giving a region of interest.
-#'
-#' @return               mapview object
-#'
-#' @examples
-#' \dontrun{
-#' data_dir <- system.file("extdata/raster/cbers", package = "sits")
-#'
-#' cbers_022024 <- sits_cube(
-#'     source = "LOCAL",
-#'     name = "cbers_022024",
-#'     satellite = "CBERS-4",
-#'     sensor = "AWFI",
-#'     resolution = 64,
-#'     data_dir = data_dir,
-#'     parse_info = c("X1", "X2", "band", "date")
-#' )
-#' # plot the data cube
-#' plot(cbers_022024, red = "B15", green = "B16", blue = "B13", time = 1)
-#' }
-#'
 #'
 #' @export
 #'
-plot.raster_cube <- function(x, y, ...,
-                             red,
-                             green,
-                             blue,
-                             time = 1,
-                             roi = NULL) {
+plot.raster_cube <- function(x, y, ...) {
 
-    stopifnot(missing(y))
+    message("to visualize raster cubes, please use sits_view()")
 
-    # verifies if mapview package is installed
-    if (!requireNamespace("mapview", quietly = TRUE)) {
-        stop("Please install package mapview.", call. = FALSE)
-    }
-    # verifies if raster package is installed
-    if (!requireNamespace("raster", quietly = TRUE)) {
-        stop("Please install package raster.", call. = FALSE)
-    }
-    # verify sf package if roi is informed
-    if (!purrr::is_null(roi)) {
-        if (!requireNamespace("sf", quietly = TRUE)) {
-            stop("Please install package sf.", call. = FALSE)
-        }
-
-        # filter only intersecting tiles
-        intersects <- slider::slide(x, function(row) {
-
-            .sits_raster_sub_image_intersects(row, roi)
-        }) %>% unlist()
-
-        if (!any(intersects)) {
-            stop("Informed roi does not intersect cube.", call. = FALSE)
-        }
-        x <- x[intersects, ]
-    }
-
-    # set mapview options
-    mapview::mapviewOptions(basemaps = c(
-        "GeoportailFrance.orthos",
-        "Esri.WorldImagery"
-    ))
-
-    # plot only the first tile
-    # get information about bands and files
-    file_info <- x$file_info[[1]]
-
-    # is there a cloud band?
-    # remove the cloud band from the file information
-    bands <- .sits_config_bands_no_cloud(x[1, ])
-    file_info <- dplyr::filter(file_info, band %in% bands)
-
-    # index to assign which bands to plot
-    index <- .sits_plot_rgb_stack(
-        bands = bands,
-        timeline = sits_timeline(x),
-        red = toupper(red),
-        green = toupper(green),
-        blue = toupper(blue),
-        time = time
-    )
-
-    # use the raster package to obtain a raster object from a stack
-    rast <- suppressWarnings(raster::stack(file_info$path[index]))
-
-    if (!purrr::is_null(roi)) {
-
-        roi <- raster::extent(sf::st_bbox(
-            sf::st_transform(roi, crs = raster::crs(rast))))
-
-        rast <- suppressWarnings(raster::crop(rast, roi))
-
-    }
-
-    assertthat::assert_that(
-      .sits_raster_api_ncols(rast) > 0 && .sits_raster_api_nrows(rast) > 0,
-        msg = "plot.raster_cube: unable to retrieve raster data"
-    )
-
-    # plot the RGB file
-    mv <- suppressWarnings(mapview::viewRGB(
-        rast, r = 1, g = 2, b = 3,
-        layer.name = paste0("Time ", time)))
-
-    return(mv)
+    return(FALSE)
 }
 #' @title  Generic interface for plotting probability cubes
 #' @name   plot.probs_cube
@@ -286,64 +183,20 @@ plot.probs_cube <- function(x, y, ..., time = 1,
 #' @param  x             object of class "classified_image"
 #' @param  y             ignored
 #' @param  ...           further specifications for \link{plot}.
-#' @param  map           map to overlay (mapview object)
 #' @param  time          temporal reference for plot.
-#' @param  title         string.
+#' @param  title         Title of the plot
 #' @param  legend        named vector that associated labels to colors
 #'
 #' @export
 #'
-plot.classified_image <- function(x, y, ..., map = NULL, time = 1,
-                                  title = "Classified Image", legend = NULL) {
+plot.classified_image <- function(x, y, ...,
+                                  time = 1,
+                                  title = "Classified image",
+                                  legend = NULL) {
     stopifnot(missing(y))
-    # verifies if mapview package is installed
-    if (!requireNamespace("mapview", quietly = TRUE)) {
-        stop("Please install package mapview.", call. = FALSE)
-    }
-    # set mapview options
-    mapview::mapviewOptions(basemaps = c(
-        "GeoportailFrance.orthos",
-        "Esri.WorldImagery"
-    ))
 
-    # get the labels
-    labels <- sits_labels(x)
-    # if colors are not specified, get them from the configuration file
-    if (purrr::is_null(legend)) {
-        legend <- .sits_config_colors(labels)
-        names(legend) <- labels
-    }
+    p <- .sits_plot_classified_image(x, time, title, legend)
 
-    # obtain the raster
-    rl <- suppressWarnings(raster::raster(x$file_info[[1]]$path[time]))
-    assertthat::assert_that(
-      .sits_raster_api_ncols(rl) > 0 && .sits_raster_api_nrows(rl) > 0,
-        msg = "plot.classified_image: unable to retrive raster data"
-    )
-    # create a RAT
-    rl <- raster::ratify(rl)
-    rat <- raster::levels(rl)[[1]]
-    # include labels in the RAT
-    # be careful - some labels may not exist in the classified image
-    rat$landcover <- labels[rat$ID]
-    colors <- unname(legend[rat$landcover])
-    # assign the RAT to the raster object
-    levels(rl) <- rat
-
-    # use mapview
-    if (!purrr::is_null(map))
-          mv <- suppressWarnings(
-            mapview::mapview(rl,
-                             map = map,
-                             col.regions = colors)
-            )
-    else
-          mv <- suppressWarnings(
-            mapview::mapview(rl,
-                             col.regions = colors)
-            )
-
-    return(mv)
 }
 
 #' @title  Plot information about confunsion between clusters
@@ -939,14 +792,11 @@ plot.keras_model <- function(x, y, ...) {
     if (!requireNamespace("methods", quietly = TRUE)) {
         stop("Please install package methods.", call. = FALSE)
     }
-
-
     # ensures that a cluster object  exists
     assertthat::assert_that(
         !purrr::is_null(cluster_obj),
         msg = "plot_dendrogram: no valid cluster object available"
     )
-
     # get unique labels
     data_labels <- data$label
     u_lb <- base::unique(data_labels)
@@ -983,14 +833,12 @@ plot.keras_model <- function(x, y, ...) {
         value = cols,
         k = length(data_labels)
     )
-
     p <- graphics::plot(dend,
         ylab = paste(
             tools::file_path_sans_ext(cluster_obj@method),
             "linkage distance"
         )
     )
-
     # plot cutree line
     if (!purrr::is_null(cutree_height)) {
           graphics::abline(h = cutree_height, lty = 2)
@@ -1003,21 +851,14 @@ plot.keras_model <- function(x, y, ...) {
         ),
         legend = u_lb
     )
-
     return(invisible(p))
 }
 
 
-
-
 #' @title  Plot the SOM grid with neurons labeled
-#'
 #' @name   .sits_plot_som_map
-#'
 #' @keywords internal
-#'
 #' @author Lorena Santos \email{lorena.santos@@inpe.br}
-#'
 #' @description Given a kohonen object with a set of time neurons, plot them.
 #'
 #' The plot function produces different plots based on the input data:
@@ -1069,9 +910,7 @@ plot.keras_model <- function(x, y, ...) {
 #' @title  Plot information about confusion between clusters
 #'
 #' @name   .sits_plot_som_evaluate_cluster
-#'
 #' @keywords internal
-#'
 #' @author Lorena Santos \email{lorena.santos@@inpe.br}
 #'
 #' @description Plot a bar graph with information about each cluster.
@@ -1115,68 +954,66 @@ plot.keras_model <- function(x, y, ...) {
     p <- graphics::plot(p)
     return(invisible(p))
 }
-
-#' @title  Assign RGB channels to for raster stack cubes
+#' @title Plot a raster classified image
 #'
-#' @name   .sits_plot_rgb_stack
-#'
+#' @name .sits_plot_classified_image
 #' @keywords internal
 #'
-#' @author Gilberto Camara \email{gilberto.camara@@inpe.br}
+#' @description plots a raster using ggplot. This function is used
+#' for showing the same lat/long location in a series of time steps.
 #'
-#' @description Obtain a vector with the correct layer to be plotted for
-#' an RGB assignment of a multi-temporal set of images
-#'
-#' @param bands      bands of the data cube (excludes cloud band)
-#' @param timeline   timeline of the data cube
-#' @param red        Band to be assigned to R channel
-#' @param green      Band to be assigned to G channel
-#' @param blue       Band to be assigned to G channel
-#' @param time       Temporal instance to be plotted
-#'
-#' @return           Named vector with the correct layers for RGB
-.sits_plot_rgb_stack <- function(bands, timeline, red, green, blue, time) {
+#' @param cube        A tibble with the metadata for a labelled data cube.
+#' @param time        Temporal reference for plot.
+#' @param title       Title of the plot
+#' @param legend        named vector that associates labels to colors.
+.sits_plot_classified_image <- function(cube,
+                              time = 1,
+                              title = "Classified Image",
+                              legend = NULL) {
+    #precondition 1 - cube must be a labelled cube
+    assertthat::assert_that("classified_image" %in% class(cube),
+                            msg = "cube must be a classified image")
+    #precondition 2 - time must be a positive integer
+    assertthat::assert_that(time >= 1,
+        msg = "sits_plot_classified_image: time must be a positive integer")
 
-    # check if the selected bands are correct
-    all_bands <- paste0(bands, collapse = " ")
+    # get the raster object
+    r <- suppressWarnings(raster::raster(cube$file_info[[1]]$path[[1]]))
 
-    assertthat::assert_that(
-        red %in% bands,
-        msg = paste(".sits_plot_rgb_stack: R channel should be one of",
-                    all_bands)
-    )
+    # convert from raster to points
+    map.p <- raster::rasterToPoints(r)
+    # create a data frame
+    df <- data.frame(map.p)
+    # define the column names for the data frame
+    colnames(df) <- c("x", "y", "class")
 
-    assertthat::assert_that(
-        green %in% bands,
-        msg = paste(".sits_plot_rgb_stack: G channel should be one of",
-                    all_bands)
-    )
+    # get the labels and how many there are
+    labels <- sits_labels(cube)
+    nclasses <- length(labels)
+    # create a mapping from classes to labels
+    names(labels) <- as.character(c(1:nclasses))
 
-    assertthat::assert_that(
-        blue %in% bands,
-        msg = paste0(".sits_plot_rgb_stack: B channel should be one of ",
-                     all_bands)
-    )
+    # if colors are not specified, get them from the configuration file
+    if (purrr::is_null(legend)) {
+        colors <- .sits_config_colors(labels)
+    }
+    else {
+        assertthat::assert_that(all(labels %in% names(legend)),
+            msg = "sits_plot: some labels are missing from the legend")
+        colors <- unname(legend[labels])
+    }
+    # set the names of the color vector
+    names(colors) <- as.character(c(1:nclasses))
 
-    # find out the number of instances
-    n_instances <- length(timeline)
-    # check if the selected temporal instance exists
-    assertthat::assert_that(
-        time <= n_instances,
-        msg = paste0(".sits_plot_rgb_stack: time '", time,
-                     "' is out of bounds.")
-    )
+    # plot the data with ggplot
+    g <- ggplot2::ggplot(df, ggplot2::aes(x, y)) +
+        ggplot2::geom_raster(ggplot2::aes(fill = factor(class))) +
+        ggplot2::labs(title = title) +
+        ggplot2::scale_fill_manual(values = colors, labels = labels,
+                                   guide = ggplot2::guide_legend(title = "Classes"))
 
-    # locate the instances
-    instances_lst <- purrr::map(c(red, green, blue),
-          function(b) {
-              inst <- grep(b, bands)
-              return((time - 1) * length(bands) + inst)
-    })
-
-    # create a named vector to store the RGB instances
-    index <- unlist(instances_lst)
-    names(index) <- c("red", "green", "blue")
-
-    return(index)
+    graphics::plot(g)
+    return(g)
 }
+
+

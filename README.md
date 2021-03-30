@@ -160,12 +160,15 @@ raster_cube <- sits_cube(
         delim = "_",
         parse_info = c("X1", "X2", "band", "date")
 )
+#> Loading required namespace: terra
 # obtain a set of locations defined by a CSV file
 csv_raster_file <- system.file("extdata/samples/samples_sinop_crop.csv",
                                package = "sits"
 )
 # retrieve the points from the data cube
 points <- sits_get_data(raster_cube, file = csv_raster_file)
+#> Loading required namespace: terra
+#> Loading required namespace: terra
 #> All points have been retrieved
 # show the points
 points
@@ -301,7 +304,7 @@ format using the function `sits_show_prediction` or graphically using
 # Train a machine learning model for the mato grosso dataset
 samples_mt_2bands <- sits_select(samples_modis_4bands, bands = c("ndvi", "evi"))
 xgb_model <- sits_train(data = samples_mt_2bands, 
-                         ml_method = sits_xgboost(verbose = FALSE))
+                         ml_method = sits_xgboost(verbose = FALSE)) 
 
 # get a point to be classified with four bands
 point_mt_2bands <- sits_select(point_mt_6bands, bands = c("ndvi", "evi"))
@@ -364,37 +367,11 @@ label_cube <- sits_label_classification(bayes_cube)
 plot(label_cube)
 ```
 
-<div class="figure" style="text-align: center">
-
-<img src="/Users/gilbertocamara/Library/R/4.0/library/sits/extdata/markdown/figures/plot_image_classification.png" alt="Classified Image" width="664" />
-<p class="caption">
-Classified Image
-</p>
-
-</div>
-
 ### Additional information
 
-For more information, please see the vignettes
-
--   [“SITS: Data analysis and machine learning for data cubes using
-    satellite image time
-    series”](https://github.com/e-sensing/sits-docs/blob/master/doc/sits.pdf)
-
--   [“Accessing time series information in
-    SITS”](https://github.com/e-sensing/sits-docs/blob/master/doc/timeseries.pdf)
-
--   [“Clustering of satellite image time series with
-    SITS”](https://github.com/e-sensing/sits-docs/blob/master/doc/clustering.pdf)
-
--   [“Satellite image time series filtering with
-    SITS”](https://github.com/e-sensing/sits-docs/blob/master/doc/filters.pdf)
-
--   [“Time series classification using machine
-    learning”](https://github.com/e-sensing/sits-docs/blob/master/doc/machinelearning.pdf)
-
--   [“Post classification smoothing using Bayesian techniques in
-    SITS”](https://github.com/e-sensing/sits-docs/blob/master/doc/smoothing.pdf)
+For more information, please see the on-line book [“SITS: Data analysis
+and machine learning for data cubes using satellite image
+timeseries”](https://e-sensing.github.io/sitsbook/).
 
 ## How to contribute
 

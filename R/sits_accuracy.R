@@ -126,7 +126,7 @@ sits_accuracy.sits <- function(data, ...) {
     # recover predicted and reference vectors from input
     # is the input the result of a sits_classify?
     if ("label" %in% names(data)) {
-      pred_ref <- .sits_pred_ref(data)
+      pred_ref <- .sits_accuracy_pred_ref(data)
       pred     <- pred_ref$predicted
       ref      <- pred_ref$reference
     }
@@ -140,13 +140,12 @@ sits_accuracy.sits <- function(data, ...) {
     pred_fac   <- factor(pred, levels = unique_ref)
     ref_fac    <- factor(ref, levels = unique_ref)
     # call caret package to the classification statistics
-    caret_assess <- caret::confusionMatrix(pred_fac, ref_fac)
+    assess <- caret::confusionMatrix(pred_fac, ref_fac)
 
-    # print confusion matrix
-    .sits_conf_matrix_show(caret_assess)
+    class(assess) <- c("sits_assessment", class(assess))
 
     # return caret confusion matrix
-    return(caret_assess)
+    return(assess)
 
 }
 #' @rdname sits_accuracy
@@ -278,7 +277,7 @@ sits_accuracy.classified_image <- function(data, ..., validation_csv) {
     area[is.na(area)] <- 0
 
     # Compute accuracy metrics
-    assess <- .sits_assess_accuracy_area(error_matrix, area)
+    assess <- .sits_accuracy_area_assess(error_matrix, area)
 
     # Print assessment values
     tb <- t(dplyr::bind_rows(assess$accuracy$user, assess$accuracy$producer))
@@ -295,9 +294,36 @@ sits_accuracy.classified_image <- function(data, ..., validation_csv) {
     return(assess)
 }
 
+#' @title Obtains the predicted value of a reference set
+#' @name .sits_accuracy_pred_ref
+#' @keywords internal
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
+#
+#' @description Obtains a tibble of predicted and reference values
+#' from a classified data set.
+#'
+#' @param  class     Tibble with classified samples whose labels are known.
+#' @return           A tibble with predicted and reference values.
+.sits_accuracy_pred_ref <- function(class) {
+    # retrieve the predicted values
+    pred <- unlist(purrr::map(class$predicted, function(r) r$class))
+
+    # retrieve the reference labels
+    ref <- class$label
+    # does the input data contained valid reference labels?
+    assertthat::assert_that(
+        !("NoClass" %in% (ref)),
+        msg = "sits_accuracy: input data without labels"
+    )
+
+    # build the tibble
+    pred_ref <- tibble::tibble("predicted" = pred, "reference" = ref)
+    # return the tibble
+    return(pred_ref)
+}
 
 #' @title Support for Area-weighted post-classification accuracy
-#' @name .sits_assess_accuracy_area
+#' @name .sits_accuracy_area_assess
 #' @author Alber Sanchez, \email{alber.ipia@@inpe.br}
 #' @keywords internal
 #' @param error_matrix A matrix given in sample counts.
@@ -317,73 +343,227 @@ sits_accuracy.classified_image <- function(data, ..., validation_csv) {
 #' estimated areas, the standard error areas, confidence interval 95% areas,
 #' and the accuracy (user, producer, and overall).
 
-.sits_assess_accuracy_area <- function(error_matrix, area) {
-  if (any(dim(error_matrix) == 0)) {
-    stop("Invalid dimensions in error matrix.", call. = FALSE)
-  }
-  if (length(unique(dim(error_matrix))) != 1) {
-    stop("The error matrix is not square.", call. = FALSE)
-  }
-  if (!all(colnames(error_matrix) == rownames(error_matrix))) {
-    stop("Labels mismatch in error matrix.", call. = FALSE)
-  }
-  if (unique(dim(error_matrix)) != length(area)) {
-    stop("Mismatch between error matrix and area vector.",
-      call. = FALSE
+.sits_accuracy_area_assess <- function(error_matrix, area) {
+    if (any(dim(error_matrix) == 0)) {
+        stop("Invalid dimensions in error matrix.", call. = FALSE)
+    }
+    if (length(unique(dim(error_matrix))) != 1) {
+        stop("The error matrix is not square.", call. = FALSE)
+    }
+    if (!all(colnames(error_matrix) == rownames(error_matrix))) {
+        stop("Labels mismatch in error matrix.", call. = FALSE)
+    }
+    if (unique(dim(error_matrix)) != length(area)) {
+        stop("Mismatch between error matrix and area vector.",
+             call. = FALSE
+        )
+    }
+    if (!all(names(area) %in% colnames(error_matrix))) {
+        stop("Label mismatch between error matrix and area vector.",
+             call. = FALSE
+        )
+    }
+
+    # Reorder the area based on the error matrix
+    area <- area[colnames(error_matrix)]
+    #
+    weight <- area / sum(area)
+    class_areas <- rowSums(error_matrix)
+
+    # proportion of area derived from the reference classification
+    # weighted by the area of the classes
+    # cf equation (1) of Olofsson et al (2014)
+    prop <- weight * error_matrix / class_areas
+    prop[is.na(prop)] <- 0
+
+    # An unbiased estimator of the total area
+    # based on the reference classification
+    # cf equation (2) of Olofsson et al (2014)
+    error_adjusted_area <- colSums(prop) * sum(area)
+
+    # Estimated standard error of the estimated area proportion
+    # cf equation (3) of Olofsson et al (2014)
+    stderr_prop <- sqrt(colSums((weight * prop - prop**2) / (class_areas - 1)))
+
+    # Standard error of the error-adjusted estimated area
+    # cf equation (4) of Olofsson et al (2014)
+    stderr_area <- sum(area) * stderr_prop
+
+    # area-weighted user's accuracy
+    # cf equation (6) of Olofsson et al (2014)
+    user_acc <- diag(prop) / rowSums(prop)
+
+    # area-weigthed producer's accuracy
+    # cf equation (7) of Olofsson et al (2014)
+    prod_acc <- diag(prop) / colSums(prop)
+
+    # overall area-weighted accuracy
+    over_acc <- sum(diag(prop))
+
+
+    return(
+        list(
+            error_matrix = error_matrix,
+            area_pixels = area,
+            error_ajusted_area = error_adjusted_area,
+            stderr_prop = stderr_prop,
+            stderr_area = stderr_area,
+            conf_interval = 1.96 * stderr_area,
+            accuracy = list(user = user_acc, producer = prod_acc, overall = over_acc)
+        )
     )
-  }
-  if (!all(names(area) %in% colnames(error_matrix))) {
-    stop("Label mismatch between error matrix and area vector.",
-      call. = FALSE
+}
+#' @title Print the ssumary of the accuracy
+#' @name sits_accuracy_summary
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
+#
+#' @description Adaptation of the caret::print.confusionMatrix method
+#'              for the more common usage in Earth Observation.
+#'
+#' @param x         An object of class \code{sits_assessment}.
+#' @param mode      A single character string either "sens_spec",
+#'                  "prec_recall", or "everything".
+#' @param digits    Number of significant digits when printed.
+#' @return           \code{x}   is invisibly returned.
+#'
+#' @keywords internal
+#' @export
+sits_accuracy_summary <- function(x,
+                                  mode = "sens_spec",
+                                  digits = max(3, getOption("digits") - 3)) {
+
+    # round the data to the significant digits
+    overall <- round(x$overall, digits = digits)
+
+    accuracy_ci <- paste("(",
+                       paste(overall[c("AccuracyLower", "AccuracyUpper")],
+                             collapse = ", "
+                       ), ")",
+                       sep = ""
     )
-  }
 
-  # Reorder the area based on the error matrix
-  area <- area[colnames(error_matrix)]
-  #
-  weight <- area / sum(area)
-  class_areas <- rowSums(error_matrix)
-
-  # proportion of area derived from the reference classification
-  # weighted by the area of the classes
-  # cf equation (1) of Olofsson et al (2014)
-  prop <- weight * error_matrix / class_areas
-  prop[is.na(prop)] <- 0
-
-  # An unbiased estimator of the total area
-  # based on the reference classification
-  # cf equation (2) of Olofsson et al (2014)
-  error_adjusted_area <- colSums(prop) * sum(area)
-
-  # Estimated standard error of the estimated area proportion
-  # cf equation (3) of Olofsson et al (2014)
-  stderr_prop <- sqrt(colSums((weight * prop - prop**2) / (class_areas - 1)))
-
-  # Standard error of the error-adjusted estimated area
-  # cf equation (4) of Olofsson et al (2014)
-  stderr_area <- sum(area) * stderr_prop
-
-  # area-weighted user's accuracy
-  # cf equation (6) of Olofsson et al (2014)
-  user_acc <- diag(prop) / rowSums(prop)
-
-  # area-weigthed producer's accuracy
-  # cf equation (7) of Olofsson et al (2014)
-  prod_acc <- diag(prop) / colSums(prop)
-
-  # overall area-weighted accuracy
-  over_acc <- sum(diag(prop))
-
-
-  return(
-    list(
-      error_matrix = error_matrix,
-      area_pixels = area,
-      error_ajusted_area = error_adjusted_area,
-      stderr_prop = stderr_prop,
-      stderr_area = stderr_area,
-      conf_interval = 1.96 * stderr_area,
-      accuracy = list(user = user_acc, producer = prod_acc, overall = over_acc)
+    overall_text <- c(
+      paste(overall["Accuracy"]), accuracy_ci, "",
+      paste(overall["Kappa"])
     )
+
+    overall_names <- c("Accuracy", "95% CI", "", "Kappa")
+
+    cat("\nOverall Statistics\n")
+        overall_names <- ifelse(overall_names == "",
+                            "",
+                            paste(overall_names, ":")
+    )
+    out <- cbind(format(overall_names, justify = "right"), overall_text)
+    colnames(out) <- rep("", ncol(out))
+    rownames(out) <- rep("", nrow(out))
+
+    print(out, quote = FALSE)
+
+    invisible(x)
+}
+#' @title Print the values of a confusion matrix
+#' @name print.sits_assessment
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
+#
+#' @description Adaptation of the caret::print.confusionMatrix method
+#'              for the more common usage in Earth Observation.
+#'
+#' @param x         An object of class \code{confusionMatrix}.
+#' @param \dots     other parameters passed to the "print" function
+#' @param mode      A single character string either "sens_spec",
+#'                  "prec_recall", or "everything".
+#' @param digits    Number of significant digits when printed.
+#' @return           \code{x}   is invisibly returned.
+#'
+#' @keywords internal
+#' @export
+print.sits_assessment <- function(x, ...,
+                                  mode = "sens_spec",
+                                  digits = max(3, getOption("digits") - 3)) {
+  cat("Confusion Matrix and Statistics\n\n")
+  print(x$table)
+
+  # round the data to the significant digits
+  overall <- round(x$overall, digits = digits)
+
+  accuracy_ci <- paste("(",
+                       paste(overall[c("AccuracyLower", "AccuracyUpper")],
+                             collapse = ", "
+                       ), ")",
+                       sep = ""
   )
+
+  overall_text <- c(
+    paste(overall["Accuracy"]), accuracy_ci, "",
+    paste(overall["Kappa"])
+  )
+
+  overall_names <- c("Accuracy", "95% CI", "", "Kappa")
+
+  if (dim(x$table)[1] > 2) {
+    cat("\nOverall Statistics\n")
+    overall_names <- ifelse(overall_names == "",
+                            "",
+                            paste(overall_names, ":")
+    )
+    out <- cbind(format(overall_names, justify = "right"), overall_text)
+    colnames(out) <- rep("", ncol(out))
+    rownames(out) <- rep("", nrow(out))
+
+    print(out, quote = FALSE)
+
+    cat("\nStatistics by Class:\n\n")
+    x$byClass <- x$byClass[, grepl(
+      "(Sensitivity)|(Specificity)|(Pos Pred Value)|(Neg Pred Value)",
+      colnames(x$byClass)
+    )]
+    measures <- t(x$byClass)
+    rownames(measures) <- c(
+      "Prod Acc (Sensitivity)", "Specificity",
+      "User Acc (Pos Pred Value)", "Neg Pred Value"
+    )
+    print(measures, digits = digits)
+  } else {
+    # this is the case of only two classes
+    # get the values of the User's and Producer's Accuracy
+    # Names in caret are different from the usual names in Earth observation
+    x$byClass <- x$byClass[
+      grepl(
+        "(Sensitivity)|(Specificity)|(Pos Pred Value)|(Neg Pred Value)",
+        names(x$byClass)
+      )
+    ]
+    # get the names of the two classes
+    names_classes <- row.names(x$table)
+    # the first class (which is called the "positive" class by caret)
+    c1 <- x$positive
+    # the second class
+    c2 <- names_classes[!(names_classes == x$positive)]
+    # make up the values of UA and PA for the two classes
+    pa1 <- paste("Prod Acc ", c1)
+    pa2 <- paste("Prod Acc ", c2)
+    ua1 <- paste("User Acc ", c1)
+    ua2 <- paste("User Acc ", c2)
+    names(x$byClass) <- c(pa1, pa2, ua1, ua2)
+
+    overall_text <- c(
+      overall_text,
+      "",
+      format(x$byClass, digits = digits)
+    )
+    overall_names <- c(overall_names, "", names(x$byClass))
+    overall_names <- ifelse(overall_names == "", "",
+                            paste(overall_names, ":"))
+
+    out <- cbind(format(overall_names, justify = "right"), overall_text)
+    colnames(out) <- rep("", ncol(out))
+    rownames(out) <- rep("", nrow(out))
+
+    out <- rbind(out, rep("", 2))
+
+    print(out, quote = FALSE)
+  }
+
+  invisible(x)
 }

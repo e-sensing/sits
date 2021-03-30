@@ -10,9 +10,9 @@ if (!requireNamespace("sitsdata", quietly = TRUE)) {
 }
 library(sitsdata)
 # load a time series samples for the Mato Grosso region
-data(br_mt_1_8K_9classes_6bands)
+data(samples_matogrosso_mod13q1)
 
-samples_ndvi_evi <- sits_select(br_mt_1_8K_9classes_6bands, bands = c("NDVI", "EVI"))
+samples_ndvi_evi <- sits_select(samples_matogrosso_mod13q1, bands = c("NDVI", "EVI"))
 
 # train the deep learning model
 dl_model <- sits_train(samples_ndvi_evi,

@@ -4,7 +4,7 @@
 \alias{plot.raster_cube}
 \title{Generic interface for plotting stack cubes}
 \usage{
-\method{plot}{raster_cube}(x, y, ..., red, green, blue, time = 1, roi = NULL)
+\method{plot}{raster_cube}(x, y, ...)
 }
 \arguments{
 \item{x}{object of class "raster_cube"}
@@ -12,41 +12,9 @@
 \item{y}{ignored}
 
 \item{...}{further specifications for \link{plot}.}
-
-\item{red}{band for red color.}
-
-\item{green}{band for green color.}
-
-\item{blue}{band for blue color.}
-
-\item{time}{temporal instances to be plotted.}
-
-\item{roi}{sf object giving a region of interest.}
-}
-\value{
-mapview object
 }
 \description{
-plots a stack cube using terra
-}
-\examples{
-\dontrun{
-data_dir <- system.file("extdata/raster/cbers", package = "sits")
-
-cbers_022024 <- sits_cube(
-    source = "LOCAL",
-    name = "cbers_022024",
-    satellite = "CBERS-4",
-    sensor = "AWFI",
-    resolution = 64,
-    data_dir = data_dir,
-    parse_info = c("X1", "X2", "band", "date")
-)
-# plot the data cube
-plot(cbers_022024, red = "B15", green = "B16", blue = "B13", time = 1)
-}
-
-
+This function is deprecated and replaced by sits_view
 }
 \author{
 Gilberto Camara, \email{gilberto.camara@inpe.br}

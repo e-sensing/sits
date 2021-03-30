@@ -5,13 +5,12 @@ Title: Satellite Image Time Series Analysis for Remote Sensing Data Cubes
 Authors@R: c(person('Rolf', 'Simoes', role = c('aut'), email = 'rolf.simoes@inpe.br'),
              person('Gilberto', 'Camara', role = c('aut', 'cre'), email = 'gilberto.camara@inpe.br'),
              person('Felipe', 'Souza', role = c('aut'), email = 'felipe.carvalho@inpe.br'),
-             person('Pedro', 'Andrade', role = c('aut'), email = 'pedro.andrade@inpe.br'),
              person('Lorena', 'Santos', role = c('aut'), email = 'lorena.santos@inpe.br'),
              person('Alexandre', 'Carvalho', role = c('aut'), email= 'alexandre.ywata@ipea.gov.br'),
-             person('Gilberto', 'Queiroz', role = c('aut'), email = 'gilberto.queiroz@inpe.br'),
+             person('Pedro', 'Andrade', role = c('aut'), email = 'pedro.andrade@inpe.br'),
              person('Karine', 'Ferreira', role = c('aut'), email = 'karine.ferreira@inpe.br'),
-             person('Alber', 'Sanchez', role = c('ctb'), email = 'alber.ipia@inpe.br'),
-             person('Victor', 'Maus', role = c('ctb'), email = 'vwmaus1@gmail.com')
+             person('Alber', 'Sanchez', role = c('aut'), email = 'alber.ipia@inpe.br'),
+             person('Gilberto', 'Queiroz', role = c('aut'), email = 'gilberto.queiroz@inpe.br')
              )
 Maintainer: Gilberto Camara <gilberto.camara@inpe.br>
 Description: A set of tools for working with satellite image time series, both as individual data or as part of data cubes.
@@ -116,7 +115,6 @@ Collate:
     'sits_classify_ts.R'
     'sits_classify_cube.R'
     'sits_config.R'
-    'sits_conf_matrix.R'
     'sits_csv.R'
     'sits_cube.R'
     'sits_cube_aux_functions.R'
@@ -168,6 +166,7 @@ Collate:
     'sits_timeline.R'
     'sits_twdtw.R'
     'sits_validate.R'
+    'sits_view.R'
     'sits_values.R'
     'sits_xlsx.R'
     'sits_zoo.R'

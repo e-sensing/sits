@@ -30,14 +30,14 @@ test_that("One-year, single core classification", {
     )
 
     expect_true(all(file.exists(unlist(sinop_probs$file_info[[1]]$path))))
-    r_obj <- .sits_raster_api_open_rast(sinop_probs$file_info[[1]]$path[[1]])
+    r_obj <- sits:::.sits_raster_api_open_rast(sinop_probs$file_info[[1]]$path[[1]])
 
-    expect_true(.sits_raster_api_nrows(r_obj) == sinop_probs$nrows)
+    expect_true(sits:::.sits_raster_api_nrows(r_obj) == sinop_probs$nrows)
 
-    max_lyr1 <- max(.sits_raster_api_get_values(r_obj)[, 1])
+    max_lyr1 <- max(sits:::.sits_raster_api_get_values(r_obj)[, 1])
     expect_true(max_lyr1 <= 10000)
 
-    max_lyr3 <- max(.sits_raster_api_get_values(r_obj)[, 3])
+    max_lyr3 <- max(sits:::.sits_raster_api_get_values(r_obj)[, 3])
     expect_true(max_lyr3 <= 10000)
 
     expect_true(all(file.remove(unlist(sinop_probs$file_info[[1]]$path))))

@@ -34,17 +34,12 @@ Authors:
 \itemize{
   \item Rolf Simoes \email{rolf.simoes@inpe.br}
   \item Felipe Souza \email{felipe.carvalho@inpe.br}
-  \item Pedro Andrade \email{pedro.andrade@inpe.br}
   \item Lorena Santos \email{lorena.santos@inpe.br}
   \item Alexandre Carvalho \email{alexandre.ywata@ipea.gov.br}
-  \item Gilberto Queiroz \email{gilberto.queiroz@inpe.br}
+  \item Pedro Andrade \email{pedro.andrade@inpe.br}
   \item Karine Ferreira \email{karine.ferreira@inpe.br}
-}
-
-Other contributors:
-\itemize{
-  \item Alber Sanchez \email{alber.ipia@inpe.br} [contributor]
-  \item Victor Maus \email{vwmaus1@gmail.com} [contributor]
+  \item Alber Sanchez \email{alber.ipia@inpe.br}
+  \item Gilberto Queiroz \email{gilberto.queiroz@inpe.br}
 }
 
 }

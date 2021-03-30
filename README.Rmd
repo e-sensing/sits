@@ -310,35 +310,11 @@ label_cube <- sits_label_classification(bayes_cube)
 plot(label_cube)
 ```
 
-```{r, echo = FALSE, fig.align="center", fig.height=3.4, fig.width=5.5, fig.cap="Classified Image"}
-knitr::include_graphics(system.file("extdata/markdown/figures", 
-                                    "plot_image_classification.png", 
-                                    package = "sits"))
-```
-
 
 ### Additional information
 
-For more information, please see the vignettes
+For more information, please see the on-line book [“SITS: Data analysis and machine learning for data cubes using satellite image timeseries”](https://e-sensing.github.io/sitsbook/).
 
--   [“SITS: Data analysis and machine learning for data cubes using
-    satellite image time
-    series”](https://github.com/e-sensing/sits-docs/blob/master/doc/sits.pdf)
-
--   [“Accessing time series information in
-    SITS”](https://github.com/e-sensing/sits-docs/blob/master/doc/timeseries.pdf)
-
--   [“Clustering of satellite image time series with
-    SITS”](https://github.com/e-sensing/sits-docs/blob/master/doc/clustering.pdf)
-
--   [“Satellite image time series filtering with
-    SITS”](https://github.com/e-sensing/sits-docs/blob/master/doc/filters.pdf)
-
--   [“Time series classification using machine
-    learning”](https://github.com/e-sensing/sits-docs/blob/master/doc/machinelearning.pdf)
-
--   [“Post classification smoothing using Bayesian techniques in
-    SITS”](https://github.com/e-sensing/sits-docs/blob/master/doc/smoothing.pdf)
 
 ## How to contribute
 

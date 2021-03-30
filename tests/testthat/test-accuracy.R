@@ -8,6 +8,8 @@ test_that("conf_matrix -2 classes", {
     invisible(capture.output(acc <- sits_accuracy(points_class)))
     expect_true(acc$overall["Accuracy"] > 0.70)
     expect_true(acc$overall["Kappa"] > 0.70)
+    p <- capture.output(sits_accuracy_summary(acc))
+    expect_true(grepl("Accuracy", p[4]))
 })
 test_that("conf_matrix - more than 2 classes", {
     data(samples_modis_4bands)
