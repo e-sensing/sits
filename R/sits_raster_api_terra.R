@@ -7,7 +7,7 @@
     pkg_name <- "terra"
 
     # check if raster package is available
-    if (!requireNamespace(pkg_name)) {
+    if (!requireNamespace(pkg_name, quietly = TRUE)) {
 
         stop(paste(".sits_config_raster_package: package", pkg_name,
                    "not available. Install the package or change the",
