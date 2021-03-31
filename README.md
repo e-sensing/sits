@@ -61,7 +61,7 @@ For users that have an AWS account, we have prepared a set of AMI
 (Amazon Machine Images that are optimized for running SITS in the Amazon
 Elastic Compute Cloud (or EC2). The AMI has the following settings: SITS
 0.9.6, Ubuntu 18.04, R 4.0.2, and Rstudio Server 1.3.959. All packages
-have been updated as of 21 August 2020. The AMI is avaliable for the
+have been updated as of 21 August 2020. The AMI is available for the
 following regions:
 
 -   [South America
@@ -124,14 +124,13 @@ For details in gdalcubes, please see
 <https://github.com/appelmar/gdalcubes>.
 
 ``` r
-gc_cube <- sits_regularize(cube        = s2_cube,
-                           name        = "T20LKP_2018_2019_1M",
-                           path_db     = "/my/path/cube.db",
-                           path_images = "/my/path/images/",
-                           period      = "P1M",
-                           agg_method  = "median",
-                           resampling  = "bilinear"
-)
+gc_cube <- sits_regularize(cube   = s2_cube,
+                           name          = "T20LKP_2018_2019_1M",
+                           dir_images    = tempdir(),
+                           period        = "P1M",
+                           agg_method    = "median",
+                           resampling    = "bilinear",
+                           cloud_mask    = TRUE)
 ```
 
 ### Data Access - Individual time series
@@ -143,12 +142,14 @@ the following example.
 
 ``` r
 library(sits)
+#> Warning in system("timedatectl", intern = TRUE): running command 'timedatectl'
+#> had status 1
 #> SITS - satellite image time series analysis.
 #> Loaded sits v0.11.0.
 #>         See ?sits for help, citation("sits") for use in publication.
 #>         See demo(package = "sits") for examples.
-#> Using configuration file: /Users/gilbertocamara/Library/R/4.0/library/sits/extdata/config.yml
-#> Additional configurations found in /Users/gilbertocamara/Library/R/4.0/library/sits/extdata/config_user_example.yml
+#> Using configuration file: /home/keras/R/x86_64-pc-linux-gnu-library/4.0/sits/extdata/config.yml
+#> To provide additional configurations, create an yml file and set environment variable SITS_USER_CONFIG_FILE to point to it
 # create a cube from a local file 
 data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
 raster_cube <- sits_cube(
@@ -160,15 +161,12 @@ raster_cube <- sits_cube(
         delim = "_",
         parse_info = c("X1", "X2", "band", "date")
 )
-#> Loading required namespace: terra
 # obtain a set of locations defined by a CSV file
 csv_raster_file <- system.file("extdata/samples/samples_sinop_crop.csv",
                                package = "sits"
 )
 # retrieve the points from the data cube
 points <- sits_get_data(raster_cube, file = csv_raster_file)
-#> Loading required namespace: terra
-#> Loading required namespace: terra
 #> All points have been retrieved
 # show the points
 points
@@ -219,7 +217,7 @@ plot(samples_cerrado)
 
 <div class="figure" style="text-align: center">
 
-<img src="./inst/extdata/markdown/figures/samples_cerrado.png" alt="Samples for NDVI band for Cerrado class" width="480" />
+<img src="./inst/extdata/markdown/figures/samples_cerrado.png" alt="Samples for NDVI band for Cerrado class"  />
 <p class="caption">
 Samples for NDVI band for Cerrado class
 </p>
@@ -301,6 +299,8 @@ format using the function `sits_show_prediction` or graphically using
 `plot`.
 
 ``` r
+data("point_mt_6bands")
+
 # Train a machine learning model for the mato grosso dataset
 samples_mt_2bands <- sits_select(samples_modis_4bands, bands = c("ndvi", "evi"))
 xgb_model <- sits_train(data = samples_mt_2bands, 
@@ -366,6 +366,8 @@ label_cube <- sits_label_classification(bayes_cube)
 # make a title, define the colors and the labels)
 plot(label_cube)
 ```
+
+![](man/figures/README-unnamed-chunk-11-1.png)<!-- -->
 
 ### Additional information
 

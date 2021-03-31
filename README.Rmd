@@ -67,7 +67,7 @@ For users that have an AWS account, we have prepared a set of AMI
 (Amazon Machine Images that are optimized for running SITS in the Amazon
 Elastic Compute Cloud (or EC2). The AMI has the following settings: SITS
 0.9.6, Ubuntu 18.04, R 4.0.2, and Rstudio Server 1.3.959. All packages
-have been updated as of 21 August 2020. The AMI is avaliable for the
+have been updated as of 21 August 2020. The AMI is available for the
 following regions:
 
 -   [South America
@@ -120,14 +120,13 @@ one month period, as shown below. This can be done in SITS by the
 For details in gdalcubes, please see [https://github.com/appelmar/gdalcubes](https://github.com/appelmar/gdalcubes).
 
 ```{r, eval = FALSE, echo = TRUE}
-gc_cube <- sits_regularize(cube        = s2_cube,
-                           name        = "T20LKP_2018_2019_1M",
-                           path_db     = "/my/path/cube.db",
-                           path_images = "/my/path/images/",
-                           period      = "P1M",
-                           agg_method  = "median",
-                           resampling  = "bilinear"
-)
+gc_cube <- sits_regularize(cube   = s2_cube,
+                           name          = "T20LKP_2018_2019_1M",
+                           dir_images    = tempdir(),
+                           period        = "P1M",
+                           agg_method    = "median",
+                           resampling    = "bilinear",
+                           cloud_mask    = TRUE)
 ```
 
 ### Data Access - Individual time series
@@ -253,6 +252,9 @@ format using the function `sits_show_prediction` or graphically using
 `plot`.
 
 ```{r, fig.align="center", fig.height=3, fig.width=6, fig.cap="Time series classification using SVM"}
+
+data("point_mt_6bands")
+
 # Train a machine learning model for the mato grosso dataset
 samples_mt_2bands <- sits_select(samples_modis_4bands, bands = c("ndvi", "evi"))
 xgb_model <- sits_train(data = samples_mt_2bands, 
@@ -313,7 +315,7 @@ plot(label_cube)
 
 ### Additional information
 
-For more information, please see the on-line book [“SITS: Data analysis and machine learning for data cubes using satellite image timeseries”](https://e-sensing.github.io/sitsbook/).
+For more information, please see the on-line book ["SITS: Data analysis and machine learning for data cubes using satellite image timeseries"](https://e-sensing.github.io/sitsbook/).
 
 
 ## How to contribute
