@@ -233,7 +233,8 @@ sits_LSTM_FCN <- function(samples = NULL,
 
             return(prediction)
         }
-        class(model_predict) <- c("keras_model", class(model_predict))
+        class(model_predict) <- c("keras_model", "sits_model",
+                                  class(model_predict))
         return(model_predict)
     }
 
