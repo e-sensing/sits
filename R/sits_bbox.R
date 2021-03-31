@@ -9,13 +9,17 @@
 #'               or in projection coordinates in the case of cubes)
 #'
 #' @param data      Valid sits tibble (time series or a cube).
+#' @param wgs84     Show the bbox of a data cube in WGS84 (EPSG:4326)
+#'                  projection.
+#' @param ...       Additional parameters.
 #'
-#' @return named vector with bounding box in WGS 84 for time series and
-#'         on the cube projection for a data cube.
+#' @return named vector with bounding box in WGS84 for time series and
+#'         on the cube projection for a data cube unless wgs84 parameter
+#'         is TRUE.
 #'
 #' @export
 #'
-sits_bbox <- function(data) {
+sits_bbox <- function(data, ...) {
 
     # get the meta-type (sits or cube)
     data <- .sits_config_data_meta_type(data)
@@ -25,7 +29,7 @@ sits_bbox <- function(data) {
 
 #' @export
 #'
-sits_bbox.sits <- function(data) {
+sits_bbox.sits <- function(data, ...) {
     # is the data a valid set of time series
     .sits_test_tibble(data)
 
@@ -42,7 +46,7 @@ sits_bbox.sits <- function(data) {
 
 #' @export
 #'
-sits_bbox.cube <- function(data) {
+sits_bbox.cube <- function(data, wgs84 = FALSE, ...) {
 
     # create and return the bounding box
     if (nrow(data) == 1) {
@@ -54,5 +58,22 @@ sits_bbox.cube <- function(data) {
     }
 
     names(bbox) <- c("xmin", "xmax", "ymin", "ymax")
+
+
+    # convert to WGS84?
+    if (wgs84) {
+
+        bbox <- c(
+            .sits_proj_to_latlong(x = bbox[["xmin"]],
+                                  y = bbox[["ymin"]],
+                                  crs = cbers_cube$crs),
+            .sits_proj_to_latlong(x = bbox[["xmax"]],
+                                  y = bbox[["ymax"]],
+                                  crs = cbers_cube$crs)
+        )
+
+        names(bbox) <- c("lon_min", "lon_max", "lat_min", "lat_max")
+    }
+
     return(bbox)
 }
