@@ -66,10 +66,10 @@ sits_bbox.cube <- function(data, wgs84 = FALSE, ...) {
         bbox <- c(
             .sits_proj_to_latlong(x = bbox[["xmin"]],
                                   y = bbox[["ymin"]],
-                                  crs = cbers_cube$crs),
+                                  crs = data$crs),
             .sits_proj_to_latlong(x = bbox[["xmax"]],
                                   y = bbox[["ymax"]],
-                                  crs = cbers_cube$crs)
+                                  crs = data$crs)
         )
 
         names(bbox) <- c("lon_min", "lon_max", "lat_min", "lat_max")
