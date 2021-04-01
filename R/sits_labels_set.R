@@ -8,7 +8,7 @@
 #' to the specified in value.
 #'
 #' @param  data      A sits tibble.
-#' @param  values    A character vector used to convert labels. Labels will
+#' @param  value     A character vector used to convert labels. Labels will
 #'                   be renamed to the respective value positioned at the
 #'                   labels order returned by \code{\link{sits_labels}}.
 #'
@@ -28,7 +28,7 @@
 #'
 #' @export
 #'
-`sits_labels<-` <- function(data, values) {
+`sits_labels<-` <- function(data, value) {
 
     # get the meta-type (sits or cube)
     data <- .sits_config_data_meta_type(data)
@@ -38,7 +38,7 @@
 
 #' @export
 #'
-`sits_labels<-.sits` <- function(data, values) {
+`sits_labels<-.sits` <- function(data, value) {
 
     # backward compatibility
     data <- .sits_tibble_rename(data)
@@ -48,41 +48,41 @@
 
     labels <- sits_labels(data)
 
-    # check if values is an atomic vector
+    # check if value is an atomic vector
     assertthat::assert_that(
-        is.character(values),
-        msg = "sits_labels: values must be a character vetor"
+        is.character(value),
+        msg = "sits_labels: value must be a character vetor"
     )
 
     # check if length is correct
     assertthat::assert_that(
-        length(labels) == length(values),
+        length(labels) == length(value),
         msg = "sits_labels: informed labels have a different expected length"
     )
 
     # check if there are no NA
     assertthat::assert_that(
-        all(!is.na(values)),
-        msg = "sits_labels: invalid labels values"
+        all(!is.na(value)),
+        msg = "sits_labels: invalid labels value"
     )
 
     # check if there are empty strings
     assertthat::assert_that(
-        any(trimws(values) != ""),
-        msg = "sits_labels: invalid labels values"
+        any(trimws(value) != ""),
+        msg = "sits_labels: invalid labels value"
     )
 
-    names(values) <- labels
+    names(value) <- labels
 
-    data$label <- values[data$label]
+    data$label <- value[data$label]
 
     return(data)
 }
 
 #' @export
 #'
-`sits_labels<-.pattern` <- function(data, values) {
+`sits_labels<-.pattern` <- function(data, value) {
 
-    return(`sits_labels<-.pattern`(data, values))
+    return(`sits_labels<-.pattern`(data, value))
 }
 

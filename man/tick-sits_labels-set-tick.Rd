@@ -5,12 +5,12 @@
 \alias{sits_labels<-}
 \title{Change labels of a sits tibble}
 \usage{
-sits_labels(data, values) <- value
+sits_labels(data) <- value
 }
 \arguments{
 \item{data}{A sits tibble.}
 
-\item{values}{A character vector used to convert labels. Labels will
+\item{value}{A character vector used to convert labels. Labels will
 be renamed to the respective value positioned at the
 labels order returned by \code{\link{sits_labels}}.}
 }
