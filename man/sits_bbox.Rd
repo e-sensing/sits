@@ -4,15 +4,15 @@
 \alias{sits_bbox}
 \title{Get the bounding box of the data}
 \usage{
-sits_bbox(data, ...)
+sits_bbox(data, wgs84 = FALSE, ...)
 }
 \arguments{
 \item{data}{Valid sits tibble (time series or a cube).}
 
-\item{...}{Additional parameters.}
+\item{wgs84}{Take effect only for data cubes.
+Reproject bbox to WGS84 (EPSG:4326).}
 
-\item{wgs84}{Show the bbox of a data cube in WGS84 (EPSG:4326)
-projection.}
+\item{...}{Additional parameters (not implemented).}
 }
 \value{
 named vector with bounding box in WGS84 for time series and

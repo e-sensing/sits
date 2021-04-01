@@ -9,9 +9,9 @@
 #'               or in projection coordinates in the case of cubes)
 #'
 #' @param data      Valid sits tibble (time series or a cube).
-#' @param wgs84     Show the bbox of a data cube in WGS84 (EPSG:4326)
-#'                  projection.
-#' @param ...       Additional parameters.
+#' @param wgs84     Take effect only for data cubes.
+#'                  Reproject bbox to WGS84 (EPSG:4326).
+#' @param ...       Additional parameters (not implemented).
 #'
 #' @return named vector with bounding box in WGS84 for time series and
 #'         on the cube projection for a data cube unless wgs84 parameter
@@ -19,7 +19,7 @@
 #'
 #' @export
 #'
-sits_bbox <- function(data, ...) {
+sits_bbox <- function(data, wgs84 = FALSE, ...) {
 
     # get the meta-type (sits or cube)
     data <- .sits_config_data_meta_type(data)
