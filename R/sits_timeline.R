@@ -528,19 +528,37 @@ sits_timeline.classified_image <- function(data) {
                     "date and band information")
     )
 
-    # tries to convert date information to a lubridate known format
-    tryCatch({
-            date_band <- dplyr::mutate(date_band,
-                date = lubridate::as_date(as.character(date))
-            )
-        },
-        error = function(e) {
-            stop("Invalid date format in file", call. = FALSE)
-        },
-        warning = function(w) {
-            stop("Invalid date format in file", call. = FALSE)
-        }
+    # convert to datetime
+    converted_date <- suppressWarnings(
+        lubridate::as_date(as.character(date_band$date))
     )
+
+    # try julian date format
+    if (all(is.na(converted_date))) {
+
+        # guess julian date format
+        guessed_format <- lubridate::guess_formats(date_band$date,
+                                                   orders = "%Y%j")
+
+        # check if some format was not guessed
+        assertthat::assert_that(
+            length(guessed_format) == length(date_band$date),
+            msg = ".sits_timeline_date_format: Invalid date format in some file"
+        )
+
+        # convert to date
+        converted_date <- lubridate::as_date(date_band$date,
+                                             format = guessed_format)
+
+    }
+
+    # check if there are NAs values
+    assertthat::assert_that(
+        all(!is.na(converted_date)),
+        msg = ".sits_timeline_date_format: Invalid date format in file"
+    )
+
+    date_band$date <- converted_date
 
     return(date_band)
 }
