@@ -141,13 +141,13 @@ sits_deeplearning <- function(samples = NULL,
 
         # build the nodes
         n_layers <- length(layers)
-        for (i in 1:n_layers) {
+        for (i in seq_len(n_layers)) {
             output_tensor <- keras::layer_dense(output_tensor,
-                units = layers[i],
+                units = layers[[i]],
                 activation = activation
             )
             output_tensor <- keras::layer_dropout(output_tensor,
-                rate = dropout_rates[i]
+                rate = dropout_rates[[i]]
             )
             output_tensor <- keras::layer_batch_normalization(output_tensor)
         }

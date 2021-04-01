@@ -49,7 +49,7 @@ Creates cubes with regular time intervals
 }
 \examples{
 {
-\dontrun{
+\donttest{
 # define an AWS data cube
   s2_cube <- sits_cube(source = "AWS",
                       name = "T20LKP_2018_2019",

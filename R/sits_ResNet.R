@@ -141,10 +141,10 @@ sits_ResNet <- function(samples = NULL,
         shortcut <- input_tensor
 
         n_blocks <- length(blocks)
-        for (i in 1:n_blocks) {
+        for (i in seq_len(n_blocks)) {
             # Add a Convolution1D
             output_tensor_x <- keras::layer_conv_1d(output_tensor,
-                filters = blocks[i],
+                filters = blocks[[i]],
                 kernel_size = kernels[1],
                 padding = "same"
             )

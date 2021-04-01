@@ -226,16 +226,7 @@ cube_satveg <- sits_cube(
 # "BDC_ACCESS_KEY" = <your_bdc_access_key>
 # )
 
-# create a raster cube file based on the information about the files
-cbers_tile <- sits_cube(
-    source = "BDC",
-    collection = "CB4_64_16D_STK-1",
-    name = "cbers_022024",
-    bands = c("NDVI", "EVI"),
-    tiles = "022024",
-    start_date = "2018-09-01",
-    end_date = "2019-08-28"
-)
+# create a raster cube file based on the information in the BDC
 
 # --- Access to Digital Earth Africa
 

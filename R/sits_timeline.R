@@ -426,9 +426,9 @@ sits_timeline.classified_image <- function(data) {
         # build the classification matrix extracting the relevant columns
         dist_idx <- logical(length = size_lst)
         dist_idx[1:2] <- TRUE
-        for (b in 1:n_bands) {
-            i1 <- idx[(2 * b - 1)] + 2
-            i2 <- idx[2 * b] + 2
+        for (b in seq_len(n_bands)) {
+            i1 <- idx[[(2 * b - 1)]] + 2
+            i2 <- idx[[2 * b]] + 2
             dist_idx[i1:i2] <- TRUE
         }
         return(dist_idx)

@@ -187,21 +187,21 @@ test_that("Creating cubes from AWS and regularizing them", {
                          name = "T20LKP_2018_2019",
                          collection = "sentinel-s2-l2a",
                          s2_resolution = 60,
-                         tiles = c("20LKP", "20LLP"),
+                         tiles = c("20LKP"),
                          bands = c("B08", "SCL"),
                          start_date = "2018-07-30",
-                         end_date = "2018-09-30"
+                         end_date = "2018-08-30"
     )
 
     expect_true(all(sits_bands(s2_cube) %in% c("B08", "SCL")))
 
     file_info <- s2_cube$file_info[[1]]
-    r <- .sits_raster_api_open_rast(file_info$path[[1]])
+    r <- sits:::.sits_raster_api_open_rast(file_info$path[[1]])
 
-    expect_equal(s2_cube$nrows[[1]], .sits_raster_api_nrows(r))
-    expect_equal(s2_cube$ncols[[1]], .sits_raster_api_ncols(r))
-    expect_equal(s2_cube$xmax[[1]], .sits_raster_api_xmax(r))
-    expect_equal(s2_cube$xmin[[1]], .sits_raster_api_xmin(r))
+    expect_equal(s2_cube$nrows[[1]], sits:::.sits_raster_api_nrows(r))
+    expect_equal(s2_cube$ncols[[1]], sits:::.sits_raster_api_ncols(r))
+    expect_equal(s2_cube$xmax[[1]], sits:::.sits_raster_api_xmax(r))
+    expect_equal(s2_cube$xmin[[1]], sits:::.sits_raster_api_xmin(r))
 
     dir_images <-  paste0(tempdir(), "/images/")
     if (!dir.exists(dir_images))
