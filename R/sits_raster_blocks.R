@@ -143,16 +143,15 @@
     # nrows      number of rows in each block
     # col        first col
     # ncols      number of cols in each block
-
-    blocks <- vector("list", length = nblocks)
-    for (i in 1:nblocks) {
-        block <- c("row"   = row_vec[i],
-                   "nrows" = nrows_vec[i],
+    blocks <- purrr::map2(row_vec, nrows_vec, function(rv, nr){
+        block <- c("row"   = rv,
+                   "nrows" = nr,
                    "col"   = unname(sub_image["first_col"]),
                    "ncols" = unname(sub_image["ncols"])
-                   )
-        blocks[[i]] <- block
-    }
+        )
+
+        return(block)
+    })
     return(blocks)
 }
 
