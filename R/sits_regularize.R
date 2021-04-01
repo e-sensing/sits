@@ -10,7 +10,7 @@
 #'  n. 3, p. 92, 2019. DOI: 10.3390/data4030092.
 #'
 #' @examples{
-#' \dontrun{
+#' \donttest{
 #' # define an AWS data cube
 #'   s2_cube <- sits_cube(source = "AWS",
 #'                       name = "T20LKP_2018_2019",
