@@ -469,7 +469,7 @@ sits_config_show <- function() {
 #' @return file path to the appended to data_dir
 .sits_config_data_meta_type <- function(data) {
 
-    if (inherits(data, c("sits", "patterns", "predicted"))) {
+    if (inherits(data, c("sits", "patterns", "predicted", "sits_model"))) {
         return(data)
 
     } else {

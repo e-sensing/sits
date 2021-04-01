@@ -47,3 +47,20 @@ sits_bands.patterns <- function(x) {
 
     return(sits_bands.sits(x))
 }
+
+#' @export
+#'
+sits_bands.sits_model <- function(x) {
+
+    assertthat::assert_that(
+        inherits(x, "function"),
+        msg = "sits_bands: invalid sits model"
+    )
+
+    assertthat::assert_that(
+        "data" %in% ls(environment(x)),
+        msg = "sits_bands: no samples found in the sits model"
+    )
+
+    return(sits_bands.sits(environment(x)$data))
+}

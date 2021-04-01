@@ -159,7 +159,8 @@ sits_lda <- function(data = NULL, formula = sits_formula_logref(), ...) {
 
             return(prediction)
         }
-        class(model_predict) <- c("lda_model", class(model_predict))
+        class(model_predict) <- c("lda_model", "sits_model",
+                                  class(model_predict))
         return(model_predict)
     }
 
@@ -247,7 +248,8 @@ sits_qda <- function(data = NULL, formula = sits_formula_logref(), ...) {
 
             return(prediction)
         }
-        class(model_predict) <- c("qda_model", class(model_predict))
+        class(model_predict) <- c("qda_model", "sits_model",
+                                  class(model_predict))
         return(model_predict)
     }
     result <- .sits_factory_function(data, result_fun)
@@ -345,7 +347,8 @@ sits_mlr <- function(data = NULL, formula = sits_formula_linear(),
 
             return(prediction)
         }
-        class(model_predict) <- c("mlr_model", class(model_predict))
+        class(model_predict) <- c("mlr_model", "sits_model",
+                                  class(model_predict))
         return(model_predict)
     }
 
@@ -456,7 +459,8 @@ sits_ranger <- function(data = NULL,
 
             return(prediction)
         }
-        class(model_predict) <- c("ranger_model", class(model_predict))
+        class(model_predict) <- c("ranger_model", "sits_model",
+                                  class(model_predict))
         return(model_predict)
     }
 
@@ -535,6 +539,8 @@ sits_rfor <- function(data = NULL, num_trees = 2000, nodesize = 1, ...) {
                                   type = "prob"
             ))
         }
+        class(model_predict) <- c("rfor_model", "sits_model",
+                                  class(model_predict))
         return(model_predict)
     }
 
@@ -659,7 +665,8 @@ sits_svm <- function(data = NULL, formula = sits_formula_logref(),
 
             return(prediction)
         }
-        class(model_predict) <- c("svm_model", class(model_predict))
+        class(model_predict) <- c("svm_model", "sits_model",
+                                  class(model_predict))
         return(model_predict)
     }
     result <- .sits_factory_function(data, result_fun)
@@ -833,7 +840,8 @@ sits_xgboost <- function(data = NULL,
             # retrieve the prediction results
             return(prediction)
         }
-        class(model_predict) <- c("xgb_model", class(model_predict))
+        class(model_predict) <- c("xgb_model", "sits_model",
+                                  class(model_predict))
         return(model_predict)
     }
 
