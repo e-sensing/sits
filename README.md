@@ -61,7 +61,7 @@ For users that have an AWS account, we have prepared a set of AMI
 (Amazon Machine Images that are optimized for running SITS in the Amazon
 Elastic Compute Cloud (or EC2). The AMI has the following settings: SITS
 0.9.6, Ubuntu 18.04, R 4.0.2, and Rstudio Server 1.3.959. All packages
-have been updated as of 21 August 2020. The AMI is avaliable for the
+have been updated as of 21 August 2020. The AMI is available for the
 following regions:
 
 -   [South America
@@ -124,17 +124,16 @@ For details in gdalcubes, please see
 <https://github.com/appelmar/gdalcubes>.
 
 ``` r
-gc_cube <- sits_regularize(cube        = s2_cube,
-                           name        = "T20LKP_2018_2019_1M",
-                           path_db     = "/my/path/cube.db",
-                           path_images = "/my/path/images/",
-                           period      = "P1M",
-                           agg_method  = "median",
-                           resampling  = "bilinear"
-)
+gc_cube <- sits_regularize(cube   = s2_cube,
+                           name          = "T20LKP_2018_2019_1M",
+                           dir_images    = tempdir(),
+                           period        = "P1M",
+                           agg_method    = "median",
+                           resampling    = "bilinear",
+                           cloud_mask    = TRUE)
 ```
 
-### Data Access - Individual time series
+### Accessing time series in data cubes
 
 SITS has been designed to use satellite image time series to derive
 machine learning models. After the data cube has been created, time
@@ -171,22 +170,13 @@ points <- sits_get_data(raster_cube, file = csv_raster_file)
 #> Loading required namespace: terra
 #> All points have been retrieved
 # show the points
-points
-#> # A tibble: 12 x 7
-#>    longitude latitude start_date end_date   label    cube       time_series     
-#>        <dbl>    <dbl> <date>     <date>     <chr>    <chr>      <list>          
-#>  1     -55.7    -11.8 2013-09-14 2014-08-29 Pasture  sinop-2014 <tibble [23 × 3…
-#>  2     -55.6    -11.8 2013-09-14 2014-08-29 Pasture  sinop-2014 <tibble [23 × 3…
-#>  3     -55.7    -11.8 2013-09-14 2014-08-29 Forest   sinop-2014 <tibble [23 × 3…
-#>  4     -55.6    -11.8 2013-09-14 2014-08-29 Pasture  sinop-2014 <tibble [23 × 3…
-#>  5     -55.7    -11.8 2013-09-14 2014-08-29 Forest   sinop-2014 <tibble [23 × 3…
-#>  6     -55.6    -11.7 2013-09-14 2014-08-29 Forest   sinop-2014 <tibble [23 × 3…
-#>  7     -55.7    -11.7 2013-09-14 2014-08-29 Soy_Corn sinop-2014 <tibble [23 × 3…
-#>  8     -55.7    -11.7 2013-09-14 2014-08-29 Soy_Corn sinop-2014 <tibble [23 × 3…
-#>  9     -55.7    -11.7 2013-09-14 2014-08-29 Soy_Corn sinop-2014 <tibble [23 × 3…
-#> 10     -55.6    -11.8 2013-09-14 2014-08-29 Soy_Corn sinop-2014 <tibble [23 × 3…
-#> 11     -55.6    -11.8 2013-09-14 2014-08-29 Soy_Corn sinop-2014 <tibble [23 × 3…
-#> 12     -55.6    -11.8 2013-09-14 2014-08-29 Soy_Corn sinop-2014 <tibble [23 × 3…
+points[1:3,]
+#> # A tibble: 3 x 7
+#>   longitude latitude start_date end_date   label   cube      time_series        
+#>       <dbl>    <dbl> <date>     <date>     <chr>   <chr>     <list>             
+#> 1     -55.7    -11.8 2013-09-14 2014-08-29 Pasture sinop-20… <tibble[,3] [23 × …
+#> 2     -55.6    -11.8 2013-09-14 2014-08-29 Pasture sinop-20… <tibble[,3] [23 × …
+#> 3     -55.7    -11.8 2013-09-14 2014-08-29 Forest  sinop-20… <tibble[,3] [23 × …
 ```
 
 After a time series is imported, it is loaded in a tibble. The first six
@@ -202,7 +192,14 @@ function.
 plot(points[1,])
 ```
 
-![](man/figures/README-unnamed-chunk-6-1.png)<!-- -->
+<div class="figure" style="text-align: center">
+
+<img src="man/figures/README-unnamed-chunk-6-1.png" alt="Plot of point at location (-55.65931, -11.76267) labelled as Pasture"  />
+<p class="caption">
+Plot of point at location (-55.65931, -11.76267) labelled as Pasture
+</p>
+
+</div>
 
 For a large number of samples, where the amount of individual plots
 would be substantial, the default visualisation combines all samples
@@ -294,13 +291,15 @@ available in SITS:
 The following example illustrate how to train a dataset and classify an
 individual time series. First we use the `sits_train` function with two
 parameters: the training dataset (described above) and the chosen
-machine learning model (in this case, a random forest classifier). The
+machine learning model (in this case, extreme gradient boosting). The
 trained model is then used to classify a time series from Mato Grosso
 Brazilian state, using `sits_classify`. The results can be shown in text
 format using the function `sits_show_prediction` or graphically using
 `plot`.
 
 ``` r
+data("point_mt_6bands")
+
 # Train a machine learning model for the mato grosso dataset
 samples_mt_2bands <- sits_select(samples_modis_4bands, bands = c("ndvi", "evi"))
 xgb_model <- sits_train(data = samples_mt_2bands, 
@@ -318,9 +317,9 @@ plot(class.tb, bands = c("ndvi", "evi"))
 
 <div class="figure" style="text-align: center">
 
-<img src="man/figures/README-unnamed-chunk-10-1.png" alt="Time series classification using SVM"  />
+<img src="man/figures/README-unnamed-chunk-10-1.png" alt="Time series classification using xgboost"  />
 <p class="caption">
-Time series classification using SVM
+Time series classification using xgboost
 </p>
 
 </div>
@@ -356,6 +355,7 @@ probs_cube <- sits_classify(sinop,
                             ml_model = svm_model, 
                             output_dir = tempdir(),
                             verbose = FALSE)
+#> Loading required namespace: terra
 # apply a bayesian smoothing to remove outliers
 bayes_cube <- sits_smooth(probs_cube)
 
@@ -366,6 +366,8 @@ label_cube <- sits_label_classification(bayes_cube)
 # make a title, define the colors and the labels)
 plot(label_cube)
 ```
+
+![](man/figures/README-unnamed-chunk-11-1.png)<!-- -->
 
 ### Additional information
 

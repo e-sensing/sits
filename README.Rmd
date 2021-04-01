@@ -67,7 +67,7 @@ For users that have an AWS account, we have prepared a set of AMI
 (Amazon Machine Images that are optimized for running SITS in the Amazon
 Elastic Compute Cloud (or EC2). The AMI has the following settings: SITS
 0.9.6, Ubuntu 18.04, R 4.0.2, and Rstudio Server 1.3.959. All packages
-have been updated as of 21 August 2020. The AMI is avaliable for the
+have been updated as of 21 August 2020. The AMI is available for the
 following regions:
 
 -   [South America
@@ -97,8 +97,7 @@ SITS has been designed to work with big satellite image data sets organised as d
 5. Local image collections organized as raster stacks.
 
 SITS relies on STAC services provided by these cloud services. The user can define a data cube by selecting a collection in a cloud service and then defining
-a space-time extent. For example, the following code will define a data cube of Sentinel-2/2A images
-using AWS. Users need to provide AWS credentials using environment variables.
+a space-time extent. For example, the following code will define a data cube of Sentinel-2/2A images using AWS. Users need to provide AWS credentials using environment variables.
 
 ```{r, eval = FALSE, echo = TRUE}
 s2_cube <- sits_cube(source = "AWS",
@@ -120,17 +119,16 @@ one month period, as shown below. This can be done in SITS by the
 For details in gdalcubes, please see [https://github.com/appelmar/gdalcubes](https://github.com/appelmar/gdalcubes).
 
 ```{r, eval = FALSE, echo = TRUE}
-gc_cube <- sits_regularize(cube        = s2_cube,
-                           name        = "T20LKP_2018_2019_1M",
-                           path_db     = "/my/path/cube.db",
-                           path_images = "/my/path/images/",
-                           period      = "P1M",
-                           agg_method  = "median",
-                           resampling  = "bilinear"
-)
+gc_cube <- sits_regularize(cube   = s2_cube,
+                           name          = "T20LKP_2018_2019_1M",
+                           dir_images    = tempdir(),
+                           period        = "P1M",
+                           agg_method    = "median",
+                           resampling    = "bilinear",
+                           cloud_mask    = TRUE)
 ```
 
-### Data Access - Individual time series
+### Accessing time series in data cubes
 
 SITS has been designed to use satellite image time series to derive machine 
 learning models. After the data cube has been created, time series can be retreived
@@ -156,7 +154,7 @@ csv_raster_file <- system.file("extdata/samples/samples_sinop_crop.csv",
 # retrieve the points from the data cube
 points <- sits_get_data(raster_cube, file = csv_raster_file)
 # show the points
-points
+points[1:3,]
 ```
 After a time series is imported, it is loaded in a tibble. The first six
 columns contain the metadata: spatial and temporal location, label
@@ -166,14 +164,14 @@ coordinates. The first sample has
 been labelled “Pasture”, at location (-55.65931, -11.76267), and is
 considered valid for the period (2013-09-14, 2014-08-29). To display the
 time series, use the `plot()` function. 
-```{r, eval = TRUE, echo = TRUE} 
+```{r, eval = TRUE, echo = TRUE, fig.align="center", fig.height=2.7, fig.width=7, fig.cap="Plot of point at location (-55.65931, -11.76267) labelled as Pasture"} 
 plot(points[1,])
 ```
 
 For a large number of samples, where the amount of individual plots would be substantial, the default visualisation combines all samples together in a single temporal
 interval.
 
-```{r, eval=FALSE, fig.height=2.7, fig.width=5}
+```{r, eval=FALSE}
 # select the "ndvi" band
 samples_ndvi <- sits_select(samples_modis_4bands, "NDVI")
 # select only the samples with the cerrado label
@@ -182,7 +180,7 @@ samples_cerrado <- dplyr::filter(samples_ndvi,
 plot(samples_cerrado)
 ```
 
-```{r, echo=FALSE, fig.align="center", fig.cap="Samples for NDVI band for Cerrado class"}
+```{r, echo=FALSE, fig.align="center", fig.height=2.7, fig.width=5, fig.cap="Samples for NDVI band for Cerrado class"}
 knitr::include_graphics("./inst/extdata/markdown/figures/samples_cerrado.png")
 ```
 
@@ -246,13 +244,16 @@ available in SITS:
 The following example illustrate how to train a dataset and classify an
 individual time series. First we use the `sits_train` function with two
 parameters: the training dataset (described above) and the chosen
-machine learning model (in this case, a random forest classifier). The
-trained model is then used to classify a time series from Mato Grosso
+machine learning model (in this case, extreme gradient boosting). 
+The trained model is then used to classify a time series from Mato Grosso
 Brazilian state, using `sits_classify`. The results can be shown in text
 format using the function `sits_show_prediction` or graphically using
 `plot`.
 
-```{r, fig.align="center", fig.height=3, fig.width=6, fig.cap="Time series classification using SVM"}
+```{r, fig.align="center", fig.height=3, fig.width=6, fig.cap="Time series classification using xgboost"}
+
+data("point_mt_6bands")
+
 # Train a machine learning model for the mato grosso dataset
 samples_mt_2bands <- sits_select(samples_modis_4bands, bands = c("ndvi", "evi"))
 xgb_model <- sits_train(data = samples_mt_2bands, 
@@ -272,7 +273,7 @@ The following example shows how to classify a data cube organised as a
 set of raster image. First, we need to build a model based on the the
 same bands as the data cube.
 
-```{r, eval = FALSE}
+```{r}
 # select the samples and bands for classification
 # Retrieve the set of samples for the Mato Grosso region 
 # Select the data for classification
@@ -313,7 +314,7 @@ plot(label_cube)
 
 ### Additional information
 
-For more information, please see the on-line book [“SITS: Data analysis and machine learning for data cubes using satellite image timeseries”](https://e-sensing.github.io/sitsbook/).
+For more information, please see the on-line book ["SITS: Data analysis and machine learning for data cubes using satellite image timeseries"](https://e-sensing.github.io/sitsbook/).
 
 
 ## How to contribute
