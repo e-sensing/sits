@@ -4,12 +4,12 @@
 \alias{sits_whittaker}
 \title{Filter the time series using Whittaker smoother}
 \usage{
-sits_whittaker(data = NULL, lambda = 1, bands_suffix = "wf")
+sits_whittaker(data = NULL, lambda = 0.5, bands_suffix = "wf")
 }
 \arguments{
 \item{data}{A tibble with time series data and metadata.}
 
-\item{lambda}{Smoothing factor to be applied (default 1.0).}
+\item{lambda}{Smoothing factor to be applied (default 0.5).}
 
 \item{bands_suffix}{Suffix to be appended (default "wf").}
 }

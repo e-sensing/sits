@@ -35,9 +35,6 @@ sits_select <- function(data, bands) {
 #'
 sits_select.sits <- function(data, bands) {
 
-    # backward compatibility
-    data <- .sits_tibble_rename(data)
-
     # bands names in SITS are uppercase
     bands <- toupper(bands)
     sits_bands(data) <- toupper(sits_bands(data))

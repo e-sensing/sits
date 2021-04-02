@@ -736,7 +736,7 @@ sits_cube_copy <- function(cube,
                 file_ext
             )
 
-            gdalUtils::gdal_translate(
+            gdalUtilities::gdal_translate(
                 src_dataset = file_row$path,
                 dst_dataset = dest_file,
                 of = gdal_of,

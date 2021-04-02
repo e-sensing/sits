@@ -52,10 +52,6 @@ sits_patterns <- function(data = NULL, freq = 8, formula = y ~ s(x), ...) {
         stop("mgcv required for this function to work.
               Please install it.", call. = FALSE)
     }
-    # backward compatibility
-    if ("coverage" %in% names(data)) {
-          data <- .sits_tibble_rename(data)
-      }
     # function that is used to be called as a value from another function
     result_fun <- function(tb) {
         # does the input data exist?

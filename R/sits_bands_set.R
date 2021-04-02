@@ -17,14 +17,13 @@
 #' @export
 #'
 `sits_bands<-.sits` <- function(x, value) {
-    # backward compatibility
-    x <- .sits_tibble_rename(x)
-
+    # get the time series
     ts <- sits_time_series(x)
     assertthat::assert_that(
         ncol(ts) == length(value) + 1,
         msg = "sits_bands: invalid number of bands to be replaced")
 
+    # change band names for all rows of the tibble
     rows <- slider::slide(x, function(row) {
         ts <- sits_time_series(row)
         names(ts) <- c("Index", value)

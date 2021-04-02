@@ -46,9 +46,6 @@ sits_apply <- function(data,
                        bands_suffix = "",
                        multicores = 1) {
 
-    # backward compatibility
-    data <- .sits_tibble_rename(data)
-
     # verify if data is valid
     .sits_test_tibble(data)
 
@@ -105,9 +102,6 @@ sits_apply <- function(data,
 #' }
 #' @export
 sits_mutate_bands <- function(data, ...) {
-
-    # backward compatibility
-    data <- .sits_tibble_rename(data)
 
     # verify if data has values
     .sits_test_tibble(data)
@@ -166,9 +160,6 @@ sits_mutate_bands <- function(data, ...) {
 #' sits_labels(data)
 #' @export
 sits_sample <- function(data, n = NULL, frac = NULL) {
-
-    # backward compatibility
-    data <- .sits_tibble_rename(data)
 
     # verify if data is valid
     .sits_test_tibble(data)

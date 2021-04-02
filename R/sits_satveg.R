@@ -141,11 +141,6 @@
 #' @param collection      SATVEG Image Collection
 #' @return                A tibble containing a time series
 .sits_ts_from_satveg <- function(longitude, latitude, name) {
-    # verifies if RCurl package is installed
-    if (!requireNamespace("RCurl", quietly = TRUE)) {
-        stop("RCurl required for this function to work.
-             Please install it.", call. = FALSE)
-    }
     # set the prefilter
     .prefilter <- 1
     # the parameter filter is not used

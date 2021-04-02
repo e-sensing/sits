@@ -48,8 +48,6 @@
 #' @return               The converted sits tibble
 #'
 .sits_align_dates <- function(data, ref_dates) {
-    # backward compatibility
-    data <- .sits_tibble_rename(data)
     # verify that tibble is correct
     .sits_test_tibble(data)
     # function to shift a time series in time
@@ -141,10 +139,7 @@
 #' @return A pruned sits tibble.
 #'
 .sits_prune <- function(data) {
-
-    # backward compatibility
-    data <- .sits_tibble_rename(data)
-
+    # verify that tibble is correct
     .sits_test_tibble(data)
 
     # create a vector to store the number of indices per time series
@@ -183,8 +178,6 @@
 #'
 #'
 .sits_transmute_bands <- function(data, ...) {
-    # backward compatibility
-    data <- .sits_tibble_rename(data)
 
     # verify if data is valid
     .sits_test_tibble(data)

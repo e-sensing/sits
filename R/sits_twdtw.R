@@ -88,8 +88,6 @@ sits_twdtw_classify <- function(samples,
             call. = FALSE
         )
     }
-    # backward compatibility
-    samples <- .sits_tibble_rename(samples)
 
     # does the input data exist?
     .sits_test_tibble(samples)

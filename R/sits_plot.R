@@ -544,6 +544,11 @@ plot.keras_model <- function(x, y, ...) {
 #' @return            The plot itself.
 .sits_ggplot_series_na <- function(row, colors = "Dark2") {
 
+    # verifies if tidyr package is installed
+    if (!requireNamespace("tidyr", quietly = TRUE)) {
+         stop("Please install package tidyr", call. = FALSE)
+    }
+
     # define a function to replace the NAs for unique values
     replace_na <- function(x) {
         x[is.na(x)] <- -10000

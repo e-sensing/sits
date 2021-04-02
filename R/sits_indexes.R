@@ -11,8 +11,6 @@
 #' savi.tb <- sits_savi(samples_mt_6bands)
 #' @export
 sits_savi <- function(data) {
-    # backward compatibility
-    data <- .sits_tibble_rename(data)
 
     bands <- sits_bands(data)
     bands_savi <- c("NIR", "RED")
@@ -43,8 +41,6 @@ sits_savi <- function(data) {
 #' @export
 sits_ndwi <- function(data) {
 
-    # backward compatibility
-    data <- .sits_tibble_rename(data)
     bands <- sits_bands(data)
     bands_ndwi <- c("NIR", "MIR")
 

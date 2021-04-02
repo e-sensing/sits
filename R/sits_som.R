@@ -126,9 +126,6 @@ sits_som_map <- function(data,
               Please install it.", call. = FALSE)
     }
 
-    # backward compatibility
-    data <- .sits_tibble_rename(data)
-
     # does the input data exist?
     .sits_test_tibble(data)
 

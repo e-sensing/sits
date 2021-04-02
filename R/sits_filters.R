@@ -169,8 +169,6 @@ sits_interp <- function(data = NULL, fun = stats::approx,
 #' plot(point_int.tb)
 #' @export
 sits_linear_interp <- function(data = NULL, n = 23) {
-    # backward compatibility
-    data <- .sits_tibble_rename(data)
 
     filter_fun <- function(data) {
         # compute linear approximation
@@ -238,35 +236,38 @@ sits_missing_values <- function(data, miss_value) {
 #' plot(sits_merge(point_ndvi, point_sg))
 #'
 #' @export
-sits_sgolay <- function(data = NULL, order = 3,
-                        length = 5, scaling = 1, bands_suffix = "sg") {
+sits_sgolay <- function(data = NULL,
+                        order = 3,
+                        length = 5,
+                        scaling = 1,
+                        bands_suffix = "sg") {
+
     # verifies if signal package is installed
     if (!requireNamespace("signal", quietly = TRUE)) {
         stop("signal required for this function to work.
              Please install it.", call. = FALSE)
     }
-    # backward compatibility
-    data <- .sits_tibble_rename(data)
 
     filter_fun <- function(data) {
         if (inherits(data, "tbl")) {
             result <- sits_apply(data,
-                fun = function(band) {
-                      signal::sgolayfilt(band,
-                          p = order,
-                          n = length, ts = scale
-                      )
-                  },
-                fun_index = function(band) band,
-                bands_suffix = bands_suffix
+                                 fun = function(band) {
+                                     signal::sgolayfilt(band,
+                                                        p = order,
+                                                        n = length,
+                                                        ts = scaling
+                                     )
+                                 },
+                                 fun_index = function(band) band,
+                                 bands_suffix = bands_suffix
             )
         }
         if (inherits(data, "matrix")) {
             result <- apply(data, 2, function(row) {
                 signal::sgolayfilt(row,
-                    p = order,
-                    n = length,
-                    ts = scale
+                                   p = order,
+                                   n = length,
+                                   ts = scaling
                 )
             })
         }
@@ -292,7 +293,7 @@ sits_sgolay <- function(data = NULL, order = 3,
 #' vol. 57, pg. 202-213, 2107.
 #'
 #' @param data         A tibble with time series data and metadata.
-#' @param lambda       Smoothing factor to be applied (default 1.0).
+#' @param lambda       Smoothing factor to be applied (default 0.5).
 #' @param bands_suffix Suffix to be appended (default "wf").
 #' @return             A tibble with smoothed sits time series.
 #'
@@ -304,15 +305,11 @@ sits_sgolay <- function(data = NULL, order = 3,
 #' # Plot the two points to see the smoothing effect
 #' plot(sits_merge(point_ndvi, point_whit))
 #' @export
-sits_whittaker <- function(data = NULL, lambda = 1.0, bands_suffix = "wf") {
-    # verifies if ptw package is installed
-    if (!requireNamespace("ptw", quietly = TRUE)) {
-        stop("ptw required for this function to work.
-             Please install it.", call. = FALSE)
-    }
-    # backward compatibility
-    data <- .sits_tibble_rename(data)
+sits_whittaker <- function(data = NULL, lambda = 0.5, bands_suffix = "wf") {
 
+    if (!requireNamespace("ptw", quietly = TRUE)) {
+        stop("Please install package ptw.", call. = FALSE)
+    }
     filter_fun <- function(data) {
         result <- NULL
         if (inherits(data, "tbl")) {

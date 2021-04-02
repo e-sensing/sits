@@ -56,7 +56,7 @@ sits_label_classification <- function(cube,
                                       output_dir = "./",
                                       version = "v1") {
 
-    # Backwards compatibility
+    # backwards compatibility
     if (!purrr::is_null(smoothing)) {
         message("to do bayesian smoothing, please use sits_smooth")
         message("please revise your script")

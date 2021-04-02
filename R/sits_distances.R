@@ -14,8 +14,6 @@
 #'                    and the time series values as distances.
 #'
 .sits_distances <- function(data) {
-    # backward compatibility
-    data <- .sits_tibble_rename(data)
 
     # check the sits tibble
     .sits_test_tibble(data)

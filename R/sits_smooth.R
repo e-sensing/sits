@@ -93,12 +93,16 @@
 #'
 sits_smooth <- function(cube, type = "bayes", ...) {
 
-    # precondition 1 - check if cube has probability data
+    if (!requireNamespace("parallel", quietly = TRUE)) {
+        stop("Please install package parallel.", call. = FALSE)
+    }
+    # check if cube has probability data
     assertthat::assert_that(
         inherits(cube, "probs_cube"),
         msg = "sits_smooth: input is not probability cube"
     )
 
+    # define the class of the smoothing
     class(type) <- c(type, class(type))
 
     UseMethod("sits_smooth", type)

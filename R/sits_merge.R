@@ -44,10 +44,6 @@ sits_merge.sits <- function(data1, data2) {
     .sits_test_tibble(data1)
     .sits_test_tibble(data2)
 
-    # backward compatibility
-    data1 <- .sits_tibble_rename(data1)
-    data2 <- .sits_tibble_rename(data2)
-
     # if some parameter is empty returns the another one
     assertthat::assert_that(
         nrow(data1) > 0 & nrow(data2) > 0,

@@ -40,9 +40,6 @@
 #'
 `sits_labels<-.sits` <- function(data, value) {
 
-    # backward compatibility
-    data <- .sits_tibble_rename(data)
-
     # does the input data exist?
     .sits_test_tibble(data)
 

@@ -39,8 +39,6 @@
 #' @export
 #'
 sits_train <- function(data, ml_method = sits_svm()) {
-    # backward compatibility
-    data <- .sits_tibble_rename(data)
 
     # is the input data a valid sits tibble?
     assertthat::assert_that(
@@ -105,9 +103,6 @@ sits_train <- function(data, ml_method = sits_svm()) {
 #' @export
 #'
 sits_lda <- function(data = NULL, formula = sits_formula_logref(), ...) {
-
-    # backward compatibility
-    data <- .sits_tibble_rename(data)
 
     # function that returns MASS::lda model based on a sits sample tibble
     result_fun <- function(data) {
@@ -202,8 +197,6 @@ sits_lda <- function(data = NULL, formula = sits_formula_logref(), ...) {
 #' @export
 #'
 sits_qda <- function(data = NULL, formula = sits_formula_logref(), ...) {
-    # backward compatibility
-    data <- .sits_tibble_rename(data)
 
     # function that returns MASS::qda model based on a sits sample tibble
     result_fun <- function(data) {
@@ -298,9 +291,6 @@ sits_qda <- function(data = NULL, formula = sits_formula_logref(), ...) {
 sits_mlr <- function(data = NULL, formula = sits_formula_linear(),
                      n_weights = 20000, maxit = 2000, ...) {
 
-    # backward compatibility
-    data <- .sits_tibble_rename(data)
-
     # function that returns nnet::multinom model based on a sits sample tibble
     result_fun <- function(data) {
 
@@ -393,8 +383,6 @@ sits_mlr <- function(data = NULL, formula = sits_formula_linear(),
 sits_ranger <- function(data = NULL,
                         num_trees = 2000,
                         importance = "impurity", ...) {
-    # backward compatibility
-    data <- .sits_tibble_rename(data)
 
     # function that returns a randomForest model based on a sits sample tibble
     result_fun <- function(data) {
@@ -605,9 +593,6 @@ sits_svm <- function(data = NULL, formula = sits_formula_logref(),
                      kernel = "radial", degree = 3, coef0 = 0,
                      cost = 10, tolerance = 0.001,
                      epsilon = 0.1, cross = 0, ...) {
-
-    # backward compatibility
-    data <- .sits_tibble_rename(data)
 
     # function that returns e1071::svm model based on a sits sample tibble
     result_fun <- function(data) {
@@ -967,9 +952,7 @@ sits_formula_linear <- function(predictors_index = -2:0) {
 #'
 #' @return A normalized sits tibble.
 .sits_normalize_data <- function(data, stats) {
-
-    # backward compatibility
-    data <- .sits_tibble_rename(data)
+    # test if data is valid
     .sits_test_tibble(data)
 
     # get the bands of the input data

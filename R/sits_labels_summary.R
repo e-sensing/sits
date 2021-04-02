@@ -27,9 +27,6 @@ sits_labels_summary <- function(data) {
 #'
 sits_labels_summary.sits <- function(data) {
 
-    # backward compatibility
-    data <- .sits_tibble_rename(data)
-
     # get frequency table
     data_labels <- table(data$label)
 

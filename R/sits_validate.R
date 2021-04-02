@@ -49,9 +49,6 @@ sits_kfold_validate <- function(data, folds = 5,
         stop("Please install package caret.", call. = FALSE)
     }
 
-    # backward compatibility
-    data <- .sits_tibble_rename(data)
-
     # get the labels of the data
     labels <- sits_labels(data)
 

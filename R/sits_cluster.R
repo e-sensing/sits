@@ -43,9 +43,6 @@ sits_cluster_dendro <- function(samples = NULL,
                                 colors = "RdYlGn",
                                 .plot = TRUE, ...) {
 
-    # backward compatibility
-    samples <- .sits_tibble_rename(samples)
-
     # verify if data is OK
     .sits_test_tibble(samples)
 

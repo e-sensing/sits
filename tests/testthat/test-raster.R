@@ -104,7 +104,7 @@ test_that("One-year, single core classification with filter", {
         sits_classify(
             data = sinop,
             ml_model = svm_model,
-            filter_fn = sits_whittaker(lambda = 3.0),
+            filter_fn = sits_whittaker(),
             output_dir = tempdir(),
             memsize = 4,
             multicores = 1
