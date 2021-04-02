@@ -34,31 +34,35 @@
                                     start_date,
                                     end_date) {
 
-    # list the files in the data directory
-    img_files <- list.files(data_dir)
-
     # how many of those files are images?
     # retrieve the known file extensions
     file_ext <- .sits_config_img_file_ext()
-    # filter by extension
-    matches <- purrr::map(file_ext, function(ext) {
-        img_files[grepl(ext, img_files)]
-    })
-    # get only valid files
-    img_files <- unlist(matches)
+
+    # list the files in the data directory
+    img_files <- list.files(
+        path = data_dir,
+        pattern = paste0("\\.(",
+                         paste0(.sits_config_img_file_ext(), collapse = "|"),
+                         ")$")
+    )
 
     # remove the extension
     img_files_noext <- tools::file_path_sans_ext(img_files)
+
     # split the file names
-    img_files_lst <- strsplit(img_files_noext, split = "_")
-    # joint the list into a tibble
-    img_files_tb <- suppressWarnings(
-        tibble::as_tibble(
-            do.call(rbind, img_files_lst)
-        )
-    )
+    img_files_lst <- strsplit(img_files_noext, split = delim)
+
+    # bind rows
+    img_files_mx <- do.call(rbind, img_files_lst)
+
     # read the image files into a tibble with added parse info
-    colnames(img_files_tb) <- parse_info
+    colnames(img_files_mx) <- parse_info
+
+    # joint the list into a tibble
+    img_files_tb <- tibble::as_tibble(
+        img_files_mx,
+        .name_repair = "minimal"
+    )
 
     # get the information on the required bands, dates and path
     file_info <- img_files_tb %>%
@@ -68,13 +72,13 @@
         .sits_timeline_date_format() %>%
         # include path in the tibble
         dplyr::mutate(path = paste0(data_dir, "/", img_files)) %>%
-        # order by dates
-        dplyr::arrange(date) %>%
         # filter to remove duplicate combinations of file and band
-        dplyr::distinct(band, date, .keep_all = TRUE)
+        dplyr::distinct(band, date, .keep_all = TRUE) %>%
+        # order by dates
+        dplyr::arrange(date)
 
     # extract the band names
-    bands_files <- dplyr::pull(dplyr::distinct(file_info, band))
+    bands_files <- unique(file_info$band)
 
     # convert the names of the bands to those used by SITS
     bands_sits <- .sits_config_bands_convert(satellite, sensor, bands_files)

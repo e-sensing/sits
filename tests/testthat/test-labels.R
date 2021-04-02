@@ -12,18 +12,14 @@ test_that("Labels", {
 
 test_that("Relabel", {
     # skip_on_cran()
+
     data("samples_modis_4bands")
 
-    conv_lst <- list(
-        Soy_Corn = "Cropland",
-        Soy_Cotton = "Cropland",
-        Soy_Fallow = "Cropland",
-        Soy_Millet = "Cropland",
-        Soy_Sunflower = "Cropland",
-        Fallow_Cotton = "Cropland"
-    )
+    # copy result
+    new_data <- samples_modis_4bands
+    sits_labels(new_data) #  [1] "Cerrado"  "Forest"   "Pasture"  "Soy_Corn"
 
-    new_data <- sits_relabel(samples_modis_4bands, conv_lst)
+    sits_labels(new_data) <- c("Cerrado", "Forest", "Pasture", "Cropland")
 
     labels <- sits_labels_summary(new_data)
 
