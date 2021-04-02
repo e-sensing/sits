@@ -57,7 +57,6 @@ Imports:
 Suggests:
     aws.s3 (>= 0.3.21),
     caret,
-    DBI,
     dendextend,
     devtools,
     dtwclust,
@@ -78,7 +77,6 @@ Suggests:
     mgcv,
     nnet,
     openxlsx,
-    plyr,
     proto,
     ptw,
     reticulate (>= 1.18),
@@ -86,14 +84,12 @@ Suggests:
     ranger,
     Rcpp,
     RcppArmadillo,
-    RSQLite,
     rstac,
     signal,
     stars,
     stringr,
     testthat,
     xgboost,
-    xml2,
     zoo
 VignetteBuilder: knitr
 LinkingTo:
