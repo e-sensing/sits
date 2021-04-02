@@ -128,6 +128,7 @@ Collate:
     'sits_imputation.R'
     'sits_keras.R'
     'sits_labels.R'
+    'sits_labels_set.R'
     'sits_label_classification.R'
     'sits_labels_summary.R'
     'sits_LSTM_FCN.R'
