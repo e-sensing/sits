@@ -94,11 +94,7 @@ sits_view.raster_cube <- function(x, ...,
     # plot only the selected tile
     # select only the bands for the timeline
     bands_date <- x$file_info[[1]] %>%
-<<<<<<< HEAD
         dplyr::filter(date == as.Date(timeline[[time]]))
-=======
-        dplyr::filter(date == as.Date(timeline[[1]]))
->>>>>>> 2101043a849104ae230296cc70ff5cba128c1a98
 
     # get RGB files for the requested timeline
     red_file <- dplyr::filter(bands_date, band == red)$path
