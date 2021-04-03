@@ -4,7 +4,7 @@
 \alias{.sits_gc_brick}
 \title{Create a raster_cube object}
 \usage{
-.sits_gc_brick(cube, img_col, cube_view, cloud_mask)
+.sits_gc_brick(cube, img_col, cv, cloud_mask)
 }
 \arguments{
 \item{cube}{Data cube from where data is to be retrieved.}
@@ -12,7 +12,7 @@
 \item{img_col}{A \code{object} 'image_collection' containing information
 about the images metadata.}
 
-\item{cube_view}{A \code{object} 'cube_view' with values from cube.}
+\item{cv}{A \code{object} 'cube_view' with values from cube.}
 
 \item{cloud_mask}{A \code{logical} corresponds to the use of the cloud band
 for aggregation.}
