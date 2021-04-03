@@ -60,6 +60,14 @@ sits_view.raster_cube <- function(x, ...,
     if (!requireNamespace("raster", quietly = TRUE)) {
         stop("Please install package raster.", call. = FALSE)
     }
+    # preconditions
+    assertthat::assert_that(all(c(red, green, blue) %in% sits_bands(x)),
+                    msg = "requested RGB bands not available in data cube")
+
+    timeline <- sits_timeline(x)
+    assertthat::assert_that(time >= 1 & time <= length(timeline),
+                            msg = "invalid time")
+
     # verify sf package if roi is informed
     if (!purrr::is_null(roi)) {
         if (!requireNamespace("sf", quietly = TRUE)) {
@@ -77,42 +85,32 @@ sits_view.raster_cube <- function(x, ...,
         }
         x <- x[intersects, ]
     }
-
     # set mapview options
     mapview::mapviewOptions(basemaps = c(
         "GeoportailFrance.orthos",
         "Esri.WorldImagery"
     ))
 
-    # plot only the first tile
-    # get information about bands and files
-    file_info <- x$file_info[[1]]
+    # plot only the selected tile
+    # select only the bands for the timeline
+    bands_date <- x$file_info[[1]] %>%
+        dplyr::filter(date == as.Date(timeline[[1]]))
 
-    # is there a cloud band?
-    # remove the cloud band from the file information
-    bands <- .sits_config_bands_no_cloud(x[1, ])
-    file_info <- dplyr::filter(file_info, band %in% bands)
+    # get RGB files for the requested timeline
+    red_file <- dplyr::filter(bands_date, band == red)$path
+    green_file <- dplyr::filter(bands_date, band == green)$path
+    blue_file <- dplyr::filter(bands_date, band == blue)$path
 
-    # index to assign which bands to plot
-    index <- .sits_view_rgb_stack(
-        bands = bands,
-        timeline = sits_timeline(x),
-        red = toupper(red),
-        green = toupper(green),
-        blue = toupper(blue),
-        time = time
-    )
+    rgb_files <- c(red_file, green_file, blue_file)
 
     # use the raster package to obtain a raster object from a stack
-    rast <- suppressWarnings(raster::stack(file_info$path[index]))
+    rast <- suppressWarnings(raster::stack(rgb_files))
 
+    # extract region of interest
     if (!purrr::is_null(roi)) {
-
         roi <- raster::extent(sf::st_bbox(
             sf::st_transform(roi, crs = raster::crs(rast))))
-
         rast <- suppressWarnings(raster::crop(rast, roi))
-
     }
 
     assertthat::assert_that(
@@ -188,65 +186,4 @@ sits_view.classified_image <- function(x,...,
         )
 
     return(mv)
-}
-#' @title  Assign RGB channels to for raster stack cubes
-#' @name   .sits_view_rgb_stack
-#' @keywords internal
-#' @author Gilberto Camara \email{gilberto.camara@@inpe.br}
-#'
-#' @description Obtain a vector with the correct layer to be plotted for
-#' an RGB assignment of a multi-temporal set of images
-#'
-#' @param bands      bands of the data cube (excludes cloud band)
-#' @param timeline   timeline of the data cube
-#' @param red        Band to be assigned to R channel
-#' @param green      Band to be assigned to G channel
-#' @param blue       Band to be assigned to G channel
-#' @param time       Temporal instance to be plotted
-#'
-#' @return           Named vector with the correct layers for RGB
-.sits_view_rgb_stack <- function(bands, timeline, red, green, blue, time) {
-
-    # check if the selected bands are correct
-    all_bands <- paste0(bands, collapse = " ")
-
-    assertthat::assert_that(
-        red %in% bands,
-        msg = paste(".sits_view_rgb_stack: R channel should be one of",
-                    all_bands)
-    )
-
-    assertthat::assert_that(
-        green %in% bands,
-        msg = paste(".sits_view_rgb_stack: G channel should be one of",
-                    all_bands)
-    )
-
-    assertthat::assert_that(
-        blue %in% bands,
-        msg = paste0(".sits_view_rgb_stack: B channel should be one of ",
-                     all_bands)
-    )
-
-    # find out the number of instances
-    n_instances <- length(timeline)
-    # check if the selected temporal instance exists
-    assertthat::assert_that(
-        time <= n_instances,
-        msg = paste0(".sits_view_rgb_stack: time '", time,
-                     "' is out of bounds.")
-    )
-
-    # locate the instances
-    instances_lst <- purrr::map(c(red, green, blue),
-                                function(b) {
-                                    inst <- grep(b, bands)
-                                    return((time - 1) * length(bands) + inst)
-                                })
-
-    # create a named vector to store the RGB instances
-    index <- unlist(instances_lst)
-    names(index) <- c("red", "green", "blue")
-
-    return(index)
 }
