@@ -6,7 +6,7 @@
 \usage{
 .sits_raster_data_preprocess(
   cube,
-  band_cube,
+  bands,
   extent,
   filter_fn = NULL,
   stats = NULL,
@@ -17,7 +17,7 @@
 \arguments{
 \item{cube}{data cube being processed}
 
-\item{band_cube}{band to be processed}
+\item{bands}{bands to be processed}
 
 \item{extent}{extent to be read}
 

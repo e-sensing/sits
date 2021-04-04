@@ -56,9 +56,9 @@
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'
 #' @param  cube             data cube being processed
-#' @param  band_cube        band to be processed
+#' @param  bands            bands to be processed
 #' @param  extent           extent to be read
-#' @param  filter_fn           smoothing filter to be applied.
+#' @param  filter_fn        smoothing filter to be applied.
 #' @param  stats            normalization parameters.
 #' @param  impute_fn        imputing function to be applied to replace NA
 #' @param  .verbose         prints information about processing times
@@ -158,13 +158,13 @@
 
 }
 
-#' @title Split a data.table or a matrix for multicore processing
+#' @title Split a data.table or a matrix for parallel processing
 #' @name .sits_raster_data_split
 #' @keywords internal
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'
 #' @description This function splits a data.table into a
-#'              list of chunks for multicore processing.
+#'              list of chunks for parallel processing.
 #'
 #' @param data             Data (data.table or matrix).
 #' @param ncores           Number of cores for processing.
