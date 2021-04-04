@@ -39,6 +39,7 @@
         )
         return(values)
     })
+
     # create a data.table joining the values
     data <- do.call(cbind, values_bands)
 
@@ -88,7 +89,7 @@
     )
 
     # read the values
-    values <- .sits_raster_api_read_stack(files  = bnd_files,
+    values <- .sits_raster_api_read_stack(files = bnd_files,
                                           block = extent)
 
     # get the missing values, minimum values and scale factors
