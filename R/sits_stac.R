@@ -119,6 +119,12 @@
     # making the request
     items_info <- rstac_query %>% rstac::post_request(...)
 
+    # check if matched items
+    assertthat::assert_that(
+        rstac::items_matched(items_info) > 0,
+        msg = ".sits_stac_items: no items matched the query criteria"
+    )
+
     # progress bar status
     pgr_fetch  <- FALSE
 
