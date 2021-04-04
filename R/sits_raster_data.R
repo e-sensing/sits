@@ -25,31 +25,27 @@
     # get the bands in the same order as the samples
     bands <- sits_bands(samples)
 
-    # read the values from the raster ordered by bands
-    values_bands <- purrr::map(bands, function(band) {
-
-        # preprocess the input data
-        values <- .sits_raster_data_preprocess(
-            cube = cube,
-            band_cube = band,
-            extent = extent,
-            impute_fn = impute_fn,
-            stats = stats,
-            filter_fn = filter_fn
-        )
-        return(values)
-    })
-
-    # create a data.table joining the values
-    data <- do.call(cbind, values_bands)
+    # preprocess the input data
+    data <- .sits_raster_data_preprocess(
+        cube      = cube,
+        bands     = bands,
+        extent    = extent,
+        impute_fn = impute_fn,
+        stats     = stats,
+        filter_fn = filter_fn
+    )
 
     # create two additional columns for prediction
     two_cols <- data.table::data.table(
         "original_row" = rep(1, nrow(data)),
         "reference" = rep("NoClass", nrow(data))
     )
+
     # join the two columns with the data values
     data <- data.table::as.data.table(cbind(two_cols, data))
+
+    # get the attribute names set column names for DT
+    colnames(data) <- names(.sits_distances(samples[1, ]))
 
     return(data)
 }
@@ -68,7 +64,7 @@
 #' @param  .verbose         prints information about processing times
 #' @return Matrix with pre-processed values.
 .sits_raster_data_preprocess <- function(cube,
-                                         band_cube,
+                                         bands,
                                          extent,
                                          filter_fn = NULL,
                                          stats = NULL,
@@ -78,78 +74,88 @@
     # get the file information for the cube
     file_info <- cube$file_info[[1]]
 
-    # define the input raster files for band
-    bnd_files <- dplyr::filter(file_info, band == band_cube)$path
-
-    # are there bands associated to the files?
-    assertthat::assert_that(
-        length(bnd_files) > 0,
-        msg = paste(".sits_raster_data_preprocess: no files for band",
-                    band_cube)
-    )
-
-    # read the values
-    values <- .sits_raster_api_read_stack(files = bnd_files,
-                                          block = extent)
-
-    # get the missing values, minimum values and scale factors
-    missing_value <- .sits_config_missing_values(cube$sensor, band_cube)
-    minimum_value <- .sits_config_minimum_values(cube$sensor, band_cube)
-    maximum_value <- .sits_config_maximum_values(cube$sensor, band_cube)
-
-    # correct NA, minimum, maximum, and missing values
-    values[values < minimum_value] <- NA
-    values[values > maximum_value] <- NA
-    values[values == missing_value] <- NA
-
     # does the cube have a cloud band?
     cld_band <- .sits_config_cloud_band(cube)
-
     if (cld_band %in% sits_bands(cube)) {
+
+        cld_index <- .sits_config_cloud_values(cube)
         cld_files <- dplyr::filter(file_info, band == cld_band)$path
         clouds <- .sits_raster_api_read_stack(files  = cld_files,
-                                              block = extent)
-    }
-    else {
+                                              block = extent) %in% cld_index
+    } else {
         clouds <- NULL
     }
 
-    # change the points under clouds to NA
-    if (!purrr::is_null(clouds)) {
-        cld_index <- .sits_config_cloud_values(cube)
-        values[clouds %in% cld_index] <- NA
-    }
+    # read the values from the raster ordered by bands
+    values_bands <- purrr::map(bands, function(band_cube) {
 
-    # remove NA pixels
-    if (!purrr::is_null(impute_fn) && any(is.na(values))) {
-        if (.verbose) task_start_time <- lubridate::now()
+        # define the input raster files for band
+        bnd_files <- dplyr::filter(file_info, band == band_cube)$path
 
-        values <- impute_fn(values)
+        # are there bands associated to the files?
+        assertthat::assert_that(
+            length(bnd_files) > 0,
+            msg = paste(".sits_raster_data_preprocess: no files for band",
+                        band_cube)
+        )
 
-        if (.verbose) {
-            .sits_processing_task_time(
-                "Impute NA",
-                task_start_time
-            )
+        # read the values
+        values <- .sits_raster_api_read_stack(files = bnd_files,
+                                              block = extent)
+
+        # get the missing values, minimum values and scale factors
+        missing_value <- .sits_config_missing_values(cube$sensor, band_cube)
+        minimum_value <- .sits_config_minimum_values(cube$sensor, band_cube)
+        maximum_value <- .sits_config_maximum_values(cube$sensor, band_cube)
+
+        # correct NA, minimum, maximum, and missing values
+        values[values < minimum_value] <- NA
+        values[values > maximum_value] <- NA
+        values[values == missing_value] <- NA
+
+        # change the points under clouds to NA
+        if (!purrr::is_null(clouds)) {
+            values[clouds] <- NA
         }
-    }
 
-    # scale the data set
-    scale_factor <- .sits_config_scale_factors(cube$sensor, band_cube)
-    values <- scale_factor * values
+        # remove NA pixels
+        if (!purrr::is_null(impute_fn) && any(is.na(values))) {
+            if (.verbose) task_start_time <- lubridate::now()
 
-    # filter the data
-    if (!(purrr::is_null(filter_fn))) {
-        values <- filter_fn(values)
-    }
+            values <- impute_fn(values)
 
-    # normalize the data
-    if (!purrr::is_null(stats)) {
-        values <- .sits_normalize_matrix(values, stats, band_cube)
-    }
+            if (.verbose) {
+                .sits_processing_task_time(
+                    "Impute NA",
+                    task_start_time
+                )
+            }
+        }
 
-    values_dt <- data.table::as.data.table(values)
-    return(values_dt)
+        # scale the data set
+        scale_factor <- .sits_config_scale_factors(cube$sensor, band_cube)
+        values <- scale_factor * values
+
+        # filter the data
+        if (!(purrr::is_null(filter_fn))) {
+            values <- filter_fn(values)
+        }
+
+        # normalize the data
+        if (!purrr::is_null(stats)) {
+            values <- .sits_normalize_matrix(values, stats, band_cube)
+        }
+
+        values_dt <- data.table::as.data.table(values)
+        return(values_dt)
+
+    })
+
+    # create a data.table joining the values
+    data <- do.call(cbind, values_bands)
+
+    return(data)
+
 }
 
 #' @title Split a data.table or a matrix for multicore processing
@@ -179,8 +185,8 @@
         start <- blk
         end <- start + step - 1
         if (i == ncores) {
-              end <- nrows
-          }
+            end <- nrows
+        }
         return(data[start:end, ])
     })
     return(block_lst)
@@ -220,55 +226,66 @@
     minimum_values <- .sits_config_minimum_values(cube$sensor, bands)
     maximum_values <- .sits_config_maximum_values(cube$sensor, bands)
     scale_factors <- .sits_config_scale_factors(cube$sensor, bands)
+
     # get the timeline
     timeline <- sits_timeline(cube)
+
     # make sure we get only the relevant columns
-    points <- dplyr::select(
-        points, longitude, latitude,
-        start_date, end_date, label
-    )
+    points <- dplyr::select(points, longitude, latitude,
+                            start_date, end_date, label)
+
     # get XY
-    xy_tb <- .sits_latlong_to_proj(points$longitude, points$latitude, cube$crs)
+    xy_tb <- .sits_latlong_to_proj(
+        longitude = points$longitude,
+        latitude  = points$latitude,
+        crs       = cube$crs
+    )
+
     # join lat-long with XY values in a single tibble
     points <- dplyr::bind_cols(points, xy_tb)
+
     # filter the points inside the data cube space-time extent
     points <- dplyr::filter(
         points,
         X > cube$xmin & X < cube$xmax &
-        Y > cube$ymin & Y < cube$ymax &
-        start_date <= as.Date(timeline[length(timeline)]) &
-        end_date >= as.Date(timeline[1])
+            Y > cube$ymin & Y < cube$ymax &
+            start_date <= as.Date(timeline[length(timeline)]) &
+            end_date >= as.Date(timeline[1])
     )
 
     # are there points to be retrieved from the cube?
     if (nrow(points) == 0) {
-          return(NULL)
-      }
+        return(NULL)
+    }
 
     # build the time index for the data
     samples_lst <- slider::slide(points, function(point) {
-      # get the valid timeline
-      dates <- .sits_timeline_during(
-          timeline = timeline,
-          start_date = as.Date(point$start_date),
-          end_date = as.Date(point$end_date)
-      )
-      sample <- tibble::tibble(
-          longitude = point$longitude,
-          latitude = point$latitude,
-          start_date = dates[1],
-          end_date = dates[length(dates)],
-          label = point$label,
-          cube  = cube$name
-      )
 
-      # put them on a tibble
-      ts <- tibble::tibble(Index = dates)
-      # store them in the sample tibble
-      sample$time_series <- list(ts)
-      # return valid row of time series
-      return(sample)
+        # get the valid timeline
+        dates <- .sits_timeline_during(
+            timeline   = timeline,
+            start_date = as.Date(point$start_date),
+            end_date   = as.Date(point$end_date)
+        )
+        sample <- tibble::tibble(
+            longitude  = point$longitude,
+            latitude   = point$latitude,
+            start_date = dates[[1]],
+            end_date   = dates[[length(dates)]],
+            label      = point$label,
+            cube       = cube$name
+        )
+
+        # put them on a tibble
+        ts <- tibble::tibble(Index = dates)
+
+        # store them in the sample tibble
+        sample$time_series <- list(ts)
+
+        # return valid row of time series
+        return(sample)
     })
+
     # get all the time series (without the values)
     samples <- dplyr::bind_rows(samples_lst)
 
@@ -278,58 +295,68 @@
 
     # retrieve values for the cloud band (if available)
     if (!purrr::is_null(cld_band)) {
+
         # retrieve values that indicate clouds
         cld_index <- .sits_config_cloud_values(cube)
+
         # get the values of the time series (terra object)
         cld_values <- .sits_cube_extract(cube, cld_band, xy)
     }
+
     # Retrieve values on a band by band basis
     # using parallel processing
     oplan <- future::plan(strategy = "multisession")
     on.exit(future::plan(oplan))
-    ts_bands <- bands %>%
-        furrr::future_map(function(band) {
+
+    ts_bands <- furrr::future_map(bands, function(band) {
+
             # get the values of the time series as matrix
             values_band <- .sits_cube_extract(cube, band, xy)
 
             # each row of the values matrix is a spatial point
-            ts_band_lst <- seq_len(nrow(values_band)) %>%
-                      purrr::map(function(i) {
-                        t_point <- .sits_timeline_during(
-                          timeline = timeline,
-                          start_date = lubridate::as_date(points$start_date[i]),
-                          end_date = lubridate::as_date(points$end_date[i])
-                        )
-                        # select the valid dates in the timeline
-                        start_idx <- which(timeline == t_point[1])
-                        end_idx <- which(timeline == t_point[length(t_point)])
-                        # get only valid values for the timeline
-                        values_ts <- values_band[i, start_idx:end_idx] %>%
-                          unlist(use.names = FALSE)
+            ts_band_lst <- purrr::map(seq_len(nrow(values_band)), function(i) {
 
-                        # include information from cloud band
-                        if (!purrr::is_null(cld_band)) {
-                          cld_values <- cld_values[i, start_idx:end_idx] %>%
-                            unlist(use.names = FALSE)
-                          values_ts[cld_values %in% cld_index] <- NA
-                        }
-                        # adjust maximum and minimum values
-                        values_ts[values_ts == missing_values[band]] <- NA
-                        values_ts[values_ts < minimum_values[band]] <- NA
-                        values_ts[values_ts > maximum_values[band]] <- NA
+                t_point <- .sits_timeline_during(
+                    timeline   = timeline,
+                    start_date = lubridate::as_date(points$start_date[[i]]),
+                    end_date   = lubridate::as_date(points$end_date[[i]])
+                )
 
-                        # are there NA values? interpolate them
-                        if (any(is.na(values_ts))) {
-                          values_ts <- impute_fn(values_ts)
-                        }
-                        # correct the values using the scale factor
-                        values_ts <- values_ts * scale_factors[band]
-                        # return the values of one band for point xy
-                        return(values_ts)
-                      })
+                # select the valid dates in the timeline
+                start_idx <- which(timeline == t_point[[1]])
+                end_idx <- which(timeline == t_point[[length(t_point)]])
+
+                # get only valid values for the timeline
+                values_ts <- unlist(values_band[i, start_idx:end_idx],
+                                    use.names = FALSE)
+
+                # include information from cloud band
+                if (!purrr::is_null(cld_band)) {
+                    cld_values <- unlist(cld_values[i, start_idx:end_idx],
+                                         use.names = FALSE)
+                    values_ts[cld_values %in% cld_index] <- NA
+                }
+
+                # adjust maximum and minimum values
+                values_ts[values_ts == missing_values[[band]]] <- NA
+                values_ts[values_ts < minimum_values[[band]]] <- NA
+                values_ts[values_ts > maximum_values[[band]]] <- NA
+
+                # are there NA values? interpolate them
+                if (any(is.na(values_ts))) {
+                    values_ts <- impute_fn(values_ts)
+                }
+
+                # correct the values using the scale factor
+                values_ts <- values_ts * scale_factors[[band]]
+
+                # return the values of one band for point xy
+                return(values_ts)
+            })
+
             # return the values of all points xy for one band
             return(ts_band_lst)
-    })
+        })
 
 
     # now we have to transpose the data

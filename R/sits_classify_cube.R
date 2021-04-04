@@ -116,6 +116,7 @@
 
     # read the blocks and compute the probabilities
     filenames <- furrr::future_map(blocks, function(b) {
+
         # read the data
         distances <- .sits_raster_data_read(
             cube = tile,
@@ -128,17 +129,12 @@
             compose_fn = compose_fn
         )
 
-        # get the attribute names
-        attr_names <- names(.sits_distances(samples[1, ]))
-
-        # set column names for DT
-        colnames(distances) <- attr_names
-
         # predict the classification values
         pred_block <- ml_model(distances)
 
         # are the results consistent with the data input?
-        assertthat::assert_that(nrow(pred_block) == nrow(distances),
+        assertthat::assert_that(
+            nrow(pred_block) == nrow(distances),
             msg = paste(".sits_classify_cube: number of rows of probability",
                         "matrix is different from number of input pixels")
         )
