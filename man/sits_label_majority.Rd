@@ -53,7 +53,7 @@ probs_cube <- sits_classify(cube,
     memsize = 4, multicores = 2
 )
 
-# label the classification and smooth the result with a bayesian filter
+# label the classification
 label_cube <- sits_label_classification(probs_cube, output_dir = tempdir())
 
 # smooth the result with a majority filter

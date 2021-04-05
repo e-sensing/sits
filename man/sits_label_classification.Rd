@@ -6,7 +6,6 @@
 \usage{
 sits_label_classification(
   cube,
-  smoothing = NULL,
   multicores = 1,
   memsize = 1,
   output_dir = "./",
@@ -15,8 +14,6 @@ sits_label_classification(
 }
 \arguments{
 \item{cube}{Classified image data cube.}
-
-\item{smoothing}{(deprecated)}
 
 \item{multicores}{Number of process to label the classification in
 snow subprocess.}
@@ -64,7 +61,7 @@ probs_cube <- sits_classify(cube,
     memsize = 4, multicores = 2
 )
 
-# label the classification and smooth the result with a bayesian filter
+# label the classification
 label_cube <- sits_label_classification(probs_cube, output_dir = tempdir())
 }
 
