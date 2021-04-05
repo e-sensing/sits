@@ -146,10 +146,13 @@
             values <- .sits_normalize_matrix(values, stats, band_cube)
         }
 
-        values_dt <- data.table::as.data.table(values)
-        return(values_dt)
+        #values_dt <- data.table::as.data.table(values)
+        #return(values_dt)
+        return(values)
 
     })
+
+    data <- NULL
 
     # create a data.table joining the values
     data <- do.call(cbind, values_bands)
