@@ -8,20 +8,27 @@ if (!requireNamespace("sitsdata", quietly = TRUE)) {
   }
   devtools::install_github("e-sensing/sitsdata")
 }
-library(sitsdata)
-# load a time series samples for the Mato Grosso region
-data(samples_matogrosso_mod13q1)
 
-samples_ndvi_evi <- sits_select(samples_matogrosso_mod13q1, bands = c("NDVI", "EVI"))
+# load the sitsdata library
+library(sitsdata)
+
+# load a time series samples for the Mato Grosso region
+data("samples_matogrosso_mod13q1")
+
+samples_ndvi_evi <- sits_select(
+    data = samples_matogrosso_mod13q1,
+    bands = c("NDVI", "EVI")
+)
 
 # train the deep learning model
-dl_model <- sits_train(samples_ndvi_evi,
+dl_model <- sits_train(
+    data      = samples_ndvi_evi,
     ml_method = sits_deeplearning(
-        layers = c(512, 512, 512),
-        activation = "relu",
-        dropout_rates = c(0.50, 0.40, 0.35),
-        epochs = 100,
-        batch_size = 128,
+        layers           = c(512, 512, 512),
+        activation       = "relu",
+        dropout_rates    = c(0.50, 0.40, 0.35),
+        epochs           = 100,
+        batch_size       = 128,
         validation_split = 0.2
     )
 )
@@ -40,21 +47,32 @@ sinop <- sits_cube(
     delim = "_",
     parse_info = c("X1", "X2", "band", "date")
 )
+
 # classify the raster image
-sinop_probs <- sits_classify(sinop,
-                             ml_model = dl_model,
-                             memsize = 12,
-                             multicores = 2,
-                             output_dir = tempdir()
+sinop_probs <- sits_classify(
+    data       = sinop,
+    ml_model   = dl_model,
+    memsize    = 12,
+    multicores = 2,
+    output_dir = tempdir()
 )
 
 # smoothen with bayesian filter
-sinop_bayes <- sits_smooth(sinop_probs, output_dir = tempdir())
+sinop_bayes <- sits_smooth(
+    cube       = sinop_probs,
+    type       = "bayes",
+    output_dir = tempdir()
+)
+
+# label the classified image
+sinop_label <- sits_label_classification(
+    cube = sinop_bayes,
+    output_dir = tempdir()
+)
+
 # plot the smoothed image
 plot(sinop_bayes)
 
-# label the classified image
-sinop_label <- sits_label_classification(sinop_bayes, output_dir = tempdir())
 # plot the classified image
 plot(sinop_label)
 
