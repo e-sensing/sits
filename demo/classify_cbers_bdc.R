@@ -14,11 +14,11 @@ if (!requireNamespace("sitsdata", quietly = TRUE)) {
 # load the sitsdata library
 library(sitsdata)
 # load the samples
-data("samples_para_mixl8mod")
+data("samples_cerrado_cbers")
 # set up the bands
 bands <- c("NDVI", "EVI")
 # select only the samples for the chosen bands
-cbers_samples_2bands <- sits_select(samples_para_mixl8mod, bands = bands)
+cbers_samples_2bands <- sits_select(samples_cerrado_cbers, bands = bands)
 
 # define the start and end dates for selection the images
 timeline_samples <- sits_timeline(cbers_samples_2bands)
@@ -27,47 +27,62 @@ end_date <- timeline_samples[length(timeline_samples)]
 
 # define a CBERS data cube using the Brazil Data Cube
 cbers_cube <- sits_cube(
-    source = "BDC",
+    source     = "BDC",
     collection = "CB4_64_16D_STK-1",
-    name = "cbers_022024",
-    bands = bands,
-    tiles = "022024",
+    name       = "cbers_022024",
+    bands      = bands,
+    tiles      = "022024",
     start_date = start_date,
-    end_date = end_date
+    end_date   = end_date
 )
 
 # region of interest
-roi <- c(
-  "xmin" = 5970958, "xmax" = 6034958,
-  "ymin" = 9876672, "ymax" = 9940672
-)
+roi <- c(xmin = 5970958,
+         xmax = 6034958,
+         ymin = 9876672,
+         ymax = 9940672)
 
 # plot the image (last instances) - save the mapview for the
 # future
-map1 <- plot(cbers_cube, red = "EVI", green = "NDVI", blue = "EVI", time = 23)
+sits_view(x     = cbers_cube,
+          red   = "EVI",
+          green = "NDVI",
+          blue  = "EVI",
+          time  = 23)
 
 # train an SVM model
-svm_model <- sits_train(cbers_samples_2bands, sits_svm())
+svm_model <- sits_train(
+    data = cbers_samples_2bands,
+    ml_method = sits_svm()
+)
 
 # classify the data (remember to set the appropriate memory size)
-cbers_probs <- sits_classify(cbers_cube,
-                             svm_model,
-                             roi = roi,
-                             output_dir = tempdir(),
-                             memsize = 6,
-                             multicores = 2
+cbers_probs <- sits_classify(
+    data = cbers_cube,
+    ml_model = svm_model,
+    roi = roi,
+    output_dir = tempdir(),
+    memsize = 6,
+    multicores = 2
 )
+
 # plot the classification result
 plot(cbers_probs)
+
 # label each pixel with the highest probability
 cbers_label <- sits_label_classification(cbers_probs, output_dir = tempdir())
+
 # plot the labelled image
-plot(cbers_label, map = map1)
+plot(cbers_label)
+
 # post process probabilities map with bayesian smoothing
 cbers_bayes <- sits_smooth(cbers_probs, output_dir = tempdir())
+
 # plot the new probs
 plot(cbers_bayes)
+
 # label the smoothed image
 cbers_lbayes <- sits_label_classification(cbers_bayes, output_dir = tempdir())
+
 # plot the labeled image with bayesian smoothing
 plot(cbers_lbayes, map = map1)
