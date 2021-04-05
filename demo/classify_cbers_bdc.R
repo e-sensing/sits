@@ -14,11 +14,11 @@ if (!requireNamespace("sitsdata", quietly = TRUE)) {
 # load the sitsdata library
 library(sitsdata)
 # load the samples
-data("cbers_samples_022024")
+data("samples_para_mixl8mod")
 # set up the bands
 bands <- c("NDVI", "EVI")
 # select only the samples for the chosen bands
-cbers_samples_2bands <- sits_select(cbers_samples_022024, bands = bands)
+cbers_samples_2bands <- sits_select(samples_para_mixl8mod, bands = bands)
 
 # define the start and end dates for selection the images
 timeline_samples <- sits_timeline(cbers_samples_2bands)

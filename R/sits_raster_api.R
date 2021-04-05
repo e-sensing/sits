@@ -667,8 +667,8 @@
         unlink(out_file)
 
     # maximum files to merge at a time
-    # this value was obtained empirically
-    group_len <- min(ceiling(length(in_files) / future::nbrOfWorkers()), 256)
+    # these values were obtained empirically
+    group_len <- 32
 
     # keep in_files
     delete_files <- FALSE
@@ -699,7 +699,7 @@
 
             # merge using gdal warp
             gdalUtilities::gdalwarp(
-                srcfile = srcfile,
+                srcfile = path.expand(srcfile),
                 dstfile = dstfile,
                 ot = gdal_datatype,
                 of = format,
@@ -711,7 +711,7 @@
             if (delete_files) unlink(srcfile)
 
             # call garbage collector
-            gc()
+            # gc()
 
             return(dstfile)
         })
