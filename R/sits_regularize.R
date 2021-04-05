@@ -11,6 +11,14 @@
 #'
 #' @examples{
 #' \dontrun{
+#'
+#' # --- Access to the AWS STAC
+#' # Provide your AWS credentials as environment variables
+#' Sys.setenv(
+#'     "AWS_ACCESS_KEY_ID" = <your_aws_access_key>,
+#'     "AWS_SECRET_ACCESS_KEY" = <your_aws_secret_access_key>
+#' )
+#'
 #' # define an AWS data cube
 #'   s2_cube <- sits_cube(source = "AWS",
 #'                       name = "T20LKP_2018_2019",
@@ -46,6 +54,8 @@
 #'                          produced by \code{gdalcubes},
 #'                          with number and unit, e.g., "P16D" for 16 days.
 #'                          Use "D", "M" and "Y" for days, month and year..
+#'
+#' @param  roi              a region of interest (see above)
 #' @param agg_method        Method that will be applied by \code{gdalcubes}
 #'                          for aggregation. Options: "min", "max", "mean",
 #'                          "median" and "first".
@@ -56,15 +66,24 @@
 #'                          (see https://gdal.org/programs/gdalwarp.html).
 #' @param cloud_mask        Use cloud band for aggregation by \code{gdalcubes}?
 #'
+#'
+#' @note
+#'    The "roi" parameter defines a region of interest. It can be
+#'    an sf_object, a shapefile, or a bounding box vector with
+#'    named XY values ("xmin", "xmax", "ymin", "ymax") or
+#'    named lat/long values ("lat_min", "lat_max", "long_min", "long_max")
+#'
 #' @export
 #'
 sits_regularize <- function(cube,
                             name,
                             dir_images,
                             period  = NULL,
+                            roi     = NULL,
                             agg_method = NULL,
                             resampling = "bilinear",
                             cloud_mask = TRUE) {
+
     # require gdalcubes package
     if (!requireNamespace("gdalcubes", quietly = TRUE)) {
         stop(paste("Please install package gdalcubes from CRAN:",
@@ -80,21 +99,60 @@ sits_regularize <- function(cube,
                     "See '?sits_cube' for more information.")
     )
 
-    # in case of null path a temporary directory is generated
+    # filter only intersecting tiles
+    intersects <- slider::slide_lgl(cube,
+                                    .sits_raster_sub_image_intersects,
+                                    roi)
 
+    # retrieve only intersecting tiles
+    cube <- cube[intersects, ]
 
-    gc_tile_list <- slider::slide(cube, function(tile) {
-        db_file <- tempfile(pattern = tile$tile, fileext = ".db")
-        # create an image collection
-        img_col <- .sits_gc_database(tile, db_file)
+    # get the interval of intersection in all tiles
+    interval_intersection <- function(cube) {
+
+        max_min_date <- do.call(
+            what = max,
+            args = purrr::map(cube$file_info, function(file_info){
+                return(min(file_info$date))
+            })
+        )
+
+        min_max_date <- do.call(
+            what = min,
+            args = purrr::map(cube$file_info, function(file_info){
+                return(max(file_info$date))
+            }))
+
+        # check if all tiles intersects
+        assertthat::assert_that(
+            max_min_date < min_max_date,
+            msg = paste("sits_regularize: The cube tiles' timelines do not",
+                        "intersect.")
+        )
+
+        list(max_min_date = max_min_date, min_max_date = min_max_date)
+    }
+
+    toi <- interval_intersection(cube)
+
+    # create an image collection
+    db_file <- tempfile(pattern = cube$name[[1]], fileext = ".db")
+    img_col <- .sits_gc_database(cube = cube, path_db = db_file)
+
+    gc_cube <- slider::slide_dfr(cube, function(tile){
 
         # create a list of cube view object
-        cv_list <- .sits_gc_cube(tile, period, agg_method, resampling)
+        cv <- .sits_gc_cube(tile = tile,
+                            period = period,
+                            roi = roi,
+                            toi = toi,
+                            agg_method = agg_method,
+                            resampling = resampling)
 
         # create of the aggregate cubes
-        gc_tile <- .sits_gc_compose(c_tile = tile,
+        gc_tile <- .sits_gc_compose(tile = tile,
                                     name = name,
-                                    cv_list = cv_list,
+                                    cv = cv,
                                     img_col = img_col,
                                     db_file = db_file,
                                     dir_images = dir_images,
@@ -102,7 +160,6 @@ sits_regularize <- function(cube,
         return(gc_tile)
 
     })
-    gc_cube <- dplyr::bind_rows(gc_tile_list)
 
     class(gc_cube) <- c("raster_cube", class(gc_cube))
 

@@ -124,17 +124,27 @@
 #'
 #' # --- Access to the Brazil Data Cube
 #' # Provide your BDC credentials as environment variables
-#' # Sys.setenv(
-#' # "BDC_ACCESS_KEY" = <your_bdc_access_key>
-#' # )
+#' Sys.setenv(
+#'     "BDC_ACCESS_KEY" = <your_bdc_access_key>
+#' )
 #'
 #' # create a raster cube file based on the information in the BDC
-
-
-
+#' cbers_tile <- sits_cube(
+#'     source = "BDC",
+#'     collection = "CB4_64_16D_STK-1",
+#'     name = "cbers_022024",
+#'     bands = c("NDVI", "EVI"),
+#'     tiles = "022024",
+#'     start_date = "2018-09-01",
+#'     end_date = "2019-08-28"
+#' )
 #'
 #' # --- Access to Digital Earth Africa
-
+#' # Provide your AWS credentials as environment variables
+#' Sys.setenv(
+#'     "AWS_ACCESS_KEY_ID" = <your_aws_access_key>,
+#'     "AWS_SECRET_ACCESS_KEY" = <your_aws_secret_access_key>
+#' )
 #'
 #' # create a raster cube file based on the information about the files
 #' cube_dea <- sits_cube(source = "DEAFRICA",
@@ -149,6 +159,11 @@
 #'                       end_date = "2019-10-28")
 #'
 #' # --- Access to Sentinel 2/2A level 2 data in AWS
+#' # Provide your AWS credentials as environment variables
+#' Sys.setenv(
+#'     "AWS_ACCESS_KEY_ID" = <your_aws_access_key>,
+#'     "AWS_SECRET_ACCESS_KEY" = <your_aws_secret_access_key>
+#' )
 #'
 #' s2_cube <- sits_cube(source = "AWS",
 #'                       name = "T20LKP_2018_2019",

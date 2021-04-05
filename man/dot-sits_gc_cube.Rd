@@ -4,16 +4,20 @@
 \alias{.sits_gc_cube}
 \title{Create a cube_view object}
 \usage{
-.sits_gc_cube(c_tile, period, method, resampling)
+.sits_gc_cube(tile, period, roi, toi, agg_method, resampling)
 }
 \arguments{
-\item{c_tile}{A tile of a data cube}
+\item{tile}{A data cube tile}
 
 \item{period}{A \code{character} with the The period of time in which it
 is desired to apply in the cube, must be provided based on ISO8601, where 1
 number and a unit are provided, for example "P16D".}
 
-\item{method}{A \code{character} with the method that will be applied in
+\item{roi}{A region of interest.}
+
+\item{toi}{A timeline of intersection}
+
+\item{agg_method}{A \code{character} with the method that will be applied in
 the aggregation, the following are available: "min", "max", "mean",
 "median" or "first".}
 
@@ -23,7 +27,7 @@ in the resampling in mosaic operation. The following are available: "near",
 (see https://gdal.org/programs/gdalwarp.html).}
 }
 \value{
-a \code{list} with a cube_view objects.
+a \code{cube_view} object from gdalcubes.
 }
 \description{
 Create a cube_view object

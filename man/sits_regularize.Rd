@@ -9,6 +9,7 @@ sits_regularize(
   name,
   dir_images,
   period = NULL,
+  roi = NULL,
   agg_method = NULL,
   resampling = "bilinear",
   cloud_mask = TRUE
@@ -29,6 +30,8 @@ produced by \code{gdalcubes},
 with number and unit, e.g., "P16D" for 16 days.
 Use "D", "M" and "Y" for days, month and year..}
 
+\item{roi}{a region of interest (see above)}
+
 \item{agg_method}{Method that will be applied by \code{gdalcubes}
 for aggregation. Options: "min", "max", "mean",
 "median" and "first".}
@@ -47,9 +50,23 @@ Creates cubes with regular time intervals
 "median" or "first" functions. Users need to provide an
  time interval which is used by the composition function.
 }
+\note{
+The "roi" parameter defines a region of interest. It can be
+   an sf_object, a shapefile, or a bounding box vector with
+   named XY values ("xmin", "xmax", "ymin", "ymax") or
+   named lat/long values ("lat_min", "lat_max", "long_min", "long_max")
+}
 \examples{
 {
 \dontrun{
+
+# --- Access to the AWS STAC
+# Provide your AWS credentials as environment variables
+Sys.setenv(
+    "AWS_ACCESS_KEY_ID" = <your_aws_access_key>,
+    "AWS_SECRET_ACCESS_KEY" = <your_aws_secret_access_key>
+)
+
 # define an AWS data cube
   s2_cube <- sits_cube(source = "AWS",
                       name = "T20LKP_2018_2019",

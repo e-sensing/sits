@@ -232,8 +232,8 @@
         xmax       = params$xmax,
         ymin       = params$ymin,
         ymax       = params$ymax,
-        xres       = res[["xres"]],
-        yres       = res[["yres"]],
+        xres       = resolution,
+        yres       = resolution,
         crs        = item_prop[["proj:epsg"]],
         file_info  = file_info)
 

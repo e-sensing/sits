@@ -5,9 +5,9 @@
 \title{Save the images based on an aggregation method.}
 \usage{
 .sits_gc_compose(
-  c_tile,
+  tile,
   name,
-  cv_list,
+  cv,
   img_col,
   db_file,
   dir_images,
@@ -17,11 +17,11 @@
 )
 }
 \arguments{
-\item{c_tile}{Tile from data cube from where data is to be retrieved.}
+\item{tile}{A data cube tile}
 
 \item{name}{Name of the new data cube}
 
-\item{cv_list}{A \code{list} 'cube_view' with values from cube.}
+\item{cv}{A \code{list} 'cube_view' with values from cube.}
 
 \item{img_col}{A \code{object} 'image_collection' containing information
 about the images metadata.}
