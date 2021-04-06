@@ -197,14 +197,15 @@
 
     # update the cube information
     cube_clone$file_info <-
-      purrr::map(cube_clone$file_info, function(file_info) {
+      purrr::map(seq_along(cube_clone$file_info), function(i) {
 
-        newb <- paste0(file_info$band, ext)
-        newp <- paste0(output_dir, "/", name, "_", newb, "_", version, ".tif")
-        file_info$band <- newb
-        file_info$path <- newp
+        newb <- paste0(cube_clone$file_info[[i]]$band, ext)
+        newp <- paste0(output_dir, "/", name[[i]], "_", newb,
+                       "_", version, ".tif")
+        cube_clone$file_info[[i]]$band <- newb
+        cube_clone$file_info[[i]]$path <- newp
 
-        return(file_info)
+        return(cube_clone$file_info[[i]])
       })
 
     class(cube_clone) <- class(cube)
