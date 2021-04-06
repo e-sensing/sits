@@ -2,7 +2,7 @@
 % Please edit documentation in R/sits_raster_data.R
 \name{.sits_raster_data_split}
 \alias{.sits_raster_data_split}
-\title{Split a data.table or a matrix for multicore processing}
+\title{Split a data.table or a matrix for parallel processing}
 \usage{
 .sits_raster_data_split(data, ncores)
 }
@@ -17,7 +17,7 @@ List of pairs of positions (first row, last row)
 }
 \description{
 This function splits a data.table into a
-             list of chunks for multicore processing.
+             list of chunks for parallel processing.
 }
 \author{
 Gilberto Camara, \email{gilberto.camara@inpe.br}

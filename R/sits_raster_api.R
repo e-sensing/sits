@@ -643,24 +643,88 @@
                                    gdal_options,
                                    overwrite) {
 
-    # precondition
+    # check if in_file length is at least one
+    assertthat::assert_that(
+        length(in_files) > 0,
+        msg = ".sits_raster_api_merge: no file to merge"
+    )
+
+    # check if all informed files exist
     assertthat::assert_that(
         all(file.exists(in_files)),
         msg = ".sits_raster_api_merge: file does not exist"
     )
 
-    if (file.exists(out_file) && overwrite)
+    # check overwrite parameter
+    assertthat::assert_that(
+        (file.exists(out_file) && overwrite) ||
+            !file.exists(out_file),
+        msg = ".sits_raster_api_merge: cannot overwrite existing file"
+    )
+
+    # delete result file
+    if (file.exists(out_file))
         unlink(out_file)
 
-    # retrieve the r object associated to the labelled cube
-    gdalUtilities::gdalwarp(srcfile = in_files,
-                            dstfile = out_file,
-                            ot = gdal_datatype,
-                            of = format,
-                            co = gdal_options,
-                            overwrite = overwrite)
+    # maximum files to merge at a time
+    # these values were obtained empirically
+    group_len <- 32
 
-    # delete input files
+    # keep in_files
+    delete_files <- FALSE
+
+    # prepare to loop
+    loop_files <- in_files
+
+    # loop until one file is obtained
+    while (length(loop_files) > 1) {
+
+        # group input files to be merged
+        group_files <- tapply(
+            loop_files,
+            rep(seq_len(ceiling(length(loop_files) / group_len)),
+                each = group_len,
+                length.out = length(loop_files)),
+            c
+        )
+
+        # merge groups
+        loop_files <- furrr::future_map_chr(group_files, function(group) {
+
+            srcfile <- unlist(group)
+
+            # temp output file
+            dstfile <- tempfile(tmpdir = dirname(out_file[[1]]),
+                                fileext = ".tif")
+
+            # merge using gdal warp
+            gdalUtilities::gdalwarp(
+                srcfile = path.expand(srcfile),
+                dstfile = dstfile,
+                ot = gdal_datatype,
+                of = format,
+                co = gdal_options,
+                overwrite = overwrite
+            )
+
+            # delete temp files
+            if (delete_files) unlink(srcfile)
+
+            # call garbage collector
+            # gc()
+
+            return(dstfile)
+        })
+
+        # delete temp files
+        delete_files <- TRUE
+
+    }
+
+    # in_files is the output of above loop
+    file.rename(loop_files, out_file)
+
+    # delete
     unlink(in_files)
 
     return(invisible(NULL))

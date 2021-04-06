@@ -31,7 +31,12 @@
 #' @export
 .sits_raster_api_get_values.terra <- function(r_obj, ...) {
 
-    terra::values(x = r_obj, mat = TRUE, ...)
+    # read values and close connection
+    terra::readStart(x = r_obj)
+    res <- terra::readValues(x = r_obj, mat = TRUE, ...)
+    terra::readStop(x = r_obj)
+
+    return(res)
 }
 
 #' @keywords internal

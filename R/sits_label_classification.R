@@ -7,7 +7,6 @@
 #'              and label them based on the maximum probability for each pixel.
 #'
 #' @param  cube              Classified image data cube.
-#' @param  smoothing         (deprecated)
 #' @param  multicores        Number of process to label the classification in
 #'                           snow subprocess.
 #' @param  memsize           Maximum overall memory (in GB) to label the
@@ -44,24 +43,17 @@
 #'     memsize = 4, multicores = 2
 #' )
 #'
-#' # label the classification and smooth the result with a bayesian filter
+#' # label the classification
 #' label_cube <- sits_label_classification(probs_cube, output_dir = tempdir())
 #' }
 #'
 #' @export
 sits_label_classification <- function(cube,
-                                      smoothing = NULL,
                                       multicores = 1,
                                       memsize = 1,
                                       output_dir = "./",
                                       version = "v1") {
 
-    # backwards compatibility
-    if (!purrr::is_null(smoothing)) {
-        message("to do bayesian smoothing, please use sits_smooth")
-        message("please revise your script")
-        stop()
-    }
     # precondition - check if cube has probability data
     assertthat::assert_that(
         inherits(cube, "probs_cube"),
@@ -78,7 +70,7 @@ sits_label_classification <- function(cube,
     # mapping function to be executed by workers cluster
     .do_map <- function(chunk) {
 
-        # create cube smooth
+        # create probability cube
         res <- .sits_raster_api_rast(r_obj = chunk, nlayers = 1)
 
         # get layer of max probability
@@ -147,7 +139,7 @@ sits_label_classification <- function(cube,
 #'     memsize = 4, multicores = 2
 #' )
 #'
-#' # label the classification and smooth the result with a bayesian filter
+#' # label the classification
 #' label_cube <- sits_label_classification(probs_cube, output_dir = tempdir())
 #'
 #' # smooth the result with a majority filter

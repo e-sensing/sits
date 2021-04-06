@@ -78,8 +78,8 @@
     if (proc_bloat == 0) proc_bloat <- multicores
 
     # number of rows and cols
-    nrows <- as.numeric(sub_image["nrows"])
-    ncols <- as.numeric(sub_image["ncols"])
+    nrows <- sub_image[["nrows"]]
+    ncols <- sub_image[["ncols"]]
     # single instance size
     single_data_size <- nrows * ncols * nbytes
     # total size including all bands
@@ -90,15 +90,10 @@
     # estimated size of the data for classification
     input_data_size <- as.numeric(ninterval) * nbands_data_size
     output_data_size <- as.numeric(nlabels) * single_data_size
-    class_data_size <- input_data_size + output_data_size
-
-    # memory required for processing
-    mem_required_processing <- as.numeric(multicores) *
-                (class_data_size + as.numeric(.sits_mem_used()))
+    class_data_size <- (input_data_size + output_data_size) * proc_bloat
 
     # number of passes to read the full data sets
-    nblocks <- ceiling(mem_required_processing / (memsize * 1e+09))
-
+    nblocks <- ceiling(class_data_size * 1e-09 / memsize * multicores)
 
     return(nblocks)
 }
