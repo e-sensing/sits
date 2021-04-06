@@ -146,8 +146,27 @@
         # define the file name of the raster file to be written
         filename_block <- paste0(
             tools::file_path_sans_ext(probs_cube$file_info[[1]]$path),
-            "_block_", b["row"], ".tif"
+            "_block_", b["row"], "_", b[["nrows"]], ".tif"
         )
+
+        # glitch: resume functionality
+        if (toupper(Sys.getenv("__SITS_RESUME__")) == "TRUE" &&
+            file.exists(filename_block)) {
+
+            r_obj <-
+                tryCatch({
+                    .sits_raster_api_open_rast(filename_block)
+                }, error = function(e) {
+                    return(NULL)
+                })
+
+            if (!purrr::is_null(r_obj)) {
+
+                if (.sits_raster_api_nrows(r_obj) == b[["nrows"]]) {
+                    return(filename_block)
+                }
+            }
+        }
 
         # compute block spatial parameters
         params <- .sits_cube_params_block(probs_cube, b)
