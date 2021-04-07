@@ -145,7 +145,6 @@ Collate:
     'sits_raster_sub_image.R'
     'sits_raster_stack.R'
     'sits_regularize.R'
-    'sits_ResNet.R'
     'sits_roi.R'
     'sits_satveg.R'
     'sits_select.R'
