@@ -250,3 +250,44 @@
     # return filter
     return(file_info[file_info$band %in% bands, ])
 }
+#' @title Fix cube name uniqueness
+#' @name .sits_cube_fix_name
+#' @keywords internal
+#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
+#'
+#' @param  cube         input data cube
+#'
+#' @return A data cube
+.sits_cube_fix_name <- function(cube) {
+
+    # check if each tile (row) in cube
+    if (nrow(cube) == 1) {
+
+        return(cube)
+    }
+
+    # check for uniqueness of tiles
+    if (any(!is.na(cube$tile))) {
+
+        assertthat::assert_that(
+            length(cube$tile) == length(unique(cube$tile)),
+            msg = ".sits_fix_cube_name: tiles must have unique identifiers"
+        )
+    }
+
+    # check for uniqueness of cube names
+    if (length(cube$name) != length(unique(cube$name))) {
+
+        if (all(!is.na(cube$tile))) {
+
+            cube$name <- paste0(cube$name, "_", cube$tile)
+        } else {
+
+            cube$name <- paste0(cube$name, "_",
+                                formatC(seq_len(nrow(cube)),
+                                        flag = "0",
+                                        width = log(nrow(cube), 10) + 1))
+        }
+    }
+    return(cube)
+}
