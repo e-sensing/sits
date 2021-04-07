@@ -136,7 +136,7 @@ sits_FCN <- function(samples = NULL,
         # build the 1D nodes
         for (i in seq_len(n_layers)) {
             # Add a Convolution1D layer
-            output_tensor  <- keras::layer_conv_1d(output_tensor,
+            output_tensor  <- keras::layer_conv_2d(output_tensor,
                         filters = layers[i],
                         kernel_size = kernels[i]
             )
@@ -148,10 +148,10 @@ sits_FCN <- function(samples = NULL,
         }
 
         # Apply max pooling?
-        output_tensor <- keras::layer_global_average_pooling_1d(output_tensor)
+        output_tensor <- keras::layer_global_average_pooling_2d(output_tensor)
 
         # reshape a tensor into a 2D shape
-        output_tensor <- keras::layer_flatten(output_tensor)
+        #output_tensor <- keras::layer_flatten(output_tensor)
 
         # create the final tensor
         model_loss <- "categorical_crossentropy"

@@ -151,44 +151,39 @@ sits_TempCNN <- function(samples = NULL,
         input_tensor <- keras::layer_input(shape = c(n_times, n_bands))
         output_tensor <- input_tensor
 
-        # build the 1D nodes
-        n_layers <- length(cnn_layers)
 
-        seq_len(n_layers) %>%
-            purrr::map(function(i) {
-                # Add a Convolution1D
-                ot <- keras::layer_conv_1d(
-                    output_tensor,
-                    filters = cnn_layers[i],
-                    kernel_size = cnn_kernels[i],
-                    kernel_regularizer = keras::regularizer_l2(
-                        l = cnn_L2_rate)
-                )
-                # Apply layer dropout
-                ot <- keras::layer_dropout(ot, rate = cnn_dropout_rates[i])
-                # Activation
-                ot <- keras::layer_activation(ot, activation = cnn_activation)
-                # export to global environment
-                output_tensor <<- ot
-            })
+        # build a set 1D convolution layers
+        for (i in seq_len(length(cnn_layers))) {
+            # Add a Convolution1D
+            output_tensor <- keras::layer_conv_2d(
+                output_tensor,
+                filters = cnn_layers[[i]],
+                kernel_size = cnn_kernels[[i]],
+                kernel_regularizer = keras::regularizer_l2(l = cnn_L2_rate)
+            )
+
+            # Apply layer dropout
+            output_tensor <- keras::layer_dropout(output_tensor,
+                                                  rate = cnn_dropout_rates[[i]])
+            # Activation
+            output_tensor <- keras::layer_activation(output_tensor,
+                                                     activation = cnn_activation)
+        }
 
         # reshape a tensor into a 2D shape
-        output_tensor <- keras::layer_flatten(output_tensor)
+        # output_tensor <- keras::layer_flatten(output_tensor)
 
         # build the 2D nodes
-        n_mlp_layers <- length(mlp_layers)
-        seq_len(n_mlp_layers) %>%
-            purrr::map(function(i) {
-                ot <- keras::layer_dense(
-                    output_tensor,
-                    units = mlp_layers[i],
-                    activation = mlp_activation
-                )
-                ot <- keras::layer_dropout(ot, rate = mlp_dropout_rates[i])
-                ot <- keras::layer_batch_normalization(ot)
-                # export to global environment
-                output_tensor <<- ot
-            })
+        for (i in seq_len(length(mlp_layers))) {
+            output_tensor <- keras::layer_dense(
+                output_tensor,
+                units = mlp_layers[[i]],
+                activation = mlp_activation
+            )
+            output_tensor  <- keras::layer_dropout(output_tensor,
+                                                   rate = mlp_dropout_rates[[i]])
+            output_tensor <- keras::layer_batch_normalization(output_tensor)
+        }
 
         # create the final tensor
         model_loss <- "categorical_crossentropy"
