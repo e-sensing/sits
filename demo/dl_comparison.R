@@ -41,16 +41,6 @@ acc_fcn853$name <- "fcn_853"
 
 results[[length(results) + 1]] <- acc_fcn853
 
-# Deep Learning - ResNet
-print("== Accuracy Assessment = ResNet =======================")
-acc_rn <- sits_kfold_validate(samples_modis_4bands,
-    folds = 5,
-    ml_method = sits_ResNet(verbose = 0)
-)
-acc_rn$name <- "ResNet"
-
-results[[length(results) + 1]] <- acc_rn
-
 # Deep Learning - TempCNN
 print("== Accuracy Assessment = TempCNN =======================")
 acc_tc <- sits_kfold_validate(samples_modis_4bands,

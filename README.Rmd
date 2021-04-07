@@ -237,7 +237,6 @@ available in SITS:
 -   DL with 1D convolutional neural networks (`sits_FCN`)
 -   DL combining 1D CNN and multi-layer perceptron networks
     (`sits_TempCNN`)
--   DL using 1D version of ResNet (`sits_ResNet`)
 -   DL using a combination of long-short term memory (LSTM) and 1D CNN
     (`sits_LSTM_FCN`)
 

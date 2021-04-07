@@ -234,25 +234,6 @@ test_that("tempCNN model", {
         sits_labels(samples_mt_ndvi)))
     expect_true(nrow(sits_show_prediction(point_class)) == 17)
 })
-test_that("ResNet", {
-    # skip_on_cran()
-    samples_mt_ndvi <- sits_select(samples_modis_4bands, bands = "NDVI")
-    model <- suppressMessages(suppressWarnings(sits_train(
-        samples_mt_ndvi,
-        sits_ResNet(
-            blocks = c(16, 16, 16),
-            kernels = c(7, 5, 3),
-            epochs = 50,
-            verbose = 0
-        )
-    )))
-    point_ndvi <- sits_select(point_mt_6bands, bands = "NDVI")
-    point_class <- sits_classify(point_ndvi, model)
-
-    expect_true(all(point_class$predicted[[1]]$class %in%
-        sits_labels(samples_mt_ndvi)))
-    expect_true(nrow(sits_show_prediction(point_class)) == 17)
-})
 
 test_that("LSTM", {
     # skip_on_cran()

@@ -7,9 +7,8 @@
 sits_FCN(
   samples = NULL,
   layers = c(128, 256, 128),
-  kernels = c(9, 7, 5),
-  activation = "relu",
-  L2_rate = 1e-06,
+  kernels = c(8, 5, 3),
+  activation = "elu",
   optimizer = keras::optimizer_adam(lr = 0.001),
   epochs = 150,
   batch_size = 128,
@@ -27,8 +26,6 @@ for each layer.}
 
 \item{activation}{Activation function for 1D convolution.
 Valid values: {'relu', 'elu', 'selu', 'sigmoid'}.}
-
-\item{L2_rate}{Regularization rate for 1D convolution.}
 
 \item{optimizer}{Function with a pointer to the optimizer function
 (default is optimization_adam()).
@@ -66,7 +63,8 @@ the size of the convolutional kernels, and the activation functions.
 The FCN has been proposed for time series classification by  Wang et al.
 The SITS implementation of FCN is based on the work of Hassan Fawaz and
 collaborators. Fawaz provides a reference Keras implementation of FCN
-in https://github.com/hfawaz/dl-4-tsc.
+in https://github.com/hfawaz/dl-4-tsc. Wang also provides an implementation in
+https://github.com/cauchyturing/UCR_Time_Series_Classification_Deep_Learning_Baseline.
 If you use this function, please cite the references.
 }
 \examples{
