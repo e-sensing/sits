@@ -103,8 +103,10 @@
     )
 
     # show initial time for classification
-    if (verbose)
-        message(sprintf("Starting classification at %s", lubridate::now()))
+    if (verbose) {
+        message(paste0("Starting classification of '", tile$name,
+                      "' at ", lubridate::now()))
+    }
 
     # save original future plan
     if (multicores > 1) {
@@ -114,23 +116,60 @@
     }
     on.exit(future::plan(oplan), add = TRUE)
 
+    #
+    # __SITS_DEBUG__ == TRUE
+    #
+    .sits_log(output_dir = output_dir,
+              topic      = "classification",
+              blocks     = length(blocks),
+              block_size = blocks[[1]],
+              memory     = gc())
+
     # read the blocks and compute the probabilities
     filenames <- furrr::future_map(blocks, function(b) {
 
+        #
+        # __SITS_DEBUG__ == TRUE
+        #
+        .sits_log(output_dir = output_dir,
+                  topic      = "before read/preprocess block",
+                  memory     = gc())
+
         # read the data
         distances <- .sits_raster_data_read(
-            cube = tile,
-            samples = samples,
-            extent = b,
-            stats = stats,
-            filter_fn = filter_fn,
-            impute_fn = impute_fn,
-            interp_fn = interp_fn,
+            cube       = tile,
+            samples    = samples,
+            extent     = b,
+            stats      = stats,
+            filter_fn  = filter_fn,
+            impute_fn  = impute_fn,
+            interp_fn  = interp_fn,
             compose_fn = compose_fn
         )
 
+        #
+        # __SITS_DEBUG__ == TRUE
+        #
+        .sits_log(output_dir    = output_dir,
+                  topic         = "after read/preprocess block",
+                  block_dim     = dim(distances),
+                  memory        = gc())
+
+        #
+        # __SITS_DEBUG__ == TRUE
+        #
+        .sits_log(output_dir = output_dir,
+                  topic      = "before block classification")
+
         # predict the classification values
         pred_block <- ml_model(distances)
+
+        #
+        # __SITS_DEBUG__ == TRUE
+        #
+        .sits_log(output_dir    = output_dir,
+                  topic         = "after block classification",
+                  memory        = gc())
 
         # are the results consistent with the data input?
         assertthat::assert_that(
@@ -146,7 +185,7 @@
         # define the file name of the raster file to be written
         filename_block <- paste0(
             tools::file_path_sans_ext(probs_cube$file_info[[1]]$path),
-            "_block_", b["row"], "_", b[["nrows"]], ".tif"
+            "_block_", b[["row"]], "_", b[["nrows"]], ".tif"
         )
 
         # glitch: resume functionality
@@ -173,34 +212,58 @@
 
         # create a new raster
         r_obj <- .sits_raster_api_new_rast(
-            nrows = params$nrows,
-            ncols = params$ncols,
-            xmin = params$xmin,
-            xmax = params$xmax,
-            ymin = params$ymin,
-            ymax = params$ymax,
+            nrows   = params$nrows,
+            ncols   = params$ncols,
+            xmin    = params$xmin,
+            xmax    = params$xmax,
+            ymin    = params$ymin,
+            ymax    = params$ymax,
             nlayers = length(labels),
-            crs = params$crs
+            crs     = params$crs
         )
 
+        #
+        # __SITS_DEBUG__ == TRUE
+        #
+        .sits_log(output_dir = output_dir,
+                  topic      = "before save classified block",
+                  memory     = gc())
+
         # copy values
-        r_obj <- .sits_raster_api_set_values(r_obj = r_obj,
+        r_obj <- .sits_raster_api_set_values(r_obj  = r_obj,
                                              values = pred_block)
 
         # write the probabilities to a raster file
         .sits_raster_api_write_rast(
-            r_obj = r_obj,
-            file = filename_block,
-            format = "GTiff",
-            data_type = .sits_raster_api_data_type("INT2U"),
+            r_obj        = r_obj,
+            file         = filename_block,
+            format       = "GTiff",
+            data_type    = .sits_raster_api_data_type("INT2U"),
             gdal_options = .sits_config_gtiff_default_options(),
-            overwrite = TRUE
+            overwrite    = TRUE
         )
+
+        #
+        # __SITS_DEBUG__ == TRUE
+        #
+        .sits_log(output_dir    = output_dir,
+                  topic         = "after save classified block",
+                  memory        = gc())
+
+        # call garbage collector
+        # gc()
 
         return(filename_block)
     }, .progress = TRUE)
 
     filenames <- unlist(filenames)
+
+    #
+    # __SITS_DEBUG__ == TRUE
+    #
+    .sits_log(output_dir = output_dir,
+              topic      = "before merge",
+              memory     = gc())
 
     # Join the predictions
     .sits_raster_api_merge(
@@ -211,6 +274,14 @@
         gdal_options = .sits_config_gtiff_default_options(),
         overwrite = TRUE
     )
+
+    #
+    # __SITS_DEBUG__ == TRUE
+    #
+    .sits_log(output_dir = output_dir,
+              topic      = "after merge",
+              memory     = gc())
+
 
     # show final time for classification
     if (verbose)

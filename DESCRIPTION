@@ -130,6 +130,7 @@ Collate:
     'sits_labels_set.R'
     'sits_label_classification.R'
     'sits_labels_summary.R'
+    'sits_log.R'
     'sits_LSTM_FCN.R'
     'sits_machine_learning.R'
     'sits_merge.R'
