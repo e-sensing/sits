@@ -80,12 +80,12 @@
 sits_ResNet <- function(samples = NULL,
                         blocks = c(64, 128, 128),
                         kernels = c(8, 5, 3),
-                        activation = "relu",
+                        activation = "elu",
                         optimizer = keras::optimizer_adam(lr = 0.001),
                         epochs = 300,
                         batch_size = 64,
                         validation_split = 0.2,
-                        verbose = 1) {
+                        verbose = 0) {
 
     # function that returns keras model based on a sits sample data.table
     result_fun <- function(data) {
@@ -136,66 +136,143 @@ sits_ResNet <- function(samples = NULL,
         # create the input_tensor for 1D convolution
         input_tensor <- keras::layer_input(shape = c(n_times, n_bands))
 
-        # initial assignment
-        output_tensor <- input_tensor
-        shortcut <- input_tensor
 
-        n_blocks <- length(blocks)
-        for (i in seq_len(n_blocks)) {
-            # Add a Convolution1D
-            output_tensor_x <- keras::layer_conv_1d(output_tensor,
-                filters = blocks[[i]],
-                kernel_size = kernels[1],
-                padding = "same"
-            )
-            # normalization
-            output_tensor_x <- keras::layer_batch_normalization(output_tensor_x)
+        # BLOCK 1
+        # Add a Convolution1D
+        conv_x <- keras::layer_conv_1d(input_tensor,
+                                       filters = blocks[[1]],
+                                       kernel_size = kernels[[1]],
+                                       padding = "same"
+        )
+        # normalization
+        conv_x <- keras::layer_batch_normalization(conv_x)
+        # activation
+        conv_x <- keras::layer_activation(conv_x, activation = activation)
 
-            # activation
-            output_tensor_x <- keras::layer_activation(output_tensor_x,
-                activation = activation
-            )
+        # Add a new convolution
+        conv_y <- keras::layer_conv_1d(conv_x,
+                                       filters = blocks[[1]],
+                                       kernel_size = kernels[[2]],
+                                       padding = "same"
+        )
+        # normalization
+        conv_y <- keras::layer_batch_normalization(conv_y)
+        # activation
+        conv_y <- keras::layer_activation(conv_y, activation = activation)
 
-            # Add a new convolution
-            output_tensor_y <- keras::layer_conv_1d(output_tensor_x,
-                filters = blocks[i],
-                kernel_size = kernels[2],
-                padding = "same"
-            )
-            # normalization
-            output_tensor_y <- keras::layer_batch_normalization(output_tensor_y)
+        # Add a third convolution
+        conv_z <- keras::layer_conv_1d(conv_y,
+                                       filters = blocks[[1]],
+                                       kernel_size = kernels[[3]],
+                                       padding = "same"
+        )
+        conv_z <- keras::layer_batch_normalization(conv_z)
 
-            # activation
-            output_tensor_y <- keras::layer_activation(output_tensor_y,
-                activation = activation
-            )
+        # include the shortcut
+        shortcut_y <- keras::layer_conv_1d(input_tensor,
+                                           filters = blocks[[1]],
+                                           kernel_size = 1,
+                                           padding = "same"
+        )
+        shortcut_y <- keras::layer_batch_normalization(shortcut_y)
 
-            # Add a third convolution
-            output_tensor_z <- keras::layer_conv_1d(output_tensor_y,
-                filters = blocks[i],
-                kernel_size = kernels[3],
-                padding = "same"
-            )
-            output_tensor_z <- keras::layer_batch_normalization(output_tensor_z)
+        # get the output tensor
+        output_block_1 <- keras::layer_add(list(shortcut_y, conv_z))
+        output_block_1 <- keras::layer_activation(output_block_1,
+                                                  activation = activation
+        )
 
-            # include the shortcut
-            shortcut <- keras::layer_conv_1d(shortcut,
-                filters = blocks[i],
-                kernel_size = 1,
-                padding = "same"
-            )
-            shortcut <- keras::layer_batch_normalization(shortcut)
+        # BLOCK 2
+        # Add a Convolution1D
+        conv_x <- keras::layer_conv_1d(output_block_1,
+                                       filters = blocks[[2]],
+                                       kernel_size = kernels[[1]],
+                                       padding = "same"
+        )
+        # normalization
+        conv_x <- keras::layer_batch_normalization(conv_x)
+        # activation
+        conv_x <- keras::layer_activation(conv_x, activation = activation)
 
-            # get the output tensor
-            output_tensor <- keras::layer_add(list(shortcut, output_tensor_z))
-            output_tensor <- keras::layer_activation(output_tensor,
-                activation = activation
-            )
-            shortcut <- output_tensor
-        }
+        # Add a new convolution
+        conv_y <- keras::layer_conv_1d(conv_x,
+                                       filters = blocks[[2]],
+                                       kernel_size = kernels[[2]],
+                                       padding = "same"
+        )
+        # normalization
+        conv_y <- keras::layer_batch_normalization(conv_y)
+        # activation
+        conv_y <- keras::layer_activation(conv_y, activation = activation)
 
+        # Add a third convolution
+        conv_z <- keras::layer_conv_1d(conv_y,
+                                       filters = blocks[[2]],
+                                       kernel_size = kernels[[3]],
+                                       padding = "same"
+        )
+        conv_z <- keras::layer_batch_normalization(conv_z)
+
+        # include the shortcut
+        shortcut_y <- keras::layer_conv_1d(output_block_1,
+                                           filters = blocks[[2]],
+                                           kernel_size = 1,
+                                           padding = "same"
+        )
+        shortcut_y <- keras::layer_batch_normalization(shortcut_y)
+
+        # get the output tensor
+        output_block_2 <- keras::layer_add(list(shortcut_y, conv_z))
+        output_block_2 <- keras::layer_activation(output_block_2,
+                                                  activation = activation
+        )
+
+        # BLOCK 3
+        # Add a Convolution1D
+        conv_x <- keras::layer_conv_1d(output_block_2,
+                                       filters = blocks[[3]],
+                                       kernel_size = kernels[[1]],
+                                       padding = "same"
+        )
+        # normalization
+        conv_x <- keras::layer_batch_normalization(conv_x)
+        # activation
+        conv_x <- keras::layer_activation(conv_x, activation = activation)
+
+        # Add a new convolution
+        conv_y <- keras::layer_conv_1d(conv_x,
+                                       filters = blocks[[3]],
+                                       kernel_size = kernels[[2]],
+                                       padding = "same"
+        )
+        # normalization
+        conv_y <- keras::layer_batch_normalization(conv_y)
+        # activation
+        conv_y <- keras::layer_activation(conv_y, activation = activation)
+
+        # Add a third convolution
+        conv_z <- keras::layer_conv_1d(conv_y,
+                                       filters = blocks[[3]],
+                                       kernel_size = kernels[[3]],
+                                       padding = "same"
+        )
+        conv_z <- keras::layer_batch_normalization(conv_z)
+
+        # include the shortcut
+        shortcut_y <- keras::layer_conv_1d(output_block_2,
+                                           filters = blocks[[3]],
+                                           kernel_size = 1,
+                                           padding = "same"
+        )
+        shortcut_y <- keras::layer_batch_normalization(shortcut_y)
+
+        # get the output tensor
+        output_block_3 <- keras::layer_add(list(shortcut_y, conv_z))
+        output_block_3 <- keras::layer_activation(output_block_3,
+                                                  activation = activation
+        )
         # reshape a tensor into a 2D shape
-        output_tensor <- keras::layer_global_average_pooling_1d(output_tensor)
+        output_tensor <- keras::layer_global_average_pooling_1d(output_block_3)
         # reshape a tensor into a 2D shape
         output_tensor <- keras::layer_flatten(output_tensor)
 

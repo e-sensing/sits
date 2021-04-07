@@ -12,7 +12,8 @@
 #' The FCN has been proposed for time series classification by  Wang et al.
 #' The SITS implementation of FCN is based on the work of Hassan Fawaz and
 #' collaborators. Fawaz provides a reference Keras implementation of FCN
-#' in https://github.com/hfawaz/dl-4-tsc.
+#' in https://github.com/hfawaz/dl-4-tsc. Wang also provides an implementation in
+#' https://github.com/cauchyturing/UCR_Time_Series_Classification_Deep_Learning_Baseline.
 #' If you use this function, please cite the references.
 #'
 #' @references Hassan Fawaz, Germain Forestier, Jonathan Weber,
@@ -31,7 +32,6 @@
 #' @param kernels           Vector with size of the 1D convolutional kernels.
 #' @param activation        Activation function for 1D convolution.
 #'                          Valid values: {'relu', 'elu', 'selu', 'sigmoid'}.
-#' @param L2_rate           Regularization rate for 1D convolution.
 #' @param optimizer         Function with a pointer to the optimizer function
 #'                          (default is optimization_adam()).
 #'                          Options: optimizer_adadelta(), optimizer_adagrad(),
@@ -74,9 +74,8 @@
 #' @export
 sits_FCN <- function(samples = NULL,
                      layers = c(128, 256, 128),
-                     kernels = c(9, 7, 5),
-                     activation = "relu",
-                     L2_rate = 1e-06,
+                     kernels = c(8, 5, 3),
+                     activation = "elu",
                      optimizer = keras::optimizer_adam(lr = 0.001),
                      epochs = 150,
                      batch_size = 128,
@@ -135,21 +134,18 @@ sits_FCN <- function(samples = NULL,
 
         n_layers <- length(layers)
         # build the 1D nodes
-        seq_len(n_layers) %>%
-            purrr::map(function(i) {
-                # Add a Convolution1D layer
-                ot <- keras::layer_conv_1d(output_tensor,
+        for (i in seq_len(n_layers)) {
+            # Add a Convolution1D layer
+            output_tensor  <- keras::layer_conv_1d(output_tensor,
                         filters = layers[i],
-                        kernel_size = kernels[i],
-                        kernel_regularizer = keras::regularizer_l2(l = L2_rate)
-                )
-                # Batch normalization
-                ot <- keras::layer_batch_normalization(ot)
-                # activation
-                ot <- keras::layer_activation(ot, activation = activation)
-                # return the output tensor to the global environment
-                output_tensor <<- ot
-            })
+                        kernel_size = kernels[i]
+            )
+            # Batch normalization
+            output_tensor <- keras::layer_batch_normalization(output_tensor)
+            # activation
+            output_tensor <- keras::layer_activation(output_tensor,
+                                                     activation = activation)
+        }
 
         # Apply max pooling?
         output_tensor <- keras::layer_global_average_pooling_1d(output_tensor)
