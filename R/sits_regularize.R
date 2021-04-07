@@ -133,10 +133,14 @@ sits_regularize <- function(cube,
         list(max_min_date = max_min_date, min_max_date = min_max_date)
     }
 
+    # timeline of intersection
     toi <- interval_intersection(cube)
 
+    # fix cube name
+    cube <- .sits_cube_fix_name(cube)
+
     # create an image collection
-    db_file <- tempfile(pattern = cube$name[[1]], fileext = ".db")
+    db_file <- paste0(dir_images, "/gdalcubes.db")
     img_col <- .sits_gc_database(cube = cube, path_db = db_file)
 
     gc_cube <- slider::slide_dfr(cube, function(tile){
