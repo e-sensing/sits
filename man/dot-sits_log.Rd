@@ -4,12 +4,12 @@
 \alias{.sits_log}
 \title{Log variable content to a file}
 \usage{
-.sits_log(output_dir = tempdir(), topic = "", ...)
+.sits_log(output_dir = tempdir(), entry, ...)
 }
 \arguments{
 \item{output_dir}{Output directory to write log file}
 
-\item{topic}{A description to append to time stamp}
+\item{entry}{A description to append to time stamp}
 
 \item{...}{Any valid value to be logged}
 }

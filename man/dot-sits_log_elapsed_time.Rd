@@ -4,10 +4,13 @@
 \alias{.sits_log_elapsed_time}
 \title{Compute the duration between the last .sits_log call and now}
 \usage{
-.sits_log_elapsed_time()
+.sits_log_elapsed_time(time)
+}
+\arguments{
+\item{time}{current time}
 }
 \value{
-A character string informing the ellapsed time
+A character string informing the elapsed time
 }
 \description{
 Compute the difference between now and the last call to
