@@ -150,10 +150,10 @@
         #
         # __SITS_DEBUG__ == TRUE
         #
-        .sits_log(output_dir    = output_dir,
-                  topic         = "after read/preprocess block",
-                  block_dim     = dim(distances),
-                  memory        = gc())
+        .sits_log(output_dir = output_dir,
+                  topic      = "after read/preprocess block",
+                  block_dim  = dim(distances),
+                  memory     = gc())
 
         #
         # __SITS_DEBUG__ == TRUE
@@ -167,9 +167,9 @@
         #
         # __SITS_DEBUG__ == TRUE
         #
-        .sits_log(output_dir    = output_dir,
-                  topic         = "after block classification",
-                  memory        = gc())
+        .sits_log(output_dir = output_dir,
+                  topic      = "after block classification",
+                  memory     = gc())
 
         # are the results consistent with the data input?
         assertthat::assert_that(
@@ -246,9 +246,9 @@
         #
         # __SITS_DEBUG__ == TRUE
         #
-        .sits_log(output_dir    = output_dir,
-                  topic         = "after save classified block",
-                  memory        = gc())
+        .sits_log(output_dir = output_dir,
+                  topic      = "after save classified block",
+                  memory     = gc())
 
         # call garbage collector
         # gc()
