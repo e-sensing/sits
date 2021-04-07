@@ -32,6 +32,34 @@
 #'                          1 = progress bar, 2 = one line per epoch).
 #' @return                  Either a model to be passed in sits_predict
 #'                          or a function prepared to be called further.
+#'
+#' @note
+#' The parameters for the MLP have been chosen based on the work by Wang et al. 2017
+#' that takes multilayer perceptrons as the baseline for time series classifications:
+#' (a) Four layers with 512 neurons each, specified by the parameter `layers`;
+#' (b) Using the 'elu' activation function;
+#' (c) dropout rates of 10%, 20%, 20%, and 30% for the layers;
+#' (d) the "optimizer_adam" as optimizer (default value);
+#' (e) a number of training steps (`epochs`) of 150;
+#' (f) a `batch_size` of 64, which indicates how many time series
+#' are used for input at a given steps;
+#' (g) a validation percentage of 20%, which means 20% of the samples
+#' will be randomly set side for validation.
+#'
+#' @references
+#' Hassan Fawaz, Germain Forestier, Jonathan Weber,
+#' Lhassane Idoumghar,  and Pierre-Alain Muller,
+#' "Deep learning for time series classification: a review",
+#' Data Mining and Knowledge Discovery, 33(4): 917--963, 2019.
+#'
+#' Zhiguang Wang, Weizhong Yan, and Tim Oates,
+#' "Time series classification from scratch with deep neural networks:
+#' A strong baseline",
+#' 2017 international joint conference on neural networks (IJCNN).
+#'
+#' Implementation based on the python keras implementation provided in
+#' https://github.com/hfawaz/dl-4-tsc.
+#'
 #' @examples
 #' \dontrun{
 #' # Retrieve the set of samples for the Mato Grosso region
@@ -54,15 +82,16 @@
 #' plot(point_class)
 #' }
 #' @export
+#'
 sits_deeplearning <- function(samples = NULL,
-                              layers = c(512, 512, 512, 512, 512),
+                              layers = c(512, 512, 512, 512),
                               activation = "elu",
-                              dropout_rates = c(0.50, 0.40, 0.35, 0.30, 0.20),
+                              dropout_rates = c(0.10, 0.20, 0.20, 0.30),
                               optimizer = keras::optimizer_adam(lr = 0.001),
-                              epochs = 500,
-                              batch_size = 128,
+                              epochs = 200,
+                              batch_size = 64,
                               validation_split = 0.2,
-                              verbose = 1) {
+                              verbose = 0) {
 
     # function that returns a keras model based on samples
     result_fun <- function(data) {

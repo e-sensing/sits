@@ -16,10 +16,8 @@
 #' 'ridge' (see \code{\link[sits]{sits_mlr}}),
 #' extreme gradient boosting (see \code{\link[sits]{sits_xgboost}}),
 #' and different deep learning functions, including multi-layer perceptrons
-#' (see \code{\link[sits]{sits_deeplearning}}, 1D convolutional neural networks
-#' \code{\link[sits]{sits_FCN}}, mixed 1D and MLP networks
-#' \code{\link[sits]{sits_TempCNN}}, a 1D version of ResNet
-#' \code{\link[sits]{sits_ResNet}}), and a combined LSTM-FCN model
+#' (see \code{\link[sits]{sits_deeplearning}}, mixed 1D and MLP networks
+#' \code{\link[sits]{sits_TempCNN}}, and a combined LSTM-FCN model
 #' \code{\link[sits]{sits_LSTM_FCN}}.
 #'
 #' @param  data             Time series with the training samples.

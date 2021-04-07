@@ -31,26 +31,6 @@ acc_dl$name <- "mlp_default"
 
 results[[length(results) + 1]] <- acc_dl
 
-# Deep Learning - FCN
-print("== Accuracy Assessment = FCN =======================")
-acc_fcn853 <- sits_kfold_validate(samples_modis_4bands,
-    folds = 5,
-    ml_method = sits_FCN(kernels = c(8, 5, 3), verbose = 1)
-)
-acc_fcn853$name <- "fcn_853"
-
-results[[length(results) + 1]] <- acc_fcn853
-
-# Deep Learning - ResNet
-print("== Accuracy Assessment = ResNet =======================")
-acc_rn <- sits_kfold_validate(samples_modis_4bands,
-    folds = 5,
-    ml_method = sits_ResNet(verbose = 0)
-)
-acc_rn$name <- "ResNet"
-
-results[[length(results) + 1]] <- acc_rn
-
 # Deep Learning - TempCNN
 print("== Accuracy Assessment = TempCNN =======================")
 acc_tc <- sits_kfold_validate(samples_modis_4bands,

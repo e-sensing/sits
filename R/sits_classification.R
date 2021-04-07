@@ -18,9 +18,7 @@
 #'  \item{multinomial logit: }       {see \code{\link[sits]{sits_mlr}}}
 #'  \item{extreme gradient boosting: } {see \code{\link[sits]{sits_xgboost}}}
 #'  \item{multi-layer perceptrons: } {see \code{\link[sits]{sits_deeplearning}}}
-#'  \item{1D convolutional neural networks: } {see \code{\link[sits]{sits_FCN}}}
 #'  \item{mixed 1D and MLP networks: } {see \code{\link[sits]{sits_TempCNN}}}
-#'  \item{1D version of ResNet: }    {see \code{\link[sits]{sits_ResNet}}}
 #'  \item{combined LSTM-FCN model: } {see \code{\link[sits]{sits_LSTM_FCN}}}
 #'  }
 #'
