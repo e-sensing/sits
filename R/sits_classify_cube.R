@@ -105,7 +105,7 @@
     # show initial time for classification
     if (verbose) {
         message(paste0("Starting classification of '", tile$name,
-                      "' at ", lubridate::now()))
+                       "' at ", lubridate::now()))
     }
 
     # save original future plan
@@ -189,7 +189,7 @@
         )
 
         # glitch: resume functionality
-        if (toupper(Sys.getenv("__SITS_RESUME__")) == "TRUE" &&
+        if (Sys.getenv("__SITS_RESUME__") == TRUE &&
             file.exists(filename_block)) {
 
             r_obj <-
@@ -281,7 +281,6 @@
     .sits_log(output_dir = output_dir,
               topic      = "after merge",
               memory     = gc())
-
 
     # show final time for classification
     if (verbose)
