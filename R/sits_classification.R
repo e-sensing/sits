@@ -241,6 +241,9 @@ sits_classify.raster_cube <- function(data, ml_model, ...,
     # retrieve only intersecting tiles
     data <- data[intersects, ]
 
+    # fix cube names
+    data <- .sits_cube_fix_name(data)
+
     # retrieve the samples from the model
     samples <- .sits_ml_model_samples(ml_model)
 

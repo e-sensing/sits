@@ -171,9 +171,9 @@
     extent <- raster::extent(
         x = r_obj,
         c1 = block[["col"]],
-        c2 = block[["col"]] + block[["ncols"]],
+        c2 = block[["col"]] + block[["ncols"]] - 1,
         r1 = block[["row"]],
-        r2 = block[["row"]] + block[["nrows"]]
+        r2 = block[["row"]] + block[["nrows"]] - 1
     )
 
     # crop raster
