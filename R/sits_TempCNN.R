@@ -171,7 +171,7 @@ sits_TempCNN <- function(samples = NULL,
         }
 
         # reshape a tensor into a 2D shape
-        # output_tensor <- keras::layer_flatten(output_tensor)
+        output_tensor <- keras::layer_flatten(output_tensor)
 
         # build the 2D nodes
         for (i in seq_len(length(mlp_layers))) {

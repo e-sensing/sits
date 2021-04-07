@@ -127,34 +127,31 @@ sits_LSTM_FCN <- function(samples = NULL,
 
         # build the model step by step
         # create the input_tensor for 1D convolution
-        input_tensor <- keras::layer_input(shape = c(n_times, n_bands))
-        output_tensor <- input_tensor
+        input_tensor <- keras::layer_input(shape = c(1, n_times * n_bands))
+        # output_tensor <- input_tensor
 
-        # build the LSTM node
-        lstm_layer <- keras::layer_permute(input_tensor,
-                                           dims = c(2, 1)
-        )
+        # Build the LSTM layer
         lstm_layer <- keras::layer_lstm(input_tensor,
                                         units = lstm_units,
                                         dropout = lstm_dropout
         )
 
         # build the 1D nodes
-        n_layers <- length(cnn_layers)
-        seq_len(n_layers) %>%
-            purrr::map(function(i) {
-                # Add a 1D CNN layer
-                ot <- keras::layer_conv_1d(output_tensor,
-                                           filters = cnn_layers[i],
-                                           kernel_size = cnn_kernels[i]
+        output_tensor <- keras::layer_permute(input_tensor,
+                                           dims = c(2, 1)
+        )
+        for (i in seq_len(length(cnn_layers))) {
+            # Add a 1D CNN layer
+            output_tensor <- keras::layer_conv_1d(output_tensor,
+                                                  filters = cnn_layers[[i]],
+                                                  kernel_size = cnn_kernels[[i]]
                 )
-                # batch normalisation
-                ot <- keras::layer_batch_normalization(ot)
-                # Layer activation
-                ot <- keras::layer_activation(ot, activation = activation)
-                # return the output tensor to the global environment
-                output_tensor <<- ot
-            })
+            # batch normalisation
+            output_tensor  <- keras::layer_batch_normalization(output_tensor)
+            # Layer activation
+            output_tensor  <- keras::layer_activation(output_tensor,
+                                                      activation = activation)
+        }
 
         # Apply average pooling
         output_tensor <- keras::layer_global_average_pooling_1d(output_tensor)
@@ -166,7 +163,7 @@ sits_LSTM_FCN <- function(samples = NULL,
         ))
 
         # reshape a tensor into a 2D shape
-        output_tensor <- keras::layer_flatten(output_tensor)
+        #output_tensor <- keras::layer_flatten(output_tensor)
 
         # create the final tensor
         model_loss <- "categorical_crossentropy"
