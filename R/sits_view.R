@@ -37,8 +37,20 @@
 sits_view <- function(x, ...){
 
     assertthat::assert_that(
-        class(x)[1] %in% c("raster_cube", "classified_image"),
+        inherits(x, c("raster_cube", "classified_image")),
         msg = "sits_view only works with raster cube and classified images")
+
+    # verifies if raster package is installed
+    assertthat::assert_that(
+        requireNamespace("raster", quietly = TRUE),
+        msg = "sits_view: this function depends on 'raster' package"
+    )
+
+    # verifies if mapview package is installed
+    assertthat::assert_that(
+        requireNamespace("mapview", quietly = TRUE),
+        msg = "sits_view: this function depends on 'mapview' package"
+    )
 
     UseMethod("sits_view", x)
 }
@@ -46,27 +58,23 @@ sits_view <- function(x, ...){
 #'
 #' @export
 sits_view.raster_cube <- function(x, ...,
-                             red,
-                             green,
-                             blue,
-                             time = 1,
-                             roi = NULL) {
+                                  red,
+                                  green,
+                                  blue,
+                                  time = 1,
+                                  roi = NULL) {
 
-    # verifies if mapview package is installed
-    if (!requireNamespace("mapview", quietly = TRUE)) {
-        stop("Please install package mapview.", call. = FALSE)
-    }
-    # verifies if raster package is installed
-    if (!requireNamespace("raster", quietly = TRUE)) {
-        stop("Please install package raster.", call. = FALSE)
-    }
     # preconditions
-    assertthat::assert_that(all(c(red, green, blue) %in% sits_bands(x)),
-                    msg = "requested RGB bands not available in data cube")
+    assertthat::assert_that(
+        all(c(red, green, blue) %in% sits_bands(x)),
+        msg = "sits_view: requested RGB bands are not available in data cube"
+    )
 
     timeline <- sits_timeline(x)
-    assertthat::assert_that(time >= 1 & time <= length(timeline),
-                            msg = "invalid time")
+    assertthat::assert_that(
+        time >= 1 & time <= length(timeline),
+        msg = "sits_view: time parameter out of bounds"
+    )
 
     # verify sf package if roi is informed
     if (!purrr::is_null(roi)) {
@@ -80,16 +88,14 @@ sits_view.raster_cube <- function(x, ...,
             .sits_raster_sub_image_intersects(row, roi)
         }) %>% unlist()
 
-        if (!any(intersects)) {
-            stop("Informed roi does not intersect cube.", call. = FALSE)
-        }
+        # check if intersection is not empty
+        assertthat::assert_that(
+            any(intersects),
+            msg = "sits_view: informed roi does not intersect cube"
+        )
+
         x <- x[intersects, ]
     }
-    # set mapview options
-    mapview::mapviewOptions(basemaps = c(
-        "GeoportailFrance.orthos",
-        "Esri.WorldImagery"
-    ))
 
     # plot only the selected tile
     # select only the bands for the timeline
@@ -104,84 +110,102 @@ sits_view.raster_cube <- function(x, ...,
     rgb_files <- c(red_file, green_file, blue_file)
 
     # use the raster package to obtain a raster object from a stack
-    rast <- suppressWarnings(raster::stack(rgb_files))
+    r_obj <- .sits_raster_api_open_stack.raster(rgb_files)
 
     # extract region of interest
     if (!purrr::is_null(roi)) {
-        roi <- raster::extent(sf::st_bbox(
-            sf::st_transform(roi, crs = raster::crs(rast))))
-        rast <- suppressWarnings(raster::crop(rast, roi))
+
+        roi <- .sits_raster_sub_image(cube = x, roi = roi)
+
+        r_obj <- .sits_raster_api_crop.raster(r_obj = r_obj, block = roi)
     }
 
     assertthat::assert_that(
-        .sits_raster_api_ncols(rast) > 0 && .sits_raster_api_nrows(rast) > 0,
+        .sits_raster_api_ncols(r_obj) > 0 && .sits_raster_api_nrows(r_obj) > 0,
         msg = "view.raster_cube: unable to retrieve raster data"
     )
 
-    # view the RGB file
-    mv <- suppressWarnings(mapview::viewRGB(
-        rast, r = 1, g = 2, b = 3,
-        layer.name = paste0("Time ", time)))
-
-    return(mv)
-}
-#' @rdname sits_view
-#'
-#' @export
-#'
-sits_view.classified_image <- function(x,...,
-                                  map = NULL,
-                                  time = 1,
-                                  legend = NULL) {
-
-    # verifies if mapview package is installed
-    if (!requireNamespace("mapview", quietly = TRUE)) {
-        stop("Please install package mapview.", call. = FALSE)
-    }
     # set mapview options
     mapview::mapviewOptions(basemaps = c(
         "GeoportailFrance.orthos",
         "Esri.WorldImagery"
     ))
 
+    # view the RGB file
+    mv <- suppressWarnings(
+        mapview::viewRGB(r_obj,
+                         r = 1,
+                         g = 2,
+                         b = 3,
+                         layer.name = paste0("Time ", time))
+    )
+
+    return(mv)
+}
+
+#' @rdname sits_view
+#'
+#' @export
+#'
+sits_view.classified_image <- function(x,...,
+                                       map = NULL,
+                                       time = 1,
+                                       legend = NULL) {
+
     # get the labels
     labels <- sits_labels(x)
+
     # if colors are not specified, get them from the configuration file
     if (purrr::is_null(legend)) {
         legend <- .sits_config_colors(labels)
         names(legend) <- labels
     }
     else {
-        assertthat::assert_that(all(labels %in% names(legend)),
-                msg = "sits_view: some labels are missing from the legend")
+        assertthat::assert_that(
+            all(labels %in% names(legend)),
+            msg = "sits_view: some labels are missing from the legend"
+        )
     }
 
     # obtain the raster
-    rl <- suppressWarnings(raster::raster(x$file_info[[1]]$path[time]))
+    r_obj <- .sits_raster_api_open_rast.raster(
+        file = x$file_info[[1]]$path[[time]]
+    )[[1]]
+
     assertthat::assert_that(
-        .sits_raster_api_ncols(rl) > 0 && .sits_raster_api_nrows(rl) > 0,
-        msg = "plot.classified_image: unable to retrive raster data"
+        .sits_raster_api_ncols.raster(r_obj) > 0 &&
+            .sits_raster_api_nrows.raster(r_obj) > 0,
+        msg = "plot: unable to retrive raster data"
     )
+
     # create a RAT
-    rl <- raster::ratify(rl)
-    rat <- raster::levels(rl)[[1]]
+    r_obj <- raster::ratify(r_obj)
+    rat <- raster::levels(r_obj)[[1]]
+
     # include labels in the RAT
     # be careful - some labels may not exist in the classified image
     rat$landcover <- labels[rat$ID]
     colors <- unname(legend[rat$landcover])
+
     # assign the RAT to the raster object
-    levels(rl) <- rat
+    levels(r_obj) <- rat
+
+    # set mapview options
+    mapview::mapviewOptions(basemaps = c(
+        "GeoportailFrance.orthos",
+        "Esri.WorldImagery"
+    ))
 
     # use mapview
     if (!purrr::is_null(map))
         mv <- suppressWarnings(
-            mapview::mapview(rl,
+            mapview::mapview(x = r_obj,
                              map = map,
                              col.regions = colors)
         )
     else
         mv <- suppressWarnings(
-            mapview::mapview(rl,
+            mapview::mapview(x = r_obj,
                              col.regions = colors)
         )
 

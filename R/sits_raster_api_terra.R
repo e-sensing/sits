@@ -157,18 +157,26 @@
 
     # start read
     if (purrr::is_null(block)) {
-        return(terra::values(x = r_obj, mat = TRUE))
-    }
 
-    # read values
-    terra::readStart(r_obj)
-    values <- terra::readValues(x      = r_obj,
-                                row    = block[["row"]],
-                                nrows  = block[["nrows"]],
-                                col    = block[["col"]],
-                                ncols  = block[["ncols"]],
-                                mat    = TRUE)
-    terra::readStop(r_obj)
+        # read values
+        terra::readStart(r_obj)
+        values <- terra::readValues(x   = r_obj,
+                                    mat = TRUE)
+        # close file descriptor
+        terra::readStop(r_obj)
+    } else {
+
+        # read values
+        terra::readStart(r_obj)
+        values <- terra::readValues(x      = r_obj,
+                                    row    = block[["row"]],
+                                    nrows  = block[["nrows"]],
+                                    col    = block[["col"]],
+                                    ncols  = block[["ncols"]],
+                                    mat    = TRUE)
+        # close file descriptor
+        terra::readStop(r_obj)
+    }
 
     return(values)
 }
