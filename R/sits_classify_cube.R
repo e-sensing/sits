@@ -120,7 +120,7 @@
     # __SITS_DEBUG__ == TRUE
     #
     .sits_log(output_dir = output_dir,
-              topic      = "classification",
+              entry      = "classification",
               blocks     = length(blocks),
               block_size = blocks[[1]],
               memory     = gc())
@@ -128,11 +128,48 @@
     # read the blocks and compute the probabilities
     filenames <- furrr::future_map(blocks, function(b) {
 
+        # define the file name of the raster file to be written
+        filename_block <- paste0(
+            tools::file_path_sans_ext(probs_cube$file_info[[1]]$path),
+            "_block_", b[["row"]], "_", b[["nrows"]], ".tif"
+        )
+
+        # glitch: resume functionality
+        #
+        # __SITS_RESUME__ == TRUE
+        #
+        if (Sys.getenv("__SITS_RESUME__") == TRUE &&
+            file.exists(filename_block)) {
+
+            r_obj <-
+                tryCatch({
+                    .sits_raster_api_open_rast(filename_block)
+                }, error = function(e) {
+                    return(NULL)
+                })
+
+            if (!purrr::is_null(r_obj)) {
+
+                if (.sits_raster_api_nrows(r_obj) == b[["nrows"]]) {
+
+                    #
+                    # __SITS_DEBUG__ == TRUE
+                    #
+                    .sits_log(output_dir   = output_dir,
+                              entry        = "skiping block",
+                              `block file` = filename_block)
+
+                    return(filename_block)
+                }
+            }
+        }
+
         #
         # __SITS_DEBUG__ == TRUE
         #
         .sits_log(output_dir = output_dir,
-                  topic      = "before read/preprocess block",
+                  entry      = "before read/preprocess block",
+                  block      = b,
                   memory     = gc())
 
         # read the data
@@ -151,15 +188,15 @@
         # __SITS_DEBUG__ == TRUE
         #
         .sits_log(output_dir = output_dir,
-                  topic      = "after read/preprocess block",
-                  block_dim  = dim(distances),
+                  entry      = "after read/preprocess block",
+                  `data dim` = dim(distances),
                   memory     = gc())
 
         #
         # __SITS_DEBUG__ == TRUE
         #
         .sits_log(output_dir = output_dir,
-                  topic      = "before block classification")
+                  entry      = "before block classification")
 
         # predict the classification values
         pred_block <- ml_model(distances)
@@ -168,7 +205,7 @@
         # __SITS_DEBUG__ == TRUE
         #
         .sits_log(output_dir = output_dir,
-                  topic      = "after block classification",
+                  entry      = "after block classification",
                   memory     = gc())
 
         # are the results consistent with the data input?
@@ -181,31 +218,6 @@
         # convert probabilities matrix to INT2U
         scale_factor_save <- round(1 / .sits_config_probs_scale_factor())
         pred_block <- round(scale_factor_save * pred_block, digits = 0)
-
-        # define the file name of the raster file to be written
-        filename_block <- paste0(
-            tools::file_path_sans_ext(probs_cube$file_info[[1]]$path),
-            "_block_", b[["row"]], "_", b[["nrows"]], ".tif"
-        )
-
-        # glitch: resume functionality
-        if (Sys.getenv("__SITS_RESUME__") == TRUE &&
-            file.exists(filename_block)) {
-
-            r_obj <-
-                tryCatch({
-                    .sits_raster_api_open_rast(filename_block)
-                }, error = function(e) {
-                    return(NULL)
-                })
-
-            if (!purrr::is_null(r_obj)) {
-
-                if (.sits_raster_api_nrows(r_obj) == b[["nrows"]]) {
-                    return(filename_block)
-                }
-            }
-        }
 
         # compute block spatial parameters
         params <- .sits_cube_params_block(probs_cube, b)
@@ -226,7 +238,7 @@
         # __SITS_DEBUG__ == TRUE
         #
         .sits_log(output_dir = output_dir,
-                  topic      = "before save classified block",
+                  entry      = "before save classified block",
                   memory     = gc())
 
         # copy values
@@ -247,14 +259,14 @@
         # __SITS_DEBUG__ == TRUE
         #
         .sits_log(output_dir = output_dir,
-                  topic      = "after save classified block",
+                  entry      = "after save classified block",
                   memory     = gc())
 
         # call garbage collector
-        # gc()
+        gc()
 
         return(filename_block)
-    }, .progress = TRUE)
+    }, .progress = length(blocks) >= 3)
 
     filenames <- unlist(filenames)
 
@@ -262,7 +274,7 @@
     # __SITS_DEBUG__ == TRUE
     #
     .sits_log(output_dir = output_dir,
-              topic      = "before merge",
+              entry      = "before merge",
               memory     = gc())
 
     # Join the predictions
@@ -279,7 +291,7 @@
     # __SITS_DEBUG__ == TRUE
     #
     .sits_log(output_dir = output_dir,
-              topic      = "after merge",
+              entry      = "after merge",
               memory     = gc())
 
     # show final time for classification
