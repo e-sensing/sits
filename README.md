@@ -120,7 +120,7 @@ Users can derive data cubes from ARD data which have pre-defined
 temporal resolutions. For example, a user may want to define the best
 Sentinel-2 pixel in a one month period, as shown below. This can be done
 in SITS by the `sits_regularize` which calls the “gdalcubes” package.
-For details in gdalcubes, please see Reference \[5\] and
+For details in gdalcubes, please see Reference \[4\] and
 <https://github.com/appelmar/gdalcubes>.
 
 ``` r

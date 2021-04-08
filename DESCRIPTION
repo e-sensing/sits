@@ -44,7 +44,6 @@ Imports:
     raster (>= 3.4),
     reshape2,
     RCurl,
-    rgdal (>= 1.5),
     rstac,
     scales,
     sf (>= 0.9),
