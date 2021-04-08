@@ -127,8 +127,8 @@ sits_LSTM_FCN <- function(samples = NULL,
 
         # build the model step by step
         # create the input_tensor for 1D convolution
-        input_tensor <- keras::layer_input(shape = c(1, n_times * n_bands))
-        # output_tensor <- input_tensor
+        input_tensor <- keras::layer_input(shape = c(n_times, n_bands))
+        output_tensor <- input_tensor
 
         # Build the LSTM layer
         lstm_layer <- keras::layer_lstm(input_tensor,
@@ -137,9 +137,9 @@ sits_LSTM_FCN <- function(samples = NULL,
         )
 
         # build the 1D nodes
-        output_tensor <- keras::layer_permute(input_tensor,
-                                           dims = c(2, 1)
-        )
+        #output_tensor <- keras::layer_permute(input_tensor,
+         #                                  dims = c(2, 1)
+        #)
         for (i in seq_len(length(cnn_layers))) {
             # Add a 1D CNN layer
             output_tensor <- keras::layer_conv_1d(output_tensor,

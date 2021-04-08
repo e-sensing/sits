@@ -148,7 +148,7 @@ sits_TempCNN <- function(samples = NULL,
 
         # build the model step by step
         # create the input_tensor for 1D convolution
-        input_tensor <- keras::layer_input(shape = c(n_times, n_bands))
+        input_tensor <- keras::layer_input(shape = c(n_times, n_bands, 1))
         output_tensor <- input_tensor
 
 
@@ -159,15 +159,19 @@ sits_TempCNN <- function(samples = NULL,
                 output_tensor,
                 filters = cnn_layers[[i]],
                 kernel_size = cnn_kernels[[i]],
-                kernel_regularizer = keras::regularizer_l2(l = cnn_L2_rate)
+                kernel_initializer = "he_normal",
+                kernel_regularizer = keras::regularizer_l2(l = cnn_L2_rate),
+                padding = "same"
             )
+            # batch normalization
+            output_tensor <- keras::layer_batch_normalization(output_tensor)
 
-            # Apply layer dropout
-            output_tensor <- keras::layer_dropout(output_tensor,
-                                                  rate = cnn_dropout_rates[[i]])
             # Activation
             output_tensor <- keras::layer_activation(output_tensor,
                                                      activation = cnn_activation)
+            # Apply layer dropout
+            output_tensor <- keras::layer_dropout(output_tensor,
+                                                  rate = cnn_dropout_rates[[i]])
         }
 
         # reshape a tensor into a 2D shape
@@ -177,12 +181,17 @@ sits_TempCNN <- function(samples = NULL,
         for (i in seq_len(length(mlp_layers))) {
             output_tensor <- keras::layer_dense(
                 output_tensor,
-                units = mlp_layers[[i]],
-                activation = mlp_activation
+                units = mlp_layers[[i]]
             )
+
+            # batch normalization
+            output_tensor <- keras::layer_batch_normalization(output_tensor)
+            # Activation
+            output_tensor <- keras::layer_activation(output_tensor,
+                                                     activation = mlp_activation)
+            # dropout
             output_tensor  <- keras::layer_dropout(output_tensor,
                                                    rate = mlp_dropout_rates[[i]])
-            output_tensor <- keras::layer_batch_normalization(output_tensor)
         }
 
         # create the final tensor
