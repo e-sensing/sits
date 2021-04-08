@@ -103,18 +103,13 @@
     )
 
     # show initial time for classification
-    if (verbose) {
-        message(paste0("Starting classification of '", tile$name,
-                       "' at ", lubridate::now()))
-    }
+    start_time <- Sys.time()
+    message(paste0("Starting classification of '", tile$name,
+                   "' at ", start_time))
 
-    # save original future plan
-    if (multicores > 1) {
-        oplan <- future::plan("multisession", workers = multicores)
-    } else {
-        oplan <- future::plan("sequential")
-    }
-    on.exit(future::plan(oplan), add = TRUE)
+    # prepare parallelization
+    .sits_parallel_start(workers = multicores)
+    on.exit(.sits_parallel_stop(), add = TRUE)
 
     #
     # __SITS_DEBUG__ == TRUE
@@ -126,7 +121,7 @@
               memory     = gc())
 
     # read the blocks and compute the probabilities
-    filenames <- furrr::future_map(blocks, function(b) {
+    filenames <- .sits_parallel_map(blocks, function(b) {
 
         # define the file name of the raster file to be written
         filename_block <- paste0(
@@ -266,7 +261,7 @@
         gc()
 
         return(filename_block)
-    }, .progress = length(blocks) >= 3)
+    })
 
     filenames <- unlist(filenames)
 
@@ -295,8 +290,9 @@
               memory     = gc())
 
     # show final time for classification
-    if (verbose)
-        message(sprintf("End classification at %s", lubridate::now()))
+    end_time <- Sys.time()
+    message(paste("Classification finished at", end_time))
+    message(paste("Elapsed time of", end_time - start_time))
 
     return(probs_cube)
 }
