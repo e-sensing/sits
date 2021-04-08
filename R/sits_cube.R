@@ -573,8 +573,8 @@ sits_cube.probs_cube <- function(source = "PROBS", ...,
 
         # precondition - check if labels match files
         # read the information from the files using GDAL
-        rg_obj <- suppressWarnings(rgdal::GDALinfo(probs_files[[i]]))
-        n_layers <- as.numeric(rg_obj["bands"])
+        rg_obj <- terra::rast(probs_files[[i]])
+        n_layers <- terra::nlyr(rg_obj)
         assertthat::assert_that(
             n_layers == length(probs_labels),
             msg = paste("sits_cube: mismatch between labels and bands in file",

@@ -181,7 +181,7 @@ test_that("Test reading shapefile from BDC", {
     check <- tryCatch({
         # tries to connect to the BDC
         invisible(suppressWarnings(
-            rgdal::GDALinfo(cbers_stac_tile$file_info[[1]]$path[1])
+            terra::rast(cbers_stac_tile$file_info[[1]]$path[1])
         ))
     }, error = function(e) {
         skip("BDC access not available")

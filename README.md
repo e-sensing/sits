@@ -39,10 +39,10 @@ cubes using machine learning methods. The basic workflow in SITS is:
 
 ### Pre-Requisites
 
-The `sits` package relies on `sf` and `rgdal`, which in turn, require
-the installation of the GDAL and PROJ libraries. Please follow the
-instructions for installing `sf` and `rgdal` available at the [RSpatial
-sf github repository](https://github.com/r-spatial/sf).
+The `sits` package relies on `sf`, `terra` and `raster`, which in turn,
+require the installation of the GDAL and PROJ libraries. Please follow
+the instructions for installing `sf` together with GDAL available at the
+[RSpatial sf github repository](https://github.com/r-spatial/sf).
 
 ### Obtaining SITS
 
@@ -120,7 +120,7 @@ Users can derive data cubes from ARD data which have pre-defined
 temporal resolutions. For example, a user may want to define the best
 Sentinel-2 pixel in a one month period, as shown below. This can be done
 in SITS by the `sits_regularize` which calls the “gdalcubes” package.
-For details in gdalcubes, please see
+For details in gdalcubes, please see Reference \[5\] and
 <https://github.com/appelmar/gdalcubes>.
 
 ``` r
@@ -159,15 +159,12 @@ raster_cube <- sits_cube(
         delim = "_",
         parse_info = c("X1", "X2", "band", "date")
 )
-#> Loading required namespace: terra
 # obtain a set of locations defined by a CSV file
 csv_raster_file <- system.file("extdata/samples/samples_sinop_crop.csv",
                                package = "sits"
 )
 # retrieve the points from the data cube
 points <- sits_get_data(raster_cube, file = csv_raster_file)
-#> Loading required namespace: terra
-#> Loading required namespace: terra
 #> All points have been retrieved
 # show the points
 points[1:3,]
@@ -230,9 +227,19 @@ remove those that might have been wrongly labeled or that have low
 discriminatory power. Good samples lead to good classification maps.
 `sits` provides support for two clustering methods to test sample
 quality: (a) Agglomerative Hierarchical Clustering (AHC); (b)
-Self-organizing Maps (SOM). For more details, please see the vignette
-[“Clustering of Satellite Image Time Series with
-SITS”](https://github.com/e-sensing/sits-docs/blob/master/doc/clustering.pdf)
+Self-organizing Maps (SOM).
+
+The process of clustering with SOM is done by `sits_som_map()`, which
+creates a self-organizing map and assesses the quality of the samples.
+This function uses the “kohonen” R package to compute a SOM grid (see
+Reference \[7\] below). Each sample is assigned to a neuron, and neurons
+are placed in the grid based on similarity. The second step is the
+quality assessment. Each neuron will be associated with a discrete
+probability distribution. Homogeneous neurons (those with a single
+class) are assumed to be composed of good quality samples. Heterogeneous
+neurons (those with two or more classes with significant probability)
+are likely to contain noisy samples. See [Chapter 4 of the sits
+book](https://e-sensing.github.io/sitsbook/time-series-clustering-to-improve-the-quality-of-training-samples.html).
 
 ## Filtering
 
@@ -283,10 +290,9 @@ available in SITS:
     (`sits_deeplearning`)
 -   DL with 1D convolutional neural networks (`sits_FCN`)
 -   DL combining 1D CNN and multi-layer perceptron networks
-    (`sits_TempCNN`)
--   DL using 1D version of ResNet (`sits_ResNet`)
+    (`sits_TempCNN`) (See reference \[6\])
 -   DL using a combination of long-short term memory (LSTM) and 1D CNN
-    (`sits_LSTM_FCN`)
+    (`sits_LSTM_FCN`) (See reference \[5\])
 
 The following example illustrate how to train a dataset and classify an
 individual time series. First we use the `sits_train` function with two
@@ -355,7 +361,6 @@ probs_cube <- sits_classify(sinop,
                             ml_model = svm_model, 
                             output_dir = tempdir(),
                             verbose = FALSE)
-#> Loading required namespace: terra
 # apply a bayesian smoothing to remove outliers
 bayes_cube <- sits_smooth(probs_cube)
 
@@ -374,6 +379,45 @@ plot(label_cube)
 For more information, please see the on-line book [“SITS: Data analysis
 and machine learning for data cubes using satellite image
 timeseries”](https://e-sensing.github.io/sitsbook/).
+
+### References
+
+#### Selection of papers that use sits
+
+-   \[1\] Rolf Simoes, Michelle Picoli, et al., “Land use and cover maps
+    for Mato Grosso State in Brazil from 2001 to 2017”. Sci Data 7, 34
+    (2020).
+
+-   \[2\] Michelle Picoli, Gilberto Camara, et al., “Big Earth
+    Observation Time Series Analysis for Monitoring Brazilian
+    Agriculture”. ISPRS Journal of Photogrammetry and Remote
+    Sensing, 2018. DOI: 10.1016/j.isprsjprs.2018.08.007
+
+-   \[3\] Karine Ferreira, Gilberto Queiroz et al., Earth Observation
+    Data Cubes for Brazil: Requirements, Methodology and Products.
+    Remote Sens. 2020, 12, 4033.
+
+#### Papers that describe software used in sits
+
+We thank the authors of these papers for making their code available to
+be used in sits.
+
+-   \[4\] Appel, Marius, and Edzer Pebesma, “On-Demand Processing of
+    Data Cubes from Satellite Image Collections with the Gdalcubes
+    Library.” Data 4 (3): 1–16, 2020.
+
+-   \[5\] Karim, Fazle, Somshubra Majumdar, Houshang Darabi, and Shun
+    Chen, “LSTM Fully Convolutional Networks for Time Series
+    Classification.” IEEE Access 6: 1662–9, 2018.
+
+-   \[6\] Pelletier, Charlotte, Geoffrey I. Webb, and Francois
+    Petitjean. “Temporal Convolutional Neural Network for the
+    Classification of Satellite Image Time Series.” Remote Sensing 11
+    (5), 2019.
+
+-   \[7\] Wehrens, Ron and Kruisselbrink, Johannes. “Flexible
+    Self-Organising Maps in kohonen 3.0”. Journal of Statistical
+    Software, 87, 7 (2018).
 
 ## How to contribute
 

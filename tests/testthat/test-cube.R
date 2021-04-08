@@ -87,13 +87,8 @@ test_that("Creating cubes from BDC", {
       expect_true(timeline[1] <= as.Date("2018-09-01"))
       expect_true(timeline[length(timeline)] <= as.Date("2019-08-29"))
 
-      gdal_info <- suppressWarnings(
-        rgdal::GDALinfo(cbers_cube$file_info[[1]]$path[1]))
-      expect_true(gdal_info["rows"] == cbers_cube$nrows[[1]])
-
-      gdal_info2 <- suppressWarnings(
-        rgdal::GDALinfo(cbers_cube$file_info[[2]]$path[1]))
-      expect_true(gdal_info2["rows"] == cbers_cube$nrows[[2]])
+      r_obj <- terra::rast(cbers_cube$file_info[[1]]$path[1])
+      expect_true(terra::nrow(r) == cbers_cube$nrows[[1]])
     }
 
 })
