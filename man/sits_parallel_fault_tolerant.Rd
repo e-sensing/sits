@@ -26,8 +26,6 @@ Fault tolerant version of some parallel functions
 \author{
 Rolf Simoes, \email{rolf.simoes@inpe.br}
 
-Derived from the
-\link[=https://cran.r-project.org/web/packages/snow/index.html]{snow}
-package
+Derived from the snow package
 }
 \keyword{internal}

@@ -53,9 +53,7 @@
 #' @name sits_parallel_fault_tolerant
 #' @keywords internal
 #' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
-#' @author Derived from the
-#' \link[=https://cran.r-project.org/web/packages/snow/index.html]{snow}
-#' package
+#' @author Derived from the snow package
 #'
 #' @param x     a given list to be passed to a function
 #' @param fn    a function to be applied to each list element
