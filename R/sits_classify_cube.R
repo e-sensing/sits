@@ -257,8 +257,7 @@
         # .sits_debug() == TRUE
         #
         .sits_log(output_dir = output_dir,
-                  entry      = "save classified block",
-                  memory     = gc())
+                  event      = "save classified block")
 
         # call garbage collector
         gc()
