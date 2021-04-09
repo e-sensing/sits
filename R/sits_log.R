@@ -1,95 +1,126 @@
-
-#' @title Compute the duration between the last .sits_log call and now
-#' @name .sits_log_elapsed_time
+#' @title sits log functions
+#' @name sits_log
+#'
 #' @keywords internal
 #' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
 #'
-#' @description Compute the difference between now and the last call to
-#' .sits_log function.
+#' @description
+#' .sits_log: (internal) logs to a CSV file the following values:
+#' \itemize{
+#' \item date_time: event date and time
+#' \item pid: process PID
+#' \item event: event name
+#' \item elapsed_time: duration (in seconds) from the last log call
+#' \item mem_used: session used memory (in MB)
+#' \item max_mem_used: maximum memory used (in MB) from first log call
+#' \item tag: any character string to be registered
+#' }
+#' Each event will be logged in one row in the log file.
+#' The log file name will be the same as the base name of the current
+#' session's temporary directory.
 #'
-#' @param time  current time
+#' .sits_debug: When called without parameters retrieves the
+#' current debug flag value. The sits write log files when the debug
+#' flag is TRUE
 #'
-#' @return A character string informing the elapsed time
-.sits_log_elapsed_time <- function(time) {
-
-    if (purrr::is_null(sits_env$last_time_sits_log_call)) {
-        return(NULL)
-    }
-
-    time_elapsed <- difftime(time, sits_env$last_time_sits_log_call)
-
-    return(paste(time_elapsed[[1]], attr(time_elapsed, "units")))
-}
-
-#' @title Log variable content to a file
-#' @name .sits_log
-#' @keywords internal
-#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
-#' @description Log to a text file the content of a variable passed to values.
-#' Log file name is the same base name of temporary directory for current R
-#' session.
+#' @param flag         A logical value to set the debug flag
+#' @param output_dir   Output directory to write log file
+#' @param event        The name of the event to be logged
+#' @param key          A key describing the value.
+#' @param value        Any value to be logged. The value will be converted
+#'                     to string and escaped.
 #'
-#' @param output_dir    Output directory to write log file
-#' @param entry         A description to append to time stamp
-#' @param ...           Any valid value to be logged
-.sits_log <- function(output_dir = tempdir(), entry, ...) {
+#' @return
+#' For .sits_debug, a logical value with current debug flag
+.sits_log <- function(output_dir = tempdir(), event = "", key = "",
+                      value = "") {
 
-    # if no debug environment variable is set, then exit
-    if (Sys.getenv("__SITS_DEBUG__") != TRUE)
-        return(invisible(NULL))
+    # if debug flag is FALSE, then exit
+    if (!.sits_debug()) return(invisible(NULL))
 
-    # compute elapsed time from last .sits_log call
+    # record time to compute elapsed time
     time <- Sys.time()
-    elapsed_time <- .sits_log_elapsed_time(time)
     on.exit({
         # save the last system time on exit
-        sits_env$last_time_sits_log_call <- Sys.time()
+        sits_env$log_time <- Sys.time()
     }, add = TRUE)
+
+    # function to escape CSV values
+    esc <- function(value) {
+        value <- gsub("\"", "\"\"", paste0(value))
+        if (grepl("[\",\n\r]", value)) {
+            return(paste0('"', value, '"'))
+        }
+        value
+    }
 
     # output log file
     log_file = paste0(output_dir, "/", basename(tempdir()), ".log")
 
-    # add date at beginning
+    # elapsed time
+    elapsed_time <- NULL
+
+    if (!purrr::is_null(sits_env$log_time)) {
+        elapsed_time <- format(
+            difftime(time1 = time,
+                     time2 = sits_env$log_time,
+                     units = "secs")[[1]],
+            digits = 4
+        )
+    }
+
+    # add log header once
     if (purrr::is_null(elapsed_time)) {
-        cat(paste0("# date: ", format(Sys.time(), format = "%Y-%m-%d"), "\n"),
-            file = log_file, append = TRUE)
+
+        # first call to gc
+        mem <- gc(reset = TRUE)
+
+        # columns
+        cat(paste0(
+            paste("date_time", "pid", "event", "elapsed_time",
+                  "mem_used", "max_mem_used", "key", "value",
+                  sep = ", "),
+            "\n"
+        ), file = log_file, append = TRUE)
+    } else {
+        # memory information
+        mem <- gc()
     }
 
-    # write head entry
-    cat(paste0("\n", "# entry: ", entry, "\n"),
-        file = log_file, append = TRUE)
-    cat(paste0("# time: ", format(Sys.time(), format = "%H:%M:%S"), "\n"),
-        file = log_file, append = TRUE)
-
-    # write elapsed time
-    if (!purrr::is_null(elapsed_time)) {
-        cat(paste0("# elapsed time: ", elapsed_time, "\n"),
-            file = log_file, append = TRUE)
-    }
-
-    # dots
-    values <- list(...)
-
-    # values section
-    cat("\n",
-        file = log_file, append = TRUE)
-
-    # sink output
-    sink(file = log_file,
-         append = TRUE,
-         type = c("output", "message"),
-         split = FALSE)
-
-    # values to be appended
-    tryCatch({
-        for (i in seq_along(values)) {
-            cat(paste0("[", names(values)[[i]], "]\n"),
-                append = TRUE)
-            print(values[[i]])
-            cat("\n", append = TRUE)
-        }
-    }, finally = sink()) # revert sink
+    # log entry
+    cat(paste0(
+        paste(esc(time), Sys.getpid(), esc(event[[1]]), elapsed_time,
+              sum(mem[, 2]), sum(mem[, 6]), esc(key[[1]]),  esc(list(value)),
+              sep = ", "),
+        "\n"
+    ), file = log_file, append = TRUE)
 
     return(invisible(NULL))
 }
 
+#' @rdname sits_log
+.sits_debug <- function(flag = NULL) {
+
+    # if no parameter is passed get current debug flag
+    if (purrr::is_null(flag)) {
+        flag <- sits_env$debug_flag
+
+        # defaults to FALSE
+        if (purrr::is_null(flag)) {
+            flag <- FALSE
+            sits_env$debug_flag <- flag
+        }
+
+        return(flag)
+    }
+
+    assertthat::assert_that(
+        is.logical(flag),
+        msg = ".sits_debug: flag must be a logical value"
+    )
+
+    # set debug flag
+    sits_env$debug_flag <- flag
+
+    return(invisible(flag))
+}
