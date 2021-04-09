@@ -40,6 +40,7 @@ Imports:
     ggplot2,
     graphics,
     lubridate (>= 1.7.0),
+    parallel,
     purrr (>= 0.3.0),
     raster (>= 3.4),
     reshape2,
@@ -74,7 +75,6 @@ Suggests:
     mgcv,
     nnet,
     openxlsx,
-    parallel,
     proto,
     ptw,
     reticulate (>= 1.18),
@@ -132,6 +132,7 @@ Collate:
     'sits_LSTM_FCN.R'
     'sits_machine_learning.R'
     'sits_merge.R'
+    'sits_parallel.R'
     'sits_patterns.R'
     'sits_pipe.R'
     'sits_plot.R'
