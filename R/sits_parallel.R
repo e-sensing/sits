@@ -25,9 +25,7 @@
         .sits_parallel_stop()
 
         if (workers > 1) {
-            cl <- parallel::makePSOCKcluster(workers)
-            class(cl) <- c("sits_sockcluster", class(cl))
-            sits_env$cluster <- cl
+            sits_env$cluster <- parallel::makePSOCKcluster(workers)
         }
     }
 }
@@ -122,12 +120,12 @@
     if (.snow_timing_data$running()) {
         start <- proc.time()[3]
         # fault tolerant version of parallel:::recvOneData
-        v <- .sits_parallel_recv_one_data(cl)
+        v <- .sits_parallel_recv_one_data()
         end <- proc.time()[3]
         .snow_timing_data$enterRecv(v$node, start, end, v$value$time[3])
     } else {
         # fault tolerant version of parallel:::recvOneData
-        v <- .sits_parallel_recv_one_data(cl)
+        v <- .sits_parallel_recv_one_data()
     }
 
     return(list(value = v$value$value, node = v$node, tag = v$value$tag))
@@ -173,7 +171,7 @@
         for (i in seq_len(n)) {
 
             # fault tolerant version of parallel:::recvOneResult
-            d <- .sits_parallel_recv_one_result(cl)
+            d <- .sits_parallel_recv_one_result()
 
             # next job
             j <- i + min(n, p)
