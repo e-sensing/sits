@@ -128,12 +128,8 @@
             "_block_", b[["row"]], "_", b[["nrows"]], ".tif"
         )
 
-        # glitch: resume functionality
-        #
-        # __SITS_RESUME__ == TRUE
-        #
-        if (Sys.getenv("__SITS_RESUME__") == TRUE &&
-            file.exists(filename_block)) {
+        # resume functionality
+        if (file.exists(filename_block)) {
 
             r_obj <-
                 tryCatch({
