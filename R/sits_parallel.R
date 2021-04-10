@@ -26,6 +26,14 @@
 
         if (workers > 1) {
             sits_env$cluster <- parallel::makePSOCKcluster(workers)
+
+            # make sure library paths is the same as actual environment
+            lib_paths <- .libPaths()
+            parallel::clusterExport(cl = sits_env$cluster,
+                                    varlist = "lib_paths",
+                                    envir = environment())
+            parallel::clusterEvalQ(cl = sits_env$cluster,
+                                   expr = .libPaths(lib_paths))
         }
     }
 }
