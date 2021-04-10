@@ -684,12 +684,11 @@
             loop_files,
             rep(seq_len(ceiling(length(loop_files) / group_len)),
                 each = group_len,
-                length.out = length(loop_files)),
-            c
+                length.out = length(loop_files)), c
         )
 
         # merge groups
-        loop_files <- furrr::future_map_chr(group_files, function(group) {
+        loop_files <- .sits_parallel_map(group_files, function(group) {
 
             srcfile <- unlist(group)
 
@@ -715,6 +714,8 @@
 
             return(dstfile)
         })
+
+        loop_files <- unlist(loop_files)
 
         # delete temp files
         delete_files <- TRUE

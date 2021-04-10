@@ -86,6 +86,7 @@
         memsize = memsize,
         multicores = multicores
     )
+
     if (verbose) {
         message(paste0("Using ", length(blocks),
             " blocks of size (", unname(blocks[[1]]["nrows"]),
@@ -104,29 +105,25 @@
 
     # show initial time for classification
     if (verbose) {
+        start_time <- Sys.time()
         message(paste0("Starting classification of '", tile$name,
-                       "' at ", lubridate::now()))
+                       "' at ", start_time))
     }
 
-    # save original future plan
-    if (multicores > 1) {
-        oplan <- future::plan("multisession", workers = multicores)
-    } else {
-        oplan <- future::plan("sequential")
-    }
-    on.exit(future::plan(oplan), add = TRUE)
+    # prepare parallelization
+    .sits_parallel_start(workers = multicores)
+    on.exit(.sits_parallel_stop(), add = TRUE)
 
     #
-    # __SITS_DEBUG__ == TRUE
+    # .sits_debug() == TRUE
     #
     .sits_log(output_dir = output_dir,
-              entry      = "classification",
-              blocks     = length(blocks),
-              block_size = blocks[[1]],
-              memory     = gc())
+              event      = "start classification",
+              key        = "blocks",
+              value      = length(blocks))
 
     # read the blocks and compute the probabilities
-    filenames <- furrr::future_map(blocks, function(b) {
+    filenames <- .sits_parallel_map(blocks, function(b) {
 
         # define the file name of the raster file to be written
         filename_block <- paste0(
@@ -134,12 +131,8 @@
             "_block_", b[["row"]], "_", b[["nrows"]], ".tif"
         )
 
-        # glitch: resume functionality
-        #
-        # __SITS_RESUME__ == TRUE
-        #
-        if (Sys.getenv("__SITS_RESUME__") == TRUE &&
-            file.exists(filename_block)) {
+        # resume functionality
+        if (file.exists(filename_block)) {
 
             r_obj <-
                 tryCatch({
@@ -153,11 +146,12 @@
                 if (.sits_raster_api_nrows(r_obj) == b[["nrows"]]) {
 
                     #
-                    # __SITS_DEBUG__ == TRUE
+                    # .sits_debug() == TRUE
                     #
-                    .sits_log(output_dir   = output_dir,
-                              entry        = "skiping block",
-                              `block file` = filename_block)
+                    .sits_log(output_dir = output_dir,
+                              event      = "skipping block",
+                              key        = "block file",
+                              value      = filename_block)
 
                     return(filename_block)
                 }
@@ -165,12 +159,12 @@
         }
 
         #
-        # __SITS_DEBUG__ == TRUE
+        # .sits_debug() == TRUE
         #
         .sits_log(output_dir = output_dir,
-                  entry      = "before read/preprocess block",
-                  block      = b,
-                  memory     = gc())
+                  event      = "before preprocess block",
+                  key        = "block",
+                  value      = b)
 
         # read the data
         distances <- .sits_raster_data_read(
@@ -185,28 +179,27 @@
         )
 
         #
-        # __SITS_DEBUG__ == TRUE
+        # .sits_debug() == TRUE
         #
         .sits_log(output_dir = output_dir,
-                  entry      = "after read/preprocess block",
-                  `data dim` = dim(distances),
-                  memory     = gc())
+                  event      = "preprocess block")
 
         #
-        # __SITS_DEBUG__ == TRUE
+        # .sits_debug() == TRUE
         #
         .sits_log(output_dir = output_dir,
-                  entry      = "before block classification")
+                  event      = "before classification block")
 
         # predict the classification values
         pred_block <- ml_model(distances)
 
         #
-        # __SITS_DEBUG__ == TRUE
+        # .sits_debug() == TRUE
         #
         .sits_log(output_dir = output_dir,
-                  entry      = "after block classification",
-                  memory     = gc())
+                  event      = "classification block",
+                  key        = "ml_model",
+                  value      = class(ml_model)[[1]])
 
         # are the results consistent with the data input?
         assertthat::assert_that(
@@ -214,6 +207,12 @@
             msg = paste(".sits_classify_cube: number of rows of probability",
                         "matrix is different from number of input pixels")
         )
+
+        #
+        # .sits_debug() == TRUE
+        #
+        .sits_log(output_dir = output_dir,
+                  event      = "before save classified block")
 
         # convert probabilities matrix to INT2U
         scale_factor_save <- round(1 / .sits_config_probs_scale_factor())
@@ -234,13 +233,6 @@
             crs     = params$crs
         )
 
-        #
-        # __SITS_DEBUG__ == TRUE
-        #
-        .sits_log(output_dir = output_dir,
-                  entry      = "before save classified block",
-                  memory     = gc())
-
         # copy values
         r_obj <- .sits_raster_api_set_values(r_obj  = r_obj,
                                              values = pred_block)
@@ -256,28 +248,26 @@
         )
 
         #
-        # __SITS_DEBUG__ == TRUE
+        # .sits_debug() == TRUE
         #
         .sits_log(output_dir = output_dir,
-                  entry      = "after save classified block",
-                  memory     = gc())
+                  event      = "save classified block")
 
         # call garbage collector
         gc()
 
         return(filename_block)
-    }, .progress = length(blocks) >= 3)
+    })
 
     filenames <- unlist(filenames)
 
     #
-    # __SITS_DEBUG__ == TRUE
+    # .sits_debug() == TRUE
     #
     .sits_log(output_dir = output_dir,
-              entry      = "before merge",
-              memory     = gc())
+              event      = "end classification")
 
-    # Join the predictions
+    # join predictions
     .sits_raster_api_merge(
         in_files = filenames,
         out_file = probs_cube$file_info[[1]]$path,
@@ -288,15 +278,17 @@
     )
 
     #
-    # __SITS_DEBUG__ == TRUE
+    # .sits_debug() == TRUE
     #
     .sits_log(output_dir = output_dir,
-              entry      = "after merge",
-              memory     = gc())
+              event      = "merge")
 
     # show final time for classification
-    if (verbose)
-        message(sprintf("End classification at %s", lubridate::now()))
+    if (verbose) {
+        end_time <- Sys.time()
+        message(paste("Classification finished at", end_time))
+        message(paste("Elapsed time of", end_time - start_time))
+    }
 
     return(probs_cube)
 }
