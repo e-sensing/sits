@@ -86,6 +86,7 @@
         memsize = memsize,
         multicores = multicores
     )
+
     if (verbose) {
         message(paste0("Using ", length(blocks),
             " blocks of size (", unname(blocks[[1]]["nrows"]),
@@ -103,9 +104,11 @@
     )
 
     # show initial time for classification
-    start_time <- Sys.time()
-    message(paste0("Starting classification of '", tile$name,
-                   "' at ", start_time))
+    if (verbose) {
+        start_time <- Sys.time()
+        message(paste0("Starting classification of '", tile$name,
+                       "' at ", start_time))
+    }
 
     # prepare parallelization
     .sits_parallel_start(workers = multicores)
@@ -281,9 +284,11 @@
               event      = "merge")
 
     # show final time for classification
-    end_time <- Sys.time()
-    message(paste("Classification finished at", end_time))
-    message(paste("Elapsed time of", end_time - start_time))
+    if (verbose) {
+        end_time <- Sys.time()
+        message(paste("Classification finished at", end_time))
+        message(paste("Elapsed time of", end_time - start_time))
+    }
 
     return(probs_cube)
 }
