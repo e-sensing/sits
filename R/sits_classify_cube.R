@@ -103,6 +103,13 @@
         version    = version
     )
 
+    # resume feature
+    # if tile already exists, return probs_cube
+    if (file.exists(probs_cube$file_info[[1]]$path[[1]])) {
+
+        return(probs_cube)
+    }
+
     # show initial time for classification
     if (verbose) {
         start_time <- Sys.time()
