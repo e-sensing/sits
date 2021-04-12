@@ -226,7 +226,7 @@
         pred_block <- round(scale_factor_save * pred_block, digits = 0)
 
         # compute block spatial parameters
-        params <- .sits_cube_params_block(probs_cube, b)
+        params <- .sits_cube_params_block(tile, b)
 
         # create a new raster
         r_obj <- .sits_raster_api_new_rast(
