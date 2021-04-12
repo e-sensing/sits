@@ -68,7 +68,6 @@ results[[length(results) + 1]] <- acc_mlr
 print("== Accuracy Assessment = XGB =======================")
 acc_xgb <- sits_kfold_validate(samples_modis_4bands,
     folds = 5,
-    multicores = 2,
     ml_method = sits_xgboost()
 )
 acc_xgb$name <- "xgboost"

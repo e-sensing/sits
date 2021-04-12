@@ -43,8 +43,9 @@
                                       verbose) {
 
     # some models have parallel processing built in
-    if ("keras_model" %in% class(ml_model) | "ranger_model" %in% class(ml_model)
-        | "xgb_model" %in% class(ml_model))
+    if ("keras_model"  %in% class(ml_model) |
+        "ranger_model" %in% class(ml_model) |
+        "xgb_model"    %in% class(ml_model))
         multicores <- 1
 
     # retrieve the samples from the model
@@ -71,12 +72,10 @@
     stats <- environment(ml_model)$stats
 
     # is there a region of interest?
-    if (purrr::is_null(roi)) {
+    if (purrr::is_null(roi))
         sub_image <- .sits_raster_sub_image_default(tile)
-    } else {
-        # define the sub_image
+    else
         sub_image <- .sits_raster_sub_image(cube = tile, roi = roi)
-    }
 
     # divide the input data in blocks
     blocks <- .sits_raster_blocks(
@@ -86,13 +85,12 @@
         memsize = memsize,
         multicores = multicores
     )
-
-    if (verbose) {
+    # show the number of blocks and block size
+    if (verbose)
         message(paste0("Using ", length(blocks),
             " blocks of size (", unname(blocks[[1]]["nrows"]),
             " x ", unname(blocks[[1]]["ncols"]), ")"
         ))
-    }
 
     # create the metadata for the probability cube
     probs_cube <- .sits_cube_probs(
@@ -121,9 +119,7 @@
     .sits_parallel_start(workers = multicores)
     on.exit(.sits_parallel_stop(), add = TRUE)
 
-    #
-    # .sits_debug() == TRUE
-    #
+    # log
     .sits_log(output_dir = output_dir,
               event      = "start classification",
               key        = "blocks",
@@ -138,36 +134,28 @@
             "_block_", b[["row"]], "_", b[["nrows"]], ".tif"
         )
 
-        # resume functionality
+        # resume processing in case of failure
         if (file.exists(filename_block)) {
-
+            # try to open the file
             r_obj <-
                 tryCatch({
                     .sits_raster_api_open_rast(filename_block)
                 }, error = function(e) {
                     return(NULL)
                 })
-
-            if (!purrr::is_null(r_obj)) {
-
+            # if file can be opened, check if the result is correct
+            # this file will not be processed again
+            if (!purrr::is_null(r_obj))
                 if (.sits_raster_api_nrows(r_obj) == b[["nrows"]]) {
-
-                    #
-                    # .sits_debug() == TRUE
-                    #
+                    # log
                     .sits_log(output_dir = output_dir,
                               event      = "skipping block",
                               key        = "block file",
                               value      = filename_block)
-
                     return(filename_block)
                 }
-            }
         }
-
-        #
-        # .sits_debug() == TRUE
-        #
+        # log
         .sits_log(output_dir = output_dir,
                   event      = "before preprocess block",
                   key        = "block",
@@ -184,25 +172,13 @@
             interp_fn  = interp_fn,
             compose_fn = compose_fn
         )
-
-        #
-        # .sits_debug() == TRUE
-        #
-        .sits_log(output_dir = output_dir,
-                  event      = "preprocess block")
-
-        #
-        # .sits_debug() == TRUE
-        #
+        # log
         .sits_log(output_dir = output_dir,
                   event      = "before classification block")
 
         # predict the classification values
         pred_block <- ml_model(distances)
-
-        #
-        # .sits_debug() == TRUE
-        #
+        # log
         .sits_log(output_dir = output_dir,
                   event      = "classification block",
                   key        = "ml_model",
@@ -214,10 +190,7 @@
             msg = paste(".sits_classify_cube: number of rows of probability",
                         "matrix is different from number of input pixels")
         )
-
-        #
-        # .sits_debug() == TRUE
-        #
+        # log
         .sits_log(output_dir = output_dir,
                   event      = "before save classified block")
 
@@ -253,10 +226,7 @@
             gdal_options = .sits_config_gtiff_default_options(),
             overwrite    = TRUE
         )
-
-        #
-        # .sits_debug() == TRUE
-        #
+        # log
         .sits_log(output_dir = output_dir,
                   event      = "save classified block")
 
@@ -265,12 +235,9 @@
 
         return(filename_block)
     })
-
+    # put the filenames in a vector
     filenames <- unlist(filenames)
-
-    #
-    # .sits_debug() == TRUE
-    #
+    # log
     .sits_log(output_dir = output_dir,
               event      = "end classification")
 
@@ -284,9 +251,7 @@
         overwrite = TRUE
     )
 
-    #
-    # .sits_debug() == TRUE
-    #
+    # log
     .sits_log(output_dir = output_dir,
               event      = "merge")
 
@@ -296,7 +261,6 @@
         message(paste("Classification finished at", end_time))
         message(paste("Elapsed time of", end_time - start_time))
     }
-
     return(probs_cube)
 }
 #' @title Check clasification parameters

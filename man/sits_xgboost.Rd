@@ -15,7 +15,7 @@ sits_xgboost(
   nfold = 5,
   nrounds = 100,
   early_stopping_rounds = 20,
-  verbose = TRUE
+  verbose = FALSE
 )
 }
 \arguments{

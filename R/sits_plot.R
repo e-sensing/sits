@@ -191,7 +191,7 @@ plot.probs_cube <- function(x, y, ..., time = 1,
 #'
 plot.classified_image <- function(x, y, ...,
                                   time = 1,
-                                  title = "Classified image",
+                                  title = "",
                                   legend = NULL) {
     stopifnot(missing(y))
 
@@ -199,7 +199,7 @@ plot.classified_image <- function(x, y, ...,
 
 }
 
-#' @title  Plot information about confunsion between clusters
+#' @title  Plot information about confusion between clusters
 #' @name   plot.som_evaluate_cluster
 #' @author Lorena Santos \email{lorena.santos@@inpe.br}
 #'
@@ -302,8 +302,7 @@ plot.som_map <- function(x, y, ..., type = "codes", whatmap = 1) {
 #'
 plot.keras_model <- function(x, y, ...) {
     stopifnot(missing(y))
-    p <- graphics::plot(environment(x)$history)
-    return(invisible(p))
+    plot(environment(x)$history)
 }
 
 #' @title Plot all intervals of one time series for the same lat/long together

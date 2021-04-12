@@ -41,13 +41,23 @@
 #'
 #' @export
 #'
-sits_kfold_validate <- function(data, folds = 5,
-                                ml_method = sits_rfor(), multicores = 2) {
+sits_kfold_validate <- function(data,
+                                folds = 5,
+                                ml_method = sits_rfor(),
+                                multicores = 2) {
 
     # require package
     if (!requireNamespace("caret", quietly = TRUE)) {
         stop("Please install package caret.", call. = FALSE)
     }
+    # keras models needs sequential processing
+    call_names <- deparse(sys.call())
+    if (any(grepl("deeplearning", (call_names))) |
+        any(grepl("TempCNN", (call_names))) |
+        any(grepl("ResNet", (call_names))) |
+        any(grepl("FCN", (call_names))) |
+        any(grepl("LSTM_FCN", (call_names))))
+        multicores <- 1
 
     # get the labels of the data
     labels <- sits_labels(data)
@@ -69,17 +79,8 @@ sits_kfold_validate <- function(data, folds = 5,
     # create prediction and reference vector
     pred_vec <- character()
     ref_vec <- character()
-    # save original future plan
-    if (multicores > 1) {
-        oplan <- future::plan("multisession", workers = multicores)
-    } else {
-        oplan <- future::plan("sequential")
-    }
-    on.exit(future::plan(oplan), add = TRUE)
 
-    # read the blocks and compute the probabilities
-    conf_lst <- furrr::future_map(seq_len(folds), function(k) {
-
+    pred_ref_fold <- function(k, data){
         # split data into training and test data sets
         data_train <- data[data$folds != k, ]
         data_test <- data[data$folds == k, ]
@@ -106,9 +107,21 @@ sits_kfold_validate <- function(data, folds = 5,
 
         ref_vec <- c(ref_vec, data_test$label)
         pred_vec <- c(pred_vec, values)
+        remove(ml_model)
 
         return(list(pred = pred_vec, ref = ref_vec))
-    })
+    }
+
+    # save original future plan
+    if (multicores > 1) {
+        oplan <- future::plan("multisession", workers = multicores)
+        # read the blocks and compute the probabilities
+        conf_lst <- furrr::future_map(seq_len(folds), function(k)
+            pred_ref_fold(k, data))
+        on.exit(future::plan(oplan), add = TRUE)
+    } else
+        conf_lst <- purrr::map(seq_len(folds), function(k)
+            pred_ref_fold(k, data))
 
     pred <- unlist(lapply(conf_lst, function(x) x$pred))
     ref  <- unlist(lapply(conf_lst, function(x) x$ref))

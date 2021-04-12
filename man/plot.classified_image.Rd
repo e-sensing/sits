@@ -4,7 +4,7 @@
 \alias{plot.classified_image}
 \title{Generic interface for ploting classified images}
 \usage{
-\method{plot}{classified_image}(x, y, ..., time = 1, title = "Classified image", legend = NULL)
+\method{plot}{classified_image}(x, y, ..., time = 1, title = "", legend = NULL)
 }
 \arguments{
 \item{x}{object of class "classified_image"}

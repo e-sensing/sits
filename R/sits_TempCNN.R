@@ -82,7 +82,7 @@ sits_TempCNN <- function(samples = NULL,
                          epochs = 150,
                          batch_size = 128,
                          validation_split = 0.2,
-                         verbose = 1) {
+                         verbose = 0) {
 
 
     # function that returns keras model based on a sits sample data.table
@@ -133,29 +133,55 @@ sits_TempCNN <- function(samples = NULL,
         n_bands <- length(sits_bands(data))
         n_times <- nrow(sits_time_series(data[1, ]))
 
-        # create the train and test datasets for keras
-        keras_data <- .sits_keras_prepare_data(
-            data = data,
-            validation_split = validation_split,
-            int_labels = int_labels,
-            n_bands = n_bands,
-            n_times = n_times
+        # data normalization
+        stats <- .sits_normalization_param(data)
+        train_data <- .sits_distances(.sits_normalize_data(data, stats))
+
+        # split the data into training and validation data sets
+        # create partitions different splits of the input data
+        test_data <- .sits_distances_sample(train_data,
+                                            frac = validation_split
         )
-        train_x <- keras_data$train_x
-        train_y <- keras_data$train_y
-        test_x <- keras_data$test_x
-        test_y <- keras_data$test_y
+        # remove the lines used for validation
+        train_data <- train_data[!test_data, on = "original_row"]
+
+        n_samples_train <- nrow(train_data)
+        n_samples_test <- nrow(test_data)
+
+        # shuffle the data
+        train_data <- train_data[sample(
+            nrow(train_data),
+            nrow(train_data)
+        ), ]
+        test_data <- test_data[sample(
+            nrow(test_data),
+            nrow(test_data)
+        ), ]
+
+        # organize data for model training
+        train_x <- array(
+            data = as.matrix(train_data[, 3:ncol(train_data)]),
+            dim = c(n_samples_train, n_times, n_bands)
+        )
+        train_y <- unname(int_labels[as.vector(train_data$reference)]) - 1
+
+        # create the test data for keras
+        test_x <- array(
+            data = as.matrix(test_data[, 3:ncol(test_data)]),
+            dim = c(n_samples_test, n_times, n_bands)
+        )
+        test_y <- unname(int_labels[as.vector(test_data$reference)]) - 1
 
         # build the model step by step
         # create the input_tensor for 1D convolution
-        input_tensor <- keras::layer_input(shape = c(n_times, n_bands, 1))
+        input_tensor <- keras::layer_input(shape = c(n_times, n_bands))
         output_tensor <- input_tensor
 
 
         # build a set 1D convolution layers
         for (i in seq_len(length(cnn_layers))) {
             # Add a Convolution1D
-            output_tensor <- keras::layer_conv_2d(
+            output_tensor <- keras::layer_conv_1d(
                 output_tensor,
                 filters = cnn_layers[[i]],
                 kernel_size = cnn_kernels[[i]],

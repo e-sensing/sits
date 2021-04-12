@@ -12,7 +12,7 @@
 #' \itemize{
 #'    \item{"bayes": }{Use a bayesian smoother}
 #'    \item{"gaussian": }{Use a gaussian smoother}
-#'    \item{"bilinear: }{Use a bilinear smoother}
+#'    \item{"bilateral: }{Use a bilateral smoother}
 #'
 #' }
 #'
@@ -85,7 +85,7 @@
 #'
 #' # smooth the result with a bilinear filter
 #' bil_cube <- sits_smooth(probs_cube,
-#'     type = "bilinear", output_dir = tempdir()
+#'     type = "bilateral", output_dir = tempdir()
 #' )
 #' }
 #'
@@ -333,12 +333,12 @@ sits_smooth.gaussian <- function(cube, type = "gaussian", ...,
 #'
 #' @export
 #'
-sits_smooth.bilinear <- function(cube,
-                                 type = "bilinear",
+sits_smooth.bilateral <- function(cube,
+                                 type = "bilateral",
                                  ...,
                                  window_size = 5,
-                                 sigma = 1,
-                                 tau = 0.25,
+                                 sigma = 8,
+                                 tau = 0.1,
                                  multicores = 2,
                                  memsize = 4,
                                  output_dir = getwd(),
@@ -404,7 +404,7 @@ sits_smooth.bilinear <- function(cube,
         data <- .sits_raster_api_get_values(chunk) * scale_factor
 
         # process bilinear smoother
-        data <- bilinear_smoother(m = data,
+        data <- bilateral_smoother(m = data,
                                   m_nrow = .sits_raster_api_nrows(chunk),
                                   m_ncol = .sits_raster_api_ncols(chunk),
                                   w = gauss_kernel,
