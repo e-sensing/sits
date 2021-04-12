@@ -95,7 +95,7 @@
 #' @return                   output data cube
 #'
 .sits_cube_probs <- function(tile, samples, sub_image,
-                                  output_dir, version) {
+                             output_dir, version) {
     # ensure metadata tibble exists
     assertthat::assert_that(
         nrow(tile) == 1,
