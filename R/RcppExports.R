@@ -13,8 +13,8 @@ kernel_smoother <- function(m, m_nrow, m_ncol, w, normalised) {
     .Call(`_sits_kernel_smoother`, m, m_nrow, m_ncol, w, normalised)
 }
 
-bilinear_smoother <- function(m, m_nrow, m_ncol, w, tau) {
-    .Call(`_sits_bilinear_smoother`, m, m_nrow, m_ncol, w, tau)
+bilateral_smoother <- function(m, m_nrow, m_ncol, w, tau) {
+    .Call(`_sits_bilateral_smoother`, m, m_nrow, m_ncol, w, tau)
 }
 
 linear_interp <- function(mtx) {

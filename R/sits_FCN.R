@@ -1,31 +1,37 @@
-#' @title Train a model using the a combination of LSTM and CNN
-#' @name sits_LSTM_FCN
+#' @title Train a model using the a full Convolutional Neural Network
+#' @name sits_FCN
 #'
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #' @author Alexandre Ywata de Carvalho, \email{alexandre.ywata@@ipea.gov.br}
 #' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
 #'
-#' @description Use a combination of an LSTM (Long Short Term Memory) and a
-#' cascade of 1D-CNN newtorks to classify data. Users can define the number of
-#' convolutional layers, the size of the convolutional
-#' kernels, and the activation functions.
+#' @description Use the a full 1D CNN algorithm to classify data.
+#' Users can define the number of convolutional layers,
+#' the size of the convolutional kernels, and the activation functions.
 #'
-#' #' This function is based on the paper by Karim et al. referenced below
-#' and the code made available on github (https://github.com/titu1994/LSTM-FCN)
-#' If you use this method, please cite the original paper.
+#' The FCN has been proposed for time series classification by Wang et al.
+#' The SITS implementation of FCN is based on the work of Hassan Fawaz and
+#' collaborators. Fawaz provides a reference Keras implementation of FCN
+#' in https://github.com/hfawaz/dl-4-tsc.
+#' If you use this function, please cite the references.
 #'
-#' @references Fazle Karim, Somshubra Majumdar, Houshang Darabi, Sun Chen,
-#' "LSTM fully convolutional networks for time series classification",
-#' IEEE Access, 6(1662-1669), 2018.
+#' @references Hassan Fawaz, Germain Forestier, Jonathan Weber,
+#' Lhassane Idoumghar,  and Pierre-Alain Muller,
+#' "Deep learning for time series classification: a review",
+#' Data Mining and Knowledge Discovery, 33(4): 917--963, 2019.
 #'
+#' Zhiguang Wang, Weizhong Yan, and Tim Oates,
+#' "Time series classification from scratch with deep neural networks:
+#' A strong baseline",
+#' 2017 international joint conference on neural networks (IJCNN).
 #'
 #' @param samples           Time series with the training samples.
-#' @param lstm_units        Number of cells in the each LSTM layer
-#' @param lstm_dropout      Dropout rate of the LSTM module
-#' @param cnn_layers        Number of filters for each 1D CNN layer.
-#' @param cnn_kernels       Size of the 1D convolutional kernels.
+#' @param layers            Vector with size of the 1D convolutional filters
+#'                          for each layer.
+#' @param kernels           Vector with size of the 1D convolutional kernels.
 #' @param activation        Activation function for 1D convolution.
-#'                          Valid values:  {'relu', 'elu', 'selu', 'sigmoid'}.
+#'                          Valid values: {'relu', 'elu', 'selu', 'sigmoid'}.
+#' @param L2_rate           Regularization rate for 1D convolution.
 #' @param optimizer         Function with a pointer to the optimizer function
 #'                          (default is optimization_adam()).
 #'                          Options: optimizer_adadelta(), optimizer_adagrad(),
@@ -46,59 +52,49 @@
 #' @param verbose           Verbosity mode (0 = silent, 1 = progress bar,
 #'                          2 = one line per epoch).
 #'
-#' @return A fitted model to be passed to \code{\link[sits]{sits_classify}}
+#' @return A model fitted to input data to be passed
+#'         to \code{\link[sits]{sits_classify}}
 #'
 #' @examples
 #' \dontrun{
-#' # Retrieve the set of samples for the Mato Grosso (provided by EMBRAPA)
+#' # Retrieve the set of samples for the Mato Grosso region
 #'
 #' # Build a machine learning model based on deep learning
-#' lstm_cnn_model <- sits_train(samples_modis_4bands, sits_LSTM_FCN())
-#'
-#' # plot the model
-#' plot(lstm_cnn_model)
+#' fcn_model <- sits_train(samples_mt_4bands, sits_FCN())
+#' # Plot the model
+#' plot(fcn_model)
 #'
 #' # get a point and classify the point with the ml_model
 #' point <- sits_select(point_mt_6bands,
 #'     bands = c("NDVI", "EVI", "NIR", "MIR")
 #' )
-#' class <- sits_classify(point, lstm_cnn_model)
-#' plot(class, bands = c("NDVI", "EVI"))
+#' point_class <- sits_classify(point.tb, cnn_model)
+#' plot(point_class, bands = c("NDVI", "EVI"))
 #' }
-#'
 #' @export
-#'
-sits_LSTM_FCN <- function(samples = NULL,
-                          lstm_units = 8,
-                          lstm_dropout = 0.80,
-                          cnn_layers = c(128, 256, 128),
-                          cnn_kernels = c(8, 5, 3),
-                          activation = "relu",
-                          optimizer = keras::optimizer_adam(lr = 0.001),
-                          epochs = 150,
-                          batch_size = 128,
-                          validation_split = 0.2,
-                          verbose = 1) {
+sits_FCN <- function(samples = NULL,
+                     layers = c(128, 256, 128),
+                     kernels = c(8, 5, 3),
+                     activation = "relu",
+                     L2_rate = 1e-06,
+                     optimizer = keras::optimizer_adam(lr = 0.001),
+                     epochs = 150,
+                     batch_size = 128,
+                     validation_split = 0.2,
+                     verbose = 1) {
+    # backward compatibility
+    samples <- .sits_tibble_rename(samples)
 
     # function that returns keras model based on a sits sample data.table
     result_fun <- function(data) {
-        # verifies if keras package is installed
-        if (!requireNamespace("keras", quietly = TRUE)) {
-            stop(paste("keras required for this function to work.",
-                       "Please install it."), call. = FALSE)
-        }
-
-        valid_activations <- c("relu", "elu", "selu", "sigmoid")
-        # is the input data consistent?
-
-        assertthat::assert_that(
-            length(cnn_layers) == length(cnn_kernels),
-            msg = "sits_LSTM_FCN: 1D CNN layers must match 1D kernels"
+        # pre-conditions
+        assertthat::assert_that(length(layers) == length(kernels),
+                                msg = "sits_FCN: 1D layers must match 1D kernels"
         )
 
-        assertthat::assert_that(
-            all(activation %in% valid_activations),
-            msg = "sits_LSTM_FCN: invalid CNN activation method"
+        valid_activations <- c("relu", "elu", "selu", "sigmoid")
+        assertthat::assert_that(all(activation %in% valid_activations),
+                                msg = "sits_FCN: invalid CNN activation method"
         )
 
         # get the labels of the data
@@ -150,43 +146,29 @@ sits_LSTM_FCN <- function(samples = NULL,
             dim = c(n_samples_test, n_times, n_bands)
         )
         test_y <- unname(int_labels[as.vector(test_data$reference)]) - 1
-
         # build the model step by step
         # create the input_tensor for 1D convolution
         input_tensor <- keras::layer_input(shape = c(n_times, n_bands))
         output_tensor <- input_tensor
 
-        # Build the LSTM layer
-        lstm_layer <- keras::layer_lstm(input_tensor,
-                                        units = lstm_units,
-                                        dropout = lstm_dropout
-        )
-
+        n_layers <- length(layers)
         # build the 1D nodes
-        #output_tensor <- keras::layer_permute(input_tensor,
-         #                                  dims = c(2, 1)
-        #)
-        for (i in seq_len(length(cnn_layers))) {
-            # Add a 1D CNN layer
+        for (i in seq_len(n_layers)) {
+            # Add a Convolution1D layer
             output_tensor <- keras::layer_conv_1d(output_tensor,
-                                                  filters = cnn_layers[[i]],
-                                                  kernel_size = cnn_kernels[[i]]
-                )
-            # batch normalisation
-            output_tensor  <- keras::layer_batch_normalization(output_tensor)
-            # Layer activation
-            output_tensor  <- keras::layer_activation(output_tensor,
-                                                      activation = activation)
+                                       filters = layers[[i]],
+                                       kernel_size = kernels[[i]],
+                                       kernel_regularizer = keras::regularizer_l2(l = L2_rate)
+            )
+            # Batch normalization
+            output_tensor <- keras::layer_batch_normalization(output_tensor)
+            # activation
+            output_tensor <- keras::layer_activation(output_tensor,
+                                                     activation = activation)
         }
 
-        # Apply average pooling
+        # Apply max pooling?
         output_tensor <- keras::layer_global_average_pooling_1d(output_tensor)
-
-        # Concatenate LSTM and CNN
-        output_tensor <- keras::layer_concatenate(list(
-            lstm_layer,
-            output_tensor
-        ))
 
         # create the final tensor
         model_loss <- "categorical_crossentropy"
@@ -229,32 +211,34 @@ sits_LSTM_FCN <- function(samples = NULL,
         # construct model predict closure function and returns
         model_predict <- function(values) {
             # transform input (data.table) into a 3D tensor
-            # (remove first two columns)
+            # get the dimensions of the 3D tensor
             n_samples <- nrow(values)
             n_times <- nrow(sits_time_series(data[1, ]))
             n_bands <- length(sits_bands(data))
-            values_x <- array(
+
+            # reorganize the data as a 3D matrix
+            values <- array(
                 data = as.matrix(values[, 3:ncol(values)]),
                 dim = c(n_samples, n_times, n_bands)
             )
             # retrieve the prediction probabilities
-            prediction <- data.table::as.data.table(stats::predict(
+            predicted <- data.table::as.data.table(stats::predict(
                 model_keras,
-                values_x
+                values
             ))
+
             # If binary classification,
-            # adjust the prediction values to match two-class classification
+            # adjust the prediction values to match binary classification
             if (n_labels == 2) {
-                prediction <- .sits_keras_binary_class(prediction)
+                predicted <- .sits_keras_binary_class(predicted)
             }
 
             # adjust the names of the columns of the probs
-            colnames(prediction) <- labels
+            colnames(predicted) <- labels
 
-            return(prediction)
+            return(predicted)
         }
-        class(model_predict) <- c("keras_model", "sits_model",
-                                  class(model_predict))
+        class(model_predict) <- c("keras_model", class(model_predict))
         return(model_predict)
     }
 

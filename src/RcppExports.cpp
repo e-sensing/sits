@@ -50,9 +50,9 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
-// bilinear_smoother
-arma::mat bilinear_smoother(const arma::mat& m, const arma::uword m_nrow, const arma::uword m_ncol, const arma::mat& w, double tau);
-RcppExport SEXP _sits_bilinear_smoother(SEXP mSEXP, SEXP m_nrowSEXP, SEXP m_ncolSEXP, SEXP wSEXP, SEXP tauSEXP) {
+// bilateral_smoother
+arma::mat bilateral_smoother(const arma::mat& m, const arma::uword m_nrow, const arma::uword m_ncol, const arma::mat& w, double tau);
+RcppExport SEXP _sits_bilateral_smoother(SEXP mSEXP, SEXP m_nrowSEXP, SEXP m_ncolSEXP, SEXP wSEXP, SEXP tauSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -61,7 +61,7 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< const arma::uword >::type m_ncol(m_ncolSEXP);
     Rcpp::traits::input_parameter< const arma::mat& >::type w(wSEXP);
     Rcpp::traits::input_parameter< double >::type tau(tauSEXP);
-    rcpp_result_gen = Rcpp::wrap(bilinear_smoother(m, m_nrow, m_ncol, w, tau));
+    rcpp_result_gen = Rcpp::wrap(bilateral_smoother(m, m_nrow, m_ncol, w, tau));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -105,7 +105,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"_sits_apply_transition_matrix", (DL_FUNC) &_sits_apply_transition_matrix, 3},
     {"_sits_bayes_smoother", (DL_FUNC) &_sits_bayes_smoother, 6},
     {"_sits_kernel_smoother", (DL_FUNC) &_sits_kernel_smoother, 5},
-    {"_sits_bilinear_smoother", (DL_FUNC) &_sits_bilinear_smoother, 5},
+    {"_sits_bilateral_smoother", (DL_FUNC) &_sits_bilateral_smoother, 5},
     {"_sits_linear_interp", (DL_FUNC) &_sits_linear_interp, 1},
     {"_sits_linear_interp_vec", (DL_FUNC) &_sits_linear_interp_vec, 1},
     {"_sits_normalize_data", (DL_FUNC) &_sits_normalize_data, 3},

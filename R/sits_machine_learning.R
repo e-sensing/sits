@@ -730,7 +730,7 @@ sits_xgboost <- function(data = NULL,
                          nfold = 5,
                          nrounds = 100,
                          early_stopping_rounds = 20,
-                         verbose = TRUE) {
+                         verbose = FALSE) {
 
     # function that returns xgb model
     result_fun <- function(data) {

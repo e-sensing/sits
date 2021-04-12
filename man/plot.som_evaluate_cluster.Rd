@@ -2,7 +2,7 @@
 % Please edit documentation in R/sits_plot.R
 \name{plot.som_evaluate_cluster}
 \alias{plot.som_evaluate_cluster}
-\title{Plot information about confunsion between clusters}
+\title{Plot information about confusion between clusters}
 \usage{
 \method{plot}{som_evaluate_cluster}(x, y, ..., name_cluster = NULL, title = "Confusion by cluster")
 }

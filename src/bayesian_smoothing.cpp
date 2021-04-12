@@ -147,7 +147,7 @@ arma::mat kernel_smoother(const arma::mat& m,
 }
 
 // [[Rcpp::export]]
-arma::mat bilinear_smoother(const arma::mat& m,
+arma::mat bilateral_smoother(const arma::mat& m,
                             const arma::uword m_nrow,
                             const arma::uword m_ncol,
                             const arma::mat& w,

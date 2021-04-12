@@ -4,7 +4,7 @@
 \alias{sits_smooth}
 \alias{sits_smooth.bayes}
 \alias{sits_smooth.gaussian}
-\alias{sits_smooth.bilinear}
+\alias{sits_smooth.bilateral}
 \title{Post-process a classified data raster probs using smoothing}
 \usage{
 sits_smooth(cube, type = "bayes", ...)
@@ -34,13 +34,13 @@ sits_smooth(cube, type = "bayes", ...)
   version = "v1"
 )
 
-\method{sits_smooth}{bilinear}(
+\method{sits_smooth}{bilateral}(
   cube,
-  type = "bilinear",
+  type = "bilateral",
   ...,
   window_size = 5,
-  sigma = 1,
-  tau = 0.25,
+  sigma = 8,
+  tau = 0.1,
   multicores = 2,
   memsize = 4,
   output_dir = getwd(),
@@ -91,7 +91,7 @@ Takes a set of classified raster layers with probabilities,
 \itemize{
    \item{"bayes": }{Use a bayesian smoother}
    \item{"gaussian": }{Use a gaussian smoother}
-   \item{"bilinear: }{Use a bilinear smoother}
+   \item{"bilateral: }{Use a bilateral smoother}
 
 }
 }
@@ -136,7 +136,7 @@ gauss_cube <- sits_smooth(probs_cube,
 
 # smooth the result with a bilinear filter
 bil_cube <- sits_smooth(probs_cube,
-    type = "bilinear", output_dir = tempdir()
+    type = "bilateral", output_dir = tempdir()
 )
 }
 

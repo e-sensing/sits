@@ -12,17 +12,16 @@ library(sits)
 data("samples_modis_4bands")
 # create a list to store the results
 results <- list()
-
-
 # Deep Learning - MLP
+
 print("== Accuracy Assessment = DL =======================")
 acc_dl <- sits_kfold_validate(samples_modis_4bands,
-    folds = 5, multicores = 1,
+    folds = 5,
     ml_method = sits_deeplearning(
-        layers = c(512, 512, 512),
+        layers = c(512, 512, 512, 512, 512, 512),
         activation = "elu",
-        dropout_rates = c(0.50, 0.40, 0.30),
-        epochs = 300,
+        dropout_rates = c(0.10, 0.15, 0.20, 0.25, 0.30, 0.35),
+        epochs = 100,
         batch_size = 128,
         validation_split = 0.2
     )
@@ -41,10 +40,32 @@ acc_tc$name <- "TempCNN"
 
 results[[length(results) + 1]] <- acc_tc
 
+# Deep Learning - FCN
+print("== Accuracy Assessment = FCN =======================")
+acc_fc <- sits_kfold_validate(samples_modis_4bands,
+                              folds = 5,
+                              ml_method = sits_FCN(verbose = 0)
+)
+acc_fc$name <- "ResNet"
+
+results[[length(results) + 1]] <- acc_fc
+
+
+# Deep Learning - ResNet
+print("== Accuracy Assessment = ResNet =======================")
+acc_rn <- sits_kfold_validate(samples_modis_4bands,
+                              folds = 5,
+                              ml_method = sits_ResNet(verbose = 0)
+)
+acc_rn$name <- "ResNet"
+
+results[[length(results) + 1]] <- acc_rn
+
+
 # Deep Learning - LSTM
 print("== Accuracy Assessment = LSTM =======================")
 acc_lstm <- sits_kfold_validate(samples_modis_4bands,
-    folds = 5, multicores = 2,
+    folds = 5,
     ml_method = sits_LSTM_FCN(verbose = 0)
 )
 acc_lstm$name <- "LSTM_FCN"
