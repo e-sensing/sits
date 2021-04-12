@@ -747,12 +747,16 @@
     ymax  <-  cube$ymax - (block[["row"]] - 1) * cube$yres
     ymin  <-  ymax - block[["nrows"]] * cube$yres
 
+    # compute new X extent
+    xmin  <-  cube$xmin + (block[["col"]] - 1) * cube$xres
+    xmax  <-  xmin + block[["ncols"]] * cube$xres
+
     # prepare result
     params <- tibble::tibble(
         nrows = block[["nrows"]],
         ncols = block[["ncols"]],
-        xmin  = cube$xmin,
-        xmax  = cube$xmax,
+        xmin  = xmin,
+        xmax  = xmax,
         ymin  = ymin,
         ymax  = ymax,
         xres  = cube$xres,
