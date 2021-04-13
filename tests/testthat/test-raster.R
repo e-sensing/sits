@@ -244,7 +244,7 @@ test_that("One-year, multicore classification with post-processing", {
     max_gau3 <- max(.sits_raster_api_get_values(r_gau)[, 3])
     expect_true(max_gau3 <= 10000)
 
-    sinop_bil <- sits::sits_smooth(sinop_probs, type = "bilinear",
+    sinop_bil <- sits::sits_smooth(sinop_probs, type = "bilateral",
                                      output_dir = tempdir()
     )
     expect_true(all(file.exists(unlist(sinop_bil$file_info[[1]]$path))))

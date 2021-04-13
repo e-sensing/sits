@@ -60,9 +60,9 @@ sinop_gauss <- sits_smooth(cube       = sinop_probs,
                            type       = "gaussian",
                            output_dir = tempdir())
 
-# smooth the result with a bilinear filter
+# smooth the result with a bilateral filter
 sinop_bilin <- sits_smooth(cube       = sinop_probs,
-                           type       = "bilinear",
+                           type       = "bilateral",
                            output_dir = tempdir())
 
 sinop_label <- sits_label_classification(
