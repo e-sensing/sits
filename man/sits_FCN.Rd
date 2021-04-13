@@ -2,7 +2,7 @@
 % Please edit documentation in R/sits_FCN.R
 \name{sits_FCN}
 \alias{sits_FCN}
-\title{Train a model using the a full Convolutional Neural Network}
+\title{Train a model using a full Convolutional Neural Network}
 \usage{
 sits_FCN(
   samples = NULL,

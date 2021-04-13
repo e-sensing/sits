@@ -50,7 +50,7 @@ sits_metadata_to_csv <- function(data, file) {
     # write the CSV file
     utils::write.csv(csv, file, row.names = FALSE, quote = FALSE)
 
-    return(invisible(TRUE))
+    return(invisible(file))
 }
 
 #' @title Export a sits tibble data to the CSV format

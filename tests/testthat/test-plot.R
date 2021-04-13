@@ -66,7 +66,7 @@ test_that("Plot Time Series and Images", {
     sinop_labels <- sits_label_classification(sinop_probs,
                                               output_dir = tempdir())
 
-    p4 <- plot(sinop_labels)
+    p4 <- plot(sinop_labels, title = "Classified image")
     expect_equal(p4$labels$title, "Classified image")
     expect_equal(p4$layers[[1]]$geom_params$hjust, 0.5)
     expect_true(p4$layers[[1]]$inherit.aes)

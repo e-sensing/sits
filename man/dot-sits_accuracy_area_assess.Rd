@@ -4,9 +4,11 @@
 \alias{.sits_accuracy_area_assess}
 \title{Support for Area-weighted post-classification accuracy}
 \usage{
-.sits_accuracy_area_assess(error_matrix, area)
+.sits_accuracy_area_assess(cube, error_matrix, area)
 }
 \arguments{
+\item{cube}{A data cube}
+
 \item{error_matrix}{A matrix given in sample counts.
 Columns represent the reference data and
 rows the results of the classification}
