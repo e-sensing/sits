@@ -58,9 +58,6 @@ acc <- sits_accuracy(predicted)
 # select a training set with two bands
 samples_modis_2bands <- sits_select(samples_modis_4bands,
                                     bands = c("NDVI", "EVI"))
-# filter the samples for three classes (to simplify the example)
-samples_modis_2bands <- dplyr::filter(samples_modis_2bands, label \%in\%
-  c("Forest", "Pasture", "Soy_Corn"))
 
 # build an extreme gradient boosting model
 xgb_model <- sits_train(

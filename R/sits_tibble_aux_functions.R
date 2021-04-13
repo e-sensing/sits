@@ -203,30 +203,6 @@
     return(data)
 }
 
-#' @title Create partitions of a data set
-#' @name  .sits_create_folds
-#' @keywords internal
-#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
-#' @author Alexandre Ywata, \email{alexandre.ywata@@ipea.gov.br}
-#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
-#'
-#' @description Split a sits tibble into k groups, based on the label.
-#'
-#' @param data   A sits tibble to be partitioned.
-#' @param folds     Number of folds.
-.sits_create_folds <- function(data, folds = 5) {
-    # verify if data exists
-    .sits_test_tibble(data)
-
-    # splits the data into k groups
-    data$folds <- caret::createFolds(data$label,
-        k = folds,
-        returnTrain = FALSE, list = FALSE
-    )
-
-    return(data)
-}
-
 #' @title Check that the requested bands exist in the samples
 #' @name .sits_samples_bands_check
 #' @keywords internal

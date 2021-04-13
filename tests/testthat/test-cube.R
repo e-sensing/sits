@@ -88,7 +88,7 @@ test_that("Creating cubes from BDC", {
       expect_true(timeline[length(timeline)] <= as.Date("2019-08-29"))
 
       r_obj <- terra::rast(cbers_cube$file_info[[1]]$path[1])
-      expect_true(terra::nrow(r) == cbers_cube$nrows[[1]])
+      expect_true(terra::nrow(r_obj) == cbers_cube$nrows[[1]])
     }
 
 })

@@ -1,4 +1,4 @@
-#' @title Train a model using the a full Convolutional Neural Network
+#' @title Train a model using a full Convolutional Neural Network
 #' @name sits_FCN
 #'
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}

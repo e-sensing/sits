@@ -60,9 +60,6 @@
 #' # select a training set with two bands
 #' samples_modis_2bands <- sits_select(samples_modis_4bands,
 #'                                     bands = c("NDVI", "EVI"))
-#' # filter the samples for three classes (to simplify the example)
-#' samples_modis_2bands <- dplyr::filter(samples_modis_2bands, label %in%
-#'   c("Forest", "Pasture", "Soy_Corn"))
 #'
 #' # build an extreme gradient boosting model
 #' xgb_model <- sits_train(
@@ -277,20 +274,9 @@ sits_accuracy.classified_image <- function(data, ..., validation_csv) {
     area[is.na(area)] <- 0
 
     # Compute accuracy metrics
-    assess <- .sits_accuracy_area_assess(error_matrix, area)
+    assess <- .sits_accuracy_area_assess(data, error_matrix, area)
 
-    # Print assessment values
-    tb <- t(dplyr::bind_rows(assess$accuracy$user, assess$accuracy$producer))
-    colnames(tb) <- c("User", "Producer")
-
-    print(knitr::kable(tb,
-        digits = 2,
-        caption = "Users and Producers Accuracy per Class"
-    ))
-
-    # print overall accuracy
-    print(paste0("\nOverall accuracy is ", assess$accuracy$overall))
-
+    class(assess) <- c("sits_area_assessment", class(assess))
     return(assess)
 }
 
@@ -326,6 +312,7 @@ sits_accuracy.classified_image <- function(data, ..., validation_csv) {
 #' @name .sits_accuracy_area_assess
 #' @author Alber Sanchez, \email{alber.ipia@@inpe.br}
 #' @keywords internal
+#' @param cube         A data cube
 #' @param error_matrix A matrix given in sample counts.
 #'                     Columns represent the reference data and
 #'                     rows the results of the classification
@@ -343,7 +330,10 @@ sits_accuracy.classified_image <- function(data, ..., validation_csv) {
 #' estimated areas, the standard error areas, confidence interval 95% areas,
 #' and the accuracy (user, producer, and overall).
 
-.sits_accuracy_area_assess <- function(error_matrix, area) {
+.sits_accuracy_area_assess <- function(cube, error_matrix, area) {
+
+    assertthat::assert_that("classified_image" %in% class(cube),
+                            msg = "area assess: not a classified cube")
     if (any(dim(error_matrix) == 0)) {
         stop("Invalid dimensions in error matrix.", call. = FALSE)
     }
@@ -366,35 +356,37 @@ sits_accuracy.classified_image <- function(data, ..., validation_csv) {
 
     # Reorder the area based on the error matrix
     area <- area[colnames(error_matrix)]
+    # convert the area to hectares
+    area <- area*cube$yres*cube$xres/(10000)
     #
     weight <- area / sum(area)
     class_areas <- rowSums(error_matrix)
 
     # proportion of area derived from the reference classification
     # weighted by the area of the classes
-    # cf equation (1) of Olofsson et al (2014)
+    # cf equation (1) of Olofsson et al (2013)
     prop <- weight * error_matrix / class_areas
     prop[is.na(prop)] <- 0
 
     # An unbiased estimator of the total area
     # based on the reference classification
-    # cf equation (2) of Olofsson et al (2014)
+    # cf equation (2) of Olofsson et al (2013)
     error_adjusted_area <- colSums(prop) * sum(area)
 
     # Estimated standard error of the estimated area proportion
-    # cf equation (3) of Olofsson et al (2014)
+    # cf equation (3) of Olofsson et al (2013)
     stderr_prop <- sqrt(colSums((weight * prop - prop**2) / (class_areas - 1)))
 
     # Standard error of the error-adjusted estimated area
-    # cf equation (4) of Olofsson et al (2014)
+    # cf equation (4) of Olofsson et al (2013)
     stderr_area <- sum(area) * stderr_prop
 
     # area-weighted user's accuracy
-    # cf equation (6) of Olofsson et al (2014)
+    # cf equation (6) of Olofsson et al (2013)
     user_acc <- diag(prop) / rowSums(prop)
 
     # area-weigthed producer's accuracy
-    # cf equation (7) of Olofsson et al (2014)
+    # cf equation (7) of Olofsson et al (2013)
     prod_acc <- diag(prop) / colSums(prop)
 
     # overall area-weighted accuracy
@@ -431,6 +423,13 @@ sits_accuracy.classified_image <- function(data, ..., validation_csv) {
 sits_accuracy_summary <- function(x,
                                   mode = "sens_spec",
                                   digits = max(3, getOption("digits") - 3)) {
+
+    if ("sits_area_assessment" %in% class(x)) {
+      print.sits_area_assessment(x)
+      return(invisible(TRUE))
+    }
+    assertthat::assert_that("sits_assessment" %in% class(x),
+                            msg = "please run sits_accuracy first")
 
     # round the data to the significant digits
     overall <- round(x$overall, digits = digits)
@@ -566,4 +565,44 @@ print.sits_assessment <- function(x, ...,
   }
 
   invisible(x)
+}
+#' @title Print the area assessment
+#' @name print.sits_area_assessment
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
+#
+#' @description Adaptation of the caret::print.confusionMatrix method
+#'              for the more common usage in Earth Observation.
+#'
+#' @param x         An object of class \code{sits_area_assessment}.
+#' @param \dots     other parameters passed to the "print" function
+#' @param digits    significant digits
+#' @return          \code{x}   is invisibly returned.
+#'
+#' @keywords internal
+#' @export
+print.sits_area_assessment <- function(x, ..., digits = 3){
+
+  # round the data to the significant digits
+  overall <- round(x$accuracy$overall, digits = digits)
+
+  cat("Area Weigthed Statistics\n")
+  cat(paste0("Overall Accuracy = ", overall))
+
+  # Print assessment values
+  tb <- t(dplyr::bind_rows(x$accuracy$user, x$accuracy$producer))
+  colnames(tb) <- c("User", "Producer")
+
+  print(knitr::kable(tb,
+                     digits = 2,
+                     caption = "Area-Weighted Users and Producers Accuracy"
+  ))
+
+  tb1 <- t(dplyr::bind_rows(x$area_pixels, x$error_ajusted_area, x$conf_interval))
+  colnames(tb1) <- c("Mapped Area (ha)", "Error-Adjusted Area (ha)", "Conf Interval (ha)")
+
+  print(knitr::kable(tb1,
+                     digits = 1,
+                     caption = "Mapped Area x Estimated Area (ha)"
+  ))
+
 }
