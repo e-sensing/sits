@@ -252,7 +252,7 @@ default:
         bands               :
             SITS            : &msi_bands_sits ["B01", "B02", "B03", "B04", "B05", "B06", "B07", "B08", "B8A", "B09", "B10", "B11", "B12", "SCL"]
             AWS             : *msi_bands_sits
-            BDC             : ["band1", "band2", "band3", "band4", "band5", "band6", "band7", "band8", "band8a", "band9", "band10", "band11", "band12", "Fmask4"]
+            BDC             : ["BAND1", "BAND2", "BAND3", "BAND4", "BAND5", "BAND6", "BAND7", "BAND8", "BAND8A", "BAND9", "BAND10", "BAND11", "BAND12", "FMASK4"]
             LOCAL           : *msi_bands_sits
             DEAFRICA        : *msi_bands_sits
             cloud_band      : "SCL"
