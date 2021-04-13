@@ -204,7 +204,7 @@ test_that("1D CNN model", {
     point_class <- sits_classify(point_ndvi, model)
 
     expect_true(all(point_class$predicted[[1]]$class %in%
-                        sits_labels(samples_ndvi)$label))
+                        sits_labels(samples_ndvi)))
     expect_true(nrow(sits_show_prediction(point_class)) == 16)
 })
 
@@ -224,7 +224,7 @@ test_that("ResNet", {
     point_class <- sits_classify(point_ndvi, model)
 
     expect_true(all(point_class$predicted[[1]]$class %in%
-                        sits_labels(samples_ndvi)$label))
+                        sits_labels(samples_ndvi)))
     expect_true(nrow(sits_show_prediction(point_class)) == 16)
 })
 test_that("tempCNN model", {
