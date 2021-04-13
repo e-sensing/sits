@@ -34,6 +34,8 @@
 
     # converts bands name to upper case
     collection_info <- .sits_stac_toupper(collection_info)
+
+    # get instrument name
     sensor <- collection_info$properties$instruments
 
     # get default bands parameter
@@ -51,13 +53,8 @@
     bands <- .sits_config_bands_stac_read(stac_provider = "BDC",
                                           sensor = sensor,
                                           bands = bands)
-    # check bands
-    assertthat::assert_that(
-        all(bands %in% collection_info$bands),
-        msg = paste(".sits_stac_collection: The supplied bands do not",
-                    "match the data cube bands.")
-    )
 
+    # select collection bands
     collection_info$bands <-
         collection_info$bands[collection_info$bands %in% bands]
 
