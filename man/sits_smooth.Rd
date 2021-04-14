@@ -18,7 +18,7 @@ sits_smooth(cube, type = "bayes", ...)
   covar = FALSE,
   multicores = 2,
   memsize = 4,
-  output_dir = getwd(),
+  output_dir = "./",
   version = "v1"
 )
 
@@ -30,7 +30,7 @@ sits_smooth(cube, type = "bayes", ...)
   sigma = 1,
   multicores = 2,
   memsize = 4,
-  output_dir = getwd(),
+  output_dir = "./",
   version = "v1"
 )
 
@@ -43,7 +43,7 @@ sits_smooth(cube, type = "bayes", ...)
   tau = 0.1,
   multicores = 2,
   memsize = 4,
-  output_dir = getwd(),
+  output_dir = "./",
   version = "v1"
 )
 }
