@@ -101,6 +101,13 @@
         version    = version
     )
 
+    # resume feature
+    # if tile already exists, return probs_cube
+    if (file.exists(probs_cube$file_info[[1]]$path[[1]])) {
+
+        return(probs_cube)
+    }
+
     # show initial time for classification
     if (verbose) {
         start_time <- Sys.time()
@@ -192,7 +199,7 @@
         pred_block <- round(scale_factor_save * pred_block, digits = 0)
 
         # compute block spatial parameters
-        params <- .sits_cube_params_block(probs_cube, b)
+        params <- .sits_cube_params_block(tile, b)
 
         # create a new raster
         r_obj <- .sits_raster_api_new_rast(

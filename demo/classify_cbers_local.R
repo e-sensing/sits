@@ -49,8 +49,8 @@ rfor_model <- sits_train(
 cbers_probs <- sits_classify(
     data       = cbers_cube,
     ml_model   = rfor_model,
-    memsize    = 6,
-    maxcores   = 2,
+    memsize    = 1,
+    multicores = 2,
     output_dir = tempdir()
 )
 
@@ -58,11 +58,16 @@ cbers_probs <- sits_classify(
 cbers_bayes <- sits_smooth(
     cube       = cbers_probs,
     type       = "bayes",
-    output_dir = tempdir())
+    memsize    = 1,
+    multicores = 2,
+    output_dir = tempdir()
+)
 
 # label the resulting probs maps
 cbers_label <- sits_label_classification(
     cube       = cbers_bayes,
+    memsize    = 1,
+    multicores = 2,
     output_dir = tempdir()
 )
 

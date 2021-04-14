@@ -3,7 +3,7 @@
 library(sits)
 
 # Get a 17 year time series
-data(point_mt_6bands)
+data("point_mt_6bands")
 # plot the series
 plot(point_mt_6bands)
 

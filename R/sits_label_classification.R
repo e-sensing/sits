@@ -70,14 +70,18 @@ sits_label_classification <- function(cube,
     # mapping function to be executed by workers cluster
     .do_map <- function(chunk) {
 
-        # create probability cube
-        res <- .sits_raster_api_rast(r_obj = chunk, nlayers = 1)
+        # read raster
+        data <- .sits_raster_api_get_values(r_obj = chunk)
 
         # get layer of max probability
-        values <- apply(.sits_raster_api_get_values(chunk), 1, which.max)
+        data <- apply(data, 1, which.max)
 
-        # save result
-        res <- .sits_raster_api_set_values(r_obj = res, values = values)
+        # create cube labels
+        res <- .sits_raster_api_rast(r_obj = chunk, nlayers = 1)
+
+        # copy values
+        res <- .sits_raster_api_set_values(r_obj = res, values = data)
+
         return(res)
     }
 
