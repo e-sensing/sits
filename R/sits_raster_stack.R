@@ -58,11 +58,11 @@
     # read the image files into a tibble with added parse info
     colnames(img_files_mx) <- parse_info
 
-    # joint the list into a tibble
+    # joint the list into a tibble and convert bands name to upper case
     img_files_tb <- tibble::as_tibble(
         img_files_mx,
         .name_repair = "minimal"
-    )
+    ) %>% dplyr::mutate(band = toupper(band))
 
     # get the information on the required bands, dates and path
     file_info <- img_files_tb %>%
@@ -112,6 +112,14 @@
     resolution <- unname(res_xy["xres"])
     file_info <- dplyr::mutate(file_info,
                                res = resolution, .before = path)
+
+    # post condition
+    assertthat::assert_that(
+        nrow(file_info) > 0,
+        msg = paste(".sits_raster_stack_info: no file was found for the",
+                    "requested local cube. Please, verify the 'start_date' and",
+                    "'end_date' and check if the provided directory is valid.")
+    )
 
     return(file_info)
 }

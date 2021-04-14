@@ -530,6 +530,10 @@ sits_cube.local_cube <- function(source = "LOCAL", ...,
         msg = "sits_cube: invalid columns for date and band"
     )
 
+    # bands in upper case
+    if (!purrr::is_null(bands))
+        bands <- toupper(bands)
+
     # get the file information
     file_info <- .sits_raster_stack_info(
         satellite = satellite,
