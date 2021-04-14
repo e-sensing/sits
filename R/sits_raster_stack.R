@@ -113,6 +113,14 @@
     file_info <- dplyr::mutate(file_info,
                                res = resolution, .before = path)
 
+    # post condition
+    assertthat::assert_that(
+        nrow(file_info) > 0,
+        msg = paste(".sits_raster_stack_info: no file was found for the",
+                    "requested local cube. Please, verify the 'start_date' and",
+                    "'end_date' and check if the provided directory is valid.")
+    )
+
     return(file_info)
 }
 #' @title Create a stack cube from a set of files
