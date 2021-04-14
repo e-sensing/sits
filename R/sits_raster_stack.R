@@ -58,11 +58,11 @@
     # read the image files into a tibble with added parse info
     colnames(img_files_mx) <- parse_info
 
-    # joint the list into a tibble
+    # joint the list into a tibble and convert bands name to upper case
     img_files_tb <- tibble::as_tibble(
         img_files_mx,
         .name_repair = "minimal"
-    )
+    ) %>% dplyr::mutate(band = toupper(band))
 
     # get the information on the required bands, dates and path
     file_info <- img_files_tb %>%
