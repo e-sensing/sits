@@ -28,13 +28,3 @@ steps:
   when:
     event:
     - push
-
-- name: discord-notify
-  image: brazildatacube/bdc-drone-discord
-  settings:
-    webhook:
-      from_secret: discord_webhook
-  when:
-    status:
-      - failure
-      - success
