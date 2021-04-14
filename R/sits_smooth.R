@@ -27,9 +27,9 @@
 #'                           matrix must be computed as the prior covariance
 #'                           for bayesian smoothing.
 #' @param  sigma             Standard deviation of the spatial Gaussian kernel
-#'                           (for gaussian and bilinear smoothing)
+#'                           (for gaussian and bilateral smoothing)
 #' @param  tau               Standard deviation of the class probs value
-#'                           (for bilinear smoothing)
+#'                           (for bilateral smoothing)
 #' @param  multicores        Number of cores to run the smoothing function
 #' @param  memsize           Maximum overall memory (in GB) to run the
 #'                           smoothing.
@@ -42,7 +42,7 @@
 #' @references K. Schindler, "An Overview and Comparison of Smooth Labeling
 #'             Methods for Land-Cover Classification",
 #'             IEEE Transactions on Geoscience and Remote Sensing,
-#'             50 (11), 4534-4545, 2012 (for gaussian and bilinear smoothing)
+#'             50 (11), 4534-4545, 2012 (for gaussian and bilateral smoothing)
 #'
 #' @examples
 #' \dontrun{
@@ -83,7 +83,7 @@
 #'     type = "gaussian", output_dir = tempdir()
 #' )
 #'
-#' # smooth the result with a bilinear filter
+#' # smooth the result with a bilateral filter
 #' bil_cube <- sits_smooth(probs_cube,
 #'     type = "bilateral", output_dir = tempdir()
 #' )
@@ -118,7 +118,7 @@ sits_smooth.bayes <- function(cube, type = "bayes", ...,
                               covar = FALSE,
                               multicores = 2,
                               memsize = 4,
-                              output_dir = getwd(),
+                              output_dir = "./",
                               version = "v1") {
 
     # precondition 1 - check if cube has probability data
@@ -183,7 +183,7 @@ sits_smooth.bayes <- function(cube, type = "bayes", ...,
     # Bayesian smoother to be executed by workers cluster
     .do_bayes <- function(chunk) {
 
-        data <- .sits_raster_api_get_values(chunk)
+        data <- .sits_raster_api_get_values(r_obj = chunk)
 
         # fix probabilities
         maxprob <- mult_factor - ncol(data) + 1
@@ -240,7 +240,7 @@ sits_smooth.gaussian <- function(cube, type = "gaussian", ...,
                                  sigma = 1,
                                  multicores = 2,
                                  memsize = 4,
-                                 output_dir = getwd(),
+                                 output_dir = "./",
                                  version = "v1") {
 
     # precondition 1 - check if cube has probability data
@@ -294,7 +294,7 @@ sits_smooth.gaussian <- function(cube, type = "gaussian", ...,
     .do_gauss <- function(chunk) {
 
         # scale probabilities
-        data <- .sits_raster_api_get_values(chunk) * scale_factor
+        data <- .sits_raster_api_get_values(r_obj = chunk) * scale_factor
 
         # process Gaussian smoother
         data <- kernel_smoother(m = data,
@@ -341,7 +341,7 @@ sits_smooth.bilateral <- function(cube,
                                  tau = 0.1,
                                  multicores = 2,
                                  memsize = 4,
-                                 output_dir = getwd(),
+                                 output_dir = "./",
                                  version = "v1") {
 
     # precondition 1 - check if cube has probability data
@@ -384,11 +384,11 @@ sits_smooth.bilateral <- function(cube,
     gauss_kernel <- .sits_gauss_kernel(window_size = window_size,
                                        sigma = sigma)
 
-    # create metadata for bilinear smoothed raster cube
-    cube_bilinear <- .sits_cube_clone(
+    # create metadata for bilateral smoothed raster cube
+    cube_bilat <- .sits_cube_clone(
         cube = cube,
-        name = paste0(cube$name, "_bilin"),
-        ext = "_bilin",
+        name = paste0(cube$name, "_bilat"),
+        ext = "_bilat",
         output_dir = output_dir,
         version = version
     )
@@ -398,12 +398,12 @@ sits_smooth.bilateral <- function(cube,
     mult_factor <- 1 / scale_factor
 
     # Gaussian smoother to be executed by workers cluster
-    .do_bilinear <- function(chunk) {
+    .do_bilateral <- function(chunk) {
 
         # scale probabilities
-        data <- .sits_raster_api_get_values(chunk) * scale_factor
+        data <- .sits_raster_api_get_values(r_obj = chunk) * scale_factor
 
-        # process bilinear smoother
+        # process bilateral smoother
         data <- bilateral_smoother(m = data,
                                   m_nrow = .sits_raster_api_nrows(chunk),
                                   m_ncol = .sits_raster_api_ncols(chunk),
@@ -424,15 +424,15 @@ sits_smooth.bilateral <- function(cube,
     # process each brick layer (each time step) individually
     .sits_map_layer_cluster(
         cube = cube,
-        cube_out = cube_bilinear,
+        cube_out = cube_bilat,
         overlapping_y_size =
             ceiling(window_size / 2) - 1,
-        func = .do_bilinear,
+        func = .do_bilateral,
         multicores = multicores,
         memsize = memsize,
         gdal_datatype = .sits_raster_api_gdal_datatype("INT2U"),
         gdal_options = .sits_config_gtiff_default_options()
     )
 
-    return(cube_bilinear)
+    return(cube_bilat)
 }

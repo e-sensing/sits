@@ -18,7 +18,7 @@ sits_smooth(cube, type = "bayes", ...)
   covar = FALSE,
   multicores = 2,
   memsize = 4,
-  output_dir = getwd(),
+  output_dir = "./",
   version = "v1"
 )
 
@@ -30,7 +30,7 @@ sits_smooth(cube, type = "bayes", ...)
   sigma = 1,
   multicores = 2,
   memsize = 4,
-  output_dir = getwd(),
+  output_dir = "./",
   version = "v1"
 )
 
@@ -43,7 +43,7 @@ sits_smooth(cube, type = "bayes", ...)
   tau = 0.1,
   multicores = 2,
   memsize = 4,
-  output_dir = getwd(),
+  output_dir = "./",
   version = "v1"
 )
 }
@@ -75,10 +75,10 @@ smoothing.}
 (in the case of multiple tests)}
 
 \item{sigma}{Standard deviation of the spatial Gaussian kernel
-(for gaussian and bilinear smoothing)}
+(for gaussian and bilateral smoothing)}
 
 \item{tau}{Standard deviation of the class probs value
-(for bilinear smoothing)}
+(for bilateral smoothing)}
 }
 \value{
 A tibble with metadata about the output raster objects.
@@ -134,7 +134,7 @@ gauss_cube <- sits_smooth(probs_cube,
     type = "gaussian", output_dir = tempdir()
 )
 
-# smooth the result with a bilinear filter
+# smooth the result with a bilateral filter
 bil_cube <- sits_smooth(probs_cube,
     type = "bilateral", output_dir = tempdir()
 )
@@ -145,7 +145,7 @@ bil_cube <- sits_smooth(probs_cube,
 K. Schindler, "An Overview and Comparison of Smooth Labeling
             Methods for Land-Cover Classification",
             IEEE Transactions on Geoscience and Remote Sensing,
-            50 (11), 4534-4545, 2012 (for gaussian and bilinear smoothing)
+            50 (11), 4534-4545, 2012 (for gaussian and bilateral smoothing)
 }
 \author{
 Gilberto Camara, \email{gilberto.camara@inpe.br}
