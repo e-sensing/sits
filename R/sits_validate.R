@@ -54,9 +54,7 @@ sits_kfold_validate <- function(data,
     call_names <- deparse(sys.call())
     if (any(grepl("deeplearning", (call_names))) |
         any(grepl("TempCNN", (call_names))) |
-        any(grepl("ResNet", (call_names))) |
-        any(grepl("FCN", (call_names))) |
-        any(grepl("LSTM_FCN", (call_names))))
+        any(grepl("ResNet", (call_names))))
         multicores <- 1
 
     # get the labels of the data

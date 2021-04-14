@@ -18,8 +18,8 @@
 #'  \item{multinomial logit: }       {see \code{\link[sits]{sits_mlr}}}
 #'  \item{extreme gradient boosting: } {see \code{\link[sits]{sits_xgboost}}}
 #'  \item{multi-layer perceptrons: } {see \code{\link[sits]{sits_deeplearning}}}
-#'  \item{mixed 1D and MLP networks: } {see \code{\link[sits]{sits_TempCNN}}}
-#'  \item{combined LSTM-FCN model: } {see \code{\link[sits]{sits_LSTM_FCN}}}
+#'  \item{mixed 1D CNN and MLP networks: } {see \code{\link[sits]{sits_TempCNN}}}
+#'  \item{deep residual netwroks:}{see \code{\link[sits]{sits_ResNet}}}
 #'  }
 #'
 #' @param  data      Tibble with time series metadata and data.
