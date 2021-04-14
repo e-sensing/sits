@@ -2,6 +2,15 @@
 
 We are preparing to release the package on CRAN and are making relevant changes in the development version.
 
+# What's new in SITS version 0.11
+
+### New features in SITS version 0.11.0
+
+* Important improvements in classification performance
+* Updated version of deep learning methods
+* Support for STAC access to Brazil Data Cube, AWS and DE Africa
+* Improved sits validation
+
 # What's new in SITS version 0.10
 
 ### New features in SITS version 0.10.0

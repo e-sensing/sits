@@ -248,10 +248,10 @@ and directional effects. To make the best use of available satellite
 data archives, methods for satellite image time series analysis need to
 deal with data sets that are *noisy* and *non-homogeneous*. For data
 filtering, `sits` supports Savitzky–Golay (`sits_sgolay()`), Whittaker
-(`sits_whittaker()`), envelope (`sits_envelope()`) and the “cloud
-filter” (`sits_cloud_filter()`). As an example, we show how to apply the
-Whitakker smoother to a 16-year NDVI time series. For more details,
-please see the vignette [“Satellite Image Time Series Filtering with
+(`sits_whittaker()`), and envelope (`sits_envelope()`). As an example,
+we show how to apply the Whittaker smoother to a 16-year NDVI time
+series. For more details, please see the vignette [“Satellite Image Time
+Series Filtering with
 SITS”](https://github.com/e-sensing/sits-docs/blob/master/doc/filters.pdf)
 
 ``` r
@@ -288,11 +288,10 @@ available in SITS:
 -   Extreme gradient boosting (`sits_xgboost`)
 -   Deep learning (DL) using multi-layer perceptrons
     (`sits_deeplearning`)
--   DL with 1D convolutional neural networks (`sits_FCN`)
--   DL combining 1D CNN and multi-layer perceptron networks
-    (`sits_TempCNN`) (See reference \[6\])
--   DL using a combination of long-short term memory (LSTM) and 1D CNN
-    (`sits_LSTM_FCN`) (See reference \[5\])
+-   DL combining 1D convolution neural networks and multi-layer
+    perceptrons (`sits_TempCNN`) (See reference \[6\])
+-   DL using Deep Residual Networks (`sits_ResNet`) (see reference
+    \[5\])
 
 The following example illustrate how to train a dataset and classify an
 individual time series. First we use the `sits_train` function with two
@@ -315,7 +314,7 @@ xgb_model <- sits_train(data = samples_mt_2bands,
 point_mt_2bands <- sits_select(point_mt_6bands, bands = c("ndvi", "evi"))
 
 # Classify using random forest model and plot the result
-class.tb <- sits_classify(point_mt_2bands , xgb_model)
+class.tb <- sits_classify(point_mt_2bands, xgb_model)
 
 # plot the results of the prediction
 plot(class.tb, bands = c("ndvi", "evi"))
@@ -406,9 +405,10 @@ be used in sits.
     Data Cubes from Satellite Image Collections with the Gdalcubes
     Library.” Data 4 (3): 1–16, 2020.
 
--   \[5\] Karim, Fazle, Somshubra Majumdar, Houshang Darabi, and Shun
-    Chen, “LSTM Fully Convolutional Networks for Time Series
-    Classification.” IEEE Access 6: 1662–9, 2018.
+-   \[5\] Hassan Fawaz, Germain Forestier, Jonathan Weber, Lhassane
+    Idoumghar, and Pierre-Alain Muller, “Deep learning for time series
+    classification: a review”. Data Mining and Knowledge Discovery,
+    33(4): 917–963, 2019.
 
 -   \[6\] Pelletier, Charlotte, Geoffrey I. Webb, and Francois
     Petitjean. “Temporal Convolutional Neural Network for the

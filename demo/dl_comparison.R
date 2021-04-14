@@ -40,17 +40,6 @@ acc_tc$name <- "TempCNN"
 
 results[[length(results) + 1]] <- acc_tc
 
-# Deep Learning - FCN
-print("== Accuracy Assessment = FCN =======================")
-acc_fc <- sits_kfold_validate(samples_modis_4bands,
-                              folds = 5,
-                              ml_method = sits_FCN(verbose = 0)
-)
-acc_fc$name <- "ResNet"
-
-results[[length(results) + 1]] <- acc_fc
-
-
 # Deep Learning - ResNet
 print("== Accuracy Assessment = ResNet =======================")
 acc_rn <- sits_kfold_validate(samples_modis_4bands,
@@ -60,16 +49,5 @@ acc_rn <- sits_kfold_validate(samples_modis_4bands,
 acc_rn$name <- "ResNet"
 
 results[[length(results) + 1]] <- acc_rn
-
-
-# Deep Learning - LSTM
-print("== Accuracy Assessment = LSTM =======================")
-acc_lstm <- sits_kfold_validate(samples_modis_4bands,
-    folds = 5,
-    ml_method = sits_LSTM_FCN(verbose = 0)
-)
-acc_lstm$name <- "LSTM_FCN"
-
-results[[length(results) + 1]] <- acc_lstm
 
 sits_to_xlsx(results, file = paste0(tempdir(), "/accuracy_mato_grosso_dl.xlsx"))

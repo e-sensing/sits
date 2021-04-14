@@ -184,24 +184,6 @@ test_that("DL-MLP-2classes", {
         sits_labels(samples_mt_2bands)))
     expect_true(nrow(sits_show_prediction(point_class)) == 60)
 })
-test_that("1D CNN model", {
-    # skip_on_cran()
-    samples <- sits_select(samples_modis_4bands, bands = c("NDVI", "EVI"))
-    model <- suppressMessages(suppressWarnings(
-        sits_train(
-            samples,
-            sits_FCN(verbose = 0)
-        )
-    ))
-    test_eval <- suppressMessages(sits_keras_diagnostics(model))
-    expect_true(test_eval["accuracy"] > 0.5)
-    point <- sits_select(point_mt_6bands, bands = c("NDVI", "EVI"))
-    pclass <- sits_classify(point, model)
-
-    expect_true(all(pclass$predicted[[1]]$class %in%
-                        sits_labels(samples)))
-    expect_true(nrow(sits_show_prediction(pclass)) == 17)
-})
 
 test_that("ResNet", {
     # skip_on_cran()
@@ -234,20 +216,6 @@ test_that("tempCNN model", {
 
     test_eval <- suppressMessages(sits_keras_diagnostics(model))
     expect_true(test_eval["accuracy"] > 0.7)
-    point_ndvi <- sits_select(point_mt_6bands, bands = "NDVI")
-    point_class <- sits_classify(point_ndvi, model)
-
-    expect_true(all(point_class$predicted[[1]]$class %in%
-        sits_labels(samples_mt_ndvi)))
-    expect_true(nrow(sits_show_prediction(point_class)) == 17)
-})
-
-test_that("LSTM", {
-    # skip_on_cran()
-    samples_mt_ndvi <- sits_select(samples_modis_4bands, bands = "NDVI")
-    model <- suppressWarnings(sits_train(samples_mt_ndvi, sits_LSTM_FCN(
-        cnn_layers = c(16, 16, 16), epochs = 50, verbose = 0
-    )))
     point_ndvi <- sits_select(point_mt_6bands, bands = "NDVI")
     point_class <- sits_classify(point_ndvi, model)
 
