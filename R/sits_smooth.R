@@ -118,7 +118,7 @@ sits_smooth.bayes <- function(cube, type = "bayes", ...,
                               covar = FALSE,
                               multicores = 2,
                               memsize = 4,
-                              output_dir = getwd(),
+                              output_dir = "./",
                               version = "v1") {
 
     # precondition 1 - check if cube has probability data
@@ -183,7 +183,7 @@ sits_smooth.bayes <- function(cube, type = "bayes", ...,
     # Bayesian smoother to be executed by workers cluster
     .do_bayes <- function(chunk) {
 
-        data <- .sits_raster_api_get_values(chunk)
+        data <- .sits_raster_api_get_values(r_obj = chunk)
 
         # fix probabilities
         maxprob <- mult_factor - ncol(data) + 1
@@ -240,7 +240,7 @@ sits_smooth.gaussian <- function(cube, type = "gaussian", ...,
                                  sigma = 1,
                                  multicores = 2,
                                  memsize = 4,
-                                 output_dir = getwd(),
+                                 output_dir = "./",
                                  version = "v1") {
 
     # precondition 1 - check if cube has probability data
@@ -294,7 +294,7 @@ sits_smooth.gaussian <- function(cube, type = "gaussian", ...,
     .do_gauss <- function(chunk) {
 
         # scale probabilities
-        data <- .sits_raster_api_get_values(chunk) * scale_factor
+        data <- .sits_raster_api_get_values(r_obj = chunk) * scale_factor
 
         # process Gaussian smoother
         data <- kernel_smoother(m = data,
@@ -341,7 +341,7 @@ sits_smooth.bilateral <- function(cube,
                                  tau = 0.1,
                                  multicores = 2,
                                  memsize = 4,
-                                 output_dir = getwd(),
+                                 output_dir = "./",
                                  version = "v1") {
 
     # precondition 1 - check if cube has probability data
@@ -401,7 +401,7 @@ sits_smooth.bilateral <- function(cube,
     .do_bilateral <- function(chunk) {
 
         # scale probabilities
-        data <- .sits_raster_api_get_values(chunk) * scale_factor
+        data <- .sits_raster_api_get_values(r_obj = chunk) * scale_factor
 
         # process bilateral smoother
         data <- bilateral_smoother(m = data,
