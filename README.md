@@ -11,7 +11,7 @@ Cubes
 [![Build
 Status](https://drone.dpi.inpe.br/api/badges/e-sensing/sits/status.svg)](https://drone.dpi.inpe.br/e-sensing/sits)
 [![codecov](https://codecov.io/gh/e-sensing/sits/branch/master/graph/badge.svg?token=hZxdJgKGcE)](https://codecov.io/gh/e-sensing/sits)
-[![Documentation](https://img.shields.io/badge/docs-online-blueviolet)](https://github.com/e-sensing/sits-docs)
+[![Documentation](https://img.shields.io/badge/docs-online-blueviolet)](https://e-sensing.github.io/sitsbook/)
 [![Software Life
 Cycle](https://img.shields.io/badge/lifecycle-maturing-blue.svg)](https://www.tidyverse.org/lifecycle/#maturing)
 [![Software
@@ -34,6 +34,7 @@ cubes using machine learning methods. The basic workflow in SITS is:
 4.  Train a machine learning model using the extracted samples.
 5.  Classify the data cube using the trained model.
 6.  Post-process the classified images.
+7.  Evaluate the accuracy of the classification using best practices.
 
 ## Installation
 
@@ -53,6 +54,8 @@ SITS is currently available on github, as follows:
 # and its dependencies
 devtools::install_github("e-sensing/sits", dependencies = TRUE)
 library(sits)
+library(tibble)
+library(magrittr)
 ```
 
 ### AMI Image
@@ -119,9 +122,9 @@ and end date. Access to other cloud services works in similar ways.
 Users can derive data cubes from ARD data which have pre-defined
 temporal resolutions. For example, a user may want to define the best
 Sentinel-2 pixel in a one month period, as shown below. This can be done
-in SITS by the `sits_regularize` which calls the “gdalcubes” package.
-For details in gdalcubes, please see Reference \[4\] and
-<https://github.com/appelmar/gdalcubes>.
+in SITS by the `sits_regularize` which use the
+[https://github.com/appelmar/gdalcubes](gdalcubes) package. For details
+in gdalcubes, please see Reference \[4\].
 
 ``` r
 gc_cube <- sits_regularize(cube   = s2_cube,
@@ -220,14 +223,13 @@ Samples for NDVI band for Cerrado class
 
 </div>
 
-### Clustering
+### Clustering for sample quality control
 
 Clustering methods in SITS improve the quality of the samples and to
 remove those that might have been wrongly labeled or that have low
 discriminatory power. Good samples lead to good classification maps.
-`sits` provides support for two clustering methods to test sample
-quality: (a) Agglomerative Hierarchical Clustering (AHC); (b)
-Self-organizing Maps (SOM).
+`sits` provides support for sample quality control using Self-organizing
+Maps (SOM).
 
 The process of clustering with SOM is done by `sits_som_map()`, which
 creates a self-organizing map and assesses the quality of the samples.
@@ -241,7 +243,7 @@ neurons (those with two or more classes with significant probability)
 are likely to contain noisy samples. See [Chapter 4 of the sits
 book](https://e-sensing.github.io/sitsbook/time-series-clustering-to-improve-the-quality-of-training-samples.html).
 
-## Filtering
+### Filtering
 
 Satellite image time series are contaminated by atmospheric influence
 and directional effects. To make the best use of available satellite
@@ -259,10 +261,11 @@ SITS”](https://github.com/e-sensing/sits-docs/blob/master/doc/filters.pdf)
 # merge with the original data
 # plot the original and the modified series
 point_ndvi <- sits_select(point_mt_6bands, bands = "NDVI")
-point_whit <- sits_filter(point_ndvi, sits_whittaker(lambda = 10))
-point_whit %>% 
-  sits_merge(point_ndvi) %>% 
-  plot()
+
+point_ndvi %>% 
+    sits_filter(sits_whittaker(lambda = 10)) %>% 
+    sits_merge(point_ndvi) %>% 
+    plot()
 ```
 
 <div class="figure" style="text-align: center">
@@ -274,7 +277,7 @@ Whitaler filter of NDVI time series
 
 </div>
 
-## Time Series classification using machine learning
+### Time Series classification using machine learning
 
 SITS provides support for the classification of both individual time
 series as well as data cubes. The following machine learning methods are
@@ -288,10 +291,10 @@ available in SITS:
 -   Extreme gradient boosting (`sits_xgboost`)
 -   Deep learning (DL) using multi-layer perceptrons
     (`sits_deeplearning`)
--   DL combining 1D convolution neural networks and multi-layer
-    perceptrons (`sits_TempCNN`) (See reference \[6\])
 -   DL using Deep Residual Networks (`sits_ResNet`) (see reference
     \[5\])
+-   DL combining 1D convolution neural networks and multi-layer
+    perceptrons (`sits_TempCNN`) (See reference \[6\])
 
 The following example illustrate how to train a dataset and classify an
 individual time series. First we use the `sits_train` function with two
@@ -303,21 +306,26 @@ format using the function `sits_show_prediction` or graphically using
 `plot`.
 
 ``` r
+# training data set
+data("samples_modis_4bands")
+# point to be classified
 data("point_mt_6bands")
-
-# Train a machine learning model for the mato grosso dataset
-samples_mt_2bands <- sits_select(samples_modis_4bands, bands = c("ndvi", "evi"))
-xgb_model <- sits_train(data = samples_mt_2bands, 
-                         ml_method = sits_xgboost(verbose = FALSE)) 
-
-# get a point to be classified with four bands
-point_mt_2bands <- sits_select(point_mt_6bands, bands = c("ndvi", "evi"))
-
-# Classify using random forest model and plot the result
-class.tb <- sits_classify(point_mt_2bands, xgb_model)
-
-# plot the results of the prediction
-plot(class.tb, bands = c("ndvi", "evi"))
+# Select the NDVI and EVI bands 
+# Filter the band to reduce noise
+# Train a deep learning model
+tempCNN_model <- samples_modis_4bands %>% 
+    sits_select(bands = c("NDVI", "EVI")) %>% 
+    sits_whittaker(bands_suffix = "") %>% 
+    sits_train(ml_method = sits_TempCNN(verbose = FALSE)) 
+# Select NDVI and EVI bands of the  point to be classified
+# Filter the point 
+# Classify using TempCNN model
+# Plot the result
+point_mt_6bands %>% 
+  sits_select(bands = c("ndvi", "evi")) %>% 
+  sits_whittaker(bands_suffix = "") %>% 
+  sits_classify(tempCNN_model) %>% 
+  plot()
 ```
 
 <div class="figure" style="text-align: center">
@@ -330,20 +338,20 @@ Time series classification using xgboost
 </div>
 
 The following example shows how to classify a data cube organised as a
-set of raster image. First, we need to build a model based on the the
-same bands as the data cube.
+set of raster images. The result can also be visualised interactively
+using `sits_view()`.
 
 ``` r
-# select the samples and bands for classification
 # Retrieve the set of samples for the Mato Grosso region 
 # Select the data for classification
-samples_2bands  <- sits_select(samples_modis_4bands, 
-                               bands = c("NDVI", "EVI"))
+# Reduce noise the bands using whittaker filter
+# Build an extreme gradient boosting model
+xgb_model <- samples_modis_4bands %>% 
+    sits_select(bands = c("NDVI", "EVI")) %>% 
+    sits_whittaker(bands_suffix = "") %>% 
+    sits_train(ml_method = sits_xgboost())
 
-# build a machine learning model for this area
-svm_model <- sits_train(samples_2bands, sits_svm())
-
-# create a data cube to be classified
+# Create a data cube to be classified
 # Cube is composed of MOD13Q1 images from the Sinop region in Mato Grosso (Brazil)
 data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
 sinop <- sits_cube(
@@ -356,19 +364,16 @@ sinop <- sits_cube(
     parse_info = c("X1", "X2", "band", "date")
 )
 # Classify the raster cube, generating a probability file
+# Filter the pixels in the cube to remove noise
 probs_cube <- sits_classify(sinop, 
-                            ml_model = svm_model, 
-                            output_dir = tempdir(),
-                            verbose = FALSE)
+                            ml_model = xgb_model, 
+                            filter_fn = sits_whittaker())
 # apply a bayesian smoothing to remove outliers
 bayes_cube <- sits_smooth(probs_cube)
-
-# generate thematic map
+# generate a thematic map
 label_cube <- sits_label_classification(bayes_cube)
-
-# plot the first raster object with a selected color palette
-# make a title, define the colors and the labels)
-plot(label_cube)
+# plot the the labelled cube
+plot(label_cube, title = "Labelled image")
 ```
 
 ![](man/figures/README-unnamed-chunk-11-1.png)<!-- -->
@@ -418,6 +423,8 @@ be used in sits.
 -   \[7\] Wehrens, Ron and Kruisselbrink, Johannes. “Flexible
     Self-Organising Maps in kohonen 3.0”. Journal of Statistical
     Software, 87, 7 (2018).
+
+#### R packages used in sits
 
 ## How to contribute
 

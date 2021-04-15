@@ -118,7 +118,7 @@ sits_smooth.bayes <- function(cube, type = "bayes", ...,
                               covar = FALSE,
                               multicores = 2,
                               memsize = 4,
-                              output_dir = "./",
+                              output_dir = tempdir(),
                               version = "v1") {
 
     # precondition 1 - check if cube has probability data
@@ -240,7 +240,7 @@ sits_smooth.gaussian <- function(cube, type = "gaussian", ...,
                                  sigma = 1,
                                  multicores = 2,
                                  memsize = 4,
-                                 output_dir = "./",
+                                 output_dir = tempdir(),
                                  version = "v1") {
 
     # precondition 1 - check if cube has probability data
@@ -341,7 +341,7 @@ sits_smooth.bilateral <- function(cube,
                                  tau = 0.1,
                                  multicores = 2,
                                  memsize = 4,
-                                 output_dir = "./",
+                                 output_dir = tempdir(),
                                  version = "v1") {
 
     # precondition 1 - check if cube has probability data
