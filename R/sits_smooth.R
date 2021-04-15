@@ -33,7 +33,7 @@
 #' @param  multicores        Number of cores to run the smoothing function
 #' @param  memsize           Maximum overall memory (in GB) to run the
 #'                           smoothing.
-#' @param  output_dir        Output directory where to out the file
+#' @param  output_dir        Output directory for image files
 #' @param  version           Version of resulting image
 #'                           (in the case of multiple tests)
 #'

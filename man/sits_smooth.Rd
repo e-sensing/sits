@@ -18,7 +18,7 @@ sits_smooth(cube, type = "bayes", ...)
   covar = FALSE,
   multicores = 2,
   memsize = 4,
-  output_dir = "./",
+  output_dir = tempdir(),
   version = "v1"
 )
 
@@ -30,7 +30,7 @@ sits_smooth(cube, type = "bayes", ...)
   sigma = 1,
   multicores = 2,
   memsize = 4,
-  output_dir = "./",
+  output_dir = tempdir(),
   version = "v1"
 )
 
@@ -43,7 +43,7 @@ sits_smooth(cube, type = "bayes", ...)
   tau = 0.1,
   multicores = 2,
   memsize = 4,
-  output_dir = "./",
+  output_dir = tempdir(),
   version = "v1"
 )
 }
@@ -69,7 +69,7 @@ for bayesian smoothing.}
 \item{memsize}{Maximum overall memory (in GB) to run the
 smoothing.}
 
-\item{output_dir}{Output directory where to out the file}
+\item{output_dir}{Output directory for image files}
 
 \item{version}{Version of resulting image
 (in the case of multiple tests)}
