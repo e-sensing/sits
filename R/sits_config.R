@@ -182,7 +182,7 @@ sits_config_show <- function() {
 #' @description Convert the name of the band used by SITS to
 #'     the names used by the STAC provider
 #'
-#' @param stac_provider     Name of the STAC provider
+#' @param stac_provider  Name of the STAC provider
 #' @param sensor         Name of sensor
 #' @param bands          Bands requested to be read
 #' @return               Name of the bands used in the STAC provider
@@ -258,44 +258,47 @@ sits_config_show <- function() {
     # Precondition
     .sits_config_satellite_sensor(satellite, sensor)
 
+    # Precondition
+    bands_files <- toupper(bands_files)
+
     # bands used by SITS
-    bands_sits <- sits_env$config[[sensor]][["bands"]][["SITS"]]
+    bands_sits <- toupper(sits_env$config[[sensor]][["bands"]][["SITS"]])
     # Are these the right names?
     if (all(bands_files %in% bands_sits)) {
         bands_sits <- bands_sits[match(bands_files, bands_sits)]
         names(bands_sits) <- bands_files
-        return(bands_sits)
+        return(toupper(bands_sits))
     }
     # bands used by BDC
     bands_bdc <-
-        sits_env$config[[sensor]][["bands"]][["BDC"]]
+      toupper(sits_env$config[[sensor]][["bands"]][["BDC"]])
     # are the names those used by BDC?
     if (all(bands_files %in% bands_bdc)) {
         idx <- match(bands_files, bands_bdc)
         bands_bdc <- bands_bdc[idx]
         bands_sits <- bands_sits[idx]
         names(bands_sits) <- bands_bdc
-        return(bands_sits)
+        return(toupper(bands_sits))
     }
     # bands used by AWS
-    bands_aws <- sits_env$config[[sensor]][["bands"]][["AWS"]]
+    bands_aws <- toupper(sits_env$config[[sensor]][["bands"]][["AWS"]])
     # are the names those used by AWS?
     if (all(bands_files %in% bands_aws)) {
         idx <- match(bands_files, bands_aws)
         bands_aws <- bands_aws[idx]
         bands_sits <- bands_sits[idx]
         names(bands_sits) <- bands_aws
-        return(bands_sits)
+        return(toupper(bands_sits))
     }
     # bands used by LOCAL
-    bands_local <- sits_env$config[[sensor]][["bands"]][["LOCAL"]]
+    bands_local <- toupper(sits_env$config[[sensor]][["bands"]][["LOCAL"]])
     # are the names those used by LOCAL?
     if (all(bands_files %in% bands_local)) {
       idx <- match(bands_files, bands_local)
       bands_local <- bands_local[idx]
       bands_sits <- bands_sits[idx]
       names(bands_sits) <- bands_local
-      return(bands_sits)
+      return(toupper(bands_sits))
     }
     stop("band names unknown by SITS configuration file. Please fix it")
     return(NULL)
