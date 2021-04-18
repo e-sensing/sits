@@ -331,6 +331,8 @@ We thank the authors of these papers for making their code available to be used 
 
 #### R packages used in sits
 
+The authors acknowledge the contributions of Marius Appel, Tim Appelhans, Henrik Bengtsson, Matt Dowle, Robert Hijmans, Edzer Pebesma, and Ron Wehrens, respectively chief developers of the packages “gdalcubes”, “mapview”, “future”, “data.table”, “terra/raster”, “sf”/“stars”, and “kohonen”. The code in “sits” is also much indebted to the work of the RStudio team, including the “tidyverse” and the “furrr” and “keras” packages. We also thank Charlotte Pelletier and Hassan Fawaz for sharing the python code that has been reused for the “TempCNN” and “ResNet” machine learning models.
+
 
 ## How to contribute
 
