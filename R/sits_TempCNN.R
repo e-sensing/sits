@@ -257,11 +257,15 @@ sits_TempCNN <- function(samples = NULL,
             verbose = verbose, view_metrics = "auto"
         )
 
-        # show training evolution
-        graphics::plot(history)
+        # import model to R
+        R_model_keras <- keras::serialize_model(model_keras)
 
         # construct model predict closure function and returns
         model_predict <- function(values) {
+
+            # restore model keras
+            model_keras <- keras::unserialize_model(R_model_keras)
+
             # transform input (data.table) into a 3D tensor
             # (remove first two columns)
             n_samples <- nrow(values)

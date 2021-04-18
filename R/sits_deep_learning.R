@@ -220,8 +220,6 @@ sits_deeplearning <- function(samples = NULL,
         # import model to R
         R_model_keras <- keras::serialize_model(model_keras)
 
-        graphics::plot(history)
-
         # build predict closure function
         model_predict <- function(values) {
 

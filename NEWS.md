@@ -4,6 +4,14 @@ We are preparing to release the package on CRAN and are making relevant changes 
 
 # What's new in SITS version 0.11
 
+### New features in SITS version 0.11.2
+
+* Added keras serialisation to TempCNN and ResNet models
+
+### New features in SITS version 0.11.1
+
+* Removed LSTM and FCN deep learning models
+
 ### New features in SITS version 0.11.0
 
 * Important improvements in classification performance

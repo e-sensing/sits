@@ -257,11 +257,14 @@ sits_ResNet <- function(samples = NULL,
             validation_data = list(test_x, test_y),
             verbose = verbose, view_metrics = "auto"
         )
-        # show training evolution
-        graphics::plot(history)
+        # import model to R
+        R_model_keras <- keras::serialize_model(model_keras)
 
         # construct model predict closure function and returns
         model_predict <- function(values) {
+            # restore model keras
+            model_keras <- keras::unserialize_model(R_model_keras)
+
             # transform input (data.table) into a 3D tensor
             n_samples <- nrow(values)
             n_timesteps <- nrow(sits_time_series(data[1, ]))
