@@ -29,7 +29,7 @@ Rcpp::IntegerVector na_linear_vector_interp(Rcpp::IntegerVector& x) {
     IntegerVector::iterator curr  = x.begin();
     IntegerVector::iterator first = x.begin();
     IntegerVector::iterator last  = x.end();
-    while(Rcpp::IntegerVector::is_na(*curr)){
+    while (Rcpp::IntegerVector::is_na(*curr) && curr != last) {
         ++curr;
     }
     if (curr == x.end())
@@ -99,6 +99,9 @@ IntegerMatrix linear_interp(IntegerMatrix& mtx) {
 
         if (IntegerVector::is_na(mtx(i, 0))) {
 
+            mtx(i, _) = NumericVector(mtx.ncol()); // fill with zeros
+
+            /*
             // increase a linear window to look for non-NA pixel values
             for (int j = 1; j < nrows ; j++) {
 
@@ -113,6 +116,7 @@ IntegerMatrix linear_interp(IntegerMatrix& mtx) {
                 } else if (i - j < 0 || i + j >= nrows)
                     stop("All values are NA.");
             }
+            */
         }
     }
 
