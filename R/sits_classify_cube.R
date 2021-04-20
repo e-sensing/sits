@@ -43,8 +43,7 @@
                                       verbose) {
 
     # some models have parallel processing built in
-    if ("keras_model"  %in% class(ml_model) |
-        "ranger_model" %in% class(ml_model) |
+    if ("ranger_model" %in% class(ml_model) |
         "xgb_model"    %in% class(ml_model))
         multicores <- 1
 
