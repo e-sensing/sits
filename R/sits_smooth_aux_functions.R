@@ -192,6 +192,10 @@
     # function to call workers clusters and merge its results
     .sits_call_workers_cluster <- function(in_file, out_file, blocks, cl) {
 
+        # if file exists skip it (resume feature)
+        if (file.exists(out_file))
+            return(NULL)
+
         # apply function to blocks
         if (purrr::is_null(cl)) {
 
