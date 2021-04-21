@@ -111,26 +111,26 @@ sits_accuracy.sits <- function(data, ...) {
 
     # require package
     if (!requireNamespace("caret", quietly = TRUE)) {
-      stop("Please install package caret.", call. = FALSE)
+        stop("Please install package caret.", call. = FALSE)
     }
 
     # does the input data contain a set of predicted values?
     assertthat::assert_that(
-      "predicted" %in% names(data),
-      msg = "sits_accuracy: input data without predicted values"
+        "predicted" %in% names(data),
+        msg = "sits_accuracy: input data without predicted values"
     )
 
     # recover predicted and reference vectors from input
     # is the input the result of a sits_classify?
     if ("label" %in% names(data)) {
-      pred_ref <- .sits_accuracy_pred_ref(data)
-      pred     <- pred_ref$predicted
-      ref      <- pred_ref$reference
+        pred_ref <- .sits_accuracy_pred_ref(data)
+        pred     <- pred_ref$predicted
+        ref      <- pred_ref$reference
     }
     # is the input the result of the sits_kfold_validate?
     else {
-      pred <- data$predicted
-      ref  <- data$reference
+        pred <- data$predicted
+        ref  <- data$reference
     }
 
     unique_ref <- unique(ref)
@@ -173,7 +173,7 @@ sits_accuracy.classified_image <- function(data, ..., validation_csv) {
     xy_tb <- .sits_latlong_to_proj(
         longitude = csv_tb$longitude,
         latitude = csv_tb$latitude,
-        crs = data$crs
+        crs = data$crs[[1]]
     )
 
     # join lat-long with XY values in a single tibble
@@ -200,8 +200,8 @@ sits_accuracy.classified_image <- function(data, ..., validation_csv) {
         # filter the points inside the data cube
         points_row <- dplyr::filter(
             points,
-            X > row$xmin & X < row$xmax &
-                Y > row$ymin & Y < row$ymax,
+            X >= row$xmin & X <= row$xmax &
+                Y >= row$ymin & Y <= row$ymax,
             start_date == row$file_info[[1]]$start_date
         )
 
@@ -241,12 +241,12 @@ sits_accuracy.classified_image <- function(data, ..., validation_csv) {
     # Create the error matrix
     error_matrix <- table(
         factor(pred_ref$predicted,
-            levels = labels_cube,
-            labels = labels_cube
+               levels = labels_cube,
+               labels = labels_cube
         ),
         factor(pred_ref$reference,
-            levels = labels_cube,
-            labels = labels_cube
+               levels = labels_cube,
+               labels = labels_cube
         )
     )
 
@@ -356,8 +356,10 @@ sits_accuracy.classified_image <- function(data, ..., validation_csv) {
 
     # Reorder the area based on the error matrix
     area <- area[colnames(error_matrix)]
+
     # convert the area to hectares
-    area <- area*cube$yres*cube$xres/(10000)
+    area <- area * cube$yres[[1]] * cube$xres[[1]] / 10000
+
     #
     weight <- area / sum(area)
     class_areas <- rowSums(error_matrix)
@@ -401,7 +403,9 @@ sits_accuracy.classified_image <- function(data, ..., validation_csv) {
             stderr_prop = stderr_prop,
             stderr_area = stderr_area,
             conf_interval = 1.96 * stderr_area,
-            accuracy = list(user = user_acc, producer = prod_acc, overall = over_acc)
+            accuracy = list(user = user_acc,
+                            producer = prod_acc,
+                            overall = over_acc)
         )
     )
 }
@@ -425,8 +429,8 @@ sits_accuracy_summary <- function(x,
                                   digits = max(3, getOption("digits") - 3)) {
 
     if ("sits_area_assessment" %in% class(x)) {
-      print.sits_area_assessment(x)
-      return(invisible(TRUE))
+        print.sits_area_assessment(x)
+        return(invisible(TRUE))
     }
     assertthat::assert_that("sits_assessment" %in% class(x),
                             msg = "please run sits_accuracy first")
@@ -435,21 +439,21 @@ sits_accuracy_summary <- function(x,
     overall <- round(x$overall, digits = digits)
 
     accuracy_ci <- paste("(",
-                       paste(overall[c("AccuracyLower", "AccuracyUpper")],
-                             collapse = ", "
-                       ), ")",
-                       sep = ""
+                         paste(overall[c("AccuracyLower", "AccuracyUpper")],
+                               collapse = ", "
+                         ), ")",
+                         sep = ""
     )
 
     overall_text <- c(
-      paste(overall["Accuracy"]), accuracy_ci, "",
-      paste(overall["Kappa"])
+        paste(overall["Accuracy"]), accuracy_ci, "",
+        paste(overall["Kappa"])
     )
 
     overall_names <- c("Accuracy", "95% CI", "", "Kappa")
 
     cat("\nOverall Statistics\n")
-        overall_names <- ifelse(overall_names == "",
+    overall_names <- ifelse(overall_names == "",
                             "",
                             paste(overall_names, ":")
     )
@@ -480,91 +484,91 @@ sits_accuracy_summary <- function(x,
 print.sits_assessment <- function(x, ...,
                                   mode = "sens_spec",
                                   digits = max(3, getOption("digits") - 3)) {
-  cat("Confusion Matrix and Statistics\n\n")
-  print(x$table)
+    cat("Confusion Matrix and Statistics\n\n")
+    print(x$table)
 
-  # round the data to the significant digits
-  overall <- round(x$overall, digits = digits)
+    # round the data to the significant digits
+    overall <- round(x$overall, digits = digits)
 
-  accuracy_ci <- paste("(",
-                       paste(overall[c("AccuracyLower", "AccuracyUpper")],
-                             collapse = ", "
-                       ), ")",
-                       sep = ""
-  )
-
-  overall_text <- c(
-    paste(overall["Accuracy"]), accuracy_ci, "",
-    paste(overall["Kappa"])
-  )
-
-  overall_names <- c("Accuracy", "95% CI", "", "Kappa")
-
-  if (dim(x$table)[1] > 2) {
-    cat("\nOverall Statistics\n")
-    overall_names <- ifelse(overall_names == "",
-                            "",
-                            paste(overall_names, ":")
+    accuracy_ci <- paste("(",
+                         paste(overall[c("AccuracyLower", "AccuracyUpper")],
+                               collapse = ", "
+                         ), ")",
+                         sep = ""
     )
-    out <- cbind(format(overall_names, justify = "right"), overall_text)
-    colnames(out) <- rep("", ncol(out))
-    rownames(out) <- rep("", nrow(out))
-
-    print(out, quote = FALSE)
-
-    cat("\nStatistics by Class:\n\n")
-    x$byClass <- x$byClass[, grepl(
-      "(Sensitivity)|(Specificity)|(Pos Pred Value)|(Neg Pred Value)",
-      colnames(x$byClass)
-    )]
-    measures <- t(x$byClass)
-    rownames(measures) <- c(
-      "Prod Acc (Sensitivity)", "Specificity",
-      "User Acc (Pos Pred Value)", "Neg Pred Value"
-    )
-    print(measures, digits = digits)
-  } else {
-    # this is the case of only two classes
-    # get the values of the User's and Producer's Accuracy
-    # Names in caret are different from the usual names in Earth observation
-    x$byClass <- x$byClass[
-      grepl(
-        "(Sensitivity)|(Specificity)|(Pos Pred Value)|(Neg Pred Value)",
-        names(x$byClass)
-      )
-    ]
-    # get the names of the two classes
-    names_classes <- row.names(x$table)
-    # the first class (which is called the "positive" class by caret)
-    c1 <- x$positive
-    # the second class
-    c2 <- names_classes[!(names_classes == x$positive)]
-    # make up the values of UA and PA for the two classes
-    pa1 <- paste("Prod Acc ", c1)
-    pa2 <- paste("Prod Acc ", c2)
-    ua1 <- paste("User Acc ", c1)
-    ua2 <- paste("User Acc ", c2)
-    names(x$byClass) <- c(pa1, pa2, ua1, ua2)
 
     overall_text <- c(
-      overall_text,
-      "",
-      format(x$byClass, digits = digits)
+        paste(overall["Accuracy"]), accuracy_ci, "",
+        paste(overall["Kappa"])
     )
-    overall_names <- c(overall_names, "", names(x$byClass))
-    overall_names <- ifelse(overall_names == "", "",
-                            paste(overall_names, ":"))
 
-    out <- cbind(format(overall_names, justify = "right"), overall_text)
-    colnames(out) <- rep("", ncol(out))
-    rownames(out) <- rep("", nrow(out))
+    overall_names <- c("Accuracy", "95% CI", "", "Kappa")
 
-    out <- rbind(out, rep("", 2))
+    if (dim(x$table)[1] > 2) {
+        cat("\nOverall Statistics\n")
+        overall_names <- ifelse(overall_names == "",
+                                "",
+                                paste(overall_names, ":")
+        )
+        out <- cbind(format(overall_names, justify = "right"), overall_text)
+        colnames(out) <- rep("", ncol(out))
+        rownames(out) <- rep("", nrow(out))
 
-    print(out, quote = FALSE)
-  }
+        print(out, quote = FALSE)
 
-  invisible(x)
+        cat("\nStatistics by Class:\n\n")
+        x$byClass <- x$byClass[, grepl(
+            "(Sensitivity)|(Specificity)|(Pos Pred Value)|(Neg Pred Value)",
+            colnames(x$byClass)
+        )]
+        measures <- t(x$byClass)
+        rownames(measures) <- c(
+            "Prod Acc (Sensitivity)", "Specificity",
+            "User Acc (Pos Pred Value)", "Neg Pred Value"
+        )
+        print(measures, digits = digits)
+    } else {
+        # this is the case of only two classes
+        # get the values of the User's and Producer's Accuracy
+        # Names in caret are different from the usual names in Earth observation
+        x$byClass <- x$byClass[
+            grepl(
+                "(Sensitivity)|(Specificity)|(Pos Pred Value)|(Neg Pred Value)",
+                names(x$byClass)
+            )
+        ]
+        # get the names of the two classes
+        names_classes <- row.names(x$table)
+        # the first class (which is called the "positive" class by caret)
+        c1 <- x$positive
+        # the second class
+        c2 <- names_classes[!(names_classes == x$positive)]
+        # make up the values of UA and PA for the two classes
+        pa1 <- paste("Prod Acc ", c1)
+        pa2 <- paste("Prod Acc ", c2)
+        ua1 <- paste("User Acc ", c1)
+        ua2 <- paste("User Acc ", c2)
+        names(x$byClass) <- c(pa1, pa2, ua1, ua2)
+
+        overall_text <- c(
+            overall_text,
+            "",
+            format(x$byClass, digits = digits)
+        )
+        overall_names <- c(overall_names, "", names(x$byClass))
+        overall_names <- ifelse(overall_names == "", "",
+                                paste(overall_names, ":"))
+
+        out <- cbind(format(overall_names, justify = "right"), overall_text)
+        colnames(out) <- rep("", ncol(out))
+        rownames(out) <- rep("", nrow(out))
+
+        out <- rbind(out, rep("", 2))
+
+        print(out, quote = FALSE)
+    }
+
+    invisible(x)
 }
 #' @title Print the area assessment
 #' @name print.sits_area_assessment
@@ -582,27 +586,27 @@ print.sits_assessment <- function(x, ...,
 #' @export
 print.sits_area_assessment <- function(x, ..., digits = 3){
 
-  # round the data to the significant digits
-  overall <- round(x$accuracy$overall, digits = digits)
+    # round the data to the significant digits
+    overall <- round(x$accuracy$overall, digits = digits)
 
-  cat("Area Weigthed Statistics\n")
-  cat(paste0("Overall Accuracy = ", overall))
+    cat("Area Weigthed Statistics\n")
+    cat(paste0("Overall Accuracy = ", overall))
 
-  # Print assessment values
-  tb <- t(dplyr::bind_rows(x$accuracy$user, x$accuracy$producer))
-  colnames(tb) <- c("User", "Producer")
+    # Print assessment values
+    tb <- t(dplyr::bind_rows(x$accuracy$user, x$accuracy$producer))
+    colnames(tb) <- c("User", "Producer")
 
-  print(knitr::kable(tb,
-                     digits = 2,
-                     caption = "Area-Weighted Users and Producers Accuracy"
-  ))
+    print(knitr::kable(tb,
+                       digits = 2,
+                       caption = "Area-Weighted Users and Producers Accuracy"
+    ))
 
-  tb1 <- t(dplyr::bind_rows(x$area_pixels, x$error_ajusted_area, x$conf_interval))
-  colnames(tb1) <- c("Mapped Area (ha)", "Error-Adjusted Area (ha)", "Conf Interval (ha)")
+    tb1 <- t(dplyr::bind_rows(x$area_pixels, x$error_ajusted_area, x$conf_interval))
+    colnames(tb1) <- c("Mapped Area (ha)", "Error-Adjusted Area (ha)", "Conf Interval (ha)")
 
-  print(knitr::kable(tb1,
-                     digits = 1,
-                     caption = "Mapped Area x Estimated Area (ha)"
-  ))
+    print(knitr::kable(tb1,
+                       digits = 1,
+                       caption = "Mapped Area x Estimated Area (ha)"
+    ))
 
 }
