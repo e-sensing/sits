@@ -50,12 +50,13 @@ sits_kfold_validate <- function(data,
     if (!requireNamespace("caret", quietly = TRUE)) {
         stop("Please install package caret.", call. = FALSE)
     }
-    # keras models needs sequential processing
-    call_names <- deparse(sys.call())
-    if (any(grepl("deeplearning", (call_names))) |
-        any(grepl("TempCNN", (call_names))) |
-        any(grepl("ResNet", (call_names))))
-        multicores <- 1
+
+    # # keras models needs sequential processing
+    # call_names <- deparse(sys.call())
+    # if (any(grepl("deeplearning", (call_names))) |
+    #     any(grepl("TempCNN", (call_names))) |
+    #     any(grepl("ResNet", (call_names))))
+    #     multicores <- 1
 
     # get the labels of the data
     labels <- sits_labels(data)
@@ -78,7 +79,8 @@ sits_kfold_validate <- function(data,
     pred_vec <- character()
     ref_vec <- character()
 
-    pred_ref_fold <- function(k, data){
+    conf_lst <- .sits_parallel_map(seq_len(folds), function(k){
+
         # split data into training and test data sets
         data_train <- data[data$folds != k, ]
         data_test <- data[data$folds == k, ]
@@ -100,6 +102,7 @@ sits_kfold_validate <- function(data,
 
         # classify the test data
         prediction <- ml_model(distances)
+
         # extract the values
         values <- names(int_labels[max.col(prediction)])
 
@@ -108,18 +111,7 @@ sits_kfold_validate <- function(data,
         remove(ml_model)
 
         return(list(pred = pred_vec, ref = ref_vec))
-    }
-
-    # save original future plan
-    if (multicores > 1) {
-        oplan <- future::plan("multisession", workers = multicores)
-        # read the blocks and compute the probabilities
-        conf_lst <- furrr::future_map(seq_len(folds), function(k)
-            pred_ref_fold(k, data))
-        on.exit(future::plan(oplan), add = TRUE)
-    } else
-        conf_lst <- purrr::map(seq_len(folds), function(k)
-            pred_ref_fold(k, data))
+    })
 
     pred <- unlist(lapply(conf_lst, function(x) x$pred))
     ref  <- unlist(lapply(conf_lst, function(x) x$ref))
