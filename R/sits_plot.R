@@ -118,19 +118,42 @@ plot.predicted <- function(x, y, ..., bands = "NDVI") {
 #' @title  Generic interface for plotting stack cubes
 #' @name   plot.raster_cube
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
-#' @description This function is deprecated and replaced by sits_view
 #'
 #' @param  x             object of class "raster_cube"
 #' @param  y             ignored
 #' @param  ...           further specifications for \link{plot}.
+#' @param  band          band to be plotted
+#' @param  time          time instance
 #'
 #' @export
 #'
-plot.raster_cube <- function(x, y, ...) {
+plot.raster_cube <- function(x, y, ..., band, time = 1) {
 
-    message("to visualize raster cubes, please use sits_view()")
+    #
+    stopifnot(missing(y))
+    # verifies if stars package is installed
+    if (!requireNamespace("stars", quietly = TRUE)) {
+        stop("Please install package stars.", call. = FALSE)
+    }
+    # checks if required time exists
+    dates <- sits_timeline(x)
+    assertthat::assert_that(time >= 1 && time <= length(dates),
+                            msg = "invalid time"
+    )
+    # check if bands exists
+    assertthat::assert_that(band  %in% sits_bands(x),
+                            msg = "invalid band"
+    )
+    # get the file information
+    file_info <- x$file_info[[1]]
+    myband <- band
+    # filter the images for the time
+    file_img <- dplyr::filter(file_info, date == dates[time] & band == myband)$path
+    # read a stars proxy object
+    st <- stars::read_stars(file_img, proxy = TRUE)
+    plot(st)
 
-    return(FALSE)
+    return(invisible(TRUE))
 }
 #' @title  Generic interface for plotting probability cubes
 #' @name   plot.probs_cube

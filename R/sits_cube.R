@@ -506,7 +506,7 @@ sits_cube.local_cube <- function(source = "LOCAL", ...,
                                  start_date = NULL,
                                  end_date = NULL,
                                  data_dir,
-                                 parse_info,
+                                 parse_info = c("X1", "X2", "band", "date"),
                                  delim = "_") {
 
     # precondition - check satellite and sensor

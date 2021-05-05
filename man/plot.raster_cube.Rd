@@ -4,7 +4,7 @@
 \alias{plot.raster_cube}
 \title{Generic interface for plotting stack cubes}
 \usage{
-\method{plot}{raster_cube}(x, y, ...)
+\method{plot}{raster_cube}(x, y, ..., band, time = 1)
 }
 \arguments{
 \item{x}{object of class "raster_cube"}
@@ -12,9 +12,13 @@
 \item{y}{ignored}
 
 \item{...}{further specifications for \link{plot}.}
+
+\item{band}{band to be plotted}
+
+\item{time}{time instance}
 }
 \description{
-This function is deprecated and replaced by sits_view
+Generic interface for plotting stack cubes
 }
 \author{
 Gilberto Camara, \email{gilberto.camara@inpe.br}
