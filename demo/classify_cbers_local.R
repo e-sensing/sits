@@ -40,18 +40,19 @@ cbers_samples_2bands <- sits_select(
 )
 
 # train a random forest model
-rfor_model <- sits_train(
+tcnn_model <- sits_train(
     data      = cbers_samples_2bands,
-    ml_method = sits_rfor()
+    ml_method = sits_TempCNN()
 )
 
 # classify the data (remember to set the appropriate memory size)
 cbers_probs <- sits_classify(
     data       = cbers_cube,
-    ml_model   = rfor_model,
-    memsize    = 1,
-    multicores = 2,
-    output_dir = tempdir()
+    ml_model   = tcnn_model,
+    memsize    = 0.5,
+    multicores = 3,
+    output_dir = tempdir(),
+    verbose = TRUE
 )
 
 # smoothen the probabibilities with bayesian estimator

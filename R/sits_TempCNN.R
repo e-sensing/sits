@@ -263,6 +263,12 @@ sits_TempCNN <- function(samples = NULL,
         # construct model predict closure function and returns
         model_predict <- function(values) {
 
+            # verifies if keras package is installed
+            if (!requireNamespace("keras", quietly = TRUE)) {
+                stop(paste("keras required for this function to work.",
+                           "Please install it."), call. = FALSE)
+            }
+
             # restore model keras
             model_keras <- keras::unserialize_model(R_model_keras)
 
@@ -291,6 +297,7 @@ sits_TempCNN <- function(samples = NULL,
 
             return(prediction)
         }
+
         class(model_predict) <- c("keras_model", "sits_model",
                                   class(model_predict))
         return(model_predict)

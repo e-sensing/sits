@@ -227,29 +227,33 @@
     # check for faults
     retry <- vapply(values, is.null, TRUE)
 
+    # is there any node to be recovered?
     if (any(retry)) {
 
         message("Trying to recover failed nodes...")
-    }
 
-    # try three times
-    for (i in seq_len(3)) {
+        # try three times
+        for (i in seq_len(3)) {
 
-        # retry for faulted values
-        values[retry] <- suppressMessages(
-            .sits_parallel_cluster_apply(x[retry], fn, ...)
-        )
+            # retry for faulted values
+            values[retry] <- suppressMessages(
+                .sits_parallel_cluster_apply(x[retry], fn, ...)
+            )
 
-        # check for faults again
-        retry <- vapply(values, is.null, TRUE)
+            # check for faults again
+            retry <- vapply(values, is.null, TRUE)
 
-        if (!any(retry)) break
-    }
+            if (!any(retry)) break
+        }
 
-    if (any(retry)) {
+        if (any(retry)) {
 
-        stop("Some or all failed nodes could not be recovered",
-             call. = FALSE)
+            stop("Some or all failed nodes could not be recovered",
+                 call. = FALSE)
+        } else {
+
+            message("Success: all nodes recovered!")
+        }
     }
 
     return(values)
