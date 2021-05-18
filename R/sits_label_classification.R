@@ -51,7 +51,7 @@
 sits_label_classification <- function(cube,
                                       multicores = 1,
                                       memsize = 1,
-                                      output_dir = "./",
+                                      output_dir = tempdir(),
                                       version = "v1") {
 
     # precondition - check if cube has probability data

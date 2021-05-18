@@ -52,7 +52,7 @@ sits_kfold_validate <- function(data,
     }
     # keras models needs sequential processing
     call_names <- deparse(sys.call())
-    if (any(grepl("deeplearning", (call_names))) |
+    if (any(grepl("mlp", (call_names))) |
         any(grepl("TempCNN", (call_names))) |
         any(grepl("ResNet", (call_names))))
         multicores <- 1

@@ -52,21 +52,14 @@ samples_S2_T20LKP_2018_2019 <- sits_get_data(s2_cube, file = csv_file, .n_pts_cs
 samples_s2_3bands <- sits_select(samples_S2_T20LKP_2018_2019,
                                  bands = c("B03", "B08", "B11"))
 
-# train the deep learning model
-dl_model <- sits_train(samples_s2_3bands,
-                       ml_method = sits_deeplearning(
-                           layers = c(512, 512, 512, 512, 512, 512),
-                           activation = "elu",
-                           dropout_rates = c(0.60, 0.55, 0.50, 0.45, 0.40, 0.35),
-                           epochs = 400,
-                           batch_size = 128,
-                           validation_split = 0.1
-                       )
+# train a multi-layer perceptron model
+mlp_model <- sits_train(samples_s2_3bands,
+                       ml_method = sits_mlp()
 )
 
 # classify the cube using an rfor model
 s2_probs <- sits_classify(s2_cube,
-                          dl_model,
+                          mlp_model,
                           memsize = 24,
                           multicores = 4,
                           output_dir = tempdir()

@@ -16,8 +16,8 @@
 #' 'ridge' (see \code{\link[sits]{sits_mlr}}),
 #' extreme gradient boosting (see \code{\link[sits]{sits_xgboost}}),
 #' and different deep learning functions, including multi-layer perceptrons
-#' (see \code{\link[sits]{sits_deeplearning}}), mixed 1D convolution neural
-#' networks and perceptrons \code{\link[sits]{sits_TempCNN}},
+#' (see \code{\link[sits]{sits_mlp}}), 1D convolution neural
+#' networks \code{\link[sits]{sits_TempCNN}},
 #' and a deep Residual Network \code{\link[sits]{sits_ResNet}}.
 #'
 #' @param  data             Time series with the training samples.
@@ -89,7 +89,7 @@ sits_train <- function(data, ml_method = sits_svm()) {
 #' # Retrieve the set of samples for Mato Grosso region (provided by EMBRAPA)
 #' samples_2bands <- sits_select(samples_modis_4bands, bands = c("NDVI", "EVI"))
 #'
-#' # Build a machine learning model based on deep learning
+#' # Build a machine learning model
 #' ml_model <- sits_train(samples_2bands, sits_lda())
 #'
 #' # get a point and classify the point with the ml_model
@@ -275,7 +275,7 @@ sits_qda <- function(data = NULL, formula = sits_formula_logref(), ...) {
 #' # Retrieve the set of samples for  Mato Grosso region (provided by EMBRAPA)
 #' samples_2bands <- sits_select(samples_modis_4bands, bands = c("NDVI", "EVI"))
 #'
-#' # Build a machine learning model based on deep learning
+#' # Build a machine learning model
 #' ml_model <- sits_train(samples_2bands, sits_mlr())
 #'
 #' # get a point and classify the point with the ml_model
@@ -369,7 +369,7 @@ sits_mlr <- function(data = NULL, formula = sits_formula_linear(),
 #' # Retrieve the set of samples for Mato Grosso  (provided by EMBRAPA)
 #' samples_ndvi <- sits_select(samples_mt_6bands, bands = c("NDVI"))
 #'
-#' # Build a machine learning model based on deep learning
+#' # Build a machine learning model
 #' ml_model <- sits_train(samples_ndvi, sits_ranger(num_trees = 100))
 #'
 #' # get a point and classify the point with the ml_model
@@ -575,7 +575,7 @@ sits_rfor <- function(data = NULL, num_trees = 2000, nodesize = 1, ...) {
 #' # Retrieve the set of samples for  Mato Grosso  (provided by EMBRAPA)
 #' samples_2bands <- sits_select(samples_modis_4bands, bands = c("NDVI", "EVI"))
 #'
-#' # Build a machine learning model based on deep learning
+#' # Build a machine learning model
 #' ml_model <- sits_train(samples_2bands, sits_svm())
 #'
 #' # get a point and classify the point with the ml_model

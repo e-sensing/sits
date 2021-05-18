@@ -1,5 +1,5 @@
 #' @title Train a  deep learning model using multi-layer perceptron
-#' @name sits_deeplearning
+#' @name sits_mlp
 #'
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #' @author Alexandre Ywata de Carvalho, \email{alexandre.ywata@@ipea.gov.br}
@@ -68,7 +68,7 @@
 #' # Build a machine learning model based on deep learning
 #' dl_model <- sits_train(
 #'     samples_mt_ndvi,
-#'     sits_deeplearning(
+#'     sits_mlp(
 #'         layers = c(64, 64),
 #'         dropout_rates = c(0.50, 0.40),
 #'         epochs = 50
@@ -83,15 +83,15 @@
 #' }
 #' @export
 #'
-sits_deeplearning <- function(samples = NULL,
-                              layers = c(512, 512, 512, 512),
-                              activation = "elu",
-                              dropout_rates = c(0.10, 0.20, 0.20, 0.30),
-                              optimizer = keras::optimizer_adam(lr = 0.001),
-                              epochs = 200,
-                              batch_size = 64,
-                              validation_split = 0.2,
-                              verbose = 0) {
+sits_mlp <- function(samples = NULL,
+                     layers = c(512, 512, 512, 512),
+                     activation = "elu",
+                     dropout_rates = c(0.10, 0.20, 0.20, 0.30),
+                     optimizer = keras::optimizer_adam(lr = 0.001),
+                     epochs = 200,
+                     batch_size = 64,
+                     validation_split = 0.2,
+                     verbose = 0) {
 
     # function that returns a keras model based on samples
     result_fun <- function(data) {
@@ -105,17 +105,17 @@ sits_deeplearning <- function(samples = NULL,
         # pre-conditions
         assertthat::assert_that(
             length(layers) == length(dropout_rates),
-            msg = "sits_deeplearning: number of layers does not match
+            msg = "sits_mlp: number of layers does not match
                         number of dropout rates"
         )
         assertthat::assert_that(
             length(activation) == 1,
-            msg = "sits_deeplearning: use only one activation function"
+            msg = "sits_mlp: use only one activation function"
         )
         valid_activations <- c("relu", "elu", "selu", "sigmoid")
         assertthat::assert_that(
             activation %in% valid_activations,
-            msg = "sits_deeplearning: invalid node activation method"
+            msg = "sits_mlp: invalid node activation method"
         )
         # data normalization
         stats <- .sits_normalization_param(data)
@@ -124,8 +124,7 @@ sits_deeplearning <- function(samples = NULL,
         # is the training data correct?
         assertthat::assert_that(
             "reference" %in% names(train_data),
-            msg = "sits_deeplearning:
-                   input data does not contain distances"
+            msg = "sits_mlp: input data does not contain distances"
         )
 
         # get the labels of the data

@@ -13,7 +13,7 @@ sits_ResNet(
   epochs = 300,
   batch_size = 64,
   validation_split = 0.2,
-  verbose = 1
+  verbose = 0
 )
 }
 \arguments{

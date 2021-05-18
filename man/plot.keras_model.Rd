@@ -17,7 +17,7 @@
 The plot itself.
 }
 \description{
-plots a deep learning model
+plots a deep learning model developed using keras
 }
 \examples{
 \donttest{
@@ -26,14 +26,7 @@ samples_ndvi_evi <- sits_select(samples_modis_4bands,
                                 bands = c("NDVI", "EVI"))
 
 # train a deep learning model
-dl_model <- sits_train(samples_ndvi_evi, ml_method = sits_deeplearning(
-    layers = c(512, 512, 512),
-    activation = "relu",
-    dropout_rates = c(0.50, 0.40, 0.35),
-    epochs = 100,
-    batch_size = 128,
-    validation_split = 0.2
-))
+dl_model <- sits_train(samples_ndvi_evi, ml_method = sits_mlp())
 plot(dl_model)
 }
 
