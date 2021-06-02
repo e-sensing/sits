@@ -181,7 +181,13 @@ sits_som_map <- function(data,
             labels_neuron <- dplyr::filter(labelled_neurons,
                                            id_neuron == neuron_id
             )
-            label_max <- nnet::which.is.max(labels_neuron$prior_prob)
+
+            # if more than one sample has been mapped, the a posteriori
+            # probability is considered
+            if (nrow(labels_neuron) > 1)
+                label_max <- nnet::which.is.max(labels_neuron$post_prob)
+            else
+                label_max <- nnet::which.is.max(labels_neuron$prior_prob)
             return(labels_neuron[label_max, ]$label_samples)
         })
     labels_max <- unlist(lab_max)
