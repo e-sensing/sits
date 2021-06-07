@@ -50,6 +50,7 @@ sits_kfold_validate <- function(data,
     if (!requireNamespace("caret", quietly = TRUE)) {
         stop("Please install package caret.", call. = FALSE)
     }
+
     # keras models needs sequential processing
     call_names <- deparse(sys.call())
     if (any(grepl("mlp", (call_names))) |
