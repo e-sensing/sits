@@ -84,7 +84,7 @@ sits_ResNet <- function(samples = NULL,
                         epochs = 300,
                         batch_size = 64,
                         validation_split = 0.2,
-                        verbose = 1) {
+                        verbose = 0) {
 
     # function that returns keras model based on a sits sample data.table
     result_fun <- function(data) {

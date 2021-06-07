@@ -70,7 +70,7 @@ Please refer to the documentation in that package for more details.
 # Retrieve the set of samples for  Mato Grosso  (provided by EMBRAPA)
 samples_2bands <- sits_select(samples_modis_4bands, bands = c("NDVI", "EVI"))
 
-# Build a machine learning model based on deep learning
+# Build a machine learning model
 ml_model <- sits_train(samples_2bands, sits_svm())
 
 # get a point and classify the point with the ml_model

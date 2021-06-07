@@ -62,7 +62,7 @@ sits_cube(source, ...)
   start_date = NULL,
   end_date = NULL,
   data_dir,
-  parse_info,
+  parse_info = c("X1", "X2", "band", "date"),
   delim = "_"
 )
 

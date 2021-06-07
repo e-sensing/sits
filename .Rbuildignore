@@ -13,5 +13,6 @@
 ^Meta$
 ^tic\.R$
 ^CODE_OF_CONDUCT.md$
+^contributing.md$
 ^\.gcda$
 ^\.gcno$

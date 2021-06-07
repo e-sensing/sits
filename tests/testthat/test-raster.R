@@ -3,7 +3,7 @@ context("Raster classification")
 test_that("One-year, single core classification", {
     samples_2bands <- sits_select(samples_modis_4bands,
                                   bands = c("NDVI", "EVI"))
-    dl_model <- sits_train(samples_2bands, sits_deeplearning(
+    dl_model <- sits_train(samples_2bands, sits_mlp(
         layers = c(256, 256, 256),
         dropout_rates = c(0.5, 0.4, 0.3),
         epochs = 80,

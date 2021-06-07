@@ -118,19 +118,42 @@ plot.predicted <- function(x, y, ..., bands = "NDVI") {
 #' @title  Generic interface for plotting stack cubes
 #' @name   plot.raster_cube
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
-#' @description This function is deprecated and replaced by sits_view
 #'
 #' @param  x             object of class "raster_cube"
 #' @param  y             ignored
 #' @param  ...           further specifications for \link{plot}.
+#' @param  band          band to be plotted
+#' @param  time          time instance
 #'
 #' @export
 #'
-plot.raster_cube <- function(x, y, ...) {
+plot.raster_cube <- function(x, y, ..., band, time = 1) {
 
-    message("to visualize raster cubes, please use sits_view()")
+    #
+    stopifnot(missing(y))
+    # verifies if stars package is installed
+    if (!requireNamespace("stars", quietly = TRUE)) {
+        stop("Please install package stars.", call. = FALSE)
+    }
+    # checks if required time exists
+    dates <- sits_timeline(x)
+    assertthat::assert_that(time >= 1 && time <= length(dates),
+                            msg = "invalid time"
+    )
+    # check if bands exists
+    assertthat::assert_that(band  %in% sits_bands(x),
+                            msg = "invalid band"
+    )
+    # get the file information
+    file_info <- x$file_info[[1]]
+    myband <- band
+    # filter the images for the time
+    file_img <- dplyr::filter(file_info, date == dates[time] & band == myband)$path
+    # read a stars proxy object
+    st <- stars::read_stars(file_img, proxy = TRUE)
+    plot(st)
 
-    return(FALSE)
+    return(invisible(TRUE))
 }
 #' @title  Generic interface for plotting probability cubes
 #' @name   plot.probs_cube
@@ -145,6 +168,7 @@ plot.raster_cube <- function(x, y, ...) {
 #' @param title          string.
 #' @param colors         color palette.
 #' @param n_colors       number of colors.
+#' @param labels         labels to plot (optional)
 #'
 #' @return               The plot itself.
 #'
@@ -154,7 +178,8 @@ plot.probs_cube <- function(x, y, ..., time = 1,
                             title = "Probabilities for Classes",
                             breaks = "kmeans",
                             colors = "YlGnBu",
-                            n_colors = 10) {
+                            n_colors = 10,
+                            labels = NULL) {
     stopifnot(missing(y))
     # verifies if stars package is installed
     if (!requireNamespace("stars", quietly = TRUE)) {
@@ -164,13 +189,30 @@ plot.probs_cube <- function(x, y, ..., time = 1,
     col <- grDevices::hcl.colors(10, colors, rev = TRUE)
     # create a stars object
     st <- stars::read_stars(x$file_info[[1]]$path[[time]])
+    # get the labels
+    labels_cube <- x$labels[[1]]
 
-    p <- suppressWarnings(plot(st,
-                              breaks = breaks,
-                              nbreaks = 11,
-                              col = col,
-                              main = x$labels[[1]])
-    )
+    # verify if label is not NULL
+    if (!purrr::is_null(labels)) {
+        # label is not null, then plot only the label
+        layers <- match(labels, labels_cube)
+        p <- st %>%
+          dplyr::slice(index = layers, along = "band") %>%
+          plot(breaks = breaks,
+               nbreaks = 11,
+               col = col,
+               main = labels) %>%
+          suppressWarnings()
+    }
+    else {
+        p <- suppressWarnings(plot(st,
+                                   breaks = breaks,
+                                   nbreaks = 11,
+                                   col = col,
+                                   main = labels_cube)
+        )
+    }
+
     return(invisible(p))
 }
 
@@ -273,7 +315,7 @@ plot.som_map <- function(x, y, ..., type = "codes", whatmap = 1) {
 #' @title  Generic interface for plotting a Keras model
 #' @name   plot.keras_model
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
-#' @description plots a deep learning model
+#' @description plots a deep learning model developed using keras
 #'
 #' @param  x             Object of class "keras_model"
 #' @param  y             ignored
@@ -287,14 +329,7 @@ plot.som_map <- function(x, y, ..., type = "codes", whatmap = 1) {
 #'                                 bands = c("NDVI", "EVI"))
 #'
 #' # train a deep learning model
-#' dl_model <- sits_train(samples_ndvi_evi, ml_method = sits_deeplearning(
-#'     layers = c(512, 512, 512),
-#'     activation = "relu",
-#'     dropout_rates = c(0.50, 0.40, 0.35),
-#'     epochs = 100,
-#'     batch_size = 128,
-#'     validation_split = 0.2
-#' ))
+#' dl_model <- sits_train(samples_ndvi_evi, ml_method = sits_mlp())
 #' plot(dl_model)
 #' }
 #'
