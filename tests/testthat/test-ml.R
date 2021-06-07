@@ -141,7 +141,7 @@ test_that("DL-MLP", {
     model <- suppressMessages(suppressWarnings(
         sits_train(
             samples_mt_2bands,
-            sits_deeplearning(
+            sits_mlp(
                 layers = c(128, 128),
                 dropout_rates = c(0.5, 0.4),
                 epochs = 50,
@@ -167,7 +167,7 @@ test_that("DL-MLP-2classes", {
     model <- suppressMessages(suppressWarnings(
         sits_train(
             samples_mt_2bands,
-            sits_deeplearning(
+            sits_mlp(
                 layers = c(64, 64, 64),
                 dropout_rates = c(0.5, 0.4, 0.3),
                 epochs = 50,

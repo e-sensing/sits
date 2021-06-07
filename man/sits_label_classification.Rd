@@ -8,7 +8,7 @@ sits_label_classification(
   cube,
   multicores = 1,
   memsize = 1,
-  output_dir = "./",
+  output_dir = tempdir(),
   version = "v1"
 )
 }

@@ -51,12 +51,12 @@ sits_kfold_validate <- function(data,
         stop("Please install package caret.", call. = FALSE)
     }
 
-    # # keras models needs sequential processing
-    # call_names <- deparse(sys.call())
-    # if (any(grepl("deeplearning", (call_names))) |
-    #     any(grepl("TempCNN", (call_names))) |
-    #     any(grepl("ResNet", (call_names))))
-    #     multicores <- 1
+    # keras models needs sequential processing
+    call_names <- deparse(sys.call())
+    if (any(grepl("mlp", (call_names))) |
+        any(grepl("TempCNN", (call_names))) |
+        any(grepl("ResNet", (call_names))))
+        multicores <- 1
 
     # get the labels of the data
     labels <- sits_labels(data)

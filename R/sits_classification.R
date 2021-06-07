@@ -17,7 +17,7 @@
 #'  \item{quadratic discriminant analysis: } {see \code{\link[sits]{sits_qda}}}
 #'  \item{multinomial logit: }       {see \code{\link[sits]{sits_mlr}}}
 #'  \item{extreme gradient boosting: } {see \code{\link[sits]{sits_xgboost}}}
-#'  \item{multi-layer perceptrons: } {see \code{\link[sits]{sits_deeplearning}}}
+#'  \item{multi-layer perceptrons: } {see \code{\link[sits]{sits_mlp}}}
 #'  \item{mixed 1D CNN and MLP networks: } {see \code{\link[sits]{sits_TempCNN}}}
 #'  \item{deep residual netwroks:}{see \code{\link[sits]{sits_ResNet}}}
 #'  }

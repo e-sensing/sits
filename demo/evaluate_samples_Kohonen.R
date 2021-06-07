@@ -10,12 +10,12 @@ if (!requireNamespace("sitsdata", quietly = TRUE)) {
     devtools::install_github("e-sensing/sitsdata")
 }
 library(sitsdata)
-data("br_mt_1_8K_9classes_6bands")
+data("samples_cerrado_mod13q1")
 
 # Clustering time series samples using self-organizing maps
 som_map <-
     sits_som_map(
-        br_mt_1_8K_9classes_6bands,
+        samples_cerrado_mod13q1,
         grid_xdim = 12,
         grid_ydim = 12,
         alpha = 1,
