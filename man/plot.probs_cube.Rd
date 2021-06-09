@@ -12,7 +12,8 @@
   title = "Probabilities for Classes",
   breaks = "kmeans",
   colors = "YlGnBu",
-  n_colors = 10
+  n_colors = 10,
+  labels = NULL
 )
 }
 \arguments{
@@ -31,6 +32,8 @@
 \item{colors}{color palette.}
 
 \item{n_colors}{number of colors.}
+
+\item{labels}{labels to plot (optional)}
 }
 \value{
 The plot itself.
