@@ -14,16 +14,16 @@
 #'
 #' @description All image files should have the same spatial resolution
 #'              and same projection. In addition, image file names should
-#'              include information on band and date.
+#'              include information on tile, band and date.
 #'              The timeline and the bands are deduced from this information.
 #'              Examples of valid image names include
 #'              "CB4_64_16D_STK_022024_2018-08-29_2018-09-13_EVI.tif" and
-#'              "B02_2018-07-18.jp2". In each case, the user has to provide
+#'              "cube_20LKP_B02_2018-07-18.jp2". In each case, the user has to provide
 #'              appropriate parsing information that allows SITS to extract
-#'              the band and the date. In the examples above, the parsing info
+#'              the tile, the band and the date. In the examples above, the parsing info
 #'              would include "_" as a delimiter. In the first, the names of the
-#'              columns for parsing are "X1, X2, X3, X4, X5, date, X7, band".
-#'              In the second, they are "band, date".
+#'              columns for parsing are "X1, X2, X3, X4, tile, date, X7, band".
+#'              In the second, they are "tile, band, date".
 #'
 .sits_raster_stack_info <- function(satellite,
                                     sensor,
@@ -67,13 +67,13 @@
     # get the information on the required bands, dates and path
     file_info <- img_files_tb %>%
         # select the relevant parts
-        dplyr::select(date, band) %>%
+        dplyr::select(tile, date, band) %>%
         # check the date format
         .sits_timeline_date_format() %>%
         # include path in the tibble
         dplyr::mutate(path = paste0(data_dir, "/", img_files)) %>%
         # filter to remove duplicate combinations of file and band
-        dplyr::distinct(band, date, .keep_all = TRUE) %>%
+        dplyr::distinct(tile, band, date, .keep_all = TRUE) %>%
         # order by dates
         dplyr::arrange(date)
 
@@ -108,8 +108,8 @@
         file_info <- dplyr::filter(file_info,
                                    date >= start_date & date <= end_date)
 
-    res_xy <- .sits_config_resolution(sensor)
-    resolution <- unname(res_xy["xres"])
+    params <- .sits_raster_api_params_file(file_info$path[1])
+    resolution <- params$xres
     file_info <- dplyr::mutate(file_info,
                                res = resolution, .before = path)
 
@@ -135,31 +135,40 @@
 #'
 .sits_raster_stack_cube <- function(satellite, sensor, name, file_info) {
 
-    # get the bands
-    bands <- unique(file_info$band)
-    # get the parameters from the raster object of one of the layers
-    # the assumptions is that all layers are consistent
-    params <- .sits_raster_api_params_file(file_info$path[1])
+    # get the tiles
+    tiles <- unique(file_info$tile)
 
-    # create a tibble to store the metadata
-    stack_cube <- .sits_cube_create(
-        name = name,
-        source = "LOCAL",
-        satellite = satellite,
-        sensor = sensor,
-        bands = bands,
-        nrows = params$nrows,
-        ncols = params$ncols,
-        xmin = params$xmin,
-        xmax = params$xmax,
-        ymin = params$ymin,
-        ymax = params$ymax,
-        xres = params$xres,
-        yres = params$yres,
-        crs = params$crs,
-        file_info = file_info
-    )
+    rows <- purrr::map(tiles, function(t){
+        # get the files for a given tile
+        row_file_info <- dplyr::filter(file_info, tile == t)
 
+        # get the bands
+        bands <- unique(row_file_info$band)
+        # get the parameters from the raster object of one of the layers
+        # the assumptions is that all layers are consistent
+        params <- .sits_raster_api_params_file(row_file_info$path[1])
+
+        # create a tibble to store the metadata
+        row <- .sits_cube_create(
+            name = name,
+            source = "LOCAL",
+            satellite = satellite,
+            sensor = sensor,
+            tile = t,
+            bands = bands,
+            nrows = params$nrows,
+            ncols = params$ncols,
+            xmin = params$xmin,
+            xmax = params$xmax,
+            ymin = params$ymin,
+            ymax = params$ymax,
+            xres = params$xres,
+            yres = params$yres,
+            crs = params$crs,
+            file_info = row_file_info
+        )
+    })
+    stack_cube <- dplyr::bind_rows(rows)
 
     return(stack_cube)
 }
