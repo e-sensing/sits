@@ -164,7 +164,8 @@ sits_get_data.satveg_cube <- function(cube,
 sits_get_data.csv_satveg_cube <- function(cube, file, ...) {
 
     # read sample information from CSV file and put it in a tibble
-    csv <- tibble::as_tibble(utils::read.csv(file))
+    csv <- tibble::as_tibble(utils::read.csv(file,
+                                             stringsAsFactors = FALSE))
 
     # Precondition - check if CSV file is correct
     .sits_csv_check(csv)
@@ -330,7 +331,8 @@ sits_get_data.csv_raster_cube <- function(cube, file, ...,
                                           .n_pts_csv = NULL) {
 
     # read sample information from CSV file and put it in a tibble
-    csv <- tibble::as_tibble(utils::read.csv(file))
+    csv <- tibble::as_tibble(utils::read.csv(file,
+                                             stringsAsFactors = FALSE))
 
     # check if user has requested fewer points than full csv file
     if (!purrr::is_null(.n_pts_csv) && .n_pts_csv <= nrow(csv)) {
