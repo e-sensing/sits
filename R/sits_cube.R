@@ -18,7 +18,7 @@
 #'  \item{"DEAFRICA": }{Digital Earth Africa, see also
 #'  https://www.digitalearthafrica.org/}
 #'  \item{"AWS": }{Amazon Web Services (AWS)}
-#'  \item{"STACK": }{Defines a cube from on a set of local files.}
+#'  \item{"LOCAL": }{Defines a cube from on a set of local files.}
 #'  \item{"PROBS": }{Defines a cube to from a set of classified image files}.
 #'  \item{"SATVEG": }{Defines a cube to use the SATVEG web service.}
 #'  }
@@ -62,14 +62,16 @@
 #' # )
 #'
 #'@note To create a cube from local files, all image files should have
-#' the same spatial resolution, spatio-temporal extent and projection.
+#' the same spatial resolution and projection. Files can belong to different
+#' tiles of a spatial reference system.
 #' Each file should contain a single image band for a single date.
 #' File names must include date and band information, since times and bands
-#' are deduced from filenames. For example: "CBERS-4_AWFI_B13_2018-02-02.tif"
-#' and "S2A_MSI_L2A_20150302_B03_10m.jp2" are accepted names.
+#' are deduced from filenames. For example: "CBERS-4_022024_B13_2018-02-02.tif"
+#' and "cube_20LKP_B02_2018-07-18.jp2" are accepted names.
 #' The user has to provide parsing information to allow `sits`
-#' to extract the band and the date. In the first example above,
-#' the parsing info is c("X1", "X2", "band", "date) and the delimiter is "_".
+#' to extract the tile, the band and the date. In the examples above,
+#' the parsing info is c("X1", "X2", "tile", "band", "date") and the delimiter is "_".
+#'
 #'
 #' @note The SATVEG service is run by Embrapa Agricultural
 #'  Informatics Centre provides access to time series from the MODIS sensor.
@@ -526,8 +528,8 @@ sits_cube.local_cube <- function(source = "LOCAL", ...,
 
     # precondition - does the parse info have band and date?
     assertthat::assert_that(
-        all(c("band", "date") %in% parse_info),
-        msg = "sits_cube: invalid columns for date and band"
+        all(c("tile", "band", "date") %in% parse_info),
+        msg = "sits_cube: parse_info must include tile, date, and band"
     )
 
     # bands in upper case

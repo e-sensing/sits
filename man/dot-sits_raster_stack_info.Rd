@@ -35,16 +35,16 @@
 \description{
 All image files should have the same spatial resolution
              and same projection. In addition, image file names should
-             include information on band and date.
+             include information on tile, band and date.
              The timeline and the bands are deduced from this information.
              Examples of valid image names include
              "CB4_64_16D_STK_022024_2018-08-29_2018-09-13_EVI.tif" and
-             "B02_2018-07-18.jp2". In each case, the user has to provide
+             "cube_20LKP_B02_2018-07-18.jp2". In each case, the user has to provide
              appropriate parsing information that allows SITS to extract
-             the band and the date. In the examples above, the parsing info
+             the tile, the band and the date. In the examples above, the parsing info
              would include "_" as a delimiter. In the first, the names of the
-             columns for parsing are "X1, X2, X3, X4, X5, date, X7, band".
-             In the second, they are "band, date".
+             columns for parsing are "X1, X2, X3, X4, tile, date, X7, band".
+             In the second, they are "tile, band, date".
 }
 \author{
 Gilberto Camara, \email{gilberto.camara@inpe.br}

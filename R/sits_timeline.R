@@ -516,38 +516,38 @@ sits_timeline.classified_image <- function(data) {
 #'
 #' @return              Tibble with corrected date information
 #'
-.sits_timeline_date_format <- function(date_band) {
+.sits_timeline_date_format <- function(tile_date_band) {
     assertthat::assert_that(
-        nrow(date_band) > 0,
-        msg = ".sits_timeline_date_format: invalid date and band information"
+        nrow(tile_date_band) > 0,
+        msg = ".sits_timeline_date_format: invalid information"
     )
 
     assertthat::assert_that(
-        all(colnames(date_band) %in% c("date", "band")),
+        all(colnames(tile_date_band) %in% c("tile", "date", "band")),
         msg = paste(".sits_timeline_date_format: error in obtaining",
-                    "date and band information")
+                    "tile, date and band information")
     )
 
     # convert to datetime
     converted_date <- suppressWarnings(
-        lubridate::as_date(as.character(date_band$date))
+        lubridate::as_date(as.character(tile_date_band$date))
     )
 
     # try julian date format
     if (all(is.na(converted_date))) {
 
         # guess julian date format
-        guessed_format <- lubridate::guess_formats(date_band$date,
+        guessed_format <- lubridate::guess_formats(tile_date_band$date,
                                                    orders = "%Y%j")
 
         # check if some format was not guessed
         assertthat::assert_that(
-            length(guessed_format) == length(date_band$date),
+            length(guessed_format) == length(tile_date_band$date),
             msg = ".sits_timeline_date_format: Invalid date format in some file"
         )
 
         # convert to date
-        converted_date <- lubridate::as_date(date_band$date,
+        converted_date <- lubridate::as_date(tile_date_band$date,
                                              format = guessed_format)
 
     }
@@ -558,7 +558,7 @@ sits_timeline.classified_image <- function(data) {
         msg = ".sits_timeline_date_format: Invalid date format in file"
     )
 
-    date_band$date <- converted_date
+    tile_date_band$date <- converted_date
 
-    return(date_band)
+    return(tile_date_band)
 }
