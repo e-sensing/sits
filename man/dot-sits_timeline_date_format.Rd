@@ -4,7 +4,7 @@
 \alias{.sits_timeline_date_format}
 \title{Find if the date information is correct}
 \usage{
-.sits_timeline_date_format(date_band)
+.sits_timeline_date_format(tile_date_band)
 }
 \arguments{
 \item{file_info}{a tibble with date and band information}
