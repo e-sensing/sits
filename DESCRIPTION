@@ -39,6 +39,7 @@ Imports:
     gdalUtilities,
     ggplot2,
     graphics,
+    httr,
     lubridate (>= 1.7.0),
     parallel,
     purrr (>= 0.3.0),
