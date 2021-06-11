@@ -479,6 +479,12 @@ sits_cube.aws_cube <- function(source = "AWS", ...,
         # retrieve the information from STAC
         stack <- .sits_stac_items_info(items, items$bands)
 
+        # fix duplicated dates in timeline: select the first asset
+        stack <- dplyr::group_by(stack, date, band) %>%
+            dplyr::summarise(
+                path = dplyr::first(path, order_by = path),
+                .groups = "drop")
+
         # add the information for each tile
         cube_t <- .sits_s2_aws_tile_cube(
             name = name,
