@@ -1,6 +1,6 @@
 Package: sits
 Type: Package
-Version: 0.11.3
+Version: 0.12.0
 Title: Satellite Image Time Series Analysis for Remote Sensing Data Cubes
 Authors@R: c(person('Rolf', 'Simoes', role = c('aut'), email = 'rolf.simoes@inpe.br'),
              person('Gilberto', 'Camara', role = c('aut', 'cre'), email = 'gilberto.camara@inpe.br'),
@@ -39,6 +39,7 @@ Imports:
     gdalUtilities,
     ggplot2,
     graphics,
+    httr,
     lubridate (>= 1.7.0),
     parallel,
     purrr (>= 0.3.0),

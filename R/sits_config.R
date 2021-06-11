@@ -340,7 +340,7 @@ sits_config_show <- function() {
     if (purrr::is_null(url)) {
           url <- .sits_config_bdc_stac()
       }
-    return(RCurl::url.exists(url))
+    return(!httr::http_error(httr::GET(url)))
 }
 
 #' @title Get the name of the band used for cloud information

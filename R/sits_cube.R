@@ -350,7 +350,7 @@ sits_cube.deafrica_cube <- function(source = "DEAFRICA", ...,
 
     # test if DEA is accessible
     assertthat::assert_that(
-        RCurl::url.exists(url),
+        !httr::http_error(httr::GET(url)),
         msg = "DEAfrica is not accessible"
     )
 
@@ -441,7 +441,7 @@ sits_cube.aws_cube <- function(source = "AWS", ...,
 
     # test if AWS STAC is accessible
     assertthat::assert_that(
-        RCurl::url.exists(url),
+        !httr::http_error(httr::GET(url)),
         msg = "sits_cube: AWS STAC is not accessible"
     )
 
