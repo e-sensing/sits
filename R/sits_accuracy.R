@@ -161,7 +161,8 @@ sits_accuracy.classified_image <- function(data, ..., validation_csv) {
     )
 
     # read sample information from CSV file and put it in a tibble
-    csv_tb <- tibble::as_tibble(utils::read.csv(validation_csv))
+    csv_tb <- tibble::as_tibble(utils::read.csv(validation_csv,
+                                                stringsAsFactors = FALSE))
 
     # Precondition - check if CSV file is correct
     .sits_csv_check(csv_tb)

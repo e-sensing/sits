@@ -67,7 +67,8 @@ test_that("Reading a CSV file from SATVEG", {
     expect_equal(dplyr::filter(mylabels, label == "Pasture")$count, 3)
 
     df_csv <- utils::read.csv(
-      system.file("extdata/samples/samples_matogrosso.csv", package = "sits")
+      system.file("extdata/samples/samples_matogrosso.csv", package = "sits"),
+      stringsAsFactors = FALSE
     )
     expect_true(nrow(points) == nrow(df_csv))
 })
@@ -142,9 +143,9 @@ test_that("Reading a CSV file from RASTER", {
     points <- sits_get_data(raster_cube, file = csv_raster_file)
 
     df_csv <- utils::read.csv(
-      system.file("extdata/samples/samples_sinop_crop.csv",
-        package = "sits"
-    ))
+      system.file("extdata/samples/samples_sinop_crop.csv", package = "sits"),
+      stringsAsFactors = FALSE
+    )
     expect_true(nrow(points) <= nrow(df_csv))
 
     expect_true("Forest" %in% sits_labels(points))
