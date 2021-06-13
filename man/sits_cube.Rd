@@ -62,7 +62,7 @@ sits_cube(source, ...)
   start_date = NULL,
   end_date = NULL,
   data_dir,
-  parse_info = c("X1", "X2", "band", "date"),
+  parse_info = c("X1", "X2", "tile", "band", "date"),
   delim = "_"
 )
 
@@ -214,12 +214,7 @@ The SATVEG service is run by Embrapa Agricultural
  both satellites).
 }
 \examples{
-\dontrun{
-# Create a data cube based on the SATVEG service
-cube_satveg <- sits_cube(
-    source = "SATVEG",
-    collection = "terra"
-)
+\dontrun{-=-
 
 # --- Access to the Brazil Data Cube
 # Provide your BDC credentials as environment variables
@@ -283,7 +278,7 @@ cbers_cube <- sits_cube(
     sensor = "AWFI",
     data_dir = data_dir,
     delim = "_",
-    parse_info = c("X1", "X2", "band", "date")
+    parse_info = c("X1", "X2", "tile", "band", "date")
 )
 
 # Create a raster cube based on files with probability information

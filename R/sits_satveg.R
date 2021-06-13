@@ -166,7 +166,7 @@
             name, "/", .prefilter, "/", filter, "/", filter_par
         )
         # Get the data from SATVEG service
-        satveg <- RCurl::getURL(url_ts)
+        satveg <- httr::GET(url_ts)
 
         # did we get the data?
         if (grepl("Acesso", satveg)) {
@@ -252,48 +252,19 @@
     band <- "ndvi"
     cube <- "terra"
     # URL to access SATVEG services
-    URL <- .sits_config_satveg_url()
+    url <- .sits_config_satveg_url()
 
     # Build the URL to retrieve the time series
-    URL_ts <- paste0(
-        URL, band, "/ponto", "/", longitude, "/",
+    url_ts <- paste0(
+        url, band, "/ponto", "/", longitude, "/",
         latitude, "/", cube, "/",
         prefilter, "/", filter, "/", filter_par
     )
 
     # Get the data from SATVEG service
-    satveg <- RCurl::getURL(URL_ts)
+    satveg <- httr::GET(url_ts)
 
     timeline <- .sits_satveg_timeline_from_txt(satveg)
 
     return(timeline)
-}
-
-#' @title Check that the SATVEG service is working
-#' @name .sits_satveg_check
-#' @keywords internal
-#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
-#'
-#' @return Boolean that indicates if SATVEG is operating
-.sits_satveg_check <- function() {
-    # Retrieve the URL to test for SATVEG access
-    url_test <- .sits_config_satveg_access()
-    check <- tryCatch({
-        # tries to connect to the SATVEG service
-        satveg <- RCurl::getURL(url_test)
-        assertthat::assert_that(
-            length(satveg) > 0,
-            msg = ".sits_satveg_check: SATVEG service not available"
-        )
-    }, error = function(e) {
-        msg <- paste0("SATVEG service not available")
-        message(msg)
-    })
-
-    # did we get an error?
-    if (inherits(check, "error")) {
-        return(FALSE)
-    } else {
-        return(TRUE)
-    }
 }

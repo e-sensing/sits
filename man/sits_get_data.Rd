@@ -138,14 +138,6 @@ of a data cube using the \code{\link[sits]{sits_cube}} function.
 }
 \examples{
 \donttest{
-# -- Extracting data from SATVEG service
-cube_terra <- sits_cube(source = "SATVEG", collection = "terra")
-point_terra <- sits_get_data(cube_terra,
-    longitude = -55.50563, latitude = -11.71557
-)
-plot(point_terra)
-
-
 # -- Read a point in a raster data cube
 
 # Create a data cube based on files
@@ -157,7 +149,7 @@ raster_cube <- sits_cube(
     sensor = "MODIS",
     data_dir = data_dir,
     delim = "_",
-    parse_info = c("X1", "X2", "band", "date")
+    parse_info = c("X1", "X2", "tile", "band", "date")
 )
 
 # read the time series of the point from the raster

@@ -37,7 +37,7 @@ utils::globalVariables(c(
     "type", "year", "start_date", "end_date", "time_series",
     "name", "scale_factor", "missing_value",
     "band", "instance", "maximum_value", "minimum_value", "size",
-    "..b", "..band", "bands", "b_box",
+    "..b", "..band", "bands", "b_box", "tile",
     "original_label", "n_members", "n_members.n", "count",
     "segr", "frac", "total", "n", "rows.lst", "whit",
     "blue", "red", "green", "nir", "mir", "swir", "ndvi", "evi",

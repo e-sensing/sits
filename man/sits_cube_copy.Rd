@@ -38,7 +38,7 @@ cbers_022024 <- sits_cube(
     band = "NDVI",
     sensor = "AWFI",
     data_dir = data_dir,
-    parse_info = c("X1", "X2", "band", "date")
+    parse_info = c("X1", "X2", "tile", "band", "date")
 )
 
 cbers_022024_copy <- sits_cube_copy(cbers_022024,

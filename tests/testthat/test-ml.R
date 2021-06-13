@@ -188,7 +188,7 @@ test_that("DL-MLP-2classes", {
 test_that("ResNet", {
     # skip_on_cran()
     samples_ndvi <- sits_select(samples_modis_4bands, bands = "NDVI")
-    model <- sits_train(samples_ndvi, sits_ResNet(verbose = 0))
+    model <- sits_train(samples_ndvi, sits_ResNet(epochs = 50, verbose = 0))
     point_ndvi <- sits_select(point_mt_6bands, bands = "NDVI")
     point_class <- sits_classify(point_ndvi, model)
 
@@ -203,11 +203,6 @@ test_that("tempCNN model", {
         sits_train(
             samples_mt_ndvi,
             sits_TempCNN(
-                cnn_layers = c(32, 32),
-                cnn_kernels = c(7, 5),
-                cnn_dropout_rates = c(0.5, 0.4),
-                mlp_layers = c(128),
-                mlp_dropout_rates = c(0.5),
                 epochs = 50,
                 verbose = 0
             )

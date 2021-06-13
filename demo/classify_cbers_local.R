@@ -24,7 +24,7 @@ cbers_cube <- sits_cube(
     sensor     = "AWFI",
     resolution = "64m",
     data_dir   = local_dir,
-    parse_info = c("X1", "X2", "X3", "X4", "X5", "date", "X7", "band")
+    parse_info = c("X1", "X2", "X3", "X4", "tile", "date", "X5", "band")
 )
 
 # load the samples

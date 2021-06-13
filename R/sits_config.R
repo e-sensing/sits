@@ -329,18 +329,42 @@ sits_config_show <- function() {
     return(sits_env$config$bdc_stac)
 }
 
-#' @title Test if BDC STAC catalogue is available
-#' @name .sits_config_bdc_stac_access
+#' @title Test if cube is available via URL
+#' @name .sits_config_cube_access
 #' @keywords internal
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #' @param url  URL for access to the BDC STAC
+#' @param name service name
 #'
-#' @return directory where BDC is accessible on the web
-.sits_config_bdc_stac_access <- function(url = NULL) {
-    if (purrr::is_null(url)) {
-          url <- .sits_config_bdc_stac()
-      }
-    return(!httr::http_error(httr::GET(url)))
+#' @return TRUE/FALSE
+.sits_config_cube_access <- function(url, name) {
+    access <- tryCatch({
+        httr::GET(url)
+        return(TRUE)
+    }, error = function(e){
+        message(paste0(name, " is not accessible using URL ", url))
+        return(FALSE)
+    })
+    return(access)
+}
+#' @title Test if files in a raster cube are
+#' @name .sits_config_cube_file_access
+#' @keywords internal
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
+#' @param cube  cube
+#'
+#' @return TRUE/FALSE
+.sits_config_cube_file_access <- function(cube) {
+
+    f <- cube$file_info[[1]]$path[[1]]
+    access <- tryCatch({
+        r <- .sits_raster_api_open_rast(f)
+        return(TRUE)
+    }, error = function(e){
+        message(paste0("raster file ", f, " is not accessible"))
+        return(FALSE)
+    })
+    return(access)
 }
 
 #' @title Get the name of the band used for cloud information

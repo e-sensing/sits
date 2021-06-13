@@ -44,7 +44,7 @@ test_that("Plot Time Series and Images", {
         sensor = "MODIS",
         data_dir = data_dir,
         delim = "_",
-        parse_info = c("X1", "X2", "band", "date")
+        parse_info = c("X1", "X2", "tile", "band", "date")
     )
     v_stack <- sits_view(sinop, red = "NDVI", blue = "NDVI", green = "NDVI")
     expect_equal(sits:::.sits_raster_api_nrows(v_stack@object[[1]]), 144)
@@ -94,7 +94,7 @@ test_that("Plot Stack Images", {
         resolution = "64m",
         data_dir = data_dir,
         delim = "_",
-        parse_info = c("X1", "X2", "band", "date")
+        parse_info = c("X1", "X2", "tile", "band", "date")
     )
     v_cbers <- sits_view(cbers_cube, red = "B15", green = "B16", blue = "B13")
     expect_equal(sits:::.sits_raster_api_nrows(v_cbers@object[[1]]), 50)

@@ -2,8 +2,6 @@ context("Data input")
 test_that("Reading a point from SATVEG ", {
     testthat::skip_on_cran()
     cube_1 <- sits_cube(source = "SATVEG", collection = "terra")
-    cube_2 <- sits_cube(source = "SATVEG", collection = "aqua")
-    cube_3 <- sits_cube(source = "SATVEG", collection = "comb")
 
     if (purrr::is_null(cube_1)) {
           skip("SATVEG is not accessible")
@@ -18,15 +16,17 @@ test_that("Reading a point from SATVEG ", {
                  158.11, tolerance = 2
     )
 
+    cube_2 <- sits_cube(source = "SATVEG", collection = "aqua")
+
     point_aqua <- sits_get_data(cube_2,
         longitude = -55.50563, latitude = -11.71557
     )
-
     expect_equal(ncol(sits_time_series(point_aqua)), 3)
     expect_equal(sum(sits_time_series(point_aqua)$EVI),
         132.3852, tolerance = 2
     )
 
+    cube_3 <- sits_cube(source = "SATVEG", collection = "comb")
     point_comb <- sits_get_data(cube_3,
         longitude = -55.50563, latitude = -11.71557
     )
@@ -110,7 +110,7 @@ test_that("Reading a LAT/LONG from RASTER", {
         sensor = "MODIS",
         data_dir = data_dir,
         delim = "_",
-        parse_info = c("X1", "X2", "band", "date")
+        parse_info = c("X1", "X2", "tile", "band", "date")
     )
 
     point_ndvi <- sits_select(point_mt_6bands, bands = "NDVI")
@@ -133,7 +133,7 @@ test_that("Reading a CSV file from RASTER", {
         sensor = "MODIS",
         data_dir = data_dir,
         delim = "_",
-        parse_info = c("X1", "X2", "band", "date")
+        parse_info = c("X1", "X2", "tile", "band", "date")
     )
 
     csv_raster_file <- system.file("extdata/samples/samples_sinop_crop.csv",
@@ -154,47 +154,44 @@ test_that("Reading a CSV file from RASTER", {
     expect_true(length(sits_timeline(points)) == 23)
 })
 
-test_that("Test reading shapefile from BDC", {
-    testthat::skip_on_cran()
-
-    # check "BDC_ACCESS_KEY" - mandatory one per user
-    bdc_access_key <- Sys.getenv("BDC_ACCESS_KEY")
-
-    testthat::skip_if(nchar(bdc_access_key) == 0,
-                      message = "No BDC_ACCESS_KEY defined in environment.")
-
-    # create a raster cube file based on the information about the files
-    cbers_stac_tile <- sits_cube(
-        source = "BDC",
-        collection = "CB4_64_16D_STK-1",
-        name = "cbers_stac",
-        bands = c("NDVI", "EVI"),
-        tiles = c("022024", "022025"),
-        url = "http://brazildatacube.dpi.inpe.br/stac/",
-        start_date = "2018-09-01",
-        end_date = "2019-08-28"
-    )
-
-    if (purrr::is_null(cbers_stac_tile)) {
-          skip("BDC is not accessible")
-      }
-    check <- tryCatch({
-        # tries to connect to the BDC
-        invisible(suppressWarnings(
-            terra::rast(cbers_stac_tile$file_info[[1]]$path[1])
-        ))
-    }, error = function(e) {
-        skip("BDC access not available")
-    })
-    shp_path <- system.file("extdata/shapefiles/bdc-test/samples.shp",
-                            package = "sits"
-    )
-
-    time_series_bdc <- sits::sits_get_data(cbers_stac_tile, file = shp_path)
-    expect_equal(nrow(time_series_bdc), 10)
-    bbox <- sits_bbox(time_series_bdc)
-    expect_true(bbox["lon_min"] < -46.)
-    expect_true(all(sits_bands(time_series_bdc) %in% c("NDVI", "EVI")))
-    ts <- time_series_bdc$time_series[[1]]
-    expect_true(max(ts["EVI"]) < 1.)
-})
+# test_that("Test reading shapefile from BDC", {
+#     testthat::skip_on_cran()
+#
+#     # check "BDC_ACCESS_KEY" - mandatory one per user
+#     bdc_access_key <- Sys.getenv("BDC_ACCESS_KEY")
+#
+#     testthat::skip_if(nchar(bdc_access_key) == 0,
+#                       message = "No BDC_ACCESS_KEY defined in environment.")
+#
+#     # create a raster cube file based on the information about the files
+#     cbers_stac_tile <- sits_cube(
+#         source = "BDC",
+#         collection = "CB4_64_16D_STK-1",
+#         name = "cbers_stac",
+#         bands = c("NDVI", "EVI"),
+#         tiles = c("022024", "022025"),
+#         url = "http://brazildatacube.dpi.inpe.br/stac/",
+#         start_date = "2018-09-01",
+#         end_date = "2019-08-28"
+#     )
+#
+#     if (purrr::is_null(cbers_stac_tile)) {
+#           skip("BDC is not accessible")
+#     }
+#     if (!(sits:::.sits_config_cube_file_access(cbers_stac_tile)))
+#          skip("BDC file is not accessible")
+#
+#     shp_path <- system.file("extdata/shapefiles/bdc-test/samples.shp",
+#                             package = "sits"
+#     )
+#
+#     time_series_bdc <- sits::sits_get_data(cbers_stac_tile, file = shp_path)
+#     if (purrr::is_null(time_series_bdc))
+#         skip("BDC not accessible")
+#     expect_equal(nrow(time_series_bdc), 10)
+#     bbox <- sits_bbox(time_series_bdc)
+#     expect_true(bbox["lon_min"] < -46.)
+#     expect_true(all(sits_bands(time_series_bdc) %in% c("NDVI", "EVI")))
+#     ts <- time_series_bdc$time_series[[1]]
+#     expect_true(max(ts["EVI"]) < 1.)
+# })

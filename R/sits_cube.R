@@ -117,12 +117,7 @@
 #' @return                  The description of a data cube
 #'
 #' @examples
-#' \dontrun{
-#' # Create a data cube based on the SATVEG service
-#' cube_satveg <- sits_cube(
-#'     source = "SATVEG",
-#'     collection = "terra"
-#' )
+#' \dontrun{-=-
 #'
 #' # --- Access to the Brazil Data Cube
 #' # Provide your BDC credentials as environment variables
@@ -186,7 +181,7 @@
 #'     sensor = "AWFI",
 #'     data_dir = data_dir,
 #'     delim = "_",
-#'     parse_info = c("X1", "X2", "band", "date")
+#'     parse_info = c("X1", "X2", "tile", "band", "date")
 #' )
 #'
 #' # Create a raster cube based on files with probability information
@@ -248,12 +243,10 @@ sits_cube.bdc_cube <- function(source = "BDC", ...,
     if (purrr::is_null(url)) {
         url <- .sits_config_bdc_stac()
     }
-
     # test if BDC is accessible
-    assertthat::assert_that(
-        .sits_config_bdc_stac_access(url),
-        msg = "sits_cube: BDC is not accessible"
-    )
+    if (!(.sits_config_cube_access(url, "BDC")))
+        return(NULL)
+
     # precondition - is the collection name valid?
     assertthat::assert_that(
         !purrr::is_null(collection),
@@ -349,10 +342,8 @@ sits_cube.deafrica_cube <- function(source = "DEAFRICA", ...,
     }
 
     # test if DEA is accessible
-    assertthat::assert_that(
-        !httr::http_error(httr::GET(url)),
-        msg = "DEAfrica is not accessible"
-    )
+    if (!(.sits_config_cube_access(url, "DEAFRICA")))
+        return(NULL)
 
     # precondition - is the collection name valid?
     assertthat::assert_that(
@@ -440,10 +431,8 @@ sits_cube.aws_cube <- function(source = "AWS", ...,
     }
 
     # test if AWS STAC is accessible
-    assertthat::assert_that(
-        !httr::http_error(httr::GET(url)),
-        msg = "sits_cube: AWS STAC is not accessible"
-    )
+    if (!(.sits_config_cube_access(url, "AWS")))
+        return(NULL)
 
     # precondition - is the collection name valid?
     assertthat::assert_that(
@@ -514,7 +503,7 @@ sits_cube.local_cube <- function(source = "LOCAL", ...,
                                  start_date = NULL,
                                  end_date = NULL,
                                  data_dir,
-                                 parse_info = c("X1", "X2", "band", "date"),
+                                 parse_info = c("X1", "X2", "tile", "band", "date"),
                                  delim = "_") {
 
     # precondition - check satellite and sensor
@@ -637,16 +626,16 @@ sits_cube.probs_cube <- function(source = "PROBS", ...,
 #'
 sits_cube.satveg_cube <- function(source = "SATVEG", ...,
                                   collection = "terra") {
-    # Pre-condition - check if SATVEG is working
-    satveg_ok <- .sits_satveg_check()
-    # if OK, go ahead a create a SATVEG cube
-    if (satveg_ok) {
-        cube <- .sits_satveg_cube(collection)
-    } else {
-        message("SATVEG service not responding")
-        return(NULL)
-    }
 
+
+    # Retrieve the URL to test for SATVEG access
+    url <- .sits_config_satveg_access()
+
+    # test if SATVEG is accessible
+    if (!(.sits_config_cube_access(url, "SATVEG")))
+        return(NULL)
+    # OK
+    cube <- .sits_satveg_cube(collection)
     return(cube)
 }
 
@@ -685,7 +674,7 @@ sits_cube.default <- function(source = NULL, ...) {
 #'     band = "NDVI",
 #'     sensor = "AWFI",
 #'     data_dir = data_dir,
-#'     parse_info = c("X1", "X2", "band", "date")
+#'     parse_info = c("X1", "X2", "tile", "band", "date")
 #' )
 #'
 #' cbers_022024_copy <- sits_cube_copy(cbers_022024,

@@ -57,6 +57,7 @@
 #' @param  ml_model        model trained by \code{\link[sits]{sits_train}}.
 #' @param  multicores      number of threads to process the time series.
 #' @return A data.table with the predicted labels.
+#'
 .sits_distances_classify <- function(distances, class_info,
                                      ml_model, multicores) {
 
@@ -64,6 +65,10 @@
     if (inherits(ml_model, c("keras_model", "ranger_model", "xgb_model"))) {
         multicores <- 1
     }
+    # are we running on Windows?
+    if (.Platform$OS.type != "unix")
+        multicores <- 1
+
     # define the column names
     attr_names <- names(.sits_distances(.sits_ml_model_samples(ml_model)[1, ]))
     assertthat::assert_that(
@@ -94,15 +99,9 @@
 
         return(pred_block)
     }
-
-    join_blocks <- function(blocks) {
-        pred <- blocks %>%
-            dplyr::bind_rows()
-        return(pred)
-    }
-    n_rows_dist <- nrow(distances)
+    # if multicores > 1, break blocks for parallel processing
     if (multicores > 1) {
-
+        n_rows_dist <- nrow(distances)
         blocks <- split.data.frame(
             distances,
             cut(1:n_rows_dist,
@@ -110,17 +109,16 @@
                 labels = FALSE
             )
         )
-        oplan <- future::plan("multisession", workers = multicores)
-        on.exit(future::plan(oplan), add = TRUE)
-
         # apply parallel processing to the split data
-        results <- furrr::future_map(blocks, function(b) {
-            classify_block(b)
-        })
-
-        # fix 'Error: Tibble columns must have compatible sizes'
+        results <- parallel::mclapply(
+            blocks,
+            classify_block,
+            mc.cores = multicores
+        )
+        # join blocks to get the result
         predicted <- do.call(rbind, results)
     }
+    # sequential processing
     else {
         predicted <- classify_block(distances)
     }

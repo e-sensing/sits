@@ -60,14 +60,6 @@
 #'
 #' @examples
 #' \donttest{
-#' # -- Extracting data from SATVEG service
-#' cube_terra <- sits_cube(source = "SATVEG", collection = "terra")
-#' point_terra <- sits_get_data(cube_terra,
-#'     longitude = -55.50563, latitude = -11.71557
-#' )
-#' plot(point_terra)
-#'
-#'
 #' # -- Read a point in a raster data cube
 #'
 #' # Create a data cube based on files
@@ -79,7 +71,7 @@
 #'     sensor = "MODIS",
 #'     data_dir = data_dir,
 #'     delim = "_",
-#'     parse_info = c("X1", "X2", "band", "date")
+#'     parse_info = c("X1", "X2", "tile", "band", "date")
 #' )
 #'
 #' # read the time series of the point from the raster
@@ -131,11 +123,13 @@ sits_get_data.satveg_cube <- function(cube,
                                       start_date = NULL,
                                       end_date = NULL,
                                       label = "NoClass") {
-    # Precondition - is the SATVEG cube available
-    assertthat::assert_that(
-        .sits_satveg_check(),
-        msg = "sits_get_data: satveg cube is not valid or not accessible"
-    )
+    # Precondition - is the SATVEG cube available?
+    # Retrieve the URL to test for SATVEG access
+    url <- .sits_config_satveg_access()
+
+    # test if SATVEG is accessible
+    if (!(.sits_config_cube_access(url, "SATVEG")))
+        return(NULL)
 
     # Precondition - lat/long must be provided
     assertthat::assert_that(
@@ -162,6 +156,14 @@ sits_get_data.satveg_cube <- function(cube,
 #' @export
 #'
 sits_get_data.csv_satveg_cube <- function(cube, file, ...) {
+
+    # Precondition - is the SATVEG cube available?
+    # Retrieve the URL to test for SATVEG access
+    url <- .sits_config_satveg_access()
+
+    # test if SATVEG is accessible
+    if (!(.sits_config_cube_access(url, "SATVEG")))
+        return(NULL)
 
     # read sample information from CSV file and put it in a tibble
     csv <- tibble::as_tibble(utils::read.csv(file))
@@ -218,6 +220,14 @@ sits_get_data.shp_satveg_cube <- function(cube, file, ...,
                                           shp_attr = NULL,
                                           .n_shp_pol = 30) {
 
+    # Precondition - is the SATVEG cube available?
+    # Retrieve the URL to test for SATVEG access
+    url <- .sits_config_satveg_access()
+
+    # test if SATVEG is accessible
+    if (!(.sits_config_cube_access(url, "SATVEG")))
+        return(NULL)
+
     # precondition - check the shape file and its attribute
     sf_shape <- .sits_shp_check_validity(
         shp_file = file, shp_attr = shp_attr,
@@ -270,6 +280,10 @@ sits_get_data.raster_cube <- function(cube, file = NULL, ...,
                                       bands = NULL,
                                       label = "NoClass",
                                       impute_fn = sits_impute_linear()) {
+
+    # precondition - are the files in the cube accessible?
+    if (!(.sits_config_cube_file_access(cube)))
+        return(NULL)
 
     # Precondition - lat/long must be provided
     assertthat::assert_that(
@@ -328,6 +342,10 @@ sits_get_data.csv_raster_cube <- function(cube, file, ...,
                                           bands = NULL,
                                           impute_fn = sits_impute_linear(),
                                           .n_pts_csv = NULL) {
+
+    # precondition - are the files in the cube accessible?
+    if (!(.sits_config_cube_file_access(cube)))
+        return(NULL)
 
     # read sample information from CSV file and put it in a tibble
     csv <- tibble::as_tibble(utils::read.csv(file))
@@ -390,6 +408,10 @@ sits_get_data.shp_raster_cube <- function(cube, file, ...,
                                           shp_attr = NULL,
                                           .n_shp_pol = 30) {
 
+
+    # precondition - are the files in the cube accessible?
+    if (!(.sits_config_cube_file_access(cube)))
+        return(NULL)
     # precondition - check the validity of the shape file
     sf_shape <- .sits_shp_check_validity(
         shp_file = file,

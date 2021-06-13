@@ -19,7 +19,7 @@ test_that("One-year, single core classification", {
         sensor = "MODIS",
         data_dir = data_dir,
         delim = "_",
-        parse_info = c("X1", "X2", "band", "date")
+        parse_info = c("X1", "X2", "tile", "band", "date")
     )
     sinop_probs <- suppressMessages(
         sits_classify(sinop,
@@ -58,7 +58,7 @@ test_that("One-year, multicore classification", {
         sensor = "MODIS",
         data_dir = data_dir,
         delim = "_",
-        parse_info = c("X1", "X2", "band", "date")
+        parse_info = c("X1", "X2", "tile", "band", "date")
     )
 
     sinop_probs <- suppressMessages(
@@ -97,7 +97,7 @@ test_that("One-year, single core classification with filter", {
         sensor = "MODIS",
         data_dir = data_dir,
         delim = "_",
-        parse_info = c("X1", "X2", "band", "date")
+        parse_info = c("X1", "X2", "tile", "band", "date")
     )
 
     sinop_probs <- suppressMessages(
@@ -129,7 +129,7 @@ test_that("One-year, multicore classification with filter", {
         sensor = "MODIS",
         data_dir = data_dir,
         delim = "_",
-        parse_info = c("X1", "X2", "band", "date")
+        parse_info = c("X1", "X2", "tile", "band", "date")
     )
 
     sinop_2014_probs <- suppressMessages(
@@ -171,7 +171,7 @@ test_that("One-year, multicore classification with post-processing", {
         sensor = "MODIS",
         data_dir = data_dir,
         delim = "_",
-        parse_info = c("X1", "X2", "band", "date")
+        parse_info = c("X1", "X2", "tile", "band", "date")
     )
 
     sinop_probs <- suppressMessages(
@@ -266,16 +266,4 @@ test_that("One-year, multicore classification with post-processing", {
     expect_true(all(file.remove(unlist(sinop_majority$file_info[[1]]$path))))
 
     expect_true(all(file.remove(unlist(sinop_probs$file_info[[1]]$path))))
-})
-
-
-test_that("Check GDAL access", {
-
-    file <- c(system.file(
-        "extdata/raster/mod13q1/TERRA_MODIS_EVI_2013-09-14.jp2",
-        package = "sits"
-    ))
-
-    # expect no error
-    expect_error(.sits_raster_api_open_rast(file), NA)
 })

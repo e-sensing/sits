@@ -36,7 +36,7 @@ sinop <- sits_cube(
     sensor     = "MODIS",
     data_dir   = data_dir,
     delim      = "_",
-    parse_info = c("X1", "X2", "band", "date")
+    parse_info = c("X1", "X2", "tile", "band", "date")
 )
 
 # classify the raster image

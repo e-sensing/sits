@@ -48,7 +48,7 @@ cbers_022024 <- sits_cube(
     sensor = "AWFI",
     resolution = 64,
     data_dir = data_dir,
-    parse_info = c("X1", "X2", "band", "date")
+    parse_info = c("X1", "X2", "tile", "band", "date")
 )
 # plot the data cube
 sits_view(cbers_022024, red = "B15", green = "B16", blue = "B13", time = 1)

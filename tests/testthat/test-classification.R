@@ -7,13 +7,13 @@ test_that("Classify with random forest - single core and multicore", {
     point_ndvi <- sits_select(point_mt_6bands, bands = "NDVI")
     class_ndvi <- sits_classify(point_ndvi, rfor_model)
 
-    expect_true(.sits_raster_api_nrows(class_ndvi$predicted[[1]]) == 17)
+    expect_true(nrow(class_ndvi$predicted[[1]]) == 17)
     expect_true(all(class_ndvi$predicted[[1]]$class %in%
         sits_labels(samples_mt_ndvi)))
     point_ndvi <- sits_select(point_mt_6bands, bands = "NDVI")
     class_ndvi <- sits_classify(point_ndvi, rfor_model, multicores = 2)
 
-    expect_true(.sits_raster_api_nrows(class_ndvi$predicted[[1]]) == 17)
+    expect_true(nrow(class_ndvi$predicted[[1]]) == 17)
     expect_true(all(class_ndvi$predicted[[1]]$class %in%
         sits_labels(samples_mt_ndvi)))
 })

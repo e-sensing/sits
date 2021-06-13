@@ -18,7 +18,7 @@ test_that("Reading a raster cube", {
         sensor = "MODIS",
         data_dir = data_dir,
         delim = "_",
-        parse_info = c("X1", "X2", "band", "date")
+        parse_info = c("X1", "X2", "tile", "band", "date")
     )
 
     # get bands names
@@ -44,7 +44,7 @@ test_that("Creating a raster stack cube and selecting bands", {
         resolution = "64m",
         data_dir = data_dir,
         delim = "_",
-        parse_info = c("X1", "X2", "band", "date")
+        parse_info = c("X1", "X2", "tile", "band", "date")
     )
 
     expect_true(all(sits_bands(cbers_cube) %in%
@@ -61,9 +61,6 @@ test_that("Creating a raster stack cube and selecting bands", {
 test_that("Creating cubes from BDC", {
     testthat::skip_on_cran()
 
-    if (!sits:::.sits_config_bdc_stac_access())
-        skip("BDC is not accessible")
-
     # Try to find the access key as an environment variable
     bdc_access_key <- Sys.getenv("BDC_ACCESS_KEY")
 
@@ -78,6 +75,9 @@ test_that("Creating cubes from BDC", {
         start_date = "2018-09-01",
         end_date = "2019-08-29"
       )
+      if (purrr::is_null(cbers_cube)) {
+        skip("BDC is not accessible")
+      }
       expect_true(all(sits_bands(cbers_cube) %in% c("NDVI", "EVI")))
       bbox <- sits_bbox(cbers_cube)
       int_bbox <- sits:::.sits_bbox_intersect(bbox, cbers_cube[1, ])
@@ -87,44 +87,48 @@ test_that("Creating cubes from BDC", {
       expect_true(timeline[1] <= as.Date("2018-09-01"))
       expect_true(timeline[length(timeline)] <= as.Date("2019-08-29"))
 
-      r_obj <- terra::rast(cbers_cube$file_info[[1]]$path[1])
+      r_obj <- .sits_raster_api_open_rast(cbers_cube$file_info[[1]]$path[1])
       expect_true(terra::nrow(r_obj) == cbers_cube$nrows[[1]])
     }
 
 })
 
-test_that("Creating cubes from DEA", {
-  testthat::skip_on_cran()
-  # check "AWS_ACCESS_KEY_ID" - mandatory one per user
-  aws_access_key_id <- Sys.getenv("AWS_ACCESS_KEY_ID")
-  # check "AWS_SECRET_ACCESS_KEY" - mandatory one per user
-  aws_secret_access_key <- Sys.getenv("AWS_SECRET_ACCESS_KEY")
-
-  testthat::skip_if(nchar(aws_access_key_id) == 0,
-                    message = "No AWS_ACCESS_KEY_ID defined in environment.")
-
-  testthat::skip_if(nchar(aws_secret_access_key) == 0,
-                    message = "No AWS_SECRET_ACCESS_KEY defined in environment.")
-
-  dea_cube <- sits_cube(source = "DEAFRICA",
-                        name = "deafrica_cube",
-                        collection = "s2_l2a",
-                        bands = c("B01", "B04", "B05"),
-                        bbox = c("xmin" = 17.379,
-                                "ymin" = 1.1573,
-                                "xmax" = 17.410,
-                                "ymax" = 1.1910),
-                        start_date = "2019-01-01",
-                        end_date = "2019-10-28")
-
-  expect_true(all(sits_bands(dea_cube) %in% c("B01", "B04", "B05")))
-
-  file_info <- dea_cube$file_info[[1]]
-  r <- .sits_raster_api_open_rast(file_info$path[[1]])
-
-  expect_equal(dea_cube$xmax[[1]], .sits_raster_api_xmax(r), tolerance = 1)
-  expect_equal(dea_cube$xmin[[1]], .sits_raster_api_xmin(r), tolerance = 1)
-})
+# test_that("Creating cubes from DEA", {
+#   testthat::skip_on_cran()
+#   # check "AWS_ACCESS_KEY_ID" - mandatory one per user
+#   aws_access_key_id <- Sys.getenv("AWS_ACCESS_KEY_ID")
+#   # check "AWS_SECRET_ACCESS_KEY" - mandatory one per user
+#   aws_secret_access_key <- Sys.getenv("AWS_SECRET_ACCESS_KEY")
+#
+#   testthat::skip_if(nchar(aws_access_key_id) == 0,
+#                     message = "No AWS_ACCESS_KEY_ID defined in environment.")
+#
+#   testthat::skip_if(nchar(aws_secret_access_key) == 0,
+#                     message = "No AWS_SECRET_ACCESS_KEY defined in environment.")
+#
+#   dea_cube <- sits_cube(source = "DEAFRICA",
+#                         name = "deafrica_cube",
+#                         collection = "s2_l2a",
+#                         bands = c("B01", "B04", "B05"),
+#                         bbox = c("xmin" = 17.379,
+#                                 "ymin" = 1.1573,
+#                                 "xmax" = 17.410,
+#                                 "ymax" = 1.1910),
+#                         start_date = "2019-01-01",
+#                         end_date = "2019-10-28")
+#
+#   if (purrr::is_null(dea_cube)) {
+#     skip("DEAFRICA is not accessible")
+#   }
+#
+#   expect_true(all(sits_bands(dea_cube) %in% c("B01", "B04", "B05")))
+#
+#   file_info <- dea_cube$file_info[[1]]
+#   r <- .sits_raster_api_open_rast(file_info$path[[1]])
+#
+#   expect_equal(dea_cube$xmax[[1]], .sits_raster_api_xmax(r), tolerance = 1)
+#   expect_equal(dea_cube$xmin[[1]], .sits_raster_api_xmin(r), tolerance = 1)
+# })
 
 test_that("Merging cubes", {
 
@@ -137,7 +141,7 @@ test_that("Merging cubes", {
         bands = "NDVI",
         data_dir = data_dir,
         delim = "_",
-        parse_info = c("X1", "X2", "band", "date")
+        parse_info = c("X1", "X2", "tile", "band", "date")
     )
 
     evi_cube <- sits_cube(
@@ -148,7 +152,7 @@ test_that("Merging cubes", {
       bands = "EVI",
       data_dir = data_dir,
       delim = "_",
-      parse_info = c("X1", "X2", "band", "date")
+      parse_info = c("X1", "X2", "tile", "band", "date")
     )
     cube_merge <- sits_merge(ndvi_cube, evi_cube)
 
@@ -262,7 +266,7 @@ test_that("Cube copy", {
         sensor = "AWFI",
         resolution = "64m",
         data_dir = data_dir,
-        parse_info = c("X1", "X2", "band", "date")
+        parse_info = c("X1", "X2", "tile", "band", "date")
     )
 
     bbox <- sits_bbox(cbers_022024)
@@ -295,7 +299,7 @@ test_that("Creating a raster stack cube and renaming bands", {
         resolution = "64m",
         data_dir = data_dir,
         delim = "_",
-        parse_info = c("X1", "X2", "band", "date")
+        parse_info = c("X1", "X2", "tile", "band", "date")
     )
     expect_true(all(sits_bands(cbers_cube2) %in%
                         c("B13", "B14", "B15", "B16", "CMASK")))
@@ -318,7 +322,7 @@ test_that("Creating a raster stack cube with BDC band names", {
     sensor = "AWFI",
     resolution = "64m",
     data_dir = data_dir,
-    parse_info = c("X1", "X2", "X3", "X4", "X5", "X6", "date", "X7", "band")
+    parse_info = c("X1", "X2", "X3", "X4", "X5", "tile", "date", "X6", "band")
   )
   expect_true(all(sits_bands(cbers_cube_bdc) %in%
                     c("B13", "B14", "B15", "B16", "CMASK")))

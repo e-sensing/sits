@@ -12,7 +12,7 @@ test_that("One-year, multicore classification with ROI", {
         sensor = "MODIS",
         data_dir = data_dir,
         delim = "_",
-        parse_info = c("X1", "X2", "band", "date")
+        parse_info = c("X1", "X2", "tile", "band", "date")
     )
 
     bbox <- sits_bbox(sinop)
@@ -55,7 +55,7 @@ test_that("Functions that work with ROI", {
         sensor = "MODIS",
         data_dir = data_dir,
         delim = "_",
-        parse_info = c("X1", "X2", "band", "date")
+        parse_info = c("X1", "X2", "tile", "band", "date")
     )
     # create a roi
     roi <- sits_bbox(cube)
@@ -99,7 +99,7 @@ test_that("Internal functions in ROI", {
         sensor = "MODIS",
         data_dir = data_dir,
         delim = "_",
-        parse_info = c("X1", "X2", "band", "date")
+        parse_info = c("X1", "X2", "tile", "band", "date")
     )
     # create a roi
     roi <- sits_bbox(cube)
