@@ -333,19 +333,20 @@ sits_config_show <- function() {
 #' @name .sits_config_cube_access
 #' @keywords internal
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
-#' @param url  URL for access to the BDC STAC
+#' @param url  URL for access to the cube
 #' @param name service name
 #'
 #' @return TRUE/FALSE
 .sits_config_cube_access <- function(url, name) {
-    access <- tryCatch({
-        httr::GET(url)
-        return(TRUE)
-    }, error = function(e){
-        message(paste0(name, " is not accessible using URL ", url))
-        return(FALSE)
-    })
-    return(access)
+
+    access <- httr::GET(url)
+
+    # did we get the data?
+    if (httr::http_error(access)) {
+      message(paste0(name, " is not accessible using URL ", url))
+      return(FALSE)
+    }
+    return(TRUE)
 }
 #' @title Test if files in a raster cube are
 #' @name .sits_config_cube_file_access

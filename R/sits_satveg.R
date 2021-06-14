@@ -169,10 +169,11 @@
         satveg <- httr::GET(url_ts)
 
         # did we get the data?
-        if (grepl("Acesso", satveg)) {
+        if (httr::http_error(satveg)) {
             message("SATVEG service not accessible")
             return(NULL)
         }
+
         # Retrieve the time series
         # find the place where the series ends and the dates start
         pos1 <- regexpr("listaDatas", satveg)
