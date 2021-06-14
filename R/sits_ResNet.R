@@ -72,7 +72,7 @@
 #' point <- sits_select(point_mt_6bands,
 #'     bands = c("NDVI", "EVI", "NIR", "MIR")
 #' )
-#' class <- sits_classify(point.tb, rn_model)
+#' class <- sits_classify(point, rn_model)
 #' plot(class, bands = c("NDVI", "EVI"))
 #' }
 #' @export

@@ -133,7 +133,7 @@ sits_config_show <- function() {
 #'
 #' @return directory where BDC is accessible on the web
 .sits_config_aws_endpoint <- function(source) {
-    return(sits_env$config[["AWS_ENDPOINT"]][[source]])
+    return(sits_env$config[["AWS_S3_ENDPOINT"]][[source]])
 }
 #' @title Read the AWS end point from configuration file
 #' @name .sits_config_aws_request_payer
