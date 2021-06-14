@@ -6,7 +6,7 @@
 #    "AWS_ACCESS_KEY_ID"     = <your_access_key>,
 #    "AWS_SECRET_ACCESS_KEY" = <your_secret_access_key>,
 #    "AWS_DEFAULT_REGION"    = <your AWS region>,
-#    "AWS_ENDPOINT" = "sentinel-s2-l2a.s3.amazonaws.com",
+#    "AWS_S3_ENDPOINT" = "s3.amazonaws.com",
 #    "AWS_REQUEST_PAYER"     = "requester"
 # )
 
