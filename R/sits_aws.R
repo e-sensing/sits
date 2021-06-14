@@ -38,11 +38,11 @@
         Sys.setenv(AWS_DEFAULT_REGION = aws_region)
     }
 
-    # check "AWS_ENDPOINT" - if not available, use the default
-    aws_endpoint <- Sys.getenv("AWS_ENDPOINT")
+    # check "AWS_S3_ENDPOINT" - if not available, use the default
+    aws_endpoint <- Sys.getenv("AWS_S3_ENDPOINT")
     if (nchar(aws_endpoint) == 0) {
         aws_endpoint <- .sits_config_aws_endpoint(source)
-        Sys.setenv(AWS_ENDPOINT = aws_endpoint)
+        Sys.setenv(AWS_S3_ENDPOINT = aws_endpoint)
     }
 
     # check "AWS_REQUEST_PAYER" - if not available, use the default
