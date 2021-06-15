@@ -10,7 +10,7 @@
 \alias{sits_get_data.shp_raster_cube}
 \title{Obtain time series from different sources}
 \usage{
-sits_get_data(cube, file = NULL, ...)
+sits_get_data(cube, file = NULL, ..., multicores = 1)
 
 \method{sits_get_data}{satveg_cube}(
   cube,
@@ -55,6 +55,7 @@ sits_get_data(cube, file = NULL, ...)
   ...,
   bands = NULL,
   impute_fn = sits_impute_linear(),
+  multicores = 1,
   .n_pts_csv = NULL
 )
 
@@ -67,6 +68,7 @@ sits_get_data(cube, file = NULL, ...)
   bands = NULL,
   label = "NoClass",
   impute_fn = sits_impute_linear(),
+  multicores = 1,
   shp_attr = NULL,
   .n_shp_pol = 30
 )
@@ -77,6 +79,8 @@ sits_get_data(cube, file = NULL, ...)
 \item{file}{File with information on the data to be retrieved.}
 
 \item{...}{Other parameters to be passed for specific types.}
+
+\item{multicores}{Number of threads to process the time series.}
 
 \item{longitude}{Longitude of the chosen location.}
 
