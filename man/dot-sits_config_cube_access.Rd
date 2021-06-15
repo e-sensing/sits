@@ -7,7 +7,7 @@
 .sits_config_cube_access(url, name)
 }
 \arguments{
-\item{url}{URL for access to the BDC STAC}
+\item{url}{URL for access to the cube}
 
 \item{name}{service name}
 }

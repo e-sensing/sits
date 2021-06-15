@@ -183,7 +183,7 @@
         t <- substr(satveg, 16, pos1)
         # convert the time series to vector format
         ts <- tibble::tibble(as.double(unlist(strsplit(t, ","))))
-        names(ts) <- b
+        names(ts) <- toupper(b)
         # read the timeline only once
         if (gt) {
             timeline <- .sits_satveg_timeline_from_txt(satveg)
@@ -194,8 +194,12 @@
         }
         return(ts)
     })
+    # hack - SATVEG has different timelines for EVI and NDVI bands - 15 June 2021
+    if (nrow(ts_bands_lst[[1]]) == nrow(ts_bands_lst[[2]]))
+        ts_satveg <- tibble::as_tibble(do.call(cbind, ts_bands_lst))
+    else
+        ts_satveg <- ts_bands_lst[[1]]
 
-    ts_satveg <- tibble::as_tibble(do.call(cbind, ts_bands_lst))
     return(ts_satveg)
 }
 
