@@ -709,9 +709,6 @@
             # delete temp files
             if (delete_files) unlink(srcfile)
 
-            # call garbage collector
-            # gc()
-
             return(dstfile)
         })
 
