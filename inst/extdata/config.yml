@@ -23,6 +23,7 @@ default:
     # BDC configuration for access to data
     bdc_stac                : "https://brazildatacube.dpi.inpe.br/stac/"
     bdc_extension           : ["tif"]
+    bdc_wtss_server         : "https://brazildatacube.dpi.inpe.br/wtss/"
 
     # EOAfrica configuration for access to data
     deafrica_stac           : "https://explorer.digitalearth.africa/stac/"
