@@ -308,10 +308,7 @@
 
     # Retrieve values on a band by band basis
     # using parallel processing
-    oplan <- future::plan(strategy = "sequential")
-    on.exit(future::plan(oplan))
-
-    ts_bands <- furrr::future_map(bands, function(band) {
+    ts_bands <- .sits_parallel_map(bands, function(band) {
 
             # get the values of the time series as matrix
             values_band <- .sits_cube_extract(cube, band, xy)

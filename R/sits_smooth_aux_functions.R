@@ -174,7 +174,8 @@
         res <- .sits_raster_api_crop(res, block = blk_no_overlap)
 
         # export to temp file
-        filename <- tempfile(fileext = ".tif")
+        filename <- tempfile(tmpdir = dirname(cube$file_info[[1]]$path),
+                             fileext = ".tif")
 
         # save chunk
         .sits_raster_api_write_rast(

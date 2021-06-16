@@ -15,7 +15,7 @@
 .onLoad <- function(lib, pkg) {
     Sys.setenv(R_CONFIG_ACTIVE = "default")
     Sys.setenv(R_CONFIG_FILE = "config.yml")
-    Sys.setenv(R_FUTURE_RNG_ONMISUSE = "ignore")
+    # Sys.setenv(R_FUTURE_RNG_ONMISUSE = "ignore")
     Sys.setenv(TF_CPP_MIN_LOG_LEVEL = "2")
     sits_config()
 }

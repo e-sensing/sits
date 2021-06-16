@@ -40,6 +40,7 @@
 #' @param cube            Data cube from where data is to be retrieved.
 #' @param file            File with information on the data to be retrieved.
 #' @param ...             Other parameters to be passed for specific types.
+#' @param multicores      Number of threads to process the time series.
 #' @param longitude       Longitude of the chosen location.
 #' @param latitude        Latitude of the chosen location.
 #' @param start_date      Start of the interval for the time series
@@ -92,7 +93,8 @@
 #'
 sits_get_data <- function(cube,
                           file = NULL,
-                          ...) {
+                          ...,
+                          multicores = 1) {
 
     # is there a shapefile or a CSV file?
     if (!purrr::is_null(file)) {
@@ -342,6 +344,7 @@ sits_get_data.raster_cube <- function(cube, file = NULL, ...,
 sits_get_data.csv_raster_cube <- function(cube, file, ...,
                                           bands = NULL,
                                           impute_fn = sits_impute_linear(),
+                                          multicores = 1,
                                           .n_pts_csv = NULL) {
 
     # precondition - are the files in the cube accessible?
@@ -375,6 +378,10 @@ sits_get_data.csv_raster_cube <- function(cube, file, ...,
         cld_band <- NULL
     }
 
+    # prepare parallelization
+    .sits_parallel_start(workers = multicores)
+    on.exit(.sits_parallel_stop(), add = TRUE)
+
     ts_rows <- slider::slide(cube, function(tile) {
         # get the data
         ts <- .sits_raster_data_get_ts(
@@ -407,6 +414,7 @@ sits_get_data.shp_raster_cube <- function(cube, file, ...,
                                           bands = NULL,
                                           label = "NoClass",
                                           impute_fn = sits_impute_linear(),
+                                          multicores = 1,
                                           shp_attr = NULL,
                                           .n_shp_pol = 30) {
 
@@ -446,6 +454,10 @@ sits_get_data.shp_raster_cube <- function(cube, file, ...,
     } else {
         cld_band <- NULL
     }
+
+    # prepare parallelization
+    .sits_parallel_start(workers = multicores)
+    on.exit(.sits_parallel_stop(), add = TRUE)
 
     # for each row of the cube, get the points inside
     ts_rows <- slider::slide(cube, function(row) {
