@@ -161,6 +161,14 @@ sits_config_show <- function() {
 .sits_config_aws_stac <- function() {
   return(sits_env$config$aws_stac)
 }
+#' @title Directory to read the USGS STAC catalogue
+#' @name .sits_config_usgs_stac
+#' @keywords internal
+#'
+#' @return directory where USGS is accessible on the web
+.sits_config_usgs_stac <- function() {
+  return(sits_env$config$usgs_stac)
+}
 #' @title Retrieve the bands associated to DEAfrica STAC
 #' @name .sits_config_sensor_bands
 #' @param sensor   Type of sensor of cube

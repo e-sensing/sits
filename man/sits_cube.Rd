@@ -159,6 +159,7 @@ Currently, users can create data cube from the following sources:
  \item{"DEAFRICA": }{Digital Earth Africa, see also
  https://www.digitalearthafrica.org/}
  \item{"AWS": }{Amazon Web Services (AWS)}
+ \item{"USGS": }{United States Geological Survey (USGS)}
  \item{"LOCAL": }{Defines a cube from on a set of local files.}
  \item{"PROBS": }{Defines a cube to from a set of classified image files}.
  \item{"SATVEG": }{Defines a cube to use the SATVEG web service.}
@@ -203,6 +204,10 @@ the `s2_resolution` parameter.
 
 For DEA, sits currently only works with collections 'ga_s2_gm' and
 's2_l2a'. DEA users also need to provide their AWS credentials.
+
+For USGS, use the 'landsat-c2l2-sr' collection to consult the Landsat-8
+satellite images. In order to do so, you need to provide the AWS keys as
+mentioned above.
 
 BDC users need to provide their credentials using environmental
 variables.
@@ -280,6 +285,21 @@ s2_cube <- sits_cube(source = "AWS",
                       start_date = as.Date("2018-07-18"),
                       end_date = as.Date("2018-07-23"),
                       s2_resolution = 20
+)
+
+# --- Access to Landsat-8 level 2 data in AWS
+# Provide your AWS credentials as environment variables
+Sys.setenv(
+    "AWS_ACCESS_KEY_ID" = <your_aws_access_key>,
+    "AWS_SECRET_ACCESS_KEY" = <your_aws_secret_access_key>
+)
+
+l8_cube <- sits_cube(source = "USGS",
+                     name = "L8_CUBE_140048_140045_18_2019",
+                     collection = "landsat-c2l2-sr",
+                     tiles = c("140048", "140045"),
+                     start_date = as.Date("2019-01-01"),
+                     end_date = as.Date("2019-12-31"),
 )
 
 # --- Create a cube based on a stack of CBERS data
