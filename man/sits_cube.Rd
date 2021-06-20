@@ -5,6 +5,7 @@
 \alias{sits_cube.bdc_cube}
 \alias{sits_cube.deafrica_cube}
 \alias{sits_cube.aws_cube}
+\alias{sits_cube.usgs_cube}
 \alias{sits_cube.local_cube}
 \alias{sits_cube.probs_cube}
 \alias{sits_cube.satveg_cube}
@@ -48,6 +49,19 @@ sits_cube(source, ...)
   bands = NULL,
   bbox = NULL,
   s2_resolution = 20,
+  start_date = NULL,
+  end_date = NULL
+)
+
+\method{sits_cube}{usgs_cube}(
+  source = "USGS",
+  ...,
+  name = "usgs_cube",
+  url = NULL,
+  collection = "landsat-c2l2-sr",
+  tiles = NULL,
+  bands = NULL,
+  bbox = NULL,
   start_date = NULL,
   end_date = NULL
 )
