@@ -1,15 +1,33 @@
-#' Use the given samples to select new samples.
+#' Use the given samples to automatically collect new samples.
 #'
-#' @param sits_tb    A sits tibble.
-#' @param sits_model A sits model specification.
-#' @param data_cube  A sits data cube.
-#' @param threshold  The minimum probability for automaticaly including a new sample.
-#' @param iterations The number of iterations.
-#' @return           A sits tibble.
+#' @param samples_tb      A sits tibble.
+#' @param sits_method     A sits model specification.
+#' @param data_cube       A sits data cube.
+#' @param n_samples       The number of random points to take.
+#' @param min_probability The minimum probability for automatically including new samples.
+#' @param max_entropy     The maximum entropy for consider a sample for the oracle.
+#' @return                A list with two sits tibbles: One for new samples and another for a human expert to review.
 #'
+#'@examples
+#'\dontrun{
+#' samples_tb <- sits_select(samples_modis_3bands, bands = c("NDVI", "EVI"))
+#' sits_method <- sits_xgboost(verbose = FALSE)
+#' data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
+#' data_cube <- sits_cube(source = "LOCAL",
+#'                        name = "sinop-2014",
+#'                        satellite = "TERRA",
+#'                        sensor = "MODIS",
+#'                        data_dir = data_dir,
+#'                        delim = "_",
+#'                        parse_info = c("X1", "X2", "tile", "band", "date") )
+#' sits_active_learning(samples_tb, sits_method, data_cube)
+#'}
 #' @export
 sits_active_learning <- function(samples_tb, sits_method,
-                                 data_cube, n_samples = 100){
+                                 data_cube,
+                                 n_samples = 100,
+                                 min_probability = 0.95,
+                                 max_entropy = 0.1){
 
     # Get the extent of the data cube.
     xmin <- data_cube[["xmin"]]
@@ -41,7 +59,7 @@ sits_active_learning <- function(samples_tb, sits_method,
     # Get the points' time series.
     tmp_file <- tempfile(pattern = "points_",
                          fileext = ".csv")
-    write.csv(points_tb, file = tmp_file)
+    utils::write.csv(points_tb, file = tmp_file)
     points_tb <- sits_get_data(cube = data_cube,
                                file = tmp_file)
 
@@ -71,5 +89,8 @@ sits_active_learning <- function(samples_tb, sits_method,
         x[["entropy"]]
     }))
 
-    return(points_tb)
+    new_samples    <- points_tb[points_tb["label_prob"] > min_probability, ]
+    oracle_samples <- points_tb[points_tb["entropy"] < max_entropy, ]
+    return(list(new_samples = new_samples,
+                oracle_samples = oracle_samples))
 }
