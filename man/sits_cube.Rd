@@ -294,6 +294,7 @@ Sys.setenv(
     "AWS_SECRET_ACCESS_KEY" = <your_aws_secret_access_key>
 )
 
+
 l8_cube <- sits_cube(source = "USGS",
                      name = "L8_CUBE_140048_140045_18_2019",
                      collection = "landsat-c2l2-sr",

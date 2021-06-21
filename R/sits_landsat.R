@@ -70,16 +70,15 @@
     # progress bar status
     pgr_fetch  <- FALSE
 
-    # TODO: PR on this feature in rstac package
     # if more than 1000 items are found the progress bar is displayed
-    # if (rstac::items_matched(items_info,
-    #                         path_row = c("meta", "found")) > 1000)
-    #     pgr_fetch <- TRUE
+    if (rstac::items_matched(items_info,
+                             path_row = c("meta", "found")) > 1000)
+        pgr_fetch <- TRUE
 
     # fetching all the metadata and updating to upper case instruments
-    #items_info <- rstac::items_fetch(items_info,
-    #                                 progress = pgr_fetch,
-    #                                 path_row = c("meta", "found"))
+    items_info <- rstac::items_fetch(items_info,
+                                     progress = pgr_fetch,
+                                     path_row = c("meta", "found"))
 
     # getting sensor name
     sensor <- .sits_config_sensors("LANDSAT-8")
@@ -208,11 +207,11 @@
     # get stac bands
     bands <- items[["bands"]]
 
-    # get an example image
-    img_usgs <- .sits_raster_api_open_rast(file_info[1,]$path)
+    # get params from an example image
+    params <- .sits_raster_api_params_file(file_info$path[1])
 
-    # get and format image crs
-    item_prop[["proj:epsg"]] <- .sits_format_crs(.sits_raster_api_crs(img_usgs))
+    # format image crs
+    item_prop[["proj:epsg"]] <- .sits_format_crs(params[["crs"]])
 
     # obtain bbox extent
     bbox <- .sits_stac_get_bbox(items, item_prop[["proj:epsg"]])
@@ -235,8 +234,8 @@
         tile       = item_prop[["tile"]],
         bands      = bands,
         labels     = labels,
-        nrows      = .sits_raster_api_nrows(img_usgs)[[1]],
-        ncols      = .sits_raster_api_ncols(img_usgs)[[1]],
+        nrows      = params[["nrows"]],
+        ncols      = params[["ncols"]],
         xmin       = bbox[["xmin"]],
         xmax       = bbox[["xmax"]],
         ymin       = bbox[["ymin"]],
