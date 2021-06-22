@@ -1,5 +1,10 @@
-#' Use the given samples to automatically collect new samples.
+#' @title Use the given samples to automatically collect new samples.
 #'
+#' @name sits_active_learning
+#'
+#' @author Alber Sanchez, \email{alber.ipia@@inpe.br}
+#'
+#' @description
 #' Active Learning improves the results of a classification by feeding the
 #' classifier with informative samples. This function returns two sits tibbles:
 #' The first (new_samples) contains new samples with certainty above
@@ -42,7 +47,9 @@
 # # The oracle_samples are meant to be reviewed by humans.
 # al$oracle_samples
 #'}
+#'
 #' @export
+#'
 sits_active_learning <- function(samples_tb, sits_method,
                                  data_cube,
                                  n_samples = 100,

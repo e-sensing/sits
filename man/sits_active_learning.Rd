@@ -36,8 +36,7 @@ The first (new_samples) contains new samples with certainty above
 min_probability. The second (oracle_samples) contains samples of
 low confidence (their entropy is above min_entropy). The samples in both
 tibbles are selected randomly inside the extent of data_cube.
-}
-\details{
+
 The new_samples can be merged with samples_tb to increase the number of
 training samples while the oracle_samples, after human inspection, would
 provide the classifier with extra information where it has low confidence.
@@ -45,4 +44,8 @@ provide the classifier with extra information where it has low confidence.
 \examples{
 \dontrun{
 }
+
+}
+\author{
+Alber Sanchez, \email{alber.ipia@inpe.br}
 }
