@@ -24,29 +24,29 @@
 #' @param min_entropy     The minimum entropy for consider a sample for the oracle.
 #' @return                A list with two sits tibbles: One for new samples and another for a human expert to review.
 #'
-#'@examples
-#'\dontrun{
-# # Prepare a classification.
-# samples_tb <- sits_select(samples_modis_4bands, bands = c("NDVI", "EVI"))
-# sits_method <- sits_xgboost(verbose = FALSE)
-# data_cube <- sits_cube(source = "LOCAL",
-#                        name = "sinop-2014",
-#                        satellite = "TERRA",
-#                        sensor = "MODIS",
-#                        data_dir = system.file("extdata/raster/mod13q1",
-#                                               package = "sits"),
-#                        delim = "_",
-#                        parse_info = c("X1", "X2", "tile", "band", "date"))
-#
-# # Run sits' active learning
-# al <- sits_active_learning(samples_tb, sits_method, data_cube)
-#
-# # Use new_samples to increase the number available samples
-# rbind(samples_tb, al$new_samples[colnames(samples_tb)])
-#
-# # The oracle_samples are meant to be reviewed by humans.
-# al$oracle_samples
-#'}
+#' @examples
+#' \donttest{
+#' # Prepare a classification.
+#' samples_tb <- sits_select(samples_modis_4bands, bands = c("NDVI", "EVI"))
+#' sits_method <- sits_xgboost(verbose = FALSE)
+#' data_cube <- sits_cube(source = "LOCAL",
+#'                        name = "sinop-2014",
+#'                        satellite = "TERRA",
+#'                        sensor = "MODIS",
+#'                        data_dir = system.file("extdata/raster/mod13q1",
+#'                                               package = "sits"),
+#'                        delim = "_",
+#'                        parse_info = c("X1", "X2", "tile", "band", "date"))
+#'
+#' # Run sits' active learning
+#' al <- sits_active_learning(samples_tb, sits_method, data_cube)
+#'
+#' # Use new_samples to increase the number available samples
+#' rbind(samples_tb, al$new_samples[colnames(samples_tb)])
+#'
+#' # The oracle_samples are meant to be reviewed by humans.
+#' al$oracle_samples
+#' }
 #'
 #' @export
 #'
