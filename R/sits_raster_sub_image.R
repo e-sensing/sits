@@ -11,6 +11,37 @@
     # if roi is null, returns TRUE
     if (purrr::is_null(roi)) return(TRUE)
 
+    # check if roi is a sf object
+    if (inherits(roi, "sf")) {
+
+        # check for roi crs
+        if (is.null(sf::st_crs(roi))) {
+            stop(".sits_raster_sub_image_intersects: invalid roi crs",
+                 call. = FALSE)
+        }
+
+        # reproject roi to cube crs
+        roi <- suppressWarnings(sf::st_transform(roi, cube$crs[[1]]))
+
+        # region of cube tile
+        df <- data.frame(
+            X = c(cube[["xmin"]][[1]], cube[["xmax"]][[1]],
+                  cube[["xmax"]][[1]], cube[["xmin"]][[1]]),
+            Y = c(cube[["ymin"]][[1]], cube[["ymin"]][[1]],
+                  cube[["ymax"]][[1]], cube[["ymax"]][[1]])
+        )
+
+        # compute tile polygon
+        sf_region <-
+            sf::st_as_sf(df, coords = c("X", "Y"), crs = cube$crs[[1]]) %>%
+            dplyr::summarise(geometry = sf::st_combine(geometry)) %>%
+            sf::st_cast("POLYGON") %>%
+            suppressWarnings()
+
+        # check for intersection
+        return(apply(sf::st_intersects(sf_region, roi), 1, any))
+    }
+
     # if the ROI is defined, calculate the bounding box
     bbox_roi <- .sits_roi_bbox(roi, cube)
 
