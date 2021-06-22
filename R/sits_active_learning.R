@@ -1,33 +1,49 @@
 #' Use the given samples to automatically collect new samples.
 #'
+#' Active Learning helps to improve the results of a classification by feeding
+#' the classifier with the most informative samples. This function returns two
+#' sits tibbles: The first (new_samples) contains samples of which the
+#' classifier's certainty above the min_probability. The second (oracle_samples)
+#' contains samples of which the classifier is not as confident (their entropy
+#' is above the min_entropy). The samples in both tibbles are selected randomly.
+#'
 #' @param samples_tb      A sits tibble.
 #' @param sits_method     A sits model specification.
 #' @param data_cube       A sits data cube.
 #' @param n_samples       The number of random points to take.
 #' @param min_probability The minimum probability for automatically including new samples.
-#' @param max_entropy     The maximum entropy for consider a sample for the oracle.
+#' @param min_entropy     The minimum entropy for consider a sample for the oracle.
 #' @return                A list with two sits tibbles: One for new samples and another for a human expert to review.
 #'
 #'@examples
 #'\dontrun{
-#' samples_tb <- sits_select(samples_modis_3bands, bands = c("NDVI", "EVI"))
-#' sits_method <- sits_xgboost(verbose = FALSE)
-#' data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
-#' data_cube <- sits_cube(source = "LOCAL",
-#'                        name = "sinop-2014",
-#'                        satellite = "TERRA",
-#'                        sensor = "MODIS",
-#'                        data_dir = data_dir,
-#'                        delim = "_",
-#'                        parse_info = c("X1", "X2", "tile", "band", "date") )
-#' sits_active_learning(samples_tb, sits_method, data_cube)
+# # Prepare a classification.
+# samples_tb <- sits_select(samples_modis_4bands, bands = c("NDVI", "EVI"))
+# sits_method <- sits_xgboost(verbose = FALSE)
+# data_cube <- sits_cube(source = "LOCAL",
+#                        name = "sinop-2014",
+#                        satellite = "TERRA",
+#                        sensor = "MODIS",
+#                        data_dir = system.file("extdata/raster/mod13q1",
+#                                               package = "sits"),
+#                        delim = "_",
+#                        parse_info = c("X1", "X2", "tile", "band", "date"))
+#
+# # Run sits' active learning
+# al <- sits_active_learning(samples_tb, sits_method, data_cube)
+#
+# # Use new_samples to increase the number available samples
+# rbind(samples_tb, al$new_samples[colnames(samples_tb)])
+#
+# # The oracle_samples are meant to be reviewed by humans.
+# al$oracle_samples
 #'}
 #' @export
 sits_active_learning <- function(samples_tb, sits_method,
                                  data_cube,
                                  n_samples = 100,
                                  min_probability = 0.95,
-                                 max_entropy = 0.1){
+                                 min_entropy = 0.5){
 
     # Get the extent of the data cube.
     xmin <- data_cube[["xmin"]]
@@ -90,7 +106,7 @@ sits_active_learning <- function(samples_tb, sits_method,
     }))
 
     new_samples    <- points_tb[points_tb["label_prob"] > min_probability, ]
-    oracle_samples <- points_tb[points_tb["entropy"] < max_entropy, ]
+    oracle_samples <- points_tb[points_tb["entropy"] > min_entropy, ]
     return(list(new_samples = new_samples,
                 oracle_samples = oracle_samples))
 }
