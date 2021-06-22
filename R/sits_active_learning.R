@@ -1,11 +1,15 @@
 #' Use the given samples to automatically collect new samples.
 #'
-#' Active Learning helps to improve the results of a classification by feeding
-#' the classifier with the most informative samples. This function returns two
-#' sits tibbles: The first (new_samples) contains samples of which the
-#' classifier's certainty above the min_probability. The second (oracle_samples)
-#' contains samples of which the classifier is not as confident (their entropy
-#' is above the min_entropy). The samples in both tibbles are selected randomly.
+#' Active Learning improves the results of a classification by feeding the
+#' classifier with informative samples. This function returns two sits tibbles:
+#' The first (new_samples) contains new samples with certainty above
+#' min_probability. The second (oracle_samples) contains samples of
+#' low confidence (their entropy is above min_entropy). The samples in both
+#' tibbles are selected randomly inside the extent of data_cube.
+#'
+#' The new_samples can be merged with samples_tb to increase the number of
+#' training samples while the oracle_samples, after human inspection, would
+#' provide the classifier with extra information where it has low confidence.
 #'
 #' @param samples_tb      A sits tibble.
 #' @param sits_method     A sits model specification.
