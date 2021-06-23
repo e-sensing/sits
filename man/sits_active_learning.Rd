@@ -42,7 +42,7 @@ training samples while the oracle_samples, after human inspection, would
 provide the classifier with extra information where it has low confidence.
 }
 \examples{
-\donttest{
+\dontrun{
 # Prepare a classification.
 samples_tb <- sits_select(samples_modis_4bands, bands = c("NDVI", "EVI"))
 sits_method <- sits_xgboost(verbose = FALSE)

@@ -25,7 +25,7 @@
 #' @return                A list with two sits tibbles: One for new samples and another for a human expert to review.
 #'
 #' @examples
-#' \donttest{
+#' \dontrun{
 #' # Prepare a classification.
 #' samples_tb <- sits_select(samples_modis_4bands, bands = c("NDVI", "EVI"))
 #' sits_method <- sits_xgboost(verbose = FALSE)
