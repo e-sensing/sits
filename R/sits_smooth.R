@@ -147,7 +147,7 @@ sits_smooth.bayes <- function(cube, type = "bayes", ...,
     } else {
         assertthat::assert_that(
             smoothness > 1,
-            msg = "sits_smooth: smoothness must be more than 1"
+            msg = "sits_smooth: smoothness must be greater than 1"
         )
         smoothness <- diag(smoothness, nrow = n_labels, ncol = n_labels)
     }
