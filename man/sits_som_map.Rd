@@ -11,7 +11,8 @@ sits_som_map(
   alpha = 1,
   rlen = 100,
   distance = "euclidean",
-  som_radius = 2
+  som_radius = 2,
+  mode = "online"
 )
 }
 \arguments{
@@ -29,6 +30,8 @@ sits_som_map(
 \item{distance}{The type of similarity measure (distance).}
 
 \item{som_radius}{Radius of SOM neighborhood}
+
+\item{mode}{Type of learning algorithm (default = "online")}
 }
 \value{
 A list of tibbles containing statistics
