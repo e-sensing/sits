@@ -68,7 +68,7 @@ default:
     MODIS                   :
         bands               :
             SITS            : &modis_bands_sits ["BLUE", "RED", "NIR", "MIR", "NDVI", "EVI", "RELIABILITY"]
-            LOCAL           : ["blue_reflectance", "red_reflectance", "NIR_reflectance", "MIR_reflectance", "NDVI", "EVI", "pixel_reliability"]
+            LOCAL           : *modis_bands_sits
             cloud_band      : "RELIABILITY"
 
         RELIABILITY_values  :
