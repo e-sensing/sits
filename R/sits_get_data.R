@@ -117,6 +117,46 @@ sits_get_data <- function(cube,
 #'
 #' @export
 #'
+sits_get_data.wtss_cube <- function(cube, file = NULL, ...,
+                                    longitude = NULL,
+                                    latitude = NULL,
+                                    start_date = NULL,
+                                    end_date = NULL,
+                                    bands = NULL,
+                                    label = "NoClass") {
+
+    # Precondition - lat/long must be provided
+    assertthat::assert_that(!purrr::is_null(latitude) &
+                                !purrr::is_null(longitude),
+                            msg = paste("sits_get_data: latitude/longitude",
+                                        "must be provided")
+    )
+
+    # Precondition - check bands
+    bands <- .sits_cube_bands_check(cube, bands)
+
+    # Precondition - check and get start and end dates
+    start_end <- .sits_timeline_check_cube(cube, start_date, end_date)
+
+    data <- .sits_from_wtss(
+        cube = cube,
+        longitude = longitude,
+        latitude = latitude,
+        start_date = start_end["start_date"],
+        end_date = start_end["end_date"],
+        bands = bands,
+        label = label
+    )
+    if (!purrr::is_null(data) && !("sits" %in% class(data))) {
+        class(data) <- c("sits", class(data))
+    }
+    return(data)
+}
+
+#' @rdname sits_get_data
+#'
+#' @export
+#'
 sits_get_data.satveg_cube <- function(cube,
                                       file = NULL,
                                       ...,
@@ -153,6 +193,51 @@ sits_get_data.satveg_cube <- function(cube,
     }
     return(data)
 }
+#' @rdname sits_get_data
+#'
+#' @export
+#'
+sits_get_data.csv_wtss_cube <- function(cube, file, ..., bands = NULL) {
+
+    # read sample information from CSV file and put it in a tibble
+    csv <- tibble::as_tibble(utils::read.csv(file))
+
+    # Precondition - check if CSV file is correct
+    .sits_csv_check(csv)
+
+    # Precondition - check bands
+    bands <- .sits_cube_bands_check(cube, bands)
+
+    # for each row of the input, retrieve the time series
+    data_lst <- purrr::pmap(
+        list(
+            csv$longitude,
+            csv$latitude,
+            csv$start_date,
+            csv$end_date,
+            csv$label
+        ),
+        function(longitude, latitude, start_date, end_date, label) {
+            row <- .sits_from_wtss(
+                cube = cube,
+                longitude = longitude,
+                latitude = latitude,
+                start_date = lubridate::as_date(start_date),
+                end_date = lubridate::as_date(end_date),
+                bands = bands,
+                label = label
+            )
+            return(row)
+        }
+    )
+    # unroll the list
+    data <- dplyr::bind_rows(data_lst)
+    # check if data has been retrieved
+    .sits_get_data_check(nrow(csv), nrow(data))
+
+    return(data)
+}
+
 #' @rdname sits_get_data
 #'
 #' @export
@@ -208,6 +293,63 @@ sits_get_data.csv_satveg_cube <- function(cube, file, ...) {
 
     # check if data has been retrieved
     .sits_get_data_check(nrow(csv), nrow(data))
+
+    return(data)
+}
+
+#' @rdname sits_get_data
+#'
+#' @export
+#'
+sits_get_data.shp_wtss_cube <- function(cube, file, ...,
+                                        start_date = NULL,
+                                        end_date = NULL,
+                                        bands = NULL,
+                                        label = "NoClass",
+                                        shp_attr = NULL,
+                                        .n_shp_pol = 30) {
+
+    # Precondition - check that the timelines are compatible with the cube
+    start_end <- .sits_timeline_check_cube(cube, start_date, end_date)
+
+    # Precondition - check bands
+    bands <- .sits_cube_bands_check(cube, bands)
+
+    # precondition - check the shape file and its attribute
+    sf_shape <- .sits_shp_check_validity(
+        shp_file = file, shp_attr = shp_attr,
+        label = label
+    )
+    # get the points to be read
+    points <- .sits_points_from_shp(
+        sf_shape = sf_shape, shp_attr = shp_attr,
+        label = label, .n_shp_pol = .n_shp_pol
+    )
+
+    # TODO: substituir pelo furrr?
+    # read the points
+    # for each row of the input, retrieve the time series
+    data_lst <- purrr::pmap(
+        list(
+            points$longitude,
+            points$latitude,
+            points$label
+        ),
+        function(long, lat, lab) {
+            row <- .sits_from_wtss(
+                cube = cube,
+                longitude = long,
+                latitude = lat,
+                start_date = start_end["start_date"],
+                end_date = start_end["end_date"],
+                bands = bands,
+                label = lab
+            )
+            return(row)
+        }
+    )
+    # unroll the list
+    data <- dplyr::bind_rows(data_lst)
 
     return(data)
 }

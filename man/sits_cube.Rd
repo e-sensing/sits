@@ -2,6 +2,7 @@
 % Please edit documentation in R/sits_cube.R
 \name{sits_cube}
 \alias{sits_cube}
+\alias{sits_cube.wtss_cube}
 \alias{sits_cube.bdc_cube}
 \alias{sits_cube.deafrica_cube}
 \alias{sits_cube.aws_cube}
@@ -11,6 +12,16 @@
 \title{Defines a data cube}
 \usage{
 sits_cube(source, ...)
+
+\method{sits_cube}{wtss_cube}(
+  source = "WTSS",
+  name = "wtss_cube",
+  url = NULL,
+  collection,
+  bands = NULL,
+  start_date = NULL,
+  end_date = NULL
+)
 
 \method{sits_cube}{bdc_cube}(
   source = "BDC",
@@ -94,14 +105,14 @@ sits_cube(source, ...)
 
 \item{bands}{Bands to be included}
 
+\item{start_date}{Initial date for the cube (optional).}
+
+\item{end_date}{Final date for the cube  (optional)}
+
 \item{tiles}{Tiles from the collection to be included in the
 data cube}
 
 \item{bbox}{Area of interest (see details below)}
-
-\item{start_date}{Initial date for the cube (optional).}
-
-\item{end_date}{Final date for the cube  (optional)}
 
 \item{s2_resolution}{Resolution of S2 images ("10m", "20m" or "60m")
 used to build cubes (only for AWS cubes)}

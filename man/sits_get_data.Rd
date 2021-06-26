@@ -2,8 +2,11 @@
 % Please edit documentation in R/sits_get_data.R
 \name{sits_get_data}
 \alias{sits_get_data}
+\alias{sits_get_data.wtss_cube}
 \alias{sits_get_data.satveg_cube}
+\alias{sits_get_data.csv_wtss_cube}
 \alias{sits_get_data.csv_satveg_cube}
+\alias{sits_get_data.shp_wtss_cube}
 \alias{sits_get_data.shp_satveg_cube}
 \alias{sits_get_data.raster_cube}
 \alias{sits_get_data.csv_raster_cube}
@@ -11,6 +14,18 @@
 \title{Obtain time series from different sources}
 \usage{
 sits_get_data(cube, file = NULL, ..., multicores = 1)
+
+\method{sits_get_data}{wtss_cube}(
+  cube,
+  file = NULL,
+  ...,
+  longitude = NULL,
+  latitude = NULL,
+  start_date = NULL,
+  end_date = NULL,
+  bands = NULL,
+  label = "NoClass"
+)
 
 \method{sits_get_data}{satveg_cube}(
   cube,
@@ -23,7 +38,21 @@ sits_get_data(cube, file = NULL, ..., multicores = 1)
   label = "NoClass"
 )
 
+\method{sits_get_data}{csv_wtss_cube}(cube, file, ..., bands = NULL)
+
 \method{sits_get_data}{csv_satveg_cube}(cube, file, ...)
+
+\method{sits_get_data}{shp_wtss_cube}(
+  cube,
+  file,
+  ...,
+  start_date = NULL,
+  end_date = NULL,
+  bands = NULL,
+  label = "NoClass",
+  shp_attr = NULL,
+  .n_shp_pol = 30
+)
 
 \method{sits_get_data}{shp_satveg_cube}(
   cube,
@@ -92,6 +121,8 @@ in "YYYY-MM-DD" format (optional).}
 \item{end_date}{End of the interval for the time series in
 "YYYY-MM-DD" format (optional).}
 
+\item{bands}{Bands to be retrieved (optional).}
+
 \item{label}{Label to be assigned to the time series (optional).}
 
 \item{shp_attr}{Attribute in the shapefile to be used
@@ -99,8 +130,6 @@ as a polygon label.}
 
 \item{.n_shp_pol}{Number of samples per polygon to be read
 (for POLYGON or MULTIPOLYGON shapefile).}
-
-\item{bands}{Bands to be retrieved (optional).}
 
 \item{impute_fn}{Imputation function for NA values.}
 
