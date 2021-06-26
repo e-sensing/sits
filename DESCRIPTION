@@ -163,6 +163,7 @@ Collate:
     'sits_validate.R'
     'sits_view.R'
     'sits_values.R'
+    'sits_wtss.R'
     'sits_xlsx.R'
     'sits_zoo.R'
     'zzz.R'
