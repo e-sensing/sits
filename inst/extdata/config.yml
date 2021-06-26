@@ -14,8 +14,8 @@ default:
     GTiff_default_options   : ["COMPRESS=LZW", "BIGTIFF=YES"]
 
     # Data cube types known to sits
-    data_sources            : ["WTSS", "SATVEG", "LOCAL", "RASTER", "BDC", "DEAFRICA", "AWS", "PROBS", "CLASSIFIED"]
-    cube_classes            : ["wtss_cube", "satveg_cube", "local_cube", "raster_cube", "bdc_cube", "deafrica_cube", "aws_cube",  "probs_cube", "classified_image"]
+    data_sources            : ["WTSS", "SATVEG", "LOCAL", "RASTER", "BDC", "WTSS", "DEAFRICA", "AWS", "PROBS", "CLASSIFIED"]
+    cube_classes            : ["wtss_cube", "satveg_cube", "local_cube", "raster_cube", "bdc_cube", "wtss_cube", "deafrica_cube", "aws_cube",  "probs_cube", "classified_image"]
 
     # Image file extensions known to SITS
     img_file_extensions     : ["tiff", "tif", "jp2", "hdf", "vrt"]

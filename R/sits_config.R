@@ -329,6 +329,16 @@ sits_config_show <- function() {
     return(sits_env$config$bdc_stac)
 }
 
+#' @title Directory to read the BDC WTSS server
+#' @name .sits_config_wtss_bdc
+#' @keywords internal
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
+#'
+#' @return directory where BDC is accessible on the web
+.sits_config_wtss_bdc <- function() {
+  return(sits_env$config$bdc_wtss_server)
+}
+
 #' @title Test if cube is available via URL
 #' @name .sits_config_cube_access
 #' @keywords internal
