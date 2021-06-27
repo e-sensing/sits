@@ -209,7 +209,7 @@
     params <- .sits_raster_api_params_file(file_info$path[1])
 
     # get the instrument name
-    sensor <- toupper(item_prop[["instruments"]])
+    sensor <- toupper(item_prop[["instruments"]][[1]])
 
     # get resolution
     res <- list(xres = item_prop[["gsd"]], yres = item_prop[["gsd"]])
