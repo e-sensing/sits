@@ -94,7 +94,7 @@
 
     # converts the sensor of each item to upper case
     items$features <- purrr::map(items$features, function(x) {
-        x$properties$instruments <- toupper(x$properties$instruments)
+        x$properties$instruments <- toupper(x$properties$instruments[[1]])
         x
     })
 
@@ -159,7 +159,7 @@
     item_prop <- items$features[[1]]$properties
 
     # get bands from sensor and application
-    bands_sensor <- .sits_config_sensor_bands(sensor = item_prop$instruments,
+    bands_sensor <- .sits_config_sensor_bands(sensor = item_prop$instruments[[1]],
                                               source = "DEAFRICA")
 
     # get bands name from assets list name property

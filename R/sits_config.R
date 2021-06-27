@@ -170,7 +170,7 @@ sits_config_show <- function() {
 #'
 #' @return         Names of bands available for sensor in data source
 .sits_config_sensor_bands <- function(sensor, source) {
-  return(sits_env$config[[sensor[[1]]]][["bands"]][[source[[1]]]])
+  return(sits_env$config[[sensor]][["bands"]][[source]])
 }
 
 #' @title Convert bands names from SITS to cube
@@ -262,7 +262,7 @@ sits_config_show <- function() {
     bands_files <- toupper(bands_files)
 
     # bands used by SITS
-    bands_sits <- toupper(sits_env$config[[sensor[[1]]]][["bands"]][["SITS"]])
+    bands_sits <- toupper(sits_env$config[[sensor]][["bands"]][["SITS"]])
     # Are these the right names?
     if (all(bands_files %in% bands_sits)) {
         bands_sits <- bands_sits[match(bands_files, bands_sits)]
@@ -271,7 +271,7 @@ sits_config_show <- function() {
     }
     # bands used by BDC
     bands_bdc <-
-      toupper(sits_env$config[[sensor[[1]]]][["bands"]][["BDC"]])
+      toupper(sits_env$config[[sensor]][["bands"]][["BDC"]])
     # are the names those used by BDC?
     if (all(bands_files %in% bands_bdc)) {
         idx <- match(bands_files, bands_bdc)
@@ -281,7 +281,7 @@ sits_config_show <- function() {
         return(toupper(bands_sits))
     }
     # bands used by AWS
-    bands_aws <- toupper(sits_env$config[[sensor[[1]]]][["bands"]][["AWS"]])
+    bands_aws <- toupper(sits_env$config[[sensor]][["bands"]][["AWS"]])
     # are the names those used by AWS?
     if (all(bands_files %in% bands_aws)) {
         idx <- match(bands_files, bands_aws)
@@ -291,7 +291,7 @@ sits_config_show <- function() {
         return(toupper(bands_sits))
     }
     # bands used by LOCAL
-    bands_local <- toupper(sits_env$config[[sensor[[1]]]][["bands"]][["LOCAL"]])
+    bands_local <- toupper(sits_env$config[[sensor]][["bands"]][["LOCAL"]])
     # are the names those used by LOCAL?
     if (all(bands_files %in% bands_local)) {
       idx <- match(bands_files, bands_local)
@@ -376,7 +376,7 @@ sits_config_show <- function() {
 #'
 #' @return vector with bands available in AWS for a given resolution
 .sits_config_cloud_band <- function(cube) {
-    cb <- paste0(cube$sensor[[1]], "_CLD_BAND")
+    cb <- paste0(cube$sensor, "_CLD_BAND")
     cloud_band <- sits_env$config[["CLOUD"]][[cube$source[1]]][[cb]]
     assertthat::assert_that(
         !purrr::is_null(cloud_band),
@@ -523,10 +523,10 @@ sits_config_show <- function() {
 #' @return resolution information
 .sits_config_defrica_bands_res <- function(sensor, bands) {
   assertthat::assert_that(
-      all(bands %in% sits_env$config[["DEAFRICA"]][[sensor[[1]]]][["bands"]]),
+      all(bands %in% sits_env$config[["DEAFRICA"]][[sensor]][["bands"]]),
       msg = "Bands not available in DEAFRICA")
-  res <- as.numeric(sits_env$config[["DEAFRICA"]][[sensor[[1]]]][["resolution"]])
-  names(res) <- sits_env$config[["DEAFRICA"]][[sensor[[1]]]][["bands"]]
+  res <- as.numeric(sits_env$config[["DEAFRICA"]][[sensor]][["resolution"]])
+  names(res) <- sits_env$config[["DEAFRICA"]][[sensor]][["bands"]]
   return(unname(res[bands]))
 }
 
@@ -555,7 +555,7 @@ sits_config_show <- function() {
     bands %>%
         purrr::map(function(b) {
             maximum_values[b] <<-
-                as.numeric(sits_env$config[[sensor[[1]]]][["maximum_value"]][[b]])
+                as.numeric(sits_env$config[[sensor]][["maximum_value"]][[b]])
         })
 
     # post-condition
@@ -595,7 +595,7 @@ sits_config_show <- function() {
     bands %>%
         purrr::map(function(b) {
             min_val[b] <<-
-                as.numeric(sits_env$config[[sensor[[1]]]][["minimum_value"]][[b]])
+                as.numeric(sits_env$config[[sensor]][["minimum_value"]][[b]])
         })
 
     # post-condition
@@ -625,7 +625,7 @@ sits_config_show <- function() {
     bands %>%
         purrr::map(function(b) {
             mis_val[b] <<-
-                as.numeric(sits_env$config[[sensor[[1]]]][["missing_value"]][[b]])
+                as.numeric(sits_env$config[[sensor]][["missing_value"]][[b]])
         })
     # post-condition
     assertthat::assert_that(
@@ -653,12 +653,12 @@ sits_config_show <- function() {
 
   # pre-condition
   assertthat::assert_that(
-    all(bands %in% names(sits_env$config[[sensor[[1]]]][["resampling"]])),
+    all(bands %in% names(sits_env$config[[sensor]][["resampling"]])),
     msg = paste(".sits_config_resampling: some bands not found.",
                 "Edit configuration file.")
   )
 
-  res <- sits_env$config[[sensor[[1]]]][["resampling"]][bands]
+  res <- sits_env$config[[sensor]][["resampling"]][bands]
 
   return(res)
 }
@@ -751,7 +751,7 @@ sits_config_show <- function() {
     names(res) %>%
         purrr::map(function(c) {
             res[c] <<- as.numeric(
-                sits_env$config[[sensor[[1]]]][["resolution"]][[c]]
+                sits_env$config[[sensor]][["resolution"]][[c]]
             )
         })
 
@@ -965,12 +965,12 @@ sits_config_show <- function() {
 
     sensor <- "MSI"
     assertthat::assert_that(
-        resolution %in% sits_env$config[[sensor[[1]]]][["resolutions"]],
+        resolution %in% sits_env$config[[sensor]][["resolutions"]],
         msg = ".sits_config_s2_bands: Sentinel-2 in AWS - wrong resolution"
     )
 
     r <- paste0("bands_", resolution, "m")
-    return(sits_env$config[[sensor[[1]]]][[r]])
+    return(sits_env$config[[sensor]][[r]])
 }
 
 
@@ -987,7 +987,7 @@ sits_config_show <- function() {
     bands %>%
         purrr::map(function(b) {
             scale_f[b] <<-
-                as.numeric(sits_env$config[[sensor[[1]]]][["scale_factor"]][[b]])
+                as.numeric(sits_env$config[[sensor]][["scale_factor"]][[b]])
         })
     names(scale_f) <- bands
     # post-condition
