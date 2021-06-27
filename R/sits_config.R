@@ -170,7 +170,7 @@ sits_config_show <- function() {
 #'
 #' @return         Names of bands available for sensor in data source
 .sits_config_sensor_bands <- function(sensor, source) {
-  return(sits_env$config[[sensor[[1]]]][["bands"]][[source]])
+  return(sits_env$config[[sensor[[1]]]][["bands"]][[source[[1]]]])
 }
 
 #' @title Convert bands names from SITS to cube
