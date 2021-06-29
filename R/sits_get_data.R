@@ -326,7 +326,6 @@ sits_get_data.shp_wtss_cube <- function(cube, file, ...,
         label = label, .n_shp_pol = .n_shp_pol
     )
 
-    # TODO: substituir pelo furrr?
     # read the points
     # for each row of the input, retrieve the time series
     data_lst <- purrr::pmap(

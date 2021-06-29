@@ -60,7 +60,7 @@ sits_timeline.satveg_cube <- function(data) {
 sits_timeline.wtss_cube <- function(data) {
 
   # return the timeline of the cube
-  return(data[1,]$description$timeline[[1]])
+  return(data[1,]$file_info[[1]]$date[[1]])
 }
 
 #' @export
