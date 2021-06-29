@@ -4,20 +4,16 @@
 \alias{.sits_wtss_cube}
 \title{Provides information about one cube of the WTSS service}
 \usage{
-.sits_wtss_cube(URL, name, collection, bands, start_date, end_date)
+.sits_wtss_cube(URL, name, collection, bands)
 }
 \arguments{
 \item{URL}{URL of the service provider.}
 
 \item{name}{Name of the cube.}
 
-\item{collection}{...}
+\item{collection}{Collection to be searched in the data source}
 
-\item{bands}{...}
-
-\item{start_date}{...}
-
-\item{end_date}{...}
+\item{bands}{Bands to be included}
 }
 \value{
 a \code{tibble} with cube information.
