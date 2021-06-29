@@ -35,6 +35,9 @@
     # retrieve information about the bands
     bands_wtss <- .sits_config_sensor_bands(sensor = cov$sensor,
                                             source = "BDC")
+
+    file_info <- tibble::tibble(date = cov$timeline,
+                                path = URL)
     # create a tibble to store the metadata
     cube_wtss <- .sits_cube_create(
         name = name,
@@ -51,11 +54,9 @@
         ymax = cov$ymax,
         xres = cov$xres,
         yres = cov$yres,
-        crs  = cov$crs
+        crs  = cov$crs,
+        file_info = file_info
     )
-
-    # add description information in tibble
-    cube_wtss$description <- cov
 
     class(cube_wtss) <- c("wtss_cube", class(cube_wtss))
     # return the tibble with cube info
@@ -120,7 +121,7 @@
 
     # retrieve the time series from the service
     tryCatch({
-        ts <- Rwtss::time_series(URL = cube$description$URL,
+        ts <- Rwtss::time_series(URL = cube$file_info[[1]]$path,
                                  name = cube$collection,
                                  attributes = bands,
                                  longitude = longitude,
