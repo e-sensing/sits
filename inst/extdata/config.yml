@@ -68,6 +68,7 @@ default:
     MODIS                   :
         bands               :
             SITS            : ["BLUE", "RED", "NIR", "MIR", "NDVI", "EVI"]
+            WTSS            : ["blue_reflectance", "red_reflectance", "NIR_reflectance", "MIR_reflectance", "NDVI", "EVI"]
 
         missing_value       :
             NDVI            : -3000
@@ -118,7 +119,8 @@ default:
             SITS            : &oli_bands_sits ["B1", "B2", "B3", "B4", "B5", "B6", "B7", "NDVI", "EVI", "FMASK4"]
             BDC             : ["BAND1", "BAND2", "BAND3", "BAND4", "BAND5", "BAND6", "BAND7", "NDVI", "EVI", "FMASK4"]
             USGS            : ["SR_B1", "SR_B2", "SR_B3", "SR_B4", "SR_B5", "SR_B6", "SR_B7", "NDVI", "EVI", "FMASK4"]
-            LOCAL           : ["band1", "band2", "band3", "band4", "band5", "band6", "band7", "NDVI", "EVI", "Fmask4"]
+            LOCAL           : &oli_bands_local ["band1", "band2", "band3", "band4", "band5", "band6", "band7", "NDVI", "EVI", "Fmask4"]
+            WTSS            : *oli_bands_local
             cloud_band      : "FMASK4"
 
         missing_value       :
@@ -192,8 +194,9 @@ default:
     AWFI                    :
         bands               :
             SITS            : &awfi_bands_sits ["B13", "B14", "B15", "B16", "NDVI", "EVI", "CMASK"]
-            BDC             : ["BAND13", "BAND14", "BAND15", "BAND16", "NDVI", "EVI", "CMASK"]
+            BDC             : &awfi_bands_bdc ["BAND13", "BAND14", "BAND15", "BAND16", "NDVI", "EVI", "CMASK"]
             LOCAL           : *awfi_bands_sits
+            WTSS            : *awfi_bands_bdc
             cloud_band      : "CMASK"
 
         missing_value       :
@@ -256,6 +259,7 @@ default:
             BDC             : ["BAND1", "BAND2", "BAND3", "BAND4", "BAND5", "BAND6", "BAND7", "BAND8", "BAND8A", "BAND9", "BAND10", "BAND11", "BAND12", "EVI", "NDVI", "FMASK4"]
             LOCAL           : *msi_bands_sits
             DEAFRICA        : *msi_bands_sits
+            WTSS            : ["band1", "band2", "band3", "band4", "band5", "band6", "band7", "band8", "band8a", "band9", "band10", "band11", "band12", "EVI", "NDVI", "Fmask4"]
             cloud_band      : "SCL"
 
         SCL_values          :
@@ -418,6 +422,13 @@ default:
             OLI_CLD_BAND    : "FMASK4"
             OLI_cld_vls     : [2, 3, 4, 255]
 
+        WTSS                :
+            AWFI_CLD_BAND   : "CMASK"
+            AWFI_cld_vls    : 4
+            MSI_CLD_BAND    : "FMASK4"
+            MSI_cld_vls     : [2, 3, 4, 255]
+            OLI_CLD_BAND    : "FMASK4"
+            OLI_cld_vls     : [2, 3, 4, 255]
 
         AWS                 :
             MSI_CLD_BAND    : "SCL"
