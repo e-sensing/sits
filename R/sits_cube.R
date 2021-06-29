@@ -228,9 +228,7 @@ sits_cube.wtss_cube <- function(source = "WTSS",
                                 name = "wtss_cube",
                                 url = NULL,
                                 collection,
-                                bands = NULL,
-                                start_date = NULL,
-                                end_date = NULL) {
+                                bands = NULL) {
 
 
     # precondition - is the url correct?
@@ -245,9 +243,7 @@ sits_cube.wtss_cube <- function(source = "WTSS",
         cube <- .sits_wtss_cube(URL = url,
                                 name = name,
                                 collection = collection,
-                                bands = bands,
-                                start_date = start_date,
-                                end_date = end_date)
+                                bands = bands)
     } else {
         message("WTSS service not responding")
         return(NULL)

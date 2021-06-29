@@ -7,18 +7,11 @@
 #'
 #' @param URL        URL of the service provider.
 #' @param name       Name of the cube.
-#' @param collection ...
-#' @param bands      ...
-#' @param start_date ...
-#' @param end_date   ...
+#' @param collection Collection to be searched in the data source
+#' @param bands      Bands to be included
 #'
 #' @return a \code{tibble} with cube information.
-.sits_wtss_cube <- function(URL,
-                            name,
-                            collection,
-                            bands,
-                            start_date,
-                            end_date) {
+.sits_wtss_cube <- function(URL, name, collection, bands) {
 
     # verifies if wtss package is installed
     if (!requireNamespace("Rwtss", quietly = TRUE)) {
@@ -29,12 +22,12 @@
     cov <- Rwtss::describe_coverage(URL, collection, .print = FALSE)
     assertthat::assert_that(!purrr::is_null(cov),
                             msg = paste(".sits_wtss_cube: failed to get cube",
-                                        "description in WTSS")
+                                        "description in WTSS.")
     )
 
     # retrieve information about the bands
     bands_wtss <- .sits_config_sensor_bands(sensor = cov$sensor,
-                                            source = "BDC")
+                                            source = "WTSS")
 
     file_info <- tibble::tibble(date = cov$timeline,
                                 path = URL)
