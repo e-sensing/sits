@@ -170,7 +170,7 @@
 
     # check if bands are available
     assertthat::assert_that(
-        all(bands %in% toupper(sits_bands(cube))),
+        all(toupper(bands) %in% toupper(sits_bands(cube))),
         msg = paste(".sits_cube_bands_check: bands are not available",
                     "in the cube")
     )
