@@ -2,7 +2,7 @@
 % Please edit documentation in R/sits_wtss.R
 \name{.sits_from_wtss}
 \alias{.sits_from_wtss}
-\title{Obtain one timeSeries from WTSS server and load it on a sits tibble}
+\title{Obtain one time series from WTSS server and load it on a sits tibble}
 \usage{
 .sits_from_wtss(
   cube,

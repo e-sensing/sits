@@ -227,9 +227,14 @@ sits_cube <- function(source, ...) {
 sits_cube.wtss_cube <- function(source = "WTSS",
                                 name = "wtss_cube",
                                 url = NULL,
-                                collection,
-                                bands = NULL) {
+                                collection) {
 
+
+    # precondition - is the collection name valid?
+    assertthat::assert_that(
+        !purrr::is_null(collection),
+        msg = "sits_cube: WTSS collection must be provided."
+    )
 
     # precondition - is the url correct?
     if (purrr::is_null(url)) {
@@ -238,12 +243,12 @@ sits_cube.wtss_cube <- function(source = "WTSS",
 
     # Pre-condition
     wtss_ok <- .sits_wtss_check(URL = url, name = collection)
+
     # create a cube
     if (wtss_ok) {
         cube <- .sits_wtss_cube(URL = url,
                                 name = name,
-                                collection = collection,
-                                bands = bands)
+                                collection = collection)
     } else {
         message("WTSS service not responding")
         return(NULL)

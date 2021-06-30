@@ -8,10 +8,9 @@
 #' @param URL        URL of the service provider.
 #' @param name       Name of the cube.
 #' @param collection Collection to be searched in the data source
-#' @param bands      Bands to be included
 #'
 #' @return a \code{tibble} with cube information.
-.sits_wtss_cube <- function(URL, name, collection, bands) {
+.sits_wtss_cube <- function(URL, name, collection) {
 
     # verifies if wtss package is installed
     if (!requireNamespace("Rwtss", quietly = TRUE)) {
@@ -26,11 +25,12 @@
     )
 
     # retrieve information about the bands
-    bands_wtss <- .sits_config_sensor_bands(sensor = cov$sensor,
-                                            source = "WTSS")
+    bands <- .sits_config_sensor_bands(sensor = cov$sensor,
+                                       source = "WTSS")
 
     file_info <- tibble::tibble(date = cov$timeline,
                                 path = URL)
+
     # create a tibble to store the metadata
     cube_wtss <- .sits_cube_create(
         name = name,
@@ -38,7 +38,7 @@
         collection = collection,
         satellite = cov$satellite,
         sensor = cov$sensor,
-        bands = bands_wtss,
+        bands = bands,
         nrows = cov$nrows,
         ncols = cov$ncols,
         xmin = cov$xmin,
@@ -56,7 +56,7 @@
     return(cube_wtss)
 }
 
-#' @title Obtain one timeSeries from WTSS server and load it on a sits tibble
+#' @title Obtain one time series from WTSS server and load it on a sits tibble
 #' @name .sits_from_wtss
 #' @keywords internal
 #'

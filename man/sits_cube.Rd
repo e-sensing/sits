@@ -13,13 +13,7 @@
 \usage{
 sits_cube(source, ...)
 
-\method{sits_cube}{wtss_cube}(
-  source = "WTSS",
-  name = "wtss_cube",
-  url = NULL,
-  collection,
-  bands = NULL
-)
+\method{sits_cube}{wtss_cube}(source = "WTSS", name = "wtss_cube", url = NULL, collection)
 
 \method{sits_cube}{bdc_cube}(
   source = "BDC",
