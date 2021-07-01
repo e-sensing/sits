@@ -493,7 +493,7 @@ sits_rfor <- function(data = NULL, num_trees = 2000, nodesize = 1, ...) {
     result_fun <- function(data) {
         train_data <- .sits_distances(data)
 
-        # verifies if ranger package is installed
+        # verifies if randomForest package is installed
         if (!requireNamespace("randomForest", quietly = TRUE)) {
             stop(paste("randomForest required for this function to work.",
                        "Please install it."), call. = FALSE)

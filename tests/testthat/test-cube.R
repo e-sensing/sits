@@ -6,7 +6,6 @@ test_that("Creating a SATVEG data cube", {
   if (purrr::is_null(cube_satveg)) {
     skip("SATVEG is not accessible")
   }
-
   expect_true(cube_satveg$ymin == -30.0)
 })
 test_that("Reading a raster cube", {

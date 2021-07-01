@@ -36,7 +36,7 @@
     collection_info <- .sits_stac_toupper(collection_info)
 
     # get instrument name
-    sensor <- collection_info$properties$instruments
+    sensor <- collection_info$properties$instruments[[1]]
 
     # get default bands parameter
     if (purrr::is_null(bands)) {
@@ -155,8 +155,7 @@
 #'                   by rstac.
 .sits_stac_bands <- function(items, bands, source, sensor = NULL) {
 
-    if (is.null(sensor))
-        sensor <- toupper(items$features[[1]]$properties$instruments)
+    sensor <- toupper(items$features[[1]]$properties$instruments[[1]])
 
     # get bands from sensor
     bands_sensor <- .sits_config_sensor_bands(sensor = sensor, source = source)
@@ -425,7 +424,7 @@
         source     = "BDC",
         collection = collection,
         satellite  = collection_info$properties$platform,
-        sensor     = collection_info$properties$instruments,
+        sensor     = collection_info$properties$instruments[[1]],
         tile       = items$tile,
         bands      = collection_info$bands,
         nrows      = items$nrows,
