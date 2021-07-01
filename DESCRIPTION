@@ -82,6 +82,7 @@ Suggests:
     ranger,
     Rcpp,
     RcppArmadillo,
+    Rwtss (>= 0.9.1),
     signal,
     stars,
     stringr,
