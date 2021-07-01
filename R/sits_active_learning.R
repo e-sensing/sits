@@ -52,9 +52,10 @@
 #'
 sits_active_learning <- function(samples_tb, sits_method,
                                  data_cube,
-                                 n_samples = 100,
+                                 n_samples = 1000,
                                  min_probability = 0.95,
-                                 min_entropy = 0.5){
+                                 min_entropy = 0.5,
+                                 multicores = 2){
 
     # Get the extent of the data cube.
     xmin <- data_cube[["xmin"]]
@@ -92,11 +93,10 @@ sits_active_learning <- function(samples_tb, sits_method,
 
     # Classify the new samples
     my_model <- sits_train(samples_tb, ml_method = sits_method)
-    points_tb <- lapply(seq_len(nrow(points_tb)), function(x){
-        sits_classify(points_tb[x, ],
-                      ml_model = my_model)
-    })
-    points_tb <- do.call(rbind, points_tb)
+
+
+    points_tb <- sits_classify(points_tb, ml_model = my_model,
+                               multicores = multicores)
 
     # Get label, probability, and entropy
     prob_entropy <- lapply(seq_len(nrow(points_tb)), function(x){
