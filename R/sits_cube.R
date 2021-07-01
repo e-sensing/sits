@@ -136,6 +136,15 @@
 #'     end_date = "2019-08-28"
 #' )
 #'
+#' # --- Create a WTSS cube from BDC cubes
+#' # Provide your BDC credentials as environment variables
+#' Sys.setenv(
+#'     "BDC_ACCESS_KEY" = <your_bdc_access_key>
+#' )
+#'
+#' cube_wtss <- sits::sits_cube(source = "WTSS",
+#'                              collection = "MOD13Q1-6")
+#'
 #' # --- Access to Digital Earth Africa
 #' # Provide your AWS credentials as environment variables
 #' Sys.setenv(
