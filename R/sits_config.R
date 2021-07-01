@@ -386,7 +386,7 @@ sits_config_show <- function() {
 #'
 #' @return vector with bands available in AWS for a given resolution
 .sits_config_cloud_band <- function(cube) {
-    cb <- paste0(cube$sensor[[1]], "_CLD_BAND")
+    cb <- paste0(cube$sensor[1], "_CLD_BAND")
     cloud_band <- sits_env$config[["CLOUD"]][[cube$source[1]]][[cb]]
     assertthat::assert_that(
         !purrr::is_null(cloud_band),

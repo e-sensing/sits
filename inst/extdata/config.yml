@@ -67,8 +67,17 @@ default:
 
     MODIS                   :
         bands               :
-            SITS            : ["BLUE", "RED", "NIR", "MIR", "NDVI", "EVI"]
-            WTSS            : ["blue_reflectance", "red_reflectance", "NIR_reflectance", "MIR_reflectance", "NDVI", "EVI"]
+            SITS            : &modis_bands_sits ["BLUE", "RED", "NIR", "MIR", "NDVI", "EVI", "RELIABILITY"]
+            LOCAL           : *modis_bands_sits
+            WTSS            : ["blue_reflectance", "red_reflectance", "NIR_reflectance", "MIR_reflectance", "NDVI", "EVI", "pixel_reliability"]
+            cloud_band      : "RELIABILITY"
+
+        RELIABILITY_values  :
+            0               : "Use with confidence"
+            1               : "Useful, but look at other QA information"
+            2               : "Target covered with snow/ice"
+            3               : "Target not visible, covered with cloud"
+            255             : "Fill/No Data-Not Processed"
 
         missing_value       :
             NDVI            : -3000
@@ -77,6 +86,7 @@ default:
             RED             : -1000
             NIR             : -1000
             MIR             : -1000
+            RELIABILITY     : 255
 
         minimum_value       :
             NDVI            : -3000
@@ -85,6 +95,7 @@ default:
             RED             : 0
             NIR             : 0
             MIR             : 0
+            RELIABILITY     : 0
 
         maximum_value       :
             NDVI            : 10000
@@ -93,6 +104,7 @@ default:
             RED             : 10000
             NIR             : 10000
             MIR             : 10000
+            RELIABILITY     : 3
 
         scale_factor        :
             NDVI            : 0.0001
@@ -101,6 +113,7 @@ default:
             RED             : 0.0001
             NIR             : 0.0001
             MIR             : 0.0001
+            RELIABILITY     : 1
 
         resampling          :
             NDVI            : "bilinear"
@@ -109,6 +122,7 @@ default:
             RED             : "bilinear"
             NIR             : "bilinear"
             MIR             : "bilinear"
+            RELIABILITY     : "ngb"
 
         resolution          :
             xres            : 250
@@ -443,7 +457,7 @@ default:
             AWFI_cld_vls    : 4
             MSI_CLD_BAND    : "SCL"
             MSI_cld_vls     : [0, 1, 2, 3, 7, 8, 9, 10, 11]
-            MODIS_CLD_BAND  : "pixel reliability"
+            MODIS_CLD_BAND  : "RELIABILITY"
             MODIS_cld_vls   : [2,3]
             OLI_CLD_BAND    : "FMASK4"
             OLI_cld_vls     : [2, 3, 4, 255]
@@ -536,7 +550,3 @@ default:
         Urban_Area :         "ivory4"
         Water      :         "royalblue3"
         Wetlands   :         "mediumaquamarine"
-
-
-
-
