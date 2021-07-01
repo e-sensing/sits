@@ -57,6 +57,7 @@ sits_active_learning <- function(samples_tb, sits_method,
                                  min_entropy = 0.5,
                                  multicores = 2){
 
+
     # Get the extent of the data cube.
     xmin <- data_cube[["xmin"]]
     xmax <- data_cube[["xmax"]]
