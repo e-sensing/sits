@@ -203,7 +203,7 @@ default:
             B14             : -9999
             B15             : -9999
             B16             : -9999
-            CMASK           : 255
+            CMASK           : 0
 
         minimum_value       :
             NDVI            : -10000
@@ -221,7 +221,7 @@ default:
             B14             : 10000
             B15             : 10000
             B16             : 10000
-            CMASK           : 4
+            CMASK           : 255
 
         scale_factor        :
             NDVI            : 0.0001
@@ -246,8 +246,8 @@ default:
             yres            : 64
 
         CMASK_values        :
-            no_clouds       : 0
-            clouds          : 4
+            no_clouds       : 127
+            clouds          : 255
 
     MSI                     :
         bands               :
