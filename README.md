@@ -146,11 +146,11 @@ the following example.
 ``` r
 library(sits)
 #> SITS - satellite image time series analysis.
-#> Loaded sits v0.11.0.
+#> Loaded sits v0.12.0.
 #>         See ?sits for help, citation("sits") for use in publication.
 #>         See demo(package = "sits") for examples.
-#> Using configuration file: /Users/gilbertocamara/Library/R/4.0/library/sits/extdata/config.yml
-#> Additional configurations found in /Users/gilbertocamara/Library/R/4.0/library/sits/extdata/config_user_example.yml
+#> Using configuration file: /Library/Frameworks/R.framework/Versions/4.1/Resources/library/sits/extdata/config.yml
+#> Additional configurations found in /Library/Frameworks/R.framework/Versions/4.1/Resources/library/sits/extdata/config_user_example.yml
 # create a cube from a local file 
 data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
 raster_cube <- sits_cube(
@@ -160,7 +160,7 @@ raster_cube <- sits_cube(
         sensor = "MODIS",
         data_dir = data_dir,
         delim = "_",
-        parse_info = c("X1", "X2", "band", "date")
+        parse_info = c("X1", "X2", "tile", "band", "date")
 )
 # obtain a set of locations defined by a CSV file
 csv_raster_file <- system.file("extdata/samples/samples_sinop_crop.csv",
@@ -172,11 +172,11 @@ points <- sits_get_data(raster_cube, file = csv_raster_file)
 # show the points
 points[1:3,]
 #> # A tibble: 3 x 7
-#>   longitude latitude start_date end_date   label   cube      time_series        
-#>       <dbl>    <dbl> <date>     <date>     <chr>   <chr>     <list>             
-#> 1     -55.7    -11.8 2013-09-14 2014-08-29 Pasture sinop-20… <tibble[,3] [23 × …
-#> 2     -55.6    -11.8 2013-09-14 2014-08-29 Pasture sinop-20… <tibble[,3] [23 × …
-#> 3     -55.7    -11.8 2013-09-14 2014-08-29 Forest  sinop-20… <tibble[,3] [23 × …
+#>   longitude latitude start_date end_date   label   cube       time_series      
+#>       <dbl>    <dbl> <date>     <date>     <chr>   <chr>      <list>           
+#> 1     -55.7    -11.8 2013-09-14 2014-08-29 Pasture sinop-2014 <tibble [23 × 3]>
+#> 2     -55.6    -11.8 2013-09-14 2014-08-29 Pasture sinop-2014 <tibble [23 × 3]>
+#> 3     -55.7    -11.8 2013-09-14 2014-08-29 Forest  sinop-2014 <tibble [23 × 3]>
 ```
 
 After a time series is imported, it is loaded in a tibble. The first six
@@ -328,14 +328,7 @@ point_mt_6bands %>%
   plot()
 ```
 
-<div class="figure" style="text-align: center">
-
-<img src="man/figures/README-unnamed-chunk-10-1.png" alt="Time series classification using xgboost"  />
-<p class="caption">
-Time series classification using xgboost
-</p>
-
-</div>
+<img src="man/figures/README-unnamed-chunk-10-1.png" style="display: block; margin: auto;" />
 
 The following example shows how to classify a data cube organised as a
 set of raster images. The result can also be visualised interactively
@@ -361,7 +354,7 @@ sinop <- sits_cube(
     sensor = "MODIS",
     data_dir = data_dir,
     delim = "_",
-    parse_info = c("X1", "X2", "band", "date")
+    parse_info = c("X1", "X2", "tile", "band", "date")
 )
 # Classify the raster cube, generating a probability file
 # Filter the pixels in the cube to remove noise
@@ -386,18 +379,37 @@ timeseries”](https://e-sensing.github.io/sitsbook/).
 
 ### References
 
-#### Selection of papers that use sits
+#### Reference paper for sits
 
--   \[1\] Rolf Simoes, Michelle Picoli, et al., “Land use and cover maps
+If you use sits on academic works, please cite the following paper:
+
+-   \[1\] Rolf Simoes, Gilberto Camara, Gilberto Queiroz, Felipe Souza,
+    Pedro R. Andrade, Lorena Santos, Alexandre Carvalho, and Karine
+    Ferreira. “Satellite Image Time Series Analysis for Big Earth
+    Observation Data”. Remote Sensing, 13, p. 2428, 2021.
+    <https://doi.org/10.3390/rs13132428>.
+
+Additionally, the sample quality control methods that use self-organised
+maps are described in the following reference:
+
+-   \[2\] Lorena Santos, Karine Ferreira, Gilberto Camara, Michelle
+    Picoli, Rolf Simoes, “Quality control and class noise reduction of
+    satellite image time series”. ISPRS Journal of Photogrammetry and
+    Remote Sensing, vol. 177, pp 75-88, 2021.
+    <https://doi.org/10.1016/j.isprsjprs.2021.04.014>.
+
+#### Papers that use sits to produce LUCC maps
+
+-   \[3\] Rolf Simoes, Michelle Picoli, et al., “Land use and cover maps
     for Mato Grosso State in Brazil from 2001 to 2017”. Sci Data 7, 34
     (2020).
 
--   \[2\] Michelle Picoli, Gilberto Camara, et al., “Big Earth
+-   \[4\] Michelle Picoli, Gilberto Camara, et al., “Big Earth
     Observation Time Series Analysis for Monitoring Brazilian
     Agriculture”. ISPRS Journal of Photogrammetry and Remote
     Sensing, 2018. DOI: 10.1016/j.isprsjprs.2018.08.007
 
--   \[3\] Karine Ferreira, Gilberto Queiroz et al., Earth Observation
+-   \[5\] Karine Ferreira, Gilberto Queiroz et al., Earth Observation
     Data Cubes for Brazil: Requirements, Methodology and Products.
     Remote Sens. 2020, 12, 4033.
 
@@ -406,21 +418,21 @@ timeseries”](https://e-sensing.github.io/sitsbook/).
 We thank the authors of these papers for making their code available to
 be used in sits.
 
--   \[4\] Appel, Marius, and Edzer Pebesma, “On-Demand Processing of
+-   \[6\] Appel, Marius, and Edzer Pebesma, “On-Demand Processing of
     Data Cubes from Satellite Image Collections with the Gdalcubes
     Library.” Data 4 (3): 1–16, 2020.
 
--   \[5\] Hassan Fawaz, Germain Forestier, Jonathan Weber, Lhassane
+-   \[7\] Hassan Fawaz, Germain Forestier, Jonathan Weber, Lhassane
     Idoumghar, and Pierre-Alain Muller, “Deep learning for time series
     classification: a review”. Data Mining and Knowledge Discovery,
     33(4): 917–963, 2019.
 
--   \[6\] Pelletier, Charlotte, Geoffrey I. Webb, and Francois
+-   \[8\] Pelletier, Charlotte, Geoffrey I. Webb, and Francois
     Petitjean. “Temporal Convolutional Neural Network for the
     Classification of Satellite Image Time Series.” Remote Sensing 11
     (5), 2019.
 
--   \[7\] Wehrens, Ron and Kruisselbrink, Johannes. “Flexible
+-   \[9\] Wehrens, Ron and Kruisselbrink, Johannes. “Flexible
     Self-Organising Maps in kohonen 3.0”. Journal of Statistical
     Software, 87, 7 (2018).
 
