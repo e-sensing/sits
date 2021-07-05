@@ -2,6 +2,7 @@
 % Please edit documentation in R/sits_cube.R
 \name{sits_cube}
 \alias{sits_cube}
+\alias{sits_cube.wtss_cube}
 \alias{sits_cube.bdc_cube}
 \alias{sits_cube.deafrica_cube}
 \alias{sits_cube.aws_cube}
@@ -11,6 +12,8 @@
 \title{Defines a data cube}
 \usage{
 sits_cube(source, ...)
+
+\method{sits_cube}{wtss_cube}(source = "WTSS", ..., name = "wtss_cube", url = NULL, collection)
 
 \method{sits_cube}{bdc_cube}(
   source = "BDC",
@@ -232,6 +235,15 @@ cbers_tile <- sits_cube(
     start_date = "2018-09-01",
     end_date = "2019-08-28"
 )
+
+# --- Create a WTSS cube from BDC cubes
+# Provide your BDC credentials as environment variables
+Sys.setenv(
+    "BDC_ACCESS_KEY" = <your_bdc_access_key>
+)
+
+cube_wtss <- sits::sits_cube(source = "WTSS",
+                             collection = "MOD13Q1-6")
 
 # --- Access to Digital Earth Africa
 # Provide your AWS credentials as environment variables

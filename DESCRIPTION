@@ -82,6 +82,7 @@ Suggests:
     ranger,
     Rcpp,
     RcppArmadillo,
+    Rwtss (>= 0.9.1),
     signal,
     stars,
     stringr,
@@ -128,7 +129,6 @@ Collate:
     'sits_label_classification.R'
     'sits_labels_summary.R'
     'sits_log.R'
-    'sits_LTAE.R'
     'sits_machine_learning.R'
     'sits_merge.R'
     'sits_mlp.R'
@@ -164,6 +164,7 @@ Collate:
     'sits_validate.R'
     'sits_view.R'
     'sits_values.R'
+    'sits_wtss.R'
     'sits_xlsx.R'
     'sits_zoo.R'
     'zzz.R'
