@@ -22,6 +22,7 @@
 #' @param n_samples       The number of random points to take.
 #' @param min_probability The minimum probability for automatically including new samples.
 #' @param min_entropy     The minimum entropy for consider a sample for the oracle.
+#' @param multicores      The number of cores available for active learning.
 #' @return                A list with two sits tibbles: One for new samples and another for a human expert to review.
 #'
 #' @examples
@@ -89,7 +90,8 @@ sits_active_learning <- function(samples_tb, sits_method,
                          fileext = ".csv")
     utils::write.csv(points_tb, file = tmp_file)
     points_tb <- sits_get_data(cube = data_cube,
-                               file = tmp_file)
+                               file = tmp_file,
+                               multicores = multicores)
 
     # Classify the new samples
     my_model <- sits_train(samples_tb, ml_method = sits_method)
