@@ -155,7 +155,8 @@
 #' @param name       name of the converage
 #' @return check     TRUE or FALSE
 .sits_wtss_check <- function(URL, name) {
-    # verifies if wtss package is installed
+
+    # verifies if Rwtss package is installed
     if (!requireNamespace("Rwtss", quietly = TRUE)) {
         stop("Please install package Rwtss.", call. = FALSE)
     }
