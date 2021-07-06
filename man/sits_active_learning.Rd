@@ -8,9 +8,10 @@ sits_active_learning(
   samples_tb,
   sits_method,
   data_cube,
-  n_samples = 100,
+  n_samples = 1000,
   min_probability = 0.95,
-  min_entropy = 0.5
+  min_entropy = 0.5,
+  multicores = 2
 )
 }
 \arguments{
@@ -25,6 +26,8 @@ sits_active_learning(
 \item{min_probability}{The minimum probability for automatically including new samples.}
 
 \item{min_entropy}{The minimum entropy for consider a sample for the oracle.}
+
+\item{multicores}{The number of cores available for active learning.}
 }
 \value{
 A list with two sits tibbles: One for new samples and another for a human expert to review.
