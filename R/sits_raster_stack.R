@@ -34,7 +34,7 @@
                                     start_date,
                                     end_date) {
 
-    file_info <- lapply(data_dir, function(data_dir_row) {
+    file_info <- purrr::map(data_dir, function(data_dir_row) {
 
         # how many of those files are images?
         # retrieve the known file extensions
