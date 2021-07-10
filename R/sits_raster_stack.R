@@ -34,94 +34,99 @@
                                     start_date,
                                     end_date) {
 
-    # how many of those files are images?
-    # retrieve the known file extensions
-    file_ext <- .sits_config_img_file_ext()
+    file_info <- lapply(data_dir, function(data_dir_row) {
 
-    # list the files in the data directory
-    img_files <- list.files(
-        path = data_dir,
-        pattern = paste0("\\.(",
-                         paste0(.sits_config_img_file_ext(), collapse = "|"),
-                         ")$")
-    )
+        # how many of those files are images?
+        # retrieve the known file extensions
+        file_ext <- .sits_config_img_file_ext()
 
-    # remove the extension
-    img_files_noext <- tools::file_path_sans_ext(img_files)
-
-    # split the file names
-    img_files_lst <- strsplit(img_files_noext, split = delim)
-
-    # bind rows
-    img_files_mx <- do.call(rbind, img_files_lst)
-
-    # read the image files into a tibble with added parse info
-    colnames(img_files_mx) <- parse_info
-
-    # joint the list into a tibble and convert bands name to upper case
-    img_files_tb <- tibble::as_tibble(
-        img_files_mx,
-        .name_repair = "minimal"
-    ) %>% dplyr::mutate(band = toupper(band))
-
-    # get the information on the required bands, dates and path
-    file_info <- img_files_tb %>%
-        # select the relevant parts
-        dplyr::select(tile, date, band) %>%
-        # check the date format
-        .sits_timeline_date_format() %>%
-        # include path in the tibble
-        dplyr::mutate(path = paste0(data_dir, "/", img_files)) %>%
-        # filter to remove duplicate combinations of file and band
-        dplyr::distinct(tile, band, date, .keep_all = TRUE) %>%
-        # order by dates
-        dplyr::arrange(date)
-
-    # extract the band names
-    bands_files <- unique(file_info$band)
-
-    # convert the names of the bands to those used by SITS
-    bands_sits <- .sits_config_bands_convert(satellite, sensor, bands_files)
-
-    # convert the band names to SITS bands
-    file_info <- dplyr::mutate(file_info, band = bands_sits[band])
-
-    # filter bands
-    if (!purrr::is_null(bands)) {
-
-        # get the bands of the cube
-        bands_info <- dplyr::pull(dplyr::distinct(file_info, band))
-
-        # verify that the requested bands exist
-        assertthat::assert_that(
-            all(bands %in% bands_info),
-            msg = paste(".sits_raster_stack_info: requested bands not",
-                        "available in cube")
+        # list the files in the data directory
+        img_files <- list.files(
+            path = data_dir_row,
+            pattern = paste0("\\.(",
+                             paste0(.sits_config_img_file_ext(), collapse = "|"),
+                             ")$")
         )
 
-        # select the requested bands
-        file_info <- dplyr::filter(file_info, band %in% bands)
-    }
+        # remove the extension
+        img_files_noext <- tools::file_path_sans_ext(img_files)
 
-    # filter start and end dates
-    if (!purrr::is_null(start_date) & !purrr::is_null(end_date))
-        file_info <- dplyr::filter(file_info,
-                                   date >= start_date & date <= end_date)
+        # split the file names
+        img_files_lst <- strsplit(img_files_noext, split = delim)
 
-    params <- .sits_raster_api_params_file(file_info$path[1])
-    resolution <- params$xres
-    file_info <- dplyr::mutate(file_info,
-                               res = resolution, .before = path)
+        # bind rows
+        img_files_mx <- do.call(rbind, img_files_lst)
 
-    # post condition
-    assertthat::assert_that(
-        nrow(file_info) > 0,
-        msg = paste(".sits_raster_stack_info: no file was found for the",
-                    "requested local cube. Please, verify the 'start_date' and",
-                    "'end_date' and check if the provided directory is valid.")
-    )
+        # read the image files into a tibble with added parse info
+        colnames(img_files_mx) <- parse_info
 
-    return(file_info)
+        # joint the list into a tibble and convert bands name to upper case
+        img_files_tb <- tibble::as_tibble(
+            img_files_mx,
+            .name_repair = "minimal"
+        ) %>% dplyr::mutate(band = toupper(band))
+
+        # get the information on the required bands, dates and path
+        file_info <- img_files_tb %>%
+            # select the relevant parts
+            dplyr::select(tile, date, band) %>%
+            # check the date format
+            .sits_timeline_date_format() %>%
+            # include path in the tibble
+            dplyr::mutate(path = paste0(data_dir_row, "/", img_files)) %>%
+            # filter to remove duplicate combinations of file and band
+            dplyr::distinct(tile, band, date, .keep_all = TRUE) %>%
+            # order by dates
+            dplyr::arrange(date)
+
+        # extract the band names
+        bands_files <- unique(file_info$band)
+
+        # convert the names of the bands to those used by SITS
+        bands_sits <- .sits_config_bands_convert(satellite, sensor, bands_files)
+
+        # convert the band names to SITS bands
+        file_info <- dplyr::mutate(file_info, band = bands_sits[band])
+
+        # filter bands
+        if (!purrr::is_null(bands)) {
+
+            # get the bands of the cube
+            bands_info <- dplyr::pull(dplyr::distinct(file_info, band))
+
+            # verify that the requested bands exist
+            assertthat::assert_that(
+                all(bands %in% bands_info),
+                msg = paste(".sits_raster_stack_info: requested bands not",
+                            "available in cube")
+            )
+
+            # select the requested bands
+            file_info <- dplyr::filter(file_info, band %in% bands)
+        }
+
+        # filter start and end dates
+        if (!purrr::is_null(start_date) & !purrr::is_null(end_date))
+            file_info <- dplyr::filter(file_info,
+                                       date >= start_date & date <= end_date)
+
+        params <- .sits_raster_api_params_file(file_info$path[1])
+        resolution <- params$xres
+        file_info <- dplyr::mutate(file_info,
+                                   res = resolution, .before = path)
+
+        # post condition
+        assertthat::assert_that(
+            nrow(file_info) > 0,
+            msg = paste(".sits_raster_stack_info: no file was found for the",
+                        "requested local cube. Please, verify the 'start_date' and",
+                        "'end_date' and check if the provided directory is valid.")
+        )
+
+        file_info
+    })
+
+    return(dplyr::bind_rows(file_info))
 }
 #' @title Create a stack cube from a set of files
 #' @name .sits_raster_stack_cube
