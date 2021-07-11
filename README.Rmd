@@ -142,13 +142,13 @@ library(sits)
 data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
 
 raster_cube <- sits_cube(
-    source = "LOCAL",
-    name = "sinop-2014",
-    satellite = "TERRA",
-    sensor = "MODIS",
-    data_dir = data_dir,
-    delim = "_",
-    parse_info = c("X1", "X2", "tile", "band", "date")
+        source = "LOCAL",
+        name = "sinop-2014",
+        satellite = "TERRA",
+        sensor = "MODIS",
+        data_dir = data_dir,
+        delim = "_",
+        parse_info = c("X1", "X2", "tile", "band", "date")
 )
 
 # obtain a set of locations defined by a CSV file
@@ -242,7 +242,7 @@ Brazilian state, using `sits_classify`. The results can be shown in text
 format using the function `sits_show_prediction` or graphically using
 `plot`.
 
-```{r, fig.align="center", fig.height=3, fig.width=6, fig.cap="Time series classification using xgboost"}
+```{r, fig.align="center", fig.height=3, fig.width=6}
 # training data set
 data("samples_modis_4bands")
 
@@ -316,25 +316,35 @@ For more information, please see the on-line book ["SITS: Data analysis and mach
 
 ### References
 
-#### Selection of papers that use sits
+#### Reference paper for sits
 
-- [1] Rolf Simoes, Michelle Picoli, et al., "Land use and cover maps for Mato Grosso State in Brazil from 2001 to 2017".  Sci Data 7, 34 (2020).
+If you use sits on academic works, please cite the following paper:
 
-- [2] Michelle Picoli, Gilberto Camara, et al.,  “Big Earth Observation Time Series Analysis for Monitoring Brazilian Agriculture”. ISPRS Journal of Photogrammetry and Remote Sensing, 2018. DOI: 10.1016/j.isprsjprs.2018.08.007
+- [1] Rolf Simoes, Gilberto Camara, Gilberto Queiroz, Felipe Souza, Pedro R. Andrade,  Lorena Santos, Alexandre Carvalho, and Karine Ferreira. “Satellite Image Time Series Analysis for Big Earth Observation Data”. Remote Sensing, 13, p. 2428, 2021. https://doi.org/10.3390/rs13132428. 
 
-- [3] Karine Ferreira, Gilberto Queiroz et al., Earth Observation Data Cubes for Brazil: Requirements, Methodology and Products. Remote Sens. 2020, 12, 4033.
+Additionally, the sample quality control methods that use self-organised maps are described in the following reference:
+
+- [2] Lorena Santos, Karine Ferreira, Gilberto Camara, Michelle Picoli, Rolf Simoes, “Quality control and class noise reduction of satellite image time series”. ISPRS Journal of Photogrammetry and Remote Sensing, vol. 177, pp 75-88, 2021. https://doi.org/10.1016/j.isprsjprs.2021.04.014.
+
+#### Papers that use sits to produce LUCC maps
+
+- [3] Rolf Simoes, Michelle Picoli, et al., "Land use and cover maps for Mato Grosso State in Brazil from 2001 to 2017".  Sci Data 7, 34 (2020).
+
+- [4] Michelle Picoli, Gilberto Camara, et al.,  “Big Earth Observation Time Series Analysis for Monitoring Brazilian Agriculture”. ISPRS Journal of Photogrammetry and Remote Sensing, 2018. DOI: 10.1016/j.isprsjprs.2018.08.007
+
+- [5] Karine Ferreira, Gilberto Queiroz et al., Earth Observation Data Cubes for Brazil: Requirements, Methodology and Products. Remote Sens. 2020, 12, 4033.
 
 #### Papers that describe software used in sits
 
 We thank the authors of these papers for making their code available to be used in sits.
 
-- [4] Appel, Marius, and Edzer Pebesma, “On-Demand Processing of Data Cubes from Satellite Image Collections with the Gdalcubes Library.” Data 4 (3): 1–16, 2020.
+- [6] Appel, Marius, and Edzer Pebesma, “On-Demand Processing of Data Cubes from Satellite Image Collections with the Gdalcubes Library.” Data 4 (3): 1–16, 2020.
 
-- [5] Hassan Fawaz, Germain Forestier, Jonathan Weber, Lhassane Idoumghar,  and Pierre-Alain Muller, "Deep learning for time series classification: a review". Data Mining and Knowledge Discovery, 33(4): 917--963, 2019.
+- [7] Hassan Fawaz, Germain Forestier, Jonathan Weber, Lhassane Idoumghar,  and Pierre-Alain Muller, "Deep learning for time series classification: a review". Data Mining and Knowledge Discovery, 33(4): 917--963, 2019.
 
-- [6] Pelletier, Charlotte, Geoffrey I. Webb, and Francois Petitjean. “Temporal Convolutional Neural Network for the Classification of Satellite Image Time Series.” Remote Sensing 11 (5), 2019. 
+- [8] Pelletier, Charlotte, Geoffrey I. Webb, and Francois Petitjean. “Temporal Convolutional Neural Network for the Classification of Satellite Image Time Series.” Remote Sensing 11 (5), 2019. 
 
-- [7] Wehrens, Ron and Kruisselbrink, Johannes. "Flexible Self-Organising Maps in kohonen 3.0". Journal of Statistical Software, 87, 7 (2018).
+- [9] Wehrens, Ron and Kruisselbrink, Johannes. "Flexible Self-Organising Maps in kohonen 3.0". Journal of Statistical Software, 87, 7 (2018).
 
 #### R packages used in sits
 

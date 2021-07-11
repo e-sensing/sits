@@ -14,8 +14,8 @@ default:
     GTiff_default_options   : ["COMPRESS=LZW", "BIGTIFF=YES"]
 
     # Data cube types known to sits
-    data_sources            : ["WTSS", "SATVEG", "LOCAL", "RASTER", "BDC", "DEAFRICA", "USGS", "AWS", "PROBS", "CLASSIFIED"]
-    cube_classes            : ["wtss_cube", "satveg_cube", "local_cube", "raster_cube", "bdc_cube", "deafrica_cube", "usgs_cube", "aws_cube",  "probs_cube", "classified_image"]
+    data_sources            : ["WTSS", "SATVEG", "LOCAL", "RASTER", "BDC", "WTSS", "DEAFRICA", "USGS", "AWS", "PROBS", "CLASSIFIED"]
+    cube_classes            : ["wtss_cube", "satveg_cube", "local_cube", "raster_cube", "bdc_cube", "wtss_cube", "deafrica_cube", "usgs_cube", "aws_cube",  "probs_cube", "classified_image"]
 
     # Image file extensions known to SITS
     img_file_extensions     : ["tiff", "tif", "jp2", "hdf", "vrt"]
@@ -72,6 +72,7 @@ default:
         bands               :
             SITS            : &modis_bands_sits ["BLUE", "RED", "NIR", "MIR", "NDVI", "EVI", "RELIABILITY"]
             LOCAL           : *modis_bands_sits
+            WTSS            : ["blue_reflectance", "red_reflectance", "NIR_reflectance", "MIR_reflectance", "NDVI", "EVI", "pixel_reliability"]
             cloud_band      : "RELIABILITY"
 
         RELIABILITY_values  :
@@ -135,7 +136,8 @@ default:
             SITS            : &oli_bands_sits ["B1", "B2", "B3", "B4", "B5", "B6", "B7", "NDVI", "EVI", "FMASK4"]
             BDC             : ["BAND1", "BAND2", "BAND3", "BAND4", "BAND5", "BAND6", "BAND7", "NDVI", "EVI", "FMASK4"]
             USGS            : ["SR_B1", "SR_B2", "SR_B3", "SR_B4", "SR_B5", "SR_B6", "SR_B7", "NDVI", "EVI", "QA_PIXEL"]
-            LOCAL           : ["band1", "band2", "band3", "band4", "band5", "band6", "band7", "NDVI", "EVI", "Fmask4"]
+            LOCAL           : &oli_bands_local ["band1", "band2", "band3", "band4", "band5", "band6", "band7", "NDVI", "EVI", "Fmask4"]
+            WTSS            : *oli_bands_local
             cloud_band      : "FMASK4"
 
         missing_value       :
@@ -209,8 +211,9 @@ default:
     AWFI                    :
         bands               :
             SITS            : &awfi_bands_sits ["B13", "B14", "B15", "B16", "NDVI", "EVI", "CMASK"]
-            BDC             : ["BAND13", "BAND14", "BAND15", "BAND16", "NDVI", "EVI", "CMASK"]
+            BDC             : &awfi_bands_bdc ["BAND13", "BAND14", "BAND15", "BAND16", "NDVI", "EVI", "CMASK"]
             LOCAL           : *awfi_bands_sits
+            WTSS            : *awfi_bands_bdc
             cloud_band      : "CMASK"
 
         missing_value       :
@@ -220,7 +223,7 @@ default:
             B14             : -9999
             B15             : -9999
             B16             : -9999
-            CMASK           : 255
+            CMASK           : 0
 
         minimum_value       :
             NDVI            : -10000
@@ -238,7 +241,7 @@ default:
             B14             : 10000
             B15             : 10000
             B16             : 10000
-            CMASK           : 4
+            CMASK           : 255
 
         scale_factor        :
             NDVI            : 0.0001
@@ -263,8 +266,8 @@ default:
             yres            : 64
 
         CMASK_values        :
-            no_clouds       : 0
-            clouds          : 4
+            no_clouds       : 127
+            clouds          : 255
 
     MSI                     :
         bands               :
@@ -273,6 +276,7 @@ default:
             BDC             : ["BAND1", "BAND2", "BAND3", "BAND4", "BAND5", "BAND6", "BAND7", "BAND8", "BAND8A", "BAND9", "BAND10", "BAND11", "BAND12", "EVI", "NDVI", "FMASK4"]
             LOCAL           : *msi_bands_sits
             DEAFRICA        : *msi_bands_sits
+            WTSS            : ["band1", "band2", "band3", "band4", "band5", "band6", "band7", "band8", "band8a", "band9", "band10", "band11", "band12", "EVI", "NDVI", "Fmask4"]
             cloud_band      : "SCL"
 
         SCL_values          :
@@ -435,6 +439,13 @@ default:
             OLI_CLD_BAND    : "FMASK4"
             OLI_cld_vls     : [2, 3, 4, 255]
 
+        WTSS                :
+            AWFI_CLD_BAND   : "CMASK"
+            AWFI_cld_vls    : 4
+            MSI_CLD_BAND    : "FMASK4"
+            MSI_cld_vls     : [2, 3, 4, 255]
+            OLI_CLD_BAND    : "FMASK4"
+            OLI_cld_vls     : [2, 3, 4, 255]
 
         AWS                 :
             MSI_CLD_BAND    : "SCL"
@@ -542,7 +553,3 @@ default:
         Urban_Area :         "ivory4"
         Water      :         "royalblue3"
         Wetlands   :         "mediumaquamarine"
-
-
-
-

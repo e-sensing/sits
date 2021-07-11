@@ -141,6 +141,15 @@
 #'     end_date = "2019-08-28"
 #' )
 #'
+#' # --- Create a WTSS cube from BDC cubes
+#' # Provide your BDC credentials as environment variables
+#' Sys.setenv(
+#'     "BDC_ACCESS_KEY" = <your_bdc_access_key>
+#' )
+#'
+#' cube_wtss <- sits::sits_cube(source = "WTSS",
+#'                              collection = "MOD13Q1-6")
+#'
 #' # --- Access to Digital Earth Africa
 #' # Provide your AWS credentials as environment variables
 #' Sys.setenv(
@@ -238,6 +247,51 @@ sits_cube <- function(source, ...) {
     class(source) <- c(spec_class, class(source))
     # Dispatch
     UseMethod("sits_cube", source)
+}
+
+
+#' @rdname sits_cube
+#'
+#' @export
+#'
+sits_cube.wtss_cube <- function(source = "WTSS", ...,
+                                name = "wtss_cube",
+                                url = NULL,
+                                collection) {
+
+
+    # precondition - is the collection name valid?
+    assertthat::assert_that(
+        !purrr::is_null(collection),
+        msg = "sits_cube: WTSS collection must be provided."
+    )
+
+    # precondition - is the url correct?
+    if (purrr::is_null(url)) {
+        url <- .sits_config_wtss_bdc()
+    }
+
+    # Pre-condition - try to find the access key as an environment variable
+    bdc_access_key <- Sys.getenv("BDC_ACCESS_KEY")
+    assertthat::assert_that(
+        nchar(bdc_access_key) != 0,
+        msg = "sits_cube: BDC_ACCESS_KEY needs to be provided"
+    )
+
+    # Pre-condition
+    wtss_ok <- .sits_wtss_check(URL = url, name = collection)
+
+    # create a cube
+    if (wtss_ok) {
+        cube <- .sits_wtss_cube(URL = url,
+                                name = name,
+                                collection = collection)
+    } else {
+        message("WTSS service not responding")
+        return(NULL)
+    }
+
+    return(cube)
 }
 
 #' @rdname sits_cube

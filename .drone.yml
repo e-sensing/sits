@@ -3,6 +3,7 @@ name: default
 
 steps:
 - name: test
+  pull: always
   image: brazildatacube/sits-base:0.12.0
   commands:
   - R -e 'pacman::p_load(desc::desc_get_deps()[desc::desc_get_deps()[["type"]] != "Depends",][["package"]], install = T, update = F, character.only = T)'
@@ -10,6 +11,7 @@ steps:
   - set -e; R CMD check *.tar.gz --as-cran >&1 | tee stdfile && cat stdfile | (grep -E "(WARNING|ERROR)" > /dev/null) && exit 1 || exit 0
 
 - name: coverage
+  pull: always
   image: brazildatacube/sits-base:0.12.0
   environment:
     CODECOV_TOKEN:

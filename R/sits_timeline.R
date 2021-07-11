@@ -57,6 +57,14 @@ sits_timeline.satveg_cube <- function(data) {
 
 #' @export
 #'
+sits_timeline.wtss_cube <- function(data) {
+
+  # return the timeline of the cube
+  return(data[1,]$file_info[[1]]$date[[1]])
+}
+
+#' @export
+#'
 sits_timeline.probs_cube <- function(data) {
 
     assertthat::assert_that(
