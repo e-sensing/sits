@@ -131,7 +131,6 @@ Collate:
     'sits_labels_summary.R'
     'sits_landsat.R'
     'sits_log.R'
-    'sits_LTAE.R'
     'sits_machine_learning.R'
     'sits_merge.R'
     'sits_mlp.R'
