@@ -109,10 +109,10 @@ test_that("Creating cubes from WTSS", {
     skip("WTSS server is not accessible")
   }
 
-  expect_true(all(sits_bands(wtss_cube) %in% c("NDVI", "EVI")))
+  expect_true(all(c("NDVI", "EVI") %in% sits_bands(wtss_cube)))
 
-  timeline <- sits_timeline(cbers_cube)
-  expect_true(timeline %in% as.Date("2018-09-01"))
+  timeline <- sits_timeline(wtss_cube)
+  expect_true(as.Date("2019-11-01") %in% timeline)
 
   # provide invalid collection
   testthat::expect_error(
@@ -128,14 +128,14 @@ test_that("Creating cubes from WTSS", {
   )
 
   Sys.unsetenv("BDC_ACCESS_KEY")
-
-  # no token provided
+  # try to access cube without access key
   testthat::expect_error(
     sits_cube(
       source = "WTSS",
       name = "l8_wtss_cube",
       collection = "LC8_30_16D_STK-1")
   )
+
 })
 
 test_that("Creating cubes from DEA", {

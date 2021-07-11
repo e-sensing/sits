@@ -250,6 +250,13 @@ sits_cube.wtss_cube <- function(source = "WTSS", ...,
         url <- .sits_config_wtss_bdc()
     }
 
+    # Pre-condition - try to find the access key as an environment variable
+    bdc_access_key <- Sys.getenv("BDC_ACCESS_KEY")
+    assertthat::assert_that(
+        nchar(bdc_access_key) != 0,
+        msg = "sits_cube: BDC_ACCESS_KEY needs to be provided"
+    )
+
     # Pre-condition
     wtss_ok <- .sits_wtss_check(URL = url, name = collection)
 

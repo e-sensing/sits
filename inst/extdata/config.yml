@@ -38,7 +38,7 @@ default:
         DEAFRICA            : "af-south-1"
         USGS                : "us-west-2"
 
-    AWS_S3_ENDPOINT            :
+    AWS_S3_ENDPOINT         :
         AWS                 : "s3.amazonaws.com"
         DEAFRICA            : "s3.af-south-1.amazonaws.com"
         USGS                : "usgs-landsat.s3.amazonaws.com"
