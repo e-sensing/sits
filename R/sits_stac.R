@@ -155,7 +155,8 @@
 #'                   by rstac.
 .sits_stac_bands <- function(items, bands, source, sensor = NULL) {
 
-    sensor <- toupper(items$features[[1]]$properties$instruments[[1]])
+    if (is.null(sensor))
+        sensor <- toupper(items$features[[1]]$properties$instruments[[1]])
 
     # get bands from sensor
     bands_sensor <- .sits_config_sensor_bands(sensor = sensor, source = source)

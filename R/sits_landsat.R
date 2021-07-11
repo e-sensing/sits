@@ -71,14 +71,14 @@
     pgr_fetch  <- FALSE
 
     # if more than 1000 items are found the progress bar is displayed
-    if (rstac::items_matched(items_info,
-                             path_row = c("meta", "found")) > 1000)
+    if (rstac::items_matched(items = items_info,
+                             matched_field = c("meta", "found")) > 1000)
         pgr_fetch <- TRUE
 
     # fetching all the metadata and updating to upper case instruments
     items_info <- rstac::items_fetch(items_info,
                                      progress = pgr_fetch,
-                                     path_row = c("meta", "found"))
+                                     matched_field = c("meta", "found"))
 
     # getting sensor name
     sensor <- .sits_config_sensors("LANDSAT-8")
