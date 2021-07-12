@@ -14,14 +14,20 @@
 #'
 #' Currently, users can create data cube from the following sources:
 #' \itemize{
-#'  \item{"BDC": }{Brazil Data Cube (BDC), see also http://brazildatacube.org/}
-#'  \item{"DEAFRICA": }{Digital Earth Africa, see also
-#'  https://www.digitalearthafrica.org/}
-#'  \item{"AWS": }{Amazon Web Services (AWS)}
-#'  \item{"USGS": }{United States Geological Survey (USGS)}
+#'  \item{"BDC": }{Brazil Data Cube (BDC),
+#'   see also https://brazil-data-cube.github.io/applications/stac.html}
+#'   \item{"WTSS": }{Web Time Series Service from BDC,
+#'    see also https://brazil-data-cube.github.io/applications/wtss.html}
+#'  \item{"DEAFRICA": }{Digital Earth Africa,
+#'   see also https://www.digitalearthafrica.org/}
+#'  \item{"AWS": }{Amazon Web Services (AWS),
+#'   see also https://earth-search.aws.element84.com/v0/ }
+#'  \item{"USGS": }{United States Geological Survey (USGS),
+#'   see also https://landsatlook.usgs.gov/sat-api/stac/}
 #'  \item{"LOCAL": }{Defines a cube from on a set of local files.}
 #'  \item{"PROBS": }{Defines a cube to from a set of classified image files}.
-#'  \item{"SATVEG": }{Defines a cube to use the SATVEG web service.}
+#'  \item{"SATVEG": }{Defines a cube to use the SATVEG web service,
+#'   see also https://www.satveg.cnptia.embrapa.br/satveg/login.html}
 #'  }
 #'
 #' For big data sources such as AWS, BDC and DEA, users need to provide:
@@ -61,7 +67,8 @@
 #' mentioned above.
 #'
 #'@note BDC users need to provide their credentials using environmental
-#' variables.
+#' variables.To create your credencials, please see
+#'  "https://brazildatacube.dpi.inpe.br/portal/explore"
 #' # Sys.setenv(
 #' # "BDC_ACCESS_KEY" = <your_bdc_access_key>
 #' # )
@@ -249,7 +256,6 @@ sits_cube <- function(source, ...) {
     UseMethod("sits_cube", source)
 }
 
-
 #' @rdname sits_cube
 #'
 #' @export
@@ -405,7 +411,8 @@ sits_cube.deafrica_cube <- function(source = "DEAFRICA", ...,
                    "install.packages('rstac')"), call. = FALSE
         )
     }
-    # DE Africa runs on AWS
+
+    # DEA runs on AWS
     # precondition - is AWS access available?
     aws_access_ok <- .sits_aws_check_access(source)
     if (!aws_access_ok)
@@ -495,6 +502,17 @@ sits_cube.aws_cube <- function(source = "AWS", ...,
         )
     }
 
+    # precondition - is the collection name valid?
+    assertthat::assert_that(
+        collection == "sentinel-s2-l2a",
+        msg = "sits_cube: AWS supports only sentinel-s2-l2a collection"
+    )
+
+    # precondition - is the provided resolution is valid?
+    assertthat::assert_that(
+        s2_resolution %in% c(10, 20, 60),
+        msg = "sits_cube: s2_resolution should be one of c(10, 20, 60)")
+
     # precondition - is AWS access available?
     aws_access_ok <- .sits_aws_check_access(source)
     if (!aws_access_ok)
@@ -508,16 +526,6 @@ sits_cube.aws_cube <- function(source = "AWS", ...,
     # test if AWS STAC is accessible
     if (!(.sits_config_cube_access(url, "AWS")))
         return(NULL)
-
-    # precondition - is the collection name valid?
-    assertthat::assert_that(
-        collection == "sentinel-s2-l2a",
-        msg = "sits_cube: AWS supports only sentinel-s2-l2a collection"
-    )
-
-    assertthat::assert_that(
-        s2_resolution %in% c(10, 20, 60),
-        msg = "sits_cube: s2_resolution should be one of c(10, 20, 60)")
 
     # select bands by resolution
     bands <- .sits_s2_check_bands(bands, s2_resolution)
@@ -587,6 +595,12 @@ sits_cube.usgs_cube <- function(source = "USGS", ...,
         )
     }
 
+    # precondition - is the collection name valid?
+    assertthat::assert_that(
+        collection == "landsat-c2l2-sr",
+        msg = "sits_cube: USGS supports only `landsat-c2l2-sr` collection."
+    )
+
     # precondition - is AWS access available?
     aws_access_ok <- .sits_aws_check_access(source)
     if (!aws_access_ok)
@@ -602,12 +616,6 @@ sits_cube.usgs_cube <- function(source = "USGS", ...,
     if (!(.sits_config_cube_access(url, "USGS")))
         return(NULL)
 
-    # precondition - is the collection name valid?
-    assertthat::assert_that(
-        collection == "landsat-c2l2-sr",
-        msg = "sits_cube: USGS supports only `landsat-c2l2-sr` collection."
-    )
-
     # retrieve item information
     items_info <- .sits_usgs_items(
         url = url,
@@ -615,13 +623,13 @@ sits_cube.usgs_cube <- function(source = "USGS", ...,
         tiles = tiles,
         roi = bbox,
         start_date = start_date,
-        end_date  = end_date,
+        end_date = end_date,
         bands = bands,
         ...
     )
 
     # creating a group of items per tile
-    items_group <- .sits_stac_group(items_info,
+    items_group <- .sits_stac_group(items = items_info,
                                     fields = c("properties", "tile"))
 
     tiles <- purrr::map(items_group, function(items) {

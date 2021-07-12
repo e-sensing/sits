@@ -158,14 +158,20 @@ that information to retrive and process data.
 
 Currently, users can create data cube from the following sources:
 \itemize{
- \item{"BDC": }{Brazil Data Cube (BDC), see also http://brazildatacube.org/}
- \item{"DEAFRICA": }{Digital Earth Africa, see also
- https://www.digitalearthafrica.org/}
- \item{"AWS": }{Amazon Web Services (AWS)}
- \item{"USGS": }{United States Geological Survey (USGS)}
+ \item{"BDC": }{Brazil Data Cube (BDC),
+  see also https://brazil-data-cube.github.io/applications/stac.html}
+  \item{"WTSS": }{Web Time Series Service from BDC,
+   see also https://brazil-data-cube.github.io/applications/wtss.html}
+ \item{"DEAFRICA": }{Digital Earth Africa,
+  see also https://www.digitalearthafrica.org/}
+ \item{"AWS": }{Amazon Web Services (AWS),
+  see also https://earth-search.aws.element84.com/v0/ }
+ \item{"USGS": }{United States Geological Survey (USGS),
+  see also https://landsatlook.usgs.gov/sat-api/stac/}
  \item{"LOCAL": }{Defines a cube from on a set of local files.}
  \item{"PROBS": }{Defines a cube to from a set of classified image files}.
- \item{"SATVEG": }{Defines a cube to use the SATVEG web service.}
+ \item{"SATVEG": }{Defines a cube to use the SATVEG web service,
+  see also https://www.satveg.cnptia.embrapa.br/satveg/login.html}
  }
 
 For big data sources such as AWS, BDC and DEA, users need to provide:
@@ -213,7 +219,8 @@ satellite images. In order to do so, you need to provide the AWS keys as
 mentioned above.
 
 BDC users need to provide their credentials using environmental
-variables.
+variables.To create your credencials, please see
+ "https://brazildatacube.dpi.inpe.br/portal/explore"
 # Sys.setenv(
 # "BDC_ACCESS_KEY" = <your_bdc_access_key>
 # )
