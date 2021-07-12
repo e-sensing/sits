@@ -45,7 +45,7 @@ Imports:
     purrr (>= 0.3.0),
     raster (>= 3.4),
     reshape2,
-    rstac (> 0.9.1),
+    rstac (>= 0.9.1-4),
     scales,
     sf (>= 0.9),
     slider (>= 0.1.5),
