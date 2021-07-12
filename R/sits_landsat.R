@@ -48,6 +48,8 @@
 
     # if specified, a filter per tile is added to the query
     if (!is.null(tiles)) {
+
+        # format tile parameter provided by users
         sep_tile <- .sits_usgs_format_tiles(tiles)
 
         rstac_query <- rstac_query %>%
@@ -61,7 +63,7 @@
         .sits_usgs_filter_datetime(start_date = start_date,
                                    end_date = end_date)
 
-    # checks if the collection returned any items
+    # checks if the collection returned zero items
     assertthat::assert_that(
         !(rstac::items_length(items_info) == 0),
         msg = ".sits_usgs_items: the provided search returned zero items."
@@ -76,7 +78,7 @@
         pgr_fetch <- TRUE
 
     # fetching all the metadata and updating to upper case instruments
-    items_info <- rstac::items_fetch(items_info,
+    items_info <- rstac::items_fetch(items = items_info,
                                      progress = pgr_fetch,
                                      matched_field = c("meta", "found"))
 
@@ -84,8 +86,8 @@
     sensor <- .sits_config_sensors("LANDSAT-8")
 
     # getting bands name
-    items_info <- .sits_stac_bands(.sits_usgs_fix_href(items_info),
-                                   bands,
+    items_info <- .sits_stac_bands(items = .sits_usgs_fix_bands(items_info),
+                                   bands = bands,
                                    source = "USGS",
                                    sensor = sensor)
 
@@ -101,15 +103,15 @@
     return(items_info)
 }
 
-#' @title Fix href on URLs provided by USGS
-#' @name .sits_usgs_fix_href
+#' @title Fix bands name in hrefs provided by USGS
+#' @name .sits_usgs_fix_bands
 #' @keywords internal
 #'
 #' @param items      a \code{STACItemCollection} object returned by rstac
 #' package.
 #'
 #' @return  a \code{STACItemCollection} object with URLs fixed.
-.sits_usgs_fix_href <- function(items) {
+.sits_usgs_fix_bands <- function(items) {
 
     items$features <- purrr::map(items$features, function(item){
 
@@ -126,6 +128,7 @@
         })
         item
     })
+
     items
 }
 
@@ -147,12 +150,12 @@
     index_features <- purrr::map_lgl(items$features, function(feature) {
         datetime <- lubridate::date(feature[["properties"]][["datetime"]])
 
-        if (datetime >= start_date &&  datetime <= end_date)
+        if (datetime >= start_date && datetime <= end_date)
             return(TRUE)
         return(FALSE)
     })
 
-    # selects the tiles found in the search
+    # select the tiles found in the search
     items$features <- items$features[index_features]
 
     items
@@ -166,6 +169,7 @@
 #'
 #' @return          a \code{tibble} with attributes of wrs path and row.
 .sits_usgs_format_tiles <- function(tiles) {
+
     # regex pattern of wrs_path and wrs_row
     pattern_l8 <- "[0-9]{6}"
 
@@ -175,14 +179,13 @@
                    "pattern. See the user guide for more information."))
 
     # list to store the info about the tiles to provide the query in STAC
-    list_tiles <- list()
     list_tiles <- purrr::map(tiles, function(tile) {
-        list_tiles$wrs_path <- substring(tile, 1, 3)
-        list_tiles$wrs_row <- substring(tile, 4, 6)
 
-        list_tiles
+        c(wrs_path = substring(tile, 1, 3),
+          wrs_row = substring(tile, 4, 6))
     })
 
+    # bind into a tibble all tiles
     tiles_tbl <- dplyr::bind_rows(list_tiles)
 
     return(tiles_tbl)
@@ -217,12 +220,13 @@
     bbox <- .sits_stac_get_bbox(items, item_prop[["proj:epsg"]])
 
     # get resolution
-    res <- list(xres = item_prop[["eo:gsd"]], yres = item_prop[["eo:gsd"]])
+    res <- list(xres = item_prop[["eo:gsd"]],
+                yres = item_prop[["eo:gsd"]])
 
-    # add resolution to file_info
+    # add resolution to file_info before path attribute
     file_info <- dplyr::mutate(file_info,
                                res = as.numeric(res[["xres"]]),
-                               .before = path)
+                               .before = "path")
 
     # create a tibble to store the metadata
     tile <- .sits_cube_create(
