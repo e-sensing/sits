@@ -10,7 +10,7 @@
 #'
 #' A data cube does not contain actual data; it points to the files where the
 #' required data is archived. Other functions (e.g. `sits_classify`) use
-#' that information to retrive and process data.
+#' that information to retrieve and process data.
 #'
 #' Currently, users can create data cube from the following sources:
 #' \itemize{
