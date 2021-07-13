@@ -6,6 +6,7 @@
 \alias{sits_cube.bdc_cube}
 \alias{sits_cube.deafrica_cube}
 \alias{sits_cube.aws_cube}
+\alias{sits_cube.usgs_cube}
 \alias{sits_cube.local_cube}
 \alias{sits_cube.probs_cube}
 \alias{sits_cube.satveg_cube}
@@ -51,6 +52,19 @@ sits_cube(source, ...)
   bands = NULL,
   bbox = NULL,
   s2_resolution = 20,
+  start_date = NULL,
+  end_date = NULL
+)
+
+\method{sits_cube}{usgs_cube}(
+  source = "USGS",
+  ...,
+  name = "usgs_cube",
+  url = NULL,
+  collection = "landsat-c2l2-sr",
+  tiles = NULL,
+  bands = NULL,
+  bbox = NULL,
   start_date = NULL,
   end_date = NULL
 )
@@ -144,13 +158,20 @@ that information to retrive and process data.
 
 Currently, users can create data cube from the following sources:
 \itemize{
- \item{"BDC": }{Brazil Data Cube (BDC), see also http://brazildatacube.org/}
- \item{"DEAFRICA": }{Digital Earth Africa, see also
- https://www.digitalearthafrica.org/}
- \item{"AWS": }{Amazon Web Services (AWS)}
+ \item{"BDC": }{Brazil Data Cube (BDC),
+  see also https://brazil-data-cube.github.io/applications/stac.html}
+  \item{"WTSS": }{Web Time Series Service from BDC,
+   see also https://brazil-data-cube.github.io/applications/wtss.html}
+ \item{"DEAFRICA": }{Digital Earth Africa,
+  see also https://www.digitalearthafrica.org/}
+ \item{"AWS": }{Amazon Web Services (AWS),
+  see also https://earth-search.aws.element84.com/v0/ }
+ \item{"USGS": }{United States Geological Survey (USGS),
+  see also https://landsatlook.usgs.gov/sat-api/stac/}
  \item{"LOCAL": }{Defines a cube from on a set of local files.}
  \item{"PROBS": }{Defines a cube to from a set of classified image files}.
- \item{"SATVEG": }{Defines a cube to use the SATVEG web service.}
+ \item{"SATVEG": }{Defines a cube to use the SATVEG web service,
+  see also https://www.satveg.cnptia.embrapa.br/satveg/login.html}
  }
 
 For big data sources such as AWS, BDC and DEA, users need to provide:
@@ -193,8 +214,13 @@ the `s2_resolution` parameter.
 For DEA, sits currently only works with collections 'ga_s2_gm' and
 's2_l2a'. DEA users also need to provide their AWS credentials.
 
+For USGS, use the 'landsat-c2l2-sr' collection to consult the Landsat-8
+satellite images. In order to do so, you need to provide the AWS keys as
+mentioned above.
+
 BDC users need to provide their credentials using environmental
-variables.
+variables.To create your credencials, please see
+ "https://brazildatacube.dpi.inpe.br/portal/explore"
 # Sys.setenv(
 # "BDC_ACCESS_KEY" = <your_bdc_access_key>
 # )
@@ -278,6 +304,22 @@ s2_cube <- sits_cube(source = "AWS",
                       start_date = as.Date("2018-07-18"),
                       end_date = as.Date("2018-07-23"),
                       s2_resolution = 20
+)
+
+# --- Access to Landsat-8 level 2 data in AWS
+# Provide your AWS credentials as environment variables
+Sys.setenv(
+    "AWS_ACCESS_KEY_ID" = <your_aws_access_key>,
+    "AWS_SECRET_ACCESS_KEY" = <your_aws_secret_access_key>
+)
+
+
+l8_cube <- sits_cube(source = "USGS",
+                     name = "L8_CUBE_140048_140045_18_2019",
+                     collection = "landsat-c2l2-sr",
+                     tiles = c("140048", "140045"),
+                     start_date = as.Date("2019-01-01"),
+                     end_date = as.Date("2019-12-31"),
 )
 
 # --- Create a cube based on a stack of CBERS data

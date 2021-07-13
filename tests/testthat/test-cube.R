@@ -8,6 +8,7 @@ test_that("Creating a SATVEG data cube", {
   }
   expect_true(cube_satveg$ymin == -30.0)
 })
+
 test_that("Reading a raster cube", {
   data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
   raster_cube <- sits_cube(
@@ -127,15 +128,14 @@ test_that("Creating cubes from WTSS", {
     sits_cube(source = "WTSS", name = "l8_wtss_cube")
   )
 
-  Sys.unsetenv("BDC_ACCESS_KEY")
-  # try to access cube without access key
+  # try to access cube with wrong url
   testthat::expect_error(
     sits_cube(
+      url = "wrong-url",
       source = "WTSS",
       name = "l8_wtss_cube",
       collection = "LC8_30_16D_STK-1")
   )
-
 })
 
 test_that("Creating cubes from DEA", {
@@ -149,7 +149,8 @@ test_that("Creating cubes from DEA", {
                     message = "No AWS_ACCESS_KEY_ID defined in environment.")
 
   testthat::skip_if(nchar(aws_secret_access_key) == 0,
-                    message = "No AWS_SECRET_ACCESS_KEY defined in environment.")
+                    message = paste("No AWS_SECRET_ACCESS_KEY defined in",
+                                    "environment."))
 
   dea_cube <- sits_cube(source = "DEAFRICA",
                         name = "deafrica_cube",
@@ -173,6 +174,42 @@ test_that("Creating cubes from DEA", {
 
   expect_equal(dea_cube$xmax[[1]], .sits_raster_api_xmax(r), tolerance = 1)
   expect_equal(dea_cube$xmin[[1]], .sits_raster_api_xmin(r), tolerance = 1)
+})
+
+test_that("Creating cubes from USGS", {
+  testthat::skip_on_cran()
+  # check "AWS_ACCESS_KEY_ID" - mandatory one per user
+  aws_access_key_id <- Sys.getenv("AWS_ACCESS_KEY_ID")
+  # check "AWS_SECRET_ACCESS_KEY" - mandatory one per user
+  aws_secret_access_key <- Sys.getenv("AWS_SECRET_ACCESS_KEY")
+
+  testthat::skip_if(nchar(aws_access_key_id) == 0,
+                    message = "No AWS_ACCESS_KEY_ID defined in environment.")
+
+  testthat::skip_if(nchar(aws_secret_access_key) == 0,
+                    message = paste("No AWS_SECRET_ACCESS_KEY defined in",
+                                    "environment."))
+
+
+  usgs_cube <- sits_cube(source = "USGS",
+                         name = "usgs_cube_2019",
+                         collection = "landsat-c2l2-sr",
+                         bands = c("B1", "B7", "FMASK4"),
+                         tiles = c("140048", "140045"),
+                         start_date = as.Date("2016-01-01"),
+                         end_date = as.Date("2016-12-31"))
+
+  if (purrr::is_null(usgs_cube)) {
+    skip("USGS is not accessible")
+  }
+
+  expect_true(all(sits_bands(usgs_cube) %in% c("B1", "B7", "FMASK4")))
+
+  file_info <- usgs_cube$file_info[[1]]
+  r <- .sits_raster_api_open_rast(file_info$path[[1]])
+
+  expect_equal(usgs_cube$xmax[[1]], .sits_raster_api_xmax(r), tolerance = 1)
+  expect_equal(usgs_cube$xmin[[1]], .sits_raster_api_xmin(r), tolerance = 1)
 })
 
 test_that("Merging cubes", {
@@ -207,7 +244,9 @@ test_that("Merging cubes", {
 })
 
 test_that("Creating cubes from AWS and regularizing them", {
+
   testthat::skip_on_cran()
+
   # check "AWS_ACCESS_KEY_ID" - mandatory one per user
   aws_access_key_id <- Sys.getenv("AWS_ACCESS_KEY_ID")
   # check "AWS_SECRET_ACCESS_KEY" - mandatory one per user

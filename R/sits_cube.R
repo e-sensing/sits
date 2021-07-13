@@ -10,17 +10,24 @@
 #'
 #' A data cube does not contain actual data; it points to the files where the
 #' required data is archived. Other functions (e.g. `sits_classify`) use
-#' that information to retrive and process data.
+#' that information to retrieve and process data.
 #'
 #' Currently, users can create data cube from the following sources:
 #' \itemize{
-#'  \item{"BDC": }{Brazil Data Cube (BDC), see also http://brazildatacube.org/}
-#'  \item{"DEAFRICA": }{Digital Earth Africa, see also
-#'  https://www.digitalearthafrica.org/}
-#'  \item{"AWS": }{Amazon Web Services (AWS)}
+#'  \item{"BDC": }{Brazil Data Cube (BDC),
+#'   see also https://brazil-data-cube.github.io/applications/stac.html}
+#'   \item{"WTSS": }{Web Time Series Service from BDC,
+#'    see also https://brazil-data-cube.github.io/applications/wtss.html}
+#'  \item{"DEAFRICA": }{Digital Earth Africa,
+#'   see also https://www.digitalearthafrica.org/}
+#'  \item{"AWS": }{Amazon Web Services (AWS),
+#'   see also https://earth-search.aws.element84.com/v0/ }
+#'  \item{"USGS": }{United States Geological Survey (USGS),
+#'   see also https://landsatlook.usgs.gov/sat-api/stac/}
 #'  \item{"LOCAL": }{Defines a cube from on a set of local files.}
 #'  \item{"PROBS": }{Defines a cube to from a set of classified image files}.
-#'  \item{"SATVEG": }{Defines a cube to use the SATVEG web service.}
+#'  \item{"SATVEG": }{Defines a cube to use the SATVEG web service,
+#'   see also https://www.satveg.cnptia.embrapa.br/satveg/login.html}
 #'  }
 #'
 #' For big data sources such as AWS, BDC and DEA, users need to provide:
@@ -55,8 +62,13 @@
 #' @note For DEA, sits currently only works with collections 'ga_s2_gm' and
 #' 's2_l2a'. DEA users also need to provide their AWS credentials.
 #'
+#' @note For USGS, use the 'landsat-c2l2-sr' collection to consult the Landsat-8
+#' satellite images. In order to do so, you need to provide the AWS keys as
+#' mentioned above.
+#'
 #'@note BDC users need to provide their credentials using environmental
-#' variables.
+#' variables.To create your credencials, please see
+#'  "https://brazildatacube.dpi.inpe.br/portal/explore"
 #' # Sys.setenv(
 #' # "BDC_ACCESS_KEY" = <your_bdc_access_key>
 #' # )
@@ -180,6 +192,22 @@
 #'                       s2_resolution = 20
 #' )
 #'
+#' # --- Access to Landsat-8 level 2 data in AWS
+#' # Provide your AWS credentials as environment variables
+#' Sys.setenv(
+#'     "AWS_ACCESS_KEY_ID" = <your_aws_access_key>,
+#'     "AWS_SECRET_ACCESS_KEY" = <your_aws_secret_access_key>
+#' )
+#'
+#'
+#'l8_cube <- sits_cube(source = "USGS",
+#'                      name = "L8_CUBE_140048_140045_18_2019",
+#'                      collection = "landsat-c2l2-sr",
+#'                      tiles = c("140048", "140045"),
+#'                      start_date = as.Date("2019-01-01"),
+#'                      end_date = as.Date("2019-12-31"),
+#' )
+#'
 #' # --- Create a cube based on a stack of CBERS data
 #' data_dir <- system.file("extdata/raster/cbers", package = "sits")
 #'
@@ -227,7 +255,6 @@ sits_cube <- function(source, ...) {
     # Dispatch
     UseMethod("sits_cube", source)
 }
-
 
 #' @rdname sits_cube
 #'
@@ -384,7 +411,8 @@ sits_cube.deafrica_cube <- function(source = "DEAFRICA", ...,
                    "install.packages('rstac')"), call. = FALSE
         )
     }
-    # DE Africa runs on AWS
+
+    # DEA runs on AWS
     # precondition - is AWS access available?
     aws_access_ok <- .sits_aws_check_access(source)
     if (!aws_access_ok)
@@ -474,6 +502,17 @@ sits_cube.aws_cube <- function(source = "AWS", ...,
         )
     }
 
+    # precondition - is the collection name valid?
+    assertthat::assert_that(
+        collection == "sentinel-s2-l2a",
+        msg = "sits_cube: AWS supports only sentinel-s2-l2a collection"
+    )
+
+    # precondition - is the provided resolution is valid?
+    assertthat::assert_that(
+        s2_resolution %in% c(10, 20, 60),
+        msg = "sits_cube: s2_resolution should be one of c(10, 20, 60)")
+
     # precondition - is AWS access available?
     aws_access_ok <- .sits_aws_check_access(source)
     if (!aws_access_ok)
@@ -487,16 +526,6 @@ sits_cube.aws_cube <- function(source = "AWS", ...,
     # test if AWS STAC is accessible
     if (!(.sits_config_cube_access(url, "AWS")))
         return(NULL)
-
-    # precondition - is the collection name valid?
-    assertthat::assert_that(
-        collection == "sentinel-s2-l2a",
-        msg = "sits_cube: AWS supports only sentinel-s2-l2a collection"
-    )
-
-    assertthat::assert_that(
-        s2_resolution %in% c(10, 20, 60),
-        msg = "sits_cube: s2_resolution should be one of c(10, 20, 60)")
 
     # select bands by resolution
     bands <- .sits_s2_check_bands(bands, s2_resolution)
@@ -534,6 +563,85 @@ sits_cube.aws_cube <- function(source = "AWS", ...,
             items = items,
             collection = collection,
             resolution = s2_resolution,
+            file_info = stack
+        )
+
+        class(cube_t) <- c("raster_cube", class(cube_t))
+        return(cube_t)
+    })
+    cube <- dplyr::bind_rows(tiles)
+
+    return(cube)
+}
+
+#' @rdname sits_cube
+#'
+#' @export
+#'
+sits_cube.usgs_cube <- function(source = "USGS", ...,
+                                name = "usgs_cube",
+                                url = NULL,
+                                collection = "landsat-c2l2-sr",
+                                tiles = NULL,
+                                bands = NULL,
+                                bbox = NULL,
+                                start_date = NULL,
+                                end_date = NULL) {
+
+    # require package
+    if (!requireNamespace("rstac", quietly = TRUE)) {
+        stop(paste("Please install package rstac from CRAN:",
+                   "install.packages('rstac')"), call. = FALSE
+        )
+    }
+
+    # precondition - is the collection name valid?
+    assertthat::assert_that(
+        collection == "landsat-c2l2-sr",
+        msg = "sits_cube: USGS supports only `landsat-c2l2-sr` collection."
+    )
+
+    # precondition - is AWS access available?
+    aws_access_ok <- .sits_aws_check_access(source)
+    if (!aws_access_ok)
+        return(NULL)
+
+    # precondition - is the url correct?
+    if (purrr::is_null(url)) {
+        # TODO: criar uma unica função que o parametro seja o provedor
+        url <- .sits_config_usgs_stac()
+    }
+
+    # test if USGS STAC is accessible
+    if (!(.sits_config_cube_access(url, "USGS")))
+        return(NULL)
+
+    # retrieve item information
+    items_info <- .sits_usgs_items(
+        url = url,
+        collection = collection,
+        tiles = tiles,
+        roi = bbox,
+        start_date = start_date,
+        end_date = end_date,
+        bands = bands,
+        ...
+    )
+
+    # creating a group of items per tile
+    items_group <- .sits_stac_group(items = items_info,
+                                    fields = c("properties", "tile"))
+
+    tiles <- purrr::map(items_group, function(items) {
+
+        # retrieve the information from STAC
+        stack <- .sits_stac_items_info(items, items$bands)
+
+        # add the information for each tile
+        cube_t <- .sits_usgs_tile_cube(
+            name = name,
+            items = items,
+            collection = collection,
             file_info = stack
         )
 

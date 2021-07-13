@@ -14,8 +14,8 @@ default:
     GTiff_default_options   : ["COMPRESS=LZW", "BIGTIFF=YES"]
 
     # Data cube types known to sits
-    data_sources            : ["WTSS", "SATVEG", "LOCAL", "RASTER", "BDC", "WTSS", "DEAFRICA", "AWS", "PROBS", "CLASSIFIED"]
-    cube_classes            : ["wtss_cube", "satveg_cube", "local_cube", "raster_cube", "bdc_cube", "wtss_cube", "deafrica_cube", "aws_cube",  "probs_cube", "classified_image"]
+    data_sources            : ["WTSS", "SATVEG", "LOCAL", "RASTER", "BDC", "WTSS", "DEAFRICA", "USGS", "AWS", "PROBS", "CLASSIFIED"]
+    cube_classes            : ["wtss_cube", "satveg_cube", "local_cube", "raster_cube", "bdc_cube", "wtss_cube", "deafrica_cube", "usgs_cube", "aws_cube",  "probs_cube", "classified_image"]
 
     # Image file extensions known to SITS
     img_file_extensions     : ["tiff", "tif", "jp2", "hdf", "vrt"]
@@ -32,6 +32,9 @@ default:
     # aws configuration for access to data
     aws_stac                : "https://earth-search.aws.element84.com/v0/"
 
+    # usgs configuration for access to data
+    usgs_stac                : "https://landsatlook.usgs.gov/sat-api/stac"
+
     # AWS configuration
     AWS_DEFAULT_REGION      :
         AWS                 : "eu-central-1"
@@ -41,7 +44,7 @@ default:
     AWS_S3_ENDPOINT         :
         AWS                 : "s3.amazonaws.com"
         DEAFRICA            : "s3.af-south-1.amazonaws.com"
-        USGS                : "usgs-landsat.s3.amazonaws.com"
+        USGS                : "s3.amazonaws.com"
 
     AWS_REQUEST_PAYER       :
         AWS                 : "requester"
@@ -132,7 +135,7 @@ default:
         bands               :
             SITS            : &oli_bands_sits ["B1", "B2", "B3", "B4", "B5", "B6", "B7", "NDVI", "EVI", "FMASK4"]
             BDC             : ["BAND1", "BAND2", "BAND3", "BAND4", "BAND5", "BAND6", "BAND7", "NDVI", "EVI", "FMASK4"]
-            USGS            : ["SR_B1", "SR_B2", "SR_B3", "SR_B4", "SR_B5", "SR_B6", "SR_B7", "NDVI", "EVI", "FMASK4"]
+            USGS            : ["SR_B1", "SR_B2", "SR_B3", "SR_B4", "SR_B5", "SR_B6", "SR_B7", "NDVI", "EVI", "QA_PIXEL"]
             LOCAL           : &oli_bands_local ["band1", "band2", "band3", "band4", "band5", "band6", "band7", "NDVI", "EVI", "Fmask4"]
             WTSS            : *oli_bands_local
             cloud_band      : "FMASK4"
