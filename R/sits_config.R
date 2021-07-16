@@ -421,6 +421,24 @@ sits_config_show <- function() {
     return(cloud_values)
 }
 
+#' @title Get the flag of bitmask in cloud information
+#' @name .sits_config_cloud_bitmask
+#' @keywords internal
+#' @param cube          data cube
+#' @author Gilberto Camara \email{gilberto.camara@@inpe.br}
+#'
+#' @return vector with bands available in AWS for a given resolution
+.sits_config_cloud_bitmask <- function(cube) {
+  cv <- paste0(cube$sensor[1], "_cld_bit")
+  cloud_values <- sits_env$config[["CLOUD"]][[cube$source[1]]][[cv]]
+  assertthat::assert_that(
+    !purrr::is_null(cloud_values),
+    msg = paste(".sits_config_cloud_bitmask: cloud bitmask flag",
+                "is not available")
+  )
+  return(cloud_values)
+}
+
 #' @title Retrieve the color associated to a class in the configuration file
 #' @name sits_config_color
 #' @keywords internal
@@ -564,30 +582,34 @@ sits_config_show <- function() {
 #' @keywords internal
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'
-#' @param sensor         Name of the sensor
-#' @param bands          Vector of bands.
+#' @param cube Name of the sensor
+#' @param bands Vector of bands.
 #' @return The maximum values.
-.sits_config_maximum_values <- function(sensor, bands) {
-    # create a string to query for the maximum values
-    maximum_values <- vector()
-    bands %>%
-        purrr::map(function(b) {
-            maximum_values[b] <<-
-                as.numeric(sits_env$config[[sensor]][["maximum_value"]][[b]])
-        })
+.sits_config_maximum_values <- function(cube, bands) {
 
-    # post-condition
-    assertthat::assert_that(
-        !purrr::is_null(maximum_values),
-        msg = paste0(
-            "Missing maximum values for ",
-            sensor,
-            " edit configuration file"
-        )
+  # create a string to query for the maximum values
+  maximum_values <- vector()
+  source_info <- paste("maximum_value",
+                       sits_env$config[[cube$sensor]][["source"]][cube$source],
+                       sep = "_")
+  bands %>%
+    purrr::map(function(b) {
+      maximum_values[b] <<-
+        as.numeric(sits_env$config[[cube$sensor]][[source_info]][[b]])
+    })
+
+  # post-condition
+  assertthat::assert_that(
+    !purrr::is_null(maximum_values),
+    msg = paste0(
+      "Missing maximum values for ",
+      cube$sensor,
+      " edit configuration file"
     )
+  )
 
-    names(maximum_values) <- bands
-    return(maximum_values)
+  names(maximum_values) <- bands
+  return(maximum_values)
 }
 
 #' @title Retrieve the estimated value of R memory bloat
@@ -604,29 +626,33 @@ sits_config_show <- function() {
 #' @keywords internal
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'
-#' @param sensor           Name of the sensor
-#' @param bands            Bands provided by the sensor
+#' @param cube Name of the sensor
+#' @param bands Bands provided by the sensor
 #' @return The minimum values.
-.sits_config_minimum_values <- function(sensor, bands) {
-    # create a string to query for  values
-    min_val <- vector()
-    bands %>%
-        purrr::map(function(b) {
-            min_val[b] <<-
-                as.numeric(sits_env$config[[sensor]][["minimum_value"]][[b]])
-        })
+.sits_config_minimum_values <- function(cube, bands) {
 
-    # post-condition
-    assertthat::assert_that(
-        !purrr::is_null(min_val),
-        msg = paste0(
-            "No minimum values for ", sensor,
-            " edit configuration files"
-        )
+  # create a string to query for  values
+  min_val <- vector()
+  source_info <- paste("minimum_value",
+                       sits_env$config[[cube$sensor]][["source"]][cube$source],
+                       sep = "_")
+  bands %>%
+    purrr::map(function(b) {
+      min_val[b] <<-
+        as.numeric(sits_env$config[[cube$sensor]][[source_info]][[b]])
+    })
+
+  # post-condition
+  assertthat::assert_that(
+    !purrr::is_null(min_val),
+    msg = paste0(
+      "No minimum values for ", cube$sensor,
+      " edit configuration files"
     )
+  )
 
-    names(min_val) <- bands
-    return(min_val)
+  names(min_val) <- bands
+  return(min_val)
 }
 
 #' @title Retrieve the missing values for bands of a sensor
@@ -634,29 +660,33 @@ sits_config_show <- function() {
 #' @keywords internal
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'
-#' @param sensor         Name of the sensor
-#' @param bands          Vector of bands.
+#' @param cube Name of the sensor
+#' @param bands Vector of bands.
 #' @return The missing values.
-.sits_config_missing_values <- function(sensor, bands) {
-    # create a string to query for the missing values
-    mis_val <- vector()
-    bands %>%
-        purrr::map(function(b) {
-            mis_val[b] <<-
-                as.numeric(sits_env$config[[sensor]][["missing_value"]][[b]])
-        })
-    # post-condition
-    assertthat::assert_that(
-        !purrr::is_null(mis_val),
-        msg = paste0(
-            "No missing values for sensor ",
-            sensor,
-            " edit configuration file"
-        )
-    )
+.sits_config_missing_values <- function(cube, bands) {
 
-    names(mis_val) <- bands
-    return(mis_val)
+  # create a string to query for the missing values
+  mis_val <- vector()
+  source_info <- paste("missing_value",
+                       sits_env$config[[cube$sensor]][["source"]][cube$source],
+                       sep = "_")
+  bands %>%
+    purrr::map(function(b) {
+      mis_val[b] <<-
+        as.numeric(sits_env$config[[cube$sensor]][[source_info]][[b]])
+    })
+  # post-condition
+  assertthat::assert_that(
+    !purrr::is_null(mis_val),
+    msg = paste0(
+      "No missing values for sensor ",
+      cube$sensor,
+      " edit configuration file"
+    )
+  )
+
+  names(mis_val) <- bands
+  return(mis_val)
 }
 
 #' @title Retrieve the resmapling method for bands of a sensor
@@ -664,8 +694,8 @@ sits_config_show <- function() {
 #' @keywords internal
 #' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
 #'
-#' @param sensor         Name of the sensor
-#' @param bands          Vector of bands.
+#' @param sensor Name of the sensor
+#' @param bands Vector of bands.
 #' @return The resampling methods.
 .sits_config_resampling <- function(sensor, bands) {
 
@@ -947,7 +977,6 @@ sits_config_show <- function() {
     )
 }
 
-
 #' @title Retrieve the default sensor for the satellite
 #' @name .sits_config_sensors
 #' @keywords internal
@@ -991,34 +1020,39 @@ sits_config_show <- function() {
     return(sits_env$config[[sensor]][[r]])
 }
 
-
 #' @title Retrieve the scale factor for a given band for a data cube
 #' @name .sits_config_scale_factors
 #' @keywords internal
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'
-#' @param sensor         Name of the sensor.
-#' @param bands          Vector of bands.
+#' @param cube Name of the sensor.
+#' @param bands Vector of bands.
 #' @return Vector of scale factors.
-.sits_config_scale_factors <- function(sensor, bands) {
-    scale_f <- vector()
-    bands %>%
-        purrr::map(function(b) {
-            scale_f[b] <<-
-                as.numeric(sits_env$config[[sensor]][["scale_factor"]][[b]])
-        })
-    names(scale_f) <- bands
-    # post-condition
-    assertthat::assert_that(
-        !purrr::is_null(scale_f),
-        msg = paste0(
-            "No scale factors for sensor",
-            sensor,
-            " edit configuration file"
-        )
+.sits_config_scale_factors <- function(cube, bands) {
+
+  scale_f <- vector()
+  source_info <- paste("scale_factor",
+                       sits_env$config[[cube$sensor]][["source"]][cube$source],
+                       sep = "_")
+
+  bands %>%
+    purrr::map(function(b) {
+      scale_f[b] <<-
+        as.numeric(sits_env$config[[cube$sensor]][[source_info]][[b]])
+    })
+  names(scale_f) <- bands
+  # post-condition
+  assertthat::assert_that(
+    !purrr::is_null(scale_f),
+    msg = paste0(
+      "No scale factors for sensor",
+      cube$sensor,
+      " edit configuration file"
     )
-    return(scale_f)
+  )
+  return(scale_f)
 }
+
 #' @title File to test access to cloud services
 #' @name .sits_config_test_file
 #' @keywords internal

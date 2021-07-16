@@ -8,7 +8,7 @@ default:
     rstac_pagination_limit  : 1000
 
     # default raster package
-    R_raster_pkg            : "terra"
+    R_raster_pkg            : "raster"
 
     # GDAL GTiff default creation options
     GTiff_default_options   : ["COMPRESS=LZW", "BIGTIFF=YES"]
@@ -69,6 +69,11 @@ default:
     CBERS-4_sensors         : ["AWFI"]
 
     MODIS                   :
+        source              :
+            SITS            : &modis_config_sits "default"
+            BDC             : *modis_config_sits
+            LOCAL           : *modis_config_sits
+            WTSS            : *modis_config_sits
         bands               :
             SITS            : &modis_bands_sits ["BLUE", "RED", "NIR", "MIR", "NDVI", "EVI", "RELIABILITY"]
             LOCAL           : *modis_bands_sits
@@ -82,41 +87,41 @@ default:
             3               : "Target not visible, covered with cloud"
             255             : "Fill/No Data-Not Processed"
 
-        missing_value       :
-            NDVI            : -3000
-            EVI             : -3000
-            BLUE            : -1000
-            RED             : -1000
-            NIR             : -1000
-            MIR             : -1000
-            RELIABILITY     : 255
+        missing_value_default :
+            NDVI              : -3000
+            EVI               : -3000
+            BLUE              : -1000
+            RED               : -1000
+            NIR               : -1000
+            MIR               : -1000
+            RELIABILITY       : 255
 
-        minimum_value       :
-            NDVI            : -3000
-            EVI             : -3000
-            BLUE            : 0
-            RED             : 0
-            NIR             : 0
-            MIR             : 0
-            RELIABILITY     : 0
+        minimum_value_default :
+            NDVI              : -3000
+            EVI               : -3000
+            BLUE              : 0
+            RED               : 0
+            NIR               : 0
+            MIR               : 0
+            RELIABILITY       : 0
 
-        maximum_value       :
-            NDVI            : 10000
-            EVI             : 10000
-            BLUE            : 10000
-            RED             : 10000
-            NIR             : 10000
-            MIR             : 10000
-            RELIABILITY     : 3
+        maximum_value_default :
+            NDVI              : 10000
+            EVI               : 10000
+            BLUE              : 10000
+            RED               : 10000
+            NIR               : 10000
+            MIR               : 10000
+            RELIABILITY       : 3
 
-        scale_factor        :
-            NDVI            : 0.0001
-            EVI             : 0.0001
-            BLUE            : 0.0001
-            RED             : 0.0001
-            NIR             : 0.0001
-            MIR             : 0.0001
-            RELIABILITY     : 1
+        scale_factor_default  :
+            NDVI              : 0.0001
+            EVI               : 0.0001
+            BLUE              : 0.0001
+            RED               : 0.0001
+            NIR               : 0.0001
+            MIR               : 0.0001
+            RELIABILITY       : 1
 
         resampling          :
             NDVI            : "bilinear"
@@ -132,83 +137,167 @@ default:
             yres            : 250
 
     OLI                     : &landsat
+
+        source              :
+            SITS            : &oli_config_sits "default"
+            BDC             : *oli_config_sits
+            USGS            : "usgs"
+            LOCAL           : *oli_config_sits
+            WTSS            : *oli_config_sits
         bands               :
-            SITS            : &oli_bands_sits ["B1", "B2", "B3", "B4", "B5", "B6", "B7", "NDVI", "EVI", "FMASK4"]
+            SITS            : &oli_bands_sits ["B1", "B2", "B3", "B4", "B5", "B6", "B7", "NDVI", "EVI", "CFMASK"]
             BDC             : ["BAND1", "BAND2", "BAND3", "BAND4", "BAND5", "BAND6", "BAND7", "NDVI", "EVI", "FMASK4"]
             USGS            : ["SR_B1", "SR_B2", "SR_B3", "SR_B4", "SR_B5", "SR_B6", "SR_B7", "NDVI", "EVI", "QA_PIXEL"]
             LOCAL           : &oli_bands_local ["band1", "band2", "band3", "band4", "band5", "band6", "band7", "NDVI", "EVI", "Fmask4"]
             WTSS            : *oli_bands_local
             cloud_band      : "FMASK4"
 
-        missing_value       :
-            NDVI            : -9999
-            EVI             : -9999
-            B1              : -9999
-            B2              : -9999
-            B3              : -9999
-            B4              : -9999
-            B5              : -9999
-            B6              : -9999
-            B7              : -9999
-            FMASK4          : 255
+        CFMASK_values       :
+            1               : "missing_data"
+            2               : "Dilated Cloud"
+            4               : "High confidence cirrus"
+            16              : "High confidence cloud shadow"
+            32              : "High confidence snow cover"
+            64              : "Clear"
+            128             : "Water"
+            512             : "High confidence of cloud"
+            2048            : "High confidence of cloud shadow"
+            8192            : "High confidence of snow"
+            32768           : "High confidence of cirrus"
 
-        minimum_value       :
-            NDVI            : -3000
-            EVI             : -3000
-            B1              : 0
-            B2              : 0
-            B3              : 0
-            B4              : 0
-            B5              : 0
-            B6              : 0
-            B7              : 0
-            FMASK4          : 0
+        FMASK4_values       :
+            0               : "clear land pixel"
+            1               : "clear water pixel"
+            2               : "cloud shadow"
+            3               : "snow"
+            4               : "cloud"
+            255             : "no observation"
 
-        maximum_value       :
-            NDVI            : 10000
-            EVI             : 10000
-            B1              : 10000
-            B2              : 10000
-            B3              : 10000
-            B4              : 10000
-            B5              : 10000
-            B6              : 10000
-            B7              : 10000
-            FMASK4          : 255
 
-        scale_factor        :
-            NDVI            : 0.0001
-            EVI             : 0.0001
-            B1              : 0.0001
-            B2              : 0.0001
-            B3              : 0.0001
-            B4              : 0.0001
-            B5              : 0.0001
-            B6              : 0.0001
-            B7              : 0.0001
-            FMASK4          : 1
+        missing_value_default  :
+            NDVI               : -9999
+            EVI                : -9999
+            B1                 : -9999
+            B2                 : -9999
+            B3                 : -9999
+            B4                 : -9999
+            B5                 : -9999
+            B6                 : -9999
+            B7                 : -9999
+            FMASK4             : 255
 
-        resampling          :
-            NDVI            : "bilinear"
-            EVI             : "bilinear"
-            B1              : "bilinear"
-            B2              : "bilinear"
-            B3              : "bilinear"
-            B4              : "bilinear"
-            B5              : "bilinear"
-            B6              : "bilinear"
-            B7              : "bilinear"
-            FMASK4          : "ngb"
 
-        resolution          :
-            xres            : 30
-            yres            : 30
+        missing_value_usgs     :
+            NDVI               : 0
+            EVI                : 0
+            B1                 : 0
+            B2                 : 0
+            B3                 : 0
+            B4                 : 0
+            B5                 : 0
+            B6                 : 0
+            B7                 : 0
+            CFMASK             : 0
+
+        minimum_value_default  :
+            NDVI               : -3000
+            EVI                : -3000
+            B1                 : 0
+            B2                 : 0
+            B3                 : 0
+            B4                 : 0
+            B5                 : 0
+            B6                 : 0
+            B7                 : 0
+            FMASK4             : 0
+
+        minimum_value_usgs     :
+            NDVI               : -3000
+            EVI                : -3000
+            B1                 : 1
+            B2                 : 1
+            B3                 : 1
+            B4                 : 1
+            B5                 : 1
+            B6                 : 1
+            B7                 : 1
+            CFMASK             : 1
+
+        maximum_value_default  :
+            NDVI               : 10000
+            EVI                : 10000
+            B1                 : 10000
+            B2                 : 10000
+            B3                 : 10000
+            B4                 : 10000
+            B5                 : 10000
+            B6                 : 10000
+            B7                 : 10000
+            FMASK4             : 255
+
+        maximum_value_usgs     :
+            NDVI               : 65455
+            EVI                : 65455
+            B1                 : 65455
+            B2                 : 65455
+            B3                 : 65455
+            B4                 : 65455
+            B5                 : 65455
+            B6                 : 65455
+            B7                 : 65455
+            CMASK              : 65455
+
+        scale_factor_default   :
+            NDVI               : 0.0001
+            EVI                : 0.0001
+            B1                 : 0.0001
+            B2                 : 0.0001
+            B3                 : 0.0001
+            B4                 : 0.0001
+            B5                 : 0.0001
+            B6                 : 0.0001
+            B7                 : 0.0001
+            FMASK4             : 1
+
+        scale_factor_usgs      :
+            NDVI               : 0.0000275
+            EVI                : 0.0000275
+            B1                 : 0.0000275
+            B2                 : 0.0000275
+            B3                 : 0.0000275
+            B4                 : 0.0000275
+            B5                 : 0.0000275
+            B6                 : 0.0000275
+            B7                 : 0.0000275
+            CMASK              : 1
+
+        resampling             :
+            NDVI               : "bilinear"
+            EVI                : "bilinear"
+            B1                 : "bilinear"
+            B2                 : "bilinear"
+            B3                 : "bilinear"
+            B4                 : "bilinear"
+            B5                 : "bilinear"
+            B6                 : "bilinear"
+            B7                 : "bilinear"
+            CFMASK             : "ngb"
+            FMASK4             : "ngb"
+
+        resolution             :
+            xres               : 30
+            yres               : 30
 
     TM                      : *landsat
 
     ETM                     : *landsat
 
     AWFI                    :
+        source              :
+            SITS            : &awfi_config_sits "default"
+            BDC             : *awfi_config_sits
+            LOCAL           : *awfi_config_sits
+            WTSS            : *awfi_config_sits
         bands               :
             SITS            : &awfi_bands_sits ["B13", "B14", "B15", "B16", "NDVI", "EVI", "CMASK"]
             BDC             : &awfi_bands_bdc ["BAND13", "BAND14", "BAND15", "BAND16", "NDVI", "EVI", "CMASK"]
@@ -216,41 +305,41 @@ default:
             WTSS            : *awfi_bands_bdc
             cloud_band      : "CMASK"
 
-        missing_value       :
-            NDVI            : -9999
-            EVI             : -9999
-            B13             : -9999
-            B14             : -9999
-            B15             : -9999
-            B16             : -9999
-            CMASK           : 0
+        missing_value_default :
+            NDVI              : -9999
+            EVI               : -9999
+            B13               : -9999
+            B14               : -9999
+            B15               : -9999
+            B16               : -9999
+            CMASK             : 0
 
-        minimum_value       :
-            NDVI            : -10000
-            EVI             : -10000
-            B13             : 1
-            B14             : 1
-            B15             : 1
-            B16             : 1
-            CMASK           : 0
+        minimum_value_default :
+            NDVI              : -10000
+            EVI               : -10000
+            B13               : 1
+            B14               : 1
+            B15               : 1
+            B16               : 1
+            CMASK             : 0
 
-        maximum_value       :
-            NDVI            : 10000
-            EVI             : 10000
-            B13             : 10000
-            B14             : 10000
-            B15             : 10000
-            B16             : 10000
-            CMASK           : 255
+        maximum_value_default :
+            NDVI              : 10000
+            EVI               : 10000
+            B13               : 10000
+            B14               : 10000
+            B15               : 10000
+            B16               : 10000
+            CMASK             : 255
 
-        scale_factor        :
-            NDVI            : 0.0001
-            EVI             : 0.0001
-            B13             : 0.0001
-            B14             : 0.0001
-            B15             : 0.0001
-            B16             : 0.0001
-            CMASK           : 1
+        scale_factor_default   :
+            NDVI              : 0.0001
+            EVI               : 0.0001
+            B13               : 0.0001
+            B14               : 0.0001
+            B15               : 0.0001
+            B16               : 0.0001
+            CMASK             : 1
 
         resampling          :
             NDVI            : "bilinear"
@@ -270,6 +359,11 @@ default:
             clouds          : 255
 
     MSI                     :
+        source              :
+            SITS            : &msi_config_sits "default"
+            BDC             : *msi_config_sits
+            LOCAL           : *msi_config_sits
+            WTSS            : *msi_config_sits
         bands               :
             SITS            : &msi_bands_sits ["B01", "B02", "B03", "B04", "B05", "B06", "B07", "B08", "B8A", "B09", "B10", "B11", "B12", "EVI", "NDVI", "SCL"]
             AWS             : *msi_bands_sits
@@ -301,89 +395,89 @@ default:
             4               : "cloud"
             255             : "no observation"
 
-        missing_value       :
-            NDVI            : -9999
-            EVI             : -9999
-            SAVI            : -9999
-            NDMI            : -9999
-            B01             : -9999
-            B02             : -9999
-            B03             : -9999
-            B04             : -9999
-            B05             : -9999
-            B06             : -9999
-            B07             : -9999
-            B08             : -9999
-            B8A             : -9999
-            B09             : -9999
-            B10             : -9999
-            B11             : -9999
-            B12             : -9999
-            SCL             : 0
-            FMASK4          : 255
+        missing_value_default :
+            NDVI              : -9999
+            EVI               : -9999
+            SAVI              : -9999
+            NDMI              : -9999
+            B01               : -9999
+            B02               : -9999
+            B03               : -9999
+            B04               : -9999
+            B05               : -9999
+            B06               : -9999
+            B07               : -9999
+            B08               : -9999
+            B8A               : -9999
+            B09               : -9999
+            B10               : -9999
+            B11               : -9999
+            B12               : -9999
+            SCL               : 0
+            FMASK4            : 255
 
-        minimum_value       :
-            EVI             : -9999
-            SAVI            : -9999
-            NDVI            : -9999
-            NDMI            : -9999
-            B01             : 0
-            B02             : 0
-            B03             : 0
-            B04             : 0
-            B05             : 0
-            B06             : 0
-            B07             : 0
-            B08             : 0
-            B8A             : 0
-            B09             : 0
-            B10             : 0
-            B11             : 0
-            B12             : 0
-            SCL             : 0
-            FMASK4          : 0
+        minimum_value_default :
+            EVI               : -9999
+            SAVI              : -9999
+            NDVI              : -9999
+            NDMI              : -9999
+            B01               : 0
+            B02               : 0
+            B03               : 0
+            B04               : 0
+            B05               : 0
+            B06               : 0
+            B07               : 0
+            B08               : 0
+            B8A               : 0
+            B09               : 0
+            B10               : 0
+            B11               : 0
+            B12               : 0
+            SCL               : 0
+            FMASK4            : 0
 
-        maximum_value       :
-            EVI             : 10000
-            SAVI            : 10000
-            NDVI            : 10000
-            NDMI            : 10000
-            B01             : 10000
-            B02             : 10000
-            B03             : 10000
-            B04             : 10000
-            B05             : 10000
-            B06             : 10000
-            B07             : 10000
-            B08             : 10000
-            B8A             : 10000
-            B09             : 10000
-            B10             : 10000
-            B11             : 10000
-            B12             : 10000
-            SCL             : 1
-            FMASK4          : 255
+        maximum_value_default :
+            EVI               : 10000
+            SAVI              : 10000
+            NDVI              : 10000
+            NDMI              : 10000
+            B01               : 10000
+            B02               : 10000
+            B03               : 10000
+            B04               : 10000
+            B05               : 10000
+            B06               : 10000
+            B07               : 10000
+            B08               : 10000
+            B8A               : 10000
+            B09               : 10000
+            B10               : 10000
+            B11               : 10000
+            B12               : 10000
+            SCL               : 1
+            FMASK4            : 255
 
-        scale_factor        :
-            EVI             : 0.0001
-            SAVI            : 0.0001
-            NDVI            : 0.0001
-            NDMI            : 0.0001
-            B01             : 0.0001
-            B02             : 0.0001
-            B03             : 0.0001
-            B04             : 0.0001
-            B05             : 0.0001
-            B06             : 0.0001
-            B07             : 0.0001
-            B08             : 0.0001
-            B8A             : 0.0001
-            B09             : 0.0001
-            B10             : 0.0001
-            B11             : 0.0001
-            B12             : 0.0001
-            SCL             : 1
-            FMASK4          : 1
+        scale_factor_default  :
+            EVI               : 0.0001
+            SAVI              : 0.0001
+            NDVI              : 0.0001
+            NDMI              : 0.0001
+            B01               : 0.0001
+            B02               : 0.0001
+            B03               : 0.0001
+            B04               : 0.0001
+            B05               : 0.0001
+            B06               : 0.0001
+            B07               : 0.0001
+            B08               : 0.0001
+            B8A               : 0.0001
+            B09               : 0.0001
+            B10               : 0.0001
+            B11               : 0.0001
+            B12               : 0.0001
+            SCL               : 1
+            FMASK4            : 1
 
         resampling          :
             EVI             : "bilinear"
@@ -434,36 +528,53 @@ default:
         BDC                 :
             AWFI_CLD_BAND   : "CMASK"
             AWFI_cld_vls    : 4
+            AWFI_cld_bit    : FALSE
             MSI_CLD_BAND    : "FMASK4"
             MSI_cld_vls     : [2, 3, 4, 255]
+            MSI_cld_bit     : FALSE
             OLI_CLD_BAND    : "FMASK4"
             OLI_cld_vls     : [2, 3, 4, 255]
+            OLI_cld_bit     : FALSE
+
+        USGS                :
+            OLI_CLD_BAND    : "CFMASK"
+            OLI_cld_vls     : [1, 2, 4, 16, 32, 512, 2048, 8192, 32768]
+            OLI_cld_bit     : TRUE
 
         WTSS                :
             AWFI_CLD_BAND   : "CMASK"
             AWFI_cld_vls    : 4
+            AWFI_cld_bit    : FALSE
             MSI_CLD_BAND    : "FMASK4"
+            MSI_cld_bit     : FALSE
             MSI_cld_vls     : [2, 3, 4, 255]
             OLI_CLD_BAND    : "FMASK4"
             OLI_cld_vls     : [2, 3, 4, 255]
+            OLI_cld_bit     : FALSE
 
         AWS                 :
             MSI_CLD_BAND    : "SCL"
             MSI_cld_vls     : [0, 1, 2, 3, 7, 8, 9, 10, 11]
+            MSI_cld_bit     : FALSE
 
         DEAFRICA            :
             MSI_CLD_BAND    : "SCL"
             MSI_cld_vls     : [0, 1, 2, 3, 7, 8, 9, 10, 11]
+            MSI_cld_bit     : FALSE
 
         LOCAL               : &raster_clouds
             AWFI_CLD_BAND   : "CMASK"
             AWFI_cld_vls    : 4
+            AWFI_cld_bit    : FALSE
             MSI_CLD_BAND    : "SCL"
             MSI_cld_vls     : [0, 1, 2, 3, 7, 8, 9, 10, 11]
+            MSI_cld_bit     : FALSE
             MODIS_CLD_BAND  : "RELIABILITY"
             MODIS_cld_vls   : [2,3]
+            MODIS_cld_bit   : FALSE
             OLI_CLD_BAND    : "FMASK4"
             OLI_cld_vls     : [2, 3, 4, 255]
+            OLI_cld_bit     : FALSE
 
     SATVEG_bands            :
         terra               : &bands-sv ["NDVI", "EVI"]
