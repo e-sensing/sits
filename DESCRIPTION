@@ -114,6 +114,7 @@ Collate:
     'sits_csv.R'
     'sits_cube.R'
     'sits_cube_aux_functions.R'
+    'sits_cloud.R'
     'sits_cluster.R'
     'sits_deafrica.R'
     'sits_distances.R'
