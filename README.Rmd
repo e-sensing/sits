@@ -142,7 +142,6 @@ library(sits)
 data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
 
 raster_cube <- sits_cube(
-<<<<<<< HEAD
     source = "LOCAL",
     name = "sinop-2014",
     satellite = "TERRA",
@@ -150,15 +149,6 @@ raster_cube <- sits_cube(
     data_dir = data_dir,
     delim = "_",
     parse_info = c("X1", "X2", "tile", "band", "date")
-=======
-        source = "LOCAL",
-        name = "sinop-2014",
-        satellite = "TERRA",
-        sensor = "MODIS",
-        data_dir = data_dir,
-        delim = "_",
-        parse_info = c("X1", "X2", "tile", "band", "date")
->>>>>>> master
 )
 
 # obtain a set of locations defined by a CSV file
