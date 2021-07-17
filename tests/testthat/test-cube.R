@@ -194,7 +194,7 @@ test_that("Creating cubes from USGS", {
   usgs_cube <- sits_cube(source = "USGS",
                          name = "usgs_cube_2019",
                          collection = "landsat-c2l2-sr",
-                         bands = c("B1", "B7", "FMASK4"),
+                         bands = c("B1", "B7", "CFMASK"),
                          tiles = c("140048", "140045"),
                          start_date = as.Date("2016-01-01"),
                          end_date = as.Date("2016-12-31"))
@@ -306,9 +306,9 @@ test_that("Creating cubes from AWS and regularizing them", {
 
   file_info2 <- gc_cube$file_info[[1]]
 
-  expect_equal(nrow(file_info), nrow(file_info2))
-
+  expect_equal(nrow(file_info2), 4)
 })
+
 test_that("Creating cubes from classified images", {
   # Create a raster cube based on bricks
   # inform the files that make up a raster probs brick with 23 time instances

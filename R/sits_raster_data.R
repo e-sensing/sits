@@ -104,9 +104,9 @@
                                               block = extent)
 
         # get the missing values, minimum values and scale factors
-        missing_value <- .sits_config_missing_values(cube$sensor, band_cube)
-        minimum_value <- .sits_config_minimum_values(cube$sensor, band_cube)
-        maximum_value <- .sits_config_maximum_values(cube$sensor, band_cube)
+        missing_value <- .sits_config_missing_values(cube, band_cube)
+        minimum_value <- .sits_config_minimum_values(cube, band_cube)
+        maximum_value <- .sits_config_maximum_values(cube, band_cube)
 
         # correct NA, minimum, maximum, and missing values
         values[values < minimum_value] <- NA
@@ -225,10 +225,10 @@
     )
 
     # get the scale factors, max, min and missing values
-    missing_values <- .sits_config_missing_values(cube$sensor, bands)
-    minimum_values <- .sits_config_minimum_values(cube$sensor, bands)
-    maximum_values <- .sits_config_maximum_values(cube$sensor, bands)
-    scale_factors <- .sits_config_scale_factors(cube$sensor, bands)
+    missing_values <- .sits_config_missing_values(cube, bands)
+    minimum_values <- .sits_config_minimum_values(cube, bands)
+    maximum_values <- .sits_config_maximum_values(cube, bands)
+    scale_factors <- .sits_config_scale_factors(cube, bands)
 
     # get the timeline
     timeline <- sits_timeline(cube)
@@ -304,6 +304,13 @@
 
         # get the values of the time series (terra object)
         cld_values <- .sits_cube_extract(cube, cld_band, xy)
+
+        # get information about cloud bitmask
+        cld_mask <- .sits_config_cloud_bitmask(cube)
+
+        # get bitmask values
+        if (cld_mask)
+            cld_values <- .sits_bitmask_values(cld_values, cld_index)
     }
 
     # Retrieve values on a band by band basis

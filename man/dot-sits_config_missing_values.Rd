@@ -4,10 +4,10 @@
 \alias{.sits_config_missing_values}
 \title{Retrieve the missing values for bands of a sensor}
 \usage{
-.sits_config_missing_values(sensor, bands)
+.sits_config_missing_values(cube, bands)
 }
 \arguments{
-\item{sensor}{Name of the sensor}
+\item{cube}{Name of the sensor}
 
 \item{bands}{Vector of bands.}
 }
