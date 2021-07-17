@@ -45,7 +45,7 @@ Imports:
     purrr (>= 0.3.0),
     raster (>= 3.4),
     reshape2,
-    rstac,
+    rstac (>= 0.9.1-4),
     scales,
     sf (>= 0.9),
     slider (>= 0.1.5),
@@ -82,6 +82,7 @@ Suggests:
     ranger,
     Rcpp,
     RcppArmadillo,
+    Rwtss (>= 0.9.1),
     signal,
     stars,
     stringr,
@@ -99,6 +100,7 @@ Collate:
     'data.R'
     'sits-package.R'
     'sits_accuracy.R'
+    'sits_active_learning.R'
     'sits_aws.R'
     'sits_bands.R'
     'sits_bands_set.R'
@@ -112,6 +114,7 @@ Collate:
     'sits_csv.R'
     'sits_cube.R'
     'sits_cube_aux_functions.R'
+    'sits_cloud.R'
     'sits_cluster.R'
     'sits_deafrica.R'
     'sits_distances.R'
@@ -127,8 +130,8 @@ Collate:
     'sits_labels_set.R'
     'sits_label_classification.R'
     'sits_labels_summary.R'
+    'sits_landsat.R'
     'sits_log.R'
-    'sits_LTAE.R'
     'sits_machine_learning.R'
     'sits_merge.R'
     'sits_mlp.R'
@@ -164,6 +167,7 @@ Collate:
     'sits_validate.R'
     'sits_view.R'
     'sits_values.R'
+    'sits_wtss.R'
     'sits_xlsx.R'
     'sits_zoo.R'
     'zzz.R'

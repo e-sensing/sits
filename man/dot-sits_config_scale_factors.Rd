@@ -4,10 +4,10 @@
 \alias{.sits_config_scale_factors}
 \title{Retrieve the scale factor for a given band for a data cube}
 \usage{
-.sits_config_scale_factors(sensor, bands)
+.sits_config_scale_factors(cube, bands)
 }
 \arguments{
-\item{sensor}{Name of the sensor.}
+\item{cube}{Name of the sensor.}
 
 \item{bands}{Vector of bands.}
 }

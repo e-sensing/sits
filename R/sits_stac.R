@@ -149,12 +149,14 @@
 #' package.
 #' @param bands      a \code{character} vector with the bands name.
 #' @param source     Data source
+#' @param sensor     a \code{character} with sensor name.
 #'
 #' @return           a \code{STACItemCollection} object representing the search
 #'                   by rstac.
-.sits_stac_bands <- function(items, bands, source) {
+.sits_stac_bands <- function(items, bands, source, sensor = NULL) {
 
-    sensor <- toupper(items$features[[1]]$properties$instruments[[1]])
+    if (is.null(sensor))
+        sensor <- toupper(items$features[[1]]$properties$instruments[[1]])
 
     # get bands from sensor
     bands_sensor <- .sits_config_sensor_bands(sensor = sensor, source = source)
@@ -175,7 +177,12 @@
 
     # checks if the supplied bands match the product bands
     if (!purrr::is_null(bands))
-        items$bands <- items$bands[items$bands %in% bands]
+        #items$bands <- items$bands[items$bands %in% bands]
+        items$bands <- .sits_config_bands_stac_read(
+            stac_provider = source,
+            sensor = sensor,
+            bands = bands)
+
 
     return(items)
 }
@@ -247,10 +254,10 @@
 #'
 #' @return  a \code{character} with the formatted CRS.
 .sits_format_crs <- function(stac_crs) {
-    if (is.null(stac_crs))
-        stop(paste("sits_cube: The CRS in this catalog is null, please enter",
-                   "a valid CRS."))
 
+    if (is.null(stac_crs))
+        stop(paste("sits_cube: The CRS in this catalog is null, please",
+                   "enter a valid CRS."))
     return(sf::st_crs(stac_crs)[["input"]])
 }
 #' @title Get bbox and intersects parameters

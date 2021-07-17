@@ -4,10 +4,10 @@
 \alias{.sits_config_maximum_values}
 \title{Retrieve the maximum values for a given band}
 \usage{
-.sits_config_maximum_values(sensor, bands)
+.sits_config_maximum_values(cube, bands)
 }
 \arguments{
-\item{sensor}{Name of the sensor}
+\item{cube}{Name of the sensor}
 
 \item{bands}{Vector of bands.}
 }
