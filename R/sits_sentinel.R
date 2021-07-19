@@ -135,10 +135,10 @@
 #'  ("10m", "20m" or "60m")
 #'
 #' @return           a \code{character} vector with the selected bands.
-.sits_s2_check_bands <- function(bands, s2_resolution) {
+.sits_s2_check_bands <- function(source, collection, bands, s2_resolution) {
 
     # bands supported by provided resolution
-    bands_s2 <- .sits_config_s2_bands(s2_resolution)
+    bands_s2 <- .sits_config_s2_bands(source, collection, bands, s2_resolution)
 
     if (!purrr::is_null(bands)) {
         assertthat::assert_that(

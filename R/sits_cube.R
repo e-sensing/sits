@@ -445,7 +445,7 @@ sits_cube.aws_cube <- function(source = "AWS", ...,
         msg = "sits_cube: s2_resolution should be one of c(10, 20, 60)")
 
     # select bands by resolution
-    bands <- .sits_s2_check_bands(bands, s2_resolution)
+    bands <- .sits_s2_check_bands(source, collection, bands, s2_resolution)
 
     # retrieve item information
     items_info <- .sits_s2_aws_items(
@@ -507,7 +507,7 @@ sits_cube.local_cube <- function(source = "LOCAL", ...,
                                  delim = "_") {
 
     # precondition - check satellite and sensor
-    .sits_config_satellite_sensor(satellite, sensor)
+    .sits_config_local_satellite_sensor(satellite, sensor)
 
     # precondition - data directory must be provided
     assertthat::assert_that(

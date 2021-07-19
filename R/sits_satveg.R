@@ -34,7 +34,7 @@
     crs <- .sits_config_satveg_projection(collection)
 
     # get the resolution of the product
-    res <- .sits_config_resolution(sensor)
+    res <- .sits_config_resolution("SATVEG", collection, "NDVI")
     xres <- res["xres"]
     yres <- res["yres"]
 

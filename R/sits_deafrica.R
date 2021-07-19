@@ -263,7 +263,7 @@
     if (length(item_prop[["gsd"]]) == 0)
         res[c("xres", "yres")] <- c(20, 20)
 
-    res_dea <- .sits_config_defrica_bands_res(sensor, file_info$band)
+    res_dea <- .sits_config_bands_res("DEAFRICA", file_info$band)
     file_info <- dplyr::mutate(file_info, res = res_dea, .before = path)
 
 
