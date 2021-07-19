@@ -8,7 +8,7 @@ default:
     rstac_pagination_limit  : 1000
 
     # default raster package
-    R_raster_pkg            : "terra"
+    R_raster_pkg            : "raster"
 
     # GDAL GTiff default creation options
     GTiff_default_options   : ["COMPRESS=LZW", "BIGTIFF=YES"]
@@ -41,10 +41,10 @@ default:
         DEAFRICA            : "af-south-1"
         USGS                : "us-west-2"
 
-    AWS_S3_ENDPOINT            :
+    AWS_S3_ENDPOINT         :
         AWS                 : "s3.amazonaws.com"
         DEAFRICA            : "s3.af-south-1.amazonaws.com"
-        USGS                : "usgs-landsat.s3.amazonaws.com"
+        USGS                : "s3.amazonaws.com"
 
     AWS_REQUEST_PAYER       :
         AWS                 : "requester"
@@ -490,7 +490,6 @@ default:
                     sensors           :
                         MODIS         : *wtss_modis
 
-
     colors:
         Araguaia :           "mediumaquamarine"
         Beans :              "lightskyblue3"
@@ -524,7 +523,3 @@ default:
         Urban_Area :         "ivory4"
         Water      :         "royalblue3"
         Wetlands   :         "mediumaquamarine"
-
-
-
-

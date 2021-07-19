@@ -153,6 +153,14 @@ sits_config_show <- function() {
 .sits_config_stac <- function(source) {
   return(sits_env$config$sources[[source]][["url"]])
 }
+#' @title Directory to read the USGS STAC catalogue
+#' @name .sits_config_usgs_stac
+#' @keywords internal
+#'
+#' @return directory where USGS is accessible on the web
+.sits_config_usgs_stac <- function() {
+  return(sits_env$config$usgs_stac)
+}
 #' @title Retrieve the bands associated to DEAfrica STAC
 #' @name .sits_config_sensor_bands
 #' @param sensor   Type of sensor of cube
@@ -380,6 +388,24 @@ sits_config_show <- function() {
     return(cloud_values)
 }
 
+#' @title Get the flag of bitmask in cloud information
+#' @name .sits_config_cloud_bitmask
+#' @keywords internal
+#' @param cube          data cube
+#' @author Gilberto Camara \email{gilberto.camara@@inpe.br}
+#'
+#' @return vector with bands available in AWS for a given resolution
+.sits_config_cloud_bitmask <- function(cube) {
+  cv <- paste0(cube$sensor[1], "_cld_bit")
+  cloud_values <- sits_env$config[["CLOUD"]][[cube$source[1]]][[cv]]
+  assertthat::assert_that(
+    !purrr::is_null(cloud_values),
+    msg = paste(".sits_config_cloud_bitmask: cloud bitmask flag",
+                "is not available")
+  )
+  return(cloud_values)
+}
+
 #' @title Retrieve the color associated to a class in the configuration file
 #' @name sits_config_color
 #' @keywords internal
@@ -524,8 +550,8 @@ sits_config_show <- function() {
 #' @keywords internal
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'
-#' @param sensor         Name of the sensor
-#' @param bands          Vector of bands.
+#' @param cube Name of the sensor
+#' @param bands Vector of bands.
 #' @return The maximum values.
 .sits_config_maximum_values <- function(cube, bands) {
     # create a string to query for the maximum values
@@ -536,18 +562,18 @@ sits_config_show <- function() {
                 as.numeric(sits_env$config[[sensor]][["maximum_value"]][[b]])
         })
 
-    # post-condition
-    assertthat::assert_that(
-        !purrr::is_null(maximum_values),
-        msg = paste0(
-            "Missing maximum values for ",
-            sensor,
-            " edit configuration file"
-        )
+  # post-condition
+  assertthat::assert_that(
+    !purrr::is_null(maximum_values),
+    msg = paste0(
+      "Missing maximum values for ",
+      cube$sensor,
+      " edit configuration file"
     )
+  )
 
-    names(maximum_values) <- bands
-    return(maximum_values)
+  names(maximum_values) <- bands
+  return(maximum_values)
 }
 
 #' @title Retrieve the estimated value of R memory bloat
@@ -564,8 +590,8 @@ sits_config_show <- function() {
 #' @keywords internal
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'
-#' @param sensor           Name of the sensor
-#' @param bands            Bands provided by the sensor
+#' @param cube Name of the sensor
+#' @param bands Bands provided by the sensor
 #' @return The minimum values.
 .sits_config_minimum_values <- function(cube, bands) {
     # create a string to query for  values
@@ -576,17 +602,17 @@ sits_config_show <- function() {
                 as.numeric(sits_env$config[[sensor]][["minimum_value"]][[b]])
         })
 
-    # post-condition
-    assertthat::assert_that(
-        !purrr::is_null(min_val),
-        msg = paste0(
-            "No minimum values for ", sensor,
-            " edit configuration files"
-        )
+  # post-condition
+  assertthat::assert_that(
+    !purrr::is_null(min_val),
+    msg = paste0(
+      "No minimum values for ", cube$sensor,
+      " edit configuration files"
     )
+  )
 
-    names(min_val) <- bands
-    return(min_val)
+  names(min_val) <- bands
+  return(min_val)
 }
 
 #' @title Retrieve the missing values for bands of a sensor
@@ -594,8 +620,8 @@ sits_config_show <- function() {
 #' @keywords internal
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'
-#' @param sensor         Name of the sensor
-#' @param bands          Vector of bands.
+#' @param cube Name of the sensor
+#' @param bands Vector of bands.
 #' @return The missing values.
 .sits_config_missing_values <- function(cube, bands) {
     # create a string to query for the missing values
@@ -615,8 +641,8 @@ sits_config_show <- function() {
         )
     )
 
-    names(mis_val) <- bands
-    return(mis_val)
+  names(mis_val) <- bands
+  return(mis_val)
 }
 
 #' @title Retrieve the resmapling method for bands of a sensor
@@ -624,8 +650,8 @@ sits_config_show <- function() {
 #' @keywords internal
 #' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
 #'
-#' @param sensor         Name of the sensor
-#' @param bands          Vector of bands.
+#' @param sensor Name of the sensor
+#' @param bands Vector of bands.
 #' @return The resampling methods.
 .sits_config_resampling <- function(cube, bands) {
 
@@ -886,14 +912,13 @@ sits_config_show <- function() {
     return(sits_env$config[[sensor]][[r]])
 }
 
-
 #' @title Retrieve the scale factor for a given band for a data cube
 #' @name .sits_config_scale_factors
 #' @keywords internal
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'
-#' @param sensor         Name of the sensor.
-#' @param bands          Vector of bands.
+#' @param cube Name of the sensor.
+#' @param bands Vector of bands.
 #' @return Vector of scale factors.
 .sits_config_scale_factors <- function(cube, bands) {
     scale_f <- vector()
@@ -912,7 +937,7 @@ sits_config_show <- function() {
             " edit configuration file"
         )
     )
-    return(scale_f)
+  return(scale_f)
 }
 
 #' @title Raster package to be used

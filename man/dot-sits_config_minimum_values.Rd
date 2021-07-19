@@ -4,10 +4,10 @@
 \alias{.sits_config_minimum_values}
 \title{Retrieve the minimum values for a given band}
 \usage{
-.sits_config_minimum_values(sensor, bands)
+.sits_config_minimum_values(cube, bands)
 }
 \arguments{
-\item{sensor}{Name of the sensor}
+\item{cube}{Name of the sensor}
 
 \item{bands}{Bands provided by the sensor}
 }
