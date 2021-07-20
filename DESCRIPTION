@@ -32,7 +32,7 @@ LazyData: true
 Imports:
     magrittr,
     assertthat,
-    config,
+    yaml,
     data.table (>= 1.13),
     dplyr (>= 1.0.0),
     furrr,
