@@ -41,8 +41,8 @@
     # get default bands parameter
     if (purrr::is_null(bands)) {
 
-        bands <- .sits_config_sensor_bands(sensor = sensor,
-                                           source = "BDC")
+        bands <- .sits_config_bands(source = "BDC",
+                                    collection = collection)
     }
 
     # checks if the supplied bands match the product bands
@@ -50,9 +50,9 @@
     bands <- toupper(bands)
 
     # convert bands to those known by the cloud provider
-    bands <- .sits_config_bands_stac_read(stac_provider = "BDC",
-                                          sensor = sensor,
-                                          bands = bands)
+    bands <- .sits_config_bands_stac_read(source     = "BDC",
+                                          collection = collection,
+                                          bands      = bands)
 
     # select subset bands
     collection_info$bands <-
