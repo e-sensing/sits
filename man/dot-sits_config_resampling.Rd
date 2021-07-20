@@ -4,12 +4,12 @@
 \alias{.sits_config_resampling}
 \title{Retrieve the resmapling method for bands of a sensor}
 \usage{
-.sits_config_resampling(sensor, bands)
+.sits_config_resampling(cube, bands)
 }
 \arguments{
-\item{sensor}{Name of the sensor}
-
 \item{bands}{Vector of bands.}
+
+\item{sensor}{Name of the sensor}
 }
 \value{
 The resampling methods.

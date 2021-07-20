@@ -4,7 +4,7 @@
 \alias{.sits_config_resolution}
 \title{Retrieve the pixel spatial resolution for a data cube}
 \usage{
-.sits_config_resolution(sensor)
+.sits_config_resolution(source, collection, band)
 }
 \arguments{
 \item{sensor}{Name of the sensor.}

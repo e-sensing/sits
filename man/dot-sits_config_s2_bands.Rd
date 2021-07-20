@@ -4,7 +4,7 @@
 \alias{.sits_config_s2_bands}
 \title{Get the the bands in AWS for Sentinel-2 ARD given the resolution}
 \usage{
-.sits_config_s2_bands(resolution)
+.sits_config_s2_bands(source, collection, bands, resolution)
 }
 \arguments{
 \item{resolution}{Resolution of the bands}

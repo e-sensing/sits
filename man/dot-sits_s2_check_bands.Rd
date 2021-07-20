@@ -4,7 +4,7 @@
 \alias{.sits_s2_check_bands}
 \title{Check bands by resolution}
 \usage{
-.sits_s2_check_bands(bands, s2_resolution)
+.sits_s2_check_bands(source, collection, bands, s2_resolution)
 }
 \arguments{
 \item{bands}{a \code{character} vector with the bands name.}
