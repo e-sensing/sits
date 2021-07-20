@@ -34,13 +34,16 @@ sits_config <- function() {
     )
 
     # read the configuration parameters
-    sits_env$config <- yaml::yaml.load_file(input = yml_file)
+    sits_env$config <- yaml::yaml.load_file(input = yml_file,
+                                            merge.precedence = "override")
 
     # try to find a valid user configuration file
     user_yml_file <- Sys.getenv("SITS_USER_CONFIG_FILE")
 
     if (file.exists(user_yml_file)) {
-        config_user <- yaml::yaml.load_file(input = user_yml_file)
+        config_user <- yaml::yaml.load_file(input = user_yml_file,
+                                            merge.precedence = "override")
+
         sits_env$config <- utils::modifyList(sits_env$config, config_user)
     }
 
