@@ -1,633 +1,631 @@
-default:
+# estimated relative growth size of R memory relative to block size
+R_memory_bloat          : 4
+R_processing_bloat      : 5
 
-    # estimated relative growth size of R memory relative to block size
-    R_memory_bloat          : 4
-    R_processing_bloat      : 5
+# number of items returned by stac service
+rstac_pagination_limit  : 1000
 
-    # number of items returned by stac service
-    rstac_pagination_limit  : 1000
+# default raster package
+R_raster_pkg            : "raster"
 
-    # default raster package
-    R_raster_pkg            : "raster"
+# GDAL GTiff default creation options
+GTiff_default_options   : ["COMPRESS=LZW", "BIGTIFF=YES"]
 
-    # GDAL GTiff default creation options
-    GTiff_default_options   : ["COMPRESS=LZW", "BIGTIFF=YES"]
+# Image file extensions known to SITS
+img_file_extensions     : ["tiff", "tif", "jp2", "hdf", "vrt"]
 
-    # Image file extensions known to SITS
-    img_file_extensions     : ["tiff", "tif", "jp2", "hdf", "vrt"]
+# BDC configuration for access to data
+bdc_extension           : ["tif"]
 
-    # BDC configuration for access to data
-    bdc_extension           : ["tif"]
+# EOAfrica configuration for access to data
+deafrica_extension      : ["tif"]
 
-    # EOAfrica configuration for access to data
-    deafrica_extension      : ["tif"]
-
-    sources:
-        CLASSIFIED              :
-            s3_class            : ["classified_image"]
-            scale_factor        : 1
-            minimum_value       : 1
-            maximum_value       : 1000
-            missing_value       : -9999
-        PROBS                   :
-            s3_class            : ["probs_cube"]
-            scale_factor        : 0.0001
-            minimum_value       : 0
-            maximum_value       : 10000
-            missing_value       : -9999
-        BDC                     :
-            s3_class            : ["bdc_cube", "raster_cube"]
-            service             : "STAC"
-            url                 : "https://brazildatacube.dpi.inpe.br/stac/"
-            collections         :
-                CB4_64-1        : &bdc_cb4
-                    bands       :
-                        NDVI    : &bdc_awfi_ndvi
-                            missing_value: -9999
-                            minimum_value: -10000
-                            maximum_value: 10000
-                            scale_factor : 0.0001
-                            offset_value : 0
-                            resampling   : "bilinear"
-                            resolutions  : [64]
-                            sits_name    : "NDVI"
-                        EVI     :
-                            <<: *bdc_awfi_ndvi
-                            sits_name    : "EVI"
-                        BAND13  : &bdc_awfi_b13
-                            missing_value: -9999
-                            minimum_value: 0
-                            maximum_value: 10000
-                            scale_factor : 0.0001
-                            offset_value : 0
-                            resampling   : "bilinear"
-                            resolutions  : [64]
-                            sits_name    : "B13"
-                        BAND14  :
-                            <<: *bdc_awfi_b13
-                            sits_name    : "B14"
-                        BAND15  :
-                            <<: *bdc_awfi_b13
-                            sits_name    : "B15"
-                        BAND16  :
-                            <<: *bdc_awfi_b13
-                            sits_name    : "B16"
-                    cloud_band  :
-                        bit_mask     : FALSE
-                        band_name    : "CMASK"
-                        values       :
-                            4        : "cloud"
-                        interp_values: [4]
-                        resampling   : "ngb"
+sources:
+    CLASSIFIED              :
+        s3_class            : ["classified_image"]
+        scale_factor        : 1
+        minimum_value       : 1
+        maximum_value       : 1000
+        missing_value       : -9999
+    PROBS                   :
+        s3_class            : ["probs_cube"]
+        scale_factor        : 0.0001
+        minimum_value       : 0
+        maximum_value       : 10000
+        missing_value       : -9999
+    BDC                     :
+        s3_class            : ["bdc_cube", "raster_cube"]
+        service             : "STAC"
+        url                 : "https://brazildatacube.dpi.inpe.br/stac/"
+        collections         :
+            CB4_64-1        : &bdc_cb4
+                bands       :
+                    NDVI    : &bdc_awfi_ndvi
+                        missing_value: -9999
+                        minimum_value: -10000
+                        maximum_value: 10000
+                        scale_factor : 0.0001
+                        offset_value : 0
+                        resampling   : "bilinear"
                         resolutions  : [64]
-                        sits_name    : "CMASK"
-                CB4_64_16D_STK-1: *bdc_cb4
-                CB4_20_1M_STK-1 : &bdc_cb4_mux
-                    bands       :
-                        NDVI    : &bdc_mux_ndvi
-                            missing_value: -9999
-                            minimum_value: -10000
-                            maximum_value: 10000
-                            scale_factor : 0.0001
-                            offset_value : 0
-                            resampling   : "bilinear"
-                            resolutions_x: [20]
-                            resolutions_y: [20]
-                            sits_name    : "NDVI"
-                        EVI     :
-                            <<: *bdc_mux_ndvi
-                            sits_name    : "EVI"
-                        BAND5  : &bdc_mux_b5
-                            missing_value: -9999
-                            minimum_value: 0
-                            maximum_value: 10000
-                            scale_factor : 0.0001
-                            offset_value : 0
-                            resampling   : "bilinear"
-                            resolutions  : [20]
-                            sits_name    : "B5"
-                        BAND6  :
-                            <<: *bdc_awfi_b13
-                            sits_name    : "B6"
-                        BAND7  :
-                            <<: *bdc_awfi_b13
-                            sits_name    : "B7"
-                        BAND8  :
-                            <<: *bdc_awfi_b13
-                            sits_name    : "B8"
-                    cloud_band  :
-                        bit_mask     : FALSE
-                        band_name    : "CMASK"
-                        values       :
-                            4        : "cloud"
-                        interp_values: [4]
-                        resampling   : "ngb"
+                        sits_name    : "NDVI"
+                    EVI     :
+                        <<: *bdc_awfi_ndvi
+                        sits_name    : "EVI"
+                    BAND13  : &bdc_awfi_b13
+                        missing_value: -9999
+                        minimum_value: 0
+                        maximum_value: 10000
+                        scale_factor : 0.0001
+                        offset_value : 0
+                        resampling   : "bilinear"
+                        resolutions  : [64]
+                        sits_name    : "B13"
+                    BAND14  :
+                        <<: *bdc_awfi_b13
+                        sits_name    : "B14"
+                    BAND15  :
+                        <<: *bdc_awfi_b13
+                        sits_name    : "B15"
+                    BAND16  :
+                        <<: *bdc_awfi_b13
+                        sits_name    : "B16"
+                cloud_band  :
+                    bit_mask     : FALSE
+                    band_name    : "CMASK"
+                    values       :
+                        4        : "cloud"
+                    interp_values: [4]
+                    resampling   : "ngb"
+                    resolutions  : [64]
+                    sits_name    : "CMASK"
+            CB4_64_16D_STK-1: *bdc_cb4
+            CB4_20_1M_STK-1 : &bdc_cb4_mux
+                bands       :
+                    NDVI    : &bdc_mux_ndvi
+                        missing_value: -9999
+                        minimum_value: -10000
+                        maximum_value: 10000
+                        scale_factor : 0.0001
+                        offset_value : 0
+                        resampling   : "bilinear"
+                        resolutions_x: [20]
+                        resolutions_y: [20]
+                        sits_name    : "NDVI"
+                    EVI     :
+                        <<: *bdc_mux_ndvi
+                        sits_name    : "EVI"
+                    BAND5  : &bdc_mux_b5
+                        missing_value: -9999
+                        minimum_value: 0
+                        maximum_value: 10000
+                        scale_factor : 0.0001
+                        offset_value : 0
+                        resampling   : "bilinear"
                         resolutions  : [20]
-                        sits_name    : "CMASK"
-                LC8_30-1        : &bdc_lc8
-                    bands       :
-                        NDVI    : &bdc_oli_ndvi
-                            missing_value: -9999
-                            minimum_value: -3000
-                            maximum_value: 10000
-                            scale_factor : 0.0001
-                            offset_value : 0
-                            resampling   : "bilinear"
-                            resolutions_x: [30]
-                            resolutions_y: [30]
-                            sits_name    : "NDVI"
-                        EVI     :
-                            <<: *bdc_oli_ndvi
-                            sits_name    : "EVI"
-                        BAND1   : &bdc_oli_band1
-                            missing_value: -9999
-                            minimum_value: 0
-                            maximum_value: 10000
-                            scale_factor : 0.0001
-                            offset_value : 0
-                            resampling   : "bilinear"
-                            resolutions  : [30]
-                            sits_name    : "B1"
-                        BAND2   :
-                            <<: *bdc_oli_band1
-                            sits_name    : "B2"
-                        BAND3   :
-                            <<: *bdc_oli_band1
-                            sits_name    : "B3"
-                        BAND4   :
-                            <<: *bdc_oli_band1
-                            sits_name    : "B4"
-                        BAND5   :
-                            <<: *bdc_oli_band1
-                            sits_name    : "B5"
-                        BAND6   :
-                            <<: *bdc_oli_band1
-                            sits_name    : "B6"
-                        BAND7   :
-                            <<: *bdc_oli_band1
-                            sits_name    : "B7"
-                    cloud_band  :
-                        bit_mask     : FALSE
-                        band_name    : "Fmask4"
-                        values       :
-                            0        : "clear land pixel"
-                            1        : "clear water pixel"
-                            2        : "cloud shadow"
-                            3        : "snow"
-                            4        : "cloud"
-                            255      : "no observation"
-                        interp_values: [2, 3, 4, 255]
-                        resampling   : "ngb"
+                        sits_name    : "B5"
+                    BAND6  :
+                        <<: *bdc_awfi_b13
+                        sits_name    : "B6"
+                    BAND7  :
+                        <<: *bdc_awfi_b13
+                        sits_name    : "B7"
+                    BAND8  :
+                        <<: *bdc_awfi_b13
+                        sits_name    : "B8"
+                cloud_band  :
+                    bit_mask     : FALSE
+                    band_name    : "CMASK"
+                    values       :
+                        4        : "cloud"
+                    interp_values: [4]
+                    resampling   : "ngb"
+                    resolutions  : [20]
+                    sits_name    : "CMASK"
+            LC8_30-1        : &bdc_lc8
+                bands       :
+                    NDVI    : &bdc_oli_ndvi
+                        missing_value: -9999
+                        minimum_value: -3000
+                        maximum_value: 10000
+                        scale_factor : 0.0001
+                        offset_value : 0
+                        resampling   : "bilinear"
                         resolutions_x: [30]
                         resolutions_y: [30]
-                        sits_name    : "FMASK4"
-                LC8_30_16D_STK-1: *bdc_lc8
-                MOD13Q1-1       : &bdc_mod
-                    bands       :
-                        250m_16_days_NDVI: &bdc_modis_ndvi
-                            missing_value: -3000
-                            minimum_value: -2000
-                            maximum_value: 10000
-                            scale_factor : 0.0001
-                            offset_value : 0
-                            resampling   : "bilinear"
-                            resolutions  : [231.656]
-                            sits_name    : "NDVI"
-                        250m_16_days_EVI:
-                            <<: *bdc_modis_ndvi
-                            sits_name    : "EVI"
-                        250m_16_days_blue_reflectance: &bdc_modis_blue
-                            missing_value: -1000
-                            minimum_value: 0
-                            maximum_value: 10000
-                            scale_factor : 0.0001
-                            offset_value : 0
-                            resampling   : "bilinear"
-                            resolutions  : [231.656]
-                            sits_name    : "blue"
-                        250m_16_days_red_reflectance:
-                            <<: *bdc_modis_blue
-                            sits_name    : "red"
-                        250m_16_days_NIR_reflectance:
-                            <<: *bdc_modis_blue
-                            sits_name    : "nir"
-                        250m_16_days_MIR_reflectance:
-                            <<: *bdc_modis_blue
-                            sits_name    : "mir"
-                    cloud_band:
-                        bit_mask     : FALSE
-                        band_name    : "250m_16_days_pixel_reliability"
-                        values       :
-                            0        : "Use with confidence"
-                            1        : "Useful, but look at other QA information"
-                            2        : "Target covered with snow/ice"
-                            3        : "Target not visible, covered with cloud"
-                            255      : "Fill/No Data-Not Processed"
-                        interp_values: [2, 3, 255]
-                        resampling   : "ngb"
-                        resolutions  : [231.656]
-                MYD13Q1-1       : *bdc_mod
-                S2_10-1         : &bdc_s2
-                    bands       :
-                        NDVI    : &bdc_msi_ndvi
-                            missing_value: -9999
-                            minimum_value: -9999
-                            maximum_value: 10000
-                            scale_factor : 0.0001
-                            offset_value : 0
-                            resampling   : "bilinear"
-                            resolutions  : [10]
-                            sits_name    : "NDVI"
-                        EVI     :
-                            <<: *bdc_msi_ndvi
-                            sits_name    : "EVI"
-                        band1   : &bdc_msi_band1
-                            missing_value: -9999
-                            minimum_value: 0
-                            maximum_value: 10000
-                            scale_factor : 0.0001
-                            offset_value : 0
-                            resampling   : "bilinear"
-                            resolutions  : [10]
-                            sits_name    : "B01"
-                        band2   :
-                            <<: *bdc_msi_band1
-                            sits_name    : "B02"
-                        band3   :
-                            <<: *bdc_msi_band1
-                            sits_name    : "B03"
-                        band4   :
-                            <<: *bdc_msi_band1
-                            sits_name    : "B04"
-                        band5   :
-                            <<: *bdc_msi_band1
-                            sits_name    : "B05"
-                        band6   :
-                            <<: *bdc_msi_band1
-                            sits_name    : "B06"
-                        band7   :
-                            <<: *bdc_msi_band1
-                            sits_name    : "B07"
-                        band8   :
-                            <<: *bdc_msi_band1
-                            sits_name    : "B08"
-                        band8a  :
-                            <<: *bdc_msi_band1
-                            sits_name    : "B8A"
-                        band9   :
-                            <<: *bdc_msi_band1
-                            sits_name    : "B09"
-                        band10  :
-                            <<: *bdc_msi_band1
-                            sits_name    : "B10"
-                        band11  :
-                            <<: *bdc_msi_band1
-                            sits_name    : "B11"
-                        band12  :
-                            <<: *bdc_msi_band1
-                            sits_name    : "B12"
-                    cloud_band  :
-                        bit_mask     : FALSE
-                        band_name    : "Fmask4"
-                        values       :
-                            0        : "clear land pixel"
-                            1        : "clear water pixel"
-                            2        : "cloud shadow"
-                            3        : "snow"
-                            4        : "cloud"
-                            255      : "no observation"
-                        interp_values: [2, 3, 4, 255]
-                        resampling   : "ngb"
-                        resolutions  : [10]
-                        sits_name    : "SCL"
-                S2_10_16D_STK-1 : *bdc_s2
-        WTSS                    :
-            s3_class            : ["wtss_cube"]
-            service             : "WTSS"
-            url                 : "https://brazildatacube.dpi.inpe.br/wtss/"
-            collections         :
-                MOD13Q1-6       : *bdc_mod
-                MYD13Q1-6       : *bdc_mod
-                S2_10_16D_STK-1 : *bdc_s2
-                S2_10-1         : *bdc_s2
-                LC8_30-1        : *bdc_lc8
-                LC8_30_16D_STK-1: *bdc_lc8
-                CB4_20_1M_STK-1 : *bdc_cb4_mux
-                CB4_64_16D_STK-1: *bdc_cb4
-                CB4_64-1        : *bdc_cb4
-        SATVEG                  :
-            s3_class            : ["satveg_cube"]
-            service             : "SATVEG"
-            url                 : "https://www.satveg.cnptia.embrapa.br/satvegws/ws/perfil/ZW46IXzr4pRzJlX/"
-            url_test            : "https://www.satveg.cnptia.embrapa.br/satvegws/ws/perfil/ZW46IXzr4pRzJlX/ndvi/ponto/-55.50563/-11.71557/terra/1//"
-            collections         :
-                terra           : &satveg_terra
-                    bbox        :
-                        xmin    : -81.2341
-                        xmax    : -31.9165
-                        ymin    : -30.0000
-                        ymax    : 10.0000
-                    size        :
-                        nrows   : 24000
-                        ncols   : 19200
-                    prefilter   : ["0", "1", "2", "3"] # "0" - none, "1" - no data correction, "2" - cloud correction, "3" - no data and cloud correction
-                    crs         : "+proj=longlat +ellps=WGS84 +datum=WGS84 +no_defs"
-                    bands       :
-                        NDVI    :
-                            <<: *bdc_modis_ndvi
-                            sits_name: "NDVI"
-                        EVI     :
-                            <<: *bdc_modis_ndvi
-                            sits_name: "EVI"
-                aqua            : *satveg_terra
-                comb            : *satveg_terra
-        AWS                     :
-            s3_class            : ["aws_cube", "raster_cube"]
-            service             : "STAC"
-            url                 : "https://earth-search.aws.element84.com/v0/"
-            collections         :
-                sentinel-s2-l2a :
-                    bands       :
-                        B01     : &aws_msi_60m
-                            missing_value: -9999
-                            minimum_value: 0
-                            maximum_value: 10000
-                            scale_factor : 0.0001
-                            offset_value : 0
-                            resampling   : "bilinear"
-                            resolutions  : [60]
-                            sits_name    : "B01"
-                        B02     : &aws_msi_10m
-                            missing_value: -9999
-                            minimum_value: 0
-                            maximum_value: 10000
-                            scale_factor : 0.0001
-                            offset_value : 0
-                            resampling   : "bilinear"
-                            resolutions  : [10, 20, 60]
-                            sits_name    : "B02"
-                        B03     :
-                            <<: *aws_msi_10m
-                            sits_name    : "B03"
-                        B04     :
-                            <<: *aws_msi_10m
-                            sits_name    : "B04"
-                        B05     : &aws_msi_20m
-                            missing_value: -9999
-                            minimum_value: 0
-                            maximum_value: 10000
-                            scale_factor : 0.0001
-                            offset_value : 0
-                            resampling   : "bilinear"
-                            resolutions  : [20, 60]
-                            sits_name    : "B05"
-                        B06     :
-                            <<: *aws_msi_20m
-                            sits_name    : "B06"
-                        B07     :
-                            <<: *aws_msi_20m
-                            sits_name    : "B07"
-                        B08     :
-                            <<: *aws_msi_10m
-                            sits_name    : "B08"
-                        B8A     :
-                            <<: *aws_msi_20m
-                            sits_name    : "B8A"
-                        B09     :
-                            <<: *aws_msi_60m
-                            sits_name    : "B09"
-                        B10     :
-                            <<: *aws_msi_60m
-                            sits_name    : "B10"
-                        B11     :
-                            <<: *aws_msi_20m
-                            sits_name    : "B11"
-                        B12     :
-                            <<: *aws_msi_20m
-                            sits_name    : "B12"
-                    cloud_band  :
-                        bit_mask     : FALSE
-                        band_name    : "SCL"
-                        values       :
-                            0        : "missing_data"
-                            1        : "defective pixel"
-                            2        : "shadows"
-                            3        : "cloud shadows"
-                            4        : "vegetation"
-                            5        : "non-vegetated"
-                            6        : "water"
-                            7        : "unclassified"
-                            8        : "cloud medium"
-                            9        : "cloud high"
-                            10       : "thin cirrus"
-                            11       : "snow or ice"
-                        interp_values: [0, 1, 2, 3, 8, 9, 10, 11]
-                        resampling   : "ngb"
-                        resolutions  : [20, 60]
-                        sits_name    : "SCL"
-            AWS_DEFAULT_REGION  : "eu-central-1"
-            AWS_S3_ENDPOINT     : "s3.amazonaws.com"
-            AWS_REQUEST_PAYER   : "requester"
-        USGS                    :
-            s3_class            : ["usgs_cube", "raster_cube"]
-            service             : "STAC"
-            url                 : "https://landsatlook.usgs.gov/sat-api/stac"
-            collections         :
-                landsat-c2l2-sr :
-                    bands       :
-                        SR_B1.TIF: &usgs_oli_b1
-                            missing_value: 0
-                            minimum_value: 7273
-                            maximum_value: 43636
-                            scale_factor : 0.0000275
-                            offset_value : -0.2
-                            resampling   : "bilinear"
-                            resolutions  : [30]
-                            sits_name    : "B1"
-                        SR_B2.TIF:
-                            <<: *usgs_oli_b1
-                            sits_name    : "B2"
-                        SR_B3.TIF:
-                            <<: *usgs_oli_b1
-                            sits_name    : "B3"
-                        SR_B4.TIF:
-                            <<: *usgs_oli_b1
-                            sits_name    : "B4"
-                        SR_B5.TIF:
-                            <<: *usgs_oli_b1
-                            sits_name    : "B5"
-                        SR_B6.TIF:
-                            <<: *usgs_oli_b1
-                            sits_name    : "B6"
-                        SR_B7.TIF:
-                            <<: *usgs_oli_b1
-                            sits_name    : "B7"
-                    cloud_band  :
-                        bit_mask     : TRUE
-                        band_name    : "QA_PIXEL"
-                        values       :
-                            0        : "missing_data"
-                            1        : "Dilated Cloud"
-                            2        : "High confidence cirrus"
-                            4        : "High confidence cloud shadow"
-                            5        : "High confidence snow cover"
-                            6        : "Clear"
-                            7        : "Water"
-                            9        : "High confidence of cloud"
-                            11       : "High confidence of cloud shadow"
-                            13       : "High confidence of snow"
-                            15       : "High confidence of cirrus"
-                        interp_values: [0, 1, 2, 4, 5, 9, 11, 13, 15]
-                        resampling   : "ngb"
+                        sits_name    : "NDVI"
+                    EVI     :
+                        <<: *bdc_oli_ndvi
+                        sits_name    : "EVI"
+                    BAND1   : &bdc_oli_band1
+                        missing_value: -9999
+                        minimum_value: 0
+                        maximum_value: 10000
+                        scale_factor : 0.0001
+                        offset_value : 0
+                        resampling   : "bilinear"
                         resolutions  : [30]
-                        sits_name    : "FMASK"
-            AWS_DEFAULT_REGION  : "us-west-2"
-            AWS_S3_ENDPOINT     : "s3.amazonaws.com"
-            AWS_REQUEST_PAYER   : "requester"
-        DEAFRICA                :
-            s3_class            : ["deafrica_cube", "raster_cube"]
-            service             : "STAC"
-            url                 : "https://explorer.digitalearth.africa/stac/"
-            collections         :
-                ga_s2_gm        : &deafrica_s2
-                    bands       :
-                        B01     : &deafrica_msi_60m
-                            missing_value: -9999
-                            minimum_value: 0
-                            maximum_value: 10000
-                            scale_factor : 0.0001
-                            offset_value : 0
-                            resampling   : "bilinear"
-                            resolutions  : [60]
-                            sits_name    : "B01"
-                        B02     : &deafrica_msi_10m
-                            missing_value: -9999
-                            minimum_value: 0
-                            maximum_value: 10000
-                            scale_factor : 0.0001
-                            offset_value : 0
-                            resampling   : "bilinear"
-                            resolutions  : [10]
-                            sits_name    : "B02"
-                        B03     :
-                            <<: *deafrica_msi_10m
-                            sits_name    : "B03"
-                        B04     :
-                            <<: *deafrica_msi_10m
-                            sits_name    : "B04"
-                        B05     : &deafrica_msi_20m
-                            missing_value: -9999
-                            minimum_value: 0
-                            maximum_value: 10000
-                            scale_factor : 0.0001
-                            offset_value : 0
-                            resampling   : "bilinear"
-                            resolutions  : [20]
-                            sits_name    : "B05"
-                        B06     :
-                            <<: *deafrica_msi_20m
-                            sits_name    : "B06"
-                        B07     :
-                            <<: *deafrica_msi_20m
-                            sits_name    : "B07"
-                        B08     :
-                            <<: *deafrica_msi_10m
-                            sits_name    : "B08"
-                        B8A     :
-                            <<: *deafrica_msi_20m
-                            sits_name    : "B8A"
-                        B09     :
-                            <<: *deafrica_msi_60m
-                            sits_name    : "B09"
-                        B10     :
-                            <<: *deafrica_msi_60m
-                            sits_name    : "B10"
-                        B11     :
-                            <<: *deafrica_msi_20m
-                            sits_name    : "B11"
-                        B12     :
-                            <<: *deafrica_msi_20m
-                            sits_name    : "B12"
-                    cloud_band:
-                        bit_mask     : FALSE
-                        band_name    : "SCL"
-                        values       :
-                            0        : "missing_data"
-                            1        : "defective pixel"
-                            2        : "shadows"
-                            3        : "cloud shadows"
-                            4        : "vegetation"
-                            5        : "non-vegetated"
-                            6        : "water"
-                            7        : "unclassified"
-                            8        : "cloud medium"
-                            9        : "cloud high"
-                            10       : "thin cirrus"
-                            11       : "snow or ice"
-                        interp_values: [0, 1, 2, 3, 8, 9, 10, 11]
-                        resampling   : "ngb"
+                        sits_name    : "B1"
+                    BAND2   :
+                        <<: *bdc_oli_band1
+                        sits_name    : "B2"
+                    BAND3   :
+                        <<: *bdc_oli_band1
+                        sits_name    : "B3"
+                    BAND4   :
+                        <<: *bdc_oli_band1
+                        sits_name    : "B4"
+                    BAND5   :
+                        <<: *bdc_oli_band1
+                        sits_name    : "B5"
+                    BAND6   :
+                        <<: *bdc_oli_band1
+                        sits_name    : "B6"
+                    BAND7   :
+                        <<: *bdc_oli_band1
+                        sits_name    : "B7"
+                cloud_band  :
+                    bit_mask     : FALSE
+                    band_name    : "Fmask4"
+                    values       :
+                        0        : "clear land pixel"
+                        1        : "clear water pixel"
+                        2        : "cloud shadow"
+                        3        : "snow"
+                        4        : "cloud"
+                        255      : "no observation"
+                    interp_values: [2, 3, 4, 255]
+                    resampling   : "ngb"
+                    resolutions_x: [30]
+                    resolutions_y: [30]
+                    sits_name    : "FMASK4"
+            LC8_30_16D_STK-1: *bdc_lc8
+            MOD13Q1-1       : &bdc_mod
+                bands       :
+                    250m_16_days_NDVI: &bdc_modis_ndvi
+                        missing_value: -3000
+                        minimum_value: -2000
+                        maximum_value: 10000
+                        scale_factor : 0.0001
+                        offset_value : 0
+                        resampling   : "bilinear"
+                        resolutions  : [231.656]
+                        sits_name    : "NDVI"
+                    250m_16_days_EVI:
+                        <<: *bdc_modis_ndvi
+                        sits_name    : "EVI"
+                    250m_16_days_blue_reflectance: &bdc_modis_blue
+                        missing_value: -1000
+                        minimum_value: 0
+                        maximum_value: 10000
+                        scale_factor : 0.0001
+                        offset_value : 0
+                        resampling   : "bilinear"
+                        resolutions  : [231.656]
+                        sits_name    : "blue"
+                    250m_16_days_red_reflectance:
+                        <<: *bdc_modis_blue
+                        sits_name    : "red"
+                    250m_16_days_NIR_reflectance:
+                        <<: *bdc_modis_blue
+                        sits_name    : "nir"
+                    250m_16_days_MIR_reflectance:
+                        <<: *bdc_modis_blue
+                        sits_name    : "mir"
+                cloud_band:
+                    bit_mask     : FALSE
+                    band_name    : "250m_16_days_pixel_reliability"
+                    values       :
+                        0        : "Use with confidence"
+                        1        : "Useful, but look at other QA information"
+                        2        : "Target covered with snow/ice"
+                        3        : "Target not visible, covered with cloud"
+                        255      : "Fill/No Data-Not Processed"
+                    interp_values: [2, 3, 255]
+                    resampling   : "ngb"
+                    resolutions  : [231.656]
+            MYD13Q1-1       : *bdc_mod
+            S2_10-1         : &bdc_s2
+                bands       :
+                    NDVI    : &bdc_msi_ndvi
+                        missing_value: -9999
+                        minimum_value: -9999
+                        maximum_value: 10000
+                        scale_factor : 0.0001
+                        offset_value : 0
+                        resampling   : "bilinear"
+                        resolutions  : [10]
+                        sits_name    : "NDVI"
+                    EVI     :
+                        <<: *bdc_msi_ndvi
+                        sits_name    : "EVI"
+                    band1   : &bdc_msi_band1
+                        missing_value: -9999
+                        minimum_value: 0
+                        maximum_value: 10000
+                        scale_factor : 0.0001
+                        offset_value : 0
+                        resampling   : "bilinear"
+                        resolutions  : [10]
+                        sits_name    : "B01"
+                    band2   :
+                        <<: *bdc_msi_band1
+                        sits_name    : "B02"
+                    band3   :
+                        <<: *bdc_msi_band1
+                        sits_name    : "B03"
+                    band4   :
+                        <<: *bdc_msi_band1
+                        sits_name    : "B04"
+                    band5   :
+                        <<: *bdc_msi_band1
+                        sits_name    : "B05"
+                    band6   :
+                        <<: *bdc_msi_band1
+                        sits_name    : "B06"
+                    band7   :
+                        <<: *bdc_msi_band1
+                        sits_name    : "B07"
+                    band8   :
+                        <<: *bdc_msi_band1
+                        sits_name    : "B08"
+                    band8a  :
+                        <<: *bdc_msi_band1
+                        sits_name    : "B8A"
+                    band9   :
+                        <<: *bdc_msi_band1
+                        sits_name    : "B09"
+                    band10  :
+                        <<: *bdc_msi_band1
+                        sits_name    : "B10"
+                    band11  :
+                        <<: *bdc_msi_band1
+                        sits_name    : "B11"
+                    band12  :
+                        <<: *bdc_msi_band1
+                        sits_name    : "B12"
+                cloud_band  :
+                    bit_mask     : FALSE
+                    band_name    : "Fmask4"
+                    values       :
+                        0        : "clear land pixel"
+                        1        : "clear water pixel"
+                        2        : "cloud shadow"
+                        3        : "snow"
+                        4        : "cloud"
+                        255      : "no observation"
+                    interp_values: [2, 3, 4, 255]
+                    resampling   : "ngb"
+                    resolutions  : [10]
+                    sits_name    : "SCL"
+            S2_10_16D_STK-1 : *bdc_s2
+    WTSS                    :
+        s3_class            : ["wtss_cube"]
+        service             : "WTSS"
+        url                 : "https://brazildatacube.dpi.inpe.br/wtss/"
+        collections         :
+            MOD13Q1-6       : *bdc_mod
+            MYD13Q1-6       : *bdc_mod
+            S2_10_16D_STK-1 : *bdc_s2
+            S2_10-1         : *bdc_s2
+            LC8_30-1        : *bdc_lc8
+            LC8_30_16D_STK-1: *bdc_lc8
+            CB4_20_1M_STK-1 : *bdc_cb4_mux
+            CB4_64_16D_STK-1: *bdc_cb4
+            CB4_64-1        : *bdc_cb4
+    SATVEG                  :
+        s3_class            : ["satveg_cube"]
+        service             : "SATVEG"
+        url                 : "https://www.satveg.cnptia.embrapa.br/satvegws/ws/perfil/ZW46IXzr4pRzJlX/"
+        url_test            : "https://www.satveg.cnptia.embrapa.br/satvegws/ws/perfil/ZW46IXzr4pRzJlX/ndvi/ponto/-55.50563/-11.71557/terra/1//"
+        collections         :
+            terra           : &satveg_terra
+                bbox        :
+                    xmin    : -81.2341
+                    xmax    : -31.9165
+                    ymin    : -30.0000
+                    ymax    : 10.0000
+                size        :
+                    nrows   : 24000
+                    ncols   : 19200
+                prefilter   : ["0", "1", "2", "3"] # "0" - none, "1" - no data correction, "2" - cloud correction, "3" - no data and cloud correction
+                crs         : "+proj=longlat +ellps=WGS84 +datum=WGS84 +no_defs"
+                bands       :
+                    NDVI    :
+                        <<: *bdc_modis_ndvi
+                        sits_name: "NDVI"
+                    EVI     :
+                        <<: *bdc_modis_ndvi
+                        sits_name: "EVI"
+            aqua            : *satveg_terra
+            comb            : *satveg_terra
+    AWS                     :
+        s3_class            : ["aws_cube", "raster_cube"]
+        service             : "STAC"
+        url                 : "https://earth-search.aws.element84.com/v0/"
+        collections         :
+            sentinel-s2-l2a :
+                bands       :
+                    B01     : &aws_msi_60m
+                        missing_value: -9999
+                        minimum_value: 0
+                        maximum_value: 10000
+                        scale_factor : 0.0001
+                        offset_value : 0
+                        resampling   : "bilinear"
+                        resolutions  : [60]
+                        sits_name    : "B01"
+                    B02     : &aws_msi_10m
+                        missing_value: -9999
+                        minimum_value: 0
+                        maximum_value: 10000
+                        scale_factor : 0.0001
+                        offset_value : 0
+                        resampling   : "bilinear"
+                        resolutions  : [10, 20, 60]
+                        sits_name    : "B02"
+                    B03     :
+                        <<: *aws_msi_10m
+                        sits_name    : "B03"
+                    B04     :
+                        <<: *aws_msi_10m
+                        sits_name    : "B04"
+                    B05     : &aws_msi_20m
+                        missing_value: -9999
+                        minimum_value: 0
+                        maximum_value: 10000
+                        scale_factor : 0.0001
+                        offset_value : 0
+                        resampling   : "bilinear"
+                        resolutions  : [20, 60]
+                        sits_name    : "B05"
+                    B06     :
+                        <<: *aws_msi_20m
+                        sits_name    : "B06"
+                    B07     :
+                        <<: *aws_msi_20m
+                        sits_name    : "B07"
+                    B08     :
+                        <<: *aws_msi_10m
+                        sits_name    : "B08"
+                    B8A     :
+                        <<: *aws_msi_20m
+                        sits_name    : "B8A"
+                    B09     :
+                        <<: *aws_msi_60m
+                        sits_name    : "B09"
+                    B10     :
+                        <<: *aws_msi_60m
+                        sits_name    : "B10"
+                    B11     :
+                        <<: *aws_msi_20m
+                        sits_name    : "B11"
+                    B12     :
+                        <<: *aws_msi_20m
+                        sits_name    : "B12"
+                cloud_band  :
+                    bit_mask     : FALSE
+                    band_name    : "SCL"
+                    values       :
+                        0        : "missing_data"
+                        1        : "defective pixel"
+                        2        : "shadows"
+                        3        : "cloud shadows"
+                        4        : "vegetation"
+                        5        : "non-vegetated"
+                        6        : "water"
+                        7        : "unclassified"
+                        8        : "cloud medium"
+                        9        : "cloud high"
+                        10       : "thin cirrus"
+                        11       : "snow or ice"
+                    interp_values: [0, 1, 2, 3, 8, 9, 10, 11]
+                    resampling   : "ngb"
+                    resolutions  : [20, 60]
+                    sits_name    : "SCL"
+        AWS_DEFAULT_REGION  : "eu-central-1"
+        AWS_S3_ENDPOINT     : "s3.amazonaws.com"
+        AWS_REQUEST_PAYER   : "requester"
+    USGS                    :
+        s3_class            : ["usgs_cube", "raster_cube"]
+        service             : "STAC"
+        url                 : "https://landsatlook.usgs.gov/sat-api/stac"
+        collections         :
+            landsat-c2l2-sr :
+                bands       :
+                    SR_B1.TIF: &usgs_oli_b1
+                        missing_value: 0
+                        minimum_value: 7273
+                        maximum_value: 43636
+                        scale_factor : 0.0000275
+                        offset_value : -0.2
+                        resampling   : "bilinear"
+                        resolutions  : [30]
+                        sits_name    : "B1"
+                    SR_B2.TIF:
+                        <<: *usgs_oli_b1
+                        sits_name    : "B2"
+                    SR_B3.TIF:
+                        <<: *usgs_oli_b1
+                        sits_name    : "B3"
+                    SR_B4.TIF:
+                        <<: *usgs_oli_b1
+                        sits_name    : "B4"
+                    SR_B5.TIF:
+                        <<: *usgs_oli_b1
+                        sits_name    : "B5"
+                    SR_B6.TIF:
+                        <<: *usgs_oli_b1
+                        sits_name    : "B6"
+                    SR_B7.TIF:
+                        <<: *usgs_oli_b1
+                        sits_name    : "B7"
+                cloud_band  :
+                    bit_mask     : TRUE
+                    band_name    : "QA_PIXEL"
+                    values       :
+                        0        : "missing_data"
+                        1        : "Dilated Cloud"
+                        2        : "High confidence cirrus"
+                        4        : "High confidence cloud shadow"
+                        5        : "High confidence snow cover"
+                        6        : "Clear"
+                        7        : "Water"
+                        9        : "High confidence of cloud"
+                        11       : "High confidence of cloud shadow"
+                        13       : "High confidence of snow"
+                        15       : "High confidence of cirrus"
+                    interp_values: [0, 1, 2, 4, 5, 9, 11, 13, 15]
+                    resampling   : "ngb"
+                    resolutions  : [30]
+                    sits_name    : "FMASK"
+        AWS_DEFAULT_REGION  : "us-west-2"
+        AWS_S3_ENDPOINT     : "s3.amazonaws.com"
+        AWS_REQUEST_PAYER   : "requester"
+    DEAFRICA                :
+        s3_class            : ["deafrica_cube", "raster_cube"]
+        service             : "STAC"
+        url                 : "https://explorer.digitalearth.africa/stac/"
+        collections         :
+            ga_s2_gm        : &deafrica_s2
+                bands       :
+                    B01     : &deafrica_msi_60m
+                        missing_value: -9999
+                        minimum_value: 0
+                        maximum_value: 10000
+                        scale_factor : 0.0001
+                        offset_value : 0
+                        resampling   : "bilinear"
+                        resolutions  : [60]
+                        sits_name    : "B01"
+                    B02     : &deafrica_msi_10m
+                        missing_value: -9999
+                        minimum_value: 0
+                        maximum_value: 10000
+                        scale_factor : 0.0001
+                        offset_value : 0
+                        resampling   : "bilinear"
+                        resolutions  : [10]
+                        sits_name    : "B02"
+                    B03     :
+                        <<: *deafrica_msi_10m
+                        sits_name    : "B03"
+                    B04     :
+                        <<: *deafrica_msi_10m
+                        sits_name    : "B04"
+                    B05     : &deafrica_msi_20m
+                        missing_value: -9999
+                        minimum_value: 0
+                        maximum_value: 10000
+                        scale_factor : 0.0001
+                        offset_value : 0
+                        resampling   : "bilinear"
                         resolutions  : [20]
-                        sits_name    : "SCL"
-                s2_l2a          : *deafrica_s2
-            AWS_DEFAULT_REGION  : "af-south-1"
-            AWS_S3_ENDPOINT     : "s3.af-south-1.amazonaws.com"
-            AWS_REQUEST_PAYER   : "requester"
-        LOCAL                   :
-            s3_class            : ["local_cube", "raster_cube"]
-            satellites          :
-                LANDSAT-8       :
-                    sensors     :
-                        OLI     : *bdc_lc8
-                LANDSAT-7       :
-                    sensors     :
-                        ETM     : *bdc_lc8
-                LANDSAT-5       :
-                    sensors     :
-                        TM      : *bdc_lc8
-                SENTINEL-2      :
-                    sensors     :
-                        MSI     : *bdc_s2
-                TERRA           :
-                    sensors     :
-                        MODIS   : *bdc_mod
-                AQUA            :
-                    sensors     :
-                        MODIS   : *bdc_mod
-                CBERS4          :
-                    sensors     :
-                        AWFI    : *bdc_cb4
-                        MUX     : *bdc_cb4_mux
+                        sits_name    : "B05"
+                    B06     :
+                        <<: *deafrica_msi_20m
+                        sits_name    : "B06"
+                    B07     :
+                        <<: *deafrica_msi_20m
+                        sits_name    : "B07"
+                    B08     :
+                        <<: *deafrica_msi_10m
+                        sits_name    : "B08"
+                    B8A     :
+                        <<: *deafrica_msi_20m
+                        sits_name    : "B8A"
+                    B09     :
+                        <<: *deafrica_msi_60m
+                        sits_name    : "B09"
+                    B10     :
+                        <<: *deafrica_msi_60m
+                        sits_name    : "B10"
+                    B11     :
+                        <<: *deafrica_msi_20m
+                        sits_name    : "B11"
+                    B12     :
+                        <<: *deafrica_msi_20m
+                        sits_name    : "B12"
+                cloud_band:
+                    bit_mask     : FALSE
+                    band_name    : "SCL"
+                    values       :
+                        0        : "missing_data"
+                        1        : "defective pixel"
+                        2        : "shadows"
+                        3        : "cloud shadows"
+                        4        : "vegetation"
+                        5        : "non-vegetated"
+                        6        : "water"
+                        7        : "unclassified"
+                        8        : "cloud medium"
+                        9        : "cloud high"
+                        10       : "thin cirrus"
+                        11       : "snow or ice"
+                    interp_values: [0, 1, 2, 3, 8, 9, 10, 11]
+                    resampling   : "ngb"
+                    resolutions  : [20]
+                    sits_name    : "SCL"
+            s2_l2a          : *deafrica_s2
+        AWS_DEFAULT_REGION  : "af-south-1"
+        AWS_S3_ENDPOINT     : "s3.af-south-1.amazonaws.com"
+        AWS_REQUEST_PAYER   : "requester"
+    LOCAL                   :
+        s3_class            : ["local_cube", "raster_cube"]
+        satellites          :
+            LANDSAT-8       :
+                sensors     :
+                    OLI     : *bdc_lc8
+            LANDSAT-7       :
+                sensors     :
+                    ETM     : *bdc_lc8
+            LANDSAT-5       :
+                sensors     :
+                    TM      : *bdc_lc8
+            SENTINEL-2      :
+                sensors     :
+                    MSI     : *bdc_s2
+            TERRA           :
+                sensors     :
+                    MODIS   : *bdc_mod
+            AQUA            :
+                sensors     :
+                    MODIS   : *bdc_mod
+            CBERS4          :
+                sensors     :
+                    AWFI    : *bdc_cb4
+                    MUX     : *bdc_cb4_mux
 
-    colors:
-        Araguaia :           "mediumaquamarine"
-        Beans :              "lightskyblue3"
-        Campo_Cerrado :      "darkseagreen3"
-        Cerradao     :       "olivedrab"
-        Cerrado :            "yellowgreen"
-        Cerrado_Rupestre :   "palegreen"
-        Corn :               "burlywood3"
-        Cotton:              "wheat2"
-        Cropland:            "orange4"
-        Dunas :              "honeydew3"
-        Deforestation:       "darkred"
-        Deforestatio:        "darkred"
-        Dense_Tree_Savanna : "forestgreen"
-        Fallow_Cotton :      "wheat2"
-        Millet_Cotton :      "wheat4"
-        Forest :             "darkgreen"
-        Planted Forest :     "mediumseagreen"
-        Pasture :            "khaki"
-        NatNonVegetated :    "honeydew3"
-        NonForest:           "lightsteelblue2"
-        Savanna :            "springgreen"
-        Shrublands :         "palegreen"
-        Soy_Corn :           "orange2"
-        Soy_Cotton :         "orangered4"
-        Soy_Fallow :         "orange4"
-        Soy_Sorghum:         "darkorange3"
-        Soy_Millet :         "darkorange"
-        Soy_Sunflower :      "darkorange4"
-        Sugarcane :          "gold4"
-        Urban_Area :         "ivory4"
-        Water      :         "royalblue3"
-        Wetlands   :         "mediumaquamarine"
+colors:
+    Araguaia :           "mediumaquamarine"
+    Beans :              "lightskyblue3"
+    Campo_Cerrado :      "darkseagreen3"
+    Cerradao     :       "olivedrab"
+    Cerrado :            "yellowgreen"
+    Cerrado_Rupestre :   "palegreen"
+    Corn :               "burlywood3"
+    Cotton:              "wheat2"
+    Cropland:            "orange4"
+    Dunas :              "honeydew3"
+    Deforestation:       "darkred"
+    Deforestatio:        "darkred"
+    Dense_Tree_Savanna : "forestgreen"
+    Fallow_Cotton :      "wheat2"
+    Millet_Cotton :      "wheat4"
+    Forest :             "darkgreen"
+    Planted Forest :     "mediumseagreen"
+    Pasture :            "khaki"
+    NatNonVegetated :    "honeydew3"
+    NonForest:           "lightsteelblue2"
+    Savanna :            "springgreen"
+    Shrublands :         "palegreen"
+    Soy_Corn :           "orange2"
+    Soy_Cotton :         "orangered4"
+    Soy_Fallow :         "orange4"
+    Soy_Sorghum:         "darkorange3"
+    Soy_Millet :         "darkorange"
+    Soy_Sunflower :      "darkorange4"
+    Sugarcane :          "gold4"
+    Urban_Area :         "ivory4"
+    Water      :         "royalblue3"
+    Wetlands   :         "mediumaquamarine"
