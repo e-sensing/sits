@@ -206,13 +206,13 @@ default:
                             resolutions  : [231.656]
                             sits_name    : "blue"
                         250m_16_days_red_reflectance:
-                            <<: *wtss_modis_blue
+                            <<: *bdc_modis_blue
                             sits_name    : "red"
                         250m_16_days_NIR_reflectance:
-                            <<: *wtss_modis_blue
+                            <<: *bdc_modis_blue
                             sits_name    : "nir"
                         250m_16_days_MIR_reflectance:
-                            <<: *wtss_modis_blue
+                            <<: *bdc_modis_blue
                             sits_name    : "mir"
                     cloud_band:
                         bit_mask     : FALSE
