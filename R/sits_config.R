@@ -744,7 +744,7 @@ sits_config_show <- function() {
 #' @keywords internal
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 .sits_config_probs_scale_factor  <- function() {
-  return(sits_env$config[["PROBS"]][["scale_factor"]])
+  return(sits_env$config$sources[["PROBS"]][["scale_factor"]])
 }
 
 #' @title Retrieve the missing value for a probs cube
@@ -934,16 +934,19 @@ sits_config_show <- function() {
 #'
 .sits_config_local_satellite_sensor <- function(satellite, sensor) {
 
-  satellites <- sits_env$config$sources[["LOCAL"]]$satellites
+  sat_sensors <- names(sits_env$config$sources[["LOCAL"]]$collections)
+  satellites <- purrr::map_chr(strsplit(sat_sensors, "/"), function(x){x[[1]]})
 
   assertthat::assert_that(
-    satellite %in% names(satellites),
+    satellite %in% satellites,
     msg = paste(".sits_config_satellite_sensor: satellite not supported",
                 "by SITS - edit configuration file")
   )
 
+  # using satellite to create regex pattern
+  reg_pattern <- paste0(satellite, "/")
   assertthat::assert_that(
-    sensor %in% names(satellites[[satellite]]$sensors),
+    any(grepl(pattern = reg_pattern, x = sat_sensors, fixed = TRUE)),
     msg = paste(".sits_config_satellite_sensor: sensor not supported",
                 "by SITS - edit configuration file")
   )
@@ -1002,7 +1005,7 @@ sits_config_show <- function() {
 #' @return Vector of scale factors.
 .sits_config_scale_factors <- function(cube, bands) {
 
-  source <- class(cube)[[1]]
+  source <- cube$source[[1]]
   collection <- cube$collection[[1]]
 
   col <- sits_env$config$sources[[source]]$collections[[collection]]
