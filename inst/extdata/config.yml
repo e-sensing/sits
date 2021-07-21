@@ -182,7 +182,7 @@ sources:
             LC8_30_16D_STK-1: *bdc_lc8
             MOD13Q1-1       : &bdc_mod
                 bands       :
-                    250m_16_days_NDVI: &bdc_modis_ndvi
+                    NDVI             : &bdc_modis_ndvi
                         missing_value: -3000
                         minimum_value: -2000
                         maximum_value: 10000
@@ -191,10 +191,10 @@ sources:
                         resampling   : "bilinear"
                         resolutions  : [231.656]
                         sits_name    : "NDVI"
-                    250m_16_days_EVI:
+                    EVI              :
                         <<: *bdc_modis_ndvi
                         sits_name    : "EVI"
-                    250m_16_days_blue_reflectance: &bdc_modis_blue
+                    blue_reflectance : &bdc_modis_blue
                         missing_value: -1000
                         minimum_value: 0
                         maximum_value: 10000
@@ -203,18 +203,18 @@ sources:
                         resampling   : "bilinear"
                         resolutions  : [231.656]
                         sits_name    : "blue"
-                    250m_16_days_red_reflectance:
+                    red_reflectance  :
                         <<: *bdc_modis_blue
                         sits_name    : "red"
-                    250m_16_days_NIR_reflectance:
+                    NIR_reflectance  :
                         <<: *bdc_modis_blue
                         sits_name    : "nir"
-                    250m_16_days_MIR_reflectance:
+                    MIR_reflectance  :
                         <<: *bdc_modis_blue
                         sits_name    : "mir"
                 cloud_band:
                     bit_mask     : FALSE
-                    band_name    : "250m_16_days_pixel_reliability"
+                    band_name    : "pixel_reliability"
                     values       :
                         0        : "Use with confidence"
                         1        : "Useful, but look at other QA information"
@@ -433,7 +433,7 @@ sources:
         collections         :
             landsat-c2l2-sr :
                 bands       :
-                    SR_B1.TIF: &usgs_oli_b1
+                    SR_B1   : &usgs_oli_b1
                         missing_value: 0
                         minimum_value: 7273
                         maximum_value: 43636
@@ -442,22 +442,22 @@ sources:
                         resampling   : "bilinear"
                         resolutions  : [30]
                         sits_name    : "B1"
-                    SR_B2.TIF:
+                    SR_B2   :
                         <<: *usgs_oli_b1
                         sits_name    : "B2"
-                    SR_B3.TIF:
+                    SR_B3   :
                         <<: *usgs_oli_b1
                         sits_name    : "B3"
-                    SR_B4.TIF:
+                    SR_B4   :
                         <<: *usgs_oli_b1
                         sits_name    : "B4"
-                    SR_B5.TIF:
+                    SR_B5   :
                         <<: *usgs_oli_b1
                         sits_name    : "B5"
-                    SR_B6.TIF:
+                    SR_B6   :
                         <<: *usgs_oli_b1
                         sits_name    : "B6"
-                    SR_B7.TIF:
+                    SR_B7    :
                         <<: *usgs_oli_b1
                         sits_name    : "B7"
                 cloud_band  :
@@ -478,7 +478,7 @@ sources:
                     interp_values: [0, 1, 2, 4, 5, 9, 11, 13, 15]
                     resampling   : "ngb"
                     resolutions  : [30]
-                    sits_name    : "FMASK"
+                    sits_name    : "CFMASK"
         AWS_DEFAULT_REGION  : "us-west-2"
         AWS_S3_ENDPOINT     : "s3.amazonaws.com"
         AWS_REQUEST_PAYER   : "requester"
@@ -591,7 +591,7 @@ sources:
             AQUA            :
                 sensors     :
                     MODIS   : *bdc_mod
-            CBERS4          :
+            CBERS-4          :
                 sensors     :
                     AWFI    : *bdc_cb4
                     MUX     : *bdc_cb4_mux
