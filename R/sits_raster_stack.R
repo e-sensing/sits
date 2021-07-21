@@ -143,6 +143,8 @@
     # get the tiles
     tiles <- unique(file_info$tile)
 
+    collection <- paste0(satellite, "/", sensor)
+
     rows <- purrr::map(tiles, function(t){
         # get the files for a given tile
         row_file_info <- dplyr::filter(file_info, tile == t)
@@ -159,6 +161,7 @@
             source = "LOCAL",
             satellite = satellite,
             sensor = sensor,
+            collection = collection,
             tile = t,
             bands = bands,
             nrows = params$nrows,
