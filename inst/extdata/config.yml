@@ -572,29 +572,15 @@ sources:
         AWS_REQUEST_PAYER   : "requester"
     LOCAL                   :
         s3_class            : ["local_cube", "raster_cube"]
-        satellites          :
-            LANDSAT-8       :
-                sensors     :
-                    OLI     : *bdc_lc8
-            LANDSAT-7       :
-                sensors     :
-                    ETM     : *bdc_lc8
-            LANDSAT-5       :
-                sensors     :
-                    TM      : *bdc_lc8
-            SENTINEL-2      :
-                sensors     :
-                    MSI     : *bdc_s2
-            TERRA           :
-                sensors     :
-                    MODIS   : *bdc_mod
-            AQUA            :
-                sensors     :
-                    MODIS   : *bdc_mod
-            CBERS-4          :
-                sensors     :
-                    AWFI    : *bdc_cb4
-                    MUX     : *bdc_cb4_mux
+        collections         :
+            LANDSAT-8/OLI   : *bdc_lc8
+            LANDSAT-7/ETM   : *bdc_lc8
+            LANDSAT-5/TM    : *bdc_lc8
+            SENTINEL-2/MSI  : *bdc_s2
+            TERRA/MODIS     : *bdc_mod
+            AQUA/MODIS      : *bdc_mod
+            CBERS-4/AWFI    : *bdc_cb4
+            CBERS-4/MUX     : *bdc_cb4_mux
 
 colors:
     Araguaia :           "mediumaquamarine"
