@@ -12,9 +12,6 @@ test_that("Internal", {
     expect_true(sits:::.sits_config_memory_bloat() > 1)
 
     bands <- sits:::.sits_config_satveg_bands()
-
-    expect_true(sits:::.sits_config_minimum_values("MODIS", bands)[1] > -100000)
-    expect_true(sits:::.sits_config_maximum_values("MODIS", bands)[1] < 100000)
 })
 
 test_that("Show", {
@@ -24,7 +21,7 @@ test_that("Show", {
 
     lin <- readLines(paste0(tempdir(), "config.txt"))
 
-    expect_equal(lin[1], "default:")
-    expect_true(grepl("bloat", lin[5]))
-    expect_true(grepl("rstac", lin[8]))
+    expect_equal(lin[2], "R_memory_bloat          : 4")
+    expect_true(grepl("bloat", lin[2]))
+    expect_true(grepl("rstac", lin[6]))
 })
