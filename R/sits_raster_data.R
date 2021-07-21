@@ -133,7 +133,7 @@
         }
 
         # scale the data set
-        scale_factor <- .sits_config_scale_factors(cube$sensor, band_cube)
+        scale_factor <- .sits_config_scale_factors(cube, band_cube)
         values <- scale_factor * values
 
         # filter the data
