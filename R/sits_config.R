@@ -67,6 +67,7 @@ sits_config_info <- function() {
   yml_file <- system.file("extdata", "config.yml", package = "sits")
 
   message(paste0("Using configuration file: ", yml_file))
+  message(paste0("Using raster package: ", .sits_config_raster_package()))
 
   # try to find a valid user configuration file
   user_yml_file <- Sys.getenv("SITS_USER_CONFIG_FILE")
