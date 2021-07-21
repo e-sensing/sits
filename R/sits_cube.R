@@ -169,7 +169,7 @@
 #'                       name = "deafrica_cube",
 #'                       collection = "s2_l2a",
 #'                       bands = c("B04", "B08"),
-#'                       roi = c("xmin" = 17.379,
+#'                       bbox = c("xmin" = 17.379,
 #'                               "ymin" = 1.1573,
 #'                               "xmax" = 17.410,
 #'                                "ymax" = 1.1910),
@@ -274,7 +274,7 @@ sits_cube.wtss_cube <- function(source = "WTSS", ...,
 
     # precondition - is the url correct?
     if (purrr::is_null(url)) {
-        url <- .sits_config_wtss_bdc()
+        url <- .sits_config_stac(source)
     }
 
     # Pre-condition - try to find the access key as an environment variable
@@ -322,7 +322,7 @@ sits_cube.bdc_cube <- function(source = "BDC", ...,
     }
     # precondition - is the url correct?
     if (purrr::is_null(url)) {
-        url <- .sits_config_bdc_stac()
+        url <- .sits_config_stac(source)
     }
     # test if BDC is accessible
     if (!(.sits_config_cube_access(url, "BDC")))
@@ -420,7 +420,7 @@ sits_cube.deafrica_cube <- function(source = "DEAFRICA", ...,
 
     # precondition - is the url correct?
     if (purrr::is_null(url)) {
-        url <- .sits_config_deafrica_stac()
+        url <- .sits_config_stac(source)
     }
 
     # test if DEA is accessible
@@ -520,7 +520,7 @@ sits_cube.aws_cube <- function(source = "AWS", ...,
 
     # precondition - is the url correct?
     if (purrr::is_null(url)) {
-        url <- .sits_config_aws_stac()
+        url <- .sits_config_stac(source)
     }
 
     # test if AWS STAC is accessible
@@ -528,7 +528,10 @@ sits_cube.aws_cube <- function(source = "AWS", ...,
         return(NULL)
 
     # select bands by resolution
-    bands <- .sits_s2_check_bands(source, collection, bands, s2_resolution)
+    bands <- .sits_s2_check_bands(source = source,
+                                  collection = collection,
+                                  bands = bands,
+                                  s2_resolution)
 
     # retrieve item information
     items_info <- .sits_s2_aws_items(
@@ -608,8 +611,7 @@ sits_cube.usgs_cube <- function(source = "USGS", ...,
 
     # precondition - is the url correct?
     if (purrr::is_null(url)) {
-        # TODO: criar uma unica função que o parametro seja o provedor
-        url <- .sits_config_usgs_stac()
+        url <- .sits_config_stac(source)
     }
 
     # test if USGS STAC is accessible
@@ -926,7 +928,6 @@ sits_cube_copy <- function(cube,
         new_paths <- unlist(paths)
 
         # update cube
-
         row$nrows <- srcwin["ysize"]
         row$ncols <- srcwin["xsize"]
         row$xmin <- row$xmin + srcwin["xoff"] * row$xres

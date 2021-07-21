@@ -77,7 +77,7 @@
     )
 
     # getting bands name
-    items_info <- .sits_deafrica_bands(items_info, bands)
+    items_info <- .sits_deafrica_bands(items_info, collection, bands)
 
     return(items_info)
 }
@@ -138,18 +138,20 @@
 #'
 #' @param items a \code{STACItemCollection} object returned by rstac package.
 #'  grouped.
+#' @param collection a \code{character} with the collection to be searched.
 #' @param bands a \code{character} vector with the bands name.
 #'
 #' @return      a \code{STACItemCollection} object representing the search
 #'              by rstac.
-.sits_deafrica_bands <- function(items, bands) {
+.sits_deafrica_bands <- function(items, collection, bands) {
 
     # checks if the instrument is in the catalog
     if (length(items$features[[1]]$properties$instruments) == 0) {
         sat <- toupper(items$features[[1]]$properties$platform)
 
         items$features <- purrr::map(items$features, function(feature) {
-            feature$properties$instruments <- .sits_config_sensors(sat)
+            # hard coded solution - see others alternatives
+            feature$properties$instruments <- "MSI"
 
             feature
         })
@@ -159,8 +161,8 @@
     item_prop <- items$features[[1]]$properties
 
     # get bands from sensor and application
-    bands_sensor <- .sits_config_sensor_bands(sensor = item_prop$instruments[[1]],
-                                              source = "DEAFRICA")
+    bands_sensor <- .sits_config_bands(source = "DEAFRICA",
+                                       collection = collection)
 
     # get bands name from assets list name property
     bands_product <-
@@ -214,10 +216,9 @@
         bands <- toupper(bands)
 
         # convert bands to those known by the cloud provider
-        bands_stac <- .sits_config_bands_stac_read(
-            stac_provider = "DEAFRICA",
-            sensor = item_prop$instruments,
-            bands = bands)
+        bands_stac <- .sits_config_bands_stac_read(source = "DEAFRICA",
+                                                   collection = collection,
+                                                   bands = bands)
 
         # converting to upper bands
         assertthat::assert_that(
@@ -263,7 +264,10 @@
     if (length(item_prop[["gsd"]]) == 0)
         res[c("xres", "yres")] <- c(20, 20)
 
-    res_dea <- .sits_config_bands_res("DEAFRICA", file_info$band)
+    res_dea <- .sits_config_bands_res(source = "DEAFRICA",
+                                      collection = collection,
+                                      bands = file_info$band)
+
     file_info <- dplyr::mutate(file_info, res = res_dea, .before = path)
 
 

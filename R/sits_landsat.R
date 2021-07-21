@@ -82,14 +82,11 @@
                                      progress = pgr_fetch,
                                      matched_field = c("meta", "found"))
 
-    # getting sensor name
-    sensor <- .sits_config_sensors("LANDSAT-8")
-
     # getting bands name
     items_info <- .sits_stac_bands(items = .sits_usgs_fix_bands(items_info),
                                    bands = bands,
                                    source = "USGS",
-                                   sensor = sensor)
+                                   collection = collection)
 
     # store tile info in items object
     items_info$features <- purrr::map(items_info$features, function(features) {

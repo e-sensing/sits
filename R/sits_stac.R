@@ -149,17 +149,16 @@
 #' package.
 #' @param bands      a \code{character} vector with the bands name.
 #' @param source     Data source
+#' @param collection a \code{character} with the collection to be searched.
 #' @param sensor     a \code{character} with sensor name.
 #'
 #' @return           a \code{STACItemCollection} object representing the search
 #'                   by rstac.
-.sits_stac_bands <- function(items, bands, source, sensor = NULL) {
-
-    if (is.null(sensor))
-        sensor <- toupper(items$features[[1]]$properties$instruments[[1]])
+.sits_stac_bands <- function(items, bands, source, collection) {
 
     # get bands from sensor
-    bands_sensor <- .sits_config_sensor_bands(sensor = sensor, source = source)
+    bands_sensor <- .sits_config_bands(source = source,
+                                       collection = collection)
 
     # get bands name from assets list name property
     bands_product <- names(items$features[[1]]$assets)
@@ -178,11 +177,9 @@
     # checks if the supplied bands match the product bands
     if (!purrr::is_null(bands))
         #items$bands <- items$bands[items$bands %in% bands]
-        items$bands <- .sits_config_bands_stac_read(
-            stac_provider = source,
-            sensor = sensor,
-            bands = bands)
-
+        items$bands <- .sits_config_bands_stac_read(source = source,
+                                                    collection = collection,
+                                                    bands = bands)
 
     return(items)
 }

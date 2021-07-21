@@ -80,7 +80,10 @@
     items_info <- items_info %>% rstac::items_fetch(progress = pgr_fetch)
 
     # getting bands name
-    items_info <- .sits_stac_bands(items_info, bands, source = "AWS")
+    items_info <- .sits_stac_bands(items_info,
+                                   bands,
+                                   source = "AWS",
+                                   collection = collection)
 
     # store tile info in items object
     items_info$features <- purrr::map(items_info$features, function(features) {
@@ -138,7 +141,10 @@
 .sits_s2_check_bands <- function(source, collection, bands, s2_resolution) {
 
     # bands supported by provided resolution
-    bands_s2 <- .sits_config_s2_bands(source, collection, bands, s2_resolution)
+    bands_s2 <- .sits_config_s2_bands(source = source,
+                                      collection = collection,
+                                      bands = bands,
+                                      resolution = s2_resolution)
 
     if (!purrr::is_null(bands)) {
         assertthat::assert_that(

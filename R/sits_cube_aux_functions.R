@@ -216,7 +216,7 @@
 #' @keywords internal
 #' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
 #'
-#' @param  cube              input data cube
+#' @param  cube input data cube
 #'
 #' @return A character string
 .sits_cube_source <- function(cube) {
@@ -230,6 +230,7 @@
 
     return(res)
 }
+
 #' @title Get cube file info
 #' @name .sits_cube_file_info
 #' @keywords internal
