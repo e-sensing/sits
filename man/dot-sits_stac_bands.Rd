@@ -4,7 +4,7 @@
 \alias{.sits_stac_bands}
 \title{Get bands names from items}
 \usage{
-.sits_stac_bands(items, bands, source, collection, sensor = NULL)
+.sits_stac_bands(items, bands, source, collection)
 }
 \arguments{
 \item{items}{a \code{STACItemCollection} object returned by rstac
