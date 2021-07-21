@@ -5,11 +5,13 @@
 \alias{.sits_deafrica_bands}
 \title{Get bands names from items}
 \usage{
-.sits_deafrica_bands(items, bands)
+.sits_deafrica_bands(items, collection, bands)
 }
 \arguments{
 \item{items}{a \code{STACItemCollection} object returned by rstac package.
 grouped.}
+
+\item{collection}{a \code{character} with the collection to be searched.}
 
 \item{bands}{a \code{character} vector with the bands name.}
 }

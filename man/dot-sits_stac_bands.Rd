@@ -4,7 +4,7 @@
 \alias{.sits_stac_bands}
 \title{Get bands names from items}
 \usage{
-.sits_stac_bands(items, bands, source, sensor = NULL)
+.sits_stac_bands(items, bands, source, collection, sensor = NULL)
 }
 \arguments{
 \item{items}{a \code{STACItemCollection} object returned by rstac
@@ -13,6 +13,8 @@ package.}
 \item{bands}{a \code{character} vector with the bands name.}
 
 \item{source}{Data source}
+
+\item{collection}{a \code{character} with the collection to be searched.}
 
 \item{sensor}{a \code{character} with sensor name.}
 }

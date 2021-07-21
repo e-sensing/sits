@@ -4,12 +4,12 @@
 \alias{.sits_config_bands_stac_read}
 \title{Convert bands names from SITS to cube}
 \usage{
-.sits_config_bands_stac_read(stac_provider, sensor, bands)
+.sits_config_bands_stac_read(source, collection, bands)
 }
 \arguments{
-\item{stac_provider}{Name of the STAC provider}
+\item{source}{Name of the STAC provider}
 
-\item{sensor}{Name of sensor}
+\item{collection}{Name of sensor}
 
 \item{bands}{Bands requested to be read}
 }

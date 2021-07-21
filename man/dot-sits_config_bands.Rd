@@ -2,19 +2,26 @@
 % Please edit documentation in R/sits_config.R
 \name{.sits_config_bands}
 \alias{.sits_config_bands}
-\title{Retrieve the bands associated to DEAfrica STAC}
+\alias{.sits_config_sits_bands}
+\title{Retrieve the bands from source cubes}
 \usage{
 .sits_config_bands(source, collection)
+
+.sits_config_sits_bands(source, collection)
 }
 \arguments{
-\item{source}{Data source}
+\item{collection}{...}
 
 \item{sensor}{Type of sensor of cube}
 }
 \value{
 Names of bands available for sensor in data source
+
+Names of bands available for sensor in data source
 }
 \description{
-Retrieve the cubes associated to the STAC service
+Retrieve the bands of an associated source.
+
+Retrieve the bands of an associated source.
 }
 \keyword{internal}
