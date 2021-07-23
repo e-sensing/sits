@@ -211,7 +211,7 @@ sits_config_show <- function() {
     bands <- unique(bands)
 
     # bands sits
-    bands_sits <- .sits_config_sits_bands(source, collection)
+    bands_sits <- .sits_config_collection_bands(source, collection)
     names(bands_sits) <- bands_sits
 
     # bands source
@@ -228,50 +228,6 @@ sits_config_show <- function() {
                     "available in", source))
 
     return(convert_bands[bands])
-}
-
-#' @title Convert bands names from cube to SITS
-#' @name .sits_config_bands_reverse
-#' @keywords internal
-#'
-#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
-#'
-#' @description Convert the name of the band used by the origin data cube
-#'              to the name used by SITS
-#' @param source     Name of the STAC provider
-#' @param collection Name of sensor
-#' @param bands      Bands requested to be read
-#'
-#' @return          Data cube tile with SITS bands
-.sits_config_bands_reverse <- function(source, collection, bands) {
-
-    bands <- unique(bands)
-
-    # bands sits
-    bands_sits <- .sits_config_sits_bands(source, collection)
-    names(bands_sits) <- bands_sits
-
-    # bands source
-    bands_stac <- .sits_config_bands_names(source, collection)
-    bands_values <- names(bands_stac)
-    names(bands_values) <- unname(bands_stac)
-
-    convert_bands <- c(bands_values, bands_sits)
-
-    # are the bands specified as cloud provider bands or as sits bands?
-    assertthat::assert_that(
-        all(bands %in% names(convert_bands)),
-        msg = paste(".sits_config_bands_guess: required bands not",
-                    "available in", source))
-
-    convert_bands <- convert_bands[bands]
-    source_convert <- .sits_config_bands_source_guess(source,
-                                                      collection,
-                                                      names(convert_bands))
-
-    names(convert_bands) <- source_convert[names(convert_bands)]
-
-    return(convert_bands)
 }
 
 #' TODO: document
