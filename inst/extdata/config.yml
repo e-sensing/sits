@@ -86,7 +86,7 @@ sources:
                     EVI     :
                         <<: *bdc_mux_ndvi
                         band_name      : "EVI"
-                    B05     : &bdc_mux_b05
+                    B5      : &bdc_mux_b5
                         missing_value : -9999
                         minimum_value : 0
                         maximum_value : 10000
@@ -95,14 +95,14 @@ sources:
                         resampling    : "bilinear"
                         resolutions   : [20]
                         band_name     : "BAND5"
-                    B06     :
-                        <<: *bdc_mux_b05
+                    B6      :
+                        <<: *bdc_mux_b5
                         band_name     : "BAND6"
-                    B07     :
-                        <<: *bdc_mux_b05
+                    B7      :
+                        <<: *bdc_mux_b5
                         band_name     : "BAND7"
-                    B08     :
-                        <<: *bdc_mux_b05
+                    B8      :
+                        <<: *bdc_mux_b5
                         band_name     : "BAND8"
                     CLOUD   : &bdc_mux_cloud
                         bit_mask      : FALSE
