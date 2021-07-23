@@ -161,8 +161,8 @@
     item_prop <- items$features[[1]]$properties
 
     # get bands from sensor and application
-    bands_sensor <- .sits_config_bands(source = "DEAFRICA",
-                                       collection = collection)
+    bands_sensor <- .sits_config_bands_names(source = "DEAFRICA",
+                                             collection = collection)
 
     # get bands name from assets list name property
     bands_product <-
@@ -215,19 +215,24 @@
         # converting to upper bands
         bands <- toupper(bands)
 
-        # convert bands to those known by the cloud provider
-        bands_stac <- .sits_config_bands_stac_read(source = "DEAFRICA",
-                                                   collection = collection,
-                                                   bands = bands)
+        items <- .sits_stac_bands(items,
+                                  bands = bands,
+                                  source = "DEAFRICA",
+                                  collection = collection)
 
-        # converting to upper bands
-        assertthat::assert_that(
-            all(bands_stac %in% items$bands),
-            msg = paste(".sits_deafrica_bands: The supplied bands do not",
-                        "match the data cube bands.")
-        )
-
-        items$bands <- items$bands[items$bands %in% bands_stac]
+        # # convert bands to those known by the cloud provider
+        # bands_sits <- .sits_config_bands_guess(source = "DEAFRICA",
+        #                                        collection = collection,
+        #                                        bands = bands)
+        #
+        # # converting to upper bands
+        # assertthat::assert_that(
+        #     all(bands_sits %in% items$bands),
+        #     msg = paste(".sits_deafrica_bands: The supplied bands do not",
+        #                 "match the data cube bands.")
+        # )
+        #
+        # items$bands <- items$bands[items$bands %in% bands_sits]
     }
 
     return(items)
@@ -292,7 +297,18 @@
         crs        = item_prop[["proj:epsg"]],
         file_info  = file_info)
 
-    tile <- .sits_config_bands_stac_write(tile)
+
+    # TODO: create helper function
+    bands_sits <- .sits_config_collection_bands(source = tile$source,
+                                          collection = tile$collection)
+    if (!all(tile$bands[[1]] %in% bands_sits)) {
+        bands_sits <- .sits_config_bands_reverse(source = tile$source,
+                                                 collection = tile$collection,
+                                                 bands = tile$bands[[1]])
+
+        tile$bands[[1]] <- unname(bands_sits[tile$bands[[1]]])
+        tile$file_info[[1]]$band <- unname(bands_sits[tile$file_info[[1]]$band])
+    }
 
     return(tile)
 }

@@ -250,7 +250,7 @@
 #'
 sits_cube <- function(source, ...) {
 
-    spec_class <- .sits_config_cube_class(source)
+    spec_class <- .config_src_s3class(source)
     class(source) <- c(spec_class, class(source))
     # Dispatch
     UseMethod("sits_cube", source)
@@ -325,7 +325,7 @@ sits_cube.bdc_cube <- function(source = "BDC", ...,
         url <- .sits_config_stac(source)
     }
     # test if BDC is accessible
-    if (!(.sits_config_cube_access(url, "BDC")))
+    if (!(.sits_config_source_test(url, "BDC")))
         return(NULL)
 
     # precondition - is the collection name valid?
@@ -414,9 +414,9 @@ sits_cube.deafrica_cube <- function(source = "DEAFRICA", ...,
 
     # DEA runs on AWS
     # precondition - is AWS access available?
-    aws_access_ok <- .sits_aws_check_access(source)
-    if (!aws_access_ok)
-        return(NULL)
+    # aws_access_ok <- .sits_aws_check_access(source)
+    # if (!aws_access_ok)
+    #     return(NULL)
 
     # precondition - is the url correct?
     if (purrr::is_null(url)) {
@@ -424,8 +424,8 @@ sits_cube.deafrica_cube <- function(source = "DEAFRICA", ...,
     }
 
     # test if DEA is accessible
-    if (!(.sits_config_cube_access(url, "DEAFRICA")))
-        return(NULL)
+    # if (!(.sits_config_source_test(url, "DEAFRICA")))
+    #     return(NULL)
 
     # precondition - is the collection name valid?
     assertthat::assert_that(
@@ -440,44 +440,53 @@ sits_cube.deafrica_cube <- function(source = "DEAFRICA", ...,
                     "collection should be specified")
     )
 
-    # retrieve item information
-    items_info <- .sits_deafrica_items(
-        url = url,
-        collection = collection,
-        tiles = tiles,
-        roi = bbox,
-        start_date = start_date,
-        end_date  = end_date,
-        bands = bands,
-        ...
-    )
+    .source_cube(source = source,
+                 collection = collection,
+                 name = name,
+                 bands = bands,
+                 tiles = tiles,
+                 bbox = bbox,
+                 start_date = start_date,
+                 end_date = end_date, ...)
 
-    # creating a group of items per tile
-    items_group <- .sits_stac_group(
-        items_info,
-        fields = c("properties", "odc:region_code")
-    )
-
-    tiles <- purrr::map(items_group, function(items) {
-
-        # retrieve the information from STAC
-        stack <- .sits_stac_items_info(items, items$bands)
-
-        # add the information for each tile
-        cube_t <- .sits_deafrica_tile_cube(
-            name       = name,
-            items      = items,
-            collection = collection,
-            file_info  = stack
-        )
-        return(cube_t)
-    })
-
-    # join the tiles
-    cube <- dplyr::bind_rows(tiles)
-    class(cube) <- c("raster_cube", class(cube))
-
-    return(cube)
+    # # retrieve item information
+    # items_info <- .sits_deafrica_items(
+    #     url = url,
+    #     collection = collection,
+    #     tiles = tiles,
+    #     roi = bbox,
+    #     start_date = start_date,
+    #     end_date  = end_date,
+    #     bands = bands,
+    #     ...
+    # )
+    #
+    # # creating a group of items per tile
+    # items_group <- .sits_stac_group(
+    #     items_info,
+    #     fields = c("properties", "odc:region_code")
+    # )
+    #
+    # tiles <- purrr::map(items_group, function(items) {
+    #
+    #     # retrieve the information from STAC
+    #     stack <- .sits_stac_items_info(items, items$bands)
+    #
+    #     # add the information for each tile
+    #     cube_t <- .sits_deafrica_tile_cube(
+    #         name       = name,
+    #         items      = items,
+    #         collection = collection,
+    #         file_info  = stack
+    #     )
+    #     return(cube_t)
+    # })
+    #
+    # # join the tiles
+    # cube <- dplyr::bind_rows(tiles)
+    # class(cube) <- c("raster_cube", class(cube))
+    #
+    # return(cube)
 }
 
 #' @rdname sits_cube
@@ -524,7 +533,7 @@ sits_cube.aws_cube <- function(source = "AWS", ...,
     }
 
     # test if AWS STAC is accessible
-    if (!(.sits_config_cube_access(url, "AWS")))
+    if (!(.sits_config_source_test(url, "AWS")))
         return(NULL)
 
     # select bands by resolution
@@ -610,12 +619,11 @@ sits_cube.usgs_cube <- function(source = "USGS", ...,
         return(NULL)
 
     # precondition - is the url correct?
-    if (purrr::is_null(url)) {
+    if (purrr::is_null(url))
         url <- .sits_config_stac(source)
-    }
 
     # test if USGS STAC is accessible
-    if (!(.sits_config_cube_access(url, "USGS")))
+    if (!(.sits_config_source_test(url, "USGS")))
         return(NULL)
 
     # retrieve item information
@@ -791,12 +799,11 @@ sits_cube.probs_cube <- function(source = "PROBS", ...,
 sits_cube.satveg_cube <- function(source = "SATVEG", ...,
                                   collection = "terra") {
 
-
     # Retrieve the URL to test for SATVEG access
     url <- .sits_config_satveg_access()
 
     # test if SATVEG is accessible
-    if (!(.sits_config_cube_access(url, "SATVEG")))
+    if (!(.sits_config_source_test(url, "SATVEG")))
         return(NULL)
     # OK
     cube <- .sits_satveg_cube(collection)
