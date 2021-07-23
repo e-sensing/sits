@@ -15,8 +15,6 @@ package.}
 \item{source}{Data source}
 
 \item{collection}{a \code{character} with the collection to be searched.}
-
-\item{sensor}{a \code{character} with sensor name.}
 }
 \value{
 a \code{STACItemCollection} object representing the search

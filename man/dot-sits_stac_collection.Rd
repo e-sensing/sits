@@ -4,7 +4,7 @@
 \alias{.sits_stac_collection}
 \title{Get information from collection}
 \usage{
-.sits_stac_collection(url = NULL, collection = NULL, bands = NULL, ...)
+.sits_stac_collection(url, collection, bands = NULL, ...)
 }
 \arguments{
 \item{url}{a \code{character} representing a URL for the BDC catalog.}
