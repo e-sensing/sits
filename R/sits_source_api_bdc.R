@@ -1,0 +1,171 @@
+#' @keywords internal
+#' @export
+.source_item_get_date.bdc_cube <- function(source,
+                                           item, ...,
+                                           collection = NULL) {
+    item[[c("properties", "datetime")]]
+}
+
+#' @keywords internal
+#' @export
+.source_item_get_hrefs.bdc_cube <- function(source,
+                                            item, ...,
+                                            collection = NULL) {
+
+    unname(purrr::map_chr(item[["assets"]], `[[`, "href"))
+}
+
+#' @keywords internal
+#' @export
+.source_item_get_bands.bdc_cube <- function(source,
+                                            item, ...,
+                                            collection = NULL) {
+    names(item[["assets"]])
+}
+
+#' @keywords internal
+#' @export
+.source_item_get_resolutions.bdc_cube <- function(source,
+                                                  item, ...,
+                                                  collection = NULL) {
+    item[[c("properties", "eo:gsd")]]
+}
+
+#' @keywords internal
+#' @export
+.source_items_new.bdc_cube <- function(source,
+                                       collection,
+                                       name,
+                                       bands,
+                                       tiles,
+                                       bbox,
+                                       start_date,
+                                       end_date, ...) {
+
+    url <- .config_src_url(source = source)
+    roi <- list(bbox = NULL, intersects = NULL)
+
+    # obtain the datetime parameter for STAC like parameter
+    datetime <- .sits_stac_datetime(start_date, end_date)
+
+    # obtain the bounding box and intersects parameters
+    if (!is.null(bbox))
+        roi <- .sits_stac_roi(bbox)
+
+    # get the limit items to be returned in each page
+    limit_items <- .config_rstac_limit()
+
+    # creating an query object to be search
+    rstac_query <-  rstac::stac_search(q = rstac::stac(url),
+                                       collections = collection,
+                                       bbox        = roi$bbox,
+                                       intersects  = roi$intersects,
+                                       datetime    = datetime,
+                                       limit       = limit_items)
+
+    # if specified, a filter per tile is added to the query
+    if (!is.null(tiles))
+        rstac_query <- rstac::ext_query(q = rstac_query, "bdc:tile" %in% tiles)
+
+    # making the request
+    items_info <- rstac::post_request(q = rstac_query, ...)
+
+    # check if matched items
+    assertthat::assert_that(
+        rstac::items_matched(items_info) > 0,
+        msg = ".sits_stac_items: no items matched the query criteria."
+    )
+
+    # progress bar status
+    pgr_fetch  <- FALSE
+
+    # if more than 1000 items are found the progress bar is displayed
+    if (rstac::items_matched(items_info) > 1000)
+        pgr_fetch <- TRUE
+
+    # fetching all the metadata
+    items_info <- rstac::items_fetch(items = items_info, progress = pgr_fetch)
+
+    return(items_info)
+}
+
+#' @keywords internal
+#' @export
+.source_items_tiles_group.bdc_cube <- function(source,
+                                               items, ...,
+                                               collection = NULL) {
+
+    rstac::items_group(items, field = c("properties", "bdc:tiles"))
+}
+
+#' @keywords internal
+#' @export
+.source_items_get_sensor.bdc_cube <- function(source,
+                                              items, ...,
+                                              collection = NULL) {
+
+    items[["features"]][[1]][[c("properties", "instruments")]]
+}
+
+#' @keywords internal
+#' @export
+.source_items_get_satellite.bdc_cube <- function(source,
+                                                 items, ...,
+                                                 collection = NULL) {
+    items[["features"]][[1]][[c("properties", "platform")]]
+}
+
+#' @keywords internal
+#' @export
+.source_items_tile_get_crs.bdc_cube <- function(source,
+                                                tile_items, ...,
+                                                collection = NULL) {
+
+    # making request to collection endpoint to get crs info
+    url <- .config_src_url(source = source)
+    query_search <- rstac::collections(q = rstac::stac(url),
+                                       collection_id = collection)
+
+    col <- rstac::get_request(q = query_search)
+
+    return(col[["bdc:crs"]])
+}
+
+#' @keywords internal
+#' @export
+.source_items_tile_get_name.bdc_cube <- function(source,
+                                                 tile_items, ...,
+                                                 collection = NULL) {
+
+    tile_items[["features"]][[1]][[c("properties", "bdc:tiles")]]
+}
+
+#' @keywords internal
+#' @export
+.source_items_tile_get_bbox.bdc_cube <- function(source,
+                                                 tile_items, ...,
+                                                 collection = NULL) {
+    # get collection crs
+    crs <- .source_items_tile_get_crs(source = source,
+                                      tile_items = tile_items,
+                                      collection = collection)
+
+    bbox <- .sits_stac_get_bbox(tile_items, crs)
+
+    return(bbox)
+}
+
+#' @keywords internal
+#' @export
+.source_items_tile_get_size.bdc_cube <- function(source,
+                                                 tile_items, ...,
+                                                 collection = NULL) {
+
+    size <- tile_items[["features"]][[1]][["assets"]][[1]][["bdc:raster_size"]]
+
+    if (is.null(size))
+        size <- tile_items[["features"]][[1]][["assets"]][[1]][["raster_size"]]
+
+    names(size) <- c("nrows", "ncols")
+    return(unlist(size))
+}
