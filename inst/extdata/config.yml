@@ -72,29 +72,49 @@ sources:
                         resampling    : "ngb"
                         resolutions   : [64]
             CB4_64_16D_STK-1: *bdc_cb4
-            CB4_20_1M_STK-1 : &bdc_cb4_mux
+            CB4MUX_20-1     : &bdc_cb4_mux
                 bands       :
-                    NDVI    :
-                        <<: *bdc_awfi_ndvi
+                    NDVI    : &bdc_mux_ndvi
+                        missing_value : -9999
+                        minimum_value : -10000
+                        maximum_value : 10000
+                        scale_factor  : 0.0001
+                        offset_value  : 0
+                        resampling    : "bilinear"
                         resolutions   : [20]
+                        band_name     : "NDVI"
                     EVI     :
-                        <<: *bdc_awfi_ndvi
+                        <<: *bdc_mux_ndvi
+                        band_name      : "EVI"
+                    B05     : &bdc_mux_b05
+                        missing_value : -9999
+                        minimum_value : 0
+                        maximum_value : 10000
+                        scale_factor  : 0.0001
+                        offset_value  : 0
+                        resampling    : "bilinear"
                         resolutions   : [20]
-                    BAND13  : &bdc_awfi_b13
-                        <<: *bdc_awfi_b13
+                        band_name     : "BAND5"
+                    B06     :
+                        <<: *bdc_mux_b05
+                        band_name     : "BAND6"
+                    B07     :
+                        <<: *bdc_mux_b05
+                        band_name     : "BAND7"
+                    B08     :
+                        <<: *bdc_mux_b05
+                        band_name     : "BAND8"
+                    CLOUD   : &bdc_mux_cloud
+                        bit_mask      : FALSE
+                        band_name     : "MASK"
+                        values        :
+                            0         : "No Data"
+                            127       : "Clear Pixel"
+                            255       : "Cloud"
+                        interp_values : [0, 255]
+                        resampling    : "ngb"
                         resolutions   : [20]
-                    BAND14  :
-                        <<: *bdc_awfi_b13
-                        resolutions   : [20]
-                    BAND15  :
-                        <<: *bdc_awfi_b13
-                        resolutions   : [20]
-                    BAND16  :
-                        <<: *bdc_awfi_b13
-                        resolutions   : [20]
-                    CLOUD  :
-                        <<: *bdc_awfi_cloud
-                        resolutions   : [20]
+            CB4_20_1M_STK-1 : *bdc_cb4_mux
             LC8_30-1        : &bdc_lc8
                 bands       :
                     NDVI    : &bdc_oli_ndvi
