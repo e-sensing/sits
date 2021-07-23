@@ -82,11 +82,16 @@
         # extract the band names
         bands_files <- unique(file_info$band)
 
+        # create collection name
+        collection <- paste0(satellite, "/", sensor)
+
         # convert the names of the bands to those used by SITS
-        bands_sits <- .sits_config_bands_convert(satellite, sensor, bands_files)
+        bands_sits <- .sits_config_bands_guess(source = "LOCAL",
+                                               collection = collection,
+                                               bands = bands_files)
 
         # convert the band names to SITS bands
-        file_info <- dplyr::mutate(file_info, band = bands_sits[band])
+        file_info <- dplyr::mutate(file_info, band = unname(bands_sits[band]))
 
         # filter bands
         if (!purrr::is_null(bands)) {

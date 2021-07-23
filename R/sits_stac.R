@@ -8,24 +8,9 @@
 #' @param ...         other parameters to be passed for specific types.
 #'
 #' @return            a \code{STACCollection} object returned by rstac.
-.sits_stac_collection <- function(url         = NULL,
-                                  collection  = NULL,
-                                  bands       = NULL, ...) {
-
-    assertthat::assert_that(
-        !purrr::is_null(url),
-        msg = "sits_cube: for STAC_CUBE url must be provided"
-    )
-
-    assertthat::assert_that(
-        !purrr::is_null(collection),
-        msg = "sits_cube: for STAC_CUBE collections must be provided"
-    )
-
-    assertthat::assert_that(
-        !(length(collection) > 1),
-        msg = "sits_cube: STAC_CUBE only one collection should be specified"
-    )
+.sits_stac_collection <- function(url,
+                                  collection,
+                                  bands = NULL, ...) {
 
     # creating a rstac object and making the requisition
     collection_info <- rstac::stac(url) %>%
@@ -41,18 +26,18 @@
     # get default bands parameter
     if (purrr::is_null(bands)) {
 
-        bands <- .sits_config_bands(source = "BDC",
-                                    collection = collection)
+        bands <- .sits_config_bands_names(source = "BDC",
+                                          collection = collection)
     }
 
     # checks if the supplied bands match the product bands
     # converting to upper bands
     bands <- toupper(bands)
 
-    # convert bands to those known by the cloud provider
-    bands <- .sits_config_bands_stac_read(source     = "BDC",
-                                          collection = collection,
-                                          bands      = bands)
+    # convert bands to those known by provider
+    bands <- .sits_config_bands_guess(source     = "BDC",
+                                      collection = collection,
+                                      bands      = bands)
 
     # select subset bands
     collection_info$bands <-
@@ -150,39 +135,64 @@
 #' @param bands      a \code{character} vector with the bands name.
 #' @param source     Data source
 #' @param collection a \code{character} with the collection to be searched.
-#' @param sensor     a \code{character} with sensor name.
 #'
 #' @return           a \code{STACItemCollection} object representing the search
 #'                   by rstac.
 .sits_stac_bands <- function(items, bands, source, collection) {
 
-    # get bands from sensor
-    bands_sensor <- .sits_config_bands(source = source,
-                                       collection = collection)
+    if (is.null(bands))
+        bands <- .sits_config_collection_bands(source = source,
+                                               collection = collection)
+    # get bands from source
+    bands_source <- .sits_config_collection_bands_field(source = source,
+                                                        collection = collection,
+                                                        field = "band_name",
+                                                        cloud = TRUE)
 
     # get bands name from assets list name property
-    bands_product <- names(items$features[[1]]$assets)
+    bands_asset <- rstac::items_fields(items, "assets")
 
-    # selects the subset of bands supported by sits
-    bands_product <- bands_product[bands_product %in% bands_sensor]
+    # subset of supported bands
+    bands_asset <- bands_source[bands_source %in% bands_asset]
 
-    if (length(bands_product) == 0)
-        stop(paste("The bands contained in this product are not mapped",
-                   "in the SITS package, if you want to include them,",
-                   "please provide a configuration file."))
+    assertthat::assert_that(all(bands_source %in% bands_asset),
+                            msg = paste("The bands contained in this product",
+                                        "are not mapped in the SITS package,",
+                                        "if you want to include them please",
+                                        "provide it in configuration file."))
 
-    # store bands product in bands attribute
-    items$bands <- bands_product
 
-    # checks if the supplied bands match the product bands
-    if (!purrr::is_null(bands))
-        #items$bands <- items$bands[items$bands %in% bands]
-        items$bands <- .sits_config_bands_stac_read(source = source,
-                                                    collection = collection,
-                                                    bands = bands)
+    items$bands <- .sits_config_bands_reverse(source, collection, bands)
+
+    # TODO: filtrar os assets NA
+    items <- .sits_stac_bands_mutate(items = items,
+                                     reverse_bands = items$bands)
 
     return(items)
 }
+
+#' TODO: document
+.sits_stac_bands_select <- function(items, bands_source, bands_converter) {
+
+    assertthat::assert_that(
+        all(bands_source %in% rstac::items_fields(items, "assets")),
+        msg = paste("The bands contained in this product",
+                    "are not mapped in the SITS package,",
+                    "if you want to include them please",
+                    "provide it in configuration file."))
+
+
+    items$features <- purrr::map(items$features, function(item){
+
+        item$assets <- item$assets[bands_source]
+        names(item$assets) <- bands_converter[names(item$assets)]
+
+        item
+    })
+
+    items
+}
+
 #' @title Converts bands name to upper case
 #' @name .sits_stac_toupper
 #' @keywords internal
@@ -196,7 +206,8 @@
     collection_info$properties[["eo:bands"]] <-
         purrr::map(collection_info$properties[["eo:bands"]], function(x) {
             x$name <- toupper(x$name)
-            return(x) })
+            return(x)
+        })
 
     collection_info$bands <-
         purrr::map_chr(collection_info$properties[["eo:bands"]],
@@ -320,55 +331,23 @@
     return(datetime)
 }
 #' @title Format assets
-#' @name .sits_stac_items_info
+#' @name .sits_stac_to_fileinfo
 #' @keywords internal
 #'
 #' @param items a \code{STACItemCollection} object returned by rstac package.
-#' @param bands a \code{character} with the bands names to be filtered.
 #'
 #' @return      a \code{tibble} with date, band and path information, arranged
 #'  by the date.
-.sits_stac_items_info <- function(items, bands) {
+.sits_stac_to_fileinfo <- function(items) {
 
     assets_info <- items %>%
-        rstac::assets_list(assets_names = bands) %>%
+        rstac::assets_list() %>%
         tibble::as_tibble() %>%
-        dplyr::arrange(date) %>%
         dplyr::mutate(date = lubridate::as_date(as.character(date)))
 
     return(assets_info)
 }
-#' @title Get the metadata values from STAC.
-#' @name .sits_config_stac_values
-#' @keywords internal
-#'
-#' @param collection_info a \code{STACCollection} object returned by rstac.
-#' @param bands           a \code{character} bands names to be filtered.
-#'
-#' @return                a \code{list} with the information of scale factors,
-#'  missing, minimum, and maximum values.
-.sits_config_stac_values <- function(collection, bands) {
 
-    # filters by the index of the bands that correspond to the collection
-    index_bands <-
-        which(lapply(collection$properties$`eo:bands`,
-                     function(x) {
-                         x$name }) %in% bands
-        )
-
-    vect_values <- vector()
-    list_values <- list()
-
-    # creating a named list of the metadata values
-    purrr::map(c("min", "max", "nodata", "scale"), function(field) {
-        purrr::map(index_bands, function(index) {
-            vect_values[collection$properties$`eo:bands`[[index]]$name] <<-
-                as.numeric(collection$properties$`eo:bands`[[index]][[field]])
-        })
-        list_values[[field]] <<- vect_values
-    })
-    return(list_values)
-}
 #' @title Get the STAC information corresponding to a bbox extent
 #' @name .sits_stac_get_bbox
 #' @keywords internal
@@ -436,7 +415,16 @@
         crs        = collection_info[["bdc:crs"]],
         file_info  = file_info)
 
-    tile <- .sits_config_bands_stac_write(tile)
+    bands_sits <- .sits_config_collection_bands(source = tile$source,
+                                          collection = tile$collection)
+    if (!all(tile$bands[[1]] %in% bands_sits)) {
+        bands_sits <- .sits_config_bands_reverse(source = tile$source,
+                                                 collection = tile$collection,
+                                                 bands = tile$bands[[1]])
+
+        tile$bands[[1]] <- unname(bands_sits[tile$bands[[1]]])
+        tile$file_info[[1]]$band <- unname(bands_sits[tile$file_info[[1]]$band])
+    }
 
     return(tile)
 }

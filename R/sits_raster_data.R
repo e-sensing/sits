@@ -306,11 +306,8 @@
         cld_values <- .sits_cube_extract(cube, cld_band, xy)
 
         # get information about cloud bitmask
-        cld_mask <- .sits_config_cloud_bitmask(cube)
-
-        # get bitmask values
-        if (cld_mask)
-            cld_values <- .sits_bitmask_values(cld_values, cld_index)
+        if (.sits_config_cloud_bitmask(cube))
+            cld_values <- bitwAnd(cld_values, sum(2^cld_index))
     }
 
     # Retrieve values on a band by band basis
@@ -341,7 +338,10 @@
                 if (!purrr::is_null(cld_band)) {
                     cld_values <- unlist(cld_values[i, start_idx:end_idx],
                                          use.names = FALSE)
-                    values_ts[cld_values %in% cld_index] <- NA
+                    if (.sits_config_cloud_bitmask(cube))
+                        values_ts[cld_values > 0] <- NA
+                    else
+                        values_ts[cld_values %in% cld_index] <- NA
                 }
 
                 # adjust maximum and minimum values
