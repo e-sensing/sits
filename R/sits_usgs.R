@@ -246,7 +246,17 @@
         crs        = item_prop[["proj:epsg"]],
         file_info  = file_info)
 
-    tile <- .sits_config_bands_stac_write(tile)
+
+    bands_sits <- .sits_config_collection_bands(source = tile$source,
+                                          collection = tile$collection)
+    if (!all(tile$bands[[1]] %in% bands_sits)) {
+        bands_sits <- .sits_config_bands_reverse(source = tile$source,
+                                                 collection = tile$collection,
+                                                 bands = tile$bands[[1]])
+
+        tile$bands[[1]] <- unname(bands_sits[tile$bands[[1]]])
+        tile$file_info[[1]]$band <- unname(bands_sits[tile$file_info[[1]]$band])
+    }
 
     return(tile)
 }
