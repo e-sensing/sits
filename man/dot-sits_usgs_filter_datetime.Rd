@@ -5,17 +5,13 @@
 \alias{.usgs_filter_datetime}
 \title{Filter datetime in STAC items}
 \usage{
-.usgs_filter_datetime(items, start_date, end_date)
+.usgs_filter_datetime(items, datetime)
 }
 \arguments{
 \item{items}{a \code{STACItemCollection} object returned by rstac
 package.}
 
-\item{start_date}{a \code{character} with the initial date to search in
-collection.}
-
-\item{end_date}{a \code{character} with the final date to searched in
-collection.}
+\item{datetime}{a \code{character} ...}
 }
 \value{
 a \code{STACItemCollection} object with datetime filtered.

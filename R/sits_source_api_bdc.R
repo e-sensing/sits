@@ -12,7 +12,12 @@
                                             item, ...,
                                             collection = NULL) {
 
-    unname(purrr::map_chr(item[["assets"]], `[[`, "href"))
+    access_key <- Sys.getenv("BDC_ACCESS_KEY")
+
+    href <- paste0(unname(purrr::map_chr(item[["assets"]], `[[`, "href")),
+           "?access_token=", access_key)
+
+    return(href)
 }
 
 #' @keywords internal
@@ -34,54 +39,26 @@
 #' @keywords internal
 #' @export
 .source_items_new.bdc_cube <- function(source,
-                                       collection,
-                                       name,
-                                       bands,
-                                       tiles,
-                                       bbox,
-                                       start_date,
-                                       end_date, ...) {
-
-    url <- .config_src_url(source = source)
-    roi <- list(bbox = NULL, intersects = NULL)
-
-    # obtain the datetime parameter for STAC like parameter
-    datetime <- .sits_stac_datetime(start_date, end_date)
-
-    # obtain the bounding box and intersects parameters
-    if (!is.null(bbox))
-        roi <- .sits_stac_roi(bbox)
-
-    # get the limit items to be returned in each page
-    limit_items <- .config_rstac_limit()
-
-    # creating an query object to be search
-    rstac_query <-  rstac::stac_search(q = rstac::stac(url),
-                                       collections = collection,
-                                       bbox        = roi$bbox,
-                                       intersects  = roi$intersects,
-                                       datetime    = datetime,
-                                       limit       = limit_items)
+                                       collection, ...,
+                                       stac_query,
+                                       tiles = NULL) {
 
     # if specified, a filter per tile is added to the query
     if (!is.null(tiles))
-        rstac_query <- rstac::ext_query(q = rstac_query, "bdc:tile" %in% tiles)
+        stac_query <- rstac::ext_query(q = stac_query, "bdc:tile" %in% tiles)
 
     # making the request
-    items_info <- rstac::post_request(q = rstac_query, ...)
+    items_info <- rstac::post_request(q = stac_query, ...)
 
     # check if matched items
     assertthat::assert_that(
         rstac::items_matched(items_info) > 0,
-        msg = ".sits_stac_items: no items matched the query criteria."
+        msg = ".source_items_new.bdc_cube: no items matched the query criteria."
     )
 
-    # progress bar status
-    pgr_fetch  <- FALSE
-
-    # if more than 1000 items are found the progress bar is displayed
-    if (rstac::items_matched(items_info) > 1000)
-        pgr_fetch <- TRUE
+    # if more than 2 times items pagination are found the progress bar
+    # is displayed
+    pgr_fetch <- rstac::items_matched(items_info) > 2 * .config_rstac_limit()
 
     # fetching all the metadata
     items_info <- rstac::items_fetch(items = items_info, progress = pgr_fetch)
@@ -112,6 +89,7 @@
 .source_items_get_satellite.bdc_cube <- function(source,
                                                  items, ...,
                                                  collection = NULL) {
+
     items[["features"]][[1]][[c("properties", "platform")]]
 }
 
@@ -150,6 +128,7 @@
                                       tile_items = tile_items,
                                       collection = collection)
 
+    # get bbox by geometry attributei in tile_items
     bbox <- .sits_stac_get_bbox(tile_items, crs)
 
     return(bbox)

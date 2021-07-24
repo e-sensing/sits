@@ -1,3 +1,43 @@
+#' @title ...
+#' @name .aws_bands
+#' @keywords internal
+#'
+#' @description TODO: document
+#'
+#' @param source Name of the STAC provider
+#' @param collection ...
+#' @param s2_resolution ...
+#'
+#' @return ...
+.aws_bands <- function(source, collection, s2_resolution) {
+
+    .config_bands(
+        source = source,
+        collection = collection,
+        fn_filter = function(x) s2_resolution %in% x$resolution
+    )
+}
+
+#' @title ...
+#' @name .aws_bands_band_name
+#' @keywords internal
+#'
+#' @description TODO: document
+#'
+#' @param source Name of the STAC provider
+#' @param collection ...
+#' @param s2_resolution ...
+#'
+#' @return ...
+.aws_bands_band_name <- function(source, collection, s2_resolution) {
+
+    .config_bands_band_name(
+        source = source,
+        collection = collection,
+        fn_filter = function(x) s2_resolution %in% x$resolution
+    )
+}
+
 #' @keywords internal
 #' @export
 .source_item_get_date.aws_cube <- function(source,
@@ -10,11 +50,12 @@
 #' @export
 .source_item_get_hrefs.aws_cube <- function(source,
                                             item, ...,
-                                            collection = NULL) {
+                                            collection = NULL,
+                                            s2_resolution) {
 
     # Adding the spatial resolution in the band URL
     href_res <- gsub(pattern = "R[0-9]{2}m",
-                     replacement = paste0("R", ..., "m"),
+                     replacement = paste0("R", s2_resolution, "m"),
                      x = unname(purrr::map_chr(item[["assets"]], `[[`, "href")))
 
 
@@ -40,48 +81,23 @@
 #' @keywords internal
 #' @export
 .source_items_new.aws_cube <- function(source,
-                                       collection,
-                                       name,
-                                       bands,
-                                       tiles,
-                                       bbox,
-                                       start_date,
-                                       end_date, ...) {
-
-    url <- .config_src_url(source = source)
-    roi <- list(bbox = NULL, intersects = NULL)
-
-    # obtain the bounding box and intersects parameters
-    if (!is.null(bbox))
-        roi <- .sits_stac_roi(bbox)
-
-    # obtain the datetime parameter for STAC like parameter
-    datetime <- .sits_stac_datetime(start_date, end_date)
-
-    # get the limit items to be returned in each page
-    limit_items <- .config_rstac_limit()
-
-    # creating an query object to be search
-    rstac_query <-  rstac::stac_search(q = rstac::stac(url),
-                                       collections = collection,
-                                       bbox        = roi$bbox,
-                                       intersects  = roi$intersects,
-                                       datetime    = datetime,
-                                       limit       = limit_items)
+                                       collection, ...,
+                                       stac_query,
+                                       tiles = NULL) {
 
     # if specified, a filter per tile is added to the query
     if (!is.null(tiles)) {
         sep_tile <- .sits_s2_aws_tiles(tiles)
 
-        rstac_query <-
-            rstac::ext_query(q = rstac_query,
+        stac_query <-
+            rstac::ext_query(q = stac_query,
                              "sentinel:utm_zone" %in% sep_tile$utm_zone,
                              "sentinel:latitude_band" %in% sep_tile$lat_band,
                              "sentinel:grid_square" %in% sep_tile$grid_square)
     }
 
     # making the request
-    items_info <- rstac::post_request(q = rstac_query, ...)
+    items_info <- rstac::post_request(q = stac_query, ...)
 
     # check if matched items
     assertthat::assert_that(
@@ -89,25 +105,12 @@
         msg = ".source_items_new.aws_cube: no items matched the query criteria."
     )
 
-    # progress bar status
-    pgr_fetch  <- FALSE
-
-    # if more than 1000 items are found the progress bar is displayed
-    if (rstac::items_matched(items_info) > 1000)
-        pgr_fetch <- TRUE
+    # if more than 2 times items pagination are found the progress bar
+    # is displayed
+    pgr_fetch <- rstac::items_matched(items_info) > 2 * .config_rstac_limit()
 
     # fetching all the metadata
     items_info <- rstac::items_fetch(items = items_info, progress = pgr_fetch)
-
-    # store tile info in items object
-    items_info$features <- purrr::map(items_info$features, function(features) {
-        features$properties$tile <- paste0(
-            features$properties[["sentinel:utm_zone"]],
-            features$properties[["sentinel:latitude_band"]],
-            features$properties[["sentinel:grid_square"]])
-
-        features
-    })
 
     return(items_info)
 }
@@ -119,9 +122,14 @@
                                                 items,
                                                 bands, ...,
                                                 s2_resolution) {
+    # get sits bands by resolution
+    bands_sits <- .config_bands(
+        source = source,
+        collection = collection,
+        fn_filter = function(x) s2_resolution %in% x$resolution
+    )
 
-    bands_sits <- .config_bands(source = source, collection = collection)
-
+    # convert sits bands to source bands
     bands_converter <- .source_bands_to_source(source, collection, bands_sits)
 
     names(bands_converter) <- bands_sits
@@ -140,6 +148,16 @@
 .source_items_tiles_group.aws_cube <- function(source,
                                                items, ...,
                                                collection = NULL) {
+
+    # store tile info in items object
+    items$features <- purrr::map(items$features, function(feature) {
+        feature$properties$tile <- paste0(
+            feature$properties[["sentinel:utm_zone"]],
+            feature$properties[["sentinel:latitude_band"]],
+            feature$properties[["sentinel:grid_square"]])
+
+        feature
+    })
 
     rstac::items_group(items, field = c("properties", "tile"))
 }

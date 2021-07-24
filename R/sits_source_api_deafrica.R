@@ -67,44 +67,16 @@
 #' @keywords internal
 #' @export
 .source_items_new.deafrica_cube <- function(source,
-                                            collection,
-                                            name,
-                                            bands,
-                                            tiles,
-                                            bbox,
-                                            start_date,
-                                            end_date, ...) {
-
-    url <- .config_src_url(source = source)
-    roi <- list(bbox = NULL, intersects = NULL)
-
-    # obtain the datetime parameter for STAC like parameter
-    datetime <- .sits_stac_datetime(start_date, end_date)
-
-    # obtain the bounding box and intersects parameters
-    if (!is.null(bbox))
-        roi <- .sits_stac_roi(bbox)
-
-    # get the limit items to be returned in each page
-    limit_items <- .config_rstac_limit()
-
-    # creating a rstac object
-    rstac_query <- rstac::stac_search(q = rstac::stac(url),
-                                      collections = collection,
-                                      bbox        = roi$bbox,
-                                      intersects  = roi$intersects,
-                                      datetime    = datetime,
-                                      limit       = limit_items)
+                                            collection, ...,
+                                            stac_query,
+                                            tiles = NULL) {
 
     # making the request
     items_info <- rstac::post_request(q = rstac_query, ...)
 
-    # progress bar status
-    pgr_fetch  <- FALSE
-
-    # if more than 1000 items are found the progress bar is displayed
-    if (rstac::items_matched(items_info) > 1000)
-        pgr_fetch <- TRUE
+    # if more than 2 times items pagination are found the progress bar
+    # is displayed
+    pgr_fetch <- rstac::items_matched(items_info) > 2 * .config_rstac_limit()
 
     # fetching all the metadata and updating to upper case instruments
     items_info <- rstac::items_fetch(items = items_info, progress = pgr_fetch)

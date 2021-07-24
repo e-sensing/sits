@@ -20,7 +20,6 @@ sits_cube(source, ...)
   source = "BDC",
   ...,
   name = "bdc_cube",
-  url = NULL,
   collection,
   bands = NULL,
   tiles = NULL,

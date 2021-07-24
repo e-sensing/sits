@@ -1,3 +1,19 @@
+#' @title ...
+#' @name .source_access_test
+#' @keywords internal
+#'
+#' @description ...
+#'
+#' @param source     Name of the provider
+#'
+#' @return   ...
+.source_access_test <- function(source, collection, ...) {
+
+    s <- .source_new(source = source)
+
+    UseMethod(".source_access_test", s)
+}
+
 #' @title Convert bands names from cube to SITS
 #' @name .source_bands_to_sits
 #' @keywords internal
@@ -143,23 +159,10 @@ NULL
 #'
 #' @param source     Name of the STAC provider
 #' @param collection ...
-#' @param name ...
-#' @param bands ...
-#' @param tiles ...
-#' @param bbox ...
-#' @param start_date ...
-#' @param end_date ...
 #' @param ... ...
 #'
 #' @return ...
-.source_items_new <- function(source,
-                              collection,
-                              name,
-                              bands,
-                              tiles,
-                              bbox,
-                              start_date,
-                              end_date, ...) {
+.source_items_new <- function(source, collection, ...) {
 
     s <- .source_new(source)
 
