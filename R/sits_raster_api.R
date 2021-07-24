@@ -6,7 +6,7 @@
 #' @return package representation class
 .sits_raster_api_check_package <- function() {
 
-    pkg_class <- .sits_config_raster_package()
+    pkg_class <- .config_raster_pkg()
     class(pkg_class) <- pkg_class
 
     UseMethod(".sits_raster_api_check_package", pkg_class)

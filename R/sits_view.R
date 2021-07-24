@@ -157,7 +157,7 @@ sits_view.classified_image <- function(x,...,
 
     # if colors are not specified, get them from the configuration file
     if (purrr::is_null(legend)) {
-        legend <- .sits_config_colors(labels)
+        legend <- .config_palette_colors(labels)
         names(legend) <- labels
     }
     else {

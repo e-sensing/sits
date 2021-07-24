@@ -40,7 +40,7 @@
     }
 
     # get the limit items to be returned in each page
-    limit_items <- .sits_config_rstac_limit()
+    limit_items <- .config_rstac_limit()
 
     # creating a rstac object
     rstac_query <- rstac::stac(url) %>%
@@ -161,7 +161,7 @@
     item_prop <- items$features[[1]]$properties
 
     # get bands from sensor and application
-    bands_sensor <- .sits_config_bands_names(source = "DEAFRICA",
+    bands_sensor <- .config_bands_band_name(source = "DEAFRICA",
                                              collection = collection)
 
     # get bands name from assets list name property

@@ -33,7 +33,7 @@
     }
 
     # get the limit items to be returned in each page
-    limit_items <- .sits_config_rstac_limit()
+    limit_items <- .config_rstac_limit()
 
     # creating a rstac object
     rstac_query <- rstac::stac(url, force_version = "0.9.0") %>%

@@ -67,7 +67,7 @@ sits_config_info <- function() {
     yml_file <- system.file("extdata", "config.yml", package = "sits")
 
     message(paste0("Using configuration file: ", yml_file))
-    message(paste0("Using raster package: ", .sits_config_raster_package()))
+    message(paste0("Using raster package: ", .config_raster_pkg()))
 
     # try to find a valid user configuration file
     user_yml_file <- Sys.getenv("SITS_USER_CONFIG_FILE")
@@ -151,47 +151,6 @@ sits_config_show <- function() {
     return(sits_env$config$sources[[source]][["AWS_REQUEST_PAYER"]])
 }
 
-#' @title Directory to read the DEAFRICA STAC catalogue
-#' @name .sits_config_stac
-#' @keywords internal
-#'
-#' @return directory where DEAFRICA is accessible on the web
-.sits_config_stac <- function(source) {
-    return(sits_env$config$sources[[source]][["url"]])
-}
-
-#' @title Retrieve the bands from source cubes
-#' @name .sits_config_bands_names
-#' @param sensor      Type of sensor of cube
-#' @param collection  ...
-#' @keywords internal
-#' @description Retrieve the bands of an associated source.
-#'
-#' @return         Names of bands available for sensor in data source
-.sits_config_bands_names <- function(source, collection) {
-
-    col <- sits_env$config$sources[[source]]$collections[[collection]]
-    cloud_band <- col$cloud_band$band_name
-    names(cloud_band) <- col$cloud_band$sits_name
-
-    return(c(purrr::map_chr(col$bands, `[[`, "band_name"),
-             cloud_band))
-}
-
-#' @title Retrieve the bands from source cubes
-#' @name .sits_config_sits_bands
-#' @param sensor      Type of sensor of cube
-#' @param collection  ...
-#' @keywords internal
-#' @description Retrieve the bands of an associated source.
-#'
-#' @return         Names of bands available for sensor in data source
-.sits_config_sits_bands <- function(source, collection) {
-
-    col <- sits_env$config$sources[[source]]$collections[[collection]]
-    return(c(names(col$bands), col$cloud_band$sits_name))
-}
-
 #' @title Convert bands names from SITS to cube
 #' @name .sits_config_bands_guess
 #' @keywords internal
@@ -215,34 +174,11 @@ sits_config_show <- function() {
     names(bands_sits) <- bands_sits
 
     # bands source
-    bands_stac <- .sits_config_bands_names(source, collection)
+    bands_stac <- .config_bands_band_name(source, collection)
     bands_values <- names(bands_stac)
     names(bands_values) <- unname(bands_stac)
 
     convert_bands <- c(bands_values, bands_sits)
-
-    # are the bands specified as cloud provider bands or as sits bands?
-    assertthat::assert_that(
-        all(bands %in% names(convert_bands)),
-        msg = paste(".sits_config_bands_guess: required bands not",
-                    "available in", source))
-
-    return(convert_bands[bands])
-}
-
-#' TODO: document
-.sits_config_bands_source_guess <- function(source, collection, bands) {
-
-    bands <- unique(bands)
-
-    # bands from sits to source
-    bands_sits_source <- .sits_config_bands_names(source, collection)
-
-    # bands from source to source
-    bands_source <- bands_sits_source
-    names(bands_source) <- unname(bands_source)
-
-    convert_bands <- c(bands_sits_source, bands_source)
 
     # are the bands specified as cloud provider bands or as sits bands?
     assertthat::assert_that(
@@ -293,28 +229,6 @@ sits_config_show <- function() {
 }
 
 #' @title Get the name of the band used for cloud information
-#' @name .sits_config_cloud_band
-#' @keywords internal
-#' @param cube          data cube.
-#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
-#'
-#' @return vector with bands available in AWS for a given resolution
-.sits_config_cloud_band <- function(cube) {
-
-    source <- cube$source[[1]]
-    col <- cube$collection[[1]]
-
-    cloud_band <-
-        sits_env$config$sources[[source]]$collections[[col]]$cloud_band$band_name
-
-    assertthat::assert_that(
-        !purrr::is_null(cloud_band),
-        msg = ".sits_config_cloud_band: cloud band information not available"
-    )
-    return(cloud_band)
-}
-
-#' @title Get the name of the band used for cloud information
 #' @name .sits_config_cloud_values
 #' @keywords internal
 #' @param cube          data cube
@@ -359,36 +273,6 @@ sits_config_show <- function() {
                     "is not available")
     )
     return(cloud_bitmask)
-}
-
-#' @title Retrieve the color associated to a class in the configuration file
-#' @name sits_config_color
-#' @keywords internal
-#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
-#' @description Retrieve the color associated a class label.
-#' @param label  A class label.
-.sits_config_color <- function(label) {
-    rgb <- as.character(sits_env$config$colors[[label]])
-    if (!(length(rgb) > 0)) {
-        rgb <- "#737373"
-    }
-
-    return(rgb)
-}
-
-#' @title Retrieve the colors associated to classes
-#' @name sits_config_colors
-#' @keywords internal
-#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
-#' @description Retrieve the color associated a class label.
-#' @param labels  The class labels.
-#' @return list of colors.
-.sits_config_colors <- function(labels) {
-    colors <- purrr::map(labels, function(l) {
-        color <- .sits_config_color(l)
-        return(color)
-    })
-    return(unlist(colors))
 }
 
 #' @title Retrieve the class associated to data cubes known to SITS
@@ -480,7 +364,7 @@ sits_config_show <- function() {
 #' @return resolution information
 .sits_config_bands_res <- function(source, collection, bands) {
 
-    bands_collection <- .sits_config_bands_names(source, collection)
+    bands_collection <- .config_bands_band_name(source, collection)
     col <- sits_env$config$sources[[source]]$collections[[collection]]
 
     assertthat::assert_that(
@@ -506,177 +390,6 @@ sits_config_show <- function() {
     return(res)
 }
 
-#' @title Returns the file extensions known to SITS
-#' @name .sits_config_img_file_ext
-#' @keywords internal
-#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
-#'
-#' @return vector of image file extensions known to SITS
-#'
-.sits_config_img_file_ext <- function() {
-    return(sits_env$config[["img_file_extensions"]])
-}
-
-#' @title Retrieve the maximum values for a given band
-#' @name .sits_config_maximum_values
-#' @keywords internal
-#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
-#'
-#' @param cube Name of the sensor
-#' @param bands Vector of bands.
-#' @return The maximum values.
-.sits_config_maximum_values <- function(cube, bands) {
-
-    # get source and collection values from cube
-    source <- cube$source[[1]]
-    colllection <- cube$collection[[1]]
-
-    col <- sits_env$config$sources[[source]]$collections[[colllection]]
-
-    # create a string to query for the maximum values
-    maximum_values <- vector()
-    bands %>%
-        purrr::map(function(b) {
-            maximum_values[b] <<-
-                as.numeric(col$bands[[b]][["maximum_value"]])
-        })
-
-    # post-condition
-    assertthat::assert_that(
-        !purrr::is_null(maximum_values),
-        msg = paste0(
-            "Missing maximum values for ",
-            cube$sensor,
-            " edit configuration file"
-        )
-    )
-
-    names(maximum_values) <- bands
-    return(maximum_values)
-}
-
-#' @title Retrieve the estimated value of R memory bloat
-#' @name .sits_config_memory_bloat
-#' @keywords internal
-#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
-#' @description Retrieve the expected memory bloat associated to R.
-.sits_config_memory_bloat <- function() {
-    return(sits_env$config$R_memory_bloat)
-}
-
-#' @title Retrieve the minimum values for a given band
-#' @name .sits_config_minimum_values
-#' @keywords internal
-#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
-#'
-#' @param cube Name of the sensor
-#' @param bands Bands provided by the sensor
-#' @return The minimum values.
-.sits_config_minimum_values <- function(cube, bands) {
-
-    # get source and collection values from cube
-    source <- cube$source[[1]]
-    collection <- cube$collection[[1]]
-
-    col <- sits_env$config$sources[[source]]$collections[[collection]]
-
-    # create a string to query for  values
-    min_val <- vector()
-    bands %>%
-        purrr::map(function(b) {
-            min_val[b] <<-
-                as.numeric(col$bands[[b]][["minimum_value"]])
-        })
-
-    # post-condition
-    assertthat::assert_that(
-        !purrr::is_null(min_val),
-        msg = paste0(
-            "No minimum values for ", cube$sensor,
-            " edit configuration files"
-        )
-    )
-
-    names(min_val) <- bands
-    return(min_val)
-}
-
-#' @title Retrieve the missing values for bands of a sensor
-#' @name .sits_config_missing_values
-#' @keywords internal
-#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
-#'
-#' @param cube Name of the sensor
-#' @param bands Vector of bands.
-#' @return The missing values.
-.sits_config_missing_values <- function(cube, bands) {
-
-    # get source and collection values from cube
-    source <- cube$source[[1]]
-    collection <- cube$collection[[1]]
-
-    col <- sits_env$config$sources[[source]]$collections[[collection]]
-
-    # create a string to query for the missing values
-    mis_val <- vector()
-    bands %>%
-        purrr::map(function(b) {
-            mis_val[b] <<-
-                as.numeric(col$bands[[b]][["missing_value"]])
-        })
-    # post-condition
-    assertthat::assert_that(
-        !purrr::is_null(mis_val),
-        msg = paste0(
-            "No missing values for sensor ",
-            cube$sensor,
-            " edit configuration file"
-        )
-    )
-
-    names(mis_val) <- bands
-    return(mis_val)
-}
-
-#' @title Retrieve the resmapling method for bands of a sensor
-#' @name .sits_config_resampling
-#' @keywords internal
-#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
-#'
-#' @param sensor Name of the sensor
-#' @param bands Vector of bands.
-#' @return The resampling methods.
-.sits_config_resampling <- function(cube, bands) {
-
-    # get source and collection values from cube
-    source <- cube$source[[1]]
-    collection <- cube$collection[[1]]
-
-    col <- sits_env$config$sources[[source]]$collections[[collection]]
-
-    # TODO: check with Rolf
-    resampling_bands <- purrr::map_chr(bands, function(b){
-        if (!is.null(col$bands[[b]]$resampling))
-            return(b)
-        return(NULL)
-    })
-
-    # pre-condition
-    assertthat::assert_that(
-        all(!is.null(resampling_bands)),
-        msg = paste(".sits_config_resampling: some bands not found.",
-                    "Edit configuration file.")
-    )
-
-    resampling_values <- purrr::map_chr(bands, function(b){
-        col$bands[[b]]$resampling
-    })
-
-    names(resampling_values) <- resampling_bands
-
-    return(resampling_values)
-}
-
 #' @title Retrieve the scale factor for a probs cube
 #' @name .sits_config_probs_scale_factor
 #' @keywords internal
@@ -684,40 +397,6 @@ sits_config_show <- function() {
 .sits_config_probs_scale_factor  <- function() {
     return(sits_env$config$sources[["PROBS"]][["scale_factor"]])
 }
-
-#' @title Retrieve the missing value for a probs cube
-#' @name .sits_config_probs_missing_value
-#' @keywords internal
-#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
-.sits_config_probs_missing_value  <- function() {
-    return(sits_env$config[["PROBS"]][["missing_value"]])
-}
-
-#' @title Retrieve the minimum value for a probs cube
-#' @name .sits_config_probs_minimum_value
-#' @keywords internal
-#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
-.sits_config_probs_minimum_value  <- function() {
-    return(sits_env$config[["PROBS"]][["minimum_value"]])
-}
-
-#' @title Retrieve the maximum value for a probs cube
-#' @name .sits_config_probs_maximum_value
-#' @keywords internal
-#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
-.sits_config_probs_maximum_value  <- function() {
-    return(sits_env$config[["PROBS"]][["maximum_value"]])
-}
-
-#' @title Retrieve the estimated value of R memory bloat
-#' @name .sits_config_processing_bloat
-#' @keywords internal
-#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
-#' @description Retrieve the expected memory bloat associated to R.
-.sits_config_processing_bloat <- function() {
-    return(as.numeric(sits_env$config$R_processing_bloat))
-}
-
 
 #' @title Retrieve the pixel spatial resolution for a data cube
 #' @name .sits_config_resolution
@@ -753,15 +432,6 @@ sits_config_show <- function() {
     )
 
     return(res)
-}
-
-#' @title Get pagination limit
-#' @name .sits_config_rstac_limit
-#' @keywords internal
-#'
-#' @return number of items to be returned in each page
-.sits_config_rstac_limit <- function() {
-    return(sits_env$config[["rstac_pagination_limit"]])
 }
 
 #' @title Get the URL to be used to test for SATVEG access
@@ -852,15 +522,6 @@ sits_config_show <- function() {
     return(size)
 }
 
-#' @title Get the URL to be used for SATVEG access
-#' @name .sits_config_satveg_url
-#' @keywords internal
-#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
-#'
-#' @return URL to test SATVEG access
-.sits_config_satveg_url <- function() {
-    return(sits_env$config$sources[["SATVEG"]]$url)
-}
 #' @title Tests is satellite and sensor are known to SITS
 #' @name .sits_config_satellite_sensor
 #' @keywords internal
@@ -900,7 +561,7 @@ sits_config_show <- function() {
 .sits_config_s2_bands <- function(source, collection, bands, resolution) {
 
     if (is.null(bands))
-        bands <- .sits_config_bands_names(source = source,
+        bands <- .config_bands_band_name(source = source,
                                           collection = collection)
 
     col <- sits_env$config$sources[[source]]$collections[[collection]]
@@ -973,30 +634,3 @@ sits_config_show <- function() {
     return(scale_f)
 }
 
-#' @title Raster package to be used
-#' @name .sits_config_raster_package
-#' @keywords internal
-#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
-#'
-#' @return name of the raster package
-.sits_config_raster_package <- function() {
-
-    # read config value
-    pkg_name <- sits_env$config[["R_raster_pkg"]]
-
-    # default raster package
-    if (purrr::is_null(pkg_name)) pkg_name <- "raster"
-
-    return(pkg_name)
-}
-#' @title GDAL GTiff creation options
-#' @name .sits_config_gtiff_default_options
-#' @keywords internal
-#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
-#'
-#' @return character vector with GDAL creation options
-.sits_config_gtiff_default_options <- function() {
-
-    # return
-    return(sits_env$config[["GTiff_default_options"]])
-}

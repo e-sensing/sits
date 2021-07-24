@@ -43,7 +43,7 @@
     x_size <- cube$ncols
     y_size <- cube$nrows
     n_layers <- length(cube$labels[[1]])
-    bloat_mem <- .sits_config_memory_bloat()
+    bloat_mem <- .config_memory_bloat()
     n_bytes <- 8
 
     # total memory needed to do all work in GB
@@ -183,7 +183,7 @@
             file = filename,
             format = "GTiff",
             data_type = .sits_raster_api_data_type("FLT4S"),
-            gdal_options = .sits_config_gtiff_default_options(),
+            gdal_options = .config_gtiff_default_options(),
             overwrite = TRUE
         )
 

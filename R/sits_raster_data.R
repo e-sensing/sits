@@ -75,7 +75,7 @@
     file_info <- cube$file_info[[1]]
 
     # does the cube have a cloud band?
-    cld_band <- .sits_config_cloud_band(cube)
+    cld_band <- .config_cloud()
     if (cld_band %in% sits_bands(cube)) {
 
         cld_index <- .sits_config_cloud_values(cube)
@@ -104,9 +104,9 @@
                                               block = extent)
 
         # get the missing values, minimum values and scale factors
-        missing_value <- .sits_config_missing_values(cube, band_cube)
-        minimum_value <- .sits_config_minimum_values(cube, band_cube)
-        maximum_value <- .sits_config_maximum_values(cube, band_cube)
+        missing_value <- .cube_bands_missing_value(cube, bands = band_cube)
+        minimum_value <- .cube_bands_minimum_value(cube, bands = band_cube)
+        maximum_value <- .cube_bands_maximum_value(cube, bands = band_cube)
 
         # correct NA, minimum, maximum, and missing values
         values[values < minimum_value] <- NA
@@ -133,7 +133,7 @@
         }
 
         # scale the data set
-        scale_factor <- .sits_config_scale_factors(cube, band_cube)
+        scale_factor <- .cube_bands_scale_value(cube, bands = band_cube)
         values <- scale_factor * values
 
         # filter the data
@@ -225,10 +225,10 @@
     )
 
     # get the scale factors, max, min and missing values
-    missing_values <- .sits_config_missing_values(cube, bands)
-    minimum_values <- .sits_config_minimum_values(cube, bands)
-    maximum_values <- .sits_config_maximum_values(cube, bands)
-    scale_factors <- .sits_config_scale_factors(cube, bands)
+    missing_values <- .cube_bands_missing_value(cube, bands = bands)
+    minimum_values <- .cube_bands_minimum_value(cube, bands = bands)
+    maximum_values <- .cube_bands_maximum_value(cube, bands = bands)
+    scale_factors <- .cube_bands_scale_value(cube, bands = bands)
 
     # get the timeline
     timeline <- sits_timeline(cube)

@@ -9,21 +9,43 @@ rstac_pagination_limit  : 1000
 R_raster_pkg            : "raster"
 
 # GDAL GTiff default creation options
-gtiff_default_options   : ["COMPRESS=LZW", "BIGTIFF=YES"]
+GTiff_default_options   : ["COMPRESS=LZW", "BIGTIFF=YES"]
 
 sources:
     CLASSIFIED              :
         s3_class            : ["classified_image"]
-        scale_factor        : 1
-        minimum_value       : 1
-        maximum_value       : 1000
-        missing_value       : -9999
+        collections         :
+            CLASSIFIED      :
+                bands       :
+                    CLASS   :
+                        missing_value : 255
+                        minimum_value : 1
+                        maximum_value : 254
+                        scale_factor  : 1
+                        offset_value  : 0
+                        resampling    : "ngb"
+                        band_name     : "CLASS"
     PROBS                   :
         s3_class            : ["probs_cube"]
-        scale_factor        : 0.0001
-        minimum_value       : 0
-        maximum_value       : 10000
-        missing_value       : -9999
+        collections         :
+            CLASSIFIED      :
+                bands       :
+                    PROBS   :
+                        missing_value : -9999
+                        minimum_value : 0
+                        maximum_value : 10000
+                        scale_factor  : 0.0001
+                        offset_value  : 0
+                        resampling    : "bilinear"
+                        band_name     : "PROBS"
+                    NOBS    :
+                        missing_value : 255
+                        minimum_value : 0
+                        maximum_value : 254
+                        scale_factor  : 1
+                        offset_value  : 0
+                        resampling    : "ngb"
+                        band_name     : "NOBS"
     BDC                     :
         s3_class            : ["bdc_cube", "stac_cube", "raster_cube"]
         service             : "STAC"
@@ -585,36 +607,36 @@ sources:
             CBERS-4/AWFI    : *bdc_cb4
             CBERS-4/MUX     : *bdc_cb4_mux
 
-colors:
-    Araguaia :           "mediumaquamarine"
-    Beans :              "lightskyblue3"
-    Campo_Cerrado :      "darkseagreen3"
-    Cerradao     :       "olivedrab"
-    Cerrado :            "yellowgreen"
-    Cerrado_Rupestre :   "palegreen"
-    Corn :               "burlywood3"
-    Cotton:              "wheat2"
-    Cropland:            "orange4"
-    Dunas :              "honeydew3"
-    Deforestation:       "darkred"
-    Deforestatio:        "darkred"
-    Dense_Tree_Savanna : "forestgreen"
-    Fallow_Cotton :      "wheat2"
-    Millet_Cotton :      "wheat4"
-    Forest :             "darkgreen"
-    Planted Forest :     "mediumseagreen"
-    Pasture :            "khaki"
-    NatNonVegetated :    "honeydew3"
-    NonForest:           "lightsteelblue2"
-    Savanna :            "springgreen"
-    Shrublands :         "palegreen"
-    Soy_Corn :           "orange2"
-    Soy_Cotton :         "orangered4"
-    Soy_Fallow :         "orange4"
-    Soy_Sorghum:         "darkorange3"
-    Soy_Millet :         "darkorange"
-    Soy_Sunflower :      "darkorange4"
-    Sugarcane :          "gold4"
-    Urban_Area :         "ivory4"
-    Water      :         "royalblue3"
-    Wetlands   :         "mediumaquamarine"
+palettes:
+    default:
+        Araguaia          : "mediumaquamarine"
+        Beans             : "lightskyblue3"
+        Campo_Cerrado     : "darkseagreen3"
+        Cerradao          : "olivedrab"
+        Cerrado           : "yellowgreen"
+        Cerrado_Rupestre  : "palegreen"
+        Corn              : "burlywood3"
+        Cotton            : "wheat2"
+        Cropland          : "orange4"
+        Dunas             : "honeydew3"
+        Deforestation     : "darkred"
+        Dense_Tree_Savanna: "forestgreen"
+        Fallow_Cotton     : "wheat2"
+        Millet_Cotton     : "wheat4"
+        Forest            : "darkgreen"
+        Planted Forest    : "mediumseagreen"
+        Pasture           : "khaki"
+        NatNonVegetated   : "honeydew3"
+        NonForest         : "lightsteelblue2"
+        Savanna           : "springgreen"
+        Shrublands        : "palegreen"
+        Soy_Corn          : "orange2"
+        Soy_Cotton        : "orangered4"
+        Soy_Fallow        : "orange4"
+        Soy_Sorghum       : "darkorange3"
+        Soy_Millet        : "darkorange"
+        Soy_Sunflower     : "darkorange4"
+        Sugarcane         : "gold4"
+        Urban_Area        : "ivory4"
+        Water             : "royalblue3"
+        Wetlands          : "mediumaquamarine"

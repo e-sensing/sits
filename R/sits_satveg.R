@@ -148,7 +148,7 @@
     filter_par <- ""
 
     # URL to access SATVEG services
-    url <- .sits_config_satveg_url()
+    url <- .config_source_url(source = "SATVEG")
 
     # bands available in SATVEG
     bands <- .sits_config_satveg_bands()
@@ -257,7 +257,7 @@
     band <- "ndvi"
     cube <- "terra"
     # URL to access SATVEG services
-    url <- .sits_config_satveg_url()
+    url <- .config_source_url(source = "SATVEG")
 
     # Build the URL to retrieve the time series
     url_ts <- paste0(

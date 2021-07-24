@@ -451,7 +451,7 @@ sits_get_data.raster_cube <- function(cube, file = NULL, ...,
     )
 
     # is the cloud band available?
-    cld_band <- .sits_config_cloud_band(cube)
+    cld_band <- .config_cloud()
 
     if (cld_band %in% bands) {
         bands <- bands[bands != cld_band]
@@ -512,7 +512,7 @@ sits_get_data.csv_raster_cube <- function(cube, file, ...,
     csv$end_date <- lubridate::as_date(csv$end_date)
 
     # is the cloud band available?
-    cld_band <- .sits_config_cloud_band(cube)
+    cld_band <- .config_cloud()
     if (cld_band %in% bands) {
         bands <- bands[bands != cld_band]
     } else {
@@ -589,7 +589,7 @@ sits_get_data.shp_raster_cube <- function(cube, file, ...,
     points$end_date <- start_end["end_date"]
 
     # is the cloud band available?
-    cld_band <- .sits_config_cloud_band(cube)
+    cld_band <- .config_cloud()
     if (cld_band %in% bands) {
         bands <- bands[bands != cld_band]
     } else {
