@@ -1034,7 +1034,7 @@ plot.keras_model <- function(x, y, ...) {
 
     # if colors are not specified, get them from the configuration file
     if (purrr::is_null(legend)) {
-        colors <- .sits_config_colors(labels)
+        colors <- .config_palette_colors(labels)
     }
     else {
         assertthat::assert_that(all(labels %in% names(legend)),

@@ -26,7 +26,7 @@
     # get default bands parameter
     if (purrr::is_null(bands)) {
 
-        bands <- .sits_config_bands_names(source = "BDC",
+        bands <- .config_bands_band_name(source = "BDC",
                                           collection = collection)
     }
 
@@ -83,7 +83,7 @@
     }
 
     # get the limit items to be returned in each page
-    limit_items <- .sits_config_rstac_limit()
+    limit_items <- .config_rstac_limit()
 
     # creating a rstac object
     rstac_query <- rstac::stac(url) %>%

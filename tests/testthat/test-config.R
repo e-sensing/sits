@@ -7,9 +7,7 @@ test_that("Internal", {
     bbox <- sits:::.sits_config_satveg_bbox(cubes[1])
     expect_true(bbox["xmin"] < bbox["xmax"])
 
-    expect_equal(sits:::.sits_config_color("NoClass"), "#737373")
-
-    expect_true(sits:::.sits_config_memory_bloat() > 1)
+    expect_true(sits:::.config_memory_bloat() > 1)
 
     bands <- sits:::.sits_config_satveg_bands()
 })

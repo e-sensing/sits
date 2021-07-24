@@ -162,7 +162,7 @@
 .sits_gc_cloud_mask <- function(tile) {
 
     bands <- sits_bands(tile)
-    cloud_band <- .sits_config_cloud_band(tile)
+    cloud_band <- .config_cloud()
 
     # checks if the cube has a cloud band
     assertthat::assert_that(

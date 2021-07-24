@@ -64,7 +64,7 @@
     nbands <- length(sits_bands(samples))
     # does the cube have a cloud band?
     cube_bands <- sits_bands(tile)
-    cld_band <- .sits_config_cloud_band(tile)
+    cld_band <- .config_cloud()
     # the cube has the cloud band, add one more band to the calculation
     if (cld_band %in% cube_bands) {
         nbands <- nbands + 1
@@ -74,7 +74,7 @@
     # number of bytes per pixel
     nbytes <- 8
     # estimated processing bloat
-    proc_bloat <- as.numeric(.sits_config_processing_bloat())
+    proc_bloat <- as.numeric(.config_processing_bloat())
     if (proc_bloat == 0) proc_bloat <- multicores
 
     # number of rows and cols

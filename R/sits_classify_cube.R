@@ -222,7 +222,7 @@
             file         = filename_block,
             format       = "GTiff",
             data_type    = .sits_raster_api_data_type("INT2U"),
-            gdal_options = .sits_config_gtiff_default_options(),
+            gdal_options = .config_gtiff_default_options(),
             overwrite    = TRUE
         )
         # log
@@ -246,7 +246,7 @@
         out_file = probs_cube$file_info[[1]]$path,
         format = "GTiff",
         gdal_datatype = .sits_raster_api_gdal_datatype("INT2U"),
-        gdal_options = .sits_config_gtiff_default_options(),
+        gdal_options = .config_gtiff_default_options(),
         overwrite = TRUE
     )
 

@@ -225,7 +225,7 @@ sits_smooth.bayes <- function(cube, type = "bayes", ...,
         multicores = multicores,
         memsize = memsize,
         gdal_datatype = .sits_raster_api_gdal_datatype("INT2U"),
-        gdal_options = .sits_config_gtiff_default_options()
+        gdal_options = .config_gtiff_default_options()
     )
 
     return(cube_bayes)
@@ -323,7 +323,7 @@ sits_smooth.gaussian <- function(cube, type = "gaussian", ...,
         multicores = multicores,
         memsize = memsize,
         gdal_datatype = .sits_raster_api_gdal_datatype("INT2U"),
-        gdal_options = .sits_config_gtiff_default_options()
+        gdal_options = .config_gtiff_default_options()
     )
 
     return(cube_gauss)
@@ -431,7 +431,7 @@ sits_smooth.bilateral <- function(cube,
         multicores = multicores,
         memsize = memsize,
         gdal_datatype = .sits_raster_api_gdal_datatype("INT2U"),
-        gdal_options = .sits_config_gtiff_default_options()
+        gdal_options = .config_gtiff_default_options()
     )
 
     return(cube_bilat)

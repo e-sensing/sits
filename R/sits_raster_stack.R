@@ -38,13 +38,13 @@
 
         # how many of those files are images?
         # retrieve the known file extensions
-        file_ext <- .sits_config_img_file_ext()
+        file_ext <- .config_local_file_extensions()
 
         # list the files in the data directory
         img_files <- list.files(
             path = data_dir_row,
             pattern = paste0("\\.(",
-                             paste0(.sits_config_img_file_ext(), collapse = "|"),
+                             paste0(.config_local_file_extensions(), collapse = "|"),
                              ")$")
         )
 

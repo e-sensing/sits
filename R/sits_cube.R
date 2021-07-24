@@ -274,7 +274,7 @@ sits_cube.wtss_cube <- function(source = "WTSS", ...,
 
     # precondition - is the url correct?
     if (purrr::is_null(url)) {
-        url <- .sits_config_stac(source)
+        url <- .config_source_url(source)
     }
 
     # Pre-condition - try to find the access key as an environment variable
@@ -322,7 +322,7 @@ sits_cube.bdc_cube <- function(source = "BDC", ...,
     }
     # precondition - is the url correct?
     if (purrr::is_null(url)) {
-        url <- .sits_config_stac(source)
+        url <- .config_source_url(source)
     }
     # test if BDC is accessible
     if (!(.sits_config_source_test(url, "BDC")))
@@ -420,7 +420,7 @@ sits_cube.deafrica_cube <- function(source = "DEAFRICA", ...,
 
     # precondition - is the url correct?
     if (purrr::is_null(url)) {
-        url <- .sits_config_stac(source)
+        url <- .config_source_url(source)
     }
 
     # test if DEA is accessible
@@ -529,7 +529,7 @@ sits_cube.aws_cube <- function(source = "AWS", ...,
 
     # precondition - is the url correct?
     if (purrr::is_null(url)) {
-        url <- .sits_config_stac(source)
+        url <- .config_source_url(source)
     }
 
     # test if AWS STAC is accessible
@@ -620,7 +620,7 @@ sits_cube.usgs_cube <- function(source = "USGS", ...,
 
     # precondition - is the url correct?
     if (purrr::is_null(url))
-        url <- .sits_config_stac(source)
+        url <- .config_source_url(source)
 
     # test if USGS STAC is accessible
     if (!(.sits_config_source_test(url, "USGS")))
@@ -949,4 +949,220 @@ sits_cube_copy <- function(cube,
     })
     cube <- do.call(rbind, cube_rows)
     return(cube)
+}
+
+.cube_satellite <- function(cube) {
+
+    cube[["satellite"]][[1]]
+}
+
+.cube_sensor <- function(cube) {
+
+    cube[["sensor"]][[1]]
+}
+
+.cube_name <- function(cube) {
+
+    cube[["name"]][[1]]
+}
+
+.cube_labels <- function(cube) {
+
+    cube[["labels"]][[1]]
+}
+
+.cube_bands <- function(cube) {
+
+    cube[["bands"]][[1]]
+}
+
+.cube_source <- function(cube) {
+
+    cube[["source"]][[1]]
+}
+
+.cube_timeline <- function(cube) {
+
+    sort(unique(cube[["file_info"]][["date"]]))
+}
+
+.cube_tiles <- function(cube) {
+
+    cube[["tile"]]
+}
+
+.cube_tile_check <- function(cube, tile) {
+
+    assertthat::assert_that(
+        is.numeric(tile) || is.character(tile),
+        msg = ".cube_tile_check: tile must be numeric or character"
+    )
+
+    if (is.numeric(tile)) {
+        assertthat::assert_that(
+            tile > 0 && tile < nrow(cube),
+            msg = ".cube_tile_check: invalid tile"
+        )
+    }
+
+    if (is.character(tile)) {
+        assertthat::assert_that(
+            tile %in% .cube_tiles(cube = cube),
+            msg = ".cube_tile_check: invalid tile"
+        )
+    }
+
+    return(invisible(NULL))
+}
+
+.cube_tile_get_fields <- function(cube, tile, fields) {
+
+    tile <- tile[[1]]
+
+    if (is.numeric(tile))
+        return(unlist(cube[tile, fields]))
+
+    return(unlist(cube[which(.cube_tiles(cube = cube) %in% tile),
+                       fields]))
+}
+
+.cube_tile_crs <- function(cube, ...,
+                           tile = 1) {
+
+    .cube_tile_get_field(cube = cube, tile = tile,
+                         field = "crs")
+}
+
+.cube_tile_bbox <- function(cube, ...,
+                            tile = 1) {
+
+    .cube_tile_get_field(cube = cube, tile = tile,
+                         field = c("xmin", "ymin", "xmax", "ymax"))
+}
+
+.cube_tile_resolution <- function(cube, ...,
+                                  tile = 1) {
+
+    .cube_tile_get_field(cube = cube, tile = tile,
+                         field = c("xres", "yres"))
+}
+
+.cube_tile_size <- function(cube, ...,
+                            tile = 1) {
+
+    .cube_tile_get_field(cube = cube, tile = tile,
+                         field = c("nrows", "ncols"))
+}
+
+.cube_bands_missing_value <- function(cube, ...,
+                                      bands = NULL) {
+
+    if (is.null(bands))
+        bands <- .cube_bands(cube = cube)
+
+    .config_bands_reap(source = .cube_source(cube),
+                       collection = .cube_collection(cube),
+                       key = "missing_value", bands = bands,
+                       add_cloud = FALSE)
+}
+
+.cube_bands_missing_value <- function(cube, ...,
+                                      bands = NULL) {
+
+    if (is.null(bands))
+        bands <- .cube_bands(cube = cube)
+
+    .config_bands_reap(source = .cube_source(cube),
+                       collection = .cube_collection(cube),
+                       key = "missing_value", bands = bands,
+                       add_cloud = FALSE)
+}
+
+.cube_bands_minimum_value <- function(cube, ...,
+                                      bands = NULL) {
+
+    if (is.null(bands))
+        bands <- .cube_bands(cube = cube)
+
+    .config_bands_reap(source = .cube_source(cube = cube),
+                       collection = .cube_collection(cube = cube),
+                       key = "minimum_value", bands = bands,
+                       add_cloud = FALSE)
+}
+
+.cube_bands_maximum_value <- function(cube, ...,
+                                      bands = NULL) {
+
+    if (is.null(bands))
+        bands <- .cube_bands(cube = cube)
+
+    .config_bands_reap(source = .cube_source(cube = cube),
+                       collection = .cube_collection(cube = cube),
+                       key = "maximum_value", bands = bands,
+                       add_cloud = FALSE)
+}
+
+.cube_bands_scale_value <- function(cube, ...,
+                                    bands = NULL) {
+
+    if (is.null(bands))
+        bands <- .cube_bands(cube = cube)
+
+    .config_bands_reap(source = .cube_source(cube = cube),
+                       collection = .cube_collection(cube = cube),
+                       key = "scale_value", bands = bands,
+                       add_cloud = FALSE)
+}
+
+.cube_bands_offset_value <- function(cube, ...,
+                                     bands = NULL) {
+
+    if (is.null(bands))
+        bands <- .cube_bands(cube = cube)
+
+    .config_bands_reap(source = .cube_source(cube = cube),
+                       collection = .cube_collection(cube = cube),
+                       key = "offset_value", bands = bands,
+                       add_cloud = FALSE)
+}
+
+.cube_bands_resampling <- function(cube, ...,
+                                   bands = NULL) {
+
+    if (is.null(bands))
+        bands <- .cube_bands(cube = cube)
+
+    .config_bands_reap(source = .cube_source(cube = cube),
+                       collection = .cube_collection(cube = cube),
+                       key = "resampling", bands = bands,
+                       add_cloud = TRUE)
+}
+
+.cube_bands_resolutions <- function(cube, ...,
+                                    bands = NULL) {
+
+    if (is.null(bands))
+        bands <- .cube_bands(cube = cube)
+
+    .config_bands_reap(source = .cube_source(cube = cube),
+                       collection = .cube_collection(cube = cube),
+                       key = "resolutions", bands = bands,
+                       add_cloud = TRUE)
+}
+
+.cube_bands_band_name <- function(cube, ...,
+                                  bands = NULL) {
+
+    if (is.null(bands))
+        bands <- .cube_bands(cube = cube)
+
+    .config_bands_reap(source = .cube_source(cube = cube),
+                       collection = .cube_collection(cube = cube),
+                       key = "band_name", bands = bands,
+                       add_cloud = TRUE)
+}
+
+.cube_has_cloud <- function(cube) {
+
+    .config_cloud() %in% .cube_bands(cube)
 }

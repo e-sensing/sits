@@ -94,7 +94,7 @@ sits_label_classification <- function(cube,
         multicores = multicores,
         memsize = memsize,
         gdal_datatype = .sits_raster_api_gdal_datatype("INT1U"),
-        gdal_options = .sits_config_gtiff_default_options()
+        gdal_options = .config_gtiff_default_options()
     )
 
     return(label_cube)
@@ -197,7 +197,7 @@ sits_label_majority <- function(cube,
             file = out_file,
             format = "GTiff",
             data_type = .sits_raster_api_data_type("INT1U"),
-            gdal_options = .sits_config_gtiff_default_options(),
+            gdal_options = .config_gtiff_default_options(),
             overwrite = TRUE
         )
 

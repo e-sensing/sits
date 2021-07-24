@@ -1,24 +1,179 @@
+.config <- function() {
+
+}
+
 .config_show <- function() {
 
 }
 
-.config_get <- function(key) {
+.config_get <- function(key, default = NULL) {
 
-    value <- sits_env$config[[key]]
+    tryCatch({
+        value <- sits_env$config[[key]]
+    },
+    error = function(e) {
+        if (missing(default))
+            stop(paste(".config_get:", paste0(key, collapse = "$"),
+                       "not found in sits config."), call. = FALSE)
+    })
 
-    assertthat::assert_that(
-        !is.null(value),
-        msg = paste(".config_get:", paste0(key, collapse = "$"),
-                    "not found in sits config.")
-    )
+    if (missing(default))
+        assertthat::assert_that(
+            !is.null(value),
+            msg = paste(".config_get:", paste0(key, collapse = "$"),
+                        "not found in sits config.")
+        )
 
     return(value)
+}
+
+.config_aws_default_region <- function(source,
+                                       collection) {
+
+    .config_get(c("sources", source, "collections", collection,
+                  "AWS", "AWS_DEFAULT_REGION", default = NULL))
+}
+
+.config_aws_endpoint <- function(source,
+                                 collection) {
+
+    .config_get(c("sources", source, "collections", collection,
+                  "AWS", "AWS_S3_ENDPOINT", default = NULL))
+}
+
+.config_aws_request_payer <- function(source,
+                                      collection) {
+
+    .config_get(c("sources", source, "collections", collection,
+                  "AWS", "AWS_REQUEST_PAYER"), default = NULL)
+}
+
+.config_bands <- function(source,
+                          collection, ...,
+                          fn_filter = NULL,
+                          add_cloud = TRUE) {
+
+
+    bands <- .config_get(c("sources", source, "collections",
+                           collection, "bands"))
+
+    if (!add_cloud)
+        bands <- bands[names(bands) != "CLOUD"]
+
+    if (!is.null(fn_filter)) {
+        select <- vapply(bands, fn_filter, logical(1))
+        return(names(bands)[select])
+    }
+
+    names(bands)
+}
+
+.config_bands_reap <- function(source,
+                               collection,
+                               key, ...,
+                               bands = NULL,
+                               fn_filter = NULL,
+                               add_cloud = TRUE) {
+
+    if (is.null(bands))
+        bands <- .config_bands(source = source,
+                               collection = collection,
+                               fn_filter = fn_filter,
+                               add_cloud = add_cloud)
+
+    assertthat::assert_that(
+        all(bands %in% .config_bands(source = source,
+                                     collection = collection)),
+        msg = ".config_bands_reap: invalid bands"
+    )
+
+    values <- lapply(.config_get(c("sources", source, "collections",
+                                   collection, "bands"))[bands], `[[`, key)
+
+    if (length(values) > 0 && is.atomic(values[[1]]))
+        return(unlist(unname(values)))
+
+    return(unname(values))
+}
+
+.config_bands_band_name <- function(source,
+                                    collection, ...,
+                                    bands = NULL,
+                                    add_cloud = TRUE) {
+
+    .config_bands_reap(source = .cube_source(cube = cube),
+                       collection = .cube_collection(cube = cube),
+                       key = "band_name", bands = bands,
+                       add_cloud = add_cloud)
+}
+
+
+.config_cloud <- function() {
+
+    return("CLOUD")
+}
+
+.config_cloud_bit_mask <- function(source,
+                                   collection) {
+
+    .config_get(c("sources", source, "collections", collection,
+                  "bands", "CLOUD", "bit_mask"))
+}
+
+.config_cloud_values <- function(source,
+                                 collection) {
+
+    .config_get(c("sources", source, "collections", collection,
+                  "bands", "CLOUD", "values"))
+}
+
+.config_cloud_interp_values <- function(source,
+                                        collection) {
+
+    .config_get(c("sources", source, "collections", collection,
+                  "bands", "CLOUD", "interp_values"))
+}
+
+.config_collections <- function(source) {
+
+    names(.config_get(c("sources", source, "collections")))
+}
+
+.config_gtiff_default_options <- function() {
+
+    .config_get(c("GTiff_default_options"))
+}
+
+.config_local_file_extensions <- function() {
+
+    .config_get(c("sources", "LOCAL", "file_extensions"))
 }
 
 
 .config_memory_bloat <- function() {
 
     .config_get(c("R_memory_bloat"))
+}
+
+.config_palettes <- function() {
+
+    names(.config_get(c("palettes")))
+}
+
+.config_palette_colors <- function(labels, ...,
+                                   palette = "default") {
+
+    values <- .config_get(c("palettes", palette))[labels]
+    names(values) <- labels
+
+    if (any(is.na(values))) {
+
+        random <- colors()
+        random <- random[!random %in% values]
+        values[is.na(values)] <- sample(random, sum(is.na(values)))
+    }
+
+    values
 }
 
 .config_processing_bloat <- function() {
@@ -36,159 +191,22 @@
     .config_get(c("R_raster_pkg"))
 }
 
-.config_gtiff_default_options <- function() {
+.config_sources <- function() {
 
-    .config_get(c("gtiff_default_options"))
+    names(.config_get(c("sources")))
 }
 
-
-# src
-
-.config_src_url <- function(source) {
+.config_source_url <- function(source) {
 
     .config_get(c("sources", source, "url"))
 }
 
-.config_src_service <- function(source) {
+.config_source_service <- function(source) {
 
     .config_get(c("sources", source, "service"))
 }
 
-.config_src_s3class <- function(source) {
+.config_source_s3class <- function(source) {
 
     .config_get(c("sources", source, "s3_class"))
 }
-
-.config_src_cols <- function(source) {
-
-    names(.config_get(c("sources", source, "collections")))
-}
-
-.config_src_col_bands <- function(source,
-                                  collection) {
-
-    names(.config_get(c("sources", source, "collections", collection, "bands")))
-}
-
-.config_src_col_bands_get <- function(source,
-                                      collection,
-                                      key,
-                                      add_cloud = TRUE) {
-
-    bands <- .config_src_col_bands(source = source,
-                                   collection = collection)
-
-    if (!add_cloud)
-        bands <- bands[bands != "CLOUD"]
-
-    values <- sapply(.config_get(c("sources", source, "collections",
-                                   collection, "bands")), `[[`, key)
-
-    return(unname(values[bands]))
-}
-
-.config_src_col_cloud_get <- function(source,
-                                      collection,
-                                      key) {
-
-    .config_get(c("sources", source, "collections",
-                  collection, "bands", "CLOUD", key))
-}
-
-# pre
-
-.config_missing_value <- function(source, collection) {
-
-    .config_src_col_bands_get(source = source, collection = collection,
-                              key = "missing_value", add_cloud = FALSE)
-}
-
-.config_minimum_value <- function(source, collection) {
-
-    .config_src_col_bands_get(source = source, collection = collection,
-                              key = "minimum_value", add_cloud = FALSE)
-}
-
-.config_maximum_value <- function(source, collection) {
-
-    .config_src_col_bands_get(source = source, collection = collection,
-                              key = "maximum_value", add_cloud = FALSE)
-}
-
-.config_scale_value <- function(source, collection) {
-
-    .config_src_col_bands_get(source = source, collection = collection,
-                              key = "scale_value", add_cloud = FALSE)
-}
-
-.config_offset_value <- function(source, collection) {
-
-    .config_src_col_bands_get(source = source, collection = collection,
-                              key = "offset_value", add_cloud = FALSE)
-}
-
-.config_resampling <- function(source, collection) {
-
-    .config_src_col_bands_get(source = source, collection = collection,
-                              key = "resampling", add_cloud = TRUE)
-}
-
-.config_resolutions <- function(source, collection) {
-
-    .config_src_col_bands_get(source = source, collection = collection,
-                              key = "resolutions", add_cloud = TRUE)
-}
-
-.config_band_name <- function(source, collection) {
-
-    .config_src_col_bands_get(source = source, collection = collection,
-                              key = "band_name", add_cloud = TRUE)
-}
-
-.config_cloud_bit_mask <- function(source, collection) {
-
-    .config_src_col_cloud_get(source = source, collection = collection,
-                              key = "bit_mask")
-}
-
-.config_cloud_bit_mask <- function(source, collection) {
-
-    .config_src_col_cloud_get(source = source, collection = collection,
-                              key = "bit_mask")
-}
-
-.config_cloud_values <- function(source, collection) {
-
-    .config_src_col_cloud_get(source = source, collection = collection,
-                              key = "values")
-}
-
-.config_cloud_interp_values <- function(source, collection) {
-
-    .config_src_col_cloud_get(source = source, collection = collection,
-                              key = "interp_values")
-}
-
-.config_local_file_extensions <- function() {
-
-    .config_get(c("sources", "LOCAL", "file_extensions"))
-}
-
-.config_aws_default_region <- function(source, collection) {
-
-    .config_get(c("sources", source, "collections", collection,
-                  "AWS", "AWS_DEFAULT_REGION"))
-}
-
-.config_aws_endpoint <- function(source, collection) {
-
-    .config_get(c("sources", source, "collections", collection,
-                  "AWS", "AWS_S3_ENDPOINT"))
-}
-
-.config_aws_request_payer <- function(source, collection) {
-
-    .config_get(c("sources", source, "collections", collection,
-                  "AWS", "AWS_REQUEST_PAYER"))
-}
-
