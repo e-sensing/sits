@@ -250,10 +250,10 @@
 #'
 sits_cube <- function(source, ...) {
 
-    spec_class <- .config_src_s3class(source)
-    class(source) <- c(spec_class, class(source))
+    s <- .source_new(source = source)
+
     # Dispatch
-    UseMethod("sits_cube", source)
+    UseMethod("sits_cube", s)
 }
 
 #' @rdname sits_cube
@@ -306,7 +306,6 @@ sits_cube.wtss_cube <- function(source = "WTSS", ...,
 #'
 sits_cube.bdc_cube <- function(source = "BDC", ...,
                                name = "bdc_cube",
-                               url = NULL,
                                collection,
                                bands = NULL,
                                tiles = NULL,
@@ -314,82 +313,53 @@ sits_cube.bdc_cube <- function(source = "BDC", ...,
                                start_date = NULL,
                                end_date = NULL) {
 
-    # require package
-    if (!requireNamespace("rstac", quietly = TRUE)) {
-        stop(paste("Please install package rstac from CRAN:",
-                   "install.packages('rstac')"), call. = FALSE
-        )
-    }
-    # precondition - is the url correct?
-    if (purrr::is_null(url)) {
-        url <- .sits_config_stac(source)
-    }
-    # test if BDC is accessible
-    if (!(.sits_config_source_test(url, "BDC")))
-        return(NULL)
 
-    # precondition - is the collection name valid?
-    assertthat::assert_that(
-        !purrr::is_null(collection),
-        msg = "sits_cube: BDC collection must be provided"
-    )
+    # TODO: check all user parameters and environment
 
+    # precondition
     assertthat::assert_that(
         length(collection) == 1,
-        msg = "sits_cube: only one BDC collection should be specified"
+        msg = "sits_cube.bdc_cube: only one BDC collection should be specified."
     )
 
-    # Try to find the access key as an environment variable
+    # precondition
+    assertthat::assert_that(
+        collection %in% .config_collections(source = source),
+        msg = sprintf(paste("sits_cube.bdc_cube: collection '%s' not found in",
+                            "BDC source.\nPlease, check sits config with",
+                            "?sits_config command."), collection)
+    )
+
+    # try to find the access key as an environment variable
     bdc_access_key <- Sys.getenv("BDC_ACCESS_KEY")
     assertthat::assert_that(
         nchar(bdc_access_key) != 0,
-        msg = "sits_cube: BDC_ACCESS_KEY needs to be provided"
+        msg = "sits_cube.bdc_cube: BDC_ACCESS_KEY needs to be provided"
     )
 
-    # retrieve information from the collection
-    collection_info <- .sits_stac_collection(
-        url = url,
-        collection = collection,
-        bands = bands, ...
+    if (is.null(bands))
+        bands <- .config_bands(source = source,
+                               collection = collection)
+
+    assertthat::assert_that(
+        all(bands %in% c(config_bands(source = source, collection = collection),
+                         config_bands_band_name(source = source,
+                                                collection = collection))),
+        msg = "sits_cube.bdc_cube: invalid bands.\nPlease the provided bands."
     )
 
-    # retrieve item information
-    items_info <- .sits_stac_items(
-        url = url,
-        collection = collection,
-        tiles = tiles,
-        roi = bbox,
-        start_date = start_date,
-        end_date = end_date, ...
-    )
+    # check if source can be access
+    .source_access_test(source = source, collection = collection, ...)
 
-    # creating a group of items per tile
-    items_group <- .sits_stac_group(items_info,
-                                    fields = c("properties", "bdc:tiles")
-    )
+    .source_cube(source = source,
+                 collection = collection,
+                 name = name,
+                 bands = bands,
+                 tiles = tiles,
+                 bbox = bbox,
+                 start_date = start_date,
+                 end_date = end_date, ...)
 
-    tiles <- purrr::map(items_group, function(items) {
-
-        # retrieve the information from STAC
-        stack <- .sits_stac_items_info(items, collection_info$bands)
-
-        # add the information for each tile
-        cube_t <- .sits_stac_tile_cube(
-            name = name,
-            collection = collection,
-            collection_info = collection_info,
-            items = items,
-            file_info = stack
-        )
-        return(cube_t)
-    })
-    cube <- dplyr::bind_rows(tiles)
-
-    # include access key information in file
-    cube <- .sits_bdc_access_info(cube, bdc_access_key)
-
-    class(cube) <- c("raster_cube", class(cube))
-    return(cube)
 }
 
 #' @rdname sits_cube
@@ -405,40 +375,39 @@ sits_cube.deafrica_cube <- function(source = "DEAFRICA", ...,
                                     bbox = NULL,
                                     start_date = NULL,
                                     end_date = NULL) {
-    # require package
-    if (!requireNamespace("rstac", quietly = TRUE)) {
-        stop(paste("Please install package rstac from CRAN:",
-                   "install.packages('rstac')"), call. = FALSE
-        )
-    }
 
-    # DEA runs on AWS
+    # precondition
+    assertthat::assert_that(
+        length(collection) == 1,
+        msg = paste("sits_cube.deafrica_cube: only one BDC collection should",
+                    "be specified.")
+    )
+
+    # precondition
+    assertthat::assert_that(
+        collection %in% .config_collections(source = source),
+        msg = sprintf(paste("sits_cube.deafrica_cube: collection '%s' not",
+                            "found in DEAfrica source.\nPlease, check sits",
+                            "config with ?sits_config command."), collection)
+    )
+
     # precondition - is AWS access available?
-    # aws_access_ok <- .sits_aws_check_access(source)
-    # if (!aws_access_ok)
-    #     return(NULL)
+    .check_aws_environment(source, collection)
 
-    # precondition - is the url correct?
-    if (purrr::is_null(url)) {
-        url <- .sits_config_stac(source)
-    }
-
-    # test if DEA is accessible
-    # if (!(.sits_config_source_test(url, "DEAFRICA")))
-    #     return(NULL)
-
-    # precondition - is the collection name valid?
-    assertthat::assert_that(
-        !purrr::is_null(collection),
-        msg = paste("sits_cube: DEAfrica collection must",
-                    "be provided")
-    )
+    if (is.null(bands))
+        bands <- .config_bands(source = source,
+                               collection = collection)
 
     assertthat::assert_that(
-        !(length(collection) > 1),
-        msg = paste("sits_cube: for STAC_DEAFRICA one",
-                    "collection should be specified")
+        all(bands %in% c(config_bands(source = source, collection = collection),
+                         config_bands_band_name(source = source,
+                                                collection = collection))),
+        msg = paste("sits_cube.deafrica_cube: invalid bands.\nPlease the",
+                    "provided bands.")
     )
+
+    # check if source can be access
+    .source_access_test(source = source, collection = collection, ...)
 
     .source_cube(source = source,
                  collection = collection,
@@ -448,45 +417,6 @@ sits_cube.deafrica_cube <- function(source = "DEAFRICA", ...,
                  bbox = bbox,
                  start_date = start_date,
                  end_date = end_date, ...)
-
-    # # retrieve item information
-    # items_info <- .sits_deafrica_items(
-    #     url = url,
-    #     collection = collection,
-    #     tiles = tiles,
-    #     roi = bbox,
-    #     start_date = start_date,
-    #     end_date  = end_date,
-    #     bands = bands,
-    #     ...
-    # )
-    #
-    # # creating a group of items per tile
-    # items_group <- .sits_stac_group(
-    #     items_info,
-    #     fields = c("properties", "odc:region_code")
-    # )
-    #
-    # tiles <- purrr::map(items_group, function(items) {
-    #
-    #     # retrieve the information from STAC
-    #     stack <- .sits_stac_items_info(items, items$bands)
-    #
-    #     # add the information for each tile
-    #     cube_t <- .sits_deafrica_tile_cube(
-    #         name       = name,
-    #         items      = items,
-    #         collection = collection,
-    #         file_info  = stack
-    #     )
-    #     return(cube_t)
-    # })
-    #
-    # # join the tiles
-    # cube <- dplyr::bind_rows(tiles)
-    # class(cube) <- c("raster_cube", class(cube))
-    #
-    # return(cube)
 }
 
 #' @rdname sits_cube
@@ -504,86 +434,61 @@ sits_cube.aws_cube <- function(source = "AWS", ...,
                                start_date = NULL,
                                end_date = NULL) {
 
-    # require package
-    if (!requireNamespace("rstac", quietly = TRUE)) {
-        stop(paste("Please install package rstac from CRAN:",
-                   "install.packages('rstac')"), call. = FALSE
-        )
-    }
-
-    # precondition - is the collection name valid?
-    assertthat::assert_that(
-        collection == "sentinel-s2-l2a",
-        msg = "sits_cube: AWS supports only sentinel-s2-l2a collection"
-    )
-
     # precondition - is the provided resolution is valid?
     assertthat::assert_that(
         s2_resolution %in% c(10, 20, 60),
-        msg = "sits_cube: s2_resolution should be one of c(10, 20, 60)")
-
-    # precondition - is AWS access available?
-    aws_access_ok <- .sits_aws_check_access(source)
-    if (!aws_access_ok)
-        return(NULL)
-
-    # precondition - is the url correct?
-    if (purrr::is_null(url)) {
-        url <- .sits_config_stac(source)
-    }
-
-    # test if AWS STAC is accessible
-    if (!(.sits_config_source_test(url, "AWS")))
-        return(NULL)
-
-    # select bands by resolution
-    bands <- .sits_s2_check_bands(source = source,
-                                  collection = collection,
-                                  bands = bands,
-                                  s2_resolution)
-
-    # retrieve item information
-    items_info <- .sits_s2_aws_items(
-        url = url,
-        collection = collection,
-        tiles = tiles,
-        roi = bbox,
-        start_date = start_date,
-        end_date  = end_date,
-        bands = bands,
-        ...
+        msg = "sits_cube: s2_resolution should be one of c(10, 20, 60)"
     )
 
-    # creating a group of items per tile
-    items_group <- .sits_stac_group(items_info,
-                                    fields = c("properties", "tile"))
+    # precondition
+    assertthat::assert_that(
+        length(collection) == 1,
+        msg = paste("sits_cube.aws_cube: only one aws collection should",
+                    "be specified.")
+    )
 
-    tiles <- purrr::map(items_group, function(items) {
+    # precondition
+    assertthat::assert_that(
+        collection %in% .config_collections(source = source),
+        msg = sprintf(paste("sits_cube.aws_cube: collection '%s' not",
+                            "found in aws source.\nPlease, check sits",
+                            "config with ?sits_config command."), collection)
+    )
 
-        # retrieve the information from STAC
-        stack <- .sits_stac_items_info(items, items$bands)
+    # precondition - is AWS access available?
+    .check_aws_environment(source, collection)
 
-        # fix duplicated dates in timeline: select the first asset
-        stack <- dplyr::group_by(stack, date, band) %>%
-            dplyr::summarise(
-                path = dplyr::first(path, order_by = path),
-                .groups = "drop")
+    if (is.null(bands))
+        bands <- .aws_bands(source = source,
+                            collection = collection,
+                            s2_resolution = s2_resolution)
 
-        # add the information for each tile
-        cube_t <- .sits_s2_aws_tile_cube(
-            name = name,
-            items = items,
-            collection = collection,
-            resolution = s2_resolution,
-            file_info = stack
-        )
+    assertthat::assert_that(
+        all(bands %in% c(.aws_bands(source = source,
+                                    collection = collection,
+                                    s2_resolution = s2_resolution),
+                         .aws_bands_band_name(source = source,
+                                              collection = collection,
+                                              s2_resolution = s2_resolution))),
+        msg = paste("sits_cube.aws_cube: invalid bands.\nPlease the provided",
+                    "bands.")
+    )
 
-        class(cube_t) <- c("raster_cube", class(cube_t))
-        return(cube_t)
-    })
-    cube <- dplyr::bind_rows(tiles)
 
-    return(cube)
+    # check if source can be access
+    .source_access_test(source = source,
+                        collection = collection, ...,
+                        s2_resolution = s2_resolution)
+
+    .source_cube(source = source,
+                 collection = collection,
+                 name = name,
+                 bands = bands,
+                 tiles = tiles,
+                 bbox = bbox,
+                 start_date = start_date,
+                 end_date = end_date, ...,
+                 s2_resolution = s2_resolution)
 }
 
 #' @rdname sits_cube
@@ -600,67 +505,47 @@ sits_cube.usgs_cube <- function(source = "USGS", ...,
                                 start_date = NULL,
                                 end_date = NULL) {
 
-    # require package
-    if (!requireNamespace("rstac", quietly = TRUE)) {
-        stop(paste("Please install package rstac from CRAN:",
-                   "install.packages('rstac')"), call. = FALSE
-        )
-    }
-
-    # precondition - is the collection name valid?
+    # precondition
     assertthat::assert_that(
-        collection == "landsat-c2l2-sr",
-        msg = "sits_cube: USGS supports only `landsat-c2l2-sr` collection."
+        length(collection) == 1,
+        msg = paste("sits_cube.usgs_cube: only one USGS collection should",
+                    "be specified.")
+    )
+
+    # precondition
+    assertthat::assert_that(
+        collection %in% .config_collections(source = source),
+        msg = sprintf(paste("sits_cube.usgs_cube: collection '%s' not",
+                            "found in USGS source.\nPlease, check sits",
+                            "config with ?sits_config command."), collection)
     )
 
     # precondition - is AWS access available?
-    aws_access_ok <- .sits_aws_check_access(source)
-    if (!aws_access_ok)
-        return(NULL)
+    .check_aws_environment(source, collection)
 
-    # precondition - is the url correct?
-    if (purrr::is_null(url))
-        url <- .sits_config_stac(source)
+    if (is.null(bands))
+        bands <- .config_bands(source = source,
+                               collection = collection)
 
-    # test if USGS STAC is accessible
-    if (!(.sits_config_source_test(url, "USGS")))
-        return(NULL)
-
-    # retrieve item information
-    items_info <- .sits_usgs_items(
-        url = url,
-        collection = collection,
-        tiles = tiles,
-        roi = bbox,
-        start_date = start_date,
-        end_date = end_date,
-        bands = bands,
-        ...
+    assertthat::assert_that(
+        all(bands %in% c(config_bands(source = source, collection = collection),
+                         config_bands_band_name(source = source,
+                                                collection = collection))),
+        msg = paste("sits_cube.usgs_cube: invalid bands.\nPlease the",
+                    "provided bands.")
     )
 
-    # creating a group of items per tile
-    items_group <- .sits_stac_group(items = items_info,
-                                    fields = c("properties", "tile"))
+    # check if source can be access
+    .source_access_test(source = source, collection = collection, ...)
 
-    tiles <- purrr::map(items_group, function(items) {
-
-        # retrieve the information from STAC
-        stack <- .sits_stac_items_info(items, items$bands)
-
-        # add the information for each tile
-        cube_t <- .sits_usgs_tile_cube(
-            name = name,
-            items = items,
-            collection = collection,
-            file_info = stack
-        )
-
-        class(cube_t) <- c("raster_cube", class(cube_t))
-        return(cube_t)
-    })
-    cube <- dplyr::bind_rows(tiles)
-
-    return(cube)
+    .source_cube(source = source,
+                 collection = collection,
+                 name = name,
+                 bands = bands,
+                 tiles = tiles,
+                 bbox = bbox,
+                 start_date = start_date,
+                 end_date = end_date, ...)
 }
 
 #' @rdname sits_cube
@@ -812,8 +697,8 @@ sits_cube.satveg_cube <- function(source = "SATVEG", ...,
 
 #' @export
 #'
-sits_cube.default <- function(source = NULL, ...) {
-    stop("sits_cube: cube source unknown")
+sits_cube.default <- function(source, ...) {
+    stop("sits_cube: source not found.")
 }
 
 #' @title Creates the contents of a data cube
