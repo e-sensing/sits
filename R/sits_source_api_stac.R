@@ -104,11 +104,11 @@
                                                  items,
                                                  bands, ...) {
 
-    bands_converter <- .config_src_col_bands(source = source,
-                                             collection = collection)
+    bands_converter <- .config_bands(source = source,
+                                     collection = collection)
 
-    names(bands_converter) <- .config_band_name(source = source,
-                                                collection = collection)
+    names(bands_converter) <- .config_bands_band_name(source = source,
+                                                      collection = collection)
 
     items <- .sits_stac_bands_select(
         items = items,
@@ -302,7 +302,7 @@
                               start_date,
                               end_date, ...) {
 
-    url <- .config_src_url(source = source)
+    url <- .config_sources_url(source = source)
     roi <- list(bbox = NULL, intersects = NULL)
 
     # obtain the datetime parameter for STAC like parameter

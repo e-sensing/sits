@@ -28,13 +28,13 @@
 .source_bands_to_sits <- function(source, collection, bands) {
 
     # bands sits
-    bands_sits <- .config_src_col_bands(source, collection)
+    bands_sits <- .config_bands(source, collection)
     names(bands_sits) <- bands_sits
 
     # bands source
     bands_to_sits <- bands_sits
-    names(bands_to_sits) <-  .config_band_name(source = source,
-                                               collection = collection)
+    names(bands_to_sits) <-  .config_bands_band_name(source = source,
+                                                     collection = collection)
 
     convert_bands <- c(bands_to_sits, bands_sits)
 
@@ -61,13 +61,13 @@
 .source_bands_to_source <- function(source, collection, bands) {
 
     # bands sits
-    bands_source <- .config_band_name(source = source,
-                                      collection = collection)
+    bands_source <- .config_bands_band_name(source = source,
+                                            collection = collection)
     names(bands_source) <- bands_source
 
     # bands source
     bands_to_source <- bands_source
-    names(bands_to_source) <- .config_src_col_bands(source, collection)
+    names(bands_to_source) <- .config_bands(source, collection)
 
     convert_bands <- c(bands_to_source, bands_source)
 
@@ -345,7 +345,7 @@ NULL
 #' @return ...
 .source_new <- function(source) {
 
-    class(source) <- .config_src_s3class(source)
+    class(source) <- .config_source_s3class(source)
 
     return(source)
 }
