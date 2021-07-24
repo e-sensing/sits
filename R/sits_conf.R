@@ -99,11 +99,13 @@
 .config_bands_band_name <- function(source,
                                     collection, ...,
                                     bands = NULL,
+                                    fn_filter = NULL,
                                     add_cloud = TRUE) {
 
     .config_bands_reap(source = .cube_source(cube = cube),
                        collection = .cube_collection(cube = cube),
                        key = "band_name", bands = bands,
+                       fn_filter = fn_filter,
                        add_cloud = add_cloud)
 }
 
