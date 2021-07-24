@@ -115,14 +115,8 @@
         pgr_fetch <- TRUE
 
     # fetching all the metadata
-    items_info <- items_info %>% rstac::items_fetch(progress = pgr_fetch)
-
-    # converting to upper names
-    items_info$features <- purrr::map(items_info$features, function(x) {
-        names(x$assets) <- toupper(names(x$assets))
-
-        return(x)
-    })
+    items_info <- rstac::items_fetch(items = items_info,
+                                     progress = pgr_fetch)
 
     return(items_info)
 }
@@ -363,8 +357,7 @@
 
     # create a polygon and transform the proj
     polygon_ext <- sf::st_polygon(list(do.call(rbind, extent_points)))
-    polygon_ext <- sf::st_sfc(polygon_ext, crs = 4326) %>%
-        sf::st_transform(., crs)
+    polygon_ext <- sf::st_transform(sf::st_sfc(polygon_ext, crs = 4326), crs)
 
     bbox_ext <- sf::st_bbox(polygon_ext)
 
@@ -392,7 +385,8 @@
     bbox <- .sits_stac_get_bbox(items, collection_info[["bdc:crs"]])
 
     # add resolution to file_info
-    file_info <- dplyr::mutate(file_info, res = as.numeric(items$xres),
+    file_info <- dplyr::mutate(file_info,
+                               res = as.numeric(items$xres),
                                .before = path)
 
     # create a tibble to store the metadata

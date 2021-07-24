@@ -134,7 +134,7 @@
 #' @keywords internal
 #'
 #' @param bands         a \code{character} vector with the bands name.
-#' @param s2_resolution a \code{character} withh resolution of S2 images
+#' @param s2_resolution a \code{character} with resolution of S2 images
 #'  ("10m", "20m" or "60m")
 #'
 #' @return           a \code{character} vector with the selected bands.
