@@ -108,7 +108,7 @@ sources:
                     EVI     :
                         <<: *bdc_mux_ndvi
                         band_name      : "EVI"
-                    B05     : &bdc_mux_b05
+                    B5      : &bdc_mux_b5
                         missing_value : -9999
                         minimum_value : 0
                         maximum_value : 10000
@@ -117,18 +117,18 @@ sources:
                         resampling    : "bilinear"
                         resolutions   : [20]
                         band_name     : "BAND5"
-                    B06     :
-                        <<: *bdc_mux_b05
+                    B6      :
+                        <<: *bdc_mux_b5
                         band_name     : "BAND6"
-                    B07     :
-                        <<: *bdc_mux_b05
+                    B7      :
+                        <<: *bdc_mux_b5
                         band_name     : "BAND7"
-                    B08     :
-                        <<: *bdc_mux_b05
+                    B8      :
+                        <<: *bdc_mux_b5
                         band_name     : "BAND8"
                     CLOUD   : &bdc_mux_cloud
                         bit_mask      : FALSE
-                        band_name     : "MASK"
+                        band_name     : "CMASK"
                         values        :
                             0         : "No Data"
                             127       : "Clear Pixel"
@@ -136,7 +136,25 @@ sources:
                         interp_values : [0, 255]
                         resampling    : "ngb"
                         resolutions   : [20]
-            CB4_20_1M_STK-1 : *bdc_cb4_mux
+            CB4_20_1M_STK-1 :  &bdc_cb4_mux_stk
+                bands:
+                    NDVI    : *bdc_mux_ndvi
+                    EVI     :
+                        <<: *bdc_mux_ndvi
+                        band_name     : "EVI"
+                    B5      : *bdc_mux_b5
+                    B6      :
+                        <<: *bdc_mux_b5
+                        band_name     : "BAND6"
+                    B7      :
+                        <<: *bdc_mux_b5
+                        band_name     : "BAND7"
+                    B8      :
+                        <<: *bdc_mux_b5
+                        band_name     : "BAND8"
+                    CLOUD   :
+                        <<: *bdc_mux_cloud
+                        band_name     : "MASK"
             LC8_30-1        : &bdc_lc8
                 bands       :
                     NDVI    : &bdc_oli_ndvi
@@ -192,7 +210,7 @@ sources:
                         resampling    : "ngb"
                         resolutions   : [30]
             LC8_30_16D_STK-1: *bdc_lc8
-            MOD13Q1-1       : &bdc_mod
+            MOD13Q1-6       : &bdc_mod
                 bands       :
                     NDVI              : &bdc_modis_ndvi
                         missing_value : -3000
@@ -236,7 +254,7 @@ sources:
                         interp_values : [2, 3, 255]
                         resampling    : "ngb"
                         resolutions   : [231.656]
-            MYD13Q1-1       : *bdc_mod
+            MYD13Q1-6       : *bdc_mod
             S2_10-1         : &bdc_s2
                 bands       :
                     NDVI    : &bdc_msi_ndvi

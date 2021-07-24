@@ -76,30 +76,28 @@
                                             end_date, ...) {
 
     url <- .config_src_url(source = source)
+    roi <- list(bbox = NULL, intersects = NULL)
 
     # obtain the datetime parameter for STAC like parameter
     datetime <- .sits_stac_datetime(start_date, end_date)
 
     # obtain the bounding box and intersects parameters
-    if (!is.null(bbox)) {
+    if (!is.null(bbox))
         roi <- .sits_stac_roi(bbox)
-    } else {
-        roi[c("bbox", "intersects")] <- list(NULL, NULL)
-    }
 
     # get the limit items to be returned in each page
     limit_items <- .config_rstac_limit()
 
     # creating a rstac object
-    rstac_query <- rstac::stac(url) %>%
-        rstac::stac_search(collections = collection,
-                           bbox        = roi$bbox,
-                           intersects  = roi$intersects,
-                           datetime    = datetime,
-                           limit       = limit_items)
+    rstac_query <- rstac::stac_search(q = rstac::stac(url),
+                                      collections = collection,
+                                      bbox        = roi$bbox,
+                                      intersects  = roi$intersects,
+                                      datetime    = datetime,
+                                      limit       = limit_items)
 
     # making the request
-    items_info <- rstac_query %>% rstac::post_request(...)
+    items_info <- rstac::post_request(q = rstac_query, ...)
 
     # progress bar status
     pgr_fetch  <- FALSE
@@ -109,8 +107,7 @@
         pgr_fetch <- TRUE
 
     # fetching all the metadata and updating to upper case instruments
-    items_info <- items_info %>%
-        rstac::items_fetch(progress = pgr_fetch)
+    items_info <- rstac::items_fetch(items = items_info, progress = pgr_fetch)
 
     # searching for tiles in the items
     if (!is.null(tiles))
@@ -119,8 +116,8 @@
     # checks if the items returned any items
     assertthat::assert_that(
         rstac::items_length(items_info) != 0,
-        msg = paste(".sits_deafrica_items: the provided search returned",
-                    "0 items. Please, verify the provided parameters.")
+        msg = paste(".source_items_new.deafrica_cube: the provided search",
+                    "returned 0 items. Please, verify the provided parameters.")
     )
 
     return(items_info)
@@ -140,6 +137,7 @@
 .source_items_get_sensor.deafrica_cube <- function(source,
                                                    items, ...,
                                                    collection = NULL) {
+
     items[["features"]][[1]][[c("properties", "instruments")]]
 }
 
@@ -148,6 +146,7 @@
 .source_items_get_satellite.deafrica_cube <- function(source,
                                                       items, ...,
                                                       collection = NULL) {
+
     items[["features"]][[1]][[c("properties", "platform")]]
 }
 
@@ -156,6 +155,7 @@
 .source_items_tile_get_crs.deafrica_cube <- function(source,
                                                      tile_items, ...,
                                                      collection = NULL) {
+
     tile_items[["features"]][[1]][[c("properties", "proj:epsg")]]
 }
 
@@ -164,6 +164,7 @@
 .source_items_tile_get_name.deafrica_cube <- function(source,
                                                       tile_items, ...,
                                                       collection = NULL) {
+
     tile_items[["features"]][[1]][[c("properties", "odc:region_code")]]
 }
 
@@ -172,6 +173,7 @@
 .source_items_tile_get_bbox.deafrica_cube <- function(source,
                                                       tile_items, ...,
                                                       collection = NULL) {
+
     bbox <- tile_items[["features"]][[1]][["bbox"]]
     names(bbox) <- c("xmin", "ymin", "xmax", "ymax")
 

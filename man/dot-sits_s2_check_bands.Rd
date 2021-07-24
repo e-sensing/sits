@@ -9,7 +9,7 @@
 \arguments{
 \item{bands}{a \code{character} vector with the bands name.}
 
-\item{s2_resolution}{a \code{character} withh resolution of S2 images
+\item{s2_resolution}{a \code{character} with resolution of S2 images
 ("10m", "20m" or "60m")}
 }
 \value{
