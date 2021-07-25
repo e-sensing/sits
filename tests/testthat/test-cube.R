@@ -301,7 +301,7 @@ test_that("Creating cubes from USGS", {
     usgs_cube <- sits_cube(source = "USGS",
                            name = "usgs_cube_2019",
                            collection = "landsat-c2l2-sr",
-                           bands = c("B1", "B7", "CFMASK"),
+                           bands = c("B1", "B7", "QA_PIXEL.TIF"),
                            tiles = c("140048", "140045"),
                            start_date = as.Date("2016-01-01"),
                            end_date = as.Date("2016-12-31"))
@@ -310,7 +310,7 @@ test_that("Creating cubes from USGS", {
         skip("USGS is not accessible")
     }
 
-    expect_true(all(sits_bands(usgs_cube) %in% c("B1", "B7", "CFMASK")))
+    expect_true(all(sits_bands(usgs_cube) %in% c("B1", "B7", "CLOUD")))
 
     file_info <- usgs_cube$file_info[[1]]
     r <- .sits_raster_api_open_rast(file_info$path[[1]])
@@ -383,7 +383,7 @@ test_that("Creating cubes from AWS and regularizing them", {
                          end_date = "2018-08-30"
     )
 
-    expect_true(all(sits_bands(s2_cube) %in% c("B08", "SCL")))
+    expect_true(all(sits_bands(s2_cube) %in% c("B08", "CLOUD")))
 
     file_info <- s2_cube$file_info[[1]]
     r <- sits:::.sits_raster_api_open_rast(file_info$path[[1]])
