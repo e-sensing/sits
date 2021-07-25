@@ -10,9 +10,10 @@
   name,
   bands,
   tiles,
-  bbox,
-  start_date,
-  end_date,
+  bbox = NULL,
+  start_date = NULL,
+  end_date = NULL,
+  limit = NULL,
   ...
 )
 }

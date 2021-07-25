@@ -1,6 +1,6 @@
 #' @keywords internal
 #' @export
-.source_access_test.stac_cube <- function(source, collection, ...) {
+.source_access_test.stac_cube <- function(source, collection, bands, ...) {
 
     # require package
     if (!requireNamespace("rstac", quietly = TRUE)) {
@@ -11,24 +11,20 @@
 
     items_query <- .stac_items_query(source = source,
                                      collection = collection,
-                                     limit = 1)
+                                     limit = 1, ...)
 
     # assert that service is online
     tryCatch({
-        items <- rstac::get_request(items_query)
+        items <- rstac::post_request(items_query)
     }, error = function(e) {
         stop(paste(".source_access_test.stac_cube: service is unreachable\n",
                    e$message), call. = FALSE)
     })
 
-    band <- .config_bands_band_name(source = source,
-                                    collection = collection)[[1]]
-
-
     items <- .source_items_bands_select(source = source,
                                         collection = collection,
                                         items = items,
-                                        bands = band, ...)
+                                        bands = bands[[1]], ...)
 
     href <- .source_item_get_hrefs(source = source,
                                    item = items$feature[[1]], ...,
@@ -56,7 +52,6 @@
                                    start_date,
                                    end_date, ...) {
 
-
     items_query <- .stac_items_query(source = source,
                                      collection = collection,
                                      name = name,
@@ -81,13 +76,14 @@
     cube <- purrr::map_dfr(items_lst, function(tile) {
 
         file_info <- .source_items_fileinfo(source = source,
-                                            items = tile)
+                                            items = tile, ...,
+                                            collection = collection)
 
         tile_cube <- .source_items_tile_cube(source = source,
                                              collection = collection,
                                              name = name,
                                              tile_items = tile,
-                                             file_info = file_info)
+                                             file_info = file_info, ...)
 
         return(tile_cube)
     })
@@ -184,11 +180,11 @@
                                               collection,
                                               name,
                                               tile_items,
-                                              file_info) {
+                                              file_info, ...) {
 
 
     t_bbox <- .source_items_tile_get_bbox(source = source,
-                                          tile_items = tile_items,
+                                          tile_items = tile_items, ...,
                                           collection = collection)
 
     assertthat::assert_that(
@@ -203,7 +199,7 @@
     )
 
     t_size <- .source_items_tile_get_size(source = source,
-                                          tile_items = tile_items,
+                                          tile_items = tile_items, ...,
                                           collection = collection)
 
     assertthat::assert_that(
@@ -219,7 +215,7 @@
 
     # tile name
     t_name <- .source_items_tile_get_name(source = source,
-                                          tile_items = tile_items,
+                                          tile_items = tile_items, ...,
                                           collection = collection)
 
     assertthat::assert_that(
@@ -229,7 +225,7 @@
     )
 
     t_crs <- .source_items_tile_get_crs(source = source,
-                                        tile_items = tile_items,
+                                        tile_items = tile_items, ...,
                                         collection = collection)
     assertthat::assert_that(
         is.character(t_crs) || is.numeric(t_crs),
@@ -238,7 +234,7 @@
     )
 
     t_sat <- .source_items_get_satellite(source = source,
-                                         items = tile_items,
+                                         items = tile_items, ...,
                                          collection = collection)
 
     assertthat::assert_that(
@@ -248,7 +244,7 @@
     )
 
     t_sensor <- .source_items_get_sensor(source = source,
-                                         items = tile_items,
+                                         items = tile_items, ...,
                                          collection = collection)
 
     assertthat::assert_that(
@@ -298,11 +294,12 @@
                               name,
                               bands,
                               tiles,
-                              bbox,
-                              start_date,
-                              end_date, ...) {
+                              bbox = NULL,
+                              start_date = NULL,
+                              end_date = NULL,
+                              limit = NULL, ...) {
 
-    url <- .config_sources_url(source = source)
+    url <- .config_source_url(source = source)
     roi <- list(bbox = NULL, intersects = NULL)
 
     # obtain the datetime parameter for STAC like parameter
@@ -313,7 +310,8 @@
         roi <- .sits_stac_roi(bbox)
 
     # get the limit items to be returned in each page
-    limit_items <- .config_rstac_limit()
+    if (is.null(limit))
+        limit <- .config_rstac_limit()
 
     # creating an query object to be search
     rstac_query <-  rstac::stac_search(q = rstac::stac(url),
@@ -321,7 +319,7 @@
                                        bbox        = roi$bbox,
                                        intersects  = roi$intersects,
                                        datetime    = datetime,
-                                       limit       = limit_items)
+                                       limit       = limit)
 
     return(rstac_query)
 }

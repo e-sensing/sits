@@ -4,7 +4,7 @@
 \alias{.source_items_tile_cube}
 \title{...}
 \usage{
-.source_items_tile_cube(source, collection, name, tile_items, file_info)
+.source_items_tile_cube(source, collection, name, tile_items, file_info, ...)
 }
 \arguments{
 \item{source}{Name of the STAC provider}
@@ -16,6 +16,8 @@
 \item{tile_items}{...}
 
 \item{file_info}{...}
+
+\item{...}{...}
 }
 \value{
 ...

@@ -7,7 +7,7 @@
 #' @param source     Name of the provider
 #'
 #' @return   ...
-.source_access_test <- function(source, collection, ...) {
+.source_access_test <- function(source, collection, bands, ...) {
 
     s <- .source_new(source = source)
 
@@ -321,13 +321,14 @@ NULL
 #' @param name ...
 #' @param tile_items ...
 #' @param file_info ...
+#' @param ... ...
 #'
 #' @return ...
 .source_items_tile_cube <- function(source,
                                     collection,
                                     name,
                                     tile_items,
-                                    file_info) {
+                                    file_info, ...) {
 
     s <- .source_new(source)
 

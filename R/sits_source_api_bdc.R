@@ -17,7 +17,8 @@
     href <- paste0(unname(purrr::map_chr(item[["assets"]], `[[`, "href")),
            "?access_token=", access_key)
 
-    return(href)
+    # add gdal vsi in href urls
+    return(.stac_add_gdal_vsi(href))
 }
 
 #' @keywords internal

@@ -4,7 +4,7 @@
 \alias{.source_access_test}
 \title{...}
 \usage{
-.source_access_test(source, collection, ...)
+.source_access_test(source, collection, bands, ...)
 }
 \arguments{
 \item{source}{Name of the provider}
