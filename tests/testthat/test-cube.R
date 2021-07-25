@@ -155,7 +155,7 @@ test_that("Creating a raster stack cube and selecting bands", {
     )
 
     expect_true(all(sits_bands(cbers_cube) %in%
-                        c("B13", "B14", "B15", "B16", "CMASK")))
+                        c("B13", "B14", "B15", "B16", "CLOUD")))
     rast <- .raster_open_rast(cbers_cube$file_info[[1]]$path[[1]])
     expect_true(.raster_nrows(rast) == cbers_cube$nrows[[1]])
     timeline <- sits_timeline(cbers_cube)
@@ -493,7 +493,7 @@ test_that("Creating a raster stack cube and renaming bands", {
         parse_info = c("X1", "X2", "tile", "band", "date")
     )
     expect_true(all(sits_bands(cbers_cube2) %in%
-                        c("B13", "B14", "B15", "B16", "CMASK")))
+                        c("B13", "B14", "B15", "B16", "CLOUD")))
     sits_bands(cbers_cube2) <- c("BAND13", "BAND14", "BAND15",
                                  "BAND16", "CLOUD")
     expect_true(all(sits_bands(cbers_cube2) %in%
@@ -516,6 +516,6 @@ test_that("Creating a raster stack cube with BDC band names", {
         parse_info = c("X1", "X2", "X3", "X4", "X5", "tile", "date", "X6", "band")
     )
     expect_true(all(sits_bands(cbers_cube_bdc) %in%
-                        c("BAND16")))
+                        c("B16")))
 
 })
