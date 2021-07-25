@@ -646,7 +646,7 @@ sits_cube.probs_cube <- function(source = "PROBS", ...,
                         probs_files[[i]]))
 
         # get the file params
-        params <- .sits_raster_api_params_file(probs_files[[i]])
+        params <- .raster_params_file(probs_files[[i]])
 
         # build the file information
         file_info <- tibble::tibble(
@@ -851,6 +851,11 @@ sits_cube_copy <- function(cube,
 .cube_sensor <- function(cube) {
 
     cube[["sensor"]][[1]]
+}
+
+.cube_collection <- function(cube) {
+
+    cube[["collection"]][[1]]
 }
 
 .cube_name <- function(cube) {

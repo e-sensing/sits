@@ -47,7 +47,7 @@ test_that("Plot Time Series and Images", {
         parse_info = c("X1", "X2", "tile", "band", "date")
     )
     v_stack <- sits_view(sinop, red = "NDVI", blue = "NDVI", green = "NDVI")
-    expect_equal(sits:::.sits_raster_api_nrows(v_stack@object[[1]]), 144)
+    expect_equal(sits:::.raster_nrows(v_stack@object[[1]]), 144)
     expect_equal(v_stack@map[[1]]$options$maxZoom, 52)
 
     sinop_probs <- suppressMessages(
@@ -72,7 +72,7 @@ test_that("Plot Time Series and Images", {
     expect_true(p4$layers[[1]]$inherit.aes)
 
     v4 <- sits_view(sinop_labels, time = 1)
-    expect_equal(sits:::.sits_raster_api_nrows(v4@object[[1]]), 144)
+    expect_equal(sits:::.raster_nrows(v4@object[[1]]), 144)
     expect_equal(v4@map$x$options$maxZoom, 52)
     expect_true(all(file.remove(unlist(sinop_probs$file_info[[1]]$path))))
     expect_true(all(file.remove(unlist(sinop_labels$file_info[[1]]$path))))
@@ -97,7 +97,7 @@ test_that("Plot Stack Images", {
         parse_info = c("X1", "X2", "tile", "band", "date")
     )
     v_cbers <- sits_view(cbers_cube, red = "B15", green = "B16", blue = "B13")
-    expect_equal(sits:::.sits_raster_api_nrows(v_cbers@object[[1]]), 50)
+    expect_equal(sits:::.raster_nrows(v_cbers@object[[1]]), 50)
     expect_equal(v_cbers@map[[1]]$options$maxZoom, 52)
 })
 

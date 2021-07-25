@@ -110,18 +110,18 @@ sits_view.raster_cube <- function(x, ...,
     rgb_files <- c(red_file, green_file, blue_file)
 
     # use the raster package to obtain a raster object from a stack
-    r_obj <- .sits_raster_api_open_stack.raster(rgb_files)
+    r_obj <- .raster_open_stack.raster(rgb_files)
 
     # extract region of interest
     if (!purrr::is_null(roi)) {
 
         roi <- .sits_raster_sub_image(cube = x, roi = roi)
 
-        r_obj <- .sits_raster_api_crop.raster(r_obj = r_obj, block = roi)
+        r_obj <- .raster_crop.raster(r_obj = r_obj, block = roi)
     }
 
     assertthat::assert_that(
-        .sits_raster_api_ncols(r_obj) > 0 && .sits_raster_api_nrows(r_obj) > 0,
+        .raster_ncols(r_obj) > 0 && .raster_nrows(r_obj) > 0,
         msg = "view.raster_cube: unable to retrieve raster data"
     )
 
@@ -168,13 +168,13 @@ sits_view.classified_image <- function(x,...,
     }
 
     # obtain the raster
-    r_obj <- .sits_raster_api_open_rast.raster(
+    r_obj <- .raster_open_rast.raster(
         file = x$file_info[[1]]$path[[time]]
     )[[1]]
 
     assertthat::assert_that(
-        .sits_raster_api_ncols.raster(r_obj) > 0 &&
-            .sits_raster_api_nrows.raster(r_obj) > 0,
+        .raster_ncols.raster(r_obj) > 0 &&
+            .raster_nrows.raster(r_obj) > 0,
         msg = "plot: unable to retrive raster data"
     )
 

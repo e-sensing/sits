@@ -138,14 +138,14 @@
             # try to open the file
             r_obj <-
                 tryCatch({
-                    .sits_raster_api_open_rast(filename_block)
+                    .raster_open_rast(filename_block)
                 }, error = function(e) {
                     return(NULL)
                 })
             # if file can be opened, check if the result is correct
             # this file will not be processed again
             if (!purrr::is_null(r_obj))
-                if (.sits_raster_api_nrows(r_obj) == b[["nrows"]]) {
+                if (.raster_nrows(r_obj) == b[["nrows"]]) {
                     # log
                     .sits_log(output_dir = output_dir,
                               event      = "skipping block",
@@ -201,7 +201,7 @@
         params <- .sits_cube_params_block(tile, b)
 
         # create a new raster
-        r_obj <- .sits_raster_api_new_rast(
+        r_obj <- .raster_new_rast(
             nrows   = params$nrows,
             ncols   = params$ncols,
             xmin    = params$xmin,
@@ -213,15 +213,15 @@
         )
 
         # copy values
-        r_obj <- .sits_raster_api_set_values(r_obj  = r_obj,
+        r_obj <- .raster_set_values(r_obj  = r_obj,
                                              values = pred_block)
 
         # write the probabilities to a raster file
-        .sits_raster_api_write_rast(
+        .raster_write_rast(
             r_obj        = r_obj,
             file         = filename_block,
             format       = "GTiff",
-            data_type    = .sits_raster_api_data_type("INT2U"),
+            data_type    = .raster_data_type("INT2U"),
             gdal_options = .config_gtiff_default_options(),
             overwrite    = TRUE
         )
@@ -241,11 +241,11 @@
               event      = "end classification")
 
     # join predictions
-    .sits_raster_api_merge(
+    .raster_merge(
         in_files = filenames,
         out_file = probs_cube$file_info[[1]]$path,
         format = "GTiff",
-        gdal_datatype = .sits_raster_api_gdal_datatype("INT2U"),
+        gdal_datatype = .raster_gdal_datatype("INT2U"),
         gdal_options = .config_gtiff_default_options(),
         overwrite = TRUE
     )

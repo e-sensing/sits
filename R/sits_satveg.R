@@ -34,7 +34,9 @@
     crs <- .sits_config_satveg_projection(collection)
 
     # get the resolution of the product
-    res <- .sits_config_resolution("SATVEG", collection, "NDVI")
+    res <- .config_bands_resolution(source = "SATVEG",
+                                    collection = collection,
+                                    bands = "NDVI")
     xres <- res["xres"]
     yres <- res["yres"]
 

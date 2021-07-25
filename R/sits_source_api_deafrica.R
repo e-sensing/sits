@@ -24,7 +24,7 @@
     # checks if the search return zero items
     assertthat::assert_that(
         rstac::items_length(items) != 0,
-        msg = paste(".sits_deafrica_search_tiles: the supplied tile(s) were",
+        msg = paste(".deafrica_search_tiles: the supplied tile(s) were",
                     "not found.")
     )
 

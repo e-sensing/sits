@@ -86,12 +86,17 @@
         collection <- paste0(satellite, "/", sensor)
 
         # convert the names of the bands to those used by SITS
-        bands_sits <- .sits_config_bands_guess(source = "LOCAL",
-                                               collection = collection,
-                                               bands = bands_files)
+        bands_converter <- .source_bands_to_sits(source = "LOCAL",
+                                                 collection = collection,
+                                                 bands = bands_files)
+
+        names(bands_converter) <- .source_bands_to_source(source = "LOCAL",
+                                                          collection = collection,
+                                                          bands = bands_files)
 
         # convert the band names to SITS bands
-        file_info <- dplyr::mutate(file_info, band = unname(bands_sits[band]))
+        file_info <- dplyr::mutate(file_info,
+                                   band = unname(bands_converter[band]))
 
         # filter bands
         if (!purrr::is_null(bands)) {
@@ -115,7 +120,7 @@
             file_info <- dplyr::filter(file_info,
                                        date >= start_date & date <= end_date)
 
-        params <- .sits_raster_api_params_file(file_info$path[1])
+        params <- .raster_params_file(file_info$path[1])
         resolution <- params$xres
         file_info <- dplyr::mutate(file_info,
                                    res = resolution, .before = path)
@@ -158,7 +163,7 @@
         bands <- unique(row_file_info$band)
         # get the parameters from the raster object of one of the layers
         # the assumptions is that all layers are consistent
-        params <- .sits_raster_api_params_file(row_file_info$path[1])
+        params <- .raster_params_file(row_file_info$path[1])
 
         # create a tibble to store the metadata
         row <- .sits_cube_create(

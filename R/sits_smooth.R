@@ -183,7 +183,7 @@ sits_smooth.bayes <- function(cube, type = "bayes", ...,
     # Bayesian smoother to be executed by workers cluster
     .do_bayes <- function(chunk) {
 
-        data <- .sits_raster_api_get_values(r_obj = chunk)
+        data <- .raster_get_values(r_obj = chunk)
 
         # fix probabilities
         maxprob <- mult_factor - ncol(data) + 1
@@ -195,8 +195,8 @@ sits_smooth.bayes <- function(cube, type = "bayes", ...,
 
         # process Bayesian
         data <- bayes_smoother(m = logit,
-                               m_nrow = .sits_raster_api_nrows(chunk),
-                               m_ncol = .sits_raster_api_ncols(chunk),
+                               m_nrow = .raster_nrows(chunk),
+                               m_ncol = .raster_ncols(chunk),
                                w = window,
                                sigma = smoothness,
                                covar_sigma0 = covar)
@@ -205,11 +205,11 @@ sits_smooth.bayes <- function(cube, type = "bayes", ...,
         data <- exp(data) * mult_factor / (exp(data) + 1)
 
         # create cube smooth
-        res <- .sits_raster_api_rast(r_obj = chunk,
-                                     nlayers = .sits_raster_api_nlayers(chunk))
+        res <- .raster_rast(r_obj = chunk,
+                                     nlayers = .raster_nlayers(chunk))
 
         # copy values
-        res <- .sits_raster_api_set_values(r_obj = res,
+        res <- .raster_set_values(r_obj = res,
                                            values = data)
 
         return(res)
@@ -224,7 +224,7 @@ sits_smooth.bayes <- function(cube, type = "bayes", ...,
         func = .do_bayes,
         multicores = multicores,
         memsize = memsize,
-        gdal_datatype = .sits_raster_api_gdal_datatype("INT2U"),
+        gdal_datatype = .raster_gdal_datatype("INT2U"),
         gdal_options = .config_gtiff_default_options()
     )
 
@@ -294,21 +294,21 @@ sits_smooth.gaussian <- function(cube, type = "gaussian", ...,
     .do_gauss <- function(chunk) {
 
         # scale probabilities
-        data <- .sits_raster_api_get_values(r_obj = chunk) * scale_factor
+        data <- .raster_get_values(r_obj = chunk) * scale_factor
 
         # process Gaussian smoother
         data <- kernel_smoother(m = data,
-                                m_nrow = .sits_raster_api_nrows(chunk),
-                                m_ncol = .sits_raster_api_ncols(chunk),
+                                m_nrow = .raster_nrows(chunk),
+                                m_ncol = .raster_ncols(chunk),
                                 w = gauss_kernel,
                                 normalised = TRUE)
 
         # create cube smooth
-        res <- .sits_raster_api_rast(r_obj = chunk,
-                                     nlayers = .sits_raster_api_nlayers(chunk))
+        res <- .raster_rast(r_obj = chunk,
+                                     nlayers = .raster_nlayers(chunk))
 
         # copy values
-        res <- .sits_raster_api_set_values(r_obj = res,
+        res <- .raster_set_values(r_obj = res,
                                            values = data * mult_factor)
         return(res)
     }
@@ -322,7 +322,7 @@ sits_smooth.gaussian <- function(cube, type = "gaussian", ...,
         func = .do_gauss,
         multicores = multicores,
         memsize = memsize,
-        gdal_datatype = .sits_raster_api_gdal_datatype("INT2U"),
+        gdal_datatype = .raster_gdal_datatype("INT2U"),
         gdal_options = .config_gtiff_default_options()
     )
 
@@ -401,21 +401,21 @@ sits_smooth.bilateral <- function(cube,
     .do_bilateral <- function(chunk) {
 
         # scale probabilities
-        data <- .sits_raster_api_get_values(r_obj = chunk) * scale_factor
+        data <- .raster_get_values(r_obj = chunk) * scale_factor
 
         # process bilateral smoother
         data <- bilateral_smoother(m = data,
-                                  m_nrow = .sits_raster_api_nrows(chunk),
-                                  m_ncol = .sits_raster_api_ncols(chunk),
+                                  m_nrow = .raster_nrows(chunk),
+                                  m_ncol = .raster_ncols(chunk),
                                   w = gauss_kernel,
                                   tau = tau)
 
         # create cube smooth
-        res <- .sits_raster_api_rast(r_obj = chunk,
-                                     nlayers = .sits_raster_api_nlayers(chunk))
+        res <- .raster_rast(r_obj = chunk,
+                                     nlayers = .raster_nlayers(chunk))
 
         # copy values
-        res <- .sits_raster_api_set_values(r_obj = res,
+        res <- .raster_set_values(r_obj = res,
                                            values = data * mult_factor)
 
         return(res)
@@ -430,7 +430,7 @@ sits_smooth.bilateral <- function(cube,
         func = .do_bilateral,
         multicores = multicores,
         memsize = memsize,
-        gdal_datatype = .sits_raster_api_gdal_datatype("INT2U"),
+        gdal_datatype = .raster_gdal_datatype("INT2U"),
         gdal_options = .config_gtiff_default_options()
     )
 

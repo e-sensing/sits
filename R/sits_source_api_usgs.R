@@ -1,3 +1,64 @@
+#' @title Format tile parameter provided by users
+#' @name .usgs_format_tiles
+#' @keywords internal
+#'
+#' @param tiles     a \code{character} vector with the tiles provided by users.
+#'
+#' @return          a \code{tibble} with attributes of wrs path and row.
+.usgs_format_tiles <- function(tiles) {
+
+    # regex pattern of wrs_path and wrs_row
+    pattern_l8 <- "[0-9]{6}"
+
+    # verify tile pattern
+    if (!any(grepl(pattern_l8, tiles, perl = TRUE)))
+        stop(paste("The specified tiles do not match the Landsat-8 grid",
+                   "pattern. See the user guide for more information."))
+
+    # list to store the info about the tiles to provide the query in STAC
+    list_tiles <- purrr::map(tiles, function(tile) {
+
+        c(wrs_path = substring(tile, 1, 3),
+          wrs_row = substring(tile, 4, 6))
+    })
+
+    # bind into a tibble all tiles
+    tiles_tbl <- dplyr::bind_rows(list_tiles)
+
+    return(tiles_tbl)
+}
+
+#' @title Filter datetime in STAC items
+#' @name .usgs_filter_datetime
+#' @keywords internal
+#'
+#' @param items      a \code{STACItemCollection} object returned by rstac
+#' package.
+#' @param datetime  a \code{character} ...
+#'
+#' @return  a \code{STACItemCollection} object with datetime filtered.
+.usgs_filter_datetime <- function(items, datetime) {
+
+    split_datetime <- strsplit(x = datetime, split = "/")
+
+    start_date <- split_datetime[[1]][[1]]
+    end_date <- split_datetime[[1]][[2]]
+
+    # checks if the supplied tiles are in the searched items
+    index_features <- purrr::map_lgl(items$features, function(feature) {
+        datetime <- lubridate::date(feature[["properties"]][["datetime"]])
+
+        if (datetime >= start_date && datetime <= end_date)
+            return(TRUE)
+        return(FALSE)
+    })
+
+    # select the tiles found in the search
+    items$features <- items$features[index_features]
+
+    items
+}
+
 .source_access_test.usgs_cube <- function(source, collection, bands, ...) {
 
     # require package
@@ -145,67 +206,6 @@
     return(items_info)
 }
 
-#' @title Format tile parameter provided by users
-#' @name .sits_usgs_format_tiles
-#' @keywords internal
-#'
-#' @param tiles     a \code{character} vector with the tiles provided by users.
-#'
-#' @return          a \code{tibble} with attributes of wrs path and row.
-.usgs_format_tiles <- function(tiles) {
-
-    # regex pattern of wrs_path and wrs_row
-    pattern_l8 <- "[0-9]{6}"
-
-    # verify tile pattern
-    if (!any(grepl(pattern_l8, tiles, perl = TRUE)))
-        stop(paste("The specified tiles do not match the Landsat-8 grid",
-                   "pattern. See the user guide for more information."))
-
-    # list to store the info about the tiles to provide the query in STAC
-    list_tiles <- purrr::map(tiles, function(tile) {
-
-        c(wrs_path = substring(tile, 1, 3),
-          wrs_row = substring(tile, 4, 6))
-    })
-
-    # bind into a tibble all tiles
-    tiles_tbl <- dplyr::bind_rows(list_tiles)
-
-    return(tiles_tbl)
-}
-
-#' @title Filter datetime in STAC items
-#' @name .sits_usgs_filter_datetime
-#' @keywords internal
-#'
-#' @param items      a \code{STACItemCollection} object returned by rstac
-#' package.
-#' @param datetime  a \code{character} ...
-#'
-#' @return  a \code{STACItemCollection} object with datetime filtered.
-.usgs_filter_datetime <- function(items, datetime) {
-
-    split_datetime <- strsplit(x = datetime, split = "/")
-
-    start_date <- split_datetime[[1]][[1]]
-    end_date <- split_datetime[[1]][[2]]
-
-    # checks if the supplied tiles are in the searched items
-    index_features <- purrr::map_lgl(items$features, function(feature) {
-        datetime <- lubridate::date(feature[["properties"]][["datetime"]])
-
-        if (datetime >= start_date && datetime <= end_date)
-            return(TRUE)
-        return(FALSE)
-    })
-
-    # select the tiles found in the search
-    items$features <- items$features[index_features]
-
-    items
-}
-
 #' @keywords internal
 #' @export
 .source_items_tiles_group.usgs_cube <- function(source,
@@ -255,10 +255,10 @@
                                    collection = collection)
 
     # read the first image and obtain crs attribute
-    params <- .sits_raster_api_params_file(href)
+    params <- .raster_params_file(href)
 
     # format collection crs
-    crs <- .sits_format_crs(params[["crs"]])
+    crs <- .stac_format_crs(params[["crs"]])
 
     return(crs)
 }
@@ -282,7 +282,7 @@
                                       tile_items = tile_items,
                                       collection = collection)
 
-    bbox <- .sits_stac_get_bbox(tile_items, crs)
+    bbox <- .stac_get_bbox(tile_items, crs)
 
     return(bbox)
 }
@@ -298,7 +298,7 @@
                                    collection = collection)
 
     # read the first image and obtain the size parameters
-    params <- .sits_raster_api_params_file(href)
+    params <- .raster_params_file(href)
 
     size <- c(nrows = params[["nrows"]], ncols = params[["ncols"]])
 

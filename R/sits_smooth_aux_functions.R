@@ -149,16 +149,16 @@
     .sits_cluster_worker_fun <- function(block, in_file, func, args) {
 
         # open brick
-        b <- .sits_raster_api_open_rast(in_file)
+        b <- .raster_open_rast(in_file)
 
         # create extent
         blk_overlap <- list(row = block$r1,
                             nrows = block$r2 - block$r1 + 1,
                             col = 1,
-                            ncols = .sits_raster_api_ncols(b))
+                            ncols = .raster_ncols(b))
 
         # crop adding overlaps
-        chunk <- .sits_raster_api_crop(r_obj = b, block = blk_overlap)
+        chunk <- .raster_crop(r_obj = b, block = blk_overlap)
 
         # process it
         res <- do.call(func, args = c(list(chunk = chunk), args))
@@ -168,21 +168,21 @@
         blk_no_overlap <- list(row = block$o1,
                                nrows = block$o2 - block$o1 + 1,
                                col = 1,
-                               ncols = .sits_raster_api_ncols(res))
+                               ncols = .raster_ncols(res))
 
         # crop removing overlaps
-        res <- .sits_raster_api_crop(res, block = blk_no_overlap)
+        res <- .raster_crop(res, block = blk_no_overlap)
 
         # export to temp file
         filename <- tempfile(tmpdir = dirname(cube$file_info[[1]]$path),
                              fileext = ".tif")
 
         # save chunk
-        .sits_raster_api_write_rast(
+        .raster_write_rast(
             r_obj = res,
             file = filename,
             format = "GTiff",
-            data_type = .sits_raster_api_data_type("FLT4S"),
+            data_type = .raster_data_type("FLT4S"),
             gdal_options = .config_gtiff_default_options(),
             overwrite = TRUE
         )
@@ -227,7 +227,7 @@
         # merge to save final result
 
         suppressWarnings(
-            .sits_raster_api_merge(
+            .raster_merge(
                 in_files = tmp_blocks,
                 out_file = out_file,
                 format = "GTiff",
