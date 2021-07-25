@@ -12,7 +12,7 @@
         value <- sits_env$config[[key]]
     },
     error = function(e) {
-        if (missing(default))
+        if (is.null(default))
             stop(paste(".config_get:", paste0(key, collapse = "$"),
                        "not found in sits config."), call. = FALSE)
     })
@@ -102,9 +102,10 @@
                                     fn_filter = NULL,
                                     add_cloud = TRUE) {
 
-    .config_bands_reap(source = .cube_source(cube = cube),
-                       collection = .cube_collection(cube = cube),
-                       key = "band_name", bands = bands,
+    .config_bands_reap(source = source,
+                       collection = collection,
+                       key = "band_name",
+                       bands = bands,
                        fn_filter = fn_filter,
                        add_cloud = add_cloud)
 }
