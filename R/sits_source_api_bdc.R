@@ -146,6 +146,6 @@
     if (is.null(size))
         size <- tile_items[["features"]][[1]][["assets"]][[1]][["raster_size"]]
 
-    names(size) <- c("nrows", "ncols")
+    names(size) <- c("ncols", "nrows")
     return(unlist(size))
 }
