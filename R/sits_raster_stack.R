@@ -85,18 +85,12 @@
         # create collection name
         collection <- paste0(satellite, "/", sensor)
 
-        # convert the names of the bands to those used by SITS
-        bands_converter <- .source_bands_to_sits(source = "LOCAL",
-                                                 collection = collection,
-                                                 bands = bands_files)
-
-        names(bands_converter) <- .source_bands_to_source(source = "LOCAL",
-                                                          collection = collection,
-                                                          bands = bands_files)
-
         # convert the band names to SITS bands
-        file_info <- dplyr::mutate(file_info,
-                                   band = unname(bands_converter[band]))
+        file_info <- dplyr::mutate(
+            file_info,
+            band = .source_bands_to_sits(source = "LOCAL",
+                                         collection = collection,
+                                         bands = band))
 
         # filter bands
         if (!purrr::is_null(bands)) {

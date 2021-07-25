@@ -98,7 +98,7 @@
 
     # assert that token and/or href is valid
     tryCatch({
-        .sits_raster_api_open_rast(href)
+        .raster_open_rast(href)
     }, error = function(e) {
         stop(paste(".source_access_test.stac_cube: cannot open url\n",
                    href, "\n", e$message), call. = FALSE)

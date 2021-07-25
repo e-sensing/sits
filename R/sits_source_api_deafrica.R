@@ -155,7 +155,7 @@
                                       tile_items = tile_items,
                                       collection = collection)
 
-    bbox <- .sits_stac_get_bbox(tile_items, crs)
+    bbox <- .stac_get_bbox(tile_items, crs)
 
     return(bbox)
 }

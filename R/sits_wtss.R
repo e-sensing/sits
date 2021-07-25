@@ -25,8 +25,8 @@
     )
 
     # retrieve information about the bands
-    bands <- .sits_config_bands(source = "WTSS",
-                                collection = collection)
+    bands <- .config_bands(source = "WTSS",
+                           collection = collection)
 
     file_info <- tibble::tibble(date = cov$timeline,
                                 path = URL)

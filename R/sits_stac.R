@@ -175,11 +175,11 @@
     roi <- list(bbox = NULL, intersects = NULL)
 
     # obtain the datetime parameter for STAC like parameter
-    datetime <- .sits_stac_datetime(start_date, end_date)
+    datetime <- .stac_datetime(start_date, end_date)
 
     # obtain the bounding box and intersects parameters
     if (!is.null(bbox))
-        roi <- .sits_stac_roi(bbox)
+        roi <- .stac_roi(bbox)
 
     # get the limit items to be returned in each page
     if (is.null(limit))
