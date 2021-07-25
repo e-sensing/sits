@@ -313,14 +313,10 @@
 #' @return      a \code{character} formatted as parameter to STAC requisition.
 .sits_stac_datetime <- function(start_date, end_date) {
 
-    # ensuring that start_date and end_date were provided
-    assertthat::assert_that(
-        !purrr::is_null(start_date) && !purrr::is_null(end_date),
-        msg = paste("sits_cube: for STAC_CUBE start_date",
-                    "and end_date must be provided"))
-
+    datetime <- NULL
     # adding the dates according to RFC 3339
-    datetime <- paste(start_date, end_date, sep = "/")
+    if (!purrr::is_null(start_date) && !purrr::is_null(end_date))
+        datetime <- paste(start_date, end_date, sep = "/")
 
     return(datetime)
 }
@@ -340,6 +336,34 @@
         dplyr::mutate(date = lubridate::as_date(as.character(date)))
 
     return(assets_info)
+}
+
+#' @title ...
+#' @name .stac_add_gdal_vsi
+#' @keywords internal
+#'
+#' @param href a \code{character} ...
+#'
+#' @return ...
+.stac_add_gdal_vsi <- function(href) {
+
+    index <- grepl("^http|[s]://.*", href)
+    if (any(index))
+        href[index] <- paste("/vsicurl", href[index], sep = "/")
+
+    index <- grepl("^s3://.*", href)
+    if (any(index))
+        href[index] <- paste("/vsis3",
+                             gsub("^s3://(.*)$", "\\1", href[index]),
+                             sep = "/")
+
+    index <- grepl("^gs://.*", href)
+    if (any(index))
+        href[index] <- paste("/vsigs",
+                             gsub("^gs://(.*)$", "\\1", href[index]),
+                             sep = "/")
+
+    return(href)
 }
 
 #' @title Get the STAC information corresponding to a bbox extent
@@ -410,7 +434,7 @@
         file_info  = file_info)
 
     bands_sits <- .sits_config_collection_bands(source = tile$source,
-                                          collection = tile$collection)
+                                                collection = tile$collection)
     if (!all(tile$bands[[1]] %in% bands_sits)) {
         bands_sits <- .sits_config_bands_reverse(source = tile$source,
                                                  collection = tile$collection,

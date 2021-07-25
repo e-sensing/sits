@@ -341,14 +341,16 @@ sits_cube.bdc_cube <- function(source = "BDC", ...,
                                collection = collection)
 
     assertthat::assert_that(
-        all(bands %in% c(config_bands(source = source, collection = collection),
-                         config_bands_band_name(source = source,
+        all(bands %in% c(.config_bands(source = source, collection = collection),
+                         .config_bands_band_name(source = source,
                                                 collection = collection))),
         msg = "sits_cube.bdc_cube: invalid bands.\nPlease the provided bands."
     )
 
     # check if source can be access
-    .source_access_test(source = source, collection = collection, ...)
+    .source_access_test(source = source,
+                        collection = collection,
+                        bands = bands, ...)
 
     .source_cube(source = source,
                  collection = collection,
@@ -358,7 +360,6 @@ sits_cube.bdc_cube <- function(source = "BDC", ...,
                  bbox = bbox,
                  start_date = start_date,
                  end_date = end_date, ...)
-
 }
 
 #' @rdname sits_cube
@@ -398,15 +399,17 @@ sits_cube.deafrica_cube <- function(source = "DEAFRICA", ...,
                                collection = collection)
 
     assertthat::assert_that(
-        all(bands %in% c(config_bands(source = source, collection = collection),
-                         config_bands_band_name(source = source,
+        all(bands %in% c(.config_bands(source = source, collection = collection),
+                         .config_bands_band_name(source = source,
                                                 collection = collection))),
         msg = paste("sits_cube.deafrica_cube: invalid bands.\nPlease the",
                     "provided bands.")
     )
 
     # check if source can be access
-    .source_access_test(source = source, collection = collection, ...)
+    .source_access_test(source = source,
+                        collection = collection,
+                        bands = bands, ...)
 
     .source_cube(source = source,
                  collection = collection,
@@ -476,7 +479,8 @@ sits_cube.aws_cube <- function(source = "AWS", ...,
 
     # check if source can be access
     .source_access_test(source = source,
-                        collection = collection, ...,
+                        collection = collection,
+                        bands = bands, ...,
                         s2_resolution = s2_resolution)
 
     .source_cube(source = source,
@@ -527,15 +531,18 @@ sits_cube.usgs_cube <- function(source = "USGS", ...,
                                collection = collection)
 
     assertthat::assert_that(
-        all(bands %in% c(config_bands(source = source, collection = collection),
-                         config_bands_band_name(source = source,
+        all(bands %in% c(.config_bands(source = source, collection = collection),
+                         .config_bands_band_name(source = source,
                                                 collection = collection))),
         msg = paste("sits_cube.usgs_cube: invalid bands.\nPlease the",
                     "provided bands.")
     )
 
     # check if source can be access
-    .source_access_test(source = source, collection = collection, ...)
+    .source_access_test(source = source,
+                        collection = collection,
+                        bands = bands, ...,
+                        force_version = "0.9.0")
 
     .source_cube(source = source,
                  collection = collection,
@@ -544,7 +551,8 @@ sits_cube.usgs_cube <- function(source = "USGS", ...,
                  tiles = tiles,
                  bbox = bbox,
                  start_date = start_date,
-                 end_date = end_date, ...)
+                 end_date = end_date, ...,
+                 force_version = "0.9.0")
 }
 
 #' @rdname sits_cube
