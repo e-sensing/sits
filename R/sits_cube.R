@@ -695,8 +695,8 @@ sits_cube.satveg_cube <- function(source = "SATVEG", ...,
     url <- .sits_config_satveg_access()
 
     # test if SATVEG is accessible
-    if (!(.sits_config_source_test(url, "SATVEG")))
-        return(NULL)
+    # if (!(.sits_config_source_test(url, "SATVEG")))
+    #     return(NULL)
     # OK
     cube <- .sits_satveg_cube(collection)
     return(cube)
