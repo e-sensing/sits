@@ -151,44 +151,6 @@ sits_config_show <- function() {
     return(sits_env$config$sources[[source]][["AWS_REQUEST_PAYER"]])
 }
 
-#' @title Convert bands names from SITS to cube
-#' @name .sits_config_bands_guess
-#' @keywords internal
-#'
-#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
-#'
-#' @description Convert the name of the band used by SITS to
-#'     the names used by the STAC provider
-#'
-#' @param source     Name of the STAC provider
-#' @param collection Name of sensor
-#' @param bands      Bands requested to be read
-#'
-#' @return           Name of the bands used in the STAC provider
-.sits_config_bands_guess <- function(source, collection, bands) {
-
-    bands <- unique(bands)
-
-    # bands sits
-    bands_sits <- .sits_config_collection_bands(source, collection)
-    names(bands_sits) <- bands_sits
-
-    # bands source
-    bands_stac <- .config_bands_band_name(source, collection)
-    bands_values <- names(bands_stac)
-    names(bands_values) <- unname(bands_stac)
-
-    convert_bands <- c(bands_values, bands_sits)
-
-    # are the bands specified as cloud provider bands or as sits bands?
-    assertthat::assert_that(
-        all(bands %in% names(convert_bands)),
-        msg = paste(".sits_config_bands_guess: required bands not",
-                    "available in", source))
-
-    return(convert_bands[bands])
-}
-
 #' @title Test if cube is available via URL
 #' @name .sits_config_cube_access
 #' @keywords internal
@@ -219,7 +181,7 @@ sits_config_show <- function() {
 
     f <- cube$file_info[[1]]$path[[1]]
     access <- tryCatch({
-        r <- .sits_raster_api_open_rast(f)
+        r <- .raster_open_rast(f)
         return(TRUE)
     }, error = function(e){
         message(paste0("raster file ", f, " is not accessible"))
@@ -550,87 +512,3 @@ sits_config_show <- function() {
                     "by SITS - edit configuration file")
     )
 }
-
-#' @title Get the the bands in AWS for Sentinel-2 ARD given the resolution
-#' @name .sits_config_s2_bands
-#' @keywords internal
-#' @param resolution       Resolution of the bands
-#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
-#'
-#' @return vector with bands available in AWS for a given resolution
-.sits_config_s2_bands <- function(source, collection, bands, resolution) {
-
-    if (is.null(bands))
-        bands <- .config_bands_band_name(source = source,
-                                          collection = collection)
-
-    col <- sits_env$config$sources[[source]]$collections[[collection]]
-    bands_selected <- vector()
-
-    # is the cloud band provided?
-    if (col$cloud_band$band_name %in% bands ||
-        col$cloud_band$sits_name %in% bands) {
-
-        cloud <- bands[bands %in% c(col$cloud_band$band_name,
-                                    col$cloud_band$sits_name)]
-
-        # make sure that provided resolution is valid
-        assertthat::assert_that(resolution %in% col$cloud_band$resolutions,
-                                msg = paste(".sits_config_s2_bands: Sentinel-2",
-                                            "in AWS - wrong resolution for",
-                                            "cloud band")
-        )
-
-        bands_selected <- c(bands_selected, cloud)
-        bands <- bands[!bands == cloud]
-    }
-
-    bands_index <- purrr::map_lgl(bands, function(band) {
-        if (resolution %in% col$bands[[band]]$resolutions)
-            return(TRUE)
-        return(FALSE)
-    })
-
-    bands_selected <- c(bands_selected, bands[bands_index])
-
-    assertthat::assert_that(length(bands_selected) != 0,
-                            msg = paste(".sits_config_s2_bands: Sentinel-2 in",
-                                        "AWS - wrong resolution")
-    )
-
-    return(bands_selected)
-}
-#' @title Retrieve the scale factor for a given band for a data cube
-#' @name .sits_config_scale_factors
-#' @keywords internal
-#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
-#'
-#' @param cube Name of the sensor.
-#' @param bands Vector of bands.
-#' @return Vector of scale factors.
-.sits_config_scale_factors <- function(cube, bands) {
-
-    source <- cube$source[[1]]
-    collection <- cube$collection[[1]]
-
-    col <- sits_env$config$sources[[source]]$collections[[collection]]
-
-    scale_f <- vector()
-    bands %>%
-        purrr::map(function(b) {
-            scale_f[b] <<-
-                as.numeric(col$bands[[b]][["scale_factor"]])
-        })
-    names(scale_f) <- bands
-    # post-condition
-    assertthat::assert_that(
-        !purrr::is_null(scale_f),
-        msg = paste0(
-            "No scale factors for sensor",
-            cube$sensor,
-            " edit configuration file"
-        )
-    )
-    return(scale_f)
-}
-

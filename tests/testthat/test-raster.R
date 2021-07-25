@@ -30,14 +30,14 @@ test_that("One-year, single core classification", {
     )
 
     expect_true(all(file.exists(unlist(sinop_probs$file_info[[1]]$path))))
-    r_obj <- sits:::.sits_raster_api_open_rast(sinop_probs$file_info[[1]]$path[[1]])
+    r_obj <- sits:::.raster_open_rast(sinop_probs$file_info[[1]]$path[[1]])
 
-    expect_true(sits:::.sits_raster_api_nrows(r_obj) == sinop_probs$nrows)
+    expect_true(sits:::.raster_nrows(r_obj) == sinop_probs$nrows)
 
-    max_lyr1 <- max(sits:::.sits_raster_api_get_values(r_obj)[, 1])
+    max_lyr1 <- max(sits:::.raster_get_values(r_obj)[, 1])
     expect_true(max_lyr1 <= 10000)
 
-    max_lyr3 <- max(sits:::.sits_raster_api_get_values(r_obj)[, 3])
+    max_lyr3 <- max(sits:::.raster_get_values(r_obj)[, 3])
     expect_true(max_lyr3 <= 10000)
 
     expect_true(all(file.remove(unlist(sinop_probs$file_info[[1]]$path))))
@@ -71,13 +71,13 @@ test_that("One-year, multicore classification", {
     )
 
     expect_true(all(file.exists(unlist(sinop_probs$file_info[[1]]$path))))
-    r_obj <- .sits_raster_api_open_rast(sinop_probs$file_info[[1]]$path[[1]])
-    expect_true(.sits_raster_api_nrows(r_obj) == sinop_probs$nrows)
+    r_obj <- .raster_open_rast(sinop_probs$file_info[[1]]$path[[1]])
+    expect_true(.raster_nrows(r_obj) == sinop_probs$nrows)
 
-    max_lyr2 <- max(.sits_raster_api_get_values(r_obj)[, 2])
+    max_lyr2 <- max(.raster_get_values(r_obj)[, 2])
     expect_true(max_lyr2 <= 10000)
 
-    max_lyr3 <- max(.sits_raster_api_get_values(r_obj)[, 3])
+    max_lyr3 <- max(.raster_get_values(r_obj)[, 3])
     expect_true(max_lyr3 <= 10000)
 
     expect_true(all(file.remove(unlist(sinop_probs$file_info[[1]]$path))))
@@ -144,14 +144,14 @@ test_that("One-year, multicore classification with filter", {
     )
     expect_true(all(file.exists(unlist(sinop_2014_probs$file_info[[1]]$path))))
 
-    r_obj <- .sits_raster_api_open_rast(sinop_2014_probs$file_info[[1]]$path[[1]])
+    r_obj <- .raster_open_rast(sinop_2014_probs$file_info[[1]]$path[[1]])
 
-    expect_true(.sits_raster_api_nrows(r_obj) == sinop_2014_probs$nrows)
+    expect_true(.raster_nrows(r_obj) == sinop_2014_probs$nrows)
 
-    max_lyr2 <- max(.sits_raster_api_get_values(r_obj)[, 2])
+    max_lyr2 <- max(.raster_get_values(r_obj)[, 2])
     expect_true(max_lyr2 <= 10000)
 
-    max_lyr3 <- max(.sits_raster_api_get_values(r_obj)[, 3])
+    max_lyr3 <- max(.raster_get_values(r_obj)[, 3])
     expect_true(max_lyr3 <= 10000)
 
     expect_true(all(file.remove(unlist(sinop_2014_probs$file_info[[1]]$path))))
@@ -195,9 +195,9 @@ test_that("One-year, multicore classification with post-processing", {
                     length(sits_timeline(sinop_probs))
     )
 
-    r_obj <- .sits_raster_api_open_rast(sinop_class$file_info[[1]]$path[[1]])
-    max_lab <- max(.sits_raster_api_get_values(r_obj))
-    min_lab <- min(.sits_raster_api_get_values(r_obj))
+    r_obj <- .raster_open_rast(sinop_class$file_info[[1]]$path[[1]])
+    max_lab <- max(.raster_get_values(r_obj))
+    min_lab <- min(.raster_get_values(r_obj))
     expect_true(max_lab <= 9)
     expect_true(min_lab >= 1)
 
@@ -205,10 +205,10 @@ test_that("One-year, multicore classification with post-processing", {
                                           output_dir = tempdir()
     )
     expect_true(all(file.exists(unlist(sinop_majority$file_info[[1]]$path))))
-    r_maj <- .sits_raster_api_open_rast(sinop_majority$file_info[[1]]$path[[1]])
+    r_maj <- .raster_open_rast(sinop_majority$file_info[[1]]$path[[1]])
 
-    max_maj <- max(.sits_raster_api_get_values(r_maj))
-    min_maj <- min(.sits_raster_api_get_values(r_maj))
+    max_maj <- max(.raster_get_values(r_maj))
+    min_maj <- min(.raster_get_values(r_maj))
     expect_true(max_maj <= 9)
     expect_true(min_maj >= 1)
 
@@ -219,13 +219,13 @@ test_that("One-year, multicore classification with post-processing", {
                     length(sits_timeline(sinop_probs))
     )
 
-    r_bay <- .sits_raster_api_open_rast(sinop_bayes$file_info[[1]]$path[[1]])
-    expect_true(.sits_raster_api_nrows(r_bay) == sinop_probs$nrows)
+    r_bay <- .raster_open_rast(sinop_bayes$file_info[[1]]$path[[1]])
+    expect_true(.raster_nrows(r_bay) == sinop_probs$nrows)
 
-    max_bay2 <- max(.sits_raster_api_get_values(r_bay)[, 2])
+    max_bay2 <- max(.raster_get_values(r_bay)[, 2])
     expect_true(max_bay2 <= 10000)
 
-    max_bay3 <- max(.sits_raster_api_get_values(r_bay)[, 3])
+    max_bay3 <- max(.raster_get_values(r_bay)[, 3])
     expect_true(max_bay3 <= 10000)
 
     sinop_gauss <- sits::sits_smooth(sinop_probs, type = "gaussian",
@@ -235,13 +235,13 @@ test_that("One-year, multicore classification with post-processing", {
     )
     expect_true(all(file.exists(unlist(sinop_gauss$file_info[[1]]$path))))
 
-    r_gau <- .sits_raster_api_open_rast(sinop_gauss$file_info[[1]]$path[[1]])
-    expect_true(.sits_raster_api_nrows(r_gau) == sinop_probs$nrows)
+    r_gau <- .raster_open_rast(sinop_gauss$file_info[[1]]$path[[1]])
+    expect_true(.raster_nrows(r_gau) == sinop_probs$nrows)
 
-    max_gau2 <- max(.sits_raster_api_get_values(r_gau)[, 2])
+    max_gau2 <- max(.raster_get_values(r_gau)[, 2])
     expect_true(max_gau2 <= 10000)
 
-    max_gau3 <- max(.sits_raster_api_get_values(r_gau)[, 3])
+    max_gau3 <- max(.raster_get_values(r_gau)[, 3])
     expect_true(max_gau3 <= 10000)
 
     sinop_bil <- sits::sits_smooth(sinop_probs, type = "bilateral",
@@ -249,13 +249,13 @@ test_that("One-year, multicore classification with post-processing", {
     )
     expect_true(all(file.exists(unlist(sinop_bil$file_info[[1]]$path))))
 
-    r_bil <- .sits_raster_api_open_rast(sinop_bil$file_info[[1]]$path[[1]])
-    expect_true(.sits_raster_api_nrows(r_bil) == sinop_probs$nrows)
+    r_bil <- .raster_open_rast(sinop_bil$file_info[[1]]$path[[1]])
+    expect_true(.raster_nrows(r_bil) == sinop_probs$nrows)
 
-    max_bil2 <- max(.sits_raster_api_get_values(r_bil)[, 2])
+    max_bil2 <- max(.raster_get_values(r_bil)[, 2])
     expect_true(max_bil2 <= 10000)
 
-    max_bil3 <- max(.sits_raster_api_get_values(r_bil)[, 3])
+    max_bil3 <- max(.raster_api_get_values(r_bil)[, 3])
     expect_true(max_bil3 <= 10000)
 
 

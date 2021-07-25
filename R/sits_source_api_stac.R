@@ -36,7 +36,7 @@
 
     # assert that token and/or href is valid
     tryCatch({
-        .sits_raster_api_open_rast(href)
+        .raster_open_rast(href)
     }, error = function(e) {
         stop(paste(".source_access_test.stac_cube: cannot open url\n",
                    href, "\n", e$message), call. = FALSE)
@@ -104,16 +104,10 @@
                                                  items,
                                                  bands, ...) {
 
-    bands_converter <- .config_bands(source = source,
-                                     collection = collection)
-
-    names(bands_converter) <- .config_bands_band_name(source = source,
-                                                      collection = collection)
-
-    items <- .sits_stac_bands_select(
+    items <- .stac_bands_select(
         items = items,
         bands_source = .source_bands_to_source(source, collection, bands),
-        bands_converter = bands_converter
+        bands_sits = .source_bands_to_sits(source, collection, bands)
     )
 
     return(items)
@@ -277,51 +271,4 @@
         file_info  = file_info)
 
     return(tile)
-}
-
-#' @title  ...
-#' @name .stac_items_query
-#' @description  ...
-#' @param source     Name of the STAC provider
-#' @param collection ...
-#' @param name ...
-#' @param bands ...
-#' @param tiles ...
-#' @param bbox ...
-#' @param start_date ...
-#' @param end_date ...
-#' @param ... ...
-#'
-#' @return ...
-.stac_items_query <- function(source,
-                              collection,
-                              name,
-                              bands,
-                              tiles,
-                              bbox,
-                              start_date,
-                              end_date, ...) {
-
-    url <- .config_sources_url(source = source)
-    roi <- list(bbox = NULL, intersects = NULL)
-
-    # obtain the datetime parameter for STAC like parameter
-    datetime <- .sits_stac_datetime(start_date, end_date)
-
-    # obtain the bounding box and intersects parameters
-    if (!is.null(bbox))
-        roi <- .sits_stac_roi(bbox)
-
-    # get the limit items to be returned in each page
-    limit_items <- .config_rstac_limit()
-
-    # creating an query object to be search
-    rstac_query <-  rstac::stac_search(q = rstac::stac(url),
-                                       collections = collection,
-                                       bbox        = roi$bbox,
-                                       intersects  = roi$intersects,
-                                       datetime    = datetime,
-                                       limit       = limit_items)
-
-    return(rstac_query)
 }

@@ -132,7 +132,7 @@ test_that("Reading a raster cube", {
     bands <- sits_bands(raster_cube)
     expect_true(all(bands %in% c("NDVI", "EVI")))
 
-    params <- .sits_raster_api_params_file(raster_cube$file_info[[1]]$path)
+    params <- .raster_params_file(raster_cube$file_info[[1]]$path)
     expect_true(params$nrows == 144)
     expect_true(params$ncols == 254)
     expect_true(params$xres >= 231.5)
@@ -156,8 +156,8 @@ test_that("Creating a raster stack cube and selecting bands", {
 
     expect_true(all(sits_bands(cbers_cube) %in%
                         c("B13", "B14", "B15", "B16", "CMASK")))
-    rast <- .sits_raster_api_open_rast(cbers_cube$file_info[[1]]$path[[1]])
-    expect_true(.sits_raster_api_nrows(rast) == cbers_cube$nrows[[1]])
+    rast <- .raster_open_rast(cbers_cube$file_info[[1]]$path[[1]])
+    expect_true(.raster_nrows(rast) == cbers_cube$nrows[[1]])
     timeline <- sits_timeline(cbers_cube)
     expect_true(timeline[1] == "2018-02-02")
 
@@ -194,7 +194,7 @@ test_that("Creating cubes from BDC", {
         expect_true(timeline[1] <= as.Date("2018-09-01"))
         expect_true(timeline[length(timeline)] <= as.Date("2019-08-29"))
 
-        r_obj <- .sits_raster_api_open_rast(cbers_cube$file_info[[1]]$path[1])
+        r_obj <- .raster_open_rast(cbers_cube$file_info[[1]]$path[1])
         expect_true(terra::nrow(r_obj) == cbers_cube$nrows[[1]])
     }
 })
@@ -277,10 +277,10 @@ test_that("Creating cubes from DEA", {
     expect_true(all(sits_bands(dea_cube) %in% c("B01", "B04", "B05")))
 
     file_info <- dea_cube$file_info[[1]]
-    r <- .sits_raster_api_open_rast(file_info$path[[1]])
+    r <- .raster_open_rast(file_info$path[[1]])
 
-    expect_equal(dea_cube$xmax[[1]], .sits_raster_api_xmax(r), tolerance = 1)
-    expect_equal(dea_cube$xmin[[1]], .sits_raster_api_xmin(r), tolerance = 1)
+    expect_equal(dea_cube$xmax[[1]], .raster_xmax(r), tolerance = 1)
+    expect_equal(dea_cube$xmin[[1]], .raster_xmin(r), tolerance = 1)
 })
 
 test_that("Creating cubes from USGS", {
@@ -313,10 +313,10 @@ test_that("Creating cubes from USGS", {
     expect_true(all(sits_bands(usgs_cube) %in% c("B1", "B7", "CFMASK")))
 
     file_info <- usgs_cube$file_info[[1]]
-    r <- .sits_raster_api_open_rast(file_info$path[[1]])
+    r <- .raster_open_rast(file_info$path[[1]])
 
-    expect_equal(usgs_cube$xmax[[1]], .sits_raster_api_xmax(r), tolerance = 1)
-    expect_equal(usgs_cube$xmin[[1]], .sits_raster_api_xmin(r), tolerance = 1)
+    expect_equal(usgs_cube$xmax[[1]], .raster_xmax(r), tolerance = 1)
+    expect_equal(usgs_cube$xmin[[1]], .raster_xmin(r), tolerance = 1)
 })
 
 test_that("Merging cubes", {
@@ -386,12 +386,12 @@ test_that("Creating cubes from AWS and regularizing them", {
     expect_true(all(sits_bands(s2_cube) %in% c("B08", "SCL")))
 
     file_info <- s2_cube$file_info[[1]]
-    r <- sits:::.sits_raster_api_open_rast(file_info$path[[1]])
+    r <- sits:::.raster_open_rast(file_info$path[[1]])
 
-    expect_equal(s2_cube$nrows[[1]], sits:::.sits_raster_api_nrows(r))
-    expect_equal(s2_cube$ncols[[1]], sits:::.sits_raster_api_ncols(r))
-    expect_equal(s2_cube$xmax[[1]], sits:::.sits_raster_api_xmax(r))
-    expect_equal(s2_cube$xmin[[1]], sits:::.sits_raster_api_xmin(r))
+    expect_equal(s2_cube$nrows[[1]], sits:::.raster_nrows(r))
+    expect_equal(s2_cube$ncols[[1]], sits:::.raster_ncols(r))
+    expect_equal(s2_cube$xmax[[1]], sits:::.raster_xmax(r))
+    expect_equal(s2_cube$xmin[[1]], sits:::.raster_xmin(r))
 
     dir_images <-  paste0(tempdir(), "/images/")
     if (!dir.exists(dir_images))

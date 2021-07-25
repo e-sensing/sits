@@ -38,6 +38,38 @@
     )
 }
 
+#' @title Verify items tiles
+#' @name .sits_s2_aws_tiles
+#' @keywords internal
+#'
+#' @param tiles  Tile names to be searched.
+#'
+#' @return a \code{tibble} with information of tiles to be searched in STAC AWS.
+.aws_tiles <- function(tiles) {
+
+    # regex pattern
+    pattern_s2 <- "[0-9]{2}[A-Z]{3}"
+
+    # verify tile pattern
+    if (!any(grepl(pattern_s2, tiles, perl = TRUE)))
+        stop(paste("The specified tiles do not match the Sentinel-2A grid",
+                   "pattern. See the user guide for more information."))
+
+    # list to store the info about the tiles to provide the query in STAC
+    list_tiles <- list()
+    list_tiles <- purrr::map(tiles, function(tile) {
+        list_tiles$utm_zone <- substring(tile, 1, 2)
+        list_tiles$lat_band <- substring(tile, 3, 3)
+        list_tiles$grid_square <- substring(tile, 4, 5)
+
+        list_tiles
+    })
+
+    tiles_tbl <- dplyr::bind_rows(list_tiles)
+
+    return(tiles_tbl)
+}
+
 #' @keywords internal
 #' @export
 .source_item_get_date.aws_cube <- function(source,
@@ -87,7 +119,7 @@
 
     # if specified, a filter per tile is added to the query
     if (!is.null(tiles)) {
-        sep_tile <- .sits_s2_aws_tiles(tiles)
+        sep_tile <- .aws_tiles(tiles)
 
         stac_query <-
             rstac::ext_query(q = stac_query,
@@ -129,15 +161,14 @@
         fn_filter = function(x) s2_resolution %in% x$resolution
     )
 
-    # convert sits bands to source bands
-    bands_converter <- .source_bands_to_source(source, collection, bands_sits)
-
-    names(bands_converter) <- bands_sits
-
-    items <- .sits_stac_bands_select(
+    items <- .stac_bands_select(
         items = items,
-        bands_source = .source_bands_to_source(source, collection, bands),
-        bands_converter = bands_converter
+        bands_source = .source_bands_to_source(source = source,
+                                               collection = collection,
+                                               bands = bands),
+        bands_sits = .source_bands_to_sits(source = source,
+                                           collection = collection,
+                                           bands = bands)
     )
 
     return(items)
@@ -186,7 +217,7 @@
                                                 collection = NULL) {
 
     # format collection crs
-    crs <- .sits_format_crs(
+    crs <- .stac_format_crs(
         tile_items[["features"]][[1]][[c("properties", "proj:epsg")]]
     )
 
@@ -209,7 +240,7 @@
                                                  collection = NULL) {
 
     # read the first image and obtain the size parameters
-    params <- .sits_raster_api_params_file(
+    params <- .raster_params_file(
         tile_items[["features"]][[1]][["assets"]][[1]][["href"]]
     )
 
@@ -226,7 +257,7 @@
                                                  collection = NULL) {
 
     # read the first image and obtain the size parameters
-    params <- .sits_raster_api_params_file(
+    params <- .raster_params_file(
         tile_items[["features"]][[1]][["assets"]][[1]][["href"]]
     )
 

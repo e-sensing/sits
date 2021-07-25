@@ -1,7 +1,7 @@
 
 #' @keywords internal
 #' @export
-.sits_raster_api_check_package.terra <- function() {
+.raster_check_package.terra <- function() {
 
     # package namespace
     pkg_name <- "terra"
@@ -22,14 +22,14 @@
 
 #' @keywords internal
 #' @export
-.sits_raster_api_data_type.terra <- function(data_type, ...) {
+.raster_data_type.terra <- function(data_type, ...) {
 
     return(data_type)
 }
 
 #' @keywords internal
 #' @export
-.sits_raster_api_get_values.terra <- function(r_obj, ...) {
+.raster_get_values.terra <- function(r_obj, ...) {
 
     # read values and close connection
     terra::readStart(x = r_obj)
@@ -41,7 +41,7 @@
 
 #' @keywords internal
 #' @export
-.sits_raster_api_set_values.terra <- function(r_obj, values, ...) {
+.raster_set_values.terra <- function(r_obj, values, ...) {
 
     terra::values(x = r_obj) <- as.matrix(values)
 
@@ -50,14 +50,14 @@
 
 #' @keywords internal
 #' @export
-.sits_raster_api_extract.terra <- function(r_obj, xy, ...) {
+.raster_extract.terra <- function(r_obj, xy, ...) {
 
     terra::extract(x = r_obj, y = xy, fun = NULL, cells = FALSE, ...)
 }
 
 #' @keywords internal
 #' @export
-.sits_raster_api_rast.terra <- function(r_obj, nlayers = 1, ...) {
+.raster_rast.terra <- function(r_obj, nlayers = 1, ...) {
 
     suppressWarnings(
         terra::rast(x = r_obj, nlyrs = nlayers, ...)
@@ -66,7 +66,7 @@
 
 #' @keywords internal
 #' @export
-.sits_raster_api_open_rast.terra <- function(file, ...) {
+.raster_open_rast.terra <- function(file, ...) {
 
     suppressWarnings(
         terra::rast(x = file, ...)
@@ -75,17 +75,17 @@
 
 #' @keywords internal
 #' @export
-.sits_raster_api_read_rast.terra <- function(file,
+.raster_read_rast.terra <- function(file,
                                              block = NULL, ...) {
 
-    return(.sits_raster_api_read_stack.terra(files = file,
+    return(.raster_read_stack.terra(files = file,
                                              block = block))
 
 }
 
 #' @keywords internal
 #' @export
-.sits_raster_api_write_rast.terra <- function(r_obj,
+.raster_write_rast.terra <- function(r_obj,
                                               file,
                                               format,
                                               data_type,
@@ -106,7 +106,7 @@
     # was the file written correctly?
     assertthat::assert_that(
         file.exists(file),
-        msg = ".sits_raster_api_write_rast: unable to write raster object"
+        msg = ".raster_write_rast: unable to write raster object"
     )
 
     return(invisible(NULL))
@@ -114,7 +114,7 @@
 
 #' @keywords internal
 #' @export
-.sits_raster_api_new_rast.terra <- function(nrows,
+.raster_new_rast.terra <- function(nrows,
                                             ncols,
                                             xmin,
                                             xmax,
@@ -140,7 +140,7 @@
 
 #' @keywords internal
 #' @export
-.sits_raster_api_open_stack.terra <- function(files, ...) {
+.raster_open_stack.terra <- function(files, ...) {
 
     suppressWarnings(
         terra::rast(files, ...)
@@ -149,11 +149,11 @@
 
 #' @keywords internal
 #' @export
-.sits_raster_api_read_stack.terra <- function(files,
+.raster_read_stack.terra <- function(files,
                                               block = NULL, ...) {
 
     # create raster objects
-    r_obj <- .sits_raster_api_open_stack.terra(files = files, ...)
+    r_obj <- .raster_open_stack.terra(files = files, ...)
 
     # start read
     if (purrr::is_null(block)) {
@@ -183,7 +183,7 @@
 
 #' @keywords internal
 #' @export
-.sits_raster_api_crop.terra <- function(r_obj, block, ...) {
+.raster_crop.terra <- function(r_obj, block, ...) {
 
     # obtain coordinates from columns and rows
     x1 <- terra::xFromCol(object = r_obj,
@@ -208,70 +208,70 @@
 
 #' @keywords internal
 #' @export
-.sits_raster_api_nrows.terra <- function(r_obj, ...) {
+.raster_nrows.terra <- function(r_obj, ...) {
 
     terra::nrow(x = r_obj)
 }
 
 #' @keywords internal
 #' @export
-.sits_raster_api_ncols.terra <- function(r_obj, ...) {
+.raster_ncols.terra <- function(r_obj, ...) {
 
     terra::ncol(x = r_obj)
 }
 
 #' @keywords internal
 #' @export
-.sits_raster_api_nlayers.terra <- function(r_obj, ...) {
+.raster_nlayers.terra <- function(r_obj, ...) {
 
     terra::nlyr(x = r_obj)
 }
 
 #' @keywords internal
 #' @export
-.sits_raster_api_xmax.terra <- function(r_obj, ...) {
+.raster_xmax.terra <- function(r_obj, ...) {
 
     terra::xmax(x = r_obj)
 }
 
 #' @keywords internal
 #' @export
-.sits_raster_api_xmin.terra <- function(r_obj, ...) {
+.raster_xmin.terra <- function(r_obj, ...) {
 
     terra::xmin(x = r_obj)
 }
 
 #' @keywords internal
 #' @export
-.sits_raster_api_ymax.terra <- function(r_obj, ...) {
+.raster_ymax.terra <- function(r_obj, ...) {
 
     terra::ymax(x = r_obj)
 }
 
 #' @keywords internal
 #' @export
-.sits_raster_api_ymin.terra <- function(r_obj, ...) {
+.raster_ymin.terra <- function(r_obj, ...) {
 
     terra::ymin(x = r_obj)
 }
 
 #' @keywords internal
 #' @export
-.sits_raster_api_xres.terra <- function(r_obj, ...) {
+.raster_xres.terra <- function(r_obj, ...) {
 
     terra::xres(x = r_obj)
 }
 
 #' @keywords internal
 #' @export
-.sits_raster_api_yres.terra <- function(r_obj, ...) {
+.raster_yres.terra <- function(r_obj, ...) {
 
     terra::yres(x = r_obj)
 }
 
 #' @keywords internal
 #' @export
-.sits_raster_api_crs.terra <- function(r_obj, ...) {
+.raster_crs.terra <- function(r_obj, ...) {
 
     suppressWarnings(
         as.character(terra::crs(x = r_obj))
@@ -280,14 +280,14 @@
 
 #' @keywords internal
 #' @export
-.sits_raster_api_freq.terra <- function(r_obj, ...) {
+.raster_freq.terra <- function(r_obj, ...) {
 
     terra::freq(x = r_obj, bylayer = TRUE)
 }
 
 #' @keywords internal
 #' @export
-.sits_raster_api_focal.terra <- function(r_obj,
+.raster_focal.terra <- function(r_obj,
                                          window_size,
                                          fn, ...) {
 

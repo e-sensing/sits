@@ -36,15 +36,15 @@
     names(bands_to_sits) <-  .config_bands_band_name(source = source,
                                                      collection = collection)
 
-    convert_bands <- c(bands_to_sits, bands_sits)
+    bands_converter <- c(bands_to_sits, bands_sits)
 
     # are the bands specified as cloud provider bands or as sits bands?
     assertthat::assert_that(
-        all(bands %in% names(convert_bands)),
+        all(bands %in% names(bands_converter)),
         msg = paste(".source_bands_to_sits: required bands not",
                     "available in", source))
 
-    return(unname(convert_bands[bands]))
+    return(unname(bands_converter[bands]))
 }
 
 #' @title Convert bands names from cube to SITS
@@ -69,15 +69,15 @@
     bands_to_source <- bands_source
     names(bands_to_source) <- .config_bands(source, collection)
 
-    convert_bands <- c(bands_to_source, bands_source)
+    bands_converter <- c(bands_to_source, bands_source)
 
     # are the bands specified as cloud provider bands or as sits bands?
     assertthat::assert_that(
-        all(bands %in% names(convert_bands)),
+        all(bands %in% names(bands_converter)),
         msg = paste(".source_bands_to_source: required bands not",
                     "available in", source))
 
-    return(unname(convert_bands[bands]))
+    return(unname(bands_converter[bands]))
 }
 
 #' @title Convert bands names from cube to SITS

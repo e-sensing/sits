@@ -129,7 +129,7 @@
                                       collection = collection)
 
     # get bbox by geometry attributei in tile_items
-    bbox <- .sits_stac_get_bbox(tile_items, crs)
+    bbox <- .stac_get_bbox(tile_items, crs)
 
     return(bbox)
 }
