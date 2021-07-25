@@ -135,7 +135,7 @@
 
     values <- .config_bands_reap(source = source,
                                  collection = collection,
-                                 key = "resolution",
+                                 key = "resolutions",
                                  bands = bands,
                                  fn_filter = fn_filter,
                                  add_cloud = add_cloud)
