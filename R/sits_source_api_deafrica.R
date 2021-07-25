@@ -45,7 +45,11 @@
                                                  item, ...,
                                                  collection = NULL) {
 
-    unname(purrr::map_chr(item[["assets"]], `[[`, "href"))
+
+    href <- unname(purrr::map_chr(item[["assets"]], `[[`, "href"))
+
+    # add gdal vsi in href urls
+    return(.stac_add_gdal_vsi(href))
 }
 
 #' @keywords internal
@@ -72,7 +76,7 @@
                                             tiles = NULL) {
 
     # making the request
-    items_info <- rstac::post_request(q = rstac_query, ...)
+    items_info <- rstac::post_request(q = stac_query, ...)
 
     # if more than 2 times items pagination are found the progress bar
     # is displayed
@@ -146,8 +150,12 @@
                                                       tile_items, ...,
                                                       collection = NULL) {
 
-    bbox <- tile_items[["features"]][[1]][["bbox"]]
-    names(bbox) <- c("xmin", "ymin", "xmax", "ymax")
+    # get collection crs
+    crs <- .source_items_tile_get_crs(source = source,
+                                      tile_items = tile_items,
+                                      collection = collection)
+
+    bbox <- .sits_stac_get_bbox(tile_items, crs)
 
     return(bbox)
 }

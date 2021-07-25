@@ -360,42 +360,6 @@ sits_config_show <- function() {
     return(sits_env$config$sources[["PROBS"]][["scale_factor"]])
 }
 
-#' @title Retrieve the pixel spatial resolution for a data cube
-#' @name .sits_config_resolution
-#' @keywords internal
-#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
-#'
-#' @param sensor         Name of the sensor.
-#' @return Vector of (xres, yres).
-.sits_config_resolution <- function(source, collection, band) {
-
-    col <- sits_env$config$sources[[source]]$collections[[collection]]
-
-    # create a string to query for the resolution
-    res <- rep(col$bands[[band]]$resolutions, 2)
-    names(res) <- c("resolutions_x", "resolutions_y")
-
-    # post-condition
-    assertthat::assert_that(
-        res["resolutions_x"] > 0,
-        msg = paste0(
-            "Horizontal resolution unavailable for ",
-            source,
-            " edit configuration file"
-        )
-    )
-    assertthat::assert_that(
-        res["resolutions_y"] > 0,
-        msg = paste0(
-            "Vertical resolution unavailable for ",
-            source,
-            " edit configuration file"
-        )
-    )
-
-    return(res)
-}
-
 #' @title Get the URL to be used to test for SATVEG access
 #' @name .sits_config_satveg_access
 #' @keywords internal

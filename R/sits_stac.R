@@ -89,16 +89,40 @@
 #' @return      a \code{character} formatted as parameter to STAC requisition.
 .stac_datetime <- function(start_date, end_date) {
 
-    # ensuring that start_date and end_date were provided
-    assertthat::assert_that(
-        !purrr::is_null(start_date) && !purrr::is_null(end_date),
-        msg = paste("sits_cube: for STAC_CUBE start_date",
-                    "and end_date must be provided"))
-
+    datetime <- NULL
     # adding the dates according to RFC 3339
-    datetime <- paste(start_date, end_date, sep = "/")
+    if (!purrr::is_null(start_date) && !purrr::is_null(end_date))
+        datetime <- paste(start_date, end_date, sep = "/")
 
     return(datetime)
+}
+
+#' @title ...
+#' @name .stac_add_gdal_vsi
+#' @keywords internal
+#'
+#' @param href a \code{character} ...
+#'
+#' @return ...
+.stac_add_gdal_vsi <- function(href) {
+
+    index <- grepl("^http|[s]://.*", href)
+    if (any(index))
+        href[index] <- paste("/vsicurl", href[index], sep = "/")
+
+    index <- grepl("^s3://.*", href)
+    if (any(index))
+        href[index] <- paste("/vsis3",
+                             gsub("^s3://(.*)$", "\\1", href[index]),
+                             sep = "/")
+
+    index <- grepl("^gs://.*", href)
+    if (any(index))
+        href[index] <- paste("/vsigs",
+                             gsub("^gs://(.*)$", "\\1", href[index]),
+                             sep = "/")
+
+    return(href)
 }
 
 #' @title Get the STAC information corresponding to a bbox extent
@@ -123,7 +147,6 @@
     return(bbox_ext)
 }
 
-
 #' @title  ...
 #' @name .stac_items_query
 #' @description  ...
@@ -143,22 +166,24 @@
                               name,
                               bands,
                               tiles,
-                              bbox,
-                              start_date,
-                              end_date, ...) {
+                              bbox = NULL,
+                              start_date = NULL,
+                              end_date = NULL,
+                              limit = NULL, ...) {
 
-    url <- .config_sources_url(source = source)
+    url <- .config_source_url(source = source)
     roi <- list(bbox = NULL, intersects = NULL)
 
     # obtain the datetime parameter for STAC like parameter
-    datetime <- .stac_datetime(start_date, end_date)
+    datetime <- .sits_stac_datetime(start_date, end_date)
 
     # obtain the bounding box and intersects parameters
     if (!is.null(bbox))
-        roi <- .stac_roi(bbox)
+        roi <- .sits_stac_roi(bbox)
 
     # get the limit items to be returned in each page
-    limit_items <- .config_rstac_limit()
+    if (is.null(limit))
+        limit <- .config_rstac_limit()
 
     # creating an query object to be search
     rstac_query <-  rstac::stac_search(q = rstac::stac(url),
@@ -166,7 +191,7 @@
                                        bbox        = roi$bbox,
                                        intersects  = roi$intersects,
                                        datetime    = datetime,
-                                       limit       = limit_items)
+                                       limit       = limit)
 
     return(rstac_query)
 }

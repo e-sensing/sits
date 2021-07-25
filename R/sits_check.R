@@ -28,30 +28,30 @@
     # check "AWS_DEFAULT_REGION" - if not available, use the default
     aws_region <- Sys.getenv("AWS_DEFAULT_REGION")
     if (nchar(aws_region) == 0 ||
-        !aws_region %in% .sits_config_aws_default_region(source)) {
+        !aws_region %in% .config_aws_default_region(source, collection)) {
 
         # get default aws region in config file
-        aws_region <- .sits_config_aws_default_region(source)
+        aws_region <- .config_aws_default_region(source, collection)
         Sys.setenv(AWS_DEFAULT_REGION = aws_region)
     }
 
     # check "AWS_S3_ENDPOINT" - if not available, use the default
     aws_endpoint <- Sys.getenv("AWS_S3_ENDPOINT")
     if (nchar(aws_endpoint) == 0 ||
-        !aws_endpoint %in% .sits_config_aws_endpoint(source)) {
+        !aws_endpoint %in% .config_aws_endpoint(source, collection)) {
 
         # get default aws endpoint in config file
-        aws_endpoint <- .sits_config_aws_endpoint(source)
+        aws_endpoint <- .config_aws_endpoint(source, collection)
         Sys.setenv(AWS_S3_ENDPOINT = aws_endpoint)
     }
 
     # check "AWS_REQUEST_PAYER" - if not available, use the default
     aws_request_payer <- Sys.getenv("AWS_REQUEST_PAYER")
     if (nchar(aws_request_payer) == 0 ||
-        !aws_request_payer %in% .sits_config_aws_request_payer(source)) {
+        !aws_request_payer %in% .config_aws_request_payer(source, collection)) {
 
         # get default aws request payer in config file
-        aws_request_payer <- .sits_config_aws_request_payer(source)
+        aws_request_payer <- .config_aws_request_payer(source, collection)
         Sys.setenv(AWS_REQUEST_PAYER = aws_request_payer)
     }
 

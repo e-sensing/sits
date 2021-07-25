@@ -90,8 +90,8 @@
                      replacement = paste0("R", s2_resolution, "m"),
                      x = unname(purrr::map_chr(item[["assets"]], `[[`, "href")))
 
-
-    return(href_res)
+    # add gdal vsi in href urls
+    return(.stac_add_gdal_vsi(href_res))
 }
 
 #' @keywords internal
@@ -106,8 +106,9 @@
 #' @export
 .source_item_get_resolutions.aws_cube <- function(source,
                                                   item, ...,
-                                                  collection = NULL) {
-    item[[c("properties", "gsd")]]
+                                                  collection = NULL,
+                                                  s2_resolution) {
+    return(s2_resolution)
 }
 
 #' @keywords internal
@@ -154,8 +155,9 @@
                                                 items,
                                                 bands, ...,
                                                 s2_resolution) {
-    # get sits bands by resolution
-    bands_sits <- .config_bands(
+
+    # convert sits bands to source bands
+    bands_converter <-  .config_bands(
         source = source,
         collection = collection,
         fn_filter = function(x) s2_resolution %in% x$resolution
@@ -237,12 +239,17 @@
 #' @export
 .source_items_tile_get_bbox.aws_cube <- function(source,
                                                  tile_items, ...,
-                                                 collection = NULL) {
+                                                 collection = NULL,
+                                                 s2_resolution) {
+
+
+    href <- .source_item_get_hrefs(source = source,
+                                   item = tile_items[["features"]][[1]], ...,
+                                   collection = collection,
+                                   s2_resolution = s2_resolution)
 
     # read the first image and obtain the size parameters
-    params <- .raster_params_file(
-        tile_items[["features"]][[1]][["assets"]][[1]][["href"]]
-    )
+    params <- .raster_params_file(href)
 
     bbox <- c(xmin = params[["xmin"]], ymin = params[["ymin"]],
               xmax = params[["xmax"]], ymax = params[["ymax"]])
@@ -254,12 +261,16 @@
 #' @export
 .source_items_tile_get_size.aws_cube <- function(source,
                                                  tile_items, ...,
-                                                 collection = NULL) {
+                                                 collection = NULL,
+                                                 s2_resolution) {
+
+    href <- .source_item_get_hrefs(source = source,
+                                   item = tile_items[["features"]][[1]], ...,
+                                   collection = collection,
+                                   s2_resolution = s2_resolution)
 
     # read the first image and obtain the size parameters
-    params <- .raster_params_file(
-        tile_items[["features"]][[1]][["assets"]][[1]][["href"]]
-    )
+    params <- .raster_params_file(href)
 
     size <- c(nrows = params[["nrows"]], ncols = params[["ncols"]])
 

@@ -1,4 +1,3 @@
-
 #' @title Format tile parameter provided by users
 #' @name .usgs_format_tiles
 #' @keywords internal
@@ -59,6 +58,55 @@
 
     items
 }
+
+.source_access_test.usgs_cube <- function(source, collection, bands, ...) {
+
+    # require package
+    if (!requireNamespace("rstac", quietly = TRUE)) {
+        stop(paste("Please install package rstac from CRAN:",
+                   "install.packages('rstac')"), call. = FALSE
+        )
+    }
+
+    items_query <- .stac_items_query(source = source,
+                                     collection = collection,
+                                     limit = 1, ...)
+
+    items_query$version <- "0.9.0"
+
+    items_query <- rstac::ext_query(q = items_query,
+                                    "collection" %in% collection,
+                                    "platform" %in% "LANDSAT_8",
+                                    "landsat:collection_category" %in% "T1")
+
+    # assert that service is online
+    tryCatch({
+        items <- rstac::post_request(items_query)
+    }, error = function(e) {
+        stop(paste(".source_access_test.stac_cube: service is unreachable\n",
+                   e$message), call. = FALSE)
+    })
+
+    items <- .source_items_bands_select(source = source,
+                                        collection = collection,
+                                        items = items,
+                                        bands = bands[[1]], ...)
+
+    href <- .source_item_get_hrefs(source = source,
+                                   item = items$feature[[1]], ...,
+                                   collection = collection)
+
+    # assert that token and/or href is valid
+    tryCatch({
+        .sits_raster_api_open_rast(href)
+    }, error = function(e) {
+        stop(paste(".source_access_test.stac_cube: cannot open url\n",
+                   href, "\n", e$message), call. = FALSE)
+    })
+
+    return(invisible(NULL))
+}
+
 #' @keywords internal
 #' @export
 .source_item_get_date.usgs_cube <- function(source,
@@ -73,7 +121,14 @@
                                              item, ...,
                                              collection = NULL) {
 
-    unname(purrr::map_chr(item[["assets"]], `[[`, "href"))
+    href <- stringr::str_replace(
+        string = unname(purrr::map_chr(item[["assets"]], `[[`, "href")),
+        pattern = "^(https://landsatlook.usgs.gov/data)",
+        replacement = "s3://usgs-landsat"
+    )
+
+    # add gdal vsi in href urls
+    return(.stac_add_gdal_vsi(href))
 }
 
 #' @keywords internal
@@ -99,7 +154,7 @@
                                         stac_query,
                                         tiles = NULL) {
 
-    # forcing stac version
+    # forcing version
     stac_query$version <- "0.9.0"
 
     # adding search filter in query
@@ -195,10 +250,12 @@
                                                  tile_items, ...,
                                                  collection = NULL) {
 
+    href <- .source_item_get_hrefs(source = source,
+                                   item = tile_items[["features"]][[1]], ...,
+                                   collection = collection)
+
     # read the first image and obtain crs attribute
-    params <- .raster_params_file(
-        tile_items[["features"]][[1]][["assets"]][[1]][["href"]]
-    )
+    params <- .raster_params_file(href)
 
     # format collection crs
     crs <- .stac_format_crs(params[["crs"]])
@@ -236,10 +293,12 @@
                                                   tile_items, ...,
                                                   collection = NULL) {
 
+    href <- .source_item_get_hrefs(source = source,
+                                   item = tile_items[["features"]][[1]], ...,
+                                   collection = collection)
+
     # read the first image and obtain the size parameters
-    params <- .raster_params_file(
-        tile_items[["features"]][[1]][["assets"]][[1]][["href"]]
-    )
+    params <- .raster_params_file(href)
 
     size <- c(nrows = params[["nrows"]], ncols = params[["ncols"]])
 
