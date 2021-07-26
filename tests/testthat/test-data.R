@@ -68,7 +68,9 @@ test_that("Reading a POLYGON shapefile from WTSS", {
   parcels <- sits_get_data(cube_wtss,
                            file = shp_file,
                            shp_attr = "ext_na",
-                           .n_shp_pol = 3
+                           .n_shp_pol = 3,
+                           start_date = "2019-01-01",
+                           end_date = "2019-06-01"
   )
 
   sf_shape <- sf::read_sf(shp_file)
@@ -292,7 +294,6 @@ test_that("Test reading shapefile from BDC", {
         name = "cbers_stac",
         bands = c("NDVI", "EVI"),
         tiles = c("022024", "022025"),
-        url = "https://brazildatacube.dpi.inpe.br/stac/",
         start_date = "2018-09-01",
         end_date = "2019-08-28"
     )
