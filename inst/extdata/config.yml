@@ -357,7 +357,7 @@ sources:
                 size        :
                     nrows   : 24000
                     ncols   : 19200
-                prefilter   : ["0", "1", "2", "3"] # "0" - none, "1" - no data correction, "2" - cloud correction, "3" - no data and cloud correction
+                prefilter   : "3" # "0" - none, "1" - no data correction, "2" - cloud correction, "3" - no data and cloud correction
                 crs         : "+proj=longlat +ellps=WGS84 +datum=WGS84 +no_defs"
                 bands       :
                     NDVI    :
