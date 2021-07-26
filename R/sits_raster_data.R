@@ -133,7 +133,7 @@
         }
 
         # scale the data set
-        scale_factor <- .cube_bands_scale_value(cube, bands = band_cube)
+        scale_factor <- .cube_bands_scale_factor(cube, bands = band_cube)
         values <- scale_factor * values
 
         # filter the data
@@ -312,7 +312,7 @@
         missing_value <- .cube_bands_missing_value(cube = cube, bands = band)
         minimum_value <- .cube_bands_minimum_value(cube = cube, bands = band)
         maximum_value <- .cube_bands_maximum_value(cube = cube, bands = band)
-        scale_factor <- .cube_bands_scale_value(cube = cube, bands = band)
+        scale_factor <- .cube_bands_scale_factor(cube = cube, bands = band)
 
         # get the values of the time series as matrix
         values_band <- .sits_cube_extract(cube, band, xy)

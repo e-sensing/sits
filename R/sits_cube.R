@@ -938,15 +938,15 @@ sits_cube_copy <- function(cube,
                        add_cloud = FALSE)
 }
 
-.cube_bands_scale_value <- function(cube, ...,
-                                    bands = NULL) {
+.cube_bands_scale_factor <- function(cube, ...,
+                                     bands = NULL) {
 
     if (is.null(bands))
         bands <- .cube_bands(cube = cube)
 
     .config_bands_reap(source = .cube_source(cube = cube),
                        collection = .cube_collection(cube = cube),
-                       key = "scale_value", bands = bands,
+                       key = "scale_factor", bands = bands,
                        add_cloud = FALSE)
 }
 
