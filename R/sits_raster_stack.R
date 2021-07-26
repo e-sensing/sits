@@ -34,7 +34,7 @@
                                     start_date,
                                     end_date) {
 
-    file_info <- purrr::map(data_dir, function(data_dir_row) {
+    file_info <- purrr::map_dfr(data_dir, function(data_dir_row) {
 
         # how many of those files are images?
         # retrieve the known file extensions
@@ -43,9 +43,10 @@
         # list the files in the data directory
         img_files <- list.files(
             path = data_dir_row,
-            pattern = paste0("\\.(",
-                             paste0(.config_local_file_extensions(), collapse = "|"),
-                             ")$")
+            pattern = paste0(
+                "\\.(",
+                paste0(.config_local_file_extensions(), collapse = "|"),
+                ")$")
         )
 
         # remove the extension
@@ -130,7 +131,7 @@
         file_info
     })
 
-    return(dplyr::bind_rows(file_info))
+    return(file_info)
 }
 #' @title Create a stack cube from a set of files
 #' @name .sits_raster_stack_cube

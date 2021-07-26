@@ -7,7 +7,7 @@
 #' @param source     Name of the provider
 #'
 #' @return   ...
-.source_access_test <- function(source, collection, bands, ...) {
+.source_access_test <- function(source, collection, ...) {
 
     s <- .source_new(source = source)
 
@@ -311,7 +311,7 @@ NULL
 }
 
 #' @title ...
-#' @name .source_items_tile_cube
+#' @name .source_items_cube
 #' @keywords internal
 #'
 #' @description TODO: document
@@ -319,20 +319,20 @@ NULL
 #' @param source Name of the STAC provider
 #' @param collection ...
 #' @param name ...
-#' @param tile_items ...
+#' @param items ...
 #' @param file_info ...
 #' @param ... ...
 #'
 #' @return ...
-.source_items_tile_cube <- function(source,
-                                    collection,
-                                    name,
-                                    tile_items,
-                                    file_info, ...) {
+.source_items_cube <- function(source,
+                               collection,
+                               name,
+                               items,
+                               file_info, ...) {
 
     s <- .source_new(source)
 
-    UseMethod(".source_items_tile_cube", s)
+    UseMethod(".source_items_cube", s)
 }
 
 #' @title ...

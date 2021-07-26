@@ -1,6 +1,6 @@
 #' @keywords internal
 #' @export
-.source_access_test.stac_cube <- function(source, collection, bands, ...) {
+.source_access_test.stac_cube <- function(source, collection, ..., bands) {
 
     # require package
     if (!requireNamespace("rstac", quietly = TRUE)) {
@@ -43,14 +43,14 @@
 
 #' @keywords internal
 #' @export
-.source_cube.stac_cube <- function(source,
+.source_cube.stac_cube <- function(source, ...,
                                    collection,
                                    name,
                                    bands,
                                    tiles,
                                    bbox,
                                    start_date,
-                                   end_date, ...) {
+                                   end_date) {
 
     items_query <- .stac_items_query(source = source,
                                      collection = collection,
@@ -61,9 +61,9 @@
                                      end_date = end_date, ...)
 
     items <- .source_items_new(source = source,
-                               collection = collection,
+                               collection = collection, ...,
                                stac_query = items_query,
-                               tiles = tiles, ...)
+                               tiles = tiles)
 
     items <- .source_items_bands_select(source = source,
                                         collection = collection,
@@ -79,11 +79,11 @@
                                             items = tile, ...,
                                             collection = collection)
 
-        tile_cube <- .source_items_tile_cube(source = source,
-                                             collection = collection,
-                                             name = name,
-                                             tile_items = tile,
-                                             file_info = file_info, ...)
+        tile_cube <- .source_items_cube(source = source,
+                                        collection = collection,
+                                        name = name,
+                                        items = tile,
+                                        file_info = file_info, ...)
 
         return(tile_cube)
     })
@@ -170,80 +170,80 @@
 
 #' @keywords internal
 #' @export
-.source_items_tile_cube.stac_cube <- function(source,
-                                              collection,
-                                              name,
-                                              tile_items,
-                                              file_info, ...) {
+.source_items_cube.stac_cube <- function(source,
+                                         collection,
+                                         name,
+                                         items,
+                                         file_info, ...) {
 
 
     t_bbox <- .source_items_tile_get_bbox(source = source,
-                                          tile_items = tile_items, ...,
+                                          tile_items = items, ...,
                                           collection = collection)
 
     assertthat::assert_that(
         all(names(t_bbox) %in% c("xmin", "ymin", "xmax", "ymax")),
-        msg = paste(".source_items_tile_cube.stac_cube: bbox must be have",
+        msg = paste(".source_items_cube.stac_cube: bbox must be have",
                     "'xmin', 'ymin', 'xmax', and 'ymax' names.")
     )
 
     assertthat::assert_that(
         is.numeric(t_bbox),
-        msg = ".source_items_tile_cube.stac_cube: bbox must be numeric."
+        msg = ".source_items_cube.stac_cube: bbox must be numeric."
     )
 
     t_size <- .source_items_tile_get_size(source = source,
-                                          tile_items = tile_items, ...,
+                                          tile_items = items, ...,
                                           collection = collection)
 
     assertthat::assert_that(
         all(names(t_size) %in% c("nrows", "ncols")),
-        msg = paste(".source_items_tile_cube.stac_cube: size must be have",
+        msg = paste(".source_items_cube.stac_cube: size must be have",
                     "'nrows' and 'ncols' names.")
     )
 
     assertthat::assert_that(
         is.numeric(t_size),
-        msg = ".source_items_tile_cube.stac_cube: size must be numeric."
+        msg = ".source_items_cube.stac_cube: size must be numeric."
     )
 
     # tile name
     t_name <- .source_items_tile_get_name(source = source,
-                                          tile_items = tile_items, ...,
+                                          tile_items = items, ...,
                                           collection = collection)
 
     assertthat::assert_that(
         is.character(t_name),
-        msg = paste(".source_items_tile_cube.stac_cube: name must be a",
+        msg = paste(".source_items_cube.stac_cube: name must be a",
                     "character value.")
     )
 
     t_crs <- .source_items_tile_get_crs(source = source,
-                                        tile_items = tile_items, ...,
+                                        tile_items = items, ...,
                                         collection = collection)
     assertthat::assert_that(
         is.character(t_crs) || is.numeric(t_crs),
-        msg = paste(".source_items_tile_cube.stac_cube: name must be a",
+        msg = paste(".source_items_cube.stac_cube: name must be a",
                     "character or numeric value.")
     )
 
     t_sat <- .source_items_get_satellite(source = source,
-                                         items = tile_items, ...,
+                                         items = items, ...,
                                          collection = collection)
 
     assertthat::assert_that(
         is.character(t_sat),
-        msg = paste(".source_items_tile_cube.stac_cube: satellite name must be",
+        msg = paste(".source_items_cube.stac_cube: satellite name must be",
                     "a character value.")
     )
 
     t_sensor <- .source_items_get_sensor(source = source,
-                                         items = tile_items, ...,
+                                         items = items, ...,
                                          collection = collection)
 
     assertthat::assert_that(
         is.character(t_sensor),
-        msg = paste(".source_items_tile_cube.stac_cube: sensor name must be a",
+        msg = paste(".source_items_cube.stac_cube: sensor name must be a",
                     "character value.")
     )
 

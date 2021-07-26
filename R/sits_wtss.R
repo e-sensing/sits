@@ -1,61 +1,3 @@
-#' @title Provides information about one cube of the WTSS service
-#' @name .sits_wtss_cube
-#' @keywords internal
-#'
-#' @description Uses the WTSS services to print information and save metadata
-#' about a chosen cube.
-#'
-#' @param URL        URL of the service provider.
-#' @param name       Name of the cube.
-#' @param collection Collection to be searched in the data source
-#'
-#' @return a \code{tibble} with cube information.
-.sits_wtss_cube <- function(URL, name, collection) {
-
-    # verifies if wtss package is installed
-    if (!requireNamespace("Rwtss", quietly = TRUE)) {
-        stop("Please install package Rwtss.", call. = FALSE)
-    }
-
-    # describe the cube based on the WTSS API
-    cov <- Rwtss::describe_coverage(URL, collection, .print = FALSE)
-    assertthat::assert_that(!purrr::is_null(cov),
-                            msg = paste(".sits_wtss_cube: failed to get cube",
-                                        "description in WTSS.")
-    )
-
-    # retrieve information about the bands
-    bands <- .config_bands(source = "WTSS",
-                           collection = collection)
-
-    file_info <- tibble::tibble(date = cov$timeline,
-                                path = URL)
-
-    # create a tibble to store the metadata
-    cube_wtss <- .sits_cube_create(
-        name = name,
-        source = "WTSS",
-        collection = collection,
-        satellite = cov$satellite,
-        sensor = cov$sensor,
-        bands = bands,
-        nrows = cov$nrows,
-        ncols = cov$ncols,
-        xmin = cov$xmin,
-        xmax = cov$xmax,
-        ymin = cov$ymin,
-        ymax = cov$ymax,
-        xres = cov$xres,
-        yres = cov$yres,
-        crs  = cov$crs,
-        file_info = file_info
-    )
-
-    class(cube_wtss) <- c("wtss_cube", class(cube_wtss))
-    # return the tibble with cube info
-    return(cube_wtss)
-}
-
 #' @title Obtain one time series from WTSS server and load it on a sits tibble
 #' @name .sits_from_wtss
 #' @keywords internal
@@ -108,13 +50,14 @@
         end_date <- lubridate::as_date(timeline[length(timeline)])
     }
 
-    # WTSS in URL "http://www.esensing.dpi.inpe.br/wtss"
-    # is configured for lowercase bands
-    # wtss_attributes <- tolower(bands)
+
+    bands <- .source_bands_to_source(source = .cube_source(cube),
+                                     collection = .cube_collection(cube),
+                                     bands = bands)
 
     # retrieve the time series from the service
     tryCatch({
-        ts <- Rwtss::time_series(URL = cube$file_info[[1]]$path,
+        ts <- Rwtss::time_series(URL = cube$file_info[[1]]$path[[1]],
                                  name = cube$collection,
                                  attributes = bands,
                                  longitude = longitude,
@@ -144,40 +87,4 @@
     }
     # return the tibble with the time series
     return(ts)
-}
-
-#' @title Check that the URL of WTSS service is working
-#' @name .sits_wtss_check
-#' @keywords internal
-#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
-#'
-#' @param URL        URL of the WTSS service.
-#' @param name       name of the converage
-#' @return check     TRUE or FALSE
-.sits_wtss_check <- function(URL, name) {
-
-    # verifies if Rwtss package is installed
-    if (!requireNamespace("Rwtss", quietly = TRUE)) {
-        stop("Please install package Rwtss.", call. = FALSE)
-    }
-
-    # check that URL of the WTSS service has been provided
-    assertthat::assert_that(!purrr::is_null(URL),
-                            msg = "sits_cube: WTSS service needs URL"
-    )
-
-    # is the WTSS service working?
-    coverages <- Rwtss::list_coverages(URL)
-    if (purrr::is_null(coverages)) {
-        return(FALSE)
-    }
-    # is the cube in the list of cubes?
-    assertthat::assert_that(name %in% coverages,
-                            msg = paste0(
-                                "sits_cube: ", name,
-                                " not available in the WTSS server"
-                            )
-    )
-
-    return(TRUE)
 }

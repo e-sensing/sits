@@ -460,7 +460,9 @@ sits_config_show <- function() {
 .sits_config_local_satellite_sensor <- function(satellite, sensor) {
 
     sat_sensors <- names(sits_env$config$sources[["LOCAL"]]$collections)
-    satellites <- purrr::map_chr(strsplit(sat_sensors, "/"), function(x){x[[1]]})
+    satellites <- purrr::map_chr(
+        strsplit(sat_sensors, "/"), function(x){x[[1]]}
+    )
 
     assertthat::assert_that(
         satellite %in% satellites,

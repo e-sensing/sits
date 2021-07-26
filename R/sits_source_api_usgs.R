@@ -59,7 +59,7 @@
     items
 }
 
-.source_access_test.usgs_cube <- function(source, collection, bands, ...) {
+.source_access_test.usgs_cube <- function(source, collection, ..., bands) {
 
     # require package
     if (!requireNamespace("rstac", quietly = TRUE)) {
@@ -258,7 +258,7 @@
     params <- .raster_params_file(href)
 
     # format collection crs
-    crs <- .stac_format_crs(params[["crs"]])
+    crs <- .sits_format_crs(params[["crs"]])
 
     return(crs)
 }

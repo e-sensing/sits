@@ -24,19 +24,19 @@
 }
 
 #' @title Checks if the crs provided is valid
-#' @name .stac_format_crs
+#' @name .sits_format_crs
 #' @keywords internal
 #'
-#' @param stac_crs a \code{numeric} or \code{character} with CRS provided by
+#' @param crs a \code{numeric} or \code{character} with CRS provided by
 #'  STAC.
 #'
 #' @return  a \code{character} with the formatted CRS.
-.stac_format_crs <- function(stac_crs) {
+.sits_format_crs <- function(crs) {
 
-    if (is.null(stac_crs))
-        stop(paste("sits_cube: The CRS in this catalog is null, please",
+    if (is.null(crs))
+        stop(paste(".sits_format_crs: The CRS in this catalog is null, please",
                    "enter a valid CRS."))
-    return(sf::st_crs(stac_crs)[["input"]])
+    return(sf::st_crs(crs)[["input"]])
 }
 #' @title Get bbox and intersects parameters
 #' @name .stac_roi
