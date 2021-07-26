@@ -2,17 +2,21 @@
 % Please edit documentation in R/sits_source_api.R
 \name{.source_access_test}
 \alias{.source_access_test}
-\title{...}
+\title{Test access in API services}
 \usage{
 .source_access_test(source, collection, ...)
 }
 \arguments{
-\item{source}{Name of the provider}
+\item{source}{Data source (one of "SATVEG", "LOCAL", "BDC", "AWS", "USGS"
+"DEAFRICA", "PROBS").}
+
+\item{collection}{Collection to be searched in the data source}
 }
 \value{
-...
+An error if service is unreachable or a invisible null otherwise.
 }
 \description{
-...
+Checks that online API services like STAC and wtss are available
+ for access.
 }
 \keyword{internal}

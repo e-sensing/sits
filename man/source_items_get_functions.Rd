@@ -5,30 +5,30 @@
 \alias{.source_items_tiles_group}
 \alias{.source_items_get_sensor}
 \alias{.source_items_get_satellite}
-\alias{.source_items_tile_get_crs}
-\title{...}
+\title{Function for retrieving information from multiples items}
 \usage{
 .source_items_tiles_group(source, items, ..., collection = NULL)
 
 .source_items_get_sensor(source, items, ..., collection = NULL)
 
 .source_items_get_satellite(source, items, ..., collection = NULL)
-
-.source_items_tile_get_crs(source, tile_items, ..., collection = NULL)
 }
 \arguments{
-\item{source}{Name of the STAC provider}
+\item{source}{Data source (one of "SATVEG", "LOCAL", "BDC", "AWS", "USGS"
+"DEAFRICA", "PROBS").}
 
-\item{items}{...}
+\item{items}{A \code{STACItemCollection} object returned by rstac or
+\code{character} vector with directories to be search.}
 
-\item{...}{Aditional parameters}
+\item{...}{Additional parameters.}
 
-\item{collection}{...}
+\item{collection}{Collection to be searched in the data source.}
 }
 \value{
-...
+an \code{atomic} vector with informations retrived from items.
 }
 \description{
-TODO: add
+Retrieves information from the STACItemCollection object in the
+rstac package. Generic function created to handle different STAC providers.
 }
 \keyword{internal}

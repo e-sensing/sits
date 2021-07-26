@@ -6,7 +6,7 @@
 \alias{.source_item_get_hrefs}
 \alias{.source_item_get_bands}
 \alias{.source_item_get_resolutions}
-\title{...}
+\title{Function for retrieving information from a single item}
 \usage{
 .source_item_get_date(source, item, ..., collection = NULL)
 
@@ -17,18 +17,21 @@
 .source_item_get_resolutions(source, item, ..., collection = NULL)
 }
 \arguments{
-\item{source}{Name of the STAC provider}
+\item{source}{Data source (one of "SATVEG", "LOCAL", "BDC", "AWS", "USGS"
+"DEAFRICA", "PROBS").}
 
-\item{item}{...}
+\item{...}{Additional parameters.}
 
-\item{...}{Aditional parameters}
+\item{collection}{Collection to be searched in the data source.}
 
-\item{collection}{...}
+\item{items}{a \code{STACItemCollection} object returned by rstac.}
 }
 \value{
-...
+an atomic \code{vector} with the required information.
 }
 \description{
-TODO: add
+Generic function for retrieving information in item returned by
+ APIs. The concept of items is used in STAC APIs, where each item corresponds
+ to a satellite image (scene), with a single time and multiple bands.
 }
 \keyword{internal}

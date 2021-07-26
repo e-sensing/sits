@@ -2,21 +2,23 @@
 % Please edit documentation in R/sits_source_api.R
 \name{.source_items_new}
 \alias{.source_items_new}
-\title{...}
+\title{Create an items object}
 \usage{
 .source_items_new(source, collection, ...)
 }
 \arguments{
-\item{source}{Name of the STAC provider}
+\item{source}{Data source (one of "SATVEG", "LOCAL", "BDC", "AWS", "USGS"
+"DEAFRICA", "PROBS").}
 
-\item{collection}{...}
+\item{collection}{Collection to be searched in the data source.}
 
-\item{...}{...}
+\item{...}{Additional parameters.}
 }
 \value{
-...
+a \code{STACItemCollection} object returned by rstac.
 }
 \description{
-TODO: document
+Create an items object. In the case of STAC APIs, this function
+ is responsible for making the request to the server.
 }
 \keyword{internal}

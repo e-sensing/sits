@@ -2,19 +2,20 @@
 % Please edit documentation in R/sits_source_api.R
 \name{.source_cube}
 \alias{.source_cube}
-\title{Convert bands names from cube to SITS}
+\title{Create a data cube}
 \usage{
 .source_cube(source, ...)
 }
 \arguments{
-\item{source}{Name of the STAC provider}
+\item{source}{Data source (one of "SATVEG", "LOCAL", "BDC", "AWS", "USGS"
+"DEAFRICA", "PROBS").}
 
-\item{...}{Aditional parameters}
+\item{...}{Additional parameters.}
 }
 \value{
-Data cube tile with SITS bands
+a sits cube.
 }
 \description{
-TODO: add
+Generic function responsible for creating data cubes in sits.
 }
 \keyword{internal}
