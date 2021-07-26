@@ -238,10 +238,9 @@ test_that("Creating cubes from WTSS", {
     # try to access cube with wrong url
     testthat::expect_error(
         sits_cube(
-            url = "wrong-url",
             source = "WTSS",
             name = "l8_wtss_cube",
-            collection = "LC8_30_16D_STK-1")
+            collection = "invalid-collection")
     )
 })
 
