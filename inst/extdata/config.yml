@@ -28,7 +28,7 @@ sources:
     PROBS                   :
         s3_class            : ["probs_cube"]
         collections         :
-            CLASSIFIED      :
+            PROBS           :
                 bands       :
                     PROBS   :
                         missing_value : -9999
