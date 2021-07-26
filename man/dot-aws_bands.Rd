@@ -2,21 +2,22 @@
 % Please edit documentation in R/sits_source_api_aws.R
 \name{.aws_bands}
 \alias{.aws_bands}
-\title{...}
+\title{Get aws sits bands by resolution}
 \usage{
 .aws_bands(source, collection, s2_resolution)
 }
 \arguments{
-\item{source}{Name of the STAC provider}
+\item{source}{Data source (one of "SATVEG", "LOCAL", "BDC", "AWS",
+"USGS", "DEAFRICA", "PROBS").}
 
-\item{collection}{...}
+\item{collection}{Collection to be searched in the data source.}
 
-\item{s2_resolution}{...}
+\item{s2_resolution}{sentinel band resolution}
 }
 \value{
-...
+sentinel bands that corresponds a specified resolution.
 }
 \description{
-TODO: document
+retrieve aws bands by resolution
 }
 \keyword{internal}

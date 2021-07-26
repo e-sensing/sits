@@ -2,7 +2,7 @@
 % Please edit documentation in R/sits_stac.R
 \name{.stac_items_query}
 \alias{.stac_items_query}
-\title{...}
+\title{Creates a query to send to STAC api}
 \usage{
 .stac_items_query(
   source,
@@ -20,25 +20,28 @@
 \arguments{
 \item{source}{Name of the STAC provider}
 
-\item{collection}{...}
+\item{collection}{Collection to be searched in the data source}
 
-\item{name}{...}
+\item{name}{Name of the output data cube.}
 
-\item{bands}{...}
+\item{bands}{Bands to be included}
 
-\item{tiles}{...}
+\item{tiles}{Tiles from the collection to be included in the
+data cube}
 
-\item{bbox}{...}
+\item{bbox}{Area of interest.}
 
-\item{start_date}{...}
+\item{start_date}{Initial date for the cube (optional).}
 
-\item{end_date}{...}
+\item{end_date}{Final date for the cube  (optional).}
 
-\item{...}{...}
+\item{limit}{limit items to be returned in requisition.}
+
+\item{...}{additional parameters,}
 }
 \value{
-...
+an \code{RSTACQuery} object.
 }
 \description{
-...
+Creates a query using rstac package to send to STAC API.
 }

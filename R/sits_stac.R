@@ -1,5 +1,13 @@
 
-#' TODO: document
+#' @title Select stac items by sits bands.
+#'
+#' @description Select bands in stac items by sits bands.
+#'
+#' @param items        a \code{STACItemcollection} object from rstac package.
+#' @param bands_source a \code{character} with source bands (provider bands).
+#' @param bands_sits   a \code{character} with sits bands.
+#'
+#' @return a \code{STACItemcollection} object with selected items by bands.
 .stac_bands_select <- function(items, bands_source, bands_sits) {
 
     assertthat::assert_that(
@@ -147,20 +155,23 @@
     return(bbox_ext)
 }
 
-#' @title  ...
+#' @title  Creates a query to send to STAC api
 #' @name .stac_items_query
-#' @description  ...
-#' @param source     Name of the STAC provider
-#' @param collection ...
-#' @param name ...
-#' @param bands ...
-#' @param tiles ...
-#' @param bbox ...
-#' @param start_date ...
-#' @param end_date ...
-#' @param ... ...
+#' @description  Creates a query using rstac package to send to STAC API.
 #'
-#' @return ...
+#' @param source     Name of the STAC provider
+#' @param collection Collection to be searched in the data source
+#' @param name       Name of the output data cube.
+#' @param bands      Bands to be included
+#' @param tiles      Tiles from the collection to be included in the
+#'                   data cube
+#' @param bbox       Area of interest.
+#' @param start_date Initial date for the cube (optional).
+#' @param end_date   Final date for the cube  (optional).
+#' @param limit      limit items to be returned in requisition.
+#' @param ...        additional parameters,
+#'
+#' @return an \code{RSTACQuery} object.
 .stac_items_query <- function(source,
                               collection,
                               name,

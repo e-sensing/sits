@@ -2,10 +2,20 @@
 % Please edit documentation in R/sits_stac.R
 \name{.stac_bands_select}
 \alias{.stac_bands_select}
-\title{TODO: document}
+\title{Select stac items by sits bands.}
 \usage{
 .stac_bands_select(items, bands_source, bands_sits)
 }
+\arguments{
+\item{items}{a \code{STACItemcollection} object from rstac package.}
+
+\item{bands_source}{a \code{character} with source bands (provider bands).}
+
+\item{bands_sits}{a \code{character} with sits bands.}
+}
+\value{
+a \code{STACItemcollection} object with selected items by bands.
+}
 \description{
-TODO: document
+Select bands in stac items by sits bands.
 }

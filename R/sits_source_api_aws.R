@@ -1,14 +1,15 @@
-#' @title ...
+#' @title Get aws sits bands by resolution
 #' @name .aws_bands
 #' @keywords internal
 #'
-#' @description TODO: document
+#' @description retrieve aws bands by resolution
 #'
-#' @param source Name of the STAC provider
-#' @param collection ...
-#' @param s2_resolution ...
+#' @param source         Data source (one of "SATVEG", "LOCAL", "BDC", "AWS",
+#'                       "USGS", "DEAFRICA", "PROBS").
+#' @param collection     Collection to be searched in the data source.
+#' @param s2_resolution  sentinel band resolution
 #'
-#' @return ...
+#' @return sentinel bands that corresponds a specified resolution.
 .aws_bands <- function(source, collection, s2_resolution) {
 
     .config_bands(
@@ -18,17 +19,18 @@
     )
 }
 
-#' @title ...
+#' @title Get aws source bands by resolution
 #' @name .aws_bands_band_name
 #' @keywords internal
 #'
-#' @description TODO: document
+#' @description retrieve aws bands by resolution
 #'
-#' @param source Name of the STAC provider
-#' @param collection ...
-#' @param s2_resolution ...
+#' @param source         Data source (one of "SATVEG", "LOCAL", "BDC", "AWS",
+#'                       "USGS", "DEAFRICA", "PROBS").
+#' @param collection     Collection to be searched in the data source.
+#' @param s2_resolution  sentinel band resolution
 #'
-#' @return ...
+#' @return sentinel bands that corresponds a specified resolution.
 .aws_bands_band_name <- function(source, collection, s2_resolution) {
 
     .config_bands_band_name(
