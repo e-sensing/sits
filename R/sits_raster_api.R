@@ -214,7 +214,7 @@
 #'
 #' @return numeric matrix
 .raster_read_rast <- function(file,
-                                       block = NULL, ...) {
+                              block = NULL, ...) {
 
     # check for files length == 1
     assertthat::assert_that(
@@ -250,11 +250,11 @@
 #'
 #' @return numeric matrix
 .raster_write_rast <- function(r_obj,
-                                        file,
-                                        format,
-                                        data_type,
-                                        gdal_options,
-                                        overwrite, ...) {
+                               file,
+                               format,
+                               data_type,
+                               gdal_options,
+                               overwrite, ...) {
 
     # check package
     pkg_class <- .raster_check_package()
@@ -280,13 +280,13 @@
 #'
 #' @return               A raster object.
 .raster_new_rast <- function(nrows,
-                                      ncols,
-                                      xmin,
-                                      xmax,
-                                      ymin,
-                                      ymax,
-                                      nlayers,
-                                      crs, ...) {
+                             ncols,
+                             xmin,
+                             xmax,
+                             ymin,
+                             ymax,
+                             nlayers,
+                             crs, ...) {
 
     # check package
     pkg_class <- .raster_check_package()
@@ -328,7 +328,7 @@
 #'
 #' @return numeric matrix
 .raster_read_stack <- function(files,
-                                        block = NULL, ...) {
+                               block = NULL, ...) {
 
     # check block
     if (!purrr::is_null(block)) {
@@ -492,15 +492,16 @@
 #'
 #' @return raster package object
 .raster_focal <- function(r_obj,
-                                   window_size,
-                                   fn, ...) {
+                          window_size,
+                          fn, ...) {
 
     # check window_size
     assertthat::assert_that(
         window_size %% 2 == 1,
         msg = ".raster_focal: window_size must be an odd number"
     )
-    # check fun parameter
+
+    # check fn parameter
     if (is.character(fn)) {
 
         assertthat::assert_that(
@@ -637,11 +638,11 @@
 #' @param gdal_options   Compression method to be used
 #' @param overwrite      Overwrite the file?
 .raster_merge <- function(in_files,
-                                   out_file,
-                                   format,
-                                   gdal_datatype,
-                                   gdal_options,
-                                   overwrite) {
+                          out_file,
+                          format,
+                          gdal_datatype,
+                          gdal_options,
+                          overwrite) {
 
     # check if in_file length is at least one
     assertthat::assert_that(

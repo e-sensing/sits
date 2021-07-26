@@ -246,8 +246,10 @@ test_that("Creating cubes from WTSS", {
 
 test_that("Creating cubes from DEA", {
     testthat::skip_on_cran()
+
     # check "AWS_ACCESS_KEY_ID" - mandatory one per user
     aws_access_key_id <- Sys.getenv("AWS_ACCESS_KEY_ID")
+
     # check "AWS_SECRET_ACCESS_KEY" - mandatory one per user
     aws_secret_access_key <- Sys.getenv("AWS_SECRET_ACCESS_KEY")
 

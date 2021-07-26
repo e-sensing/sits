@@ -177,7 +177,7 @@ sits_smooth.bayes <- function(cube, type = "bayes", ...,
     )
 
     # retrieve the scale factor
-    scale_factor <- .sits_config_probs_scale_factor()
+    scale_factor <- .cube_bands_scale_factor(cube = cube, bands = "PROBS")
     mult_factor <- 1 / scale_factor
 
     # Bayesian smoother to be executed by workers cluster
@@ -287,7 +287,7 @@ sits_smooth.gaussian <- function(cube, type = "gaussian", ...,
     )
 
     # retrieve the scale factor
-    scale_factor <- .sits_config_probs_scale_factor()
+    scale_factor <- .cube_bands_scale_factor(cube = cube, bands = "PROBS")
     mult_factor <- 1 / scale_factor
 
     # Gaussian smoother to be executed by workers cluster
@@ -394,7 +394,7 @@ sits_smooth.bilateral <- function(cube,
     )
 
     # retrieve the scale factor
-    scale_factor <- .sits_config_probs_scale_factor()
+    scale_factor <- .cube_bands_scale_factor(cube = cube, bands = "PROBS")
     mult_factor <- 1 / scale_factor
 
     # Gaussian smoother to be executed by workers cluster

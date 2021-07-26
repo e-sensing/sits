@@ -73,21 +73,21 @@
 #' @keywords internal
 #' @export
 .raster_read_rast.raster <- function(file,
-                                              block = NULL, ...) {
+                                     block = NULL, ...) {
 
     return(.raster_read_stack.raster(files = file,
-                                              block = block))
+                                     block = block))
 
 }
 
 #' @keywords internal
 #' @export
 .raster_write_rast.raster <- function(r_obj,
-                                               file,
-                                               format,
-                                               data_type,
-                                               gdal_options,
-                                               overwrite, ...) {
+                                      file,
+                                      format,
+                                      data_type,
+                                      gdal_options,
+                                      overwrite, ...) {
 
     suppressWarnings(
         raster::writeRaster(
@@ -112,13 +112,13 @@
 #' @keywords internal
 #' @export
 .raster_new_rast.raster <- function(nrows,
-                                             ncols,
-                                             xmin,
-                                             xmax,
-                                             ymin,
-                                             ymax,
-                                             nlayers,
-                                             crs, ...) {
+                                    ncols,
+                                    xmin,
+                                    xmax,
+                                    ymin,
+                                    ymax,
+                                    nlayers,
+                                    crs, ...) {
 
     # create a raster object
     suppressWarnings(
@@ -146,7 +146,7 @@
 
 #' @export
 .raster_read_stack.raster <- function(files,
-                                               block = NULL, ...) {
+                                      block = NULL, ...) {
 
     # create raster objects
     r_obj <- .raster_open_stack.raster(files = files, ...)
@@ -273,14 +273,26 @@
 #' @keywords internal
 #' @export
 .raster_focal.raster <- function(r_obj,
-                                          window_size,
-                                          fn, ...) {
+                                 window_size,
+                                 fn, ...) {
 
     # check fun parameter
     if (is.character(fn)) {
 
         if (fn == "modal")
             fn <- raster::modal
+    }
+
+    # check r_obj type
+    if (inherits(r_obj, "RasterBrick")) {
+
+        assertthat::assert_that(
+            raster::nlayers(r_obj) == 1,
+            msg = paste(".raster_focal.raster: cannot use focal",
+                        "function in a RasterBrick object.")
+        )
+
+        r_obj <- r_obj[[1]]
     }
 
     suppressWarnings(

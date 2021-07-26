@@ -76,21 +76,21 @@
 #' @keywords internal
 #' @export
 .raster_read_rast.terra <- function(file,
-                                             block = NULL, ...) {
+                                    block = NULL, ...) {
 
     return(.raster_read_stack.terra(files = file,
-                                             block = block))
+                                    block = block))
 
 }
 
 #' @keywords internal
 #' @export
 .raster_write_rast.terra <- function(r_obj,
-                                              file,
-                                              format,
-                                              data_type,
-                                              gdal_options,
-                                              overwrite, ...) {
+                                     file,
+                                     format,
+                                     data_type,
+                                     gdal_options,
+                                     overwrite, ...) {
 
     suppressWarnings(
         terra::writeRaster(
@@ -115,13 +115,13 @@
 #' @keywords internal
 #' @export
 .raster_new_rast.terra <- function(nrows,
-                                            ncols,
-                                            xmin,
-                                            xmax,
-                                            ymin,
-                                            ymax,
-                                            nlayers,
-                                            crs, ...) {
+                                   ncols,
+                                   xmin,
+                                   xmax,
+                                   ymin,
+                                   ymax,
+                                   nlayers,
+                                   crs, ...) {
 
     # create a raster object
     suppressWarnings(
@@ -150,7 +150,7 @@
 #' @keywords internal
 #' @export
 .raster_read_stack.terra <- function(files,
-                                              block = NULL, ...) {
+                                     block = NULL, ...) {
 
     # create raster objects
     r_obj <- .raster_open_stack.terra(files = files, ...)
@@ -288,8 +288,8 @@
 #' @keywords internal
 #' @export
 .raster_focal.terra <- function(r_obj,
-                                         window_size,
-                                         fn, ...) {
+                                window_size,
+                                fn, ...) {
 
     # check fun parameter
     if (is.character(fn)) {
