@@ -2,17 +2,19 @@
 % Please edit documentation in R/sits_source_api.R
 \name{.source_new}
 \alias{.source_new}
-\title{...}
+\title{Creates a s3 class}
 \usage{
 .source_new(source)
 }
 \arguments{
-\item{source}{Name of the STAC provider}
+\item{source}{Data source (one of "SATVEG", "LOCAL", "BDC", "AWS", "USGS"
+"DEAFRICA", "PROBS").}
 }
 \value{
-...
+a \code{character} with a specified class.
 }
 \description{
-TODO: document
+Create an S3 class with information returned from the
+ configuration file.
 }
 \keyword{internal}

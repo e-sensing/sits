@@ -2,27 +2,31 @@
 % Please edit documentation in R/sits_source_api.R
 \name{.source_items_cube}
 \alias{.source_items_cube}
-\title{...}
+\title{Create a cube object for each tile}
 \usage{
 .source_items_cube(source, collection, name, items, file_info, ...)
 }
 \arguments{
-\item{source}{Name of the STAC provider}
+\item{source}{Data source (one of "SATVEG", "LOCAL", "BDC", "AWS", "USGS"
+"DEAFRICA", "PROBS").}
 
-\item{collection}{...}
+\item{collection}{Collection to be searched in the data source.}
 
-\item{name}{...}
+\item{name}{A \code{character} with cube name.}
 
-\item{items}{...}
+\item{items}{A \code{STACItemCollection} object returned by rstac or
+\code{character} vector with directories to be search.}
 
-\item{file_info}{...}
+\item{file_info}{A \code{tibble} with informations about datetime, bands,
+res, and path.}
 
-\item{...}{...}
+\item{...}{Additional parameters.}
 }
 \value{
-...
+A \code{tibble} with the cube class created.
 }
 \description{
-TODO: document
+Create a sits cube object for tile, at the end the tiles are
+ merged to form a single object.
 }
 \keyword{internal}

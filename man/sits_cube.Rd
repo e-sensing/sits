@@ -98,7 +98,7 @@ sits_cube(source, ...)
 }
 \arguments{
 \item{source}{Data source (one of "SATVEG", "LOCAL",
-"BDC", "AWS", "DEAFRICA", "PROBS").}
+"BDC", "AWS", "USGS" "DEAFRICA", "PROBS").}
 
 \item{...}{Other parameters to be passed for specific types}
 
@@ -186,7 +186,7 @@ in two ways: (a) a region of interest(`roi`) in WGS 84 coordinates;
 }
 }
 \details{
-The "bbox" parameters allows a selection of an area of interest.
+The "bbox" parameter allows a selection of an area of interest.
 Either using a named \code{vector} ("xmin", "ymin", "xmax", "ymax") with
 values in WGS 84, a \code{sfc} or \code{sf} object from sf package, or a
 GeoJSON geometry (RFC 7946). Note that this parameter does not crop a

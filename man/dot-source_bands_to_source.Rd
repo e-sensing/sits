@@ -2,22 +2,22 @@
 % Please edit documentation in R/sits_source_api.R
 \name{.source_bands_to_source}
 \alias{.source_bands_to_source}
-\title{Convert bands names from cube to SITS}
+\title{Convert bands names as source names}
 \usage{
 .source_bands_to_source(source, collection, bands)
 }
 \arguments{
-\item{source}{Name of the STAC provider}
+\item{source}{Data source (one of "SATVEG", "LOCAL", "BDC", "AWS", "USGS"
+"DEAFRICA", "PROBS").}
 
-\item{collection}{Name of sensor}
+\item{collection}{Collection to be searched in the data source.}
 
-\item{bands}{Bands requested to be read}
+\item{bands}{Bands requested to be read.}
 }
 \value{
-Data cube tile with SITS bands
+an \code{character} with converted bands.
 }
 \description{
-Convert the name of the band used by the origin data cube
-             to the name used by SITS
+Convert bands used by sits to source names.
 }
 \keyword{internal}

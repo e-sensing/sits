@@ -2,21 +2,27 @@
 % Please edit documentation in R/sits_source_api.R
 \name{.source_items_fileinfo}
 \alias{.source_items_fileinfo}
-\title{...}
+\title{Create an info file from items}
 \usage{
 .source_items_fileinfo(source, items, ..., collection = NULL)
 }
 \arguments{
-\item{source}{Name of the STAC provider}
+\item{source}{Data source (one of "SATVEG", "LOCAL", "BDC", "AWS", "USGS"
+"DEAFRICA", "PROBS").}
 
-\item{items}{...}
+\item{items}{A \code{STACItemCollection} object returned by rstac or
+\code{character} vector with directories to be search.}
 
-\item{collection}{...}
+\item{...}{Additional parameters.}
+
+\item{collection}{Collection to be searched in the data source.}
 }
 \value{
 ...
 }
 \description{
-TODO: document
+Creates the fileinfo specification from user-supplied items. In
+ case of STAC cubes, the items are rstac objects. In case of local cubes, the
+ items are user-supplied directories.
 }
 \keyword{internal}

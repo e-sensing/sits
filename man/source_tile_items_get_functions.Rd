@@ -2,11 +2,15 @@
 % Please edit documentation in R/sits_source_api.R
 \name{source_tile_items_get_functions}
 \alias{source_tile_items_get_functions}
+\alias{.source_items_tile_get_crs}
 \alias{.source_items_tile_get_name}
 \alias{.source_items_tile_get_bbox}
 \alias{.source_items_tile_get_size}
-\title{...}
+\title{#' @title Function for retrieving information from multiples items
+related to a single tile.}
 \usage{
+.source_items_tile_get_crs(source, tile_items, ..., collection = NULL)
+
 .source_items_tile_get_name(source, tile_items, ..., collection = NULL)
 
 .source_items_tile_get_bbox(source, tile_items, ..., collection = NULL)
@@ -14,18 +18,21 @@
 .source_items_tile_get_size(source, tile_items, ..., collection = NULL)
 }
 \arguments{
-\item{source}{Name of the STAC provider}
+\item{source}{Data source (one of "SATVEG", "LOCAL", "BDC", "AWS", "USGS"
+"DEAFRICA", "PROBS").}
 
-\item{...}{Aditional parameters}
+\item{...}{Additional parameters.}
 
-\item{collection}{...}
+\item{collection}{Collection to be searched in the data source.}
 
-\item{items}{...}
+\item{items}{A \code{STACItemCollection} object returned by rstac or
+\code{character} vector with directories to be search.}
 }
 \value{
-...
+an \code{atomic} vector with informations retrived from items.
 }
 \description{
-TODO: add
+Function to retrieves informations from the STACItemCollection
+object in the rstac package, but related from a single tile.
 }
 \keyword{internal}

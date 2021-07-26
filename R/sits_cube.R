@@ -93,7 +93,7 @@
 #'
 #'
 #' @param source            Data source (one of "SATVEG", "LOCAL",
-#'                          "BDC", "AWS", "DEAFRICA", "PROBS").
+#'                          "BDC", "AWS", "USGS", "DEAFRICA", "PROBS").
 #' @param ...               Other parameters to be passed for specific types
 #' @param name              Name of the output data cube.
 #' @param url               URL for the STAC endpoint of the data source
@@ -120,13 +120,13 @@
 #'                          probabilities)
 #' @param probs_labels      Labels associated to a probabilities cube
 #'
-#' @details  The "bbox" parameters allows a selection of an area of interest.
+#' @details  The "bbox" parameter allows a selection of an area of interest.
 #' Either using a named \code{vector} ("xmin", "ymin", "xmax", "ymax") with
 #' values in WGS 84, a \code{sfc} or \code{sf} object from sf package, or a
 #' GeoJSON geometry (RFC 7946). Note that this parameter does not crop a
 #' region, but only selects the images that intersect with it.
 #'
-#' @return                  The description of a data cube
+#' @return The description of a data cube
 #'
 #' @examples
 #' \dontrun{-=-
@@ -290,7 +290,6 @@ sits_cube.wtss_cube <- function(source = "WTSS", ...,
 #' @rdname sits_cube
 #'
 #' @export
-#'
 sits_cube.bdc_cube <- function(source = "BDC", ...,
                                name = "bdc_cube",
                                collection,
@@ -352,7 +351,6 @@ sits_cube.bdc_cube <- function(source = "BDC", ...,
 #' @rdname sits_cube
 #'
 #' @export
-#'
 sits_cube.deafrica_cube <- function(source = "DEAFRICA", ...,
                                     name = "deafrica_cube",
                                     url = NULL,
@@ -411,7 +409,6 @@ sits_cube.deafrica_cube <- function(source = "DEAFRICA", ...,
 #' @rdname sits_cube
 #'
 #' @export
-#'
 sits_cube.aws_cube <- function(source = "AWS", ...,
                                name = "aws_cube",
                                url = NULL,
@@ -484,7 +481,6 @@ sits_cube.aws_cube <- function(source = "AWS", ...,
 #' @rdname sits_cube
 #'
 #' @export
-#'
 sits_cube.usgs_cube <- function(source = "USGS", ...,
                                 name = "usgs_cube",
                                 url = NULL,
@@ -543,7 +539,6 @@ sits_cube.usgs_cube <- function(source = "USGS", ...,
 #' @rdname sits_cube
 #'
 #' @export
-#'
 sits_cube.local_cube <- function(source = "LOCAL", ...,
                                  name   = "local_cube",
                                  satellite,
@@ -599,7 +594,6 @@ sits_cube.local_cube <- function(source = "LOCAL", ...,
 #' @rdname sits_cube
 #'
 #' @export
-#'
 sits_cube.probs_cube <- function(source = "PROBS", ...,
                                  name = "probs_cube",
                                  satellite,
@@ -623,7 +617,6 @@ sits_cube.probs_cube <- function(source = "PROBS", ...,
 #' @rdname sits_cube
 #'
 #' @export
-#'
 sits_cube.satveg_cube <- function(source = "SATVEG", ...,
                                   collection = "terra") {
 
@@ -642,7 +635,6 @@ sits_cube.satveg_cube <- function(source = "SATVEG", ...,
 }
 
 #' @export
-#'
 sits_cube.default <- function(source, ...) {
     stop("sits_cube: source not found.")
 }
@@ -686,7 +678,6 @@ sits_cube.default <- function(source, ...) {
 #' }
 #'
 #' @export
-#'
 sits_cube_copy <- function(cube,
                            name,
                            dest_dir,

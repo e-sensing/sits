@@ -1,12 +1,16 @@
-#' @title ...
+#' @title Test access in API services
 #' @name .source_access_test
+#'
 #' @keywords internal
 #'
-#' @description ...
+#' @description Checks that online API services like STAC and wtss are available
+#'  for access.
 #'
-#' @param source     Name of the provider
+#' @param source     Data source (one of "SATVEG", "LOCAL", "BDC", "AWS", "USGS"
+#'                    "DEAFRICA", "PROBS").
+#' @param collection Collection to be searched in the data source
 #'
-#' @return   ...
+#' @return An error if service is unreachable or a invisible null otherwise.
 .source_access_test <- function(source, collection, ...) {
 
     s <- .source_new(source = source)
@@ -14,17 +18,18 @@
     UseMethod(".source_access_test", s)
 }
 
-#' @title Convert bands names from cube to SITS
+#' @title Convert bands names as sits bands
 #' @name .source_bands_to_sits
 #' @keywords internal
 #'
-#' @description Convert the name of the band used by the origin data cube
-#'              to the name used by SITS
-#' @param source     Name of the STAC provider
-#' @param collection Name of sensor
+#' @description Convert bands used by the origin data cube to the name used by
+#'  SITS
+#' @param source     Data source (one of "SATVEG", "LOCAL", "BDC", "AWS",
+#'                   "USGS", "DEAFRICA", "PROBS").
+#' @param collection Collection to be searched in the data source
 #' @param bands      Bands requested to be read
 #'
-#' @return          Data cube tile with SITS bands
+#' @return  an \code{character} with converted bands.
 .source_bands_to_sits <- function(source, collection, bands) {
 
     # bands sits
@@ -47,17 +52,18 @@
     return(unname(bands_converter[bands]))
 }
 
-#' @title Convert bands names from cube to SITS
+#' @title Convert bands names as source names
 #' @name .source_bands_to_source
 #' @keywords internal
 #'
-#' @description Convert the name of the band used by the origin data cube
-#'              to the name used by SITS
-#' @param source     Name of the STAC provider
-#' @param collection Name of sensor
-#' @param bands      Bands requested to be read
+#' @description Convert bands used by sits to source names.
 #'
-#' @return          Data cube tile with SITS bands
+#' @param source     Data source (one of "SATVEG", "LOCAL", "BDC", "AWS",
+#'                   "USGS", "DEAFRICA", "PROBS").
+#' @param collection Collection to be searched in the data source.
+#' @param bands      Bands requested to be read.
+#'
+#' @return an \code{character} with converted bands.
 .source_bands_to_source <- function(source, collection, bands) {
 
     # bands sits
@@ -80,16 +86,17 @@
     return(unname(bands_converter[bands]))
 }
 
-#' @title Convert bands names from cube to SITS
+#' @title Create a data cube
 #' @name .source_cube
 #' @keywords internal
 #'
-#' @description TODO: add
+#' @description Generic function responsible for creating data cubes in sits.
 #'
-#' @param source Name of the STAC provider
-#' @param ...    Aditional parameters
+#' @param source     Data source (one of "SATVEG", "LOCAL", "BDC", "AWS",
+#'                   "USGS", "DEAFRICA", "PROBS").
+#' @param ...    Additional parameters.
 #'
-#' @return Data cube tile with SITS bands
+#' @return a sits cube.
 .source_cube <- function(source, ...) {
 
     s <- .source_new(source)
@@ -97,24 +104,25 @@
     UseMethod(".source_cube", s)
 }
 
-#' @title ...
+#' @title Function for retrieving information from a single item
 #' @name source_item_get_functions
 #' @keywords internal
 #'
-#' @description TODO: add
+#' @description Generic function for retrieving information in item returned by
+#'  APIs. The concept of items is used in STAC APIs, where each item corresponds
+#'  to a satellite image (scene), with a single time and multiple bands.
 #'
-#' @param source Name of the STAC provider
-#' @param item ...
-#' @param ... Aditional parameters
-#' @param collection ...
+#' @param source     Data source (one of "SATVEG", "LOCAL", "BDC", "AWS",
+#'                   "USGS", "DEAFRICA", "PROBS").
+#' @param items a \code{STACItemCollection} object returned by rstac.
+#' @param ... Additional parameters.
+#' @param collection Collection to be searched in the data source.
 #'
-#' @return ...
+#' @return an atomic \code{vector} with the required information.
 NULL
 
 #' @rdname source_item_get_functions
-.source_item_get_date <- function(source,
-                                  item, ...,
-                                  collection = NULL) {
+.source_item_get_date <- function(source, item, ..., collection = NULL) {
 
     s <- .source_new(source)
 
@@ -122,9 +130,7 @@ NULL
 }
 
 #' @rdname source_item_get_functions
-.source_item_get_hrefs <- function(source,
-                                   item, ...,
-                                   collection = NULL) {
+.source_item_get_hrefs <- function(source, item, ..., collection = NULL) {
 
     s <- .source_new(source)
 
@@ -132,9 +138,7 @@ NULL
 }
 
 #' @rdname source_item_get_functions
-.source_item_get_bands <- function(source,
-                                   item, ...,
-                                   collection = NULL) {
+.source_item_get_bands <- function(source, item, ..., collection = NULL) {
 
     s <- .source_new(source)
 
@@ -142,26 +146,26 @@ NULL
 }
 
 #' @rdname source_item_get_functions
-.source_item_get_resolutions <- function(source,
-                                         item, ...,
-                                         collection = NULL) {
+.source_item_get_resolutions <- function(source, item, ..., collection = NULL) {
 
     s <- .source_new(source)
 
     UseMethod(".source_item_get_resolutions", s)
 }
 
-#' @title ...
+#' @title Create an items object
 #' @name .source_items_new
 #' @keywords internal
 #'
-#' @description TODO: document
+#' @description Create an items object. In the case of STAC APIs, this function
+#'  is responsible for making the request to the server.
 #'
-#' @param source     Name of the STAC provider
-#' @param collection ...
-#' @param ... ...
+#' @param source     Data source (one of "SATVEG", "LOCAL", "BDC", "AWS",
+#'                   "USGS", "DEAFRICA", "PROBS").
+#' @param collection Collection to be searched in the data source.
+#' @param ...        Additional parameters.
 #'
-#' @return ...
+#' @return a \code{STACItemCollection} object returned by rstac.
 .source_items_new <- function(source, collection, ...) {
 
     s <- .source_new(source)
@@ -169,67 +173,70 @@ NULL
     UseMethod(".source_items_new", s)
 }
 
-#' @title ...
+#' @title Item selection from Bands
 #' @name .source_items_bands_select
 #' @keywords internal
 #'
-#' @description TODO: document
+#' @description Selection of items from specific bands by the user.
 #'
-#' @param source Name of the STAC provider
-#' @param collection ...
-#' @param items ...
-#' @param bands ...
-#' @param ... ...
+#' @param source     Data source (one of "SATVEG", "LOCAL", "BDC", "AWS",
+#'                   "USGS", "DEAFRICA", "PROBS").
+#' @param collection Collection to be searched in the data source.
+#' @param items      A \code{STACItemCollection} object returned by rstac.
+#' @param bands      A \code{character} with bands to be select in items object.
+#' @param ...        Additional parameters.
 #'
-#' @return ...
-.source_items_bands_select <- function(source,
-                                       collection,
-                                       items,
-                                       bands, ...) {
+#' @return A \code{STACItemCollection} object returned by rstac with items
+#'  selected.
+.source_items_bands_select <- function(source, collection, items, bands, ...) {
 
     s <- .source_new(source)
 
     UseMethod(".source_items_bands_select", s)
 }
 
-#' @title ...
+#' @title Create an info file from items
 #' @name .source_items_fileinfo
 #' @keywords internal
 #'
-#' @description TODO: document
+#' @description Creates the fileinfo specification from user-supplied items. In
+#'  case of STAC cubes, the items are rstac objects. In case of local cubes, the
+#'  items are user-supplied directories.
 #'
-#' @param source Name of the STAC provider
-#' @param items ...
-#' @param collection ...
+#' @param source     Data source (one of "SATVEG", "LOCAL", "BDC", "AWS",
+#'                   "USGS", "DEAFRICA", "PROBS").
+#' @param items      A \code{STACItemCollection} object returned by rstac or
+#'  \code{character} vector with directories to be search.
+#' @param ...        Additional parameters.
+#' @param collection Collection to be searched in the data source.
 #'
 #' @return ...
-.source_items_fileinfo <- function(source,
-                                   items, ...,
-                                   collection = NULL) {
+.source_items_fileinfo <- function(source, items, ..., collection = NULL) {
 
     s <- .source_new(source)
 
     UseMethod(".source_items_fileinfo", s)
 }
 
-#' @title ...
+#' @title Function for retrieving information from multiples items
 #' @name source_items_get_functions
 #' @keywords internal
 #'
-#' @description TODO: add
+#' @description Retrieves information from the STACItemCollection object in the
+#' rstac package. Generic function created to handle different STAC providers.
 #'
-#' @param source Name of the STAC provider
-#' @param items ...
-#' @param ... Aditional parameters
-#' @param collection ...
+#' @param source     Data source (one of "SATVEG", "LOCAL", "BDC", "AWS",
+#'                   "USGS", "DEAFRICA", "PROBS").
+#' @param items      A \code{STACItemCollection} object returned by rstac or
+#'  \code{character} vector with directories to be search.
+#' @param ...        Additional parameters.
+#' @param collection Collection to be searched in the data source.
 #'
-#' @return ...
+#' @return an \code{atomic} vector with informations retrived from items.
 NULL
 
 #' @rdname source_items_get_functions
-.source_items_tiles_group <- function(source,
-                                      items, ...,
-                                      collection = NULL) {
+.source_items_tiles_group <- function(source, items, ..., collection = NULL) {
 
     s <- .source_new(source)
 
@@ -237,9 +244,7 @@ NULL
 }
 
 #' @rdname source_items_get_functions
-.source_items_get_sensor <- function(source,
-                                     items, ...,
-                                     collection = NULL) {
+.source_items_get_sensor <- function(source, items, ..., collection = NULL) {
 
     s <- .source_new(source)
 
@@ -247,16 +252,32 @@ NULL
 }
 
 #' @rdname source_items_get_functions
-.source_items_get_satellite <- function(source,
-                                        items, ...,
-                                        collection = NULL) {
+.source_items_get_satellite <- function(source, items, ..., collection = NULL) {
 
     s <- .source_new(source)
 
     UseMethod(".source_items_get_satellite", s)
 }
 
-#' @rdname source_items_get_functions
+#' @title #' @title Function for retrieving information from multiples items
+#' related to a single tile.
+#' @name source_tile_items_get_functions
+#' @keywords internal
+#'
+#' @description Function to retrieves informations from the STACItemCollection
+#' object in the rstac package, but related from a single tile.
+#'
+#' @param source     Data source (one of "SATVEG", "LOCAL", "BDC", "AWS",
+#'                   "USGS", "DEAFRICA", "PROBS").
+#' @param items      A \code{STACItemCollection} object returned by rstac or
+#'  \code{character} vector with directories to be search.
+#' @param ...        Additional parameters.
+#' @param collection Collection to be searched in the data source.
+#'
+#' @return an \code{atomic} vector with informations retrived from items.
+NULL
+
+#' @rdname source_tile_items_get_functions
 .source_items_tile_get_crs <- function(source,
                                        tile_items, ...,
                                        collection = NULL) {
@@ -265,20 +286,6 @@ NULL
 
     UseMethod(".source_items_tile_get_crs", s)
 }
-
-#' @title ...
-#' @name source_tile_items_get_functions
-#' @keywords internal
-#'
-#' @description TODO: add
-#'
-#' @param source Name of the STAC provider
-#' @param items ...
-#' @param ... Aditional parameters
-#' @param collection ...
-#'
-#' @return ...
-NULL
 
 #' @rdname source_tile_items_get_functions
 .source_items_tile_get_name <- function(source,
@@ -310,20 +317,24 @@ NULL
     UseMethod(".source_items_tile_get_size", s)
 }
 
-#' @title ...
+#' @title Create a cube object for each tile
 #' @name .source_items_cube
 #' @keywords internal
 #'
-#' @description TODO: document
+#' @description Create a sits cube object for tile, at the end the tiles are
+#'  merged to form a single object.
 #'
-#' @param source Name of the STAC provider
-#' @param collection ...
-#' @param name ...
-#' @param items ...
-#' @param file_info ...
-#' @param ... ...
+#' @param source     Data source (one of "SATVEG", "LOCAL", "BDC", "AWS",
+#'                   "USGS", "DEAFRICA", "PROBS").
+#' @param collection Collection to be searched in the data source.
+#' @param name       A \code{character} with cube name.
+#' @param items      A \code{STACItemCollection} object returned by rstac or
+#'  \code{character} vector with directories to be search.
+#' @param file_info  A \code{tibble} with informations about datetime, bands,
+#' res, and path.
+#' @param ...        Additional parameters.
 #'
-#' @return ...
+#' @return A \code{tibble} with the cube class created.
 .source_items_cube <- function(source,
                                collection,
                                name,
@@ -335,15 +346,17 @@ NULL
     UseMethod(".source_items_cube", s)
 }
 
-#' @title ...
+#' @title Creates a s3 class
 #' @name .source_new
 #' @keywords internal
 #'
-#' @description TODO: document
+#' @description Create an S3 class with information returned from the
+#'  configuration file.
 #'
-#' @param source Name of the STAC provider
+#' @param source     Data source (one of "SATVEG", "LOCAL", "BDC", "AWS",
+#'                   "USGS", "DEAFRICA", "PROBS").
 #'
-#' @return ...
+#' @return a \code{character} with a specified class.
 .source_new <- function(source) {
 
     class(source) <- .config_source_s3class(source)

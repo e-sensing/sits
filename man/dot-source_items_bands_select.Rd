@@ -2,25 +2,27 @@
 % Please edit documentation in R/sits_source_api.R
 \name{.source_items_bands_select}
 \alias{.source_items_bands_select}
-\title{...}
+\title{Item selection from Bands}
 \usage{
 .source_items_bands_select(source, collection, items, bands, ...)
 }
 \arguments{
-\item{source}{Name of the STAC provider}
+\item{source}{Data source (one of "SATVEG", "LOCAL", "BDC", "AWS", "USGS"
+"DEAFRICA", "PROBS").}
 
-\item{collection}{...}
+\item{collection}{Collection to be searched in the data source.}
 
-\item{items}{...}
+\item{items}{A \code{STACItemCollection} object returned by rstac.}
 
-\item{bands}{...}
+\item{bands}{A \code{character} with bands to be select in items object.}
 
-\item{...}{...}
+\item{...}{Additional parameters.}
 }
 \value{
-...
+A \code{STACItemCollection} object returned by rstac with items
+ selected.
 }
 \description{
-TODO: document
+Selection of items from specific bands by the user.
 }
 \keyword{internal}

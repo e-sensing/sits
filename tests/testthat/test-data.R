@@ -323,7 +323,7 @@ test_that("Test reading shapefile from BDC", {
         bands = c("NDVI", "EVI"),
         tiles = c("022024", "022025"),
         start_date = "2018-09-01",
-        end_date = "2019-08-28"
+        end_date = "2018-10-28"
     )
 
     if (purrr::is_null(cbers_stac_tile)) {
