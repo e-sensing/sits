@@ -6,7 +6,7 @@
 
 }
 
-.config_get <- function(key, default = NULL) {
+.config_get <- function(key, default = NULL, simplify = FALSE) {
 
     value <- tryCatch({
         sits_env$config[[key]]
@@ -20,6 +20,8 @@
                    "not found.\nPlease, check config file."),
              call. = FALSE)
 
+    if (simplify)
+        return(unlist(value))
     return(value)
 }
 
@@ -127,7 +129,7 @@
                        add_cloud = add_cloud)
 }
 
-.config_bands_resolution <- function(source,
+.config_bands_resolutions <- function(source,
                                      collection, ...,
                                      bands = NULL,
                                      fn_filter = NULL,
@@ -142,8 +144,10 @@
 
     assertthat::assert_that(
         all(values > 0),
-        msg = ".config_bands_resolution: invalid resolution."
+        msg = ".config_bands_resolutions: invalid resolution."
     )
+
+    return(values)
 }
 
 .config_cloud <- function() {
