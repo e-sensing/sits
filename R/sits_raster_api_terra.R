@@ -302,7 +302,10 @@
         terra::focal(
             x   = r_obj,
             w   = window_size,
-            fun = fn, ...
+            fun = fn,
+            na.rm = TRUE,
+            fillvalue = NA,
+            expand = TRUE, ...
         )
     )
 }
