@@ -7,8 +7,8 @@
 .source_new(source)
 }
 \arguments{
-\item{source}{Data source (one of "SATVEG", "LOCAL", "BDC", "AWS", "USGS"
-"DEAFRICA", "PROBS").}
+\item{source}{Data source (one of "SATVEG", "LOCAL", "BDC", "AWS",
+"USGS", "DEAFRICA", "PROBS").}
 }
 \value{
 a \code{character} with a specified class.

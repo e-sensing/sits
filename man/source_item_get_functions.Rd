@@ -17,8 +17,8 @@
 .source_item_get_resolutions(source, item, ..., collection = NULL)
 }
 \arguments{
-\item{source}{Data source (one of "SATVEG", "LOCAL", "BDC", "AWS", "USGS"
-"DEAFRICA", "PROBS").}
+\item{source}{Data source (one of "SATVEG", "LOCAL", "BDC", "AWS",
+"USGS", "DEAFRICA", "PROBS").}
 
 \item{...}{Additional parameters.}
 

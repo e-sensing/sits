@@ -98,7 +98,7 @@ sits_cube(source, ...)
 }
 \arguments{
 \item{source}{Data source (one of "SATVEG", "LOCAL",
-"BDC", "AWS", "USGS" "DEAFRICA", "PROBS").}
+"BDC", "AWS", "USGS", "DEAFRICA", "PROBS").}
 
 \item{...}{Other parameters to be passed for specific types}
 

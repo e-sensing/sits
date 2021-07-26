@@ -7,8 +7,8 @@
 .source_bands_to_source(source, collection, bands)
 }
 \arguments{
-\item{source}{Data source (one of "SATVEG", "LOCAL", "BDC", "AWS", "USGS"
-"DEAFRICA", "PROBS").}
+\item{source}{Data source (one of "SATVEG", "LOCAL", "BDC", "AWS",
+"USGS", "DEAFRICA", "PROBS").}
 
 \item{collection}{Collection to be searched in the data source.}
 
