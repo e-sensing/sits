@@ -299,7 +299,10 @@
         raster::focal(
             x   = r_obj,
             w   = matrix(1, nrow = window_size, ncol = window_size),
-            fun = fn, ...
+            fun = fn,
+            na.rm = TRUE,
+            pad = TRUE,
+            padValue = NA, ...
         )
     )
 }

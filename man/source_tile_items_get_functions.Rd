@@ -18,8 +18,8 @@ related to a single tile.}
 .source_items_tile_get_size(source, tile_items, ..., collection = NULL)
 }
 \arguments{
-\item{source}{Data source (one of "SATVEG", "LOCAL", "BDC", "AWS", "USGS"
-"DEAFRICA", "PROBS").}
+\item{source}{Data source (one of "SATVEG", "LOCAL", "BDC", "AWS",
+"USGS", "DEAFRICA", "PROBS").}
 
 \item{...}{Additional parameters.}
 

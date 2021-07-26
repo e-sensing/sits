@@ -7,8 +7,8 @@
 .source_items_cube(source, collection, name, items, file_info, ...)
 }
 \arguments{
-\item{source}{Data source (one of "SATVEG", "LOCAL", "BDC", "AWS", "USGS"
-"DEAFRICA", "PROBS").}
+\item{source}{Data source (one of "SATVEG", "LOCAL", "BDC", "AWS",
+"USGS", "DEAFRICA", "PROBS").}
 
 \item{collection}{Collection to be searched in the data source.}
 

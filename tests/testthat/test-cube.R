@@ -168,44 +168,44 @@ test_that("Creating a raster stack cube and selecting bands", {
 test_that("Creating cubes from BDC", {
     testthat::skip_on_cran()
 
-    # Try to find the access key as an environment variable
+    # check "BDC_ACCESS_KEY" - mandatory one per user
     bdc_access_key <- Sys.getenv("BDC_ACCESS_KEY")
 
-    if (nchar(bdc_access_key) > 0) {
-        # create a raster cube file based on the information about the files
-        cbers_cube <- sits_cube(
-            source = "BDC",
-            name = "cbers_022024_ndvi",
-            collection = "CB4_64_16D_STK-1",
-            bands = c("NDVI", "EVI"),
-            tiles = c("022024", "022023"),
-            start_date = "2018-09-01",
-            end_date = "2019-08-29"
-        )
-        if (purrr::is_null(cbers_cube)) {
-            skip("BDC is not accessible")
-        }
-        expect_true(all(sits_bands(cbers_cube) %in% c("NDVI", "EVI")))
-        bbox <- sits_bbox(cbers_cube)
-        int_bbox <- sits:::.sits_bbox_intersect(bbox, cbers_cube[1, ])
-        expect_true(all(int_bbox == sits_bbox(cbers_cube[1, ])))
+    testthat::skip_if(nchar(bdc_access_key) == 0,
+                      message = "No BDC_ACCESS_KEY defined in environment.")
 
-        timeline <- sits_timeline(cbers_cube)
-        expect_true(timeline[1] <= as.Date("2018-09-01"))
-        expect_true(timeline[length(timeline)] <= as.Date("2019-08-29"))
+    # create a raster cube file based on the information about the files
+    cbers_cube <- sits_cube(
+        source = "BDC",
+        name = "cbers_022024_ndvi",
+        collection = "CB4_64_16D_STK-1",
+        bands = c("NDVI", "EVI"),
+        tiles = c("022024", "022023"),
+        start_date = "2018-09-01",
+        end_date = "2019-08-29"
+    )
 
-        r_obj <- .raster_open_rast(cbers_cube$file_info[[1]]$path[1])
-        expect_true(terra::nrow(r_obj) == cbers_cube$nrows[[1]])
-    }
+    expect_true(all(sits_bands(cbers_cube) %in% c("NDVI", "EVI")))
+    bbox <- sits_bbox(cbers_cube)
+    int_bbox <- sits:::.sits_bbox_intersect(bbox, cbers_cube[1, ])
+    expect_true(all(int_bbox == sits_bbox(cbers_cube[1, ])))
+
+    timeline <- sits_timeline(cbers_cube)
+    expect_true(timeline[1] <= as.Date("2018-09-01"))
+    expect_true(timeline[length(timeline)] <= as.Date("2019-08-29"))
+
+    r_obj <- .raster_open_rast(cbers_cube$file_info[[1]]$path[1])
+    expect_true(terra::nrow(r_obj) == cbers_cube$nrows[[1]])
 })
 
 test_that("Creating cubes from WTSS", {
     testthat::skip_on_cran()
 
-    # Try to find the access key as an environment variable
+    # check "BDC_ACCESS_KEY" - mandatory one per user
     bdc_access_key <- Sys.getenv("BDC_ACCESS_KEY")
-    if (nchar(bdc_access_key) == 0)
-        skip("To run the tests it is necessary to provide the BDC tokens.")
+
+    testthat::skip_if(nchar(bdc_access_key) == 0,
+                      message = "No BDC_ACCESS_KEY defined in environment.")
 
     # create a raster cube file based on the information about the files
     wtss_cube <- sits_cube(
@@ -286,8 +286,10 @@ test_that("Creating cubes from DEA", {
 
 test_that("Creating cubes from USGS", {
     testthat::skip_on_cran()
+
     # check "AWS_ACCESS_KEY_ID" - mandatory one per user
     aws_access_key_id <- Sys.getenv("AWS_ACCESS_KEY_ID")
+
     # check "AWS_SECRET_ACCESS_KEY" - mandatory one per user
     aws_secret_access_key <- Sys.getenv("AWS_SECRET_ACCESS_KEY")
 
@@ -357,6 +359,7 @@ test_that("Creating cubes from AWS and regularizing them", {
 
     # check "AWS_ACCESS_KEY_ID" - mandatory one per user
     aws_access_key_id <- Sys.getenv("AWS_ACCESS_KEY_ID")
+
     # check "AWS_SECRET_ACCESS_KEY" - mandatory one per user
     aws_secret_access_key <- Sys.getenv("AWS_SECRET_ACCESS_KEY")
 

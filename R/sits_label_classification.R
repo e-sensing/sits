@@ -187,8 +187,7 @@ sits_label_majority <- function(cube,
         r_obj <- .raster_focal(
             r_obj = r_obj,
             window_size = window_size,
-            fn = "modal",
-            na.rm = TRUE
+            fn = "modal"
         )
 
         # write the result

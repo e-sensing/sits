@@ -14,8 +14,8 @@
 .source_items_get_satellite(source, items, ..., collection = NULL)
 }
 \arguments{
-\item{source}{Data source (one of "SATVEG", "LOCAL", "BDC", "AWS", "USGS"
-"DEAFRICA", "PROBS").}
+\item{source}{Data source (one of "SATVEG", "LOCAL", "BDC", "AWS",
+"USGS", "DEAFRICA", "PROBS").}
 
 \item{items}{A \code{STACItemCollection} object returned by rstac or
 \code{character} vector with directories to be search.}
