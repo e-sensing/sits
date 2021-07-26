@@ -194,7 +194,8 @@
                   event      = "before save classified block")
 
         # convert probabilities matrix to INT2U
-        scale_factor_save <- round(1 / .sits_config_probs_scale_factor())
+        scale_factor_save <- round(1 / .cube_bands_scale_factor(
+            cube = probs_cube, bands = "PROBS"))
         pred_block <- round(scale_factor_save * pred_block, digits = 0)
 
         # compute block spatial parameters

@@ -352,14 +352,6 @@ sits_config_show <- function() {
     return(res)
 }
 
-#' @title Retrieve the scale factor for a probs cube
-#' @name .sits_config_probs_scale_factor
-#' @keywords internal
-#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
-.sits_config_probs_scale_factor  <- function() {
-    return(sits_env$config$sources[["PROBS"]][["scale_factor"]])
-}
-
 #' @title Get the URL to be used to test for SATVEG access
 #' @name .sits_config_satveg_access
 #' @keywords internal

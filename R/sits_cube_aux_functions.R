@@ -132,7 +132,7 @@
     probs_cube <- .sits_cube_create(
         name = name,
         source = "PROBS",
-        collection = NA,
+        collection = "PROBS",
         satellite = tile$satellite,
         sensor = tile$sensor,
         bands = band,

@@ -2,6 +2,13 @@ context("Data input")
 
 test_that("Creating a WTSS data cube", {
   testthat::skip_on_cran()
+
+  # check "BDC_ACCESS_KEY" - mandatory one per user
+  bdc_access_key <- Sys.getenv("BDC_ACCESS_KEY")
+
+  testthat::skip_if(nchar(bdc_access_key) == 0,
+                    message = "No BDC_ACCESS_KEY_ID defined in environment.")
+
   cube_wtss <- suppressMessages(
     sits_cube(
       source = "WTSS",
@@ -19,6 +26,13 @@ test_that("Creating a WTSS data cube", {
 
 test_that("Reading a CSV file from WTSS", {
   testthat::skip_on_cran()
+
+  # check "BDC_ACCESS_KEY" - mandatory one per user
+  bdc_access_key <- Sys.getenv("BDC_ACCESS_KEY")
+
+  testthat::skip_if(nchar(bdc_access_key) == 0,
+                    message = "No BDC_ACCESS_KEY_ID defined in environment.")
+
   csv_file <- system.file("extdata/samples/samples_matogrosso.csv",
                           package = "sits"
   )
@@ -55,6 +69,13 @@ test_that("Reading a CSV file from WTSS", {
 
 test_that("Reading a POLYGON shapefile from WTSS", {
   testthat::skip_on_cran()
+
+  # check "BDC_ACCESS_KEY" - mandatory one per user
+  bdc_access_key <- Sys.getenv("BDC_ACCESS_KEY")
+
+  testthat::skip_if(nchar(bdc_access_key) == 0,
+                    message = "No BDC_ACCESS_KEY_ID defined in environment.")
+
   cube_wtss <- suppressMessages(
     sits_cube(source = "WTSS", collection = "MOD13Q1-6")
   )
@@ -86,6 +107,13 @@ test_that("Reading a POLYGON shapefile from WTSS", {
 
 test_that("Reading a POINT shapefile from WTSS", {
   testthat::skip_on_cran()
+
+  # check "BDC_ACCESS_KEY" - mandatory one per user
+  bdc_access_key <- Sys.getenv("BDC_ACCESS_KEY")
+
+  testthat::skip_if(nchar(bdc_access_key) == 0,
+                    message = "No BDC_ACCESS_KEY_ID defined in environment.")
+
   cube_wtss <- suppressMessages(
     sits_cube(source = "WTSS", collection = "MOD13Q1-6")
   )

@@ -255,7 +255,7 @@ test_that("One-year, multicore classification with post-processing", {
     max_bil2 <- max(.raster_get_values(r_bil)[, 2])
     expect_true(max_bil2 <= 10000)
 
-    max_bil3 <- max(.raster_api_get_values(r_bil)[, 3])
+    max_bil3 <- max(.raster_get_values(r_bil)[, 3])
     expect_true(max_bil3 <= 10000)
 
 
