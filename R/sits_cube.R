@@ -272,11 +272,6 @@ sits_cube.wtss_cube <- function(source = "WTSS", ...,
         msg = "sits_cube: WTSS collection must be provided."
     )
 
-    # precondition - is the url correct?
-    if (purrr::is_null(url)) {
-        url <- .config_source_url(source)
-    }
-
     # Pre-condition - try to find the access key as an environment variable
     bdc_access_key <- Sys.getenv("BDC_ACCESS_KEY")
     assertthat::assert_that(
@@ -284,20 +279,12 @@ sits_cube.wtss_cube <- function(source = "WTSS", ...,
         msg = "sits_cube: BDC_ACCESS_KEY needs to be provided"
     )
 
-    # Pre-condition
-    wtss_ok <- .sits_wtss_check(URL = url, name = collection)
+    .source_access_test(source, collection, ...)
 
-    # create a cube
-    if (wtss_ok) {
-        cube <- .sits_wtss_cube(URL = url,
-                                name = name,
-                                collection = collection)
-    } else {
-        message("WTSS service not responding")
-        return(NULL)
-    }
-
-    return(cube)
+    .source_cube(source = source, ...,
+                 collection = collection,
+                 name = name,
+                 bands = bands)
 }
 
 #' @rdname sits_cube
@@ -343,14 +330,14 @@ sits_cube.bdc_cube <- function(source = "BDC", ...,
     assertthat::assert_that(
         all(bands %in% c(.config_bands(source = source, collection = collection),
                          .config_bands_band_name(source = source,
-                                                collection = collection))),
+                                                 collection = collection))),
         msg = "sits_cube.bdc_cube: invalid bands.\nPlease the provided bands."
     )
 
     # check if source can be access
     .source_access_test(source = source,
-                        collection = collection,
-                        bands = bands, ...)
+                        collection = collection, ...,
+                        bands = bands)
 
     .source_cube(source = source,
                  collection = collection,
@@ -401,15 +388,15 @@ sits_cube.deafrica_cube <- function(source = "DEAFRICA", ...,
     assertthat::assert_that(
         all(bands %in% c(.config_bands(source = source, collection = collection),
                          .config_bands_band_name(source = source,
-                                                collection = collection))),
+                                                 collection = collection))),
         msg = paste("sits_cube.deafrica_cube: invalid bands.\nPlease the",
                     "provided bands.")
     )
 
     # check if source can be access
     .source_access_test(source = source,
-                        collection = collection,
-                        bands = bands, ...)
+                        collection = collection, ...,
+                        bands = bands)
 
     .source_cube(source = source,
                  collection = collection,
@@ -479,8 +466,8 @@ sits_cube.aws_cube <- function(source = "AWS", ...,
 
     # check if source can be access
     .source_access_test(source = source,
-                        collection = collection,
-                        bands = bands, ...,
+                        collection = collection, ...,
+                        bands = bands,
                         s2_resolution = s2_resolution)
 
     .source_cube(source = source,
@@ -533,16 +520,15 @@ sits_cube.usgs_cube <- function(source = "USGS", ...,
     assertthat::assert_that(
         all(bands %in% c(.config_bands(source = source, collection = collection),
                          .config_bands_band_name(source = source,
-                                                collection = collection))),
+                                                 collection = collection))),
         msg = paste("sits_cube.usgs_cube: invalid bands.\nPlease the",
                     "provided bands.")
     )
 
     # check if source can be access
     .source_access_test(source = source,
-                        collection = collection,
-                        bands = bands, ...,
-                        force_version = "0.9.0")
+                        collection = collection, ...,
+                        bands = bands)
 
     .source_cube(source = source,
                  collection = collection,
@@ -551,8 +537,7 @@ sits_cube.usgs_cube <- function(source = "USGS", ...,
                  tiles = tiles,
                  bbox = bbox,
                  start_date = start_date,
-                 end_date = end_date, ...,
-                 force_version = "0.9.0")
+                 end_date = end_date, ...)
 }
 
 #' @rdname sits_cube
@@ -570,14 +555,17 @@ sits_cube.local_cube <- function(source = "LOCAL", ...,
                                  parse_info = c("X1", "X2", "tile", "band", "date"),
                                  delim = "_") {
 
-    # precondition - check satellite and sensor
-    .sits_config_local_satellite_sensor(satellite, sensor)
 
     # precondition - data directory must be provided
     assertthat::assert_that(
         !purrr::is_null(data_dir),
         msg = "sits_cube: data_dir must be to be provided"
     )
+
+    collection <- paste0(satellite, "/", sensor)
+
+    # precondition - check satellite and sensor
+    .source_access_test(source = source, collection = collection)
 
     # precondition - check parse info
     assertthat::assert_that(
@@ -588,35 +576,24 @@ sits_cube.local_cube <- function(source = "LOCAL", ...,
     # precondition - does the parse info have band and date?
     assertthat::assert_that(
         all(c("tile", "band", "date") %in% parse_info),
-        msg = "sits_cube: parse_info must include tile, date, and band"
+        msg = paste("sits_cube.local_cube: parse_info must include tile, date,",
+                    "and band.")
     )
 
     # bands in upper case
     if (!purrr::is_null(bands))
         bands <- toupper(bands)
 
-    # get the file information
-    file_info <- .sits_raster_stack_info(
-        satellite = satellite,
-        sensor = sensor,
-        data_dir = data_dir,
-        parse_info = parse_info,
-        delim = delim,
-        bands = bands,
-        start_date = start_date,
-        end_date = end_date
-    )
-
-    # create a data cube
-    cube <- .sits_raster_stack_cube(
-        satellite = satellite,
-        sensor = sensor,
-        name = name,
-        file_info = file_info
-    )
-
-    class(cube) <- c("raster_cube", class(cube))
-    return(cube)
+    # create local cube
+    .source_cube(source = source, ...,
+                 collection = collection,
+                 name = name,
+                 data_dir = data_dir,
+                 parse_info = parse_info,
+                 delim = delim,
+                 bands = bands,
+                 start_date = start_date,
+                 end_date = end_date)
 }
 
 #' @rdname sits_cube
@@ -691,15 +668,18 @@ sits_cube.probs_cube <- function(source = "PROBS", ...,
 sits_cube.satveg_cube <- function(source = "SATVEG", ...,
                                   collection = "terra") {
 
-    # Retrieve the URL to test for SATVEG access
-    url <- .sits_config_satveg_access()
 
-    # test if SATVEG is accessible
-    # if (!(.sits_config_source_test(url, "SATVEG")))
-    #     return(NULL)
-    # OK
-    cube <- .sits_satveg_cube(collection)
-    return(cube)
+    # precondition
+    assertthat::assert_that(
+        collection %in% c("terra", "aqua", "comb"),
+        msg = "sits_cube.satveg_cube: invalid SATVEG collection."
+    )
+
+    # precondition - is service online?
+    .source_access_test(source = source, collection = collection)
+
+    # creating satveg cube
+    .source_cube(source = source, collection = collection, name = "SATVEG")
 }
 
 #' @export
