@@ -93,7 +93,7 @@
 #'
 #'
 #' @param source            Data source (one of "SATVEG", "LOCAL",
-#'                          "BDC", "AWS", "USGS" "DEAFRICA", "PROBS").
+#'                          "BDC", "AWS", "USGS", "DEAFRICA", "PROBS").
 #' @param ...               Other parameters to be passed for specific types
 #' @param name              Name of the output data cube.
 #' @param url               URL for the STAC endpoint of the data source

@@ -24,8 +24,8 @@
 #'
 #' @description Convert bands used by the origin data cube to the name used by
 #'  SITS
-#' @param source     Data source (one of "SATVEG", "LOCAL", "BDC", "AWS", "USGS"
-#'                    "DEAFRICA", "PROBS").
+#' @param source     Data source (one of "SATVEG", "LOCAL", "BDC", "AWS",
+#'                   "USGS", "DEAFRICA", "PROBS").
 #' @param collection Collection to be searched in the data source
 #' @param bands      Bands requested to be read
 #'
@@ -58,8 +58,8 @@
 #'
 #' @description Convert bands used by sits to source names.
 #'
-#' @param source     Data source (one of "SATVEG", "LOCAL", "BDC", "AWS", "USGS"
-#'                    "DEAFRICA", "PROBS").
+#' @param source     Data source (one of "SATVEG", "LOCAL", "BDC", "AWS",
+#'                   "USGS", "DEAFRICA", "PROBS").
 #' @param collection Collection to be searched in the data source.
 #' @param bands      Bands requested to be read.
 #'
@@ -92,8 +92,8 @@
 #'
 #' @description Generic function responsible for creating data cubes in sits.
 #'
-#' @param source Data source (one of "SATVEG", "LOCAL", "BDC", "AWS", "USGS"
-#'                    "DEAFRICA", "PROBS").
+#' @param source     Data source (one of "SATVEG", "LOCAL", "BDC", "AWS",
+#'                   "USGS", "DEAFRICA", "PROBS").
 #' @param ...    Additional parameters.
 #'
 #' @return a sits cube.
@@ -112,8 +112,8 @@
 #'  APIs. The concept of items is used in STAC APIs, where each item corresponds
 #'  to a satellite image (scene), with a single time and multiple bands.
 #'
-#' @param source Data source (one of "SATVEG", "LOCAL", "BDC", "AWS", "USGS"
-#'                    "DEAFRICA", "PROBS").
+#' @param source     Data source (one of "SATVEG", "LOCAL", "BDC", "AWS",
+#'                   "USGS", "DEAFRICA", "PROBS").
 #' @param items a \code{STACItemCollection} object returned by rstac.
 #' @param ... Additional parameters.
 #' @param collection Collection to be searched in the data source.
@@ -160,8 +160,8 @@ NULL
 #' @description Create an items object. In the case of STAC APIs, this function
 #'  is responsible for making the request to the server.
 #'
-#' @param source     Data source (one of "SATVEG", "LOCAL", "BDC", "AWS", "USGS"
-#'                    "DEAFRICA", "PROBS").
+#' @param source     Data source (one of "SATVEG", "LOCAL", "BDC", "AWS",
+#'                   "USGS", "DEAFRICA", "PROBS").
 #' @param collection Collection to be searched in the data source.
 #' @param ...        Additional parameters.
 #'
@@ -179,8 +179,8 @@ NULL
 #'
 #' @description Selection of items from specific bands by the user.
 #'
-#' @param source     Data source (one of "SATVEG", "LOCAL", "BDC", "AWS", "USGS"
-#'                    "DEAFRICA", "PROBS").
+#' @param source     Data source (one of "SATVEG", "LOCAL", "BDC", "AWS",
+#'                   "USGS", "DEAFRICA", "PROBS").
 #' @param collection Collection to be searched in the data source.
 #' @param items      A \code{STACItemCollection} object returned by rstac.
 #' @param bands      A \code{character} with bands to be select in items object.
@@ -203,8 +203,8 @@ NULL
 #'  case of STAC cubes, the items are rstac objects. In case of local cubes, the
 #'  items are user-supplied directories.
 #'
-##' @param source    Data source (one of "SATVEG", "LOCAL", "BDC", "AWS", "USGS"
-#'                    "DEAFRICA", "PROBS").
+#' @param source     Data source (one of "SATVEG", "LOCAL", "BDC", "AWS",
+#'                   "USGS", "DEAFRICA", "PROBS").
 #' @param items      A \code{STACItemCollection} object returned by rstac or
 #'  \code{character} vector with directories to be search.
 #' @param ...        Additional parameters.
@@ -225,8 +225,8 @@ NULL
 #' @description Retrieves information from the STACItemCollection object in the
 #' rstac package. Generic function created to handle different STAC providers.
 #'
-##' @param source    Data source (one of "SATVEG", "LOCAL", "BDC", "AWS", "USGS"
-#'                    "DEAFRICA", "PROBS").
+#' @param source     Data source (one of "SATVEG", "LOCAL", "BDC", "AWS",
+#'                   "USGS", "DEAFRICA", "PROBS").
 #' @param items      A \code{STACItemCollection} object returned by rstac or
 #'  \code{character} vector with directories to be search.
 #' @param ...        Additional parameters.
@@ -267,8 +267,8 @@ NULL
 #' @description Function to retrieves informations from the STACItemCollection
 #' object in the rstac package, but related from a single tile.
 #'
-##' @param source    Data source (one of "SATVEG", "LOCAL", "BDC", "AWS", "USGS"
-#'                    "DEAFRICA", "PROBS").
+#' @param source     Data source (one of "SATVEG", "LOCAL", "BDC", "AWS",
+#'                   "USGS", "DEAFRICA", "PROBS").
 #' @param items      A \code{STACItemCollection} object returned by rstac or
 #'  \code{character} vector with directories to be search.
 #' @param ...        Additional parameters.
@@ -324,8 +324,8 @@ NULL
 #' @description Create a sits cube object for tile, at the end the tiles are
 #'  merged to form a single object.
 #'
-##' @param source    Data source (one of "SATVEG", "LOCAL", "BDC", "AWS", "USGS"
-#'                    "DEAFRICA", "PROBS").
+#' @param source     Data source (one of "SATVEG", "LOCAL", "BDC", "AWS",
+#'                   "USGS", "DEAFRICA", "PROBS").
 #' @param collection Collection to be searched in the data source.
 #' @param name       A \code{character} with cube name.
 #' @param items      A \code{STACItemCollection} object returned by rstac or
@@ -353,8 +353,8 @@ NULL
 #' @description Create an S3 class with information returned from the
 #'  configuration file.
 #'
-##' @param source Data source (one of "SATVEG", "LOCAL", "BDC", "AWS", "USGS"
-#'                    "DEAFRICA", "PROBS").
+#' @param source     Data source (one of "SATVEG", "LOCAL", "BDC", "AWS",
+#'                   "USGS", "DEAFRICA", "PROBS").
 #'
 #' @return a \code{character} with a specified class.
 .source_new <- function(source) {
