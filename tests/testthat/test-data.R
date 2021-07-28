@@ -329,8 +329,6 @@ test_that("Test reading shapefile from BDC", {
     if (purrr::is_null(cbers_stac_tile)) {
           skip("BDC is not accessible")
     }
-    if (!(sits:::.sits_config_cube_file_access(cbers_stac_tile)))
-         skip("BDC file is not accessible")
 
     shp_path <- system.file("extdata/shapefiles/bdc-test/samples.shp",
                             package = "sits"
