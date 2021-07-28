@@ -99,6 +99,12 @@
                 ")$")
         )
 
+        assertthat::assert_that(
+            length(img_files) > 0,
+            msg = paste(".source_items_fileinfo.local_cube: no file found in",
+                        "provided directory.")
+        )
+
         # remove the extension
         img_files_noext <- tools::file_path_sans_ext(img_files)
 
@@ -158,9 +164,19 @@
         }
 
         # filter start and end dates
-        if (!purrr::is_null(start_date) & !purrr::is_null(end_date))
+        if (!purrr::is_null(start_date))
             file_info <- dplyr::filter(file_info,
-                                       date >= start_date & date <= end_date)
+                                       date >= start_date)
+
+        if (!purrr::is_null(end_date))
+            file_info <- dplyr::filter(file_info,
+                                       date <= end_date)
+
+        assertthat::assert_that(
+            nrow(file_info) > 0,
+            msg = paste(".source_items_fileinfo.local_cube: no files in the",
+                        "provided time interval")
+        )
 
         params <- .raster_params_file(file_info$path[1])
         resolution <- params$xres
