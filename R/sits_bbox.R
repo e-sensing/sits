@@ -22,7 +22,7 @@
 sits_bbox <- function(data, wgs84 = FALSE, ...) {
 
     # get the meta-type (sits or cube)
-    data <- .config_memory_bloat(data)
+    data <- .config_data_meta_type(data)
 
     UseMethod("sits_bbox", data)
 }

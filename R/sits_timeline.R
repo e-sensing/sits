@@ -13,7 +13,7 @@
 #'
 sits_timeline <- function(data) {
     # get the meta-type (sits or cube)
-    data <- .config_memory_bloat(data)
+    data <- .config_data_meta_type(data)
 
     UseMethod("sits_timeline", data)
 }
@@ -49,7 +49,7 @@ sits_timeline.satveg_cube <- function(data) {
   # retrieve the time series
   ts <- .sits_ts_from_satveg(longitude = -55.50563,
                              latitude = -11.71557,
-                             data$collection)
+                             data)
 
   # return the timeline of the cube
   return(as.Date(ts$Index))
