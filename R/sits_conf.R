@@ -111,6 +111,11 @@ sits_config_show <- function() {
     return(invisible(TRUE))
 }
 
+#' @title
+#' @description
+#' @keywords
+#' @
+
 .config_get <- function(key, default = NULL, simplify = FALSE) {
 
     value <- tryCatch({
