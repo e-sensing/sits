@@ -31,7 +31,7 @@
 `sits_labels<-` <- function(data, value) {
 
     # get the meta-type (sits or cube)
-    data <- .sits_config_data_meta_type(data)
+    data <- .config_memory_bloat(data)
 
     UseMethod("sits_labels<-", data)
 }

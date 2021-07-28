@@ -31,7 +31,7 @@
 #'
 sits_merge <- function(data1, data2) {
     # get the meta-type (sits or cube)
-    data1 <- .sits_config_data_meta_type(data1)
+    data1 <- .config_memory_bloat(data1)
 
     UseMethod("sits_merge", data1)
 }

@@ -34,7 +34,9 @@
     )
 
     # retrieve the time series
-    ts <- .sits_ts_from_satveg(longitude, latitude, cube$collection)
+    ts <- .sits_ts_from_satveg(longitude = longitude,
+                               latitude = latitude,
+                               cube = cube)
 
     # filter the dates
     if (!purrr::is_null(start_date) & !purrr::is_null(end_date)) {
@@ -60,7 +62,8 @@
                             time_series = list(ts)
     )
     # rename the SATVEG bands to uppercase
-    sits_bands(data) <- .sits_config_satveg_bands()
+    sits_bands(data) <- .config_bands(source = .cube_source(cube),
+                                      collection = .cube_collection(cube))
     return(data)
 }
 
@@ -74,9 +77,9 @@
 #'
 #' @param longitude       The longitude of the chosen location.
 #' @param latitude        The latitude of the chosen location.
-#' @param collection      SATVEG Image Collection
+#' @param cube            SATVEG cube
 #' @return                A tibble containing a time series
-.sits_ts_from_satveg <- function(longitude, latitude, name) {
+.sits_ts_from_satveg <- function(longitude, latitude, cube) {
     # set the prefilter
     .prefilter <- 1
     # the parameter filter is not used
@@ -84,10 +87,11 @@
     filter_par <- ""
 
     # URL to access SATVEG services
-    url <- .config_source_url(source = "SATVEG")
+    url <- .config_source_url(source = .cube_source(cube))
 
     # bands available in SATVEG
-    bands <- .sits_config_satveg_bands()
+    bands <- .config_bands_band_name(source = .cube_source(cube),
+                                     collection = .cube_collection(cube))
     # bands in SATVEG are lowercase
     bands <- tolower(bands)
     # vector to hold the timeline (used once only)
@@ -97,10 +101,10 @@
     # read each of the bands separately
     ts_bands_lst <- purrr::map2(bands, get_times, function(b, gt) {
         # Build the URL to retrieve the time series
-        url_ts <- paste0(
-            url, b, "/ponto", "/", longitude, "/", latitude, "/",
-            name, "/", .prefilter, "/", filter, "/", filter_par
-        )
+        url_ts <- paste(url, b, "ponto", longitude, latitude,
+                        .cube_collection(cube), .prefilter,
+                        filter,filter_par, sep = "/")
+
         # Get the data from SATVEG service
         satveg <- httr::GET(url_ts)
 

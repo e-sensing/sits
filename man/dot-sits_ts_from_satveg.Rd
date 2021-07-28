@@ -4,14 +4,14 @@
 \alias{.sits_ts_from_satveg}
 \title{Retrieve a time series from the SATVEG service}
 \usage{
-.sits_ts_from_satveg(longitude, latitude, name)
+.sits_ts_from_satveg(longitude, latitude, cube)
 }
 \arguments{
 \item{longitude}{The longitude of the chosen location.}
 
 \item{latitude}{The latitude of the chosen location.}
 
-\item{collection}{SATVEG Image Collection}
+\item{cube}{SATVEG cube}
 }
 \value{
 A tibble containing a time series

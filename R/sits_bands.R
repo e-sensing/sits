@@ -22,7 +22,7 @@
 #'
 sits_bands <- function(x) {
     # get the meta-type (sits or cube)
-    x <- .sits_config_data_meta_type(x)
+    x <- .config_data_meta_type(x)
 
     UseMethod("sits_bands", x)
 }

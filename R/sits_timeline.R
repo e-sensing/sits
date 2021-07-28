@@ -13,7 +13,7 @@
 #'
 sits_timeline <- function(data) {
     # get the meta-type (sits or cube)
-    data <- .sits_config_data_meta_type(data)
+    data <- .config_memory_bloat(data)
 
     UseMethod("sits_timeline", data)
 }
