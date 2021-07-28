@@ -25,6 +25,7 @@ sources:
                         offset_value  : 0
                         resampling    : "ngb"
                         band_name     : "CLASS"
+                        creation_type : "INT1U"
     PROBS                   :
         s3_class            : ["probs_cube"]
         collections         :
@@ -38,6 +39,7 @@ sources:
                         offset_value  : 0
                         resampling    : "bilinear"
                         band_name     : "PROBS"
+                        creation_type : "INT2S"
                     NOBS    :
                         missing_value : 255
                         minimum_value : 0
@@ -46,6 +48,7 @@ sources:
                         offset_value  : 0
                         resampling    : "ngb"
                         band_name     : "NOBS"
+                        creation_type : "INT1U"
     BDC                     :
         s3_class            : ["bdc_cube", "stac_cube", "raster_cube"]
         service             : "STAC"
