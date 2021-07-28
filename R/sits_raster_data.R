@@ -78,7 +78,10 @@
     cld_band <- .config_cloud()
     if (cld_band %in% sits_bands(cube)) {
 
-        cld_index <- .sits_config_cloud_values(cube)
+        cld_index <- .config_cloud_interp_values(
+            source = .cube_source(cube),
+            collection = .cube_collection(cube)
+        )
         cld_files <- dplyr::filter(file_info, band == cld_band)$path
         clouds <- .raster_read_stack(files  = cld_files,
                                      block = extent) %in% cld_index
@@ -294,13 +297,17 @@
     if (!purrr::is_null(cld_band)) {
 
         # retrieve values that indicate clouds
-        cld_index <- .sits_config_cloud_values(cube)
+        cld_index <- .config_cloud_interp_values(
+            source = .cube_source(cube),
+            collection = .cube_collection(cube)
+        )
 
         # get the values of the time series (terra object)
         cld_values <- .sits_cube_extract(cube, cld_band, xy)
 
         # get information about cloud bitmask
-        if (.sits_config_cloud_bitmask(cube))
+        if (.config_cloud_bit_mask(source = .cube_source(cube),
+                                   collection = .cube_collection(cube)))
             cld_values <- bitwAnd(cld_values, sum(2^cld_index))
     }
 
@@ -338,7 +345,8 @@
             if (!purrr::is_null(cld_band)) {
                 cld_values <- unlist(cld_values[i, start_idx:end_idx],
                                      use.names = FALSE)
-                if (.sits_config_cloud_bitmask(cube))
+                if (.config_cloud_bit_mask(source = .cube_source(cube),
+                                           collection = .cube_collection(cube)))
                     values_ts[cld_values > 0] <- NA
                 else
                     values_ts[cld_values %in% cld_index] <- NA

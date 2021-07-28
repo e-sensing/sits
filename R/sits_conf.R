@@ -343,7 +343,7 @@ sits_config_show <- function() {
 
     if (any(is.na(values))) {
 
-        random <- colors()
+        random <- grDevices::colors()
         random <- random[!random %in% values]
         values[is.na(values)] <- sample(random, sum(is.na(values)))
     }

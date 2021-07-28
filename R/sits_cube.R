@@ -773,51 +773,77 @@ sits_cube_copy <- function(cube,
     return(cube)
 }
 
+
+#' @title Auxiliary functions for sits cubes
+#' @keywords internal
+#'
+#' @name cube_functions
+#'
+#' @description Auxiliary functions for extracting information from sits cubes.
+#'
+#' @param cube  Data cube from where data is to be retrieved.
+#' @param tile  Tiles from the collection to be included in the data cube
+#' @param bands Bands to be included.
+#' @param ....  Additional parameters to be included.
+#'
+#' @return a \code{vector} for get attributes functions and NULL or error for
+#' check parameters functions.
+
+#' @rdname cube_functions
 .cube_satellite <- function(cube) {
 
     cube[["satellite"]][[1]]
 }
 
+#' @rdname cube_functions
 .cube_sensor <- function(cube) {
 
     cube[["sensor"]][[1]]
 }
 
+#' @rdname cube_functions
 .cube_collection <- function(cube) {
 
     cube[["collection"]][[1]]
 }
 
+#' @rdname cube_functions
 .cube_name <- function(cube) {
 
     cube[["name"]][[1]]
 }
 
+#' @rdname cube_functions
 .cube_labels <- function(cube) {
 
     cube[["labels"]][[1]]
 }
 
+#' @rdname cube_functions
 .cube_bands <- function(cube) {
 
     cube[["bands"]][[1]]
 }
 
+#' @rdname cube_functions
 .cube_source <- function(cube) {
 
     cube[["source"]][[1]]
 }
 
+#' @rdname cube_functions
 .cube_timeline <- function(cube) {
 
     sort(unique(cube[["file_info"]][["date"]]))
 }
 
+#' @rdname cube_functions
 .cube_tiles <- function(cube) {
 
     cube[["tile"]]
 }
 
+#' @rdname cube_functions
 .cube_tile_check <- function(cube, tile) {
 
     assertthat::assert_that(
@@ -842,6 +868,7 @@ sits_cube_copy <- function(cube,
     return(invisible(NULL))
 }
 
+#' @rdname cube_functions
 .cube_tile_get_fields <- function(cube, tile, fields) {
 
     tile <- tile[[1]]
@@ -853,34 +880,38 @@ sits_cube_copy <- function(cube,
                        fields]))
 }
 
+#' @rdname cube_functions
 .cube_tile_crs <- function(cube, ...,
                            tile = 1) {
 
-    .cube_tile_get_field(cube = cube, tile = tile,
-                         field = "crs")
+    .cube_tile_get_fields(cube = cube,  tile = tile, fields = "crs")
 }
 
+#' @rdname cube_functions
 .cube_tile_bbox <- function(cube, ...,
                             tile = 1) {
 
-    .cube_tile_get_field(cube = cube, tile = tile,
-                         field = c("xmin", "ymin", "xmax", "ymax"))
+    .cube_tile_get_fields(cube = cube, tile = tile,
+                         fields = c("xmin", "ymin", "xmax", "ymax"))
 }
 
+#' @rdname cube_functions
 .cube_tile_resolution <- function(cube, ...,
                                   tile = 1) {
 
-    .cube_tile_get_field(cube = cube, tile = tile,
-                         field = c("xres", "yres"))
+    .cube_tile_get_fields(cube = cube, tile = tile,
+                         fields = c("xres", "yres"))
 }
 
+#' @rdname cube_functions
 .cube_tile_size <- function(cube, ...,
                             tile = 1) {
 
-    .cube_tile_get_field(cube = cube, tile = tile,
-                         field = c("nrows", "ncols"))
+    .cube_tile_get_fields(cube = cube, tile = tile,
+                         fields = c("nrows", "ncols"))
 }
 
+#' @rdname cube_functions
 .cube_bands_missing_value <- function(cube, ...,
                                       bands = NULL) {
 
@@ -893,6 +924,7 @@ sits_cube_copy <- function(cube,
                        add_cloud = FALSE)
 }
 
+#' @rdname cube_functions
 .cube_bands_missing_value <- function(cube, ...,
                                       bands = NULL) {
 
@@ -905,6 +937,7 @@ sits_cube_copy <- function(cube,
                        add_cloud = FALSE)
 }
 
+#' @rdname cube_functions
 .cube_bands_minimum_value <- function(cube, ...,
                                       bands = NULL) {
 
@@ -917,6 +950,7 @@ sits_cube_copy <- function(cube,
                        add_cloud = FALSE)
 }
 
+#' @rdname cube_functions
 .cube_bands_maximum_value <- function(cube, ...,
                                       bands = NULL) {
 
@@ -929,6 +963,7 @@ sits_cube_copy <- function(cube,
                        add_cloud = FALSE)
 }
 
+#' @rdname cube_functions
 .cube_bands_scale_factor <- function(cube, ...,
                                      bands = NULL) {
 
@@ -941,6 +976,7 @@ sits_cube_copy <- function(cube,
                        add_cloud = FALSE)
 }
 
+#' @rdname cube_functions
 .cube_bands_offset_value <- function(cube, ...,
                                      bands = NULL) {
 
@@ -953,6 +989,7 @@ sits_cube_copy <- function(cube,
                        add_cloud = FALSE)
 }
 
+#' @rdname cube_functions
 .cube_bands_resampling <- function(cube, ...,
                                    bands = NULL) {
 
@@ -965,6 +1002,7 @@ sits_cube_copy <- function(cube,
                        add_cloud = TRUE)
 }
 
+#' @rdname cube_functions
 .cube_bands_resolutions <- function(cube, ...,
                                     bands = NULL) {
 
@@ -977,6 +1015,7 @@ sits_cube_copy <- function(cube,
                        add_cloud = TRUE)
 }
 
+#' @rdname cube_functions
 .cube_bands_band_name <- function(cube, ...,
                                   bands = NULL) {
 
@@ -989,6 +1028,7 @@ sits_cube_copy <- function(cube,
                        add_cloud = TRUE)
 }
 
+#' @rdname cube_functions
 .cube_has_cloud <- function(cube) {
 
     .config_cloud() %in% .cube_bands(cube)
