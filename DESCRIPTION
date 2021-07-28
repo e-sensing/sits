@@ -37,6 +37,7 @@ Imports:
     dplyr (>= 1.0.0),
     furrr,
     gdalUtilities,
+    grDevices,
     ggplot2,
     graphics,
     httr,
