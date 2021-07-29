@@ -174,7 +174,10 @@
     # create a image mask object
     mask_values <- gdalcubes::image_mask(
         cloud_band,
-        values = .sits_config_cloud_values(tile)
+        values = .config_cloud_interp_values(
+            source = .cube_source(tile),
+            collection = .cube_collection(tile)
+        )
     )
 
     return(mask_values)
