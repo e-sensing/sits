@@ -64,43 +64,53 @@
                        max = Inf,
                        len_min = 0,
                        len_max = 2^31,
+                       allow_null = FALSE,
                        msg = NULL) {
+
+    if (allow_null && is.null(x))
+        return(invisible(NULL))
 
     call_name <- as.character(sys.call(-1))
     if (is.null(call_name))
         call_name <- as.character(sys.call(0))
 
     if (!is.null(msg))
-        msg <- sprintf("%s: %s\n", call_name, msg)
+        msg <- sprintf("%s: %s (%%s).", call_name, msg)
 
     if (is.null(msg))
-        msg <- sprintf("%s: ", call_name)
+        msg <- sprintf("%s: %%s.", call_name)
 
+    local_msg <- "value is not a number"
     assertthat::assert_that(
         is.numeric(x),
-        msg = sprintf("%svalue is not a number.", msg)
+        msg = sprintf(msg, local_msg)
     )
 
+    local_msg <- sprintf("length %s is not allowed", length(x))
     assertthat::assert_that(
         min_len <= length(x) && length(x) <= max_len,
-        msg = sprintf("%slength %s is not allowed [%s, %s].", msg, length(x),
-                      len_min, len_max)
+        msg = sprintf(msg, local_msg)
     )
 
+    # exit if value has length zero (all checks were done)
     if (length(x) == 0)
         return(invisible(NULL))
 
-    if (!allow_na)
+    if (!allow_na) {
+        local_msg <- "NA value is not allowed"
         assertthat::assert_that(
             !any(is.na(x)),
-            msg = sprintf("%sNA value is not allowed.",msg)
+            msg = sprintf(msg, local_msg)
         )
+    }
 
+    local_msg <- "value is out of range"
     assertthat::assert_that(
         all(min <= x) && all(x <= max),
-        msg = sprintf("%svalue is out of range [%s, %s].", msg, min, max)
+        msg = sprintf(msg, local_msg)
     )
 
+    return(invisible(NULL))
 }
 
 .check_chr <- function(x,
@@ -109,41 +119,109 @@
                        choices = NULL,
                        min_len = 0,
                        max_len = 2^31,
+                       allow_null = FALSE,
                        msg = NULL) {
+
+    if (allow_null && is.null(x))
+        return(invisible(NULL))
 
     call_name <- as.character(sys.call(-1))
     if (is.null(call_name))
         call_name <- as.character(sys.call(0))
 
+    if (!is.null(msg))
+        msg <- sprintf("%s: %s (%%s).", call_name, msg)
+
+    if (is.null(msg))
+        msg <- sprintf("%s: %%s.", call_name)
+
+    local_msg <- "value is not character type."
     assertthat::assert_that(
         is.character(x),
-        msg = sprintf("%svalue is not character type.", msg)
+        msg = sprintf(msg, local_msg)
     )
 
+    local_msg <- sprintf("length %s is not allowed", length(x))
     assertthat::assert_that(
         min_len <= length(x) && length(x) <= max_len,
-        msg = sprintf("%slength %s is not allowed [%s, %s].", msg, length(x),
-                      len_min, len_max)
+        msg = sprintf(msg, local_msg)
     )
 
+    # exit if value has length zero (all checks were done)
     if (length(x) == 0)
         return(invisible(NULL))
 
-    if (!allow_na)
+    if (!allow_na) {
+        local_msg <- "NA value is not allowed"
         assertthat::assert_that(
             !any(is.na(x)),
-            msg = sprintf("%sNA value is not allowed.", msg)
+            msg = sprintf(msg, local_msg)
         )
+    }
 
-    if (!allow_empty)
+    if (!allow_empty) {
+        local_msg <- "empty value is not allowed"
         assertthat::assert_that(
             all(nchar(x) > 0),
-            msg = sprintf("%sempty value is not allowed.", msg)
+            msg = sprintf(msg, local_msg)
         )
+    }
 
-    if (!is.null(choices))
+    if (!is.null(choices)) {
+        local_msg <- sprintf("value must be one of %s",
+                             paste0("'", choices, "'", collapse = ", "))
         assertthat::assert_that(
             all(x %in% choices),
-            msg = sprintf("%svalue %s is invalid.", msg, x[[1]])
+            msg = sprintf(msg, local_msg)
         )
+    }
+
+    return(invisible(NULL))
+}
+
+.check_lst <- function(x,
+                       allow_unnamed = FALSE,
+                       min_len = 0,
+                       max_len = 2^31,
+                       allow_null = FALSE,
+                       msg = NULL) {
+
+    if (allow_null && is.null(x))
+        return(invisible(NULL))
+
+    call_name <- as.character(sys.call(-1))
+    if (is.null(call_name))
+        call_name <- as.character(sys.call(0))
+
+    if (!is.null(msg))
+        msg <- sprintf("%s: %s (%%s).", call_name, msg)
+
+    if (is.null(msg))
+        msg <- sprintf("%s: %%s.", call_name)
+
+    local_msg <- "value is not a list type."
+    assertthat::assert_that(
+        is.list(x),
+        msg = sprintf(msg, local_msg)
+    )
+
+    local_msg <- sprintf("length %s is not allowed", length(x))
+    assertthat::assert_that(
+        min_len <= length(x) && length(x) <= max_len,
+        msg = sprintf(msg, local_msg)
+    )
+
+    # exit if value has length zero (all checks were done)
+    if (length(x) == 0)
+        return(invisible(NULL))
+
+    if (!allow_unnamed) {
+        local_msg <- "list must have named values"
+        assertthat::assert_that(
+            !is.null(names(x)) || !any(is.na(names(x))),
+            msg = sprintf(msg, local_msg)
+        )
+    }
+
+    return(invisible(NULL))
 }

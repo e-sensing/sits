@@ -216,7 +216,7 @@ sits_smooth.bayes <- function(cube, type = "bayes", ...,
     }
 
     # process each brick layer (each time step) individually
-    .sits_map_layer_cluster(
+    .sits_smooth_map_layer(
         cube = cube,
         cube_out = cube_bayes,
         overlapping_y_size =
@@ -274,7 +274,7 @@ sits_smooth.gaussian <- function(cube, type = "gaussian", ...,
     )
 
     # create output window
-    gauss_kernel <- .sits_gauss_kernel(window_size = window_size,
+    gauss_kernel <- .sits_smooth_gauss_kernel(window_size = window_size,
                                        sigma = sigma)
 
     # create metadata for Gauss smoothed raster cube
@@ -314,7 +314,7 @@ sits_smooth.gaussian <- function(cube, type = "gaussian", ...,
     }
 
     # process each brick layer (each time step) individually
-    .sits_map_layer_cluster(
+    .sits_smooth_map_layer(
         cube = cube,
         cube_out = cube_gauss,
         overlapping_y_size =
@@ -381,7 +381,7 @@ sits_smooth.bilateral <- function(cube,
     )
 
     # create output window
-    gauss_kernel <- .sits_gauss_kernel(window_size = window_size,
+    gauss_kernel <- .sits_smooth_gauss_kernel(window_size = window_size,
                                        sigma = sigma)
 
     # create metadata for bilateral smoothed raster cube
@@ -422,7 +422,7 @@ sits_smooth.bilateral <- function(cube,
     }
 
     # process each brick layer (each time step) individually
-    .sits_map_layer_cluster(
+    .sits_smooth_map_layer(
         cube = cube,
         cube_out = cube_bilat,
         overlapping_y_size =

@@ -221,7 +221,7 @@
                                                 collection = NULL) {
 
     # format collection crs
-    crs <- .sits_format_crs(
+    crs <- .sits_proj_format_crs(
         tile_items[["features"]][[1]][[c("properties", "proj:epsg")]]
     )
 

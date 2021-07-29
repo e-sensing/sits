@@ -118,8 +118,8 @@ sits_mlp <- function(samples = NULL,
             msg = "sits_mlp: invalid node activation method"
         )
         # data normalization
-        stats <- .sits_normalization_param(data)
-        train_data <- .sits_distances(.sits_normalize_data(data, stats))
+        stats <- .sits_ml_normalization_param(data)
+        train_data <- .sits_distances(.sits_ml_normalize_data(data, stats))
 
         # is the training data correct?
         assertthat::assert_that(

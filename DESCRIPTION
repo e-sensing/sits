@@ -1,6 +1,6 @@
 Package: sits
 Type: Package
-Version: 0.12.1
+Version: 0.13.0
 Title: Satellite Image Time Series Analysis for Remote Sensing Data Cubes
 Authors@R: c(person('Rolf', 'Simoes', role = c('aut'), email = 'rolf.simoes@inpe.br'),
              person('Gilberto', 'Camara', role = c('aut', 'cre'), email = 'gilberto.camara@inpe.br'),
@@ -105,18 +105,17 @@ Collate:
     'sits_bands.R'
     'sits_bands_set.R'
     'sits_bbox.R'
-    'sits_bdc.R'
     'sits_brewer.R'
     'sits_classification.R'
     'sits_classify_ts.R'
     'sits_classify_cube.R'
-    'sits_conf.R'
     'sits_config.R'
     'sits_csv.R'
     'sits_cube.R'
     'sits_cube_aux_functions.R'
     'sits_check.R'
     'sits_cluster.R'
+    'sits_debug.R'
     'sits_distances.R'
     'sits_dt_reference.R'
     'sits_factory.R'
@@ -130,10 +129,10 @@ Collate:
     'sits_labels_set.R'
     'sits_label_classification.R'
     'sits_labels_summary.R'
-    'sits_log.R'
     'sits_machine_learning.R'
     'sits_merge.R'
     'sits_mlp.R'
+    'sits_ops_bands.R'
     'sits_parallel.R'
     'sits_patterns.R'
     'sits_pipe.R'
@@ -168,13 +167,11 @@ Collate:
     'sits_stac.R'
     'sits_TempCNN.R'
     'sits_tibble.R'
-    'sits_tibble_aux_functions.R'
     'sits_timeline.R'
     'sits_twdtw.R'
     'sits_validate.R'
     'sits_view.R'
     'sits_values.R'
-    'sits_wtss.R'
     'sits_xlsx.R'
     'sits_zoo.R'
     'zzz.R'

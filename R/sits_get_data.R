@@ -138,7 +138,7 @@ sits_get_data.wtss_cube <- function(cube, file = NULL, ...,
     # Precondition - check and get start and end dates
     start_end <- .sits_timeline_check_cube(cube, start_date, end_date)
 
-    data <- .sits_from_wtss(
+    data <- .sits_get_data_from_wtss(
         cube = cube,
         longitude = longitude,
         latitude = latitude,
@@ -179,7 +179,7 @@ sits_get_data.satveg_cube <- function(cube,
         msg = "sits_get_data: latitude/longitude must be provided"
     )
 
-    data <- .sits_from_satveg(
+    data <- .sits_get_data_from_satveg(
         cube = cube,
         longitude = longitude,
         latitude = latitude,
@@ -218,7 +218,7 @@ sits_get_data.csv_wtss_cube <- function(cube, file, ..., bands = NULL) {
             csv$label
         ),
         function(longitude, latitude, start_date, end_date, label) {
-            row <- .sits_from_wtss(
+            row <- .sits_get_data_from_wtss(
                 cube = cube,
                 longitude = longitude,
                 latitude = latitude,
@@ -277,7 +277,7 @@ sits_get_data.csv_satveg_cube <- function(cube, file, ...) {
                 st_date <- start_date_cube
             if (as.Date(en_date) > end_date_cube)
                 en_date <- end_date_cube
-            row <- .sits_from_satveg(
+            row <- .sits_get_data_from_satveg(
                 cube = cube,
                 longitude = long,
                 latitude = lat,
@@ -321,7 +321,7 @@ sits_get_data.shp_wtss_cube <- function(cube, file, ...,
         label = label
     )
     # get the points to be read
-    points <- .sits_points_from_shp(
+    points <- .sits_shp_to_tibble(
         sf_shape = sf_shape, shp_attr = shp_attr,
         label = label, .n_shp_pol = .n_shp_pol
     )
@@ -335,7 +335,7 @@ sits_get_data.shp_wtss_cube <- function(cube, file, ...,
             points$label
         ),
         function(long, lat, lab) {
-            row <- .sits_from_wtss(
+            row <- .sits_get_data_from_wtss(
                 cube = cube,
                 longitude = long,
                 latitude = lat,
@@ -379,7 +379,7 @@ sits_get_data.shp_satveg_cube <- function(cube, file, ...,
     )
 
     # get the points to be read
-    points <- .sits_points_from_shp(
+    points <- .sits_shp_to_tibble(
         sf_shape = sf_shape,
         shp_attr = shp_attr,
         label = label,
@@ -395,7 +395,7 @@ sits_get_data.shp_satveg_cube <- function(cube, file, ...,
             points$label
         ),
         function(long, lat, lab) {
-            row <- .sits_from_satveg(
+            row <- .sits_get_data_from_satveg(
                 cube = cube,
                 longitude = long,
                 latitude = lat,
@@ -565,7 +565,7 @@ sits_get_data.shp_raster_cube <- function(cube, file, ...,
     bands <- .sits_cube_bands_check(cube, bands)
 
     # get the points to be read
-    points <- .sits_points_from_shp(
+    points <- .sits_shp_to_tibble(
         sf_shape = sf_shape,
         shp_attr = shp_attr,
         label = label,
@@ -635,4 +635,163 @@ sits_get_data.shp_raster_cube <- function(cube, file, ...,
     }
 
     return(invisible(TRUE))
+}
+#' @title Obtain one timeSeries from the EMBRAPA SATVEG server
+#' @name .sits_get_data_from_satveg
+#' @keywords internal
+#' @author Julio Esquerdo, \email{julio.esquerdo@@embrapa.br}
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
+#'
+#' @description Returns one set of MODIS time series provided by the EMBRAPA
+#' Given a location (lat/long), retrieve the "ndvi" and "evi" bands from SATVEG
+#' If start and end date are given, the function
+#' filters the data to limit the temporal interval.
+#'
+#' @param cube            The data cube metadata that describes the SATVEG data.
+#' @param longitude       Longitude of the chosen location.
+#' @param latitude        Latitude of the chosen location.
+#' @param start_date      The start date of the period.
+#' @param end_date        The end date of the period.
+#' @param label           Label to attach to the time series (optional).
+#' @return A sits tibble.
+.sits_get_data_from_satveg <- function(cube,
+                                       longitude,
+                                       latitude,
+                                       start_date = NULL,
+                                       end_date = NULL,
+                                       label = "NoClass") {
+
+    # check parameters
+    assertthat::assert_that(
+        !purrr::is_null(longitude),
+        msg = ".sits_get_data_from_satveg: Missing longitude info"
+    )
+    assertthat::assert_that(
+        !purrr::is_null(latitude),
+        msg = ".sits_get_data_from_satveg: Missing latitude info"
+    )
+
+    # retrieve the time series
+    ts <- .sits_satveg_ts_from_txt(longitude = longitude,
+                               latitude = latitude,
+                               cube = cube)
+
+    # filter the dates
+    if (!purrr::is_null(start_date) & !purrr::is_null(end_date)) {
+        ts <- dplyr::filter(ts, dplyr::between(
+            ts$Index,
+            start_date, end_date
+        ))
+    } else {
+        start_date <- as.Date(ts$Index[1])
+        end_date <- as.Date(ts$Index[nrow(ts)])
+    }
+
+    # create a tibble to store the SATVEG data
+    data <- .sits_tibble()
+    # add one row to the tibble
+    data <- tibble::add_row(data,
+                            longitude = longitude,
+                            latitude = latitude,
+                            start_date = start_date,
+                            end_date = end_date,
+                            label = label,
+                            cube = cube$name,
+                            time_series = list(ts)
+    )
+    # rename the SATVEG bands to uppercase
+    sits_bands(data) <- .config_bands(source = .cube_source(cube),
+                                      collection = .cube_collection(cube))
+    return(data)
+}
+
+#' @title Obtain one time series from WTSS server and load it on a sits tibble
+#' @name .sits_get_data_from_wtss
+#' @keywords internal
+#'
+#' @description Returns one set of time series provided by a WTSS server
+#' Given a location (lat/long), and start/end period, and WTSS server info,
+#' retrieve a time series and include it on a stis tibble.
+#' A Web Time Series Service (WTSS) is a light-weight service that
+#' retrieves one or more time series in JSON format from a data base.
+#' @references
+#' Lubia Vinhas, Gilberto Queiroz, Karine Ferreira, Gilberto Camara,
+#' Web Services for Big Earth Observation Data.
+#' In: XVII Brazilian Symposium on Geoinformatics, 2016, Campos do Jordao.
+#' Proceedings of GeoInfo 2016. Sao Jose dos Campos: INPE/SBC, 2016, p.166-177.
+#'
+#' @param cube            Metadata about the cube associated to the WTSS.
+#' @param longitude       The longitude of the chosen location.
+#' @param latitude        The latitude of the chosen location.
+#' @param start_date      Date with the start of the period.
+#' @param end_date        Date with the end of the period.
+#' @param bands           Names of the bands of the cube.
+#' @param label           Label to attach to the time series (optional).
+#' @return                A sits tibble.
+.sits_get_data_from_wtss <- function(cube,
+                                     longitude,
+                                     latitude,
+                                     start_date = NULL,
+                                     end_date = NULL,
+                                     bands = NULL,
+                                     label = "NoClass") {
+
+    # verifies if wtss package is installed
+    if (!requireNamespace("Rwtss", quietly = TRUE)) {
+        stop("Please install package Rwtss.", call. = FALSE)
+    }
+
+    # Try to find the access key as an environment variable
+    bdc_access_key <- Sys.getenv("BDC_ACCESS_KEY")
+    assertthat::assert_that(
+        nchar(bdc_access_key) != 0,
+        msg = "sits_cube: BDC_ACCESS_KEY needs to be provided"
+    )
+
+    # check start and end dates
+    timeline <- sits_timeline(cube)
+    if (purrr::is_null(start_date)) {
+        start_date <- lubridate::as_date(timeline[1])
+    }
+    if (purrr::is_null(end_date)) {
+        end_date <- lubridate::as_date(timeline[length(timeline)])
+    }
+
+
+    bands <- .source_bands_to_source(source = .cube_source(cube),
+                                     collection = .cube_collection(cube),
+                                     bands = bands)
+
+    # retrieve the time series from the service
+    tryCatch({
+        ts <- Rwtss::time_series(URL = cube$file_info[[1]]$path[[1]],
+                                 name = cube$collection,
+                                 attributes = bands,
+                                 longitude = longitude,
+                                 latitude = latitude,
+                                 start_date = start_date,
+                                 end_date = end_date,
+                                 token = bdc_access_key
+        )
+    },
+    warning = function(e){
+        paste("sits_get_data:", e)
+    })
+
+    # change the class of the data
+    # before - class "wtss"
+    # now - class "sits"
+    if (!purrr::is_null(ts)) {
+        class(ts) <- setdiff(class(ts), "wtss")
+        class(ts) <- c("sits", class(ts))
+        # add a label column
+        if (label != "NoClass") {
+            ts$label <- label
+        }
+        # convert name
+        ts <- .sits_tibble_rename(ts)
+        # band names are uppercase in SITS
+    }
+    # return the tibble with the time series
+    return(ts)
 }

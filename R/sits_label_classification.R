@@ -86,7 +86,7 @@ sits_label_classification <- function(cube,
     }
 
     # process each brick layer (each tile) individually
-    .sits_map_layer_cluster(
+    .sits_smooth_map_layer(
         cube = cube,
         cube_out = label_cube,
         overlapping_y_size = 0,

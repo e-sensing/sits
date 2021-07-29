@@ -258,7 +258,7 @@
     params <- .raster_params_file(href)
 
     # format collection crs
-    crs <- .sits_format_crs(params[["crs"]])
+    crs <- .sits_proj_format_crs(params[["crs"]])
 
     return(crs)
 }

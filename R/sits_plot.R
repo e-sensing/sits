@@ -355,7 +355,7 @@ plot.keras_model <- function(x, y, ...) {
         list(locs$longitude, locs$latitude),
         function(long, lat) {
             dplyr::filter(data, longitude == long, latitude == lat) %>%
-                .sits_ggplot_series(colors) %>%
+                .sits_plot_ggplot_series(colors) %>%
                 graphics::plot()
         }
     )
@@ -445,7 +445,7 @@ plot.keras_model <- function(x, y, ...) {
             sep = ""
         )
         # plot all data together
-        g <- .sits_ggplot_together(dt_melted, dt_qts, title)
+        g <- .sits_plot_ggplot_together(dt_melted, dt_qts, title)
         p <- graphics::plot(g)
         return(p)
     }
@@ -465,7 +465,7 @@ plot.keras_model <- function(x, y, ...) {
             # what are the reference dates?
             ref_dates <- sits_timeline(data2)
             # align all time series to the same dates
-            data2 <- .sits_align_dates(data2, ref_dates)
+            data2 <- .sits_tibble_align_dates(data2, ref_dates)
 
             band_plots <- bands %>%
                 purrr::map(function(band) {
@@ -517,7 +517,7 @@ plot.keras_model <- function(x, y, ...) {
 
 #' @title Plot one timeSeries using ggplot
 #'
-#' @name .sits_ggplot_series
+#' @name .sits_plot_ggplot_series
 #' @keywords internal
 #'
 #' @description Plots a set of time series using ggplot. This function is used
@@ -526,18 +526,18 @@ plot.keras_model <- function(x, y, ...) {
 #' @param row         row of a sits tibble with the time series to be plotted.
 #' @param colors      brewer colors to be used for plotting.
 #' @return            The plot itself.
-.sits_ggplot_series <- function(row, colors = "Dark2") {
+.sits_plot_ggplot_series <- function(row, colors = "Dark2") {
     # Are there NAs in the data?
     if (any(is.na(row$time_series[[1]]))) {
-          g <- .sits_ggplot_series_na(row, colors)
+          g <- .sits_plot_ggplot_series_na(row, colors)
       } else {
-          g <- .sits_ggplot_series_no_na(row, colors)
+          g <- .sits_plot_ggplot_series_no_na(row, colors)
       }
     return(g)
 }
 #' @title Plot one timeSeries using ggplot (no NAs present)
 #'
-#' @name .sits_ggplot_series_no_na
+#' @name .sits_plot_ggplot_series_no_na
 #' @keywords internal
 #'
 #' @description Plots a set of time series using ggplot in the case the series
@@ -546,7 +546,7 @@ plot.keras_model <- function(x, y, ...) {
 #' @param row         row of a sits tibble with the time series to be plotted.
 #' @param colors      brewer colors to be used for plotting.
 #' @return            The plot itself.
-.sits_ggplot_series_no_na <- function(row, colors = "Dark2") {
+.sits_plot_ggplot_series_no_na <- function(row, colors = "Dark2") {
     # create the plot title
     plot_title <- .sits_plot_title(row$latitude, row$longitude, row$label)
     # extract the time series
@@ -568,7 +568,7 @@ plot.keras_model <- function(x, y, ...) {
 }
 #' @title Plot one timeSeries wih NAs using ggplot
 #'
-#' @name .sits_ggplot_series_na
+#' @name .sits_plot_ggplot_series_na
 #' @keywords internal
 #'
 #' @description Plots a set of time series using ggplot, showing where NAs are.
@@ -576,7 +576,7 @@ plot.keras_model <- function(x, y, ...) {
 #' @param row         row of a sits tibble with the time series to be plotted.
 #' @param colors      brewer colors to be used for plotting.
 #' @return            The plot itself.
-.sits_ggplot_series_na <- function(row, colors = "Dark2") {
+.sits_plot_ggplot_series_na <- function(row, colors = "Dark2") {
 
     # verifies if tidyr package is installed
     if (!requireNamespace("tidyr", quietly = TRUE)) {
@@ -621,7 +621,7 @@ plot.keras_model <- function(x, y, ...) {
 
 #' @title Plot many timeSeries together using ggplot
 #'
-#' @name .sits_ggplot_together
+#' @name .sits_plot_ggplot_together
 #' @keywords internal
 #'
 #' @description Plots a set of  time series together.
@@ -630,7 +630,7 @@ plot.keras_model <- function(x, y, ...) {
 #' @param means          means and std deviations of the time series.
 #' @param plot_title     title for the plot.
 #' @return               The plot itself.
-.sits_ggplot_together <- function(melted, means, plot_title) {
+.sits_plot_ggplot_together <- function(melted, means, plot_title) {
     g <- ggplot2::ggplot(data = melted, ggplot2::aes(
         x = Index,
         y = value,
@@ -815,7 +815,7 @@ plot.keras_model <- function(x, y, ...) {
 #' @param cluster_obj   cluster object produced by `sits_cluster` function.
 #' @param cutree_height dashed horizontal line to be drawn
 #'                      indicating the height of dendrogram cutting.
-#' @param colors        color scheme as per `sits_color_name` function.
+#' @param colors        color scheme as per .sits_brewer_color_name` function.
 #'
 #' @return              The plot itself.
 .sits_plot_dendrogram <- function(data,
@@ -842,7 +842,7 @@ plot.keras_model <- function(x, y, ...) {
 
     # warns if the number of available colors is insufficient to all labels
     if (length(u_lb) > (
-        length(.sits_brewer_rgb[[.sits_color_name(colors)]]) - 1)) {
+        length(.sits_brewer_rgb[[.sits_brewer_color_name(colors)]]) - 1)) {
           message("sits_plot_dendrogram: The number of labels
                 is greater than the number of available colors.")
       }
@@ -859,7 +859,7 @@ plot.keras_model <- function(x, y, ...) {
     seq(u_lb) %>%
         purrr::map(function(i) {
             cols[data_labels[cluster_obj$order] == u_lb[i]] <<-
-              .sits_brewer_rgb[[.sits_color_name(colors)]][[length(u_lb)]][[i]]
+              .sits_brewer_rgb[[.sits_brewer_color_name(colors)]][[length(u_lb)]][[i]]
             i <<- i + 1
         })
 
@@ -886,7 +886,7 @@ plot.keras_model <- function(x, y, ...) {
     # plot legend
     graphics::legend("topright",
         fill = as.character(
-            .sits_brewer_rgb[[.sits_color_name(colors)]][[length(u_lb)]]
+            .sits_brewer_rgb[[.sits_brewer_color_name(colors)]][[length(u_lb)]]
         ),
         legend = u_lb
     )
@@ -1055,4 +1055,74 @@ plot.keras_model <- function(x, y, ...) {
     return(g)
 }
 
+#' @title Plot classification alignments using the dtwSat package
+#' @name .sits_plot_twdtw_alignments
+#' @keywords internal
+#' @author Victor Maus, \email{vwmaus1@@gmail.com}
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
+#'
+#' @description        Plots the alignments from TWDTW classification
+#' @param matches      A list of dtwSat S4 match objects
+#'                     (produced by sits_TWDTW_matches).
+.sits_plot_twdtw_alignments <- function(matches) {
+  # verifies if dtwSat package is installed
+  if (!requireNamespace("dtwSat", quietly = TRUE)) {
+    stop("dtwSat needed for this function to work.
+             Please install it.", call. = FALSE)
+  }
+
+  matches %>%
+    purrr::map(function(m) {
+      dtwSat::plot(m, type = "alignments") %>%
+        graphics::plot()
+    })
+  return(invisible(matches))
+}
+
+#' @title Plot classification results using the dtwSat package
+#' @name .sits_plot_twdtw_class
+#' @keywords internal
+#' @author Victor Maus, \email{vwmaus1@@gmail.com}
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
+#'
+#' @description         Plots the results of TWDTW classification (uses dtwSat).
+#'
+#' @param  matches      dtwSatS4 matches objects produced by sits_TWDTW_matches.
+#' @param  start_date   Start date of the plot (used for classifications).
+#' @param  end_date     End date of the plot (used for classifications).
+#' @param  interval     Interval between classifications.
+#' @param  overlap      Minimum overlapping between one match
+#'                      and the interval of classification.
+#'                      For details see dtwSat::twdtwApply help.
+.sits_plot_twdtw_class <- function(matches,
+                                   start_date = NULL,
+                                   end_date = NULL,
+                                   interval = "12 month",
+                                   overlap = 0.5) {
+  # verifies if dtwSat package is installed
+  if (!requireNamespace("dtwSat", quietly = TRUE)) {
+    stop("dtwSat needed for this function to work.
+             Please install it.", call. = FALSE)
+  }
+
+  matches %>%
+    purrr::map(function(m) {
+      if (purrr::is_null(start_date) | purrr::is_null(end_date)) {
+        dplot <- dtwSat::plot(m,
+                              type = "classification",
+                              overlap = 0.5
+        )
+      } else {
+        dplot <- dtwSat::plot(m,
+                              type = "classification",
+                              from = start_date,
+                              to = end_date,
+                              by = interval,
+                              overlap = overlap
+        )
+      }
+      graphics::plot(dplot)
+    })
+  return(invisible(matches))
+}
 

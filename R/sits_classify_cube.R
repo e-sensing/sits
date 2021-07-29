@@ -119,7 +119,7 @@
     on.exit(.sits_parallel_stop(), add = TRUE)
 
     # log
-    .sits_log(output_dir = output_dir,
+    .sits_debug_log(output_dir = output_dir,
               event      = "start classification",
               key        = "blocks",
               value      = length(blocks))
@@ -147,7 +147,7 @@
             if (!purrr::is_null(r_obj))
                 if (.raster_nrows(r_obj) == b[["nrows"]]) {
                     # log
-                    .sits_log(output_dir = output_dir,
+                    .sits_debug_log(output_dir = output_dir,
                               event      = "skipping block",
                               key        = "block file",
                               value      = filename_block)
@@ -155,7 +155,7 @@
                 }
         }
         # log
-        .sits_log(output_dir = output_dir,
+        .sits_debug_log(output_dir = output_dir,
                   event      = "before preprocess block",
                   key        = "block",
                   value      = b)
@@ -172,13 +172,13 @@
             compose_fn = compose_fn
         )
         # log
-        .sits_log(output_dir = output_dir,
+        .sits_debug_log(output_dir = output_dir,
                   event      = "before classification block")
 
         # predict the classification values
         pred_block <- ml_model(distances)
         # log
-        .sits_log(output_dir = output_dir,
+        .sits_debug_log(output_dir = output_dir,
                   event      = "classification block",
                   key        = "ml_model",
                   value      = class(ml_model)[[1]])
@@ -190,7 +190,7 @@
                         "matrix is different from number of input pixels")
         )
         # log
-        .sits_log(output_dir = output_dir,
+        .sits_debug_log(output_dir = output_dir,
                   event      = "before save classified block")
 
         # convert probabilities matrix to INT2U
@@ -227,7 +227,7 @@
             overwrite    = TRUE
         )
         # log
-        .sits_log(output_dir = output_dir,
+        .sits_debug_log(output_dir = output_dir,
                   event      = "save classified block")
 
         # call garbage collector
@@ -238,7 +238,7 @@
     # put the filenames in a vector
     filenames <- unlist(filenames)
     # log
-    .sits_log(output_dir = output_dir,
+    .sits_debug_log(output_dir = output_dir,
               event      = "end classification")
 
     # join predictions
@@ -252,7 +252,7 @@
     )
 
     # log
-    .sits_log(output_dir = output_dir,
+    .sits_debug_log(output_dir = output_dir,
               event      = "merge")
 
     # show final time for classification

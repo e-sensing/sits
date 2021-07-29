@@ -118,8 +118,8 @@ sits_ResNet <- function(samples = NULL,
         n_times <- nrow(sits_time_series(data[1, ]))
 
         # data normalization
-        stats <- .sits_normalization_param(data)
-        train_data <- .sits_distances(.sits_normalize_data(data, stats))
+        stats <- .sits_ml_normalization_param(data)
+        train_data <- .sits_distances(.sits_ml_normalize_data(data, stats))
 
         # split the data into training and validation data sets
         # create partitions different splits of the input data

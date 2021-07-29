@@ -111,5 +111,5 @@ NULL
                                collection, "crs"),
                        simplify = TRUE)
 
-    return(.sits_format_crs(crs))
+    return(.sits_proj_format_crs(crs))
 }

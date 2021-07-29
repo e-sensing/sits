@@ -123,7 +123,7 @@ test_that("Internal functions in ROI", {
     bb["xmin"] <- bb["xmin"] + x_size / 4
     bb["ymin"] <- bb["ymin"] + x_size / 4
 
-    si <- sits:::.sits_sub_image_from_bbox(bb, cube)
+    si <- sits:::.sits_raster_sub_image_from_bbox(bb, cube)
     expect_true(si["first_row"] == 1)
     expect_true(si["first_col"] == 64)
     expect_true(si["nrows"] == 81)

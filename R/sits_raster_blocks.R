@@ -149,15 +149,3 @@
     })
     return(blocks)
 }
-
-
-#' @title Shows the memory used in GB
-#' @name .sits_mem_used
-#' @keywords internal
-#' @description Calls the gc() and rounds the result in GB.
-#' @return Memory used in GB.
-#' @export
-.sits_mem_used <- function() {
-    dt <- gc()
-    return(sum(dt[, 2] / 1000))
-}

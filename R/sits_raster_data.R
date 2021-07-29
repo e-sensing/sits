@@ -146,7 +146,7 @@
 
         # normalize the data
         if (!purrr::is_null(stats)) {
-            values <- .sits_normalize_matrix(values, stats, band_cube)
+            values <- .sits_ml_normalize_matrix(values, stats, band_cube)
         }
 
         #values_dt <- data.table::as.data.table(values)
@@ -235,7 +235,7 @@
                             start_date, end_date, label)
 
     # get XY
-    xy_tb <- .sits_latlong_to_proj(
+    xy_tb <- .sits_proj_from_latlong(
         longitude = points$longitude,
         latitude  = points$latitude,
         crs       = cube$crs

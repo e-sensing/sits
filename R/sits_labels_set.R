@@ -41,7 +41,7 @@
 `sits_labels<-.sits` <- function(data, value) {
 
     # does the input data exist?
-    .sits_test_tibble(data)
+    .sits_tibble_test(data)
 
     labels <- sits_labels(data)
 

@@ -26,6 +26,6 @@ linear_interp_vec <- function(vec) {
 }
 
 normalize_data <- function(data, min, max) {
-    .Call(`_sits_normalize_data`, data, min, max)
+    .Call(`.sits_ml_normalize_data`, data, min, max)
 }
 

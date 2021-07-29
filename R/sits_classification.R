@@ -143,7 +143,7 @@ sits_classify.sits <- function(data,
                                multicores = 2) {
 
     # precondition: verify that the data is correct
-    .sits_test_tibble(data)
+    .sits_tibble_test(data)
 
     # precondition: ensure the machine learning model has been built
     assertthat::assert_that(
@@ -175,7 +175,7 @@ sits_classify.sits <- function(data,
     # has the training data been normalized?
     if (!purrr::is_null(stats))
         # yes, then normalize the input data
-        distances <- .sits_distances(.sits_normalize_data(
+        distances <- .sits_distances(.sits_ml_normalize_data(
             data = data,
             stats = stats
         ))

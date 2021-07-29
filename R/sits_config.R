@@ -1,300 +1,563 @@
-#' #'
-#' #' @title Information about configuration file
-#' #' @name sits_
-#' #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
-#' #'
-#' #' @description Displays the local of sits configuration file. For details
-#' #' on how to set the configuration file, use \code{\link[sits]{sits_config}}.
-#' #'
-#' #' @return a message
-#' #' @examples
-#' #' sits_config_info()
-#' #' @export
-#' sits_config_info <- function() {
+#' @title Reads a configuration file and loads it in the main environment
+#' @name .config
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'
-#'     # the default configuration file
-#'     yml_file <- system.file("extdata", "config.yml", package = "sits")
+#' @description Reads a user-specified configuration file,
+#' located in a "config.yml" file in the working directory.
+#' If this file is not found, reads a default package configuration file.
+#' By default, the sits configuration file "config.yml" is located at
+#' the directory "extdata" of the package.
 #'
-#'     message(paste0("Using configuration file: ", yml_file))
-#'     message(paste0("Using raster package: ", .config_raster_pkg()))
+#' Users can provide additional configuration files, by specifying the
+#' location of their file in the environmental variable
+#' SITS_USER_CONFIG_FILE
 #'
-#'     # try to find a valid user configuration file
-#'     user_yml_file <- Sys.getenv("SITS_USER_CONFIG_FILE")
-#'     if (file.exists(user_yml_file)) {
-#'         message(paste("Additional configurations found in", user_yml_file))
-#'     } else {
-#'         message(paste("To provide additional configurations, create an",
-#'                       "yml file and set environment variable",
-#'                       "SITS_USER_CONFIG_FILE to point to it"))
-#'     }
+#' To see the contents of the configuration file,
+#' please use \code{\link[sits]{sits_config_show}}.
 #'
-#'     return(invisible(TRUE))
-#' }
+#' @return A list with the configuration parameters used by sits.
+#' @export
+sits_config <- function() {
 
-#'
-#' #' @title Read the AWS default region from configuration file
-#' #' @name .sits_config_aws_default_region
-#' #' @param source  Source of data cube
-#' #' @keywords internal
-#' #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
-#' #'
-#' #' @return directory where BDC is accessible on the web
-#' .sits_config_aws_default_region <- function(source) {
-#'     return(sits_env$config$sources[[source]][["AWS_DEFAULT_REGION"]])
-#' }
-#'
-#' #' @title Read the AWS end point from configuration file
-#' #' @name .sits_config_aws_endpoint
-#' #' @param source  Source of data cube
-#' #' @keywords internal
-#' #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
-#' #'
-#' #' @return directory where BDC is accessible on the web
-#' .sits_config_aws_endpoint <- function(source) {
-#'     return(sits_env$config$sources[[source]][["AWS_S3_ENDPOINT"]])
-#' }
-#'
-#' #' @title Read the AWS end point from configuration file
-#' #' @name .sits_config_aws_request_payer
-#' #' @param source  Source of data cube
-#' #' @keywords internal
-#' #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
-#' #'
-#' #' @return directory where BDC is accessible on the web
-#' .sits_config_aws_request_payer <- function(source) {
-#'     return(sits_env$config$sources[[source]][["AWS_REQUEST_PAYER"]])
-#' }
-#'
-#' #' @title Test if cube is available via URL
-#' #' @name .sits_config_cube_access
-#' #' @keywords internal
-#' #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
-#' #' @param url  URL for access to the cube
-#' #' @param name service name
-#' #'
-#' #' @return TRUE/FALSE
-#' .sits_config_cube_access <- function(url, name) {
-#'
-#'     access <- httr::GET(url)
-#'
-#'     # did we get the data?
-#'     if (httr::http_error(access)) {
-#'         message(paste0(name, " is not accessible using URL ", url))
-#'         return(FALSE)
-#'     }
-#'     return(TRUE)
-#' }
-#' #' @title Test if files in a raster cube are
-#' #' @name .sits_config_cube_file_access
-#' #' @keywords internal
-#' #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
-#' #' @param cube  cube
-#' #'
-#' #' @return TRUE/FALSE
-#' .sits_config_cube_file_access <- function(cube) {
-#'
-#'     f <- cube$file_info[[1]]$path[[1]]
-#'     access <- tryCatch({
-#'         r <- .raster_open_rast(f)
-#'         return(TRUE)
-#'     }, error = function(e){
-#'         message(paste0("raster file ", f, " is not accessible"))
-#'         return(FALSE)
-#'     })
-#'     return(access)
-#' }
-#'
-#' #' @title Get the name of the band used for cloud information
-#' #' @name .sits_config_cloud_values
-#' #' @keywords internal
-#' #' @param cube          data cube
-#' #' @author Gilberto Camara \email{gilberto.camara@@inpe.br}
-#' #'
-#' #' @return vector with bands available in AWS for a given resolution
-#' .sits_config_cloud_values <- function(cube) {
-#'
-#'     s <- cube$source[[1]]
-#'     col <- cube$collection[[1]]
-#'
-#'     cloud_values <-
-#'         sits_env$config$sources[[s]]$collections[[col]]$cloud_band$interp_values
-#'
-#'     assertthat::assert_that(
-#'         !purrr::is_null(cloud_values),
-#'         msg = paste(".sits_config_cloud_values: cloud band values",
-#'                     "information not available")
-#'     )
-#'     return(cloud_values)
-#' }
-#'
-#' #' @title Get the flag of bitmask in cloud information
-#' #' @name .sits_config_cloud_bitmask
-#' #' @keywords internal
-#' #' @param cube          data cube
-#' #' @author Gilberto Camara \email{gilberto.camara@@inpe.br}
-#' #'
-#' #' @return vector with bands available in AWS for a given resolution
-#' .sits_config_cloud_bitmask <- function(cube) {
-#'
-#'     source <- cube$source[[1]]
-#'     col <- cube$collection[[1]]
-#'
-#'     cloud_bitmask <-
-#'         sits_env$config$sources[[source]]$collections[[col]]$cloud_band$bit_mask
-#'
-#'
-#'     assertthat::assert_that(
-#'         !purrr::is_null(cloud_bitmask),
-#'         msg = paste(".sits_config_cloud_bitmask: cloud bitmask flag",
-#'                     "is not available")
-#'     )
-#'     return(cloud_bitmask)
-#' }
-#'
-#' #' @title Retrieve the class associated to data cubes known to SITS
-#' #' @name .sits_config_cube_class
-#' #' @keywords internal
-#' #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
-#' #' @description Retrieve the class name associated to a cube type
-#' #' @param source  Data cube source
-#' #' @return        Class of data cube
-#' #'
-#' .sits_config_cube_class <- function(source) {
-#'
-#'     # check that the cube is correct
-#'     source <- toupper(source)
-#'
-#'     # find out which cube types are supported
-#'     sources <- names(sits_env$config$sources)
-#'     assertthat::assert_that(
-#'         source %in% sources,
-#'         msg = ".sits_config_cube_class: unsupported data source"
-#'     )
-#'
-#'     return(sits_env$config$sources[[source]]$s3_class)
-#' }
-#'
-#' #' @title Check that the cube data source is valid, based on the
-#' #' configuration file
-#' #' @name .sits_config_cube_check
-#' #' @keywords internal
-#' #' @author Gilberto Camara \email{gilberto.camara@@inpe.br}
-#' #'
-#' #' @param cube       Data cube
-#' #' @return A logical value
-#' #'
-#' .sits_config_cube_check <- function(cube) {
-#'     # precondition
-#'     assertthat::assert_that(
-#'         !purrr::is_null(cube),
-#'         msg = "invalid cube"
-#'     )
-#'
-#'     assertthat::assert_that(
-#'         !purrr::is_null(cube$source),
-#'         msg = "invalid data source"
-#'     )
-#'
-#'     # find out which data sources are available
-#'     sources <- names(sits_env$config$sources)
-#'     assertthat::assert_that(
-#'         .sits_cube_source(cube) %in% sources,
-#'         msg = ".sits_config_cube_check: Invalid data source"
-#'     )
-#'     return(TRUE)
-#' }
-#'
-#' #' @title meta-type for data
-#' #' @name .sits_config_data_meta_type
-#' #' @keywords internal
-#' #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
-#' #' @param  data    tibble (time series or cube)
-#' #'
-#' #' @return file path to the appended to data_dir
-#' .sits_config_data_meta_type <- function(data) {
-#'
-#'     if (inherits(data, c("sits", "patterns", "predicted", "sits_model"))) {
-#'         return(data)
-#'
-#'     } else {
-#'
-#'         assertthat::assert_that(
-#'             !purrr::is_null(data$source),
-#'             msg = ".sits_config_data_meta_type: data is not valid"
-#'         )
-#'
-#'         # check if data is a cube
-#'         .sits_config_cube_check(data)
-#'
-#'         class(data) <- c("cube", class(data))
-#'     }
-#'     return(data)
-#' }
-#'
-#' #' @title Resolution for S2 bands in DEAFRICA
-#' #' @name .sits_config_bands_res
-#' #' @keywords internal
-#' #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
-#' #' @param  source   cube source
-#' #'
-#' #' @return resolution information
-#' .sits_config_bands_res <- function(source, collection, bands) {
-#'
-#'     bands_collection <- .config_bands_band_name(source, collection)
-#'     col <- sits_env$config$sources[[source]]$collections[[collection]]
-#'
-#'     assertthat::assert_that(
-#'         all(bands %in% bands_collection),
-#'         msg = "Bands not available in collection.")
-#'
-#'     if (col$cloud_band$band_name %in% bands) {
-#'         res <- c(col$cloud_band$resolutions)
-#'
-#'         bands_no_cloud <- bands[!bands == col$cloud_band$band_name]
-#'
-#'         res <- c(res,
-#'                  purrr::map_dbl(bands_no_cloud, function(band) {
-#'                      col$bands[[band]]$resolutions
-#'                  })
-#'         )
-#'     } else {
-#'         res <- purrr::map_dbl(bands, function(band) {
-#'             col$bands[[band]]$resolutions
-#'         })
-#'     }
-#'
-#'     return(res)
-#' }
-#'
+    # get and check the default configuration file path
+    yml_file <- .config_file()
 
+    # read the configuration parameters
+    sits_env$config <- yaml::yaml.load_file(input = yml_file,
+                                            merge.precedence = "override")
+
+    # try to find a valid user configuration file
+    user_yml_file <- .config_user_file()
+
+    if (file.exists(user_yml_file)) {
+        config_user <- yaml::yaml.load_file(input = user_yml_file,
+                                            merge.precedence = "override")
+        sits_env$config <- utils::modifyList(x = sits_env$config,
+                                             val = config_user)
+    }
+
+    sits_config_info()
+
+    return(invisible(NULL))
+}
+
+#' @title Information about configuration file
+#' @name .config_info
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'
-#' #' @title Tests is satellite and sensor are known to SITS
-#' #' @name .sits_config_satellite_sensor
-#' #' @keywords internal
-#' #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
-#' #'
-#' #' @param satellite      Name of the satellite
-#' #' @param sensor         Name of the sensor
-#' #' @return A logical value
-#' #'
-#' .sits_config_local_satellite_sensor <- function(satellite, sensor) {
+#' @description Displays the local of sits configuration file. For details
+#' on how to set the configuration file, use \code{\link[sits]{sits_config}}.
 #'
-#'     sat_sensors <- names(sits_env$config$sources[["LOCAL"]]$collections)
-#'     satellites <- purrr::map_chr(
-#'         strsplit(sat_sensors, "/"), function(x){x[[1]]}
-#'     )
+#' @return a message
+#' @export
+sits_config_info <- function() {
+
+    # get and check the default configuration file path
+    yml_file <- .config_file()
+
+    message(paste0("Using configuration file: ", yml_file))
+    message(paste0("Using raster package: ", .config_raster_pkg()))
+
+    # try to find a valid user configuration file
+    user_yml_file <- .config_user_file()
+
+    if (file.exists(user_yml_file)) {
+        message(paste("Additional configurations found in", user_yml_file))
+    } else {
+        message(paste("To provide additional configurations, create an",
+                      "YAML file and inform its path to environment variable",
+                      "'SITS_USER_CONFIG_FILE'."))
+    }
+
+    return(invisible(NULL))
+}
+
+#' @title Shows the contents of the sits configuration file
+#' @name config_show
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'
-#'     assertthat::assert_that(
-#'         satellite %in% satellites,
-#'         msg = paste(".sits_config_satellite_sensor: satellite not supported",
-#'                     "by SITS - edit configuration file")
-#'     )
+#' @description Displays the contents of sits configuration file. For details
+#' on how to set the configuration file, use \code{\link[sits]{sits_config}}.
 #'
-#'     # using satellite to create regex pattern
-#'     reg_pattern <- paste0(satellite, "/")
-#'     assertthat::assert_that(
-#'         any(grepl(pattern = reg_pattern, x = sat_sensors, fixed = TRUE)),
-#'         msg = paste(".sits_config_satellite_sensor: sensor not supported",
-#'                     "by SITS - edit configuration file")
-#'     )
-#' }
+#' @return List with the configuration parameters used by sits.
+#' @export
+sits_config_show <- function() {
+
+    # get and check the default configuration file path
+    yml_file <- .config_file()
+
+    # read the configuration parameters
+    message("Default system configuration file")
+    cat(readLines(yml_file), sep = "\n")
+
+    # try to find a valid user configuration file
+    user_yml_file <- .config_user_file()
+
+    if (file.exists(user_yml_file)) {
+        message("User configuration file - overrides default config")
+        cat(readLines(user_yml_file), sep = "\n")
+    }
+
+    return(invisible(NULL))
+}
+
+.config_file <- function() {
+
+    # load the default configuration file
+    yml_file <- system.file("extdata", "config.yml", package = "sits")
+
+    # check that the file name is valid
+    .check_chr(yml_file, allow_na = FALSE, allow_empty = FALSE,
+               min_len = 1, max_len = 1, msg = "invalid configuration file")
+
+    # check if the file exists
+    assertthat::assert_that(
+        file.exists(yml_file),
+        msg = sprintf(".config_file: file %s does not exist.", yml_file)
+    )
+
+    return(yml_file)
+}
+
+.config_user_file <- function() {
+
+    # load the default configuration file
+    yml_file <- Sys.getenv("SITS_USER_CONFIG_FILE")
+
+    # check that the file name is valid
+    .check_chr(yml_file, allow_na = FALSE, allow_empty = TRUE,
+               min_len = 1, max_len = 1,
+               msg = "invalid SITS_USER_CONFIG_FILE environment variable")
+
+    # check if the file exists
+    if (nchar(yml_file) > 0) {
+        assertthat::assert_that(
+            file.exists(yml_file),
+            msg = sprintf(paste(
+                ".config_user_file: file %s does not exist.",
+                "Please, check your environment for the variable",
+                "SITS_USER_CONFIG_FILE"),
+                yml_file)
+        )
+    }
+
+    return(yml_file)
+}
+
+#' @title Get values from config file
+#' @name config_functions
+#'
+#' @description Functions that get values from config file.
+#'
+#' @keywords internal
+#'
+#' @param add_cloud  A logical parameter that indicates the addition of cloud
+#'  band information in the return of a function.
+#' @param collection Collection to be searched in the data source.
+#' @param data       A sits data cube.
+#' @param default    Default value if the specified key is not found.
+#' @param fn_filter  Filter function that will be applied in one key from config
+#'  file.
+#' @param key        Character that represents which key is to be fetched from
+#'  the config file.
+#' @param labels     Vector with labels.
+#' @param pallete    The palette that should be chosen based on the
+#'  configuration file.
+#' @param simplify   A logical value that specifies whether the return should be
+#'  in vector form, if true, or list form, if false. Default value is FALSE.
+#' @param source     Source of data cube
+#' @param ...        Additional parameters.
+#'
+#' @return Functions that search for values from a key or collection
+#'  return atomic values. Check functions return invisible null values or give
+#'  an error.
+NULL
+
+#' @rdname config_functions
+.config_get <- function(key, default = NULL, simplify = FALSE) {
+
+    res <- tryCatch({
+        sits_env$config[[key]]
+    },
+    error = function(e) {
+        return(default)
+    })
+
+    assertthat::assert_that(
+        !is.null(res),
+        msg = paste(".config_get:", paste0(key, collapse = "$"),
+                    "not found. Please, check the config file.")
+    )
+
+    if (simplify)
+        return(unlist(res))
+
+    return(res)
+}
+
+#' @rdname config_functions
+.config_names <- function(key) {
+
+    res <- tryCatch({
+        names(sits_env$config[[key]])
+    },
+    error = function(e) {
+        return(NULL)
+    })
+
+    assertthat::assert_that(
+        !is.null(res),
+        msg = paste(".config_names:", paste0(key, collapse = "$"),
+                    "not found. Please, check the config file.")
+    )
+
+    .check_chr(res, allow_na = FALSE, allow_empty = FALSE)
+
+    return(res)
+}
+
+#' @rdname config_functions
+.config_aws_default_region <- function(source,
+                                       collection) {
+
+    res <- .config_get(key = c("sources", source, "collections", collection,
+                               "AWS", "AWS_DEFAULT_REGION"),
+                       default = NA)
+
+    # post-condition
+    .check_chr(res, allow_na = FALSE, allow_empty = TRUE,
+               min_len = 1, max_len = 1, msg = "invalid AWS_DEFAULT_REGION")
+
+    return(res)
+}
+
+#' @rdname config_functions
+.config_aws_endpoint <- function(source,
+                                 collection) {
+
+    res <- .config_get(key = c("sources", source, "collections", collection,
+                               "AWS", "AWS_S3_ENDPOINT"),
+                       default = NA)
+
+    # post-condition
+    .check_chr(res, allow_na = FALSE, allow_empty = TRUE,
+               min_len = 1, max_len = 1, msg = "invalid AWS_S3_ENDPOINT")
+
+    return(res)
+}
+
+#' @rdname config_functions
+.config_aws_request_payer <- function(source,
+                                      collection) {
+
+    res <- .config_get(key = c("sources", source, "collections", collection,
+                               "AWS", "AWS_REQUEST_PAYER"),
+                       default = NA)
+
+    # post-condition
+    .check_chr(res, allow_na = FALSE, allow_empty = TRUE,
+               min_len = 1, max_len = 1, msg = "invalid AWS_REQUEST_PAYER")
+
+    return(res)
+}
+
+#' @rdname config_functions
+.config_bands <- function(source,
+                          collection, ...,
+                          fn_filter = NULL,
+                          add_cloud = TRUE) {
+
+
+    res <- .config_names(key = c("sources", source, "collections",
+                                   collection, "bands"))
+
+    if (!add_cloud)
+        res <- res[res != "CLOUD"]
+
+    if (!is.null(fn_filter)) {
+        select <- vapply(res, function(band) {
+            fn_filter(.config_get(key = c("sources", source, "collections",
+                                          collection, "bands", band)))
+        }, logical(1))
+
+        assertthat::assert_that(
+            any(select),
+            msg = ".config_bands: no bands matched criteria."
+        )
+
+        return(res[select])
+    }
+
+    return(res)
+}
+
+#' @rdname config_functions
+.config_bands_reap <- function(source,
+                               collection,
+                               key, ...,
+                               bands = NULL,
+                               fn_filter = NULL,
+                               add_cloud = TRUE,
+                               default = NULL) {
+
+    .check_chr(bands, allow_na = FALSE, allow_empty = FALSE, min_len = 1,
+               allow_null = TRUE, "invalid informed bands")
+
+    if (is.null(bands))
+        bands <- .config_bands(source = source,
+                               collection = collection,
+                               fn_filter = fn_filter,
+                               add_cloud = add_cloud)
+
+    res <- lapply(bands, function(band) {
+        .config_get(key = c("sources", source, "collections",
+                            collection, "bands", band, key),
+                    default = default)
+
+    })
+
+    if (length(res) > 0 && is.atomic(res[[1]]))
+        return(unlist(unname(res)))
+
+    return(unname(res))
+}
+
+#' @rdname config_functions
+.config_bands_band_name <- function(source,
+                                    collection, ...,
+                                    bands = NULL,
+                                    fn_filter = NULL,
+                                    add_cloud = TRUE) {
+
+    res <- .config_bands_reap(source = source,
+                              collection = collection,
+                              key = "band_name",
+                              bands = bands,
+                              fn_filter = fn_filter,
+                              add_cloud = add_cloud)
+
+    return(res)
+}
+
+#' @rdname config_functions
+.config_bands_resolutions <- function(source,
+                                      collection, ...,
+                                      bands = NULL,
+                                      fn_filter = NULL,
+                                      add_cloud = TRUE) {
+
+    res <- .config_bands_reap(source = source,
+                                 collection = collection,
+                                 key = "resolutions",
+                                 bands = bands,
+                                 fn_filter = fn_filter,
+                                 add_cloud = add_cloud)
+
+    # post-condition
+    .check_num(res, allow_na = FALSE, min = 1e-08, len_min = 1,
+               msg = "invalid resolution")
+
+    return(res)
+}
+
+#' @rdname config_functions
+.config_cloud <- function() {
+
+    return("CLOUD")
+}
+
+.config_cloud_bit_mask <- function(source,
+                                   collection) {
+
+    res <- .config_get(key = c("sources", source, "collections", collection,
+                               "bands", "CLOUD", "bit_mask"))
+
+    return(res)
+}
+
+#' @rdname config_functions
+.config_cloud_values <- function(source,
+                                 collection) {
+
+    res <- .config_get(key = c("sources", source, "collections", collection,
+                               "bands", "CLOUD", "values"))
+
+    return(res)
+}
+
+#' @rdname config_functions
+.config_cloud_interp_values <- function(source,
+                                        collection) {
+
+    res <- .config_get(key = c("sources", source, "collections", collection,
+                               "bands", "CLOUD", "interp_values"))
+
+    return(res)
+}
+
+#' @rdname config_functions
+.config_collections <- function(source) {
+
+    res <- .config_names(c("sources", source, "collections"))
+
+    return(res)
+}
+
+#' @rdname config_functions
+.config_gtiff_default_options <- function() {
+
+    res <- .config_get(key = c("GTiff_default_options"))
+
+    return(res)
+}
+
+#' @rdname config_functions
+.config_local_file_extensions <- function() {
+
+    res <- .config_get(key = c("sources", "LOCAL", "file_extensions"))
+
+    return(res)
+}
+
+#' @rdname config_functions
+.config_memory_bloat <- function() {
+
+    res <- .config_get(key = c("R_memory_bloat"))
+
+    return(res)
+}
+
+#' @title meta-type for data
+#' @name .config_data_meta_type
+#' @keywords internal
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
+#' @param  data    tibble (time series or cube)
+#'
+#' @return file path to the appended to data_dir
+.config_data_meta_type <- function(data) {
+
+    if (inherits(data, c("sits", "patterns", "predicted", "sits_model"))) {
+        return(data)
+
+    } else {
+
+        assertthat::assert_that(
+            !purrr::is_null(data$source),
+            msg = ".sits_config_data_meta_type: data is not valid"
+        )
+
+        # check if data is a cube
+        # TODO: where this function will be implemented?
+        #.sits_config_cube_check(data)
+
+        class(data) <- c("cube", class(data))
+    }
+    return(data)
+}
+
+#' @rdname config_functions
+.config_palettes <- function() {
+
+    .config_names(c("palettes"))
+}
+
+#' @rdname config_functions
+.config_palette_colors <- function(labels, ...,
+                                   palette = "default") {
+
+    values <- .config_get(key = c("palettes", palette))[labels]
+    names(values) <- labels
+
+    if (any(is.na(values))) {
+
+        random <- grDevices::colors()
+        random <- random[!random %in% values]
+        values[is.na(values)] <- sample(random, sum(is.na(values)))
+    }
+
+    return(values)
+}
+#' @rdname config_functions
+.config_processing_bloat <- function() {
+
+    res <- .config_get(key = c("R_processing_bloat"))
+
+    # post-condition
+    .check_num(res, allow_na = FALSE, min = 1, len_min = 1, len_max = 1,
+               msg = "invalid 'R_processing_bloat' in config file")
+
+    return(res)
+}
+
+#' @rdname config_functions
+.config_rstac_limit <- function() {
+
+    res <- .config_get(key = c("rstac_pagination_limit"))
+
+    # post-condition
+    .check_num(res, allow_na = FALSE, min = 1, len_min = 1, len_max = 1,
+               msg = "invalid 'rstac_pagination_limit' in config file")
+
+    return(res)
+}
+
+#' @rdname config_functions
+.config_raster_pkg <- function() {
+
+    res <- .config_get(key = c("R_raster_pkg"))
+
+    .check_chr(res, allow_na = FALSE, allow_empty = FALSE,
+               choices = c("terra", "raster"), min_len = 1, max_len = 1,
+               msg = "invalid 'R_raster_pkg' in config file")
+
+    return(res)
+}
+
+#' @rdname config_functions
+.config_sources <- function() {
+
+    res <- .config_names(c("sources"))
+
+    .check_lst(res, allow_unnamed = FALSE, min_len = 1,
+               msg = "invalid sources in config file")
+
+    return(res)
+}
+
+#' @rdname config_functions
+.config_source_url <- function(source) {
+
+    res <- .config_get(key = c("sources", source, "url"))
+
+    .check_chr(res, allow_na = FALSE, allow_empty = FALSE,
+               min_len = 1, max_len = 1,
+               msg = sprintf("invalid url for source %s in config file",
+                             source))
+
+    return(res)
+}
+
+#' @rdname config_functions
+.config_source_service <- function(source) {
+
+    res <- .config_get(key = c("sources", source, "service"))
+
+    .check_chr(res, allow_na = FALSE, allow_empty = FALSE,
+               min_len = 1, max_len = 1,
+               msg = sprintf("invalid service for source %s in config file",
+                             source))
+
+    return(res)
+}
+
+#' @rdname config_functions
+.config_source_s3class <- function(source) {
+
+    res <- .config_get(key = c("sources", source, "s3_class"))
+
+    .check_chr(res, allow_na = FALSE, allow_empty = FALSE, min_len = 1,
+               msg = sprintf("invalid s3_class for source %s in config file",
+                             source))
+
+    return(res)
+}

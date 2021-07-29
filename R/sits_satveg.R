@@ -1,74 +1,6 @@
-#' @title Obtain one timeSeries from the EMBRAPA SATVEG server
-#' @name .sits_from_satveg
-#' @keywords internal
-#' @author Julio Esquerdo, \email{julio.esquerdo@@embrapa.br}
-#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
-#'
-#' @description Returns one set of MODIS time series provided by the EMBRAPA
-#' Given a location (lat/long), retrieve the "ndvi" and "evi" bands from SATVEG
-#' If start and end date are given, the function
-#' filters the data to limit the temporal interval.
-#'
-#' @param cube            The data cube metadata that describes the SATVEG data.
-#' @param longitude       Longitude of the chosen location.
-#' @param latitude        Latitude of the chosen location.
-#' @param start_date      The start date of the period.
-#' @param end_date        The end date of the period.
-#' @param label           Label to attach to the time series (optional).
-#' @return A sits tibble.
-.sits_from_satveg <- function(cube,
-                              longitude,
-                              latitude,
-                              start_date = NULL,
-                              end_date = NULL,
-                              label = "NoClass") {
-
-    # check parameters
-    assertthat::assert_that(
-        !purrr::is_null(longitude),
-        msg = "sits_from_satveg: Missing longitude info"
-    )
-    assertthat::assert_that(
-        !purrr::is_null(latitude),
-        msg = "sits_from_satveg: Missing latitude info"
-    )
-
-    # retrieve the time series
-    ts <- .sits_ts_from_satveg(longitude = longitude,
-                               latitude = latitude,
-                               cube = cube)
-
-    # filter the dates
-    if (!purrr::is_null(start_date) & !purrr::is_null(end_date)) {
-        ts <- dplyr::filter(ts, dplyr::between(
-            ts$Index,
-            start_date, end_date
-        ))
-    } else {
-        start_date <- as.Date(ts$Index[1])
-        end_date <- as.Date(ts$Index[nrow(ts)])
-    }
-
-    # create a tibble to store the SATVEG data
-    data <- .sits_tibble()
-    # add one row to the tibble
-    data <- tibble::add_row(data,
-                            longitude = longitude,
-                            latitude = latitude,
-                            start_date = start_date,
-                            end_date = end_date,
-                            label = label,
-                            cube = cube$name,
-                            time_series = list(ts)
-    )
-    # rename the SATVEG bands to uppercase
-    sits_bands(data) <- .config_bands(source = .cube_source(cube),
-                                      collection = .cube_collection(cube))
-    return(data)
-}
 
 #' @title Retrieve a time series from the SATVEG service
-#' @name .sits_ts_from_satveg
+#' @name .sits_satveg_ts_from_txt
 #' @keywords internal
 #' @author Julio Esquerdo, \email{julio.esquerdo@@embrapa.br}
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
@@ -79,7 +11,7 @@
 #' @param latitude        The latitude of the chosen location.
 #' @param cube            SATVEG cube
 #' @return                A tibble containing a time series
-.sits_ts_from_satveg <- function(longitude, latitude, cube) {
+.sits_satveg_ts_from_txt <- function(longitude, latitude, cube) {
     # set the prefilter
     .prefilter <- 1
     # the parameter filter is not used
