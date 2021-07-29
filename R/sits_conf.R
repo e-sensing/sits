@@ -111,11 +111,36 @@ sits_config_show <- function() {
     return(invisible(TRUE))
 }
 
-#' @title
-#' @description
-#' @keywords
-#' @
+#' @title Get values from config file
+#' @name config_functions
+#'
+#' @description Functions that get values from config file.
+#'
+#' @keywords internal
+#'
+#' @param add_cloud  A logical parameter that indicates the addition of cloud
+#'  band information in the return of a function.
+#' @param collection Collection to be searched in the data source.
+#' @param data       A sits data cube.
+#' @param default    Default value if the specified key is not found.
+#' @param fn_filter  Filter function that will be applied in one key from config
+#'  file.
+#' @param key        Character that represents which key is to be fetched from
+#'  the config file.
+#' @param labels     Vector with labels.
+#' @param pallete    The palette that should be chosen based on the
+#'  configuration file.
+#' @param simplify   A logical value that specifies whether the return should be
+#'  in vector form, if true, or list form, if false. Default value is FALSE.
+#' @param source     Source of data cube
+#' @param ...        Additional parameters.
+#'
+#' @return Functions that search for values from a key or collection
+#'  return atomic values. Check functions return invisible null values or give
+#'  an error.
+NULL
 
+#' @rdname config_functions
 .config_get <- function(key, default = NULL, simplify = FALSE) {
 
     value <- tryCatch({
@@ -135,6 +160,7 @@ sits_config_show <- function() {
     return(value)
 }
 
+#' @rdname config_functions
 .config_names <- function(key) {
 
     values <- tryCatch({
@@ -151,6 +177,7 @@ sits_config_show <- function() {
     return(values)
 }
 
+#' @rdname config_functions
 .config_aws_default_region <- function(source,
                                        collection) {
 
@@ -159,6 +186,7 @@ sits_config_show <- function() {
                 default = NA)
 }
 
+#' @rdname config_functions
 .config_aws_endpoint <- function(source,
                                  collection) {
 
@@ -167,6 +195,7 @@ sits_config_show <- function() {
                 default = NA)
 }
 
+#' @rdname config_functions
 .config_aws_request_payer <- function(source,
                                       collection) {
 
@@ -175,6 +204,7 @@ sits_config_show <- function() {
                 default = NA)
 }
 
+#' @rdname config_functions
 .config_bands <- function(source,
                           collection, ...,
                           fn_filter = NULL,
@@ -198,6 +228,7 @@ sits_config_show <- function() {
     bands
 }
 
+#' @rdname config_functions
 .config_bands_reap <- function(source,
                                collection,
                                key, ...,
@@ -225,6 +256,7 @@ sits_config_show <- function() {
     return(unname(values))
 }
 
+#' @rdname config_functions
 .config_bands_band_name <- function(source,
                                     collection, ...,
                                     bands = NULL,
@@ -239,6 +271,7 @@ sits_config_show <- function() {
                        add_cloud = add_cloud)
 }
 
+#' @rdname config_functions
 .config_bands_resolutions <- function(source,
                                       collection, ...,
                                       bands = NULL,
@@ -260,6 +293,7 @@ sits_config_show <- function() {
     return(values)
 }
 
+#' @rdname config_functions
 .config_cloud <- function() {
 
     return("CLOUD")
@@ -272,6 +306,7 @@ sits_config_show <- function() {
                         "bands", "CLOUD", "bit_mask"))
 }
 
+#' @rdname config_functions
 .config_cloud_values <- function(source,
                                  collection) {
 
@@ -279,6 +314,7 @@ sits_config_show <- function() {
                         "bands", "CLOUD", "values"))
 }
 
+#' @rdname config_functions
 .config_cloud_interp_values <- function(source,
                                         collection) {
 
@@ -286,22 +322,25 @@ sits_config_show <- function() {
                         "bands", "CLOUD", "interp_values"))
 }
 
+#' @rdname config_functions
 .config_collections <- function(source) {
 
     .config_names(c("sources", source, "collections"))
 }
 
+#' @rdname config_functions
 .config_gtiff_default_options <- function() {
 
     .config_get(key = c("GTiff_default_options"))
 }
 
+#' @rdname config_functions
 .config_local_file_extensions <- function() {
 
     .config_get(key = c("sources", "LOCAL", "file_extensions"))
 }
 
-
+#' @rdname config_functions
 .config_memory_bloat <- function() {
 
     .config_get(key = c("R_memory_bloat"))
@@ -335,11 +374,13 @@ sits_config_show <- function() {
     return(data)
 }
 
+#' @rdname config_functions
 .config_palettes <- function() {
 
     .config_names(c("palettes"))
 }
 
+#' @rdname config_functions
 .config_palette_colors <- function(labels, ...,
                                    palette = "default") {
 
@@ -355,37 +396,43 @@ sits_config_show <- function() {
 
     values
 }
-
+#' @rdname config_functions
 .config_processing_bloat <- function() {
 
     .config_get(key = c("R_processing_bloat"))
 }
 
+#' @rdname config_functions
 .config_rstac_limit <- function() {
 
     .config_get(key = c("rstac_pagination_limit"))
 }
 
+#' @rdname config_functions
 .config_raster_pkg <- function() {
 
     .config_get(key = c("R_raster_pkg"))
 }
 
+#' @rdname config_functions
 .config_sources <- function() {
 
     .config_names(c("sources"))
 }
 
+#' @rdname config_functions
 .config_source_url <- function(source) {
 
     .config_get(key = c("sources", source, "url"))
 }
 
+#' @rdname config_functions
 .config_source_service <- function(source) {
 
     .config_get(key = c("sources", source, "service"))
 }
 
+#' @rdname config_functions
 .config_source_s3class <- function(source) {
 
     .config_get(key = c("sources", source, "s3_class"))
