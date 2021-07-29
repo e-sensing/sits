@@ -57,3 +57,93 @@
 
     return(invisible(NULL))
 }
+
+.check_num <- function(x,
+                       allow_na = FALSE,
+                       min = -Inf,
+                       max = Inf,
+                       len_min = 0,
+                       len_max = 2^31,
+                       msg = NULL) {
+
+    call_name <- as.character(sys.call(-1))
+    if (is.null(call_name))
+        call_name <- as.character(sys.call(0))
+
+    if (!is.null(msg))
+        msg <- sprintf("%s: %s\n", call_name, msg)
+
+    if (is.null(msg))
+        msg <- sprintf("%s: ", call_name)
+
+    assertthat::assert_that(
+        is.numeric(x),
+        msg = sprintf("%svalue is not a number.", msg)
+    )
+
+    assertthat::assert_that(
+        min_len <= length(x) && length(x) <= max_len,
+        msg = sprintf("%slength %s is not allowed [%s, %s].", msg, length(x),
+                      len_min, len_max)
+    )
+
+    if (length(x) == 0)
+        return(invisible(NULL))
+
+    if (!allow_na)
+        assertthat::assert_that(
+            !any(is.na(x)),
+            msg = sprintf("%sNA value is not allowed.",msg)
+        )
+
+    assertthat::assert_that(
+        all(min <= x) && all(x <= max),
+        msg = sprintf("%svalue is out of range [%s, %s].", msg, min, max)
+    )
+
+}
+
+.check_chr <- function(x,
+                       allow_na = FALSE,
+                       allow_empty = TRUE,
+                       choices = NULL,
+                       min_len = 0,
+                       max_len = 2^31,
+                       msg = NULL) {
+
+    call_name <- as.character(sys.call(-1))
+    if (is.null(call_name))
+        call_name <- as.character(sys.call(0))
+
+    assertthat::assert_that(
+        is.character(x),
+        msg = sprintf("%svalue is not character type.", msg)
+    )
+
+    assertthat::assert_that(
+        min_len <= length(x) && length(x) <= max_len,
+        msg = sprintf("%slength %s is not allowed [%s, %s].", msg, length(x),
+                      len_min, len_max)
+    )
+
+    if (length(x) == 0)
+        return(invisible(NULL))
+
+    if (!allow_na)
+        assertthat::assert_that(
+            !any(is.na(x)),
+            msg = sprintf("%sNA value is not allowed.", msg)
+        )
+
+    if (!allow_empty)
+        assertthat::assert_that(
+            all(nchar(x) > 0),
+            msg = sprintf("%sempty value is not allowed.", msg)
+        )
+
+    if (!is.null(choices))
+        assertthat::assert_that(
+            all(x %in% choices),
+            msg = sprintf("%svalue %s is invalid.", msg, x[[1]])
+        )
+}
