@@ -148,9 +148,8 @@ The description of a data cube
 \description{
 Creates a data cube based on spatial and temporal restrictions
 on a collection available in repositories such as AWS, Brazil Data Cube
-(BDC), Digital Earth Africa (DEA), and United States Geological Survey (USGS)
-using information provided by STAC endpoints. Users can also create data
-cubes from local files.
+(BDC), and Digital Earth Africa (DEA) using information provided by STAC
+endpoints. Users can also create data cubes from local files.
 
 A data cube does not contain actual data; it points to the files where the
 required data is archived. Other functions (e.g. `sits_classify`) use
@@ -166,15 +165,13 @@ Currently, users can create data cube from the following sources:
   see also https://www.digitalearthafrica.org/}
  \item{"AWS": }{Amazon Web Services (AWS),
   see also https://earth-search.aws.element84.com/v0/ }
- \item{"USGS": }{United States Geological Survey (USGS),
-  see also https://landsatlook.usgs.gov/sat-api/stac/}
  \item{"LOCAL": }{Defines a cube from on a set of local files.}
  \item{"PROBS": }{Defines a cube to from a set of classified image files}.
  \item{"SATVEG": }{Defines a cube to use the SATVEG web service,
   see also https://www.satveg.cnptia.embrapa.br/satveg/login.html}
  }
 
-For big data sources such as AWS, BDC, DEA, and USGS users need to provide:
+For big data sources such as AWS, BDC, and DEA users need to provide:
 \itemize{
 \item{collection: }{Collections are the highest level of aggregation on
 bug data repositories. Each repository has its own set of collections,
@@ -213,10 +210,6 @@ the `s2_resolution` parameter.
 
 For DEA, sits currently only works with collections 'ga_s2_gm' and
 's2_l2a'. DEA users also need to provide their AWS credentials.
-
-For USGS, use the 'landsat-c2l2-sr' collection to consult the Landsat-8
-satellite images. In order to do so, you need to provide the AWS keys as
-mentioned above.
 
 BDC users need to provide their credentials using environmental
 variables.To create your credentials, please see
@@ -306,22 +299,6 @@ s2_cube <- sits_cube(source = "AWS",
                       s2_resolution = 20
 )
 
-# --- Access to Landsat-8 level 2 data in AWS
-# Provide your AWS credentials as environment variables
-Sys.setenv(
-    "AWS_ACCESS_KEY_ID" = <your_aws_access_key>,
-    "AWS_SECRET_ACCESS_KEY" = <your_aws_secret_access_key>
-)
-
-
-l8_cube <- sits_cube(source = "USGS",
-                     name = "L8_CUBE_140048_140045_18_2019",
-                     collection = "landsat-c2l2-sr",
-                     tiles = c("140048", "140045"),
-                     start_date = as.Date("2019-01-01"),
-                     end_date = as.Date("2019-12-31"),
-)
-
 # --- Create a cube based on a stack of CBERS data
 data_dir <- system.file("extdata/raster/cbers", package = "sits")
 
@@ -364,3 +341,4 @@ probs_cube <- sits_cube(
 \references{
 `rstac` package (https://github.com/brazil-data-cube/rstac)
 }
+\keyword{internal}
