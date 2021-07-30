@@ -1125,4 +1125,3 @@ plot.keras_model <- function(x, y, ...) {
     })
   return(invisible(matches))
 }
-
