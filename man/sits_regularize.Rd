@@ -30,7 +30,7 @@ produced by \code{gdalcubes},
 with number and unit, e.g., "P16D" for 16 days.
 Use "D", "M" and "Y" for days, month and year..}
 
-\item{roi}{a region of interest (see above)}
+\item{roi}{A region of interest (see above)}
 
 \item{agg_method}{Method that will be applied by \code{gdalcubes}
 for aggregation. Options: "min", "max", "mean",

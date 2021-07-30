@@ -3,8 +3,8 @@
 #' @keywords internal
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'
-#' @param source           data source
-#' @param collection ...
+#' @param source     Data source
+#' @param collection Collection to be searched in the data source
 #'
 #' @return  TRUE if access is granted
 .check_aws_environment <- function(source, collection) {
@@ -59,7 +59,6 @@
 }
 
 #' @title Auxiliary check functions
-#' @keywords internal
 #'
 #' @name check_functions
 #'
@@ -68,16 +67,20 @@
 #' type.
 #'
 #' @param allow_empty   A \code{logical} indicating if the check permits empty
-#' list in check. Default is FALSE.
+#' list. Default is TRUE.
 #' @param allow_na      A \code{logical} indicating if the check permits empty
-#' NA values in check. Default is FALSE.
+#' NA values. Default is FALSE.
 #' @param allow_null    A \code{logical} indicating if the check permits empty
-#' NULL values in check. Default is FALSE.
-#' @param allow_unnamed A \code{logical} indicating if the check permits empty
-#' unnamed list in check. Default is FALSE.
+#' NULL values. Default is FALSE.
+#' @param is_named      A \code{logical} indicating if the check permits unnamed
+#' list.
+#' @param is_integer    A \code{logical} indicating if the value must be
+#' integer.
 #' @param choices       A atomic \code{vector} of characters indicating the
 #' choices of user can provide in function parameter. Only works for character
 #' check.
+#' @param allow_zero    A \code{logical} indicating if the check permits zero
+#' values. Default is TRUE.
 #' @param min           A atomic \code{vector} of numeric indicating the
 #' minimum value that the user can provide in function parameter. Only works for
 #' numeric check. By default is \code{-Inf}.
@@ -99,6 +102,7 @@
 #' to the user.
 #' @param x             A \code{object} that will be check. That can be a
 #' \code{numeric} or \code{character} vectors or a \code{list}.
+#' @param ...           Additional parameters for \code{fn_check} function.
 NULL
 
 #' @rdname check_functions

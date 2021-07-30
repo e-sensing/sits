@@ -107,6 +107,8 @@
 \item{x}{A \code{object} that will be check. That can be a
 \code{numeric} or \code{character} vectors or a \code{list}.}
 
+\item{...}{Additional parameters for \code{fn_check} function.}
+
 \item{local_msg}{A \code{character} with the generic error message that
 will show to the user.}
 
@@ -114,10 +116,13 @@ will show to the user.}
 to the user.}
 
 \item{allow_null}{A \code{logical} indicating if the check permits empty
-NULL values in check. Default is FALSE.}
+NULL values. Default is FALSE.}
 
 \item{allow_na}{A \code{logical} indicating if the check permits empty
-NA values in check. Default is FALSE.}
+NA values. Default is FALSE.}
+
+\item{is_named}{A \code{logical} indicating if the check permits unnamed
+list.}
 
 \item{len_min}{A \code{numeric} indicating the minimum length of vector
 or list users provides for functions. Default is \code{0}.}
@@ -135,25 +140,27 @@ numeric check. By default is \code{-Inf}.}
 maximum value that the user can provide in function parameter. Only works for
 numeric check. By default is \code{Inf}.}
 
+\item{allow_zero}{A \code{logical} indicating if the check permits zero
+values. Default is TRUE.}
+
 \item{choices}{A atomic \code{vector} of characters indicating the
 choices of user can provide in function parameter. Only works for character
 check.}
 
+\item{is_integer}{A \code{logical} indicating if the value must be
+integer.}
+
 \item{allow_empty}{A \code{logical} indicating if the check permits empty
-list in check. Default is FALSE.}
+list. Default is TRUE.}
 
 \item{min_len}{A \code{numeric} indicating the minimum length of vector
 or list users provides for functions. Default is \code{0}.}
 
 \item{max_len}{A \code{numeric} indicating the maximum length of vector
 or list users provides for functions. Default is \code{2^31}.}
-
-\item{allow_unnamed}{A \code{logical} indicating if the check permits empty
-unnamed list in check. Default is FALSE.}
 }
 \description{
 Functions to check parameters from a specific type, for example,
 for \code{.check_chr} functions the check is exclusive for character
 type.
 }
-\keyword{internal}

@@ -8,9 +8,9 @@
 .check_aws_environment(source, collection)
 }
 \arguments{
-\item{source}{data source}
+\item{source}{Data source}
 
-\item{collection}{...}
+\item{collection}{Collection to be searched in the data source}
 }
 \value{
 TRUE if access is granted
