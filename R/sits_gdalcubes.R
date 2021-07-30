@@ -161,7 +161,7 @@
 #'  about the mask band.
 .sits_gc_cloud_mask <- function(tile) {
 
-    bands <- sits_bands(tile)
+    bands <- .cube_bands(tile)
     cloud_band <- .config_cloud()
 
     # checks if the cube has a cloud band
@@ -171,9 +171,14 @@
                     "mask, please include the cloud band in your cube")
     )
 
+    cloud_source <- .source_bands_to_source(
+        source = .cube_source(cube = tile),
+        collection = .cube_collection(cube = tile),
+        bands = cloud_band)
+
     # create a image mask object
     mask_values <- gdalcubes::image_mask(
-        cloud_band,
+        cloud_source,
         values = .config_cloud_interp_values(
             source = .cube_source(cube = tile),
             collection = .cube_collection(cube = tile)
