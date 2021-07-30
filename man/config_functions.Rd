@@ -29,7 +29,7 @@
 \alias{.config_source_s3class}
 \title{Get values from config file}
 \usage{
-.config_get(key, default = NULL, simplify = FALSE)
+.config_get(key, default = NULL)
 
 .config_names(key)
 
@@ -52,14 +52,7 @@
   default = NULL
 )
 
-.config_bands_band_name(
-  source,
-  collection,
-  ...,
-  bands = NULL,
-  fn_filter = NULL,
-  add_cloud = TRUE
-)
+.config_bands_band_name(source, collection, ..., bands = NULL)
 
 .config_bands_resolutions(
   source,
@@ -108,9 +101,6 @@ the config file.}
 
 \item{default}{Default value if the specified key is not found.}
 
-\item{simplify}{A logical value that specifies whether the return should be
-in vector form, if true, or list form, if false. Default value is FALSE.}
-
 \item{source}{Source of data cube}
 
 \item{collection}{Collection to be searched in the data source.}
@@ -129,6 +119,9 @@ band information in the return of a function.}
 
 \item{pallete}{The palette that should be chosen based on the
 configuration file.}
+
+\item{simplify}{A logical value that specifies whether the return should be
+in vector form, if true, or list form, if false. Default value is FALSE.}
 }
 \value{
 Functions that search for values from a key or collection
