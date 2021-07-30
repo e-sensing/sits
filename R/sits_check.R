@@ -62,8 +62,8 @@
                        allow_na = FALSE,
                        min = -Inf,
                        max = Inf,
-                       len_min = 0,
-                       len_max = 2^31,
+                       min_len = 0,
+                       max_len = 2^31,
                        allow_null = FALSE,
                        msg = NULL) {
 
