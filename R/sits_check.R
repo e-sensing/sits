@@ -55,7 +55,7 @@
         Sys.setenv(AWS_REQUEST_PAYER = aws_request_payer)
     }
 
-    return(invisible(TRUE))
+    return(invisible(NULL))
 }
 
 
@@ -92,7 +92,7 @@
         stop(sprintf(msg, local_msg), call. = FALSE)
     }
 
-    return(invisible(TRUE))
+    return(invisible(NULL))
 }
 
 .check_null <- function(x, ...,
@@ -106,7 +106,7 @@
             msg = msg
         )
 
-    return(invisible(TRUE))
+    return(invisible(NULL))
 }
 
 .check_na <- function(x, ...,
@@ -120,7 +120,7 @@
             msg = msg
         )
 
-    return(invisible(TRUE))
+    return(invisible(NULL))
 }
 
 
@@ -141,31 +141,52 @@
             msg = msg
         )
 
-    return(invisible(TRUE))
+    return(invisible(NULL))
 }
 
 .check_length <- function(x, ...,
-                          min_len = 0,
-                          max_len = 2^31,
+                          len_min = 0,
+                          len_max = 2^31,
                           msg = NULL) {
 
-    if (min_len == max_len)
-        local_msg <- sprintf("length must be == %s", min_len)
-    else if (missing(min_len) && missing(max_len))
+    if (len_min == len_max)
+        local_msg <- sprintf("length must be == %s", len_min)
+    else if (missing(len_min) && missing(len_max))
         local_msg <- "invalid length" # never throws an error in this case!
-    else if (missing(max_len))
-        local_msg <- sprintf("length must be >= %s", min_len)
-    else if (missing(min_len))
-        local_msg <- sprintf("length must be <= %s", max_len)
+    else if (missing(len_max))
+        local_msg <- sprintf("length must be >= %s", len_min)
+    else if (missing(len_min))
+        local_msg <- sprintf("length must be <= %s", len_max)
     else
         local_msg <- sprintf("length must be between %s and %s",
-                             min_len, max_len)
+                             len_min, len_max)
 
     .check_that(
-        min_len <= length(x) && length(x) <= max_len,
+        len_min <= length(x) && length(x) <= len_max,
         local_msg = local_msg,
         msg = msg
     )
+}
+
+.check_apply <- function(x, fn_check, ...,
+                         msg = NULL) {
+
+    if (!is.function(fn_check))
+        stop(".check_apply: fn_check must be a function.", call. = TRUE)
+
+    values <- tryCatch({
+        all(vapply(x, fn_check, logical(1), ...))
+    }, error = function(e) {
+        .check_that(FALSE,
+                    local_msg = e$message,
+                    msg = msg)
+    })
+
+    .check_that(all(values),
+                local_msg = "not all values passed in the test",
+                msg = msg)
+
+    return(invisible(NULL))
 }
 
 .check_lgl_type <- function(x, ...,
@@ -179,7 +200,7 @@
 }
 
 .check_num_type <- function(x, ...,
-                           msg = NULL) {
+                            msg = NULL) {
 
     .check_that(
         is.numeric(x),
@@ -199,9 +220,10 @@
 }
 
 .check_num_range <- function(x, ...,
-                         min = -Inf,
-                         max = Inf,
-                         msg = NULL) {
+                             min = -Inf,
+                             max = Inf,
+                             allow_zero = TRUE,
+                             msg = NULL) {
 
     # check type
     .check_num_type(x)
@@ -211,10 +233,18 @@
         local_msg = "value out of range",
         msg = msg
     )
+
+    if (!allow_zero)
+        .check_that(
+            all(x != 0),
+            local_msg = "value cannot be zero",
+            msg = msg
+        )
+
 }
 
 .check_chr_type <- function(x, ...,
-                             msg = NULL) {
+                            msg = NULL) {
 
     .check_that(
         is.character(x),
@@ -224,7 +254,7 @@
 }
 
 .check_chr_empty <- function(x, ...,
-                         msg = NULL) {
+                             msg = NULL) {
 
     # check type
     .check_chr_type(x, msg = msg)
@@ -240,11 +270,18 @@
                                choices, ...,
                                msg = NULL) {
 
+    if (!is.character(choices))
+        stop(".check_chr_choices: choices must be character.", call. = TRUE)
+
     # check type
     .check_chr_type(x, msg = msg)
 
-    local_msg <- sprintf("value must be one of %s",
-                         paste0("'", choices, "'", collapse = ", "))
+    if (length(choices) > 0)
+        local_msg <- sprintf("value must be one of %s",
+                             paste0("'", choices, "'", collapse = ", "))
+    else
+        local_msg <- sprintf("value cannot be %s",
+                             paste0("'", x, "'", collapse = ", "))
     .check_that(
         all(x %in% choices),
         local_msg = local_msg,
@@ -272,7 +309,7 @@
 
     # check for NULL and exit if it is allowed
     if (allow_null && is.null(x))
-        return(invisible(TRUE))
+        return(invisible(NULL))
 
     # check NULL
     .check_null(x, allow_null = allow_null, msg = msg)
@@ -281,7 +318,7 @@
     .check_lgl_type(x, msg = msg)
 
     # check length
-    .check_length(x, min_len = min_len, max_len = max_len, msg = msg)
+    .check_length(x, len_min = len_min, len_max = len_max, msg = msg)
 
     # check NA
     .check_na(x, allow_na = allow_na, msg = msg)
@@ -289,13 +326,14 @@
     # check names
     .check_names(x, is_named = is_named, msg = msg)
 
-    return(invisible(TRUE))
+    return(invisible(NULL))
 }
 
 .check_num <- function(x, ...,
                        allow_na = FALSE,
                        min = -Inf,
                        max = Inf,
+                       allow_zero = TRUE,
                        len_min = 0,
                        len_max = 2^31,
                        allow_null = FALSE,
@@ -305,7 +343,7 @@
 
     # check for NULL and exit if it is allowed
     if (allow_null && is.null(x))
-        return(invisible(TRUE))
+        return(invisible(NULL))
 
     # check NULL
     .check_null(x, allow_null = allow_null, msg = msg)
@@ -317,33 +355,34 @@
         .check_num_type(x, msg = msg)
 
     # check length
-    .check_length(x, min_len = min_len, max_len = max_len, msg = msg)
+    .check_length(x, len_min = len_min, len_max = len_max, msg = msg)
 
     # check NA
     .check_na(x, allow_na = allow_na, msg = msg)
 
     # check range
-    .check_num_range(x, min = min, max = max, msg = msg)
+    .check_num_range(x, min = min, max = max, allow_zero = allow_zero,
+                     msg = msg)
 
     # check names
     .check_names(x, is_named = is_named, msg = msg)
 
-    return(invisible(TRUE))
+    return(invisible(NULL))
 }
 
 .check_chr <- function(x, ...,
                        allow_na = FALSE,
                        allow_empty = TRUE,
                        choices = NULL,
-                       min_len = 0,
-                       max_len = 2^31,
+                       len_min = 0,
+                       len_max = 2^31,
                        allow_null = FALSE,
                        is_named = FALSE,
                        msg = NULL) {
 
     # check for null and exit if it is allowed
     if (allow_null && is.null(x))
-        return(invisible(TRUE))
+        return(invisible(NULL))
 
     # check NULL
     .check_null(x, allow_null = allow_null, msg = msg)
@@ -367,7 +406,7 @@
     # check names
     .check_names(x, is_named = is_named, msg = msg)
 
-    return(invisible(TRUE))
+    return(invisible(NULL))
 }
 
 .check_lst <- function(x, ...,
@@ -379,7 +418,7 @@
                        msg = NULL) {
 
     if (allow_null && is.null(x))
-        return(invisible(TRUE))
+        return(invisible(NULL))
 
     # check NULL
     .check_null(x, allow_null = allow_null, msg = msg)
@@ -394,20 +433,18 @@
     .check_names(x, is_named = is_named, msg = msg)
 
     # check using function
-    .check_that(
-        all(vapply(x, fn_check, logical(1), ...)),
-        local_msg = msg
-    )
+    if (!is.null(fn_check))
+        .check_apply(x, fn_check = fn_check, msg = msg, ...)
 
-    return(invisible(TRUE))
+    return(invisible(NULL))
 }
 
 .check_file <- function(x, ...,
                         msg = NULL) {
 
     # check type
-    .check_chr(x, allow_empty = FALSE, min_len = 1,
-               max_len = 1, allow_null = FALSE, msg = msg)
+    .check_chr(x, allow_empty = FALSE, len_min = 1,
+               len_max = 1, allow_null = FALSE, msg = msg)
 
     .check_that(
         file.exists(x),

@@ -167,7 +167,7 @@ sits_get_data.satveg_cube <- function(cube,
                                       label = "NoClass") {
     # Precondition - is the SATVEG cube available?
     # Retrieve the URL to test for SATVEG access
-    url <- .config_source_url(source = .cube_source(cube))
+    url <- .config_source_url(source = .cube_source(cube = cube))
 
     # test if SATVEG is accessible
     #if (!(.sits_config_cube_access(url, "SATVEG")))
@@ -246,7 +246,7 @@ sits_get_data.csv_satveg_cube <- function(cube, file, ...) {
 
     # Precondition - is the SATVEG cube available?
     # Retrieve the URL to test for SATVEG access
-    url <- .config_source_url(source = .cube_source(cube))
+    url <- .config_source_url(source = .cube_source(cube = cube))
 
     # test if SATVEG is accessible
     # if (!(.sits_config_cube_access(url, "SATVEG")))
@@ -366,7 +366,7 @@ sits_get_data.shp_satveg_cube <- function(cube, file, ...,
 
     # Precondition - is the SATVEG cube available?
     # Retrieve the URL to test for SATVEG access
-    url <- .config_source_url(source = .cube_source(cube))
+    url <- .config_source_url(source = .cube_source(cube = cube))
 
     # # test if SATVEG is accessible
     # if (!(.sits_config_cube_access(url, "SATVEG")))
@@ -700,8 +700,9 @@ sits_get_data.shp_raster_cube <- function(cube, file, ...,
                             time_series = list(ts)
     )
     # rename the SATVEG bands to uppercase
-    sits_bands(data) <- .config_bands(source = .cube_source(cube),
-                                      collection = .cube_collection(cube))
+    sits_bands(data) <- .config_bands(
+        source = .cube_source(cube = cube),
+        collection = .cube_collection(cube = cube))
     return(data)
 }
 
@@ -758,8 +759,8 @@ sits_get_data.shp_raster_cube <- function(cube, file, ...,
     }
 
 
-    bands <- .source_bands_to_source(source = .cube_source(cube),
-                                     collection = .cube_collection(cube),
+    bands <- .source_bands_to_source(source = .cube_source(cube = cube),
+                                     collection = .cube_collection(cube = cube),
                                      bands = bands)
 
     # retrieve the time series from the service

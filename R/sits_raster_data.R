@@ -79,8 +79,8 @@
     if (cld_band %in% sits_bands(cube)) {
 
         cld_index <- .config_cloud_interp_values(
-            source = .cube_source(cube),
-            collection = .cube_collection(cube)
+            source = .cube_source(cube = cube),
+            collection = .cube_collection(cube = cube)
         )
         cld_files <- dplyr::filter(file_info, band == cld_band)$path
         clouds <- .raster_read_stack(files  = cld_files,
@@ -90,16 +90,15 @@
     }
 
     # read the values from the raster ordered by bands
-    values_bands <- purrr::map(bands, function(band_cube) {
+    values_bands <- purrr::map(bands, function(b) {
 
         # define the input raster files for band
-        bnd_files <- dplyr::filter(file_info, band == band_cube)$path
+        bnd_files <- dplyr::filter(file_info, band == b)$path
 
         # are there bands associated to the files?
         assertthat::assert_that(
             length(bnd_files) > 0,
-            msg = paste(".sits_raster_data_preprocess: no files for band",
-                        band_cube)
+            msg = paste(".sits_raster_data_preprocess: no files for band", b)
         )
 
         # read the values
@@ -107,9 +106,9 @@
                                      block = extent)
 
         # get the missing values, minimum values and scale factors
-        missing_value <- .cube_bands_missing_value(cube, bands = band_cube)
-        minimum_value <- .cube_bands_minimum_value(cube, bands = band_cube)
-        maximum_value <- .cube_bands_maximum_value(cube, bands = band_cube)
+        missing_value <- .cube_band_missing_value(cube = cube, band = b)
+        minimum_value <- .cube_band_minimum_value(cube = cube, band = b)
+        maximum_value <- .cube_band_maximum_value(cube = cube, band = b)
 
         # correct NA, minimum, maximum, and missing values
         values[values < minimum_value] <- NA
@@ -136,7 +135,7 @@
         }
 
         # scale the data set
-        scale_factor <- .cube_bands_scale_factor(cube, bands = band_cube)
+        scale_factor <- .cube_band_scale_factor(cube, band = b)
         values <- scale_factor * values
 
         # filter the data
@@ -146,7 +145,7 @@
 
         # normalize the data
         if (!purrr::is_null(stats)) {
-            values <- .sits_ml_normalize_matrix(values, stats, band_cube)
+            values <- .sits_ml_normalize_matrix(values, stats, b)
         }
 
         #values_dt <- data.table::as.data.table(values)
@@ -298,16 +297,17 @@
 
         # retrieve values that indicate clouds
         cld_index <- .config_cloud_interp_values(
-            source = .cube_source(cube),
-            collection = .cube_collection(cube)
+            source = .cube_source(cube = cube),
+            collection = .cube_collection(cube = cube)
         )
 
         # get the values of the time series (terra object)
-        cld_values <- .sits_cube_extract(cube, cld_band, xy)
+        cld_values <- .sits_cube_extract(cube = cube, band_cube = cld_band,
+                                         xy = xy)
 
         # get information about cloud bitmask
-        if (.config_cloud_bit_mask(source = .cube_source(cube),
-                                   collection = .cube_collection(cube)))
+        if (.config_cloud_bit_mask(source = .cube_source(cube = cube),
+                                   collection = .cube_collection(cube = cube)))
             cld_values <- bitwAnd(cld_values, sum(2^cld_index))
     }
 
@@ -316,10 +316,10 @@
     ts_bands <- .sits_parallel_map(bands, function(band) {
 
         # get the scale factors, max, min and missing values
-        missing_value <- .cube_bands_missing_value(cube = cube, bands = band)
-        minimum_value <- .cube_bands_minimum_value(cube = cube, bands = band)
-        maximum_value <- .cube_bands_maximum_value(cube = cube, bands = band)
-        scale_factor <- .cube_bands_scale_factor(cube = cube, bands = band)
+        missing_value <- .cube_band_missing_value(cube = cube, band = band)
+        minimum_value <- .cube_band_minimum_value(cube = cube, band = band)
+        maximum_value <- .cube_band_maximum_value(cube = cube, band = band)
+        scale_factor <- .cube_band_scale_factor(cube = cube, band = band)
 
         # get the values of the time series as matrix
         values_band <- .sits_cube_extract(cube, band, xy)
@@ -345,8 +345,9 @@
             if (!purrr::is_null(cld_band)) {
                 cld_values <- unlist(cld_values[i, start_idx:end_idx],
                                      use.names = FALSE)
-                if (.config_cloud_bit_mask(source = .cube_source(cube),
-                                           collection = .cube_collection(cube)))
+                if (.config_cloud_bit_mask(
+                    source = .cube_source(cube = cube),
+                    collection = .cube_collection(cube = cube)))
                     values_ts[cld_values > 0] <- NA
                 else
                     values_ts[cld_values %in% cld_index] <- NA

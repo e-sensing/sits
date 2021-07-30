@@ -306,3 +306,13 @@
         )
     )
 }
+
+#' @keywords internal
+#' @export
+.raster_resample_methods.terra <- function(method = NULL, ...) {
+
+    res <- c(near = "ngb", bilinear = "bilinear")
+
+    return(res)
+}
+

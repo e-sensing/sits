@@ -7,6 +7,7 @@
 \alias{.cube_collection}
 \alias{.cube_name}
 \alias{.cube_labels}
+\alias{.cube_bands_check}
 \alias{.cube_bands}
 \alias{.cube_source}
 \alias{.cube_timeline}
@@ -17,14 +18,13 @@
 \alias{.cube_tile_bbox}
 \alias{.cube_tile_resolution}
 \alias{.cube_tile_size}
-\alias{.cube_bands_missing_value}
-\alias{.cube_bands_minimum_value}
-\alias{.cube_bands_maximum_value}
-\alias{.cube_bands_scale_factor}
-\alias{.cube_bands_offset_value}
-\alias{.cube_bands_resampling}
-\alias{.cube_bands_resolutions}
-\alias{.cube_bands_band_name}
+\alias{.cube_band_missing_value}
+\alias{.cube_band_minimum_value}
+\alias{.cube_band_maximum_value}
+\alias{.cube_band_scale_factor}
+\alias{.cube_band_offset_value}
+\alias{.cube_band_resampling}
+\alias{.cube_band_resolutions}
 \alias{.cube_has_cloud}
 \title{Auxiliary functions for sits cubes}
 \usage{
@@ -38,7 +38,9 @@
 
 .cube_labels(cube)
 
-.cube_bands(cube)
+.cube_bands_check(cube)
+
+.cube_bands(cube, ..., add_cloud = TRUE)
 
 .cube_source(cube)
 
@@ -48,7 +50,7 @@
 
 .cube_tile_check(cube, tile)
 
-.cube_tile_get_fields(cube, tile, fields)
+.cube_tile_get_fields(cube, tile, fields = NULL)
 
 .cube_tile_crs(cube, ..., tile = 1)
 
@@ -58,23 +60,19 @@
 
 .cube_tile_size(cube, ..., tile = 1)
 
-.cube_bands_missing_value(cube, ..., bands = NULL)
+.cube_band_missing_value(cube, band)
 
-.cube_bands_missing_value(cube, ..., bands = NULL)
+.cube_band_minimum_value(cube, band)
 
-.cube_bands_minimum_value(cube, ..., bands = NULL)
+.cube_band_maximum_value(cube, band)
 
-.cube_bands_maximum_value(cube, ..., bands = NULL)
+.cube_band_scale_factor(cube, band)
 
-.cube_bands_scale_factor(cube, ..., bands = NULL)
+.cube_band_offset_value(cube, band)
 
-.cube_bands_offset_value(cube, ..., bands = NULL)
+.cube_band_resampling(cube, band)
 
-.cube_bands_resampling(cube, ..., bands = NULL)
-
-.cube_bands_resolutions(cube, ..., bands = NULL)
-
-.cube_bands_band_name(cube, ..., bands = NULL)
+.cube_band_resolutions(cube, band)
 
 .cube_has_cloud(cube)
 }

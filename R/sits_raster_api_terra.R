@@ -309,3 +309,14 @@
         )
     )
 }
+
+#' @keywords internal
+#' @export
+.raster_resample_methods.terra <- function(method = NULL, ...) {
+
+    res <- c(near = "near", bilinear = "bilinear",
+             cubic = "cubic", cubicspline = "cubicspline",
+             lanczos = "lanczos")
+
+    return(res)
+}

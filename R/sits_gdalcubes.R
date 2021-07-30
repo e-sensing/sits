@@ -175,8 +175,8 @@
     mask_values <- gdalcubes::image_mask(
         cloud_band,
         values = .config_cloud_interp_values(
-            source = .cube_source(tile),
-            collection = .cube_collection(tile)
+            source = .cube_source(cube = tile),
+            collection = .cube_collection(cube = tile)
         )
     )
 

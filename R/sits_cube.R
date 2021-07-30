@@ -788,80 +788,176 @@ sits_cube_copy <- function(cube,
 #'
 #' @return a \code{vector} for get attributes functions and NULL or error for
 #' check parameters functions.
+NULL
 
 #' @rdname cube_functions
 .cube_satellite <- function(cube) {
 
-    cube[["satellite"]][[1]]
+    res <- unique(cube[["satellite"]])
+
+    # post-condition
+    .check_chr(res, allow_empty = FALSE, len_min = 1, len_max = 1,
+               msg = "invalid satellite value")
+
+    return(res)
 }
 
 #' @rdname cube_functions
 .cube_sensor <- function(cube) {
 
-    cube[["sensor"]][[1]]
+    res <- unique(cube[["sensor"]])
+
+    # post-condition
+    .check_chr(res, allow_empty = FALSE, len_min = 1, len_max = 1,
+               msg = "invalid sensor value")
+
+    return(res)
 }
 
 #' @rdname cube_functions
 .cube_collection <- function(cube) {
 
-    cube[["collection"]][[1]]
+    res <- unique(cube[["collection"]])
+
+    # post-condition
+    .check_chr(res, allow_empty = FALSE, len_min = 1, len_max = 1,
+               msg = "invalid collection value")
+
+    return(res)
 }
 
 #' @rdname cube_functions
 .cube_name <- function(cube) {
 
-    cube[["name"]][[1]]
+    res <- unique(cube[["name"]])
+
+    # post-condition
+    .check_chr(res, allow_empty = FALSE, len_min = 1, len_max = 1,
+               msg = "invalid cube 'name' value")
+
+    return(res)
 }
 
 #' @rdname cube_functions
 .cube_labels <- function(cube) {
 
-    cube[["labels"]][[1]]
+    res <- unique(cube[["labels"]])
+
+    # post-condition
+    .check_lst(res, min_len = 1, max_len = 1,
+               msg = "invalid cube 'labels' value")
+
+    res <- unlist(res, use.names = FALSE)
+
+    # post-condition
+    .check_chr(res, allow_empty = FALSE, len_min = 1, allow_null = TRUE,
+               msg = "invalid cube 'labels' value")
+
+    return(res)
 }
 
 #' @rdname cube_functions
-.cube_bands <- function(cube) {
+.cube_bands_check <- function(cube) {
 
-    cube[["bands"]][[1]]
+    res <- .cube_bands(cube = cube)
+
+    # check for bands in file_info
+    bands <- unique(lapply(cube[["file_info"]],
+                           function(x) unique(x[["band"]])))
+
+    # check if all tiles have same bands
+    .check_lst(bands, min_len = 1, max_len = 1,
+               msg = "inconsistent 'bands' among tiles")
+
+    # simplify
+    bands <- unlist(bands, use.names = FALSE)
+
+    .check_chr(res, allow_empty = FALSE, choices = bands,
+               len_min = length(bands), len_max = length(bands),
+               msg = "inconsistent 'bands' between cube and 'file_info'")
+
+    return(res)
+}
+
+#' @rdname cube_functions
+.cube_bands <- function(cube, ...,
+                        add_cloud = TRUE) {
+
+    res <- unique(cube[["bands"]])
+
+    # post-condition
+    .check_lst(res, min_len = 1, max_len = 1,
+               msg = "inconsistent 'bands' among tiles")
+
+    # simplify
+    res <- unlist(res, use.names = FALSE)
+
+    if (!add_cloud)
+        res <- res[res != .config_cloud()]
+
+    return(res)
 }
 
 #' @rdname cube_functions
 .cube_source <- function(cube) {
 
-    cube[["source"]][[1]]
+    res <- unique(cube[["source"]])
+
+    # post-condition
+    .check_chr(res, allow_empty = FALSE, len_min = 1, len_max = 1,
+               msg = "invalid cube 'source' value")
+
+    return(res)
 }
 
 #' @rdname cube_functions
 .cube_timeline <- function(cube) {
 
-    sort(unique(cube[["file_info"]][["date"]]))
+    res <- unique(cube[["file_info"]][["date"]])
+
+    # post-condition
+    # check if all tiles have same timeline
+    .check_lst(res, min_len = 1, max_len = 1,
+               msg = "invalid cube timeline values")
+
+    # simplify
+    res <- unlist(res)
+
+    return(res)
 }
 
 #' @rdname cube_functions
 .cube_tiles <- function(cube) {
 
-    cube[["tile"]]
+    res <- unique(cube[["tile"]])
+
+    # post-condition
+    .check_chr(res, allow_empty = FALSE, len_min = nrow(cube),
+               len_max = nrow(cube),
+               msg = "invalid cube 'tile' values")
+
+    return(res)
 }
 
 #' @rdname cube_functions
 .cube_tile_check <- function(cube, tile) {
 
-    assertthat::assert_that(
+    .check_that(
         is.numeric(tile) || is.character(tile),
-        msg = ".cube_tile_check: tile must be numeric or character"
+        local_msg = "'tile' parameter must be numeric or character"
     )
 
     if (is.numeric(tile)) {
-        assertthat::assert_that(
-            tile > 0 && tile < nrow(cube),
-            msg = ".cube_tile_check: invalid tile"
+        .check_num(tile, min = 1, max = nrow(cube),
+                   len_min = 1, len_max = 1, is_integer = TRUE,
+                   msg = "invalid 'tile' parameter"
         )
     }
 
     if (is.character(tile)) {
-        assertthat::assert_that(
-            tile %in% .cube_tiles(cube = cube),
-            msg = ".cube_tile_check: invalid tile"
+        .check_chr(allow_empty = FALSE, choices = .cube_tiles(cube = cube),
+                   len_min = 1, len_max = 1,
+                   msg = "invalid 'tile' parameter"
         )
     }
 
@@ -869,38 +965,71 @@ sits_cube_copy <- function(cube,
 }
 
 #' @rdname cube_functions
-.cube_tile_get_fields <- function(cube, tile, fields) {
+.cube_tile_get_fields <- function(cube, tile, fields = NULL) {
 
-    tile <- tile[[1]]
+    # pre-condition
+    .cube_tile_check(cube = cube, tile = tile)
+
+    .check_chr(fields, allow_empty = FALSE, choices = names(cube),
+               len_min = 1, msg = "invalid 'fields' parameter")
 
     if (is.numeric(tile))
-        return(unlist(cube[tile, fields]))
+        res <- c(cube[tile, fields])
 
-    return(unlist(cube[which(.cube_tiles(cube = cube) %in% tile),
-                       fields]))
+    res <- c(cube[which(.cube_tiles(cube = cube) %in% tile), fields])
+
+    # post-condition
+    .check_lst(res, min_len = length(fields), max_len = length(fields),
+               msg = "invalid 'fields' parameter")
+
+    return(res)
 }
 
 #' @rdname cube_functions
 .cube_tile_crs <- function(cube, ...,
                            tile = 1) {
 
-    .cube_tile_get_fields(cube = cube,  tile = tile, fields = "crs")
+    res <- .cube_tile_get_fields(cube = cube,  tile = tile, fields = "crs")
+
+    # simplify
+    res <- unlist(res, use.names = FALSE)
+
+    # post-condition
+    .check_chr(res, allow_empty = FALSE, len_min = 1, len_max = 1,
+               "invalid tile 'crs' value")
+
+    return(res)
 }
 
 #' @rdname cube_functions
 .cube_tile_bbox <- function(cube, ...,
                             tile = 1) {
 
-    .cube_tile_get_fields(cube = cube, tile = tile,
-                         fields = c("xmin", "ymin", "xmax", "ymax"))
+    res <- .cube_tile_get_fields(cube = cube, tile = tile,
+                                 fields = c("xmin", "ymin", "xmax", "ymax"))
+
+    # post-condition
+    .check_lst(res, min_len = 4, max_len = 4, fn_check = .check_num,
+               len_min = 1, len_max = 1,
+               msg = "invalid tile 'bbox' value")
+
+    return(res)
 }
 
 #' @rdname cube_functions
 .cube_tile_resolution <- function(cube, ...,
                                   tile = 1) {
 
-    .cube_tile_get_fields(cube = cube, tile = tile,
-                         fields = c("xres", "yres"))
+    res <- .cube_tile_get_fields(cube = cube, tile = tile,
+                                 fields = c("xres", "yres"))
+
+    # post-condition
+    .check_lst(res, min_len = 2, max_len = 2,
+               fn_check = .check_num, min = 0, allow_zero = FALSE,
+               len_min = 1, len_max = 1,
+               msg = "invalid tile 'xres' and 'yres' values")
+
+    return(res)
 }
 
 #' @rdname cube_functions
@@ -908,128 +1037,154 @@ sits_cube_copy <- function(cube,
                             tile = 1) {
 
     .cube_tile_get_fields(cube = cube, tile = tile,
-                         fields = c("nrows", "ncols"))
+                          fields = c("nrows", "ncols"))
+
+    # post-condition
+    .check_lst(res, min_len = 2, max_len = 2,
+               fn_check = .check_num, min = 0, allow_zero = FALSE,
+               len_min = 1, len_max = 1,
+               msg = "invalid tile 'nrows' and 'ncols' values")
+
+    return(res)
 }
 
 #' @rdname cube_functions
-.cube_bands_missing_value <- function(cube, ...,
-                                      bands = NULL) {
+.cube_band_missing_value <- function(cube, band) {
 
-    if (is.null(bands))
-        bands <- .cube_bands(cube = cube)
+    # pre-condition
+    .check_chr(band, choices = .cube_bands(cube = cube, add_cloud = FALSE),
+               len_min = 1, len_max = 1,
+               msg = "invalid 'band' parameter")
 
-    .config_bands_reap(source = .cube_source(cube),
-                       collection = .cube_collection(cube),
-                       key = "missing_value", bands = bands,
-                       add_cloud = FALSE)
+    res <- .config_get(key = c("sources", .cube_source(cube = cube),
+                               "collections", .cube_collection(cube = cube),
+                               "bands", band, "missing_value"))
+
+    # post-condition
+    .check_num(res, len_min = 1, len_max = 1,
+               msg = "invalid 'missing_value' value")
+
+    return(res)
 }
 
 #' @rdname cube_functions
-.cube_bands_missing_value <- function(cube, ...,
-                                      bands = NULL) {
+.cube_band_minimum_value <- function(cube, band) {
 
-    if (is.null(bands))
-        bands <- .cube_bands(cube = cube)
+    # pre-condition
+    .check_chr(band, choices = .cube_bands(cube = cube, add_cloud = FALSE),
+               len_min = 1, len_max = 1,
+               msg = "invalid 'band' parameter")
 
-    .config_bands_reap(source = .cube_source(cube),
-                       collection = .cube_collection(cube),
-                       key = "missing_value", bands = bands,
-                       add_cloud = FALSE)
+    res <- .config_get(key = c("sources", .cube_source(cube = cube),
+                               "collections", .cube_collection(cube = cube),
+                               "bands", band, "minimum_value"))
+
+    # post-condition
+    .check_num(res, len_min = 1, len_max = 1,
+               msg = "invalid 'minimum_value' value")
+
+    return(res)
 }
 
 #' @rdname cube_functions
-.cube_bands_minimum_value <- function(cube, ...,
-                                      bands = NULL) {
+.cube_band_maximum_value <- function(cube, band) {
 
-    if (is.null(bands))
-        bands <- .cube_bands(cube = cube)
+    # pre-condition
+    .check_chr(band, choices = .cube_bands(cube = cube, add_cloud = FALSE),
+               len_min = 1, len_max = 1,
+               msg = "invalid 'band' parameter")
 
-    .config_bands_reap(source = .cube_source(cube = cube),
-                       collection = .cube_collection(cube = cube),
-                       key = "minimum_value", bands = bands,
-                       add_cloud = FALSE)
+    res <- .config_get(key = c("sources", .cube_source(cube = cube),
+                               "collections", .cube_collection(cube = cube),
+                               "bands", band, "maximum_value"))
+
+    # post-condition
+    .check_num(res, len_min = 1, len_max = 1,
+               msg = "invalid 'maximum_value' value")
+
+    return(res)
 }
 
 #' @rdname cube_functions
-.cube_bands_maximum_value <- function(cube, ...,
-                                      bands = NULL) {
+.cube_band_scale_factor <- function(cube, band) {
 
-    if (is.null(bands))
-        bands <- .cube_bands(cube = cube)
+    # pre-condition
+    .check_chr(band, choices = .cube_bands(cube = cube, add_cloud = FALSE),
+               len_min = 1, len_max = 1,
+               msg = "invalid 'band' parameter")
 
-    .config_bands_reap(source = .cube_source(cube = cube),
-                       collection = .cube_collection(cube = cube),
-                       key = "maximum_value", bands = bands,
-                       add_cloud = FALSE)
+    res <- .config_get(key = c("sources", .cube_source(cube = cube),
+                               "collections", .cube_collection(cube = cube),
+                               "bands", band, "scale_factor"))
+
+    # post-condition
+    .check_num(res, allow_zero = FALSE, len_min = 1, len_max = 1,
+               msg = "invalid 'scale_factor' value")
+
+    return(res)
 }
 
 #' @rdname cube_functions
-.cube_bands_scale_factor <- function(cube, ...,
-                                     bands = NULL) {
+.cube_band_offset_value <- function(cube, band) {
 
-    if (is.null(bands))
-        bands <- .cube_bands(cube = cube)
+    # pre-condition
+    .check_chr(band, choices = .cube_bands(cube = cube, add_cloud = FALSE),
+               len_min = 1, len_max = 1,
+               msg = "invalid 'band' parameter")
 
-    .config_bands_reap(source = .cube_source(cube = cube),
-                       collection = .cube_collection(cube = cube),
-                       key = "scale_factor", bands = bands,
-                       add_cloud = FALSE)
+    res <- .config_get(key = c("sources", .cube_source(cube = cube),
+                               "collections", .cube_collection(cube = cube),
+                               "bands", band, "offset_value"))
+
+    # post-condition
+    .check_num(res, len_min = 1, len_max = 1,
+               msg = "invalid 'offset_value' value")
+
+    return(res)
 }
 
 #' @rdname cube_functions
-.cube_bands_offset_value <- function(cube, ...,
-                                     bands = NULL) {
+.cube_band_resampling <- function(cube, band) {
 
-    if (is.null(bands))
-        bands <- .cube_bands(cube = cube)
+    # pre-condition
+    .check_chr(band, choices = .cube_bands(cube = cube, add_cloud = TRUE),
+               len_min = 1, len_max = 1,
+               msg = "invalid 'band' parameter")
 
-    .config_bands_reap(source = .cube_source(cube = cube),
-                       collection = .cube_collection(cube = cube),
-                       key = "offset_value", bands = bands,
-                       add_cloud = FALSE)
+    res <- .config_get(key = c("sources", .cube_source(cube = cube),
+                               "collections", .cube_collection(cube = cube),
+                               "bands", band, "resampling"))
+
+    # post-condition
+    .check_chr(res, choices = names(.raster_resample_methods()),
+               len_min = 1, len_max = 1,
+               msg = sprintf("invalid 'resampling' value for package '%s'",
+                             .config_raster_pkg()))
+
+    return(res)
 }
 
 #' @rdname cube_functions
-.cube_bands_resampling <- function(cube, ...,
-                                   bands = NULL) {
+.cube_band_resolutions <- function(cube, band) {
 
-    if (is.null(bands))
-        bands <- .cube_bands(cube = cube)
+    # pre-condition
+    .check_chr(band, choices = .cube_bands(cube = cube, add_cloud = TRUE),
+               len_min = 1, len_max = 1,
+               msg = "invalid 'band' parameter")
 
-    .config_bands_reap(source = .cube_source(cube = cube),
-                       collection = .cube_collection(cube = cube),
-                       key = "resampling", bands = bands,
-                       add_cloud = TRUE)
-}
+    res <- .config_get(key = c("sources", .cube_source(cube = cube),
+                               "collections", .cube_collection(cube = cube),
+                               "bands", band, "resolutions"))
 
-#' @rdname cube_functions
-.cube_bands_resolutions <- function(cube, ...,
-                                    bands = NULL) {
+    # post-condition
+    .check_num(res, min = 0, allow_zero = FALSE, len_min = 1,
+               msg = "invalid 'resolutions' value")
 
-    if (is.null(bands))
-        bands <- .cube_bands(cube = cube)
-
-    .config_bands_reap(source = .cube_source(cube = cube),
-                       collection = .cube_collection(cube = cube),
-                       key = "resolutions", bands = bands,
-                       add_cloud = TRUE)
-}
-
-#' @rdname cube_functions
-.cube_bands_band_name <- function(cube, ...,
-                                  bands = NULL) {
-
-    if (is.null(bands))
-        bands <- .cube_bands(cube = cube)
-
-    .config_bands_reap(source = .cube_source(cube = cube),
-                       collection = .cube_collection(cube = cube),
-                       key = "band_name", bands = bands,
-                       add_cloud = TRUE)
+    return(res)
 }
 
 #' @rdname cube_functions
 .cube_has_cloud <- function(cube) {
 
-    .config_cloud() %in% .cube_bands(cube)
+    .config_cloud() %in% .cube_bands(cube = cube, add_cloud = TRUE)
 }

@@ -101,36 +101,6 @@ sits_config_show <- function() {
     return(invisible(NULL))
 }
 
-.config_file <- function() {
-
-    # load the default configuration file
-    yml_file <- system.file("extdata", "config.yml", package = "sits")
-
-    # check that the file name is valid
-    .check_file(yml_file, msg = "invalid configuration file")
-
-    return(yml_file)
-}
-
-.config_user_file <- function() {
-
-    # load the default configuration file
-    yml_file <- Sys.getenv("SITS_USER_CONFIG_FILE")
-
-    # check if the file exists
-    if (nchar(yml_file) > 0) {
-        .check_file(
-            yml_file,
-            msg = sprintf(paste(
-                "invalid configuration file informed in",
-                "SITS_USER_CONFIG_FILE"),
-                yml_file)
-        )
-    }
-
-    return(yml_file)
-}
-
 #' @title Get values from config file
 #' @name config_functions
 #'
@@ -159,6 +129,38 @@ sits_config_show <- function() {
 #'  return atomic values. Check functions return invisible null values or give
 #'  an error.
 NULL
+
+#' @rdname config_functions
+.config_file <- function() {
+
+    # load the default configuration file
+    yml_file <- system.file("extdata", "config.yml", package = "sits")
+
+    # check that the file name is valid
+    .check_file(yml_file, msg = "invalid configuration file")
+
+    return(yml_file)
+}
+
+#' @rdname config_functions
+.config_user_file <- function() {
+
+    # load the default configuration file
+    yml_file <- Sys.getenv("SITS_USER_CONFIG_FILE")
+
+    # check if the file exists
+    if (nchar(yml_file) > 0) {
+        .check_file(
+            yml_file,
+            msg = sprintf(paste(
+                "invalid configuration file informed in",
+                "SITS_USER_CONFIG_FILE"),
+                yml_file)
+        )
+    }
+
+    return(yml_file)
+}
 
 #' @rdname config_functions
 .config_get <- function(key, default = NULL) {
@@ -207,13 +209,16 @@ NULL
 .config_aws_default_region <- function(source,
                                        collection) {
 
+    # TO-DO: pre-condition
+    # check source and collection
+
     res <- .config_get(key = c("sources", source, "collections", collection,
                                "AWS", "AWS_DEFAULT_REGION"),
                        default = NA)
 
     # post-condition
-    .check_chr(res, allow_na = FALSE, allow_empty = TRUE,
-               min_len = 1, max_len = 1,
+    .check_chr(res, allow_empty = TRUE,
+               len_min = 1, len_max = 1,
                msg = "invalid AWS_DEFAULT_REGION")
 
     return(res)
@@ -222,14 +227,16 @@ NULL
 #' @rdname config_functions
 .config_aws_endpoint <- function(source,
                                  collection) {
+    # TO-DO: pre-condition
+    # check source and collection
 
     res <- .config_get(key = c("sources", source, "collections", collection,
                                "AWS", "AWS_S3_ENDPOINT"),
                        default = NA)
 
     # post-condition
-    .check_chr(res, allow_na = FALSE, allow_empty = TRUE,
-               min_len = 1, max_len = 1,
+    .check_chr(res, allow_empty = TRUE,
+               len_min = 1, len_max = 1,
                msg = "invalid AWS_S3_ENDPOINT")
 
     return(res)
@@ -238,14 +245,16 @@ NULL
 #' @rdname config_functions
 .config_aws_request_payer <- function(source,
                                       collection) {
+    # TO-DO: pre-condition
+    # check source and collection
 
     res <- .config_get(key = c("sources", source, "collections", collection,
                                "AWS", "AWS_REQUEST_PAYER"),
                        default = NA)
 
     # post-condition
-    .check_chr(res, allow_na = FALSE, allow_empty = TRUE,
-               min_len = 1, max_len = 1,
+    .check_chr(res, allow_empty = TRUE,
+               len_min = 1, len_max = 1,
                msg = "invalid AWS_REQUEST_PAYER")
 
     return(res)
@@ -257,6 +266,8 @@ NULL
                           fn_filter = NULL,
                           add_cloud = TRUE) {
 
+    # TO-DO: pre-condition
+    # check source and collection
 
     res <- .config_names(key = c("sources", source, "collections",
                                  collection, "bands"))
@@ -273,6 +284,10 @@ NULL
         res <- res[select]
     }
 
+    # TO-DO: post-condition
+    # check bands are non-NA character
+
+
     return(res)
 }
 
@@ -285,8 +300,8 @@ NULL
                                add_cloud = TRUE,
                                default = NULL) {
 
-    .check_chr(bands, allow_na = FALSE, allow_empty = FALSE, min_len = 1,
-               allow_null = TRUE, msg = "invalid informed bands")
+    # TO-DO: pre-condition
+    # check source and collection
 
     if (is.null(bands))
         bands <- .config_bands(source = source,
@@ -295,7 +310,7 @@ NULL
                                add_cloud = add_cloud)
 
     # pre-condition
-    .check_chr(bands, allow_na = FALSE, allow_empty = FALSE,
+    .check_chr(bands, allow_na = FALSE, allow_empty = FALSE, len_min = 1,
                msg = "invalid bands")
 
     # always returns a list!
@@ -314,18 +329,20 @@ NULL
 .config_bands_band_name <- function(source,
                                     collection, ...,
                                     bands = NULL) {
+    # TO-DO: pre-condition
+    # check source and collection
 
     res <- .config_bands_reap(source = source,
                               collection = collection,
                               key = "band_name",
                               bands = bands)
 
-    # convert to a character vector
+    # simplify to a unnamed character vector
     res <- unlist(res, recursive = FALSE, use.names = FALSE)
 
     # post-conditions
     .check_chr(res, allow_na = FALSE, allow_empty = FALSE,
-               min_len = length(bands), max_len = length(bands),
+               len_min = length(bands), len_max = length(bands),
                msg = "inconsistent 'band_name' values")
 
     return(res)
@@ -337,6 +354,8 @@ NULL
                                       bands = NULL,
                                       fn_filter = NULL,
                                       add_cloud = TRUE) {
+    # TO-DO: pre-condition
+    # check source and collection
 
     res <- .config_bands_reap(source = source,
                               collection = collection,
@@ -345,8 +364,10 @@ NULL
                               fn_filter = fn_filter,
                               add_cloud = add_cloud)
 
+    # cannot simplify as each element can have length greater than one
     # post-condition
-    .check_lst(x, fn_check = .check_num, min = 1e-08,
+    .check_lst(res, fn_check = .check_num, min = 0,
+               allow_zero = FALSE, len_min = 1,
                msg = "invalid 'resolutions' in config file")
 
     return(res)
@@ -360,6 +381,8 @@ NULL
 
 .config_cloud_bit_mask <- function(source,
                                    collection) {
+    # TO-DO: pre-condition
+    # check source and collection
 
     res <- .config_get(key = c("sources", source, "collections", collection,
                                "bands", "CLOUD", "bit_mask"))
@@ -374,12 +397,14 @@ NULL
 #' @rdname config_functions
 .config_cloud_values <- function(source,
                                  collection) {
+    # TO-DO: pre-condition
+    # check source and collection
 
     res <- .config_get(key = c("sources", source, "collections", collection,
                                "bands", "CLOUD", "values"))
 
     # post-condition
-    .check_lst(res, len_min = 1, len_max = 1,
+    .check_lst(res, min_len = 1, max_len = 1,
                msg = "invalid cloud 'values' in config file")
 
     return(res)
@@ -388,6 +413,8 @@ NULL
 #' @rdname config_functions
 .config_cloud_interp_values <- function(source,
                                         collection) {
+    # TO-DO: pre-condition
+    # check source and collection
 
     res <- .config_get(key = c("sources", source, "collections", collection,
                                "bands", "CLOUD", "interp_values"))
@@ -412,7 +439,7 @@ NULL
     res <- .config_get(key = c("GTiff_default_options"))
 
     # post-condition
-    .check_chr(min_len = 1, max_len = 1,
+    .check_chr(res, len_min = 1, len_max = 1,
                msg = "invalid 'GTiff_default_options' in config file")
 
     return(res)
@@ -424,7 +451,7 @@ NULL
     res <- .config_get(key = c("sources", "LOCAL", "file_extensions"))
 
     # post-condition
-    .check_chr(min_len = 1,
+    .check_chr(res, len_min = 1,
                msg = "invalid 'file_extensions' in config file")
 
     return(res)
@@ -476,7 +503,7 @@ NULL
     res <- .config_names(key = "palettes")
 
     # post-condition
-    .check_chr(res, min_len = 1)
+    .check_chr(res, len_min = 1)
 
     return(res)
 }
@@ -507,7 +534,7 @@ NULL
     res <- .config_get(key = c("R_processing_bloat"))
 
     # post-condition
-    .check_num(res, min = 1, min_len = 1, max_len = 1,
+    .check_num(res, min = 1, len_min = 1, len_max = 1,
                msg = "invalid 'R_processing_bloat' in config file")
 
     return(res)
@@ -519,7 +546,7 @@ NULL
     res <- .config_get(key = c("rstac_pagination_limit"))
 
     # post-condition
-    .check_num(res, min = 1, min_len = 1, max_len = 1,
+    .check_num(res, min = 1, len_min = 1, len_max = 1,
                msg = "invalid 'rstac_pagination_limit' in config file")
 
     return(res)
@@ -531,7 +558,7 @@ NULL
     res <- .config_get(key = c("R_raster_pkg"))
 
     .check_chr(res, allow_empty = FALSE,
-               choices = c("terra", "raster"), min_len = 1, max_len = 1,
+               choices = c("terra", "raster"), len_min = 1, len_max = 1,
                msg = "invalid 'R_raster_pkg' in config file")
 
     return(res)
@@ -542,7 +569,8 @@ NULL
 
     res <- .config_names(c("sources"))
 
-    .check_lst(res, min_len = 1, is_named = TRUE,
+    # post-condition
+    .check_chr(res, allow_empty = FALSE, len_min = 1,
                msg = "invalid 'sources' in config file")
 
     return(res)
@@ -550,11 +578,14 @@ NULL
 
 #' @rdname config_functions
 .config_source_url <- function(source) {
+    # TO-DO: pre-condition
+    # check source
 
     res <- .config_get(key = c("sources", source, "url"))
 
+    # post-condition
     .check_chr(res, allow_empty = FALSE,
-               min_len = 1, max_len = 1,
+               len_min = 1, len_max = 1,
                msg = sprintf("invalid 'url' for source %s in config file",
                              source))
 
@@ -563,11 +594,14 @@ NULL
 
 #' @rdname config_functions
 .config_source_service <- function(source) {
+    # TO-DO: pre-condition
+    # check source
 
     res <- .config_get(key = c("sources", source, "service"))
 
+    # post-condition
     .check_chr(res, allow_empty = FALSE,
-               min_len = 1, max_len = 1,
+               len_min = 1, len_max = 1,
                msg = sprintf("invalid 'service' for source %s in config file",
                              source))
 
@@ -576,10 +610,13 @@ NULL
 
 #' @rdname config_functions
 .config_source_s3class <- function(source) {
+    # TO-DO: pre-condition
+    # check source
 
     res <- .config_get(key = c("sources", source, "s3_class"))
 
-    .check_chr(res, allow_empty = FALSE, min_len = 1,
+    # post-condition
+    .check_chr(res, allow_empty = FALSE, len_min = 1,
                msg = sprintf("invalid 's3_class' for source %s in config file",
                              source))
 

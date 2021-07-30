@@ -2,6 +2,8 @@
 % Please edit documentation in R/sits_config.R
 \name{config_functions}
 \alias{config_functions}
+\alias{.config_file}
+\alias{.config_user_file}
 \alias{.config_get}
 \alias{.config_names}
 \alias{.config_aws_default_region}
@@ -29,6 +31,10 @@
 \alias{.config_source_s3class}
 \title{Get values from config file}
 \usage{
+.config_file()
+
+.config_user_file()
+
 .config_get(key, default = NULL)
 
 .config_names(key)

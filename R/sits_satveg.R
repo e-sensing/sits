@@ -19,11 +19,11 @@
     filter_par <- ""
 
     # URL to access SATVEG services
-    url <- .config_source_url(source = .cube_source(cube))
+    url <- .config_source_url(source = .cube_source(cube = cube))
 
     # bands available in SATVEG
-    bands <- .config_bands_band_name(source = .cube_source(cube),
-                                     collection = .cube_collection(cube))
+    bands <- .config_bands_band_name(source = .cube_source(cube = cube),
+                                     collection = .cube_collection(cube = cube))
     # bands in SATVEG are lowercase
     bands <- tolower(bands)
     # vector to hold the timeline (used once only)
@@ -34,7 +34,7 @@
     ts_bands_lst <- purrr::map2(bands, get_times, function(b, gt) {
         # Build the URL to retrieve the time series
         url_ts <- paste(url, b, "ponto", longitude, latitude,
-                        .cube_collection(cube), .prefilter,
+                        .cube_collection(cube = cube), .prefilter,
                         filter,filter_par, sep = "/")
 
         # Get the data from SATVEG service

@@ -74,8 +74,10 @@ NULL
 
     # get the size of the cube
     size <- .config_get(key = c("sources", source, "collections",
-                                collection, "size"),
-                        simplify = TRUE)
+                                collection, "size"))
+
+    # simplify
+    size <- unlist(size)
 
     # post-condition
     assertthat::assert_that(
@@ -91,8 +93,10 @@ NULL
 
     # get the size of the cube
     bbox <- .config_get(key = c("sources", source, "collections",
-                                collection, "bbox"),
-                        simplify = TRUE)
+                                collection, "bbox"))
+
+    # simplify
+    bbox <- unlist(bbox)
 
     # post-condition
     assertthat::assert_that(
@@ -108,8 +112,10 @@ NULL
 
     # get cube crs
     crs <- .config_get(key = c("sources", source, "collections",
-                               collection, "crs"),
-                       simplify = TRUE)
+                               collection, "crs"))
+
+    # simplify
+    crs <- unlist(crs)
 
     return(.sits_proj_format_crs(crs))
 }

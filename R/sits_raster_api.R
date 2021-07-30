@@ -54,31 +54,29 @@
 #' @return character string
 .raster_gdal_datatype <- function(data_type) {
 
-    # allowed data types
-    valid_data_types <- c("INT1U", "INT2U", "INT2S", "INT4U",
-                          "INT4S", "FLT4S", "FLT8S")
-
     # GDAL data types
-    gdal_data_types <- c("Byte", "UInt16", "Int16", "UInt32",
-                         "Int32", "Float32", "Float64")
+    gdal_data_types <- .raster_gdal_datatypes()
 
     # check data_type type
-    assertthat::assert_that(
-        is.character(data_type),
-        msg = paste(".raster_data_type: data_type must be a ",
-                    "character string")
-    )
-
-    # check data type
-    assertthat::assert_that(
-        all(data_type %in% valid_data_types),
-        msg = paste(".raster_data_type: valid data types are",
-                    paste0("'", valid_data_types, "'", collapse = ", "))
-    )
+    .check_chr(data_type, choices = names(gdal_data_types), len_min = 1,
+               len_max = 1, msg = "invalid 'data_type' parameter")
 
     # convert
-    return(gdal_data_types[match(data_type, valid_data_types)])
+    return(gdal_data_types[[data_type]])
 }
+
+#' @name .raster_gdal_datatype
+.raster_gdal_datatypes <- function() {
+
+    # data types cast
+    res <- c(INT1U = "Byte", INT2U = "UInt16",
+             INT2S = "Int16", INT4U = "UInt32",
+             INT4S = "Int32", FLT4S = "Float32",
+             FLT8S = "Float64")
+
+    return(res)
+}
+
 
 #' @title Raster package internal data type representation
 #' @name .raster_data_type
@@ -519,6 +517,35 @@
     pkg_class <- .raster_check_package()
 
     UseMethod(".raster_focal", pkg_class)
+}
+
+#' @title Convert sits internal resample methods
+#' @name .raster_resample_method
+#' @keywords internal
+#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
+#'
+#' @return character string
+.raster_resample_method <- function(method) {
+
+    # package supported resample methods
+    convert_methods <- .raster_resample_methods()
+
+    # check method type
+    .check_chr(method, choices = names(convert_methods),
+               len_min = 1, len_max = 1,
+               msg = sprintf("invalid 'method' for package '%s'",
+                             .config_raster_pkg()))
+    # convert
+    return(convert_methods[[method]])
+}
+
+#' @name .raster_resample_method
+.raster_resample_methods <- function() {
+
+    # check package
+    pkg_class <- .raster_check_package()
+
+    UseMethod(".raster_resample_methods", pkg_class)
 }
 
 #' @title Determine the file params to write in the metadata
