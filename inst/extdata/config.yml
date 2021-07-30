@@ -6,7 +6,7 @@ R_processing_bloat      : 5
 rstac_pagination_limit  : 1000
 
 # default raster package
-R_raster_pkg            : "raster"
+R_raster_pkg            : "terra"
 
 # GDAL GTiff default creation options
 GTiff_default_options   : ["COMPRESS=LZW", "BIGTIFF=YES"]
@@ -455,62 +455,6 @@ sources:
                     AWS_DEFAULT_REGION   : "eu-central-1"
                     AWS_S3_ENDPOINT      : "s3.amazonaws.com"
                     AWS_REQUEST_PAYER    : "requester"
-    USGS                    :
-        s3_class            : ["usgs_cube", "stac_cube", "raster_cube"]
-        service             : "STAC"
-        url                 : "https://landsatlook.usgs.gov/sat-api/stac"
-        collections         :
-            landsat-c2l2-sr :
-                bands       :
-                    B1      : &usgs_oli_b1
-                        missing_value : 0
-                        minimum_value : 7273
-                        maximum_value : 43636
-                        scale_factor  : 0.0000275
-                        offset_value  : -0.2
-                        resampling    : "bilinear"
-                        resolutions   : [30]
-                        band_name     : "SR_B1.TIF"
-                    B2      :
-                        <<: *usgs_oli_b1
-                        band_name     : "SR_B2.TIF"
-                    B3      :
-                        <<: *usgs_oli_b1
-                        band_name     : "SR_B3.TIF"
-                    B4      :
-                        <<: *usgs_oli_b1
-                        band_name     : "SR_B4.TIF"
-                    B5      :
-                        <<: *usgs_oli_b1
-                        band_name     : "SR_B5.TIF"
-                    B6      :
-                        <<: *usgs_oli_b1
-                        band_name     : "SR_B6.TIF"
-                    B7      :
-                        <<: *usgs_oli_b1
-                        band_name     : "SR_B7.TIF"
-                    CLOUD  :
-                        bit_mask      : TRUE
-                        band_name     : "QA_PIXEL.TIF"
-                        values        :
-                            0         : "missing_data"
-                            1         : "Dilated Cloud"
-                            2         : "High confidence cirrus"
-                            4         : "High confidence cloud shadow"
-                            5         : "High confidence snow cover"
-                            6         : "Clear"
-                            7         : "Water"
-                            9         : "High confidence of cloud"
-                            11        : "High confidence of cloud shadow"
-                            13        : "High confidence of snow"
-                            15        : "High confidence of cirrus"
-                        interp_values : [0, 1, 2, 4, 5, 9, 11, 13, 15]
-                        resampling    : "ngb"
-                        resolutions   : [30]
-                AWS         :
-                    AWS_DEFAULT_REGION: "us-west-2"
-                    AWS_S3_ENDPOINT   : "s3.amazonaws.com"
-                    AWS_REQUEST_PAYER : "requester"
     DEAFRICA                :
         s3_class            : ["deafrica_cube", "stac_cube", "raster_cube"]
         service             : "STAC"

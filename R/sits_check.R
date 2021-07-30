@@ -55,10 +55,53 @@
         Sys.setenv(AWS_REQUEST_PAYER = aws_request_payer)
     }
 
-    return(invisible(NULL))
+    return(invisible(TRUE))
 }
 
+#' @title Auxiliary check functions
+#' @keywords internal
+#'
+#' @name check_functions
+#'
+#' @description Functions to check parameters from a specific type, for example,
+#' for \code{.check_chr} functions the check is exclusive for character
+#' type.
+#'
+#' @param allow_empty   A \code{logical} indicating if the check permits empty
+#' list in check. Default is FALSE.
+#' @param allow_na      A \code{logical} indicating if the check permits empty
+#' NA values in check. Default is FALSE.
+#' @param allow_null    A \code{logical} indicating if the check permits empty
+#' NULL values in check. Default is FALSE.
+#' @param allow_unnamed A \code{logical} indicating if the check permits empty
+#' unnamed list in check. Default is FALSE.
+#' @param choices       A atomic \code{vector} of characters indicating the
+#' choices of user can provide in function parameter. Only works for character
+#' check.
+#' @param min           A atomic \code{vector} of numeric indicating the
+#' minimum value that the user can provide in function parameter. Only works for
+#' numeric check. By default is \code{-Inf}.
+#' @param max           A atomic \code{vector} of numeric indicating the
+#' maximum value that the user can provide in function parameter. Only works for
+#' numeric check. By default is \code{Inf}.
+#' @param min_len       A \code{numeric} indicating the minimum length of vector
+#' or list users provides for functions. Default is \code{0}.
+#' @param max_len       A \code{numeric} indicating the maximum length of vector
+#' or list users provides for functions. Default is \code{2^31}.
+#' @param len_min       A \code{numeric} indicating the minimum length of vector
+#' or list users provides for functions. Default is \code{0}.
+#' @param len_max       A \code{numeric} indicating the maximum length of vector
+#' or list users provides for functions. Default is \code{2^31}.
+#' @param fn_check      A \code{function} used to test the object elements.
+#' @param local_msg     A \code{character} with the generic error message that
+#' will show to the user.
+#' @param msg           A \code{character} with the error message that will show
+#' to the user.
+#' @param x             A \code{object} that will be check. That can be a
+#' \code{numeric} or \code{character} vectors or a \code{list}.
+NULL
 
+#' @rdname check_functions
 .check_that <- function(x, ...,
                         local_msg = NULL,
                         msg = NULL) {
@@ -92,9 +135,10 @@
         stop(sprintf(msg, local_msg), call. = FALSE)
     }
 
-    return(invisible(NULL))
+    return(invisible(TRUE))
 }
 
+#' @rdname check_functions
 .check_null <- function(x, ...,
                         allow_null = FALSE,
                         msg = NULL) {
@@ -106,9 +150,10 @@
             msg = msg
         )
 
-    return(invisible(NULL))
+    return(invisible(TRUE))
 }
 
+#' @rdname check_functions
 .check_na <- function(x, ...,
                       allow_na = FALSE,
                       msg = NULL) {
@@ -120,10 +165,11 @@
             msg = msg
         )
 
-    return(invisible(NULL))
+    return(invisible(TRUE))
 }
 
 
+#' @rdname check_functions
 .check_names <- function(x, ...,
                          is_named = TRUE,
                          msg = NULL) {
@@ -141,9 +187,10 @@
             msg = msg
         )
 
-    return(invisible(NULL))
+    return(invisible(TRUE))
 }
 
+#' @rdname check_functions
 .check_length <- function(x, ...,
                           len_min = 0,
                           len_max = 2^31,
@@ -168,6 +215,7 @@
     )
 }
 
+#' @rdname check_functions
 .check_apply <- function(x, fn_check, ...,
                          msg = NULL) {
 
@@ -186,9 +234,10 @@
                 local_msg = "not all values passed in the test",
                 msg = msg)
 
-    return(invisible(NULL))
+    return(invisible(TRUE))
 }
 
+#' @rdname check_functions
 .check_lgl_type <- function(x, ...,
                             msg = NULL) {
 
@@ -199,6 +248,7 @@
     )
 }
 
+#' @rdname check_functions
 .check_num_type <- function(x, ...,
                             msg = NULL) {
 
@@ -209,6 +259,7 @@
     )
 }
 
+#' @rdname check_functions
 .check_int_type <- function(x, ...,
                             msg = NULL) {
 
@@ -219,6 +270,7 @@
     )
 }
 
+#' @rdname check_functions
 .check_num_range <- function(x, ...,
                              min = -Inf,
                              max = Inf,
@@ -243,6 +295,7 @@
 
 }
 
+#' @rdname check_functions
 .check_chr_type <- function(x, ...,
                             msg = NULL) {
 
@@ -253,6 +306,7 @@
     )
 }
 
+#' @rdname check_functions
 .check_chr_empty <- function(x, ...,
                              msg = NULL) {
 
@@ -266,6 +320,7 @@
     )
 }
 
+#' @rdname check_functions
 .check_chr_choices <- function(x,
                                choices, ...,
                                msg = NULL) {
@@ -289,6 +344,7 @@
     )
 }
 
+#' @rdname check_functions
 .check_lst_type <- function(x, ...,
                             msg = NULL) {
 
@@ -299,6 +355,7 @@
     )
 }
 
+#' @rdname check_functions
 .check_lgl <- function(x, ...,
                        allow_na = FALSE,
                        len_min = 0,
@@ -309,7 +366,7 @@
 
     # check for NULL and exit if it is allowed
     if (allow_null && is.null(x))
-        return(invisible(NULL))
+        return(invisible(TRUE))
 
     # check NULL
     .check_null(x, allow_null = allow_null, msg = msg)
@@ -326,9 +383,10 @@
     # check names
     .check_names(x, is_named = is_named, msg = msg)
 
-    return(invisible(NULL))
+    return(invisible(TRUE))
 }
 
+#' @rdname check_functions
 .check_num <- function(x, ...,
                        allow_na = FALSE,
                        min = -Inf,
@@ -343,7 +401,7 @@
 
     # check for NULL and exit if it is allowed
     if (allow_null && is.null(x))
-        return(invisible(NULL))
+        return(invisible(TRUE))
 
     # check NULL
     .check_null(x, allow_null = allow_null, msg = msg)
@@ -367,9 +425,10 @@
     # check names
     .check_names(x, is_named = is_named, msg = msg)
 
-    return(invisible(NULL))
+    return(invisible(TRUE))
 }
 
+#' @rdname check_functions
 .check_chr <- function(x, ...,
                        allow_na = FALSE,
                        allow_empty = TRUE,
@@ -382,7 +441,7 @@
 
     # check for null and exit if it is allowed
     if (allow_null && is.null(x))
-        return(invisible(NULL))
+        return(invisible(TRUE))
 
     # check NULL
     .check_null(x, allow_null = allow_null, msg = msg)
@@ -406,9 +465,10 @@
     # check names
     .check_names(x, is_named = is_named, msg = msg)
 
-    return(invisible(NULL))
+    return(invisible(TRUE))
 }
 
+#' @rdname check_functions
 .check_lst <- function(x, ...,
                        min_len = 0,
                        max_len = 2^31,
@@ -418,7 +478,7 @@
                        msg = NULL) {
 
     if (allow_null && is.null(x))
-        return(invisible(NULL))
+        return(invisible(TRUE))
 
     # check NULL
     .check_null(x, allow_null = allow_null, msg = msg)
@@ -436,9 +496,10 @@
     if (!is.null(fn_check))
         .check_apply(x, fn_check = fn_check, msg = msg, ...)
 
-    return(invisible(NULL))
+    return(invisible(TRUE))
 }
 
+#' @rdname check_functions
 .check_file <- function(x, ...,
                         msg = NULL) {
 

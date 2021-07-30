@@ -284,44 +284,6 @@ test_that("Creating cubes from DEA", {
     expect_equal(dea_cube$xmin[[1]], .raster_xmin(r), tolerance = 1)
 })
 
-test_that("Creating cubes from USGS", {
-    testthat::skip_on_cran()
-
-    # check "AWS_ACCESS_KEY_ID" - mandatory one per user
-    aws_access_key_id <- Sys.getenv("AWS_ACCESS_KEY_ID")
-
-    # check "AWS_SECRET_ACCESS_KEY" - mandatory one per user
-    aws_secret_access_key <- Sys.getenv("AWS_SECRET_ACCESS_KEY")
-
-    testthat::skip_if(nchar(aws_access_key_id) == 0,
-                      message = "No AWS_ACCESS_KEY_ID defined in environment.")
-
-    testthat::skip_if(nchar(aws_secret_access_key) == 0,
-                      message = paste("No AWS_SECRET_ACCESS_KEY defined in",
-                                      "environment."))
-
-
-    usgs_cube <- sits_cube(source = "USGS",
-                           name = "usgs_cube_2019",
-                           collection = "landsat-c2l2-sr",
-                           bands = c("B1", "B7", "QA_PIXEL.TIF"),
-                           tiles = c("140048", "140045"),
-                           start_date = as.Date("2016-01-01"),
-                           end_date = as.Date("2016-12-31"))
-
-    if (purrr::is_null(usgs_cube)) {
-        skip("USGS is not accessible")
-    }
-
-    expect_true(all(sits_bands(usgs_cube) %in% c("B1", "B7", "CLOUD")))
-
-    file_info <- usgs_cube$file_info[[1]]
-    r <- .raster_open_rast(file_info$path[[1]])
-
-    expect_equal(usgs_cube$xmax[[1]], .raster_xmax(r), tolerance = 1)
-    expect_equal(usgs_cube$xmin[[1]], .raster_xmin(r), tolerance = 1)
-})
-
 test_that("Merging cubes", {
 
     data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
@@ -400,24 +362,24 @@ test_that("Creating cubes from AWS and regularizing them", {
     dir_images <-  paste0(tempdir(), "/images/")
     if (!dir.exists(dir_images))
         suppressWarnings(dir.create(dir_images))
-    #
-    #   gc_cube <- sits_regularize(
-    #     cube        = s2_cube,
-    #     name        = "T20LKP_2018_2019_P5D",
-    #     dir_images  =  dir_images,
-    #     period      = "P15D",
-    #     agg_method  = "median",
-    #     resampling  = "bilinear"
-    #   )
-    #
-    #   expect_equal(s2_cube$nrows, gc_cube$nrows)
-    #   expect_equal(s2_cube$ncols, gc_cube$ncols)
-    #   expect_equal(s2_cube$xmax, gc_cube$xmax)
-    #   expect_equal(s2_cube$xmin, gc_cube$xmin)
-    #
-    #   file_info2 <- gc_cube$file_info[[1]]
-    #
-    #   expect_equal(nrow(file_info2), 4)
+
+    gc_cube <- sits_regularize(
+        cube        = s2_cube,
+        name        = "T20LKP_2018_2019_P5D",
+        dir_images  =  dir_images,
+        period      = "P15D",
+        agg_method  = "median",
+        resampling  = "bilinear"
+    )
+
+    expect_equal(s2_cube$nrows, gc_cube$nrows)
+    expect_equal(s2_cube$ncols, gc_cube$ncols)
+    expect_equal(s2_cube$xmax, gc_cube$xmax)
+    expect_equal(s2_cube$xmin, gc_cube$xmin)
+
+    file_info2 <- gc_cube$file_info[[1]]
+
+    expect_equal(nrow(file_info2), 4)
 })
 
 test_that("Creating cubes from classified images", {
