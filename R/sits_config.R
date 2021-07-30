@@ -301,7 +301,7 @@ NULL
                                default = NULL) {
 
     .check_chr(bands, allow_na = FALSE, allow_empty = FALSE, min_len = 1,
-               allow_null = TRUE, "invalid informed bands")
+               allow_null = TRUE, msg = "invalid informed bands")
 
     if (is.null(bands))
         bands <- .config_bands(source = source,
@@ -354,7 +354,7 @@ NULL
                                  add_cloud = add_cloud)
 
     # post-condition
-    .check_num(res, allow_na = FALSE, min = 1e-08, len_min = 1,
+    .check_num(res, allow_na = FALSE, min = 1e-08, min_len = 1,
                msg = "invalid resolution")
 
     return(res)
@@ -483,7 +483,7 @@ NULL
     res <- .config_get(key = c("R_processing_bloat"))
 
     # post-condition
-    .check_num(res, allow_na = FALSE, min = 1, len_min = 1, len_max = 1,
+    .check_num(res, allow_na = FALSE, min = 1, min_len = 1, max_len = 1,
                msg = "invalid 'R_processing_bloat' in config file")
 
     return(res)
@@ -495,7 +495,7 @@ NULL
     res <- .config_get(key = c("rstac_pagination_limit"))
 
     # post-condition
-    .check_num(res, allow_na = FALSE, min = 1, len_min = 1, len_max = 1,
+    .check_num(res, allow_na = FALSE, min = 1, min_len = 1, max_len = 1,
                msg = "invalid 'rstac_pagination_limit' in config file")
 
     return(res)
