@@ -58,6 +58,43 @@
     return(invisible(NULL))
 }
 
+#' @title Auxiliary check functions
+#' @keywords internal
+#'
+#' @name check_functions
+#'
+#' @description Functions to check parameters from a specific type, for example,
+#' for \code{.check_chr} functions the check is exclusive for character
+#' type.
+#'
+#' @param allow_empty   A \code{logical} indicating if the check permits empty
+#' list in check. Default is FALSE.
+#' @param allow_na      A \code{logical} indicating if the check permits empty
+#' NA values in check. Default is FALSE.
+#' @param allow_null    A \code{logical} indicating if the check permits empty
+#' NULL values in check. Default is FALSE.
+#' @param allow_unnamed A \code{logical} indicating if the check permits empty
+#' unnamed list in check. Default is FALSE.
+#' @param choices       A atomic \code{vector} of characters indicating the
+#' choices of user can provide in function parameter. Only works for character
+#' check.
+#' @param min           A atomic \code{vector} of numeric indicating the
+#' minimum value that the user can provide in function parameter. Only works for
+#' numeric check. By default is \code{-Inf}.
+#' @param max           A atomic \code{vector} of numeric indicating the
+#' maximum value that the user can provide in function parameter. Only works for
+#' numeric check. By default is \code{Inf}.
+#' @param min_len       A \code{numeric} indicating the minimum length of vector
+#' or list users provides for functions. Default is \code{0}.
+#' @param max_len       A \code{numeric} indicating the maximum length of vector
+#' or list users provides for functions. Default is \code{2^31}.
+#' @param msg           A \code{character} with the error message that will show
+#' to the user.
+#' @param x             A \code{object} that will be check. That can be a
+#' \code{numeric} or \code{character} vectors or a \code{list}.
+NULL
+
+#' @rdname check_functions
 .check_num <- function(x,
                        allow_na = FALSE,
                        min = -Inf,
@@ -113,6 +150,7 @@
     return(invisible(NULL))
 }
 
+#' @rdname check_functions
 .check_chr <- function(x,
                        allow_na = FALSE,
                        allow_empty = TRUE,
@@ -179,6 +217,7 @@
     return(invisible(NULL))
 }
 
+#' @rdname check_functions
 .check_lst <- function(x,
                        allow_unnamed = FALSE,
                        min_len = 0,
