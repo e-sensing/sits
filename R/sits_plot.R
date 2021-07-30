@@ -50,11 +50,11 @@ plot.sits <- function(x, y, ..., colors = "Dark2") {
 
     # Are there more than 30 samples? Plot them together!
     if (nrow(x) > 30) {
-          p <- .sits_plot_together(x, colors)
-      } # If no conditions are met, take "allyears" as the default
+        p <- .sits_plot_together(x, colors)
+    } # If no conditions are met, take "allyears" as the default
     else {
-          p <- .sits_plot_allyears(x, colors)
-      }
+        p <- .sits_plot_allyears(x, colors)
+    }
     # return the plot
     return(invisible(p))
 }
@@ -197,12 +197,12 @@ plot.probs_cube <- function(x, y, ..., time = 1,
         # label is not null, then plot only the label
         layers <- match(labels, labels_cube)
         p <- st %>%
-          dplyr::slice(index = layers, along = "band") %>%
-          plot(breaks = breaks,
-               nbreaks = 11,
-               col = col,
-               main = labels) %>%
-          suppressWarnings()
+            dplyr::slice(index = layers, along = "band") %>%
+            plot(breaks = breaks,
+                 nbreaks = 11,
+                 col = col,
+                 main = labels) %>%
+            suppressWarnings()
     }
     else {
         p <- suppressWarnings(plot(st,
@@ -271,9 +271,9 @@ plot.classified_image <- function(x, y, ...,
 plot.som_evaluate_cluster <- function(x, y, ...,
                                       name_cluster = NULL,
                                       title = "Confusion by cluster") {
-  stopifnot(missing(y))
-  p <- .sits_plot_som_evaluate_cluster(x, name_cluster, title)
-  return(invisible(p))
+    stopifnot(missing(y))
+    p <- .sits_plot_som_evaluate_cluster(x, name_cluster, title)
+    return(invisible(p))
 }
 #' @title  Generic interface for plotting a SOM map
 #' @name   plot.som_map
@@ -441,8 +441,8 @@ plot.keras_model <- function(x, y, ...) {
         dt_melted <- data.table::melt(dt, id.vars = "Index")
         # make the plot title
         title <- paste("Samples (", number, ") for class ",
-            label, " in band = ", band,
-            sep = ""
+                       label, " in band = ", band,
+                       sep = ""
         )
         # plot all data together
         g <- .sits_plot_ggplot_together(dt_melted, dt_qts, title)
@@ -529,10 +529,10 @@ plot.keras_model <- function(x, y, ...) {
 .sits_plot_ggplot_series <- function(row, colors = "Dark2") {
     # Are there NAs in the data?
     if (any(is.na(row$time_series[[1]]))) {
-          g <- .sits_plot_ggplot_series_na(row, colors)
-      } else {
-          g <- .sits_plot_ggplot_series_no_na(row, colors)
-      }
+        g <- .sits_plot_ggplot_series_na(row, colors)
+    } else {
+        g <- .sits_plot_ggplot_series_no_na(row, colors)
+    }
     return(g)
 }
 #' @title Plot one timeSeries using ggplot (no NAs present)
@@ -580,7 +580,7 @@ plot.keras_model <- function(x, y, ...) {
 
     # verifies if tidyr package is installed
     if (!requireNamespace("tidyr", quietly = TRUE)) {
-         stop("Please install package tidyr", call. = FALSE)
+        stop("Please install package tidyr", call. = FALSE)
     }
 
     # define a function to replace the NAs for unique values
@@ -605,12 +605,12 @@ plot.keras_model <- function(x, y, ...) {
     # prepare tibble to ggplot (fortify)
     ts1 <- tidyr::pivot_longer(data, -Index)
     g <- ggplot2::ggplot(data = ts1 %>%
-        dplyr::filter(name != "cld")) +
+                             dplyr::filter(name != "cld")) +
         ggplot2::geom_col(ggplot2::aes(x = Index, y = value),
-            fill = "sienna",
-            alpha = 0.3,
-            data = ts1 %>%
-                dplyr::filter(name == "cld", !is.na(value))
+                          fill = "sienna",
+                          alpha = 0.3,
+                          data = ts1 %>%
+                              dplyr::filter(name == "cld", !is.na(value))
         ) +
         ggplot2::geom_line(ggplot2::aes(x = Index, y = value, color = name)) +
         ggplot2::geom_point(ggplot2::aes(x = Index, y = value, color = name)) +
@@ -668,10 +668,10 @@ plot.keras_model <- function(x, y, ...) {
 #' @return           title to be used in the plot.
 .sits_plot_title <- function(latitude, longitude, label) {
     title <- paste("location (",
-        signif(latitude, digits = 4), ", ",
-        signif(longitude, digits = 4), ") - ",
-        label,
-        sep = ""
+                   signif(latitude, digits = 4), ", ",
+                   signif(longitude, digits = 4), ") - ",
+                   label,
+                   sep = ""
     )
     return(title)
 }
@@ -688,8 +688,8 @@ plot.keras_model <- function(x, y, ...) {
 #' @return             The plot itself.
 .sits_plot_classification <- function(data, bands = NULL) {
     if (purrr::is_null(bands)) {
-          bands <- sits_bands(data)[1]
-      }
+        bands <- sits_bands(data)[1]
+    }
     # bands in SITS are in uppercase
     bands <- toupper(bands)
 
@@ -713,7 +713,7 @@ plot.keras_model <- function(x, y, ...) {
             df_x <- reshape2::melt(df_x, id.vars = c("Time", "Series"))
             # define a nice set of breaks for value plotting
             y_labels <- scales::pretty_breaks()(range(df_x$value,
-                na.rm = TRUE
+                                                      na.rm = TRUE
             ))
             y_breaks <- y_labels
 
@@ -740,7 +740,7 @@ plot.keras_model <- function(x, y, ...) {
                         Group = rep(i, 4),
                         Class = rep(best_class, 4),
                         value = rep(range(y_breaks,
-                            na.rm = TRUE
+                                          na.rm = TRUE
                         ), each = 2)
                     )
                     i <<- i + 1
@@ -759,7 +759,7 @@ plot.keras_model <- function(x, y, ...) {
 
             gp <- ggplot2::ggplot() +
                 ggplot2::facet_wrap(~Series,
-                    scales = "free_x", ncol = 1
+                                    scales = "free_x", ncol = 1
                 ) +
                 ggplot2::geom_polygon(
                     data = df_pol,
@@ -843,9 +843,9 @@ plot.keras_model <- function(x, y, ...) {
     # warns if the number of available colors is insufficient to all labels
     if (length(u_lb) > (
         length(.sits_brewer_rgb[[.sits_brewer_color_name(colors)]]) - 1)) {
-          message("sits_plot_dendrogram: The number of labels
+        message("sits_plot_dendrogram: The number of labels
                 is greater than the number of available colors.")
-      }
+    }
 
     # extract the dendrogram object
     hclust_cl <- methods::S3Part(cluster_obj, strictS3 = TRUE)
@@ -859,7 +859,7 @@ plot.keras_model <- function(x, y, ...) {
     seq(u_lb) %>%
         purrr::map(function(i) {
             cols[data_labels[cluster_obj$order] == u_lb[i]] <<-
-              .sits_brewer_rgb[[.sits_brewer_color_name(colors)]][[length(u_lb)]][[i]]
+                .sits_brewer_rgb[[.sits_brewer_color_name(colors)]][[length(u_lb)]][[i]]
             i <<- i + 1
         })
 
@@ -869,26 +869,26 @@ plot.keras_model <- function(x, y, ...) {
         character(length = length(data_labels))
     )
     dend <- dendextend::set(dend, "branches_k_color",
-        value = cols,
-        k = length(data_labels)
+                            value = cols,
+                            k = length(data_labels)
     )
     p <- graphics::plot(dend,
-        ylab = paste(
-            tools::file_path_sans_ext(cluster_obj@method),
-            "linkage distance"
-        )
+                        ylab = paste(
+                            tools::file_path_sans_ext(cluster_obj@method),
+                            "linkage distance"
+                        )
     )
     # plot cutree line
     if (!purrr::is_null(cutree_height)) {
-          graphics::abline(h = cutree_height, lty = 2)
-      }
+        graphics::abline(h = cutree_height, lty = 2)
+    }
 
     # plot legend
     graphics::legend("topright",
-        fill = as.character(
-            .sits_brewer_rgb[[.sits_brewer_color_name(colors)]][[length(u_lb)]]
-        ),
-        legend = u_lb
+                     fill = as.character(
+                         .sits_brewer_rgb[[.sits_brewer_color_name(colors)]][[length(u_lb)]]
+                     ),
+                     legend = u_lb
     )
     return(invisible(p))
 }
@@ -918,14 +918,14 @@ plot.keras_model <- function(x, y, ...) {
     }
     if (type == "mapping") {
         graphics::plot(koh$som_properties,
-            bgcol = koh$som_properties$paint_map,
-            "mapping", whatmap = whatmap
+                       bgcol = koh$som_properties$paint_map,
+                       "mapping", whatmap = whatmap
         )
     }
     else if (type == "codes") {
         graphics::plot(koh$som_properties,
-            bgcol = koh$som_properties$paint_map,
-            "codes", whatmap = whatmap
+                       bgcol = koh$som_properties$paint_map,
+                       "codes", whatmap = whatmap
         )
     }
 
@@ -970,25 +970,25 @@ plot.keras_model <- function(x, y, ...) {
 
     # Filter the cluster to plot
     if (!(is.null(cluster_name))) {
-      data <- dplyr::filter(data, cluster %in% cluster_name)
+        data <- dplyr::filter(data, cluster %in% cluster_name)
     }
     p <- ggplot2::ggplot() +
-      ggplot2::geom_bar(
-        ggplot2::aes(
-          y = mixture_percentage,
-          x = cluster,
-          fill = class
-        ),
-        data = data,
-        stat = "identity",
-        position = ggplot2::position_dodge()
-      ) +
-      ggplot2::theme_minimal() +
-      ggplot2::theme(axis.text.x =
-                       ggplot2::element_text(angle = 60, hjust = 1)) +
-      ggplot2::labs(x = "Cluster", y = "Percentage of mixture") +
-      ggplot2::scale_fill_discrete(name = "Class label") +
-      ggplot2::ggtitle(title)
+        ggplot2::geom_bar(
+            ggplot2::aes(
+                y = mixture_percentage,
+                x = cluster,
+                fill = class
+            ),
+            data = data,
+            stat = "identity",
+            position = ggplot2::position_dodge()
+        ) +
+        ggplot2::theme_minimal() +
+        ggplot2::theme(axis.text.x =
+                           ggplot2::element_text(angle = 60, hjust = 1)) +
+        ggplot2::labs(x = "Cluster", y = "Percentage of mixture") +
+        ggplot2::scale_fill_discrete(name = "Class label") +
+        ggplot2::ggtitle(title)
 
     p <- graphics::plot(p)
     return(invisible(p))
@@ -1006,15 +1006,18 @@ plot.keras_model <- function(x, y, ...) {
 #' @param title       Title of the plot
 #' @param legend        named vector that associates labels to colors.
 .sits_plot_classified_image <- function(cube,
-                              time = 1,
-                              title = "Classified Image",
-                              legend = NULL) {
+                                        time = 1,
+                                        title = "Classified Image",
+                                        legend = NULL) {
+
     #precondition 1 - cube must be a labelled cube
     assertthat::assert_that("classified_image" %in% class(cube),
                             msg = "cube must be a classified image")
     #precondition 2 - time must be a positive integer
     assertthat::assert_that(time >= 1,
-        msg = "sits_plot_classified_image: time must be a positive integer")
+                            msg = paste("sits_plot_classified_image: time must",
+                                        "be a positive integer")
+    )
 
     # get the raster object
     r <- suppressWarnings(raster::raster(cube$file_info[[1]]$path[[1]]))
@@ -1037,7 +1040,8 @@ plot.keras_model <- function(x, y, ...) {
         colors <- .config_palette_colors(labels)
     }
     else {
-        assertthat::assert_that(all(labels %in% names(legend)),
+        assertthat::assert_that(
+            all(labels %in% names(legend)),
             msg = "sits_plot: some labels are missing from the legend")
         colors <- unname(legend[labels])
     }
@@ -1049,7 +1053,9 @@ plot.keras_model <- function(x, y, ...) {
         ggplot2::geom_raster(ggplot2::aes(fill = factor(class))) +
         ggplot2::labs(title = title) +
         ggplot2::scale_fill_manual(values = colors, labels = labels,
-                                   guide = ggplot2::guide_legend(title = "Classes"))
+                                   guide = ggplot2::guide_legend(
+                                       title = "Classes")
+        )
 
     graphics::plot(g)
     return(g)
@@ -1065,18 +1071,18 @@ plot.keras_model <- function(x, y, ...) {
 #' @param matches      A list of dtwSat S4 match objects
 #'                     (produced by sits_TWDTW_matches).
 .sits_plot_twdtw_alignments <- function(matches) {
-  # verifies if dtwSat package is installed
-  if (!requireNamespace("dtwSat", quietly = TRUE)) {
-    stop("dtwSat needed for this function to work.
+    # verifies if dtwSat package is installed
+    if (!requireNamespace("dtwSat", quietly = TRUE)) {
+        stop("dtwSat needed for this function to work.
              Please install it.", call. = FALSE)
-  }
+    }
 
-  matches %>%
-    purrr::map(function(m) {
-      dtwSat::plot(m, type = "alignments") %>%
-        graphics::plot()
-    })
-  return(invisible(matches))
+    matches %>%
+        purrr::map(function(m) {
+            dtwSat::plot(m, type = "alignments") %>%
+                graphics::plot()
+        })
+    return(invisible(matches))
 }
 
 #' @title Plot classification results using the dtwSat package
@@ -1099,29 +1105,29 @@ plot.keras_model <- function(x, y, ...) {
                                    end_date = NULL,
                                    interval = "12 month",
                                    overlap = 0.5) {
-  # verifies if dtwSat package is installed
-  if (!requireNamespace("dtwSat", quietly = TRUE)) {
-    stop("dtwSat needed for this function to work.
+    # verifies if dtwSat package is installed
+    if (!requireNamespace("dtwSat", quietly = TRUE)) {
+        stop("dtwSat needed for this function to work.
              Please install it.", call. = FALSE)
-  }
+    }
 
-  matches %>%
-    purrr::map(function(m) {
-      if (purrr::is_null(start_date) | purrr::is_null(end_date)) {
-        dplot <- dtwSat::plot(m,
-                              type = "classification",
-                              overlap = 0.5
-        )
-      } else {
-        dplot <- dtwSat::plot(m,
-                              type = "classification",
-                              from = start_date,
-                              to = end_date,
-                              by = interval,
-                              overlap = overlap
-        )
-      }
-      graphics::plot(dplot)
-    })
-  return(invisible(matches))
+    matches %>%
+        purrr::map(function(m) {
+            if (purrr::is_null(start_date) | purrr::is_null(end_date)) {
+                dplot <- dtwSat::plot(m,
+                                      type = "classification",
+                                      overlap = 0.5
+                )
+            } else {
+                dplot <- dtwSat::plot(m,
+                                      type = "classification",
+                                      from = start_date,
+                                      to = end_date,
+                                      by = interval,
+                                      overlap = overlap
+                )
+            }
+            graphics::plot(dplot)
+        })
+    return(invisible(matches))
 }

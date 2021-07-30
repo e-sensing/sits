@@ -523,10 +523,16 @@ NULL
     }
 
     # post-condition
-    .check_chr(res, allow_empty = FALSE, is_named = TRUE,
-               msg = "invalid ")
+    .check_lst(res,
+               min_len = length(labels),
+               max_len = length(labels),
+               fn_check = .check_chr,
+               len_min = 1,
+               len_max = 1,
+               allow_empty = FALSE,
+               msg = "invalid colors ")
 
-    return(res)
+    return(unlist(res, use.names = FALSE))
 }
 #' @rdname config_functions
 .config_processing_bloat <- function() {
