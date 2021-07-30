@@ -5,8 +5,9 @@
 #'
 #' @description Creates a data cube based on spatial and temporal restrictions
 #' on a collection available in repositories such as AWS, Brazil Data Cube
-#' (BDC), and Digital Earth Africa (DEA), using information provided by STAC
-#' end points. Users can also create data cubes from local files.
+#' (BDC), Digital Earth Africa (DEA), and United States Geological Survey (USGS)
+#' using information provided by STAC endpoints. Users can also create data
+#' cubes from local files.
 #'
 #' A data cube does not contain actual data; it points to the files where the
 #' required data is archived. Other functions (e.g. `sits_classify`) use
@@ -30,14 +31,14 @@
 #'   see also https://www.satveg.cnptia.embrapa.br/satveg/login.html}
 #'  }
 #'
-#' For big data sources such as AWS, BDC and DEA, users need to provide:
+#' For big data sources such as AWS, BDC, DEA, and USGS users need to provide:
 #' \itemize{
 #' \item{collection: }{Collections are the highest level of aggregation on
 #' bug data repositories. Each repository has its own set of collections,
-#' described by STAC. To use STAC for quering repositories, please use the
-#' package `rstac`.}
+#' described by STAC. To use STAC for querying repositories, please see the
+#' package `rstac` for examples.}
 #' \item{spatial extent: }{The spatial extent of the data cube can be defined
-#' in two ways: (a) a region of interest(`roi`) in WGS 84 coordinates;
+#' in two ways: (a) a region of interest(`bbox`) in WGS 84 coordinates;
 #' (b) a set of tiles defined according the collection tiling system.}
 #' \item{temporal extent: }{The start and end date of the cube}
 #' }
@@ -67,7 +68,7 @@
 #' mentioned above.
 #'
 #'@note BDC users need to provide their credentials using environmental
-#' variables.To create your credencials, please see
+#' variables.To create your credentials, please see
 #'  "https://brazildatacube.dpi.inpe.br/portal/explore"
 #' # Sys.setenv(
 #' # "BDC_ACCESS_KEY" = <your_bdc_access_key>
@@ -78,7 +79,7 @@
 #' tiles of a spatial reference system.
 #' Each file should contain a single image band for a single date.
 #' File names must include date and band information, since times and bands
-#' are deduced from filenames. For example: "CBERS-4_022024_B13_2018-02-02.tif"
+#' are deduced from file names. For example: "CBERS-4_022024_B13_2018-02-02.tif"
 #' and "cube_20LKP_B02_2018-07-18.jp2" are accepted names.
 #' The user has to provide parsing information to allow `sits`
 #' to extract the tile, the band and the date. In the examples above,
@@ -92,35 +93,35 @@
 #'  both satellites).
 #'
 #'
-#' @param source            Data source (one of "SATVEG", "LOCAL",
-#'                          "BDC", "AWS", "USGS", "DEAFRICA", "PROBS").
-#' @param ...               Other parameters to be passed for specific types
+#' @param source            Data source (one of "AWS", "BDC", "DEAFRICA",
+#'                          "LOCAL", "PROBS", "SATVEG", "USGS", "WTSS").
+#' @param ...               Other parameters to be passed for specific types.
 #' @param name              Name of the output data cube.
-#' @param url               URL for the STAC endpoint of the data source
-#' @param collection        Collection to be searched in the data source
-#' @param bands             Bands to be included
+#' @param url               URL for the STAC endpoint of the data source.
+#' @param collection        Collection to be searched in the data source.
+#' @param bands             Bands to be included.
 #' @param tiles             Tiles from the collection to be included in the
-#'                          data cube
-#' @param bbox              Area of interest (see details below)
+#'                          data cube.
+#' @param bbox              Area of interest (see details below).
 #' @param start_date        Initial date for the cube (optional).
-#' @param end_date          Final date for the cube  (optional)
-#' @param s2_resolution     Resolution of S2 images ("10m", "20m" or "60m")
-#'                          used to build cubes (only for AWS cubes)
-#' @param satellite         Satellite that produced the images.
-#'                          (only for creating data cubes from local files)
+#' @param end_date          Final date for the cube  (optional).
+#' @param s2_resolution     Resolution of S2 images ("10m", "20m" or "60m").
+#'                          used to build cubes (only for AWS cubes).
+#' @param satellite         Satellite that produced the images
+#'                          (only for creating data cubes from local files).
 #' @param sensor            Sensor that produced the images.
 #' @param data_dir          directory where local data is located
-#'                          (only for creating data cubes from local files)
+#'                          (only for creating data cubes from local files).
 #' @param delim             delimiter for parsing files without STAC information
-#'                          (only for creating data cubes from local files)
+#'                          (only for creating data cubes from local files).
 #' @param parse_info        parsing information for files without STAC
 #'                          information
-#'                          (only for creating data cubes from local files)
+#'                          (only for creating data cubes from local files).
 #' @param probs_files       File names (used for creating a cube from
-#'                          probabilities)
-#' @param probs_labels      Labels associated to a probabilities cube
+#'                          probabilities).
+#' @param probs_labels      Labels associated to a probabilities cube.
 #'
-#' @details  The "bbox" parameter allows a selection of an area of interest.
+#' @details The \code{bbox} parameter allows a selection of an area of interest.
 #' Either using a named \code{vector} ("xmin", "ymin", "xmax", "ymax") with
 #' values in WGS 84, a \code{sfc} or \code{sf} object from sf package, or a
 #' GeoJSON geometry (RFC 7946). Note that this parameter does not crop a
@@ -496,6 +497,13 @@ sits_cube.usgs_cube <- function(source = "USGS", ...,
         length(collection) == 1,
         msg = paste("sits_cube.usgs_cube: only one USGS collection should",
                     "be specified.")
+    )
+
+    # precondition
+    assertthat::assert_that(
+        !is.null(tiles),
+        msg = paste("sits_cube.usgs_cube: for the USGS cubes you need to",
+                    "provide the tiles of the region you want to query.")
     )
 
     # precondition
