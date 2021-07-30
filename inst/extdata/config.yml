@@ -6,7 +6,7 @@ R_processing_bloat      : 5
 rstac_pagination_limit  : 1000
 
 # default raster package
-R_raster_pkg            : "raster"
+R_raster_pkg            : "terra"
 
 # GDAL GTiff default creation options
 GTiff_default_options   : ["COMPRESS=LZW", "BIGTIFF=YES"]
