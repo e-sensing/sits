@@ -99,6 +99,9 @@ sits_regularize <- function(cube,
                     "See '?sits_cube' for more information.")
     )
 
+    # fix slashes for windows
+    dir_images <- normalizePath(dir_images)
+
     # filter only intersecting tiles
     intersects <- slider::slide_lgl(cube,
                                     .sits_raster_sub_image_intersects,
