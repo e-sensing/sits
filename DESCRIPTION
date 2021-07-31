@@ -101,7 +101,6 @@ Collate:
     'data.R'
     'sits-package.R'
     'sits_accuracy.R'
-    'sits_active_learning.R'
     'sits_bands.R'
     'sits_bands_set.R'
     'sits_bbox.R'
