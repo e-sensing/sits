@@ -72,6 +72,7 @@
 #' NA values. Default is FALSE.
 #' @param allow_null    A \code{logical} indicating if the check permits empty
 #' NULL values. Default is FALSE.
+#' @param expr          A \code{expression} to be evaluated.
 #' @param is_named      A \code{logical} indicating if the check permits unnamed
 #' list.
 #' @param is_integer    A \code{logical} indicating if the value must be
@@ -121,9 +122,11 @@ NULL
                       replacement = "\\1",
                       x = paste(calls))
         checks <- grepl(pattern = "^\\.check_", calls)
-        index <- 1
         if (!all(checks))
-            index <- which.max(!checks)
+            index <- which.min(!checks) - 1
+
+        if (index == 0)
+            index <- 1
 
         # format error message
         if (is.null(msg))
@@ -516,5 +519,18 @@ NULL
         local_msg = sprintf("file %s does not exist", x),
         msg = msg
     )
+
+    return(invisible(TRUE))
 }
 
+#' @rdname check_functions
+.check_warn <- function(expr) {
+
+    tryCatch({
+        expr
+    }, error = function(e) {
+        warning(e$message, call. = FALSE)
+    })
+
+    return(invisible(NULL))
+}

@@ -21,6 +21,7 @@
 \alias{.check_chr}
 \alias{.check_lst}
 \alias{.check_file}
+\alias{.check_warn}
 \title{Auxiliary check functions}
 \usage{
 .check_that(x, ..., local_msg = NULL, msg = NULL)
@@ -102,6 +103,8 @@
 )
 
 .check_file(x, ..., msg = NULL)
+
+.check_warn(expr)
 }
 \arguments{
 \item{x}{A \code{object} that will be check. That can be a
@@ -158,6 +161,8 @@ or list users provides for functions. Default is \code{0}.}
 
 \item{max_len}{A \code{numeric} indicating the maximum length of vector
 or list users provides for functions. Default is \code{2^31}.}
+
+\item{expr}{A \code{expression} to be evaluated.}
 }
 \description{
 Functions to check parameters from a specific type, for example,
