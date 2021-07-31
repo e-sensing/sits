@@ -58,9 +58,13 @@
     # add file info and path db columns
     cube_gc <- tibble::add_column(cube_gc, file_info = list(file_info))
 
-    for (band in tile$bands[[1]]) {
+    for (band in .cube_bands(tile)) {
         # create a raster_cube object from gdalcubes
         cube_brick <- .sits_gc_brick(tile, img_col, cv, cloud_mask)
+
+        band <- .source_bands_to_source(source = .cube_source(tile),
+                                        collection = .cube_collection(tile),
+                                        bands = band)
 
         message(paste("Writing images of band", band, "of tile",
                       tile$tile))
