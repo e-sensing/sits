@@ -2,9 +2,11 @@
 % Please edit documentation in R/sits_cube.R
 \name{sits_cube}
 \alias{sits_cube}
+\alias{sits_cube.wtss_cube}
 \alias{sits_cube.bdc_cube}
 \alias{sits_cube.deafrica_cube}
 \alias{sits_cube.aws_cube}
+\alias{sits_cube.usgs_cube}
 \alias{sits_cube.local_cube}
 \alias{sits_cube.probs_cube}
 \alias{sits_cube.satveg_cube}
@@ -12,11 +14,12 @@
 \usage{
 sits_cube(source, ...)
 
+\method{sits_cube}{wtss_cube}(source = "WTSS", ..., name = "wtss_cube", url = NULL, collection)
+
 \method{sits_cube}{bdc_cube}(
   source = "BDC",
   ...,
   name = "bdc_cube",
-  url = NULL,
   collection,
   bands = NULL,
   tiles = NULL,
@@ -52,6 +55,19 @@ sits_cube(source, ...)
   end_date = NULL
 )
 
+\method{sits_cube}{usgs_cube}(
+  source = "USGS",
+  ...,
+  name = "usgs_cube",
+  url = NULL,
+  collection = "landsat-c2l2-sr",
+  tiles = NULL,
+  bands = NULL,
+  bbox = NULL,
+  start_date = NULL,
+  end_date = NULL
+)
+
 \method{sits_cube}{local_cube}(
   source = "LOCAL",
   ...,
@@ -81,50 +97,50 @@ sits_cube(source, ...)
 \method{sits_cube}{satveg_cube}(source = "SATVEG", ..., collection = "terra")
 }
 \arguments{
-\item{source}{Data source (one of "SATVEG", "LOCAL",
-"BDC", "AWS", "DEAFRICA", "PROBS").}
+\item{source}{Data source (one of "AWS", "BDC", "DEAFRICA",
+"LOCAL", "PROBS", "SATVEG", "USGS", "WTSS").}
 
-\item{...}{Other parameters to be passed for specific types}
+\item{...}{Other parameters to be passed for specific types.}
 
 \item{name}{Name of the output data cube.}
 
-\item{url}{URL for the STAC endpoint of the data source}
+\item{url}{URL for the STAC endpoint of the data source.}
 
-\item{collection}{Collection to be searched in the data source}
+\item{collection}{Collection to be searched in the data source.}
 
-\item{bands}{Bands to be included}
+\item{bands}{Bands to be included.}
 
 \item{tiles}{Tiles from the collection to be included in the
-data cube}
+data cube.}
 
-\item{bbox}{Area of interest (see details below)}
+\item{bbox}{Area of interest (see details below).}
 
 \item{start_date}{Initial date for the cube (optional).}
 
-\item{end_date}{Final date for the cube  (optional)}
+\item{end_date}{Final date for the cube  (optional).}
 
-\item{s2_resolution}{Resolution of S2 images ("10m", "20m" or "60m")
-used to build cubes (only for AWS cubes)}
+\item{s2_resolution}{Resolution of S2 images ("10m", "20m" or "60m").
+used to build cubes (only for AWS cubes).}
 
-\item{satellite}{Satellite that produced the images.
-(only for creating data cubes from local files)}
+\item{satellite}{Satellite that produced the images
+(only for creating data cubes from local files).}
 
 \item{sensor}{Sensor that produced the images.}
 
 \item{data_dir}{directory where local data is located
-(only for creating data cubes from local files)}
+(only for creating data cubes from local files).}
 
 \item{parse_info}{parsing information for files without STAC
 information
-(only for creating data cubes from local files)}
+(only for creating data cubes from local files).}
 
 \item{delim}{delimiter for parsing files without STAC information
-(only for creating data cubes from local files)}
+(only for creating data cubes from local files).}
 
-\item{probs_labels}{Labels associated to a probabilities cube}
+\item{probs_labels}{Labels associated to a probabilities cube.}
 
 \item{probs_files}{File names (used for creating a cube from
-probabilities)}
+probabilities).}
 }
 \value{
 The description of a data cube
@@ -132,38 +148,43 @@ The description of a data cube
 \description{
 Creates a data cube based on spatial and temporal restrictions
 on a collection available in repositories such as AWS, Brazil Data Cube
-(BDC), and Digital Earth Africa (DEA), using information provided by STAC
-end points. Users can also create data cubes from local files.
+(BDC), and Digital Earth Africa (DEA) using information provided by STAC
+endpoints. Users can also create data cubes from local files.
 
 A data cube does not contain actual data; it points to the files where the
 required data is archived. Other functions (e.g. `sits_classify`) use
-that information to retrive and process data.
+that information to retrieve and process data.
 
 Currently, users can create data cube from the following sources:
 \itemize{
- \item{"BDC": }{Brazil Data Cube (BDC), see also http://brazildatacube.org/}
- \item{"DEAFRICA": }{Digital Earth Africa, see also
- https://www.digitalearthafrica.org/}
- \item{"AWS": }{Amazon Web Services (AWS)}
+ \item{"BDC": }{Brazil Data Cube (BDC),
+  see also https://brazil-data-cube.github.io/applications/stac.html}
+  \item{"WTSS": }{Web Time Series Service from BDC,
+   see also https://brazil-data-cube.github.io/applications/wtss.html}
+ \item{"DEAFRICA": }{Digital Earth Africa,
+  see also https://www.digitalearthafrica.org/}
+ \item{"AWS": }{Amazon Web Services (AWS),
+  see also https://earth-search.aws.element84.com/v0/ }
  \item{"LOCAL": }{Defines a cube from on a set of local files.}
  \item{"PROBS": }{Defines a cube to from a set of classified image files}.
- \item{"SATVEG": }{Defines a cube to use the SATVEG web service.}
+ \item{"SATVEG": }{Defines a cube to use the SATVEG web service,
+  see also https://www.satveg.cnptia.embrapa.br/satveg/login.html}
  }
 
-For big data sources such as AWS, BDC and DEA, users need to provide:
+For big data sources such as AWS, BDC, and DEA users need to provide:
 \itemize{
 \item{collection: }{Collections are the highest level of aggregation on
 bug data repositories. Each repository has its own set of collections,
-described by STAC. To use STAC for quering repositories, please use the
-package `rstac`.}
+described by STAC. To use STAC for querying repositories, please see the
+package `rstac` for examples.}
 \item{spatial extent: }{The spatial extent of the data cube can be defined
-in two ways: (a) a region of interest(`roi`) in WGS 84 coordinates;
+in two ways: (a) a region of interest(`bbox`) in WGS 84 coordinates;
 (b) a set of tiles defined according the collection tiling system.}
 \item{temporal extent: }{The start and end date of the cube}
 }
 }
 \details{
-The "bbox" parameters allows a selection of an area of interest.
+The \code{bbox} parameter allows a selection of an area of interest.
 Either using a named \code{vector} ("xmin", "ymin", "xmax", "ymax") with
 values in WGS 84, a \code{sfc} or \code{sf} object from sf package, or a
 GeoJSON geometry (RFC 7946). Note that this parameter does not crop a
@@ -191,7 +212,8 @@ For DEA, sits currently only works with collections 'ga_s2_gm' and
 's2_l2a'. DEA users also need to provide their AWS credentials.
 
 BDC users need to provide their credentials using environmental
-variables.
+variables.To create your credentials, please see
+ "https://brazildatacube.dpi.inpe.br/portal/explore"
 # Sys.setenv(
 # "BDC_ACCESS_KEY" = <your_bdc_access_key>
 # )
@@ -201,7 +223,7 @@ the same spatial resolution and projection. Files can belong to different
 tiles of a spatial reference system.
 Each file should contain a single image band for a single date.
 File names must include date and band information, since times and bands
-are deduced from filenames. For example: "CBERS-4_022024_B13_2018-02-02.tif"
+are deduced from file names. For example: "CBERS-4_022024_B13_2018-02-02.tif"
 and "cube_20LKP_B02_2018-07-18.jp2" are accepted names.
 The user has to provide parsing information to allow `sits`
 to extract the tile, the band and the date. In the examples above,
@@ -233,6 +255,15 @@ cbers_tile <- sits_cube(
     end_date = "2019-08-28"
 )
 
+# --- Create a WTSS cube from BDC cubes
+# Provide your BDC credentials as environment variables
+Sys.setenv(
+    "BDC_ACCESS_KEY" = <your_bdc_access_key>
+)
+
+cube_wtss <- sits::sits_cube(source = "WTSS",
+                             collection = "MOD13Q1-6")
+
 # --- Access to Digital Earth Africa
 # Provide your AWS credentials as environment variables
 Sys.setenv(
@@ -245,7 +276,7 @@ cube_dea <- sits_cube(source = "DEAFRICA",
                       name = "deafrica_cube",
                       collection = "s2_l2a",
                       bands = c("B04", "B08"),
-                      roi = c("xmin" = 17.379,
+                      bbox = c("xmin" = 17.379,
                               "ymin" = 1.1573,
                               "xmax" = 17.410,
                                "ymax" = 1.1910),
@@ -310,3 +341,4 @@ probs_cube <- sits_cube(
 \references{
 `rstac` package (https://github.com/brazil-data-cube/rstac)
 }
+\keyword{internal}

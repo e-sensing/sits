@@ -81,7 +81,7 @@ sits_metadata_to_csv <- function(data, file) {
 sits_data_to_csv <- function(data, file) {
 
     # check if data is valid
-    .sits_test_tibble(data)
+    .sits_tibble_test(data)
 
     assertthat::assert_that(
         suppressWarnings(file.create(file)),

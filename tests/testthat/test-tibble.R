@@ -10,7 +10,7 @@ test_that("Align dates", {
     ref_dates <- timeline[timeline > start_date]
     ref_dates <- ref_dates[ref_dates < end_date]
 
-    new_data <- sits:::.sits_align_dates(samples_modis_4bands, ref_dates)
+    new_data <- sits:::.sits_tibble_align_dates(samples_modis_4bands, ref_dates)
 
     ts_dates <- sits_timeline(new_data)
 
@@ -67,7 +67,7 @@ test_that("Prune", {
     ts_2 <- ts_1[1:10, ]
     new_data[1, ]$time_series[[1]] <- ts_2
 
-    pruned_data <- suppressMessages(sits:::.sits_prune(new_data))
+    pruned_data <- suppressMessages(sits:::.sits_tibble_prune(new_data))
     expect_true(nrow(pruned_data) == 2)
 })
 
@@ -116,7 +116,7 @@ test_that("Values", {
 
 test_that("Values", {
     data(samples_mt_6bands)
-    savi <- sits:::.sits_transmute_bands(samples_mt_6bands,
+    savi <- sits:::.sits_ops_compute(samples_mt_6bands,
         SAVI = (1.5 * (NIR - RED) / (NIR + RED + 0.5))
     )
 

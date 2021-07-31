@@ -21,7 +21,7 @@
 sits_labels <- function(data) {
 
     # get the meta-type (sits or cube)
-    data <- .sits_config_data_meta_type(data)
+    data <- .config_data_meta_type(data)
 
     UseMethod("sits_labels", data)
 }

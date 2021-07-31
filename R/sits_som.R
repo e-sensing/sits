@@ -129,7 +129,7 @@ sits_som_map <- function(data,
     }
 
     # does the input data exist?
-    .sits_test_tibble(data)
+    .sits_tibble_test(data)
 
     # is are there more neurons than samples?
     n_samples <- nrow(data)
@@ -170,7 +170,7 @@ sits_som_map <- function(data,
     )
 
     # bayesian inference to calculate the posterior prob
-    labelled_neurons <- .sits_som_bayes_est(
+    labelled_neurons <- .sits_som_bayes_estimate(
         data,
         kohonen_obj,
         labelled_neurons,
@@ -455,7 +455,7 @@ sits_som_evaluate_cluster <- function(som_map) {
 }
 
 #' @title Probability of a sample belongs to a cluster using bayesian filter
-#' @name .sits_som_bayes_est
+#' @name .sits_som_bayes_estimate
 #' @keywords internal
 #' @author Lorena Santos, \email{lorena.santos@@inpe.br}
 #'
@@ -471,7 +471,7 @@ sits_som_evaluate_cluster <- function(som_map) {
 #'                         to a cluster based on the class of neuron
 #'                         and its neighborhood.
 
-.sits_som_bayes_est <- function(data,
+.sits_som_bayes_estimate <- function(data,
                                 kohonen_obj,
                                 labelled_neurons,
                                 som_radius) {
@@ -554,13 +554,13 @@ sits_som_evaluate_cluster <- function(som_map) {
 #'
 .sits_som_paint_neurons <- function(kohonen_obj) {
     # set colors to paint neurons
-    pallete1 <- .sits_brewer_rgb[[.sits_color_name("Set1")]]
+    pallete1 <- .sits_brewer_rgb[[.sits_brewer_color_name("Set1")]]
     set1 <- utils::head(unique(unlist(pallete1, use.names = FALSE)), -1)
 
-    pallete2 <- .sits_brewer_rgb[[.sits_color_name("Accent")]]
+    pallete2 <- .sits_brewer_rgb[[.sits_brewer_color_name("Accent")]]
     accent <- utils::head(unique(unlist(pallete2, use.names = FALSE)), -1)
 
-    pallete3 <- .sits_brewer_rgb[[.sits_color_name("Pastel1")]]
+    pallete3 <- .sits_brewer_rgb[[.sits_brewer_color_name("Pastel1")]]
     pastel1 <- utils::head(unique(unlist(pallete3, use.names = FALSE)), -1)
 
     # build a mixed pallete with different colors

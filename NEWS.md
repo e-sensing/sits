@@ -2,6 +2,38 @@
 
 We are preparing to release the package on CRAN and are making relevant changes in the development version.
 
+# What's new in SITS version 0.13
+
+### New features in SITS version 0.13.0
+
+* Create API for source cube
+* Update auxiliary functions of the config file
+* Update config file
+* Add support to others bands values in config file
+* Add support to bit mask in USGS cube
+* Support to multiples directories in local cubes
+* Support for MODIS cloud bands
+* Dealing with invalid areas in SITS
+* Support for WTSS
+
+# What's new in SITS version 0.12
+
+### New features in SITS version 0.12.1
+
+* Update README
+* Change docker image to new sits build
+* Adjust CMASK bands values in BDC cubes
+* Support for sits_config_sensor_bands accept more than one sensor
+* sits cube selection by shapefile
+* Problem - sits classify
+
+### New features in SITS version 0.12.0
+
+* Bugs fixed
+* Documentation updated
+* Support for multiple tile in local cubes
+* Improve selection using `roi` parameter in `sits_classify()` function
+
 # What's new in SITS version 0.11
 
 ### New features in SITS version 0.11.2

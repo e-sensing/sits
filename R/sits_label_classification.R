@@ -71,30 +71,30 @@ sits_label_classification <- function(cube,
     .do_map <- function(chunk) {
 
         # read raster
-        data <- .sits_raster_api_get_values(r_obj = chunk)
+        data <- .raster_get_values(r_obj = chunk)
 
         # get layer of max probability
         data <- apply(data, 1, which.max)
 
         # create cube labels
-        res <- .sits_raster_api_rast(r_obj = chunk, nlayers = 1)
+        res <- .raster_rast(r_obj = chunk, nlayers = 1)
 
         # copy values
-        res <- .sits_raster_api_set_values(r_obj = res, values = data)
+        res <- .raster_set_values(r_obj = res, values = data)
 
         return(res)
     }
 
     # process each brick layer (each tile) individually
-    .sits_map_layer_cluster(
+    .sits_smooth_map_layer(
         cube = cube,
         cube_out = label_cube,
         overlapping_y_size = 0,
         func = .do_map,
         multicores = multicores,
         memsize = memsize,
-        gdal_datatype = .sits_raster_api_gdal_datatype("INT1U"),
-        gdal_options = .sits_config_gtiff_default_options()
+        gdal_datatype = .raster_gdal_datatype("INT1U"),
+        gdal_options = .config_gtiff_default_options()
     )
 
     return(label_cube)
@@ -181,23 +181,22 @@ sits_label_majority <- function(cube,
     purrr::map2(in_files, out_files, function(in_file, out_file) {
 
         # read the input classified image
-        r_obj <- .sits_raster_api_open_rast(in_file)
+        r_obj <- .raster_open_rast(in_file)
 
         # calculate the majority values
-        r_obj <- .sits_raster_api_focal(
+        r_obj <- .raster_focal(
             r_obj = r_obj,
             window_size = window_size,
-            fn = "modal",
-            na.rm = TRUE
+            fn = "modal"
         )
 
         # write the result
-        .sits_raster_api_write_rast(
+        .raster_write_rast(
             r_obj = r_obj,
             file = out_file,
             format = "GTiff",
-            data_type = .sits_raster_api_data_type("INT1U"),
-            gdal_options = .sits_config_gtiff_default_options(),
+            data_type = .raster_data_type("INT1U"),
+            gdal_options = .config_gtiff_default_options(),
             overwrite = TRUE
         )
 

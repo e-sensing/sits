@@ -31,7 +31,7 @@
 `sits_labels<-` <- function(data, value) {
 
     # get the meta-type (sits or cube)
-    data <- .sits_config_data_meta_type(data)
+    data <- .config_data_meta_type(data)
 
     UseMethod("sits_labels<-", data)
 }
@@ -41,7 +41,7 @@
 `sits_labels<-.sits` <- function(data, value) {
 
     # does the input data exist?
-    .sits_test_tibble(data)
+    .sits_tibble_test(data)
 
     labels <- sits_labels(data)
 

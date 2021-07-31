@@ -94,7 +94,7 @@ sits_kfold_validate <- function(data,
         # obtain the distances after normalizing data by band
         if (!purrr::is_null(stats)) {
             distances <- .sits_distances(
-                .sits_normalize_data(data_test, stats)
+                .sits_ml_normalize_data(data_test, stats)
             )
         } else {
             distances <- .sits_distances(data_test)
@@ -141,7 +141,7 @@ sits_kfold_validate <- function(data,
 #' @export
 sits_create_folds <- function(data, folds = 5) {
     # verify if data exists
-    .sits_test_tibble(data)
+    .sits_tibble_test(data)
 
     # splits the data into k groups
     data$folds <- caret::createFolds(data$label,

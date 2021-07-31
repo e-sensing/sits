@@ -16,7 +16,7 @@
 .sits_distances <- function(data) {
 
     # check the sits tibble
-    .sits_test_tibble(data)
+    .sits_tibble_test(data)
 
     # get the number of samples
     n_rows_data <- nrow(data)

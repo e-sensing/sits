@@ -51,9 +51,9 @@ sits_train <- function(data, ml_method = sits_svm()) {
     )
 
     assertthat::assert_that(
-        .sits_check_timeline(data) == TRUE,
+        .sits_timeline_check(data) == TRUE,
         msg = paste0("Samples have different timeline lengths", "\n",
-                     "Use sits_prune or sits_fix_timeline"))
+                     "Use.sits_tibble_prune or sits_fix_timeline"))
 
     # compute the training method by the given data
     result <- ml_method(data)
@@ -112,8 +112,8 @@ sits_lda <- function(data = NULL, formula = sits_formula_logref(), ...) {
         }
 
         # data normalization
-        stats <- .sits_normalization_param(data)
-        train_data <- .sits_distances(.sits_normalize_data(data, stats))
+        stats <- .sits_ml_normalization_param(data)
+        train_data <- .sits_distances(.sits_ml_normalize_data(data, stats))
 
         # is the input data the result of a TWDTW matching function?
         assertthat::assert_that(
@@ -206,8 +206,8 @@ sits_qda <- function(data = NULL, formula = sits_formula_logref(), ...) {
         }
 
         # data normalization
-        stats <- .sits_normalization_param(data)
-        train_data <- .sits_distances(.sits_normalize_data(data, stats))
+        stats <- .sits_ml_normalization_param(data)
+        train_data <- .sits_distances(.sits_ml_normalize_data(data, stats))
 
         # If parameter formula is a function
         # Call it passing as argument the input data sample.
@@ -299,8 +299,8 @@ sits_mlr <- function(data = NULL, formula = sits_formula_linear(),
         }
 
         # data normalization
-        stats <- .sits_normalization_param(data)
-        train_data <- .sits_distances(.sits_normalize_data(data, stats))
+        stats <- .sits_ml_normalization_param(data)
+        train_data <- .sits_distances(.sits_ml_normalize_data(data, stats))
 
         # if parameter formula is a function
         # call it passing as argument the input data sample.
@@ -602,8 +602,8 @@ sits_svm <- function(data = NULL, formula = sits_formula_logref(),
         }
 
         # data normalization
-        stats <- .sits_normalization_param(data)
-        train_data <- .sits_distances(.sits_normalize_data(data, stats))
+        stats <- .sits_ml_normalization_param(data)
+        train_data <- .sits_distances(.sits_ml_normalize_data(data, stats))
 
         # The function must return a valid formula.
         if (inherits(formula, "function")) {
@@ -938,7 +938,7 @@ sits_formula_linear <- function(predictors_index = -2:0) {
 }
 
 #' @title Normalize the time series in the given sits_tibble
-#' @name .sits_normalize_data
+#' @name .sits_ml_normalize_data
 #' @keywords internal
 #' @author Alber Sanchez, \email{alber.ipia@@inpe.br}
 #'
@@ -949,9 +949,9 @@ sits_formula_linear <- function(predictors_index = -2:0) {
 #' @param stats    Statistics for normalization.
 #'
 #' @return A normalized sits tibble.
-.sits_normalize_data <- function(data, stats) {
+.sits_ml_normalize_data <- function(data, stats) {
     # test if data is valid
-    .sits_test_tibble(data)
+    .sits_tibble_test(data)
 
     # get the bands of the input data
     bands <- sits_bands(data)
@@ -1008,7 +1008,7 @@ sits_formula_linear <- function(predictors_index = -2:0) {
 }
 
 #' @title Normalize the time series values in the case of a matrix
-#' @name .sits_normalize_matrix
+#' @name .sits_ml_normalize_matrix
 #' @keywords internal
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'
@@ -1019,7 +1019,7 @@ sits_formula_linear <- function(predictors_index = -2:0) {
 #' @param  stats          Statistics for normalization.
 #' @param  band           Band to be normalized.
 #' @return                A normalized matrix.
-.sits_normalize_matrix <- function(data, stats, band) {
+.sits_ml_normalize_matrix <- function(data, stats, band) {
     # select the 2% and 98% quantiles
     # note the use of "..b" instead of ",b"
     quant_2 <- as.numeric(stats[2, ..band])
@@ -1038,7 +1038,7 @@ sits_formula_linear <- function(predictors_index = -2:0) {
 }
 
 #' @title Normalize the time series in the given sits_tibble
-#' @name .sits_normalization_param
+#' @name .sits_ml_normalization_param
 #' @keywords internal
 #' @author Alber Sanchez, \email{alber.ipia@@inpe.br}
 #'
@@ -1047,8 +1047,8 @@ sits_formula_linear <- function(predictors_index = -2:0) {
 #'
 #' @param data     A sits tibble.
 #' @return A tibble with statistics.
-.sits_normalization_param <- function(data) {
-    .sits_test_tibble(data)
+.sits_ml_normalization_param <- function(data) {
+    .sits_tibble_test(data)
 
     dt <- data.table::data.table(dplyr::bind_rows(data$time_series))
     dt[, Index := NULL]

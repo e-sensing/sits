@@ -1,7 +1,7 @@
 context("Space Time Operations")
 
 test_that("All", {
-    reproj <- sits:::.sits_latlong_to_proj(-10, -20, 4326)
+    reproj <- sits:::.sits_proj_from_latlong(-10, -20, 4326)
 
     expect_equal(as.numeric(reproj[1, 1]), -10)
     expect_equal(as.numeric(reproj[1, 2]), -20)

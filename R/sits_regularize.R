@@ -55,7 +55,7 @@
 #'                          with number and unit, e.g., "P16D" for 16 days.
 #'                          Use "D", "M" and "Y" for days, month and year..
 #'
-#' @param  roi              a region of interest (see above)
+#' @param roi               A region of interest (see above)
 #' @param agg_method        Method that will be applied by \code{gdalcubes}
 #'                          for aggregation. Options: "min", "max", "mean",
 #'                          "median" and "first".
@@ -98,6 +98,9 @@ sits_regularize <- function(cube,
                     "please provide a 'raster_cube' object.",
                     "See '?sits_cube' for more information.")
     )
+
+    # fix slashes for windows
+    dir_images <- normalizePath(dir_images)
 
     # filter only intersecting tiles
     intersects <- slider::slide_lgl(cube,

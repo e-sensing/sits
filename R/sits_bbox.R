@@ -22,7 +22,7 @@
 sits_bbox <- function(data, wgs84 = FALSE, ...) {
 
     # get the meta-type (sits or cube)
-    data <- .sits_config_data_meta_type(data)
+    data <- .config_data_meta_type(data)
 
     UseMethod("sits_bbox", data)
 }
@@ -31,7 +31,7 @@ sits_bbox <- function(data, wgs84 = FALSE, ...) {
 #'
 sits_bbox.sits <- function(data, ...) {
     # is the data a valid set of time series
-    .sits_test_tibble(data)
+    .sits_tibble_test(data)
 
     # get the max and min longitudes and latitudes
     lon_max <- max(data$longitude)
@@ -76,4 +76,75 @@ sits_bbox.cube <- function(data, wgs84 = FALSE, ...) {
     }
 
     return(bbox)
+}
+
+
+#' @title Find the bounding box for a set of time series
+#' @name .sits_bbox_time_series
+#' @keywords internal
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
+#'
+#' @description Given a set of time series, find the bounding box.
+#'
+#' @param data            A tibble with a set of time series
+#' @return A vector the bounding box
+.sits_bbox_time_series <- function(data) {
+    # check if the data is a time series
+    .sits_tibble_test(data)
+    # return the bounding box
+    bbox <- vector(length = 4)
+    names(bbox) <- c("xmin", "xmax", "ymin", "ymax")
+
+    bbox["xmin"] <- min(data$longitude)
+    bbox["xmax"] <- max(data$longitude)
+    bbox["ymin"] <- min(data$latitude)
+    bbox["ymax"] <- max(data$latitude)
+
+    return(bbox)
+}
+#' @title Intersection between a bounding box and a cube
+#' @name .sits_bbox_intersect
+#' @keywords internal
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
+#'
+#' @param bbox           bounding box for a region of interest
+#' @param cube           data cube
+#' @return               vector the bounding box intersection
+#'
+.sits_bbox_intersect <- function(bbox, cube) {
+    bbox_out <- vector("double", length = 4)
+    names(bbox_out) <- c("xmin", "xmax", "ymin", "ymax")
+
+    if (bbox["xmin"] > cube$xmax |
+        bbox["xmax"] < cube$xmin |
+        bbox["ymin"] > cube$ymax |
+        bbox["ymax"] < cube$ymin) {
+        return(NULL)
+    }
+
+    if (bbox["xmin"] < cube$xmin) {
+        bbox_out["xmin"] <- cube$xmin
+    } else {
+        bbox_out["xmin"] <- bbox["xmin"]
+    }
+
+    if (bbox["xmax"] > cube$xmax) {
+        bbox_out["xmax"] <- cube$xmax
+    } else {
+        bbox_out["xmax"] <- bbox["xmax"]
+    }
+
+    if (bbox["ymin"] < cube$ymin) {
+        bbox_out["ymin"] <- cube$ymin
+    } else {
+        bbox_out["ymin"] <- bbox["ymin"]
+    }
+
+    if (bbox["ymax"] > cube$ymax) {
+        bbox_out["ymax"] <- cube$ymax
+    } else {
+        bbox_out["ymax"] <- bbox["ymax"]
+    }
+
+    return(bbox_out)
 }

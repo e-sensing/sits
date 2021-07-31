@@ -90,10 +90,10 @@ sits_twdtw_classify <- function(samples,
     }
 
     # does the input data exist?
-    .sits_test_tibble(samples)
+    .sits_tibble_test(samples)
 
     # check the bands
-    bands <- .sits_samples_bands_check(samples, bands)
+    bands <- .sits_tibble_bands_check(samples, bands)
 
     # create a list to store the results of the TWDTW matches
     matches <- list()
@@ -101,7 +101,7 @@ sits_twdtw_classify <- function(samples,
     # select the bands for patterns time series and convert to TWDTW format
     twdtw_patterns <- patterns %>%
         sits_select(bands = bands) %>%
-        .sits_to_twdtw()
+        .sits_twdtw_from_tibble()
 
     # Define the logistic function
     log_fun <- dtwSat::logisticWeight(alpha = alpha, beta = beta)
@@ -112,7 +112,7 @@ sits_twdtw_classify <- function(samples,
             # and convert to TWDTW format
             twdtw_series <- row %>%
                 sits_select(bands = bands) %>%
-                .sits_to_twdtw()
+                .sits_twdtw_from_tibble()
 
             # classify the data using TWDTW
             matches <- dtwSat::twdtwApply(
@@ -205,7 +205,7 @@ sits_twdtw_classify <- function(samples,
                     by = interval,
                     overlap = overlap
                 )
-            predicted <- .sits_from_twdtw_matches(twdtw_obj)
+            predicted <- .sits_twdtw_matches_to_prediction(twdtw_obj)
             # add the classification results to the input row
             return(predicted)
         })
@@ -215,7 +215,7 @@ sits_twdtw_classify <- function(samples,
 }
 
 #' @title Export data to be used by the dtwSat package
-#' @name .sits_to_twdtw
+#' @name .sits_twdtw_from_tibble
 #' @keywords internal
 #' @author Victor Maus, \email{vwmaus1@@gmail.com}
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
@@ -225,7 +225,7 @@ sits_twdtw_classify <- function(samples,
 #' @param  samples      A tibble in sits format with time series
 #'                      to be converted to TWTDW time series.
 #' @return An object of the twdtwTimeSeries class).
-.sits_to_twdtw <- function(samples) {
+.sits_twdtw_from_tibble <- function(samples) {
     # verifies if methods package is installed
     if (!requireNamespace("methods", quietly = TRUE)) {
         stop("methods needed for this function to work.
@@ -252,7 +252,7 @@ sits_twdtw_classify <- function(samples,
 }
 
 #' @title Transform patterns from TWDTW format to sits format
-#' @name .sits_from_twdtw_matches
+#' @name .sits_twdtw_matches_to_prediction
 #' @keywords internal
 #'
 #' @description Reads one TWDTW matches object and transforms it into a
@@ -260,80 +260,10 @@ sits_twdtw_classify <- function(samples,
 #'
 #' @param  match  A TWDTW Matches object of class dtwSat::twdtwMatches
 #' @return A list with information on the matches
-.sits_from_twdtw_matches <- function(match) {
+.sits_twdtw_matches_to_prediction <- function(match) {
     results <- tibble::as_tibble(match[[1]]) %>%
         dplyr::mutate(predicted = as.character(label)) %>%
         dplyr::select(-Alig.N, -label) %>%
         list()
     return(results)
-}
-#' @title Plot classification alignments using the dtwSat package
-#' @name .sits_plot_twdtw_alignments
-#' @keywords internal
-#' @author Victor Maus, \email{vwmaus1@@gmail.com}
-#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
-#'
-#' @description        Plots the alignments from TWDTW classification
-#' @param matches      A list of dtwSat S4 match objects
-#'                     (produced by sits_TWDTW_matches).
-.sits_plot_twdtw_alignments <- function(matches) {
-    # verifies if dtwSat package is installed
-    if (!requireNamespace("dtwSat", quietly = TRUE)) {
-        stop("dtwSat needed for this function to work.
-             Please install it.", call. = FALSE)
-    }
-
-    matches %>%
-        purrr::map(function(m) {
-            dtwSat::plot(m, type = "alignments") %>%
-                graphics::plot()
-        })
-    return(invisible(matches))
-}
-
-#' @title Plot classification results using the dtwSat package
-#' @name .sits_plot_twdtw_class
-#' @keywords internal
-#' @author Victor Maus, \email{vwmaus1@@gmail.com}
-#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
-#'
-#' @description         Plots the results of TWDTW classification (uses dtwSat).
-#'
-#' @param  matches      dtwSatS4 matches objects produced by sits_TWDTW_matches.
-#' @param  start_date   Start date of the plot (used for classifications).
-#' @param  end_date     End date of the plot (used for classifications).
-#' @param  interval     Interval between classifications.
-#' @param  overlap      Minimum overlapping between one match
-#'                      and the interval of classification.
-#'                      For details see dtwSat::twdtwApply help.
-.sits_plot_twdtw_class <- function(matches,
-                                   start_date = NULL,
-                                   end_date = NULL,
-                                   interval = "12 month",
-                                   overlap = 0.5) {
-    # verifies if dtwSat package is installed
-    if (!requireNamespace("dtwSat", quietly = TRUE)) {
-        stop("dtwSat needed for this function to work.
-             Please install it.", call. = FALSE)
-    }
-
-    matches %>%
-        purrr::map(function(m) {
-            if (purrr::is_null(start_date) | purrr::is_null(end_date)) {
-                  dplot <- dtwSat::plot(m,
-                      type = "classification",
-                      overlap = 0.5
-                  )
-              } else {
-                  dplot <- dtwSat::plot(m,
-                      type = "classification",
-                      from = start_date,
-                      to = end_date,
-                      by = interval,
-                      overlap = overlap
-                  )
-              }
-            graphics::plot(dplot)
-        })
-    return(invisible(matches))
 }

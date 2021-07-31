@@ -1,5 +1,5 @@
 #' @title Obtain a tibble with lat/long points to be retrieved from a SHP
-#' @name .sits_points_from_shp
+#' @name .sits_shp_to_tibble
 #' @keywords internal
 #'
 #' @description reads a shapefile and retrieves a sits tibble
@@ -11,7 +11,7 @@
 #' @param .n_shp_pol      Number of samples per polygon to be read
 #'                        (for POLYGON or MULTIPOLYGON shapes)
 #' @return                A sits tibble with points to to be read.
-.sits_points_from_shp <- function(sf_shape,
+.sits_shp_to_tibble <- function(sf_shape,
                                   shp_attr,
                                   label,
                                   .n_shp_pol) {
@@ -24,12 +24,12 @@
 
     # get a tibble with points and labels
     if (geom_type == "POINT") {
-        points.tb <- .sits_from_point_shp(sf_shape,
+        points.tb <- .sits_shp_point_to_tibble(sf_shape,
                                           shp_attr,
                                           label)
     }
     else {
-        points.tb <- .sits_from_polygon_shp(sf_shape,
+        points.tb <- .sits_shp_polygon_to_tibble(sf_shape,
                                             shp_attr,
                                             label,
                                             .n_shp_pol)
@@ -39,14 +39,14 @@
 }
 
 #' @title Obtain a tibble with latitude and longitude points from POINT geometry
-#' @name .sits_from_point_shp
+#' @name .sits_shp_point_to_tibble
 #' @keywords internal
 #'
 #' @param sf_shape        sf object linked to a shapefile.
 #' @param shp_attr        Attribute in the shapefile used as a polygon label
 #' @param label           Label to be assigned to points
 #'
-.sits_from_point_shp <- function(sf_shape, shp_attr, label) {
+.sits_shp_point_to_tibble <- function(sf_shape, shp_attr, label) {
 
     # get the db file
     shp_df <- sf::st_drop_geometry(sf_shape)
@@ -71,7 +71,7 @@
 }
 
 #' @title Obtain a tibble from POLYGON geometry
-#' @name .sits_from_polygon_shp
+#' @name .sits_shp_polygon_to_tibble
 #' @keywords internal
 #'
 #' @param sf_shape        sf object linked to a shapefile
@@ -80,7 +80,7 @@
 #' @param .n_shp_pol      Number of samples per polygon to be read
 #'
 #'
-.sits_from_polygon_shp <- function(sf_shape, shp_attr, label, .n_shp_pol) {
+.sits_shp_polygon_to_tibble <- function(sf_shape, shp_attr, label, .n_shp_pol) {
 
     # get the db file
     shp_df <- sf::st_drop_geometry(sf_shape)

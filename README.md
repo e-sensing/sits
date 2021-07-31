@@ -153,22 +153,25 @@ library(sits)
 #> Additional configurations found in /Library/Frameworks/R.framework/Versions/4.1/Resources/library/sits/extdata/config_user_example.yml
 # create a cube from a local file 
 data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
+
 raster_cube <- sits_cube(
-        source = "LOCAL",
-        name = "sinop-2014",
-        satellite = "TERRA",
-        sensor = "MODIS",
-        data_dir = data_dir,
-        delim = "_",
-        parse_info = c("X1", "X2", "tile", "band", "date")
+    source = "LOCAL",
+    name = "sinop-2014",
+    satellite = "TERRA",
+    sensor = "MODIS",
+    data_dir = data_dir,
+    delim = "_",
+    parse_info = c("X1", "X2", "tile", "band", "date")
 )
+
 # obtain a set of locations defined by a CSV file
 csv_raster_file <- system.file("extdata/samples/samples_sinop_crop.csv",
-                               package = "sits"
-)
+                               package = "sits")
+
 # retrieve the points from the data cube
 points <- sits_get_data(raster_cube, file = csv_raster_file)
 #> All points have been retrieved
+
 # show the points
 points[1:3,]
 #> # A tibble: 3 x 7
@@ -208,6 +211,7 @@ together in a single temporal interval.
 ``` r
 # select the "ndvi" band
 samples_ndvi <- sits_select(samples_modis_4bands, "NDVI")
+
 # select only the samples with the cerrado label
 samples_cerrado <- dplyr::filter(samples_ndvi, 
                   label == "Cerrado")
@@ -261,7 +265,6 @@ SITS”](https://github.com/e-sensing/sits-docs/blob/master/doc/filters.pdf)
 # merge with the original data
 # plot the original and the modified series
 point_ndvi <- sits_select(point_mt_6bands, bands = "NDVI")
-
 point_ndvi %>% 
     sits_filter(sits_whittaker(lambda = 10)) %>% 
     sits_merge(point_ndvi) %>% 
@@ -308,8 +311,10 @@ format using the function `sits_show_prediction` or graphically using
 ``` r
 # training data set
 data("samples_modis_4bands")
+
 # point to be classified
 data("point_mt_6bands")
+
 # Select the NDVI and EVI bands 
 # Filter the band to reduce noise
 # Train a deep learning model
@@ -317,6 +322,7 @@ tempCNN_model <- samples_modis_4bands %>%
     sits_select(bands = c("NDVI", "EVI")) %>% 
     sits_whittaker(bands_suffix = "") %>% 
     sits_train(ml_method = sits_TempCNN(verbose = FALSE)) 
+
 # Select NDVI and EVI bands of the  point to be classified
 # Filter the point 
 # Classify using TempCNN model
@@ -356,6 +362,7 @@ sinop <- sits_cube(
     delim = "_",
     parse_info = c("X1", "X2", "tile", "band", "date")
 )
+
 # Classify the raster cube, generating a probability file
 # Filter the pixels in the cube to remove noise
 probs_cube <- sits_classify(sinop, 

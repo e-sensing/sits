@@ -132,7 +132,7 @@
     probs_cube <- .sits_cube_create(
         name = name,
         source = "PROBS",
-        collection = NA,
+        collection = "PROBS",
         satellite = tile$satellite,
         sensor = tile$sensor,
         bands = band,
@@ -170,7 +170,7 @@
 
     # check if bands are available
     assertthat::assert_that(
-        all(bands %in% toupper(sits_bands(cube))),
+        all(toupper(bands) %in% toupper(sits_bands(cube))),
         msg = paste(".sits_cube_bands_check: bands are not available",
                     "in the cube")
     )
@@ -216,7 +216,7 @@
 #' @keywords internal
 #' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
 #'
-#' @param  cube              input data cube
+#' @param  cube input data cube
 #'
 #' @return A character string
 .sits_cube_source <- function(cube) {
@@ -230,6 +230,7 @@
 
     return(res)
 }
+
 #' @title Get cube file info
 #' @name .sits_cube_file_info
 #' @keywords internal

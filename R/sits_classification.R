@@ -91,7 +91,7 @@
 #'     ml_method = sits_xgboost(verbose = FALSE)
 #' )
 #' # classify the point
-#' point_2bands <- sits_select(point_mt_6bands,
+#' point_2bands <- sits_select(samples_mt_6bands,
 #'                             bands = c("NDVI", "EVI"))
 #' point_class <- sits_classify(point_2bands, xgb_model)
 #' plot(point_class)
@@ -121,13 +121,12 @@
 #' }
 #'
 #' @export
-#'
 sits_classify <- function(data, ml_model, ...) {
 
     # is the data a sits tibble? If not, it must be a cube
     if (!inherits(data, "sits")) {
         # find out the generic cube class it belongs to
-        class_data <- .sits_config_cube_class(.sits_cube_source(data))
+        class_data <- .cube_source(cube = data)
         class(data) <- c(class_data, class(data))
     }
 
@@ -144,7 +143,7 @@ sits_classify.sits <- function(data,
                                multicores = 2) {
 
     # precondition: verify that the data is correct
-    .sits_test_tibble(data)
+    .sits_tibble_test(data)
 
     # precondition: ensure the machine learning model has been built
     assertthat::assert_that(
@@ -176,7 +175,7 @@ sits_classify.sits <- function(data,
     # has the training data been normalized?
     if (!purrr::is_null(stats))
         # yes, then normalize the input data
-        distances <- .sits_distances(.sits_normalize_data(
+        distances <- .sits_distances(.sits_ml_normalize_data(
             data = data,
             stats = stats
         ))

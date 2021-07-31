@@ -1,87 +1,85 @@
 #' @title Check for raster package availability
-#' @name .sits_raster_api_check_package
+#' @name .raster_check_package
 #' @keywords internal
 #' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
 #'
 #' @return package representation class
-.sits_raster_api_check_package <- function() {
+.raster_check_package <- function() {
 
-    pkg_class <- .sits_config_raster_package()
+    pkg_class <- .config_raster_pkg()
     class(pkg_class) <- pkg_class
 
-    UseMethod(".sits_raster_api_check_package", pkg_class)
+    UseMethod(".raster_check_package", pkg_class)
 }
 
 #' @keywords internal
 #' @export
-.sits_raster_api_check_package.default <- function() {
+.raster_check_package.default <- function() {
 
     stop("No API defined for this raster package.")
 }
 
 #' @title Check for block object consistency
-#' @name .sits_raster_api_check_block
+#' @name .raster_check_block
 #' @keywords internal
 #' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
-.sits_raster_api_check_block <- function(block) {
+.raster_check_block <- function(block) {
 
     # precondition 1
     assertthat::assert_that(
         all(c("row", "nrows", "col", "ncols") %in% names(block)),
-        msg = paste(".sits_raster_api_check_block: block object must contains",
+        msg = paste(".raster_check_block: block object must contains",
                     "'row', 'nrows', 'col', 'ncols' entries")
     )
 
     # precondition 2
     assertthat::assert_that(
         block[["row"]] > 0 && block[["col"]] > 0,
-        msg = ".sits_raster_api_check_block: invalid block"
+        msg = ".raster_check_block: invalid block"
     )
 
     # precondition 3
     assertthat::assert_that(
         block[["nrows"]] > 0 && block[["ncols"]] > 0,
-        msg = ".sits_raster_api_check_block: invalid block"
+        msg = ".raster_check_block: invalid block"
     )
 
 }
 
 #' @title Convert internal data type to gdal data type
-#' @name .sits_raster_api_gdal_datatype
+#' @name .raster_gdal_datatype
 #' @keywords internal
 #' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
 #'
 #' @return character string
-.sits_raster_api_gdal_datatype <- function(data_type) {
-
-    # allowed data types
-    valid_data_types <- c("INT1U", "INT2U", "INT2S", "INT4U",
-                          "INT4S", "FLT4S", "FLT8S")
+.raster_gdal_datatype <- function(data_type) {
 
     # GDAL data types
-    gdal_data_types <- c("Byte", "UInt16", "Int16", "UInt32",
-                         "Int32", "Float32", "Float64")
+    gdal_data_types <- .raster_gdal_datatypes()
 
     # check data_type type
-    assertthat::assert_that(
-        is.character(data_type),
-        msg = paste(".sits_raster_api_data_type: data_type must be a ",
-                    "character string")
-    )
-
-    # check data type
-    assertthat::assert_that(
-        all(data_type %in% valid_data_types),
-        msg = paste(".sits_raster_api_data_type: valid data types are",
-                    paste0("'", valid_data_types, "'", collapse = ", "))
-    )
+    .check_chr(data_type, choices = names(gdal_data_types), len_min = 1,
+               len_max = 1, msg = "invalid 'data_type' parameter")
 
     # convert
-    return(gdal_data_types[match(data_type, valid_data_types)])
+    return(gdal_data_types[[data_type]])
 }
 
+#' @name .raster_gdal_datatype
+.raster_gdal_datatypes <- function() {
+
+    # data types cast
+    res <- c(INT1U = "Byte", INT2U = "UInt16",
+             INT2S = "Int16", INT4U = "UInt32",
+             INT4S = "Int32", FLT4S = "Float32",
+             FLT8S = "Float64")
+
+    return(res)
+}
+
+
 #' @title Raster package internal data type representation
-#' @name .sits_raster_api_data_type
+#' @name .raster_data_type
 #' @keywords internal
 #' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
 #'
@@ -89,7 +87,7 @@
 #'                    "INT2S", "INT4U", "INT4S", "FLT4S", "FLT8S".
 #'
 #' @return character string
-.sits_raster_api_data_type <- function(data_type) {
+.raster_data_type <- function(data_type) {
 
     # allowed data types
     valid_data_types <- c("INT1U", "INT2U", "INT2S", "INT4U",
@@ -97,19 +95,19 @@
     # check data type
     assertthat::assert_that(
         all(data_type %in% valid_data_types),
-        msg = paste(".sits_raster_api_data_type: valid data types are",
+        msg = paste(".raster_data_type: valid data types are",
                     paste0("'", valid_data_types, "'", collapse = ", "))
     )
 
     # check package
-    pkg_class <- .sits_raster_api_check_package()
+    pkg_class <- .raster_check_package()
 
     # call function
-    UseMethod(".sits_raster_api_data_type", pkg_class)
+    UseMethod(".raster_data_type", pkg_class)
 }
 
 #' @title Raster package internal get values function
-#' @name .sits_raster_api_get_values
+#' @name .raster_get_values
 #' @keywords internal
 #' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
 #'
@@ -117,17 +115,17 @@
 #' @param ...     additional parameters to be passed to raster package
 #'
 #' @return Numeric matrix
-.sits_raster_api_get_values <- function(r_obj, ...) {
+.raster_get_values <- function(r_obj, ...) {
 
     # check package
-    pkg_class <- .sits_raster_api_check_package()
+    pkg_class <- .raster_check_package()
 
     # call function
-    UseMethod(".sits_raster_api_get_values", pkg_class)
+    UseMethod(".raster_get_values", pkg_class)
 }
 
 #' @title Raster package internal set values function
-#' @name .sits_raster_api_set_values
+#' @name .raster_set_values
 #' @keywords internal
 #' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
 #'
@@ -136,16 +134,16 @@
 #' @param ...     additional parameters to be passed to raster package
 #'
 #' @return raster package object
-.sits_raster_api_set_values <- function(r_obj, values, ...) {
+.raster_set_values <- function(r_obj, values, ...) {
 
     # check package
-    pkg_class <- .sits_raster_api_check_package()
+    pkg_class <- .raster_check_package()
 
-    UseMethod(".sits_raster_api_set_values", pkg_class)
+    UseMethod(".raster_set_values", pkg_class)
 }
 
 #' @title Raster package internal extract values function
-#' @name .sits_raster_api_extract
+#' @name .raster_extract
 #' @keywords internal
 #' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
 #'
@@ -154,16 +152,16 @@
 #' @param ...     additional parameters to be passed to raster package
 #'
 #' @return numeric matrix with raster values for each coordinate
-.sits_raster_api_extract <- function(r_obj, xy, ...) {
+.raster_extract <- function(r_obj, xy, ...) {
 
     # check package
-    pkg_class <- .sits_raster_api_check_package()
+    pkg_class <- .raster_check_package()
 
-    UseMethod(".sits_raster_api_extract", pkg_class)
+    UseMethod(".raster_extract", pkg_class)
 }
 
 #' @title Raster package internal object creation
-#' @name .sits_raster_api_rast
+#' @name .raster_rast
 #' @keywords internal
 #' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
 #'
@@ -172,16 +170,16 @@
 #' @param ...     additional parameters to be passed to raster package
 #'
 #' @return raster package object
-.sits_raster_api_rast <- function(r_obj, nlayers = 1, ...) {
+.raster_rast <- function(r_obj, nlayers = 1, ...) {
 
     # check package
-    pkg_class <- .sits_raster_api_check_package()
+    pkg_class <- .raster_check_package()
 
-    UseMethod(".sits_raster_api_rast", pkg_class)
+    UseMethod(".raster_rast", pkg_class)
 }
 
 #' @title Raster package internal open raster function
-#' @name .sits_raster_api_open_rast
+#' @name .raster_open_rast
 #' @keywords internal
 #' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
 #'
@@ -189,22 +187,22 @@
 #' @param ...     additional parameters to be passed to raster package
 #'
 #' @return raster package object
-.sits_raster_api_open_rast <- function(file, ...) {
+.raster_open_rast <- function(file, ...) {
 
     # check for file length == 1
     assertthat::assert_that(
         length(file) == 1,
-        msg = ".sits_raster_api_open_rast: more than one file were informed"
+        msg = ".raster_open_rast: more than one file were informed"
     )
 
     # check package
-    pkg_class <- .sits_raster_api_check_package()
+    pkg_class <- .raster_check_package()
 
-    UseMethod(".sits_raster_api_open_rast", pkg_class)
+    UseMethod(".raster_open_rast", pkg_class)
 }
 
 #' @title Raster package internal read raster file function
-#' @name .sits_raster_api_read_rast
+#' @name .raster_read_rast
 #' @keywords internal
 #' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
 #'
@@ -213,29 +211,29 @@
 #' @param ...     additional parameters to be passed to raster package
 #'
 #' @return numeric matrix
-.sits_raster_api_read_rast <- function(file,
-                                       block = NULL, ...) {
+.raster_read_rast <- function(file,
+                              block = NULL, ...) {
 
     # check for files length == 1
     assertthat::assert_that(
         length(file) == 1,
-        msg = ".sits_raster_api_read_rast: more than one file were informed"
+        msg = ".raster_read_rast: more than one file were informed"
     )
 
     # check block
     if (!purrr::is_null(block)) {
 
-        .sits_raster_api_check_block(block = block)
+        .raster_check_block(block = block)
     }
 
     # check package
-    pkg_class <- .sits_raster_api_check_package()
+    pkg_class <- .raster_check_package()
 
-    UseMethod(".sits_raster_api_read_rast", pkg_class)
+    UseMethod(".raster_read_rast", pkg_class)
 }
 
 #' @title Raster package internal write raster file function
-#' @name .sits_raster_api_read_rast
+#' @name .raster_read_rast
 #' @keywords internal
 #' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
 #'
@@ -249,21 +247,21 @@
 #' @param ...           additional parameters to be passed to raster package
 #'
 #' @return numeric matrix
-.sits_raster_api_write_rast <- function(r_obj,
-                                        file,
-                                        format,
-                                        data_type,
-                                        gdal_options,
-                                        overwrite, ...) {
+.raster_write_rast <- function(r_obj,
+                               file,
+                               format,
+                               data_type,
+                               gdal_options,
+                               overwrite, ...) {
 
     # check package
-    pkg_class <- .sits_raster_api_check_package()
+    pkg_class <- .raster_check_package()
 
-    UseMethod(".sits_raster_api_write_rast", pkg_class)
+    UseMethod(".raster_write_rast", pkg_class)
 }
 
 #' @title Raster package internal create raster object function
-#' @name .sits_raster_api_new_rast
+#' @name .raster_new_rast
 #' @keywords internal
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
@@ -279,23 +277,23 @@
 #' @param ...           additional parameters to be passed to raster package
 #'
 #' @return               A raster object.
-.sits_raster_api_new_rast <- function(nrows,
-                                      ncols,
-                                      xmin,
-                                      xmax,
-                                      ymin,
-                                      ymax,
-                                      nlayers,
-                                      crs, ...) {
+.raster_new_rast <- function(nrows,
+                             ncols,
+                             xmin,
+                             xmax,
+                             ymin,
+                             ymax,
+                             nlayers,
+                             crs, ...) {
 
     # check package
-    pkg_class <- .sits_raster_api_check_package()
+    pkg_class <- .raster_check_package()
 
-    UseMethod(".sits_raster_api_new_rast", pkg_class)
+    UseMethod(".raster_new_rast", pkg_class)
 }
 
 #' @title Raster package internal open raster stack function
-#' @name .sits_raster_api_open_stack
+#' @name .raster_open_stack
 #' @keywords internal
 #' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
 #'
@@ -303,22 +301,22 @@
 #' @param ...     additional parameters to be passed to raster package
 #'
 #' @return raster package object
-.sits_raster_api_open_stack <- function(files, ...) {
+.raster_open_stack <- function(files, ...) {
 
     # check for files length > 0
     assertthat::assert_that(
         length(files) > 0,
-        msg = ".sits_raster_api_open_stack: no file informed"
+        msg = ".raster_open_stack: no file informed"
     )
 
     # check package
-    pkg_class <- .sits_raster_api_check_package()
+    pkg_class <- .raster_check_package()
 
-    UseMethod(".sits_raster_api_open_stack", pkg_class)
+    UseMethod(".raster_open_stack", pkg_class)
 }
 
 #' @title Raster package internal read raster stack file function
-#' @name .sits_raster_api_read_stack
+#' @name .raster_read_stack
 #' @keywords internal
 #' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
 #'
@@ -327,23 +325,23 @@
 #' @param ...     additional parameters to be passed to raster package
 #'
 #' @return numeric matrix
-.sits_raster_api_read_stack <- function(files,
-                                        block = NULL, ...) {
+.raster_read_stack <- function(files,
+                               block = NULL, ...) {
 
     # check block
     if (!purrr::is_null(block)) {
 
-        .sits_raster_api_check_block(block = block)
+        .raster_check_block(block = block)
     }
 
     # check package
-    pkg_class <- .sits_raster_api_check_package()
+    pkg_class <- .raster_check_package()
 
-    UseMethod(".sits_raster_api_read_stack", pkg_class)
+    UseMethod(".raster_read_stack", pkg_class)
 }
 
 #' @title Raster package internal crop raster function
-#' @name .sits_raster_api_crop
+#' @name .raster_crop
 #' @keywords internal
 #' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
 #'
@@ -352,19 +350,19 @@
 #' @param ...     additional parameters to be passed to raster package
 #'
 #' @return numeric matrix
-.sits_raster_api_crop <- function(r_obj, block, ...) {
+.raster_crop <- function(r_obj, block, ...) {
 
     # check block
-    .sits_raster_api_check_block(block = block)
+    .raster_check_block(block = block)
 
     # check package
-    pkg_class <- .sits_raster_api_check_package()
+    pkg_class <- .raster_check_package()
 
-    UseMethod(".sits_raster_api_crop", pkg_class)
+    UseMethod(".raster_crop", pkg_class)
 }
 
 #' @title Raster package internal object properties
-#' @name .sits_raster_api_properties
+#' @name .raster_properties
 #' @keywords internal
 #' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
 #'
@@ -372,97 +370,97 @@
 #' @param ...      additional parameters to be passed to raster package
 #'
 #' @return raster object spatial properties
-.sits_raster_api_nrows <- function(r_obj, ...) {
+.raster_nrows <- function(r_obj, ...) {
 
     # check package
-    pkg_class <- .sits_raster_api_check_package()
+    pkg_class <- .raster_check_package()
 
-    UseMethod(".sits_raster_api_nrows", pkg_class)
+    UseMethod(".raster_nrows", pkg_class)
 }
 
-#' @name .sits_raster_api_properties
-.sits_raster_api_ncols <- function(r_obj, ...) {
+#' @name .raster_properties
+.raster_ncols <- function(r_obj, ...) {
 
     # check package
-    pkg_class <- .sits_raster_api_check_package()
+    pkg_class <- .raster_check_package()
 
-    UseMethod(".sits_raster_api_ncols", pkg_class)
+    UseMethod(".raster_ncols", pkg_class)
 }
 
-#' @name .sits_raster_api_properties
-.sits_raster_api_nlayers <- function(r_obj, ...) {
+#' @name .raster_properties
+.raster_nlayers <- function(r_obj, ...) {
 
     # check package
-    pkg_class <- .sits_raster_api_check_package()
+    pkg_class <- .raster_check_package()
 
-    UseMethod(".sits_raster_api_nlayers", pkg_class)
+    UseMethod(".raster_nlayers", pkg_class)
 }
 
-#' @name .sits_raster_api_properties
-.sits_raster_api_xmax <- function(r_obj, ...) {
+#' @name .raster_properties
+.raster_xmax <- function(r_obj, ...) {
 
     # check package
-    pkg_class <- .sits_raster_api_check_package()
+    pkg_class <- .raster_check_package()
 
-    UseMethod(".sits_raster_api_xmax", pkg_class)
+    UseMethod(".raster_xmax", pkg_class)
 }
 
-#' @name .sits_raster_api_properties
-.sits_raster_api_xmin <- function(r_obj, ...) {
+#' @name .raster_properties
+.raster_xmin <- function(r_obj, ...) {
 
     # check package
-    pkg_class <- .sits_raster_api_check_package()
+    pkg_class <- .raster_check_package()
 
-    UseMethod(".sits_raster_api_xmin", pkg_class)
+    UseMethod(".raster_xmin", pkg_class)
 }
 
-#' @name .sits_raster_api_properties
-.sits_raster_api_ymax <- function(r_obj, ...) {
+#' @name .raster_properties
+.raster_ymax <- function(r_obj, ...) {
 
     # check package
-    pkg_class <- .sits_raster_api_check_package()
+    pkg_class <- .raster_check_package()
 
-    UseMethod(".sits_raster_api_ymax", pkg_class)
+    UseMethod(".raster_ymax", pkg_class)
 }
 
-#' @name .sits_raster_api_properties
-.sits_raster_api_ymin <- function(r_obj, ...) {
+#' @name .raster_properties
+.raster_ymin <- function(r_obj, ...) {
 
     # check package
-    pkg_class <- .sits_raster_api_check_package()
+    pkg_class <- .raster_check_package()
 
-    UseMethod(".sits_raster_api_ymin", pkg_class)
+    UseMethod(".raster_ymin", pkg_class)
 }
 
-#' @name .sits_raster_api_properties
-.sits_raster_api_xres <- function(r_obj, ...) {
+#' @name .raster_properties
+.raster_xres <- function(r_obj, ...) {
 
     # check package
-    pkg_class <- .sits_raster_api_check_package()
+    pkg_class <- .raster_check_package()
 
-    UseMethod(".sits_raster_api_xres", pkg_class)
+    UseMethod(".raster_xres", pkg_class)
 }
 
-#' @name .sits_raster_api_properties
-.sits_raster_api_yres <- function(r_obj, ...) {
+#' @name .raster_properties
+.raster_yres <- function(r_obj, ...) {
 
     # check package
-    pkg_class <- .sits_raster_api_check_package()
+    pkg_class <- .raster_check_package()
 
-    UseMethod(".sits_raster_api_yres", pkg_class)
+    UseMethod(".raster_yres", pkg_class)
 }
 
-#' @name .sits_raster_api_properties
-.sits_raster_api_crs <- function(r_obj, ...) {
+#' @name .raster_properties
+.raster_crs <- function(r_obj, ...) {
 
     # check package
-    pkg_class <- .sits_raster_api_check_package()
+    pkg_class <- .raster_check_package()
 
-    UseMethod(".sits_raster_api_crs", pkg_class)
+    UseMethod(".raster_crs", pkg_class)
 }
 
 #' @title Raster package internal frequency values function
-#' @name .sits_raster_api_freq
+#' @name .raster_freq
 #' @keywords internal
 #' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
 #'
@@ -470,16 +468,16 @@
 #' @param ...      additional parameters to be passed to raster package
 #'
 #' @return matrix with layer, value, and count columns
-.sits_raster_api_freq <- function(r_obj, ...) {
+.raster_freq <- function(r_obj, ...) {
 
     # check package
-    pkg_class <- .sits_raster_api_check_package()
+    pkg_class <- .raster_check_package()
 
-    UseMethod(".sits_raster_api_freq", pkg_class)
+    UseMethod(".raster_freq", pkg_class)
 }
 
 #' @title Raster package internal moving window function
-#' @name .sits_raster_api_focal
+#' @name .raster_focal
 #' @keywords internal
 #' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
 #'
@@ -491,37 +489,67 @@
 #' @param ...          additional parameters to be passed to raster package
 #'
 #' @return raster package object
-.sits_raster_api_focal <- function(r_obj,
-                                   window_size,
-                                   fn, ...) {
+.raster_focal <- function(r_obj,
+                          window_size,
+                          fn, ...) {
 
     # check window_size
     assertthat::assert_that(
         window_size %% 2 == 1,
-        msg = ".sits_raster_api_focal: window_size must be an odd number"
+        msg = ".raster_focal: window_size must be an odd number"
     )
-    # check fun parameter
+
+    # check fn parameter
     if (is.character(fn)) {
 
         assertthat::assert_that(
             length(fn) == 1,
-            msg = ".sits_raster_api_focal: length of fn parameter must be one"
+            msg = ".raster_focal: length of fn parameter must be one"
         )
 
         assertthat::assert_that(
             fn %in% c("modal", "sum", "mean"),
-            msg = ".sits_raster_api_focal: invalid function"
+            msg = ".raster_focal: invalid function"
         )
     }
 
     # check package
-    pkg_class <- .sits_raster_api_check_package()
+    pkg_class <- .raster_check_package()
 
-    UseMethod(".sits_raster_api_focal", pkg_class)
+    UseMethod(".raster_focal", pkg_class)
+}
+
+#' @title Convert sits internal resample methods
+#' @name .raster_resample_method
+#' @keywords internal
+#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
+#'
+#' @return character string
+.raster_resample_method <- function(method) {
+
+    # package supported resample methods
+    convert_methods <- .raster_resample_methods()
+
+    # check method type
+    .check_chr(method, choices = names(convert_methods),
+               len_min = 1, len_max = 1,
+               msg = sprintf("invalid 'method' for package '%s'",
+                             .config_raster_pkg()))
+    # convert
+    return(convert_methods[[method]])
+}
+
+#' @name .raster_resample_method
+.raster_resample_methods <- function() {
+
+    # check package
+    pkg_class <- .raster_check_package()
+
+    UseMethod(".raster_resample_methods", pkg_class)
 }
 
 #' @title Determine the file params to write in the metadata
-#' @name .sits_raster_api_params_file
+#' @name .raster_params_file
 #' @keywords internal
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
@@ -531,30 +559,30 @@
 #' @param file     A path to a raster file
 #'
 #' @return A tibble with the raster spatial parameters
-.sits_raster_api_params_file <- function(file) {
+.raster_params_file <- function(file) {
 
     # preconditions
     assertthat::assert_that(
         length(file) > 0,
-        msg = ".sits_raster_api_params_file: no file was informed"
+        msg = ".raster_params_file: no file was informed"
     )
 
     # use first file
     file <- file[[1]]
 
     # open file
-    r_obj <- .sits_raster_api_open_rast(file = file)
+    r_obj <- .raster_open_rast(file = file)
 
     params <- tibble::tibble(
-        nrows = .sits_raster_api_nrows(r_obj = r_obj),
-        ncols = .sits_raster_api_ncols(r_obj = r_obj),
-        xmin  = .sits_raster_api_xmin(r_obj = r_obj),
-        xmax  = .sits_raster_api_xmax(r_obj = r_obj),
-        ymin  = .sits_raster_api_ymin(r_obj = r_obj),
-        ymax  = .sits_raster_api_ymax(r_obj = r_obj),
-        xres  = .sits_raster_api_xres(r_obj = r_obj),
-        yres  = .sits_raster_api_yres(r_obj = r_obj),
-        crs   = .sits_raster_api_crs(r_obj = r_obj)
+        nrows = .raster_nrows(r_obj = r_obj),
+        ncols = .raster_ncols(r_obj = r_obj),
+        xmin  = .raster_xmin(r_obj = r_obj),
+        xmax  = .raster_xmax(r_obj = r_obj),
+        ymin  = .raster_ymin(r_obj = r_obj),
+        ymax  = .raster_ymax(r_obj = r_obj),
+        xres  = .raster_xres(r_obj = r_obj),
+        yres  = .raster_yres(r_obj = r_obj),
+        crs   = .raster_crs(r_obj = r_obj)
     )
 
     return(params)
@@ -576,7 +604,7 @@
     # precondition 2
     assertthat::assert_that(
         band_cube %in% sits_bands(cube),
-        msg = paste(".sits_raster_api_extract: band", band_cube,
+        msg = paste(".raster_extract: band", band_cube,
                     "is not available in the cube ", cube$name)
     )
 
@@ -584,15 +612,15 @@
     band <- dplyr::filter(cube$file_info[[1]], band == band_cube)
 
     # create a stack object
-    r_obj <- .sits_raster_api_open_stack(band$path)
+    r_obj <- .raster_open_stack(band$path)
 
     # extract the values
-    values <- .sits_raster_api_extract(r_obj, xy)
+    values <- .raster_extract(r_obj, xy)
 
     # is the data valid?
     assertthat::assert_that(
         nrow(values) == nrow(xy),
-        msg = ".sits_raster_api_extract: error in retrieving data"
+        msg = ".raster_extract: error in retrieving data"
     )
     return(values)
 }
@@ -617,16 +645,16 @@
     file_info <- cube$file_info[[1]]
 
     # open first raster
-    r_obj <- .sits_raster_api_open_rast(file_info$path[[1]])
+    r_obj <- .raster_open_rast(file_info$path[[1]])
 
     # retrieve the frequency
-    freq <- tibble::as_tibble(.sits_raster_api_freq(r_obj))
+    freq <- tibble::as_tibble(.raster_freq(r_obj))
 
     return(freq)
 }
 
 #' @title Merge all input files into one raster file
-#' @name .sits_raster_api_merge
+#' @name .raster_merge
 #' @keywords internal
 #' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
 #'
@@ -636,30 +664,30 @@
 #' @param gdal_datatype  Data type in gdal format
 #' @param gdal_options   Compression method to be used
 #' @param overwrite      Overwrite the file?
-.sits_raster_api_merge <- function(in_files,
-                                   out_file,
-                                   format,
-                                   gdal_datatype,
-                                   gdal_options,
-                                   overwrite) {
+.raster_merge <- function(in_files,
+                          out_file,
+                          format,
+                          gdal_datatype,
+                          gdal_options,
+                          overwrite) {
 
     # check if in_file length is at least one
     assertthat::assert_that(
         length(in_files) > 0,
-        msg = ".sits_raster_api_merge: no file to merge"
+        msg = ".raster_merge: no file to merge"
     )
 
     # check if all informed files exist
     assertthat::assert_that(
         all(file.exists(in_files)),
-        msg = ".sits_raster_api_merge: file does not exist"
+        msg = ".raster_merge: file does not exist"
     )
 
     # check overwrite parameter
     assertthat::assert_that(
         (file.exists(out_file) && overwrite) ||
             !file.exists(out_file),
-        msg = ".sits_raster_api_merge: cannot overwrite existing file"
+        msg = ".raster_merge: cannot overwrite existing file"
     )
 
     # delete result file

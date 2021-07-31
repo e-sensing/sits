@@ -119,7 +119,7 @@
     on.exit(.sits_parallel_stop(), add = TRUE)
 
     # log
-    .sits_log(output_dir = output_dir,
+    .sits_debug_log(output_dir = output_dir,
               event      = "start classification",
               key        = "blocks",
               value      = length(blocks))
@@ -138,16 +138,16 @@
             # try to open the file
             r_obj <-
                 tryCatch({
-                    .sits_raster_api_open_rast(filename_block)
+                    .raster_open_rast(filename_block)
                 }, error = function(e) {
                     return(NULL)
                 })
             # if file can be opened, check if the result is correct
             # this file will not be processed again
             if (!purrr::is_null(r_obj))
-                if (.sits_raster_api_nrows(r_obj) == b[["nrows"]]) {
+                if (.raster_nrows(r_obj) == b[["nrows"]]) {
                     # log
-                    .sits_log(output_dir = output_dir,
+                    .sits_debug_log(output_dir = output_dir,
                               event      = "skipping block",
                               key        = "block file",
                               value      = filename_block)
@@ -155,7 +155,7 @@
                 }
         }
         # log
-        .sits_log(output_dir = output_dir,
+        .sits_debug_log(output_dir = output_dir,
                   event      = "before preprocess block",
                   key        = "block",
                   value      = b)
@@ -172,13 +172,13 @@
             compose_fn = compose_fn
         )
         # log
-        .sits_log(output_dir = output_dir,
+        .sits_debug_log(output_dir = output_dir,
                   event      = "before classification block")
 
         # predict the classification values
         pred_block <- ml_model(distances)
         # log
-        .sits_log(output_dir = output_dir,
+        .sits_debug_log(output_dir = output_dir,
                   event      = "classification block",
                   key        = "ml_model",
                   value      = class(ml_model)[[1]])
@@ -190,18 +190,19 @@
                         "matrix is different from number of input pixels")
         )
         # log
-        .sits_log(output_dir = output_dir,
+        .sits_debug_log(output_dir = output_dir,
                   event      = "before save classified block")
 
         # convert probabilities matrix to INT2U
-        scale_factor_save <- round(1 / .sits_config_probs_scale_factor())
+        scale_factor_save <- round(1 / .cube_band_scale_factor(
+            cube = probs_cube, band = "PROBS"))
         pred_block <- round(scale_factor_save * pred_block, digits = 0)
 
         # compute block spatial parameters
         params <- .sits_cube_params_block(tile, b)
 
         # create a new raster
-        r_obj <- .sits_raster_api_new_rast(
+        r_obj <- .raster_new_rast(
             nrows   = params$nrows,
             ncols   = params$ncols,
             xmin    = params$xmin,
@@ -213,20 +214,20 @@
         )
 
         # copy values
-        r_obj <- .sits_raster_api_set_values(r_obj  = r_obj,
+        r_obj <- .raster_set_values(r_obj  = r_obj,
                                              values = pred_block)
 
         # write the probabilities to a raster file
-        .sits_raster_api_write_rast(
+        .raster_write_rast(
             r_obj        = r_obj,
             file         = filename_block,
             format       = "GTiff",
-            data_type    = .sits_raster_api_data_type("INT2U"),
-            gdal_options = .sits_config_gtiff_default_options(),
+            data_type    = .raster_data_type("INT2U"),
+            gdal_options = .config_gtiff_default_options(),
             overwrite    = TRUE
         )
         # log
-        .sits_log(output_dir = output_dir,
+        .sits_debug_log(output_dir = output_dir,
                   event      = "save classified block")
 
         # call garbage collector
@@ -237,21 +238,21 @@
     # put the filenames in a vector
     filenames <- unlist(filenames)
     # log
-    .sits_log(output_dir = output_dir,
+    .sits_debug_log(output_dir = output_dir,
               event      = "end classification")
 
     # join predictions
-    .sits_raster_api_merge(
+    .raster_merge(
         in_files = filenames,
         out_file = probs_cube$file_info[[1]]$path,
         format = "GTiff",
-        gdal_datatype = .sits_raster_api_gdal_datatype("INT2U"),
-        gdal_options = .sits_config_gtiff_default_options(),
+        gdal_datatype = .raster_gdal_datatype("INT2U"),
+        gdal_options = .config_gtiff_default_options(),
         overwrite = TRUE
     )
 
     # log
-    .sits_log(output_dir = output_dir,
+    .sits_debug_log(output_dir = output_dir,
               event      = "merge")
 
     # show final time for classification

@@ -1,5 +1,5 @@
 #' @title Compute the 2-D Gaussian kernel
-#' @name .sits_gauss_kernel
+#' @name .sits_smooth_gauss_kernel
 #' @keywords internal
 #'
 #' @param window_size   Size of the neighbourhood.
@@ -7,7 +7,7 @@
 #'
 #' @return  returns a squared matrix filled with Gaussian function
 #'
-.sits_gauss_kernel <- function(window_size, sigma = 1) {
+.sits_smooth_gauss_kernel <- function(window_size, sigma = 1) {
 
     stopifnot(window_size %% 2 != 0)
 
@@ -21,7 +21,7 @@
 }
 
 #' @title Estimate the number of blocks to run .sits_split_cluster
-#' @name .sits_probs_blocks_size_estimate
+#' @name .sits_smooth_blocks_size_estimate
 #' @keywords internal
 #'
 #' @param cube         input data cube
@@ -32,7 +32,7 @@
 #'             - multicores theoretical upper bound;
 #'             - block x_size (horizontal) and y_size (vertical)
 #'
-.sits_probs_blocks_size_estimate <- function(cube, multicores, memsize) {
+.sits_smooth_blocks_size_estimate <- function(cube, multicores, memsize) {
 
     # precondition 1 - check if cube has probability data
     assertthat::assert_that(
@@ -43,7 +43,7 @@
     x_size <- cube$ncols
     y_size <- cube$nrows
     n_layers <- length(cube$labels[[1]])
-    bloat_mem <- .sits_config_memory_bloat()
+    bloat_mem <- .config_memory_bloat()
     n_bytes <- 8
 
     # total memory needed to do all work in GB
@@ -84,7 +84,7 @@
     return(blocks)
 }
 #' @title Parallel processing of classified images
-#' @name .sits_map_layer_cluster
+#' @name .sits_smooth_map_layer
 #' @keywords internal
 #'
 #' @description Process chunks of raster bricks individually in parallel.
@@ -104,15 +104,15 @@
 #'
 #' @return  RasterBrick object
 #'
-.sits_map_layer_cluster <- function(cube,
-                                    cube_out,
-                                    overlapping_y_size = 0,
-                                    func,
-                                    func_args = NULL,
-                                    multicores = 1,
-                                    memsize = 1,
-                                    gdal_datatype,
-                                    gdal_options, ...) {
+.sits_smooth_map_layer <- function(cube,
+                                   cube_out,
+                                   overlapping_y_size = 0,
+                                   func,
+                                   func_args = NULL,
+                                   multicores = 1,
+                                   memsize = 1,
+                                   gdal_datatype,
+                                   gdal_options, ...) {
 
     # precondition 1 - check if cube has probability data
     assertthat::assert_that(
@@ -149,16 +149,16 @@
     .sits_cluster_worker_fun <- function(block, in_file, func, args) {
 
         # open brick
-        b <- .sits_raster_api_open_rast(in_file)
+        b <- .raster_open_rast(in_file)
 
         # create extent
         blk_overlap <- list(row = block$r1,
                             nrows = block$r2 - block$r1 + 1,
                             col = 1,
-                            ncols = .sits_raster_api_ncols(b))
+                            ncols = .raster_ncols(b))
 
         # crop adding overlaps
-        chunk <- .sits_raster_api_crop(r_obj = b, block = blk_overlap)
+        chunk <- .raster_crop(r_obj = b, block = blk_overlap)
 
         # process it
         res <- do.call(func, args = c(list(chunk = chunk), args))
@@ -168,22 +168,22 @@
         blk_no_overlap <- list(row = block$o1,
                                nrows = block$o2 - block$o1 + 1,
                                col = 1,
-                               ncols = .sits_raster_api_ncols(res))
+                               ncols = .raster_ncols(res))
 
         # crop removing overlaps
-        res <- .sits_raster_api_crop(res, block = blk_no_overlap)
+        res <- .raster_crop(res, block = blk_no_overlap)
 
         # export to temp file
         filename <- tempfile(tmpdir = dirname(cube$file_info[[1]]$path),
                              fileext = ".tif")
 
         # save chunk
-        .sits_raster_api_write_rast(
+        .raster_write_rast(
             r_obj = res,
             file = filename,
             format = "GTiff",
-            data_type = .sits_raster_api_data_type("FLT4S"),
-            gdal_options = .sits_config_gtiff_default_options(),
+            data_type = .raster_data_type("FLT4S"),
+            gdal_options = .config_gtiff_default_options(),
             overwrite = TRUE
         )
 
@@ -227,7 +227,7 @@
         # merge to save final result
 
         suppressWarnings(
-            .sits_raster_api_merge(
+            .raster_merge(
                 in_files = tmp_blocks,
                 out_file = out_file,
                 format = "GTiff",
@@ -261,9 +261,9 @@
         out_files <- out_file_row$file_info[[1]]$path
 
         # compute how many tiles to be computed
-        block_size <- .sits_probs_blocks_size_estimate(cube = cube_row,
-                                                       multicores = multicores,
-                                                       memsize = memsize)
+        block_size <- .sits_smooth_blocks_size_estimate(cube = cube_row,
+                                                        multicores = multicores,
+                                                        memsize = memsize)
 
         # for now, only vertical blocks are allowed, i.e. 'x_blocks' is 1
         blocks <- .sits_compute_blocks(

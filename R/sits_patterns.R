@@ -55,7 +55,7 @@ sits_patterns <- function(data = NULL, freq = 8, formula = y ~ s(x), ...) {
     # function that is used to be called as a value from another function
     result_fun <- function(tb) {
         # does the input data exist?
-        .sits_test_tibble(tb)
+        .sits_tibble_test(tb)
 
         # find the bands of the data
         bds <- sits_bands(tb)
@@ -68,7 +68,7 @@ sits_patterns <- function(data = NULL, freq = 8, formula = y ~ s(x), ...) {
 
         # align all samples to the same time series intervals
         sample_dates <- lubridate::as_date(sits_timeline(tb))
-        tb <- .sits_align_dates(tb, sample_dates)
+        tb <- .sits_tibble_align_dates(tb, sample_dates)
 
         # extract the start and and dates
         start_date <- lubridate::as_date(utils::head(sample_dates, n = 1))
