@@ -9,6 +9,9 @@ steps:
   - R -e 'pacman::p_load(desc::desc_get_deps()[desc::desc_get_deps()[["type"]] != "Depends",][["package"]], install = T, update = F, character.only = T)'
   - R CMD build .
   - set -e; R CMD check *.tar.gz --as-cran >&1 | tee stdfile && cat stdfile | (grep -E "(WARNING|ERROR)" > /dev/null) && exit 1 || exit 0
+  when:
+    event:
+    - pull_request
 
 - name: coverage
   pull: always
@@ -28,5 +31,7 @@ steps:
   - R -e 'pacman::p_load(desc::desc_get_deps()[desc::desc_get_deps()[["type"]] != "Depends",][["package"]], install = T, update = F, character.only = T)'
   - R -e 'withr::with_envvar(c(NOT_CRAN="true"), covr::codecov(quiet = FALSE))'
   when:
+    branch:
+    - dev
     event:
     - push
