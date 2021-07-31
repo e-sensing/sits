@@ -26,35 +26,6 @@ sits_config <- function() {
     sits_env$config <- yaml::yaml.load_file(input = yml_file,
                                             merge.precedence = "override")
 
-    # try to find a valid user configuration file
-    user_yml_file <- .config_user_file()
-
-    if (file.exists(user_yml_file)) {
-        config_user <- yaml::yaml.load_file(input = user_yml_file,
-                                            merge.precedence = "override")
-        sits_env$config <- utils::modifyList(x = sits_env$config,
-                                             val = config_user)
-    }
-
-    sits_config_info()
-
-    return(invisible(NULL))
-}
-
-#' @title Information about configuration file
-#' @name .config_info
-#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
-#'
-#' @description Displays the local of sits configuration file. For details
-#' on how to set the configuration file, use \code{\link[sits]{sits_config}}.
-#'
-#' @return a message
-#' @export
-sits_config_info <- function() {
-
-    # get and check the default configuration file path
-    yml_file <- .config_file()
-
     message(paste0("Using configuration file: ", yml_file))
     message(paste0("Using raster package: ", .config_raster_pkg()))
 
@@ -63,6 +34,10 @@ sits_config_info <- function() {
 
     if (file.exists(user_yml_file)) {
         message(paste("Additional configurations found in", user_yml_file))
+        config_user <- yaml::yaml.load_file(input = user_yml_file,
+                                            merge.precedence = "override")
+        sits_env$config <- utils::modifyList(x = sits_env$config,
+                                             val = config_user)
     } else {
         message(paste("To provide additional configurations, create an",
                       "YAML file and inform its path to environment variable",
@@ -150,12 +125,10 @@ NULL
 
     # check if the file exists
     if (nchar(yml_file) > 0) {
-        .check_file(
-            yml_file,
-            msg = sprintf(paste(
-                "invalid configuration file informed in",
-                "SITS_USER_CONFIG_FILE"),
-                yml_file)
+        .check_warn(
+            .check_file(yml_file,
+                        msg = paste("invalid configuration file informed in",
+                                    "SITS_USER_CONFIG_FILE"))
         )
     }
 
@@ -176,7 +149,7 @@ NULL
     .check_that(
         !is.null(res),
         local_msg = paste("key", paste0(key, collapse = "$"),
-                          "not found. Please, check the config file.")
+                          "not found. Please, check the config file")
     )
 
     return(res)

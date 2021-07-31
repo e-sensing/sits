@@ -9,7 +9,6 @@
             utils::packageDescription("sits")$Version
         )
     )
-    sits_config_info()
 }
 
 .onLoad <- function(lib, pkg) {
