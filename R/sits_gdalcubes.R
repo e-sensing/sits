@@ -58,9 +58,13 @@
     # add file info and path db columns
     cube_gc <- tibble::add_column(cube_gc, file_info = list(file_info))
 
-    for (band in tile$bands[[1]]) {
+    for (band in .cube_bands(tile)) {
         # create a raster_cube object from gdalcubes
         cube_brick <- .sits_gc_brick(tile, img_col, cv, cloud_mask)
+
+        band <- .source_bands_to_source(source = .cube_source(tile),
+                                        collection = .cube_collection(tile),
+                                        bands = band)
 
         message(paste("Writing images of band", band, "of tile",
                       tile$tile))
@@ -161,8 +165,8 @@
 #'  about the mask band.
 .sits_gc_cloud_mask <- function(tile) {
 
-    bands <- sits_bands(tile)
-    cloud_band <- .sits_config_cloud_band(tile)
+    bands <- .cube_bands(tile)
+    cloud_band <- .config_cloud()
 
     # checks if the cube has a cloud band
     assertthat::assert_that(
@@ -171,10 +175,18 @@
                     "mask, please include the cloud band in your cube")
     )
 
+    cloud_source <- .source_bands_to_source(
+        source = .cube_source(cube = tile),
+        collection = .cube_collection(cube = tile),
+        bands = cloud_band)
+
     # create a image mask object
     mask_values <- gdalcubes::image_mask(
-        cloud_band,
-        values = .sits_config_cloud_values(tile)
+        cloud_source,
+        values = .config_cloud_interp_values(
+            source = .cube_source(cube = tile),
+            collection = .cube_collection(cube = tile)
+        )
     )
 
     return(mask_values)

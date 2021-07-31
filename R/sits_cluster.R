@@ -19,7 +19,7 @@
 #'                        Can be any `hclust` method (see `hclust`).
 #'                        Default is 'ward.D2'.
 #' @param k               Desired number of clusters (overrides default value)
-#' @param colors          Color scheme as per `sits_color_name` function.
+#' @param colors          Color scheme as per .sits_brewer_color_name` function.
 #' @param .plot           Plot the dendrogram?
 #' @param  ...            Additional parameters to be passed
 #'                        to dtwclust::tsclust() function.
@@ -44,10 +44,10 @@ sits_cluster_dendro <- function(samples = NULL,
                                 .plot = TRUE, ...) {
 
     # verify if data is OK
-    .sits_test_tibble(samples)
+    .sits_tibble_test(samples)
 
     # bands in sits are uppercase
-    bands <- .sits_samples_bands_check(samples, bands)
+    bands <- .sits_tibble_bands_check(samples, bands)
 
     # calculate the dendrogram object
     message("calculating dendrogram...")

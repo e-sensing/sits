@@ -29,7 +29,7 @@ Default is 'ward.D2'.}
 
 \item{k}{Desired number of clusters (overrides default value)}
 
-\item{colors}{Color scheme as per `sits_color_name` function.}
+\item{colors}{Color scheme as per .sits_brewer_color_name` function.}
 
 \item{.plot}{Plot the dendrogram?}
 

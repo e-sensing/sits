@@ -2,6 +2,13 @@ context("Data input")
 
 test_that("Creating a WTSS data cube", {
   testthat::skip_on_cran()
+
+  # check "BDC_ACCESS_KEY" - mandatory one per user
+  bdc_access_key <- Sys.getenv("BDC_ACCESS_KEY")
+
+  testthat::skip_if(nchar(bdc_access_key) == 0,
+                    message = "No BDC_ACCESS_KEY defined in environment.")
+
   cube_wtss <- suppressMessages(
     sits_cube(
       source = "WTSS",
@@ -19,6 +26,13 @@ test_that("Creating a WTSS data cube", {
 
 test_that("Reading a CSV file from WTSS", {
   testthat::skip_on_cran()
+
+  # check "BDC_ACCESS_KEY" - mandatory one per user
+  bdc_access_key <- Sys.getenv("BDC_ACCESS_KEY")
+
+  testthat::skip_if(nchar(bdc_access_key) == 0,
+                    message = "No BDC_ACCESS_KEY defined in environment.")
+
   csv_file <- system.file("extdata/samples/samples_matogrosso.csv",
                           package = "sits"
   )
@@ -55,6 +69,13 @@ test_that("Reading a CSV file from WTSS", {
 
 test_that("Reading a POLYGON shapefile from WTSS", {
   testthat::skip_on_cran()
+
+  # check "BDC_ACCESS_KEY" - mandatory one per user
+  bdc_access_key <- Sys.getenv("BDC_ACCESS_KEY")
+
+  testthat::skip_if(nchar(bdc_access_key) == 0,
+                    message = "No BDC_ACCESS_KEY defined in environment.")
+
   cube_wtss <- suppressMessages(
     sits_cube(source = "WTSS", collection = "MOD13Q1-6")
   )
@@ -68,7 +89,9 @@ test_that("Reading a POLYGON shapefile from WTSS", {
   parcels <- sits_get_data(cube_wtss,
                            file = shp_file,
                            shp_attr = "ext_na",
-                           .n_shp_pol = 3
+                           .n_shp_pol = 3,
+                           start_date = "2019-01-01",
+                           end_date = "2019-06-01"
   )
 
   sf_shape <- sf::read_sf(shp_file)
@@ -84,6 +107,13 @@ test_that("Reading a POLYGON shapefile from WTSS", {
 
 test_that("Reading a POINT shapefile from WTSS", {
   testthat::skip_on_cran()
+
+  # check "BDC_ACCESS_KEY" - mandatory one per user
+  bdc_access_key <- Sys.getenv("BDC_ACCESS_KEY")
+
+  testthat::skip_if(nchar(bdc_access_key) == 0,
+                    message = "No BDC_ACCESS_KEY defined in environment.")
+
   cube_wtss <- suppressMessages(
     sits_cube(source = "WTSS", collection = "MOD13Q1-6")
   )
@@ -292,16 +322,13 @@ test_that("Test reading shapefile from BDC", {
         name = "cbers_stac",
         bands = c("NDVI", "EVI"),
         tiles = c("022024", "022025"),
-        url = "https://brazildatacube.dpi.inpe.br/stac/",
         start_date = "2018-09-01",
-        end_date = "2019-08-28"
+        end_date = "2018-10-28"
     )
 
     if (purrr::is_null(cbers_stac_tile)) {
           skip("BDC is not accessible")
     }
-    if (!(sits:::.sits_config_cube_file_access(cbers_stac_tile)))
-         skip("BDC file is not accessible")
 
     shp_path <- system.file("extdata/shapefiles/bdc-test/samples.shp",
                             package = "sits"

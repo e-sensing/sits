@@ -1,135 +1,6 @@
-#' @title Provides information about one cube of the SATVEG time series service
-#' @name .sits_satveg_cube
-#' @keywords internal
-#'
-#' @description Creates a tibble with metadata about a given cube.
-#'
-#' @param collection      SATVEG collection to be used.
-.sits_satveg_cube <- function(collection) {
-
-    assertthat::assert_that(
-        collection %in% c("terra", "aqua", "comb"),
-        msg = ".sits_satveg_cube: invalid SATVEG collection"
-    )
-
-    satellite <- "TERRA"
-    sensor <- "MODIS"
-
-    # get the bands
-    bands <- .sits_config_satveg_bands()
-
-    # get the size of the cube
-    size <- .sits_config_satveg_size(collection)
-    nrows <- as.integer(size["nrows"])
-    ncols <- as.integer(size["ncols"])
-
-    # get the bounding box of the cube
-    bbox <- .sits_config_satveg_bbox(collection)
-    xmin <- as.numeric(bbox["xmin"])
-    xmax <- as.numeric(bbox["xmax"])
-    ymin <- as.numeric(bbox["ymin"])
-    ymax <- as.numeric(bbox["ymax"])
-
-    # get the projection of the SATVEG data
-    crs <- .sits_config_satveg_projection(collection)
-
-    # get the resolution of the product
-    res <- .sits_config_resolution(sensor)
-    xres <- res["xres"]
-    yres <- res["yres"]
-
-    # create a tibble to store the metadata
-    cube_satveg <- .sits_cube_create(
-        name = "satveg",
-        source = "SATVEG",
-        collection = collection,
-        satellite = satellite,
-        sensor = sensor,
-        bands = bands,
-        nrows = nrows,
-        ncols = ncols,
-        xmin = xmin,
-        xmax = xmax,
-        ymin = ymin,
-        ymax = ymax,
-        xres = xres,
-        yres = yres,
-        crs = crs
-    )
-
-    class(cube_satveg) <- c("satveg_cube", class(cube_satveg))
-
-    return(cube_satveg)
-}
-
-#' @title Obtain one timeSeries from the EMBRAPA SATVEG server
-#' @name .sits_from_satveg
-#' @keywords internal
-#' @author Julio Esquerdo, \email{julio.esquerdo@@embrapa.br}
-#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
-#'
-#' @description Returns one set of MODIS time series provided by the EMBRAPA
-#' Given a location (lat/long), retrieve the "ndvi" and "evi" bands from SATVEG
-#' If start and end date are given, the function
-#' filters the data to limit the temporal interval.
-#'
-#' @param cube            The data cube metadata that describes the SATVEG data.
-#' @param longitude       Longitude of the chosen location.
-#' @param latitude        Latitude of the chosen location.
-#' @param start_date      The start date of the period.
-#' @param end_date        The end date of the period.
-#' @param label           Label to attach to the time series (optional).
-#' @return A sits tibble.
-.sits_from_satveg <- function(cube,
-                              longitude,
-                              latitude,
-                              start_date = NULL,
-                              end_date = NULL,
-                              label = "NoClass") {
-
-    # check parameters
-    assertthat::assert_that(
-        !purrr::is_null(longitude),
-        msg = "sits_from_satveg: Missing longitude info"
-    )
-    assertthat::assert_that(
-        !purrr::is_null(latitude),
-        msg = "sits_from_satveg: Missing latitude info"
-    )
-
-    # retrieve the time series
-    ts <- .sits_ts_from_satveg(longitude, latitude, cube$collection)
-
-    # filter the dates
-    if (!purrr::is_null(start_date) & !purrr::is_null(end_date)) {
-        ts <- dplyr::filter(ts, dplyr::between(
-            ts$Index,
-            start_date, end_date
-        ))
-    } else {
-        start_date <- as.Date(ts$Index[1])
-        end_date <- as.Date(ts$Index[nrow(ts)])
-    }
-
-    # create a tibble to store the SATVEG data
-    data <- .sits_tibble()
-    # add one row to the tibble
-    data <- tibble::add_row(data,
-                            longitude = longitude,
-                            latitude = latitude,
-                            start_date = start_date,
-                            end_date = end_date,
-                            label = label,
-                            cube = cube$name,
-                            time_series = list(ts)
-    )
-    # rename the SATVEG bands to uppercase
-    sits_bands(data) <- .sits_config_satveg_bands()
-    return(data)
-}
 
 #' @title Retrieve a time series from the SATVEG service
-#' @name .sits_ts_from_satveg
+#' @name .sits_satveg_ts_from_txt
 #' @keywords internal
 #' @author Julio Esquerdo, \email{julio.esquerdo@@embrapa.br}
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
@@ -138,9 +9,9 @@
 #'
 #' @param longitude       The longitude of the chosen location.
 #' @param latitude        The latitude of the chosen location.
-#' @param collection      SATVEG Image Collection
+#' @param cube            SATVEG cube
 #' @return                A tibble containing a time series
-.sits_ts_from_satveg <- function(longitude, latitude, name) {
+.sits_satveg_ts_from_txt <- function(longitude, latitude, cube) {
     # set the prefilter
     .prefilter <- 1
     # the parameter filter is not used
@@ -148,10 +19,11 @@
     filter_par <- ""
 
     # URL to access SATVEG services
-    url <- .sits_config_satveg_url()
+    url <- .config_source_url(source = .cube_source(cube = cube))
 
     # bands available in SATVEG
-    bands <- .sits_config_satveg_bands()
+    bands <- .config_bands_band_name(source = .cube_source(cube = cube),
+                                     collection = .cube_collection(cube = cube))
     # bands in SATVEG are lowercase
     bands <- tolower(bands)
     # vector to hold the timeline (used once only)
@@ -161,10 +33,10 @@
     # read each of the bands separately
     ts_bands_lst <- purrr::map2(bands, get_times, function(b, gt) {
         # Build the URL to retrieve the time series
-        url_ts <- paste0(
-            url, b, "/ponto", "/", longitude, "/", latitude, "/",
-            name, "/", .prefilter, "/", filter, "/", filter_par
-        )
+        url_ts <- paste(url, b, "ponto", longitude, latitude,
+                        .cube_collection(cube = cube), .prefilter,
+                        filter,filter_par, sep = "/")
+
         # Get the data from SATVEG service
         satveg <- httr::GET(url_ts)
 
@@ -257,7 +129,7 @@
     band <- "ndvi"
     cube <- "terra"
     # URL to access SATVEG services
-    url <- .sits_config_satveg_url()
+    url <- .config_source_url(source = "SATVEG")
 
     # Build the URL to retrieve the time series
     url_ts <- paste0(

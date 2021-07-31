@@ -19,7 +19,7 @@
 \item{cutree_height}{dashed horizontal line to be drawn
 indicating the height of dendrogram cutting.}
 
-\item{colors}{color scheme as per `sits_color_name` function.}
+\item{colors}{color scheme as per .sits_brewer_color_name` function.}
 }
 \value{
 The plot itself.

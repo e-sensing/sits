@@ -22,7 +22,7 @@
 sits_filter <- function(data, filter = sits_whittaker()) {
 
     # is the input data a valid sits tibble?
-    .sits_test_tibble(data)
+    .sits_tibble_test(data)
 
     # is the train method a function?
     assertthat::assert_that(
@@ -198,7 +198,7 @@ sits_linear_interp <- function(data = NULL, n = 23) {
 sits_missing_values <- function(data, miss_value) {
 
     # test if data has data
-    .sits_test_tibble(data)
+    .sits_tibble_test(data)
 
     # remove missing values by NAs
     result <- sits_apply(data, fun = function(band) {

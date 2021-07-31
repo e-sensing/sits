@@ -5,8 +5,8 @@
 #'
 #' @description Creates a data cube based on spatial and temporal restrictions
 #' on a collection available in repositories such as AWS, Brazil Data Cube
-#' (BDC), and Digital Earth Africa (DEA), using information provided by STAC
-#' end points. Users can also create data cubes from local files.
+#' (BDC), and Digital Earth Africa (DEA) using information provided by STAC
+#' endpoints. Users can also create data cubes from local files.
 #'
 #' A data cube does not contain actual data; it points to the files where the
 #' required data is archived. Other functions (e.g. `sits_classify`) use
@@ -22,22 +22,20 @@
 #'   see also https://www.digitalearthafrica.org/}
 #'  \item{"AWS": }{Amazon Web Services (AWS),
 #'   see also https://earth-search.aws.element84.com/v0/ }
-#'  \item{"USGS": }{United States Geological Survey (USGS),
-#'   see also https://landsatlook.usgs.gov/sat-api/stac/}
 #'  \item{"LOCAL": }{Defines a cube from on a set of local files.}
 #'  \item{"PROBS": }{Defines a cube to from a set of classified image files}.
 #'  \item{"SATVEG": }{Defines a cube to use the SATVEG web service,
 #'   see also https://www.satveg.cnptia.embrapa.br/satveg/login.html}
 #'  }
 #'
-#' For big data sources such as AWS, BDC and DEA, users need to provide:
+#' For big data sources such as AWS, BDC, and DEA users need to provide:
 #' \itemize{
 #' \item{collection: }{Collections are the highest level of aggregation on
 #' bug data repositories. Each repository has its own set of collections,
-#' described by STAC. To use STAC for quering repositories, please use the
-#' package `rstac`.}
+#' described by STAC. To use STAC for querying repositories, please see the
+#' package `rstac` for examples.}
 #' \item{spatial extent: }{The spatial extent of the data cube can be defined
-#' in two ways: (a) a region of interest(`roi`) in WGS 84 coordinates;
+#' in two ways: (a) a region of interest(`bbox`) in WGS 84 coordinates;
 #' (b) a set of tiles defined according the collection tiling system.}
 #' \item{temporal extent: }{The start and end date of the cube}
 #' }
@@ -62,12 +60,8 @@
 #' @note For DEA, sits currently only works with collections 'ga_s2_gm' and
 #' 's2_l2a'. DEA users also need to provide their AWS credentials.
 #'
-#' @note For USGS, use the 'landsat-c2l2-sr' collection to consult the Landsat-8
-#' satellite images. In order to do so, you need to provide the AWS keys as
-#' mentioned above.
-#'
 #'@note BDC users need to provide their credentials using environmental
-#' variables.To create your credencials, please see
+#' variables.To create your credentials, please see
 #'  "https://brazildatacube.dpi.inpe.br/portal/explore"
 #' # Sys.setenv(
 #' # "BDC_ACCESS_KEY" = <your_bdc_access_key>
@@ -78,7 +72,7 @@
 #' tiles of a spatial reference system.
 #' Each file should contain a single image band for a single date.
 #' File names must include date and band information, since times and bands
-#' are deduced from filenames. For example: "CBERS-4_022024_B13_2018-02-02.tif"
+#' are deduced from file names. For example: "CBERS-4_022024_B13_2018-02-02.tif"
 #' and "cube_20LKP_B02_2018-07-18.jp2" are accepted names.
 #' The user has to provide parsing information to allow `sits`
 #' to extract the tile, the band and the date. In the examples above,
@@ -92,41 +86,41 @@
 #'  both satellites).
 #'
 #'
-#' @param source            Data source (one of "SATVEG", "LOCAL",
-#'                          "BDC", "AWS", "DEAFRICA", "PROBS").
-#' @param ...               Other parameters to be passed for specific types
+#' @param source            Data source (one of "AWS", "BDC", "DEAFRICA",
+#'                          "LOCAL", "PROBS", "SATVEG", "USGS", "WTSS").
+#' @param ...               Other parameters to be passed for specific types.
 #' @param name              Name of the output data cube.
-#' @param url               URL for the STAC endpoint of the data source
-#' @param collection        Collection to be searched in the data source
-#' @param bands             Bands to be included
+#' @param url               URL for the STAC endpoint of the data source.
+#' @param collection        Collection to be searched in the data source.
+#' @param bands             Bands to be included.
 #' @param tiles             Tiles from the collection to be included in the
-#'                          data cube
-#' @param bbox              Area of interest (see details below)
+#'                          data cube.
+#' @param bbox              Area of interest (see details below).
 #' @param start_date        Initial date for the cube (optional).
-#' @param end_date          Final date for the cube  (optional)
-#' @param s2_resolution     Resolution of S2 images ("10m", "20m" or "60m")
-#'                          used to build cubes (only for AWS cubes)
-#' @param satellite         Satellite that produced the images.
-#'                          (only for creating data cubes from local files)
+#' @param end_date          Final date for the cube  (optional).
+#' @param s2_resolution     Resolution of S2 images ("10m", "20m" or "60m").
+#'                          used to build cubes (only for AWS cubes).
+#' @param satellite         Satellite that produced the images
+#'                          (only for creating data cubes from local files).
 #' @param sensor            Sensor that produced the images.
 #' @param data_dir          directory where local data is located
-#'                          (only for creating data cubes from local files)
+#'                          (only for creating data cubes from local files).
 #' @param delim             delimiter for parsing files without STAC information
-#'                          (only for creating data cubes from local files)
+#'                          (only for creating data cubes from local files).
 #' @param parse_info        parsing information for files without STAC
 #'                          information
-#'                          (only for creating data cubes from local files)
+#'                          (only for creating data cubes from local files).
 #' @param probs_files       File names (used for creating a cube from
-#'                          probabilities)
-#' @param probs_labels      Labels associated to a probabilities cube
+#'                          probabilities).
+#' @param probs_labels      Labels associated to a probabilities cube.
 #'
-#' @details  The "bbox" parameters allows a selection of an area of interest.
+#' @details The \code{bbox} parameter allows a selection of an area of interest.
 #' Either using a named \code{vector} ("xmin", "ymin", "xmax", "ymax") with
 #' values in WGS 84, a \code{sfc} or \code{sf} object from sf package, or a
 #' GeoJSON geometry (RFC 7946). Note that this parameter does not crop a
 #' region, but only selects the images that intersect with it.
 #'
-#' @return                  The description of a data cube
+#' @return The description of a data cube
 #'
 #' @examples
 #' \dontrun{-=-
@@ -169,7 +163,7 @@
 #'                       name = "deafrica_cube",
 #'                       collection = "s2_l2a",
 #'                       bands = c("B04", "B08"),
-#'                       roi = c("xmin" = 17.379,
+#'                       bbox = c("xmin" = 17.379,
 #'                               "ymin" = 1.1573,
 #'                               "xmax" = 17.410,
 #'                                "ymax" = 1.1910),
@@ -190,22 +184,6 @@
 #'                       start_date = as.Date("2018-07-18"),
 #'                       end_date = as.Date("2018-07-23"),
 #'                       s2_resolution = 20
-#' )
-#'
-#' # --- Access to Landsat-8 level 2 data in AWS
-#' # Provide your AWS credentials as environment variables
-#' Sys.setenv(
-#'     "AWS_ACCESS_KEY_ID" = <your_aws_access_key>,
-#'     "AWS_SECRET_ACCESS_KEY" = <your_aws_secret_access_key>
-#' )
-#'
-#'
-#'l8_cube <- sits_cube(source = "USGS",
-#'                      name = "L8_CUBE_140048_140045_18_2019",
-#'                      collection = "landsat-c2l2-sr",
-#'                      tiles = c("140048", "140045"),
-#'                      start_date = as.Date("2019-01-01"),
-#'                      end_date = as.Date("2019-12-31"),
 #' )
 #'
 #' # --- Create a cube based on a stack of CBERS data
@@ -250,10 +228,10 @@
 #'
 sits_cube <- function(source, ...) {
 
-    spec_class <- .sits_config_cube_class(source)
-    class(source) <- c(spec_class, class(source))
+    s <- .source_new(source = source)
+
     # Dispatch
-    UseMethod("sits_cube", source)
+    UseMethod("sits_cube", s)
 }
 
 #' @rdname sits_cube
@@ -272,11 +250,6 @@ sits_cube.wtss_cube <- function(source = "WTSS", ...,
         msg = "sits_cube: WTSS collection must be provided."
     )
 
-    # precondition - is the url correct?
-    if (purrr::is_null(url)) {
-        url <- .sits_config_wtss_bdc()
-    }
-
     # Pre-condition - try to find the access key as an environment variable
     bdc_access_key <- Sys.getenv("BDC_ACCESS_KEY")
     assertthat::assert_that(
@@ -284,29 +257,19 @@ sits_cube.wtss_cube <- function(source = "WTSS", ...,
         msg = "sits_cube: BDC_ACCESS_KEY needs to be provided"
     )
 
-    # Pre-condition
-    wtss_ok <- .sits_wtss_check(URL = url, name = collection)
+    .source_access_test(source, collection, ...)
 
-    # create a cube
-    if (wtss_ok) {
-        cube <- .sits_wtss_cube(URL = url,
-                                name = name,
-                                collection = collection)
-    } else {
-        message("WTSS service not responding")
-        return(NULL)
-    }
-
-    return(cube)
+    .source_cube(source = source, ...,
+                 collection = collection,
+                 name = name,
+                 bands = bands)
 }
 
 #' @rdname sits_cube
 #'
 #' @export
-#'
 sits_cube.bdc_cube <- function(source = "BDC", ...,
                                name = "bdc_cube",
-                               url = NULL,
                                collection,
                                bands = NULL,
                                tiles = NULL,
@@ -314,88 +277,58 @@ sits_cube.bdc_cube <- function(source = "BDC", ...,
                                start_date = NULL,
                                end_date = NULL) {
 
-    # require package
-    if (!requireNamespace("rstac", quietly = TRUE)) {
-        stop(paste("Please install package rstac from CRAN:",
-                   "install.packages('rstac')"), call. = FALSE
-        )
-    }
-    # precondition - is the url correct?
-    if (purrr::is_null(url)) {
-        url <- .sits_config_bdc_stac()
-    }
-    # test if BDC is accessible
-    if (!(.sits_config_cube_access(url, "BDC")))
-        return(NULL)
+    # TODO: check all user parameters and environment
 
-    # precondition - is the collection name valid?
-    assertthat::assert_that(
-        !purrr::is_null(collection),
-        msg = "sits_cube: BDC collection must be provided"
-    )
-
+    # precondition
     assertthat::assert_that(
         length(collection) == 1,
-        msg = "sits_cube: only one BDC collection should be specified"
+        msg = "sits_cube.bdc_cube: only one BDC collection should be specified."
     )
 
-    # Try to find the access key as an environment variable
+    # precondition
+    assertthat::assert_that(
+        collection %in% .config_collections(source = source),
+        msg = sprintf(paste("sits_cube.bdc_cube: collection '%s' not found in",
+                            "BDC source.\nPlease, check sits config with",
+                            "?sits_config command."), collection)
+    )
+
+    # try to find the access key as an environment variable
     bdc_access_key <- Sys.getenv("BDC_ACCESS_KEY")
     assertthat::assert_that(
         nchar(bdc_access_key) != 0,
-        msg = "sits_cube: BDC_ACCESS_KEY needs to be provided"
+        msg = "sits_cube.bdc_cube: BDC_ACCESS_KEY needs to be provided"
     )
 
-    # retrieve information from the collection
-    collection_info <- .sits_stac_collection(
-        url = url,
-        collection = collection,
-        bands = bands, ...
+    if (is.null(bands))
+        bands <- .config_bands(source = source,
+                               collection = collection)
+
+    assertthat::assert_that(
+        all(bands %in% c(.config_bands(source = source, collection = collection),
+                         .config_bands_band_name(source = source,
+                                                 collection = collection))),
+        msg = "sits_cube.bdc_cube: invalid bands.\nPlease the provided bands."
     )
 
-    # retrieve item information
-    items_info <- .sits_stac_items(
-        url = url,
-        collection = collection,
-        tiles = tiles,
-        roi = bbox,
-        start_date = start_date,
-        end_date = end_date, ...
-    )
+    # check if source can be access
+    .source_access_test(source = source,
+                        collection = collection, ...,
+                        bands = bands)
 
-    # creating a group of items per tile
-    items_group <- .sits_stac_group(items_info,
-                                    fields = c("properties", "bdc:tiles")
-    )
-
-    tiles <- purrr::map(items_group, function(items) {
-
-        # retrieve the information from STAC
-        stack <- .sits_stac_items_info(items, collection_info$bands)
-
-        # add the information for each tile
-        cube_t <- .sits_stac_tile_cube(
-            name = name,
-            collection = collection,
-            collection_info = collection_info,
-            items = items,
-            file_info = stack
-        )
-        return(cube_t)
-    })
-    cube <- dplyr::bind_rows(tiles)
-
-    # include access key information in file
-    cube <- .sits_bdc_access_info(cube, bdc_access_key)
-
-    class(cube) <- c("raster_cube", class(cube))
-    return(cube)
+    .source_cube(source = source,
+                 collection = collection,
+                 name = name,
+                 bands = bands,
+                 tiles = tiles,
+                 bbox = bbox,
+                 start_date = start_date,
+                 end_date = end_date, ...)
 }
 
 #' @rdname sits_cube
 #'
 #' @export
-#'
 sits_cube.deafrica_cube <- function(source = "DEAFRICA", ...,
                                     name = "deafrica_cube",
                                     url = NULL,
@@ -405,85 +338,55 @@ sits_cube.deafrica_cube <- function(source = "DEAFRICA", ...,
                                     bbox = NULL,
                                     start_date = NULL,
                                     end_date = NULL) {
-    # require package
-    if (!requireNamespace("rstac", quietly = TRUE)) {
-        stop(paste("Please install package rstac from CRAN:",
-                   "install.packages('rstac')"), call. = FALSE
-        )
-    }
 
-    # DEA runs on AWS
+    # precondition
+    assertthat::assert_that(
+        length(collection) == 1,
+        msg = paste("sits_cube.deafrica_cube: only one BDC collection should",
+                    "be specified.")
+    )
+
+    # precondition
+    assertthat::assert_that(
+        collection %in% .config_collections(source = source),
+        msg = sprintf(paste("sits_cube.deafrica_cube: collection '%s' not",
+                            "found in DEAfrica source.\nPlease, check sits",
+                            "config with ?sits_config command."), collection)
+    )
+
     # precondition - is AWS access available?
-    aws_access_ok <- .sits_aws_check_access(source)
-    if (!aws_access_ok)
-        return(NULL)
+    .check_aws_environment(source, collection)
 
-    # precondition - is the url correct?
-    if (purrr::is_null(url)) {
-        url <- .sits_config_deafrica_stac()
-    }
-
-    # test if DEA is accessible
-    if (!(.sits_config_cube_access(url, "DEAFRICA")))
-        return(NULL)
-
-    # precondition - is the collection name valid?
-    assertthat::assert_that(
-        !purrr::is_null(collection),
-        msg = paste("sits_cube: DEAfrica collection must",
-                    "be provided")
-    )
+    if (is.null(bands))
+        bands <- .config_bands(source = source,
+                               collection = collection)
 
     assertthat::assert_that(
-        !(length(collection) > 1),
-        msg = paste("sits_cube: for STAC_DEAFRICA one",
-                    "collection should be specified")
+        all(bands %in% c(.config_bands(source = source, collection = collection),
+                         .config_bands_band_name(source = source,
+                                                 collection = collection))),
+        msg = paste("sits_cube.deafrica_cube: invalid bands.\nPlease the",
+                    "provided bands.")
     )
 
-    # retrieve item information
-    items_info <- .sits_deafrica_items(
-        url = url,
-        collection = collection,
-        tiles = tiles,
-        roi = bbox,
-        start_date = start_date,
-        end_date  = end_date,
-        bands = bands,
-        ...
-    )
+    # check if source can be access
+    .source_access_test(source = source,
+                        collection = collection, ...,
+                        bands = bands)
 
-    # creating a group of items per tile
-    items_group <- .sits_stac_group(
-        items_info,
-        fields = c("properties", "odc:region_code")
-    )
-
-    tiles <- purrr::map(items_group, function(items) {
-
-        # retrieve the information from STAC
-        stack <- .sits_stac_items_info(items, items$bands)
-
-        # add the information for each tile
-        cube_t <- .sits_deafrica_tile_cube(
-            name       = name,
-            items      = items,
-            collection = collection,
-            file_info  = stack
-        )
-        return(cube_t)
-    })
-
-    # join the tiles
-    cube <- dplyr::bind_rows(tiles)
-    class(cube) <- c("raster_cube", class(cube))
-
-    return(cube)
+    .source_cube(source = source,
+                 collection = collection,
+                 name = name,
+                 bands = bands,
+                 tiles = tiles,
+                 bbox = bbox,
+                 start_date = start_date,
+                 end_date = end_date, ...)
 }
 
 #' @rdname sits_cube
 #'
 #' @export
-#'
 sits_cube.aws_cube <- function(source = "AWS", ...,
                                name = "aws_cube",
                                url = NULL,
@@ -495,89 +398,66 @@ sits_cube.aws_cube <- function(source = "AWS", ...,
                                start_date = NULL,
                                end_date = NULL) {
 
-    # require package
-    if (!requireNamespace("rstac", quietly = TRUE)) {
-        stop(paste("Please install package rstac from CRAN:",
-                   "install.packages('rstac')"), call. = FALSE
-        )
-    }
-
-    # precondition - is the collection name valid?
-    assertthat::assert_that(
-        collection == "sentinel-s2-l2a",
-        msg = "sits_cube: AWS supports only sentinel-s2-l2a collection"
-    )
-
     # precondition - is the provided resolution is valid?
     assertthat::assert_that(
         s2_resolution %in% c(10, 20, 60),
-        msg = "sits_cube: s2_resolution should be one of c(10, 20, 60)")
-
-    # precondition - is AWS access available?
-    aws_access_ok <- .sits_aws_check_access(source)
-    if (!aws_access_ok)
-        return(NULL)
-
-    # precondition - is the url correct?
-    if (purrr::is_null(url)) {
-        url <- .sits_config_aws_stac()
-    }
-
-    # test if AWS STAC is accessible
-    if (!(.sits_config_cube_access(url, "AWS")))
-        return(NULL)
-
-    # select bands by resolution
-    bands <- .sits_s2_check_bands(bands, s2_resolution)
-
-    # retrieve item information
-    items_info <- .sits_s2_aws_items(
-        url = url,
-        collection = collection,
-        tiles = tiles,
-        roi = bbox,
-        start_date = start_date,
-        end_date  = end_date,
-        bands = bands,
-        ...
+        msg = "sits_cube: s2_resolution should be one of c(10, 20, 60)"
     )
 
-    # creating a group of items per tile
-    items_group <- .sits_stac_group(items_info,
-                                    fields = c("properties", "tile"))
+    # precondition
+    assertthat::assert_that(
+        length(collection) == 1,
+        msg = paste("sits_cube.aws_cube: only one aws collection should",
+                    "be specified.")
+    )
 
-    tiles <- purrr::map(items_group, function(items) {
+    # precondition
+    assertthat::assert_that(
+        collection %in% .config_collections(source = source),
+        msg = sprintf(paste("sits_cube.aws_cube: collection '%s' not",
+                            "found in aws source.\nPlease, check sits",
+                            "config with ?sits_config command."), collection)
+    )
 
-        # retrieve the information from STAC
-        stack <- .sits_stac_items_info(items, items$bands)
+    # precondition - is AWS access available?
+    .check_aws_environment(source, collection)
 
-        # fix duplicated dates in timeline: select the first asset
-        stack <- dplyr::group_by(stack, date, band) %>%
-            dplyr::summarise(
-                path = dplyr::first(path, order_by = path),
-                .groups = "drop")
+    if (is.null(bands))
+        bands <- .aws_bands(source = source,
+                            collection = collection,
+                            s2_resolution = s2_resolution)
 
-        # add the information for each tile
-        cube_t <- .sits_s2_aws_tile_cube(
-            name = name,
-            items = items,
-            collection = collection,
-            resolution = s2_resolution,
-            file_info = stack
-        )
+    assertthat::assert_that(
+        all(bands %in% c(.aws_bands(source = source,
+                                    collection = collection,
+                                    s2_resolution = s2_resolution),
+                         .aws_bands_band_name(source = source,
+                                              collection = collection,
+                                              s2_resolution = s2_resolution))),
+        msg = paste("sits_cube.aws_cube: invalid bands.\nPlease the provided",
+                    "bands.")
+    )
 
-        class(cube_t) <- c("raster_cube", class(cube_t))
-        return(cube_t)
-    })
-    cube <- dplyr::bind_rows(tiles)
 
-    return(cube)
+    # check if source can be access
+    .source_access_test(source = source,
+                        collection = collection, ...,
+                        bands = bands,
+                        s2_resolution = s2_resolution)
+
+    .source_cube(source = source,
+                 collection = collection,
+                 name = name,
+                 bands = bands,
+                 tiles = tiles,
+                 bbox = bbox,
+                 start_date = start_date,
+                 end_date = end_date, ...,
+                 s2_resolution = s2_resolution)
 }
 
 #' @rdname sits_cube
-#'
-#' @export
-#'
+#' @keywords internal
 sits_cube.usgs_cube <- function(source = "USGS", ...,
                                 name = "usgs_cube",
                                 url = NULL,
@@ -588,75 +468,61 @@ sits_cube.usgs_cube <- function(source = "USGS", ...,
                                 start_date = NULL,
                                 end_date = NULL) {
 
-    # require package
-    if (!requireNamespace("rstac", quietly = TRUE)) {
-        stop(paste("Please install package rstac from CRAN:",
-                   "install.packages('rstac')"), call. = FALSE
-        )
-    }
-
-    # precondition - is the collection name valid?
+    # precondition
     assertthat::assert_that(
-        collection == "landsat-c2l2-sr",
-        msg = "sits_cube: USGS supports only `landsat-c2l2-sr` collection."
+        length(collection) == 1,
+        msg = paste("sits_cube.usgs_cube: only one USGS collection should",
+                    "be specified.")
+    )
+
+    # precondition
+    assertthat::assert_that(
+        !is.null(tiles),
+        msg = paste("sits_cube.usgs_cube: for the USGS cubes you need to",
+                    "provide the tiles of the region you want to query.")
+    )
+
+    # precondition
+    assertthat::assert_that(
+        collection %in% .config_collections(source = source),
+        msg = sprintf(paste("sits_cube.usgs_cube: collection '%s' not",
+                            "found in USGS source.\nPlease, check sits",
+                            "config with ?sits_config command."), collection)
     )
 
     # precondition - is AWS access available?
-    aws_access_ok <- .sits_aws_check_access(source)
-    if (!aws_access_ok)
-        return(NULL)
+    .check_aws_environment(source, collection)
 
-    # precondition - is the url correct?
-    if (purrr::is_null(url)) {
-        # TODO: criar uma unica função que o parametro seja o provedor
-        url <- .sits_config_usgs_stac()
-    }
+    if (is.null(bands))
+        bands <- .config_bands(source = source,
+                               collection = collection)
 
-    # test if USGS STAC is accessible
-    if (!(.sits_config_cube_access(url, "USGS")))
-        return(NULL)
-
-    # retrieve item information
-    items_info <- .sits_usgs_items(
-        url = url,
-        collection = collection,
-        tiles = tiles,
-        roi = bbox,
-        start_date = start_date,
-        end_date = end_date,
-        bands = bands,
-        ...
+    assertthat::assert_that(
+        all(bands %in% c(.config_bands(source = source, collection = collection),
+                         .config_bands_band_name(source = source,
+                                                 collection = collection))),
+        msg = paste("sits_cube.usgs_cube: invalid bands.\nPlease the",
+                    "provided bands.")
     )
 
-    # creating a group of items per tile
-    items_group <- .sits_stac_group(items = items_info,
-                                    fields = c("properties", "tile"))
+    # check if source can be access
+    .source_access_test(source = source,
+                        collection = collection, ...,
+                        bands = bands)
 
-    tiles <- purrr::map(items_group, function(items) {
-
-        # retrieve the information from STAC
-        stack <- .sits_stac_items_info(items, items$bands)
-
-        # add the information for each tile
-        cube_t <- .sits_usgs_tile_cube(
-            name = name,
-            items = items,
-            collection = collection,
-            file_info = stack
-        )
-
-        class(cube_t) <- c("raster_cube", class(cube_t))
-        return(cube_t)
-    })
-    cube <- dplyr::bind_rows(tiles)
-
-    return(cube)
+    .source_cube(source = source,
+                 collection = collection,
+                 name = name,
+                 bands = bands,
+                 tiles = tiles,
+                 bbox = bbox,
+                 start_date = start_date,
+                 end_date = end_date, ...)
 }
 
 #' @rdname sits_cube
 #'
 #' @export
-#'
 sits_cube.local_cube <- function(source = "LOCAL", ...,
                                  name   = "local_cube",
                                  satellite,
@@ -668,14 +534,17 @@ sits_cube.local_cube <- function(source = "LOCAL", ...,
                                  parse_info = c("X1", "X2", "tile", "band", "date"),
                                  delim = "_") {
 
-    # precondition - check satellite and sensor
-    .sits_config_satellite_sensor(satellite, sensor)
 
     # precondition - data directory must be provided
     assertthat::assert_that(
         !purrr::is_null(data_dir),
         msg = "sits_cube: data_dir must be to be provided"
     )
+
+    collection <- paste0(satellite, "/", sensor)
+
+    # precondition - check satellite and sensor
+    .source_access_test(source = source, collection = collection)
 
     # precondition - check parse info
     assertthat::assert_that(
@@ -686,41 +555,29 @@ sits_cube.local_cube <- function(source = "LOCAL", ...,
     # precondition - does the parse info have band and date?
     assertthat::assert_that(
         all(c("tile", "band", "date") %in% parse_info),
-        msg = "sits_cube: parse_info must include tile, date, and band"
+        msg = paste("sits_cube.local_cube: parse_info must include tile, date,",
+                    "and band.")
     )
 
     # bands in upper case
     if (!purrr::is_null(bands))
         bands <- toupper(bands)
 
-    # get the file information
-    file_info <- .sits_raster_stack_info(
-        satellite = satellite,
-        sensor = sensor,
-        data_dir = data_dir,
-        parse_info = parse_info,
-        delim = delim,
-        bands = bands,
-        start_date = start_date,
-        end_date = end_date
-    )
-
-    # create a data cube
-    cube <- .sits_raster_stack_cube(
-        satellite = satellite,
-        sensor = sensor,
-        name = name,
-        file_info = file_info
-    )
-
-    class(cube) <- c("raster_cube", class(cube))
-    return(cube)
+    # create local cube
+    .source_cube(source = source, ...,
+                 collection = collection,
+                 name = name,
+                 data_dir = data_dir,
+                 parse_info = parse_info,
+                 delim = delim,
+                 bands = bands,
+                 start_date = start_date,
+                 end_date = end_date)
 }
 
 #' @rdname sits_cube
 #'
 #' @export
-#'
 sits_cube.probs_cube <- function(source = "PROBS", ...,
                                  name = "probs_cube",
                                  satellite,
@@ -731,80 +588,39 @@ sits_cube.probs_cube <- function(source = "PROBS", ...,
                                  probs_files) {
 
 
-    # iterate through the input files
-    tiles <- purrr::map(seq_along(probs_files), function(i) {
-
-        # precondition - check if labels match files
-        # read the information from the files using GDAL
-        rg_obj <- terra::rast(probs_files[[i]])
-        n_layers <- terra::nlyr(rg_obj)
-        assertthat::assert_that(
-            n_layers == length(probs_labels),
-            msg = paste("sits_cube: mismatch between labels and bands in file",
-                        probs_files[[i]]))
-
-        # get the file params
-        params <- .sits_raster_api_params_file(probs_files[[i]])
-
-        # build the file information
-        file_info <- tibble::tibble(
-            band = "probs",
-            start_date = as.Date(start_date),
-            end_date = as.Date(end_date),
-            res = params$xres,
-            path = probs_files[[i]]
-        )
-
-        # go tile by tile
-        tile <- tibble::tibble(
-            source = "PROBS",
-            satellite = satellite,
-            sensor = sensor,
-            name = name,
-            bands = list("probs"),
-            labels = list(probs_labels),
-            nrows = params$nrows,
-            ncols = params$ncols,
-            xmin  = params$xmin,
-            xmax  = params$xmax,
-            ymin  = params$ymin,
-            ymax  = params$ymax,
-            xres  = params$xres,
-            yres  = params$yres,
-            crs   = params$crs,
-            file_info = list(file_info),
-        )
-        return(tile)
-    })
-    probs_cube <- dplyr::bind_rows(tiles)
-
-    class(probs_cube) <- c("probs_cube", "raster_cube", class(probs_cube))
-    return(probs_cube)
+    .source_cube(source = source, ...,
+                 name = name,
+                 satellite = satellite,
+                 sensor = sensor,
+                 start_date = start_date,
+                 end_date = end_date,
+                 probs_labels = probs_labels,
+                 probs_files = probs_files)
 }
 
 #' @rdname sits_cube
 #'
 #' @export
-#'
 sits_cube.satveg_cube <- function(source = "SATVEG", ...,
                                   collection = "terra") {
 
 
-    # Retrieve the URL to test for SATVEG access
-    url <- .sits_config_satveg_access()
+    # precondition
+    assertthat::assert_that(
+        collection %in% c("terra", "aqua", "comb"),
+        msg = "sits_cube.satveg_cube: invalid SATVEG collection."
+    )
 
-    # test if SATVEG is accessible
-    if (!(.sits_config_cube_access(url, "SATVEG")))
-        return(NULL)
-    # OK
-    cube <- .sits_satveg_cube(collection)
-    return(cube)
+    # precondition - is service online?
+    .source_access_test(source = source, collection = collection)
+
+    # creating satveg cube
+    .source_cube(source = source, collection = collection, name = "SATVEG")
 }
 
 #' @export
-#'
-sits_cube.default <- function(source = NULL, ...) {
-    stop("sits_cube: cube source unknown")
+sits_cube.default <- function(source, ...) {
+    stop("sits_cube: source not found.")
 }
 
 #' @title Creates the contents of a data cube
@@ -846,7 +662,6 @@ sits_cube.default <- function(source = NULL, ...) {
 #' }
 #'
 #' @export
-#'
 sits_cube_copy <- function(cube,
                            name,
                            dest_dir,
@@ -862,7 +677,7 @@ sits_cube_copy <- function(cube,
         bbox <- .sits_roi_bbox(roi, cube)
 
     # Get the subimage
-    si <- .sits_sub_image_from_bbox(bbox, cube)
+    si <- .sits_raster_sub_image_from_bbox(bbox, cube)
 
     # test subwindow
     srcwin <- vector("double", length = 4)
@@ -926,7 +741,6 @@ sits_cube_copy <- function(cube,
         new_paths <- unlist(paths)
 
         # update cube
-
         row$nrows <- srcwin["ysize"]
         row$ncols <- srcwin["xsize"]
         row$xmin <- row$xmin + srcwin["xoff"] * row$xres
@@ -941,4 +755,420 @@ sits_cube_copy <- function(cube,
     })
     cube <- do.call(rbind, cube_rows)
     return(cube)
+}
+
+
+#' @title Auxiliary functions for sits cubes
+#' @keywords internal
+#'
+#' @name cube_functions
+#'
+#' @description Auxiliary functions for extracting information from sits cubes.
+#'
+#' @param cube  Data cube from where data is to be retrieved.
+#' @param tile  Tiles from the collection to be included in the data cube
+#' @param bands Bands to be included.
+#' @param ....  Additional parameters to be included.
+#'
+#' @return a \code{vector} for get attributes functions and NULL or error for
+#' check parameters functions.
+NULL
+
+#' @rdname cube_functions
+.cube_satellite <- function(cube) {
+
+    res <- unique(cube[["satellite"]])
+
+    # post-condition
+    .check_chr(res, allow_empty = FALSE, len_min = 1, len_max = 1,
+               msg = "invalid satellite value")
+
+    return(res)
+}
+
+#' @rdname cube_functions
+.cube_sensor <- function(cube) {
+
+    res <- unique(cube[["sensor"]])
+
+    # post-condition
+    .check_chr(res, allow_empty = FALSE, len_min = 1, len_max = 1,
+               msg = "invalid sensor value")
+
+    return(res)
+}
+
+#' @rdname cube_functions
+.cube_collection <- function(cube) {
+
+    res <- unique(cube[["collection"]])
+
+    # post-condition
+    .check_chr(res, allow_empty = FALSE, len_min = 1, len_max = 1,
+               msg = "invalid collection value")
+
+    return(res)
+}
+
+#' @rdname cube_functions
+.cube_name <- function(cube) {
+
+    res <- unique(cube[["name"]])
+
+    # post-condition
+    .check_chr(res, allow_empty = FALSE, len_min = 1, len_max = 1,
+               msg = "invalid cube 'name' value")
+
+    return(res)
+}
+
+#' @rdname cube_functions
+.cube_labels <- function(cube) {
+
+    res <- unique(cube[["labels"]])
+
+    # post-condition
+    .check_lst(res, min_len = 1, max_len = 1,
+               msg = "invalid cube 'labels' value")
+
+    res <- unlist(res, use.names = FALSE)
+
+    # post-condition
+    .check_chr(res, allow_empty = FALSE, len_min = 1, allow_null = TRUE,
+               msg = "invalid cube 'labels' value")
+
+    return(res)
+}
+
+#' @rdname cube_functions
+.cube_bands_check <- function(cube) {
+
+    res <- .cube_bands(cube = cube)
+
+    # check for bands in file_info
+    bands <- unique(lapply(cube[["file_info"]],
+                           function(x) unique(x[["band"]])))
+
+    # check if all tiles have same bands
+    .check_lst(bands, min_len = 1, max_len = 1,
+               msg = "inconsistent 'bands' among tiles")
+
+    # simplify
+    bands <- unlist(bands, use.names = FALSE)
+
+    .check_chr(res, allow_empty = FALSE, choices = bands,
+               len_min = length(bands), len_max = length(bands),
+               msg = "inconsistent 'bands' between cube and 'file_info'")
+
+    return(res)
+}
+
+#' @rdname cube_functions
+.cube_bands <- function(cube, ...,
+                        add_cloud = TRUE) {
+
+    res <- unique(cube[["bands"]])
+
+    # post-condition
+    .check_lst(res, min_len = 1, max_len = 1,
+               msg = "inconsistent 'bands' among tiles")
+
+    # simplify
+    res <- unlist(res, use.names = FALSE)
+
+    if (!add_cloud)
+        res <- res[res != .config_cloud()]
+
+    return(res)
+}
+
+#' @rdname cube_functions
+.cube_source <- function(cube) {
+
+    res <- unique(cube[["source"]])
+
+    # post-condition
+    .check_chr(res, allow_empty = FALSE, len_min = 1, len_max = 1,
+               msg = "invalid cube 'source' value")
+
+    return(res)
+}
+
+#' @rdname cube_functions
+.cube_timeline <- function(cube) {
+
+    res <- unique(cube[["file_info"]][["date"]])
+
+    # post-condition
+    # check if all tiles have same timeline
+    .check_lst(res, min_len = 1, max_len = 1,
+               msg = "invalid cube timeline values")
+
+    # simplify
+    res <- unlist(res)
+
+    return(res)
+}
+
+#' @rdname cube_functions
+.cube_tiles <- function(cube) {
+
+    res <- unique(cube[["tile"]])
+
+    # post-condition
+    .check_chr(res, allow_empty = FALSE, len_min = nrow(cube),
+               len_max = nrow(cube),
+               msg = "invalid cube 'tile' values")
+
+    return(res)
+}
+
+#' @rdname cube_functions
+.cube_tile_check <- function(cube, tile) {
+
+    .check_that(
+        is.numeric(tile) || is.character(tile),
+        local_msg = "'tile' parameter must be numeric or character"
+    )
+
+    if (is.numeric(tile)) {
+        .check_num(tile, min = 1, max = nrow(cube),
+                   len_min = 1, len_max = 1, is_integer = TRUE,
+                   msg = "invalid 'tile' parameter"
+        )
+    }
+
+    if (is.character(tile)) {
+        .check_chr(allow_empty = FALSE, choices = .cube_tiles(cube = cube),
+                   len_min = 1, len_max = 1,
+                   msg = "invalid 'tile' parameter"
+        )
+    }
+
+    return(invisible(NULL))
+}
+
+#' @rdname cube_functions
+.cube_tile_get_fields <- function(cube, tile, fields = NULL) {
+
+    # pre-condition
+    .cube_tile_check(cube = cube, tile = tile)
+
+    .check_chr(fields, allow_empty = FALSE, choices = names(cube),
+               len_min = 1, msg = "invalid 'fields' parameter")
+
+    if (is.numeric(tile))
+        res <- c(cube[tile, fields])
+
+    res <- c(cube[which(.cube_tiles(cube = cube) %in% tile), fields])
+
+    # post-condition
+    .check_lst(res, min_len = length(fields), max_len = length(fields),
+               msg = "invalid 'fields' parameter")
+
+    return(res)
+}
+
+#' @rdname cube_functions
+.cube_tile_crs <- function(cube, ...,
+                           tile = 1) {
+
+    res <- .cube_tile_get_fields(cube = cube,  tile = tile, fields = "crs")
+
+    # simplify
+    res <- unlist(res, use.names = FALSE)
+
+    # post-condition
+    .check_chr(res, allow_empty = FALSE, len_min = 1, len_max = 1,
+               "invalid tile 'crs' value")
+
+    return(res)
+}
+
+#' @rdname cube_functions
+.cube_tile_bbox <- function(cube, ...,
+                            tile = 1) {
+
+    res <- .cube_tile_get_fields(cube = cube, tile = tile,
+                                 fields = c("xmin", "ymin", "xmax", "ymax"))
+
+    # post-condition
+    .check_lst(res, min_len = 4, max_len = 4, fn_check = .check_num,
+               len_min = 1, len_max = 1,
+               msg = "invalid tile 'bbox' value")
+
+    return(res)
+}
+
+#' @rdname cube_functions
+.cube_tile_resolution <- function(cube, ...,
+                                  tile = 1) {
+
+    res <- .cube_tile_get_fields(cube = cube, tile = tile,
+                                 fields = c("xres", "yres"))
+
+    # post-condition
+    .check_lst(res, min_len = 2, max_len = 2,
+               fn_check = .check_num, min = 0, allow_zero = FALSE,
+               len_min = 1, len_max = 1,
+               msg = "invalid tile 'xres' and 'yres' values")
+
+    return(res)
+}
+
+#' @rdname cube_functions
+.cube_tile_size <- function(cube, ...,
+                            tile = 1) {
+
+    .cube_tile_get_fields(cube = cube, tile = tile,
+                          fields = c("nrows", "ncols"))
+
+    # post-condition
+    .check_lst(res, min_len = 2, max_len = 2,
+               fn_check = .check_num, min = 0, allow_zero = FALSE,
+               len_min = 1, len_max = 1,
+               msg = "invalid tile 'nrows' and 'ncols' values")
+
+    return(res)
+}
+
+#' @rdname cube_functions
+.cube_band_missing_value <- function(cube, band) {
+
+    # pre-condition
+    .check_chr(band, choices = .cube_bands(cube = cube, add_cloud = FALSE),
+               len_min = 1, len_max = 1,
+               msg = "invalid 'band' parameter")
+
+    res <- .config_get(key = c("sources", .cube_source(cube = cube),
+                               "collections", .cube_collection(cube = cube),
+                               "bands", band, "missing_value"))
+
+    # post-condition
+    .check_num(res, len_min = 1, len_max = 1,
+               msg = "invalid 'missing_value' value")
+
+    return(res)
+}
+
+#' @rdname cube_functions
+.cube_band_minimum_value <- function(cube, band) {
+
+    # pre-condition
+    .check_chr(band, choices = .cube_bands(cube = cube, add_cloud = FALSE),
+               len_min = 1, len_max = 1,
+               msg = "invalid 'band' parameter")
+
+    res <- .config_get(key = c("sources", .cube_source(cube = cube),
+                               "collections", .cube_collection(cube = cube),
+                               "bands", band, "minimum_value"))
+
+    # post-condition
+    .check_num(res, len_min = 1, len_max = 1,
+               msg = "invalid 'minimum_value' value")
+
+    return(res)
+}
+
+#' @rdname cube_functions
+.cube_band_maximum_value <- function(cube, band) {
+
+    # pre-condition
+    .check_chr(band, choices = .cube_bands(cube = cube, add_cloud = FALSE),
+               len_min = 1, len_max = 1,
+               msg = "invalid 'band' parameter")
+
+    res <- .config_get(key = c("sources", .cube_source(cube = cube),
+                               "collections", .cube_collection(cube = cube),
+                               "bands", band, "maximum_value"))
+
+    # post-condition
+    .check_num(res, len_min = 1, len_max = 1,
+               msg = "invalid 'maximum_value' value")
+
+    return(res)
+}
+
+#' @rdname cube_functions
+.cube_band_scale_factor <- function(cube, band) {
+
+    # pre-condition
+    .check_chr(band, choices = .cube_bands(cube = cube, add_cloud = FALSE),
+               len_min = 1, len_max = 1,
+               msg = "invalid 'band' parameter")
+
+    res <- .config_get(key = c("sources", .cube_source(cube = cube),
+                               "collections", .cube_collection(cube = cube),
+                               "bands", band, "scale_factor"))
+
+    # post-condition
+    .check_num(res, allow_zero = FALSE, len_min = 1, len_max = 1,
+               msg = "invalid 'scale_factor' value")
+
+    return(res)
+}
+
+#' @rdname cube_functions
+.cube_band_offset_value <- function(cube, band) {
+
+    # pre-condition
+    .check_chr(band, choices = .cube_bands(cube = cube, add_cloud = FALSE),
+               len_min = 1, len_max = 1,
+               msg = "invalid 'band' parameter")
+
+    res <- .config_get(key = c("sources", .cube_source(cube = cube),
+                               "collections", .cube_collection(cube = cube),
+                               "bands", band, "offset_value"))
+
+    # post-condition
+    .check_num(res, len_min = 1, len_max = 1,
+               msg = "invalid 'offset_value' value")
+
+    return(res)
+}
+
+#' @rdname cube_functions
+.cube_band_resampling <- function(cube, band) {
+
+    # pre-condition
+    .check_chr(band, choices = .cube_bands(cube = cube, add_cloud = TRUE),
+               len_min = 1, len_max = 1,
+               msg = "invalid 'band' parameter")
+
+    res <- .config_get(key = c("sources", .cube_source(cube = cube),
+                               "collections", .cube_collection(cube = cube),
+                               "bands", band, "resampling"))
+
+    # post-condition
+    .check_chr(res, choices = names(.raster_resample_methods()),
+               len_min = 1, len_max = 1,
+               msg = sprintf("invalid 'resampling' value for package '%s'",
+                             .config_raster_pkg()))
+
+    return(res)
+}
+
+#' @rdname cube_functions
+.cube_band_resolutions <- function(cube, band) {
+
+    # pre-condition
+    .check_chr(band, choices = .cube_bands(cube = cube, add_cloud = TRUE),
+               len_min = 1, len_max = 1,
+               msg = "invalid 'band' parameter")
+
+    res <- .config_get(key = c("sources", .cube_source(cube = cube),
+                               "collections", .cube_collection(cube = cube),
+                               "bands", band, "resolutions"))
+
+    # post-condition
+    .check_num(res, min = 0, allow_zero = FALSE, len_min = 1,
+               msg = "invalid 'resolutions' value")
+
+    return(res)
+}
+
+#' @rdname cube_functions
+.cube_has_cloud <- function(cube) {
+
+    .config_cloud() %in% .cube_bands(cube = cube, add_cloud = TRUE)
 }

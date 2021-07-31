@@ -13,7 +13,7 @@
 #'
 sits_timeline <- function(data) {
     # get the meta-type (sits or cube)
-    data <- .sits_config_data_meta_type(data)
+    data <- .config_data_meta_type(data)
 
     UseMethod("sits_timeline", data)
 }
@@ -47,9 +47,9 @@ sits_timeline.raster_cube <- function(data) {
 sits_timeline.satveg_cube <- function(data) {
 
   # retrieve the time series
-  ts <- .sits_ts_from_satveg(longitude = -55.50563,
+  ts <- .sits_satveg_ts_from_txt(longitude = -55.50563,
                              latitude = -11.71557,
-                             data$collection)
+                             data)
 
   # return the timeline of the cube
   return(as.Date(ts$Index))
@@ -182,7 +182,7 @@ sits_timeline.classified_image <- function(data) {
     )
 
     # precondition: are the samples valid?
-    .sits_test_tibble(samples)
+    .sits_tibble_test(samples)
 
     # find the labels
     labels <- sits_labels(samples)
@@ -569,4 +569,24 @@ sits_timeline.classified_image <- function(data) {
     tile_date_band$date <- converted_date
 
     return(tile_date_band)
+}
+#' @title Checks that the timeline of all time series of a data set are equal
+#' @name .sits_timeline_check
+#' @keywords internal
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
+#'
+#' @description This function tests if all time series in a sits tibble
+#' have the same number of samples
+#'
+#' @param  data  Either a sits tibble
+#' @return       TRUE if the length of time series is unique
+#'
+.sits_timeline_check <- function(data) {
+
+  .sits_tibble_test(data)
+
+  if (length(unique(lapply(data$time_series, nrow))) == 1)
+    return(TRUE)
+  else
+    return(FALSE)
 }

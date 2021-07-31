@@ -31,7 +31,7 @@
 #'
 sits_merge <- function(data1, data2) {
     # get the meta-type (sits or cube)
-    data1 <- .sits_config_data_meta_type(data1)
+    data1 <- .config_data_meta_type(data1)
 
     UseMethod("sits_merge", data1)
 }
@@ -41,8 +41,8 @@ sits_merge <- function(data1, data2) {
 sits_merge.sits <- function(data1, data2) {
 
     # precondition
-    .sits_test_tibble(data1)
-    .sits_test_tibble(data2)
+    .sits_tibble_test(data1)
+    .sits_tibble_test(data2)
 
     # if some parameter is empty returns the another one
     assertthat::assert_that(

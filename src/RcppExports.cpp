@@ -6,6 +6,11 @@
 
 using namespace Rcpp;
 
+#ifdef RCPP_USE_GLOBAL_ROSTREAM
+Rcpp::Rostream<true>&  Rcpp::Rcout = Rcpp::Rcpp_cout_get();
+Rcpp::Rostream<false>& Rcpp::Rcerr = Rcpp::Rcpp_cerr_get();
+#endif
+
 // apply_transition_matrix
 NumericMatrix apply_transition_matrix(NumericMatrix data_before, NumericMatrix data, NumericMatrix transition_matrix);
 RcppExport SEXP _sits_apply_transition_matrix(SEXP data_beforeSEXP, SEXP dataSEXP, SEXP transition_matrixSEXP) {

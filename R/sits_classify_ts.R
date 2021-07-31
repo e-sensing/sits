@@ -24,7 +24,7 @@
 #' @export
 sits_show_prediction <- function(class) {
 
-    .sits_test_tibble(class)
+    .sits_tibble_test(class)
     assertthat::assert_that(
         all(names(class$predicted[[1]]) %in% c("from", "to", "class", "probs")),
         msg = "sits_show_prediction: tibble has not been classified"

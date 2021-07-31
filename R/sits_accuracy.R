@@ -171,7 +171,7 @@ sits_accuracy.classified_image <- function(data, ..., validation_csv) {
     labels_cube <- sits_labels(data)
 
     # get xy in cube projection
-    xy_tb <- .sits_latlong_to_proj(
+    xy_tb <- .sits_proj_from_latlong(
         longitude = csv_tb$longitude,
         latitude = csv_tb$latitude,
         crs = data$crs[[1]]
