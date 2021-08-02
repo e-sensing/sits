@@ -2,6 +2,13 @@
 
 We are preparing to release the package on CRAN and are making relevant changes in the development version.
 
+# What's new in SITS version 0.13.0-1
+
+### New features in SITS version 0.13.0-1
+
+* Bug fixes in check STAC bands
+* Change Landsat-8 (LC8_30-1) product metadata for BDC source
+
 # What's new in SITS version 0.13
 
 ### New features in SITS version 0.13.0

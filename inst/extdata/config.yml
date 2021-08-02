@@ -162,7 +162,7 @@ sources:
                 bands       :
                     NDVI    : &bdc_oli_ndvi
                         missing_value : -9999
-                        minimum_value : -3000
+                        minimum_value : -10000
                         maximum_value : 10000
                         scale_factor  : 0.0001
                         offset_value  : 0
