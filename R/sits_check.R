@@ -104,6 +104,8 @@
 #' @param x             A \code{object} that will be check. That can be a
 #' \code{numeric} or \code{character} vectors or a \code{list}.
 #' @param ...           Additional parameters for \code{fn_check} function.
+#' @param case_sensitive A \code{logical} indicating if check will be case
+#' sensitive. Default is TRUE.
 NULL
 
 #' @rdname check_functions
@@ -330,6 +332,7 @@ NULL
 #' @rdname check_functions
 .check_chr_choices <- function(x,
                                choices, ...,
+                               case_sensitive = TRUE,
                                msg = NULL) {
 
     if (!is.character(choices))
@@ -344,6 +347,12 @@ NULL
     else
         local_msg <- sprintf("value cannot be %s",
                              paste0("'", x, "'", collapse = ", "))
+
+    if (!case_sensitive) {
+        x <- toupper(x)
+        choices <- toupper(choices)
+    }
+
     .check_that(
         all(x %in% choices),
         local_msg = local_msg,

@@ -305,10 +305,12 @@ sits_cube.bdc_cube <- function(source = "BDC", ...,
                                collection = collection)
 
     assertthat::assert_that(
-        all(bands %in% c(.config_bands(source = source, collection = collection),
+        all(bands %in% c(.config_bands(source = source,
+                                       collection = collection),
                          .config_bands_band_name(source = source,
                                                  collection = collection))),
-        msg = "sits_cube.bdc_cube: invalid bands.\nPlease the provided bands."
+        msg = paste("sits_cube.bdc_cube: invalid bands.\nPlease verify the",
+                    "provided bands.")
     )
 
     # check if source can be access
