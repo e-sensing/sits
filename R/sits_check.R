@@ -97,6 +97,8 @@
 #' @param len_max       A \code{numeric} indicating the maximum length of vector
 #' or list users provides for functions. Default is \code{2^31}.
 #' @param fn_check      A \code{function} used to test the object elements.
+#' @param regex         A \code{character} value with regular expression to be
+#' evaluated against data.
 #' @param local_msg     A \code{character} with the generic error message that
 #' will show to the user.
 #' @param msg           A \code{character} with the error message that will show
@@ -199,21 +201,35 @@ NULL
 
 #' @rdname check_functions
 .check_length <- function(x, ...,
-                          len_min = 0,
-                          len_max = 2^31,
+                          len_min = NULL,
+                          len_max = NULL,
                           msg = NULL) {
 
-    if (len_min == len_max)
+    # pre-condition
+    if (!is.null(len_min) && !is.numeric(len_min))
+        stop(".check_length: len_min parameter must be numeric.")
+
+    if (!is.null(len_max) && !is.numeric(len_max))
+        stop(".check_length: len_max parameter must be numeric.")
+
+    # set error message
+    if (!is.null(len_min) && !is.null(len_max) && len_min == len_max)
         local_msg <- sprintf("length must be == %s", len_min)
-    else if (missing(len_min) && missing(len_max))
+    else if (is.null(len_min) && is.null(len_max))
         local_msg <- "invalid length" # never throws an error in this case!
-    else if (missing(len_max))
+    else if (is.null(len_max))
         local_msg <- sprintf("length must be >= %s", len_min)
-    else if (missing(len_min))
+    else if (is.null(len_min))
         local_msg <- sprintf("length must be <= %s", len_max)
     else
         local_msg <- sprintf("length must be between %s and %s",
                              len_min, len_max)
+
+    if (is.null(len_min))
+        len_min <- 0
+
+    if (is.null(len_max))
+        len_max <- 2^31
 
     .check_that(
         len_min <= length(x) && length(x) <= len_max,
@@ -330,25 +346,68 @@ NULL
 #' @rdname check_functions
 .check_chr_choices <- function(x,
                                choices, ...,
+                               discriminator = "any_of",
                                msg = NULL) {
 
+    # pre-condition
     if (!is.character(choices))
         stop(".check_chr_choices: choices must be character.", call. = TRUE)
+
+    discriminators <- c("one_of" = "one of", "any_of" = "any of",
+                        "all_of" = "all of", "none_of" = "none of",
+                        "exact" = "exactly")
+
+    if (length(discriminator) != 1 &&
+        !discriminator %in% discriminators)
+        stop(paste(".check_chr_choices: discriminator must be one of",
+                   "'one_of', 'any_of', 'all_of', 'none_of', or 'exact'."),
+             call. = TRUE)
 
     # check type
     .check_chr_type(x, msg = msg)
 
+    choices <- unique(choices)
+
     if (length(choices) > 0)
-        local_msg <- sprintf("value must be one of %s",
+        local_msg <- sprintf("value must be %s %s",
+                             discriminators[[discriminator]],
                              paste0("'", choices, "'", collapse = ", "))
     else
         local_msg <- sprintf("value cannot be %s",
                              paste0("'", x, "'", collapse = ", "))
-    .check_that(
-        all(x %in% choices),
-        local_msg = local_msg,
-        msg = msg
-    )
+
+    if (discriminator == "one_of")
+        .check_that(
+            length(unique(x)) == 1 && all(x %in% choices),
+            local_msg = local_msg,
+            msg = msg
+        )
+    else if (discriminator == "any_of")
+        .check_that(
+            all(x %in% choices),
+            local_msg = local_msg,
+            msg = msg
+        )
+    else if (discriminator == "all_of")
+        .check_that(
+            all(choices %in% x),
+            local_msg = local_msg,
+            msg = msg
+        )
+    else if (discriminator == "none_of")
+        .check_that(
+            !any(x %in% choices),
+            local_msg = local_msg,
+            msg = msg
+        )
+    else if (discriminator == "exact")
+        .check_that(
+            all(choices %in% x) && length(x) == length(unique(x)),
+            local_msg = local_msg,
+            msg = msg
+        )
+
+    return(invisible(TRUE))
 }
 
 #' @rdname check_functions
@@ -365,8 +424,8 @@ NULL
 #' @rdname check_functions
 .check_lgl <- function(x, ...,
                        allow_na = FALSE,
-                       len_min = 0,
-                       len_max = 2^31,
+                       len_min = NULL,
+                       len_max = NULL,
                        allow_null = FALSE,
                        is_named = FALSE,
                        msg = NULL) {
@@ -399,8 +458,8 @@ NULL
                        min = -Inf,
                        max = Inf,
                        allow_zero = TRUE,
-                       len_min = 0,
-                       len_max = 2^31,
+                       len_min = NULL,
+                       len_max = NULL,
                        allow_null = FALSE,
                        is_integer = FALSE,
                        is_named = FALSE,
@@ -440,10 +499,11 @@ NULL
                        allow_na = FALSE,
                        allow_empty = TRUE,
                        choices = NULL,
-                       len_min = 0,
-                       len_max = 2^31,
+                       len_min = NULL,
+                       len_max = NULL,
                        allow_null = FALSE,
                        is_named = FALSE,
+                       regex = NULL,
                        msg = NULL) {
 
     # check for null and exit if it is allowed
@@ -457,7 +517,7 @@ NULL
     .check_chr_type(x, msg = msg)
 
     # check length
-    .check_length(x, msg = msg)
+    .check_length(x, len_min = len_min, len_max = len_max, msg = msg)
 
     # check NA
     .check_na(x, allow_na = allow_na, msg = msg)
@@ -472,13 +532,21 @@ NULL
     # check names
     .check_names(x, is_named = is_named, msg = msg)
 
+    # check regular expression pattern
+    if (!is.null(regex))
+        .check_that(
+            all(grepl(pattern = regex, x = x)),
+            local_msg = sprintf("value did not match pattern '%s'", regex),
+            msg = msg
+        )
+
     return(invisible(TRUE))
 }
 
 #' @rdname check_functions
 .check_lst <- function(x, ...,
-                       min_len = 0,
-                       max_len = 2^31,
+                       min_len = NULL,
+                       max_len = NULL,
                        allow_null = FALSE,
                        is_named = TRUE,
                        fn_check = NULL,
@@ -494,7 +562,7 @@ NULL
     .check_lst_type(x, msg = msg)
 
     # check length
-    .check_length(x, msg = msg)
+    .check_length(x, len_min = min_len, len_max = max_len, msg = msg)
 
     # check names
     .check_names(x, is_named = is_named, msg = msg)
@@ -530,6 +598,19 @@ NULL
         expr
     }, error = function(e) {
         warning(e$message, call. = FALSE)
+    })
+
+    return(invisible(NULL))
+}
+
+#' @rdname check_functions
+.check_error <- function(expr, ...,
+                         msg = NULL) {
+
+    tryCatch({
+        expr
+    }, error = function(e) {
+        .check_that(FALSE, local_msg = e$message, msg = msg)
     })
 
     return(invisible(NULL))

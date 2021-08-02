@@ -309,10 +309,9 @@
 
 #' @keywords internal
 #' @export
-.raster_resample_methods.terra <- function(method = NULL, ...) {
+.raster_resample_methods.raster <- function(sits_names = TRUE) {
 
-    res <- c(near = "ngb", bilinear = "bilinear")
-
-    return(res)
+    # raster package resample names
+    return(c("ngb", "bilinear"))
 }
 

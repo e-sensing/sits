@@ -22,6 +22,7 @@
 \alias{.check_lst}
 \alias{.check_file}
 \alias{.check_warn}
+\alias{.check_error}
 \title{Auxiliary check functions}
 \usage{
 .check_that(x, ..., local_msg = NULL, msg = NULL)
@@ -32,7 +33,7 @@
 
 .check_names(x, ..., is_named = TRUE, msg = NULL)
 
-.check_length(x, ..., len_min = 0, len_max = 2^31, msg = NULL)
+.check_length(x, ..., len_min = NULL, len_max = NULL, msg = NULL)
 
 .check_apply(x, fn_check, ..., msg = NULL)
 
@@ -48,7 +49,7 @@
 
 .check_chr_empty(x, ..., msg = NULL)
 
-.check_chr_choices(x, choices, ..., msg = NULL)
+.check_chr_choices(x, choices, ..., discriminator = "any_of", msg = NULL)
 
 .check_lst_type(x, ..., msg = NULL)
 
@@ -56,8 +57,8 @@
   x,
   ...,
   allow_na = FALSE,
-  len_min = 0,
-  len_max = 2^31,
+  len_min = NULL,
+  len_max = NULL,
   allow_null = FALSE,
   is_named = FALSE,
   msg = NULL
@@ -70,8 +71,8 @@
   min = -Inf,
   max = Inf,
   allow_zero = TRUE,
-  len_min = 0,
-  len_max = 2^31,
+  len_min = NULL,
+  len_max = NULL,
   allow_null = FALSE,
   is_integer = FALSE,
   is_named = FALSE,
@@ -84,18 +85,19 @@
   allow_na = FALSE,
   allow_empty = TRUE,
   choices = NULL,
-  len_min = 0,
-  len_max = 2^31,
+  len_min = NULL,
+  len_max = NULL,
   allow_null = FALSE,
   is_named = FALSE,
+  regex = NULL,
   msg = NULL
 )
 
 .check_lst(
   x,
   ...,
-  min_len = 0,
-  max_len = 2^31,
+  min_len = NULL,
+  max_len = NULL,
   allow_null = FALSE,
   is_named = TRUE,
   fn_check = NULL,
@@ -105,6 +107,8 @@
 .check_file(x, ..., msg = NULL)
 
 .check_warn(expr)
+
+.check_error(expr, ..., msg = NULL)
 }
 \arguments{
 \item{x}{A \code{object} that will be check. That can be a
@@ -155,6 +159,9 @@ integer.}
 
 \item{allow_empty}{A \code{logical} indicating if the check permits empty
 list. Default is TRUE.}
+
+\item{regex}{A \code{character} value with regular expression to be
+evaluated against data.}
 
 \item{min_len}{A \code{numeric} indicating the minimum length of vector
 or list users provides for functions. Default is \code{0}.}

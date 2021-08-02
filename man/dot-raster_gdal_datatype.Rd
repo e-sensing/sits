@@ -7,7 +7,7 @@
 \usage{
 .raster_gdal_datatype(data_type)
 
-.raster_gdal_datatypes()
+.raster_gdal_datatypes(sits_names = TRUE)
 }
 \value{
 character string

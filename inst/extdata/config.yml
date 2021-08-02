@@ -1,15 +1,14 @@
 # estimated relative growth size of R memory relative to block size
-R_memory_bloat          : 4
-R_processing_bloat      : 5
+processing_bloat        : 5
 
 # number of items returned by stac service
 rstac_pagination_limit  : 1000
 
 # default raster package
-R_raster_pkg            : "terra"
+raster_api_package      : "terra"
 
 # GDAL GTiff default creation options
-GTiff_default_options   : ["COMPRESS=LZW", "BIGTIFF=YES"]
+gdal_creation_options   : ["COMPRESS=LZW", "BIGTIFF=YES"]
 
 sources:
     CLASSIFIED              :
@@ -23,7 +22,7 @@ sources:
                         maximum_value : 254
                         scale_factor  : 1
                         offset_value  : 0
-                        resampling    : "ngb"
+                        resampling    : "near"
                         band_name     : "CLASS"
                         creation_type : "INT1U"
     PROBS                   :
@@ -46,7 +45,7 @@ sources:
                         maximum_value : 254
                         scale_factor  : 1
                         offset_value  : 0
-                        resampling    : "ngb"
+                        resampling    : "near"
                         band_name     : "NOBS"
                         creation_type : "INT1U"
     BDC                     :
@@ -94,7 +93,7 @@ sources:
                             127       : "Clear Pixel"
                             255       : "Cloud"
                         interp_values : [0, 255]
-                        resampling    : "ngb"
+                        resampling    : "near"
                         resolutions   : [64]
             CB4_64_16D_STK-1: *bdc_cb4
             CB4MUX_20-1     : &bdc_cb4_mux
@@ -137,7 +136,7 @@ sources:
                             127       : "Clear Pixel"
                             255       : "Cloud"
                         interp_values : [0, 255]
-                        resampling    : "ngb"
+                        resampling    : "near"
                         resolutions   : [20]
             CB4_20_1M_STK-1 :  &bdc_cb4_mux_stk
                 bands:
@@ -210,7 +209,7 @@ sources:
                             4         : "Cloud"
                             255       : "No Data"
                         interp_values : [2, 3, 4, 255]
-                        resampling    : "ngb"
+                        resampling    : "near"
                         resolutions   : [30]
             LC8_30_16D_STK-1: *bdc_lc8
             MOD13Q1-6       : &bdc_mod
@@ -255,7 +254,7 @@ sources:
                             3         : "Target not visible, covered with cloud"
                             255       : "Fill/No Data-Not Processed"
                         interp_values : [2, 3, 255]
-                        resampling    : "ngb"
+                        resampling    : "near"
                         resolutions   : [231.656]
             MYD13Q1-6       : *bdc_mod
             S2_10-1         : &bdc_s2
@@ -328,7 +327,7 @@ sources:
                             4         : "cloud"
                             255       : "no observation"
                         interp_values : [2, 3, 4, 255]
-                        resampling    : "ngb"
+                        resampling    : "near"
                         resolutions   : [10]
             S2_10_16D_STK-1 : *bdc_s2
     WTSS                    :
@@ -449,7 +448,7 @@ sources:
                             10       : "thin cirrus"
                             11       : "snow or ice"
                         interp_values: [0, 1, 2, 3, 8, 9, 10, 11]
-                        resampling   : "ngb"
+                        resampling   : "near"
                         resolutions  : [20, 60]
                 AWS         :
                     AWS_DEFAULT_REGION   : "eu-central-1"
@@ -533,7 +532,7 @@ sources:
                             10        : "thin cirrus"
                             11        : "snow or ice"
                         interp_values : [0, 1, 2, 3, 8, 9, 10, 11]
-                        resampling    : "ngb"
+                        resampling    : "near"
                         resolutions   : [20]
                 AWS         :
                     AWS_DEFAULT_REGION: "af-south-1"

@@ -19,7 +19,6 @@
 \alias{.config_collections}
 \alias{.config_gtiff_default_options}
 \alias{.config_local_file_extensions}
-\alias{.config_memory_bloat}
 \alias{.config_palettes}
 \alias{.config_palette_colors}
 \alias{.config_processing_bloat}
@@ -80,8 +79,6 @@
 .config_gtiff_default_options()
 
 .config_local_file_extensions()
-
-.config_memory_bloat()
 
 .config_palettes()
 

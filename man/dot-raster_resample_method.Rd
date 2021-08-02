@@ -7,7 +7,14 @@
 \usage{
 .raster_resample_method(method)
 
-.raster_resample_methods()
+.raster_resample_methods(sits_names = TRUE)
+}
+\arguments{
+\item{method}{A \code{character} value indicating a resampling
+method name}
+
+\item{sits_names}{A \code{logical} indicating if method names to be returned
+must be sits names or package names}
 }
 \value{
 character string

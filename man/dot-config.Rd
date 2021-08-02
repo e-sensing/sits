@@ -5,7 +5,34 @@
 \alias{sits_config}
 \title{Reads a configuration file and loads it in the main environment}
 \usage{
-sits_config()
+sits_config(
+  processing_bloat = NULL,
+  rstac_pagination_limit = NULL,
+  raster_api_package = NULL,
+  gdal_creation_options = NULL,
+  sources = NULL
+)
+}
+\arguments{
+\item{processing_bloat}{A \code{numeric} value to estimate
+growth size of R memory relative to block size.}
+
+\item{rstac_pagination_limit}{A \code{numeric} value indicating number of
+items returned by STAC service.}
+
+\item{gdal_creation_options}{A \code{character} vector specifying GDAL
+creation option for GeoTiff image format.}
+
+\item{sources}{A named \code{list} object containing all
+supported data cubes sources. Used in conjunction with
+\code{sits_config_new_source()}.
+
+Users can provide additional configuration files, by specifying the
+location of their file in the environmental variable
+SITS_USER_CONFIG_FILE
+
+To see the contents of the configuration file,
+please use \code{\link[sits]{sits_config_show}}.}
 }
 \value{
 A list with the configuration parameters used by sits.
@@ -16,13 +43,6 @@ located in a "config.yml" file in the working directory.
 If this file is not found, reads a default package configuration file.
 By default, the sits configuration file "config.yml" is located at
 the directory "extdata" of the package.
-
-Users can provide additional configuration files, by specifying the
-location of their file in the environmental variable
-SITS_USER_CONFIG_FILE
-
-To see the contents of the configuration file,
-please use \code{\link[sits]{sits_config_show}}.
 }
 \author{
 Gilberto Camara, \email{gilberto.camara@inpe.br}

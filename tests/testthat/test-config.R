@@ -7,7 +7,6 @@ test_that("Show", {
 
     lin <- readLines(paste0(tempdir(), "config.txt"))
 
-    expect_equal(lin[2], "R_memory_bloat          : 4")
     expect_true(grepl("bloat", lin[2]))
     expect_true(grepl("rstac", lin[6]))
 })

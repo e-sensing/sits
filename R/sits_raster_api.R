@@ -1,3 +1,10 @@
+#' @title Supported raster packages
+#' @keywords internal
+.raster_supported_packages <- function() {
+
+    return(c("raster", "terra"))
+}
+
 #' @title Check for raster package availability
 #' @name .raster_check_package
 #' @keywords internal
@@ -55,7 +62,8 @@
 .raster_gdal_datatype <- function(data_type) {
 
     # GDAL data types
-    gdal_data_types <- .raster_gdal_datatypes()
+    gdal_data_types <- .raster_gdal_datatypes(sits_names = FALSE)
+    names(gdal_data_types) <- .raster_gdal_datatypes(sits_names = TRUE)
 
     # check data_type type
     .check_chr(data_type, choices = names(gdal_data_types), len_min = 1,
@@ -66,15 +74,14 @@
 }
 
 #' @name .raster_gdal_datatype
-.raster_gdal_datatypes <- function() {
+.raster_gdal_datatypes <- function(sits_names = TRUE) {
 
-    # data types cast
-    res <- c(INT1U = "Byte", INT2U = "UInt16",
-             INT2S = "Int16", INT4U = "UInt32",
-             INT4S = "Int32", FLT4S = "Float32",
-             FLT8S = "Float64")
+    if (sits_names)
+        return(c("INT1U", "INT2U", "INT2S", "INT4U", "INT4S",
+                 "FLT4S", "FLT8S"))
 
-    return(res)
+    return(c("Byte", "UInt16", "Int16", "UInt32", "Int32",
+             "Float32", "Float64"))
 }
 
 
@@ -523,12 +530,17 @@
 #' @name .raster_resample_method
 #' @keywords internal
 #' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
+#' @param method     A \code{character} value indicating a resampling
+#' method name
+#' @param sits_names A \code{logical} indicating if method names to be returned
+#' must be sits names or package names
 #'
 #' @return character string
 .raster_resample_method <- function(method) {
 
     # package supported resample methods
-    convert_methods <- .raster_resample_methods()
+    convert_methods <- .raster_resample_methods(sits_names = FALSE)
+    names(convert_methods) <- .raster_resample_methods(sits_names = TRUE)
 
     # check method type
     .check_chr(method, choices = names(convert_methods),
@@ -540,7 +552,11 @@
 }
 
 #' @name .raster_resample_method
-.raster_resample_methods <- function() {
+.raster_resample_methods <- function(sits_names = TRUE) {
+
+    # show sits methods names
+    if (sits_names)
+        return(c("near", "bilinear"))
 
     # check package
     pkg_class <- .raster_check_package()
