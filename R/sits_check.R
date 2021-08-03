@@ -106,6 +106,8 @@
 #' @param x             A \code{object} that will be check. That can be a
 #' \code{numeric} or \code{character} vectors or a \code{list}.
 #' @param ...           Additional parameters for \code{fn_check} function.
+#' @param case_sensitive A \code{logical} indicating if check will be case
+#' sensitive. Default is TRUE.
 NULL
 
 #' @rdname check_functions
@@ -347,6 +349,7 @@ NULL
 .check_chr_choices <- function(x,
                                choices, ...,
                                discriminator = "any_of",
+                               case_sensitive = TRUE,
                                msg = NULL) {
 
     # pre-condition
@@ -366,6 +369,13 @@ NULL
     # check type
     .check_chr_type(x, msg = msg)
 
+    # case sensitive
+    if (!case_sensitive) {
+        x <- toupper(x)
+        choices <- toupper(choices)
+    }
+
+    # simplify
     choices <- unique(choices)
 
     if (length(choices) > 0)

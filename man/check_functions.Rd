@@ -49,7 +49,7 @@
 
 .check_chr_empty(x, ..., msg = NULL)
 
-.check_chr_choices(x, choices, ..., discriminator = "any_of", msg = NULL)
+.check_chr_choices(x, choices, ..., discriminator = "any_of", case_sensitive = TRUE, msg = NULL)
 
 .check_lst_type(x, ..., msg = NULL)
 
@@ -153,6 +153,9 @@ values. Default is TRUE.}
 \item{choices}{A atomic \code{vector} of characters indicating the
 choices of user can provide in function parameter. Only works for character
 check.}
+
+\item{case_sensitive}{A \code{logical} indicating if check will be case
+sensitive. Default is TRUE.}
 
 \item{is_integer}{A \code{logical} indicating if the value must be
 integer.}
