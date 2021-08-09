@@ -101,7 +101,7 @@
                                                 collection = NULL) {
 
     # making request to collection endpoint to get crs info
-    url <- .config_source_url(source = source)
+    url <- .source_url(source = source)
     query_search <- rstac::collections(q = rstac::stac(url),
                                        collection_id = collection)
 

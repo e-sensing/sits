@@ -66,8 +66,13 @@
     names(gdal_data_types) <- .raster_gdal_datatypes(sits_names = TRUE)
 
     # check data_type type
-    .check_chr(data_type, choices = names(gdal_data_types), len_min = 1,
-               len_max = 1, msg = "invalid 'data_type' parameter")
+    .check_chr(data_type, len_min = 1, len_max = 1,
+               msg = "invalid 'data_type' parameter")
+
+    .check_chr_within(data_type,
+                      within = .raster_gdal_datatypes(sits_names = TRUE),
+                      discriminator = "one_of",
+                      msg = "invalid 'data_type' parameter")
 
     # convert
     return(gdal_data_types[[data_type]])
@@ -543,10 +548,13 @@
     names(convert_methods) <- .raster_resample_methods(sits_names = TRUE)
 
     # check method type
-    .check_chr(method, choices = names(convert_methods),
-               len_min = 1, len_max = 1,
-               msg = sprintf("invalid 'method' for package '%s'",
-                             .config_raster_pkg()))
+    .check_chr(method, len_min = 1, len_max = 1,
+               msg = "invalid 'method' parameter")
+
+    .check_chr_within(method,
+                      within = .raster_resample_methods(sits_names = TRUE),
+                      discriminator = "one_of",
+                      msg = "invalid 'method' parameter")
     # convert
     return(convert_methods[[method]])
 }

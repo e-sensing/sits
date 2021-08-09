@@ -2,7 +2,7 @@ context("Cube")
 
 test_that("Creating a SATVEG data cube", {
     testthat::skip_on_cran()
-    cube_satveg <- sits_cube(source = "SATVEG", collection = "terra")
+    cube_satveg <- sits_cube(source = "SATVEG", collection = "TERRA")
 
     if (purrr::is_null(cube_satveg)) {
         skip("SATVEG is not accessible")

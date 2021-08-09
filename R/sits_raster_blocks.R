@@ -64,7 +64,7 @@
     nbands <- length(sits_bands(samples))
     # does the cube have a cloud band?
     cube_bands <- sits_bands(tile)
-    cld_band <- .config_cloud()
+    cld_band <- .source_cloud()
     # the cube has the cloud band, add one more band to the calculation
     if (cld_band %in% cube_bands) {
         nbands <- nbands + 1
