@@ -66,7 +66,7 @@ Suggests:
     future,
     gdalcubes,
     imager,
-    imputeTS,
+    imputeTS, 
     keras (>= 2.3.0),
     kohonen,
     knitr,
@@ -87,13 +87,10 @@ Suggests:
     signal,
     stars,
     stringr,
-    testthat (>= 3.0.2),
+    testthat,
     tidyr,
     xgboost,
-    zoo,
-    vcr (>= 0.6.0)
-Config/testthat/edition: 3
-Config/testthat/start-first: wtss, raster, ml, cube*
+    zoo
 VignetteBuilder: knitr
 LinkingTo:
     Rcpp,
@@ -168,7 +165,6 @@ Collate:
     'sits_space_time_operations.R'
     'sits_stac.R'
     'sits_TempCNN.R'
-    'sits_test-helpers.R'
     'sits_tibble.R'
     'sits_timeline.R'
     'sits_twdtw.R'
