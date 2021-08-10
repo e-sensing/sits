@@ -208,7 +208,7 @@ test_that("Checks", {
         .check_chr_within(character(0),
                           within = character(0),
                           discriminator = "one_of"),
-        "test: value cannot be '' since the set of allowed values is empty"
+        "test: invalid 'within' parameter"
     )
     expect_equal(
         .check_chr_within(c("a", "a"),
@@ -228,42 +228,17 @@ test_that("Checks", {
                           discriminator = "any_of"),
         c("a", "b")
     )
-    expect_error(
+    expect_equal(
         .check_chr_within(c("a", "b"),
                           within = c("a", "b", "c"),
                           discriminator = "all_of"),
-        "test: value should be all of: 'a', 'b', 'c'"
+        c("a", "b")
     )
     expect_equal(
         .check_chr_within(c("a", "b", "b", "c"),
                           within = c("a", "b", "c"),
                           discriminator = "all_of"),
         c("a", "b", "b", "c")
-    )
-    expect_error(
-        .check_chr_within(c("a", "b", "b", "c"),
-                          within = c("a", "b", "c"),
-                          discriminator = "exact"),
-        "test: value should be exactly: 'a', 'b', 'c'"
-    )
-    expect_equal(
-        .check_chr_within(c("c", "a", "b"),
-                          within = c("a", "b", "c"),
-                          discriminator = "exact"),
-        c("c", "a", "b")
-    )
-    expect_error(
-        .check_chr_within(c("a", "B", "C"),
-                          within = c("a", "b", "c"),
-                          discriminator = "any_of"),
-        "test: value should be any of: 'a', 'b', 'c'"
-    )
-    expect_equal(
-        .check_chr_within(c("a", "B", "C"),
-                          within = c("a", "b", "c"),
-                          discriminator = "any_of",
-                          case_sensitive = FALSE),
-        c("a", "B", "C")
     )
 
     # .check_chr_contains
@@ -271,68 +246,43 @@ test_that("Checks", {
         .check_chr_contains(character(0),
                             contains = character(0),
                             discriminator = "one_of"),
-        "test: value should contain only one of these items: ''"
-    )
-    expect_equal(
-        .check_chr_contains(c("a", "a"),
-                            contains = c("a", "b", "c"),
-                            discriminator = "one_of"),
-        c("a", "a")
-    )
-    expect_equal(
-        .check_chr_contains(c("a", "a", "z"),
-                            contains = c("a", "b", "c"),
-                            discriminator = "one_of"),
-        c("a", "a", "z")
+        "test: invalid 'contains' parameter"
     )
     expect_error(
-        .check_chr_contains(c("a", "b", "z"),
-                            contains = c("a", "b", "c"),
+        .check_chr_contains(c("a", "b", "c"),
+                            contains = c("a", "b"),
                             discriminator = "one_of"),
-        "test: value should contain only one of these items: 'a', 'b', 'c'"
+        "test: value should contain only one of: 'a', 'b'"
     )
     expect_equal(
-        .check_chr_contains(c("a", "b", "z"),
-                            contains = c("a", "b", "c"),
+        .check_chr_contains(c("a", "b", "c"),
+                            contains = c("a", "b"),
                             discriminator = "any_of"),
-        c("a", "b", "z")
+        c("a", "b", "c")
     )
     expect_error(
-        .check_chr_contains(c("a", "b", "z"),
-                            contains = c("a", "b", "c"),
-                            discriminator = "all_of"),
-        "test: value should contain all of these items: 'a', 'b', 'c'"
+        .check_chr_contains(c("a", "b", "c"),
+                            contains = c("a", "b"),
+                            discriminator = "one_of"),
+        "test: value should contain only one of: 'a', 'b'"
     )
     expect_equal(
-        .check_chr_contains(c("a", "b", "b", "c"),
+        .check_chr_contains(c("a", "b", "c"),
+                            contains = c("a", "b"),
+                            discriminator = "any_of"),
+        c("a", "b", "c")
+    )
+    expect_equal(
+        .check_chr_contains(c("a", "b", "c"),
                             contains = c("a", "b", "c"),
                             discriminator = "all_of"),
-        c("a", "b", "b", "c")
+        c("a", "b", "c")
     )
     expect_error(
-        .check_chr_contains(c("a", "b", "b", "c"),
-                            contains = c("a", "b", "c"),
-                            discriminator = "exact"),
-        "test: value should contain exactly these items: 'a', 'b', 'c'"
-    )
-    expect_equal(
-        .check_chr_contains(c("c", "a", "b"),
-                            contains = c("a", "b", "c"),
-                            discriminator = "exact"),
-        c("c", "a", "b")
-    )
-    expect_error(
-        .check_chr_contains(c("a", "B", "C"),
+        .check_chr_contains(c("a", "b", "b", "b"),
                             contains = c("a", "b", "c"),
                             discriminator = "all_of"),
-        "test: value should contain all of these items: 'a', 'b', 'c'"
-    )
-    expect_equal(
-        .check_chr_contains(c("a", "B", "C"),
-                            contains = c("a", "b", "c"),
-                            discriminator = "any_of",
-                            case_sensitive = FALSE),
-        c("a", "B", "C")
+        "test: value should contain all of: 'a', 'b', 'c'"
     )
 
     # .check_lgl

@@ -610,109 +610,91 @@ NULL
 #' \code{within} values. For the \code{.check_chr_contains()}, the error
 #' message focus on the \code{contains} values. The verification is done
 #' accordingly to the \code{discriminator} parameter, that can be:
-#' \code{one_of}, \code{any_of}, \code{all_of}, \code{none_of}, and
-#' \code{exact}. A case insensitive verification is done if
-#' \code{case_sensitive=FALSE}.
+#' \code{one_of}, \code{any_of}, \code{all_of}, or \code{none_of}.
 #'
 #' \itemize{
 #' \item{
-#' \code{.check_chr_within()} throws an error if provided \code{x} vector does
-#' not correspond to the \code{discriminator} with respect to \code{within}
-#' parameter. \code{one_of}: only one value (can repeat) of \code{x} appears
-#' in \code{within} vector. \code{any_of} (default): at least one value (can
-#' repeat) of \code{x} appears in \code{within} vector. \code{all_of}: all
-#' values (can repeat) of \code{x} appears in \code{within} vector.
-#' \code{none_of}: no value of \code{x} is in \code{within} vector.
-#' \code{exact}: all values (cannot repeat) of \code{x} appears in
-#' \code{within} vector.
+#' \code{.check_chr_within()} throws an error if provided \code{within} vector
+#' does not correspond to the \code{discriminator} with respect to \code{x}
+#' parameter (e.g. "one of x within...", "all of x within...).
+#' \code{one_of}: only one value (can repeat) of \code{x} appears
+#' in \code{within} vector. \code{any_of}: at least one value (can
+#' repeat) of \code{x} appears in \code{within} vector. \code{all_of}
+#' (default): all values (can repeat) of \code{x} appears in \code{within}
+#' vector. \code{none_of}: no value of \code{x} is in \code{within} vector.
 #' }
 #' \item{
-#' \code{.check_chr_contains()} throws an error if provided \code{contains}
+#' \code{.check_chr_contains()} throws an error if provided \code{x}
 #' vector does not correspond to the \code{discriminator} with respect to
-#' \code{x} parameter. \code{one_of}: only one value (can repeat) of
+#' \code{contains} parameter (e.g. "x contains one of...",
+#' "x contains all of..."). \code{one_of}: only one value (can repeat) of
 #' \code{contains} appears in \code{x} vector. \code{any_of}: at least one
 #' value (can repeat) of \code{contains} appears in \code{x} vector.
 #' \code{all_of} (default): all values (can repeat) of \code{contains}
 #' appears in \code{x} vector. \code{none_of}: no value of \code{contains} is
-#' in \code{x} vector. \code{exact}: all values (cannot repeat) of
-#' \code{contains} appears in \code{x} vector.
+#' in \code{x} vector.
 #' }
 #' }
-#'
 #'
 .check_chr_within <- function(x,
                               within, ...,
-                              discriminator = "any_of",
-                              case_sensitive = TRUE,
+                              discriminator = "all_of",
                               msg = NULL) {
 
-    # pre-condition (programmer)
-    if (!is.character(within))
-        stop(".check_chr_within: 'within' should be character.", call. = TRUE)
+    # pre-condition
+    .check_chr(within, len_min = 1,
+               msg = "invalid 'within' parameter")
 
     # allowed discriminators and its print values
-    discriminators <- c("one_of" = "one of", "any_of" = "any of",
-                        "all_of" = "all of", "none_of" = "none of",
-                        "exact" = "exactly")
+    discriminators <- c("one_of" = "one of", "any_of" = "at least one of",
+                        "all_of" = "all of", "none_of" = "none of")
 
     if (length(discriminator) != 1 ||
         !discriminator %in% names(discriminators))
         stop(paste(".check_chr_within: discriminator should be one of",
-                   "'one_of', 'any_of', 'all_of', 'none_of', or 'exact'."),
+                   "'one_of', 'any_of', 'all_of', or 'none_of'."),
              call. = TRUE)
 
     # check type
     .check_chr_type(x, msg = msg)
 
-    # simplify
-    within <- unique(within)
-
-    # within set should have at least one value
-    .check_that(length(within) > 0,
-                local_msg = sprintf(paste("value cannot be %s since the set",
-                                          "of allowed values is empty"),
-                                    paste0("'", x, "'", collapse = ", ")),
-                msg = msg)
-
-    local_msg <- sprintf("value should be %s: %s",
-                         discriminators[[discriminator]],
-                         paste0("'", within, "'", collapse = ", "))
-
     res <- x
 
-    # case sensitive
-    if (!case_sensitive) {
-        x <- toupper(x)
-        within <- toupper(within)
-    }
+    # simplify
+    x <- unique(x)
+    within <- unique(within)
 
+    # prepare local message
+    if (length(within) > 1)
+        local_msg <- sprintf("value should be %s: %s",
+                             discriminators[[discriminator]],
+                             paste0("'", within, "'", collapse = ", "))
+    else
+        local_msg <- sprintf("value should be %s",
+                             paste0("'", within, "'"))
+
+    # check discriminator
     if (discriminator == "one_of")
         .check_that(
-            length(unique(x)) == 1 && all(x %in% within),
+            sum(x %in% within) == 1,
             local_msg = local_msg,
             msg = msg
         )
     else if (discriminator == "any_of")
         .check_that(
-            all(x %in% within),
+            any(x %in% within),
             local_msg = local_msg,
             msg = msg
         )
     else if (discriminator == "all_of")
         .check_that(
-            all(within %in% x),
+            all(x %in% within),
             local_msg = local_msg,
             msg = msg
         )
     else if (discriminator == "none_of")
         .check_that(
             !any(x %in% within),
-            local_msg = local_msg,
-            msg = msg
-        )
-    else if (discriminator == "exact")
-        .check_that(
-            all(within %in% x) && length(x) == length(unique(x)),
             local_msg = local_msg,
             msg = msg
         )
@@ -724,22 +706,20 @@ NULL
 .check_chr_contains <- function(x,
                                 contains, ...,
                                 discriminator = "all_of",
-                                case_sensitive = TRUE,
                                 msg = NULL) {
 
-    # pre-condition (programmer)
-    if (!is.character(contains))
-        stop(".check_chr_contains: 'contains' should be character.", call. = TRUE)
+    # pre-condition
+    .check_chr(contains, len_min = 1,
+               msg = "invalid 'contains' parameter")
 
     # allowed discriminators and its print values
     discriminators <- c("one_of" = "only one of", "any_of" = "at least one of",
-                        "all_of" = "all of", "none_of" = "none of",
-                        "exact" = "exactly")
+                        "all_of" = "all of")
 
     if (length(discriminator) != 1 ||
         !discriminator %in% names(discriminators))
         stop(paste(".check_chr_contains: discriminator should be one of",
-                   "'one_of', 'any_of', 'all_of', 'none_of', or 'exact'."),
+                   "'one_of', 'any_of', or 'all_of'."),
              call. = TRUE)
 
     # check type
@@ -747,19 +727,20 @@ NULL
 
     res <- x
 
-    # case sensitive
-    if (!case_sensitive) {
-        x <- toupper(x)
-        contains <- toupper(contains)
-    }
-
     # simplify
+    x <- unique(x)
     contains <- unique(contains)
 
-    local_msg <- sprintf("value should contain %s these items: %s",
-                         discriminators[[discriminator]],
-                         paste0("'", contains, "'", collapse = ", "))
+    # prepare local message
+    if (length(contains) > 1)
+        local_msg <- sprintf("value should contain %s: %s",
+                             discriminators[[discriminator]],
+                             paste0("'", contains, "'", collapse = ", "))
+    else
+        local_msg <- sprintf("value should contain %s",
+                             paste0("'", contains, "'"))
 
+    # check discriminator
     if (discriminator == "one_of")
         .check_that(
             sum(contains %in% x) == 1,
@@ -781,12 +762,6 @@ NULL
     else if (discriminator == "none_of")
         .check_that(
             !any(contains %in% x),
-            local_msg = local_msg,
-            msg = msg
-        )
-    else if (discriminator == "exact")
-        .check_that(
-            all(x %in% contains) && length(x) == length(unique(x)),
             local_msg = local_msg,
             msg = msg
         )
