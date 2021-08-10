@@ -178,9 +178,6 @@ to which \code{x} is a kind of superset. The actual behavior is pointed by
 \code{discriminator} parameter.}
 
 \item{expr}{A R \code{expression} to be evaluated.}
-
-\item{case_sensitive}{A \code{logical} indicating if check will be case
-sensitive. Default is TRUE.}
 }
 \value{
 Unless otherwise specified, all checking functions return the same

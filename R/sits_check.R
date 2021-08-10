@@ -46,8 +46,6 @@
 #' \code{discriminator} parameter.
 #' @param discriminator A \code{character} value indicating how subset
 #' verification will be done (see details).
-#' @param case_sensitive A \code{logical} indicating if check will be case
-#' sensitive. Default is TRUE.
 #' @param contains      A \code{character} vector indicating a set of elements
 #' to which \code{x} is a kind of superset. The actual behavior is pointed by
 #' \code{discriminator} parameter.
