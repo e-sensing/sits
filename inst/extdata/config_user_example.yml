@@ -1,6 +1,13 @@
-default:
+processing_bloat        : 5
 
-    colors:
+rstac_pagination_limit  : 999
+
+raster_api_package      : "raster"
+
+gdal_creation_options   : ["COMPRESS=LZW", "BIGTIFF=YES"]
+
+palettes:
+    my_project:
         Cropland:           "khaki"
         Deforestation:      "sienna"
         Forest :            "darkgreen"

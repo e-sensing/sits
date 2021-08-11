@@ -134,10 +134,10 @@ test_that("Reading a POINT shapefile from WTSS", {
 
 test_that("Reading a point from SATVEG ", {
     testthat::skip_on_cran()
-    cube_1 <- sits_cube(source = "SATVEG", collection = "terra")
+    cube_1 <- sits_cube(source = "SATVEG", collection = "TERRA")
 
     if (purrr::is_null(cube_1)) {
-          skip("SATVEG is not accessible for collection terra")
+          skip("SATVEG is not accessible for collection TERRA")
       }
 
     point_terra <- sits_get_data(cube_1,
@@ -151,9 +151,9 @@ test_that("Reading a point from SATVEG ", {
                  158.11, tolerance = 2
     )
 
-    cube_2 <- sits_cube(source = "SATVEG", collection = "aqua")
+    cube_2 <- sits_cube(source = "SATVEG", collection = "AQUA")
     if (purrr::is_null(cube_2)) {
-      skip("SATVEG is not accessible for collection aqua")
+      skip("SATVEG is not accessible for collection AQUA")
     }
     point_aqua <- sits_get_data(cube_2,
         longitude = -55.50563, latitude = -11.71557
@@ -166,7 +166,7 @@ test_that("Reading a point from SATVEG ", {
         132.3852, tolerance = 2
     )
 
-    cube_3 <- sits_cube(source = "SATVEG", collection = "comb")
+    cube_3 <- sits_cube(source = "SATVEG", collection = "COMB")
     if (purrr::is_null(cube_2)) {
       skip("SATVEG is not accessible for collection comb")
     }
@@ -191,7 +191,7 @@ test_that("Reading a CSV file from SATVEG", {
     csv_file <- system.file("extdata/samples/samples_matogrosso.csv",
         package = "sits"
     )
-    cube_satveg <- sits_cube(source = "SATVEG", collection = "terra")
+    cube_satveg <- sits_cube(source = "SATVEG", collection = "TERRA")
 
     if (purrr::is_null(cube_satveg)) {
           skip("SATVEG is not accessible")
@@ -222,7 +222,7 @@ test_that("Reading a CSV file from SATVEG", {
 
 test_that("Reading a POLYGON shapefile from SATVEG", {
     testthat::skip_on_cran()
-    cube_satveg <- sits_cube(source = "SATVEG", collection = "terra")
+    cube_satveg <- sits_cube(source = "SATVEG", collection = "TERRA")
 
     if (purrr::is_null(cube_satveg)) {
           skip("SATVEG is not accessible")

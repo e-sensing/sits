@@ -287,7 +287,7 @@ sits_cube.bdc_cube <- function(source = "BDC", ...,
 
     # precondition
     assertthat::assert_that(
-        collection %in% .config_collections(source = source),
+        collection %in% .source_collections(source = source),
         msg = sprintf(paste("sits_cube.bdc_cube: collection '%s' not found in",
                             "BDC source.\nPlease, check sits config with",
                             "?sits_config command."), collection)
@@ -301,14 +301,14 @@ sits_cube.bdc_cube <- function(source = "BDC", ...,
     )
 
     if (is.null(bands))
-        bands <- .config_bands(source = source,
+        bands <- .source_bands(source = source,
                                collection = collection)
 
     # TODO: add warning in case user provide source band
     assertthat::assert_that(
-        all(bands %in% c(.config_bands(source = source,
+        all(bands %in% c(.source_bands(source = source,
                                        collection = collection),
-                         .config_bands_band_name(source = source,
+                         .source_bands_band_name(source = source,
                                                  collection = collection))),
         msg = paste("sits_cube.bdc_cube: invalid bands.\nPlease verify the",
                     "provided bands.")
@@ -342,6 +342,12 @@ sits_cube.deafrica_cube <- function(source = "DEAFRICA", ...,
                                     start_date = NULL,
                                     end_date = NULL) {
 
+    # source name is upper case
+    source <- toupper(source)
+
+    # collection name is upper case
+    collection <- toupper(collection)
+
     # precondition
     assertthat::assert_that(
         length(collection) == 1,
@@ -351,22 +357,22 @@ sits_cube.deafrica_cube <- function(source = "DEAFRICA", ...,
 
     # precondition
     assertthat::assert_that(
-        collection %in% .config_collections(source = source),
+        collection %in% .source_collections(source = source),
         msg = sprintf(paste("sits_cube.deafrica_cube: collection '%s' not",
                             "found in DEAfrica source.\nPlease, check sits",
                             "config with ?sits_config command."), collection)
     )
 
     # precondition - is AWS access available?
-    .check_aws_environment(source, collection)
+    .source_collection_aws_check(source = source, collection = collection)
 
     if (is.null(bands))
-        bands <- .config_bands(source = source,
+        bands <- .source_bands(source = source,
                                collection = collection)
 
     assertthat::assert_that(
-        all(bands %in% c(.config_bands(source = source, collection = collection),
-                         .config_bands_band_name(source = source,
+        all(bands %in% c(.source_bands(source = source, collection = collection),
+                         .source_bands_band_name(source = source,
                                                  collection = collection))),
         msg = paste("sits_cube.deafrica_cube: invalid bands.\nPlease the",
                     "provided bands.")
@@ -401,6 +407,12 @@ sits_cube.aws_cube <- function(source = "AWS", ...,
                                start_date = NULL,
                                end_date = NULL) {
 
+    # source name is upper case
+    source <- toupper(source)
+
+    # collection name is upper case
+    collection <- toupper(collection)
+
     # precondition - is the provided resolution is valid?
     assertthat::assert_that(
         s2_resolution %in% c(10, 20, 60),
@@ -416,14 +428,14 @@ sits_cube.aws_cube <- function(source = "AWS", ...,
 
     # precondition
     assertthat::assert_that(
-        collection %in% .config_collections(source = source),
+        collection %in% .source_collections(source = source),
         msg = sprintf(paste("sits_cube.aws_cube: collection '%s' not",
                             "found in aws source.\nPlease, check sits",
                             "config with ?sits_config command."), collection)
     )
 
     # precondition - is AWS access available?
-    .check_aws_environment(source, collection)
+    .source_collection_aws_check(source, collection)
 
     if (is.null(bands))
         bands <- .aws_bands(source = source,
@@ -487,22 +499,22 @@ sits_cube.usgs_cube <- function(source = "USGS", ...,
 
     # precondition
     assertthat::assert_that(
-        collection %in% .config_collections(source = source),
+        collection %in% .source_collections(source = source),
         msg = sprintf(paste("sits_cube.usgs_cube: collection '%s' not",
                             "found in USGS source.\nPlease, check sits",
                             "config with ?sits_config command."), collection)
     )
 
     # precondition - is AWS access available?
-    .check_aws_environment(source, collection)
+    .source_collection_aws_check(source, collection)
 
     if (is.null(bands))
-        bands <- .config_bands(source = source,
+        bands <- .source_bands(source = source,
                                collection = collection)
 
     assertthat::assert_that(
-        all(bands %in% c(.config_bands(source = source, collection = collection),
-                         .config_bands_band_name(source = source,
+        all(bands %in% c(.source_bands(source = source, collection = collection),
+                         .source_bands_band_name(source = source,
                                                  collection = collection))),
         msg = paste("sits_cube.usgs_cube: invalid bands.\nPlease the",
                     "provided bands.")
@@ -605,12 +617,12 @@ sits_cube.probs_cube <- function(source = "PROBS", ...,
 #'
 #' @export
 sits_cube.satveg_cube <- function(source = "SATVEG", ...,
-                                  collection = "terra") {
+                                  collection = "TERRA") {
 
 
     # precondition
     assertthat::assert_that(
-        collection %in% c("terra", "aqua", "comb"),
+        collection %in% c("TERRA", "AQUA", "COMB"),
         msg = "sits_cube.satveg_cube: invalid SATVEG collection."
     )
 
@@ -853,15 +865,16 @@ NULL
                            function(x) unique(x[["band"]])))
 
     # check if all tiles have same bands
-    .check_lst(bands, min_len = 1, max_len = 1,
+    .check_lst(bands, min_len = 1, max_len = 1, is_named = FALSE,
                msg = "inconsistent 'bands' among tiles")
 
     # simplify
     bands <- unlist(bands, use.names = FALSE)
 
-    .check_chr(res, allow_empty = FALSE, choices = bands,
-               len_min = length(bands), len_max = length(bands),
-               msg = "inconsistent 'bands' between cube and 'file_info'")
+    .check_chr_contains(
+        res, contains = bands,
+        discriminator = "exact",
+        msg = "inconsistent 'bands' between cube and 'file_info'")
 
     return(res)
 }
@@ -873,14 +886,14 @@ NULL
     res <- unique(cube[["bands"]])
 
     # post-condition
-    .check_lst(res, min_len = 1, max_len = 1,
+    .check_lst(res, min_len = 1, max_len = 1, is_named = FALSE,
                msg = "inconsistent 'bands' among tiles")
 
     # simplify
     res <- unlist(res, use.names = FALSE)
 
     if (!add_cloud)
-        res <- res[res != .config_cloud()]
+        res <- res[res != .source_cloud()]
 
     return(res)
 }
@@ -934,21 +947,21 @@ NULL
         local_msg = "'tile' parameter must be numeric or character"
     )
 
-    if (is.numeric(tile)) {
-        .check_num(tile, min = 1, max = nrow(cube),
-                   len_min = 1, len_max = 1, is_integer = TRUE,
+    .check_length(tile, len_min = 1, len_max = nrow(cube),
+                  "invalid 'tile' parameter")
+
+    if (is.numeric(tile))
+        .check_num(tile, min = 1, max = nrow(cube), is_integer = TRUE,
                    msg = "invalid 'tile' parameter"
         )
-    }
-
-    if (is.character(tile)) {
-        .check_chr(allow_empty = FALSE, choices = .cube_tiles(cube = cube),
-                   len_min = 1, len_max = 1,
-                   msg = "invalid 'tile' parameter"
+    else if (is.character(tile))
+        .check_chr_within(tile,
+                          within = .cube_tiles(cube = cube),
+                          discriminator = "one_of",
+                          msg = "invalid 'tile' parameter"
         )
-    }
 
-    return(invisible(NULL))
+    return(invisible(tile))
 }
 
 #' @rdname cube_functions
@@ -957,8 +970,10 @@ NULL
     # pre-condition
     .cube_tile_check(cube = cube, tile = tile)
 
-    .check_chr(fields, allow_empty = FALSE, choices = names(cube),
-               len_min = 1, msg = "invalid 'fields' parameter")
+    .check_chr_within(fields,
+                      within = names(cube),
+                      discriminator = "any_of",
+                      msg = "invalid 'fields' parameter")
 
     if (is.numeric(tile))
         res <- c(cube[tile, fields])
@@ -1039,9 +1054,17 @@ NULL
 .cube_band_missing_value <- function(cube, band) {
 
     # pre-condition
-    .check_chr(band, choices = .cube_bands(cube = cube, add_cloud = FALSE),
-               len_min = 1, len_max = 1,
+    .check_chr(band, len_min = 1, len_max = 1,
                msg = "invalid 'band' parameter")
+
+    .check_chr_within(band,
+                      within = .cube_bands(cube = cube, add_cloud = FALSE),
+                      discriminator = "one_of",
+                      case_sensitive = FALSE,
+                      msg = "invalid 'band' parameter")
+
+    # bands names are upper case
+    band <- toupper(band)
 
     res <- .config_get(key = c("sources", .cube_source(cube = cube),
                                "collections", .cube_collection(cube = cube),
@@ -1058,9 +1081,17 @@ NULL
 .cube_band_minimum_value <- function(cube, band) {
 
     # pre-condition
-    .check_chr(band, choices = .cube_bands(cube = cube, add_cloud = FALSE),
-               len_min = 1, len_max = 1,
+    .check_chr(band, len_min = 1, len_max = 1,
                msg = "invalid 'band' parameter")
+
+    .check_chr_within(band,
+                      within = .cube_bands(cube = cube, add_cloud = FALSE),
+                      discriminator = "one_of",
+                      case_sensitive = FALSE,
+                      msg = "invalid 'band' parameter")
+
+    # bands names are upper case
+    band <- toupper(band)
 
     res <- .config_get(key = c("sources", .cube_source(cube = cube),
                                "collections", .cube_collection(cube = cube),
@@ -1077,9 +1108,17 @@ NULL
 .cube_band_maximum_value <- function(cube, band) {
 
     # pre-condition
-    .check_chr(band, choices = .cube_bands(cube = cube, add_cloud = FALSE),
-               len_min = 1, len_max = 1,
+    .check_chr(band, len_min = 1, len_max = 1,
                msg = "invalid 'band' parameter")
+
+    .check_chr_within(band,
+                      within = .cube_bands(cube = cube, add_cloud = FALSE),
+                      discriminator = "one_of",
+                      case_sensitive = FALSE,
+                      msg = "invalid 'band' parameter")
+
+    # bands names are upper case
+    band <- toupper(band)
 
     res <- .config_get(key = c("sources", .cube_source(cube = cube),
                                "collections", .cube_collection(cube = cube),
@@ -1096,9 +1135,17 @@ NULL
 .cube_band_scale_factor <- function(cube, band) {
 
     # pre-condition
-    .check_chr(band, choices = .cube_bands(cube = cube, add_cloud = FALSE),
-               len_min = 1, len_max = 1,
+    .check_chr(band, len_min = 1, len_max = 1,
                msg = "invalid 'band' parameter")
+
+    .check_chr_within(band,
+                      within = .cube_bands(cube = cube, add_cloud = FALSE),
+                      discriminator = "one_of",
+                      case_sensitive = FALSE,
+                      msg = "invalid 'band' parameter")
+
+    # bands names are upper case
+    band <- toupper(band)
 
     res <- .config_get(key = c("sources", .cube_source(cube = cube),
                                "collections", .cube_collection(cube = cube),
@@ -1115,9 +1162,17 @@ NULL
 .cube_band_offset_value <- function(cube, band) {
 
     # pre-condition
-    .check_chr(band, choices = .cube_bands(cube = cube, add_cloud = FALSE),
-               len_min = 1, len_max = 1,
+    .check_chr(band, len_min = 1, len_max = 1,
                msg = "invalid 'band' parameter")
+
+    .check_chr_within(band,
+                      within = .cube_bands(cube = cube, add_cloud = FALSE),
+                      discriminator = "one_of",
+                      case_sensitive = FALSE,
+                      msg = "invalid 'band' parameter")
+
+    # bands names are upper case
+    band <- toupper(band)
 
     res <- .config_get(key = c("sources", .cube_source(cube = cube),
                                "collections", .cube_collection(cube = cube),
@@ -1134,19 +1189,30 @@ NULL
 .cube_band_resampling <- function(cube, band) {
 
     # pre-condition
-    .check_chr(band, choices = .cube_bands(cube = cube, add_cloud = TRUE),
-               len_min = 1, len_max = 1,
+    .check_chr(band, len_min = 1, len_max = 1,
                msg = "invalid 'band' parameter")
+
+    .check_chr_within(band,
+                      within = .cube_bands(cube = cube, add_cloud = TRUE),
+                      discriminator = "one_of",
+                      case_sensitive = FALSE,
+                      msg = "invalid 'band' parameter")
+
+    # bands names are upper case
+    band <- toupper(band)
 
     res <- .config_get(key = c("sources", .cube_source(cube = cube),
                                "collections", .cube_collection(cube = cube),
                                "bands", band, "resampling"))
 
     # post-condition
-    .check_chr(res, choices = names(.raster_resample_methods()),
-               len_min = 1, len_max = 1,
-               msg = sprintf("invalid 'resampling' value for package '%s'",
-                             .config_raster_pkg()))
+    .check_chr(res, len_min = 1, len_max = 1,
+               msg = "invalid 'resampling' parameter")
+
+    .check_chr_within(res,
+                      within = .raster_resample_methods(sits_names = TRUE),
+                      discriminator = "one_of",
+                      msg = "invalid 'resampling' parameter")
 
     return(res)
 }
@@ -1155,9 +1221,17 @@ NULL
 .cube_band_resolutions <- function(cube, band) {
 
     # pre-condition
-    .check_chr(band, choices = .cube_bands(cube = cube, add_cloud = TRUE),
-               len_min = 1, len_max = 1,
+    .check_chr(band, len_min = 1, len_max = 1,
                msg = "invalid 'band' parameter")
+
+    .check_chr_within(band,
+                      within = .cube_bands(cube = cube, add_cloud = TRUE),
+                      discriminator = "one_of",
+                      case_sensitive = FALSE,
+                      msg = "invalid 'band' parameter")
+
+    # bands names are upper case
+    band <- toupper(band)
 
     res <- .config_get(key = c("sources", .cube_source(cube = cube),
                                "collections", .cube_collection(cube = cube),
@@ -1173,5 +1247,34 @@ NULL
 #' @rdname cube_functions
 .cube_has_cloud <- function(cube) {
 
-    .config_cloud() %in% .cube_bands(cube = cube, add_cloud = TRUE)
+    .source_cloud() %in% .cube_bands(cube = cube, add_cloud = TRUE)
+}
+
+
+#' @title meta-type for data
+#' @name .config_data_meta_type
+#' @keywords internal
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
+#' @param  data    tibble (time series or cube)
+#'
+#' @return file path to the appended to data_dir
+.config_data_meta_type <- function(data) {
+
+    if (inherits(data, c("sits", "patterns", "predicted", "sits_model"))) {
+        return(data)
+
+    } else {
+
+        assertthat::assert_that(
+            !purrr::is_null(data$source),
+            msg = ".sits_config_data_meta_type: data is not valid"
+        )
+
+        # check if data is a cube
+        # TODO: where this function will be implemented?
+        #.sits_config_cube_check(data)
+
+        class(data) <- c("cube", class(data))
+    }
+    return(data)
 }

@@ -19,10 +19,10 @@
     filter_par <- ""
 
     # URL to access SATVEG services
-    url <- .config_source_url(source = .cube_source(cube = cube))
+    url <- .source_url(source = .cube_source(cube = cube))
 
     # bands available in SATVEG
-    bands <- .config_bands_band_name(source = .cube_source(cube = cube),
+    bands <- .source_bands_band_name(source = .cube_source(cube = cube),
                                      collection = .cube_collection(cube = cube))
     # bands in SATVEG are lowercase
     bands <- tolower(bands)
@@ -129,7 +129,7 @@
     band <- "ndvi"
     cube <- "terra"
     # URL to access SATVEG services
-    url <- .config_source_url(source = "SATVEG")
+    url <- .source_url(source = "SATVEG")
 
     # Build the URL to retrieve the time series
     url_ts <- paste0(
