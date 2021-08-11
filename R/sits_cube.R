@@ -304,6 +304,7 @@ sits_cube.bdc_cube <- function(source = "BDC", ...,
         bands <- .config_bands(source = source,
                                collection = collection)
 
+    # TODO: add warning in case user provide source band
     assertthat::assert_that(
         all(bands %in% c(.config_bands(source = source,
                                        collection = collection),

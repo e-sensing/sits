@@ -1,7 +1,7 @@
 #' @keywords internal
 #' @export
-.source_access_test.stac_cube <- function(source, collection, ..., bands) {
-
+.source_access_test.stac_cube <- function(source, collection, ..., bands,
+                                          dry_run = TRUE) {
     # require package
     if (!requireNamespace("rstac", quietly = TRUE)) {
         stop(paste("Please install package rstac from CRAN:",
@@ -31,12 +31,14 @@
                                    collection = collection)
 
     # assert that token and/or href is valid
-    tryCatch({
-        .raster_open_rast(href)
-    }, error = function(e) {
-        stop(paste(".source_access_test.stac_cube: cannot open url\n",
-                   href, "\n", e$message), call. = FALSE)
-    })
+    if (dry_run)
+        tryCatch({
+            .raster_open_rast(href)
+        }, error = function(e) {
+            stop(paste(".source_access_test.stac_cube: cannot open url\n",
+                       href, "\n", e$message), call. = FALSE)
+        })
+
 
     return(invisible(NULL))
 }
