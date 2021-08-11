@@ -1,5 +1,3 @@
-context("Config")
-
 test_that("Show", {
     con <- file(paste0(tempdir(), "config.txt"))
     writeLines(capture.output(sits_config_show()), con)

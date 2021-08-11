@@ -1,4 +1,3 @@
-context("Machine Learning")
 test_that("SVM  - Formula logref", {
     # skip_on_cran()
     samples_mt_ndvi <- sits_select(samples_modis_4bands, bands = "NDVI")
