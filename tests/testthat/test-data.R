@@ -1,5 +1,3 @@
-context("Data input")
-
 test_that("Creating a WTSS data cube", {
   testthat::skip_on_cran()
 

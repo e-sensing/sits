@@ -1,5 +1,3 @@
-context("ZOO")
-
 test_that("Writing a zoo time series", {
     data(cerrado_2classes)
     zoo_lst <- sits_to_zoo(cerrado_2classes[1:5, ])

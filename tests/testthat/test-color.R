@@ -1,5 +1,3 @@
-context("Color")
-
 test_that("Colors", {
     expect_equal(sits:::.sits_brewer_color_name("BluePurple"), "BuPu")
 
