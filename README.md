@@ -145,12 +145,13 @@ the following example.
 
 ``` r
 library(sits)
+#> Using configuration file: /home/sits/R/x86_64-pc-linux-gnu-library/4.1/sits/extdata/config.yml
+#> Using raster package: terra
+#> To provide additional configurations, create an YAML file and inform its path to environment variable 'SITS_USER_CONFIG_FILE'.
 #> SITS - satellite image time series analysis.
-#> Loaded sits v0.12.0.
+#> Loaded sits v0.13.0-2.
 #>         See ?sits for help, citation("sits") for use in publication.
 #>         See demo(package = "sits") for examples.
-#> Using configuration file: /Library/Frameworks/R.framework/Versions/4.1/Resources/library/sits/extdata/config.yml
-#> Additional configurations found in /Library/Frameworks/R.framework/Versions/4.1/Resources/library/sits/extdata/config_user_example.yml
 # create a cube from a local file 
 data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
 
