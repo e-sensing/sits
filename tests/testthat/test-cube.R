@@ -259,6 +259,10 @@ test_that("Creating cubes from AWS and regularizing them", {
         cube        = s2_cube,
         name        = "T20LKP_2018_2019_P5D",
         dir_images  =  dir_images,
+        roi = c("xmin" = 234872.7,
+                "ymin" = 8847983.0,
+                "xmax" = 239532.6,
+                "ymax" = 8852017.0),
         period      = "P15D",
         agg_method  = "median",
         resampling  = "bilinear"

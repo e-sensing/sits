@@ -4,15 +4,13 @@ purrr::map(collections, function(col) {
 
     vcr::use_cassette(col, {
 
-        suite_cube_tests <- function(cube) {
+        set.seed(123)
 
+        suite_cube_tests <- function(cube) {
 
             # class of sits cube
             testthat::expect_s3_class(object = cube,
                                       class = "raster_cube")
-
-            #testthat::expect_false()
-            # TODO: verify if xmin, xmax, ymin e ymax is null
         }
 
         stac_col <- rstac::collections(
@@ -21,8 +19,13 @@ purrr::map(collections, function(col) {
         )
         stac_col <- rstac::get_request(stac_col)
 
-        start_date <- as.Date(stac_col[[c("extent", "temporal", "interval")]][[1]][[1]])
+        start_date <- as.Date(stac_col[[c("extent",
+                                          "temporal",
+                                          "interval")]][[1]][[1]])
+        # add more 31 days
         end_date <- start_date + 31
+
+        # get sits bands
         bands_product <- .source_bands(source = "BDC",
                                        collection = col)
         bands_source <- .source_bands_to_source(source = "BDC",
@@ -31,14 +34,12 @@ purrr::map(collections, function(col) {
 
         bands <- sample(bands_source, size = 3)
 
-        print(col)
-
         # ---- Creating a cube getting all bands ----#
         l8_30_16d_all_bands <- sits_cube(
             source = "BDC",
             collection = col,
             name = "l8",
-            tiles = toupper(stac_col[["bdc:tiles"]][[1]]),
+            tiles = stac_col[["bdc:tiles"]][[1]],
             start_date = start_date,
             end_date = end_date,
             dry_run = FALSE)
@@ -54,7 +55,7 @@ purrr::map(collections, function(col) {
             collection = col,
             name = "l8",
             bands = bands,
-            tiles = toupper(stac_col[["bdc:tiles"]][[1]]),
+            tiles = stac_col[["bdc:tiles"]][[1]],
             start_date = start_date,
             end_date = end_date,
             dry_run = FALSE
@@ -70,7 +71,7 @@ purrr::map(collections, function(col) {
             collection = col,
             name = "l8",
             bands = "CLOUD",
-            tiles = toupper(stac_col[["bdc:tiles"]][[1]]),
+            tiles = stac_col[["bdc:tiles"]][[1]],
             start_date = start_date,
             end_date = end_date,
             dry_run = FALSE
@@ -84,9 +85,7 @@ purrr::map(collections, function(col) {
             # sits bands in config file
             testthat::expect_equal(
                 object = .cube_bands(cube_cloud_sits),
-                expected = .source_cloud(),
-                fixed = TRUE
-            )
+                expected = .source_cloud())
         })
 
         # ---- Cloud band source ----#
@@ -95,7 +94,7 @@ purrr::map(collections, function(col) {
             collection = col,
             name = "l8",
             bands = .source_bands_to_source("BDC", col, "CLOUD"),
-            tiles = toupper(stac_col[["bdc:tiles"]][[1]]),
+            tiles = stac_col[["bdc:tiles"]][[1]],
             start_date = start_date,
             end_date = end_date,
             dry_run = FALSE
@@ -109,9 +108,7 @@ purrr::map(collections, function(col) {
             # sits bands in config file
             testthat::expect_equal(
                 object = .cube_bands(cube_cloud_source),
-                expected = .source_cloud(),
-                fixed = TRUE
-            )
+                expected = .source_cloud())
 
             # sits bands in config file
             testthat::expect_false(

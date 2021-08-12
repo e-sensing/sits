@@ -1,14 +1,3 @@
-purrr::map(c("LC8_30_16D_STK-1", "LC8_30-1"), function(col) {
-    suite_wtss_tests <- function(cube) {
-
-        expect_true(cube_wtss$source == "WTSS")
-        expect_gt(length(sits_timeline(cube_wtss)), 1)
-
-    }
-
-
-})
-
 vcr::use_cassette("wtss_cube", {
 
     test_that("Creating a WTSS data cube", {
@@ -149,7 +138,7 @@ vcr::use_cassette("wtss_cube", {
 vcr::use_cassette("satveg_cube", {
     test_that("Reading a point from SATVEG ", {
         testthat::skip_on_cran()
-        cube_1 <- sits_cube(source = "SATVEG", collection = "terra")
+        cube_1 <- sits_cube(source = "SATVEG", collection = "TERRA")
 
         if (purrr::is_null(cube_1)) {
             skip("SATVEG is not accessible for collection terra")
@@ -166,7 +155,7 @@ vcr::use_cassette("satveg_cube", {
                      158.11, tolerance = 2
         )
 
-        cube_2 <- sits_cube(source = "SATVEG", collection = "aqua")
+        cube_2 <- sits_cube(source = "SATVEG", collection = "AQUA")
         if (purrr::is_null(cube_2)) {
             skip("SATVEG is not accessible for collection aqua")
         }
@@ -181,7 +170,7 @@ vcr::use_cassette("satveg_cube", {
                      132.3852, tolerance = 2
         )
 
-        cube_3 <- sits_cube(source = "SATVEG", collection = "comb")
+        cube_3 <- sits_cube(source = "SATVEG", collection = "COMB")
         if (purrr::is_null(cube_2)) {
             skip("SATVEG is not accessible for collection comb")
         }
@@ -206,7 +195,7 @@ vcr::use_cassette("satveg_cube", {
         csv_file <- system.file("extdata/samples/samples_matogrosso.csv",
                                 package = "sits"
         )
-        cube_satveg <- sits_cube(source = "SATVEG", collection = "terra")
+        cube_satveg <- sits_cube(source = "SATVEG", collection = "TERRA")
 
         if (purrr::is_null(cube_satveg)) {
             skip("SATVEG is not accessible")
@@ -237,7 +226,7 @@ vcr::use_cassette("satveg_cube", {
 
     test_that("Reading a POLYGON shapefile from SATVEG", {
         testthat::skip_on_cran()
-        cube_satveg <- sits_cube(source = "SATVEG", collection = "terra")
+        cube_satveg <- sits_cube(source = "SATVEG", collection = "TERRA")
 
         if (purrr::is_null(cube_satveg)) {
             skip("SATVEG is not accessible")
@@ -266,7 +255,7 @@ vcr::use_cassette("satveg_cube", {
     })
 })
 
-vcr::use_cassette("CB4_64_16D_STK-1", {
+vcr::use_cassette("CB4_64_16D_STK-1-wtss", {
     test_that("Test reading shapefile from BDC", {
         testthat::skip_on_cran()
 
