@@ -89,7 +89,7 @@
         purrr::map(function(i) {
             # retrieve the class from the shape attribute
             if (!purrr::is_null(shp_attr)) {
-                label <- as.character(unname(shp_df[i, shp_attr]))
+                label <- unname(as.character(shp_df[i, shp_attr]))
             }
             # obtain a set of samples based on polygons
             points <- list(sf::st_sample(sf_shape[i, ], size = .n_shp_pol))
@@ -166,7 +166,7 @@
     shp_df <- sf::st_drop_geometry(sf_shape)
     if (!purrr::is_null(shp_attr)) {
         assertthat::assert_that(
-            length(as.character(unname(shp_df[1, (shp_attr)]))) > 0,
+            length(as.character(shp_df[1, (shp_attr)])) > 0,
             msg = "sits_from_shp: invalid shapefile attribute"
         )
     }

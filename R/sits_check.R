@@ -665,6 +665,7 @@ NULL
     x <- unique(x)
     within <- unique(within)
 
+    # transform inputs to verify without case sensitive
     if (!case_sensitive) {
         x <- tolower(x)
         within <- tolower(within)
@@ -738,6 +739,7 @@ NULL
     x <- unique(x)
     contains <- unique(contains)
 
+    # transform inputs to verify without case sensitive
     if (!case_sensitive) {
         x <- tolower(x)
         contains <- tolower(contains)
