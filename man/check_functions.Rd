@@ -99,9 +99,23 @@
   msg = NULL
 )
 
-.check_chr_within(x, within, ..., discriminator = "all_of", msg = NULL)
+.check_chr_within(
+  x,
+  within,
+  ...,
+  case_sensitive = TRUE,
+  discriminator = "all_of",
+  msg = NULL
+)
 
-.check_chr_contains(x, contains, ..., discriminator = "all_of", msg = NULL)
+.check_chr_contains(
+  x,
+  contains,
+  ...,
+  case_sensitive = TRUE,
+  discriminator = "all_of",
+  msg = NULL
+)
 
 .check_file(x, ..., msg = NULL)
 
@@ -169,6 +183,9 @@ or list users provides for functions. Default is \code{2^31}.}
 \item{within}{A \code{character} vector indicating a set of elements
 from which \code{x} is a kind of subset. The actual behavior is pointed by
 \code{discriminator} parameter.}
+
+\item{case_sensitive}{A \code{logical} indicating if the check is compared
+with case sensitive. Default is \code{TRUE}.}
 
 \item{discriminator}{A \code{character} value indicating how subset
 verification will be done (see details).}
