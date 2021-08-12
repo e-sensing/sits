@@ -11,10 +11,10 @@ sits_TempCNN(
   cnn_activation = "relu",
   cnn_L2_rate = 1e-06,
   cnn_dropout_rates = c(0.5, 0.5, 0.5),
-  mlp_layers = c(256),
-  mlp_activation = "relu",
-  mlp_dropout_rates = c(0.5),
-  optimizer = keras::optimizer_adam(lr = 0.001),
+  dense_layer_nodes = 256,
+  dense_layer_activation = "relu",
+  dense_layer_dropout_rate = 0.5,
+  optimizer = keras::optimizer_adam(learning_rate = 0.001),
   epochs = 150,
   batch_size = 128,
   validation_split = 0.2,
@@ -35,12 +35,12 @@ Valid values: {'relu', 'elu', 'selu', 'sigmoid'}.}
 
 \item{cnn_dropout_rates}{Dropout rates for 1D convolutional filters.}
 
-\item{mlp_layers}{Number of nodes in the multi-layer-perceptron.}
+\item{dense_layer_nodes}{Number of nodes in the dense layer.}
 
-\item{mlp_activation}{Names of 2D activation functions for the MLP.
+\item{dense_layer_activation}{Activation functions for the dense layer.
 Valid values: {'relu', 'elu', 'selu', 'sigmoid'}.}
 
-\item{mlp_dropout_rates}{Dropout rates (0,1) for each layer in the MLP.}
+\item{dense_layer_dropout_rate}{Dropout rate (0,1) for the dense layer.}
 
 \item{optimizer}{Function with a pointer to the optimizer function
 (default is optimization_adam()).
