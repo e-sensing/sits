@@ -1,4 +1,4 @@
-collections <- .config_collections("BDC")
+collections <- .source_collections("BDC")
 collections <- collections[collections != "LC8_30-1"]
 purrr::map(collections, function(col) {
 
@@ -16,14 +16,14 @@ purrr::map(collections, function(col) {
         }
 
         stac_col <- rstac::collections(
-            q = rstac::stac(base_url = .config_source_url("BDC")),
+            q = rstac::stac(base_url = .source_url("BDC")),
             collection_id = col
         )
         stac_col <- rstac::get_request(stac_col)
 
         start_date <- as.Date(stac_col[[c("extent", "temporal", "interval")]][[1]][[1]])
         end_date <- start_date + 31
-        bands_product <- .config_bands(source = "BDC",
+        bands_product <- .source_bands(source = "BDC",
                                        collection = col)
         bands_source <- .source_bands_to_source(source = "BDC",
                                                 collection = col,
@@ -84,7 +84,7 @@ purrr::map(collections, function(col) {
             # sits bands in config file
             testthat::expect_equal(
                 object = .cube_bands(cube_cloud_sits),
-                expected = .config_cloud(),
+                expected = .source_cloud(),
                 fixed = TRUE
             )
         })
@@ -109,14 +109,14 @@ purrr::map(collections, function(col) {
             # sits bands in config file
             testthat::expect_equal(
                 object = .cube_bands(cube_cloud_source),
-                expected = .config_cloud(),
+                expected = .source_cloud(),
                 fixed = TRUE
             )
 
             # sits bands in config file
             testthat::expect_false(
                 object = all(
-                    .cube_bands(cube_cloud_source) %in% .config_bands_band_name(
+                    .cube_bands(cube_cloud_source) %in% .source_bands_band_name(
                         source = .cube_source(cube_cloud_source),
                         collection = .cube_collection(cube_cloud_source)
                     )
