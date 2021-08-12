@@ -93,7 +93,7 @@ Suggests:
     zoo
 Config/testthat/edition: 3
 Config/testthat/parallel: true
-Config/testthat/start-first: wtss, raster, ml, cube*
+Config/testthat/start-first: cube, wtss, raster, bdc, ml
 VignetteBuilder: knitr
 LinkingTo:
     Rcpp,
