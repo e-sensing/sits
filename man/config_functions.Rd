@@ -6,29 +6,13 @@
 \alias{.config_user_file}
 \alias{.config_get}
 \alias{.config_names}
-\alias{.config_aws_default_region}
-\alias{.config_aws_endpoint}
-\alias{.config_aws_request_payer}
-\alias{.config_bands}
-\alias{.config_bands_reap}
-\alias{.config_bands_band_name}
-\alias{.config_bands_resolutions}
-\alias{.config_cloud}
-\alias{.config_cloud_values}
-\alias{.config_cloud_interp_values}
-\alias{.config_collections}
 \alias{.config_gtiff_default_options}
 \alias{.config_local_file_extensions}
-\alias{.config_memory_bloat}
 \alias{.config_palettes}
 \alias{.config_palette_colors}
 \alias{.config_processing_bloat}
 \alias{.config_rstac_limit}
 \alias{.config_raster_pkg}
-\alias{.config_sources}
-\alias{.config_source_url}
-\alias{.config_source_service}
-\alias{.config_source_s3class}
 \title{Get values from config file}
 \usage{
 .config_file()
@@ -39,49 +23,9 @@
 
 .config_names(key)
 
-.config_aws_default_region(source, collection)
-
-.config_aws_endpoint(source, collection)
-
-.config_aws_request_payer(source, collection)
-
-.config_bands(source, collection, ..., fn_filter = NULL, add_cloud = TRUE)
-
-.config_bands_reap(
-  source,
-  collection,
-  key,
-  ...,
-  bands = NULL,
-  fn_filter = NULL,
-  add_cloud = TRUE,
-  default = NULL
-)
-
-.config_bands_band_name(source, collection, ..., bands = NULL)
-
-.config_bands_resolutions(
-  source,
-  collection,
-  ...,
-  bands = NULL,
-  fn_filter = NULL,
-  add_cloud = TRUE
-)
-
-.config_cloud()
-
-.config_cloud_values(source, collection)
-
-.config_cloud_interp_values(source, collection)
-
-.config_collections(source)
-
 .config_gtiff_default_options()
 
 .config_local_file_extensions()
-
-.config_memory_bloat()
 
 .config_palettes()
 
@@ -92,34 +36,13 @@
 .config_rstac_limit()
 
 .config_raster_pkg()
-
-.config_sources()
-
-.config_source_url(source)
-
-.config_source_service(source)
-
-.config_source_s3class(source)
 }
 \arguments{
-\item{key}{Character that represents which key is to be fetched from
-the config file.}
-
-\item{default}{Default value if the specified key is not found.}
-
-\item{source}{Source of data cube}
-
-\item{collection}{Collection to be searched in the data source.}
+\item{labels}{Vector with labels.}
 
 \item{...}{Additional parameters.}
 
-\item{fn_filter}{Filter function that will be applied in one key from config
-file.}
-
-\item{add_cloud}{A logical parameter that indicates the addition of cloud
-band information in the return of a function.}
-
-\item{labels}{Vector with labels.}
+\item{collection}{Collection to be searched in the data source.}
 
 \item{data}{A sits data cube.}
 
@@ -128,6 +51,8 @@ configuration file.}
 
 \item{simplify}{A logical value that specifies whether the return should be
 in vector form, if true, or list form, if false. Default value is FALSE.}
+
+\item{source}{Source of data cube}
 }
 \value{
 Functions that search for values from a key or collection

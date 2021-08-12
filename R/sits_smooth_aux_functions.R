@@ -43,7 +43,7 @@
     x_size <- cube$ncols
     y_size <- cube$nrows
     n_layers <- length(cube$labels[[1]])
-    bloat_mem <- .config_memory_bloat()
+    bloat_mem <- .config_processing_bloat()
     n_bytes <- 8
 
     # total memory needed to do all work in GB

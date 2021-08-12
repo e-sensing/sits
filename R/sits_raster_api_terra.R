@@ -312,11 +312,8 @@
 
 #' @keywords internal
 #' @export
-.raster_resample_methods.terra <- function(method = NULL, ...) {
+.raster_resample_methods.terra <- function(sits_names = TRUE) {
 
-    res <- c(near = "near", bilinear = "bilinear",
-             cubic = "cubic", cubicspline = "cubicspline",
-             lanczos = "lanczos")
-
-    return(res)
+    # raster package resample names
+    return(c("near", "bilinear"))
 }

@@ -94,7 +94,7 @@ sits_cube(source, ...)
   probs_files
 )
 
-\method{sits_cube}{satveg_cube}(source = "SATVEG", ..., collection = "terra")
+\method{sits_cube}{satveg_cube}(source = "SATVEG", ..., collection = "TERRA")
 }
 \arguments{
 \item{source}{Data source (one of "AWS", "BDC", "DEAFRICA",

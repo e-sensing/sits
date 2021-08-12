@@ -166,7 +166,7 @@
 .sits_gc_cloud_mask <- function(tile) {
 
     bands <- .cube_bands(tile)
-    cloud_band <- .config_cloud()
+    cloud_band <- .source_cloud()
 
     # checks if the cube has a cloud band
     assertthat::assert_that(
@@ -183,7 +183,7 @@
     # create a image mask object
     mask_values <- gdalcubes::image_mask(
         cloud_source,
-        values = .config_cloud_interp_values(
+        values = .source_cloud_interp_values(
             source = .cube_source(cube = tile),
             collection = .cube_collection(cube = tile)
         )
