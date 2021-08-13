@@ -227,7 +227,7 @@ sources:
                     EVI     :
                         <<: *bdc_modis_ndvi
                         band_name     : "EVI"
-                    blue    : &bdc_modis_blue
+                    BLUE    : &bdc_modis_blue
                         missing_value : -1000
                         minimum_value : 0
                         maximum_value : 10000
@@ -236,13 +236,13 @@ sources:
                         resampling    : "bilinear"
                         resolutions   : [231.656]
                         band_name     : "blue_reflectance"
-                    red     :
+                    RED     :
                         <<: *bdc_modis_blue
                         band_name     : "red_reflectance"
-                    nir     :
+                    NIR     :
                         <<: *bdc_modis_blue
                         band_name     : "NIR_reflectance"
-                    mir     :
+                    MIR     :
                         <<: *bdc_modis_blue
                         band_name     : "MIR_reflectance"
                     CLOUD   : &bdc_modis_cloud

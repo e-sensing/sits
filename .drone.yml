@@ -13,6 +13,7 @@ steps:
   when:
     event:
     - pull_request
+    - push
 
 - name: coverage
   pull: always
