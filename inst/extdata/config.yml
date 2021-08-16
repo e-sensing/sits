@@ -52,7 +52,7 @@ sources:
     BDC                     :
         s3_class            : ["bdc_cube", "stac_cube", "raster_cube"]
         service             : "STAC"
-        url                 : "https://brazildatacube.dpi.inpe.br/stac/"
+        url                 : "http://datacube-005.dpi.inpe.br:8010/stac/"
         collections         :
             CB4_64-1        : &bdc_cb4
                 bands       :
@@ -331,6 +331,62 @@ sources:
                         resampling    : "ngb"
                         resolutions   : [10]
             S2_10_16D_STK-1 : *bdc_s2
+            LANDSAT-MOZ_30_1M_STK-1: &bdc_lc8
+                bands       :
+                    NDVI    : &bdc_oli_ndvi
+                        missing_value : -9999
+                        minimum_value : -10000
+                        maximum_value : 10000
+                        scale_factor  : 0.0001
+                        offset_value  : 0
+                        resampling    : "bilinear"
+                        resolutions   : [30]
+                        band_name     : "NDVI"
+                    EVI     :
+                        <<: *bdc_oli_ndvi
+                        band_name     : "EVI"
+                    B2      : &bdc_moz_band2
+                        missing_value : -9999
+                        minimum_value : 1
+                        maximum_value : 65455
+                        scale_factor  : 0.0001
+                        offset_value  : 0
+                        resampling    : "bilinear"
+                        resolutions   : [30]
+                        band_name     : "SR_B2"
+                    B3      :
+                        <<: *bdc_oli_band1
+                        band_name     : "SR_B3"
+                    B4      :
+                        <<: *bdc_oli_band1
+                        band_name     : "SR_B4"
+                    B5      :
+                        <<: *bdc_oli_band1
+                        band_name     : "SR_B5"
+                    B6      :
+                        <<: *bdc_oli_band1
+                        band_name     : "SR_B6"
+                    B7      :
+                        <<: *bdc_oli_band1
+                        band_name     : "SR_B7"
+                    CLOUD   : &bdc_oli_cloud
+                        bit_mask      : TRUE
+                        band_name     : "QA_PIXEL"
+                        values        :
+                            0         : "missing_data"
+                            1         : "Dilated Cloud"
+                            2         : "High confidence cirrus"
+                            4         : "High confidence cloud shadow"
+                            5         : "High confidence snow cover"
+                            6         : "Clear"
+                            7         : "Water"
+                            9         : "High confidence of cloud"
+                            11        : "High confidence of cloud shadow"
+                            13        : "High confidence of snow"
+                            15        : "High confidence of cirrus"
+                        interp_values : [0, 1, 2, 4, 5, 9, 11, 13, 15]
+                        resampling    : "ngb"
+                        resolutions   : [30]
     WTSS                    :
         s3_class            : ["wtss_cube"]
         service             : "WTSS"
