@@ -3,7 +3,7 @@
 .source_access_test.local_cube <- function(source, collection, ...) {
 
     assertthat::assert_that(
-        collection %in% .config_collections(source = source),
+        collection %in% .source_collections(source = source),
         msg = paste(".source_access_test.local_cube: satellite or sensor not",
                     "found.\nPlease, check sits config with ?sits_config",
                     "command.")

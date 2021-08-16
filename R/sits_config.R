@@ -1,79 +1,545 @@
-#' @title Reads a configuration file and loads it in the main environment
-#' @name .config
+#' @title sits configuration
+#' @name sits_configuration
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
+#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
 #'
-#' @description Reads a user-specified configuration file,
-#' located in a "config.yml" file in the working directory.
-#' If this file is not found, reads a default package configuration file.
-#' By default, the sits configuration file "config.yml" is located at
-#' the directory "extdata" of the package.
+#' @description These functions load and show sits configurations.
 #'
+#' \code{sits_config()} loads the default configuration file and
+#' the user provided configuration file. The final configuration is
+#' obtained by overriding the options by the values provided in
+#' \code{processing_bloat}, \code{rstac_pagination_limit},
+#' \code{raster_api_package}, and \code{gdal_creation_options} parameters.
+#'
+#' \code{sits_config_show()} prints the current sits
+#' configuration options. To show specific configuration options for
+#' a source, a collection, or a palette, user can inform the corresponding
+#' keys to \code{source}, \code{collection}, and \code{palette} parameters.
+#'
+#' @param processing_bloat       A \code{numeric} value to estimate
+#' growth size of R memory relative to block size.
+#' @param rstac_pagination_limit A \code{numeric} value indicating number of
+#' items returned by STAC service.
+#' @param raster_api_package     A \code{character} value indicating a
+#' supported raster handling package.
+#' @param gdal_creation_options  A \code{character} vector specifying GDAL
+#' creation option for GeoTiff image format.
+#' @param reset                  A \code{logical} value indicating if current
+#'                               configuration options must be cleaned before
+#'                               load config files. Default \code{FALSE}.
+#' @param source                 A \code{character} value indicating a source
+#' key entry to be shown in detail.
+#' @param collection             A \code{character} value used in conjunction
+#' with \code{source} parameter to indicate a collection key entry to be shown
+#' in detail.
+#' @param palette                A \code{character} value indicating a palette
+#' to be shown in detail.
+#'
+#' @details
 #' Users can provide additional configuration files, by specifying the
 #' location of their file in the environmental variable
-#' SITS_USER_CONFIG_FILE
+#' \code{SITS_CONFIG_USER_FILE}.
 #'
-#' To see the contents of the configuration file,
-#' please use \code{\link[sits]{sits_config_show}}.
+#' To see the key entries and contents of the current configuration values,
+#' use \code{sits_config_show()}.
+NULL
+
+#' @rdname sits_configuration
 #'
-#' @return A list with the configuration parameters used by sits.
+#' @return
+#' \code{sits_config()} returns a \code{list} containing the final
+#' configuration options.
+#'
 #' @export
-sits_config <- function() {
+sits_config <- function(processing_bloat = NULL,
+                        rstac_pagination_limit = NULL,
+                        raster_api_package = NULL,
+                        gdal_creation_options = NULL,
+                        reset = FALSE) {
 
     # get and check the default configuration file path
     yml_file <- .config_file()
 
     # read the configuration parameters
-    sits_env$config <- yaml::yaml.load_file(input = yml_file,
-                                            merge.precedence = "override")
+    config <- yaml::yaml.load_file(input = yml_file,
+                                   merge.precedence = "override")
+
+    # clear current configuration
+    if (reset)
+        sits_env$config <- list()
+
+    # set options defined in sits config
+    .config_set_options(
+        processing_bloat = config[["processing_bloat"]],
+        rstac_pagination_limit = config[["rstac_pagination_limit"]],
+        raster_api_package = config[["raster_api_package"]],
+        gdal_creation_options = config[["gdal_creation_options"]],
+        sources = config[["sources"]],
+        palettes = config[["palettes"]]
+    )
+
 
     message(paste0("Using configuration file: ", yml_file))
-    message(paste0("Using raster package: ", .config_raster_pkg()))
 
     # try to find a valid user configuration file
     user_yml_file <- .config_user_file()
 
     if (file.exists(user_yml_file)) {
         message(paste("Additional configurations found in", user_yml_file))
-        config_user <- yaml::yaml.load_file(input = user_yml_file,
-                                            merge.precedence = "override")
-        sits_env$config <- utils::modifyList(x = sits_env$config,
-                                             val = config_user)
+        config <- yaml::yaml.load_file(input = user_yml_file,
+                                       merge.precedence = "override")
+
+        # set options defined by user (via YAML file)
+        # modifying existing configuration
+        .config_set_options(
+            processing_bloat = config[["processing_bloat"]],
+            rstac_pagination_limit = config[["rstac_pagination_limit"]],
+            raster_api_package = config[["raster_api_package"]],
+            gdal_creation_options = config[["gdal_creation_options"]],
+            sources = config[["sources"]],
+            palettes = config[["palettes"]]
+        )
     } else {
         message(paste("To provide additional configurations, create an",
                       "YAML file and inform its path to environment variable",
-                      "'SITS_USER_CONFIG_FILE'."))
+                      "'SITS_CONFIG_USER_FILE'."))
     }
 
-    return(invisible(NULL))
+    # set options defined by user (via parameters)
+    # modifying existing configuration
+    .config_set_options(processing_bloat = processing_bloat,
+                        rstac_pagination_limit = rstac_pagination_limit,
+                        raster_api_package = raster_api_package,
+                        gdal_creation_options = gdal_creation_options)
+
+    message(paste0("Using raster package: ", .config_raster_pkg()))
+
+    return(invisible(sits_env$config))
 }
 
-#' @title Shows the contents of the sits configuration file
-#' @name config_show
-#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
+#' @rdname sits_configuration
 #'
-#' @description Displays the contents of sits configuration file. For details
-#' on how to set the configuration file, use \code{\link[sits]{sits_config}}.
+#' @return
+#' \code{sits_config_show()} returns a \code{list} containing the respective
+#' configuration printed in the console.
 #'
-#' @return List with the configuration parameters used by sits.
 #' @export
-sits_config_show <- function() {
+sits_config_show <- function(source = NULL,
+                             collection = NULL,
+                             palette = NULL) {
 
-    # get and check the default configuration file path
-    yml_file <- .config_file()
+    config <- sits_env$config
 
-    # read the configuration parameters
-    message("Default system configuration file")
-    cat(readLines(yml_file), sep = "\n")
+    if (!is.null(source)) {
 
-    # try to find a valid user configuration file
-    user_yml_file <- .config_user_file()
+        .check_chr(source,
+                   allow_empty = FALSE,
+                   len_min = 1,
+                   len_max = 1)
 
-    if (file.exists(user_yml_file)) {
-        message("User configuration file - overrides default config")
-        cat(readLines(user_yml_file), sep = "\n")
+        .check_chr_within(source,
+                          within = .sources(),
+                          discriminator = "one_of")
+
+        config <- config[[c("sources", source)]]
+
+        if (!is.null(collection)) {
+            .check_chr(collection,
+                       allow_empty = FALSE,
+                       len_min = 1,
+                       len_max = 1)
+
+            .check_chr_within(collection,
+                              within = .source_collections(source = source),
+                              discriminator = "one_of")
+
+            config <- config[[c("collections", collection)]]
+        } else
+            config <- lapply(config, function(x) {
+                if (is.atomic(x))
+                    return(x)
+                list(names(x))
+            })
+
+    } else if (!is.null(palette)) {
+
+        .check_chr(palette, allow_empty = FALSE, len_min = 1, len_max = 1)
+        .check_chr_within(palette,
+                          within = .config_palettes(),
+                          discriminator = "one_of")
+
+        config <- config[[c("palettes", palette)]]
+    } else
+        config <- lapply(config, function(x) {
+            if (is.atomic(x))
+                return(x)
+            list(names(x))
+        })
+
+    config_txt <- yaml::as.yaml(config, indent = 4,
+                                handlers = list(
+                                    character = function(x) {
+                                        res <- paste0(x, collapse = ", ")
+                                        class(res) <- "verbatim"
+                                        res
+                                    },
+                                    integer = function(x) {
+                                        res <- paste0(x, collapse = ", ")
+                                        class(res) <- "verbatim"
+                                        res
+                                    },
+                                    numeric = function(x) {
+                                        res <- paste0(x, collapse = ", ")
+                                        class(res) <- "verbatim"
+                                        res
+                                    }))
+    cat(config_txt, sep = "\n")
+    return(invisible(config))
+}
+
+.config_set_options <- function(processing_bloat = NULL,
+                                rstac_pagination_limit = NULL,
+                                raster_api_package = NULL,
+                                gdal_creation_options = NULL,
+                                sources = NULL,
+                                palettes = NULL, ...) {
+    # set caller to show in errors
+    .check_set_caller(".config_set_options")
+
+    # initialize config
+    if (!exists("config", envir = sits_env))
+        sits_env$config <- list()
+
+    # process processing_bloat
+    if (!is.null(processing_bloat)) {
+
+        .check_num(processing_bloat, min = 1, len_min = 1, len_max = 1,
+                   msg = "Invalid 'processing_bloat' parameter")
+
+        sits_env$config[["processing_bloat"]] <- processing_bloat
     }
 
-    return(invisible(NULL))
+    # process rstac_pagination_limit
+    if (!is.null(rstac_pagination_limit)) {
+
+        .check_num(rstac_pagination_limit, min = 1, len_min = 1, len_max = 1,
+
+                   msg = "Invalid 'rstac_pagination_limit' parameter")
+
+        sits_env$config[["rstac_pagination_limit"]] <- rstac_pagination_limit
+    }
+
+    # process raster_api_package
+    if (!is.null(raster_api_package)) {
+
+        .check_chr(raster_api_package, len_min = 1, len_max = 1,
+                   msg = "invalid 'raster_api_package' parameter")
+
+        .check_chr_within(raster_api_package,
+                          within = .raster_supported_packages(),
+                          discriminator = "one_of",
+                          msg = "invalid 'raster_api_package' parameter")
+
+        sits_env$config[["raster_api_package"]] <- raster_api_package
+    }
+
+    # process gdal_creation_options
+    if (!is.null(gdal_creation_options)) {
+
+        .check_chr(gdal_creation_options, allow_empty = FALSE,
+                   regex = "^.+=.+$",
+                   msg = "Invalid 'gdal_creation_options' parameter")
+
+        sits_env$config[["gdal_creation_options"]] <- gdal_creation_options
+    }
+
+    # process sources
+    if (!is.null(sources)) {
+
+        .check_lst(sources, min_len = 1)
+
+        names(sources) <- toupper(names(sources))
+
+        sources <- lapply(sources, function(source) {
+
+            # pre-condition
+            .check_lst(source, min_len = 2,
+                       msg = "invalid 'source' parameter")
+
+            .check_chr_contains(names(source),
+                                contains = c("s3_class", "collections"),
+                                msg = "invalid 'source' parameter")
+
+            names(source) <- tolower(names(source))
+
+            # check source
+            source <- .check_error({
+                do.call(.config_new_source, args = source)
+            }, msg = "invalid 'source' parameter")
+
+            return(source)
+        })
+
+        # initialize sources
+        if (is.null(sits_env$config[["sources"]]))
+            sits_env$config[["sources"]] <- sources
+
+        sits_env$config[["sources"]] <- utils::modifyList(
+            sits_env$config[["sources"]],
+            sources,
+            keep.null = FALSE
+        )
+    }
+
+    if (!is.null(palettes)) {
+
+        # initialize palettes
+        if (is.null(sits_env$config[["palettes"]]))
+            sits_env$config[["palettes"]] <- palettes
+
+        sits_env$config[["palettes"]] <- utils::modifyList(
+            sits_env$config[["palettes"]],
+            palettes,
+            keep.null = FALSE
+        )
+    }
+
+    # process extra parameters
+    dots <- list(...)
+    .check_lst(dots)
+
+    if (length(dots) > 0) {
+
+        sits_env$config <- utils::modifyList(
+            sits_env$config,
+            dots,
+            keep.null = FALSE
+        )
+    }
+
+    return(invisible(sits_env$config))
+}
+
+
+.config_new_source <- function(s3_class,
+                               collections, ...,
+                               service = NULL,
+                               url = NULL) {
+    # set caller to show in errors
+    .check_set_caller(".config_new_source")
+
+    # pre-condition
+    .check_chr(s3_class, allow_empty = FALSE, len_min = 1,
+               msg = "invalid 's3_class' parameter")
+
+    if (!is.null(service))
+        .check_chr(service, allow_empty = FALSE, len_min = 1, len_max = 1,
+                   msg = "invalid 'service' parameter")
+
+    if (!is.null(url))
+        .check_chr(url, allow_empty = FALSE, len_min = 1, len_max = 1,
+                   regex = '^(http|https)://[^ "]+$',
+                   msg = "invalid 'url' parameter")
+
+    .check_lst(collections, min_len = 1)
+
+    names(collections) <- toupper(names(collections))
+
+    collections <- lapply(collections, function(collection) {
+
+        # pre-condition
+        .check_lst(collection, min_len = 1,
+                   msg = "invalid 'collections' parameter")
+
+        # collection members must be lower case
+        names(collection) <- tolower(names(collection))
+
+        collection <- .check_error({
+            do.call(.config_new_collection, args = collection)
+        }, msg = "invalid 'collections' parameter")
+        return(collection)
+    })
+
+    # extra parameters
+    dots <- list(...)
+    .check_lst(dots, msg = "invalid extra arguments in collection")
+
+    return(c(list(s3_class = s3_class,
+                  service = service,
+                  url = url,
+                  collections = collections), dots))
+}
+
+.config_new_collection <- function(bands, ...) {
+    # set caller to show in errors
+    .check_set_caller(".config_new_collection")
+
+    # bands names is upper case
+    names(bands) <- toupper(names(bands))
+
+    # separate cloud and non-cloud bands
+    non_cloud_bands <- bands[!names(bands) %in% .source_cloud()]
+    cloud_band <- bands[names(bands) %in% .source_cloud()]
+
+    non_cloud_bands <- lapply(non_cloud_bands, function(band) {
+
+        # pre-condition
+        .check_lst(bands, min_len = 1,
+                   msg = "invalid 'bands' parameter")
+
+        # bands' members are lower case
+        names(band) <- tolower(names(band))
+
+        band <- .check_error( {
+            do.call(.config_new_band, args = band)
+        }, msg = "invalid 'bands' parameter")
+
+        return(band)
+    })
+
+    cloud_band <- lapply(cloud_band, function(cloud_band) {
+
+        # pre-condition
+        .check_lst(bands, min_len = 1,
+                   msg = "invalid 'bands' parameter")
+
+        # bands' members are lower case
+        names(cloud_band) <- tolower(names(cloud_band))
+
+        cloud_band <- .check_error({
+            do.call(.config_new_cloud_band, args = cloud_band)
+        }, msg = "invalid 'bands' parameter")
+
+        return(cloud_band)
+    })
+
+    # extra parameters
+    dots <- list(...)
+    .check_lst(dots, msg = "invalid extra arguments in collection")
+
+    res <- c(list(bands = c(non_cloud_bands, cloud_band)), dots)
+
+    # post-condition
+    .check_lst(res, min_len = 1,
+               msg = "invalid 'collection' value")
+
+    .check_lst(res$bands, min_len = 1,
+               msg = "invalid collection 'bands' value")
+
+    # return a new collection data
+    return(res)
+}
+
+.config_new_band <- function(missing_value,
+                             minimum_value,
+                             maximum_value,
+                             scale_factor,
+                             offset_value,
+                             resampling,
+                             band_name, ...,
+                             resolutions = NULL) {
+
+    # pre-condition
+    .check_num(missing_value, len_min = 1, len_max = 1,
+               msg = "invalid 'missing_value' parameter")
+
+    .check_num(minimum_value, len_min = 1, len_max = 1,
+               msg = "invalid 'minimum_value' parameter")
+
+    .check_num(maximum_value, len_min = 1, len_max = 1,
+               msg = "invalid 'maximum_value' parameter")
+
+    .check_num(scale_factor, len_min = 1, len_max = 1,
+               allow_zero = FALSE,
+               msg = "invalid 'scale_factor' parameter")
+
+    .check_num(offset_value, len_min = 1, len_max = 1,
+               msg = "invalid 'offset_value' parameter")
+
+    .check_chr(resampling, len_min = 1, len_max = 1,
+               msg = "invalid 'resampling' parameter")
+
+    .check_chr_within(resampling,
+                      within = .raster_resample_methods(sits_names = TRUE),
+                      discriminator = "one_of",
+                      msg = "invalid 'resampling' parameter")
+
+    if (!is.null(resolutions))
+        .check_num(resolutions, len_min = 1, allow_zero = FALSE,
+                   msg = "invalid 'resolutions' parameter")
+
+    .check_chr(band_name, allow_empty = FALSE, len_min = 1, len_max = 1,
+               msg = "invalid 'band_name' value")
+
+    # extra parameters
+    dots <- list(...)
+    .check_lst(dots, "invalid extra arguments in band")
+
+    res <- c(list(missing_value = missing_value,
+                  minimum_value = minimum_value,
+                  maximum_value = maximum_value,
+                  scale_factor = scale_factor,
+                  offset_value = offset_value,
+                  resampling = resampling,
+                  band_name = band_name,
+                  resolutions = resolutions), dots)
+
+    # post-condition
+    .check_lst(res, min_len = 8,
+               msg = "invalid 'band' value")
+
+    # return a band object
+    return(res)
+}
+
+.config_new_cloud_band <- function(bit_mask,
+                                   values,
+                                   interp_values,
+                                   resampling,
+                                   resolutions,
+                                   band_name, ...) {
+    # set caller to show in errors
+    .check_set_caller(".config_new_cloud_band")
+
+    # pre-condition
+    .check_lgl(bit_mask, len_min = 1, len_max = 1,
+               msg = "invalid 'bit_mask' parameter")
+
+    .check_lst(values, fn_check = .check_chr,
+               len_min = 1, len_max = 1,
+               msg = "invalid cloud 'values' parameter")
+
+    .check_num(interp_values, len_min = 1, is_integer = TRUE,
+               msg = "invalid 'interp_values' parameter")
+
+    .check_chr(resampling, len_min = 1, len_max = 1,
+               msg = "invalid 'resampling' parameter")
+
+    .check_chr_within(resampling,
+                      within = .raster_resample_methods(sits_names = TRUE),
+                      discriminator = "one_of",
+                      msg = "invalid 'resampling' parameter")
+
+    .check_chr(band_name, allow_empty = FALSE, len_min = 1, len_max = 1,
+               msg = "invalid 'band_name' value")
+
+    # extra parameters
+    dots <- list(...)
+    .check_lst(dots, "invalid extra arguments in cloud band")
+
+    res <- c(list(bit_mask = bit_mask,
+                  values = values,
+                  interp_values = interp_values,
+                  resampling = resampling,
+                  resolutions = resolutions,
+                  band_name = band_name), dots)
+
+    # post-condition
+    .check_lst(res, min_len = 6,
+               msg = "invalid 'band' value")
+
+    # return a cloud band object
+    return(res)
 }
 
 #' @title Get values from config file
@@ -83,15 +549,8 @@ sits_config_show <- function() {
 #'
 #' @keywords internal
 #'
-#' @param add_cloud  A logical parameter that indicates the addition of cloud
-#'  band information in the return of a function.
 #' @param collection Collection to be searched in the data source.
 #' @param data       A sits data cube.
-#' @param default    Default value if the specified key is not found.
-#' @param fn_filter  Filter function that will be applied in one key from config
-#'  file.
-#' @param key        Character that represents which key is to be fetched from
-#'  the config file.
 #' @param labels     Vector with labels.
 #' @param pallete    The palette that should be chosen based on the
 #'  configuration file.
@@ -121,14 +580,14 @@ NULL
 .config_user_file <- function() {
 
     # load the default configuration file
-    yml_file <- Sys.getenv("SITS_USER_CONFIG_FILE")
+    yml_file <- Sys.getenv("SITS_CONFIG_USER_FILE")
 
     # check if the file exists
     if (nchar(yml_file) > 0) {
         .check_warn(
             .check_file(yml_file,
                         msg = paste("invalid configuration file informed in",
-                                    "SITS_USER_CONFIG_FILE"))
+                                    "SITS_CONFIG_USER_FILE"))
         )
     }
 
@@ -145,12 +604,15 @@ NULL
         return(default)
     })
 
+    # set default
+    if (is.null(res))
+        res <- default
+
     # post-condition
-    .check_that(
-        !is.null(res),
-        local_msg = paste("key", paste0(key, collapse = "$"),
-                          "not found. Please, check the config file")
-    )
+    .check_null(res,
+                msg = paste("key",
+                            paste0("'", paste0(key, collapse = "$"), "'"),
+                            "not found"))
 
     return(res)
 }
@@ -166,242 +628,11 @@ NULL
     })
 
     # post-condition
-    .check_that(
-        !is.null(res),
-        local_msg = paste("key", paste0(key, collapse = "$"),
-                          "not found. Please, check the config file.")
-    )
-
     .check_chr(res, allow_empty = FALSE,
-               msg = "invalid names")
-
-    return(res)
-}
-
-#' @rdname config_functions
-.config_aws_default_region <- function(source,
-                                       collection) {
-
-    # TO-DO: pre-condition
-    # check source and collection
-
-    res <- .config_get(key = c("sources", source, "collections", collection,
-                               "AWS", "AWS_DEFAULT_REGION"),
-                       default = NA)
-
-    # post-condition
-    .check_chr(res, allow_empty = TRUE,
-               len_min = 1, len_max = 1,
-               msg = "invalid AWS_DEFAULT_REGION")
-
-    return(res)
-}
-
-#' @rdname config_functions
-.config_aws_endpoint <- function(source,
-                                 collection) {
-    # TO-DO: pre-condition
-    # check source and collection
-
-    res <- .config_get(key = c("sources", source, "collections", collection,
-                               "AWS", "AWS_S3_ENDPOINT"),
-                       default = NA)
-
-    # post-condition
-    .check_chr(res, allow_empty = TRUE,
-               len_min = 1, len_max = 1,
-               msg = "invalid AWS_S3_ENDPOINT")
-
-    return(res)
-}
-
-#' @rdname config_functions
-.config_aws_request_payer <- function(source,
-                                      collection) {
-    # TO-DO: pre-condition
-    # check source and collection
-
-    res <- .config_get(key = c("sources", source, "collections", collection,
-                               "AWS", "AWS_REQUEST_PAYER"),
-                       default = NA)
-
-    # post-condition
-    .check_chr(res, allow_empty = TRUE,
-               len_min = 1, len_max = 1,
-               msg = "invalid AWS_REQUEST_PAYER")
-
-    return(res)
-}
-
-#' @rdname config_functions
-.config_bands <- function(source,
-                          collection, ...,
-                          fn_filter = NULL,
-                          add_cloud = TRUE) {
-
-    # TO-DO: pre-condition
-    # check source and collection
-
-    res <- .config_names(key = c("sources", source, "collections",
-                                 collection, "bands"))
-
-    if (!add_cloud)
-        res <- res[res != "CLOUD"]
-
-    if (!is.null(fn_filter)) {
-        select <- vapply(res, function(band) {
-            fn_filter(.config_get(key = c("sources", source, "collections",
-                                          collection, "bands", band)))
-        }, logical(1))
-
-        res <- res[select]
-    }
-
-    # TO-DO: post-condition
-    # check bands are non-NA character
-
-
-    return(res)
-}
-
-#' @rdname config_functions
-.config_bands_reap <- function(source,
-                               collection,
-                               key, ...,
-                               bands = NULL,
-                               fn_filter = NULL,
-                               add_cloud = TRUE,
-                               default = NULL) {
-
-    # TO-DO: pre-condition
-    # check source and collection
-
-    if (is.null(bands))
-        bands <- .config_bands(source = source,
-                               collection = collection,
-                               fn_filter = fn_filter,
-                               add_cloud = add_cloud)
-
-    # pre-condition
-    .check_chr(bands, allow_na = FALSE, allow_empty = FALSE, len_min = 1,
-               msg = "invalid bands")
-
-    # always returns a list!
-    res <- lapply(bands, function(band) {
-        .config_get(key = c("sources", source, "collections",
-                            collection, "bands", band, key),
-                    default = default)
-    })
-
-    names(res) <- bands
-
-    return(res)
-}
-
-#' @rdname config_functions
-.config_bands_band_name <- function(source,
-                                    collection, ...,
-                                    bands = NULL) {
-    # TO-DO: pre-condition
-    # check source and collection
-
-    res <- .config_bands_reap(source = source,
-                              collection = collection,
-                              key = "band_name",
-                              bands = bands)
-
-    # simplify to a unnamed character vector
-    res <- unlist(res, recursive = FALSE, use.names = FALSE)
-
-    # post-conditions
-    .check_chr(res, allow_na = FALSE, allow_empty = FALSE,
-               len_min = length(bands), len_max = length(bands),
-               msg = "inconsistent 'band_name' values")
-
-    return(res)
-}
-
-#' @rdname config_functions
-.config_bands_resolutions <- function(source,
-                                      collection, ...,
-                                      bands = NULL,
-                                      fn_filter = NULL,
-                                      add_cloud = TRUE) {
-    # TO-DO: pre-condition
-    # check source and collection
-
-    res <- .config_bands_reap(source = source,
-                              collection = collection,
-                              key = "resolutions",
-                              bands = bands,
-                              fn_filter = fn_filter,
-                              add_cloud = add_cloud)
-
-    # cannot simplify as each element can have length greater than one
-    # post-condition
-    .check_lst(res, fn_check = .check_num, min = 0,
-               allow_zero = FALSE, len_min = 1,
-               msg = "invalid 'resolutions' in config file")
-
-    return(res)
-}
-
-#' @rdname config_functions
-.config_cloud <- function() {
-
-    return("CLOUD")
-}
-
-.config_cloud_bit_mask <- function(source,
-                                   collection) {
-    # TO-DO: pre-condition
-    # check source and collection
-
-    res <- .config_get(key = c("sources", source, "collections", collection,
-                               "bands", "CLOUD", "bit_mask"))
-
-    # post-condition
-    .check_lgl(res, len_min = 1, len_max = 1,
-               msg = "invalid 'bit_mask' value in config file")
-
-    return(res)
-}
-
-#' @rdname config_functions
-.config_cloud_values <- function(source,
-                                 collection) {
-    # TO-DO: pre-condition
-    # check source and collection
-
-    res <- .config_get(key = c("sources", source, "collections", collection,
-                               "bands", "CLOUD", "values"))
-
-    # post-condition
-    .check_lst(res, min_len = 1, max_len = 1,
-               msg = "invalid cloud 'values' in config file")
-
-    return(res)
-}
-
-#' @rdname config_functions
-.config_cloud_interp_values <- function(source,
-                                        collection) {
-    # TO-DO: pre-condition
-    # check source and collection
-
-    res <- .config_get(key = c("sources", source, "collections", collection,
-                               "bands", "CLOUD", "interp_values"))
-
-    # post-condition
-    .check_num(res, msg = "invalid 'interp_values' in config file")
-
-    return(res)
-}
-
-#' @rdname config_functions
-.config_collections <- function(source) {
-
-    res <- .config_names(c("sources", source, "collections"))
+               msg = paste("invalid names for",
+                           paste0("'", paste0(key, collapse = "$"), "'"),
+                           "key")
+    )
 
     return(res)
 }
@@ -409,11 +640,11 @@ NULL
 #' @rdname config_functions
 .config_gtiff_default_options <- function() {
 
-    res <- .config_get(key = c("GTiff_default_options"))
+    res <- .config_get(key = c("gdal_creation_options"))
 
     # post-condition
-    .check_chr(res, len_min = 1, len_max = 1,
-               msg = "invalid 'GTiff_default_options' in config file")
+    .check_chr(res, allow_empty = FALSE,
+               msg = "invalid 'gdal_creation_options' in config file")
 
     return(res)
 }
@@ -431,46 +662,6 @@ NULL
 }
 
 #' @rdname config_functions
-.config_memory_bloat <- function() {
-
-    res <- .config_get(key = c("R_memory_bloat"))
-
-    # post-condition
-    .check_num(res, min = 1, len_min = 1, len_max = 1,
-               msg = "invalid 'R_memory_bloat' in config file")
-
-    return(res)
-}
-
-#' @title meta-type for data
-#' @name .config_data_meta_type
-#' @keywords internal
-#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
-#' @param  data    tibble (time series or cube)
-#'
-#' @return file path to the appended to data_dir
-.config_data_meta_type <- function(data) {
-
-    if (inherits(data, c("sits", "patterns", "predicted", "sits_model"))) {
-        return(data)
-
-    } else {
-
-        assertthat::assert_that(
-            !purrr::is_null(data$source),
-            msg = ".sits_config_data_meta_type: data is not valid"
-        )
-
-        # check if data is a cube
-        # TODO: where this function will be implemented?
-        #.sits_config_cube_check(data)
-
-        class(data) <- c("cube", class(data))
-    }
-    return(data)
-}
-
-#' @rdname config_functions
 .config_palettes <- function() {
 
     res <- .config_names(key = "palettes")
@@ -485,6 +676,9 @@ NULL
 .config_palette_colors <- function(labels, ...,
                                    palette = "default") {
 
+    # pre-condition
+    .config_palette_check(palette = palette)
+
     res <- .config_get(key = c("palettes", palette))[labels]
     names(res) <- labels
 
@@ -495,26 +689,35 @@ NULL
         res[is.na(res)] <- sample(random, sum(is.na(res)))
     }
 
-    # post-condition
-    .check_lst(res,
-               min_len = length(labels),
-               max_len = length(labels),
-               fn_check = .check_chr,
-               len_min = 1,
-               len_max = 1,
-               allow_empty = FALSE,
-               msg = "invalid colors ")
+    # simplify
+    res <- unlist(res, use.names = FALSE)
 
-    return(unlist(res, use.names = FALSE))
+    # post-condition
+    .check_chr(res,
+               len_min = length(labels),
+               len_max = length(labels),
+               msg = "invalid 'color' values")
+
+    return(res)
 }
+
+.config_palette_check <- function(palette) {
+
+    # check if palette name exists
+    .check_chr(palette, len_min = 1, len_max = 1,
+               msg = "invalid 'palette' parameter")
+    .check_chr_within(palette, within = .config_palettes(),
+                      msg = "invalid 'palette' parameter")
+}
+
 #' @rdname config_functions
 .config_processing_bloat <- function() {
 
-    res <- .config_get(key = c("R_processing_bloat"))
+    res <- .config_get(key = c("processing_bloat"))
 
     # post-condition
     .check_num(res, min = 1, len_min = 1, len_max = 1,
-               msg = "invalid 'R_processing_bloat' in config file")
+               msg = "invalid 'processing_bloat' in config file")
 
     return(res)
 }
@@ -534,70 +737,16 @@ NULL
 #' @rdname config_functions
 .config_raster_pkg <- function() {
 
-    res <- .config_get(key = c("R_raster_pkg"))
-
-    .check_chr(res, allow_empty = FALSE,
-               choices = c("terra", "raster"), len_min = 1, len_max = 1,
-               msg = "invalid 'R_raster_pkg' in config file")
-
-    return(res)
-}
-
-#' @rdname config_functions
-.config_sources <- function() {
-
-    res <- .config_names(c("sources"))
+    res <- .config_get(key = c("raster_api_package"))
 
     # post-condition
-    .check_chr(res, allow_empty = FALSE, len_min = 1,
-               msg = "invalid 'sources' in config file")
+    .check_chr(res, len_min = 1, len_max = 1,
+               msg = "invalid 'raster_api_package' in config file")
 
-    return(res)
-}
-
-#' @rdname config_functions
-.config_source_url <- function(source) {
-    # TO-DO: pre-condition
-    # check source
-
-    res <- .config_get(key = c("sources", source, "url"))
-
-    # post-condition
-    .check_chr(res, allow_empty = FALSE,
-               len_min = 1, len_max = 1,
-               msg = sprintf("invalid 'url' for source %s in config file",
-                             source))
-
-    return(res)
-}
-
-#' @rdname config_functions
-.config_source_service <- function(source) {
-    # TO-DO: pre-condition
-    # check source
-
-    res <- .config_get(key = c("sources", source, "service"))
-
-    # post-condition
-    .check_chr(res, allow_empty = FALSE,
-               len_min = 1, len_max = 1,
-               msg = sprintf("invalid 'service' for source %s in config file",
-                             source))
-
-    return(res)
-}
-
-#' @rdname config_functions
-.config_source_s3class <- function(source) {
-    # TO-DO: pre-condition
-    # check source
-
-    res <- .config_get(key = c("sources", source, "s3_class"))
-
-    # post-condition
-    .check_chr(res, allow_empty = FALSE, len_min = 1,
-               msg = sprintf("invalid 's3_class' for source %s in config file",
-                             source))
+    .check_chr_within(res,
+                      within = .raster_supported_packages(),
+                      discriminator = "one_of",
+                      msg = "invalid 'raster_api_package' in config file")
 
     return(res)
 }

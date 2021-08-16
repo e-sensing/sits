@@ -75,10 +75,10 @@
     file_info <- cube$file_info[[1]]
 
     # does the cube have a cloud band?
-    cld_band <- .config_cloud()
+    cld_band <- .source_cloud()
     if (cld_band %in% sits_bands(cube)) {
 
-        cld_index <- .config_cloud_interp_values(
+        cld_index <- .source_cloud_interp_values(
             source = .cube_source(cube = cube),
             collection = .cube_collection(cube = cube)
         )
@@ -313,7 +313,7 @@
     if (!purrr::is_null(cld_band)) {
 
         # retrieve values that indicate clouds
-        cld_index <- .config_cloud_interp_values(
+        cld_index <- .source_cloud_interp_values(
             source = .cube_source(cube = cube),
             collection = .cube_collection(cube = cube)
         )
@@ -369,7 +369,7 @@
             if (!purrr::is_null(cld_band)) {
                 cld_values <- unlist(cld_values[i, start_idx:end_idx],
                                      use.names = FALSE)
-                if (.config_cloud_bit_mask(
+                if (.source_cloud_bit_mask(
                     source = .cube_source(cube = cube),
                     collection = .cube_collection(cube = cube)))
                     values_ts[cld_values > 0] <- NA

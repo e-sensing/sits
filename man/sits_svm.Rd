@@ -15,7 +15,7 @@ sits_svm(
   cost = 10,
   tolerance = 0.001,
   epsilon = 0.1,
-  cross = 0,
+  cross = 10,
   ...
 )
 }
@@ -38,7 +38,7 @@ options: "linear", "polynomial", "radial", "sigmoid"
 \item{coef0}{Parameter needed for kernels of type polynomial
 and sigmoid (default: 0).}
 
-\item{cost}{Cost of constraints violation.}
+\item{cost}{Cost of constraints violation (default: 10.}
 
 \item{tolerance}{Tolerance of termination criterion (default: 0.001).}
 
@@ -46,7 +46,7 @@ and sigmoid (default: 0).}
 (default: 0.1).}
 
 \item{cross}{Number of cross validation folds applied
-to assess the quality of the model.}
+to assess the quality of the model (default: 10).}
 
 \item{...}{Other parameters to be passed to e1071::svm function.}
 }

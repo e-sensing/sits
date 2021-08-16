@@ -9,7 +9,7 @@
         )
     }
 
-    url <- .config_source_url(source = source)
+    url <- .source_url(source = source)
     coverages <- Rwtss::list_coverages(url)
 
     # is the WTSS service working?
@@ -54,7 +54,7 @@
 .source_items_new.wtss_cube <- function(source = source,
                                         collection = collection, ...) {
 
-    url <- .config_source_url(source = source)
+    url <- .source_url(source = source)
 
     # describe the cube based on the WTSS API
     cov <- Rwtss::describe_coverage(url, collection, .print = FALSE)
@@ -72,7 +72,7 @@
                                              collection,
                                              wtss_cov) {
 
-    url <- .config_source_url(source = source)
+    url <- .source_url(source = source)
     file_info <- tibble::tibble(date = wtss_cov$timeline, path = url)
 
     return(file_info)
@@ -87,7 +87,7 @@
                                          file_info, ...) {
 
 
-    bands <- .config_bands(source = source, collection = collection)
+    bands <- .source_bands(source = source, collection = collection)
 
     # create a tibble to store the metadata
     cube_wtss <- .sits_cube_create(

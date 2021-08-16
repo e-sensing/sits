@@ -23,7 +23,7 @@ results <- list()
 print("== Accuracy Assessment = SVM =======================")
 acc_svm <- sits_kfold_validate(samples_modis_4bands,
     folds = 5,
-    multicores = 2,
+    multicores = 3,
     ml_method = sits_svm(kernel = "radial", cost = 10)
 )
 acc_svm$name <- "svm_10"

@@ -18,7 +18,7 @@
 .source_cube.satveg_cube <- function(source, ..., collection, name) {
 
     # get the bands
-    bands <- .config_bands(source = source, collection = collection)
+    bands <- .source_bands(source = source, collection = collection)
 
     # get cube size
     size <- .satveg_get_size(source = source, collection = collection)
@@ -30,7 +30,7 @@
     crs <- .satveg_get_crs(source = source, collection = collection)
 
     # get the resolution of the product
-    res <- .config_bands_resolutions(source = "SATVEG",
+    res <- .source_bands_resolutions(source = "SATVEG",
                                      collection = collection,
                                      bands = "NDVI")
 
