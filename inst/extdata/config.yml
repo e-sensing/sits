@@ -51,7 +51,7 @@ sources:
     BDC                     :
         s3_class            : ["bdc_cube", "stac_cube", "raster_cube"]
         service             : "STAC"
-        url                 : "http://datacube-005.dpi.inpe.br:8010/stac/"
+        url                 : "https://brazildatacube.dpi.inpe.br/stac/"
         collections         :
             CB4_64-1        : &bdc_cb4
                 bands       :
@@ -394,7 +394,7 @@ sources:
                             13        : "High confidence of snow"
                             15        : "High confidence of cirrus"
                         interp_values : [0, 1, 2, 4, 5, 9, 11, 13, 15]
-                        resampling    : "ngb"
+                        resampling    : "near"
                         resolutions   : [30]
             S2_10_16D_STK-1 :
                 <<: *bdc_s2
