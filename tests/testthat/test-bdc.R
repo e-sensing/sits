@@ -3,9 +3,8 @@ collections <- collections[collections != "LC8_30-1"]
 purrr::map(collections, function(col) {
 
     vcr::use_cassette(col, {
-
+        withr::local_envvar(c("BDC_ACCESS_KEY" = "123"))
         set.seed(123)
-
         suite_cube_tests <- function(cube) {
 
             # class of sits cube
@@ -32,13 +31,13 @@ purrr::map(collections, function(col) {
                                                 collection = col,
                                                 bands_product)
 
-        bands <- sample(bands_source, size = 3)
+        bands_sampled <- sample(bands_source, size = 3)
 
         # ---- Creating a cube getting all bands ----#
-        l8_30_16d_all_bands <- sits_cube(
+        cube_all_bands <- sits_cube(
             source = "BDC",
             collection = col,
-            name = "l8",
+            name = "cube_test",
             tiles = stac_col[["bdc:tiles"]][[1]],
             start_date = start_date,
             end_date = end_date,
@@ -46,20 +45,22 @@ purrr::map(collections, function(col) {
 
         # ---- tests for BDC cube using all bands ----#
         test_that("testing all bands from cube l8_30_16d", {
-            suite_cube_tests(cube = l8_30_16d_all_bands)
+            suite_cube_tests(cube = cube_all_bands)
         })
 
         # ---- Creating a cube providing bands name as sits and source based ---- #
-        cube_diff_bands <- sits_cube(
-            source = "BDC",
-            collection = col,
-            name = "l8",
-            bands = bands,
-            tiles = stac_col[["bdc:tiles"]][[1]],
-            start_date = start_date,
-            end_date = end_date,
-            dry_run = FALSE
-        )
+        testthat::expect_warning({
+            cube_diff_bands <- sits_cube(
+                source = "BDC",
+                collection = col,
+                name = "cube_test",
+                bands = bands_sampled,
+                tiles = stac_col[["bdc:tiles"]][[1]],
+                start_date = start_date,
+                end_date = end_date,
+                dry_run = FALSE
+            )
+        })
 
         test_that("testing different bands from cube l8_30_16d", {
             suite_cube_tests(cube = cube_diff_bands)
@@ -69,7 +70,7 @@ purrr::map(collections, function(col) {
         cube_cloud_sits <- sits_cube(
             source = "BDC",
             collection = col,
-            name = "l8",
+            name = "cube_test",
             bands = "CLOUD",
             tiles = stac_col[["bdc:tiles"]][[1]],
             start_date = start_date,
@@ -89,16 +90,18 @@ purrr::map(collections, function(col) {
         })
 
         # ---- Cloud band source ----#
-        cube_cloud_source <- sits_cube(
-            source = "BDC",
-            collection = col,
-            name = "l8",
-            bands = .source_bands_to_source("BDC", col, "CLOUD"),
-            tiles = stac_col[["bdc:tiles"]][[1]],
-            start_date = start_date,
-            end_date = end_date,
-            dry_run = FALSE
-        )
+        testthat::expect_warning({
+            cube_cloud_source <- sits_cube(
+                source = "BDC",
+                collection = col,
+                name = "cube_test",
+                bands = .source_bands_to_source("BDC", col, "CLOUD"),
+                tiles = stac_col[["bdc:tiles"]][[1]],
+                start_date = start_date,
+                end_date = end_date,
+                dry_run = FALSE
+            )
+        })
 
         # ---- tests for BDC cube using sits source name ----#
         test_that("testing cloud band in source format from cube l8_30_16d", {
@@ -122,6 +125,5 @@ purrr::map(collections, function(col) {
 
         })
     })
-
     return(invisible(NULL))
 })
