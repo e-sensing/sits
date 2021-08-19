@@ -36,18 +36,18 @@
 #' @export
 sits_view <- function(x, ...){
 
-    assertthat::assert_that(
-        inherits(x, c("raster_cube", "classified_image")),
+    .check_that(
+        x = inherits(x, c("raster_cube", "classified_image")),
         msg = "sits_view only works with raster cube and classified images")
 
     # verifies if raster package is installed
-    assertthat::assert_that(
-        requireNamespace("raster", quietly = TRUE),
+    .check_that(
+        x = requireNamespace("raster", quietly = TRUE),
         msg = "sits_view: this function depends on 'raster' package"
     )
 
     # verifies if mapview package is installed
-    assertthat::assert_that(
+    .check_that(
         requireNamespace("mapview", quietly = TRUE),
         msg = "sits_view: this function depends on 'mapview' package"
     )
@@ -65,14 +65,14 @@ sits_view.raster_cube <- function(x, ...,
                                   roi = NULL) {
 
     # preconditions
-    assertthat::assert_that(
-        all(c(red, green, blue) %in% sits_bands(x)),
+    .check_that(
+        x = all(c(red, green, blue) %in% sits_bands(x)),
         msg = "sits_view: requested RGB bands are not available in data cube"
     )
 
     timeline <- sits_timeline(x)
-    assertthat::assert_that(
-        time >= 1 & time <= length(timeline),
+    .check_that(
+        x = time >= 1 & time <= length(timeline),
         msg = "sits_view: time parameter out of bounds"
     )
 
@@ -89,8 +89,8 @@ sits_view.raster_cube <- function(x, ...,
         }) %>% unlist()
 
         # check if intersection is not empty
-        assertthat::assert_that(
-            any(intersects),
+        .check_that(
+            x = any(intersects),
             msg = "sits_view: informed roi does not intersect cube"
         )
 
@@ -120,9 +120,9 @@ sits_view.raster_cube <- function(x, ...,
         r_obj <- .raster_crop.raster(r_obj = r_obj, block = roi)
     }
 
-    assertthat::assert_that(
-        .raster_ncols(r_obj) > 0 && .raster_nrows(r_obj) > 0,
-        msg = "view.raster_cube: unable to retrieve raster data"
+    .check_that(
+        x = .raster_ncols(r_obj) > 0 && .raster_nrows(r_obj) > 0,
+        msg = "sits_view.raster_cube: unable to retrieve raster data"
     )
 
     # set mapview options
@@ -161,8 +161,9 @@ sits_view.classified_image <- function(x,...,
         names(legend) <- labels
     }
     else {
-        assertthat::assert_that(
-            all(labels %in% names(legend)),
+        .check_chr_within(
+            x =  labels,
+            within = names(legend),
             msg = "sits_view: some labels are missing from the legend"
         )
     }
@@ -172,10 +173,10 @@ sits_view.classified_image <- function(x,...,
         file = x$file_info[[1]]$path[[time]]
     )[[1]]
 
-    assertthat::assert_that(
-        .raster_ncols.raster(r_obj) > 0 &&
+    .check_that(
+        x = .raster_ncols.raster(r_obj) > 0 &&
             .raster_nrows.raster(r_obj) > 0,
-        msg = "plot: unable to retrive raster data"
+        msg = "sits_view.classified_image: unable to retrive raster data"
     )
 
     # create a RAT

@@ -97,28 +97,38 @@ sits_TempCNN <- function(samples = NULL,
         # pre-conditions
         valid_activations <- c("relu", "elu", "selu", "sigmoid")
 
-        assertthat::assert_that(
-            length(cnn_layers) == length(cnn_kernels),
+        .check_length(
+            x = cnn_layers,
+            len_min = length(cnn_kernels),
+            len_max = length(cnn_kernels),
             msg = "sits_tempCNN: 1D layers must match 1D kernel sizes"
         )
 
-        assertthat::assert_that(
-            length(cnn_layers) == length(cnn_dropout_rates),
+        .check_length(
+            x = cnn_layers,
+            len_min = length(cnn_dropout_rates),
+            len_max = length(cnn_dropout_rates),
             msg = "sits_tempCNN: 1D layers must match 1D dropout rates"
         )
 
-        assertthat::assert_that(
-            length(mlp_layers) == length(mlp_dropout_rates),
+        .check_length(
+            x = mlp_layers,
+            len_min = length(mlp_dropout_rates),
+            len_max = length(mlp_dropout_rates),
             msg = "sits_tempCNN: 2D units must match 2D dropout rates"
         )
 
-        assertthat::assert_that(
-            cnn_activation %in% valid_activations,
+        .check_chr_within(
+            x = cnn_activation,
+            within = valid_activations,
+            discriminator = "one_of",
             msg = "sits_tempCNN: invalid CNN activation method"
         )
 
-        assertthat::assert_that(
-            mlp_activation %in% valid_activations,
+        .check_chr_within(
+            x = mlp_activation,
+            within = valid_activations,
+            discriminator = "one_of",
             msg = "sits_tempCNN: invalid node activation method"
         )
 

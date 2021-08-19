@@ -816,6 +816,37 @@ NULL
 #' @rdname check_functions
 #'
 #' @details
+#' Special checking function:
+#'
+#' \itemize{
+#' \item{
+#' \code{.check_env_var()} throws an error if provided environment variable is
+#' not existing.
+#' }
+#' }
+.check_env_var <- function(x, ...,
+                           msg = NULL) {
+
+    .check_null(x, msg = msg)
+
+    .check_chr_type(x, msg = msg)
+
+    if (length(x) > 0)
+        .check_apply(
+            x,
+            fn_check = function(x) .check_that(x = nzchar(Sys.getenv(x)),
+                                               msg = paste(sprintf("%s: ", x),
+                                                           msg))
+        )
+    else
+        .check_that(x = nzchar(Sys.getenv(x)), msg = msg)
+
+    return(invisible(x))
+}
+
+#' @rdname check_functions
+#'
+#' @details
 #' Contextual check and error conversion functions:
 #'
 #' \itemize{

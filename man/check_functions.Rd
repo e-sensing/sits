@@ -21,6 +21,7 @@
 \alias{.check_chr_within}
 \alias{.check_chr_contains}
 \alias{.check_file}
+\alias{.check_env_var}
 \alias{.check_warn}
 \alias{.check_error}
 \title{Check functions}
@@ -118,6 +119,8 @@
 )
 
 .check_file(x, ..., msg = NULL)
+
+.check_env_var(x, ..., msg = NULL)
 
 .check_warn(expr)
 
@@ -357,6 +360,15 @@ Special checking function:
 \item{
 \code{.check_file()} throws an error if provided value is not a valid and
 existing file path.
+}
+}
+
+Special checking function:
+
+\itemize{
+\item{
+\code{.check_env_var()} throws an error if provided environment variable is
+not existing.
 }
 }
 

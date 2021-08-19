@@ -165,8 +165,8 @@ sits_sample <- function(data, n = NULL, frac = NULL) {
     .sits_tibble_test(data)
 
     # verify if either n or frac is informed
-    assertthat::assert_that(
-        !(purrr::is_null(n) & purrr::is_null(frac)),
+    .check_that(
+        x = !(purrr::is_null(n) & purrr::is_null(frac)),
         msg = "sits_sample: neither n or frac parameters informed"
     )
 
@@ -400,8 +400,9 @@ sits_time_series <- function(data) {
     bands <- toupper(sp_bands)
   } else {
     bands <- toupper(bands)
-    assertthat::assert_that(
-      all(bands %in% sp_bands),
+    .check_chr_within(
+      x = bands,
+      within = sp_bands,
       msg = paste(".sits_tibble_bands_check: required bands are not",
                   "available in the samples")
     )
@@ -420,20 +421,20 @@ sits_time_series <- function(data) {
 #' @param data  A sits tibble.
 #' @return Returns TRUE if data has data.
 .sits_tibble_test <- function(data) {
-  assertthat::assert_that(
-    !purrr::is_null(data),
-    msg = ".sits_tibble_test: input data not provided"
-  )
-  assertthat::assert_that(
-    nrow(data) > 0,
+
+  .check_null(x = data, ".sits_tibble_test: input data not provided")
+
+  .check_that(
+    x = nrow(data) > 0,
     msg = ".sits_tibble_test: input data is empty"
   )
 
   names <- c("longitude", "latitude", "start_date", "end_date",
              "label", "cube", "time_series")
 
-  assertthat::assert_that(
-    all(names %in% colnames(data)),
+  .check_chr_within(
+    x = names,
+    within = colnames(data),
     msg = ".sits_tibble_test: data input is not a valid sits tibble"
   )
 

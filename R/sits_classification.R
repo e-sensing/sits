@@ -146,16 +146,16 @@ sits_classify.sits <- function(data,
     .sits_tibble_test(data)
 
     # precondition: ensure the machine learning model has been built
-    assertthat::assert_that(
-        !purrr::is_null(ml_model),
+    .check_null(
+        x = ml_model,
         msg = "sits_classify_ts: please provide a trained ML model"
     )
 
     # Precondition: only savitsky-golay and whittaker filters are supported
     if (!purrr::is_null(filter_fn)) {
         call_names <- deparse(sys.call())
-        assertthat::assert_that(
-            any(grepl("sgolay", (call_names))) ||
+        .check_that(
+            x = any(grepl("sgolay", (call_names))) ||
                 any(grepl("whittaker", (call_names))),
             msg = paste("sits_classify_cube: only savitsky-golay and",
                         "whittaker filters are supported")
@@ -165,8 +165,8 @@ sits_classify.sits <- function(data,
 
     # precondition - are the samples valid?
     samples <- .sits_ml_model_samples(ml_model)
-    assertthat::assert_that(
-        nrow(samples) > 0,
+    .check_that(
+        x = nrow(samples) > 0,
         msg = "sits_classify: missing original samples"
     )
 
@@ -185,8 +185,8 @@ sits_classify.sits <- function(data,
 
 
     # post condition: is distance data valid?
-    assertthat::assert_that(
-        nrow(distances) > 0,
+    .check_that(
+        x = nrow(distances) > 0,
         msg = "sits_classify.sits: problem with normalization"
     )
 
@@ -269,8 +269,8 @@ sits_classify.raster_cube <- function(data, ml_model, ...,
         n_samples <- length(sits_timeline(samples))
         n_tile <- length(sits_timeline(tile))
 
-        assertthat::assert_that(
-            n_samples == n_tile,
+        .check_that(
+            x = n_samples == n_tile,
             msg = paste("sits_classify: number of instances of",
                         "samples and cube differ")
         )

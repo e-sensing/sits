@@ -181,8 +181,8 @@
     items <- rstac::post_request(q = stac_query, ...)
 
     # checks if the collection returned zero items
-    assertthat::assert_that(
-        !(rstac::items_length(items) == 0),
+    .check_that(
+        x = !(rstac::items_length(items) == 0),
         msg = paste(".source_items_new.usgs_cube: the provided search returned",
                     "zero items.")
     )

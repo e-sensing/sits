@@ -33,7 +33,7 @@ sits_cube(source, ...)
   ...,
   name = "deafrica_cube",
   url = NULL,
-  collection = "s2_l2a",
+  collection = "S2_L2A",
   bands = NULL,
   tiles = NULL,
   bbox = NULL,

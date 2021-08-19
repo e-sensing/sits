@@ -40,8 +40,9 @@ sits_to_xlsx <- function(acc_lst, file) {
     eo_n <- c("(Sensitivity)|(Specificity)|(Pos Pred Value)|(Neg Pred Value)")
 
     num_sheets <- length(acc_lst)
-    assertthat::assert_that(
-        length(num_sheets) > 0,
+    .check_length(
+        x = num_sheets,
+        len_min = 1,
         msg = "sits_to_xlsx: number of sheets should be at least one")
 
     # save all elements of the list

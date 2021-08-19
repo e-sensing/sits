@@ -67,10 +67,9 @@
     }
 
     # checks if the specified parameters names is contained in the list
-    assertthat::assert_that(
-        !purrr::is_null(names(roi_list)),
-        msg = ".sits_stac_roi: invalid definition of ROI"
-    )
+    .check_chr(x = names(roi_list),
+               allow_empty = FALSE,
+               msg = ".sits_stac_roi: invalid definition of ROI")
 
     return(roi_list)
 }
