@@ -922,13 +922,15 @@ plot.keras_model <- function(x, y, ...) {
     if (type == "mapping") {
         graphics::plot(koh$som_properties,
                        bgcol = koh$som_properties$paint_map,
-                       "mapping", whatmap = whatmap
+                       "mapping", whatmap = whatmap,
+                       codeRendering = "lines"
         )
     }
     else if (type == "codes") {
         graphics::plot(koh$som_properties,
                        bgcol = koh$som_properties$paint_map,
-                       "codes", whatmap = whatmap
+                       "codes", whatmap = whatmap,
+                       codeRendering = "lines"
         )
     }
 
