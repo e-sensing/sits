@@ -4,7 +4,7 @@
 \alias{sits_ranger}
 \title{Train a sits classifiction model using fast random forest algorithm}
 \usage{
-sits_ranger(data = NULL, num_trees = 2000, importance = "impurity", ...)
+sits_ranger(data = NULL, num_trees = 200, importance = "impurity", ...)
 }
 \arguments{
 \item{data}{Time series with the training samples.}

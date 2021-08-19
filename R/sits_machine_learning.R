@@ -383,7 +383,7 @@ sits_mlr <- function(data = NULL, formula = sits_formula_linear(),
 #' @export
 #'
 sits_ranger <- function(data = NULL,
-                        num_trees = 2000,
+                        num_trees = 200,
                         importance = "impurity", ...) {
 
     # function that returns a randomForest model based on a sits sample tibble
@@ -568,12 +568,12 @@ sits_rfor <- function(data = NULL, num_trees = 2000, nodesize = 1, ...) {
 #' @param degree           Exponential of polynomial type kernel (default: 3).
 #' @param coef0            Parameter needed for kernels of type polynomial
 #'                         and sigmoid (default: 0).
-#' @param cost             Cost of constraints violation.
+#' @param cost             Cost of constraints violation (default: 10.
 #' @param tolerance        Tolerance of termination criterion (default: 0.001).
 #' @param epsilon          Epsilon in the insensitive-loss function
 #'                         (default: 0.1).
 #' @param cross            Number of cross validation folds applied
-#'                         to assess the quality of the model.
+#'                         to assess the quality of the model (default: 10).
 #' @param ...              Other parameters to be passed to e1071::svm function.
 #' @return                 Model fitted to input data
 #'                         (to be passed to \code{\link[sits]{sits_classify}})
@@ -597,7 +597,7 @@ sits_svm <- function(data = NULL, formula = sits_formula_logref(),
                      scale = FALSE, cachesize = 1000,
                      kernel = "radial", degree = 3, coef0 = 0,
                      cost = 10, tolerance = 0.001,
-                     epsilon = 0.1, cross = 0, ...) {
+                     epsilon = 0.1, cross = 10, ...) {
 
     # function that returns e1071::svm model based on a sits sample tibble
     result_fun <- function(data) {

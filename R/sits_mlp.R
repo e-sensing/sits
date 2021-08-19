@@ -2,7 +2,6 @@
 #' @name sits_mlp
 #'
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
-#' @author Alexandre Ywata de Carvalho, \email{alexandre.ywata@@ipea.gov.br}
 #' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
 #'
 #' @description Use a multi-layer perceptron algorithm to classify data.
@@ -36,11 +35,11 @@
 #' @note
 #' The parameters for the MLP have been chosen based on the work by Wang et al. 2017
 #' that takes multilayer perceptrons as the baseline for time series classifications:
-#' (a) Four layers with 512 neurons each, specified by the parameter `layers`;
-#' (b) Using the 'elu' activation function;
-#' (c) dropout rates of 10%, 20%, 20%, and 30% for the layers;
+#' (a) Three layers with 512 neurons each, specified by the parameter `layers`;
+#' (b) Using the 'relu' activation function;
+#' (c) dropout rates of 10%, 20%, and 30% for the layers;
 #' (d) the "optimizer_adam" as optimizer (default value);
-#' (e) a number of training steps (`epochs`) of 150;
+#' (e) a number of training steps (`epochs`) of 100;
 #' (f) a `batch_size` of 64, which indicates how many time series
 #' are used for input at a given steps;
 #' (g) a validation percentage of 20%, which means 20% of the samples
@@ -66,14 +65,7 @@
 #' data(samples_modis_4bands)
 #' samples_mt_ndvi <- sits_select(samples_modis_4bands, bands = "NDVI")
 #' # Build a machine learning model based on deep learning
-#' dl_model <- sits_train(
-#'     samples_mt_ndvi,
-#'     sits_mlp(
-#'         layers = c(64, 64),
-#'         dropout_rates = c(0.50, 0.40),
-#'         epochs = 50
-#'     )
-#' )
+#' dl_model <- sits_train(samples_mt_ndvi, sits_mlp())
 #' # get a point with a 16 year time series
 #' point_ndvi <- sits_select(point_mt_6bands, bands = "NDVI")
 #' # classify the point
@@ -84,11 +76,11 @@
 #' @export
 #'
 sits_mlp <- function(samples = NULL,
-                     layers = c(512, 512, 512, 512),
-                     activation = "elu",
-                     dropout_rates = c(0.10, 0.20, 0.20, 0.30),
-                     optimizer = keras::optimizer_adam(lr = 0.001),
-                     epochs = 200,
+                     layers = c(512, 512, 512),
+                     activation = "relu",
+                     dropout_rates = c(0.10, 0.20, 0.30),
+                     optimizer = keras::optimizer_adam(learning_rate = 0.001),
+                     epochs = 100,
                      batch_size = 64,
                      validation_split = 0.2,
                      verbose = 0) {
