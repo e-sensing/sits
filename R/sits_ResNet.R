@@ -96,13 +96,15 @@ sits_ResNet <- function(samples = NULL,
 
         valid_activations <- c("relu", "elu", "selu", "sigmoid")
         # pre-conditions
-        assertthat::assert_that(
-            activation %in% valid_activations,
+        .check_chr_within(
+            x = activation,
+            within = valid_activations,
+            discriminator = "any_of",
             msg = "sits_ResNet: invalid CNN activation method"
         )
 
-        assertthat::assert_that(
-            length(kernels) == 3,
+        .check_that(
+            x = length(kernels) == 3,
             msg = "sits_ResNet: should inform size of three kernels"
         )
 

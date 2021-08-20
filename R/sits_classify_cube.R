@@ -54,16 +54,17 @@
     labels <- sits_labels(samples)
 
     # precondition - are the samples empty?
-    assertthat::assert_that(
-        nrow(samples) > 0,
+    .check_that(
+        x = nrow(samples) > 0,
         msg = "sits_classify: original samples not saved"
     )
 
     # precondition - are the sample bands contained in the cube bands?
     tile_bands <- sits_bands(tile)
     bands <- sits_bands(samples)
-    assertthat::assert_that(
-        all(bands %in% tile_bands),
+    .check_chr_within(
+        x = bands,
+        within = tile_bands,
         msg = "sits_classify: some bands in samples are not in cube"
     )
 
@@ -87,8 +88,8 @@
     # show the number of blocks and block size
     if (verbose)
         message(paste0("Using ", length(blocks),
-            " blocks of size (", unname(blocks[[1]]["nrows"]),
-            " x ", unname(blocks[[1]]["ncols"]), ")"
+                       " blocks of size (", unname(blocks[[1]]["nrows"]),
+                       " x ", unname(blocks[[1]]["ncols"]), ")"
         ))
 
     # create the metadata for the probability cube
@@ -120,9 +121,9 @@
 
     # log
     .sits_debug_log(output_dir = output_dir,
-              event      = "start classification",
-              key        = "blocks",
-              value      = length(blocks))
+                    event      = "start classification",
+                    key        = "blocks",
+                    value      = length(blocks))
 
     # read the blocks and compute the probabilities
     filenames <- .sits_parallel_map(blocks, function(b) {
@@ -148,17 +149,17 @@
                 if (.raster_nrows(r_obj) == b[["nrows"]]) {
                     # log
                     .sits_debug_log(output_dir = output_dir,
-                              event      = "skipping block",
-                              key        = "block file",
-                              value      = filename_block)
+                                    event      = "skipping block",
+                                    key        = "block file",
+                                    value      = filename_block)
                     return(filename_block)
                 }
         }
         # log
         .sits_debug_log(output_dir = output_dir,
-                  event      = "before preprocess block",
-                  key        = "block",
-                  value      = b)
+                        event      = "before preprocess block",
+                        key        = "block",
+                        value      = b)
 
         # read the data
         distances <- .sits_raster_data_read(
@@ -173,25 +174,25 @@
         )
         # log
         .sits_debug_log(output_dir = output_dir,
-                  event      = "before classification block")
+                        event      = "before classification block")
 
         # predict the classification values
         pred_block <- ml_model(distances)
         # log
         .sits_debug_log(output_dir = output_dir,
-                  event      = "classification block",
-                  key        = "ml_model",
-                  value      = class(ml_model)[[1]])
+                        event      = "classification block",
+                        key        = "ml_model",
+                        value      = class(ml_model)[[1]])
 
         # are the results consistent with the data input?
-        assertthat::assert_that(
-            nrow(pred_block) == nrow(distances),
+        .check_that(
+            x = nrow(pred_block) == nrow(distances),
             msg = paste(".sits_classify_cube: number of rows of probability",
                         "matrix is different from number of input pixels")
         )
         # log
         .sits_debug_log(output_dir = output_dir,
-                  event      = "before save classified block")
+                        event      = "before save classified block")
 
         # convert probabilities matrix to INT2U
         scale_factor_save <- round(1 / .cube_band_scale_factor(
@@ -215,7 +216,7 @@
 
         # copy values
         r_obj <- .raster_set_values(r_obj  = r_obj,
-                                             values = pred_block)
+                                    values = pred_block)
 
         # write the probabilities to a raster file
         .raster_write_rast(
@@ -228,7 +229,7 @@
         )
         # log
         .sits_debug_log(output_dir = output_dir,
-                  event      = "save classified block")
+                        event      = "save classified block")
 
         # call garbage collector
         gc()
@@ -239,7 +240,7 @@
     filenames <- unlist(filenames)
     # log
     .sits_debug_log(output_dir = output_dir,
-              event      = "end classification")
+                    event      = "end classification")
 
     # join predictions
     .raster_merge(
@@ -253,7 +254,7 @@
 
     # log
     .sits_debug_log(output_dir = output_dir,
-              event      = "merge")
+                    event      = "merge")
 
     # show final time for classification
     if (verbose) {
@@ -274,16 +275,14 @@
 #' @return Tests succeeded?
 .sits_classify_check_params <- function(cube, ml_model) {
     # ensure metadata tibble exists
-    assertthat::assert_that(
-        nrow(cube) > 0,
+    .check_that(
+        x = nrow(cube) > 0,
         msg = "sits_classify: invalid metadata for the cube"
     )
 
     # ensure the machine learning model has been built
-    assertthat::assert_that(
-        !purrr::is_null(ml_model),
-        msg = "sits_classify: trained ML model not available"
-    )
+    .check_null(x = ml_model,
+                msg = "sits_classify: trained ML model not available")
 
     return(invisible(TRUE))
 }
@@ -303,8 +302,8 @@
     prediction <- ml_model(data)
 
     # are the results consistent with the data input?
-    assertthat::assert_that(
-        nrow(prediction) == nrow(data),
+    .check_that(
+        x = nrow(prediction) == nrow(data),
         msg = paste(".sits_classify_cube: number of rows of probability",
                     "matrix is different from number of input pixels")
     )

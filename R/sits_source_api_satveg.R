@@ -80,8 +80,8 @@ NULL
     size <- unlist(size)
 
     # post-condition
-    assertthat::assert_that(
-        all(size > 0),
+    .check_that(
+        x = all(size > 0),
         msg = ".satveg_get_size: invalid size."
     )
 
@@ -99,8 +99,9 @@ NULL
     bbox <- unlist(bbox)
 
     # post-condition
-    assertthat::assert_that(
-        all(names(bbox) %in% c("xmin", "ymin", "xmax", "ymax")),
+    .check_chr_within(
+        x = names(bbox),
+        within = c("xmin", "ymin", "xmax", "ymax"),
         msg = ".satveg_get_bbox: invalid bbox."
     )
 

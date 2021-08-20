@@ -71,8 +71,8 @@
 
     # define the column names
     attr_names <- names(.sits_distances(.sits_ml_model_samples(ml_model)[1, ]))
-    assertthat::assert_that(
-        length(attr_names) > 0,
+    .check_that(
+        x = length(attr_names) > 0,
         msg = "sits_classify_distances: training data not available"
     )
 

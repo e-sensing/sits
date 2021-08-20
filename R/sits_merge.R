@@ -45,14 +45,14 @@ sits_merge.sits <- function(data1, data2) {
     .sits_tibble_test(data2)
 
     # if some parameter is empty returns the another one
-    assertthat::assert_that(
-        nrow(data1) > 0 & nrow(data2) > 0,
+    .check_that(
+        x = nrow(data1) > 0 & nrow(data2) > 0,
         msg = "sits_merge: invalid input data"
     )
 
     # verify if data1.tb and data2.tb has the same number of rows
-    assertthat::assert_that(
-        nrow(data1) == nrow(data2),
+    .check_that(
+        x = nrow(data1) == nrow(data2),
         msg = "sits_merge: cannot merge tibbles of different sizes"
     )
 
@@ -88,33 +88,32 @@ sits_merge.sits <- function(data1, data2) {
 sits_merge.cube <- function(data1, data2) {
 
     # preconditions
-    assertthat::assert_that(
-        nrow(data1) == 1 & nrow(data2) == 1,
+    .check_that(
+        x = nrow(data1) == 1 & nrow(data2) == 1,
         msg = "sits_merge: merge only works from simple cubes (one tibble row)"
     )
-    assertthat::assert_that(
-        data1$satellite == data2$satellite,
+    .check_that(
+        x = data1$satellite == data2$satellite,
         msg = "sits_merge: cubes from different satellites"
     )
-    assertthat::assert_that(
-        data1$sensor == data2$sensor,
+    .check_that(
+        x = data1$sensor == data2$sensor,
         msg = "sits_merge: cubes from different sensors"
     )
-    assertthat::assert_that(
-        all(sits_bands(data1) != sits_bands(data2)),
+    .check_that(
+        x = all(sits_bands(data1) != sits_bands(data2)),
         msg = "sits_merge: merge cubes requires different bands in each cube"
     )
-    assertthat::assert_that(
-        all(sits_bbox(data1) == sits_bbox(data2)),
+    .check_that(
+        x = all(sits_bbox(data1) == sits_bbox(data2)),
         msg = "sits_merge: merge cubes requires same bounding boxes"
     )
-    assertthat::assert_that(
-        data1$xres == data2$xres &&
-            data1$yres == data2$yres,
+    .check_that(
+        x = data1$xres == data2$xres && data1$yres == data2$yres,
         msg = "sits_merge: merge cubes requires same resolution"
     )
-    assertthat::assert_that(
-        all(sits_timeline(data1) == sits_timeline(data2)),
+    .check_that(
+        x = all(sits_timeline(data1) == sits_timeline(data2)),
         msg = "sits_merge: merge cubes requires same timeline"
     )
 

@@ -33,21 +33,22 @@
 .raster_check_block <- function(block) {
 
     # precondition 1
-    assertthat::assert_that(
-        all(c("row", "nrows", "col", "ncols") %in% names(block)),
+    .check_chr_within(
+        x = names(block),
+        within = c("row", "nrows", "col", "ncols"),
         msg = paste(".raster_check_block: block object must contains",
                     "'row', 'nrows', 'col', 'ncols' entries")
     )
 
     # precondition 2
-    assertthat::assert_that(
-        block[["row"]] > 0 && block[["col"]] > 0,
+    .check_that(
+        x = block[["row"]] > 0 && block[["col"]] > 0,
         msg = ".raster_check_block: invalid block"
     )
 
     # precondition 3
-    assertthat::assert_that(
-        block[["nrows"]] > 0 && block[["ncols"]] > 0,
+    .check_that(
+        x = block[["nrows"]] > 0 && block[["ncols"]] > 0,
         msg = ".raster_check_block: invalid block"
     )
 
@@ -105,8 +106,9 @@
     valid_data_types <- c("INT1U", "INT2U", "INT2S", "INT4U",
                           "INT4S", "FLT4S", "FLT8S")
     # check data type
-    assertthat::assert_that(
-        all(data_type %in% valid_data_types),
+    .check_chr_within(
+        x = data_type,
+        within = valid_data_types,
         msg = paste(".raster_data_type: valid data types are",
                     paste0("'", valid_data_types, "'", collapse = ", "))
     )
@@ -202,7 +204,7 @@
 .raster_open_rast <- function(file, ...) {
 
     # check for file length == 1
-    assertthat::assert_that(
+    .check_that(
         length(file) == 1,
         msg = ".raster_open_rast: more than one file were informed"
     )
@@ -227,8 +229,8 @@
                               block = NULL, ...) {
 
     # check for files length == 1
-    assertthat::assert_that(
-        length(file) == 1,
+    .check_that(
+        x = length(file) == 1,
         msg = ".raster_read_rast: more than one file were informed"
     )
 
@@ -316,8 +318,9 @@
 .raster_open_stack <- function(files, ...) {
 
     # check for files length > 0
-    assertthat::assert_that(
-        length(files) > 0,
+    .check_length(
+        x = files,
+        min = 1,
         msg = ".raster_open_stack: no file informed"
     )
 
@@ -506,21 +509,23 @@
                           fn, ...) {
 
     # check window_size
-    assertthat::assert_that(
-        window_size %% 2 == 1,
+    .check_that(
+        x = window_size %% 2 == 1,
         msg = ".raster_focal: window_size must be an odd number"
     )
 
     # check fn parameter
     if (is.character(fn)) {
 
-        assertthat::assert_that(
-            length(fn) == 1,
+        .check_that(
+            x = length(fn) == 1,
             msg = ".raster_focal: length of fn parameter must be one"
         )
 
-        assertthat::assert_that(
-            fn %in% c("modal", "sum", "mean"),
+        .check_chr_within(
+            x = fn,
+            within = c("modal", "sum", "mean"),
+            discriminator = "one_of",
             msg = ".raster_focal: invalid function"
         )
     }
@@ -586,8 +591,9 @@
 .raster_params_file <- function(file) {
 
     # preconditions
-    assertthat::assert_that(
-        length(file) > 0,
+    .check_length(
+        x = file,
+        min = 1,
         msg = ".raster_params_file: no file was informed"
     )
 
@@ -626,8 +632,10 @@
 
 
     # precondition 2
-    assertthat::assert_that(
-        band_cube %in% sits_bands(cube),
+    .check_chr_within(
+        x = band_cube,
+        within = sits_bands(cube),
+        discriminator = "one_of",
         msg = paste(".raster_extract: band", band_cube,
                     "is not available in the cube ", cube$name)
     )
@@ -642,8 +650,8 @@
     values <- .raster_extract(r_obj, xy)
 
     # is the data valid?
-    assertthat::assert_that(
-        nrow(values) == nrow(xy),
+    .check_that(
+        x = nrow(values) == nrow(xy),
         msg = ".raster_extract: error in retrieving data"
     )
     return(values)
@@ -660,8 +668,8 @@
 .sits_cube_area_freq <- function(cube) {
 
     # precondition
-    assertthat::assert_that(
-        inherits(cube, "classified_image"),
+    .check_that(
+        x = inherits(cube, "classified_image"),
         msg = ".sits_cube_area_freq: requires a labelled cube"
     )
 
@@ -696,20 +704,21 @@
                           overwrite) {
 
     # check if in_file length is at least one
-    assertthat::assert_that(
-        length(in_files) > 0,
+    .check_length(
+        x = in_files,
+        min = 1,
         msg = ".raster_merge: no file to merge"
     )
 
     # check if all informed files exist
-    assertthat::assert_that(
-        all(file.exists(in_files)),
+    .check_that(
+        x = all(file.exists(in_files)),
         msg = ".raster_merge: file does not exist"
     )
 
     # check overwrite parameter
-    assertthat::assert_that(
-        (file.exists(out_file) && overwrite) ||
+    .check_that(
+        x = (file.exists(out_file) && overwrite) ||
             !file.exists(out_file),
         msg = ".raster_merge: cannot overwrite existing file"
     )

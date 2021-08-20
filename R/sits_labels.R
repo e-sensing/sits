@@ -51,13 +51,15 @@ sits_labels.patterns <- function(data) {
 #'
 sits_labels.sits_model <- function(data) {
 
-    assertthat::assert_that(
-        inherits(data, "function"),
+    .check_that(
+        x = inherits(data, "function"),
         msg = "sits_labels: invalid sits model"
     )
 
-    assertthat::assert_that(
-        "data" %in% ls(environment(data)),
+    .check_chr_within(
+        x = "data",
+        within = ls(environment(data)),
+        discriminator = "any_of",
         msg = "sits_labels: no samples found in the sits model"
     )
 

@@ -67,8 +67,8 @@ sits_kfold_validate <- function(data,
     names(int_labels) <- labels
 
     # is the data labelled?
-    assertthat::assert_that(
-        !("NoClass" %in% sits_labels(data)),
+    .check_that(
+        x = !("NoClass" %in% sits_labels(data)),
         msg = "sits_cross_validate: requires labelled set of time series"
     )
 

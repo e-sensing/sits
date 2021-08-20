@@ -1,4 +1,3 @@
-context("Plot")
 # verifies if proto package is installed
 if (!requireNamespace("proto", quietly = TRUE)) {
     stop("proto required for this function to work.

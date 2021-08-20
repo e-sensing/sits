@@ -25,8 +25,10 @@
 sits_show_prediction <- function(class) {
 
     .sits_tibble_test(class)
-    assertthat::assert_that(
-        all(names(class$predicted[[1]]) %in% c("from", "to", "class", "probs")),
+
+    .check_chr_within(
+        x = names(class$predicted[[1]]),
+        within = c("from", "to", "class", "probs"),
         msg = "sits_show_prediction: tibble has not been classified"
     )
 

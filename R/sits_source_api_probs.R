@@ -16,8 +16,10 @@
         # read the information from the files using GDAL
         rg_obj <- terra::rast(probs_files[[i]])
         n_layers <- terra::nlyr(rg_obj)
-        assertthat::assert_that(
-            n_layers == length(probs_labels),
+        .check_num(
+            x = n_layers,
+            min = length(probs_labels),
+            max = length(probs_labels),
             msg = paste(".source_cube.probs_cube: mismatch between labels and",
                         "bands in file", probs_files[[i]]))
 

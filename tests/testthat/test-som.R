@@ -1,4 +1,3 @@
-context("Evaluate samples using SOM")
 test_that("Creating clustering using Self-organizing Maps", {
     # skip_on_cran()
     data("cerrado_2classes")

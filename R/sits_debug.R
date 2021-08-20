@@ -119,10 +119,8 @@ NULL
         return(flag)
     }
 
-    assertthat::assert_that(
-        is.logical(flag),
-        msg = ".sits_debug: flag must be a logical value"
-    )
+    .check_lgl_type(x = flag,
+                    msg = ".sits_debug: flag must be a logical value" )
 
     # set debug flag
     sits_env$debug_flag <- flag

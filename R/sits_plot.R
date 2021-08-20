@@ -137,12 +137,15 @@ plot.raster_cube <- function(x, y, ..., band, time = 1) {
     }
     # checks if required time exists
     dates <- sits_timeline(x)
-    assertthat::assert_that(time >= 1 && time <= length(dates),
-                            msg = "invalid time"
+    .check_that(
+        x = time >= 1 && time <= length(dates),
+        msg = "plot.raster_cube: invalid timeline"
     )
     # check if bands exists
-    assertthat::assert_that(band  %in% sits_bands(x),
-                            msg = "invalid band"
+    .check_chr_within(
+        x = band,
+        within = sits_bands(x),
+        msg = "plot.raster_cube: invalid band"
     )
     # get the file information
     file_info <- x$file_info[[1]]
@@ -832,9 +835,9 @@ plot.keras_model <- function(x, y, ...) {
         stop("Please install package methods.", call. = FALSE)
     }
     # ensures that a cluster object  exists
-    assertthat::assert_that(
-        !purrr::is_null(cluster_obj),
-        msg = "plot_dendrogram: no valid cluster object available"
+    .check_null(
+        x = cluster_obj,
+        msg = ".sits_plot_dendrogram: no valid cluster object available"
     )
     # get unique labels
     data_labels <- data$label
@@ -1013,12 +1016,15 @@ plot.keras_model <- function(x, y, ...) {
                                         legend = NULL) {
 
     #precondition 1 - cube must be a labelled cube
-    assertthat::assert_that("classified_image" %in% class(cube),
-                            msg = "cube must be a classified image")
+    .check_chr_within(
+        x = "classified_image",
+        within = class(cube),
+        discriminator = "any_of",
+        msg = ".sits_plot_classified_image: cube must be a classified image")
     #precondition 2 - time must be a positive integer
-    assertthat::assert_that(time >= 1,
-                            msg = paste("sits_plot_classified_image: time must",
-                                        "be a positive integer")
+    .check_that(x = time >= 1,
+                msg = paste("sits_plot_classified_image: time must",
+                            "be a positive integer")
     )
 
     # get the raster object
@@ -1042,8 +1048,9 @@ plot.keras_model <- function(x, y, ...) {
         colors <- .config_palette_colors(labels)
     }
     else {
-        assertthat::assert_that(
-            all(labels %in% names(legend)),
+        .check_chr_within(
+            x = labels,
+            within = names(legend),
             msg = "sits_plot: some labels are missing from the legend")
         colors <- unname(legend[labels])
     }
