@@ -1,10 +1,7 @@
-context("Config")
-
 # save variable value
 user_file <- Sys.getenv("SITS_CONFIG_USER_FILE")
 user_aws_id <- Sys.getenv("AWS_ACCESS_KEY_ID")
 user_aws_secret <- Sys.getenv("AWS_SECRET_ACCESS_KEY")
-
 test_that("User functions", {
 
     # check config file

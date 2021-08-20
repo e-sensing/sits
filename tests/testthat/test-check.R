@@ -1,5 +1,3 @@
-context("Check")
-
 test_that("Caller", {
 
     # .check_set_caller, .check_identify_caller

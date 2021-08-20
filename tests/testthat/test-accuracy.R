@@ -1,4 +1,3 @@
-context("Accuracy")
 test_that("conf_matrix -2 classes", {
     data(cerrado_2classes)
     train_data <- sits_sample(cerrado_2classes, n = 100)

@@ -26,8 +26,8 @@
 #' @export
 #'
 sits_metadata_to_csv <- function(data, file) {
-    assertthat::assert_that(
-        suppressWarnings(file.create(file)),
+    .check_that(
+        x = suppressWarnings(file.create(file)),
         msg = "sits_metadata_to_csv: file is not writable"
     )
 
@@ -36,8 +36,8 @@ sits_metadata_to_csv <- function(data, file) {
     # select the parts of the tibble to be saved
     csv <- dplyr::select(data, csv_columns)
 
-    assertthat::assert_that(
-        nrow(csv) > 0,
+    .check_that(
+        x = nrow(csv) > 0,
         msg = "sits_metadata_to_csv: invalid csv file"
     )
     n_rows_csv <- nrow(csv)
@@ -83,9 +83,9 @@ sits_data_to_csv <- function(data, file) {
     # check if data is valid
     .sits_tibble_test(data)
 
-    assertthat::assert_that(
-        suppressWarnings(file.create(file)),
-        msg = "sits_data_to_csv: file is not writable"
+    .check_that(
+        x = suppressWarnings(file.create(file)),
+        msg = "sits_data_to_csv: file is not writable."
     )
 
     distances <- .sits_distances(data)
@@ -104,11 +104,12 @@ sits_data_to_csv <- function(data, file) {
 #' @return A logical value
 #'
 .sits_csv_check <- function(csv) {
+
     # check if required col names are available
-    assertthat::assert_that(
-        all(c("longitude", "latitude", "start_date", "end_date", "label")
-        %in% colnames(csv)),
-        msg = "invalid csv file"
-    )
+    .check_chr_within(
+        x = c("longitude", "latitude", "start_date", "end_date", "label"),
+        within = colnames(csv),
+        msg = "sits_csv_check: invalid csv file")
+
     return(invisible(TRUE))
 }

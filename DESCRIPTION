@@ -31,7 +31,6 @@ ByteCompile: true
 LazyData: true
 Imports:
     magrittr,
-    assertthat,
     yaml,
     data.table (>= 1.13),
     dplyr (>= 1.0.0),
@@ -87,10 +86,15 @@ Suggests:
     signal,
     stars,
     stringr,
-    testthat,
+    testthat (>= 3.0.2),
     tidyr,
     xgboost,
+    withr,
+    vcr,
     zoo
+Config/testthat/edition: 3
+Config/testthat/parallel: true
+Config/testthat/start-first: cube, wtss, raster, bdc, ml
 VignetteBuilder: knitr
 LinkingTo:
     Rcpp,

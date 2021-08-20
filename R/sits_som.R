@@ -133,7 +133,7 @@ sits_som_map <- function(data,
 
     # is are there more neurons than samples?
     n_samples <- nrow(data)
-    assertthat::assert_that(
+    .check_that(
         n_samples > grid_xdim * grid_ydim,
         msg = paste("sits_som_map: number of samples should be",
                     "greater than number of neurons")
@@ -184,13 +184,32 @@ sits_som_map <- function(data,
                                            id_neuron == neuron_id
             )
 
-            # if more than one sample has been mapped, the a posteriori
-            # probability is considered
-            if (nrow(labels_neuron) > 1)
-                label_max <- nnet::which.is.max(labels_neuron$post_prob)
-            else
-                label_max <- nnet::which.is.max(labels_neuron$prior_prob)
-            return(labels_neuron[label_max, ]$label_samples)
+            #Get the maximum value of the prior probability
+            max_prob_index <- which.max(labels_neuron$prior_prob)
+            prob_max <- labels_neuron[max_prob_index, ]$prior_prob
+
+            #How many elements there are with the maximumn value?
+            number_of_label_max <- which(labels_neuron$prior_prob == prob_max )
+            label_max_final <- nnet::which.is.max(labels_neuron$prior_prob)
+
+
+            # if more than one sample has been mapped AND their max are the same,
+            # then a posteriori probability is considered
+            if (length(number_of_label_max) > 1)
+            {
+                #Get the maximum posterior among the tied classes
+                max_post <- max(labels_neuron[number_of_label_max, ]$post_prob)
+
+                # Where are the duplicated values?
+                label_max_post <- which(labels_neuron$post_prob == max_post )
+
+                #Is this value are in the maximum vector of the prior probability?
+                index_prior_max <- which(label_max_post %in% number_of_label_max == TRUE)
+                label_max_final <- label_max_post[index_prior_max]
+            }else
+                label_max_final <- nnet::which.is.max(labels_neuron$prior_prob)
+
+            return(labels_neuron[label_max_final, ]$label_samples)
         })
     labels_max <- unlist(lab_max)
 
@@ -268,8 +287,9 @@ sits_som_clean_samples <- function(som_map,
         message("wrong input data; please run sits_som_map first")
         return(invisible(NULL))
     }
-    assertthat::assert_that(
-        all(keep %in% c("clean", "analyze", "remove")),
+    .check_chr_within(
+        x = keep,
+        within = c("clean", "analyze", "remove"),
         msg = "sits_som_clean_samples: invalid keep parameter"
     )
 

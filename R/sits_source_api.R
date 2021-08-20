@@ -619,17 +619,10 @@ NULL
     # pre-condition
     .source_collection_check(source = source, collection = collection)
 
-    # check "AWS_ACCESS_KEY_ID" - mandatory one per user
-    .check_chr(Sys.getenv("AWS_ACCESS_KEY_ID"),
-               allow_empty = FALSE,
-               len_min = 1, len_max = 1,
-               msg = "missing AWS_ACCESS_KEY_ID environment variable")
-
-    # check "AWS_SECRET_ACCESS_KEY" - mandatory one per user
-    .check_chr(Sys.getenv("AWS_SECRET_ACCESS_KEY"),
-               allow_empty = FALSE,
-               len_min = 1, len_max = 1,
-               msg = "missing AWS_SECRET_ACCESS_KEY environment variable")
+    # "AWS_ACCESS_KEY_ID", "AWS_SECRET_ACCESS_KEY" are mandatory one per user
+    .check_env_var(c("AWS_ACCESS_KEY_ID",
+                     "AWS_SECRET_ACCESS_KEY"),
+                   msg = "missing environment variable.")
 
     # get aws default values for this collection
     aws_lst <- .source_collection_aws(source = source,

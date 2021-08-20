@@ -2,6 +2,13 @@
 
 We are preparing to release the package on CRAN and are making relevant changes in the development version.
 
+# What's new in SITS version 0.13.0-3
+
+### New features in SITS version 0.13.0-3
+
+* Update documentation in Machine Learning methods
+* Hotfix bug in neuron labelling
+
 # What's new in SITS version 0.13.0-2
 
 ### New features in SITS version 0.13.0-2

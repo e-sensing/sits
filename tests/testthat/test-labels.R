@@ -1,4 +1,3 @@
-context("Labels")
 test_that("Labels", {
     # skip_on_cran()
 

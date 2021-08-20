@@ -92,8 +92,8 @@ sits_regularize <- function(cube,
     }
 
     # test if provided object its a sits cube
-    assertthat::assert_that(
-        inherits(cube, "raster_cube"),
+    .check_that(
+        x = inherits(cube, "raster_cube"),
         msg = paste("The provided cube is invalid,",
                     "please provide a 'raster_cube' object.",
                     "See '?sits_cube' for more information.")
@@ -127,8 +127,8 @@ sits_regularize <- function(cube,
             }))
 
         # check if all tiles intersects
-        assertthat::assert_that(
-            max_min_date < min_max_date,
+        .check_that(
+            x = max_min_date < min_max_date,
             msg = paste("sits_regularize: The cube tiles' timelines do not",
                         "intersect.")
         )

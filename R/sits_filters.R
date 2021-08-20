@@ -25,8 +25,8 @@ sits_filter <- function(data, filter = sits_whittaker()) {
     .sits_tibble_test(data)
 
     # is the train method a function?
-    assertthat::assert_that(
-        inherits(filter, "function"),
+    .check_that(
+        x = inherits(filter, "function"),
         msg = "sits_filter: filter is not a valid function"
     )
 
@@ -77,9 +77,10 @@ sits_envelope <- function(data = NULL,
         operations <- strsplit(operations, "")[[1]]
 
         # verify if operations are either "U" or "L"
-        assertthat::assert_that(
-            all(operations %in% names(def_op)),
-            msg = "sits_envelope: invalid operation sequence"
+        .check_chr_within(
+          x = operations,
+          within = names(def_op),
+          msg = "sits_envelope: invalid operation sequence"
         )
 
         # compute envelopes

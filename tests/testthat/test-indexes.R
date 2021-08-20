@@ -1,5 +1,3 @@
-context("Indexes")
-
 test_that("NDWI", {
     ndwi <- sits_ndwi(samples_modis_4bands)
 

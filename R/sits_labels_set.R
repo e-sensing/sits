@@ -46,26 +46,26 @@
     labels <- sits_labels(data)
 
     # check if value is an atomic vector
-    assertthat::assert_that(
-        is.character(value),
-        msg = "sits_labels: value must be a character vetor"
-    )
+    .check_chr_type(x = value,
+                    msg = "sits_labels: value must be a character vetor")
 
     # check if length is correct
-    assertthat::assert_that(
-        length(labels) == length(value),
+    .check_length(
+        x = labels,
+        len_max = length(value),
+        len_min = length(value),
         msg = "sits_labels: informed labels have a different expected length"
     )
 
     # check if there are no NA
-    assertthat::assert_that(
-        all(!is.na(value)),
+    .check_that(
+        x = all(!is.na(value)),
         msg = "sits_labels: invalid labels value"
     )
 
     # check if there are empty strings
-    assertthat::assert_that(
-        any(trimws(value) != ""),
+    .check_that(
+        x = any(trimws(value) != ""),
         msg = "sits_labels: invalid labels value"
     )
 

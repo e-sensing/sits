@@ -14,7 +14,7 @@ sits_TempCNN(
   dense_layer_nodes = 256,
   dense_layer_activation = "relu",
   dense_layer_dropout_rate = 0.5,
-  optimizer = keras::optimizer_adam(learning_rate = 0.001),
+  optimizer = keras::optimizer_adam(lr = 0.001),
   epochs = 150,
   batch_size = 128,
   validation_split = 0.2,

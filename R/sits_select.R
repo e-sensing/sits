@@ -39,8 +39,9 @@ sits_select.sits <- function(data, bands) {
     bands <- toupper(bands)
     sits_bands(data) <- toupper(sits_bands(data))
 
-    assertthat::assert_that(
-        all(bands %in% sits_bands(data)),
+    .check_chr_within(
+        x = bands,
+        within = sits_bands(data),
         msg = paste("sits_select: missing bands:",
                     paste(bands[!bands %in% sits_bands(data)],
                           collapse = ", "))
@@ -61,8 +62,10 @@ sits_select.sits <- function(data, bands) {
 #'
 sits_select.cube <- function(data, bands) {
 
-    assertthat::assert_that(
-        bands %in% sits_bands(data),
+    .check_chr_within(
+        x = bands,
+        within = sits_bands(data),
+        discriminator = "one_of",
         msg = "sits_select: requested bands are not available in the data cube"
     )
 

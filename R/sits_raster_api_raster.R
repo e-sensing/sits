@@ -101,8 +101,8 @@
     )
 
     # was the file written correctly?
-    assertthat::assert_that(
-        file.exists(file),
+    .check_file(
+        x = file,
         msg = ".raster_write_rast: unable to write raster object"
     )
 
@@ -286,8 +286,8 @@
     # check r_obj type
     if (inherits(r_obj, "RasterBrick")) {
 
-        assertthat::assert_that(
-            raster::nlayers(r_obj) == 1,
+        .check_that(
+            x = raster::nlayers(r_obj) == 1,
             msg = paste(".raster_focal.raster: cannot use focal",
                         "function in a RasterBrick object.")
         )
