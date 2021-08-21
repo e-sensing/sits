@@ -334,6 +334,7 @@ sources:
                         interp_values : [2, 3, 4, 255]
                         resampling    : "near"
                         resolutions   : [10]
+                collection_name: "S2_10-1"
             LANDSAT-MOZ_30_1M_STK-1: &bdc_lc8
                 bands       :
                     NDVI    : &bdc_oli_ndvi
@@ -390,6 +391,7 @@ sources:
                         interp_values : [0, 1, 2, 4, 5, 9, 11, 13, 15]
                         resampling    : "near"
                         resolutions   : [30]
+                collection_name: "LANDSAT-MOZ_30_1M_STK-1"
             S2_10_16D_STK-1 :
                 <<: *bdc_s2
                 collection_name: "S2_10_16D_STK-1"
@@ -400,22 +402,31 @@ sources:
         collections         :
             MOD13Q1-6       :
                 <<: *bdc_mod
+                collection_name: "MOD13Q1-6"
             MYD13Q1-6       :
                 <<: *bdc_mod
+                collection_name: "MYD13Q1-6"
             S2_10_16D_STK-1 :
                 <<: *bdc_s2
+                collection_name: "S2_10_16D_STK-1"
             S2_10-1         :
                 <<: *bdc_s2
+                collection_name: "S2_10-1"
             LC8_30-1        :
                 <<: *bdc_lc8
+                collection_name: "LC8_30-1"
             LC8_30_16D_STK-1:
                 <<: *bdc_lc8
+                collection_name: "LC8_30_16D_STK-1"
             CB4_20_1M_STK-1 :
                 <<: *bdc_cb4_mux
+                collection_name: "CB4_20_1M_STK-1"
             CB4_64_16D_STK-1:
                 <<: *bdc_cb4
+                collection_name: "CB4_64_16D_STK-1"
             CB4_64-1        :
                 <<: *bdc_cb4
+                collection_name: "CB4_64-1"
     SATVEG                  :
         s3_class            : ["satveg_cube"]
         service             : "SATVEG"
@@ -620,6 +631,10 @@ sources:
             S2_L2A          :
                 <<: *deafrica_s2
                 collection_name: "s2_l2a"
+                aws         :
+                    AWS_DEFAULT_REGION: "af-south-1"
+                    AWS_S3_ENDPOINT   : "s3.af-south-1.amazonaws.com"
+                    AWS_REQUEST_PAYER : "requester"
     LOCAL                   :
         s3_class            : ["local_cube", "raster_cube"]
         file_extensions     : ["tiff", "tif", "jp2", "hdf", "vrt"]
