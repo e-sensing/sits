@@ -396,6 +396,7 @@ sources:
                         interp_values : [0, 1, 2, 4, 5, 9, 11, 13, 15]
                         resampling    : "near"
                         resolutions   : [30]
+                collection_name: "LANDSAT-MOZ_30_1M_STK-1"
             S2_10_16D_STK-1 :
                 <<: *bdc_s2
                 collection_name: "S2_10_16D_STK-1"

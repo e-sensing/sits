@@ -89,7 +89,7 @@
 
 
         # get information about cloud bitmask
-        if (.config_cloud_bit_mask(
+        if (.source_cloud_bit_mask(
             source = .cube_source(cube = cube),
             collection = .cube_collection(cube = cube))) {
 
@@ -323,7 +323,7 @@
                                          xy = xy)
 
         # get information about cloud bitmask
-        if (.config_cloud_bit_mask(
+        if (.source_cloud_bit_mask(
             source = .cube_source(cube = cube),
             collection = .cube_collection(cube = cube))) {
 
