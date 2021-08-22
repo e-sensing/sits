@@ -32,8 +32,8 @@ sits_timeline.raster_cube <- function(data) {
 
     slider::slide(data, function(tile) {
         timeline_tile <- unique(lubridate::as_date(tile$file_info[[1]]$date))
-        assertthat::assert_that(
-            all(timeline_tile %in% timeline_first),
+        .check_that(
+            x = all(timeline_tile %in% timeline_first),
             msg = "sits_timeline: data cube tiles have different timelines"
         )
     })
@@ -67,8 +67,8 @@ sits_timeline.wtss_cube <- function(data) {
 #'
 sits_timeline.probs_cube <- function(data) {
 
-    assertthat::assert_that(
-        nrow(data) == 1,
+    .check_that(
+        x = nrow(data) == 1,
         msg = "sits_timeline: requires a single cube tile"
     )
 
@@ -83,8 +83,8 @@ sits_timeline.probs_cube <- function(data) {
 #'
 sits_timeline.classified_image <- function(data) {
 
-    assertthat::assert_that(
-        nrow(data) == 1,
+    .check_that(
+        x = nrow(data) == 1,
         msg = "sits_timeline: requires a single cube tile"
     )
 
@@ -119,8 +119,8 @@ sits_timeline.classified_image <- function(data) {
     if (purrr::is_null(start_date)) {
         start_date <- lubridate::as_date(timeline[1])
     } else {
-        assertthat::assert_that(
-            start_date >= timeline[1],
+        .check_that(
+            x = start_date >= timeline[1],
             msg = paste(".sits_timeline_check_cube: start_date is not inside",
                         "the cube timeline")
         )
@@ -128,8 +128,8 @@ sits_timeline.classified_image <- function(data) {
     if (purrr::is_null(end_date)) {
         end_date <- lubridate::as_date(timeline[length(timeline)])
     } else {
-        assertthat::assert_that(
-            end_date <= timeline[length(timeline)],
+        .check_that(
+            x = end_date <= timeline[length(timeline)],
             msg = paste(".sits_timeline_check_cube: end_date is not inside",
                         "the cube timeline")
         )
@@ -176,8 +176,9 @@ sits_timeline.classified_image <- function(data) {
     timeline <- sits_timeline(data)
 
     # precondition is the timeline correct?
-    assertthat::assert_that(
-        length(timeline) > 0,
+    .check_length(
+        x = timeline,
+        len_min = 1,
         msg = "sits_timeline_class_info: invalid timeline"
     )
 
@@ -311,8 +312,8 @@ sits_timeline.classified_image <- function(data) {
     start_date <- timeline[idx_start_date]
 
     # is the start date a valid one?
-    assertthat::assert_that(
-        .sits_timeline_valid_date(start_date, timeline),
+    .check_that(
+        x = .sits_timeline_valid_date(start_date, timeline),
         msg = ".sits_timeline_match: start date in not inside timeline"
     )
 
@@ -326,8 +327,8 @@ sits_timeline.classified_image <- function(data) {
     end_date <- timeline[idx_end_date]
 
     # is the start date a valid one?
-    assertthat::assert_that(
-        !(is.na(end_date)),
+    .check_that(
+        x = !(is.na(end_date)),
         msg = paste(".sits_timeline_match: start and end date do not",
                     "match timeline/n",
                     "Please compare your timeline with your samples")
@@ -348,8 +349,8 @@ sits_timeline.classified_image <- function(data) {
     }
     # is the end date a valid one?
     end_date <- subset_dates[[length(subset_dates)]][2]
-    assertthat::assert_that(
-        .sits_timeline_valid_date(end_date, timeline),
+    .check_that(
+        x = .sits_timeline_valid_date(end_date, timeline),
         msg = ".sits_timeline_match: end_date not inside timeline"
     )
 
@@ -419,8 +420,8 @@ sits_timeline.classified_image <- function(data) {
     # retrieve the bands
     bands <- class_info$bands[[1]]
     n_bands <- length(bands)
-    assertthat::assert_that(
-        n_bands > 0,
+    .check_that(
+        x = n_bands > 0,
         msg = ".sits_timeline_dist_indexes: no bands in cube"
     )
 
@@ -503,8 +504,8 @@ sits_timeline.classified_image <- function(data) {
     valid <- timeline >= lubridate::as_date(start_date) &
              timeline <= lubridate::as_date(end_date)
 
-    assertthat::assert_that(
-        any(valid),
+    .check_that(
+        x = any(valid),
         msg = paste(".sits_timeline_during: no valid data between ",
                     as.Date(start_date), " and ", as.Date(end_date))
     )
@@ -525,14 +526,15 @@ sits_timeline.classified_image <- function(data) {
 #' @return              Tibble with corrected date information
 #'
 .sits_timeline_date_format <- function(tile_date_band) {
-    assertthat::assert_that(
-        nrow(tile_date_band) > 0,
+    .check_that(
+        x = nrow(tile_date_band) > 0,
         msg = ".sits_timeline_date_format: invalid information"
     )
 
-    assertthat::assert_that(
-        all(colnames(tile_date_band) %in% c("tile", "date", "band")),
-        msg = paste(".sits_timeline_date_format: error in obtaining",
+    .check_chr_within(
+      x = c("tile", "date", "band"),
+      within = colnames(tile_date_band),
+      msg = paste(".sits_timeline_date_format: error in obtaining",
                     "tile, date and band information")
     )
 
@@ -549,8 +551,8 @@ sits_timeline.classified_image <- function(data) {
                                                    orders = "%Y%j")
 
         # check if some format was not guessed
-        assertthat::assert_that(
-            length(guessed_format) == length(tile_date_band$date),
+        .check_that(
+            x = length(guessed_format) == length(tile_date_band$date),
             msg = ".sits_timeline_date_format: Invalid date format in some file"
         )
 
@@ -561,8 +563,8 @@ sits_timeline.classified_image <- function(data) {
     }
 
     # check if there are NAs values
-    assertthat::assert_that(
-        all(!is.na(converted_date)),
+    .check_that(
+        x = all(!is.na(converted_date)),
         msg = ".sits_timeline_date_format: Invalid date format in file"
     )
 

@@ -135,8 +135,8 @@
     items_info <- rstac::post_request(q = stac_query, ...)
 
     # check if matched items
-    assertthat::assert_that(
-        rstac::items_matched(items_info) > 0,
+    .check_that(
+        x = rstac::items_matched(items_info) > 0,
         msg = ".source_items_new.aws_cube: no items matched the query criteria."
     )
 

@@ -55,8 +55,8 @@ sits_label_classification <- function(cube,
                                       version = "v1") {
 
     # precondition - check if cube has probability data
-    assertthat::assert_that(
-        inherits(cube, "probs_cube"),
+    .check_that(
+        x = inherits(cube, "probs_cube"),
         msg = "sits_label_classification: input is not probability cube"
     )
 
@@ -157,14 +157,15 @@ sits_label_majority <- function(cube,
                                 version = "v1") {
 
     # precondition 1 - check if cube has classification info
-    assertthat::assert_that(
-        inherits(cube, "classified_image"),
+    .check_that(
+        x = inherits(cube, "classified_image"),
         msg = "sits_label_majority: input is not classified cube"
     )
 
     # precondition 2 - test window size
-    assertthat::assert_that(
-        window_size >= 3,
+    .check_num(
+        x = window_size,
+        min = 3,
         msg = "sits_label_majority: window size must be >= 3"
     )
 
@@ -201,8 +202,8 @@ sits_label_majority <- function(cube,
         )
 
         # was the file written correctly?
-        assertthat::assert_that(
-            file.exists(out_file),
+        .check_file(
+            x = out_file,
             msg = "sits_label_majority: unable to save raster object"
         )
 

@@ -114,8 +114,10 @@ sits_cluster_dendro <- function(samples = NULL,
 #' @export
 sits_cluster_frequency <- function(samples) {
     # is the input data the result of a cluster function?
-    assertthat::assert_that(
-        "cluster" %in% names(samples),
+    .check_chr_within(
+        x = "cluster",
+        within = names(samples),
+        discriminator = "any_of",
         msg = "sits_cluster_contigency: missing cluster column"
     )
 
@@ -159,8 +161,10 @@ sits_cluster_frequency <- function(samples) {
 sits_cluster_clean <- function(samples) {
 
     # is the input data the result of a cluster function?
-    assertthat::assert_that(
-        "cluster" %in% names(samples),
+    .check_chr_within(
+        x = "cluster",
+        within = names(samples),
+        discriminator = "any_of",
         msg = "sits_cluster_clean: input data does not contain cluster column"
     )
 
@@ -210,8 +214,10 @@ sits_cluster_clean <- function(samples) {
     }
 
     # is the input data the result of a cluster function?
-    assertthat::assert_that(
-        "cluster" %in% names(samples),
+    .check_chr_within(
+        x = "cluster",
+        within = names(samples),
+        discriminator = "any_of",
         msg = "sits_cluster_validity: input data does not have cluster column"
     )
 

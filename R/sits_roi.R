@@ -16,8 +16,8 @@
         }
     }
 
-    assertthat::assert_that(
-      inherits(roi, c("sf", "xy", "ll")),
+    .check_that(
+      x = inherits(roi, c("sf", "xy", "ll")),
       msg = ".sits_roi_bbox: invalid definition of ROI"
     )
 

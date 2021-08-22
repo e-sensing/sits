@@ -27,14 +27,14 @@
                              cloud_mask, ...,
                              version = "v1") {
 
-    assertthat::assert_that(
-        nrow(tile) == 1,
+    .check_that(
+        x = nrow(tile) == 1,
         msg = ".sits_gc_compose: tile must have only one row."
     )
 
     # verifies the path to save the images
-    assertthat::assert_that(
-        dir.exists(dir_images),
+    .check_that(
+        x = dir.exists(dir_images),
         msg = paste(".sits_gc_compose: The provided dir does not exist.",
                     "Please provided a valid path.")
     )
@@ -169,8 +169,10 @@
     cloud_band <- .source_cloud()
 
     # checks if the cube has a cloud band
-    assertthat::assert_that(
-        cloud_band %in% unique(bands),
+    .check_chr_within(
+        x = cloud_band,
+        within = unique(bands),
+        discriminator = "any_of",
         msg = paste("It was not possible to use the cloud",
                     "mask, please include the cloud band in your cube")
     )
@@ -204,8 +206,8 @@
 .sits_gc_database <- function(cube, path_db) {
 
     # error if a cube other than S2_L2A_AWS is provided
-    assertthat::assert_that(
-        .sits_cube_source(cube) == "AWS",
+    .check_that(
+        x = .sits_cube_source(cube) == "AWS",
         msg = ".sits_gc_database: for now, only 'AWS' cubes can be aggregated."
     )
 
@@ -244,18 +246,18 @@
 #' @return a \code{cube_view} object from gdalcubes.
 .sits_gc_cube <- function(tile, period, roi, toi, agg_method, resampling) {
 
-    assertthat::assert_that(
-        nrow(tile) == 1,
+    .check_that(
+        x = nrow(tile) == 1,
         msg = ".sits_gc_cube: tile must have only one row."
     )
 
-    assertthat::assert_that(
-        !purrr::is_null(period),
+    .check_null(
+        x = period,
         msg = ".sits_gc_cube: the parameter 'period' must be provided."
     )
 
-    assertthat::assert_that(
-        !purrr::is_null(agg_method),
+    .check_null(
+        x = agg_method,
         msg = ".sits_gc_cube: the parameter 'method' must be provided."
     )
 

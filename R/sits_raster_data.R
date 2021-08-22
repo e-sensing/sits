@@ -113,8 +113,9 @@
         bnd_files <- dplyr::filter(file_info, band == b)$path
 
         # are there bands associated to the files?
-        assertthat::assert_that(
-            length(bnd_files) > 0,
+        .check_length(
+            x = bnd_files,
+            len_min = 1,
             msg = paste(".sits_raster_data_preprocess: no files for band", b)
         )
 
@@ -232,14 +233,15 @@
                                      impute_fn = sits_impute_linear()) {
 
     # ensure metadata tibble exists
-    assertthat::assert_that(
-        nrow(cube) >= 1,
+    .check_that(
+        x = nrow(cube) >= 1,
         msg = ".sits_raster_data_get_ts: need a valid metadata for data cube"
     )
 
     names <- c("longitude", "latitude", "label")
-    assertthat::assert_that(
-        all(names %in% colnames(points)),
+    .check_chr_within(
+        x = names,
+        within = colnames(points),
         msg = ".sits_raster_data_get_ts: data input is not valid"
     )
 

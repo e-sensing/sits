@@ -13,14 +13,16 @@
     coverages <- Rwtss::list_coverages(url)
 
     # is the WTSS service working?
-    assertthat::assert_that(!purrr::is_null(coverages),
-                            msg = paste(".source_access_test.wtss_cube: WTSS",
-                                        "is unreachable.")
+    .check_null(x = coverages,
+                msg = paste(".source_access_test.wtss_cube: WTSS",
+                            "is unreachable.")
     )
 
     # is the cube in the list of cubes?
-    assertthat::assert_that(
-        collection %in% coverages,
+    .check_chr_within(
+        x = collection,
+        within = coverages,
+        discriminator = "any_of",
         msg = paste(".source_access_test.wtss_cube:",
                     collection, "not available in the WTSS server")
     )
@@ -58,9 +60,9 @@
 
     # describe the cube based on the WTSS API
     cov <- Rwtss::describe_coverage(url, collection, .print = FALSE)
-    assertthat::assert_that(!purrr::is_null(cov),
-                            msg = paste(".source_items_new.wtss_cube: failed",
-                                        "to get cube description in WTSS.")
+    .check_null(x = cov,
+                msg = paste(".source_items_new.wtss_cube: failed",
+                            "to get cube description in WTSS.")
     )
 
     return(cov)

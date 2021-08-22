@@ -104,8 +104,8 @@
     )
 
     # was the file written correctly?
-    assertthat::assert_that(
-        file.exists(file),
+    .check_file(
+        x = file,
         msg = ".raster_write_rast: unable to write raster object"
     )
 

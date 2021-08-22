@@ -95,18 +95,20 @@ sits_mlp <- function(samples = NULL,
         }
 
         # pre-conditions
-        assertthat::assert_that(
-            length(layers) == length(dropout_rates),
+        .check_that(
+            x = length(layers) == length(dropout_rates),
             msg = "sits_mlp: number of layers does not match
                         number of dropout rates"
         )
-        assertthat::assert_that(
-            length(activation) == 1,
+        .check_that(
+            x = length(activation) == 1,
             msg = "sits_mlp: use only one activation function"
         )
         valid_activations <- c("relu", "elu", "selu", "sigmoid")
-        assertthat::assert_that(
-            activation %in% valid_activations,
+        .check_chr_within(
+            x = activation,
+            within = valid_activations,
+            discriminator = "any_of",
             msg = "sits_mlp: invalid node activation method"
         )
         # data normalization
@@ -114,8 +116,10 @@ sits_mlp <- function(samples = NULL,
         train_data <- .sits_distances(.sits_ml_normalize_data(data, stats))
 
         # is the training data correct?
-        assertthat::assert_that(
-            "reference" %in% names(train_data),
+        .check_chr_within(
+            x = "reference",
+            within = names(train_data),
+            discriminator = "any_of",
             msg = "sits_mlp: input data does not contain distances"
         )
 

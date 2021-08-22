@@ -290,43 +290,37 @@ sources:
                         offset_value  : 0
                         resampling    : "bilinear"
                         resolutions   : [10]
-                        band_name     : "band1"
+                        band_name     : "BAND1"
                     B02     :
                         <<: *bdc_msi_band1
-                        band_name     : "band2"
+                        band_name     : "BAND2"
                     B03     :
                         <<: *bdc_msi_band1
-                        band_name     : "band3"
+                        band_name     : "BAND3"
                     B04     :
                         <<: *bdc_msi_band1
-                        band_name     : "band4"
+                        band_name     : "BAND4"
                     B05     :
                         <<: *bdc_msi_band1
-                        band_name     : "band5"
+                        band_name     : "BAND5"
                     B06     :
                         <<: *bdc_msi_band1
-                        band_name     : "band6"
+                        band_name     : "BAND6"
                     B07     :
                         <<: *bdc_msi_band1
-                        band_name     : "band7"
+                        band_name     : "BAND7"
                     B08     :
                         <<: *bdc_msi_band1
-                        band_name     : "band8"
+                        band_name     : "BAND8"
                     B8A     :
                         <<: *bdc_msi_band1
-                        band_name     : "band8a"
-                    B09     :
-                        <<: *bdc_msi_band1
-                        band_name     : "band9"
-                    B10     :
-                        <<: *bdc_msi_band1
-                        band_name     : "band10"
+                        band_name     : "BAND8a"
                     B11     :
                         <<: *bdc_msi_band1
-                        band_name     : "band11"
+                        band_name     : "BAND11"
                     B12     :
                         <<: *bdc_msi_band1
-                        band_name     : "band12"
+                        band_name     : "BAND12"
                     CLOUD   :
                         bit_mask      : FALSE
                         band_name     : "Fmask4"
@@ -340,6 +334,7 @@ sources:
                         interp_values : [2, 3, 4, 255]
                         resampling    : "near"
                         resolutions   : [10]
+                collection_name: "S2_10-1"
             LANDSAT-MOZ_30_1M_STK-1: &bdc_lc8
                 bands       :
                     NDVI    : &bdc_oli_ndvi
@@ -407,22 +402,31 @@ sources:
         collections         :
             MOD13Q1-6       :
                 <<: *bdc_mod
+                collection_name: "MOD13Q1-6"
             MYD13Q1-6       :
                 <<: *bdc_mod
+                collection_name: "MYD13Q1-6"
             S2_10_16D_STK-1 :
                 <<: *bdc_s2
+                collection_name: "S2_10_16D_STK-1"
             S2_10-1         :
                 <<: *bdc_s2
+                collection_name: "S2_10-1"
             LC8_30-1        :
                 <<: *bdc_lc8
+                collection_name: "LC8_30-1"
             LC8_30_16D_STK-1:
                 <<: *bdc_lc8
+                collection_name: "LC8_30_16D_STK-1"
             CB4_20_1M_STK-1 :
                 <<: *bdc_cb4_mux
+                collection_name: "CB4_20_1M_STK-1"
             CB4_64_16D_STK-1:
                 <<: *bdc_cb4
+                collection_name: "CB4_64_16D_STK-1"
             CB4_64-1        :
                 <<: *bdc_cb4
+                collection_name: "CB4_64-1"
     SATVEG                  :
         s3_class            : ["satveg_cube"]
         service             : "SATVEG"
@@ -627,6 +631,10 @@ sources:
             S2_L2A          :
                 <<: *deafrica_s2
                 collection_name: "s2_l2a"
+                aws         :
+                    AWS_DEFAULT_REGION: "af-south-1"
+                    AWS_S3_ENDPOINT   : "s3.af-south-1.amazonaws.com"
+                    AWS_REQUEST_PAYER : "requester"
     LOCAL                   :
         s3_class            : ["local_cube", "raster_cube"]
         file_extensions     : ["tiff", "tif", "jp2", "hdf", "vrt"]

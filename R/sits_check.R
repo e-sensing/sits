@@ -49,6 +49,8 @@
 #' @param contains      A \code{character} vector indicating a set of elements
 #' to which \code{x} is a kind of superset. The actual behavior is pointed by
 #' \code{discriminator} parameter.
+#' @param case_sensitive  A \code{logical} indicating if the check is compared
+#' with case sensitive. Default is \code{TRUE}.
 #' @param expr          A R \code{expression} to be evaluated.
 #' @param ...           Additional parameters for \code{fn_check} function.
 #'
@@ -636,6 +638,7 @@ NULL
 #'
 .check_chr_within <- function(x,
                               within, ...,
+                              case_sensitive = TRUE,
                               discriminator = "all_of",
                               msg = NULL) {
 
@@ -661,6 +664,12 @@ NULL
     # simplify
     x <- unique(x)
     within <- unique(within)
+
+    # transform inputs to verify without case sensitive
+    if (!case_sensitive) {
+        x <- tolower(x)
+        within <- tolower(within)
+    }
 
     # prepare local message
     if (length(within) > 1)
@@ -703,6 +712,7 @@ NULL
 #' @rdname check_functions
 .check_chr_contains <- function(x,
                                 contains, ...,
+                                case_sensitive = TRUE,
                                 discriminator = "all_of",
                                 msg = NULL) {
 
@@ -728,6 +738,12 @@ NULL
     # simplify
     x <- unique(x)
     contains <- unique(contains)
+
+    # transform inputs to verify without case sensitive
+    if (!case_sensitive) {
+        x <- tolower(x)
+        contains <- tolower(contains)
+    }
 
     # prepare local message
     if (length(contains) > 1)
@@ -793,6 +809,37 @@ NULL
                                    collapse = ", ")),
         msg = msg
     )
+
+    return(invisible(x))
+}
+
+#' @rdname check_functions
+#'
+#' @details
+#' Special checking function:
+#'
+#' \itemize{
+#' \item{
+#' \code{.check_env_var()} throws an error if provided environment variable is
+#' not existing.
+#' }
+#' }
+.check_env_var <- function(x, ...,
+                           msg = NULL) {
+
+    .check_null(x, msg = msg)
+
+    .check_chr_type(x, msg = msg)
+
+    if (length(x) > 0)
+        .check_apply(
+            x,
+            fn_check = function(x) .check_that(x = nzchar(Sys.getenv(x)),
+                                               msg = paste(sprintf("%s: ", x),
+                                                           msg))
+        )
+    else
+        .check_that(x = nzchar(Sys.getenv(x)), msg = msg)
 
     return(invisible(x))
 }
