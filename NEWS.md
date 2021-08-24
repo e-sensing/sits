@@ -15,6 +15,13 @@ We are preparing to release the package on CRAN and are making relevant changes 
 
 * Bug fixes in BDC MODIS cube
 
+>>>>>>> 2b8bbdd89bbdbff19eea881438c4682727363e04
+# What's new in SITS version 0.13.0-2
+
+### New features in SITS version 0.13.0-2
+
+* Bug fixes in BDC MODIS cube
+
 # What's new in SITS version 0.13.0-1
 
 ### New features in SITS version 0.13.0-1
