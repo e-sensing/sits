@@ -1,24 +1,38 @@
 test_that("Creating a SATVEG data cube", {
     testthat::skip_on_cran()
-    cube_satveg <- sits_cube(source = "SATVEG", collection = "TERRA")
 
-    if (purrr::is_null(cube_satveg)) {
-        skip("SATVEG is not accessible")
-    }
+    cube_satveg <- tryCatch({
+        sits_cube(source = "SATVEG", collection = "TERRA")
+    },
+    error = function(e) {
+        return(NULL)
+    })
+
+    testthat::skip_if(purrr::is_null(cube_satveg),
+                      message = "SATVEG is not accessible")
+
     expect_true(cube_satveg$ymin == -30.0)
 })
 
 test_that("Reading a raster cube", {
     data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
-    raster_cube <- sits_cube(
-        source = "LOCAL",
-        name = "sinop-2014",
-        satellite = "TERRA",
-        sensor = "MODIS",
-        data_dir = data_dir,
-        delim = "_",
-        parse_info = c("X1", "X2", "tile", "band", "date")
-    )
+
+    raster_cube <- tryCatch({
+        sits_cube(
+            source = "LOCAL",
+            name = "sinop-2014",
+            satellite = "TERRA",
+            sensor = "MODIS",
+            data_dir = data_dir,
+            delim = "_",
+            parse_info = c("X1", "X2", "tile", "band", "date")
+        )
+    }, error = function(e) {
+        return(NULL)
+    })
+
+    testthat::skip_if(purrr::is_null(raster_cube),
+                      message = "LOCAL cube not found")
 
     # get bands names
     bands <- sits_bands(raster_cube)
@@ -35,16 +49,25 @@ test_that("Creating a raster stack cube and selecting bands", {
     data_dir <- system.file("extdata/raster/cbers", package = "sits")
 
     # create a raster cube file based on the information about the files
-    cbers_cube <- sits_cube(
-        source = "LOCAL",
-        name = "022024",
-        satellite = "CBERS-4",
-        sensor = "AWFI",
-        resolution = "64m",
-        data_dir = data_dir,
-        delim = "_",
-        parse_info = c("X1", "X2", "tile", "band", "date")
-    )
+    cbers_cube <- tryCatch({
+        sits_cube(
+            source = "LOCAL",
+            name = "022024",
+            satellite = "CBERS-4",
+            sensor = "AWFI",
+            resolution = "64m",
+            data_dir = data_dir,
+            delim = "_",
+            parse_info = c("X1", "X2", "tile", "band", "date")
+        )
+    },
+    error = function(e) {
+        return(NULL)
+    })
+
+    testthat::skip_if(purrr::is_null(cbers_cube),
+                      message = "LOCAL cube not found")
+
 
     expect_true(all(sits_bands(cbers_cube) %in%
                         c("B13", "B14", "B15", "B16", "CLOUD")))
@@ -67,15 +90,24 @@ test_that("Creating cubes from BDC", {
                       message = "No BDC_ACCESS_KEY defined in environment.")
 
     # create a raster cube file based on the information about the files
-    cbers_cube <- sits_cube(
-        source = "BDC",
-        name = "cbers_022024_ndvi",
-        collection = "CB4_64_16D_STK-1",
-        bands = c("NDVI", "EVI"),
-        tiles = c("022024", "022023"),
-        start_date = "2018-09-01",
-        end_date = "2019-08-29"
-    )
+    cbers_cube <-
+        tryCatch({
+            sits_cube(
+                source = "BDC",
+                name = "cbers_022024_ndvi",
+                collection = "CB4_64_16D_STK-1",
+                bands = c("NDVI", "EVI"),
+                tiles = c("022024", "022023"),
+                start_date = "2018-09-01",
+                end_date = "2019-08-29"
+            )
+        },
+        error = function(e) {
+            return(NULL)
+        })
+
+    testthat::skip_if(purrr::is_null(cbers_cube),
+                      message = "BDC is not accessible")
 
     expect_true(all(sits_bands(cbers_cube) %in% c("NDVI", "EVI")))
     bbox <- sits_bbox(cbers_cube)
@@ -100,14 +132,18 @@ test_that("Creating cubes from WTSS", {
                       message = "No BDC_ACCESS_KEY defined in environment.")
 
     # create a raster cube file based on the information about the files
-    wtss_cube <- sits_cube(
-        source = "WTSS",
-        name = "l8_wtss_cube",
-        collection = "LC8_30_16D_STK-1")
+    wtss_cube <- tryCatch({
+        sits_cube(
+            source = "WTSS",
+            name = "l8_wtss_cube",
+            collection = "LC8_30_16D_STK-1")
+    },
+    error = function(e) {
+        return(NULL)
+    })
 
-    if (purrr::is_null(wtss_cube)) {
-        skip("WTSS server is not accessible")
-    }
+    testthat::skip_if(purrr::is_null(wtss_cube),
+                      message = "WTSS server is not accessible")
 
     expect_true(all(c("NDVI", "EVI") %in% sits_bands(wtss_cube)))
 
@@ -152,20 +188,26 @@ test_that("Creating cubes from DEA", {
                       message = paste("No AWS_SECRET_ACCESS_KEY defined in",
                                       "environment."))
 
-    dea_cube <- sits_cube(source = "DEAFRICA",
-                          name = "deafrica_cube",
-                          collection = "s2_l2a",
-                          bands = c("B01", "B04", "B05"),
-                          bbox = c("xmin" = 17.379,
-                                   "ymin" = 1.1573,
-                                   "xmax" = 17.410,
-                                   "ymax" = 1.1910),
-                          start_date = "2019-01-01",
-                          end_date = "2019-10-28")
+    dea_cube <- tryCatch({
+        sits_cube(source = "DEAFRICA",
+                  name = "deafrica_cube",
+                  collection = "s2_l2a",
+                  bands = c("B01", "B04", "B05"),
+                  bbox = c("xmin" = 17.379,
+                           "ymin" = 1.1573,
+                           "xmax" = 17.410,
+                           "ymax" = 1.1910),
+                  start_date = "2019-01-01",
+                  end_date = "2019-10-28")
+    },
+    error = function(e) {
+        return(NULL)
+    })
 
-    if (purrr::is_null(dea_cube)) {
-        skip("DEAFRICA is not accessible")
-    }
+    testthat::skip_if(
+        purrr::is_null(dea_cube),
+        message = "DEAFRICA is not accessible"
+    )
 
     expect_true(all(sits_bands(dea_cube) %in% c("B01", "B04", "B05")))
 
@@ -179,27 +221,46 @@ test_that("Creating cubes from DEA", {
 test_that("Merging cubes", {
 
     data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
-    ndvi_cube <- sits_cube(
-        source = "LOCAL",
-        name = "sinop-2014",
-        satellite = "TERRA",
-        sensor = "MODIS",
-        bands = "NDVI",
-        data_dir = data_dir,
-        delim = "_",
-        parse_info = c("X1", "X2", "tile", "band", "date")
-    )
 
-    evi_cube <- sits_cube(
-        source = "LOCAL",
-        name = "sinop-2014",
-        satellite = "TERRA",
-        sensor = "MODIS",
-        bands = "EVI",
-        data_dir = data_dir,
-        delim = "_",
-        parse_info = c("X1", "X2", "tile", "band", "date")
-    )
+    ndvi_cube <- tryCatch({
+        sits_cube(
+            source = "LOCAL",
+            name = "sinop-2014",
+            satellite = "TERRA",
+            sensor = "MODIS",
+            bands = "NDVI",
+            data_dir = data_dir,
+            delim = "_",
+            parse_info = c("X1", "X2", "tile", "band", "date")
+        )
+    },
+    error = function(e) {
+        return(NULL)
+    })
+
+    testthat::skip_if(purrr::is_null(ndvi_cube),
+                      "BDC is not accessible")
+
+    evi_cube <- tryCatch({
+        sits_cube(
+            source = "LOCAL",
+            name = "sinop-2014",
+            satellite = "TERRA",
+            sensor = "MODIS",
+            bands = "EVI",
+            data_dir = data_dir,
+            delim = "_",
+            parse_info = c("X1", "X2", "tile", "band", "date")
+        )
+    },
+    error = function(e) {
+        return(NULL)
+    })
+
+
+    testthat::skip_if(purrr::is_null(evi_cube),
+                      "LOCAL cube was not found")
+
     cube_merge <- sits_merge(ndvi_cube, evi_cube)
 
     expect_true(all(sits_bands(cube_merge) %in% c("NDVI", "EVI")))
@@ -243,58 +304,59 @@ test_that("Creating cubes from AWS and regularizing them", {
         )
     })
 
-        expect_true(all(sits_bands(s2_cube) %in% c("B08", "CLOUD")))
+    expect_true(all(sits_bands(s2_cube) %in% c("B08", "CLOUD")))
 
-        file_info <- s2_cube$file_info[[1]]
-        r <- sits:::.raster_open_rast(file_info$path[[1]])
+    file_info <- s2_cube$file_info[[1]]
+    r <- sits:::.raster_open_rast(file_info$path[[1]])
 
-        expect_equal(s2_cube$nrows[[1]], sits:::.raster_nrows(r))
-        expect_equal(s2_cube$ncols[[1]], sits:::.raster_ncols(r))
-        expect_equal(s2_cube$xmax[[1]], sits:::.raster_xmax(r))
-        expect_equal(s2_cube$xmin[[1]], sits:::.raster_xmin(r))
+    expect_equal(s2_cube$nrows[[1]], sits:::.raster_nrows(r))
+    expect_equal(s2_cube$ncols[[1]], sits:::.raster_ncols(r))
+    expect_equal(s2_cube$xmax[[1]], sits:::.raster_xmax(r))
+    expect_equal(s2_cube$xmin[[1]], sits:::.raster_xmin(r))
 
-        dir_images <-  paste0(tempdir(), "/images/")
-        if (!dir.exists(dir_images))
-            suppressWarnings(dir.create(dir_images))
+    dir_images <-  paste0(tempdir(), "/images/")
+    if (!dir.exists(dir_images))
+        suppressWarnings(dir.create(dir_images))
 
-        gc_cube <- sits_regularize(
-            cube        = s2_cube,
-            name        = "T20LKP_2018_2019_P5D",
-            dir_images  =  dir_images,
-            roi = c("xmin" = 234872.7,
-                    "ymin" = 8847983.0,
-                    "xmax" = 239532.6,
-                    "ymax" = 8852017.0),
-            period      = "P15D",
-            agg_method  = "median",
-            resampling  = "bilinear"
-        )
+    gc_cube <- sits_regularize(
+        cube        = s2_cube,
+        name        = "T20LKP_2018_2019_P5D",
+        dir_images  =  dir_images,
+        roi = c("xmin" = 234872.7,
+                "ymin" = 8847983.0,
+                "xmax" = 239532.6,
+                "ymax" = 8852017.0),
+        period      = "P15D",
+        agg_method  = "median",
+        resampling  = "bilinear"
+    )
 
-        expect_equal(s2_cube$nrows, gc_cube$nrows)
-        expect_equal(s2_cube$ncols, gc_cube$ncols)
-        expect_equal(s2_cube$xmax, gc_cube$xmax)
-        expect_equal(s2_cube$xmin, gc_cube$xmin)
+    expect_equal(s2_cube$nrows, gc_cube$nrows)
+    expect_equal(s2_cube$ncols, gc_cube$ncols)
+    expect_equal(s2_cube$xmax, gc_cube$xmax)
+    expect_equal(s2_cube$xmin, gc_cube$xmin)
 
-        file_info2 <- gc_cube$file_info[[1]]
+    file_info2 <- gc_cube$file_info[[1]]
 
-        expect_equal(nrow(file_info2), 4)
+    expect_equal(nrow(file_info2), 4)
 })
 
-    test_that("Creating cubes from classified images", {
-        # Create a raster cube based on bricks
-        # inform the files that make up a raster probs brick with 23 time instances
-        probs_file <- c(system.file(
-            "extdata/raster/probs/sinop-2014_probs_2013_9_2014_8_v1.tif",
-            package = "sits"
-        ))
+test_that("Creating cubes from classified images", {
+    # Create a raster cube based on bricks
+    # inform the files that make up a raster probs brick with 23 time instances
+    probs_file <- c(system.file(
+        "extdata/raster/probs/sinop-2014_probs_2013_9_2014_8_v1.tif",
+        package = "sits"
+    ))
 
-        # inform the labels
-        labels <- c("Cerrado", "Fallow_Cotton", "Forest", "Pasture", "Soy_Corn",
-                    "Soy_Cotton", "Soy_Fallow", "Soy_Millet", "Soy_Sunflower")
+    # inform the labels
+    labels <- c("Cerrado", "Fallow_Cotton", "Forest", "Pasture", "Soy_Corn",
+                "Soy_Cotton", "Soy_Fallow", "Soy_Millet", "Soy_Sunflower")
 
 
-        # create a raster cube file based on the information about the files
-        probs_cube <- sits_cube(
+    # create a raster cube file based on the information about the files
+    probs_cube <- tryCatch({
+        sits_cube(
             source = "PROBS",
             name = "Sinop-crop-probs",
             satellite = "TERRA",
@@ -304,17 +366,26 @@ test_that("Creating cubes from AWS and regularizing them", {
             probs_labels = labels,
             probs_files = probs_file
         )
-        expect_equal(probs_cube$ncols, 50)
-        expect_equal(sits_bands(probs_cube), "probs")
-        file_info <- probs_cube$file_info[[1]]
-        expect_equal(file_info$band, "probs")
-        expect_equal(file_info$path, probs_file)
+    },
+    error = function(e) {
+        return(NULL)
     })
 
-    test_that("Cube copy", {
-        data_dir <- system.file("extdata/raster/cbers", package = "sits")
+    testthat::skip_if(purrr::is_null(probs_cube),
+                      message = "PROBS cube not found")
 
-        cbers_022024 <- sits_cube(
+    expect_equal(probs_cube$ncols, 50)
+    expect_equal(sits_bands(probs_cube), "probs")
+    file_info <- probs_cube$file_info[[1]]
+    expect_equal(file_info$band, "probs")
+    expect_equal(file_info$path, probs_file)
+})
+
+test_that("Cube copy", {
+    data_dir <- system.file("extdata/raster/cbers", package = "sits")
+
+    cbers_022024 <- tryCatch({
+        sits_cube(
             source = "LOCAL",
             name = "cbers_022024",
             satellite = "CBERS-4",
@@ -323,30 +394,38 @@ test_that("Creating cubes from AWS and regularizing them", {
             data_dir = data_dir,
             parse_info = c("X1", "X2", "tile", "band", "date")
         )
-
-        bbox <- sits_bbox(cbers_022024)
-        x_size <- bbox["xmax"] - bbox["xmin"]
-        bbox["xmax"] <- bbox["xmin"] + x_size / 2
-
-        cbers_022024_copy <- sits_cube_copy(cbers_022024,
-                                            name = "cb_022024_cp",
-                                            dest_dir = tempdir(),
-                                            bands = "B13",
-                                            roi = bbox
-        )
-        expect_true(sits_bands(cbers_022024_copy) == "B13")
-        expect_true(cbers_022024_copy$ncols == 26)
-        expect_true(cbers_022024_copy$xmin == cbers_022024$xmin)
-        expect_true(all(sits_timeline(cbers_022024_copy) ==
-                            sits_timeline(cbers_022024)))
+    },
+    error = function(e) {
+        return(NULL)
     })
 
-    test_that("Creating a raster stack cube and renaming bands", {
-        # Create a raster cube based on CBERS data
-        data_dir <- system.file("extdata/raster/cbers", package = "sits")
+    testthat::skip_if(purrr::is_null(cbers_022024),
+                      message = "LOCAL cube not found")
 
-        # create a raster cube file based on the information about the files
-        cbers_cube2 <- sits_cube(
+    bbox <- sits_bbox(cbers_022024)
+    x_size <- bbox["xmax"] - bbox["xmin"]
+    bbox["xmax"] <- bbox["xmin"] + x_size / 2
+
+    cbers_022024_copy <- sits_cube_copy(cbers_022024,
+                                        name = "cb_022024_cp",
+                                        dest_dir = tempdir(),
+                                        bands = "B13",
+                                        roi = bbox
+    )
+    expect_true(sits_bands(cbers_022024_copy) == "B13")
+    expect_true(cbers_022024_copy$ncols == 26)
+    expect_true(cbers_022024_copy$xmin == cbers_022024$xmin)
+    expect_true(all(sits_timeline(cbers_022024_copy) ==
+                        sits_timeline(cbers_022024)))
+})
+
+test_that("Creating a raster stack cube and renaming bands", {
+    # Create a raster cube based on CBERS data
+    data_dir <- system.file("extdata/raster/cbers", package = "sits")
+
+    # create a raster cube file based on the information about the files
+    cbers_cube2 <- tryCatch({
+        sits_cube(
             source = "LOCAL",
             name = "022024",
             satellite = "CBERS-4",
@@ -356,30 +435,48 @@ test_that("Creating cubes from AWS and regularizing them", {
             delim = "_",
             parse_info = c("X1", "X2", "tile", "band", "date")
         )
-        expect_true(all(sits_bands(cbers_cube2) %in%
-                            c("B13", "B14", "B15", "B16", "CLOUD")))
-        sits_bands(cbers_cube2) <- c("BAND13", "BAND14", "BAND15",
-                                     "BAND16", "CLOUD")
-        expect_true(all(sits_bands(cbers_cube2) %in%
-                            c("BAND13", "BAND14", "BAND15", "BAND16", "CLOUD")))
-
+    },
+    error = function(e) {
+        return(NULL)
     })
 
-    test_that("Creating a raster stack cube with BDC band names", {
-        # Create a raster cube based on CBERS data
-        data_dir <- system.file("extdata/raster/bdc", package = "sits")
+    testthat::skip_if(purrr::is_null(cbers_cube2),
+                      message = "LOCAL cube not found")
 
-        # create a raster cube file based on the information about the files
-        cbers_cube_bdc <- sits_cube(
+    expect_true(all(sits_bands(cbers_cube2) %in%
+                        c("B13", "B14", "B15", "B16", "CLOUD")))
+    sits_bands(cbers_cube2) <- c("BAND13", "BAND14", "BAND15",
+                                 "BAND16", "CLOUD")
+    expect_true(all(sits_bands(cbers_cube2) %in%
+                        c("BAND13", "BAND14", "BAND15", "BAND16", "CLOUD")))
+
+})
+
+test_that("Creating a raster stack cube with BDC band names", {
+    # Create a raster cube based on CBERS data
+    data_dir <- system.file("extdata/raster/bdc", package = "sits")
+
+    # create a raster cube file based on the information about the files
+    cbers_cube_bdc <- tryCatch({
+        sits_cube(
             source = "LOCAL",
             name = "022024",
             satellite = "CBERS-4",
             sensor = "AWFI",
             resolution = "64m",
             data_dir = data_dir,
-            parse_info = c("X1", "X2", "X3", "X4", "X5", "tile", "date", "X6", "band")
+            parse_info = c("X1", "X2", "X3", "X4", "X5", "tile",
+                           "date", "X6", "band")
         )
-        expect_true(all(sits_bands(cbers_cube_bdc) %in%
-                            c("B16")))
-
+    },
+    error = function(e) {
+        return(NULL)
     })
+
+    testthat::skip_if(purrr::is_null(cbers_cube_bdc),
+                      message = "LOCAL cube not found")
+
+    expect_true(all(sits_bands(cbers_cube_bdc) %in%
+                        c("B16")))
+
+})
