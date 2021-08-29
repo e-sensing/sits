@@ -189,8 +189,7 @@ NULL
 
     .check_that(
         !is.null(x),
-        local_msg = "NULL value is not allowed",
-        msg = msg
+        local_msg = msg
     )
 
     return(invisible(x))
@@ -283,8 +282,7 @@ NULL
 }
 
 #' @rdname check_functions
-.check_apply <- function(x, fn_check, ...,
-                         msg = NULL) {
+.check_apply <- function(x, fn_check, ...) {
 
     if (!is.function(fn_check))
         stop(".check_apply: fn_check should be a function.", call. = TRUE)

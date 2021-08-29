@@ -14,8 +14,7 @@
 
     # is the WTSS service working?
     .check_null(x = coverages,
-                msg = paste(".source_access_test.wtss_cube: WTSS",
-                            "is unreachable.")
+                msg = "WTSS is unreachable"
     )
 
     # is the cube in the list of cubes?
@@ -23,8 +22,7 @@
         x = collection,
         within = coverages,
         discriminator = "any_of",
-        msg = paste(".source_access_test.wtss_cube:",
-                    collection, "not available in the WTSS server")
+        msg = paste(collection, "not available in the WTSS server")
     )
 
     return(invisible(NULL))

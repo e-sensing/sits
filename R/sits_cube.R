@@ -1285,12 +1285,14 @@ NULL
     # warning in case user provide source band
     if (any(bands %in% source_bands))
         warning(
-            paste("sits_cube: Please, it is highly recommended that you",
-                  "provide the bands in the sits format:",
-                  .source_bands_to_sits(source = source,
-                                        collection = collection,
-                                        bands = bands))
-        )
+            sprintf("Bands %s converted to sits names %s",
+                    paste(bands, collapse = ", "),
+                    paste(
+                        .source_bands_to_sits(source = source,
+                                              collection = collection,
+                                              bands = bands),
+                    collapse = ", ")),
+            call. = FALSE)
 
     return(invisible(NULL))
 }
