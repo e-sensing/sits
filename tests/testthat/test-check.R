@@ -62,7 +62,7 @@ test_that("Checks", {
 
     # .check_null
     expect_error(
-        .check_null(NULL),
+        .check_null(NULL, msg = "NULL value is not allowed"),
         "test: NULL value is not allowed"
     )
     expect_equal(
@@ -130,7 +130,8 @@ test_that("Checks", {
         c(1, 2, 3)
     )
     expect_error(
-        .check_apply(list(1, NULL, 3), fn_check = .check_null),
+        .check_apply(list(1, NULL, 3), fn_check = .check_null,
+                     msg = "NULL value is not allowed"),
         "test: NULL value is not allowed"
     )
 
@@ -309,7 +310,7 @@ test_that("Checks", {
         "test: length should be <= 0"
     )
     expect_error(
-        .check_lgl(NULL),
+        .check_lgl(NULL, msg = "NULL value is not allowed"),
         "test: NULL value is not allowed"
     )
     expect_equal(
@@ -387,7 +388,7 @@ test_that("Checks", {
         "test: length should be <= 0"
     )
     expect_error(
-        .check_num(NULL),
+        .check_num(NULL, msg = "NULL value is not allowed"),
         "test: NULL value is not allowed"
     )
     expect_equal(
@@ -457,7 +458,7 @@ test_that("Checks", {
         "test: length should be <= 0"
     )
     expect_error(
-        .check_chr(NULL),
+        .check_chr(NULL, msg = "NULL value is not allowed"),
         "test: NULL value is not allowed"
     )
     expect_equal(
@@ -503,7 +504,7 @@ test_that("Checks", {
         "test: length should be <= 0"
     )
     expect_error(
-        .check_lst(NULL),
+        .check_lst(NULL, msg = "NULL value is not allowed"),
         "test: NULL value is not allowed"
     )
     expect_equal(
