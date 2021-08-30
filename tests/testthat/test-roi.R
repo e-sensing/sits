@@ -28,8 +28,8 @@ test_that("One-year, multicore classification with ROI", {
         )
     )
     expect_true(all(file.exists(unlist(sinop_probs$file_info[[1]]$path))))
-    rc_obj <- .raster_open_rast(sinop_probs$file_info[[1]]$path[[1]])
-    expect_true(.raster_nrows(rc_obj) == sinop_probs$nrows)
+    rc_obj <- sits:::.raster_open_rast(sinop_probs$file_info[[1]]$path[[1]])
+    expect_true(sits:::.raster_nrows(rc_obj) == sinop_probs$nrows)
 
     bbox_p <- sits_bbox(sinop_probs)
     expect_lte(bbox["xmax"], bbox_p["xmax"])

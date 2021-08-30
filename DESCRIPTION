@@ -34,7 +34,6 @@ Imports:
     yaml,
     data.table (>= 1.13),
     dplyr (>= 1.0.0),
-    furrr,
     gdalUtilities,
     grDevices,
     ggplot2,

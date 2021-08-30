@@ -71,8 +71,8 @@
 #' the same spatial resolution and projection. Files can belong to different
 #' tiles of a spatial reference system.
 #' Each file should contain a single image band for a single date.
-#' File names must include date and band information, since times and bands
-#' are deduced from file names. For example: "CBERS-4_022024_B13_2018-02-02.tif"
+#' File names must include tile, date and band information.
+#' For example: "CBERS-4_022024_B13_2018-02-02.tif"
 #' and "cube_20LKP_B02_2018-07-18.jp2" are accepted names.
 #' The user has to provide parsing information to allow `sits`
 #' to extract the tile, the band and the date. In the examples above,
@@ -485,7 +485,7 @@ sits_cube.local_cube <- function(source = "LOCAL", ...,
                                  start_date = NULL,
                                  end_date = NULL,
                                  data_dir,
-                                 parse_info = c("X1", "X2", "tile", "band", "date"),
+                                 parse_info,
                                  delim = "_") {
 
 

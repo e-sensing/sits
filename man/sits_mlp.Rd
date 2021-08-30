@@ -9,7 +9,7 @@ sits_mlp(
   layers = c(512, 512, 512),
   activation = "relu",
   dropout_rates = c(0.1, 0.2, 0.3),
-  optimizer = keras::optimizer_adam(lr = 0.001),
+  optimizer = keras::optimizer_adam(learning_rate = 0.001),
   epochs = 100,
   batch_size = 64,
   validation_split = 0.2,

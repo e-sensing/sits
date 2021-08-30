@@ -475,7 +475,7 @@ sits_ranger <- function(data = NULL,
 #' @param num_trees        number of trees to grow.
 #'                         This should not be set to too small a number,
 #'                         to ensure that every input row gets predicted
-#'                         at least a few times (default: 2000).
+#'                         at least a few times (default: 200).
 #' @param nodesize         minimum size of terminal nodes
 #'                         (default 1 for classification)
 #' @param ...              other parameters to be passed
@@ -486,7 +486,7 @@ sits_ranger <- function(data = NULL,
 #' # Retrieve the set of samples for the Mato Grosso region
 #' samples_MT_ndvi <- sits_select(samples_modis_4bands, bands = "NDVI")
 #' # Build a random forest model
-#' rfor_model <- sits_train(samples_MT_ndvi, sits_rfor(num_trees = 300))
+#' rfor_model <- sits_train(samples_MT_ndvi, sits_rfor(num_trees = 200))
 #' # get a point with a 16 year time series
 #' point_ndvi <- sits_select(point_mt_6bands, bands = "NDVI")
 #' # classify the point
@@ -494,7 +494,7 @@ sits_ranger <- function(data = NULL,
 #'
 #' @export
 #'
-sits_rfor <- function(data = NULL, num_trees = 2000, nodesize = 1, ...) {
+sits_rfor <- function(data = NULL, num_trees = 200, nodesize = 1, ...) {
 
     # function that returns `randomForest::randomForest` model
     result_fun <- function(data) {

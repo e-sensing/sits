@@ -40,7 +40,7 @@
 
 .check_length(x, ..., len_min = NULL, len_max = NULL, msg = NULL)
 
-.check_apply(x, fn_check, ..., msg = NULL)
+.check_apply(x, fn_check, ...)
 
 .check_lgl_type(x, ..., msg = NULL)
 
