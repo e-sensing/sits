@@ -65,7 +65,7 @@ Suggests:
     gdalcubes,
     imager,
     imputeTS, 
-    keras (>= 2.3.0),
+    keras (>= 2.6.0),
     kohonen,
     knitr,
     MASS,
