@@ -75,16 +75,33 @@
     file_info <- cube$file_info[[1]]
 
     # does the cube have a cloud band?
-    cld_band <- .config_cloud()
+    cld_band <- .source_cloud()
     if (cld_band %in% sits_bands(cube)) {
 
-        cld_index <- .config_cloud_interp_values(
+        cld_index <- .source_cloud_interp_values(
             source = .cube_source(cube = cube),
             collection = .cube_collection(cube = cube)
         )
+
         cld_files <- dplyr::filter(file_info, band == cld_band)$path
         clouds <- .raster_read_stack(files  = cld_files,
-                                     block = extent) %in% cld_index
+                                     block = extent)
+
+
+        # get information about cloud bitmask
+        if (.source_cloud_bit_mask(
+            source = .cube_source(cube = cube),
+            collection = .cube_collection(cube = cube))) {
+
+            clouds <- as.matrix(clouds)
+            cld_rows <- nrow(clouds)
+            clouds <- matrix(bitwAnd(clouds, sum(2 ^ cld_index)),
+                             nrow = cld_rows) > 0
+        } else {
+
+            clouds <- clouds %in% cld_index
+        }
+
     } else {
         clouds <- NULL
     }
@@ -96,8 +113,9 @@
         bnd_files <- dplyr::filter(file_info, band == b)$path
 
         # are there bands associated to the files?
-        assertthat::assert_that(
-            length(bnd_files) > 0,
+        .check_length(
+            x = bnd_files,
+            len_min = 1,
             msg = paste(".sits_raster_data_preprocess: no files for band", b)
         )
 
@@ -136,7 +154,9 @@
 
         # scale the data set
         scale_factor <- .cube_band_scale_factor(cube, band = b)
-        values <- scale_factor * values
+        offset_value <- .cube_band_offset_value(cube = cube, band = b)
+
+        values <- scale_factor * values + offset_value
 
         # filter the data
         if (!(purrr::is_null(filter_fn))) {
@@ -148,8 +168,6 @@
             values <- .sits_ml_normalize_matrix(values, stats, b)
         }
 
-        #values_dt <- data.table::as.data.table(values)
-        #return(values_dt)
         return(values)
 
     })
@@ -215,14 +233,15 @@
                                      impute_fn = sits_impute_linear()) {
 
     # ensure metadata tibble exists
-    assertthat::assert_that(
-        nrow(cube) >= 1,
+    .check_that(
+        x = nrow(cube) >= 1,
         msg = ".sits_raster_data_get_ts: need a valid metadata for data cube"
     )
 
     names <- c("longitude", "latitude", "label")
-    assertthat::assert_that(
-        all(names %in% colnames(points)),
+    .check_chr_within(
+        x = names,
+        within = colnames(points),
         msg = ".sits_raster_data_get_ts: data input is not valid"
     )
 
@@ -296,7 +315,7 @@
     if (!purrr::is_null(cld_band)) {
 
         # retrieve values that indicate clouds
-        cld_index <- .config_cloud_interp_values(
+        cld_index <- .source_cloud_interp_values(
             source = .cube_source(cube = cube),
             collection = .cube_collection(cube = cube)
         )
@@ -306,9 +325,15 @@
                                          xy = xy)
 
         # get information about cloud bitmask
-        if (.config_cloud_bit_mask(source = .cube_source(cube = cube),
-                                   collection = .cube_collection(cube = cube)))
-            cld_values <- bitwAnd(cld_values, sum(2^cld_index))
+        if (.source_cloud_bit_mask(
+            source = .cube_source(cube = cube),
+            collection = .cube_collection(cube = cube))) {
+
+            cld_values <- as.matrix(cld_values)
+            cld_rows <- nrow(cld_values)
+            cld_values <- matrix(bitwAnd(cld_values, sum(2 ^ cld_index)),
+                                 nrow = cld_rows)
+        }
     }
 
     # Retrieve values on a band by band basis
@@ -320,6 +345,7 @@
         minimum_value <- .cube_band_minimum_value(cube = cube, band = band)
         maximum_value <- .cube_band_maximum_value(cube = cube, band = band)
         scale_factor <- .cube_band_scale_factor(cube = cube, band = band)
+        offset_value <- .cube_band_offset_value(cube = cube, band = band)
 
         # get the values of the time series as matrix
         values_band <- .sits_cube_extract(cube, band, xy)
@@ -345,7 +371,7 @@
             if (!purrr::is_null(cld_band)) {
                 cld_values <- unlist(cld_values[i, start_idx:end_idx],
                                      use.names = FALSE)
-                if (.config_cloud_bit_mask(
+                if (.source_cloud_bit_mask(
                     source = .cube_source(cube = cube),
                     collection = .cube_collection(cube = cube)))
                     values_ts[cld_values > 0] <- NA
@@ -364,7 +390,7 @@
             }
 
             # correct the values using the scale factor
-            values_ts <- values_ts * scale_factor
+            values_ts <- values_ts * scale_factor + offset_value
 
             # return the values of one band for point xy
             return(values_ts)

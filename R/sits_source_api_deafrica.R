@@ -22,8 +22,8 @@
     items$features <- items$features[index_features]
 
     # checks if the search return zero items
-    assertthat::assert_that(
-        rstac::items_length(items) != 0,
+    .check_that(
+        x = rstac::items_length(items) != 0,
         msg = paste(".deafrica_search_tiles: the supplied tile(s) were",
                     "not found.")
     )
@@ -90,8 +90,8 @@
         items_info <- .deafrica_search_tiles(items_info, tiles)
 
     # checks if the items returned any items
-    assertthat::assert_that(
-        rstac::items_length(items_info) != 0,
+    .check_that(
+        x = rstac::items_length(items_info) != 0,
         msg = paste(".source_items_new.deafrica_cube: the provided search",
                     "returned 0 items. Please, verify the provided parameters.")
     )

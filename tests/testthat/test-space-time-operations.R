@@ -1,5 +1,3 @@
-context("Space Time Operations")
-
 test_that("All", {
     reproj <- sits:::.sits_proj_from_latlong(-10, -20, 4326)
 

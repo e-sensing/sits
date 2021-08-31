@@ -19,8 +19,8 @@
 `sits_bands<-.sits` <- function(x, value) {
     # get the time series
     ts <- sits_time_series(x)
-    assertthat::assert_that(
-        ncol(ts) == length(value) + 1,
+    .check_that(
+        x = ncol(ts) == length(value) + 1,
         msg = "sits_bands: invalid number of bands to be replaced")
 
     # change band names for all rows of the tibble
@@ -39,8 +39,8 @@
 `sits_bands<-.cube` <- function(x, value) {
     rows <- slider::slide(x, function(row) {
         old_bands <- row$bands[[1]]
-        assertthat::assert_that(
-            length(old_bands) == length(value),
+        .check_that(
+            x = length(old_bands) == length(value),
             msg = "sits_bands: replacement bands have wrong length")
         # rename bands
         names(value) <- row$bands[[1]]

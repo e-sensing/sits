@@ -39,19 +39,21 @@
 sits_train <- function(data, ml_method = sits_svm()) {
 
     # is the input data a valid sits tibble?
-    assertthat::assert_that(
-        "label" %in% names(data),
+    .check_chr_within(
+        x = "label",
+        within = names(data),
+        discriminator = "any_of",
         msg = "sits_train: input data does not contain a valid sits tibble"
     )
 
     # is the train method a function?
-    assertthat::assert_that(
-        inherits(ml_method, "function"),
+    .check_that(
+        x = inherits(ml_method, "function"),
         msg = "sits_train: ml_method is not a valid function"
     )
 
-    assertthat::assert_that(
-        .sits_timeline_check(data) == TRUE,
+    .check_that(
+        x = .sits_timeline_check(data) == TRUE,
         msg = paste0("Samples have different timeline lengths", "\n",
                      "Use.sits_tibble_prune or sits_fix_timeline"))
 
@@ -116,8 +118,10 @@ sits_lda <- function(data = NULL, formula = sits_formula_logref(), ...) {
         train_data <- .sits_distances(.sits_ml_normalize_data(data, stats))
 
         # is the input data the result of a TWDTW matching function?
-        assertthat::assert_that(
-            "reference" %in% names(train_data),
+        .check_chr_within(
+            x = "reference",
+            within = names(train_data),
+            discriminator = "any_of",
             msg = "sits_lda: input data does not contain distance"
         )
 
@@ -394,15 +398,18 @@ sits_ranger <- function(data = NULL,
         valid_importance <- c("none", "impurity", "permutation")
 
         # is the input data consistent?
-        assertthat::assert_that(
-            importance %in% valid_importance,
+        .check_chr_within(
+            x = importance,
+            within = valid_importance,
+            discriminator = "any_of",
             msg = "sits_ranger: invalid variable importance value"
         )
 
         # get the labels of the data
         labels <- sits_labels(data)
-        assertthat::assert_that(
-            length(labels) > 0,
+        .check_length(
+            x = labels,
+            min = 1,
             msg = "sits_ranger: invalid data - bad labels"
         )
         n_labels <- length(labels)
@@ -468,7 +475,7 @@ sits_ranger <- function(data = NULL,
 #' @param num_trees        number of trees to grow.
 #'                         This should not be set to too small a number,
 #'                         to ensure that every input row gets predicted
-#'                         at least a few times (default: 2000).
+#'                         at least a few times (default: 200).
 #' @param nodesize         minimum size of terminal nodes
 #'                         (default 1 for classification)
 #' @param ...              other parameters to be passed
@@ -479,7 +486,7 @@ sits_ranger <- function(data = NULL,
 #' # Retrieve the set of samples for the Mato Grosso region
 #' samples_MT_ndvi <- sits_select(samples_modis_4bands, bands = "NDVI")
 #' # Build a random forest model
-#' rfor_model <- sits_train(samples_MT_ndvi, sits_rfor(num_trees = 300))
+#' rfor_model <- sits_train(samples_MT_ndvi, sits_rfor(num_trees = 200))
 #' # get a point with a 16 year time series
 #' point_ndvi <- sits_select(point_mt_6bands, bands = "NDVI")
 #' # classify the point
@@ -487,7 +494,7 @@ sits_ranger <- function(data = NULL,
 #'
 #' @export
 #'
-sits_rfor <- function(data = NULL, num_trees = 2000, nodesize = 1, ...) {
+sits_rfor <- function(data = NULL, num_trees = 200, nodesize = 1, ...) {
 
     # function that returns `randomForest::randomForest` model
     result_fun <- function(data) {
@@ -743,8 +750,9 @@ sits_xgboost <- function(data = NULL,
 
         # get the labels of the data
         labels <- sits_labels(data)
-        assertthat::assert_that(
-            length(labels) > 0,
+        .check_length(
+            x = labels,
+            len_min = 1,
             msg = "sits_rfor: invalid data - bad labels"
         )
         n_labels <- length(labels)
@@ -860,8 +868,8 @@ sits_formula_logref <- function(predictors_index = -2:0) {
     # 'factor(reference~log(f1)+log(f2)+...+log(fn)' where f1, f2, ..., fn are
     # the predictor fields given by the predictor index.
     result_fun <- function(tb) {
-        assertthat::assert_that(
-            nrow(tb) > 0,
+        .check_that(
+            x = nrow(tb) > 0,
             msg = "sits_formula_logref - invalid data"
         )
         n_rows_tb <- nrow(tb)
@@ -912,8 +920,8 @@ sits_formula_linear <- function(predictors_index = -2:0) {
     # 'factor(reference~log(f1)+log(f2)+...+log(fn)' where f1, f2, ..., fn are
     #  the predictor fields.
     result_fun <- function(tb) {
-        assertthat::assert_that(
-            nrow(tb) > 0,
+        .check_that(
+            x = nrow(tb) > 0,
             msg = "sits_formula_logref - invalid data"
         )
         n_rows_tb <- nrow(tb)
@@ -957,8 +965,9 @@ sits_formula_linear <- function(predictors_index = -2:0) {
     bands <- sits_bands(data)
 
     # check that input bands are included in the statistics already calculated
-    assertthat::assert_that(
-        all(sort(bands) == sort(colnames(stats[, -1]))),
+    .check_chr_within(
+        x = sort(bands),
+        within = sort(colnames(stats[, -1])),
         msg = paste0("sits_normalize: data bands (",
                      paste(bands, collapse = ", "),
                      ") do not match model bands (",

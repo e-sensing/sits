@@ -1,5 +1,3 @@
-context("CSV")
-
 test_that("Data to CSV", {
     csv_file <- paste0(tempdir(), "/cerrado_2classes.csv")
     expect_true(sits_data_to_csv(cerrado_2classes,

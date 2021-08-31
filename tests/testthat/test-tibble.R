@@ -1,5 +1,3 @@
-context("Tibble")
-
 test_that("Align dates", {
     data("samples_modis_4bands")
     data("timeline_2000_2017")

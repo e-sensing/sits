@@ -1,6 +1,6 @@
 Package: sits
 Type: Package
-Version: 0.13.0-3
+Version: 0.13.1
 Title: Satellite Image Time Series Analysis for Remote Sensing Data Cubes
 Authors@R: c(person('Rolf', 'Simoes', role = c('aut'), email = 'rolf.simoes@inpe.br'),
              person('Gilberto', 'Camara', role = c('aut', 'cre'), email = 'gilberto.camara@inpe.br'),
@@ -31,11 +31,9 @@ ByteCompile: true
 LazyData: true
 Imports:
     magrittr,
-    assertthat,
     yaml,
     data.table (>= 1.13),
     dplyr (>= 1.0.0),
-    furrr,
     gdalUtilities,
     grDevices,
     ggplot2,
@@ -67,7 +65,7 @@ Suggests:
     gdalcubes,
     imager,
     imputeTS, 
-    keras (>= 2.3.0),
+    keras (>= 2.6.0),
     kohonen,
     knitr,
     MASS,
@@ -87,10 +85,14 @@ Suggests:
     signal,
     stars,
     stringr,
-    testthat,
+    testthat (>= 3.0.2),
     tidyr,
     xgboost,
+    withr,
     zoo
+Config/testthat/edition: 3
+Config/testthat/parallel: true
+Config/testthat/start-first: cube, wtss, raster, bdc, ml
 VignetteBuilder: knitr
 LinkingTo:
     Rcpp,

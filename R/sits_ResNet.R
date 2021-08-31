@@ -80,7 +80,7 @@ sits_ResNet <- function(samples = NULL,
                         blocks = c(64, 128, 128),
                         kernels = c(8, 5, 3),
                         activation = "relu",
-                        optimizer = keras::optimizer_adam(lr = 0.001),
+                        optimizer = keras::optimizer_adam(learning_rate = 0.001),
                         epochs = 300,
                         batch_size = 64,
                         validation_split = 0.2,
@@ -96,13 +96,15 @@ sits_ResNet <- function(samples = NULL,
 
         valid_activations <- c("relu", "elu", "selu", "sigmoid")
         # pre-conditions
-        assertthat::assert_that(
-            activation %in% valid_activations,
+        .check_chr_within(
+            x = activation,
+            within = valid_activations,
+            discriminator = "any_of",
             msg = "sits_ResNet: invalid CNN activation method"
         )
 
-        assertthat::assert_that(
-            length(kernels) == 3,
+        .check_that(
+            x = length(kernels) == 3,
             msg = "sits_ResNet: should inform size of three kernels"
         )
 

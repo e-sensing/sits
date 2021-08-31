@@ -133,7 +133,7 @@ sits_som_map <- function(data,
 
     # is are there more neurons than samples?
     n_samples <- nrow(data)
-    assertthat::assert_that(
+    .check_that(
         n_samples > grid_xdim * grid_ydim,
         msg = paste("sits_som_map: number of samples should be",
                     "greater than number of neurons")
@@ -287,8 +287,9 @@ sits_som_clean_samples <- function(som_map,
         message("wrong input data; please run sits_som_map first")
         return(invisible(NULL))
     }
-    assertthat::assert_that(
-        all(keep %in% c("clean", "analyze", "remove")),
+    .check_chr_within(
+        x = keep,
+        within = c("clean", "analyze", "remove"),
         msg = "sits_som_clean_samples: invalid keep parameter"
     )
 

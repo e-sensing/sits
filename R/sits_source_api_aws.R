@@ -12,7 +12,7 @@
 #' @return sentinel bands that corresponds a specified resolution.
 .aws_bands <- function(source, collection, s2_resolution) {
 
-    .config_bands(
+    .source_bands(
         source = source,
         collection = collection,
         fn_filter = function(x) s2_resolution %in% x$resolution
@@ -33,7 +33,7 @@
 #' @return sentinel bands that corresponds a specified resolution.
 .aws_bands_band_name <- function(source, collection, s2_resolution) {
 
-    .config_bands_band_name(
+    .source_bands_band_name(
         source = source,
         collection = collection,
         fn_filter = function(x) s2_resolution %in% x$resolution
@@ -135,8 +135,8 @@
     items_info <- rstac::post_request(q = stac_query, ...)
 
     # check if matched items
-    assertthat::assert_that(
-        rstac::items_matched(items_info) > 0,
+    .check_that(
+        x = rstac::items_matched(items_info) > 0,
         msg = ".source_items_new.aws_cube: no items matched the query criteria."
     )
 
@@ -159,7 +159,7 @@
                                                 s2_resolution) {
 
     # convert sits bands to source bands
-    bands_converter <-  .config_bands(
+    bands_converter <-  .source_bands(
         source = source,
         collection = collection,
         fn_filter = function(x) s2_resolution %in% x$resolution

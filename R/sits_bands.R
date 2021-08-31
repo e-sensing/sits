@@ -52,13 +52,15 @@ sits_bands.patterns <- function(x) {
 #'
 sits_bands.sits_model <- function(x) {
 
-    assertthat::assert_that(
-        inherits(x, "function"),
+    .check_that(
+        x = inherits(x, "function"),
         msg = "sits_bands: invalid sits model"
     )
 
-    assertthat::assert_that(
-        "data" %in% ls(environment(x)),
+    .check_chr_within(
+        x = "data",
+        within = ls(environment(x)),
+        discriminator = "any_of",
         msg = "sits_bands: no samples found in the sits model"
     )
 

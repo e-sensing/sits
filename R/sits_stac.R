@@ -11,13 +11,13 @@
 .stac_bands_select <- function(items, bands_source, bands_sits) {
 
     # verify if the mapped band in on item assets
-    .check_chr_choices(x = bands_source,
-                       choices = rstac::items_fields(items, "assets"),
-                       case_sensitive = FALSE,
-                       msg = paste("The bands contained in this product",
-                                   "are not mapped in the SITS package,",
-                                   "if you want to include them please",
-                                   "provide it in configuration file."))
+    .check_chr_within(x = bands_source,
+                      within = rstac::items_fields(items, "assets"),
+                      case_sensitive = FALSE,
+                      msg = paste("The bands contained in this product",
+                                  "are not mapped in the SITS package,",
+                                  "if you want to include them please",
+                                  "provide it in configuration file."))
     bands_source <- toupper(bands_source)
     bands_converter <- toupper(bands_sits)
     names(bands_converter) <- bands_source
@@ -67,10 +67,9 @@
     }
 
     # checks if the specified parameters names is contained in the list
-    assertthat::assert_that(
-        !purrr::is_null(names(roi_list)),
-        msg = ".sits_stac_roi: invalid definition of ROI"
-    )
+    .check_chr(x = names(roi_list),
+               allow_empty = FALSE,
+               msg = ".sits_stac_roi: invalid definition of ROI")
 
     return(roi_list)
 }
@@ -171,7 +170,11 @@
                               end_date = NULL,
                               limit = NULL, ...) {
 
-    url <- .config_source_url(source = source)
+    # get collection original name
+    collection <- .source_collection_name(source = source,
+                                          collection = collection)
+
+    url <- .source_url(source = source)
     roi <- list(bbox = NULL, intersects = NULL)
 
     # obtain the datetime parameter for STAC like parameter

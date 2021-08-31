@@ -26,11 +26,12 @@
 #' ls3 <- sits_values(cerrado_2classes[1:2, ], format = "bands_cases_dates")
 #' @export
 sits_values <- function(data, bands = NULL, format = "cases_dates_bands") {
-    assertthat::assert_that(
-        format %in% c("cases_dates_bands",
-                      "bands_cases_dates",
-                      "bands_dates_cases"),
-
+    .check_chr_within(
+        x = format,
+        within = c("cases_dates_bands",
+                   "bands_cases_dates",
+                   "bands_dates_cases"),
+        discriminator = "one_of",
         msg = paste("sits_values: valid format parameter are",
                     "'cases_dates_bands', 'bands_cases_dates'",
                     "or 'bands_dates_cases'")

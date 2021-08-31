@@ -1,7 +1,7 @@
 #' @keywords internal
 #' @export
-.source_access_test.stac_cube <- function(source, collection, ..., bands) {
-
+.source_access_test.stac_cube <- function(source, collection, ..., bands,
+                                          dry_run = TRUE) {
     # require package
     if (!requireNamespace("rstac", quietly = TRUE)) {
         stop(paste("Please install package rstac from CRAN:",
@@ -31,12 +31,14 @@
                                    collection = collection)
 
     # assert that token and/or href is valid
-    tryCatch({
-        .raster_open_rast(href)
-    }, error = function(e) {
-        stop(paste(".source_access_test.stac_cube: cannot open url\n",
-                   href, "\n", e$message), call. = FALSE)
-    })
+    if (dry_run)
+        tryCatch({
+            .raster_open_rast(href)
+        }, error = function(e) {
+            stop(paste(".source_access_test.stac_cube: cannot open url\n",
+                       href, "\n", e$message), call. = FALSE)
+        })
+
 
     return(invisible(NULL))
 }
@@ -135,23 +137,23 @@
                                         item = item, ...,
                                         collection = collection)
 
-        assertthat::assert_that(
-            !is.na(date),
+        .check_that(
+            x = !is.na(date),
             msg = ".source_cube: invalid date format."
         )
 
-        assertthat::assert_that(
-            is.character(bands),
+        .check_that(
+            x = is.character(bands),
             msg = ".source_cube: invalid band format."
         )
 
-        assertthat::assert_that(
-            is.numeric(res),
+        .check_that(
+            x = is.numeric(res),
             msg = ".source_cube: invalid res format."
         )
 
-        assertthat::assert_that(
-            is.character(paths),
+        .check_that(
+            x = is.character(paths),
             msg = ".source_cube: invalid path format."
         )
 
@@ -181,29 +183,28 @@
                                           tile_items = items, ...,
                                           collection = collection)
 
-    assertthat::assert_that(
-        all(names(t_bbox) %in% c("xmin", "ymin", "xmax", "ymax")),
+    .check_chr_within(
+        x = names(t_bbox),
+        within = c("xmin", "ymin", "xmax", "ymax"),
         msg = paste(".source_items_cube.stac_cube: bbox must be have",
                     "'xmin', 'ymin', 'xmax', and 'ymax' names.")
     )
 
-    assertthat::assert_that(
-        is.numeric(t_bbox),
-        msg = ".source_items_cube.stac_cube: bbox must be numeric."
-    )
+    .check_num_type(x = t_bbox,
+                    msg = ".source_items_cube.stac_cube: bbox must be numeric.")
 
     t_size <- .source_items_tile_get_size(source = source,
                                           tile_items = items, ...,
                                           collection = collection)
-
-    assertthat::assert_that(
-        all(names(t_size) %in% c("nrows", "ncols")),
+    .check_chr_within(
+        x = names(t_size),
+        within = c("nrows", "ncols"),
         msg = paste(".source_items_cube.stac_cube: size must be have",
                     "'nrows' and 'ncols' names.")
     )
 
-    assertthat::assert_that(
-        is.numeric(t_size),
+    .check_num_type(
+        t_size,
         msg = ".source_items_cube.stac_cube: size must be numeric."
     )
 
@@ -212,8 +213,8 @@
                                           tile_items = items, ...,
                                           collection = collection)
 
-    assertthat::assert_that(
-        is.character(t_name),
+    .check_chr_type(
+        x = t_name,
         msg = paste(".source_items_cube.stac_cube: name must be a",
                     "character value.")
     )
@@ -221,8 +222,8 @@
     t_crs <- .source_items_tile_get_crs(source = source,
                                         tile_items = items, ...,
                                         collection = collection)
-    assertthat::assert_that(
-        is.character(t_crs) || is.numeric(t_crs),
+    .check_that(
+        x = is.character(t_crs) || is.numeric(t_crs),
         msg = paste(".source_items_cube.stac_cube: name must be a",
                     "character or numeric value.")
     )
@@ -231,8 +232,8 @@
                                          items = items, ...,
                                          collection = collection)
 
-    assertthat::assert_that(
-        is.character(t_sat),
+    .check_chr_type(
+        x = t_sat,
         msg = paste(".source_items_cube.stac_cube: satellite name must be",
                     "a character value.")
     )
@@ -241,8 +242,8 @@
                                          items = items, ...,
                                          collection = collection)
 
-    assertthat::assert_that(
-        is.character(t_sensor),
+    .check_chr_type(
+        x = t_sensor,
         msg = paste(".source_items_cube.stac_cube: sensor name must be a",
                     "character value.")
     )
