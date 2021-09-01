@@ -18,7 +18,7 @@
 .source_cube.satveg_cube <- function(source, ..., collection, name) {
 
     # get the bands
-    bands <- .config_bands(source = source, collection = collection)
+    bands <- .source_bands(source = source, collection = collection)
 
     # get cube size
     size <- .satveg_get_size(source = source, collection = collection)
@@ -30,7 +30,7 @@
     crs <- .satveg_get_crs(source = source, collection = collection)
 
     # get the resolution of the product
-    res <- .config_bands_resolutions(source = "SATVEG",
+    res <- .source_bands_resolutions(source = "SATVEG",
                                      collection = collection,
                                      bands = "NDVI")
 
@@ -80,8 +80,8 @@ NULL
     size <- unlist(size)
 
     # post-condition
-    assertthat::assert_that(
-        all(size > 0),
+    .check_that(
+        x = all(size > 0),
         msg = ".satveg_get_size: invalid size."
     )
 
@@ -99,8 +99,9 @@ NULL
     bbox <- unlist(bbox)
 
     # post-condition
-    assertthat::assert_that(
-        all(names(bbox) %in% c("xmin", "ymin", "xmax", "ymax")),
+    .check_chr_within(
+        x = names(bbox),
+        within = c("xmin", "ymin", "xmax", "ymax"),
         msg = ".satveg_get_bbox: invalid bbox."
     )
 

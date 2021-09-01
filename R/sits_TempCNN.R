@@ -78,7 +78,7 @@ sits_TempCNN <- function(samples = NULL,
                          dense_layer_nodes = 256,
                          dense_layer_activation    = "relu",
                          dense_layer_dropout_rate  = 0.50,
-                         optimizer = keras::optimizer_adam(lr = 0.001),
+                         optimizer = keras::optimizer_adam(learning_rate = 0.001),
                          epochs            = 150,
                          batch_size        = 128,
                          validation_split  = 0.2,
@@ -97,33 +97,43 @@ sits_TempCNN <- function(samples = NULL,
         # pre-conditions
         valid_activations <- c("relu", "elu", "selu", "sigmoid")
 
-        assertthat::assert_that(
-            length(cnn_layers) == length(cnn_kernels),
+        .check_length(
+            x = cnn_layers,
+            len_min = length(cnn_kernels),
+            len_max = length(cnn_kernels),
             msg = "sits_tempCNN: 1D layers must match 1D kernel sizes"
         )
 
-        assertthat::assert_that(
-            length(cnn_layers) == length(cnn_dropout_rates),
+        .check_length(
+            x = cnn_layers,
+            len_min = length(cnn_dropout_rates),
+            len_max = length(cnn_dropout_rates),
             msg = "sits_tempCNN: 1D layers must match 1D dropout rates"
         )
 
-        assertthat::assert_that(
-            length(dense_layer_nodes) == 1,
+        .check_that(
+            x = length(dense_layer_nodes) == 1,
             msg = "sits_tempCNN: There is only one dense layer"
         )
-        assertthat::assert_that(
-            length(dense_layer_dropout_rate) == 1,
-            msg = "sits_tempCNN: dropout rates must be provided for the dense layer"
+
+        .check_that(
+            x = length(dense_layer_dropout_rate) == 1,
+            msg = paste("sits_tempCNN: dropout rates must be provided for the",
+                        "dense layer")
         )
 
-        assertthat::assert_that(
-            cnn_activation %in% valid_activations,
+        .check_chr_within(
+            x = cnn_activation,
+            within = valid_activations,
+            discriminator = "one_of",
             msg = "sits_tempCNN: invalid CNN activation method"
         )
 
-        assertthat::assert_that(
-            dense_layer_activation %in% valid_activations,
-            msg = "sits_tempCNN: invalid activation method for dense layer"
+        .check_chr_within(
+            x = dense_layer_activation,
+            within = valid_activations,
+            discriminator = "one_of",
+            msg = "sits_tempCNN: invalid node activation method"
         )
 
         # get the labels of the data

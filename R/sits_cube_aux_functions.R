@@ -97,10 +97,8 @@
 .sits_cube_probs <- function(tile, samples, sub_image,
                              output_dir, version) {
     # ensure metadata tibble exists
-    assertthat::assert_that(
-        nrow(tile) == 1,
-        msg = ".sits_cube_probs: accepts only one tile at a time"
-    )
+    .check_that(x = nrow(tile) == 1,
+                msg = ".sits_cube_probs: accepts only one tile at a time")
 
     # set the name of the output cube
     name <- paste0(tile$name, "_probs")
@@ -169,11 +167,10 @@
     }
 
     # check if bands are available
-    assertthat::assert_that(
-        all(toupper(bands) %in% toupper(sits_bands(cube))),
-        msg = paste(".sits_cube_bands_check: bands are not available",
-                    "in the cube")
-    )
+    .check_chr_within(x = toupper(bands),
+                      within = toupper(sits_bands(cube)),
+                      msg = paste(".sits_cube_bands_check: bands are not",
+                                  "available in the cube"))
 
     return(bands)
 }
@@ -223,10 +220,10 @@
 
     res <- unique(cube$source)
 
-    assertthat::assert_that(
-        length(res) == 1,
-        msg = ".sits_cube_source: cube has different sources."
-    )
+
+    .check_length(x = res,
+                  len_max = 1,
+                  msg = ".sits_cube_source: cube has different sources.")
 
     return(res)
 }
@@ -270,10 +267,11 @@
     # check for uniqueness of tiles
     if (any(!is.na(cube$tile))) {
 
-        assertthat::assert_that(
-            length(cube$tile) == length(unique(cube$tile)),
-            msg = ".sits_fix_cube_name: tiles must have unique identifiers"
-        )
+        .check_length(
+          x = cube$tile,
+          len_max = length(unique(cube$tile)),
+          len_min = length(unique(cube$tile)),
+          msg = ".sits_fix_cube_name: tiles must have unique identifiers")
     }
 
     # check for uniqueness of cube names

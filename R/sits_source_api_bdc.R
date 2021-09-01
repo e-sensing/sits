@@ -52,8 +52,8 @@
     items_info <- rstac::post_request(q = stac_query, ...)
 
     # check if matched items
-    assertthat::assert_that(
-        rstac::items_matched(items_info) > 0,
+    .check_that(
+        x = rstac::items_matched(items_info) > 0,
         msg = ".source_items_new.bdc_cube: no items matched the query criteria."
     )
 
@@ -101,7 +101,7 @@
                                                 collection = NULL) {
 
     # making request to collection endpoint to get crs info
-    url <- .config_source_url(source = source)
+    url <- .source_url(source = source)
     query_search <- rstac::collections(q = rstac::stac(url),
                                        collection_id = collection)
 

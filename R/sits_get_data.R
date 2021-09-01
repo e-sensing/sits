@@ -101,8 +101,10 @@ sits_get_data <- function(cube,
         # get the file extension
         file_ext <- tolower(tools::file_ext(file))
         # sits only accepts "csv" or "shp" files
-        assertthat::assert_that(
-            file_ext %in% c("csv", "shp"),
+        .check_chr_within(
+            x = file_ext,
+            within = c("csv", "shp"),
+            discriminator = "any_of",
             msg = "sits_get_data: accepts only csv and shp files"
         )
         # append "csv" or "shp" to the cube class to call the correct function
@@ -126,7 +128,7 @@ sits_get_data.wtss_cube <- function(cube, file = NULL, ...,
                                     label = "NoClass") {
 
     # Precondition - lat/long must be provided
-    assertthat::assert_that(!purrr::is_null(latitude) &
+    .check_that(!purrr::is_null(latitude) &
                                 !purrr::is_null(longitude),
                             msg = paste("sits_get_data: latitude/longitude",
                                         "must be provided")
@@ -167,15 +169,15 @@ sits_get_data.satveg_cube <- function(cube,
                                       label = "NoClass") {
     # Precondition - is the SATVEG cube available?
     # Retrieve the URL to test for SATVEG access
-    url <- .config_source_url(source = .cube_source(cube = cube))
+    url <- .source_url(source = .cube_source(cube = cube))
 
     # test if SATVEG is accessible
     #if (!(.sits_config_cube_access(url, "SATVEG")))
     #    return(NULL)
 
     # Precondition - lat/long must be provided
-    assertthat::assert_that(
-        !purrr::is_null(latitude) && !purrr::is_null(longitude),
+    .check_that(
+        x = !purrr::is_null(latitude) && !purrr::is_null(longitude),
         msg = "sits_get_data: latitude/longitude must be provided"
     )
 
@@ -246,7 +248,7 @@ sits_get_data.csv_satveg_cube <- function(cube, file, ...) {
 
     # Precondition - is the SATVEG cube available?
     # Retrieve the URL to test for SATVEG access
-    url <- .config_source_url(source = .cube_source(cube = cube))
+    url <- .source_url(source = .cube_source(cube = cube))
 
     # test if SATVEG is accessible
     # if (!(.sits_config_cube_access(url, "SATVEG")))
@@ -366,7 +368,7 @@ sits_get_data.shp_satveg_cube <- function(cube, file, ...,
 
     # Precondition - is the SATVEG cube available?
     # Retrieve the URL to test for SATVEG access
-    url <- .config_source_url(source = .cube_source(cube = cube))
+    url <- .source_url(source = .cube_source(cube = cube))
 
     # # test if SATVEG is accessible
     # if (!(.sits_config_cube_access(url, "SATVEG")))
@@ -426,8 +428,8 @@ sits_get_data.raster_cube <- function(cube, file = NULL, ...,
                                       impute_fn = sits_impute_linear()) {
 
     # Precondition - lat/long must be provided
-    assertthat::assert_that(
-        !purrr::is_null(latitude) && !purrr::is_null(longitude),
+    .check_that(
+        x = !purrr::is_null(latitude) && !purrr::is_null(longitude),
         msg = "sits_get_data: latitude/longitude must be provided"
     )
 
@@ -447,7 +449,7 @@ sits_get_data.raster_cube <- function(cube, file = NULL, ...,
     )
 
     # is the cloud band available?
-    cld_band <- .config_cloud()
+    cld_band <- .source_cloud()
 
     if (cld_band %in% bands) {
         bands <- bands[bands != cld_band]
@@ -504,7 +506,7 @@ sits_get_data.csv_raster_cube <- function(cube, file, ...,
     csv$end_date <- lubridate::as_date(csv$end_date)
 
     # is the cloud band available?
-    cld_band <- .config_cloud()
+    cld_band <- .source_cloud()
     if (cld_band %in% bands) {
         bands <- bands[bands != cld_band]
     } else {
@@ -577,7 +579,7 @@ sits_get_data.shp_raster_cube <- function(cube, file, ...,
     points$end_date <- start_end["end_date"]
 
     # is the cloud band available?
-    cld_band <- .config_cloud()
+    cld_band <- .source_cloud()
     if (cld_band %in% bands) {
         bands <- bands[bands != cld_band]
     } else {
@@ -662,12 +664,12 @@ sits_get_data.shp_raster_cube <- function(cube, file, ...,
                                        label = "NoClass") {
 
     # check parameters
-    assertthat::assert_that(
-        !purrr::is_null(longitude),
+    .check_null(
+        x = longitude,
         msg = ".sits_get_data_from_satveg: Missing longitude info"
     )
-    assertthat::assert_that(
-        !purrr::is_null(latitude),
+    .check_null(
+        x = latitude,
         msg = ".sits_get_data_from_satveg: Missing latitude info"
     )
 
@@ -700,7 +702,7 @@ sits_get_data.shp_raster_cube <- function(cube, file, ...,
                             time_series = list(ts)
     )
     # rename the SATVEG bands to uppercase
-    sits_bands(data) <- .config_bands(
+    sits_bands(data) <- .source_bands(
         source = .cube_source(cube = cube),
         collection = .cube_collection(cube = cube))
     return(data)
@@ -744,8 +746,8 @@ sits_get_data.shp_raster_cube <- function(cube, file, ...,
 
     # Try to find the access key as an environment variable
     bdc_access_key <- Sys.getenv("BDC_ACCESS_KEY")
-    assertthat::assert_that(
-        nchar(bdc_access_key) != 0,
+    .check_that(
+        x = nzchar(bdc_access_key),
         msg = "sits_cube: BDC_ACCESS_KEY needs to be provided"
     )
 

@@ -9,20 +9,20 @@
         )
     }
 
-    url <- .config_source_url(source = source)
+    url <- .source_url(source = source)
     coverages <- Rwtss::list_coverages(url)
 
     # is the WTSS service working?
-    assertthat::assert_that(!purrr::is_null(coverages),
-                            msg = paste(".source_access_test.wtss_cube: WTSS",
-                                        "is unreachable.")
+    .check_null(x = coverages,
+                msg = "WTSS is unreachable"
     )
 
     # is the cube in the list of cubes?
-    assertthat::assert_that(
-        collection %in% coverages,
-        msg = paste(".source_access_test.wtss_cube:",
-                    collection, "not available in the WTSS server")
+    .check_chr_within(
+        x = collection,
+        within = coverages,
+        discriminator = "any_of",
+        msg = paste(collection, "not available in the WTSS server")
     )
 
     return(invisible(NULL))
@@ -54,13 +54,13 @@
 .source_items_new.wtss_cube <- function(source = source,
                                         collection = collection, ...) {
 
-    url <- .config_source_url(source = source)
+    url <- .source_url(source = source)
 
     # describe the cube based on the WTSS API
     cov <- Rwtss::describe_coverage(url, collection, .print = FALSE)
-    assertthat::assert_that(!purrr::is_null(cov),
-                            msg = paste(".source_items_new.wtss_cube: failed",
-                                        "to get cube description in WTSS.")
+    .check_null(x = cov,
+                msg = paste(".source_items_new.wtss_cube: failed",
+                            "to get cube description in WTSS.")
     )
 
     return(cov)
@@ -72,7 +72,7 @@
                                              collection,
                                              wtss_cov) {
 
-    url <- .config_source_url(source = source)
+    url <- .source_url(source = source)
     file_info <- tibble::tibble(date = wtss_cov$timeline, path = url)
 
     return(file_info)
@@ -87,7 +87,7 @@
                                          file_info, ...) {
 
 
-    bands <- .config_bands(source = source, collection = collection)
+    bands <- .source_bands(source = source, collection = collection)
 
     # create a tibble to store the metadata
     cube_wtss <- .sits_cube_create(

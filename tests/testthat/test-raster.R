@@ -1,5 +1,3 @@
-context("Raster classification")
-
 test_that("One-year, single core classification", {
     samples_2bands <- sits_select(samples_modis_4bands,
                                   bands = c("NDVI", "EVI"))

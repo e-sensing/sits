@@ -115,8 +115,10 @@ sits_accuracy.sits <- function(data, ...) {
     }
 
     # does the input data contain a set of predicted values?
-    assertthat::assert_that(
-        "predicted" %in% names(data),
+    .check_chr_within(
+        x = "predicted",
+        within = names(data),
+        discriminator = "any_of",
         msg = "sits_accuracy: input data without predicted values"
     )
 
@@ -148,15 +150,15 @@ sits_accuracy.sits <- function(data, ...) {
 #' @rdname sits_accuracy
 #' @export
 sits_accuracy.classified_image <- function(data, ..., validation_csv) {
-    assertthat::assert_that(
-        file.exists(validation_csv),
+    .check_file(
+        x = validation_csv,
         msg = "sits_accuracy: validation file missing."
     )
     # get the file extension
     file_ext <- tolower(tools::file_ext(validation_csv))
     # sits only accepts "csv" files
-    assertthat::assert_that(
-        file_ext == c("csv"),
+    .check_that(
+        x = file_ext == c("csv"),
         msg = "sits_accuracy: csv file not available"
     )
 
@@ -181,8 +183,8 @@ sits_accuracy.classified_image <- function(data, ..., validation_csv) {
     points <- dplyr::bind_cols(csv_tb, xy_tb)
 
     # are there points to be retrieved from the cube?
-    assertthat::assert_that(
-        nrow(points) != 0,
+    .check_that(
+        x = nrow(points) != 0,
         msg = paste("sits_accuracy: no validation point intersects the map's",
                     "spatiotemporal extent.")
     )
@@ -193,8 +195,8 @@ sits_accuracy.classified_image <- function(data, ..., validation_csv) {
         # find the labelled band
         labelled_band <- sits_bands(row)
         # the labelled band must be unique
-        assertthat::assert_that(
-            length(labelled_band) == 1,
+        .check_that(
+            x = length(labelled_band) == 1,
             msg = "sits_accuracy: invalid labelled cube"
         )
 
@@ -227,8 +229,8 @@ sits_accuracy.classified_image <- function(data, ..., validation_csv) {
         # Get reference classes
         reference <- points_row$label
         # do the number of predicted and reference values match
-        assertthat::assert_that(
-            length(reference) == length(predicted),
+        .check_that(
+            x = length(reference) == length(predicted),
             msg = "sits_accuracy: predicted and reference vector do not match"
         )
         # create a tibble to store the results
@@ -298,8 +300,8 @@ sits_accuracy.classified_image <- function(data, ..., validation_csv) {
     # retrieve the reference labels
     ref <- class$label
     # does the input data contained valid reference labels?
-    assertthat::assert_that(
-        !("NoClass" %in% (ref)),
+    .check_that(
+        x = !("NoClass" %in% (ref)),
         msg = "sits_accuracy: input data without labels"
     )
 
@@ -333,8 +335,11 @@ sits_accuracy.classified_image <- function(data, ..., validation_csv) {
 
 .sits_accuracy_area_assess <- function(cube, error_matrix, area) {
 
-    assertthat::assert_that("classified_image" %in% class(cube),
-                            msg = "area assess: not a classified cube")
+    .check_chr_within(
+        x = "classified_image",
+        within = class(cube),
+        discriminator = "any_of",
+        msg = ".sits_accuracy_area_assess: area assess: not a classified cube")
     if (any(dim(error_matrix) == 0)) {
         stop("Invalid dimensions in error matrix.", call. = FALSE)
     }
@@ -433,8 +438,12 @@ sits_accuracy_summary <- function(x,
         print.sits_area_assessment(x)
         return(invisible(TRUE))
     }
-    assertthat::assert_that("sits_assessment" %in% class(x),
-                            msg = "please run sits_accuracy first")
+    .check_chr_within(
+        x = "sits_assessment",
+        within = class(x),
+        discriminator = "any_of",
+        msg = "sits_accuracy_summary: please run sits_accuracy first"
+    )
 
     # round the data to the significant digits
     overall <- round(x$overall, digits = digits)

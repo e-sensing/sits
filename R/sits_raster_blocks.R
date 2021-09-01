@@ -64,7 +64,7 @@
     nbands <- length(sits_bands(samples))
     # does the cube have a cloud band?
     cube_bands <- sits_bands(tile)
-    cld_band <- .config_cloud()
+    cld_band <- .source_cloud()
     # the cube has the cloud band, add one more band to the calculation
     if (cld_band %in% cube_bands) {
         nbands <- nbands + 1
@@ -120,7 +120,10 @@
 
     # number of rows in each block
     n_rows <- length(row_vec)
-    assertthat::assert_that(n_rows > 0, msg = "empty row vector")
+    .check_that(
+        x = n_rows > 0,
+        msg = ".sits_raster_block_list: empty row vector"
+    )
     nrows_vec <- rep.int(block_rows, n_rows)
 
     # check that total number of rows is the same as the sum of all blocks

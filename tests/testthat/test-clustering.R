@@ -1,5 +1,3 @@
-context("Clustering")
-
 test_that("Creating a dendrogram and clustering the results", {
     # skip_on_cran()
     suppressMessages(library(flexclust))

@@ -104,8 +104,8 @@
     )
 
     # was the file written correctly?
-    assertthat::assert_that(
-        file.exists(file),
+    .check_file(
+        x = file,
         msg = ".raster_write_rast: unable to write raster object"
     )
 
@@ -312,11 +312,8 @@
 
 #' @keywords internal
 #' @export
-.raster_resample_methods.terra <- function(method = NULL, ...) {
+.raster_resample_methods.terra <- function(sits_names = TRUE) {
 
-    res <- c(near = "near", bilinear = "bilinear",
-             cubic = "cubic", cubicspline = "cubicspline",
-             lanczos = "lanczos")
-
-    return(res)
+    # raster package resample names
+    return(c("near", "bilinear"))
 }
