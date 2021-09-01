@@ -10,6 +10,10 @@ raster_api_package      : "terra"
 # GDAL GTiff default creation options
 gdal_creation_options   : ["COMPRESS=LZW", "BIGTIFF=YES"]
 
+# local cube config options
+local_s3_class          : ["local_cube", "raster_cube"]
+local_file_extensions   : ["tiff", "tif", "jp2", "hdf", "vrt"]
+
 sources:
     CLASSIFIED              :
         s3_class            : ["classified_image"]
@@ -635,34 +639,6 @@ sources:
                     AWS_DEFAULT_REGION: "af-south-1"
                     AWS_S3_ENDPOINT   : "s3.af-south-1.amazonaws.com"
                     AWS_REQUEST_PAYER : "requester"
-    LOCAL                   :
-        s3_class            : ["local_cube", "raster_cube"]
-        file_extensions     : ["tiff", "tif", "jp2", "hdf", "vrt"]
-        collections         :
-            LANDSAT-8/OLI   :
-                <<: *bdc_lc8
-                collection_name: ~
-            LANDSAT-7/ETM   :
-                <<: *bdc_lc8
-                collection_name: ~
-            LANDSAT-5/TM    :
-                <<: *bdc_lc8
-                collection_name: ~
-            SENTINEL-2/MSI  :
-                <<: *bdc_s2
-                collection_name: ~
-            TERRA/MODIS     :
-                <<: *bdc_mod
-                collection_name: ~
-            AQUA/MODIS      :
-                <<: *bdc_mod
-                collection_name: ~
-            CBERS-4/AWFI    :
-                <<: *bdc_cb4
-                collection_name: ~
-            CBERS-4/MUX     :
-                <<: *bdc_cb4_mux
-                collection_name: ~
 
 palettes:
     default:

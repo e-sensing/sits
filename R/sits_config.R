@@ -69,14 +69,7 @@ sits_config <- function(processing_bloat = NULL,
         sits_env$config <- list()
 
     # set options defined in sits config
-    .config_set_options(
-        processing_bloat = config[["processing_bloat"]],
-        rstac_pagination_limit = config[["rstac_pagination_limit"]],
-        raster_api_package = config[["raster_api_package"]],
-        gdal_creation_options = config[["gdal_creation_options"]],
-        sources = config[["sources"]],
-        palettes = config[["palettes"]]
-    )
+    do.call(.config_set_options, args = config)
 
 
     message(paste0("Using configuration file: ", yml_file))
@@ -201,6 +194,8 @@ sits_config_show <- function(source = NULL,
                                 rstac_pagination_limit = NULL,
                                 raster_api_package = NULL,
                                 gdal_creation_options = NULL,
+                                local_s3_class = NULL,
+                                local_file_extensions = NULL,
                                 sources = NULL,
                                 palettes = NULL, ...) {
     # set caller to show in errors
@@ -253,6 +248,24 @@ sits_config_show <- function(source = NULL,
         sits_env$config[["gdal_creation_options"]] <- gdal_creation_options
     }
 
+    # process local_s3_class
+    if (!is.null(local_s3_class)) {
+
+        .check_chr(local_s3_class, allow_empty = FALSE, len_min = 1,
+                   msg = "Invalid 'local_s3_class' parameter")
+
+        sits_env$config[["local_s3_class"]] <- local_s3_class
+    }
+
+    # process local_file_extensions
+    if (!is.null(local_file_extensions)) {
+
+        .check_chr(local_file_extensions, allow_empty = FALSE, len_min = 1,
+                   msg = "Invalid 'local_file_extensions' parameter")
+
+        sits_env$config[["local_file_extensions"]] <- local_file_extensions
+    }
+
     # process sources
     if (!is.null(sources)) {
 
@@ -288,6 +301,27 @@ sits_config_show <- function(source = NULL,
             sits_env$config[["sources"]],
             sources,
             keep.null = FALSE
+        )
+
+        # generate LOCAL source
+        col_names <- unlist(
+            lapply(.sources(internal = FALSE), function(source) {
+                paste0(source, "/", .source_collections(source))
+            })
+        )
+        local_collections <- lapply(col_names, function(x) {
+            values <- strsplit(x, "/")[[1]]
+            source <- values[[1]]
+            col_name <- values[[2]]
+            col <- .config_get(key = c("sources", source, "collections",
+                                       col_name))
+            col["bands"]
+        })
+        names(local_collections) <- col_names
+
+        sits_env$config[["sources"]][["LOCAL"]] <- .config_new_source(
+            s3_class = .config_local_s3_class(),
+            collections = local_collections
         )
     }
 
@@ -652,11 +686,23 @@ NULL
 #' @rdname config_functions
 .config_local_file_extensions <- function() {
 
-    res <- .config_get(key = c("sources", "LOCAL", "file_extensions"))
+    res <- .config_get(key = c("local_file_extensions"))
 
     # post-condition
     .check_chr(res, len_min = 1,
                msg = "invalid 'file_extensions' in config file")
+
+    return(res)
+}
+
+#' @rdname config_functions
+.config_local_s3_class <- function() {
+
+    res <- .config_get(key = c("local_s3_class"))
+
+    # post-condition
+    .check_chr(res, len_min = 1,
+               msg = "invalid 'local_s3_class' in config file")
 
     return(res)
 }
