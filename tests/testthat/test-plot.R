@@ -39,8 +39,8 @@ test_that("Plot Time Series and Images", {
     sinop <- sits_cube(
         source = "LOCAL",
         name = "sinop-2014",
-        satellite = "TERRA",
-        sensor = "MODIS",
+        origin = "BDC",
+        collection = "MOD13Q1-6",
         data_dir = data_dir,
         delim = "_",
         parse_info = c("X1", "X2", "tile", "band", "date")
@@ -88,9 +88,8 @@ test_that("Plot Stack Images", {
     cbers_cube <- sits_cube(
         source = "LOCAL",
         name = "022024",
-        satellite = "CBERS-4",
-        sensor = "AWFI",
-        resolution = "64m",
+        origin = "BDC",
+        collection = "CB4_64-1",
         data_dir = data_dir,
         delim = "_",
         parse_info = c("X1", "X2", "tile", "band", "date")

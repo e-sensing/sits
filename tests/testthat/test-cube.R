@@ -21,8 +21,8 @@ test_that("Reading a raster cube", {
         sits_cube(
             source = "LOCAL",
             name = "sinop-2014",
-            satellite = "TERRA",
-            sensor = "MODIS",
+            origin = "BDC",
+            collection = "MOD13Q1-6",
             data_dir = data_dir,
             delim = "_",
             parse_info = c("X1", "X2", "tile", "band", "date")
@@ -53,9 +53,8 @@ test_that("Creating a raster stack cube and selecting bands", {
         sits_cube(
             source = "LOCAL",
             name = "022024",
-            satellite = "CBERS-4",
-            sensor = "AWFI",
-            resolution = "64m",
+            origin = "BDC",
+            collection = "CB4_64-1",
             data_dir = data_dir,
             delim = "_",
             parse_info = c("X1", "X2", "tile", "band", "date")
@@ -245,8 +244,8 @@ test_that("Merging cubes", {
         sits_cube(
             source = "LOCAL",
             name = "sinop-2014",
-            satellite = "TERRA",
-            sensor = "MODIS",
+            origin = "BDC",
+            collection = "MOD13Q1-6",
             bands = "EVI",
             data_dir = data_dir,
             delim = "_",
@@ -388,9 +387,8 @@ test_that("Cube copy", {
         sits_cube(
             source = "LOCAL",
             name = "cbers_022024",
-            satellite = "CBERS-4",
-            sensor = "AWFI",
-            resolution = "64m",
+            origin = "BDC",
+            collection = "CB4_64-1",
             data_dir = data_dir,
             parse_info = c("X1", "X2", "tile", "band", "date")
         )
@@ -428,9 +426,8 @@ test_that("Creating a raster stack cube and renaming bands", {
         sits_cube(
             source = "LOCAL",
             name = "022024",
-            satellite = "CBERS-4",
-            sensor = "AWFI",
-            resolution = "64m",
+            origin = "BDC",
+            collection = "CB4_64-1",
             data_dir = data_dir,
             delim = "_",
             parse_info = c("X1", "X2", "tile", "band", "date")
@@ -461,9 +458,8 @@ test_that("Creating a raster stack cube with BDC band names", {
         sits_cube(
             source = "LOCAL",
             name = "022024",
-            satellite = "CBERS-4",
-            sensor = "AWFI",
-            resolution = "64m",
+            origin = "BDC",
+            collection = "CB4_64-1",
             data_dir = data_dir,
             parse_info = c("X1", "X2", "X3", "X4", "X5", "tile",
                            "date", "X6", "band")
