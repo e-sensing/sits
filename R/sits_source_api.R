@@ -6,6 +6,8 @@
 #' These functions provide an API to handle/retrieve data from sources.
 #'
 #' @param source     A \code{character} value referring to a valid data source.
+#' @param internal   A \code{logical} value if internal sources should
+#' be listed. Internal sources are: 'PROBS', 'CLASSIFIED', and 'LOCAL'
 #'
 #' @return
 #' The values returned by each function are described as follows.
@@ -17,7 +19,7 @@ NULL
 #'
 #' @return \code{.sources()} returns a \code{character} vector
 #' with all sources names available in sits.
-.sources <- function() {
+.sources <- function(internal = TRUE) {
 
     res <- .config_names(key = c("sources"))
 
@@ -27,6 +29,11 @@ NULL
     # post-condition
     .check_chr(res, allow_empty = FALSE, len_min = 1,
                msg = "invalid 'sources' in config file")
+
+    # filter internal sources
+    if (!internal) {
+        res <- res[!res %in% c("PROBS", "CLASSIFIED", "LOCAL")]
+    }
 
     return(res)
 }

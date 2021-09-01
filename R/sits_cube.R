@@ -192,8 +192,8 @@
 #' cbers_cube <- sits_cube(
 #'     source = "LOCAL",
 #'     name = "022024",
-#'     satellite = "CBERS-4",
-#'     sensor = "AWFI",
+#'     origin = "BDC",
+#'     collection = "CB4_64-1",
 #'     data_dir = data_dir,
 #'     delim = "_",
 #'     parse_info = c("X1", "X2", "tile", "band", "date")
@@ -479,8 +479,8 @@ sits_cube.usgs_cube <- function(source = "USGS", ...,
 #' @export
 sits_cube.local_cube <- function(source = "LOCAL", ...,
                                  name   = "local_cube",
-                                 satellite,
-                                 sensor,
+                                 origin,
+                                 collection,
                                  bands = NULL,
                                  start_date = NULL,
                                  end_date = NULL,
@@ -493,7 +493,7 @@ sits_cube.local_cube <- function(source = "LOCAL", ...,
     .check_file(x = data_dir,
                 msg = "sits_cube: data_dir must be to be provided.")
 
-    collection <- paste0(satellite, "/", sensor)
+    collection <- paste0(origin, "/", collection)
 
     # precondition - check satellite and sensor
     .source_access_test(source = source, collection = collection)
@@ -599,9 +599,9 @@ sits_cube.default <- function(source, ...) {
 #' cbers_022024 <- sits_cube(
 #'     source = "LOCAL",
 #'     name = "cbers_022024",
-#'     satellite = "CBERS-4",
+#'     origin = "BDC",
+#'     collection = "CB4_64-1",
 #'     band = "NDVI",
-#'     sensor = "AWFI",
 #'     data_dir = data_dir,
 #'     parse_info = c("X1", "X2", "tile", "band", "date")
 #' )
