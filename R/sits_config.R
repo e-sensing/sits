@@ -405,9 +405,19 @@ sits_config_show <- function(source = NULL,
                   collections = collections), dots))
 }
 
-.config_new_collection <- function(bands, satellite, sensor, ...) {
+.config_new_collection <- function(bands, ...,
+                                   satellite = NULL,
+                                   sensor = NULL) {
     # set caller to show in errors
     .check_set_caller(".config_new_collection")
+
+    # check satellite
+    .check_chr(satellite, allow_null = TRUE,
+               msg = "invalid 'satellite' value")
+
+    #  check sensor
+    .check_chr(sensor, allow_null = TRUE,
+               msg = "invalid 'sensor' value")
 
     # bands names is upper case
     names(bands) <- toupper(names(bands))
