@@ -228,32 +228,12 @@
                     "character or numeric value.")
     )
 
-    t_sat <- .source_items_get_satellite(source = source,
-                                         items = items, ...,
-                                         collection = collection)
-
-    .check_chr_type(
-        x = t_sat,
-        msg = paste(".source_items_cube.stac_cube: satellite name must be",
-                    "a character value.")
-    )
-
-    t_sensor <- .source_items_get_sensor(source = source,
-                                         items = items, ...,
-                                         collection = collection)
-
-    .check_chr_type(
-        x = t_sensor,
-        msg = paste(".source_items_cube.stac_cube: sensor name must be a",
-                    "character value.")
-    )
-
     tile <- .sits_cube_create(
         name       = name[[1]],
         source     = source[[1]],
         collection = collection[[1]],
-        satellite  = t_sat[[1]],
-        sensor     = t_sensor[[1]],
+        satellite  = .source_collection_satellite(source, collection),
+        sensor     = .source_collection_sensor(source, collection),
         tile       = t_name[[1]],
         bands      = unique(file_info[["band"]]),
         nrows      = t_size[["nrows"]],

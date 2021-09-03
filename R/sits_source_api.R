@@ -891,11 +891,10 @@ NULL
 #'
 #' @return \code{.source_items_get_sensor()} returns a \code{character} value.
 #'
-.source_items_get_sensor <- function(source, items, ..., collection = NULL) {
+.source_collection_sensor <- function(source, collection) {
 
-    s <- .source_new(source)
-
-    UseMethod(".source_items_get_sensor", s)
+    .config_get(key = c("sources", source, "collections",
+                        collection, "sensor"))
 }
 
 #' @rdname source_cube
@@ -906,11 +905,10 @@ NULL
 #' @return \code{.source_items_get_satellite()} returns a \code{character}
 #' value.
 #'
-.source_items_get_satellite <- function(source, items, ..., collection = NULL) {
+.source_collection_satellite <- function(source, collection) {
 
-    s <- .source_new(source)
-
-    UseMethod(".source_items_get_satellite", s)
+    .config_get(key = c("sources", source, "collections",
+                        collection, "satellite"))
 }
 
 #' @rdname source_cube

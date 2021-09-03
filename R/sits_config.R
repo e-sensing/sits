@@ -314,8 +314,9 @@ sits_config_show <- function(source = NULL,
             source <- values[[1]]
             col_name <- values[[2]]
             col <- .config_get(key = c("sources", source, "collections",
-                                       col_name))
-            col["bands"]
+                                   col_name))
+
+            c(col["bands"], col["satellite"], col["sensor"])
         })
         names(local_collections) <- col_names
 
@@ -404,7 +405,7 @@ sits_config_show <- function(source = NULL,
                   collections = collections), dots))
 }
 
-.config_new_collection <- function(bands, ...) {
+.config_new_collection <- function(bands, satellite, sensor, ...) {
     # set caller to show in errors
     .check_set_caller(".config_new_collection")
 
@@ -451,7 +452,9 @@ sits_config_show <- function(source = NULL,
     dots <- list(...)
     .check_lst(dots, msg = "invalid extra arguments in collection")
 
-    res <- c(list(bands = c(non_cloud_bands, cloud_band)), dots)
+    res <- c(list(bands = c(non_cloud_bands, cloud_band)),
+             "satellite" = satellite,
+             "sensor" = sensor, dots)
 
     # post-condition
     .check_lst(res, min_len = 1,

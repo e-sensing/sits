@@ -62,16 +62,18 @@
         # create a raster_cube object from gdalcubes
         cube_brick <- .sits_gc_brick(tile, img_col, cv, cloud_mask)
 
-        band <- .source_bands_to_source(source = .cube_source(tile),
-                                        collection = .cube_collection(tile),
-                                        bands = band)
+        band_source <- .source_bands_to_source(
+            source = .cube_source(tile),
+            collection = .cube_collection(tile),
+            bands = band
+        )
 
         message(paste("Writing images of band", band, "of tile",
                       tile$tile))
 
         # write the aggregated cubes
         path_write <- gdalcubes::write_tif(
-            gdalcubes::select_bands(cube_brick, band),
+            gdalcubes::select_bands(cube_brick, band_source),
             dir = dir_images,
             prefix = paste("cube", tile$tile, band, "", sep = "_"),
             write_json_descr = TRUE, ...)

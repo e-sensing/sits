@@ -110,24 +110,6 @@
 
 #' @keywords internal
 #' @export
-.source_items_get_sensor.deafrica_cube <- function(source,
-                                                   items, ...,
-                                                   collection = NULL) {
-
-    items[["features"]][[1]][[c("properties", "instruments")]]
-}
-
-#' @keywords internal
-#' @export
-.source_items_get_satellite.deafrica_cube <- function(source,
-                                                      items, ...,
-                                                      collection = NULL) {
-
-    items[["features"]][[1]][[c("properties", "platform")]]
-}
-
-#' @keywords internal
-#' @export
 .source_items_tile_get_crs.deafrica_cube <- function(source,
                                                      tile_items, ...,
                                                      collection = NULL) {

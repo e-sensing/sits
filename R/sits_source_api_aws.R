@@ -199,23 +199,6 @@
 
 #' @keywords internal
 #' @export
-.source_items_get_sensor.aws_cube <- function(source,
-                                              items, ...,
-                                              collection = NULL) {
-
-    items[["features"]][[1]][[c("properties", "instruments")]]
-}
-
-#' @keywords internal
-#' @export
-.source_items_get_satellite.aws_cube <- function(source,
-                                                 items, ...,
-                                                 collection = NULL) {
-    items[["features"]][[1]][[c("properties", "constellation")]]
-}
-
-#' @keywords internal
-#' @export
 .source_items_tile_get_crs.aws_cube <- function(source,
                                                 tile_items, ...,
                                                 collection = NULL) {

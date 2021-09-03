@@ -52,8 +52,8 @@
         row <- .sits_cube_create(
             name = name,
             source = "LOCAL",
-            satellite = strsplit(collection, "/")[[1]][[1]],
-            sensor = strsplit(collection, "/")[[1]][[2]],
+            satellite = .source_collection_satellite(source, collection),
+            sensor = .source_collection_sensor(source, collection),
             collection = collection,
             tile = t,
             bands = bands,

@@ -227,25 +227,6 @@
 
 #' @keywords internal
 #' @export
-.source_items_get_sensor.usgs_cube <- function(source,
-                                               items, ...,
-                                               collection = NULL) {
-
-    # OLI and TIRS returned, taking only OLI
-    items[["features"]][[1]][[c("properties", "eo:instrument")]][[1]]
-}
-
-#' @keywords internal
-#' @export
-.source_items_get_satellite.usgs_cube <- function(source,
-                                                  items, ...,
-                                                  collection = NULL) {
-
-    items[["features"]][[1]][[c("properties", "platform")]]
-}
-
-#' @keywords internal
-#' @export
 .source_items_tile_get_crs.usgs_cube <- function(source,
                                                  tile_items, ...,
                                                  collection = NULL) {
