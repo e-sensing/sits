@@ -39,8 +39,8 @@ data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
 cube <- sits_cube(
     source = "LOCAL",
     name = "sinop-2014",
-    satellite = "TERRA",
-    sensor = "MODIS",
+    origin = "BDC",
+    collection = "MOD13Q1-6",
     data_dir = data_dir,
     delim = "_",
     parse_info = c("X1", "X2", "tile", "band", "date")
