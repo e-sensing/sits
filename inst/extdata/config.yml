@@ -357,6 +357,84 @@ sources:
                 satellite   : "SENTINEL-2"
                 sensor      : "MSI"
                 collection_name: "S2_10-1"
+            S2-SEN2COR_10_16D_STK-1 : &bdc_s2_sen2cor
+                bands       :
+                    NDVI    : &bdc_sen2cor_msi_ndvi
+                        missing_value : -9999
+                        minimum_value : -10000
+                        maximum_value : 10000
+                        scale_factor  : 0.0001
+                        offset_value  : 0
+                        resampling    : "bilinear"
+                        resolutions   : [10]
+                        band_name     : "NDVI"
+                    EVI     :
+                        <<: *bdc_sen2cor_msi_ndvi
+                        band_name     : "EVI"
+                    B01     : &bdc_sen2cor_msi_band1
+                        missing_value : -9999
+                        minimum_value : 0
+                        maximum_value : 10000
+                        scale_factor  : 0.0001
+                        offset_value  : 0
+                        resampling    : "bilinear"
+                        resolutions   : [10]
+                        band_name     : "B01"
+                    B02     :
+                        <<: *bdc_sen2cor_msi_band1
+                        band_name     : "B02"
+                    B03     :
+                        <<: *bdc_sen2cor_msi_band1
+                        band_name     : "B03"
+                    B04     :
+                        <<: *bdc_sen2cor_msi_band1
+                        band_name     : "B04"
+                    B05     :
+                        <<: *bdc_sen2cor_msi_band1
+                        band_name     : "B05"
+                    B06     :
+                        <<: *bdc_sen2cor_msi_band1
+                        band_name     : "B06"
+                    B07     :
+                        <<: *bdc_sen2cor_msi_band1
+                        band_name     : "B07"
+                    B08     :
+                        <<: *bdc_sen2cor_msi_band1
+                        band_name     : "B08"
+                    B8A     :
+                        <<: *bdc_sen2cor_msi_band1
+                        band_name     : "B8A"
+                    B09     :
+                        <<: *bdc_sen2cor_msi_band1
+                        band_name     : "B09"
+                    B11     :
+                        <<: *bdc_sen2cor_msi_band1
+                        band_name     : "B11"
+                    B12     :
+                        <<: *bdc_sen2cor_msi_band1
+                        band_name     : "B12"
+                    CLOUD   :
+                        bit_mask     : FALSE
+                        band_name    : "SCL"
+                        values       :
+                            0        : "missing_data"
+                            1        : "defective pixel"
+                            2        : "shadows"
+                            3        : "cloud shadows"
+                            4        : "vegetation"
+                            5        : "non-vegetated"
+                            6        : "water"
+                            7        : "unclassified"
+                            8        : "cloud medium"
+                            9        : "cloud high"
+                            10       : "thin cirrus"
+                            11       : "snow or ice"
+                        interp_values: [0, 1, 2, 3, 8, 9, 10, 11]
+                        resampling   : "near"
+                        resolutions  : [20, 60]
+                satellite   : "SENTINEL-2"
+                sensor      : "MSI"
+                collection_name: "S2-SEN2COR_10_16D_STK-1"
             LANDSAT-MOZ_30_1M_STK-1: &bdc_lc8
                 bands       :
                     NDVI    : &bdc_oli_ndvi
