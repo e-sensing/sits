@@ -226,7 +226,10 @@ test_that("User functions", {
                         resampling    = "near",
                         resolutions   = 30,
                         band_name     = "QA_PIXEL")
-                )))
+                ),
+                satellite = "SENTINEL-2",
+                sensor = "MSI")
+            )
         )))
 
     expect_equal(
