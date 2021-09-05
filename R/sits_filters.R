@@ -21,13 +21,16 @@
 #' @export
 sits_filter <- function(data, filter = sits_whittaker()) {
 
+    # set caller to show in errors
+    .check_set_caller("sits_filter")
+
     # is the input data a valid sits tibble?
     .sits_tibble_test(data)
 
     # is the train method a function?
     .check_that(
         x = inherits(filter, "function"),
-        msg = "sits_filter: filter is not a valid function"
+        msg = "filter is not a valid function"
     )
 
     # compute the training method by the given data
@@ -60,6 +63,10 @@ sits_filter <- function(data, filter = sits_whittaker()) {
 sits_envelope <- function(data = NULL,
                           operations = "UULL",
                           bands_suffix = "env") {
+
+    # set caller to show in errors
+    .check_set_caller("sits_envelope")
+
     # verifies if dtwclust package is installed
     if (!requireNamespace("dtwclust", quietly = TRUE)) {
         stop("dtwclust needed for this function to work.
@@ -80,7 +87,7 @@ sits_envelope <- function(data = NULL,
         .check_chr_within(
           x = operations,
           within = names(def_op),
-          msg = "sits_envelope: invalid operation sequence"
+          msg = "invalid operation sequence"
         )
 
         # compute envelopes

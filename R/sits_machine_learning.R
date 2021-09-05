@@ -38,18 +38,21 @@
 #'
 sits_train <- function(data, ml_method = sits_svm()) {
 
+    # set caller to show in errors
+    .check_set_caller("sits_train")
+
     # is the input data a valid sits tibble?
     .check_chr_within(
         x = "label",
         within = names(data),
         discriminator = "any_of",
-        msg = "sits_train: input data does not contain a valid sits tibble"
+        msg = "input data does not contain a valid sits tibble"
     )
 
     # is the train method a function?
     .check_that(
         x = inherits(ml_method, "function"),
-        msg = "sits_train: ml_method is not a valid function"
+        msg = "ml_method is not a valid function"
     )
 
     .check_that(
@@ -104,6 +107,9 @@ sits_train <- function(data, ml_method = sits_svm()) {
 #'
 sits_lda <- function(data = NULL, formula = sits_formula_logref(), ...) {
 
+    # set caller to show in errors
+    .check_set_caller("sits_lda")
+
     # function that returns MASS::lda model based on a sits sample tibble
     result_fun <- function(data) {
 
@@ -122,7 +128,7 @@ sits_lda <- function(data = NULL, formula = sits_formula_logref(), ...) {
             x = "reference",
             within = names(train_data),
             discriminator = "any_of",
-            msg = "sits_lda: input data does not contain distance"
+            msg = "input data does not contain distance"
         )
 
         # if parameter formula is a function
@@ -627,6 +633,9 @@ sits_xgboost <- function(data = NULL,
                          early_stopping_rounds = 20,
                          verbose = FALSE) {
 
+    # set caller to show in errors
+    .check_set_caller("sits_xgboost")
+
     # function that returns xgb model
     result_fun <- function(data) {
 
@@ -641,7 +650,7 @@ sits_xgboost <- function(data = NULL,
         .check_length(
             x = labels,
             len_min = 1,
-            msg = "sits_rfor: invalid data - bad labels"
+            msg = "invalid data - bad labels"
         )
         n_labels <- length(labels)
 
@@ -749,6 +758,10 @@ sits_xgboost <- function(data = NULL,
 #' @export
 #'
 sits_formula_logref <- function(predictors_index = -2:0) {
+
+    # set caller to show in errors
+    .check_set_caller("sits_formula_logref")
+
     # store configuration information about model formula
     sits_env$model_formula <- "log"
 
@@ -758,7 +771,7 @@ sits_formula_logref <- function(predictors_index = -2:0) {
     result_fun <- function(tb) {
         .check_that(
             x = nrow(tb) > 0,
-            msg = "sits_formula_logref - invalid data"
+            msg = "invalid data"
         )
         n_rows_tb <- nrow(tb)
 
@@ -801,6 +814,10 @@ sits_formula_logref <- function(predictors_index = -2:0) {
 #' @export
 #'
 sits_formula_linear <- function(predictors_index = -2:0) {
+
+    # set caller to show in errors
+    .check_set_caller("sits_formula_linear")
+
     # store configuration information about model formula
     sits_env$model_formula <- "linear"
 
@@ -810,7 +827,7 @@ sits_formula_linear <- function(predictors_index = -2:0) {
     result_fun <- function(tb) {
         .check_that(
             x = nrow(tb) > 0,
-            msg = "sits_formula_logref - invalid data"
+            msg = "invalid data"
         )
         n_rows_tb <- nrow(tb)
         # if no predictors_index are given, assume that all fields are used
@@ -846,6 +863,10 @@ sits_formula_linear <- function(predictors_index = -2:0) {
 #'
 #' @return A normalized sits tibble.
 .sits_ml_normalize_data <- function(data, stats) {
+
+    # set caller to show in errors
+    .check_set_caller(".sits_ml_normalize_data")
+
     # test if data is valid
     .sits_tibble_test(data)
 
@@ -856,7 +877,7 @@ sits_formula_linear <- function(predictors_index = -2:0) {
     .check_chr_within(
         x = sort(bands),
         within = sort(colnames(stats[, -1])),
-        msg = paste0("sits_normalize: data bands (",
+        msg = paste0("data bands (",
                      paste(bands, collapse = ", "),
                      ") do not match model bands (",
                      paste(colnames(stats[, -1]),

@@ -123,15 +123,18 @@
 
 .sits_shp_check_validity <- function(shp_file, shp_attr = NULL, label = NULL) {
 
+    # set caller to show in errors
+    .check_set_caller(".sits_shp_check_validity")
+
     # pre-condition - does the shapefile exist?
-    .check_file(x = shp_file, msg = "sits_from_shp: shapefile does not exist")
+    .check_file(x = shp_file, msg = "shapefile does not exist")
 
     # read the shapefile
     sf_shape <- sf::read_sf(shp_file)
     # pre-condition - is the default label valid?
     .check_that(
         x = nrow(sf_shape) > 0,
-        msg = "sits_from_shp: shapefile has no content"
+        msg = "shapefile has no content"
     )
 
     # get the geometry type
@@ -142,7 +145,7 @@
     # TODO: is it worth implements exact descriminator in .check_chr_within
     .check_that(
         x = all(sf::st_geometry_type(sf_shape) == geom_type),
-        msg = "sits_from_shp: shapefile has different geometries"
+        msg = "shapefile has different geometries"
     )
 
     # precondition - can the function deal with the geometry_type?
@@ -150,14 +153,14 @@
         x = as.character(geom_type),
         within = c("POINT", "POLYGON", "MULTIPOLYGON"),
         discriminator = "one_of",
-        msg = paste("sits_from_shp: only handles POINT, POLYGON or",
+        msg = paste("only handles POINT, POLYGON or",
                     "MULTIPOLYGON shapefiles")
     )
 
     # precondition - is the default label valid?
     .check_that(
         x = !purrr::is_null(label) || !purrr::is_null(shp_attr),
-        msg = "sits_from_shp: label or shape attribute should be valid"
+        msg = "label or shape attribute should be valid"
     )
 
 
@@ -167,7 +170,7 @@
     if (!purrr::is_null(shp_attr)) {
         .check_that(
             x = length(as.character(shp_df[1, (shp_attr)])) > 0,
-            msg = "sits_from_shp: invalid shapefile attribute"
+            msg = "invalid shapefile attribute"
         )
     }
 

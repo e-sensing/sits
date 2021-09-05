@@ -54,6 +54,9 @@
                                    start_date,
                                    end_date) {
 
+    # set caller to show in errors
+    .check_set_caller(".source_cube.stac_cube")
+
     items_query <- .stac_items_query(source = source,
                                      collection = collection,
                                      name = name,
@@ -117,6 +120,9 @@
                                              items, ...,
                                              collection = NULL) {
 
+    # set caller to show in errors
+    .check_set_caller(".source_items_fileinfo.stac_cube")
+
     file_info <- purrr::map_dfr(items$features, function(item){
 
         date <- suppressWarnings(
@@ -139,22 +145,22 @@
 
         .check_that(
             x = !is.na(date),
-            msg = ".source_cube: invalid date format."
+            msg = "invalid date format."
         )
 
         .check_that(
             x = is.character(bands),
-            msg = ".source_cube: invalid band format."
+            msg = "invalid band format."
         )
 
         .check_that(
             x = is.numeric(res),
-            msg = ".source_cube: invalid res format."
+            msg = "invalid res format."
         )
 
         .check_that(
             x = is.character(paths),
-            msg = ".source_cube: invalid path format."
+            msg = "invalid path format."
         )
 
         tidyr::unnest(
@@ -178,6 +184,8 @@
                                          items,
                                          file_info, ...) {
 
+    # set caller to show in errors
+    .check_set_caller(".source_items_cube.stac_cube")
 
     t_bbox <- .source_items_tile_get_bbox(source = source,
                                           tile_items = items, ...,
@@ -191,7 +199,7 @@
     )
 
     .check_num_type(x = t_bbox,
-                    msg = ".source_items_cube.stac_cube: bbox must be numeric.")
+                    msg = "bbox must be numeric.")
 
     t_size <- .source_items_tile_get_size(source = source,
                                           tile_items = items, ...,
@@ -199,13 +207,12 @@
     .check_chr_within(
         x = names(t_size),
         within = c("nrows", "ncols"),
-        msg = paste(".source_items_cube.stac_cube: size must be have",
-                    "'nrows' and 'ncols' names.")
+        msg = "size must be have 'nrows' and 'ncols' names."
     )
 
     .check_num_type(
         t_size,
-        msg = ".source_items_cube.stac_cube: size must be numeric."
+        msg = "size must be numeric."
     )
 
     # tile name
@@ -215,8 +222,7 @@
 
     .check_chr_type(
         x = t_name,
-        msg = paste(".source_items_cube.stac_cube: name must be a",
-                    "character value.")
+        msg = "name must be a character value."
     )
 
     t_crs <- .source_items_tile_get_crs(source = source,
@@ -224,8 +230,7 @@
                                         collection = collection)
     .check_that(
         x = is.character(t_crs) || is.numeric(t_crs),
-        msg = paste(".source_items_cube.stac_cube: name must be a",
-                    "character or numeric value.")
+        msg = "name must be a character or numeric value."
     )
 
     tile <- .sits_cube_create(

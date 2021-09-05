@@ -2,13 +2,15 @@
 #' @export
 .source_access_test.local_cube <- function(source, collection, ...) {
 
+    # set caller to show in errors
+    .check_set_caller(".source_access_test.local_cube")
+
     .check_chr_within(
         x = collection,
         within = .source_collections(source = source),
         discriminator = "any_of",
-        msg = paste(".source_access_test.local_cube: satellite or sensor not",
-                    "found.\nPlease, check sits config with ?sits_config",
-                    "command.")
+        msg = paste("satellite or sensor not found.\nPlease, check sits config",
+                    "with ?sits_config command.")
     )
     return(invisible(NULL))
 }
@@ -85,6 +87,9 @@
                                               start_date,
                                               end_date) {
 
+    # set caller to show in errors
+    .check_set_caller(".source_items_fileinfo.local_cube")
+
     file_info <- purrr::map_dfr(items, function(data_dir_row) {
 
         # how many of those files are images?
@@ -103,8 +108,7 @@
         .check_length(
             x = img_files,
             len_min = 1,
-            msg = paste(".source_items_fileinfo.local_cube: no file found in",
-                        "provided directory.")
+            msg = "no file found in provided directory."
         )
 
         # remove the extension
@@ -158,8 +162,7 @@
             .check_chr_within(
                 x = bands,
                 within = bands_info,
-                msg = paste(".sits_raster_stack_info: requested bands not",
-                            "available in cube")
+                msg = "requested bands not available in cube"
             )
 
             # select the requested bands
@@ -177,8 +180,7 @@
 
         .check_that(
             x = nrow(file_info) > 0,
-            msg = paste(".source_items_fileinfo.local_cube: no files in the",
-                        "provided time interval")
+            msg = "no files in the provided time interval"
         )
 
         params <- .raster_params_file(file_info$path[1])
@@ -189,10 +191,9 @@
         # post condition
         .check_that(
             x = nrow(file_info) > 0,
-            msg = paste(".sits_raster_stack_info: no file was found for the",
-                        "requested local cube. Please, verify the 'start_date'",
-                        "and 'end_date' and check if the provided directory is",
-                        "valid.")
+            msg = paste("no file was found for the requested local cube. ",
+                        "Please, verify the 'start_date' and 'end_date' and",
+                        "check if the provided directory is valid.")
         )
 
         file_info

@@ -154,6 +154,9 @@
                                         stac_query,
                                         tiles = NULL) {
 
+    # set caller to show in errors
+    .check_set_caller(".source_items_new.usgs_cube")
+
     # forcing version
     stac_query$version <- "0.9.0"
 
@@ -183,8 +186,7 @@
     # checks if the collection returned zero items
     .check_that(
         x = !(rstac::items_length(items) == 0),
-        msg = paste(".source_items_new.usgs_cube: the provided search returned",
-                    "zero items.")
+        msg = "the provided search returned zero items."
     )
 
     # filtering images by interval
