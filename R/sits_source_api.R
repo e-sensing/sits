@@ -210,8 +210,7 @@ NULL
     res <- toupper(res)
 
     if (!add_cloud)
-        res <- res[res != .source_cloud(source = source,
-                                        collection = collection)]
+        res <- res[res != .source_cloud()]
 
     if (!is.null(fn_filter)) {
         select <- vapply(res, function(band) {
