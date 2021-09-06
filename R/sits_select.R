@@ -25,6 +25,10 @@
 #' @export
 #'
 sits_select <- function(data, bands) {
+
+    # set caller to show in errors
+    .check_set_caller("sits_select")
+
     # get the meta-type (sits or cube)
     data <- .config_data_meta_type(data)
 
@@ -42,7 +46,7 @@ sits_select.sits <- function(data, bands) {
     .check_chr_within(
         x = bands,
         within = sits_bands(data),
-        msg = paste("sits_select: missing bands:",
+        msg = paste("missing bands:",
                     paste(bands[!bands %in% sits_bands(data)],
                           collapse = ", "))
     )
@@ -66,7 +70,7 @@ sits_select.cube <- function(data, bands) {
         x = bands,
         within = sits_bands(data),
         discriminator = "one_of",
-        msg = "sits_select: requested bands are not available in the data cube"
+        msg = "requested bands are not available in the data cube"
     )
 
     # assign the bands

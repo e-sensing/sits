@@ -32,24 +32,27 @@
 #' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
 .raster_check_block <- function(block) {
 
+    # set caller to show in errors
+    .check_set_caller(".raster_check_block")
+
     # precondition 1
     .check_chr_within(
         x = names(block),
         within = c("row", "nrows", "col", "ncols"),
-        msg = paste(".raster_check_block: block object must contains",
+        msg = paste("block object must contains",
                     "'row', 'nrows', 'col', 'ncols' entries")
     )
 
     # precondition 2
     .check_that(
         x = block[["row"]] > 0 && block[["col"]] > 0,
-        msg = ".raster_check_block: invalid block"
+        msg = "invalid block"
     )
 
     # precondition 3
     .check_that(
         x = block[["nrows"]] > 0 && block[["ncols"]] > 0,
-        msg = ".raster_check_block: invalid block"
+        msg = "invalid block"
     )
 
 }
@@ -203,10 +206,13 @@
 #' @return raster package object
 .raster_open_rast <- function(file, ...) {
 
+    # set caller to show in errors
+    .check_set_caller(".raster_open_rast")
+
     # check for file length == 1
     .check_that(
         length(file) == 1,
-        msg = ".raster_open_rast: more than one file were informed"
+        msg = "more than one file were informed"
     )
 
     # check package
@@ -228,10 +234,13 @@
 .raster_read_rast <- function(file,
                               block = NULL, ...) {
 
+    # set caller to show in errors
+    .check_set_caller(".raster_read_rast")
+
     # check for files length == 1
     .check_that(
         x = length(file) == 1,
-        msg = ".raster_read_rast: more than one file were informed"
+        msg = "more than one file were informed"
     )
 
     # check block
@@ -317,11 +326,14 @@
 #' @return raster package object
 .raster_open_stack <- function(files, ...) {
 
+    # set caller to show in errors
+    .check_set_caller(".raster_open_stack")
+
     # check for files length > 0
     .check_length(
         x = files,
         min = 1,
-        msg = ".raster_open_stack: no file informed"
+        msg = "no file informed"
     )
 
     # check package
@@ -508,10 +520,13 @@
                           window_size,
                           fn, ...) {
 
+    # set caller to show in errors
+    .check_set_caller(".raster_focal")
+
     # check window_size
     .check_that(
         x = window_size %% 2 == 1,
-        msg = ".raster_focal: window_size must be an odd number"
+        msg = "window_size must be an odd number"
     )
 
     # check fn parameter
@@ -519,14 +534,14 @@
 
         .check_that(
             x = length(fn) == 1,
-            msg = ".raster_focal: length of fn parameter must be one"
+            msg = "length of fn parameter must be one"
         )
 
         .check_chr_within(
             x = fn,
             within = c("modal", "sum", "mean"),
             discriminator = "one_of",
-            msg = ".raster_focal: invalid function"
+            msg = "invalid function"
         )
     }
 
@@ -590,11 +605,14 @@
 #' @return A tibble with the raster spatial parameters
 .raster_params_file <- function(file) {
 
+    # set caller to show in errors
+    .check_set_caller(".raster_params_file")
+
     # preconditions
     .check_length(
         x = file,
         min = 1,
-        msg = ".raster_params_file: no file was informed"
+        msg = "no file was informed"
     )
 
     # use first file
@@ -631,12 +649,15 @@
 .sits_cube_extract <- function(cube, band_cube, xy) {
 
 
+    # set caller to show in errors
+    .check_set_caller(".sits_cube_extract")
+
     # precondition 2
     .check_chr_within(
         x = band_cube,
         within = sits_bands(cube),
         discriminator = "one_of",
-        msg = paste(".raster_extract: band", band_cube,
+        msg = paste("band", band_cube,
                     "is not available in the cube ", cube$name)
     )
 
@@ -652,7 +673,7 @@
     # is the data valid?
     .check_that(
         x = nrow(values) == nrow(xy),
-        msg = ".raster_extract: error in retrieving data"
+        msg = "error in retrieving data"
     )
     return(values)
 }
@@ -667,10 +688,13 @@
 #'
 .sits_cube_area_freq <- function(cube) {
 
+    # set caller to show in errors
+    .check_set_caller(".sits_cube_area_freq")
+
     # precondition
     .check_that(
         x = inherits(cube, "classified_image"),
-        msg = ".sits_cube_area_freq: requires a labelled cube"
+        msg = "requires a labelled cube"
     )
 
     # retrieve the r object associated to the labelled cube
@@ -703,24 +727,27 @@
                           gdal_options,
                           overwrite) {
 
+    # set caller to show in errors
+    .check_set_caller(".raster_merge")
+
     # check if in_file length is at least one
     .check_length(
         x = in_files,
         min = 1,
-        msg = ".raster_merge: no file to merge"
+        msg = "no file to merge"
     )
 
     # check if all informed files exist
     .check_that(
         x = all(file.exists(in_files)),
-        msg = ".raster_merge: file does not exist"
+        msg = "file does not exist"
     )
 
     # check overwrite parameter
     .check_that(
         x = (file.exists(out_file) && overwrite) ||
             !file.exists(out_file),
-        msg = ".raster_merge: cannot overwrite existing file"
+        msg = "cannot overwrite existing file"
     )
 
     # delete result file

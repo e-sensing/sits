@@ -122,6 +122,9 @@ sits_som_map <- function(data,
                          som_radius = 2,
                          mode = "online") {
 
+    # set caller to show in errors
+    .check_set_caller("sits_som_map")
+
     # verifies if kohonen package is installed
     if (!requireNamespace("kohonen", quietly = TRUE)) {
         stop("kohonen needed for this function to work.
@@ -135,7 +138,7 @@ sits_som_map <- function(data,
     n_samples <- nrow(data)
     .check_that(
         n_samples > grid_xdim * grid_ydim,
-        msg = paste("sits_som_map: number of samples should be",
+        msg = paste("number of samples should be",
                     "greater than number of neurons")
     )
 
@@ -282,6 +285,9 @@ sits_som_clean_samples <- function(som_map,
                                    posterior_threshold = 0.6,
                                    keep = c("clean", "analyze")) {
 
+    # set caller to show in errors
+    .check_set_caller("sits_som_clean_samples")
+
     # Sanity check
     if (!inherits(som_map, "som_map")) {
         message("wrong input data; please run sits_som_map first")
@@ -290,7 +296,7 @@ sits_som_clean_samples <- function(som_map,
     .check_chr_within(
         x = keep,
         within = c("clean", "analyze", "remove"),
-        msg = "sits_som_clean_samples: invalid keep parameter"
+        msg = "invalid keep parameter"
     )
 
     # original_samples

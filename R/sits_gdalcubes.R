@@ -27,16 +27,18 @@
                              cloud_mask, ...,
                              version = "v1") {
 
+    # set caller to show in errors
+    .check_set_caller(".sits_gc_compose")
+
     .check_that(
         x = nrow(tile) == 1,
-        msg = ".sits_gc_compose: tile must have only one row."
+        msg = "tile must have only one row."
     )
 
     # verifies the path to save the images
     .check_that(
         x = dir.exists(dir_images),
-        msg = paste(".sits_gc_compose: The provided dir does not exist.",
-                    "Please provided a valid path.")
+        msg = "The provided dir does not exist. Please provided a valid path."
     )
 
     # create a clone cube
@@ -62,16 +64,18 @@
         # create a raster_cube object from gdalcubes
         cube_brick <- .sits_gc_brick(tile, img_col, cv, cloud_mask)
 
-        band <- .source_bands_to_source(source = .cube_source(tile),
-                                        collection = .cube_collection(tile),
-                                        bands = band)
+        band_source <- .source_bands_to_source(
+            source = .cube_source(tile),
+            collection = .cube_collection(tile),
+            bands = band
+        )
 
         message(paste("Writing images of band", band, "of tile",
                       tile$tile))
 
         # write the aggregated cubes
         path_write <- gdalcubes::write_tif(
-            gdalcubes::select_bands(cube_brick, band),
+            gdalcubes::select_bands(cube_brick, band_source),
             dir = dir_images,
             prefix = paste("cube", tile$tile, band, "", sep = "_"),
             write_json_descr = TRUE, ...)
@@ -205,10 +209,13 @@
 #'  images metadata.
 .sits_gc_database <- function(cube, path_db) {
 
+    # set caller to show in errors
+    .check_set_caller(".sits_gc_database")
+
     # error if a cube other than S2_L2A_AWS is provided
     .check_that(
         x = .sits_cube_source(cube) == "AWS",
-        msg = ".sits_gc_database: for now, only 'AWS' cubes can be aggregated."
+        msg = "for now, only 'AWS' cubes can be aggregated."
     )
 
     # joining the bands of all tiles
@@ -246,19 +253,22 @@
 #' @return a \code{cube_view} object from gdalcubes.
 .sits_gc_cube <- function(tile, period, roi, toi, agg_method, resampling) {
 
+    # set caller to show in errors
+    .check_set_caller(".sits_gc_cube")
+
     .check_that(
         x = nrow(tile) == 1,
-        msg = ".sits_gc_cube: tile must have only one row."
+        msg = "tile must have only one row."
     )
 
     .check_null(
         x = period,
-        msg = ".sits_gc_cube: the parameter 'period' must be provided."
+        msg = "the parameter 'period' must be provided."
     )
 
     .check_null(
         x = agg_method,
-        msg = ".sits_gc_cube: the parameter 'method' must be provided."
+        msg = "the parameter 'method' must be provided."
     )
 
     if (!purrr::is_null(roi)) {

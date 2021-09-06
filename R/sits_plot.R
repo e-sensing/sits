@@ -129,7 +129,11 @@ plot.predicted <- function(x, y, ..., bands = "NDVI") {
 #'
 plot.raster_cube <- function(x, y, ..., band, time = 1) {
 
-    #
+
+
+    # set caller to show in errors
+    .check_set_caller("plot.raster_cube")
+
     stopifnot(missing(y))
     # verifies if stars package is installed
     if (!requireNamespace("stars", quietly = TRUE)) {
@@ -139,13 +143,13 @@ plot.raster_cube <- function(x, y, ..., band, time = 1) {
     dates <- sits_timeline(x)
     .check_that(
         x = time >= 1 && time <= length(dates),
-        msg = "plot.raster_cube: invalid timeline"
+        msg = "invalid timeline"
     )
     # check if bands exists
     .check_chr_within(
         x = band,
         within = sits_bands(x),
-        msg = "plot.raster_cube: invalid band"
+        msg = "invalid band"
     )
     # get the file information
     file_info <- x$file_info[[1]]
@@ -826,6 +830,9 @@ plot.keras_model <- function(x, y, ...) {
                                   cutree_height = NULL,
                                   colors = "RdYlGn") {
 
+    # set caller to show in errors
+    .check_set_caller(".sits_plot_dendrogram")
+
     # verifies if dendextend package is installed
     if (!requireNamespace("dendextend", quietly = TRUE)) {
         stop("Please install package dendextend.", call. = FALSE)
@@ -837,7 +844,7 @@ plot.keras_model <- function(x, y, ...) {
     # ensures that a cluster object  exists
     .check_null(
         x = cluster_obj,
-        msg = ".sits_plot_dendrogram: no valid cluster object available"
+        msg = "no valid cluster object available"
     )
     # get unique labels
     data_labels <- data$label
@@ -846,8 +853,8 @@ plot.keras_model <- function(x, y, ...) {
     # warns if the number of available colors is insufficient to all labels
     if (length(u_lb) > (
         length(.sits_brewer_rgb[[.sits_brewer_color_name(colors)]]) - 1)) {
-        message("sits_plot_dendrogram: The number of labels
-                is greater than the number of available colors.")
+        message("The number of labels is greater than the number of available",
+                "colors.")
     }
 
     # extract the dendrogram object
@@ -1015,16 +1022,19 @@ plot.keras_model <- function(x, y, ...) {
                                         title = "Classified Image",
                                         legend = NULL) {
 
+
+    # set caller to show in errors
+    .check_set_caller(".sits_plot_classified_image")
+
     #precondition 1 - cube must be a labelled cube
     .check_chr_within(
         x = "classified_image",
         within = class(cube),
         discriminator = "any_of",
-        msg = ".sits_plot_classified_image: cube must be a classified image")
+        msg = "cube must be a classified image")
     #precondition 2 - time must be a positive integer
     .check_that(x = time >= 1,
-                msg = paste("sits_plot_classified_image: time must",
-                            "be a positive integer")
+                msg = paste("time must be a positive integer")
     )
 
     # get the raster object
@@ -1051,7 +1061,7 @@ plot.keras_model <- function(x, y, ...) {
         .check_chr_within(
             x = labels,
             within = names(legend),
-            msg = "sits_plot: some labels are missing from the legend")
+            msg = "some labels are missing from the legend")
         colors <- unname(legend[labels])
     }
     # set the names of the color vector

@@ -101,8 +101,8 @@
 #' cube <- sits_cube(
 #'     source = "LOCAL",
 #'     name = "sinop-2014",
-#'     satellite = "TERRA",
-#'     sensor = "MODIS",
+#'     origin = "BDC",
+#'     collection = "MOD13Q1-6",
 #'     data_dir = data_dir,
 #'     delim = "_",
 #'     parse_info = c("X1", "X2", "tile", "band", "date")
@@ -122,6 +122,12 @@
 #'
 #' @export
 sits_classify <- function(data, ml_model, ...) {
+
+    # set caller to show in errors
+    .check_set_caller("sits_classify")
+
+    # set caller to show in errors
+    .check_set_caller("sits_classify")
 
     # is the data a sits tibble? If not, it must be a cube
     if (!inherits(data, "sits")) {
@@ -148,7 +154,7 @@ sits_classify.sits <- function(data,
     # precondition: ensure the machine learning model has been built
     .check_null(
         x = ml_model,
-        msg = "sits_classify_ts: please provide a trained ML model"
+        msg = "please provide a trained ML model"
     )
 
     # Precondition: only savitsky-golay and whittaker filters are supported
@@ -157,8 +163,7 @@ sits_classify.sits <- function(data,
         .check_that(
             x = any(grepl("sgolay", (call_names))) ||
                 any(grepl("whittaker", (call_names))),
-            msg = paste("sits_classify_cube: only savitsky-golay and",
-                        "whittaker filters are supported")
+            msg = "only savitsky-golay and whittaker filters are supported"
         )
         data <- filter_fn(data)
     }
@@ -167,7 +172,7 @@ sits_classify.sits <- function(data,
     samples <- .sits_ml_model_samples(ml_model)
     .check_that(
         x = nrow(samples) > 0,
-        msg = "sits_classify: missing original samples"
+        msg = "missing original samples"
     )
 
     # get normalization params
@@ -187,7 +192,7 @@ sits_classify.sits <- function(data,
     # post condition: is distance data valid?
     .check_that(
         x = nrow(distances) > 0,
-        msg = "sits_classify.sits: problem with normalization"
+        msg = "problem with normalization"
     )
 
     # calculate the breaks in the time for multi-year classification
@@ -271,8 +276,7 @@ sits_classify.raster_cube <- function(data, ml_model, ...,
 
         .check_that(
             x = n_samples == n_tile,
-            msg = paste("sits_classify: number of instances of",
-                        "samples and cube differ")
+            msg = "number of instances of samples and cube differ"
         )
 
         # # The user can provide both interpolation and compositions functions

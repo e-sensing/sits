@@ -8,6 +8,7 @@
 \alias{.config_names}
 \alias{.config_gtiff_default_options}
 \alias{.config_local_file_extensions}
+\alias{.config_local_s3_class}
 \alias{.config_palettes}
 \alias{.config_palette_colors}
 \alias{.config_processing_bloat}
@@ -26,6 +27,8 @@
 .config_gtiff_default_options()
 
 .config_local_file_extensions()
+
+.config_local_s3_class()
 
 .config_palettes()
 

@@ -13,8 +13,8 @@ test_that("One-year, single core classification", {
     sinop <- sits_cube(
         source = "LOCAL",
         name = "sinop-2014",
-        satellite = "TERRA",
-        sensor = "MODIS",
+        origin = "BDC",
+        collection = "MOD13Q1-6",
         data_dir = data_dir,
         delim = "_",
         parse_info = c("X1", "X2", "tile", "band", "date")
@@ -52,8 +52,8 @@ test_that("One-year, multicore classification", {
     sinop <- sits_cube(
         source = "LOCAL",
         name = "sinop-2014",
-        satellite = "TERRA",
-        sensor = "MODIS",
+        origin = "BDC",
+        collection = "MOD13Q1-6",
         data_dir = data_dir,
         delim = "_",
         parse_info = c("X1", "X2", "tile", "band", "date")
@@ -100,8 +100,8 @@ test_that("One-year, single core classification with filter", {
     sinop <- sits_cube(
         source = "LOCAL",
         name = "sinop-2014",
-        satellite = "TERRA",
-        sensor = "MODIS",
+        origin = "BDC",
+        collection = "MOD13Q1-6",
         data_dir = data_dir,
         delim = "_",
         parse_info = c("X1", "X2", "tile", "band", "date")
@@ -132,8 +132,8 @@ test_that("One-year, multicore classification with filter", {
     sinop <- sits_cube(
         source = "LOCAL",
         name = "sinop-2014",
-        satellite = "TERRA",
-        sensor = "MODIS",
+        origin = "BDC",
+        collection = "MOD13Q1-6",
         data_dir = data_dir,
         delim = "_",
         parse_info = c("X1", "X2", "tile", "band", "date")
@@ -183,8 +183,8 @@ test_that("One-year, multicore classification with post-processing", {
     sinop <- sits_cube(
         source = "LOCAL",
         name = "sinop-2014",
-        satellite = "TERRA",
-        sensor = "MODIS",
+        origin = "BDC",
+        collection = "MOD13Q1-6",
         data_dir = data_dir,
         delim = "_",
         parse_info = c("X1", "X2", "tile", "band", "date")

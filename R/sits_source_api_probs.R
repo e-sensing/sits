@@ -9,6 +9,9 @@
                                     probs_labels,
                                     probs_files) {
 
+    # set caller to show in errors
+    .check_set_caller(".source_cube.probs_cube")
+
     # iterate through the input files
     tiles <- purrr::map(seq_along(probs_files), function(i) {
 
@@ -20,8 +23,8 @@
             x = n_layers,
             min = length(probs_labels),
             max = length(probs_labels),
-            msg = paste(".source_cube.probs_cube: mismatch between labels and",
-                        "bands in file", probs_files[[i]]))
+            msg = paste("mismatch between labels and bands in file",
+                        probs_files[[i]]))
 
         # get the file params
         params <- .raster_params_file(probs_files[[i]])

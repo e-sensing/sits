@@ -72,8 +72,8 @@ sits_cube(source, ...)
   source = "LOCAL",
   ...,
   name = "local_cube",
-  satellite,
-  sensor,
+  origin,
+  collection,
   bands = NULL,
   start_date = NULL,
   end_date = NULL,
@@ -122,11 +122,6 @@ data cube.}
 \item{s2_resolution}{Resolution of S2 images ("10m", "20m" or "60m").
 used to build cubes (only for AWS cubes).}
 
-\item{satellite}{Satellite that produced the images
-(only for creating data cubes from local files).}
-
-\item{sensor}{Sensor that produced the images.}
-
 \item{data_dir}{directory where local data is located
 (only for creating data cubes from local files).}
 
@@ -136,6 +131,11 @@ information
 
 \item{delim}{delimiter for parsing files without STAC information
 (only for creating data cubes from local files).}
+
+\item{satellite}{Satellite that produced the images
+(only for creating data cubes from local files).}
+
+\item{sensor}{Sensor that produced the images.}
 
 \item{probs_labels}{Labels associated to a probabilities cube.}
 
@@ -305,8 +305,8 @@ data_dir <- system.file("extdata/raster/cbers", package = "sits")
 cbers_cube <- sits_cube(
     source = "LOCAL",
     name = "022024",
-    satellite = "CBERS-4",
-    sensor = "AWFI",
+    origin = "BDC",
+    collection = "CB4_64-1",
     data_dir = data_dir,
     delim = "_",
     parse_info = c("X1", "X2", "tile", "band", "date")

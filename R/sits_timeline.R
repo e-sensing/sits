@@ -12,6 +12,8 @@
 #' @export
 #'
 sits_timeline <- function(data) {
+
+    .check_set_caller("sits_timeline")
     # get the meta-type (sits or cube)
     data <- .config_data_meta_type(data)
 
@@ -34,7 +36,7 @@ sits_timeline.raster_cube <- function(data) {
         timeline_tile <- unique(lubridate::as_date(tile$file_info[[1]]$date))
         .check_that(
             x = all(timeline_tile %in% timeline_first),
-            msg = "sits_timeline: data cube tiles have different timelines"
+            msg = "data cube tiles have different timelines"
         )
     })
 
@@ -69,7 +71,7 @@ sits_timeline.probs_cube <- function(data) {
 
     .check_that(
         x = nrow(data) == 1,
-        msg = "sits_timeline: requires a single cube tile"
+        msg = "requires a single cube tile"
     )
 
     # return the timeline of the cube
@@ -85,7 +87,7 @@ sits_timeline.classified_image <- function(data) {
 
     .check_that(
         x = nrow(data) == 1,
-        msg = "sits_timeline: requires a single cube tile"
+        msg = "requires a single cube tile"
     )
 
     # return the timeline of the cube
@@ -112,6 +114,9 @@ sits_timeline.classified_image <- function(data) {
 #'
 .sits_timeline_check_cube <- function(cube, start_date, end_date) {
 
+    # set caller to show in errors
+    .check_set_caller(".sits_timeline_check_cube")
+
     # get the timeline
     timeline <- sits_timeline(cube)
 
@@ -121,8 +126,7 @@ sits_timeline.classified_image <- function(data) {
     } else {
         .check_that(
             x = start_date >= timeline[1],
-            msg = paste(".sits_timeline_check_cube: start_date is not inside",
-                        "the cube timeline")
+            msg = paste("start_date is not inside the cube timeline")
         )
     }
     if (purrr::is_null(end_date)) {
@@ -130,8 +134,7 @@ sits_timeline.classified_image <- function(data) {
     } else {
         .check_that(
             x = end_date <= timeline[length(timeline)],
-            msg = paste(".sits_timeline_check_cube: end_date is not inside",
-                        "the cube timeline")
+            msg = paste("end_date is not inside the cube timeline")
         )
     }
 
@@ -293,6 +296,10 @@ sits_timeline.classified_image <- function(data) {
                                  ref_end_date,
                                  num_samples) {
 
+
+    # set caller to show in errors
+    .check_set_caller(".sits_timeline_match")
+
     # make sure the timelines is a valid set of dates
     timeline <- lubridate::as_date(timeline)
 
@@ -314,7 +321,7 @@ sits_timeline.classified_image <- function(data) {
     # is the start date a valid one?
     .check_that(
         x = .sits_timeline_valid_date(start_date, timeline),
-        msg = ".sits_timeline_match: start date in not inside timeline"
+        msg = "start date in not inside timeline"
     )
 
     # obtain the subset dates to break the input data set
@@ -329,8 +336,7 @@ sits_timeline.classified_image <- function(data) {
     # is the start date a valid one?
     .check_that(
         x = !(is.na(end_date)),
-        msg = paste(".sits_timeline_match: start and end date do not",
-                    "match timeline/n",
+        msg = paste("start and end date do not match timeline/n",
                     "Please compare your timeline with your samples")
     )
 
@@ -351,7 +357,7 @@ sits_timeline.classified_image <- function(data) {
     end_date <- subset_dates[[length(subset_dates)]][2]
     .check_that(
         x = .sits_timeline_valid_date(end_date, timeline),
-        msg = ".sits_timeline_match: end_date not inside timeline"
+        msg = "end_date not inside timeline"
     )
 
     return(subset_dates)
@@ -411,6 +417,10 @@ sits_timeline.classified_image <- function(data) {
 #' @return List of indexes to be extracted for each classification interval.
 #'
 .sits_timeline_dist_indexes <- function(class_info, ntimes) {
+
+    # set caller to show in errors
+    .check_set_caller(".sits_timeline_dist_indexes")
+
     # find the subsets of the input data
     dates_index <- class_info$dates_index[[1]]
 
@@ -422,7 +432,7 @@ sits_timeline.classified_image <- function(data) {
     n_bands <- length(bands)
     .check_that(
         x = n_bands > 0,
-        msg = ".sits_timeline_dist_indexes: no bands in cube"
+        msg = "no bands in cube"
     )
 
     # retrieve the time index
@@ -494,6 +504,9 @@ sits_timeline.classified_image <- function(data) {
                                   start_date = NULL,
                                   end_date = NULL) {
 
+    # set caller to show in errors
+    .check_set_caller(".sits_timeline_during")
+
     # obtain the start and end indexes
     if (purrr::is_null(start_date)) {
         start_date <- timeline[1]
@@ -506,7 +519,7 @@ sits_timeline.classified_image <- function(data) {
 
     .check_that(
         x = any(valid),
-        msg = paste(".sits_timeline_during: no valid data between ",
+        msg = paste("no valid data between ",
                     as.Date(start_date), " and ", as.Date(end_date))
     )
     return(timeline[valid])
@@ -526,16 +539,19 @@ sits_timeline.classified_image <- function(data) {
 #' @return              Tibble with corrected date information
 #'
 .sits_timeline_date_format <- function(tile_date_band) {
+
+    # set caller to show in errors
+    .check_set_caller(".sits_timeline_date_format")
+
     .check_that(
         x = nrow(tile_date_band) > 0,
-        msg = ".sits_timeline_date_format: invalid information"
+        msg = "invalid information"
     )
 
     .check_chr_within(
       x = c("tile", "date", "band"),
       within = colnames(tile_date_band),
-      msg = paste(".sits_timeline_date_format: error in obtaining",
-                    "tile, date and band information")
+      msg = paste("error in obtaining tile, date and band information")
     )
 
     # convert to datetime
@@ -553,7 +569,7 @@ sits_timeline.classified_image <- function(data) {
         # check if some format was not guessed
         .check_that(
             x = length(guessed_format) == length(tile_date_band$date),
-            msg = ".sits_timeline_date_format: Invalid date format in some file"
+            msg = "Invalid date format in some file"
         )
 
         # convert to date
@@ -565,7 +581,7 @@ sits_timeline.classified_image <- function(data) {
     # check if there are NAs values
     .check_that(
         x = all(!is.na(converted_date)),
-        msg = ".sits_timeline_date_format: Invalid date format in file"
+        msg = "Invalid date format in file"
     )
 
     tile_date_band$date <- converted_date

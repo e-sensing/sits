@@ -21,6 +21,10 @@
 #' @export
 #'
 sits_bands <- function(x) {
+
+    # set caller to show in errors
+    .check_set_caller("sits_bands")
+
     # get the meta-type (sits or cube)
     x <- .config_data_meta_type(x)
 
@@ -54,14 +58,14 @@ sits_bands.sits_model <- function(x) {
 
     .check_that(
         x = inherits(x, "function"),
-        msg = "sits_bands: invalid sits model"
+        msg = "invalid sits model"
     )
 
     .check_chr_within(
         x = "data",
         within = ls(environment(x)),
         discriminator = "any_of",
-        msg = "sits_bands: no samples found in the sits model"
+        msg = "no samples found in the sits model"
     )
 
     return(sits_bands.sits(environment(x)$data))

@@ -1,6 +1,6 @@
 Package: sits
 Type: Package
-Version: 0.13.1
+Version: 0.14.0
 Title: Satellite Image Time Series Analysis for Remote Sensing Data Cubes
 Authors@R: c(person('Rolf', 'Simoes', role = c('aut'), email = 'rolf.simoes@inpe.br'),
              person('Gilberto', 'Camara', role = c('aut', 'cre'), email = 'gilberto.camara@inpe.br'),
@@ -61,9 +61,7 @@ Suggests:
     dtwSat,
     e1071,
     flexclust,
-    future,
     gdalcubes,
-    imager,
     imputeTS, 
     keras (>= 2.6.0),
     kohonen,
@@ -74,11 +72,9 @@ Suggests:
     mgcv,
     nnet,
     openxlsx,
-    proto,
     ptw,
     reticulate (>= 1.18),
     randomForest,
-    ranger,
     Rcpp,
     RcppArmadillo,
     Rwtss (>= 0.9.1),

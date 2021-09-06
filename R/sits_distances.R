@@ -61,6 +61,9 @@
 .sits_distances_classify <- function(distances, class_info,
                                      ml_model, multicores) {
 
+    # set caller to show in errors
+    .check_set_caller(".sits_distances_classify")
+
     # keras-based models run in single-core mode
     if (inherits(ml_model, c("keras_model", "ranger_model", "xgb_model"))) {
         multicores <- 1
@@ -73,7 +76,7 @@
     attr_names <- names(.sits_distances(.sits_ml_model_samples(ml_model)[1, ]))
     .check_that(
         x = length(attr_names) > 0,
-        msg = "sits_classify_distances: training data not available"
+        msg = "training data not available"
     )
 
     # select the data table indexes for each time index

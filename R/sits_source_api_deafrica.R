@@ -10,6 +10,9 @@
 #'              by rstac.
 .deafrica_search_tiles <- function(items, tiles) {
 
+    # set caller to show in errors
+    .check_set_caller(".deafrica_search_tiles")
+
     # checks if the supplied tiles are in the searched items
     index_features <- purrr::map_lgl(items$features, function(feature) {
         region_code <- feature[["properties"]][["odc:region_code"]]
@@ -24,8 +27,7 @@
     # checks if the search return zero items
     .check_that(
         x = rstac::items_length(items) != 0,
-        msg = paste(".deafrica_search_tiles: the supplied tile(s) were",
-                    "not found.")
+        msg = "the supplied tile(s) were not found."
     )
 
     return(items)
@@ -75,6 +77,9 @@
                                             stac_query,
                                             tiles = NULL) {
 
+    # set caller to show in errors
+    .check_set_caller(".source_items_new.deafrica_cube")
+
     # making the request
     items_info <- rstac::post_request(q = stac_query, ...)
 
@@ -92,8 +97,8 @@
     # checks if the items returned any items
     .check_that(
         x = rstac::items_length(items_info) != 0,
-        msg = paste(".source_items_new.deafrica_cube: the provided search",
-                    "returned 0 items. Please, verify the provided parameters.")
+        msg = paste("the provided search returned 0 items. Please, verify",
+                    "the provided parameters.")
     )
 
     return(items_info)
@@ -106,24 +111,6 @@
                                                     collection = NULL) {
 
     rstac::items_group(items, field = c("properties", "odc:region_code"))
-}
-
-#' @keywords internal
-#' @export
-.source_items_get_sensor.deafrica_cube <- function(source,
-                                                   items, ...,
-                                                   collection = NULL) {
-
-    items[["features"]][[1]][[c("properties", "instruments")]]
-}
-
-#' @keywords internal
-#' @export
-.source_items_get_satellite.deafrica_cube <- function(source,
-                                                      items, ...,
-                                                      collection = NULL) {
-
-    items[["features"]][[1]][[c("properties", "platform")]]
 }
 
 #' @keywords internal

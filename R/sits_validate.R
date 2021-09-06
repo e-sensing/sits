@@ -46,6 +46,9 @@ sits_kfold_validate <- function(data,
                                 ml_method = sits_rfor(),
                                 multicores = 2) {
 
+    # set caller to show in errors
+    .check_set_caller("sits_kfold_validate")
+
     # require package
     if (!requireNamespace("caret", quietly = TRUE)) {
         stop("Please install package caret.", call. = FALSE)
@@ -69,7 +72,7 @@ sits_kfold_validate <- function(data,
     # is the data labelled?
     .check_that(
         x = !("NoClass" %in% sits_labels(data)),
-        msg = "sits_cross_validate: requires labelled set of time series"
+        msg = "requires labelled set of time series"
     )
 
     # create partitions different splits of the input data

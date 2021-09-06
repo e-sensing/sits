@@ -2,6 +2,16 @@
 
 We are preparing to release the package on CRAN and are making relevant changes in the development version.
 
+# What's new in SITS version 0.14.0
+
+### New features in SITS version 0.14.0
+
+* Support for different providers to LOCAL sources
+* LOCAL source is dynamically built
+* Remove `sits_cube.local_cube()` function parameters `satellite` and `sensor`
+* Add parameters `origin` and `collection` to `sits_cube.local_cube()` function
+* Fix LOCAL source examples and tests
+
 # What's new in SITS version 0.13.1
 
 ### New features in SITS version 0.13.1
