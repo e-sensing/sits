@@ -146,10 +146,10 @@ the following example.
 ``` r
 library(sits)
 #> Using configuration file: /home/sits/R/x86_64-pc-linux-gnu-library/4.1/sits/extdata/config.yml
+#> To provide additional configurations, create an YAML file and inform its path to environment variable 'SITS_CONFIG_USER_FILE'.
 #> Using raster package: terra
-#> To provide additional configurations, create an YAML file and inform its path to environment variable 'SITS_USER_CONFIG_FILE'.
 #> SITS - satellite image time series analysis.
-#> Loaded sits v0.13.0-2.
+#> Loaded sits v0.14.0.
 #>         See ?sits for help, citation("sits") for use in publication.
 #>         See demo(package = "sits") for examples.
 # create a cube from a local file 
@@ -449,12 +449,12 @@ be used in sits.
 The authors acknowledge the contributions of Marius Appel, Tim
 Appelhans, Henrik Bengtsson, Matt Dowle, Robert Hijmans, Edzer Pebesma,
 and Ron Wehrens, respectively chief developers of the packages
-“gdalcubes”, “mapview”, “future”, “data.table”, “terra/raster”,
-“sf”/“stars”, and “kohonen”. The code in “sits” is also much indebted to
-the work of the RStudio team, including the “tidyverse” and the “furrr”
-and “keras” packages. We also thank Charlotte Pelletier and Hassan Fawaz
-for sharing the python code that has been reused for the “TempCNN” and
-“ResNet” machine learning models.
+“gdalcubes”, “mapview”, “data.table”, “terra/raster”, “sf”/“stars”, and
+“kohonen”. The code in “sits” is also much indebted to the work of the
+RStudio team, including the “tidyverse” and the “furrr” and “keras”
+packages. We also thank Charlotte Pelletier and Hassan Fawaz for sharing
+the python code that has been reused for the “TempCNN” and “ResNet”
+machine learning models.
 
 ## How to contribute
 
