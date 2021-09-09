@@ -85,6 +85,9 @@ sits_mlp <- function(samples = NULL,
                      validation_split = 0.2,
                      verbose = 0) {
 
+    # set caller to show in errors
+    .check_set_caller("sits_mlp")
+
     # function that returns a keras model based on samples
     result_fun <- function(data) {
 
@@ -97,19 +100,18 @@ sits_mlp <- function(samples = NULL,
         # pre-conditions
         .check_that(
             x = length(layers) == length(dropout_rates),
-            msg = "sits_mlp: number of layers does not match
-                        number of dropout rates"
+            msg = "number of layers does not match number of dropout rates"
         )
         .check_that(
             x = length(activation) == 1,
-            msg = "sits_mlp: use only one activation function"
+            msg = "use only one activation function"
         )
         valid_activations <- c("relu", "elu", "selu", "sigmoid")
         .check_chr_within(
             x = activation,
             within = valid_activations,
             discriminator = "any_of",
-            msg = "sits_mlp: invalid node activation method"
+            msg = "invalid node activation method"
         )
         # data normalization
         stats <- .sits_ml_normalization_param(data)
@@ -120,7 +122,7 @@ sits_mlp <- function(samples = NULL,
             x = "reference",
             within = names(train_data),
             discriminator = "any_of",
-            msg = "sits_mlp: input data does not contain distances"
+            msg = "input data does not contain distances"
         )
 
         # get the labels of the data

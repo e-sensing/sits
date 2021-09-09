@@ -71,6 +71,9 @@
                                          impute_fn,
                                          .verbose = FALSE) {
 
+    # set caller to show in errors
+    .check_set_caller(".sits_raster_data_preprocess")
+
     # get the file information for the cube
     file_info <- cube$file_info[[1]]
 
@@ -116,7 +119,7 @@
         .check_length(
             x = bnd_files,
             len_min = 1,
-            msg = paste(".sits_raster_data_preprocess: no files for band", b)
+            msg = paste("no files for band", b)
         )
 
         # read the values
@@ -232,17 +235,21 @@
                                      cld_band = NULL,
                                      impute_fn = sits_impute_linear()) {
 
+
+    # set caller to show in errors
+    .check_set_caller(".sits_raster_data_get_ts")
+
     # ensure metadata tibble exists
     .check_that(
         x = nrow(cube) >= 1,
-        msg = ".sits_raster_data_get_ts: need a valid metadata for data cube"
+        msg = "need a valid metadata for data cube"
     )
 
     names <- c("longitude", "latitude", "label")
     .check_chr_within(
         x = names,
         within = colnames(points),
-        msg = ".sits_raster_data_get_ts: data input is not valid"
+        msg = "data input is not valid"
     )
 
     # get the timeline

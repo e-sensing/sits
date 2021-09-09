@@ -84,6 +84,8 @@ sits_TempCNN <- function(samples = NULL,
                          validation_split  = 0.2,
                          verbose = 0) {
 
+    # set caller to show in errors
+    .check_set_caller("sits_TempCNN")
 
     # function that returns keras model based on a sits sample data.table
     result_fun <- function(data) {
@@ -101,39 +103,38 @@ sits_TempCNN <- function(samples = NULL,
             x = cnn_layers,
             len_min = length(cnn_kernels),
             len_max = length(cnn_kernels),
-            msg = "sits_tempCNN: 1D layers must match 1D kernel sizes"
+            msg = "1D layers must match 1D kernel sizes"
         )
 
         .check_length(
             x = cnn_layers,
             len_min = length(cnn_dropout_rates),
             len_max = length(cnn_dropout_rates),
-            msg = "sits_tempCNN: 1D layers must match 1D dropout rates"
+            msg = "1D layers must match 1D dropout rates"
         )
 
         .check_that(
             x = length(dense_layer_nodes) == 1,
-            msg = "sits_tempCNN: There is only one dense layer"
+            msg = "There is only one dense layer"
         )
 
         .check_that(
             x = length(dense_layer_dropout_rate) == 1,
-            msg = paste("sits_tempCNN: dropout rates must be provided for the",
-                        "dense layer")
+            msg = "dropout rates must be provided for the dense layer"
         )
 
         .check_chr_within(
             x = cnn_activation,
             within = valid_activations,
             discriminator = "one_of",
-            msg = "sits_tempCNN: invalid CNN activation method"
+            msg = "invalid CNN activation method"
         )
 
         .check_chr_within(
             x = dense_layer_activation,
             within = valid_activations,
             discriminator = "one_of",
-            msg = "sits_tempCNN: invalid node activation method"
+            msg = "invalid node activation method"
         )
 
         # get the labels of the data

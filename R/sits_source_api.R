@@ -210,8 +210,7 @@ NULL
     res <- toupper(res)
 
     if (!add_cloud)
-        res <- res[res != .source_cloud(source = source,
-                                        collection = collection)]
+        res <- res[res != .source_cloud()]
 
     if (!is.null(fn_filter)) {
         select <- vapply(res, function(band) {
@@ -426,8 +425,7 @@ NULL
 #'
 #' @return \code{.source_cloud()} returns a \code{character} vector with cloud
 #' band name.
-.source_cloud <- function(source,
-                          collection) {
+.source_cloud <- function() {
 
     return("CLOUD")
 }
@@ -451,8 +449,7 @@ NULL
     .source_collection_check(source = source, collection = collection)
 
     res <- .config_get(key = c("sources", source, "collections", collection,
-                               "bands", .source_cloud(source = source,
-                                                      collection = collection),
+                               "bands", .source_cloud(),
                                "bit_mask"))
 
     # post-condition
@@ -482,8 +479,7 @@ NULL
     .source_collection_check(source = source, collection = collection)
 
     res <- .config_get(key = c("sources", source, "collections", collection,
-                               "bands", .source_cloud(source = source,
-                                                      collection = collection),
+                               "bands", .source_cloud(),
                                "values"))
 
     # post-condition
@@ -513,8 +509,7 @@ NULL
     .source_collection_check(source = source, collection = collection)
 
     res <- .config_get(key = c("sources", source, "collections", collection,
-                               "bands", .source_cloud(source = source,
-                                                      collection = collection),
+                               "bands", .source_cloud(),
                                "interp_values"))
 
     # post-condition
@@ -891,11 +886,15 @@ NULL
 #'
 #' @return \code{.source_items_get_sensor()} returns a \code{character} value.
 #'
-.source_items_get_sensor <- function(source, items, ..., collection = NULL) {
+.source_collection_sensor <- function(source, collection) {
 
-    s <- .source_new(source)
+    res <- .config_get(key = c("sources", source, "collections",
+                               collection, "sensor"))
 
-    UseMethod(".source_items_get_sensor", s)
+    .check_chr(res, allow_null = TRUE,
+               msg = "invalid 'sensor' value")
+
+    return(res)
 }
 
 #' @rdname source_cube
@@ -906,11 +905,15 @@ NULL
 #' @return \code{.source_items_get_satellite()} returns a \code{character}
 #' value.
 #'
-.source_items_get_satellite <- function(source, items, ..., collection = NULL) {
+.source_collection_satellite <- function(source, collection) {
 
-    s <- .source_new(source)
+    res <- .config_get(key = c("sources", source, "collections",
+                               collection, "satellite"))
 
-    UseMethod(".source_items_get_satellite", s)
+    .check_chr(res, allow_null = TRUE,
+               msg = "invalid 'satellite' value")
+
+    return(res)
 }
 
 #' @rdname source_cube

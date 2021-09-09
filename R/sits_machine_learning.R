@@ -38,18 +38,21 @@
 #'
 sits_train <- function(data, ml_method = sits_svm()) {
 
+    # set caller to show in errors
+    .check_set_caller("sits_train")
+
     # is the input data a valid sits tibble?
     .check_chr_within(
         x = "label",
         within = names(data),
         discriminator = "any_of",
-        msg = "sits_train: input data does not contain a valid sits tibble"
+        msg = "input data does not contain a valid sits tibble"
     )
 
     # is the train method a function?
     .check_that(
         x = inherits(ml_method, "function"),
-        msg = "sits_train: ml_method is not a valid function"
+        msg = "ml_method is not a valid function"
     )
 
     .check_that(
@@ -104,6 +107,9 @@ sits_train <- function(data, ml_method = sits_svm()) {
 #'
 sits_lda <- function(data = NULL, formula = sits_formula_logref(), ...) {
 
+    # set caller to show in errors
+    .check_set_caller("sits_lda")
+
     # function that returns MASS::lda model based on a sits sample tibble
     result_fun <- function(data) {
 
@@ -122,7 +128,7 @@ sits_lda <- function(data = NULL, formula = sits_formula_logref(), ...) {
             x = "reference",
             within = names(train_data),
             discriminator = "any_of",
-            msg = "sits_lda: input data does not contain distance"
+            msg = "input data does not contain distance"
         )
 
         # if parameter formula is a function
@@ -347,119 +353,7 @@ sits_mlr <- function(data = NULL, formula = sits_formula_linear(),
     result <- .sits_factory_function(data, result_fun)
     return(result)
 }
-#' @title Train a sits classifiction model using fast random forest algorithm
-#' @name sits_ranger
-#'
-#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
-#' @author Alexandre Ywata de Carvalho, \email{alexandre.ywata@@ipea.gov.br}
-#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
-#'
-#' @description Use Fast Random Forest algorithm to classify data.
-#' This function is a front-end to the "ranger" method in the "ranger" package.
-#' Please refer to the documentation in that package for more details.
-#'
-#' @param data         Time series with the training samples.
-#' @param num_trees    Number of trees to grow. This should not be set
-#'                      to too small a number,
-#'                      to ensure that every input row gets predicted
-#'                      at least a few times. (default: 2000).
-#' @param importance   Variable importance mode, one of 'none',
-#'                      'impurity', 'impurity_corrected', 'permutation'.
-#'                     The 'impurity' measure is the Gini index.
-#' @param ...          Other \code{\link[ranger]{ranger}}  parameters
-#' @return             Model fitted to input data
-#'                     (to be passed to \code{\link[sits]{sits_classify}})
-#' @examples
-#' # Retrieve the set of samples for Mato Grosso  (provided by EMBRAPA)
-#' samples_ndvi <- sits_select(samples_mt_6bands, bands = c("NDVI"))
-#'
-#' # Build a machine learning model
-#' ml_model <- sits_train(samples_ndvi, sits_ranger(num_trees = 100))
-#'
-#' # get a point and classify the point with the ml_model
-#' point_ndvi <- sits_select(point_mt_6bands, bands = "NDVI")
-#' class <- sits_classify(point_ndvi, ml_model)
-#'
-#' @export
-#'
-sits_ranger <- function(data = NULL,
-                        num_trees = 200,
-                        importance = "impurity", ...) {
 
-    # function that returns a randomForest model based on a sits sample tibble
-    result_fun <- function(data) {
-
-        # verifies if ranger package is installed
-        if (!requireNamespace("ranger", quietly = TRUE)) {
-            stop(paste("ranger required for this function to work.",
-                       "Please install it."), call. = FALSE)
-        }
-
-        valid_importance <- c("none", "impurity", "permutation")
-
-        # is the input data consistent?
-        .check_chr_within(
-            x = importance,
-            within = valid_importance,
-            discriminator = "any_of",
-            msg = "sits_ranger: invalid variable importance value"
-        )
-
-        # get the labels of the data
-        labels <- sits_labels(data)
-        .check_length(
-            x = labels,
-            min = 1,
-            msg = "sits_ranger: invalid data - bad labels"
-        )
-        n_labels <- length(labels)
-
-        # create a named vector with integers match the class labels
-        int_labels <- c(1:n_labels)
-        names(int_labels) <- labels
-
-        # calculate the distances
-        train_data <- .sits_distances(data)
-
-        # obtain a valid formula for training
-        formula <- sits_formula_linear()(train_data)
-
-        # call `ranger::ranger` method and return the trained model
-        result_ranger <- ranger::ranger(
-            formula = formula,
-            data = train_data[, 2:ncol(train_data)],
-            probability = TRUE, importance = importance,
-            num.trees = num_trees, min.node.size = 1, ...
-        )
-
-        # construct model predict closure function and return it
-        model_predict <- function(values) {
-
-            # verifies if ranger package is installed
-            if (!requireNamespace("ranger", quietly = TRUE)) {
-                stop(paste("ranger required for this function to work.",
-                           "Please install it."), call. = FALSE)
-            }
-
-            # retrieve the prediction results
-            preds <- stats::predict(result_ranger,
-                                    data = values,
-                                    type = "response"
-            )
-
-            # return the prediction values and their probabilities
-            prediction <- data.table::as.data.table(preds$predictions)
-
-            return(prediction)
-        }
-        class(model_predict) <- c("ranger_model", "sits_model",
-                                  class(model_predict))
-        return(model_predict)
-    }
-
-    result <- .sits_factory_function(data, result_fun)
-    return(result)
-}
 #' @title Train a SITS classifiction model using random forest algorithm
 #' @name sits_rfor
 #'
@@ -739,6 +633,9 @@ sits_xgboost <- function(data = NULL,
                          early_stopping_rounds = 20,
                          verbose = FALSE) {
 
+    # set caller to show in errors
+    .check_set_caller("sits_xgboost")
+
     # function that returns xgb model
     result_fun <- function(data) {
 
@@ -753,7 +650,7 @@ sits_xgboost <- function(data = NULL,
         .check_length(
             x = labels,
             len_min = 1,
-            msg = "sits_rfor: invalid data - bad labels"
+            msg = "invalid data - bad labels"
         )
         n_labels <- length(labels)
 
@@ -861,6 +758,10 @@ sits_xgboost <- function(data = NULL,
 #' @export
 #'
 sits_formula_logref <- function(predictors_index = -2:0) {
+
+    # set caller to show in errors
+    .check_set_caller("sits_formula_logref")
+
     # store configuration information about model formula
     sits_env$model_formula <- "log"
 
@@ -870,7 +771,7 @@ sits_formula_logref <- function(predictors_index = -2:0) {
     result_fun <- function(tb) {
         .check_that(
             x = nrow(tb) > 0,
-            msg = "sits_formula_logref - invalid data"
+            msg = "invalid data"
         )
         n_rows_tb <- nrow(tb)
 
@@ -913,6 +814,10 @@ sits_formula_logref <- function(predictors_index = -2:0) {
 #' @export
 #'
 sits_formula_linear <- function(predictors_index = -2:0) {
+
+    # set caller to show in errors
+    .check_set_caller("sits_formula_linear")
+
     # store configuration information about model formula
     sits_env$model_formula <- "linear"
 
@@ -922,7 +827,7 @@ sits_formula_linear <- function(predictors_index = -2:0) {
     result_fun <- function(tb) {
         .check_that(
             x = nrow(tb) > 0,
-            msg = "sits_formula_logref - invalid data"
+            msg = "invalid data"
         )
         n_rows_tb <- nrow(tb)
         # if no predictors_index are given, assume that all fields are used
@@ -958,6 +863,10 @@ sits_formula_linear <- function(predictors_index = -2:0) {
 #'
 #' @return A normalized sits tibble.
 .sits_ml_normalize_data <- function(data, stats) {
+
+    # set caller to show in errors
+    .check_set_caller(".sits_ml_normalize_data")
+
     # test if data is valid
     .sits_tibble_test(data)
 
@@ -968,7 +877,7 @@ sits_formula_linear <- function(predictors_index = -2:0) {
     .check_chr_within(
         x = sort(bands),
         within = sort(colnames(stats[, -1])),
-        msg = paste0("sits_normalize: data bands (",
+        msg = paste0("data bands (",
                      paste(bands, collapse = ", "),
                      ") do not match model bands (",
                      paste(colnames(stats[, -1]),

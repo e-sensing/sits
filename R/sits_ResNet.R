@@ -86,6 +86,9 @@ sits_ResNet <- function(samples = NULL,
                         validation_split = 0.2,
                         verbose = 0) {
 
+    # set caller to show in errors
+    .check_set_caller("sits_ResNet")
+
     # function that returns keras model based on a sits sample data.table
     result_fun <- function(data) {
         # verifies if keras package is installed
@@ -100,12 +103,12 @@ sits_ResNet <- function(samples = NULL,
             x = activation,
             within = valid_activations,
             discriminator = "any_of",
-            msg = "sits_ResNet: invalid CNN activation method"
+            msg = "invalid CNN activation method"
         )
 
         .check_that(
             x = length(kernels) == 3,
-            msg = "sits_ResNet: should inform size of three kernels"
+            msg = "should inform size of three kernels"
         )
 
         # get the labels of the data

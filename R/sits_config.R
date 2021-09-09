@@ -314,8 +314,9 @@ sits_config_show <- function(source = NULL,
             source <- values[[1]]
             col_name <- values[[2]]
             col <- .config_get(key = c("sources", source, "collections",
-                                       col_name))
-            col["bands"]
+                                   col_name))
+
+            c(col["bands"], col["satellite"], col["sensor"])
         })
         names(local_collections) <- col_names
 
@@ -404,9 +405,19 @@ sits_config_show <- function(source = NULL,
                   collections = collections), dots))
 }
 
-.config_new_collection <- function(bands, ...) {
+.config_new_collection <- function(bands, ...,
+                                   satellite = NULL,
+                                   sensor = NULL) {
     # set caller to show in errors
     .check_set_caller(".config_new_collection")
+
+    # check satellite
+    .check_chr(satellite, allow_null = TRUE,
+               msg = "invalid 'satellite' value")
+
+    #  check sensor
+    .check_chr(sensor, allow_null = TRUE,
+               msg = "invalid 'sensor' value")
 
     # bands names is upper case
     names(bands) <- toupper(names(bands))
@@ -451,7 +462,9 @@ sits_config_show <- function(source = NULL,
     dots <- list(...)
     .check_lst(dots, msg = "invalid extra arguments in collection")
 
-    res <- c(list(bands = c(non_cloud_bands, cloud_band)), dots)
+    res <- c(list(bands = c(non_cloud_bands, cloud_band)),
+             "satellite" = satellite,
+             "sensor" = sensor, dots)
 
     # post-condition
     .check_lst(res, min_len = 1,
@@ -725,26 +738,27 @@ NULL
     # pre-condition
     .config_palette_check(palette = palette)
 
-    res <- .config_get(key = c("palettes", palette))[labels]
-    names(res) <- labels
+    # get the names of the colors in the chosen pallete
+    color_names <- .config_get(key = c("palettes", palette))
 
-    if (any(is.na(res))) {
-
-        random <- grDevices::colors()
-        random <- random[!random %in% res]
-        res[is.na(res)] <- sample(random, sum(is.na(res)))
-    }
+    .check_chr_within(
+        x = labels,
+        within = names(color_names),
+        msg = "some labels are missing from the palette"
+    )
+    colors <- color_names[labels]
 
     # simplify
-    res <- unlist(res, use.names = FALSE)
+    colors <- unlist(colors)
 
     # post-condition
-    .check_chr(res,
+    .check_chr(colors,
                len_min = length(labels),
                len_max = length(labels),
+               is_named = TRUE,
                msg = "invalid 'color' values")
 
-    return(res)
+    return(colors)
 }
 
 .config_palette_check <- function(palette) {

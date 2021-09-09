@@ -106,6 +106,9 @@ NULL
 #' @rdname sits_debug_log
 .sits_debug <- function(flag = NULL) {
 
+    # set caller to show in errors
+    .check_set_caller(".sits_debug")
+
     # if no parameter is passed get current debug flag
     if (purrr::is_null(flag)) {
         flag <- sits_env$debug_flag
@@ -120,7 +123,7 @@ NULL
     }
 
     .check_lgl_type(x = flag,
-                    msg = ".sits_debug: flag must be a logical value" )
+                    msg = "flag must be a logical value" )
 
     # set debug flag
     sits_env$debug_flag <- flag

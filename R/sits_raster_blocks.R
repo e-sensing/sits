@@ -105,6 +105,10 @@
 #' @return        a list with named vectors ("row", "nrows", "col", "ncols")
 #'
 .sits_raster_block_list <- function(nblocks, sub_image) {
+
+    # set caller to show in errors
+    .check_set_caller(".sits_raster_block_list")
+
     # number of rows per block
     block_rows <- ceiling(sub_image["nrows"] / nblocks)
 
@@ -122,7 +126,7 @@
     n_rows <- length(row_vec)
     .check_that(
         x = n_rows > 0,
-        msg = ".sits_raster_block_list: empty row vector"
+        msg = "empty row vector"
     )
     nrows_vec <- rep.int(block_rows, n_rows)
 

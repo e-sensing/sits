@@ -50,6 +50,9 @@
 #'             NULL, otherwise bbox gets NULL if intersects is specified.
 .stac_roi <- function(roi) {
 
+    # set caller to show in errors
+    .check_set_caller(".stac_roi")
+
     # list to store parameters values
     roi_list <- list()
 
@@ -69,7 +72,7 @@
     # checks if the specified parameters names is contained in the list
     .check_chr(x = names(roi_list),
                allow_empty = FALSE,
-               msg = ".sits_stac_roi: invalid definition of ROI")
+               msg = "invalid definition of ROI")
 
     return(roi_list)
 }
