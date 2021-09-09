@@ -738,26 +738,27 @@ NULL
     # pre-condition
     .config_palette_check(palette = palette)
 
-    res <- .config_get(key = c("palettes", palette))[labels]
-    names(res) <- labels
+    # get the names of the colors in the chosen pallete
+    color_names <- .config_get(key = c("palettes", palette))
 
-    if (any(is.na(res))) {
-
-        random <- grDevices::colors()
-        random <- random[!random %in% res]
-        res[is.na(res)] <- sample(random, sum(is.na(res)))
-    }
+    .check_chr_within(
+        x = labels,
+        within = names(color_names),
+        msg = "some labels are missing from the palette"
+    )
+    colors <- color_names[labels]
 
     # simplify
-    res <- unlist(res, use.names = FALSE)
+    colors <- unlist(colors)
 
     # post-condition
-    .check_chr(res,
+    .check_chr(colors,
                len_min = length(labels),
                len_max = length(labels),
+               is_named = TRUE,
                msg = "invalid 'color' values")
 
-    return(res)
+    return(colors)
 }
 
 .config_palette_check <- function(palette) {
