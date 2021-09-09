@@ -741,22 +741,12 @@ NULL
     # get the names of the colors in the chosen pallete
     color_names <- .config_get(key = c("palettes", palette))
 
-<<<<<<< HEAD
-    missing_labels <- sapply(res, is.null, USE.NAMES = FALSE)
-    if (any(missing_labels)) {
-
-        random <- grDevices::colors()
-        random <- random[!random %in% res]
-        res[missing_labels] <- sample(random, sum(missing_labels))
-    }
-=======
     .check_chr_within(
         x = labels,
         within = names(color_names),
         msg = "some labels are missing from the palette"
     )
     colors <- color_names[labels]
->>>>>>> eca7ab3b1aafa5915061ececc876ecb01c6bd293
 
     # simplify
     colors <- unlist(colors)
