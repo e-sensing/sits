@@ -6,6 +6,11 @@ We are preparing to release the package on CRAN and are making relevant changes 
 
 ### New features in SITS version 0.14.0
 
+* Now the plot of a classified cube requires a legend or a palette if the labels are not in the default sits palette. 
+* Support for `S2-SEN2COR_10_16D_STK-1` BDC collection
+* Remove function name from msg in `check` function
+* Add `satellite` and `sensor` info in config file
+* Remove `imager`, `ranger`, `proto`, and `future` packages from sits
 * Support for different providers to LOCAL sources
 * LOCAL source is dynamically built
 * Remove `sits_cube.local_cube()` function parameters `satellite` and `sensor`
