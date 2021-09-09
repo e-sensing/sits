@@ -741,11 +741,12 @@ NULL
     res <- .config_get(key = c("palettes", palette))[labels]
     names(res) <- labels
 
-    if (any(is.na(res))) {
+    missing_labels <- sapply(res, is.null, USE.NAMES = FALSE)
+    if (any(missing_labels)) {
 
         random <- grDevices::colors()
         random <- random[!random %in% res]
-        res[is.na(res)] <- sample(random, sum(is.na(res)))
+        res[missing_labels] <- sample(random, sum(missing_labels))
     }
 
     # simplify
