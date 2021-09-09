@@ -78,11 +78,6 @@ test_that("User functions", {
     )
 
     expect_equal(
-        .config_raster_pkg(),
-        "raster"
-    )
-
-    expect_equal(
         .config_gtiff_default_options(),
         c("COMPRESS=LZW", "BIGTIFF=YES")
     )
@@ -108,15 +103,19 @@ test_that("User functions", {
         c("my_project")
     )
 
-    expect_equal(
+    expect_error(
         .config_palette_colors(labels = c("Cropland", "Deforestation",
                                           "Forest", "Grassland", "NonForest",
                                           "Cropland", "Deforestation",
                                           "Forest", "Grassland", "NonForest"),
-                               palette = "my_project"),
+                               palette = "my_project")
+    )
+    expect_equal(
+        unname(.config_palette_colors(labels = c("Cropland", "Deforestation",
+                                          "Forest", "Grassland", "NonForest"),
+                               palette = "my_project")),
         c("khaki", "sienna", "darkgreen", "lightgreen",
-          "lightsteelblue2","khaki", "sienna", "darkgreen",
-          "lightgreen", "lightsteelblue2")
+          "lightsteelblue1")
     )
 
     # load default + user + user provided values
@@ -338,7 +337,7 @@ test_that("Configs", {
 
     expect_equal(
         .config_names(key = c("palettes")),
-        "default"
+        c("default")
     )
 
     expect_equal(

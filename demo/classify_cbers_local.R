@@ -79,11 +79,20 @@ cbers_label_bayes <- sits_label_classification(
     output_dir = tempdir()
 )
 
-# plot the image (first and last instances)
+
+
+# view the image (first and last instances)
 sits_view(cbers_cube, red = "EVI", green = "NDVI", blue = "EVI", time = 1)
 sits_view(cbers_cube, red = "EVI", green = "NDVI", blue = "EVI", time = 23)
 
 # plot the probabilities for each class
 plot(cbers_probs)
 
-plot(cbers_label)
+# labels are "Cerradao" "Cerrado"  "Cropland" "Pasture"
+
+mylegend <- list("Cerradao" = "darkgreen", "Cerrado" = "palegreen1",
+"Cropland" = "orange2", "Pasture" = "yellow")
+
+plot(cbers_label, legend = mylegend)
+plot(cbers_label, legend = "default")
+

@@ -234,17 +234,23 @@ plot.probs_cube <- function(x, y, ..., time = 1,
 #' @param  ...           further specifications for \link{plot}.
 #' @param  time          temporal reference for plot.
 #' @param  title         Title of the plot
-#' @param  legend        named vector that associated labels to colors
+#' @param  legend        named vector that associates labels to colors
+#' @param  palette       palette provided in the configuration file
 #'
 #' @export
 #'
 plot.classified_image <- function(x, y, ...,
                                   time = 1,
-                                  title = "",
-                                  legend = NULL) {
+                                  title = "Classified Image",
+                                  legend = NULL,
+                                  palette = "default") {
     stopifnot(missing(y))
 
-    p <- .sits_plot_classified_image(x, time, title, legend)
+    p <- .sits_plot_classified_image(cube = x,
+                                     time = time,
+                                     title = title,
+                                     legend = legend,
+                                     palette = palette)
 
 }
 
@@ -1016,11 +1022,13 @@ plot.keras_model <- function(x, y, ...) {
 #' @param cube        A tibble with the metadata for a labelled data cube.
 #' @param time        Temporal reference for plot.
 #' @param title       Title of the plot
-#' @param legend        named vector that associates labels to colors.
+#' @param legend      named vector that associates labels to colors.
+#' @param palette     palette provided in the configuration file
 .sits_plot_classified_image <- function(cube,
-                                        time = 1,
-                                        title = "Classified Image",
-                                        legend = NULL) {
+                                        time,
+                                        title,
+                                        legend,
+                                        palette) {
 
 
     # set caller to show in errors
@@ -1055,7 +1063,7 @@ plot.keras_model <- function(x, y, ...) {
 
     # if colors are not specified, get them from the configuration file
     if (purrr::is_null(legend)) {
-        colors <- .config_palette_colors(labels)
+        colors <- .config_palette_colors(labels, palette = palette)
     }
     else {
         .check_chr_within(
@@ -1063,7 +1071,12 @@ plot.keras_model <- function(x, y, ...) {
             within = names(legend),
             msg = "some labels are missing from the legend")
         colors <- unname(legend[labels])
+
     }
+
+
+
+
     # set the names of the color vector
     names(colors) <- as.character(c(1:nclasses))
 
