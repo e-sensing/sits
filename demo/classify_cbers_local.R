@@ -94,5 +94,6 @@ mylegend <- list("Cerradao" = "darkgreen", "Cerrado" = "palegreen1",
 "Cropland" = "orange2", "Pasture" = "yellow")
 
 plot(cbers_label, legend = mylegend)
+
 plot(cbers_label, palette = "default")
 
