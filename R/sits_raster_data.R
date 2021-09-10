@@ -405,7 +405,7 @@
 
         # return the values of all points xy for one band
         return(ts_band_lst)
-    })
+    }, progress = FALSE)
 
 
     # now we have to transpose the data

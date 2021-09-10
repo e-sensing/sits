@@ -798,7 +798,7 @@
             if (delete_files) unlink(srcfile)
 
             return(dstfile)
-        })
+        }, progress = FALSE)
 
         loop_files <- unlist(loop_files)
 
