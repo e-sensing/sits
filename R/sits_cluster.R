@@ -113,12 +113,16 @@ sits_cluster_dendro <- function(samples = NULL,
 #' }
 #' @export
 sits_cluster_frequency <- function(samples) {
+
+    # set caller to show in errors
+    .check_set_caller("sits_cluster_frequency")
+
     # is the input data the result of a cluster function?
     .check_chr_within(
         x = "cluster",
         within = names(samples),
         discriminator = "any_of",
-        msg = "sits_cluster_contigency: missing cluster column"
+        msg = "missing cluster column"
     )
 
     # compute frequency table (matrix)
@@ -160,12 +164,15 @@ sits_cluster_frequency <- function(samples) {
 #' @export
 sits_cluster_clean <- function(samples) {
 
+    # set caller to show in errors
+    .check_set_caller("sits_cluster_clean")
+
     # is the input data the result of a cluster function?
     .check_chr_within(
         x = "cluster",
         within = names(samples),
         discriminator = "any_of",
-        msg = "sits_cluster_clean: input data does not contain cluster column"
+        msg = "input data does not contain cluster column"
     )
 
     # compute frequency table (matrix)
@@ -207,6 +214,10 @@ sits_cluster_clean <- function(samples) {
 #' @return A vector with four external validity indices.
 #'
 .sits_cluster_validity <- function(samples) {
+
+    # set caller to show in errors
+    .check_set_caller(".sits_cluster_validity")
+
     # verifies if dtwclust package is installed
     if (!requireNamespace("dtwclust", quietly = TRUE)) {
         stop("dtwclust needed for this function to work.
@@ -218,7 +229,7 @@ sits_cluster_clean <- function(samples) {
         x = "cluster",
         within = names(samples),
         discriminator = "any_of",
-        msg = "sits_cluster_validity: input data does not have cluster column"
+        msg = "input data does not have cluster column"
     )
 
     # compute CVIs and return

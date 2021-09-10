@@ -73,17 +73,6 @@ test_that("Random Forest", {
     expect_true(nrow(sits_show_prediction(point_class)) == 17)
 })
 
-test_that("Random Forest - Ranger", {
-    samples_mt_ndvi <- sits_select(samples_modis_4bands, bands = "NDVI")
-    ranger_model <- sits_train(samples_mt_ndvi, sits_ranger(num_trees = 200))
-    point_ndvi <- sits_select(point_mt_6bands, bands = "NDVI")
-    point_class <- sits_classify(point_ndvi, ranger_model)
-
-    expect_true(all(point_class$predicted[[1]]$class %in%
-                        sits_labels(samples_mt_ndvi)))
-    expect_true(nrow(sits_show_prediction(point_class)) == 17)
-})
-
 test_that("LDA", {
     samples_mt_ndvi <- sits_select(samples_modis_4bands, bands = "NDVI")
     lda_model <- sits_train(samples_mt_ndvi, sits_lda())

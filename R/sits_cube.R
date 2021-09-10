@@ -192,8 +192,8 @@
 #' cbers_cube <- sits_cube(
 #'     source = "LOCAL",
 #'     name = "022024",
-#'     satellite = "CBERS-4",
-#'     sensor = "AWFI",
+#'     origin = "BDC",
+#'     collection = "CB4_64-1",
 #'     data_dir = data_dir,
 #'     delim = "_",
 #'     parse_info = c("X1", "X2", "tile", "band", "date")
@@ -228,6 +228,9 @@
 #'
 sits_cube <- function(source, ...) {
 
+    # set caller to show in errors
+    .check_set_caller("sits_cube")
+
     s <- .source_new(source = source)
 
     # Dispatch
@@ -249,7 +252,7 @@ sits_cube.wtss_cube <- function(source = "WTSS", ...,
 
     # Pre-condition - try to find the access key as an environment variable
     .check_env_var(x = "BDC_ACCESS_KEY",
-                   msg = "sits_cube: BDC_ACCESS_KEY needs to be provide.")
+                   msg = "BDC_ACCESS_KEY needs to be provide.")
 
     # dry run to verify if service is running
     .source_access_test(source, collection, ...)
@@ -279,7 +282,7 @@ sits_cube.bdc_cube <- function(source = "BDC", ...,
 
     # Pre-condition - try to find the access key as an environment variable
     .check_env_var(x = "BDC_ACCESS_KEY",
-                   msg = "sits_cube: BDC_ACCESS_KEY needs to be provide.")
+                   msg = "BDC_ACCESS_KEY needs to be provide.")
 
     if (is.null(bands))
         bands <- .source_bands(source = source,
@@ -378,11 +381,11 @@ sits_cube.aws_cube <- function(source = "AWS", ...,
     .check_num(s2_resolution,
                allow_zero = FALSE,
                len_max = 1,
-               msg = "sits_cube: invalid resolution.")
+               msg = "invalid resolution.")
 
     # precondition - is the provided resolution is valid?
     .check_that(x = s2_resolution %in% c(10, 20, 60),
-                msg = "sits_cube: s2_resolution should be one of c(10, 20, 60)")
+                msg = "s2_resolution should be one of c(10, 20, 60)")
 
     # suite of checks to verify collection parameter
     .check_collection(source = source,
@@ -441,9 +444,8 @@ sits_cube.usgs_cube <- function(source = "USGS", ...,
     .check_chr(x = tiles,
                allow_empty = FALSE,
                len_min = 1,
-               msg = paste("sits_cube.usgs_cube: for the USGS cubes you need",
-                           "to provide the tiles of the region you want to",
-                           "query.")
+               msg = paste("for the USGS cubes you need to provide the tiles",
+                           "of the region you want to query.")
     )
 
     # precondition - is AWS access available?
@@ -479,8 +481,8 @@ sits_cube.usgs_cube <- function(source = "USGS", ...,
 #' @export
 sits_cube.local_cube <- function(source = "LOCAL", ...,
                                  name   = "local_cube",
-                                 satellite,
-                                 sensor,
+                                 origin,
+                                 collection,
                                  bands = NULL,
                                  start_date = NULL,
                                  end_date = NULL,
@@ -491,9 +493,9 @@ sits_cube.local_cube <- function(source = "LOCAL", ...,
 
     # precondition - data directory must be provided
     .check_file(x = data_dir,
-                msg = "sits_cube: data_dir must be to be provided.")
+                msg = "data_dir must be to be provided.")
 
-    collection <- paste0(satellite, "/", sensor)
+    collection <- paste0(origin, "/", collection)
 
     # precondition - check satellite and sensor
     .source_access_test(source = source, collection = collection)
@@ -502,14 +504,13 @@ sits_cube.local_cube <- function(source = "LOCAL", ...,
     .check_chr(x = parse_info,
                allow_empty = FALSE,
                len_min = 2,
-               msg = "sits_cube: invalid parsing information.")
+               msg = "invalid parsing information.")
 
     # precondition - does the parse info have band and date?
     .check_chr_within(
         x = c("tile", "band", "date"),
         within = parse_info,
-        msg = paste("sits_cube.local_cube: parse_info must include tile, date,",
-                    "and band."))
+        msg = "parse_info must include tile, date, and band.")
 
     # bands in upper case
     if (!purrr::is_null(bands))
@@ -560,7 +561,7 @@ sits_cube.satveg_cube <- function(source = "SATVEG", ...,
     # precondition
     .check_chr_within(x = collection,
                       within = c("TERRA", "AQUA", "COMB"),
-                      msg = "sits_cube.satveg_cube: invalid SATVEG collection.")
+                      msg = "invalid SATVEG collection.")
 
     # precondition - is service online?
     .source_access_test(source = source, collection = collection)
@@ -571,7 +572,7 @@ sits_cube.satveg_cube <- function(source = "SATVEG", ...,
 
 #' @export
 sits_cube.default <- function(source, ...) {
-    stop("sits_cube: source not found.")
+    stop("source not found.")
 }
 
 #' @title Creates the contents of a data cube
@@ -599,9 +600,9 @@ sits_cube.default <- function(source, ...) {
 #' cbers_022024 <- sits_cube(
 #'     source = "LOCAL",
 #'     name = "cbers_022024",
-#'     satellite = "CBERS-4",
+#'     origin = "BDC",
+#'     collection = "CB4_64-1",
 #'     band = "NDVI",
-#'     sensor = "AWFI",
 #'     data_dir = data_dir,
 #'     parse_info = c("X1", "X2", "tile", "band", "date")
 #' )
@@ -618,6 +619,9 @@ sits_cube_copy <- function(cube,
                            dest_dir,
                            bands = sits_bands(cube),
                            roi = NULL) {
+
+    # set caller to show in errors
+    .check_set_caller("sits_cube_copy")
 
     # precondition - does the output directory exist?
     .check_file(dest_dir)
@@ -641,11 +645,11 @@ sits_cube_copy <- function(cube,
 
     .check_that(
         x = (srcwin["xoff"] + srcwin["xsize"]) <= cube$ncols,
-        msg = "sits_cube_copy: srcwin x values bigger than cube size"
+        msg = "srcwin x values bigger than cube size"
     )
     .check_that(
         x = (srcwin["yoff"] + srcwin["ysize"]) <= cube$nrows,
-        msg = "sits_cube_copy: srcwin y values bigger than cube size"
+        msg = "srcwin y values bigger than cube size"
     )
 
     # the label cube may contain several classified images
@@ -657,7 +661,7 @@ sits_cube_copy <- function(cube,
         .check_chr_within(
             x = bands,
             within = sits_bands(row),
-            msg = "sits_cube_copy: input bands not available in the cube")
+            msg = "input bands not available in the cube")
 
         # get all the bands which are requested
         file_info_out <- dplyr::filter(file_info, band %in% bands)
@@ -1197,6 +1201,9 @@ NULL
 #' @return file path to the appended to data_dir
 .config_data_meta_type <- function(data) {
 
+    # set caller to show in errors
+    .check_set_caller(".config_data_meta_type")
+
     if (inherits(data, c("sits", "patterns", "predicted", "sits_model"))) {
         return(data)
 
@@ -1205,7 +1212,7 @@ NULL
         .check_chr(x = data$source,
                    allow_empty = FALSE,
                    len_min = 1,
-                   msg = ".sits_config_data_meta_type: data is not valid")
+                   msg = "data is not valid")
 
         # check if data is a cube
         # TODO: where this function will be implemented?
@@ -1227,19 +1234,22 @@ NULL
 #' @return An invisible null
 .check_collection <- function(source, collection) {
 
+    # set caller to show in errors
+    .check_set_caller(".check_collection")
+
     # precondition - is the collection name a character?
-    .check_chr_type(x = collection, msg = paste("sits_cube: collection should",
+    .check_chr_type(x = collection, msg = paste("collection should",
                                                 "be a character.")
     )
 
     # precondition - is the collection a single value?
     .check_length(x = collection, len_max = 1,
-                  msg = "sits_cube: collection should be a single value.")
+                  msg = "collection should be a single value.")
 
     # precondition - is the collection in config file?
     .check_chr_within(x = collection,
                       within = .source_collections(source),
-                      msg = paste("sits_cube: the given collection should be",
+                      msg = paste("the given collection should be",
                                   "in the configuration file"))
 
     return(invisible(NULL))
@@ -1259,6 +1269,9 @@ NULL
 #' @return An invisible null
 .check_bands <- function(source, collection, bands, s2_resolution = NULL) {
 
+    # set caller to show in errors
+    .check_set_caller(".check_bands")
+
     if (!is.null(s2_resolution)) {
         sits_bands <- .aws_bands(source = source,
                                  collection = collection,
@@ -1276,7 +1289,7 @@ NULL
 
     .check_chr_within(x = bands,
                       within = c(sits_bands, source_bands),
-                      msg = paste("sits_cube: invalid bands.\nPlease verify",
+                      msg = paste("invalid bands.\nPlease verify",
                                   "the provided bands."))
 
     # remove bands with equal names, like NDVI, EVI...

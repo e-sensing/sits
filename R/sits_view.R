@@ -23,8 +23,8 @@
 #' cbers_022024 <- sits_cube(
 #'     source = "LOCAL",
 #'     name = "cbers_022024",
-#'     satellite = "CBERS-4",
-#'     sensor = "AWFI",
+#'     origin = "BDC",
+#'     collection = "CB4_64-1",
 #'     resolution = 64,
 #'     data_dir = data_dir,
 #'     parse_info = c("X1", "X2", "tile", "band", "date")
@@ -36,20 +36,23 @@
 #' @export
 sits_view <- function(x, ...){
 
+    # set caller to show in errors
+    .check_set_caller("sits_view")
+
     .check_that(
         x = inherits(x, c("raster_cube", "classified_image")),
-        msg = "sits_view only works with raster cube and classified images")
+        msg = "only works with raster cube and classified images")
 
     # verifies if raster package is installed
     .check_that(
         x = requireNamespace("raster", quietly = TRUE),
-        msg = "sits_view: this function depends on 'raster' package"
+        msg = "this function depends on 'raster' package"
     )
 
     # verifies if mapview package is installed
     .check_that(
         requireNamespace("mapview", quietly = TRUE),
-        msg = "sits_view: this function depends on 'mapview' package"
+        msg = "this function depends on 'mapview' package"
     )
 
     UseMethod("sits_view", x)
@@ -67,13 +70,13 @@ sits_view.raster_cube <- function(x, ...,
     # preconditions
     .check_that(
         x = all(c(red, green, blue) %in% sits_bands(x)),
-        msg = "sits_view: requested RGB bands are not available in data cube"
+        msg = "requested RGB bands are not available in data cube"
     )
 
     timeline <- sits_timeline(x)
     .check_that(
         x = time >= 1 & time <= length(timeline),
-        msg = "sits_view: time parameter out of bounds"
+        msg = "time parameter out of bounds"
     )
 
     # verify sf package if roi is informed
@@ -91,7 +94,7 @@ sits_view.raster_cube <- function(x, ...,
         # check if intersection is not empty
         .check_that(
             x = any(intersects),
-            msg = "sits_view: informed roi does not intersect cube"
+            msg = "informed roi does not intersect cube"
         )
 
         x <- x[intersects, ]
@@ -122,7 +125,7 @@ sits_view.raster_cube <- function(x, ...,
 
     .check_that(
         x = .raster_ncols(r_obj) > 0 && .raster_nrows(r_obj) > 0,
-        msg = "sits_view.raster_cube: unable to retrieve raster data"
+        msg = "unable to retrieve raster data"
     )
 
     # set mapview options
@@ -164,7 +167,7 @@ sits_view.classified_image <- function(x,...,
         .check_chr_within(
             x =  labels,
             within = names(legend),
-            msg = "sits_view: some labels are missing from the legend"
+            msg = "some labels are missing from the legend"
         )
     }
 
@@ -176,7 +179,7 @@ sits_view.classified_image <- function(x,...,
     .check_that(
         x = .raster_ncols.raster(r_obj) > 0 &&
             .raster_nrows.raster(r_obj) > 0,
-        msg = "sits_view.classified_image: unable to retrive raster data"
+        msg = "unable to retrive raster data"
     )
 
     # create a RAT

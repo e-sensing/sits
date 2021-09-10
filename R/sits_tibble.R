@@ -161,13 +161,16 @@ sits_mutate_bands <- function(data, ...) {
 #' @export
 sits_sample <- function(data, n = NULL, frac = NULL) {
 
+  # set caller to show in errors
+  .check_set_caller("sits_sample")
+
     # verify if data is valid
     .sits_tibble_test(data)
 
     # verify if either n or frac is informed
     .check_that(
         x = !(purrr::is_null(n) & purrr::is_null(frac)),
-        msg = "sits_sample: neither n or frac parameters informed"
+        msg = "neither n or frac parameters informed"
     )
 
     # prepare sampling function
@@ -286,60 +289,60 @@ sits_time_series <- function(data) {
 #' @return               The converted sits tibble
 #'
 .sits_tibble_align_dates <- function(data, ref_dates) {
-  # verify that tibble is correct
-  .sits_tibble_test(data)
-  # function to shift a time series in time
-  shift_ts <- function(d, k) {
-    dplyr::bind_rows(
-      utils::tail(d, k),
-      utils::head(d, -k)
-    )
-  }
-
-  # get the reference date
-  start_date <- lubridate::as_date(ref_dates[1])
-  # create an output tibble
-  data1 <- .sits_tibble()
-
-  rows <- purrr::pmap(
-    list(
-      data$longitude,
-      data$latitude,
-      data$label,
-      data$cube,
-      data$time_series
-    ),
-    function(long, lat, lab, cb, ts) {
-      # only rows that match  reference dates are kept
-      if (length(ref_dates) == nrow(ts)) {
-        # find the date of minimum distance to the reference date
-        idx <- which.min(abs((lubridate::as_date(ts$Index)
-                              - lubridate::as_date(start_date)) / lubridate::ddays(1)))
-        # shift the time series to match dates
-        if (idx != 1) ts <- shift_ts(ts, - (idx - 1))
-        # change the dates to the reference dates
-        ts1 <- dplyr::mutate(ts, Index = ref_dates)
-
-        # save the resulting row in the output tibble
-        row <- tibble::tibble(
-          longitude = long,
-          latitude = lat,
-          start_date = lubridate::as_date(ref_dates[1]),
-          end_date = ref_dates[length(ref_dates)],
-          label = lab,
-          cube = cb,
-          time_series = list(ts1)
+    # verify that tibble is correct
+    .sits_tibble_test(data)
+    # function to shift a time series in time
+    shift_ts <- function(d, k) {
+        dplyr::bind_rows(
+            utils::tail(d, k),
+            utils::head(d, -k)
         )
-      }
-      return(row)
     }
-  )
 
-  # solve issue when a names list is returned
-  if (!is.null(names(rows))) rows <- unname(rows)
+    # get the reference date
+    start_date <- lubridate::as_date(ref_dates[1])
+    # create an output tibble
+    data1 <- .sits_tibble()
 
-  data1 <- dplyr::bind_rows(data1, rows)
-  return(data1)
+    rows <- purrr::pmap(
+        list(
+            data$longitude,
+            data$latitude,
+            data$label,
+            data$cube,
+            data$time_series
+        ),
+        function(long, lat, lab, cb, ts) {
+            # only rows that match  reference dates are kept
+            if (length(ref_dates) == nrow(ts)) {
+                # find the date of minimum distance to the reference date
+                idx <- which.min(abs((lubridate::as_date(ts$Index)
+                                      - lubridate::as_date(start_date)) / lubridate::ddays(1)))
+                # shift the time series to match dates
+                if (idx != 1) ts <- shift_ts(ts, - (idx - 1))
+                # change the dates to the reference dates
+                ts1 <- dplyr::mutate(ts, Index = ref_dates)
+
+                # save the resulting row in the output tibble
+                row <- tibble::tibble(
+                    longitude = long,
+                    latitude = lat,
+                    start_date = lubridate::as_date(ref_dates[1]),
+                    end_date = ref_dates[length(ref_dates)],
+                    label = lab,
+                    cube = cb,
+                    time_series = list(ts1)
+                )
+            }
+            return(row)
+        }
+    )
+
+    # solve issue when a names list is returned
+    if (!is.null(names(rows))) rows <- unname(rows)
+
+    data1 <- dplyr::bind_rows(data1, rows)
+    return(data1)
 }
 
 
@@ -357,31 +360,31 @@ sits_time_series <- function(data) {
 #' @return A pruned sits tibble.
 #'
 .sits_tibble_prune <- function(data) {
-  # verify that tibble is correct
-  .sits_tibble_test(data)
+    # verify that tibble is correct
+    .sits_tibble_test(data)
 
-  # create a vector to store the number of indices per time series
-  n_samples <- vector()
+    # create a vector to store the number of indices per time series
+    n_samples <- vector()
 
-  data$time_series %>%
-    purrr::map(function(t) {
-      n_samples[length(n_samples) + 1] <<- nrow(t)
-    })
+    data$time_series %>%
+        purrr::map(function(t) {
+            n_samples[length(n_samples) + 1] <<- nrow(t)
+        })
 
-  # check if all time indices are equal to the median
-  if (all(n_samples == stats::median(n_samples))) {
-    message("Success!! All samples have the same number of time indices")
-    return(data)
-  }
-  else {
-    message("Some samples of time series do not have the same time indices
+    # check if all time indices are equal to the median
+    if (all(n_samples == stats::median(n_samples))) {
+        message("Success!! All samples have the same number of time indices")
+        return(data)
+    }
+    else {
+        message("Some samples of time series do not have the same time indices
                 as the majority of the data")
 
-    # return the time series that have the same number of samples
-    ind2 <- which(n_samples == stats::median(n_samples))
+        # return the time series that have the same number of samples
+        ind2 <- which(n_samples == stats::median(n_samples))
 
-    return(data[ind2, ])
-  }
+        return(data[ind2, ])
+    }
 }
 
 #' @title Check that the requested bands exist in the samples
@@ -394,20 +397,23 @@ sits_time_series <- function(data) {
 #' @return              Checked bands (cube bands if bands are NULL)
 #'
 .sits_tibble_bands_check <- function(samples, bands = NULL) {
-  # check the bands are available
-  sp_bands <- sits_bands(samples)
-  if (purrr::is_null(bands)) {
-    bands <- toupper(sp_bands)
-  } else {
-    bands <- toupper(bands)
-    .check_chr_within(
-      x = bands,
-      within = sp_bands,
-      msg = paste(".sits_tibble_bands_check: required bands are not",
-                  "available in the samples")
-    )
-  }
-  return(bands)
+
+    # set caller to show in errors
+    .check_set_caller(".sits_tibble_bands_check")
+
+    # check the bands are available
+    sp_bands <- sits_bands(samples)
+    if (purrr::is_null(bands)) {
+        bands <- toupper(sp_bands)
+    } else {
+        bands <- toupper(bands)
+        .check_chr_within(
+            x = bands,
+            within = sp_bands,
+            msg = "required bands are not available in the samples"
+        )
+    }
+    return(bands)
 }
 
 #' @title Tests if a sits tibble is valid
@@ -422,22 +428,24 @@ sits_time_series <- function(data) {
 #' @return Returns TRUE if data has data.
 .sits_tibble_test <- function(data) {
 
-  .check_null(x = data, ".sits_tibble_test: input data not provided")
+    # set caller to show in errors
+    .check_set_caller(".sits_tibble_test")
 
-  .check_that(
-    x = nrow(data) > 0,
-    msg = ".sits_tibble_test: input data is empty"
-  )
+    .check_null(x = data, "input data not provided")
 
-  names <- c("longitude", "latitude", "start_date", "end_date",
-             "label", "cube", "time_series")
+    .check_that(
+        x = nrow(data) > 0,
+        msg = "input data is empty"
+    )
 
-  .check_chr_within(
-    x = names,
-    within = colnames(data),
-    msg = ".sits_tibble_test: data input is not a valid sits tibble"
-  )
+    names <- c("longitude", "latitude", "start_date", "end_date",
+               "label", "cube", "time_series")
 
-  return(TRUE)
+    .check_chr_within(
+        x = names,
+        within = colnames(data),
+        msg = "data input is not a valid sits tibble"
+    )
+
+    return(TRUE)
 }
-

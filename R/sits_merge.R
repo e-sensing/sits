@@ -30,6 +30,10 @@
 #' @export
 #'
 sits_merge <- function(data1, data2) {
+
+    # set caller to show in errors
+    .check_set_caller("sits_merge")
+
     # get the meta-type (sits or cube)
     data1 <- .config_data_meta_type(data1)
 
@@ -47,13 +51,13 @@ sits_merge.sits <- function(data1, data2) {
     # if some parameter is empty returns the another one
     .check_that(
         x = nrow(data1) > 0 & nrow(data2) > 0,
-        msg = "sits_merge: invalid input data"
+        msg = "invalid input data"
     )
 
     # verify if data1.tb and data2.tb has the same number of rows
     .check_that(
         x = nrow(data1) == nrow(data2),
-        msg = "sits_merge: cannot merge tibbles of different sizes"
+        msg = "cannot merge tibbles of different sizes"
     )
 
     # are the names of the bands different?
@@ -90,31 +94,31 @@ sits_merge.cube <- function(data1, data2) {
     # preconditions
     .check_that(
         x = nrow(data1) == 1 & nrow(data2) == 1,
-        msg = "sits_merge: merge only works from simple cubes (one tibble row)"
+        msg = "merge only works from simple cubes (one tibble row)"
     )
     .check_that(
         x = data1$satellite == data2$satellite,
-        msg = "sits_merge: cubes from different satellites"
+        msg = "cubes from different satellites"
     )
     .check_that(
         x = data1$sensor == data2$sensor,
-        msg = "sits_merge: cubes from different sensors"
+        msg = "cubes from different sensors"
     )
     .check_that(
         x = all(sits_bands(data1) != sits_bands(data2)),
-        msg = "sits_merge: merge cubes requires different bands in each cube"
+        msg = "merge cubes requires different bands in each cube"
     )
     .check_that(
         x = all(sits_bbox(data1) == sits_bbox(data2)),
-        msg = "sits_merge: merge cubes requires same bounding boxes"
+        msg = "merge cubes requires same bounding boxes"
     )
     .check_that(
         x = data1$xres == data2$xres && data1$yres == data2$yres,
-        msg = "sits_merge: merge cubes requires same resolution"
+        msg = "merge cubes requires same resolution"
     )
     .check_that(
         x = all(sits_timeline(data1) == sits_timeline(data2)),
-        msg = "sits_merge: merge cubes requires same timeline"
+        msg = "merge cubes requires same timeline"
     )
 
     # get the file information

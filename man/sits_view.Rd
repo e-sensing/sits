@@ -44,8 +44,8 @@ data_dir <- system.file("extdata/raster/cbers", package = "sits")
 cbers_022024 <- sits_cube(
     source = "LOCAL",
     name = "cbers_022024",
-    satellite = "CBERS-4",
-    sensor = "AWFI",
+    origin = "BDC",
+    collection = "CB4_64-1",
     resolution = 64,
     data_dir = data_dir,
     parse_info = c("X1", "X2", "tile", "band", "date")

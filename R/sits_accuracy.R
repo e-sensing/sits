@@ -72,8 +72,8 @@
 #' cube <- sits_cube(
 #'     source = "LOCAL",
 #'     name = "sinop-2014",
-#'     satellite = "TERRA",
-#'     sensor = "MODIS",
+#'     origin = "BDC",
+#'     collection = "MOD13Q1-6",
 #'     data_dir = data_dir,
 #'     delim = "_",
 #'     parse_info = c("X1", "X2", "tile", "band", "date")
@@ -109,6 +109,9 @@ sits_accuracy <- function(data, ...) {
 #' @export
 sits_accuracy.sits <- function(data, ...) {
 
+    # set caller to show in errors
+    .check_set_caller("sits_accuracy.sits")
+
     # require package
     if (!requireNamespace("caret", quietly = TRUE)) {
         stop("Please install package caret.", call. = FALSE)
@@ -119,7 +122,7 @@ sits_accuracy.sits <- function(data, ...) {
         x = "predicted",
         within = names(data),
         discriminator = "any_of",
-        msg = "sits_accuracy: input data without predicted values"
+        msg = "input data without predicted values"
     )
 
     # recover predicted and reference vectors from input
@@ -152,14 +155,14 @@ sits_accuracy.sits <- function(data, ...) {
 sits_accuracy.classified_image <- function(data, ..., validation_csv) {
     .check_file(
         x = validation_csv,
-        msg = "sits_accuracy: validation file missing."
+        msg = "validation file missing."
     )
     # get the file extension
     file_ext <- tolower(tools::file_ext(validation_csv))
     # sits only accepts "csv" files
     .check_that(
         x = file_ext == c("csv"),
-        msg = "sits_accuracy: csv file not available"
+        msg = "csv file not available"
     )
 
     # read sample information from CSV file and put it in a tibble
@@ -185,7 +188,7 @@ sits_accuracy.classified_image <- function(data, ..., validation_csv) {
     # are there points to be retrieved from the cube?
     .check_that(
         x = nrow(points) != 0,
-        msg = paste("sits_accuracy: no validation point intersects the map's",
+        msg = paste("no validation point intersects the map's",
                     "spatiotemporal extent.")
     )
 
@@ -197,7 +200,7 @@ sits_accuracy.classified_image <- function(data, ..., validation_csv) {
         # the labelled band must be unique
         .check_that(
             x = length(labelled_band) == 1,
-            msg = "sits_accuracy: invalid labelled cube"
+            msg = "invalid labelled cube"
         )
 
         # filter the points inside the data cube
@@ -231,7 +234,7 @@ sits_accuracy.classified_image <- function(data, ..., validation_csv) {
         # do the number of predicted and reference values match
         .check_that(
             x = length(reference) == length(predicted),
-            msg = "sits_accuracy: predicted and reference vector do not match"
+            msg = "predicted and reference vector do not match"
         )
         # create a tibble to store the results
         tb <- tibble::tibble(predicted = predicted, reference = reference)
@@ -302,7 +305,7 @@ sits_accuracy.classified_image <- function(data, ..., validation_csv) {
     # does the input data contained valid reference labels?
     .check_that(
         x = !("NoClass" %in% (ref)),
-        msg = "sits_accuracy: input data without labels"
+        msg = "input data without labels"
     )
 
     # build the tibble
@@ -335,11 +338,14 @@ sits_accuracy.classified_image <- function(data, ..., validation_csv) {
 
 .sits_accuracy_area_assess <- function(cube, error_matrix, area) {
 
+    # set caller to show in errors
+    .check_set_caller(".sits_accuracy_area_assess")
+
     .check_chr_within(
         x = "classified_image",
         within = class(cube),
         discriminator = "any_of",
-        msg = ".sits_accuracy_area_assess: area assess: not a classified cube")
+        msg = "not a classified cube")
     if (any(dim(error_matrix) == 0)) {
         stop("Invalid dimensions in error matrix.", call. = FALSE)
     }
@@ -434,6 +440,9 @@ sits_accuracy_summary <- function(x,
                                   mode = "sens_spec",
                                   digits = max(3, getOption("digits") - 3)) {
 
+    # set caller to show in errors
+    .check_set_caller("sits_accuracy_summary")
+
     if ("sits_area_assessment" %in% class(x)) {
         print.sits_area_assessment(x)
         return(invisible(TRUE))
@@ -442,7 +451,7 @@ sits_accuracy_summary <- function(x,
         x = "sits_assessment",
         within = class(x),
         discriminator = "any_of",
-        msg = "sits_accuracy_summary: please run sits_accuracy first"
+        msg = "please run sits_accuracy first"
     )
 
     # round the data to the significant digits

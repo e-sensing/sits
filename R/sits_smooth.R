@@ -59,8 +59,8 @@
 #' cube <- sits_cube(
 #'     source = "LOCAL",
 #'     name = "sinop-2014",
-#'     satellite = "TERRA",
-#'     sensor = "MODIS",
+#'     origin = "BDC",
+#'     collection = "MOD13Q1-6",
 #'     data_dir = data_dir,
 #'     delim = "_",
 #'     parse_info = c("X1", "X2", "tile", "band", "date")
@@ -93,6 +93,9 @@
 #'
 sits_smooth <- function(cube, type = "bayes", ...) {
 
+    # set caller to show in errors
+    .check_set_caller("sits_smooth")
+
     if (!requireNamespace("parallel", quietly = TRUE)) {
         stop("Please install package parallel.", call. = FALSE)
     }
@@ -100,7 +103,7 @@ sits_smooth <- function(cube, type = "bayes", ...) {
     # check if cube has probability data
     .check_that(
         x = inherits(cube, "probs_cube"),
-        msg = "sits_smooth: input is not probability cube"
+        msg = "input is not probability cube"
     )
 
     # define the class of the smoothing
@@ -125,13 +128,13 @@ sits_smooth.bayes <- function(cube, type = "bayes", ...,
     # precondition 1 - check if cube has probability data
     .check_that(
         x = inherits(cube, "probs_cube"),
-        msg = "sits_smooth: input is not probability cube"
+        msg = "input is not probability cube"
     )
 
     # precondition 2 - test window size
     .check_that(
         x = window_size %% 2 != 0,
-        msg = "sits_smooth: window_size must be an odd number"
+        msg = "window_size must be an odd number"
     )
 
     # find out how many labels exist
@@ -142,7 +145,7 @@ sits_smooth.bayes <- function(cube, type = "bayes", ...,
         .check_that(
             x = (nrow(smoothness) == ncol(smoothness)) &&
                 (ncol(smoothness) == n_labels),
-            msg = paste("sits_smooth: smoothness must be square matrix of",
+            msg = paste("smoothness must be square matrix of",
                         "the same length as the number of labels")
         )
     } else {
@@ -150,7 +153,7 @@ sits_smooth.bayes <- function(cube, type = "bayes", ...,
                    min = 1,
                    len_max = 1,
                    allow_zero = FALSE,
-                   msg = "sits_smooth: smoothness must be greater than 1")
+                   msg = "smoothness must be greater than 1")
         smoothness <- diag(smoothness, nrow = n_labels, ncol = n_labels)
     }
 
@@ -159,14 +162,14 @@ sits_smooth.bayes <- function(cube, type = "bayes", ...,
                len_max = 1,
                min = 1,
                allow_zero = FALSE,
-               msg = "sits_smooth: multicores must be at least 1")
+               msg = "multicores must be at least 1")
 
     # precondition 5 - memory
     .check_num(x = memsize,
                len_max = 1,
                min = 1,
                allow_zero = FALSE,
-               msg = "sits_smooth: memsize must be positive")
+               msg = "memsize must be positive")
 
     # create a window
     window <- matrix(1, nrow = window_size, ncol = window_size)
@@ -250,13 +253,13 @@ sits_smooth.gaussian <- function(cube, type = "gaussian", ...,
     # precondition 1 - check if cube has probability data
     .check_that(
         x = inherits(cube, "probs_cube"),
-        msg = "sits_smooth: input is not probability cube"
+        msg = "input is not probability cube"
     )
 
     # precondition 2 - test window size
     .check_that(
         x = window_size %% 2 != 0,
-        msg = "sits_smooth: window_size must be an odd number"
+        msg = "window_size must be an odd number"
     )
 
     # prediction 3 - test variance
@@ -264,21 +267,21 @@ sits_smooth.gaussian <- function(cube, type = "gaussian", ...,
                len_max = 1,
                min = 1,
                allow_zero = FALSE,
-               msg = "sits_smooth: smoothness must be positive")
+               msg = "smoothness must be positive")
 
     # precondition 4 - multicores
     .check_num(x = multicores,
                len_max = 1,
                min = 1,
                allow_zero = FALSE,
-               msg = "sits_smooth: multicores must be at least 1")
+               msg = "multicores must be at least 1")
 
     # precondition 5 - memsize
     .check_num(x = memsize,
                len_max = 1,
                min = 1,
                allow_zero = FALSE,
-               msg = "sits_smooth: memsize must be positiv")
+               msg = "memsize must be positiv")
 
     # create output window
     gauss_kernel <- .sits_smooth_gauss_kernel(window_size = window_size,
@@ -354,13 +357,13 @@ sits_smooth.bilateral <- function(cube,
     # precondition 1 - check if cube has probability data
     .check_that(
         x = inherits(cube, "probs_cube"),
-        msg = "sits_smooth: input is not probability cube"
+        msg = "input is not probability cube"
     )
 
     # precondition 2 - test window size
     .check_that(
         x = window_size %% 2 != 0,
-        msg = "sits_smooth: window_size must be an odd number"
+        msg = "window_size must be an odd number"
     )
 
     # prediction 3 - test variance
@@ -368,21 +371,21 @@ sits_smooth.bilateral <- function(cube,
                len_max = 1,
                min = 1,
                allow_zero = FALSE,
-               msg = "sits_smooth: smoothness must be positive")
+               msg = "smoothness must be positive")
 
     # precondition 4 - multicores
     .check_num(x = multicores,
                len_max = 1,
                min = 1,
                allow_zero = FALSE,
-               msg = "sits_smooth: multicores must be at least 1")
+               msg = "multicores must be at least 1")
 
     # precondition 5 - memsize
     .check_num(x = memsize,
                len_max = 1,
                min = 1,
                allow_zero = FALSE,
-               msg = "sits_smooth: memsize must be positive")
+               msg = "memsize must be positive")
 
     # create output window
     gauss_kernel <- .sits_smooth_gauss_kernel(window_size = window_size,

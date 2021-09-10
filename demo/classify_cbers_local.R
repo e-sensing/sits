@@ -20,9 +20,8 @@ local_dir <- system.file("extdata/CBERS", package = "sitsdata")
 cbers_cube <- sits_cube(
     source     = "LOCAL",
     name       = "cbers_022024",
-    satellite  = "CBERS-4",
-    sensor     = "AWFI",
-    resolution = "64m",
+    origin     = "BDC",
+    collection = "CB4_64-1",
     data_dir   = local_dir,
     parse_info = c("X1", "X2", "X3", "X4", "tile", "date", "X5", "band")
 )
@@ -42,41 +41,59 @@ cbers_samples_2bands <- sits_select(
 # train a random forest model
 tcnn_model <- sits_train(
     data      = cbers_samples_2bands,
-    ml_method = sits_TempCNN()
+    ml_method = sits_rfor()
 )
 
 # classify the data (remember to set the appropriate memory size)
 cbers_probs <- sits_classify(
     data       = cbers_cube,
     ml_model   = tcnn_model,
-    memsize    = 0.5,
+    memsize    = 1,
     multicores = 3,
     output_dir = tempdir(),
-    verbose = TRUE
+    verbose    = TRUE
+)
+
+# label the resulting probs maps
+cbers_label <- sits_label_classification(
+    cube       = cbers_probs,
+    memsize    = 12,
+    multicores = 2,
+    output_dir = tempdir()
 )
 
 # smoothen the probabibilities with bayesian estimator
 cbers_bayes <- sits_smooth(
     cube       = cbers_probs,
     type       = "bayes",
-    memsize    = 1,
+    memsize    = 12,
     multicores = 2,
     output_dir = tempdir()
 )
 
-# label the resulting probs maps
-cbers_label <- sits_label_classification(
+# label the resulting smoothed probs maps
+cbers_label_bayes <- sits_label_classification(
     cube       = cbers_bayes,
-    memsize    = 1,
+    memsize    = 12,
     multicores = 2,
     output_dir = tempdir()
 )
 
-# plot the image (first and last instances)
+
+
+# view the image (first and last instances)
 sits_view(cbers_cube, red = "EVI", green = "NDVI", blue = "EVI", time = 1)
 sits_view(cbers_cube, red = "EVI", green = "NDVI", blue = "EVI", time = 23)
 
 # plot the probabilities for each class
 plot(cbers_probs)
 
-plot(cbers_label)
+# labels are "Cerradao" "Cerrado"  "Cropland" "Pasture"
+
+mylegend <- list("Cerradao" = "darkgreen", "Cerrado" = "palegreen1",
+"Cropland" = "orange2", "Pasture" = "yellow")
+
+plot(cbers_label, legend = mylegend)
+
+plot(cbers_label, palette = "default")
+

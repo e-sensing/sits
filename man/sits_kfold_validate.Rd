@@ -4,7 +4,13 @@
 \alias{sits_kfold_validate}
 \title{Cross-validate temporal patterns}
 \usage{
-sits_kfold_validate(data, folds = 5, ml_method = sits_rfor(), multicores = 2)
+sits_kfold_validate(
+  data,
+  folds = 5,
+  ml_method = sits_rfor(),
+  multicores = 2,
+  progress = FALSE
+)
 }
 \arguments{
 \item{data}{A sits tibble.}
@@ -14,6 +20,9 @@ sits_kfold_validate(data, folds = 5, ml_method = sits_rfor(), multicores = 2)
 \item{ml_method}{Machine learning method.}
 
 \item{multicores}{Number of cores for processing.}
+
+\item{progress}{A logical value indicating if a progress bar should
+be shown}
 }
 \value{
 A tibble containing pairs of reference and predicted values.
