@@ -11,7 +11,7 @@
 
 .sits_parallel_recv_one_result()
 
-.sits_parallel_cluster_apply(x, fn, ...)
+.sits_parallel_cluster_apply(x, fn, ..., pb = NULL)
 }
 \arguments{
 \item{x}{a given list to be passed to a function}

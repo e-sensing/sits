@@ -41,17 +41,17 @@ cbers_samples_2bands <- sits_select(
 # train a random forest model
 tcnn_model <- sits_train(
     data      = cbers_samples_2bands,
-    ml_method = sits_TempCNN()
+    ml_method = sits_rfor()
 )
 
 # classify the data (remember to set the appropriate memory size)
 cbers_probs <- sits_classify(
     data       = cbers_cube,
     ml_model   = tcnn_model,
-    memsize    = 12,
+    memsize    = 1,
     multicores = 3,
     output_dir = tempdir(),
-    verbose = TRUE
+    verbose    = TRUE
 )
 
 # label the resulting probs maps
@@ -94,5 +94,5 @@ mylegend <- list("Cerradao" = "darkgreen", "Cerrado" = "palegreen1",
 "Cropland" = "orange2", "Pasture" = "yellow")
 
 plot(cbers_label, legend = mylegend)
-plot(cbers_label, legend = "default")
+plot(cbers_label, palette = "default")
 

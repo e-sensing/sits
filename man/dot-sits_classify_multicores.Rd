@@ -16,7 +16,8 @@
   multicores,
   output_dir,
   version,
-  verbose
+  verbose,
+  progress
 )
 }
 \arguments{
@@ -44,6 +45,9 @@ samples}
 \item{version}{version of result}
 
 \item{verbose}{print processing information?}
+
+\item{progress}{a logical value indicating if a progress bar should
+be shown}
 }
 \value{
 List of the classified raster layers.

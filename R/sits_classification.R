@@ -232,7 +232,8 @@ sits_classify.raster_cube <- function(data, ml_model, ...,
                                       multicores = 2,
                                       output_dir = tempdir(),
                                       version = "v1",
-                                      verbose = FALSE) {
+                                      verbose = FALSE,
+                                      progress = FALSE) {
 
     # precondition - checks if the cube and ml_model are valid
     .sits_classify_check_params(data, ml_model)
@@ -299,7 +300,8 @@ sits_classify.raster_cube <- function(data, ml_model, ...,
             multicores = multicores,
             output_dir = output_dir,
             version    = version,
-            verbose    = verbose
+            verbose    = verbose,
+            progress   = progress
         )
 
         return(probs_row)

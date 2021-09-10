@@ -122,8 +122,8 @@ NULL
         return(flag)
     }
 
-    .check_lgl_type(x = flag,
-                    msg = "flag must be a logical value" )
+    .check_lgl(x = flag, allow_null = TRUE,
+               msg = "flag must be a logical value" )
 
     # set debug flag
     sits_env$debug_flag <- flag
