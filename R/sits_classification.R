@@ -45,6 +45,8 @@
 #' @param  version           version of the output (for multiple
 #'                           classifications)
 #' @param  verbose           print information about processing time?
+#' @param  progress          a logical value indicating if a progress bar
+#' should be shown
 #' @return                   Predicted data (classified time series)
 #'                           or a data cube with probabilities for each class.
 #'

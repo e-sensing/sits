@@ -26,7 +26,7 @@ sits_classify(data, ml_model, ...)
   output_dir = tempdir(),
   version = "v1",
   verbose = FALSE,
-  progress = TRUE
+  progress = FALSE
 )
 }
 \arguments{
@@ -62,6 +62,9 @@ samples}
 classifications)}
 
 \item{verbose}{print information about processing time?}
+
+\item{progress}{a logical value indicating if a progress bar
+should be shown}
 }
 \value{
 Predicted data (classified time series)
