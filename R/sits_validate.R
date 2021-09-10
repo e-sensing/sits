@@ -26,6 +26,8 @@
 #' @param folds           Number of partitions to create.
 #' @param ml_method       Machine learning method.
 #' @param multicores      Number of cores for processing.
+#' @param progress        A logical value indicating if a progress bar should
+#' be shown
 #' @return A tibble containing pairs of reference and predicted values.
 #'
 #' @examples
@@ -44,7 +46,11 @@
 sits_kfold_validate <- function(data,
                                 folds = 5,
                                 ml_method = sits_rfor(),
-                                multicores = 2) {
+                                multicores = 2,
+                                progress = FALSE) {
+
+    # set caller to show in errors
+    .check_set_caller("sits_kfold_validate")
 
     # require package
     if (!requireNamespace("caret", quietly = TRUE)) {
@@ -69,7 +75,7 @@ sits_kfold_validate <- function(data,
     # is the data labelled?
     .check_that(
         x = !("NoClass" %in% sits_labels(data)),
-        msg = "sits_cross_validate: requires labelled set of time series"
+        msg = "requires labelled set of time series"
     )
 
     # create partitions different splits of the input data
@@ -79,7 +85,7 @@ sits_kfold_validate <- function(data,
     pred_vec <- character()
     ref_vec <- character()
 
-    conf_lst <- .sits_parallel_map(seq_len(folds), function(k){
+    conf_lst <- .sits_parallel_map(seq_len(folds), function(k) {
 
         # split data into training and test data sets
         data_train <- data[data$folds != k, ]
@@ -111,7 +117,7 @@ sits_kfold_validate <- function(data,
         remove(ml_model)
 
         return(list(pred = pred_vec, ref = ref_vec))
-    })
+    }, progress = progress)
 
     pred <- unlist(lapply(conf_lst, function(x) x$pred))
     ref  <- unlist(lapply(conf_lst, function(x) x$ref))

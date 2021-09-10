@@ -28,6 +28,8 @@
 #' @param  output_dir      output directory
 #' @param  version         version of result
 #' @param  verbose         print processing information?
+#' @param  progress        a logical value indicating if a progress bar should
+#' be shown
 #' @return List of the classified raster layers.
 .sits_classify_multicores <- function(tile,
                                       ml_model,
@@ -40,7 +42,11 @@
                                       multicores,
                                       output_dir,
                                       version,
-                                      verbose) {
+                                      verbose,
+                                      progress) {
+
+    # set caller to show in errors
+    .check_set_caller(".sits_classify_multicores")
 
     # some models have parallel processing built in
     if ("ranger_model" %in% class(ml_model) |
@@ -56,7 +62,7 @@
     # precondition - are the samples empty?
     .check_that(
         x = nrow(samples) > 0,
-        msg = "sits_classify: original samples not saved"
+        msg = "original samples not saved"
     )
 
     # precondition - are the sample bands contained in the cube bands?
@@ -65,7 +71,7 @@
     .check_chr_within(
         x = bands,
         within = tile_bands,
-        msg = "sits_classify: some bands in samples are not in cube"
+        msg = "some bands in samples are not in cube"
     )
 
     # retrieve the normalization stats from the model
@@ -116,7 +122,7 @@
     }
 
     # prepare parallelization
-    .sits_parallel_start(workers = multicores)
+    .sits_parallel_start(workers = multicores, log = verbose)
     on.exit(.sits_parallel_stop(), add = TRUE)
 
     # log
@@ -187,8 +193,8 @@
         # are the results consistent with the data input?
         .check_that(
             x = nrow(pred_block) == nrow(distances),
-            msg = paste(".sits_classify_cube: number of rows of probability",
-                        "matrix is different from number of input pixels")
+            msg = paste("number of rows of probability matrix is different",
+                        "from number of input pixels")
         )
         # log
         .sits_debug_log(output_dir = output_dir,
@@ -235,7 +241,8 @@
         gc()
 
         return(filename_block)
-    })
+    }, progress = progress)
+
     # put the filenames in a vector
     filenames <- unlist(filenames)
     # log
@@ -274,15 +281,19 @@
 #' @param  ml_model        An R model trained by \code{\link[sits]{sits_train}}.
 #' @return Tests succeeded?
 .sits_classify_check_params <- function(cube, ml_model) {
+
+    # set caller to show in errors
+    .check_set_caller(".sits_classify_check_params")
+
     # ensure metadata tibble exists
     .check_that(
         x = nrow(cube) > 0,
-        msg = "sits_classify: invalid metadata for the cube"
+        msg = "invalid metadata for the cube"
     )
 
     # ensure the machine learning model has been built
     .check_null(x = ml_model,
-                msg = "sits_classify: trained ML model not available")
+                msg = "trained ML model not available")
 
     return(invisible(TRUE))
 }
@@ -297,6 +308,9 @@
 #' @return                   A data table with predicted values of probs
 .sits_classify_interval <- function(data, ml_model) {
 
+    # set caller to show in errors
+    .check_set_caller(".sits_classify_interval")
+
     # single core
     # estimate the prediction vector
     prediction <- ml_model(data)
@@ -304,8 +318,8 @@
     # are the results consistent with the data input?
     .check_that(
         x = nrow(prediction) == nrow(data),
-        msg = paste(".sits_classify_cube: number of rows of probability",
-                    "matrix is different from number of input pixels")
+        msg = paste("number of rows of probability matrix is different from",
+                    "number of input pixels")
     )
 
     return(prediction)

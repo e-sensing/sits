@@ -2,8 +2,6 @@ processing_bloat        : 5
 
 rstac_pagination_limit  : 999
 
-raster_api_package      : "raster"
-
 gdal_creation_options   : ["COMPRESS=LZW", "BIGTIFF=YES"]
 
 palettes:
@@ -12,4 +10,4 @@ palettes:
         Deforestation:      "sienna"
         Forest :            "darkgreen"
         Grassland :         "lightgreen"
-        NonForest:          "lightsteelblue2"
+        NonForest:          "lightsteelblue1"

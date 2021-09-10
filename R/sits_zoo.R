@@ -24,6 +24,10 @@
 #'
 sits_from_zoo <- function(ts_zoo, longitude = 0.00, latitude = 0.00,
                           label = "NoClass", name = "unknown") {
+
+    # set caller to show in errors
+    .check_set_caller("sits_from_zoo")
+
     # verifies if zoo package is installed
     if (!requireNamespace("zoo", quietly = TRUE)) {
         stop("zoo needed for this function to work.
@@ -32,15 +36,15 @@ sits_from_zoo <- function(ts_zoo, longitude = 0.00, latitude = 0.00,
     # preconditions
     .check_that(
         x = inherits(ts_zoo, "zoo"),
-        msg = "sits_from_zoo: input is not a zoo time series"
+        msg = "input is not a zoo time series"
     )
     .check_that(
         x = (longitude >= -180. & longitude <= 180.),
-        msg = "sits_from_zoo: invalid longitude value"
+        msg = "invalid longitude value"
     )
     .check_that(
         x = (latitude >= -90. & longitude <= 90.),
-        msg = "sits_from_zoo: invalid latitudevalue"
+        msg = "invalid latitudevalue"
     )
 
     # convert the data from the zoo format to a tibble used by sits

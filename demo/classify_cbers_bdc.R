@@ -86,11 +86,13 @@ cbers_lbayes <- sits_label_classification(
 
 # plot the image (last instances) - save the mapview for the
 # future
-sits_view(x     = cbers_cube,
+view1 <- sits_view(x     = cbers_cube,
           red   = "EVI",
           green = "NDVI",
           blue  = "EVI",
           time  = 23)
+
+sits_view(cbers_label, map = view1)
 
 # plot the classification result
 plot(cbers_probs)

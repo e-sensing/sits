@@ -34,6 +34,9 @@
 #'
 sits_to_xlsx <- function(acc_lst, file) {
 
+    # set caller to show in errors
+    .check_set_caller("sits_to_xlsx")
+
     # create a workbook to save the results
     workbook <- openxlsx::createWorkbook("accuracy")
     # eo_names of the accuracy assessment parameters
@@ -43,7 +46,7 @@ sits_to_xlsx <- function(acc_lst, file) {
     .check_length(
         x = num_sheets,
         len_min = 1,
-        msg = "sits_to_xlsx: number of sheets should be at least one")
+        msg = "number of sheets should be at least one")
 
     # save all elements of the list
     purrr::map2(acc_lst, 1:num_sheets, function(cf_mat, ind) {

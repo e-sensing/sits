@@ -68,8 +68,8 @@
 #' raster_cube <- sits_cube(
 #'     source = "LOCAL",
 #'     name = "sinop-2014",
-#'     satellite = "TERRA",
-#'     sensor = "MODIS",
+#'     origin = "BDC",
+#'     collection = "MOD13Q1-6",
 #'     data_dir = data_dir,
 #'     delim = "_",
 #'     parse_info = c("X1", "X2", "tile", "band", "date")
@@ -96,6 +96,9 @@ sits_get_data <- function(cube,
                           ...,
                           multicores = 1) {
 
+    # set caller to show in errors
+    .check_set_caller("sits_get_data")
+
     # is there a shapefile or a CSV file?
     if (!purrr::is_null(file)) {
         # get the file extension
@@ -105,7 +108,7 @@ sits_get_data <- function(cube,
             x = file_ext,
             within = c("csv", "shp"),
             discriminator = "any_of",
-            msg = "sits_get_data: accepts only csv and shp files"
+            msg = "accepts only csv and shp files"
         )
         # append "csv" or "shp" to the cube class to call the correct function
         class(cube) <- c(paste0(file_ext, "_", class(cube)[1]),
@@ -130,8 +133,7 @@ sits_get_data.wtss_cube <- function(cube, file = NULL, ...,
     # Precondition - lat/long must be provided
     .check_that(!purrr::is_null(latitude) &
                                 !purrr::is_null(longitude),
-                            msg = paste("sits_get_data: latitude/longitude",
-                                        "must be provided")
+                            msg = paste("latitude/longitude must be provided")
     )
 
     # Precondition - check bands
@@ -178,7 +180,7 @@ sits_get_data.satveg_cube <- function(cube,
     # Precondition - lat/long must be provided
     .check_that(
         x = !purrr::is_null(latitude) && !purrr::is_null(longitude),
-        msg = "sits_get_data: latitude/longitude must be provided"
+        msg = "latitude/longitude must be provided"
     )
 
     data <- .sits_get_data_from_satveg(
@@ -430,7 +432,7 @@ sits_get_data.raster_cube <- function(cube, file = NULL, ...,
     # Precondition - lat/long must be provided
     .check_that(
         x = !purrr::is_null(latitude) && !purrr::is_null(longitude),
-        msg = "sits_get_data: latitude/longitude must be provided"
+        msg = "latitude/longitude must be provided"
     )
 
     # Precondition - check and get start and end dates
@@ -514,7 +516,7 @@ sits_get_data.csv_raster_cube <- function(cube, file, ...,
     }
 
     # prepare parallelization
-    .sits_parallel_start(workers = multicores)
+    .sits_parallel_start(workers = multicores, log = FALSE)
     on.exit(.sits_parallel_stop(), add = TRUE)
 
     ts_rows <- slider::slide(cube, function(tile) {
@@ -587,7 +589,7 @@ sits_get_data.shp_raster_cube <- function(cube, file, ...,
     }
 
     # prepare parallelization
-    .sits_parallel_start(workers = multicores)
+    .sits_parallel_start(workers = multicores, log = FALSE)
     on.exit(.sits_parallel_stop(), add = TRUE)
 
     # for each row of the cube, get the points inside
@@ -663,14 +665,17 @@ sits_get_data.shp_raster_cube <- function(cube, file, ...,
                                        end_date = NULL,
                                        label = "NoClass") {
 
+    # set caller to show in errors
+    .check_set_caller(".sits_get_data_from_satveg")
+
     # check parameters
     .check_null(
         x = longitude,
-        msg = ".sits_get_data_from_satveg: Missing longitude info"
+        msg = "Missing longitude info"
     )
     .check_null(
         x = latitude,
-        msg = ".sits_get_data_from_satveg: Missing latitude info"
+        msg = "Missing latitude info"
     )
 
     # retrieve the time series
@@ -748,7 +753,7 @@ sits_get_data.shp_raster_cube <- function(cube, file, ...,
     bdc_access_key <- Sys.getenv("BDC_ACCESS_KEY")
     .check_that(
         x = nzchar(bdc_access_key),
-        msg = "sits_cube: BDC_ACCESS_KEY needs to be provided"
+        msg = "BDC_ACCESS_KEY needs to be provided"
     )
 
     # check start and end dates
@@ -778,7 +783,7 @@ sits_get_data.shp_raster_cube <- function(cube, file, ...,
         )
     },
     warning = function(e){
-        paste("sits_get_data:", e)
+        paste(e)
     })
 
     # change the class of the data

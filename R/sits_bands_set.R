@@ -17,11 +17,15 @@
 #' @export
 #'
 `sits_bands<-.sits` <- function(x, value) {
+
+    # set caller to show in errors
+    .check_set_caller("sits_bands")
+
     # get the time series
     ts <- sits_time_series(x)
     .check_that(
         x = ncol(ts) == length(value) + 1,
-        msg = "sits_bands: invalid number of bands to be replaced")
+        msg = "invalid number of bands to be replaced")
 
     # change band names for all rows of the tibble
     rows <- slider::slide(x, function(row) {
@@ -37,11 +41,15 @@
 #' @export
 #'
 `sits_bands<-.cube` <- function(x, value) {
+
+    # set caller to show in errors
+    .check_set_caller("sits_bands")
+
     rows <- slider::slide(x, function(row) {
         old_bands <- row$bands[[1]]
         .check_that(
             x = length(old_bands) == length(value),
-            msg = "sits_bands: replacement bands have wrong length")
+            msg = "replacement bands have wrong length")
         # rename bands
         names(value) <- row$bands[[1]]
         row$bands[[1]] <- unname(value)

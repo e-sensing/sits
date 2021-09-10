@@ -120,6 +120,9 @@
                                        stac_query,
                                        tiles = NULL) {
 
+    # set caller to show in errors
+    .check_set_caller(".source_items_new.aws_cube")
+
     # if specified, a filter per tile is added to the query
     if (!is.null(tiles)) {
         sep_tile <- .aws_tiles(tiles)
@@ -137,7 +140,7 @@
     # check if matched items
     .check_that(
         x = rstac::items_matched(items_info) > 0,
-        msg = ".source_items_new.aws_cube: no items matched the query criteria."
+        msg = "no items matched the query criteria."
     )
 
     # if more than 2 times items pagination are found the progress bar
@@ -195,23 +198,6 @@
     })
 
     rstac::items_group(items, field = c("properties", "tile"))
-}
-
-#' @keywords internal
-#' @export
-.source_items_get_sensor.aws_cube <- function(source,
-                                              items, ...,
-                                              collection = NULL) {
-
-    items[["features"]][[1]][[c("properties", "instruments")]]
-}
-
-#' @keywords internal
-#' @export
-.source_items_get_satellite.aws_cube <- function(source,
-                                                 items, ...,
-                                                 collection = NULL) {
-    items[["features"]][[1]][[c("properties", "constellation")]]
 }
 
 #' @keywords internal

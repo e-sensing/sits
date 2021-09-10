@@ -89,6 +89,9 @@
                                       gdal_options,
                                       overwrite, ...) {
 
+    # set caller to show in errors
+    .check_set_caller(".raster_write_rast.raster")
+
     suppressWarnings(
         raster::writeRaster(
             x         = r_obj,
@@ -103,7 +106,7 @@
     # was the file written correctly?
     .check_file(
         x = file,
-        msg = ".raster_write_rast: unable to write raster object"
+        msg = "unable to write raster object"
     )
 
     return(invisible(NULL))
@@ -276,6 +279,9 @@
                                  window_size,
                                  fn, ...) {
 
+    # set caller to show in errors
+    .check_set_caller(".raster_focal.raster")
+
     # check fun parameter
     if (is.character(fn)) {
 
@@ -288,8 +294,7 @@
 
         .check_that(
             x = raster::nlayers(r_obj) == 1,
-            msg = paste(".raster_focal.raster: cannot use focal",
-                        "function in a RasterBrick object.")
+            msg = "cannot use focal function in a RasterBrick object."
         )
 
         r_obj <- r_obj[[1]]

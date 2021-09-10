@@ -26,9 +26,13 @@
 #' @export
 #'
 sits_metadata_to_csv <- function(data, file) {
+
+    # set caller to show in errors
+    .check_set_caller("sits_metadata_to_csv")
+
     .check_that(
         x = suppressWarnings(file.create(file)),
-        msg = "sits_metadata_to_csv: file is not writable"
+        msg = "file is not writable"
     )
 
     csv_columns <- c("longitude", "latitude", "start_date", "end_date", "label")
@@ -38,7 +42,7 @@ sits_metadata_to_csv <- function(data, file) {
 
     .check_that(
         x = nrow(csv) > 0,
-        msg = "sits_metadata_to_csv: invalid csv file"
+        msg = "invalid csv file"
     )
     n_rows_csv <- nrow(csv)
     # create a column with the id
@@ -80,12 +84,15 @@ sits_metadata_to_csv <- function(data, file) {
 #'
 sits_data_to_csv <- function(data, file) {
 
+    # set caller to show in errors
+    .check_set_caller("sits_data_to_csv")
+
     # check if data is valid
     .sits_tibble_test(data)
 
     .check_that(
         x = suppressWarnings(file.create(file)),
-        msg = "sits_data_to_csv: file is not writable."
+        msg = "file is not writable."
     )
 
     distances <- .sits_distances(data)
@@ -105,11 +112,14 @@ sits_data_to_csv <- function(data, file) {
 #'
 .sits_csv_check <- function(csv) {
 
+    # set caller to show in errors
+    .check_set_caller(".sits_csv_check")
+
     # check if required col names are available
     .check_chr_within(
         x = c("longitude", "latitude", "start_date", "end_date", "label"),
         within = colnames(csv),
-        msg = "sits_csv_check: invalid csv file")
+        msg = "invalid csv file")
 
     return(invisible(TRUE))
 }

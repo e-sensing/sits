@@ -92,6 +92,9 @@
                                      gdal_options,
                                      overwrite, ...) {
 
+    # set caller to show in errors
+    .check_set_caller(".raster_write_rast.terra")
+
     suppressWarnings(
         terra::writeRaster(
             x         = r_obj,
@@ -106,7 +109,7 @@
     # was the file written correctly?
     .check_file(
         x = file,
-        msg = ".raster_write_rast: unable to write raster object"
+        msg = "unable to write raster object"
     )
 
     return(invisible(NULL))

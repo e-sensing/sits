@@ -54,13 +54,15 @@
 .source_items_new.wtss_cube <- function(source = source,
                                         collection = collection, ...) {
 
+    # set caller to show in errors
+    .check_set_caller(".source_items_new.wtss_cube")
+
     url <- .source_url(source = source)
 
     # describe the cube based on the WTSS API
     cov <- Rwtss::describe_coverage(url, collection, .print = FALSE)
     .check_null(x = cov,
-                msg = paste(".source_items_new.wtss_cube: failed",
-                            "to get cube description in WTSS.")
+                msg = paste("failed to get cube description in WTSS.")
     )
 
     return(cov)
@@ -94,8 +96,8 @@
         name = name,
         source = source,
         collection = collection,
-        satellite = items$satellite,
-        sensor = items$sensor,
+        satellite = .source_collection_satellite(source, collection),
+        sensor = .source_collection_sensor(source, collection),
         bands = bands,
         nrows = items$nrows,
         ncols = items$ncols,

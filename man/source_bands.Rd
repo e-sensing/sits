@@ -42,7 +42,7 @@
 
 .source_bands_to_source(source, collection, bands)
 
-.source_cloud(source, collection)
+.source_cloud()
 
 .source_cloud_bit_mask(source, collection)
 
