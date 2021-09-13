@@ -4,10 +4,12 @@
 \alias{.sits_parallel_start}
 \title{Start a new sits cluster for parallel processing}
 \usage{
-.sits_parallel_start(workers)
+.sits_parallel_start(workers, log)
 }
 \arguments{
 \item{workers}{number of cluster to instantiate}
+
+\item{log}{a logical indicating if log files must be written}
 }
 \description{
 Start a new sits cluster for parallel processing

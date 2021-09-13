@@ -173,6 +173,12 @@
         )
     }) %>% dplyr::arrange(date)
 
+    file_info <- dplyr::group_by(file_info, date, band, res) %>%
+        dplyr::summarise(
+            path = dplyr::first(path, order_by = path),
+            .groups = "drop"
+        )
+
     return(file_info)
 }
 

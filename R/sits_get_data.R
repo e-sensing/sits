@@ -516,7 +516,7 @@ sits_get_data.csv_raster_cube <- function(cube, file, ...,
     }
 
     # prepare parallelization
-    .sits_parallel_start(workers = multicores)
+    .sits_parallel_start(workers = multicores, log = FALSE)
     on.exit(.sits_parallel_stop(), add = TRUE)
 
     ts_rows <- slider::slide(cube, function(tile) {
@@ -589,7 +589,7 @@ sits_get_data.shp_raster_cube <- function(cube, file, ...,
     }
 
     # prepare parallelization
-    .sits_parallel_start(workers = multicores)
+    .sits_parallel_start(workers = multicores, log = FALSE)
     on.exit(.sits_parallel_stop(), add = TRUE)
 
     # for each row of the cube, get the points inside

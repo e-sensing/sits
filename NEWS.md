@@ -2,10 +2,22 @@
 
 We are preparing to release the package on CRAN and are making relevant changes in the development version.
 
+
+# What's new in SITS version 0.14.0-1
+
+### New features in SITS version 0.14.0-1
+
+* fix duplicate link in AWS STAC 
+
 # What's new in SITS version 0.14.0
 
 ### New features in SITS version 0.14.0
 
+* Now the plot of a classified cube requires a legend or a palette if the labels are not in the default sits palette. 
+* Support for `S2-SEN2COR_10_16D_STK-1` BDC collection
+* Remove function name from msg in `check` function
+* Add `satellite` and `sensor` info in config file
+* Remove `imager`, `ranger`, `proto`, and `future` packages from sits
 * Support for different providers to LOCAL sources
 * LOCAL source is dynamically built
 * Remove `sits_cube.local_cube()` function parameters `satellite` and `sensor`
@@ -191,8 +203,4 @@ We are preparing to release the package on CRAN and are making relevant changes 
 
 *  For programmers only: The `sits_cube.R` file now includes many convenience functions to avoid using cumbersome indexes to files and vector: `.sits_raster_params`, `.sits_cube_all_robjs`, `.sits_class_band_name`, `.sits_cube_bands`, `.sits_cube_service`, `.sits_cube_file`, `.sits_cube_files`, `.sits_cube_labels`, `.sits_cube_timeline`, `.sits_cube_robj`, `.sits_cube_all_robjs`, `.sits_cube_missing_values`, `.sits_cube_minimum_values`, `.sits_cube_maximum_values`, `.sits_cube_scale_factors`, `.sits_files_robj`. Please look at the documentation provided in the `sits_cube.R` file.
 
-* For programmers only: The metadata that describes the data cube no longer stores the raster objects associated to the files associated with the cube. 
-
-
-
-
+* For programmers only: The metadata that describes the data cube no longer stores the raster objects associated to the files associated with the cube.

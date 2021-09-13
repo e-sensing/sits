@@ -28,6 +28,8 @@
 #' @param  output_dir      output directory
 #' @param  version         version of result
 #' @param  verbose         print processing information?
+#' @param  progress        a logical value indicating if a progress bar should
+#' be shown
 #' @return List of the classified raster layers.
 .sits_classify_multicores <- function(tile,
                                       ml_model,
@@ -40,7 +42,8 @@
                                       multicores,
                                       output_dir,
                                       version,
-                                      verbose) {
+                                      verbose,
+                                      progress) {
 
     # set caller to show in errors
     .check_set_caller(".sits_classify_multicores")
@@ -119,7 +122,7 @@
     }
 
     # prepare parallelization
-    .sits_parallel_start(workers = multicores)
+    .sits_parallel_start(workers = multicores, log = verbose)
     on.exit(.sits_parallel_stop(), add = TRUE)
 
     # log
@@ -238,7 +241,8 @@
         gc()
 
         return(filename_block)
-    })
+    }, progress = progress)
+
     # put the filenames in a vector
     filenames <- unlist(filenames)
     # log
