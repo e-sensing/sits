@@ -81,6 +81,9 @@ sits_config <- function(processing_bloat = NULL,
         message(paste("Additional configurations found in", user_yml_file))
         config <- yaml::yaml.load_file(input = user_yml_file,
                                        merge.precedence = "override")
+        config <- utils::modifyList(sits_env[["config"]],
+                                    config,
+                                    keep.null = FALSE)
 
         # set options defined by user (via YAML file)
         # modifying existing configuration
