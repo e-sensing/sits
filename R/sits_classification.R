@@ -52,7 +52,7 @@
 #'    The "roi" parameter defines a region of interest. It can be
 #'    an sf_object, a shapefile, or a bounding box vector with
 #'    named XY values ("xmin", "xmax", "ymin", "ymax") or
-#'    named lat/long values ("lat_min", "lat_max", "lon_min", "lon_max")
+#'    named lat/long values ("lon_min", "lat_min", "lon_max", "lat_max")
 #'
 #'    The "filter_fn" parameter specifies a smoothing filter to be applied to
 #'    time series for reducing noise. Currently, options include

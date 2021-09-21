@@ -95,7 +95,7 @@
 #' @param bands             Bands to be included.
 #' @param tiles             Tiles from the collection to be included in the
 #'                          data cube.
-#' @param bbox              Area of interest (see details below).
+#' @param roi               Region of interest (see details below).
 #' @param start_date        Initial date for the cube (optional).
 #' @param end_date          Final date for the cube  (optional).
 #' @param s2_resolution     Resolution of S2 images ("10m", "20m" or "60m").
@@ -114,8 +114,8 @@
 #'                          probabilities).
 #' @param probs_labels      Labels associated to a probabilities cube.
 #'
-#' @details The \code{bbox} parameter allows a selection of an area of interest.
-#' Either using a named \code{vector} ("xmin", "ymin", "xmax", "ymax") with
+#' @details The \code{roi} parameter allows a selection of an area of interest.
+#' Either using a named \code{vector} ("lon_min", "lat_min", "lon_max", "lat_max") with
 #' values in WGS 84, a \code{sfc} or \code{sf} object from sf package, or a
 #' GeoJSON geometry (RFC 7946). Note that this parameter does not crop a
 #' region, but only selects the images that intersect with it.
@@ -272,7 +272,7 @@ sits_cube.bdc_cube <- function(source = "BDC", ...,
                                collection,
                                bands = NULL,
                                tiles = NULL,
-                               bbox = NULL,
+                               roi = NULL,
                                start_date = NULL,
                                end_date = NULL) {
 
@@ -305,7 +305,7 @@ sits_cube.bdc_cube <- function(source = "BDC", ...,
                  name = name,
                  bands = bands,
                  tiles = tiles,
-                 bbox = bbox,
+                 bbox = roi,
                  start_date = start_date,
                  end_date = end_date, ...)
 }
@@ -319,7 +319,7 @@ sits_cube.deafrica_cube <- function(source = "DEAFRICA", ...,
                                     collection = "S2_L2A",
                                     bands = NULL,
                                     tiles = NULL,
-                                    bbox = NULL,
+                                    roi = NULL,
                                     start_date = NULL,
                                     end_date = NULL) {
 
@@ -354,7 +354,7 @@ sits_cube.deafrica_cube <- function(source = "DEAFRICA", ...,
                  name = name,
                  bands = bands,
                  tiles = tiles,
-                 bbox = bbox,
+                 bbox = roi,
                  start_date = start_date,
                  end_date = end_date, ...)
 }
@@ -368,7 +368,7 @@ sits_cube.aws_cube <- function(source = "AWS", ...,
                                collection = "sentinel-s2-l2a",
                                tiles = NULL,
                                bands = NULL,
-                               bbox = NULL,
+                               roi = NULL,
                                s2_resolution = 20,
                                start_date = NULL,
                                end_date = NULL) {
@@ -415,7 +415,7 @@ sits_cube.aws_cube <- function(source = "AWS", ...,
                  name = name,
                  bands = bands,
                  tiles = tiles,
-                 bbox = bbox,
+                 bbox = roi,
                  start_date = start_date,
                  end_date = end_date, ...,
                  s2_resolution = s2_resolution)
@@ -429,7 +429,7 @@ sits_cube.usgs_cube <- function(source = "USGS", ...,
                                 collection = "landsat-c2l2-sr",
                                 tiles = NULL,
                                 bands = NULL,
-                                bbox = NULL,
+                                roi = NULL,
                                 start_date = NULL,
                                 end_date = NULL) {
 
@@ -471,7 +471,7 @@ sits_cube.usgs_cube <- function(source = "USGS", ...,
                  name = name,
                  bands = bands,
                  tiles = tiles,
-                 bbox = bbox,
+                 bbox = roi,
                  start_date = start_date,
                  end_date = end_date, ...)
 }
@@ -665,8 +665,10 @@ sits_cube_copy <- function(cube,
 
         # get all the bands which are requested
         file_info_out <- dplyr::filter(file_info, band %in% bands)
+        # remove token (if existing)
+        file_no_token <- gsub("^([^?]+)(\\?.*)?$", "\\1", file_info_out$path[[1]])
         # get the file extension
-        file_ext <- tools::file_ext(file_info_out$path[1])
+        file_ext <- tools::file_ext(file_no_token)
 
         if (file_ext == "jp2") {
             gdal_of <- "JP2OpenJPEG"
