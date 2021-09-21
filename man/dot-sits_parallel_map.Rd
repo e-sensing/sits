@@ -4,12 +4,15 @@
 \alias{.sits_parallel_map}
 \title{Maps a function to a given list in parallel or sequential processing}
 \usage{
-.sits_parallel_map(x, fn, ...)
+.sits_parallel_map(x, fn, ..., progress)
 }
 \arguments{
 \item{x}{a given list to be passed to a function}
 
 \item{fn}{a function to be applied to each list element}
+
+\item{progress}{a logical value indicating if a progress bar should
+be shown}
 }
 \value{
 a list with the function results in the same order
