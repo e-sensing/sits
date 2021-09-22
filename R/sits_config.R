@@ -596,6 +596,7 @@ sits_config_show <- function(source = NULL,
 #'
 #' @keywords internal
 #'
+#' @param bands      Sensor bands.
 #' @param collection Collection to be searched in the data source.
 #' @param data       A sits data cube.
 #' @param labels     Vector with labels.
@@ -807,6 +808,35 @@ NULL
                       within = .raster_supported_packages(),
                       discriminator = "one_of",
                       msg = "invalid 'raster_api_package' in config file")
+
+    return(res)
+}
+
+#' @rdname config_functions
+.config_collection_res <- function(source, collection, bands) {
+
+    list_bands <- .config_get(key = c("sources", source, "collections",
+                                      collection, "bands"))[bands]
+    # pre-condition
+    .check_lst(
+        x = list_bands,
+        allow_null = FALSE, is_named = TRUE,
+        max_len = length(bands),
+        msg = "invalid 'bands' in config file"
+    )
+
+    res <- vapply(
+        list_bands, `[[`, "resolutions",
+        FUN.VALUE = numeric(1), USE.NAMES = FALSE
+    )
+
+    # post-condition
+    .check_num(
+        x = res,
+        len_max = length(res),
+        allow_null = FALSE,
+        msg = "invalid 'resolutions' in config file. "
+    )
 
     return(res)
 }

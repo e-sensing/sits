@@ -14,6 +14,7 @@
 \alias{.config_processing_bloat}
 \alias{.config_rstac_limit}
 \alias{.config_raster_pkg}
+\alias{.config_collection_res}
 \title{Get values from config file}
 \usage{
 .config_file()
@@ -39,13 +40,19 @@
 .config_rstac_limit()
 
 .config_raster_pkg()
+
+.config_collection_res(source, collection, bands)
 }
 \arguments{
 \item{labels}{Vector with labels.}
 
 \item{...}{Additional parameters.}
 
+\item{source}{Source of data cube}
+
 \item{collection}{Collection to be searched in the data source.}
+
+\item{bands}{Sensor bands.}
 
 \item{data}{A sits data cube.}
 
@@ -54,8 +61,6 @@ configuration file.}
 
 \item{simplify}{A logical value that specifies whether the return should be
 in vector form, if true, or list form, if false. Default value is FALSE.}
-
-\item{source}{Source of data cube}
 }
 \value{
 Functions that search for values from a key or collection
