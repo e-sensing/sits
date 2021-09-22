@@ -431,7 +431,7 @@ sources:
                             11       : "snow or ice"
                         interp_values: [0, 1, 2, 3, 8, 9, 10, 11]
                         resampling   : "near"
-                        resolutions  : [20, 60]
+                        resolutions  : [10]
                 satellite   : "SENTINEL-2"
                 sensor      : "MSI"
                 collection_name: "S2-SEN2COR_10_16D_STK-1"
