@@ -11,7 +11,8 @@
   start_date = NULL,
   end_date = NULL,
   bands = NULL,
-  label = "NoClass"
+  label = "NoClass",
+  impute_fn = sits_impute_linear()
 )
 }
 \arguments{
