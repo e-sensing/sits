@@ -328,8 +328,11 @@
         )
 
         # get the values of the time series (terra object)
-        cld_values <- .sits_cube_extract(cube = cube, band_cube = cld_band,
-                                         xy = xy)
+        cld_values <- .sits_cube_extract(
+            cube = cube,
+            band_cube = cld_band,
+            xy = xy
+        )
 
         # get information about cloud bitmask
         if (.source_cloud_bit_mask(
