@@ -682,6 +682,7 @@ sits_cube_copy <- function(cube,
                 dest_dir, "/",
                 row$satellite, "_",
                 row$sensor, "_",
+                row$tile,"_",
                 file_row$band, "_",
                 file_row$date, ".",
                 file_ext

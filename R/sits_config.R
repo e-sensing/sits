@@ -13,8 +13,12 @@
 #'
 #' \code{sits_config_show()} prints the current sits
 #' configuration options. To show specific configuration options for
-#' a source, a collection, or a palette, user can inform the corresponding
+#' a source, a collection, or a palette, users can inform the corresponding
 #' keys to \code{source}, \code{collection}, and \code{palette} parameters.
+#'
+#' \code{sits_config_list_collection()} prints the collections available
+#' in each cloud service supported by sits. Users can select to get information
+#' only for a single service by using the \code{source} parameter.
 #'
 #' @param processing_bloat       A \code{numeric} value to estimate
 #' growth size of R memory relative to block size.
@@ -193,6 +197,62 @@ sits_config_show <- function(source = NULL,
     return(invisible(config))
 }
 
+#' @rdname sits_configuration
+#'
+#' @return
+#' \code{sits_config_list_collection()} prints the collections available in
+#' each cloud service supported by sits.
+#'
+#' @export
+
+sits_config_list_collections <- function(source = NULL) {
+    # divert output
+    sink("/dev/null")
+    # get configuration
+    config <- sits_config_show()
+    # re-enable output
+    sink()
+    # get sources available
+    sources <- config$sources[[1]]
+    # remove local collections
+    sources <- sources[!(sources %in%
+                             c("CLASSIFIED", "PROBS", "WTSS", "LOCAL", "SATVEG"))]
+    # if the user has required a source
+    # check that it is valid
+    if (!purrr::is_null(source)) {
+        # check if source exists
+        .check_chr_within(
+            x = band,
+            within = sits_bands(x),
+            msg = "invalid band"
+        )
+        sources <- source
+    }
+    purrr::map(sources, function(s){
+        sink("/dev/null")
+        # get configuration
+        config_s <- sits_config_show(source = s)
+        sink()
+        # re-enable output
+        cat("====================\n")
+        cat(paste0("source = ", s, "\n"))
+        collections <- config_s$collections[[1]]
+        purrr::map(collections, function(c){
+            sink("/dev/null")
+            # get collection information
+            config_s_c <- sits_config_show(source = s, collection = c)
+            sink()
+            cat(paste0("collection = ", c,"\n"))
+            cat(paste0("satellite = ", config_s_c["satellite"],
+                       " sensor = ", config_s_c["sensor"], "\n"))
+            cat("bands = ")
+            cat(names(config_s_c[["bands"]]))
+            cat("\n")
+            cat("\n")
+        })
+    })
+    return(invisible(NULL))
+}
 .config_set_options <- function(processing_bloat = NULL,
                                 rstac_pagination_limit = NULL,
                                 raster_api_package = NULL,
