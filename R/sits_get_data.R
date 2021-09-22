@@ -128,7 +128,8 @@ sits_get_data.wtss_cube <- function(cube, file = NULL, ...,
                                     start_date = NULL,
                                     end_date = NULL,
                                     bands = NULL,
-                                    label = "NoClass") {
+                                    label = "NoClass",
+                                    impute_fn = sits_impute_linear()) {
 
     # Precondition - lat/long must be provided
     .check_that(!purrr::is_null(latitude) &
@@ -146,10 +147,11 @@ sits_get_data.wtss_cube <- function(cube, file = NULL, ...,
         cube = cube,
         longitude = longitude,
         latitude = latitude,
-        start_date = start_end["start_date"],
-        end_date = start_end["end_date"],
+        start_date = start_end[["start_date"]],
+        end_date = start_end[["end_date"]],
         bands = bands,
-        label = label
+        label = label,
+        impute_fn = impute_fn
     )
     if (!purrr::is_null(data) && !("sits" %in% class(data))) {
         class(data) <- c("sits", class(data))
@@ -201,7 +203,10 @@ sits_get_data.satveg_cube <- function(cube,
 #'
 #' @export
 #'
-sits_get_data.csv_wtss_cube <- function(cube, file, ..., bands = NULL) {
+sits_get_data.csv_wtss_cube <- function(cube,
+                                        file, ...,
+                                        bands = NULL,
+                                        impute_fn = sits_impute_linear()) {
 
     # read sample information from CSV file and put it in a tibble
     csv <- tibble::as_tibble(utils::read.csv(file))
@@ -229,7 +234,8 @@ sits_get_data.csv_wtss_cube <- function(cube, file, ..., bands = NULL) {
                 start_date = lubridate::as_date(start_date),
                 end_date = lubridate::as_date(end_date),
                 bands = bands,
-                label = label
+                label = label,
+                impute_fn = impute_fn
             )
             return(row)
         }
@@ -310,6 +316,7 @@ sits_get_data.shp_wtss_cube <- function(cube, file, ...,
                                         end_date = NULL,
                                         bands = NULL,
                                         label = "NoClass",
+                                        impute_fn = sits_impute_linear(),
                                         shp_attr = NULL,
                                         .n_shp_pol = 30) {
 
@@ -346,7 +353,8 @@ sits_get_data.shp_wtss_cube <- function(cube, file, ...,
                 start_date = start_end["start_date"],
                 end_date = start_end["end_date"],
                 bands = bands,
-                label = lab
+                label = lab,
+                impute_fn = impute_fn
             )
             return(row)
         }
@@ -445,8 +453,8 @@ sits_get_data.raster_cube <- function(cube, file = NULL, ...,
         id = 1,
         longitude = longitude,
         latitude = latitude,
-        start_date = start_end["start_date"],
-        end_date = start_end["end_date"],
+        start_date = start_end[["start_date"]],
+        end_date = start_end[["end_date"]],
         label = label
     )
 
@@ -742,7 +750,8 @@ sits_get_data.shp_raster_cube <- function(cube, file, ...,
                                      start_date = NULL,
                                      end_date = NULL,
                                      bands = NULL,
-                                     label = "NoClass") {
+                                     label = "NoClass",
+                                     impute_fn = sits_impute_linear()) {
 
     # verifies if wtss package is installed
     if (!requireNamespace("Rwtss", quietly = TRUE)) {
@@ -786,6 +795,106 @@ sits_get_data.shp_raster_cube <- function(cube, file, ...,
         paste(e)
     })
 
+    # interpolate clouds
+    cld_band <- .source_bands_band_name(source = "WTSS",
+                                        collection = cube$collection,
+                                        bands = .source_cloud())
+
+    # retrieve values for the cloud band (if available)
+    if (cld_band %in% bands) {
+
+        bands <- bands[bands != cld_band]
+
+        # retrieve values that indicate clouds
+        cld_index <- .source_cloud_interp_values(
+            source = .cube_source(cube = cube),
+            collection = .cube_collection(cube = cube)
+        )
+
+        # get the values of the time series (terra object)
+        cld_values <- as.integer(ts$time_series[[1]][[cld_band]])
+
+        # get information about cloud bitmask
+        if (.source_cloud_bit_mask(
+            source = .cube_source(cube = cube),
+            collection = .cube_collection(cube = cube))) {
+
+            cld_values <- as.matrix(cld_values)
+            cld_rows <- nrow(cld_values)
+            cld_values <- matrix(bitwAnd(cld_values, sum(2 ^ cld_index)),
+                                 nrow = cld_rows)
+        }
+    }
+
+    # Retrieve values on a band by band basis
+    ts_bands <- lapply(bands, function(band) {
+
+        # get the values of the time series as matrix
+        values_band <- ts$time_series[[1]][[band]]
+
+        # convert to sits band
+        band_sits <- .source_bands_to_sits(source = cube$source[[1]],
+                                           collection = cube$collection[[1]],
+                                           bands = band)
+
+        if (!purrr::is_null(impute_fn)) {
+
+            # get the scale factors, max, min and missing values
+            missing_value <- .cube_band_missing_value(
+                cube = cube,
+                band = band_sits
+            )
+            minimum_value <- .cube_band_minimum_value(
+                cube = cube,
+                band = band_sits
+            )
+            maximum_value <- .cube_band_maximum_value(
+                cube = cube,
+                band = band_sits
+            )
+            scale_factor <- .cube_band_scale_factor(
+                cube = cube,
+                band = band_sits
+            )
+
+            # include information from cloud band
+            if (!purrr::is_null(cld_band)) {
+                if (.source_cloud_bit_mask(
+                    source = .cube_source(cube = cube),
+                    collection = .cube_collection(cube = cube)))
+                    values_band[cld_values > 0] <- NA
+                else
+                    values_band[cld_values %in% cld_index] <- NA
+            }
+
+            # adjust maximum and minimum values
+            values_band[values_band < minimum_value * scale_factor] <- NA
+            values_band[values_band > maximum_value * scale_factor] <- NA
+
+            # are there NA values? interpolate them
+            if (any(is.na(values_band))) {
+                values_band <- impute_fn(as.integer(values_band / scale_factor))
+            }
+        }
+
+        # return the values
+        return(values_band * scale_factor)
+    })
+
+    # rename bands to sits band names
+    bands_sits <- .source_bands_to_sits(source = cube$source[[1]],
+                                        collection = cube$collection[[1]],
+                                        bands = bands)
+
+    # now we have to transpose the data
+    ts_samples <- ts_bands %>%
+        purrr::set_names(bands_sits) %>%
+        tibble::as_tibble()
+
+    ts_samples <- dplyr::bind_cols(ts$time_series[[1]]["Index"], ts_samples)
+
+    ts$time_series[[1]] <- ts_samples
+
     # change the class of the data
     # before - class "wtss"
     # now - class "sits"
@@ -800,6 +909,7 @@ sits_get_data.shp_raster_cube <- function(cube, file, ...,
         ts <- .sits_tibble_rename(ts)
         # band names are uppercase in SITS
     }
+
     # return the tibble with the time series
     return(ts)
 }
