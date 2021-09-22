@@ -198,25 +198,25 @@ sources:
                         offset_value  : 0
                         resampling    : "bilinear"
                         resolutions   : [30]
-                        band_name     : "BAND1"
+                        band_name     : "band1"
                     B2      :
                         <<: *bdc_oli_band1
-                        band_name     : "BAND2"
+                        band_name     : "band2"
                     B3      :
                         <<: *bdc_oli_band1
-                        band_name     : "BAND3"
+                        band_name     : "band3"
                     B4      :
                         <<: *bdc_oli_band1
-                        band_name     : "BAND4"
+                        band_name     : "band4"
                     B5      :
                         <<: *bdc_oli_band1
-                        band_name     : "BAND5"
+                        band_name     : "band5"
                     B6      :
                         <<: *bdc_oli_band1
-                        band_name     : "BAND6"
+                        band_name     : "band6"
                     B7      :
                         <<: *bdc_oli_band1
-                        band_name     : "BAND7"
+                        band_name     : "band7"
                     CLOUD   : &bdc_oli_cloud
                         bit_mask      : FALSE
                         band_name     : "Fmask4"
@@ -310,37 +310,37 @@ sources:
                         offset_value  : 0
                         resampling    : "bilinear"
                         resolutions   : [10]
-                        band_name     : "BAND1"
+                        band_name     : "band1"
                     B02     :
                         <<: *bdc_msi_band1
-                        band_name     : "BAND2"
+                        band_name     : "band2"
                     B03     :
                         <<: *bdc_msi_band1
-                        band_name     : "BAND3"
+                        band_name     : "band3"
                     B04     :
                         <<: *bdc_msi_band1
-                        band_name     : "BAND4"
+                        band_name     : "band4"
                     B05     :
                         <<: *bdc_msi_band1
-                        band_name     : "BAND5"
+                        band_name     : "band5"
                     B06     :
                         <<: *bdc_msi_band1
-                        band_name     : "BAND6"
+                        band_name     : "band6"
                     B07     :
                         <<: *bdc_msi_band1
-                        band_name     : "BAND7"
+                        band_name     : "band7"
                     B08     :
                         <<: *bdc_msi_band1
-                        band_name     : "BAND8"
+                        band_name     : "band8"
                     B8A     :
                         <<: *bdc_msi_band1
-                        band_name     : "BAND8a"
+                        band_name     : "band8a"
                     B11     :
                         <<: *bdc_msi_band1
-                        band_name     : "BAND11"
+                        band_name     : "band11"
                     B12     :
                         <<: *bdc_msi_band1
-                        band_name     : "BAND12"
+                        band_name     : "band12"
                     CLOUD   :
                         bit_mask      : FALSE
                         band_name     : "Fmask4"
