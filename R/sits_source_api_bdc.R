@@ -34,7 +34,13 @@
 .source_item_get_resolutions.bdc_cube <- function(source,
                                                   item, ...,
                                                   collection = NULL) {
-    item[[c("properties", "eo:gsd")]]
+
+    bands <- .source_item_get_bands(source = source,
+                                    item = item)
+
+    .config_collection_res(source = source,
+                           collection = collection,
+                           bands = bands)
 }
 
 #' @keywords internal
