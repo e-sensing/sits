@@ -45,8 +45,6 @@
 
 \item{...}{Additional parameters.}
 
-\item{bands}{Sensor bands.}
-
 \item{collection}{Collection to be searched in the data source.}
 
 \item{data}{A sits data cube.}

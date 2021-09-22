@@ -596,7 +596,6 @@ sits_config_show <- function(source = NULL,
 #'
 #' @keywords internal
 #'
-#' @param bands      Sensor bands.
 #' @param collection Collection to be searched in the data source.
 #' @param data       A sits data cube.
 #' @param labels     Vector with labels.
