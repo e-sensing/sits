@@ -58,9 +58,9 @@
 
     # verify the provided parameters
     if (!inherits(roi, "sf")) {
-        if (all(c("xmin", "ymin", "xmax", "ymax") %in% names(roi)))
+        if (all(c("lon_min", "lat_min", "lon_max", "lat_max") %in% names(roi)))
             roi_list[c("bbox", "intersects")] <-
-                list(roi[c("xmin", "ymin", "xmax", "ymax")], NULL)
+                list(roi[c("lon_min", "lat_min", "lon_max", "lat_max")], NULL)
 
         else if (typeof(roi) == "character")
             roi_list[c("bbox", "intersects")] <- list(NULL, roi)
