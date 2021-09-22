@@ -35,12 +35,14 @@
                                                   item, ...,
                                                   collection = NULL) {
 
-    bands <- .source_item_get_bands(source = source,
-                                    item = item)
+    res <- .source_bands_resolutions(
+        source = source,
+        collection = collection,
+        bands = .source_item_get_bands(source = source,
+                                       item = item)
+    )
 
-    .config_collection_res(source = source,
-                           collection = collection,
-                           bands = bands)
+    return(res[[1]])
 }
 
 #' @keywords internal

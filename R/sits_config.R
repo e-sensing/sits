@@ -811,32 +811,3 @@ NULL
 
     return(res)
 }
-
-#' @rdname config_functions
-.config_collection_res <- function(source, collection, bands) {
-
-    list_bands <- .config_get(key = c("sources", source, "collections",
-                                      collection, "bands"))[bands]
-    # pre-condition
-    .check_lst(
-        x = list_bands,
-        allow_null = FALSE, is_named = TRUE,
-        max_len = length(bands),
-        msg = "invalid 'bands' in config file"
-    )
-
-    res <- vapply(
-        list_bands, `[[`, "resolutions",
-        FUN.VALUE = numeric(1), USE.NAMES = FALSE
-    )
-
-    # post-condition
-    .check_num(
-        x = res,
-        len_max = length(res),
-        allow_null = FALSE,
-        msg = "invalid 'resolutions' in config file. "
-    )
-
-    return(res)
-}
