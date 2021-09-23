@@ -50,15 +50,17 @@ sits_bbox.cube <- function(data, wgs84 = FALSE, ...) {
 
     # create and return the bounding box
     if (nrow(data) == 1) {
-        bbox <- c(data$xmin, data$xmax, data$ymin, data$ymax)
+        bbox <- c(xmin = data$xmin,
+                  xmax = data$xmax,
+                  ymin = data$ymin,
+                  ymax = data$ymax)
     } else {
-        bbox <- c(min(data$xmin), max(data$xmax),
-                  min(data$ymin), max(data$ymax)
+        bbox <- c(xmin = min(data$xmin),
+                  xmax = max(data$xmax),
+                  ymin = min(data$ymin),
+                  ymax = max(data$ymax)
         )
     }
-
-    names(bbox) <- c("xmin", "xmax", "ymin", "ymax")
-
 
     # convert to WGS84?
     if (wgs84) {
@@ -66,13 +68,15 @@ sits_bbox.cube <- function(data, wgs84 = FALSE, ...) {
         bbox <- c(
             .sits_proj_to_latlong(x = bbox[["xmin"]],
                                   y = bbox[["ymin"]],
-                                  crs = data$crs),
+                                  crs = data$crs[[1]]),
             .sits_proj_to_latlong(x = bbox[["xmax"]],
                                   y = bbox[["ymax"]],
-                                  crs = data$crs)
+                                  crs = data$crs[[1]])
         )
 
-        names(bbox) <- c("lon_min", "lon_max", "lat_min", "lat_max")
+        names(bbox) <- c("lon_min", "lat_min", "lon_max", "lat_max")
+
+        bbox <- bbox[c("lon_min", "lon_max", "lat_min", "lat_max")]
     }
 
     return(bbox)
