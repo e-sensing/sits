@@ -18,19 +18,21 @@
 #'
 #' @examples
 #' \donttest{
-#' data_dir <- system.file("extdata/raster/cbers", package = "sits")
+#' data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
 #'
-#' cbers_022024 <- sits_cube(
+#' modis_cube <- sits_cube(
 #'     source = "LOCAL",
-#'     name = "cbers_022024",
+#'     name = "modis_sinop",
 #'     origin = "BDC",
-#'     collection = "CB4_64-1",
-#'     resolution = 64,
+#'     collection = "MOD13Q1-6",
+#'     band = "NDVI",
 #'     data_dir = data_dir,
 #'     parse_info = c("X1", "X2", "tile", "band", "date")
 #' )
+#'
+#' )
 #' # plot the data cube
-#' sits_view(cbers_022024, red = "B15", green = "B16", blue = "B13", time = 1)
+#' sits_view(modis_cube, red = "EVI", green = "NDVI", blue = "EVI", time = 1)
 #' }
 #'
 #' @export

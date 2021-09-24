@@ -45,16 +45,16 @@ test_that("Reading a raster cube", {
 })
 
 test_that("Creating a raster stack cube and selecting bands", {
-    # Create a raster cube based on CBERS data
-    data_dir <- system.file("extdata/raster/cbers", package = "sits")
+    # Create a raster cube based on MODIS data
+    data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
 
     # create a raster cube file based on the information about the files
-    cbers_cube <- tryCatch({
+    modis_cube <- tryCatch({
         sits_cube(
             source = "LOCAL",
             name = "022024",
             origin = "BDC",
-            collection = "CB4_64-1",
+            collection = "MOD13Q1-6",
             data_dir = data_dir,
             delim = "_",
             parse_info = c("X1", "X2", "tile", "band", "date")
@@ -64,19 +64,19 @@ test_that("Creating a raster stack cube and selecting bands", {
         return(NULL)
     })
 
-    testthat::skip_if(purrr::is_null(cbers_cube),
+    testthat::skip_if(purrr::is_null(modis_cube),
                       message = "LOCAL cube not found")
 
 
-    expect_true(all(sits_bands(cbers_cube) %in%
-                        c("B13", "B14", "B15", "B16", "CLOUD")))
-    rast <- .raster_open_rast(cbers_cube$file_info[[1]]$path[[1]])
-    expect_true(.raster_nrows(rast) == cbers_cube$nrows[[1]])
-    timeline <- sits_timeline(cbers_cube)
-    expect_true(timeline[1] == "2018-02-02")
+    expect_true(all(sits_bands(modis_cube) %in%
+                        c("EVI", "NDVI")))
+    rast <- sits:::.raster_open_rast(modis_cube$file_info[[1]]$path[[1]])
+    expect_true(sits:::.raster_nrows(rast) == modis_cube$nrows[[1]])
+    timeline <- sits_timeline(modis_cube)
+    expect_true(timeline[1] == "2013-09-14")
 
-    cbers_cube_b13 <- sits_select(cbers_cube, bands = "B13")
-    expect_true(all(sits_bands(cbers_cube_b13) == c("B13")))
+    modis_cube_evi <- sits_select(modis_cube, bands = "EVI")
+    expect_true(all(sits_bands(modis_cube_evi) == c("EVI")))
 })
 
 test_that("Creating cubes from BDC", {
@@ -381,14 +381,14 @@ test_that("Creating cubes from classified images", {
 })
 
 test_that("Cube copy", {
-    data_dir <- system.file("extdata/raster/cbers", package = "sits")
+    data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
 
-    cbers_022024 <- tryCatch({
+    modis_cube <- tryCatch({
         sits_cube(
             source = "LOCAL",
-            name = "cbers_022024",
+            name = "modis_sinop",
             origin = "BDC",
-            collection = "CB4_64-1",
+            collection = "MOD13Q1-6",
             data_dir = data_dir,
             parse_info = c("X1", "X2", "tile", "band", "date")
         )
@@ -397,56 +397,24 @@ test_that("Cube copy", {
         return(NULL)
     })
 
-    testthat::skip_if(purrr::is_null(cbers_022024),
+    testthat::skip_if(purrr::is_null(modis_cube),
                       message = "LOCAL cube not found")
 
-    bbox <- sits_bbox(cbers_022024)
+    bbox <- sits_bbox(modis_cube)
     x_size <- bbox["xmax"] - bbox["xmin"]
     bbox["xmax"] <- bbox["xmin"] + x_size / 2
 
-    cbers_022024_copy <- sits_cube_copy(cbers_022024,
-                                        name = "cb_022024_cp",
+    modis_cube_copy <- suppressWarnings(sits_cube_copy(modis_cube,
+                                        name = "modis_cube_cp",
                                         dest_dir = tempdir(),
-                                        bands = "B13",
+                                        bands = "EVI",
                                         roi = bbox
-    )
-    expect_true(sits_bands(cbers_022024_copy) == "B13")
-    expect_true(cbers_022024_copy$ncols == 26)
-    expect_true(cbers_022024_copy$xmin == cbers_022024$xmin)
-    expect_true(all(sits_timeline(cbers_022024_copy) ==
-                        sits_timeline(cbers_022024)))
-})
-
-test_that("Creating a raster stack cube and renaming bands", {
-    # Create a raster cube based on CBERS data
-    data_dir <- system.file("extdata/raster/cbers", package = "sits")
-
-    # create a raster cube file based on the information about the files
-    cbers_cube2 <- tryCatch({
-        sits_cube(
-            source = "LOCAL",
-            name = "022024",
-            origin = "BDC",
-            collection = "CB4_64-1",
-            data_dir = data_dir,
-            delim = "_",
-            parse_info = c("X1", "X2", "tile", "band", "date")
-        )
-    },
-    error = function(e) {
-        return(NULL)
-    })
-
-    testthat::skip_if(purrr::is_null(cbers_cube2),
-                      message = "LOCAL cube not found")
-
-    expect_true(all(sits_bands(cbers_cube2) %in%
-                        c("B13", "B14", "B15", "B16", "CLOUD")))
-    sits_bands(cbers_cube2) <- c("BAND13", "BAND14", "BAND15",
-                                 "BAND16", "CLOUD")
-    expect_true(all(sits_bands(cbers_cube2) %in%
-                        c("BAND13", "BAND14", "BAND15", "BAND16", "CLOUD")))
-
+    ))
+    expect_true(sits_bands(modis_cube_copy) == "EVI")
+    expect_true(modis_cube_copy$ncols == 254)
+    expect_true(modis_cube_copy$xmin == modis_cube$xmin)
+    expect_true(all(sits_timeline(modis_cube_copy) ==
+                        sits_timeline(modis_cube)))
 })
 
 test_that("Creating a raster stack cube with BDC band names", {
