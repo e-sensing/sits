@@ -225,9 +225,9 @@ test_that("Merging cubes", {
         sits_cube(
             source = "LOCAL",
             name = "sinop-2014",
-            satellite = "TERRA",
-            sensor = "MODIS",
+            origin = "BDC",
             bands = "NDVI",
+            collection = "MOD13Q1-6",
             data_dir = data_dir,
             delim = "_",
             parse_info = c("X1", "X2", "tile", "band", "date")
@@ -411,7 +411,7 @@ test_that("Cube copy", {
                                         roi = bbox
     ))
     expect_true(sits_bands(modis_cube_copy) == "EVI")
-    expect_true(modis_cube_copy$ncols == 254)
+    expect_true(modis_cube_copy$ncols == 128)
     expect_true(modis_cube_copy$xmin == modis_cube$xmin)
     expect_true(all(sits_timeline(modis_cube_copy) ==
                         sits_timeline(modis_cube)))

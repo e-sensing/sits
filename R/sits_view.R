@@ -30,7 +30,6 @@
 #'     parse_info = c("X1", "X2", "tile", "band", "date")
 #' )
 #'
-#' )
 #' # plot the data cube
 #' sits_view(modis_cube, red = "EVI", green = "NDVI", blue = "EVI", time = 1)
 #' }
