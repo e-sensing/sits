@@ -3,6 +3,25 @@
 We are preparing to release the package on CRAN and are making relevant changes in the development version.
 
 
+# What's new in SITS version 0.14.1
+
+### New features in SITS version 0.14.1
+
+* Implement new function `sits_list_collections()`
+* Update gdalcubes parameters
+* Implement `.source_bands_resampling()`
+* Remove name from demo file
+* Improve `sits_som_clean_samples()` function
+* Improve `sits_bands<-()` function
+* Improve `sits_select()` function
+* Error in cloud band of CBERS4 data example
+* Include a function to list collections available in cloud services
+* sits_cube_copy() does not include information on the tile
+* Get spatial resolution from config file
+* Fix partial merge configuration file
+* Change bbox to roi in sits
+
+
 # What's new in SITS version 0.14.0
 
 ### New features in SITS version 0.14.0-2
