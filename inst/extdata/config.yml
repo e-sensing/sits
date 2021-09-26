@@ -729,8 +729,8 @@ sources:
                 satellite   : "SENTINEL-2"
                 sensor      : "MSI"
                 collection_name: "sentinel-s2-l2a-cogs"
-    AWSOD                   :
-        s3_class            : ["awsod_cube", "stac_cube", "raster_cube"]
+    OPENDATA                :
+        s3_class            : ["opendata_cube", "stac_cube", "raster_cube"]
         service             : "STAC"
         url                 : "https://earth-search.aws.element84.com/v0/"
         collections         :

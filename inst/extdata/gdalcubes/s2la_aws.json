@@ -77,7 +77,7 @@
             "scale" : 0.0001,
             "pattern" : ".+B12\\.jp2"
         },
-        "SCL" : {
+        "CLOUD" : {
             "pattern" : ".+SCL\\.jp2"
         }
     }
