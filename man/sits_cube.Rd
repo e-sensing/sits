@@ -299,14 +299,14 @@ s2_cube <- sits_cube(source = "AWS",
                       s2_resolution = 20
 )
 
-# --- Create a cube based on a stack of CBERS data
-data_dir <- system.file("extdata/raster/cbers", package = "sits")
+# --- Create a cube based on a local MODIS data
+data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
 
-cbers_cube <- sits_cube(
+modis_cube <- sits_cube(
     source = "LOCAL",
-    name = "022024",
+    name = "modis_sinop",
     origin = "BDC",
-    collection = "CB4_64-1",
+    collection = "MOD13Q1-6",
     data_dir = data_dir,
     delim = "_",
     parse_info = c("X1", "X2", "tile", "band", "date")

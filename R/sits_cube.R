@@ -186,14 +186,14 @@
 #'                       s2_resolution = 20
 #' )
 #'
-#' # --- Create a cube based on a stack of CBERS data
-#' data_dir <- system.file("extdata/raster/cbers", package = "sits")
+#' # --- Create a cube based on a local MODIS data
+#' data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
 #'
-#' cbers_cube <- sits_cube(
+#' modis_cube <- sits_cube(
 #'     source = "LOCAL",
-#'     name = "022024",
+#'     name = "modis_sinop",
 #'     origin = "BDC",
-#'     collection = "CB4_64-1",
+#'     collection = "MOD13Q1-6",
 #'     data_dir = data_dir,
 #'     delim = "_",
 #'     parse_info = c("X1", "X2", "tile", "band", "date")
@@ -595,20 +595,20 @@ sits_cube.default <- function(source, ...) {
 #'
 #' @examples
 #' \donttest{
-#' data_dir <- system.file("extdata/raster/cbers", package = "sits")
+#' data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
 #'
-#' cbers_022024 <- sits_cube(
+#' modis_cube <- sits_cube(
 #'     source = "LOCAL",
-#'     name = "cbers_022024",
+#'     name = "modis_sinop",
 #'     origin = "BDC",
-#'     collection = "CB4_64-1",
+#'     collection = "MOD13Q1-6",
 #'     band = "NDVI",
 #'     data_dir = data_dir,
 #'     parse_info = c("X1", "X2", "tile", "band", "date")
 #' )
 #'
-#' cbers_022024_copy <- sits_cube_copy(cbers_022024,
-#'     name = "cb_022024_cp",
+#' modis_cube_copy <- sits_cube_copy(modis_cube,
+#'     name = "modis_sinop_cp",
 #'     dest_dir = tempdir()
 #' )
 #' }
