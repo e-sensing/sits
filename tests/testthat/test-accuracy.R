@@ -83,5 +83,7 @@ test_that("Accuracy areas", {
 
     expect_true(as.numeric(as$area_pixels["Forest"]) >
                     as$area_pixels["Pasture"])
-    expect_true(as.numeric(as$accuracy$overall) > 0.75)
+    expect_equal(as.numeric(as$accuracy$overall),
+                 expected = 0.75,
+                 tolerance = 0.5)
 })

@@ -422,6 +422,52 @@ sits_cube.aws_cube <- function(source = "AWS", ...,
 }
 
 #' @rdname sits_cube
+#'
+#' @export
+sits_cube.opendata_cube <- function(source = "OPENDATA", ...,
+                                    name = "opendata_cube",
+                                    url = NULL,
+                                    collection = "sentinel-s2-l2a-cogs",
+                                    tiles = NULL,
+                                    bands = NULL,
+                                    roi = NULL,
+                                    start_date = NULL,
+                                    end_date = NULL) {
+
+
+    # collection name is upper case
+    collection <- toupper(collection)
+
+    # suite of checks to verify collection parameter
+    .check_collection(source = source,
+                      collection = collection)
+
+    if (is.null(bands))
+        bands <- .source_bands(source = source,
+                               collection = collection)
+
+    # Pre-condition - checks if the bands are supported by the collection
+    .check_bands(source = source,
+                 collection = collection,
+                 bands = bands)
+
+    # dry run to verify if service is running
+    .source_access_test(source = source,
+                        collection = collection, ...,
+                        bands = bands)
+
+    # builds a sits data cube
+    .source_cube(source = source,
+                 collection = collection,
+                 name = name,
+                 bands = bands,
+                 tiles = tiles,
+                 bbox = roi,
+                 start_date = start_date,
+                 end_date = end_date, ...)
+}
+
+#' @rdname sits_cube
 #' @keywords internal
 sits_cube.usgs_cube <- function(source = "USGS", ...,
                                 name = "usgs_cube",
@@ -1307,7 +1353,7 @@ NULL
                         .source_bands_to_sits(source = source,
                                               collection = collection,
                                               bands = bands),
-                    collapse = ", ")),
+                        collapse = ", ")),
             call. = FALSE)
 
     return(invisible(NULL))

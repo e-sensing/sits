@@ -267,7 +267,7 @@ test_that("Merging cubes", {
     expect_true(cube_merge$xmax == evi_cube$xmax)
 })
 
-test_that("Creating cubes from AWS and regularizing them", {
+test_that("Creating cubes from AWS", {
 
     testthat::skip_on_cran()
 
@@ -312,6 +312,21 @@ test_that("Creating cubes from AWS and regularizing them", {
     expect_equal(s2_cube$ncols[[1]], sits:::.raster_ncols(r))
     expect_equal(s2_cube$xmax[[1]], sits:::.raster_xmax(r))
     expect_equal(s2_cube$xmin[[1]], sits:::.raster_xmin(r))
+})
+
+test_that("Creating cubes from AWS OPen Data and regularizing them", {
+
+
+    testthat::expect_warning({
+        s2_cube <- sits_cube(source = "OPENDATA",
+                             name = "T20LKP_2018_2019",
+                             collection = "sentinel-s2-l2a-cogs",
+                             tiles = "20LKP",
+                             bands = c("B08", "SCL"),
+                             start_date = "2018-07-30",
+                             end_date = "2018-08-30"
+        )
+    })
 
     dir_images <-  paste0(tempdir(), "/images/")
     if (!dir.exists(dir_images))
@@ -320,24 +335,24 @@ test_that("Creating cubes from AWS and regularizing them", {
     gc_cube <- sits_regularize(
         cube        = s2_cube,
         name        = "T20LKP_2018_2019_P5D",
-        dir_images  =  dir_images,
+        output_dir  =  dir_images,
+        res         = 250,
         roi = c("xmin" = 234872.7,
                 "ymin" = 8847983.0,
                 "xmax" = 239532.6,
                 "ymax" = 8852017.0),
         period      = "P15D",
         agg_method  = "median",
-        resampling  = "bilinear"
-    )
+        multicores = 2)
 
-    expect_equal(s2_cube$nrows, gc_cube$nrows)
-    expect_equal(s2_cube$ncols, gc_cube$ncols)
-    expect_equal(s2_cube$xmax, gc_cube$xmax)
-    expect_equal(s2_cube$xmin, gc_cube$xmin)
+    expect_equal(gc_cube$nrows, 17)
+    expect_equal(gc_cube$ncols, 19)
+    expect_equal(gc_cube$xmax, 239577.7, tolerance = 1e-1)
+    expect_equal(gc_cube$xmin, 234827.7, tolerance = 1e-1)
 
     file_info2 <- gc_cube$file_info[[1]]
 
-    expect_equal(nrow(file_info2), 4)
+    expect_equal(nrow(file_info2), 2)
 })
 
 test_that("Creating cubes from classified images", {

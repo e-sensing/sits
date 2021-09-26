@@ -1,6 +1,5 @@
 access_SATVEG            Access time series using the SATVEG service
 classify_cbers_bdc       Classify a set of CBERS AWFI images in the Brazil Data Cube
-classify_cbers_local     Classify a set of CBERS AWFI images stored in a local directory
 classify_ts              Classify a time series using SVM
 classify_raster_xgb      Classify MODIS image using extreme gradient boosting
 classify_raster_svm      Classify MODIS image using SVM
