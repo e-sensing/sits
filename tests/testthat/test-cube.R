@@ -352,7 +352,7 @@ test_that("Creating cubes from AWS OPen Data and regularizing them", {
 
     file_info2 <- gc_cube$file_info[[1]]
 
-    expect_equal(nrow(file_info2), 4)
+    expect_equal(nrow(file_info2), 2)
 })
 
 test_that("Creating cubes from classified images", {
