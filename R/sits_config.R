@@ -223,7 +223,6 @@ sits_list_collections <- function(source = NULL) {
 
     purrr::map(sources, function(s){
 
-        cat("====================\n")
         cat(paste0(s, ":\n"))
         collections <- .source_collections(source = s)
         purrr::map(collections, function(c){
