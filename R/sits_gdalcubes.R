@@ -48,7 +48,7 @@
                                              res  = numeric(),
                                              path = character())
 
-    for (band in .cube_bands(tile)) {
+    for (band in .cube_bands(tile, add_cloud = FALSE)) {
 
 
         cv$resampling <- .source_bands_resampling(source = tile$source,
