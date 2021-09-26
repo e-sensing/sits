@@ -4,6 +4,7 @@
 \alias{sits_configuration}
 \alias{sits_config}
 \alias{sits_config_show}
+\alias{sits_config_list_collections}
 \title{sits configuration}
 \usage{
 sits_config(
@@ -15,6 +16,8 @@ sits_config(
 )
 
 sits_config_show(source = NULL, collection = NULL, palette = NULL)
+
+sits_config_list_collections(source = NULL)
 }
 \arguments{
 \item{processing_bloat}{A \code{numeric} value to estimate
@@ -49,6 +52,9 @@ configuration options.
 
 \code{sits_config_show()} returns a \code{list} containing the respective
 configuration printed in the console.
+
+\code{sits_config_list_collection()} prints the collections available in
+each cloud service supported by sits.
 }
 \description{
 These functions load and show sits configurations.
