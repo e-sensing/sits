@@ -13,8 +13,12 @@
 #'
 #' \code{sits_config_show()} prints the current sits
 #' configuration options. To show specific configuration options for
-#' a source, a collection, or a palette, user can inform the corresponding
+#' a source, a collection, or a palette, users can inform the corresponding
 #' keys to \code{source}, \code{collection}, and \code{palette} parameters.
+#'
+#' \code{sits_config_list_collection()} prints the collections available
+#' in each cloud service supported by sits. Users can select to get information
+#' only for a single service by using the \code{source} parameter.
 #'
 #' @param processing_bloat       A \code{numeric} value to estimate
 #' growth size of R memory relative to block size.
@@ -69,14 +73,7 @@ sits_config <- function(processing_bloat = NULL,
         sits_env$config <- list()
 
     # set options defined in sits config
-    .config_set_options(
-        processing_bloat = config[["processing_bloat"]],
-        rstac_pagination_limit = config[["rstac_pagination_limit"]],
-        raster_api_package = config[["raster_api_package"]],
-        gdal_creation_options = config[["gdal_creation_options"]],
-        sources = config[["sources"]],
-        palettes = config[["palettes"]]
-    )
+    do.call(.config_set_options, args = config)
 
 
     message(paste0("Using configuration file: ", yml_file))
@@ -88,6 +85,9 @@ sits_config <- function(processing_bloat = NULL,
         message(paste("Additional configurations found in", user_yml_file))
         config <- yaml::yaml.load_file(input = user_yml_file,
                                        merge.precedence = "override")
+        config <- utils::modifyList(sits_env[["config"]],
+                                    config,
+                                    keep.null = FALSE)
 
         # set options defined by user (via YAML file)
         # modifying existing configuration
@@ -245,6 +245,8 @@ sits_list_collections <- function(source = NULL) {
                                 rstac_pagination_limit = NULL,
                                 raster_api_package = NULL,
                                 gdal_creation_options = NULL,
+                                local_s3_class = NULL,
+                                local_file_extensions = NULL,
                                 sources = NULL,
                                 palettes = NULL, ...) {
     # set caller to show in errors
@@ -297,6 +299,24 @@ sits_list_collections <- function(source = NULL) {
         sits_env$config[["gdal_creation_options"]] <- gdal_creation_options
     }
 
+    # process local_s3_class
+    if (!is.null(local_s3_class)) {
+
+        .check_chr(local_s3_class, allow_empty = FALSE, len_min = 1,
+                   msg = "Invalid 'local_s3_class' parameter")
+
+        sits_env$config[["local_s3_class"]] <- local_s3_class
+    }
+
+    # process local_file_extensions
+    if (!is.null(local_file_extensions)) {
+
+        .check_chr(local_file_extensions, allow_empty = FALSE, len_min = 1,
+                   msg = "Invalid 'local_file_extensions' parameter")
+
+        sits_env$config[["local_file_extensions"]] <- local_file_extensions
+    }
+
     # process sources
     if (!is.null(sources)) {
 
@@ -332,6 +352,28 @@ sits_list_collections <- function(source = NULL) {
             sits_env$config[["sources"]],
             sources,
             keep.null = FALSE
+        )
+
+        # generate LOCAL source
+        col_names <- unlist(
+            lapply(.sources(internal = FALSE), function(source) {
+                paste0(source, "/", .source_collections(source))
+            })
+        )
+        local_collections <- lapply(col_names, function(x) {
+            values <- strsplit(x, "/")[[1]]
+            source <- values[[1]]
+            col_name <- values[[2]]
+            col <- .config_get(key = c("sources", source, "collections",
+                                   col_name))
+
+            c(col["bands"], col["satellite"], col["sensor"])
+        })
+        names(local_collections) <- col_names
+
+        sits_env$config[["sources"]][["LOCAL"]] <- .config_new_source(
+            s3_class = .config_local_s3_class(),
+            collections = local_collections
         )
     }
 
@@ -414,9 +456,19 @@ sits_list_collections <- function(source = NULL) {
                   collections = collections), dots))
 }
 
-.config_new_collection <- function(bands, ...) {
+.config_new_collection <- function(bands, ...,
+                                   satellite = NULL,
+                                   sensor = NULL) {
     # set caller to show in errors
     .check_set_caller(".config_new_collection")
+
+    # check satellite
+    .check_chr(satellite, allow_null = TRUE,
+               msg = "invalid 'satellite' value")
+
+    #  check sensor
+    .check_chr(sensor, allow_null = TRUE,
+               msg = "invalid 'sensor' value")
 
     # bands names is upper case
     names(bands) <- toupper(names(bands))
@@ -461,7 +513,9 @@ sits_list_collections <- function(source = NULL) {
     dots <- list(...)
     .check_lst(dots, msg = "invalid extra arguments in collection")
 
-    res <- c(list(bands = c(non_cloud_bands, cloud_band)), dots)
+    res <- c(list(bands = c(non_cloud_bands, cloud_band)),
+             "satellite" = satellite,
+             "sensor" = sensor, dots)
 
     # post-condition
     .check_lst(res, min_len = 1,
@@ -696,11 +750,23 @@ NULL
 #' @rdname config_functions
 .config_local_file_extensions <- function() {
 
-    res <- .config_get(key = c("sources", "LOCAL", "file_extensions"))
+    res <- .config_get(key = c("local_file_extensions"))
 
     # post-condition
     .check_chr(res, len_min = 1,
                msg = "invalid 'file_extensions' in config file")
+
+    return(res)
+}
+
+#' @rdname config_functions
+.config_local_s3_class <- function() {
+
+    res <- .config_get(key = c("local_s3_class"))
+
+    # post-condition
+    .check_chr(res, len_min = 1,
+               msg = "invalid 'local_s3_class' in config file")
 
     return(res)
 }
@@ -723,26 +789,27 @@ NULL
     # pre-condition
     .config_palette_check(palette = palette)
 
-    res <- .config_get(key = c("palettes", palette))[labels]
-    names(res) <- labels
+    # get the names of the colors in the chosen pallete
+    color_names <- .config_get(key = c("palettes", palette))
 
-    if (any(is.na(res))) {
-
-        random <- grDevices::colors()
-        random <- random[!random %in% res]
-        res[is.na(res)] <- sample(random, sum(is.na(res)))
-    }
+    .check_chr_within(
+        x = labels,
+        within = names(color_names),
+        msg = "some labels are missing from the palette"
+    )
+    colors <- color_names[labels]
 
     # simplify
-    res <- unlist(res, use.names = FALSE)
+    colors <- unlist(colors)
 
     # post-condition
-    .check_chr(res,
+    .check_chr(colors,
                len_min = length(labels),
                len_max = length(labels),
+               is_named = TRUE,
                msg = "invalid 'color' values")
 
-    return(res)
+    return(colors)
 }
 
 .config_palette_check <- function(palette) {

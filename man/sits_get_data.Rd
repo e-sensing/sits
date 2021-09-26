@@ -24,7 +24,8 @@ sits_get_data(cube, file = NULL, ..., multicores = 1)
   start_date = NULL,
   end_date = NULL,
   bands = NULL,
-  label = "NoClass"
+  label = "NoClass",
+  impute_fn = sits_impute_linear()
 )
 
 \method{sits_get_data}{satveg_cube}(
@@ -38,7 +39,7 @@ sits_get_data(cube, file = NULL, ..., multicores = 1)
   label = "NoClass"
 )
 
-\method{sits_get_data}{csv_wtss_cube}(cube, file, ..., bands = NULL)
+\method{sits_get_data}{csv_wtss_cube}(cube, file, ..., bands = NULL, impute_fn = sits_impute_linear())
 
 \method{sits_get_data}{csv_satveg_cube}(cube, file, ...)
 
@@ -50,6 +51,7 @@ sits_get_data(cube, file = NULL, ..., multicores = 1)
   end_date = NULL,
   bands = NULL,
   label = "NoClass",
+  impute_fn = sits_impute_linear(),
   shp_attr = NULL,
   .n_shp_pol = 30
 )
@@ -125,13 +127,13 @@ in "YYYY-MM-DD" format (optional).}
 
 \item{label}{Label to be assigned to the time series (optional).}
 
+\item{impute_fn}{Imputation function for NA values.}
+
 \item{shp_attr}{Attribute in the shapefile to be used
 as a polygon label.}
 
 \item{.n_shp_pol}{Number of samples per polygon to be read
 (for POLYGON or MULTIPOLYGON shapefile).}
-
-\item{impute_fn}{Imputation function for NA values.}
 
 \item{.n_pts_csv}{Number of points from CSV file to be retrieved.}
 }
@@ -178,8 +180,8 @@ data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
 raster_cube <- sits_cube(
     source = "LOCAL",
     name = "sinop-2014",
-    satellite = "TERRA",
-    sensor = "MODIS",
+    origin = "BDC",
+    collection = "MOD13Q1-6",
     data_dir = data_dir,
     delim = "_",
     parse_info = c("X1", "X2", "tile", "band", "date")

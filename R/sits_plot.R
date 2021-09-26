@@ -129,7 +129,11 @@ plot.predicted <- function(x, y, ..., bands = "NDVI") {
 #'
 plot.raster_cube <- function(x, y, ..., band, time = 1) {
 
-    #
+
+
+    # set caller to show in errors
+    .check_set_caller("plot.raster_cube")
+
     stopifnot(missing(y))
     # verifies if stars package is installed
     if (!requireNamespace("stars", quietly = TRUE)) {
@@ -137,12 +141,15 @@ plot.raster_cube <- function(x, y, ..., band, time = 1) {
     }
     # checks if required time exists
     dates <- sits_timeline(x)
-    assertthat::assert_that(time >= 1 && time <= length(dates),
-                            msg = "invalid time"
+    .check_that(
+        x = time >= 1 && time <= length(dates),
+        msg = "invalid timeline"
     )
     # check if bands exists
-    assertthat::assert_that(band  %in% sits_bands(x),
-                            msg = "invalid band"
+    .check_chr_within(
+        x = band,
+        within = sits_bands(x),
+        msg = "invalid band"
     )
     # get the file information
     file_info <- x$file_info[[1]]
@@ -227,17 +234,23 @@ plot.probs_cube <- function(x, y, ..., time = 1,
 #' @param  ...           further specifications for \link{plot}.
 #' @param  time          temporal reference for plot.
 #' @param  title         Title of the plot
-#' @param  legend        named vector that associated labels to colors
+#' @param  legend        named vector that associates labels to colors
+#' @param  palette       palette provided in the configuration file
 #'
 #' @export
 #'
 plot.classified_image <- function(x, y, ...,
                                   time = 1,
-                                  title = "",
-                                  legend = NULL) {
+                                  title = "Classified Image",
+                                  legend = NULL,
+                                  palette = "default") {
     stopifnot(missing(y))
 
-    p <- .sits_plot_classified_image(x, time, title, legend)
+    p <- .sits_plot_classified_image(cube = x,
+                                     time = time,
+                                     title = title,
+                                     legend = legend,
+                                     palette = palette)
 
 }
 
@@ -823,6 +836,9 @@ plot.keras_model <- function(x, y, ...) {
                                   cutree_height = NULL,
                                   colors = "RdYlGn") {
 
+    # set caller to show in errors
+    .check_set_caller(".sits_plot_dendrogram")
+
     # verifies if dendextend package is installed
     if (!requireNamespace("dendextend", quietly = TRUE)) {
         stop("Please install package dendextend.", call. = FALSE)
@@ -832,9 +848,9 @@ plot.keras_model <- function(x, y, ...) {
         stop("Please install package methods.", call. = FALSE)
     }
     # ensures that a cluster object  exists
-    assertthat::assert_that(
-        !purrr::is_null(cluster_obj),
-        msg = "plot_dendrogram: no valid cluster object available"
+    .check_null(
+        x = cluster_obj,
+        msg = "no valid cluster object available"
     )
     # get unique labels
     data_labels <- data$label
@@ -843,8 +859,8 @@ plot.keras_model <- function(x, y, ...) {
     # warns if the number of available colors is insufficient to all labels
     if (length(u_lb) > (
         length(.sits_brewer_rgb[[.sits_brewer_color_name(colors)]]) - 1)) {
-        message("sits_plot_dendrogram: The number of labels
-                is greater than the number of available colors.")
+        message("The number of labels is greater than the number of available",
+                "colors.")
     }
 
     # extract the dendrogram object
@@ -919,13 +935,15 @@ plot.keras_model <- function(x, y, ...) {
     if (type == "mapping") {
         graphics::plot(koh$som_properties,
                        bgcol = koh$som_properties$paint_map,
-                       "mapping", whatmap = whatmap
+                       "mapping", whatmap = whatmap,
+                       codeRendering = "lines"
         )
     }
     else if (type == "codes") {
         graphics::plot(koh$som_properties,
                        bgcol = koh$som_properties$paint_map,
-                       "codes", whatmap = whatmap
+                       "codes", whatmap = whatmap,
+                       codeRendering = "lines"
         )
     }
 
@@ -1004,19 +1022,27 @@ plot.keras_model <- function(x, y, ...) {
 #' @param cube        A tibble with the metadata for a labelled data cube.
 #' @param time        Temporal reference for plot.
 #' @param title       Title of the plot
-#' @param legend        named vector that associates labels to colors.
+#' @param legend      named vector that associates labels to colors.
+#' @param palette     palette provided in the configuration file
 .sits_plot_classified_image <- function(cube,
-                                        time = 1,
-                                        title = "Classified Image",
-                                        legend = NULL) {
+                                        time,
+                                        title,
+                                        legend,
+                                        palette) {
+
+
+    # set caller to show in errors
+    .check_set_caller(".sits_plot_classified_image")
 
     #precondition 1 - cube must be a labelled cube
-    assertthat::assert_that("classified_image" %in% class(cube),
-                            msg = "cube must be a classified image")
+    .check_chr_within(
+        x = "classified_image",
+        within = class(cube),
+        discriminator = "any_of",
+        msg = "cube must be a classified image")
     #precondition 2 - time must be a positive integer
-    assertthat::assert_that(time >= 1,
-                            msg = paste("sits_plot_classified_image: time must",
-                                        "be a positive integer")
+    .check_that(x = time >= 1,
+                msg = paste("time must be a positive integer")
     )
 
     # get the raster object
@@ -1037,14 +1063,20 @@ plot.keras_model <- function(x, y, ...) {
 
     # if colors are not specified, get them from the configuration file
     if (purrr::is_null(legend)) {
-        colors <- .config_palette_colors(labels)
+        colors <- .config_palette_colors(labels, palette = palette)
     }
     else {
-        assertthat::assert_that(
-            all(labels %in% names(legend)),
-            msg = "sits_plot: some labels are missing from the legend")
+        .check_chr_within(
+            x = labels,
+            within = names(legend),
+            msg = "some labels are missing from the legend")
         colors <- unname(legend[labels])
+
     }
+
+
+
+
     # set the names of the color vector
     names(colors) <- as.character(c(1:nclasses))
 

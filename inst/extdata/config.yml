@@ -10,6 +10,10 @@ raster_api_package      : "terra"
 # GDAL GTiff default creation options
 gdal_creation_options   : ["COMPRESS=LZW", "BIGTIFF=YES"]
 
+# local cube config options
+local_s3_class          : ["local_cube", "raster_cube"]
+local_file_extensions   : ["tiff", "tif", "jp2", "hdf", "vrt"]
+
 sources:
     CLASSIFIED              :
         s3_class            : ["classified_image"]
@@ -25,6 +29,8 @@ sources:
                         resampling    : "near"
                         band_name     : "CLASS"
                         creation_type : "INT1U"
+                satellite             : ~
+                sensor                : ~
     PROBS                   :
         s3_class            : ["probs_cube"]
         collections         :
@@ -48,6 +54,8 @@ sources:
                         resampling    : "near"
                         band_name     : "NOBS"
                         creation_type : "INT1U"
+                satellite             : ~
+                sensor                : ~
     BDC                     :
         s3_class            : ["bdc_cube", "stac_cube", "raster_cube"]
         service             : "STAC"
@@ -95,6 +103,8 @@ sources:
                         interp_values : [0, 255]
                         resampling    : "near"
                         resolutions   : [64]
+                satellite   : "CBERS-4"
+                sensor      : "AWFI"
                 collection_name: "CB4_64-1"
             CB4_64_16D_STK-1:
                 <<: *bdc_cb4
@@ -141,6 +151,8 @@ sources:
                         interp_values : [0, 255]
                         resampling    : "near"
                         resolutions   : [20]
+                satellite   : "CBERS-4"
+                sensor      : "MUX"
                 collection_name: "CB4MUX_20-1"
             CB4_20_1M_STK-1 : &bdc_cb4_mux_stk
                 bands:
@@ -161,6 +173,8 @@ sources:
                     CLOUD   :
                         <<: *bdc_mux_cloud
                         band_name     : "MASK"
+                satellite   : "CBERS-4"
+                sensor      : "MUX"
                 collection_name: "CB4_20_1M_STK-1"
             LC8_30-1        : &bdc_lc8
                 bands       :
@@ -184,25 +198,25 @@ sources:
                         offset_value  : 0
                         resampling    : "bilinear"
                         resolutions   : [30]
-                        band_name     : "BAND1"
+                        band_name     : "band1"
                     B2      :
                         <<: *bdc_oli_band1
-                        band_name     : "BAND2"
+                        band_name     : "band2"
                     B3      :
                         <<: *bdc_oli_band1
-                        band_name     : "BAND3"
+                        band_name     : "band3"
                     B4      :
                         <<: *bdc_oli_band1
-                        band_name     : "BAND4"
+                        band_name     : "band4"
                     B5      :
                         <<: *bdc_oli_band1
-                        band_name     : "BAND5"
+                        band_name     : "band5"
                     B6      :
                         <<: *bdc_oli_band1
-                        band_name     : "BAND6"
+                        band_name     : "band6"
                     B7      :
                         <<: *bdc_oli_band1
-                        band_name     : "BAND7"
+                        band_name     : "band7"
                     CLOUD   : &bdc_oli_cloud
                         bit_mask      : FALSE
                         band_name     : "Fmask4"
@@ -216,6 +230,8 @@ sources:
                         interp_values : [2, 3, 4, 255]
                         resampling    : "near"
                         resolutions   : [30]
+                satellite   : "LANDSAT-8"
+                sensor      : "OLI"
                 collection_name: "LC8_30-1"
             LC8_30_16D_STK-1:
                 <<: *bdc_lc8
@@ -234,7 +250,7 @@ sources:
                     EVI     :
                         <<: *bdc_modis_ndvi
                         band_name     : "EVI"
-                    blue    : &bdc_modis_blue
+                    BLUE    : &bdc_modis_blue
                         missing_value : -1000
                         minimum_value : 0
                         maximum_value : 10000
@@ -243,13 +259,13 @@ sources:
                         resampling    : "bilinear"
                         resolutions   : [231.656]
                         band_name     : "blue_reflectance"
-                    red     :
+                    RED     :
                         <<: *bdc_modis_blue
                         band_name     : "red_reflectance"
-                    nir     :
+                    NIR     :
                         <<: *bdc_modis_blue
                         band_name     : "NIR_reflectance"
-                    mir     :
+                    MIR     :
                         <<: *bdc_modis_blue
                         band_name     : "MIR_reflectance"
                     CLOUD   : &bdc_modis_cloud
@@ -264,9 +280,13 @@ sources:
                         interp_values : [2, 3, 255]
                         resampling    : "near"
                         resolutions   : [231.656]
+                satellite   : "TERRA"
+                sensor      : "MODIS"
                 collection_name: "MOD13Q1-6"
             MYD13Q1-6       :
                 <<: *bdc_mod
+                satellite   : "AQUA"
+                sensor      : "MODIS"
                 collection_name: "MYD13Q1-6"
             S2_10-1         : &bdc_s2
                 bands       :
@@ -315,12 +335,6 @@ sources:
                     B8A     :
                         <<: *bdc_msi_band1
                         band_name     : "band8a"
-                    B09     :
-                        <<: *bdc_msi_band1
-                        band_name     : "band9"
-                    B10     :
-                        <<: *bdc_msi_band1
-                        band_name     : "band10"
                     B11     :
                         <<: *bdc_msi_band1
                         band_name     : "band11"
@@ -340,7 +354,146 @@ sources:
                         interp_values : [2, 3, 4, 255]
                         resampling    : "near"
                         resolutions   : [10]
+                satellite   : "SENTINEL-2"
+                sensor      : "MSI"
                 collection_name: "S2_10-1"
+            S2-SEN2COR_10_16D_STK-1 : &bdc_s2_sen2cor
+                bands       :
+                    NDVI    : &bdc_sen2cor_msi_ndvi
+                        missing_value : -9999
+                        minimum_value : -10000
+                        maximum_value : 10000
+                        scale_factor  : 0.0001
+                        offset_value  : 0
+                        resampling    : "bilinear"
+                        resolutions   : [10]
+                        band_name     : "NDVI"
+                    EVI     :
+                        <<: *bdc_sen2cor_msi_ndvi
+                        band_name     : "EVI"
+                    B01     : &bdc_sen2cor_msi_band1
+                        missing_value : -9999
+                        minimum_value : 0
+                        maximum_value : 10000
+                        scale_factor  : 0.0001
+                        offset_value  : 0
+                        resampling    : "bilinear"
+                        resolutions   : [10]
+                        band_name     : "B01"
+                    B02     :
+                        <<: *bdc_sen2cor_msi_band1
+                        band_name     : "B02"
+                    B03     :
+                        <<: *bdc_sen2cor_msi_band1
+                        band_name     : "B03"
+                    B04     :
+                        <<: *bdc_sen2cor_msi_band1
+                        band_name     : "B04"
+                    B05     :
+                        <<: *bdc_sen2cor_msi_band1
+                        band_name     : "B05"
+                    B06     :
+                        <<: *bdc_sen2cor_msi_band1
+                        band_name     : "B06"
+                    B07     :
+                        <<: *bdc_sen2cor_msi_band1
+                        band_name     : "B07"
+                    B08     :
+                        <<: *bdc_sen2cor_msi_band1
+                        band_name     : "B08"
+                    B8A     :
+                        <<: *bdc_sen2cor_msi_band1
+                        band_name     : "B8A"
+                    B09     :
+                        <<: *bdc_sen2cor_msi_band1
+                        band_name     : "B09"
+                    B11     :
+                        <<: *bdc_sen2cor_msi_band1
+                        band_name     : "B11"
+                    B12     :
+                        <<: *bdc_sen2cor_msi_band1
+                        band_name     : "B12"
+                    CLOUD   :
+                        bit_mask     : FALSE
+                        band_name    : "SCL"
+                        values       :
+                            0        : "missing_data"
+                            1        : "defective pixel"
+                            2        : "shadows"
+                            3        : "cloud shadows"
+                            4        : "vegetation"
+                            5        : "non-vegetated"
+                            6        : "water"
+                            7        : "unclassified"
+                            8        : "cloud medium"
+                            9        : "cloud high"
+                            10       : "thin cirrus"
+                            11       : "snow or ice"
+                        interp_values: [0, 1, 2, 3, 8, 9, 10, 11]
+                        resampling   : "near"
+                        resolutions  : [10]
+                satellite   : "SENTINEL-2"
+                sensor      : "MSI"
+                collection_name: "S2-SEN2COR_10_16D_STK-1"
+            LANDSAT-MOZ_30_1M_STK-1: &bdc_lc8
+                bands       :
+                    NDVI    : &bdc_oli_ndvi
+                        missing_value : -9999
+                        minimum_value : -10000
+                        maximum_value : 10000
+                        scale_factor  : 0.0001
+                        offset_value  : 0
+                        resampling    : "bilinear"
+                        resolutions   : [30]
+                        band_name     : "NDVI"
+                    EVI     :
+                        <<: *bdc_oli_ndvi
+                        band_name     : "EVI"
+                    B2      : &bdc_moz_band2
+                        missing_value : -9999
+                        minimum_value : 1
+                        maximum_value : 65455
+                        scale_factor  : 0.0001
+                        offset_value  : 0
+                        resampling    : "bilinear"
+                        resolutions   : [30]
+                        band_name     : "SR_B2"
+                    B3      :
+                        <<: *bdc_oli_band1
+                        band_name     : "SR_B3"
+                    B4      :
+                        <<: *bdc_oli_band1
+                        band_name     : "SR_B4"
+                    B5      :
+                        <<: *bdc_oli_band1
+                        band_name     : "SR_B5"
+                    B6      :
+                        <<: *bdc_oli_band1
+                        band_name     : "SR_B6"
+                    B7      :
+                        <<: *bdc_oli_band1
+                        band_name     : "SR_B7"
+                    CLOUD   : &bdc_oli_cloud
+                        bit_mask      : TRUE
+                        band_name     : "QA_PIXEL"
+                        values        :
+                            0         : "missing_data"
+                            1         : "Dilated Cloud"
+                            2         : "High confidence cirrus"
+                            4         : "High confidence cloud shadow"
+                            5         : "High confidence snow cover"
+                            6         : "Clear"
+                            7         : "Water"
+                            9         : "High confidence of cloud"
+                            11        : "High confidence of cloud shadow"
+                            13        : "High confidence of snow"
+                            15        : "High confidence of cirrus"
+                        interp_values : [0, 1, 2, 4, 5, 9, 11, 13, 15]
+                        resampling    : "near"
+                        resolutions   : [30]
+                satellite   : "LANDSAT-8"
+                sensor      : "OLI"
+                collection_name: "LANDSAT-MOZ_30_1M_STK-1"
             S2_10_16D_STK-1 :
                 <<: *bdc_s2
                 collection_name: "S2_10_16D_STK-1"
@@ -351,22 +504,31 @@ sources:
         collections         :
             MOD13Q1-6       :
                 <<: *bdc_mod
+                collection_name: "MOD13Q1-6"
             MYD13Q1-6       :
                 <<: *bdc_mod
+                collection_name: "MYD13Q1-6"
             S2_10_16D_STK-1 :
                 <<: *bdc_s2
+                collection_name: "S2_10_16D_STK-1"
             S2_10-1         :
                 <<: *bdc_s2
+                collection_name: "S2_10-1"
             LC8_30-1        :
                 <<: *bdc_lc8
+                collection_name: "LC8_30-1"
             LC8_30_16D_STK-1:
                 <<: *bdc_lc8
+                collection_name: "LC8_30_16D_STK-1"
             CB4_20_1M_STK-1 :
                 <<: *bdc_cb4_mux
+                collection_name: "CB4_20_1M_STK-1"
             CB4_64_16D_STK-1:
                 <<: *bdc_cb4
+                collection_name: "CB4_64_16D_STK-1"
             CB4_64-1        :
                 <<: *bdc_cb4
+                collection_name: "CB4_64-1"
     SATVEG                  :
         s3_class            : ["satveg_cube"]
         service             : "SATVEG"
@@ -391,12 +553,16 @@ sources:
                     EVI     :
                         <<: *bdc_modis_ndvi
                         band_name: "EVI"
+                satellite   : "TERRA"
+                sensor      : "MODIS"
                 collection_name: "terra"
             AQUA            :
                 <<: *satveg_terra
+                satellite   : "AQUA"
                 collection_name: "aqua"
             COMB            :
                 <<: *satveg_terra
+                satellite   : "AQUA + TERRA"
                 collection_name: "comb"
     AWS                     :
         s3_class            : ["aws_cube", "stac_cube", "raster_cube"]
@@ -478,6 +644,8 @@ sources:
                         interp_values: [0, 1, 2, 3, 8, 9, 10, 11]
                         resampling   : "near"
                         resolutions  : [20, 60]
+                satellite   : "SENTINEL-2"
+                sensor      : "MSI"
                 collection_name: "sentinel-s2-l2a"
                 aws         :
                     AWS_DEFAULT_REGION   : "eu-central-1"
@@ -563,6 +731,8 @@ sources:
                         interp_values : [0, 1, 2, 3, 8, 9, 10, 11]
                         resampling    : "near"
                         resolutions   : [20]
+                satellite   : "SENTINEL-2"
+                sensor      : "MSI"
                 collection_name: "ga_s2_gm"
                 aws         :
                     AWS_DEFAULT_REGION: "af-south-1"
@@ -570,27 +740,13 @@ sources:
                     AWS_REQUEST_PAYER : "requester"
             S2_L2A          :
                 <<: *deafrica_s2
+                satellite   : "SENTINEL-2"
+                sensor      : "MSI"
                 collection_name: "s2_l2a"
-    LOCAL                   :
-        s3_class            : ["local_cube", "raster_cube"]
-        file_extensions     : ["tiff", "tif", "jp2", "hdf", "vrt"]
-        collections         :
-            LANDSAT-8/OLI   :
-                <<: *bdc_lc8
-            LANDSAT-7/ETM   :
-                <<: *bdc_lc8
-            LANDSAT-5/TM    :
-                <<: *bdc_lc8
-            SENTINEL-2/MSI  :
-                <<: *bdc_s2
-            TERRA/MODIS     :
-                <<: *bdc_mod
-            AQUA/MODIS      :
-                <<: *bdc_mod
-            CBERS-4/AWFI    :
-                <<: *bdc_cb4
-            CBERS-4/MUX     :
-                <<: *bdc_cb4_mux
+                aws         :
+                    AWS_DEFAULT_REGION: "af-south-1"
+                    AWS_S3_ENDPOINT   : "s3.af-south-1.amazonaws.com"
+                    AWS_REQUEST_PAYER : "requester"
 
 palettes:
     default:

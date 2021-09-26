@@ -12,9 +12,9 @@
 #'                        (for POLYGON or MULTIPOLYGON shapes)
 #' @return                A sits tibble with points to to be read.
 .sits_shp_to_tibble <- function(sf_shape,
-                                  shp_attr,
-                                  label,
-                                  .n_shp_pol) {
+                                shp_attr,
+                                label,
+                                .n_shp_pol) {
 
     # get the geometry type
     geom_type <- sf::st_geometry_type(sf_shape)[1]
@@ -25,14 +25,14 @@
     # get a tibble with points and labels
     if (geom_type == "POINT") {
         points.tb <- .sits_shp_point_to_tibble(sf_shape,
-                                          shp_attr,
-                                          label)
+                                               shp_attr,
+                                               label)
     }
     else {
         points.tb <- .sits_shp_polygon_to_tibble(sf_shape,
-                                            shp_attr,
-                                            label,
-                                            .n_shp_pol)
+                                                 shp_attr,
+                                                 label,
+                                                 .n_shp_pol)
     }
 
     return(points.tb)
@@ -89,7 +89,7 @@
         purrr::map(function(i) {
             # retrieve the class from the shape attribute
             if (!purrr::is_null(shp_attr)) {
-                label <- as.character(unname(shp_df[i, shp_attr]))
+                label <- unname(as.character(shp_df[i, shp_attr]))
             }
             # obtain a set of samples based on polygons
             points <- list(sf::st_sample(sf_shape[i, ], size = .n_shp_pol))
@@ -123,18 +123,18 @@
 
 .sits_shp_check_validity <- function(shp_file, shp_attr = NULL, label = NULL) {
 
+    # set caller to show in errors
+    .check_set_caller(".sits_shp_check_validity")
+
     # pre-condition - does the shapefile exist?
-    assertthat::assert_that(
-        file.exists(shp_file),
-        msg = "sits_from_shp: shapefile does not exist"
-    )
+    .check_file(x = shp_file, msg = "shapefile does not exist")
 
     # read the shapefile
     sf_shape <- sf::read_sf(shp_file)
     # pre-condition - is the default label valid?
-    assertthat::assert_that(
-        nrow(sf_shape) > 0,
-        msg = "sits_from_shp: shapefile has no content"
+    .check_that(
+        x = nrow(sf_shape) > 0,
+        msg = "shapefile has no content"
     )
 
     # get the geometry type
@@ -142,22 +142,25 @@
     # get the data frame associated to the shapefile
 
     # precondition - are all geometries compatible?
-    assertthat::assert_that(
-        all(sf::st_geometry_type(sf_shape) == geom_type),
-        msg = "sits_from_shp: shapefile has different geometries"
+    # TODO: is it worth implements exact descriminator in .check_chr_within
+    .check_that(
+        x = all(sf::st_geometry_type(sf_shape) == geom_type),
+        msg = "shapefile has different geometries"
     )
 
     # precondition - can the function deal with the geometry_type?
-    assertthat::assert_that(
-        geom_type %in% c("POINT", "POLYGON", "MULTIPOLYGON"),
-        msg = "sits_from_shp: only handles
-                            POINT, POLYGON or MULTIPOLYGON shapefiles"
+    .check_chr_within(
+        x = as.character(geom_type),
+        within = c("POINT", "POLYGON", "MULTIPOLYGON"),
+        discriminator = "one_of",
+        msg = paste("only handles POINT, POLYGON or",
+                    "MULTIPOLYGON shapefiles")
     )
 
     # precondition - is the default label valid?
-    assertthat::assert_that(
-        !purrr::is_null(label) || !purrr::is_null(shp_attr),
-        msg = "sits_from_shp: label or shape attribute should be valid"
+    .check_that(
+        x = !purrr::is_null(label) || !purrr::is_null(shp_attr),
+        msg = "label or shape attribute should be valid"
     )
 
 
@@ -165,9 +168,9 @@
     # get the data frame associated to the shapefile
     shp_df <- sf::st_drop_geometry(sf_shape)
     if (!purrr::is_null(shp_attr)) {
-        assertthat::assert_that(
-            length(as.character(unname(shp_df[1, (shp_attr)]))) > 0,
-            msg = "sits_from_shp: invalid shapefile attribute"
+        .check_that(
+            x = length(as.character(shp_df[1, (shp_attr)])) > 0,
+            msg = "invalid shapefile attribute"
         )
     }
 

@@ -84,6 +84,9 @@ sits_regularize <- function(cube,
                             resampling = "bilinear",
                             cloud_mask = TRUE) {
 
+    # set caller to show in errors
+    .check_set_caller("sits_regularize")
+
     # require gdalcubes package
     if (!requireNamespace("gdalcubes", quietly = TRUE)) {
         stop(paste("Please install package gdalcubes from CRAN:",
@@ -92,8 +95,8 @@ sits_regularize <- function(cube,
     }
 
     # test if provided object its a sits cube
-    assertthat::assert_that(
-        inherits(cube, "raster_cube"),
+    .check_that(
+        x = inherits(cube, "raster_cube"),
         msg = paste("The provided cube is invalid,",
                     "please provide a 'raster_cube' object.",
                     "See '?sits_cube' for more information.")
@@ -127,10 +130,9 @@ sits_regularize <- function(cube,
             }))
 
         # check if all tiles intersects
-        assertthat::assert_that(
-            max_min_date < min_max_date,
-            msg = paste("sits_regularize: The cube tiles' timelines do not",
-                        "intersect.")
+        .check_that(
+            x = max_min_date < min_max_date,
+            msg = "the cube tiles' timelines do not intersect."
         )
 
         list(max_min_date = max_min_date, min_max_date = min_max_date)

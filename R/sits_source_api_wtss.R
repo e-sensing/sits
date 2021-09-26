@@ -13,16 +13,16 @@
     coverages <- Rwtss::list_coverages(url)
 
     # is the WTSS service working?
-    assertthat::assert_that(!purrr::is_null(coverages),
-                            msg = paste(".source_access_test.wtss_cube: WTSS",
-                                        "is unreachable.")
+    .check_null(x = coverages,
+                msg = "WTSS is unreachable"
     )
 
     # is the cube in the list of cubes?
-    assertthat::assert_that(
-        collection %in% coverages,
-        msg = paste(".source_access_test.wtss_cube:",
-                    collection, "not available in the WTSS server")
+    .check_chr_within(
+        x = collection,
+        within = coverages,
+        discriminator = "any_of",
+        msg = paste(collection, "not available in the WTSS server")
     )
 
     return(invisible(NULL))
@@ -54,13 +54,15 @@
 .source_items_new.wtss_cube <- function(source = source,
                                         collection = collection, ...) {
 
+    # set caller to show in errors
+    .check_set_caller(".source_items_new.wtss_cube")
+
     url <- .source_url(source = source)
 
     # describe the cube based on the WTSS API
     cov <- Rwtss::describe_coverage(url, collection, .print = FALSE)
-    assertthat::assert_that(!purrr::is_null(cov),
-                            msg = paste(".source_items_new.wtss_cube: failed",
-                                        "to get cube description in WTSS.")
+    .check_null(x = cov,
+                msg = paste("failed to get cube description in WTSS.")
     )
 
     return(cov)
@@ -94,8 +96,8 @@
         name = name,
         source = source,
         collection = collection,
-        satellite = items$satellite,
-        sensor = items$sensor,
+        satellite = .source_collection_satellite(source, collection),
+        sensor = .source_collection_sensor(source, collection),
         bands = bands,
         nrows = items$nrows,
         ncols = items$ncols,

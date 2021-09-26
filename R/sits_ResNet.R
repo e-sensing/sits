@@ -80,11 +80,14 @@ sits_ResNet <- function(samples = NULL,
                         blocks = c(64, 128, 128),
                         kernels = c(8, 5, 3),
                         activation = "relu",
-                        optimizer = keras::optimizer_adam(lr = 0.001),
+                        optimizer = keras::optimizer_adam(learning_rate = 0.001),
                         epochs = 300,
                         batch_size = 64,
                         validation_split = 0.2,
                         verbose = 0) {
+
+    # set caller to show in errors
+    .check_set_caller("sits_ResNet")
 
     # function that returns keras model based on a sits sample data.table
     result_fun <- function(data) {
@@ -96,14 +99,16 @@ sits_ResNet <- function(samples = NULL,
 
         valid_activations <- c("relu", "elu", "selu", "sigmoid")
         # pre-conditions
-        assertthat::assert_that(
-            activation %in% valid_activations,
-            msg = "sits_ResNet: invalid CNN activation method"
+        .check_chr_within(
+            x = activation,
+            within = valid_activations,
+            discriminator = "any_of",
+            msg = "invalid CNN activation method"
         )
 
-        assertthat::assert_that(
-            length(kernels) == 3,
-            msg = "sits_ResNet: should inform size of three kernels"
+        .check_that(
+            x = length(kernels) == 3,
+            msg = "should inform size of three kernels"
         )
 
         # get the labels of the data

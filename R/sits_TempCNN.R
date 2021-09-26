@@ -27,10 +27,10 @@
 #'                          Valid values: {'relu', 'elu', 'selu', 'sigmoid'}.
 #' @param cnn_L2_rate       Regularization rate for 1D convolution.
 #' @param cnn_dropout_rates Dropout rates for 1D convolutional filters.
-#' @param mlp_layers        Number of nodes in the multi-layer-perceptron.
-#' @param mlp_activation    Names of 2D activation functions for the MLP.
-#'                          Valid values: {'relu', 'elu', 'selu', 'sigmoid'}.
-#' @param mlp_dropout_rates Dropout rates (0,1) for each layer in the MLP.
+#' @param dense_layer_nodes Number of nodes in the dense layer.
+#' @param dense_layer_activation    Activation functions for the dense layer.
+#'                                  Valid values: {'relu', 'elu', 'selu', 'sigmoid'}.
+#' @param dense_layer_dropout_rate  Dropout rate (0,1) for the dense layer.
 #' @param optimizer         Function with a pointer to the optimizer function
 #'                          (default is optimization_adam()).
 #'                          Options: optimizer_adadelta(), optimizer_adagrad(),
@@ -70,20 +70,22 @@
 #' }
 #' @export
 sits_TempCNN <- function(samples = NULL,
-                         cnn_layers = c(64, 64, 64),
-                         cnn_kernels = c(5, 5, 5),
-                         cnn_activation = "relu",
-                         cnn_L2_rate = 1e-06,
+                         cnn_layers        = c(64, 64, 64),
+                         cnn_kernels       = c(5, 5, 5),
+                         cnn_activation    = "relu",
+                         cnn_L2_rate       = 1e-06,
                          cnn_dropout_rates = c(0.50, 0.50, 0.50),
-                         mlp_layers = c(256),
-                         mlp_activation = "relu",
-                         mlp_dropout_rates = c(0.50),
-                         optimizer = keras::optimizer_adam(lr = 0.001),
-                         epochs = 150,
-                         batch_size = 128,
-                         validation_split = 0.2,
+                         dense_layer_nodes = 256,
+                         dense_layer_activation    = "relu",
+                         dense_layer_dropout_rate  = 0.50,
+                         optimizer = keras::optimizer_adam(learning_rate = 0.001),
+                         epochs            = 150,
+                         batch_size        = 128,
+                         validation_split  = 0.2,
                          verbose = 0) {
 
+    # set caller to show in errors
+    .check_set_caller("sits_TempCNN")
 
     # function that returns keras model based on a sits sample data.table
     result_fun <- function(data) {
@@ -97,29 +99,42 @@ sits_TempCNN <- function(samples = NULL,
         # pre-conditions
         valid_activations <- c("relu", "elu", "selu", "sigmoid")
 
-        assertthat::assert_that(
-            length(cnn_layers) == length(cnn_kernels),
-            msg = "sits_tempCNN: 1D layers must match 1D kernel sizes"
+        .check_length(
+            x = cnn_layers,
+            len_min = length(cnn_kernels),
+            len_max = length(cnn_kernels),
+            msg = "1D layers must match 1D kernel sizes"
         )
 
-        assertthat::assert_that(
-            length(cnn_layers) == length(cnn_dropout_rates),
-            msg = "sits_tempCNN: 1D layers must match 1D dropout rates"
+        .check_length(
+            x = cnn_layers,
+            len_min = length(cnn_dropout_rates),
+            len_max = length(cnn_dropout_rates),
+            msg = "1D layers must match 1D dropout rates"
         )
 
-        assertthat::assert_that(
-            length(mlp_layers) == length(mlp_dropout_rates),
-            msg = "sits_tempCNN: 2D units must match 2D dropout rates"
+        .check_that(
+            x = length(dense_layer_nodes) == 1,
+            msg = "There is only one dense layer"
         )
 
-        assertthat::assert_that(
-            cnn_activation %in% valid_activations,
-            msg = "sits_tempCNN: invalid CNN activation method"
+        .check_that(
+            x = length(dense_layer_dropout_rate) == 1,
+            msg = "dropout rates must be provided for the dense layer"
         )
 
-        assertthat::assert_that(
-            mlp_activation %in% valid_activations,
-            msg = "sits_tempCNN: invalid node activation method"
+        .check_chr_within(
+            x = cnn_activation,
+            within = valid_activations,
+            discriminator = "one_of",
+            msg = "invalid CNN activation method"
+        )
+
+        .check_chr_within(
+            x = dense_layer_activation,
+            within = valid_activations,
+            discriminator = "one_of",
+            msg = "invalid node activation method"
         )
 
         # get the labels of the data
@@ -203,24 +218,25 @@ sits_TempCNN <- function(samples = NULL,
         # reshape a tensor into a 2D shape
         output_tensor <- keras::layer_flatten(output_tensor)
 
-        # build the 2D nodes
-        for (i in seq_len(length(mlp_layers))) {
-            output_tensor <- keras::layer_dense(
+        # build the the dense layer
+        output_tensor <- keras::layer_dense(
                 output_tensor,
-                units = mlp_layers[[i]]
-            )
+                units = dense_layer_nodes
+        )
 
-            # batch normalization
-            output_tensor <- keras::layer_batch_normalization(output_tensor)
-            # Activation
-            output_tensor <- keras::layer_activation(output_tensor,
-                                                     activation = mlp_activation)
-            # dropout
-            output_tensor  <- keras::layer_dropout(output_tensor,
-                                                   rate = mlp_dropout_rates[[i]])
-        }
+        # batch normalization
+        output_tensor <- keras::layer_batch_normalization(output_tensor)
+        # Activation
+        output_tensor <- keras::layer_activation(output_tensor,
+                                            activation = dense_layer_activation
+        )
+        # dropout
+        output_tensor  <- keras::layer_dropout(output_tensor,
+                                               rate = dense_layer_dropout_rate
+        )
 
-        # create the final tensor
+
+        # create the softmax layer
         model_loss <- "categorical_crossentropy"
         if (n_labels == 2) {
             output_tensor <- keras::layer_dense(

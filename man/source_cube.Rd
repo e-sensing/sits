@@ -11,8 +11,8 @@
 \alias{.source_items_bands_select}
 \alias{.source_items_fileinfo}
 \alias{.source_items_tiles_group}
-\alias{.source_items_get_sensor}
-\alias{.source_items_get_satellite}
+\alias{.source_collection_sensor}
+\alias{.source_collection_satellite}
 \alias{.source_items_tile_get_crs}
 \alias{.source_items_tile_get_name}
 \alias{.source_items_tile_get_bbox}
@@ -38,9 +38,9 @@
 
 .source_items_tiles_group(source, items, ..., collection = NULL)
 
-.source_items_get_sensor(source, items, ..., collection = NULL)
+.source_collection_sensor(source, collection)
 
-.source_items_get_satellite(source, items, ..., collection = NULL)
+.source_collection_satellite(source, collection)
 
 .source_items_tile_get_crs(source, tile_items, ..., collection = NULL)
 

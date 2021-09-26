@@ -29,20 +29,20 @@ a box in lat-long coordinates ("lon_min", "lon_max", "lat_min", "lat_max").
 }
 \examples{
 \donttest{
-data_dir <- system.file("extdata/raster/cbers", package = "sits")
+data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
 
-cbers_022024 <- sits_cube(
+modis_cube <- sits_cube(
     source = "LOCAL",
-    name = "cbers_022024",
-    satellite = "CBERS-4",
+    name = "modis_sinop",
+    origin = "BDC",
+    collection = "MOD13Q1-6",
     band = "NDVI",
-    sensor = "AWFI",
     data_dir = data_dir,
     parse_info = c("X1", "X2", "tile", "band", "date")
 )
 
-cbers_022024_copy <- sits_cube_copy(cbers_022024,
-    name = "cb_022024_cp",
+modis_cube_copy <- sits_cube_copy(modis_cube,
+    name = "modis_sinop_cp",
     dest_dir = tempdir()
 )
 }

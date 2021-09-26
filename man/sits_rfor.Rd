@@ -4,7 +4,7 @@
 \alias{sits_rfor}
 \title{Train a SITS classifiction model using random forest algorithm}
 \usage{
-sits_rfor(data = NULL, num_trees = 2000, nodesize = 1, ...)
+sits_rfor(data = NULL, num_trees = 200, nodesize = 1, ...)
 }
 \arguments{
 \item{data}{time series with the training samples}
@@ -12,7 +12,7 @@ sits_rfor(data = NULL, num_trees = 2000, nodesize = 1, ...)
 \item{num_trees}{number of trees to grow.
 This should not be set to too small a number,
 to ensure that every input row gets predicted
-at least a few times (default: 2000).}
+at least a few times (default: 200).}
 
 \item{nodesize}{minimum size of terminal nodes
 (default 1 for classification)}
@@ -33,7 +33,7 @@ Please refer to the documentation in that package for more details.
 # Retrieve the set of samples for the Mato Grosso region
 samples_MT_ndvi <- sits_select(samples_modis_4bands, bands = "NDVI")
 # Build a random forest model
-rfor_model <- sits_train(samples_MT_ndvi, sits_rfor(num_trees = 300))
+rfor_model <- sits_train(samples_MT_ndvi, sits_rfor(num_trees = 200))
 # get a point with a 16 year time series
 point_ndvi <- sits_select(point_mt_6bands, bands = "NDVI")
 # classify the point

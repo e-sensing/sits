@@ -38,20 +38,25 @@
 #'
 sits_train <- function(data, ml_method = sits_svm()) {
 
+    # set caller to show in errors
+    .check_set_caller("sits_train")
+
     # is the input data a valid sits tibble?
-    assertthat::assert_that(
-        "label" %in% names(data),
-        msg = "sits_train: input data does not contain a valid sits tibble"
+    .check_chr_within(
+        x = "label",
+        within = names(data),
+        discriminator = "any_of",
+        msg = "input data does not contain a valid sits tibble"
     )
 
     # is the train method a function?
-    assertthat::assert_that(
-        inherits(ml_method, "function"),
-        msg = "sits_train: ml_method is not a valid function"
+    .check_that(
+        x = inherits(ml_method, "function"),
+        msg = "ml_method is not a valid function"
     )
 
-    assertthat::assert_that(
-        .sits_timeline_check(data) == TRUE,
+    .check_that(
+        x = .sits_timeline_check(data) == TRUE,
         msg = paste0("Samples have different timeline lengths", "\n",
                      "Use.sits_tibble_prune or sits_fix_timeline"))
 
@@ -102,6 +107,9 @@ sits_train <- function(data, ml_method = sits_svm()) {
 #'
 sits_lda <- function(data = NULL, formula = sits_formula_logref(), ...) {
 
+    # set caller to show in errors
+    .check_set_caller("sits_lda")
+
     # function that returns MASS::lda model based on a sits sample tibble
     result_fun <- function(data) {
 
@@ -116,9 +124,11 @@ sits_lda <- function(data = NULL, formula = sits_formula_logref(), ...) {
         train_data <- .sits_distances(.sits_ml_normalize_data(data, stats))
 
         # is the input data the result of a TWDTW matching function?
-        assertthat::assert_that(
-            "reference" %in% names(train_data),
-            msg = "sits_lda: input data does not contain distance"
+        .check_chr_within(
+            x = "reference",
+            within = names(train_data),
+            discriminator = "any_of",
+            msg = "input data does not contain distance"
         )
 
         # if parameter formula is a function
@@ -343,116 +353,7 @@ sits_mlr <- function(data = NULL, formula = sits_formula_linear(),
     result <- .sits_factory_function(data, result_fun)
     return(result)
 }
-#' @title Train a sits classifiction model using fast random forest algorithm
-#' @name sits_ranger
-#'
-#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
-#' @author Alexandre Ywata de Carvalho, \email{alexandre.ywata@@ipea.gov.br}
-#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
-#'
-#' @description Use Fast Random Forest algorithm to classify data.
-#' This function is a front-end to the "ranger" method in the "ranger" package.
-#' Please refer to the documentation in that package for more details.
-#'
-#' @param data         Time series with the training samples.
-#' @param num_trees    Number of trees to grow. This should not be set
-#'                      to too small a number,
-#'                      to ensure that every input row gets predicted
-#'                      at least a few times. (default: 2000).
-#' @param importance   Variable importance mode, one of 'none',
-#'                      'impurity', 'impurity_corrected', 'permutation'.
-#'                     The 'impurity' measure is the Gini index.
-#' @param ...          Other \code{\link[ranger]{ranger}}  parameters
-#' @return             Model fitted to input data
-#'                     (to be passed to \code{\link[sits]{sits_classify}})
-#' @examples
-#' # Retrieve the set of samples for Mato Grosso  (provided by EMBRAPA)
-#' samples_ndvi <- sits_select(samples_mt_6bands, bands = c("NDVI"))
-#'
-#' # Build a machine learning model
-#' ml_model <- sits_train(samples_ndvi, sits_ranger(num_trees = 100))
-#'
-#' # get a point and classify the point with the ml_model
-#' point_ndvi <- sits_select(point_mt_6bands, bands = "NDVI")
-#' class <- sits_classify(point_ndvi, ml_model)
-#'
-#' @export
-#'
-sits_ranger <- function(data = NULL,
-                        num_trees = 2000,
-                        importance = "impurity", ...) {
 
-    # function that returns a randomForest model based on a sits sample tibble
-    result_fun <- function(data) {
-
-        # verifies if ranger package is installed
-        if (!requireNamespace("ranger", quietly = TRUE)) {
-            stop(paste("ranger required for this function to work.",
-                       "Please install it."), call. = FALSE)
-        }
-
-        valid_importance <- c("none", "impurity", "permutation")
-
-        # is the input data consistent?
-        assertthat::assert_that(
-            importance %in% valid_importance,
-            msg = "sits_ranger: invalid variable importance value"
-        )
-
-        # get the labels of the data
-        labels <- sits_labels(data)
-        assertthat::assert_that(
-            length(labels) > 0,
-            msg = "sits_ranger: invalid data - bad labels"
-        )
-        n_labels <- length(labels)
-
-        # create a named vector with integers match the class labels
-        int_labels <- c(1:n_labels)
-        names(int_labels) <- labels
-
-        # calculate the distances
-        train_data <- .sits_distances(data)
-
-        # obtain a valid formula for training
-        formula <- sits_formula_linear()(train_data)
-
-        # call `ranger::ranger` method and return the trained model
-        result_ranger <- ranger::ranger(
-            formula = formula,
-            data = train_data[, 2:ncol(train_data)],
-            probability = TRUE, importance = importance,
-            num.trees = num_trees, min.node.size = 1, ...
-        )
-
-        # construct model predict closure function and return it
-        model_predict <- function(values) {
-
-            # verifies if ranger package is installed
-            if (!requireNamespace("ranger", quietly = TRUE)) {
-                stop(paste("ranger required for this function to work.",
-                           "Please install it."), call. = FALSE)
-            }
-
-            # retrieve the prediction results
-            preds <- stats::predict(result_ranger,
-                                    data = values,
-                                    type = "response"
-            )
-
-            # return the prediction values and their probabilities
-            prediction <- data.table::as.data.table(preds$predictions)
-
-            return(prediction)
-        }
-        class(model_predict) <- c("ranger_model", "sits_model",
-                                  class(model_predict))
-        return(model_predict)
-    }
-
-    result <- .sits_factory_function(data, result_fun)
-    return(result)
-}
 #' @title Train a SITS classifiction model using random forest algorithm
 #' @name sits_rfor
 #'
@@ -468,7 +369,7 @@ sits_ranger <- function(data = NULL,
 #' @param num_trees        number of trees to grow.
 #'                         This should not be set to too small a number,
 #'                         to ensure that every input row gets predicted
-#'                         at least a few times (default: 2000).
+#'                         at least a few times (default: 200).
 #' @param nodesize         minimum size of terminal nodes
 #'                         (default 1 for classification)
 #' @param ...              other parameters to be passed
@@ -479,7 +380,7 @@ sits_ranger <- function(data = NULL,
 #' # Retrieve the set of samples for the Mato Grosso region
 #' samples_MT_ndvi <- sits_select(samples_modis_4bands, bands = "NDVI")
 #' # Build a random forest model
-#' rfor_model <- sits_train(samples_MT_ndvi, sits_rfor(num_trees = 300))
+#' rfor_model <- sits_train(samples_MT_ndvi, sits_rfor(num_trees = 200))
 #' # get a point with a 16 year time series
 #' point_ndvi <- sits_select(point_mt_6bands, bands = "NDVI")
 #' # classify the point
@@ -487,7 +388,7 @@ sits_ranger <- function(data = NULL,
 #'
 #' @export
 #'
-sits_rfor <- function(data = NULL, num_trees = 2000, nodesize = 1, ...) {
+sits_rfor <- function(data = NULL, num_trees = 200, nodesize = 1, ...) {
 
     # function that returns `randomForest::randomForest` model
     result_fun <- function(data) {
@@ -561,12 +462,12 @@ sits_rfor <- function(data = NULL, num_trees = 2000, nodesize = 1, ...) {
 #' @param degree           Exponential of polynomial type kernel (default: 3).
 #' @param coef0            Parameter needed for kernels of type polynomial
 #'                         and sigmoid (default: 0).
-#' @param cost             Cost of constraints violation.
+#' @param cost             Cost of constraints violation (default: 10.
 #' @param tolerance        Tolerance of termination criterion (default: 0.001).
 #' @param epsilon          Epsilon in the insensitive-loss function
 #'                         (default: 0.1).
 #' @param cross            Number of cross validation folds applied
-#'                         to assess the quality of the model.
+#'                         to assess the quality of the model (default: 10).
 #' @param ...              Other parameters to be passed to e1071::svm function.
 #' @return                 Model fitted to input data
 #'                         (to be passed to \code{\link[sits]{sits_classify}})
@@ -590,7 +491,7 @@ sits_svm <- function(data = NULL, formula = sits_formula_logref(),
                      scale = FALSE, cachesize = 1000,
                      kernel = "radial", degree = 3, coef0 = 0,
                      cost = 10, tolerance = 0.001,
-                     epsilon = 0.1, cross = 0, ...) {
+                     epsilon = 0.1, cross = 10, ...) {
 
     # function that returns e1071::svm model based on a sits sample tibble
     result_fun <- function(data) {
@@ -732,6 +633,9 @@ sits_xgboost <- function(data = NULL,
                          early_stopping_rounds = 20,
                          verbose = FALSE) {
 
+    # set caller to show in errors
+    .check_set_caller("sits_xgboost")
+
     # function that returns xgb model
     result_fun <- function(data) {
 
@@ -743,9 +647,10 @@ sits_xgboost <- function(data = NULL,
 
         # get the labels of the data
         labels <- sits_labels(data)
-        assertthat::assert_that(
-            length(labels) > 0,
-            msg = "sits_rfor: invalid data - bad labels"
+        .check_length(
+            x = labels,
+            len_min = 1,
+            msg = "invalid data - bad labels"
         )
         n_labels <- length(labels)
 
@@ -853,6 +758,10 @@ sits_xgboost <- function(data = NULL,
 #' @export
 #'
 sits_formula_logref <- function(predictors_index = -2:0) {
+
+    # set caller to show in errors
+    .check_set_caller("sits_formula_logref")
+
     # store configuration information about model formula
     sits_env$model_formula <- "log"
 
@@ -860,9 +769,9 @@ sits_formula_logref <- function(predictors_index = -2:0) {
     # 'factor(reference~log(f1)+log(f2)+...+log(fn)' where f1, f2, ..., fn are
     # the predictor fields given by the predictor index.
     result_fun <- function(tb) {
-        assertthat::assert_that(
-            nrow(tb) > 0,
-            msg = "sits_formula_logref - invalid data"
+        .check_that(
+            x = nrow(tb) > 0,
+            msg = "invalid data"
         )
         n_rows_tb <- nrow(tb)
 
@@ -905,6 +814,10 @@ sits_formula_logref <- function(predictors_index = -2:0) {
 #' @export
 #'
 sits_formula_linear <- function(predictors_index = -2:0) {
+
+    # set caller to show in errors
+    .check_set_caller("sits_formula_linear")
+
     # store configuration information about model formula
     sits_env$model_formula <- "linear"
 
@@ -912,9 +825,9 @@ sits_formula_linear <- function(predictors_index = -2:0) {
     # 'factor(reference~log(f1)+log(f2)+...+log(fn)' where f1, f2, ..., fn are
     #  the predictor fields.
     result_fun <- function(tb) {
-        assertthat::assert_that(
-            nrow(tb) > 0,
-            msg = "sits_formula_logref - invalid data"
+        .check_that(
+            x = nrow(tb) > 0,
+            msg = "invalid data"
         )
         n_rows_tb <- nrow(tb)
         # if no predictors_index are given, assume that all fields are used
@@ -950,6 +863,10 @@ sits_formula_linear <- function(predictors_index = -2:0) {
 #'
 #' @return A normalized sits tibble.
 .sits_ml_normalize_data <- function(data, stats) {
+
+    # set caller to show in errors
+    .check_set_caller(".sits_ml_normalize_data")
+
     # test if data is valid
     .sits_tibble_test(data)
 
@@ -957,9 +874,10 @@ sits_formula_linear <- function(predictors_index = -2:0) {
     bands <- sits_bands(data)
 
     # check that input bands are included in the statistics already calculated
-    assertthat::assert_that(
-        all(sort(bands) == sort(colnames(stats[, -1]))),
-        msg = paste0("sits_normalize: data bands (",
+    .check_chr_within(
+        x = sort(bands),
+        within = sort(colnames(stats[, -1])),
+        msg = paste0("data bands (",
                      paste(bands, collapse = ", "),
                      ") do not match model bands (",
                      paste(colnames(stats[, -1]),

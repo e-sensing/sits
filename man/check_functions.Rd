@@ -21,6 +21,7 @@
 \alias{.check_chr_within}
 \alias{.check_chr_contains}
 \alias{.check_file}
+\alias{.check_env_var}
 \alias{.check_warn}
 \alias{.check_error}
 \title{Check functions}
@@ -39,7 +40,7 @@
 
 .check_length(x, ..., len_min = NULL, len_max = NULL, msg = NULL)
 
-.check_apply(x, fn_check, ..., msg = NULL)
+.check_apply(x, fn_check, ...)
 
 .check_lgl_type(x, ..., msg = NULL)
 
@@ -99,11 +100,27 @@
   msg = NULL
 )
 
-.check_chr_within(x, within, ..., discriminator = "all_of", msg = NULL)
+.check_chr_within(
+  x,
+  within,
+  ...,
+  case_sensitive = TRUE,
+  discriminator = "all_of",
+  msg = NULL
+)
 
-.check_chr_contains(x, contains, ..., discriminator = "all_of", msg = NULL)
+.check_chr_contains(
+  x,
+  contains,
+  ...,
+  case_sensitive = TRUE,
+  discriminator = "all_of",
+  msg = NULL
+)
 
 .check_file(x, ..., msg = NULL)
+
+.check_env_var(x, ..., msg = NULL)
 
 .check_warn(expr)
 
@@ -169,6 +186,9 @@ or list users provides for functions. Default is \code{2^31}.}
 \item{within}{A \code{character} vector indicating a set of elements
 from which \code{x} is a kind of subset. The actual behavior is pointed by
 \code{discriminator} parameter.}
+
+\item{case_sensitive}{A \code{logical} indicating if the check is compared
+with case sensitive. Default is \code{TRUE}.}
 
 \item{discriminator}{A \code{character} value indicating how subset
 verification will be done (see details).}
@@ -340,6 +360,15 @@ Special checking function:
 \item{
 \code{.check_file()} throws an error if provided value is not a valid and
 existing file path.
+}
+}
+
+Special checking function:
+
+\itemize{
+\item{
+\code{.check_env_var()} throws an error if provided environment variable is
+not existing.
 }
 }
 

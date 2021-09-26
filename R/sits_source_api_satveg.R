@@ -39,8 +39,8 @@
         name = name,
         source = source,
         collection = collection,
-        satellite = "TERRA",
-        sensor = "MODIS",
+        satellite = .source_collection_satellite(source, collection),
+        sensor = .source_collection_sensor(source, collection),
         bands = bands,
         nrows = size[["nrows"]],
         ncols = size[["ncols"]],
@@ -72,6 +72,9 @@ NULL
 #' @rdname helper_satveg_function
 .satveg_get_size <- function(source, collection) {
 
+    # set caller to show in errors
+    .check_set_caller(".satveg_get_size")
+
     # get the size of the cube
     size <- .config_get(key = c("sources", source, "collections",
                                 collection, "size"))
@@ -80,9 +83,9 @@ NULL
     size <- unlist(size)
 
     # post-condition
-    assertthat::assert_that(
-        all(size > 0),
-        msg = ".satveg_get_size: invalid size."
+    .check_that(
+        x = all(size > 0),
+        msg = "invalid size."
     )
 
     return(size)
@@ -90,6 +93,9 @@ NULL
 
 #' @rdname helper_satveg_function
 .satveg_get_bbox <- function(source, collection) {
+
+    # set caller to show in errors
+    .check_set_caller(".satveg_get_bbox")
 
     # get the size of the cube
     bbox <- .config_get(key = c("sources", source, "collections",
@@ -99,9 +105,10 @@ NULL
     bbox <- unlist(bbox)
 
     # post-condition
-    assertthat::assert_that(
-        all(names(bbox) %in% c("xmin", "ymin", "xmax", "ymax")),
-        msg = ".satveg_get_bbox: invalid bbox."
+    .check_chr_within(
+        x = names(bbox),
+        within = c("xmin", "ymin", "xmax", "ymax"),
+        msg = "invalid bbox."
     )
 
     return(bbox)

@@ -122,6 +122,9 @@ sits_som_map <- function(data,
                          som_radius = 2,
                          mode = "online") {
 
+    # set caller to show in errors
+    .check_set_caller("sits_som_map")
+
     # verifies if kohonen package is installed
     if (!requireNamespace("kohonen", quietly = TRUE)) {
         stop("kohonen needed for this function to work.
@@ -133,9 +136,9 @@ sits_som_map <- function(data,
 
     # is are there more neurons than samples?
     n_samples <- nrow(data)
-    assertthat::assert_that(
+    .check_that(
         n_samples > grid_xdim * grid_ydim,
-        msg = paste("sits_som_map: number of samples should be",
+        msg = paste("number of samples should be",
                     "greater than number of neurons")
     )
 
@@ -184,13 +187,32 @@ sits_som_map <- function(data,
                                            id_neuron == neuron_id
             )
 
-            # if more than one sample has been mapped, the a posteriori
-            # probability is considered
-            if (nrow(labels_neuron) > 1)
-                label_max <- nnet::which.is.max(labels_neuron$post_prob)
-            else
-                label_max <- nnet::which.is.max(labels_neuron$prior_prob)
-            return(labels_neuron[label_max, ]$label_samples)
+            #Get the maximum value of the prior probability
+            max_prob_index <- which.max(labels_neuron$prior_prob)
+            prob_max <- labels_neuron[max_prob_index, ]$prior_prob
+
+            #How many elements there are with the maximumn value?
+            number_of_label_max <- which(labels_neuron$prior_prob == prob_max )
+            label_max_final <- nnet::which.is.max(labels_neuron$prior_prob)
+
+
+            # if more than one sample has been mapped AND their max are the same,
+            # then a posteriori probability is considered
+            if (length(number_of_label_max) > 1)
+            {
+                #Get the maximum posterior among the tied classes
+                max_post <- max(labels_neuron[number_of_label_max, ]$post_prob)
+
+                # Where are the duplicated values?
+                label_max_post <- which(labels_neuron$post_prob == max_post )
+
+                #Is this value are in the maximum vector of the prior probability?
+                index_prior_max <- which(label_max_post %in% number_of_label_max == TRUE)
+                label_max_final <- label_max_post[index_prior_max]
+            }else
+                label_max_final <- nnet::which.is.max(labels_neuron$prior_prob)
+
+            return(labels_neuron[label_max_final, ]$label_samples)
         })
     labels_max <- unlist(lab_max)
 
@@ -257,59 +279,42 @@ sits_som_map <- function(data,
 #' new_samples <- sits_som_clean_samples(som_map)
 #' }
 #' @export
-
 sits_som_clean_samples <- function(som_map,
                                    prior_threshold = 0.6,
                                    posterior_threshold = 0.6,
                                    keep = c("clean", "analyze")) {
+
+    # set caller to show in errors
+    .check_set_caller("sits_som_clean_samples")
 
     # Sanity check
     if (!inherits(som_map, "som_map")) {
         message("wrong input data; please run sits_som_map first")
         return(invisible(NULL))
     }
-    assertthat::assert_that(
-        all(keep %in% c("clean", "analyze", "remove")),
-        msg = "sits_som_clean_samples: invalid keep parameter"
+    .check_chr_within(
+        x = keep,
+        within = c("clean", "analyze", "remove"),
+        msg = "invalid keep parameter"
     )
 
-    # original_samples
-    data <- som_map$data
+    # function to detect of class noise
+    .detect_class_noise <- function(prior_prob, post_prob) {
+        ifelse(
+            prior_prob >= prior_threshold &
+                post_prob >= posterior_threshold, "clean",
+            ifelse(
+                prior_prob >= prior_threshold &
+                    post_prob < posterior_threshold, "analyze", "remove"))
+    }
 
-    # obtain the evaluation for each sample
-    eval_lst <- slider::slide(data, function(row) {
-        neuron_id <- row$id_neuron
-        sample_probs <-
-            som_map$labelled_neurons %>%
-            dplyr::filter(id_neuron == neuron_id) %>%
-            dplyr::filter(label_samples == row$label)
-        if (sample_probs$prior_prob >= prior_threshold &
-            sample_probs$post_prob >= posterior_threshold) {
-            return("clean")
-        } else {
-            if (sample_probs$prior_prob >= prior_threshold &
-                sample_probs$post_prob < posterior_threshold) {
-                  return("analyze")
-              } else {
-                  return("remove")
-              }
-        }
-    })
-    data$eval <- unlist(eval_lst)
+    data <- som_map$data %>%
+        dplyr::inner_join(som_map$labelled_neurons,
+                          by = c("id_neuron", "label" = "label_samples")) %>%
+        dplyr::mutate(eval = .detect_class_noise(prior_prob, post_prob)) %>%
+        dplyr::select(-count, -prior_prob) %>%
+        dplyr::filter(eval %in% keep)
 
-    # obtain the posterior probability for each sample
-    post_probs <- slider::slide(data, function(row) {
-        neuron_id <- row$id_neuron
-        sample_prob <-
-            som_map$labelled_neurons %>%
-            dplyr::filter(id_neuron == neuron_id) %>%
-            dplyr::filter(label_samples == row$label)
-
-        return(sample_prob$post_prob)
-    })
-    data$post_prob <- unlist(post_probs)
-
-    data <- dplyr::filter(data, eval %in% keep)
     return(data)
 }
 

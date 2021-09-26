@@ -29,8 +29,8 @@
 #' cube <- sits_cube(
 #'     source = "LOCAL",
 #'     name = "sinop_2014",
-#'     satellite = "TERRA",
-#'     sensor = "MODIS",
+#'     origin = "BDC",
+#'     collection = "MOD13Q1-6",
 #'     data_dir = data_dir,
 #'     delim = "_",
 #'     parse_info = c("X1", "X2", "tile", "band", "date")
@@ -54,10 +54,13 @@ sits_label_classification <- function(cube,
                                       output_dir = tempdir(),
                                       version = "v1") {
 
+    # set caller to show in errors
+    .check_set_caller("sits_label_classification")
+
     # precondition - check if cube has probability data
-    assertthat::assert_that(
-        inherits(cube, "probs_cube"),
-        msg = "sits_label_classification: input is not probability cube"
+    .check_that(
+        x = inherits(cube, "probs_cube"),
+        msg = "input is not probability cube"
     )
 
     # create metadata for labeled raster cube
@@ -129,8 +132,8 @@ sits_label_classification <- function(cube,
 #' cube <- sits_cube(
 #'     source = "LOCAL",
 #'     name = "sinop-2014",
-#'     satellite = "TERRA",
-#'     sensor = "MODIS",
+#'     origin = "BDC",
+#'     collection = "MOD13Q1-6",
 #'     data_dir = data_dir,
 #'     delim = "_",
 #'     parse_info = c("X1", "X2", "tile", "band", "date")
@@ -156,16 +159,20 @@ sits_label_majority <- function(cube,
                                 output_dir = "./",
                                 version = "v1") {
 
+    # set caller to show in errors
+    .check_set_caller("sits_label_majority")
+
     # precondition 1 - check if cube has classification info
-    assertthat::assert_that(
-        inherits(cube, "classified_image"),
-        msg = "sits_label_majority: input is not classified cube"
+    .check_that(
+        x = inherits(cube, "classified_image"),
+        msg = "input is not classified cube"
     )
 
     # precondition 2 - test window size
-    assertthat::assert_that(
-        window_size >= 3,
-        msg = "sits_label_majority: window size must be >= 3"
+    .check_num(
+        x = window_size,
+        min = 3,
+        msg = "window size must be >= 3"
     )
 
     cube_maj <- .sits_cube_clone(cube = cube,
@@ -201,9 +208,9 @@ sits_label_majority <- function(cube,
         )
 
         # was the file written correctly?
-        assertthat::assert_that(
-            file.exists(out_file),
-            msg = "sits_label_majority: unable to save raster object"
+        .check_file(
+            x = out_file,
+            msg = "unable to save raster object"
         )
 
     })

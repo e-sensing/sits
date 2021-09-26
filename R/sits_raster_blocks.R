@@ -105,6 +105,10 @@
 #' @return        a list with named vectors ("row", "nrows", "col", "ncols")
 #'
 .sits_raster_block_list <- function(nblocks, sub_image) {
+
+    # set caller to show in errors
+    .check_set_caller(".sits_raster_block_list")
+
     # number of rows per block
     block_rows <- ceiling(sub_image["nrows"] / nblocks)
 
@@ -120,7 +124,10 @@
 
     # number of rows in each block
     n_rows <- length(row_vec)
-    assertthat::assert_that(n_rows > 0, msg = "empty row vector")
+    .check_that(
+        x = n_rows > 0,
+        msg = "empty row vector"
+    )
     nrows_vec <- rep.int(block_rows, n_rows)
 
     # check that total number of rows is the same as the sum of all blocks

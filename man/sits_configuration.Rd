@@ -67,8 +67,12 @@ obtained by overriding the options by the values provided in
 
 \code{sits_config_show()} prints the current sits
 configuration options. To show specific configuration options for
-a source, a collection, or a palette, user can inform the corresponding
+a source, a collection, or a palette, users can inform the corresponding
 keys to \code{source}, \code{collection}, and \code{palette} parameters.
+
+\code{sits_config_list_collection()} prints the collections available
+in each cloud service supported by sits. Users can select to get information
+only for a single service by using the \code{source} parameter.
 }
 \details{
 Users can provide additional configuration files, by specifying the

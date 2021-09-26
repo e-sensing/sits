@@ -12,11 +12,15 @@
 #' @export
 sits_savi <- function(data) {
 
+    # set caller to show in errors
+    .check_set_caller("sits_savi")
+
     bands <- sits_bands(data)
     bands_savi <- c("NIR", "RED")
-    assertthat::assert_that(
-        all(bands_savi %in% (bands)),
-        msg = "sits_savi: not enough bands to compute"
+    .check_chr_within(
+        x = bands_savi,
+        within = bands,
+        msg = "not enough bands to compute"
     )
 
     data <- sits_mutate_bands(data,
@@ -41,12 +45,16 @@ sits_savi <- function(data) {
 #' @export
 sits_ndwi <- function(data) {
 
+    # set caller to show in errors
+    .check_set_caller("sits_ndwi")
+
     bands <- sits_bands(data)
     bands_ndwi <- c("NIR", "MIR")
 
-    assertthat::assert_that(
-        all(bands_ndwi %in% (bands)),
-        msg = "sits_ndwi: not enough bands to compute"
+    .check_chr_within(
+        x = bands_ndwi,
+        within = bands,
+        msg = "not enough bands to compute."
     )
 
     data <- sits_mutate_bands(data, NDWI = (1.5) * (NIR - MIR) / (NIR + MIR))

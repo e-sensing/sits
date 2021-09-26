@@ -18,38 +18,42 @@
 #'
 #' @examples
 #' \donttest{
-#' data_dir <- system.file("extdata/raster/cbers", package = "sits")
+#' data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
 #'
-#' cbers_022024 <- sits_cube(
+#' modis_cube <- sits_cube(
 #'     source = "LOCAL",
-#'     name = "cbers_022024",
-#'     satellite = "CBERS-4",
-#'     sensor = "AWFI",
-#'     resolution = 64,
+#'     name = "modis_sinop",
+#'     origin = "BDC",
+#'     collection = "MOD13Q1-6",
+#'     band = "NDVI",
 #'     data_dir = data_dir,
 #'     parse_info = c("X1", "X2", "tile", "band", "date")
 #' )
+#'
 #' # plot the data cube
-#' sits_view(cbers_022024, red = "B15", green = "B16", blue = "B13", time = 1)
+#' sits_view(modis_cube, red = "EVI", green = "NDVI", blue = "EVI", time = 1)
 #' }
 #'
 #' @export
 sits_view <- function(x, ...){
 
-    assertthat::assert_that(
-        inherits(x, c("raster_cube", "classified_image")),
-        msg = "sits_view only works with raster cube and classified images")
+    # set caller to show in errors
+    .check_set_caller("sits_view")
+
+    .check_that(
+        x = inherits(x, c("raster_cube", "classified_image")),
+        msg = "only works with raster cube and classified images")
 
     # verifies if raster package is installed
-    assertthat::assert_that(
-        requireNamespace("raster", quietly = TRUE),
-        msg = "sits_view: this function depends on 'raster' package"
+    .check_that(
+        x = requireNamespace("raster", quietly = TRUE),
+        msg = "this function depends on 'raster' package"
     )
 
     # verifies if mapview package is installed
-    assertthat::assert_that(
+    .check_that(
         requireNamespace("mapview", quietly = TRUE),
-        msg = "sits_view: this function depends on 'mapview' package"
+        msg = "this function depends on 'mapview' package"
     )
 
     UseMethod("sits_view", x)
@@ -65,15 +69,15 @@ sits_view.raster_cube <- function(x, ...,
                                   roi = NULL) {
 
     # preconditions
-    assertthat::assert_that(
-        all(c(red, green, blue) %in% sits_bands(x)),
-        msg = "sits_view: requested RGB bands are not available in data cube"
+    .check_that(
+        x = all(c(red, green, blue) %in% sits_bands(x)),
+        msg = "requested RGB bands are not available in data cube"
     )
 
     timeline <- sits_timeline(x)
-    assertthat::assert_that(
-        time >= 1 & time <= length(timeline),
-        msg = "sits_view: time parameter out of bounds"
+    .check_that(
+        x = time >= 1 & time <= length(timeline),
+        msg = "time parameter out of bounds"
     )
 
     # verify sf package if roi is informed
@@ -89,9 +93,9 @@ sits_view.raster_cube <- function(x, ...,
         }) %>% unlist()
 
         # check if intersection is not empty
-        assertthat::assert_that(
-            any(intersects),
-            msg = "sits_view: informed roi does not intersect cube"
+        .check_that(
+            x = any(intersects),
+            msg = "informed roi does not intersect cube"
         )
 
         x <- x[intersects, ]
@@ -120,9 +124,9 @@ sits_view.raster_cube <- function(x, ...,
         r_obj <- .raster_crop.raster(r_obj = r_obj, block = roi)
     }
 
-    assertthat::assert_that(
-        .raster_ncols(r_obj) > 0 && .raster_nrows(r_obj) > 0,
-        msg = "view.raster_cube: unable to retrieve raster data"
+    .check_that(
+        x = .raster_ncols(r_obj) > 0 && .raster_nrows(r_obj) > 0,
+        msg = "unable to retrieve raster data"
     )
 
     # set mapview options
@@ -161,9 +165,10 @@ sits_view.classified_image <- function(x,...,
         names(legend) <- labels
     }
     else {
-        assertthat::assert_that(
-            all(labels %in% names(legend)),
-            msg = "sits_view: some labels are missing from the legend"
+        .check_chr_within(
+            x =  labels,
+            within = names(legend),
+            msg = "some labels are missing from the legend"
         )
     }
 
@@ -172,10 +177,10 @@ sits_view.classified_image <- function(x,...,
         file = x$file_info[[1]]$path[[time]]
     )[[1]]
 
-    assertthat::assert_that(
-        .raster_ncols.raster(r_obj) > 0 &&
+    .check_that(
+        x = .raster_ncols.raster(r_obj) > 0 &&
             .raster_nrows.raster(r_obj) > 0,
-        msg = "plot: unable to retrive raster data"
+        msg = "unable to retrive raster data"
     )
 
     # create a RAT

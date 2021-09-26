@@ -25,6 +25,10 @@
 #' @export
 #'
 sits_select <- function(data, bands) {
+
+    # set caller to show in errors
+    .check_set_caller("sits_select")
+
     # get the meta-type (sits or cube)
     data <- .config_data_meta_type(data)
 
@@ -38,32 +42,46 @@ sits_select.sits <- function(data, bands) {
     # bands names in SITS are uppercase
     bands <- toupper(bands)
     sits_bands(data) <- toupper(sits_bands(data))
+    data_bands <- sits_bands(data)
 
-    assertthat::assert_that(
-        all(bands %in% sits_bands(data)),
-        msg = paste("sits_select: missing bands:",
-                    paste(bands[!bands %in% sits_bands(data)],
-                          collapse = ", "))
+    .check_chr_within(
+        x = bands,
+        within = sits_bands(data),
+        msg = paste("Invalid bands values")
     )
 
-    # prepare result sits tibble
-    result <- data
+    # make sure that nesting operation (bellow) will be done correctly
+    data[["..row_id"]] <- seq_len(nrow(data))
 
-    # select the chosen bands for the time series
-    result$time_series <- data$time_series %>%
-        purrr::map(function(ts) ts[, c("Index", bands)])
+    # unnest bands
+    data <- tidyr::unnest(data, cols = "time_series")
 
-    # return the result
-    return(result)
+    # select anything other than non selected bands
+    removed_bands <- paste0(setdiff(data_bands, bands))
+
+    data <- data[, setdiff(colnames(data), removed_bands)]
+
+    # nest again
+    data <- tidyr::nest(data, time_series = dplyr::all_of(c("Index", bands)))
+
+    # remove ..row_id
+    data <- dplyr::select(data, -"..row_id")
+
+    # set sits tibble class
+    class(data) <- c("sits", class(data))
+
+    return(data)
 }
 
 #' @export
 #'
 sits_select.cube <- function(data, bands) {
 
-    assertthat::assert_that(
-        bands %in% sits_bands(data),
-        msg = "sits_select: requested bands are not available in the data cube"
+    .check_chr_within(
+        x = bands,
+        within = sits_bands(data),
+        discriminator = "one_of",
+        msg = "requested bands are not available in the data cube"
     )
 
     # assign the bands

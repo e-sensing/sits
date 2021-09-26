@@ -1,5 +1,3 @@
-context("External")
-
 test_that("FilePath", {
     file <- tools::file_path_sans_ext(
         system.file("extdata/shapefiles/cerrado/cerrado_forested.shp",

@@ -145,20 +145,21 @@ the following example.
 
 ``` r
 library(sits)
+#> Using configuration file: /home/sits/R/x86_64-pc-linux-gnu-library/4.1/sits/extdata/config.yml
+#> To provide additional configurations, create an YAML file and inform its path to environment variable 'SITS_CONFIG_USER_FILE'.
+#> Using raster package: terra
 #> SITS - satellite image time series analysis.
-#> Loaded sits v0.12.0.
+#> Loaded sits v0.14.0.
 #>         See ?sits for help, citation("sits") for use in publication.
 #>         See demo(package = "sits") for examples.
-#> Using configuration file: /Library/Frameworks/R.framework/Versions/4.1/Resources/library/sits/extdata/config.yml
-#> Additional configurations found in /Library/Frameworks/R.framework/Versions/4.1/Resources/library/sits/extdata/config_user_example.yml
 # create a cube from a local file 
 data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
 
 raster_cube <- sits_cube(
     source = "LOCAL",
     name = "sinop-2014",
-    satellite = "TERRA",
-    sensor = "MODIS",
+    origin = "BDC",
+    collection = "MOD13Q1-6",
     data_dir = data_dir,
     delim = "_",
     parse_info = c("X1", "X2", "tile", "band", "date")
@@ -356,8 +357,8 @@ data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
 sinop <- sits_cube(
     source = "LOCAL",
     name = "sinop-2014",
-    satellite = "TERRA",
-    sensor = "MODIS",
+    origin = "BDC",
+    collection = "MOD13Q1-6",
     data_dir = data_dir,
     delim = "_",
     parse_info = c("X1", "X2", "tile", "band", "date")
@@ -448,12 +449,12 @@ be used in sits.
 The authors acknowledge the contributions of Marius Appel, Tim
 Appelhans, Henrik Bengtsson, Matt Dowle, Robert Hijmans, Edzer Pebesma,
 and Ron Wehrens, respectively chief developers of the packages
-“gdalcubes”, “mapview”, “future”, “data.table”, “terra/raster”,
-“sf”/“stars”, and “kohonen”. The code in “sits” is also much indebted to
-the work of the RStudio team, including the “tidyverse” and the “furrr”
-and “keras” packages. We also thank Charlotte Pelletier and Hassan Fawaz
-for sharing the python code that has been reused for the “TempCNN” and
-“ResNet” machine learning models.
+“gdalcubes”, “mapview”, “data.table”, “terra/raster”, “sf”/“stars”, and
+“kohonen”. The code in “sits” is also much indebted to the work of the
+RStudio team, including the “tidyverse” and the “furrr” and “keras”
+packages. We also thank Charlotte Pelletier and Hassan Fawaz for sharing
+the python code that has been reused for the “TempCNN” and “ResNet”
+machine learning models.
 
 ## How to contribute
 

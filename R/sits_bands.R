@@ -21,6 +21,10 @@
 #' @export
 #'
 sits_bands <- function(x) {
+
+    # set caller to show in errors
+    .check_set_caller("sits_bands")
+
     # get the meta-type (sits or cube)
     x <- .config_data_meta_type(x)
 
@@ -31,7 +35,7 @@ sits_bands <- function(x) {
 #'
 sits_bands.sits <- function(x) {
 
-    return(names(sits_time_series(x))[-1])
+    return(setdiff(names(sits_time_series(x)), "Index"))
 }
 
 #' @export
@@ -52,14 +56,16 @@ sits_bands.patterns <- function(x) {
 #'
 sits_bands.sits_model <- function(x) {
 
-    assertthat::assert_that(
-        inherits(x, "function"),
-        msg = "sits_bands: invalid sits model"
+    .check_that(
+        x = inherits(x, "function"),
+        msg = "invalid sits model"
     )
 
-    assertthat::assert_that(
-        "data" %in% ls(environment(x)),
-        msg = "sits_bands: no samples found in the sits model"
+    .check_chr_within(
+        x = "data",
+        within = ls(environment(x)),
+        discriminator = "any_of",
+        msg = "no samples found in the sits model"
     )
 
     return(sits_bands.sits(environment(x)$data))

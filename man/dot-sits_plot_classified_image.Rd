@@ -4,12 +4,7 @@
 \alias{.sits_plot_classified_image}
 \title{Plot a raster classified image}
 \usage{
-.sits_plot_classified_image(
-  cube,
-  time = 1,
-  title = "Classified Image",
-  legend = NULL
-)
+.sits_plot_classified_image(cube, time, title, legend, palette)
 }
 \arguments{
 \item{cube}{A tibble with the metadata for a labelled data cube.}
@@ -19,6 +14,8 @@
 \item{title}{Title of the plot}
 
 \item{legend}{named vector that associates labels to colors.}
+
+\item{palette}{palette provided in the configuration file}
 }
 \description{
 plots a raster using ggplot. This function is used

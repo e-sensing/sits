@@ -17,7 +17,8 @@
 #' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
 #'
 #' @param workers   number of cluster to instantiate
-.sits_parallel_start <- function(workers) {
+#' @param log       a logical indicating if log files must be written
+.sits_parallel_start <- function(workers, log) {
 
     if (purrr::is_null(sits_env$cluster) ||
         length(sits_env$cluster) != workers) {
@@ -30,13 +31,13 @@
             # make sure library paths is the same as actual environment
             lib_paths <- .libPaths()
             parallel::clusterExport(cl = sits_env$cluster,
-                                    varlist = "lib_paths",
+                                    varlist = c("lib_paths", "log"),
                                     envir = environment())
             parallel::clusterEvalQ(cl = sits_env$cluster,
                                    expr = .libPaths(lib_paths))
             # export debug flag
             parallel::clusterEvalQ(cl = sits_env$cluster,
-                                   expr = sits:::.sits_debug(TRUE))
+                                   expr = sits:::.sits_debug(flag = log))
         }
     }
 }
@@ -120,28 +121,14 @@
 
     cl <- sits_env$cluster
 
-    # get hidden object from parallel
-    .snow_timing_data <- get(".snowTimingData",
-                             envir = asNamespace("parallel"),
-                             inherits = FALSE)
-
-    # same as parallel::recvOneResult function
-    if (.snow_timing_data$running()) {
-        start <- proc.time()[3]
-        # fault tolerant version of parallel:::recvOneData
-        v <- .sits_parallel_recv_one_data()
-        end <- proc.time()[3]
-        .snow_timing_data$enterRecv(v$node, start, end, v$value$time[3])
-    } else {
-        # fault tolerant version of parallel:::recvOneData
-        v <- .sits_parallel_recv_one_data()
-    }
+    # fault tolerant version of parallel:::recvOneData
+    v <- .sits_parallel_recv_one_data()
 
     return(list(value = v$value$value, node = v$node, tag = v$value$tag))
 }
 
 #' @rdname sits_parallel_fault_tolerant
-.sits_parallel_cluster_apply <- function(x, fn, ...) {
+.sits_parallel_cluster_apply <- function(x, fn, ..., pb = NULL) {
 
     # fault tolerant version of parallel::clusterApplyLB
 
@@ -191,7 +178,15 @@
 
             # organize result
             if (!is.null(d$tag)) {
+
                 val[d$tag] <- list(d$value)
+
+                # update progress bar
+                if (!is.null(pb))
+                    utils::setTxtProgressBar(
+                        pb = pb,
+                        value = utils::getTxtProgressBar(pb) + 1
+                    )
             }
         }
 
@@ -211,18 +206,45 @@
 #'
 #' @param x   a given list to be passed to a function
 #' @param fn  a function to be applied to each list element
+#' @param progress  a logical value indicating if a progress bar should
+#' be shown
 #'
 #' @return  a list with the function results in the same order
 #' as the input list
-.sits_parallel_map <- function(x, fn, ...) {
+.sits_parallel_map <- function(x, fn, ..., progress) {
+
+    # create progress bar
+    pb <- NULL
+    if (progress)
+        pb <- utils::txtProgressBar(min = 0, max = length(x),
+                                    style = 3, width = 50)
 
     # sequential processing
     if (purrr::is_null(sits_env$cluster)) {
-        return(lapply(x, fn, ...))
+
+        res <- lapply(seq_along(x), function(i) {
+
+            value <- fn(x[[i]], ...)
+
+            # update progress bar
+            if (progress)
+                utils::setTxtProgressBar(
+                    pb = pb,
+                    value = utils::getTxtProgressBar(pb) + 1
+                )
+
+            return(value)
+        })
+
+        # close progress bar
+        if (progress)
+            close(pb)
+
+        return(res)
     }
 
     # parallel processing
-    values <- .sits_parallel_cluster_apply(x, fn, ...)
+    values <- .sits_parallel_cluster_apply(x, fn, ..., pb = pb)
 
     # check for faults
     retry <- vapply(values, is.null, TRUE)
@@ -230,14 +252,14 @@
     # is there any node to be recovered?
     if (any(retry)) {
 
-        message("Trying to recover failed nodes...")
+        # message("Trying to recover failed nodes...")
 
         # try three times
         for (i in seq_len(3)) {
 
             # retry for faulted values
             values[retry] <- suppressMessages(
-                .sits_parallel_cluster_apply(x[retry], fn, ...)
+                .sits_parallel_cluster_apply(x[retry], fn, ..., pb = pb)
             )
 
             # check for faults again
@@ -250,11 +272,12 @@
 
             stop("Some or all failed nodes could not be recovered",
                  call. = FALSE)
-        } else {
-
-            message("Success: all nodes recovered!")
         }
     }
+
+    # close progress bar
+    if (progress)
+        close(pb)
 
     return(values)
 }

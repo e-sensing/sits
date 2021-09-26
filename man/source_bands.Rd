@@ -6,6 +6,7 @@
 \alias{.source_bands_reap}
 \alias{.source_bands_band_name}
 \alias{.source_bands_resolutions}
+\alias{.source_bands_resampling}
 \alias{.source_bands_to_sits}
 \alias{.source_bands_to_source}
 \alias{.source_cloud}
@@ -38,11 +39,20 @@
   add_cloud = TRUE
 )
 
+.source_bands_resampling(
+  source,
+  collection,
+  ...,
+  bands = NULL,
+  fn_filter = NULL,
+  add_cloud = TRUE
+)
+
 .source_bands_to_sits(source, collection, bands)
 
 .source_bands_to_source(source, collection, bands)
 
-.source_cloud(source, collection)
+.source_cloud()
 
 .source_cloud_bit_mask(source, collection)
 
@@ -89,6 +99,9 @@ found, \code{default} value is returned.
 containing \code{numeric} vectors with all supported resolutions of a
 band.
 
+\code{.source_bands_resampling()} returns a \code{character}
+vectors with the desired resampling method that should be used in the  band.
+
 \code{.source_bands_to_sits()} returns a \code{character} vector
 with all converted bands name.
 
@@ -121,6 +134,9 @@ attribute of all bands filtered by its parameters.
 
 \code{.source_bands_resolutions()} returns the
 \code{resolutions} attribute of all bands filtered by its parameters.
+
+\code{.source_bands_resampling()} returns the
+\code{resampling} attribute of all bands filtered by its parameters.
 
 \code{.source_bands_to_sits()} converts any bands to its
 sits name indicated in band entry.

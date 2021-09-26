@@ -24,10 +24,15 @@
 #' @export
 sits_show_prediction <- function(class) {
 
+    # set caller to show in errors
+    .check_set_caller("sits_show_prediction")
+
     .sits_tibble_test(class)
-    assertthat::assert_that(
-        all(names(class$predicted[[1]]) %in% c("from", "to", "class", "probs")),
-        msg = "sits_show_prediction: tibble has not been classified"
+
+    .check_chr_within(
+        x = names(class$predicted[[1]]),
+        within = c("from", "to", "class", "probs"),
+        msg = "tibble has not been classified"
     )
 
     return(dplyr::select(

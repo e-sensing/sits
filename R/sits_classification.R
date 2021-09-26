@@ -45,6 +45,8 @@
 #' @param  version           version of the output (for multiple
 #'                           classifications)
 #' @param  verbose           print information about processing time?
+#' @param  progress          a logical value indicating if a progress bar
+#' should be shown
 #' @return                   Predicted data (classified time series)
 #'                           or a data cube with probabilities for each class.
 #'
@@ -52,7 +54,7 @@
 #'    The "roi" parameter defines a region of interest. It can be
 #'    an sf_object, a shapefile, or a bounding box vector with
 #'    named XY values ("xmin", "xmax", "ymin", "ymax") or
-#'    named lat/long values ("lat_min", "lat_max", "lon_min", "lon_max")
+#'    named lat/long values ("lon_min", "lat_min", "lon_max", "lat_max")
 #'
 #'    The "filter_fn" parameter specifies a smoothing filter to be applied to
 #'    time series for reducing noise. Currently, options include
@@ -101,8 +103,8 @@
 #' cube <- sits_cube(
 #'     source = "LOCAL",
 #'     name = "sinop-2014",
-#'     satellite = "TERRA",
-#'     sensor = "MODIS",
+#'     origin = "BDC",
+#'     collection = "MOD13Q1-6",
 #'     data_dir = data_dir,
 #'     delim = "_",
 #'     parse_info = c("X1", "X2", "tile", "band", "date")
@@ -122,6 +124,12 @@
 #'
 #' @export
 sits_classify <- function(data, ml_model, ...) {
+
+    # set caller to show in errors
+    .check_set_caller("sits_classify")
+
+    # set caller to show in errors
+    .check_set_caller("sits_classify")
 
     # is the data a sits tibble? If not, it must be a cube
     if (!inherits(data, "sits")) {
@@ -146,28 +154,27 @@ sits_classify.sits <- function(data,
     .sits_tibble_test(data)
 
     # precondition: ensure the machine learning model has been built
-    assertthat::assert_that(
-        !purrr::is_null(ml_model),
-        msg = "sits_classify_ts: please provide a trained ML model"
+    .check_null(
+        x = ml_model,
+        msg = "please provide a trained ML model"
     )
 
     # Precondition: only savitsky-golay and whittaker filters are supported
     if (!purrr::is_null(filter_fn)) {
         call_names <- deparse(sys.call())
-        assertthat::assert_that(
-            any(grepl("sgolay", (call_names))) ||
+        .check_that(
+            x = any(grepl("sgolay", (call_names))) ||
                 any(grepl("whittaker", (call_names))),
-            msg = paste("sits_classify_cube: only savitsky-golay and",
-                        "whittaker filters are supported")
+            msg = "only savitsky-golay and whittaker filters are supported"
         )
         data <- filter_fn(data)
     }
 
     # precondition - are the samples valid?
     samples <- .sits_ml_model_samples(ml_model)
-    assertthat::assert_that(
-        nrow(samples) > 0,
-        msg = "sits_classify: missing original samples"
+    .check_that(
+        x = nrow(samples) > 0,
+        msg = "missing original samples"
     )
 
     # get normalization params
@@ -185,9 +192,9 @@ sits_classify.sits <- function(data,
 
 
     # post condition: is distance data valid?
-    assertthat::assert_that(
-        nrow(distances) > 0,
-        msg = "sits_classify.sits: problem with normalization"
+    .check_that(
+        x = nrow(distances) > 0,
+        msg = "problem with normalization"
     )
 
     # calculate the breaks in the time for multi-year classification
@@ -227,7 +234,8 @@ sits_classify.raster_cube <- function(data, ml_model, ...,
                                       multicores = 2,
                                       output_dir = tempdir(),
                                       version = "v1",
-                                      verbose = FALSE) {
+                                      verbose = FALSE,
+                                      progress = FALSE) {
 
     # precondition - checks if the cube and ml_model are valid
     .sits_classify_check_params(data, ml_model)
@@ -269,10 +277,9 @@ sits_classify.raster_cube <- function(data, ml_model, ...,
         n_samples <- length(sits_timeline(samples))
         n_tile <- length(sits_timeline(tile))
 
-        assertthat::assert_that(
-            n_samples == n_tile,
-            msg = paste("sits_classify: number of instances of",
-                        "samples and cube differ")
+        .check_that(
+            x = n_samples == n_tile,
+            msg = "number of instances of samples and cube differ"
         )
 
         # # The user can provide both interpolation and compositions functions
@@ -295,7 +302,8 @@ sits_classify.raster_cube <- function(data, ml_model, ...,
             multicores = multicores,
             output_dir = output_dir,
             version    = version,
-            verbose    = verbose
+            verbose    = verbose,
+            progress   = progress
         )
 
         return(probs_row)

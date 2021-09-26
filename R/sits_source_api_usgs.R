@@ -154,6 +154,9 @@
                                         stac_query,
                                         tiles = NULL) {
 
+    # set caller to show in errors
+    .check_set_caller(".source_items_new.usgs_cube")
+
     # forcing version
     stac_query$version <- "0.9.0"
 
@@ -181,10 +184,9 @@
     items <- rstac::post_request(q = stac_query, ...)
 
     # checks if the collection returned zero items
-    assertthat::assert_that(
-        !(rstac::items_length(items) == 0),
-        msg = paste(".source_items_new.usgs_cube: the provided search returned",
-                    "zero items.")
+    .check_that(
+        x = !(rstac::items_length(items) == 0),
+        msg = "the provided search returned zero items."
     )
 
     # filtering images by interval
@@ -223,25 +225,6 @@
     })
 
     rstac::items_group(items, field = c("properties", "tile"))
-}
-
-#' @keywords internal
-#' @export
-.source_items_get_sensor.usgs_cube <- function(source,
-                                               items, ...,
-                                               collection = NULL) {
-
-    # OLI and TIRS returned, taking only OLI
-    items[["features"]][[1]][[c("properties", "eo:instrument")]][[1]]
-}
-
-#' @keywords internal
-#' @export
-.source_items_get_satellite.usgs_cube <- function(source,
-                                                  items, ...,
-                                                  collection = NULL) {
-
-    items[["features"]][[1]][[c("properties", "platform")]]
 }
 
 #' @keywords internal

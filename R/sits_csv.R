@@ -26,9 +26,13 @@
 #' @export
 #'
 sits_metadata_to_csv <- function(data, file) {
-    assertthat::assert_that(
-        suppressWarnings(file.create(file)),
-        msg = "sits_metadata_to_csv: file is not writable"
+
+    # set caller to show in errors
+    .check_set_caller("sits_metadata_to_csv")
+
+    .check_that(
+        x = suppressWarnings(file.create(file)),
+        msg = "file is not writable"
     )
 
     csv_columns <- c("longitude", "latitude", "start_date", "end_date", "label")
@@ -36,9 +40,9 @@ sits_metadata_to_csv <- function(data, file) {
     # select the parts of the tibble to be saved
     csv <- dplyr::select(data, csv_columns)
 
-    assertthat::assert_that(
-        nrow(csv) > 0,
-        msg = "sits_metadata_to_csv: invalid csv file"
+    .check_that(
+        x = nrow(csv) > 0,
+        msg = "invalid csv file"
     )
     n_rows_csv <- nrow(csv)
     # create a column with the id
@@ -80,12 +84,15 @@ sits_metadata_to_csv <- function(data, file) {
 #'
 sits_data_to_csv <- function(data, file) {
 
+    # set caller to show in errors
+    .check_set_caller("sits_data_to_csv")
+
     # check if data is valid
     .sits_tibble_test(data)
 
-    assertthat::assert_that(
-        suppressWarnings(file.create(file)),
-        msg = "sits_data_to_csv: file is not writable"
+    .check_that(
+        x = suppressWarnings(file.create(file)),
+        msg = "file is not writable."
     )
 
     distances <- .sits_distances(data)
@@ -104,11 +111,15 @@ sits_data_to_csv <- function(data, file) {
 #' @return A logical value
 #'
 .sits_csv_check <- function(csv) {
+
+    # set caller to show in errors
+    .check_set_caller(".sits_csv_check")
+
     # check if required col names are available
-    assertthat::assert_that(
-        all(c("longitude", "latitude", "start_date", "end_date", "label")
-        %in% colnames(csv)),
-        msg = "invalid csv file"
-    )
+    .check_chr_within(
+        x = c("longitude", "latitude", "start_date", "end_date", "label"),
+        within = colnames(csv),
+        msg = "invalid csv file")
+
     return(invisible(TRUE))
 }

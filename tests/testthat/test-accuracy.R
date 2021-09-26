@@ -1,13 +1,12 @@
-context("Accuracy")
 test_that("conf_matrix -2 classes", {
     data(cerrado_2classes)
-    train_data <- sits_sample(cerrado_2classes, n = 100)
-    test_data <- sits_sample(cerrado_2classes, n = 25)
+    train_data <- sits_sample(cerrado_2classes, n = 200)
+    test_data <- sits_sample(cerrado_2classes, n = 200)
     xgb_model <- sits_train(train_data, sits_xgboost(verbose = FALSE))
     points_class <- sits_classify(test_data, xgb_model)
     invisible(capture.output(acc <- sits_accuracy(points_class)))
-    expect_true(acc$overall["Accuracy"] > 0.70)
-    expect_true(acc$overall["Kappa"] > 0.70)
+    expect_true(acc$overall["Accuracy"] > 0.50)
+    expect_true(acc$overall["Kappa"] > 0.50)
     p <- capture.output(sits_accuracy_summary(acc))
     expect_true(grepl("Accuracy", p[4]))
 })
@@ -53,8 +52,8 @@ test_that("Accuracy areas", {
     cube <- sits_cube(
         source = "LOCAL",
         name = "sinop-2014",
-        satellite = "TERRA",
-        sensor = "MODIS",
+        origin = "BDC",
+        collection = "MOD13Q1-6",
         data_dir = data_dir,
         delim = "_",
         parse_info = c("X1", "X2", "tile", "band", "date")

@@ -2,13 +2,16 @@
 #' @export
 .source_access_test.local_cube <- function(source, collection, ...) {
 
-    assertthat::assert_that(
-        collection %in% .source_collections(source = source),
-        msg = paste(".source_access_test.local_cube: satellite or sensor not",
-                    "found.\nPlease, check sits config with ?sits_config",
-                    "command.")
-    )
+    # set caller to show in errors
+    .check_set_caller(".source_access_test.local_cube")
 
+    .check_chr_within(
+        x = collection,
+        within = .source_collections(source = source),
+        discriminator = "any_of",
+        msg = paste("satellite or sensor not found.\nPlease, check sits config",
+                    "with ?sits_config command.")
+    )
     return(invisible(NULL))
 }
 
@@ -51,8 +54,8 @@
         row <- .sits_cube_create(
             name = name,
             source = "LOCAL",
-            satellite = strsplit(collection, "/")[[1]][[1]],
-            sensor = strsplit(collection, "/")[[1]][[2]],
+            satellite = .source_collection_satellite(source, collection),
+            sensor = .source_collection_sensor(source, collection),
             collection = collection,
             tile = t,
             bands = bands,
@@ -84,6 +87,9 @@
                                               start_date,
                                               end_date) {
 
+    # set caller to show in errors
+    .check_set_caller(".source_items_fileinfo.local_cube")
+
     file_info <- purrr::map_dfr(items, function(data_dir_row) {
 
         # how many of those files are images?
@@ -99,10 +105,10 @@
                 ")$")
         )
 
-        assertthat::assert_that(
-            length(img_files) > 0,
-            msg = paste(".source_items_fileinfo.local_cube: no file found in",
-                        "provided directory.")
+        .check_length(
+            x = img_files,
+            len_min = 1,
+            msg = "no file found in provided directory."
         )
 
         # remove the extension
@@ -153,10 +159,10 @@
             bands_info <- dplyr::pull(dplyr::distinct(file_info, band))
 
             # verify that the requested bands exist
-            assertthat::assert_that(
-                all(bands %in% bands_info),
-                msg = paste(".sits_raster_stack_info: requested bands not",
-                            "available in cube")
+            .check_chr_within(
+                x = bands,
+                within = bands_info,
+                msg = "requested bands not available in cube"
             )
 
             # select the requested bands
@@ -172,10 +178,9 @@
             file_info <- dplyr::filter(file_info,
                                        date <= end_date)
 
-        assertthat::assert_that(
-            nrow(file_info) > 0,
-            msg = paste(".source_items_fileinfo.local_cube: no files in the",
-                        "provided time interval")
+        .check_that(
+            x = nrow(file_info) > 0,
+            msg = "no files in the provided time interval"
         )
 
         params <- .raster_params_file(file_info$path[1])
@@ -184,12 +189,11 @@
                                    res = resolution, .before = path)
 
         # post condition
-        assertthat::assert_that(
-            nrow(file_info) > 0,
-            msg = paste(".sits_raster_stack_info: no file was found for the",
-                        "requested local cube. Please, verify the 'start_date'",
-                        "and 'end_date' and check if the provided directory is",
-                        "valid.")
+        .check_that(
+            x = nrow(file_info) > 0,
+            msg = paste("no file was found for the requested local cube. ",
+                        "Please, verify the 'start_date' and 'end_date' and",
+                        "check if the provided directory is valid.")
         )
 
         file_info

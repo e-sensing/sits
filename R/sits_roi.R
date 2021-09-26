@@ -6,6 +6,9 @@
 #' @return                 vector with information on the subimage
 .sits_roi_bbox <- function(roi, cube) {
 
+    # set caller to show in errors
+    .check_set_caller(".sits_roi_bbox")
+
     if (!(inherits(roi, "sf"))) {
 
         if (all(c("xmin", "xmax", "ymin", "ymax") %in% names(roi))) {
@@ -16,9 +19,9 @@
         }
     }
 
-    assertthat::assert_that(
-      inherits(roi, c("sf", "xy", "ll")),
-      msg = ".sits_roi_bbox: invalid definition of ROI"
+    .check_that(
+        x = inherits(roi, c("sf", "xy", "ll")),
+        msg = "invalid definition of ROI"
     )
 
     UseMethod(".sits_roi_bbox", roi)

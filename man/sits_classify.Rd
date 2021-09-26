@@ -25,7 +25,8 @@ sits_classify(data, ml_model, ...)
   multicores = 2,
   output_dir = tempdir(),
   version = "v1",
-  verbose = FALSE
+  verbose = FALSE,
+  progress = FALSE
 )
 }
 \arguments{
@@ -61,6 +62,9 @@ samples}
 classifications)}
 
 \item{verbose}{print information about processing time?}
+
+\item{progress}{a logical value indicating if a progress bar
+should be shown}
 }
 \value{
 Predicted data (classified time series)
@@ -87,7 +91,7 @@ SITS supports the following models:
 The "roi" parameter defines a region of interest. It can be
    an sf_object, a shapefile, or a bounding box vector with
    named XY values ("xmin", "xmax", "ymin", "ymax") or
-   named lat/long values ("lat_min", "lat_max", "lon_min", "lon_max")
+   named lat/long values ("lon_min", "lat_min", "lon_max", "lat_max")
 
    The "filter_fn" parameter specifies a smoothing filter to be applied to
    time series for reducing noise. Currently, options include
@@ -136,8 +140,8 @@ data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
 cube <- sits_cube(
     source = "LOCAL",
     name = "sinop-2014",
-    satellite = "TERRA",
-    sensor = "MODIS",
+    origin = "BDC",
+    collection = "MOD13Q1-6",
     data_dir = data_dir,
     delim = "_",
     parse_info = c("X1", "X2", "tile", "band", "date")

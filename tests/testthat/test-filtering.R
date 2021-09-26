@@ -1,5 +1,3 @@
-context("Filtering")
-
 test_that("Generic filter", {
     point_ndvi <- sits_select(point_mt_6bands, bands = "NDVI")
     point_ndvi_whit <- sits_filter(point_ndvi)

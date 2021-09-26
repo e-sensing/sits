@@ -59,8 +59,8 @@
 #' cube <- sits_cube(
 #'     source = "LOCAL",
 #'     name = "sinop-2014",
-#'     satellite = "TERRA",
-#'     sensor = "MODIS",
+#'     origin = "BDC",
+#'     collection = "MOD13Q1-6",
 #'     data_dir = data_dir,
 #'     delim = "_",
 #'     parse_info = c("X1", "X2", "tile", "band", "date")
@@ -93,13 +93,17 @@
 #'
 sits_smooth <- function(cube, type = "bayes", ...) {
 
+    # set caller to show in errors
+    .check_set_caller("sits_smooth")
+
     if (!requireNamespace("parallel", quietly = TRUE)) {
         stop("Please install package parallel.", call. = FALSE)
     }
+
     # check if cube has probability data
-    assertthat::assert_that(
-        inherits(cube, "probs_cube"),
-        msg = "sits_smooth: input is not probability cube"
+    .check_that(
+        x = inherits(cube, "probs_cube"),
+        msg = "input is not probability cube"
     )
 
     # define the class of the smoothing
@@ -122,15 +126,15 @@ sits_smooth.bayes <- function(cube, type = "bayes", ...,
                               version = "v1") {
 
     # precondition 1 - check if cube has probability data
-    assertthat::assert_that(
-        inherits(cube, "probs_cube"),
-        msg = "sits_smooth: input is not probability cube"
+    .check_that(
+        x = inherits(cube, "probs_cube"),
+        msg = "input is not probability cube"
     )
 
     # precondition 2 - test window size
-    assertthat::assert_that(
-        window_size %% 2 != 0,
-        msg = "sits_smooth: window_size must be an odd number"
+    .check_that(
+        x = window_size %% 2 != 0,
+        msg = "window_size must be an odd number"
     )
 
     # find out how many labels exist
@@ -138,31 +142,34 @@ sits_smooth.bayes <- function(cube, type = "bayes", ...,
 
     # precondition 3 - test variance
     if (is.matrix(smoothness)) {
-        assertthat::assert_that(
-            (nrow(smoothness) == ncol(smoothness)) &&
+        .check_that(
+            x = (nrow(smoothness) == ncol(smoothness)) &&
                 (ncol(smoothness) == n_labels),
-            msg = paste("sits_smooth: smoothness must be square matrix of",
+            msg = paste("smoothness must be square matrix of",
                         "the same length as the number of labels")
         )
     } else {
-        assertthat::assert_that(
-            smoothness > 1,
-            msg = "sits_smooth: smoothness must be greater than 1"
-        )
+        .check_num(x = smoothness,
+                   min = 1,
+                   len_max = 1,
+                   allow_zero = FALSE,
+                   msg = "smoothness must be greater than 1")
         smoothness <- diag(smoothness, nrow = n_labels, ncol = n_labels)
     }
 
     # precondition 4 - multicores
-    assertthat::assert_that(
-        multicores >= 1,
-        msg = "sits_smooth: multicores must be at least 1"
-    )
+    .check_num(x = multicores,
+               len_max = 1,
+               min = 1,
+               allow_zero = FALSE,
+               msg = "multicores must be at least 1")
 
     # precondition 5 - memory
-    assertthat::assert_that(
-        memsize > 0,
-        msg = "sits_smooth: memsize must be positive"
-    )
+    .check_num(x = memsize,
+               len_max = 1,
+               min = 1,
+               allow_zero = FALSE,
+               msg = "memsize must be positive")
 
     # create a window
     window <- matrix(1, nrow = window_size, ncol = window_size)
@@ -206,11 +213,11 @@ sits_smooth.bayes <- function(cube, type = "bayes", ...,
 
         # create cube smooth
         res <- .raster_rast(r_obj = chunk,
-                                     nlayers = .raster_nlayers(chunk))
+                            nlayers = .raster_nlayers(chunk))
 
         # copy values
         res <- .raster_set_values(r_obj = res,
-                                           values = data)
+                                  values = data)
 
         return(res)
     }
@@ -244,38 +251,41 @@ sits_smooth.gaussian <- function(cube, type = "gaussian", ...,
                                  version = "v1") {
 
     # precondition 1 - check if cube has probability data
-    assertthat::assert_that(
-        inherits(cube, "probs_cube"),
-        msg = "sits_smooth: input is not probability cube"
+    .check_that(
+        x = inherits(cube, "probs_cube"),
+        msg = "input is not probability cube"
     )
 
     # precondition 2 - test window size
-    assertthat::assert_that(
-        window_size %% 2 != 0,
-        msg = "sits_smooth: window_size must be an odd number"
+    .check_that(
+        x = window_size %% 2 != 0,
+        msg = "window_size must be an odd number"
     )
 
     # prediction 3 - test variance
-    assertthat::assert_that(
-        sigma > 0,
-        msg = "sits_smooth: smoothness must be positive"
-    )
+    .check_num(x = sigma,
+               len_max = 1,
+               min = 1,
+               allow_zero = FALSE,
+               msg = "smoothness must be positive")
 
     # precondition 4 - multicores
-    assertthat::assert_that(
-        multicores >= 1,
-        msg = "sits_smooth: multicores must be at least 1"
-    )
+    .check_num(x = multicores,
+               len_max = 1,
+               min = 1,
+               allow_zero = FALSE,
+               msg = "multicores must be at least 1")
 
     # precondition 5 - memsize
-    assertthat::assert_that(
-        memsize > 0,
-        msg = "sits_smooth: memsize must be positive"
-    )
+    .check_num(x = memsize,
+               len_max = 1,
+               min = 1,
+               allow_zero = FALSE,
+               msg = "memsize must be positiv")
 
     # create output window
     gauss_kernel <- .sits_smooth_gauss_kernel(window_size = window_size,
-                                       sigma = sigma)
+                                              sigma = sigma)
 
     # create metadata for Gauss smoothed raster cube
     cube_gauss <- .sits_cube_clone(
@@ -305,11 +315,11 @@ sits_smooth.gaussian <- function(cube, type = "gaussian", ...,
 
         # create cube smooth
         res <- .raster_rast(r_obj = chunk,
-                                     nlayers = .raster_nlayers(chunk))
+                            nlayers = .raster_nlayers(chunk))
 
         # copy values
         res <- .raster_set_values(r_obj = res,
-                                           values = data * mult_factor)
+                                  values = data * mult_factor)
         return(res)
     }
 
@@ -334,55 +344,52 @@ sits_smooth.gaussian <- function(cube, type = "gaussian", ...,
 #' @export
 #'
 sits_smooth.bilateral <- function(cube,
-                                 type = "bilateral",
-                                 ...,
-                                 window_size = 5,
-                                 sigma = 8,
-                                 tau = 0.1,
-                                 multicores = 2,
-                                 memsize = 4,
-                                 output_dir = tempdir(),
-                                 version = "v1") {
+                                  type = "bilateral",
+                                  ...,
+                                  window_size = 5,
+                                  sigma = 8,
+                                  tau = 0.1,
+                                  multicores = 2,
+                                  memsize = 4,
+                                  output_dir = tempdir(),
+                                  version = "v1") {
 
     # precondition 1 - check if cube has probability data
-    assertthat::assert_that(
-        inherits(cube, "probs_cube"),
-        msg = "sits_smooth: input is not probability cube"
+    .check_that(
+        x = inherits(cube, "probs_cube"),
+        msg = "input is not probability cube"
     )
 
     # precondition 2 - test window size
-    assertthat::assert_that(
-        window_size %% 2 != 0,
-        msg = "sits_smooth: window_size must be an odd number"
+    .check_that(
+        x = window_size %% 2 != 0,
+        msg = "window_size must be an odd number"
     )
 
     # prediction 3 - test variance
-    assertthat::assert_that(
-        sigma > 0,
-        msg = "sits_smooth: smoothness must be positive"
-    )
+    .check_num(x = sigma,
+               len_max = 1,
+               min = 1,
+               allow_zero = FALSE,
+               msg = "smoothness must be positive")
 
-    # prediction 4 - test variance
-    assertthat::assert_that(
-        sigma > 0,
-        msg = "sits_smooth: smoothness must be positive"
-    )
+    # precondition 4 - multicores
+    .check_num(x = multicores,
+               len_max = 1,
+               min = 1,
+               allow_zero = FALSE,
+               msg = "multicores must be at least 1")
 
-    # precondition 5 - multicores
-    assertthat::assert_that(
-        multicores >= 1,
-        msg = "sits_smooth: multicores must be at least 1"
-    )
-
-    # precondition 6 - memsize
-    assertthat::assert_that(
-        memsize > 0,
-        msg = "sits_smooth: memsize must be positive"
-    )
+    # precondition 5 - memsize
+    .check_num(x = memsize,
+               len_max = 1,
+               min = 1,
+               allow_zero = FALSE,
+               msg = "memsize must be positive")
 
     # create output window
     gauss_kernel <- .sits_smooth_gauss_kernel(window_size = window_size,
-                                       sigma = sigma)
+                                              sigma = sigma)
 
     # create metadata for bilateral smoothed raster cube
     cube_bilat <- .sits_cube_clone(
@@ -405,18 +412,18 @@ sits_smooth.bilateral <- function(cube,
 
         # process bilateral smoother
         data <- bilateral_smoother(m = data,
-                                  m_nrow = .raster_nrows(chunk),
-                                  m_ncol = .raster_ncols(chunk),
-                                  w = gauss_kernel,
-                                  tau = tau)
+                                   m_nrow = .raster_nrows(chunk),
+                                   m_ncol = .raster_ncols(chunk),
+                                   w = gauss_kernel,
+                                   tau = tau)
 
         # create cube smooth
         res <- .raster_rast(r_obj = chunk,
-                                     nlayers = .raster_nlayers(chunk))
+                            nlayers = .raster_nlayers(chunk))
 
         # copy values
         res <- .raster_set_values(r_obj = res,
-                                           values = data * mult_factor)
+                                  values = data * mult_factor)
 
         return(res)
     }

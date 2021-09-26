@@ -34,10 +34,13 @@
 #'
 .sits_smooth_blocks_size_estimate <- function(cube, multicores, memsize) {
 
+    # set caller to show in errors
+    .check_set_caller(".sits_smooth_blocks_size_estimate")
+
     # precondition 1 - check if cube has probability data
-    assertthat::assert_that(
-        inherits(cube, "probs_cube"),
-        msg = "sits_smooth: input is not probability cube"
+    .check_that(
+        x = inherits(cube, "probs_cube"),
+        msg = "input is not probability cube"
     )
 
     x_size <- cube$ncols
@@ -60,9 +63,9 @@
     # stop if blocking factor is less than memory factor!
     # reason: the provided memory is not enough to process the data by
     # breaking it into small chunks
-    assertthat::assert_that(
-        memory_factor <= blocking_factor,
-        msg = "sits_smooth: provided memory not enough to run the job"
+    .check_that(
+        x = memory_factor <= blocking_factor,
+        msg = "provided memory not enough to run the job"
     )
 
     # update multicores to the maximum possible processes given the available
@@ -114,16 +117,20 @@
                                    gdal_datatype,
                                    gdal_options, ...) {
 
+    # set caller to show in errors
+    .check_set_caller(".sits_smooth_map_layer")
+
     # precondition 1 - check if cube has probability data
-    assertthat::assert_that(
-        inherits(cube, "probs_cube"),
-        msg = ".sits_split_cluster: input is not probability cube"
+    .check_that(
+        x = inherits(cube, "probs_cube"),
+        msg = "input is not probability cube"
     )
 
     # precondition 2 - overlapping rows must be non negative
-    assertthat::assert_that(
-        overlapping_y_size >= 0,
-        msg = ".sits_split_cluster: overlaping rows must be non negative"
+    .check_num(
+        x = overlapping_y_size,
+        min = 0,
+        msg = "overlaping rows must be non negative"
     )
 
     # function to compute blocks grid

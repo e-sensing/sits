@@ -23,7 +23,7 @@ sits_cube(source, ...)
   collection,
   bands = NULL,
   tiles = NULL,
-  bbox = NULL,
+  roi = NULL,
   start_date = NULL,
   end_date = NULL
 )
@@ -33,10 +33,10 @@ sits_cube(source, ...)
   ...,
   name = "deafrica_cube",
   url = NULL,
-  collection = "s2_l2a",
+  collection = "S2_L2A",
   bands = NULL,
   tiles = NULL,
-  bbox = NULL,
+  roi = NULL,
   start_date = NULL,
   end_date = NULL
 )
@@ -49,7 +49,7 @@ sits_cube(source, ...)
   collection = "sentinel-s2-l2a",
   tiles = NULL,
   bands = NULL,
-  bbox = NULL,
+  roi = NULL,
   s2_resolution = 20,
   start_date = NULL,
   end_date = NULL
@@ -63,7 +63,7 @@ sits_cube(source, ...)
   collection = "landsat-c2l2-sr",
   tiles = NULL,
   bands = NULL,
-  bbox = NULL,
+  roi = NULL,
   start_date = NULL,
   end_date = NULL
 )
@@ -72,13 +72,13 @@ sits_cube(source, ...)
   source = "LOCAL",
   ...,
   name = "local_cube",
-  satellite,
-  sensor,
+  origin,
+  collection,
   bands = NULL,
   start_date = NULL,
   end_date = NULL,
   data_dir,
-  parse_info = c("X1", "X2", "tile", "band", "date"),
+  parse_info,
   delim = "_"
 )
 
@@ -113,7 +113,7 @@ sits_cube(source, ...)
 \item{tiles}{Tiles from the collection to be included in the
 data cube.}
 
-\item{bbox}{Area of interest (see details below).}
+\item{roi}{Region of interest (see details below).}
 
 \item{start_date}{Initial date for the cube (optional).}
 
@@ -121,11 +121,6 @@ data cube.}
 
 \item{s2_resolution}{Resolution of S2 images ("10m", "20m" or "60m").
 used to build cubes (only for AWS cubes).}
-
-\item{satellite}{Satellite that produced the images
-(only for creating data cubes from local files).}
-
-\item{sensor}{Sensor that produced the images.}
 
 \item{data_dir}{directory where local data is located
 (only for creating data cubes from local files).}
@@ -136,6 +131,11 @@ information
 
 \item{delim}{delimiter for parsing files without STAC information
 (only for creating data cubes from local files).}
+
+\item{satellite}{Satellite that produced the images
+(only for creating data cubes from local files).}
+
+\item{sensor}{Sensor that produced the images.}
 
 \item{probs_labels}{Labels associated to a probabilities cube.}
 
@@ -184,8 +184,8 @@ in two ways: (a) a region of interest(`bbox`) in WGS 84 coordinates;
 }
 }
 \details{
-The \code{bbox} parameter allows a selection of an area of interest.
-Either using a named \code{vector} ("xmin", "ymin", "xmax", "ymax") with
+The \code{roi} parameter allows a selection of an area of interest.
+Either using a named \code{vector} ("lon_min", "lat_min", "lon_max", "lat_max") with
 values in WGS 84, a \code{sfc} or \code{sf} object from sf package, or a
 GeoJSON geometry (RFC 7946). Note that this parameter does not crop a
 region, but only selects the images that intersect with it.
@@ -222,8 +222,8 @@ To create a cube from local files, all image files should have
 the same spatial resolution and projection. Files can belong to different
 tiles of a spatial reference system.
 Each file should contain a single image band for a single date.
-File names must include date and band information, since times and bands
-are deduced from file names. For example: "CBERS-4_022024_B13_2018-02-02.tif"
+File names must include tile, date and band information.
+For example: "CBERS-4_022024_B13_2018-02-02.tif"
 and "cube_20LKP_B02_2018-07-18.jp2" are accepted names.
 The user has to provide parsing information to allow `sits`
 to extract the tile, the band and the date. In the examples above,
@@ -299,14 +299,14 @@ s2_cube <- sits_cube(source = "AWS",
                       s2_resolution = 20
 )
 
-# --- Create a cube based on a stack of CBERS data
-data_dir <- system.file("extdata/raster/cbers", package = "sits")
+# --- Create a cube based on a local MODIS data
+data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
 
-cbers_cube <- sits_cube(
+modis_cube <- sits_cube(
     source = "LOCAL",
-    name = "022024",
-    satellite = "CBERS-4",
-    sensor = "AWFI",
+    name = "modis_sinop",
+    origin = "BDC",
+    collection = "MOD13Q1-6",
     data_dir = data_dir,
     delim = "_",
     parse_info = c("X1", "X2", "tile", "band", "date")
