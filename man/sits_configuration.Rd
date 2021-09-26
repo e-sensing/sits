@@ -70,7 +70,7 @@ configuration options. To show specific configuration options for
 a source, a collection, or a palette, users can inform the corresponding
 keys to \code{source}, \code{collection}, and \code{palette} parameters.
 
-\code{sits_list_collection()} prints the collections available
+\code{sits_list_collections()} prints the collections available
 in each cloud service supported by sits. Users can select to get information
 only for a single service by using the \code{source} parameter.
 }
