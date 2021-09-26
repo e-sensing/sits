@@ -197,6 +197,50 @@ sits_config_show <- function(source = NULL,
     return(invisible(config))
 }
 
+#' @rdname sits_configuration
+#'
+#' @return
+#' \code{sits_config_list_collection()} prints the collections available in
+#' each cloud service supported by sits.
+#'
+#' @export
+sits_config_list_collections <- function(source = NULL) {
+
+    # get sources available
+    sources <- .sources(internal = FALSE)
+
+    # if the user has required a source
+    # check that it is valid
+    if (!purrr::is_null(source)) {
+        # check if source exists
+        .check_chr_within(
+            x = source,
+            within = sources,
+            msg = "invalid source value"
+        )
+        sources <- source
+    }
+
+    purrr::map(sources, function(s){
+
+        cat("====================\n")
+        cat(paste0(s, ":\n"))
+        collections <- .source_collections(source = s)
+        purrr::map(collections, function(c){
+            # get collection information
+
+            cat(paste0("- ", c))
+            cat(paste0(" (", .source_collection_satellite(s, c),
+                       "/", .source_collection_sensor(s, c), ")\n"))
+            cat("- bands: ")
+            cat(.source_bands(s, c))
+            cat("\n")
+            cat("\n")
+        })
+    })
+    return(invisible(NULL))
+}
+
 .config_set_options <- function(processing_bloat = NULL,
                                 rstac_pagination_limit = NULL,
                                 raster_api_package = NULL,
