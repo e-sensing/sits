@@ -24,6 +24,5 @@ Meta
 *.bkp
 Makevars
 Makevars.*
-*.json
 *.gcda
 *.gcno

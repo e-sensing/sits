@@ -35,7 +35,7 @@ sits_bands <- function(x) {
 #'
 sits_bands.sits <- function(x) {
 
-    return(names(sits_time_series(x))[-1])
+    return(setdiff(names(sits_time_series(x)), "Index"))
 }
 
 #' @export

@@ -121,13 +121,13 @@ one month period, as shown below. This can be done in SITS by the
 `sits_regularize` which use the [https://github.com/appelmar/gdalcubes](gdalcubes) package. For details in gdalcubes, please see Reference [4]. 
 
 ```{r, eval = FALSE, echo = TRUE}
-gc_cube <- sits_regularize(cube   = s2_cube,
+gc_cube <- sits_regularize(cube          = s2_cube,
                            name          = "T20LKP_2018_2019_1M",
-                           dir_images    = tempdir(),
+                           output_dir    = tempdir(),
                            period        = "P1M",
                            agg_method    = "median",
-                           resampling    = "bilinear",
-                           cloud_mask    = TRUE)
+                           cloud_mask    = TRUE,
+                           multicores    = 2)
 ```
 
 ### Accessing time series in data cubes

@@ -95,7 +95,7 @@
 #' @param bands             Bands to be included.
 #' @param tiles             Tiles from the collection to be included in the
 #'                          data cube.
-#' @param bbox              Area of interest (see details below).
+#' @param roi               Region of interest (see details below).
 #' @param start_date        Initial date for the cube (optional).
 #' @param end_date          Final date for the cube  (optional).
 #' @param s2_resolution     Resolution of S2 images ("10m", "20m" or "60m").
@@ -114,8 +114,8 @@
 #'                          probabilities).
 #' @param probs_labels      Labels associated to a probabilities cube.
 #'
-#' @details The \code{bbox} parameter allows a selection of an area of interest.
-#' Either using a named \code{vector} ("xmin", "ymin", "xmax", "ymax") with
+#' @details The \code{roi} parameter allows a selection of an area of interest.
+#' Either using a named \code{vector} ("lon_min", "lat_min", "lon_max", "lat_max") with
 #' values in WGS 84, a \code{sfc} or \code{sf} object from sf package, or a
 #' GeoJSON geometry (RFC 7946). Note that this parameter does not crop a
 #' region, but only selects the images that intersect with it.
@@ -186,14 +186,14 @@
 #'                       s2_resolution = 20
 #' )
 #'
-#' # --- Create a cube based on a stack of CBERS data
-#' data_dir <- system.file("extdata/raster/cbers", package = "sits")
+#' # --- Create a cube based on a local MODIS data
+#' data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
 #'
-#' cbers_cube <- sits_cube(
+#' modis_cube <- sits_cube(
 #'     source = "LOCAL",
-#'     name = "022024",
+#'     name = "modis_sinop",
 #'     origin = "BDC",
-#'     collection = "CB4_64-1",
+#'     collection = "MOD13Q1-6",
 #'     data_dir = data_dir,
 #'     delim = "_",
 #'     parse_info = c("X1", "X2", "tile", "band", "date")
@@ -272,7 +272,7 @@ sits_cube.bdc_cube <- function(source = "BDC", ...,
                                collection,
                                bands = NULL,
                                tiles = NULL,
-                               bbox = NULL,
+                               roi = NULL,
                                start_date = NULL,
                                end_date = NULL) {
 
@@ -305,7 +305,7 @@ sits_cube.bdc_cube <- function(source = "BDC", ...,
                  name = name,
                  bands = bands,
                  tiles = tiles,
-                 bbox = bbox,
+                 bbox = roi,
                  start_date = start_date,
                  end_date = end_date, ...)
 }
@@ -319,7 +319,7 @@ sits_cube.deafrica_cube <- function(source = "DEAFRICA", ...,
                                     collection = "S2_L2A",
                                     bands = NULL,
                                     tiles = NULL,
-                                    bbox = NULL,
+                                    roi = NULL,
                                     start_date = NULL,
                                     end_date = NULL) {
 
@@ -354,7 +354,7 @@ sits_cube.deafrica_cube <- function(source = "DEAFRICA", ...,
                  name = name,
                  bands = bands,
                  tiles = tiles,
-                 bbox = bbox,
+                 bbox = roi,
                  start_date = start_date,
                  end_date = end_date, ...)
 }
@@ -368,7 +368,7 @@ sits_cube.aws_cube <- function(source = "AWS", ...,
                                collection = "sentinel-s2-l2a",
                                tiles = NULL,
                                bands = NULL,
-                               bbox = NULL,
+                               roi = NULL,
                                s2_resolution = 20,
                                start_date = NULL,
                                end_date = NULL) {
@@ -415,10 +415,56 @@ sits_cube.aws_cube <- function(source = "AWS", ...,
                  name = name,
                  bands = bands,
                  tiles = tiles,
-                 bbox = bbox,
+                 bbox = roi,
                  start_date = start_date,
                  end_date = end_date, ...,
                  s2_resolution = s2_resolution)
+}
+
+#' @rdname sits_cube
+#'
+#' @export
+sits_cube.opendata_cube <- function(source = "OPENDATA", ...,
+                                    name = "opendata_cube",
+                                    url = NULL,
+                                    collection = "sentinel-s2-l2a-cogs",
+                                    tiles = NULL,
+                                    bands = NULL,
+                                    roi = NULL,
+                                    start_date = NULL,
+                                    end_date = NULL) {
+
+
+    # collection name is upper case
+    collection <- toupper(collection)
+
+    # suite of checks to verify collection parameter
+    .check_collection(source = source,
+                      collection = collection)
+
+    if (is.null(bands))
+        bands <- .source_bands(source = source,
+                               collection = collection)
+
+    # Pre-condition - checks if the bands are supported by the collection
+    .check_bands(source = source,
+                 collection = collection,
+                 bands = bands)
+
+    # dry run to verify if service is running
+    .source_access_test(source = source,
+                        collection = collection, ...,
+                        bands = bands)
+
+    # builds a sits data cube
+    .source_cube(source = source,
+                 collection = collection,
+                 name = name,
+                 bands = bands,
+                 tiles = tiles,
+                 bbox = roi,
+                 start_date = start_date,
+                 end_date = end_date, ...)
 }
 
 #' @rdname sits_cube
@@ -429,7 +475,7 @@ sits_cube.usgs_cube <- function(source = "USGS", ...,
                                 collection = "landsat-c2l2-sr",
                                 tiles = NULL,
                                 bands = NULL,
-                                bbox = NULL,
+                                roi = NULL,
                                 start_date = NULL,
                                 end_date = NULL) {
 
@@ -471,7 +517,7 @@ sits_cube.usgs_cube <- function(source = "USGS", ...,
                  name = name,
                  bands = bands,
                  tiles = tiles,
-                 bbox = bbox,
+                 bbox = roi,
                  start_date = start_date,
                  end_date = end_date, ...)
 }
@@ -595,20 +641,20 @@ sits_cube.default <- function(source, ...) {
 #'
 #' @examples
 #' \donttest{
-#' data_dir <- system.file("extdata/raster/cbers", package = "sits")
+#' data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
 #'
-#' cbers_022024 <- sits_cube(
+#' modis_cube <- sits_cube(
 #'     source = "LOCAL",
-#'     name = "cbers_022024",
+#'     name = "modis_sinop",
 #'     origin = "BDC",
-#'     collection = "CB4_64-1",
+#'     collection = "MOD13Q1-6",
 #'     band = "NDVI",
 #'     data_dir = data_dir,
 #'     parse_info = c("X1", "X2", "tile", "band", "date")
 #' )
 #'
-#' cbers_022024_copy <- sits_cube_copy(cbers_022024,
-#'     name = "cb_022024_cp",
+#' modis_cube_copy <- sits_cube_copy(modis_cube,
+#'     name = "modis_sinop_cp",
 #'     dest_dir = tempdir()
 #' )
 #' }
@@ -665,8 +711,10 @@ sits_cube_copy <- function(cube,
 
         # get all the bands which are requested
         file_info_out <- dplyr::filter(file_info, band %in% bands)
+        # remove token (if existing)
+        file_no_token <- gsub("^([^?]+)(\\?.*)?$", "\\1", file_info_out$path[[1]])
         # get the file extension
-        file_ext <- tools::file_ext(file_info_out$path[1])
+        file_ext <- tools::file_ext(file_no_token)
 
         if (file_ext == "jp2") {
             gdal_of <- "JP2OpenJPEG"
@@ -680,6 +728,7 @@ sits_cube_copy <- function(cube,
                 dest_dir, "/",
                 row$satellite, "_",
                 row$sensor, "_",
+                row$tile,"_",
                 file_row$band, "_",
                 file_row$date, ".",
                 file_ext
@@ -1304,7 +1353,7 @@ NULL
                         .source_bands_to_sits(source = source,
                                               collection = collection,
                                               bands = bands),
-                    collapse = ", ")),
+                        collapse = ", ")),
             call. = FALSE)
 
     return(invisible(NULL))

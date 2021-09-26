@@ -6,6 +6,7 @@
 \alias{sits_cube.bdc_cube}
 \alias{sits_cube.deafrica_cube}
 \alias{sits_cube.aws_cube}
+\alias{sits_cube.opendata_cube}
 \alias{sits_cube.usgs_cube}
 \alias{sits_cube.local_cube}
 \alias{sits_cube.probs_cube}
@@ -23,7 +24,7 @@ sits_cube(source, ...)
   collection,
   bands = NULL,
   tiles = NULL,
-  bbox = NULL,
+  roi = NULL,
   start_date = NULL,
   end_date = NULL
 )
@@ -36,7 +37,7 @@ sits_cube(source, ...)
   collection = "S2_L2A",
   bands = NULL,
   tiles = NULL,
-  bbox = NULL,
+  roi = NULL,
   start_date = NULL,
   end_date = NULL
 )
@@ -49,8 +50,21 @@ sits_cube(source, ...)
   collection = "sentinel-s2-l2a",
   tiles = NULL,
   bands = NULL,
-  bbox = NULL,
+  roi = NULL,
   s2_resolution = 20,
+  start_date = NULL,
+  end_date = NULL
+)
+
+\method{sits_cube}{opendata_cube}(
+  source = "OPENDATA",
+  ...,
+  name = "opendata_cube",
+  url = NULL,
+  collection = "sentinel-s2-l2a-cogs",
+  tiles = NULL,
+  bands = NULL,
+  roi = NULL,
   start_date = NULL,
   end_date = NULL
 )
@@ -63,7 +77,7 @@ sits_cube(source, ...)
   collection = "landsat-c2l2-sr",
   tiles = NULL,
   bands = NULL,
-  bbox = NULL,
+  roi = NULL,
   start_date = NULL,
   end_date = NULL
 )
@@ -113,7 +127,7 @@ sits_cube(source, ...)
 \item{tiles}{Tiles from the collection to be included in the
 data cube.}
 
-\item{bbox}{Area of interest (see details below).}
+\item{roi}{Region of interest (see details below).}
 
 \item{start_date}{Initial date for the cube (optional).}
 
@@ -184,8 +198,8 @@ in two ways: (a) a region of interest(`bbox`) in WGS 84 coordinates;
 }
 }
 \details{
-The \code{bbox} parameter allows a selection of an area of interest.
-Either using a named \code{vector} ("xmin", "ymin", "xmax", "ymax") with
+The \code{roi} parameter allows a selection of an area of interest.
+Either using a named \code{vector} ("lon_min", "lat_min", "lon_max", "lat_max") with
 values in WGS 84, a \code{sfc} or \code{sf} object from sf package, or a
 GeoJSON geometry (RFC 7946). Note that this parameter does not crop a
 region, but only selects the images that intersect with it.
@@ -299,14 +313,14 @@ s2_cube <- sits_cube(source = "AWS",
                       s2_resolution = 20
 )
 
-# --- Create a cube based on a stack of CBERS data
-data_dir <- system.file("extdata/raster/cbers", package = "sits")
+# --- Create a cube based on a local MODIS data
+data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
 
-cbers_cube <- sits_cube(
+modis_cube <- sits_cube(
     source = "LOCAL",
-    name = "022024",
+    name = "modis_sinop",
     origin = "BDC",
-    collection = "CB4_64-1",
+    collection = "MOD13Q1-6",
     data_dir = data_dir,
     delim = "_",
     parse_info = c("X1", "X2", "tile", "band", "date")

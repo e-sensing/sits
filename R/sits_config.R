@@ -13,8 +13,12 @@
 #'
 #' \code{sits_config_show()} prints the current sits
 #' configuration options. To show specific configuration options for
-#' a source, a collection, or a palette, user can inform the corresponding
+#' a source, a collection, or a palette, users can inform the corresponding
 #' keys to \code{source}, \code{collection}, and \code{palette} parameters.
+#'
+#' \code{sits_list_collections()} prints the collections available
+#' in each cloud service supported by sits. Users can select to get information
+#' only for a single service by using the \code{source} parameter.
 #'
 #' @param processing_bloat       A \code{numeric} value to estimate
 #' growth size of R memory relative to block size.
@@ -81,6 +85,9 @@ sits_config <- function(processing_bloat = NULL,
         message(paste("Additional configurations found in", user_yml_file))
         config <- yaml::yaml.load_file(input = user_yml_file,
                                        merge.precedence = "override")
+        config <- utils::modifyList(sits_env[["config"]],
+                                    config,
+                                    keep.null = FALSE)
 
         # set options defined by user (via YAML file)
         # modifying existing configuration
@@ -188,6 +195,49 @@ sits_config_show <- function(source = NULL,
                                     }))
     cat(config_txt, sep = "\n")
     return(invisible(config))
+}
+
+#' @rdname sits_configuration
+#'
+#' @return
+#' \code{sits_list_collections()} prints the collections available in
+#' each cloud service supported by sits.
+#'
+#' @export
+sits_list_collections <- function(source = NULL) {
+
+    # get sources available
+    sources <- .sources(internal = FALSE)
+
+    # if the user has required a source
+    # check that it is valid
+    if (!purrr::is_null(source)) {
+        # check if source exists
+        .check_chr_within(
+            x = source,
+            within = sources,
+            msg = "invalid source value"
+        )
+        sources <- source
+    }
+
+    purrr::map(sources, function(s){
+
+        cat(paste0(s, ":\n"))
+        collections <- .source_collections(source = s)
+        purrr::map(collections, function(c){
+            # get collection information
+
+            cat(paste0("- ", c))
+            cat(paste0(" (", .source_collection_satellite(s, c),
+                       "/", .source_collection_sensor(s, c), ")\n"))
+            cat("- bands: ")
+            cat(.source_bands(s, c))
+            cat("\n")
+            cat("\n")
+        })
+    })
+    return(invisible(NULL))
 }
 
 .config_set_options <- function(processing_bloat = NULL,

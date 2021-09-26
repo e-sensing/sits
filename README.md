@@ -127,13 +127,13 @@ in SITS by the `sits_regularize` which use the
 in gdalcubes, please see Reference \[4\].
 
 ``` r
-gc_cube <- sits_regularize(cube   = s2_cube,
+gc_cube <- sits_regularize(cube          = s2_cube,
                            name          = "T20LKP_2018_2019_1M",
-                           dir_images    = tempdir(),
+                           output_dir    = tempdir(),
                            period        = "P1M",
                            agg_method    = "median",
-                           resampling    = "bilinear",
-                           cloud_mask    = TRUE)
+                           cloud_mask    = TRUE,
+                           multicores    = 2)
 ```
 
 ### Accessing time series in data cubes
@@ -149,7 +149,7 @@ library(sits)
 #> To provide additional configurations, create an YAML file and inform its path to environment variable 'SITS_CONFIG_USER_FILE'.
 #> Using raster package: terra
 #> SITS - satellite image time series analysis.
-#> Loaded sits v0.14.0.
+#> Loaded sits v0.14.0-2.
 #>         See ?sits for help, citation("sits") for use in publication.
 #>         See demo(package = "sits") for examples.
 # create a cube from a local file 
@@ -175,7 +175,7 @@ points <- sits_get_data(raster_cube, file = csv_raster_file)
 
 # show the points
 points[1:3,]
-#> # A tibble: 3 x 7
+#> # A tibble: 3 × 7
 #>   longitude latitude start_date end_date   label   cube       time_series      
 #>       <dbl>    <dbl> <date>     <date>     <chr>   <chr>      <list>           
 #> 1     -55.7    -11.8 2013-09-14 2014-08-29 Pasture sinop-2014 <tibble [23 × 3]>
