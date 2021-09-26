@@ -424,15 +424,15 @@ sits_cube.aws_cube <- function(source = "AWS", ...,
 #' @rdname sits_cube
 #'
 #' @export
-sits_cube.awsod_cube <- function(source = "AWSOD", ...,
-                                 name = "awsod_cube",
-                                 url = NULL,
-                                 collection = "sentinel-s2-l2a-cogs",
-                                 tiles = NULL,
-                                 bands = NULL,
-                                 roi = NULL,
-                                 start_date = NULL,
-                                 end_date = NULL) {
+sits_cube.opendata_cube <- function(source = "OPENDATA", ...,
+                                    name = "opendata_cube",
+                                    url = NULL,
+                                    collection = "sentinel-s2-l2a-cogs",
+                                    tiles = NULL,
+                                    bands = NULL,
+                                    roi = NULL,
+                                    start_date = NULL,
+                                    end_date = NULL) {
 
 
     # collection name is upper case
@@ -1353,7 +1353,7 @@ NULL
                         .source_bands_to_sits(source = source,
                                               collection = collection,
                                               bands = bands),
-                    collapse = ", ")),
+                        collapse = ", ")),
             call. = FALSE)
 
     return(invisible(NULL))
