@@ -6,7 +6,7 @@
 \alias{sits_cube.bdc_cube}
 \alias{sits_cube.deafrica_cube}
 \alias{sits_cube.aws_cube}
-\alias{sits_cube.awsod_cube}
+\alias{sits_cube.opendata_cube}
 \alias{sits_cube.usgs_cube}
 \alias{sits_cube.local_cube}
 \alias{sits_cube.probs_cube}
@@ -56,10 +56,10 @@ sits_cube(source, ...)
   end_date = NULL
 )
 
-\method{sits_cube}{awsod_cube}(
-  source = "AWSOD",
+\method{sits_cube}{opendata_cube}(
+  source = "OPENDATA",
   ...,
-  name = "awsod_cube",
+  name = "opendata_cube",
   url = NULL,
   collection = "sentinel-s2-l2a-cogs",
   tiles = NULL,

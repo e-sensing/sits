@@ -7,42 +7,54 @@
 sits_regularize(
   cube,
   name,
-  dir_images,
+  output_dir,
   period = NULL,
+  res = NULL,
   roi = NULL,
   agg_method = NULL,
-  resampling = "bilinear",
-  cloud_mask = TRUE
+  cloud_mask = TRUE,
+  multicores = 1
 )
 }
 \arguments{
-\item{cube}{A cube whose spacing of observation times is
-not constant and will be regularized by the
-"gdalcubes" packges}
+\item{cube}{A \code{sits_cube} object whose spacing of observation
+times is not constant and will be regularized by the \code{gdalcubes}
+package.}
 
-\item{name}{Name of the output data cube}
+\item{name}{A \code{character} with name of the output data cube}
 
-\item{dir_images}{Directory where the regularized images will be
-written by \code{gdalcubes}.}
+\item{output_dir}{A \code{character} with a directory where the regularized
+images will be written by \code{gdalcubes}.}
 
-\item{period}{ISO8601 time period for regular data cubes
-produced by \code{gdalcubes},
-with number and unit, e.g., "P16D" for 16 days.
-Use "D", "M" and "Y" for days, month and year..}
+\item{period}{A \code{character} with ISO8601 time period for regular
+data cubes produced by \code{gdalcubes}, with number and unit, e.g., "P16D"
+for 16 days. Use "D", "M" and "Y" for days, month and year.}
 
-\item{roi}{A region of interest (see above)}
+\item{res}{A \code{numeric} with spatial resolution of the image that
+will be aggregated.}
 
-\item{agg_method}{Method that will be applied by \code{gdalcubes}
-for aggregation. Options: "min", "max", "mean",
-"median" and "first".}
+\item{roi}{A named \code{numeric} vector with a region of interest.
+See above}
 
-\item{resampling}{Method to be used by \code{gdalcubes}
-for resampling in mosaic operation.
-Options: "near", "bilinear", "bicubic"
-or others supported by gdalwarp
-(see https://gdal.org/programs/gdalwarp.html).}
+\item{agg_method}{A \code{character} with method that will be applied by
+\code{gdalcubes} for aggregation.
+Options: \code{min}, \code{max}, \code{mean}, \code{median} and
+\code{first}.}
 
-\item{cloud_mask}{Use cloud band for aggregation by \code{gdalcubes}?}
+\item{cloud_mask}{A \code{logical} to use cloud band for aggregation by
+\code{gdalcubes}. Default is \code{TRUE}.}
+
+\item{multicores}{A \code{numeric} with the number of cores will be used in
+the regularize. By default is used 1 core.}
+
+\item{resampling}{A \code{character} with method to be used by
+\code{gdalcubes} for resampling in mosaic operation.
+Options: \code{near}, \code{bilinear}, \code{bicubic} or others supported by
+gdalwarp (see https://gdal.org/programs/gdalwarp.html).
+By default is bilinear.}
+}
+\value{
+A \code{sits_cube} object with aggregated images.
 }
 \description{
 Creates cubes with regular time intervals
