@@ -279,7 +279,6 @@ sits_som_map <- function(data,
 #' new_samples <- sits_som_clean_samples(som_map)
 #' }
 #' @export
-
 sits_som_clean_samples <- function(som_map,
                                    prior_threshold = 0.6,
                                    posterior_threshold = 0.6,
@@ -299,43 +298,23 @@ sits_som_clean_samples <- function(som_map,
         msg = "invalid keep parameter"
     )
 
-    # original_samples
-    data <- som_map$data
+    # function to detect of class noise
+    .detect_class_noise <- function(prior_prob, post_prob) {
+        ifelse(
+            prior_prob >= prior_threshold &
+                post_prob >= posterior_threshold, "clean",
+            ifelse(
+                prior_prob >= prior_threshold &
+                    post_prob < posterior_threshold, "analyze", "remove"))
+    }
 
-    # obtain the evaluation for each sample
-    eval_lst <- slider::slide(data, function(row) {
-        neuron_id <- row$id_neuron
-        sample_probs <-
-            som_map$labelled_neurons %>%
-            dplyr::filter(id_neuron == neuron_id) %>%
-            dplyr::filter(label_samples == row$label)
-        if (sample_probs$prior_prob >= prior_threshold &
-            sample_probs$post_prob >= posterior_threshold) {
-            return("clean")
-        } else {
-            if (sample_probs$prior_prob >= prior_threshold &
-                sample_probs$post_prob < posterior_threshold) {
-                  return("analyze")
-              } else {
-                  return("remove")
-              }
-        }
-    })
-    data$eval <- unlist(eval_lst)
+    data <- som_map$data %>%
+        dplyr::inner_join(som_map$labelled_neurons,
+                          by = c("id_neuron", "label" = "label_samples")) %>%
+        dplyr::mutate(eval = .detect_class_noise(prior_prob, post_prob)) %>%
+        dplyr::select(-count, -prior_prob) %>%
+        dplyr::filter(eval %in% keep)
 
-    # obtain the posterior probability for each sample
-    post_probs <- slider::slide(data, function(row) {
-        neuron_id <- row$id_neuron
-        sample_prob <-
-            som_map$labelled_neurons %>%
-            dplyr::filter(id_neuron == neuron_id) %>%
-            dplyr::filter(label_samples == row$label)
-
-        return(sample_prob$post_prob)
-    })
-    data$post_prob <- unlist(post_probs)
-
-    data <- dplyr::filter(data, eval %in% keep)
     return(data)
 }
 

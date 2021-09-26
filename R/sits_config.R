@@ -206,47 +206,35 @@ sits_config_show <- function(source = NULL,
 #' @export
 
 sits_config_list_collections <- function(source = NULL) {
-    # divert output
-    sink("/dev/null")
-    # get configuration
-    config <- sits_config_show()
-    # re-enable output
-    sink()
+
     # get sources available
-    sources <- config$sources[[1]]
-    # remove local collections
-    sources <- sources[!(sources %in%
-                             c("CLASSIFIED", "PROBS", "WTSS", "LOCAL", "SATVEG"))]
+    sources <- .sources(internal = FALSE)
+
     # if the user has required a source
     # check that it is valid
     if (!purrr::is_null(source)) {
         # check if source exists
         .check_chr_within(
-            x = band,
-            within = sits_bands(x),
-            msg = "invalid band"
+            x = source,
+            within = sources,
+            msg = "invalid source value"
         )
         sources <- source
     }
+
     purrr::map(sources, function(s){
-        sink("/dev/null")
-        # get configuration
-        config_s <- sits_config_show(source = s)
-        sink()
-        # re-enable output
+
         cat("====================\n")
-        cat(paste0("source = ", s, "\n"))
-        collections <- config_s$collections[[1]]
+        cat(paste0(s, ":\n"))
+        collections <- .source_collections(source = s)
         purrr::map(collections, function(c){
-            sink("/dev/null")
             # get collection information
-            config_s_c <- sits_config_show(source = s, collection = c)
-            sink()
-            cat(paste0("collection = ", c,"\n"))
-            cat(paste0("satellite = ", config_s_c["satellite"],
-                       " sensor = ", config_s_c["sensor"], "\n"))
-            cat("bands = ")
-            cat(names(config_s_c[["bands"]]))
+
+            cat(paste0("- ", c))
+            cat(paste0(" (", .source_collection_satellite(s, c),
+                       "/", .source_collection_sensor(s, c), ")\n"))
+            cat("- bands: ")
+            cat(.source_bands(s, c))
             cat("\n")
             cat("\n")
         })

@@ -3,13 +3,15 @@
 We are preparing to release the package on CRAN and are making relevant changes in the development version.
 
 
-# What's new in SITS version 0.14.0-1
+# What's new in SITS version 0.14.0
+
+### New features in SITS version 0.14.0-2
+
+* fix `sits_bbox()` function 
 
 ### New features in SITS version 0.14.0-1
 
 * fix duplicate link in AWS STAC 
-
-# What's new in SITS version 0.14.0
 
 ### New features in SITS version 0.14.0
 

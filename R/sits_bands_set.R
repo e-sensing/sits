@@ -21,23 +21,38 @@
     # set caller to show in errors
     .check_set_caller("sits_bands")
 
-    # get the time series
-    ts <- sits_time_series(x)
-    .check_that(
-        x = ncol(ts) == length(value) + 1,
-        msg = "invalid number of bands to be replaced")
+    # get the data bands
+    data_bands <- sits_bands(x)
 
-    # change band names for all rows of the tibble
-    rows <- slider::slide(x, function(row) {
-        ts <- sits_time_series(row)
-        names(ts) <- c("Index", value)
-        row$time_series[[1]] <- ts
-        return(row)
-    })
-    x <- dplyr::bind_rows(rows)
+    .check_chr(value, allow_empty = FALSE, len_min = length(data_bands),
+               len_max = length(data_bands),
+               msg = "Invalid bands values to be replaced")
+
+    # create an row_id to use later in nest
+    x[["..row_id"]] <- seq_len(nrow(x))
+
+    # unnest bands
+    x <- tidyr::unnest(x, cols = "time_series")
+
+    # here, you could pass a function to process fast
+    new_bands <- colnames(x)
+    names(new_bands) <- new_bands
+
+    new_bands[data_bands] <- toupper(value)
+    colnames(x) <- unname(new_bands)
+
+    # nest again
+    x <- tidyr::nest(x,  time_series = c("Index", toupper(value)))
+
+    # remove ..row_id
+    x <- dplyr::select(x, -"..row_id")
+
+    # set sits tibble class
+    class(x) <- c("sits", class(x))
 
     return(x)
 }
+
 #' @export
 #'
 `sits_bands<-.cube` <- function(x, value) {
