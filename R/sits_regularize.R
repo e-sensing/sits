@@ -44,28 +44,32 @@
 #' }
 #' }
 #'
-#' @param cube              A cube whose spacing of observation times is
-#'                          not constant and will be regularized by the
-#'                          "gdalcubes" packges
-#' @param name              Name of the output data cube
-#' @param dir_images        Directory where the regularized images will be
-#'                          written by \code{gdalcubes}.
-#' @param period            ISO8601 time period for regular data cubes
-#'                          produced by \code{gdalcubes},
-#'                          with number and unit, e.g., "P16D" for 16 days.
-#'                          Use "D", "M" and "Y" for days, month and year..
-#'
-#' @param roi               A region of interest (see above)
-#' @param agg_method        Method that will be applied by \code{gdalcubes}
-#'                          for aggregation. Options: "min", "max", "mean",
-#'                          "median" and "first".
-#' @param resampling        Method to be used by \code{gdalcubes}
-#'                          for resampling in mosaic operation.
-#'                          Options: "near", "bilinear", "bicubic"
-#'                          or others supported by gdalwarp
-#'                          (see https://gdal.org/programs/gdalwarp.html).
-#' @param cloud_mask        Use cloud band for aggregation by \code{gdalcubes}?
-#'
+#' @param cube       A \code{sits_cube} object whose spacing of observation
+#'  times is not constant and will be regularized by the \code{gdalcubes}
+#'  package.
+#' @param name       A \code{character} with name of the output data cube
+#' @param output_dir A \code{character} with a directory where the regularized
+#'  images will be written by \code{gdalcubes}.
+#' @param period     A \code{character} with ISO8601 time period for regular
+#'  data cubes produced by \code{gdalcubes}, with number and unit, e.g., "P16D"
+#'  for 16 days. Use "D", "M" and "Y" for days, month and year.
+#' @param res        A \code{numeric} with spatial resolution of the image that
+#'  will be aggregated.
+#' @param roi        A named \code{numeric} vector with a region of interest.
+#'  See above
+#' @param multicores A \code{numeric} with the number of cores will be used in
+#'  the regularize. By default is used 1 core.
+#' @param agg_method A \code{character} with method that will be applied by
+#'  \code{gdalcubes} for aggregation.
+#'  Options: \code{min}, \code{max}, \code{mean}, \code{median} and
+#'  \code{first}.
+#' @param resampling A \code{character} with method to be used by
+#'  \code{gdalcubes} for resampling in mosaic operation.
+#'  Options: \code{near}, \code{bilinear}, \code{bicubic} or others supported by
+#'  gdalwarp (see https://gdal.org/programs/gdalwarp.html).
+#'  By default is bilinear.
+#' @param cloud_mask A \code{logical} to use cloud band for aggregation by
+#' \code{gdalcubes}. Default is \code{TRUE}.
 #'
 #' @note
 #'    The "roi" parameter defines a region of interest. It can be
@@ -73,16 +77,18 @@
 #'    named XY values ("xmin", "xmax", "ymin", "ymax") or
 #'    named lat/long values ("lat_min", "lat_max", "long_min", "long_max")
 #'
-#' @export
+#' @return A \code{sits_cube} object with aggregated images.
 #'
+#' @export
 sits_regularize <- function(cube,
                             name,
-                            dir_images,
+                            output_dir,
                             period  = NULL,
+                            res     = NULL,
                             roi     = NULL,
                             agg_method = NULL,
-                            resampling = "bilinear",
-                            cloud_mask = TRUE) {
+                            cloud_mask = TRUE,
+                            multicores = 1) {
 
     # set caller to show in errors
     .check_set_caller("sits_regularize")
@@ -94,6 +100,24 @@ sits_regularize <- function(cube,
         )
     }
 
+    # supported  cubes
+    .check_chr_within(
+        x = .sits_cube_source(cube),
+        within = c("AWS", "OPENDATA"),
+        msg = paste("for the time being only the 'AWS' and 'OPENDATA' cubes",
+                    "can be regularized.")
+    )
+
+    .check_num(
+        x = multicores,
+        allow_zero = FALSE,
+        min = 1,
+        msg = "invalid 'multicores' parameter."
+    )
+
+    # setting in global env multicores options
+    gdalcubes::gdalcubes_options(threads = multicores)
+
     # test if provided object its a sits cube
     .check_that(
         x = inherits(cube, "raster_cube"),
@@ -103,7 +127,15 @@ sits_regularize <- function(cube,
     )
 
     # fix slashes for windows
-    dir_images <- normalizePath(dir_images)
+    output_dir <- normalizePath(output_dir)
+
+    # verifies the path to save the images
+    .check_that(
+        x = dir.exists(output_dir),
+        msg = "Invalid 'output_dir' parameter.."
+    )
+
+    path_db <- paste0(output_dir, "/gdalcubes.db")
 
     # filter only intersecting tiles
     intersects <- slider::slide_lgl(cube,
@@ -145,30 +177,32 @@ sits_regularize <- function(cube,
     cube <- .sits_cube_fix_name(cube)
 
     # create an image collection
-    db_file <- paste0(dir_images, "/gdalcubes.db")
-    img_col <- .sits_gc_database(cube = cube, path_db = db_file)
+    img_col <- .gc_create_database(cube = cube, path_db = path_db)
 
     gc_cube <- slider::slide_dfr(cube, function(tile){
 
         # create a list of cube view object
-        cv <- .sits_gc_cube(tile = tile,
-                            period = period,
-                            roi = roi,
-                            toi = toi,
-                            agg_method = agg_method,
-                            resampling = resampling)
+        cv <- .gc_create_cube_view(tile = tile,
+                                   period = period,
+                                   roi = roi,
+                                   res = res,
+                                   toi = toi,
+                                   agg_method = agg_method)
 
         # create of the aggregate cubes
-        gc_tile <- .sits_gc_compose(tile = tile,
-                                    name = name,
-                                    cv = cv,
-                                    img_col = img_col,
-                                    db_file = db_file,
-                                    dir_images = dir_images,
-                                    cloud_mask = cloud_mask)
+        gc_tile <- .gc_new_cube(tile = tile,
+                                name = name,
+                                cv = cv,
+                                img_col = img_col,
+                                path_db = path_db,
+                                output_dir = output_dir,
+                                cloud_mask = cloud_mask)
         return(gc_tile)
 
     })
+
+    # reset global option
+    gdalcubes::gdalcubes_options(threads = 1)
 
     class(gc_cube) <- c("raster_cube", class(gc_cube))
 
