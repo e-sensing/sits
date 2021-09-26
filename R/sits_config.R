@@ -200,11 +200,11 @@ sits_config_show <- function(source = NULL,
 #' @rdname sits_configuration
 #'
 #' @return
-#' \code{sits_config_list_collection()} prints the collections available in
+#' \code{sits_list_collections()} prints the collections available in
 #' each cloud service supported by sits.
 #'
 #' @export
-sits_config_list_collections <- function(source = NULL) {
+sits_list_collections <- function(source = NULL) {
 
     # get sources available
     sources <- .sources(internal = FALSE)
