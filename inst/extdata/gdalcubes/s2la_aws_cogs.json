@@ -1,0 +1,84 @@
+{
+    "description" : "Image collection format for Sentinel 2 Level 2A Open Data in AWS",
+    "references" : "https://roda.sentinel-hub.com/sentinel-s2-l2a/readme.html",
+    "example" : "/vsicurl/sentinel-cogs.s3.us-west-2.amazonaws.com/sentinel-s2-l2a-cogs/59/W/MP/2021/9/S2A_59WMP_20210926_0_L2A/B01.tif",
+    "tags" : ["Sentinel", "Copernicus", "ESA", "TOA"],
+    "pattern" : ".+.tif",
+    "images" : {
+        "pattern" : ".*sentinel-s2-l2a-cogs((?:/[A-Za-z0-9_]+){6})/.*"
+    },
+    "datetime" : {
+        "pattern" : ".*S2[A|B](?:_[A-Za-z0-9]+){1}_([A-Za-z0-9]+).*",
+        "format" : "%Y%m%d"
+    },
+    "bands" : {
+        "B01" : {
+            "nodata" : 0,
+            "scale" : 0.0001,
+            "pattern" : ".+B01\\.tif"
+        },
+        "B02" : {
+            "nodata" : 0,
+            "scale" : 0.0001,
+            "pattern" : ".+B02\\.tif"
+        },
+        "B03" : {
+            "nodata" : 0,
+            "scale" : 0.0001,
+            "pattern" : ".+B03\\.tif"
+        },
+        "B04" : {
+            "nodata" : 0,
+            "scale" : 0.0001,
+            "pattern" : ".+B04\\.tif"
+        },
+        "B05" : {
+            "nodata" : 0,
+            "scale" : 0.0001,
+            "pattern" : ".+B05\\.tif"
+        },
+        "B06" : {
+            "nodata" : 0,
+            "scale" : 0.0001,
+            "pattern" : ".+B06\\.tif"
+        },
+        "B07" : {
+            "nodata" : 0,
+            "scale" : 0.0001,
+            "pattern" : ".+B07\\.tif"
+        },
+        "B08" : {
+            "nodata" : 0,
+            "scale" : 0.0001,
+            "pattern" : ".+B08\\.tif"
+        },
+        "B8A" : {
+            "nodata" : 0,
+            "scale" : 0.0001,
+            "pattern" : ".+B8A\\.tif"
+        },
+        "B09" : {
+            "nodata" : 0,
+            "scale" : 0.0001,
+            "pattern" : ".+B09\\.tif"
+        },
+        "B10" : {
+            "nodata" : 0,
+            "scale" : 0.0001,
+            "pattern" : ".+B10\\.tif"
+        },
+        "B11" : {
+            "nodata" : 0,
+            "scale" : 0.0001,
+            "pattern" : ".+B11\\.tif"
+        },
+        "B12" : {
+            "nodata" : 0,
+            "scale" : 0.0001,
+            "pattern" : ".+B12\\.tif"
+        },
+        "CLOUD" : {
+            "pattern" : ".+SCL\\.tif"
+        }
+    }
+}
