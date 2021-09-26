@@ -358,6 +358,45 @@ NULL
 
 #' @rdname source_bands
 #'
+#' @description \code{.source_bands_resampling()} returns the
+#' \code{resampling} attribute of all bands filtered by its parameters.
+#'
+#' @return \code{.source_bands_resampling()} returns a \code{character}
+#' vectors with the desired resampling method that should be used in the  band.
+.source_bands_resampling <- function(source,
+                                     collection, ...,
+                                     bands = NULL,
+                                     fn_filter = NULL,
+                                     add_cloud = TRUE) {
+
+    # source is upper case
+    source <- toupper(source)
+
+    # collection is upper case
+    collection <- toupper(collection)
+
+    # pre-condition
+    .source_collection_check(source = source, collection = collection)
+
+    res <- .source_bands_reap(source = source,
+                              collection = collection,
+                              key = "resampling",
+                              bands = bands,
+                              fn_filter = fn_filter,
+                              add_cloud = add_cloud)
+
+    # simplify to character
+    res <- unlist(res, recursive = FALSE, use.names = FALSE)
+
+    # post-condition
+    .check_chr(res, allow_empty = FALSE,
+               msg = "invalid 'resampling' in config file")
+
+    return(res)
+}
+
+#' @rdname source_bands
+#'
 #' @description \code{.source_bands_to_sits()} converts any bands to its
 #' sits name indicated in band entry.
 #'
