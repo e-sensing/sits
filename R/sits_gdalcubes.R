@@ -168,6 +168,9 @@
     # update nrows and ncols
     cube[, c("nrows", "ncols")] <- cube_view$space[c("ny", "nx")]
 
+    # hot fix remove cloud band
+    cube$bands[[1]] <- setdiff(cube$bands[[1]], "CLOUD")
+
     return(cube)
 }
 
