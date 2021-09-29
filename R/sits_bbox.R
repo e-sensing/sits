@@ -21,6 +21,8 @@
 #'
 sits_bbox <- function(data, wgs84 = FALSE, ...) {
 
+    .check_set_caller("sits_bbox")
+
     # get the meta-type (sits or cube)
     data <- .config_data_meta_type(data)
 
