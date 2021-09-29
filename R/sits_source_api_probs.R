@@ -39,23 +39,25 @@
         )
 
         # go tile by tile
-        tile <- tibble::tibble(
-            source = "PROBS",
-            satellite = satellite,
-            sensor = sensor,
-            name = name,
-            bands = list("probs"),
-            labels = list(probs_labels),
-            nrows = params$nrows,
-            ncols = params$ncols,
-            xmin  = params$xmin,
-            xmax  = params$xmax,
-            ymin  = params$ymin,
-            ymax  = params$ymax,
-            xres  = params$xres,
-            yres  = params$yres,
-            crs   = params$crs,
-            file_info = list(file_info),
+        tile <- .sits_cube_create(
+            name        = name,
+            source      = "PROBS",
+            collections = "PROBS",
+            satellite   = satellite,
+            sensor      = sensor,
+            tile        = NA,
+            bands       = list("PROBS"),
+            labels      = list(probs_labels),
+            nrows       = params$nrows,
+            ncols       = params$ncols,
+            xmin        = params$xmin,
+            xmax        = params$xmax,
+            ymin        = params$ymin,
+            ymax        = params$ymax,
+            xres        = params$xres,
+            yres        = params$yres,
+            crs         = params$crs,
+            file_info   = list(file_info)
         )
         return(tile)
     })
