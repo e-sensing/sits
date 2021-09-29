@@ -247,6 +247,7 @@
         sensor     = .source_collection_sensor(source, collection),
         tile       = t_name[[1]],
         bands      = unique(file_info[["band"]]),
+        labels     = NA,
         nrows      = t_size[["nrows"]],
         ncols      = t_size[["ncols"]],
         xmin       = t_bbox[["xmin"]],
