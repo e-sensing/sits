@@ -42,7 +42,7 @@
         tile <- .sits_cube_create(
             name        = name,
             source      = "PROBS",
-            collections = "PROBS",
+            collection  = "PROBS",
             satellite   = satellite,
             sensor      = sensor,
             tile        = NA,
