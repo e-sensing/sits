@@ -1253,23 +1253,31 @@ NULL
     # set caller to show in errors
     .check_set_caller(".config_data_meta_type")
 
-    if (inherits(data, c("sits", "patterns", "predicted", "sits_model"))) {
+    if (inherits(data, c("sits", "patterns", "predicted",
+                         "sits_model", "cube"))) {
         return(data)
 
-    } else {
+    } else if (inherits(data, "tbl_df")) {
 
-        .check_chr(x = data$source,
-                   allow_empty = FALSE,
-                   len_min = 1,
-                   msg = "data is not valid")
+        if (all(c("name", "source", "collection", "satellite",
+                  "sensor", "tile", "bands", "labels", "nrows",
+                  "ncols", "xmin", "xmax", "ymin", "ymax",
+                  "xres", "yres", "crs") %in% colnames(data))) {
 
-        # check if data is a cube
-        # TODO: where this function will be implemented?
-        #.sits_config_cube_check(data)
+            class(data) <- c("cube", class(data))
+            return(data)
+        } else if (all(c("longitude", "latitude", "start_date",
+                         "end_date", "label", "cube",
+                         "time_series") %in% colnames(data))) {
 
-        class(data) <- c("cube", class(data))
+            class(data) <- c("sits", class(data))
+            return(data)
+        }
     }
-    return(data)
+
+    .check_that(FALSE,
+                local_msg = "Data not recognized as a sits object",
+                msg = "Invalid data parameter")
 }
 
 #' @title Check cube collection
