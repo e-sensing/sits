@@ -80,7 +80,7 @@ sits_select.cube <- function(data, bands) {
     .check_chr_within(
         x = bands,
         within = sits_bands(data),
-        discriminator = "one_of",
+        discriminator = "all_of",
         msg = "requested bands are not available in the data cube"
     )
 
