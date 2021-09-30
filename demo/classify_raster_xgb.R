@@ -70,6 +70,9 @@ sinop_label <- sits_label_classification(
     output_dir = tempdir()
 )
 
+# plot the classified map
+plot(sinop_label)
+
 # plot the probabilities
 plot(sinop_probs)
 

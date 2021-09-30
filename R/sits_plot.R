@@ -1115,12 +1115,10 @@ plot.keras_model <- function(x, y, ...) {
     )
 
     # get the raster object
-    r <- suppressWarnings(raster::raster(cube$file_info[[1]]$path[[1]]))
+    r <- suppressWarnings(terra::rast(cube$file_info[[1]]$path[[1]]))
 
     # convert from raster to points
-    map.p <- raster::rasterToPoints(r)
-    # create a data frame
-    df <- data.frame(map.p)
+    df <- terra::as.data.frame(r, xy = TRUE)
     # define the column names for the data frame
     colnames(df) <- c("x", "y", "class")
 
