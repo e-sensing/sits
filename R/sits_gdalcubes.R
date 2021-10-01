@@ -227,7 +227,7 @@
     file_info <- dplyr::bind_rows(cube$file_info)
 
     # retrieving the collection format
-    format_col <- .gc_format_col(cube$source)
+    format_col <- .gc_format_col(.cube_source(cube))
 
     message("Creating database of images...")
     ic_cube <- gdalcubes::create_image_collection(
