@@ -114,53 +114,122 @@ plot.predicted <- function(x, y, ..., bands = "NDVI") {
     p <- .sits_plot_classification(x, bands)
     return(invisible(p))
 }
-
-#' @title  Generic interface for plotting stack cubes
-#' @name   plot.raster_cube
+#' @title  Generic interface for RGB plotting of data cube
+#' @name plot.raster_cube
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'
-#' @param  x             object of class "raster_cube"
-#' @param  y             ignored
-#' @param  ...           further specifications for \link{plot}.
-#' @param  band          band to be plotted
-#' @param  time          time instance
+#' @description Uses mapview to visualize raster cube and classified images
 #'
-#' @export
+#' @param  x             object of class "raster_cube" or "classified image"
+#' @param  ...           further specifications for \link{sits_view}.
+#' @param  band          for plotting grey images
+#' @param  red           band for red color.
+#' @param  green         band for green color.
+#' @param  blue          band for blue color.
+#' @param  time          temporal instances to be plotted.
+#' @param  roi           sf object giving a region of interest.
 #'
-plot.raster_cube <- function(x, y, ..., band, time = 1) {
+#' @return               plot object
+plot.raster_cube <- function(x, ...,
+                                  band = NULL,
+                                  red,
+                                  green,
+                                  blue,
+                                  time = 1,
+                                  roi = NULL) {
 
-
-
-    # set caller to show in errors
-    .check_set_caller("plot.raster_cube")
-
-    stopifnot(missing(y))
-    # verifies if stars package is installed
-    if (!requireNamespace("stars", quietly = TRUE)) {
-        stop("Please install package stars.", call. = FALSE)
+    if (!purrr::is_null(band)) {
+        red = band
+        green = band
+        blue = band
     }
-    # checks if required time exists
-    dates <- sits_timeline(x)
-    .check_that(
-        x = time >= 1 && time <= length(dates),
-        msg = "invalid timeline"
-    )
-    # check if bands exists
-    .check_chr_within(
-        x = band,
-        within = sits_bands(x),
-        msg = "invalid band"
-    )
-    # get the file information
-    file_info <- x$file_info[[1]]
-    myband <- band
-    # filter the images for the time
-    file_img <- dplyr::filter(file_info, date == dates[time] & band == myband)$path
-    # read a stars proxy object
-    st <- stars::read_stars(file_img, proxy = TRUE)
-    plot(st)
 
-    return(invisible(TRUE))
+    # preconditions
+    .check_that(
+        x = all(c(red, green, blue) %in% sits_bands(x)),
+        msg = "requested RGB bands are not available in data cube"
+    )
+
+    timeline <- sits_timeline(x)
+    .check_that(
+        x = time >= 1 & time <= length(timeline),
+        msg = "time parameter out of bounds"
+    )
+
+    # verify sf package if roi is informed
+    if (!purrr::is_null(roi)) {
+        if (!requireNamespace("sf", quietly = TRUE)) {
+            stop("Please install package sf.", call. = FALSE)
+        }
+
+        # filter only intersecting tiles
+        intersects <- slider::slide(x, function(row) {
+
+            .sits_raster_sub_image_intersects(row, roi)
+        }) %>% unlist()
+
+        # check if intersection is not empty
+        .check_that(
+            x = any(intersects),
+            msg = "informed roi does not intersect cube"
+        )
+
+        x <- x[intersects, ]
+    }
+
+    # plot only the selected tile
+    # select only the bands for the timeline
+    bands_date <- x$file_info[[1]] %>%
+        dplyr::filter(date == as.Date(timeline[[time]]))
+
+    # Are we plotting a grey image
+    if (!purrr::is_null(band)) {
+        rgb_stack <- dplyr::filter(bands_date, band == red)$path
+    }
+    else
+    {
+        # get RGB files for the requested timeline
+        red_file <- dplyr::filter(bands_date, band == red)$path
+        green_file <- dplyr::filter(bands_date, band == green)$path
+        blue_file <- dplyr::filter(bands_date, band == blue)$path
+        # put the band on a raster/terra stack
+        rgb_stack <- c(red_file, green_file, blue_file)
+    }
+    # use the raster package to obtain a raster object from a stack
+    r_obj <- .raster_open_stack.raster(rgb_stack)
+
+    # extract region of interest
+    if (!purrr::is_null(roi)) {
+        roi <- .sits_raster_sub_image(cube = x, roi = roi)
+        r_obj <- .raster_crop.raster(r_obj = r_obj, block = roi)
+    }
+
+    .check_that(
+        x = .raster_ncols(r_obj) > 0 && .raster_nrows(r_obj) > 0,
+        msg = "unable to retrieve raster data"
+    )
+    # view the RGB file
+    if (!purrr::is_null(band)) {
+        rgb <- suppressWarnings(
+            terra::plotRGB(r_obj,
+                           r = 1,
+                           g = 1,
+                           b = 1,
+                           stretch = "hist")
+        )
+    }
+    else {
+        rgb <- suppressWarnings(
+            terra::plotRGB(r_obj,
+                           r = 1,
+                           g = 2,
+                           b = 3,
+                           stretch = "hist")
+        )
+    }
+
+
+    return(invisible(rgb))
 }
 #' @title  Generic interface for plotting probability cubes
 #' @name   plot.probs_cube
@@ -1046,12 +1115,10 @@ plot.keras_model <- function(x, y, ...) {
     )
 
     # get the raster object
-    r <- suppressWarnings(raster::raster(cube$file_info[[1]]$path[[1]]))
+    r <- suppressWarnings(terra::rast(cube$file_info[[1]]$path[[1]]))
 
     # convert from raster to points
-    map.p <- raster::rasterToPoints(r)
-    # create a data frame
-    df <- data.frame(map.p)
+    df <- terra::as.data.frame(r, xy = TRUE)
     # define the column names for the data frame
     colnames(df) <- c("x", "y", "class")
 
