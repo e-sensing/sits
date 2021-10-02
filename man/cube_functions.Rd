@@ -2,6 +2,7 @@
 % Please edit documentation in R/sits_cube.R
 \name{cube_functions}
 \alias{cube_functions}
+\alias{.cube_check}
 \alias{.cube_satellite}
 \alias{.cube_sensor}
 \alias{.cube_collection}
@@ -28,6 +29,8 @@
 \alias{.cube_s3class}
 \title{Auxiliary functions for sits cubes}
 \usage{
+.cube_check(cube)
+
 .cube_satellite(cube)
 
 .cube_sensor(cube)
