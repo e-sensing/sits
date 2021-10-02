@@ -41,7 +41,7 @@ test_that("User functions", {
 
     expect_equal(
         .sources(),
-        c("CLASSIFIED", "PROBS", "BDC", "WTSS", "SATVEG", "AWS", "OPENDATA",
+        c("CLASSIFIED", "PROBS", "BDC", "WTSS", "SATVEG", "AWS",
           "DEAFRICA", "LOCAL")
     )
 

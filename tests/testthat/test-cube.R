@@ -314,13 +314,13 @@ test_that("Creating cubes from AWS", {
     expect_equal(s2_cube$xmin[[1]], sits:::.raster_xmin(r))
 })
 
-test_that("Creating cubes from AWS OPen Data and regularizing them", {
+test_that("Creating cubes from AWS Open Data and regularizing them", {
 
 
     testthat::expect_warning({
-        s2_cube <- sits_cube(source = "OPENDATA",
+        s2_cube <- sits_cube(source = "AWS",
                              name = "T20LKP_2018_2019",
-                             collection = "sentinel-s2-l2a-cogs",
+                             collection = "SENTINEL-S2-L2A-COGS",
                              tiles = "20LKP",
                              bands = c("B08", "SCL"),
                              start_date = "2018-07-30",
