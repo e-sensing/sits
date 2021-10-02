@@ -60,17 +60,21 @@ NULL
 #' @rdname source_functions
 #'
 #' @description \code{.source_new()} creates an object with a corresponding
-#' S3 class defined in a given source.
+#' S3 class defined in a given source and collection.
 #'
 #' @return \code{.source_new()} returns a \code{character} vector with the
 #' S3 class defined in source's \code{S3class} attribute.
 #'
-.source_new <- function(source) {
+.source_new <- function(source, ...,
+                        collection = NULL) {
 
     # source name is upper case
-    source <- toupper(source)
+    classes <- .source_s3class(source = toupper(source))
 
-    class(source) <- .source_s3class(source = source)
+    if (!is.null(collection))
+        classes <- paste(classes, tolower(collection), sep = "_")
+
+    class(source) <- classes
 
     return(source)
 }
