@@ -376,7 +376,8 @@
         dt = period,
         dx = res,
         dy = res,
-        aggregation = agg_method
+        aggregation = agg_method,
+        resampling = resampling
     )
 
     return(cv)
