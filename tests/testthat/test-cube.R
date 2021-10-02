@@ -389,9 +389,9 @@ test_that("Creating cubes from classified images", {
                       message = "PROBS cube not found")
 
     expect_equal(probs_cube$ncols, 50)
-    expect_equal(sits_bands(probs_cube), "probs")
+    expect_equal(sits_bands(probs_cube), "PROBS")
     file_info <- probs_cube$file_info[[1]]
-    expect_equal(file_info$band, "probs")
+    expect_equal(file_info$band, "PROBS")
     expect_equal(file_info$path, probs_file)
 })
 
