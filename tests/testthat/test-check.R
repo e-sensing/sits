@@ -219,7 +219,7 @@ test_that("Checks", {
         .check_chr_within(c("a", "b"),
                           within = c("a", "b", "c"),
                           discriminator = "one_of"),
-        "test: value should be one of: 'a', 'b', 'c'"
+        "test: values should have only one of: 'a', 'b', 'c'"
     )
     expect_equal(
         .check_chr_within(c("a", "b"),
@@ -251,7 +251,7 @@ test_that("Checks", {
         .check_chr_contains(c("a", "b", "c"),
                             contains = c("a", "b"),
                             discriminator = "one_of"),
-        "test: value should contain only one of: 'a', 'b'"
+        "test: values should contain only one of: 'a', 'b'"
     )
     expect_equal(
         .check_chr_contains(c("a", "b", "c"),
@@ -263,7 +263,7 @@ test_that("Checks", {
         .check_chr_contains(c("a", "b", "c"),
                             contains = c("a", "b"),
                             discriminator = "one_of"),
-        "test: value should contain only one of: 'a', 'b'"
+        "test: values should contain only one of: 'a', 'b'"
     )
     expect_equal(
         .check_chr_contains(c("a", "b", "c"),
@@ -281,7 +281,7 @@ test_that("Checks", {
         .check_chr_contains(c("a", "b", "b", "b"),
                             contains = c("a", "b", "c"),
                             discriminator = "all_of"),
-        "test: value should contain all of: 'a', 'b', 'c'"
+        "test: values should contain: 'a', 'b', 'c'"
     )
 
     # .check_lgl
@@ -543,7 +543,11 @@ test_that("Checks", {
     )
     expect_error(
         .check_file("file_does_not_exist"),
-        "test: file 'file_does_not_exist' does not exist"
+        "test: file does not exist: 'file_does_not_exist'"
+    )
+    expect_error(
+        .check_file("file_does_not_exist", extensions = "xyz"),
+        "test: invalid file extension"
     )
 
     # .check_warn
