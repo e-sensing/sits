@@ -112,8 +112,8 @@ test_that("User functions", {
     )
     expect_equal(
         unname(.config_palette_colors(labels = c("Cropland", "Deforestation",
-                                          "Forest", "Grassland", "NonForest"),
-                               palette = "my_project")),
+                                                 "Forest", "Grassland", "NonForest"),
+                                      palette = "my_project")),
         c("khaki", "sienna", "darkgreen", "lightgreen",
           "lightsteelblue1")
     )
