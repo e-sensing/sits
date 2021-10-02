@@ -608,15 +608,14 @@ NULL
 
 #' @rdname source_collection
 #'
-#' @description \code{.source_collection_aws()} returns the \code{aws}
-#' attribute of a collection. The attribute must define the following AWS
-#' environment variables: \code{AWS_DEFAULT_REGION}, \code{AWS_S3_ENDPOINT},
-#' and \code{AWS_REQUEST_PAYER}.
+#' @description \code{.source_collection_access_vars()} returns the
+#' \code{access_vars} attribute of a collection. The attribute must define
+#' environment variables to access properly the collection.
 #'
-#' @return \code{.source_collection_aws()} returns a named \code{list} with
-#' AWS environment variables.
-.source_collection_aws <- function(source,
-                                   collection) {
+#' @return \code{.source_collection_access_vars()} returns a named
+#' \code{list} with environment variables.
+.source_collection_access_vars <- function(source,
+                                           collection) {
 
     # source is upper case
     source <- toupper(source)
@@ -628,19 +627,13 @@ NULL
     .source_collection_check(source = source, collection = collection)
 
     res <- .config_get(key = c("sources", source, "collections", collection,
-                               "aws"),
+                               "access_vars"),
                        default = list())
 
     # post-condition
-    .check_lst(res, min_len = 0,
-               msg = "invalid 'aws' value")
-
-    if (length(res) > 0)
-        .check_chr_contains(names(res),
-                            contains = c("AWS_DEFAULT_REGION",
-                                         "AWS_S3_ENDPOINT",
-                                         "AWS_REQUEST_PAYER"),
-                            msg = "invalid 'aws' value")
+    .check_lst(res, min_len = 0, fn_check = .check_chr,
+               len_min = 1, len_max = 1, allow_empty = FALSE,
+               msg = "invalid 'access_vars' value")
 
     return(res)
 }
