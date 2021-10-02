@@ -67,8 +67,10 @@
     )
 
     if (!purrr::is_null(file_info)) {
-          cube <- tibble::add_column(cube, file_info = list(file_info))
-      }
+        cube <- tibble::add_column(cube, file_info = list(file_info))
+    }
+
+    class(cube) <- unique(c("sits_cube", class(cube)))
 
     return(cube)
 }
