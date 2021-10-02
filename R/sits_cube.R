@@ -1171,38 +1171,6 @@ NULL
 }
 
 #' @rdname cube_functions
-.cube_band_resampling <- function(cube, band) {
-
-    # pre-condition
-    .check_chr(band, len_min = 1, len_max = 1,
-               msg = "invalid 'band' parameter")
-
-    .check_chr_within(band,
-                      within = .cube_bands(cube = cube, add_cloud = TRUE),
-                      discriminator = "one_of",
-                      case_sensitive = FALSE,
-                      msg = "invalid 'band' parameter")
-
-    # bands names are upper case
-    band <- toupper(band)
-
-    res <- .config_get(key = c("sources", .cube_source(cube = cube),
-                               "collections", .cube_collection(cube = cube),
-                               "bands", band, "resampling"))
-
-    # post-condition
-    .check_chr(res, len_min = 1, len_max = 1,
-               msg = "invalid 'resampling' parameter")
-
-    .check_chr_within(res,
-                      within = .raster_resample_methods(sits_names = TRUE),
-                      discriminator = "one_of",
-                      msg = "invalid 'resampling' parameter")
-
-    return(res)
-}
-
-#' @rdname cube_functions
 .cube_band_resolutions <- function(cube, band) {
 
     # pre-condition
