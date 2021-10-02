@@ -1023,12 +1023,12 @@ NULL
 .cube_tile_size <- function(cube, ...,
                             tile = 1) {
 
-    .cube_tile_get_fields(cube = cube, tile = tile,
-                          fields = c("nrows", "ncols"))
+    res <- .cube_tile_get_fields(cube = cube, tile = tile,
+                                 fields = c("nrows", "ncols"))
 
     # post-condition
     .check_lst(res, min_len = 2, max_len = 2,
-               fn_check = .check_num, min = 0, allow_zero = FALSE,
+               fn_check = .check_num, allow_zero = FALSE,
                len_min = 1, len_max = 1,
                msg = "invalid tile 'nrows' and 'ncols' values")
 
