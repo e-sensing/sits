@@ -99,15 +99,20 @@ sits_get_data <- function(cube,
     # set caller to show in errors
     .check_set_caller("sits_get_data")
 
+    # pre-condition - file parameter
+    .check_chr(file, allow_empty = FALSE, len_min = 1, len_max = 1,
+               allow_null = TRUE, msg = "invalid 'file' parameter")
+
     # is there a shapefile or a CSV file?
     if (!purrr::is_null(file)) {
+        .check_file(file, extensions = c("csv", "shp"),
+                    msg = "invalid file extension")
         # get the file extension
         file_ext <- tolower(tools::file_ext(file))
         # sits only accepts "csv" or "shp" files
         .check_chr_within(
             x = file_ext,
             within = c("csv", "shp"),
-            discriminator = "any_of",
             msg = "accepts only csv and shp files"
         )
         # append "csv" or "shp" to the cube class to call the correct function
