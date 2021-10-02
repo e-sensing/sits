@@ -61,12 +61,5 @@ sits_bands.sits_model <- function(x) {
         msg = "invalid sits model"
     )
 
-    .check_chr_within(
-        x = "data",
-        within = ls(environment(x)),
-        discriminator = "any_of",
-        msg = "no samples found in the sits model"
-    )
-
-    return(sits_bands.sits(environment(x)$data))
+    return(sits_bands(.sits_ml_model_samples(x)))
 }
