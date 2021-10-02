@@ -3,8 +3,22 @@
 We are preparing to release the package on CRAN and are making relevant changes in the development version.
 
 
-# What's new in SITS version 0.14.1
+# What's new in SITS version 0.15.0 (dev)
 
+### New features in SITS version 0.15.0
+
+* Fixed sits_cube_clone provide an wrong crop in different tiles
+* Plot RGB images from raster cubes
+* Fixed error in sits_select for bands in raster cube
+* Outdated examples in demo
+* Support USGS STAC Landsat 8 catalog
+* User can provide resampling method to sits_regularize() function
+* Add support to open data collections on 'AWS' source
+* Remove OPENDATA source
+* Update documentation
+* Other bug fixes
+
+# What's new in SITS version 0.14.1
 
 ### New features in SITS version 0.14.1-1
 
