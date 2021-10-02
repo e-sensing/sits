@@ -834,37 +834,15 @@ NULL
 
     # post-condition
     .check_lst(res, min_len = 1, max_len = 1,
+               is_named = FALSE,
                msg = "invalid cube 'labels' value")
 
     res <- unlist(res, use.names = FALSE)
 
     # post-condition
-    .check_chr(res, allow_empty = FALSE, len_min = 1, allow_null = TRUE,
+    .check_chr(res, allow_na = TRUE, allow_empty = FALSE,
+               len_min = 1, allow_null = TRUE,
                msg = "invalid cube 'labels' value")
-
-    return(res)
-}
-
-#' @rdname cube_functions
-.cube_bands_check <- function(cube) {
-
-    res <- .cube_bands(cube = cube)
-
-    # check for bands in file_info
-    bands <- unique(lapply(cube[["file_info"]],
-                           function(x) unique(x[["band"]])))
-
-    # check if all tiles have same bands
-    .check_lst(bands, min_len = 1, max_len = 1, is_named = FALSE,
-               msg = "inconsistent 'bands' among tiles")
-
-    # simplify
-    bands <- unlist(bands, use.names = FALSE)
-
-    .check_chr_contains(
-        res, contains = bands,
-        discriminator = "exact",
-        msg = "inconsistent 'bands' between cube and 'file_info'")
 
     return(res)
 }
@@ -886,6 +864,19 @@ NULL
         res <- res[res != .source_cloud()]
 
     return(res)
+}
+
+#' @rdname cube_functions
+.cube_bands_check <- function(cube, bands, ...,
+                              add_cloud = TRUE) {
+
+    # all bands are upper case
+    .check_chr_within(bands, within = .cube_bands(cube = cube,
+                                                  add_cloud = add_cloud),
+                      case_sensitive = FALSE,
+                      msg = "invalid 'bands' parameter")
+
+    return(invisible(NULL))
 }
 
 #' @rdname cube_functions
