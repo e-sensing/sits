@@ -40,7 +40,7 @@ sits_bands.sits <- function(x) {
 
 #' @export
 #'
-sits_bands.cube <- function(x) {
+sits_bands.sits_cube <- function(x) {
 
     return(x$bands[[1]])
 }

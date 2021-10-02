@@ -48,7 +48,10 @@ sits_bbox.sits <- function(data, ...) {
 
 #' @export
 #'
-sits_bbox.cube <- function(data, wgs84 = FALSE, ...) {
+sits_bbox.sits_cube <- function(data, wgs84 = FALSE, ...) {
+
+    # pre-condition
+    .cube_check(data)
 
     # create and return the bounding box
     if (nrow(data) == 1) {
