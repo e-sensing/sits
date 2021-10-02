@@ -238,7 +238,7 @@
     file_info <- dplyr::bind_rows(cube$file_info)
 
     # retrieving the collection format
-    format_col <- .gc_format_col(source = .cube_source(cube = cube),
+    format_col <- .gc_format_col(.cube_source(cube = cube),
                                  collection = .cube_collection(cube = cube))
 
     message("Creating database of images...")
