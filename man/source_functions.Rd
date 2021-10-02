@@ -14,7 +14,7 @@
 
 .source_check(source)
 
-.source_new(source)
+.source_new(source, ..., collection = NULL)
 
 .source_service(source)
 
@@ -56,7 +56,7 @@ These functions provide an API to handle/retrieve data from sources.
 \code{.source_check()} checks if a source is available in sits.
 
 \code{.source_new()} creates an object with a corresponding
-S3 class defined in a given source.
+S3 class defined in a given source and collection.
 
 \code{.source_service()} returns the service associated
 with a given source.

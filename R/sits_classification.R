@@ -128,15 +128,8 @@ sits_classify <- function(data, ml_model, ...) {
     # set caller to show in errors
     .check_set_caller("sits_classify")
 
-    # set caller to show in errors
-    .check_set_caller("sits_classify")
-
-    # is the data a sits tibble? If not, it must be a cube
-    if (!inherits(data, "sits")) {
-        # find out the generic cube class it belongs to
-        class_data <- .cube_source(cube = data)
-        class(data) <- c(class_data, class(data))
-    }
+    # check data type
+    data <- .config_data_meta_type(data)
 
     # Dispatch
     UseMethod("sits_classify", data)
@@ -310,6 +303,8 @@ sits_classify.raster_cube <- function(data, ml_model, ...,
     })
 
     probs_cube <- dplyr::bind_rows(probs_rows)
-    class(probs_cube) <- c("probs_cube", "raster_cube", class(probs_cube))
+
+    class(probs_cube) <- .cube_s3class(probs_cube)
+
     return(probs_cube)
 }

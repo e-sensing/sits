@@ -647,7 +647,7 @@ sources:
                 satellite   : "SENTINEL-2"
                 sensor      : "MSI"
                 collection_name: "sentinel-s2-l2a"
-                aws         :
+                access_vars :
                     AWS_DEFAULT_REGION   : "eu-central-1"
                     AWS_S3_ENDPOINT      : "s3.amazonaws.com"
                     AWS_REQUEST_PAYER    : "requester"
@@ -729,89 +729,10 @@ sources:
                 satellite   : "SENTINEL-2"
                 sensor      : "MSI"
                 collection_name: "sentinel-s2-l2a-cogs"
-    OPENDATA                :
-        s3_class            : ["opendata_cube", "stac_cube", "raster_cube"]
-        service             : "STAC"
-        url                 : "https://earth-search.aws.element84.com/v0/"
-        collections         :
-            SENTINEL-S2-L2A-COGS :
-                bands       :
-                    B01     : &aws_cog_msi_60m
-                        missing_value: -9999
-                        minimum_value: 0
-                        maximum_value: 10000
-                        scale_factor : 0.0001
-                        offset_value : 0
-                        resampling   : "bilinear"
-                        resolutions  : [60]
-                        band_name    : "B01"
-                    B02     : &aws_cog_msi_10m
-                        missing_value: -9999
-                        minimum_value: 0
-                        maximum_value: 10000
-                        scale_factor : 0.0001
-                        offset_value : 0
-                        resampling   : "bilinear"
-                        resolutions  : [10]
-                        band_name    : "B02"
-                    B03     :
-                        <<: *aws_cog_msi_10m
-                        band_name    : "B03"
-                    B04     :
-                        <<: *aws_cog_msi_10m
-                        band_name    : "B04"
-                    B05     : &aws_cog_msi_20m
-                        missing_value: -9999
-                        minimum_value: 0
-                        maximum_value: 10000
-                        scale_factor : 0.0001
-                        offset_value : 0
-                        resampling   : "bilinear"
-                        resolutions  : [20]
-                        band_name    : "B05"
-                    B06     :
-                        <<: *aws_cog_msi_20m
-                        band_name    : "B06"
-                    B07     :
-                        <<: *aws_cog_msi_20m
-                        band_name    : "B07"
-                    B08     :
-                        <<: *aws_cog_msi_10m
-                        band_name    : "B08"
-                    B8A     :
-                        <<: *aws_cog_msi_20m
-                        band_name    : "B8A"
-                    B09     :
-                        <<: *aws_cog_msi_60m
-                        band_name    : "B09"
-                    B11     :
-                        <<: *aws_cog_msi_20m
-                        band_name    : "B11"
-                    B12     :
-                        <<: *aws_cog_msi_20m
-                        band_name    : "B12"
-                    CLOUD   :
-                        bit_mask     : FALSE
-                        band_name    : "SCL"
-                        values       :
-                            0        : "missing_data"
-                            1        : "defective pixel"
-                            2        : "shadows"
-                            3        : "cloud shadows"
-                            4        : "vegetation"
-                            5        : "non-vegetated"
-                            6        : "water"
-                            7        : "unclassified"
-                            8        : "cloud medium"
-                            9        : "cloud high"
-                            10       : "thin cirrus"
-                            11       : "snow or ice"
-                        interp_values: [0, 1, 2, 3, 8, 9, 10, 11]
-                        resampling   : "near"
-                        resolutions  : [20]
-                satellite   : "SENTINEL-2"
-                sensor      : "MSI"
-                collection_name: "sentinel-s2-l2a-cogs"
+                access_vars :
+                    AWS_DEFAULT_REGION   : "us-west-1"
+                    AWS_S3_ENDPOINT      : "s3.amazonaws.com"
+                open_data: true
     DEAFRICA                :
         s3_class            : ["deafrica_cube", "stac_cube", "raster_cube"]
         service             : "STAC"
@@ -904,10 +825,10 @@ sources:
                 satellite   : "SENTINEL-2"
                 sensor      : "MSI"
                 collection_name: "s2_l2a"
-                aws         :
+                access_vars :
                     AWS_DEFAULT_REGION: "af-south-1"
                     AWS_S3_ENDPOINT   : "s3.af-south-1.amazonaws.com"
-                    AWS_REQUEST_PAYER : "requester"
+                open_data   : true
 
 palettes:
     default:

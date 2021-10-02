@@ -30,13 +30,29 @@
     # set caller to show in errors
     .check_set_caller(".gc_new_cube")
 
-    # create a clone cube
-    cube_gc <- .sits_cube_clone(
-        cube = tile,
+    size <- .cube_tile_size(cube = tile)
+    bbox <- .cube_tile_bbox(cube = tile)
+    resolution <- .cube_tile_resolution(cube = tile)
+    cube_gc <- .sits_cube_create(
         name = name,
-        ext = "",
-        output_dir = output_dir,
-        version = version
+        source = "LOCAL",
+        collection = paste0(.cube_source(cube = tile), "/",
+                            .cube_collection(cube = tile)),
+        satellite = .cube_satellite(cube = tile),
+        sensor = .cube_sensor(cube = tile),
+        tile = .cube_tiles(cube = tile),
+        bands = .cube_bands(cube = tile),
+        labels = .cube_labels(cube = tile),
+        nrows = size$nrows,
+        ncols = size$ncols,
+        xmin = bbox$xmin,
+        xmax = bbox$xmax,
+        ymin = bbox$ymin,
+        ymax = bbox$ymax,
+        xres = resolution$xres,
+        yres = resolution$yres,
+        crs = .cube_tile_crs(cube = tile),
+        file_info = NA
     )
 
     # update cube metadata
@@ -49,11 +65,6 @@
                                              path = character())
 
     for (band in .cube_bands(tile, add_cloud = FALSE)) {
-
-
-        cv$resampling <- .source_bands_resampling(source = tile$source,
-                                                  collection = tile$collection,
-                                                  bands = band)
 
         # create a raster_cube object to each band the select below change
         # the object value
@@ -168,6 +179,9 @@
     # update nrows and ncols
     cube[, c("nrows", "ncols")] <- cube_view$space[c("ny", "nx")]
 
+    # hot fix remove cloud band
+    cube$bands[[1]] <- setdiff(cube$bands[[1]], "CLOUD")
+
     return(cube)
 }
 
@@ -224,7 +238,8 @@
     file_info <- dplyr::bind_rows(cube$file_info)
 
     # retrieving the collection format
-    format_col <- .gc_format_col(cube$source)
+    format_col <- .gc_format_col(.cube_source(cube = cube),
+                                 collection = .cube_collection(cube = cube))
 
     message("Creating database of images...")
     ic_cube <- gdalcubes::create_image_collection(
@@ -244,16 +259,17 @@
 #' Generic function with the goal that each source implements its own way of
 #' localizing the collection format file.
 #'
-#' @param source A \code{character} value referring to a valid data source.
-#' @param ...    Additional parameters.
+#' @param source     A \code{character} value referring to a valid data source.
+#' @param collection A \code{character} value referring to a valid collection.
+#' @param ...        Additional parameters.
 #'
 #' @return A \code{character} path with format collection.
-.gc_format_col <- function(source, ...) {
+.gc_format_col <- function(source, collection, ...) {
 
     # set caller to show in errors
     .check_set_caller("sits_cube")
 
-    s <- .source_new(source = source)
+    s <- .source_new(source = source, collection = collection)
 
     # Dispatch
     UseMethod(".gc_format_col", s)
@@ -261,14 +277,14 @@
 
 #' @keywords internal
 #' @export
-.gc_format_col.aws_cube <- function(source, ...) {
+`.gc_format_col.aws_cube_sentinel-s2-l2a` <- function(source, ...) {
 
     system.file("extdata/gdalcubes/s2la_aws.json", package = "sits")
 }
 
 #' @keywords internal
 #' @export
-.gc_format_col.opendata_cube <- function(source, ...) {
+`.gc_format_col.aws_cube_sentinel-s2-l2a-cogs` <- function(source, ...) {
 
     system.file("extdata/gdalcubes/s2la_aws_cogs.json", package = "sits")
 }
@@ -288,6 +304,11 @@
 #' @param agg_method A \code{character} with the method that will be applied in
 #'  the aggregation, the following are available: "min", "max", "mean",
 #'  "median" or "first".
+#' @param resampling A \code{character} with method to be used by
+#'  \code{gdalcubes} for resampling in mosaic operation.
+#'  Options: \code{near}, \code{bilinear}, \code{bicubic} or others supported by
+#'  gdalwarp (see https://gdal.org/programs/gdalwarp.html).
+#'  By default is bilinear.
 #'
 #' @return a \code{cube_view} object from gdalcubes.
 .gc_create_cube_view <- function(tile,
@@ -295,7 +316,8 @@
                                  res,
                                  roi,
                                  toi,
-                                 agg_method) {
+                                 agg_method,
+                                 resampling) {
 
     # set caller to show in errors
     .check_set_caller(".gc_create_cube_view")
@@ -354,7 +376,8 @@
         dt = period,
         dx = res,
         dy = res,
-        aggregation = agg_method
+        aggregation = agg_method,
+        resampling = resampling
     )
 
     return(cv)

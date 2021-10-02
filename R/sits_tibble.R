@@ -219,6 +219,9 @@ sits_sample <- function(data, n = NULL, frac = NULL) {
 #' sits_time_series(cerrado_2classes)
 #' @export
 sits_time_series <- function(data) {
+
+    .sits_tibble_test(data)
+
     return(data$time_series[[1]])
 }
 #' @title Create a sits tibble to store the time series information
@@ -431,20 +434,21 @@ sits_time_series <- function(data) {
     # set caller to show in errors
     .check_set_caller(".sits_tibble_test")
 
-    .check_null(x = data, "input data not provided")
+    .check_null(x = data, "Invalid data parameter")
 
-    .check_that(
-        x = nrow(data) > 0,
-        msg = "input data is empty"
+    .check_num(
+        x = nrow(data),
+        min = 1, msg = "Invalid number of rows"
     )
 
     names <- c("longitude", "latitude", "start_date", "end_date",
                "label", "cube", "time_series")
 
-    .check_chr_within(
-        x = names,
-        within = colnames(data),
-        msg = "data input is not a valid sits tibble"
+    .check_chr_contains(
+        x = colnames(data),
+        contains = names,
+        discriminator = "all_of",
+        msg = "Data is not a valid sits tibble"
     )
 
     return(TRUE)

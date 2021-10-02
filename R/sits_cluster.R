@@ -118,10 +118,9 @@ sits_cluster_frequency <- function(samples) {
     .check_set_caller("sits_cluster_frequency")
 
     # is the input data the result of a cluster function?
-    .check_chr_within(
-        x = "cluster",
-        within = names(samples),
-        discriminator = "any_of",
+    .check_chr_contains(
+        names(samples),
+        contains = "cluster",
         msg = "missing cluster column"
     )
 
@@ -168,10 +167,9 @@ sits_cluster_clean <- function(samples) {
     .check_set_caller("sits_cluster_clean")
 
     # is the input data the result of a cluster function?
-    .check_chr_within(
-        x = "cluster",
-        within = names(samples),
-        discriminator = "any_of",
+    .check_chr_contains(
+        names(samples),
+        contains = "cluster",
         msg = "input data does not contain cluster column"
     )
 
@@ -225,10 +223,9 @@ sits_cluster_clean <- function(samples) {
     }
 
     # is the input data the result of a cluster function?
-    .check_chr_within(
-        x = "cluster",
-        within = names(samples),
-        discriminator = "any_of",
+    .check_chr_contains(
+        names(samples),
+        contains = "cluster",
         msg = "input data does not have cluster column"
     )
 

@@ -93,7 +93,7 @@
         return(tile_cube)
     })
 
-    class(cube) <- c("raster_cube", class(cube))
+    class(cube) <- .cube_s3class(cube)
 
     return(cube)
 }

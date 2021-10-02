@@ -106,6 +106,7 @@
   ...,
   case_sensitive = TRUE,
   discriminator = "all_of",
+  can_repeat = TRUE,
   msg = NULL
 )
 
@@ -115,10 +116,11 @@
   ...,
   case_sensitive = TRUE,
   discriminator = "all_of",
+  can_repeat = TRUE,
   msg = NULL
 )
 
-.check_file(x, ..., msg = NULL)
+.check_file(x, ..., extensions = NULL, msg = NULL)
 
 .check_env_var(x, ..., msg = NULL)
 
@@ -193,9 +195,15 @@ with case sensitive. Default is \code{TRUE}.}
 \item{discriminator}{A \code{character} value indicating how subset
 verification will be done (see details).}
 
+\item{can_repeat}{A \code{logical} value indicating if vector \code{x}
+can have repeated elements or not.}
+
 \item{contains}{A \code{character} vector indicating a set of elements
 to which \code{x} is a kind of superset. The actual behavior is pointed by
 \code{discriminator} parameter.}
+
+\item{extensions}{A \code{character} vector with all allowed file
+extensions.}
 
 \item{expr}{A R \code{expression} to be evaluated.}
 }
@@ -328,29 +336,33 @@ For the \code{.check_chr_within()}, the error message focus on the
 \code{within} values. For the \code{.check_chr_contains()}, the error
 message focus on the \code{contains} values. The verification is done
 accordingly to the \code{discriminator} parameter, that can be:
-\code{one_of}, \code{any_of}, \code{all_of}, or \code{none_of}.
+\code{one_of}, \code{any_of}, \code{all_of}, \code{none_of}, or
+\code{exactly}.
 
 \itemize{
 \item{
 \code{.check_chr_within()} throws an error if provided \code{within} vector
 does not correspond to the \code{discriminator} with respect to \code{x}
 parameter (e.g. "one of x within...", "all of x within...).
-\code{one_of}: only one value (can repeat) of \code{x} appears
-in \code{within} vector. \code{any_of}: at least one value (can
-repeat) of \code{x} appears in \code{within} vector. \code{all_of}
-(default): all values (can repeat) of \code{x} appears in \code{within}
+\code{one_of}: only one value (can it repeat?) of \code{x} appears
+in \code{within} vector. \code{any_of}: at least one value (can it
+repeat?) of \code{x} appears in \code{within} vector. \code{all_of}
+(default): all values (can it repeat?) of \code{x} appears in \code{within}
 vector. \code{none_of}: no value of \code{x} is in \code{within} vector.
+\code{exactly}: value of \code{x} (can it repeat?) is equal to
+\code{within} vector.
 }
 \item{
 \code{.check_chr_contains()} throws an error if provided \code{x}
 vector does not correspond to the \code{discriminator} with respect to
 \code{contains} parameter (e.g. "x contains one of...",
-"x contains all of..."). \code{one_of}: only one value (can repeat) of
+"x contains all of..."). \code{one_of}: only one value (can it repeat?) of
 \code{contains} appears in \code{x} vector. \code{any_of}: at least one
-value (can repeat) of \code{contains} appears in \code{x} vector.
-\code{all_of} (default): all values (can repeat) of \code{contains}
+value (can it repeat?) of \code{contains} appears in \code{x} vector.
+\code{all_of} (default): all values (can it repeat?) of \code{contains}
 appears in \code{x} vector. \code{none_of}: no value of \code{contains} is
-in \code{x} vector.
+in \code{x} vector. \code{exactly}: value of \code{contains} is exactly
+(can it repeat?) equal to \code{x}.
 }
 }
 

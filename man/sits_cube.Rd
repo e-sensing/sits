@@ -47,7 +47,7 @@ sits_cube(source, ...)
   ...,
   name = "aws_cube",
   url = NULL,
-  collection = "sentinel-s2-l2a",
+  collection = "SENTINEL-S2-L2A-COGS",
   tiles = NULL,
   bands = NULL,
   roi = NULL,
@@ -61,7 +61,7 @@ sits_cube(source, ...)
   ...,
   name = "opendata_cube",
   url = NULL,
-  collection = "sentinel-s2-l2a-cogs",
+  collection = "SENTINEL-S2-L2A-COGS",
   tiles = NULL,
   bands = NULL,
   roi = NULL,
@@ -100,8 +100,6 @@ sits_cube(source, ...)
   source = "PROBS",
   ...,
   name = "probs_cube",
-  satellite,
-  sensor,
   start_date,
   end_date,
   probs_labels,
@@ -146,15 +144,15 @@ information
 \item{delim}{delimiter for parsing files without STAC information
 (only for creating data cubes from local files).}
 
-\item{satellite}{Satellite that produced the images
-(only for creating data cubes from local files).}
-
-\item{sensor}{Sensor that produced the images.}
-
 \item{probs_labels}{Labels associated to a probabilities cube.}
 
 \item{probs_files}{File names (used for creating a cube from
 probabilities).}
+
+\item{satellite}{Satellite that produced the images
+(only for creating data cubes from local files).}
+
+\item{sensor}{Sensor that produced the images.}
 }
 \value{
 The description of a data cube

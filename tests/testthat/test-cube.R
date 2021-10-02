@@ -238,7 +238,7 @@ test_that("Merging cubes", {
     })
 
     testthat::skip_if(purrr::is_null(ndvi_cube),
-                      "BDC is not accessible")
+                      "LOCAL cube was not found")
 
     evi_cube <- tryCatch({
         sits_cube(
@@ -314,13 +314,13 @@ test_that("Creating cubes from AWS", {
     expect_equal(s2_cube$xmin[[1]], sits:::.raster_xmin(r))
 })
 
-test_that("Creating cubes from AWS OPen Data and regularizing them", {
+test_that("Creating cubes from AWS Open Data and regularizing them", {
 
 
     testthat::expect_warning({
-        s2_cube <- sits_cube(source = "OPENDATA",
+        s2_cube <- sits_cube(source = "AWS",
                              name = "T20LKP_2018_2019",
-                             collection = "sentinel-s2-l2a-cogs",
+                             collection = "SENTINEL-S2-L2A-COGS",
                              tiles = "20LKP",
                              bands = c("B08", "SCL"),
                              start_date = "2018-07-30",
@@ -389,9 +389,9 @@ test_that("Creating cubes from classified images", {
                       message = "PROBS cube not found")
 
     expect_equal(probs_cube$ncols, 50)
-    expect_equal(sits_bands(probs_cube), "probs")
+    expect_equal(sits_bands(probs_cube), "PROBS")
     file_info <- probs_cube$file_info[[1]]
-    expect_equal(file_info$band, "probs")
+    expect_equal(file_info$band, "PROBS")
     expect_equal(file_info$path, probs_file)
 })
 
