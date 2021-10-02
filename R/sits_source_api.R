@@ -657,29 +657,32 @@ NULL
     # pre-condition
     .source_collection_check(source = source, collection = collection)
 
-    # "AWS_ACCESS_KEY_ID", "AWS_SECRET_ACCESS_KEY" are mandatory one per user
-    .check_env_var(c("AWS_ACCESS_KEY_ID",
-                     "AWS_SECRET_ACCESS_KEY"),
-                   msg = "missing environment variable.")
+    # check for AWS access keys if collection is not open data
+    if (!.source_collection_open_data(source = source,
+                                      collection = collection)) {
+
+        # "AWS_ACCESS_KEY_ID", "AWS_SECRET_ACCESS_KEY" are mandatory if
+        # cube is not open data
+        .check_env_var(c("AWS_ACCESS_KEY_ID",
+                         "AWS_SECRET_ACCESS_KEY"),
+                       msg = "missing environment variable.")
+    }
 
     # get aws default values for this collection
-    aws_lst <- .source_collection_aws(source = source,
-                                      collection = collection)
+    aws_lst <- .source_collection_access_vars(source = source,
+                                              collection = collection)
 
     # check environment variables defaults
-    .check_lst(aws_lst, min_len = 3, fn_check = .check_chr,
+    .check_chr_contains(names(aws_lst),
+                        contains = c("AWS_DEFAULT_REGION", "AWS_S3_ENDPOINT"),
+                        msg = "missing AWS_DEFAULT_REGION or AWS_S3_ENDPOINT")
+
+    .check_lst(aws_lst, fn_check = .check_chr,
                len_min = 1, len_max = 1, allow_empty = FALSE,
-               msg = paste("missing AWS_DEFAULT_REGION, AWS_S3_ENDPOINT and,",
-                           "AWS_REQUEST_PAYER not defined for this collection"))
+               msg = paste("invalid AWS environment variables"))
 
-    # "AWS_DEFAULT_REGION" - use the default
-    Sys.setenv("AWS_DEFAULT_REGION" = aws_lst[["AWS_DEFAULT_REGION"]])
-
-    # "AWS_S3_ENDPOINT" - use the default
-    Sys.setenv("AWS_S3_ENDPOINT" = aws_lst[["AWS_S3_ENDPOINT"]])
-
-    # "AWS_REQUEST_PAYER" - use the default
-    Sys.setenv("AWS_REQUEST_PAYER" = aws_lst[["AWS_REQUEST_PAYER"]])
+    # set environment variables
+    do.call(Sys.setenv, args = aws_lst)
 
     return(invisible(NULL))
 }
@@ -703,6 +706,7 @@ NULL
     # check collection
     .check_chr(collection, len_min = 1, len_max = 1,
                msg = "invalid 'collection' parameter")
+
     .check_chr_within(collection,
                       within = .source_collections(source = source),
                       msg = "invalid 'collection' parameter")
@@ -736,6 +740,36 @@ NULL
     # post-condition
     .check_chr(res, allow_empty = FALSE, len_min = 1, len_max = 1,
                msg = "invalid 'collection_name' value")
+
+    return(res)
+}
+
+#' @rdname source_collection
+#'
+#' @description \code{.source_collection_open_data()} informs if a
+#' collection is open data or not.
+#'
+#' @return \code{.source_collection_open_data()} returns a \code{logical}.
+#'
+.source_collection_open_data <- function(source,
+                                         collection) {
+
+    # source is upper case
+    source <- toupper(source)
+
+    # collection is upper case
+    collection <- toupper(collection)
+
+    # pre-condition
+    .source_collection_check(source = source,
+                             collection = collection)
+
+    res <- .config_get(key = c("sources", source, "collections", collection,
+                               "open_data"), default = FALSE)
+
+    # post-condition
+    .check_lgl(res, len_min = 1, len_max = 1,
+               msg = "invalid 'open_data' value")
 
     return(res)
 }
