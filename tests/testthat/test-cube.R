@@ -238,7 +238,7 @@ test_that("Merging cubes", {
     })
 
     testthat::skip_if(purrr::is_null(ndvi_cube),
-                      "BDC is not accessible")
+                      "LOCAL cube was not found")
 
     evi_cube <- tryCatch({
         sits_cube(
