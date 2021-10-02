@@ -86,7 +86,8 @@ sits_regularize <- function(cube,
                             period  = NULL,
                             res     = NULL,
                             roi     = NULL,
-                            agg_method = NULL,
+                            agg_method = "median",
+                            resampling = "bilinear",
                             cloud_mask = TRUE,
                             multicores = 1) {
 
@@ -95,7 +96,7 @@ sits_regularize <- function(cube,
 
     # require gdalcubes package
     if (!requireNamespace("gdalcubes", quietly = TRUE)) {
-        stop(paste("Please install package gdalcubes from CRAN:",
+        stop(paste("please, install package gdalcubes from CRAN:",
                    "install.packages('gdalcubes')"), call. = FALSE
         )
     }
@@ -103,9 +104,8 @@ sits_regularize <- function(cube,
     # supported  cubes
     .check_chr_within(
         x = .sits_cube_source(cube),
-        within = c("AWS", "OPENDATA"),
-        msg = paste("for the time being only the 'AWS' and 'OPENDATA' cubes",
-                    "can be regularized.")
+        within = c("AWS"),
+        msg = "currently only the 'AWS' cubes can be regularized."
     )
 
     .check_num(
@@ -187,7 +187,8 @@ sits_regularize <- function(cube,
                                    roi = roi,
                                    res = res,
                                    toi = toi,
-                                   agg_method = agg_method)
+                                   agg_method = agg_method,
+                                   resampling = resampling)
 
         # create of the aggregate cubes
         gc_tile <- .gc_new_cube(tile = tile,
