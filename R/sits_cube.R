@@ -365,7 +365,7 @@ sits_cube.deafrica_cube <- function(source = "DEAFRICA", ...,
 sits_cube.aws_cube <- function(source = "AWS", ...,
                                name = "aws_cube",
                                url = NULL,
-                               collection = "sentinel-s2-l2a",
+                               collection = "SENTINEL-S2-L2A-COGS",
                                tiles = NULL,
                                bands = NULL,
                                roi = NULL,
@@ -427,7 +427,7 @@ sits_cube.aws_cube <- function(source = "AWS", ...,
 sits_cube.opendata_cube <- function(source = "OPENDATA", ...,
                                     name = "opendata_cube",
                                     url = NULL,
-                                    collection = "sentinel-s2-l2a-cogs",
+                                    collection = "SENTINEL-S2-L2A-COGS",
                                     tiles = NULL,
                                     bands = NULL,
                                     roi = NULL,
@@ -438,9 +438,9 @@ sits_cube.opendata_cube <- function(source = "OPENDATA", ...,
     # collection name is upper case
     collection <- toupper(collection)
 
-    # suite of checks to verify collection parameter
-    .check_collection(source = source,
-                      collection = collection)
+    # pre-condition
+    .source_collection_check(source = source,
+                             collection = collection)
 
     if (is.null(bands))
         bands <- .source_bands(source = source,
