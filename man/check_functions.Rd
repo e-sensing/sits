@@ -106,6 +106,7 @@
   ...,
   case_sensitive = TRUE,
   discriminator = "all_of",
+  can_repeat = TRUE,
   msg = NULL
 )
 
@@ -115,10 +116,11 @@
   ...,
   case_sensitive = TRUE,
   discriminator = "all_of",
+  can_repeat = TRUE,
   msg = NULL
 )
 
-.check_file(x, ..., msg = NULL)
+.check_file(x, ..., extensions = NULL, msg = NULL)
 
 .check_env_var(x, ..., msg = NULL)
 
@@ -193,9 +195,15 @@ with case sensitive. Default is \code{TRUE}.}
 \item{discriminator}{A \code{character} value indicating how subset
 verification will be done (see details).}
 
+\item{can_repeat}{A \code{logical} value indicating if vector \code{x}
+can have repeated elements or not.}
+
 \item{contains}{A \code{character} vector indicating a set of elements
 to which \code{x} is a kind of superset. The actual behavior is pointed by
 \code{discriminator} parameter.}
+
+\item{extensions}{A \code{character} vector with all allowed file
+extensions.}
 
 \item{expr}{A R \code{expression} to be evaluated.}
 }
