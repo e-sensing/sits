@@ -1203,6 +1203,12 @@ NULL
     .source_cloud() %in% .cube_bands(cube = cube, add_cloud = TRUE)
 }
 
+#' @rdname cube_functions
+.cube_s3class <- function(cube) {
+
+    unique(c(.source_s3class(source = .cube_source(cube = cube)),
+             class(cube)))
+}
 
 #' @title meta-type for data
 #' @name .config_data_meta_type
@@ -1217,7 +1223,9 @@ NULL
     .check_set_caller(".config_data_meta_type")
 
     if (inherits(data, c("sits", "patterns", "predicted",
-                         "sits_model", "cube"))) {
+                         "sits_model", "sits_cube", "raster_cube",
+                         "probs_cube", "wtss_cube", "satveg_cube",
+                         "stac_cube", "aws_cube"))) {
         return(data)
 
     } else if (inherits(data, "tbl_df")) {
@@ -1227,7 +1235,8 @@ NULL
                   "ncols", "xmin", "xmax", "ymin", "ymax",
                   "xres", "yres", "crs") %in% colnames(data))) {
 
-            class(data) <- c("cube", class(data))
+            class(data) <- .cube_s3class(cube = data)
+
             return(data)
         } else if (all(c("longitude", "latitude", "start_date",
                          "end_date", "label", "cube",
