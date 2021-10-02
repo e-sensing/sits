@@ -5,8 +5,6 @@
 \alias{.check_bands}
 \title{Check cube collection}
 \usage{
-.check_collection(source, collection)
-
 .check_bands(source, collection, bands, s2_resolution = NULL)
 }
 \arguments{
@@ -21,11 +19,7 @@ used to build cubes (only for AWS cubes).}
 }
 \value{
 An invisible null
-
-An invisible null
 }
 \description{
-A suite of check to verify collection in cube.
-
 A suite of check to verify collection in cube.
 }
