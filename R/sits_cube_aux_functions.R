@@ -124,10 +124,10 @@
     band <- "PROBS"
     # get the file information
     file_info <- tibble::tibble(
-         band = band,
-         start_date = start_date,
-         end_date = end_date,
-         path = file_name
+        band = band,
+        start_date = start_date,
+        end_date = end_date,
+        path = file_name
     )
 
     # set the metadata for the probability cube
@@ -151,34 +151,8 @@
         file_info = file_info
     )
 
-    class(probs_cube) <- c("probs_cube", "raster_cube", class(probs_cube))
+    class(probs_cube) <- .cube_s3class(probs_cube)
     return(probs_cube)
-}
-#' @title Check that the requested bands exist in the cube
-#' @name .sits_cube_bands_check
-#' @keywords internal
-#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
-#'
-#' @param cube          Metadata about a data cube
-#' @param bands         Requested bands of the data sample
-#' @return              Checked bands (cube bands if bands are NULL)
-#'
-.sits_cube_bands_check <- function(cube, bands = NULL) {
-
-    # set caller to show in errors
-    .check_set_caller(".sits_cube_bands_check")
-
-    # if bands parameter is NULL return the cube bands
-    if (purrr::is_null(bands)) {
-        return(sits_bands(cube))
-    }
-
-    # check if bands are available
-    .check_chr_within(x = toupper(bands),
-                      within = toupper(sits_bands(cube)),
-                      msg = "bands are not available in the cube")
-
-    return(bands)
 }
 
 #' @title Clone a data cube
@@ -200,16 +174,16 @@
 
     # update the cube information
     cube_clone$file_info <-
-      purrr::map(seq_along(cube_clone$file_info), function(i) {
+        purrr::map(seq_along(cube_clone$file_info), function(i) {
 
-        newb <- paste0(cube_clone$file_info[[i]]$band, ext)
-        newp <- paste0(output_dir, "/", name[[i]], "_", newb,
-                       "_", version, ".tif")
-        cube_clone$file_info[[i]]$band <- newb
-        cube_clone$file_info[[i]]$path <- newp
+            newb <- paste0(cube_clone$file_info[[i]]$band, ext)
+            newp <- paste0(output_dir, "/", name[[i]], "_", newb,
+                           "_", version, ".tif")
+            cube_clone$file_info[[i]]$band <- newb
+            cube_clone$file_info[[i]]$path <- newp
 
-        return(cube_clone$file_info[[i]])
-      })
+            return(cube_clone$file_info[[i]])
+        })
 
     class(cube_clone) <- class(cube)
     return(cube_clone)
@@ -279,10 +253,10 @@
     if (any(!is.na(cube$tile))) {
 
         .check_length(
-          x = cube$tile,
-          len_max = length(unique(cube$tile)),
-          len_min = length(unique(cube$tile)),
-          msg = "tiles must have unique identifiers")
+            x = cube$tile,
+            len_max = length(unique(cube$tile)),
+            len_min = length(unique(cube$tile)),
+            msg = "tiles must have unique identifiers")
     }
 
     # check for uniqueness of cube names
