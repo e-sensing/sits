@@ -53,7 +53,7 @@
         crs = crs
     )
 
-    class(cube_satveg) <- c("satveg_cube", class(cube_satveg))
+    class(cube_satveg) <- .cube_s3class(cube_satveg)
 
     return(cube_satveg)
 }

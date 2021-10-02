@@ -31,7 +31,7 @@
 
         # build the file information
         file_info <- tibble::tibble(
-            band = "probs",
+            band = "PROBS",
             start_date = as.Date(start_date),
             end_date = as.Date(end_date),
             res = params$xres,
@@ -41,13 +41,12 @@
         # go tile by tile
         tile <- .sits_cube_create(
             name        = name,
-            source      = "PROBS",
+            source      = source,
             collection  = "PROBS",
-            satellite   = satellite,
-            sensor      = sensor,
-            tile        = NA,
-            bands       = list("PROBS"),
-            labels      = list(probs_labels),
+            satellite   = NA,
+            sensor      = NA,
+            bands       = "PROBS",
+            labels      = probs_labels,
             nrows       = params$nrows,
             ncols       = params$ncols,
             xmin        = params$xmin,
@@ -57,12 +56,12 @@
             xres        = params$xres,
             yres        = params$yres,
             crs         = params$crs,
-            file_info   = list(file_info)
+            file_info   = file_info
         )
         return(tile)
     })
     probs_cube <- dplyr::bind_rows(tiles)
 
-    class(probs_cube) <- c("probs_cube", "raster_cube", class(probs_cube))
+    class(probs_cube) <- .cube_s3class(probs_cube)
     return(probs_cube)
 }

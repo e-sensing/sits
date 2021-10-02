@@ -205,7 +205,7 @@ sits_regularize <- function(cube,
     # reset global option
     gdalcubes::gdalcubes_options(threads = 1)
 
-    class(gc_cube) <- c("raster_cube", class(gc_cube))
+    class(gc_cube) <- .cube_s3class(gc_cube)
 
     return(gc_cube)
 }

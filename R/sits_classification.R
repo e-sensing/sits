@@ -303,6 +303,8 @@ sits_classify.raster_cube <- function(data, ml_model, ...,
     })
 
     probs_cube <- dplyr::bind_rows(probs_rows)
-    class(probs_cube) <- c("probs_cube", "raster_cube", class(probs_cube))
+
+    class(probs_cube) <- .cube_s3class(probs_cube)
+
     return(probs_cube)
 }

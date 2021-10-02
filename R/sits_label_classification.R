@@ -298,6 +298,6 @@ sits_label_majority <- function(cube,
 
     label_cube <- dplyr::bind_rows(labels_lst)
 
-    class(label_cube) <- c("classified_image", "raster_cube", class(label_cube))
+    class(label_cube) <- .cube_s3class(label_cube)
     return(label_cube)
 }
