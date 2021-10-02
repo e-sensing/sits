@@ -121,9 +121,9 @@ sits_regularize <- function(cube,
     # test if provided object its a sits cube
     .check_that(
         x = inherits(cube, "raster_cube"),
-        msg = paste("The provided cube is invalid,",
+        msg = paste("provided cube is invalid,",
                     "please provide a 'raster_cube' object.",
-                    "See '?sits_cube' for more information.")
+                    "see '?sits_cube' for more information.")
     )
 
     # fix slashes for windows
@@ -132,18 +132,21 @@ sits_regularize <- function(cube,
     # verifies the path to save the images
     .check_that(
         x = dir.exists(output_dir),
-        msg = "Invalid 'output_dir' parameter.."
+        msg = "invalid 'output_dir' parameter."
     )
 
     path_db <- paste0(output_dir, "/gdalcubes.db")
 
-    # filter only intersecting tiles
-    intersects <- slider::slide_lgl(cube,
-                                    .sits_raster_sub_image_intersects,
-                                    roi)
+    if (!is.null(roi)) {
 
-    # retrieve only intersecting tiles
-    cube <- cube[intersects, ]
+        # filter only intersecting tiles
+        intersects <- slider::slide_lgl(cube,
+                                        .sits_raster_sub_image_intersects,
+                                        roi)
+
+        # retrieve only intersecting tiles
+        cube <- cube[intersects, ]
+    }
 
     # get the interval of intersection in all tiles
     interval_intersection <- function(cube) {
