@@ -371,7 +371,7 @@ test_that("Configs", {
     expect_error(
         .source_collection_aws_check(source = "BDC",
                                      collection = "CB4_64-1"),
-        "missing AWS_DEFAULT_REGION, AWS_S3_ENDPOINT and, AWS_REQUEST_PAYER"
+        "missing AWS_DEFAULT_REGION or AWS_S3_ENDPOINT"
     )
 
     expect_equal(
