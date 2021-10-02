@@ -100,8 +100,6 @@ sits_cube(source, ...)
   source = "PROBS",
   ...,
   name = "probs_cube",
-  satellite,
-  sensor,
   start_date,
   end_date,
   probs_labels,
