@@ -2,8 +2,6 @@
 #' @export
 .source_cube.probs_cube <- function(source, ...,
                                     name,
-                                    satellite,
-                                    sensor,
                                     start_date,
                                     end_date,
                                     probs_labels,

@@ -144,15 +144,15 @@ information
 \item{delim}{delimiter for parsing files without STAC information
 (only for creating data cubes from local files).}
 
-\item{satellite}{Satellite that produced the images
-(only for creating data cubes from local files).}
-
-\item{sensor}{Sensor that produced the images.}
-
 \item{probs_labels}{Labels associated to a probabilities cube.}
 
 \item{probs_files}{File names (used for creating a cube from
 probabilities).}
+
+\item{satellite}{Satellite that produced the images
+(only for creating data cubes from local files).}
+
+\item{sensor}{Sensor that produced the images.}
 }
 \value{
 The description of a data cube
