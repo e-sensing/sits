@@ -30,13 +30,29 @@
     # set caller to show in errors
     .check_set_caller(".gc_new_cube")
 
-    # create a clone cube
-    cube_gc <- .sits_cube_clone(
-        cube = tile,
+    size <- .cube_tile_size(cube = tile)
+    bbox <- .cube_tile_bbox(cube = tile)
+    resolution <- .cube_tile_resolution(cube = tile)
+    cube_gc <- .sits_cube_create(
         name = name,
-        ext = "",
-        output_dir = output_dir,
-        version = version
+        source = "LOCAL",
+        collection = paste0(.cube_source(cube = tile), "/",
+                            .cube_collection(cube = tile)),
+        satellite = .cube_satellite(cube = tile),
+        sensor = .cube_sensor(cube = tile),
+        tile = .cube_tiles(cube = tile),
+        bands = .cube_bands(cube = tile),
+        labels = .cube_labels(cube = tile),
+        nrows = size$nrows,
+        ncols = size$ncols,
+        xmin = bbox$xmin,
+        xmax = bbox$xmax,
+        ymin = bbox$ymin,
+        ymax = bbox$ymax,
+        xres = resolution$xres,
+        yres = resolution$yres,
+        crs = .cube_tile_crs(cube = tile),
+        file_info = NA
     )
 
     # update cube metadata
@@ -49,11 +65,6 @@
                                              path = character())
 
     for (band in .cube_bands(tile, add_cloud = FALSE)) {
-
-
-        cv$resampling <- .source_bands_resampling(source = tile$source,
-                                                  collection = tile$collection,
-                                                  bands = band)
 
         # create a raster_cube object to each band the select below change
         # the object value
