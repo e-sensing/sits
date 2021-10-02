@@ -647,7 +647,7 @@ sources:
                 satellite   : "SENTINEL-2"
                 sensor      : "MSI"
                 collection_name: "sentinel-s2-l2a"
-                aws         :
+                access_vars :
                     AWS_DEFAULT_REGION   : "eu-central-1"
                     AWS_S3_ENDPOINT      : "s3.amazonaws.com"
                     AWS_REQUEST_PAYER    : "requester"
@@ -904,10 +904,10 @@ sources:
                 satellite   : "SENTINEL-2"
                 sensor      : "MSI"
                 collection_name: "s2_l2a"
-                aws         :
+                access_vars :
                     AWS_DEFAULT_REGION: "af-south-1"
                     AWS_S3_ENDPOINT   : "s3.af-south-1.amazonaws.com"
-                    AWS_REQUEST_PAYER : "requester"
+                open_data   : true
 
 palettes:
     default:

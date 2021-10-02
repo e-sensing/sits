@@ -341,16 +341,16 @@ test_that("Configs", {
     )
 
     expect_equal(
-        .source_collection_aws(source = "AWS",
-                               collection = "SENTINEL-S2-L2A"),
+        .source_collection_access_vars(source = "AWS",
+                                       collection = "SENTINEL-S2-L2A"),
         list(AWS_DEFAULT_REGION = "eu-central-1",
              AWS_S3_ENDPOINT = "s3.amazonaws.com",
              AWS_REQUEST_PAYER = "requester")
     )
 
     expect_equal(
-        .source_collection_aws(source = "BDC",
-                               collection = "CB4_64-1"),
+        .source_collection_access_vars(source = "BDC",
+                                       collection = "CB4_64-1"),
         list()
     )
 
