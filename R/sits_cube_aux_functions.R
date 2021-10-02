@@ -222,7 +222,8 @@
 .sits_cube_file_info <- function(cube, bands = NULL) {
 
     # check bands
-    .sits_cube_bands_check(cube, bands = bands)
+    if (!is.null(bands))
+        .cube_bands_check(cube, bands = bands)
 
     # get the first tile
     file_info <- cube$file_info[[1]]

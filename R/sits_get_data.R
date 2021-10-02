@@ -131,16 +131,18 @@ sits_get_data.wtss_cube <- function(cube, file = NULL, ...,
                                     label = "NoClass",
                                     impute_fn = sits_impute_linear()) {
 
-    # Precondition - lat/long must be provided
-    .check_that(!purrr::is_null(latitude) &
-                                !purrr::is_null(longitude),
-                            msg = paste("latitude/longitude must be provided")
-    )
+    # pre-condition - lat/long must be provided
+    .check_num(latitude, min = -90, max = 90, len_min = 1,
+               len_max = 1, msg = "invalid 'latitude' parameter")
+    .check_num(longitude, min = -180, max = 180, len_min = 1,
+               len_max = 1, msg = "invalid 'longitude' parameter")
 
-    # Precondition - check bands
-    bands <- .sits_cube_bands_check(cube, bands)
+    # pre-condition - bands default value
+    if (is.null(bands))
+        bands <- .cube_bands(cube)
+    .cube_bands_check(cube, bands)
 
-    # Precondition - check and get start and end dates
+    # pre-condition - start and end dates
     start_end <- .sits_timeline_check_cube(cube, start_date, end_date)
 
     data <- .sits_get_data_from_wtss(
@@ -211,21 +213,21 @@ sits_get_data.csv_wtss_cube <- function(cube,
     # read sample information from CSV file and put it in a tibble
     csv <- tibble::as_tibble(utils::read.csv(file))
 
-    # Precondition - check if CSV file is correct
+    # pre-condition - check if CSV file is correct
     .sits_csv_check(csv)
 
-    # Precondition - check bands
-    bands <- .sits_cube_bands_check(cube, bands)
+    # pre-condition - check bands
+    if (is.null(bands))
+        bands <- .cube_bands(cube)
+    .cube_bands_check(cube, bands = bands)
 
     # for each row of the input, retrieve the time series
     data_lst <- purrr::pmap(
-        list(
-            csv$longitude,
-            csv$latitude,
-            csv$start_date,
-            csv$end_date,
-            csv$label
-        ),
+        list(csv$longitude,
+             csv$latitude,
+             csv$start_date,
+             csv$end_date,
+             csv$label),
         function(longitude, latitude, start_date, end_date, label) {
             row <- .sits_get_data_from_wtss(
                 cube = cube,
@@ -323,10 +325,12 @@ sits_get_data.shp_wtss_cube <- function(cube, file, ...,
     # Precondition - check that the timelines are compatible with the cube
     start_end <- .sits_timeline_check_cube(cube, start_date, end_date)
 
-    # Precondition - check bands
-    bands <- .sits_cube_bands_check(cube, bands)
+    # pre-condition - check bands
+    if (is.null(bands))
+        bands <- .cube_bands(cube)
+    .cube_bands_check(cube, bands = bands)
 
-    # precondition - check the shape file and its attribute
+    # pre-condition - check the shape file and its attribute
     sf_shape <- .sits_shp_check_validity(
         shp_file = file, shp_attr = shp_attr,
         label = label
@@ -446,8 +450,10 @@ sits_get_data.raster_cube <- function(cube, file = NULL, ...,
     # Precondition - check and get start and end dates
     start_end <- .sits_timeline_check_cube(cube, start_date, end_date)
 
-    # Precondition - check bands
-    bands <- .sits_cube_bands_check(cube, bands)
+    # pre-condition - check bands
+    if (is.null(bands))
+        bands <- .cube_bands(cube)
+    .cube_bands_check(cube, bands = bands)
 
     ll <- tibble::tibble(
         id = 1,
@@ -505,11 +511,13 @@ sits_get_data.csv_raster_cube <- function(cube, file, ...,
         csv <- csv[1:.n_pts_csv, ]
     }
 
-    # precondition - csv has to contain valid columns
+    # pre-condition - csv has to contain valid columns
     .sits_csv_check(csv)
 
-    # precondition - check bands
-    bands <- .sits_cube_bands_check(cube, bands)
+    # pre-condition - check bands
+    if (is.null(bands))
+        bands <- .cube_bands(cube)
+    .cube_bands_check(cube, bands = bands)
 
     # convert to date
     csv$start_date <- lubridate::as_date(csv$start_date)
@@ -573,8 +581,10 @@ sits_get_data.shp_raster_cube <- function(cube, file, ...,
     # precondition - check the start and end date
     start_end <- .sits_timeline_check_cube(cube, start_date, end_date)
 
-    # precondition - check bands
-    bands <- .sits_cube_bands_check(cube, bands)
+    # pre-condition - check bands
+    if (is.null(bands))
+        bands <- .cube_bands(cube)
+    .cube_bands_check(cube, bands = bands)
 
     # get the points to be read
     points <- .sits_shp_to_tibble(
