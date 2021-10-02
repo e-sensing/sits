@@ -246,9 +246,9 @@ sits_cube.wtss_cube <- function(source = "WTSS", ...,
                                 url = NULL,
                                 collection) {
 
-    # suite of checks to verify collection parameter
-    .check_collection(source = source,
-                      collection = collection)
+    # pre-condition
+    .source_collection_check(source = source,
+                             collection = collection)
 
     # Pre-condition - try to find the access key as an environment variable
     .check_env_var(x = "BDC_ACCESS_KEY",
@@ -276,9 +276,9 @@ sits_cube.bdc_cube <- function(source = "BDC", ...,
                                start_date = NULL,
                                end_date = NULL) {
 
-    # suite of checks to verify collection parameter
-    .check_collection(source = source,
-                      collection = collection)
+    # pre-condition
+    .source_collection_check(source = source,
+                             collection = collection)
 
     # Pre-condition - try to find the access key as an environment variable
     .check_env_var(x = "BDC_ACCESS_KEY",
@@ -326,9 +326,9 @@ sits_cube.deafrica_cube <- function(source = "DEAFRICA", ...,
     # collection name is upper case
     collection <- toupper(collection)
 
-    # suite of checks to verify collection parameter
-    .check_collection(source = source,
-                      collection = collection)
+    # pre-condition
+    .source_collection_check(source = source,
+                             collection = collection)
 
     # precondition - is AWS access available?
     .source_collection_aws_check(source = source,
@@ -387,9 +387,9 @@ sits_cube.aws_cube <- function(source = "AWS", ...,
     .check_that(x = s2_resolution %in% c(10, 20, 60),
                 msg = "s2_resolution should be one of c(10, 20, 60)")
 
-    # suite of checks to verify collection parameter
-    .check_collection(source = source,
-                      collection = collection)
+    # pre-condition
+    .source_collection_check(source = source,
+                             collection = collection)
 
     # precondition - is AWS access available?
     .source_collection_aws_check(source, collection)
@@ -482,9 +482,9 @@ sits_cube.usgs_cube <- function(source = "USGS", ...,
     # collection name is upper case
     collection <- toupper(collection)
 
-    # suite of checks to verify collection parameter
-    .check_collection(source = source,
-                      collection = collection)
+    # pre-condition
+    .source_collection_check(source = source,
+                             collection = collection)
 
     # precondition
     .check_chr(x = tiles,
