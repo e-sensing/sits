@@ -553,9 +553,9 @@ sits_cube.local_cube <- function(source = "LOCAL", ...,
                msg = "invalid parsing information.")
 
     # precondition - does the parse info have band and date?
-    .check_chr_within(
-        x = c("tile", "band", "date"),
-        within = parse_info,
+    .check_chr_contains(
+        parse_info,
+        contains = c("tile", "band", "date"),
         msg = "parse_info must include tile, date, and band.")
 
     # bands in upper case
