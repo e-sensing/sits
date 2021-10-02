@@ -1285,38 +1285,6 @@ NULL
 #'
 #' @description A suite of check to verify collection in cube.
 #'
-#' @param source     Data source
-#' @param collection Collection to be searched in the data source.
-#'
-#' @return An invisible null
-.check_collection <- function(source, collection) {
-
-    # set caller to show in errors
-    .check_set_caller(".check_collection")
-
-    # precondition - is the collection name a character?
-    .check_chr_type(x = collection, msg = paste("collection should",
-                                                "be a character.")
-    )
-
-    # precondition - is the collection a single value?
-    .check_length(x = collection, len_max = 1,
-                  msg = "collection should be a single value.")
-
-    # precondition - is the collection in config file?
-    .check_chr_within(x = collection,
-                      within = .source_collections(source),
-                      msg = paste("the given collection should be",
-                                  "in the configuration file"))
-
-    return(invisible(NULL))
-}
-
-#' @title Check cube collection
-#' @name .check_collection
-#'
-#' @description A suite of check to verify collection in cube.
-#'
 #' @param source        Data source
 #' @param collection    Collection to be searched in the data source.
 #' @param bands         Bands to be included.
