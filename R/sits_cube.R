@@ -940,16 +940,18 @@ NULL
     .check_length(tile, len_min = 1, len_max = nrow(cube),
                   "invalid 'tile' parameter")
 
-    if (is.numeric(tile))
-        .check_num(tile, min = 1, max = nrow(cube), is_integer = TRUE,
+    if (is.numeric(tile)) {
+        .check_num(tile, min = 1, max = nrow(cube),
+                   len_min = 1, is_integer = TRUE,
                    msg = "invalid 'tile' parameter"
         )
-    else if (is.character(tile))
+    } else if (is.character(tile)) {
         .check_chr_within(tile,
                           within = .cube_tiles(cube = cube),
                           discriminator = "one_of",
                           msg = "invalid 'tile' parameter"
         )
+    }
 
     return(invisible(tile))
 }
@@ -967,8 +969,8 @@ NULL
 
     if (is.numeric(tile))
         res <- c(cube[tile, fields])
-
-    res <- c(cube[which(.cube_tiles(cube = cube) %in% tile), fields])
+    else
+        res <- c(cube[which(.cube_tiles(cube = cube) %in% tile), fields])
 
     # post-condition
     .check_lst(res, min_len = length(fields), max_len = length(fields),
