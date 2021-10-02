@@ -780,6 +780,12 @@ sits_cube_copy <- function(cube,
 NULL
 
 #' @rdname cube_functions
+.cube_check <- function(cube) {
+
+    return(inherits(cube, "sits_cube"))
+}
+
+#' @rdname cube_functions
 .cube_satellite <- function(cube) {
 
     res <- unique(cube[["satellite"]])
