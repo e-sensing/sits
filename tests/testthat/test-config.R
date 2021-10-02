@@ -84,7 +84,7 @@ test_that("User functions", {
 
     expect_equal(
         .sources(),
-        c("CLASSIFIED", "PROBS", "BDC", "WTSS", "SATVEG", "AWS", "OPENDATA",
+        c("CLASSIFIED", "PROBS", "BDC", "WTSS", "SATVEG", "AWS",
           "DEAFRICA", "LOCAL")
     )
 
@@ -149,7 +149,7 @@ test_that("User functions", {
 
     expect_equal(
         .sources(),
-        c("CLASSIFIED", "PROBS", "BDC", "WTSS", "SATVEG", "AWS", "OPENDATA",
+        c("CLASSIFIED", "PROBS", "BDC", "WTSS", "SATVEG", "AWS",
           "DEAFRICA", "LOCAL")
     )
 
@@ -164,7 +164,7 @@ test_that("User functions", {
 
     expect_true(
         any(grepl(
-            "- CLASSIFIED, PROBS, BDC, WTSS, SATVEG, AWS, OPENDATA, DEAFRICA, LOCAL",
+            "- CLASSIFIED, PROBS, BDC, WTSS, SATVEG, AWS, DEAFRICA, LOCAL",
             config_txt
         ))
     )
@@ -233,7 +233,7 @@ test_that("User functions", {
 
     expect_equal(
         .sources(),
-        c("CLASSIFIED", "PROBS", "BDC", "WTSS", "SATVEG", "AWS", "OPENDATA",
+        c("CLASSIFIED", "PROBS", "BDC", "WTSS", "SATVEG", "AWS",
           "DEAFRICA", "LOCAL", "TEST")
     )
 
