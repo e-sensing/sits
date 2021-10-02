@@ -118,10 +118,9 @@ sits_accuracy.sits <- function(data, ...) {
     }
 
     # does the input data contain a set of predicted values?
-    .check_chr_within(
-        x = "predicted",
-        within = names(data),
-        discriminator = "any_of",
+    .check_chr_contains(
+        x = names(data),
+        contains = "predicted",
         msg = "input data without predicted values"
     )
 
@@ -341,11 +340,11 @@ sits_accuracy.classified_image <- function(data, ..., validation_csv) {
     # set caller to show in errors
     .check_set_caller(".sits_accuracy_area_assess")
 
-    .check_chr_within(
-        x = "classified_image",
-        within = class(cube),
-        discriminator = "any_of",
+    .check_chr_contains(
+        x = class(cube),
+        contains = "classified_image",
         msg = "not a classified cube")
+
     if (any(dim(error_matrix) == 0)) {
         stop("Invalid dimensions in error matrix.", call. = FALSE)
     }
@@ -447,10 +446,9 @@ sits_accuracy_summary <- function(x,
         print.sits_area_assessment(x)
         return(invisible(TRUE))
     }
-    .check_chr_within(
-        x = "sits_assessment",
-        within = class(x),
-        discriminator = "any_of",
+    .check_chr_contains(
+        x = class(x),
+        contains = "sits_assessment",
         msg = "please run sits_accuracy first"
     )
 
