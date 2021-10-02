@@ -674,28 +674,38 @@ sits_cube_copy <- function(cube,
         # get the bounding box
         bbox <- .sits_roi_bbox(roi, cube)
 
-    # Get the subimage
-    si <- .sits_raster_sub_image_from_bbox(bbox, cube)
 
-    # test subwindow
-    srcwin <- vector("double", length = 4)
-    names(srcwin) <- c("xoff", "yoff", "xsize", "ysize")
-    srcwin["xoff"] <- si["first_col"] - 1
-    srcwin["yoff"] <- si["first_row"] - 1
-    srcwin["xsize"] <- si["ncols"]
-    srcwin["ysize"] <- si["nrows"]
+    # filter only intersecting tiles
+    intersects <- slider::slide_lgl(
+        cube, .sits_raster_sub_image_intersects, bbox
+    )
 
-    .check_that(
-        x = (srcwin["xoff"] + srcwin["xsize"]) <= cube$ncols,
-        msg = "srcwin x values bigger than cube size"
-    )
-    .check_that(
-        x = (srcwin["yoff"] + srcwin["ysize"]) <= cube$nrows,
-        msg = "srcwin y values bigger than cube size"
-    )
+    # retrieve only intersecting tiles
+    cube <- cube[intersects, ]
 
     # the label cube may contain several classified images
-    cube_rows <- slider::slide(cube, function(row) {
+    copy_cube <- slider::slide_dfr(cube, function(row) {
+
+        # Get the subimage
+        si <- .sits_raster_sub_image_from_bbox(bbox, row)
+
+        # test subwindow
+        srcwin <- vector("double", length = 4)
+        names(srcwin) <- c("xoff", "yoff", "xsize", "ysize")
+        srcwin["xoff"] <- si["first_col"] - 1
+        srcwin["yoff"] <- si["first_row"] - 1
+        srcwin["xsize"] <- si["ncols"]
+        srcwin["ysize"] <- si["nrows"]
+
+        .check_that(
+            x = srcwin["xsize"] <= row$ncols,
+            msg = "srcwin x values bigger than cube size"
+        )
+        .check_that(
+            x = srcwin["ysize"] <= row$nrows,
+            msg = "srcwin y values bigger than cube size"
+        )
+
         # get information on the file
         file_info <- row$file_info[[1]]
 
@@ -708,7 +718,8 @@ sits_cube_copy <- function(cube,
         # get all the bands which are requested
         file_info_out <- dplyr::filter(file_info, band %in% bands)
         # remove token (if existing)
-        file_no_token <- gsub("^([^?]+)(\\?.*)?$", "\\1", file_info_out$path[[1]])
+        file_no_token <- gsub("^([^?]+)(\\?.*)?$", "\\1",
+                              file_info_out$path[[1]])
         # get the file extension
         file_ext <- tools::file_ext(file_no_token)
 
@@ -754,8 +765,10 @@ sits_cube_copy <- function(cube,
         row$bands[[1]] <- bands
         return(row)
     })
-    cube <- do.call(rbind, cube_rows)
-    return(cube)
+
+    class(copy_cube) <- class(cube)
+
+    return(copy_cube)
 }
 
 
