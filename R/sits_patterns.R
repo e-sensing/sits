@@ -105,12 +105,12 @@ sits_patterns <- function(data = NULL, freq = 8, formula = y ~ s(x), ...) {
                     purrr::map(function(bd) {
                         # retrieve the time series for each band
                         label_b <- sits_select(label_rows, bd)
-                        ts <- label_b$time_series
+                        ts <- dplyr::bind_rows(label_b$time_series)
 
                         # melt the time series for each band into a long table
                         # with all values together
                         ts2 <- ts %>%
-                            reshape2::melt(id.vars = "Index") %>%
+                            tidyr::pivot_longer(cols = -Index, names_to = "variable") %>%
                             dplyr::select(Index, value) %>%
                             dplyr::transmute(x = as.numeric(Index), y = value)
 

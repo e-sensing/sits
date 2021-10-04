@@ -154,8 +154,6 @@
 #' @param collection Collection to be searched in the data source
 #' @param name       Name of the output data cube.
 #' @param bands      Bands to be included
-#' @param tiles      Tiles from the collection to be included in the
-#'                   data cube
 #' @param bbox       Area of interest.
 #' @param start_date Initial date for the cube (optional).
 #' @param end_date   Final date for the cube  (optional).
@@ -167,7 +165,6 @@
                               collection,
                               name,
                               bands,
-                              tiles,
                               bbox = NULL,
                               start_date = NULL,
                               end_date = NULL,

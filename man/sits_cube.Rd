@@ -6,7 +6,6 @@
 \alias{sits_cube.bdc_cube}
 \alias{sits_cube.deafrica_cube}
 \alias{sits_cube.aws_cube}
-\alias{sits_cube.opendata_cube}
 \alias{sits_cube.usgs_cube}
 \alias{sits_cube.local_cube}
 \alias{sits_cube.probs_cube}
@@ -52,19 +51,6 @@ sits_cube(source, ...)
   bands = NULL,
   roi = NULL,
   s2_resolution = 20,
-  start_date = NULL,
-  end_date = NULL
-)
-
-\method{sits_cube}{opendata_cube}(
-  source = "OPENDATA",
-  ...,
-  name = "opendata_cube",
-  url = NULL,
-  collection = "SENTINEL-S2-L2A-COGS",
-  tiles = NULL,
-  bands = NULL,
-  roi = NULL,
   start_date = NULL,
   end_date = NULL
 )
@@ -203,32 +189,48 @@ GeoJSON geometry (RFC 7946). Note that this parameter does not crop a
 region, but only selects the images that intersect with it.
 }
 \note{
-For AWS, sits currently only works with collection "s2_l2a".
-Users need to provide AWS credentials using environment variables.
-# Sys.setenv(
-# "AWS_ACCESS_KEY_ID"     = <your_access_key>,
-# "AWS_SECRET_ACCESS_KEY" = <your_secret_access_key>,
-# "AWS_DEFAULT_REGION"    = <your AWS region>,
-# "AWS_S3_ENDPOINT" = "s3.amazonaws.com",
-# "AWS_REQUEST_PAYER"     = "requester"
-# )
+In AWS, there are two types of collections: open-data and
+requester-pays data. Currently, `sits` supports collection "SENTINEL-S2-L2A"
+(requester-pays) and "SENTINEL-S2-L2A-COGS" (open-data).
 
+For AWS collection "SENTINEL-S2-L2A-COGS" (open-data),
 Sentinel-2/2A level 2A files in AWS are organized by sensor
 resolution. The AWS bands in 10m resolution are "B02", "B03", "B04", and
-"B08". The  20m bands are "B02", "B03", "B04", "B05", "B06", "BO7", B08",
+"B08". The  20m bands are "B05", "B06", "B07", B8A",
+"B8A", "B11", and "B12". Bands "B01" and "B09" are available at 60m resolution.
+There is no need to provide AWS credentials to access this collection.
+
+Sentinel-2/2A level 2A files in collection "SENTINEL-S2-L2A"
+in AWS are organized by sensor. The  bands in 10m resolution are
+"B02", "B03", "B04", and "B08".
+The  20m bands are "B02", "B03", "B04", "B05", "B06", "BO7", B08",
 "B8A", "B11", and "B12". All 12 bands are available at 60m resolution.
 For creating data cubes from Sentinel-2/2A, users also have to specify
 the `s2_resolution` parameter.
 
-For DEA, sits currently only works with collections 'ga_s2_gm' and
-'s2_l2a'. DEA users also need to provide their AWS credentials.
+Since this collection is not open data, users
+need to provide AWS credentials to access this collection.
+Sys.setenv(
+"AWS_ACCESS_KEY_ID"     = <your_access_key>,
+"AWS_SECRET_ACCESS_KEY" = <your_secret_access_key>
+)
+
+For DEAFRICA, sits currently only works with collection 'S2_L2A'.
+This collection is the same as AWS collection "SENTINEL-S2-L2A-COGS".
+No credentials are required, since all DEAFRICA collections are
+acessible as open data.
 
 BDC users need to provide their credentials using environmental
-variables.To create your credentials, please see
- "https://brazildatacube.dpi.inpe.br/portal/explore"
-# Sys.setenv(
-# "BDC_ACCESS_KEY" = <your_bdc_access_key>
-# )
+variables. To create your credentials, please see
+ "https://brazildatacube.dpi.inpe.br/portal/explore". There is no
+ cost for accessing data in the BDC.
+ After obtaining the BDC access key, please include it as
+ an environmental variable.
+Sys.setenv(
+"BDC_ACCESS_KEY" = <your_bdc_access_key>
+)
+
+All BDC collections have been regularized.
 
 To create a cube from local files, all image files should have
 the same spatial resolution and projection. Files can belong to different

@@ -471,13 +471,13 @@ plot.keras_model <- function(x, y, ...) {
         }
     )
 
-    plot.df <- reshape2::melt(plot.df, id.vars = c("Time", "Pattern"))
+    plot.df <- tidyr::pivot_longer(plot.df, cols = sits_bands(data))
 
     # Plot temporal patterns
     gp <- ggplot2::ggplot(plot.df, ggplot2::aes_string(
         x = "Time",
         y = "value",
-        colour = "variable"
+        colour = "name"
     )) +
         ggplot2::geom_line() +
         ggplot2::facet_wrap(~Pattern) +
@@ -636,7 +636,7 @@ plot.keras_model <- function(x, y, ...) {
     data_ts <- row$time_series
     # melt the data into long format
     melted_ts <- data_ts %>%
-        reshape2::melt(id.vars = "Index") %>%
+        tidyr::pivot_longer(cols = -Index, names_to = "variable") %>%
         as.data.frame()
     # plot the data with ggplot
     g <- ggplot2::ggplot(melted_ts, ggplot2::aes(
@@ -793,7 +793,7 @@ plot.keras_model <- function(x, y, ...) {
                 Series = as.factor(lb)
             )
             # melt the time series data for plotting
-            df_x <- reshape2::melt(df_x, id.vars = c("Time", "Series"))
+            df_x <- tidyr::pivot_longer(df_x, cols = -c("Time", "Series"), names_to = "variable")
             # define a nice set of breaks for value plotting
             y_labels <- scales::pretty_breaks()(range(df_x$value,
                                                       na.rm = TRUE
@@ -1141,10 +1141,6 @@ plot.keras_model <- function(x, y, ...) {
         colors <- unname(legend[labels])
 
     }
-
-
-
-
     # set the names of the color vector
     names(colors) <- as.character(c(1:nclasses))
 
