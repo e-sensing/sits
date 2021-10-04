@@ -42,17 +42,6 @@ acc_rfor$name <- "rfor"
 
 results[[length(results) + 1]] <- acc_rfor
 
-# =============== LDA ==============================
-print("== Accuracy Assessment = LDA =======================")
-acc_lda <- sits_kfold_validate(samples_modis_4bands,
-    folds = 5,
-    multicores = 2,
-    ml_method = sits_lda()
-)
-acc_lda$name <- "lda"
-results[[length(results) + 1]] <- acc_lda
-
-
 # =============== MLR ==============================
 print("== Accuracy Assessment = MLR =======================")
 acc_mlr <- sits_kfold_validate(samples_modis_4bands,

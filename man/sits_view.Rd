@@ -2,20 +2,29 @@
 % Please edit documentation in R/sits_view.R
 \name{sits_view}
 \alias{sits_view}
+\alias{sits_view.sits}
 \alias{sits_view.raster_cube}
 \alias{sits_view.classified_image}
 \title{Generic interface for visualization of data cube}
 \usage{
 sits_view(x, ...)
 
-\method{sits_view}{raster_cube}(x, ..., red, green, blue, time = 1, roi = NULL)
+\method{sits_view}{sits}(x, ..., legend = NULL, palette = "default")
+
+\method{sits_view}{raster_cube}(x, ..., map = NULL, red, green, blue, time = 1, roi = NULL)
 
 \method{sits_view}{classified_image}(x, ..., map = NULL, time = 1, legend = NULL)
 }
 \arguments{
-\item{x}{object of class "raster_cube" or "classified image"}
+\item{x}{object of class "sits", "raster_cube" or "classified image"}
 
 \item{...}{further specifications for \link{sits_view}.}
+
+\item{legend}{named vector that associates labels to colors}
+
+\item{palette}{palette provided in the configuration file}
+
+\item{map}{map to overlay (mapview object)}
 
 \item{red}{band for red color.}
 
@@ -26,16 +35,12 @@ sits_view(x, ...)
 \item{time}{temporal instances to be plotted.}
 
 \item{roi}{sf object giving a region of interest.}
-
-\item{map}{map to overlay (mapview object)}
-
-\item{legend}{named vector that associates labels to colors}
 }
 \value{
 mapview object
 }
 \description{
-Uses mapview to visualize raster cube and classified images
+Uses mapview to visualize time series, raster cube and classified images
 }
 \examples{
 \donttest{

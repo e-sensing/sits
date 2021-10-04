@@ -60,7 +60,6 @@ Suggests:
     dtwclust,
     dtwSat,
     e1071,
-    flexclust,
     gdalcubes,
     imputeTS, 
     keras (>= 2.6.0),
@@ -72,13 +71,11 @@ Suggests:
     mgcv,
     nnet,
     openxlsx,
-    ptw,
     reticulate (>= 1.18),
     randomForest,
     Rcpp,
     RcppArmadillo,
     Rwtss (>= 0.9.1),
-    signal,
     stars,
     stringr,
     testthat (>= 3.0.2),
@@ -146,6 +143,7 @@ Collate:
     'sits_roi.R'
     'sits_satveg.R'
     'sits_select.R'
+    'sits_signal.R'
     'sits_shp.R'
     'sits_smooth.R'
     'sits_smooth_aux_functions.R'

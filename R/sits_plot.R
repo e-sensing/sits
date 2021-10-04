@@ -130,6 +130,7 @@ plot.predicted <- function(x, y, ..., bands = "NDVI") {
 #' @param  roi           sf object giving a region of interest.
 #'
 #' @return               plot object
+#' @export
 plot.raster_cube <- function(x, ...,
                                   band = NULL,
                                   red,
@@ -261,7 +262,7 @@ plot.probs_cube <- function(x, y, ..., time = 1,
     if (!requireNamespace("stars", quietly = TRUE)) {
         stop("Please install package stars.", call. = FALSE)
     }
-    # define the output color pallete
+    # define the output color palette
     col <- grDevices::hcl.colors(10, colors, rev = TRUE)
     # create a stars object
     st <- stars::read_stars(x$file_info[[1]]$path[[time]])
@@ -429,7 +430,7 @@ plot.keras_model <- function(x, y, ...) {
 #' @description For each lat/long location in the data, join temporal
 #' instances of the same place together for plotting.
 #' @param data    One or more time series (stored in a sits tibble).
-#' @param colors  The color pallete to be used (default is "Set2").
+#' @param colors  The color palette to be used (default is "Set2").
 .sits_plot_allyears <- function(data, colors) {
     locs <- dplyr::distinct(data, longitude, latitude)
 
@@ -500,7 +501,7 @@ plot.keras_model <- function(x, y, ...) {
 #' the time series for a given label.
 #'
 #' @param    data    A sits tibble with the list of time series to be plotted.
-#' @param    colors  The color pallete to be used (default is "Set1").
+#' @param    colors  The color palette to be used (default is "Set1").
 #' @return           The plot itself.
 .sits_plot_together <- function(data, colors) {
     # create a data frame with the median, and 25% and 75% quantiles

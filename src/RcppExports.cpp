@@ -105,6 +105,19 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// smooth_whit
+NumericVector smooth_whit(const NumericVector& data, const double& lambda, const int& length);
+RcppExport SEXP _sits_smooth_whit(SEXP dataSEXP, SEXP lambdaSEXP, SEXP lengthSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< const NumericVector& >::type data(dataSEXP);
+    Rcpp::traits::input_parameter< const double& >::type lambda(lambdaSEXP);
+    Rcpp::traits::input_parameter< const int& >::type length(lengthSEXP);
+    rcpp_result_gen = Rcpp::wrap(smooth_whit(data, lambda, length));
+    return rcpp_result_gen;
+END_RCPP
+}
 
 static const R_CallMethodDef CallEntries[] = {
     {"_sits_apply_transition_matrix", (DL_FUNC) &_sits_apply_transition_matrix, 3},
@@ -114,6 +127,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"_sits_linear_interp", (DL_FUNC) &_sits_linear_interp, 1},
     {"_sits_linear_interp_vec", (DL_FUNC) &_sits_linear_interp_vec, 1},
     {"_sits_normalize_data", (DL_FUNC) &_sits_normalize_data, 3},
+    {"_sits_smooth_whit", (DL_FUNC) &_sits_smooth_whit, 3},
     {NULL, NULL, 0}
 };
 

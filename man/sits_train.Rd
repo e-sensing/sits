@@ -20,8 +20,6 @@ Given a tibble with a set of distance measures,
    returns trained models. Currenly, sits supports the following models:
 'svm' (see \code{\link[sits]{sits_svm}}),
 random forests (see \code{\link[sits]{sits_rfor}}),
-linear discriminant analysis (see \code{\link[sits]{sits_lda}}),
-quadratic discriminant analysis (see \code{\link[sits]{sits_qda}}),
 multinomial logit (see \code{\link[sits]{sits_mlr}}) and its variants
 'lasso' (see \code{\link[sits]{sits_mlr}}) and
 'ridge' (see \code{\link[sits]{sits_mlr}}),

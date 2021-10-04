@@ -9,7 +9,7 @@
 \arguments{
 \item{data}{One or more time series (stored in a sits tibble).}
 
-\item{colors}{The color pallete to be used (default is "Set2").}
+\item{colors}{The color palette to be used (default is "Set2").}
 }
 \description{
 For each lat/long location in the data, join temporal
