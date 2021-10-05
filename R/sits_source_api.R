@@ -794,11 +794,11 @@ NULL
                              collection = collection)
 
     res <- .config_get(key = c("sources", source, "collections", collection,
-                               "token"), default = FALSE)
+                               "open_data_token"), default = FALSE)
 
     # post-condition
     .check_lgl(res, len_min = 1, len_max = 1,
-               msg = "invalid 'token' value")
+               msg = "invalid 'open_data_token' value")
 
     return(res)
 }
