@@ -50,7 +50,7 @@
     n_bytes <- 8
 
     # total memory needed to do all work in GB
-    needed_memory <- x_size * y_size * n_layers * bloat_mem * n_bytes * 1E-09
+    needed_memory <- 1E-09 * x_size * y_size * n_layers * bloat_mem * n_bytes
 
     # minimum block size
     min_block_x_size <- x_size # for now, only allowing vertical blocking
@@ -262,10 +262,10 @@
     slider::slide2(cube, cube_out, function(cube_row, out_file_row) {
 
         # open probability file
-        in_files <- cube_row$file_info[[1]]$path
+        in_file <- cube_row$file_info[[1]]$path
 
         # retrieve the files to be read and written
-        out_files <- out_file_row$file_info[[1]]$path
+        out_file <- out_file_row$file_info[[1]]$path
 
         # compute how many tiles to be computed
         block_size <- .sits_smooth_blocks_size_estimate(cube = cube_row,
@@ -278,10 +278,10 @@
             block_y_size = block_size[["block_y_size"]],
             overlapping_y_size = overlapping_y_size)
 
-        # traverse all years
-        purrr::map2(in_files, out_files, .sits_call_workers_cluster,
-                    blocks = blocks, cl = cl)
-
+        .sits_call_workers_cluster(in_file = in_file,
+                                   out_file = out_file,
+                                   blocks = blocks,
+                                   cl = cl)
     })
 
     return(invisible(cube_out))
