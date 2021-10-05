@@ -226,13 +226,20 @@ sits_list_collections <- function(source = NULL) {
         cat(paste0(s, ":\n"))
         collections <- .source_collections(source = s)
         purrr::map(collections, function(c){
-            # get collection information
 
             cat(paste0("- ", c))
             cat(paste0(" (", .source_collection_satellite(s, c),
                        "/", .source_collection_sensor(s, c), ")\n"))
             cat("- bands: ")
             cat(.source_bands(s, c))
+            cat("\n")
+            if (.source_collection_open_data(source = s, collection = c)) {
+                cat("- opendata collection ")
+                if (.source_collection_open_data_token(source = s,
+                                                       collection = c))
+                    cat("(requires access token)")
+
+            }
             cat("\n")
             cat("\n")
         })

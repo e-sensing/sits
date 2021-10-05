@@ -72,28 +72,6 @@ test_that("Random Forest", {
         sits_labels(samples_mt_ndvi)))
     expect_true(nrow(sits_show_prediction(point_class)) == 17)
 })
-
-test_that("LDA", {
-    samples_mt_ndvi <- sits_select(samples_modis_4bands, bands = "NDVI")
-    lda_model <- sits_train(samples_mt_ndvi, sits_lda())
-    point_ndvi <- sits_select(point_mt_6bands, bands = "NDVI")
-    point_class <- sits_classify(point_ndvi, lda_model)
-
-    expect_true(all(point_class$predicted[[1]]$class %in%
-        sits_labels(samples_mt_ndvi)))
-    expect_true(nrow(sits_show_prediction(point_class)) == 17)
-})
-
-test_that("QDA", {
-    samples_mt_ndvi <- sits_select(samples_modis_4bands, bands = "NDVI")
-    qda_model <- sits_train(samples_mt_ndvi, sits_qda())
-    point_ndvi <- sits_select(point_mt_6bands, bands = "NDVI")
-    point_class <- sits_classify(point_ndvi, qda_model)
-
-    expect_true(all(point_class$predicted[[1]]$class %in%
-        sits_labels(samples_mt_ndvi)))
-    expect_true(nrow(sits_show_prediction(point_class)) == 17)
-})
 test_that("MLR", {
     # skip_on_cran()
     samples_mt_ndvi <- sits_select(samples_modis_4bands, bands = "NDVI")

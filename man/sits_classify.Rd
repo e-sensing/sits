@@ -78,8 +78,6 @@ SITS supports the following models:
 \itemize{
  \item{support vector machines: } {see \code{\link[sits]{sits_svm}}}
  \item{random forests: }          {see \code{\link[sits]{sits_rfor}}}
- \item{linear discriminant analysis: } {see \code{\link[sits]{sits_lda}}}
- \item{quadratic discriminant analysis: } {see \code{\link[sits]{sits_qda}}}
  \item{multinomial logit: }       {see \code{\link[sits]{sits_mlr}}}
  \item{extreme gradient boosting: } {see \code{\link[sits]{sits_xgboost}}}
  \item{multi-layer perceptrons: } {see \code{\link[sits]{sits_mlp}}}

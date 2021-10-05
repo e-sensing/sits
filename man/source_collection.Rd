@@ -4,23 +4,29 @@
 \alias{source_collection}
 \alias{.source_collections}
 \alias{.source_access_test}
-\alias{.source_collection_aws}
+\alias{.source_collection_access_vars}
 \alias{.source_collection_aws_check}
 \alias{.source_collection_check}
 \alias{.source_collection_name}
+\alias{.source_collection_open_data}
+\alias{.source_collection_open_data_token}
 \title{Source collection functions}
 \usage{
 .source_collections(source)
 
 .source_access_test(source, collection, ...)
 
-.source_collection_aws(source, collection)
+.source_collection_access_vars(source, collection)
 
 .source_collection_aws_check(source, collection)
 
 .source_collection_check(source, collection)
 
 .source_collection_name(source, collection)
+
+.source_collection_open_data(source, collection)
+
+.source_collection_open_data_token(source, collection)
 }
 \arguments{
 \item{source}{A \code{character} value referring to a valid data source.}
@@ -34,8 +40,8 @@ The values returned by each function are described as follows.
 \code{.source_collections()} returns a \code{character} vector
 with all collection names of a given source.
 
-\code{.source_collection_aws()} returns a named \code{list} with
-AWS environment variables.
+\code{.source_collection_access_vars()} returns a named
+\code{list} with environment variables.
 
 \code{.source_collection_aws_check()} returns \code{NULL} if
 no error occurs.
@@ -44,6 +50,10 @@ no error occurs.
 no error occurs.
 
 \code{.source_collection_name()} returns a \code{character}.
+
+\code{.source_collection_open_data()} returns a \code{logical}.
+
+\code{.source_collection_open_data_token()} returns a \code{logical}.
 }
 \description{
 These functions provide an API to handle/retrieve data from source's
@@ -51,10 +61,9 @@ collections.
 
 \code{.source_collections()} lists all collections of a source.
 
-\code{.source_collection_aws()} returns the \code{aws}
-attribute of a collection. The attribute must define the following AWS
-environment variables: \code{AWS_DEFAULT_REGION}, \code{AWS_S3_ENDPOINT},
-and \code{AWS_REQUEST_PAYER}.
+\code{.source_collection_access_vars()} returns the
+\code{access_vars} attribute of a collection. The attribute must define
+environment variables to access properly the collection.
 
 \code{.source_collection_aws_check()} checks if a collection
 defines aws variables.
@@ -64,5 +73,11 @@ is from a source.
 
 \code{.source_collection_name()} returns the name of a
 collection in its original source.
+
+\code{.source_collection_open_data()} informs if a
+collection is open data or not.
+
+\code{.source_collection_open_data_token()} informs if a
+collection requires a token to access.
 }
 \keyword{internal}

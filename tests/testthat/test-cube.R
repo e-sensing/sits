@@ -174,25 +174,12 @@ test_that("Creating cubes from WTSS", {
 test_that("Creating cubes from DEA", {
     testthat::skip_on_cran()
 
-    # check "AWS_ACCESS_KEY_ID" - mandatory one per user
-    aws_access_key_id <- Sys.getenv("AWS_ACCESS_KEY_ID")
-
-    # check "AWS_SECRET_ACCESS_KEY" - mandatory one per user
-    aws_secret_access_key <- Sys.getenv("AWS_SECRET_ACCESS_KEY")
-
-    testthat::skip_if(nchar(aws_access_key_id) == 0,
-                      message = "No AWS_ACCESS_KEY_ID defined in environment.")
-
-    testthat::skip_if(nchar(aws_secret_access_key) == 0,
-                      message = paste("No AWS_SECRET_ACCESS_KEY defined in",
-                                      "environment."))
-
     dea_cube <- tryCatch({
         sits_cube(source = "DEAFRICA",
                   name = "deafrica_cube",
                   collection = "s2_l2a",
                   bands = c("B01", "B04", "B05"),
-                  bbox = c("xmin" = 17.379,
+                  roi = c("xmin" = 17.379,
                            "ymin" = 1.1573,
                            "xmax" = 17.410,
                            "ymax" = 1.1910),
@@ -238,7 +225,7 @@ test_that("Merging cubes", {
     })
 
     testthat::skip_if(purrr::is_null(ndvi_cube),
-                      "BDC is not accessible")
+                      "LOCAL cube was not found")
 
     evi_cube <- tryCatch({
         sits_cube(
@@ -314,13 +301,11 @@ test_that("Creating cubes from AWS", {
     expect_equal(s2_cube$xmin[[1]], sits:::.raster_xmin(r))
 })
 
-test_that("Creating cubes from AWS OPen Data and regularizing them", {
-
-
+test_that("Creating cubes from AWS Open Data and regularizing them", {
     testthat::expect_warning({
-        s2_cube <- sits_cube(source = "OPENDATA",
+        s2_cube <- sits_cube(source = "AWS",
                              name = "T20LKP_2018_2019",
-                             collection = "sentinel-s2-l2a-cogs",
+                             collection = "SENTINEL-S2-L2A-COGS",
                              tiles = "20LKP",
                              bands = c("B08", "SCL"),
                              start_date = "2018-07-30",
@@ -328,6 +313,7 @@ test_that("Creating cubes from AWS OPen Data and regularizing them", {
         )
     })
 
+    expect_equal(nrow(s2_cube$file_info[[1]]), 12)
     dir_images <-  paste0(tempdir(), "/images/")
     if (!dir.exists(dir_images))
         suppressWarnings(dir.create(dir_images))
@@ -389,9 +375,9 @@ test_that("Creating cubes from classified images", {
                       message = "PROBS cube not found")
 
     expect_equal(probs_cube$ncols, 50)
-    expect_equal(sits_bands(probs_cube), "probs")
+    expect_equal(sits_bands(probs_cube), "PROBS")
     file_info <- probs_cube$file_info[[1]]
-    expect_equal(file_info$band, "probs")
+    expect_equal(file_info$band, "PROBS")
     expect_equal(file_info$path, probs_file)
 })
 

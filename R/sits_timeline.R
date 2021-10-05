@@ -14,6 +14,7 @@
 sits_timeline <- function(data) {
 
     .check_set_caller("sits_timeline")
+
     # get the meta-type (sits or cube)
     data <- .config_data_meta_type(data)
 

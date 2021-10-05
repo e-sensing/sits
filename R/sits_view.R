@@ -2,9 +2,9 @@
 #' @name sits_view
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'
-#' @description Uses mapview to visualize raster cube and classified images
+#' @description Uses mapview to visualize time series, raster cube and classified images
 #'
-#' @param  x             object of class "raster_cube" or "classified image"
+#' @param  x             object of class "sits", "raster_cube" or "classified image"
 #' @param  ...           further specifications for \link{sits_view}.
 #' @param  red           band for red color.
 #' @param  green         band for green color.
@@ -13,6 +13,7 @@
 #' @param  roi           sf object giving a region of interest.
 #' @param  map           map to overlay (mapview object)
 #' @param  legend        named vector that associates labels to colors
+#' @param  palette       palette provided in the configuration file
 #'
 #' @return               mapview object
 #'
@@ -41,8 +42,8 @@ sits_view <- function(x, ...){
     .check_set_caller("sits_view")
 
     .check_that(
-        x = inherits(x, c("raster_cube", "classified_image")),
-        msg = "only works with raster cube and classified images")
+        x = inherits(x, c("sits", "raster_cube", "classified_image")),
+        msg = "only works with time series, raster cubes and classified images")
 
     # verifies if raster package is installed
     .check_that(
@@ -55,13 +56,61 @@ sits_view <- function(x, ...){
         requireNamespace("mapview", quietly = TRUE),
         msg = "this function depends on 'mapview' package"
     )
+    # set mapview options
+    mapview::mapviewOptions(basemaps = c(
+        "Esri.WorldImagery",
+        "GeoportailFrance.orthos",
+        "OpenStreetMap.Mapnik"
+    ))
 
     UseMethod("sits_view", x)
 }
 #' @rdname   sits_view
 #'
 #' @export
+sits_view.sits <- function(x,
+                           ...,
+                           legend = NULL,
+                           palette = "default") {
+
+
+    # first select unique locations
+    x <- dplyr::distinct(x, longitude, latitude, label)
+    # convert tibble to sf
+    samples <- sf::st_as_sf(x[c("longitude", "latitude", "label")],
+                         coords = c("longitude", "latitude"),
+                         crs = 4326)
+
+    # get the labels
+    labels <- sits_labels(x)
+    # if colors are not specified, get them from the configuration file
+    if (purrr::is_null(legend)) {
+        colors <- .config_palette_colors(labels, palette = palette)
+    }
+    else {
+        .check_chr_within(
+            x = labels,
+            within = names(legend),
+            msg = "some labels are missing from the legend")
+        colors <- unname(legend[labels])
+
+    }
+
+    # show samples in map
+    mv <- suppressWarnings(
+        mapview::mapview(samples,
+                     zcol = c("label"),
+                     legend = TRUE,
+                     col.regions = colors
+                     )
+    )
+    return(mv)
+}
+#' @rdname   sits_view
+#'
+#' @export
 sits_view.raster_cube <- function(x, ...,
+                                  map = NULL,
                                   red,
                                   green,
                                   blue,
@@ -129,21 +178,26 @@ sits_view.raster_cube <- function(x, ...,
         msg = "unable to retrieve raster data"
     )
 
-    # set mapview options
-    mapview::mapviewOptions(basemaps = c(
-        "GeoportailFrance.orthos",
-        "Esri.WorldImagery"
-    ))
-
     # view the RGB file
-    mv <- suppressWarnings(
-        mapview::viewRGB(r_obj,
-                         r = 1,
-                         g = 2,
-                         b = 3,
-                         layer.name = paste0("Time ", time))
-    )
-
+    if (!purrr::is_null(map)) {
+        mv <- suppressWarnings(
+            mapview::viewRGB(r_obj,
+                             map = map,
+                             r = 1,
+                             g = 2,
+                             b = 3,
+                             layer.name = paste0("Time ", time))
+        )
+    }
+    else {
+        mv <- suppressWarnings(
+            mapview::viewRGB(r_obj,
+                             r = 1,
+                             g = 2,
+                             b = 3,
+                             layer.name = paste0("Time ", time))
+        )
+    }
     return(mv)
 }
 
@@ -194,12 +248,6 @@ sits_view.classified_image <- function(x,...,
 
     # assign the RAT to the raster object
     levels(r_obj) <- rat
-
-    # set mapview options
-    mapview::mapviewOptions(basemaps = c(
-        "GeoportailFrance.orthos",
-        "Esri.WorldImagery"
-    ))
 
     # use mapview
     if (!purrr::is_null(map))

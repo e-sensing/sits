@@ -111,7 +111,7 @@
         file_info = file_info
     )
 
-    class(cube_wtss) <- c("wtss_cube", class(cube_wtss))
+    class(cube_wtss) <- .cube_s3class(cube_wtss)
 
     return(cube_wtss)
 }

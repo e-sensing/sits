@@ -6,10 +6,12 @@
 \title{Internal function to handle with different file collection formats
  for each provider.}
 \usage{
-.gc_format_col(source, ...)
+.gc_format_col(source, collection, ...)
 }
 \arguments{
 \item{source}{A \code{character} value referring to a valid data source.}
+
+\item{collection}{A \code{character} value referring to a valid collection.}
 
 \item{...}{Additional parameters.}
 }

@@ -86,7 +86,8 @@ sits_regularize <- function(cube,
                             period  = NULL,
                             res     = NULL,
                             roi     = NULL,
-                            agg_method = NULL,
+                            agg_method = "median",
+                            resampling = "bilinear",
                             cloud_mask = TRUE,
                             multicores = 1) {
 
@@ -95,7 +96,7 @@ sits_regularize <- function(cube,
 
     # require gdalcubes package
     if (!requireNamespace("gdalcubes", quietly = TRUE)) {
-        stop(paste("Please install package gdalcubes from CRAN:",
+        stop(paste("please, install package gdalcubes from CRAN:",
                    "install.packages('gdalcubes')"), call. = FALSE
         )
     }
@@ -103,9 +104,8 @@ sits_regularize <- function(cube,
     # supported  cubes
     .check_chr_within(
         x = .sits_cube_source(cube),
-        within = c("AWS", "OPENDATA"),
-        msg = paste("for the time being only the 'AWS' and 'OPENDATA' cubes",
-                    "can be regularized.")
+        within = c("AWS"),
+        msg = "currently only the 'AWS' cubes can be regularized."
     )
 
     .check_num(
@@ -121,9 +121,9 @@ sits_regularize <- function(cube,
     # test if provided object its a sits cube
     .check_that(
         x = inherits(cube, "raster_cube"),
-        msg = paste("The provided cube is invalid,",
+        msg = paste("provided cube is invalid,",
                     "please provide a 'raster_cube' object.",
-                    "See '?sits_cube' for more information.")
+                    "see '?sits_cube' for more information.")
     )
 
     # fix slashes for windows
@@ -132,18 +132,21 @@ sits_regularize <- function(cube,
     # verifies the path to save the images
     .check_that(
         x = dir.exists(output_dir),
-        msg = "Invalid 'output_dir' parameter.."
+        msg = "invalid 'output_dir' parameter."
     )
 
     path_db <- paste0(output_dir, "/gdalcubes.db")
 
-    # filter only intersecting tiles
-    intersects <- slider::slide_lgl(cube,
-                                    .sits_raster_sub_image_intersects,
-                                    roi)
+    if (!is.null(roi)) {
 
-    # retrieve only intersecting tiles
-    cube <- cube[intersects, ]
+        # filter only intersecting tiles
+        intersects <- slider::slide_lgl(cube,
+                                        .sits_raster_sub_image_intersects,
+                                        roi)
+
+        # retrieve only intersecting tiles
+        cube <- cube[intersects, ]
+    }
 
     # get the interval of intersection in all tiles
     interval_intersection <- function(cube) {
@@ -187,7 +190,8 @@ sits_regularize <- function(cube,
                                    roi = roi,
                                    res = res,
                                    toi = toi,
-                                   agg_method = agg_method)
+                                   agg_method = agg_method,
+                                   resampling = resampling)
 
         # create of the aggregate cubes
         gc_tile <- .gc_new_cube(tile = tile,
@@ -204,7 +208,7 @@ sits_regularize <- function(cube,
     # reset global option
     gdalcubes::gdalcubes_options(threads = 1)
 
-    class(gc_cube) <- c("raster_cube", class(gc_cube))
+    class(gc_cube) <- .cube_s3class(gc_cube)
 
     return(gc_cube)
 }

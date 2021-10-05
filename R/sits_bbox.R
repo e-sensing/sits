@@ -21,6 +21,8 @@
 #'
 sits_bbox <- function(data, wgs84 = FALSE, ...) {
 
+    .check_set_caller("sits_bbox")
+
     # get the meta-type (sits or cube)
     data <- .config_data_meta_type(data)
 
@@ -46,7 +48,10 @@ sits_bbox.sits <- function(data, ...) {
 
 #' @export
 #'
-sits_bbox.cube <- function(data, wgs84 = FALSE, ...) {
+sits_bbox.sits_cube <- function(data, wgs84 = FALSE, ...) {
+
+    # pre-condition
+    .cube_check(data)
 
     # create and return the bounding box
     if (nrow(data) == 1) {

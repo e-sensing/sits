@@ -75,14 +75,13 @@ sits_select.sits <- function(data, bands) {
 
 #' @export
 #'
-sits_select.cube <- function(data, bands) {
+sits_select.sits_cube <- function(data, bands) {
 
-    .check_chr_within(
-        x = bands,
-        within = sits_bands(data),
-        discriminator = "one_of",
-        msg = "requested bands are not available in the data cube"
-    )
+    # pre-condition - cube
+    .cube_check(data)
+
+    # pre-condition - check bands
+    .cube_bands_check(data, bands = bands)
 
     # assign the bands
     data$bands[[1]] <- bands

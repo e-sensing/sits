@@ -106,9 +106,13 @@ sources:
                 satellite   : "CBERS-4"
                 sensor      : "AWFI"
                 collection_name: "CB4_64-1"
+                open_data   : true
+                open_data_token       : true
             CB4_64_16D_STK-1:
                 <<: *bdc_cb4
                 collection_name: "CB4_64_16D_STK-1"
+                open_data   : true
+                open_data_token       : true
             CB4MUX_20-1     : &bdc_cb4_mux
                 bands       :
                     NDVI    : &bdc_mux_ndvi
@@ -154,6 +158,8 @@ sources:
                 satellite   : "CBERS-4"
                 sensor      : "MUX"
                 collection_name: "CB4MUX_20-1"
+                open_data   : true
+                open_data_token       : true
             CB4_20_1M_STK-1 : &bdc_cb4_mux_stk
                 bands:
                     NDVI    : *bdc_mux_ndvi
@@ -176,6 +182,8 @@ sources:
                 satellite   : "CBERS-4"
                 sensor      : "MUX"
                 collection_name: "CB4_20_1M_STK-1"
+                open_data   : true
+                open_data_token: true
             LC8_30-1        : &bdc_lc8
                 bands       :
                     NDVI    : &bdc_oli_ndvi
@@ -233,9 +241,13 @@ sources:
                 satellite   : "LANDSAT-8"
                 sensor      : "OLI"
                 collection_name: "LC8_30-1"
+                open_data   : true
+                open_data_token: true
             LC8_30_16D_STK-1:
                 <<: *bdc_lc8
                 collection_name: "LC8_30_16D_STK-1"
+                open_data   : true
+                open_data_token: true
             MOD13Q1-6       : &bdc_mod
                 bands       :
                     NDVI              : &bdc_modis_ndvi
@@ -283,11 +295,15 @@ sources:
                 satellite   : "TERRA"
                 sensor      : "MODIS"
                 collection_name: "MOD13Q1-6"
+                open_data   : true
+                open_data_token: true
             MYD13Q1-6       :
                 <<: *bdc_mod
                 satellite   : "AQUA"
                 sensor      : "MODIS"
                 collection_name: "MYD13Q1-6"
+                open_data   : true
+                open_data_token: true
             S2_10-1         : &bdc_s2
                 bands       :
                     NDVI    : &bdc_msi_ndvi
@@ -357,6 +373,8 @@ sources:
                 satellite   : "SENTINEL-2"
                 sensor      : "MSI"
                 collection_name: "S2_10-1"
+                open_data   : true
+                open_data_token: true
             S2-SEN2COR_10_16D_STK-1 : &bdc_s2_sen2cor
                 bands       :
                     NDVI    : &bdc_sen2cor_msi_ndvi
@@ -435,6 +453,8 @@ sources:
                 satellite   : "SENTINEL-2"
                 sensor      : "MSI"
                 collection_name: "S2-SEN2COR_10_16D_STK-1"
+                open_data   : true
+                open_data_token: true
             LANDSAT-MOZ_30_1M_STK-1: &bdc_lc8
                 bands       :
                     NDVI    : &bdc_oli_ndvi
@@ -494,9 +514,13 @@ sources:
                 satellite   : "LANDSAT-8"
                 sensor      : "OLI"
                 collection_name: "LANDSAT-MOZ_30_1M_STK-1"
+                open_data   : true
+                open_data_token: true
             S2_10_16D_STK-1 :
                 <<: *bdc_s2
                 collection_name: "S2_10_16D_STK-1"
+                open_data   : true
+                open_data_token: true
     WTSS                    :
         s3_class            : ["wtss_cube"]
         service             : "WTSS"
@@ -556,14 +580,20 @@ sources:
                 satellite   : "TERRA"
                 sensor      : "MODIS"
                 collection_name: "terra"
+                open_data   : true
+                open_data_token: false
             AQUA            :
                 <<: *satveg_terra
                 satellite   : "AQUA"
                 collection_name: "aqua"
+                open_data   : true
+                open_data_token: false
             COMB            :
                 <<: *satveg_terra
                 satellite   : "AQUA + TERRA"
                 collection_name: "comb"
+                open_data   : true
+                open_data_token: false
     AWS                     :
         s3_class            : ["aws_cube", "stac_cube", "raster_cube"]
         service             : "STAC"
@@ -647,7 +677,7 @@ sources:
                 satellite   : "SENTINEL-2"
                 sensor      : "MSI"
                 collection_name: "sentinel-s2-l2a"
-                aws         :
+                access_vars :
                     AWS_DEFAULT_REGION   : "eu-central-1"
                     AWS_S3_ENDPOINT      : "s3.amazonaws.com"
                     AWS_REQUEST_PAYER    : "requester"
@@ -729,89 +759,11 @@ sources:
                 satellite   : "SENTINEL-2"
                 sensor      : "MSI"
                 collection_name: "sentinel-s2-l2a-cogs"
-    OPENDATA                :
-        s3_class            : ["opendata_cube", "stac_cube", "raster_cube"]
-        service             : "STAC"
-        url                 : "https://earth-search.aws.element84.com/v0/"
-        collections         :
-            SENTINEL-S2-L2A-COGS :
-                bands       :
-                    B01     : &aws_cog_msi_60m
-                        missing_value: -9999
-                        minimum_value: 0
-                        maximum_value: 10000
-                        scale_factor : 0.0001
-                        offset_value : 0
-                        resampling   : "bilinear"
-                        resolutions  : [60]
-                        band_name    : "B01"
-                    B02     : &aws_cog_msi_10m
-                        missing_value: -9999
-                        minimum_value: 0
-                        maximum_value: 10000
-                        scale_factor : 0.0001
-                        offset_value : 0
-                        resampling   : "bilinear"
-                        resolutions  : [10]
-                        band_name    : "B02"
-                    B03     :
-                        <<: *aws_cog_msi_10m
-                        band_name    : "B03"
-                    B04     :
-                        <<: *aws_cog_msi_10m
-                        band_name    : "B04"
-                    B05     : &aws_cog_msi_20m
-                        missing_value: -9999
-                        minimum_value: 0
-                        maximum_value: 10000
-                        scale_factor : 0.0001
-                        offset_value : 0
-                        resampling   : "bilinear"
-                        resolutions  : [20]
-                        band_name    : "B05"
-                    B06     :
-                        <<: *aws_cog_msi_20m
-                        band_name    : "B06"
-                    B07     :
-                        <<: *aws_cog_msi_20m
-                        band_name    : "B07"
-                    B08     :
-                        <<: *aws_cog_msi_10m
-                        band_name    : "B08"
-                    B8A     :
-                        <<: *aws_cog_msi_20m
-                        band_name    : "B8A"
-                    B09     :
-                        <<: *aws_cog_msi_60m
-                        band_name    : "B09"
-                    B11     :
-                        <<: *aws_cog_msi_20m
-                        band_name    : "B11"
-                    B12     :
-                        <<: *aws_cog_msi_20m
-                        band_name    : "B12"
-                    CLOUD   :
-                        bit_mask     : FALSE
-                        band_name    : "SCL"
-                        values       :
-                            0        : "missing_data"
-                            1        : "defective pixel"
-                            2        : "shadows"
-                            3        : "cloud shadows"
-                            4        : "vegetation"
-                            5        : "non-vegetated"
-                            6        : "water"
-                            7        : "unclassified"
-                            8        : "cloud medium"
-                            9        : "cloud high"
-                            10       : "thin cirrus"
-                            11       : "snow or ice"
-                        interp_values: [0, 1, 2, 3, 8, 9, 10, 11]
-                        resampling   : "near"
-                        resolutions  : [20]
-                satellite   : "SENTINEL-2"
-                sensor      : "MSI"
-                collection_name: "sentinel-s2-l2a-cogs"
+                access_vars :
+                    AWS_DEFAULT_REGION   : "us-west-1"
+                    AWS_S3_ENDPOINT      : "s3.amazonaws.com"
+                open_data: true
+                open_data_token: false
     DEAFRICA                :
         s3_class            : ["deafrica_cube", "stac_cube", "raster_cube"]
         service             : "STAC"
@@ -895,50 +847,92 @@ sources:
                 satellite   : "SENTINEL-2"
                 sensor      : "MSI"
                 collection_name: "ga_s2_gm"
-                aws         :
+                access_vars :
                     AWS_DEFAULT_REGION: "af-south-1"
                     AWS_S3_ENDPOINT   : "s3.af-south-1.amazonaws.com"
                     AWS_REQUEST_PAYER : "requester"
+                open_data: true
+                open_data_token: false
             S2_L2A          :
                 <<: *deafrica_s2
                 satellite   : "SENTINEL-2"
                 sensor      : "MSI"
                 collection_name: "s2_l2a"
-                aws         :
+                access_vars :
                     AWS_DEFAULT_REGION: "af-south-1"
                     AWS_S3_ENDPOINT   : "s3.af-south-1.amazonaws.com"
-                    AWS_REQUEST_PAYER : "requester"
+                open_data: true
+                open_data_token: false
 
+# Default palette is based on ColorBrewer
 palettes:
     default:
-        Araguaia          : "mediumaquamarine"
-        Beans             : "lightskyblue3"
-        Campo_Cerrado     : "darkseagreen3"
-        Cerradao          : "olivedrab"
-        Cerrado           : "yellowgreen"
-        Cerrado_Rupestre  : "palegreen"
-        Corn              : "burlywood3"
-        Cotton            : "wheat2"
-        Cropland          : "orange4"
-        Dunas             : "honeydew3"
-        Deforestation     : "darkred"
-        Dense_Tree_Savanna: "forestgreen"
-        Fallow_Cotton     : "wheat2"
-        Millet_Cotton     : "wheat4"
-        Forest            : "darkgreen"
-        Planted Forest    : "mediumseagreen"
-        Pasture           : "khaki"
-        NatNonVegetated   : "honeydew3"
-        NonForest         : "lightsteelblue2"
-        Savanna           : "springgreen"
-        Shrublands        : "palegreen"
-        Soy_Corn          : "orange2"
-        Soy_Cotton        : "orangered4"
-        Soy_Fallow        : "orange4"
-        Soy_Sorghum       : "darkorange3"
-        Soy_Millet        : "darkorange"
-        Soy_Sunflower     : "darkorange4"
-        Sugarcane         : "gold4"
-        Urban_Area        : "ivory4"
-        Water             : "royalblue3"
-        Wetlands          : "mediumaquamarine"
+        # Natural Vegetation uses "Greens" palette (9 colors)
+        # Forest uses "Greens" color 9
+        Forest            : "#00441B"
+        # Dense Woodlands and similar use "Greens" color 7
+        Cerradao          : "#238B45"
+        Dense_Woodland    : "#238B45"
+        Dense_Tree_Savanna: "#238B45"
+        # Savanna Parkland uses "Greens" color 6
+        Savanna_Parkland  : "#41AB5D"
+        # Savanna and Cerrado use "Greens" color 5
+        Savanna           : "#74C476"
+        Cerrado           : "#74C476"
+        # Campo Cerrado uses "Greens" color 4
+        Campo_Cerrado     : "#A1D99B"
+        # Cerrado Rupestre and Rocky Savanna use "Greens" color 4
+        Cerrado_Rupestre  : "#C7E9C0"
+        Rocky_Savanna     : "#C7E9C0"
+        NatNonVegetated   : "D9F0A3"
+        # Silviculture and Planted Forest use color 4 of "BuGn" 9-color palette
+        Silviculture      : "#66C2A4"
+        Planted Forest    : "#66C2A4"
+        # Shrublands are a mix of savanna and pasture without trees
+        # use color 4 of the 9-color "YlGn" palette
+        Shrublands        : "#ADDD8E"
+        # Non forest uses the same color as shrublands
+        NonForest         : "#ADDD8E"
+        # Grasslands are a mix of savanna and pasture
+        # In the tropics, they area associated to human actions
+        # use color 3 of the 9-color "YlGn" palette
+        Grasslands        : "#D9F0A3"
+        # Pasture results from human actions
+        # use color 2 of the 9-color "YlGn" palette
+        Pasture           : "#F7FCB9"
+        # Araguaia and Wetlands use color 5 of the "GnBu" 9-color palette
+        Araguaia          : "#7BCCC4"
+        Wetlands          : "#7BCCC4"
+        # Water uses color 7 of the "GnBu" 9-color palette
+        Water             : "#2B8CBE"
+        # Dunes use color 1 of the "YlGn" palette
+        Dunas             : "#FFFFE5"
+        Dunes             : "#FFFFE5"
+        # Cropland uses class 6 of the "YlOrRd" pallette
+        Cropland          : "#FC4E2A"
+        # Cotton uses colors 4-5 of the "YlOrRd" pallette
+        Cotton            : "#FD8D3C"
+        Fallow_Cotton     : "#FD8D3C"
+        Millet_Cotton     : "#FEB24C"
+        # Beans, Corn and Sugarcane use colors 4-6 of the "OrRd" palette
+        Beans             : "#FDBB84"
+        Corn              : "#FC8D59"
+        Sugarcane         : "#EF6548"
+        # Variations of Soy use the 9-color "Oranges" palette
+        # Soy_Corn uses color 7 of the "Oranges" palette
+        Soy_Corn          : "#D94801"
+        # Soy_Millet uses color 6 of the "Oranges" palette
+        Soy_Millet        : "#F16913"
+        # Soy_Sorghum uses color 6 of the "Oranges" palette
+        Soy_Sorghum       : "#F16913"
+        # Soy_Cotton uses color 5 of the "Oranges" palette
+        Soy_Cotton        : "#FD8D3C"
+        # Soy_Sunflower uses color 4 of the "Oranges" palette
+        Soy_Sunflower     : "#FDAE6B"
+        # Soy_Fallow uses color 3 of the "Oranges" palette
+        Soy_Fallow        : "#FDD0A2"
+        # Deforestation uses color 4 of the "PuRd" palette
+        Deforestation     : "#C994C7"
+        # Urban Areas uses color 6 of the "Greys" palette
+        Urban_Area        : "#737373"
+

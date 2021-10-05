@@ -41,7 +41,7 @@ test_that("User functions", {
 
     expect_equal(
         .sources(),
-        c("CLASSIFIED", "PROBS", "BDC", "WTSS", "SATVEG", "AWS", "OPENDATA",
+        c("CLASSIFIED", "PROBS", "BDC", "WTSS", "SATVEG", "AWS",
           "DEAFRICA", "LOCAL")
     )
 
@@ -84,7 +84,7 @@ test_that("User functions", {
 
     expect_equal(
         .sources(),
-        c("CLASSIFIED", "PROBS", "BDC", "WTSS", "SATVEG", "AWS", "OPENDATA",
+        c("CLASSIFIED", "PROBS", "BDC", "WTSS", "SATVEG", "AWS",
           "DEAFRICA", "LOCAL")
     )
 
@@ -112,8 +112,8 @@ test_that("User functions", {
     )
     expect_equal(
         unname(.config_palette_colors(labels = c("Cropland", "Deforestation",
-                                          "Forest", "Grassland", "NonForest"),
-                               palette = "my_project")),
+                                                 "Forest", "Grassland", "NonForest"),
+                                      palette = "my_project")),
         c("khaki", "sienna", "darkgreen", "lightgreen",
           "lightsteelblue1")
     )
@@ -149,7 +149,7 @@ test_that("User functions", {
 
     expect_equal(
         .sources(),
-        c("CLASSIFIED", "PROBS", "BDC", "WTSS", "SATVEG", "AWS", "OPENDATA",
+        c("CLASSIFIED", "PROBS", "BDC", "WTSS", "SATVEG", "AWS",
           "DEAFRICA", "LOCAL")
     )
 
@@ -164,7 +164,7 @@ test_that("User functions", {
 
     expect_true(
         any(grepl(
-            "- CLASSIFIED, PROBS, BDC, WTSS, SATVEG, AWS, OPENDATA, DEAFRICA, LOCAL",
+            "- CLASSIFIED, PROBS, BDC, WTSS, SATVEG, AWS, DEAFRICA, LOCAL",
             config_txt
         ))
     )
@@ -198,7 +198,7 @@ test_that("User functions", {
 
     expect_true(
         any(grepl(
-            "Water: royalblue3",
+            "Forest: '#00441B'",
             config_txt
         ))
     )
@@ -233,7 +233,7 @@ test_that("User functions", {
 
     expect_equal(
         .sources(),
-        c("CLASSIFIED", "PROBS", "BDC", "WTSS", "SATVEG", "AWS", "OPENDATA",
+        c("CLASSIFIED", "PROBS", "BDC", "WTSS", "SATVEG", "AWS",
           "DEAFRICA", "LOCAL", "TEST")
     )
 
@@ -341,16 +341,16 @@ test_that("Configs", {
     )
 
     expect_equal(
-        .source_collection_aws(source = "AWS",
-                               collection = "SENTINEL-S2-L2A"),
+        .source_collection_access_vars(source = "AWS",
+                                       collection = "SENTINEL-S2-L2A"),
         list(AWS_DEFAULT_REGION = "eu-central-1",
              AWS_S3_ENDPOINT = "s3.amazonaws.com",
              AWS_REQUEST_PAYER = "requester")
     )
 
     expect_equal(
-        .source_collection_aws(source = "BDC",
-                               collection = "CB4_64-1"),
+        .source_collection_access_vars(source = "BDC",
+                                       collection = "CB4_64-1"),
         list()
     )
 
@@ -371,7 +371,7 @@ test_that("Configs", {
     expect_error(
         .source_collection_aws_check(source = "BDC",
                                      collection = "CB4_64-1"),
-        "missing AWS_DEFAULT_REGION, AWS_S3_ENDPOINT and, AWS_REQUEST_PAYER"
+        "missing AWS_DEFAULT_REGION or AWS_S3_ENDPOINT"
     )
 
     expect_equal(

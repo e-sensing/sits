@@ -2,8 +2,6 @@
 #' @export
 .source_cube.probs_cube <- function(source, ...,
                                     name,
-                                    satellite,
-                                    sensor,
                                     start_date,
                                     end_date,
                                     probs_labels,
@@ -31,7 +29,7 @@
 
         # build the file information
         file_info <- tibble::tibble(
-            band = "probs",
+            band = "PROBS",
             start_date = as.Date(start_date),
             end_date = as.Date(end_date),
             res = params$xres,
@@ -39,28 +37,29 @@
         )
 
         # go tile by tile
-        tile <- tibble::tibble(
-            source = "PROBS",
-            satellite = satellite,
-            sensor = sensor,
-            name = name,
-            bands = list("probs"),
-            labels = list(probs_labels),
-            nrows = params$nrows,
-            ncols = params$ncols,
-            xmin  = params$xmin,
-            xmax  = params$xmax,
-            ymin  = params$ymin,
-            ymax  = params$ymax,
-            xres  = params$xres,
-            yres  = params$yres,
-            crs   = params$crs,
-            file_info = list(file_info),
+        tile <- .sits_cube_create(
+            name        = name,
+            source      = source,
+            collection  = "PROBS",
+            satellite   = NA,
+            sensor      = NA,
+            bands       = "PROBS",
+            labels      = probs_labels,
+            nrows       = params$nrows,
+            ncols       = params$ncols,
+            xmin        = params$xmin,
+            xmax        = params$xmax,
+            ymin        = params$ymin,
+            ymax        = params$ymax,
+            xres        = params$xres,
+            yres        = params$yres,
+            crs         = params$crs,
+            file_info   = file_info
         )
         return(tile)
     })
     probs_cube <- dplyr::bind_rows(tiles)
 
-    class(probs_cube) <- c("probs_cube", "raster_cube", class(probs_cube))
+    class(probs_cube) <- .cube_s3class(probs_cube)
     return(probs_cube)
 }

@@ -29,3 +29,7 @@ normalize_data <- function(data, min, max) {
     .Call(`_sits_normalize_data`, data, min, max)
 }
 
+smooth_whit <- function(data, lambda, length) {
+    .Call(`_sits_smooth_whit`, data, lambda, length)
+}
+

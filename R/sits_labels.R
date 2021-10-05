@@ -30,12 +30,15 @@ sits_labels <- function(data) {
 #'
 sits_labels.sits <- function(data) {
 
+    # pre-condition
+    .cube_check(data)
+
     return(sort(unique(data$label)))
 }
 
 #' @export
 #'
-sits_labels.cube <- function(data) {
+sits_labels.sits_cube <- function(data) {
 
     return(data$labels[[1]])
 }

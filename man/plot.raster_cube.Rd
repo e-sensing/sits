@@ -2,23 +2,32 @@
 % Please edit documentation in R/sits_plot.R
 \name{plot.raster_cube}
 \alias{plot.raster_cube}
-\title{Generic interface for plotting stack cubes}
+\title{Generic interface for RGB plotting of data cube}
 \usage{
-\method{plot}{raster_cube}(x, y, ..., band, time = 1)
+\method{plot}{raster_cube}(x, ..., band = NULL, red, green, blue, time = 1, roi = NULL)
 }
 \arguments{
-\item{x}{object of class "raster_cube"}
+\item{x}{object of class "raster_cube" or "classified image"}
 
-\item{y}{ignored}
+\item{...}{further specifications for \link{sits_view}.}
 
-\item{...}{further specifications for \link{plot}.}
+\item{band}{for plotting grey images}
 
-\item{band}{band to be plotted}
+\item{red}{band for red color.}
 
-\item{time}{time instance}
+\item{green}{band for green color.}
+
+\item{blue}{band for blue color.}
+
+\item{time}{temporal instances to be plotted.}
+
+\item{roi}{sf object giving a region of interest.}
+}
+\value{
+plot object
 }
 \description{
-Generic interface for plotting stack cubes
+Uses mapview to visualize raster cube and classified images
 }
 \author{
 Gilberto Camara, \email{gilberto.camara@inpe.br}

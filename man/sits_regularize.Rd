@@ -11,7 +11,8 @@ sits_regularize(
   period = NULL,
   res = NULL,
   roi = NULL,
-  agg_method = NULL,
+  agg_method = "median",
+  resampling = "bilinear",
   cloud_mask = TRUE,
   multicores = 1
 )
@@ -41,17 +42,17 @@ See above}
 Options: \code{min}, \code{max}, \code{mean}, \code{median} and
 \code{first}.}
 
-\item{cloud_mask}{A \code{logical} to use cloud band for aggregation by
-\code{gdalcubes}. Default is \code{TRUE}.}
-
-\item{multicores}{A \code{numeric} with the number of cores will be used in
-the regularize. By default is used 1 core.}
-
 \item{resampling}{A \code{character} with method to be used by
 \code{gdalcubes} for resampling in mosaic operation.
 Options: \code{near}, \code{bilinear}, \code{bicubic} or others supported by
 gdalwarp (see https://gdal.org/programs/gdalwarp.html).
 By default is bilinear.}
+
+\item{cloud_mask}{A \code{logical} to use cloud band for aggregation by
+\code{gdalcubes}. Default is \code{TRUE}.}
+
+\item{multicores}{A \code{numeric} with the number of cores will be used in
+the regularize. By default is used 1 core.}
 }
 \value{
 A \code{sits_cube} object with aggregated images.

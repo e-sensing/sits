@@ -89,9 +89,13 @@ sits_merge.sits <- function(data1, data2) {
 
 #' @export
 #'
-sits_merge.cube <- function(data1, data2) {
+sits_merge.sits_cube <- function(data1, data2) {
 
-    # preconditions
+    # pre-condition - check cube type
+    .cube_check(data1)
+    .cube_check(data2)
+
+    # pre-condition
     .check_that(
         x = nrow(data1) == 1 & nrow(data2) == 1,
         msg = "merge only works from simple cubes (one tibble row)"

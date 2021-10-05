@@ -2,13 +2,14 @@
 % Please edit documentation in R/sits_cube.R
 \name{cube_functions}
 \alias{cube_functions}
+\alias{.cube_check}
 \alias{.cube_satellite}
 \alias{.cube_sensor}
 \alias{.cube_collection}
 \alias{.cube_name}
 \alias{.cube_labels}
-\alias{.cube_bands_check}
 \alias{.cube_bands}
+\alias{.cube_bands_check}
 \alias{.cube_source}
 \alias{.cube_timeline}
 \alias{.cube_tiles}
@@ -23,11 +24,13 @@
 \alias{.cube_band_maximum_value}
 \alias{.cube_band_scale_factor}
 \alias{.cube_band_offset_value}
-\alias{.cube_band_resampling}
 \alias{.cube_band_resolutions}
 \alias{.cube_has_cloud}
+\alias{.cube_s3class}
 \title{Auxiliary functions for sits cubes}
 \usage{
+.cube_check(cube)
+
 .cube_satellite(cube)
 
 .cube_sensor(cube)
@@ -38,9 +41,9 @@
 
 .cube_labels(cube)
 
-.cube_bands_check(cube)
-
 .cube_bands(cube, ..., add_cloud = TRUE)
+
+.cube_bands_check(cube, bands, ..., add_cloud = TRUE)
 
 .cube_source(cube)
 
@@ -70,18 +73,18 @@
 
 .cube_band_offset_value(cube, band)
 
-.cube_band_resampling(cube, band)
-
 .cube_band_resolutions(cube, band)
 
 .cube_has_cloud(cube)
+
+.cube_s3class(cube)
 }
 \arguments{
 \item{cube}{Data cube from where data is to be retrieved.}
 
-\item{tile}{Tiles from the collection to be included in the data cube}
-
 \item{bands}{Bands to be included.}
+
+\item{tile}{Tiles from the collection to be included in the data cube}
 
 \item{....}{Additional parameters to be included.}
 }
