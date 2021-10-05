@@ -773,6 +773,35 @@ NULL
 
     return(res)
 }
+#' @rdname source_collection
+#'
+#' @description \code{.source_collection_open_data_token()} informs if a
+#' collection requires a token to access.
+#'
+#' @return \code{.source_collection_open_data_token()} returns a \code{logical}.
+#'
+.source_collection_open_data_token <- function(source,
+                                         collection) {
+
+    # source is upper case
+    source <- toupper(source)
+
+    # collection is upper case
+    collection <- toupper(collection)
+
+    # pre-condition
+    .source_collection_check(source = source,
+                             collection = collection)
+
+    res <- .config_get(key = c("sources", source, "collections", collection,
+                               "token"), default = FALSE)
+
+    # post-condition
+    .check_lgl(res, len_min = 1, len_max = 1,
+               msg = "invalid 'token' value")
+
+    return(res)
+}
 
 #' @title Functions to instantiate a new cube from a source
 #' @name source_cube
