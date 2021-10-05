@@ -9,7 +9,6 @@
   collection,
   name,
   bands,
-  tiles,
   bbox = NULL,
   start_date = NULL,
   end_date = NULL,
@@ -25,9 +24,6 @@
 \item{name}{Name of the output data cube.}
 
 \item{bands}{Bands to be included}
-
-\item{tiles}{Tiles from the collection to be included in the
-data cube}
 
 \item{bbox}{Area of interest.}
 

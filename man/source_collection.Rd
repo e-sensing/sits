@@ -9,6 +9,7 @@
 \alias{.source_collection_check}
 \alias{.source_collection_name}
 \alias{.source_collection_open_data}
+\alias{.source_collection_open_data_token}
 \title{Source collection functions}
 \usage{
 .source_collections(source)
@@ -24,6 +25,8 @@
 .source_collection_name(source, collection)
 
 .source_collection_open_data(source, collection)
+
+.source_collection_open_data_token(source, collection)
 }
 \arguments{
 \item{source}{A \code{character} value referring to a valid data source.}
@@ -49,6 +52,8 @@ no error occurs.
 \code{.source_collection_name()} returns a \code{character}.
 
 \code{.source_collection_open_data()} returns a \code{logical}.
+
+\code{.source_collection_open_data_token()} returns a \code{logical}.
 }
 \description{
 These functions provide an API to handle/retrieve data from source's
@@ -71,5 +76,8 @@ collection in its original source.
 
 \code{.source_collection_open_data()} informs if a
 collection is open data or not.
+
+\code{.source_collection_open_data_token()} informs if a
+collection requires a token to access.
 }
 \keyword{internal}

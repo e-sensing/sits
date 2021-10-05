@@ -198,7 +198,7 @@ test_that("User functions", {
 
     expect_true(
         any(grepl(
-            "Water: royalblue3",
+            "Forest: '#00441B'",
             config_txt
         ))
     )

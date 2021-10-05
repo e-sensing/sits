@@ -633,7 +633,7 @@ plot.keras_model <- function(x, y, ...) {
     # create the plot title
     plot_title <- .sits_plot_title(row$latitude, row$longitude, row$label)
     # extract the time series
-    data_ts <- row$time_series
+    data_ts <- row$time_series[[1]]
     # melt the data into long format
     melted_ts <- data_ts %>%
         tidyr::pivot_longer(cols = -Index, names_to = "variable") %>%
