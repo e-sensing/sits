@@ -75,7 +75,6 @@ Suggests:
     RcppArmadillo,
     Rwtss (>= 0.9.1),
     stars,
-    stringr,
     testthat (>= 3.0.2),
     tidyr,
     xgboost,

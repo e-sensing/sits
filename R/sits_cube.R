@@ -438,7 +438,8 @@ sits_cube.aws_cube <- function(source = "AWS", ...,
 }
 
 #' @rdname sits_cube
-#' @keywords internal
+#'
+#' @export
 sits_cube.usgs_cube <- function(source = "USGS", ...,
                                 name = "usgs_cube",
                                 url = NULL,
@@ -457,12 +458,13 @@ sits_cube.usgs_cube <- function(source = "USGS", ...,
                              collection = collection)
 
     # precondition
-    .check_chr(x = tiles,
-               allow_empty = FALSE,
-               len_min = 1,
-               msg = paste("for the USGS cubes you need to provide the tiles",
-                           "of the region you want to query.")
-    )
+    # # TODO: é necessário fornecer o tile para funcionar????
+    # .check_chr(x = tiles,
+    #            allow_empty = FALSE,
+    #            len_min = 1,
+    #            msg = paste("for the USGS cubes you need to provide the tiles",
+    #                        "of the region you want to query.")
+    # )
 
     # precondition - is AWS access available?
     .source_collection_aws_check(source, collection)

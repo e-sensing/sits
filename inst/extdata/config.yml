@@ -863,6 +863,67 @@ sources:
                     AWS_S3_ENDPOINT   : "s3.af-south-1.amazonaws.com"
                 open_data: true
                 open_data_token: false
+    USGS                    :
+        s3_class            : ["usgs_cube", "stac_cube", "raster_cube"]
+        service             : "STAC"
+        url                 : "https://landsatlook.usgs.gov/sat-api/stac"
+        collections         :
+            LANDSAT-C2L2-SR : &usgs_oli
+                bands       :
+                    B01     : &usgs_oli_30m
+                        missing_value : 0
+                        minimum_value : 7273
+                        maximum_value : 43636
+                        scale_factor  : 0.0000275
+                        offset_value  : -0.2
+                        resampling    : "bilinear"
+                        resolutions   : [30]
+                        band_name     : "coastal"
+                    B02     :
+                        <<: *usgs_oli_30m
+                        band_name     : "blue"
+                    B03     :
+                        <<: *usgs_oli_30m
+                        band_name     : "green"
+                    B04     :
+                        <<: *usgs_oli_30m
+                        band_name     : "red"
+                    B05     :
+                        <<: *usgs_oli_30m
+                        band_name     : "nir08"
+                    B06      :
+                        <<: *usgs_oli_30m
+                        band_name     : "swir16"
+                    B07     :
+                        <<: *usgs_oli_30m
+                        band_name     : "swir22"
+                    CLOUD   :
+                        bit_mask      : TRUE
+                        band_name     : "qa_pixel"
+                        values        :
+                            0         : "missing_data"
+                            1         : "Dilated Cloud"
+                            2         : "High confidence cirrus"
+                            4         : "High confidence cloud shadow"
+                            5         : "High confidence snow cover"
+                            6         : "Clear"
+                            7         : "Water"
+                            9         : "High confidence of cloud"
+                            11        : "High confidence of cloud shadow"
+                            13        : "High confidence of snow"
+                            15        : "High confidence of cirrus"
+                        interp_values : [0, 1, 2, 3, 8, 9, 10, 11]
+                        resampling    : "near"
+                        resolutions   : [30]
+                satellite   : "LANDSAT-8"
+                sensor      : "OLI"
+                collection_name: "landsat-c2l2-sr"
+                access_vars :
+                    AWS_DEFAULT_REGION: "us-west-2"
+                    AWS_S3_ENDPOINT   : "s3.amazonaws.com"
+                    AWS_REQUEST_PAYER : "requester"
+                open_data: false
+                open_data_token: false
 
 # Default palette is based on ColorBrewer
 palettes:
