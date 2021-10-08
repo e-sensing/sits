@@ -355,4 +355,3 @@ probs_cube <- sits_cube(
 \references{
 `rstac` package (https://github.com/brazil-data-cube/rstac)
 }
-\keyword{internal}
