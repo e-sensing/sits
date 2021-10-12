@@ -165,7 +165,7 @@
     datetime <- strsplit(x = stac_query$params$datetime, split = "/")[[1]]
 
     # request with more than searched items throws 502 error
-    stac_query$params$limit <- 200
+    stac_query$params$limit <- 300
 
     # adding search filter in query
     stac_query <- rstac::ext_query(
@@ -199,10 +199,6 @@
         x = !(rstac::items_length(items) == 0),
         msg = "the provided search returned zero items."
     )
-
-    # filtering images by interval
-    # items_info <- .usgs_filter_datetime(items = items,
-    #                                     datetime = stac_query$params$datetime)
 
     # if more than 2 times items pagination are found the progress bar
     # is displayed

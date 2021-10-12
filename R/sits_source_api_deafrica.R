@@ -153,7 +153,14 @@
                                                       tile_items, ...,
                                                       collection = NULL) {
 
-    size <- tile_items[["features"]][[1]][[c("properties", "proj:shape")]]
+    href <- .source_item_get_hrefs(source = source,
+                                   item = tile_items[["features"]][[1]], ...,
+                                   collection = collection)
+
+    # read the first image and obtain the size parameters
+    params <- .raster_params_file(href)
+
+    size <- c(nrows = params[["nrows"]], ncols = params[["ncols"]])
 
     names(size) <- c("nrows", "ncols")
     return(size)
