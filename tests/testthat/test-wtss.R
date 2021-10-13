@@ -177,9 +177,7 @@ test_that("Reading a point from SATVEG ", {
         skip("points in SATVEG for collection terra cannnot be recovered")
     }
     expect_equal(ncol(sits_time_series(point_terra)), 3)
-    expect_equal(sum(sits_time_series(point_terra)$EVI),
-                 158.11, tolerance = 2
-    )
+    expect_true(max(sits_time_series(point_terra)$EVI) <= 1)
 
     cube_2 <- tryCatch({
         sits_cube(source = "SATVEG", collection = "AQUA")
@@ -198,9 +196,7 @@ test_that("Reading a point from SATVEG ", {
         skip("points in SATVEG for collection aqua cannnot be recovered")
     }
     expect_equal(ncol(sits_time_series(point_aqua)), 3)
-    expect_equal(sum(sits_time_series(point_aqua)$EVI),
-                 132.3852, tolerance = 2
-    )
+    expect_true(max(sits_time_series(point_aqua)$EVI) <= 1)
 
     cube_3 <- tryCatch({
         sits_cube(source = "SATVEG", collection = "COMB")
@@ -220,9 +216,7 @@ test_that("Reading a point from SATVEG ", {
         skip("points in SATVEG for collection comb cannnot be recovered")
     }
     expect_equal(ncol(sits_time_series(point_comb)), 3)
-    expect_equal(sum(sits_time_series(point_comb)$EVI),
-                 290.3342, tolerance = 2
-    )
+    expect_true(max(sits_time_series(point_comb)$EVI) <= 1)
 
     expect_true(length(sits_timeline(point_comb)) >=
                     length(sits_timeline(point_terra))
@@ -320,7 +314,6 @@ test_that("Test reading shapefile from BDC", {
         sits_cube(
             source = "BDC",
             collection = "CB4_64_16D_STK-1",
-            name = "cbers_stac",
             bands = c("NDVI", "EVI"),
             tiles = c("022024", "022025"),
             start_date = "2018-09-01",
@@ -356,9 +349,7 @@ test_that("Reading a LAT/LONG from RASTER", {
 
     raster_cube <- tryCatch({
         sits_cube(
-            source = "LOCAL",
-            name = "sinop-2014",
-            origin = "BDC",
+            source = "BDC",
             collection = "MOD13Q1-6",
             data_dir = data_dir,
             delim = "_",
@@ -389,9 +380,7 @@ test_that("Reading a CSV file from RASTER", {
 
     raster_cube <- tryCatch({
         sits_cube(
-            source = "LOCAL",
-            name = "sinop-2014",
-            origin = "BDC",
+            source = "BDC",
             collection = "MOD13Q1-6",
             data_dir = data_dir,
             delim = "_",

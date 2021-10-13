@@ -71,7 +71,7 @@
 
     return(sub_image)
 }
-#' @title Find the dimensions and location of a spatial ROI in a data cube
+#' @title Find the dimensions of the sub image without ROI
 #' @name .sits_raster_sub_image_default
 #' @keywords internal
 
@@ -88,8 +88,8 @@
 
     sub_image["first_row"] <- 1
     sub_image["first_col"] <- 1
-    sub_image["nrows"] <- cube[1, ]$nrows
-    sub_image["ncols"] <- cube[1, ]$ncols
+    sub_image["nrows"] <- .cube_size(cube)["nrows"]
+    sub_image["ncols"] <- .cube_size(cube)["ncols"]
     sub_image["xmin"] <- cube[1, ]$xmin
     sub_image["xmax"] <- cube[1, ]$xmax
     sub_image["ymin"] <- cube[1, ]$ymin
@@ -116,15 +116,23 @@
     si[c("xmin", "xmax", "ymin", "ymax")] <-
         bbox[c("xmin", "xmax", "ymin", "ymax")]
 
+    # get the resolution, ncols and nrows
+    # throw an error if resolution and size are not the same
+    # for all bands of the cube
+    res   <- .cube_resolution(cube)
+    size  <- .cube_size(cube)
+    ncols <- size[["ncols"]]
+    nrows <- size[["nrows"]]
+
     # find the first row (remember that rows runs from top to bottom and
     # Y coordinates increase from bottom to top)
     if (bbox["ymax"]  == cube$ymax)
         si["first_row"] <- 1
     else {
         si["first_row"] <- unname(
-            floor((cube$ymax - bbox["ymax"]) / cube$yres)) + 1
+            floor((cube$ymax - bbox["ymax"]) / res)) + 1
         # adjust to fit bbox in cube resolution
-        si["ymax"] <- cube$ymax - cube$yres * (si["first_row"] - 1)
+        si["ymax"] <- cube$ymax - res * (si["first_row"] - 1)
     }
     # find the first col (remember that rows runs from left to right and
     # X coordinates increase from left to right)
@@ -132,30 +140,28 @@
         si["first_col"] <- 1
     else {
         si["first_col"] <- unname(
-            floor((bbox["xmin"] - cube$xmin) / cube$xres)
+            floor((bbox["xmin"] - cube$xmin) / res)
         ) + 1
         # adjust to fit bbox in cube resolution
-        si["xmin"] <- cube$xmin + cube$xres * (si["first_col"] - 1)
+        si["xmin"] <- cube$xmin + res * (si["first_col"] - 1)
     }
 
     # find the number of rows (remember that rows runs from top to bottom and
     # Y coordinates increase from bottom to top)
     if (bbox["ymin"] == cube$ymin)
-        si["nrows"] <- cube$nrows - unname(si["first_row"]) + 1
+        si["nrows"] <- nrows - unname(si["first_row"]) + 1
     else {
-        si["nrows"] <- unname(
-            floor((bbox["ymax"] - bbox["ymin"]) / cube$yres)) + 1
+        si["nrows"] <- unname(floor((bbox["ymax"] - bbox["ymin"]) / res)) + 1
         # adjust to fit bbox in cube resolution
-        si["ymin"] <- si["ymax"] - cube$yres * si["nrows"]
+        si["ymin"] <- si["ymax"] - res * si["nrows"]
     }
 
     if (si["xmax"] == cube$xmax)
-        si["ncols"] <- cube$ncols - unname(si["first_col"]) + 1
+        si["ncols"] <- ncols - unname(si["first_col"]) + 1
     else {
-        si["ncols"] <- unname(
-            floor((bbox["xmax"] - bbox["xmin"]) / cube$xres)) + 1
+        si["ncols"] <- unname(floor((bbox["xmax"] - bbox["xmin"]) / res)) + 1
         # adjust to fit bbox in cube resolution
-        si["xmax"] <- si["xmin"] + cube$yres * si["ncols"]
+        si["xmax"] <- si["xmin"] + res * si["ncols"]
     }
 
     return(si)

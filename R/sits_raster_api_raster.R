@@ -156,10 +156,8 @@
 
     # start read
     if (!purrr::is_null(block)) {
-
         # crop raster
         r_obj <- .raster_crop.raster(r_obj = r_obj, block = block)
-
     }
 
     # read values
@@ -173,10 +171,10 @@
     # compute extent to be cropped
     extent <- raster::extent(
         x = r_obj,
-        c1 = block[["col"]],
-        c2 = block[["col"]] + block[["ncols"]] - 1,
-        r1 = block[["row"]],
-        r2 = block[["row"]] + block[["nrows"]] - 1
+        c1 = block[["first_col"]],
+        c2 = block[["first_col"]] + block[["ncols"]] - 1,
+        r1 = block[["first_row"]],
+        r2 = block[["first_row"]] + block[["nrows"]] - 1
     )
 
     # crop raster

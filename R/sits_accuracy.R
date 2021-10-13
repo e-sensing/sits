@@ -70,9 +70,7 @@
 #' # create a data cube based on files
 #' data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
 #' cube <- sits_cube(
-#'     source = "LOCAL",
-#'     name = "sinop-2014",
-#'     origin = "BDC",
+#'     source = "BDC",
 #'     collection = "MOD13Q1-6",
 #'     data_dir = data_dir,
 #'     delim = "_",
@@ -221,7 +219,7 @@ sits_accuracy.classified_image <- function(data, ..., validation_csv) {
         colnames(xy) <- c("X", "Y")
 
         # extract values from cube
-        values <- .sits_cube_extract(
+        values <- .cube_extract(
             cube = row,
             band_cube = labelled_band,
             xy = xy
@@ -259,7 +257,7 @@ sits_accuracy.classified_image <- function(data, ..., validation_csv) {
     freq_lst <- slider::slide(data, function(tile) {
 
         # get the frequency count and value for each labelled image
-        freq <- .sits_cube_area_freq(tile)
+        freq <- .cube_area_freq(tile)
         # include class names
         freq <- dplyr::mutate(freq, class = labels_cube[freq$value])
         return(freq)
@@ -368,8 +366,11 @@ sits_accuracy.classified_image <- function(data, ..., validation_csv) {
     # Reorder the area based on the error matrix
     area <- area[colnames(error_matrix)]
 
+    # get the resolution
+    res <- .cube_resolution(cube)
+
     # convert the area to hectares
-    area <- area * cube$yres[[1]] * cube$xres[[1]] / 10000
+    area <- area * res * res / 10000
 
     #
     weight <- area / sum(area)

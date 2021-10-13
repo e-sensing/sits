@@ -178,9 +178,7 @@ of a data cube using the \code{\link[sits]{sits_cube}} function.
 # Create a data cube based on files
 data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
 raster_cube <- sits_cube(
-    source = "LOCAL",
-    name = "sinop-2014",
-    origin = "BDC",
+    source = "BDC",
     collection = "MOD13Q1-6",
     data_dir = data_dir,
     delim = "_",

@@ -6,7 +6,6 @@
 \usage{
 sits_regularize(
   cube,
-  name,
   output_dir,
   period = NULL,
   res = NULL,
@@ -21,8 +20,6 @@ sits_regularize(
 \item{cube}{A \code{sits_cube} object whose spacing of observation
 times is not constant and will be regularized by the \code{gdalcubes}
 package.}
-
-\item{name}{A \code{character} with name of the output data cube}
 
 \item{output_dir}{A \code{character} with a directory where the regularized
 images will be written by \code{gdalcubes}.}

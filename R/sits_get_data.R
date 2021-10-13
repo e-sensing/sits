@@ -66,9 +66,7 @@
 #' # Create a data cube based on files
 #' data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
 #' raster_cube <- sits_cube(
-#'     source = "LOCAL",
-#'     name = "sinop-2014",
-#'     origin = "BDC",
+#'     source = "BDC",
 #'     collection = "MOD13Q1-6",
 #'     data_dir = data_dir,
 #'     delim = "_",
@@ -726,7 +724,7 @@ sits_get_data.shp_raster_cube <- function(cube, file, ...,
                             start_date = start_date,
                             end_date = end_date,
                             label = label,
-                            cube = cube$name,
+                            cube = cube$collection,
                             time_series = list(ts)
     )
     # rename the SATVEG bands to uppercase

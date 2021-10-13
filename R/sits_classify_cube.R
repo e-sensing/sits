@@ -20,9 +20,6 @@
 #' @param  roi             region of interest
 #' @param  filter_fn       smoothing filter function to be applied to the data.
 #' @param  impute_fn       impute function to replace NA
-#' @param  interp_fn       function to interpolate points from cube to match
-#'                         samples
-#' @param  compose_fn      function to compose points from cube to match samples
 #' @param  memsize         memory available for classification (in GB).
 #' @param  multicores      number of cores.
 #' @param  output_dir      output directory
@@ -36,8 +33,6 @@
                                       roi,
                                       filter_fn,
                                       impute_fn,
-                                      interp_fn,
-                                      compose_fn,
                                       memsize,
                                       multicores,
                                       output_dir,
@@ -99,7 +94,7 @@
         ))
 
     # create the metadata for the probability cube
-    probs_cube <- .sits_cube_probs(
+    probs_cube <- .cube_probs_create(
         tile       = tile,
         samples    = samples,
         sub_image  = sub_image,
@@ -117,7 +112,7 @@
     # show initial time for classification
     if (verbose) {
         start_time <- Sys.time()
-        message(paste0("Starting classification of '", tile$name,
+        message(paste0("Starting classification of '", tile$tile,
                        "' at ", start_time))
     }
 
@@ -137,7 +132,7 @@
         # define the file name of the raster file to be written
         filename_block <- paste0(
             tools::file_path_sans_ext(probs_cube$file_info[[1]]$path),
-            "_block_", b[["row"]], "_", b[["nrows"]], ".tif"
+            "_block_", b[["first_row"]], "_", b[["nrows"]], ".tif"
         )
 
         # resume processing in case of failure
@@ -175,8 +170,6 @@
             stats      = stats,
             filter_fn  = filter_fn,
             impute_fn  = impute_fn,
-            interp_fn  = interp_fn,
-            compose_fn = compose_fn
         )
         # log
         .sits_debug_log(output_dir = output_dir,
@@ -201,12 +194,11 @@
                         event      = "before save classified block")
 
         # convert probabilities matrix to INT2U
-        scale_factor_save <- round(1 / .cube_band_scale_factor(
-            cube = probs_cube, band = "PROBS"))
+        scale_factor_save <- round(1 / .config_get("probs_cube_scale_factor"))
         pred_block <- round(scale_factor_save * pred_block, digits = 0)
 
         # compute block spatial parameters
-        params <- .sits_cube_params_block(tile, b)
+        params <- .cube_params_block(tile, b)
 
         # create a new raster
         r_obj <- .raster_new_rast(
@@ -229,7 +221,7 @@
             r_obj        = r_obj,
             file         = filename_block,
             format       = "GTiff",
-            data_type    = .raster_data_type("INT2U"),
+            data_type    = .config_get("probs_cube_data_type"),
             gdal_options = .config_gtiff_default_options(),
             overwrite    = TRUE
         )

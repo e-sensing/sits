@@ -27,9 +27,7 @@
 #' # create a data cube based on the information about the files
 #' data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
 #' cube <- sits_cube(
-#'     source = "LOCAL",
-#'     name = "sinop_2014",
-#'     origin = "BDC",
+#'     source = "BDC",
 #'     collection = "MOD13Q1-6",
 #'     data_dir = data_dir,
 #'     delim = "_",
@@ -64,11 +62,13 @@ sits_label_classification <- function(cube,
     )
 
     # create metadata for labeled raster cube
-    label_cube <- .sits_label_cube(
-        probs_cube = cube,
+    label_cube <- .cube_probs_label(
+        cube       = cube,
         output_dir = output_dir,
-        version = version
+        ext        = "class",
+        version    = version
     )
+    class(label_cube) <- unique(c("classified_image", class(label_cube)))
 
     # mapping function to be executed by workers cluster
     .do_map <- function(chunk) {
@@ -96,9 +96,10 @@ sits_label_classification <- function(cube,
         func = .do_map,
         multicores = multicores,
         memsize = memsize,
-        gdal_datatype = .raster_gdal_datatype("INT1U"),
+        gdal_datatype = .config_get("class_cube_data_type"),
         gdal_options = .config_gtiff_default_options()
     )
+
 
     return(label_cube)
 }
@@ -130,9 +131,7 @@ sits_label_classification <- function(cube,
 #' data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
 #' # create a data cube based on the information about the files
 #' cube <- sits_cube(
-#'     source = "LOCAL",
-#'     name = "sinop-2014",
-#'     origin = "BDC",
+#'     source = "BDC",
 #'     collection = "MOD13Q1-6",
 #'     data_dir = data_dir,
 #'     delim = "_",
@@ -175,11 +174,10 @@ sits_label_majority <- function(cube,
         msg = "window size must be >= 3"
     )
 
-    cube_maj <- .sits_cube_clone(cube = cube,
-                                 name = paste0(cube$name, "_maj"),
-                                 ext = "_maj",
-                                 output_dir = output_dir,
-                                 version = version)
+    cube_maj <- .cube_probs_label(cube = cube,
+                                       ext = "class_maj",
+                                       output_dir = output_dir,
+                                       version = version)
 
     # retrieve the files to be read and written
     in_files <- cube$file_info[[1]]$path
@@ -202,7 +200,7 @@ sits_label_majority <- function(cube,
             r_obj = r_obj,
             file = out_file,
             format = "GTiff",
-            data_type = .raster_data_type("INT1U"),
+            data_type = .config_get("class_cube_data_type"),
             gdal_options = .config_gtiff_default_options(),
             overwrite = TRUE
         )
@@ -218,86 +216,4 @@ sits_label_majority <- function(cube,
     return(cube_maj)
 }
 
-#' @title Create a set of RasterLayer objects
-#'        to store data cube classification results (labelled classes)
-#' @name .sits_label_cube
-#' @keywords internal
-#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
-#'
-#' @description Takes a tibble containing metadata about a data cube wuth
-#' classification probabilites and and creates a
-#' data cube to store the classification result.
-#'
-#' @param  probs_cube        Metadata about the input data cube (probability).
-#' @param  output_dir        Output directory where to put the files
-#' @param  version           Name of the version of the result
-#' @return                   Metadata about the output data cube.
-.sits_label_cube <- function(probs_cube, output_dir, version) {
 
-    labels_lst <- slider::slide(probs_cube, function(probs_row) {
-
-        # labels come from the input cube
-        labels <- sits_labels(probs_row)
-
-        # name of the cube
-        name <- paste0(probs_row$name, "_class")
-
-        # start and end dates
-        start_date <- as.Date(probs_row$file_info[[1]]$start_date)
-        end_date <- as.Date(probs_row$file_info[[1]]$end_date)
-        # band
-        band <- paste0(probs_row$name, "_class")
-
-        # file name for the classified image
-        # use the file name for the probs_row (includes dates)
-        # replace "probs" by "class"
-        # remove the extension
-        # split the file names
-        # get a vector of strings
-        # remove the version information
-        # include the version information from the function
-        file_name <- probs_row$file_info[[1]]$path %>%
-            basename() %>%
-            gsub("probs", "class", .) %>%
-            tools::file_path_sans_ext() %>%
-            strsplit(split = "_") %>%
-            unlist() %>%
-            .[seq_along(.) - 1] %>%
-            paste0(collapse = "_") %>%
-            paste0(output_dir, "/", ., "_", version, ".tif")
-
-        # get the file information
-        file_info <- tibble::tibble(
-            band = band,
-            start_date = start_date,
-            end_date = end_date,
-            path = file_name
-        )
-
-        # create a new RasterLayer for a defined period and generate metadata
-        label_row <- .sits_cube_create(
-            name    = name,
-            source = "CLASSIFIED",
-            satellite = probs_row$satellite,
-            sensor    = probs_row$sensor,
-            bands  = band,
-            labels = labels,
-            nrows = probs_row$nrows,
-            ncols = probs_row$ncols,
-            xmin  = probs_row$xmin,
-            xmax  = probs_row$xmax,
-            ymin  = probs_row$ymin,
-            ymax  = probs_row$ymax,
-            xres  = probs_row$xres,
-            yres  = probs_row$yres,
-            crs   = probs_row$crs,
-            file_info = file_info
-        )
-        return(label_row)
-    })
-
-    label_cube <- dplyr::bind_rows(labels_lst)
-
-    class(label_cube) <- .cube_s3class(label_cube)
-    return(label_cube)
-}

@@ -9,7 +9,7 @@
 \arguments{
 \item{files}{raster files to be read}
 
-\item{block}{numeric vector with names "col", "ncols", "row", "nrows".}
+\item{block}{numeric vector with names "first_col", "ncols", "first_row", "nrows".}
 
 \item{...}{additional parameters to be passed to raster package}
 }

@@ -47,7 +47,6 @@
 #' @param cube       A \code{sits_cube} object whose spacing of observation
 #'  times is not constant and will be regularized by the \code{gdalcubes}
 #'  package.
-#' @param name       A \code{character} with name of the output data cube
 #' @param output_dir A \code{character} with a directory where the regularized
 #'  images will be written by \code{gdalcubes}.
 #' @param period     A \code{character} with ISO8601 time period for regular
@@ -81,7 +80,6 @@
 #'
 #' @export
 sits_regularize <- function(cube,
-                            name,
                             output_dir,
                             period  = NULL,
                             res     = NULL,
@@ -100,12 +98,12 @@ sits_regularize <- function(cube,
                    "install.packages('gdalcubes')"), call. = FALSE
         )
     }
-
-    # supported  cubes
-    .check_chr_within(
-        x = .sits_cube_source(cube),
-        within = c("AWS"),
-        msg = "currently only the 'AWS' cubes can be regularized."
+    # sits needs a valid gdalcubes configuration file to be able to regularize
+    # collections
+    .check_null(.source_collection_gdal_config(.cube_source(cube), .cube_collection(cube)),
+                msg = "sits_regularize not available for collection ",
+                cube$collection,
+                " from ", cube$source
     )
 
     .check_num(
@@ -176,9 +174,6 @@ sits_regularize <- function(cube,
     # timeline of intersection
     toi <- interval_intersection(cube)
 
-    # fix cube name
-    cube <- .sits_cube_fix_name(cube)
-
     # create an image collection
     img_col <- .gc_create_database(cube = cube, path_db = path_db)
 
@@ -195,7 +190,6 @@ sits_regularize <- function(cube,
 
         # create of the aggregate cubes
         gc_tile <- .gc_new_cube(tile = tile,
-                                name = name,
                                 cv = cv,
                                 img_col = img_col,
                                 path_db = path_db,

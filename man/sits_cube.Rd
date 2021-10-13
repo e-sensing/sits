@@ -3,110 +3,59 @@
 \name{sits_cube}
 \alias{sits_cube}
 \alias{sits_cube.wtss_cube}
-\alias{sits_cube.bdc_cube}
-\alias{sits_cube.deafrica_cube}
-\alias{sits_cube.aws_cube}
-\alias{sits_cube.usgs_cube}
+\alias{sits_cube.stac_cube}
 \alias{sits_cube.local_cube}
-\alias{sits_cube.probs_cube}
 \alias{sits_cube.satveg_cube}
 \title{Defines a data cube}
 \usage{
-sits_cube(source, ...)
+sits_cube(source, ..., collection, data_dir = NULL)
 
-\method{sits_cube}{wtss_cube}(source = "WTSS", ..., name = "wtss_cube", url = NULL, collection)
+\method{sits_cube}{wtss_cube}(source = "WTSS", ..., collection, data_dir = NULL, url = NULL)
 
-\method{sits_cube}{bdc_cube}(
-  source = "BDC",
-  ...,
-  name = "bdc_cube",
+\method{sits_cube}{stac_cube}(
+  source,
   collection,
-  bands = NULL,
-  tiles = NULL,
-  roi = NULL,
-  start_date = NULL,
-  end_date = NULL
-)
-
-\method{sits_cube}{deafrica_cube}(
-  source = "DEAFRICA",
+  data_dir = NULL,
   ...,
-  name = "deafrica_cube",
-  url = NULL,
-  collection = "S2_L2A",
   bands = NULL,
   tiles = NULL,
   roi = NULL,
   start_date = NULL,
-  end_date = NULL
-)
-
-\method{sits_cube}{aws_cube}(
-  source = "AWS",
-  ...,
-  name = "aws_cube",
-  url = NULL,
-  collection = "SENTINEL-S2-L2A-COGS",
-  tiles = NULL,
-  bands = NULL,
-  roi = NULL,
-  s2_resolution = 20,
-  start_date = NULL,
-  end_date = NULL
-)
-
-\method{sits_cube}{usgs_cube}(
-  source = "USGS",
-  ...,
-  name = "usgs_cube",
-  url = NULL,
-  collection = "landsat-c2l2-sr",
-  tiles = NULL,
-  bands = NULL,
-  roi = NULL,
-  start_date = NULL,
-  end_date = NULL
+  end_date = NULL,
+  name = NULL
 )
 
 \method{sits_cube}{local_cube}(
-  source = "LOCAL",
-  ...,
-  name = "local_cube",
-  origin,
+  source,
   collection,
+  data_dir,
+  ...,
   bands = NULL,
   start_date = NULL,
   end_date = NULL,
-  data_dir,
   parse_info,
-  delim = "_"
+  delim = "_",
+  name = NULL,
+  origin = NULL
 )
 
-\method{sits_cube}{probs_cube}(
-  source = "PROBS",
-  ...,
-  name = "probs_cube",
-  start_date,
-  end_date,
-  probs_labels,
-  probs_files
-)
-
-\method{sits_cube}{satveg_cube}(source = "SATVEG", ..., collection = "TERRA")
+\method{sits_cube}{satveg_cube}(source = "SATVEG", collection = "TERRA", data_dir = NULL, ...)
 }
 \arguments{
 \item{source}{Data source (one of "AWS", "BDC", "DEAFRICA",
-"LOCAL", "PROBS", "SATVEG", "USGS", "WTSS").}
+"SATVEG", "USGS", "WTSS").}
 
 \item{...}{Other parameters to be passed for specific types.}
 
-\item{name}{Name of the output data cube.}
-
-\item{url}{URL for the STAC endpoint of the data source.}
-
 \item{collection}{Collection to be searched in the data source.}
 
-\item{bands}{Bands to be included.}
+\item{data_dir}{directory where local data is located
+(only for creating data cubes from local files).}
+
+\item{url}{URL for the STAC endpoint of the data source.
+(if not provided, `sits` uses the URL from the configuration file)}
+
+\item{bands}{Bands to be included (optional)}
 
 \item{tiles}{Tiles from the collection to be included in the
 data cube.}
@@ -117,11 +66,7 @@ data cube.}
 
 \item{end_date}{Final date for the cube  (optional).}
 
-\item{s2_resolution}{Resolution of S2 images ("10m", "20m" or "60m").
-used to build cubes (only for AWS cubes).}
-
-\item{data_dir}{directory where local data is located
-(only for creating data cubes from local files).}
+\item{name}{deprecated parameter formely used to describe cubes}
 
 \item{parse_info}{parsing information for files without STAC
 information
@@ -130,15 +75,8 @@ information
 \item{delim}{delimiter for parsing files without STAC information
 (only for creating data cubes from local files).}
 
-\item{probs_labels}{Labels associated to a probabilities cube.}
-
-\item{probs_files}{File names (used for creating a cube from
-probabilities).}
-
-\item{satellite}{Satellite that produced the images
-(only for creating data cubes from local files).}
-
-\item{sensor}{Sensor that produced the images.}
+\item{origin}{deprecated parameter formely used for local cubes
+(see documentation)}
 }
 \value{
 The description of a data cube
@@ -163,22 +101,27 @@ Currently, users can create data cube from the following sources:
   see also https://www.digitalearthafrica.org/}
  \item{"AWS": }{Amazon Web Services (AWS),
   see also https://earth-search.aws.element84.com/v0/ }
- \item{"LOCAL": }{Defines a cube from on a set of local files.}
- \item{"PROBS": }{Defines a cube to from a set of classified image files}.
+ \item{"USGS":}{USGS LANDSAT collection}
  \item{"SATVEG": }{Defines a cube to use the SATVEG web service,
   see also https://www.satveg.cnptia.embrapa.br/satveg/login.html}
  }
 
-For big data sources such as AWS, BDC, and DEA users need to provide:
+For all cubes, users need to provide information on:
 \itemize{
 \item{collection: }{Collections are the highest level of aggregation on
-bug data repositories. Each repository has its own set of collections,
-described by STAC. To use STAC for querying repositories, please see the
-package `rstac` for examples.}
+big data repositories. Use `sits_list_collections()` to see which collections
+are supported by `sits`}
 \item{spatial extent: }{The spatial extent of the data cube can be defined
 in two ways: (a) a region of interest(`bbox`) in WGS 84 coordinates;
 (b) a set of tiles defined according the collection tiling system.}
 \item{temporal extent: }{The start and end date of the cube}
+}
+
+Optional parameters include:
+\itemize{
+\item{data_dir: }{Directory where data is installed (required for data sets
+stored in local disks)}
+\item{bands: }{Bands used to build the cube}
 }
 }
 \details{
@@ -189,48 +132,51 @@ GeoJSON geometry (RFC 7946). Note that this parameter does not crop a
 region, but only selects the images that intersect with it.
 }
 \note{
-In AWS, there are two types of collections: open-data and
-requester-pays data. Currently, `sits` supports collection "SENTINEL-S2-L2A"
-(requester-pays) and "SENTINEL-S2-L2A-COGS" (open-data).
-
-For AWS collection "SENTINEL-S2-L2A-COGS" (open-data),
-Sentinel-2/2A level 2A files in AWS are organized by sensor
-resolution. The AWS bands in 10m resolution are "B02", "B03", "B04", and
-"B08". The  20m bands are "B05", "B06", "B07", B8A",
-"B8A", "B11", and "B12". Bands "B01" and "B09" are available at 60m resolution.
-There is no need to provide AWS credentials to access this collection.
-
-Sentinel-2/2A level 2A files in collection "SENTINEL-S2-L2A"
-in AWS are organized by sensor. The  bands in 10m resolution are
-"B02", "B03", "B04", and "B08".
-The  20m bands are "B02", "B03", "B04", "B05", "B06", "BO7", B08",
-"B8A", "B11", and "B12". All 12 bands are available at 60m resolution.
-For creating data cubes from Sentinel-2/2A, users also have to specify
-the `s2_resolution` parameter.
-
-Since this collection is not open data, users
-need to provide AWS credentials to access this collection.
+In AWS, there are two types of collections: open data and
+requester-pays. Currently, `sits` supports collection "SENTINEL-S2-L2A"
+(requester-pays) and "SENTINEL-S2-L2A-COGS" (open data). There is no need
+to provide AWS credentials to access open data collections.
+For requester-pays data, users need to provide their access codes as
+environment variables, as follows:
 Sys.setenv(
 "AWS_ACCESS_KEY_ID"     = <your_access_key>,
 "AWS_SECRET_ACCESS_KEY" = <your_secret_access_key>
 )
 
-For DEAFRICA, sits currently only works with collection 'S2_L2A'.
-This collection is the same as AWS collection "SENTINEL-S2-L2A-COGS".
-No credentials are required, since all DEAFRICA collections are
-acessible as open data.
+Sentinel-2/2A level 2A files in AWS are organized by sensor
+resolution. The AWS bands in 10m resolution are "B02", "B03", "B04", and
+"B08". The  20m bands are "B05", "B06", "B07", B8A",
+"B8A", "B11", and "B12". Bands "B01" and "B09" are available at 60m resolution.
 
-BDC users need to provide their credentials using environmental
+For DEAFRICA, sits currently works with collection 'S2_L2A' (open data).
+This collection is the same as AWS collection "SENTINEL-S2-L2A-COGS",
+and is located in Africa (Capetown) for faster access to African users.
+No payment for access is required.
+
+For USGS, sits currently works with collection 'landsat-c2l2-sr', which
+corresponds to Landsat Collection 2 Level-2 surface reflectance data,
+covering datasets from Landsat-4 to Landsat-8. This collection is open data.
+
+All BDC collections have been regularized.
+BDC users need to provide their credentials using environment
 variables. To create your credentials, please see
  "https://brazildatacube.dpi.inpe.br/portal/explore". There is no
  cost for accessing data in the BDC.
  After obtaining the BDC access key, please include it as
- an environmental variable.
+ an environment variable.
 Sys.setenv(
 "BDC_ACCESS_KEY" = <your_bdc_access_key>
 )
 
-All BDC collections have been regularized.
+To create a cube from local files, the user needs to inform:
+\itemize{
+\item{source:} {Provider from where the data has been downloaded
+              (e.g, "BDC", "AWS)}
+\item{collection:}{Collection from which the data has been extracted}
+\item{data_dir: }{Local directory where the files are stored}
+\item{parse_info: }{Parsing information for files (see below)}
+\item{delim: }{Delimiter for parsing files (see below)}
+}
 
 To create a cube from local files, all image files should have
 the same spatial resolution and projection. Files can belong to different
@@ -248,9 +194,13 @@ The SATVEG service is run by Embrapa Agricultural
  There are three collections: "terra" (from the TERRA satellite),
  "aqua" (from the AQUA satellite) and "comb" (combination of
  both satellites).
+
+WTSS is a web service for providing individual time series from BDC.
+Users specify a list of spatio-temporal positions and a collection where they
+want to extract the data.
 }
 \examples{
-\dontrun{-=-
+\dontrun{
 
 # --- Access to the Brazil Data Cube
 # Provide your BDC credentials as environment variables
@@ -262,7 +212,6 @@ Sys.setenv(
 cbers_tile <- sits_cube(
     source = "BDC",
     collection = "CB4_64_16D_STK-1",
-    name = "cbers_022024",
     bands = c("NDVI", "EVI"),
     tiles = "022024",
     start_date = "2018-09-01",
@@ -279,15 +228,8 @@ cube_wtss <- sits::sits_cube(source = "WTSS",
                              collection = "MOD13Q1-6")
 
 # --- Access to Digital Earth Africa
-# Provide your AWS credentials as environment variables
-Sys.setenv(
-    "AWS_ACCESS_KEY_ID" = <your_aws_access_key>,
-    "AWS_SECRET_ACCESS_KEY" = <your_aws_secret_access_key>
-)
-
 # create a raster cube file based on the information about the files
 cube_dea <- sits_cube(source = "DEAFRICA",
-                      name = "deafrica_cube",
                       collection = "s2_l2a",
                       bands = c("B04", "B08"),
                       bbox = c("xmin" = 17.379,
@@ -295,59 +237,27 @@ cube_dea <- sits_cube(source = "DEAFRICA",
                               "xmax" = 17.410,
                                "ymax" = 1.1910),
                       start_date = "2019-01-01",
-                      end_date = "2019-10-28")
-
-# --- Access to Sentinel 2/2A level 2 data in AWS
-# Provide your AWS credentials as environment variables
-Sys.setenv(
-    "AWS_ACCESS_KEY_ID" = <your_aws_access_key>,
-    "AWS_SECRET_ACCESS_KEY" = <your_aws_secret_access_key>
+                      end_date = "2019-10-28"
 )
 
+# --- Access to open data Sentinel 2/2A level 2 collection in AWS
 s2_cube <- sits_cube(source = "AWS",
-                      name = "T20LKP_2018_2019",
-                      collection = "sentinel-s2-l2a",
+                      collection = "sentinel-s2-l2a-cogs",
                       tiles = c("20LKP","20LLP"),
+                      bands = c("B03", "B04", "B08")
                       start_date = as.Date("2018-07-18"),
-                      end_date = as.Date("2018-07-23"),
-                      s2_resolution = 20
+                      end_date = as.Date("2018-07-23")
 )
 
 # --- Create a cube based on a local MODIS data
 data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
 
 modis_cube <- sits_cube(
-    source = "LOCAL",
-    name = "modis_sinop",
-    origin = "BDC",
+    source = "BDC",
     collection = "MOD13Q1-6",
     data_dir = data_dir,
     delim = "_",
     parse_info = c("X1", "X2", "tile", "band", "date")
-)
-
-# Create a raster cube based on files with probability information
-# inform the files that make up a raster probs brick with 23 time instances
-probs_file <- c(system.file(
-    "extdata/raster/probs/sinop-2014_probs_2013_9_2014_8_v1.tif",
-    package = "sits"
-))
-
-# inform the labels
-labels <- c("Cerrado", "Fallow_Cotton", "Forest", "Pasture", "Soy_Corn",
-"Soy_Cotton", "Soy_Fallow", "Soy_Millet", "Soy_Sunflower")
-
-
-# create a raster cube file based on the information about the files
-probs_cube <- sits_cube(
-    source = "PROBS",
-    name = "Sinop-crop-probs",
-    satellite = "TERRA",
-    sensor  = "MODIS",
-    start_date = as.Date("2013-09-14"),
-    end_date = as.Date("2014-08-29"),
-    probs_labels = labels,
-    probs_files = probs_file
 )
 }
 
@@ -355,4 +265,3 @@ probs_cube <- sits_cube(
 \references{
 `rstac` package (https://github.com/brazil-data-cube/rstac)
 }
-\keyword{internal}

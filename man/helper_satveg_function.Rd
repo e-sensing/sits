@@ -2,13 +2,10 @@
 % Please edit documentation in R/sits_source_api_satveg.R
 \name{helper_satveg_function}
 \alias{helper_satveg_function}
-\alias{.satveg_get_size}
 \alias{.satveg_get_bbox}
 \alias{.satveg_get_crs}
 \title{Helper satveg functions}
 \usage{
-.satveg_get_size(source, collection)
-
 .satveg_get_bbox(source, collection)
 
 .satveg_get_crs(source, collection)
