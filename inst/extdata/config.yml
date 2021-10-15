@@ -863,6 +863,61 @@ sources:
                     AWS_S3_ENDPOINT   : "s3.af-south-1.amazonaws.com"
                 open_data: true
                 open_data_token: false
+            LS8_SR          : &deafrica_l8
+                bands       :
+                    B01     : &deafrica_oli_30m
+                        missing_value : 0
+                        minimum_value : 7273
+                        maximum_value : 43636
+                        scale_factor  : 0.0000275
+                        offset_value  : -0.2
+                        resampling    : "bilinear"
+                        resolutions   : [30]
+                        band_name     : "SR_B1"
+                    B02     :
+                        <<: *deafrica_oli_30m
+                        band_name     : "SR_B2"
+                    B03     :
+                        <<: *deafrica_oli_30m
+                        band_name     : "SR_B3"
+                    B04     :
+                        <<: *deafrica_oli_30m
+                        band_name     : "SR_B4"
+                    B05     :
+                        <<: *deafrica_oli_30m
+                        band_name     : "SR_B5"
+                    B06      :
+                        <<: *deafrica_oli_30m
+                        band_name     : "SR_B6"
+                    B07     :
+                        <<: *deafrica_oli_30m
+                        band_name     : "SR_B7"
+                    CLOUD   :
+                        bit_mask      : TRUE
+                        band_name     : "QA_PIXEL"
+                        values        :
+                            0         : "missing_data"
+                            1         : "Dilated Cloud"
+                            2         : "High confidence cirrus"
+                            4         : "High confidence cloud shadow"
+                            5         : "High confidence snow cover"
+                            6         : "Clear"
+                            7         : "Water"
+                            9         : "High confidence of cloud"
+                            11        : "High confidence of cloud shadow"
+                            13        : "High confidence of snow"
+                            15        : "High confidence of cirrus"
+                        interp_values : [0, 1, 2, 3, 8, 9, 10, 11]
+                        resampling    : "near"
+                        resolutions   : [30]
+                satellite   : "LANDSAT-8"
+                sensor      : "OLI"
+                collection_name: "ls8_sr"
+                access_vars :
+                    AWS_DEFAULT_REGION: "af-south-1"
+                    AWS_S3_ENDPOINT   : "s3.af-south-1.amazonaws.com"
+                open_data: true
+                open_data_token: false
     USGS                    :
         s3_class            : ["usgs_cube", "stac_cube", "raster_cube"]
         service             : "STAC"
@@ -891,7 +946,7 @@ sources:
                     B05     :
                         <<: *usgs_oli_30m
                         band_name     : "nir08"
-                    B06      :
+                    B06     :
                         <<: *usgs_oli_30m
                         band_name     : "swir16"
                     B07     :
