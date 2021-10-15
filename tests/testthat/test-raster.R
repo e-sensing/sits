@@ -11,9 +11,7 @@ test_that("One-year, single core classification", {
 
     data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
     sinop <- sits_cube(
-        source = "LOCAL",
-        name = "sinop-2014",
-        origin = "BDC",
+        source = "BDC",
         collection = "MOD13Q1-6",
         data_dir = data_dir,
         delim = "_",
@@ -30,7 +28,7 @@ test_that("One-year, single core classification", {
     expect_true(all(file.exists(unlist(sinop_probs$file_info[[1]]$path))))
     r_obj <- sits:::.raster_open_rast(sinop_probs$file_info[[1]]$path[[1]])
 
-    expect_true(sits:::.raster_nrows(r_obj) == sinop_probs$nrows)
+    expect_true(sits:::.raster_nrows(r_obj) == .cube_size(sinop_probs)[["nrows"]])
 
     max_lyr1 <- max(sits:::.raster_get_values(r_obj)[, 1])
     expect_true(max_lyr1 <= 10000)
@@ -50,9 +48,7 @@ test_that("One-year, multicore classification", {
 
     data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
     sinop <- sits_cube(
-        source = "LOCAL",
-        name = "sinop-2014",
-        origin = "BDC",
+        source = "BDC",
         collection = "MOD13Q1-6",
         data_dir = data_dir,
         delim = "_",
@@ -74,12 +70,12 @@ test_that("One-year, multicore classification", {
     })
 
     if (purrr::is_null(sinop_probs)) {
-        skip("Unable to allocated multicores")
+        skip("Unable to allocate multicores")
     }
 
     expect_true(all(file.exists(unlist(sinop_probs$file_info[[1]]$path))))
     r_obj <- .raster_open_rast(sinop_probs$file_info[[1]]$path[[1]])
-    expect_true(.raster_nrows(r_obj) == sinop_probs$nrows)
+    expect_true(.raster_nrows(r_obj) == .cube_size(sinop_probs)[["nrows"]])
 
     max_lyr2 <- max(.raster_get_values(r_obj)[, 2])
     expect_true(max_lyr2 <= 10000)
@@ -98,9 +94,7 @@ test_that("One-year, single core classification with filter", {
 
     data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
     sinop <- sits_cube(
-        source = "LOCAL",
-        name = "sinop-2014",
-        origin = "BDC",
+        source = "BDC",
         collection = "MOD13Q1-6",
         data_dir = data_dir,
         delim = "_",
@@ -125,14 +119,12 @@ test_that("One-year, single core classification with filter", {
 test_that("One-year, multicore classification with filter", {
     samples_2bands <- sits_select(samples_modis_4bands,
                                   bands = c("NDVI", "EVI"))
-    samples_filt <- sits_sgolay(samples_2bands, bands_suffix = "")
+    samples_filt <- sits_whittaker(samples_2bands, bands_suffix = "")
     rfor_model <- sits_train(samples_filt, sits_rfor())
 
     data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
     sinop <- sits_cube(
-        source = "LOCAL",
-        name = "sinop-2014",
-        origin = "BDC",
+        source = "BDC",
         collection = "MOD13Q1-6",
         data_dir = data_dir,
         delim = "_",
@@ -162,7 +154,7 @@ test_that("One-year, multicore classification with filter", {
 
     r_obj <- .raster_open_rast(sinop_2014_probs$file_info[[1]]$path[[1]])
 
-    expect_true(.raster_nrows(r_obj) == sinop_2014_probs$nrows)
+    expect_true(.raster_nrows(r_obj) == .cube_size(sinop_2014_probs)[["nrows"]])
 
     max_lyr2 <- max(.raster_get_values(r_obj)[, 2])
     expect_true(max_lyr2 <= 10000)
@@ -181,9 +173,7 @@ test_that("One-year, multicore classification with post-processing", {
 
     data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
     sinop <- sits_cube(
-        source = "LOCAL",
-        name = "sinop-2014",
-        origin = "BDC",
+        source = "BDC",
         collection = "MOD13Q1-6",
         data_dir = data_dir,
         delim = "_",
@@ -205,7 +195,7 @@ test_that("One-year, multicore classification with post-processing", {
         return(NULL)
     })
     if (purrr::is_null(sinop_probs)) {
-        skip("Unable to allocated multicores")
+        skip("Unable to allocate multicores")
     }
     expect_true(all(file.exists(unlist(sinop_probs$file_info[[1]]$path))))
 
@@ -243,7 +233,7 @@ test_that("One-year, multicore classification with post-processing", {
     )
 
     r_bay <- .raster_open_rast(sinop_bayes$file_info[[1]]$path[[1]])
-    expect_true(.raster_nrows(r_bay) == sinop_probs$nrows)
+    expect_true(.raster_nrows(r_bay) == .cube_size(sinop_probs)[["nrows"]])
 
     max_bay2 <- max(.raster_get_values(r_bay)[, 2])
     expect_true(max_bay2 <= 10000)
@@ -259,7 +249,7 @@ test_that("One-year, multicore classification with post-processing", {
     expect_true(all(file.exists(unlist(sinop_gauss$file_info[[1]]$path))))
 
     r_gau <- .raster_open_rast(sinop_gauss$file_info[[1]]$path[[1]])
-    expect_true(.raster_nrows(r_gau) == sinop_probs$nrows)
+    expect_true(.raster_nrows(r_gau) == .cube_size(sinop_probs)[["nrows"]])
 
     max_gau2 <- max(.raster_get_values(r_gau)[, 2])
     expect_true(max_gau2 <= 10000)
@@ -273,7 +263,7 @@ test_that("One-year, multicore classification with post-processing", {
     expect_true(all(file.exists(unlist(sinop_bil$file_info[[1]]$path))))
 
     r_bil <- .raster_open_rast(sinop_bil$file_info[[1]]$path[[1]])
-    expect_true(.raster_nrows(r_bil) == sinop_probs$nrows)
+    expect_true(.raster_nrows(r_bil) == .cube_size(sinop_probs)[["nrows"]])
 
     max_bil2 <- max(.raster_get_values(r_bil)[, 2])
     expect_true(max_bil2 <= 10000)
@@ -289,4 +279,5 @@ test_that("One-year, multicore classification with post-processing", {
     expect_true(all(file.remove(unlist(sinop_majority$file_info[[1]]$path))))
 
     expect_true(all(file.remove(unlist(sinop_probs$file_info[[1]]$path))))
+
 })

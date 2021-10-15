@@ -298,7 +298,7 @@
             start_date = dates[[1]],
             end_date   = dates[[length(dates)]],
             label      = point$label,
-            cube       = cube$name
+            cube       = cube$collection
         )
 
         # put them on a tibble
@@ -327,8 +327,8 @@
             collection = .cube_collection(cube = cube)
         )
 
-        # get the values of the time series (terra object)
-        cld_values <- .sits_cube_extract(
+        # get the values of the time series
+        cld_values <- .cube_extract(
             cube = cube,
             band_cube = cld_band,
             xy = xy
@@ -358,7 +358,7 @@
         offset_value <- .cube_band_offset_value(cube = cube, band = band)
 
         # get the values of the time series as matrix
-        values_band <- .sits_cube_extract(cube, band, xy)
+        values_band <- .cube_extract(cube, band, xy)
 
         # each row of the values matrix is a spatial point
         ts_band_lst <- purrr::map(seq_len(nrow(values_band)), function(i) {

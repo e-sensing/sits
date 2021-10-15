@@ -3,7 +3,6 @@
 #' @keywords internal
 #'
 #' @param tile        A data cube tile
-#' @param name        Name of the new data cube
 #' @param img_col     A \code{object} 'image_collection' containing information
 #'  about the images metadata.
 #' @param cv          A \code{list} 'cube_view' with values from cube.
@@ -19,7 +18,6 @@
 #'
 #' @return  A data cube tile with information used in its creation.
 .gc_new_cube <- function(tile,
-                         name,
                          cv,
                          img_col,
                          path_db,
@@ -30,29 +28,21 @@
     # set caller to show in errors
     .check_set_caller(".gc_new_cube")
 
-    size <- .cube_tile_size(cube = tile)
     bbox <- .cube_tile_bbox(cube = tile)
-    resolution <- .cube_tile_resolution(cube = tile)
-    cube_gc <- .sits_cube_create(
-        name = name,
-        source = "LOCAL",
-        collection = paste0(.cube_source(cube = tile), "/",
-                            .cube_collection(cube = tile)),
-        satellite = .cube_satellite(cube = tile),
-        sensor = .cube_sensor(cube = tile),
-        tile = .cube_tiles(cube = tile),
-        bands = .cube_bands(cube = tile),
-        labels = .cube_labels(cube = tile),
-        nrows = size$nrows,
-        ncols = size$ncols,
-        xmin = bbox$xmin,
-        xmax = bbox$xmax,
-        ymin = bbox$ymin,
-        ymax = bbox$ymax,
-        xres = resolution$xres,
-        yres = resolution$yres,
-        crs = .cube_tile_crs(cube = tile),
-        file_info = NA
+    cube_gc <- .cube_create(
+        source     = tile$source,
+        collection = tile$collection,
+        satellite  = tile$satellite,
+        sensor     = tile$sensor,
+        tile       = tile$tile,
+        bands      = tile$bands,
+        labels     = tile$labels,
+        xmin       = bbox$xmin,
+        xmax       = bbox$xmax,
+        ymin       = bbox$ymin,
+        ymax       = bbox$ymax,
+        crs        = tile$crs,
+        file_info  = NA
     )
 
     # update cube metadata
@@ -143,20 +133,22 @@
 #'  about the cube brick metadata.
 .gc_raster_cube <- function(cube, img_col, cv, cloud_mask) {
 
-    # defining the chunk size
-    c_size <- c(t = 1,
-                rows = floor(cube$nrows / 4),
-                cols = floor(cube$ncols / 4))
+
+    chunk_size <- .config_get(key = "gdalcubes_chunk_size")
+
 
     mask_band <- NULL
     if (cloud_mask)
         mask_band <- .gc_cloud_mask(cube)
 
+    gdalcubes_chunk_size <- .config_get(key = "gdalcubes_chunk_size")
+
     # create a brick of raster_cube object
-    cube_brick <- gdalcubes::raster_cube(image_collection = img_col,
-                                         view = cv,
-                                         mask = mask_band,
-                                         chunking = c_size)
+    cube_brick <- gdalcubes::raster_cube(
+        image_collection = img_col,
+        view = cv,
+        mask = mask_band,
+        chunking = gdalcubes_chunk_size)
 
     return(cube_brick)
 }
@@ -175,9 +167,6 @@
     # update bbox
     bbox_names <- c("xmin", "xmax", "ymin", "ymax")
     cube[, bbox_names] <- cube_view$space[c("left", "right", "bottom", "top")]
-
-    # update nrows and ncols
-    cube[, c("nrows", "ncols")] <- cube_view$space[c("ny", "nx")]
 
     # hot fix remove cloud band
     cube$bands[[1]] <- setdiff(cube$bands[[1]], "CLOUD")
@@ -253,8 +242,10 @@
     file_info <- dplyr::bind_rows(cube$file_info)
 
     # retrieving the collection format
-    format_col <- .gc_format_col(.cube_source(cube = cube),
-                                 collection = .cube_collection(cube = cube))
+    format_col <- .source_collection_gdal_config(
+        .cube_source(cube = cube),
+        collection = .cube_collection(cube = cube)
+    )
 
     message("Creating database of images...")
     ic_cube <- gdalcubes::create_image_collection(
@@ -267,7 +258,7 @@
 
 #' @title Internal function to handle with different file collection formats
 #'  for each provider.
-#' @name gdalcubes_format_col
+#' @name .gc_format_col
 #' @keywords internal
 #'
 #' @description
@@ -283,43 +274,17 @@
 
     # set caller to show in errors
     .check_set_caller("sits_cube")
-
-    s <- .source_new(source = source, collection = collection)
-
-    # Dispatch
-    UseMethod(".gc_format_col", s)
-}
-
-#' @keywords internal
-#' @export
-`.gc_format_col.aws_cube_sentinel-s2-l2a` <- function(source, ...) {
-
-    system.file("extdata/gdalcubes/s2la_aws.json", package = "sits")
-}
-
-#' @keywords internal
-#' @export
-`.gc_format_col.aws_cube_sentinel-s2-l2a-cogs` <- function(source, ...) {
-
-    system.file("extdata/gdalcubes/s2la_aws_cogs.json", package = "sits")
-}
-
-`.gc_format_col.usgs_cube_landsat-c2l2-sr` <- function(source, ...) {
-
-    system.file("extdata/gdalcubes/l8c2l2_usgs.json", package = "sits")
-}
-#' @keywords internal
-#' @export
-`.gc_format_col.deafrica_cube_s2_l2a` <- function(source, ...) {
-
-    system.file("extdata/gdalcubes/s2_l2a_deafrica.json", package = "sits")
-}
-
-#' @keywords internal
-#' @export
-`.gc_format_col.deafrica_cube_ls8_sr` <- function(source, ...) {
-
-    system.file("extdata/gdalcubes/ls8_sr_deafrica.json", package = "sits")
+    # try to find the gdalcubes configuration format for this collection
+    gdal_config <- .config_get(key = c("sources", source, "collections",
+                                       collection, "gdalcubes_format_col"),
+                               default = NA)
+    # if the format does not exist, report to the user
+    .check_that(!(is.na(gdal_config)),
+                msg = paste0("collection ", collection, " in source ", source,
+                             "not supported yet\n",
+                             "Please raise an issue in github"))
+    # return the gdal format file path
+    system.file(paste0("extdata/gdalcubes/", gdal_config), package = "sits")
 }
 
 #' @title Create a cube_view object

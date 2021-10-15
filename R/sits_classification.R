@@ -31,10 +31,6 @@
 #' @param  roi               a region of interest (see above)
 #' @param  filter_fn         smoothing filter to be applied (if desired).
 #' @param  impute_fn         impute function to replace NA
-#' @param  interp_fn         function to interpolate points from cube to match
-#'                           samples
-#' @param  compose_fn        function to compose points from cube to match
-#'                           samples
 #' @param  start_date        starting date for the classification
 #' @param  end_date          end date for the classification
 #' @param  memsize           memory available for classification (in GB).
@@ -64,17 +60,6 @@
 #'    in \code{\link[sits]{sits_impute_linear}}. Users can add their custom
 #'    functions.
 #'
-#'    The "interp_fn" function is used when the training samples which
-#'    were used to generate the classification model have a larger number of
-#'    time instances than the data cube. In this case, pixel time series
-#'    of the data cube will have to be interpolated to fit that of the samples.
-#'
-#'    The "compose_fn" function is used when the training samples which
-#'    were used to generate the classification model have a small number of
-#'    time instances than the data cube. In this case, pixel time series
-#'    of the data cube will have to be composed and/or merged
-#'    to fit that of the samples.
-#'
 #'    The "memsize" and "multicores" parameters are used for multiprocessing.
 #'    The "multicores" parameter defines the number of cores used for
 #'    processing. The "memsize" parameter  controls the amount of memory
@@ -99,9 +84,7 @@
 #' # create a data cube based on files
 #' data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
 #' cube <- sits_cube(
-#'     source = "LOCAL",
-#'     name = "sinop-2014",
-#'     origin = "BDC",
+#'     source = "BDC",
 #'     collection = "MOD13Q1-6",
 #'     data_dir = data_dir,
 #'     delim = "_",
@@ -217,8 +200,6 @@ sits_classify.raster_cube <- function(data, ml_model, ...,
                                       roi = NULL,
                                       filter_fn = NULL,
                                       impute_fn = sits_impute_linear(),
-                                      interp_fn = NULL,
-                                      compose_fn = NULL,
                                       start_date = NULL,
                                       end_date = NULL,
                                       memsize = 8,
@@ -231,6 +212,11 @@ sits_classify.raster_cube <- function(data, ml_model, ...,
     # precondition - checks if the cube and ml_model are valid
     .sits_classify_check_params(data, ml_model)
 
+    # precondition - test if cube is regular
+    if (!.cube_is_regular(data))
+        stop("sits can only classify regular cubes. \n
+             Please use sits_regularize()")
+
     # filter only intersecting tiles
     intersects <- slider::slide_lgl(data,
                                     .sits_raster_sub_image_intersects,
@@ -238,9 +224,6 @@ sits_classify.raster_cube <- function(data, ml_model, ...,
 
     # retrieve only intersecting tiles
     data <- data[intersects, ]
-
-    # fix cube names
-    data <- .sits_cube_fix_name(data)
 
     # retrieve the samples from the model
     samples <- .sits_ml_model_samples(ml_model)
@@ -272,14 +255,6 @@ sits_classify.raster_cube <- function(data, ml_model, ...,
             x = n_samples == n_tile,
             msg = "number of instances of samples and cube differ"
         )
-
-        # # The user can provide both interpolation and compositions functions
-        # if (!purrr::is_null(interp_fn))
-        #     interp_fn <- .sits_match_lin_interp()
-        #
-        # if (!purrr::is_null(compose_fn))
-        #     compose_fn <- .sits_match_compose()
-
         # classify the data
         probs_row <- .sits_classify_multicores(
             tile       = tile,
@@ -287,8 +262,6 @@ sits_classify.raster_cube <- function(data, ml_model, ...,
             roi        = roi,
             filter_fn  = filter_fn,
             impute_fn  = impute_fn,
-            compose_fn = compose_fn,
-            interp_fn  = interp_fn,
             memsize    = memsize,
             multicores = multicores,
             output_dir = output_dir,
@@ -301,8 +274,5 @@ sits_classify.raster_cube <- function(data, ml_model, ...,
     })
 
     probs_cube <- dplyr::bind_rows(probs_rows)
-
-    class(probs_cube) <- .cube_s3class(probs_cube)
-
     return(probs_cube)
 }

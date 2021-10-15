@@ -12,6 +12,9 @@ sits_config(
   rstac_pagination_limit = NULL,
   raster_api_package = NULL,
   gdal_creation_options = NULL,
+  gdalcubes_chunk_size = NULL,
+  leaflet_max_Mbytes = NULL,
+  leaflet_comp_factor = NULL,
   reset = FALSE
 )
 
@@ -31,6 +34,15 @@ supported raster handling package.}
 
 \item{gdal_creation_options}{A \code{character} vector specifying GDAL
 creation option for GeoTiff image format.}
+
+\item{gdalcubes_chunk_size}{A \code{numeric} vector specifying the chunk size
+to be used by gdalcubes}
+
+\item{leaflet_max_Mbytes}{A \code{numeric} value indicating the maximum
+size of an image to be shown by leaflet (in MB)}
+
+\item{leaflet_comp_factor}{A \code{numeric} value indicating the compression
+factor for leaflet RGB display}
 
 \item{reset}{A \code{logical} value indicating if current
 configuration options must be cleaned before

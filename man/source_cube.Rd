@@ -6,7 +6,7 @@
 \alias{.source_item_get_date}
 \alias{.source_item_get_hrefs}
 \alias{.source_item_get_bands}
-\alias{.source_item_get_resolutions}
+\alias{.source_item_get_resolution}
 \alias{.source_items_new}
 \alias{.source_items_bands_select}
 \alias{.source_items_fileinfo}
@@ -16,41 +16,38 @@
 \alias{.source_items_tile_get_crs}
 \alias{.source_items_tile_get_name}
 \alias{.source_items_tile_get_bbox}
-\alias{.source_items_tile_get_size}
 \alias{.source_items_cube}
 \title{Functions to instantiate a new cube from a source}
 \usage{
-.source_cube(source, ...)
+.source_cube(source, ..., collection)
 
-.source_item_get_date(source, item, ..., collection = NULL)
+.source_item_get_date(source, ..., item, collection = NULL)
 
-.source_item_get_hrefs(source, item, ..., collection = NULL)
+.source_item_get_hrefs(source, ..., item, collection = NULL)
 
-.source_item_get_bands(source, item, ..., collection = NULL)
+.source_item_get_bands(source, ..., item, collection = NULL)
 
-.source_item_get_resolutions(source, item, ..., collection = NULL)
+.source_item_get_resolution(source, ..., item, collection = NULL)
 
-.source_items_new(source, collection, ...)
+.source_items_new(source, ..., collection)
 
-.source_items_bands_select(source, collection, items, bands, ...)
+.source_items_bands_select(source, ..., collection, items, bands)
 
-.source_items_fileinfo(source, items, ..., collection = NULL)
+.source_items_fileinfo(source, ..., items, collection = NULL)
 
-.source_items_tiles_group(source, items, ..., collection = NULL)
+.source_items_tiles_group(source, ..., items, collection = NULL)
 
 .source_collection_sensor(source, collection)
 
 .source_collection_satellite(source, collection)
 
-.source_items_tile_get_crs(source, tile_items, ..., collection = NULL)
+.source_items_tile_get_crs(source, ..., tile_items, collection = NULL)
 
-.source_items_tile_get_name(source, tile_items, ..., collection = NULL)
+.source_items_tile_get_name(source, ..., tile_items, collection = NULL)
 
-.source_items_tile_get_bbox(source, tile_items, ..., collection = NULL)
+.source_items_tile_get_bbox(source, ..., tile_items, collection = NULL)
 
-.source_items_tile_get_size(source, tile_items, ..., collection = NULL)
-
-.source_items_cube(source, collection, name, items, file_info, ...)
+.source_items_cube(source, ..., collection, items, file_info)
 }
 \arguments{
 \item{source}{A \code{character} value referring to a valid data source.}
@@ -63,12 +60,12 @@ source.}
 \item{items}{Any object referring to the images bands (scenes) that
 compose a cube.}
 
-\item{bands}{A \code{character} with bands to be select in items object.}
-
-\item{name}{A \code{character} with cube name.}
+\item{bands}{Bands to be selected in the collection.}
 
 \item{file_info}{A \code{tibble} that organizes the metadata about each
 file in the tile: date, band, resolution, and path (or URL).}
+
+\item{data_dir}{Directory where local files are stored}
 }
 \value{
 The values returned by each function are described as follows.
@@ -84,8 +81,8 @@ containing paths to each image band of an item.
 \code{.source_item_get_bands()} returns a \code{character} vector
 containing bands name of an item.
 
-\code{.source_item_get_resolutions()} returns a named \code{list}
-with \code{numeric} vectors containing the supported resolutions of an item.
+\code{.source_item_get_resolution()} returns a named \code{list}
+with \code{numeric} vectors containing the supported resolution for each band
 
 \code{.source_items_new()} returns any object referring the images
 of a sits cube.
@@ -116,10 +113,7 @@ value.
 \code{.source_items_tile_get_bbox()} returns a \code{numeric}
 vector with 4 elements (xmin, ymin, xmax, ymax).
 
-\code{.source_items_tile_get_size()} returns a \code{numeric}
-vector with 2 elements (nrows, ncols).
-
-\code{.source_cube()} returns a \code{tibble} containing a sits
+\code{.source_items_cube()} returns a \code{tibble} containing a sits
 cube tile (one row).
 }
 \description{
@@ -143,17 +137,12 @@ each file bands of an item.
 \code{.source_item_get_bands()} retrieves the bands present
 in an item.
 
-\code{.source_item_get_resolutions()} retrieves the supported
-resolutions of an item (for each band).
+\code{.source_item_get_resolution()} retrieves the supported
+resolution of an item (for each band).
 
 \code{.source_items_new()} this function is called to create
 an items object. In case of Web services, this function is responsible for
 making the Web requests to the server.
-
-Selection of items from specific bands by the user.
-
-\code{.source_items_bands_select()} is a filter of bands and
-selects the items' bands that will be in sits cube.
 
 \code{.source_items_fileinfo()} creates the \code{fileinfo}
 specification from items object.
@@ -176,10 +165,7 @@ from items.
 \code{.source_items_tile_get_bbox()} retrieves the bounding
 box from items of a tile.
 
-\code{.source_items_tile_get_size()} retrieves the size
-(in pixels) from items of a tile.
-
-\code{.source_cube()} is called to create a data cubes tile,
+\code{.source_itimes_cube()} is called to create a data cubes tile,
 that is, a row in sits data cube.
 }
 \keyword{internal}

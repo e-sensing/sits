@@ -59,14 +59,15 @@
     items
 }
 
-.source_access_test.usgs_cube <- function(source, collection, ..., bands) {
+.source_collection_access_test.usgs_cube <- function(source, ..., collection, bands) {
 
     items_query <- .stac_items_query(source = source,
                                      collection = collection,
                                      limit = 1, ...)
 
-    # to not change api code
-    items_query$version <- "0.9.0"
+
+    items_query$version <- .config_get(key = c("sources", source,
+                                               "rstac_version"))
 
     items_query <- rstac::ext_query(q = items_query,
                                     "landsat:correction" %in% "L2SR",
@@ -77,24 +78,24 @@
     tryCatch({
         items <- rstac::post_request(items_query)
     }, error = function(e) {
-        stop(paste(".source_access_test.stac_cube: service is unreachable\n",
-                   e$message), call. = FALSE)
+        stop(paste(".source_collection_access_test.usgs_cube: service is",
+                   "unreachable\n", e$message), call. = FALSE)
     })
 
-    items <- .source_items_bands_select(source = source,
+    items <- .source_items_bands_select(source = source, ...,
                                         collection = collection,
                                         items = items,
-                                        bands = bands[[1]], ...)
+                                        bands = bands[[1]])
 
-    href <- .source_item_get_hrefs(source = source,
-                                   item = items$feature[[1]], ...,
+    href <- .source_item_get_hrefs(source = source, ...,
+                                   item = items$feature[[1]],
                                    collection = collection)
 
     # assert that token and/or href is valid
     tryCatch({
         .raster_open_rast(href)
     }, error = function(e) {
-        stop(paste(".source_access_test.stac_cube: cannot open url\n",
+        stop(paste(".source_collection_access_test.usgs_cube: cannot open url\n",
                    href, "\n", e$message), call. = FALSE)
     })
 
@@ -103,16 +104,8 @@
 
 #' @keywords internal
 #' @export
-.source_item_get_date.usgs_cube <- function(source,
-                                            item, ...,
-                                            collection = NULL) {
-    item[[c("properties", "datetime")]]
-}
-
-#' @keywords internal
-#' @export
-.source_item_get_hrefs.usgs_cube <- function(source,
-                                             item, ...,
+.source_item_get_hrefs.usgs_cube <- function(source, ...,
+                                             item,
                                              collection = NULL) {
 
 
@@ -126,32 +119,8 @@
 
 #' @keywords internal
 #' @export
-.source_item_get_bands.usgs_cube <- function(source,
-                                             item, ...,
-                                             collection = NULL) {
-    names(item[["assets"]])
-}
-
-#' @keywords internal
-#' @export
-.source_item_get_resolutions.usgs_cube <- function(source,
-                                                   item, ...,
-                                                   collection = NULL) {
-
-    res <- .source_bands_resolutions(
-        source = source,
-        collection = collection,
-        bands = .source_item_get_bands(source = source,
-                                       item = item)
-    )
-
-    unlist(res)
-}
-
-#' @keywords internal
-#' @export
-.source_items_new.usgs_cube <- function(source,
-                                        collection, ...,
+.source_items_new.usgs_cube <- function(source, ...,
+                                        collection,
                                         stac_query,
                                         tiles = NULL) {
 
@@ -221,8 +190,8 @@
 
 #' @keywords internal
 #' @export
-.source_items_tiles_group.usgs_cube <- function(source,
-                                                items, ...,
+.source_items_tiles_group.usgs_cube <- function(source, ...,
+                                                items,
                                                 collection = NULL) {
 
     # store tile info in items object
@@ -240,54 +209,19 @@
 
 #' @keywords internal
 #' @export
-.source_items_tile_get_crs.usgs_cube <- function(source,
-                                                 tile_items, ...,
+.source_items_tile_get_crs.usgs_cube <- function(source, ...,
+                                                 tile_items,
                                                  collection = NULL) {
 
-    epsg_code <- tile_items[["features"]][[1]][[c("properties", "proj:epsg")]]
-    # format collection crs
-    crs <- .sits_proj_format_crs(epsg_code)
-
-    return(crs)
-}
-
-#' @keywords internal
-#' @export
-.source_items_tile_get_name.usgs_cube <- function(source,
-                                                  tile_items, ...,
-                                                  collection = NULL) {
-
-    tile_items[["features"]][[1]][[c("properties", "tile")]]
-}
-
-#' @keywords internal
-#' @export
-.source_items_tile_get_bbox.usgs_cube <- function(source,
-                                                  tile_items, ...,
-                                                  collection = NULL) {
-    # get collection crs
-    crs <- .source_items_tile_get_crs(source = source,
-                                      tile_items = tile_items,
-                                      collection = collection)
-    bbox <- .stac_get_bbox(tile_items, crs)
-
-    return(bbox)
-}
-
-#' @keywords internal
-#' @export
-.source_items_tile_get_size.usgs_cube <- function(source,
-                                                  tile_items, ...,
-                                                  collection = NULL) {
-
-    href <- .source_item_get_hrefs(source = source,
-                                   item = tile_items[["features"]][[1]], ...,
+    href <- .source_item_get_hrefs(source = source, ...,
+                                   item = tile_items[["features"]][[1]],
                                    collection = collection)
 
-    # read the first image and obtain the size parameters
+    # read the first image and obtain crs attribute
     params <- .raster_params_file(href)
 
-    size <- c(nrows = params[["nrows"]], ncols = params[["ncols"]])
+    # format collection crs
+    crs <- .sits_proj_format_crs(params[["crs"]])
 
-    return(size)
+    return(crs)
 }

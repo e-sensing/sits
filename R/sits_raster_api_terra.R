@@ -172,9 +172,9 @@
         # read values
         terra::readStart(r_obj)
         values <- terra::readValues(x      = r_obj,
-                                    row    = block[["row"]],
+                                    row    = block[["first_row"]],
                                     nrows  = block[["nrows"]],
-                                    col    = block[["col"]],
+                                    col    = block[["first_col"]],
                                     ncols  = block[["ncols"]],
                                     mat    = TRUE)
         # close file descriptor
@@ -190,13 +190,13 @@
 
     # obtain coordinates from columns and rows
     x1 <- terra::xFromCol(object = r_obj,
-                          col    = c(block[["col"]]))
+                          col    = c(block[["first_col"]]))
     x2 <- terra::xFromCol(object = r_obj,
-                          col    = block[["col"]] + block[["ncols"]] - 1)
+                          col    = block[["first_col"]] + block[["ncols"]] - 1)
     y1 <- terra::yFromRow(object = r_obj,
-                          row    = c(block[["row"]]))
+                          row    = c(block[["first_row"]]))
     y2 <- terra::yFromRow(object = r_obj,
-                          row    = block[["row"]] + block[["nrows"]] - 1)
+                          row    = block[["first_row"]] + block[["nrows"]] - 1)
 
     # xmin, xmax, ymin, ymax
     extent <- terra::ext(

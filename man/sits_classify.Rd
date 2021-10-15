@@ -17,8 +17,6 @@ sits_classify(data, ml_model, ...)
   roi = NULL,
   filter_fn = NULL,
   impute_fn = sits_impute_linear(),
-  interp_fn = NULL,
-  compose_fn = NULL,
   start_date = NULL,
   end_date = NULL,
   memsize = 8,
@@ -43,12 +41,6 @@ sits_classify(data, ml_model, ...)
 \item{roi}{a region of interest (see above)}
 
 \item{impute_fn}{impute function to replace NA}
-
-\item{interp_fn}{function to interpolate points from cube to match
-samples}
-
-\item{compose_fn}{function to compose points from cube to match
-samples}
 
 \item{start_date}{starting date for the classification}
 
@@ -101,17 +93,6 @@ The "roi" parameter defines a region of interest. It can be
    in \code{\link[sits]{sits_impute_linear}}. Users can add their custom
    functions.
 
-   The "interp_fn" function is used when the training samples which
-   were used to generate the classification model have a larger number of
-   time instances than the data cube. In this case, pixel time series
-   of the data cube will have to be interpolated to fit that of the samples.
-
-   The "compose_fn" function is used when the training samples which
-   were used to generate the classification model have a small number of
-   time instances than the data cube. In this case, pixel time series
-   of the data cube will have to be composed and/or merged
-   to fit that of the samples.
-
    The "memsize" and "multicores" parameters are used for multiprocessing.
    The "multicores" parameter defines the number of cores used for
    processing. The "memsize" parameter  controls the amount of memory
@@ -136,9 +117,7 @@ plot(point_class)
 # create a data cube based on files
 data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
 cube <- sits_cube(
-    source = "LOCAL",
-    name = "sinop-2014",
-    origin = "BDC",
+    source = "BDC",
     collection = "MOD13Q1-6",
     data_dir = data_dir,
     delim = "_",

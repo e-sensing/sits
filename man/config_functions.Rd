@@ -5,10 +5,10 @@
 \alias{.config_file}
 \alias{.config_user_file}
 \alias{.config_get}
-\alias{.config_names}
 \alias{.config_gtiff_default_options}
 \alias{.config_local_file_extensions}
 \alias{.config_local_s3_class}
+\alias{.config_names}
 \alias{.config_palettes}
 \alias{.config_palette_colors}
 \alias{.config_processing_bloat}
@@ -22,13 +22,13 @@
 
 .config_get(key, default = NULL)
 
-.config_names(key)
-
 .config_gtiff_default_options()
 
 .config_local_file_extensions()
 
 .config_local_s3_class()
+
+.config_names(key)
 
 .config_palettes()
 

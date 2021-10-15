@@ -12,7 +12,7 @@
 \item{sub_image}{nrea of interest in the image}
 }
 \value{
-a list with named vectors ("row", "nrows", "col", "ncols")
+a list with named vectors ("first_row", "nrows", "first_col", "ncols")
 }
 \description{
 Calculate a list of blocks to be read from disk to memory

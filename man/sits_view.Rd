@@ -11,9 +11,9 @@ sits_view(x, ...)
 
 \method{sits_view}{sits}(x, ..., legend = NULL, palette = "default")
 
-\method{sits_view}{raster_cube}(x, ..., map = NULL, red, green, blue, time = 1, roi = NULL)
+\method{sits_view}{raster_cube}(x, ..., map = NULL, red, green, blue, times = c(1), roi = NULL)
 
-\method{sits_view}{classified_image}(x, ..., map = NULL, time = 1, legend = NULL)
+\method{sits_view}{classified_image}(x, ..., map = NULL, legend = NULL)
 }
 \arguments{
 \item{x}{object of class "sits", "raster_cube" or "classified image"}
@@ -32,24 +32,22 @@ sits_view(x, ...)
 
 \item{blue}{band for blue color.}
 
-\item{time}{temporal instances to be plotted.}
+\item{times}{temporal instances to be plotted.}
 
 \item{roi}{sf object giving a region of interest.}
 }
 \value{
-mapview object
+leaflet object
 }
 \description{
-Uses mapview to visualize time series, raster cube and classified images
+Uses leaflet to visualize time series, raster cube and classified images
 }
 \examples{
 \donttest{
 data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
 
 modis_cube <- sits_cube(
-    source = "LOCAL",
-    name = "modis_sinop",
-    origin = "BDC",
+    source = "BDC",
     collection = "MOD13Q1-6",
     band = "NDVI",
     data_dir = data_dir,
@@ -57,7 +55,7 @@ modis_cube <- sits_cube(
 )
 
 # plot the data cube
-sits_view(modis_cube, red = "EVI", green = "NDVI", blue = "EVI", time = 1)
+sits_view(modis_cube, red = "EVI", green = "NDVI", blue = "EVI", times = 1)
 }
 
 }

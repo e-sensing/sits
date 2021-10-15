@@ -1,25 +1,7 @@
 #' @keywords internal
 #' @export
-.source_access_test.local_cube <- function(source, collection, ...) {
-
-    # set caller to show in errors
-    .check_set_caller(".source_access_test.local_cube")
-
-    .check_chr_within(
-        x = collection,
-        within = .source_collections(source = source),
-        discriminator = "any_of",
-        msg = paste("satellite or sensor not found.\nPlease, check sits config",
-                    "with ?sits_config command.")
-    )
-    return(invisible(NULL))
-}
-
-#' @keywords internal
-#' @export
-.source_cube.local_cube <- function(source, ...,
+.source_cube_local_cube <- function(source, ...,
                                     collection,
-                                    name,
                                     data_dir,
                                     parse_info,
                                     delim,
@@ -28,14 +10,14 @@
                                     end_date) {
 
 
-    file_info <- .source_items_fileinfo(source = source,
-                                        items = data_dir, ...,
-                                        collection = collection,
-                                        parse_info = parse_info,
-                                        delim = delim,
-                                        bands = bands,
-                                        start_date = start_date,
-                                        end_date = end_date)
+    file_info <- .source_items_local_cube(source = source,
+                                          collection = collection,
+                                          items = data_dir,
+                                          parse_info = parse_info,
+                                          delim = delim,
+                                          bands = bands,
+                                          start_date = start_date,
+                                          end_date = end_date)
 
     # get the tiles
     tiles <- unique(file_info$tile)
@@ -51,22 +33,17 @@
         params <- .raster_params_file(row_file_info$path[1])
 
         # create a tibble to store the metadata
-        row <- .sits_cube_create(
-            name = name,
-            source = "LOCAL",
+        row <- .cube_create(
+            source = source,
+            collection = collection,
             satellite = .source_collection_satellite(source, collection),
             sensor = .source_collection_sensor(source, collection),
-            collection = collection,
             tile = t,
             bands = bands,
-            nrows = params$nrows,
-            ncols = params$ncols,
             xmin = params$xmin,
             xmax = params$xmax,
             ymin = params$ymin,
             ymax = params$ymax,
-            xres = params$xres,
-            yres = params$yres,
             crs = params$crs,
             file_info = row_file_info
         )
@@ -78,17 +55,17 @@
     return(cube)
 }
 
-.source_items_fileinfo.local_cube <- function(source,
-                                              items, ...,
-                                              collection,
-                                              parse_info,
-                                              delim,
-                                              bands,
-                                              start_date,
-                                              end_date) {
+.source_items_local_cube <- function(source,
+                                     items,
+                                     collection,
+                                     parse_info,
+                                     delim,
+                                     bands,
+                                     start_date,
+                                     end_date) {
 
     # set caller to show in errors
-    .check_set_caller(".source_items_fileinfo.local_cube")
+    .check_set_caller(".source_items_local_cube")
 
     file_info <- purrr::map_dfr(items, function(data_dir_row) {
 
@@ -148,7 +125,7 @@
         # convert the band names to SITS bands
         file_info <- dplyr::mutate(
             file_info,
-            band = .source_bands_to_sits(source = "LOCAL",
+            band = .source_bands_to_sits(source = source,
                                          collection = collection,
                                          bands = band))
 

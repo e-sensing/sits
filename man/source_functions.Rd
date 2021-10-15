@@ -10,11 +10,11 @@
 \alias{.source_url}
 \title{Source functions}
 \usage{
-.sources(internal = TRUE)
+.sources()
 
 .source_check(source)
 
-.source_new(source, ..., collection = NULL)
+.source_new(source, is_local = FALSE)
 
 .source_service(source)
 
@@ -23,9 +23,6 @@
 .source_url(source)
 }
 \arguments{
-\item{internal}{A \code{logical} value if internal sources should
-be listed. Internal sources are: 'PROBS', 'CLASSIFIED', and 'LOCAL'}
-
 \item{source}{A \code{character} value referring to a valid data source.}
 }
 \value{

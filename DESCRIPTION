@@ -1,6 +1,6 @@
 Package: sits
 Type: Package
-Version: 0.15.0
+Version: 0.15.0.1
 Title: Satellite Image Time Series Analysis for Remote Sensing Data Cubes
 Authors@R: c(person('Rolf', 'Simoes', role = c('aut'), email = 'rolf.simoes@inpe.br'),
              person('Gilberto', 'Camara', role = c('aut', 'cre'), email = 'gilberto.camara@inpe.br'),
@@ -150,8 +150,6 @@ Collate:
     'sits_source_api_bdc.R'
     'sits_source_api_deafrica.R'
     'sits_source_api_local.R'
-    'sits_source_api_probs.R'
-    'sits_source_api_opendata.R'
     'sits_source_api_satveg.R'
     'sits_source_api_stac.R'
     'sits_source_api_usgs.R'

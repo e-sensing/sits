@@ -57,9 +57,7 @@
 #' # create a data cube based on the information about the files
 #' data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
 #' cube <- sits_cube(
-#'     source = "LOCAL",
-#'     name = "sinop-2014",
-#'     origin = "BDC",
+#'     source = "BDC",
 #'     collection = "MOD13Q1-6",
 #'     data_dir = data_dir,
 #'     delim = "_",
@@ -174,17 +172,16 @@ sits_smooth.bayes <- function(cube, type = "bayes", ...,
     # create a window
     window <- matrix(1, nrow = window_size, ncol = window_size)
 
-    # create metadata for labelled raster cube
-    cube_bayes <- .sits_cube_clone(
-        cube = cube,
-        name = cube$name,
-        ext = "_bayes",
+    # create metadata for raster cube
+    cube_bayes <- .cube_probs_label(
+        cube       = cube,
+        ext        = "probs_bayes",
         output_dir = output_dir,
-        version = version
+        version    = version
     )
 
     # retrieve the scale factor
-    scale_factor <- .cube_band_scale_factor(cube = cube, band = "PROBS")
+    scale_factor <- round(1 / .config_get("probs_cube_scale_factor"))
     mult_factor <- 1 / scale_factor
 
     # Bayesian smoother to be executed by workers cluster
@@ -231,7 +228,7 @@ sits_smooth.bayes <- function(cube, type = "bayes", ...,
         func = .do_bayes,
         multicores = multicores,
         memsize = memsize,
-        gdal_datatype = .raster_gdal_datatype("INT2U"),
+        gdal_datatype = .config_get("probs_cube_data_type"),
         gdal_options = .config_gtiff_default_options()
     )
 
@@ -288,16 +285,15 @@ sits_smooth.gaussian <- function(cube, type = "gaussian", ...,
                                               sigma = sigma)
 
     # create metadata for Gauss smoothed raster cube
-    cube_gauss <- .sits_cube_clone(
-        cube = cube,
-        name = paste0(cube$name, "_gauss"),
-        ext = "_gauss",
+    cube_gauss <- .cube_probs_label(
+        cube       = cube,
+        ext        = "probs_gauss",
         output_dir = output_dir,
-        version = version
+        version    = version
     )
 
     # retrieve the scale factor
-    scale_factor <- .cube_band_scale_factor(cube = cube, band = "PROBS")
+    scale_factor <- round(1 / .config_get("probs_cube_scale_factor"))
     mult_factor <- 1 / scale_factor
 
     # Gaussian smoother to be executed by workers cluster
@@ -332,7 +328,7 @@ sits_smooth.gaussian <- function(cube, type = "gaussian", ...,
         func = .do_gauss,
         multicores = multicores,
         memsize = memsize,
-        gdal_datatype = .raster_gdal_datatype("INT2U"),
+        gdal_datatype = .config_get("probs_cube_data_type"),
         gdal_options = .config_gtiff_default_options()
     )
 
@@ -392,16 +388,15 @@ sits_smooth.bilateral <- function(cube,
                                               sigma = sigma)
 
     # create metadata for bilateral smoothed raster cube
-    cube_bilat <- .sits_cube_clone(
-        cube = cube,
-        name = paste0(cube$name, "_bilat"),
-        ext = "_bilat",
+    cube_bilat <- .cube_probs_label(
+        cube       = cube,
+        ext        = "probs_bilat",
         output_dir = output_dir,
-        version = version
+        version    = version
     )
 
     # retrieve the scale factor
-    scale_factor <- .cube_band_scale_factor(cube = cube, band = "PROBS")
+    scale_factor <- round(1 / .config_get("probs_cube_scale_factor"))
     mult_factor <- 1 / scale_factor
 
     # Gaussian smoother to be executed by workers cluster
@@ -437,7 +432,7 @@ sits_smooth.bilateral <- function(cube,
         func = .do_bilateral,
         multicores = multicores,
         memsize = memsize,
-        gdal_datatype = .raster_gdal_datatype("INT2U"),
+        gdal_datatype = .config_get("probs_cube_data_type"),
         gdal_options = .config_gtiff_default_options()
     )
 

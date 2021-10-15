@@ -2,29 +2,27 @@
 #' @name sits_view
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'
-#' @description Uses mapview to visualize time series, raster cube and classified images
+#' @description Uses leaflet to visualize time series, raster cube and classified images
 #'
 #' @param  x             object of class "sits", "raster_cube" or "classified image"
 #' @param  ...           further specifications for \link{sits_view}.
 #' @param  red           band for red color.
 #' @param  green         band for green color.
 #' @param  blue          band for blue color.
-#' @param  time          temporal instances to be plotted.
+#' @param  times         temporal instances to be plotted.
 #' @param  roi           sf object giving a region of interest.
 #' @param  map           map to overlay (mapview object)
 #' @param  legend        named vector that associates labels to colors
 #' @param  palette       palette provided in the configuration file
 #'
-#' @return               mapview object
+#' @return               leaflet object
 #'
 #' @examples
 #' \donttest{
 #' data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
 #'
 #' modis_cube <- sits_cube(
-#'     source = "LOCAL",
-#'     name = "modis_sinop",
-#'     origin = "BDC",
+#'     source = "BDC",
 #'     collection = "MOD13Q1-6",
 #'     band = "NDVI",
 #'     data_dir = data_dir,
@@ -32,7 +30,7 @@
 #' )
 #'
 #' # plot the data cube
-#' sits_view(modis_cube, red = "EVI", green = "NDVI", blue = "EVI", time = 1)
+#' sits_view(modis_cube, red = "EVI", green = "NDVI", blue = "EVI", times = 1)
 #' }
 #'
 #' @export
@@ -45,24 +43,6 @@ sits_view <- function(x, ...){
         x = inherits(x, c("sits", "raster_cube", "classified_image")),
         msg = "only works with time series, raster cubes and classified images")
 
-    # verifies if raster package is installed
-    .check_that(
-        x = requireNamespace("raster", quietly = TRUE),
-        msg = "this function depends on 'raster' package"
-    )
-
-    # verifies if mapview package is installed
-    .check_that(
-        requireNamespace("mapview", quietly = TRUE),
-        msg = "this function depends on 'mapview' package"
-    )
-    # set mapview options
-    mapview::mapviewOptions(basemaps = c(
-        "Esri.WorldImagery",
-        "GeoportailFrance.orthos",
-        "OpenStreetMap.Mapnik"
-    ))
-
     UseMethod("sits_view", x)
 }
 #' @rdname   sits_view
@@ -73,6 +53,11 @@ sits_view.sits <- function(x,
                            legend = NULL,
                            palette = "default") {
 
+    .check_that(
+        requireNamespace("leaflet", quietly = TRUE),
+        msg = "this function depends on 'leaflet' package"
+    )
+
 
     # first select unique locations
     x <- dplyr::distinct(x, longitude, latitude, label)
@@ -80,7 +65,12 @@ sits_view.sits <- function(x,
     samples <- sf::st_as_sf(x[c("longitude", "latitude", "label")],
                          coords = c("longitude", "latitude"),
                          crs = 4326)
-
+    # get the bounding box
+    samples_bbox <- sf::st_bbox(samples)
+    dist_x <- (samples_bbox[["xmax"]] - samples_bbox[["xmin"]])
+    dist_y <- (samples_bbox[["ymax"]] - samples_bbox[["ymin"]])
+    lng_center <- samples_bbox[["xmin"]]  + dist_x/2.0
+    lat_center <- samples_bbox[["ymin"]] + dist_y/2.0
     # get the labels
     labels <- sits_labels(x)
     # if colors are not specified, get them from the configuration file
@@ -95,16 +85,41 @@ sits_view.sits <- function(x,
         colors <- unname(legend[labels])
 
     }
-
-    # show samples in map
-    mv <- suppressWarnings(
-        mapview::mapview(samples,
-                     zcol = c("label"),
-                     legend = TRUE,
-                     col.regions = colors
-                     )
+    #
+    # create a pallete of colors
+    #
+    factpal <- leaflet::colorFactor(
+        palette = colors,
+        domain = labels
     )
-    return(mv)
+    #
+    # create an interative map
+    #
+    leaf_map <- leaflet::leaflet() %>%
+        leaflet::addProviderTiles(leaflet::providers$Esri.WorldImagery, group = "ESRI") %>%
+        leaflet::addProviderTiles(leaflet::providers$GeoportailFrance.orthos, group = "GeoPortalFrance") %>%
+        leaflet::addProviderTiles(leaflet::providers$OpenStreetMap.Mapnik, group = "OSM") %>%
+        leaflet::flyToBounds(lng1 = samples_bbox[["xmin"]],
+                             lat1 = samples_bbox[["ymin"]],
+                             lng2 = samples_bbox[["xmax"]],
+                             lat2 = samples_bbox[["ymax"]]) %>%
+        leaflet::addCircleMarkers(data   = samples,
+                                  popup  = ~label,
+                                  color  = ~factpal(label),
+                                  radius = 4,
+                                  stroke = FALSE,
+                                  fillOpacity = 1,
+                                  group = "Samples") %>%
+        leaflet::addLayersControl(
+            baseGroups = c("ESRI", "GeoPortalFrance", "OSM"),
+            overlayGroups = c("Samples"),
+            options = leaflet::layersControlOptions(collapsed = FALSE)) %>%
+        leaflet::addLegend("topright",
+                           pal     = factpal,
+                           values  = samples$label,
+                           title   = "Training Samples",
+                           opacity = 1)
+    return(leaf_map)
 }
 #' @rdname   sits_view
 #'
@@ -114,10 +129,25 @@ sits_view.raster_cube <- function(x, ...,
                                   red,
                                   green,
                                   blue,
-                                  time = 1,
+                                  times = c(1),
                                   roi = NULL) {
 
     # preconditions
+    # verifies if leafem and leaflet packages are installed
+    .check_that(
+        requireNamespace("leafem", quietly = TRUE),
+        msg = "this function depends on 'leafem' package"
+    )
+    .check_that(
+        requireNamespace("leaflet", quietly = TRUE),
+        msg = "this function depends on 'leaflet' package"
+    )
+    # verifies if raster package is installed
+    .check_that(
+        x = requireNamespace("raster", quietly = TRUE),
+        msg = "this function depends on 'raster' package"
+    )
+    # check that the RGB bands are available in the cube
     .check_that(
         x = all(c(red, green, blue) %in% sits_bands(x)),
         msg = "requested RGB bands are not available in data cube"
@@ -125,7 +155,7 @@ sits_view.raster_cube <- function(x, ...,
 
     timeline <- sits_timeline(x)
     .check_that(
-        x = time >= 1 & time <= length(timeline),
+        x = length(times) >= 1 & length(times) <= length(timeline),
         msg = "time parameter out of bounds"
     )
 
@@ -137,7 +167,6 @@ sits_view.raster_cube <- function(x, ...,
 
         # filter only intersecting tiles
         intersects <- slider::slide(x, function(row) {
-
             .sits_raster_sub_image_intersects(row, roi)
         }) %>% unlist()
 
@@ -146,59 +175,58 @@ sits_view.raster_cube <- function(x, ...,
             x = any(intersects),
             msg = "informed roi does not intersect cube"
         )
-
         x <- x[intersects, ]
     }
+    # filter the cube for the bands to be displayed
+    cube_bands <- sits_select(x, bands = c(red, green, blue))
 
-    # plot only the selected tile
-    # select only the bands for the timeline
-    bands_date <- x$file_info[[1]] %>%
-        dplyr::filter(date == as.Date(timeline[[time]]))
+    max_Mbytes <- .config_get(key = "leaflet_max_Mbytes")
+    # plot only the selected tiles
+    # select only the bands for the times chosen
+    r_objs <- purrr::map(times, function(t) {
+        bands_date <- x$file_info[[1]] %>%
+            dplyr::filter(date == as.Date(timeline[[t]]))
 
-    # get RGB files for the requested timeline
-    red_file <- dplyr::filter(bands_date, band == red)$path
-    green_file <- dplyr::filter(bands_date, band == green)$path
-    blue_file <- dplyr::filter(bands_date, band == blue)$path
+        # get RGB files for the requested timeline
+        red_file <- dplyr::filter(bands_date, band == red)$path
+        green_file <- dplyr::filter(bands_date, band == green)$path
+        blue_file <- dplyr::filter(bands_date, band == blue)$path
 
-    rgb_files <- c(red_file, green_file, blue_file)
+        rgb_files <- c(r = red_file, g = green_file, b = blue_file)
 
-    # use the raster package to obtain a raster object from a stack
-    r_obj <- .raster_open_stack.raster(rgb_files)
+        r_obj <- .view_reshape_image(cube = cube_bands,
+                                     rgb_files = rgb_files,
+                                     roi = roi,
+                                     max_Mbytes = max_Mbytes)
 
-    # extract region of interest
-    if (!purrr::is_null(roi)) {
+        return(r_obj)
+    })
 
-        roi <- .sits_raster_sub_image(cube = x, roi = roi)
+    leaf_mapRGB <- leaflet::leaflet() %>%
+        leaflet::addProviderTiles(leaflet::providers$Esri.WorldImagery, group = "ESRI") %>%
+        leaflet::addProviderTiles(leaflet::providers$GeoportailFrance.orthos, group = "GeoPortalFrance") %>%
+        leaflet::addProviderTiles(leaflet::providers$OpenStreetMap, group = "OSM")
 
-        r_obj <- .raster_crop.raster(r_obj = r_obj, block = roi)
-    }
-
-    .check_that(
-        x = .raster_ncols(r_obj) > 0 && .raster_nrows(r_obj) > 0,
-        msg = "unable to retrieve raster data"
-    )
-
-    # view the RGB file
-    if (!purrr::is_null(map)) {
-        mv <- suppressWarnings(
-            mapview::viewRGB(r_obj,
-                             map = map,
+    for (t in seq_along(times)) {
+        leaf_mapRGB <- leafem::addRasterRGB(leaf_mapRGB,
+                             x = r_objs[[t]],
                              r = 1,
                              g = 2,
                              b = 3,
-                             layer.name = paste0("Time ", time))
-        )
+                             quantiles = c(0.1, 0.9),
+                             # maxpixels = maxpixels,
+                             # na.color = na.color,
+                             method = "ngb",
+                             group = paste0(timeline[times[t]]),
+                             maxBytes = max_Mbytes*1024*1024)
     }
-    else {
-        mv <- suppressWarnings(
-            mapview::viewRGB(r_obj,
-                             r = 1,
-                             g = 2,
-                             b = 3,
-                             layer.name = paste0("Time ", time))
-        )
-    }
-    return(mv)
+    leaf_mapRGB <- leaf_mapRGB %>%
+        leaflet::addLayersControl(
+            baseGroups = c("ESRI", "GeoPortalFrance", "OSM"),
+            overlayGroups = paste0(timeline[times]),
+            options = leaflet::layersControlOptions(collapsed = FALSE))
+
+    return(leaf_mapRGB)
 }
 
 #' @rdname sits_view
@@ -207,7 +235,6 @@ sits_view.raster_cube <- function(x, ...,
 #'
 sits_view.classified_image <- function(x,...,
                                        map = NULL,
-                                       time = 1,
                                        legend = NULL) {
 
     # get the labels
@@ -227,13 +254,11 @@ sits_view.classified_image <- function(x,...,
     }
 
     # obtain the raster
-    r_obj <- .raster_open_rast.raster(
-        file = x$file_info[[1]]$path[[time]]
-    )[[1]]
+    r_obj <- suppressWarnings(raster::stack(x$file_info[[1]]$path[[1]]))
 
     .check_that(
-        x = .raster_ncols.raster(r_obj) > 0 &&
-            .raster_nrows.raster(r_obj) > 0,
+        x = raster::ncol(r_obj) > 0 &&
+            raster::nrow(r_obj) > 0,
         msg = "unable to retrive raster data"
     )
 
@@ -263,4 +288,75 @@ sits_view.classified_image <- function(x,...,
         )
 
     return(mv)
+}
+
+#' @title  Reduce the cube size for visualisation and load files in tempdir
+#' @name .view_reshape_image
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
+#'
+#' @param  x             object of "raster_cube" or "classified image"
+#' @param  rgb_files     vector with RGB files.
+#' @param  roi           region of interest
+#' @param  max_Mbytes    maximum number of megabytes to be shown in leaflet
+#' @keywords internal
+
+.view_reshape_image <- function(cube,
+                          rgb_files,
+                          roi = NULL,
+                          max_Mbytes) {
+
+    # use the raster package to obtain a raster object from a stack
+    r_obj <- suppressWarnings(raster::stack(rgb_files))
+    .check_that(
+        x = raster::ncol(r_obj) > 0 && raster::nrow(r_obj) > 0,
+        msg = "unable to retrieve raster data"
+    )
+    # extract bbox
+    if (!purrr::is_null(roi)) {
+        sub_image <- .sits_raster_sub_image(cube = cube, roi = roi)
+        r_obj <- .raster_crop.raster(r_obj = r_obj, block = sub_image)
+    }
+    else
+        sub_image <- .sits_raster_sub_image_default(cube = cube)
+
+    # get number of rows and cols
+    ncols <- raster::ncol(r_obj)
+    nrows <- raster::nrow(r_obj)
+
+    # retrieve the compression ratio
+    comp <- .config_get("leaflet_comp_factor")
+    # calculate the size of the input image in bytes
+    # note that leaflet considers 4 bytes per pixel
+    # but compresses the image
+    in_size_Mbytes <- ceiling((4 * nrows * ncols * comp)/(1000 * 1000))
+    # do we need to compress?
+    ratio <- max((in_size_Mbytes/max_Mbytes), 1)
+
+    # only create local files if required
+    if (ratio >= 1) {
+        message("Please wait...resampling images")
+        new_nrows <- floor(nrows/sqrt(ratio))
+        new_ncols <- floor(ncols/sqrt(ratio))
+
+        temp_files <- purrr::map2_chr(rgb_files, c("r", "g", "b"),
+                                      function(f, c) {
+            # destination file is in tempdir
+            dest_file <- paste0(tempdir(),"/", basename(rgb_files[[c]]))
+            # use gdal_translate to obtain the temp file
+            gdalUtilities::gdal_translate(
+                src_dataset = rgb_files[[c]],
+                dst_dataset = dest_file,
+                srcwin     = c(sub_image[["first_col"]] - 1,
+                               sub_image[["first_row"]] - 1,
+                               sub_image[["ncols"]],
+                               sub_image[["nrows"]]),
+                outsize     = c(new_ncols, new_nrows),
+                co = c("COMPRESS=LZW")
+            )
+            return(dest_file)
+        })
+        # if temp_files are created use them as sources for r_obj
+        r_obj <- suppressWarnings(raster::stack(temp_files))
+    }
+    return(r_obj)
 }

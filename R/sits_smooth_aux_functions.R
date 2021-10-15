@@ -42,23 +42,21 @@
         x = inherits(cube, "probs_cube"),
         msg = "input is not probability cube"
     )
-
-    x_size <- cube$ncols
-    y_size <- cube$nrows
+    size <- .cube_size(cube)
     n_layers <- length(cube$labels[[1]])
     bloat_mem <- .config_processing_bloat()
     n_bytes <- 8
 
     # total memory needed to do all work in GB
-    needed_memory <- 1E-09 * x_size * y_size * n_layers * bloat_mem * n_bytes
+    needed_memory <-  1E-09 * size[["ncols"]] * size[["nrows"]] * n_layers * bloat_mem * n_bytes
 
     # minimum block size
-    min_block_x_size <- x_size # for now, only allowing vertical blocking
+    min_block_x_size <- size["ncols"] # for now, only vertical blocking
     min_block_y_size <- 1
 
     # compute factors
     memory_factor <- needed_memory / memsize
-    blocking_factor <- x_size / min_block_x_size * y_size / min_block_y_size
+    blocking_factor <- size[["ncols"]] / min_block_x_size * size[["nrows"]] / min_block_y_size
 
     # stop if blocking factor is less than memory factor!
     # reason: the provided memory is not enough to process the data by
@@ -81,7 +79,7 @@
         # theoretical max_multicores = floor(blocking_factor / memory_factor),
         block_x_size = floor(min_block_x_size),
         block_y_size = min(floor(blocking_factor / memory_factor / multicores),
-                           y_size)
+                           size[["nrows"]])
     )
 
     return(blocks)
@@ -159,9 +157,9 @@
         b <- .raster_open_rast(in_file)
 
         # create extent
-        blk_overlap <- list(row = block$r1,
+        blk_overlap <- list(first_row = block$r1,
                             nrows = block$r2 - block$r1 + 1,
-                            col = 1,
+                            first_col = 1,
                             ncols = .raster_ncols(b))
 
         # crop adding overlaps
@@ -172,9 +170,9 @@
         # stopifnot(inherits(res, c("RasterLayer", "RasterStack", "RasterBrick")))
 
         # create extent
-        blk_no_overlap <- list(row = block$o1,
+        blk_no_overlap <- list(first_row = block$o1,
                                nrows = block$o2 - block$o1 + 1,
-                               col = 1,
+                               first_col = 1,
                                ncols = .raster_ncols(res))
 
         # crop removing overlaps
@@ -274,7 +272,7 @@
 
         # for now, only vertical blocks are allowed, i.e. 'x_blocks' is 1
         blocks <- .sits_compute_blocks(
-            img_y_size = cube_row$nrows,
+            img_y_size = .cube_size(cube)["nrows"],
             block_y_size = block_size[["block_y_size"]],
             overlapping_y_size = overlapping_y_size)
 

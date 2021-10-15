@@ -117,7 +117,7 @@ sits_merge.sits_cube <- function(data1, data2) {
         msg = "merge cubes requires same bounding boxes"
     )
     .check_that(
-        x = data1$xres == data2$xres && data1$yres == data2$yres,
+        .cube_resolution(data1) == .cube_resolution(data2),
         msg = "merge cubes requires same resolution"
     )
     .check_that(

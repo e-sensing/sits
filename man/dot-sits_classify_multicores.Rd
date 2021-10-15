@@ -10,8 +10,6 @@
   roi,
   filter_fn,
   impute_fn,
-  interp_fn,
-  compose_fn,
   memsize,
   multicores,
   output_dir,
@@ -30,11 +28,6 @@
 \item{filter_fn}{smoothing filter function to be applied to the data.}
 
 \item{impute_fn}{impute function to replace NA}
-
-\item{interp_fn}{function to interpolate points from cube to match
-samples}
-
-\item{compose_fn}{function to compose points from cube to match samples}
 
 \item{memsize}{memory available for classification (in GB).}
 
