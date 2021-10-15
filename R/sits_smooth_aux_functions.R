@@ -187,7 +187,7 @@
             r_obj = res,
             file = filename,
             format = "GTiff",
-            data_type = .raster_data_type("FLT4S"),
+            data_type = .raster_data_type(.config_get("probs_cube_data_type")),
             gdal_options = .config_gtiff_default_options(),
             overwrite = TRUE
         )

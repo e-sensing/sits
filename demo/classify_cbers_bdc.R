@@ -36,7 +36,6 @@ end_date <- timeline_samples[length(timeline_samples)]
 cbers_cube <- sits_cube(
     source     = "BDC",
     collection = "CB4_64_16D_STK-1",
-    name       = "cbers_022024",
     bands      = bands,
     tiles      = "022024",
     start_date = start_date,
@@ -49,35 +48,40 @@ roi <- c(xmin = 5970958,
          ymin = 9876672,
          ymax = 9940672)
 
-# train an SVM model
-svm_model <- sits_train(
+# train an RFOR model
+rfor_model <- sits_train(
     data      = cbers_samples_2bands,
-    ml_method = sits_svm()
+    ml_method = sits_rfor()
 )
 
 # classify the data (remember to set the appropriate memory size)
 cbers_probs <- sits_classify(
     data       = cbers_cube,
-    ml_model   = svm_model,
-    roi        = roi,
-    output_dir = tempdir(),
-    memsize    = 6,
-    multicores = 2
-)
-
-# label each pixel with the highest probability
-cbers_label <- sits_label_classification(
-    cube       = cbers_probs,
-    output_dir = tempdir()
+    ml_model   = rfor_model,
+#    roi        = roi,
+    output_dir = "/Users/gilbertocamara/cbers/",
+    memsize    = 16,
+    multicores = 4,
+    verbose = TRUE,
+    progress = TRUE
 )
 
 # post process probabilities map with bayesian smoothing
 cbers_bayes <- sits_smooth(
     cube       = cbers_probs,
     type       = "bayes",
-    output_dir = tempdir()
+    output_dir = "/Users/gilbertocamara/cbers/",
+    memsize    = 16,
+    multicores = 1,
+    verbose = TRUE,
+    progress = TRUE
 )
 
+# label each pixel with the highest probability
+cbers_label <- sits_label_classification(
+  cube       = cbers_bayes,
+  output_dir = tempdir()
+)
 # label the smoothed image
 cbers_lbayes <- sits_label_classification(
     cube       = cbers_bayes,

@@ -208,7 +208,7 @@ sits_view.raster_cube <- function(x, ...,
         leaflet::addProviderTiles(leaflet::providers$OpenStreetMap, group = "OSM")
 
     for (t in seq_along(times)) {
-        leaf_mapRGB <- leafem::addRasterRGB(leaf_mapRGB,
+        leaf_mapRGB <- suppressWarnings(leafem::addRasterRGB(leaf_mapRGB,
                              x = r_objs[[t]],
                              r = 1,
                              g = 2,
@@ -218,7 +218,7 @@ sits_view.raster_cube <- function(x, ...,
                              # na.color = na.color,
                              method = "ngb",
                              group = paste0(timeline[times[t]]),
-                             maxBytes = max_Mbytes*1024*1024)
+                             maxBytes = max_Mbytes*1024*1024))
     }
     leaf_mapRGB <- leaf_mapRGB %>%
         leaflet::addLayersControl(
@@ -253,41 +253,57 @@ sits_view.classified_image <- function(x,...,
         )
     }
 
-    # obtain the raster
-    r_obj <- suppressWarnings(raster::stack(x$file_info[[1]]$path[[1]]))
-
-    .check_that(
-        x = raster::ncol(r_obj) > 0 &&
-            raster::nrow(r_obj) > 0,
-        msg = "unable to retrive raster data"
+    #
+    # create a pallete of colors
+    #
+    factpal <- leaflet::colorFactor(
+        palette = colors,
+        domain = labels
     )
 
-    # create a RAT
-    r_obj <- raster::ratify(r_obj)
-    rat <- raster::levels(r_obj)[[1]]
+    leaf_map <- leaflet::leaflet() %>%
+        leaflet::addProviderTiles(leaflet::providers$Esri.WorldImagery, group = "ESRI") %>%
+        leaflet::addProviderTiles(leaflet::providers$GeoportailFrance.orthos, group = "GeoPortalFrance") %>%
+        leaflet::addProviderTiles(leaflet::providers$OpenStreetMap, group = "OSM")
 
-    # include labels in the RAT
-    # be careful - some labels may not exist in the classified image
-    rat$landcover <- labels[rat$ID]
-    colors <- unname(legend[rat$landcover])
-
-    # assign the RAT to the raster object
-    levels(r_obj) <- rat
-
-    # use mapview
-    if (!purrr::is_null(map))
-        mv <- suppressWarnings(
-            mapview::mapview(x = r_obj,
-                             map = map,
-                             col.regions = colors)
+    for (r in seq_along(nrow(x))) {
+        # obtain the raster
+        r_obj <- suppressWarnings(raster::stack(x[r,]$file_info[[1]]$path[[1]]))
+        # did we get the data?
+        .check_that(
+            x = raster::ncol(r_obj) > 0 &&
+                raster::nrow(r_obj) > 0,
+            msg = "unable to retrieve raster data"
         )
-    else
-        mv <- suppressWarnings(
-            mapview::mapview(x = r_obj,
-                             col.regions = colors)
-        )
+        # create a RAT
+        r_obj <- raster::ratify(r_obj)
+        rat <- raster::levels(r_obj)[[1]]
 
-    return(mv)
+        # include labels in the RAT
+        # be careful - some labels may not exist in the classified image
+        rat$landcover <- labels[rat$ID]
+        colors <- unname(legend[rat$landcover])
+
+        leaf_map <- leaflet::addRasterImage(leaf_map,
+                                            x = r_obj,
+                                            colors = colors,
+                                            method = "ngb",
+                                            group = "class",
+                                            maxBytes = max_Mbytes*1024*1024
+        )
+    }
+    leaf_map <- leaf_map %>%
+        leaflet::addLayersControl(
+            baseGroups = c("ESRI", "GeoPortalFrance", "OSM"),
+            overlayGroups = "class",
+            options = leaflet::layersControlOptions(collapsed = FALSE)) %>%
+        leaflet::addLegend("topright",
+                           pal     = factpal,
+                           values  = labels,
+                           title   = "Classes",
+                           opacity = 1)
+
+    return(leaf_map)
 }
 
 #' @title  Reduce the cube size for visualisation and load files in tempdir
@@ -333,7 +349,7 @@ sits_view.classified_image <- function(x,...,
     ratio <- max((in_size_Mbytes/max_Mbytes), 1)
 
     # only create local files if required
-    if (ratio >= 1) {
+    if (ratio > 1) {
         message("Please wait...resampling images")
         new_nrows <- floor(nrows/sqrt(ratio))
         new_ncols <- floor(ncols/sqrt(ratio))
@@ -343,15 +359,17 @@ sits_view.classified_image <- function(x,...,
             # destination file is in tempdir
             dest_file <- paste0(tempdir(),"/", basename(rgb_files[[c]]))
             # use gdal_translate to obtain the temp file
-            gdalUtilities::gdal_translate(
-                src_dataset = rgb_files[[c]],
-                dst_dataset = dest_file,
-                srcwin     = c(sub_image[["first_col"]] - 1,
-                               sub_image[["first_row"]] - 1,
-                               sub_image[["ncols"]],
-                               sub_image[["nrows"]]),
-                outsize     = c(new_ncols, new_nrows),
-                co = c("COMPRESS=LZW")
+            suppressWarnings(
+                gdalUtilities::gdal_translate(
+                    src_dataset = rgb_files[[c]],
+                    dst_dataset = dest_file,
+                    srcwin     = c(sub_image[["first_col"]] - 1,
+                                   sub_image[["first_row"]] - 1,
+                                   sub_image[["ncols"]],
+                                   sub_image[["nrows"]]),
+                    outsize     = c(new_ncols, new_nrows),
+                    co = c("COMPRESS=LZW")
+                )
             )
             return(dest_file)
         })

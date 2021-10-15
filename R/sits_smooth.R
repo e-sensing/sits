@@ -181,8 +181,7 @@ sits_smooth.bayes <- function(cube, type = "bayes", ...,
     )
 
     # retrieve the scale factor
-    scale_factor <- round(1 / .config_get("probs_cube_scale_factor"))
-    mult_factor <- 1 / scale_factor
+    mult_factor <- round(1 / .config_get("probs_cube_scale_factor"))
 
     # Bayesian smoother to be executed by workers cluster
     .do_bayes <- function(chunk) {
@@ -228,7 +227,7 @@ sits_smooth.bayes <- function(cube, type = "bayes", ...,
         func = .do_bayes,
         multicores = multicores,
         memsize = memsize,
-        gdal_datatype = .config_get("probs_cube_data_type"),
+        gdal_datatype = .raster_gdal_datatype(.config_get("probs_cube_data_type")),
         gdal_options = .config_gtiff_default_options()
     )
 
@@ -328,7 +327,7 @@ sits_smooth.gaussian <- function(cube, type = "gaussian", ...,
         func = .do_gauss,
         multicores = multicores,
         memsize = memsize,
-        gdal_datatype = .config_get("probs_cube_data_type"),
+        gdal_datatype = .raster_gdal_datatype(.config_get("probs_cube_data_type")),
         gdal_options = .config_gtiff_default_options()
     )
 
@@ -432,7 +431,7 @@ sits_smooth.bilateral <- function(cube,
         func = .do_bilateral,
         multicores = multicores,
         memsize = memsize,
-        gdal_datatype = .config_get("probs_cube_data_type"),
+        gdal_datatype = .raster_gdal_datatype(.config_get("probs_cube_data_type")),
         gdal_options = .config_gtiff_default_options()
     )
 

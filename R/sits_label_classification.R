@@ -96,7 +96,7 @@ sits_label_classification <- function(cube,
         func = .do_map,
         multicores = multicores,
         memsize = memsize,
-        gdal_datatype = .config_get("class_cube_data_type"),
+        gdal_datatype = .raster_gdal_datatype(.config_get("class_cube_data_type")),
         gdal_options = .config_gtiff_default_options()
     )
 
