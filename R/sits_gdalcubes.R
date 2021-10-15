@@ -216,6 +216,21 @@
         )
     )
 
+    bit_mask <- .source_cloud_bit_mask(
+        source = .cube_source(cube = tile),
+        collection = .cube_collection(cube = tile)
+    )
+
+    # is this a bit mask cloud?
+    if (bit_mask)
+        mask_values <- modifyList(
+            mask_values,
+            list(values = NA,
+                 min = 2^min(mask_values$values),
+                 max = 2^max(mask_values$values),
+                 bits = mask_values$values)
+        )
+
     return(mask_values)
 }
 
@@ -287,6 +302,24 @@
 `.gc_format_col.aws_cube_sentinel-s2-l2a-cogs` <- function(source, ...) {
 
     system.file("extdata/gdalcubes/s2la_aws_cogs.json", package = "sits")
+}
+
+`.gc_format_col.usgs_cube_landsat-c2l2-sr` <- function(source, ...) {
+
+    system.file("extdata/gdalcubes/l8c2l2_usgs.json", package = "sits")
+}
+#' @keywords internal
+#' @export
+`.gc_format_col.deafrica_cube_s2_l2a` <- function(source, ...) {
+
+    system.file("extdata/gdalcubes/s2_l2a_deafrica.json", package = "sits")
+}
+
+#' @keywords internal
+#' @export
+`.gc_format_col.deafrica_cube_ls8_sr` <- function(source, ...) {
+
+    system.file("extdata/gdalcubes/ls8_sr_deafrica.json", package = "sits")
 }
 
 #' @title Create a cube_view object

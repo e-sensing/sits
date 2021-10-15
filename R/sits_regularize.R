@@ -104,7 +104,7 @@ sits_regularize <- function(cube,
     # supported  cubes
     .check_chr_within(
         x = .sits_cube_source(cube),
-        within = c("AWS"),
+        within = c("AWS", "DEAFRICA", "USGS"),
         msg = "currently only the 'AWS' cubes can be regularized."
     )
 
