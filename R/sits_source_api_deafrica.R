@@ -67,7 +67,14 @@
 .source_item_get_resolutions.deafrica_cube <- function(source,
                                                        item, ...,
                                                        collection = NULL) {
-    item[[c("properties", "gsd")]]
+    res <- .source_bands_resolutions(
+        source = source,
+        collection = collection,
+        bands = .source_item_get_bands(source = source,
+                                       item = item)
+    )
+
+    unlist(res)
 }
 
 #' @keywords internal
@@ -119,7 +126,12 @@
                                                      tile_items, ...,
                                                      collection = NULL) {
 
-    tile_items[["features"]][[1]][[c("properties", "proj:epsg")]]
+    # format collection crs
+    crs <- .sits_proj_format_crs(
+        tile_items[["features"]][[1]][[c("properties", "proj:epsg")]]
+    )
+
+    return(crs)
 }
 
 #' @keywords internal
