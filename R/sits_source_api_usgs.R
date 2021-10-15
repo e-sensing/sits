@@ -170,7 +170,8 @@
     # adding search filter in query
     stac_query <- rstac::ext_query(
         q = stac_query,
-        "landsat:correction" %in% "L2SR",
+        "landsat:correction" %in% c("L2SR", "L2SP"),
+        "landsat:collection_category" %in% c("T1", "T2"),
         "landsat:collection_number" %in% "02",
         "platform" %in% "LANDSAT_8",
         "datetime" >= datetime[[1]],
@@ -193,6 +194,9 @@
 
     # making the request
     items <- rstac::post_request(q = stac_query, ...)
+
+    items$features <- items$features[grepl("_SR$",
+                                           rstac::items_reap(items, "id"))]
 
     # checks if the collection returned zero items
     .check_that(
