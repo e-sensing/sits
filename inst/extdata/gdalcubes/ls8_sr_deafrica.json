@@ -1,8 +1,8 @@
 {
-    "description" : "Image collection format for Landsat 8 Level 2 Collection 2 in USGS",
-    "references" : "https://landsatlook.usgs.gov/sat-api/collections/landsat-c2l2-sr",
-    "example" : "/vsis3/usgs-landsat/collection02/level-2/standard/oli-tirs/2018/206/110/LC08_L2SR_206110_20180208_20201016_02_T2/LC08_L2SR_206110_20180208_20201016_02_T2_SR_B1.TIF",
-    "tags" : ["Landsat", "USGS", "SR"],
+    "description" : "Image collection format for Landsat 8 Level 2 Collection 2 in DEAFRICA",
+    "references" : "https://explorer.digitalearth.africa/stac/collections/ls8_sr",
+    "example" : "/vsis3/deafrica-landsat/collection02/level-2/standard/oli-tirs/2019/181/059/LC08_L2SP_181059_20190111_20200830_02_T1/LC08_L2SP_181059_20190111_20200830_02_T1_SR_B4.TIF",
+    "tags" : ["DEAFRICA", "Landsat", "SR"],
     "pattern" : ".+.TIF",
     "images" : {
         "pattern" : ".*oli-tirs((?:/[A-Za-z0-9_]+){4})/.*"
@@ -30,7 +30,7 @@
         "B04" : {
             "nodata" : 0,
             "scale" : 0.0000275,
-            "pattern" : ".+SR_B4\\.TIF"
+            "pattern" : ".+SR_B4.TIF"
         },
         "B05" : {
             "nodata" : 0,
