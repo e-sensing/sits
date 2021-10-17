@@ -4,9 +4,7 @@
 
     # require package
     if (!requireNamespace("Rwtss", quietly = TRUE)) {
-        stop(paste("Please install package Rwtss from CRAN:",
-                   "install.packages('Rwtss')"), call. = FALSE
-        )
+        stop("Please install package Rwtss", call. = FALSE)
     }
 
     url <- .source_url(source = source)

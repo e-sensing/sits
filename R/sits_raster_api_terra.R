@@ -8,10 +8,8 @@
 
     # check if raster package is available
     if (!requireNamespace(pkg_name, quietly = TRUE)) {
-
         stop(paste(".sits_config_raster_package: package", pkg_name,
-                   "not available. Install the package or change the",
-                   "config file."), call. = FALSE)
+                   "not available. Please install the package for CRAN."), call. = FALSE)
     }
 
     class(pkg_name) <- pkg_name

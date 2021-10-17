@@ -84,9 +84,7 @@ sits_twdtw_classify <- function(samples,
                                 .plot   = TRUE) {
     # verifies if dtwSat package is installed
     if (!requireNamespace("dtwSat", quietly = TRUE)) {
-        stop("dtwSat needed for this function to work. Please install it.",
-            call. = FALSE
-        )
+        stop("Please install package dtwSat", call. = FALSE)
     }
 
     # does the input data exist?
@@ -183,8 +181,7 @@ sits_twdtw_classify <- function(samples,
 
     # verifies if dtwSat package is installed
     if (!requireNamespace("dtwSat", quietly = TRUE)) {
-        stop("dtwSat needed for this function to work.
-             Please install it.", call. = FALSE)
+        stop("Please install package dtwSat", call. = FALSE)
     }
 
     # create a tibble to store the results
@@ -228,14 +225,12 @@ sits_twdtw_classify <- function(samples,
 .sits_twdtw_from_tibble <- function(samples) {
     # verifies if methods package is installed
     if (!requireNamespace("methods", quietly = TRUE)) {
-        stop("methods needed for this function to work.
-             Please install it.", call. = FALSE)
+        stop("Please install package methods", call. = FALSE)
     }
 
     # verifies if zoo package is installed
     if (!requireNamespace("zoo", quietly = TRUE)) {
-        stop("zoo needed for this function to work.
-              Please install it.", call. = FALSE)
+        stop("Please install package zoo", call. = FALSE)
     }
     # transform each sits time series into a list of zoo
     ts <- samples$time_series %>%

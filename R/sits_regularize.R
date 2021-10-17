@@ -93,11 +93,8 @@ sits_regularize <- function(cube,
     .check_set_caller("sits_regularize")
 
     # require gdalcubes package
-    if (!requireNamespace("gdalcubes", quietly = TRUE)) {
-        stop(paste("please, install package gdalcubes from CRAN:",
-                   "install.packages('gdalcubes')"), call. = FALSE
-        )
-    }
+    if (!requireNamespace("gdalcubes", quietly = TRUE))
+        stop("Please install package gdalcubes", call. = FALSE)
     # sits needs a valid gdalcubes configuration file to be able to regularize
     # collections
     .check_null(.source_collection_gdal_config(.cube_source(cube), .cube_collection(cube)),

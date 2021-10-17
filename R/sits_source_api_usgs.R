@@ -63,9 +63,7 @@
 
     # require package
     if (!requireNamespace("rstac", quietly = TRUE)) {
-        stop(paste("Please install package rstac from CRAN:",
-                   "install.packages('rstac')"), call. = FALSE
-        )
+        stop("Please install package rstac", call. = FALSE)
     }
 
     items_query <- .stac_items_query(source = source,

@@ -218,8 +218,7 @@ sits_cluster_clean <- function(samples) {
 
     # verifies if dtwclust package is installed
     if (!requireNamespace("dtwclust", quietly = TRUE)) {
-        stop("dtwclust needed for this function to work.
-             Please install it.", call. = FALSE)
+        stop("Please insall package dtwclust", call. = FALSE)
     }
 
     # is the input data the result of a cluster function?
@@ -276,8 +275,7 @@ sits_cluster_clean <- function(samples) {
                                      linkage = "ward.D2", ...) {
     # verifies if dtwclust package is installed
     if (!requireNamespace("dtwclust", quietly = TRUE)) {
-        stop("dtwclust needed for this function to work.
-             Please install it.", call. = FALSE)
+        stop("Please install package dtwclust", call. = FALSE)
     }
 
     # get the values of the time series

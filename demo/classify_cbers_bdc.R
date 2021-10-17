@@ -42,12 +42,6 @@ cbers_cube <- sits_cube(
     end_date   = end_date
 )
 
-# region of interest
-roi <- c(xmin = 5970958,
-         xmax = 6034958,
-         ymin = 9876672,
-         ymax = 9940672)
-
 # train an RFOR model
 rfor_model <- sits_train(
     data      = cbers_samples_2bands,
@@ -58,7 +52,6 @@ rfor_model <- sits_train(
 cbers_probs <- sits_classify(
     data       = cbers_cube,
     ml_model   = rfor_model,
-#    roi        = roi,
     output_dir = "/Users/gilbertocamara/cbers/",
     memsize    = 16,
     multicores = 4,
@@ -66,46 +59,38 @@ cbers_probs <- sits_classify(
     progress = TRUE
 )
 
+# plot the classification result
+plot(cbers_probs)
+
 # post process probabilities map with bayesian smoothing
 cbers_bayes <- sits_smooth(
     cube       = cbers_probs,
     type       = "bayes",
     output_dir = "/Users/gilbertocamara/cbers/",
     memsize    = 16,
-    multicores = 1,
+    multicores = 4,
     verbose = TRUE,
     progress = TRUE
 )
+# plot the classification result after smoothing
+plot(cbers_bayes)
 
-# label each pixel with the highest probability
-cbers_label <- sits_label_classification(
-  cube       = cbers_bayes,
-  output_dir = tempdir()
-)
 # label the smoothed image
 cbers_lbayes <- sits_label_classification(
     cube       = cbers_bayes,
-    output_dir = tempdir()
+    output_dir = "/Users/gilbertocamara/cbers/",
+    memsize    = 16,
+    multicores = 4
 )
 
-# plot the image (last instances) - save the mapview for the
-# future
-view1 <- sits_view(x     = cbers_cube,
+# plot the labelled image
+plot(cbers_lbayes)
+
+#view the classification results together with the original maps
+sits_view(x     = cbers_cube,
           red   = "EVI",
           green = "NDVI",
           blue  = "EVI",
-          time  = 23)
-
-sits_view(cbers_label, map = view1)
-
-# plot the classification result
-plot(cbers_probs)
-
-# plot the labelled image
-plot(cbers_label)
-
-# plot the new probs
-plot(cbers_bayes)
-
-# plot the labeled image with bayesian smoothing
-plot(cbers_lbayes)
+          times  = c(1, 23),
+          class_cube = cbers_lbayes
+)

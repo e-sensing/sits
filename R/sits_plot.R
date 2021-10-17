@@ -457,6 +457,10 @@ plot.keras_model <- function(x, y, ...) {
 #' @return        plot
 #'
 .sits_plot_patterns <- function(data) {
+    # verifies if scales package is installed
+    if (!requireNamespace("scales", quietly = TRUE)) {
+        stop("Please install package scales.", call. = FALSE)
+    }
     # prepare a data frame for plotting
     plot.df <- data.frame()
 
@@ -770,6 +774,11 @@ plot.keras_model <- function(x, y, ...) {
 #'
 #' @return             The plot itself.
 .sits_plot_classification <- function(data, bands = NULL) {
+
+    # verifies if scales package is installed
+    if (!requireNamespace("scales", quietly = TRUE)) {
+        stop("Please install package scales.", call. = FALSE)
+    }
     if (purrr::is_null(bands)) {
         bands <- sits_bands(data)[1]
     }
@@ -1169,8 +1178,7 @@ plot.keras_model <- function(x, y, ...) {
 .sits_plot_twdtw_alignments <- function(matches) {
     # verifies if dtwSat package is installed
     if (!requireNamespace("dtwSat", quietly = TRUE)) {
-        stop("dtwSat needed for this function to work.
-             Please install it.", call. = FALSE)
+        stop("Please install package dtwSat", call. = FALSE)
     }
 
     matches %>%
@@ -1203,8 +1211,7 @@ plot.keras_model <- function(x, y, ...) {
                                    overlap = 0.5) {
     # verifies if dtwSat package is installed
     if (!requireNamespace("dtwSat", quietly = TRUE)) {
-        stop("dtwSat needed for this function to work.
-             Please install it.", call. = FALSE)
+        stop("Please install package dtwSat", call. = FALSE)
     }
 
     matches %>%

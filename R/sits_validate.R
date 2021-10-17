@@ -54,7 +54,7 @@ sits_kfold_validate <- function(data,
 
     # require package
     if (!requireNamespace("caret", quietly = TRUE)) {
-        stop("Please install package caret.", call. = FALSE)
+        stop("Please install package caret", call. = FALSE)
     }
 
     # keras models needs sequential processing

@@ -93,8 +93,7 @@ sits_ResNet <- function(samples = NULL,
     result_fun <- function(data) {
         # verifies if keras package is installed
         if (!requireNamespace("keras", quietly = TRUE)) {
-            stop(paste("keras required for this function to work.",
-                       "Please install it."), call. = FALSE)
+            stop("Please install package keras", call. = FALSE)
         }
 
         valid_activations <- c("relu", "elu", "selu", "sigmoid")
@@ -270,8 +269,7 @@ sits_ResNet <- function(samples = NULL,
 
             # verifies if keras package is installed
             if (!requireNamespace("keras", quietly = TRUE)) {
-                stop(paste("keras required for this function to work.",
-                           "Please install it."), call. = FALSE)
+                stop("Please install package keras", call. = FALSE)
             }
 
             # restore model keras

@@ -112,8 +112,7 @@ sits_mlr <- function(data = NULL, formula = sits_formula_linear(),
 
         # verifies if nnet package is installed
         if (!requireNamespace("nnet", quietly = TRUE)) {
-            stop(paste("nnet required for this function to work.",
-                       "Please install it."), call. = FALSE)
+            stop("Please install package nnet", call. = FALSE)
         }
 
         # data normalization
@@ -142,8 +141,7 @@ sits_mlr <- function(data = NULL, formula = sits_formula_linear(),
 
             # verifies if nnet package is installed
             if (!requireNamespace("nnet", quietly = TRUE)) {
-                stop(paste("nnet required for this function to work.",
-                           "Please install it."), call. = FALSE)
+                stop("Please install package nnet", call. = FALSE)
             }
 
             # return probabilities
@@ -204,8 +202,7 @@ sits_rfor <- function(data = NULL, num_trees = 200, nodesize = 1, ...) {
 
         # verifies if randomForest package is installed
         if (!requireNamespace("randomForest", quietly = TRUE)) {
-            stop(paste("randomForest required for this function to work.",
-                       "Please install it."), call. = FALSE)
+            stop("Please install package randomForest", call. = FALSE)
         }
 
         # call `randomForest::randomForest` method and return the trained model
@@ -225,8 +222,7 @@ sits_rfor <- function(data = NULL, num_trees = 200, nodesize = 1, ...) {
 
             # verifies if ranger package is installed
             if (!requireNamespace("randomForest", quietly = TRUE)) {
-                stop(paste("randomForest required for this function to work.",
-                           "Please install it."), call. = FALSE)
+                stop("Please install package randomForest", call. = FALSE)
             }
 
             return(stats::predict(result_rfor,
@@ -306,8 +302,7 @@ sits_svm <- function(data = NULL, formula = sits_formula_logref(),
 
         # verifies if e1071 package is installed
         if (!requireNamespace("e1071", quietly = TRUE)) {
-            stop(paste("e1071 required for this function to work.",
-                       "Please install it."), call. = FALSE)
+            stop("Please install package e1071", call. = FALSE)
         }
 
         # data normalization
@@ -335,8 +330,7 @@ sits_svm <- function(data = NULL, formula = sits_formula_logref(),
 
             # verifies if e1071 package is installed
             if (!requireNamespace("e1071", quietly = TRUE)) {
-                stop(paste("e1071 required for this function to work.",
-                           "Please install it."), call. = FALSE)
+                stop("Please install package e1071", call. = FALSE)
             }
 
             # get the prediction
@@ -449,8 +443,7 @@ sits_xgboost <- function(data = NULL,
 
         # verifies if xgboost package is installed
         if (!requireNamespace("xgboost", quietly = TRUE)) {
-            stop(paste("xgboost required for this function to work.",
-                       "Please install it."), call. = FALSE)
+            stop("Please install package xgboost", call. = FALSE)
         }
 
         # get the labels of the data
@@ -519,8 +512,7 @@ sits_xgboost <- function(data = NULL,
 
             # verifies if xgboost package is installed
             if (!requireNamespace("xgboost", quietly = TRUE)) {
-                stop(paste("xgboost required for this function to work.",
-                           "Please install it."), call. = FALSE)
+                stop("Please install package xgboost", call. = FALSE)
             }
 
             # transform input  into a matrix (remove first two columns)
