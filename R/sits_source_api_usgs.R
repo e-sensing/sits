@@ -209,19 +209,13 @@
 
 #' @keywords internal
 #' @export
-.source_items_tile_get_crs.usgs_cube <- function(source, ...,
-                                                 tile_items,
+.source_items_tile_get_crs.usgs_cube <- function(source,
+                                                 tile_items, ...,
                                                  collection = NULL) {
 
-    href <- .source_item_get_hrefs(source = source, ...,
-                                   item = tile_items[["features"]][[1]],
-                                   collection = collection)
-
-    # read the first image and obtain crs attribute
-    params <- .raster_params_file(href)
-
+    epsg_code <- tile_items[["features"]][[1]][[c("properties", "proj:epsg")]]
     # format collection crs
-    crs <- .sits_proj_format_crs(params[["crs"]])
+    crs <- .sits_proj_format_crs(epsg_code)
 
     return(crs)
 }
