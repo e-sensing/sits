@@ -1,6 +1,7 @@
 #' @keywords internal
 #' @export
-.source_collection_access_test.stac_cube <- function(source, ..., collection,  bands,
+.source_collection_access_test.stac_cube <- function(source, ...,
+                                                     collection, bands,
                                                      dry_run = TRUE) {
     # require package
     if (!requireNamespace("rstac", quietly = TRUE)) {
@@ -35,8 +36,8 @@
         tryCatch({
             .raster_open_rast(href)
         }, error = function(e) {
-            stop(paste(".source_collection_access_test.stac_cube: cannot open url\n",
-                       href, "\n", e$message), call. = FALSE)
+            stop(paste(".source_collection_access_test.stac_cube: cannot",
+                       "open url\n", href, "\n", e$message), call. = FALSE)
         })
 
 
@@ -289,6 +290,7 @@
 
     tile_items[["features"]][[1]][[c("properties", "tile")]]
 }
+
 #' @keywords internal
 #' @export
 .source_items_tile_get_bbox.stac_cube <- function(source, ...,
