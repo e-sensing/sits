@@ -390,6 +390,11 @@ sits_cube.satveg_cube <- function(
     data_dir = NULL,
     ...) {
 
+    # verifies if httr package is installed
+    if (!requireNamespace("httr", quietly = TRUE)) {
+        stop("Please install package httr.", call. = FALSE)
+    }
+
 
     # precondition
     .check_chr_within(x = collection,

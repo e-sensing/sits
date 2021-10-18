@@ -27,7 +27,7 @@ class_cube_data_type    : "INT1U"
 # maxbytes for leaflet (in MB)
 leaflet_max_Mbytes : 16
 # estimated compression factor for leaflet
-leaflet_comp_factor : 0.50
+leaflet_comp_factor : 0.75
 
 
 sources:

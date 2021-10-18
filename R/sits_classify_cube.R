@@ -246,7 +246,7 @@
         in_files = filenames,
         out_file = probs_cube$file_info[[1]]$path,
         format = "GTiff",
-        gdal_datatype = .raster_gdal_datatype("INT2U"),
+        gdal_datatype = .raster_gdal_datatype(.config_get("probs_cube_data_type")),
         gdal_options = .config_gtiff_default_options(),
         overwrite = TRUE
     )

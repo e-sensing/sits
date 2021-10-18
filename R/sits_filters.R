@@ -69,8 +69,7 @@ sits_envelope <- function(data = NULL,
 
     # verifies if dtwclust package is installed
     if (!requireNamespace("dtwclust", quietly = TRUE)) {
-        stop("dtwclust needed for this function to work.
-             Please install it.", call. = FALSE)
+        stop("Please install package dtwclust", call. = FALSE)
     }
 
     filter_fun <- function(data) {

@@ -61,6 +61,14 @@
 
 .source_collection_access_test.usgs_cube <- function(source, ..., collection, bands) {
 
+<<<<<<< HEAD
+=======
+    # require package
+    if (!requireNamespace("rstac", quietly = TRUE)) {
+        stop("Please install package rstac", call. = FALSE)
+    }
+
+>>>>>>> 6ddb5a21fa0d8508d1b19ad7450cd496fde9a660
     items_query <- .stac_items_query(source = source,
                                      collection = collection,
                                      limit = 1, ...)

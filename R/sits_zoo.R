@@ -30,8 +30,7 @@ sits_from_zoo <- function(ts_zoo, longitude = 0.00, latitude = 0.00,
 
     # verifies if zoo package is installed
     if (!requireNamespace("zoo", quietly = TRUE)) {
-        stop("zoo needed for this function to work.
-              Please install it.", call. = FALSE)
+        stop("Please install package zoo", call. = FALSE)
     }
     # preconditions
     .check_that(
@@ -84,8 +83,7 @@ sits_from_zoo <- function(ts_zoo, longitude = 0.00, latitude = 0.00,
 sits_to_zoo <- function(data, band = NULL) {
     # verifies if zoo package is installed
     if (!requireNamespace("zoo", quietly = TRUE)) {
-        stop("zoo needed for this function to work.
-              Please install it.", call. = FALSE)
+        stop("Please install package zoo", call. = FALSE)
     }
     zoo_lst <- data$time_series %>%
         purrr::map(function(ts) {

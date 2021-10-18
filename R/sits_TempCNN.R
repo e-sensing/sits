@@ -92,8 +92,7 @@ sits_TempCNN <- function(samples = NULL,
 
         # verifies if keras package is installed
         if (!requireNamespace("keras", quietly = TRUE)) {
-            stop(paste("keras required for this function to work.",
-                       "Please install it."), call. = FALSE)
+            stop("Please install package keras", call. = FALSE)
         }
 
         # pre-conditions
@@ -281,8 +280,7 @@ sits_TempCNN <- function(samples = NULL,
 
             # verifies if keras package is installed
             if (!requireNamespace("keras", quietly = TRUE)) {
-                stop(paste("keras required for this function to work.",
-                           "Please install it."), call. = FALSE)
+                stop("Please install package keras", call. = FALSE)
             }
 
             # restore model keras

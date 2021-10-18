@@ -49,8 +49,7 @@
 sits_patterns <- function(data = NULL, freq = 8, formula = y ~ s(x), ...) {
     # verifies if mgcv package is installed
     if (!requireNamespace("mgcv", quietly = TRUE)) {
-        stop("mgcv required for this function to work.
-              Please install it.", call. = FALSE)
+        stop("Please install package mgcv", call. = FALSE)
     }
     # function that is used to be called as a value from another function
     result_fun <- function(tb) {
