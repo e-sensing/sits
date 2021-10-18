@@ -901,7 +901,7 @@ sources:
     USGS                    :
         s3_class            : ["usgs_cube", "stac_cube", "raster_cube"]
         service             : "STAC"
-        stac_version        : "0.9.0"
+        rstac_version       : "0.9.0"
         url                 : "https://landsatlook.usgs.gov/sat-api/stac"
         collections         :
             LANDSAT-C2L2-SR : &usgs_oli
