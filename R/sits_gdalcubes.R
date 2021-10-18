@@ -212,13 +212,7 @@
 
     # is this a bit mask cloud?
     if (bit_mask)
-        mask_values <- modifyList(
-            mask_values,
-            list(values = NA,
-                 min = 2^min(mask_values$values),
-                 max = 2^max(mask_values$values),
-                 bits = mask_values$values)
-        )
+        mask_values$values <- setdiff(c(0:(2^16-1)), c(2^6, 2^7, 2^6+2^7))
 
     return(mask_values)
 }
