@@ -50,7 +50,6 @@ Imports:
     tibble (>= 3.0),
     utils
 Suggests:
-    aws.s3 (>= 0.3.21),
     caret,
     dendextend,
     devtools,
@@ -59,7 +58,6 @@ Suggests:
     e1071,
     gdalcubes,
     httr,
-    imputeTS, 
     keras (>= 2.6.0),
     kohonen,
     knitr,
@@ -69,7 +67,6 @@ Suggests:
     mgcv,
     nnet,
     openxlsx,
-    reticulate (>= 1.18),
     randomForest,
     Rcpp,
     RcppArmadillo,
@@ -79,7 +76,6 @@ Suggests:
     testthat (>= 3.0.2),
     tidyr,
     xgboost,
-    withr,
     zoo
 Config/testthat/edition: 3
 Config/testthat/parallel: true
