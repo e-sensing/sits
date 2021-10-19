@@ -1,0 +1,54 @@
+{
+    "description" : "Image collection format for Landsat 8 Level 2 Collection 2 in USGS",
+    "references" : "https://landsatlook.usgs.gov/sat-api/collections/landsat-c2l2-sr",
+    "example" : "/vsis3/usgs-landsat/collection02/level-2/standard/oli-tirs/2018/206/110/LC08_L2SR_206110_20180208_20201016_02_T2/LC08_L2SR_206110_20180208_20201016_02_T2_SR_B1.TIF",
+    "tags" : ["Landsat", "USGS", "SR"],
+    "pattern" : ".+.TIF",
+    "images" : {
+        "pattern" : ".*oli-tirs((?:/[A-Za-z0-9_]+){4})/.*"
+    },
+    "datetime" : {
+        "pattern" : ".*LC08_L2S[R|P](?:_[A-Za-z0-9]+){1}_([A-Za-z0-9]+).*",
+        "format" : "%Y%m%d"
+    },
+    "bands" : {
+        "B01" : {
+            "nodata" : 0,
+            "scale" : 0.0000275,
+            "pattern" : ".+SR_B1\\.TIF"
+        },
+        "B02" : {
+            "nodata" : 0,
+            "scale" : 0.0000275,
+            "pattern" : ".+SR_B2\\.TIF"
+        },
+        "B03" : {
+            "nodata" : 0,
+            "scale" : 0.0000275,
+            "pattern" : ".+SR_B3\\.TIF"
+        },
+        "B04" : {
+            "nodata" : 0,
+            "scale" : 0.0000275,
+            "pattern" : ".+SR_B4\\.TIF"
+        },
+        "B05" : {
+            "nodata" : 0,
+            "scale" : 0.0000275,
+            "pattern" : ".+SR_B5\\.TIF"
+        },
+        "B06" : {
+            "nodata" : 0,
+            "scale" : 0.0000275,
+            "pattern" : ".+SR_B6\\.TIF"
+        },
+        "B07" : {
+            "nodata" : 0,
+            "scale" : 0.0000275,
+            "pattern" : ".+SR_B7\\.TIF"
+        },
+        "CLOUD" : {
+            "pattern" : ".+QA_PIXEL\\.TIF"
+        }
+    }
+}

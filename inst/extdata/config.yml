@@ -746,70 +746,12 @@ sources:
                 open_data: true
                 open_data_token: false
                 gdalcubes_format_col : "s2la_aws_cogs.json"
-    USGS                    :
-        s3_class            : ["usgs_cube", "stac_cube", "raster_cube"]
-        service             : "STAC"
-        stac_version        : "0.9.0"
-        url                 : "https://landsatlook.usgs.gov/sat-api/stac"
-        collections         :
-            LANDSAT-C2L2-SR :
-                bands       :
-                    B1      : &usgs_oli_b1
-                        missing_value : 0
-                        minimum_value : 7273
-                        maximum_value : 43636
-                        scale_factor  : 0.0000275
-                        offset_value  : -0.2
-                        resolution   :  30
-                        band_name     : "SR_B1"
-                    B2      :
-                        <<: *usgs_oli_b1
-                        band_name     : "SR_B2"
-                    B3      :
-                        <<: *usgs_oli_b1
-                        band_name     : "SR_B3"
-                    B4      :
-                        <<: *usgs_oli_b1
-                        band_name     : "SR_B4"
-                    B5      :
-                        <<: *usgs_oli_b1
-                        band_name     : "SR_B5"
-                    B6      :
-                        <<: *usgs_oli_b1
-                        band_name     : "SR_B6"
-                    B7      :
-                        <<: *usgs_oli_b1
-                        band_name     : "SR_B7"
-                    CLOUD  :
-                        bit_mask      : TRUE
-                        band_name     : "QA_PIXEL"
-                        values        :
-                            0         : "missing_data"
-                            1         : "Dilated Cloud"
-                            2         : "High confidence cirrus"
-                            4         : "High confidence cloud shadow"
-                            5         : "High confidence snow cover"
-                            6         : "Clear"
-                            7         : "Water"
-                            9         : "High confidence of cloud"
-                            11        : "High confidence of cloud shadow"
-                            13        : "High confidence of snow"
-                            15        : "High confidence of cirrus"
-                        interp_values : [0, 1, 2, 4, 5, 9, 11, 13, 15]
-                        resolution   :  30
-                collection_name:  "landsat-c2l2-sr"
-                access_vars :
-                    AWS_DEFAULT_REGION: "us-west-2"
-                    AWS_S3_ENDPOINT   : "s3.amazonaws.com"
-                open_data: true
-                open_data_token: false
-                tile_required: true
     DEAFRICA                :
         s3_class            : ["deafrica_cube", "stac_cube", "raster_cube"]
         service             : "STAC"
         url                 : "https://explorer.digitalearth.africa/stac/"
         collections         :
-            GA_S2_GM        : &deafrica_s2
+            S2_L2A          : &deafrica_s2
                 bands       :
                     B01     : &deafrica_msi_60m
                         missing_value : -9999
@@ -882,23 +824,134 @@ sources:
                         resolution   :  20
                 satellite   : "SENTINEL-2"
                 sensor      : "MSI"
-                collection_name: "ga_s2_gm"
-                access_vars :
-                    AWS_DEFAULT_REGION: "af-south-1"
-                    AWS_S3_ENDPOINT   : "s3.af-south-1.amazonaws.com"
-                    AWS_NO_SIGN_REQUEST: true
-                open_data: true
-                open_data_token: false
-            S2_L2A          :
-                <<: *deafrica_s2
-                satellite   : "SENTINEL-2"
-                sensor      : "MSI"
                 collection_name: "s2_l2a"
                 access_vars :
                     AWS_DEFAULT_REGION: "af-south-1"
                     AWS_S3_ENDPOINT   : "s3.af-south-1.amazonaws.com"
                 open_data: true
                 open_data_token: false
+                gdalcubes_format_col : "s2_l2a_deafrica.json"
+            LS8_SR          : &deafrica_l8
+                bands       :
+                    B01     : &deafrica_oli_30m
+                        missing_value : 0
+                        minimum_value : 7273
+                        maximum_value : 43636
+                        scale_factor  : 0.0000275
+                        offset_value  : -0.2
+                        resampling    : "bilinear"
+                        resolution    : 30
+                        band_name     : "SR_B1"
+                    B02     :
+                        <<: *deafrica_oli_30m
+                        band_name     : "SR_B2"
+                    B03     :
+                        <<: *deafrica_oli_30m
+                        band_name     : "SR_B3"
+                    B04     :
+                        <<: *deafrica_oli_30m
+                        band_name     : "SR_B4"
+                    B05     :
+                        <<: *deafrica_oli_30m
+                        band_name     : "SR_B5"
+                    B06     :
+                        <<: *deafrica_oli_30m
+                        band_name     : "SR_B6"
+                    B07     :
+                        <<: *deafrica_oli_30m
+                        band_name     : "SR_B7"
+                    CLOUD   :
+                        bit_mask      : TRUE
+                        band_name     : "QA_PIXEL"
+                        values        :
+                            0         : "missing_data"
+                            1         : "Dilated Cloud"
+                            2         : "High confidence cirrus"
+                            4         : "High confidence cloud shadow"
+                            5         : "High confidence snow cover"
+                            6         : "Clear"
+                            7         : "Water"
+                            9         : "High confidence of cloud"
+                            11        : "High confidence of cloud shadow"
+                            13        : "High confidence of snow"
+                            15        : "High confidence of cirrus"
+                        interp_values : [0, 1, 2, 3, 4, 5]
+                        resampling    : "near"
+                        resolution    : 30
+                satellite   : "LANDSAT-8"
+                sensor      : "OLI"
+                collection_name: "ls8_sr"
+                access_vars :
+                    AWS_DEFAULT_REGION: "af-south-1"
+                    AWS_S3_ENDPOINT   : "s3.af-south-1.amazonaws.com"
+                open_data: true
+                open_data_token: false
+                gdalcubes_format_col : "ls8_sr_deafrica.json"
+    USGS                    :
+        s3_class            : ["usgs_cube", "stac_cube", "raster_cube"]
+        service             : "STAC"
+        rstac_version       : "0.9.0"
+        url                 : "https://landsatlook.usgs.gov/sat-api/stac"
+        collections         :
+            LANDSAT-C2L2-SR : &usgs_oli
+                bands       :
+                    B01     : &usgs_oli_30m
+                        missing_value : 0
+                        minimum_value : 7273
+                        maximum_value : 43636
+                        scale_factor  : 0.0000275
+                        offset_value  : -0.2
+                        resampling    : "bilinear"
+                        resolution    : 30
+                        band_name     : "coastal"
+                    B02     :
+                        <<: *usgs_oli_30m
+                        band_name     : "blue"
+                    B03     :
+                        <<: *usgs_oli_30m
+                        band_name     : "green"
+                    B04     :
+                        <<: *usgs_oli_30m
+                        band_name     : "red"
+                    B05     :
+                        <<: *usgs_oli_30m
+                        band_name     : "nir08"
+                    B06     :
+                        <<: *usgs_oli_30m
+                        band_name     : "swir16"
+                    B07     :
+                        <<: *usgs_oli_30m
+                        band_name     : "swir22"
+                    CLOUD   :
+                        bit_mask      : TRUE
+                        band_name     : "qa_pixel"
+                        values        :
+                            0         : "missing_data"
+                            1         : "Dilated Cloud"
+                            2         : "High confidence cirrus"
+                            3         : "High confidence cloud"
+                            4         : "High confidence cloud shadow"
+                            5         : "High confidence snow cover"
+                            6         : "Clear"
+                            7         : "Water"
+                            9         : "High confidence of cloud"
+                            11        : "High confidence of cloud shadow"
+                            13        : "High confidence of snow"
+                            15        : "High confidence of cirrus"
+                        interp_values : [0, 1, 2, 3, 4, 5]
+                        resampling    : "near"
+                        resolution    : 30
+                satellite   : "LANDSAT-8"
+                sensor      : "OLI"
+                collection_name: "landsat-c2l2-sr"
+                access_vars :
+                    AWS_DEFAULT_REGION: "us-west-2"
+                    AWS_S3_ENDPOINT   : "s3.amazonaws.com"
+                    AWS_REQUEST_PAYER : "requester"
+                open_data: false
+                open_data_token: false
+                tile_required: false
+                gdalcubes_format_col : "l8c2l2_usgs.json"
 
 # Default palette is based on ColorBrewer
 palettes:

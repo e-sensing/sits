@@ -4,12 +4,10 @@
 \alias{.view_reshape_image}
 \title{Reduce the cube size for visualisation and load files in tempdir}
 \usage{
-.view_reshape_image(cube, rgb_files, roi = NULL, max_Mbytes)
+.view_reshape_image(cube, rgb_files, max_Mbytes)
 }
 \arguments{
 \item{rgb_files}{vector with RGB files.}
-
-\item{roi}{region of interest}
 
 \item{max_Mbytes}{maximum number of megabytes to be shown in leaflet}
 

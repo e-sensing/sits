@@ -205,6 +205,22 @@
         )
     )
 
+    # is this a bit mask cloud?
+    if (.source_cloud_bit_mask(
+        source = .cube_source(cube = tile),
+        collection = .cube_collection(cube = tile)))
+
+        mask_values <- list(
+            band = cloud_band,
+            min = 1,
+            max = 2^16,
+            bits = mask_values$values,
+            values = NULL,
+            invert = FALSE
+        )
+
+    class(mask_values) <- "image_mask"
+
     return(mask_values)
 }
 
@@ -236,7 +252,8 @@
     ic_cube <- gdalcubes::create_image_collection(
         files    = file_info$path,
         format   = format_col,
-        out_file = path_db)
+        out_file = path_db
+    )
     return(ic_cube)
 }
 
@@ -271,6 +288,7 @@
     # return the gdal format file path
     system.file(paste0("extdata/gdalcubes/", gdal_config), package = "sits")
 }
+
 #' @title Create a cube_view object
 #' @name .gc_create_cube_view
 #' @keywords internal
@@ -331,20 +349,13 @@
 
     bbox_roi <- sits_bbox(tile)
 
-    if (!purrr::is_null(roi)) {
-
+    if (!is.null(roi))
         bbox_roi <- .sits_roi_bbox(roi, tile)
 
-        roi <- list(left   = bbox_roi[["xmin"]],
-                    right  = bbox_roi[["xmax"]],
-                    bottom = bbox_roi[["ymin"]],
-                    top    = bbox_roi[["ymax"]])
-    } else
-        roi <- list(left   = bbox_roi[["xmin"]],
-                    right  = bbox_roi[["xmax"]],
-                    bottom = bbox_roi[["ymin"]],
-                    top    = bbox_roi[["ymax"]])
-
+    roi <- list(left   = bbox_roi[["xmin"]],
+                right  = bbox_roi[["xmax"]],
+                bottom = bbox_roi[["ymin"]],
+                top    = bbox_roi[["ymax"]])
 
     # create a list of cube view
     cv <- gdalcubes::cube_view(

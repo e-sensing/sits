@@ -21,8 +21,8 @@ sits_regularize(
 times is not constant and will be regularized by the \code{gdalcubes}
 package.}
 
-\item{output_dir}{A \code{character} with a directory where the regularized
-images will be written by \code{gdalcubes}.}
+\item{output_dir}{A \code{character} with a valid directory where the
+regularized images will be written by \code{gdalcubes}.}
 
 \item{period}{A \code{character} with ISO8601 time period for regular
 data cubes produced by \code{gdalcubes}, with number and unit, e.g., "P16D"
@@ -56,9 +56,9 @@ A \code{sits_cube} object with aggregated images.
 }
 \description{
 Creates cubes with regular time intervals
- using the gdalcubes package. Cubes are composed using "min", "max", "mean",
-"median" or "first" functions. Users need to provide an
- time interval which is used by the composition function.
+ using the gdalcubes package. Cubes can be composed using "min", "max",
+ "mean", "median" or "first" functions. Users need to provide an time
+ interval which is used by the composition function.
 }
 \note{
 The "roi" parameter defines a region of interest. It can be
@@ -80,25 +80,23 @@ Sys.setenv(
 # define an AWS data cube
   s2_cube <- sits_cube(source = "AWS",
                       name = "T20LKP_2018_2019",
-                      collection = "sentinel-s2-l2a",
+                      collection = "sentinel-s2-l2a-cogs",
                       bands = c("B08", "SCL"),
                       tiles = c("20LKP"),
                       start_date = as.Date("2018-07-18"),
-                      end_date = as.Date("2018-08-18"),
-                      s2_resolution = 60
-)
+                      end_date = as.Date("2018-08-18")
+  )
 
 # create a directory to store the resulting images
 dir.create(paste0(tempdir(),"/images/"))
 
- # Build a data cube of equal intervals using the "gdalcubes" package
-gc_cube <- sits_regularize(cube   = s2_cube,
-                     name          = "T20LKP_2018_2019_1M",
-                     dir_images   = paste0(tempdir(),"/images/"),
-                     period        = "P1M",
-                     agg_method    = "median",
-                     resampling    = "bilinear",
-                     cloud_mask    = TRUE)
+# Build a data cube of equal intervals using the "gdalcubes" package
+gc_cube <- sits_regularize(cube       = s2_cube,
+                           output_dir = paste0(tempdir(),"/images/"),
+                           period     = "P1M",
+                           agg_method = "median",
+                           resampling = "bilinear",
+                           cloud_mask = TRUE)
 }
 }
 

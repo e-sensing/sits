@@ -14,6 +14,7 @@
     .check_set_caller(".deafrica_search_tiles")
 
     # checks if the supplied tiles are in the searched items
+    # TODO: use Filter instead
     index_features <- purrr::map_lgl(items$features, function(feature) {
         region_code <- feature[["properties"]][["odc:region_code"]]
         if (region_code %in% tiles)
@@ -82,7 +83,12 @@
                                                      tile_items,
                                                      collection = NULL) {
 
-    tile_items[["features"]][[1]][[c("properties", "proj:epsg")]]
+    # format collection crs
+    crs <- .sits_proj_format_crs(
+        tile_items[["features"]][[1]][[c("properties", "proj:epsg")]]
+    )
+
+    return(crs)
 }
 
 #' @keywords internal
