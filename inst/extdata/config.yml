@@ -751,7 +751,7 @@ sources:
         service             : "STAC"
         url                 : "https://explorer.digitalearth.africa/stac/"
         collections         :
-            GA_S2_GM        : &deafrica_s2
+            S2_L2A          : &deafrica_s2
                 bands       :
                     B01     : &deafrica_msi_60m
                         missing_value : -9999
@@ -824,17 +824,6 @@ sources:
                         resolution   :  20
                 satellite   : "SENTINEL-2"
                 sensor      : "MSI"
-                collection_name: "ga_s2_gm"
-                access_vars :
-                    AWS_DEFAULT_REGION: "af-south-1"
-                    AWS_S3_ENDPOINT   : "s3.af-south-1.amazonaws.com"
-                    AWS_NO_SIGN_REQUEST: true
-                open_data: true
-                open_data_token: false
-            S2_L2A          :
-                <<: *deafrica_s2
-                satellite   : "SENTINEL-2"
-                sensor      : "MSI"
                 collection_name: "s2_l2a"
                 access_vars :
                     AWS_DEFAULT_REGION: "af-south-1"
@@ -886,7 +875,7 @@ sources:
                             11        : "High confidence of cloud shadow"
                             13        : "High confidence of snow"
                             15        : "High confidence of cirrus"
-                        interp_values : [0, 1, 2, 3, 8, 9, 10, 11]
+                        interp_values : [0, 1, 2, 3, 4, 5]
                         resampling    : "near"
                         resolution    : 30
                 satellite   : "LANDSAT-8"
@@ -940,6 +929,7 @@ sources:
                             0         : "missing_data"
                             1         : "Dilated Cloud"
                             2         : "High confidence cirrus"
+                            3         : "High confidence cloud"
                             4         : "High confidence cloud shadow"
                             5         : "High confidence snow cover"
                             6         : "Clear"
@@ -948,7 +938,7 @@ sources:
                             11        : "High confidence of cloud shadow"
                             13        : "High confidence of snow"
                             15        : "High confidence of cirrus"
-                        interp_values : [0, 1, 2, 3, 8, 9, 10, 11]
+                        interp_values : [0, 1, 2, 3, 4, 5]
                         resampling    : "near"
                         resolution    : 30
                 satellite   : "LANDSAT-8"
