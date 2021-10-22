@@ -49,7 +49,7 @@
 sits_label_classification <- function(cube,
                                       multicores = 1,
                                       memsize = 1,
-                                      output_dir = tempdir(),
+                                      output_dir = ".",
                                       version = "v1") {
 
     # set caller to show in errors
@@ -60,15 +60,6 @@ sits_label_classification <- function(cube,
         x = inherits(cube, "probs_cube"),
         msg = "input is not probability cube"
     )
-
-    # create metadata for labeled raster cube
-    label_cube <- .cube_probs_label(
-        cube       = cube,
-        output_dir = output_dir,
-        ext        = "class",
-        version    = version
-    )
-    class(label_cube) <- unique(c("classified_image", class(label_cube)))
 
     # mapping function to be executed by workers cluster
     .do_map <- function(chunk) {
@@ -89,17 +80,31 @@ sits_label_classification <- function(cube,
     }
 
     # process each brick layer (each tile) individually
-    .sits_smooth_map_layer(
-        cube = cube,
-        cube_out = label_cube,
-        overlapping_y_size = 0,
-        func = .do_map,
-        multicores = multicores,
-        memsize = memsize,
-        gdal_datatype = .raster_gdal_datatype(.config_get("class_cube_data_type")),
-        gdal_options = .config_gtiff_default_options()
-    )
+    label_cube <- slider::slide2_dfr(cube, function(row) {
 
+        # create metadata for labeled raster cube
+        row_label <- .cube_probs_label(
+            cube       = row,
+            output_dir = output_dir,
+            ext        = "class",
+            version    = version
+        )
+
+        .sits_smooth_map_layer(
+            cube = row,
+            cube_out = row_label,
+            overlapping_y_size = 0,
+            func = .do_map,
+            multicores = multicores,
+            memsize = memsize,
+            gdal_datatype = .raster_gdal_datatype(.config_get("class_cube_data_type")),
+            gdal_options = .config_gtiff_default_options()
+        )
+
+        return(row_label)
+    })
+
+    class(label_cube) <- unique(c("classified_image", class(label_cube)))
 
     return(label_cube)
 }
@@ -155,7 +160,7 @@ sits_label_classification <- function(cube,
 #' @export
 sits_label_majority <- function(cube,
                                 window_size = 3,
-                                output_dir = "./",
+                                output_dir = ".",
                                 version = "v1") {
 
     # set caller to show in errors
@@ -174,44 +179,49 @@ sits_label_majority <- function(cube,
         msg = "window size must be >= 3"
     )
 
-    cube_maj <- .cube_probs_label(cube = cube,
-                                       ext = "class_maj",
-                                       output_dir = output_dir,
-                                       version = version)
+    cube_maj <- slider::slide_dfr(cube, function(row) {
 
-    # retrieve the files to be read and written
-    in_files <- cube$file_info[[1]]$path
-    out_files <- cube_maj$file_info[[1]]$path
+        row_maj <- .cube_probs_label(cube = row,
+                                     ext = "class_maj",
+                                     output_dir = output_dir,
+                                     version = version)
 
-    purrr::map2(in_files, out_files, function(in_file, out_file) {
+        # retrieve the files to be read and written
+        in_files <- row$file_info[[1]]$path
+        out_files <- row_maj$file_info[[1]]$path
 
-        # read the input classified image
-        r_obj <- .raster_open_rast(in_file)
+        purrr::map2(in_files, out_files, function(in_file, out_file) {
 
-        # calculate the majority values
-        r_obj <- .raster_focal(
-            r_obj = r_obj,
-            window_size = window_size,
-            fn = "modal"
-        )
+            # read the input classified image
+            r_obj <- .raster_open_rast(in_file)
 
-        # write the result
-        .raster_write_rast(
-            r_obj = r_obj,
-            file = out_file,
-            format = "GTiff",
-            data_type = .config_get("class_cube_data_type"),
-            gdal_options = .config_gtiff_default_options(),
-            overwrite = TRUE
-        )
+            # calculate the majority values
+            r_obj <- .raster_focal(
+                r_obj = r_obj,
+                window_size = window_size,
+                fn = "modal"
+            )
 
-        # was the file written correctly?
-        .check_file(
-            x = out_file,
-            msg = "unable to save raster object"
-        )
+            # write the result
+            .raster_write_rast(
+                r_obj = r_obj,
+                file = out_file,
+                format = "GTiff",
+                data_type = .config_get("class_cube_data_type"),
+                gdal_options = .config_gtiff_default_options(),
+                overwrite = TRUE
+            )
 
+            # was the file written correctly?
+            .check_file(
+                x = out_file,
+                msg = "unable to save raster object"
+            )
+        })
+
+        return(row_maj)
     })
+
     class(cube_maj) <- class(cube)
     return(cube_maj)
 }
