@@ -120,7 +120,7 @@ sits_smooth.bayes <- function(cube, type = "bayes", ...,
                               covar = FALSE,
                               multicores = 2,
                               memsize = 4,
-                              output_dir = tempdir(),
+                              output_dir = ".",
                               version = "v1") {
 
     # precondition 1 - check if cube has probability data
@@ -172,14 +172,6 @@ sits_smooth.bayes <- function(cube, type = "bayes", ...,
     # create a window
     window <- matrix(1, nrow = window_size, ncol = window_size)
 
-    # create metadata for raster cube
-    cube_bayes <- .cube_probs_label(
-        cube       = cube,
-        ext        = "probs_bayes",
-        output_dir = output_dir,
-        version    = version
-    )
-
     # retrieve the scale factor
     mult_factor <- round(1 / .config_get("probs_cube_scale_factor"))
 
@@ -219,17 +211,32 @@ sits_smooth.bayes <- function(cube, type = "bayes", ...,
     }
 
     # process each brick layer (each time step) individually
-    .sits_smooth_map_layer(
-        cube = cube,
-        cube_out = cube_bayes,
-        overlapping_y_size =
-            ceiling(window_size / 2) - 1,
-        func = .do_bayes,
-        multicores = multicores,
-        memsize = memsize,
-        gdal_datatype = .raster_gdal_datatype(.config_get("probs_cube_data_type")),
-        gdal_options = .config_gtiff_default_options()
-    )
+    cube_bayes <- slider::slide2_dfr(cube, function(row) {
+
+        # create metadata for raster cube
+        row_bayes <- .cube_probs_label(
+            cube       = row,
+            ext        = "probs_bayes",
+            output_dir = output_dir,
+            version    = version
+        )
+
+        .sits_smooth_map_layer(
+            cube = row,
+            cube_out = row_bayes,
+            overlapping_y_size =
+                ceiling(window_size / 2) - 1,
+            func = .do_bayes,
+            multicores = multicores,
+            memsize = memsize,
+            gdal_datatype = .raster_gdal_datatype(.config_get("probs_cube_data_type")),
+            gdal_options = .config_gtiff_default_options()
+        )
+
+        return(row_bayes)
+    })
+
+    class(cube_bayes) <- class(cube)
 
     return(cube_bayes)
 }
@@ -243,7 +250,7 @@ sits_smooth.gaussian <- function(cube, type = "gaussian", ...,
                                  sigma = 1,
                                  multicores = 2,
                                  memsize = 4,
-                                 output_dir = tempdir(),
+                                 output_dir = ".",
                                  version = "v1") {
 
     # precondition 1 - check if cube has probability data
@@ -283,14 +290,6 @@ sits_smooth.gaussian <- function(cube, type = "gaussian", ...,
     gauss_kernel <- .sits_smooth_gauss_kernel(window_size = window_size,
                                               sigma = sigma)
 
-    # create metadata for Gauss smoothed raster cube
-    cube_gauss <- .cube_probs_label(
-        cube       = cube,
-        ext        = "probs_gauss",
-        output_dir = output_dir,
-        version    = version
-    )
-
     # retrieve the scale factor
     scale_factor <- round(1 / .config_get("probs_cube_scale_factor"))
     mult_factor <- 1 / scale_factor
@@ -319,17 +318,32 @@ sits_smooth.gaussian <- function(cube, type = "gaussian", ...,
     }
 
     # process each brick layer (each time step) individually
-    .sits_smooth_map_layer(
-        cube = cube,
-        cube_out = cube_gauss,
-        overlapping_y_size =
-            ceiling(window_size / 2) - 1,
-        func = .do_gauss,
-        multicores = multicores,
-        memsize = memsize,
-        gdal_datatype = .raster_gdal_datatype(.config_get("probs_cube_data_type")),
-        gdal_options = .config_gtiff_default_options()
-    )
+    cube_gauss <- slider::slide2_dfr(cube, function(row) {
+
+        # create metadata for Gauss smoothed raster cube
+        row_gauss <- .cube_probs_label(
+            cube       = row,
+            ext        = "probs_gauss",
+            output_dir = output_dir,
+            version    = version
+        )
+
+        .sits_smooth_map_layer(
+            cube = row,
+            cube_out = row_gauss,
+            overlapping_y_size =
+                ceiling(window_size / 2) - 1,
+            func = .do_gauss,
+            multicores = multicores,
+            memsize = memsize,
+            gdal_datatype = .raster_gdal_datatype(.config_get("probs_cube_data_type")),
+            gdal_options = .config_gtiff_default_options()
+        )
+
+        return(row_gauss)
+    })
+
+    class(cube_gauss) <- class(cube)
 
     return(cube_gauss)
 }
@@ -346,7 +360,7 @@ sits_smooth.bilateral <- function(cube,
                                   tau = 0.1,
                                   multicores = 2,
                                   memsize = 4,
-                                  output_dir = tempdir(),
+                                  output_dir = ".",
                                   version = "v1") {
 
     # precondition 1 - check if cube has probability data
@@ -386,14 +400,6 @@ sits_smooth.bilateral <- function(cube,
     gauss_kernel <- .sits_smooth_gauss_kernel(window_size = window_size,
                                               sigma = sigma)
 
-    # create metadata for bilateral smoothed raster cube
-    cube_bilat <- .cube_probs_label(
-        cube       = cube,
-        ext        = "probs_bilat",
-        output_dir = output_dir,
-        version    = version
-    )
-
     # retrieve the scale factor
     scale_factor <- round(1 / .config_get("probs_cube_scale_factor"))
     mult_factor <- 1 / scale_factor
@@ -423,17 +429,32 @@ sits_smooth.bilateral <- function(cube,
     }
 
     # process each brick layer (each time step) individually
-    .sits_smooth_map_layer(
-        cube = cube,
-        cube_out = cube_bilat,
-        overlapping_y_size =
-            ceiling(window_size / 2) - 1,
-        func = .do_bilateral,
-        multicores = multicores,
-        memsize = memsize,
-        gdal_datatype = .raster_gdal_datatype(.config_get("probs_cube_data_type")),
-        gdal_options = .config_gtiff_default_options()
-    )
+    cube_bilat <- slider::slide2_dfr(cube, function(row) {
+
+        # create metadata for bilateral smoothed raster cube
+        row_bilat <- .cube_probs_label(
+            cube       = row,
+            ext        = "probs_bilat",
+            output_dir = output_dir,
+            version    = version
+        )
+
+        .sits_smooth_map_layer(
+            cube = row,
+            cube_out = row_bilat,
+            overlapping_y_size =
+                ceiling(window_size / 2) - 1,
+            func = .do_bilateral,
+            multicores = multicores,
+            memsize = memsize,
+            gdal_datatype = .raster_gdal_datatype(.config_get("probs_cube_data_type")),
+            gdal_options = .config_gtiff_default_options()
+        )
+
+        return(row_bilat)
+    })
+
+    class(cube_bilat) <- class(cube)
 
     return(cube_bilat)
 }

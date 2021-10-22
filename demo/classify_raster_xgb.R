@@ -51,19 +51,25 @@ sinop_probs <- sits_classify(
 )
 
 # smooth the result with a Bayesian filter
-sinop_bayes <- sits_smooth(cube       = sinop_probs,
-                           type       = "bayes",
-                           output_dir = tempdir())
+sinop_bayes <- sits_smooth(
+    cube       = sinop_probs,
+    type       = "bayes",
+    output_dir = tempdir()
+)
 
 # smooth the result with a Gaussian filter
-sinop_gauss <- sits_smooth(cube       = sinop_probs,
-                           type       = "gaussian",
-                           output_dir = tempdir())
+sinop_gauss <- sits_smooth(
+    cube       = sinop_probs,
+    type       = "gaussian",
+    output_dir = tempdir()
+)
 
 # smooth the result with a bilateral filter
-sinop_bilin <- sits_smooth(cube       = sinop_probs,
-                           type       = "bilateral",
-                           output_dir = tempdir())
+sinop_bilin <- sits_smooth(
+    cube       = sinop_probs,
+    type       = "bilateral",
+    output_dir = tempdir()
+)
 
 sinop_label <- sits_label_classification(
     cube       = sinop_bayes,
