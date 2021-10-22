@@ -40,11 +40,6 @@ test_that("User functions", {
     )
 
     expect_equal(
-        .sources(),
-        c("BDC", "WTSS", "SATVEG", "AWS", "USGS", "DEAFRICA")
-    )
-
-    expect_equal(
         .config_palettes(),
         "default"
     )
