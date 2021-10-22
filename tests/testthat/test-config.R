@@ -337,9 +337,13 @@ test_that("Configs", {
         c("AWS_ACCESS_KEY_ID","AWS_SECRET_ACCESS_KEY")
     )
 
+    expect_true(
+        Sys.setenv("BDC_ACCESS_KEY" = "ZZZ")
+    )
+
     expect_equal(
         .source_collection_token_check(source = "BDC",
-                                     collection = "CB4_64-1"),
+                                       collection = "CB4_64-1"),
         "BDC_ACCESS_KEY"
     )
 
