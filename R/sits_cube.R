@@ -275,6 +275,7 @@ sits_cube.stac_cube <- function(source,
 
     # collection is upper case
     collection <- toupper(collection)
+
     # pre-condition - check if source and collection exist
     .source_collection_check(source = source,
                              collection = collection)
@@ -334,12 +335,12 @@ sits_cube.local_cube <- function(source,
     # compatibility with earlier versions
     if (source == "LOCAL") {
         if (purrr::is_null(origin))
-            stop(paste0("LOCAL value is deprecated", "\n","Please see the documentation
-                        on sits_cube()"))
+            stop(paste0("LOCAL value is deprecated", "\n",
+                        "Please see the documentation on ?sits_cube"))
         else {
             message(paste0("LOCAL value is deprecated", "\n",
                            "Using origin as the source","\n",
-                           "Please see the documentation on sits_cube()")
+                           "Please see the documentation on ?sits_cube")
             )
             source <- origin
         }
