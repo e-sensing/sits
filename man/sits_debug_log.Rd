@@ -6,7 +6,7 @@
 \alias{.sits_debug}
 \title{sits log functions}
 \usage{
-.sits_debug_log(output_dir = tempdir(), event = "", key = "", value = "")
+.sits_debug_log(output_dir = ".", event = "", key = "", value = "")
 
 .sits_debug(flag = NULL)
 }
