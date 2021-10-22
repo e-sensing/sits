@@ -7,9 +7,8 @@ Cubes
 <img src="inst/extdata/sticker/sits_sticker.png" alt="SITS icon" align="right" height="150" width="150"/>
 
 <!-- badges: start -->
+<!-- [![Build Status](https://drone.dpi.inpe.br/api/badges/e-sensing/sits/status.svg)](https://drone.dpi.inpe.br/e-sensing/sits) -->
 
-[![Build
-Status](https://drone.dpi.inpe.br/api/badges/e-sensing/sits/status.svg)](https://drone.dpi.inpe.br/e-sensing/sits)
 [![codecov](https://codecov.io/gh/e-sensing/sits/branch/master/graph/badge.svg?token=hZxdJgKGcE)](https://codecov.io/gh/e-sensing/sits)
 [![Documentation](https://img.shields.io/badge/docs-online-blueviolet)](https://e-sensing.github.io/sitsbook/)
 [![Software Life
@@ -57,31 +56,6 @@ library(sits)
 library(tibble)
 library(magrittr)
 ```
-
-### AMI Image
-
-For users that have an AWS account, we have prepared a set of AMI
-(Amazon Machine Images that are optimized for running SITS in the Amazon
-Elastic Compute Cloud (or EC2). The AMI has the following settings: SITS
-0.9.6, Ubuntu 18.04, R 4.0.2, and Rstudio Server 1.3.959. All packages
-have been updated as of 21 August 2020. The AMI is available for the
-following regions:
-
--   [South America
-    (sa-east-1)](https://console.aws.amazon.com/ec2/home?region=sa-east-1#launchAmi=ami-0567d9e8bca925a8d)
--   [Frankfurt(eu-central-1)](https://console.aws.amazon.com/ec2/home?region=eu-central-1#launchAmi=ami-088e0eb8b0c3a74e3)
--   [US East
-    (us-east-1)](https://console.aws.amazon.com/ec2/home?region=us-east-1#launchAmi=ami-02aa6bc45d45f75b9)
--   [Asia Pacific
-    Singapore(ap-southeast-1)](https://console.aws.amazon.com/ec2/home?region=ap-southeast-1#launchAmi=ami-025e0b3b65bedb145)
-
-When you create an EC2 instance based on this AMI, ensure that your
-‘security group’ settings allow incoming HTTP (port 80), HTTPS (port
-443) and SSH (port 20) traffic. After the EC2 instance is started, then
-copy-and-paste the ‘IPv4 Public IP’ address for your running instance to
-a web browser address bar. That should bring the RStudio server
-interface in your browser. Use “rstudio” as username and “e-sensing” as
-password.
 
 ### Data Cubes
 
@@ -155,18 +129,12 @@ library(sits)
 data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
 
 raster_cube <- sits_cube(
-    source = "LOCAL",
-    name = "sinop-2014",
-    origin = "BDC",
+    source = "BDC",
     collection = "MOD13Q1-6",
     data_dir = data_dir,
     delim = "_",
     parse_info = c("X1", "X2", "tile", "band", "date")
 )
-#> LOCAL value is deprecated
-#> Using origin as the source
-#> Please see the documentation on sits_cube()
-#> name parameter is no longer required
 
 # obtain a set of locations defined by a CSV file
 csv_raster_file <- system.file("extdata/samples/samples_sinop_crop.csv",
