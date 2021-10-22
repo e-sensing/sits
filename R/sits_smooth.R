@@ -211,7 +211,7 @@ sits_smooth.bayes <- function(cube, type = "bayes", ...,
     }
 
     # process each brick layer (each time step) individually
-    cube_bayes <- slider::slide2_dfr(cube, function(row) {
+    cube_bayes <- slider::slide_dfr(cube, function(row) {
 
         # create metadata for raster cube
         row_bayes <- .cube_probs_label(
@@ -318,7 +318,7 @@ sits_smooth.gaussian <- function(cube, type = "gaussian", ...,
     }
 
     # process each brick layer (each time step) individually
-    cube_gauss <- slider::slide2_dfr(cube, function(row) {
+    cube_gauss <- slider::slide_dfr(cube, function(row) {
 
         # create metadata for Gauss smoothed raster cube
         row_gauss <- .cube_probs_label(
@@ -429,7 +429,7 @@ sits_smooth.bilateral <- function(cube,
     }
 
     # process each brick layer (each time step) individually
-    cube_bilat <- slider::slide2_dfr(cube, function(row) {
+    cube_bilat <- slider::slide_dfr(cube, function(row) {
 
         # create metadata for bilateral smoothed raster cube
         row_bilat <- .cube_probs_label(
