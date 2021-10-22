@@ -9,6 +9,8 @@ Cubes
 <!-- badges: start -->
 <!-- [![Build Status](https://drone.dpi.inpe.br/api/badges/e-sensing/sits/status.svg)](https://drone.dpi.inpe.br/e-sensing/sits) -->
 
+[![Build
+Status](https://cloud.drone.io/api/badges/e-sensing/sits/status.svg)](https://cloud.drone.io/e-sensing/sits)
 [![codecov](https://codecov.io/gh/e-sensing/sits/branch/master/graph/badge.svg?token=hZxdJgKGcE)](https://codecov.io/gh/e-sensing/sits)
 [![Documentation](https://img.shields.io/badge/docs-online-blueviolet)](https://e-sensing.github.io/sitsbook/)
 [![Software Life
@@ -118,11 +120,11 @@ the following example.
 
 ``` r
 library(sits)
-#> Using configuration file: /Library/Frameworks/R.framework/Versions/4.1/Resources/library/sits/extdata/config.yml
+#> Using configuration file: /home/sits/R/x86_64-pc-linux-gnu-library/4.1/sits/extdata/config.yml
 #> To provide additional configurations, create an YAML file and inform its path to environment variable 'SITS_CONFIG_USER_FILE'.
 #> Using raster package: terra
 #> SITS - satellite image time series analysis.
-#> Loaded sits v0.15.0.
+#> Loaded sits v0.15.0.1.
 #>         See ?sits for help, citation("sits") for use in publication.
 #>         See demo(package = "sits") for examples.
 # create a cube from a local file 
@@ -336,7 +338,7 @@ sinop <- sits_cube(
 )
 #> LOCAL value is deprecated
 #> Using origin as the source
-#> Please see the documentation on sits_cube()
+#> Please see the documentation on ?sits_cube
 #> name parameter is no longer required
 
 # Classify the raster cube, generating a probability file
