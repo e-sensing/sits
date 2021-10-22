@@ -18,11 +18,13 @@ test_that("One-year, single core classification", {
         parse_info = c("X1", "X2", "tile", "band", "date")
     )
     sinop_probs <- suppressMessages(
-        sits_classify(sinop,
-                      dl_model,
-                      output_dir = tempdir(),
-                      memsize = 4,
-                      multicores = 1)
+        sits_classify(
+            data = sinop,
+            ml_model = dl_model,
+            output_dir = tempdir(),
+            memsize = 4,
+            multicores = 1
+        )
     )
 
     expect_true(all(file.exists(unlist(sinop_probs$file_info[[1]]$path))))
@@ -57,11 +59,12 @@ test_that("One-year, multicore classification", {
 
     sinop_probs <- tryCatch({
         suppressMessages(
-            sits_classify(sinop,
-                          svm_model,
-                          output_dir = tempdir(),
-                          memsize = 4,
-                          multicores = 2
+            sits_classify(
+                data = sinop,
+                ml_model = svm_model,
+                output_dir = tempdir(),
+                memsize = 4,
+                multicores = 2
             )
         )
     },
@@ -199,8 +202,9 @@ test_that("One-year, multicore classification with post-processing", {
     }
     expect_true(all(file.exists(unlist(sinop_probs$file_info[[1]]$path))))
 
-    sinop_class <- sits::sits_label_classification(sinop_probs,
-                                                   output_dir = tempdir()
+    sinop_class <- sits_label_classification(
+        sinop_probs,
+        output_dir = tempdir()
     )
     expect_true(all(file.exists(unlist(sinop_class$file_info[[1]]$path))))
 
@@ -214,18 +218,10 @@ test_that("One-year, multicore classification with post-processing", {
     expect_true(max_lab <= 9)
     expect_true(min_lab >= 1)
 
-    sinop_majority <- sits_label_majority(sinop_class,
-                                          output_dir = tempdir()
+    sinop_bayes <- sits_smooth(
+        sinop_probs,
+        output_dir = tempdir()
     )
-    expect_true(all(file.exists(unlist(sinop_majority$file_info[[1]]$path))))
-    r_maj <- .raster_open_rast(sinop_majority$file_info[[1]]$path[[1]])
-
-    max_maj <- max(.raster_get_values(r_maj))
-    min_maj <- min(.raster_get_values(r_maj))
-    expect_true(max_maj <= 9)
-    expect_true(min_maj >= 1)
-
-    sinop_bayes <- sits::sits_smooth(sinop_probs, output_dir = tempdir())
     expect_true(all(file.exists(unlist(sinop_bayes$file_info[[1]]$path))))
 
     expect_true(length(sits_timeline(sinop_bayes)) ==
@@ -241,10 +237,12 @@ test_that("One-year, multicore classification with post-processing", {
     max_bay3 <- max(.raster_get_values(r_bay)[, 3])
     expect_true(max_bay3 <= 10000)
 
-    sinop_gauss <- sits::sits_smooth(sinop_probs, type = "gaussian",
-                                     output_dir = tempdir(),
-                                     memsize = 4,
-                                     multicores = 2
+    sinop_gauss <- sits_smooth(
+        cube = sinop_probs,
+        type = "gaussian",
+        output_dir = tempdir(),
+        memsize = 4,
+        multicores = 2
     )
     expect_true(all(file.exists(unlist(sinop_gauss$file_info[[1]]$path))))
 
@@ -257,8 +255,10 @@ test_that("One-year, multicore classification with post-processing", {
     max_gau3 <- max(.raster_get_values(r_gau)[, 3])
     expect_true(max_gau3 <= 10000)
 
-    sinop_bil <- sits::sits_smooth(sinop_probs, type = "bilateral",
-                                     output_dir = tempdir()
+    sinop_bil <- sits_smooth(
+        cube = sinop_probs,
+        type = "bilateral",
+        output_dir = tempdir()
     )
     expect_true(all(file.exists(unlist(sinop_bil$file_info[[1]]$path))))
 
@@ -276,7 +276,6 @@ test_that("One-year, multicore classification with post-processing", {
     expect_true(all(file.remove(unlist(sinop_bayes$file_info[[1]]$path))))
     expect_true(all(file.remove(unlist(sinop_gauss$file_info[[1]]$path))))
     expect_true(all(file.remove(unlist(sinop_bil$file_info[[1]]$path))))
-    expect_true(all(file.remove(unlist(sinop_majority$file_info[[1]]$path))))
 
     expect_true(all(file.remove(unlist(sinop_probs$file_info[[1]]$path))))
 

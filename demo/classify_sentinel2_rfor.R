@@ -58,18 +58,26 @@ mlp_model <- sits_train(samples_s2_3bands,
 )
 
 # classify the cube using an rfor model
-s2_probs <- sits_classify(s2_cube,
-                          mlp_model,
-                          memsize = 24,
-                          multicores = 4,
-                          output_dir = tempdir()
+s2_probs <- sits_classify(
+    data = s2_cube,
+    ml_model = mlp_model,
+    memsize = 24,
+    multicores = 4,
+    output_dir = tempdir()
 )
+
 # plot the probabilities
 plot(s2_probs)
 
-s2_bayes <- sits_smooth(s2_probs, output_dir = tempdir())
+s2_bayes <- sits_smooth(
+    cube = s2_probs,
+    output_dir = tempdir()
+)
 
-s2_label <- sits_label_classification(s2_bayes, output_dir = tempdir())
+s2_label <- sits_label_classification(
+    s2_bayes,
+    output_dir = tempdir()
+)
 
 # plot the labelled images
 plot(s2_label)

@@ -3,7 +3,10 @@ test_that("conf_matrix -2 classes", {
     train_data <- sits_sample(cerrado_2classes, n = 200)
     test_data <- sits_sample(cerrado_2classes, n = 200)
     xgb_model <- sits_train(train_data, sits_xgboost(verbose = FALSE))
-    points_class <- sits_classify(test_data, xgb_model)
+    points_class <- sits_classify(
+        data = test_data,
+        ml_model = xgb_model
+    )
     invisible(capture.output(acc <- sits_accuracy(points_class)))
     expect_true(acc$overall["Accuracy"] > 0.50)
     expect_true(acc$overall["Kappa"] > 0.50)
@@ -15,7 +18,10 @@ test_that("conf_matrix - more than 2 classes", {
     train_data <- sits_sample(samples_modis_4bands, n = 25)
     test_data <- sits_sample(samples_modis_4bands, n = 25)
     xgb_model <- sits_train(train_data, sits_xgboost(verbose = FALSE))
-    points_class <- sits_classify(test_data, xgb_model)
+    points_class <- sits_classify(
+        data = test_data,
+        ml_model = xgb_model
+    )
     invisible(capture.output(acc <- sits_accuracy(points_class)))
     expect_true(acc$overall["Accuracy"] > 0.70)
     expect_true(acc$overall["Kappa"] > 0.70)
@@ -57,11 +63,13 @@ test_that("Accuracy areas", {
         parse_info = c("X1", "X2", "tile", "band", "date")
     )
 
-    probs_cube <- sits_classify(cube,
-                                xgb_model,
-                                output_dir = tempdir(),
-                                memsize = 4,
-                                multicores = 2)
+    probs_cube <- sits_classify(
+        data = cube,
+        ml_model = xgb_model,
+        output_dir = tempdir(),
+        memsize = 4,
+        multicores = 2
+    )
 
 
     expect_true(all(file.exists(unlist(probs_cube$file_info[[1]]$path))))

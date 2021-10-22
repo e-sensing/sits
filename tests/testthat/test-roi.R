@@ -19,11 +19,12 @@ test_that("One-year, multicore classification with ROI", {
 
     sinop_probs <- tryCatch({
         suppressMessages(
-            sits_classify(sinop,
-                          svm_model,
-                          output_dir = tempdir(),
-                          roi = bbox,
-                          memsize = 4, multicores = 2
+            sits_classify(
+                data = sinop,
+                ml_model = svm_model,
+                output_dir = tempdir(),
+                roi = bbox,
+                memsize = 4, multicores = 2
             )
         )
     },

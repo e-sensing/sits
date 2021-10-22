@@ -204,7 +204,7 @@ sits_classify.raster_cube <- function(data, ml_model, ...,
                                       end_date = NULL,
                                       memsize = 8,
                                       multicores = 2,
-                                      output_dir = tempdir(),
+                                      output_dir = ".",
                                       version = "v1",
                                       verbose = FALSE,
                                       progress = FALSE) {

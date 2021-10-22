@@ -37,7 +37,7 @@
 NULL
 
 #' @rdname sits_debug_log
-.sits_debug_log <- function(output_dir = tempdir(), event = "", key = "",
+.sits_debug_log <- function(output_dir = ".", event = "", key = "",
                             value = "") {
 
     # if debug flag is FALSE, then exit

@@ -52,7 +52,7 @@ rfor_model <- sits_train(
 cbers_probs <- sits_classify(
     data       = cbers_cube,
     ml_model   = rfor_model,
-    output_dir = "/Users/gilbertocamara/cbers/",
+    output_dir = tempdir(),
     memsize    = 16,
     multicores = 4,
     verbose = TRUE,
@@ -66,7 +66,7 @@ plot(cbers_probs)
 cbers_bayes <- sits_smooth(
     cube       = cbers_probs,
     type       = "bayes",
-    output_dir = "/Users/gilbertocamara/cbers/",
+    output_dir = tempdir(),
     memsize    = 16,
     multicores = 4,
     verbose = TRUE,
@@ -78,7 +78,7 @@ plot(cbers_bayes)
 # label the smoothed image
 cbers_lbayes <- sits_label_classification(
     cube       = cbers_bayes,
-    output_dir = "/Users/gilbertocamara/cbers/",
+    output_dir = tempdir(),
     memsize    = 16,
     multicores = 4
 )
