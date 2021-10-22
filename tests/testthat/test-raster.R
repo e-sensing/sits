@@ -218,17 +218,6 @@ test_that("One-year, multicore classification with post-processing", {
     expect_true(max_lab <= 9)
     expect_true(min_lab >= 1)
 
-    sinop_majority <- sits_label_majority(sinop_class,
-                                          output_dir = tempdir()
-    )
-    expect_true(all(file.exists(unlist(sinop_majority$file_info[[1]]$path))))
-    r_maj <- .raster_open_rast(sinop_majority$file_info[[1]]$path[[1]])
-
-    max_maj <- max(.raster_get_values(r_maj))
-    min_maj <- min(.raster_get_values(r_maj))
-    expect_true(max_maj <= 9)
-    expect_true(min_maj >= 1)
-
     sinop_bayes <- sits_smooth(
         sinop_probs,
         output_dir = tempdir()
@@ -287,7 +276,6 @@ test_that("One-year, multicore classification with post-processing", {
     expect_true(all(file.remove(unlist(sinop_bayes$file_info[[1]]$path))))
     expect_true(all(file.remove(unlist(sinop_gauss$file_info[[1]]$path))))
     expect_true(all(file.remove(unlist(sinop_bil$file_info[[1]]$path))))
-    expect_true(all(file.remove(unlist(sinop_majority$file_info[[1]]$path))))
 
     expect_true(all(file.remove(unlist(sinop_probs$file_info[[1]]$path))))
 
