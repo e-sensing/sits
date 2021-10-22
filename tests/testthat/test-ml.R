@@ -10,7 +10,10 @@ test_that("SVM  - Formula logref", {
         )
     )
     point_ndvi <- sits_select(point_mt_6bands, bands = "NDVI")
-    point_class <- sits_classify(point_ndvi, svm_model)
+    point_class <- sits_classify(
+        data = point_ndvi,
+        ml_model = svm_model
+    )
 
     expect_true(sits_labels(point_class) == "NoClass")
 
@@ -25,16 +28,17 @@ test_that("SVM  - Formula logref - difference", {
                                      bands = c("NDVI", "EVI")
     )
     svm_model <- sits_train(
-        samples_mt_2bands,
-        sits_svm(
+        data = samples_mt_2bands,
+        ml_method = sits_svm(
             formula = sits_formula_logref(),
             kernel = "radial",
             cost = 10
         )
     )
-    point_class <- sits_classify(cerrado_2classes[1:100, ],
-                                 svm_model,
-                                 multicores = 2
+    point_class <- sits_classify(
+        data = cerrado_2classes[1:100, ],
+        ml_model = svm_model,
+        multicores = 2
     )
 
     expect_true(all(point_class$predicted[[1]]$class %in%
@@ -54,7 +58,10 @@ test_that("SVM - Formula linear", {
         )
     )
     point_ndvi <- sits_select(point_mt_6bands, bands = "NDVI")
-    point_class <- sits_classify(point_ndvi, svm_model)
+    point_class <- sits_classify(
+        data = point_ndvi,
+        ml_model = svm_model
+    )
 
     expect_true(all(point_class$predicted[[1]]$class %in%
         sits_labels(samples_mt_ndvi)))
@@ -66,7 +73,10 @@ test_that("Random Forest", {
     samples_mt_ndvi <- sits_select(samples_modis_4bands, bands = "NDVI")
     rfor_model <- sits_train(samples_mt_ndvi, sits_rfor(num_trees = 200))
     point_ndvi <- sits_select(point_mt_6bands, bands = "NDVI")
-    point_class <- sits_classify(point_ndvi, rfor_model)
+    point_class <- sits_classify(
+        data = point_ndvi,
+        ml_model = rfor_model
+    )
 
     expect_true(all(point_class$predicted[[1]]$class %in%
         sits_labels(samples_mt_ndvi)))
@@ -77,7 +87,10 @@ test_that("MLR", {
     samples_mt_ndvi <- sits_select(samples_modis_4bands, bands = "NDVI")
     model <- sits_train(samples_mt_ndvi, sits_mlr())
     point_ndvi <- sits_select(point_mt_6bands, bands = "NDVI")
-    point_class <- sits_classify(point_ndvi, model)
+    point_class <- sits_classify(
+        data = point_ndvi,
+        ml_model = model
+    )
 
     expect_true(all(point_class$predicted[[1]]$class %in%
         sits_labels(samples_mt_ndvi)))
@@ -92,7 +105,10 @@ test_that("XGBoost", {
                                      verbose = FALSE)
     )
     point_ndvi <- sits_select(point_mt_6bands, bands = "NDVI")
-    point_class <- sits_classify(point_ndvi, model)
+    point_class <- sits_classify(
+        data = point_ndvi,
+        ml_model = model
+    )
 
     expect_true(all(point_class$predicted[[1]]$class %in%
         sits_labels(samples_mt_ndvi)))
@@ -118,7 +134,10 @@ test_that("DL-MLP", {
 
     point_2bands <- sits_select(point_mt_6bands, bands = c("NDVI", "EVI"))
 
-    point_class <- sits_classify(point_2bands, model)
+    point_class <- sits_classify(
+        data = point_2bands,
+        ml_model = model
+    )
 
     expect_true(all(point_class$predicted[[1]]$class %in%
         sits_labels(samples_mt_2bands)))
@@ -144,7 +163,10 @@ test_that("DL-MLP-2classes", {
     test_eval <- suppressMessages(sits_keras_diagnostics(model))
     expect_true(test_eval["accuracy"] > 0.7)
 
-    point_class <- sits_classify(cerrado_2classes[1:60, ], model)
+    point_class <- sits_classify(
+        data = cerrado_2classes[1:60, ],
+        ml_model = model
+    )
 
     expect_true(all(point_class$predicted[[1]]$class %in%
         sits_labels(samples_mt_2bands)))
@@ -156,7 +178,10 @@ test_that("ResNet", {
     samples_ndvi <- sits_select(samples_modis_4bands, bands = "NDVI")
     model <- sits_train(samples_ndvi, sits_ResNet(epochs = 50, verbose = 0))
     point_ndvi <- sits_select(point_mt_6bands, bands = "NDVI")
-    point_class <- sits_classify(point_ndvi, model)
+    point_class <- sits_classify(
+        data = point_ndvi,
+        ml_model = model
+    )
 
     expect_true(all(point_class$predicted[[1]]$class %in%
                         sits_labels(samples_ndvi)))
@@ -178,7 +203,10 @@ test_that("tempCNN model", {
     test_eval <- suppressMessages(sits_keras_diagnostics(model))
     expect_true(test_eval["accuracy"] > 0.7)
     point_ndvi <- sits_select(point_mt_6bands, bands = "NDVI")
-    point_class <- sits_classify(point_ndvi, model)
+    point_class <- sits_classify(
+        data = point_ndvi,
+        ml_model = model
+    )
 
     expect_true(all(point_class$predicted[[1]]$class %in%
         sits_labels(samples_mt_ndvi)))

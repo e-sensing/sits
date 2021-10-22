@@ -308,7 +308,7 @@ test_that("Creating cubes from AWS Open Data and regularizing them", {
 
     gc_cube <- sits_regularize(
         cube        = s2_cube_open,
-        output_dir  =  dir_images,
+        output_dir  = dir_images,
         res         = 250,
         roi = c("xmin" = 234872.7,
                 "ymin" = 8847983.0,
