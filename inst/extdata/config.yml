@@ -881,7 +881,6 @@ sources:
                 satellite   : "LANDSAT-8"
                 sensor      : "OLI"
                 collection_name: "ls8_sr"
->>>>>>> 519c7ba400f7c60dd5d31e0883e8a96d84a82dc5
                 access_vars :
                     AWS_DEFAULT_REGION: "af-south-1"
                     AWS_S3_ENDPOINT   : "s3.af-south-1.amazonaws.com"
