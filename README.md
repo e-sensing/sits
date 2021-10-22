@@ -106,11 +106,10 @@ provide AWS credentials using environment variables.
 ``` r
 s2_cube <- sits_cube(source = "AWS",
                      name = "T20LKP_2018_2019",
-                     collection = "sentinel-s2-l2a",
+                     collection = "sentinel-s2-l2a-cogs",
                      tiles = c("20LKP"),
                      start_date = as.Date("2018-07-18"),
-                     end_date = as.Date("2018-07-23"),
-                     s2_resolution = 20
+                     end_date = as.Date("2018-07-23")
 )
 ```
 
@@ -145,11 +144,11 @@ the following example.
 
 ``` r
 library(sits)
-#> Using configuration file: /home/sits/R/x86_64-pc-linux-gnu-library/4.1/sits/extdata/config.yml
+#> Using configuration file: /Library/Frameworks/R.framework/Versions/4.1/Resources/library/sits/extdata/config.yml
 #> To provide additional configurations, create an YAML file and inform its path to environment variable 'SITS_CONFIG_USER_FILE'.
 #> Using raster package: terra
 #> SITS - satellite image time series analysis.
-#> Loaded sits v0.14.0-2.
+#> Loaded sits v0.15.0.
 #>         See ?sits for help, citation("sits") for use in publication.
 #>         See demo(package = "sits") for examples.
 # create a cube from a local file 
@@ -164,6 +163,10 @@ raster_cube <- sits_cube(
     delim = "_",
     parse_info = c("X1", "X2", "tile", "band", "date")
 )
+#> LOCAL value is deprecated
+#> Using origin as the source
+#> Please see the documentation on sits_cube()
+#> name parameter is no longer required
 
 # obtain a set of locations defined by a CSV file
 csv_raster_file <- system.file("extdata/samples/samples_sinop_crop.csv",
@@ -176,11 +179,11 @@ points <- sits_get_data(raster_cube, file = csv_raster_file)
 # show the points
 points[1:3,]
 #> # A tibble: 3 × 7
-#>   longitude latitude start_date end_date   label   cube       time_series      
-#>       <dbl>    <dbl> <date>     <date>     <chr>   <chr>      <list>           
-#> 1     -55.7    -11.8 2013-09-14 2014-08-29 Pasture sinop-2014 <tibble [23 × 3]>
-#> 2     -55.6    -11.8 2013-09-14 2014-08-29 Pasture sinop-2014 <tibble [23 × 3]>
-#> 3     -55.7    -11.8 2013-09-14 2014-08-29 Forest  sinop-2014 <tibble [23 × 3]>
+#>   longitude latitude start_date end_date   label   cube      time_series      
+#>       <dbl>    <dbl> <date>     <date>     <chr>   <chr>     <list>           
+#> 1     -55.7    -11.8 2013-09-14 2014-08-29 Pasture MOD13Q1-6 <tibble [23 × 3]>
+#> 2     -55.6    -11.8 2013-09-14 2014-08-29 Pasture MOD13Q1-6 <tibble [23 × 3]>
+#> 3     -55.7    -11.8 2013-09-14 2014-08-29 Forest  MOD13Q1-6 <tibble [23 × 3]>
 ```
 
 After a time series is imported, it is loaded in a tibble. The first six
@@ -363,6 +366,10 @@ sinop <- sits_cube(
     delim = "_",
     parse_info = c("X1", "X2", "tile", "band", "date")
 )
+#> LOCAL value is deprecated
+#> Using origin as the source
+#> Please see the documentation on sits_cube()
+#> name parameter is no longer required
 
 # Classify the raster cube, generating a probability file
 # Filter the pixels in the cube to remove noise

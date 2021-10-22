@@ -11,9 +11,20 @@ sits_view(x, ...)
 
 \method{sits_view}{sits}(x, ..., legend = NULL, palette = "default")
 
-\method{sits_view}{raster_cube}(x, ..., map = NULL, red, green, blue, times = c(1), roi = NULL)
+\method{sits_view}{raster_cube}(
+  x,
+  ...,
+  red,
+  green,
+  blue,
+  tile = 1,
+  times = c(1),
+  class_cube = NULL,
+  legend = NULL,
+  palette = "default"
+)
 
-\method{sits_view}{classified_image}(x, ..., map = NULL, legend = NULL)
+\method{sits_view}{classified_image}(x, ..., tile, legend = NULL, palette = "default")
 }
 \arguments{
 \item{x}{object of class "sits", "raster_cube" or "classified image"}
@@ -24,17 +35,17 @@ sits_view(x, ...)
 
 \item{palette}{palette provided in the configuration file}
 
-\item{map}{map to overlay (mapview object)}
-
 \item{red}{band for red color.}
 
 \item{green}{band for green color.}
 
 \item{blue}{band for blue color.}
 
+\item{tile}{tile to be plotted (in case of a multi-tile cube).}
+
 \item{times}{temporal instances to be plotted.}
 
-\item{roi}{sf object giving a region of interest.}
+\item{class_cube}{classified cube to be overlayed on top on image}
 }
 \value{
 leaflet object
@@ -55,7 +66,7 @@ modis_cube <- sits_cube(
 )
 
 # plot the data cube
-sits_view(modis_cube, red = "EVI", green = "NDVI", blue = "EVI", times = 1)
+sits_view(modis_cube, red = "EVI", green = "NDVI", blue = "EVI", time = 1)
 }
 
 }

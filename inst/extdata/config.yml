@@ -809,7 +809,7 @@ sources:
         service             : "STAC"
         url                 : "https://explorer.digitalearth.africa/stac/"
         collections         :
-            GA_S2_GM        : &deafrica_s2
+            S2_L2A          :
                 bands       :
                     B01     : &deafrica_msi_60m
                         missing_value : -9999
@@ -880,17 +880,6 @@ sources:
                             11        : "snow or ice"
                         interp_values : [0, 1, 2, 3, 8, 9, 10, 11]
                         resolution   :  20
-                satellite   : "SENTINEL-2"
-                sensor      : "MSI"
-                collection_name: "ga_s2_gm"
-                access_vars :
-                    AWS_DEFAULT_REGION: "af-south-1"
-                    AWS_S3_ENDPOINT   : "s3.af-south-1.amazonaws.com"
-                    AWS_NO_SIGN_REQUEST: true
-                open_data: true
-                open_data_token: false
-            S2_L2A          :
-                <<: *deafrica_s2
                 satellite   : "SENTINEL-2"
                 sensor      : "MSI"
                 collection_name: "s2_l2a"

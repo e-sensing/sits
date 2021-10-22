@@ -105,11 +105,10 @@ a space-time extent. For example, the following code will define a data cube of 
 ```{r, eval = FALSE, echo = TRUE}
 s2_cube <- sits_cube(source = "AWS",
                      name = "T20LKP_2018_2019",
-                     collection = "sentinel-s2-l2a",
+                     collection = "sentinel-s2-l2a-cogs",
                      tiles = c("20LKP"),
                      start_date = as.Date("2018-07-18"),
-                     end_date = as.Date("2018-07-23"),
-                     s2_resolution = 20
+                     end_date = as.Date("2018-07-23")
 )
 ```
 In the above example, the user has selected the "Sentinel-2 Level 2" collection in 

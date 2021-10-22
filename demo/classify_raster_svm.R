@@ -2,11 +2,11 @@
 # The raster image is a MODIS data set covering the municipality of Sinop
 # with two bands (NDVI and EVI) using MODIS collection 5 data
 
+# load the sitsdata library
 if (!requireNamespace("sitsdata", quietly = TRUE)) {
-    if (!requireNamespace("devtools", quietly = TRUE)) {
-        install.packages("devtools")
-    }
-    devtools::install_github("e-sensing/sitsdata")
+    stop(paste0("Please install package sitsdata\n",
+                "Please call devtools::install_github('e-sensing/sitsdata')"),
+         call. = FALSE)
 }
 
 # load the sitsdata library

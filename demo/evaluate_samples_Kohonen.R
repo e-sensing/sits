@@ -4,10 +4,9 @@ library(sits)
 
 # load the sitsdata library
 if (!requireNamespace("sitsdata", quietly = TRUE)) {
-    if (!requireNamespace("devtools", quietly = TRUE)) {
-        install.packages("devtools")
-    }
-    devtools::install_github("e-sensing/sitsdata")
+    stop(paste0("Please install package sitsdata\n",
+    "Please call devtools::install_github('e-sensing/sitsdata')"),
+    call. = FALSE)
 }
 library(sitsdata)
 data("samples_cerrado_mod13q1")

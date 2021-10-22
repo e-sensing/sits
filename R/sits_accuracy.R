@@ -602,29 +602,33 @@ print.sits_assessment <- function(x, ...,
 #'
 #' @keywords internal
 #' @export
-print.sits_area_assessment <- function(x, ..., digits = 3){
+print.sits_area_assessment <- function(x, ..., digits = 2){
 
     # round the data to the significant digits
     overall <- round(x$accuracy$overall, digits = digits)
 
     cat("Area Weigthed Statistics\n")
-    cat(paste0("Overall Accuracy = ", overall))
+    cat(paste0("Overall Accuracy = ", overall,"\n"))
+
+    acc_user <- round(x$accuracy$user, digits = digits)
+    acc_prod <- round(x$accuracy$producer, digits = digits)
 
     # Print assessment values
-    tb <- t(dplyr::bind_rows(x$accuracy$user, x$accuracy$producer))
+    tb <- t(dplyr::bind_rows(acc_user, acc_prod))
     colnames(tb) <- c("User", "Producer")
 
-    print(knitr::kable(tb,
-                       digits = 2,
-                       caption = "Area-Weighted Users and Producers Accuracy"
-    ))
+    cat("\nArea-Weighted Users and Producers Accuracy\n")
 
-    tb1 <- t(dplyr::bind_rows(x$area_pixels, x$error_ajusted_area, x$conf_interval))
+    print(tb)
+
+    area_pix <- round(x$area_pixels, digits = digits)
+    area_adj <- round(x$error_ajusted_area, digits = digits)
+    conf_int <- round(x$conf_interval, digits = digits)
+
+    tb1 <- t(dplyr::bind_rows(area_pix, area_adj, conf_int))
     colnames(tb1) <- c("Mapped Area (ha)", "Error-Adjusted Area (ha)", "Conf Interval (ha)")
 
-    print(knitr::kable(tb1,
-                       digits = 1,
-                       caption = "Mapped Area x Estimated Area (ha)"
-    ))
+    cat("\nMapped Area x Estimated Area (ha)\n")
+    print(tb1)
 
 }
