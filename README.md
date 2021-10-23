@@ -115,7 +115,7 @@ gc_cube <- sits_regularize(cube          = s2_cube,
 
 SITS has been designed to use satellite image time series to derive
 machine learning models. After the data cube has been created, time
-series can be retreived individually or by using CSV or SHP files, as in
+series can be retrieved individually or by using CSV or SHP files, as in
 the following example.
 
 ``` r
@@ -124,7 +124,7 @@ library(sits)
 #> To provide additional configurations, create an YAML file and inform its path to environment variable 'SITS_CONFIG_USER_FILE'.
 #> Using raster package: terra
 #> SITS - satellite image time series analysis.
-#> Loaded sits v0.15.0.1.
+#> Loaded sits v0.15.0.
 #>         See ?sits for help, citation("sits") for use in publication.
 #>         See demo(package = "sits") for examples.
 # create a cube from a local file 

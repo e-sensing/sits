@@ -109,7 +109,7 @@ gc_cube <- sits_regularize(cube          = s2_cube,
 ### Accessing time series in data cubes
 
 SITS has been designed to use satellite image time series to derive machine 
-learning models. After the data cube has been created, time series can be retreived
+learning models. After the data cube has been created, time series can be retrieved
 individually or by using CSV or SHP files, as in the following example.
 
 ```{r, eval = TRUE, echo = TRUE} 
