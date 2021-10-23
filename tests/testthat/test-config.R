@@ -421,11 +421,7 @@ test_that("Configs WTSS", {
                                 bands = c("BLUE", "RED")),
         c("blue_reflectance", "red_reflectance")
     )
-
-
 })
-
-
 
 # restore variable value
 Sys.setenv("SITS_CONFIG_USER_FILE" = user_file)
