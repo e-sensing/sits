@@ -804,8 +804,11 @@ sits_get_data.shp_raster_cube <- function(cube, file, ...,
                                  token = bdc_access_key
         )
     },
-    warning = function(e){
+    warning = function(e) {
         paste(e)
+    },
+    error = function(e) {
+        message(e)
     })
 
     # interpolate clouds

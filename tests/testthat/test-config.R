@@ -287,7 +287,7 @@ test_that("User functions", {
 
 })
 
-test_that("Configs", {
+test_that("Configs AWS", {
 
     expect_error(
         .config_get(key = c("zzz")),
@@ -317,12 +317,6 @@ test_that("Configs", {
              AWS_REQUEST_PAYER  = "requester")
     )
 
-    expect_equal(
-        .source_collection_access_vars_set(source = "BDC",
-                                       collection = "CB4_64-1"),
-        list()
-    )
-
     expect_true(
         Sys.setenv("AWS_ACCESS_KEY_ID" = "ZZZ")
     )
@@ -335,16 +329,6 @@ test_that("Configs", {
         .source_collection_token_check(source = "AWS",
                                        collection = "SENTINEL-S2-L2A"),
         c("AWS_ACCESS_KEY_ID","AWS_SECRET_ACCESS_KEY")
-    )
-
-    expect_true(
-        Sys.setenv("BDC_ACCESS_KEY" = "ZZZ")
-    )
-
-    expect_equal(
-        .source_collection_token_check(source = "BDC",
-                                       collection = "CB4_64-1"),
-        "BDC_ACCESS_KEY"
     )
 
     expect_equal(
@@ -370,21 +354,6 @@ test_that("Configs", {
         c("B02", "B03", "B04", "B08")
     )
 
-    expect_error(
-        .source_bands_reap(source = "BDC",
-                           collection = "CB4_64-1",
-                           key = "zzz"),
-        paste0("key 'sources\\$BDC\\$collections\\$CB4_64-1\\$bands",
-               "\\$NDVI\\$zzz' not found")
-    )
-
-    expect_equal(
-        .source_bands_band_name(source = "BDC",
-                                collection = "MOD13Q1-6",
-                                bands = c("BLUE", "RED")),
-        c("blue_reflectance", "red_reflectance")
-    )
-
     expect_equal(
         .source_bands_resolution(source = "AWS",
                                   collection = "SENTINEL-S2-L2A",
@@ -397,10 +366,9 @@ test_that("Configs", {
         "CLOUD"
     )
 
-    expect_false(
-        .source_cloud_bit_mask(source = "BDC",
-                               collection = "CB4_64_16D_STK-1")
-    )
+})
+
+test_that("Configs WTSS", {
 
     expect_equal(
         names(.source_cloud_values(source = "WTSS",
@@ -414,6 +382,50 @@ test_that("Configs", {
         c(2, 3, 4, 255)
     )
 })
+
+test_that("Configs WTSS", {
+
+    bdc_access_key <- Sys.getenv("BDC_ACCESS_KEY")
+
+    testthat::skip_if(nchar(bdc_access_key) == 0,
+                      message = "No BDC_ACCESS_KEY defined in environment.")
+
+    expect_equal(
+        .source_collection_token_check(source = "BDC",
+                                       collection = "CB4_64-1"),
+        "BDC_ACCESS_KEY"
+    )
+
+    expect_equal(
+        .source_collection_access_vars_set(source = "BDC",
+                                           collection = "CB4_64-1"),
+        list()
+    )
+
+    expect_error(
+        .source_bands_reap(source = "BDC",
+                           collection = "CB4_64-1",
+                           key = "zzz"),
+        paste0("key 'sources\\$BDC\\$collections\\$CB4_64-1\\$bands",
+               "\\$NDVI\\$zzz' not found")
+    )
+
+    expect_false(
+        .source_cloud_bit_mask(source = "BDC",
+                               collection = "CB4_64_16D_STK-1")
+    )
+
+    expect_equal(
+        .source_bands_band_name(source = "BDC",
+                                collection = "MOD13Q1-6",
+                                bands = c("BLUE", "RED")),
+        c("blue_reflectance", "red_reflectance")
+    )
+
+
+})
+
+
 
 # restore variable value
 Sys.setenv("SITS_CONFIG_USER_FILE" = user_file)
