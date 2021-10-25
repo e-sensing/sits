@@ -71,13 +71,12 @@ following cloud services:
     Cube (BDC).
 3.  Sentinel-2/2A collections available in Digital Earth Africa.
 4.  Data cubes produced by the “gdalcubes” package.
-5.  Local image collections organized as raster stacks.
+5.  Local image collections.
 
 SITS relies on STAC services provided by these cloud services. The user
 can define a data cube by selecting a collection in a cloud service and
-then defining a space-time extent. For example, the following code will
-define a data cube of Sentinel-2/2A images using AWS. Users need to
-provide AWS credentials using environment variables.
+then specifying a space-time extent. For example, the following code
+will define a data cube of Sentinel-2/2A images using AWS.
 
 ``` r
 s2_cube <- sits_cube(source = "AWS",
@@ -97,7 +96,7 @@ and end date. Access to other cloud services works in similar ways.
 Users can derive data cubes from ARD data which have pre-defined
 temporal resolutions. For example, a user may want to define the best
 Sentinel-2 pixel in a one month period, as shown below. This can be done
-in SITS by the `sits_regularize` which use the
+in SITS by `sits_regularize()` which use the
 [https://github.com/appelmar/gdalcubes](gdalcubes) package. For details
 in gdalcubes, please see Reference \[4\].
 
@@ -120,7 +119,7 @@ the following example.
 
 ``` r
 library(sits)
-#> Using configuration file: /home/sits/R/x86_64-pc-linux-gnu-library/4.1/sits/extdata/config.yml
+#> Using configuration file: /Library/Frameworks/R.framework/Versions/4.1-arm64/Resources/library/sits/extdata/config.yml
 #> To provide additional configurations, create an YAML file and inform its path to environment variable 'SITS_CONFIG_USER_FILE'.
 #> Using raster package: terra
 #> SITS - satellite image time series analysis.
@@ -328,18 +327,12 @@ xgb_model <- samples_modis_4bands %>%
 # Cube is composed of MOD13Q1 images from the Sinop region in Mato Grosso (Brazil)
 data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
 sinop <- sits_cube(
-    source = "LOCAL",
-    name = "sinop-2014",
-    origin = "BDC",
+    source = "BDC",
     collection = "MOD13Q1-6",
     data_dir = data_dir,
     delim = "_",
     parse_info = c("X1", "X2", "tile", "band", "date")
 )
-#> LOCAL value is deprecated
-#> Using origin as the source
-#> Please see the documentation on ?sits_cube
-#> name parameter is no longer required
 
 # Classify the raster cube, generating a probability file
 # Filter the pixels in the cube to remove noise

@@ -28,6 +28,9 @@ We are preparing to release the package on CRAN and are making relevant changes 
 * Add support to open data collections on 'AWS' source
 * Remove `OPENDATA` source
 * Update documentation
+* Resolve ambiguity in "bands" parameter for data cubes
+* Remove "sits_bands" assignment function
+* Include "labels" information only on probs and labelled data cubes
 * Other bug fixes
 
 # What's new in SITS version 0.14.1

@@ -74,10 +74,9 @@ SITS has been designed to work with big satellite image data sets organised as d
 2. Collections of Sentinel, Landsat and CBERS images in the Brazil Data Cube (BDC).
 3. Sentinel-2/2A collections available in Digital Earth Africa.
 4. Data cubes produced by the "gdalcubes" package.
-5. Local image collections organized as raster stacks.
+5. Local image collections.
 
-SITS relies on STAC services provided by these cloud services. The user can define a data cube by selecting a collection in a cloud service and then defining
-a space-time extent. For example, the following code will define a data cube of Sentinel-2/2A images using AWS. Users need to provide AWS credentials using environment variables.
+SITS relies on STAC services provided by these cloud services. The user can define a data cube by selecting a collection in a cloud service and then specifying a space-time extent. For example, the following code will define a data cube of Sentinel-2/2A images using AWS. 
 
 ```{r, eval = FALSE, echo = TRUE}
 s2_cube <- sits_cube(source = "AWS",
@@ -88,13 +87,10 @@ s2_cube <- sits_cube(source = "AWS",
                      end_date = as.Date("2018-07-23")
 )
 ```
-In the above example, the user has selected the "Sentinel-2 Level 2" collection in 
-the AWS cloud services. The geographical area of the data cube is defined by the tile "20LKP", and the temporal extent by a start and end date. Access to other cloud services works in similar ways. 
+In the above example, the user has selected the "Sentinel-2 Level 2" collection in  the AWS cloud services. The geographical area of the data cube is defined by the tile "20LKP", and the temporal extent by a start and end date. Access to other cloud services works in similar ways. 
 
 Users can derive data cubes from ARD data which have pre-defined temporal 
-resolutions. For example, a user may want to define the best Sentinel-2 pixel in a
-one month period, as shown below. This can be done in SITS by the
-`sits_regularize` which use the [https://github.com/appelmar/gdalcubes](gdalcubes) package. For details in gdalcubes, please see Reference [4]. 
+resolutions. For example, a user may want to define the best Sentinel-2 pixel in a one month period, as shown below. This can be done in SITS by `sits_regularize()` which use the [https://github.com/appelmar/gdalcubes](gdalcubes) package. For details in gdalcubes, please see Reference [4]. 
 
 ```{r, eval = FALSE, echo = TRUE}
 gc_cube <- sits_regularize(cube          = s2_cube,
@@ -109,8 +105,7 @@ gc_cube <- sits_regularize(cube          = s2_cube,
 ### Accessing time series in data cubes
 
 SITS has been designed to use satellite image time series to derive machine 
-learning models. After the data cube has been created, time series can be retrieved
-individually or by using CSV or SHP files, as in the following example.
+learning models. After the data cube has been created, time series can be retrieved individually or by using CSV or SHP files, as in the following example.
 
 ```{r, eval = TRUE, echo = TRUE} 
 library(sits)
@@ -260,9 +255,7 @@ xgb_model <- samples_modis_4bands %>%
 # Cube is composed of MOD13Q1 images from the Sinop region in Mato Grosso (Brazil)
 data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
 sinop <- sits_cube(
-    source = "LOCAL",
-    name = "sinop-2014",
-    origin = "BDC",
+    source = "BDC",
     collection = "MOD13Q1-6",
     data_dir = data_dir,
     delim = "_",
