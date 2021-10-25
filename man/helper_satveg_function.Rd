@@ -4,16 +4,27 @@
 \alias{helper_satveg_function}
 \alias{.satveg_get_bbox}
 \alias{.satveg_get_crs}
+\alias{.satveg_get_resolution}
+\alias{.satveg_get_url}
+\alias{.satveg_get_date}
 \title{Helper satveg functions}
 \usage{
 .satveg_get_bbox(source, collection)
 
 .satveg_get_crs(source, collection)
+
+.satveg_get_resolution(source, collection, band)
+
+.satveg_get_url(source)
+
+.satveg_get_date(source)
 }
 \arguments{
 \item{source}{...}
 
 \item{collection}{...}
+
+\item{band}{...}
 }
 \value{
 functions that return values from config file

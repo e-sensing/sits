@@ -42,7 +42,7 @@ sits_bands.sits <- function(x) {
 #'
 sits_bands.sits_cube <- function(x) {
 
-    return(x$bands[[1]])
+    return(unique(unlist(x$file_info[[1]]$band)))
 }
 
 #' @export

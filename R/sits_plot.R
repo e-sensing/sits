@@ -780,10 +780,8 @@ plot.keras_model <- function(x, y, ...) {
         stop("Please install package scales.", call. = FALSE)
     }
     if (purrr::is_null(bands)) {
-        bands <- sits_bands(data)[1]
+        bands <- sits_bands(data)
     }
-    # bands in SITS are in uppercase
-    bands <- toupper(bands)
 
     # put the time series in the data frame
     g_lst <- purrr::pmap(

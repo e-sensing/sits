@@ -230,7 +230,6 @@
         satellite  = .source_collection_satellite(source, collection),
         sensor     = .source_collection_sensor(source, collection),
         tile       = t_name[[1]],
-        bands      = unique(file_info[["band"]]),
         xmin       = t_bbox[["xmin"]],
         xmax       = t_bbox[["xmax"]],
         ymin       = t_bbox[["ymin"]],

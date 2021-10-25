@@ -31,8 +31,7 @@ snow subprocess.}
 \item{memsize}{Maximum overall memory (in GB) to run the Bayesian
 smoothing.}
 
-\item{...}{optional arguments to merge final raster
-(see \link[raster]{writeRaster} function)}
+\item{...}{optional arguments to merge final raster}
 
 \item{overlapping_rows}{number of overlapping rows of each chunk.}
 

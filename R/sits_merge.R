@@ -135,7 +135,6 @@ sits_merge.sits_cube <- function(data1, data2) {
 
     # merge the file info and the bands
     data1$file_info[[1]] <- file_info_1
-    data1$bands[[1]] <- c(sits_bands(data1), sits_bands(data2))
 
     return(data1)
 }

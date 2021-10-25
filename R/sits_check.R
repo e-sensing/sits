@@ -500,7 +500,7 @@ NULL
         stop(".check_num: max parameter should be numeric.")
 
     # remove NAs before check
-    res <- x
+    result <- x
     x <- x[!is.na(x)]
     .check_that(
         all(min <= x) && all(x <= max),
@@ -516,7 +516,7 @@ NULL
             msg = msg
         )
 
-    return(invisible(res))
+    return(invisible(result))
 }
 
 #' @rdname check_functions
@@ -677,7 +677,7 @@ NULL
             msg = msg
         )
 
-    res <- x
+    result <- x
 
     # simplify
     x <- unique(x)
@@ -728,7 +728,7 @@ NULL
             msg = msg
         )
 
-    return(invisible(res))
+    return(invisible(result))
 }
 
 #' @rdname check_functions
@@ -767,7 +767,7 @@ NULL
             msg = msg
         )
 
-    res <- x
+    result <- x
 
     # simplify
     x <- unique(x)
@@ -817,7 +817,7 @@ NULL
             msg = msg
         )
 
-    return(invisible(res))
+    return(invisible(result))
 }
 
 #' @rdname check_functions
@@ -912,24 +912,24 @@ NULL
 #' }
 .check_warn <- function(expr) {
 
-    res <- tryCatch({
+    result <- tryCatch({
         expr
     }, error = function(e) {
         warning(e$message, call. = FALSE)
     })
 
-    return(invisible(res))
+    return(invisible(result))
 }
 
 #' @rdname check_functions
 .check_error <- function(expr, ...,
                          msg = NULL) {
 
-    res <- tryCatch({
+    result <- tryCatch({
         expr
     }, error = function(e) {
         .check_that(FALSE, local_msg = e$message, msg = msg)
     })
 
-    return(invisible(res))
+    return(invisible(result))
 }

@@ -71,8 +71,11 @@
                                              collection,
                                              wtss_cov) {
 
+    bands <- .source_bands(source = source, collection = collection)
+
     url <- .source_url(source = source)
-    file_info <- tibble::tibble(date = wtss_cov$timeline, path = url)
+    file_info <- tibble::tibble(
+        date = wtss_cov$timeline, path = url, band = bands, res = wtss_cov$xres)
 
     return(file_info)
 }
@@ -85,15 +88,12 @@
                                          file_info) {
 
 
-    bands <- .source_bands(source = source, collection = collection)
-
     # create a tibble to store the metadata
     cube_wtss <- .cube_create(
         source = source,
         collection = collection,
         satellite = .source_collection_satellite(source, collection),
         sensor = .source_collection_sensor(source, collection),
-        bands = bands,
         xmin = items$xmin,
         xmax = items$xmax,
         ymin = items$ymin,

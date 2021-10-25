@@ -35,8 +35,6 @@
         satellite  = tile$satellite,
         sensor     = tile$sensor,
         tile       = tile$tile,
-        bands      = tile$bands,
-        labels     = tile$labels,
         xmin       = bbox$xmin,
         xmax       = bbox$xmax,
         ymin       = bbox$ymin,
@@ -167,9 +165,6 @@
     # update bbox
     bbox_names <- c("xmin", "xmax", "ymin", "ymax")
     cube[, bbox_names] <- cube_view$space[c("left", "right", "bottom", "top")]
-
-    # hot fix remove cloud band
-    cube$bands[[1]] <- setdiff(cube$bands[[1]], "CLOUD")
 
     return(cube)
 }

@@ -41,7 +41,6 @@ sits_select.sits <- function(data, bands) {
 
     # bands names in SITS are uppercase
     bands <- toupper(bands)
-    sits_bands(data) <- toupper(sits_bands(data))
     data_bands <- sits_bands(data)
 
     .check_chr_within(
@@ -82,9 +81,6 @@ sits_select.sits_cube <- function(data, bands) {
 
     # pre-condition - check bands
     .cube_bands_check(data, bands = bands)
-
-    # assign the bands
-    data$bands[[1]] <- bands
 
     # filter the file info
     db_info <- data$file_info[[1]]

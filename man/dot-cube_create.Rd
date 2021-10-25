@@ -10,13 +10,12 @@
   satellite,
   sensor,
   tile = NA_character_,
-  bands,
-  labels = NA_character_,
   xmin,
   xmax,
   ymin,
   ymax,
   crs,
+  labels = NULL,
   file_info = NULL
 )
 }
@@ -31,10 +30,6 @@
 
 \item{tile}{Tile of the image collection}
 
-\item{bands}{Vector with the names of the bands.}
-
-\item{labels}{Vector with labels (only for classified data).}
-
 \item{xmin}{Spatial extent (xmin).}
 
 \item{xmax}{Spatial extent (xmax).}
@@ -45,7 +40,7 @@
 
 \item{crs}{CRS for cube (EPSG code or PROJ4 string).}
 
-\item{file_info}{Tibble with information about stacks (for stacks)}
+\item{file_info}{Tibble with information about files}
 }
 \value{
 A tibble containing a data cube

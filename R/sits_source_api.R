@@ -19,16 +19,16 @@ NULL
 #' with all sources names available in sits.
 .sources <- function() {
 
-    res <- .config_names(key = c("sources"))
+    src <- .config_names(key = c("sources"))
 
     # source names are upper case
-    res <- toupper(res)
+    src <- toupper(src)
 
     # post-condition
-    .check_chr(res, allow_empty = FALSE, len_min = 1,
+    .check_chr(src, allow_empty = FALSE, len_min = 1,
                msg = "invalid 'sources' in config file")
 
-    return(res)
+    return(src)
 }
 
 #' @rdname source_functions
@@ -92,16 +92,16 @@ NULL
     # pre-condition
     .source_check(source = source)
 
-    res <- .config_get(key = c("sources", source, "service"),
-                       default = NA_character_)
+    service <- .config_get(key = c("sources", source, "service"),
+                           default = NA_character_)
 
     # post-condition
-    .check_chr(res, allow_na = TRUE, allow_empty = FALSE,
+    .check_chr(service, allow_na = TRUE, allow_empty = FALSE,
                len_min = 1, len_max = 1,
                msg = sprintf("invalid 'service' for source %s in config file",
                              source))
 
-    return(res)
+    return(service)
 }
 
 #' @rdname source_functions
@@ -119,14 +119,14 @@ NULL
     # pre-condition
     .source_check(source = source)
 
-    res <- .config_get(key = c("sources", source, "s3_class"))
+    s3_class <- .config_get(key = c("sources", source, "s3_class"))
 
     # post-condition
-    .check_chr(res, allow_empty = FALSE, len_min = 1,
+    .check_chr(s3_class, allow_empty = FALSE, len_min = 1,
                msg = sprintf("invalid 's3_class' for source %s in config file",
                              source))
 
-    return(res)
+    return(s3_class)
 }
 
 #' @rdname source_functions
@@ -144,16 +144,16 @@ NULL
     # pre-condition
     .source_check(source = source)
 
-    res <- .config_get(key = c("sources", source, "url"),
+    url <- .config_get(key = c("sources", source, "url"),
                        default = NA_character_)
 
     # post-condition
-    .check_chr(res, allow_na = TRUE, allow_empty = FALSE,
+    .check_chr(url, allow_na = TRUE, allow_empty = FALSE,
                len_min = 1, len_max = 1,
                msg = sprintf("invalid 'url' for source %s in config file",
                              source))
 
-    return(res)
+    return(url)
 }
 
 #' @title Source bands functions
@@ -205,29 +205,29 @@ NULL
     # pre-condition
     .source_collection_check(source = source, collection = collection)
 
-    res <- .config_names(key = c("sources", source, "collections",
+    bands <- .config_names(key = c("sources", source, "collections",
                                  collection, "bands"))
     # bands names are upper case
-    res <- toupper(res)
+    bands <- toupper(bands)
 
     if (!add_cloud)
-        res <- res[res != .source_cloud()]
+        bands <- bands[bands != .source_cloud()]
 
     if (!is.null(fn_filter)) {
-        select <- vapply(res, function(band) {
+        select <- vapply(bands, function(band) {
             fn_filter(.config_get(key = c("sources", source, "collections",
                                           collection, "bands", band)))
         }, logical(1))
 
-        res <- res[select]
+        bands <- bands[select]
     }
 
     # post-condition
     # check bands are non-NA character
-    .check_chr(res, allow_empty = FALSE,
+    .check_chr(bands, allow_empty = FALSE,
                msg = "invalid selected bands")
 
-    return(res)
+    return(bands)
 }
 
 #' @rdname source_bands
@@ -269,15 +269,15 @@ NULL
     bands <- toupper(bands)
 
     # always returns a list!
-    res <- lapply(bands, function(band) {
+    result <- lapply(bands, function(band) {
         .config_get(key = c("sources", source, "collections",
                             collection, "bands", band, key),
                     default = default)
     })
 
-    names(res) <- bands
+    names(result) <- bands
 
-    return(res)
+    return(result)
 }
 
 #' @rdname source_bands
@@ -299,23 +299,20 @@ NULL
     # pre-condition
     .source_collection_check(source = source, collection = collection)
 
-    res <- .source_bands_reap(source = source,
+    bands <- .source_bands_reap(source = source,
                               collection = collection,
                               key = "band_name",
                               bands = bands)
 
     # simplify to a unnamed character vector
-    res <- unlist(res, recursive = FALSE, use.names = FALSE)
-
-    if (is.null(bands))
-        bands <- res
+    bands <- unlist(bands, recursive = FALSE, use.names = FALSE)
 
     # post-conditions
-    .check_chr(res, allow_na = FALSE, allow_empty = FALSE,
+    .check_chr(bands, allow_na = FALSE, allow_empty = FALSE,
                len_min = length(bands), len_max = length(bands),
                msg = "inconsistent 'band_name' values")
 
-    return(res)
+    return(bands)
 }
 
 #' @rdname source_bands
@@ -340,20 +337,20 @@ NULL
     # pre-condition
     .source_collection_check(source = source, collection = collection)
 
-    res <- .source_bands_reap(source = source,
-                              collection = collection,
-                              key = "resolution",
-                              bands = bands,
-                              fn_filter = fn_filter,
-                              add_cloud = add_cloud)
+    resolution <- .source_bands_reap(source = source,
+                                     collection = collection,
+                                     key = "resolution",
+                                     bands = bands,
+                                     fn_filter = fn_filter,
+                                     add_cloud = add_cloud)
 
     # cannot simplify as each element can have length greater than one
     # post-condition
-    .check_lst(res, fn_check = .check_num, min = 0,
+    .check_lst(resolution, fn_check = .check_num, min = 0,
                allow_zero = FALSE, len_min = 1,
                msg = "invalid 'resolution' in config file")
 
-    return(res)
+    return(resolution)
 }
 #' @rdname source_bands
 #'
@@ -447,15 +444,15 @@ NULL
     # pre-condition
     .source_collection_check(source = source, collection = collection)
 
-    res <- .config_get(key = c("sources", source, "collections", collection,
-                               "bands", .source_cloud(),
-                               "bit_mask"))
+    bit_mask <- .config_get(key = c("sources", source, "collections", collection,
+                                    "bands", .source_cloud(),
+                                    "bit_mask"))
 
     # post-condition
-    .check_lgl(res, len_min = 1, len_max = 1,
+    .check_lgl(bit_mask, len_min = 1, len_max = 1,
                msg = "invalid 'bit_mask' value in config file")
 
-    return(res)
+    return(bit_mask)
 }
 
 #' @rdname source_bands
@@ -477,14 +474,14 @@ NULL
     # pre-condition
     .source_collection_check(source = source, collection = collection)
 
-    res <- .config_get(key = c("sources", source, "collections", collection,
+    vls <- .config_get(key = c("sources", source, "collections", collection,
                                "bands", .source_cloud(),
                                "values"))
 
     # post-condition
-    .check_lst(res, msg = "invalid cloud 'values' in config file")
+    .check_lst(vls, msg = "invalid cloud 'values' in config file")
 
-    return(res)
+    return(vls)
 }
 
 #' @rdname source_bands
@@ -507,14 +504,14 @@ NULL
     # pre-condition
     .source_collection_check(source = source, collection = collection)
 
-    res <- .config_get(key = c("sources", source, "collections", collection,
+    vls <- .config_get(key = c("sources", source, "collections", collection,
                                "bands", .source_cloud(),
                                "interp_values"))
 
     # post-condition
-    .check_num(res, msg = "invalid 'interp_values' in config file")
+    .check_num(vls, msg = "invalid 'interp_values' in config file")
 
-    return(res)
+    return(vls)
 }
 
 #' @title Source collection functions
@@ -548,9 +545,9 @@ NULL
     # check source
     .source_check(source = source)
 
-    res <- .config_names(c("sources", source, "collections"))
+    collections <- .config_names(c("sources", source, "collections"))
 
-    return(res)
+    return(collections)
 }
 
 #

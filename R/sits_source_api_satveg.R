@@ -26,18 +26,38 @@
     # get the projection of the SATVEG data
     crs <- .satveg_get_crs(source = source, collection = collection)
 
+    # get the start date of SATVEG date
+    date <- .satveg_get_date(source = source)
+
+    # get the URL of SATVEG cube
+    url <- .satveg_get_url(source = source)
+
+    # set the file information
+    file_info <- purrr::map_dfr(bands, function(band){
+
+        t <- tibble::tibble(
+            band  = band,
+            res   =  .satveg_get_resolution(source = source,
+                                            collection = collection,
+                                            band = band),
+            date  = date,
+            path  = url)
+        return(t)
+    })
+
+
     # create a tibble to store the metadata
     cube_satveg <- .cube_create(
         source = source,
         collection = collection,
         satellite = .source_collection_satellite(source, collection),
         sensor = .source_collection_sensor(source, collection),
-        bands = bands,
         xmin = bbox[["xmin"]],
         xmax = bbox[["xmax"]],
         ymin = bbox[["ymin"]],
         ymax = bbox[["ymax"]],
-        crs = crs
+        crs = crs,
+        file_info = file_info
     )
 
     class(cube_satveg) <- .cube_s3class(cube_satveg)
@@ -52,6 +72,7 @@
 #'
 #' @param source ...
 #' @param collection ...
+#' @param band ...
 #'
 #' @return functions that return values from config file
 NULL
@@ -91,4 +112,38 @@ NULL
     crs <- unlist(crs)
 
     return(.sits_proj_format_crs(crs))
+}
+
+#' @rdname helper_satveg_function
+.satveg_get_resolution <- function(source, collection, band) {
+
+    # get cube crs
+    resolution <- .config_get(key = c("sources", source, "collections",
+                                      collection, "bands", band, "resolution"))
+
+    # simplify
+    resolution <- unlist(resolution)
+
+    return(resolution)
+}
+
+#' @rdname helper_satveg_function
+.satveg_get_url <- function(source) {
+
+    # get cube crs
+    url <- .config_get(key = c("sources", source, "url"))
+
+    return(url)
+}
+
+#' @rdname helper_satveg_function
+.satveg_get_date <- function(source) {
+
+    # get cube crs
+    date <- .config_get(key = c("sources", source, "start_date"))
+
+    # simplify
+    date <- as.Date(unlist(date))
+
+    return(date)
 }

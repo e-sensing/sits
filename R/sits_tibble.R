@@ -105,8 +105,6 @@ sits_mutate_bands <- function(data, ...) {
 
     # verify if data has values
     .sits_tibble_test(data)
-    # bands in SITS are uppercase
-    sits_bands(data) <- toupper(sits_bands(data))
 
     # compute mutate for each time_series tibble
     proc_fun <- function(...) {

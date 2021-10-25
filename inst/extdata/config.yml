@@ -544,6 +544,7 @@ sources:
         service             : "SATVEG"
         url                 : "https://www.satveg.cnptia.embrapa.br/satvegws/ws/perfil/ZW46IXzr4pRzJlX/"
         url_test            : "https://www.satveg.cnptia.embrapa.br/satvegws/ws/perfil/ZW46IXzr4pRzJlX/ndvi/ponto/-55.50563/-11.71557/terra/1//"
+        start_date          : "2000-02-18"
         collections         :
             TERRA           : &satveg_terra
                 bbox        :

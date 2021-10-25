@@ -79,7 +79,6 @@ Suggests:
 Config/testthat/edition: 3
 Config/testthat/parallel: true
 Config/testthat/start-first: cube, wtss, raster, bdc, ml
-VignetteBuilder: knitr
 LinkingTo:
     Rcpp,
     RcppArmadillo
@@ -90,7 +89,6 @@ Collate:
     'sits-package.R'
     'sits_accuracy.R'
     'sits_bands.R'
-    'sits_bands_set.R'
     'sits_bbox.R'
     'sits_brewer.R'
     'sits_classification.R'

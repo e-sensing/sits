@@ -248,8 +248,7 @@ sits_cube.wtss_cube <- function(source = "WTSS", ...,
 
     # builds a sits data cube
     .source_cube(source = source,
-                 collection = collection,
-                 bands = bands)
+                 collection = collection)
 }
 
 #' @rdname sits_cube

@@ -26,8 +26,6 @@
         # get the files for a given tile
         row_file_info <- dplyr::filter(file_info, tile == t)
 
-        # get the bands
-        bands <- unique(row_file_info$band)
         # get the parameters from the raster object of one of the layers
         # the assumptions is that all layers are consistent
         params <- .raster_params_file(row_file_info$path[1])
@@ -39,7 +37,6 @@
             satellite = .source_collection_satellite(source, collection),
             sensor = .source_collection_sensor(source, collection),
             tile = t,
-            bands = bands,
             xmin = params$xmin,
             xmax = params$xmax,
             ymin = params$ymin,

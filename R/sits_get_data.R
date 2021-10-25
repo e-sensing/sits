@@ -727,10 +727,6 @@ sits_get_data.shp_raster_cube <- function(cube, file, ...,
                             cube = cube$collection,
                             time_series = list(ts)
     )
-    # rename the SATVEG bands to uppercase
-    sits_bands(data) <- .source_bands(
-        source = .cube_source(cube = cube),
-        collection = .cube_collection(cube = cube))
     return(data)
 }
 

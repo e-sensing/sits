@@ -69,13 +69,6 @@ test_that("Prune", {
     expect_true(nrow(pruned_data) == 2)
 })
 
-test_that("Rename", {
-    point_ndvi <- sits_select(point_mt_6bands, bands = "NDVI")
-    point_new <- point_ndvi
-    sits_bands(point_new) <- "VEGINDEX"
-    expect_equal(sits_bands(point_new), "VEGINDEX")
-})
-
 test_that("Sample", {
     data(cerrado_2classes)
 

@@ -101,7 +101,6 @@
 #' @param memsize           Maximum overall memory (in GB) to run the Bayesian
 #'                          smoothing.
 #' @param ...               optional arguments to merge final raster
-#'                          (see \link[raster]{writeRaster} function)
 #'
 #' @return  RasterBrick object
 #'
@@ -166,17 +165,17 @@
         chunk <- .raster_crop(r_obj = b, block = blk_overlap)
 
         # process it
-        res <- do.call(func, args = c(list(chunk = chunk), args))
+        raster_out <- do.call(func, args = c(list(chunk = chunk), args))
         # stopifnot(inherits(res, c("RasterLayer", "RasterStack", "RasterBrick")))
 
         # create extent
         blk_no_overlap <- list(first_row = block$o1,
                                nrows = block$o2 - block$o1 + 1,
                                first_col = 1,
-                               ncols = .raster_ncols(res))
+                               ncols = .raster_ncols(raster_out))
 
         # crop removing overlaps
-        res <- .raster_crop(res, block = blk_no_overlap)
+        raster_out <- .raster_crop(raster_out, block = blk_no_overlap)
 
         # export to temp file
         filename <- tempfile(tmpdir = dirname(cube$file_info[[1]]$path),
@@ -184,7 +183,7 @@
 
         # save chunk
         .raster_write_rast(
-            r_obj = res,
+            r_obj = raster_out,
             file = filename,
             format = "GTiff",
             data_type = .raster_data_type(.config_get("probs_cube_data_type")),
