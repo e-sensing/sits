@@ -274,76 +274,7 @@ sources:
                 collection_name: "MYD13Q1-6"
                 open_data   : true
                 open_data_token: true
-            S2_10-1         : &bdc_s2
-                bands       :
-                    NDVI    : &bdc_msi_ndvi
-                        missing_value : -9999
-                        minimum_value : -9999
-                        maximum_value : 10000
-                        scale_factor  : 0.0001
-                        offset_value  : 0
-                        resolution    :  10
-                        band_name     : "NDVI"
-                    EVI     :
-                        <<: *bdc_msi_ndvi
-                        band_name     : "EVI"
-                    B01     : &bdc_msi_band1
-                        missing_value : -9999
-                        minimum_value : 0
-                        maximum_value : 10000
-                        scale_factor  : 0.0001
-                        offset_value  : 0
-                        resolution    : 10
-                        band_name     : "band1"
-                    B02     :
-                        <<: *bdc_msi_band1
-                        band_name     : "band2"
-                    B03     :
-                        <<: *bdc_msi_band1
-                        band_name     : "band3"
-                    B04     :
-                        <<: *bdc_msi_band1
-                        band_name     : "band4"
-                    B05     :
-                        <<: *bdc_msi_band1
-                        band_name     : "band5"
-                    B06     :
-                        <<: *bdc_msi_band1
-                        band_name     : "band6"
-                    B07     :
-                        <<: *bdc_msi_band1
-                        band_name     : "band7"
-                    B08     :
-                        <<: *bdc_msi_band1
-                        band_name     : "band8"
-                    B8A     :
-                        <<: *bdc_msi_band1
-                        band_name     : "band8a"
-                    B11     :
-                        <<: *bdc_msi_band1
-                        band_name     : "band11"
-                    B12     :
-                        <<: *bdc_msi_band1
-                        band_name     : "band12"
-                    CLOUD   :
-                        bit_mask      : FALSE
-                        band_name     : "Fmask4"
-                        values        :
-                            0         : "clear land pixel"
-                            1         : "clear water pixel"
-                            2         : "cloud shadow"
-                            3         : "snow"
-                            4         : "cloud"
-                            255       : "no observation"
-                        interp_values : [2, 3, 4, 255]
-                        resolution    : 10
-                satellite   : "SENTINEL-2"
-                sensor      : "MSI"
-                collection_name: "S2_10-1"
-                token_vars  :  ["BDC_ACCESS_KEY"]
-                open_data   : true
-                open_data_token: true
-            S2-SEN2COR_10_16D_STK-1 : &bdc_s2_sen2cor
+            S2-SEN2COR_10_16D_STK-1: &bdc_s2_sen2cor
                 bands       :
                     NDVI    : &bdc_sen2cor_msi_ndvi
                         missing_value : -9999
@@ -498,14 +429,8 @@ sources:
                 open_data   : true
                 open_data_token: true
             S2-SEN2COR_10_16D_STK-1 :
-                <<: *bdc_s2
+                <<: *bdc_s2_sen2cor
                 collection_name: "S2-SEN2COR_10_16D_STK-1"
-                token_vars  :  ["BDC_ACCESS_KEY"]
-                open_data   : true
-                open_data_token: true
-            S2_10-1         :
-                <<: *bdc_s2
-                collection_name: "S2_10-1"
                 token_vars  :  ["BDC_ACCESS_KEY"]
                 open_data   : true
                 open_data_token: true
