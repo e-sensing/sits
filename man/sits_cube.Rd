@@ -244,7 +244,7 @@ cube_dea <- sits_cube(source = "DEAFRICA",
 s2_cube <- sits_cube(source = "AWS",
                       collection = "sentinel-s2-l2a-cogs",
                       tiles = c("20LKP","20LLP"),
-                      bands = c("B03", "B04", "B08")
+                      bands = c("B03", "B04", "B08"),
                       start_date = as.Date("2018-07-18"),
                       end_date = as.Date("2018-07-23")
 )
