@@ -378,8 +378,8 @@ test_that("Configs WTSS", {
 
     expect_equal(
         .source_cloud_interp_values(source = "WTSS",
-                                    collection = "S2_10-1"),
-        c(2, 3, 4, 255)
+                                    collection = "S2-SEN2COR_10_16D_STK-1"),
+        c(0, 1, 2, 3, 8, 9, 10, 11)
     )
 })
 
