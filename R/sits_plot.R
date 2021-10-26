@@ -208,7 +208,7 @@ plot.raster_cube <- function(x, ...,
         rgb_stack <- c(red_file, green_file, blue_file)
     }
     # use the raster package to obtain a raster object from a stack
-    r_obj <- .raster_open_stack.raster(rgb_stack)
+    r_obj <- .raster_open_stack.terra(rgb_stack)
 
     # extract region of interest
     if (!purrr::is_null(roi)) {
