@@ -4,6 +4,10 @@ We are preparing to release the package on CRAN and are making relevant changes 
 
 # What's new in SITS version 0.15.0 
 
+### New features in SITS version 0.15.0-1
+* Fix bug in `sits_plot`
+* Fix bug in `sits_timeline` for cubes that do not have the same temporal extent.
+
 ### New features in SITS version 0.15.0
 
 * Support for regularization of collections in DEAFRICA and USGS improvement

@@ -4,7 +4,7 @@
 \alias{plot.raster_cube}
 \title{Generic interface for RGB plotting of data cube}
 \usage{
-\method{plot}{raster_cube}(x, ..., band = NULL, red, green, blue, time = 1, roi = NULL)
+\method{plot}{raster_cube}(x, ..., band = NULL, red, green, blue, tile = 1, time = 1, roi = NULL)
 }
 \arguments{
 \item{x}{object of class "raster_cube" or "classified image"}
@@ -18,6 +18,8 @@
 \item{green}{band for green color.}
 
 \item{blue}{band for blue color.}
+
+\item{tile}{tile number to be plotted}
 
 \item{time}{temporal instances to be plotted.}
 
