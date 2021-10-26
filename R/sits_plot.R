@@ -126,6 +126,7 @@ plot.predicted <- function(x, y, ..., bands = "NDVI") {
 #' @param  red           band for red color.
 #' @param  green         band for green color.
 #' @param  blue          band for blue color.
+#' @param  tile          tile number to be plotted
 #' @param  time          temporal instances to be plotted.
 #' @param  roi           sf object giving a region of interest.
 #'
@@ -136,8 +137,18 @@ plot.raster_cube <- function(x, ...,
                                   red,
                                   green,
                                   blue,
+                                  tile = 1,
                                   time = 1,
                                   roi = NULL) {
+
+    # precondition
+    .check_num(
+        tile, min = 1, max = nrow(x), is_integer = TRUE,
+        len_min = 1, len_max = 1,
+        msg = "invalid tile parameter"
+    )
+    # select only one tile
+    x <- x[tile, ]
 
     if (!purrr::is_null(band)) {
         red = band

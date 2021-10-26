@@ -134,6 +134,8 @@ sits_view.raster_cube <- function(x, ...,
                                   palette = "default") {
 
     # preconditions
+    # pick only the selected tile
+    x <- x[tile,]
     # verifies if leafem and leaflet packages are installed
     .check_that(
         requireNamespace("leafem", quietly = TRUE),
