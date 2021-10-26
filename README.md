@@ -164,11 +164,11 @@ as in the following example.
 
 ``` r
 library(sits)
-#> Using configuration file: /Library/Frameworks/R.framework/Versions/4.1-arm64/Resources/library/sits/extdata/config.yml
+#> Using configuration file: /home/sits/R/x86_64-pc-linux-gnu-library/4.1/sits/extdata/config.yml
 #> To provide additional configurations, create an YAML file and inform its path to environment variable 'SITS_CONFIG_USER_FILE'.
 #> Using raster package: terra
 #> SITS - satellite image time series analysis.
-#> Loaded sits v0.15.0.
+#> Loaded sits v0.15.0-1.
 #>         See ?sits for help, citation("sits") for use in publication.
 #>         See demo(package = "sits") for examples.
 # create a cube from a local file 
