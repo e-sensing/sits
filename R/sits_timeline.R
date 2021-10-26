@@ -31,18 +31,20 @@ sits_timeline.sits <- function(data) {
 #'
 sits_timeline.raster_cube <- function(data) {
 
-    timeline_first <-  unique(lubridate::as_date(data$file_info[[1]]$date))
-
-    slider::slide(data, function(tile) {
+    # pick the list of timelines
+    timelines.lst <- slider::slide(data, function(tile) {
         timeline_tile <- unique(lubridate::as_date(tile$file_info[[1]]$date))
-        .check_that(
-            x = all(timeline_tile %in% timeline_first),
-            msg = "data cube tiles have different timelines"
-        )
+        return(timeline_tile)
     })
+    names(timelines.lst) <- data$tile
+    timeline_unique <- unname(unique(timelines.lst))
 
-    # return the timeline of the cube
-    return(timeline_first)
+    if (length(timeline_unique) == 1)
+        return(timeline_unique[[1]])
+    else {
+        warning("Cube is not regular. Returning all timelines")
+        return(timelines.lst)
+    }
 }
 
 #' @export
