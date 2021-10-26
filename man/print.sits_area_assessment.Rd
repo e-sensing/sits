@@ -4,7 +4,7 @@
 \alias{print.sits_area_assessment}
 \title{Print the area assessment}
 \usage{
-\method{print}{sits_area_assessment}(x, ..., digits = 3)
+\method{print}{sits_area_assessment}(x, ..., digits = 2)
 }
 \arguments{
 \item{x}{An object of class \code{sits_area_assessment}.}

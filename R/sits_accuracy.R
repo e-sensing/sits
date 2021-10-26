@@ -70,9 +70,7 @@
 #' # create a data cube based on files
 #' data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
 #' cube <- sits_cube(
-#'     source = "LOCAL",
-#'     name = "sinop-2014",
-#'     origin = "BDC",
+#'     source = "BDC",
 #'     collection = "MOD13Q1-6",
 #'     data_dir = data_dir,
 #'     delim = "_",
@@ -118,10 +116,9 @@ sits_accuracy.sits <- function(data, ...) {
     }
 
     # does the input data contain a set of predicted values?
-    .check_chr_within(
-        x = "predicted",
-        within = names(data),
-        discriminator = "any_of",
+    .check_chr_contains(
+        x = names(data),
+        contains = "predicted",
         msg = "input data without predicted values"
     )
 
@@ -222,7 +219,7 @@ sits_accuracy.classified_image <- function(data, ..., validation_csv) {
         colnames(xy) <- c("X", "Y")
 
         # extract values from cube
-        values <- .sits_cube_extract(
+        values <- .cube_extract(
             cube = row,
             band_cube = labelled_band,
             xy = xy
@@ -260,7 +257,7 @@ sits_accuracy.classified_image <- function(data, ..., validation_csv) {
     freq_lst <- slider::slide(data, function(tile) {
 
         # get the frequency count and value for each labelled image
-        freq <- .sits_cube_area_freq(tile)
+        freq <- .cube_area_freq(tile)
         # include class names
         freq <- dplyr::mutate(freq, class = labels_cube[freq$value])
         return(freq)
@@ -341,11 +338,11 @@ sits_accuracy.classified_image <- function(data, ..., validation_csv) {
     # set caller to show in errors
     .check_set_caller(".sits_accuracy_area_assess")
 
-    .check_chr_within(
-        x = "classified_image",
-        within = class(cube),
-        discriminator = "any_of",
+    .check_chr_contains(
+        x = class(cube),
+        contains = "classified_image",
         msg = "not a classified cube")
+
     if (any(dim(error_matrix) == 0)) {
         stop("Invalid dimensions in error matrix.", call. = FALSE)
     }
@@ -369,8 +366,11 @@ sits_accuracy.classified_image <- function(data, ..., validation_csv) {
     # Reorder the area based on the error matrix
     area <- area[colnames(error_matrix)]
 
+    # get the resolution
+    res <- .cube_resolution(cube)
+
     # convert the area to hectares
-    area <- area * cube$yres[[1]] * cube$xres[[1]] / 10000
+    area <- area * res * res / 10000
 
     #
     weight <- area / sum(area)
@@ -447,10 +447,9 @@ sits_accuracy_summary <- function(x,
         print.sits_area_assessment(x)
         return(invisible(TRUE))
     }
-    .check_chr_within(
-        x = "sits_assessment",
-        within = class(x),
-        discriminator = "any_of",
+    .check_chr_contains(
+        x = class(x),
+        contains = "sits_assessment",
         msg = "please run sits_accuracy first"
     )
 
@@ -603,29 +602,33 @@ print.sits_assessment <- function(x, ...,
 #'
 #' @keywords internal
 #' @export
-print.sits_area_assessment <- function(x, ..., digits = 3){
+print.sits_area_assessment <- function(x, ..., digits = 2){
 
     # round the data to the significant digits
     overall <- round(x$accuracy$overall, digits = digits)
 
     cat("Area Weigthed Statistics\n")
-    cat(paste0("Overall Accuracy = ", overall))
+    cat(paste0("Overall Accuracy = ", overall,"\n"))
+
+    acc_user <- round(x$accuracy$user, digits = digits)
+    acc_prod <- round(x$accuracy$producer, digits = digits)
 
     # Print assessment values
-    tb <- t(dplyr::bind_rows(x$accuracy$user, x$accuracy$producer))
+    tb <- t(dplyr::bind_rows(acc_user, acc_prod))
     colnames(tb) <- c("User", "Producer")
 
-    print(knitr::kable(tb,
-                       digits = 2,
-                       caption = "Area-Weighted Users and Producers Accuracy"
-    ))
+    cat("\nArea-Weighted Users and Producers Accuracy\n")
 
-    tb1 <- t(dplyr::bind_rows(x$area_pixels, x$error_ajusted_area, x$conf_interval))
+    print(tb)
+
+    area_pix <- round(x$area_pixels, digits = digits)
+    area_adj <- round(x$error_ajusted_area, digits = digits)
+    conf_int <- round(x$conf_interval, digits = digits)
+
+    tb1 <- t(dplyr::bind_rows(area_pix, area_adj, conf_int))
     colnames(tb1) <- c("Mapped Area (ha)", "Error-Adjusted Area (ha)", "Conf Interval (ha)")
 
-    print(knitr::kable(tb1,
-                       digits = 1,
-                       caption = "Mapped Area x Estimated Area (ha)"
-    ))
+    cat("\nMapped Area x Estimated Area (ha)\n")
+    print(tb1)
 
 }

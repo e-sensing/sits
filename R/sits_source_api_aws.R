@@ -1,47 +1,5 @@
-#' @title Get aws sits bands by resolution
-#' @name .aws_bands
-#' @keywords internal
-#'
-#' @description retrieve aws bands by resolution
-#'
-#' @param source         Data source (one of "SATVEG", "LOCAL", "BDC", "AWS",
-#'                       "USGS", "DEAFRICA", "PROBS").
-#' @param collection     Collection to be searched in the data source.
-#' @param s2_resolution  sentinel band resolution
-#'
-#' @return sentinel bands that corresponds a specified resolution.
-.aws_bands <- function(source, collection, s2_resolution) {
-
-    .source_bands(
-        source = source,
-        collection = collection,
-        fn_filter = function(x) s2_resolution %in% x$resolution
-    )
-}
-
-#' @title Get aws source bands by resolution
-#' @name .aws_bands_band_name
-#' @keywords internal
-#'
-#' @description retrieve aws bands by resolution
-#'
-#' @param source         Data source (one of "SATVEG", "LOCAL", "BDC", "AWS",
-#'                       "USGS", "DEAFRICA", "PROBS").
-#' @param collection     Collection to be searched in the data source.
-#' @param s2_resolution  sentinel band resolution
-#'
-#' @return sentinel bands that corresponds a specified resolution.
-.aws_bands_band_name <- function(source, collection, s2_resolution) {
-
-    .source_bands_band_name(
-        source = source,
-        collection = collection,
-        fn_filter = function(x) s2_resolution %in% x$resolution
-    )
-}
-
 #' @title Verify items tiles
-#' @name .sits_s2_aws_tiles
+#' @name .aws_tiles
 #' @keywords internal
 #'
 #' @param tiles  Tile names to be searched.
@@ -74,49 +32,8 @@
 
 #' @keywords internal
 #' @export
-.source_item_get_date.aws_cube <- function(source,
-                                           item, ...,
-                                           collection = NULL) {
-    item[[c("properties", "datetime")]]
-}
-
-#' @keywords internal
-#' @export
-.source_item_get_hrefs.aws_cube <- function(source,
-                                            item, ...,
-                                            collection = NULL,
-                                            s2_resolution) {
-
-    # Adding the spatial resolution in the band URL
-    href_res <- gsub(pattern = "R[0-9]{2}m",
-                     replacement = paste0("R", s2_resolution, "m"),
-                     x = unname(purrr::map_chr(item[["assets"]], `[[`, "href")))
-
-    # add gdal vsi in href urls
-    return(.stac_add_gdal_vsi(href_res))
-}
-
-#' @keywords internal
-#' @export
-.source_item_get_bands.aws_cube <- function(source,
-                                            item, ...,
-                                            collection = NULL) {
-    names(item[["assets"]])
-}
-
-#' @keywords internal
-#' @export
-.source_item_get_resolutions.aws_cube <- function(source,
-                                                  item, ...,
-                                                  collection = NULL,
-                                                  s2_resolution) {
-    return(s2_resolution)
-}
-
-#' @keywords internal
-#' @export
-.source_items_new.aws_cube <- function(source,
-                                       collection, ...,
+.source_items_new.aws_cube <- function(source, ...,
+                                       collection,
                                        stac_query,
                                        tiles = NULL) {
 
@@ -155,36 +72,8 @@
 
 #' @keywords internal
 #' @export
-.source_items_bands_select.aws_cube <- function(source,
-                                                collection,
-                                                items,
-                                                bands, ...,
-                                                s2_resolution) {
-
-    # convert sits bands to source bands
-    bands_converter <-  .source_bands(
-        source = source,
-        collection = collection,
-        fn_filter = function(x) s2_resolution %in% x$resolution
-    )
-
-    items <- .stac_bands_select(
-        items = items,
-        bands_source = .source_bands_to_source(source = source,
-                                               collection = collection,
-                                               bands = bands),
-        bands_sits = .source_bands_to_sits(source = source,
-                                           collection = collection,
-                                           bands = bands)
-    )
-
-    return(items)
-}
-
-#' @keywords internal
-#' @export
-.source_items_tiles_group.aws_cube <- function(source,
-                                               items, ...,
+.source_items_tiles_group.aws_cube <- function(source, ...,
+                                               items,
                                                collection = NULL) {
 
     # store tile info in items object
@@ -202,8 +91,8 @@
 
 #' @keywords internal
 #' @export
-.source_items_tile_get_crs.aws_cube <- function(source,
-                                                tile_items, ...,
+.source_items_tile_get_crs.aws_cube <- function(source,...,
+                                                tile_items,
                                                 collection = NULL) {
 
     # format collection crs
@@ -212,55 +101,4 @@
     )
 
     return(crs)
-}
-
-#' @keywords internal
-#' @export
-.source_items_tile_get_name.aws_cube <- function(source,
-                                                 tile_items, ...,
-                                                 collection = NULL) {
-
-    tile_items[["features"]][[1]][[c("properties", "tile")]]
-}
-
-#' @keywords internal
-#' @export
-.source_items_tile_get_bbox.aws_cube <- function(source,
-                                                 tile_items, ...,
-                                                 collection = NULL,
-                                                 s2_resolution) {
-
-
-    href <- .source_item_get_hrefs(source = source,
-                                   item = tile_items[["features"]][[1]], ...,
-                                   collection = collection,
-                                   s2_resolution = s2_resolution)
-
-    # read the first image and obtain the size parameters
-    params <- .raster_params_file(href)
-
-    bbox <- c(xmin = params[["xmin"]], ymin = params[["ymin"]],
-              xmax = params[["xmax"]], ymax = params[["ymax"]])
-
-    return(bbox)
-}
-
-#' @keywords internal
-#' @export
-.source_items_tile_get_size.aws_cube <- function(source,
-                                                 tile_items, ...,
-                                                 collection = NULL,
-                                                 s2_resolution) {
-
-    href <- .source_item_get_hrefs(source = source,
-                                   item = tile_items[["features"]][[1]], ...,
-                                   collection = collection,
-                                   s2_resolution = s2_resolution)
-
-    # read the first image and obtain the size parameters
-    params <- .raster_params_file(href)
-
-    size <- c(nrows = params[["nrows"]], ncols = params[["ncols"]])
-
-    return(size)
 }

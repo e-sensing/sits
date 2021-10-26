@@ -118,10 +118,9 @@ sits_cluster_frequency <- function(samples) {
     .check_set_caller("sits_cluster_frequency")
 
     # is the input data the result of a cluster function?
-    .check_chr_within(
-        x = "cluster",
-        within = names(samples),
-        discriminator = "any_of",
+    .check_chr_contains(
+        names(samples),
+        contains = "cluster",
         msg = "missing cluster column"
     )
 
@@ -168,10 +167,9 @@ sits_cluster_clean <- function(samples) {
     .check_set_caller("sits_cluster_clean")
 
     # is the input data the result of a cluster function?
-    .check_chr_within(
-        x = "cluster",
-        within = names(samples),
-        discriminator = "any_of",
+    .check_chr_contains(
+        names(samples),
+        contains = "cluster",
         msg = "input data does not contain cluster column"
     )
 
@@ -220,15 +218,13 @@ sits_cluster_clean <- function(samples) {
 
     # verifies if dtwclust package is installed
     if (!requireNamespace("dtwclust", quietly = TRUE)) {
-        stop("dtwclust needed for this function to work.
-             Please install it.", call. = FALSE)
+        stop("Please insall package dtwclust", call. = FALSE)
     }
 
     # is the input data the result of a cluster function?
-    .check_chr_within(
-        x = "cluster",
-        within = names(samples),
-        discriminator = "any_of",
+    .check_chr_contains(
+        names(samples),
+        contains = "cluster",
         msg = "input data does not have cluster column"
     )
 
@@ -279,8 +275,7 @@ sits_cluster_clean <- function(samples) {
                                      linkage = "ward.D2", ...) {
     # verifies if dtwclust package is installed
     if (!requireNamespace("dtwclust", quietly = TRUE)) {
-        stop("dtwclust needed for this function to work.
-             Please install it.", call. = FALSE)
+        stop("Please install package dtwclust", call. = FALSE)
     }
 
     # get the values of the time series
@@ -311,7 +306,6 @@ sits_cluster_clean <- function(samples) {
 #' Lawrence Hubert and Phipps Arabie. Comparing partitions.
 #' Journal of Classification, 2, p.193--218, 1985.
 #'
-#' See \link[flexclust]{randIndex} for implementation details.
 #'
 #' @param samples          Input set of time series.
 #' @param dendro           Dendrogram object returned from
@@ -320,11 +314,6 @@ sits_cluster_clean <- function(samples) {
 #'
 .sits_cluster_dendro_bestcut <- function(samples, dendro) {
 
-    # verifies if flexclust package is installed
-    if (!requireNamespace("flexclust", quietly = TRUE)) {
-        stop("flexclust needed for this function to work.
-             Please install it.", call. = FALSE)
-    }
     # compute range
     k_range <- seq(2, max(length(dendro$height) - 1, 2))
 
@@ -332,10 +321,10 @@ sits_cluster_clean <- function(samples) {
     ari <-
         k_range %>%
         purrr::map(function(k) {
-            flexclust::randIndex(stats::cutree(dendro, k = k),
-                factor(samples$label),
-                correct = TRUE
-            )
+            x <-  stats::cutree(dendro, k = k)
+            y <- factor(samples$label)
+            .sits_cluster_rand_index(table(x,y))
+
         }) %>%
         unlist()
 
@@ -348,4 +337,28 @@ sits_cluster_clean <- function(samples) {
     # create a named vector and return
     best_cut <- structure(c(k_result, h_result), .Names = c("k", "height"))
     return(best_cut)
+}
+
+.sits_cluster_rand_index <- function(x, correct = TRUE)
+{
+    if (length(dim(x)) != 2)
+        stop("Argument x needs to be a 2-dimensional table.")
+
+    n <- sum(x)
+    ni <- apply(x, 1, sum)
+    nj <- apply(x, 2, sum)
+    n2 <- choose(n, 2)
+
+    rand <- NULL
+    if (correct) {
+        nis2 <- sum(choose(ni[ni > 1], 2))
+        njs2 <- sum(choose(nj[nj > 1], 2))
+        rand <- c( ARI = c(sum(choose(x[x > 1], 2)) -
+                            (nis2 * njs2)/n2)/((nis2 + njs2)/2 - (nis2 * njs2)/n2))
+    }
+    else {
+        rand <- c(rand, RI = 1 + (sum(x^2) - (sum(ni^2) + sum(nj^2))/2)/n2)
+    }
+
+    return(rand)
 }

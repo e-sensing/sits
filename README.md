@@ -7,9 +7,10 @@ Cubes
 <img src="inst/extdata/sticker/sits_sticker.png" alt="SITS icon" align="right" height="150" width="150"/>
 
 <!-- badges: start -->
+<!-- [![Build Status](https://drone.dpi.inpe.br/api/badges/e-sensing/sits/status.svg)](https://drone.dpi.inpe.br/e-sensing/sits) -->
 
 [![Build
-Status](https://drone.dpi.inpe.br/api/badges/e-sensing/sits/status.svg)](https://drone.dpi.inpe.br/e-sensing/sits)
+Status](https://cloud.drone.io/api/badges/e-sensing/sits/status.svg)](https://cloud.drone.io/e-sensing/sits)
 [![codecov](https://codecov.io/gh/e-sensing/sits/branch/master/graph/badge.svg?token=hZxdJgKGcE)](https://codecov.io/gh/e-sensing/sits)
 [![Documentation](https://img.shields.io/badge/docs-online-blueviolet)](https://e-sensing.github.io/sitsbook/)
 [![Software Life
@@ -53,112 +54,128 @@ SITS is currently available on github, as follows:
 # Please install the `sits` package from github
 # and its dependencies
 devtools::install_github("e-sensing/sits", dependencies = TRUE)
-library(sits)
-library(tibble)
-library(magrittr)
 ```
 
-### AMI Image
+### Data Cubes and ARD Image Collections
 
-For users that have an AWS account, we have prepared a set of AMI
-(Amazon Machine Images that are optimized for running SITS in the Amazon
-Elastic Compute Cloud (or EC2). The AMI has the following settings: SITS
-0.9.6, Ubuntu 18.04, R 4.0.2, and Rstudio Server 1.3.959. All packages
-have been updated as of 21 August 2020. The AMI is available for the
-following regions:
+SITS works best with regular *data cube* that meet the following
+definition:
 
--   [South America
-    (sa-east-1)](https://console.aws.amazon.com/ec2/home?region=sa-east-1#launchAmi=ami-0567d9e8bca925a8d)
--   [Frankfurt(eu-central-1)](https://console.aws.amazon.com/ec2/home?region=eu-central-1#launchAmi=ami-088e0eb8b0c3a74e3)
--   [US East
-    (us-east-1)](https://console.aws.amazon.com/ec2/home?region=us-east-1#launchAmi=ami-02aa6bc45d45f75b9)
--   [Asia Pacific
-    Singapore(ap-southeast-1)](https://console.aws.amazon.com/ec2/home?region=ap-southeast-1#launchAmi=ami-025e0b3b65bedb145)
+1.  A data cube is a four-dimensional structure with dimensions x
+    (longitude or easting), y (latitude or northing), time, and bands.
+2.  Its spatial dimensions refer to a single spatial reference system
+    (SRS). Cells of a data cube have a constant spatial size with
+    respect to the cube’s SRS.
+3.  The temporal dimension is composed of a set of continuous and
+    equally-spaced intervals.
+4.  For every combination of dimensions, a cell has a single value.
 
-When you create an EC2 instance based on this AMI, ensure that your
-‘security group’ settings allow incoming HTTP (port 80), HTTPS (port
-443) and SSH (port 20) traffic. After the EC2 instance is started, then
-copy-and-paste the ‘IPv4 Public IP’ address for your running instance to
-a web browser address bar. That should bring the RStudio server
-interface in your browser. Use “rstudio” as username and “e-sensing” as
-password.
+Not all data cubes are regular. Currently, most cloud providers (such as
+AWS and Microsoft) provide images organised as analysis-ready data (ARD)
+image collections, which meet the following definitions:
 
-### Data Cubes
+1.  An ARD image collection is a set of files from a given sensor (or a
+    combined set of sensors) that has been corrected to ensure
+    comparability of measurements between different dates.
+2.  All images are reprojected to a cartographic projection following
+    well-established standards.
+3.  Image collections are cropped into a tiling system.  
+4.  In general, the timelines of the images that are part of one tile
+    are not regular. Also, these timelines are not the same as those
+    associated to a different tile.
+5.  ARD image collections do not guarantee that every pixel of an image
+    has a valid value, since its images still contains cloudy or missing
+    pixels.
+
+### Transforming ARD Image Collections into Data Cubes
 
 SITS has been designed to work with big satellite image data sets
 organised as data cubes. Data cubes can be available in the cloud or in
-a local machine. Currently, SITS supports data cubes available in the
-following cloud services:
+a local machine. Currently, SITS supports analysis ready data
+collections available in the services provided by Amazon Web Services
+(AWS), Brazil Data Cube (BDC), Digital Earth Africa (DEAFRICA), and
+United States Geological Survey (USGS). We are working to include
+collections available in Microsoft’s Planetary Computer. Most of these
+collections are open data and require no payment to access them.
+However, in general these collections are not regular and require
+further processing before they can be used in SITS.
 
-1.  Sentinel-2/2A level 2A images in AWS.
-2.  Collections of Sentinel, Landsat and CBERS images in the Brazil Data
-    Cube (BDC).
-3.  Sentinel-2/2A collections available in Digital Earth Africa.
-4.  Data cubes produced by the “gdalcubes” package.
-5.  Local image collections organized as raster stacks.
+The ARD collections accessible with SITS version 0.15.0 are:
 
-SITS relies on STAC services provided by these cloud services. The user
-can define a data cube by selecting a collection in a cloud service and
-then defining a space-time extent. For example, the following code will
-define a data cube of Sentinel-2/2A images using AWS. Users need to
-provide AWS credentials using environment variables.
+1.  Sentinel-2/2A level 2A collections in AWS, including
+    “SENTINEL-S2-L2A-COGS” (open data) and “SENTINEL-S2-L2A” (non open
+    data). These collections are not regular.
+2.  Collections of Sentinel-2, Landsat-8 and CBERS-4 images in BDC
+    (opendata). The BDC collections are regular and openly accessible.
+3.  Sentinel-2/2A and Landsat-8 collections available in Digital Earth
+    Africa. These collections are openly acessible but not regular;
+4.  Landsat-4/5/7/8 collections made available by USGS. These
+    collections are neither openly acessible nor regular.
+
+SITS relies on STAC services to access these collections. The user
+defines a generic data cube by selecting a collection in a cloud service
+and then specifying a space-time extent. For example, the following code
+will define a data cube of Sentinel-2/2A images using AWS.
 
 ``` r
 s2_cube <- sits_cube(source = "AWS",
-                     name = "T20LKP_2018_2019",
-                     collection = "sentinel-s2-l2a",
-                     tiles = c("20LKP"),
-                     start_date = as.Date("2018-07-18"),
-                     end_date = as.Date("2018-07-23"),
-                     s2_resolution = 20
+                     collection = "sentinel-s2-l2a-cogs",
+                     tiles = c("20LKP", "20LLP"),
+                     bands = c("B02", "B03", "B04", "B08", "B8A", "B11")
+                     start_date = as.Date("2018-07-01"),
+                     end_date = as.Date("2018-10-30")
 )
 ```
 
 In the above example, the user has selected the “Sentinel-2 Level 2”
-collection in the AWS cloud services. The geographical area of the data
-cube is defined by the tile “20LKP”, and the temporal extent by a start
-and end date. Access to other cloud services works in similar ways.
+collection in the AWS cloud services which is open data. The
+geographical area of the data cube is defined by the tiles “20LKP” and
+“20LLKP”, and the temporal extent by a start and end date. Access to
+other cloud services works in similar ways.
 
-Users can derive data cubes from ARD data which have pre-defined
-temporal resolutions. For example, a user may want to define the best
-Sentinel-2 pixel in a one month period, as shown below. This can be done
-in SITS by the `sits_regularize` which use the
-[https://github.com/appelmar/gdalcubes](gdalcubes) package. For details
-in gdalcubes, please see Reference \[4\].
+The data cube defined by the above command not regular, since the chosen
+Sentinel-2 bands have different resolutions. Also, tiles “20LKP” and
+“20LLP” have different timelines. Users can derive regular data cubes
+from ARD data which have pre-defined temporal resolutions. This is dones
+by `sits_regularize()` which uses the
+[https://github.com/appelmar/gdalcubes](gdalcubes) package \[4\].
 
 ``` r
 gc_cube <- sits_regularize(cube          = s2_cube,
-                           name          = "T20LKP_2018_2019_1M",
                            output_dir    = tempdir(),
-                           period        = "P1M",
+                           period        = "P15D",
                            agg_method    = "median",
+                           res           = 10, 
                            cloud_mask    = TRUE,
                            multicores    = 2)
 ```
 
+The above command builds a regular data cube with all bands interpolated
+to 10 meter spatial resolution and 15 days temporal resolution.
+
 ### Accessing time series in data cubes
 
-SITS has been designed to use satellite image time series to derive
-machine learning models. After the data cube has been created, time
-series can be retreived individually or by using CSV or SHP files, as in
-the following example.
+In the example below, we will work with a local data cubes, whose data
+has been obtained from the “MOD13Q1-6” collecion of the Brazil Data
+Cube. SITS has been designed to use satellite image time series to
+derive machine learning models. After the data cube has been created,
+time series can be retrieved individually or by using CSV or SHP files,
+as in the following example.
 
 ``` r
 library(sits)
-#> Using configuration file: /home/sits/R/x86_64-pc-linux-gnu-library/4.1/sits/extdata/config.yml
+#> Using configuration file: /Library/Frameworks/R.framework/Versions/4.1-arm64/Resources/library/sits/extdata/config.yml
 #> To provide additional configurations, create an YAML file and inform its path to environment variable 'SITS_CONFIG_USER_FILE'.
 #> Using raster package: terra
 #> SITS - satellite image time series analysis.
-#> Loaded sits v0.14.0-2.
+#> Loaded sits v0.15.0.
 #>         See ?sits for help, citation("sits") for use in publication.
 #>         See demo(package = "sits") for examples.
 # create a cube from a local file 
 data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
 
 raster_cube <- sits_cube(
-    source = "LOCAL",
-    name = "sinop-2014",
-    origin = "BDC",
+    source = "BDC",
     collection = "MOD13Q1-6",
     data_dir = data_dir,
     delim = "_",
@@ -176,11 +193,11 @@ points <- sits_get_data(raster_cube, file = csv_raster_file)
 # show the points
 points[1:3,]
 #> # A tibble: 3 × 7
-#>   longitude latitude start_date end_date   label   cube       time_series      
-#>       <dbl>    <dbl> <date>     <date>     <chr>   <chr>      <list>           
-#> 1     -55.7    -11.8 2013-09-14 2014-08-29 Pasture sinop-2014 <tibble [23 × 3]>
-#> 2     -55.6    -11.8 2013-09-14 2014-08-29 Pasture sinop-2014 <tibble [23 × 3]>
-#> 3     -55.7    -11.8 2013-09-14 2014-08-29 Forest  sinop-2014 <tibble [23 × 3]>
+#>   longitude latitude start_date end_date   label   cube      time_series      
+#>       <dbl>    <dbl> <date>     <date>     <chr>   <chr>     <list>           
+#> 1     -55.7    -11.8 2013-09-14 2014-08-29 Pasture MOD13Q1-6 <tibble [23 × 3]>
+#> 2     -55.6    -11.8 2013-09-14 2014-08-29 Pasture MOD13Q1-6 <tibble [23 × 3]>
+#> 3     -55.7    -11.8 2013-09-14 2014-08-29 Forest  MOD13Q1-6 <tibble [23 × 3]>
 ```
 
 After a time series is imported, it is loaded in a tibble. The first six
@@ -355,9 +372,7 @@ xgb_model <- samples_modis_4bands %>%
 # Cube is composed of MOD13Q1 images from the Sinop region in Mato Grosso (Brazil)
 data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
 sinop <- sits_cube(
-    source = "LOCAL",
-    name = "sinop-2014",
-    origin = "BDC",
+    source = "BDC",
     collection = "MOD13Q1-6",
     data_dir = data_dir,
     delim = "_",

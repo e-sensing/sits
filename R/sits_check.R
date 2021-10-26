@@ -51,6 +51,10 @@
 #' \code{discriminator} parameter.
 #' @param case_sensitive  A \code{logical} indicating if the check is compared
 #' with case sensitive. Default is \code{TRUE}.
+#' @param can_repeat    A \code{logical} value indicating if vector \code{x}
+#' can have repeated elements or not.
+#' @param extensions    A \code{character} vector with all allowed file
+#' extensions.
 #' @param expr          A R \code{expression} to be evaluated.
 #' @param ...           Additional parameters for \code{fn_check} function.
 #'
@@ -496,7 +500,7 @@ NULL
         stop(".check_num: max parameter should be numeric.")
 
     # remove NAs before check
-    res <- x
+    result <- x
     x <- x[!is.na(x)]
     .check_that(
         all(min <= x) && all(x <= max),
@@ -512,7 +516,7 @@ NULL
             msg = msg
         )
 
-    return(invisible(res))
+    return(invisible(result))
 }
 
 #' @rdname check_functions
@@ -608,29 +612,33 @@ NULL
 #' \code{within} values. For the \code{.check_chr_contains()}, the error
 #' message focus on the \code{contains} values. The verification is done
 #' accordingly to the \code{discriminator} parameter, that can be:
-#' \code{one_of}, \code{any_of}, \code{all_of}, or \code{none_of}.
+#' \code{one_of}, \code{any_of}, \code{all_of}, \code{none_of}, or
+#' \code{exactly}.
 #'
 #' \itemize{
 #' \item{
 #' \code{.check_chr_within()} throws an error if provided \code{within} vector
 #' does not correspond to the \code{discriminator} with respect to \code{x}
 #' parameter (e.g. "one of x within...", "all of x within...).
-#' \code{one_of}: only one value (can repeat) of \code{x} appears
-#' in \code{within} vector. \code{any_of}: at least one value (can
-#' repeat) of \code{x} appears in \code{within} vector. \code{all_of}
-#' (default): all values (can repeat) of \code{x} appears in \code{within}
+#' \code{one_of}: only one value (can it repeat?) of \code{x} appears
+#' in \code{within} vector. \code{any_of}: at least one value (can it
+#' repeat?) of \code{x} appears in \code{within} vector. \code{all_of}
+#' (default): all values (can it repeat?) of \code{x} appears in \code{within}
 #' vector. \code{none_of}: no value of \code{x} is in \code{within} vector.
+#' \code{exactly}: value of \code{x} (can it repeat?) is equal to
+#' \code{within} vector.
 #' }
 #' \item{
 #' \code{.check_chr_contains()} throws an error if provided \code{x}
 #' vector does not correspond to the \code{discriminator} with respect to
 #' \code{contains} parameter (e.g. "x contains one of...",
-#' "x contains all of..."). \code{one_of}: only one value (can repeat) of
+#' "x contains all of..."). \code{one_of}: only one value (can it repeat?) of
 #' \code{contains} appears in \code{x} vector. \code{any_of}: at least one
-#' value (can repeat) of \code{contains} appears in \code{x} vector.
-#' \code{all_of} (default): all values (can repeat) of \code{contains}
+#' value (can it repeat?) of \code{contains} appears in \code{x} vector.
+#' \code{all_of} (default): all values (can it repeat?) of \code{contains}
 #' appears in \code{x} vector. \code{none_of}: no value of \code{contains} is
-#' in \code{x} vector.
+#' in \code{x} vector. \code{exactly}: value of \code{contains} is exactly
+#' (can it repeat?) equal to \code{x}.
 #' }
 #' }
 #'
@@ -638,6 +646,7 @@ NULL
                               within, ...,
                               case_sensitive = TRUE,
                               discriminator = "all_of",
+                              can_repeat = TRUE,
                               msg = NULL) {
 
     # pre-condition
@@ -645,38 +654,47 @@ NULL
                msg = "invalid 'within' parameter")
 
     # allowed discriminators and its print values
-    discriminators <- c("one_of" = "one of", "any_of" = "at least one of",
-                        "all_of" = "all of", "none_of" = "none of")
+    discriminators <- c(one_of  = "have only one of",
+                        any_of  = "have at least one of",
+                        all_of  = "have",
+                        none_of = "have none of",
+                        exactly = "have exactly")
 
     if (length(discriminator) != 1 ||
         !discriminator %in% names(discriminators))
         stop(paste(".check_chr_within: discriminator should be one of",
-                   "'one_of', 'any_of', 'all_of', or 'none_of'."),
+                   "'one_of', 'any_of', 'all_of', 'none_of', or 'exactly'."),
              call. = TRUE)
 
     # check type
     .check_chr_type(x, msg = msg)
 
-    res <- x
+    # check for repeated values
+    if (!can_repeat)
+        .check_that(
+            length(x) == length(unique(x)),
+            local_msg = "values can not repeat",
+            msg = msg
+        )
+
+    result <- x
 
     # simplify
     x <- unique(x)
     within <- unique(within)
 
     # transform inputs to verify without case sensitive
+    original_within <- within
     if (!case_sensitive) {
         x <- tolower(x)
         within <- tolower(within)
     }
 
     # prepare local message
-    if (length(within) > 1)
-        local_msg <- sprintf("value should be %s: %s",
-                             discriminators[[discriminator]],
-                             paste0("'", within, "'", collapse = ", "))
-    else
-        local_msg <- sprintf("value should be %s",
-                             paste0("'", within, "'"))
+    local_msg <- sprintf("values should %s: %s",
+                         discriminators[[discriminator]],
+                         paste0("'", original_within, "'",
+                                collapse = ", "))
 
     # check discriminator
     if (discriminator == "one_of")
@@ -703,8 +721,14 @@ NULL
             local_msg = local_msg,
             msg = msg
         )
+    else if (discriminator == "exactly")
+        .check_that(
+            all(x %in% within) && all(within %in% x),
+            local_msg = local_msg,
+            msg = msg
+        )
 
-    return(invisible(res))
+    return(invisible(result))
 }
 
 #' @rdname check_functions
@@ -712,6 +736,7 @@ NULL
                                 contains, ...,
                                 case_sensitive = TRUE,
                                 discriminator = "all_of",
+                                can_repeat = TRUE,
                                 msg = NULL) {
 
     # pre-condition
@@ -719,8 +744,11 @@ NULL
                msg = "invalid 'contains' parameter")
 
     # allowed discriminators and its print values
-    discriminators <- c("one_of" = "only one of", "any_of" = "at least one of",
-                        "all_of" = "all of")
+    discriminators <- c(one_of  = "contain only one of",
+                        any_of  = "contain at least one of",
+                        all_of  = "contain",
+                        none_of = "not contain any of",
+                        exactly = "be exactly")
 
     if (length(discriminator) != 1 ||
         !discriminator %in% names(discriminators))
@@ -731,26 +759,31 @@ NULL
     # check type
     .check_chr_type(x, msg = msg)
 
-    res <- x
+    # check for repeated values
+    if (!can_repeat)
+        .check_that(
+            length(contains) == length(unique(contains)),
+            local_msg = "values can not repeat",
+            msg = msg
+        )
+
+    result <- x
 
     # simplify
     x <- unique(x)
     contains <- unique(contains)
 
     # transform inputs to verify without case sensitive
+    original_contains <- contains
     if (!case_sensitive) {
         x <- tolower(x)
         contains <- tolower(contains)
     }
 
     # prepare local message
-    if (length(contains) > 1)
-        local_msg <- sprintf("value should contain %s: %s",
-                             discriminators[[discriminator]],
-                             paste0("'", contains, "'", collapse = ", "))
-    else
-        local_msg <- sprintf("value should contain %s",
-                             paste0("'", contains, "'"))
+    local_msg <- sprintf("values should %s: %s",
+                         discriminators[[discriminator]],
+                         paste0("'", original_contains, "'", collapse = ", "))
 
     # check discriminator
     if (discriminator == "one_of")
@@ -777,8 +810,14 @@ NULL
             local_msg = local_msg,
             msg = msg
         )
+    else if (discriminator == "exactly")
+        .check_that(
+            all(contains %in% x) && all(x %in% contains),
+            local_msg = local_msg,
+            msg = msg
+        )
 
-    return(invisible(res))
+    return(invisible(result))
 }
 
 #' @rdname check_functions
@@ -793,16 +832,30 @@ NULL
 #' }
 #' }
 .check_file <- function(x, ...,
+                        extensions = NULL,
                         msg = NULL) {
 
-    # check type
+    # file extension
+    ext_file <- function(x) {
+        gsub(pattern = "[^?]+\\.([^?/.]+).*$",
+             replacement = "\\1",
+             basename(x))
+    }
+
+    # check parameter
     .check_chr(x, allow_empty = FALSE, len_min = 1,
                allow_null = FALSE, msg = msg)
+
+    # check extension
+    if (!is.null(extensions))
+        .check_chr_within(ext_file(x), within = extensions,
+                          case_sensitive = FALSE,
+                          msg = "invalid file extension")
 
     existing_files <- file.exists(x)
     .check_that(
         all(existing_files),
-        local_msg = sprintf("file %s does not exist",
+        local_msg = paste("file does not exist:",
                             paste0("'", x[!existing_files], "'",
                                    collapse = ", ")),
         msg = msg
@@ -859,24 +912,24 @@ NULL
 #' }
 .check_warn <- function(expr) {
 
-    res <- tryCatch({
+    result <- tryCatch({
         expr
     }, error = function(e) {
         warning(e$message, call. = FALSE)
     })
 
-    return(invisible(res))
+    return(invisible(result))
 }
 
 #' @rdname check_functions
 .check_error <- function(expr, ...,
                          msg = NULL) {
 
-    res <- tryCatch({
+    result <- tryCatch({
         expr
     }, error = function(e) {
         .check_that(FALSE, local_msg = e$message, msg = msg)
     })
 
-    return(invisible(res))
+    return(invisible(result))
 }

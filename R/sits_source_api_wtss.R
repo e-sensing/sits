@@ -1,12 +1,10 @@
 #' @keywords internal
 #' @export
-.source_access_test.wtss_cube <- function(source, collection, ...) {
+.source_collection_access_test.wtss_cube <- function(source, ..., collection) {
 
     # require package
     if (!requireNamespace("Rwtss", quietly = TRUE)) {
-        stop(paste("Please install package Rwtss from CRAN:",
-                   "install.packages('Rwtss')"), call. = FALSE
-        )
+        stop("Please install package Rwtss", call. = FALSE)
     }
 
     url <- .source_url(source = source)
@@ -33,26 +31,25 @@
                                    collection,
                                    name) {
 
-    cov <- .source_items_new(source = source,
-                             collection = collection, ...)
+    cov <- .source_items_new(source = source, ...,
+                             collection = collection)
 
     file_info <- .source_items_fileinfo(source = source, ...,
                                         collection = collection,
                                         wtss_cov = cov)
 
-    cube <- .source_items_cube(source = source,
+    cube <- .source_items_cube(source = source, ...,
                                collection = collection,
-                               name = name,
                                items = cov,
-                               file_info = file_info, ...)
+                               file_info = file_info)
 
     return(cube)
 }
 
 #' @keywords internal
 #' @export
-.source_items_new.wtss_cube <- function(source = source,
-                                        collection = collection, ...) {
+.source_items_new.wtss_cube <- function(source = source, ...,
+                                        collection = collection) {
 
     # set caller to show in errors
     .check_set_caller(".source_items_new.wtss_cube")
@@ -74,44 +71,38 @@
                                              collection,
                                              wtss_cov) {
 
+    bands <- .source_bands(source = source, collection = collection)
+
     url <- .source_url(source = source)
-    file_info <- tibble::tibble(date = wtss_cov$timeline, path = url)
+    file_info <- tibble::tibble(
+        date = wtss_cov$timeline, path = url, band = bands, res = wtss_cov$xres)
 
     return(file_info)
 }
 
 #' @keywords internal
 #' @export
-.source_items_cube.wtss_cube <- function(source,
+.source_items_cube.wtss_cube <- function(source, ...,
                                          collection,
-                                         name,
                                          items,
-                                         file_info, ...) {
+                                         file_info) {
 
-
-    bands <- .source_bands(source = source, collection = collection)
 
     # create a tibble to store the metadata
-    cube_wtss <- .sits_cube_create(
-        name = name,
+    cube_wtss <- .cube_create(
         source = source,
         collection = collection,
         satellite = .source_collection_satellite(source, collection),
         sensor = .source_collection_sensor(source, collection),
-        bands = bands,
-        nrows = items$nrows,
-        ncols = items$ncols,
         xmin = items$xmin,
         xmax = items$xmax,
         ymin = items$ymin,
         ymax = items$ymax,
-        xres = items$xres,
-        yres = items$yres,
         crs  = items$crs,
         file_info = file_info
     )
 
-    class(cube_wtss) <- c("wtss_cube", class(cube_wtss))
+    class(cube_wtss) <- .cube_s3class(cube_wtss)
 
     return(cube_wtss)
 }

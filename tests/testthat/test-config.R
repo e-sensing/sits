@@ -40,12 +40,6 @@ test_that("User functions", {
     )
 
     expect_equal(
-        .sources(),
-        c("CLASSIFIED", "PROBS", "BDC", "WTSS", "SATVEG", "AWS", "OPENDATA",
-          "DEAFRICA", "LOCAL")
-    )
-
-    expect_equal(
         .config_palettes(),
         "default"
     )
@@ -83,12 +77,6 @@ test_that("User functions", {
     )
 
     expect_equal(
-        .sources(),
-        c("CLASSIFIED", "PROBS", "BDC", "WTSS", "SATVEG", "AWS", "OPENDATA",
-          "DEAFRICA", "LOCAL")
-    )
-
-    expect_equal(
         .config_palettes(),
         c("default", "my_project")
     )
@@ -112,8 +100,8 @@ test_that("User functions", {
     )
     expect_equal(
         unname(.config_palette_colors(labels = c("Cropland", "Deforestation",
-                                          "Forest", "Grassland", "NonForest"),
-                               palette = "my_project")),
+                                                 "Forest", "Grassland", "NonForest"),
+                                      palette = "my_project")),
         c("khaki", "sienna", "darkgreen", "lightgreen",
           "lightsteelblue1")
     )
@@ -148,12 +136,6 @@ test_that("User functions", {
     )
 
     expect_equal(
-        .sources(),
-        c("CLASSIFIED", "PROBS", "BDC", "WTSS", "SATVEG", "AWS", "OPENDATA",
-          "DEAFRICA", "LOCAL")
-    )
-
-    expect_equal(
         .config_palettes(),
         c("default", "my_project")
     )
@@ -161,13 +143,6 @@ test_that("User functions", {
     config_txt <- capture.output({
         sits_config_show()
     })
-
-    expect_true(
-        any(grepl(
-            "- CLASSIFIED, PROBS, BDC, WTSS, SATVEG, AWS, OPENDATA, DEAFRICA, LOCAL",
-            config_txt
-        ))
-    )
 
     config_txt <- capture.output({
         sits_config_show(source = "BDC")
@@ -198,7 +173,7 @@ test_that("User functions", {
 
     expect_true(
         any(grepl(
-            "Water: royalblue3",
+            "Forest: '#00441B'",
             config_txt
         ))
     )
@@ -217,25 +192,19 @@ test_that("User functions", {
                         offset_value  = -0.2,
                         resampling    = "bilinear",
                         band_name     = "SR_B2",
-                        resolutions   = 30),
+                        resolution    = 30),
                     CLOUD = .config_new_cloud_band(
                         bit_mask      = TRUE,
                         values        = list(),
                         interp_values = 1,
                         resampling    = "near",
-                        resolutions   = 30,
+                        resolution    = 30,
                         band_name     = "QA_PIXEL")
                 ),
                 satellite = "SENTINEL-2",
                 sensor = "MSI")
             )
         )))
-
-    expect_equal(
-        .sources(),
-        c("CLASSIFIED", "PROBS", "BDC", "WTSS", "SATVEG", "AWS", "OPENDATA",
-          "DEAFRICA", "LOCAL", "TEST")
-    )
 
     expect_equal(
         .source_url(source = "TEST"),
@@ -318,7 +287,7 @@ test_that("User functions", {
 
 })
 
-test_that("Configs", {
+test_that("Configs AWS", {
 
     expect_error(
         .config_get(key = c("zzz")),
@@ -341,17 +310,11 @@ test_that("Configs", {
     )
 
     expect_equal(
-        .source_collection_aws(source = "AWS",
-                               collection = "SENTINEL-S2-L2A"),
+        .source_collection_access_vars_set(source = "AWS",
+                                           collection = "SENTINEL-S2-L2A"),
         list(AWS_DEFAULT_REGION = "eu-central-1",
-             AWS_S3_ENDPOINT = "s3.amazonaws.com",
-             AWS_REQUEST_PAYER = "requester")
-    )
-
-    expect_equal(
-        .source_collection_aws(source = "BDC",
-                               collection = "CB4_64-1"),
-        list()
+             AWS_S3_ENDPOINT    = "s3.amazonaws.com",
+             AWS_REQUEST_PAYER  = "requester")
     )
 
     expect_true(
@@ -363,15 +326,9 @@ test_that("Configs", {
     )
 
     expect_equal(
-        .source_collection_aws_check(source = "AWS",
-                                     collection = "SENTINEL-S2-L2A"),
-        NULL
-    )
-
-    expect_error(
-        .source_collection_aws_check(source = "BDC",
-                                     collection = "CB4_64-1"),
-        "missing AWS_DEFAULT_REGION, AWS_S3_ENDPOINT and, AWS_REQUEST_PAYER"
+        .source_collection_token_check(source = "AWS",
+                                       collection = "SENTINEL-S2-L2A"),
+        c("AWS_ACCESS_KEY_ID","AWS_SECRET_ACCESS_KEY")
     )
 
     expect_equal(
@@ -398,12 +355,51 @@ test_that("Configs", {
     )
 
     expect_equal(
-        .source_bands_reap(source = "BDC",
-                           collection = "CB4_64-1",
-                           key = "resampling",
-                           bands = c("NDVI", "EVI"),
-                           default = NA_character_),
-        list(NDVI = "bilinear", EVI = "bilinear")
+        .source_bands_resolution(source = "AWS",
+                                  collection = "SENTINEL-S2-L2A",
+                                  bands = c("B01", "B03")),
+        list(B01 = 60, B03 = 10)
+    )
+
+    expect_equal(
+        .source_cloud(),
+        "CLOUD"
+    )
+
+})
+
+test_that("Configs WTSS", {
+
+    expect_equal(
+        names(.source_cloud_values(source = "WTSS",
+                                   collection = "CB4_64-1")),
+        c("0", "127", "255")
+    )
+
+    expect_equal(
+        .source_cloud_interp_values(source = "WTSS",
+                                    collection = "S2-SEN2COR_10_16D_STK-1"),
+        c(0, 1, 2, 3, 8, 9, 10, 11)
+    )
+})
+
+test_that("Configs WTSS", {
+
+    bdc_access_key <- Sys.getenv("BDC_ACCESS_KEY")
+
+    testthat::skip_if(nchar(bdc_access_key) == 0,
+                      message = "No BDC_ACCESS_KEY defined in environment.")
+
+    expect_equal(
+        .source_collection_token_check(source = "BDC",
+                                       collection = "CB4_64-1"),
+        "BDC_ACCESS_KEY"
+    )
+
+    expect_equal(
+        .source_collection_access_vars_set(source = "BDC",
+                                           collection = "CB4_64-1"),
+        list()
     )
 
     expect_error(
@@ -414,40 +410,16 @@ test_that("Configs", {
                "\\$NDVI\\$zzz' not found")
     )
 
-    expect_equal(
-        .source_bands_band_name(source = "BDC",
-                                collection = "MOD13Q1-6",
-                                bands = c("BLUE", "RED")),
-        c("blue_reflectance", "red_reflectance")
-    )
-
-    expect_equal(
-        .source_bands_resolutions(source = "AWS",
-                                  collection = "SENTINEL-S2-L2A",
-                                  bands = c("B01", "B03")),
-        list(B01 = 60, B03 = c(10, 20, 60))
-    )
-
-    expect_equal(
-        .source_cloud(),
-        "CLOUD"
-    )
-
     expect_false(
         .source_cloud_bit_mask(source = "BDC",
                                collection = "CB4_64_16D_STK-1")
     )
 
     expect_equal(
-        names(.source_cloud_values(source = "WTSS",
-                                   collection = "CB4_64-1")),
-        c("0", "127", "255")
-    )
-
-    expect_equal(
-        .source_cloud_interp_values(source = "WTSS",
-                                    collection = "S2_10-1"),
-        c(2, 3, 4, 255)
+        .source_bands_band_name(source = "BDC",
+                                collection = "MOD13Q1-6",
+                                bands = c("BLUE", "RED")),
+        c("blue_reflectance", "red_reflectance")
     )
 })
 

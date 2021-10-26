@@ -1,9 +1,11 @@
 #' @title Creates a regularized data cube from an irregular one
+#'
 #' @name sits_regularize
+#'
 #' @description Creates cubes with regular time intervals
-#'  using the gdalcubes package. Cubes are composed using "min", "max", "mean",
-#' "median" or "first" functions. Users need to provide an
-#'  time interval which is used by the composition function.
+#'  using the gdalcubes package. Cubes can be composed using "min", "max",
+#'  "mean", "median" or "first" functions. Users need to provide an time
+#'  interval which is used by the composition function.
 #'
 #' @references APPEL, Marius; PEBESMA, Edzer. On-demand processing of data cubes
 #'  from satellite image collections with the gdalcubes library. Data, v. 4,
@@ -22,34 +24,31 @@
 #' # define an AWS data cube
 #'   s2_cube <- sits_cube(source = "AWS",
 #'                       name = "T20LKP_2018_2019",
-#'                       collection = "sentinel-s2-l2a",
+#'                       collection = "sentinel-s2-l2a-cogs",
 #'                       bands = c("B08", "SCL"),
 #'                       tiles = c("20LKP"),
 #'                       start_date = as.Date("2018-07-18"),
-#'                       end_date = as.Date("2018-08-18"),
-#'                       s2_resolution = 60
-#' )
+#'                       end_date = as.Date("2018-08-18")
+#'   )
 #'
 #' # create a directory to store the resulting images
 #' dir.create(paste0(tempdir(),"/images/"))
 #'
-#'  # Build a data cube of equal intervals using the "gdalcubes" package
-#' gc_cube <- sits_regularize(cube   = s2_cube,
-#'                      name          = "T20LKP_2018_2019_1M",
-#'                      dir_images   = paste0(tempdir(),"/images/"),
-#'                      period        = "P1M",
-#'                      agg_method    = "median",
-#'                      resampling    = "bilinear",
-#'                      cloud_mask    = TRUE)
+#' # Build a data cube of equal intervals using the "gdalcubes" package
+#' gc_cube <- sits_regularize(cube       = s2_cube,
+#'                            output_dir = paste0(tempdir(),"/images/"),
+#'                            period     = "P1M",
+#'                            agg_method = "median",
+#'                            resampling = "bilinear",
+#'                            cloud_mask = TRUE)
 #' }
 #' }
 #'
 #' @param cube       A \code{sits_cube} object whose spacing of observation
 #'  times is not constant and will be regularized by the \code{gdalcubes}
 #'  package.
-#' @param name       A \code{character} with name of the output data cube
-#' @param output_dir A \code{character} with a directory where the regularized
-#'  images will be written by \code{gdalcubes}.
+#' @param output_dir A \code{character} with a valid directory where the
+#'  regularized images will be written by \code{gdalcubes}.
 #' @param period     A \code{character} with ISO8601 time period for regular
 #'  data cubes produced by \code{gdalcubes}, with number and unit, e.g., "P16D"
 #'  for 16 days. Use "D", "M" and "Y" for days, month and year.
@@ -81,12 +80,12 @@
 #'
 #' @export
 sits_regularize <- function(cube,
-                            name,
                             output_dir,
                             period  = NULL,
                             res     = NULL,
                             roi     = NULL,
-                            agg_method = NULL,
+                            agg_method = "median",
+                            resampling = "bilinear",
                             cloud_mask = TRUE,
                             multicores = 1) {
 
@@ -94,18 +93,14 @@ sits_regularize <- function(cube,
     .check_set_caller("sits_regularize")
 
     # require gdalcubes package
-    if (!requireNamespace("gdalcubes", quietly = TRUE)) {
-        stop(paste("Please install package gdalcubes from CRAN:",
-                   "install.packages('gdalcubes')"), call. = FALSE
-        )
-    }
+    if (!requireNamespace("gdalcubes", quietly = TRUE))
+        stop("Please install package gdalcubes", call. = FALSE)
 
-    # supported  cubes
-    .check_chr_within(
-        x = .sits_cube_source(cube),
-        within = c("AWS", "OPENDATA"),
-        msg = paste("for the time being only the 'AWS' and 'OPENDATA' cubes",
-                    "can be regularized.")
+    # collections
+    .check_null(.source_collection_gdal_config(.cube_source(cube),
+                                               .cube_collection(cube)),
+                msg = "sits_regularize not available for collection ",
+                cube$collection, " from ", cube$source
     )
 
     .check_num(
@@ -121,9 +116,9 @@ sits_regularize <- function(cube,
     # test if provided object its a sits cube
     .check_that(
         x = inherits(cube, "raster_cube"),
-        msg = paste("The provided cube is invalid,",
+        msg = paste("provided cube is invalid,",
                     "please provide a 'raster_cube' object.",
-                    "See '?sits_cube' for more information.")
+                    "see '?sits_cube' for more information.")
     )
 
     # fix slashes for windows
@@ -132,18 +127,21 @@ sits_regularize <- function(cube,
     # verifies the path to save the images
     .check_that(
         x = dir.exists(output_dir),
-        msg = "Invalid 'output_dir' parameter.."
+        msg = "invalid 'output_dir' parameter."
     )
 
     path_db <- paste0(output_dir, "/gdalcubes.db")
 
-    # filter only intersecting tiles
-    intersects <- slider::slide_lgl(cube,
-                                    .sits_raster_sub_image_intersects,
-                                    roi)
+    if (!is.null(roi)) {
 
-    # retrieve only intersecting tiles
-    cube <- cube[intersects, ]
+        # filter only intersecting tiles
+        intersects <- slider::slide_lgl(cube,
+                                        .sits_raster_sub_image_intersects,
+                                        roi)
+
+        # retrieve only intersecting tiles
+        cube <- cube[intersects, ]
+    }
 
     # get the interval of intersection in all tiles
     interval_intersection <- function(cube) {
@@ -173,9 +171,6 @@ sits_regularize <- function(cube,
     # timeline of intersection
     toi <- interval_intersection(cube)
 
-    # fix cube name
-    cube <- .sits_cube_fix_name(cube)
-
     # create an image collection
     img_col <- .gc_create_database(cube = cube, path_db = path_db)
 
@@ -187,11 +182,11 @@ sits_regularize <- function(cube,
                                    roi = roi,
                                    res = res,
                                    toi = toi,
-                                   agg_method = agg_method)
+                                   agg_method = agg_method,
+                                   resampling = resampling)
 
         # create of the aggregate cubes
         gc_tile <- .gc_new_cube(tile = tile,
-                                name = name,
                                 cv = cv,
                                 img_col = img_col,
                                 path_db = path_db,
@@ -204,7 +199,7 @@ sits_regularize <- function(cube,
     # reset global option
     gdalcubes::gdalcubes_options(threads = 1)
 
-    class(gc_cube) <- c("raster_cube", class(gc_cube))
+    class(gc_cube) <- .cube_s3class(gc_cube)
 
     return(gc_cube)
 }

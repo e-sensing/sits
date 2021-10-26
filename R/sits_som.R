@@ -127,8 +127,7 @@ sits_som_map <- function(data,
 
     # verifies if kohonen package is installed
     if (!requireNamespace("kohonen", quietly = TRUE)) {
-        stop("kohonen needed for this function to work.
-              Please install it.", call. = FALSE)
+        stop("Please install package kohonen", call. = FALSE)
     }
 
     # does the input data exist?

@@ -6,7 +6,6 @@
 \usage{
 .gc_new_cube(
   tile,
-  name,
   cv,
   img_col,
   path_db,
@@ -18,8 +17,6 @@
 }
 \arguments{
 \item{tile}{A data cube tile}
-
-\item{name}{Name of the new data cube}
 
 \item{cv}{A \code{list} 'cube_view' with values from cube.}
 

@@ -59,48 +59,48 @@
     items
 }
 
-.source_access_test.usgs_cube <- function(source, collection, ..., bands) {
+.source_collection_access_test.usgs_cube <- function(source, ..., collection, bands) {
 
     # require package
     if (!requireNamespace("rstac", quietly = TRUE)) {
-        stop(paste("Please install package rstac from CRAN:",
-                   "install.packages('rstac')"), call. = FALSE
-        )
+        stop("Please install package rstac", call. = FALSE)
     }
 
     items_query <- .stac_items_query(source = source,
                                      collection = collection,
                                      limit = 1, ...)
 
-    items_query$version <- "0.9.0"
+
+    items_query$version <- .config_get(key = c("sources", source,
+                                               "rstac_version"))
 
     items_query <- rstac::ext_query(q = items_query,
-                                    "collection" %in% collection,
+                                    "landsat:correction" %in% "L2SR",
                                     "platform" %in% "LANDSAT_8",
-                                    "landsat:collection_category" %in% "T1")
+                                    "landsat:collection_number" %in% "02")
 
     # assert that service is online
     tryCatch({
         items <- rstac::post_request(items_query)
     }, error = function(e) {
-        stop(paste(".source_access_test.stac_cube: service is unreachable\n",
-                   e$message), call. = FALSE)
+        stop(paste(".source_collection_access_test.usgs_cube: service is",
+                   "unreachable\n", e$message), call. = FALSE)
     })
 
-    items <- .source_items_bands_select(source = source,
+    items <- .source_items_bands_select(source = source, ...,
                                         collection = collection,
                                         items = items,
-                                        bands = bands[[1]], ...)
+                                        bands = bands[[1]])
 
-    href <- .source_item_get_hrefs(source = source,
-                                   item = items$feature[[1]], ...,
+    href <- .source_item_get_hrefs(source = source, ...,
+                                   item = items$feature[[1]],
                                    collection = collection)
 
     # assert that token and/or href is valid
     tryCatch({
         .raster_open_rast(href)
     }, error = function(e) {
-        stop(paste(".source_access_test.stac_cube: cannot open url\n",
+        stop(paste(".source_collection_access_test.usgs_cube: cannot open url\n",
                    href, "\n", e$message), call. = FALSE)
     })
 
@@ -109,23 +109,14 @@
 
 #' @keywords internal
 #' @export
-.source_item_get_date.usgs_cube <- function(source,
-                                            item, ...,
-                                            collection = NULL) {
-    item[[c("properties", "datetime")]]
-}
-
-#' @keywords internal
-#' @export
-.source_item_get_hrefs.usgs_cube <- function(source,
-                                             item, ...,
+.source_item_get_hrefs.usgs_cube <- function(source, ...,
+                                             item,
                                              collection = NULL) {
 
-    href <- stringr::str_replace(
-        string = unname(purrr::map_chr(item[["assets"]], `[[`, "href")),
-        pattern = "^(https://landsatlook.usgs.gov/data)",
-        replacement = "s3://usgs-landsat"
-    )
+
+    href <- purrr::map_chr(item[["assets"]], function(x) {
+        x[["alternate"]][[c("s3", "href")]]
+    })
 
     # add gdal vsi in href urls
     return(.stac_add_gdal_vsi(href))
@@ -133,24 +124,8 @@
 
 #' @keywords internal
 #' @export
-.source_item_get_bands.usgs_cube <- function(source,
-                                             item, ...,
-                                             collection = NULL) {
-    names(item[["assets"]])
-}
-
-#' @keywords internal
-#' @export
-.source_item_get_resolutions.usgs_cube <- function(source,
-                                                   item, ...,
-                                                   collection = NULL) {
-    item[[c("properties", "eo:gsd")]]
-}
-
-#' @keywords internal
-#' @export
-.source_items_new.usgs_cube <- function(source,
-                                        collection, ...,
+.source_items_new.usgs_cube <- function(source, ...,
+                                        collection,
                                         stac_query,
                                         tiles = NULL) {
 
@@ -160,11 +135,22 @@
     # forcing version
     stac_query$version <- "0.9.0"
 
+    # get start and end date
+    datetime <- strsplit(x = stac_query$params$datetime, split = "/")[[1]]
+
+    # request with more than searched items throws 502 error
+    stac_query$params$limit <- 300
+
     # adding search filter in query
-    stac_query <- rstac::ext_query(q = stac_query,
-                                   "collection" %in% collection,
-                                   "platform" %in% "LANDSAT_8",
-                                   "landsat:collection_category" %in% "T1")
+    stac_query <- rstac::ext_query(
+        q = stac_query,
+        "landsat:correction" %in% c("L2SR", "L2SP"),
+        "landsat:collection_category" %in% c("T1", "T2"),
+        "landsat:collection_number" %in% "02",
+        "platform" %in% "LANDSAT_8",
+        "datetime" >= datetime[[1]],
+        "datetime" <= datetime[[2]]
+    )
 
     # if specified, a filter per tile is added to the query
     if (!is.null(tiles)) {
@@ -183,26 +169,25 @@
     # making the request
     items <- rstac::post_request(q = stac_query, ...)
 
+    items$features <- items$features[grepl("_SR$",
+                                           rstac::items_reap(items, "id"))]
+
     # checks if the collection returned zero items
     .check_that(
         x = !(rstac::items_length(items) == 0),
         msg = "the provided search returned zero items."
     )
 
-    # filtering images by interval
-    items_info <- .usgs_filter_datetime(items = items,
-                                        datetime = stac_query$params$datetime)
-
     # if more than 2 times items pagination are found the progress bar
     # is displayed
-    matched_items  <- rstac::items_matched(items_info,
+    matched_items  <- rstac::items_matched(items = items,
                                            matched_field = c("meta", "found"))
 
     pgr_fetch <- matched_items > 2 * .config_rstac_limit()
 
 
     # fetching all the metadata and updating to upper case instruments
-    items_info <- rstac::items_fetch(items = items_info,
+    items_info <- rstac::items_fetch(items = items,
                                      progress = pgr_fetch,
                                      matched_field = c("meta", "found"))
     return(items_info)
@@ -210,8 +195,8 @@
 
 #' @keywords internal
 #' @export
-.source_items_tiles_group.usgs_cube <- function(source,
-                                                items, ...,
+.source_items_tiles_group.usgs_cube <- function(source, ...,
+                                                items,
                                                 collection = NULL) {
 
     # store tile info in items object
@@ -233,57 +218,9 @@
                                                  tile_items, ...,
                                                  collection = NULL) {
 
-    href <- .source_item_get_hrefs(source = source,
-                                   item = tile_items[["features"]][[1]], ...,
-                                   collection = collection)
-
-    # read the first image and obtain crs attribute
-    params <- .raster_params_file(href)
-
+    epsg_code <- tile_items[["features"]][[1]][[c("properties", "proj:epsg")]]
     # format collection crs
-    crs <- .sits_proj_format_crs(params[["crs"]])
+    crs <- .sits_proj_format_crs(epsg_code)
 
     return(crs)
-}
-
-#' @keywords internal
-#' @export
-.source_items_tile_get_name.usgs_cube <- function(source,
-                                                  tile_items, ...,
-                                                  collection = NULL) {
-
-    tile_items[["features"]][[1]][[c("properties", "tile")]]
-}
-
-#' @keywords internal
-#' @export
-.source_items_tile_get_bbox.usgs_cube <- function(source,
-                                                  tile_items, ...,
-                                                  collection = NULL) {
-    # get collection crs
-    crs <- .source_items_tile_get_crs(source = source,
-                                      tile_items = tile_items,
-                                      collection = collection)
-
-    bbox <- .stac_get_bbox(tile_items, crs)
-
-    return(bbox)
-}
-
-#' @keywords internal
-#' @export
-.source_items_tile_get_size.usgs_cube <- function(source,
-                                                  tile_items, ...,
-                                                  collection = NULL) {
-
-    href <- .source_item_get_hrefs(source = source,
-                                   item = tile_items[["features"]][[1]], ...,
-                                   collection = collection)
-
-    # read the first image and obtain the size parameters
-    params <- .raster_params_file(href)
-
-    size <- c(nrows = params[["nrows"]], ncols = params[["ncols"]])
-
-    return(size)
 }

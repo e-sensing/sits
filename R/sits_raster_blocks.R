@@ -102,7 +102,7 @@
 #' @keywords internal
 #' @param  nblocks         number of blocks to read from each image
 #' @param  sub_image       nrea of interest in the image
-#' @return        a list with named vectors ("row", "nrows", "col", "ncols")
+#' @return        a list with named vectors ("first_row", "nrows", "first_col", "ncols")
 #'
 .sits_raster_block_list <- function(nblocks, sub_image) {
 
@@ -146,9 +146,9 @@
     # col        first col
     # ncols      number of cols in each block
     blocks <- purrr::map2(row_vec, nrows_vec, function(rv, nr){
-        block <- c("row"   = rv,
+        block <- c("first_row"   = rv,
                    "nrows" = nr,
-                   "col"   = unname(sub_image["first_col"]),
+                   "first_col"   = unname(sub_image["first_col"]),
                    "ncols" = unname(sub_image["ncols"])
         )
 

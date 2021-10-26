@@ -22,8 +22,6 @@ computes the best number of clusters that maximizes the adjusted Rand index.
 \references{
 Lawrence Hubert and Phipps Arabie. Comparing partitions.
 Journal of Classification, 2, p.193--218, 1985.
-
-See \link[flexclust]{randIndex} for implementation details.
 }
 \author{
 Rolf Simoes, \email{rolf.simoes@inpe.br}

@@ -2,9 +2,39 @@
 
 We are preparing to release the package on CRAN and are making relevant changes in the development version.
 
+# What's new in SITS version 0.15.0 
+
+### New features in SITS version 0.15.0
+
+* Support for regularization of collections in DEAFRICA and USGS improvement
+* Collection `S2_10_16D_STK-1` removed from BDC source in config file
+* Add a color for `NoClass` label improvement
+* Change `mapview` to `leaflet` package
+* Standardize cube creation parameters
+* Remove `CLASSIFIED` and `PROBS` sources from config file
+* Change minimal version requirement of `terra` package to 1.4-11
+* Update `sits_list_collections()` to indicate open data collection
+* Geographical visualization of samples
+* Remove dependencies on packages `ptw`, `signal` and `MASS`
+* Add support to `open_data` collections in config file
+* Change default `output_dir` parameter
+* Remove `sits_cube_clone()` function
+* Plot RGB images from raster cubes
+* Fixed error in `sits_select()` for bands in raster cube
+* Update examples in demo
+* Support open data collections of DEAFRICA and AWS
+* Support USGS STAC Landsat 8 catalog
+* User can provide resampling method to `sits_regularize()` function
+* Add support to open data collections on 'AWS' source
+* Remove `OPENDATA` source
+* Update documentation
+* Resolve ambiguity in "bands" parameter for data cubes
+* Remove "sits_bands" assignment function
+* Include "labels" information only on probs and labelled data cubes
+* Remove `S2_10-1` BDC collection from config
+* Other bug fixes
 
 # What's new in SITS version 0.14.1
-
 
 ### New features in SITS version 0.14.1-1
 

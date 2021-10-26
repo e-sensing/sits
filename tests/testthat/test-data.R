@@ -304,9 +304,7 @@ test_that("Reading a LAT/LONG from RASTER", {
     data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
     raster_cube <- tryCatch({
         sits_cube(
-            source = "LOCAL",
-            name = "sinop-2014",
-            origin = "BDC",
+            source  = "BDC",
             collection = "MOD13Q1-6",
             data_dir = data_dir,
             delim = "_",
@@ -335,9 +333,7 @@ test_that("Reading a CSV file from RASTER", {
     data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
     raster_cube <- tryCatch({
         sits_cube(
-            source = "LOCAL",
-            name = "sinop-2014",
-            origin = "BDC",
+            source = "BDC",
             collection = "MOD13Q1-6",
             data_dir = data_dir,
             delim = "_",
@@ -383,7 +379,6 @@ test_that("Test reading shapefile from BDC", {
         sits_cube(
             source = "BDC",
             collection = "CB4_64_16D_STK-1",
-            name = "cbers_stac",
             bands = c("NDVI", "EVI"),
             tiles = c("022024", "022025"),
             start_date = "2018-09-01",

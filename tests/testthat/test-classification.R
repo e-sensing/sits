@@ -4,13 +4,20 @@ test_that("Classify with random forest - single core and multicore", {
 
     expect_type(rfor_model, "closure")
     point_ndvi <- sits_select(point_mt_6bands, bands = "NDVI")
-    class_ndvi <- sits_classify(point_ndvi, rfor_model)
+    class_ndvi <- sits_classify(
+        data = point_ndvi,
+        ml_model = rfor_model
+    )
 
     expect_true(nrow(class_ndvi$predicted[[1]]) == 17)
     expect_true(all(class_ndvi$predicted[[1]]$class %in%
         sits_labels(samples_mt_ndvi)))
     point_ndvi <- sits_select(point_mt_6bands, bands = "NDVI")
-    class_ndvi <- sits_classify(point_ndvi, rfor_model, multicores = 2)
+    class_ndvi <- sits_classify(
+        data = point_ndvi,
+        ml_model = rfor_model,
+        multicores = 2
+    )
 
     expect_true(nrow(class_ndvi$predicted[[1]]) == 17)
     expect_true(all(class_ndvi$predicted[[1]]$class %in%
@@ -64,6 +71,9 @@ test_that("Classify error bands 1", {
     point <- sits_select(point_mt_6bands, "EVI")
 
     expect_error(
-        sits_classify(point, model)
+        sits_classify(
+            data = point,
+            ml_model = model
+        )
     )
 })

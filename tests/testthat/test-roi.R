@@ -6,9 +6,7 @@ test_that("One-year, multicore classification with ROI", {
 
     data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
     sinop <- sits_cube(
-        source = "LOCAL",
-        name = "sinop-2014",
-        origin = "BDC",
+        source = "BDC",
         collection = "MOD13Q1-6",
         data_dir = data_dir,
         delim = "_",
@@ -21,11 +19,12 @@ test_that("One-year, multicore classification with ROI", {
 
     sinop_probs <- tryCatch({
         suppressMessages(
-            sits_classify(sinop,
-                          svm_model,
-                          output_dir = tempdir(),
-                          roi = bbox,
-                          memsize = 4, multicores = 2
+            sits_classify(
+                data = sinop,
+                ml_model = svm_model,
+                output_dir = tempdir(),
+                roi = bbox,
+                memsize = 4, multicores = 2
             )
         )
     },
@@ -58,9 +57,7 @@ test_that("Functions that work with ROI", {
 
     data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
     cube <- sits_cube(
-        source = "LOCAL",
-        name = "sinop-2014",
-        origin = "BDC",
+        source = "BDC",
         collection = "MOD13Q1-6",
         data_dir = data_dir,
         delim = "_",
@@ -102,9 +99,7 @@ test_that("Internal functions in ROI", {
 
     data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
     cube <- sits_cube(
-        source = "LOCAL",
-        name = "sinop-2014",
-        origin = "BDC",
+        source = "BDC",
         collection = "MOD13Q1-6",
         data_dir = data_dir,
         delim = "_",

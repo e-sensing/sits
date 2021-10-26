@@ -9,8 +9,6 @@
 #'    returns trained models. Currenly, sits supports the following models:
 #' 'svm' (see \code{\link[sits]{sits_svm}}),
 #' random forests (see \code{\link[sits]{sits_rfor}}),
-#' linear discriminant analysis (see \code{\link[sits]{sits_lda}}),
-#' quadratic discriminant analysis (see \code{\link[sits]{sits_qda}}),
 #' multinomial logit (see \code{\link[sits]{sits_mlr}}) and its variants
 #' 'lasso' (see \code{\link[sits]{sits_mlr}}) and
 #' 'ridge' (see \code{\link[sits]{sits_mlr}}),
@@ -67,196 +65,6 @@ sits_train <- function(data, ml_method = sits_svm()) {
     return(result)
 }
 
-#' @title Train a sits classification model using linear discriminant analysis
-#' @name sits_lda
-#'
-#' @author Alexandre Ywata de Carvalho, \email{alexandre.ywata@@ipea.gov.br}
-#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
-#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
-#'
-#' @description This function receives a tibble with a set of attributes X
-#' for each observation Y. These attributes are the values of the time series
-#' for each band. The method performs a linear discriminant analysis (lda)
-#' to obtain a predictive model.
-#' This function is a front-end to the "lda" method in the "MASS" package.
-#' Please refer to the documentation in that package for more details.
-#'
-#' @param data             Time series with the training samples.
-#' @param formula          A symbolic description of the model to be fit.
-#'                         (default: sits_formula_logref).
-#' @param ...              Other parameters to be passed to MASS::lda function.
-#' @return                 Model fitted to input data
-#'                         to be passed to \code{\link[sits]{sits_classify}}
-#'
-#' @examples
-#' \dontrun{
-#'
-#' # Retrieve the set of samples for Mato Grosso region (provided by EMBRAPA)
-#' samples_2bands <- sits_select(samples_modis_4bands, bands = c("NDVI", "EVI"))
-#'
-#' # Build a machine learning model
-#' ml_model <- sits_train(samples_2bands, sits_lda())
-#'
-#' # get a point and classify the point with the ml_model
-#' point.tb <- sits_select(point_mt_6bands, bands = c("NDVI", "EVI"))
-#' class.tb <- sits_classify(point.tb, ml_model)
-#' plot(class.tb, bands = c("NDVI", "EVI"))
-#' }
-#'
-#' @export
-#'
-sits_lda <- function(data = NULL, formula = sits_formula_logref(), ...) {
-
-    # set caller to show in errors
-    .check_set_caller("sits_lda")
-
-    # function that returns MASS::lda model based on a sits sample tibble
-    result_fun <- function(data) {
-
-        # verifies if MASS package is installed
-        if (!requireNamespace("MASS", quietly = TRUE)) {
-            stop(paste("MASS required for this function to work.",
-                       "Please install it."), call. = FALSE)
-        }
-
-        # data normalization
-        stats <- .sits_ml_normalization_param(data)
-        train_data <- .sits_distances(.sits_ml_normalize_data(data, stats))
-
-        # is the input data the result of a TWDTW matching function?
-        .check_chr_within(
-            x = "reference",
-            within = names(train_data),
-            discriminator = "any_of",
-            msg = "input data does not contain distance"
-        )
-
-        # if parameter formula is a function
-        # Call it passing as argument the input data sample.
-        # The function must return a valid formula.
-        if (inherits(formula, "function")) {
-            formula <- formula(train_data)
-        }
-
-        # call MASS::lda method and return the trained lda model
-        result_lda <- MASS::lda(
-            formula = formula,
-            data = train_data, ...,
-            na.action = stats::na.fail
-        )
-
-        # construct model predict closure function and returns
-        model_predict <- function(values) {
-
-            # verifies if MASS package is installed
-            if (!requireNamespace("MASS", quietly = TRUE)) {
-                stop(paste("MASS required for this function to work.",
-                           "Please install it."), call. = FALSE)
-            }
-
-            # retrieve the prediction (values and probs)
-            preds <- stats::predict(result_lda, newdata = values)
-
-            # return probabilities
-            prediction <- data.table::as.data.table(preds$posterior)
-
-            return(prediction)
-        }
-        class(model_predict) <- c("lda_model", "sits_model",
-                                  class(model_predict))
-        return(model_predict)
-    }
-
-    result <- .sits_factory_function(data, result_fun)
-    return(result)
-}
-
-#' @title Train a classification model using quadratic discriminant analysis
-#' @name sits_qda
-#'
-#' @author Alexandre Ywata de Carvalho, \email{alexandre.ywata@@ipea.gov.br}
-#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
-#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
-#'
-#' @description This function receives a tibble with a set of attributes X
-#' for each observation Y. These attributes are the values of the time series
-#' for each band. The function performs a quadratic discriminant analysis (qda)
-#' to obtain a predictive model.
-#' This function is a front-end to the "qda" method in the "MASS" package.
-#' Please refer to the documentation in that package for more details.
-#'
-#' @param data      Time series with the training samples.
-#' @param formula   Symbolic description of the model to be fit.
-#'                  (default: sits_formula_logref).
-#' @param ...       Other parameters to be passed to MASS::qda function.
-#' @return          Model fitted to input data
-#'                  (to be passed to \code{\link[sits]{sits_classify}})
-#'
-#' @examples
-#' # Retrieve the set of samples for Mato Grosso region (provided by EMBRAPA)
-#' # Select the NDVI band
-#' samples_mt_ndvi <- sits_select(samples_modis_4bands, bands = "NDVI")
-#' # Train a QDA model
-#' qda_model <- sits_train(samples_mt_ndvi, sits_qda())
-#' # Classify a point
-#' point_ndvi <- sits_select(point_mt_6bands, bands = "NDVI")
-#' class <- sits_classify(point_ndvi, qda_model)
-#'
-#' @export
-#'
-sits_qda <- function(data = NULL, formula = sits_formula_logref(), ...) {
-
-    # function that returns MASS::qda model based on a sits sample tibble
-    result_fun <- function(data) {
-
-        # verifies if MASS package is installed
-        if (!requireNamespace("MASS", quietly = TRUE)) {
-            stop(paste("MASS required for this function to work.",
-                       "Please install it."), call. = FALSE)
-        }
-
-        # data normalization
-        stats <- .sits_ml_normalization_param(data)
-        train_data <- .sits_distances(.sits_ml_normalize_data(data, stats))
-
-        # If parameter formula is a function
-        # Call it passing as argument the input data sample.
-        # The function must return a valid formula.
-        if (inherits(formula, "function")) {
-            formula <- formula(train_data)
-        }
-
-        # call MASS::qda method and return the trained lda model
-        result_qda <- MASS::qda(
-            formula = formula,
-            data = train_data, ...,
-            na.action = stats::na.fail
-        )
-
-        # construct model predict closure function and returns
-        model_predict <- function(values) {
-
-            # verifies if MASS package is installed
-            if (!requireNamespace("MASS", quietly = TRUE)) {
-                stop(paste("MASS required for this function to work.",
-                           "Please install it."), call. = FALSE)
-            }
-
-            # retrieve the prediction (values and probs)
-            preds <- stats::predict(result_qda, newdata = values)
-            # return probabilities
-            prediction <- data.table::as.data.table(preds$posterior)
-
-            return(prediction)
-        }
-        class(model_predict) <- c("qda_model", "sits_model",
-                                  class(model_predict))
-        return(model_predict)
-    }
-    result <- .sits_factory_function(data, result_fun)
-    return(result)
-}
-
 #' @title Train a sits classification model using multinomial log-linear
 #' @name sits_mlr
 #'
@@ -304,8 +112,7 @@ sits_mlr <- function(data = NULL, formula = sits_formula_linear(),
 
         # verifies if nnet package is installed
         if (!requireNamespace("nnet", quietly = TRUE)) {
-            stop(paste("nnet required for this function to work.",
-                       "Please install it."), call. = FALSE)
+            stop("Please install package nnet", call. = FALSE)
         }
 
         # data normalization
@@ -334,8 +141,7 @@ sits_mlr <- function(data = NULL, formula = sits_formula_linear(),
 
             # verifies if nnet package is installed
             if (!requireNamespace("nnet", quietly = TRUE)) {
-                stop(paste("nnet required for this function to work.",
-                           "Please install it."), call. = FALSE)
+                stop("Please install package nnet", call. = FALSE)
             }
 
             # return probabilities
@@ -396,8 +202,7 @@ sits_rfor <- function(data = NULL, num_trees = 200, nodesize = 1, ...) {
 
         # verifies if randomForest package is installed
         if (!requireNamespace("randomForest", quietly = TRUE)) {
-            stop(paste("randomForest required for this function to work.",
-                       "Please install it."), call. = FALSE)
+            stop("Please install package randomForest", call. = FALSE)
         }
 
         # call `randomForest::randomForest` method and return the trained model
@@ -417,8 +222,7 @@ sits_rfor <- function(data = NULL, num_trees = 200, nodesize = 1, ...) {
 
             # verifies if ranger package is installed
             if (!requireNamespace("randomForest", quietly = TRUE)) {
-                stop(paste("randomForest required for this function to work.",
-                           "Please install it."), call. = FALSE)
+                stop("Please install package randomForest", call. = FALSE)
             }
 
             return(stats::predict(result_rfor,
@@ -498,8 +302,7 @@ sits_svm <- function(data = NULL, formula = sits_formula_logref(),
 
         # verifies if e1071 package is installed
         if (!requireNamespace("e1071", quietly = TRUE)) {
-            stop(paste("e1071 required for this function to work.",
-                       "Please install it."), call. = FALSE)
+            stop("Please install package e1071", call. = FALSE)
         }
 
         # data normalization
@@ -527,8 +330,7 @@ sits_svm <- function(data = NULL, formula = sits_formula_logref(),
 
             # verifies if e1071 package is installed
             if (!requireNamespace("e1071", quietly = TRUE)) {
-                stop(paste("e1071 required for this function to work.",
-                           "Please install it."), call. = FALSE)
+                stop("Please install package e1071", call. = FALSE)
             }
 
             # get the prediction
@@ -641,8 +443,7 @@ sits_xgboost <- function(data = NULL,
 
         # verifies if xgboost package is installed
         if (!requireNamespace("xgboost", quietly = TRUE)) {
-            stop(paste("xgboost required for this function to work.",
-                       "Please install it."), call. = FALSE)
+            stop("Please install package xgboost", call. = FALSE)
         }
 
         # get the labels of the data
@@ -711,8 +512,7 @@ sits_xgboost <- function(data = NULL,
 
             # verifies if xgboost package is installed
             if (!requireNamespace("xgboost", quietly = TRUE)) {
-                stop(paste("xgboost required for this function to work.",
-                           "Please install it."), call. = FALSE)
+                stop("Please install package xgboost", call. = FALSE)
             }
 
             # transform input  into a matrix (remove first two columns)
@@ -1002,6 +802,17 @@ sits_formula_linear <- function(predictors_index = -2:0) {
 #' @return A tibble with samples used to train model
 #'
 .sits_ml_model_samples <- function(ml_model) {
+
+    # pre-condition
+    if (!inherits(ml_model, "function"))
+        stop("invalid 'ml_model' parameter")
+
+    # pre-condition
+    .check_chr_contains(
+        x = ls(environment(ml_model)),
+        contains = "data",
+        msg = "no samples found in the sits model"
+    )
 
     return(environment(ml_model)$data)
 }

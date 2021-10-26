@@ -60,6 +60,36 @@ sits_merge.sits <- function(data1, data2) {
         msg = "cannot merge tibbles of different sizes"
     )
 
+    rename_bands <- function(x, values) {
+
+        # get the data bands
+        data_bands <- sits_bands(x)
+
+        # create an row_id to use later in nest
+        x[["..row_id"]] <- seq_len(nrow(x))
+
+        # unnest bands
+        x <- tidyr::unnest(x, cols = "time_series")
+
+        # here, you could pass a function to process fast
+        new_bands <- colnames(x)
+        names(new_bands) <- new_bands
+
+        new_bands[data_bands] <- toupper(values)
+        colnames(x) <- unname(new_bands)
+
+        # nest again
+        x <- tidyr::nest(x,  time_series = c("Index", toupper(values)))
+
+        # remove ..row_id
+        x <- dplyr::select(x, -"..row_id")
+
+        # set sits tibble class
+        class(x) <- c("sits", class(x))
+
+        x
+    }
+
     # are the names of the bands different?
     # if they are not
     bands1 <- sits_bands(data1)
@@ -70,7 +100,8 @@ sits_merge.sits <- function(data1, data2) {
         } else {
             bands2 <- paste0(bands2, ".nw")
         }
-        sits_bands(data2) <- bands2
+
+        data2 <- rename_bands(data2, bands2)
     }
     # prepare result
     result <- data1
@@ -89,9 +120,13 @@ sits_merge.sits <- function(data1, data2) {
 
 #' @export
 #'
-sits_merge.cube <- function(data1, data2) {
+sits_merge.sits_cube <- function(data1, data2) {
 
-    # preconditions
+    # pre-condition - check cube type
+    .cube_check(data1)
+    .cube_check(data2)
+
+    # pre-condition
     .check_that(
         x = nrow(data1) == 1 & nrow(data2) == 1,
         msg = "merge only works from simple cubes (one tibble row)"
@@ -113,7 +148,7 @@ sits_merge.cube <- function(data1, data2) {
         msg = "merge cubes requires same bounding boxes"
     )
     .check_that(
-        x = data1$xres == data2$xres && data1$yres == data2$yres,
+        .cube_resolution(data1) == .cube_resolution(data2),
         msg = "merge cubes requires same resolution"
     )
     .check_that(
@@ -131,7 +166,6 @@ sits_merge.cube <- function(data1, data2) {
 
     # merge the file info and the bands
     data1$file_info[[1]] <- file_info_1
-    data1$bands[[1]] <- c(sits_bands(data1), sits_bands(data2))
 
     return(data1)
 }

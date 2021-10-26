@@ -4,7 +4,7 @@
 \alias{.gc_create_cube_view}
 \title{Create a cube_view object}
 \usage{
-.gc_create_cube_view(tile, period, res, roi, toi, agg_method)
+.gc_create_cube_view(tile, period, res, roi, toi, agg_method, resampling)
 }
 \arguments{
 \item{tile}{A data cube tile}
@@ -23,6 +23,12 @@ will be aggregated.}
 \item{agg_method}{A \code{character} with the method that will be applied in
 the aggregation, the following are available: "min", "max", "mean",
 "median" or "first".}
+
+\item{resampling}{A \code{character} with method to be used by
+\code{gdalcubes} for resampling in mosaic operation.
+Options: \code{near}, \code{bilinear}, \code{bicubic} or others supported by
+gdalwarp (see https://gdal.org/programs/gdalwarp.html).
+By default is bilinear.}
 }
 \value{
 a \code{cube_view} object from gdalcubes.

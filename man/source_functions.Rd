@@ -10,11 +10,11 @@
 \alias{.source_url}
 \title{Source functions}
 \usage{
-.sources(internal = TRUE)
+.sources()
 
 .source_check(source)
 
-.source_new(source)
+.source_new(source, is_local = FALSE)
 
 .source_service(source)
 
@@ -23,9 +23,6 @@
 .source_url(source)
 }
 \arguments{
-\item{internal}{A \code{logical} value if internal sources should
-be listed. Internal sources are: 'PROBS', 'CLASSIFIED', and 'LOCAL'}
-
 \item{source}{A \code{character} value referring to a valid data source.}
 }
 \value{
@@ -56,7 +53,7 @@ These functions provide an API to handle/retrieve data from sources.
 \code{.source_check()} checks if a source is available in sits.
 
 \code{.source_new()} creates an object with a corresponding
-S3 class defined in a given source.
+S3 class defined in a given source and collection.
 
 \code{.source_service()} returns the service associated
 with a given source.

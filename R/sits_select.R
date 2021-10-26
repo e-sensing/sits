@@ -41,7 +41,6 @@ sits_select.sits <- function(data, bands) {
 
     # bands names in SITS are uppercase
     bands <- toupper(bands)
-    sits_bands(data) <- toupper(sits_bands(data))
     data_bands <- sits_bands(data)
 
     .check_chr_within(
@@ -75,17 +74,13 @@ sits_select.sits <- function(data, bands) {
 
 #' @export
 #'
-sits_select.cube <- function(data, bands) {
+sits_select.sits_cube <- function(data, bands) {
 
-    .check_chr_within(
-        x = bands,
-        within = sits_bands(data),
-        discriminator = "one_of",
-        msg = "requested bands are not available in the data cube"
-    )
+    # pre-condition - cube
+    .cube_check(data)
 
-    # assign the bands
-    data$bands[[1]] <- bands
+    # pre-condition - check bands
+    .cube_bands_check(data, bands = bands)
 
     # filter the file info
     db_info <- data$file_info[[1]]

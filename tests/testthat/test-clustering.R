@@ -1,6 +1,5 @@
 test_that("Creating a dendrogram and clustering the results", {
     # skip_on_cran()
-    suppressMessages(library(flexclust))
     suppressMessages(library(dtwclust))
     data(cerrado_2classes)
     clusters <- suppressMessages(
@@ -40,7 +39,6 @@ test_that("Creating a dendrogram and clustering the results", {
 
 test_that("Creating a dendrogram with a fixed k value", {
     # skip_on_cran()
-    library(flexclust)
     library(dtwclust)
     data(cerrado_2classes)
     clusters <- suppressMessages(

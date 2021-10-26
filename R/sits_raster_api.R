@@ -38,14 +38,14 @@
     # precondition 1
     .check_chr_within(
         x = names(block),
-        within = c("row", "nrows", "col", "ncols"),
-        msg = paste("block object must contains",
-                    "'row', 'nrows', 'col', 'ncols' entries")
+        within = c("first_row", "nrows", "first_col", "ncols"),
+        msg = paste("block object must contain",
+                    "'first_row', 'nrows', 'first_col', 'ncols' entries")
     )
 
     # precondition 2
     .check_that(
-        x = block[["row"]] > 0 && block[["col"]] > 0,
+        x = block[["first_row"]] > 0 && block[["first_col"]] > 0,
         msg = "invalid block"
     )
 
@@ -227,7 +227,7 @@
 #' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
 #'
 #' @param file    raster file to be read
-#' @param block   numeric vector with names "col", "ncols", "row", "nrows".
+#' @param block   numeric vector with names "first_col", "ncols", "first_row", "nrows".
 #' @param ...     additional parameters to be passed to raster package
 #'
 #' @return numeric matrix
@@ -348,7 +348,7 @@
 #' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
 #'
 #' @param files   raster files to be read
-#' @param block   numeric vector with names "col", "ncols", "row", "nrows".
+#' @param block   numeric vector with names "first_col", "ncols", "first_row", "nrows".
 #' @param ...     additional parameters to be passed to raster package
 #'
 #' @return numeric matrix
@@ -373,8 +373,10 @@
 #' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
 #'
 #' @param r_obj   raster package object to be written
-#' @param block   numeric vector with names "col", "ncols", "row", "nrows".
+#' @param block   numeric vector with names "first_col", "ncols", "first_row", "nrows".
 #' @param ...     additional parameters to be passed to raster package
+#'
+#' @note block starts at (0,0)
 #'
 #' @return numeric matrix
 .raster_crop <- function(r_obj, block, ...) {
@@ -635,80 +637,6 @@
 
     return(params)
 }
-#' @title Given a band, return a set of values for chosen location
-#' @name .sits_cube_extract
-#' @keywords internal
-#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
-#'
-#' @description          Given a data cube, retrieve the time series
-#'                       of XY locations
-#'
-#' @param cube           Metadata about a data cube
-#' @param band_cube      Name of the band to the retrieved
-#' @param xy             Matrix with XY location
-.sits_cube_extract <- function(cube, band_cube, xy) {
-
-
-    # set caller to show in errors
-    .check_set_caller(".sits_cube_extract")
-
-    # precondition 2
-    .check_chr_within(
-        x = band_cube,
-        within = sits_bands(cube),
-        discriminator = "one_of",
-        msg = paste("band", band_cube,
-                    "is not available in the cube ", cube$name)
-    )
-
-    # filter the files that contain the band
-    band <- dplyr::filter(cube$file_info[[1]], band == band_cube)
-
-    # create a stack object
-    r_obj <- .raster_open_stack(band$path)
-
-    # extract the values
-    values <- .raster_extract(r_obj, xy)
-
-    # is the data valid?
-    .check_that(
-        x = nrow(values) == nrow(xy),
-        msg = "error in retrieving data"
-    )
-    return(values)
-}
-
-#' @title Given a labelled cube, return the band information
-#' @name .sits_cube_area_freq
-#' @keywords internal
-#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
-#'
-#' @param cube           Metadata about a data cube
-#' @return               Frequency of each label in the data cube
-#'
-.sits_cube_area_freq <- function(cube) {
-
-    # set caller to show in errors
-    .check_set_caller(".sits_cube_area_freq")
-
-    # precondition
-    .check_that(
-        x = inherits(cube, "classified_image"),
-        msg = "requires a labelled cube"
-    )
-
-    # retrieve the r object associated to the labelled cube
-    file_info <- cube$file_info[[1]]
-
-    # open first raster
-    r_obj <- .raster_open_rast(file_info$path[[1]])
-
-    # retrieve the frequency
-    freq <- tibble::as_tibble(.raster_freq(r_obj))
-
-    return(freq)
-}
-
 #' @title Merge all input files into one raster file
 #' @name .raster_merge
 #' @keywords internal
@@ -816,38 +744,4 @@
     return(invisible(NULL))
 }
 
-#' @title Determine the block spatial parameters of a given cube
-#' @name .sits_cube_params_block
-#' @keywords internal
-#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
-#'
-#' @description    Based on the R object associated to a raster object,
-#'                 determine its parameters
-#' @param cube     A valid cube
-#' @param block    A block insider the cube
-#' @return A tibble with the cube parameters
-.sits_cube_params_block <- function(cube, block) {
 
-    # compute new Y extent
-    ymax  <-  cube$ymax - (block[["row"]] - 1) * cube$yres
-    ymin  <-  ymax - block[["nrows"]] * cube$yres
-
-    # compute new X extent
-    xmin  <-  cube$xmin + (block[["col"]] - 1) * cube$xres
-    xmax  <-  xmin + block[["ncols"]] * cube$xres
-
-    # prepare result
-    params <- tibble::tibble(
-        nrows = block[["nrows"]],
-        ncols = block[["ncols"]],
-        xmin  = xmin,
-        xmax  = xmax,
-        ymin  = ymin,
-        ymax  = ymax,
-        xres  = cube$xres,
-        yres  = cube$yres,
-        crs   = cube$crs
-    )
-
-    return(params)
-}

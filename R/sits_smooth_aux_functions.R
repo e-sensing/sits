@@ -42,23 +42,21 @@
         x = inherits(cube, "probs_cube"),
         msg = "input is not probability cube"
     )
-
-    x_size <- cube$ncols
-    y_size <- cube$nrows
+    size <- .cube_size(cube)
     n_layers <- length(cube$labels[[1]])
     bloat_mem <- .config_processing_bloat()
     n_bytes <- 8
 
     # total memory needed to do all work in GB
-    needed_memory <- x_size * y_size * n_layers * bloat_mem * n_bytes * 1E-09
+    needed_memory <-  1E-09 * size[["ncols"]] * size[["nrows"]] * n_layers * bloat_mem * n_bytes
 
     # minimum block size
-    min_block_x_size <- x_size # for now, only allowing vertical blocking
+    min_block_x_size <- size["ncols"] # for now, only vertical blocking
     min_block_y_size <- 1
 
     # compute factors
     memory_factor <- needed_memory / memsize
-    blocking_factor <- x_size / min_block_x_size * y_size / min_block_y_size
+    blocking_factor <- size[["ncols"]] / min_block_x_size * size[["nrows"]] / min_block_y_size
 
     # stop if blocking factor is less than memory factor!
     # reason: the provided memory is not enough to process the data by
@@ -81,7 +79,7 @@
         # theoretical max_multicores = floor(blocking_factor / memory_factor),
         block_x_size = floor(min_block_x_size),
         block_y_size = min(floor(blocking_factor / memory_factor / multicores),
-                           y_size)
+                           size[["nrows"]])
     )
 
     return(blocks)
@@ -103,7 +101,6 @@
 #' @param memsize           Maximum overall memory (in GB) to run the Bayesian
 #'                          smoothing.
 #' @param ...               optional arguments to merge final raster
-#'                          (see \link[raster]{writeRaster} function)
 #'
 #' @return  RasterBrick object
 #'
@@ -159,26 +156,26 @@
         b <- .raster_open_rast(in_file)
 
         # create extent
-        blk_overlap <- list(row = block$r1,
+        blk_overlap <- list(first_row = block$r1,
                             nrows = block$r2 - block$r1 + 1,
-                            col = 1,
+                            first_col = 1,
                             ncols = .raster_ncols(b))
 
         # crop adding overlaps
         chunk <- .raster_crop(r_obj = b, block = blk_overlap)
 
         # process it
-        res <- do.call(func, args = c(list(chunk = chunk), args))
+        raster_out <- do.call(func, args = c(list(chunk = chunk), args))
         # stopifnot(inherits(res, c("RasterLayer", "RasterStack", "RasterBrick")))
 
         # create extent
-        blk_no_overlap <- list(row = block$o1,
+        blk_no_overlap <- list(first_row = block$o1,
                                nrows = block$o2 - block$o1 + 1,
-                               col = 1,
-                               ncols = .raster_ncols(res))
+                               first_col = 1,
+                               ncols = .raster_ncols(raster_out))
 
         # crop removing overlaps
-        res <- .raster_crop(res, block = blk_no_overlap)
+        raster_out <- .raster_crop(raster_out, block = blk_no_overlap)
 
         # export to temp file
         filename <- tempfile(tmpdir = dirname(cube$file_info[[1]]$path),
@@ -186,10 +183,10 @@
 
         # save chunk
         .raster_write_rast(
-            r_obj = res,
+            r_obj = raster_out,
             file = filename,
             format = "GTiff",
-            data_type = .raster_data_type("FLT4S"),
+            data_type = .raster_data_type(.config_get("probs_cube_data_type")),
             gdal_options = .config_gtiff_default_options(),
             overwrite = TRUE
         )
@@ -262,10 +259,10 @@
     slider::slide2(cube, cube_out, function(cube_row, out_file_row) {
 
         # open probability file
-        in_files <- cube_row$file_info[[1]]$path
+        in_file <- cube_row$file_info[[1]]$path
 
         # retrieve the files to be read and written
-        out_files <- out_file_row$file_info[[1]]$path
+        out_file <- out_file_row$file_info[[1]]$path
 
         # compute how many tiles to be computed
         block_size <- .sits_smooth_blocks_size_estimate(cube = cube_row,
@@ -274,14 +271,14 @@
 
         # for now, only vertical blocks are allowed, i.e. 'x_blocks' is 1
         blocks <- .sits_compute_blocks(
-            img_y_size = cube_row$nrows,
+            img_y_size = .cube_size(cube)["nrows"],
             block_y_size = block_size[["block_y_size"]],
             overlapping_y_size = overlapping_y_size)
 
-        # traverse all years
-        purrr::map2(in_files, out_files, .sits_call_workers_cluster,
-                    blocks = blocks, cl = cl)
-
+        .sits_call_workers_cluster(in_file = in_file,
+                                   out_file = out_file,
+                                   blocks = blocks,
+                                   cl = cl)
     })
 
     return(invisible(cube_out))

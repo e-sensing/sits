@@ -8,10 +8,8 @@
 
     # check if raster package is available
     if (!requireNamespace(pkg_name, quietly = TRUE)) {
-
         stop(paste(".sits_config_raster_package: package", pkg_name,
-                   "not available. Install the package or change the",
-                   "config file."), call. = FALSE)
+                   "not available. Please install the package for CRAN."), call. = FALSE)
     }
 
     class(pkg_name) <- pkg_name
@@ -172,9 +170,9 @@
         # read values
         terra::readStart(r_obj)
         values <- terra::readValues(x      = r_obj,
-                                    row    = block[["row"]],
+                                    row    = block[["first_row"]],
                                     nrows  = block[["nrows"]],
-                                    col    = block[["col"]],
+                                    col    = block[["first_col"]],
                                     ncols  = block[["ncols"]],
                                     mat    = TRUE)
         # close file descriptor
@@ -190,13 +188,13 @@
 
     # obtain coordinates from columns and rows
     x1 <- terra::xFromCol(object = r_obj,
-                          col    = c(block[["col"]]))
+                          col    = c(block[["first_col"]]))
     x2 <- terra::xFromCol(object = r_obj,
-                          col    = block[["col"]] + block[["ncols"]] - 1)
+                          col    = block[["first_col"]] + block[["ncols"]] - 1)
     y1 <- terra::yFromRow(object = r_obj,
-                          row    = c(block[["row"]]))
+                          row    = c(block[["first_row"]]))
     y2 <- terra::yFromRow(object = r_obj,
-                          row    = block[["row"]] + block[["nrows"]] - 1)
+                          row    = block[["first_row"]] + block[["nrows"]] - 1)
 
     # xmin, xmax, ymin, ymax
     extent <- terra::ext(

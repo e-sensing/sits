@@ -6,8 +6,6 @@
 #' These functions provide an API to handle/retrieve data from sources.
 #'
 #' @param source     A \code{character} value referring to a valid data source.
-#' @param internal   A \code{logical} value if internal sources should
-#' be listed. Internal sources are: 'PROBS', 'CLASSIFIED', and 'LOCAL'
 #'
 #' @return
 #' The values returned by each function are described as follows.
@@ -19,23 +17,18 @@ NULL
 #'
 #' @return \code{.sources()} returns a \code{character} vector
 #' with all sources names available in sits.
-.sources <- function(internal = TRUE) {
+.sources <- function() {
 
-    res <- .config_names(key = c("sources"))
+    src <- .config_names(key = c("sources"))
 
     # source names are upper case
-    res <- toupper(res)
+    src <- toupper(src)
 
     # post-condition
-    .check_chr(res, allow_empty = FALSE, len_min = 1,
+    .check_chr(src, allow_empty = FALSE, len_min = 1,
                msg = "invalid 'sources' in config file")
 
-    # filter internal sources
-    if (!internal) {
-        res <- res[!res %in% c("PROBS", "CLASSIFIED", "LOCAL")]
-    }
-
-    return(res)
+    return(src)
 }
 
 #' @rdname source_functions
@@ -52,7 +45,8 @@ NULL
     .check_chr(source, len_min = 1, len_max = 1,
                msg = "invalid 'source' parameter")
     .check_chr_within(source, within = .sources(),
-                      msg = "invalid 'source' parameter")
+               msg = paste0("invalid 'source' parameter.", "\n",
+                            "please check valid sources with sits_list_sources()"))
 
     return(invisible(NULL))
 }
@@ -60,17 +54,25 @@ NULL
 #' @rdname source_functions
 #'
 #' @description \code{.source_new()} creates an object with a corresponding
-#' S3 class defined in a given source.
+#' S3 class defined in a given source and collection.
 #'
 #' @return \code{.source_new()} returns a \code{character} vector with the
 #' S3 class defined in source's \code{S3class} attribute.
 #'
-.source_new <- function(source) {
+.source_new <- function(source, is_local = FALSE) {
 
+    # if local, return local cube
+    if (is_local) {
+        class(source) <- c("local_cube", class(source))
+        return(source)
+    }
     # source name is upper case
-    source <- toupper(source)
+    classes <- .source_s3class(source = toupper(source))
 
-    class(source) <- .source_s3class(source = source)
+    # if (!is.null(collection))
+    #     classes <- c(paste(classes, tolower(collection), sep = "_"), classes)
+
+    class(source) <- c(classes, class(source))
 
     return(source)
 }
@@ -90,16 +92,16 @@ NULL
     # pre-condition
     .source_check(source = source)
 
-    res <- .config_get(key = c("sources", source, "service"),
-                       default = NA_character_)
+    service <- .config_get(key = c("sources", source, "service"),
+                           default = NA_character_)
 
     # post-condition
-    .check_chr(res, allow_na = TRUE, allow_empty = FALSE,
+    .check_chr(service, allow_na = TRUE, allow_empty = FALSE,
                len_min = 1, len_max = 1,
                msg = sprintf("invalid 'service' for source %s in config file",
                              source))
 
-    return(res)
+    return(service)
 }
 
 #' @rdname source_functions
@@ -117,14 +119,14 @@ NULL
     # pre-condition
     .source_check(source = source)
 
-    res <- .config_get(key = c("sources", source, "s3_class"))
+    s3_class <- .config_get(key = c("sources", source, "s3_class"))
 
     # post-condition
-    .check_chr(res, allow_empty = FALSE, len_min = 1,
+    .check_chr(s3_class, allow_empty = FALSE, len_min = 1,
                msg = sprintf("invalid 's3_class' for source %s in config file",
                              source))
 
-    return(res)
+    return(s3_class)
 }
 
 #' @rdname source_functions
@@ -142,16 +144,16 @@ NULL
     # pre-condition
     .source_check(source = source)
 
-    res <- .config_get(key = c("sources", source, "url"),
+    url <- .config_get(key = c("sources", source, "url"),
                        default = NA_character_)
 
     # post-condition
-    .check_chr(res, allow_na = TRUE, allow_empty = FALSE,
+    .check_chr(url, allow_na = TRUE, allow_empty = FALSE,
                len_min = 1, len_max = 1,
                msg = sprintf("invalid 'url' for source %s in config file",
                              source))
 
-    return(res)
+    return(url)
 }
 
 #' @title Source bands functions
@@ -203,30 +205,29 @@ NULL
     # pre-condition
     .source_collection_check(source = source, collection = collection)
 
-    res <- .config_names(key = c("sources", source, "collections",
+    bands <- .config_names(key = c("sources", source, "collections",
                                  collection, "bands"))
-
     # bands names are upper case
-    res <- toupper(res)
+    bands <- toupper(bands)
 
     if (!add_cloud)
-        res <- res[res != .source_cloud()]
+        bands <- bands[bands != .source_cloud()]
 
     if (!is.null(fn_filter)) {
-        select <- vapply(res, function(band) {
+        select <- vapply(bands, function(band) {
             fn_filter(.config_get(key = c("sources", source, "collections",
                                           collection, "bands", band)))
         }, logical(1))
 
-        res <- res[select]
+        bands <- bands[select]
     }
 
     # post-condition
     # check bands are non-NA character
-    .check_chr(res, allow_empty = FALSE,
+    .check_chr(bands, allow_empty = FALSE,
                msg = "invalid selected bands")
 
-    return(res)
+    return(bands)
 }
 
 #' @rdname source_bands
@@ -268,15 +269,15 @@ NULL
     bands <- toupper(bands)
 
     # always returns a list!
-    res <- lapply(bands, function(band) {
+    result <- lapply(bands, function(band) {
         .config_get(key = c("sources", source, "collections",
                             collection, "bands", band, key),
                     default = default)
     })
 
-    names(res) <- bands
+    names(result) <- bands
 
-    return(res)
+    return(result)
 }
 
 #' @rdname source_bands
@@ -298,72 +299,30 @@ NULL
     # pre-condition
     .source_collection_check(source = source, collection = collection)
 
-    res <- .source_bands_reap(source = source,
+    bands <- .source_bands_reap(source = source,
                               collection = collection,
                               key = "band_name",
                               bands = bands)
 
     # simplify to a unnamed character vector
-    res <- unlist(res, recursive = FALSE, use.names = FALSE)
-
-    if (is.null(bands))
-        bands <- res
+    bands <- unlist(bands, recursive = FALSE, use.names = FALSE)
 
     # post-conditions
-    .check_chr(res, allow_na = FALSE, allow_empty = FALSE,
+    .check_chr(bands, allow_na = FALSE, allow_empty = FALSE,
                len_min = length(bands), len_max = length(bands),
                msg = "inconsistent 'band_name' values")
 
-    return(res)
+    return(bands)
 }
 
 #' @rdname source_bands
 #'
-#' @description \code{.source_bands_resolutions()} returns the
-#' \code{resolutions} attribute of all bands filtered by its parameters.
+#' @description \code{.source_bands_resolution()} returns the
+#' \code{resolution} attribute of all bands filtered by its parameters.
 #'
-#' @return \code{.source_bands_resolutions()} returns a named \code{list}
-#' containing \code{numeric} vectors with all supported resolutions of a
-#' band.
-.source_bands_resolutions <- function(source,
-                                      collection, ...,
-                                      bands = NULL,
-                                      fn_filter = NULL,
-                                      add_cloud = TRUE) {
-
-    # source is upper case
-    source <- toupper(source)
-
-    # collection is upper case
-    collection <- toupper(collection)
-
-    # pre-condition
-    .source_collection_check(source = source, collection = collection)
-
-    res <- .source_bands_reap(source = source,
-                              collection = collection,
-                              key = "resolutions",
-                              bands = bands,
-                              fn_filter = fn_filter,
-                              add_cloud = add_cloud)
-
-    # cannot simplify as each element can have length greater than one
-    # post-condition
-    .check_lst(res, fn_check = .check_num, min = 0,
-               allow_zero = FALSE, len_min = 1,
-               msg = "invalid 'resolutions' in config file")
-
-    return(res)
-}
-
-#' @rdname source_bands
-#'
-#' @description \code{.source_bands_resampling()} returns the
-#' \code{resampling} attribute of all bands filtered by its parameters.
-#'
-#' @return \code{.source_bands_resampling()} returns a \code{character}
-#' vectors with the desired resampling method that should be used in the  band.
-.source_bands_resampling <- function(source,
+#' @return \code{.source_bands_resolution()} returns a named \code{list}
+#' containing \code{numeric} vectors with the spatial resolution of a band.
+.source_bands_resolution <- function(source,
                                      collection, ...,
                                      bands = NULL,
                                      fn_filter = NULL,
@@ -378,23 +337,21 @@ NULL
     # pre-condition
     .source_collection_check(source = source, collection = collection)
 
-    res <- .source_bands_reap(source = source,
-                              collection = collection,
-                              key = "resampling",
-                              bands = bands,
-                              fn_filter = fn_filter,
-                              add_cloud = add_cloud)
+    resolution <- .source_bands_reap(source = source,
+                                     collection = collection,
+                                     key = "resolution",
+                                     bands = bands,
+                                     fn_filter = fn_filter,
+                                     add_cloud = add_cloud)
 
-    # simplify to character
-    res <- unlist(res, recursive = FALSE, use.names = FALSE)
-
+    # cannot simplify as each element can have length greater than one
     # post-condition
-    .check_chr(res, allow_empty = FALSE,
-               msg = "invalid 'resampling' in config file")
+    .check_lst(resolution, fn_check = .check_num, min = 0,
+               allow_zero = FALSE, len_min = 1,
+               msg = "invalid 'resolution' in config file")
 
-    return(res)
+    return(resolution)
 }
-
 #' @rdname source_bands
 #'
 #' @description \code{.source_bands_to_sits()} converts any bands to its
@@ -487,15 +444,15 @@ NULL
     # pre-condition
     .source_collection_check(source = source, collection = collection)
 
-    res <- .config_get(key = c("sources", source, "collections", collection,
-                               "bands", .source_cloud(),
-                               "bit_mask"))
+    bit_mask <- .config_get(key = c("sources", source, "collections", collection,
+                                    "bands", .source_cloud(),
+                                    "bit_mask"))
 
     # post-condition
-    .check_lgl(res, len_min = 1, len_max = 1,
+    .check_lgl(bit_mask, len_min = 1, len_max = 1,
                msg = "invalid 'bit_mask' value in config file")
 
-    return(res)
+    return(bit_mask)
 }
 
 #' @rdname source_bands
@@ -517,14 +474,14 @@ NULL
     # pre-condition
     .source_collection_check(source = source, collection = collection)
 
-    res <- .config_get(key = c("sources", source, "collections", collection,
+    vls <- .config_get(key = c("sources", source, "collections", collection,
                                "bands", .source_cloud(),
                                "values"))
 
     # post-condition
-    .check_lst(res, msg = "invalid cloud 'values' in config file")
+    .check_lst(vls, msg = "invalid cloud 'values' in config file")
 
-    return(res)
+    return(vls)
 }
 
 #' @rdname source_bands
@@ -547,14 +504,14 @@ NULL
     # pre-condition
     .source_collection_check(source = source, collection = collection)
 
-    res <- .config_get(key = c("sources", source, "collections", collection,
+    vls <- .config_get(key = c("sources", source, "collections", collection,
                                "bands", .source_cloud(),
                                "interp_values"))
 
     # post-condition
-    .check_num(res, msg = "invalid 'interp_values' in config file")
+    .check_num(vls, msg = "invalid 'interp_values' in config file")
 
-    return(res)
+    return(vls)
 }
 
 #' @title Source collection functions
@@ -565,9 +522,10 @@ NULL
 #' These functions provide an API to handle/retrieve data from source's
 #' collections.
 #'
-#' @param source     A \code{character} value referring to a valid data source.
-#' @param collection A \code{character} value referring to a collection of the
+#' @param source     A \code{string} value referring to a valid data source.
+#' @param collection A \code{string} value referring to a collection of the
 #' source.
+#' @param tiles      A \code{vector} with the tile names
 #'
 #' @return
 #' The values returned by each function are described as follows.
@@ -579,7 +537,7 @@ NULL
 #'
 #' @return \code{.source_collections()} returns a \code{character} vector
 #' with all collection names of a given source.
-.source_collections <- function(source) {
+.source_collections <- function(source, ...) {
 
     # source is upper case
     source <- toupper(source)
@@ -587,106 +545,47 @@ NULL
     # check source
     .source_check(source = source)
 
-    res <- .config_names(c("sources", source, "collections"))
+    collections <- .config_names(c("sources", source, "collections"))
 
-    return(res)
+    return(collections)
 }
 
-# TODO: change name to source_collection_access_test
+#
 #' @rdname source_collection
-.source_access_test <- function(source,
-                                collection, ...) {
+.source_collection_access_test <- function(source, ..., collection) {
 
-    s <- .source_new(source = source)
+    source <- .source_new(source)
 
-    UseMethod(".source_access_test", s)
-}
-
-#' @rdname source_collection
-#'
-#' @description \code{.source_collection_aws()} returns the \code{aws}
-#' attribute of a collection. The attribute must define the following AWS
-#' environment variables: \code{AWS_DEFAULT_REGION}, \code{AWS_S3_ENDPOINT},
-#' and \code{AWS_REQUEST_PAYER}.
-#'
-#' @return \code{.source_collection_aws()} returns a named \code{list} with
-#' AWS environment variables.
-.source_collection_aws <- function(source,
-                                   collection) {
-
-    # source is upper case
-    source <- toupper(source)
-
-    # collection is upper case
-    collection <- toupper(collection)
-
-    # pre-condition
-    .source_collection_check(source = source, collection = collection)
-
-    res <- .config_get(key = c("sources", source, "collections", collection,
-                               "aws"),
-                       default = list())
-
-    # post-condition
-    .check_lst(res, min_len = 0,
-               msg = "invalid 'aws' value")
-
-    if (length(res) > 0)
-        .check_chr_contains(names(res),
-                            contains = c("AWS_DEFAULT_REGION",
-                                         "AWS_S3_ENDPOINT",
-                                         "AWS_REQUEST_PAYER"),
-                            msg = "invalid 'aws' value")
-
-    return(res)
+    UseMethod(".source_collection_access_test", source)
 }
 
 #' @rdname source_collection
 #'
-#' @description \code{.source_collection_aws_check()} checks if a collection
-#' defines aws variables.
+#' @description \code{.source_collection_access_vars_set} checks if
+#' \code{access_vars} environment variables are properly defined.
 #'
-#' @return \code{.source_collection_aws_check()} returns \code{NULL} if
+#' @return \code{.source_collection_access_vars_set } returns \code{NULL} if
 #' no error occurs.
-.source_collection_aws_check <- function(source,
-                                         collection) {
+.source_collection_access_vars_set <- function(source,
+                                               collection) {
 
     # source is upper case
     source <- toupper(source)
 
     # collection is upper case
     collection <- toupper(collection)
-
-    # pre-condition
-    .source_collection_check(source = source, collection = collection)
-
-    # "AWS_ACCESS_KEY_ID", "AWS_SECRET_ACCESS_KEY" are mandatory one per user
-    .check_env_var(c("AWS_ACCESS_KEY_ID",
-                     "AWS_SECRET_ACCESS_KEY"),
-                   msg = "missing environment variable.")
-
-    # get aws default values for this collection
-    aws_lst <- .source_collection_aws(source = source,
-                                      collection = collection)
-
-    # check environment variables defaults
-    .check_lst(aws_lst, min_len = 3, fn_check = .check_chr,
-               len_min = 1, len_max = 1, allow_empty = FALSE,
-               msg = paste("missing AWS_DEFAULT_REGION, AWS_S3_ENDPOINT and,",
-                           "AWS_REQUEST_PAYER not defined for this collection"))
-
-    # "AWS_DEFAULT_REGION" - use the default
-    Sys.setenv("AWS_DEFAULT_REGION" = aws_lst[["AWS_DEFAULT_REGION"]])
-
-    # "AWS_S3_ENDPOINT" - use the default
-    Sys.setenv("AWS_S3_ENDPOINT" = aws_lst[["AWS_S3_ENDPOINT"]])
-
-    # "AWS_REQUEST_PAYER" - use the default
-    Sys.setenv("AWS_REQUEST_PAYER" = aws_lst[["AWS_REQUEST_PAYER"]])
-
-    return(invisible(NULL))
+    # get access variables for this source/collection
+    res <- .config_get(key = c("sources", source, "collections", collection,
+                               "access_vars"),
+                       default = list())
+    # post-condition
+    .check_lst(res, msg = paste0("Invalid access vars for collection ", collection,
+                                 " in source ", source))
+    if (length(res) > 0) {
+        do.call(Sys.setenv, args = res)
+    }
+    return(res)
 }
-
 #' @rdname source_collection
 #'
 #' @description \code{.source_collection_check()} checks if a collection
@@ -697,22 +596,36 @@ NULL
 .source_collection_check <- function(source,
                                      collection) {
 
-    # source is upper case
-    source <- toupper(source)
-
-    # collection is upper case
-    collection <- toupper(collection)
-
     # check collection
     .check_chr(collection, len_min = 1, len_max = 1,
                msg = "invalid 'collection' parameter")
+
     .check_chr_within(collection,
                       within = .source_collections(source = source),
                       msg = "invalid 'collection' parameter")
 
     return(invisible(NULL))
 }
+#' @rdname source_collection
+#'
+#' @description \code{.source_collection_gdal_config()} checks if a collection
+#' has a gdalcubes format description.
+#'
+#' @return \code{.source_collection_gdal_config()} returns the gdal format file path.
+.source_collection_gdal_config <- function(source, collection){
+    # try to find the gdalcubes configuration format for this collection
+    gdal_config <- .config_get(key = c("sources", source, "collections",
+                                       collection, "gdalcubes_format_col"),
+                               default = NA)
+    # if the format does not exist, report to the user
+    .check_that(!(is.na(gdal_config)),
+                msg = paste0("collection ", collection, " in source ", source,
+                             " not supported yet\n",
+                             "Please raise an issue in github"))
 
+    # return the gdal format file path
+    system.file(paste0("extdata/gdalcubes/", gdal_config), package = "sits")
+}
 #' @rdname source_collection
 #'
 #' @description \code{.source_collection_name()} returns the name of a
@@ -743,6 +656,117 @@ NULL
     return(res)
 }
 
+#' @rdname source_collection
+#'
+#' @description \code{.source_collection_open_data()} informs if a
+#' collection is open data or not.
+#'
+#' @return \code{.source_collection_open_data()} returns a \code{logical}.
+#'
+.source_collection_open_data <- function(source,
+                                         collection) {
+
+    # source is upper case
+    source <- toupper(source)
+
+    # collection is upper case
+    collection <- toupper(collection)
+
+    # pre-condition
+    .source_collection_check(source = source,
+                             collection = collection)
+
+    res <- .config_get(key = c("sources", source, "collections", collection,
+                               "open_data"), default = FALSE)
+
+    # post-condition
+    .check_lgl(res, len_min = 1, len_max = 1,
+               msg = "invalid 'open_data' value")
+
+    return(res)
+}
+#' @rdname source_collection
+#'
+#' @description \code{.source_collection_open_data_token()} informs if a
+#' collection requires a token to access.
+#'
+#' @return \code{.source_collection_open_data_token()} returns a \code{logical}.
+#'
+.source_collection_open_data_token <- function(source,
+                                               collection) {
+
+    # source is upper case
+    source <- toupper(source)
+
+    # collection is upper case
+    collection <- toupper(collection)
+
+    # pre-condition
+    .source_collection_check(source = source,
+                             collection = collection)
+
+    res <- .config_get(key = c("sources", source, "collections", collection,
+                               "open_data_token"), default = FALSE)
+
+    # post-condition
+    .check_lgl(res, len_min = 1, len_max = 1,
+               msg = "invalid 'open_data_token' value")
+
+    return(res)
+}
+
+#' @rdname source_collection
+#'
+#' @description \code{.source_collection_token_check()} checks if a collection
+#' needs environmental variables.
+#'
+#' @return \code{.source_collection_token_check()} returns \code{NULL} if
+#' no error occurs.
+#'
+.source_collection_token_check <- function(source, collection){
+
+    res <- .config_get(key = c("sources", source, "collections", collection,
+                               "token_vars"),
+                       default = character(0))
+    # post-condition
+    .check_chr(res, allow_empty = FALSE,
+               msg = paste0("Missing access token for collection ", collection,
+                            " in source ", source))
+    if (length(res) > 0) {
+        # Pre-condition - try to find the access key as an environment variable
+        .check_env_var(res,
+                       msg = paste0("Missing access token for source ", source))
+    }
+}
+
+#' @rdname source_collection
+#'
+#' @description \code{.source_collection_tile_check()} checks if a collection
+#' requires tiles to be defined
+#'
+#' @return \code{.source_collection_tile_check()} returns \code{NULL} if
+#' no error occurs.
+#'
+.source_collection_tile_check <- function(source, collection, tiles){
+
+    res <- .config_get(key = c("sources", source, "collections", collection,
+                               "tile_required"),
+                       default = "false")
+    if (res) {
+        # Are the tiles provided?
+        .check_chr(x = tiles,
+                   allow_empty = FALSE,
+                   len_min = 1,
+                   msg = paste("for ", source, " collection ", collection,
+                               "please inform the tiles of the region of interest"))
+    }
+    return(invisible(NULL))
+}
+
+
+
+
+
 #' @title Functions to instantiate a new cube from a source
 #' @name source_cube
 #' @keywords internal
@@ -757,14 +781,15 @@ NULL
 #' to retrieve metadata.
 #'
 #' @param source     A \code{character} value referring to a valid data source.
+#' @param ...        Additional parameters.
 #' @param items      Any object referring to the images bands (scenes) that
 #' compose a cube.
 #' @param collection A \code{character} value referring to a collection of the
 #' source.
-#' @param name       A \code{character} with cube name.
+#' @param data_dir   Directory where local files are stored
 #' @param file_info  A \code{tibble} that organizes the metadata about each
 #' file in the tile: date, band, resolution, and path (or URL).
-#' @param ...        Additional parameters.
+#' @param bands      Bands to be selected in the collection.
 #'
 #' @return
 #' The values returned by each function are described as follows.
@@ -778,11 +803,9 @@ NULL
 #' @return \code{.source_cube()} returns a sits \code{tibble} with cube
 #' metadata.
 #'
-.source_cube <- function(source, ...) {
-
-    s <- .source_new(source)
-
-    UseMethod(".source_cube", s)
+.source_cube <- function(source, ..., collection) {
+    source <- .source_new(source)
+    UseMethod(".source_cube", source)
 }
 
 #' @rdname source_cube
@@ -792,11 +815,9 @@ NULL
 #'
 #' @return \code{.source_item_get_date()} returns a \code{Date} value.
 #'
-.source_item_get_date <- function(source, item, ..., collection = NULL) {
-
-    s <- .source_new(source)
-
-    UseMethod(".source_item_get_date", s)
+.source_item_get_date <- function(source, ...,  item, collection = NULL) {
+    source <- .source_new(source)
+    UseMethod(".source_item_get_date", source)
 }
 
 #' @rdname source_cube
@@ -807,11 +828,9 @@ NULL
 #' @return \code{.source_item_get_hrefs()} returns a \code{character} vector
 #' containing paths to each image band of an item.
 #'
-.source_item_get_hrefs <- function(source, item, ..., collection = NULL) {
-
-    s <- .source_new(source)
-
-    UseMethod(".source_item_get_hrefs", s)
+.source_item_get_hrefs <- function(source, ..., item, collection = NULL) {
+    source <- .source_new(source)
+    UseMethod(".source_item_get_hrefs", source)
 }
 
 #' @rdname source_cube
@@ -822,26 +841,22 @@ NULL
 #' @return \code{.source_item_get_bands()} returns a \code{character} vector
 #' containing bands name of an item.
 #'
-.source_item_get_bands <- function(source, item, ..., collection = NULL) {
-
-    s <- .source_new(source)
-
-    UseMethod(".source_item_get_bands", s)
+.source_item_get_bands <- function(source, ..., item, collection = NULL) {
+    source <- .source_new(source)
+    UseMethod(".source_item_get_bands", source)
 }
 
 #' @rdname source_cube
 #'
-#' @description \code{.source_item_get_resolutions()} retrieves the supported
-#' resolutions of an item (for each band).
+#' @description \code{.source_item_get_resolution()} retrieves the supported
+#' resolution of an item (for each band).
 #'
-#' @return \code{.source_item_get_resolutions()} returns a named \code{list}
-#' with \code{numeric} vectors containing the supported resolutions of an item.
+#' @return \code{.source_item_get_resolution()} returns a named \code{list}
+#' with \code{numeric} vectors containing the supported resolution for each band
 #'
-.source_item_get_resolutions <- function(source, item, ..., collection = NULL) {
-
-    s <- .source_new(source)
-
-    UseMethod(".source_item_get_resolutions", s)
+.source_item_get_resolution <- function(source, ..., item, collection = NULL) {
+    source <- .source_new(source)
+    UseMethod(".source_item_get_resolution", source)
 }
 
 #' @rdname source_cube
@@ -853,39 +868,27 @@ NULL
 #' @return \code{.source_items_new()} returns any object referring the images
 #' of a sits cube.
 #'
-.source_items_new <- function(source, collection, ...) {
-
-    s <- .source_new(source)
-
-    UseMethod(".source_items_new", s)
+.source_items_new <- function(source, ..., collection) {
+    source <- .source_new(source)
+    UseMethod(".source_items_new", source)
 }
 
+#' @rdname source_cube
+#'
 #' @title Item selection from Bands
 #' @name .source_items_bands_select
 #' @keywords internal
 #'
-#' @description Selection of items from specific bands by the user.
-#'
-#' @param bands      A \code{character} with bands to be select in items object.
-#' @param ...        Additional parameters.
 #'
 #' @return A \code{STACItemCollection} object returned by rstac with items
 #'  selected.
-
-
-#' @rdname source_cube
-#'
-#' @description \code{.source_items_bands_select()} is a filter of bands and
-#' selects the items' bands that will be in sits cube.
 #'
 #' @return \code{.source_items_bands_select()} returns the same object as
 #' \code{items} with selected bands.
 #'
-.source_items_bands_select <- function(source, collection, items, bands, ...) {
-
-    s <- .source_new(source)
-
-    UseMethod(".source_items_bands_select", s)
+.source_items_bands_select <- function(source, ..., collection, items, bands) {
+    source <- .source_new(source)
+    UseMethod(".source_items_bands_select", source)
 }
 
 #' @rdname source_cube
@@ -896,11 +899,9 @@ NULL
 #' @return \code{.source_items_fileinfo()} returns a \code{tibble} containing
 #' sits cube.
 #'
-.source_items_fileinfo <- function(source, items, ..., collection = NULL) {
-
-    s <- .source_new(source)
-
-    UseMethod(".source_items_fileinfo", s)
+.source_items_fileinfo <- function(source, ..., items, collection = NULL) {
+    source <- .source_new(source)
+    UseMethod(".source_items_fileinfo", source)
 }
 
 #' @rdname source_cube
@@ -911,11 +912,9 @@ NULL
 #' @return \code{.source_items_tiles_group()} returns a \code{list} of
 #' items.
 #'
-.source_items_tiles_group <- function(source, items, ..., collection = NULL) {
-
-    s <- .source_new(source)
-
-    UseMethod(".source_items_tiles_group", s)
+.source_items_tiles_group <- function(source, ..., items, collection = NULL) {
+    source <- .source_new(source)
+    UseMethod(".source_items_tiles_group", source)
 }
 
 #' @rdname source_cube
@@ -963,13 +962,11 @@ NULL
 #' @return \code{.source_items_tile_get_crs()} returns a \code{character}
 #' value.
 #'
-.source_items_tile_get_crs <- function(source,
-                                       tile_items, ...,
+.source_items_tile_get_crs <- function(source, ...,
+                                       tile_items,
                                        collection = NULL) {
-
-    s <- .source_new(source)
-
-    UseMethod(".source_items_tile_get_crs", s)
+    source <- .source_new(source)
+    UseMethod(".source_items_tile_get_crs", source)
 }
 
 #' @rdname source_cube
@@ -980,13 +977,11 @@ NULL
 #' @return \code{.source_items_tile_get_name()} returns a \code{character}
 #' value.
 #'
-.source_items_tile_get_name <- function(source,
-                                        tile_items, ...,
+.source_items_tile_get_name <- function(source, ...,
+                                        tile_items,
                                         collection = NULL) {
-
-    s <- .source_new(source)
-
-    UseMethod(".source_items_tile_get_name", s)
+    source <- .source_new(source)
+    UseMethod(".source_items_tile_get_name", source)
 }
 
 #' @rdname source_cube
@@ -997,46 +992,24 @@ NULL
 #' @return \code{.source_items_tile_get_bbox()} returns a \code{numeric}
 #' vector with 4 elements (xmin, ymin, xmax, ymax).
 #'
-.source_items_tile_get_bbox <- function(source,
-                                        tile_items, ...,
+.source_items_tile_get_bbox <- function(source, ...,
+                                        tile_items,
                                         collection = NULL) {
-
-    s <- .source_new(source)
-
-    UseMethod(".source_items_tile_get_bbox", s)
+    source <- .source_new(source)
+    UseMethod(".source_items_tile_get_bbox", source)
 }
 
 #' @rdname source_cube
 #'
-#' @description \code{.source_items_tile_get_size()} retrieves the size
-#' (in pixels) from items of a tile.
-#'
-#' @return \code{.source_items_tile_get_size()} returns a \code{numeric}
-#' vector with 2 elements (nrows, ncols).
-#'
-.source_items_tile_get_size <- function(source,
-                                        tile_items, ...,
-                                        collection = NULL) {
-
-    s <- .source_new(source)
-
-    UseMethod(".source_items_tile_get_size", s)
-}
-
-#' @rdname source_cube
-#'
-#' @description \code{.source_cube()} is called to create a data cubes tile,
+#' @description \code{.source_itimes_cube()} is called to create a data cubes tile,
 #' that is, a row in sits data cube.
 #'
-#' @return \code{.source_cube()} returns a \code{tibble} containing a sits
+#' @return \code{.source_items_cube()} returns a \code{tibble} containing a sits
 #' cube tile (one row).
-.source_items_cube <- function(source,
+.source_items_cube <- function(source, ...,
                                collection,
-                               name,
                                items,
-                               file_info, ...) {
-
-    s <- .source_new(source)
-
-    UseMethod(".source_items_cube", s)
+                               file_info) {
+    source <- .source_new(source)
+    UseMethod(".source_items_cube", source)
 }

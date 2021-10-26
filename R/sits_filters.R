@@ -69,8 +69,7 @@ sits_envelope <- function(data = NULL,
 
     # verifies if dtwclust package is installed
     if (!requireNamespace("dtwclust", quietly = TRUE)) {
-        stop("dtwclust needed for this function to work.
-             Please install it.", call. = FALSE)
+        stop("Please install package dtwclust", call. = FALSE)
     }
 
     filter_fun <- function(data) {
@@ -250,20 +249,14 @@ sits_sgolay <- function(data = NULL,
                         scaling = 1,
                         bands_suffix = "sg") {
 
-    # verifies if signal package is installed
-    if (!requireNamespace("signal", quietly = TRUE)) {
-        stop("signal required for this function to work.
-             Please install it.", call. = FALSE)
-    }
-
     filter_fun <- function(data) {
         if (inherits(data, "tbl")) {
             result <- sits_apply(data,
                                  fun = function(band) {
-                                     signal::sgolayfilt(band,
-                                                        p = order,
-                                                        n = length,
-                                                        ts = scaling
+                                     .sits_signal_sgolayfilt(band,
+                                                             p = order,
+                                                             n = length,
+                                                             ts = scaling
                                      )
                                  },
                                  fun_index = function(band) band,
@@ -272,10 +265,10 @@ sits_sgolay <- function(data = NULL,
         }
         if (inherits(data, "matrix")) {
             result <- apply(data, 2, function(row) {
-                signal::sgolayfilt(row,
-                                   p = order,
-                                   n = length,
-                                   ts = scaling
+              .sits_signal_sgolayfilt(row,
+                                      p = order,
+                                      n = length,
+                                      ts = scaling
                 )
             })
         }
@@ -315,15 +308,12 @@ sits_sgolay <- function(data = NULL,
 #' @export
 sits_whittaker <- function(data = NULL, lambda = 0.5, bands_suffix = "wf") {
 
-    if (!requireNamespace("ptw", quietly = TRUE)) {
-        stop("Please install package ptw.", call. = FALSE)
-    }
     filter_fun <- function(data) {
         result <- NULL
         if (inherits(data, "tbl")) {
             result <- sits_apply(data,
                 fun = function(band) {
-                    ptw::whit2(band, lambda = lambda)
+                    smooth_whit(band, lambda = lambda, length = length(band))
                 },
                 fun_index = function(band) band,
                 bands_suffix = bands_suffix
@@ -333,7 +323,7 @@ sits_whittaker <- function(data = NULL, lambda = 0.5, bands_suffix = "wf") {
             result <- apply(
                 data, 2,
                 function(row) {
-                    ptw::whit2(row, lambda = lambda)
+                  smooth_whit(row, lambda = lambda, length = length(row))
                 }
             )
         }

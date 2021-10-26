@@ -2,7 +2,7 @@
 % Please edit documentation in R/sits_raster_sub_image.R
 \name{.sits_raster_sub_image_default}
 \alias{.sits_raster_sub_image_default}
-\title{Find the dimensions and location of a spatial ROI in a data cube}
+\title{Find the dimensions of the sub image without ROI}
 \usage{
 .sits_raster_sub_image_default(cube)
 }
@@ -15,6 +15,6 @@
 vector with information on the subimage
 }
 \description{
-Find the dimensions and location of a spatial ROI in a data cube
+Find the dimensions of the sub image without ROI
 }
 \keyword{internal}

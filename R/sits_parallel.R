@@ -222,7 +222,7 @@
     # sequential processing
     if (purrr::is_null(sits_env$cluster)) {
 
-        res <- lapply(seq_along(x), function(i) {
+        result <- lapply(seq_along(x), function(i) {
 
             value <- fn(x[[i]], ...)
 
@@ -240,7 +240,7 @@
         if (progress)
             close(pb)
 
-        return(res)
+        return(result)
     }
 
     # parallel processing

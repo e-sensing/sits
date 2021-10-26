@@ -18,7 +18,7 @@ sits_smooth(cube, type = "bayes", ...)
   covar = FALSE,
   multicores = 2,
   memsize = 4,
-  output_dir = tempdir(),
+  output_dir = ".",
   version = "v1"
 )
 
@@ -30,7 +30,7 @@ sits_smooth(cube, type = "bayes", ...)
   sigma = 1,
   multicores = 2,
   memsize = 4,
-  output_dir = tempdir(),
+  output_dir = ".",
   version = "v1"
 )
 
@@ -43,7 +43,7 @@ sits_smooth(cube, type = "bayes", ...)
   tau = 0.1,
   multicores = 2,
   memsize = 4,
-  output_dir = tempdir(),
+  output_dir = ".",
   version = "v1"
 )
 }
@@ -108,9 +108,7 @@ rfor_model <- sits_train(samples_ndvi, sits_rfor(num_trees = 500))
 # create a data cube based on the information about the files
 data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
 cube <- sits_cube(
-    source = "LOCAL",
-    name = "sinop-2014",
-    origin = "BDC",
+    source = "BDC",
     collection = "MOD13Q1-6",
     data_dir = data_dir,
     delim = "_",

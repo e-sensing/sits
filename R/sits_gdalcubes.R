@@ -3,7 +3,6 @@
 #' @keywords internal
 #'
 #' @param tile        A data cube tile
-#' @param name        Name of the new data cube
 #' @param img_col     A \code{object} 'image_collection' containing information
 #'  about the images metadata.
 #' @param cv          A \code{list} 'cube_view' with values from cube.
@@ -19,7 +18,6 @@
 #'
 #' @return  A data cube tile with information used in its creation.
 .gc_new_cube <- function(tile,
-                         name,
                          cv,
                          img_col,
                          path_db,
@@ -30,13 +28,19 @@
     # set caller to show in errors
     .check_set_caller(".gc_new_cube")
 
-    # create a clone cube
-    cube_gc <- .sits_cube_clone(
-        cube = tile,
-        name = name,
-        ext = "",
-        output_dir = output_dir,
-        version = version
+    bbox <- .cube_tile_bbox(cube = tile)
+    cube_gc <- .cube_create(
+        source     = tile$source,
+        collection = tile$collection,
+        satellite  = tile$satellite,
+        sensor     = tile$sensor,
+        tile       = tile$tile,
+        xmin       = bbox$xmin,
+        xmax       = bbox$xmax,
+        ymin       = bbox$ymin,
+        ymax       = bbox$ymax,
+        crs        = tile$crs,
+        file_info  = NA
     )
 
     # update cube metadata
@@ -49,11 +53,6 @@
                                              path = character())
 
     for (band in .cube_bands(tile, add_cloud = FALSE)) {
-
-
-        cv$resampling <- .source_bands_resampling(source = tile$source,
-                                                  collection = tile$collection,
-                                                  bands = band)
 
         # create a raster_cube object to each band the select below change
         # the object value
@@ -132,20 +131,22 @@
 #'  about the cube brick metadata.
 .gc_raster_cube <- function(cube, img_col, cv, cloud_mask) {
 
-    # defining the chunk size
-    c_size <- c(t = 1,
-                rows = floor(cube$nrows / 4),
-                cols = floor(cube$ncols / 4))
+
+    chunk_size <- .config_get(key = "gdalcubes_chunk_size")
+
 
     mask_band <- NULL
     if (cloud_mask)
         mask_band <- .gc_cloud_mask(cube)
 
+    gdalcubes_chunk_size <- .config_get(key = "gdalcubes_chunk_size")
+
     # create a brick of raster_cube object
-    cube_brick <- gdalcubes::raster_cube(image_collection = img_col,
-                                         view = cv,
-                                         mask = mask_band,
-                                         chunking = c_size)
+    cube_brick <- gdalcubes::raster_cube(
+        image_collection = img_col,
+        view = cv,
+        mask = mask_band,
+        chunking = gdalcubes_chunk_size)
 
     return(cube_brick)
 }
@@ -164,12 +165,6 @@
     # update bbox
     bbox_names <- c("xmin", "xmax", "ymin", "ymax")
     cube[, bbox_names] <- cube_view$space[c("left", "right", "bottom", "top")]
-
-    # update nrows and ncols
-    cube[, c("nrows", "ncols")] <- cube_view$space[c("ny", "nx")]
-
-    # hot fix remove cloud band
-    cube$bands[[1]] <- setdiff(cube$bands[[1]], "CLOUD")
 
     return(cube)
 }
@@ -205,6 +200,22 @@
         )
     )
 
+    # is this a bit mask cloud?
+    if (.source_cloud_bit_mask(
+        source = .cube_source(cube = tile),
+        collection = .cube_collection(cube = tile)))
+
+        mask_values <- list(
+            band = cloud_band,
+            min = 1,
+            max = 2^16,
+            bits = mask_values$values,
+            values = NULL,
+            invert = FALSE
+        )
+
+    class(mask_values) <- "image_mask"
+
     return(mask_values)
 }
 
@@ -227,53 +238,50 @@
     file_info <- dplyr::bind_rows(cube$file_info)
 
     # retrieving the collection format
-    format_col <- .gc_format_col(.cube_source(cube))
+    format_col <- .source_collection_gdal_config(
+        .cube_source(cube = cube),
+        collection = .cube_collection(cube = cube)
+    )
 
     message("Creating database of images...")
     ic_cube <- gdalcubes::create_image_collection(
         files    = file_info$path,
         format   = format_col,
-        out_file = path_db)
+        out_file = path_db
+    )
     return(ic_cube)
 }
 
 
 #' @title Internal function to handle with different file collection formats
 #'  for each provider.
-#' @name gdalcubes_format_col
+#' @name .gc_format_col
 #' @keywords internal
 #'
 #' @description
 #' Generic function with the goal that each source implements its own way of
 #' localizing the collection format file.
 #'
-#' @param source A \code{character} value referring to a valid data source.
-#' @param ...    Additional parameters.
+#' @param source     A \code{character} value referring to a valid data source.
+#' @param collection A \code{character} value referring to a valid collection.
+#' @param ...        Additional parameters.
 #'
 #' @return A \code{character} path with format collection.
-.gc_format_col <- function(source, ...) {
+.gc_format_col <- function(source, collection, ...) {
 
     # set caller to show in errors
     .check_set_caller("sits_cube")
-
-    s <- .source_new(source = source)
-
-    # Dispatch
-    UseMethod(".gc_format_col", s)
-}
-
-#' @keywords internal
-#' @export
-.gc_format_col.aws_cube <- function(source, ...) {
-
-    system.file("extdata/gdalcubes/s2la_aws.json", package = "sits")
-}
-
-#' @keywords internal
-#' @export
-.gc_format_col.opendata_cube <- function(source, ...) {
-
-    system.file("extdata/gdalcubes/s2la_aws_cogs.json", package = "sits")
+    # try to find the gdalcubes configuration format for this collection
+    gdal_config <- .config_get(key = c("sources", source, "collections",
+                                       collection, "gdalcubes_format_col"),
+                               default = NA)
+    # if the format does not exist, report to the user
+    .check_that(!(is.na(gdal_config)),
+                msg = paste0("collection ", collection, " in source ", source,
+                             "not supported yet\n",
+                             "Please raise an issue in github"))
+    # return the gdal format file path
+    system.file(paste0("extdata/gdalcubes/", gdal_config), package = "sits")
 }
 
 #' @title Create a cube_view object
@@ -291,6 +299,11 @@
 #' @param agg_method A \code{character} with the method that will be applied in
 #'  the aggregation, the following are available: "min", "max", "mean",
 #'  "median" or "first".
+#' @param resampling A \code{character} with method to be used by
+#'  \code{gdalcubes} for resampling in mosaic operation.
+#'  Options: \code{near}, \code{bilinear}, \code{bicubic} or others supported by
+#'  gdalwarp (see https://gdal.org/programs/gdalwarp.html).
+#'  By default is bilinear.
 #'
 #' @return a \code{cube_view} object from gdalcubes.
 .gc_create_cube_view <- function(tile,
@@ -298,7 +311,8 @@
                                  res,
                                  roi,
                                  toi,
-                                 agg_method) {
+                                 agg_method,
+                                 resampling) {
 
     # set caller to show in errors
     .check_set_caller(".gc_create_cube_view")
@@ -330,20 +344,13 @@
 
     bbox_roi <- sits_bbox(tile)
 
-    if (!purrr::is_null(roi)) {
-
+    if (!is.null(roi))
         bbox_roi <- .sits_roi_bbox(roi, tile)
 
-        roi <- list(left   = bbox_roi[["xmin"]],
-                    right  = bbox_roi[["xmax"]],
-                    bottom = bbox_roi[["ymin"]],
-                    top    = bbox_roi[["ymax"]])
-    } else
-        roi <- list(left   = bbox_roi[["xmin"]],
-                    right  = bbox_roi[["xmax"]],
-                    bottom = bbox_roi[["ymin"]],
-                    top    = bbox_roi[["ymax"]])
-
+    roi <- list(left   = bbox_roi[["xmin"]],
+                right  = bbox_roi[["xmax"]],
+                bottom = bbox_roi[["ymin"]],
+                top    = bbox_roi[["ymax"]])
 
     # create a list of cube view
     cv <- gdalcubes::cube_view(
@@ -357,7 +364,8 @@
         dt = period,
         dx = res,
         dy = res,
-        aggregation = agg_method
+        aggregation = agg_method,
+        resampling = resampling
     )
 
     return(cv)

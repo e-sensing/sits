@@ -14,6 +14,7 @@
     .check_set_caller(".deafrica_search_tiles")
 
     # checks if the supplied tiles are in the searched items
+    # TODO: use Filter instead
     index_features <- purrr::map_lgl(items$features, function(feature) {
         region_code <- feature[["properties"]][["odc:region_code"]]
         if (region_code %in% tiles)
@@ -35,45 +36,8 @@
 
 #' @keywords internal
 #' @export
-.source_item_get_date.deafrica_cube <- function(source,
-                                                item, ...,
-                                                collection = NULL) {
-    item[[c("properties", "datetime")]]
-}
-
-#' @keywords internal
-#' @export
-.source_item_get_hrefs.deafrica_cube <- function(source,
-                                                 item, ...,
-                                                 collection = NULL) {
-
-
-    href <- unname(purrr::map_chr(item[["assets"]], `[[`, "href"))
-
-    # add gdal vsi in href urls
-    return(.stac_add_gdal_vsi(href))
-}
-
-#' @keywords internal
-#' @export
-.source_item_get_bands.deafrica_cube <- function(source,
-                                                 item, ...,
-                                                 collection = NULL) {
-    names(item[["assets"]])
-}
-
-#' @keywords internal
-#' @export
-.source_item_get_resolutions.deafrica_cube <- function(source,
-                                                       item, ...,
-                                                       collection = NULL) {
-    item[[c("properties", "gsd")]]
-}
-
-#' @keywords internal
-#' @export
-.source_items_new.deafrica_cube <- function(source,
-                                            collection, ...,
+.source_items_new.deafrica_cube <- function(source, ...,
+                                            collection,
                                             stac_query,
                                             tiles = NULL) {
 
@@ -106,8 +70,8 @@
 
 #' @keywords internal
 #' @export
-.source_items_tiles_group.deafrica_cube <- function(source,
-                                                    items, ...,
+.source_items_tiles_group.deafrica_cube <- function(source, ...,
+                                                    items,
                                                     collection = NULL) {
 
     rstac::items_group(items, field = c("properties", "odc:region_code"))
@@ -115,46 +79,23 @@
 
 #' @keywords internal
 #' @export
-.source_items_tile_get_crs.deafrica_cube <- function(source,
-                                                     tile_items, ...,
+.source_items_tile_get_crs.deafrica_cube <- function(source, ...,
+                                                     tile_items,
                                                      collection = NULL) {
 
-    tile_items[["features"]][[1]][[c("properties", "proj:epsg")]]
+    # format collection crs
+    crs <- .sits_proj_format_crs(
+        tile_items[["features"]][[1]][[c("properties", "proj:epsg")]]
+    )
+
+    return(crs)
 }
 
 #' @keywords internal
 #' @export
-.source_items_tile_get_name.deafrica_cube <- function(source,
-                                                      tile_items, ...,
-                                                      collection = NULL) {
+.source_items_tile_get_name.deafrica_cube <- function(source, ...,
+                                                      collection,
+                                                      tile_items) {
 
     tile_items[["features"]][[1]][[c("properties", "odc:region_code")]]
-}
-
-#' @keywords internal
-#' @export
-.source_items_tile_get_bbox.deafrica_cube <- function(source,
-                                                      tile_items, ...,
-                                                      collection = NULL) {
-
-    # get collection crs
-    crs <- .source_items_tile_get_crs(source = source,
-                                      tile_items = tile_items,
-                                      collection = collection)
-
-    bbox <- .stac_get_bbox(tile_items, crs)
-
-    return(bbox)
-}
-
-#' @keywords internal
-#' @export
-.source_items_tile_get_size.deafrica_cube <- function(source,
-                                                      tile_items, ...,
-                                                      collection = NULL) {
-
-    size <- tile_items[["features"]][[1]][[c("properties", "proj:shape")]]
-
-    names(size) <- c("nrows", "ncols")
-    return(size)
 }

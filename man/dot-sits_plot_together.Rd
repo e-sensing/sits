@@ -9,7 +9,7 @@
 \arguments{
 \item{data}{A sits tibble with the list of time series to be plotted.}
 
-\item{colors}{The color pallete to be used (default is "Set1").}
+\item{colors}{The color palette to be used (default is "Set1").}
 }
 \value{
 The plot itself.
