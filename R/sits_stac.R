@@ -152,23 +152,18 @@
 #'
 #' @param source     Name of the STAC provider
 #' @param collection Collection to be searched in the data source
-#' @param name       Name of the output data cube.
-#' @param bands      Bands to be included
 #' @param bbox       Area of interest.
 #' @param start_date Initial date for the cube (optional).
 #' @param end_date   Final date for the cube  (optional).
 #' @param limit      limit items to be returned in requisition.
-#' @param ...        additional parameters,
 #'
 #' @return an \code{RSTACQuery} object.
 .stac_items_query <- function(source,
                               collection,
-                              name,
-                              bands,
                               bbox = NULL,
                               start_date = NULL,
                               end_date = NULL,
-                              limit = NULL, ...) {
+                              limit = NULL) {
 
     # get collection original name
     collection <- .source_collection_name(source = source,
