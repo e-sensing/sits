@@ -68,7 +68,7 @@
 
     items_query <- .stac_items_query(source = source,
                                      collection = collection,
-                                     limit = 1, ...)
+                                     limit = 1)
 
 
     items_query$version <- .config_get(key = c("sources", source,
