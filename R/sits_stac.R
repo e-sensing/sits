@@ -152,6 +152,7 @@
 #'
 #' @param source     Name of the STAC provider
 #' @param collection Collection to be searched in the data source
+#' @param ...        Other parameters to be passed for specific types.
 #' @param bbox       Area of interest.
 #' @param start_date Initial date for the cube (optional).
 #' @param end_date   Final date for the cube  (optional).
@@ -159,7 +160,7 @@
 #'
 #' @return an \code{RSTACQuery} object.
 .stac_items_query <- function(source,
-                              collection,
+                              collection, ...,
                               bbox = NULL,
                               start_date = NULL,
                               end_date = NULL,

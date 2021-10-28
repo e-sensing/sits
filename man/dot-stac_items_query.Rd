@@ -7,6 +7,7 @@
 .stac_items_query(
   source,
   collection,
+  ...,
   bbox = NULL,
   start_date = NULL,
   end_date = NULL,
@@ -17,6 +18,8 @@
 \item{source}{Name of the STAC provider}
 
 \item{collection}{Collection to be searched in the data source}
+
+\item{...}{Other parameters to be passed for specific types.}
 
 \item{bbox}{Area of interest.}
 
