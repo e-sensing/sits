@@ -4,6 +4,10 @@ We are preparing to release the package on CRAN and are making relevant changes 
 
 # What's new in SITS version 0.15.0 
 
+### New features in SITS version 0.15.0-2
+* Fix bug in `.source_collection_access_test` to pass ellipsis to `rstac::post_request` function.
+* Update drone version
+
 ### New features in SITS version 0.15.0-1
 * Fix bug in `sits_plot`
 * Fix bug in `sits_timeline` for cubes that do not have the same temporal extent.

@@ -7,23 +7,16 @@
 .stac_items_query(
   source,
   collection,
-  name,
-  bands,
   bbox = NULL,
   start_date = NULL,
   end_date = NULL,
-  limit = NULL,
-  ...
+  limit = NULL
 )
 }
 \arguments{
 \item{source}{Name of the STAC provider}
 
 \item{collection}{Collection to be searched in the data source}
-
-\item{name}{Name of the output data cube.}
-
-\item{bands}{Bands to be included}
 
 \item{bbox}{Area of interest.}
 
@@ -32,8 +25,6 @@
 \item{end_date}{Final date for the cube  (optional).}
 
 \item{limit}{limit items to be returned in requisition.}
-
-\item{...}{additional parameters,}
 }
 \value{
 an \code{RSTACQuery} object.
