@@ -148,10 +148,11 @@
 #' \dontrun{
 #'
 #' # --- Access to the Brazil Data Cube
-#' # Provide your BDC credentials as environment variables
-#' Sys.setenv(
-#'     "BDC_ACCESS_KEY" = <your_bdc_access_key>
-#' )
+#' # Uncomment the lines below and provide your BDC credentials as
+#' # environment variables
+#' # Sys.setenv(
+#' #     BDC_ACCESS_KEY = <your_bdc_access_key>
+#' # )
 #'
 #' # create a raster cube file based on the information in the BDC
 #' cbers_tile <- sits_cube(
@@ -164,23 +165,24 @@
 #' )
 #'
 #' # --- Create a WTSS cube from BDC cubes
-#' # Provide your BDC credentials as environment variables
-#' Sys.setenv(
-#'     "BDC_ACCESS_KEY" = <your_bdc_access_key>
-#' )
+#' # Uncomment the lines below and provide your BDC credentials as
+#' # environment variables
+#' # Sys.setenv(
+#' #     BDC_ACCESS_KEY = <your_bdc_access_key>
+#' # )
 #'
-#' cube_wtss <- sits::sits_cube(source = "WTSS",
-#'                              collection = "MOD13Q1-6")
+#' cube_wtss <- sits_cube(source = "WTSS",
+#'                        collection = "MOD13Q1-6")
 #'
 #' # --- Access to Digital Earth Africa
 #' # create a raster cube file based on the information about the files
 #' cube_dea <- sits_cube(source = "DEAFRICA",
 #'                       collection = "s2_l2a",
 #'                       bands = c("B04", "B08"),
-#'                       bbox = c("xmin" = 17.379,
-#'                               "ymin" = 1.1573,
-#'                               "xmax" = 17.410,
-#'                                "ymax" = 1.1910),
+#'                       roi = c(lon_min = 17.379,
+#'                               lat_min = 1.1573,
+#'                               lon_max = 17.410,
+#'                               lat_max = 1.1910),
 #'                       start_date = "2019-01-01",
 #'                       end_date = "2019-10-28"
 #' )
