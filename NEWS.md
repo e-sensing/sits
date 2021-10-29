@@ -4,6 +4,9 @@ We are preparing to release the package on CRAN and are making relevant changes 
 
 # What's new in SITS version 0.15.0 
 
+### New features in SITS version 0.15.0-4
+* Change `gdalcubes_chunk_size` in "config.yml" to improve `sits_regularize()`.
+
 ### New features in SITS version 0.15.0-3
 * Fix bug in `.source_collection_access_test` to pass ellipsis to `rstac::post_request` function.
 
