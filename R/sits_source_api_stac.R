@@ -11,11 +11,11 @@
 
     items_query <- .stac_items_query(source = source,
                                      collection = collection,
-                                     limit = 1, ...)
+                                     limit = 1)
 
     # assert that service is online
     tryCatch({
-        items <- rstac::post_request(items_query)
+        items <- rstac::post_request(items_query, ...)
     }, error = function(e) {
         stop(paste(".source_collection_access_test.stac_cube: service is unreachable\n",
                    e$message), call. = FALSE)
@@ -58,13 +58,12 @@
 
     items_query <- .stac_items_query(source = source,
                                      collection = collection,
-                                     bands = bands,
                                      bbox = bbox,
                                      start_date = start_date,
                                      end_date = end_date, ...)
 
     items <- .source_items_new(source = source, ...,
-                               collection = collection, ...,
+                               collection = collection,
                                stac_query = items_query,
                                tiles = tiles)
 
