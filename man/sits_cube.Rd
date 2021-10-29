@@ -139,8 +139,8 @@ to provide AWS credentials to access open data collections.
 For requester-pays data, users need to provide their access codes as
 environment variables, as follows:
 Sys.setenv(
-"AWS_ACCESS_KEY_ID"     = <your_access_key>,
-"AWS_SECRET_ACCESS_KEY" = <your_secret_access_key>
+    AWS_ACCESS_KEY_ID     = <your_access_key>,
+    AWS_SECRET_ACCESS_KEY = <your_secret_access_key>
 )
 
 Sentinel-2/2A level 2A files in AWS are organized by sensor
@@ -160,12 +160,12 @@ covering datasets from Landsat-4 to Landsat-8. This collection is open data.
 All BDC collections have been regularized.
 BDC users need to provide their credentials using environment
 variables. To create your credentials, please see
- "https://brazildatacube.dpi.inpe.br/portal/explore". There is no
- cost for accessing data in the BDC.
- After obtaining the BDC access key, please include it as
- an environment variable.
+"https://brazildatacube.dpi.inpe.br/portal/explore". There is no
+cost for accessing data in the BDC.
+After obtaining the BDC access key, please include it as
+an environment variable, as follows:
 Sys.setenv(
-"BDC_ACCESS_KEY" = <your_bdc_access_key>
+    BDC_ACCESS_KEY = <your_bdc_access_key>
 )
 
 To create a cube from local files, the user needs to inform:
@@ -203,10 +203,11 @@ want to extract the data.
 \dontrun{
 
 # --- Access to the Brazil Data Cube
-# Provide your BDC credentials as environment variables
-Sys.setenv(
-    "BDC_ACCESS_KEY" = <your_bdc_access_key>
-)
+# Uncomment the lines below and provide your BDC credentials as
+# environment variables
+# Sys.setenv(
+#     BDC_ACCESS_KEY = <your_bdc_access_key>
+# )
 
 # create a raster cube file based on the information in the BDC
 cbers_tile <- sits_cube(
@@ -219,23 +220,24 @@ cbers_tile <- sits_cube(
 )
 
 # --- Create a WTSS cube from BDC cubes
-# Provide your BDC credentials as environment variables
-Sys.setenv(
-    "BDC_ACCESS_KEY" = <your_bdc_access_key>
-)
+# Uncomment the lines below and provide your BDC credentials as
+# environment variables
+# Sys.setenv(
+#     BDC_ACCESS_KEY = <your_bdc_access_key>
+# )
 
-cube_wtss <- sits::sits_cube(source = "WTSS",
-                             collection = "MOD13Q1-6")
+cube_wtss <- sits_cube(source = "WTSS",
+                       collection = "MOD13Q1-6")
 
 # --- Access to Digital Earth Africa
 # create a raster cube file based on the information about the files
 cube_dea <- sits_cube(source = "DEAFRICA",
                       collection = "s2_l2a",
                       bands = c("B04", "B08"),
-                      bbox = c("xmin" = 17.379,
-                              "ymin" = 1.1573,
-                              "xmax" = 17.410,
-                               "ymax" = 1.1910),
+                      roi = c(lon_min = 17.379,
+                              lat_min = 1.1573,
+                              lon_max = 17.410,
+                              lat_max = 1.1910),
                       start_date = "2019-01-01",
                       end_date = "2019-10-28"
 )
