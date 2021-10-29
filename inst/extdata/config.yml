@@ -11,7 +11,7 @@ raster_api_package      : "terra"
 gdal_creation_options   : ["COMPRESS=LZW", "BIGTIFF=YES"]
 
 # configuration for gdalcubes chunk
-gdalcubes_chunk_size   : [1, 256, 256]
+gdalcubes_chunk_size   : [1, 2048, 2048]
 
 # local cube config options
 local_s3_class          : ["local_cube", "raster_cube"]
