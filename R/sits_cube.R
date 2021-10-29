@@ -51,8 +51,8 @@
 #' For requester-pays data, users need to provide their access codes as
 #' environment variables, as follows:
 #' Sys.setenv(
-#' "AWS_ACCESS_KEY_ID"     = <your_access_key>,
-#' "AWS_SECRET_ACCESS_KEY" = <your_secret_access_key>
+#'     AWS_ACCESS_KEY_ID     = <your_access_key>,
+#'     AWS_SECRET_ACCESS_KEY = <your_secret_access_key>
 #' )
 #'
 #' @note Sentinel-2/2A level 2A files in AWS are organized by sensor
@@ -70,15 +70,15 @@
 #' corresponds to Landsat Collection 2 Level-2 surface reflectance data,
 #' covering datasets from Landsat-4 to Landsat-8. This collection is open data.
 #'
-#'@note All BDC collections have been regularized.
+#' @note All BDC collections have been regularized.
 #' BDC users need to provide their credentials using environment
 #' variables. To create your credentials, please see
-#'  "https://brazildatacube.dpi.inpe.br/portal/explore". There is no
-#'  cost for accessing data in the BDC.
-#'  After obtaining the BDC access key, please include it as
-#'  an environment variable.
+#' "https://brazildatacube.dpi.inpe.br/portal/explore". There is no
+#' cost for accessing data in the BDC.
+#' After obtaining the BDC access key, please include it as
+#' an environment variable, as follows:
 #' Sys.setenv(
-#' "BDC_ACCESS_KEY" = <your_bdc_access_key>
+#'     BDC_ACCESS_KEY = <your_bdc_access_key>
 #' )
 #'
 #'@note To create a cube from local files, the user needs to inform:
