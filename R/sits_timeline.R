@@ -5,9 +5,9 @@
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'
 #' @description This function returns the timeline for a given data set, either
-#'              a set of time series or a data cube
+#'              a set of time series, a data cube, or a trained model.
 #'
-#' @param  data     either a sits tibble or data cube
+#' @param  data     either a sits tibble, a data cube, or a trained model.
 #'
 #' @export
 #'
@@ -25,6 +25,12 @@ sits_timeline <- function(data) {
 #'
 sits_timeline.sits <- function(data) {
     return(data$time_series[[1]]$Index)
+}
+
+#' @export
+#'
+sits_timeline.sits_model <- function(data) {
+    return(environment(data)$data$time_series[[1]]$Index)
 }
 
 #' @export
