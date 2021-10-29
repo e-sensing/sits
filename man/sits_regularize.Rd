@@ -71,21 +71,22 @@ The "roi" parameter defines a region of interest. It can be
 \dontrun{
 
 # --- Access to the AWS STAC
-# Provide your AWS credentials as environment variables
-Sys.setenv(
-    "AWS_ACCESS_KEY_ID" = <your_aws_access_key>,
-    "AWS_SECRET_ACCESS_KEY" = <your_aws_secret_access_key>
-)
+# Uncomment the lines below and provide your AWS credentials
+# as environment variables
+# Sys.setenv(
+#     AWS_ACCESS_KEY_ID = <your_aws_access_key>,
+#     AWS_SECRET_ACCESS_KEY = <your_aws_secret_access_key>
+# )
 
 # define an AWS data cube
-  s2_cube <- sits_cube(source = "AWS",
-                      name = "T20LKP_2018_2019",
-                      collection = "sentinel-s2-l2a-cogs",
-                      bands = c("B08", "SCL"),
-                      tiles = c("20LKP"),
-                      start_date = as.Date("2018-07-18"),
-                      end_date = as.Date("2018-08-18")
-  )
+s2_cube <- sits_cube(source = "AWS",
+                     name = "T20LKP_2018_2019",
+                     collection = "sentinel-s2-l2a-cogs",
+                     bands = c("B08", "SCL"),
+                     tiles = c("20LKP"),
+                     start_date = as.Date("2018-07-18"),
+                     end_date = as.Date("2018-08-18")
+)
 
 # create a directory to store the resulting images
 dir.create(paste0(tempdir(),"/images/"))
