@@ -43,14 +43,21 @@ machines.
 6. Post-process the classified images. 
 7. Evaluate the accuracy of the classification using best practices.
 
+### SITS on Kaggle
+
+Those that want to evaluate the `sits` package before installing it are invited to run the examples available on [Kaggle](https://www.kaggle.com/esensing/code). These examples provide an fast-track introduction to the package. We recommend running them in the following order: 
+
+1. [Introduction to SITS](https://www.kaggle.com/esensing/introduction-to-sits)
+2. [Working with time series in SITS](https://www.kaggle.com/esensing/working-with-time-series-in-sits)
+3. [Creating data cubes in SITS](https://www.kaggle.com/esensing/creating-data-cubes-in-sits)
+4. [Raster classification in SITS](https://www.kaggle.com/esensing/raster-classification-in-sits)
+5. [Using SOM for sample quality control in SITS](https://www.kaggle.com/esensing/using-som-for-sample-quality-control-in-sits)
+
 ## Installation
 
 ### Pre-Requisites
 
-The `sits` package relies on `sf`, `terra` and `raster`, which in turn, require
-the installation of the GDAL and PROJ libraries. Please follow the instructions
-for installing `sf` together with GDAL available at the [RSpatial sf github
-repository](https://github.com/r-spatial/sf).
+The `sits` package relies on `sf`, `terra` and `raster`, which in turn, require the installation of the GDAL and PROJ libraries. Please follow the instructions for installing `sf` together with GDAL available at the [RSpatial sf github repository](https://github.com/r-spatial/sf).
 
 ### Obtaining SITS
 
@@ -63,49 +70,40 @@ devtools::install_github("e-sensing/sits", dependencies = TRUE)
 ```
 
 
-### Data Cubes and ARD Image Collections
+### ARD Image Collections accessible by SITS
 
-SITS works best with regular *data cube* that meet the following definition:
+SITS has been designed to work with big satellite image data sets organised as data cubes. Data cubes can be available in the cloud or in a local machine. The ARD collections accessible with SITS version 0.15.0 are:
+
+1. AWS: Sentinel-2/2A level 2A collections, including "SENTINEL-S2-L2A-COGS" (open data) and "SENTINEL-S2-L2A" (non open data). 
+2. Brazil Data Cube (BDC): Open data collections of Sentinel-2, Landsat-8 and CBERS-4 images in BDC.
+3. Digital Earth Africa (DEAFRICA): Sentinel-2/2A and Landsat-8 collections available in Digital Earth Africa. These collections are openly acessible but not regular;
+4. USGS: Landsat-4/5/7/8. These collections are not open data. 
+
+Open data collections do not require payment of access fees to cloud providers. Except for those in the BDC, These collections are not regular and require further processing before they can be used in SITS.
+
+### Transforming ARD Image Collections into Data Cubes
+
+SITS works best with regular *data cubes* that meet the following definition:
 
 1. A data cube is a four-dimensional structure with dimensions x (longitude or easting), y (latitude or northing), time, and bands.
 2. Its spatial dimensions refer to a single spatial reference system (SRS). Cells of a data cube have a constant spatial size with respect to the cube’s SRS.
 3. The temporal dimension is composed of a set of continuous and equally-spaced intervals.
 4. For every combination of dimensions, a cell has a single value.
 
-Not all data cubes are regular. Currently, most cloud providers (such as AWS and Microsoft) provide images organised as analysis-ready data (ARD) image collections, which meet  the following definitions:
-
-1. An ARD image collection is a set of files from a given sensor (or a combined set of sensors) that has been corrected to ensure comparability of measurements between different dates.
-2. All images are reprojected to a cartographic projection following well-established standards.
-3. Image collections are cropped into a tiling system.  
-4. In general, the timelines of the images that are part of one tile are not regular. Also, these timelines are not the same as those associated to a different tile. 
-5. ARD image collections do not guarantee that every pixel of an image has a valid value, since its images still contains cloudy or missing pixels. 
-
-### Transforming ARD Image Collections into Data Cubes
-
-SITS has been designed to work with big satellite image data sets organised as data cubes. Data cubes can be available in the cloud or in a local machine. Currently, SITS supports analysis ready data collections available in the services provided by Amazon Web Services (AWS), Brazil Data Cube (BDC), Digital Earth Africa (DEAFRICA), and United States Geological Survey (USGS). We are working to include collections available in Microsoft's Planetary Computer. Most of these collections are open data and require no payment to access them. However, in general these collections are not regular and require further processing before they can be used in SITS.
-
-The ARD collections accessible with SITS version 0.15.0 are:
-
-1. Sentinel-2/2A level 2A collections in AWS, including "SENTINEL-S2-L2A-COGS" (open data) and "SENTINEL-S2-L2A" (non open data). These collections are not regular.
-2. Collections of Sentinel-2, Landsat-8 and CBERS-4 images in BDC (opendata). The BDC collections are regular and openly accessible.
-3. Sentinel-2/2A and Landsat-8 collections available in Digital Earth Africa. These collections are openly acessible but not regular; 
-4. Landsat-4/5/7/8 collections made available by USGS. These collections are neither openly acessible nor regular.
-
-SITS relies on STAC services to access these collections. The user defines a generic data cube by selecting a collection in a cloud service and then specifying a space-time extent. For example, the following code will define a data cube of Sentinel-2/2A images using AWS.
+The user defines a generic data cube by selecting a collection in a cloud service and then specifying a space-time extent. For example, the following code will define a data cube of Sentinel-2/2A images using AWS.
 
 ```{r, eval = FALSE, echo = TRUE}
 s2_cube <- sits_cube(source = "AWS",
                      collection = "sentinel-s2-l2a-cogs",
                      tiles = c("20LKP", "20LLP"),
-                     bands = c("B02", "B03", "B04", "B08", "B8A", "B11")
+                     bands = c("B03", "B04", "B08", "B8A", "B11", "SCL")
                      start_date = as.Date("2018-07-01"),
                      end_date = as.Date("2018-10-30")
 )
 ```
 In the above example, the user has selected the "Sentinel-2 Level 2" collection in  the AWS cloud services which is open data. The geographical area of the data cube is defined by the tiles "20LKP" and "20LLKP", and the temporal extent by a start and end date.  Access to other cloud services works in similar ways. 
 
-The data cube defined by the above command not regular, since the chosen Sentinel-2 bands have different resolutions. Also, tiles "20LKP" and "20LLP" have different timelines. Users can derive regular data cubes from ARD data which have pre-defined temporal 
-resolutions. This is dones by `sits_regularize()` which uses the [https://github.com/appelmar/gdalcubes](gdalcubes) package [4]. 
+The data cube defined by the above command not regular, since the chosen Sentinel-2 bands have different resolutions. Also, tiles "20LKP" and "20LLP" have different timelines. Users can derive regular data cubes from ARD data which have pre-defined temporal  resolutions. This is dones by `sits_regularize()` which uses the [gdalcubes package](https://github.com/appelmar/gdalcubes) package [4]. 
 
 ```{r, eval = FALSE, echo = TRUE}
 gc_cube <- sits_regularize(cube          = s2_cube,
