@@ -214,7 +214,7 @@ sits_cube <- function(source, ..., collection, data_dir = NULL) {
     .check_set_caller("sits_cube")
 
     if (purrr::is_null(data_dir))
-        source <- .source_new(source = source)
+        source <- .source_new(source = source, collection = collection)
     else
         source <- .source_new(source = source, is_local = TRUE)
 
@@ -293,8 +293,8 @@ sits_cube.stac_cube <- function(source,
 
     # Pre-condition - checks if the bands are supported by the collection
     .config_check_bands(source = source,
-                 collection = collection,
-                 bands = bands)
+                        collection = collection,
+                        bands = bands)
 
     # dry run to verify if service is running
     .source_collection_access_test(source = source, ...,

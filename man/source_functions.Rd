@@ -14,7 +14,7 @@
 
 .source_check(source)
 
-.source_new(source, is_local = FALSE)
+.source_new(source, collection = NULL, is_local = FALSE)
 
 .source_service(source)
 
