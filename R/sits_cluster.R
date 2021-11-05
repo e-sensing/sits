@@ -73,7 +73,6 @@ sits_cluster_dendro <- function(samples = NULL,
         requireNamespace("dtwclust", quietly = TRUE),
         msg = "Please install package dtwclust"
     )
-    library(dtwclust)
 
     # bands in sits are uppercase
     bands <- .sits_tibble_bands_check(samples, bands)

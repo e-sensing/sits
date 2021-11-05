@@ -10,7 +10,6 @@
 #' \itemize{
 #'  \item{Whittaker smoother - see \code{\link{sits_whittaker}}}
 #'  \item{Savitsky-Golay filter - see \code{\link{sits_sgolay}}}
-#'  \item{Envelope filter - see \code{\link{sits_envelope}}}
 #'  \item{Interpolation filter - see \code{\link{sits_interp}}}
 #' }
 #'
