@@ -2,7 +2,7 @@
 % Please edit documentation in R/sits_xlsx.R
 \name{sits_to_xlsx}
 \alias{sits_to_xlsx}
-\title{Saves the results of accuracy assessments as Excel files}
+\title{Save accuracy assessments as Excel files}
 \usage{
 sits_to_xlsx(acc_lst, file)
 }

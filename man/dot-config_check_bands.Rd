@@ -19,3 +19,4 @@ An invisible null
 \description{
 A suite of check to verify collection in cube.
 }
+\keyword{internal}

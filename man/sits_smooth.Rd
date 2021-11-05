@@ -5,7 +5,7 @@
 \alias{sits_smooth.bayes}
 \alias{sits_smooth.gaussian}
 \alias{sits_smooth.bilateral}
-\title{Post-process a classified data raster probs using smoothing}
+\title{Smooth probability cubes with spatial predictors}
 \usage{
 sits_smooth(cube, type = "bayes", ...)
 

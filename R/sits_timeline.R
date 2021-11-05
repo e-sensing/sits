@@ -1,4 +1,4 @@
-#' @title Obtains the timeline
+#' @title Get timeline of a cube or a set of time series
 #'
 #' @name sits_timeline
 #'

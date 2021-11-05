@@ -2,7 +2,7 @@
 % Please edit documentation in R/sits_plot.R
 \name{plot.som_map}
 \alias{plot.som_map}
-\title{Generic interface for plotting a SOM map}
+\title{Plot a SOM map}
 \usage{
 \method{plot}{som_map}(x, y, ..., type = "codes", whatmap = 1)
 }
@@ -32,7 +32,7 @@ The plot function produces different plots based on the input data:
 \examples{
 \dontrun{
 # Produce a cluster map
-samples_mt_2bands <- sits_select(samples_mt_6bands, bands = c("NDVI", "EVI"))
+samples_mt_2bands <- sits_select(samples_modis_4bands, bands = c("NDVI", "EVI"))
 som_map <- sits_som_map(samples_mt_2bands)
 # Plot the clusters
 plot(som_map, type = "codes")

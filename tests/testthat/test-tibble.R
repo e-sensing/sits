@@ -1,7 +1,6 @@
 test_that("Align dates", {
     data("samples_modis_4bands")
-    data("timeline_2000_2017")
-    timeline <- lubridate::as_date(timeline_2000_2017)
+    timeline <- sits_timeline(point_mt_6bands)
     start_date <- lubridate::as_date("2001-08-01")
     end_date <- lubridate::as_date("2002-07-31")
 
@@ -48,13 +47,11 @@ test_that("Merge", {
 })
 
 test_that("Mutate", {
-    savi <- sits_mutate_bands(samples_mt_6bands,
-        SAVI = (1.5 * (NIR - RED) / (NIR + RED + 0.5))
-    )
-
-    expect_equal(sum(sits_time_series(savi)$SAVI),
-        5.980619,
-        tolerance = 0.001
+    ndwi <- sits_mutate_bands(samples_modis_4bands,
+                              NDWI = (1.5) * (NIR - MIR) / (NIR + MIR))
+    expect_equal(sum(sits_time_series(ndwi)$NDWI),
+                 14.22552,
+                 tolerance = 0.001
     )
 })
 
@@ -89,7 +86,7 @@ test_that("Select", {
     expect_equal(dim(samples_pasture)[1], 344)
 })
 
-test_that("Transmute", {
+test_that("Sample", {
     data <- sits_sample(cerrado_2classes, n = 10)
 
     expect_equal(sits_labels(cerrado_2classes), sits_labels(data))
@@ -105,11 +102,9 @@ test_that("Values", {
     expect_equal(sum(values$NDVI[, "NDVI"]), 13.6291, tolerance = 0.001)
 })
 
-test_that("Values", {
-    data(samples_mt_6bands)
-    savi <- sits:::.sits_ops_compute(samples_mt_6bands,
-        SAVI = (1.5 * (NIR - RED) / (NIR + RED + 0.5))
-    )
+test_that("Ops Compute", {
+    ndwi <- sits:::.sits_ops_compute(samples_modis_4bands,
+                              NDWI = (1.5) * (NIR - MIR) / (NIR + MIR))
 
-    expect_true("SAVI" %in% names(sits_time_series(savi)))
+    expect_true("NDWI" %in% names(sits_time_series(ndwi)))
 })

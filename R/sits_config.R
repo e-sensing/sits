@@ -1,9 +1,13 @@
-#' @title sits configuration
+#' @title Configure parameters for sits package
 #' @name sits_configuration
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
 #'
 #' @description These functions load and show sits configurations.
+#'
+#' The `sits` package uses a configuration file
+#' that contains information on parameters required by different functions.
+#' This includes information about the image collections handled by `sits`.
 #'
 #' \code{sits_config()} loads the default configuration file and
 #' the user provided configuration file. The final configuration is
@@ -516,6 +520,7 @@ NULL
 #'
 #' @description A suite of check to verify collection in cube.
 #'
+#' @keywords internal
 #' @param source        Data source
 #' @param collection    Collection to be searched in the data source.
 #' @param bands         Bands to be included.

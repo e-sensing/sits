@@ -2,7 +2,7 @@
 % Please edit documentation in R/sits_filters.R
 \name{sits_filter}
 \alias{sits_filter}
-\title{General function for filtering}
+\title{Filter time series and data cubes}
 \usage{
 sits_filter(data, filter = sits_whittaker())
 }

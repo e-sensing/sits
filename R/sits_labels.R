@@ -1,13 +1,10 @@
-#' @title Returns the information about labels of a data set (tibble or cube)
-#'
+#' @title Get labels associated to a data set
 #' @name sits_labels
 #'
 #' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
-#'
 #' @description  Finds labels in a sits tibble or data cube
 #'
 #' @param data      Valid sits tibble (time series or a cube)
-#'
 #' @return A string vector with the labels.
 #'
 #' @examples
@@ -71,4 +68,129 @@ sits_labels.sits_model <- function(data) {
 
     return(sits_labels.sits(environment(data)$data))
 
+}
+#' @title Change the labels of a set of time series
+#'
+#' @name `sits_labels<-`
+#'
+#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
+#'
+#' @description Given a sits tibble with a set of labels, renames the labels
+#' to the specified in value.
+#'
+#' @param  data      A sits tibble.
+#' @param  value     A character vector used to convert labels. Labels will
+#'                   be renamed to the respective value positioned at the
+#'                   labels order returned by \code{\link{sits_labels}}.
+#'
+#' @return           A sits tibble with modified labels.
+#'
+#' @examples
+#' # Read a set of time series with information on deforestation
+#' data("samples_modis_4bands")
+#' # Print the labels
+#' sits_labels(samples_modis_4bands)
+#' # Create a conversion list.
+#' # relabel the data
+#' sits_labels(samples_modis_4bands) <- c("Natural", "Natural",
+#'                                        "Anthropic", "Anthropic")
+#' # show the new labels
+#' sits_labels(samples_modis_4bands)
+#'
+#' @export
+#'
+`sits_labels<-` <- function(data, value) {
+
+    # set caller to show in errors
+    .check_set_caller("sits_labels")
+
+    # get the meta-type (sits or cube)
+    data <- .config_data_meta_type(data)
+
+    UseMethod("sits_labels<-", data)
+}
+
+#' @export
+#'
+`sits_labels<-.sits` <- function(data, value) {
+
+    # does the input data exist?
+    .sits_tibble_test(data)
+
+    labels <- sits_labels(data)
+
+    # check if value is an atomic vector
+    .check_chr_type(x = value,
+                    msg = "value must be a character vetor")
+
+    # check if length is correct
+    .check_length(
+        x = labels,
+        len_max = length(value),
+        len_min = length(value),
+        msg = "informed labels have a different expected length"
+    )
+
+    # check if there are no NA
+    .check_that(
+        x = all(!is.na(value)),
+        msg = "invalid labels value"
+    )
+
+    # check if there are empty strings
+    .check_that(
+        x = any(trimws(value) != ""),
+        msg = "invalid labels value"
+    )
+
+    names(value) <- labels
+
+    data$label <- value[data$label]
+
+    return(data)
+}
+
+#' @export
+#'
+`sits_labels<-.pattern` <- function(data, value) {
+
+    return(`sits_labels<-.pattern`(data, value))
+}
+
+#' @title Inform label distribution of a set of time series
+#' @name sits_labels_summary
+#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
+#' @description  Describes labels in a sits tibble
+#'
+#' @param data      Valid sits tibble
+#'
+#' @return A tibble with labels frequency.
+#'
+#' @examples
+#' # read a tibble with 400 samples of Cerrado and 346 samples of Pasture
+#' data(cerrado_2classes)
+#' # print the labels
+#' sits_labels_summary(cerrado_2classes)
+#'
+#' @export
+#'
+sits_labels_summary <- function(data) {
+
+    UseMethod("sits_labels_summary", data)
+}
+
+#' @export
+#'
+sits_labels_summary.sits <- function(data) {
+
+    # get frequency table
+    data_labels <- table(data$label)
+
+    # compose tibble containing labels, count and relative frequency columns
+    result <- tibble::as_tibble(list(
+        label = names(data_labels),
+        count = as.integer(data_labels),
+        prop = as.numeric(prop.table(data_labels))
+    ))
+    return(result)
 }

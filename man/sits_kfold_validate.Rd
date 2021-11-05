@@ -2,7 +2,7 @@
 % Please edit documentation in R/sits_validate.R
 \name{sits_kfold_validate}
 \alias{sits_kfold_validate}
-\title{Cross-validate temporal patterns}
+\title{Cross-validate time series samples}
 \usage{
 sits_kfold_validate(
   data,

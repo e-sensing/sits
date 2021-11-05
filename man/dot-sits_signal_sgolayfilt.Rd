@@ -2,12 +2,9 @@
 % Please edit documentation in R/sits_signal.R
 \name{.sits_signal_sgolayfilt}
 \alias{.sits_signal_sgolayfilt}
-\alias{.sits_signal_sgolay}
 \title{Savitsky-Golay smoothing filter}
 \usage{
 .sits_signal_sgolayfilt(x, p = 3, n = p + 3 - p\%\%2, m = 0, ts = 1)
-
-.sits_signal_sgolay(p, n, m = 0, ts = 1)
 }
 \arguments{
 \item{x}{Time series vector.}
@@ -22,8 +19,6 @@
 }
 \value{
 A time series with filtered values.
-
-filter coefficients
 }
 \description{
 Smooth the data in x with a Savitsky-Golay smoothing filter of
@@ -31,19 +26,5 @@ Smooth the data in x with a Savitsky-Golay smoothing filter of
    and n=p+2 or n=p+3 if p is even. This filters is particularly good
    at preserving lineshape while
    removing high frequency squiggles
-
-Computes the filter coefficients for all Savitzky-Golay smoothing
-filters of order p for length n (odd). m can be used in order to
-get directly the mth derivative. In this case, ts is a scaling factor.
-
-The early rows of F smooth based on future values and later rows
-smooth based on past values, with the middle row using half future
-and half past.  In particular, you can use row i to estimate x(k)
-based on the i-1 preceding values and the n-i following values of x
-values as y(k) = F(i,:) * x(k-i+1:k+n-i).
 }
-\author{
-Gilberto Camara
-
-Gilberto Camara
-}
+\keyword{internal}

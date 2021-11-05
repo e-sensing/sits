@@ -1,17 +1,6 @@
 test_that("Creating clustering using Self-organizing Maps", {
     # skip_on_cran()
     data("cerrado_2classes")
-    new_samples <- sits_som_cluster(
-            cerrado_2classes,
-            grid_xdim = 5,
-            grid_ydim = 5
-        )
-
-    expect_true(all(new_samples$eval %in% c("clean", "analyze", "remove")))
-    expect_true(new_samples[1, ]$post_prob > 0)
-    grid_size <- 25
-    expect_true(all(new_samples$id_neuron %in% c(1:grid_size)))
-
     set.seed(2903)
     som_map <- sits_som_map(
             samples_modis_4bands,
@@ -28,6 +17,7 @@ test_that("Creating clustering using Self-organizing Maps", {
     cleaned_samples <- sits_som_clean_samples(som_map)
     expect_true("eval" %in% names(cleaned_samples))
     expect_true("post_prob" %in% names(cleaned_samples))
+    expect_true(all(cleaned_samples$eval %in% c("clean", "analyze", "remove")))
 
     expect_true(cleaned_samples[1, ]$post_prob > 0)
 

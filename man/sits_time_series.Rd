@@ -2,7 +2,7 @@
 % Please edit documentation in R/sits_tibble.R
 \name{sits_time_series}
 \alias{sits_time_series}
-\title{Retrieve time series for a row of a sits tibble}
+\title{Get the time series for a row of a sits tibble}
 \usage{
 sits_time_series(data)
 }

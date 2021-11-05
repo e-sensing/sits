@@ -1,4 +1,4 @@
-#' @title Train a model using the ResNet model
+#' @title Train ResNet classification models
 #' @name sits_ResNet
 #'
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}

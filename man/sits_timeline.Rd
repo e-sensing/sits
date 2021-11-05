@@ -2,7 +2,7 @@
 % Please edit documentation in R/sits_timeline.R
 \name{sits_timeline}
 \alias{sits_timeline}
-\title{Obtains the timeline}
+\title{Get timeline of a cube or a set of time series}
 \usage{
 sits_timeline(data)
 }

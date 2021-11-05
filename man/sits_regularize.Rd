@@ -2,7 +2,7 @@
 % Please edit documentation in R/sits_regularize.R
 \name{sits_regularize}
 \alias{sits_regularize}
-\title{Creates a regularized data cube from an irregular one}
+\title{Build a regular data cube from an irregular one}
 \usage{
 sits_regularize(
   cube,

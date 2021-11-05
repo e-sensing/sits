@@ -2,7 +2,7 @@
 % Please edit documentation in R/sits_plot.R
 \name{plot.predicted}
 \alias{plot.predicted}
-\title{Generic interface for ploting time series predictions}
+\title{Plot time series predictions}
 \usage{
 \method{plot}{predicted}(x, y, ..., bands = "NDVI")
 }

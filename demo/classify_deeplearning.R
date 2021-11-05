@@ -26,8 +26,6 @@ dl_model <- sits_train(
     ml_method = sits_mlp()
 )
 
-sits_keras_diagnostics(dl_model)
-
 # create a data cube to be classified
 # Cube is composed of MOD13Q1 images from the Sinop region in Mato Grosso (Brazil)
 data_dir <- system.file("extdata/sinop", package = "sitsdata")

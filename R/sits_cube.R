@@ -1,4 +1,4 @@
-#' @title Defines a data cube
+#' @title Create data cubes from image collections
 #' @name sits_cube
 #'
 #' @references `rstac` package (https://github.com/brazil-data-cube/rstac)
@@ -149,9 +149,9 @@
 #'
 #' # --- Access to the Brazil Data Cube
 #' # Provide your BDC credentials as environment variables
-#' Sys.setenv(
-#'     "BDC_ACCESS_KEY" = <your_bdc_access_key>
-#' )
+#' bdc_access_key <- Sys.getenv("BDC_ACCESS_KEY")
+#' if (nchar(bdc_access_key) == 0)
+#'        stop("No BDC_ACCESS_KEY defined in environment.")
 #'
 #' # create a raster cube file based on the information in the BDC
 #' cbers_tile <- sits_cube(
@@ -165,9 +165,9 @@
 #'
 #' # --- Create a WTSS cube from BDC cubes
 #' # Provide your BDC credentials as environment variables
-#' Sys.setenv(
-#'     "BDC_ACCESS_KEY" = <your_bdc_access_key>
-#' )
+#' bdc_access_key <- Sys.getenv("BDC_ACCESS_KEY")
+#' if (nchar(bdc_access_key) == 0)
+#'        stop("No BDC_ACCESS_KEY defined in environment.")
 #'
 #' cube_wtss <- sits::sits_cube(source = "WTSS",
 #'                              collection = "MOD13Q1-6")
@@ -177,10 +177,10 @@
 #' cube_dea <- sits_cube(source = "DEAFRICA",
 #'                       collection = "s2_l2a",
 #'                       bands = c("B04", "B08"),
-#'                       bbox = c("xmin" = 17.379,
-#'                               "ymin" = 1.1573,
-#'                               "xmax" = 17.410,
-#'                                "ymax" = 1.1910),
+#'                       roi   = c("lat_min" = 17.379,
+#'                                 "lon_min" = 1.1573,
+#'                                 "lat_max" = 17.410,
+#'                                 "lon_max" = 1.1910),
 #'                       start_date = "2019-01-01",
 #'                       end_date = "2019-10-28"
 #' )

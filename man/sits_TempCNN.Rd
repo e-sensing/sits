@@ -2,7 +2,7 @@
 % Please edit documentation in R/sits_TempCNN.R
 \name{sits_TempCNN}
 \alias{sits_TempCNN}
-\title{Train a model using the Temporal Convolutional Neural Network}
+\title{Train temporal convolutional neural network models}
 \usage{
 sits_TempCNN(
   samples = NULL,

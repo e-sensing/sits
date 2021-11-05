@@ -2,7 +2,7 @@
 % Please edit documentation in R/sits_values.R
 \name{sits_values}
 \alias{sits_values}
-\title{Return the values of a given sits tibble as a list of matrices.}
+\title{Return the values of a set of time series}
 \usage{
 sits_values(data, bands = NULL, format = "cases_dates_bands")
 }
@@ -17,7 +17,7 @@ extract ALL bands.}
 or "bands_cases_dates" or "bands_dates_cases".}
 }
 \value{
-A sits tibble with values.
+A matrix with values.
 }
 \description{
 This function returns the values of a sits tibble

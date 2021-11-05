@@ -1,4 +1,4 @@
-#' @title Obtain time series from different sources
+#' @title Get time series from data cubes and cloud services
 #' @name sits_get_data
 #' @author Gilberto Camara
 #'

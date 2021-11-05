@@ -1,4 +1,4 @@
-#' @title General function for filtering
+#' @title Filter time series and data cubes
 #' @name sits_filter
 #'
 #' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
@@ -39,182 +39,8 @@ sits_filter <- function(data, filter = sits_whittaker()) {
     # return a valid machine learning method
     return(result)
 }
-#' @title Envelope filter
-#' @name sits_envelope
-#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
-#' @description  This function computes the envelope of a time series using the
-#' streaming algorithm proposed by Lemire (2009).
-#' This functions calls `dtwclust::compute_envelope` function.
-#' @param data         A tibble with time series data and metadata.
-#' @param operations   A character sequence for the sequence operations.
-#'                     ("U" for upper filter, "L" for lower filter).
-#' @param bands_suffix Suffix of the resulting data.
-#' @return             A tibble with filtered time series values.
-#' @examples
-#' # Select the NDVI band of a point in Mato Grosso
-#' point_ndvi <- sits_select(point_mt_6bands, bands = "NDVI")
-#' # Apply the envelope filter
-#' point_env <- sits_envelope(point_ndvi)
-#' # Merge the filtered with the raw data
-#' point2 <- sits_merge(point_ndvi, point_env)
-#' # Plot the result
-#' plot(point2)
-#' @export
-sits_envelope <- function(data = NULL,
-                          operations = "UULL",
-                          bands_suffix = "env") {
 
-    # set caller to show in errors
-    .check_set_caller("sits_envelope")
-
-    # verifies if dtwclust package is installed
-    if (!requireNamespace("dtwclust", quietly = TRUE)) {
-        stop("Please install package dtwclust", call. = FALSE)
-    }
-
-    filter_fun <- function(data) {
-        # definitions of operations
-        def_op <- list(
-            "U" = "upper", "L" = "lower",
-            "u" = "upper", "l" = "lower"
-        )
-
-        # split envelope operations
-        operations <- strsplit(operations, "")[[1]]
-
-        # verify if operations are either "U" or "L"
-        .check_chr_within(
-          x = operations,
-          within = names(def_op),
-          msg = "invalid operation sequence"
-        )
-
-        # compute envelopes
-        result <- sits_apply(data,
-            fun = function(band) {
-                for (op in operations) {
-                    upper_lower <- dtwclust::compute_envelope(band,
-                        window.size = 1,
-                        error.check = FALSE
-                    )
-                    band <- upper_lower[[def_op[[op]]]]
-                }
-                return(band)
-            },
-            fun_index = function(band) band,
-            bands_suffix = bands_suffix
-        )
-        return(result)
-    }
-    result <- .sits_factory_function(data, filter_fun)
-    return(result)
-}
-
-#' @title Interpolation function of the time series of a sits_tibble
-#' @name sits_interp
-#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
-#' @description  Computes the linearly interpolated bands
-#'               using the R base function approx.
-#' @param data       A tibble with time series data and metadata.
-#' @param fun           Interpolation function.
-#' @param n             Number of time series elements to be created
-#'                      between start date and end date.
-#'                      When a class function is passed to `n`,
-#'                      it is evaluated with each band time series as
-#'                      an argument, e.g. n(band) (default: `length` function).
-#' @param ...           Additional parameters to be used by the fun function.
-#' @return A tibble with same samples and the new bands.
-#' @examples
-#' # Retrieve a time series with values of NDVI
-#' point_ndvi <- sits_select(point_mt_6bands, bands = "NDVI")
-#' # find out how many time instances are there
-#' n_times <- nrow(sits_time_series(point_ndvi))
-#' # interpolate three times more points
-#' point_int.tb <- sits_interp(point_ndvi, fun = stats::spline, n = 3 * n_times)
-#' # plot the result
-#' plot(point_int.tb)
-#' @export
-sits_interp <- function(data = NULL, fun = stats::approx,
-                        n = base::length, ...) {
-    filter_fun <- function(data) {
-        # compute linear approximation
-        result <- sits_apply(data,
-            fun = function(band) {
-                if (inherits(n, "function")) {
-                      return(fun(band, n = n(band), ...)$y)
-                  }
-                return(fun(band, n = n, ...)$y)
-            },
-            fun_index = function(band) {
-                  as.Date(fun(band, n = n, ...)$y,
-                      origin = "1970-01-01"
-                  )
-              }
-        )
-        return(result)
-    }
-    result <- .sits_factory_function(data, filter_fun)
-    return(result)
-}
-#' @title Interpolation function of the time series in a sits tibble
-#' @name sits_linear_interp
-#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
-#' @description  Computes the linearly interpolated bands for a given resolution
-#'               using the R base function approx.
-#' @param data       A tibble with time series data and metadata.
-#' @param n          Number of time series elements to be created
-#'                   between start date and end date.
-#' @return           A sits tibble with same samples and the new bands.
-#' @examples
-#' # Retrieve a time series with values of NDVI
-#' point_ndvi <- sits_select(point_mt_6bands, bands = "NDVI")
-#' # find out how many time instances are there
-#' n_times <- nrow(sits_time_series(point_ndvi))
-#' # interpolate three times more points
-#' point_int.tb <- sits_linear_interp(point_ndvi, n = 3 * n_times)
-#' # plot the result
-#' plot(point_int.tb)
-#' @export
-sits_linear_interp <- function(data = NULL, n = 23) {
-
-    filter_fun <- function(data) {
-        # compute linear approximation
-        result <- sits_apply(data,
-            fun = function(band) stats::approx(band, n = n, ties = mean)$y,
-            fun_index = function(band) {
-                  as.Date(stats::approx(band, n = n, ties = mean)$y,
-                      origin = "1970-01-01"
-                  )
-              }
-        )
-        return(result)
-    }
-    result <- .sits_factory_function(data, filter_fun)
-    return(result)
-}
-
-#' @title Remove missing values
-#' @name sits_missing_values
-#' @author Gilberto Camara, \email{gilberto.camara@inpe.br}
-#' @description       This function removes the missing values from
-#'                    an image time series by substituting them by NA.
-#' @param data        A tibble with time series data and metadata.
-#' @param miss_value  Number indicating missing values in a time series.
-#' @return            Time series data and metadata (missing values removed).
-#' @export
-sits_missing_values <- function(data, miss_value) {
-
-    # test if data has data
-    .sits_tibble_test(data)
-
-    # remove missing values by NAs
-    result <- sits_apply(data, fun = function(band) {
-          return(ifelse(band == miss_value, NA, band))
-      })
-    return(result)
-}
-
-#' @title Smooth the time series using Savitsky-Golay filter
+#' @title Filter time series using Savitsky-Golay method
 #'
 #' @name sits_sgolay
 #' @description  An optimal polynomial for warping a time series.
@@ -265,10 +91,10 @@ sits_sgolay <- function(data = NULL,
         }
         if (inherits(data, "matrix")) {
             result <- apply(data, 2, function(row) {
-              .sits_signal_sgolayfilt(row,
-                                      p = order,
-                                      n = length,
-                                      ts = scaling
+                .sits_signal_sgolayfilt(row,
+                                        p = order,
+                                        n = length,
+                                        ts = scaling
                 )
             })
         }
@@ -279,7 +105,7 @@ sits_sgolay <- function(data = NULL,
     return(result)
 }
 
-#' @title Filter the time series using Whittaker smoother
+#' @title Filter time series using Whittaker smoother
 #'
 #' @name sits_whittaker
 #' @description  The algorithm searches for an optimal warping polynomial.
@@ -312,18 +138,18 @@ sits_whittaker <- function(data = NULL, lambda = 0.5, bands_suffix = "wf") {
         result <- NULL
         if (inherits(data, "tbl")) {
             result <- sits_apply(data,
-                fun = function(band) {
-                    smooth_whit(band, lambda = lambda, length = length(band))
-                },
-                fun_index = function(band) band,
-                bands_suffix = bands_suffix
+                                 fun = function(band) {
+                                     smooth_whit(band, lambda = lambda, length = length(band))
+                                 },
+                                 fun_index = function(band) band,
+                                 bands_suffix = bands_suffix
             )
         }
         if (inherits(data, "matrix")) {
             result <- apply(
                 data, 2,
                 function(row) {
-                  smooth_whit(row, lambda = lambda, length = length(row))
+                    smooth_whit(row, lambda = lambda, length = length(row))
                 }
             )
         }
@@ -331,4 +157,44 @@ sits_whittaker <- function(data = NULL, lambda = 0.5, bands_suffix = "wf") {
     }
     result <- .sits_factory_function(data, filter_fun)
     return(result)
+}
+
+
+#' @title Interpolate values in time series
+#' @name sits_interp
+#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
+#' @description  Computes the interpolated bands using a user-defined
+#' function (by default the R base function approx)
+#' @param data       A tibble with time series data and metadata.
+#' @param fun        Interpolation function (by default, stats::approx())
+#' @param n          Number of time series elements to be created
+#'                   between start date and end date.
+#' @param ...        Additional parameters to be used by the fun function.
+#' @return A tibble with interpolated samples.
+#' @examples
+#' # Retrieve a time series with values of NDVI
+#' point_ndvi <- sits_select(point_mt_6bands, bands = "NDVI")
+#' # find out how many time instances are there
+#' n_times <- length(sits_timeline(point_ndvi))
+#' # interpolate three times more points
+#' point_int.tb <- sits_interp(point_ndvi, fun = stats::spline, n = 3 * n_times)
+#' # plot the result
+#' plot(point_int.tb)
+#' @export
+sits_interp <- function(data,
+                        fun = stats::approx,
+                        n = 2 * length(sits_timeline(data)), ...) {
+    # compute function on data
+    result <- sits_apply(data,
+                         fun = function(band) {
+                             return(fun(band, n = n, ...)$y)
+                         },
+                         fun_index = function(band) {
+                             as.Date(fun(band, n = n, ...)$y,
+                                     origin = "1970-01-01"
+                             )
+                         }
+    )
+    return(result)
+
 }

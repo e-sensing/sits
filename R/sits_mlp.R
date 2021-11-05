@@ -1,4 +1,4 @@
-#' @title Train a  deep learning model using multi-layer perceptron
+#' @title Train multi-layer perceptron models
 #' @name sits_mlp
 #'
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
