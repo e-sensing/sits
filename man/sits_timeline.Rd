@@ -7,11 +7,11 @@
 sits_timeline(data)
 }
 \arguments{
-\item{data}{either a sits tibble or data cube}
+\item{data}{either a sits tibble, a data cube, or a trained model.}
 }
 \description{
 This function returns the timeline for a given data set, either
-             a set of time series or a data cube
+             a set of time series, a data cube, or a trained model.
 }
 \author{
 Gilberto Camara, \email{gilberto.camara@inpe.br}

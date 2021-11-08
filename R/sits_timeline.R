@@ -5,9 +5,9 @@
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'
 #' @description This function returns the timeline for a given data set, either
-#'              a set of time series or a data cube
+#'              a set of time series, a data cube, or a trained model.
 #'
-#' @param  data     either a sits tibble or data cube
+#' @param  data     either a sits tibble, a data cube, or a trained model.
 #'
 #' @export
 #'
@@ -25,6 +25,12 @@ sits_timeline <- function(data) {
 #'
 sits_timeline.sits <- function(data) {
     return(data$time_series[[1]]$Index)
+}
+
+#' @export
+#'
+sits_timeline.sits_model <- function(data) {
+    return(environment(data)$data$time_series[[1]]$Index)
 }
 
 #' @export
@@ -51,21 +57,21 @@ sits_timeline.raster_cube <- function(data) {
 #'
 sits_timeline.satveg_cube <- function(data) {
 
-  # retrieve the time series
-  ts <- .sits_satveg_ts_from_txt(longitude = -55.50563,
-                             latitude = -11.71557,
-                             data)
+    # retrieve the time series
+    ts <- .sits_satveg_ts_from_txt(longitude = -55.50563,
+                                   latitude = -11.71557,
+                                   data)
 
-  # return the timeline of the cube
-  return(as.Date(ts$Index))
+    # return the timeline of the cube
+    return(as.Date(ts$Index))
 }
 
 #' @export
 #'
 sits_timeline.wtss_cube <- function(data) {
 
-  # return the timeline of the cube
-  return(data[1,]$file_info[[1]]$date[[1]])
+    # return the timeline of the cube
+    return(data[1,]$file_info[[1]]$date[[1]])
 }
 
 #' @export
@@ -248,7 +254,7 @@ sits_timeline.classified_image <- function(data) {
 #'
 .sits_timeline_valid_date <- function(date, timeline) {
 
-     # is the date inside the timeline?
+    # is the date inside the timeline?
     if (date %within% lubridate::interval(timeline[1],
                                           timeline[length(timeline)]))
         return(TRUE)
@@ -263,13 +269,13 @@ sits_timeline.classified_image <- function(data) {
     }
     # what is the difference in days between the last two days of the timeline?
     timeline_diff <- as.integer(timeline[length(timeline)] -
-                                  timeline[length(timeline) - 1])
+                                    timeline[length(timeline) - 1])
 
     # if the difference in days in the timeline is smaller than the difference
     # between the reference date and the last date of the timeline, then
     # we assume the date is valid
     if (abs(as.integer(date - timeline[length(timeline)])) <= timeline_diff) {
-      return(TRUE)
+        return(TRUE)
     }
 
     return(FALSE)
@@ -316,7 +322,7 @@ sits_timeline.classified_image <- function(data) {
     est_start_date <- lubridate::as_date(paste0(year_st_date, "-",
                                                 ref_st_month, "-",
                                                 ref_st_mday)
-                                         )
+    )
     # find the actual starting date by searching the timeline
     idx_start_date <- which.min(abs(est_start_date - timeline))
     start_date <- timeline[idx_start_date]
@@ -479,11 +485,11 @@ sits_timeline.classified_image <- function(data) {
     time_index <- dates_index %>%
         purrr::map(function(idx) {
             idx_lst <- seq_len(n_bands) %>%
-              purrr::map(function(b) {
-                idx1 <- idx[1] + (b - 1) * length(timeline)
-                idx2 <- idx[2] + (b - 1) * length(timeline)
-                return(c(idx1, idx2))
-              })
+                purrr::map(function(b) {
+                    idx1 <- idx[1] + (b - 1) * length(timeline)
+                    idx2 <- idx[2] + (b - 1) * length(timeline)
+                    return(c(idx1, idx2))
+                })
             index_ts <- unlist(idx_lst)
             return(index_ts)
         })
@@ -518,7 +524,7 @@ sits_timeline.classified_image <- function(data) {
         end_date <- timeline[length(timeline)]
     }
     valid <- timeline >= lubridate::as_date(start_date) &
-             timeline <= lubridate::as_date(end_date)
+        timeline <= lubridate::as_date(end_date)
 
     .check_that(
         x = any(valid),
@@ -552,9 +558,9 @@ sits_timeline.classified_image <- function(data) {
     )
 
     .check_chr_within(
-      x = c("tile", "date", "band"),
-      within = colnames(tile_date_band),
-      msg = paste("error in obtaining tile, date and band information")
+        x = c("tile", "date", "band"),
+        within = colnames(tile_date_band),
+        msg = paste("error in obtaining tile, date and band information")
     )
 
     # convert to datetime
@@ -604,10 +610,10 @@ sits_timeline.classified_image <- function(data) {
 #'
 .sits_timeline_check <- function(data) {
 
-  .sits_tibble_test(data)
+    .sits_tibble_test(data)
 
-  if (length(unique(lapply(data$time_series, nrow))) == 1)
-    return(TRUE)
-  else
-    return(FALSE)
+    if (length(unique(lapply(data$time_series, nrow))) == 1)
+        return(TRUE)
+    else
+        return(FALSE)
 }
