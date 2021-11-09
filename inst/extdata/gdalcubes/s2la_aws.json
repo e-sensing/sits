@@ -13,68 +13,42 @@
     },
     "bands" : {
         "B01" : {
-            "nodata" : 0,
-            "scale" : 0.0001,
             "pattern" : ".+B01\\.jp2"
         },
         "B02" : {
-            "nodata" : 0,
-            "scale" : 0.0001,
             "pattern" : ".+B02\\.jp2"
         },
         "B03" : {
-            "nodata" : 0,
-            "scale" : 0.0001,
             "pattern" : ".+B03\\.jp2"
         },
         "B04" : {
-            "nodata" : 0,
-            "scale" : 0.0001,
             "pattern" : ".+B04\\.jp2"
         },
         "B05" : {
-            "nodata" : 0,
-            "scale" : 0.0001,
             "pattern" : ".+B05\\.jp2"
         },
         "B06" : {
-            "nodata" : 0,
-            "scale" : 0.0001,
             "pattern" : ".+B06\\.jp2"
         },
         "B07" : {
-            "nodata" : 0,
-            "scale" : 0.0001,
             "pattern" : ".+B07\\.jp2"
         },
         "B08" : {
-            "nodata" : 0,
-            "scale" : 0.0001,
             "pattern" : ".+B08\\.jp2"
         },
         "B8A" : {
-            "nodata" : 0,
-            "scale" : 0.0001,
             "pattern" : ".+B8A\\.jp2"
         },
         "B09" : {
-            "nodata" : 0,
-            "scale" : 0.0001,
             "pattern" : ".+B09\\.jp2"
         },
         "B10" : {
-            "nodata" : 0,
-            "scale" : 0.0001,
             "pattern" : ".+B10\\.jp2"
         },
         "B11" : {
-            "nodata" : 0,
-            "scale" : 0.0001,
             "pattern" : ".+B11\\.jp2"
         },
         "B12" : {
-            "nodata" : 0,
-            "scale" : 0.0001,
             "pattern" : ".+B12\\.jp2"
         },
         "CLOUD" : {
