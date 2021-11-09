@@ -52,6 +52,22 @@
                                              res  = numeric(),
                                              path = character())
 
+    # create a list of creation options and metadata
+    .get_gdalcubes_pack <- function(cube, band) {
+
+        # returns the type that the file will write
+        format_type <- .source_collection_gdal_type(
+            .cube_source(cube = tile),
+            collection = .cube_collection(cube = tile)
+        )
+
+        list(type   = format_type,
+             nodata = .cube_band_missing_value(cube = cube, band = band),
+             scale  = 1,
+             offset = 0
+        )
+    }
+
     for (band in .cube_bands(tile, add_cloud = FALSE)) {
 
         # create a raster_cube object to each band the select below change
@@ -66,7 +82,9 @@
             dir = output_dir,
             prefix = paste("cube", tile$tile, band, "", sep = "_"),
             creation_options = list("COMPRESS" = "LZW", "BIGTIFF" = "YES"),
-            write_json_descr = TRUE, ...)
+            pack = .get_gdalcubes_pack(tile, band),
+            write_json_descr = TRUE, ...
+        )
 
         # retrieving image date
         images_date <- .gc_get_date(path_write)
@@ -338,9 +356,6 @@
         allow_null = TRUE,
         len_max = 1
     )
-
-    if (is.null(res))
-        res <- tile[["xres"]][[1]]
 
     bbox_roi <- sits_bbox(tile)
 
