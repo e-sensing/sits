@@ -59,9 +59,8 @@
 #' @param multicores A \code{numeric} with the number of cores will be used in
 #'  the regularize. By default is used 1 core.
 #' @param agg_method A \code{character} with method that will be applied by
-#'  \code{gdalcubes} for aggregation.
-#'  Options: \code{min}, \code{max}, \code{mean}, \code{median} and
-#'  \code{first}.
+#'  \code{gdalcubes} for aggregation. Options: \code{min}, \code{max},
+#'  \code{mean}, \code{median} and \code{first}. Default is \code{median}.
 #' @param resampling A \code{character} with method to be used by
 #'  \code{gdalcubes} for resampling in mosaic operation.
 #'  Options: \code{near}, \code{bilinear}, \code{bicubic} or others supported by
@@ -81,9 +80,9 @@
 #' @export
 sits_regularize <- function(cube,
                             output_dir,
-                            period  = NULL,
-                            res     = NULL,
-                            roi     = NULL,
+                            period,
+                            res,
+                            roi = NULL,
                             agg_method = "median",
                             resampling = "bilinear",
                             cloud_mask = TRUE,
