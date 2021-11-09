@@ -17,12 +17,14 @@
     tryCatch({
         items <- rstac::post_request(items_query, ...)
     }, error = function(e) {
-        stop(paste(".source_collection_access_test.stac_cube: service is unreachable\n",
-                   e$message), call. = FALSE)
+        stop(paste(".source_collection_access_test.stac_cube: service is",
+                   "unreachable\n", e$message), call. = FALSE)
     })
 
-    items <- rstac::items_sign(items,
-                               sign_fn = rstac::sign_planetary_computer())
+    # signing the url with the mspc token
+    items <- suppressWarnings(
+        rstac::items_sign(items, sign_fn = rstac::sign_planetary_computer())
+    )
 
     items <- .source_items_bands_select(source = source, ...,
                                         collection = collection,
@@ -54,34 +56,59 @@
                                                          tiles = NULL) {
 
     # set caller to show in errors
-    .check_set_caller(".source_items_new.mspc_cube")
+    .check_set_caller(".source_items_new.mspc_cube_sentinel-2-l2a")
 
     # if specified, a filter per tile is added to the query
-    if (!is.null(tiles))
+    if (!is.null(tiles)) {
 
-        stac_query <- rstac::ext_query(
-            q = stac_query, "s2:mgrs_tile" == tiles
+        items_list <- lapply(tiles, function(tile) {
+
+            stac_query <- rstac::ext_query(
+                q = stac_query, "s2:mgrs_tile" == tile
+            )
+
+            # making the request
+            items_info <- rstac::post_request(q = stac_query, ...)
+
+            # check if matched items
+            .check_that(
+                x = rstac::items_length(items_info) > 0,
+                msg = "no items matched the query criteria."
+            )
+
+            # fetching all the metadata
+            suppressWarnings(
+                rstac::items_fetch(items = items_info, progress = FALSE)
+            )
+        })
+
+        # getting the first item info
+        items_info <- items_list[[1]]
+
+        # joining the items
+        items_info$features <- do.call(
+            c, args = lapply(items_list, `[[`, "features")
+        )
+    } else {
+        items_info <- rstac::post_request(q = stac_query, ...)
+
+        # check if matched items
+        .check_that(
+            x = rstac::items_length(items_info) > 0,
+            msg = "no items matched the query criteria."
         )
 
-    # making the request
-    items_info <- rstac::post_request(q = stac_query, ...)
+        # fetching all the metadata
+        items_info <- suppressWarnings(
+            rstac::items_fetch(items = items_info, progress = FALSE)
+        )
+    }
 
     # assign href
-    items_info <- rstac::items_sign(items_info,
-                                    sign_fn = rstac::sign_planetary_computer())
-
-    # check if matched items
-    .check_that(
-        x = rstac::items_matched(items_info) > 0,
-        msg = "no items matched the query criteria."
+    items_info <- suppressWarnings(
+        rstac::items_sign(items_info,
+                          sign_fn = rstac::sign_planetary_computer())
     )
-
-    # if more than 2 times items pagination are found the progress bar
-    # is displayed
-    pgr_fetch <- rstac::items_matched(items_info) > 2 * .config_rstac_limit()
-
-    # fetching all the metadata
-    #items_info <- rstac::items_fetch(items = items_info, progress = pgr_fetch)
 
     return(items_info)
 }
@@ -131,37 +158,62 @@
     # if specified, a filter per tile is added to the query
     if (!is.null(tiles)) {
 
-        # format tile parameter provided by users
-        sep_tile <- .usgs_format_tiles(tiles)
+        items_list <- lapply(tiles, function(tile) {
 
-        # add filter by wrs path and row
-        stac_query <- rstac::ext_query(
-            q = stac_query,
-            "landsat:wrs_path" == sep_tile$wrs_path,
-            "landsat:wrs_row" == sep_tile$wrs_row
+            # format tile parameter provided by users
+            sep_tile <- .usgs_format_tiles(tile)
+
+            # add filter by wrs path and row
+            stac_query <- rstac::ext_query(
+                q = stac_query,
+                "landsat:wrs_path" == sep_tile$wrs_path,
+                "landsat:wrs_row" == sep_tile$wrs_row
+            )
+
+            # making the request
+            items <- rstac::post_request(q = stac_query, ...)
+
+            # checks if the collection returned zero items
+            .check_that(
+                x = !(rstac::items_length(items) == 0),
+                msg = "the provided search returned zero items."
+            )
+
+            # fetching all the metadata and updating to upper case instruments
+            items <-  suppressWarnings(
+                rstac::items_fetch(items = items, progress = FALSE)
+            )
+        })
+
+        # getting the first item info
+        items <- items_list[[1]]
+
+        # joining the items
+        items$features <- do.call(
+            c, args = lapply(items_list, `[[`, "features")
+        )
+    } else {
+        # making the request
+        items <- rstac::post_request(q = stac_query, ...)
+
+        # checks if the collection returned zero items
+        .check_that(
+            x = !(rstac::items_length(items) == 0),
+            msg = "the provided search returned zero items."
+        )
+
+        # fetching all the metadata and updating to upper case instruments
+        items <-  suppressWarnings(
+            rstac::items_fetch(items = items, progress = FALSE)
         )
     }
 
-    # making the request
-    items <- rstac::post_request(q = stac_query, ...)
-
     # assign href
-    items <- rstac::items_sign(items,
-                                    sign_fn = rstac::sign_planetary_computer())
-
-    # checks if the collection returned zero items
-    .check_that(
-        x = !(rstac::items_length(items) == 0),
-        msg = "the provided search returned zero items."
+    items <- suppressWarnings(
+        rstac::items_sign(items, sign_fn = rstac::sign_planetary_computer())
     )
 
-    #pgr_fetch <- rstac::items_matched(items_info) > 2 * .config_rstac_limit()
 
-
-    # fetching all the metadata and updating to upper case instruments
-    #items_info <- rstac::items_fetch(items = items,
-    #                                 progress = pgr_fetch,
-    #                                 matched_field = c("meta", "found"))
     return(items)
 }
 

@@ -628,6 +628,29 @@ NULL
     # return the gdal format file path
     system.file(paste0("extdata/gdalcubes/", gdal_config), package = "sits")
 }
+
+#' @rdname source_collection
+#'
+#' @description \code{.source_collection_gdal_type()} checks if a collection
+#' has a gdalcubes type for writing files.
+#'
+#' @return \code{.source_collection_gdal_type()} returns the gdal type.
+.source_collection_gdal_type <- function(source, collection){
+
+    # try to find the gdalcubes configuration type for this collection
+    gdal_format <- .config_get(key = c("sources", source, "collections",
+                                       collection, "gdalcubes_type_format"),
+                               default = NA)
+
+    # if the format does not exist, report to the user
+    .check_that(!(is.na(gdal_format)),
+                msg = paste0("no type was found for collection ", collection,
+                             " and source ", source,
+                             ". Please raise an issue in github"))
+
+    # return the gdal format file path
+    return(gdal_format)
+}
 #' @rdname source_collection
 #'
 #' @description \code{.source_collection_name()} returns the name of a
