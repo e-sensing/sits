@@ -1,4 +1,4 @@
-#' @title Creates a regularized data cube from an irregular one
+#' @title Build a regular data cube from an irregular one
 #'
 #' @name sits_regularize
 #'

@@ -1,4 +1,4 @@
-#' @title Post-process a classified data raster probs using smoothing
+#' @title Smooth probability cubes with spatial predictors
 #'
 #' @name  sits_smooth
 #'

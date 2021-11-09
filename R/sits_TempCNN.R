@@ -1,5 +1,5 @@
 
-#' @title Train a model using the Temporal Convolutional Neural Network
+#' @title Train temporal convolutional neural network models
 #' @name sits_TempCNN
 #'
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}

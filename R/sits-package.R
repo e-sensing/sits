@@ -2,7 +2,7 @@
 #' @description Satellite Image Time Series Analysis
 #'              for Earth Observation Data Cubes
 #'
-#' @section SITS API:
+#' @section Purpose:
 #'
 #' The SITS package provides a set of tools for analysis,
 #' visualization and classification of satellite image time series.

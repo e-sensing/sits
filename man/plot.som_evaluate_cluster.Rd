@@ -2,7 +2,7 @@
 % Please edit documentation in R/sits_plot.R
 \name{plot.som_evaluate_cluster}
 \alias{plot.som_evaluate_cluster}
-\title{Plot information about confusion between clusters}
+\title{Plot confusion between clusters}
 \usage{
 \method{plot}{som_evaluate_cluster}(x, y, ..., name_cluster = NULL, title = "Confusion by cluster")
 }
@@ -28,7 +28,7 @@ The percentage of mixture between the clusters.
 \dontrun{
 # Produce a cluster map
 
-samples_mt_2bands <- sits_select(samples_mt_6bands, bands = c("NDVI", "EVI"))
+samples_mt_2bands <- sits_select(samples_modis_4bands, bands = c("NDVI", "EVI"))
 som_map <- sits_som_map(samples_mt_2bands)
 # Evaluate the clusters
 cluster_overall <- sits_som_evaluate_cluster(som_map)

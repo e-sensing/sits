@@ -1,4 +1,4 @@
-#' @title Area-weighted classification accuracy assessment
+#' @title Assess classification accuracy (area-weighted method)
 #' @name sits_accuracy
 #' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
 #' @author Alber Sanchez, \email{alber.ipia@@inpe.br}

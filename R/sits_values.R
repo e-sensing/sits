@@ -1,4 +1,4 @@
-#' @title Return the values of a given sits tibble as a list of matrices.
+#' @title Return the values of a set of time series
 #' @name sits_values
 #' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
 #'
@@ -14,7 +14,7 @@
 #' @param  format     A string with either "cases_dates_bands"
 #'                    or "bands_cases_dates" or "bands_dates_cases".
 #'
-#' @return A sits tibble with values.
+#' @return A matrix with values.
 #' @examples
 #' # Retrieve a set of time series with 2 classes
 #' data(cerrado_2classes)

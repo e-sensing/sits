@@ -2,7 +2,7 @@
 % Please edit documentation in R/sits_plot.R
 \name{plot.classified_image}
 \alias{plot.classified_image}
-\title{Generic interface for ploting classified images}
+\title{Plot classified images}
 \usage{
 \method{plot}{classified_image}(
   x,

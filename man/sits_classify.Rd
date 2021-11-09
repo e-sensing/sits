@@ -4,7 +4,7 @@
 \alias{sits_classify}
 \alias{sits_classify.sits}
 \alias{sits_classify.raster_cube}
-\title{Classify time series or data cube using machine learning models}
+\title{Classify time series or data cubes}
 \usage{
 sits_classify(data, ml_model, ...)
 
@@ -109,7 +109,7 @@ xgb_model <- sits_train(samples_2bands,
     ml_method = sits_xgboost(verbose = FALSE)
 )
 # classify the point
-point_2bands <- sits_select(samples_mt_6bands,
+point_2bands <- sits_select(point_mt_6bands,
                             bands = c("NDVI", "EVI"))
 point_class <- sits_classify(point_2bands, xgb_model)
 plot(point_class)

@@ -2,7 +2,7 @@
 % Please edit documentation in R/sits_filters.R
 \name{sits_filter}
 \alias{sits_filter}
-\title{General function for filtering}
+\title{Filter time series and data cubes}
 \usage{
 sits_filter(data, filter = sits_whittaker())
 }
@@ -21,7 +21,6 @@ the available filtering algorithms:
 \itemize{
  \item{Whittaker smoother - see \code{\link{sits_whittaker}}}
  \item{Savitsky-Golay filter - see \code{\link{sits_sgolay}}}
- \item{Envelope filter - see \code{\link{sits_envelope}}}
  \item{Interpolation filter - see \code{\link{sits_interp}}}
 }
 }

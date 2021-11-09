@@ -1,4 +1,4 @@
-#' @title Create temporal patterns using a generalised additive model (gam)
+#' @title Find temporal patterns associated to a set of time series
 #' @name sits_patterns
 #' @author Victor Maus, \email{vwmaus1@@gmail.com}
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
@@ -14,8 +14,7 @@
 #' based on a smooth function.
 #'
 #' This method is based on the "createPatterns" method of the dtwSat package,
-#' which is also
-#' described in the reference paper.
+#' which is also described in the reference paper.
 #'
 #' @references Maus V, Camara G, Cartaxo R, Sanchez A, Ramos F, Queiroz GR.
 #' A Time-Weighted Dynamic Time Warping Method for Land-Use

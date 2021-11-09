@@ -3,7 +3,7 @@
 \name{plot}
 \alias{plot}
 \alias{plot.sits}
-\title{Generic interface for ploting time series}
+\title{Plot time series}
 \usage{
 \method{plot}{sits}(x, y, ..., colors = "Dark2")
 }

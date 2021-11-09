@@ -95,7 +95,8 @@ NULL
 
 #' @rdname check_functions
 #'
-#' @return \code{.check_identify_caller()} returns a \code{character} value.
+#' @return
+#' \code{.check_identify_caller()} returns a \code{character} value.
 .check_identify_caller <- function() {
 
     # check calling stack
@@ -158,6 +159,7 @@ NULL
 #' function throws an error when applied to each \code{x} element.
 #' }
 #' }
+#' @keywords internal
 .check_that <- function(x, ...,
                         local_msg = NULL,
                         msg = NULL) {
@@ -188,6 +190,7 @@ NULL
 }
 
 #' @rdname check_functions
+#' @keywords internal
 .check_null <- function(x, ...,
                         msg = NULL) {
 
@@ -200,6 +203,7 @@ NULL
 }
 
 #' @rdname check_functions
+#' @keywords internal
 .check_na <- function(x, ...,
                       msg = NULL) {
 
@@ -214,6 +218,7 @@ NULL
 
 
 #' @rdname check_functions
+#' @keywords internal
 .check_names <- function(x, ...,
                          is_named = TRUE,
                          msg = NULL) {
@@ -245,6 +250,7 @@ NULL
 }
 
 #' @rdname check_functions
+#' @keywords internal
 .check_length <- function(x, ...,
                           len_min = NULL,
                           len_max = NULL,
@@ -286,6 +292,7 @@ NULL
 }
 
 #' @rdname check_functions
+#' @keywords internal
 .check_apply <- function(x, fn_check, ...) {
 
     if (!is.function(fn_check))
@@ -325,7 +332,7 @@ NULL
 #' type is not \code{list}.
 #' }
 #' }
-#'
+#' @keywords internal
 .check_lgl_type <- function(x, ...,
                             msg = NULL) {
 
@@ -339,6 +346,7 @@ NULL
 }
 
 #' @rdname check_functions
+#' @keywords internal
 .check_num_type <- function(x, ...,
                             is_integer = FALSE,
                             msg = NULL) {
@@ -367,6 +375,7 @@ NULL
 }
 
 #' @rdname check_functions
+#' @keywords internal
 .check_chr_type <- function(x, ...,
                             msg = NULL) {
 
@@ -380,6 +389,7 @@ NULL
 }
 
 #' @rdname check_functions
+#' @keywords internal
 .check_lst_type <- function(x, ...,
                             msg = NULL) {
 
@@ -427,6 +437,7 @@ NULL
 #' its elements. In this case, extra parameters can be passed by \code{...}.
 #' }
 #' }
+#' @keywords internal
 .check_lgl <- function(x, ...,
                        allow_na = FALSE,
                        len_min = NULL,
@@ -459,6 +470,7 @@ NULL
 }
 
 #' @rdname check_functions
+#' @keywords internal
 .check_num <- function(x, ...,
                        allow_na = FALSE,
                        min = -Inf,
@@ -520,6 +532,7 @@ NULL
 }
 
 #' @rdname check_functions
+#' @keywords internal
 .check_chr <- function(x, ...,
                        allow_na = FALSE,
                        allow_empty = TRUE,
@@ -571,6 +584,7 @@ NULL
 }
 
 #' @rdname check_functions
+#' @keywords internal
 .check_lst <- function(x, ...,
                        min_len = NULL,
                        max_len = NULL,
@@ -641,7 +655,7 @@ NULL
 #' (can it repeat?) equal to \code{x}.
 #' }
 #' }
-#'
+#'@keywords internal
 .check_chr_within <- function(x,
                               within, ...,
                               case_sensitive = TRUE,
@@ -732,6 +746,7 @@ NULL
 }
 
 #' @rdname check_functions
+#' @keywords internal
 .check_chr_contains <- function(x,
                                 contains, ...,
                                 case_sensitive = TRUE,
@@ -831,6 +846,7 @@ NULL
 #' existing file path.
 #' }
 #' }
+#' @keywords internal
 .check_file <- function(x, ...,
                         extensions = NULL,
                         msg = NULL) {
@@ -875,6 +891,7 @@ NULL
 #' not existing.
 #' }
 #' }
+#' @keywords internal
 .check_env_var <- function(x, ...,
                            msg = NULL) {
 
@@ -910,6 +927,7 @@ NULL
 #' \code{expr} parameter, and shows a personalized message.
 #' }
 #' }
+#' @keywords internal
 .check_warn <- function(expr) {
 
     result <- tryCatch({
@@ -922,6 +940,7 @@ NULL
 }
 
 #' @rdname check_functions
+#' @keywords internal
 .check_error <- function(expr, ...,
                          msg = NULL) {
 

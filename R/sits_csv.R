@@ -56,53 +56,6 @@ sits_metadata_to_csv <- function(data, file) {
 
     return(invisible(file))
 }
-
-#' @title Export a sits tibble data to the CSV format
-#'
-#' @name sits_data_to_csv
-#'
-#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
-#'
-#' @description Converts time series data from a sits tibble to a CSV file.
-#'              The CSV file will not contain the metadata,
-#'              but only the actual time series, with a reference value.
-#'              This function is useful to export the data to external apps.
-#'
-#' @param  data       A tibble with time series data and metadata.
-#' @param  file       Name of the exported CSV file.
-#'
-#' @return            Status of the operation.
-#'
-#' @examples
-#' # read a tibble with 400 samples of Cerrado and 346 samples of Pasture
-#' data(cerrado_2classes)
-#' # export a time series
-#' csv_file <- paste0(tempdir(), "/cerrado_2classes.csv")
-#' sits_data_to_csv(cerrado_2classes, file = csv_file)
-#'
-#' @export
-#'
-sits_data_to_csv <- function(data, file) {
-
-    # set caller to show in errors
-    .check_set_caller("sits_data_to_csv")
-
-    # check if data is valid
-    .sits_tibble_test(data)
-
-    .check_that(
-        x = suppressWarnings(file.create(file)),
-        msg = "file is not writable."
-    )
-
-    distances <- .sits_distances(data)
-
-    # write the CSV file
-    utils::write.csv(distances, file, row.names = FALSE, quote = FALSE)
-
-    return(invisible(TRUE))
-}
-
 #' @title Check if a CSV tibble is valid
 #' @name  .sits_csv_check
 #' @keywords internal

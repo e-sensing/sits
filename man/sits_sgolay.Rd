@@ -2,7 +2,7 @@
 % Please edit documentation in R/sits_filters.R
 \name{sits_sgolay}
 \alias{sits_sgolay}
-\title{Smooth the time series using Savitsky-Golay filter}
+\title{Filter time series using Savitsky-Golay method}
 \usage{
 sits_sgolay(
   data = NULL,

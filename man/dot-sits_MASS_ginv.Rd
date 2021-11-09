@@ -21,3 +21,4 @@ Calculates the Moore-Penrose generalized inverse of a matrix X.
 Venables, W. N. and Ripley, B. D. (1999)
 Modern Applied Statistics with S-PLUS.
 }
+\keyword{internal}

@@ -35,3 +35,4 @@ an \code{RSTACQuery} object.
 \description{
 Creates a query using rstac package to send to STAC API.
 }
+\keyword{internal}

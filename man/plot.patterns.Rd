@@ -2,7 +2,7 @@
 % Please edit documentation in R/sits_plot.R
 \name{plot.patterns}
 \alias{plot.patterns}
-\title{Generic interface for ploting patterns}
+\title{Plot patterns that describe classes}
 \usage{
 \method{plot}{patterns}(x, y, ...)
 }

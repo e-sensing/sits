@@ -2,7 +2,7 @@
 % Please edit documentation in R/sits_patterns.R
 \name{sits_patterns}
 \alias{sits_patterns}
-\title{Create temporal patterns using a generalised additive model (gam)}
+\title{Find temporal patterns associated to a set of time series}
 \usage{
 sits_patterns(data = NULL, freq = 8, formula = y ~ s(x), ...)
 }
@@ -29,8 +29,7 @@ approximation that fits the assumptions of the statistical model,
 based on a smooth function.
 
 This method is based on the "createPatterns" method of the dtwSat package,
-which is also
-described in the reference paper.
+which is also described in the reference paper.
 }
 \examples{
 \dontrun{

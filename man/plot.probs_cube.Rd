@@ -2,7 +2,7 @@
 % Please edit documentation in R/sits_plot.R
 \name{plot.probs_cube}
 \alias{plot.probs_cube}
-\title{Generic interface for plotting probability cubes}
+\title{Plot probability cubes}
 \usage{
 \method{plot}{probs_cube}(
   x,

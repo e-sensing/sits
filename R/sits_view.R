@@ -1,4 +1,4 @@
-#' @title  Generic interface for visualization of data cube
+#' @title  View data cubes and samples in leaflet
 #' @name sits_view
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'

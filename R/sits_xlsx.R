@@ -1,4 +1,4 @@
-#' @title Saves the results of accuracy assessments as Excel files
+#' @title Save accuracy assessments as Excel files
 #' @name sits_to_xlsx
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #
