@@ -225,7 +225,7 @@ sits_som_clean_samples <- function(som_map,
     }
     .check_chr_within(
         x = keep,
-        within = c("clean", "analyze", "remove"),
+        within = .config_get("som_outcomes"),
         msg = "invalid keep parameter"
     )
 
@@ -359,7 +359,7 @@ sits_som_evaluate_cluster <- function(som_map) {
             } else {
                 label_neuron <- tibble::tibble(
                     id_neuron = as.numeric(i),
-                    label_samples = "NoSamples",
+                    label_samples = "No_Samples",
                     count = 0,
                     prior_prob = 0
                 )
@@ -470,32 +470,15 @@ sits_som_evaluate_cluster <- function(som_map) {
 #'                       colour of the neuron.
 #'
 .sits_som_paint_neurons <- function(kohonen_obj) {
-    # set colors to paint neurons
-    pallete1 <- .sits_brewer_rgb[[.sits_brewer_color_name("Set1")]]
-    set1 <- utils::head(unique(unlist(pallete1, use.names = FALSE)), -1)
 
-    pallete2 <- .sits_brewer_rgb[[.sits_brewer_color_name("Accent")]]
-    accent <- utils::head(unique(unlist(pallete2, use.names = FALSE)), -1)
+    # assign one color per unique label
 
-    pallete3 <- .sits_brewer_rgb[[.sits_brewer_color_name("Pastel1")]]
-    pastel1 <- utils::head(unique(unlist(pallete3, use.names = FALSE)), -1)
+    colors <- .config_palette_colors(kohonen_obj$neuron_label,
+                                     palette = "default",
+                                     brewer_palette = "Spectral",
+                                     brewer_order = TRUE)
 
-    # build a mixed pallete with different colors
-    pallete <- c(accent, pastel1, set1)
-
-    # unique label
-    labels <- unique(kohonen_obj$neuron_label)
-
-    # Paint
-    colors <- kohonen_obj$neuron_label %>%
-        purrr::map(function(label) {
-            if (label == "NoSamples") {
-                  return("White")
-              } else {
-                  return(pallete[which(labels == label)])
-              }
-        })
-    kohonen_obj$paint_map <- unlist(colors)
+    kohonen_obj$paint_map <- unname(colors[kohonen_obj$neuron_label])
 
     return(kohonen_obj)
 }

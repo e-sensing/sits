@@ -7,13 +7,13 @@
 sits_regularize(
   cube,
   output_dir,
-  period = NULL,
+  period,
   res = NULL,
   roi = NULL,
   agg_method = "median",
   resampling = "bilinear",
   cloud_mask = TRUE,
-  multicores = 1
+  multicores = 2
 )
 }
 \arguments{
@@ -71,15 +71,9 @@ The "roi" parameter defines a region of interest. It can be
 \dontrun{
 
 # --- Access to the AWS STAC
-# Provide your AWS credentials as environment variables
-Sys.setenv(
-    "AWS_ACCESS_KEY_ID" = <your_aws_access_key>,
-    "AWS_SECRET_ACCESS_KEY" = <your_aws_secret_access_key>
-)
 
 # define an AWS data cube
   s2_cube <- sits_cube(source = "AWS",
-                      name = "T20LKP_2018_2019",
                       collection = "sentinel-s2-l2a-cogs",
                       bands = c("B08", "SCL"),
                       tiles = c("20LKP"),
@@ -96,6 +90,7 @@ gc_cube <- sits_regularize(cube       = s2_cube,
                            period     = "P1M",
                            agg_method = "median",
                            resampling = "bilinear",
+                           res        = 60,
                            cloud_mask = TRUE)
 }
 }

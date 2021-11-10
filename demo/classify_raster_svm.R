@@ -30,9 +30,7 @@ svm_model <- sits_train(
 # Cube is composed of MOD13Q1 images from the Sinop region in Mato Grosso (Brazil)
 data_dir <- system.file("extdata/sinop", package = "sitsdata")
 sinop <- sits_cube(
-    source     = "LOCAL",
-    name       = "sinop-2014",
-    origin     = "BDC",
+    source     = "BDC",
     collection = "MOD13Q1-6",
     data_dir   = data_dir,
     delim      = "_",

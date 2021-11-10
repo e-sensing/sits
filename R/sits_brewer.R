@@ -130,27 +130,6 @@
     return(names[[name]])
 }
 
-#' @title Brewer color schemes
-#' @name .sits_brewer_max_colors
-#' @keywords internal
-#'
-#' @description Number of colors available in brewer color schemes.
-#'
-#' @param brewer    name of the brewer color set.
-#' @return The number of available colors.
-.sits_brewer_max_colors <- function(brewer = NULL) {
-    if (purrr::is_null(brewer)) {
-          return(.sits_brewer_rgb %>% purrr::map(function(sch) {
-              sum((sch %>%
-                  purrr::map(function(n) length(n)) %>%
-                  as.numeric()) > 1)
-          }))
-      }
-    return(sum((.sits_brewer_rgb[[.sits_brewer_color_name(brewer)]] %>%
-        purrr::map(function(n) length(n)) %>%
-        as.numeric()) > 1))
-}
-
 # Brewer color set constant
 # based on http://colorbrewer2.org colors' schemes
 .sits_brewer_rgb <- tibble::lst(

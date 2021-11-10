@@ -439,12 +439,9 @@ sits_time_series <- function(data) {
         min = 1, msg = "Invalid number of rows"
     )
 
-    names <- c("longitude", "latitude", "start_date", "end_date",
-               "label", "cube", "time_series")
-
     .check_chr_contains(
         x = colnames(data),
-        contains = names,
+        contains = .config_get("sits_tibble_cols"),
         discriminator = "all_of",
         msg = "Data is not a valid sits tibble"
     )

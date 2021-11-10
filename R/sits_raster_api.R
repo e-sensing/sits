@@ -105,15 +105,12 @@
 #' @return character string
 .raster_data_type <- function(data_type) {
 
-    # allowed data types
-    valid_data_types <- c("INT1U", "INT2U", "INT2S", "INT4U",
-                          "INT4S", "FLT4S", "FLT8S")
     # check data type
     .check_chr_within(
         x = data_type,
-        within = valid_data_types,
+        within = .config_get("valid_raster_data_types"),
         msg = paste(".raster_data_type: valid data types are",
-                    paste0("'", valid_data_types, "'", collapse = ", "))
+                    paste0("'", .config_get("valid_raster_data_types"), "'", collapse = ", "))
     )
 
     # check package

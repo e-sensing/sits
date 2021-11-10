@@ -105,10 +105,9 @@ sits_mlp <- function(samples = NULL,
             x = length(activation) == 1,
             msg = "use only one activation function"
         )
-        valid_activations <- c("relu", "elu", "selu", "sigmoid")
         .check_chr_within(
             x = activation,
-            within = valid_activations,
+            within = .config_get("dl_activation_methods"),
             discriminator = "any_of",
             msg = "invalid node activation method"
         )

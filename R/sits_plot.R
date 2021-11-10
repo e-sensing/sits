@@ -310,13 +310,15 @@ plot.probs_cube <- function(x, y, ..., time = 1,
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #' @description plots a classified raster using ggplot.
 #'
-#' @param  x             object of class "classified_image"
-#' @param  y             ignored
-#' @param  ...           further specifications for \link{plot}.
-#' @param  time          temporal reference for plot.
-#' @param  title         Title of the plot
-#' @param  legend        named vector that associates labels to colors
-#' @param  palette       palette provided in the configuration file
+#' @param  x               object of class "classified_image"
+#' @param  y               ignored
+#' @param  ...             further specifications for \link{plot}.
+#' @param  time            temporal reference for plot.
+#' @param  title           title of the plot
+#' @param  legend          named vector that associates labels to colors
+#' @param  palette         palette provided in the configuration file
+#' @param  brewer_palette  alternative palette that uses RColorBrewer
+#' @param  brewer_order    invert the order of brewer palette (TRUE/FALSE)
 #'
 #' @export
 #'
@@ -324,14 +326,18 @@ plot.classified_image <- function(x, y, ...,
                                   time = 1,
                                   title = "Classified Image",
                                   legend = NULL,
-                                  palette = "default") {
+                                  palette = "default",
+                                  brewer_palette = "Spectral",
+                                  brewer_order = TRUE) {
     stopifnot(missing(y))
 
     p <- .sits_plot_classified_image(cube = x,
                                      time = time,
                                      title = title,
                                      legend = legend,
-                                     palette = palette)
+                                     palette = palette,
+                                     brewer_palette = brewer_palette,
+                                     brewer_order = brewer_order)
 
 }
 
@@ -384,7 +390,7 @@ plot.som_evaluate_cluster <- function(x, y, ...,
 #' @param  ...        Further specifications for \link{plot}.
 #' @param  type       Type of plot: "codes" for neuron weight (time series) and
 #'                    "mapping" for the number of samples allocated in a neuron.
-#' @param  whatmap    What data layer will be plotted.
+#' @param  band       What band will be plotted.
 #'
 #' @return            The plot itself.
 #'
@@ -401,9 +407,9 @@ plot.som_evaluate_cluster <- function(x, y, ...,
 #'
 #' @export
 #'
-plot.som_map <- function(x, y, ..., type = "codes", whatmap = 1) {
+plot.som_map <- function(x, y, ..., type = "codes", band = 1) {
     stopifnot(missing(y))
-    .sits_plot_som_map(x, type, whatmap)
+    .sits_plot_som_map(x, type, band)
 }
 
 #' @title  Plot Keras (deep learning) model
@@ -793,6 +799,13 @@ plot.keras_model <- function(x, y, ...) {
     if (purrr::is_null(bands)) {
         bands <- sits_bands(data)
     }
+    # configure plot colors
+    # get labels from predicted tibble
+    labels <- unique(data$predicted[[1]]$class)
+    colors <- .config_palette_colors(labels = labels,
+                                     palette = "default",
+                                     brewer_palette = "Spectral",
+                                     brewer_order = TRUE)
 
     # put the time series in the data frame
     g_lst <- purrr::pmap(
@@ -872,7 +885,7 @@ plot.keras_model <- function(x, y, ...) {
                     ),
                     alpha = .7
                 ) +
-                ggplot2::scale_fill_brewer(palette = "Set3") +
+                ggplot2::scale_fill_manual(values = colors) +
                 ggplot2::geom_line(
                     data = df_x,
                     ggplot2::aes_string(
@@ -881,6 +894,7 @@ plot.keras_model <- function(x, y, ...) {
                         colour = "variable"
                     )
                 ) +
+                ggplot2::scale_color_brewer(palette = "Set1") +
                 ggplot2::scale_y_continuous(
                     expand = c(0, 0),
                     breaks = y_breaks,
@@ -1012,9 +1026,9 @@ plot.keras_model <- function(x, y, ...) {
 #'
 #' @param  koh        SOM map produced by "sits_som_map" function
 #' @param  type       Type of plot ("codes" or "mapping")
-#' @param  whatmap    What data layer will be plotted.
+#' @param  band       What band will be plotted
 #'
-.sits_plot_som_map <- function(koh, type = "codes", whatmap = 1) {
+.sits_plot_som_map <- function(koh, type = "codes", band = 1) {
     # Sanity check
     if (!inherits(koh, "som_map")) {
         message("wrong input data; please run sits_som_map first")
@@ -1023,14 +1037,14 @@ plot.keras_model <- function(x, y, ...) {
     if (type == "mapping") {
         graphics::plot(koh$som_properties,
                        bgcol = koh$som_properties$paint_map,
-                       "mapping", whatmap = whatmap,
+                       "mapping", whatmap = band,
                        codeRendering = "lines"
         )
     }
     else if (type == "codes") {
         graphics::plot(koh$som_properties,
                        bgcol = koh$som_properties$paint_map,
-                       "codes", whatmap = whatmap,
+                       "codes", whatmap = band,
                        codeRendering = "lines"
         )
     }
@@ -1107,16 +1121,20 @@ plot.keras_model <- function(x, y, ...) {
 #' @description plots a raster using ggplot. This function is used
 #' for showing the same lat/long location in a series of time steps.
 #'
-#' @param cube        A tibble with the metadata for a labelled data cube.
-#' @param time        Temporal reference for plot.
-#' @param title       Title of the plot
-#' @param legend      named vector that associates labels to colors.
-#' @param palette     palette provided in the configuration file
+#' @param cube             metadata for a labelled data cube.
+#' @param time             temporal reference for plot.
+#' @param title            title of the plot
+#' @param legend           named vector that associates labels to colors.
+#' @param palette          palette provided in the configuration file
+#' @param brewer_palette   alternative palette that uses RColorBrewer
+#' @param brewer_order     invert the order of brewer palette (TRUE/FALSE)
 .sits_plot_classified_image <- function(cube,
                                         time,
                                         title,
                                         legend,
-                                        palette) {
+                                        palette,
+                                        brewer_palette,
+                                        brewer_order) {
 
 
     # set caller to show in errors
@@ -1149,7 +1167,10 @@ plot.keras_model <- function(x, y, ...) {
 
     # if colors are not specified, get them from the configuration file
     if (purrr::is_null(legend)) {
-        colors <- .config_palette_colors(labels, palette = palette)
+        colors <- .config_palette_colors(labels = labels,
+                                         palette = palette,
+                                         brewer_palette = brewer_palette,
+                                         brewer_order = brewer_order)
     }
     else {
         .check_chr_within(
