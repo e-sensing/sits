@@ -929,19 +929,7 @@ sits_list_collections <- function(source = NULL) {
     labels <- unique(labels)
     # if nothing works, use brewer
     brewer <- TRUE
-    # adjust labels only for default palette
-    if (palette == "default") {
-        # convert labels to title case with separator between uppercase names
-        labels <- purrr::map(labels, function(l){
-            lb <- l %>%
-                stringi::stri_trans_general(id = "Latin-ASCII") %>%
-                strsplit("_") %>%
-                unlist() %>%
-                stringi::stri_trans_totitle() %>%
-                paste(collapse = "_")
-        })
-        labels <- unlist(labels)
-    }
+
     # is this a known palette?
     if (palette %in% .config_palettes()) {
         # get the names of the colors in the chosen pallete
