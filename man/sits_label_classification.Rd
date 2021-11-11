@@ -2,7 +2,7 @@
 % Please edit documentation in R/sits_label_classification.R
 \name{sits_label_classification}
 \alias{sits_label_classification}
-\title{Post-process a classified data raster probs to obtain a labelled image}
+\title{Build a labelled image from a probability cube}
 \usage{
 sits_label_classification(
   cube,

@@ -2,35 +2,37 @@
 % Please edit documentation in R/sits_filters.R
 \name{sits_interp}
 \alias{sits_interp}
-\title{Interpolation function of the time series of a sits_tibble}
+\title{Interpolate values in time series}
 \usage{
-sits_interp(data = NULL, fun = stats::approx, n = base::length, ...)
+sits_interp(
+  data,
+  fun = stats::approx,
+  n = 2 * length(sits_timeline(data)),
+  ...
+)
 }
 \arguments{
 \item{data}{A tibble with time series data and metadata.}
 
-\item{fun}{Interpolation function.}
+\item{fun}{Interpolation function (by default, stats::approx())}
 
 \item{n}{Number of time series elements to be created
-between start date and end date.
-When a class function is passed to `n`,
-it is evaluated with each band time series as
-an argument, e.g. n(band) (default: `length` function).}
+between start date and end date.}
 
 \item{...}{Additional parameters to be used by the fun function.}
 }
 \value{
-A tibble with same samples and the new bands.
+A tibble with interpolated samples.
 }
 \description{
-Computes the linearly interpolated bands
-              using the R base function approx.
+Computes the interpolated bands using a user-defined
+function (by default the R base function approx)
 }
 \examples{
 # Retrieve a time series with values of NDVI
 point_ndvi <- sits_select(point_mt_6bands, bands = "NDVI")
 # find out how many time instances are there
-n_times <- nrow(sits_time_series(point_ndvi))
+n_times <- length(sits_timeline(point_ndvi))
 # interpolate three times more points
 point_int.tb <- sits_interp(point_ndvi, fun = stats::spline, n = 3 * n_times)
 # plot the result

@@ -2,7 +2,7 @@
 % Please edit documentation in R/sits_machine_learning.R
 \name{sits_xgboost}
 \alias{sits_xgboost}
-\title{Train a model with an extreme gradient boosting machine}
+\title{Train extreme gradient boosting models}
 \usage{
 sits_xgboost(
   data = NULL,

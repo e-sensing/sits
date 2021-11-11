@@ -1,6 +1,6 @@
 Package: sits
 Type: Package
-Version: 0.15.0-4
+Version: 0.15.1
 Title: Satellite Image Time Series Analysis for Remote Sensing Data Cubes
 Authors@R: c(person('Rolf', 'Simoes', role = c('aut'), email = 'rolf.simoes@inpe.br'),
              person('Gilberto', 'Camara', role = c('aut', 'cre'), email = 'gilberto.camara@inpe.br'),
@@ -42,10 +42,12 @@ Imports:
     lubridate (>= 1.7.0),
     parallel,
     purrr (>= 0.3.0),
+    RColorBrewer,
     raster (>= 3.4),
     rstac (>= 0.9.1-4),
     sf (>= 0.9),
     slider (>= 0.1.5),
+    stringi,
     stats,
     terra (>= 1.4-11),
     tibble (>= 3.0),
@@ -107,13 +109,10 @@ Collate:
     'sits_filters.R'
     'sits_gdalcubes.R'
     'sits_get_data.R'
-    'sits_indexes.R'
     'sits_imputation.R'
     'sits_keras.R'
     'sits_labels.R'
-    'sits_labels_set.R'
     'sits_label_classification.R'
-    'sits_labels_summary.R'
     'sits_machine_learning.R'
     'sits_merge.R'
     'sits_mlp.R'

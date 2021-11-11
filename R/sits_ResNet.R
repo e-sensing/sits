@@ -1,4 +1,4 @@
-#' @title Train a model using the ResNet model
+#' @title Train ResNet classification models
 #' @name sits_ResNet
 #'
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
@@ -96,12 +96,10 @@ sits_ResNet <- function(samples = NULL,
             stop("Please install package keras", call. = FALSE)
         }
 
-        valid_activations <- c("relu", "elu", "selu", "sigmoid")
-        # pre-conditions
         .check_chr_within(
             x = activation,
-            within = valid_activations,
-            discriminator = "any_of",
+            within = .config_get("dl_activation_methods"),
+            discriminator = "one_of",
             msg = "invalid CNN activation method"
         )
 

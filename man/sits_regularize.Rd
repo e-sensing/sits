@@ -2,18 +2,18 @@
 % Please edit documentation in R/sits_regularize.R
 \name{sits_regularize}
 \alias{sits_regularize}
-\title{Creates a regularized data cube from an irregular one}
+\title{Build a regular data cube from an irregular one}
 \usage{
 sits_regularize(
   cube,
   output_dir,
-  period = NULL,
+  period,
   res = NULL,
   roi = NULL,
   agg_method = "median",
   resampling = "bilinear",
   cloud_mask = TRUE,
-  multicores = 1
+  multicores = 2
 )
 }
 \arguments{
@@ -71,22 +71,15 @@ The "roi" parameter defines a region of interest. It can be
 \dontrun{
 
 # --- Access to the AWS STAC
-# Uncomment the lines below and provide your AWS credentials
-# as environment variables
-# Sys.setenv(
-#     AWS_ACCESS_KEY_ID = <your_aws_access_key>,
-#     AWS_SECRET_ACCESS_KEY = <your_aws_secret_access_key>
-# )
 
 # define an AWS data cube
-s2_cube <- sits_cube(source = "AWS",
-                     name = "T20LKP_2018_2019",
-                     collection = "sentinel-s2-l2a-cogs",
-                     bands = c("B08", "SCL"),
-                     tiles = c("20LKP"),
-                     start_date = as.Date("2018-07-18"),
-                     end_date = as.Date("2018-08-18")
-)
+  s2_cube <- sits_cube(source = "AWS",
+                      collection = "sentinel-s2-l2a-cogs",
+                      bands = c("B08", "SCL"),
+                      tiles = c("20LKP"),
+                      start_date = as.Date("2018-07-18"),
+                      end_date = as.Date("2018-08-18")
+  )
 
 # create a directory to store the resulting images
 dir.create(paste0(tempdir(),"/images/"))
@@ -97,6 +90,7 @@ gc_cube <- sits_regularize(cube       = s2_cube,
                            period     = "P1M",
                            agg_method = "median",
                            resampling = "bilinear",
+                           res        = 60,
                            cloud_mask = TRUE)
 }
 }

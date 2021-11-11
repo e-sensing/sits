@@ -2,7 +2,7 @@
 % Please edit documentation in R/sits_plot.R
 \name{plot.raster_cube}
 \alias{plot.raster_cube}
-\title{Generic interface for RGB plotting of data cube}
+\title{Plot RGB data cubes}
 \usage{
 \method{plot}{raster_cube}(x, ..., band = NULL, red, green, blue, tile = 1, time = 1, roi = NULL)
 }

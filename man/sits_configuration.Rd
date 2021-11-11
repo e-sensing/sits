@@ -5,7 +5,7 @@
 \alias{sits_config}
 \alias{sits_config_show}
 \alias{sits_list_collections}
-\title{sits configuration}
+\title{Configure parameters for sits package}
 \usage{
 sits_config(
   processing_bloat = NULL,
@@ -70,6 +70,10 @@ each cloud service supported by sits.
 }
 \description{
 These functions load and show sits configurations.
+
+The `sits` package uses a configuration file
+that contains information on parameters required by different functions.
+This includes information about the image collections handled by `sits`.
 
 \code{sits_config()} loads the default configuration file and
 the user provided configuration file. The final configuration is

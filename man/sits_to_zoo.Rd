@@ -2,7 +2,7 @@
 % Please edit documentation in R/sits_zoo.R
 \name{sits_to_zoo}
 \alias{sits_to_zoo}
-\title{Export data to be used to the zoo format}
+\title{Export time series to zoo format}
 \usage{
 sits_to_zoo(data, band = NULL)
 }

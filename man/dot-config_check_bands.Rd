@@ -2,7 +2,7 @@
 % Please edit documentation in R/sits_config.R
 \name{.config_check_bands}
 \alias{.config_check_bands}
-\title{Check cube collection}
+\title{Check band availability}
 \usage{
 .config_check_bands(source, collection, bands)
 }
@@ -17,5 +17,6 @@
 An invisible null
 }
 \description{
-A suite of check to verify collection in cube.
+Checks if the requested bands are available in the collection
 }
+\keyword{internal}

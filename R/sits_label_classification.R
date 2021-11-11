@@ -1,4 +1,4 @@
-#' @title Post-process a classified data raster probs to obtain a labelled image
+#' @title Build a labelled image from a probability cube
 #'
 #' @name  sits_label_classification
 #' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}

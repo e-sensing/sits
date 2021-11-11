@@ -2,7 +2,7 @@
 % Please edit documentation in R/sits_filters.R
 \name{sits_whittaker}
 \alias{sits_whittaker}
-\title{Filter the time series using Whittaker smoother}
+\title{Filter time series using Whittaker smoother}
 \usage{
 sits_whittaker(data = NULL, lambda = 0.5, bands_suffix = "wf")
 }

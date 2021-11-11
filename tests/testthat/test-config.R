@@ -80,24 +80,6 @@ test_that("User functions", {
         .config_palettes(),
         c("default", "my_project")
     )
-
-    expect_error(
-        .config_palette_check(palette = "zzz"),
-        "invalid 'palette' parameter"
-    )
-
-    expect_equal(
-        .config_palette_check(palette = "my_project"),
-        c("my_project")
-    )
-
-    expect_error(
-        .config_palette_colors(labels = c("Cropland", "Deforestation",
-                                          "Forest", "Grassland", "NonForest",
-                                          "Cropland", "Deforestation",
-                                          "Forest", "Grassland", "NonForest"),
-                               palette = "my_project")
-    )
     expect_equal(
         unname(.config_palette_colors(labels = c("Cropland", "Deforestation",
                                                  "Forest", "Grassland", "NonForest"),
@@ -171,12 +153,6 @@ test_that("User functions", {
         sits_config_show(palette = "default")
     })
 
-    expect_true(
-        any(grepl(
-            "Forest: '#00441B'",
-            config_txt
-        ))
-    )
 
     # add a new source, collection
     .config_set_options(

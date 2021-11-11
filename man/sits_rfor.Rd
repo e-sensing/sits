@@ -2,7 +2,7 @@
 % Please edit documentation in R/sits_machine_learning.R
 \name{sits_rfor}
 \alias{sits_rfor}
-\title{Train a SITS classifiction model using random forest algorithm}
+\title{Train random forest models}
 \usage{
 sits_rfor(data = NULL, num_trees = 200, nodesize = 1, ...)
 }

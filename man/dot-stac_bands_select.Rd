@@ -19,3 +19,4 @@ a \code{STACItemcollection} object with selected items by bands.
 \description{
 Select bands in stac items by sits bands.
 }
+\keyword{internal}

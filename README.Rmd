@@ -190,8 +190,8 @@ please see the vignette [“Satellite Image Time Series Filtering with
 SITS”](https://github.com/e-sensing/sits-docs/blob/master/doc/filters.pdf)
 
 
-```{r, fig.align="center", fig.height=2.7, fig.width=7, fig.cap="Whitaler filter of NDVI time series"}
-# apply Whitaker filter to a time series sample for the NDVI band from 2000 to 2016
+```{r, fig.align="center", fig.height=2.7, fig.width=7, fig.cap="Whittaker filter of NDVI time series"}
+# apply Whittaker filter to a time series sample for the NDVI band from 2000 to 2016
 # merge with the original data
 # plot the original and the modified series
 point_ndvi <- sits_select(point_mt_6bands, bands = "NDVI")

@@ -11,7 +11,7 @@
 \alias{sits_get_data.raster_cube}
 \alias{sits_get_data.csv_raster_cube}
 \alias{sits_get_data.shp_raster_cube}
-\title{Obtain time series from different sources}
+\title{Get time series from data cubes and cloud services}
 \usage{
 sits_get_data(cube, file = NULL, ..., multicores = 1)
 

@@ -2,7 +2,7 @@
 % Please edit documentation in R/sits_labels.R
 \name{sits_labels}
 \alias{sits_labels}
-\title{Returns the information about labels of a data set (tibble or cube)}
+\title{Get labels associated to a data set}
 \usage{
 sits_labels(data)
 }

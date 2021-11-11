@@ -1,4 +1,4 @@
-#' @title Defines a data cube
+#' @title Create data cubes from image collections
 #' @name sits_cube
 #'
 #' @references `rstac` package (https://github.com/brazil-data-cube/rstac)
@@ -148,11 +148,10 @@
 #' \dontrun{
 #'
 #' # --- Access to the Brazil Data Cube
-#' # Uncomment the lines below and provide your BDC credentials as
-#' # environment variables
-#' # Sys.setenv(
-#' #     BDC_ACCESS_KEY = <your_bdc_access_key>
-#' # )
+#' # Provide your BDC credentials as environment variables
+#' bdc_access_key <- Sys.getenv("BDC_ACCESS_KEY")
+#' if (nchar(bdc_access_key) == 0)
+#'        stop("No BDC_ACCESS_KEY defined in environment.")
 #'
 #' # create a raster cube file based on the information in the BDC
 #' cbers_tile <- sits_cube(
@@ -165,11 +164,10 @@
 #' )
 #'
 #' # --- Create a WTSS cube from BDC cubes
-#' # Uncomment the lines below and provide your BDC credentials as
-#' # environment variables
-#' # Sys.setenv(
-#' #     BDC_ACCESS_KEY = <your_bdc_access_key>
-#' # )
+#' # Provide your BDC credentials as environment variables
+#' bdc_access_key <- Sys.getenv("BDC_ACCESS_KEY")
+#' if (nchar(bdc_access_key) == 0)
+#'        stop("No BDC_ACCESS_KEY defined in environment.")
 #'
 #' cube_wtss <- sits_cube(source = "WTSS",
 #'                        collection = "MOD13Q1-6")
@@ -179,10 +177,10 @@
 #' cube_dea <- sits_cube(source = "DEAFRICA",
 #'                       collection = "s2_l2a",
 #'                       bands = c("B04", "B08"),
-#'                       roi = c(lon_min = 17.379,
-#'                               lat_min = 1.1573,
-#'                               lon_max = 17.410,
-#'                               lat_max = 1.1910),
+#'                       roi   = c("lat_min" = 17.379,
+#'                                 "lon_min" = 1.1573,
+#'                                 "lat_max" = 17.410,
+#'                                 "lon_max" = 1.1910),
 #'                       start_date = "2019-01-01",
 #'                       end_date = "2019-10-28"
 #' )
@@ -191,9 +189,9 @@
 #' s2_cube <- sits_cube(source = "AWS",
 #'                       collection = "sentinel-s2-l2a-cogs",
 #'                       tiles = c("20LKP","20LLP"),
-#'                       bands = c("B03", "B04", "B08"),
+#'                       bands = c("B04", "B08", "B11"),
 #'                       start_date = as.Date("2018-07-18"),
-#'                       end_date = as.Date("2018-07-23")
+#'                       end_date = as.Date("2019-07-23")
 #' )
 #'
 #' # --- Create a cube based on a local MODIS data
@@ -354,12 +352,6 @@ sits_cube.local_cube <- function(source,
     .source_check(source = source)
     .source_collection_check(source = source, collection = collection)
 
-    # precondition - check parse info
-    .check_chr(x = parse_info,
-               allow_empty = FALSE,
-               len_min = 2,
-               msg = "invalid parsing information.")
-
     # precondition - does the parse info have band and date?
     .check_chr_contains(
         parse_info,
@@ -399,7 +391,7 @@ sits_cube.satveg_cube <- function(
 
     # precondition
     .check_chr_within(x = collection,
-                      within = c("TERRA", "AQUA", "COMB"),
+                      within = .source_collections(source = "SATVEG"),
                       msg = "invalid SATVEG collection.")
 
     # precondition - is service online?

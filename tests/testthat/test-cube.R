@@ -266,13 +266,20 @@ test_that("Creating cubes from AWS", {
     Sys.unsetenv("AWS_REQUEST_PAYER")
 
 
-    s2_cube <- sits_cube(source = "AWS",
+    s2_cube <- tryCatch({sits_cube(source = "AWS",
                          collection = "sentinel-s2-l2a",
                          tiles = c("20LKP"),
                          bands = c("B08", "SCL"),
                          start_date = "2018-07-30",
                          end_date = "2018-08-30"
-    )
+                         )
+        },
+        error = function(e) {
+            return(NULL)
+        })
+
+    testthat::skip_if(purrr::is_null(s2_cube),
+                      "AWS is not accessible")
 
     expect_true(all(sits_bands(s2_cube) %in% c("B08", "CLOUD")))
 
@@ -288,13 +295,19 @@ test_that("Creating cubes from AWS", {
 
 test_that("Creating cubes from AWS Open Data and regularizing them", {
 
-    s2_cube_open <- sits_cube(source = "AWS",
-                              collection = "SENTINEL-S2-L2A-COGS",
-                              tiles = c("20LKP", "20LLP"),
-                              bands = c("B08", "SCL"),
-                              start_date = "2018-07-30",
-                              end_date = "2018-08-30"
-    )
+    s2_cube_open <- tryCatch({
+        sits_cube(source = "AWS",
+                  collection = "SENTINEL-S2-L2A-COGS",
+                  tiles = c("20LKP", "20LLP"),
+                  bands = c("B08", "SCL"),
+                  start_date = "2018-07-30",
+                  end_date = "2018-08-30"
+        )},
+        error = function(e){
+            return(NULL)
+        })
+    testthat::skip_if(purrr::is_null(s2_cube_open),
+                      "AWS is not accessible")
     expect_false(.cube_is_regular(s2_cube_open))
     expect_true(all(sits_bands(s2_cube_open) %in% c("B08", "CLOUD")))
 

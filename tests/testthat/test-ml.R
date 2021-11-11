@@ -160,9 +160,6 @@ test_that("DL-MLP-2classes", {
             )
         )
     ))
-    test_eval <- suppressMessages(sits_keras_diagnostics(model))
-    expect_true(test_eval["accuracy"] > 0.7)
-
     point_class <- sits_classify(
         data = cerrado_2classes[1:60, ],
         ml_model = model
@@ -199,9 +196,6 @@ test_that("tempCNN model", {
             )
         )
     ))
-
-    test_eval <- suppressMessages(sits_keras_diagnostics(model))
-    expect_true(test_eval["accuracy"] > 0.7)
     point_ndvi <- sits_select(point_mt_6bands, bands = "NDVI")
     point_class <- sits_classify(
         data = point_ndvi,

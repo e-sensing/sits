@@ -1,11 +1,11 @@
-#' @title Informs the names of the bands
+#' @title Get the names of the bands
 #'
 #' @name sits_bands
 #'
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
 #'
-#' @description  Finds/replaces the names of the bands of
+#' @description  Finds the names of the bands of
 #'               a set of time series or of a data cube
 #'
 #' @param x         Valid sits tibble (time series or a cube)
@@ -15,7 +15,7 @@
 #' @examples {
 #' # Retrieve the set of samples for Mato Grosso (provided by EMBRAPA)
 #' # show the bands
-#' sits_bands(samples_mt_6bands)
+#' sits_bands(samples_modis_4bands)
 #' }
 #'
 #' @export
