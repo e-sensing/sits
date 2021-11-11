@@ -423,7 +423,7 @@ plot.som_map <- function(x, y, ..., type = "codes", band = 1) {
 #' @return               The plot itself.
 #'
 #' @examples
-#' \donttest{
+#' \dontrun{
 #' # Get a set of samples
 #' samples_ndvi_evi <- sits_select(samples_modis_4bands,
 #'                                 bands = c("NDVI", "EVI"))
