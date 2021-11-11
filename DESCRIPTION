@@ -48,7 +48,6 @@ Imports:
     rstac (>= 0.9.1-5),
     sf (>= 0.9),
     slider (>= 0.1.5),
-    stringi,
     stats,
     terra (>= 1.4-11),
     tibble (>= 3.0),
