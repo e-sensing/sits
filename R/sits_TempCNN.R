@@ -95,9 +95,6 @@ sits_TempCNN <- function(samples = NULL,
             stop("Please install package keras", call. = FALSE)
         }
 
-        # pre-conditions
-        valid_activations <- c("relu", "elu", "selu", "sigmoid")
-
         .check_length(
             x = cnn_layers,
             len_min = length(cnn_kernels),
@@ -124,14 +121,14 @@ sits_TempCNN <- function(samples = NULL,
 
         .check_chr_within(
             x = cnn_activation,
-            within = valid_activations,
+            within = .config_get("dl_activation_methods"),
             discriminator = "one_of",
             msg = "invalid CNN activation method"
         )
 
         .check_chr_within(
             x = dense_layer_activation,
-            within = valid_activations,
+            within = .config_get("dl_activation_methods"),
             discriminator = "one_of",
             msg = "invalid node activation method"
         )

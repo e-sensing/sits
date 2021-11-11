@@ -2,20 +2,17 @@
 % Please edit documentation in R/sits_config.R
 \name{.config_data_meta_type}
 \alias{.config_data_meta_type}
-\title{meta-type for data}
+\title{Check metatype associated to the data}
 \usage{
 .config_data_meta_type(data)
 }
 \arguments{
-\item{data}{tibble (time series or cube)}
+\item{data}{time series or cube}
 }
 \value{
-file path to the appended to data_dir
+an error if the meta data type is wrong
 }
 \description{
-meta-type for data
-}
-\author{
-Gilberto Camara, \email{gilberto.camara@inpe.br}
+associates a valid SITS class to the data
 }
 \keyword{internal}

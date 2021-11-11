@@ -189,9 +189,9 @@
 #' s2_cube <- sits_cube(source = "AWS",
 #'                       collection = "sentinel-s2-l2a-cogs",
 #'                       tiles = c("20LKP","20LLP"),
-#'                       bands = c("B03", "B04", "B08"),
+#'                       bands = c("B04", "B08", "B11"),
 #'                       start_date = as.Date("2018-07-18"),
-#'                       end_date = as.Date("2018-07-23")
+#'                       end_date = as.Date("2019-07-23")
 #' )
 #'
 #' # --- Create a cube based on a local MODIS data
@@ -352,12 +352,6 @@ sits_cube.local_cube <- function(source,
     .source_check(source = source)
     .source_collection_check(source = source, collection = collection)
 
-    # precondition - check parse info
-    .check_chr(x = parse_info,
-               allow_empty = FALSE,
-               len_min = 2,
-               msg = "invalid parsing information.")
-
     # precondition - does the parse info have band and date?
     .check_chr_contains(
         parse_info,
@@ -397,7 +391,7 @@ sits_cube.satveg_cube <- function(
 
     # precondition
     .check_chr_within(x = collection,
-                      within = c("TERRA", "AQUA", "COMB"),
+                      within = .source_collections(source = "SATVEG"),
                       msg = "invalid SATVEG collection.")
 
     # precondition - is service online?

@@ -15,15 +15,9 @@
 #' \dontrun{
 #'
 #' # --- Access to the AWS STAC
-#' # Provide your AWS credentials as environment variables
-#' Sys.setenv(
-#'     "AWS_ACCESS_KEY_ID" = <your_aws_access_key>,
-#'     "AWS_SECRET_ACCESS_KEY" = <your_aws_secret_access_key>
-#' )
 #'
 #' # define an AWS data cube
 #'   s2_cube <- sits_cube(source = "AWS",
-#'                       name = "T20LKP_2018_2019",
 #'                       collection = "sentinel-s2-l2a-cogs",
 #'                       bands = c("B08", "SCL"),
 #'                       tiles = c("20LKP"),
@@ -40,6 +34,7 @@
 #'                            period     = "P1M",
 #'                            agg_method = "median",
 #'                            resampling = "bilinear",
+#'                            res        = 60,
 #'                            cloud_mask = TRUE)
 #' }
 #' }
@@ -81,12 +76,12 @@
 sits_regularize <- function(cube,
                             output_dir,
                             period,
-                            res,
-                            roi = NULL,
+                            res        = NULL,
+                            roi        = NULL,
                             agg_method = "median",
                             resampling = "bilinear",
                             cloud_mask = TRUE,
-                            multicores = 1) {
+                            multicores = 2) {
 
     # set caller to show in errors
     .check_set_caller("sits_regularize")
@@ -101,7 +96,60 @@ sits_regularize <- function(cube,
                 msg = "sits_regularize not available for collection ",
                 cube$collection, " from ", cube$source
     )
+    # precondition - test if provided object is a raster cube
+    .check_that(
+        x = inherits(cube, "raster_cube"),
+        msg = paste("provided cube is invalid,",
+                    "please provide a 'raster_cube' object.",
+                    "see '?sits_cube' for more information.")
+    )
+    # precondition - check output dir fix
+    output_dir <- normalizePath(output_dir)
+    # verifies the path to save the images
+    .check_that(
+        x = dir.exists(output_dir),
+        msg = "invalid 'output_dir' parameter."
+    )
+    # append gdalcubes path
+    path_db <- paste0(output_dir, "/gdalcubes.db")
+    # precondition - is the period valid?
+    .check_na(lubridate::duration(period), msg = "invalid period specified")
 
+    # precondition - is the resolution valid?
+    # is there a single resolution? Is not, "res" needs to be set
+    if (length(unique(cube$file_info[[1]]$res)) > 1) {
+        .check_num(x = res,
+                   allow_zero = FALSE,
+                   min = 1,
+                   len_min = 1,
+                   len_max = 1,
+                   msg = "a valid resolution needs to be provided")
+    }
+    # precondition - is the aggregation valid?
+    .check_chr_within(
+        x = agg_method,
+        within = .config_get("gdalcubes_aggreg_methods"),
+        discriminator = "any_of",
+        msg = "invalid aggregation method"
+    )
+    # precondition - is the resampling valid?
+    .check_chr_within(
+        x = resampling,
+        within = .config_get("gdalcubes_resampling_methods"),
+        discriminator = "any_of",
+        msg = "invalid resampling method"
+    )
+    # precondition - is the cloud mask valid?
+    .check_lgl_type(cloud_mask, msg = "cloud mask parameter should be TRUE/FALSE")
+    # if the cloud mask is true, is there a cloud band?
+    if (cloud_mask) {
+        .check_chr_contains(
+            x = sits_bands(cube),
+            contains = "CLOUD",
+            msg = "no cloud band available in the cube"
+        )
+    }
+    # precondition - is the multicores valid?
     .check_num(
         x = multicores,
         allow_zero = FALSE,
@@ -111,25 +159,6 @@ sits_regularize <- function(cube,
 
     # setting in global env multicores options
     gdalcubes::gdalcubes_options(threads = multicores)
-
-    # test if provided object its a sits cube
-    .check_that(
-        x = inherits(cube, "raster_cube"),
-        msg = paste("provided cube is invalid,",
-                    "please provide a 'raster_cube' object.",
-                    "see '?sits_cube' for more information.")
-    )
-
-    # fix slashes for windows
-    output_dir <- normalizePath(output_dir)
-
-    # verifies the path to save the images
-    .check_that(
-        x = dir.exists(output_dir),
-        msg = "invalid 'output_dir' parameter."
-    )
-
-    path_db <- paste0(output_dir, "/gdalcubes.db")
 
     if (!is.null(roi)) {
 

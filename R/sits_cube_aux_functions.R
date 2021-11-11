@@ -112,7 +112,8 @@
                               add_cloud = TRUE) {
 
     # all bands are upper case
-    .check_chr_within(bands, within = .cube_bands(cube = cube,
+    .check_chr_within(bands,
+                      within = .cube_bands(cube = cube,
                                                   add_cloud = add_cloud),
                       case_sensitive = FALSE,
                       msg = "invalid 'bands' parameter")

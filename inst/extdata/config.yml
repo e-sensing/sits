@@ -1,3 +1,5 @@
+# These are configuration parameters that can be set by users
+
 # estimated relative growth size of R memory relative to block size
 processing_bloat        : 5
 
@@ -13,22 +15,10 @@ gdal_creation_options   : ["COMPRESS=LZW", "BIGTIFF=YES"]
 # configuration for gdalcubes chunk
 gdalcubes_chunk_size   : [1, 2048, 2048]
 
-# local cube config options
-local_s3_class          : ["local_cube", "raster_cube"]
-local_file_extensions   : ["tiff", "tif", "jp2", "hdf", "vrt"]
-
-# configuration for probability cubes
-probs_cube_scale_factor : 0.0001
-probs_cube_data_type    : "INT2U"
-
-# configuration for classified cubes
-class_cube_data_type    : "INT1U"
-
 # maxbytes for leaflet (in MB)
 leaflet_max_Mbytes : 16
 # estimated compression factor for leaflet
 leaflet_comp_factor : 0.75
-
 
 sources:
     BDC                     :
@@ -1097,4 +1087,3 @@ palettes:
         Urban_Area        : "#BCBDDDC"
         # No Class uses color 4 of the "Greys" palette
         No_Class          : "#F0F0F0"
-

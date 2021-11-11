@@ -11,7 +11,9 @@
   time = 1,
   title = "Classified Image",
   legend = NULL,
-  palette = "default"
+  palette = "default",
+  brewer_palette = "Spectral",
+  brewer_order = TRUE
 )
 }
 \arguments{
@@ -23,11 +25,15 @@
 
 \item{time}{temporal reference for plot.}
 
-\item{title}{Title of the plot}
+\item{title}{title of the plot}
 
 \item{legend}{named vector that associates labels to colors}
 
 \item{palette}{palette provided in the configuration file}
+
+\item{brewer_palette}{alternative palette that uses RColorBrewer}
+
+\item{brewer_order}{invert the order of brewer palette (TRUE/FALSE)}
 }
 \description{
 plots a classified raster using ggplot.

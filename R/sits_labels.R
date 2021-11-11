@@ -134,13 +134,13 @@ sits_labels.sits_model <- function(data) {
     # check if there are no NA
     .check_that(
         x = all(!is.na(value)),
-        msg = "invalid labels value"
+        msg = "invalid values to replace labels"
     )
 
     # check if there are empty strings
     .check_that(
         x = any(trimws(value) != ""),
-        msg = "invalid labels value"
+        msg = "invalid values to replace labels"
     )
 
     names(value) <- labels
@@ -149,12 +149,17 @@ sits_labels.sits_model <- function(data) {
 
     return(data)
 }
-
 #' @export
 #'
-`sits_labels<-.pattern` <- function(data, value) {
-
-    return(`sits_labels<-.pattern`(data, value))
+`sits_labels<-.probs_cube` <- function(data, value) {
+    # precondition
+    n_labels <- length(sits_labels(data))
+    .check_chr(value, len_min = n_labels,
+               msg = "not enough new labels to replace current ones")
+    rows <- slider::slide_dfr(data, function(row){
+        row$labels <- list(value)
+        return(row)
+    })
 }
 
 #' @title Inform label distribution of a set of time series

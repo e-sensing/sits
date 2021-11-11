@@ -30,8 +30,8 @@ sits_show_prediction <- function(class) {
     .sits_tibble_test(class)
 
     .check_chr_within(
-        x = names(class$predicted[[1]]),
-        within = c("from", "to", "class", "probs"),
+        x = .config_get("ts_predicted_cols"),
+        within = names(class$predicted[[1]]),
         msg = "tibble has not been classified"
     )
 

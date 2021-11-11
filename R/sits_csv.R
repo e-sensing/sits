@@ -70,7 +70,7 @@ sits_metadata_to_csv <- function(data, file) {
 
     # check if required col names are available
     .check_chr_within(
-        x = c("longitude", "latitude", "start_date", "end_date", "label"),
+        x = .config_get("csv_sample_columns"),
         within = colnames(csv),
         msg = "invalid csv file")
 
