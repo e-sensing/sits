@@ -20,12 +20,12 @@ License](https://img.shields.io/badge/license-GPL--2-green)](https://github.com/
 
 <!-- badges: end -->
 
-### Overview
+## Overview
 
 The `sits` R package provides a set of tools for analysis, visualization
-and classification of satellite image time series. The main aim of SITS
-is to support land cover and land change classification of image data
-cubes using machine learning methods. The basic workflow in SITS is:
+and classification of satellite image time series. The package supports
+classification of image data cubes using machine learning methods. The
+basic workflow in SITS is:
 
 1.  Create a data cube using image collections available in the cloud or
     in local machines.
@@ -36,6 +36,25 @@ cubes using machine learning methods. The basic workflow in SITS is:
 5.  Classify the data cube using the trained model.
 6.  Post-process the classified images.
 7.  Evaluate the accuracy of the classification using best practices.
+
+## SITS on Kaggle
+
+Those that want to evaluate the `sits` package before installing are
+invited to run the examples available on
+[Kaggle](https://www.kaggle.com/esensing/code). These examples provide a
+fast-track introduction to the package. We recommend running them in the
+following order:
+
+1.  [Introduction to
+    SITS](https://www.kaggle.com/esensing/introduction-to-sits)
+2.  [Working with time series in
+    SITS](https://www.kaggle.com/esensing/working-with-time-series-in-sits)
+3.  [Creating data cubes in
+    SITS](https://www.kaggle.com/esensing/creating-data-cubes-in-sits)
+4.  [Raster classification in
+    SITS](https://www.kaggle.com/esensing/raster-classification-in-sits)
+5.  [Using SOM for sample quality control in
+    SITS](https://www.kaggle.com/esensing/using-som-for-sample-quality-control-in-sits)
 
 ## Installation
 
@@ -48,7 +67,7 @@ the instructions for installing `sf` together with GDAL available at the
 
 ### Obtaining SITS
 
-SITS is currently available on github, as follows:
+SITS is currently available on github:
 
 ``` r
 # Please install the `sits` package from github
@@ -56,10 +75,77 @@ SITS is currently available on github, as follows:
 devtools::install_github("e-sensing/sits", dependencies = TRUE)
 ```
 
-### Data Cubes and ARD Image Collections
+``` r
+# load the sits library
+library(sits)
+#> Using configuration file: /Library/Frameworks/R.framework/Versions/4.1/Resources/library/sits/extdata/config.yml
+#> Color configurations found in /Library/Frameworks/R.framework/Versions/4.1/Resources/library/sits/extdata/config_colors.yml
+#> To provide additional configurations, create an YAML file and inform its path to environment variable 'SITS_CONFIG_USER_FILE'.
+#> Using raster package: terra
+#> SITS - satellite image time series analysis.
+#> Loaded sits v0.15.1.
+#>         See ?sits for help, citation("sits") for use in publication.
+#>         See demo(package = "sits") for examples.
+```
 
-SITS works best with regular *data cube* that meet the following
-definition:
+## Building Earth Observation Data Cubes
+
+### ARD Image Collections Accessible by SITS
+
+The `sits` package works with Earth observation data cubes. These data
+cubes are built from analysis-ready image collections available in the
+cloud. The collections accessible in version 0.15.0 are:
+
+1.  AWS: Sentinel-2/2A level 2A collections, including
+    “SENTINEL-S2-L2A-COGS” (open data) and “SENTINEL-S2-L2A” (non open
+    data).
+2.  Brazil Data Cube (BDC): Open data collections of Sentinel-2,
+    Landsat-8 and CBERS-4 images.
+3.  Digital Earth Africa (DEAFRICA): Open data collection of
+    Sentinel-2/2A and Landsat-8 for Africa.
+4.  USGS: Landsat-4/5/7/8 collections, which are not open data.
+
+Open data collections do not require payment of access fees to cloud
+providers. Except for those in the Brazil Data Cube, these collections
+are not regular. Irregular collections require further processing before
+they can be used in `sits` for classification using machine learning
+methods.
+
+The following code defines an irregular data cube of Sentinel-2/2A
+images using AWS, using the open data collection “sentinel-s2-l2a-cogs”.
+The geographical area of the data cube is defined by the tiles “20LKP”
+and “20LLKP”, and the temporal extent by a start and end date. Access to
+other cloud services works in similar ways.
+
+``` r
+s2_cube <- sits_cube(source = "AWS",
+                     collection = "sentinel-s2-l2a-cogs",
+                     tiles = c("20LKP", "20LLP"),
+                     bands = c("B03", "B04", "B08", "B8A", "B11", "SCL"),
+                     start_date = as.Date("2018-07-01"),
+                     end_date = as.Date("2019-06-30")
+)
+```
+
+The cube can be shown in a leaflet using `sits_view()`.
+
+``` r
+# View a color composite on a leaflet
+sits_view(s2_cube, green = "B08", blue = "B03", red = "B04")
+```
+
+This cube is irregular. The timelines of tiles “20LKP” and “20LLKP” the
+resolutions of the bands of the bands are different. Sentinel-2 bands
+“B03”, “B04”, and “B08” have 10 m resolution, while bands “B8A”, “B11”
+and the cloud band “SCL” have 20 m resolution. Irregular collections
+need an additional processing step to be converted to regular data
+cubes, as described below.
+
+### Transforming ARD Image Collections into Data Cubes
+
+SITS works best with regular *data cubes* that meet the definition
+proposed by [Appel and Pebesma,
+2019](https://www.mdpi.com/2306-5729/4/3/92):
 
 1.  A data cube is a four-dimensional structure with dimensions x
     (longitude or easting), y (latitude or northing), time, and bands.
@@ -70,75 +156,11 @@ definition:
     equally-spaced intervals.
 4.  For every combination of dimensions, a cell has a single value.
 
-Not all data cubes are regular. Currently, most cloud providers (such as
-AWS and Microsoft) provide images organised as analysis-ready data (ARD)
-image collections, which meet the following definitions:
-
-1.  An ARD image collection is a set of files from a given sensor (or a
-    combined set of sensors) that has been corrected to ensure
-    comparability of measurements between different dates.
-2.  All images are reprojected to a cartographic projection following
-    well-established standards.
-3.  Image collections are cropped into a tiling system.  
-4.  In general, the timelines of the images that are part of one tile
-    are not regular. Also, these timelines are not the same as those
-    associated to a different tile.
-5.  ARD image collections do not guarantee that every pixel of an image
-    has a valid value, since its images still contains cloudy or missing
-    pixels.
-
-### Transforming ARD Image Collections into Data Cubes
-
-SITS has been designed to work with big satellite image data sets
-organised as data cubes. Data cubes can be available in the cloud or in
-a local machine. Currently, SITS supports analysis ready data
-collections available in the services provided by Amazon Web Services
-(AWS), Brazil Data Cube (BDC), Digital Earth Africa (DEAFRICA), and
-United States Geological Survey (USGS). We are working to include
-collections available in Microsoft’s Planetary Computer. Most of these
-collections are open data and require no payment to access them.
-However, in general these collections are not regular and require
-further processing before they can be used in SITS.
-
-The ARD collections accessible with SITS version 0.15.0 are:
-
-1.  Sentinel-2/2A level 2A collections in AWS, including
-    “SENTINEL-S2-L2A-COGS” (open data) and “SENTINEL-S2-L2A” (non open
-    data). These collections are not regular.
-2.  Collections of Sentinel-2, Landsat-8 and CBERS-4 images in BDC
-    (opendata). The BDC collections are regular and openly accessible.
-3.  Sentinel-2/2A and Landsat-8 collections available in Digital Earth
-    Africa. These collections are openly acessible but not regular;
-4.  Landsat-4/5/7/8 collections made available by USGS. These
-    collections are neither openly acessible nor regular.
-
-SITS relies on STAC services to access these collections. The user
-defines a generic data cube by selecting a collection in a cloud service
-and then specifying a space-time extent. For example, the following code
-will define a data cube of Sentinel-2/2A images using AWS.
-
-``` r
-s2_cube <- sits_cube(source = "AWS",
-                     collection = "sentinel-s2-l2a-cogs",
-                     tiles = c("20LKP", "20LLP"),
-                     bands = c("B02", "B03", "B04", "B08", "B8A", "B11")
-                     start_date = as.Date("2018-07-01"),
-                     end_date = as.Date("2018-10-30")
-)
-```
-
-In the above example, the user has selected the “Sentinel-2 Level 2”
-collection in the AWS cloud services which is open data. The
-geographical area of the data cube is defined by the tiles “20LKP” and
-“20LLKP”, and the temporal extent by a start and end date. Access to
-other cloud services works in similar ways.
-
-The data cube defined by the above command not regular, since the chosen
-Sentinel-2 bands have different resolutions. Also, tiles “20LKP” and
-“20LLP” have different timelines. Users can derive regular data cubes
-from ARD data which have pre-defined temporal resolutions. This is dones
-by `sits_regularize()` which uses the
-[https://github.com/appelmar/gdalcubes](gdalcubes) package \[4\].
+Once users have defined an irregular ARD image collection from a cloud
+service using `sits_cube()`, they should run `sits_regularize()` to
+build a regular data cube. This function uses the [gdalcubes R
+package](https://github.com/appelmar/gdalcubes), described in [Appel and
+Pebesma, 2019](https://www.mdpi.com/2306-5729/4/3/92).
 
 ``` r
 gc_cube <- sits_regularize(cube          = s2_cube,
@@ -151,29 +173,28 @@ gc_cube <- sits_regularize(cube          = s2_cube,
 ```
 
 The above command builds a regular data cube with all bands interpolated
-to 10 meter spatial resolution and 15 days temporal resolution.
+to 10 meter spatial resolution and 15 days temporal resolution. Regular
+data cubes are the input to the `sits` functions for time series
+retrieval, building machine learning models, and classification of
+raster images and time series.
 
-### Accessing time series in data cubes
+## Working with Time Series
 
-In the example below, we will work with a local data cubes, whose data
-has been obtained from the “MOD13Q1-6” collecion of the Brazil Data
-Cube. SITS has been designed to use satellite image time series to
-derive machine learning models. After the data cube has been created,
-time series can be retrieved individually or by using CSV or SHP files,
-as in the following example.
+### Accessing Time Series in Data Cubes
+
+SITS has been designed to use satellite image time series to derive
+machine learning models. After the data cube has been created, time
+series can be retrieved individually or by using CSV or SHP files, as in
+the following example. The example below uses a data cube in a local
+directory, whose images have been obtained from the “MOD13Q1-6”
+collection of the Brazil Data Cube.
 
 ``` r
 library(sits)
-#> Using configuration file: /home/sits/R/x86_64-pc-linux-gnu-library/4.1/sits/extdata/config.yml
-#> To provide additional configurations, create an YAML file and inform its path to environment variable 'SITS_CONFIG_USER_FILE'.
-#> Using raster package: terra
-#> SITS - satellite image time series analysis.
-#> Loaded sits v0.15.0-1.
-#>         See ?sits for help, citation("sits") for use in publication.
-#>         See demo(package = "sits") for examples.
-# create a cube from a local file 
+# this data cube uses images from the Brazil Data Cube that have 
+# downloaded to a local directory
 data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
-
+# create a cube from downloaded files
 raster_cube <- sits_cube(
     source = "BDC",
     collection = "MOD13Q1-6",
@@ -181,16 +202,13 @@ raster_cube <- sits_cube(
     delim = "_",
     parse_info = c("X1", "X2", "tile", "band", "date")
 )
-
-# obtain a set of locations defined by a CSV file
-csv_raster_file <- system.file("extdata/samples/samples_sinop_crop.csv",
-                               package = "sits")
-
-# retrieve the points from the data cube
-points <- sits_get_data(raster_cube, file = csv_raster_file)
+# obtain a set of samples defined by a CSV file
+csv_file <- system.file("extdata/samples/samples_sinop_crop.csv",
+                        package = "sits")
+# retrieve the time series associated with the samples from the data cube
+points <- sits_get_data(raster_cube, file = csv_file)
 #> All points have been retrieved
-
-# show the points
+# show the time series
 points[1:3,]
 #> # A tibble: 3 × 7
 #>   longitude latitude start_date end_date   label   cube      time_series      
@@ -200,9 +218,9 @@ points[1:3,]
 #> 3     -55.7    -11.8 2013-09-14 2014-08-29 Forest  MOD13Q1-6 <tibble [23 × 3]>
 ```
 
-After a time series is imported, it is loaded in a tibble. The first six
-columns contain the metadata: spatial and temporal location, label
-assigned to the sample, and coverage from where the data has been
+After a time series has been obtained, it is loaded in a tibble. The
+first six columns contain the metadata: spatial and temporal location,
+label assigned to the sample, and coverage from where the data has been
 extracted. The spatial location is given in longitude and latitude
 coordinates. The first sample has been labelled “Pasture”, at location
 (-55.65931, -11.76267), and is considered valid for the period
@@ -213,37 +231,24 @@ function.
 plot(points[1,])
 ```
 
-<div class="figure" style="text-align: center">
-
-<img src="man/figures/README-unnamed-chunk-6-1.png" alt="Plot of point at location (-55.65931, -11.76267) labelled as Pasture"  />
-<p class="caption">
-Plot of point at location (-55.65931, -11.76267) labelled as Pasture
-</p>
-
-</div>
+<img src="man/figures/README-unnamed-chunk-8-1.png" title="Plot of point at location (-55.65931, -11.76267) labelled as Pasture" alt="Plot of point at location (-55.65931, -11.76267) labelled as Pasture" style="display: block; margin: auto;" />
 
 For a large number of samples, where the amount of individual plots
-would be substantial, the default visualisation combines all samples
+would be substantial, the default visualization combines all samples
 together in a single temporal interval.
 
 ``` r
 # select the "ndvi" band
 samples_ndvi <- sits_select(samples_modis_4bands, "NDVI")
-
 # select only the samples with the cerrado label
 samples_cerrado <- dplyr::filter(samples_ndvi, 
                   label == "Cerrado")
 plot(samples_cerrado)
 ```
 
-<div class="figure" style="text-align: center">
+<img src="man/figures/README-unnamed-chunk-9-1.png" title="Samples for NDVI band for Cerrado class" alt="Samples for NDVI band for Cerrado class" style="display: block; margin: auto;" />
 
-<img src="./inst/extdata/markdown/figures/samples_cerrado.png" alt="Samples for NDVI band for Cerrado class" width="480" />
-<p class="caption">
-Samples for NDVI band for Cerrado class
-</p>
-
-</div>
+## Time Series Clustering and Filtering
 
 ### Clustering for sample quality control
 
@@ -251,19 +256,38 @@ Clustering methods in SITS improve the quality of the samples and to
 remove those that might have been wrongly labeled or that have low
 discriminatory power. Good samples lead to good classification maps.
 `sits` provides support for sample quality control using Self-organizing
-Maps (SOM).
+Maps (SOM). The process of clustering with SOM is done by
+`sits_som_map()`, which creates a self-organizing map and assesses the
+quality of the samples.
 
-The process of clustering with SOM is done by `sits_som_map()`, which
-creates a self-organizing map and assesses the quality of the samples.
-This function uses the “kohonen” R package to compute a SOM grid (see
-Reference \[7\] below). Each sample is assigned to a neuron, and neurons
-are placed in the grid based on similarity. The second step is the
-quality assessment. Each neuron will be associated with a discrete
-probability distribution. Homogeneous neurons (those with a single
-class) are assumed to be composed of good quality samples. Heterogeneous
-neurons (those with two or more classes with significant probability)
-are likely to contain noisy samples. See [Chapter 4 of the sits
-book](https://e-sensing.github.io/sitsbook/time-series-clustering-to-improve-the-quality-of-training-samples.html).
+``` r
+# load the kohonen library
+library(kohonen)
+# create a SOM map from the samples
+som_map <- sits_som_map(samples_modis_4bands,
+                        grid_xdim = 6,
+                        grid_ydim = 6)
+# plot the map
+plot(som_map)
+```
+
+<img src="man/figures/README-unnamed-chunk-10-1.png" style="display: block; margin: auto;" />
+
+This function uses the [“kohonen” R
+package](https://www.jstatsoft.org/article/view/v087i07) to compute a
+SOM grid. Each sample is assigned to a neuron, and neurons are placed in
+the grid based on similarity. Each neuron will be associated with a
+discrete probability distribution. Homogeneous neurons (those with a
+single class) are assumed to be composed of good quality samples.
+Heterogeneous neurons (those with two or more classes with significant
+probability) are likely to contain noisy samples. Noisy samples can then
+be identified and removed from the sample set using
+`sits_som_clean_samples()`.
+
+``` r
+# create a new sample set removing noisy points
+new_samples <- sits_som_clean_samples(som_map)
+```
 
 ### Filtering
 
@@ -271,12 +295,9 @@ Satellite image time series are contaminated by atmospheric influence
 and directional effects. To make the best use of available satellite
 data archives, methods for satellite image time series analysis need to
 deal with data sets that are *noisy* and *non-homogeneous*. For data
-filtering, `sits` supports Savitzky–Golay (`sits_sgolay()`), Whittaker
-(`sits_whittaker()`), and envelope (`sits_envelope()`). As an example,
-we show how to apply the Whittaker smoother to a 16-year NDVI time
-series. For more details, please see the vignette [“Satellite Image Time
-Series Filtering with
-SITS”](https://github.com/e-sensing/sits-docs/blob/master/doc/filters.pdf)
+filtering, `sits` supports Savitzky–Golay (`sits_sgolay()`) and
+Whittaker (`sits_whittaker()`) filters. As an example, we show how to
+apply the Whittaker smoother to a 16-year NDVI time series.
 
 ``` r
 # apply Whitaker filter to a time series sample for the NDVI band from 2000 to 2016
@@ -289,85 +310,63 @@ point_ndvi %>%
     plot()
 ```
 
-<div class="figure" style="text-align: center">
+<img src="man/figures/README-unnamed-chunk-12-1.png" title="Whittaker filter of NDVI time series" alt="Whittaker filter of NDVI time series" style="display: block; margin: auto;" />
 
-<img src="man/figures/README-unnamed-chunk-9-1.png" alt="Whitaler filter of NDVI time series"  />
-<p class="caption">
-Whitaler filter of NDVI time series
-</p>
+## Time Series Classification
 
-</div>
-
-### Time Series classification using machine learning
+### Training Machine Learning Models
 
 SITS provides support for the classification of both individual time
 series as well as data cubes. The following machine learning methods are
 available in SITS:
 
--   Linear discriminant analysis (`sits_lda`)
--   Quadratic discriminant analysis (`sits_qda`)
--   Multinomial logit and its variants ‘lasso’ and ‘ridge’ (`sits_mlr`)
--   Support vector machines (`sits_svm`)
--   Random forests (`sits_rfor`)
--   Extreme gradient boosting (`sits_xgboost`)
--   Deep learning (DL) using multi-layer perceptrons
-    (`sits_deeplearning`)
+-   Multinomial logit and its variants ‘lasso’ and ‘ridge’
+    (`sits_mlr()`)
+-   Support vector machines (`sits_svm()`)
+-   Random forests (`sits_rfor()`)
+-   Extreme gradient boosting (`sits_xgboost()`)
+-   Deep learning (DL) using multi-layer perceptrons (`sits_mlp()`)
 -   DL using Deep Residual Networks (`sits_ResNet`) (see reference
-    \[5\])
+    \[7\])
 -   DL combining 1D convolution neural networks and multi-layer
-    perceptrons (`sits_TempCNN`) (See reference \[6\])
+    perceptrons (`sits_TempCNN()`) (See reference \[8\])
 
 The following example illustrate how to train a dataset and classify an
-individual time series. First we use the `sits_train` function with two
-parameters: the training dataset (described above) and the chosen
-machine learning model (in this case, extreme gradient boosting). The
-trained model is then used to classify a time series from Mato Grosso
-Brazilian state, using `sits_classify`. The results can be shown in text
-format using the function `sits_show_prediction` or graphically using
-`plot`.
+individual time series. First we use the `sits_train()` function with
+two parameters: the training dataset (described above) and the chosen
+machine learning model (in this case, TempCNN). The trained model is
+then used to classify a time series from Mato Grosso Brazilian state,
+using `sits_classify()`. The results can be shown in text format using
+the function `sits_show_prediction()` or graphically using `plot`.
 
 ``` r
 # training data set
 data("samples_modis_4bands")
-
 # point to be classified
 data("point_mt_6bands")
-
 # Select the NDVI and EVI bands 
 # Filter the band to reduce noise
 # Train a deep learning model
 tempCNN_model <- samples_modis_4bands %>% 
     sits_select(bands = c("NDVI", "EVI")) %>% 
-    sits_whittaker(bands_suffix = "") %>% 
     sits_train(ml_method = sits_TempCNN(verbose = FALSE)) 
-
 # Select NDVI and EVI bands of the  point to be classified
 # Filter the point 
 # Classify using TempCNN model
 # Plot the result
 point_mt_6bands %>% 
   sits_select(bands = c("ndvi", "evi")) %>% 
-  sits_whittaker(bands_suffix = "") %>% 
   sits_classify(tempCNN_model) %>% 
   plot()
 ```
 
-<img src="man/figures/README-unnamed-chunk-10-1.png" style="display: block; margin: auto;" />
+<img src="man/figures/README-unnamed-chunk-13-1.png" style="display: block; margin: auto;" />
 
 The following example shows how to classify a data cube organised as a
 set of raster images. The result can also be visualised interactively
 using `sits_view()`.
 
 ``` r
-# Retrieve the set of samples for the Mato Grosso region 
-# Select the data for classification
-# Reduce noise the bands using whittaker filter
-# Build an extreme gradient boosting model
-xgb_model <- samples_modis_4bands %>% 
-    sits_select(bands = c("NDVI", "EVI")) %>% 
-    sits_whittaker(bands_suffix = "") %>% 
-    sits_train(ml_method = sits_xgboost())
-
 # Create a data cube to be classified
 # Cube is composed of MOD13Q1 images from the Sinop region in Mato Grosso (Brazil)
 data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
@@ -378,12 +377,11 @@ sinop <- sits_cube(
     delim = "_",
     parse_info = c("X1", "X2", "tile", "band", "date")
 )
-
 # Classify the raster cube, generating a probability file
 # Filter the pixels in the cube to remove noise
 probs_cube <- sits_classify(sinop, 
-                            ml_model = xgb_model, 
-                            filter_fn = sits_whittaker())
+                            ml_model = tempCNN_model
+)
 # apply a bayesian smoothing to remove outliers
 bayes_cube <- sits_smooth(probs_cube)
 # generate a thematic map
@@ -392,9 +390,9 @@ label_cube <- sits_label_classification(bayes_cube)
 plot(label_cube, title = "Labelled image")
 ```
 
-![](man/figures/README-unnamed-chunk-11-1.png)<!-- -->
+<img src="man/figures/README-unnamed-chunk-14-1.png" style="display: block; margin: auto;" />
 
-### Additional information
+## Additional information
 
 For more information, please see the on-line book [“SITS: Data analysis
 and machine learning for data cubes using satellite image
@@ -404,7 +402,7 @@ timeseries”](https://e-sensing.github.io/sitsbook/).
 
 #### Reference paper for sits
 
-If you use sits on academic works, please cite the following paper:
+If you use `sits`, please cite the following paper:
 
 -   \[1\] Rolf Simoes, Gilberto Camara, Gilberto Queiroz, Felipe Souza,
     Pedro R. Andrade, Lorena Santos, Alexandre Carvalho, and Karine
@@ -439,7 +437,7 @@ maps are described in the following reference:
 #### Papers that describe software used in sits
 
 We thank the authors of these papers for making their code available to
-be used in sits.
+be used in connection with sits.
 
 -   \[6\] Appel, Marius, and Edzer Pebesma, “On-Demand Processing of
     Data Cubes from Satellite Image Collections with the Gdalcubes
@@ -461,15 +459,32 @@ be used in sits.
 
 #### R packages used in sits
 
-The authors acknowledge the contributions of Marius Appel, Tim
-Appelhans, Henrik Bengtsson, Matt Dowle, Robert Hijmans, Edzer Pebesma,
-and Ron Wehrens, respectively chief developers of the packages
-“gdalcubes”, “mapview”, “data.table”, “terra/raster”, “sf”/“stars”, and
-“kohonen”. The code in “sits” is also much indebted to the work of the
-RStudio team, including the “tidyverse” and the “furrr” and “keras”
-packages. We also thank Charlotte Pelletier and Hassan Fawaz for sharing
-the python code that has been reused for the “TempCNN” and “ResNet”
-machine learning models.
+The authors are thankful for the contributions of Marius Appel, Tim
+Appelhans, Henrik Bengtsson, Robert Hijmans, Edzer Pebesma, and Ron
+Wehrens, respectively chief developers of the packages `gdalcubes`,
+`leafem`, `data.table`, `terra/raster`, `sf`/`stars`, and `kohonen`. The
+`sits` package is also much indebted to the work of the RStudio team,
+including the `tidyverse` and the `keras` packages. We thank Charlotte
+Pelletier and Hassan Fawaz for sharing the python code that has been
+reused for the TempCNN and ResNet machine learning models. We recognise
+the importance of the work by Chris Holmes and Mattias Mohr on the STAC
+specification and API.
+
+## Acknowledgements and Financial Support
+
+This research was supported by the Amazon Fund through the financial
+collaboration of the Brazilian Development Bank (BNDES) and the
+Foundation for Science, Technology and Space Applications (FUNCATE),
+process 17.2.0536.1. We also acknowledge support from Coordenação de
+Aperfeiçoamento de Pessoal de Nível Superior-Brasil (CAPES) and from the
+Conselho Nacional de Desenvolvimento Científico e Tecnológico (CNPq).
+Additional funding was provided by the São Paulo State Foundation
+(FAPESP) under eScience Program grant 2014/08398-6. This work is also
+supported by the International Climate Initiative of the Germany Federal
+Ministry for the Environment, Nature Conservation, Building and Nuclear
+Safety (IKI) under grant 17-III-084- Global-A-RESTORE+ (“RESTORE+:
+Addressing Landscape Restoration on Degraded Land in Indonesia and
+Brazil”).
 
 ## How to contribute
 
