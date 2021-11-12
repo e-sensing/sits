@@ -1092,6 +1092,14 @@ plot.keras_model <- function(x, y, ...) {
     if (!(is.null(cluster_name))) {
         data <- dplyr::filter(data, cluster %in% cluster_name)
     }
+    # configure plot colors
+    # get labels from cluster table
+    labels <- unique(data$class)
+    colors <- .config_palette_colors(labels = labels,
+                                     palette = "default",
+                                     brewer_palette = "Spectral",
+                                     brewer_order = TRUE)
+
     p <- ggplot2::ggplot() +
         ggplot2::geom_bar(
             ggplot2::aes(
@@ -1107,7 +1115,7 @@ plot.keras_model <- function(x, y, ...) {
         ggplot2::theme(axis.text.x =
                            ggplot2::element_text(angle = 60, hjust = 1)) +
         ggplot2::labs(x = "Cluster", y = "Percentage of mixture") +
-        ggplot2::scale_fill_discrete(name = "Class label") +
+        ggplot2::scale_fill_manual(name = "Class label", values = colors) +
         ggplot2::ggtitle(title)
 
     p <- graphics::plot(p)

@@ -580,7 +580,7 @@ sources:
                     AWS_DEFAULT_REGION   : "eu-central-1"
                     AWS_S3_ENDPOINT      : "s3.amazonaws.com"
                     AWS_REQUEST_PAYER    : "requester"
-                open_data   : true
+                open_data   : false
                 gdalcubes_format_col : "s2la_aws.json"
                 gdalcubes_type_format: "int16"
             SENTINEL-S2-L2A-COGS :
