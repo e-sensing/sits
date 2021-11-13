@@ -2,7 +2,6 @@
 # The raster image is a MODIS data set covering the municipality of Sinop
 # with two bands (NDVI and EVI) using MODIS collection 5 data
 library(sits)
-library(randomForest)
 
 # load the sitsdata library
 if (!requireNamespace("sitsdata", quietly = TRUE)) {

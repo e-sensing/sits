@@ -254,7 +254,6 @@ plot.raster_cube <- function(x, ...,
 #' @param time           temporal reference for plot.
 #' @param breaks         type of breaks
 #' @param title          string.
-#' @param colors         color palette.
 #' @param n_colors       number of colors.
 #' @param labels         labels to plot (optional)
 #'
@@ -264,9 +263,8 @@ plot.raster_cube <- function(x, ...,
 #'
 plot.probs_cube <- function(x, y, ..., time = 1,
                             title = "Probabilities for Classes",
-                            breaks = "kmeans",
-                            colors = "YlGnBu",
-                            n_colors = 10,
+                            breaks = "fisher",
+                            n_colors = 30,
                             labels = NULL) {
     stopifnot(missing(y))
     # verifies if stars package is installed
@@ -274,7 +272,7 @@ plot.probs_cube <- function(x, y, ..., time = 1,
         stop("Please install package stars.", call. = FALSE)
     }
     # define the output color palette
-    col <- grDevices::hcl.colors(10, colors, rev = TRUE)
+    col <- grDevices::terrain.colors(n = n_colors, alpha = 1, rev = TRUE)
     # create a stars object
     st <- stars::read_stars(x$file_info[[1]]$path[[time]])
     # get the labels
@@ -287,7 +285,7 @@ plot.probs_cube <- function(x, y, ..., time = 1,
         p <- st %>%
             dplyr::slice(index = layers, along = "band") %>%
             plot(breaks = breaks,
-                 nbreaks = 11,
+                 nbreaks = n_colors + 1,
                  col = col,
                  main = labels) %>%
             suppressWarnings()
@@ -295,7 +293,7 @@ plot.probs_cube <- function(x, y, ..., time = 1,
     else {
         p <- suppressWarnings(plot(st,
                                    breaks = breaks,
-                                   nbreaks = 11,
+                                   nbreaks = n_colors + 1,
                                    col = col,
                                    main = labels_cube)
         )
@@ -654,7 +652,7 @@ plot.keras_model <- function(x, y, ...) {
     # create the plot title
     plot_title <- .sits_plot_title(row$latitude, row$longitude, row$label)
     # extract the time series
-    data_ts <- row$time_series[[1]]
+    data_ts <- dplyr::bind_rows(row$time_series)
     # melt the data into long format
     melted_ts <- data_ts %>%
         tidyr::pivot_longer(cols = -Index, names_to = "variable") %>%

@@ -37,6 +37,8 @@ basic workflow in SITS is:
 6.  Post-process the classified images.
 7.  Evaluate the accuracy of the classification using best practices.
 
+<img src="inst/extdata/markdown/figures/sits_general_view.png" title="Conceptual view of data cubes (source: authors)" alt="Conceptual view of data cubes (source: authors)" width="60%" height="60%" style="display: block; margin: auto;" />
+
 ## SITS on Kaggle
 
 Those that want to evaluate the `sits` package before installing are
@@ -90,11 +92,19 @@ library(sits)
 
 ## Building Earth Observation Data Cubes
 
-### ARD Image Collections Accessible by SITS
+### Image Collections Accessible by SITS
 
-The `sits` package works with Earth observation data cubes. These data
+The `sits` R package allows advanced data analysis on big EO data cubes
+available in cloud computing services. *Data cubes* are collections of
+remote sensing images that have been organized to have spatial cells of
+the same size, covering a regular area in space and time. These data
 cubes are built from analysis-ready image collections available in the
-cloud. The collections accessible in version 0.15.0 are:
+cloud.
+
+<img src="inst/extdata/markdown/figures/datacube_conception.png" title="Conceptual view of data cubes (source: authors)" alt="Conceptual view of data cubes (source: authors)" width="90%" height="90%" style="display: block; margin: auto;" />
+
+The image collections accessible in `sits` version 0.15.0 to build EO
+data cubes are:
 
 1.  AWS: Sentinel-2/2A level 2A collections, including
     “SENTINEL-S2-L2A-COGS” (open data) and “SENTINEL-S2-L2A” (non open
@@ -110,6 +120,8 @@ providers. Except for those in the Brazil Data Cube, these collections
 are not regular. Irregular collections require further processing before
 they can be used in `sits` for classification using machine learning
 methods.
+
+### Building an EO Data Cube from an ARD Image Collection
 
 The following code defines an irregular data cube of Sentinel-2/2A
 images using AWS, using the open data collection “sentinel-s2-l2a-cogs”.
@@ -141,24 +153,9 @@ and the cloud band “SCL” have 20 m resolution. Irregular collections
 need an additional processing step to be converted to regular data
 cubes, as described below.
 
-### Transforming ARD Image Collections into Data Cubes
-
-SITS works best with regular *data cubes* that meet the definition
-proposed by [Appel and Pebesma,
-2019](https://www.mdpi.com/2306-5729/4/3/92):
-
-1.  A data cube is a four-dimensional structure with dimensions x
-    (longitude or easting), y (latitude or northing), time, and bands.
-2.  Its spatial dimensions refer to a single spatial reference system
-    (SRS). Cells of a data cube have a constant spatial size with
-    respect to the cube’s SRS.
-3.  The temporal dimension is composed of a set of continuous and
-    equally-spaced intervals.
-4.  For every combination of dimensions, a cell has a single value.
-
-Once users have defined an irregular ARD image collection from a cloud
-service using `sits_cube()`, they should run `sits_regularize()` to
-build a regular data cube. This function uses the [gdalcubes R
+After defining an irregular ARD image collection from a cloud service
+using `sits_cube()`, users should run `sits_regularize()` to build a
+regular data cube. This function uses the [gdalcubes R
 package](https://github.com/appelmar/gdalcubes), described in [Appel and
 Pebesma, 2019](https://www.mdpi.com/2306-5729/4/3/92).
 
@@ -178,7 +175,7 @@ data cubes are the input to the `sits` functions for time series
 retrieval, building machine learning models, and classification of
 raster images and time series.
 
-## Working with Time Series
+## Working with Time Series in SITS
 
 ### Accessing Time Series in Data Cubes
 
@@ -387,7 +384,7 @@ bayes_cube <- sits_smooth(probs_cube)
 # generate a thematic map
 label_cube <- sits_label_classification(bayes_cube)
 # plot the the labelled cube
-plot(label_cube, title = "Labelled image")
+plot(label_cube, title = "Land use and Land cover in Sinop, MT, Brazil in 2018")
 ```
 
 <img src="man/figures/README-unnamed-chunk-14-1.png" style="display: block; margin: auto;" />
