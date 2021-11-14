@@ -913,77 +913,50 @@ sits_list_collections <- function(source = NULL) {
 #' @title Get colors associated to the labels
 #' @name .config_palette_colors
 #' @param  labels  labels associated to the training classes
-#' @param  palette name of palette available in the config file
-#' @param  brewer_palette  palette from RColorBrewer that replaces default palette
-#'                         when labels are not included in the config palette
-#' @param  brewer_order    invert the order of brewer colors?
+#' @param  palette  palette from `grDevices::hcl.pals()` that replaces default palette
+#'                      when labels are not included in the config palette
+#' @param  rev      revert the order of colors?
 #' @keywords internal
 #' @return colors required to display the labels
 #'
 .config_palette_colors <- function(labels = labels, ...,
-                                   palette = palette,
-                                   brewer_palette = brewer_palette,
-                                   brewer_order = brewer_order) {
+                                   palette,
+                                   rev = TRUE) {
 
     # ensure labels are unique
     labels <- unique(labels)
-    # if nothing works, use brewer
-    brewer <- TRUE
-    # adjust labels only for default palette
-    if (palette == "default") {
-        # convert labels to title case with separator between uppercase names
-        labels <- purrr::map(labels, function(l){
-            lb <- l %>%
-                stringi::stri_trans_general(id = "Latin-ASCII") %>%
-                strsplit("_") %>%
-                unlist() %>%
-                stringi::stri_trans_totitle() %>%
-                paste(collapse = "_")
-        })
-        labels <- unlist(labels)
+    # if nothing works, use hcl_colors
+    hcl_colors <- TRUE
+    # get the names of the colors in the chosen pallete
+    colors_palette <- unlist(.config_get(key = c("palettes", "default")))
+    # if labels are included in the config palette, use them
+    if (all(labels %in% names(colors_palette))) {
+        colors <- colors_palette[labels]
+        hcl_colors <- FALSE
     }
-    # is this a known palette?
-    if (palette %in% .config_palettes()) {
-        # get the names of the colors in the chosen pallete
-        colors_palette <- unlist(.config_get(key = c("palettes", palette)))
-        # if labels are included in the config palette, use them
-        if (all(labels %in% names(colors_palette))) {
-            colors <- colors_palette[labels]
-            brewer <- FALSE
+    else{
+        labels_found <- labels[labels %in% names(colors_palette)]
+        if (length(labels_found) > round(length(labels)/2)) {
+            warning("Some labels are not available in the chosen palette",
+                    call. = FALSE)
+            missing_labels <- unique(labels[!(labels %in% labels_found)])
+            warning(paste0("Consider adjusting labels: ", missing_labels),
+                    call. = FALSE)
         }
-        else{
-            labels_found <- labels[labels %in% names(colors_palette)]
-            if (length(labels_found) > round(length(labels)/2)) {
-                warning("Some labels are not available in the chosen palette",
-                        call. = FALSE)
-                missing_labels <- unique(labels[!(labels %in% labels_found)])
-                warning(paste0("Consider adjusting labels: ", missing_labels),
-                        call. = FALSE)
-            }
-            else
-                warning("Most labels are not available in the chosen palette",
-                        call. = FALSE)
+        else
+            warning("Most labels are not available in the chosen palette",
+                    call. = FALSE)
 
-            warning(paste0("Using RColorBrewer palette ", brewer_palette),
-                           call. = FALSE)
-        }
+        warning(paste0("Using hcl_color palette ", hcl_palette),
+                call. = FALSE)
     }
     # if labels are not in the palette, use the brewer
-    if (brewer) {
+    if (hcl_colors) {
         n_labels <- length(unique(labels))
-        # find out number of colors in the Brewer palette
-        num_col_brewer_pal <- RColorBrewer::brewer.pal.info[brewer_palette, "maxcolors"]
-        # do we have enough colors?
-        # yes - use those of the Brewer
-        if (num_col_brewer_pal <= n_labels)
-            colors <- RColorBrewer::brewer.pal(n_labels, brewer_palette)
-        # no - use colorRampPalette to include new colors
-        else
-            colors <- grDevices::colorRampPalette(
-                RColorBrewer::brewer.pal(num_col_brewer_pal, brewer_palette))(n_labels)
-        # invert the brewer order?
-        if (!brewer_order)
-            colors <- rev(colors)
+        colors <- grDevices::hcl.colors(n = n_labels,
+                                        palette = hcl_palette,
+                                        alpha = 1,
+                                        rev = hcl_order)
         names(colors) <- labels
     }
     # post-condition
