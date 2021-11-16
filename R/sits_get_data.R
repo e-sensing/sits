@@ -3,14 +3,13 @@
 #' @author Gilberto Camara
 #'
 #' @description Retrieve a set of time series from a data cube or from
-#' a time series service. Data cubes
-#'  and puts it in a "sits tibble".
+#' a time series service. Data cubes and puts it in a "sits tibble".
 #' Sits tibbles are the main structures of sits package.
 #' They contain both the satellite image time series and their metadata.
 #' A sits tibble is a tibble with pre-defined columns that
 #' has the metadata and data for each time series. The columns are
 #' <longitude, latitude, start_date, end_date, label, cube, time_series>.
-#' There are many ways of retrieving time series:
+#' There are three ways of retrieving time series: (a)
 #' \itemize{
 #' \item{SATVEG:}{Retrieve data from SATVEG service using a lat/long point
 #'  (see S3 method for class 'satveg_cube'),

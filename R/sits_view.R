@@ -74,7 +74,7 @@ sits_view.sits <- function(x,
 
     # if colors are not specified, get them from the configuration file
     if (purrr::is_null(legend)) {
-        colors <- .config_palette_colors(labels, palette = palette)
+        colors <- .config_palette_colors(labels)
     }
     else {
         .check_chr_within(
@@ -444,7 +444,7 @@ sits_view.classified_image <- function(x,...,
 .view_get_colors <- function(labels, legend, palette){
     # if colors are not specified, get them from the configuration file
     if (purrr::is_null(legend)) {
-        colors <- .config_palette_colors(labels, palette = palette)
+        colors <- .config_palette_colors(labels)
     }
     else {
         .check_chr_within(
