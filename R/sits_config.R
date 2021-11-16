@@ -913,13 +913,14 @@ sits_list_collections <- function(source = NULL) {
 #' @title Get colors associated to the labels
 #' @name .config_palette_colors
 #' @param  labels  labels associated to the training classes
-#' @param  palette  palette from `grDevices::hcl.pals()` that replaces default palette
-#'                      when labels are not included in the config palette
+#' @param  palette  palette from `grDevices::hcl.pals()`
+#'                  replaces default palette
+#'                  when labels are not included in the config palette
 #' @param  rev      revert the order of colors?
 #' @keywords internal
 #' @return colors required to display the labels
 #'
-.config_palette_colors <- function(labels = labels, ...,
+.config_palette_colors <- function(labels,
                                    palette,
                                    rev = TRUE) {
 
@@ -947,16 +948,16 @@ sits_list_collections <- function(source = NULL) {
             warning("Most labels are not available in the chosen palette",
                     call. = FALSE)
 
-        warning(paste0("Using hcl_color palette ", hcl_palette),
+        warning(paste0("Using hcl_color palette ", palette),
                 call. = FALSE)
     }
-    # if labels are not in the palette, use the brewer
+    # if labels are not in the palette, use hcl.colors
     if (hcl_colors) {
         n_labels <- length(unique(labels))
         colors <- grDevices::hcl.colors(n = n_labels,
-                                        palette = hcl_palette,
+                                        palette = palette,
                                         alpha = 1,
-                                        rev = hcl_order)
+                                        rev = rev)
         names(colors) <- labels
     }
     # post-condition

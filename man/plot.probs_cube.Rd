@@ -10,10 +10,8 @@
   ...,
   time = 1,
   title = "Probabilities for Classes",
-  breaks = "kmeans",
-  colors = "YlGnBu",
-  n_colors = 10,
-  labels = NULL
+  labels = NULL,
+  palette = "Terrain"
 )
 }
 \arguments{
@@ -27,13 +25,9 @@
 
 \item{title}{string.}
 
-\item{breaks}{type of breaks}
-
-\item{colors}{color palette.}
-
-\item{n_colors}{number of colors.}
-
 \item{labels}{labels to plot (optional)}
+
+\item{palette}{hcl palette used for visualisation}
 }
 \value{
 The plot itself.

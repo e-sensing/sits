@@ -5,7 +5,7 @@
 \alias{plot.sits}
 \title{Plot time series}
 \usage{
-\method{plot}{sits}(x, y, ..., colors = "Dark2")
+\method{plot}{sits}(x, y, ...)
 }
 \arguments{
 \item{x}{object of class "sits"}
@@ -13,9 +13,6 @@
 \item{y}{ignored}
 
 \item{...}{further specifications for \link{plot}.}
-
-\item{colors}{Color palette to be used (based on Color Brewer
-- default is "Dark2").}
 }
 \value{
 The plot itself.

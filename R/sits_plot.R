@@ -30,8 +30,6 @@
 #' @param  x            object of class "sits"
 #' @param  y            ignored
 #' @param ...           further specifications for \link{plot}.
-#' @param palette       Color palette to be used (based on grDevices::hcl.pals()
-#'                      - default is "Dark 2").
 #' @return              The plot itself.
 #'
 #' @examples
@@ -45,7 +43,7 @@
 #'
 #' @export
 #'
-plot.sits <- function(x, y, ..., palette = "Dark 2") {
+plot.sits <- function(x, y, ...) {
     stopifnot(missing(y))
 
     # Are there more than 30 samples? Plot them together!
@@ -53,7 +51,7 @@ plot.sits <- function(x, y, ..., palette = "Dark 2") {
         p <- .sits_plot_together(x)
     } # If no conditions are met, take "allyears" as the default
     else {
-        p <- .sits_plot_allyears(x, palette)
+        p <- .sits_plot_allyears(x)
     }
     # return the plot
     return(invisible(p))
@@ -94,6 +92,7 @@ plot.patterns <- function(x, y, ...) {
 #' @param  ...           further specifications for \link{plot}.
 #' @param  bands         bands used for visualisation
 #' @param  palette       hcl palette used for visualisation
+#'                       (in case classes are not in the default sits palette)
 #' @return               The plot itself.
 #'
 #' @examples
@@ -110,7 +109,9 @@ plot.patterns <- function(x, y, ...) {
 #'
 #' @export
 #'
-plot.predicted <- function(x, y, ..., bands = "NDVI", palette = "Harmonic") {
+plot.predicted <- function(x, y, ...,
+                           bands = "NDVI",
+                           palette = "Harmonic") {
     stopifnot(missing(y))
     p <- .sits_plot_predicted_ts(x, bands, palette)
     return(invisible(p))
@@ -318,7 +319,7 @@ plot.probs_cube <- function(x, y, ..., time = 1,
 #' @param  title           title of the plot
 #' @param  legend          named vector that associates labels to colors
 #' @param  palette         alternative palette that uses grDevices::hcl.pals()
-#' @param  order           invert the order of hcl palette (TRUE/FALSE)
+#' @param  rev             invert the order of hcl palette (TRUE/FALSE)
 #'
 #' @export
 #'
@@ -327,7 +328,7 @@ plot.classified_image <- function(x, y, ...,
                                   title = "Classified Image",
                                   legend = NULL,
                                   palette = "Spectral",
-                                  order = TRUE) {
+                                  rev = TRUE) {
     stopifnot(missing(y))
 
     p <- .sits_plot_classified_image(cube = x,
@@ -335,7 +336,7 @@ plot.classified_image <- function(x, y, ...,
                                      title = title,
                                      legend = legend,
                                      palette = palette,
-                                     order = order)
+                                     rev = rev)
 
 }
 
@@ -445,15 +446,14 @@ plot.keras_model <- function(x, y, ...) {
 #' @description For each lat/long location in the data, join temporal
 #' instances of the same place together for plotting.
 #' @param data    One or more time series (stored in a sits tibble).
-#' @param palette  The color palette to be used (default is "Set 2").
-.sits_plot_allyears <- function(data, palette) {
+.sits_plot_allyears <- function(data) {
     locs <- dplyr::distinct(data, longitude, latitude)
 
     plots <- purrr::pmap(
         list(locs$longitude, locs$latitude),
         function(long, lat) {
             dplyr::filter(data, longitude == long, latitude == lat) %>%
-                .sits_plot_ggplot_series(palette()) %>%
+                .sits_plot_ggplot_series() %>%
                 graphics::plot()
         }
     )
@@ -625,12 +625,11 @@ plot.keras_model <- function(x, y, ...) {
 #' for showing the same lat/long location in a series of time steps.
 #'
 #' @param row         row of a sits tibble with the time series to be plotted.
-#' @param palette     hcl colors to be used for plotting.
 #' @return            The plot itself.
-.sits_plot_ggplot_series <- function(row, palette) {
+.sits_plot_ggplot_series <- function(row) {
     # Are there NAs in the data?
     if (any(is.na(row$time_series[[1]]))) {
-        g <- .sits_plot_ggplot_series_na(row, palette)
+        g <- .sits_plot_ggplot_series_na(row)
     } else {
         g <- .sits_plot_ggplot_series_no_na(row)
     }
@@ -645,9 +644,8 @@ plot.keras_model <- function(x, y, ...) {
 #'              has no NA values.
 #'
 #' @param row         row of a sits tibble with the time series to be plotted.
-#' @param palette      hcl colors to be used for plotting.
 #' @return            The plot itself.
-.sits_plot_ggplot_series_no_na <- function(row, palette) {
+.sits_plot_ggplot_series_no_na <- function(row) {
     # create the plot title
     plot_title <- .sits_plot_title(row$latitude, row$longitude, row$label)
     #
@@ -894,7 +892,7 @@ plot.keras_model <- function(x, y, ...) {
                         colour = "variable"
                     )
                 ) +
-                ggplot2::scale_fill_discrete_qualitative(palette = "Dark 3") +
+                ggplot2::scale_color_brewer(palette = "Set1")  +
                 ggplot2::scale_y_continuous(
                     expand = c(0, 0),
                     breaks = y_breaks,
@@ -927,16 +925,16 @@ plot.keras_model <- function(x, y, ...) {
 #' @description Plot a dendrogram
 #'
 #' @param data          sits tibble with data used to extract the dendrogram.
-#' @param cluster_obj   cluster object produced by `sits_cluster` function.
+#' @param cluster       cluster object produced by `sits_cluster` function.
 #' @param cutree_height dashed horizontal line to be drawn
 #'                      indicating the height of dendrogram cutting.
 #' @param palette       hcl color palette
 #'
 #' @return              The plot itself.
 .sits_plot_dendrogram <- function(data,
-                                  cluster_obj,
-                                  cutree_height = NULL,
-                                  palette = "RdYlGn") {
+                                  cluster,
+                                  cutree_height,
+                                  palette) {
 
     # set caller to show in errors
     .check_set_caller(".sits_plot_dendrogram")
@@ -951,33 +949,35 @@ plot.keras_model <- function(x, y, ...) {
     }
     # ensures that a cluster object  exists
     .check_null(
-        x = cluster_obj,
+        x = cluster,
         msg = "no valid cluster object available"
     )
-    # get unique labels
-    data_labels <- sits_labels(data)
+    # get data labels
+    data_labels <- data$label
 
     # extract the dendrogram object
-    hclust_cl <- methods::S3Part(cluster_obj, strictS3 = TRUE)
+    hclust_cl <- methods::S3Part(cluster, strictS3 = TRUE)
     dend <- hclust_cl %>% stats::as.dendrogram()
 
     # colors vector
-    colors <- .config_palette_colors(labels = data_labels, ...,
+    colors <- .config_palette_colors(labels = data_labels,
                                      palette = palette,
-                                     order = TRUE)
+                                     rev = TRUE)
+    colors_clust <- colors[data_labels]
 
-    # plot the dendrogram
-    dend <- dendextend::set(
-        dend, "labels",
-        character(length = length(data_labels))
-    )
-    dend <- dendextend::set(dend, "branches_k_color",
-                            value = colors,
-                            k = length(data_labels)
-    )
+    # set the visualisation params for dendrogram
+    dend <- dend %>%
+        dendextend::set(
+            what = "labels",
+            value = character(length = length(data_labels))) %>%
+        dendextend::set(
+            what = "branches_k_color",
+            value = colors_clust,
+            k = length(data_labels))
+
     p <- graphics::plot(dend,
                         ylab = paste(
-                            tools::file_path_sans_ext(cluster_obj@method),
+                            tools::file_path_sans_ext(cluster@method),
                             "linkage distance"
                         )
     )
@@ -989,7 +989,7 @@ plot.keras_model <- function(x, y, ...) {
     # plot legend
     graphics::legend("topright",
                      fill = colors,
-                     legend = data_labels
+                     legend = sits_labels(data)
     )
     return(invisible(p))
 }
@@ -1059,7 +1059,7 @@ plot.keras_model <- function(x, y, ...) {
 #' The percentage of mixture between the clusters.
 #'
 #' @param data          Percentage of mixture between the clusters
-#' @param  name_cluster Choose the cluster to plot
+#' @param cluster_name  Choose the cluster to plot
 #' @param title         Title of plot.
 #'
 #' @return              ggplot2 object
@@ -1116,13 +1116,13 @@ plot.keras_model <- function(x, y, ...) {
 #' @param title            title of the plot
 #' @param legend           named vector that associates labels to colors.
 #' @param palette          palette (one of grDevices::hcl.pals())
-#' @param order            invert the order of hcl palette (TRUE/FALSE)
+#' @param rev              revert the order of hcl palette (TRUE/FALSE)
 .sits_plot_classified_image <- function(cube,
                                         time,
                                         title,
                                         legend,
                                         palette,
-                                        order) {
+                                        rev) {
 
 
     # set caller to show in errors
@@ -1157,7 +1157,7 @@ plot.keras_model <- function(x, y, ...) {
     if (purrr::is_null(legend)) {
         colors <- .config_palette_colors(labels = labels,
                                          palette = palette,
-                                         order = order)
+                                         rev = rev)
     }
     else {
         .check_chr_within(
@@ -1174,7 +1174,8 @@ plot.keras_model <- function(x, y, ...) {
     g <- ggplot2::ggplot(df, ggplot2::aes(x, y)) +
         ggplot2::geom_raster(ggplot2::aes(fill = factor(class))) +
         ggplot2::labs(title = title) +
-        ggplot2::scale_fill_manual(values = colors, labels = labels,
+        ggplot2::scale_fill_manual(values = colors,
+                                   labels = labels,
                                    guide = ggplot2::guide_legend(
                                        title = "Classes")
         )

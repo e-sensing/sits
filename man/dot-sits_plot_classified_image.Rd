@@ -4,15 +4,7 @@
 \alias{.sits_plot_classified_image}
 \title{Plot a raster classified image}
 \usage{
-.sits_plot_classified_image(
-  cube,
-  time,
-  title,
-  legend,
-  palette,
-  brewer_palette,
-  brewer_order
-)
+.sits_plot_classified_image(cube, time, title, legend, palette, rev)
 }
 \arguments{
 \item{cube}{metadata for a labelled data cube.}
@@ -23,11 +15,9 @@
 
 \item{legend}{named vector that associates labels to colors.}
 
-\item{palette}{palette provided in the configuration file}
+\item{palette}{palette (one of grDevices::hcl.pals())}
 
-\item{brewer_palette}{alternative palette that uses RColorBrewer}
-
-\item{brewer_order}{invert the order of brewer palette (TRUE/FALSE)}
+\item{rev}{revert the order of hcl palette (TRUE/FALSE)}
 }
 \description{
 plots a raster using ggplot. This function is used

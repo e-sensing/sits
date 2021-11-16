@@ -4,23 +4,16 @@
 \alias{.config_palette_colors}
 \title{Get colors associated to the labels}
 \usage{
-.config_palette_colors(
-  labels = labels,
-  ...,
-  palette = palette,
-  brewer_palette = brewer_palette,
-  brewer_order = brewer_order
-)
+.config_palette_colors(labels, palette, rev = TRUE)
 }
 \arguments{
 \item{labels}{labels associated to the training classes}
 
-\item{palette}{name of palette available in the config file}
-
-\item{brewer_palette}{palette from RColorBrewer that replaces default palette
+\item{palette}{palette from `grDevices::hcl.pals()`
+replaces default palette
 when labels are not included in the config palette}
 
-\item{brewer_order}{invert the order of brewer colors?}
+\item{rev}{revert the order of colors?}
 }
 \value{
 colors required to display the labels
