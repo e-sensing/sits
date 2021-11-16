@@ -4,12 +4,10 @@
 \alias{.sits_plot_together}
 \title{Plot a set of time series for the same spatio-temporal reference}
 \usage{
-.sits_plot_together(data, colors)
+.sits_plot_together(data)
 }
 \arguments{
 \item{data}{A sits tibble with the list of time series to be plotted.}
-
-\item{colors}{The color palette to be used (default is "Set1").}
 }
 \value{
 The plot itself.

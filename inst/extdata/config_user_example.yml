@@ -4,10 +4,9 @@ rstac_pagination_limit  : 999
 
 gdal_creation_options   : ["COMPRESS=LZW", "BIGTIFF=YES"]
 
-palettes:
-    my_project:
-        Cropland:           "khaki"
-        Deforestation:      "sienna"
-        Forest :            "darkgreen"
-        Grassland :         "lightgreen"
-        NonForest:          "lightsteelblue1"
+colors:
+    Cropland:           "khaki"
+    Deforestation:      "sienna"
+    Forest :            "darkgreen"
+    Grassland :         "lightgreen"
+    NonForest:          "lightsteelblue1"

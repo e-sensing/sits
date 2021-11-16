@@ -4,12 +4,10 @@
 \alias{.sits_plot_allyears}
 \title{Plot all intervals of one time series for the same lat/long together}
 \usage{
-.sits_plot_allyears(data, colors)
+.sits_plot_allyears(data)
 }
 \arguments{
 \item{data}{One or more time series (stored in a sits tibble).}
-
-\item{colors}{The color palette to be used (default is "Set2").}
 }
 \description{
 For each lat/long location in the data, join temporal

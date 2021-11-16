@@ -30,8 +30,6 @@
 #' @param  x            object of class "sits"
 #' @param  y            ignored
 #' @param ...           further specifications for \link{plot}.
-#' @param  colors       Color palette to be used (based on Color Brewer
-#'                      - default is "Dark2").
 #' @return              The plot itself.
 #'
 #' @examples
@@ -45,15 +43,15 @@
 #'
 #' @export
 #'
-plot.sits <- function(x, y, ..., colors = "Dark2") {
+plot.sits <- function(x, y, ...) {
     stopifnot(missing(y))
 
     # Are there more than 30 samples? Plot them together!
     if (nrow(x) > 30) {
-        p <- .sits_plot_together(x, colors)
+        p <- .sits_plot_together(x)
     } # If no conditions are met, take "allyears" as the default
     else {
-        p <- .sits_plot_allyears(x, colors)
+        p <- .sits_plot_allyears(x)
     }
     # return the plot
     return(invisible(p))
@@ -93,6 +91,8 @@ plot.patterns <- function(x, y, ...) {
 #' @param  y             ignored
 #' @param  ...           further specifications for \link{plot}.
 #' @param  bands         bands used for visualisation
+#' @param  palette       hcl palette used for visualisation
+#'                       (in case classes are not in the default sits palette)
 #' @return               The plot itself.
 #'
 #' @examples
@@ -109,9 +109,11 @@ plot.patterns <- function(x, y, ...) {
 #'
 #' @export
 #'
-plot.predicted <- function(x, y, ..., bands = "NDVI") {
+plot.predicted <- function(x, y, ...,
+                           bands = "NDVI",
+                           palette = "Harmonic") {
     stopifnot(missing(y))
-    p <- .sits_plot_classification(x, bands)
+    p <- .sits_plot_predicted_ts(x, bands, palette)
     return(invisible(p))
 }
 #' @title  Plot RGB data cubes
@@ -252,11 +254,9 @@ plot.raster_cube <- function(x, ...,
 #' @param  y             ignored
 #' @param  ...           further specifications for \link{plot}.
 #' @param time           temporal reference for plot.
-#' @param breaks         type of breaks
 #' @param title          string.
-#' @param colors         color palette.
-#' @param n_colors       number of colors.
 #' @param labels         labels to plot (optional)
+#' @param palette        hcl palette used for visualisation
 #'
 #' @return               The plot itself.
 #'
@@ -264,21 +264,23 @@ plot.raster_cube <- function(x, ...,
 #'
 plot.probs_cube <- function(x, y, ..., time = 1,
                             title = "Probabilities for Classes",
-                            breaks = "kmeans",
-                            colors = "YlGnBu",
-                            n_colors = 10,
-                            labels = NULL) {
+                            labels = NULL,
+                            palette = "Terrain") {
     stopifnot(missing(y))
     # verifies if stars package is installed
     if (!requireNamespace("stars", quietly = TRUE)) {
         stop("Please install package stars.", call. = FALSE)
     }
+    breaks <-  "pretty"
+    n_colors <- 20
+    n_breaks <- n_colors + 1
     # define the output color palette
-    col <- grDevices::hcl.colors(10, colors, rev = TRUE)
+    col <- grDevices::hcl.colors(n = n_colors, palette = palette,
+                                 alpha = 1, rev = TRUE)
     # create a stars object
     st <- stars::read_stars(x$file_info[[1]]$path[[time]])
     # get the labels
-    labels_cube <- x$labels[[1]]
+    labels_cube <- sits_labels(x)
 
     # verify if label is not NULL
     if (!purrr::is_null(labels)) {
@@ -287,15 +289,15 @@ plot.probs_cube <- function(x, y, ..., time = 1,
         p <- st %>%
             dplyr::slice(index = layers, along = "band") %>%
             plot(breaks = breaks,
-                 nbreaks = 11,
+                 nbreaks = n_breaks,
                  col = col,
                  main = labels) %>%
-            suppressWarnings()
+            suppressMessages()
     }
     else {
-        p <- suppressWarnings(plot(st,
+        p <- suppressMessages(plot(st,
                                    breaks = breaks,
-                                   nbreaks = 11,
+                                   nbreaks = n_breaks,
                                    col = col,
                                    main = labels_cube)
         )
@@ -316,9 +318,8 @@ plot.probs_cube <- function(x, y, ..., time = 1,
 #' @param  time            temporal reference for plot.
 #' @param  title           title of the plot
 #' @param  legend          named vector that associates labels to colors
-#' @param  palette         palette provided in the configuration file
-#' @param  brewer_palette  alternative palette that uses RColorBrewer
-#' @param  brewer_order    invert the order of brewer palette (TRUE/FALSE)
+#' @param  palette         alternative palette that uses grDevices::hcl.pals()
+#' @param  rev             invert the order of hcl palette (TRUE/FALSE)
 #'
 #' @export
 #'
@@ -326,9 +327,8 @@ plot.classified_image <- function(x, y, ...,
                                   time = 1,
                                   title = "Classified Image",
                                   legend = NULL,
-                                  palette = "default",
-                                  brewer_palette = "Spectral",
-                                  brewer_order = TRUE) {
+                                  palette = "Spectral",
+                                  rev = TRUE) {
     stopifnot(missing(y))
 
     p <- .sits_plot_classified_image(cube = x,
@@ -336,8 +336,7 @@ plot.classified_image <- function(x, y, ...,
                                      title = title,
                                      legend = legend,
                                      palette = palette,
-                                     brewer_palette = brewer_palette,
-                                     brewer_order = brewer_order)
+                                     rev = rev)
 
 }
 
@@ -447,15 +446,14 @@ plot.keras_model <- function(x, y, ...) {
 #' @description For each lat/long location in the data, join temporal
 #' instances of the same place together for plotting.
 #' @param data    One or more time series (stored in a sits tibble).
-#' @param colors  The color palette to be used (default is "Set2").
-.sits_plot_allyears <- function(data, colors) {
+.sits_plot_allyears <- function(data) {
     locs <- dplyr::distinct(data, longitude, latitude)
 
     plots <- purrr::pmap(
         list(locs$longitude, locs$latitude),
         function(long, lat) {
             dplyr::filter(data, longitude == long, latitude == lat) %>%
-                .sits_plot_ggplot_series(colors) %>%
+                .sits_plot_ggplot_series() %>%
                 graphics::plot()
         }
     )
@@ -522,9 +520,8 @@ plot.keras_model <- function(x, y, ...) {
 #' the time series for a given label.
 #'
 #' @param    data    A sits tibble with the list of time series to be plotted.
-#' @param    colors  The color palette to be used (default is "Set1").
 #' @return           The plot itself.
-.sits_plot_together <- function(data, colors) {
+.sits_plot_together <- function(data) {
     # create a data frame with the median, and 25% and 75% quantiles
     create_iqr <- function(dt, band) {
         data.table::setnames(dt, band, "V1")
@@ -628,14 +625,13 @@ plot.keras_model <- function(x, y, ...) {
 #' for showing the same lat/long location in a series of time steps.
 #'
 #' @param row         row of a sits tibble with the time series to be plotted.
-#' @param colors      brewer colors to be used for plotting.
 #' @return            The plot itself.
-.sits_plot_ggplot_series <- function(row, colors = "Dark2") {
+.sits_plot_ggplot_series <- function(row) {
     # Are there NAs in the data?
     if (any(is.na(row$time_series[[1]]))) {
-        g <- .sits_plot_ggplot_series_na(row, colors)
+        g <- .sits_plot_ggplot_series_na(row)
     } else {
-        g <- .sits_plot_ggplot_series_no_na(row, colors)
+        g <- .sits_plot_ggplot_series_no_na(row)
     }
     return(g)
 }
@@ -648,13 +644,14 @@ plot.keras_model <- function(x, y, ...) {
 #'              has no NA values.
 #'
 #' @param row         row of a sits tibble with the time series to be plotted.
-#' @param colors      brewer colors to be used for plotting.
 #' @return            The plot itself.
-.sits_plot_ggplot_series_no_na <- function(row, colors = "Dark2") {
+.sits_plot_ggplot_series_no_na <- function(row) {
     # create the plot title
     plot_title <- .sits_plot_title(row$latitude, row$longitude, row$label)
+    #
+    colors <- grDevices::hcl.colors(n = 20, palette = "Harmonic", alpha = 1, rev = TRUE)
     # extract the time series
-    data_ts <- row$time_series[[1]]
+    data_ts <- dplyr::bind_rows(row$time_series)
     # melt the data into long format
     melted_ts <- data_ts %>%
         tidyr::pivot_longer(cols = -Index, names_to = "variable") %>%
@@ -667,7 +664,7 @@ plot.keras_model <- function(x, y, ...) {
     )) +
         ggplot2::geom_line(ggplot2::aes(color = variable)) +
         ggplot2::labs(title = plot_title) +
-        ggplot2::scale_color_brewer(palette = colors)
+        ggplot2::scale_fill_manual(palette = colors)
     return(g)
 }
 #' @title Plot one timeSeries wih NAs using ggplot
@@ -678,9 +675,8 @@ plot.keras_model <- function(x, y, ...) {
 #' @description Plots a set of time series using ggplot, showing where NAs are.
 #'
 #' @param row         row of a sits tibble with the time series to be plotted.
-#' @param colors      brewer colors to be used for plotting.
 #' @return            The plot itself.
-.sits_plot_ggplot_series_na <- function(row, colors = "Dark2") {
+.sits_plot_ggplot_series_na <- function(row) {
 
     # verifies if tidyr package is installed
     if (!requireNamespace("tidyr", quietly = TRUE)) {
@@ -780,17 +776,18 @@ plot.keras_model <- function(x, y, ...) {
     return(title)
 }
 
-#' @title Plot classification results
-#' @name .sits_plot_classification
+#' @title Plot time series classification results
+#' @name .sits_plot_predicted_ts
 #' @keywords internal
 #' @author Victor Maus, \email{vwmaus1@@gmail.com}
 #' @description        plots the classification results
 #'                     (code reused from the dtwSat package by Victor Maus).
 #' @param data         sits tibble with classified time series.
 #' @param bands        band for plotting the classification.
+#' @param palette      hcl palette used for visualisation
 #'
 #' @return             The plot itself.
-.sits_plot_classification <- function(data, bands = NULL) {
+.sits_plot_predicted_ts <- function(data, bands, palette) {
 
     # verifies if scales package is installed
     if (!requireNamespace("scales", quietly = TRUE)) {
@@ -799,13 +796,14 @@ plot.keras_model <- function(x, y, ...) {
     if (purrr::is_null(bands)) {
         bands <- sits_bands(data)
     }
+    if (!all(bands %in% sits_bands(data)))
+        bands <- sits_bands(data)
     # configure plot colors
     # get labels from predicted tibble
     labels <- unique(data$predicted[[1]]$class)
-    colors <- .config_palette_colors(labels = labels,
-                                     palette = "default",
-                                     brewer_palette = "Spectral",
-                                     brewer_order = TRUE)
+    colors <- .config_colors(labels = labels,
+                             palette = palette,
+                             rev = FALSE)
 
     # put the time series in the data frame
     g_lst <- purrr::pmap(
@@ -894,7 +892,7 @@ plot.keras_model <- function(x, y, ...) {
                         colour = "variable"
                     )
                 ) +
-                ggplot2::scale_color_brewer(palette = "Set1") +
+                ggplot2::scale_color_brewer(palette = "Set1")  +
                 ggplot2::scale_y_continuous(
                     expand = c(0, 0),
                     breaks = y_breaks,
@@ -927,16 +925,16 @@ plot.keras_model <- function(x, y, ...) {
 #' @description Plot a dendrogram
 #'
 #' @param data          sits tibble with data used to extract the dendrogram.
-#' @param cluster_obj   cluster object produced by `sits_cluster` function.
+#' @param cluster       cluster object produced by `sits_cluster` function.
 #' @param cutree_height dashed horizontal line to be drawn
 #'                      indicating the height of dendrogram cutting.
-#' @param colors        color scheme as per .sits_brewer_color_name` function.
+#' @param palette       hcl color palette
 #'
 #' @return              The plot itself.
 .sits_plot_dendrogram <- function(data,
-                                  cluster_obj,
-                                  cutree_height = NULL,
-                                  colors = "RdYlGn") {
+                                  cluster,
+                                  cutree_height,
+                                  palette) {
 
     # set caller to show in errors
     .check_set_caller(".sits_plot_dendrogram")
@@ -951,48 +949,35 @@ plot.keras_model <- function(x, y, ...) {
     }
     # ensures that a cluster object  exists
     .check_null(
-        x = cluster_obj,
+        x = cluster,
         msg = "no valid cluster object available"
     )
-    # get unique labels
+    # get data labels
     data_labels <- data$label
-    u_lb <- base::unique(data_labels)
-
-    # warns if the number of available colors is insufficient to all labels
-    if (length(u_lb) > (
-        length(.sits_brewer_rgb[[.sits_brewer_color_name(colors)]]) - 1)) {
-        message("The number of labels is greater than the number of available",
-                "colors.")
-    }
 
     # extract the dendrogram object
-    hclust_cl <- methods::S3Part(cluster_obj, strictS3 = TRUE)
+    hclust_cl <- methods::S3Part(cluster, strictS3 = TRUE)
     dend <- hclust_cl %>% stats::as.dendrogram()
 
-    # prepare labels color vector
-    cols <- character(length(data_labels))
-    cols[] <- grDevices::rgb(0 / 255, 0 / 255, 0 / 255, 0 / 255)
+    # colors vector
+    colors <- .config_colors(labels = data_labels,
+                             palette = palette,
+                             rev = TRUE)
+    colors_clust <- colors[data_labels]
 
-    i <- 1
-    seq(u_lb) %>%
-        purrr::map(function(i) {
-            cols[data_labels[cluster_obj$order] == u_lb[i]] <<-
-                .sits_brewer_rgb[[.sits_brewer_color_name(colors)]][[length(u_lb)]][[i]]
-            i <<- i + 1
-        })
+    # set the visualisation params for dendrogram
+    dend <- dend %>%
+        dendextend::set(
+            what = "labels",
+            value = character(length = length(data_labels))) %>%
+        dendextend::set(
+            what = "branches_k_color",
+            value = colors_clust,
+            k = length(data_labels))
 
-    # plot the dendrogram
-    dend <- dendextend::set(
-        dend, "labels",
-        character(length = length(data_labels))
-    )
-    dend <- dendextend::set(dend, "branches_k_color",
-                            value = cols,
-                            k = length(data_labels)
-    )
     p <- graphics::plot(dend,
                         ylab = paste(
-                            tools::file_path_sans_ext(cluster_obj@method),
+                            tools::file_path_sans_ext(cluster@method),
                             "linkage distance"
                         )
     )
@@ -1003,10 +988,8 @@ plot.keras_model <- function(x, y, ...) {
 
     # plot legend
     graphics::legend("topright",
-                     fill = as.character(
-                         .sits_brewer_rgb[[.sits_brewer_color_name(colors)]][[length(u_lb)]]
-                     ),
-                     legend = u_lb
+                     fill = colors,
+                     legend = sits_labels(data)
     )
     return(invisible(p))
 }
@@ -1076,7 +1059,7 @@ plot.keras_model <- function(x, y, ...) {
 #' The percentage of mixture between the clusters.
 #'
 #' @param data          Percentage of mixture between the clusters
-#' @param  name_cluster Choose the cluster to plot
+#' @param cluster_name  Choose the cluster to plot
 #' @param title         Title of plot.
 #'
 #' @return              ggplot2 object
@@ -1095,10 +1078,9 @@ plot.keras_model <- function(x, y, ...) {
     # configure plot colors
     # get labels from cluster table
     labels <- unique(data$class)
-    colors <- .config_palette_colors(labels = labels,
-                                     palette = "default",
-                                     brewer_palette = "Spectral",
-                                     brewer_order = TRUE)
+    colors <- .config_colors(labels = labels,
+                             palette = "Spectral",
+                             rev = TRUE)
 
     p <- ggplot2::ggplot() +
         ggplot2::geom_bar(
@@ -1133,16 +1115,14 @@ plot.keras_model <- function(x, y, ...) {
 #' @param time             temporal reference for plot.
 #' @param title            title of the plot
 #' @param legend           named vector that associates labels to colors.
-#' @param palette          palette provided in the configuration file
-#' @param brewer_palette   alternative palette that uses RColorBrewer
-#' @param brewer_order     invert the order of brewer palette (TRUE/FALSE)
+#' @param palette          palette (one of grDevices::hcl.pals())
+#' @param rev              revert the order of hcl palette (TRUE/FALSE)
 .sits_plot_classified_image <- function(cube,
                                         time,
                                         title,
                                         legend,
                                         palette,
-                                        brewer_palette,
-                                        brewer_order) {
+                                        rev) {
 
 
     # set caller to show in errors
@@ -1175,10 +1155,9 @@ plot.keras_model <- function(x, y, ...) {
 
     # if colors are not specified, get them from the configuration file
     if (purrr::is_null(legend)) {
-        colors <- .config_palette_colors(labels = labels,
-                                         palette = palette,
-                                         brewer_palette = brewer_palette,
-                                         brewer_order = brewer_order)
+        colors <- .config_colors(labels = labels,
+                                 palette = palette,
+                                 rev = rev)
     }
     else {
         .check_chr_within(
@@ -1195,7 +1174,8 @@ plot.keras_model <- function(x, y, ...) {
     g <- ggplot2::ggplot(df, ggplot2::aes(x, y)) +
         ggplot2::geom_raster(ggplot2::aes(fill = factor(class))) +
         ggplot2::labs(title = title) +
-        ggplot2::scale_fill_manual(values = colors, labels = labels,
+        ggplot2::scale_fill_manual(values = colors,
+                                   labels = labels,
                                    guide = ggplot2::guide_legend(
                                        title = "Classes")
         )

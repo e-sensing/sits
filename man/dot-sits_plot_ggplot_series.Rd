@@ -4,12 +4,10 @@
 \alias{.sits_plot_ggplot_series}
 \title{Plot one timeSeries using ggplot}
 \usage{
-.sits_plot_ggplot_series(row, colors = "Dark2")
+.sits_plot_ggplot_series(row)
 }
 \arguments{
 \item{row}{row of a sits tibble with the time series to be plotted.}
-
-\item{colors}{brewer colors to be used for plotting.}
 }
 \value{
 The plot itself.

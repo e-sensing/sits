@@ -30,7 +30,7 @@
 #'                        Can be any `hclust` method (see `hclust`).
 #'                        Default is 'ward.D2'.
 #' @param k               Desired number of clusters (overrides default value)
-#' @param colors          Color scheme as per .sits_brewer_color_name` function.
+#' @param palette         Color palette as per `grDevices::hcl.pals()` function.
 #' @param .plot           Plot the dendrogram?
 #' @param  ...            Additional parameters to be passed
 #'                        to dtwclust::tsclust() function.
@@ -63,7 +63,7 @@ sits_cluster_dendro <- function(samples = NULL,
                                 dist_method = "dtw_basic",
                                 linkage = "ward.D2",
                                 k = NULL,
-                                colors = "RdYlGn",
+                                palette = "RdYlGn",
                                 .plot = TRUE, ...) {
 
     # verify if data is OK
@@ -112,7 +112,10 @@ sits_cluster_dendro <- function(samples = NULL,
     # plot the dendrogram
     message("Plotting dendrogram...")
     if (.plot)
-        .sits_plot_dendrogram(samples, cluster, best_cut["height"], colors)
+        .sits_plot_dendrogram(data = samples,
+                              cluster = cluster,
+                              cutree_height = best_cut["height"],
+                              palette = palette)
 
     # return the result
     message("result is a tibble with cluster indexes...")
