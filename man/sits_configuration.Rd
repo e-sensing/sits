@@ -18,7 +18,7 @@ sits_config(
   reset = FALSE
 )
 
-sits_config_show(source = NULL, collection = NULL, palette = NULL)
+sits_config_show(source = NULL, collection = NULL, colors = FALSE)
 
 sits_list_collections(source = NULL)
 }
@@ -55,8 +55,8 @@ key entry to be shown in detail.}
 with \code{source} parameter to indicate a collection key entry to be shown
 in detail.}
 
-\item{palette}{A \code{character} value indicating a palette
-to be shown in detail.}
+\item{colors}{A \code{logical} value indicating if colors
+will to be shown in detail.}
 }
 \value{
 \code{sits_config()} returns a \code{list} containing the final

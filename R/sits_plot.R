@@ -801,9 +801,9 @@ plot.keras_model <- function(x, y, ...) {
     # configure plot colors
     # get labels from predicted tibble
     labels <- unique(data$predicted[[1]]$class)
-    colors <- .config_palette_colors(labels = labels,
-                                     palette = palette,
-                                     rev = FALSE)
+    colors <- .config_colors(labels = labels,
+                             palette = palette,
+                             rev = FALSE)
 
     # put the time series in the data frame
     g_lst <- purrr::pmap(
@@ -960,9 +960,9 @@ plot.keras_model <- function(x, y, ...) {
     dend <- hclust_cl %>% stats::as.dendrogram()
 
     # colors vector
-    colors <- .config_palette_colors(labels = data_labels,
-                                     palette = palette,
-                                     rev = TRUE)
+    colors <- .config_colors(labels = data_labels,
+                             palette = palette,
+                             rev = TRUE)
     colors_clust <- colors[data_labels]
 
     # set the visualisation params for dendrogram
@@ -1078,9 +1078,9 @@ plot.keras_model <- function(x, y, ...) {
     # configure plot colors
     # get labels from cluster table
     labels <- unique(data$class)
-    colors <- .config_palette_colors(labels = labels,
-                                     palette = "Spectral",
-                                     rev = TRUE)
+    colors <- .config_colors(labels = labels,
+                             palette = "Spectral",
+                             rev = TRUE)
 
     p <- ggplot2::ggplot() +
         ggplot2::geom_bar(
@@ -1155,9 +1155,9 @@ plot.keras_model <- function(x, y, ...) {
 
     # if colors are not specified, get them from the configuration file
     if (purrr::is_null(legend)) {
-        colors <- .config_palette_colors(labels = labels,
-                                         palette = palette,
-                                         rev = rev)
+        colors <- .config_colors(labels = labels,
+                                 palette = palette,
+                                 rev = rev)
     }
     else {
         .check_chr_within(

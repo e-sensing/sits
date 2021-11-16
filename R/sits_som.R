@@ -473,9 +473,9 @@ sits_som_evaluate_cluster <- function(som_map) {
 
     # assign one color per unique label
 
-    colors <- .config_palette_colors(labels = kohonen_obj$neuron_label,
-                                     palette = "Spectral",
-                                     rev = TRUE)
+    colors <- .config_colors(labels = kohonen_obj$neuron_label,
+                             palette = "Spectral",
+                             rev = TRUE)
 
     kohonen_obj$paint_map <- unname(colors[kohonen_obj$neuron_label])
 

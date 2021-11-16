@@ -83,7 +83,7 @@ sits_twdtw_classify <- function(samples,
                                 overlap = 0.5,
                                 .plot   = TRUE) {
     # verifies if dtwSat package is installed
-    if (!requireNamespace("dtwSat", quietly = TRUE)) {
+    if (!(suppressWarnings(requireNamespace("dtwSat", quietly = TRUE)))) {
         stop("Please install package dtwSat", call. = FALSE)
     }
 
@@ -180,7 +180,7 @@ sits_twdtw_classify <- function(samples,
                                overlap = 0.5) {
 
     # verifies if dtwSat package is installed
-    if (!requireNamespace("dtwSat", quietly = TRUE)) {
+    if (!(suppressWarnings(requireNamespace("dtwSat", quietly = TRUE)))) {
         stop("Please install package dtwSat", call. = FALSE)
     }
 
