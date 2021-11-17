@@ -5,6 +5,7 @@ We are preparing to release the package on CRAN and are making relevant changes 
 # What's new in SITS version 0.15.1
 
 ### New features in SITS version 0.15.1
+* Update README.Rmd
 * Support `sits_timeline()` to sits model objects
 * Update drone image
 * Simplify `config_colors.yml` by removing palette names
