@@ -187,9 +187,11 @@
 
 
     # fetching all the metadata and updating to upper case instruments
-    items_info <- rstac::items_fetch(items = items,
-                                     progress = pgr_fetch,
-                                     matched_field = c("meta", "found"))
+    items_info <- suppressWarnings(
+        rstac::items_fetch(items = items,
+                           progress = pgr_fetch,
+                           matched_field = c("meta", "found"))
+    )
     return(items_info)
 }
 

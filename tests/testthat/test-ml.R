@@ -1,3 +1,5 @@
+source("./test-utils.R")
+
 test_that("SVM  - Formula logref", {
     # skip_on_cran()
     samples_mt_ndvi <- sits_select(samples_modis_4bands, bands = "NDVI")
@@ -114,13 +116,14 @@ test_that("XGBoost", {
         sits_labels(samples_mt_ndvi)))
     expect_true(nrow(sits_show_prediction(point_class)) == 17)
 })
+
 test_that("DL-MLP", {
     # skip_on_cran()
     Sys.setenv(TF_CPP_MIN_LOG_LEVEL = "1")
     samples_mt_2bands <- sits_select(samples_modis_4bands,
                                      bands = c("NDVI", "EVI")
     )
-    model <- suppressMessages(suppressWarnings(
+    model <- suppress_keras(
         sits_train(
             samples_mt_2bands,
             sits_mlp(
@@ -130,13 +133,15 @@ test_that("DL-MLP", {
                 verbose = 0
             )
         )
-    ))
+    )
 
     point_2bands <- sits_select(point_mt_6bands, bands = c("NDVI", "EVI"))
 
-    point_class <- sits_classify(
-        data = point_2bands,
-        ml_model = model
+    point_class <- suppress_keras(
+        sits_classify(
+            data = point_2bands,
+            ml_model = model
+        )
     )
 
     expect_true(all(point_class$predicted[[1]]$class %in%
@@ -149,7 +154,7 @@ test_that("DL-MLP-2classes", {
     samples_mt_2bands <- sits_select(samples_modis_4bands,
                                      bands = c("NDVI", "EVI")
     )
-    model <- suppressMessages(suppressWarnings(
+    model <- suppress_keras(
         sits_train(
             samples_mt_2bands,
             sits_mlp(
@@ -159,10 +164,12 @@ test_that("DL-MLP-2classes", {
                 verbose = 0
             )
         )
-    ))
-    point_class <- sits_classify(
-        data = cerrado_2classes[1:60, ],
-        ml_model = model
+    )
+    point_class <- suppress_keras(
+        sits_classify(
+            data = cerrado_2classes[1:60, ],
+            ml_model = model
+        )
     )
 
     expect_true(all(point_class$predicted[[1]]$class %in%
@@ -173,11 +180,15 @@ test_that("DL-MLP-2classes", {
 test_that("ResNet", {
     # skip_on_cran()
     samples_ndvi <- sits_select(samples_modis_4bands, bands = "NDVI")
-    model <- sits_train(samples_ndvi, sits_ResNet(epochs = 50, verbose = 0))
+    model <- suppress_keras(
+        sits_train(samples_ndvi, sits_ResNet(epochs = 50, verbose = 0))
+    )
     point_ndvi <- sits_select(point_mt_6bands, bands = "NDVI")
-    point_class <- sits_classify(
-        data = point_ndvi,
-        ml_model = model
+    point_class <- suppress_keras(
+        sits_classify(
+            data = point_ndvi,
+            ml_model = model
+        )
     )
 
     expect_true(all(point_class$predicted[[1]]$class %in%
@@ -187,7 +198,7 @@ test_that("ResNet", {
 test_that("tempCNN model", {
     # skip_on_cran()
     samples_mt_ndvi <- sits_select(samples_modis_4bands, bands = "NDVI")
-    model <- suppressMessages(suppressWarnings(
+    model <- suppress_keras(
         sits_train(
             samples_mt_ndvi,
             sits_TempCNN(
@@ -195,11 +206,13 @@ test_that("tempCNN model", {
                 verbose = 0
             )
         )
-    ))
+    )
     point_ndvi <- sits_select(point_mt_6bands, bands = "NDVI")
-    point_class <- sits_classify(
-        data = point_ndvi,
-        ml_model = model
+    point_class <- suppress_keras(
+        sits_classify(
+            data = point_ndvi,
+            ml_model = model
+        )
     )
 
     expect_true(all(point_class$predicted[[1]]$class %in%

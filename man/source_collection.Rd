@@ -7,6 +7,7 @@
 \alias{.source_collection_access_vars_set}
 \alias{.source_collection_check}
 \alias{.source_collection_gdal_config}
+\alias{.source_collection_gdal_type}
 \alias{.source_collection_name}
 \alias{.source_collection_open_data}
 \alias{.source_collection_open_data_token}
@@ -23,6 +24,8 @@
 .source_collection_check(source, collection)
 
 .source_collection_gdal_config(source, collection)
+
+.source_collection_gdal_type(source, collection)
 
 .source_collection_name(source, collection)
 
@@ -56,6 +59,8 @@ no error occurs.
 
 \code{.source_collection_gdal_config()} returns the gdal format file path.
 
+\code{.source_collection_gdal_type()} returns the gdal type.
+
 \code{.source_collection_name()} returns a \code{character}.
 
 \code{.source_collection_open_data()} returns a \code{logical}.
@@ -82,6 +87,9 @@ is from a source.
 
 \code{.source_collection_gdal_config()} checks if a collection
 has a gdalcubes format description.
+
+\code{.source_collection_gdal_type()} checks if a collection
+has a gdalcubes type for writing files.
 
 \code{.source_collection_name()} returns the name of a
 collection in its original source.

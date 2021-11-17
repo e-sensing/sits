@@ -59,7 +59,7 @@ NULL
 #' @return \code{.source_new()} returns a \code{character} vector with the
 #' S3 class defined in source's \code{S3class} attribute.
 #'
-.source_new <- function(source, is_local = FALSE) {
+.source_new <- function(source, collection = NULL, is_local = FALSE) {
 
     # if local, return local cube
     if (is_local) {
@@ -69,10 +69,12 @@ NULL
     # source name is upper case
     classes <- .source_s3class(source = toupper(source))
 
-    # if (!is.null(collection))
-    #     classes <- c(paste(classes, tolower(collection), sep = "_"), classes)
-
     class(source) <- c(classes, class(source))
+
+    if (!is.null(collection)) {
+        classes <- c(paste(classes, tolower(collection), sep = "_"), classes)
+        class(source) <- c(classes, class(source))
+    }
 
     return(source)
 }
@@ -626,6 +628,29 @@ NULL
     # return the gdal format file path
     system.file(paste0("extdata/gdalcubes/", gdal_config), package = "sits")
 }
+
+#' @rdname source_collection
+#'
+#' @description \code{.source_collection_gdal_type()} checks if a collection
+#' has a gdalcubes type for writing files.
+#'
+#' @return \code{.source_collection_gdal_type()} returns the gdal type.
+.source_collection_gdal_type <- function(source, collection){
+
+    # try to find the gdalcubes configuration type for this collection
+    gdal_format <- .config_get(key = c("sources", source, "collections",
+                                       collection, "gdalcubes_type_format"),
+                               default = NA)
+
+    # if the format does not exist, report to the user
+    .check_that(!(is.na(gdal_format)),
+                msg = paste0("no type was found for collection ", collection,
+                             " and source ", source,
+                             ". Please raise an issue in github"))
+
+    # return the gdal format file path
+    return(gdal_format)
+}
 #' @rdname source_collection
 #'
 #' @description \code{.source_collection_name()} returns the name of a
@@ -804,7 +829,7 @@ NULL
 #' metadata.
 #'
 .source_cube <- function(source, ..., collection) {
-    source <- .source_new(source)
+    source <- .source_new(source = source, collection = collection)
     UseMethod(".source_cube", source)
 }
 
@@ -869,7 +894,7 @@ NULL
 #' of a sits cube.
 #'
 .source_items_new <- function(source, ..., collection) {
-    source <- .source_new(source)
+    source <- .source_new(source = source, collection = collection)
     UseMethod(".source_items_new", source)
 }
 
@@ -887,7 +912,7 @@ NULL
 #' \code{items} with selected bands.
 #'
 .source_items_bands_select <- function(source, ..., collection, items, bands) {
-    source <- .source_new(source)
+    source <- .source_new(source = source, collection = collection)
     UseMethod(".source_items_bands_select", source)
 }
 
@@ -900,7 +925,7 @@ NULL
 #' sits cube.
 #'
 .source_items_fileinfo <- function(source, ..., items, collection = NULL) {
-    source <- .source_new(source)
+    source <- .source_new(source = source, collection = collection)
     UseMethod(".source_items_fileinfo", source)
 }
 
@@ -913,7 +938,7 @@ NULL
 #' items.
 #'
 .source_items_tiles_group <- function(source, ..., items, collection = NULL) {
-    source <- .source_new(source)
+    source <- .source_new(source = source, collection = collection)
     UseMethod(".source_items_tiles_group", source)
 }
 
@@ -965,7 +990,7 @@ NULL
 .source_items_tile_get_crs <- function(source, ...,
                                        tile_items,
                                        collection = NULL) {
-    source <- .source_new(source)
+    source <- .source_new(source = source, collection = collection)
     UseMethod(".source_items_tile_get_crs", source)
 }
 
@@ -980,7 +1005,7 @@ NULL
 .source_items_tile_get_name <- function(source, ...,
                                         tile_items,
                                         collection = NULL) {
-    source <- .source_new(source)
+    source <- .source_new(source = source, collection = collection)
     UseMethod(".source_items_tile_get_name", source)
 }
 
@@ -995,7 +1020,7 @@ NULL
 .source_items_tile_get_bbox <- function(source, ...,
                                         tile_items,
                                         collection = NULL) {
-    source <- .source_new(source)
+    source <- .source_new(source = source, collection = collection)
     UseMethod(".source_items_tile_get_bbox", source)
 }
 
@@ -1010,6 +1035,6 @@ NULL
                                collection,
                                items,
                                file_info) {
-    source <- .source_new(source)
+    source <- .source_new(source = source, collection = collection)
     UseMethod(".source_items_cube", source)
 }

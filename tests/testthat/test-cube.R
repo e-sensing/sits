@@ -342,6 +342,106 @@ test_that("Creating cubes from AWS Open Data and regularizing them", {
 
     expect_equal(nrow(file_info2), 2)
 })
+
+test_that("Creating cubes from USGS", {
+
+    testthat::skip_on_cran()
+
+    # check "AWS_ACCESS_KEY_ID" - mandatory one per user
+    aws_access_key_id <- Sys.getenv("AWS_ACCESS_KEY_ID")
+
+    # check "AWS_SECRET_ACCESS_KEY" - mandatory one per user
+    aws_secret_access_key <- Sys.getenv("AWS_SECRET_ACCESS_KEY")
+
+    testthat::skip_if(
+        nchar(aws_access_key_id) == 0,
+        message = "No AWS_ACCESS_KEY_ID defined in environment."
+    )
+
+    testthat::skip_if(
+        nchar(aws_secret_access_key) == 0,
+        message = "No AWS_SECRET_ACCESS_KEY defined in environment."
+    )
+
+    Sys.unsetenv("AWS_DEFAULT_REGION")
+    Sys.unsetenv("AWS_S3_ENDPOINT")
+    Sys.unsetenv("AWS_REQUEST_PAYER")
+
+
+    usgs_cube <- sits_cube(source = "USGS",
+                           collection = "landsat-c2l2-sr",
+                           bands = c("B04", "CLOUD"),
+                           roi = c("lon_min" = 17.379,
+                                   "lat_min" = 1.1573,
+                                   "lon_max" = 17.410,
+                                   "lat_max" = 1.1910),
+                           start_date = "2019-01-01",
+                           end_date = "2019-10-28"
+    )
+
+    expect_true(all(sits_bands(usgs_cube) %in% c("B04", "CLOUD")))
+
+    expect_equal(class(.cube_size(usgs_cube)), "numeric")
+    expect_equal(class(.cube_resolution(usgs_cube)), "integer")
+
+    file_info <- usgs_cube$file_info[[1]]
+    r <- sits:::.raster_open_rast(file_info$path[[1]])
+
+    expect_equal(usgs_cube$xmax[[1]], sits:::.raster_xmax(r), tolerance = 1)
+    expect_equal(usgs_cube$xmin[[1]], sits:::.raster_xmin(r), tolerance = 1)
+})
+
+test_that("Creating Sentinel cubes from MSPC", {
+
+    testthat::skip_on_cran()
+
+    s2_cube <- sits_cube(source = "MSPC",
+                         collection = "sentinel-2-l2a",
+                         tiles = "20LKP",
+                         bands = c("B05", "CLOUD"),
+                         start_date = as.Date("2018-07-18"),
+                         end_date = as.Date("2018-08-23")
+    )
+
+    expect_true(all(sits_bands(s2_cube) %in% c("B05", "CLOUD")))
+
+    expect_equal(class(.cube_size(s2_cube)), "numeric")
+    expect_equal(class(.cube_resolution(s2_cube)), "integer")
+
+    file_info <- s2_cube$file_info[[1]]
+    r <- sits:::.raster_open_rast(file_info$path[[1]])
+
+    expect_equal(s2_cube$xmax[[1]], sits:::.raster_xmax(r), tolerance = 1)
+    expect_equal(s2_cube$xmin[[1]], sits:::.raster_xmin(r), tolerance = 1)
+})
+
+test_that("Creating Landsat cubes from MSPC", {
+
+    testthat::skip_on_cran()
+
+    l8_cube <- sits_cube(source = "MSPC",
+                         collection = "landsat-8-c2-l2",
+                         roi = c("lon_min" = 17.379,
+                                 "lat_min" = 1.1573,
+                                 "lon_max" = 17.410,
+                                 "lat_max" = 1.1910),
+                         bands = c("B03","CLOUD"),
+                         start_date = as.Date("2019-07-18"),
+                         end_date = as.Date("2019-10-23")
+    )
+
+    expect_true(all(sits_bands(l8_cube) %in% c("B03", "CLOUD")))
+
+    expect_equal(class(.cube_size(l8_cube)), "numeric")
+    expect_equal(class(.cube_resolution(l8_cube)), "integer")
+
+    file_info <- l8_cube$file_info[[1]]
+    r <- sits:::.raster_open_rast(file_info$path[[1]])
+
+    expect_equal(l8_cube$xmax[[1]], sits:::.raster_xmax(r), tolerance = 1)
+    expect_equal(l8_cube$xmin[[1]], sits:::.raster_xmin(r), tolerance = 1)
+})
+
 test_that("Creating a raster stack cube with BDC band names", {
     # Create a raster cube based on CBERS data
     data_dir <- system.file("extdata/raster/bdc", package = "sits")
@@ -365,5 +465,4 @@ test_that("Creating a raster stack cube with BDC band names", {
 
     expect_true(all(sits_bands(cbers_cube_bdc) %in%
                         c("B16")))
-
 })

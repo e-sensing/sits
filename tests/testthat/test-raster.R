@@ -1,13 +1,19 @@
+source("./test-utils.R")
+
 test_that("One-year, single core classification", {
     samples_2bands <- sits_select(samples_modis_4bands,
                                   bands = c("NDVI", "EVI"))
-    dl_model <- sits_train(samples_2bands, sits_mlp(
-        layers = c(256, 256, 256),
-        dropout_rates = c(0.5, 0.4, 0.3),
-        epochs = 80,
-        batch_size = 64,
-        verbose = 0
-    ))
+    dl_model <- suppress_keras(
+        sits_train(samples_2bands,
+                   sits_mlp(
+                       layers = c(256, 256, 256),
+                       dropout_rates = c(0.5, 0.4, 0.3),
+                       epochs = 80,
+                       batch_size = 64,
+                       verbose = 0
+                   )
+        )
+    )
 
     data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
     sinop <- sits_cube(
@@ -17,7 +23,7 @@ test_that("One-year, single core classification", {
         delim = "_",
         parse_info = c("X1", "X2", "tile", "band", "date")
     )
-    sinop_probs <- suppressMessages(
+    sinop_probs <- suppress_keras(
         sits_classify(
             data = sinop,
             ml_model = dl_model,

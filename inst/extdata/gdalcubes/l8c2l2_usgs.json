@@ -13,38 +13,24 @@
     },
     "bands" : {
         "B01" : {
-            "nodata" : 0,
-            "scale" : 0.0000275,
             "pattern" : ".+SR_B1\\.TIF"
         },
         "B02" : {
-            "nodata" : 0,
-            "scale" : 0.0000275,
             "pattern" : ".+SR_B2\\.TIF"
         },
         "B03" : {
-            "nodata" : 0,
-            "scale" : 0.0000275,
             "pattern" : ".+SR_B3\\.TIF"
         },
         "B04" : {
-            "nodata" : 0,
-            "scale" : 0.0000275,
             "pattern" : ".+SR_B4\\.TIF"
         },
         "B05" : {
-            "nodata" : 0,
-            "scale" : 0.0000275,
             "pattern" : ".+SR_B5\\.TIF"
         },
         "B06" : {
-            "nodata" : 0,
-            "scale" : 0.0000275,
             "pattern" : ".+SR_B6\\.TIF"
         },
         "B07" : {
-            "nodata" : 0,
-            "scale" : 0.0000275,
             "pattern" : ".+SR_B7\\.TIF"
         },
         "CLOUD" : {

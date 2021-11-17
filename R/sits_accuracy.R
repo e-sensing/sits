@@ -167,7 +167,10 @@ sits_accuracy.classified_image <- function(data, ..., validation_csv) {
                                                 stringsAsFactors = FALSE))
 
     # Precondition - check if CSV file is correct
-    .sits_csv_check(csv_tb)
+    .check_chr_contains(
+        x = colnames(csv_tb),
+        contains = c("longitude", "latitude", "label"),
+        msg = "invalid csv file")
 
     # find the labels of the cube
     labels_cube <- sits_labels(data)
@@ -204,8 +207,7 @@ sits_accuracy.classified_image <- function(data, ..., validation_csv) {
         points_row <- dplyr::filter(
             points,
             X >= row$xmin & X <= row$xmax &
-                Y >= row$ymin & Y <= row$ymax,
-            start_date == row$file_info[[1]]$start_date
+                Y >= row$ymin & Y <= row$ymax
         )
 
         # if there are no points in the cube, return an empty list
