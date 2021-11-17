@@ -103,7 +103,7 @@ cloud.
 
 <img src="inst/extdata/markdown/figures/datacube_conception.png" title="Conceptual view of data cubes (source: authors)" alt="Conceptual view of data cubes (source: authors)" width="90%" height="90%" style="display: block; margin: auto;" />
 
-The image collections accessible in `sits` version 0.15.0 to build EO
+The image collections accessible in `sits` version 0.15.1 to build EO
 data cubes are:
 
 1.  AWS: Sentinel-2/2A level 2A collections, including
@@ -113,7 +113,9 @@ data cubes are:
     Landsat-8 and CBERS-4 images.
 3.  Digital Earth Africa (DEAFRICA): Open data collection of
     Sentinel-2/2A and Landsat-8 for Africa.
-4.  USGS: Landsat-4/5/7/8 collections, which are not open data.
+4.  Microsoft Planetary Computer (MSPC): Open data collection of
+    Sentinel-2/2A and Landsat-8.
+5.  USGS: Landsat-4/5/7/8 collections, which are not open data.
 
 Open data collections do not require payment of access fees to cloud
 providers. Except for those in the Brazil Data Cube, these collections
@@ -146,12 +148,12 @@ The cube can be shown in a leaflet using `sits_view()`.
 sits_view(s2_cube, green = "B08", blue = "B03", red = "B04")
 ```
 
-This cube is irregular. The timelines of tiles “20LKP” and “20LLKP” the
-resolutions of the bands of the bands are different. Sentinel-2 bands
-“B03”, “B04”, and “B08” have 10 m resolution, while bands “B8A”, “B11”
-and the cloud band “SCL” have 20 m resolution. Irregular collections
-need an additional processing step to be converted to regular data
-cubes, as described below.
+This cube is irregular. The timelines of tiles “20LKP” and “20LLKP” and
+the resolutions of the bands are different. Sentinel-2 bands “B03”,
+“B04”, and “B08” have 10 m resolution, while bands “B8A”, “B11” and the
+cloud band “SCL” have 20 m resolution. Irregular collections need an
+additional processing step to be converted to regular data cubes, as
+described below.
 
 After defining an irregular ARD image collection from a cloud service
 using `sits_cube()`, users should run `sits_regularize()` to build a
@@ -347,6 +349,7 @@ data("point_mt_6bands")
 tempCNN_model <- samples_modis_4bands %>% 
     sits_select(bands = c("NDVI", "EVI")) %>% 
     sits_train(ml_method = sits_TempCNN(verbose = FALSE)) 
+#> Loaded Tensorflow version 2.5.0
 # Select NDVI and EVI bands of the  point to be classified
 # Filter the point 
 # Classify using TempCNN model
