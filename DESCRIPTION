@@ -42,12 +42,11 @@ Imports:
     lubridate (>= 1.7.0),
     parallel,
     purrr (>= 0.3.0),
-    RColorBrewer,
     raster (>= 3.4),
-    rstac (>= 0.9.1-4),
+    Rcpp (>= 1.0.7),
+    rstac (>= 0.9.1-5),
     sf (>= 0.9),
     slider (>= 0.1.5),
-    stringi,
     stats,
     terra (>= 1.4-11),
     tibble (>= 3.0),
@@ -69,7 +68,6 @@ Suggests:
     nnet,
     openxlsx,
     randomForest,
-    Rcpp,
     RcppArmadillo,
     Rwtss (>= 0.9.1),
     scales,
@@ -92,7 +90,6 @@ Collate:
     'sits_accuracy.R'
     'sits_bands.R'
     'sits_bbox.R'
-    'sits_brewer.R'
     'sits_classification.R'
     'sits_classify_ts.R'
     'sits_classify_cube.R'
@@ -143,6 +140,7 @@ Collate:
     'sits_source_api_bdc.R'
     'sits_source_api_deafrica.R'
     'sits_source_api_local.R'
+    'sits_source_api_mspc.R'
     'sits_source_api_satveg.R'
     'sits_source_api_stac.R'
     'sits_source_api_usgs.R'

@@ -89,12 +89,13 @@ The `sits` R package allows advanced data analysis on big EO data cubes availabl
 knitr::include_graphics("inst/extdata/markdown/figures/datacube_conception.png")
 ```
 
-The image collections accessible in `sits` version 0.15.0 to build EO data cubes are:
+The image collections accessible in `sits` version 0.15.1 to build EO data cubes are:
 
 1. AWS: Sentinel-2/2A level 2A collections, including "SENTINEL-S2-L2A-COGS" (open data) and "SENTINEL-S2-L2A" (non open data). 
 2. Brazil Data Cube (BDC): Open data collections of Sentinel-2, Landsat-8 and CBERS-4 images.
 3. Digital Earth Africa (DEAFRICA): Open data collection of Sentinel-2/2A and Landsat-8 for Africa.
-4. USGS: Landsat-4/5/7/8 collections, which are not open data. 
+4. Microsoft Planetary Computer (MSPC): Open data collection of Sentinel-2/2A and Landsat-8. 
+5. USGS: Landsat-4/5/7/8 collections, which are not open data. 
 
 Open data collections do not require payment of access fees to cloud providers. Except for those in the Brazil Data Cube, these collections are not regular. Irregular collections require further processing before they can be used in `sits` for classification using machine learning methods.
 
@@ -119,7 +120,7 @@ The cube can be shown in a leaflet using `sits_view()`.
 sits_view(s2_cube, green = "B08", blue = "B03", red = "B04")
 ```
 
-This cube is irregular. The timelines of tiles "20LKP" and "20LLKP" the resolutions of the bands of the bands are different. Sentinel-2 bands "B03", "B04", and "B08" have 10 m resolution, while bands "B8A", "B11" and the cloud band "SCL" have 20 m resolution. Irregular collections need an additional processing step to be converted to regular data cubes, as described below.
+This cube is irregular. The timelines of tiles "20LKP" and "20LLKP" and the resolutions of the bands are different. Sentinel-2 bands "B03", "B04", and "B08" have 10 m resolution, while bands "B8A", "B11" and the cloud band "SCL" have 20 m resolution. Irregular collections need an additional processing step to be converted to regular data cubes, as described below.
 
 After defining an irregular ARD image collection from a cloud service using `sits_cube()`, users should run `sits_regularize()` to build a regular data cube. This function uses the [gdalcubes R package](https://github.com/appelmar/gdalcubes), described in [Appel and Pebesma, 2019](https://www.mdpi.com/2306-5729/4/3/92). 
 

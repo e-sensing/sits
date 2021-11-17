@@ -46,8 +46,8 @@
 #' @param collection             A \code{character} value used in conjunction
 #' with \code{source} parameter to indicate a collection key entry to be shown
 #' in detail.
-#' @param palette                A \code{character} value indicating a palette
-#' to be shown in detail.
+#' @param colors                A \code{logical} value indicating if colors
+#' will to be shown in detail.
 #'
 #' @details
 #' Users can provide additional configuration files, by specifying the
@@ -103,10 +103,7 @@ sits_config <- function(processing_bloat = NULL,
     message(paste("Color configurations found in", color_yml_file))
     config_colors <- yaml::yaml.load_file(input = color_yml_file,
                                    merge.precedence = "override")
-    config <- utils::modifyList(sits_env[["config"]],
-                                config_colors,
-                                keep.null = FALSE)
-    .config_set_options(palettes = config[["palettes"]])
+    .config_set_options(colors = config_colors[["colors"]])
 
     # try to find a valid user configuration file
     user_yml_file <- .config_user_file()
@@ -130,7 +127,7 @@ sits_config <- function(processing_bloat = NULL,
             leaflet_max_Mbytes = config[["leaflet_max_Mbytes"]],
             leaflet_comp_factor = config[["leaflet_comp_factor"]],
             sources = config[["sources"]],
-            palettes = config[["palettes"]]
+            colors = config[["colors"]]
         )
     } else {
         message(paste("To provide additional configurations, create an",
@@ -163,7 +160,7 @@ sits_config <- function(processing_bloat = NULL,
 #' @export
 sits_config_show <- function(source = NULL,
                              collection = NULL,
-                             palette = NULL) {
+                             colors = FALSE) {
 
     config <- sits_env$config
 
@@ -198,14 +195,8 @@ sits_config_show <- function(source = NULL,
                 list(names(x))
             })
 
-    } else if (!is.null(palette)) {
-
-        .check_chr(palette, allow_empty = FALSE, len_min = 1, len_max = 1)
-        .check_chr_within(palette,
-                          within = .config_palettes(),
-                          discriminator = "one_of")
-
-        config <- config[[c("palettes", palette)]]
+    } else if (colors) {
+        config <- config[["colors"]]
     } else
         config <- lapply(config, function(x) {
             if (is.atomic(x))
@@ -277,6 +268,8 @@ sits_list_collections <- function(source = NULL) {
                     cat("(requires access token)")
 
             }
+            else
+                cat("- not opendata collection")
             cat("\n")
             cat("\n")
         })
@@ -292,7 +285,7 @@ sits_list_collections <- function(source = NULL) {
                                 leaflet_max_Mbytes = NULL,
                                 leaflet_comp_factor = NULL,
                                 sources = NULL,
-                                palettes = NULL, ...) {
+                                colors = NULL, ...) {
     # set caller to show in errors
     .check_set_caller(".config_set_options")
 
@@ -393,14 +386,14 @@ sits_list_collections <- function(source = NULL) {
         )
     }
     # check and initialize palettes
-    if (!is.null(palettes)) {
-        # initialize palettes
-        if (is.null(sits_env$config[["palettes"]]))
-            sits_env$config[["palettes"]] <- palettes
-
-        sits_env$config[["palettes"]] <- utils::modifyList(
-            sits_env$config[["palettes"]],
-            palettes,
+    if (!is.null(colors)) {
+        # initialize colors
+        if (is.null(sits_env$config[["colors"]]))
+            sits_env$config[["colors"]] <- colors
+        # add colors
+        sits_env$config[["colors"]] <- utils::modifyList(
+            sits_env$config[["colors"]],
+            colors,
             keep.null = FALSE
         )
     }
@@ -897,44 +890,29 @@ sits_list_collections <- function(source = NULL) {
     # return a cloud band object
     return(res)
 }
-#' @title Retrieve the color palettes
-#' @name .config_palettes
-#' @keywords internal
-#' @return   names of the available color palettes
-.config_palettes <- function() {
-
-    res <- .config_names(key = "palettes")
-
-    # post-condition
-    .check_chr(res, len_min = 1)
-
-    return(res)
-}
 #' @title Get colors associated to the labels
-#' @name .config_palette_colors
+#' @name .config_colors
 #' @param  labels  labels associated to the training classes
-#' @param  palette  palette from `grDevices::hcl.pals()` that replaces default palette
-#'                      when labels are not included in the config palette
+#' @param  palette  palette from `grDevices::hcl.pals()`
+#'                  replaces default colors
+#'                  when labels are not included in the config palette
 #' @param  rev      revert the order of colors?
 #' @keywords internal
 #' @return colors required to display the labels
 #'
-.config_palette_colors <- function(labels = labels, ...,
-                                   palette,
-                                   rev = TRUE) {
+.config_colors <- function(labels,
+                           palette = "Harmonic",
+                           rev = TRUE) {
 
     # ensure labels are unique
     labels <- unique(labels)
-    # if nothing works, use hcl_colors
-    hcl_colors <- TRUE
-    # get the names of the colors in the chosen pallete
-    colors_palette <- unlist(.config_get(key = c("palettes", "default")))
+    # get the names of the colors in the chosen palette
+    colors_palette <- unlist(.config_get(key = "colors"))
     # if labels are included in the config palette, use them
     if (all(labels %in% names(colors_palette))) {
         colors <- colors_palette[labels]
-        hcl_colors <- FALSE
     }
-    else{
+    else {
         labels_found <- labels[labels %in% names(colors_palette)]
         if (length(labels_found) > round(length(labels)/2)) {
             warning("Some labels are not available in the chosen palette",
@@ -947,16 +925,16 @@ sits_list_collections <- function(source = NULL) {
             warning("Most labels are not available in the chosen palette",
                     call. = FALSE)
 
-        warning(paste0("Using hcl_color palette ", hcl_palette),
+        warning(paste0("Using hcl_color palette ", palette),
                 call. = FALSE)
-    }
-    # if labels are not in the palette, use the brewer
-    if (hcl_colors) {
+
+        # get the number of labels
         n_labels <- length(unique(labels))
+        # generate a set of hcl colors
         colors <- grDevices::hcl.colors(n = n_labels,
-                                        palette = hcl_palette,
+                                        palette = palette,
                                         alpha = 1,
-                                        rev = hcl_order)
+                                        rev = rev)
         names(colors) <- labels
     }
     # post-condition
@@ -964,7 +942,7 @@ sits_list_collections <- function(source = NULL) {
                len_min = length(labels),
                len_max = length(labels),
                is_named = TRUE,
-               msg = "invalid 'color' values")
+               msg = "invalid color values")
 
     return(colors)
 }

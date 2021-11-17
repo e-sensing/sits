@@ -4,7 +4,7 @@
 \alias{plot.som_map}
 \title{Plot a SOM map}
 \usage{
-\method{plot}{som_map}(x, y, ..., type = "codes", whatmap = 1)
+\method{plot}{som_map}(x, y, ..., type = "codes", band = 1)
 }
 \arguments{
 \item{x}{Object of class "som_map"}
@@ -16,7 +16,7 @@
 \item{type}{Type of plot: "codes" for neuron weight (time series) and
 "mapping" for the number of samples allocated in a neuron.}
 
-\item{whatmap}{What data layer will be plotted.}
+\item{band}{What band will be plotted.}
 }
 \value{
 The plot itself.

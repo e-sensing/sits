@@ -13,7 +13,7 @@ sits_cluster_dendro(
   dist_method = "dtw_basic",
   linkage = "ward.D2",
   k = NULL,
-  colors = "RdYlGn",
+  palette = "RdYlGn",
   .plot = TRUE,
   ...
 )
@@ -35,7 +35,7 @@ Default is 'ward.D2'.}
 
 \item{k}{Desired number of clusters (overrides default value)}
 
-\item{colors}{Color scheme as per .sits_brewer_color_name` function.}
+\item{palette}{Color palette as per `grDevices::hcl.pals()` function.}
 
 \item{.plot}{Plot the dendrogram?}
 

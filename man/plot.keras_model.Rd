@@ -20,7 +20,7 @@ The plot itself.
 plots a deep learning model developed using keras
 }
 \examples{
-\donttest{
+\dontrun{
 # Get a set of samples
 samples_ndvi_evi <- sits_select(samples_modis_4bands,
                                 bands = c("NDVI", "EVI"))

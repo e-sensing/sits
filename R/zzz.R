@@ -57,5 +57,6 @@ utils::globalVariables(c(
 ))
 
 #' @importFrom lubridate %within% %m+%
+#' @importFrom Rcpp sourceCpp
 #' @useDynLib sits, .registration = TRUE
 NULL

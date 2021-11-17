@@ -11,9 +11,8 @@
   time = 1,
   title = "Classified Image",
   legend = NULL,
-  palette = "default",
-  brewer_palette = "Spectral",
-  brewer_order = TRUE
+  palette = "Spectral",
+  rev = TRUE
 )
 }
 \arguments{
@@ -29,11 +28,9 @@
 
 \item{legend}{named vector that associates labels to colors}
 
-\item{palette}{palette provided in the configuration file}
+\item{palette}{alternative palette that uses grDevices::hcl.pals()}
 
-\item{brewer_palette}{alternative palette that uses RColorBrewer}
-
-\item{brewer_order}{invert the order of brewer palette (TRUE/FALSE)}
+\item{rev}{invert the order of hcl palette (TRUE/FALSE)}
 }
 \description{
 plots a classified raster using ggplot.

@@ -9,7 +9,7 @@
 \usage{
 sits_view(x, ...)
 
-\method{sits_view}{sits}(x, ..., legend = NULL, palette = "default")
+\method{sits_view}{sits}(x, ..., legend = NULL, palette = "Harmonic")
 
 \method{sits_view}{raster_cube}(
   x,

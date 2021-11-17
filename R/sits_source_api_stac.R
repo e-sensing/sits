@@ -73,6 +73,7 @@
                                         bands = bands)
 
     items_lst <- .source_items_tiles_group(source = source, ...,
+                                           collection = collection,
                                            items = items)
 
     cube <- purrr::map_dfr(items_lst, function(tile) {

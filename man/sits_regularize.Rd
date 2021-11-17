@@ -35,9 +35,8 @@ will be aggregated.}
 See above}
 
 \item{agg_method}{A \code{character} with method that will be applied by
-\code{gdalcubes} for aggregation.
-Options: \code{min}, \code{max}, \code{mean}, \code{median} and
-\code{first}.}
+\code{gdalcubes} for aggregation. Options: \code{min}, \code{max},
+\code{mean}, \code{median} and \code{first}. Default is \code{median}.}
 
 \item{resampling}{A \code{character} with method to be used by
 \code{gdalcubes} for resampling in mosaic operation.
