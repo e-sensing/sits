@@ -2,7 +2,7 @@
 % Please edit documentation in R/sits_machine_learning.R
 \name{sits_svm}
 \alias{sits_svm}
-\title{Train a sits classification model using a support vector machine}
+\title{Train support vector machine models}
 \usage{
 sits_svm(
   data = NULL,

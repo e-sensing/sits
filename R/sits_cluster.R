@@ -1,14 +1,25 @@
-#' @title Clusters a set of time series
-#'        using aglomerative hierarchical clustering
-#' @name sits_cluster_dendro
+#' @title Find clusters in time series samples
+#' @name sits_clustering
 #' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
 #'
-#' @description Takes a SITS tibble and produces a sits tibble
-#' with an added "cluster" column.
-#' This is done in several steps:
-#' 1. Calculation of the dendrogram;
-#' 2. Get validity index for best cluster using the adjusted Rand Index;
-#' 3. Cut the dendrogram using the chosen validity index.
+#' @description These functions support hierarchical agglomerative clustering in sits.
+#' They provide support from creating a dendrogram and using it for cleaning samples.
+#'
+#' \code{sits_cluster_dendro()} takes a tibble containing time series and produces
+#' a sits tibble with an added "cluster" column. The function first calculates a dendrogram and
+#' obtains a validity index for best clustering using the adjusted Rand Index.
+#' After cutting the dendrogram using the chosen validity index, it assigns a
+#' cluster to each sample.
+#'
+#' \code{sits_cluster_frequency()} computes the contingency table between labels and clusters
+#' and produces a matrix
+#' It needs as input a tibble produced by \code{sits_cluster_dendro()}.
+#'
+#' \code{sits_cluster_clean()} takes a tibble with time series
+#' that has an additional `cluster` produced by \code{sits_cluster_dendro()}
+#' and removes labels that are minority in each cluster.
+#'
+#'
 #'
 #' @references "dtwclust" package (https://CRAN.R-project.org/package=dtwclust)
 #'
@@ -19,20 +30,32 @@
 #'                        Can be any `hclust` method (see `hclust`).
 #'                        Default is 'ward.D2'.
 #' @param k               Desired number of clusters (overrides default value)
-#' @param colors          Color scheme as per .sits_brewer_color_name` function.
+#' @param palette         Color palette as per `grDevices::hcl.pals()` function.
 #' @param .plot           Plot the dendrogram?
 #' @param  ...            Additional parameters to be passed
 #'                        to dtwclust::tsclust() function.
-#' @return A tibble with the clusters or clusters' members.
+#'
+#' @rdname sits_clustering
+#' @return
+#' \code{sits_cluster_dendro()} takes a tibble containing time series and produces
+#' a sits tibble with an added "cluster" column.
 #'
 #' @examples
 #' \dontrun{
-#' # Load the "dtwclust" package
-#' # library(dtwclust)
 #' # load a simple data set with two classes
 #' data(cerrado_2classes)
 #' # calculate the dendrogram and the best clusters
 #' clusters <- sits_cluster_dendro(cerrado_2classes, bands = c("NDVI", "EVI"))
+#' # show clusters samples frequency
+#' sits_cluster_frequency(clusters)
+#' # remove cluster 3 from the samples
+#' clusters_new <- dplyr::filter(clusters, cluster != 3)
+#' # show clusters samples frequency of the new data set
+#' sits_cluster_frequency(clusters_new)
+#' # clean all remaining clusters
+#' cleaned <- sits_cluster_clean(clusters_new)
+#' # show clusters samples frequency
+#' sits_cluster_frequency(cleaned)
 #' }
 #' @export
 sits_cluster_dendro <- function(samples = NULL,
@@ -40,11 +63,16 @@ sits_cluster_dendro <- function(samples = NULL,
                                 dist_method = "dtw_basic",
                                 linkage = "ward.D2",
                                 k = NULL,
-                                colors = "RdYlGn",
+                                palette = "RdYlGn",
                                 .plot = TRUE, ...) {
 
     # verify if data is OK
     .sits_tibble_test(samples)
+
+    .check_that(
+        requireNamespace("dtwclust", quietly = TRUE),
+        msg = "Please install package dtwclust"
+    )
 
     # bands in sits are uppercase
     bands <- .sits_tibble_bands_check(samples, bands)
@@ -84,33 +112,21 @@ sits_cluster_dendro <- function(samples = NULL,
     # plot the dendrogram
     message("Plotting dendrogram...")
     if (.plot)
-        .sits_plot_dendrogram(samples, cluster, best_cut["height"], colors)
+        .sits_plot_dendrogram(data = samples,
+                              cluster = cluster,
+                              cutree_height = best_cut["height"],
+                              palette = palette)
 
     # return the result
     message("result is a tibble with cluster indexes...")
     return(samples)
 }
-
-
-
-#' @title Cluster contigency table
-#' @name sits_cluster_frequency
-#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
 #'
-#' @description Computes the contingency table between labels and clusters.
-#' This function needs as input a sits tibble with `cluster` column.
+#' @rdname sits_clustering
+#' @return
+#' \code{sits_cluster_frequency()} returns a matrix containing
+#' all frequencies of labels in clusters.
 #'
-#' @param samples          A tibble with `cluster` column.
-#' @return A matrix containing all frequencies of labels in clusters.
-#' @examples
-#' \dontrun{
-#' # Load the "dtwclust" package
-#' # library(dtwclust)
-#' # create clusters by cutting a dendrogram
-#' clusters <- sits_cluster_dendro(cerrado_2classes, bands = c("NDVI", "EVI"))
-#' # show clusters samples frequency
-#' sits_cluster_frequency(clusters)
-#' }
 #' @export
 sits_cluster_frequency <- function(samples) {
 
@@ -134,32 +150,12 @@ sits_cluster_frequency <- function(samples) {
     )
     return(result)
 }
-
-#' @title Cluster cleaner
-#' @name sits_cluster_clean
-#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
 #'
-#' @description Removes labels that are minority in each cluster.
-#'
-#' @param samples          Tibble with `cluster` column.
-#' @return A tibble with all selected samples.
-#' @examples
-#' \dontrun{
-#' # Load the "dtwclust" package
-#' # library(dtwclust)
-#' # calculate the dendrogram and the best clusters
-#' clusters <- sits_cluster_dendro(cerrado_2classes, bands = c("NDVI", "EVI"))
-#' # show clusters samples frequency
-#' sits_cluster_frequency(clusters)
-#' # remove cluster 3 from the samples
-#' clusters_new <- dplyr::filter(clusters, cluster != 3)
-#' # show clusters samples frequency
-#' sits_cluster_frequency(clusters_new)
-#' # clean all remaining clusters
-#' cleaned <- sits_cluster_clean(clusters_new)
-#' # show clusters samples frequency
-#' sits_cluster_frequency(cleaned)
-#' }
+#' @rdname sits_clustering
+#' @return
+#' \code{sits_cluster_clean()} takes a tibble with time series
+#' that has an additional `cluster` produced by \code{sits_cluster_dendro()}
+#' and removes labels that are minority in each cluster.
 #' @export
 sits_cluster_clean <- function(samples) {
 

@@ -13,9 +13,9 @@
 \arguments{
 \item{data}{Percentage of mixture between the clusters}
 
-\item{title}{Title of plot.}
+\item{cluster_name}{Choose the cluster to plot}
 
-\item{name_cluster}{Choose the cluster to plot}
+\item{title}{Title of plot.}
 }
 \value{
 ggplot2 object

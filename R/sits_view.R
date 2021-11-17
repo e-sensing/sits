@@ -1,4 +1,4 @@
-#' @title  Generic interface for visualization of data cube
+#' @title  View data cubes and samples in leaflet
 #' @name sits_view
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'
@@ -51,7 +51,7 @@ sits_view <- function(x, ...){
 sits_view.sits <- function(x,
                            ...,
                            legend = NULL,
-                           palette = "default") {
+                           palette = "Harmonic") {
 
     .check_that(
         requireNamespace("leaflet", quietly = TRUE),
@@ -74,7 +74,9 @@ sits_view.sits <- function(x,
 
     # if colors are not specified, get them from the configuration file
     if (purrr::is_null(legend)) {
-        colors <- .config_palette_colors(labels, palette = palette)
+        colors <- .config_colors(labels = labels,
+                                 palette = palette,
+                                 rev = TRUE)
     }
     else {
         .check_chr_within(
@@ -444,7 +446,9 @@ sits_view.classified_image <- function(x,...,
 .view_get_colors <- function(labels, legend, palette){
     # if colors are not specified, get them from the configuration file
     if (purrr::is_null(legend)) {
-        colors <- .config_palette_colors(labels, palette = palette)
+        colors <- .config_colors(labels = labels,
+                                 palette = palette,
+                                 rev = TRUE)
     }
     else {
         .check_chr_within(

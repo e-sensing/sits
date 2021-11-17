@@ -151,10 +151,10 @@
     # precondition - can the function deal with the geometry_type?
     .check_chr_within(
         x = as.character(geom_type),
-        within = c("POINT", "POLYGON", "MULTIPOLYGON"),
+        within = .config_get("sf_geom_types_supported"),
         discriminator = "one_of",
-        msg = paste("only handles POINT, POLYGON or",
-                    "MULTIPOLYGON shapefiles")
+        msg = paste0("only handles shapefiles of types",
+                     .config_get("sf_geom_types_supported"))
     )
 
     # precondition - is the default label valid?

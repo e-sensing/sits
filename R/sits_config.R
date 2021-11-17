@@ -1,9 +1,13 @@
-#' @title sits configuration
+#' @title Configure parameters for sits package
 #' @name sits_configuration
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
 #'
 #' @description These functions load and show sits configurations.
+#'
+#' The `sits` package uses a configuration file
+#' that contains information on parameters required by different functions.
+#' This includes information about the image collections handled by `sits`.
 #'
 #' \code{sits_config()} loads the default configuration file and
 #' the user provided configuration file. The final configuration is
@@ -42,8 +46,8 @@
 #' @param collection             A \code{character} value used in conjunction
 #' with \code{source} parameter to indicate a collection key entry to be shown
 #' in detail.
-#' @param palette                A \code{character} value indicating a palette
-#' to be shown in detail.
+#' @param colors                A \code{logical} value indicating if colors
+#' will to be shown in detail.
 #'
 #' @details
 #' Users can provide additional configuration files, by specifying the
@@ -83,9 +87,23 @@ sits_config <- function(processing_bloat = NULL,
 
     # set options defined in sits config
     do.call(.config_set_options, args = config)
-
-
     message(paste0("Using configuration file: ", yml_file))
+
+    # load the internal configuration file
+    config_internals_file <- .config_internals_file()
+    # read the configuration parameters
+    config_internals <- yaml::yaml.load_file(input = config_internals_file,
+                                   merge.precedence = "override")
+
+    # set options defined in sits config
+    do.call(.config_set_options, args = config_internals)
+
+    # load the color configuration file
+    color_yml_file <- .config_colors_file()
+    message(paste("Color configurations found in", color_yml_file))
+    config_colors <- yaml::yaml.load_file(input = color_yml_file,
+                                   merge.precedence = "override")
+    .config_set_options(colors = config_colors[["colors"]])
 
     # try to find a valid user configuration file
     user_yml_file <- .config_user_file()
@@ -109,7 +127,7 @@ sits_config <- function(processing_bloat = NULL,
             leaflet_max_Mbytes = config[["leaflet_max_Mbytes"]],
             leaflet_comp_factor = config[["leaflet_comp_factor"]],
             sources = config[["sources"]],
-            palettes = config[["palettes"]]
+            colors = config[["colors"]]
         )
     } else {
         message(paste("To provide additional configurations, create an",
@@ -142,7 +160,7 @@ sits_config <- function(processing_bloat = NULL,
 #' @export
 sits_config_show <- function(source = NULL,
                              collection = NULL,
-                             palette = NULL) {
+                             colors = FALSE) {
 
     config <- sits_env$config
 
@@ -177,14 +195,8 @@ sits_config_show <- function(source = NULL,
                 list(names(x))
             })
 
-    } else if (!is.null(palette)) {
-
-        .check_chr(palette, allow_empty = FALSE, len_min = 1, len_max = 1)
-        .check_chr_within(palette,
-                          within = .config_palettes(),
-                          discriminator = "one_of")
-
-        config <- config[[c("palettes", palette)]]
+    } else if (colors) {
+        config <- config[["colors"]]
     } else
         config <- lapply(config, function(x) {
             if (is.atomic(x))
@@ -256,6 +268,8 @@ sits_list_collections <- function(source = NULL) {
                     cat("(requires access token)")
 
             }
+            else
+                cat("- not opendata collection")
             cat("\n")
             cat("\n")
         })
@@ -268,15 +282,10 @@ sits_list_collections <- function(source = NULL) {
                                 raster_api_package = NULL,
                                 gdal_creation_options = NULL,
                                 gdalcubes_chunk_size = NULL,
-                                local_s3_class = NULL,
-                                local_file_extensions = NULL,
-                                probs_cube_scale_factor = NULL,
-                                probs_cube_data_type = NULL,
-                                class_cube_data_type = NULL,
                                 leaflet_max_Mbytes = NULL,
                                 leaflet_comp_factor = NULL,
                                 sources = NULL,
-                                palettes = NULL, ...) {
+                                colors = NULL, ...) {
     # set caller to show in errors
     .check_set_caller(".config_set_options")
 
@@ -328,39 +337,6 @@ sits_list_collections <- function(source = NULL) {
                    msg = "Invalid gdalcubes chunk size")
         sits_env$config[["gdalcubes_chunk_size"]] <- gdalcubes_chunk_size
     }
-
-    # process local_s3_class
-    if (!is.null(local_s3_class)) {
-        .check_chr(local_s3_class, allow_empty = FALSE, len_min = 1,
-                   msg = "Invalid 'local_s3_class' parameter")
-        sits_env$config[["local_s3_class"]] <- local_s3_class
-    }
-
-    # process local_file_extensions
-    if (!is.null(local_file_extensions)) {
-        .check_chr(local_file_extensions,
-                   allow_empty = FALSE, len_min = 1,
-                   msg = "Invalid 'local_file_extensions' parameter")
-        sits_env$config[["local_file_extensions"]] <- local_file_extensions
-    }
-
-    # process probs cube scale factor
-    if (!is.null(probs_cube_scale_factor)) {
-        .check_num(probs_cube_scale_factor,
-                   min = 0.0001, len_min = 1, len_max = 1,
-                   msg = "Invalid 'probs_cube_scale_factor' parameter")
-        sits_env$config[["probs_cube_scale_factor"]] <- probs_cube_scale_factor
-    }
-    # process probs cube data type
-    if (!is.null(probs_cube_data_type)) {
-        .raster_data_type(probs_cube_data_type)
-        sits_env$config[["probs_cube_data_type"]] <- probs_cube_data_type
-    }
-    # process class cube data type
-    if (!is.null(class_cube_data_type)) {
-        .raster_data_type(class_cube_data_type)
-        sits_env$config[["class_cube_data_type"]] <- class_cube_data_type
-    }
     if (!is.null(leaflet_max_Mbytes)) {
         .check_num(leaflet_max_Mbytes,
                    min = 16,
@@ -377,7 +353,6 @@ sits_list_collections <- function(source = NULL) {
                    msg = "Invalid leaflet_comp_factor")
         sits_env$config[["leaflet_comp_factor"]] <- leaflet_comp_factor
     }
-
     # process sources
     if (!is.null(sources)) {
         .check_lst(sources, min_len = 1)
@@ -411,14 +386,14 @@ sits_list_collections <- function(source = NULL) {
         )
     }
     # check and initialize palettes
-    if (!is.null(palettes)) {
-        # initialize palettes
-        if (is.null(sits_env$config[["palettes"]]))
-            sits_env$config[["palettes"]] <- palettes
-
-        sits_env$config[["palettes"]] <- utils::modifyList(
-            sits_env$config[["palettes"]],
-            palettes,
+    if (!is.null(colors)) {
+        # initialize colors
+        if (is.null(sits_env$config[["colors"]]))
+            sits_env$config[["colors"]] <- colors
+        # add colors
+        sits_env$config[["colors"]] <- utils::modifyList(
+            sits_env$config[["colors"]],
+            colors,
             keep.null = FALSE
         )
     }
@@ -435,29 +410,12 @@ sits_list_collections <- function(source = NULL) {
     }
     return(invisible(sits_env$config))
 }
-#' @title Get values from config file
-#' @name config_functions
-#'
-#' @description Functions that get values from config file.
-#'
+#' @title Return the default configuration file
+#' @name config_file
 #' @keywords internal
+#' @return default configuration file
 #'
-#' @param collection Collection to be searched in the data source.
-#' @param data       A sits data cube.
-#' @param labels     Vector with labels.
-#' @param pallete    The palette that should be chosen based on the
-#'  configuration file.
-#' @param simplify   A logical value that specifies whether the return should be
-#'  in vector form, if true, or list form, if false. Default value is FALSE.
-#' @param source     Source of data cube
-#' @param ...        Additional parameters.
 #'
-#' @return Functions that search for values from a key or collection
-#'  return atomic values. Check functions return invisible null values or give
-#'  an error.
-NULL
-
-#' @rdname config_functions
 .config_file <- function() {
 
     # load the default configuration file
@@ -468,8 +426,43 @@ NULL
 
     return(yml_file)
 }
+#' @title Return the internal configuration file (only for developers)
+#' @name config_internals_file
+#' @keywords internal
+#' @return default configuration file
+#'
+#'
+.config_internals_file <- function() {
 
-#' @rdname config_functions
+    # load the default configuration file
+    yml_file <- system.file("extdata", "config_internals.yml", package = "sits")
+
+    # check that the file name is valid
+    .check_file(yml_file, msg = "invalid configuration file")
+
+    return(yml_file)
+}
+#' @title Return the default configuration file for colors
+#' @name config_colors_file
+#' @keywords internal
+#' @return default configuration file
+#'
+#'
+.config_colors_file <- function() {
+
+    # load the default configuration file
+    yml_file <- system.file("extdata", "config_colors.yml", package = "sits")
+
+    # check that the file name is valid
+    .check_file(yml_file, msg = "invalid configuration file")
+
+    return(yml_file)
+}
+
+#' @title Return the user configuration file
+#' @name .config_user_file
+#' @keywords internal
+#' @return user configuration file
 .config_user_file <- function() {
 
     # load the default configuration file
@@ -487,7 +480,10 @@ NULL
     return(yml_file)
 }
 
-#' @rdname config_functions
+#' @title Given a key, get config values
+#' @name .config_get
+#' @keywords internal
+#' @return config values associated to a key
 .config_get <- function(key, default = NULL) {
 
     res <- tryCatch({
@@ -509,13 +505,11 @@ NULL
 
     return(res)
 }
-
-
-#' @title Check cube collection
+#' @title Check band availability
 #' @name .config_check_bands
+#' @description Checks if the requested bands are available in the collection
 #'
-#' @description A suite of check to verify collection in cube.
-#'
+#' @keywords internal
 #' @param source        Data source
 #' @param collection    Collection to be searched in the data source.
 #' @param bands         Bands to be included.
@@ -539,24 +533,13 @@ NULL
     # remove bands with equal names, like NDVI, EVI...
     source_bands <- source_bands[!source_bands %in% sits_bands]
 
-    # warning in case user provide source band
-    # GC: I consider this not to be necessary, skipping the message
-    if (FALSE) {
-        if (any(bands %in% source_bands))
-            warning(
-                sprintf("Bands %s converted to sits names %s",
-                        paste(bands, collapse = ", "),
-                        paste(
-                            .source_bands_to_sits(source = source,
-                                                  collection = collection,
-                                                  bands = bands),
-                            collapse = ", ")),
-                call. = FALSE)
-    }
-
     return(invisible(NULL))
 }
-#' @rdname config_functions
+#' @title Check GEOTIFF creation options
+#' @name .config_gtiff_default_options
+#' @keywords internal
+#' @return  the creation options associated to the configuration
+#'
 .config_gtiff_default_options <- function() {
 
     res <- .config_get(key = c("gdal_creation_options"))
@@ -567,37 +550,32 @@ NULL
 
     return(res)
 }
-#' @title meta-type for data
+#' @title Check metatype associated to the data
 #' @name .config_data_meta_type
 #' @keywords internal
-#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
-#' @param  data    tibble (time series or cube)
+#' @description associates a valid SITS class to the data
 #'
-#' @return file path to the appended to data_dir
+#' @param  data    time series or cube
+#'
+#' @return an error if the meta data type is wrong
 .config_data_meta_type <- function(data) {
 
     # set caller to show in errors
     .check_set_caller(".config_data_meta_type")
 
-    if (inherits(data, c("sits", "patterns", "predicted",
-                         "sits_model", "sits_cube", "raster_cube",
-                         "probs_cube", "wtss_cube", "satveg_cube",
-                         "stac_cube", "aws_cube"))) {
+    # if the data is one of the classes recognized by sits
+    if (inherits(data, .config_get("sits_s3_classes"))) {
         return(data)
 
     } else if (inherits(data, "tbl_df")) {
-
-        if (all(c("source", "collection",
-                  "tile", "bands", "labels",
-                  "xmin", "xmax", "ymin", "ymax", "crs")
+        # is this a data cube or a sits tibble?
+        if (all(.config_get("sits_cube_cols")
                 %in% colnames(data))) {
 
-            class(data) <- .cube_s3class(cube = data)
+            class(data) <- c("raster_cube", class(data))
 
             return(data)
-        } else if (all(c("longitude", "latitude", "start_date",
-                         "end_date", "label", "cube",
-                         "time_series") %in% colnames(data))) {
+        } else if (all(.config_get("sits_tibble_cols") %in% colnames(data))) {
 
             class(data) <- c("sits", class(data))
             return(data)
@@ -608,8 +586,10 @@ NULL
                 local_msg = "Data not recognized as a sits object",
                 msg = "Invalid data parameter")
 }
-
-#' @rdname config_functions
+#' @title Get local file extensions
+#' @name .config_local_file_extension
+#' @keywords internal
+#' @return local file extensions known to sits
 .config_local_file_extensions <- function() {
 
     res <- .config_get(key = c("local_file_extensions"))
@@ -620,8 +600,10 @@ NULL
 
     return(res)
 }
-
-#' @rdname config_functions
+#' @title Get local S3 class
+#' @name .config_local_s3_class
+#' @keywords internal
+#' @return classes associated to local cubes
 .config_local_s3_class <- function() {
 
     res <- .config_get(key = c("local_s3_class"))
@@ -632,7 +614,11 @@ NULL
 
     return(res)
 }
-#' @rdname config_functions
+#' @title Get names associated to a configuration key
+#' @name .config_names
+#' @param key   key combination to access config information
+#' @keywords internal
+#' @return   names associated to the chosen access key
 .config_names <- function(key) {
 
     res <- tryCatch({
@@ -651,6 +637,16 @@ NULL
 
     return(res)
 }
+#' @title Include a new source in the configuration
+#' @name .config_new_source
+#' @description creates a new data source in the config file
+#' @param s3_class   s3 class associated to the source
+#' @param collections collections associated to the source
+#' @param ...         other parameters associated to the new source
+#' @param service     protocol associated to the source (e.g., "STAC")
+#' @param url         url associated to the endpoint of the service
+#' @keywords internal
+#' @return   list with the configuration associated to the new source
 .config_new_source <- function(s3_class,
                                collections, ...,
                                service = NULL,
@@ -699,7 +695,15 @@ NULL
                   url = url,
                   collections = collections), dots))
 }
-
+#' @title Include a new collection in the configuration
+#' @name .config_new_collection
+#' @description creates a new collection associated to a source
+#' @param bands       bands associated to the collection
+#' @param ...         other relevant parameters
+#' @param satellite   satellite associated to the collection
+#' @param sensor      sensor associated to the collection
+#' @keywords internal
+#' @return   list with the configuration associated to the new collection
 .config_new_collection <- function(bands, ...,
                                    satellite = NULL,
                                    sensor = NULL) {
@@ -771,7 +775,20 @@ NULL
     # return a new collection data
     return(res)
 }
-
+#' @title Include a new band in the configuration
+#' @name .config_new_band
+#' @description creates a description associated to a new band
+#' @param missing_value  missing value
+#' @param minimum_value  minimum value
+#' @param maximum_value  maximum_value
+#' @param scale_factor   scale_factor associated with the data
+#' @param offset_value   offset_value for the band
+#' @param band_name      name of the band
+#' @param resolution     spatial resolution (in meters)
+#' @param ...            other relevant parameters
+#' @keywords internal
+#' @return   list with the configuration associated to the new band
+#'
 .config_new_band <- function(missing_value,
                              minimum_value,
                              maximum_value,
@@ -823,7 +840,17 @@ NULL
     # return a band object
     return(res)
 }
-
+#' @title Include a new cloud band in the configuration
+#' @name .config_new_cloud_band
+#' @description creates a description associated to a new cloud band
+#' @param bit_mask       bit mask to describe clouds (if applicable)
+#' @param value          values of the cloud band
+#' @param interp_values  pixel values that need to be replaced by interpolation
+#' @param resolution     spatial resolution (in meters)
+#' @param band_name      name of the band
+#' @param ...            other relevant parameters
+#' @keywords internal
+#' @return   list with the configuration associated to the new band
 .config_new_cloud_band <- function(bit_mask,
                                    values,
                                    interp_values,
@@ -863,57 +890,67 @@ NULL
     # return a cloud band object
     return(res)
 }
-#' @rdname config_functions
-.config_palettes <- function() {
+#' @title Get colors associated to the labels
+#' @name .config_colors
+#' @param  labels  labels associated to the training classes
+#' @param  palette  palette from `grDevices::hcl.pals()`
+#'                  replaces default colors
+#'                  when labels are not included in the config palette
+#' @param  rev      revert the order of colors?
+#' @keywords internal
+#' @return colors required to display the labels
+#'
+.config_colors <- function(labels,
+                           palette = "Harmonic",
+                           rev = TRUE) {
 
-    res <- .config_names(key = "palettes")
+    # ensure labels are unique
+    labels <- unique(labels)
+    # get the names of the colors in the chosen palette
+    colors_palette <- unlist(.config_get(key = "colors"))
+    # if labels are included in the config palette, use them
+    if (all(labels %in% names(colors_palette))) {
+        colors <- colors_palette[labels]
+    }
+    else {
+        labels_found <- labels[labels %in% names(colors_palette)]
+        if (length(labels_found) > round(length(labels)/2)) {
+            warning("Some labels are not available in the chosen palette",
+                    call. = FALSE)
+            missing_labels <- unique(labels[!(labels %in% labels_found)])
+            warning(paste0("Consider adjusting labels: ", missing_labels),
+                    call. = FALSE)
+        }
+        else
+            warning("Most labels are not available in the chosen palette",
+                    call. = FALSE)
 
-    # post-condition
-    .check_chr(res, len_min = 1)
+        warning(paste0("Using hcl_color palette ", palette),
+                call. = FALSE)
 
-    return(res)
-}
-
-#' @rdname config_functions
-.config_palette_colors <- function(labels, ...,
-                                   palette = "default") {
-
-    # pre-condition
-    .config_palette_check(palette = palette)
-
-    # get the names of the colors in the chosen pallete
-    color_names <- .config_get(key = c("palettes", palette))
-
-    .check_chr_within(
-        x = labels,
-        within = names(color_names),
-        msg = "some labels are missing from the palette"
-    )
-    colors <- color_names[labels]
-
-    # simplify
-    colors <- unlist(colors)
-
+        # get the number of labels
+        n_labels <- length(unique(labels))
+        # generate a set of hcl colors
+        colors <- grDevices::hcl.colors(n = n_labels,
+                                        palette = palette,
+                                        alpha = 1,
+                                        rev = rev)
+        names(colors) <- labels
+    }
     # post-condition
     .check_chr(colors,
                len_min = length(labels),
                len_max = length(labels),
                is_named = TRUE,
-               msg = "invalid 'color' values")
+               msg = "invalid color values")
 
     return(colors)
 }
-
-.config_palette_check <- function(palette) {
-
-    # check if palette name exists
-    .check_chr(palette, len_min = 1, len_max = 1,
-               msg = "invalid 'palette' parameter")
-    .check_chr_within(palette, within = .config_palettes(),
-                      msg = "invalid 'palette' parameter")
-}
-
-#' @rdname config_functions
+#' @title Retrieve the processing bloat
+#' @name .config_processing_bloat
+#' @keywords internal
+#' @return estimated processing bloat
+#'
 .config_processing_bloat <- function() {
 
     res <- .config_get(key = c("processing_bloat"))
@@ -924,8 +961,11 @@ NULL
 
     return(res)
 }
-
-#' @rdname config_functions
+#' @title Retrieve the rstac pagination limit
+#' @name .config_rstac_limit
+#' @keywords internal
+#' @return pagination limit to rstac output
+#'
 .config_rstac_limit <- function() {
 
     res <- .config_get(key = c("rstac_pagination_limit"))
@@ -937,7 +977,11 @@ NULL
     return(res)
 }
 
-#' @rdname config_functions
+#' @title Retrieve the raster package to be used
+#' @name .config_raster_pkg
+#' @keywords internal
+#' @return the raster package used to process raster data
+#'
 .config_raster_pkg <- function() {
 
     res <- .config_get(key = c("raster_api_package"))

@@ -2,6 +2,7 @@
 #' @title Select stac items by sits bands.
 #'
 #' @description Select bands in stac items by sits bands.
+#' @keywords internal
 #'
 #' @param items        a \code{STACItemcollection} object from rstac package.
 #' @param bands_source a \code{character} with source bands (provider bands).
@@ -149,6 +150,7 @@
 #' @title  Creates a query to send to STAC api
 #' @name .stac_items_query
 #' @description  Creates a query using rstac package to send to STAC API.
+#' @keywords internal
 #'
 #' @param source     Name of the STAC provider
 #' @param collection Collection to be searched in the data source

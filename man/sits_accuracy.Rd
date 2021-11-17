@@ -4,7 +4,7 @@
 \alias{sits_accuracy}
 \alias{sits_accuracy.sits}
 \alias{sits_accuracy.classified_image}
-\title{Area-weighted classification accuracy assessment}
+\title{Assess classification accuracy (area-weighted method)}
 \usage{
 sits_accuracy(data, ...)
 

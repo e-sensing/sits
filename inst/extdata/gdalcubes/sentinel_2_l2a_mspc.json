@@ -1,0 +1,55 @@
+{
+    "description" : "Image collection format for Sentinel 2 Level 2A Open Data in Microsoft Planetary Computer",
+    "references" : "https://planetarycomputer.microsoft.com/api/stac/v1/collections/sentinel-2-l2a",
+    "example" : "/vsicurl/https://sentinel2l2a01.blob.core.windows.net/sentinel2-l2/20/L/KP/2018/07/18/S2B_MSIL2A_20180718T143749_N0212_R096_T20LKP_20201011T172038.SAFE/GRANULE/L2A_T20LKP_A007129_20180718T143744/IMG_DATA/R10m/T20LKP_20180718T143749_B03_10m.tif",
+    "tags" : ["Sentinel", "MSPC", "STAC"],
+    "pattern" : ".+.tif.*",
+    "images" : {
+        "pattern" : ".*sentinel2-l2((?:/[A-Za-z0-9_.]+){10})/.*"
+    },
+    "datetime" : {
+        "pattern" : ".*T\\d{2}\\w{3}_([A-Za-z0-9]+).*",
+        "format" : "%Y%m%dT%H%M%S"
+    },
+    "bands" : {
+        "B01" : {
+            "pattern" : ".+_B01_60m.tif.*"
+        },
+        "B02" : {
+            "pattern" : ".+_B02_10m.tif.*"
+        },
+        "B03" : {
+            "pattern" : ".+_B03_10m.tif.*"
+        },
+        "B04" : {
+            "pattern" : ".+_B04_10m.tif.*"
+        },
+        "B05" : {
+            "pattern" : ".+_B05_20m.tif.*"
+        },
+        "B06" : {
+            "pattern" : ".+_B06_20m.tif.*"
+        },
+        "B07" : {
+            "pattern" : ".+B07\\.tif.*"
+        },
+        "B08" : {
+            "pattern" : ".+_B08_10m.tif.*"
+        },
+        "B8A" : {
+            "pattern" : ".+_B8A_20m.tif.*"
+        },
+        "B09" : {
+            "pattern" : ".+_B09_60m.tif.*"
+        },
+        "B11" : {
+            "pattern" : ".+_B11_20m.tif.*"
+        },
+        "B12" : {
+            "pattern" : ".+_B12_20m.tif.*"
+        },
+        "CLOUD" : {
+            "pattern" : ".+_SCL_20m.tif.*"
+        }
+    }
+}

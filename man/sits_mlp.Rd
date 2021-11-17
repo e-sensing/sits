@@ -2,7 +2,7 @@
 % Please edit documentation in R/sits_mlp.R
 \name{sits_mlp}
 \alias{sits_mlp}
-\title{Train a  deep learning model using multi-layer perceptron}
+\title{Train multi-layer perceptron models}
 \usage{
 sits_mlp(
   samples = NULL,

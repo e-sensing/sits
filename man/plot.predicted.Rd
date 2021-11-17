@@ -2,9 +2,9 @@
 % Please edit documentation in R/sits_plot.R
 \name{plot.predicted}
 \alias{plot.predicted}
-\title{Generic interface for ploting time series predictions}
+\title{Plot time series predictions}
 \usage{
-\method{plot}{predicted}(x, y, ..., bands = "NDVI")
+\method{plot}{predicted}(x, y, ..., bands = "NDVI", palette = "Harmonic")
 }
 \arguments{
 \item{x}{object of class "predicted"}
@@ -14,6 +14,9 @@
 \item{...}{further specifications for \link{plot}.}
 
 \item{bands}{bands used for visualisation}
+
+\item{palette}{hcl palette used for visualisation
+(in case classes are not in the default sits palette)}
 }
 \value{
 The plot itself.

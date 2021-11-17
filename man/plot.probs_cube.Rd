@@ -2,7 +2,7 @@
 % Please edit documentation in R/sits_plot.R
 \name{plot.probs_cube}
 \alias{plot.probs_cube}
-\title{Generic interface for plotting probability cubes}
+\title{Plot probability cubes}
 \usage{
 \method{plot}{probs_cube}(
   x,
@@ -10,10 +10,8 @@
   ...,
   time = 1,
   title = "Probabilities for Classes",
-  breaks = "kmeans",
-  colors = "YlGnBu",
-  n_colors = 10,
-  labels = NULL
+  labels = NULL,
+  palette = "Terrain"
 )
 }
 \arguments{
@@ -27,13 +25,9 @@
 
 \item{title}{string.}
 
-\item{breaks}{type of breaks}
-
-\item{colors}{color palette.}
-
-\item{n_colors}{number of colors.}
-
 \item{labels}{labels to plot (optional)}
+
+\item{palette}{hcl palette used for visualisation}
 }
 \value{
 The plot itself.

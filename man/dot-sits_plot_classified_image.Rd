@@ -4,18 +4,20 @@
 \alias{.sits_plot_classified_image}
 \title{Plot a raster classified image}
 \usage{
-.sits_plot_classified_image(cube, time, title, legend, palette)
+.sits_plot_classified_image(cube, time, title, legend, palette, rev)
 }
 \arguments{
-\item{cube}{A tibble with the metadata for a labelled data cube.}
+\item{cube}{metadata for a labelled data cube.}
 
-\item{time}{Temporal reference for plot.}
+\item{time}{temporal reference for plot.}
 
-\item{title}{Title of the plot}
+\item{title}{title of the plot}
 
 \item{legend}{named vector that associates labels to colors.}
 
-\item{palette}{palette provided in the configuration file}
+\item{palette}{palette (one of grDevices::hcl.pals())}
+
+\item{rev}{revert the order of hcl palette (TRUE/FALSE)}
 }
 \description{
 plots a raster using ggplot. This function is used

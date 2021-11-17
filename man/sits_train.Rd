@@ -2,7 +2,7 @@
 % Please edit documentation in R/sits_machine_learning.R
 \name{sits_train}
 \alias{sits_train}
-\title{Train sits classification models}
+\title{Train classification models}
 \usage{
 sits_train(data, ml_method = sits_svm())
 }
@@ -32,7 +32,7 @@ and a deep Residual Network \code{\link[sits]{sits_ResNet}}.
 \examples{
 # Retrieve the set of samples for Mato Grosso (provided by EMBRAPA)
 # fit a training model (RFOR model)
-samples <- sits_select(samples_mt_6bands, bands = c("NDVI"))
+samples <- sits_select(samples_modis_4bands, bands = c("NDVI"))
 ml_model <- sits_train(samples, sits_rfor(num_trees = 100))
 # get a point and classify the point with the ml_model
 point_ndvi <- sits_select(point_mt_6bands, bands = "NDVI")

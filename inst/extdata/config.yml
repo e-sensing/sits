@@ -1,3 +1,5 @@
+# These are configuration parameters that can be set by users
+
 # estimated relative growth size of R memory relative to block size
 processing_bloat        : 5
 
@@ -13,22 +15,10 @@ gdal_creation_options   : ["COMPRESS=LZW", "BIGTIFF=YES"]
 # configuration for gdalcubes chunk
 gdalcubes_chunk_size   : [1, 2048, 2048]
 
-# local cube config options
-local_s3_class          : ["local_cube", "raster_cube"]
-local_file_extensions   : ["tiff", "tif", "jp2", "hdf", "vrt"]
-
-# configuration for probability cubes
-probs_cube_scale_factor : 0.0001
-probs_cube_data_type    : "INT2U"
-
-# configuration for classified cubes
-class_cube_data_type    : "INT1U"
-
 # maxbytes for leaflet (in MB)
 leaflet_max_Mbytes : 16
 # estimated compression factor for leaflet
 leaflet_comp_factor : 0.75
-
 
 sources:
     BDC                     :
@@ -590,8 +580,9 @@ sources:
                     AWS_DEFAULT_REGION   : "eu-central-1"
                     AWS_S3_ENDPOINT      : "s3.amazonaws.com"
                     AWS_REQUEST_PAYER    : "requester"
-                open_data   : true
+                open_data   : false
                 gdalcubes_format_col : "s2la_aws.json"
+                gdalcubes_type_format: "int16"
             SENTINEL-S2-L2A-COGS :
                 bands       :
                     B01     : &aws_cog_msi_60m
@@ -672,6 +663,7 @@ sources:
                 open_data: true
                 open_data_token: false
                 gdalcubes_format_col : "s2la_aws_cogs.json"
+                gdalcubes_type_format: "int16"
     DEAFRICA                :
         s3_class            : ["deafrica_cube", "stac_cube", "raster_cube"]
         service             : "STAC"
@@ -757,6 +749,7 @@ sources:
                 open_data: true
                 open_data_token: false
                 gdalcubes_format_col : "s2_l2a_deafrica.json"
+                gdalcubes_type_format: "int16"
             LS8_SR          : &deafrica_l8
                 bands       :
                     B01     : &deafrica_oli_30m
@@ -813,6 +806,7 @@ sources:
                 open_data: true
                 open_data_token: false
                 gdalcubes_format_col : "ls8_sr_deafrica.json"
+                gdalcubes_type_format: "int16"
     USGS                    :
         s3_class            : ["usgs_cube", "stac_cube", "raster_cube"]
         service             : "STAC"
@@ -878,78 +872,144 @@ sources:
                 open_data_token: false
                 tile_required: false
                 gdalcubes_format_col : "l8c2l2_usgs.json"
-
-# Default palette is based on ColorBrewer
-palettes:
-    default:
-        # Natural Vegetation uses "Greens" palette (9 colors)
-        # Forest uses "Greens" color 9
-        Forest            : "#00441B"
-        # Dense Woodlands and similar use "Greens" color 7
-        Cerradao          : "#238B45"
-        Dense_Woodland    : "#238B45"
-        Dense_Tree_Savanna: "#238B45"
-        # Savanna Parkland uses "Greens" color 6
-        Savanna_Parkland  : "#41AB5D"
-        # Savanna and Cerrado use "Greens" color 5
-        Savanna           : "#74C476"
-        Cerrado           : "#74C476"
-        # Campo Cerrado uses "Greens" color 4
-        Campo_Cerrado     : "#A1D99B"
-        # Cerrado Rupestre and Rocky Savanna use "Greens" color 4
-        Cerrado_Rupestre  : "#C7E9C0"
-        Rocky_Savanna     : "#C7E9C0"
-        NatNonVegetated   : "D9F0A3"
-        # Silviculture and Planted Forest use color 4 of "BuGn" 9-color palette
-        Silviculture      : "#66C2A4"
-        Planted Forest    : "#66C2A4"
-        # Shrublands are a mix of savanna and pasture without trees
-        # use color 4 of the 9-color "YlGn" palette
-        Shrublands        : "#ADDD8E"
-        # Non forest uses the same color as shrublands
-        NonForest         : "#ADDD8E"
-        # Grasslands are a mix of savanna and pasture
-        # In the tropics, they area associated to human actions
-        # use color 3 of the 9-color "YlGn" palette
-        Grasslands        : "#D9F0A3"
-        # Pasture results from human actions
-        # use color 2 of the 9-color "YlGn" palette
-        Pasture           : "#F7FCB9"
-        # Araguaia and Wetlands use color 5 of the "GnBu" 9-color palette
-        Araguaia          : "#7BCCC4"
-        Wetlands          : "#7BCCC4"
-        # Water uses color 7 of the "GnBu" 9-color palette
-        Water             : "#2B8CBE"
-        # Dunes use color 1 of the "YlGn" palette
-        Dunas             : "#FFFFE5"
-        Dunes             : "#FFFFE5"
-        # Cropland uses class 6 of the "YlOrRd" pallette
-        Cropland          : "#FC4E2A"
-        # Cotton uses colors 4-5 of the "YlOrRd" pallette
-        Cotton            : "#FD8D3C"
-        Fallow_Cotton     : "#FD8D3C"
-        Millet_Cotton     : "#FEB24C"
-        # Beans, Corn and Sugarcane use colors 4-6 of the "OrRd" palette
-        Beans             : "#FDBB84"
-        Corn              : "#FC8D59"
-        Sugarcane         : "#EF6548"
-        # Variations of Soy use the 9-color "Oranges" palette
-        # Soy_Corn uses color 7 of the "Oranges" palette
-        Soy_Corn          : "#D94801"
-        # Soy_Millet uses color 6 of the "Oranges" palette
-        Soy_Millet        : "#F16913"
-        # Soy_Sorghum uses color 6 of the "Oranges" palette
-        Soy_Sorghum       : "#F16913"
-        # Soy_Cotton uses color 5 of the "Oranges" palette
-        Soy_Cotton        : "#FD8D3C"
-        # Soy_Sunflower uses color 4 of the "Oranges" palette
-        Soy_Sunflower     : "#FDAE6B"
-        # Soy_Fallow uses color 3 of the "Oranges" palette
-        Soy_Fallow        : "#FDD0A2"
-        # Deforestation uses color 4 of the "PuRd" palette
-        Deforestation     : "#C994C7"
-        # Urban Areas uses color 4 of the "Purple" palette
-        Urban_Area        : "#BCBDDDC"
-        # No Class uses color 4 of the "Greys" palette
-        No_Class          : "#F0F0F0"
-
+                gdalcubes_type_format: "int16"
+    MSPC                    :
+        s3_class            : ["mspc_cube", "stac_cube", "raster_cube"]
+        service             : "STAC"
+        rstac_version       : "1.0.0"
+        url                 : "https://planetarycomputer.microsoft.com/api/stac/v1"
+        collections         :
+            LANDSAT-8-C2-L2 : &mspc_oli
+                bands       :
+                    B01     : &mspc_oli_30m
+                        missing_value : 0
+                        minimum_value : 7273
+                        maximum_value : 43636
+                        scale_factor  : 0.0000275
+                        offset_value  : -0.2
+                        resampling    : "bilinear"
+                        resolution    : 30
+                        band_name     : "SR_B1"
+                    B02     :
+                        <<: *mspc_oli_30m
+                        band_name     : "SR_B2"
+                    B03     :
+                        <<: *mspc_oli_30m
+                        band_name     : "SR_B3"
+                    B04     :
+                        <<: *mspc_oli_30m
+                        band_name     : "SR_B4"
+                    B05     :
+                        <<: *mspc_oli_30m
+                        band_name     : "SR_B5"
+                    B06     :
+                        <<: *mspc_oli_30m
+                        band_name     : "SR_B6"
+                    B07     :
+                        <<: *mspc_oli_30m
+                        band_name     : "SR_B7"
+                    CLOUD   :
+                        bit_mask      : TRUE
+                        band_name     : "QA_PIXEL"
+                        values        :
+                            0         : "missing_data"
+                            1         : "Dilated Cloud"
+                            2         : "High confidence cirrus"
+                            3         : "High confidence cloud"
+                            4         : "High confidence cloud shadow"
+                            5         : "High confidence snow cover"
+                            6         : "Clear"
+                            7         : "Water"
+                            9         : "High confidence of cloud"
+                            11        : "High confidence of cloud shadow"
+                            13        : "High confidence of snow"
+                            15        : "High confidence of cirrus"
+                        interp_values : [0, 1, 2, 3, 4, 5]
+                        resampling    : "near"
+                        resolution    : 30
+                satellite   : "LANDSAT-8"
+                sensor      : "OLI"
+                collection_name: "landsat-8-c2-l2"
+                open_data: true
+                open_data_token: false
+                tile_required: false
+                gdalcubes_format_col : "landsat_8_c2_l2_mspc.json"
+                gdalcubes_type_format: "int16"
+            SENTINEL-2-L2A  : &mspc_msi
+                bands       :
+                    B01     : &mspc_msi_60m
+                        missing_value : -9999
+                        minimum_value : 0
+                        maximum_value : 10000
+                        scale_factor  : 0.0001
+                        offset_value  : 0
+                        resolution   :  60
+                        band_name     : "B01"
+                    B02     : &mspc_msi_10m
+                        missing_value : -9999
+                        minimum_value : 0
+                        maximum_value : 10000
+                        scale_factor  : 0.0001
+                        offset_value  : 0
+                        resolution   :  10
+                        band_name     : "B02"
+                    B03     :
+                        <<: *mspc_msi_10m
+                        band_name     : "B03"
+                    B04     :
+                        <<: *mspc_msi_10m
+                        band_name     : "B04"
+                    B05     : &mspc_msi_20m
+                        missing_value : -9999
+                        minimum_value : 0
+                        maximum_value : 10000
+                        scale_factor  : 0.0001
+                        offset_value  : 0
+                        resolution   :  20
+                        band_name     : "B05"
+                    B06     :
+                        <<: *mspc_msi_20m
+                        band_name     : "B06"
+                    B07     :
+                        <<: *mspc_msi_20m
+                        band_name     : "B07"
+                    B08     :
+                        <<: *mspc_msi_10m
+                        band_name     : "B08"
+                    B8A     :
+                        <<: *mspc_msi_20m
+                        band_name     : "B8A"
+                    B09     :
+                        <<: *mspc_msi_60m
+                        band_name     : "B09"
+                    B11     :
+                        <<: *mspc_msi_20m
+                        band_name     : "B11"
+                    B12     :
+                        <<: *mspc_msi_20m
+                        band_name     : "B12"
+                    CLOUD   :
+                        bit_mask      : FALSE
+                        band_name     : "SCL"
+                        values        :
+                            0         : "missing_data"
+                            1         : "defective pixel"
+                            2         : "shadows"
+                            3         : "cloud shadows"
+                            4         : "vegetation"
+                            5         : "non-vegetated"
+                            6         : "water"
+                            7         : "unclassified"
+                            8         : "cloud medium"
+                            9         : "cloud high"
+                            10        : "thin cirrus"
+                            11        : "snow or ice"
+                        interp_values : [0, 1, 2, 3, 8, 9, 10, 11]
+                        resolution   :  20
+                satellite   : "SENTINEL-2"
+                sensor      : "MSI"
+                collection_name: "sentinel-2-l2a"
+                open_data: true
+                open_data_token: false
+                gdalcubes_format_col : "sentinel_2_l2a_mspc.json"
+                gdalcubes_type_format: "int16"

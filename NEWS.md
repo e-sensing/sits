@@ -2,6 +2,30 @@
 
 We are preparing to release the package on CRAN and are making relevant changes in the development version.
 
+# What's new in SITS version 0.15.1
+
+### New features in SITS version 0.15.1
+* Update README.Rmd
+* Support `sits_timeline()` to sits model objects
+* Update drone image
+* Simplify `config_colors.yml` by removing palette names
+* Temporary python files are being generated in the check
+* Organise color handling in SITS
+* Organise configuration files
+* Improve preconditions in `sits_regularize()`
+* Compress external data with bzip2
+* Update gdalcubes format files
+* Update rstac version
+* Check provided parameters in sits_regularize function
+* Use default palette for SOM colors
+* Remove `start_date` and `end_date` from validation csv file
+* Use a default brewer palette to plot classified cube
+* Improve package help pages
+* Remove unused data sets
+* Remove rarely used functions
+* `sits_regularize()` is producing *Float64* images as output
+* Full support for Microsoft Planetary Computing
+
 # What's new in SITS version 0.15.0 
 
 ### New features in SITS version 0.15.0-4

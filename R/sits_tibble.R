@@ -1,4 +1,4 @@
-#' @title Apply a function over a time series.
+#' @title Apply a function on a set of time series
 #' @name sits_apply
 #' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
 #' @description Apply a 1D generic function to a time series
@@ -95,10 +95,10 @@ sits_apply <- function(data,
 #' @examples
 #' \donttest{
 #' # Retrieve data for time series with label samples in Mato Grosso in Brazil
-#' data(samples_mt_6bands)
+#' data(samples_modis_4bands)
 #' # Generate a new image with the SAVI (Soil-adjusted vegetation index)
-#' savi.tb <- sits_mutate_bands(samples_mt_6bands,
-#'            SAVI = (1.5 * (NIR - RED) / (NIR + RED + 0.5)))
+#' ndwi.tb <- sits_mutate_bands(samples_modis_4bands,
+#'            NDWI = (1.5 * (NIR - MIR) / (NIR + MIR)))
 #' }
 #' @export
 sits_mutate_bands <- function(data, ...) {
@@ -202,7 +202,7 @@ sits_sample <- function(data, n = NULL, frac = NULL) {
     return(result)
 }
 
-#' @title Retrieve time series for a row of a sits tibble
+#' @title Get the time series for a row of a sits tibble
 #' @name sits_time_series
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'
@@ -439,12 +439,9 @@ sits_time_series <- function(data) {
         min = 1, msg = "Invalid number of rows"
     )
 
-    names <- c("longitude", "latitude", "start_date", "end_date",
-               "label", "cube", "time_series")
-
     .check_chr_contains(
         x = colnames(data),
-        contains = names,
+        contains = .config_get("sits_tibble_cols"),
         discriminator = "all_of",
         msg = "Data is not a valid sits tibble"
     )

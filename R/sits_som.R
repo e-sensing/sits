@@ -1,94 +1,43 @@
-#' @title Clustering a set of satellite image time series using SOM
-#' @name sits_som_cluster
-#' @author Lorena Alves, \email{lorena.santos@@inpe.br}
-#' @author Karine Ferreira. \email{karine.ferreira@@inpe.br}
-#' @description This function uses self-organized maps to find clusters in
-#' satellite image time series for quality control of the  samples.
-#' Calls \code{\link[sits]{sits_som_map}} to generate the som map and
-#' \code{\link[sits]{sits_som_clean_samples}} to produce a clean set of samples.
-#' The parameters "grid_xdim", "grid_ydim", "rlen", "distance", "alpha", and
-#' "iterations" are used by \code{\link[sits]{sits_som_map}} to control
-#' how the Kohonen map is generated.
-#' The parameters "prior_threshold" and "posterior_threshold" control
-#' how the good quality samples are selected, based on the Kohonen map.
+#' @title Use SOM for quality analysis of time series samples
+#' @name sits_som
 #'
-#' @references `kohonen` package (https://CRAN.R-project.org/package=kohonen)
-#'
-#' @param data           A tibble with samples to be clustered.
-#' @param grid_xdim      X dimension of the SOM grid (default = 25).
-#' @param grid_ydim      Y dimension of the SOM grid.
-#' @param alpha          Starting learning rate,
-#'                       which decreases according to number of iterations.
-#' @param distance       The similarity measure (distance).
-#' @param rlen           How many times dataset will be presented to the SOM.
-#' @param prior_threshold      Threshold of priot probability
-#'                          (frequency of samples assigned to a same SOM neuron)
-#' @param posterior_threshold       Threshold of posterior probability
-#'                                  (influenced by the SOM neighborhood)
-#' @param som_radius    Radius of neighborhood on the SOM map
-#'                      (controls the size of the neighbourhood)
-#' @return              A sits tibble with an evaluation column indicating if
-#'                      each samples is clean, should be analyzed or
-#'                      should be removed, and with a new column indicating
-#'                      the posterior probability of the sample
-#' @examples
-#' \dontrun{
-#' # Evaluate the quality of the samples using SOM clustering
-#' new_samples <- sits_som_cluster(samples_modis_4bands)
-#' }
-#' @export
-sits_som_cluster <- function(data,
-                             grid_xdim = 10,
-                             grid_ydim = 10,
-                             alpha = 1.0,
-                             distance = "euclidean",
-                             rlen = 100,
-                             prior_threshold = 0.6,
-                             posterior_threshold = 0.6,
-                             som_radius = 2) {
-
-    # generate a som map where each neuron is associated to one or
-    # more samples
-    som_map <- sits_som_map(
-        data,
-        grid_xdim,
-        grid_ydim,
-        alpha,
-        rlen,
-        distance,
-        som_radius
-    )
-    plot(som_map)
-    # clean the data based on the prior and posterior probabilities
-    data_clean <- sits_som_clean_samples(
-        som_map,
-        prior_threshold,
-        posterior_threshold
-    )
-
-    return(data_clean)
-}
-#' @title Generate a Kohonen map for sample quality control
-#' @name sits_som_map
 #' @author Lorena Alves, \email{lorena.santos@@inpe.br}
 #' @author Karine Ferreira. \email{karine.ferreira@@inpe.br}
 #'
-#' @description This function uses package self-organized maps
-#' to find clusters in satellite image time series to cluster the  samples.
-#' It also evaluates the quality of each sample using SOM properties.
+#' @description These function use self-organized maps to perform
+#' quality analysis in satellite image time series
 #'
-#' The results is a list with three members:
-#' (1) the samples tibble, with one additional column indicating
-#' to which neuron it has been mapped;
-#' (2) the Kohonen map, used for plotting and cluster quality measures;
-#' (3) a tibble with the labelled neurons,
-#' where each class of each neuron is associated to two values:
-#' (a) the prior probability that this class belongs to a cluster
-#' based on the frequency of samples of this class allocated to the neuron;
-#' (b) the posterior probability that this class belongs to a cluster,
-#' using data for the neighbours on the SOM map.
+#' \code{sits_som_map()} creates a SOM map, where high-dimensional data
+#' is mapped into a two dimensional map, keeping the topological relations
+#' between data patterns. Each sample is assigned to a neuron,
+#' and neurons are placed in the grid based on similarity.
 #'
-#' @references `kohonen` package (https://CRAN.R-project.org/package=kohonen)
+#' \code{sits_som_evaluate_cluster()} analyses the neurons of the SOM map,
+#' and builds clusters based on them. Each cluster is a neuron
+#' or a set of neuron categorized with same label.
+#' It produces a tibble with the percentage of mixture of classes
+#' in each cluster.
+#'
+#' \code{sits_som_clean_samples()} evaluates the quality of the samples
+#' based on the results of the SOM map.  The algorithm identifies noisy samples,
+#' using `prior_threshold` for the prior probability
+#' and `posterior_threshold` for the posterior probability.
+#' Each sample receives an evaluation tag, according to the following rule:
+#' (a) If the prior probability is < `prior_threshold`, the sample is tagged as "remove";
+#' (b) If the prior probability is >= `prior_threshold` and the posterior probability
+#' is >=`posterior_threshold`, the sample is tagged as "clean";
+#' (c) If the prior probability is >= `posterior_threshold` and
+#' the posterior probability is < `posterior_threshold`, the sample is tagged as "analyze" for further inspection.
+#' The user can define which tagged samples will be returned using the "keep"
+#' parameter, with the following options: "clean", "analyze", "remove".
+#'
+#'
+#' @references
+#' Lorena Santos, Karine Ferreira, Gilberto Camara, Michelle Picoli,
+#' Rolf Simoes, “Quality control and class noise reduction of satellite
+#' image time series”. ISPRS Journal of Photogrammetry and Remote Sensing,
+#' vol. 177, pp 75-88, 2021. https://doi.org/10.1016/j.isprsjprs.2021.04.014.
+#'
 #'
 #' @param data           A tibble with samples to be clustered.
 #' @param grid_xdim      X dimension of the SOM grid (default = 25).
@@ -99,19 +48,42 @@ sits_som_cluster <- function(data,
 #' @param rlen           Number of iterations to produce the SOM.
 #' @param som_radius     Radius of SOM neighborhood
 #' @param mode           Type of learning algorithm (default = "online")
-#' @return               A list of tibbles containing statistics
-#'                       about the samples and the neuron in each iteration.
-
+#' @param som_map       An object returned by \code{\link[sits]{sits_som_map}}
+#' @param prior_threshold      Threshold of conditional probability
+#'                (frequency of samples assigned to the same SOM neuron)
+#' @param posterior_threshold       Threshold of posterior probability
+#'                              (influenced by the SOM neighborhood)
+#' @param keep      Which types of evaluation to be maintained in the data
 #'
 #' @examples
 #' \dontrun{
 #' # Produce a cluster map
-#' som_cluster <- sits_som_map(samples_modis_4bands)
+#' som_map <- sits_som_map(samples_modis_4bands)
 #' # plot the som map
-#' plot(som_cluster)
+#' plot(som_map)
+#' # calculate the mixture inside clusters
+#' eval <- sits_som_evaluate_cluster(som_map)
+#' # plot the cluster evaluation
+#' plot(eval)
 #' # Clean the samples to get better quality ones
-#' clean_samples <- sits_som_clean_samples(som_cluster)
+#' clean_samples <- sits_som_clean_samples(som_map)
 #' }
+#'
+#'
+
+#' @rdname sits_som
+#' @return
+#' \code{sits_som_map()} prodices a list with three members:
+#' (1) the samples tibble, with one additional column indicating
+#' to which neuron each sample has been mapped;
+#' (2) the Kohonen map, used for plotting and cluster quality measures;
+#' (3) a tibble with the labelled neurons,
+#' where each class of each neuron is associated to two values:
+#' (a) the prior probability that this class belongs to a cluster
+#' based on the frequency of samples of this class allocated to the neuron;
+#' (b) the posterior probability that this class belongs to a cluster,
+#' using data for the neighbours on the SOM map.
+#'
 #' @export
 sits_som_map <- function(data,
                          grid_xdim = 10,
@@ -229,54 +201,14 @@ sits_som_map <- function(data,
     return(som_map)
 }
 
-#' @title Clean samples
-#' @name sits_som_clean_samples
-#' @author Lorena Santos, \email{lorena.santos@@inpe.br}
-#' @author Karine Ferreira. \email{karine.ferreira@@inpe.br}
-#'
-#' @description This function evaluate the quality of the samples
-#' based on the results of the SOM map. It produces
-#' a sits tibble with an evaluation column indicating if
+#' @rdname sits_som
+#' @return
+#' \code{sits_som_clean_samples()} produces
+#' a sits tibble with an two additional columns.The first indicates if
 #' each sample is clean, should be analyzed or
-#' should be removed, and with a new column indicating
+#' should be removed. The second indicates
 #' the posterior probability of the sample
 #'
-#' @param som_map                   An object returned
-#'                                  by \code{\link[sits]{sits_som_map}}
-#' @param prior_threshold      Threshold of conditional probability
-#'                (frequency of samples assigned to the same SOM neuron)
-#' @param posterior_threshold       Threshold of posterior probability
-#'                                  (influenced by the SOM neighborhood)
-#' @param keep                 Samples evaluation to be maintained in the data
-#'
-#' @return List with two sits tibbles.
-#'         The first tibble has clean samples
-#'         The second has samples that need to be analysed.
-#'
-#' @note
-#'     The algorithm identifies noisy samples, using `prior_threshold` for
-#'     the prior probability and `posterior_threshold` for the posterior probability.
-#'     Each sample receives an evaluation tag, according to the following rule:
-#'     (a) If the prior probability is < `prior_threshold`, the sample is tagged as "remove";
-#'     (b) If the prior probability is >= `prior_threshold` and the posterior probability
-#'     is >=`posterior_threshold`, the sample is tagged as "clean";
-#'     (c) If the prior probability is >= `posterior_threshold` and
-#'     the posterior probability is < `posterior_threshold`,
-#'     the sample is tagged as "analyze" for further inspection.
-#'
-#'     The user can define which tagged samples will be returned using the "keep"
-#'     parameter, with the following options: "clean", "analyze", "remove".
-#'
-#' @examples
-#' \dontrun{
-#' # Read a set of samples
-#' # Get a new subset of samples evaluated by clustering methods
-#' som_map <- sits_som_map(samples_modis_4bands,
-#'     grid_xdim = 10, grid_ydim = 10,
-#'     distance = "euclidean"
-#' )
-#' new_samples <- sits_som_clean_samples(som_map)
-#' }
 #' @export
 sits_som_clean_samples <- function(som_map,
                                    prior_threshold = 0.6,
@@ -293,7 +225,7 @@ sits_som_clean_samples <- function(som_map,
     }
     .check_chr_within(
         x = keep,
-        within = c("clean", "analyze", "remove"),
+        within = .config_get("som_outcomes"),
         msg = "invalid keep parameter"
     )
 
@@ -317,31 +249,12 @@ sits_som_clean_samples <- function(som_map,
     return(data)
 }
 
-#' @title Evaluate cluster
-#' @name sits_som_evaluate_cluster
-#' @author Lorena Santos, \email{lorena.santos@@inpe.br}
-#' @author Karine Ferreira. \email{karine.ferreira@@inpe.br}
+#' @rdname sits_som
 #'
-#' @description This function evaluate the clusters created by
-#' SOM. Each cluster is a neuron or a set of neuron categorized with same label.
-#' It produces a sits tibble indicating the percentage of mixture
-#' of classes in each cluster.
-#'
-#' @param som_map                   An object returned
-#'                                  by \code{\link[sits]{sits_som_map}}
-#' @return A tibble with the cluster and the percentage of classes
-#'  mixtured in each cluster.
-
-#' @examples
-#' \dontrun{
-#' # Read a set of samples
-#' # Get a new subset of samples evaluated by clustering methods
-#' som_map <- sits_som_map(samples_modis_4bands,
-#'     grid_xdim = 10, grid_ydim = 10,
-#'     distance = "euclidean"
-#' )
-#' cluster_purity <- sits_som_evaluate_cluster(som_map)
-#' }
+#' @return
+#' \code{sits_som_evaluate_cluster()} produces a tibble with the clusters
+#' found by the SOM map. For each cluster, ir provides the percentage
+#' of classes inside it.
 #' @export
 sits_som_evaluate_cluster <- function(som_map) {
     # Sanity check
@@ -446,7 +359,7 @@ sits_som_evaluate_cluster <- function(som_map) {
             } else {
                 label_neuron <- tibble::tibble(
                     id_neuron = as.numeric(i),
-                    label_samples = "NoSamples",
+                    label_samples = "No_Samples",
                     count = 0,
                     prior_prob = 0
                 )
@@ -557,32 +470,14 @@ sits_som_evaluate_cluster <- function(som_map) {
 #'                       colour of the neuron.
 #'
 .sits_som_paint_neurons <- function(kohonen_obj) {
-    # set colors to paint neurons
-    pallete1 <- .sits_brewer_rgb[[.sits_brewer_color_name("Set1")]]
-    set1 <- utils::head(unique(unlist(pallete1, use.names = FALSE)), -1)
 
-    pallete2 <- .sits_brewer_rgb[[.sits_brewer_color_name("Accent")]]
-    accent <- utils::head(unique(unlist(pallete2, use.names = FALSE)), -1)
+    # assign one color per unique label
 
-    pallete3 <- .sits_brewer_rgb[[.sits_brewer_color_name("Pastel1")]]
-    pastel1 <- utils::head(unique(unlist(pallete3, use.names = FALSE)), -1)
+    colors <- .config_colors(labels = kohonen_obj$neuron_label,
+                             palette = "Spectral",
+                             rev = TRUE)
 
-    # build a mixed pallete with different colors
-    pallete <- c(accent, pastel1, set1)
-
-    # unique label
-    labels <- unique(kohonen_obj$neuron_label)
-
-    # Paint
-    colors <- kohonen_obj$neuron_label %>%
-        purrr::map(function(label) {
-            if (label == "NoSamples") {
-                  return("White")
-              } else {
-                  return(pallete[which(labels == label)])
-              }
-        })
-    kohonen_obj$paint_map <- unlist(colors)
+    kohonen_obj$paint_map <- unname(colors[kohonen_obj$neuron_label])
 
     return(kohonen_obj)
 }

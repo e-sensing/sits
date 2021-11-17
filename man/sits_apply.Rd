@@ -2,7 +2,7 @@
 % Please edit documentation in R/sits_tibble.R
 \name{sits_apply}
 \alias{sits_apply}
-\title{Apply a function over a time series.}
+\title{Apply a function on a set of time series}
 \usage{
 sits_apply(
   data,

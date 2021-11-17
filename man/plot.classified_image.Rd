@@ -2,7 +2,7 @@
 % Please edit documentation in R/sits_plot.R
 \name{plot.classified_image}
 \alias{plot.classified_image}
-\title{Generic interface for ploting classified images}
+\title{Plot classified images}
 \usage{
 \method{plot}{classified_image}(
   x,
@@ -11,7 +11,8 @@
   time = 1,
   title = "Classified Image",
   legend = NULL,
-  palette = "default"
+  palette = "Spectral",
+  rev = TRUE
 )
 }
 \arguments{
@@ -23,11 +24,13 @@
 
 \item{time}{temporal reference for plot.}
 
-\item{title}{Title of the plot}
+\item{title}{title of the plot}
 
 \item{legend}{named vector that associates labels to colors}
 
-\item{palette}{palette provided in the configuration file}
+\item{palette}{alternative palette that uses grDevices::hcl.pals()}
+
+\item{rev}{invert the order of hcl palette (TRUE/FALSE)}
 }
 \description{
 plots a classified raster using ggplot.

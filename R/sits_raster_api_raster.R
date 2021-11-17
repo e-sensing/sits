@@ -1,4 +1,4 @@
-
+# nocov start
 #' @keywords internal
 #' @export
 .raster_check_package.raster <- function() {
@@ -317,4 +317,4 @@
     # raster package resample names
     return(c("ngb", "bilinear"))
 }
-
+# nocov end

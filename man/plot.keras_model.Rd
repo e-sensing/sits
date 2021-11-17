@@ -2,7 +2,7 @@
 % Please edit documentation in R/sits_plot.R
 \name{plot.keras_model}
 \alias{plot.keras_model}
-\title{Generic interface for plotting a Keras model}
+\title{Plot Keras (deep learning) model}
 \usage{
 \method{plot}{keras_model}(x, y, ...)
 }
@@ -20,7 +20,7 @@ The plot itself.
 plots a deep learning model developed using keras
 }
 \examples{
-\donttest{
+\dontrun{
 # Get a set of samples
 samples_ndvi_evi <- sits_select(samples_modis_4bands,
                                 bands = c("NDVI", "EVI"))

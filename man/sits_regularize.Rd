@@ -2,18 +2,18 @@
 % Please edit documentation in R/sits_regularize.R
 \name{sits_regularize}
 \alias{sits_regularize}
-\title{Creates a regularized data cube from an irregular one}
+\title{Build a regular data cube from an irregular one}
 \usage{
 sits_regularize(
   cube,
   output_dir,
-  period = NULL,
+  period,
   res = NULL,
   roi = NULL,
   agg_method = "median",
   resampling = "bilinear",
   cloud_mask = TRUE,
-  multicores = 1
+  multicores = 2
 )
 }
 \arguments{
@@ -35,9 +35,8 @@ will be aggregated.}
 See above}
 
 \item{agg_method}{A \code{character} with method that will be applied by
-\code{gdalcubes} for aggregation.
-Options: \code{min}, \code{max}, \code{mean}, \code{median} and
-\code{first}.}
+\code{gdalcubes} for aggregation. Options: \code{min}, \code{max},
+\code{mean}, \code{median} and \code{first}. Default is \code{median}.}
 
 \item{resampling}{A \code{character} with method to be used by
 \code{gdalcubes} for resampling in mosaic operation.
@@ -71,15 +70,9 @@ The "roi" parameter defines a region of interest. It can be
 \dontrun{
 
 # --- Access to the AWS STAC
-# Provide your AWS credentials as environment variables
-Sys.setenv(
-    "AWS_ACCESS_KEY_ID" = <your_aws_access_key>,
-    "AWS_SECRET_ACCESS_KEY" = <your_aws_secret_access_key>
-)
 
 # define an AWS data cube
   s2_cube <- sits_cube(source = "AWS",
-                      name = "T20LKP_2018_2019",
                       collection = "sentinel-s2-l2a-cogs",
                       bands = c("B08", "SCL"),
                       tiles = c("20LKP"),
@@ -96,6 +89,7 @@ gc_cube <- sits_regularize(cube       = s2_cube,
                            period     = "P1M",
                            agg_method = "median",
                            resampling = "bilinear",
+                           res        = 60,
                            cloud_mask = TRUE)
 }
 }

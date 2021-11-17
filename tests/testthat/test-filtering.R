@@ -2,7 +2,7 @@ test_that("Generic filter", {
     point_ndvi <- sits_select(point_mt_6bands, bands = "NDVI")
     point_ndvi_whit <- sits_filter(point_ndvi)
     expect_true(length(sits_timeline(point_ndvi))
-    == length(sits_timeline(point_ndvi_whit)))
+                == length(sits_timeline(point_ndvi_whit)))
 })
 
 test_that("Generic filter-error", {
@@ -11,15 +11,6 @@ test_that("Generic filter-error", {
     expect_error(
         sits_filter(point_ndvi, lambda)
     )
-})
-
-test_that("Envelope filter", {
-    testthat::skip_on_cran()
-    library(dtwclust)
-    point_ndvi <- sits_select(point_mt_6bands, bands = "NDVI")
-    point_env <- sits_envelope(point_ndvi, bands_suffix = "env")
-    expect_true(all(sits_time_series(point_env)$NDVI.env
-    >= sits_time_series(point_ndvi)$NDVI))
 })
 
 test_that("Whittaker filter", {
@@ -38,7 +29,7 @@ test_that("Savitsky Golay filter", {
         length(sits_timeline(point_sg)))
 })
 
-test_that("Interpolation filter", {
+test_that("Spline interpolation", {
     point_ndvi <- sits_select(point_mt_6bands, bands = "NDVI")
     n_times <- length(sits_timeline(point_ndvi))
     point_int <- sits_interp(point_ndvi, fun = stats::spline, n = 3 * n_times)
@@ -48,18 +39,11 @@ test_that("Interpolation filter", {
         sd(sits_time_series(point_int)$NDVI))
 })
 
-test_that("Linear interpolation filter", {
+test_that("Linear interpolation", {
     point_ndvi <- sits_select(point_mt_6bands, bands = "NDVI")
-    point_int <- sits_linear_interp(point_ndvi)
+    point_int <- sits_interp(point_ndvi)
 
     # filtered data has less sd
     expect_true(sd(sits_time_series(point_ndvi)$NDVI) >
         sd(sits_time_series(point_int)$NDVI))
-})
-
-test_that("Missing values", {
-    point_ndvi <- sits_select(point_mt_6bands, bands = "NDVI")
-    point_ndvi_2 <- sits_missing_values(point_ndvi, miss_value = -3000)
-    expect_true(length(sits_timeline(point_ndvi))
-    == length(sits_timeline(point_ndvi_2)))
 })

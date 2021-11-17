@@ -4,14 +4,14 @@
 \alias{.sits_plot_som_map}
 \title{Plot the SOM grid with neurons labeled}
 \usage{
-.sits_plot_som_map(koh, type = "codes", whatmap = 1)
+.sits_plot_som_map(koh, type = "codes", band = 1)
 }
 \arguments{
 \item{koh}{SOM map produced by "sits_som_map" function}
 
 \item{type}{Type of plot ("codes" or "mapping")}
 
-\item{whatmap}{What data layer will be plotted.}
+\item{band}{What band will be plotted}
 }
 \description{
 Given a kohonen object with a set of time neurons, plot them.

@@ -1,4 +1,4 @@
-#' @title Cross-validate temporal patterns
+#' @title Cross-validate time series samples
 #' @name sits_kfold_validate
 #' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
@@ -79,7 +79,7 @@ sits_kfold_validate <- function(data,
     )
 
     # create partitions different splits of the input data
-    data <- sits_create_folds(data, folds = folds)
+    data <- .sits_create_folds(data, folds = folds)
 
     # create prediction and reference vector
     pred_vec <- character()
@@ -135,17 +135,18 @@ sits_kfold_validate <- function(data,
     return(assess)
 }
 #' @title Create partitions of a data set
-#' @name  sits_create_folds
+#' @name  .sits_create_folds
 #' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
 #' @author Alexandre Ywata, \email{alexandre.ywata@@ipea.gov.br}
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'
 #' @description Split a sits tibble into k groups, based on the label.
 #'
+#' @keywords internal
 #' @param data   A sits tibble to be partitioned.
-#' @param folds     Number of folds.
-#' @export
-sits_create_folds <- function(data, folds = 5) {
+#' @param folds     Number of folds
+#'
+.sits_create_folds <- function(data, folds = 5) {
     # verify if data exists
     .sits_tibble_test(data)
 

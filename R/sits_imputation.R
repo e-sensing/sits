@@ -1,4 +1,4 @@
-#' @title Linear imputation of NA values using C++ implementation
+#' @title Replace NA values with linear interpolation
 #' @name sits_impute_linear
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'

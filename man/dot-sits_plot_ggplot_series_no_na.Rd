@@ -4,12 +4,10 @@
 \alias{.sits_plot_ggplot_series_no_na}
 \title{Plot one timeSeries using ggplot (no NAs present)}
 \usage{
-.sits_plot_ggplot_series_no_na(row, colors = "Dark2")
+.sits_plot_ggplot_series_no_na(row)
 }
 \arguments{
 \item{row}{row of a sits tibble with the time series to be plotted.}
-
-\item{colors}{brewer colors to be used for plotting.}
 }
 \value{
 The plot itself.

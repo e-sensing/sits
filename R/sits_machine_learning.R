@@ -1,4 +1,4 @@
-#' @title Train sits classification models
+#' @title Train classification models
 #' @name sits_train
 #'
 #' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
@@ -26,7 +26,7 @@
 #' @examples
 #' # Retrieve the set of samples for Mato Grosso (provided by EMBRAPA)
 #' # fit a training model (RFOR model)
-#' samples <- sits_select(samples_mt_6bands, bands = c("NDVI"))
+#' samples <- sits_select(samples_modis_4bands, bands = c("NDVI"))
 #' ml_model <- sits_train(samples, sits_rfor(num_trees = 100))
 #' # get a point and classify the point with the ml_model
 #' point_ndvi <- sits_select(point_mt_6bands, bands = "NDVI")
@@ -65,7 +65,7 @@ sits_train <- function(data, ml_method = sits_svm()) {
     return(result)
 }
 
-#' @title Train a sits classification model using multinomial log-linear
+#' @title Train multinomial log-linear models
 #' @name sits_mlr
 #'
 #' @author Alexandre Ywata de Carvalho, \email{alexandre.ywata@@ipea.gov.br}
@@ -160,7 +160,7 @@ sits_mlr <- function(data = NULL, formula = sits_formula_linear(),
     return(result)
 }
 
-#' @title Train a SITS classifiction model using random forest algorithm
+#' @title Train random forest models
 #' @name sits_rfor
 #'
 #' @author Alexandre Ywata de Carvalho, \email{alexandre.ywata@@ipea.gov.br}
@@ -238,7 +238,7 @@ sits_rfor <- function(data = NULL, num_trees = 200, nodesize = 1, ...) {
     result <- .sits_factory_function(data, result_fun)
     return(result)
 }
-#' @title Train a sits classification model using a support vector machine
+#' @title Train support vector machine models
 #' @name sits_svm
 #'
 #' @author Alexandre Ywata de Carvalho, \email{alexandre.ywata@@ipea.gov.br}
@@ -360,7 +360,7 @@ sits_svm <- function(data = NULL, formula = sits_formula_logref(),
 }
 
 
-#' @title Train a model with an extreme gradient boosting machine
+#' @title Train extreme gradient boosting models
 #' @name sits_xgboost
 #'
 #' @author Alexandre Ywata de Carvalho, \email{alexandre.ywata@@ipea.gov.br}

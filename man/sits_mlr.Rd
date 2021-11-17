@@ -2,7 +2,7 @@
 % Please edit documentation in R/sits_machine_learning.R
 \name{sits_mlr}
 \alias{sits_mlr}
-\title{Train a sits classification model using multinomial log-linear}
+\title{Train multinomial log-linear models}
 \usage{
 sits_mlr(
   data = NULL,

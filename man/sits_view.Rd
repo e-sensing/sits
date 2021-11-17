@@ -5,11 +5,11 @@
 \alias{sits_view.sits}
 \alias{sits_view.raster_cube}
 \alias{sits_view.classified_image}
-\title{Generic interface for visualization of data cube}
+\title{View data cubes and samples in leaflet}
 \usage{
 sits_view(x, ...)
 
-\method{sits_view}{sits}(x, ..., legend = NULL, palette = "default")
+\method{sits_view}{sits}(x, ..., legend = NULL, palette = "Harmonic")
 
 \method{sits_view}{raster_cube}(
   x,

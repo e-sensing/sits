@@ -1,13 +1,33 @@
-# sits interface to the "signal" package
+# Sits interface to the "signal" package
+#
+# The "signal" package is A set of signal processing functions originally written for
+# 'Matlab' and 'Octave'.  Includes filter generation utilities,
+# filtering functions, resampling routines, and visualization of
+# filter models. It also includes interpolation functions.
+#
+# Further information on "signal"
+# Authors:             Uwe Ligges [aut, cre] (new maintainer),
+#                      Tom Short [aut], Paul Kienzle [aut], Sarah Schnackenberg [ctb],
+#                      David Billinghurst [ctb], Hans-Werner Borchers [ctb],
+#                      Andre Carezia [ctb], Pascal Dupuis [ctb], John W. Eaton [ctb],
+#                      E. Farhi [ctb], Kai Habel [ctb], Kurt Hornik [ctb],
+#                      Sebastian Krey [ctb], Bill Lash [ctb], Friedrich Leisch [ctb],
+#                      Olaf Mersmann [ctb], Paulo Neis [ctb], Jaakko Ruohio [ctb],
+#                      Julius O. Smith III [ctb], Doug Stewart [ctb],
+#                      Andreas Weingessel [ctb]
+# Maintainer:         Uwe Ligges <ligges@statistik.tu-dortmund.de>
 
-# the Savitsky-Golay filter of the "signal" package has been
+# The code on this file has been lifted from the "signal" package
+
+# The Savitsky-Golay filter of the "signal" package has been
 # lifted to be part of "sits" and thus reduce the package load
 # Since signal is licensed as GPL >= 2,
 # sits is also licensed as GPL >= 2
 
 #' @title Savitsky-Golay smoothing filter
 #' @name .sits_signal_sgolayfilt
-#' @author Gilberto Camara
+#'
+#' @keywords internal
 #'
 #' @description  Smooth the data in x with a Savitsky-Golay smoothing filter of
 #'   polynomial order p and length n, n odd, n > p.  By default, p=3
@@ -42,8 +62,7 @@
 }
 
 #' @title Savitsky-Golay smoothing filter coefficients
-#' @name .sits_signal_sgolayfilt
-#' @author Gilberto Camara
+#' @name .sits_signal_sgolay
 #'
 #' @description  Computes the filter coefficients for all Savitzky-Golay smoothing
 #' filters of order p for length n (odd). m can be used in order to
@@ -54,6 +73,8 @@
 #' and half past.  In particular, you can use row i to estimate x(k)
 #' based on the i-1 preceding values and the n-i following values of x
 #' values as y(k) = F(i,:) * x(k-i+1:k+n-i).
+#'
+#' @keywords internal
 #'
 #' @param p            Filter order (integer).
 #' @param n            Filter length (must be odd)
@@ -116,6 +137,8 @@
 #' @title Generalized Inverse of a Matrix
 #'
 #' @description Calculates the Moore-Penrose generalized inverse of a matrix X.
+#'
+#' @keywords internal
 #'
 #' @param X Matrix for which the Moore-Penrose inverse is required.
 #' @param tol A relative tolerance to detect zero singular values.

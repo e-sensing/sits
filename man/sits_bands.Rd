@@ -2,7 +2,7 @@
 % Please edit documentation in R/sits_bands.R
 \name{sits_bands}
 \alias{sits_bands}
-\title{Informs the names of the bands}
+\title{Get the names of the bands}
 \usage{
 sits_bands(x)
 }
@@ -13,14 +13,14 @@ sits_bands(x)
 A string vector with the names of the bands.
 }
 \description{
-Finds/replaces the names of the bands of
+Finds the names of the bands of
               a set of time series or of a data cube
 }
 \examples{
 {
 # Retrieve the set of samples for Mato Grosso (provided by EMBRAPA)
 # show the bands
-sits_bands(samples_mt_6bands)
+sits_bands(samples_modis_4bands)
 }
 
 }

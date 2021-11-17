@@ -1,16 +1,15 @@
-#' @title Obtain time series from different sources
+#' @title Get time series from data cubes and cloud services
 #' @name sits_get_data
 #' @author Gilberto Camara
 #'
 #' @description Retrieve a set of time series from a data cube or from
-#' a time series service. Data cubes
-#'  and puts it in a "sits tibble".
+#' a time series service. Data cubes and puts it in a "sits tibble".
 #' Sits tibbles are the main structures of sits package.
 #' They contain both the satellite image time series and their metadata.
 #' A sits tibble is a tibble with pre-defined columns that
 #' has the metadata and data for each time series. The columns are
 #' <longitude, latitude, start_date, end_date, label, cube, time_series>.
-#' There are many ways of retrieving time series:
+#' There are three ways of retrieving time series: (a)
 #' \itemize{
 #' \item{SATVEG:}{Retrieve data from SATVEG service using a lat/long point
 #'  (see S3 method for class 'satveg_cube'),
@@ -103,15 +102,14 @@ sits_get_data <- function(cube,
 
     # is there a shapefile or a CSV file?
     if (!purrr::is_null(file)) {
-        .check_file(file, extensions = c("csv", "shp"),
-                    msg = "invalid file extension")
         # get the file extension
         file_ext <- tolower(tools::file_ext(file))
         # sits only accepts "csv" or "shp" files
         .check_chr_within(
             x = file_ext,
-            within = c("csv", "shp"),
-            msg = "accepts only csv and shp files"
+            within = .config_get("sample_file_formats"),
+            msg = paste0("samples should be of type ",
+                         paste(.config_get("sample_file_formats"), collapse = " or "))
         )
         # append "csv" or "shp" to the cube class to call the correct function
         class(cube) <- c(paste0(file_ext, "_", class(cube)[1]),

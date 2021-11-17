@@ -2,7 +2,7 @@
 % Please edit documentation in R/sits_ResNet.R
 \name{sits_ResNet}
 \alias{sits_ResNet}
-\title{Train a model using the ResNet model}
+\title{Train ResNet classification models}
 \usage{
 sits_ResNet(
   samples = NULL,

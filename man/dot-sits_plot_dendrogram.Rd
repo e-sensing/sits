@@ -4,22 +4,17 @@
 \alias{.sits_plot_dendrogram}
 \title{Plot a dendrogram}
 \usage{
-.sits_plot_dendrogram(
-  data,
-  cluster_obj,
-  cutree_height = NULL,
-  colors = "RdYlGn"
-)
+.sits_plot_dendrogram(data, cluster, cutree_height, palette)
 }
 \arguments{
 \item{data}{sits tibble with data used to extract the dendrogram.}
 
-\item{cluster_obj}{cluster object produced by `sits_cluster` function.}
+\item{cluster}{cluster object produced by `sits_cluster` function.}
 
 \item{cutree_height}{dashed horizontal line to be drawn
 indicating the height of dendrogram cutting.}
 
-\item{colors}{color scheme as per .sits_brewer_color_name` function.}
+\item{palette}{hcl color palette}
 }
 \value{
 The plot itself.

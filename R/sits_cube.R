@@ -1,4 +1,4 @@
-#' @title Defines a data cube
+#' @title Create data cubes from image collections
 #' @name sits_cube
 #'
 #' @references `rstac` package (https://github.com/brazil-data-cube/rstac)
@@ -51,8 +51,8 @@
 #' For requester-pays data, users need to provide their access codes as
 #' environment variables, as follows:
 #' Sys.setenv(
-#' "AWS_ACCESS_KEY_ID"     = <your_access_key>,
-#' "AWS_SECRET_ACCESS_KEY" = <your_secret_access_key>
+#'     AWS_ACCESS_KEY_ID     = <your_access_key>,
+#'     AWS_SECRET_ACCESS_KEY = <your_secret_access_key>
 #' )
 #'
 #' @note Sentinel-2/2A level 2A files in AWS are organized by sensor
@@ -70,15 +70,15 @@
 #' corresponds to Landsat Collection 2 Level-2 surface reflectance data,
 #' covering datasets from Landsat-4 to Landsat-8. This collection is open data.
 #'
-#'@note All BDC collections have been regularized.
+#' @note All BDC collections have been regularized.
 #' BDC users need to provide their credentials using environment
 #' variables. To create your credentials, please see
-#'  "https://brazildatacube.dpi.inpe.br/portal/explore". There is no
-#'  cost for accessing data in the BDC.
-#'  After obtaining the BDC access key, please include it as
-#'  an environment variable.
+#' "https://brazildatacube.dpi.inpe.br/portal/explore". There is no
+#' cost for accessing data in the BDC.
+#' After obtaining the BDC access key, please include it as
+#' an environment variable, as follows:
 #' Sys.setenv(
-#' "BDC_ACCESS_KEY" = <your_bdc_access_key>
+#'     BDC_ACCESS_KEY = <your_bdc_access_key>
 #' )
 #'
 #'@note To create a cube from local files, the user needs to inform:
@@ -149,9 +149,9 @@
 #'
 #' # --- Access to the Brazil Data Cube
 #' # Provide your BDC credentials as environment variables
-#' Sys.setenv(
-#'     "BDC_ACCESS_KEY" = <your_bdc_access_key>
-#' )
+#' bdc_access_key <- Sys.getenv("BDC_ACCESS_KEY")
+#' if (nchar(bdc_access_key) == 0)
+#'        stop("No BDC_ACCESS_KEY defined in environment.")
 #'
 #' # create a raster cube file based on the information in the BDC
 #' cbers_tile <- sits_cube(
@@ -165,22 +165,22 @@
 #'
 #' # --- Create a WTSS cube from BDC cubes
 #' # Provide your BDC credentials as environment variables
-#' Sys.setenv(
-#'     "BDC_ACCESS_KEY" = <your_bdc_access_key>
-#' )
+#' bdc_access_key <- Sys.getenv("BDC_ACCESS_KEY")
+#' if (nchar(bdc_access_key) == 0)
+#'        stop("No BDC_ACCESS_KEY defined in environment.")
 #'
-#' cube_wtss <- sits::sits_cube(source = "WTSS",
-#'                              collection = "MOD13Q1-6")
+#' cube_wtss <- sits_cube(source = "WTSS",
+#'                        collection = "MOD13Q1-6")
 #'
 #' # --- Access to Digital Earth Africa
 #' # create a raster cube file based on the information about the files
 #' cube_dea <- sits_cube(source = "DEAFRICA",
 #'                       collection = "s2_l2a",
 #'                       bands = c("B04", "B08"),
-#'                       bbox = c("xmin" = 17.379,
-#'                               "ymin" = 1.1573,
-#'                               "xmax" = 17.410,
-#'                                "ymax" = 1.1910),
+#'                       roi   = c("lat_min" = 17.379,
+#'                                 "lon_min" = 1.1573,
+#'                                 "lat_max" = 17.410,
+#'                                 "lon_max" = 1.1910),
 #'                       start_date = "2019-01-01",
 #'                       end_date = "2019-10-28"
 #' )
@@ -189,9 +189,9 @@
 #' s2_cube <- sits_cube(source = "AWS",
 #'                       collection = "sentinel-s2-l2a-cogs",
 #'                       tiles = c("20LKP","20LLP"),
-#'                       bands = c("B03", "B04", "B08"),
+#'                       bands = c("B04", "B08", "B11"),
 #'                       start_date = as.Date("2018-07-18"),
-#'                       end_date = as.Date("2018-07-23")
+#'                       end_date = as.Date("2019-07-23")
 #' )
 #'
 #' # --- Create a cube based on a local MODIS data
@@ -214,7 +214,7 @@ sits_cube <- function(source, ..., collection, data_dir = NULL) {
     .check_set_caller("sits_cube")
 
     if (purrr::is_null(data_dir))
-        source <- .source_new(source = source)
+        source <- .source_new(source = source, collection = collection)
     else
         source <- .source_new(source = source, is_local = TRUE)
 
@@ -293,8 +293,8 @@ sits_cube.stac_cube <- function(source,
 
     # Pre-condition - checks if the bands are supported by the collection
     .config_check_bands(source = source,
-                 collection = collection,
-                 bands = bands)
+                        collection = collection,
+                        bands = bands)
 
     # dry run to verify if service is running
     .source_collection_access_test(source = source, ...,
@@ -352,12 +352,6 @@ sits_cube.local_cube <- function(source,
     .source_check(source = source)
     .source_collection_check(source = source, collection = collection)
 
-    # precondition - check parse info
-    .check_chr(x = parse_info,
-               allow_empty = FALSE,
-               len_min = 2,
-               msg = "invalid parsing information.")
-
     # precondition - does the parse info have band and date?
     .check_chr_contains(
         parse_info,
@@ -397,7 +391,7 @@ sits_cube.satveg_cube <- function(
 
     # precondition
     .check_chr_within(x = collection,
-                      within = c("TERRA", "AQUA", "COMB"),
+                      within = .source_collections(source = "SATVEG"),
                       msg = "invalid SATVEG collection.")
 
     # precondition - is service online?

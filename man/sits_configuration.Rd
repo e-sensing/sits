@@ -5,7 +5,7 @@
 \alias{sits_config}
 \alias{sits_config_show}
 \alias{sits_list_collections}
-\title{sits configuration}
+\title{Configure parameters for sits package}
 \usage{
 sits_config(
   processing_bloat = NULL,
@@ -18,7 +18,7 @@ sits_config(
   reset = FALSE
 )
 
-sits_config_show(source = NULL, collection = NULL, palette = NULL)
+sits_config_show(source = NULL, collection = NULL, colors = FALSE)
 
 sits_list_collections(source = NULL)
 }
@@ -55,8 +55,8 @@ key entry to be shown in detail.}
 with \code{source} parameter to indicate a collection key entry to be shown
 in detail.}
 
-\item{palette}{A \code{character} value indicating a palette
-to be shown in detail.}
+\item{colors}{A \code{logical} value indicating if colors
+will to be shown in detail.}
 }
 \value{
 \code{sits_config()} returns a \code{list} containing the final
@@ -70,6 +70,10 @@ each cloud service supported by sits.
 }
 \description{
 These functions load and show sits configurations.
+
+The `sits` package uses a configuration file
+that contains information on parameters required by different functions.
+This includes information about the image collections handled by `sits`.
 
 \code{sits_config()} loads the default configuration file and
 the user provided configuration file. The final configuration is

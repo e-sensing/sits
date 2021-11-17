@@ -39,11 +39,6 @@ test_that("User functions", {
         c("COMPRESS=LZW", "BIGTIFF=YES")
     )
 
-    expect_equal(
-        .config_palettes(),
-        "default"
-    )
-
     # load default + user config
     expect_true(
         Sys.setenv("SITS_CONFIG_USER_FILE" =
@@ -77,31 +72,9 @@ test_that("User functions", {
     )
 
     expect_equal(
-        .config_palettes(),
-        c("default", "my_project")
-    )
+        unname(.config_colors(labels = c("Cropland", "Deforestation",
+                                        "Forest", "Grassland", "NonForest"))),
 
-    expect_error(
-        .config_palette_check(palette = "zzz"),
-        "invalid 'palette' parameter"
-    )
-
-    expect_equal(
-        .config_palette_check(palette = "my_project"),
-        c("my_project")
-    )
-
-    expect_error(
-        .config_palette_colors(labels = c("Cropland", "Deforestation",
-                                          "Forest", "Grassland", "NonForest",
-                                          "Cropland", "Deforestation",
-                                          "Forest", "Grassland", "NonForest"),
-                               palette = "my_project")
-    )
-    expect_equal(
-        unname(.config_palette_colors(labels = c("Cropland", "Deforestation",
-                                                 "Forest", "Grassland", "NonForest"),
-                                      palette = "my_project")),
         c("khaki", "sienna", "darkgreen", "lightgreen",
           "lightsteelblue1")
     )
@@ -135,11 +108,6 @@ test_that("User functions", {
         c("BIGTIFF=YES")
     )
 
-    expect_equal(
-        .config_palettes(),
-        c("default", "my_project")
-    )
-
     config_txt <- capture.output({
         sits_config_show()
     })
@@ -167,16 +135,7 @@ test_that("User functions", {
         ))
     )
 
-    config_txt <- capture.output({
-        sits_config_show(palette = "default")
-    })
 
-    expect_true(
-        any(grepl(
-            "Forest: '#00441B'",
-            config_txt
-        ))
-    )
 
     # add a new source, collection
     .config_set_options(
@@ -302,11 +261,6 @@ test_that("Configs AWS", {
     expect_error(
         .config_names(key = c("zzz")),
         "invalid names for 'zzz' key"
-    )
-
-    expect_equal(
-        .config_names(key = c("palettes")),
-        c("default")
     )
 
     expect_equal(

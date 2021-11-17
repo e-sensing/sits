@@ -2,7 +2,6 @@
 # The raster image is a MODIS data set covering the municipality of Sinop
 # with two bands (NDVI and EVI) using MODIS collection 5 data
 library(sits)
-library(randomForest)
 
 # load the sitsdata library
 if (!requireNamespace("sitsdata", quietly = TRUE)) {
@@ -32,9 +31,7 @@ xgb_model <- sits_train(
 # Cube is composed of MOD13Q1 images from the Sinop region in Mato Grosso (Brazil)
 data_dir <- system.file("extdata/sinop", package = "sitsdata")
 sinop <- sits_cube(
-    source     = "LOCAL",
-    name       = "sinop-2014",
-    origin     = "BDC",
+    source     = "BDC",
     collection = "MOD13Q1-6",
     data_dir   = data_dir,
     delim      = "_",
@@ -57,27 +54,10 @@ sinop_bayes <- sits_smooth(
     output_dir = tempdir()
 )
 
-# smooth the result with a Gaussian filter
-sinop_gauss <- sits_smooth(
-    cube       = sinop_probs,
-    type       = "gaussian",
-    output_dir = tempdir()
-)
-
-# smooth the result with a bilateral filter
-sinop_bilin <- sits_smooth(
-    cube       = sinop_probs,
-    type       = "bilateral",
-    output_dir = tempdir()
-)
-
 sinop_label <- sits_label_classification(
     cube       = sinop_bayes,
     output_dir = tempdir()
 )
-
-# plot the classified map
-plot(sinop_label)
 
 # plot the probabilities
 plot(sinop_probs)
@@ -85,9 +65,8 @@ plot(sinop_probs)
 # plot the smoothened images
 plot(sinop_bayes)
 
-plot(sinop_gauss)
-
-plot(sinop_bilin)
+# plot the classified map
+plot(sinop_label)
 
 map_1 <- sits_view(sinop, red = "EVI", green = "NDVI", blue = "EVI", time = 23)
 

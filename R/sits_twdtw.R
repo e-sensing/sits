@@ -47,10 +47,10 @@
 #' @examples
 #' \dontrun{
 #' # Retrieve the set of samples for the Mato Grosso region
-#' samples <- sits_select(samples_mt_6bands, bands = c("NDVI", "EVI"))
+#' samples <- sits_select(samples_modis_4bands, bands = c("NDVI", "EVI"))
 #'
 #' # get a point and classify the point with the ml_model
-#' point <- sits_select(point_mt_6bands, bands = c("NDVI", "EVI"))
+#' point <- sits_select(samples_modis_4bands, bands = c("NDVI", "EVI"))
 #'
 #' # plot the series
 #' plot(point)
@@ -83,7 +83,7 @@ sits_twdtw_classify <- function(samples,
                                 overlap = 0.5,
                                 .plot   = TRUE) {
     # verifies if dtwSat package is installed
-    if (!requireNamespace("dtwSat", quietly = TRUE)) {
+    if (!(suppressWarnings(requireNamespace("dtwSat", quietly = TRUE)))) {
         stop("Please install package dtwSat", call. = FALSE)
     }
 
@@ -180,7 +180,7 @@ sits_twdtw_classify <- function(samples,
                                overlap = 0.5) {
 
     # verifies if dtwSat package is installed
-    if (!requireNamespace("dtwSat", quietly = TRUE)) {
+    if (!(suppressWarnings(requireNamespace("dtwSat", quietly = TRUE)))) {
         stop("Please install package dtwSat", call. = FALSE)
     }
 
