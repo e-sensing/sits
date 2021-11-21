@@ -16,16 +16,13 @@
                    "pattern. See the user guide for more information."))
 
     # list to store the info about the tiles to provide the query in STAC
-    list_tiles <- list()
-    list_tiles <- purrr::map(tiles, function(tile) {
-        list_tiles$utm_zone <- substring(tile, 1, 2)
-        list_tiles$lat_band <- substring(tile, 3, 3)
-        list_tiles$grid_square <- substring(tile, 4, 5)
-
-        list_tiles
+    tiles_tbl <- purrr::map_dfr(tiles, function(tile) {
+        tile_aws <- tibble::tibble(
+            utm_zone = substring(tile, 1, 2),
+            lat_band = substring(tile, 3, 3),
+            grid_square = substring(tile, 4, 5)
+        )
     })
-
-    tiles_tbl <- dplyr::bind_rows(list_tiles)
 
     return(tiles_tbl)
 }

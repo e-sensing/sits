@@ -151,6 +151,7 @@ Collate:
     'sits_tibble.R'
     'sits_timeline.R'
     'sits_twdtw.R'
+    'sits_uncertainty.R'
     'sits_validate.R'
     'sits_view.R'
     'sits_values.R'
