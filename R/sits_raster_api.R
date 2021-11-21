@@ -485,6 +485,15 @@
     UseMethod(".raster_crs", pkg_class)
 }
 
+#' @name .raster_properties
+.raster_extent <- function(r_obj, ...) {
+
+    # check package
+    pkg_class <- .raster_check_package()
+
+    UseMethod(".raster_extent", pkg_class)
+}
+
 #' @title Raster package internal frequency values function
 #' @name .raster_freq
 #' @keywords internal
