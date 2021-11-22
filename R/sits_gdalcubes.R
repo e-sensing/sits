@@ -91,10 +91,15 @@
         return((ceiling(chunks_x) * ceiling(chunks_y)) - 1 )
     }
 
+    chunk_size <- .get_cube_chunks(cv)
+
+    if (chunk_size < 1)
+        chunk_size <- 1
+
     # setting threads to process
     # multicores number must be smaller than chunks
     gdalcubes::gdalcubes_options(
-        threads = min(multicores, .get_cube_chunks(cv))
+        threads = min(multicores, chunk_size)
     )
 
     for (band in .cube_bands(tile, add_cloud = FALSE)) {
