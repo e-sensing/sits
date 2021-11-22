@@ -8,7 +8,7 @@ sits_regularize(
   cube,
   output_dir,
   period,
-  res = NULL,
+  res,
   roi = NULL,
   agg_method = "median",
   resampling = "bilinear",

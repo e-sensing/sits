@@ -102,3 +102,22 @@
 
     return(crs)
 }
+
+#' @keywords internal
+#' @export
+.source_items_tile_get_bbox.aws_cube <- function(source, ...,
+                                                 tile_items,
+                                                 collection = NULL) {
+    r_obj <- .raster_open_rast(
+        .source_item_get_hrefs(source = source,
+                               item = tile_items$features[[1]])[[1]]
+    )
+
+    # get image bbox
+    bbox <- .raster_extent(r_obj)
+
+    if (is.null(names(bbox)))
+        names(bbox) <- c("xmin", "xmax", "ymin", "ymax")
+
+    return(bbox)
+}

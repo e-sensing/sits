@@ -977,6 +977,21 @@ sits_list_collections <- function(source = NULL) {
     return(res)
 }
 
+#' @title Retrieve the gdalcubes chunk size
+#' @name .config_gdalcubes_chunk_size
+#' @keywords internal
+#' @return a numeric vector with chunk size
+.config_gdalcubes_chunk_size <- function() {
+
+    chunk_size <- .config_get(key = c("gdalcubes_chunk_size"))
+
+    # post-condition
+    .check_num(chunk_size, len_min = 3, len_max = 3,
+               msg = "invalid 'gdalcubes_chunk_size' in config file")
+
+    return(chunk_size)
+}
+
 #' @title Retrieve the raster package to be used
 #' @name .config_raster_pkg
 #' @keywords internal

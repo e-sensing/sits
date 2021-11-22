@@ -76,8 +76,8 @@
 sits_regularize <- function(cube,
                             output_dir,
                             period,
-                            res        = NULL,
-                            roi        = NULL,
+                            res,
+                            roi = NULL,
                             agg_method = "median",
                             resampling = "bilinear",
                             cloud_mask = TRUE,
@@ -96,6 +96,7 @@ sits_regularize <- function(cube,
                 msg = "sits_regularize not available for collection ",
                 cube$collection, " from ", cube$source
     )
+
     # precondition - test if provided object is a raster cube
     .check_that(
         x = inherits(cube, "raster_cube"),
@@ -103,6 +104,7 @@ sits_regularize <- function(cube,
                     "please provide a 'raster_cube' object.",
                     "see '?sits_cube' for more information.")
     )
+
     # precondition - check output dir fix
     output_dir <- normalizePath(output_dir)
     # verifies the path to save the images
@@ -110,21 +112,21 @@ sits_regularize <- function(cube,
         x = dir.exists(output_dir),
         msg = "invalid 'output_dir' parameter."
     )
+
     # append gdalcubes path
     path_db <- paste0(output_dir, "/gdalcubes.db")
+
     # precondition - is the period valid?
     .check_na(lubridate::duration(period), msg = "invalid period specified")
 
     # precondition - is the resolution valid?
-    # is there a single resolution? Is not, "res" needs to be set
-    if (length(unique(cube$file_info[[1]]$res)) > 1) {
-        .check_num(x = res,
-                   allow_zero = FALSE,
-                   min = 1,
-                   len_min = 1,
-                   len_max = 1,
-                   msg = "a valid resolution needs to be provided")
-    }
+    .check_num(x = res,
+               allow_zero = FALSE,
+               min = 1,
+               len_min = 1,
+               len_max = 1,
+               msg = "a valid resolution needs to be provided")
+
     # precondition - is the aggregation valid?
     .check_chr_within(
         x = agg_method,
@@ -132,6 +134,7 @@ sits_regularize <- function(cube,
         discriminator = "any_of",
         msg = "invalid aggregation method"
     )
+
     # precondition - is the resampling valid?
     .check_chr_within(
         x = resampling,
@@ -139,8 +142,12 @@ sits_regularize <- function(cube,
         discriminator = "any_of",
         msg = "invalid resampling method"
     )
+
     # precondition - is the cloud mask valid?
-    .check_lgl_type(cloud_mask, msg = "cloud mask parameter should be TRUE/FALSE")
+    .check_lgl_type(
+        cloud_mask, msg = "cloud mask parameter should be TRUE/FALSE"
+    )
+
     # if the cloud mask is true, is there a cloud band?
     if (cloud_mask) {
         .check_chr_contains(
@@ -149,16 +156,15 @@ sits_regularize <- function(cube,
             msg = "no cloud band available in the cube"
         )
     }
+
     # precondition - is the multicores valid?
     .check_num(
         x = multicores,
-        allow_zero = FALSE,
         min = 1,
+        len_min = 1,
+        len_max = 1,
         msg = "invalid 'multicores' parameter."
     )
-
-    # setting in global env multicores options
-    gdalcubes::gdalcubes_options(threads = multicores)
 
     if (!is.null(roi)) {
 
@@ -213,13 +219,15 @@ sits_regularize <- function(cube,
                                    agg_method = agg_method,
                                    resampling = resampling)
 
+
         # create of the aggregate cubes
         gc_tile <- .gc_new_cube(tile = tile,
                                 cv = cv,
                                 img_col = img_col,
                                 path_db = path_db,
                                 output_dir = output_dir,
-                                cloud_mask = cloud_mask)
+                                cloud_mask = cloud_mask,
+                                multicores = multicores)
         return(gc_tile)
 
     })
