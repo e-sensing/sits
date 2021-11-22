@@ -88,18 +88,15 @@
         chunks_y <- round(size_y / cv[["space"]][["dy"]]) / chunk_size[[3]]
 
         # guaranteeing that it will return fewer blocks than calculated
-        return((ceiling(chunks_x) * ceiling(chunks_y)) - 1 )
+        num_chunks <- (ceiling(chunks_x) * ceiling(chunks_y)) - 1
+
+        return(max(1, num_chunks))
     }
-
-    chunk_size <- .get_cube_chunks(cv)
-
-    if (chunk_size < 1)
-        chunk_size <- 1
 
     # setting threads to process
     # multicores number must be smaller than chunks
     gdalcubes::gdalcubes_options(
-        threads = min(multicores, chunk_size)
+        threads = min(multicores, .get_cube_chunks(cv))
     )
 
     for (band in .cube_bands(tile, add_cloud = FALSE)) {
