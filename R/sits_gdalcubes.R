@@ -12,9 +12,10 @@
 #' @param output_dir  Directory where the aggregated images will be written.
 #' @param cloud_mask  A \code{logical} corresponds to the use of the cloud band
 #'  for aggregation.
+#' @param multicores  A \code{numeric} with the number of cores will be used in
+#'  the regularize. By default is used 1 core.
 #' @param ...         Additional parameters that can be included. See
 #'  '?gdalcubes::write_tif'.
-#' @param version     A \code{character} with version of the output files.
 #'
 #' @return  A data cube tile with information used in its creation.
 .gc_new_cube <- function(tile,
@@ -22,8 +23,8 @@
                          img_col,
                          path_db,
                          output_dir,
-                         cloud_mask, ...,
-                         version = "v1") {
+                         cloud_mask,
+                         multicores, ...) {
 
     # set caller to show in errors
     .check_set_caller(".gc_new_cube")
@@ -61,12 +62,40 @@
             collection = .cube_collection(cube = tile)
         )
 
-        list(type   = format_type,
-             nodata = .cube_band_missing_value(cube = cube, band = band),
-             scale  = 1,
-             offset = 0
+        return(
+            list(type   = format_type,
+                 nodata = .cube_band_missing_value(cube = cube, band = band),
+                 scale  = 1,
+                 offset = 0
+            )
         )
     }
+
+    .get_cube_chunks <- function(cv) {
+
+        bbox <- c(xmin = cv[["space"]][["left"]],
+                  xmax = cv[["space"]][["right"]],
+                  ymin = cv[["space"]][["bottom"]],
+                  ymax = cv[["space"]][["top"]])
+
+        size_x <- (max(bbox[c("xmin", "xmax")]) - min(bbox[c("xmin", "xmax")]))
+        size_y <- (max(bbox[c("ymin", "ymax")]) - min(bbox[c("ymin", "ymax")]))
+
+        # a vector with time, x and y
+        chunk_size <- .config_gdalcubes_chunk_size()
+
+        chunks_x <- round(size_x / cv[["space"]][["dx"]]) / chunk_size[[2]]
+        chunks_y <- round(size_y / cv[["space"]][["dy"]]) / chunk_size[[3]]
+
+        # guaranteeing that it will return fewer blocks than calculated
+        return((ceiling(chunks_x) * ceiling(chunks_y)) - 1 )
+    }
+
+    # setting threads to process
+    # multicores number must be smaller than chunks
+    gdalcubes::gdalcubes_options(
+        threads = min(multicores, .get_cube_chunks(cv))
+    )
 
     for (band in .cube_bands(tile, add_cloud = FALSE)) {
 
@@ -149,22 +178,16 @@
 #'  about the cube brick metadata.
 .gc_raster_cube <- function(cube, img_col, cv, cloud_mask) {
 
-
-    chunk_size <- .config_get(key = "gdalcubes_chunk_size")
-
-
     mask_band <- NULL
     if (cloud_mask)
         mask_band <- .gc_cloud_mask(cube)
-
-    gdalcubes_chunk_size <- .config_get(key = "gdalcubes_chunk_size")
 
     # create a brick of raster_cube object
     cube_brick <- gdalcubes::raster_cube(
         image_collection = img_col,
         view = cv,
         mask = mask_band,
-        chunking = gdalcubes_chunk_size)
+        chunking = .config_gdalcubes_chunk_size())
 
     return(cube_brick)
 }
@@ -369,13 +392,13 @@
 
     # create a list of cube view
     cv <- gdalcubes::cube_view(
-        extent = list(left   = roi$left,
-                      right  = roi$right,
-                      bottom = roi$bottom,
-                      top    = roi$top,
+        extent = list(left   = roi[["left"]],
+                      right  = roi[["right"]],
+                      bottom = roi[["bottom"]],
+                      top    = roi[["top"]],
                       t0 = format(toi[["max_min_date"]], "%Y-%m-%d"),
                       t1 = format(toi[["min_max_date"]], "%Y-%m-%d")),
-        srs = tile$crs[[1]],
+        srs = tile[["crs"]][[1]],
         dt = period,
         dx = res,
         dy = res,

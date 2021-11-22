@@ -11,8 +11,8 @@
   path_db,
   output_dir,
   cloud_mask,
-  ...,
-  version = "v1"
+  multicores,
+  ...
 )
 }
 \arguments{
@@ -30,10 +30,11 @@ about the images metadata.}
 \item{cloud_mask}{A \code{logical} corresponds to the use of the cloud band
 for aggregation.}
 
+\item{multicores}{A \code{numeric} with the number of cores will be used in
+the regularize. By default is used 1 core.}
+
 \item{...}{Additional parameters that can be included. See
 '?gdalcubes::write_tif'.}
-
-\item{version}{A \code{character} with version of the output files.}
 }
 \value{
 A data cube tile with information used in its creation.
