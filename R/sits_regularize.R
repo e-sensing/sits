@@ -90,13 +90,6 @@ sits_regularize <- function(cube,
     if (!requireNamespace("gdalcubes", quietly = TRUE))
         stop("Please install package gdalcubes", call. = FALSE)
 
-    # collections
-    .check_null(.source_collection_gdal_config(.cube_source(cube),
-                                               .cube_collection(cube)),
-                msg = "sits_regularize not available for collection ",
-                cube$collection, " from ", cube$source
-    )
-
     # precondition - test if provided object is a raster cube
     .check_that(
         x = inherits(cube, "raster_cube"),
@@ -105,8 +98,14 @@ sits_regularize <- function(cube,
                     "see '?sits_cube' for more information.")
     )
 
+    # precondition - check if this cube be regularized
+    .source_collection_gdalcubes_support(
+        source = .cube_source(cube), collection = .cube_collection(cube)
+    )
+
     # precondition - check output dir fix
     output_dir <- normalizePath(output_dir)
+
     # verifies the path to save the images
     .check_that(
         x = dir.exists(output_dir),
@@ -116,10 +115,9 @@ sits_regularize <- function(cube,
     # append gdalcubes path
     path_db <- paste0(output_dir, "/gdalcubes.db")
 
-
     # precondition - is the period valid?
     duration <- lubridate::duration(period)
-    .check_na(duration, msg = "invalid period specified")
+    .check_na(duration, msg = "Invalid period. Please see ISO 8601 formats.")
 
     # precondition - is the resolution valid?
     .check_num(x = res,
@@ -180,8 +178,9 @@ sits_regularize <- function(cube,
     }
 
     # get the interval of intersection in all tiles
-    interval_intersection <- function(cube) {
+    .get_valid_interval <- function(cube) {
 
+        # start date - maximum of all minimums
         max_min_date <- do.call(
             what = max,
             args = purrr::map(cube$file_info, function(file_info){
@@ -189,31 +188,38 @@ sits_regularize <- function(cube,
             })
         )
 
+        # end date - minimum of all maximums
         min_max_date <- do.call(
             what = min,
             args = purrr::map(cube$file_info, function(file_info){
                 return(max(file_info$date))
             }))
 
-        # check if all tiles intersects
+        # check if all timeline of tiles intersects
         .check_that(
             x = max_min_date < min_max_date,
-            msg = "the cube tiles' timelines do not intersect."
+            msg = "the timeline of the cube tiles do not intersect."
         )
 
+        # finds the length of the timeline
         tl_length <- max(2, ceiling(
             lubridate::interval(start = max_min_date,
                                 end = min_max_date) / duration
         ))
 
+        # timeline dates
         tl <- duration * (seq_len(tl_length) - 1) + as.Date(max_min_date)
 
+        # timeline cube
         tiles_tl <- suppressWarnings(sits_timeline(cube))
+
         if (!is.list(tiles_tl))
             tiles_tl <- list(tiles_tl)
 
+        # checks if the timelines intersect
         tl_check <- vapply(tiles_tl, function(tile_tl) {
 
+            # at least one image must be in begin and end in timeline interval
             begin <- any(tile_tl >= tl[1] & tile_tl < tl[2])
             end <- any(tile_tl >= tl[tl_length - 1] & tile_tl < tl[tl_length])
 
@@ -222,29 +228,29 @@ sits_regularize <- function(cube,
 
         .check_that(x = all(tl_check), msg = "invalid images interval")
 
-        list(max_min_date = tl[1],
-             min_max_date = tl[length(tl)])
+        list(max_min_date = tl[1], min_max_date = tl[length(tl)])
     }
 
-    .add_bbox_fileinfo <- function(cube) {
+    # adds the bbox for each image in the file_info
+    .add_bbox_fileinfo <- function(cube, multicores) {
 
-        cube$file_info <- lapply(cube$file_info, function(file_info) {
+        # prepare parallelization
+        .sits_parallel_start(workers = multicores, log = FALSE)
+        on.exit(.sits_parallel_stop(), add = TRUE)
 
-            file_info$bbox <- lapply(file_info$path, function(path) {
+        cube$file_info <- lapply(cube$file_info, function(fi) {
+
+            fi$bbox <- .sits_parallel_map(fi$path, function(path) {
 
                 r_obj <- tryCatch({
                     .raster_open_rast(path)
                 }, error = function(e) {
-                    message(paste(
-                        "skipping: the following file is not reachable", path))
-
-                    return(NULL)
-                } )
+                   return(NULL)
+                })
 
                 if (is.null(r_obj))
                     return(NULL)
 
-                # get image bbox
                 bbox <- .raster_extent(r_obj)
 
                 bbox <- c(
@@ -258,24 +264,24 @@ sits_regularize <- function(cube,
 
                 names(bbox) <- c("left", "bottom", "right", "top")
                 tibble::as_tibble(lapply(bbox, identity))
-            })
+            }, progress = TRUE)
 
-            file_info <- dplyr::group_by(file_info, date) %>%
+            fi <- dplyr::group_by(fi, date) %>%
                 dplyr::mutate(valid_image = all(
                     vapply(bbox, Negate(is.null), logical(1)))) %>%
                 dplyr::filter(valid_image) %>%
                 dplyr::ungroup() %>%
                 dplyr::select(-valid_image)
 
-            tidyr::unnest(file_info, cols = bbox)
+            tidyr::unnest(fi, cols = bbox)
         })
         cube
     }
 
-    cube <- .add_bbox_fileinfo(cube)
+    cube <- .add_bbox_fileinfo(cube, multicores = multicores)
 
     # timeline of intersection
-    toi <- interval_intersection(cube)
+    toi <- .get_valid_interval(cube = cube)
 
     cube$file_info <- purrr::map(cube$file_info, function(file_info) {
         idx <- which(file_info$date == min(file_info$date))
