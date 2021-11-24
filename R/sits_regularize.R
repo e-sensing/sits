@@ -232,10 +232,10 @@ sits_regularize <- function(cube,
     }
 
     # adds the bbox for each image in the file_info
-    .add_bbox_fileinfo <- function(cube, multicores) {
+    .add_bbox_fileinfo <- function(cube) {
 
         # prepare parallelization
-        .sits_parallel_start(workers = multicores, log = FALSE)
+        .sits_parallel_start(workers = 3, log = FALSE)
         on.exit(.sits_parallel_stop(), add = TRUE)
 
         cube$file_info <- lapply(cube$file_info, function(fi) {
@@ -278,7 +278,7 @@ sits_regularize <- function(cube,
         cube
     }
 
-    cube <- .add_bbox_fileinfo(cube, multicores = multicores)
+    cube <- .add_bbox_fileinfo(cube)
 
     # timeline of intersection
     toi <- .get_valid_interval(cube = cube)
