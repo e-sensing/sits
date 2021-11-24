@@ -57,7 +57,7 @@
     .get_gdalcubes_pack <- function(cube, band) {
 
         # returns the type that the file will write
-        format_type <- .source_collection_gdal_type(
+        format_type <- .source_collection_gdalcubes_type(
             .cube_source(cube = tile),
             collection = .cube_collection(cube = tile)
         )
@@ -279,40 +279,6 @@
 #'  images metadata.
 .gc_create_database <- function(cube, path_db) {
 
-    # set caller to show in errors
-    .check_set_caller(".gc_create_database")
-
-    # joining the bands of all tiles
-    file_info <- dplyr::bind_rows(cube$file_info)
-
-    # retrieving the collection format
-    format_col <- .source_collection_gdal_config(
-        .cube_source(cube = cube),
-        collection = .cube_collection(cube = cube)
-    )
-
-    message("Creating database of images...")
-    ic_cube <- gdalcubes::create_image_collection(
-        files    = file_info$path,
-        format   = format_col,
-        out_file = path_db
-    )
-    return(ic_cube)
-
-}
-
-#' @title Create an image_collection object
-#' @name .gc_create_database_new
-#' @keywords internal
-#'
-#' @param cube      Data cube from where data is to be retrieved.
-#' @param path_db   A \code{character} with the path and name where the
-#'  database will be create. E.g. "my/path/gdalcubes.db"
-#'
-#' @return a \code{object} 'image_collection' containing information about the
-#'  images metadata.
-.gc_create_database_new <- function(cube, path_db) {
-
     # TODO: put as parameter
     if (file.exists(path_db))
         unlink(path_db)
@@ -356,13 +322,10 @@
         })
     }
 
-    features <- create_gc_database(cube)
-
-    gdalcubes::stac_image_collection(s = features,
+    gdalcubes::stac_image_collection(s = create_gc_database(cube),
                                      out_file = path_db,
                                      url_fun = identity)
 }
-
 
 #' @title Internal function to handle with different file collection formats
 #'  for each provider.
