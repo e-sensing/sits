@@ -290,8 +290,8 @@ sits_regularize <- function(cube,
     })
 
     # create an image collection
-    #img_col <- .gc_create_database(cube = cube, path_db = path_db)
-    img_col <- .gc_create_database_new(cube = cube, path_db = path_db)
+    img_col <- .gc_create_database(cube = cube, path_db = path_db)
+
     gc_cube <- slider::slide_dfr(cube, function(tile){
 
         # create a list of cube view object
