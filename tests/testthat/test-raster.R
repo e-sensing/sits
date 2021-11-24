@@ -277,6 +277,18 @@ test_that("One-year, multicore classification with post-processing", {
     max_bil3 <- max(.raster_get_values(r_bil)[, 3])
     expect_true(max_bil3 <= 10000)
 
+    sinop_uncert <- sits_uncertainty(
+        cube = sinop_bayes,
+        type = "entropy",
+        output_dir = tempdir())
+
+    expect_true(all(file.exists(unlist(sinop_uncert$file_info[[1]]$path))))
+    r_unc <- .raster_open_rast(sinop_uncert$file_info[[1]]$path[[1]])
+    expect_true(.raster_nrows(r_unc) == .cube_size(sinop_probs)[["nrows"]])
+
+    max_unc <- max(.raster_get_values(r_unc))
+    expect_true(max_unc <= 10000)
+
 
     expect_true(all(file.remove(unlist(sinop_class$file_info[[1]]$path))))
     expect_true(all(file.remove(unlist(sinop_bayes$file_info[[1]]$path))))
@@ -284,5 +296,5 @@ test_that("One-year, multicore classification with post-processing", {
     expect_true(all(file.remove(unlist(sinop_bil$file_info[[1]]$path))))
 
     expect_true(all(file.remove(unlist(sinop_probs$file_info[[1]]$path))))
-
+    expect_true(all(file.remove(unlist(sinop_uncert$file_info[[1]]$path))))
 })
