@@ -116,8 +116,10 @@ sits_regularize <- function(cube,
     # append gdalcubes path
     path_db <- paste0(output_dir, "/gdalcubes.db")
 
+
     # precondition - is the period valid?
-    .check_na(lubridate::duration(period), msg = "invalid period specified")
+    duration <- lubridate::duration(period)
+    .check_na(duration, msg = "invalid period specified")
 
     # precondition - is the resolution valid?
     .check_num(x = res,
@@ -199,15 +201,91 @@ sits_regularize <- function(cube,
             msg = "the cube tiles' timelines do not intersect."
         )
 
-        list(max_min_date = max_min_date, min_max_date = min_max_date)
+        tl_length <- max(2, ceiling(
+            lubridate::interval(start = max_min_date,
+                                end = min_max_date) / duration
+        ))
+
+        tl <- duration * (seq_len(tl_length) - 1) + as.Date(max_min_date)
+
+        tiles_tl <- suppressWarnings(sits_timeline(cube))
+        if (!is.list(tiles_tl))
+            tiles_tl <- list(tiles_tl)
+
+        tl_check <- vapply(tiles_tl, function(tile_tl) {
+
+            begin <- any(tile_tl >= tl[1] & tile_tl < tl[2])
+            end <- any(tile_tl >= tl[tl_length - 1] & tile_tl < tl[tl_length])
+
+            return(begin && end)
+        }, logical(1))
+
+        .check_that(x = all(tl_check), msg = "invalid images interval")
+
+        list(max_min_date = tl[1],
+             min_max_date = tl[length(tl)])
     }
+
+    .add_bbox_fileinfo <- function(cube) {
+
+        cube$file_info <- lapply(cube$file_info, function(file_info) {
+
+            file_info$bbox <- lapply(file_info$path, function(path) {
+
+                r_obj <- tryCatch({
+                    .raster_open_rast(path)
+                }, error = function(e) {
+                    message(paste(
+                        "skipping: the following file is not reachable", path))
+
+                    return(NULL)
+                } )
+
+                if (is.null(r_obj))
+                    return(NULL)
+
+                # get image bbox
+                bbox <- .raster_extent(r_obj)
+
+                bbox <- c(
+                    .sits_proj_to_latlong(x = bbox[["xmin"]],
+                                          y = bbox[["ymin"]],
+                                          crs = cube$crs[[1]]),
+                    .sits_proj_to_latlong(x = bbox[["xmax"]],
+                                          y = bbox[["ymax"]],
+                                          crs = cube$crs[[1]])
+                )
+
+                names(bbox) <- c("left", "bottom", "right", "top")
+                tibble::as_tibble(lapply(bbox, identity))
+            })
+
+            file_info <- dplyr::group_by(file_info, date) %>%
+                dplyr::mutate(valid_image = all(
+                    vapply(bbox, Negate(is.null), logical(1)))) %>%
+                dplyr::filter(valid_image) %>%
+                dplyr::ungroup() %>%
+                dplyr::select(-valid_image)
+
+            tidyr::unnest(file_info, cols = bbox)
+        })
+        cube
+    }
+
+    cube <- .add_bbox_fileinfo(cube)
 
     # timeline of intersection
     toi <- interval_intersection(cube)
 
-    # create an image collection
-    img_col <- .gc_create_database(cube = cube, path_db = path_db)
+    cube$file_info <- purrr::map(cube$file_info, function(file_info) {
+        idx <- which(file_info$date == min(file_info$date))
+        file_info$date[idx] <- toi[[1]]
+        file_info
+    })
 
+    # create an image collection
+    #img_col <- .gc_create_database(cube = cube, path_db = path_db)
+    img_col <- .gc_create_database_new(cube = cube, path_db = path_db)
     gc_cube <- slider::slide_dfr(cube, function(tile){
 
         # create a list of cube view object

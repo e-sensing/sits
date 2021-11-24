@@ -73,13 +73,18 @@
 
     .get_cube_chunks <- function(cv) {
 
-        bbox <- c(xmin = cv[["space"]][["left"]],
-                  xmax = cv[["space"]][["right"]],
-                  ymin = cv[["space"]][["bottom"]],
-                  ymax = cv[["space"]][["top"]])
+        bbox <- c(lon_min = cv[["space"]][["left"]],
+                  lon_max = cv[["space"]][["right"]],
+                  lat_min = cv[["space"]][["bottom"]],
+                  lat_max = cv[["space"]][["top"]])
 
-        size_x <- (max(bbox[c("xmin", "xmax")]) - min(bbox[c("xmin", "xmax")]))
-        size_y <- (max(bbox[c("ymin", "ymax")]) - min(bbox[c("ymin", "ymax")]))
+        size_x_max <- max(bbox[c("lon_min", "lon_max")])
+        size_x_min <- min(bbox[c("lon_min", "lon_max")])
+        size_x <- size_x_max - size_x_min
+
+        size_y_max <- max(bbox[c("lat_min", "lat_max")])
+        size_y_min <- min(bbox[c("lat_min", "lat_max")])
+        size_y <- size_y_max - size_y_min
 
         # a vector with time, x and y
         chunk_size <- .config_gdalcubes_chunk_size()
@@ -293,6 +298,69 @@
         out_file = path_db
     )
     return(ic_cube)
+
+}
+
+#' @title Create an image_collection object
+#' @name .gc_create_database_new
+#' @keywords internal
+#'
+#' @param cube      Data cube from where data is to be retrieved.
+#' @param path_db   A \code{character} with the path and name where the
+#'  database will be create. E.g. "my/path/gdalcubes.db"
+#'
+#' @return a \code{object} 'image_collection' containing information about the
+#'  images metadata.
+.gc_create_database_new <- function(cube, path_db) {
+
+    # TODO: put as parameter
+    if (file.exists(path_db))
+        unlink(path_db)
+
+    create_gc_database <- function(cube) {
+
+        file_info <- dplyr::select(cube, file_info, crs, collection, tile) %>%
+            dplyr::mutate(`proj:epsg` = gsub("^EPSG:", "", crs)) %>%
+            tidyr::unnest(cols = c(file_info)) %>%
+            dplyr::transmute(xmin = left,
+                             ymin = bottom,
+                             xmax = right,
+                             ymax = top,
+                             href = path,
+                             datetime = as.character(date),
+                             href = href,
+                             band = band,
+                             `proj:epsg` = `proj:epsg`,
+                             id = paste(collection, tile, as.character(date),
+                                        sep = "_"))
+
+        features <- dplyr::mutate(file_info, fid = id) %>%
+            tidyr::nest(features = -fid)
+
+        purrr::map(features$features, function(feature) {
+
+            feature <- feature %>%
+                tidyr::nest(assets = c(href, band)) %>%
+                tidyr::nest(properties = c(datetime, `proj:epsg`)) %>%
+                tidyr::nest(bbox = c(xmin, ymin, xmax, ymax))
+
+            feature$assets <- purrr::map(feature$assets, function(asset) {
+                tidyr::pivot_wider(asset, names_from = band, values_from = href) %>%
+                    purrr::map(function(x) list(href = x, `eo:bands` = list(NULL)))
+            })
+
+            feature <- unlist(feature, recursive = FALSE)
+            feature$properties <- c(feature$properties)
+            feature$bbox <- unlist(feature$bbox)
+            feature
+        })
+    }
+
+    features <- create_gc_database(cube)
+
+    gdalcubes::stac_image_collection(s = features,
+                                     out_file = path_db,
+                                     url_fun = identity)
 }
 
 
@@ -387,17 +455,12 @@
     if (!is.null(roi))
         bbox_roi <- .sits_roi_bbox(roi, tile)
 
-    roi <- list(left   = bbox_roi[["xmin"]],
-                right  = bbox_roi[["xmax"]],
-                bottom = bbox_roi[["ymin"]],
-                top    = bbox_roi[["ymax"]])
-
     # create a list of cube view
     cv <- gdalcubes::cube_view(
-        extent = list(left   = roi[["left"]],
-                      right  = roi[["right"]],
-                      bottom = roi[["bottom"]],
-                      top    = roi[["top"]],
+        extent = list(left   = bbox_roi[["xmin"]],
+                      right  = bbox_roi[["xmax"]],
+                      bottom = bbox_roi[["ymin"]],
+                      top    = bbox_roi[["ymax"]],
                       t0 = format(toi[["max_min_date"]], "%Y-%m-%d"),
                       t1 = format(toi[["min_max_date"]], "%Y-%m-%d")),
         srs = tile[["crs"]][[1]],
