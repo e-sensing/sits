@@ -1,13 +1,13 @@
 #' @keywords internal
 #' @export
-.source_cube_local_cube <- function(source, ...,
+.source_cube_local_cube <- function(source,
                                     collection,
                                     data_dir,
                                     parse_info,
                                     delim,
                                     bands,
                                     start_date,
-                                    end_date) {
+                                    end_date, ...) {
 
 
     file_info <- .source_items_local_cube(source = source,
