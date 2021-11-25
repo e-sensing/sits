@@ -248,7 +248,7 @@ sits_cube.wtss_cube <- function(source = "WTSS", ...,
 
     # builds a sits data cube
     .source_cube(source = source,
-                 collection = collection)
+                 collection = collection, ...)
 }
 
 #' @rdname sits_cube
@@ -297,18 +297,18 @@ sits_cube.stac_cube <- function(source,
                         bands = bands)
 
     # dry run to verify if service is running
-    .source_collection_access_test(source = source, ...,
+    .source_collection_access_test(source = source,
                                    collection = collection,
-                                   bands = bands)
+                                   bands = bands, ...)
 
     # builds a sits data cube
-    .source_cube(source = source, ...,
+    .source_cube(source = source,
                  collection = collection,
                  bands = bands,
                  tiles = tiles,
                  bbox = roi,
                  start_date = start_date,
-                 end_date = end_date)
+                 end_date = end_date, ...)
 }
 
 #' @rdname sits_cube
@@ -370,7 +370,7 @@ sits_cube.local_cube <- function(source,
                             delim = delim,
                             bands = bands,
                             start_date = start_date,
-                            end_date = end_date)
+                            end_date = end_date, ...)
 }
 
 
@@ -398,10 +398,10 @@ sits_cube.satveg_cube <- function(
     .source_collection_access_test(source = source, collection = collection)
 
     # creating satveg cube
-    .source_cube(source = source, collection = collection)
+    .source_cube(source = source, collection = collection, ...)
 }
 
 #' @export
-sits_cube.default <- function(source, ...) {
-    stop("source not found.")
+sits_cube.default <- function(source, collection, ...) {
+    stop("sits_cube: source not found.")
 }
