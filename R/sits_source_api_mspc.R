@@ -242,9 +242,36 @@
                                                                    tile_items, ...,
                                                                    collection = NULL) {
 
-    epsg_code <- tile_items[["features"]][[1]][[c("properties", "proj:epsg")]]
-    # format collection crs
-    crs <- .sits_proj_format_crs(epsg_code)
+    # epsg_code <- tile_items[["features"]][[1]][[c("properties", "proj:epsg")]]
+    # # format collection crs
+    # crs <- .sits_proj_format_crs(epsg_code)
+
+    r_obj <- .raster_open_rast(
+        .source_item_get_hrefs(source = source,
+                               item = tile_items$features[[1]])[[1]]
+    )
+
+    # get image bbox
+    crs <- paste0("EPSG:", terra::crs(r_obj, describe = TRUE)$EPSG)
 
     return(crs)
+}
+
+#' @keywords internal
+#' @export
+`.source_items_tile_get_bbox.mspc_cube_landsat-8-c2-l2` <- function(source,
+                                                                   tile_items, ...,
+                                                                   collection = NULL) {
+    r_obj <- .raster_open_rast(
+        .source_item_get_hrefs(source = source,
+                               item = tile_items$features[[1]])[[1]]
+    )
+
+    # get image bbox
+    bbox <- .raster_extent(r_obj)
+
+    if (is.null(names(bbox)))
+        names(bbox) <- c("xmin", "xmax", "ymin", "ymax")
+
+    return(bbox)
 }
