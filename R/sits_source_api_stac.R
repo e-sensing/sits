@@ -1,7 +1,7 @@
 #' @keywords internal
 #' @export
-.source_collection_access_test.stac_cube <- function(source, ...,
-                                                     collection, bands,
+.source_collection_access_test.stac_cube <- function(source, collection,
+                                                     bands, ...,
                                                      dry_run = TRUE) {
     # require package
     if (!requireNamespace("rstac", quietly = TRUE)) {
@@ -21,14 +21,14 @@
                    e$message), call. = FALSE)
     })
 
-    items <- .source_items_bands_select(source = source, ...,
-                                        collection = collection,
+    items <- .source_items_bands_select(source = source,
                                         items = items,
-                                        bands = bands[[1]])
+                                        bands = bands[[1]],
+                                        collection = collection, ...)
 
-    href <- .source_item_get_hrefs(source = source, ...,
+    href <- .source_item_get_hrefs(source = source,
                                    item = items$feature[[1]],
-                                   collection = collection)
+                                   collection = collection, ...)
 
     # assert that token and/or href is valid
     if (dry_run)
@@ -45,13 +45,13 @@
 
 #' @keywords internal
 #' @export
-.source_cube.stac_cube <- function(source, ...,
+.source_cube.stac_cube <- function(source,
                                    collection,
                                    bands,
                                    tiles,
                                    bbox,
                                    start_date,
-                                   end_date) {
+                                   end_date, ...) {
 
     # set caller to show in errors
     .check_set_caller(".source_cube.stac_cube")
@@ -62,30 +62,30 @@
                                      start_date = start_date,
                                      end_date = end_date, ...)
 
-    items <- .source_items_new(source = source, ...,
+    items <- .source_items_new(source = source,
                                collection = collection,
                                stac_query = items_query,
-                               tiles = tiles)
+                               tiles = tiles, ...)
 
-    items <- .source_items_bands_select(source = source, ...,
-                                        collection = collection,
+    items <- .source_items_bands_select(source = source,
                                         items = items,
-                                        bands = bands)
+                                        bands = bands,
+                                        collection = collection, ...)
 
-    items_lst <- .source_items_tiles_group(source = source, ...,
+    items_lst <- .source_items_tiles_group(source = source,
                                            collection = collection,
-                                           items = items)
+                                           items = items, ...)
 
-    cube <- purrr::map_dfr(items_lst, function(tile) {
+    cube <- purrr::map_dfr(items_lst, function(items_tile) {
 
-        file_info <- .source_items_fileinfo(source = source, ...,
-                                            items = tile,
-                                            collection = collection)
+        file_info <- .source_items_fileinfo(source = source,
+                                            items = items_tile,
+                                            collection = collection, ...)
 
-        tile_cube <- .source_items_cube(source = source, ...,
+        tile_cube <- .source_items_cube(source = source,
                                         collection = collection,
-                                        items = tile,
-                                        file_info = file_info)
+                                        items = items_tile,
+                                        file_info = file_info, ...)
 
         return(tile_cube)
     })
@@ -97,10 +97,10 @@
 
 #' @keywords internal
 #' @export
-.source_items_bands_select.stac_cube <- function(source, ...,
-                                                 collection,
+.source_items_bands_select.stac_cube <- function(source,
                                                  items,
-                                                 bands) {
+                                                 bands,
+                                                 collection, ...) {
 
     items <- .stac_bands_select(
         items = items,
@@ -116,32 +116,30 @@
 
 #' @keywords internal
 #' @export
-.source_items_fileinfo.stac_cube <- function(source, ...,
-                                             items,
+.source_items_fileinfo.stac_cube <- function(source,
+                                             items, ...,
                                              collection = NULL) {
 
     # set caller to show in errors
     .check_set_caller(".source_items_fileinfo.stac_cube")
 
-    file_info <- purrr::map_dfr(items$features, function(item){
+    file_info <- purrr::map_dfr(items$features, function(item) {
 
-        date <- suppressWarnings(
-            lubridate::as_date(.source_item_get_date(source = source,
-                                                     item = item, ...,
-                                                     collection = collection))
-        )
+        date <- .source_item_get_date(source = source,
+                                      item = item,
+                                      collection = collection, ...)
 
-        bands <- .source_item_get_bands(source = source, ...,
+        bands <- .source_item_get_bands(source = source,
                                         item = item,
-                                        collection = collection)
+                                        collection = collection, ...)
 
-        res <- .source_item_get_resolution(source = source, ...,
+        res <- .source_item_get_resolution(source = source,
                                            item = item,
-                                           collection = collection)
+                                           collection = collection, ...)
 
-        paths <- .source_item_get_hrefs(source = source, ...,
+        paths <- .source_item_get_hrefs(source = source,
                                         item = item,
-                                        collection = collection)
+                                        collection = collection, ...)
 
         .check_that(
             x = !is.na(date),
@@ -184,17 +182,17 @@
 
 #' @keywords internal
 #' @export
-.source_items_cube.stac_cube <- function(source, ...,
+.source_items_cube.stac_cube <- function(source,
                                          collection,
                                          items,
-                                         file_info) {
+                                         file_info, ...) {
 
     # set caller to show in errors
     .check_set_caller(".source_items_cube.stac_cube")
 
-    t_bbox <- .source_items_tile_get_bbox(source = source, ...,
+    t_bbox <- .source_items_tile_get_bbox(source = source,
                                           tile_items = items,
-                                          collection = collection)
+                                          collection = collection, ...)
 
     .check_chr_within(
         x = names(t_bbox),
@@ -207,18 +205,18 @@
                     msg = "bbox must be numeric.")
 
     # tile name
-    t_name <- .source_items_tile_get_name(source = source, ...,
+    t_name <- .source_items_tile_get_name(source = source,
                                           tile_items = items,
-                                          collection = collection)
+                                          collection = collection, ...)
 
     .check_chr_type(
         x = t_name,
         msg = "name must be a character value."
     )
 
-    t_crs <- .source_items_tile_get_crs(source = source, ...,
+    t_crs <- .source_items_tile_get_crs(source = source,
                                         tile_items = items,
-                                        collection = collection)
+                                        collection = collection, ...)
     .check_that(
         x = is.character(t_crs) || is.numeric(t_crs),
         msg = "name must be a character or numeric value."
@@ -241,16 +239,19 @@
 }
 #' @keywords internal
 #' @export
-.source_item_get_date.stac_cube <- function(source, ...,
-                                            item,
+.source_item_get_date.stac_cube <- function(source,
+                                            item, ...,
                                             collection = NULL) {
-    item[[c("properties", "datetime")]]
+
+    suppressWarnings(
+        lubridate::as_date(item[[c("properties", "datetime")]])
+    )
 }
 
 #' @keywords internal
 #' @export
-.source_item_get_hrefs.stac_cube <- function(source, ...,
-                                             item,
+.source_item_get_hrefs.stac_cube <- function(source,
+                                             item, ...,
                                              collection = NULL) {
 
     href <- unname(purrr::map_chr(item[["assets"]], `[[`, "href"))
@@ -267,23 +268,24 @@
 }
 #' @keywords internal
 #' @export
-.source_item_get_resolution.stac_cube <- function(source, ...,
-                                                   item,
-                                                   collection = NULL) {
+.source_item_get_resolution.stac_cube <- function(source,
+                                                  item, ...,
+                                                  collection = NULL) {
     # use config information to get resolution
     res <- .source_bands_resolution(
         source = source,
         collection = collection,
         bands = .source_item_get_bands(source = source,
-                                       item = item)
+                                       item = item,
+                                       collection = collection, ...)
     )
 
     return(unlist(res))
 }
 #' @keywords internal
 #' @export
-.source_items_tile_get_name.stac_cube <- function(source, ...,
-                                                  tile_items,
+.source_items_tile_get_name.stac_cube <- function(source,
+                                                  tile_items, ...,
                                                   collection = NULL) {
 
     tile_items[["features"]][[1]][[c("properties", "tile")]]
@@ -291,14 +293,14 @@
 
 #' @keywords internal
 #' @export
-.source_items_tile_get_bbox.stac_cube <- function(source, ...,
-                                                  tile_items,
+.source_items_tile_get_bbox.stac_cube <- function(source,
+                                                  tile_items, ...,
                                                   collection = NULL) {
 
     # get collection crs
-    crs <- .source_items_tile_get_crs(source = source, ...,
+    crs <- .source_items_tile_get_crs(source = source,
                                       tile_items = tile_items,
-                                      collection = collection)
+                                      collection = collection, ...)
 
     bbox <- .stac_get_bbox(tile_items, crs)
 
