@@ -554,7 +554,7 @@ NULL
 
 #
 #' @rdname source_collection
-.source_collection_access_test <- function(source, ..., collection) {
+.source_collection_access_test <- function(source, collection, ...) {
 
     source <- .source_new(source)
 
@@ -828,7 +828,7 @@ NULL
 #' @return \code{.source_cube()} returns a sits \code{tibble} with cube
 #' metadata.
 #'
-.source_cube <- function(source, ..., collection) {
+.source_cube <- function(source, collection, ...) {
     source <- .source_new(source = source, collection = collection)
     UseMethod(".source_cube", source)
 }
@@ -840,7 +840,7 @@ NULL
 #'
 #' @return \code{.source_item_get_date()} returns a \code{Date} value.
 #'
-.source_item_get_date <- function(source, ...,  item, collection = NULL) {
+.source_item_get_date <- function(source, item, ..., collection = NULL) {
     source <- .source_new(source)
     UseMethod(".source_item_get_date", source)
 }
@@ -853,7 +853,7 @@ NULL
 #' @return \code{.source_item_get_hrefs()} returns a \code{character} vector
 #' containing paths to each image band of an item.
 #'
-.source_item_get_hrefs <- function(source, ..., item, collection = NULL) {
+.source_item_get_hrefs <- function(source, item, ..., collection = NULL) {
     source <- .source_new(source)
     UseMethod(".source_item_get_hrefs", source)
 }
@@ -866,7 +866,7 @@ NULL
 #' @return \code{.source_item_get_bands()} returns a \code{character} vector
 #' containing bands name of an item.
 #'
-.source_item_get_bands <- function(source, ..., item, collection = NULL) {
+.source_item_get_bands <- function(source, item, ..., collection = NULL) {
     source <- .source_new(source)
     UseMethod(".source_item_get_bands", source)
 }
@@ -879,7 +879,7 @@ NULL
 #' @return \code{.source_item_get_resolution()} returns a named \code{list}
 #' with \code{numeric} vectors containing the supported resolution for each band
 #'
-.source_item_get_resolution <- function(source, ..., item, collection = NULL) {
+.source_item_get_resolution <- function(source, item, ..., collection = NULL) {
     source <- .source_new(source)
     UseMethod(".source_item_get_resolution", source)
 }
@@ -893,7 +893,7 @@ NULL
 #' @return \code{.source_items_new()} returns any object referring the images
 #' of a sits cube.
 #'
-.source_items_new <- function(source, ..., collection) {
+.source_items_new <- function(source, ..., collection = NULL) {
     source <- .source_new(source = source, collection = collection)
     UseMethod(".source_items_new", source)
 }
@@ -905,13 +905,11 @@ NULL
 #' @keywords internal
 #'
 #'
-#' @return A \code{STACItemCollection} object returned by rstac with items
-#'  selected.
-#'
 #' @return \code{.source_items_bands_select()} returns the same object as
 #' \code{items} with selected bands.
 #'
-.source_items_bands_select <- function(source, ..., collection, items, bands) {
+.source_items_bands_select <- function(source, items, bands, ...,
+                                       collection = NULL) {
     source <- .source_new(source = source, collection = collection)
     UseMethod(".source_items_bands_select", source)
 }
@@ -924,7 +922,7 @@ NULL
 #' @return \code{.source_items_fileinfo()} returns a \code{tibble} containing
 #' sits cube.
 #'
-.source_items_fileinfo <- function(source, ..., items, collection = NULL) {
+.source_items_fileinfo <- function(source, items, ..., collection = NULL) {
     source <- .source_new(source = source, collection = collection)
     UseMethod(".source_items_fileinfo", source)
 }
@@ -937,7 +935,7 @@ NULL
 #' @return \code{.source_items_tiles_group()} returns a \code{list} of
 #' items.
 #'
-.source_items_tiles_group <- function(source, ..., items, collection = NULL) {
+.source_items_tiles_group <- function(source, items, ..., collection = NULL) {
     source <- .source_new(source = source, collection = collection)
     UseMethod(".source_items_tiles_group", source)
 }
@@ -987,8 +985,8 @@ NULL
 #' @return \code{.source_items_tile_get_crs()} returns a \code{character}
 #' value.
 #'
-.source_items_tile_get_crs <- function(source, ...,
-                                       tile_items,
+.source_items_tile_get_crs <- function(source,
+                                       tile_items, ...,
                                        collection = NULL) {
     source <- .source_new(source = source, collection = collection)
     UseMethod(".source_items_tile_get_crs", source)
@@ -1002,8 +1000,8 @@ NULL
 #' @return \code{.source_items_tile_get_name()} returns a \code{character}
 #' value.
 #'
-.source_items_tile_get_name <- function(source, ...,
-                                        tile_items,
+.source_items_tile_get_name <- function(source,
+                                        tile_items, ...,
                                         collection = NULL) {
     source <- .source_new(source = source, collection = collection)
     UseMethod(".source_items_tile_get_name", source)
@@ -1017,8 +1015,8 @@ NULL
 #' @return \code{.source_items_tile_get_bbox()} returns a \code{numeric}
 #' vector with 4 elements (xmin, ymin, xmax, ymax).
 #'
-.source_items_tile_get_bbox <- function(source, ...,
-                                        tile_items,
+.source_items_tile_get_bbox <- function(source,
+                                        tile_items, ...,
                                         collection = NULL) {
     source <- .source_new(source = source, collection = collection)
     UseMethod(".source_items_tile_get_bbox", source)
@@ -1031,10 +1029,10 @@ NULL
 #'
 #' @return \code{.source_items_cube()} returns a \code{tibble} containing a sits
 #' cube tile (one row).
-.source_items_cube <- function(source, ...,
+.source_items_cube <- function(source,
                                collection,
                                items,
-                               file_info) {
+                               file_info, ...) {
     source <- .source_new(source = source, collection = collection)
     UseMethod(".source_items_cube", source)
 }
