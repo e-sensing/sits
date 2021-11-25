@@ -43,6 +43,12 @@ probs_cube_data_type    : "INT2U"
 # configuration for classified cubes
 class_cube_data_type    : "INT1U"
 
+# simultaneous connections
+parallel_requests : 4
+
+# minimum requests to parallelize
+parallel_minimum_requets : 10
+
 # valid aggregation methods for gdalcubes
 gdalcubes_aggreg_methods : ["min", "max", "mean", "median", "first"]
 
