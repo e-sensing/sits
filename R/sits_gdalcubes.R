@@ -436,3 +436,12 @@
 
     return(cv)
 }
+
+.gc_stac_metric <- function(agg_method, cube) {
+
+    UseMethod(".gc_stac_metric", agg_method)
+}
+
+.gc_stac_metric.stac <- function(agg_method, cube) {
+
+}

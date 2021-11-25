@@ -234,48 +234,78 @@ sits_regularize <- function(cube,
     # adds the bbox for each image in the file_info
     .add_bbox_fileinfo <- function(cube) {
 
+        # number of requests in parallel
+        n_workers <- .config_parallel_requests()
+
+        # progress bar
+        progress <- TRUE
+
+        data <- cube
+
+        # make sure that nesting operation (bellow) will be done correctly
+        data[["..row_id"]] <- seq_len(nrow(data))
+
+        # unnest bands
+        data <- tidyr::unnest(data, cols = "file_info")
+
+        if (nrow(data) < .config_parallel_minimum_requests()) {
+            n_workers <- 1
+            progress <- FALSE
+        }
+
         # prepare parallelization
-        .sits_parallel_start(workers = 3, log = FALSE)
+        .sits_parallel_start(workers = n_workers, log = FALSE)
         on.exit(.sits_parallel_stop(), add = TRUE)
 
-        cube$file_info <- lapply(cube$file_info, function(fi) {
+        data$bbox <- .sits_parallel_map(seq_len(nrow(data)), function(i) {
 
-            fi$bbox <- .sits_parallel_map(fi$path, function(path) {
+            r_obj <- tryCatch({
+                .raster_open_rast(data$path[[i]])
+            }, error = function(e) {
+                return(NULL)
+            })
 
-                r_obj <- tryCatch({
-                    .raster_open_rast(path)
-                }, error = function(e) {
-                   return(NULL)
-                })
+            if (is.null(r_obj))
+                return(NULL)
 
-                if (is.null(r_obj))
-                    return(NULL)
+            bbox <- .raster_extent(r_obj)
 
-                bbox <- .raster_extent(r_obj)
+            bbox <- c(
+                .sits_proj_to_latlong(x = bbox[["xmin"]],
+                                      y = bbox[["ymin"]],
+                                      crs = data$crs[[i]]),
+                .sits_proj_to_latlong(x = bbox[["xmax"]],
+                                      y = bbox[["ymax"]],
+                                      crs = data$crs[[i]])
+            )
 
-                bbox <- c(
-                    .sits_proj_to_latlong(x = bbox[["xmin"]],
-                                          y = bbox[["ymin"]],
-                                          crs = cube$crs[[1]]),
-                    .sits_proj_to_latlong(x = bbox[["xmax"]],
-                                          y = bbox[["ymax"]],
-                                          crs = cube$crs[[1]])
-                )
+            names(bbox) <- c("left", "bottom", "right", "top")
+            tibble::as_tibble(lapply(bbox, identity))
+        }, progress = progress, n_retries = 0)
 
-                names(bbox) <- c("left", "bottom", "right", "top")
-                tibble::as_tibble(lapply(bbox, identity))
-            }, progress = TRUE)
+        # nest again
+        data <- tidyr::nest(data, file_info = c("date", "band", "res",
+                                                "path", "bbox"))
 
-            fi <- dplyr::group_by(fi, date) %>%
+        # remove ..row_id
+        data <- dplyr::select(data, -"..row_id")
+
+        data$file_info <- lapply(data$file_info, function(fi) {
+
+            # removing invalid bbox
+            dplyr::group_by(fi, date) %>%
                 dplyr::mutate(valid_image = all(
                     vapply(bbox, Negate(is.null), logical(1)))) %>%
                 dplyr::filter(valid_image) %>%
                 dplyr::ungroup() %>%
-                dplyr::select(-valid_image)
-
-            tidyr::unnest(fi, cols = bbox)
+                dplyr::select(-valid_image) %>%
+                tidyr::unnest(cols = bbox)
         })
-        cube
+
+        # set sits tibble class
+        class(data) <- class(cube)
+
+        data
     }
 
     cube <- .add_bbox_fileinfo(cube)
