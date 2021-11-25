@@ -238,13 +238,9 @@
 
 #' @keywords internal
 #' @export
-`.source_items_tile_get_crs.mspc_cube_landsat-8-c2-l2` <- function(source,
-                                                                   tile_items, ...,
-                                                                   collection = NULL) {
-
-    # epsg_code <- tile_items[["features"]][[1]][[c("properties", "proj:epsg")]]
-    # # format collection crs
-    # crs <- .sits_proj_format_crs(epsg_code)
+.source_items_tile_get_crs.mspc_cube <- function(source,
+                                                 tile_items, ...,
+                                                 collection = NULL) {
 
     r_obj <- .raster_open_rast(
         .source_item_get_hrefs(source = source,
@@ -259,9 +255,9 @@
 
 #' @keywords internal
 #' @export
-`.source_items_tile_get_bbox.mspc_cube_landsat-8-c2-l2` <- function(source,
-                                                                   tile_items, ...,
-                                                                   collection = NULL) {
+.source_items_tile_get_bbox.mspc_cube <- function(source,
+                                                  tile_items, ...,
+                                                  collection = NULL) {
     r_obj <- .raster_open_rast(
         .source_item_get_hrefs(source = source,
                                item = tile_items$features[[1]])[[1]]
