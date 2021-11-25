@@ -56,7 +56,8 @@
     items
 }
 
-.source_collection_access_test.usgs_cube <- function(source, ..., collection, bands) {
+.source_collection_access_test.usgs_cube <- function(source, collection,
+                                                     bands, ...) {
 
     # require package
     if (!requireNamespace("rstac", quietly = TRUE)) {
@@ -84,14 +85,14 @@
                    "unreachable\n", e$message), call. = FALSE)
     })
 
-    items <- .source_items_bands_select(source = source, ...,
-                                        collection = collection,
+    items <- .source_items_bands_select(source = source,
                                         items = items,
-                                        bands = bands[[1]])
+                                        bands = bands[[1]],
+                                        collection = collection, ...)
 
-    href <- .source_item_get_hrefs(source = source, ...,
+    href <- .source_item_get_hrefs(source = source,
                                    item = items$feature[[1]],
-                                   collection = collection)
+                                   collection = collection, ...)
 
     # assert that token and/or href is valid
     tryCatch({
@@ -106,8 +107,7 @@
 
 #' @keywords internal
 #' @export
-.source_item_get_hrefs.usgs_cube <- function(source, ...,
-                                             item,
+.source_item_get_hrefs.usgs_cube <- function(source, item, ...,
                                              collection = NULL) {
 
 
@@ -121,9 +121,9 @@
 
 #' @keywords internal
 #' @export
-.source_items_new.usgs_cube <- function(source, ...,
+.source_items_new.usgs_cube <- function(source,
                                         collection,
-                                        stac_query,
+                                        stac_query, ...,
                                         tiles = NULL) {
 
     # set caller to show in errors
@@ -194,8 +194,8 @@
 
 #' @keywords internal
 #' @export
-.source_items_tiles_group.usgs_cube <- function(source, ...,
-                                                items,
+.source_items_tiles_group.usgs_cube <- function(source,
+                                                items, ...,
                                                 collection = NULL) {
 
     # store tile info in items object
