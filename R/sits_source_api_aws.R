@@ -29,9 +29,9 @@
 
 #' @keywords internal
 #' @export
-.source_items_new.aws_cube <- function(source, ...,
+.source_items_new.aws_cube <- function(source,
                                        collection,
-                                       stac_query,
+                                       stac_query, ...,
                                        tiles = NULL) {
 
     # set caller to show in errors
@@ -69,8 +69,8 @@
 
 #' @keywords internal
 #' @export
-.source_items_tiles_group.aws_cube <- function(source, ...,
-                                               items,
+.source_items_tiles_group.aws_cube <- function(source,
+                                               items, ...,
                                                collection = NULL) {
 
     # store tile info in items object
@@ -88,8 +88,8 @@
 
 #' @keywords internal
 #' @export
-.source_items_tile_get_crs.aws_cube <- function(source,...,
-                                                tile_items,
+.source_items_tile_get_crs.aws_cube <- function(source,
+                                                tile_items, ...,
                                                 collection = NULL) {
 
     # format collection crs
@@ -102,12 +102,13 @@
 
 #' @keywords internal
 #' @export
-.source_items_tile_get_bbox.aws_cube <- function(source, ...,
-                                                 tile_items,
+.source_items_tile_get_bbox.aws_cube <- function(source,
+                                                 tile_items, ...,
                                                  collection = NULL) {
     r_obj <- .raster_open_rast(
         .source_item_get_hrefs(source = source,
-                               item = tile_items$features[[1]])[[1]]
+                               item = tile_items$features[[1]],
+                               collection = collection, ...)[[1]]
     )
 
     # get image bbox
