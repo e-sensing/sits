@@ -125,6 +125,10 @@
 
     file_info <- purrr::map_dfr(items$features, function(item) {
 
+        fid <- .source_item_get_fid(source = source,
+                                    item = item,
+                                    collection = collection, ...)
+
         date <- .source_item_get_date(source = source,
                                       item = item,
                                       collection = collection, ...)
@@ -137,27 +141,35 @@
                                            item = item,
                                            collection = collection, ...)
 
+        bbox <- .source_item_get_bbox(source = source,
+                                      item = item,
+                                      collection = collection, ...)
+
         paths <- .source_item_get_hrefs(source = source,
                                         item = item,
                                         collection = collection, ...)
 
-        .check_that(
-            x = !is.na(date),
-            msg = "invalid date format."
-        )
-
-        .check_that(
-            x = is.character(bands),
+        .check_chr(fid, allow_empty = FALSE
             msg = "invalid band format."
         )
 
-        .check_that(
-            x = is.numeric(res),
+        .check_na(
+            date,
+            msg = "invalid date format."
+        )
+
+        .check_chr_type(
+            bands,
+            msg = "invalid band format."
+        )
+
+        .check_num_type(
+            res,
             msg = "invalid res format."
         )
 
-        .check_that(
-            x = is.character(paths),
+        .check_chr_type(
+            paths,
             msg = "invalid path format."
         )
 
