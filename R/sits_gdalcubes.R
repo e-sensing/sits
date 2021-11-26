@@ -93,7 +93,7 @@
         chunks_y <- round(size_y / cv[["space"]][["dy"]]) / chunk_size[[3]]
 
         # guaranteeing that it will return fewer blocks than calculated
-        num_chunks <- (ceiling(chunks_x) * ceiling(chunks_y)) - 1
+        num_chunks <- (floor(chunks_x) * floor(chunks_y))
 
         return(max(1, num_chunks))
     }
