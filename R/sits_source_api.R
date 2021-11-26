@@ -608,25 +608,28 @@ NULL
 
     return(invisible(NULL))
 }
+
 #' @rdname source_collection
 #'
-#' @description \code{.source_collection_gdal_config()} checks if a collection
-#' has a gdalcubes format description.
+#' @description \code{.source_collection_gdal_type()} checks if a collection
+#' has a gdalcubes type for writing files.
 #'
-#' @return \code{.source_collection_gdal_config()} returns the gdal format file path.
-.source_collection_gdal_config <- function(source, collection){
-    # try to find the gdalcubes configuration format for this collection
-    gdal_config <- .config_get(key = c("sources", source, "collections",
-                                       collection, "gdalcubes_format_col"),
+#' @return \code{.source_collection_gdal_type()} returns the gdal type.
+.source_collection_gdalcubes_type <- function(source, collection){
+
+    # try to find the gdalcubes configuration type for this collection
+    gdal_format <- .config_get(key = c("sources", source, "collections",
+                                       collection, "gdalcubes_type_format"),
                                default = NA)
+
     # if the format does not exist, report to the user
-    .check_that(!(is.na(gdal_config)),
-                msg = paste0("collection ", collection, " in source ", source,
-                             " not supported yet\n",
-                             "Please raise an issue in github"))
+    .check_na(gdal_format,
+              msg = paste("no type was found for collection ", collection,
+                          "and source", source,
+                          ". Please raise an issue in github"))
 
     # return the gdal format file path
-    system.file(paste0("extdata/gdalcubes/", gdal_config), package = "sits")
+    return(gdal_format)
 }
 
 #' @rdname source_collection
@@ -635,22 +638,22 @@ NULL
 #' has a gdalcubes type for writing files.
 #'
 #' @return \code{.source_collection_gdal_type()} returns the gdal type.
-.source_collection_gdal_type <- function(source, collection){
+.source_collection_gdalcubes_support <- function(source, collection){
 
-    # try to find the gdalcubes configuration type for this collection
-    gdal_format <- .config_get(key = c("sources", source, "collections",
-                                       collection, "gdalcubes_type_format"),
-                               default = NA)
+    # try to find the gdalcubes configuration
+    gdal_support <- .config_get(key = c("sources", source, "collections",
+                                        collection, "gdalcubes_support"),
+                                default = NA)
 
-    # if the format does not exist, report to the user
-    .check_that(!(is.na(gdal_format)),
-                msg = paste0("no type was found for collection ", collection,
-                             " and source ", source,
-                             ". Please raise an issue in github"))
+    # if the collection cant be supported the user is reported
+    .check_na(gdal_support,
+              msg = paste0("no type was found for collection", collection,
+                           "and source", source))
 
-    # return the gdal format file path
-    return(gdal_format)
+    return(invisible(gdal_support))
 }
+
+
 #' @rdname source_collection
 #'
 #' @description \code{.source_collection_name()} returns the name of a

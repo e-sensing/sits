@@ -322,12 +322,12 @@ test_that("Creating cubes from AWS Open Data and regularizing them", {
     gc_cube <- sits_regularize(
         cube        = s2_cube_open,
         output_dir  = dir_images,
-        res         = 250,
+        res         = 512,
         roi = c("xmin" = 234872.7,
                 "ymin" = 8847983.0,
                 "xmax" = 239532.6,
                 "ymax" = 8852017.0),
-        period      = "P15D",
+        period      = "P16D",
         agg_method  = "median",
         multicores = 2)
 

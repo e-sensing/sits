@@ -57,7 +57,7 @@
     .get_gdalcubes_pack <- function(cube, band) {
 
         # returns the type that the file will write
-        format_type <- .source_collection_gdal_type(
+        format_type <- .source_collection_gdalcubes_type(
             .cube_source(cube = tile),
             collection = .cube_collection(cube = tile)
         )
@@ -73,13 +73,18 @@
 
     .get_cube_chunks <- function(cv) {
 
-        bbox <- c(xmin = cv[["space"]][["left"]],
-                  xmax = cv[["space"]][["right"]],
-                  ymin = cv[["space"]][["bottom"]],
-                  ymax = cv[["space"]][["top"]])
+        bbox <- c(lon_min = cv[["space"]][["left"]],
+                  lon_max = cv[["space"]][["right"]],
+                  lat_min = cv[["space"]][["bottom"]],
+                  lat_max = cv[["space"]][["top"]])
 
-        size_x <- (max(bbox[c("xmin", "xmax")]) - min(bbox[c("xmin", "xmax")]))
-        size_y <- (max(bbox[c("ymin", "ymax")]) - min(bbox[c("ymin", "ymax")]))
+        size_x_max <- max(bbox[c("lon_min", "lon_max")])
+        size_x_min <- min(bbox[c("lon_min", "lon_max")])
+        size_x <- size_x_max - size_x_min
+
+        size_y_max <- max(bbox[c("lat_min", "lat_max")])
+        size_y_min <- min(bbox[c("lat_min", "lat_max")])
+        size_y <- size_y_max - size_y_min
 
         # a vector with time, x and y
         chunk_size <- .config_gdalcubes_chunk_size()
@@ -88,7 +93,7 @@
         chunks_y <- round(size_y / cv[["space"]][["dy"]]) / chunk_size[[3]]
 
         # guaranteeing that it will return fewer blocks than calculated
-        num_chunks <- (ceiling(chunks_x) * ceiling(chunks_y)) - 1
+        num_chunks <- (floor(chunks_x) * floor(chunks_y))
 
         return(max(1, num_chunks))
     }
@@ -274,27 +279,53 @@
 #'  images metadata.
 .gc_create_database <- function(cube, path_db) {
 
-    # set caller to show in errors
-    .check_set_caller(".gc_create_database")
+    # TODO: put as parameter
+    if (file.exists(path_db))
+        unlink(path_db)
 
-    # joining the bands of all tiles
-    file_info <- dplyr::bind_rows(cube$file_info)
+    create_gc_database <- function(cube) {
 
-    # retrieving the collection format
-    format_col <- .source_collection_gdal_config(
-        .cube_source(cube = cube),
-        collection = .cube_collection(cube = cube)
-    )
+        file_info <- dplyr::select(cube, file_info, crs, collection, tile) %>%
+            dplyr::mutate(`proj:epsg` = gsub("^EPSG:", "", crs)) %>%
+            tidyr::unnest(cols = c(file_info)) %>%
+            dplyr::transmute(xmin = left,
+                             ymin = bottom,
+                             xmax = right,
+                             ymax = top,
+                             href = path,
+                             datetime = as.character(date),
+                             href = href,
+                             band = band,
+                             `proj:epsg` = `proj:epsg`,
+                             id = paste(collection, tile, as.character(date),
+                                        sep = "_"))
 
-    message("Creating database of images...")
-    ic_cube <- gdalcubes::create_image_collection(
-        files    = file_info$path,
-        format   = format_col,
-        out_file = path_db
-    )
-    return(ic_cube)
+        features <- dplyr::mutate(file_info, fid = id) %>%
+            tidyr::nest(features = -fid)
+
+        purrr::map(features$features, function(feature) {
+
+            feature <- feature %>%
+                tidyr::nest(assets = c(href, band)) %>%
+                tidyr::nest(properties = c(datetime, `proj:epsg`)) %>%
+                tidyr::nest(bbox = c(xmin, ymin, xmax, ymax))
+
+            feature$assets <- purrr::map(feature$assets, function(asset) {
+                tidyr::pivot_wider(asset, names_from = band, values_from = href) %>%
+                    purrr::map(function(x) list(href = x, `eo:bands` = list(NULL)))
+            })
+
+            feature <- unlist(feature, recursive = FALSE)
+            feature$properties <- c(feature$properties)
+            feature$bbox <- unlist(feature$bbox)
+            feature
+        })
+    }
+
+    gdalcubes::stac_image_collection(s = create_gc_database(cube),
+                                     out_file = path_db,
+                                     url_fun = identity)
 }
-
 
 #' @title Internal function to handle with different file collection formats
 #'  for each provider.
@@ -387,17 +418,12 @@
     if (!is.null(roi))
         bbox_roi <- .sits_roi_bbox(roi, tile)
 
-    roi <- list(left   = bbox_roi[["xmin"]],
-                right  = bbox_roi[["xmax"]],
-                bottom = bbox_roi[["ymin"]],
-                top    = bbox_roi[["ymax"]])
-
     # create a list of cube view
     cv <- gdalcubes::cube_view(
-        extent = list(left   = roi[["left"]],
-                      right  = roi[["right"]],
-                      bottom = roi[["bottom"]],
-                      top    = roi[["top"]],
+        extent = list(left   = bbox_roi[["xmin"]],
+                      right  = bbox_roi[["xmax"]],
+                      bottom = bbox_roi[["ymin"]],
+                      top    = bbox_roi[["ymax"]],
                       t0 = format(toi[["max_min_date"]], "%Y-%m-%d"),
                       t1 = format(toi[["min_max_date"]], "%Y-%m-%d")),
         srs = tile[["crs"]][[1]],
@@ -409,4 +435,13 @@
     )
 
     return(cv)
+}
+
+.gc_stac_metric <- function(agg_method, cube) {
+
+    UseMethod(".gc_stac_metric", agg_method)
+}
+
+.gc_stac_metric.stac <- function(agg_method, cube) {
+
 }

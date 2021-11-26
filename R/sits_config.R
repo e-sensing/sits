@@ -426,12 +426,11 @@ sits_list_collections <- function(source = NULL) {
 
     return(yml_file)
 }
+
 #' @title Return the internal configuration file (only for developers)
 #' @name config_internals_file
 #' @keywords internal
 #' @return default configuration file
-#'
-#'
 .config_internals_file <- function() {
 
     # load the default configuration file
@@ -446,8 +445,6 @@ sits_list_collections <- function(source = NULL) {
 #' @name config_colors_file
 #' @keywords internal
 #' @return default configuration file
-#'
-#'
 .config_colors_file <- function() {
 
     # load the default configuration file
@@ -539,7 +536,6 @@ sits_list_collections <- function(source = NULL) {
 #' @name .config_gtiff_default_options
 #' @keywords internal
 #' @return  the creation options associated to the configuration
-#'
 .config_gtiff_default_options <- function() {
 
     res <- .config_get(key = c("gdal_creation_options"))
@@ -788,7 +784,6 @@ sits_list_collections <- function(source = NULL) {
 #' @param ...            other relevant parameters
 #' @keywords internal
 #' @return   list with the configuration associated to the new band
-#'
 .config_new_band <- function(missing_value,
                              minimum_value,
                              maximum_value,
@@ -899,7 +894,6 @@ sits_list_collections <- function(source = NULL) {
 #' @param  rev      revert the order of colors?
 #' @keywords internal
 #' @return colors required to display the labels
-#'
 .config_colors <- function(labels,
                            palette = "Harmonic",
                            rev = TRUE) {
@@ -950,7 +944,48 @@ sits_list_collections <- function(source = NULL) {
 #' @name .config_processing_bloat
 #' @keywords internal
 #' @return estimated processing bloat
-#'
+.config_processing_bloat <- function() {
+
+    res <- .config_get(key = c("processing_bloat"))
+
+    # post-condition
+    .check_num(res, min = 1, len_min = 1, len_max = 1,
+               msg = "invalid 'processing_bloat' in config file")
+
+    return(res)
+}
+#' @title Retrieve the parallel requests number
+#' @name parallel_requests
+#' @keywords internal
+#' @return get parallel requests
+.config_parallel_requests <- function() {
+
+    res <- .config_get(key = c("parallel_requests"))
+
+    # post-condition
+    .check_num(res, min = 1, len_min = 1, len_max = 1,
+               msg = "invalid 'parallel_requests' in config file")
+
+    return(res)
+}
+#' @title Retrieve the minimum requests to do in parallel
+#' @name parallel_minimum_requets
+#' @keywords internal
+#' @return get minimum times the parallel requests will be done
+.config_parallel_minimum_requests <- function() {
+
+    res <- .config_get(key = c("parallel_minimum_requets"))
+
+    # post-condition
+    .check_num(res, min = 1, len_min = 1, len_max = 1,
+               msg = "invalid 'parallel_minimum_requets' in config file")
+
+    return(res)
+}
+#' @title Retrieve the processing bloat
+#' @name .config_processing_bloat
+#' @keywords internal
+#' @return estimated processing bloat
 .config_processing_bloat <- function() {
 
     res <- .config_get(key = c("processing_bloat"))
@@ -965,7 +1000,6 @@ sits_list_collections <- function(source = NULL) {
 #' @name .config_rstac_limit
 #' @keywords internal
 #' @return pagination limit to rstac output
-#'
 .config_rstac_limit <- function() {
 
     res <- .config_get(key = c("rstac_pagination_limit"))
