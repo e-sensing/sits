@@ -283,9 +283,7 @@
 #' @export
 .raster_extent.terra <- function(r_obj, ...) {
 
-    suppressWarnings(
-        as.vector(terra::ext(x = r_obj))
-    )
+    suppressWarnings(as.vector(terra::ext(x = r_obj)))
 }
 
 #' @keywords internal

@@ -581,7 +581,7 @@ sources:
                     AWS_S3_ENDPOINT      : "s3.amazonaws.com"
                     AWS_REQUEST_PAYER    : "requester"
                 open_data   : false
-                gdalcubes_format_col : "s2la_aws.json"
+                gdalcubes_support : true
                 gdalcubes_type_format: "int16"
             SENTINEL-S2-L2A-COGS :
                 bands       :
@@ -662,7 +662,7 @@ sources:
                     AWS_S3_ENDPOINT      : "s3.amazonaws.com"
                 open_data: true
                 open_data_token: false
-                gdalcubes_format_col : "s2la_aws_cogs.json"
+                gdalcubes_support : true
                 gdalcubes_type_format: "int16"
     DEAFRICA                :
         s3_class            : ["deafrica_cube", "stac_cube", "raster_cube"]
@@ -748,7 +748,7 @@ sources:
                     AWS_S3_ENDPOINT   : "s3.af-south-1.amazonaws.com"
                 open_data: true
                 open_data_token: false
-                gdalcubes_format_col : "s2_l2a_deafrica.json"
+                gdalcubes_support : true
                 gdalcubes_type_format: "int16"
             LS8_SR          : &deafrica_l8
                 bands       :
@@ -805,7 +805,7 @@ sources:
                     AWS_S3_ENDPOINT   : "s3.af-south-1.amazonaws.com"
                 open_data: true
                 open_data_token: false
-                gdalcubes_format_col : "ls8_sr_deafrica.json"
+                gdalcubes_support : true
                 gdalcubes_type_format: "int16"
     USGS                    :
         s3_class            : ["usgs_cube", "stac_cube", "raster_cube"]
@@ -871,7 +871,7 @@ sources:
                 open_data: false
                 open_data_token: false
                 tile_required: false
-                gdalcubes_format_col : "l8c2l2_usgs.json"
+                gdalcubes_support : true
                 gdalcubes_type_format: "int16"
     MSPC                    :
         s3_class            : ["mspc_cube", "stac_cube", "raster_cube"]
@@ -933,7 +933,7 @@ sources:
                 open_data: true
                 open_data_token: false
                 tile_required: false
-                gdalcubes_format_col : "landsat_8_c2_l2_mspc.json"
+                gdalcubes_support : true
                 gdalcubes_type_format: "int16"
             SENTINEL-2-L2A  : &mspc_msi
                 bands       :
@@ -1011,5 +1011,5 @@ sources:
                 collection_name: "sentinel-2-l2a"
                 open_data: true
                 open_data_token: false
-                gdalcubes_format_col : "sentinel_2_l2a_mspc.json"
+                gdalcubes_support : true
                 gdalcubes_type_format: "int16"

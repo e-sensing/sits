@@ -259,9 +259,10 @@
 #' @export
 .raster_extent.raster <- function(r_obj, ...) {
 
-    suppressWarnings(
-        as.vector(raster::extent(x = r_obj))
-    )
+    extent <- suppressWarnings(as.vector(raster::extent(x = r_obj)))
+
+    names(extent) <- c("xmin", "xmax", "ymin", "ymax")
+    extent
 }
 
 #' @keywords internal
