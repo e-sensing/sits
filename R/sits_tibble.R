@@ -439,3 +439,52 @@ sits_time_series <- function(data) {
 
     return(TRUE)
 }
+
+.sits_fast_apply <- function(data, col, fn, ...) {
+
+    # pre-condition
+    .check_chr_within(col, within = names(data),
+                      msg = "invalid column name")
+
+    # select data do unpack
+    x <- data[c(col)]
+
+    # prepare to unpack
+    x[["..row_id"]] <- seq_len(nrow(data))
+
+    # unpack
+    x <- tidyr::unnest(x, cols = col)
+    x <- dplyr::group_by(x, `..row_id`)
+
+    # apply user function
+    x <- fn(x, ...)
+
+    # pack
+    x <- dplyr::ungroup(x)
+    x <- tidyr::nest(x, `..unnest_col` = -dplyr::any_of("..row_id"))
+
+    # remove garbage
+    x[["..row_id"]] <- NULL
+    names(x) <- col
+
+    # prepare result
+    data[[col]] <- x[[col]]
+
+    return(data)
+}
+
+.sits_rename_bands <- function(x, bands) {
+
+    .sits_fast_apply(x, col = "time_series", fn = function(x) {
+
+        # create a conversor
+        new_bands <- colnames(x)
+        names(new_bands) <- new_bands
+
+        # rename
+        new_bands[data_bands] <- toupper(bands)
+        colnames(x) <- unname(new_bands)
+
+        return(x)
+    })
+}
