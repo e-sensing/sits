@@ -812,6 +812,7 @@ NULL
 #' @param ...        Additional parameters.
 #' @param items      Any object referring to the images bands (scenes) that
 #' compose a cube.
+#' @param asset      Any supported \code{raster} object to retrieve information.
 #' @param collection A \code{character} value referring to a collection of the
 #' source.
 #' @param data_dir   Directory where local files are stored
@@ -834,6 +835,17 @@ NULL
 .source_cube <- function(source, collection, ...) {
     source <- .source_new(source = source, collection = collection)
     UseMethod(".source_cube", source)
+}
+#' @rdname source_cube
+#'
+#' @description \code{.source_item_get_fid()} retrieves the feature id of
+#' an item.
+#'
+#' @return \code{.source_item_get_fid()} returns a \code{character} value.
+#'
+.source_item_get_fid <- function(source, item, ..., collection = NULL) {
+    source <- .source_new(source)
+    UseMethod(".source_item_get_fid", source)
 }
 
 #' @rdname source_cube
@@ -876,15 +888,15 @@ NULL
 
 #' @rdname source_cube
 #'
-#' @description \code{.source_item_get_resolution()} retrieves the supported
+#' @description \code{.source_asset_get_resolution()} retrieves the supported
 #' resolution of an item (for each band).
 #'
-#' @return \code{.source_item_get_resolution()} returns a named \code{list}
+#' @return \code{.source_asset_get_resolution()} returns a named \code{list}
 #' with \code{numeric} vectors containing the supported resolution for each band
 #'
-.source_item_get_resolution <- function(source, item, ..., collection = NULL) {
+.source_asset_get_resolution <- function(source, item, asset, ..., collection = NULL) {
     source <- .source_new(source)
-    UseMethod(".source_item_get_resolution", source)
+    UseMethod(".source_asset_get_resolution", source)
 }
 
 #' @rdname source_cube
@@ -1015,7 +1027,7 @@ NULL
 #' @description \code{.source_items_tile_get_bbox()} retrieves the bounding
 #' box from items of a tile.
 #'
-#' @return \code{.source_items_tile_get_bbox()} returns a \code{numeric}
+#' @return \code{.source_items_tile_get_bbox()} returns a \code{list}
 #' vector with 4 elements (xmin, ymin, xmax, ymax).
 #'
 .source_items_tile_get_bbox <- function(source,
@@ -1023,6 +1035,22 @@ NULL
                                         collection = NULL) {
     source <- .source_new(source = source, collection = collection)
     UseMethod(".source_items_tile_get_bbox", source)
+}
+
+#' @rdname source_cube
+#'
+#' @description \code{.source_asset_get_bbox()} retrieves the bounding
+#' box from an asset.
+#'
+#' @return \code{.source_asset_get_bbox()} returns a \code{list}
+#' vector with 4 elements (xmin, ymin, xmax, ymax).
+#'
+.source_asset_get_bbox <- function(source,
+                                   tile_items,
+                                   asset, ...,
+                                   collection = NULL) {
+    source <- .source_new(source = source, collection = collection)
+    UseMethod(".source_asset_get_bbox", source)
 }
 
 #' @rdname source_cube

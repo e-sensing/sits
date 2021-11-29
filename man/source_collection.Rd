@@ -17,7 +17,7 @@
 \usage{
 .source_collections(source, ...)
 
-.source_collection_access_test(source, ..., collection)
+.source_collection_access_test(source, collection, ...)
 
 .source_collection_access_vars_set(source, collection)
 

@@ -123,71 +123,101 @@
     # set caller to show in errors
     .check_set_caller(".source_items_fileinfo.stac_cube")
 
+    # get workers
+    n_workers <- .config_parallel_requests()
+    if (.config_parallel_minimum_requests() > length(items$features))
+        n_workers <- 1
+
+    .sits_parallel_start(n_workers, log = FALSE)
+    on.exit(.sits_parallel_stop(), add = TRUE)
+
+    # start file_info by feature id
     file_info <- purrr::map_dfr(items$features, function(item) {
 
         fid <- .source_item_get_fid(source = source,
                                     item = item,
                                     collection = collection, ...)
 
+        return(tibble::tibble(fid = fid))
+    })
+
+    # post-condition
+    .check_that(
+        nrow(file_info) == length(unique(file_info$fid)),
+        local_msg = "feature id is not unique",
+        msg = "invalid feature id values"
+    )
+
+    file_info$meta_data <- .sits_parallel_map(items$features, function(item) {
+
+        # get date
         date <- .source_item_get_date(source = source,
                                       item = item,
                                       collection = collection, ...)
 
+        # get bands
         bands <- .source_item_get_bands(source = source,
                                         item = item,
                                         collection = collection, ...)
 
-        res <- .source_item_get_resolution(source = source,
-                                           item = item,
-                                           collection = collection, ...)
-
-        bbox <- .source_item_get_bbox(source = source,
-                                      item = item,
-                                      collection = collection, ...)
-
+        # get file paths
         paths <- .source_item_get_hrefs(source = source,
                                         item = item,
                                         collection = collection, ...)
 
-        .check_chr(fid, allow_empty = FALSE
-            msg = "invalid band format."
-        )
+        # open rasters
+        assets <- purrr::map(paths, .raster_open_rast)
 
-        .check_na(
-            date,
-            msg = "invalid date format."
-        )
+        # get resolutions
+        res <- purrr::map(assets, function(asset) {
+            res <- .source_asset_get_resolution(source = source,
+                                                item = item,
+                                                asset = asset,
+                                                collection = collection, ...)
+            tibble::as_tibble_row(res)
+        })
 
-        .check_chr_type(
-            bands,
-            msg = "invalid band format."
-        )
+        bbox <- purrr::map(assets, function(asset) {
+            bbox <- .source_asset_get_bbox(source = source,
+                                           item = item,
+                                           asset = asset,
+                                           collection = collection, ...)
+            tibble::as_tibble_row(bbox)
+        })
 
-        .check_num_type(
-            res,
-            msg = "invalid res format."
-        )
+        # post-conditions
+        .check_chr(fid, allow_empty = FALSE, len_min = 1, len_max = 1,
+                   msg = "invalid fid value")
 
-        .check_chr_type(
-            paths,
-            msg = "invalid path format."
-        )
+        .check_na(date, msg = "invalid date value")
 
-        tidyr::unnest(
+        .check_length(date, len_min = 1, len_max = 1,
+                      msg = "invalid date value")
+
+        .check_chr(bands, len_min = 1, msg = "invalid band value")
+
+        values <- tidyr::unnest(
             tibble::tibble(
+                fid = fid,
                 date = date,
-                band = list(bands),
-                res = list(res),
-                path = list(paths)
-            ), cols = c("band", "res", "path")
+                band = bands,
+                res = res,
+                bbox = bbox,
+                path = paths
+            ), cols = c("band", "res", "bbox", "path")
         )
-    }) %>% dplyr::arrange(date)
 
-    file_info <- dplyr::group_by(file_info, date, band, res) %>%
-        dplyr::summarise(
-            path = dplyr::first(path, order_by = path),
-            .groups = "drop"
-        )
+        return(values)
+    }, progress = TRUE)
+
+    file_info <- dplyr::arrange(tidyr::unnest(file_info, cols = "meta_data"),
+                                date)
+
+    # file_info <- dplyr::group_by(file_info, date, band, res) %>%
+    #     dplyr::summarise(
+    #         path = dplyr::first(path, order_by = path),
+    #         .groups = "drop"
+    #     )
 
     return(file_info)
 }
@@ -204,6 +234,7 @@
 
     t_bbox <- .source_items_tile_get_bbox(source = source,
                                           tile_items = items,
+                                          file_info = file_info,
                                           collection = collection, ...)
 
     .check_chr_within(
@@ -251,6 +282,21 @@
 }
 #' @keywords internal
 #' @export
+.source_item_get_fid.stac_cube <- function(source,
+                                           item, ...,
+                                           collection = NULL) {
+
+    fid <- item[["id"]]
+
+    # post-conditions
+    .check_chr(fid, allow_empty = FALSE, len_min = 1, len_max = 1,
+               msg = "invalid feature id value")
+
+    return(fid)
+}
+
+#' @keywords internal
+#' @export
 .source_item_get_date.stac_cube <- function(source,
                                             item, ...,
                                             collection = NULL) {
@@ -266,11 +312,17 @@
                                              item, ...,
                                              collection = NULL) {
 
-    href <- unname(purrr::map_chr(item[["assets"]], `[[`, "href"))
+    hrefs <- unname(purrr::map_chr(item[["assets"]], `[[`, "href"))
+
+    # post-conditions
+    .check_chr(hrefs, allow_empty = FALSE)
 
     # add gdal vsi in href urls
-    return(.stac_add_gdal_vsi(href))
+    hrefs <- .stac_add_gdal_vsi(hrefs)
+
+    return(hrefs)
 }
+
 #' @keywords internal
 #' @export
 .source_item_get_bands.stac_cube <- function(source,
@@ -280,20 +332,43 @@
 }
 #' @keywords internal
 #' @export
-.source_item_get_resolution.stac_cube <- function(source,
-                                                  item, ...,
-                                                  collection = NULL) {
-    # use config information to get resolution
-    res <- .source_bands_resolution(
-        source = source,
-        collection = collection,
-        bands = .source_item_get_bands(source = source,
-                                       item = item,
-                                       collection = collection, ...)
-    )
+.source_asset_get_resolution.stac_cube <- function(source,
+                                                   item,
+                                                   asset, ...,
+                                                   collection = NULL) {
+    # # use config information to get resolution
+    # res <- .source_bands_resolution(
+    #     source = source,
+    #     collection = collection,
+    #     bands = .source_item_get_bands(source = source,
+    #                                    item = item,
+    #                                    collection = collection, ...)
+    # )
+
+    xres <- .raster_xres(asset)
+    yres <- .raster_yres(asset)
+
+    # post-conditions
+    .check_num(xres, allow_zero = FALSE, len_min = 1, len_max = 1,
+               msg = "invalid resolution value")
+
+    .check_num(yres, allow_zero = FALSE, len_min = 1, len_max = 1,
+               msg = "invalid resolution value")
+
+    return(list(xres = xres, yres = yres))
+}
+
+#' @keywords internal
+#' @export
+.source_asset_get_bbox.stac_cube <- function(source,
+                                            item, ...,
+                                            collection = NULL) {
+
+
 
     return(unlist(res))
 }
+
 #' @keywords internal
 #' @export
 .source_items_tile_get_name.stac_cube <- function(source,
@@ -306,7 +381,8 @@
 #' @keywords internal
 #' @export
 .source_items_tile_get_bbox.stac_cube <- function(source,
-                                                  tile_items, ...,
+                                                  tile_items,
+                                                  file_info, ...,
                                                   collection = NULL) {
 
     # get collection crs
@@ -315,6 +391,25 @@
                                       collection = collection, ...)
 
     bbox <- .stac_get_bbox(tile_items, crs)
+
+    return(bbox)
+}
+
+#' @keywords internal
+#' @export
+.source_asset_get_bbox.stac_cube <- function(source,
+                                             tile_items,
+                                             asset, ...,
+                                             collection = NULL) {
+
+    # # get collection crs
+    # crs <- .source_items_tile_get_crs(source = source,
+    #                                   tile_items = tile_items,
+    #                                   collection = collection, ...)
+    #
+    # bbox <- .stac_get_bbox(tile_items, crs)
+
+    bbox <- .raster_extent(r_obj = asset)
 
     return(bbox)
 }
