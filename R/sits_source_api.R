@@ -863,6 +863,18 @@ NULL
 
 #' @rdname source_cube
 #'
+#' @description \code{.source_item_get_cc()} retrieves the percentage of cloud
+#' cover of an image.
+#' @return \code{.source_item_get_cc()} returns a \code{numeric} vector
+#' containing the percentage of cloud cover to each image band of an item.
+#'
+.source_item_get_cc <- function(source, ..., item, collection = NULL) {
+    source <- .source_new(source)
+    UseMethod(".source_item_get_cc", source)
+}
+
+#' @rdname source_cube
+#'
 #' @description \code{.source_item_get_bands()} retrieves the bands present
 #' in an item.
 #'
