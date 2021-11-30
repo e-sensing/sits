@@ -2,7 +2,7 @@
 # s3 classes known to sits
 sits_s3_classes :   ["sits", "patterns", "predicted", "sits_model",
                     "sits_cube", "raster_cube", "probs_cube",
-                    "classified_image",
+                    "uncertainty_cube", "classified_image",
                     "wtss_cube", "satveg_cube",
                     "stac_cube", "bdc_cube", "aws_cube",
                     "usgs_cube", "deafrica_cube"]
@@ -18,7 +18,7 @@ sits_tibble_cols :  ["longitude", "latitude", "start_date",
                     "time_series"]
 
 # mandatory columns in predicted time series classification
-ts_predicted_cols:  ["from", "to", "class", "probs"]
+ts_predicted_cols:  ["from", "to", "class"]
 
 # supported user sample file formats
 sample_file_formats : ["csv", "shp"]

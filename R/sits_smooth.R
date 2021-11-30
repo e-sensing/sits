@@ -169,6 +169,15 @@ sits_smooth.bayes <- function(cube, type = "bayes", ...,
                allow_zero = FALSE,
                msg = "memsize must be positive")
 
+    # precondition 6 - output dir
+    .check_file(x = output_dir,
+                msg = "invalid output dir")
+
+    # precondition 7 - version
+    .check_chr(x = version,
+               len_min = 1,
+               msg = "invalid version")
+
     # create a window
     window <- matrix(1, nrow = window_size, ncol = window_size)
 
@@ -284,7 +293,16 @@ sits_smooth.gaussian <- function(cube, type = "gaussian", ...,
                len_max = 1,
                min = 1,
                allow_zero = FALSE,
-               msg = "memsize must be positiv")
+               msg = "memsize must be positive")
+
+    # precondition 6 - output dir
+    .check_file(x = output_dir,
+                msg = "invalid output dir")
+
+    # precondition 7 - version
+    .check_chr(x = version,
+               len_min = 1,
+               msg = "invalid version")
 
     # create output window
     gauss_kernel <- .sits_smooth_gauss_kernel(window_size = window_size,
@@ -395,6 +413,15 @@ sits_smooth.bilateral <- function(cube,
                min = 1,
                allow_zero = FALSE,
                msg = "memsize must be positive")
+
+    # precondition 6 - output dir
+    .check_file(x = output_dir,
+                msg = "invalid output dir")
+
+    # precondition 7 - version
+    .check_chr(x = version,
+               len_min = 1,
+               msg = "invalid version")
 
     # create output window
     gauss_kernel <- .sits_smooth_gauss_kernel(window_size = window_size,

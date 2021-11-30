@@ -253,32 +253,34 @@ plot.raster_cube <- function(x, ...,
 #' @param  x             object of class "probs_image"
 #' @param  y             ignored
 #' @param  ...           further specifications for \link{plot}.
-#' @param time           temporal reference for plot.
-#' @param title          string.
+#' @param tile           tile number to be plotted
 #' @param labels         labels to plot (optional)
+#' @param n_colors       number of colors to plot
 #' @param palette        hcl palette used for visualisation
 #'
 #' @return               The plot itself.
 #'
 #' @export
 #'
-plot.probs_cube <- function(x, y, ..., time = 1,
-                            title = "Probabilities for Classes",
+plot.probs_cube <- function(x, y, ...,
+                            tile = 1,
                             labels = NULL,
+                            n_colors = 20,
                             palette = "Terrain") {
     stopifnot(missing(y))
     # verifies if stars package is installed
     if (!requireNamespace("stars", quietly = TRUE)) {
         stop("Please install package stars.", call. = FALSE)
     }
-    breaks <-  "pretty"
-    n_colors <- 20
+    breaks <- "pretty"
     n_breaks <- n_colors + 1
     # define the output color palette
-    col <- grDevices::hcl.colors(n = n_colors, palette = palette,
-                                 alpha = 1, rev = TRUE)
+    col <- grDevices::hcl.colors(n = n_colors,
+                                 palette = palette,
+                                 alpha = 1,
+                                 rev = TRUE)
     # create a stars object
-    st <- stars::read_stars(x$file_info[[1]]$path[[time]])
+    st <- stars::read_stars(x[tile,]$file_info[[1]]$path[[1]])
     # get the labels
     labels_cube <- sits_labels(x)
 
@@ -306,6 +308,47 @@ plot.probs_cube <- function(x, y, ..., time = 1,
     return(invisible(p))
 }
 
+#' @title  Plot uncertainty cubes
+#' @name   plot.uncertainty_cube
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
+#' @description plots a probability cube using stars
+#'
+#' @param  x             object of class "probs_image"
+#' @param  y             ignored
+#' @param  ...           further specifications for \link{plot}.
+#' @param tile           tile number to be plotted
+#' @param n_colors       number of colors to plot
+#' @param palette        hcl palette used for visualisation
+#'
+#' @return               The plot itself.
+#'
+#' @export
+#'
+plot.uncertainty_cube <- function(x, y, ...,
+                                  tile = 1,
+                                  n_colors = 20,
+                                  palette = "Blues") {
+    stopifnot(missing(y))
+    # verifies if stars package is installed
+    if (!requireNamespace("stars", quietly = TRUE)) {
+        stop("Please install package stars.", call. = FALSE)
+    }
+    breaks = "quantile"
+    n_breaks <- n_colors + 1
+    # define the output color palette
+    col <- grDevices::hcl.colors(n = n_colors, palette = palette,
+                                 alpha = 1, rev = TRUE)
+    # create a stars object
+    st <- stars::read_stars(x[tile,]$file_info[[1]]$path[[1]])
+    p <- suppressMessages(plot(st,
+                               breaks = breaks,
+                               nbreaks = n_breaks,
+                               col = col,
+                               main = "Uncertainty")
+    )
+
+    return(invisible(p))
+}
 
 #' @title  Plot classified images
 #' @name   plot.classified_image
@@ -476,17 +519,14 @@ plot.keras_model <- function(x, y, ...) {
     if (!requireNamespace("scales", quietly = TRUE)) {
         stop("Please install package scales.", call. = FALSE)
     }
-    # prepare a data frame for plotting
-    plot.df <- data.frame()
 
     # put the time series in the data frame
-    purrr::pmap(
+    plot.df <- purrr::pmap_dfr(
         list(data$label, data$time_series),
         function(label, ts) {
             lb <- as.character(label)
             # extract the time series and convert
             df <- data.frame(Time = ts$Index, ts[-1], Pattern = lb)
-            plot.df <<- rbind(plot.df, df)
         }
     )
 
@@ -829,17 +869,14 @@ plot.keras_model <- function(x, y, ...) {
             ))
             y_breaks <- y_labels
 
-            # get the predicted values as a tibble
-            df_pol <- data.frame()
-
             # create a data frame with values and intervals
-            i <- 1
-            purrr::pmap(
+            nrows_p <- nrow(row_predicted)
+            df_pol <- purrr::pmap_dfr(
                 list(
                     row_predicted$from, row_predicted$to,
-                    row_predicted$class
+                    row_predicted$class, seq(1:nrows_p)
                 ),
-                function(rp_from, rp_to, rp_class) {
+                function(rp_from, rp_to, rp_class, i) {
                     best_class <- as.character(rp_class)
 
                     df_p <- data.frame(
@@ -855,8 +892,6 @@ plot.keras_model <- function(x, y, ...) {
                                           na.rm = TRUE
                         ), each = 2)
                     )
-                    i <<- i + 1
-                    df_pol <<- rbind(df_pol, df_p)
                 }
             )
 

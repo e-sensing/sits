@@ -192,11 +192,10 @@ sits_sample <- function(data, n = NULL, frac = NULL) {
     # compute sampling
     result <- .sits_tibble()
     labels <- sits_labels(data)
-    labels %>%
-        purrr::map(function(l) {
+    result <- purrr::map_dfr(labels,
+        function(l) {
             tb_l <- dplyr::filter(data, label == l)
             tb_s <- sampling_fun(tb_l)
-            result <<- dplyr::bind_rows(result, tb_s)
         })
 
     return(result)
@@ -302,10 +301,10 @@ sits_time_series <- function(data) {
 
     # get the reference date
     start_date <- lubridate::as_date(ref_dates[1])
-    # create an output tibble
-    data1 <- .sits_tibble()
 
-    rows <- purrr::pmap(
+
+    # align the dates in the data
+    data <- purrr::pmap_dfr(
         list(
             data$longitude,
             data$latitude,
@@ -320,7 +319,7 @@ sits_time_series <- function(data) {
                 idx <- which.min(abs((lubridate::as_date(ts$Index)
                                       - lubridate::as_date(start_date)) / lubridate::ddays(1)))
                 # shift the time series to match dates
-                if (idx != 1) ts <- shift_ts(ts, - (idx - 1))
+                if (idx != 1) ts <- shift_ts(ts, -(idx - 1))
                 # change the dates to the reference dates
                 ts1 <- dplyr::mutate(ts, Index = ref_dates)
 
@@ -338,12 +337,7 @@ sits_time_series <- function(data) {
             return(row)
         }
     )
-
-    # solve issue when a names list is returned
-    if (!is.null(names(rows))) rows <- unname(rows)
-
-    data1 <- dplyr::bind_rows(data1, rows)
-    return(data1)
+    return(data)
 }
 
 
@@ -364,12 +358,9 @@ sits_time_series <- function(data) {
     # verify that tibble is correct
     .sits_tibble_test(data)
 
-    # create a vector to store the number of indices per time series
-    n_samples <- vector()
-
-    data$time_series %>%
-        purrr::map(function(t) {
-            n_samples[length(n_samples) + 1] <<- nrow(t)
+    n_samples <- data$time_series %>%
+        purrr::map_int(function(t) {
+            nrow(t)
         })
 
     # check if all time indices are equal to the median
@@ -447,4 +438,53 @@ sits_time_series <- function(data) {
     )
 
     return(TRUE)
+}
+
+.sits_fast_apply <- function(data, col, fn, ...) {
+
+    # pre-condition
+    .check_chr_within(col, within = names(data),
+                      msg = "invalid column name")
+
+    # select data do unpack
+    x <- data[c(col)]
+
+    # prepare to unpack
+    x[["..row_id"]] <- seq_len(nrow(data))
+
+    # unpack
+    x <- tidyr::unnest(x, cols = col)
+    x <- dplyr::group_by(x, `..row_id`)
+
+    # apply user function
+    x <- fn(x, ...)
+
+    # pack
+    x <- dplyr::ungroup(x)
+    x <- tidyr::nest(x, `..unnest_col` = -dplyr::any_of("..row_id"))
+
+    # remove garbage
+    x[["..row_id"]] <- NULL
+    names(x) <- col
+
+    # prepare result
+    data[[col]] <- x[[col]]
+
+    return(data)
+}
+
+.sits_rename_bands <- function(x, bands) {
+
+    .sits_fast_apply(x, col = "time_series", fn = function(x) {
+
+        # create a conversor
+        new_bands <- colnames(x)
+        names(new_bands) <- new_bands
+
+        # rename
+        new_bands[data_bands] <- toupper(bands)
+        colnames(x) <- unname(new_bands)
+
+        return(x)
+    })
 }

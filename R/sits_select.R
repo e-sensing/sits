@@ -49,25 +49,13 @@ sits_select.sits <- function(data, bands) {
         msg = paste("Invalid bands values")
     )
 
-    # make sure that nesting operation (bellow) will be done correctly
-    data[["..row_id"]] <- seq_len(nrow(data))
+    data <- .sits_fast_apply(data, col = "time_series", function(x) {
 
-    # unnest bands
-    data <- tidyr::unnest(data, cols = "time_series")
+        # select anything other than non selected bands
+        removed_bands <- paste0(setdiff(data_bands, bands))
 
-    # select anything other than non selected bands
-    removed_bands <- paste0(setdiff(data_bands, bands))
-
-    data <- data[, setdiff(colnames(data), removed_bands)]
-
-    # nest again
-    data <- tidyr::nest(data, time_series = dplyr::all_of(c("Index", bands)))
-
-    # remove ..row_id
-    data <- dplyr::select(data, -"..row_id")
-
-    # set sits tibble class
-    class(data) <- c("sits", class(data))
+        x[, setdiff(colnames(x), removed_bands)]
+    })
 
     return(data)
 }

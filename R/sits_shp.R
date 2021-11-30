@@ -85,8 +85,8 @@
     # get the db file
     shp_df <- sf::st_drop_geometry(sf_shape)
 
-    points_lst <- seq_len(nrow(sf_shape)) %>%
-        purrr::map(function(i) {
+    points.tb <- seq_len(nrow(sf_shape)) %>%
+        purrr::map_dfr(function(i) {
             # retrieve the class from the shape attribute
             if (!purrr::is_null(shp_attr)) {
                 label <- unname(as.character(shp_df[i, shp_attr]))
@@ -94,8 +94,8 @@
             # obtain a set of samples based on polygons
             points <- list(sf::st_sample(sf_shape[i, ], size = .n_shp_pol))
             # get one time series per sample
-            rows <- points %>%
-                purrr::pmap(function(p) {
+            pts.tb <- points %>%
+                purrr::pmap_dfr(function(p) {
                     pll <- sf::st_geometry(p)[[1]]
                     row <- tibble::tibble(
                         longitude = pll[1],
@@ -104,13 +104,9 @@
                     )
                     return(row)
                 })
-            # combine rows to make SITS tibble
-            pts <- dplyr::bind_rows(rows)
-            return(pts)
+            return(pts.tb)
         })
-    # join all the points for all shapefiles
-    points_tb <- dplyr::bind_rows(points_lst)
-    return(points_tb)
+    return(points.tb)
 }
 #' @title Check the validity of the shape file
 #' @name .sits_shp_check_validity
