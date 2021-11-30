@@ -50,7 +50,7 @@ parallel_requests : 4
 parallel_minimum_requets : 10
 
 # valid aggregation methods for gdalcubes
-gdalcubes_aggreg_methods : ["min", "max", "mean", "median", "first"]
+gdalcubes_aggreg_methods : ["min", "max", "mean", "median", "stack"]
 
 # valid resampling methods for gdalcubes
 gdalcubes_resampling_methods : ["near", "bilinear", "bicubic", "cubicspline",
