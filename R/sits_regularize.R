@@ -285,8 +285,7 @@ sits_regularize <- function(cube,
 
         # nest again
         data <- tidyr::nest(data, file_info = c("date", "band", "res",
-                                                "path", "bbox"))
-
+                                                "path", "bbox", "cloud_cover"))
         # remove ..row_id
         data <- dplyr::select(data, -"..row_id")
 
@@ -318,6 +317,9 @@ sits_regularize <- function(cube,
         file_info$date[idx] <- toi[[1]]
         file_info
     })
+
+    # stack aggregation method requires sorting the images based on cloud cover
+    cube <- .gc_arrange_images(cube, agg_method, duration)
 
     # create an image collection
     img_col <- .gc_create_database(cube = cube, path_db = path_db)

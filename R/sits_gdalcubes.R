@@ -1,3 +1,64 @@
+#' @title Images arrangement in sits cube
+#' @name .gc_arrange_images
+#' @keywords internal
+#'
+#' @param cube       A sits data cube
+#' @param agg_method A \code{character} with method that will be applied by
+#'  \code{gdalcubes} for aggregation. Options: \code{min}, \code{max},
+#'  \code{mean}, \code{median} and \code{first}. Default is \code{median}.
+#' @param duration   A \code{Duration} object from lubridate package.
+#' @param ...        Additional parameters.
+#'
+#' @return  A sits cube with the images arranged according to some criteria.
+.gc_arrange_images <- function(cube, agg_method, duration, ...) {
+
+    class(agg_method) <- agg_method
+
+    UseMethod(".gc_arrange_images", agg_method)
+}
+
+#' @keywords internal
+#' @export
+.gc_arrange_images.stack <- function(cube, agg_method, duration, ...) {
+
+    data <- cube
+
+    # make sure that nesting operation (bellow) will be done correctly
+    data[["..row_id"]] <- seq_len(nrow(data))
+
+    data <- tidyr::unnest(data, cols = "file_info")
+
+    tl_length <- max(2, ceiling(
+        lubridate::interval(start = min(data$date),
+                            end = max(data$date)) / duration
+    ))
+
+    data <- dplyr::group_by(data, "..row_id", left, bottom, right,
+                            top, date_interval = cut(date, tl_length)) %>%
+        dplyr::arrange(cloud_cover, .by_group = TRUE) %>%
+        dplyr::ungroup() %>%
+        dplyr::select(-date_interval)
+
+    # nest again
+    data <- tidyr::nest(data, file_info = c(date, band, res,
+                                            path, left, bottom,
+                                            right, top,  cloud_cover))
+    # remove ..row_id
+    data <- dplyr::select(data, -"..row_id")
+
+    # set sits tibble class
+    class(data) <- class(cube)
+
+    data
+}
+
+#' @keywords internal
+#' @export
+.gc_arrange_images.default <- function(cube, agg_method, duration, ...) {
+
+    return(cube)
+}
+
 #' @title Save the images based on an aggregation method.
 #' @name .gc_new_cube
 #' @keywords internal
