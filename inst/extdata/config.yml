@@ -570,7 +570,7 @@ sources:
                             9        : "cloud high"
                             10       : "thin cirrus"
                             11       : "snow or ice"
-                        interp_values: [0, 1, 8, 9, 10, 11]
+                        interp_values: [0, 1, 2, 3, 8, 9, 10, 11]
                         resolution  : 20
                 satellite   : "SENTINEL-2"
                 sensor      : "MSI"
@@ -652,7 +652,7 @@ sources:
                             9        : "cloud high"
                             10       : "thin cirrus"
                             11       : "snow or ice"
-                        interp_values: [0, 1, 8, 9, 10, 11]
+                        interp_values: [0, 1, 2, 3, 8, 9, 10, 11]
                         resolution  :  20
                 satellite   : "SENTINEL-2"
                 sensor      : "MSI"
@@ -738,7 +738,7 @@ sources:
                             9         : "cloud high"
                             10        : "thin cirrus"
                             11        : "snow or ice"
-                        interp_values : [0, 1, 8, 9, 10, 11]
+                        interp_values : [0, 1, 2, 3, 8, 9, 10, 11]
                         resolution   :  20
                 satellite   : "SENTINEL-2"
                 sensor      : "MSI"
@@ -1004,7 +1004,7 @@ sources:
                             9         : "cloud high"
                             10        : "thin cirrus"
                             11        : "snow or ice"
-                        interp_values : [0, 1, 8, 9, 10, 11]
+                        interp_values : [0, 1, 2, 3, 8, 9, 10, 11]
                         resolution   :  20
                 satellite   : "SENTINEL-2"
                 sensor      : "MSI"
