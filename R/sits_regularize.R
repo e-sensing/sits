@@ -240,56 +240,55 @@ sits_regularize <- function(cube,
         # progress bar
         progress <- TRUE
 
-        data <- cube
+        # adds crs to the file_info that is used in the bbox transformation
+        cube$file_info <- lapply(seq_along(cube$file_info), function(i) {
+            cube$file_info[[i]] <- dplyr::mutate(cube$file_info[[i]],
+                                                 crs = cube[i, ]$crs)
 
-        # make sure that nesting operation (bellow) will be done correctly
-        data[["..row_id"]] <- seq_len(nrow(data))
+            cube$file_info[[i]]
+        })
 
-        # unnest bands
-        data <- tidyr::unnest(data, cols = "file_info")
-
-        if (nrow(data) < .config_parallel_minimum_requests()) {
+        if (sum(lengths(cube)) < .config_parallel_minimum_requests()) {
             n_workers <- 1
             progress <- FALSE
         }
 
-        # prepare parallelization
-        .sits_parallel_start(workers = n_workers, log = FALSE)
-        on.exit(.sits_parallel_stop(), add = TRUE)
+        cube <- .sits_fast_apply(cube, col = "file_info", fn = function(x) {
 
-        data$bbox <- .sits_parallel_map(seq_len(nrow(data)), function(i) {
+            # prepare parallelization
+            .sits_parallel_start(workers = 1, log = FALSE)
+            on.exit(.sits_parallel_stop(), add = TRUE)
 
-            r_obj <- tryCatch({
-                .raster_open_rast(data$path[[i]])
-            }, error = function(e) {
-                return(NULL)
-            })
+            x$bbox <- .sits_parallel_map(seq_len(nrow(x)), function(i) {
 
-            if (is.null(r_obj))
-                return(NULL)
+                r_obj <- tryCatch({
+                    .raster_open_rast(x$path[[i]])
+                }, error = function(e) {
+                    return(NULL)
+                })
 
-            bbox <- .raster_extent(r_obj)
+                if (is.null(r_obj))
+                    return(NULL)
 
-            bbox <- c(
-                .sits_proj_to_latlong(x = bbox[["xmin"]],
-                                      y = bbox[["ymin"]],
-                                      crs = data$crs[[i]]),
-                .sits_proj_to_latlong(x = bbox[["xmax"]],
-                                      y = bbox[["ymax"]],
-                                      crs = data$crs[[i]])
-            )
+                bbox <- .raster_extent(r_obj)
 
-            names(bbox) <- c("left", "bottom", "right", "top")
-            tibble::as_tibble(lapply(bbox, identity))
-        }, progress = progress, n_retries = 0)
+                bbox <- c(
+                    .sits_proj_to_latlong(x = bbox[["xmin"]],
+                                          y = bbox[["ymin"]],
+                                          crs = x$crs[[i]]),
+                    .sits_proj_to_latlong(x = bbox[["xmax"]],
+                                          y = bbox[["ymax"]],
+                                          crs = x$crs[[i]])
+                )
 
-        # nest again
-        data <- tidyr::nest(data, file_info = c("date", "band", "res",
-                                                "path", "bbox", "cloud_cover"))
-        # remove ..row_id
-        data <- dplyr::select(data, -"..row_id")
+                names(bbox) <- c("left", "bottom", "right", "top")
+                tibble::as_tibble(lapply(bbox, identity))
+            }, progress = progress, n_retries = 0)
 
-        data$file_info <- lapply(data$file_info, function(fi) {
+            x
+        })
+
+        cube$file_info <- lapply(cube$file_info, function(fi) {
 
             # removing invalid bbox
             dplyr::group_by(fi, date) %>%
@@ -301,10 +300,7 @@ sits_regularize <- function(cube,
                 tidyr::unnest(cols = bbox)
         })
 
-        # set sits tibble class
-        class(data) <- class(cube)
-
-        data
+        cube
     }
 
     cube <- .add_bbox_fileinfo(cube)
@@ -312,6 +308,7 @@ sits_regularize <- function(cube,
     # timeline of intersection
     toi <- .get_valid_interval(cube = cube)
 
+    # matches the start dates of different tiles
     cube$file_info <- purrr::map(cube$file_info, function(file_info) {
         idx <- which(file_info$date == min(file_info$date))
         file_info$date[idx] <- toi[[1]]
@@ -321,7 +318,7 @@ sits_regularize <- function(cube,
     # stack aggregation method requires sorting the images based on cloud cover
     cube <- .gc_arrange_images(cube, agg_method, duration)
 
-    # create an image collection
+    # create an image collection using stac
     img_col <- .gc_create_database(cube = cube, path_db = path_db)
 
     gc_cube <- slider::slide_dfr(cube, function(tile){

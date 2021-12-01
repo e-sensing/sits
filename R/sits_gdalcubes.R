@@ -19,37 +19,21 @@
 
 #' @keywords internal
 #' @export
-.gc_arrange_images.stack <- function(cube, agg_method, duration, ...) {
+.gc_arrange_images.first <- function(cube, agg_method, duration, ...) {
 
-    data <- cube
+    .sits_fast_apply(data = cube, col = "file_info", fn = function(x) {
 
-    # make sure that nesting operation (bellow) will be done correctly
-    data[["..row_id"]] <- seq_len(nrow(data))
+        tl_length <- max(2, ceiling(
+            lubridate::interval(start = min(x$date),
+                                end = max(x$date)) / duration
+        ))
 
-    data <- tidyr::unnest(data, cols = "file_info")
-
-    tl_length <- max(2, ceiling(
-        lubridate::interval(start = min(data$date),
-                            end = max(data$date)) / duration
-    ))
-
-    data <- dplyr::group_by(data, "..row_id", left, bottom, right,
-                            top, date_interval = cut(date, tl_length)) %>%
-        dplyr::arrange(cloud_cover, .by_group = TRUE) %>%
-        dplyr::ungroup() %>%
-        dplyr::select(-date_interval)
-
-    # nest again
-    data <- tidyr::nest(data, file_info = c(date, band, res,
-                                            path, left, bottom,
-                                            right, top,  cloud_cover))
-    # remove ..row_id
-    data <- dplyr::select(data, -"..row_id")
-
-    # set sits tibble class
-    class(data) <- class(cube)
-
-    data
+        dplyr::group_by(x, left, bottom, right, top,
+                        date_interval = cut(date, tl_length)) %>%
+            dplyr::arrange(cloud_cover, .by_group = TRUE) %>%
+            dplyr::ungroup() %>%
+            dplyr::select(-date_interval)
+    })
 }
 
 #' @keywords internal
@@ -340,14 +324,13 @@
 #'  images metadata.
 .gc_create_database <- function(cube, path_db) {
 
-    # TODO: put as parameter
+    # deleting the existing database to avoid errors in the stac database
     if (file.exists(path_db))
         unlink(path_db)
 
     create_gc_database <- function(cube) {
 
-        file_info <- dplyr::select(cube, file_info, crs, collection, tile) %>%
-            dplyr::mutate(`proj:epsg` = gsub("^EPSG:", "", crs)) %>%
+        file_info <- dplyr::select(cube, file_info, collection, tile) %>%
             tidyr::unnest(cols = c(file_info)) %>%
             dplyr::transmute(xmin = left,
                              ymin = bottom,
@@ -357,7 +340,7 @@
                              datetime = as.character(date),
                              href = href,
                              band = band,
-                             `proj:epsg` = `proj:epsg`,
+                             `proj:epsg` =  gsub("^EPSG:", "", crs),
                              id = paste(collection, tile, as.character(date),
                                         sep = "_"))
 
@@ -372,8 +355,12 @@
                 tidyr::nest(bbox = c(xmin, ymin, xmax, ymax))
 
             feature$assets <- purrr::map(feature$assets, function(asset) {
-                tidyr::pivot_wider(asset, names_from = band, values_from = href) %>%
-                    purrr::map(function(x) list(href = x, `eo:bands` = list(NULL)))
+
+                asset %>%
+                    tidyr::pivot_wider(names_from = band, values_from = href) %>%
+                    purrr::map(
+                        function(x) list(href = x, `eo:bands` = list(NULL))
+                    )
             })
 
             feature <- unlist(feature, recursive = FALSE)
