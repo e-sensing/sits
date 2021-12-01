@@ -163,8 +163,7 @@
             dir = output_dir,
             prefix = paste("cube", tile$tile, band, "", sep = "_"),
             creation_options = list("COMPRESS" = "LZW", "BIGTIFF" = "YES"),
-            pack = .get_gdalcubes_pack(tile, band),
-            write_json_descr = TRUE, ...
+            pack = .get_gdalcubes_pack(tile, band), ...
         )
 
         # retrieving image date

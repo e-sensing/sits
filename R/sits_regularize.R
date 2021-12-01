@@ -348,6 +348,9 @@ sits_regularize <- function(cube,
     # reset global option
     gdalcubes::gdalcubes_options(threads = 1)
 
+    # the database is not used to generate new cubes
+    unlink(path_db)
+
     class(gc_cube) <- .cube_s3class(gc_cube)
 
     return(gc_cube)
