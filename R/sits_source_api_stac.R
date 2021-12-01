@@ -178,11 +178,10 @@
         )
     }) %>% dplyr::arrange(date)
 
-    file_info <- dplyr::group_by(file_info, date, band, res, cloud_cover) %>%
-        dplyr::summarise(
-            path = dplyr::first(path, order_by = path),
-            .groups = "drop"
-        )
+    # in case of granule images only the first one is considered
+    file_info <- dplyr::group_by(file_info, date, band, res) %>%
+        dplyr::filter(path == dplyr::first(path, order_by = path)) %>%
+        dplyr::ungroup()
 
     return(file_info)
 }
