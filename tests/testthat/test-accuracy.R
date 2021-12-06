@@ -1,32 +1,35 @@
 test_that("conf_matrix -2 classes", {
     data(cerrado_2classes)
+    set.seed(1234)
     train_data <- sits_sample(cerrado_2classes, n = 200)
     test_data <- sits_sample(cerrado_2classes, n = 200)
-    xgb_model <- sits_train(train_data, sits_xgboost(verbose = FALSE))
+    rfor_model <- sits_train(train_data, sits_rfor(verbose = FALSE))
     points_class <- sits_classify(
         data = test_data,
-        ml_model = xgb_model
+        ml_model = rfor_model
     )
     invisible(capture.output(acc <- sits_accuracy(points_class)))
-    expect_true(acc$overall["Accuracy"] > 0.50)
-    expect_true(acc$overall["Kappa"] > 0.50)
+    expect_true(acc$overall["Accuracy"] > 0.90)
+    expect_true(acc$overall["Kappa"] > 0.90)
     p <- capture.output(sits_accuracy_summary(acc))
     expect_true(grepl("Accuracy", p[4]))
 })
 test_that("conf_matrix - more than 2 classes", {
+    set.seed(1234)
     data(samples_modis_4bands)
-    train_data <- sits_sample(samples_modis_4bands, n = 25)
-    test_data <- sits_sample(samples_modis_4bands, n = 25)
-    xgb_model <- sits_train(train_data, sits_xgboost(verbose = FALSE))
+    train_data <- sits_sample(samples_modis_4bands, n = 50)
+    test_data <- sits_sample(samples_modis_4bands, n = 50)
+    rfor_model <- sits_train(train_data, sits_rfor())
     points_class <- sits_classify(
         data = test_data,
-        ml_model = xgb_model
+        ml_model = rfor_model
     )
     invisible(capture.output(acc <- sits_accuracy(points_class)))
-    expect_true(acc$overall["Accuracy"] > 0.70)
-    expect_true(acc$overall["Kappa"] > 0.70)
+    expect_true(acc$overall["Accuracy"] > 0.90)
+    expect_true(acc$overall["Kappa"] > 0.90)
 })
 test_that("XLS", {
+    set.seed(1234)
     data(cerrado_2classes)
     acc <- sits_kfold_validate(cerrado_2classes, folds = 2,
                                        ml_method = sits_rfor(num_trees = 100))
@@ -40,6 +43,7 @@ test_that("XLS", {
 })
 
 test_that("Accuracy - more than 2 classes", {
+    set.seed(1234)
     data("samples_modis_4bands")
     samples <- sits_select(samples_modis_4bands, bands = c("NDVI", "EVI"))
     acc <- sits_kfold_validate(samples, folds = 2,
@@ -49,10 +53,11 @@ test_that("Accuracy - more than 2 classes", {
     expect_true(acc$overall["Kappa"] > 0.90)
 })
 test_that("Accuracy areas", {
+    set.seed(1234)
     samples_mt_2bands <- sits_select(samples_modis_4bands,
                                      bands = c("NDVI", "EVI"))
 
-    xgb_model <- sits_train(samples_mt_2bands, sits_xgboost(verbose = FALSE))
+    rfor_model <- sits_train(samples_mt_2bands, sits_rfor())
 
     data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
     cube <- sits_cube(
@@ -65,10 +70,10 @@ test_that("Accuracy areas", {
 
     probs_cube <- sits_classify(
         data = cube,
-        ml_model = xgb_model,
+        ml_model = rfor_model,
         output_dir = tempdir(),
         memsize = 4,
-        multicores = 2
+        multicores = 1
     )
 
 
