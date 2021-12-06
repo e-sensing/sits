@@ -422,14 +422,14 @@ NULL
     # post-condition
     .check_lst(labs, min_len = 1, max_len = 1,
                is_named = FALSE,
-               msg = "invalid cube 'labels' value")
+               msg = "invalid 'labels' value")
 
     labs <- unlist(labs, use.names = FALSE)
 
     # post-condition
     .check_chr(labs, allow_na = TRUE, allow_empty = FALSE,
                len_min = 1, allow_null = TRUE,
-               msg = "invalid cube 'labels' value")
+               msg = "invalid 'labels' value")
 
     return(labs)
 }
@@ -606,10 +606,13 @@ NULL
 
 #' @rdname cube_functions
 .cube_size <- function(cube, ..., bands = NULL) {
+
     # get the file information
     file_info <- .cube_file_info(cube, bands)
+
     # get the file resolution
     res <- unique(file_info$res)
+
     # post-condition
     .check_length(res,
                   len_min = 1, len_max = 1,
@@ -622,10 +625,13 @@ NULL
         nrows = .raster_nrows(r_obj),
         ncols = .raster_ncols(r_obj)
     )
-    .check_num(size[["nrows"]], min = 1, allow_null = FALSE,
-               is_integer = TRUE, msg = "Invalid number of rows")
-    .check_num(size[["ncols"]], min = 1, allow_null = FALSE,
-               is_integer = TRUE, msg = "Invalid number of columns")
+
+    # post-conditions
+    .check_num(size[["nrows"]], min = 1, len_min = 1, len_max = 1,
+               is_integer = TRUE, msg = "invalid number of rows")
+
+    .check_num(size[["ncols"]], min = 1, len_min = 1, len_max = 1,
+               is_integer = TRUE, msg = "invalid number of columns")
 
     return(size)
 }
@@ -647,9 +653,9 @@ NULL
         ncols = .raster_ncols(r_obj)
     )
     .check_num(size[["nrows"]], min = 1, allow_null = FALSE,
-               is_integer = TRUE, msg = "Invalid number of rows")
+               is_integer = TRUE, msg = "invalid number of rows")
     .check_num(size[["ncols"]], min = 1, allow_null = FALSE,
-               is_integer = TRUE, msg = "Invalid number of columns")
+               is_integer = TRUE, msg = "invalid number of columns")
 
     return(size)
 }

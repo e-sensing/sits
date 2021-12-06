@@ -404,7 +404,8 @@
     UseMethod(".raster_nrows", pkg_class)
 }
 
-#' @name .raster_properties
+#' @rdname .raster_properties
+#' @keywords internal
 .raster_ncols <- function(r_obj, ...) {
 
     # check package
@@ -413,7 +414,8 @@
     UseMethod(".raster_ncols", pkg_class)
 }
 
-#' @name .raster_properties
+#' @rdname .raster_properties
+#' @keywords internal
 .raster_nlayers <- function(r_obj, ...) {
 
     # check package
@@ -422,7 +424,8 @@
     UseMethod(".raster_nlayers", pkg_class)
 }
 
-#' @name .raster_properties
+#' @rdname .raster_properties
+#' @keywords internal
 .raster_xmax <- function(r_obj, ...) {
 
     # check package
@@ -431,7 +434,8 @@
     UseMethod(".raster_xmax", pkg_class)
 }
 
-#' @name .raster_properties
+#' @rdname .raster_properties
+#' @keywords internal
 .raster_xmin <- function(r_obj, ...) {
 
     # check package
@@ -440,7 +444,8 @@
     UseMethod(".raster_xmin", pkg_class)
 }
 
-#' @name .raster_properties
+#' @rdname .raster_properties
+#' @keywords internal
 .raster_ymax <- function(r_obj, ...) {
 
     # check package
@@ -449,7 +454,8 @@
     UseMethod(".raster_ymax", pkg_class)
 }
 
-#' @name .raster_properties
+#' @rdname .raster_properties
+#' @keywords internal
 .raster_ymin <- function(r_obj, ...) {
 
     # check package
@@ -458,7 +464,8 @@
     UseMethod(".raster_ymin", pkg_class)
 }
 
-#' @name .raster_properties
+#' @rdname .raster_properties
+#' @keywords internal
 .raster_xres <- function(r_obj, ...) {
 
     # check package
@@ -467,7 +474,8 @@
     UseMethod(".raster_xres", pkg_class)
 }
 
-#' @name .raster_properties
+#' @rdname .raster_properties
+#' @keywords internal
 .raster_yres <- function(r_obj, ...) {
 
     # check package
@@ -476,7 +484,8 @@
     UseMethod(".raster_yres", pkg_class)
 }
 
-#' @name .raster_properties
+#' @rdname .raster_properties
+#' @keywords internal
 .raster_crs <- function(r_obj, ...) {
 
     # check package
@@ -485,13 +494,39 @@
     UseMethod(".raster_crs", pkg_class)
 }
 
-#' @name .raster_properties
-.raster_extent <- function(r_obj, ...) {
+#' @rdname .raster_properties
+#' @keywords internal
+.raster_bbox <- function(r_obj, ...) {
 
-    # check package
-    pkg_class <- .raster_check_package()
+    # return a named bbox
+    bbox <- list(xmin = .raster_xmin(r_obj),
+                 ymin = .raster_ymin(r_obj),
+                 xmax = .raster_xmax(r_obj),
+                 ymax = .raster_ymax(r_obj))
 
-    UseMethod(".raster_extent", pkg_class)
+    return(bbox)
+}
+
+#' @rdname .raster_properties
+#' @keywords internal
+.raster_res <- function(r_obj, ...) {
+
+    # return a named resolution
+    res <- list(xres = .raster_xres(r_obj),
+                yres = .raster_yres(r_obj))
+
+    return(res)
+}
+
+#' @rdname .raster_properties
+#' @keywords internal
+.raster_size <- function(r_obj, ...) {
+
+    # return a named size
+    size <- list(nrows = .raster_nrows(r_obj),
+                 ncols = .raster_ncols(r_obj))
+
+    return(size)
 }
 
 #' @title Raster package internal frequency values function

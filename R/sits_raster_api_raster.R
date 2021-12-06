@@ -257,29 +257,6 @@
 
 #' @keywords internal
 #' @export
-.raster_extent.raster <- function(r_obj, ...) {
-
-    ext <- suppressWarnings(as.list(as.vector(raster::ext(x = r_obj))))
-
-    names(ext) <- c("xmin", "xmax", "ymin", "ymax")
-
-    # post-conditions
-    .check_lst(ext, min_len = 4, max_len = 4,
-               fn_check = .check_num, len_min = 1, len_max = 1,
-               msg = "invalid extent value")
-
-    .check_chr_contains(names(ext),
-                        contains = c("xmin", "ymin", "xmax", "ymax"),
-                        msg = "invalid extent value")
-
-    # sits order
-    ext <- ext[c("xmin", "ymin", "xmax", "ymax")]
-
-    return(ext)
-}
-
-#' @keywords internal
-#' @export
 .raster_freq.raster <- function(r_obj, ...) {
 
     res <- raster::freq(x = r_obj)

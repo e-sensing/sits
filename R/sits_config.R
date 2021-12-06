@@ -244,7 +244,7 @@ sits_list_collections <- function(source = NULL) {
         .check_chr_within(
             x = source,
             within = sources,
-            msg = "invalid source value"
+            msg = "invalid 'source' value"
         )
         sources <- source
     }
@@ -297,7 +297,7 @@ sits_list_collections <- function(source = NULL) {
     if (!is.null(processing_bloat)) {
         .check_num(processing_bloat,
                    min = 1, len_min = 1, len_max = 1,
-                   msg = "Invalid 'processing_bloat' parameter")
+                   msg = "invalid 'processing_bloat' parameter")
         sits_env$config[["processing_bloat"]] <- processing_bloat
     }
 
@@ -305,7 +305,7 @@ sits_list_collections <- function(source = NULL) {
     if (!is.null(rstac_pagination_limit)) {
         .check_num(rstac_pagination_limit,
                    min = 1, len_min = 1, len_max = 1,
-                   msg = "Invalid 'rstac_pagination_limit' parameter")
+                   msg = "invalid 'rstac_pagination_limit' parameter")
         sits_env$config[["rstac_pagination_limit"]] <- rstac_pagination_limit
     }
 
@@ -325,7 +325,7 @@ sits_list_collections <- function(source = NULL) {
     if (!is.null(gdal_creation_options)) {
         .check_chr(gdal_creation_options, allow_empty = FALSE,
                    regex = "^.+=.+$",
-                   msg = "Invalid 'gdal_creation_options' parameter")
+                   msg = "invalid 'gdal_creation_options' parameter")
         sits_env$config[["gdal_creation_options"]] <- gdal_creation_options
     }
     # process gdalcubes_chunk_size
@@ -334,7 +334,7 @@ sits_list_collections <- function(source = NULL) {
                    min_len = 3,
                    max_len = 3,
                    is_named = FALSE,
-                   msg = "Invalid gdalcubes chunk size")
+                   msg = "invalid gdalcubes chunk size")
         sits_env$config[["gdalcubes_chunk_size"]] <- gdalcubes_chunk_size
     }
     if (!is.null(leaflet_max_Mbytes)) {
@@ -342,7 +342,7 @@ sits_list_collections <- function(source = NULL) {
                    min = 16,
                    max = 128,
                    is_named = FALSE,
-                   msg = "Invalid leaflet max Mbytes")
+                   msg = "invalid leaflet max Mbytes")
         sits_env$config[["leaflet_max_Mbytes"]] <- leaflet_max_Mbytes
     }
     if (!is.null(leaflet_comp_factor)) {
@@ -350,7 +350,7 @@ sits_list_collections <- function(source = NULL) {
                    min = 0.45,
                    max = 0.75,
                    is_named = FALSE,
-                   msg = "Invalid leaflet_comp_factor")
+                   msg = "invalid leaflet_comp_factor")
         sits_env$config[["leaflet_comp_factor"]] <- leaflet_comp_factor
     }
     # process sources
@@ -580,7 +580,7 @@ sits_list_collections <- function(source = NULL) {
 
     .check_that(FALSE,
                 local_msg = "Data not recognized as a sits object",
-                msg = "Invalid data parameter")
+                msg = "invalid 'data' parameter")
 }
 #' @title Get local file extensions
 #' @name .config_local_file_extension

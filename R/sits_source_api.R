@@ -354,6 +354,7 @@ NULL
 
     return(resolution)
 }
+
 #' @rdname source_bands
 #'
 #' @description \code{.source_bands_to_sits()} converts any bands to its
@@ -552,7 +553,6 @@ NULL
     return(collections)
 }
 
-#
 #' @rdname source_collection
 .source_collection_access_test <- function(source, collection, ...) {
 
@@ -563,8 +563,8 @@ NULL
 
 #' @rdname source_collection
 #'
-#' @description \code{.source_collection_access_vars_set} checks if
-#' \code{access_vars} environment variables are properly defined.
+#' @description \code{.source_collection_access_vars_set} sets
+#' \code{access_vars} environment variables.
 #'
 #' @return \code{.source_collection_access_vars_set } returns \code{NULL} if
 #' no error occurs.
@@ -577,17 +577,18 @@ NULL
     # collection is upper case
     collection <- toupper(collection)
     # get access variables for this source/collection
-    res <- .config_get(key = c("sources", source, "collections", collection,
+    vars <- .config_get(key = c("sources", source, "collections", collection,
                                "access_vars"),
                        default = list())
     # post-condition
-    .check_lst(res, msg = paste0("Invalid access vars for collection ", collection,
+    .check_lst(vars, msg = paste0("invalid access vars for collection ", collection,
                                  " in source ", source))
-    if (length(res) > 0) {
-        do.call(Sys.setenv, args = res)
-    }
-    return(res)
+    if (length(vars) > 0)
+        do.call(Sys.setenv, args = vars)
+
+    return(invisible(NULL))
 }
+
 #' @rdname source_collection
 #'
 #' @description \code{.source_collection_check()} checks if a collection
@@ -791,10 +792,6 @@ NULL
     return(invisible(NULL))
 }
 
-
-
-
-
 #' @title Functions to instantiate a new cube from a source
 #' @name source_cube
 #' @keywords internal
@@ -888,19 +885,6 @@ NULL
 
 #' @rdname source_cube
 #'
-#' @description \code{.source_asset_get_resolution()} retrieves the supported
-#' resolution of an item (for each band).
-#'
-#' @return \code{.source_asset_get_resolution()} returns a named \code{list}
-#' with \code{numeric} vectors containing the supported resolution for each band
-#'
-.source_asset_get_resolution <- function(source, item, asset, ..., collection = NULL) {
-    source <- .source_new(source)
-    UseMethod(".source_asset_get_resolution", source)
-}
-
-#' @rdname source_cube
-#'
 #' @description \code{.source_items_new()} this function is called to create
 #' an items object. In case of Web services, this function is responsible for
 #' making the Web requests to the server.
@@ -931,15 +915,15 @@ NULL
 
 #' @rdname source_cube
 #'
-#' @description \code{.source_items_fileinfo()} creates the \code{fileinfo}
+#' @description \code{.source_items_file_info()} creates the \code{fileinfo}
 #' specification from items object.
 #'
-#' @return \code{.source_items_fileinfo()} returns a \code{tibble} containing
+#' @return \code{.source_items_file_info()} returns a \code{tibble} containing
 #' sits cube.
 #'
-.source_items_fileinfo <- function(source, items, ..., collection = NULL) {
+.source_items_file_info <- function(source, items, ..., collection = NULL) {
     source <- .source_new(source = source, collection = collection)
-    UseMethod(".source_items_fileinfo", source)
+    UseMethod(".source_items_file_info", source)
 }
 
 #' @rdname source_cube
@@ -1033,24 +1017,25 @@ NULL
 .source_items_tile_get_bbox <- function(source,
                                         tile_items, ...,
                                         collection = NULL) {
-    source <- .source_new(source = source, collection = collection)
-    UseMethod(".source_items_tile_get_bbox", source)
-}
+    # pre-condition
+    .check_num(nrow(file_info), min = 1, msg = "invalid file_info value")
 
-#' @rdname source_cube
-#'
-#' @description \code{.source_asset_get_bbox()} retrieves the bounding
-#' box from an asset.
-#'
-#' @return \code{.source_asset_get_bbox()} returns a \code{list}
-#' vector with 4 elements (xmin, ymin, xmax, ymax).
-#'
-.source_asset_get_bbox <- function(source,
-                                   tile_items,
-                                   asset, ...,
-                                   collection = NULL) {
-    source <- .source_new(source = source, collection = collection)
-    UseMethod(".source_asset_get_bbox", source)
+    # get bbox based on file_info
+    bbox <- list(xmin = max(file_info[["xmin"]]),
+                 ymin = max(file_info[["ymin"]]),
+                 xmax = min(file_info[["xmax"]]),
+                 ymax = min(file_info[["ymax"]]))
+
+    # post-condition
+    .check_that(xmin > xmax,
+                local_msg = "xmin is greater than xmax",
+                msg = "invalid bbox value")
+
+    .check_that(ymin > ymax,
+                local_msg = "ymin is greater than ymax",
+                msg = "invalid bbox value")
+
+    return(bbox)
 }
 
 #' @rdname source_cube

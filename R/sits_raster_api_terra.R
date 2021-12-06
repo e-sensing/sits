@@ -281,27 +281,6 @@
 
 #' @keywords internal
 #' @export
-.raster_extent.terra <- function(r_obj, ...) {
-
-    ext <- suppressWarnings(as.list(as.vector(terra::ext(x = r_obj))))
-
-    # post-conditions
-    .check_lst(ext, min_len = 4, max_len = 4,
-               fn_check = .check_num, len_min = 1, len_max = 1,
-               msg = "invalid extent value")
-
-    .check_chr_contains(names(ext),
-                        contains = c("xmin", "ymin", "xmax", "ymax"),
-                        msg = "invalid extent value")
-
-    # sits order
-    ext <- ext[c("xmin", "ymin", "xmax", "ymax")]
-
-    return(ext)
-}
-
-#' @keywords internal
-#' @export
 .raster_freq.terra <- function(r_obj, ...) {
 
     terra::freq(x = r_obj, bylayer = TRUE)

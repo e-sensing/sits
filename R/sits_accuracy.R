@@ -346,7 +346,7 @@ sits_accuracy.classified_image <- function(data, ..., validation_csv) {
         msg = "not a classified cube")
 
     if (any(dim(error_matrix) == 0)) {
-        stop("Invalid dimensions in error matrix.", call. = FALSE)
+        stop("invalid dimensions in error matrix.", call. = FALSE)
     }
     if (length(unique(dim(error_matrix))) != 1) {
         stop("The error matrix is not square.", call. = FALSE)

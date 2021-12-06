@@ -117,7 +117,7 @@ sits_regularize <- function(cube,
 
     # precondition - is the period valid?
     duration <- lubridate::duration(period)
-    .check_na(duration, msg = "Invalid period. Please see ISO 8601 formats.")
+    .check_na(duration, msg = "invalid period. Please see ISO 8601 formats.")
 
     # precondition - is the resolution valid?
     .check_num(x = res,

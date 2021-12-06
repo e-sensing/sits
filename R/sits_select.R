@@ -46,7 +46,7 @@ sits_select.sits <- function(data, bands) {
     .check_chr_within(
         x = bands,
         within = sits_bands(data),
-        msg = paste("Invalid bands values")
+        msg = paste("invalid bands values")
     )
 
     # make sure that nesting operation (bellow) will be done correctly

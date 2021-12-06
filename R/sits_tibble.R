@@ -423,11 +423,11 @@ sits_time_series <- function(data) {
     # set caller to show in errors
     .check_set_caller(".sits_tibble_test")
 
-    .check_null(x = data, "Invalid data parameter")
+    .check_null(x = data, "invalid data parameter")
 
     .check_num(
         x = nrow(data),
-        min = 1, msg = "Invalid number of rows"
+        min = 1, msg = "invalid number of rows"
     )
 
     .check_chr_contains(
