@@ -447,24 +447,24 @@ sits_time_series <- function(data) {
                       msg = "invalid column name")
 
     # select data do unpack
-    x <- data[c(col)]
+    x <- data[col]
 
     # prepare to unpack
-    x[["..row_id"]] <- seq_len(nrow(data))
+    x[["#.."]] <- seq_len(nrow(data))
 
     # unpack
     x <- tidyr::unnest(x, cols = col)
-    x <- dplyr::group_by(x, `..row_id`)
+    x <- dplyr::group_by(x, !!as.name("#.."))
 
     # apply user function
     x <- fn(x, ...)
 
     # pack
     x <- dplyr::ungroup(x)
-    x <- tidyr::nest(x, `..unnest_col` = -dplyr::any_of("..row_id"))
+    x <- tidyr::nest(x, `..unnest_col` = -dplyr::any_of("#.."))
 
     # remove garbage
-    x[["..row_id"]] <- NULL
+    x[["#.."]] <- NULL
     names(x) <- col
 
     # prepare result
@@ -474,6 +474,13 @@ sits_time_series <- function(data) {
 }
 
 .sits_rename_bands <- function(x, bands) {
+
+    data_bands <- sits_bands(x)
+
+    # pre-condition
+    .check_chr(bands, allow_empty = FALSE, len_min = length(data_bands),
+               len_max = length(data_bands),
+               msg = "invalid 'bands' value")
 
     .sits_fast_apply(x, col = "time_series", fn = function(x) {
 
@@ -486,5 +493,6 @@ sits_time_series <- function(data) {
         colnames(x) <- unname(new_bands)
 
         return(x)
+
     })
 }
