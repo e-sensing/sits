@@ -179,12 +179,11 @@ sits_cluster_clean <- function(samples) {
     lbs_max <- lbs[as.vector(apply(result, 2, which.max))]
 
     # compute the resulting table
-    rows <- purrr::map2(lbs_max, num_cls, function(lb, cl) {
-        partial <- dplyr::filter(samples, label == lb & cluster == cl)
-        return(partial)
-    })
-    # join the list to get all cleaned clusters in a tibble
-    clean_clusters <- dplyr::bind_rows(rows)
+    clean_clusters <- purrr::map2_dfr(lbs_max, num_cls,
+                    function(lb, cl) {
+                        partial <- dplyr::filter(samples, label == lb & cluster == cl)
+                        return(partial)
+                    })
     return(clean_clusters)
 }
 

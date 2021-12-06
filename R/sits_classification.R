@@ -186,12 +186,13 @@ sits_classify.sits <- function(data,
     )
 
     # Store the result in the input data
-    data <- .sits_tibble_prediction(
+    data_pred <- .sits_tibble_prediction(
         data = data,
         class_info = class_info,
         prediction = prediction
     )
-    return(data)
+    class(data_pred) <- c("predicted", class(data))
+    return(data_pred)
 }
 #' @rdname sits_classify
 #'
@@ -217,6 +218,29 @@ sits_classify.raster_cube <- function(data, ml_model, ...,
         stop("sits can only classify regular cubes. \n
              Please use sits_regularize()")
 
+    # precondition - multicores
+    .check_num(x = multicores,
+               len_max = 1,
+               min = 1,
+               allow_zero = FALSE,
+               msg = "multicores must be at least 1")
+
+    # precondition - memory
+    .check_num(x = memsize,
+               len_max = 1,
+               min = 1,
+               allow_zero = FALSE,
+               msg = "memsize must be positive")
+
+    # precondition - output dir
+    .check_file(x = output_dir,
+                msg = "invalid output dir")
+
+    # precondition - version
+    .check_chr(x = version,
+               len_min = 1,
+               msg = "invalid version")
+
     # filter only intersecting tiles
     intersects <- slider::slide_lgl(data,
                                     .sits_raster_sub_image_intersects,
@@ -229,7 +253,7 @@ sits_classify.raster_cube <- function(data, ml_model, ...,
     samples <- .sits_ml_model_samples(ml_model)
 
     # deal with the case where the cube has multiple rows
-    probs_rows <- slider::slide(data, function(tile) {
+    probs_cube <- slider::slide_dfr(data, function(tile) {
 
         # find out what is the row subset that is contained
         # inside the start_date and end_date
@@ -272,7 +296,5 @@ sits_classify.raster_cube <- function(data, ml_model, ...,
 
         return(probs_row)
     })
-
-    probs_cube <- dplyr::bind_rows(probs_rows)
     return(probs_cube)
 }

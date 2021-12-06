@@ -192,11 +192,10 @@ sits_sample <- function(data, n = NULL, frac = NULL) {
     # compute sampling
     result <- .sits_tibble()
     labels <- sits_labels(data)
-    labels %>%
-        purrr::map(function(l) {
+    result <- purrr::map_dfr(labels,
+        function(l) {
             tb_l <- dplyr::filter(data, label == l)
             tb_s <- sampling_fun(tb_l)
-            result <<- dplyr::bind_rows(result, tb_s)
         })
 
     return(result)
@@ -302,10 +301,10 @@ sits_time_series <- function(data) {
 
     # get the reference date
     start_date <- lubridate::as_date(ref_dates[1])
-    # create an output tibble
-    data1 <- .sits_tibble()
 
-    rows <- purrr::pmap(
+
+    # align the dates in the data
+    data <- purrr::pmap_dfr(
         list(
             data$longitude,
             data$latitude,
@@ -320,7 +319,7 @@ sits_time_series <- function(data) {
                 idx <- which.min(abs((lubridate::as_date(ts$Index)
                                       - lubridate::as_date(start_date)) / lubridate::ddays(1)))
                 # shift the time series to match dates
-                if (idx != 1) ts <- shift_ts(ts, - (idx - 1))
+                if (idx != 1) ts <- shift_ts(ts, -(idx - 1))
                 # change the dates to the reference dates
                 ts1 <- dplyr::mutate(ts, Index = ref_dates)
 
@@ -338,12 +337,7 @@ sits_time_series <- function(data) {
             return(row)
         }
     )
-
-    # solve issue when a names list is returned
-    if (!is.null(names(rows))) rows <- unname(rows)
-
-    data1 <- dplyr::bind_rows(data1, rows)
-    return(data1)
+    return(data)
 }
 
 
@@ -364,12 +358,9 @@ sits_time_series <- function(data) {
     # verify that tibble is correct
     .sits_tibble_test(data)
 
-    # create a vector to store the number of indices per time series
-    n_samples <- vector()
-
-    data$time_series %>%
-        purrr::map(function(t) {
-            n_samples[length(n_samples) + 1] <<- nrow(t)
+    n_samples <- data$time_series %>%
+        purrr::map_int(function(t) {
+            nrow(t)
         })
 
     # check if all time indices are equal to the median

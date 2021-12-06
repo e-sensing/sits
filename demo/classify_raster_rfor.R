@@ -20,9 +20,9 @@ samples_ndvi_evi <- sits_select(
 )
 
 # build the classification model
-svm_model <- sits_train(
+rfor_model <- sits_train(
     data      = samples_ndvi_evi,
-    ml_method = sits_svm()
+    ml_method = sits_rfor()
 )
 
 # Read ndvi and evi data from the sitsdata package
@@ -40,23 +40,31 @@ sinop <- sits_cube(
 # classify the raster image
 sinop_probs <- sits_classify(
     data       = sinop,
-    ml_model   = svm_model,
-    memsize    = 6,
-    multicores = 2,
-    output_dir = tempdir()
+    ml_model   = rfor_model,
+    memsize    = 8,
+    multicores = 2
 )
 
 # smoothen with bayesian filter
 sinop_bayes <- sits_smooth(
     cube       = sinop_probs,
     type       = "bayes",
-    output_dir = tempdir()
+    memsize    = 8,
+    multicores = 2
+)
+# calculate uncertainty
+sinop_uncert <- sits_uncertainty(
+    cube       = sinop_bayes,
+    type       = "entropy",
+    memsize    = 8,
+    multicores = 2
 )
 
 # label the classified image
 sinop_label <- sits_label_classification(
     cube       = sinop_bayes,
-    output_dir = tempdir()
+    memsize    = 8,
+    multicores = 2
 )
 
 # plot the smoothened image

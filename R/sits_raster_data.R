@@ -282,8 +282,8 @@
         return(NULL)
     }
 
-    # build the time index for the data
-    samples_lst <- slider::slide(points, function(point) {
+    # build the sits tibble for the storing the points
+    samples <- slider::slide_dfr(points, function(point) {
 
         # get the valid timeline
         dates <- .sits_timeline_during(
@@ -309,9 +309,6 @@
         # return valid row of time series
         return(sample)
     })
-
-    # get all the time series (without the values)
-    samples <- dplyr::bind_rows(samples_lst)
 
     # create a matrix to extract the values
     xy <- matrix(c(points$X, points$Y), nrow = nrow(points), ncol = 2)

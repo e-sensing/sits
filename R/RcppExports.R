@@ -17,6 +17,10 @@ bilateral_smoother <- function(m, m_nrow, m_ncol, w, tau) {
     .Call(`_sits_bilateral_smoother`, m, m_nrow, m_ncol, w, tau)
 }
 
+entropy_probs <- function(mtx, n) {
+    .Call(`_sits_entropy_probs`, mtx, n)
+}
+
 linear_interp <- function(mtx) {
     .Call(`_sits_linear_interp`, mtx)
 }
