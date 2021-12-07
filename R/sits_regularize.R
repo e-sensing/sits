@@ -201,16 +201,16 @@ sits_regularize <- function(cube,
         # start date - maximum of all minimums
         max_min_date <- do.call(
             what = max,
-            args = purrr::map(cube$file_info, function(file_info){
-                return(min(file_info$date))
+            args = purrr::map(cube[["file_info"]], function(file_info){
+                return(min(file_info[["date"]]))
             })
         )
 
         # end date - minimum of all maximums
         min_max_date <- do.call(
             what = min,
-            args = purrr::map(cube$file_info, function(file_info){
-                return(max(file_info$date))
+            args = purrr::map(cube[["file_info"]], function(file_info){
+                return(max(file_info[["date"]]))
             }))
 
         # check if all timeline of tiles intersects
@@ -223,7 +223,7 @@ sits_regularize <- function(cube,
         tl_length <- max(2, ceiling(
             lubridate::interval(start = max_min_date,
                                 end = min_max_date) / duration
-            )
+        )
         )
 
         # timeline dates
@@ -265,11 +265,11 @@ sits_regularize <- function(cube,
         progress <- TRUE
 
         # adds crs to the file_info that is used in the bbox transformation
-        cube$file_info <- lapply(seq_along(cube$file_info), function(i) {
-            cube$file_info[[i]] <- dplyr::mutate(cube$file_info[[i]],
-                                                 crs = cube[i, ]$crs)
+        cube[["file_info"]] <- lapply(seq_along(cube[["file_info"]]), function(i) {
+            cube[["file_info"]][[i]] <- dplyr::mutate(cube[["file_info"]][[i]],
+                                                      crs = cube[i, ][["crs"]])
 
-            cube$file_info[[i]]
+            cube[["file_info"]][[i]]
         })
 
         if (sum(lengths(cube)) < .config_gdalcubes_min_files_for_parallel()) {
@@ -283,10 +283,10 @@ sits_regularize <- function(cube,
             .sits_parallel_start(workers = 1, log = FALSE)
             on.exit(.sits_parallel_stop(), add = TRUE)
 
-            x$bbox <- .sits_parallel_map(seq_len(nrow(x)), function(i) {
+            x[["bbox"]] <- .sits_parallel_map(seq_len(nrow(x)), function(i) {
 
                 r_obj <- tryCatch({
-                    .raster_open_rast(x$path[[i]])
+                    .raster_open_rast(x[["path"]][[i]])
                 }, error = function(e) {
                     return(NULL)
                 })
@@ -299,10 +299,10 @@ sits_regularize <- function(cube,
                 bbox <- c(
                     .sits_proj_to_latlong(x = bbox[["xmin"]],
                                           y = bbox[["ymin"]],
-                                          crs = x$crs[[i]]),
+                                          crs = x[["crs"]][[i]]),
                     .sits_proj_to_latlong(x = bbox[["xmax"]],
                                           y = bbox[["ymax"]],
-                                          crs = x$crs[[i]])
+                                          crs = x[["crs"]][[i]])
                 )
 
                 names(bbox) <- c("left", "bottom", "right", "top")
@@ -312,15 +312,15 @@ sits_regularize <- function(cube,
             x
         })
 
-        cube$file_info <- lapply(cube$file_info, function(fi) {
+        cube[["file_info"]] <- lapply(cube[["file_info"]], function(fi) {
 
             # removing invalid bbox
-            dplyr::group_by(fi, .data$date) %>%
+            dplyr::group_by(fi, .data[["date"]]) %>%
                 dplyr::mutate(valid_image = all(
-                    vapply(.data$bbox, Negate(is.null), logical(1)))) %>%
-                dplyr::filter(.data$valid_image) %>%
+                    vapply(.data[["bbox"]], Negate(is.null), logical(1)))) %>%
+                dplyr::filter(.data[["valid_image"]]) %>%
                 dplyr::ungroup() %>%
-                dplyr::select(-.data$valid_image) %>%
+                dplyr::select(-.data[["valid_image"]]) %>%
                 tidyr::unnest(cols = "bbox")
         })
 
@@ -333,9 +333,9 @@ sits_regularize <- function(cube,
     toi <- .get_valid_interval(cube)
 
     # matches the start dates of different tiles
-    cube$file_info <- purrr::map(cube$file_info, function(file_info) {
-        idx <- which(file_info$date == min(file_info$date))
-        file_info$date[idx] <- toi[[1]]
+    cube[["file_info"]] <- purrr::map(cube[["file_info"]], function(file_info) {
+        idx <- which(file_info[["date"]] == min(file_info[["date"]]))
+        file_info[["date"]][idx] <- toi[[1]]
         file_info
     })
 

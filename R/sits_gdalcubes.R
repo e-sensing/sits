@@ -31,15 +31,16 @@
     .sits_fast_apply(data = cube, col = "file_info", fn = function(x) {
 
         tl_length <- max(2, ceiling(
-            lubridate::interval(start = min(x$date),
-                                end = max(x$date)) / duration
+            lubridate::interval(start = min(x[["date"]]),
+                                end = max(x[["date"]])) / duration
         ))
 
-        dplyr::group_by(x, .data$left, .data$bottom, .data$right, .data$top,
-                        date_interval = cut(.data$date, tl_length)) %>%
-            dplyr::arrange(.data$cloud_cover, .by_group = TRUE) %>%
+        dplyr::group_by(
+            x, .data[["left"]], .data[["bottom"]],  .data[["right"]],
+            .data[["top"]], date_interval = cut(.data[["date"]], tl_length)) %>%
+            dplyr::arrange(.data[["cloud_cover"]], .by_group = TRUE) %>%
             dplyr::ungroup() %>%
-            dplyr::select(-.data$date_interval)
+            dplyr::select(-.data[["date_interval"]])
     })
 }
 
@@ -83,7 +84,7 @@
             band = cloud_band,
             min = 1,
             max = 2^16,
-            bits = mask_values$values,
+            bits = mask_values[["values"]],
             values = NULL,
             invert = FALSE
         )
@@ -168,45 +169,47 @@
 
     create_gc_database <- function(cube) {
 
-        file_info <- dplyr::select(cube, .data$file_info,
-                                   .data$collection, .data$tile) %>%
+        file_info <- dplyr::select(cube, .data[["file_info"]],
+                                   .data[["collection"]], .data[["tile"]]) %>%
             tidyr::unnest(cols = c(file_info)) %>%
-            dplyr::transmute(xmin = .data$left,
-                             ymin = .data$bottom,
-                             xmax = .data$right,
-                             ymax = .data$top,
-                             href = .data$path,
-                             datetime = as.character(.data$date),
-                             href = .data$href,
-                             band = .data$band,
-                             `proj:epsg` =  gsub("^EPSG:", "", .data$crs),
-                             id = paste(.data$collection, .data$tile,
-                                        as.character(.data$date), sep = "_"))
+            dplyr::transmute(xmin = .data[["left"]],
+                             ymin = .data[["bottom"]],
+                             xmax = .data[["right"]],
+                             ymax = .data[["top"]],
+                             href = .data[["path"]],
+                             datetime = as.character(.data[["date"]]),
+                             href = .data[["href"]],
+                             band = .data[["band"]],
+                             `proj:epsg` =  gsub("^EPSG:", "", .data[["crs"]]),
+                             id = paste(.data[["collection"]], .data[["tile"]],
+                                        as.character(.data[["date"]]),
+                                        sep = "_"))
 
-        features <- dplyr::mutate(file_info, fid = .data$id) %>%
-            tidyr::nest(features = -.data$fid)
+        features <- dplyr::mutate(file_info, fid = .data[["id"]]) %>%
+            tidyr::nest(features = -.data[["fid"]])
 
-        purrr::map(features$features, function(feature) {
+        purrr::map(features[["features"]], function(feature) {
 
             feature <- feature %>%
-                tidyr::nest(assets = c(.data$href, .data$band)) %>%
-                tidyr::nest(properties = c(.data$datetime, .data$`proj:epsg`)) %>%
-                tidyr::nest(bbox = c(.data$xmin, .data$ymin,
-                                     .data$xmax, .data$ymax))
+                tidyr::nest(assets = c(.data[["href"]], .data[["band"]])) %>%
+                tidyr::nest(properties = c(.data[["datetime"]],
+                                           .data[["proj:epsg"]])) %>%
+                tidyr::nest(bbox = c(.data[["xmin"]], .data[["ymin"]],
+                                     .data[["xmax"]], .data[["ymax"]]))
 
-            feature$assets <- purrr::map(feature$assets, function(asset) {
+            feature[["assets"]] <- purrr::map(feature[["assets"]], function(asset) {
 
                 asset %>%
-                    tidyr::pivot_wider(names_from = .data$band,
-                                       values_from = .data$href) %>%
+                    tidyr::pivot_wider(names_from = .data[["band"]],
+                                       values_from = .data[["href"]]) %>%
                     purrr::map(
                         function(x) list(href = x, `eo:bands` = list(NULL))
                     )
             })
 
             feature <- unlist(feature, recursive = FALSE)
-            feature$properties <- c(feature$properties)
-            feature$bbox <- unlist(feature$bbox)
+            feature[["properties"]] <- c(feature[["properties"]])
+            feature[["bbox"]] <- unlist(feature[["bbox"]])
             feature
         })
     }
@@ -287,16 +290,16 @@
 
     bbox <- .cube_tile_bbox(cube = tile)
     cube_gc <- .cube_create(
-        source     = tile$source,
-        collection = tile$collection,
-        satellite  = tile$satellite,
-        sensor     = tile$sensor,
-        tile       = tile$tile,
-        xmin       = bbox$xmin,
-        xmax       = bbox$xmax,
-        ymin       = bbox$ymin,
-        ymax       = bbox$ymax,
-        crs        = tile$crs,
+        source     = tile[["source"]],
+        collection = tile[["collection"]],
+        satellite  = tile[["satellite"]],
+        sensor     = tile[["sensor"]],
+        tile       = tile[["tile"]],
+        xmin       = bbox[["xmin"]],
+        xmax       = bbox[["xmax"]],
+        ymin       = bbox[["ymin"]],
+        ymax       = bbox[["ymax"]],
+        crs        = tile[["crs"]],
         file_info  = NA
     )
 
@@ -304,10 +307,10 @@
     cube_gc <- .gc_update_metadata(cube = cube_gc, cube_view = cv)
 
     # create file info column
-    cube_gc$file_info[[1]] <- tibble::tibble(band = character(),
-                                             date = lubridate::as_date(""),
-                                             res  = numeric(),
-                                             path = character())
+    cube_gc[["file_info"]][[1]] <- tibble::tibble(band = character(),
+                                                  date = lubridate::as_date(""),
+                                                  res  = numeric(),
+                                                  path = character())
 
     # create a list of creation options and metadata
     .get_gdalcubes_pack <- function(cube, band) {
@@ -341,13 +344,13 @@
         # add the filling method
         cube_brick <- gdalcubes::fill_time(cube_brick, method = fill_method)
 
-        message(paste("Writing images of band", band, "of tile", tile$tile))
+        message(paste("Writing images of band", band, "of tile", tile[["tile"]]))
 
         # write the aggregated cubes
         path_write <- gdalcubes::write_tif(
             gdalcubes::select_bands(cube_brick, band),
             dir = output_dir,
-            prefix = paste("cube", tile$tile, band, "", sep = "_"),
+            prefix = paste("cube", tile[["tile"]], band, "", sep = "_"),
             creation_options = list("COMPRESS" = "LZW", "BIGTIFF" = "YES"),
             pack = .get_gdalcubes_pack(tile, band), ...
         )
@@ -356,11 +359,11 @@
         images_date <- .gc_get_date(path_write)
 
         # set file info values
-        cube_gc$file_info[[1]] <- tibble::add_row(
-            cube_gc$file_info[[1]],
+        cube_gc[["file_info"]][[1]] <- tibble::add_row(
+            cube_gc[["file_info"]][[1]],
             band = rep(band, length(path_write)),
             date = images_date,
-            res  = rep(cv$space$dx, length(path_write)),
+            res  = rep(cv[["space"]][["dx"]], length(path_write)),
             path = path_write
         )
     }
@@ -410,7 +413,8 @@
 
     # update bbox
     bbox_names <- c("xmin", "xmax", "ymin", "ymax")
-    cube[, bbox_names] <- cube_view$space[c("left", "right", "bottom", "top")]
+    cube[, bbox_names] <- cube_view[["space"]][c("left", "right",
+                                                 "bottom", "top")]
 
     return(cube)
 }
