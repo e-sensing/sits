@@ -4,7 +4,7 @@
 \alias{.sits_parallel_map}
 \title{Maps a function to a given list in parallel or sequential processing}
 \usage{
-.sits_parallel_map(x, fn, ..., progress)
+.sits_parallel_map(x, fn, ..., progress, n_retries = 3, sleep = 0)
 }
 \arguments{
 \item{x}{a given list to be passed to a function}
@@ -13,6 +13,10 @@
 
 \item{progress}{a logical value indicating if a progress bar should
 be shown}
+
+\item{n_retries}{a number of retries before fail}
+
+\item{sleep}{a number in seconds to wait before try again}
 }
 \value{
 a list with the function results in the same order

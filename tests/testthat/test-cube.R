@@ -322,21 +322,20 @@ test_that("Creating cubes from AWS Open Data and regularizing them", {
     gc_cube <- sits_regularize(
         cube        = s2_cube_open,
         output_dir  = dir_images,
-        res         = 250,
+        res         = 120,
         roi = c("xmin" = 234872.7,
                 "ymin" = 8847983.0,
                 "xmax" = 239532.6,
                 "ymax" = 8852017.0),
-        period      = "P15D",
-        agg_method  = "median",
+        period      = "P16D",
         multicores = 2)
 
     size <- .cube_size(gc_cube)
 
-    expect_equal(size[["nrows"]], 17)
-    expect_equal(size[["ncols"]], 19)
-    expect_equal(gc_cube$xmax, 239577.7, tolerance = 1e-1)
-    expect_equal(gc_cube$xmin, 234827.7, tolerance = 1e-1)
+    expect_equal(size[["nrows"]], 34)
+    expect_equal(size[["ncols"]], 39)
+    expect_equal(gc_cube$xmax, 239542.7, tolerance = 1e-1)
+    expect_equal(gc_cube$xmin, 234862.7, tolerance = 1e-1)
 
     file_info2 <- gc_cube$file_info[[1]]
 
@@ -367,17 +366,23 @@ test_that("Creating cubes from USGS", {
     Sys.unsetenv("AWS_S3_ENDPOINT")
     Sys.unsetenv("AWS_REQUEST_PAYER")
 
+    usgs_cube <-  tryCatch({
+        sits_cube(source = "USGS",
+                  collection = "landsat-c2l2-sr",
+                  bands = c("B04", "CLOUD"),
+                  roi = c("lon_min" = 17.379,
+                          "lat_min" = 1.1573,
+                          "lon_max" = 17.410,
+                          "lat_max" = 1.1910),
+                  start_date = "2019-01-01",
+                  end_date = "2019-10-28"
+        )},
+        error = function(e){
+            return(NULL)
+        })
 
-    usgs_cube <- sits_cube(source = "USGS",
-                           collection = "landsat-c2l2-sr",
-                           bands = c("B04", "CLOUD"),
-                           roi = c("lon_min" = 17.379,
-                                   "lat_min" = 1.1573,
-                                   "lon_max" = 17.410,
-                                   "lat_max" = 1.1910),
-                           start_date = "2019-01-01",
-                           end_date = "2019-10-28"
-    )
+    testthat::skip_if(purrr::is_null(usgs_cube),
+                      "AWS is not accessible")
 
     expect_true(all(sits_bands(usgs_cube) %in% c("B04", "CLOUD")))
 
@@ -395,13 +400,20 @@ test_that("Creating Sentinel cubes from MSPC", {
 
     testthat::skip_on_cran()
 
-    s2_cube <- sits_cube(source = "MSPC",
-                         collection = "sentinel-2-l2a",
-                         tiles = "20LKP",
-                         bands = c("B05", "CLOUD"),
-                         start_date = as.Date("2018-07-18"),
-                         end_date = as.Date("2018-08-23")
-    )
+    s2_cube <- tryCatch({
+        sits_cube(source = "MSPC",
+                  collection = "sentinel-2-l2a",
+                  tiles = "20LKP",
+                  bands = c("B05", "CLOUD"),
+                  start_date = as.Date("2018-07-18"),
+                  end_date = as.Date("2018-08-23")
+        )},
+        error = function(e){
+            return(NULL)
+        })
+
+    testthat::skip_if(purrr::is_null(s2_cube),
+                      "AWS is not accessible")
 
     expect_true(all(sits_bands(s2_cube) %in% c("B05", "CLOUD")))
 

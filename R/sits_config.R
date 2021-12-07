@@ -426,12 +426,11 @@ sits_list_collections <- function(source = NULL) {
 
     return(yml_file)
 }
+
 #' @title Return the internal configuration file (only for developers)
 #' @name config_internals_file
 #' @keywords internal
 #' @return default configuration file
-#'
-#'
 .config_internals_file <- function() {
 
     # load the default configuration file
@@ -446,8 +445,6 @@ sits_list_collections <- function(source = NULL) {
 #' @name config_colors_file
 #' @keywords internal
 #' @return default configuration file
-#'
-#'
 .config_colors_file <- function() {
 
     # load the default configuration file
@@ -539,7 +536,6 @@ sits_list_collections <- function(source = NULL) {
 #' @name .config_gtiff_default_options
 #' @keywords internal
 #' @return  the creation options associated to the configuration
-#'
 .config_gtiff_default_options <- function() {
 
     res <- .config_get(key = c("gdal_creation_options"))
@@ -788,7 +784,6 @@ sits_list_collections <- function(source = NULL) {
 #' @param ...            other relevant parameters
 #' @keywords internal
 #' @return   list with the configuration associated to the new band
-#'
 .config_new_band <- function(missing_value,
                              minimum_value,
                              maximum_value,
@@ -899,7 +894,6 @@ sits_list_collections <- function(source = NULL) {
 #' @param  rev      revert the order of colors?
 #' @keywords internal
 #' @return colors required to display the labels
-#'
 .config_colors <- function(labels,
                            palette = "Harmonic",
                            rev = TRUE) {
@@ -950,7 +944,77 @@ sits_list_collections <- function(source = NULL) {
 #' @name .config_processing_bloat
 #' @keywords internal
 #' @return estimated processing bloat
-#'
+.config_processing_bloat <- function() {
+
+    res <- .config_get(key = c("processing_bloat"))
+
+    # post-condition
+    .check_num(res, min = 1, len_min = 1, len_max = 1,
+               msg = "invalid 'processing_bloat' in config file")
+
+    return(res)
+}
+#' @title Retrieve the parallel requests number
+#' @name .config_gdalcubes_open_connections
+#' @keywords internal
+#' @return get parallel requests
+.config_gdalcubes_open_connections <- function() {
+
+    n_conn <- .config_get(key = c("gdalcubes_open_connections"))
+
+    # post-condition
+    .check_num(n_conn, min = 1, len_min = 1, len_max = 1,
+               msg = "invalid 'gdalcubes_open_connections' in config file")
+
+    return(n_conn)
+}
+#' @title Retrieve the minimum requests to do in parallel
+#' @name .config_gdalcubes_min_files_for_parallel
+#' @keywords internal
+#' @return get minimum times the parallel requests will be done
+.config_gdalcubes_min_files_for_parallel <- function() {
+
+    min_files <- .config_get(key = c("gdalcubes_min_files_for_parallel"))
+
+    # post-condition
+    .check_num(min_files, min = 1, len_min = 1, len_max = 1,
+               msg = paste("invalid 'gdalcubes_min_files_for_parallel' in",
+                           "config file"))
+
+    return(min_files)
+}
+#' @title Retrieve the gdalcubes chunk size
+#' @name .config_gdalcubes_chunk_size
+#' @keywords internal
+#' @return a numeric vector with chunk size
+.config_gdalcubes_chunk_size <- function() {
+
+    chunk_size <- .config_get(key = c("gdalcubes_chunk_size"))
+
+    # post-condition
+    .check_num(chunk_size, len_min = 3, len_max = 3,
+               msg = "invalid 'gdalcubes_chunk_size' in config file")
+
+    return(chunk_size)
+}
+#' @title Retrieve the maximum number of threads in gdalcubes
+#' @name .config_gdalcubes_max_threads
+#' @keywords internal
+#' @return a numeric with the number of threads
+.config_gdalcubes_max_threads <- function() {
+
+    n_threads <- .config_get(key = c("gdalcubes_max_threads"))
+
+    # post-condition
+    .check_num(n_threads, min = 1, len_min = 1, len_max = 1,
+               msg = "invalid 'gdalcubes_max_threads' in config file")
+
+    return(n_threads)
+}
+#' @title Retrieve the processing bloat
+#' @name .config_processing_bloat
+#' @keywords internal
+#' @return estimated processing bloat
 .config_processing_bloat <- function() {
 
     res <- .config_get(key = c("processing_bloat"))
@@ -965,7 +1029,6 @@ sits_list_collections <- function(source = NULL) {
 #' @name .config_rstac_limit
 #' @keywords internal
 #' @return pagination limit to rstac output
-#'
 .config_rstac_limit <- function() {
 
     res <- .config_get(key = c("rstac_pagination_limit"))

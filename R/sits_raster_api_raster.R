@@ -257,6 +257,16 @@
 
 #' @keywords internal
 #' @export
+.raster_extent.raster <- function(r_obj, ...) {
+
+    extent <- suppressWarnings(as.vector(raster::extent(x = r_obj)))
+
+    names(extent) <- c("xmin", "xmax", "ymin", "ymax")
+    extent
+}
+
+#' @keywords internal
+#' @export
 .raster_freq.raster <- function(r_obj, ...) {
 
     res <- raster::freq(x = r_obj)

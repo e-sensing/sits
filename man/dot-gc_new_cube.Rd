@@ -7,18 +7,25 @@
 .gc_new_cube(
   tile,
   cv,
+  fill_method,
   img_col,
   path_db,
   output_dir,
   cloud_mask,
-  ...,
-  version = "v1"
+  multicores,
+  ...
 )
 }
 \arguments{
 \item{tile}{A data cube tile}
 
 \item{cv}{A \code{list} 'cube_view' with values from cube.}
+
+\item{fill_method}{A \code{character} indicating which interpolation method
+will be applied. Options: \code{near} for nearest neighbor; \code{linear}
+for linear interpolation; \code{locf} for ast observation carried forward,
+or \code{nocb} for next observation carried backward.
+Default is \code{near}..}
 
 \item{img_col}{A \code{object} 'image_collection' containing information
 about the images metadata.}
@@ -30,10 +37,11 @@ about the images metadata.}
 \item{cloud_mask}{A \code{logical} corresponds to the use of the cloud band
 for aggregation.}
 
+\item{multicores}{A \code{numeric} with the number of cores will be used in
+the regularize. By default is used 1 core.}
+
 \item{...}{Additional parameters that can be included. See
 '?gdalcubes::write_tif'.}
-
-\item{version}{A \code{character} with version of the output files.}
 }
 \value{
 A data cube tile with information used in its creation.

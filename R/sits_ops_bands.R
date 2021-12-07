@@ -19,7 +19,7 @@
     proc_fun <- function(..., Index = Index) {
         Index <- quote(Index)
         purrr::map(data$time_series, function(ts) {
-            ts_computed <- dplyr::transmute(ts, !!(Index), ...)
+            ts_computed <- dplyr::transmute(ts, .data[["Index"]], ...)
             return(ts_computed)
         })
     }

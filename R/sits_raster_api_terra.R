@@ -281,6 +281,13 @@
 
 #' @keywords internal
 #' @export
+.raster_extent.terra <- function(r_obj, ...) {
+
+    suppressWarnings(as.vector(terra::ext(x = r_obj)))
+}
+
+#' @keywords internal
+#' @export
 .raster_freq.terra <- function(r_obj, ...) {
 
     terra::freq(x = r_obj, bylayer = TRUE)

@@ -8,11 +8,11 @@ sits_regularize(
   cube,
   output_dir,
   period,
-  res = NULL,
+  res,
   roi = NULL,
-  agg_method = "median",
+  agg_method = "least_cc_first",
+  fill_method = "near",
   resampling = "bilinear",
-  cloud_mask = TRUE,
   multicores = 2
 )
 }
@@ -35,17 +35,21 @@ will be aggregated.}
 See above}
 
 \item{agg_method}{A \code{character} with method that will be applied by
-\code{gdalcubes} for aggregation. Options: \code{min}, \code{max},
-\code{mean}, \code{median} and \code{first}. Default is \code{median}.}
+\code{gdalcubes} for aggregation. Options: \code{median} and
+\code{least_cc_first}.
+The default aggregation method is \code{least_cc_first}. See more above.}
+
+\item{fill_method}{A \code{character} indicating which interpolation method
+will be applied. Options: \code{near} for nearest neighbor; \code{linear}
+for linear interpolation; \code{locf} for ast observation carried forward,
+or \code{nocb} for next observation carried backward.
+Default is \code{near}.}
 
 \item{resampling}{A \code{character} with method to be used by
 \code{gdalcubes} for resampling in mosaic operation.
 Options: \code{near}, \code{bilinear}, \code{bicubic} or others supported by
 gdalwarp (see https://gdal.org/programs/gdalwarp.html).
 By default is bilinear.}
-
-\item{cloud_mask}{A \code{logical} to use cloud band for aggregation by
-\code{gdalcubes}. Default is \code{TRUE}.}
 
 \item{multicores}{A \code{numeric} with the number of cores will be used in
 the regularize. By default is used 1 core.}
@@ -64,6 +68,14 @@ The "roi" parameter defines a region of interest. It can be
    an sf_object, a shapefile, or a bounding box vector with
    named XY values ("xmin", "xmax", "ymin", "ymax") or
    named lat/long values ("lat_min", "lat_max", "long_min", "long_max")
+
+The \code{least_cc_first} aggregation method sorts the images based on
+   cloud coverage, images with the least clouds are at the top of the stack.
+   Once the stack of images is sorted the method uses the first valid value
+   to generate the temporal aggregation.
+
+If the supplied data cube contains cloud band, the values indicated as
+   clouds or cloud shadow will be removed.
 }
 \examples{
 {
@@ -87,10 +99,7 @@ dir.create(paste0(tempdir(),"/images/"))
 gc_cube <- sits_regularize(cube       = s2_cube,
                            output_dir = paste0(tempdir(),"/images/"),
                            period     = "P1M",
-                           agg_method = "median",
-                           resampling = "bilinear",
-                           res        = 60,
-                           cloud_mask = TRUE)
+                           res        = 60)
 }
 }
 
@@ -99,4 +108,8 @@ gc_cube <- sits_regularize(cube       = s2_cube,
 APPEL, Marius; PEBESMA, Edzer. On-demand processing of data cubes
  from satellite image collections with the gdalcubes library. Data, v. 4,
  n. 3, p. 92, 2019. DOI: 10.3390/data4030092.
+
+Ferreira, Karine R., et al. "Earth observation data cubes for
+Brazil: Requirements, methodology and products." Remote Sensing 12.24 (2020):
+ 4033. DOI: 10.3390/rs12244033.
 }
