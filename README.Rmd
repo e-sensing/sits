@@ -131,7 +131,6 @@ gc_cube <- sits_regularize(cube          = s2_cube,
                            period        = "P15D",
                            agg_method    = "median",
                            res           = 10, 
-                           cloud_mask    = TRUE,
                            multicores    = 2)
 ```
 The above command builds a regular data cube with all bands interpolated to 10 meter spatial resolution and 15 days temporal resolution. Regular data cubes are the input to the `sits` functions for time series retrieval, building machine learning models, and classification of raster images and time series.
