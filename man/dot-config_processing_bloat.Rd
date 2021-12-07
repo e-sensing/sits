@@ -5,11 +5,17 @@
 \title{Retrieve the processing bloat}
 \usage{
 .config_processing_bloat()
+
+.config_processing_bloat()
 }
 \value{
 estimated processing bloat
+
+estimated processing bloat
 }
 \description{
+Retrieve the processing bloat
+
 Retrieve the processing bloat
 }
 \keyword{internal}

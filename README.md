@@ -37,7 +37,14 @@ basic workflow in SITS is:
 6.  Post-process the classified images.
 7.  Evaluate the accuracy of the classification using best practices.
 
-<img src="inst/extdata/markdown/figures/sits_general_view.png" title="Conceptual view of data cubes (source: authors)" alt="Conceptual view of data cubes (source: authors)" width="60%" height="60%" style="display: block; margin: auto;" />
+<div class="figure" style="text-align: center">
+
+<img src="inst/extdata/markdown/figures/sits_general_view.png" alt="Conceptual view of data cubes (source: authors)" width="60%" height="60%" />
+<p class="caption">
+Conceptual view of data cubes (source: authors)
+</p>
+
+</div>
 
 ## SITS on Kaggle
 
@@ -80,12 +87,12 @@ devtools::install_github("e-sensing/sits", dependencies = TRUE)
 ``` r
 # load the sits library
 library(sits)
-#> Using configuration file: /Library/Frameworks/R.framework/Versions/4.1/Resources/library/sits/extdata/config.yml
-#> Color configurations found in /Library/Frameworks/R.framework/Versions/4.1/Resources/library/sits/extdata/config_colors.yml
+#> Using configuration file: /home/sits/R/x86_64-pc-linux-gnu-library/4.1/sits/extdata/config.yml
+#> Color configurations found in /home/sits/R/x86_64-pc-linux-gnu-library/4.1/sits/extdata/config_colors.yml
 #> To provide additional configurations, create an YAML file and inform its path to environment variable 'SITS_CONFIG_USER_FILE'.
 #> Using raster package: terra
 #> SITS - satellite image time series analysis.
-#> Loaded sits v0.15.1.
+#> Loaded sits v0.16.0.
 #>         See ?sits for help, citation("sits") for use in publication.
 #>         See demo(package = "sits") for examples.
 ```
@@ -101,7 +108,14 @@ the same size, covering a regular area in space and time. These data
 cubes are built from analysis-ready image collections available in the
 cloud.
 
-<img src="inst/extdata/markdown/figures/datacube_conception.png" title="Conceptual view of data cubes (source: authors)" alt="Conceptual view of data cubes (source: authors)" width="90%" height="90%" style="display: block; margin: auto;" />
+<div class="figure" style="text-align: center">
+
+<img src="inst/extdata/markdown/figures/datacube_conception.png" alt="Conceptual view of data cubes (source: authors)" width="90%" height="90%" />
+<p class="caption">
+Conceptual view of data cubes (source: authors)
+</p>
+
+</div>
 
 The image collections accessible in `sits` version 0.15.1 to build EO
 data cubes are:
@@ -167,7 +181,6 @@ gc_cube <- sits_regularize(cube          = s2_cube,
                            period        = "P15D",
                            agg_method    = "median",
                            res           = 10, 
-                           cloud_mask    = TRUE,
                            multicores    = 2)
 ```
 
@@ -230,7 +243,14 @@ function.
 plot(points[1,])
 ```
 
-<img src="man/figures/README-unnamed-chunk-8-1.png" title="Plot of point at location (-55.65931, -11.76267) labelled as Pasture" alt="Plot of point at location (-55.65931, -11.76267) labelled as Pasture" style="display: block; margin: auto;" />
+<div class="figure" style="text-align: center">
+
+<img src="man/figures/README-unnamed-chunk-8-1.png" alt="Plot of point at location (-55.65931, -11.76267) labelled as Pasture"  />
+<p class="caption">
+Plot of point at location (-55.65931, -11.76267) labelled as Pasture
+</p>
+
+</div>
 
 For a large number of samples, where the amount of individual plots
 would be substantial, the default visualization combines all samples
@@ -245,7 +265,14 @@ samples_cerrado <- dplyr::filter(samples_ndvi,
 plot(samples_cerrado)
 ```
 
-<img src="man/figures/README-unnamed-chunk-9-1.png" title="Samples for NDVI band for Cerrado class" alt="Samples for NDVI band for Cerrado class" style="display: block; margin: auto;" />
+<div class="figure" style="text-align: center">
+
+<img src="man/figures/README-unnamed-chunk-9-1.png" alt="Samples for NDVI band for Cerrado class"  />
+<p class="caption">
+Samples for NDVI band for Cerrado class
+</p>
+
+</div>
 
 ## Time Series Clustering and Filtering
 
@@ -309,7 +336,14 @@ point_ndvi %>%
     plot()
 ```
 
-<img src="man/figures/README-unnamed-chunk-12-1.png" title="Whittaker filter of NDVI time series" alt="Whittaker filter of NDVI time series" style="display: block; margin: auto;" />
+<div class="figure" style="text-align: center">
+
+<img src="man/figures/README-unnamed-chunk-12-1.png" alt="Whittaker filter of NDVI time series"  />
+<p class="caption">
+Whittaker filter of NDVI time series
+</p>
+
+</div>
 
 ## Time Series Classification
 
@@ -349,7 +383,6 @@ data("point_mt_6bands")
 tempCNN_model <- samples_modis_4bands %>% 
     sits_select(bands = c("NDVI", "EVI")) %>% 
     sits_train(ml_method = sits_TempCNN(verbose = FALSE)) 
-#> Loaded Tensorflow version 2.5.0
 # Select NDVI and EVI bands of the  point to be classified
 # Filter the point 
 # Classify using TempCNN model

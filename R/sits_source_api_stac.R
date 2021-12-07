@@ -143,6 +143,10 @@
                                         item = item,
                                         collection = collection)
 
+        cloud_cover <- .source_item_get_cc(source = source, ...,
+                                           item = item,
+                                           collection = collection)
+
         .check_that(
             x = !is.na(date),
             msg = "invalid date format."
@@ -168,16 +172,16 @@
                 date = date,
                 band = list(bands),
                 res = list(res),
-                path = list(paths)
+                path = list(paths),
+                cloud_cover = cloud_cover
             ), cols = c("band", "res", "path")
         )
     }) %>% dplyr::arrange(date)
 
+    # in case of granule images only the first one is considered
     file_info <- dplyr::group_by(file_info, date, band, res) %>%
-        dplyr::summarise(
-            path = dplyr::first(path, order_by = path),
-            .groups = "drop"
-        )
+        dplyr::filter(path == dplyr::first(path, order_by = path)) %>%
+        dplyr::ungroup()
 
     return(file_info)
 }
@@ -257,6 +261,15 @@
 
     # add gdal vsi in href urls
     return(.stac_add_gdal_vsi(href))
+}
+
+#' @keywords internal
+#' @export
+.source_item_get_cc.stac_cube <- function(source, ...,
+                                          item,
+                                          collection = NULL) {
+
+    item[["properties"]][["eo:cloud_cover"]]
 }
 #' @keywords internal
 #' @export
