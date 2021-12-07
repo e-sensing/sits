@@ -79,8 +79,8 @@ collections.
 
 \code{.source_collections()} lists all collections of a source.
 
-\code{.source_collection_access_vars_set} checks if
-\code{access_vars} environment variables are properly defined.
+\code{.source_collection_access_vars_set} sets
+\code{access_vars} environment variables.
 
 \code{.source_collection_check()} checks if a collection
 is from a source.

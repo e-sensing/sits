@@ -19,6 +19,7 @@
     UseMethod(".raster_check_package", pkg_class)
 }
 
+#' @name .raster_check_package
 #' @keywords internal
 #' @export
 .raster_check_package.default <- function() {
@@ -404,7 +405,7 @@
     UseMethod(".raster_nrows", pkg_class)
 }
 
-#' @rdname .raster_properties
+#' @name .raster_properties
 #' @keywords internal
 .raster_ncols <- function(r_obj, ...) {
 
@@ -414,7 +415,7 @@
     UseMethod(".raster_ncols", pkg_class)
 }
 
-#' @rdname .raster_properties
+#' @name .raster_properties
 #' @keywords internal
 .raster_nlayers <- function(r_obj, ...) {
 
@@ -424,7 +425,7 @@
     UseMethod(".raster_nlayers", pkg_class)
 }
 
-#' @rdname .raster_properties
+#' @name .raster_properties
 #' @keywords internal
 .raster_xmax <- function(r_obj, ...) {
 
@@ -434,7 +435,7 @@
     UseMethod(".raster_xmax", pkg_class)
 }
 
-#' @rdname .raster_properties
+#' @name .raster_properties
 #' @keywords internal
 .raster_xmin <- function(r_obj, ...) {
 
@@ -444,7 +445,7 @@
     UseMethod(".raster_xmin", pkg_class)
 }
 
-#' @rdname .raster_properties
+#' @name .raster_properties
 #' @keywords internal
 .raster_ymax <- function(r_obj, ...) {
 
@@ -454,7 +455,7 @@
     UseMethod(".raster_ymax", pkg_class)
 }
 
-#' @rdname .raster_properties
+#' @name .raster_properties
 #' @keywords internal
 .raster_ymin <- function(r_obj, ...) {
 
@@ -464,7 +465,7 @@
     UseMethod(".raster_ymin", pkg_class)
 }
 
-#' @rdname .raster_properties
+#' @name .raster_properties
 #' @keywords internal
 .raster_xres <- function(r_obj, ...) {
 
@@ -474,7 +475,7 @@
     UseMethod(".raster_xres", pkg_class)
 }
 
-#' @rdname .raster_properties
+#' @name .raster_properties
 #' @keywords internal
 .raster_yres <- function(r_obj, ...) {
 
@@ -484,7 +485,7 @@
     UseMethod(".raster_yres", pkg_class)
 }
 
-#' @rdname .raster_properties
+#' @name .raster_properties
 #' @keywords internal
 .raster_crs <- function(r_obj, ...) {
 
@@ -494,20 +495,20 @@
     UseMethod(".raster_crs", pkg_class)
 }
 
-#' @rdname .raster_properties
+#' @name .raster_properties
 #' @keywords internal
 .raster_bbox <- function(r_obj, ...) {
 
     # return a named bbox
-    bbox <- list(xmin = .raster_xmin(r_obj),
-                 ymin = .raster_ymin(r_obj),
-                 xmax = .raster_xmax(r_obj),
-                 ymax = .raster_ymax(r_obj))
+    bbox <- c(xmin = .raster_xmin(r_obj),
+              xmax = .raster_xmax(r_obj),
+              ymin = .raster_ymin(r_obj),
+              ymax = .raster_ymax(r_obj))
 
     return(bbox)
 }
 
-#' @rdname .raster_properties
+#' @name .raster_properties
 #' @keywords internal
 .raster_res <- function(r_obj, ...) {
 
@@ -518,7 +519,7 @@
     return(res)
 }
 
-#' @rdname .raster_properties
+#' @name .raster_properties
 #' @keywords internal
 .raster_size <- function(r_obj, ...) {
 
@@ -724,7 +725,7 @@
         unlink(out_file)
 
     # maximum files to merge at a time
-    # these values were obtained empirically
+    # this value was obtained empirically
     group_len <- 32
 
     # keep in_files

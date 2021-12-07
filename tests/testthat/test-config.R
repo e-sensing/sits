@@ -263,12 +263,22 @@ test_that("Configs AWS", {
         "invalid names for 'zzz' key"
     )
 
+    .source_collection_access_vars_set(source = "AWS",
+                                       collection = "SENTINEL-S2-L2A")
+
     expect_equal(
-        .source_collection_access_vars_set(source = "AWS",
-                                           collection = "SENTINEL-S2-L2A"),
-        list(AWS_DEFAULT_REGION = "eu-central-1",
-             AWS_S3_ENDPOINT    = "s3.amazonaws.com",
-             AWS_REQUEST_PAYER  = "requester")
+        Sys.getenv("AWS_DEFAULT_REGION"),
+        "eu-central-1"
+    )
+
+    expect_equal(
+        Sys.getenv("AWS_S3_ENDPOINT"),
+        "s3.amazonaws.com"
+    )
+
+    expect_equal(
+        Sys.getenv("AWS_REQUEST_PAYER"),
+        "requester"
     )
 
     expect_true(
@@ -353,7 +363,7 @@ test_that("Configs WTSS", {
     expect_equal(
         .source_collection_access_vars_set(source = "BDC",
                                            collection = "CB4_64-1"),
-        list()
+        NULL
     )
 
     expect_error(

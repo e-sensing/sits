@@ -85,8 +85,8 @@
 
         # make a new file info for one tile
         file_info <- .source_items_file_info(source = source,
-                                            items = items_tile,
-                                            collection = collection, ...)
+                                             items = items_tile,
+                                             collection = collection, ...)
 
         # make a new cube tile
         tile_cube <- .source_items_cube(source = source,
@@ -118,7 +118,7 @@
                                            collection = collection,
                                            bands = bands)
     )
-        return(items)
+    return(items)
 }
 
 #' @keywords internal
@@ -213,15 +213,8 @@
     # arrange
     file_info <- dplyr::arrange(
         tidyr::unnest(file_info, cols = "meta_data"),
-        date,
-        band
+        date, fid, band
     )
-
-    # file_info <- dplyr::group_by(file_info, date, band, res) %>%
-    #     dplyr::summarise(
-    #         path = dplyr::first(path, order_by = path),
-    #         .groups = "drop"
-    #     )
 
     return(file_info)
 }

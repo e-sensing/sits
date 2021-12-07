@@ -585,14 +585,23 @@ NULL
 #' @rdname cube_functions
 .cube_resolution <- function(cube, ..., bands = NULL) {
 
-    file_info <- .cube_file_info(cube, bands)
-    res <- unique(file_info$res)
+    # get first file_info
+    file_info <- .cube_file_info(cube, bands = bands)
+
+    xres <- unique(file_info[["xres"]])
+    yres <- unique(file_info[["yres"]])
 
     # post-condition
-    .check_length(res,
-                  len_min = 1,
-                  len_max = 1,
-                  msg = "Cube has bands with more than one resolution")
+    .check_num(xres, min = 0, allow_zero = FALSE,
+               len_min = 1, len_max = 1,
+               msg = "invalid xres value")
+
+    # post-condition
+    .check_num(yres, min = 0, allow_zero = FALSE,
+               len_min = 1, len_max = 1,
+               msg = "invalid yres value")
+
+    res <- c(xres = xres, yres = yres)
 
     return(res)
 }
@@ -608,33 +617,24 @@ NULL
 .cube_size <- function(cube, ..., bands = NULL) {
 
     # get the file information
-    file_info <- .cube_file_info(cube, bands)
+    file_info <- .cube_file_info(cube, bands = bands)
 
-    # get the file resolution
-    res <- unique(file_info$res)
-
-    # post-condition
-    .check_length(res,
-                  len_min = 1, len_max = 1,
-                  msg = "cube has bands of different sizes")
-
-    # obtain the size by querying the raster data
-    r_obj <- .raster_open_rast(file_info$path[[1]])
-
-    size <- c(
-        nrows = .raster_nrows(r_obj),
-        ncols = .raster_ncols(r_obj)
-    )
+    # get the file size
+    nrows <- unique(file_info[["nrows"]])
+    ncols <- unique(file_info[["ncols"]])
 
     # post-conditions
-    .check_num(size[["nrows"]], min = 1, len_min = 1, len_max = 1,
+    .check_num(nrows, min = 1, len_min = 1, len_max = 1,
                is_integer = TRUE, msg = "invalid number of rows")
 
-    .check_num(size[["ncols"]], min = 1, len_min = 1, len_max = 1,
+    .check_num(ncols, min = 1, len_min = 1, len_max = 1,
                is_integer = TRUE, msg = "invalid number of columns")
+
+    size <- c(nrows = nrows, ncols = ncols)
 
     return(size)
 }
+
 #' @rdname cube_functions
 .cube_size_max <- function(cube, ..., bands = NULL) {
     # get the file information
