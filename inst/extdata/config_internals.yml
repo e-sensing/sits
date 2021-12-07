@@ -43,14 +43,23 @@ probs_cube_data_type    : "INT2U"
 # configuration for classified cubes
 class_cube_data_type    : "INT1U"
 
-# simultaneous connections
-cube_metadata_creation_n_workers : 4
+# simultaneous connections for gdalcubes database creation
+gdalcubes_open_connections : 4
 
-# minimum requests to parallelize
-cube_metadata_creation_minimum_items : 10
+# minimum number of files for gdalcubes to be run on parallel
+gdalcubes_min_files_for_parallel : 10
+
+# configuration for gdalcubes chunk
+gdalcubes_chunk_size   : [1, 2048, 2048]
+
+# maximum number of threads in gdalcubes
+gdalcubes_max_threads : 24
 
 # valid aggregation methods for gdalcubes
-gdalcubes_aggreg_methods : ["median", "stack"]
+gdalcubes_aggreg_methods : {median : "median", least_cc_first : "first"}
+
+# valid filling NA values methods for gdalcubes
+gdalcubes_filling_methods : ["near", "linear", "locf", "nocb"]
 
 # valid resampling methods for gdalcubes
 gdalcubes_resampling_methods : ["near", "bilinear", "bicubic", "cubicspline",
