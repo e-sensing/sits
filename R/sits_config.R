@@ -955,32 +955,61 @@ sits_list_collections <- function(source = NULL) {
     return(res)
 }
 #' @title Retrieve the parallel requests number
-#' @name parallel_requests
+#' @name .config_gdalcubes_open_connections
 #' @keywords internal
 #' @return get parallel requests
-.config_parallel_requests <- function() {
+.config_gdalcubes_open_connections <- function() {
 
-    res <- .config_get(key = c("parallel_requests"))
+    n_conn <- .config_get(key = c("gdalcubes_open_connections"))
 
     # post-condition
-    .check_num(res, min = 1, len_min = 1, len_max = 1,
-               msg = "invalid 'parallel_requests' in config file")
+    .check_num(n_conn, min = 1, len_min = 1, len_max = 1,
+               msg = "invalid 'gdalcubes_open_connections' in config file")
 
-    return(res)
+    return(n_conn)
 }
 #' @title Retrieve the minimum requests to do in parallel
-#' @name parallel_minimum_requets
+#' @name .config_gdalcubes_min_files_for_parallel
 #' @keywords internal
 #' @return get minimum times the parallel requests will be done
-.config_parallel_minimum_requests <- function() {
+.config_gdalcubes_min_files_for_parallel <- function() {
 
-    res <- .config_get(key = c("parallel_minimum_requets"))
+    min_files <- .config_get(key = c("gdalcubes_min_files_for_parallel"))
 
     # post-condition
-    .check_num(res, min = 1, len_min = 1, len_max = 1,
-               msg = "invalid 'parallel_minimum_requets' in config file")
+    .check_num(min_files, min = 1, len_min = 1, len_max = 1,
+               msg = paste("invalid 'gdalcubes_min_files_for_parallel' in",
+                           "config file"))
 
-    return(res)
+    return(min_files)
+}
+#' @title Retrieve the gdalcubes chunk size
+#' @name .config_gdalcubes_chunk_size
+#' @keywords internal
+#' @return a numeric vector with chunk size
+.config_gdalcubes_chunk_size <- function() {
+
+    chunk_size <- .config_get(key = c("gdalcubes_chunk_size"))
+
+    # post-condition
+    .check_num(chunk_size, len_min = 3, len_max = 3,
+               msg = "invalid 'gdalcubes_chunk_size' in config file")
+
+    return(chunk_size)
+}
+#' @title Retrieve the maximum number of threads in gdalcubes
+#' @name .config_gdalcubes_max_threads
+#' @keywords internal
+#' @return a numeric with the number of threads
+.config_gdalcubes_max_threads <- function() {
+
+    n_threads <- .config_get(key = c("gdalcubes_max_threads"))
+
+    # post-condition
+    .check_num(n_threads, min = 1, len_min = 1, len_max = 1,
+               msg = "invalid 'gdalcubes_max_threads' in config file")
+
+    return(n_threads)
 }
 #' @title Retrieve the processing bloat
 #' @name .config_processing_bloat
@@ -1009,21 +1038,6 @@ sits_list_collections <- function(source = NULL) {
                msg = "invalid 'rstac_pagination_limit' in config file")
 
     return(res)
-}
-
-#' @title Retrieve the gdalcubes chunk size
-#' @name .config_gdalcubes_chunk_size
-#' @keywords internal
-#' @return a numeric vector with chunk size
-.config_gdalcubes_chunk_size <- function() {
-
-    chunk_size <- .config_get(key = c("gdalcubes_chunk_size"))
-
-    # post-condition
-    .check_num(chunk_size, len_min = 3, len_max = 3,
-               msg = "invalid 'gdalcubes_chunk_size' in config file")
-
-    return(chunk_size)
 }
 
 #' @title Retrieve the raster package to be used
