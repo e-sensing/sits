@@ -35,11 +35,11 @@
                                 end = max(x$date)) / duration
         ))
 
-        dplyr::group_by(x, left, bottom, right, top,
-                        date_interval = cut(date, tl_length)) %>%
-            dplyr::arrange(cloud_cover, .by_group = TRUE) %>%
+        dplyr::group_by(x, .data$left, .data$bottom, .data$right, .data$top,
+                        date_interval = cut(.data$date, tl_length)) %>%
+            dplyr::arrange(.data$cloud_cover, .by_group = TRUE) %>%
             dplyr::ungroup() %>%
-            dplyr::select(-date_interval)
+            dplyr::select(-.data$date_interval)
     })
 }
 
@@ -168,34 +168,37 @@
 
     create_gc_database <- function(cube) {
 
-        file_info <- dplyr::select(cube, file_info, collection, tile) %>%
+        file_info <- dplyr::select(cube, .data$file_info,
+                                   .data$collection, .data$tile) %>%
             tidyr::unnest(cols = c(file_info)) %>%
-            dplyr::transmute(xmin = left,
-                             ymin = bottom,
-                             xmax = right,
-                             ymax = top,
-                             href = path,
-                             datetime = as.character(date),
-                             href = href,
-                             band = band,
-                             `proj:epsg` =  gsub("^EPSG:", "", crs),
-                             id = paste(collection, tile, as.character(date),
-                                        sep = "_"))
+            dplyr::transmute(xmin = .data$left,
+                             ymin = .data$bottom,
+                             xmax = .data$right,
+                             ymax = .data$top,
+                             href = .data$path,
+                             datetime = as.character(.data$date),
+                             href = .data$href,
+                             band = .data$band,
+                             `proj:epsg` =  gsub("^EPSG:", "", .data$crs),
+                             id = paste(.data$collection, .data$tile,
+                                        as.character(.data$date), sep = "_"))
 
-        features <- dplyr::mutate(file_info, fid = id) %>%
-            tidyr::nest(features = -fid)
+        features <- dplyr::mutate(file_info, fid = .data$id) %>%
+            tidyr::nest(features = -.data$fid)
 
         purrr::map(features$features, function(feature) {
 
             feature <- feature %>%
-                tidyr::nest(assets = c(href, band)) %>%
-                tidyr::nest(properties = c(datetime, `proj:epsg`)) %>%
-                tidyr::nest(bbox = c(xmin, ymin, xmax, ymax))
+                tidyr::nest(assets = c(.data$href, .data$band)) %>%
+                tidyr::nest(properties = c(.data$datetime, .data$`proj:epsg`)) %>%
+                tidyr::nest(bbox = c(.data$xmin, .data$ymin,
+                                     .data$xmax, .data$ymax))
 
             feature$assets <- purrr::map(feature$assets, function(asset) {
 
                 asset %>%
-                    tidyr::pivot_wider(names_from = band, values_from = href) %>%
+                    tidyr::pivot_wider(names_from = .data$band,
+                                       values_from = .data$href) %>%
                     purrr::map(
                         function(x) list(href = x, `eo:bands` = list(NULL))
                     )

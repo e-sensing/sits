@@ -315,12 +315,12 @@ sits_regularize <- function(cube,
         cube$file_info <- lapply(cube$file_info, function(fi) {
 
             # removing invalid bbox
-            dplyr::group_by(fi, date) %>%
+            dplyr::group_by(fi, .data$date) %>%
                 dplyr::mutate(valid_image = all(
-                    vapply("bbox", Negate(is.null), logical(1)))) %>%
-                dplyr::filter(valid_image) %>%
+                    vapply(.data$bbox, Negate(is.null), logical(1)))) %>%
+                dplyr::filter(.data$valid_image) %>%
                 dplyr::ungroup() %>%
-                dplyr::select(-"valid_image") %>%
+                dplyr::select(-.data$valid_image) %>%
                 tidyr::unnest(cols = "bbox")
         })
 
