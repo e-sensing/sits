@@ -31,6 +31,8 @@
 #' @param  roi               a region of interest (see below)
 #' @param  filter_fn         smoothing filter to be applied (if desired).
 #' @param  impute_fn         impute function to replace NA
+#' @param  start_date        starting date for the classification
+#' @param  end_date          end date for the classification
 #' @param  memsize           memory available for classification (in GB).
 #' @param  multicores        number of cores to be used for classification.
 #' @param  output_dir        directory for output file
@@ -205,6 +207,8 @@ sits_classify.raster_cube <- function(data, ml_model, ...,
                                       roi = NULL,
                                       filter_fn = NULL,
                                       impute_fn = sits_impute_linear(),
+                                      start_date = NULL,
+                                      end_date = NULL,
                                       memsize = 8,
                                       multicores = 2,
                                       output_dir = ".",
@@ -254,8 +258,30 @@ sits_classify.raster_cube <- function(data, ml_model, ...,
     # retrieve the samples from the model
     samples <- .sits_ml_model_samples(ml_model)
 
+    # check band order is the same
+    bands_samples <- sits_bands(samples)
+    bands_data <- sits_bands(data)
+    .check_that(all(bands_samples == bands_data),
+                msg = "Order of the bands must be the same in samples and in data")
+
     # deal with the case where the cube has multiple rows
     probs_cube <- slider::slide_dfr(data, function(tile) {
+
+        # find out what is the row subset that is contained
+        # inside the start_date and end_date
+        if (!purrr::is_null(start_date) && !purrr::is_null(end_date)) {
+            old_timeline <- sits_timeline(tile)
+            new_timeline <- .sits_timeline_during(old_timeline,
+                                                  start_date,
+                                                  end_date)
+
+            # filter the cube by start and end dates
+            tile$file_info[[1]] <- dplyr::filter(
+                tile$file_info[[1]],
+                date >= new_timeline[1] &
+                    date <= new_timeline[length(new_timeline)]
+            )
+        }
 
         # check
         n_samples <- length(sits_timeline(samples))
