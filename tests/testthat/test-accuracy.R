@@ -83,6 +83,8 @@ test_that("Accuracy areas", {
 
     label_cube <- sits_label_classification(
         probs_cube,
+        memsize = 4,
+        multicores = 1,
         output_dir = tempdir()
     )
 
