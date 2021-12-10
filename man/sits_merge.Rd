@@ -28,10 +28,10 @@ bounding box, timeline, and have different bands.
 {
 # Retrieve a time series with values of NDVI
 point_ndvi <- sits_select(point_mt_6bands, bands = "NDVI")
-# Filter the point using the whittaker smoother
-point_ws.tb <- sits_whittaker(point_ndvi, lambda = 3.0)
-# Plot the two points to see the smoothing effect
-plot(sits_merge(point_ndvi, point_ws.tb))
+# Retrieve a time series with values of EVI
+point_evi <- sits_select(point_mt_6bands, bands = "EVI")
+# Merge time series back
+point <- sits_merge(point_ndvi, point_evi)
 }
 
 }
