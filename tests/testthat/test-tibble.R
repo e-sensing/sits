@@ -39,20 +39,11 @@ test_that("Bands", {
 
 test_that("Merge", {
     point_ndvi <- sits_select(point_mt_6bands, bands = "NDVI")
-    point_ws <- sits_whittaker(point_ndvi, lambda = 3.0)
-    result <- sits_merge(point_ndvi, point_ws)
+    point_evi <- sits_select(point_mt_6bands, bands = "EVI")
+    result <- sits_merge(point_ndvi, point_evi)
 
     expect_true(length(sits_timeline(result)) == 412)
     expect_true(ncol(sits_time_series(result)) == 3)
-})
-
-test_that("Mutate", {
-    ndwi <- sits_mutate_bands(samples_modis_4bands,
-                              NDWI = (1.5) * (NIR - MIR) / (NIR + MIR))
-    expect_equal(sum(sits_time_series(ndwi)$NDWI),
-                 14.22552,
-                 tolerance = 0.001
-    )
 })
 
 test_that("Prune", {
