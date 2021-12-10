@@ -136,13 +136,13 @@ sits_classify.sits <- function(data,
 
     # Precondition: only savitsky-golay and whittaker filters are supported
     if (!purrr::is_null(filter_fn)) {
-        call_names <- deparse(sys.call())
-        .check_that(
-            x = any(grepl("sgolay", (call_names))) ||
-                any(grepl("whittaker", (call_names))),
-            msg = "only savitsky-golay and whittaker filters are supported"
-        )
-        data <- filter_fn(data)
+        # call_names <- deparse(sys.call())
+        # .check_that(
+        #     x = any(grepl("sgolay", (call_names))) ||
+        #         any(grepl("whittaker", (call_names))),
+        #     msg = "only savitsky-golay and whittaker filters are supported"
+        # )
+        data <- .apply_across(data, fn = filter_fn)
     }
 
     # precondition - are the samples valid?
