@@ -96,9 +96,12 @@ test_that("One-year, multicore classification", {
 })
 
 test_that("One-year, single core classification with filter", {
-    samples_2bands <- sits_select(samples_modis_4bands,
-                                  bands = c("NDVI", "EVI"))
-    samples_filt <- sits_whittaker(samples_2bands, bands_suffix = "")
+
+    samples_filt <-
+        sits_select(samples_modis_4bands, bands = c("NDVI", "EVI")) %>%
+        sits_apply(NDVI = sits_whittaker(NDVI),
+                   EVI = sits_whittaker(EVI))
+
     svm_model <- sits_train(samples_filt, sits_svm())
 
     data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
@@ -126,9 +129,12 @@ test_that("One-year, single core classification with filter", {
 })
 
 test_that("One-year, multicore classification with filter", {
-    samples_2bands <- sits_select(samples_modis_4bands,
-                                  bands = c("NDVI", "EVI"))
-    samples_filt <- sits_whittaker(samples_2bands, bands_suffix = "")
+
+    samples_filt <-
+        sits_select(samples_modis_4bands, bands = c("NDVI", "EVI")) %>%
+        sits_apply(NDVI = sits_whittaker(NDVI, lambda = 3.0),
+                   EVI = sits_whittaker(EVI, lambda = 3.0))
+
     rfor_model <- sits_train(samples_filt, sits_rfor())
 
     data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
