@@ -15,6 +15,7 @@
   ymin,
   ymax,
   crs,
+  period = NULL,
   labels = NULL,
   file_info = NULL
 )
@@ -39,6 +40,10 @@
 \item{ymax}{Spatial extent (ymin).}
 
 \item{crs}{CRS for cube (EPSG code or PROJ4 string).}
+
+\item{period}{A \code{character} with ISO8601 time period for regular
+data cubes produced by \code{gdalcubes}, with number and unit, e.g., "P16D"
+for 16 days. Use "D", "M" and "Y" for days, month and year.}
 
 \item{file_info}{Tibble with information about files}
 }
