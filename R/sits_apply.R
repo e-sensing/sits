@@ -26,36 +26,33 @@
 #'   sits_apply(NDVI_norm = (NDVI - min(NDVI)) / (max(NDVI) - min(NDVI))
 #' )
 #'
-#'
+NULL
+
+#' @rdname sits_apply
 #' @export
 sits_apply <- function(data, ...) {
 
     UseMethod("sits_apply", data)
 }
 
+#' @rdname sits_apply
 #' @export
 sits_apply.sits <- function(data, ...) {
+
+    .check_set_caller("sits_apply.sits")
 
     .sits_fast_apply(data, col = "time_series", fn = dplyr::mutate, ...)
 }
 
-.apply_across <- function(data, fn, ...) {
-
-    fn_across <- fn
-    .sits_fast_apply(data, col = "time_series", fn = function(x, ...) {
-        dplyr::mutate(x, dplyr::across(dplyr::matches(sits_bands(data)),
-                                       fn_across, ...))
-    }, ...)
-}
-
+#' @rdname sits_apply
 #' @export
-sits_apply.raster_cube <- function(cube, ..., output_dir = getwd()) {
+sits_apply.raster_cube <- function(data, ..., output_dir = getwd()) {
 
-    cube <- .add_bbox_fileinfo(cube)
+    .check_set_caller("sits_apply.raster_cube")
 
-    toi <- .get_valid_interval(cube)
+    toi <- .gc_get_valid_interval(data)
 
-    ic <- .gc_create_database(cube, path_db = tempfile(fileext = ".db"))
+    ic <- .gc_create_database(data, path_db = tempfile(fileext = ".db"))
 
     # capture dots as a list of quoted expressions
     list_expr <- lapply(substitute(list(...), env = environment()),
@@ -67,7 +64,7 @@ sits_apply.raster_cube <- function(cube, ..., output_dir = getwd()) {
                 local_msg = "not all expressions have names",
                 msg = "invalid expressions parameters")
 
-    result <- slider::slide_dfr(cube, function(tile) {
+    result <- slider::slide_dfr(data, function(tile) {
 
         cv <- .gc_create_cube_view(
             tile = tile,
@@ -122,4 +119,17 @@ sits_apply.raster_cube <- function(cube, ..., output_dir = getwd()) {
     })
 
     return(result)
+}
+
+#' @rdname sits_apply
+#' @keywords internal
+.apply_across <- function(data, fn, ...) {
+
+    .check_set_caller(".apply_across")
+
+    fn_across <- fn
+    .sits_fast_apply(data, col = "time_series", fn = function(x, ...) {
+        dplyr::mutate(x, dplyr::across(dplyr::matches(sits_bands(data)),
+                                       fn_across, ...))
+    }, ...)
 }
