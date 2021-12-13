@@ -7,7 +7,7 @@
 #' @author Felipe Carvalho, \email{felipe.carvalho@@inpe.br}
 #'
 #' @description
-#' Filtering functions should be used with `sits_apply()`
+#' Filtering functions should be used with `sits_filter()`.
 #' The following filtering functions is supported by `sits`:
 #'
 #' @param data          A time series vector or matrix.
@@ -102,3 +102,20 @@ sits_whittaker <- function(data = NULL, lambda = 0.5) {
 
     return(result)
 }
+
+#' @rdname sits_filters
+#'
+#' @description
+#' `sits_filter()`: applies a filter to all bands.
+#'
+#' @param filter   a filter function such as `sits_whittaker()` or
+#' `sits_sgolay()`.
+#'
+#' @export
+sits_filter <- function(data, filter = sits_whittaker()) {
+
+    result <- .apply_across(data, fn = filter)
+
+    return(result)
+}
+
