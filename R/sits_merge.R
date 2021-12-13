@@ -15,21 +15,25 @@
 #'
 #' @param data1      sits tibble or cube to be merged.
 #' @param data2      sits tibble or cube to be merged.
+#' @param suffix     If there are duplicate bands in data1 and data2
+#' these suffixes will be added to the output to disambiguate them.
 #'
 #' @return merged data sets
 #'
 #' @examples {
 #' # Retrieve a time series with values of NDVI
 #' point_ndvi <- sits_select(point_mt_6bands, bands = "NDVI")
-#' # Retrieve a time series with values of EVI
-#' point_evi <- sits_select(point_mt_6bands, bands = "EVI")
+#' # Apply Savitsky-Golay filter on NDVI
+#' point_ndvi_sg <- point_ndvi %>%
+#'    sits_filter(sits_sgolay())
+#'
 #' # Merge time series back
-#' point <- sits_merge(point_ndvi, point_evi)
+#' point <- sits_merge(point_ndvi, point_ndvi_sg, suffix = c("", ".SG"))
 #' }
 #'
 #' @export
 #'
-sits_merge <- function(data1, data2) {
+sits_merge <- function(data1, data2, suffix = c(".1", ".2")) {
 
     # set caller to show in errors
     .check_set_caller("sits_merge")
@@ -41,8 +45,7 @@ sits_merge <- function(data1, data2) {
 }
 
 #' @export
-#'
-sits_merge.sits <- function(data1, data2) {
+sits_merge.sits <- function(data1, data2, suffix) {
 
     # precondition
     .sits_tibble_test(data1)
@@ -64,13 +67,22 @@ sits_merge.sits <- function(data1, data2) {
     # if they are not
     bands1 <- sits_bands(data1)
     bands2 <- sits_bands(data2)
-    if (any(bands1 %in% bands2) || any(bands2 %in% bands1)) {
-        if (!(any(".new" %in% bands1)) & !(any(".new" %in% bands2))) {
-            bands2 <- paste0(bands2, ".new")
-        } else {
-            bands2 <- paste0(bands2, ".nw")
-        }
-
+    coincidences1 <- bands1 %in% bands2
+    coincidences2 <- bands2 %in% bands1
+    if (any(coincidences1) || any(coincidences2)) {
+        bands1[coincidences1] <- paste0(bands1, suffix[[1]][coincidences1])
+        bands2[coincidences2] <- paste0(bands2, suffix[[2]][coincidences2])
+        .check_that(
+            !any(bands1 %in% bands2),
+            local_msg = "duplicated band names",
+            msg = "invalid band names"
+        )
+        .check_that(
+            !any(bands2 %in% bands1),
+            local_msg = "duplicated band names",
+            msg = "invalid band names"
+        )
+        data1 <- .sits_rename_bands(data1, bands1)
         data2 <- .sits_rename_bands(data2, bands2)
     }
     # prepare result
