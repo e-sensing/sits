@@ -6,6 +6,7 @@
 \alias{.source_item_get_fid}
 \alias{.source_item_get_date}
 \alias{.source_item_get_hrefs}
+\alias{.source_item_get_cc}
 \alias{.source_item_get_bands}
 \alias{.source_items_new}
 \alias{.source_items_bands_select}
@@ -26,6 +27,8 @@
 .source_item_get_date(source, item, ..., collection = NULL)
 
 .source_item_get_hrefs(source, item, ..., collection = NULL)
+
+.source_item_get_cc(source, ..., item, collection = NULL)
 
 .source_item_get_bands(source, item, ..., collection = NULL)
 
@@ -88,6 +91,9 @@ metadata.
 \code{.source_item_get_hrefs()} returns a \code{character} vector
 containing paths to each image band of an item.
 
+\code{.source_item_get_cc()} returns a \code{numeric} vector
+containing the percentage of cloud cover to each image band of an item.
+
 \code{.source_item_get_bands()} returns a \code{character} vector
 containing bands name of an item.
 
@@ -140,6 +146,9 @@ an item.
 
 \code{.source_item_get_hrefs()} retrieves the paths or URLs of
 each file bands of an item.
+
+\code{.source_item_get_cc()} retrieves the percentage of cloud
+cover of an image.
 
 \code{.source_item_get_bands()} retrieves the bands present
 in an item.

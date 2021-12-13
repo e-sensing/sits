@@ -454,7 +454,7 @@ sits_time_series <- function(data) {
 
     # unpack
     x <- tidyr::unnest(x, cols = col)
-    x <- dplyr::group_by(x, !!as.name("#.."))
+    x <- dplyr::group_by(x, .data[["#.."]])
 
     # apply user function
     x <- fn(x, ...)

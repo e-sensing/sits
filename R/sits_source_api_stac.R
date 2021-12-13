@@ -141,6 +141,7 @@
     })
 
     # post-condition
+
     .check_that(
         nrow(file_info) == length(unique(file_info$fid)),
         local_msg = "feature id is not unique",
@@ -149,8 +150,14 @@
 
     # prepare number of workers
     progress <- TRUE
-    n_workers <- .config_parallel_requests()
-    if (.config_parallel_minimum_requests() > length(items$features)) {
+    n_workers <- .config_gdalcubes_open_connections()
+    if (.source_collection_metadata_search(
+        source = source,
+        collection = collection) == "tile") {
+
+        n_workers <- 1
+    } else if (.config_gdalcubes_min_files_for_parallel() >
+               length(items$features)) {
         n_workers <- 1
         progress <- FALSE
     }
@@ -158,6 +165,30 @@
     # prepare parallel requests
     .sits_parallel_start(n_workers, log = FALSE)
     on.exit(.sits_parallel_stop(), add = TRUE)
+
+    # do in case of 'tile' strategy
+    if (.source_collection_metadata_search(source = source,
+                                           collection = collection) == "tile") {
+
+        # get first item
+        item <- items$features[[1]]
+
+        # get file paths
+        paths <- .source_item_get_hrefs(source = source,
+                                        item = item,
+                                        collection = collection, ...)
+
+        # open band rasters
+        assets <- purrr::map(paths, .raster_open_rast)
+
+        # get asset info
+        asset_info <- purrr::map(assets, function(asset) {
+            res <- .raster_res(asset)
+            bbox <- .raster_bbox(asset)
+            size <- .raster_size(asset)
+            tibble::as_tibble_row(c(res, bbox, size))
+        })
+    }
 
     # do parallel requests
     file_info$meta_data <- .sits_parallel_map(
@@ -179,16 +210,27 @@
                                             item = item,
                                             collection = collection, ...)
 
-            # open band rasters
-            assets <- purrr::map(paths, .raster_open_rast)
+            # add cloud cover statistics
+            cloud_cover <- .source_item_get_cc(source = source, ...,
+                                               item = item,
+                                               collection = collection)
 
-            # get asset info
-            asset_info <- purrr::map(assets, function(asset) {
-                res <- .raster_res(asset)
-                bbox <- .raster_bbox(asset)
-                size <- .raster_size(asset)
-                tibble::as_tibble_row(c(res, bbox, size))
-            })
+            # do in case of 'tile' strategy
+            if (.source_collection_metadata_search(source = source,
+                                                   collection = collection) ==
+                "feature") {
+
+                # open band rasters
+                assets <- purrr::map(paths, .raster_open_rast)
+
+                # get asset info
+                asset_info <- purrr::map(assets, function(asset) {
+                    res <- .raster_res(asset)
+                    bbox <- .raster_bbox(asset)
+                    size <- .raster_size(asset)
+                    tibble::as_tibble_row(c(res, bbox, size))
+                })
+            }
 
             # post-conditions
             .check_na(date, msg = "invalid date value")
@@ -203,8 +245,9 @@
                     date = date,
                     band = bands,
                     asset_info = asset_info,
-                    path = paths
-                ), cols = c("band", "asset_info", "path")
+                    path = paths,
+                    cloud_cover = cloud_cover
+                ), cols = c("band", "asset_info", "path", "cloud_cover")
             )
         },
         progress = progress
@@ -321,6 +364,15 @@
     hrefs <- .stac_add_gdal_vsi(hrefs)
 
     return(hrefs)
+}
+
+#' @keywords internal
+#' @export
+.source_item_get_cc.stac_cube <- function(source, ...,
+                                          item,
+                                          collection = NULL) {
+
+    item[["properties"]][["eo:cloud_cover"]]
 }
 
 #' @keywords internal

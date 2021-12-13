@@ -43,14 +43,23 @@ probs_cube_data_type    : "INT2U"
 # configuration for classified cubes
 class_cube_data_type    : "INT1U"
 
-# simultaneous connections
-parallel_requests : 4
+# simultaneous connections for gdalcubes database creation
+gdalcubes_open_connections : 4
 
-# minimum requests to parallelize
-parallel_minimum_requets : 10
+# minimum number of files for gdalcubes to be run on parallel
+gdalcubes_min_files_for_parallel : 10
+
+# configuration for gdalcubes chunk
+gdalcubes_chunk_size   : [1, 2048, 2048]
+
+# maximum number of threads in gdalcubes
+gdalcubes_max_threads : 24
 
 # valid aggregation methods for gdalcubes
-gdalcubes_aggreg_methods : ["min", "max", "mean", "median", "first"]
+gdalcubes_aggreg_methods : {median : "median", least_cc_first : "first"}
+
+# valid filling NA values methods for gdalcubes
+gdalcubes_filling_methods : ["near", "linear", "locf", "nocb"]
 
 # valid resampling methods for gdalcubes
 gdalcubes_resampling_methods : ["near", "bilinear", "bicubic", "cubicspline",
@@ -62,3 +71,6 @@ valid_raster_data_types : ["INT1U", "INT2U", "INT2S", "INT4U",
 
 # deep learning activation methods
 dl_activation_methods : ["relu", "elu", "selu", "sigmoid"]
+
+# metadata search strategy
+metadata_search_strategies : ["tile", "feature"]

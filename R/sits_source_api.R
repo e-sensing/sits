@@ -648,12 +648,34 @@ NULL
 
     # if the collection cant be supported the user is reported
     .check_na(gdal_support,
-              msg = paste0("no type was found for collection", collection,
-                           "and source", source))
+              msg = paste("no type was found for collection", collection,
+                          "and source", source))
 
     return(invisible(gdal_support))
 }
 
+
+#' @rdname source_collection
+#'
+#' @description \code{.source_collection_metadata_search()} retrieves the
+#' metadadata search strategy for a given source and collection.
+#'
+#' @return \code{.source_collection_metadata_search()} returns a character
+#' value with the metadata search strategy.
+.source_collection_metadata_search <- function(source, collection){
+
+    # try to find the gdalcubes configuration
+    metadata_search <- .config_get(key = c("sources", source, "collections",
+                                           collection, "metadata_search"),
+                                   default = NA)
+
+    # if the collection cant be supported the user is reported
+    .check_na(metadata_search,
+              msg = paste("no type was found for collection", collection,
+                          "and source", source))
+
+    return(invisible(metadata_search))
+}
 
 #' @rdname source_collection
 #'
@@ -868,6 +890,18 @@ NULL
 .source_item_get_hrefs <- function(source, item, ..., collection = NULL) {
     source <- .source_new(source)
     UseMethod(".source_item_get_hrefs", source)
+}
+
+#' @rdname source_cube
+#'
+#' @description \code{.source_item_get_cc()} retrieves the percentage of cloud
+#' cover of an image.
+#' @return \code{.source_item_get_cc()} returns a \code{numeric} vector
+#' containing the percentage of cloud cover to each image band of an item.
+#'
+.source_item_get_cc <- function(source, ..., item, collection = NULL) {
+    source <- .source_new(source)
+    UseMethod(".source_item_get_cc", source)
 }
 
 #' @rdname source_cube

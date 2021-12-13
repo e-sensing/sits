@@ -74,6 +74,21 @@ sits_config <- function(processing_bloat = NULL,
                         leaflet_comp_factor = NULL,
                         reset = FALSE) {
 
+    # clear current configuration
+    if (reset && !is.null(sits_env$config))
+        sits_env$config <- list()
+
+    # load the internal configuration file
+    config_internals_file <- .config_internals_file()
+
+    # read the configuration parameters
+    config_internals <- yaml::yaml.load_file(input = config_internals_file,
+                                             merge.precedence = "override")
+
+    # set options defined in sits config
+    do.call(.config_set_options, args = config_internals)
+
+
     # get and check the default configuration file path
     yml_file <- .config_file()
 
@@ -81,22 +96,9 @@ sits_config <- function(processing_bloat = NULL,
     config <- yaml::yaml.load_file(input = yml_file,
                                    merge.precedence = "override")
 
-    # clear current configuration
-    if (reset)
-        sits_env$config <- list()
-
     # set options defined in sits config
     do.call(.config_set_options, args = config)
     message(paste0("Using configuration file: ", yml_file))
-
-    # load the internal configuration file
-    config_internals_file <- .config_internals_file()
-    # read the configuration parameters
-    config_internals <- yaml::yaml.load_file(input = config_internals_file,
-                                   merge.precedence = "override")
-
-    # set options defined in sits config
-    do.call(.config_set_options, args = config_internals)
 
     # load the color configuration file
     color_yml_file <- .config_colors_file()
@@ -355,19 +357,24 @@ sits_list_collections <- function(source = NULL) {
     }
     # process sources
     if (!is.null(sources)) {
+
         .check_lst(sources, min_len = 1)
+
         # source names are uppercase
         names(sources) <- toupper(names(sources))
 
         sources <- lapply(sources, function(source) {
+
             # pre-condition
             .check_lst(source, min_len = 2,
                        msg = "invalid 'source' parameter")
+
             # check that source contains essential parameters
             .check_chr_contains(names(source),
                                 contains = c("s3_class", "collections"),
                                 msg = "invalid 'source' parameter")
             names(source) <- tolower(names(source))
+
             # check source
             source <- .check_error({
                 do.call(.config_new_source, args = source)
@@ -702,7 +709,8 @@ sits_list_collections <- function(source = NULL) {
 #' @return   list with the configuration associated to the new collection
 .config_new_collection <- function(bands, ...,
                                    satellite = NULL,
-                                   sensor = NULL) {
+                                   sensor = NULL,
+                                   metadata_search = NULL) {
     # set caller to show in errors
     .check_set_caller(".config_new_collection")
 
@@ -713,6 +721,12 @@ sits_list_collections <- function(source = NULL) {
     #  check sensor
     .check_chr(sensor, allow_null = TRUE,
                msg = "invalid 'sensor' value")
+
+    # check metadata_search
+    if (!missing(metadata_search))
+        .check_chr_within(metadata_search,
+                          within = .config_metadata_search_strategies(),
+                          msg = "invalid 'metadata_search' value")
 
     # bands names is upper case
     names(bands) <- toupper(names(bands))
@@ -759,7 +773,8 @@ sits_list_collections <- function(source = NULL) {
 
     res <- c(list(bands = c(non_cloud_bands, cloud_band)),
              "satellite" = satellite,
-             "sensor" = sensor, dots)
+             "sensor" = sensor,
+             "metadata_search" = metadata_search, dots)
 
     # post-condition
     .check_lst(res, min_len = 1,
@@ -955,30 +970,73 @@ sits_list_collections <- function(source = NULL) {
     return(res)
 }
 #' @title Retrieve the parallel requests number
-#' @name parallel_requests
+#' @name .config_gdalcubes_open_connections
 #' @keywords internal
 #' @return get parallel requests
-.config_parallel_requests <- function() {
+.config_gdalcubes_open_connections <- function() {
 
-    res <- .config_get(key = c("parallel_requests"))
+    n_conn <- .config_get(key = c("gdalcubes_open_connections"))
 
     # post-condition
-    .check_num(res, min = 1, len_min = 1, len_max = 1,
-               msg = "invalid 'parallel_requests' in config file")
+    .check_num(n_conn, min = 1, len_min = 1, len_max = 1,
+               msg = "invalid 'gdalcubes_open_connections' in config file")
 
-    return(res)
+    return(n_conn)
 }
 #' @title Retrieve the minimum requests to do in parallel
-#' @name parallel_minimum_requets
+#' @name .config_gdalcubes_min_files_for_parallel
 #' @keywords internal
 #' @return get minimum times the parallel requests will be done
-.config_parallel_minimum_requests <- function() {
+.config_gdalcubes_min_files_for_parallel <- function() {
 
-    res <- .config_get(key = c("parallel_minimum_requets"))
+    min_files <- .config_get(key = c("gdalcubes_min_files_for_parallel"))
 
     # post-condition
-    .check_num(res, min = 1, len_min = 1, len_max = 1,
-               msg = "invalid 'parallel_minimum_requets' in config file")
+    .check_num(min_files, min = 1, len_min = 1, len_max = 1,
+               msg = paste("invalid 'gdalcubes_min_files_for_parallel' in",
+                           "config file"))
+
+    return(min_files)
+}
+#' @title Retrieve the gdalcubes chunk size
+#' @name .config_gdalcubes_chunk_size
+#' @keywords internal
+#' @return a numeric vector with chunk size
+.config_gdalcubes_chunk_size <- function() {
+
+    chunk_size <- .config_get(key = c("gdalcubes_chunk_size"))
+
+    # post-condition
+    .check_num(chunk_size, len_min = 3, len_max = 3,
+               msg = "invalid 'gdalcubes_chunk_size' in config file")
+
+    return(chunk_size)
+}
+#' @title Retrieve the maximum number of threads in gdalcubes
+#' @name .config_gdalcubes_max_threads
+#' @keywords internal
+#' @return a numeric with the number of threads
+.config_gdalcubes_max_threads <- function() {
+
+    n_threads <- .config_get(key = c("gdalcubes_max_threads"))
+
+    # post-condition
+    .check_num(n_threads, min = 1, len_min = 1, len_max = 1,
+               msg = "invalid 'gdalcubes_max_threads' in config file")
+
+    return(n_threads)
+}
+#' @title Retrieve the valid types of metadata search
+#' @name .config_metadata_search_strategies
+#' @keywords internal
+#' @return Character values
+.config_metadata_search_strategies <- function() {
+
+    res <- .config_get(key = c("metadata_search_strategies"))
+
+    # post-condition
+    .check_chr(res, len_min = 1,
+               msg = "invalid 'metadata_search_strategies' in config file")
 
     return(res)
 }
@@ -1009,21 +1067,6 @@ sits_list_collections <- function(source = NULL) {
                msg = "invalid 'rstac_pagination_limit' in config file")
 
     return(res)
-}
-
-#' @title Retrieve the gdalcubes chunk size
-#' @name .config_gdalcubes_chunk_size
-#' @keywords internal
-#' @return a numeric vector with chunk size
-.config_gdalcubes_chunk_size <- function() {
-
-    chunk_size <- .config_get(key = c("gdalcubes_chunk_size"))
-
-    # post-condition
-    .check_num(chunk_size, len_min = 3, len_max = 3,
-               msg = "invalid 'gdalcubes_chunk_size' in config file")
-
-    return(chunk_size)
 }
 
 #' @title Retrieve the raster package to be used
