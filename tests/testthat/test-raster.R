@@ -2,7 +2,7 @@ source("./test-utils.R")
 
 test_that("One-year, single core classification", {
     samples_2bands <- sits_select(samples_modis_4bands,
-                                  bands = c("NDVI", "EVI"))
+                                  bands = c("EVI", "NDVI"))
     dl_model <- suppress_keras(
         sits_train(samples_2bands,
                    sits_mlp(
@@ -50,7 +50,7 @@ test_that("One-year, single core classification", {
 test_that("One-year, multicore classification", {
 
     samples_2bands <- sits_select(samples_modis_4bands,
-                                  bands = c("NDVI", "EVI"))
+                                  bands = c("EVI", "NDVI"))
 
     svm_model <- sits_train(samples_2bands, sits_svm())
 
@@ -97,7 +97,7 @@ test_that("One-year, multicore classification", {
 
 test_that("One-year, single core classification with filter", {
     samples_2bands <- sits_select(samples_modis_4bands,
-                                  bands = c("NDVI", "EVI"))
+                                  bands = c("EVI", "NDVI"))
     samples_filt <- sits_whittaker(samples_2bands, bands_suffix = "")
     svm_model <- sits_train(samples_filt, sits_svm())
 
