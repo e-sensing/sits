@@ -38,7 +38,7 @@ sits_classify(data, ml_model, ...)
 
 \item{multicores}{number of cores to be used for classification.}
 
-\item{roi}{a region of interest (see above)}
+\item{roi}{a region of interest (see below)}
 
 \item{impute_fn}{impute function to replace NA}
 
@@ -96,7 +96,8 @@ The "roi" parameter defines a region of interest. It can be
    The "memsize" and "multicores" parameters are used for multiprocessing.
    The "multicores" parameter defines the number of cores used for
    processing. The "memsize" parameter  controls the amount of memory
-   available for classification.
+   available for classification. We recommend using a 4:1 relation between
+   "memsize" and "multicores".
 }
 \examples{
 \donttest{
