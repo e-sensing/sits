@@ -4,11 +4,14 @@
 \alias{sits_filters}
 \alias{sits_sgolay}
 \alias{sits_whittaker}
+\alias{sits_filter}
 \title{Filter time series and data cubes}
 \usage{
 sits_sgolay(data = NULL, order = 3, length = 5, scaling = 1)
 
 sits_whittaker(data = NULL, lambda = 0.5)
+
+sits_filter(data, filter = sits_whittaker())
 }
 \arguments{
 \item{data}{A time series vector or matrix.}
@@ -20,12 +23,15 @@ sits_whittaker(data = NULL, lambda = 0.5)
 \item{scaling}{Time scaling (integer).}
 
 \item{lambda}{Smoothing factor to be applied (default 0.5).}
+
+\item{filter}{a filter function such as `sits_whittaker()` or
+`sits_sgolay()`.}
 }
 \value{
 A set of filtered time series
 }
 \description{
-Filtering functions should be used with `sits_apply()`
+Filtering functions should be used with `sits_filter()`.
 The following filtering functions is supported by `sits`:
 
 `sits_sgolay()`: An optimal polynomial for warping a time series.
@@ -38,6 +44,8 @@ and the temporal expansion uses the parameter `scaling`.
 The degree of smoothing depends on smoothing factor lambda
 (usually from 0.5 to 10.0). Use lambda = 0.5 for very slight smoothing
 and lambda = 5.0 for strong smoothing.
+
+`sits_filter()`: applies a filter to all bands.
 }
 \examples{
 # Retrieve a time series with values of NDVI
