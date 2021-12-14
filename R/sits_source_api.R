@@ -1045,38 +1045,14 @@ NULL
 #' @description \code{.source_items_tile_get_bbox()} retrieves the bounding
 #' box from items of a tile.
 #'
-#' @return \code{.source_items_tile_get_bbox()} returns a \code{list}
+#' @return \code{.source_items_tile_get_bbox()} returns a \code{numeric}
 #' vector with 4 elements (xmin, ymin, xmax, ymax).
 #'
-.source_items_tile_get_bbox <- function(source,
+.source_items_tile_get_bbox <- function(source, ...,
                                         tile_items,
-                                        file_info, ...,
                                         collection = NULL) {
-
-    .check_set_caller(".source_items_tile_get_bbox")
-
-    # pre-condition
-    .check_num(nrow(file_info), min = 1, msg = "invalid 'file_info' value")
-
-    # get bbox based on file_info
-    xmin <- max(file_info[["xmin"]])
-    ymin <- max(file_info[["ymin"]])
-    xmax <- min(file_info[["xmax"]])
-    ymax <- min(file_info[["ymax"]])
-
-    # post-condition
-    .check_that(xmin < xmax,
-                local_msg = "xmin is greater than xmax",
-                msg = "invalid bbox value")
-
-    .check_that(ymin < ymax,
-                local_msg = "ymin is greater than ymax",
-                msg = "invalid bbox value")
-
-    # create a bbox
-    bbox <- c(xmin = xmin, ymin = ymin, xmax = xmax, ymax = ymax)
-
-    return(bbox)
+    source <- .source_new(source = source, collection = collection)
+    UseMethod(".source_items_tile_get_bbox", source)
 }
 
 #' @rdname source_cube
