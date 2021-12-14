@@ -657,28 +657,6 @@ NULL
 
 #' @rdname source_collection
 #'
-#' @description \code{.source_collection_metadata_search()} retrieves the
-#' metadadata search strategy for a given source and collection.
-#'
-#' @return \code{.source_collection_metadata_search()} returns a character
-#' value with the metadata search strategy.
-.source_collection_metadata_search <- function(source, collection){
-
-    # try to find the gdalcubes configuration
-    metadata_search <- .config_get(key = c("sources", source, "collections",
-                                           collection, "metadata_search"),
-                                   default = NA)
-
-    # if the collection cant be supported the user is reported
-    .check_na(metadata_search,
-              msg = paste("no type was found for collection", collection,
-                          "and source", source))
-
-    return(invisible(metadata_search))
-}
-
-#' @rdname source_collection
-#'
 #' @description \code{.source_collection_name()} returns the name of a
 #' collection in its original source.
 #'
@@ -855,17 +833,6 @@ NULL
     source <- .source_new(source = source, collection = collection)
     UseMethod(".source_cube", source)
 }
-#' @rdname source_cube
-#'
-#' @description \code{.source_item_get_fid()} retrieves the feature id of
-#' an item.
-#'
-#' @return \code{.source_item_get_fid()} returns a \code{character} value.
-#'
-.source_item_get_fid <- function(source, item, ..., collection = NULL) {
-    source <- .source_new(source)
-    UseMethod(".source_item_get_fid", source)
-}
 
 #' @rdname source_cube
 #'
@@ -915,6 +882,19 @@ NULL
 .source_item_get_bands <- function(source, item, ..., collection = NULL) {
     source <- .source_new(source)
     UseMethod(".source_item_get_bands", source)
+}
+
+#' @rdname source_cube
+#'
+#' @description \code{.source_item_get_resolution()} retrieves the supported
+#' resolution of an item (for each band).
+#'
+#' @return \code{.source_item_get_resolution()} returns a named \code{list}
+#' with \code{numeric} vectors containing the supported resolution for each band
+#'
+.source_item_get_resolution <- function(source, ..., item, collection = NULL) {
+    source <- .source_new(source)
+    UseMethod(".source_item_get_resolution", source)
 }
 
 #' @rdname source_cube
@@ -1045,38 +1025,14 @@ NULL
 #' @description \code{.source_items_tile_get_bbox()} retrieves the bounding
 #' box from items of a tile.
 #'
-#' @return \code{.source_items_tile_get_bbox()} returns a \code{list}
+#' @return \code{.source_items_tile_get_bbox()} returns a \code{numeric}
 #' vector with 4 elements (xmin, ymin, xmax, ymax).
 #'
-.source_items_tile_get_bbox <- function(source,
+.source_items_tile_get_bbox <- function(source, ...,
                                         tile_items,
-                                        file_info, ...,
                                         collection = NULL) {
-
-    .check_set_caller(".source_items_tile_get_bbox")
-
-    # pre-condition
-    .check_num(nrow(file_info), min = 1, msg = "invalid 'file_info' value")
-
-    # get bbox based on file_info
-    xmin <- max(file_info[["xmin"]])
-    ymin <- max(file_info[["ymin"]])
-    xmax <- min(file_info[["xmax"]])
-    ymax <- min(file_info[["ymax"]])
-
-    # post-condition
-    .check_that(xmin < xmax,
-                local_msg = "xmin is greater than xmax",
-                msg = "invalid bbox value")
-
-    .check_that(ymin < ymax,
-                local_msg = "ymin is greater than ymax",
-                msg = "invalid bbox value")
-
-    # create a bbox
-    bbox <- c(xmin = xmin, ymin = ymin, xmax = xmax, ymax = ymax)
-
-    return(bbox)
+    source <- .source_new(source = source, collection = collection)
+    UseMethod(".source_items_tile_get_bbox", source)
 }
 
 #' @rdname source_cube
