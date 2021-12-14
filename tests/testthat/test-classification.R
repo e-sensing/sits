@@ -25,18 +25,19 @@ test_that("Classify with random forest - single core and multicore", {
 })
 
 test_that("Classify a set of time series with svm + filter", {
+
     # single core
-    samples_mt_2bands <- sits_select(samples_modis_4bands,
-                                     bands = c("NDVI", "EVI"))
-    samples_filt <- sits_sgolay(samples_mt_2bands, bands_suffix = "")
+    samples_filt <-
+        sits_select(samples_modis_4bands,
+                    bands = c("NDVI", "EVI")) %>%
+        sits_apply(NDVI = sits_sgolay(NDVI), EVI = sits_sgolay(EVI))
+
     svm_model <- sits_train(samples_filt, sits_svm())
 
-    class1 <- sits_classify(
-        data = cerrado_2classes,
-        ml_model = svm_model,
-        filter = sits_sgolay(bands_suffix = ""),
-        multicores = 2
-    )
+    class1 <- sits_classify(cerrado_2classes,
+                            ml_model = svm_model,
+                            filter_fn = sits_sgolay(),
+                            multicores = 2)
 
     expect_true(class1$predicted[[1]]$class %in%
                     sits_labels(cerrado_2classes))

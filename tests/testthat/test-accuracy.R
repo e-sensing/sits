@@ -55,7 +55,7 @@ test_that("Accuracy - more than 2 classes", {
 test_that("Accuracy areas", {
     set.seed(1234)
     samples_mt_2bands <- sits_select(samples_modis_4bands,
-                                     bands = c("NDVI", "EVI"))
+                                     bands = c("EVI", "NDVI"))
 
     rfor_model <- sits_train(samples_mt_2bands, sits_rfor())
 

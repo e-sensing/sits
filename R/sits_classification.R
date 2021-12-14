@@ -72,13 +72,13 @@
 #' # Retrieve the samples for Mato Grosso
 #' # select an extreme gradient boosting model
 #' samples_2bands <- sits_select(samples_modis_4bands,
-#'                             bands = c("NDVI", "EVI"))
+#'                             bands = c("EVI", "NDVI"))
 #' xgb_model <- sits_train(samples_2bands,
 #'     ml_method = sits_xgboost(verbose = FALSE)
 #' )
 #' # classify the point
 #' point_2bands <- sits_select(point_mt_6bands,
-#'                             bands = c("NDVI", "EVI"))
+#'                             bands = c("EVI", "NDVI"))
 #' point_class <- sits_classify(point_2bands, xgb_model)
 #' plot(point_class)
 #'
@@ -136,13 +136,13 @@ sits_classify.sits <- function(data,
 
     # Precondition: only savitsky-golay and whittaker filters are supported
     if (!purrr::is_null(filter_fn)) {
-        call_names <- deparse(sys.call())
-        .check_that(
-            x = any(grepl("sgolay", (call_names))) ||
-                any(grepl("whittaker", (call_names))),
-            msg = "only savitsky-golay and whittaker filters are supported"
-        )
-        data <- filter_fn(data)
+        # call_names <- deparse(sys.call())
+        # .check_that(
+        #     x = any(grepl("sgolay", (call_names))) ||
+        #         any(grepl("whittaker", (call_names))),
+        #     msg = "only savitsky-golay and whittaker filters are supported"
+        # )
+        data <- .apply_across(data, fn = filter_fn)
     }
 
     # precondition - are the samples valid?

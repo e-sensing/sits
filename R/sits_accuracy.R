@@ -59,7 +59,7 @@
 #' # Case (2) - Accuracy for classification of raster data
 #' # select a training set with two bands
 #' samples_modis_2bands <- sits_select(samples_modis_4bands,
-#'                                     bands = c("NDVI", "EVI"))
+#'                                     bands = c("EVI", "NDVI"))
 #'
 #' # build an extreme gradient boosting model
 #' xgb_model <- sits_train(
