@@ -300,6 +300,7 @@
         ymin       = bbox[["ymin"]],
         ymax       = bbox[["ymax"]],
         crs        = tile[["crs"]],
+        period     = cv[["time"]][["dt"]],
         file_info  = NA
     )
 
@@ -417,4 +418,73 @@
                                                  "bottom", "top")]
 
     return(cube)
+}
+
+#' @title Get the interval of intersection in all tiles
+#' @name .gc_get_valid_interval
+#' @keywords internal
+#'
+#' @param cube       Data cube from where data is to be retrieved.
+#'
+#' @return a \code{list} object with max_min_date and min_max_date.
+.gc_get_valid_interval <- function(cube) {
+
+    # pre-condition
+    .check_chr(unique(unlist(cube[["period"]])), allow_empty = FALSE,
+               len_min = 1, len_max = 1,
+               msg = "invalid 'cube' parameter")
+
+    # compute duration
+    duration <- lubridate::duration(unique(unlist(cube[["period"]])))
+
+    # start date - maximum of all minimums
+    max_min_date <- do.call(
+        what = max,
+        args = purrr::map(cube[["file_info"]], function(file_info){
+            return(min(file_info[["date"]]))
+        })
+    )
+
+    # end date - minimum of all maximums
+    min_max_date <- do.call(
+        what = min,
+        args = purrr::map(cube[["file_info"]], function(file_info){
+            return(max(file_info[["date"]]))
+        }))
+
+    # check if all timeline of tiles intersects
+    .check_that(
+        x = max_min_date < min_max_date,
+        msg = "the timeline of the cube tiles do not intersect."
+    )
+
+    # finds the length of the timeline
+    tl_length <- max(2, ceiling(
+        lubridate::interval(start = lubridate::as_date(max_min_date),
+                            end = lubridate::as_date(min_max_date) + 1) /
+            duration
+    ))
+
+    # timeline dates
+    tl <- duration * (seq_len(tl_length) - 1) + as.Date(max_min_date)
+
+    # timeline cube
+    tiles_tl <- suppressWarnings(sits_timeline(cube))
+
+    if (!is.list(tiles_tl))
+        tiles_tl <- list(tiles_tl)
+
+    # checks if the timelines intersect
+    tl_check <- vapply(tiles_tl, function(tile_tl) {
+
+        # at least one image must be in begin and end in timeline interval
+        begin <- any(tile_tl >= tl[1] & tile_tl < tl[2])
+        end <- any(tile_tl >= tl[tl_length - 1] & tile_tl < tl[tl_length])
+
+        return(begin && end)
+    }, logical(1))
+
+    .check_that(x = all(tl_check), msg = "invalid images interval")
+
+    return(list(max_min_date = tl[1], min_max_date = tl[length(tl)]))
 }
