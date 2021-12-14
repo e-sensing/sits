@@ -48,7 +48,7 @@ sits_select.sits <- function(data, bands) {
 
     data <- .sits_fast_apply(data, col = "time_series", function(x) {
 
-        dplyr::select(x, c("#..", "Index", bands))
+        dplyr::select(x, dplyr::all_of(c("#..", "Index", bands)))
     })
 
     return(data)
