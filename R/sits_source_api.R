@@ -354,6 +354,7 @@ NULL
 
     return(resolution)
 }
+
 #' @rdname source_bands
 #'
 #' @description \code{.source_bands_to_sits()} converts any bands to its
@@ -552,9 +553,8 @@ NULL
     return(collections)
 }
 
-#
 #' @rdname source_collection
-.source_collection_access_test <- function(source, ..., collection) {
+.source_collection_access_test <- function(source, collection, ...) {
 
     source <- .source_new(source)
 
@@ -563,8 +563,8 @@ NULL
 
 #' @rdname source_collection
 #'
-#' @description \code{.source_collection_access_vars_set} checks if
-#' \code{access_vars} environment variables are properly defined.
+#' @description \code{.source_collection_access_vars_set} sets
+#' \code{access_vars} environment variables.
 #'
 #' @return \code{.source_collection_access_vars_set } returns \code{NULL} if
 #' no error occurs.
@@ -577,17 +577,18 @@ NULL
     # collection is upper case
     collection <- toupper(collection)
     # get access variables for this source/collection
-    res <- .config_get(key = c("sources", source, "collections", collection,
+    vars <- .config_get(key = c("sources", source, "collections", collection,
                                "access_vars"),
                        default = list())
     # post-condition
-    .check_lst(res, msg = paste0("Invalid access vars for collection ", collection,
+    .check_lst(vars, msg = paste0("invalid access vars for collection ", collection,
                                  " in source ", source))
-    if (length(res) > 0) {
-        do.call(Sys.setenv, args = res)
-    }
-    return(res)
+    if (length(vars) > 0)
+        do.call(Sys.setenv, args = vars)
+
+    return(invisible(NULL))
 }
+
 #' @rdname source_collection
 #'
 #' @description \code{.source_collection_check()} checks if a collection
@@ -647,12 +648,34 @@ NULL
 
     # if the collection cant be supported the user is reported
     .check_na(gdal_support,
-              msg = paste0("no type was found for collection", collection,
-                           "and source", source))
+              msg = paste("no type was found for collection", collection,
+                          "and source", source))
 
     return(invisible(gdal_support))
 }
 
+
+#' @rdname source_collection
+#'
+#' @description \code{.source_collection_metadata_search()} retrieves the
+#' metadadata search strategy for a given source and collection.
+#'
+#' @return \code{.source_collection_metadata_search()} returns a character
+#' value with the metadata search strategy.
+.source_collection_metadata_search <- function(source, collection){
+
+    # try to find the gdalcubes configuration
+    metadata_search <- .config_get(key = c("sources", source, "collections",
+                                           collection, "metadata_search"),
+                                   default = NA)
+
+    # if the collection cant be supported the user is reported
+    .check_na(metadata_search,
+              msg = paste("no type was found for collection", collection,
+                          "and source", source))
+
+    return(invisible(metadata_search))
+}
 
 #' @rdname source_collection
 #'
@@ -791,10 +814,6 @@ NULL
     return(invisible(NULL))
 }
 
-
-
-
-
 #' @title Functions to instantiate a new cube from a source
 #' @name source_cube
 #' @keywords internal
@@ -812,6 +831,7 @@ NULL
 #' @param ...        Additional parameters.
 #' @param items      Any object referring to the images bands (scenes) that
 #' compose a cube.
+#' @param asset      Any supported \code{raster} object to retrieve information.
 #' @param collection A \code{character} value referring to a collection of the
 #' source.
 #' @param data_dir   Directory where local files are stored
@@ -831,9 +851,20 @@ NULL
 #' @return \code{.source_cube()} returns a sits \code{tibble} with cube
 #' metadata.
 #'
-.source_cube <- function(source, ..., collection) {
+.source_cube <- function(source, collection, ...) {
     source <- .source_new(source = source, collection = collection)
     UseMethod(".source_cube", source)
+}
+#' @rdname source_cube
+#'
+#' @description \code{.source_item_get_fid()} retrieves the feature id of
+#' an item.
+#'
+#' @return \code{.source_item_get_fid()} returns a \code{character} value.
+#'
+.source_item_get_fid <- function(source, item, ..., collection = NULL) {
+    source <- .source_new(source)
+    UseMethod(".source_item_get_fid", source)
 }
 
 #' @rdname source_cube
@@ -843,7 +874,7 @@ NULL
 #'
 #' @return \code{.source_item_get_date()} returns a \code{Date} value.
 #'
-.source_item_get_date <- function(source, ...,  item, collection = NULL) {
+.source_item_get_date <- function(source, item, ..., collection = NULL) {
     source <- .source_new(source)
     UseMethod(".source_item_get_date", source)
 }
@@ -856,7 +887,7 @@ NULL
 #' @return \code{.source_item_get_hrefs()} returns a \code{character} vector
 #' containing paths to each image band of an item.
 #'
-.source_item_get_hrefs <- function(source, ..., item, collection = NULL) {
+.source_item_get_hrefs <- function(source, item, ..., collection = NULL) {
     source <- .source_new(source)
     UseMethod(".source_item_get_hrefs", source)
 }
@@ -881,22 +912,9 @@ NULL
 #' @return \code{.source_item_get_bands()} returns a \code{character} vector
 #' containing bands name of an item.
 #'
-.source_item_get_bands <- function(source, ..., item, collection = NULL) {
+.source_item_get_bands <- function(source, item, ..., collection = NULL) {
     source <- .source_new(source)
     UseMethod(".source_item_get_bands", source)
-}
-
-#' @rdname source_cube
-#'
-#' @description \code{.source_item_get_resolution()} retrieves the supported
-#' resolution of an item (for each band).
-#'
-#' @return \code{.source_item_get_resolution()} returns a named \code{list}
-#' with \code{numeric} vectors containing the supported resolution for each band
-#'
-.source_item_get_resolution <- function(source, ..., item, collection = NULL) {
-    source <- .source_new(source)
-    UseMethod(".source_item_get_resolution", source)
 }
 
 #' @rdname source_cube
@@ -908,7 +926,7 @@ NULL
 #' @return \code{.source_items_new()} returns any object referring the images
 #' of a sits cube.
 #'
-.source_items_new <- function(source, ..., collection) {
+.source_items_new <- function(source, ..., collection = NULL) {
     source <- .source_new(source = source, collection = collection)
     UseMethod(".source_items_new", source)
 }
@@ -920,28 +938,26 @@ NULL
 #' @keywords internal
 #'
 #'
-#' @return A \code{STACItemCollection} object returned by rstac with items
-#'  selected.
-#'
 #' @return \code{.source_items_bands_select()} returns the same object as
 #' \code{items} with selected bands.
 #'
-.source_items_bands_select <- function(source, ..., collection, items, bands) {
+.source_items_bands_select <- function(source, items, bands, ...,
+                                       collection = NULL) {
     source <- .source_new(source = source, collection = collection)
     UseMethod(".source_items_bands_select", source)
 }
 
 #' @rdname source_cube
 #'
-#' @description \code{.source_items_fileinfo()} creates the \code{fileinfo}
+#' @description \code{.source_items_file_info()} creates the \code{fileinfo}
 #' specification from items object.
 #'
-#' @return \code{.source_items_fileinfo()} returns a \code{tibble} containing
+#' @return \code{.source_items_file_info()} returns a \code{tibble} containing
 #' sits cube.
 #'
-.source_items_fileinfo <- function(source, ..., items, collection = NULL) {
+.source_items_file_info <- function(source, items, ..., collection = NULL) {
     source <- .source_new(source = source, collection = collection)
-    UseMethod(".source_items_fileinfo", source)
+    UseMethod(".source_items_file_info", source)
 }
 
 #' @rdname source_cube
@@ -952,7 +968,7 @@ NULL
 #' @return \code{.source_items_tiles_group()} returns a \code{list} of
 #' items.
 #'
-.source_items_tiles_group <- function(source, ..., items, collection = NULL) {
+.source_items_tiles_group <- function(source, items, ..., collection = NULL) {
     source <- .source_new(source = source, collection = collection)
     UseMethod(".source_items_tiles_group", source)
 }
@@ -1002,8 +1018,8 @@ NULL
 #' @return \code{.source_items_tile_get_crs()} returns a \code{character}
 #' value.
 #'
-.source_items_tile_get_crs <- function(source, ...,
-                                       tile_items,
+.source_items_tile_get_crs <- function(source,
+                                       tile_items, ...,
                                        collection = NULL) {
     source <- .source_new(source = source, collection = collection)
     UseMethod(".source_items_tile_get_crs", source)
@@ -1017,8 +1033,8 @@ NULL
 #' @return \code{.source_items_tile_get_name()} returns a \code{character}
 #' value.
 #'
-.source_items_tile_get_name <- function(source, ...,
-                                        tile_items,
+.source_items_tile_get_name <- function(source,
+                                        tile_items, ...,
                                         collection = NULL) {
     source <- .source_new(source = source, collection = collection)
     UseMethod(".source_items_tile_get_name", source)
@@ -1029,14 +1045,38 @@ NULL
 #' @description \code{.source_items_tile_get_bbox()} retrieves the bounding
 #' box from items of a tile.
 #'
-#' @return \code{.source_items_tile_get_bbox()} returns a \code{numeric}
+#' @return \code{.source_items_tile_get_bbox()} returns a \code{list}
 #' vector with 4 elements (xmin, ymin, xmax, ymax).
 #'
-.source_items_tile_get_bbox <- function(source, ...,
+.source_items_tile_get_bbox <- function(source,
                                         tile_items,
+                                        file_info, ...,
                                         collection = NULL) {
-    source <- .source_new(source = source, collection = collection)
-    UseMethod(".source_items_tile_get_bbox", source)
+
+    .check_set_caller(".source_items_tile_get_bbox")
+
+    # pre-condition
+    .check_num(nrow(file_info), min = 1, msg = "invalid 'file_info' value")
+
+    # get bbox based on file_info
+    xmin <- max(file_info[["xmin"]])
+    ymin <- max(file_info[["ymin"]])
+    xmax <- min(file_info[["xmax"]])
+    ymax <- min(file_info[["ymax"]])
+
+    # post-condition
+    .check_that(xmin < xmax,
+                local_msg = "xmin is greater than xmax",
+                msg = "invalid bbox value")
+
+    .check_that(ymin < ymax,
+                local_msg = "ymin is greater than ymax",
+                msg = "invalid bbox value")
+
+    # create a bbox
+    bbox <- c(xmin = xmin, ymin = ymin, xmax = xmax, ymax = ymax)
+
+    return(bbox)
 }
 
 #' @rdname source_cube
@@ -1046,10 +1086,10 @@ NULL
 #'
 #' @return \code{.source_items_cube()} returns a \code{tibble} containing a sits
 #' cube tile (one row).
-.source_items_cube <- function(source, ...,
+.source_items_cube <- function(source,
                                collection,
                                items,
-                               file_info) {
+                               file_info, ...) {
     source <- .source_new(source = source, collection = collection)
     UseMethod(".source_items_cube", source)
 }
