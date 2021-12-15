@@ -98,7 +98,7 @@ test_that("One-year, multicore classification", {
 test_that("One-year, single core classification with filter", {
 
     samples_filt <-
-        sits_select(samples_modis_4bands, bands = c("NDVI", "EVI")) %>%
+        sits_select(samples_modis_4bands, bands = c("EVI", "NDVI")) %>%
         sits_filter(filter = sits_whittaker())
 
     svm_model <- sits_train(samples_filt, sits_svm())

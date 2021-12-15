@@ -33,8 +33,8 @@
                              collection = collection, ...)
 
     file_info <- .source_items_file_info(source = source,
-                                        collection = collection,
-                                        wtss_cov = cov, ...)
+                                         collection = collection,
+                                         wtss_cov = cov, ...)
 
     cube <- .source_items_cube(source = source,
                                collection = collection,
@@ -66,8 +66,8 @@
 #' @keywords internal
 #' @export
 .source_items_file_info.wtss_cube <- function(source,
-                                             collection,
-                                             wtss_cov, ...) {
+                                              collection,
+                                              wtss_cov, ...) {
 
     bands <- .source_bands(source = source, collection = collection)
 

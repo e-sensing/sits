@@ -272,13 +272,11 @@ test_that("Configs AWS", {
     )
 
     expect_equal(
-        Sys.getenv("AWS_S3_ENDPOINT"),
-        "s3.amazonaws.com"
-    )
-
-    expect_equal(
-        Sys.getenv("AWS_REQUEST_PAYER"),
-        "requester"
+        .config_get(key = c("sources", "AWS", "collections",
+                            "SENTINEL-S2-L2A", "access_vars")),
+        list(AWS_DEFAULT_REGION = "eu-central-1",
+             AWS_S3_ENDPOINT    = "s3.amazonaws.com",
+             AWS_REQUEST_PAYER  = "requester")
     )
 
     expect_true(
@@ -360,10 +358,9 @@ test_that("Configs WTSS", {
         "BDC_ACCESS_KEY"
     )
 
-    expect_equal(
-        .source_collection_access_vars_set(source = "BDC",
-                                           collection = "CB4_64-1"),
-        NULL
+    expect_error(
+        .config_get(key = c("sources", "BDC", "collections", "CB4_64-1",
+                            "access_vars"))
     )
 
     expect_error(
