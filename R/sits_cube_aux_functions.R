@@ -409,19 +409,28 @@ NULL
 .cube_is_regular <- function(cube){
 
     # check if the resolutions are unique
-    res_cube.lst <- slider::slide(cube, function(row){
-       return(unique(.cube_file_info(row)[["res"]]))
+    res_cube.lst <- slider::slide(cube, function(tile){
+       return(unique(.cube_file_info(tile)[["xres"]]))
     })
+
+    if (length(unique(unlist(res_cube.lst))) != 1)
+        return(FALSE)
+
+    # check if the resolutions are unique
+    res_cube.lst <- slider::slide(cube, function(tile){
+        return(unique(.cube_file_info(tile)[["yres"]]))
+    })
+
     if (length(unique(unlist(res_cube.lst))) != 1)
         return(FALSE)
 
     # check if timelines are unique
-    timelines <- slider::slide(cube, function(row){
-        return(sits_timeline(row))
+    timelines <- slider::slide(cube, function(tile){
+        return(sits_timeline(tile))
     })
+
     # function to test timelines
-    all_same <- function(x) length(unique(x)) == 1
-    return(all_same(timelines))
+    return(length(unique(timelines)) == 1)
 }
 
 #' @rdname cube_functions
