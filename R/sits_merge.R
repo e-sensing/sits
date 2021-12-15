@@ -102,17 +102,12 @@ sits_merge.sits <- function(data1, data2, suffix) {
 
 #' @export
 #'
-sits_merge.sits_cube <- function(data1, data2) {
+sits_merge.raster_cube <- function(data1, data2, suffix = c(".1", ".2")) {
 
     # pre-condition - check cube type
     .cube_check(data1)
     .cube_check(data2)
 
-    # pre-condition
-    .check_that(
-        x = nrow(data1) == 1 & nrow(data2) == 1,
-        msg = "merge only works from simple cubes (one tibble row)"
-    )
     .check_that(
         x = data1$satellite == data2$satellite,
         msg = "cubes from different satellites"
@@ -121,33 +116,68 @@ sits_merge.sits_cube <- function(data1, data2) {
         x = data1$sensor == data2$sensor,
         msg = "cubes from different sensors"
     )
-    .check_that(
-        x = all(sits_bands(data1) != sits_bands(data2)),
-        msg = "merge cubes requires different bands in each cube"
-    )
-    .check_that(
-        x = all(sits_bbox(data1) == sits_bbox(data2)),
-        msg = "merge cubes requires same bounding boxes"
-    )
+
     .check_that(
         .cube_resolution(data1) == .cube_resolution(data2),
         msg = "merge cubes requires same resolution"
     )
+
     .check_that(
-        x = all(sits_timeline(data1) == sits_timeline(data2)),
-        msg = "merge cubes requires same timeline"
+        length(.cube_tiles(data1)) == length(.cube_tiles(data2)),
+        msg = "merge cubes requires same number of tiles"
     )
 
-    # get the file information
-    file_info_1 <- data1$file_info[[1]]
-    file_info_2 <- data2$file_info[[1]]
+    # para manter a pariedade
+    data1 <- dplyr::arrange(data1, .data[["tile"]])
+    data2 <- dplyr::arrange(data2, .data[["tile"]])
 
-    file_info_1 <- file_info_1 %>%
-        dplyr::bind_rows(file_info_2) %>%
-        dplyr::arrange(date)
+    .check_that(
+        x = all(.cube_tiles(data1) == .cube_tiles(data2)),
+        msg = "merge cubes requires same tiles"
+    )
 
-    # merge the file info and the bands
-    data1$file_info[[1]] <- file_info_1
+    data1 <- slider::slide2_dfr(data1, data2, function(x, y){
+
+        .check_that(
+            x = all(sits_timeline(x) == sits_timeline(y)),
+            msg = "merge cubes requires same timeline"
+        )
+
+
+        # are the names of the bands different?
+        # if they are not
+        bands1 <- sits_bands(x)
+        bands2 <- sits_bands(y)
+
+        coincidences1 <- bands1 %in% bands2
+        coincidences2 <- bands2 %in% bands1
+        if (any(coincidences1) || any(coincidences2)) {
+            bands1[coincidences1] <- paste0(bands1[coincidences1], suffix[[1]])
+            bands2[coincidences2] <- paste0(bands2[coincidences2], suffix[[2]])
+
+            .check_that(
+                !any(bands1 %in% bands2),
+                local_msg = "use suffix to avoid band duplication",
+                msg = "duplicated band names"
+            )
+
+            .check_that(
+                !any(bands2 %in% bands1),
+                local_msg = "use suffix to avoid band duplication",
+                msg = "duplicated band names"
+            )
+
+            x <- .sits_rename_bands(x, bands1)
+            y <- .sits_rename_bands(y, bands2)
+        }
+
+        x[["file_info"]][[1]] <- dplyr::arrange(
+            dplyr::bind_rows(.cube_file_info(x), .cube_file_info(y)),
+            .data[["date"]], .data[["band"]]
+        )
+
+        return(x)
+    })
 
     return(data1)
 }
