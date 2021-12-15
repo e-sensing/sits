@@ -18,9 +18,7 @@ test_that("Align dates", {
 test_that("Apply", {
     point_ndvi <- sits_select(point_mt_6bands, bands = "NDVI")
     point2 <- sits_apply(point_ndvi,
-        fun = function(x) {
-            (x - min(x)) / (max(x) - min(x))
-        }
+                         NDVI = (NDVI - min(NDVI)) / (max(NDVI) - min(NDVI))
     )
 
     expect_equal(sum((sits_time_series(point2))$NDVI),
