@@ -1,4 +1,4 @@
 test_that("onLoad", {
-    sits:::.onLoad()
+    .onLoad()
     expect(TRUE, "onLoad failed to load")
 })
