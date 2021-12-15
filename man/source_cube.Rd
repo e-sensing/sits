@@ -3,11 +3,11 @@
 \name{source_cube}
 \alias{source_cube}
 \alias{.source_cube}
-\alias{.source_item_get_fid}
 \alias{.source_item_get_date}
 \alias{.source_item_get_hrefs}
 \alias{.source_item_get_cc}
 \alias{.source_item_get_bands}
+\alias{.source_item_get_resolution}
 \alias{.source_items_new}
 \alias{.source_items_bands_select}
 \alias{.source_items_file_info}
@@ -22,8 +22,6 @@
 \usage{
 .source_cube(source, collection, ...)
 
-.source_item_get_fid(source, item, ..., collection = NULL)
-
 .source_item_get_date(source, item, ..., collection = NULL)
 
 .source_item_get_hrefs(source, item, ..., collection = NULL)
@@ -31,6 +29,8 @@
 .source_item_get_cc(source, ..., item, collection = NULL)
 
 .source_item_get_bands(source, item, ..., collection = NULL)
+
+.source_item_get_resolution(source, ..., item, collection = NULL)
 
 .source_items_new(source, ..., collection = NULL)
 
@@ -48,13 +48,7 @@
 
 .source_items_tile_get_name(source, tile_items, ..., collection = NULL)
 
-.source_items_tile_get_bbox(
-  source,
-  tile_items,
-  file_info,
-  ...,
-  collection = NULL
-)
+.source_items_tile_get_bbox(source, ..., tile_items, collection = NULL)
 
 .source_items_cube(source, collection, items, file_info, ...)
 }
@@ -84,8 +78,6 @@ The values returned by each function are described as follows.
 \code{.source_cube()} returns a sits \code{tibble} with cube
 metadata.
 
-\code{.source_item_get_fid()} returns a \code{character} value.
-
 \code{.source_item_get_date()} returns a \code{Date} value.
 
 \code{.source_item_get_hrefs()} returns a \code{character} vector
@@ -96,6 +88,9 @@ containing the percentage of cloud cover to each image band of an item.
 
 \code{.source_item_get_bands()} returns a \code{character} vector
 containing bands name of an item.
+
+\code{.source_item_get_resolution()} returns a named \code{list}
+with \code{numeric} vectors containing the supported resolution for each band
 
 \code{.source_items_new()} returns any object referring the images
 of a sits cube.
@@ -120,7 +115,7 @@ value.
 \code{.source_items_tile_get_name()} returns a \code{character}
 value.
 
-\code{.source_items_tile_get_bbox()} returns a \code{list}
+\code{.source_items_tile_get_bbox()} returns a \code{numeric}
 vector with 4 elements (xmin, ymin, xmax, ymax).
 
 \code{.source_items_cube()} returns a \code{tibble} containing a sits
@@ -138,9 +133,6 @@ to retrieve metadata.
 \code{.source_cube()} is called to start the cube creation
 from a source.
 
-\code{.source_item_get_fid()} retrieves the feature id of
-an item.
-
 \code{.source_item_get_date()} retrieves the date of an item
 (a set of images from different bands that forms a scene).
 
@@ -152,6 +144,9 @@ cover of an image.
 
 \code{.source_item_get_bands()} retrieves the bands present
 in an item.
+
+\code{.source_item_get_resolution()} retrieves the supported
+resolution of an item (for each band).
 
 \code{.source_items_new()} this function is called to create
 an items object. In case of Web services, this function is responsible for
