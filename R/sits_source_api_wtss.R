@@ -34,9 +34,9 @@
     cov <- .source_items_new(source = source, ...,
                              collection = collection)
 
-    file_info <- .source_items_fileinfo(source = source, ...,
-                                        collection = collection,
-                                        wtss_cov = cov)
+    file_info <- .source_items_file_info(source = source, ...,
+                                         collection = collection,
+                                         wtss_cov = cov)
 
     cube <- .source_items_cube(source = source, ...,
                                collection = collection,
@@ -67,7 +67,7 @@
 
 #' @keywords internal
 #' @export
-.source_items_fileinfo.wtss_cube <- function(source, ...,
+.source_items_file_info.wtss_cube <- function(source, ...,
                                              collection,
                                              wtss_cov) {
 

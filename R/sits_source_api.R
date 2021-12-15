@@ -586,7 +586,7 @@ NULL
     if (length(vars) > 0)
         do.call(Sys.setenv, args = vars)
 
-    return(invisible(NULL))
+    return(vars)
 }
 
 #' @rdname source_collection
