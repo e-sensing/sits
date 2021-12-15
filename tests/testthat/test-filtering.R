@@ -12,7 +12,7 @@ test_that("Savitsky Golay filter", {
 
     # skip_on_cran()
     point_ndvi <- sits_select(point_mt_6bands, bands = "NDVI")
-    point_sg <- sits_filter(point_ndvi, filter = sits_sgolay(NDVI))
+    point_sg <- sits_filter(point_ndvi, filter = sits_sgolay())
 
     expect_true(length(sits_timeline(point_ndvi)) ==
         length(sits_timeline(point_sg)))

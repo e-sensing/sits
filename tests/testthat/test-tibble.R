@@ -18,12 +18,10 @@ test_that("Align dates", {
 test_that("Apply", {
     point_ndvi <- sits_select(point_mt_6bands, bands = "NDVI")
     point2 <- sits_apply(point_ndvi,
-        fun = function(x) {
-            (x - min(x)) / (max(x) - min(x))
-        }
-    )
+                         NDVI_norm = (NDVI - min(NDVI)) /
+                             (max(NDVI) - min(NDVI)))
 
-    expect_equal(sum((sits_time_series(point2))$NDVI),
+    expect_equal(sum((sits_time_series(point2))$NDVI_norm),
                  216.6617,
                  tolerance = 0.1
     )
@@ -51,7 +49,7 @@ test_that("Prune", {
     new_data <- cerrado_2classes[1:3, ]
     ts_1 <- sits_time_series(new_data[1, ])
     ts_2 <- ts_1[1:10, ]
-    new_data[1, ]$time_series[[1]] <- ts_2
+    new_data$time_series[[1]] <- ts_2
 
     pruned_data <- suppressMessages(sits:::.sits_tibble_prune(new_data))
     expect_true(nrow(pruned_data) == 2)
