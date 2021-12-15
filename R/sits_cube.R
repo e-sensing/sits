@@ -363,14 +363,14 @@ sits_cube.local_cube <- function(source,
         bands <- toupper(bands)
 
     # builds a sits data cube
-    .source_cube_local_cube(source = source,
-                            collection = collection,
-                            data_dir = data_dir,
-                            parse_info = parse_info,
-                            delim = delim,
-                            bands = bands,
-                            start_date = start_date,
-                            end_date = end_date, ...)
+    .local_cube(source = source,
+                collection = collection,
+                data_dir = data_dir,
+                parse_info = parse_info,
+                delim = delim,
+                bands = bands,
+                start_date = start_date,
+                end_date = end_date, ...)
 }
 
 
