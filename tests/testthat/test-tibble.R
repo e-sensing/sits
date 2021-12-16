@@ -21,7 +21,7 @@ test_that("Apply", {
                          NDVI = (NDVI - min(NDVI)) / (max(NDVI) - min(NDVI))
     )
 
-    expect_equal(sum((sits_time_series(point2))$NDVI_norm),
+    expect_equal(sum((sits_time_series(point2))$NDVI),
                  216.6617,
                  tolerance = 0.1
     )
