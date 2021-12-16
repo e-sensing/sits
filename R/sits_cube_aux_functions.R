@@ -464,14 +464,32 @@ NULL
 #' @return A tibble with the cube parameters
 .cube_params_block <- function(cube, block) {
 
+    size <- .cube_size(cube)
+    nrows <- size[["nrows"]]
+    ncols <- size[["ncols"]]
+
+    # pre-conditions
+    .check_num(block[["first_row"]], min = 1, max = nrows,
+               msg = "invalid block value")
+
+    .check_num(block[["first_col"]], min = 1, max = ncols,
+               msg = "invalid block value")
+
+    .check_num(block[["nrows"]], min = 1, max = nrows,
+               msg = "invalid block value")
+
+    .check_num(block[["ncols"]], min = 1, max = ncols,
+               msg = "invalid block value")
+
     res <- .cube_resolution(cube)
+
     # compute new Y extent
-    ymax  <-  cube$ymax - (block[["first_row"]] - 1) * res
-    ymin  <-  ymax - block[["nrows"]] * res
+    ymax  <-  cube[["ymax"]] - (block[["first_row"]] - 1) * res[["yres"]]
+    ymin  <-  ymax - block[["nrows"]] * res[["yres"]]
 
     # compute new X extent
-    xmin  <-  cube$xmin + (block[["first_col"]] - 1) * res
-    xmax  <-  xmin + block[["ncols"]] * res
+    xmin  <-  cube[["xmin"]] + (block[["first_col"]] - 1) * res[["xres"]]
+    xmax  <-  xmin + block[["ncols"]] * res[["xres"]]
 
     # prepare result
     params <- tibble::tibble(
@@ -481,8 +499,22 @@ NULL
         xmax  = xmax,
         ymin  = ymin,
         ymax  = ymax,
-        crs   = cube$crs
+        crs   = cube[["crs"]]
     )
+
+
+    # post-conditions
+    .check_num(params[["xmin"]], min = cube[["xmin"]], max = cube[["xmax"]],
+               msg = "invalid params value")
+
+    .check_num(params[["xmax"]], min = cube[["xmin"]], max = cube[["xmax"]],
+               msg = "invalid params value")
+
+    .check_num(params[["ymin"]], min = cube[["ymin"]], max = cube[["ymax"]],
+               msg = "invalid params value")
+
+    .check_num(params[["ymax"]], min = cube[["ymin"]], max = cube[["ymax"]],
+               msg = "invalid params value")
 
     return(params)
 }
@@ -536,12 +568,21 @@ NULL
                         "probs", "_",
                         version, ".tif")
 
+    res <- .cube_resolution(tile)
+
     # set the file information
     file_info <- tibble::tibble(
         band       = "probs",
-        res        =  .cube_resolution(tile),
         start_date = start_date,
         end_date   = end_date,
+        xmin       = sub_image[["xmin"]],
+        xmax       = sub_image[["xmax"]],
+        ymin       = sub_image[["ymin"]],
+        ymax       = sub_image[["ymax"]],
+        xres       = res[["xres"]],
+        yres       = res[["yres"]],
+        nrows      = sub_image[["nrows"]],
+        ncols      = sub_image[["ncols"]],
         path       = file_name
     )
 
@@ -583,11 +624,14 @@ NULL
 
     cube_clone$file_info <- file_info_in %>%
         slider::slide(function(row) {
+            res <- .cube_resolution(cube)
+
             tibble::tibble(
                 band = toupper(ext),
                 start_date = row$start_date,
                 end_date   = row$end_date,
-                res        = .cube_resolution(cube),
+                xres       = res[["xres"]],
+                yres       = res[["yres"]],
                 path = paste0(output_dir, "/",
                               cube$satellite[[1]], "_",
                               cube$sensor[[1]],"_",
