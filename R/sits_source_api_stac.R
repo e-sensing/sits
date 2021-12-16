@@ -211,9 +211,9 @@
                                             collection = collection, ...)
 
             # add cloud cover statistics
-            cloud_cover <- .source_item_get_cc(source = source, ...,
+            cloud_cover <- .source_item_get_cc(source = source,
                                                item = item,
-                                               collection = collection)
+                                               collection = collection, ...)
 
             # do in case of 'tile' strategy
             if (.source_collection_metadata_search(source = source,

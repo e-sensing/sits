@@ -15,6 +15,7 @@
 #'
 #' @param data1      sits tibble or cube to be merged.
 #' @param data2      sits tibble or cube to be merged.
+#' @param ...        additional parameters
 #' @param suffix     If there are duplicate bands in data1 and data2
 #' these suffixes will be added to the output to disambiguate them.
 #'
@@ -33,7 +34,7 @@
 #'
 #' @export
 #'
-sits_merge <- function(data1, data2, suffix = c(".1", ".2")) {
+sits_merge <- function(data1, data2, ..., suffix = c(".1", ".2")) {
 
     # set caller to show in errors
     .check_set_caller("sits_merge")
@@ -45,7 +46,7 @@ sits_merge <- function(data1, data2, suffix = c(".1", ".2")) {
 }
 
 #' @export
-sits_merge.sits <- function(data1, data2, suffix) {
+sits_merge.sits <- function(data1, data2, ..., suffix) {
 
     # precondition
     .sits_tibble_test(data1)

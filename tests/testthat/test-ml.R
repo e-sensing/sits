@@ -84,6 +84,49 @@ test_that("Random Forest", {
         sits_labels(samples_mt_ndvi)))
     expect_true(nrow(sits_show_prediction(point_class)) == 17)
 })
+test_that("Random Forest - Whittaker", {
+    samples_mt_ndvi <- sits_select(samples_modis_4bands, bands = "NDVI")
+    samples_mt_whit <- sits_filter(samples_mt_ndvi, filter = sits_whittaker())
+    rfor_model <- sits_train(samples_mt_whit, sits_rfor(num_trees = 200))
+    point_ndvi <- sits_select(point_mt_6bands, bands = "NDVI")
+    point_whit <- sits_filter(point_ndvi, filter = sits_whittaker())
+    point_class <- sits_classify(
+        data = point_whit,
+        ml_model = rfor_model
+    )
+
+    expect_true(all(point_class$predicted[[1]]$class %in%
+                        sits_labels(samples_mt_ndvi)))
+    expect_true(nrow(sits_show_prediction(point_class)) == 17)
+})
+test_that("Random Forest - SGolay", {
+    samples_mt_ndvi <- sits_select(samples_modis_4bands, bands = "NDVI")
+    samples_mt_sg <- sits_filter(samples_mt_ndvi, filter = sits_sgolay())
+    rfor_model <- sits_train(samples_mt_sg, sits_rfor(num_trees = 200))
+    point_ndvi <- sits_select(point_mt_6bands, bands = "NDVI")
+    point_sg <- sits_filter(point_ndvi, filter = sits_sgolay())
+    point_class <- sits_classify(
+        data = point_sg,
+        ml_model = rfor_model
+    )
+
+    expect_true(all(point_class$predicted[[1]]$class %in%
+                        sits_labels(samples_mt_ndvi)))
+    expect_true(nrow(sits_show_prediction(point_class)) == 17)
+})
+test_that("Random Forest", {
+    samples_mt_ndvi <- sits_select(samples_modis_4bands, bands = "NDVI")
+    rfor_model <- sits_train(samples_mt_ndvi, sits_rfor(num_trees = 200))
+    point_ndvi <- sits_select(point_mt_6bands, bands = "NDVI")
+    point_class <- sits_classify(
+        data = point_ndvi,
+        ml_model = rfor_model
+    )
+
+    expect_true(all(point_class$predicted[[1]]$class %in%
+                        sits_labels(samples_mt_ndvi)))
+    expect_true(nrow(sits_show_prediction(point_class)) == 17)
+})
 test_that("MLR", {
     # skip_on_cran()
     samples_mt_ndvi <- sits_select(samples_modis_4bands, bands = "NDVI")
@@ -151,12 +194,12 @@ test_that("DL-MLP", {
 
 test_that("DL-MLP-2classes", {
     # skip_on_cran()
-    samples_mt_2bands <- sits_select(samples_modis_4bands,
-                                     bands = c("NDVI", "EVI")
-    )
+    Sys.setenv(TF_CPP_MIN_LOG_LEVEL = "1")
+    train_data <- sits_sample(cerrado_2classes, n = 200)
+    test_data <- sits_sample(cerrado_2classes, n = 200)
     model <- suppress_keras(
         sits_train(
-            samples_mt_2bands,
+            train_data,
             sits_mlp(
                 layers = c(64, 64, 64),
                 dropout_rates = c(0.5, 0.4, 0.3),
@@ -167,18 +210,19 @@ test_that("DL-MLP-2classes", {
     )
     point_class <- suppress_keras(
         sits_classify(
-            data = cerrado_2classes[1:60, ],
+            data = test_data,
             ml_model = model
         )
     )
 
     expect_true(all(point_class$predicted[[1]]$class %in%
-        sits_labels(samples_mt_2bands)))
-    expect_true(nrow(sits_show_prediction(point_class)) == 60)
+        sits_labels(cerrado_2classes)))
+    expect_true(nrow(sits_show_prediction(point_class)) == 400)
 })
 
 test_that("ResNet", {
     # skip_on_cran()
+    Sys.setenv(TF_CPP_MIN_LOG_LEVEL = "1")
     samples_ndvi <- sits_select(samples_modis_4bands, bands = "NDVI")
     model <- suppress_keras(
         sits_train(samples_ndvi, sits_ResNet(epochs = 50, verbose = 0))
@@ -194,6 +238,25 @@ test_that("ResNet", {
     expect_true(all(point_class$predicted[[1]]$class %in%
                         sits_labels(samples_ndvi)))
     expect_true(nrow(sits_show_prediction(point_class)) == 17)
+})
+test_that("ResNet-2 classes", {
+    # skip_on_cran()
+    Sys.setenv(TF_CPP_MIN_LOG_LEVEL = "1")
+    train_data <- sits_sample(cerrado_2classes, n = 200)
+    test_data <- sits_sample(cerrado_2classes, n = 200)
+    model <- suppress_keras(
+        sits_train(train_data, sits_ResNet(epochs = 50, verbose = 0))
+    )
+
+    point_class <- suppress_keras(
+        sits_classify(
+            data = test_data,
+            ml_model = model
+        )
+    )
+    expect_true(all(point_class$predicted[[1]]$class %in%
+                        sits_labels(cerrado_2classes)))
+    expect_true(nrow(sits_show_prediction(point_class)) == 400)
 })
 test_that("tempCNN model", {
     # skip_on_cran()
@@ -218,6 +281,25 @@ test_that("tempCNN model", {
     expect_true(all(point_class$predicted[[1]]$class %in%
         sits_labels(samples_mt_ndvi)))
     expect_true(nrow(sits_show_prediction(point_class)) == 17)
+})
+test_that("tempCNN model-2 classes", {
+    # skip_on_cran()
+    Sys.setenv(TF_CPP_MIN_LOG_LEVEL = "1")
+    train_data <- sits_sample(cerrado_2classes, n = 200)
+    test_data <- sits_sample(cerrado_2classes, n = 200)
+    model <- suppress_keras(
+        sits_train(train_data, sits_TempCNN(epochs = 50, verbose = 0))
+    )
+
+    point_class <- suppress_keras(
+        sits_classify(
+            data = test_data,
+            ml_model = model
+        )
+    )
+    expect_true(all(point_class$predicted[[1]]$class %in%
+                        sits_labels(cerrado_2classes)))
+    expect_true(nrow(sits_show_prediction(point_class)) == 400)
 })
 
 test_that("normalization", {

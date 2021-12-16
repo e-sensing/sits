@@ -7,20 +7,15 @@
 #' @param  samples         tibble with samples.
 #' @param  extent          bounding box in (i,j) coordinates
 #' @param  stats           normalization parameters.
-#' @param  filter_fn          smoothing filter to be applied.
+#' @param  filter_fn       smoothing filter to be applied.
 #' @param  impute_fn       impute function to replace NA
-#' @param  interp_fn       function to interpolate points from cube to
-#'                         match samples
-#' @param  compose_fn      function to compose points from cube to match samples
 #' @return A data.table with values for classification.
 .sits_raster_data_read <- function(cube,
                                    samples,
                                    extent,
                                    stats,
                                    filter_fn,
-                                   impute_fn,
-                                   interp_fn,
-                                   compose_fn = NULL) {
+                                   impute_fn) {
 
     # get the bands in the same order as the samples
     bands <- sits_bands(samples)
@@ -61,15 +56,13 @@
 #' @param  filter_fn        smoothing filter to be applied.
 #' @param  stats            normalization parameters.
 #' @param  impute_fn        imputing function to be applied to replace NA
-#' @param  .verbose         prints information about processing times
 #' @return Matrix with pre-processed values.
 .sits_raster_data_preprocess <- function(cube,
                                          bands,
                                          extent,
                                          filter_fn = NULL,
                                          stats = NULL,
-                                         impute_fn,
-                                         .verbose = FALSE) {
+                                         impute_fn) {
 
     # set caller to show in errors
     .check_set_caller(".sits_raster_data_preprocess")
@@ -143,16 +136,7 @@
 
         # remove NA pixels
         if (!purrr::is_null(impute_fn) && any(is.na(values))) {
-            if (.verbose) task_start_time <- lubridate::now()
-
             values <- impute_fn(values)
-
-            if (.verbose) {
-                .sits_processing_task_time(
-                    "Impute NA",
-                    task_start_time
-                )
-            }
         }
 
         # scale the data set

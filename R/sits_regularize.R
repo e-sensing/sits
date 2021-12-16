@@ -68,6 +68,8 @@
 #'  Options: \code{near}, \code{bilinear}, \code{bicubic} or others supported by
 #'  gdalwarp (see https://gdal.org/programs/gdalwarp.html).
 #'  By default is bilinear.
+#' @param cloud_mask A \code{logical} to use cloud band for aggregation by
+#' \code{gdalcubes}. Deprecated as of SITS version 0.16.0.
 #'
 #' @note
 #'    The "roi" parameter defines a region of interest. It can be
@@ -96,6 +98,7 @@ sits_regularize <- function(cube,
                             agg_method = "least_cc_first",
                             fill_method = "near",
                             resampling = "bilinear",
+                            cloud_mask = FALSE,
                             multicores = 2) {
 
     # set caller to show in errors
@@ -169,6 +172,9 @@ sits_regularize <- function(cube,
         discriminator = "any_of",
         msg = "invalid resampling method"
     )
+    # as of SITS 0.16.0, parameter "cloud_mask" is deprecated
+    if (!missing(cloud_mask))
+        warning("cloud_mask parameter is deprecated and no longer required")
 
     # is there a cloud band?
     cloud_mask <- FALSE

@@ -4,16 +4,7 @@
 \alias{.sits_raster_data_read}
 \title{Read a block of values retrieved from a set of raster images}
 \usage{
-.sits_raster_data_read(
-  cube,
-  samples,
-  extent,
-  stats,
-  filter_fn,
-  impute_fn,
-  interp_fn,
-  compose_fn = NULL
-)
+.sits_raster_data_read(cube, samples, extent, stats, filter_fn, impute_fn)
 }
 \arguments{
 \item{cube}{input data cube.}
@@ -27,11 +18,6 @@
 \item{filter_fn}{smoothing filter to be applied.}
 
 \item{impute_fn}{impute function to replace NA}
-
-\item{interp_fn}{function to interpolate points from cube to
-match samples}
-
-\item{compose_fn}{function to compose points from cube to match samples}
 }
 \value{
 A data.table with values for classification.
