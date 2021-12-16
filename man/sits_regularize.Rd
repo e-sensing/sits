@@ -13,6 +13,7 @@ sits_regularize(
   agg_method = "least_cc_first",
   fill_method = "near",
   resampling = "bilinear",
+  cloud_mask = FALSE,
   multicores = 2
 )
 }
@@ -50,6 +51,9 @@ Default is \code{near}.}
 Options: \code{near}, \code{bilinear}, \code{bicubic} or others supported by
 gdalwarp (see https://gdal.org/programs/gdalwarp.html).
 By default is bilinear.}
+
+\item{cloud_mask}{A \code{logical} to use cloud band for aggregation by
+\code{gdalcubes}. Deprecated as of SITS version 0.16.0.}
 
 \item{multicores}{A \code{numeric} with the number of cores will be used in
 the regularize. By default is used 1 core.}

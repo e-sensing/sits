@@ -18,12 +18,10 @@ test_that("Align dates", {
 test_that("Apply", {
     point_ndvi <- sits_select(point_mt_6bands, bands = "NDVI")
     point2 <- sits_apply(point_ndvi,
-        fun = function(x) {
-            (x - min(x)) / (max(x) - min(x))
-        }
-    )
+                         NDVI_norm = (NDVI - min(NDVI)) / (max(NDVI) - min(NDVI))
+                         )
 
-    expect_equal(sum((sits_time_series(point2))$NDVI),
+    expect_equal(sum((sits_time_series(point2))$NDVI_norm),
                  216.6617,
                  tolerance = 0.1
     )
@@ -37,6 +35,14 @@ test_that("Bands", {
     expect_equal(bands[1], "NDVI")
 })
 
+test_that("Bbox", {
+    bbox <- sits_bbox(samples_modis_4bands)
+    expect_true(all(names(bbox_ll) %in%
+                        c("lon_min", "lat_min", "lon_max", "lat_max")))
+    expect_true(bbox["lon_min"] < -60.0)
+
+
+})
 test_that("Merge", {
     point_ndvi <- sits_select(point_mt_6bands, bands = "NDVI")
     point_evi <- sits_select(point_mt_6bands, bands = "EVI")

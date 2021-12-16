@@ -17,6 +17,9 @@ test_that("One-year, multicore classification with ROI", {
     bbox["xmax"] <- (bbox["xmax"] - bbox["xmin"]) / 2 + bbox["xmin"]
     bbox["ymax"] <- (bbox["ymax"] - bbox["ymin"]) / 2 + bbox["ymin"]
 
+    bbox_ll <- sits_bbox(sinop, wgs84 = TRUE)
+    expect_true(all(names(bbox_ll) %in% c("lon_min", "lat_min", "lon_max", "lat_max")))
+
     sinop_probs <- tryCatch({
         suppressMessages(
             sits_classify(

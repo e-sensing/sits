@@ -406,3 +406,14 @@ test_that("Test reading shapefile from BDC", {
     ts <- time_series_bdc$time_series[[1]]
     expect_true(max(ts["EVI"]) < 1.)
 })
+
+test_that("Reading metadata from CSV file", {
+
+    csv_file <- paste0(tempdir(), "/cerrado_2classes.csv")
+    sits_metadata_to_csv(cerrado_2classes, file = csv_file)
+    csv <- read.csv(csv_file)
+    expect_true(nrow(csv) == 746)
+    expect_true(all(names(csv) %in% c("id", "longitude", "latitude",
+    "start_date", "end_date", "label")))
+
+})
