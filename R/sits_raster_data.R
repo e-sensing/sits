@@ -20,7 +20,7 @@
                                    filter_fn,
                                    impute_fn,
                                    interp_fn,
-                                   compose_fn) {
+                                   compose_fn = NULL) {
 
     # get the bands in the same order as the samples
     bands <- sits_bands(samples)
