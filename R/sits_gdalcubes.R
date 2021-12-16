@@ -142,8 +142,8 @@
                       t1 = format(toi[["min_max_date"]], "%Y-%m-%d")),
         srs = tile[["crs"]][[1]],
         dt = period,
-        dx = res,
-        dy = res,
+        dx = res[["xres"]],
+        dy = res[["yres"]],
         aggregation = agg_method,
         resampling = resampling
     )

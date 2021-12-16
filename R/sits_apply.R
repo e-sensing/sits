@@ -103,10 +103,13 @@ sits_apply.raster_cube <- function(data, ..., output_dir = getwd()) {
             dplyr::tibble(path = x)
         })
 
+        res <- .cube_resolution(tile)
+
         file_info <- tidyr::unnest(tibble::tibble(
             date = dates,
             band = bands,
-            res = .cube_resolution(tile),
+            xres = res[["xres"]],
+            yres = res[["yres"]],
             path = output_files
         ), cols = c("date", "path"))
 

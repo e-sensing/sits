@@ -372,7 +372,7 @@ sits_accuracy.classified_image <- function(data, ..., validation_csv) {
     res <- .cube_resolution(cube)
 
     # convert the area to hectares
-    area <- area * res * res / 10000
+    area <- area * prod(res) / 10000
 
     #
     weight <- area / sum(area)
