@@ -115,8 +115,6 @@ sits_apply.raster_cube <- function(data, ..., output_dir = getwd()) {
     return(result)
 }
 
-#' @name .apply_across
-#' @keywords internal
 .apply_across <- function(data, fn, ...) {
 
     .check_set_caller(".apply_across")

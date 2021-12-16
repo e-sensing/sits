@@ -2,12 +2,9 @@
 % Please edit documentation in R/sits_apply.R
 \name{sits_apply}
 \alias{sits_apply}
-\alias{.apply_across}
 \title{Apply a function on a set of time series}
 \usage{
 sits_apply(data, ...)
-
-.apply_across(data, fn, ...)
 }
 \arguments{
 \item{data}{Valid sits tibble or cube}
@@ -41,4 +38,3 @@ Felipe Carvalho, \email{felipe.carvalho@inpe.br}
 
 Gilberto Camara, \email{gilberto.camara@inpe.br}
 }
-\keyword{internal}
