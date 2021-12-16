@@ -132,7 +132,7 @@ sits_regularize <- function(cube,
 
     # precondition - is the period valid?
     duration <- lubridate::duration(period)
-    .check_na(duration, msg = "Invalid period. Please see ISO 8601 format.")
+    .check_na(duration, msg = "invalid period, please see ISO 8601 format")
 
     # precondition - is the resolution valid?
     .check_num(x = res,
@@ -181,7 +181,7 @@ sits_regularize <- function(cube,
         min = 1,
         len_min = 1,
         len_max = 1,
-        msg = "invalid 'multicores' parameter."
+        msg = "invalid 'multicores' parameter"
     )
 
     if (!is.null(roi)) {
