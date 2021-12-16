@@ -12,7 +12,7 @@
   filter_fn,
   impute_fn,
   interp_fn,
-  compose_fn
+  compose_fn = NULL
 )
 }
 \arguments{

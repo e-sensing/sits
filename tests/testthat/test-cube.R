@@ -387,7 +387,7 @@ test_that("Creating cubes from USGS", {
     expect_true(all(sits_bands(usgs_cube) %in% c("B04", "CLOUD")))
 
     expect_equal(class(.cube_size(usgs_cube)), "numeric")
-    expect_equal(class(.cube_resolution(usgs_cube)), "integer")
+    expect_equal(class(.cube_resolution(usgs_cube)), "numeric")
 
     file_info <- usgs_cube$file_info[[1]]
     r <- .raster_open_rast(file_info$path[[1]])
