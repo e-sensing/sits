@@ -4,12 +4,14 @@
 \alias{sits_merge}
 \title{Merge two data sets (time series or cubes)}
 \usage{
-sits_merge(data1, data2, suffix = c(".1", ".2"))
+sits_merge(data1, data2, ..., suffix = c(".1", ".2"))
 }
 \arguments{
 \item{data1}{sits tibble or cube to be merged.}
 
 \item{data2}{sits tibble or cube to be merged.}
+
+\item{...}{additional parameters}
 
 \item{suffix}{If there are duplicate bands in data1 and data2
 these suffixes will be added to the output to disambiguate them.}

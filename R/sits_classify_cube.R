@@ -169,7 +169,7 @@
             extent     = b,
             stats      = stats,
             filter_fn  = filter_fn,
-            impute_fn  = impute_fn,
+            impute_fn  = impute_fn
         )
         # log
         .sits_debug_log(output_dir = output_dir,
@@ -288,31 +288,4 @@
                 msg = "trained ML model not available")
 
     return(invisible(TRUE))
-}
-
-#' @title Classify one interval of data
-#' @name  .sits_classify_interval
-#' @keywords internal
-#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
-#'
-#' @param  data              A data.table with distance values.
-#' @param  ml_model          Machine learning model to be applied.
-#' @return                   A data table with predicted values of probs
-.sits_classify_interval <- function(data, ml_model) {
-
-    # set caller to show in errors
-    .check_set_caller(".sits_classify_interval")
-
-    # single core
-    # estimate the prediction vector
-    prediction <- ml_model(data)
-
-    # are the results consistent with the data input?
-    .check_that(
-        x = nrow(prediction) == nrow(data),
-        msg = paste("number of rows of probability matrix is different from",
-                    "number of input pixels")
-    )
-
-    return(prediction)
 }

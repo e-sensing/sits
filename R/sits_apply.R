@@ -26,16 +26,11 @@
 #'   sits_apply(NDVI_norm = (NDVI - min(NDVI)) / (max(NDVI) - min(NDVI))
 #' )
 #'
-NULL
-
-#' @rdname sits_apply
 #' @export
 sits_apply <- function(data, ...) {
 
     UseMethod("sits_apply", data)
 }
-
-#' @rdname sits_apply
 #' @export
 sits_apply.sits <- function(data, ...) {
 
@@ -43,8 +38,7 @@ sits_apply.sits <- function(data, ...) {
 
     .sits_fast_apply(data, col = "time_series", fn = dplyr::mutate, ...)
 }
-
-#' @rdname sits_apply
+#'
 #' @export
 sits_apply.raster_cube <- function(data, ..., output_dir = getwd()) {
 
@@ -121,7 +115,7 @@ sits_apply.raster_cube <- function(data, ..., output_dir = getwd()) {
     return(result)
 }
 
-#' @rdname sits_apply
+#' @name .apply_across
 #' @keywords internal
 .apply_across <- function(data, fn, ...) {
 

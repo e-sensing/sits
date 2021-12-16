@@ -13,6 +13,10 @@ test_that("conf_matrix -2 classes", {
     expect_true(acc$overall["Kappa"] > 0.90)
     p <- capture.output(sits_accuracy_summary(acc))
     expect_true(grepl("Accuracy", p[4]))
+
+    p1 <- capture.output(acc)
+    expect_true(grepl("Confusion Matrix", p1[1]))
+    expect_true(grepl("Kappa", p1[11]))
 })
 test_that("conf_matrix - more than 2 classes", {
     set.seed(1234)
@@ -27,6 +31,10 @@ test_that("conf_matrix - more than 2 classes", {
     invisible(capture.output(acc <- sits_accuracy(points_class)))
     expect_true(acc$overall["Accuracy"] > 0.90)
     expect_true(acc$overall["Kappa"] > 0.90)
+    p1 <- capture.output(acc)
+    expect_true(grepl("Confusion Matrix", p1[1]))
+    expect_true(grepl("Cerrado", p1[5]))
+    expect_true(grepl("Kappa", p1[15]))
 })
 test_that("XLS", {
     set.seed(1234)
@@ -42,7 +50,7 @@ test_that("XLS", {
     expect_true(file.remove(xls_file))
 })
 
-test_that("Accuracy - more than 2 classes", {
+test_that("K-fold validate", {
     set.seed(1234)
     data("samples_modis_4bands")
     samples <- sits_select(samples_modis_4bands, bands = c("NDVI", "EVI"))
@@ -78,8 +86,8 @@ test_that("Accuracy areas", {
 
 
     expect_true(all(file.exists(unlist(probs_cube$file_info[[1]]$path))))
-    tc_obj <- .raster_open_rast(probs_cube$file_info[[1]]$path[[1]])
-    expect_true(nrow(tc_obj) == .cube_size(probs_cube)[["nrows"]])
+    tc_obj <- sits:::.raster_open_rast(probs_cube$file_info[[1]]$path[[1]])
+    expect_true(nrow(tc_obj) == sits:::.cube_size(probs_cube)[["nrows"]])
 
     label_cube <- sits_label_classification(
         probs_cube,
@@ -99,4 +107,12 @@ test_that("Accuracy areas", {
     expect_equal(as.numeric(as$accuracy$overall),
                  expected = 0.75,
                  tolerance = 0.5)
+
+    p1 <- capture.output(as)
+
+    expect_true(grepl("Area Weigthed Statistics", p1[1]))
+    expect_true(grepl("Overall Accuracy", p1[2]))
+    expect_true(grepl("Cerrado", p1[6]))
+    expect_true(grepl("Mapped Area", p1[11]))
+
 })
