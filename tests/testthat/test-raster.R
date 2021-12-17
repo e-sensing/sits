@@ -120,6 +120,7 @@ test_that("One-year, multicore classification", {
 
 test_that("One-year, single core classification with filter", {
 
+    sits:::.sits_debug(flag = TRUE)
     samples_filt <-
         sits_select(samples_modis_4bands, bands = c("NDVI", "EVI")) %>%
         sits_filter(filter = sits_whittaker())
@@ -148,6 +149,7 @@ test_that("One-year, single core classification with filter", {
 
     expect_true(all(file.exists(unlist(sinop_probs$file_info[[1]]$path))))
     expect_true(all(file.remove(unlist(sinop_probs$file_info[[1]]$path))))
+    sits:::.sits_debug(flag = FALSE)
 })
 
 test_that("One-year, multicore classification with filter", {

@@ -19,6 +19,11 @@
 #'
 #' @examples
 #' \donttest{
+#' # view a collection of time series
+#' sits_view(samples_modis_4bands)
+#'
+#' # view a temporal instance of a cube
+#'
 #' data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
 #'
 #' modis_cube <- sits_cube(
