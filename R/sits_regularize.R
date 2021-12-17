@@ -113,12 +113,12 @@ sits_regularize <- function(cube,
                     "see '?sits_cube' for more information.")
     )
 
-    # precondition - check if this cube be regularized
+    # precondition - check if this cube could be regularized
     .source_collection_gdalcubes_support(
         source = .cube_source(cube), collection = .cube_collection(cube)
     )
 
-    # in order for the path to be accepted on different operating systems
+    # ensuring the path is accepted in all OS
     output_dir <- normalizePath(output_dir)
 
     # precondition - is the path valid?
