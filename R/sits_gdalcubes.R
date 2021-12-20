@@ -35,9 +35,8 @@
                                 end = max(x[["date"]])) / duration
         ))
 
-        dplyr::group_by(
-            x, .data[["left"]], .data[["bottom"]],  .data[["right"]],
-            .data[["top"]], date_interval = cut(.data[["date"]], tl_length)) %>%
+        dplyr::group_by(x, date_interval = cut(.data[["date"]], tl_length),
+                        .add = TRUE) %>%
             dplyr::arrange(.data[["cloud_cover"]], .by_group = TRUE) %>%
             dplyr::ungroup() %>%
             dplyr::select(-.data[["date_interval"]])
@@ -142,8 +141,8 @@
                       t1 = format(toi[["min_max_date"]], "%Y-%m-%d")),
         srs = tile[["crs"]][[1]],
         dt = period,
-        dx = res[["xres"]],
-        dy = res[["yres"]],
+        dx = res,
+        dy = res,
         aggregation = agg_method,
         resampling = resampling
     )

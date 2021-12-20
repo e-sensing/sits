@@ -81,6 +81,17 @@
                                items = items,
                                collection = collection, ...)
 
+    if (is.character(tiles)) {
+
+        # post-condition
+        .check_chr_within(.cube_tiles(cube), within = tiles,
+                          can_repeat = FALSE, msg = "invalid tile returned in cube")
+
+        # arrange cube tiles according with 'tiles' parameter
+        tiles <- tiles[tiles %in% .cube_tiles(cube)]
+        cube <- cube[match(.cube_tiles(cube), tiles),]
+    }
+
     class(cube) <- .cube_s3class(cube)
 
     return(cube)
@@ -181,12 +192,9 @@
         # post-condition
         .check_num(length(paths), min = 1, msg = "invalid href values")
 
+        # TODO: implement sits_parallel_error_retry()
         # open band rasters
-        assets <- tryCatch({
-            purrr::map(paths, .raster_open_rast)
-        }, error = function(e) {
-            return(.sits_parallel_error_retry(e)) # if error occurs, try again
-        })
+        assets <- purrr::map(paths, .raster_open_rast)
 
         # get asset info
         asset_info <- purrr::map(assets, function(asset) {
