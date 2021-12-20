@@ -18,10 +18,10 @@ test_that("Align dates", {
 test_that("Apply", {
     point_ndvi <- sits_select(point_mt_6bands, bands = "NDVI")
     point2 <- sits_apply(point_ndvi,
-                         NDVI_norm = (NDVI - min(NDVI)) / (max(NDVI) - min(NDVI))
-                         )
+                         NDVI = (NDVI - min(NDVI)) / (max(NDVI) - min(NDVI))
+    )
 
-    expect_equal(sum((sits_time_series(point2))$NDVI_norm),
+    expect_equal(sum((sits_time_series(point2))$NDVI),
                  216.6617,
                  tolerance = 0.1
     )
@@ -37,7 +37,7 @@ test_that("Bands", {
 
 test_that("Bbox", {
     bbox <- sits_bbox(samples_modis_4bands)
-    expect_true(all(names(bbox_ll) %in%
+    expect_true(all(names(bbox) %in%
                         c("lon_min", "lat_min", "lon_max", "lat_max")))
     expect_true(bbox["lon_min"] < -60.0)
 

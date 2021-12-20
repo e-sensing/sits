@@ -52,8 +52,8 @@ sits_sgolay <- function(data = NULL, order = 3, length = 5, scaling = 1) {
 
     filter_fun <- function(data) {
         if (inherits(data, "matrix")) {
-            return(apply(data, 2, .sits_signal_sgolayfilt, p = order,
-                         n = length, ts = scaling))
+            return(t(apply(data, 1, .sits_signal_sgolayfilt, p = order,
+                         n = length, ts = scaling)))
         } else {
             return(.sits_signal_sgolayfilt(data, p = order,
                                            n = length, ts = scaling))
@@ -96,8 +96,8 @@ sits_whittaker <- function(data = NULL, lambda = 0.5) {
 
     filter_fun <- function(data) {
         if (inherits(data, "matrix")) {
-            return(apply(data, 2, smooth_whit, lambda = lambda,
-                         length = nrow(data)))
+            return(t(apply(data, 1, smooth_whit, lambda = lambda,
+                           length = ncol(data))))
         } else {
             return(smooth_whit(data, lambda = lambda, length = length(data)))
         }

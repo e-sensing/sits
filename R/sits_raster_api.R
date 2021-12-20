@@ -83,6 +83,11 @@
 }
 #' @title Match sits data types to GDAL data types
 #' @name .raster_gdal_datatypes
+#'
+#' @param sits_names a \code{logical} indicating whether the types are supported
+#'  by sits.
+#'
+#' @return a \code{character} with datatypes.
 .raster_gdal_datatypes <- function(sits_names = TRUE) {
 
     if (sits_names)

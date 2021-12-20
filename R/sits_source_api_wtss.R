@@ -35,8 +35,8 @@
                              collection = collection)
 
     file_info <- .source_items_file_info(source = source, ...,
-                                        collection = collection,
-                                        wtss_cov = cov)
+                                         collection = collection,
+                                         wtss_cov = cov)
 
     cube <- .source_items_cube(source = source, ...,
                                collection = collection,

@@ -31,6 +31,8 @@ sits_apply <- function(data, ...) {
 
     UseMethod("sits_apply", data)
 }
+
+#' @rdname sits_apply
 #' @export
 sits_apply.sits <- function(data, ...) {
 
@@ -38,7 +40,8 @@ sits_apply.sits <- function(data, ...) {
 
     .sits_fast_apply(data, col = "time_series", fn = dplyr::mutate, ...)
 }
-#'
+
+#' @rdname sits_apply
 #' @export
 sits_apply.raster_cube <- function(data, ..., output_dir = getwd()) {
 
@@ -107,7 +110,7 @@ sits_apply.raster_cube <- function(data, ..., output_dir = getwd()) {
         tile[["file_info"]][[1]] <-
             dplyr::bind_rows(tile[["file_info"]][[1]],
                              file_info) %>%
-            dplyr::arrange(date, band)
+            dplyr::arrange(date, .data[["band"]])
 
         tile
     })
