@@ -8,8 +8,6 @@
     # set caller to show in errors
     .check_set_caller(".source_items_new.deafrica_cube")
 
-
-    # searching for tiles in the items
     if (!is.null(tiles))
         stop(paste("DEAFRICA cubes do not support searching for tiles, use",
                    "'roi' parameter instead.", call. = FALSE)
