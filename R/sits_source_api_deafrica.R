@@ -1,39 +1,3 @@
-#' @title Search items tiles
-#' @name .deafrica_search_tiles
-#' @keywords internal
-#'
-#' @param items a \code{STACItemCollection} object returned by rstac package.
-#'  grouped.
-#' @param tiles a \code{character} with the names of the tiles.
-#'
-#' @return      a \code{STACItemCollection} object representing the search
-#'              by rstac.
-.deafrica_search_tiles <- function(items, tiles) {
-
-    # set caller to show in errors
-    .check_set_caller(".deafrica_search_tiles")
-
-    # checks if the supplied tiles are in the searched items
-    # TODO: use Filter instead
-    index_features <- purrr::map_lgl(items$features, function(feature) {
-        region_code <- feature[["properties"]][["odc:region_code"]]
-        if (region_code %in% tiles)
-            return(TRUE)
-        return(FALSE)
-    })
-
-    # selects the tiles found in the search
-    items$features <- items$features[index_features]
-
-    # checks if the search return zero items
-    .check_that(
-        x = rstac::items_length(items) != 0,
-        msg = "the supplied tile(s) were not found."
-    )
-
-    return(items)
-}
-
 #' @keywords internal
 #' @export
 .source_items_new.deafrica_cube <- function(source, ...,
@@ -44,6 +8,13 @@
     # set caller to show in errors
     .check_set_caller(".source_items_new.deafrica_cube")
 
+
+    # searching for tiles in the items
+    if (!is.null(tiles))
+        stop(paste("DEAFRICA cubes do not support searching for tiles, use",
+                   "'roi' parameter instead.", call. = FALSE)
+        )
+
     # making the request
     items_info <- rstac::post_request(q = stac_query, ...)
 
@@ -53,10 +24,6 @@
 
     # fetching all the metadata and updating to upper case instruments
     items_info <- rstac::items_fetch(items = items_info, progress = pgr_fetch)
-
-    # searching for tiles in the items
-    if (!is.null(tiles))
-        items_info <- .deafrica_search_tiles(items_info, tiles)
 
     # checks if the items returned any items
     .check_that(
