@@ -115,6 +115,7 @@ sits_apply.raster_cube <- function(data, ..., output_dir = getwd()) {
     return(result)
 }
 
+#' @title Apply a function to a set of time series
 #' @name .apply_across
 #' @keywords internal
 .apply_across <- function(data, fn, ...) {
