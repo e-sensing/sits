@@ -258,12 +258,6 @@ sits_classify.raster_cube <- function(data, ml_model, ...,
     # retrieve the samples from the model
     samples <- .sits_ml_model_samples(ml_model)
 
-    # check band order is the same
-    bands_samples <- sits_bands(samples)
-    bands_data <- sits_bands(data)
-    .check_that(all(bands_samples == bands_data),
-                msg = "Order of the bands must be the same in samples and in data")
-
     # deal with the case where the cube has multiple rows
     probs_cube <- slider::slide_dfr(data, function(tile) {
 

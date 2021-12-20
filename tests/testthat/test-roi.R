@@ -17,6 +17,7 @@ test_that("One-year, multicore classification with ROI", {
     bbox["xmax"] <- (bbox["xmax"] - bbox["xmin"]) / 2 + bbox["xmin"]
     bbox["ymax"] <- (bbox["ymax"] - bbox["ymin"]) / 2 + bbox["ymin"]
 
+
     sinop_probs <- tryCatch({
         suppressMessages(
             sits_classify(
@@ -52,6 +53,20 @@ test_that("One-year, multicore classification with ROI", {
     expect_true(max_lyr3 > 7000)
 
     expect_true(all(file.remove(unlist(sinop_probs$file_info[[1]]$path))))
+})
+test_that("Bbox in WGS 84", {
+
+    data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
+    sinop <- sits_cube(
+        source = "BDC",
+        collection = "MOD13Q1-6",
+        data_dir = data_dir,
+        delim = "_",
+        parse_info = c("X1", "X2", "tile", "band", "date")
+    )
+
+    bbox <- sits_bbox(sinop, wgs84 = TRUE)
+    expect_true(all(names(bbox) %in% c("lon_min", "lat_min", "lon_max", "lat_max")))
 })
 test_that("Functions that work with ROI", {
 

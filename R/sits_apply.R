@@ -26,9 +26,6 @@
 #'   sits_apply(NDVI_norm = (NDVI - min(NDVI)) / (max(NDVI) - min(NDVI))
 #' )
 #'
-NULL
-
-#' @rdname sits_apply
 #' @export
 sits_apply <- function(data, ...) {
 
@@ -113,7 +110,7 @@ sits_apply.raster_cube <- function(data, ..., output_dir = getwd()) {
         tile[["file_info"]][[1]] <-
             dplyr::bind_rows(tile[["file_info"]][[1]],
                              file_info) %>%
-            dplyr::arrange(date, band)
+            dplyr::arrange(date, .data[["band"]])
 
         tile
     })
@@ -121,7 +118,8 @@ sits_apply.raster_cube <- function(data, ..., output_dir = getwd()) {
     return(result)
 }
 
-#' @rdname sits_apply
+#' @title Apply a function to a set of time series
+#' @name .apply_across
 #' @keywords internal
 .apply_across <- function(data, fn, ...) {
 

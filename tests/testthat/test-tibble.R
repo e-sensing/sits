@@ -35,6 +35,14 @@ test_that("Bands", {
     expect_equal(bands[1], "NDVI")
 })
 
+test_that("Bbox", {
+    bbox <- sits_bbox(samples_modis_4bands)
+    expect_true(all(names(bbox) %in%
+                        c("lon_min", "lat_min", "lon_max", "lat_max")))
+    expect_true(bbox["lon_min"] < -60.0)
+
+
+})
 test_that("Merge", {
     point_ndvi <- sits_select(point_mt_6bands, bands = "NDVI")
     point_evi <- sits_select(point_mt_6bands, bands = "EVI")

@@ -73,16 +73,6 @@
 
 #' @keywords internal
 #' @export
-.raster_read_rast.terra <- function(file,
-                                    block = NULL, ...) {
-
-    return(.raster_read_stack.terra(files = file,
-                                    block = block))
-
-}
-
-#' @keywords internal
-#' @export
 .raster_write_rast.terra <- function(r_obj,
                                      file,
                                      format,
@@ -291,31 +281,6 @@
 .raster_freq.terra <- function(r_obj, ...) {
 
     terra::freq(x = r_obj, bylayer = TRUE)
-}
-
-#' @keywords internal
-#' @export
-.raster_focal.terra <- function(r_obj,
-                                window_size,
-                                fn, ...) {
-
-    # check fun parameter
-    if (is.character(fn)) {
-
-        if (fn == "modal")
-            fn <- terra::modal
-    }
-
-    suppressWarnings(
-        terra::focal(
-            x   = r_obj,
-            w   = window_size,
-            fun = fn,
-            na.rm = TRUE,
-            fillvalue = NA,
-            expand = TRUE, ...
-        )
-    )
 }
 
 #' @keywords internal

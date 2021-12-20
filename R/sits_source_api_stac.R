@@ -78,8 +78,8 @@
 
     cube <- purrr::map_dfr(items_lst, function(tile) {
 
-        file_info <- .source_items_file_info(source = source, items = tile,
-                                             ...,
+        file_info <- .source_items_file_info(source = source,
+                                             items = tile, ...,
                                              collection = collection)
 
         tile_cube <- .source_items_cube(source = source, ...,
@@ -116,9 +116,9 @@
 
 #' @keywords internal
 #' @export
-.source_items_file_info.stac_cube <- function(source, items,
-                                              ...,
+.source_items_file_info.stac_cube <- function(source, items, ...,
                                               collection = NULL) {
+
 
     # set caller to show in errors
     .check_set_caller(".source_items_file_info.stac_cube")
