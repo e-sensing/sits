@@ -302,7 +302,6 @@
         ymin       = bbox[["ymin"]],
         ymax       = bbox[["ymax"]],
         crs        = tile[["crs"]],
-        period     = cv[["time"]][["dt"]],
         file_info  = NA
     )
 
