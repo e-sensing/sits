@@ -20,6 +20,8 @@
 \alias{.cube_size}
 \alias{.cube_size_max}
 \alias{.cube_timeline}
+\alias{.cube_start_date}
+\alias{.cube_end_date}
 \alias{.cube_tiles}
 \alias{.cube_tile_check}
 \alias{.cube_tile_get_fields}
@@ -62,6 +64,10 @@
 .cube_size_max(cube, ..., bands = NULL)
 
 .cube_timeline(cube)
+
+.cube_start_date(cube)
+
+.cube_end_date(cube)
 
 .cube_tiles(cube)
 

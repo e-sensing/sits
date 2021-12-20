@@ -15,9 +15,9 @@
 \alias{.source_collection_sensor}
 \alias{.source_collection_satellite}
 \alias{.source_items_tile_get_crs}
-\alias{.source_items_tile_get_bbox}
+\alias{.source_tile_get_bbox}
 \alias{.source_items_cube}
-\alias{.source_items_tile_get_bbox.stac_cube}
+\alias{.source_tile_get_bbox.stac_cube}
 \title{Functions to instantiate a new cube from a source}
 \usage{
 .source_cube(source, collection, ...)
@@ -46,17 +46,11 @@
 
 .source_items_tile_get_crs(source, tile_items, ..., collection = NULL)
 
-.source_items_tile_get_bbox(source, ..., tile_items, collection = NULL)
+.source_tile_get_bbox(source, ..., file_info, collection = NULL)
 
 .source_items_cube(source, collection, items, ...)
 
-\method{.source_items_tile_get_bbox}{stac_cube}(
-  source,
-  tile_items,
-  file_info,
-  ...,
-  collection = NULL
-)
+\method{.source_tile_get_bbox}{stac_cube}(source, file_info, ..., collection = NULL)
 }
 \arguments{
 \item{source}{A \code{character} value referring to a valid data source.}
@@ -117,13 +111,13 @@ value.
 \code{.source_items_tile_get_crs()} returns a \code{character}
 value.
 
-\code{.source_items_tile_get_bbox()} returns a \code{numeric}
+\code{.source_tile_get_bbox()} returns a \code{numeric}
 vector with 4 elements (xmin, ymin, xmax, ymax).
 
 \code{.source_items_cube()} returns a \code{tibble} containing a sits
 cube tile (one row).
 
-\code{.source_items_tile_get_bbox()} returns a \code{list}
+\code{.source_tile_get_bbox()} returns a \code{list}
 vector with 4 elements (xmin, ymin, xmax, ymax).
 }
 \description{
@@ -172,13 +166,13 @@ name (platform) from items object.
 \code{.source_items_tile_get_crs()} retrieves the CRS
 string from items.
 
-\code{.source_items_tile_get_bbox()} retrieves the bounding
+\code{.source_tile_get_bbox()} retrieves the bounding
 box from items of a tile.
 
 \code{.source_items_cube()} is called to create a data cubes tile,
 that is, a row in sits data cube.
 
-\code{.source_items_tile_get_bbox()} retrieves the bounding
+\code{.source_tile_get_bbox()} retrieves the bounding
 box from items of a tile.
 }
 \keyword{internal}

@@ -530,120 +530,74 @@ NULL
 #' Each RasterLayer corresponds to one time step.
 #' The time steps are specified in a list of dates.
 #'
-#' @param  tile              input tile (subset of a data cube).
-#' @param  samples           samples used for training the classification model.
-#' @param  sub_image         bounding box of the ROI
-#' @param  output_dir        prefix of the output files.
-#' @param  version           version of the output files
-#' @return                   output data cube
-#'
-.cube_probs_create <- function(tile, samples, sub_image,
-                               output_dir, version) {
+#' @param cube         input tile (subset of a data cube).
+#' @param cube_class   class to be attributed to created cube
+#' @param band_name    name of band in created cube
+#' @param labels       labels of derived cube
+#' @param start_date   start date of the cube interval
+#' @param end_date     end date of the cube interval
+#' @param bbox         bounding box of the ROI
+#' @param output_dir   prefix of the output files.
+#' @param version      version of the output files
+#' @return             output data cube
+.cube_derived_create <- function(cube, cube_class, band_name, labels,
+                                 start_date, end_date, bbox, output_dir,
+                                 version) {
 
     # set caller to show in errors
-    .check_set_caller(".cube_probs_create")
+    .check_set_caller(".cube_derived_create")
 
     # ensure metadata tibble exists
-    .check_that(x = nrow(tile) == 1,
+    .check_that(x = nrow(cube) == 1,
                 msg = "accepts only one tile at a time")
-
-    # get the timeline of of the data cube
-    timeline <- lubridate::as_date(sits_timeline(tile))
-    start_date <- as.Date(timeline[1])
-    end_date <- as.Date(timeline[length(timeline)])
-
-    # labels come from samples
-    labels <- sits_labels(samples)
-
-    # copy the cube information
-    probs_cube <- tile
 
     # output filename
     file_name <- paste0(output_dir, "/",
-                        tile$satellite, "_",
-                        tile$sensor,"_",
-                        tile$tile,"_",
-                        start_date,"_",
+                        cube$satellite, "_",
+                        cube$sensor,"_",
+                        cube$tile,"_",
+                        start_date, "_",
                         end_date,"_",
-                        "probs", "_",
+                        band_name, "_",
                         version, ".tif")
 
-    res <- .cube_resolution(tile)
+    res <- .cube_resolution(cube)
 
     # set the file information
     file_info <- tibble::tibble(
-        band       = "probs",
+        band       = band_name,
         start_date = start_date,
         end_date   = end_date,
-        xmin       = sub_image[["xmin"]],
-        xmax       = sub_image[["xmax"]],
-        ymin       = sub_image[["ymin"]],
-        ymax       = sub_image[["ymax"]],
+        xmin       = bbox[["xmin"]],
+        xmax       = bbox[["xmax"]],
+        ymin       = bbox[["ymin"]],
+        ymax       = bbox[["ymax"]],
         xres       = res[["xres"]],
         yres       = res[["yres"]],
-        nrows      = sub_image[["nrows"]],
-        ncols      = sub_image[["ncols"]],
+        nrows      = cube$file_info[[1]]$nrows[[1]],
+        ncols      = cube$file_info[[1]]$ncols[[1]],
         path       = file_name
     )
 
     # set the metadata for the probability cube
-    probs_cube <- .cube_create(
-        source     = tile$source,
-        collection = tile$collection,
-        satellite  = tile$satellite,
-        sensor     = tile$sensor,
-        tile       = tile$tile,
-        xmin       = sub_image[["xmin"]],
-        xmax       = sub_image[["xmax"]],
-        ymin       = sub_image[["ymin"]],
-        ymax       = sub_image[["ymax"]],
-        crs        = tile$crs,
+    dev_cube <- .cube_create(
+        source     = cube$source,
+        collection = cube$collection,
+        satellite  = cube$satellite,
+        sensor     = cube$sensor,
+        tile       = cube$tile,
+        xmin       = bbox[["xmin"]],
+        xmax       = bbox[["xmax"]],
+        ymin       = bbox[["ymin"]],
+        ymax       = bbox[["ymax"]],
+        crs        = cube$crs,
         labels     = labels,
         file_info  = file_info
     )
 
-    class(probs_cube) <- c("probs_cube", "raster_cube", class(probs_cube))
-    return(probs_cube)
-}
-#' @title Clone a probs or label cube with a new extension
-#' @name .cube_probs_label
-#' @keywords internal
-#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
-#'
-#' @param  cube              input data cube
-#' @param  ext               file extension
-#' @param  output_dir        prefix of the output files
-#' @param  version           version of the output files
-#' @return                   output data cube
-.cube_probs_label <- function(cube, ext, output_dir, version) {
+    class(dev_cube) <- unique(c(cube_class, "raster_cube", class(dev_cube)))
 
-    # copy the cube information
-    cube_clone <- cube
-
-    file_info_in <- .cube_file_info(cube)
-
-    cube_clone$file_info <- file_info_in %>%
-        slider::slide(function(row) {
-            res <- .cube_resolution(cube)
-
-            tibble::tibble(
-                band = toupper(ext),
-                start_date = row$start_date,
-                end_date   = row$end_date,
-                xres       = res[["xres"]],
-                yres       = res[["yres"]],
-                path = paste0(output_dir, "/",
-                              cube$satellite[[1]], "_",
-                              cube$sensor[[1]],"_",
-                              cube$tile[[1]],"_",
-                              row$start_date,"_",
-                              row$end_date,"_",
-                              ext, "_",
-                              version, ".tif")
-            )
-        })
-
-    return(cube_clone)
+    return(dev_cube)
 }
 #' @rdname cube_functions
 .cube_resolution <- function(cube, ..., bands = NULL) {
@@ -759,6 +713,22 @@ NULL
     timeline <- unlist(timeline)
 
     return(timeline)
+}
+
+#' @rdname cube_functions
+.cube_start_date <- function(cube) {
+
+    timeline <- unlist(.cube_timeline(cube))
+
+    return(timeline[[1]])
+}
+
+#' @rdname cube_functions
+.cube_end_date <- function(cube) {
+
+    timeline <- unlist(.cube_timeline(cube))
+
+    return(timeline[[length(timeline)]])
 }
 
 #' @rdname cube_functions
