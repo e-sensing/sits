@@ -37,7 +37,7 @@ test_that("Bands", {
 
 test_that("Bbox", {
     bbox <- sits_bbox(samples_modis_4bands)
-    expect_true(all(names(bbox_ll) %in%
+    expect_true(all(names(bbox) %in%
                         c("lon_min", "lat_min", "lon_max", "lat_max")))
     expect_true(bbox["lon_min"] < -60.0)
 

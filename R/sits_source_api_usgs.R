@@ -194,7 +194,7 @@
 
 #' @keywords internal
 #' @export
-.source_items_tiles_group.usgs_cube <- function(source,
+.source_items_tile.usgs_cube <- function(source,
                                                 items, ...,
                                                 collection = NULL) {
 
@@ -208,7 +208,7 @@
         feature
     })
 
-    rstac::items_group(items, field = c("properties", "tile"))
+    rstac::items_reap(items, field = c("properties", "tile"))
 }
 
 #' @keywords internal

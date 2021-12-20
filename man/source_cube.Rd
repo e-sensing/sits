@@ -3,19 +3,18 @@
 \name{source_cube}
 \alias{source_cube}
 \alias{.source_cube}
-\alias{.source_item_get_fid}
 \alias{.source_item_get_date}
 \alias{.source_item_get_hrefs}
-\alias{.source_item_get_cc}
+\alias{.source_item_get_cloud_cover}
 \alias{.source_item_get_bands}
 \alias{.source_items_new}
 \alias{.source_items_bands_select}
+\alias{.source_items_fid}
 \alias{.source_items_file_info}
-\alias{.source_items_tiles_group}
+\alias{.source_items_tile}
 \alias{.source_collection_sensor}
 \alias{.source_collection_satellite}
 \alias{.source_items_tile_get_crs}
-\alias{.source_items_tile_get_name}
 \alias{.source_items_tile_get_bbox}
 \alias{.source_items_cube}
 \alias{.source_items_tile_get_bbox.stac_cube}
@@ -23,13 +22,11 @@
 \usage{
 .source_cube(source, collection, ...)
 
-.source_item_get_fid(source, item, ..., collection = NULL)
-
 .source_item_get_date(source, item, ..., collection = NULL)
 
 .source_item_get_hrefs(source, item, ..., collection = NULL)
 
-.source_item_get_cc(source, ..., item, collection = NULL)
+.source_item_get_cloud_cover(source, ..., item, collection = NULL)
 
 .source_item_get_bands(source, item, ..., collection = NULL)
 
@@ -37,9 +34,11 @@
 
 .source_items_bands_select(source, items, bands, ..., collection = NULL)
 
+.source_items_fid(source, items, ..., collection = NULL)
+
 .source_items_file_info(source, items, ..., collection = NULL)
 
-.source_items_tiles_group(source, items, ..., collection = NULL)
+.source_items_tile(source, items, ..., collection = NULL)
 
 .source_collection_sensor(source, collection)
 
@@ -47,11 +46,9 @@
 
 .source_items_tile_get_crs(source, tile_items, ..., collection = NULL)
 
-.source_items_tile_get_name(source, tile_items, ..., collection = NULL)
-
 .source_items_tile_get_bbox(source, ..., tile_items, collection = NULL)
 
-.source_items_cube(source, collection, items, file_info, ...)
+.source_items_cube(source, collection, items, ...)
 
 \method{.source_items_tile_get_bbox}{stac_cube}(
   source,
@@ -87,14 +84,12 @@ The values returned by each function are described as follows.
 \code{.source_cube()} returns a sits \code{tibble} with cube
 metadata.
 
-\code{.source_item_get_fid()} returns a \code{character} value.
-
 \code{.source_item_get_date()} returns a \code{Date} value.
 
 \code{.source_item_get_hrefs()} returns a \code{character} vector
 containing paths to each image band of an item.
 
-\code{.source_item_get_cc()} returns a \code{numeric} vector
+\code{.source_item_get_cloud_cover()} returns a \code{numeric} vector
 containing the percentage of cloud cover to each image band of an item.
 
 \code{.source_item_get_bands()} returns a \code{character} vector
@@ -106,10 +101,12 @@ of a sits cube.
 \code{.source_items_bands_select()} returns the same object as
 \code{items} with selected bands.
 
+\code{.source_items_fid()} returns a \code{character} vector.
+
 \code{.source_items_file_info()} returns a \code{tibble} containing
 sits cube.
 
-\code{.source_items_tiles_group()} returns a \code{list} of
+\code{.source_items_tile()} returns a \code{list} of
 items.
 
 \code{.source_items_get_sensor()} returns a \code{character} value.
@@ -118,9 +115,6 @@ items.
 value.
 
 \code{.source_items_tile_get_crs()} returns a \code{character}
-value.
-
-\code{.source_items_tile_get_name()} returns a \code{character}
 value.
 
 \code{.source_items_tile_get_bbox()} returns a \code{numeric}
@@ -144,16 +138,13 @@ to retrieve metadata.
 \code{.source_cube()} is called to start the cube creation
 from a source.
 
-\code{.source_item_get_fid()} retrieves the feature id of
-an item.
-
 \code{.source_item_get_date()} retrieves the date of an item
 (a set of images from different bands that forms a scene).
 
 \code{.source_item_get_hrefs()} retrieves the paths or URLs of
 each file bands of an item.
 
-\code{.source_item_get_cc()} retrieves the percentage of cloud
+\code{.source_item_get_cloud_cover()} retrieves the percentage of cloud
 cover of an image.
 
 \code{.source_item_get_bands()} retrieves the bands present
@@ -163,10 +154,13 @@ in an item.
 an items object. In case of Web services, this function is responsible for
 making the Web requests to the server.
 
+\code{.source_items_fid()} retrieves the feature id of
+all items.
+
 \code{.source_items_file_info()} creates the \code{fileinfo}
 specification from items object.
 
-\code{.source_items_tiles_group()} organizes items by tiles
+\code{.source_items_tile()} organizes items by tiles
 and arrange items in each tile by date.
 
 \code{.source_items_get_sensor()} retrieves the sensor from
@@ -178,13 +172,10 @@ name (platform) from items object.
 \code{.source_items_tile_get_crs()} retrieves the CRS
 string from items.
 
-\code{.source_items_tile_get_name()} retrieves the tile name
-from items.
-
 \code{.source_items_tile_get_bbox()} retrieves the bounding
 box from items of a tile.
 
-\code{.source_itimes_cube()} is called to create a data cubes tile,
+\code{.source_items_cube()} is called to create a data cubes tile,
 that is, a row in sits data cube.
 
 \code{.source_items_tile_get_bbox()} retrieves the bounding

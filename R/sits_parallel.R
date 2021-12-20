@@ -37,7 +37,7 @@
                                    expr = .libPaths(lib_paths))
             # export debug flag
             parallel::clusterEvalQ(cl = sits_env$cluster,
-                                   expr = .sits_debug(flag = log))
+                                   expr = sits:::.sits_debug(flag = log))
         }
     }
 }

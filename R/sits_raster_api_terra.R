@@ -274,9 +274,14 @@
 #' @export
 .raster_crs.terra <- function(r_obj, ...) {
 
+    crs <- suppressWarnings(
+        terra::crs(x = r_obj, describe = TRUE))
+
+    if (!is.na(crs[["EPSG"]]))
+        return(c(crs = paste("EPSG", crs[["EPSG"]], sep = ":")))
+
     suppressWarnings(
-        as.character(terra::crs(x = r_obj))
-    )
+        c(crs = as.character(terra::crs(x = r_obj))))
 }
 
 #' @keywords internal

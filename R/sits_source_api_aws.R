@@ -69,9 +69,9 @@
 
 #' @keywords internal
 #' @export
-.source_items_tiles_group.aws_cube <- function(source,
-                                               items, ...,
-                                               collection = NULL) {
+.source_items_tile.aws_cube <- function(source,
+                                         items, ...,
+                                         collection = NULL) {
 
     # store tile info in items object
     items$features <- purrr::map(items$features, function(feature) {
@@ -83,7 +83,7 @@
         feature
     })
 
-    rstac::items_group(items, field = c("properties", "tile"))
+    rstac::items_reap(items, field = c("properties", "tile"))
 }
 
 #' @keywords internal

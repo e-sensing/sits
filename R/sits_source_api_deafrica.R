@@ -70,11 +70,11 @@
 
 #' @keywords internal
 #' @export
-.source_items_tiles_group.deafrica_cube <- function(source, ...,
+.source_items_tile.deafrica_cube <- function(source, ...,
                                                     items,
                                                     collection = NULL) {
 
-    rstac::items_group(items, field = c("properties", "odc:region_code"))
+    rstac::items_reap(items, field = c("properties", "odc:region_code"))
 }
 
 #' @keywords internal
@@ -89,13 +89,4 @@
     )
 
     return(crs)
-}
-
-#' @keywords internal
-#' @export
-.source_items_tile_get_name.deafrica_cube <- function(source, ...,
-                                                      collection,
-                                                      tile_items) {
-
-    tile_items[["features"]][[1]][[c("properties", "odc:region_code")]]
 }

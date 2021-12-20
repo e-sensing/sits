@@ -4,7 +4,7 @@
 \alias{.gc_get_valid_interval}
 \title{Get the interval of intersection in all tiles}
 \usage{
-.gc_get_valid_interval(cube)
+.gc_get_valid_interval(cube, period)
 }
 \arguments{
 \item{cube}{Data cube from where data is to be retrieved.}

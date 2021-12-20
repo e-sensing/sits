@@ -50,11 +50,11 @@
 
 #' @keywords internal
 #' @export
-.source_items_tiles_group.bdc_cube <- function(source, ...,
+.source_items_tile.bdc_cube <- function(source, ...,
                                                items,
                                                collection = NULL) {
 
-    rstac::items_group(items, field = c("properties", "bdc:tiles"))
+    rstac::items_reap(items, field = c("properties", "bdc:tiles"))
 }
 
 #' @keywords internal
@@ -71,13 +71,4 @@
     col <- rstac::get_request(q = query_search)
 
     return(col[["bdc:crs"]])
-}
-
-#' @keywords internal
-#' @export
-.source_items_tile_get_name.bdc_cube <- function(source, ...,
-                                                 collection,
-                                                 tile_items) {
-
-    tile_items[["features"]][[1]][[c("properties", "bdc:tiles")]]
 }

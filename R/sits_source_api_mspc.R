@@ -116,20 +116,11 @@
 
 #' @keywords internal
 #' @export
-`.source_items_tiles_group.mspc_cube_sentinel-2-l2a` <- function(source,
+`.source_items_tile.mspc_cube_sentinel-2-l2a` <- function(source,
                                                                  items, ...,
                                                                  collection = NULL) {
 
-    rstac::items_group(items, field = c("properties", "s2:mgrs_tile"))
-}
-
-#' @keywords internal
-#' @export
-`.source_items_tile_get_name.mspc_cube_sentinel-2-l2a` <- function(source,
-                                                                   tile_items, ...,
-                                                                   collection = NULL) {
-
-    tile_items[["features"]][[1]][[c("properties", "s2:mgrs_tile")]]
+    rstac::items_reap(items, field = c("properties", "s2:mgrs_tile"))
 }
 
 #' @keywords internal
@@ -220,7 +211,7 @@
 
 #' @keywords internal
 #' @export
-`.source_items_tiles_group.mspc_cube_landsat-8-c2-l2` <- function(source,
+`.source_items_tile.mspc_cube_landsat-8-c2-l2` <- function(source,
                                                                   items, ...,
                                                                   collection = NULL) {
 
@@ -234,7 +225,7 @@
         feature
     })
 
-    rstac::items_group(items, field = c("properties", "tile"))
+    rstac::items_reap(items, field = c("properties", "tile"))
 }
 
 #' @keywords internal

@@ -202,7 +202,7 @@ sits_regularize <- function(cube,
     }
 
     # timeline of intersection
-    toi <- .gc_get_valid_interval(cube)
+    toi <- .gc_get_valid_interval(cube, period = period)
 
     # matches the start dates of different tiles
     cube[["file_info"]] <- purrr::map(cube[["file_info"]], function(file_info) {

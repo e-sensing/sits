@@ -75,27 +75,11 @@
                                         bands = bands,
                                         collection = collection, ...)
 
-    # group items by tile
-    items_lst <- .source_items_tiles_group(source = source,
-                                           collection = collection,
-                                           items = items, ...)
 
-    # make a cube for each tile (rows)
-    cube <- purrr::map_dfr(items_lst, function(items_tile) {
-
-        # make a new file info for one tile
-        file_info <- .source_items_file_info(source = source,
-                                             items = items_tile,
-                                             collection = collection, ...)
-
-        # make a new cube tile
-        tile_cube <- .source_items_cube(source = source,
-                                        collection = collection,
-                                        items = items_tile,
-                                        file_info = file_info, ...)
-
-        return(tile_cube)
-    })
+    # make a cube
+    cube <- .source_items_cube(source = source,
+                               items = items,
+                               collection = collection, ...)
 
     class(cube) <- .cube_s3class(cube)
 
@@ -123,29 +107,22 @@
 
 #' @keywords internal
 #' @export
-.source_items_file_info.stac_cube <- function(source,
-                                              items, ...,
-                                              collection = NULL) {
+.source_items_cube.stac_cube <- function(source,
+                                         items, ...,
+                                         collection = NULL) {
 
     # set caller to show in errors
-    .check_set_caller(".source_items_file_info.stac_cube")
+    .check_set_caller(".source_items_cube.stac_cube")
 
-    # start file_info by feature id
-    file_info <- purrr::map_dfr(items$features, function(item) {
-
-        fid <- .source_item_get_fid(source = source,
-                                    item = item,
-                                    collection = collection, ...)
-
-        return(tibble::tibble(fid = fid))
-    })
-
-    # post-condition
-
-    .check_that(
-        nrow(file_info) == length(unique(file_info$fid)),
-        local_msg = "feature id is not unique",
-        msg = "invalid feature id values"
+    # start by tile and items
+    data <- tibble::tibble(
+        tile = .source_items_tile(source = source,
+                                  collection = collection,
+                                  items = items, ...),
+        fid = .source_items_fid(source = source,
+                                collection = collection,
+                                items = items, ...),
+        features = items[["features"]]
     )
 
     # prepare number of workers
@@ -155,9 +132,21 @@
         source = source,
         collection = collection) == "tile") {
 
-        n_workers <- 1
-    } else if (.config_gdalcubes_min_files_for_parallel() >
-               length(items$features)) {
+        # tile by tile
+        data <- data %>%
+            tidyr::nest(items = dplyr::matches(c("fid", "features")))
+
+    } else {
+
+        # item by item
+        data <- data %>%
+            dplyr::transmute(tile = tile,
+                             items = purrr::map2(fid, features, function(x, y) {
+                                 dplyr::tibble(fid = x, features = list(y))
+                             }))
+    }
+
+    if (.config_gdalcubes_min_files_for_parallel() > nrow(data)) {
         n_workers <- 1
         progress <- FALSE
     }
@@ -166,44 +155,62 @@
     .sits_parallel_start(n_workers, log = FALSE)
     on.exit(.sits_parallel_stop(), add = TRUE)
 
-    # do in case of 'tile' strategy
-    if (.source_collection_metadata_search(source = source,
-                                           collection = collection) == "tile") {
+    # do parallel requests
+    tiles <- .sits_parallel_map(seq_len(nrow(data)), function(i) {
 
-        # get first item
-        item <- items$features[[1]]
+        # get tile name
+        tile = data[["tile"]][[i]]
+
+        # get fids
+        fids <- data[["items"]][[i]][["fid"]]
+
+        # get features
+        features <- data[["items"]][[i]][["features"]]
+
+        # post-condition
+        .check_num(length(features), min = 1, msg = "invalid features value")
+
+        # get item
+        item <- features[[1]]
 
         # get file paths
-        paths <- .source_item_get_hrefs(source = source,
-                                        item = item,
-                                        collection = collection, ...)
+        paths = .source_item_get_hrefs(source = source,
+                                       item = item,
+                                       collection = collection, ...)
+
+        # post-condition
+        .check_num(length(paths), min = 1, msg = "invalid href values")
 
         # open band rasters
-        assets <- purrr::map(paths, .raster_open_rast)
+        assets <- tryCatch({
+            purrr::map(paths, .raster_open_rast)
+        }, error = function(e) {
+            return(.sits_parallel_error_retry(e)) # if error occurs, try again
+        })
 
         # get asset info
         asset_info <- purrr::map(assets, function(asset) {
-            res <- .raster_res(asset)
-            bbox <- .raster_bbox(asset)
-            size <- .raster_size(asset)
-            tibble::as_tibble_row(c(res, bbox, size))
+            tibble::as_tibble_row(c(
+                .raster_res(asset),
+                .raster_bbox(asset),
+                .raster_size(asset)))
         })
-    }
 
-    # do parallel requests
-    file_info$meta_data <- .sits_parallel_map(
-        items$features,
-        function(item) {
+        # get crs
+        crs <- .raster_crs(assets[[1]])
+
+        # generate file_info
+        file_info <- purrr::map2_dfr(fids, features, function(fid, item) {
+
+            # get assets name
+            bands <- .source_item_get_bands(source = source,
+                                            item = item,
+                                            collection = collection, ...)
 
             # get date
             date <- .source_item_get_date(source = source,
                                           item = item,
                                           collection = collection, ...)
-
-            # get bands
-            bands <- .source_item_get_bands(source = source,
-                                            item = item,
-                                            collection = collection, ...)
 
             # get file paths
             paths <- .source_item_get_hrefs(source = source,
@@ -211,24 +218,29 @@
                                             collection = collection, ...)
 
             # add cloud cover statistics
-            cloud_cover <- .source_item_get_cc(source = source,
-                                               item = item,
-                                               collection = collection, ...)
+            cloud_cover <- .source_item_get_cloud_cover(source = source,
+                                                        item = item,
+                                                        collection = collection, ...)
 
             # do in case of 'tile' strategy
-            if (.source_collection_metadata_search(source = source,
-                                                   collection = collection) ==
-                "feature") {
+            if (.source_collection_metadata_search(
+                source = source,
+                collection = collection) == "feature") {
 
                 # open band rasters
-                assets <- purrr::map(paths, .raster_open_rast)
+                assets <- tryCatch({
+                    purrr::map(paths, .raster_open_rast)
+                }, error = function(e) {
+                    .sits_parallel_error_retry(e) # if an error occurs, retry
+                })
 
                 # get asset info
                 asset_info <- purrr::map(assets, function(asset) {
-                    res <- .raster_res(asset)
-                    bbox <- .raster_bbox(asset)
-                    size <- .raster_size(asset)
-                    tibble::as_tibble_row(c(res, bbox, size))
+
+                    tibble::as_tibble_row(c(
+                        .raster_res(asset),
+                        .raster_bbox(asset),
+                        .raster_size(asset)))
                 })
             }
 
@@ -240,102 +252,62 @@
 
             .check_chr(bands, len_min = 1, msg = "invalid band value")
 
+            .check_chr(paths, allow_empty = FALSE, len_min = length(bands),
+                       len_max = length(bands),
+                       msg = "invalid path value")
+
             tidyr::unnest(
                 tibble::tibble(
+                    tile = tile,
+                    crs = crs,
+                    fid = fid,
                     date = date,
                     band = bands,
                     asset_info = asset_info,
                     path = paths,
                     cloud_cover = cloud_cover
-                ), cols = c("band", "asset_info", "path", "cloud_cover")
-            )
-        },
-        progress = progress
-    )
+                ), cols = c("band", "asset_info", "path", "cloud_cover"))
+        })
 
-    # arrange
-    file_info <- dplyr::arrange(
-        tidyr::unnest(file_info, cols = "meta_data"),
-        date, fid, band
-    )
+        return(file_info)
 
-    return(file_info)
-}
+    }, progress = progress)
 
-#' @keywords internal
-#' @export
-.source_items_cube.stac_cube <- function(source,
-                                         collection,
-                                         items,
-                                         file_info, ...) {
+    # bind cube rows
+    cube <- dplyr::bind_rows(tiles) %>%
+        tidyr::nest(file_info = -dplyr::matches(c("tile", "crs"))) %>%
+        slider::slide_dfr(function(tile) {
 
-    # set caller to show in errors
-    .check_set_caller(".source_items_cube.stac_cube")
+            # get file_info
+            file_info <- tile[["file_info"]][[1]]
 
-    bbox <- .source_items_tile_get_bbox(source = source,
-                                        tile_items = items,
-                                        file_info = file_info,
-                                        collection = collection, ...)
+            # arrange file_info
+            file_info <- dplyr::arrange(file_info, .data[["date"]],
+                                        .data[["fid"]], .data[["band"]])
 
-    # post-conditions
-    .check_chr_contains(
-        names(bbox),
-        contains = c("xmin", "ymin", "xmax", "ymax"),
-        msg = "invalid bbox value"
-    )
+            # get tile bbox
+            bbox <- .source_tile_get_bbox(source = source,
+                                          file_info = file_info,
+                                          collection = collection, ...)
 
-    .check_num(bbox, len_min = 4, len_max = 4, is_named = TRUE,
-               msg = "invalid bbox value")
+            # create cube row
+            tile <- .cube_create(
+                source     = source,
+                collection = collection,
+                satellite  = .source_collection_satellite(source, collection),
+                sensor     = .source_collection_sensor(source, collection),
+                tile       = tile[["tile"]],
+                xmin       = bbox[["xmin"]],
+                xmax       = bbox[["xmax"]],
+                ymin       = bbox[["ymin"]],
+                ymax       = bbox[["ymax"]],
+                crs        = tile[["crs"]],
+                file_info  = file_info)
 
-    # tile name
-    tile_name <- .source_items_tile_get_name(source = source,
-                                             tile_items = items,
-                                             collection = collection, ...)
+            return(tile)
+        })
 
-    # post-conditions
-    .check_chr(tile_name, allow_empty = FALSE, len_min = 1, len_max = 1,
-               msg = "invalid tile name value")
-
-    crs <- .source_items_tile_get_crs(source = source,
-                                      tile_items = items,
-                                      collection = collection, ...)
-
-    # post-conditions
-    .check_that(
-        x = is.character(crs) || is.numeric(crs),
-        local_msg = "name must be a character or numeric value",
-        msg = "invalid CRS value"
-    )
-
-    tile <- .cube_create(
-        source     = source[[1]],
-        collection = collection[[1]],
-        satellite  = .source_collection_satellite(source, collection),
-        sensor     = .source_collection_sensor(source, collection),
-        tile       = tile_name[[1]],
-        xmin       = bbox[["xmin"]],
-        xmax       = bbox[["xmax"]],
-        ymin       = bbox[["ymin"]],
-        ymax       = bbox[["ymax"]],
-        crs        = crs[[1]],
-        file_info  = file_info)
-
-    return(tile)
-}
-
-#' @keywords internal
-#' @export
-.source_item_get_fid.stac_cube <- function(source,
-                                           item, ...,
-                                           collection = NULL) {
-
-    fid <- item[["id"]]
-
-    # post-conditions
-    .check_chr(fid, allow_empty = FALSE, len_min = 1, len_max = 1,
-               msg = "invalid feature id value")
-
-    return(fid)
+    return(cube)
 }
 
 #' @keywords internal
@@ -368,9 +340,9 @@
 
 #' @keywords internal
 #' @export
-.source_item_get_cc.stac_cube <- function(source, ...,
-                                          item,
-                                          collection = NULL) {
+.source_item_get_cloud_cover.stac_cube <- function(source, ...,
+                                                   item,
+                                                   collection = NULL) {
 
     item[["properties"]][["eo:cloud_cover"]]
 }
@@ -385,18 +357,17 @@
 
 #' @rdname source_cube
 #'
-#' @description \code{.source_items_tile_get_bbox()} retrieves the bounding
+#' @description \code{.source_tile_get_bbox()} retrieves the bounding
 #' box from items of a tile.
 #'
-#' @return \code{.source_items_tile_get_bbox()} returns a \code{list}
+#' @return \code{.source_tile_get_bbox()} returns a \code{list}
 #' vector with 4 elements (xmin, ymin, xmax, ymax).
 #'
-.source_items_tile_get_bbox.stac_cube <- function(source,
-                                                  tile_items,
-                                                  file_info, ...,
-                                                  collection = NULL) {
+.source_tile_get_bbox.stac_cube <- function(source,
+                                            file_info, ...,
+                                            collection = NULL) {
 
-    .check_set_caller(".source_items_tile_get_bbox.stac_cube")
+    .check_set_caller(".source_tile_get_bbox.stac_cube")
 
     # pre-condition
     .check_num(nrow(file_info), min = 1, msg = "invalid 'file_info' value")
@@ -424,9 +395,15 @@
 
 #' @keywords internal
 #' @export
-.source_items_tile_get_name.stac_cube <- function(source,
-                                                  tile_items, ...,
-                                                  collection = NULL) {
+.source_items_fid.stac_cube <- function(source,
+                                        items, ...,
+                                        collection = NULL) {
 
-    tile_items[["features"]][[1]][[c("properties", "tile")]]
+    fid <- rstac::items_reap(items, field = "id")
+
+    # post-conditions
+    .check_length(unique(fid), len_min = length(fid), len_max = length(fid),
+                  msg = "invalid feature id value")
+
+    return(fid)
 }
