@@ -267,19 +267,14 @@ test_that("Merging cubes", {
 
     data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
 
-    ndvi_cube <- tryCatch({
-        sits_cube(
+    ndvi_cube <- sits_cube(
             source = "BDC",
-            bands = "NDVI",
+            band = "NDVI",
             collection = "MOD13Q1-6",
             data_dir = data_dir,
             delim = "_",
             parse_info = c("X1", "X2", "tile", "band", "date")
         )
-    },
-    error = function(e) {
-        return(NULL)
-    })
 
     testthat::skip_if(purrr::is_null(ndvi_cube),
                       "LOCAL cube was not found")

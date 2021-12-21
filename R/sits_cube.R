@@ -270,18 +270,16 @@ sits_cube.stac_cube <- function(source,
         message("name parameter is no longer required")
     }
     # deal with wrong parameter "band"
-    call_names <- deparse(sys.call())
-    if (grepl("band", call_names) && missing(bands)) {
-        bands <- band
+    params <- as.list(match.call())
+    if (!is.null(params$band)) {
+        bands <- params$band
         message("please use bands instead of band as parameter")
     }
     # deal with wrong parameter "tile"
-    if (grepl("tile", call_names) && missing(tiles)) {
-        tiles <- tile
+    if (!is.null(params$tile)) {
+        tiles <- params$tile
         message("please use tiles instead of tile as parameter")
     }
-
-
     # source is upper case
     source <- toupper(source)
 
@@ -360,6 +358,17 @@ sits_cube.local_cube <- function(source,
     # name parameter has been deprecated
     if (!purrr::is_null(name)) {
         message("name parameter is no longer required")
+    }
+    # deal with wrong parameter "band"
+    params <- as.list(match.call())
+    if (!is.null(params$band)) {
+        bands <- params$band
+        message("please use bands instead of band as parameter")
+    }
+    # deal with wrong parameter "tile"
+    if (!is.null(params$tile)) {
+        tiles <- params$tile
+        message("please use tiles instead of tile as parameter")
     }
     # precondition - check source and collection
     .source_check(source = source)

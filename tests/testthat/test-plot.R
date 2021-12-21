@@ -1,10 +1,3 @@
-# # verifies if proto package is installed
-# if (!requireNamespace("proto", quietly = TRUE)) {
-#     stop("proto required for this function to work.
-#              Please install it.", call. = FALSE)
-#     library(proto)
-# }
-# library(proto)
 test_that("Plot Time Series and Images", {
 
     cerrado_ndvi <- sits_select(cerrado_2classes, "NDVI")
