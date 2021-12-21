@@ -4,7 +4,7 @@
 \alias{plot.uncertainty_cube}
 \title{Plot uncertainty cubes}
 \usage{
-\method{plot}{uncertainty_cube}(x, y, ..., tile = 1, n_colors = 20, palette = "Blues")
+\method{plot}{uncertainty_cube}(x, y, ..., tile = 1, n_breaks = 11, breaks = "pretty", palette = "Blues")
 }
 \arguments{
 \item{x}{object of class "probs_image"}
@@ -15,7 +15,9 @@
 
 \item{tile}{tile number to be plotted}
 
-\item{n_colors}{number of colors to plot}
+\item{n_breaks}{number of breaks to plot}
+
+\item{breaks}{type of class intervals}
 
 \item{palette}{hcl palette used for visualisation}
 }
@@ -24,6 +26,9 @@ The plot itself.
 }
 \description{
 plots a probability cube using stars
+}
+\note{
+
 }
 \author{
 Gilberto Camara, \email{gilberto.camara@inpe.br}

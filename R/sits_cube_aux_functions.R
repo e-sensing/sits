@@ -281,32 +281,7 @@ NULL
     return(ov)
 }
 
-#' @rdname cube_functions
-.cube_band_resolution <- function(cube, band) {
 
-    # pre-condition
-    .check_chr(band, len_min = 1, len_max = 1,
-               msg = "invalid 'band' parameter")
-
-    .check_chr_within(band,
-                      within = .cube_bands(cube = cube, add_cloud = TRUE),
-                      discriminator = "one_of",
-                      case_sensitive = FALSE,
-                      msg = "invalid 'band' parameter")
-
-    # bands names are upper case
-    band <- toupper(band)
-
-    res_band <- .config_get(key = c("sources", .cube_source(cube = cube),
-                                    "collections", .cube_collection(cube = cube),
-                                    "bands", band, "resolution"))
-
-    # post-condition
-    .check_num(res_band, min = 0, allow_zero = FALSE, len_min = 1,
-               msg = "invalid 'resolution' value")
-
-    return(res_band)
-}
 #' @rdname cube_functions
 .cube_check <- function(cube) {
 
@@ -422,26 +397,6 @@ NULL
     # function to test timelines
     all_same <- function(x) length(unique(x)) == 1
     return(all_same(timelines))
-}
-
-#' @rdname cube_functions
-.cube_labels <- function(cube) {
-
-    labs <- unique(cube[["labels"]])
-
-    # post-condition
-    .check_lst(labs, min_len = 1, max_len = 1,
-               is_named = FALSE,
-               msg = "invalid cube 'labels' value")
-
-    labs <- unlist(labs, use.names = FALSE)
-
-    # post-condition
-    .check_chr(labs, allow_na = TRUE, allow_empty = FALSE,
-               len_min = 1, allow_null = TRUE,
-               msg = "invalid cube 'labels' value")
-
-    return(labs)
 }
 #' @title Determine the block spatial parameters of a given cube
 #' @name .cube_params_block
@@ -639,30 +594,6 @@ NULL
 
     return(size)
 }
-#' @rdname cube_functions
-.cube_size_max <- function(cube, ..., bands = NULL) {
-    # get the file information
-    file_info <- .cube_file_info(cube, bands)
-    # get the file resolution
-    res_min <- min(file_info$res)
-
-    # select only files with the smallest resolution
-    file_info <- dplyr::filter(file_info, res == res_min)
-
-    # obtain the size by querying the raster data
-    r_obj <- .raster_open_rast(file_info$path[[1]])
-
-    size <- c(
-        nrows = .raster_nrows(r_obj),
-        ncols = .raster_ncols(r_obj)
-    )
-    .check_num(size[["nrows"]], min = 1, allow_null = FALSE,
-               is_integer = TRUE, msg = "Invalid number of rows")
-    .check_num(size[["ncols"]], min = 1, allow_null = FALSE,
-               is_integer = TRUE, msg = "Invalid number of columns")
-
-    return(size)
-}
 #' @title Get cube source
 #' @name .cube_source
 #' @keywords internal
@@ -683,36 +614,6 @@ NULL
                   msg = "cube has different sources.")
 
     return(src)
-}
-
-
-#' @rdname cube_functions
-.cube_timeline <- function(cube) {
-
-    timeline <- unique(cube[["file_info"]][["date"]])
-
-    # post-condition
-    # check if all tiles have same timeline
-    .check_lst(timeline, min_len = 1, max_len = 1,
-               msg = "invalid cube timeline values")
-
-    # simplify
-    timeline <- unlist(timeline)
-
-    return(timeline)
-}
-
-#' @rdname cube_functions
-.cube_tiles <- function(cube) {
-
-    tiles <- unique(cube[["tile"]])
-
-    # post-condition
-    .check_chr(tiles, allow_empty = FALSE, len_min = nrow(cube),
-               len_max = nrow(cube),
-               msg = "invalid cube 'tile' values")
-
-    return(tiles)
 }
 
 #' @rdname cube_functions
@@ -763,22 +664,6 @@ NULL
                msg = "invalid 'fields' parameter")
 
     return(result)
-}
-
-#' @rdname cube_functions
-.cube_tile_crs <- function(cube, ...,
-                           tile = 1) {
-
-    crs <- .cube_tile_get_fields(cube = cube,  tile = tile, fields = "crs")
-
-    # simplify
-    crs <- unlist(res, use.names = FALSE)
-
-    # post-condition
-    .check_chr(crs, allow_empty = FALSE, len_min = 1, len_max = 1,
-               "invalid tile 'crs' value")
-
-    return(crs)
 }
 
 #' @rdname cube_functions
