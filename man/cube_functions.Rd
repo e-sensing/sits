@@ -9,21 +9,15 @@
 \alias{.cube_band_maximum_value}
 \alias{.cube_band_scale_factor}
 \alias{.cube_band_offset_value}
-\alias{.cube_band_resolution}
 \alias{.cube_check}
 \alias{.cube_collection}
 \alias{.cube_has_cloud}
 \alias{.cube_is_regular}
-\alias{.cube_labels}
 \alias{.cube_resolution}
 \alias{.cube_s3class}
 \alias{.cube_size}
-\alias{.cube_size_max}
-\alias{.cube_timeline}
-\alias{.cube_tiles}
 \alias{.cube_tile_check}
 \alias{.cube_tile_get_fields}
-\alias{.cube_tile_crs}
 \alias{.cube_tile_bbox}
 \title{Auxiliary functions for sits cubes}
 \usage{
@@ -41,8 +35,6 @@
 
 .cube_band_offset_value(cube, band)
 
-.cube_band_resolution(cube, band)
-
 .cube_check(cube)
 
 .cube_collection(cube)
@@ -51,25 +43,15 @@
 
 .cube_is_regular(cube)
 
-.cube_labels(cube)
-
 .cube_resolution(cube, ..., bands = NULL)
 
 .cube_s3class(cube)
 
 .cube_size(cube, ..., bands = NULL)
 
-.cube_size_max(cube, ..., bands = NULL)
-
-.cube_timeline(cube)
-
-.cube_tiles(cube)
-
 .cube_tile_check(cube, tile)
 
 .cube_tile_get_fields(cube, tile, fields = NULL)
-
-.cube_tile_crs(cube, ..., tile = 1)
 
 .cube_tile_bbox(cube, ..., tile = 1)
 }

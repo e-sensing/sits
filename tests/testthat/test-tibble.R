@@ -37,7 +37,7 @@ test_that("Bands", {
 
 test_that("Bbox", {
     bbox <- sits_bbox(samples_modis_4bands)
-    expect_true(all(names(bbox_ll) %in%
+    expect_true(all(names(bbox) %in%
                         c("lon_min", "lat_min", "lon_max", "lat_max")))
     expect_true(bbox["lon_min"] < -60.0)
 
@@ -99,9 +99,11 @@ test_that("Values", {
     expect_equal(sum(values$NDVI[, "NDVI"]), 13.6291, tolerance = 0.001)
 })
 
-test_that("Ops Compute", {
-    ndwi <- sits:::.sits_ops_compute(samples_modis_4bands,
-                              NDWI = (1.5) * (NIR - MIR) / (NIR + MIR))
+test_that("Apply", {
+    samples_modis_index <- sits_apply(samples_modis_4bands,
+                                      NDWI = (1.5) * (NIR - MIR) / (NIR + MIR))
 
-    expect_true("NDWI" %in% names(sits_time_series(ndwi)))
+    expect_true("NDWI" %in% sits_bands(samples_modis_index))
+
+
 })

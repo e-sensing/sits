@@ -113,7 +113,6 @@ Collate:
     'sits_machine_learning.R'
     'sits_merge.R'
     'sits_mlp.R'
-    'sits_ops_bands.R'
     'sits_parallel.R'
     'sits_patterns.R'
     'sits_pipe.R'

@@ -243,7 +243,7 @@ plot.raster_cube <- function(x, ...,
     }
 
 
-    return(invisible(rgb))
+    return(invisible(r_obj))
 }
 #' @title  Plot probability cubes
 #' @name   plot.probs_cube
@@ -317,24 +317,47 @@ plot.probs_cube <- function(x, y, ...,
 #' @param  y             ignored
 #' @param  ...           further specifications for \link{plot}.
 #' @param tile           tile number to be plotted
-#' @param n_colors       number of colors to plot
+#' @param n_breaks       number of breaks to plot
+#' @param breaks         type of class intervals
 #' @param palette        hcl palette used for visualisation
 #'
 #' @return               The plot itself.
+#'
+#' @note
+#'
+#' \itemize{Possible class intervals
+#'  \item{"sd":} {intervals based on the average and standard deviation.}
+#'  \item{"equal": } {divides the range of the variable into n parts.}
+#'  \item{"pretty": } {number of breaks likely to be legible.}
+#'  \item{"quantile": } {quantile breaks}
+#'  \item{"kmeans" :} {uses kmeans to generate the breaks.}
+#'  \item{"hclust" :} {breaks defined by hierarchical clustering.}
+#'  \item{"bclust" :} {breaks defined by bagged clustering.}
+#'  \item{"fisher" :} {method proposed by Fischer (1958).}
+#'  \item{"jenks" :} {method proposed by Jenks.}
+#'  \item{"dpih" :} {based on the bin width of a histogram.}
+#'  \item{"headtails" :} {algorithm proposed by Bin Jiang (2013)}
 #'
 #' @export
 #'
 plot.uncertainty_cube <- function(x, y, ...,
                                   tile = 1,
-                                  n_colors = 20,
+                                  n_breaks = 11,
+                                  breaks = "pretty",
                                   palette = "Blues") {
     stopifnot(missing(y))
     # verifies if stars package is installed
     if (!requireNamespace("stars", quietly = TRUE)) {
         stop("Please install package stars.", call. = FALSE)
     }
-    breaks = "quantile"
-    n_breaks <- n_colors + 1
+    # check class interval
+    .check_chr_within(
+        x = breaks,
+        within = .config_get("class_intervals"),
+        discriminator = "any_of",
+        msg = "invalid class interval"
+    )
+    n_colors <- n_breaks - 1
     # define the output color palette
     col <- grDevices::hcl.colors(n = n_colors, palette = palette,
                                  alpha = 1, rev = TRUE)
@@ -1026,7 +1049,7 @@ plot.keras_model <- function(x, y, ...) {
                      fill = colors,
                      legend = sits_labels(data)
     )
-    return(invisible(p))
+    return(invisible(dend))
 }
 
 

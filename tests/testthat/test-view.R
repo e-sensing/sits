@@ -9,10 +9,12 @@ test_that("View", {
     modis_cube <- sits_cube(
         source = "BDC",
         collection = "MOD13Q1-6",
-        band = "NDVI",
+        bands = "NDVI",
         data_dir = data_dir,
         parse_info = c("X1", "X2", "tile", "band", "date")
     )
+
+    timeline <- sits_timeline(modis_cube)
 
     # plot the data cube
     v2 <- sits_view(modis_cube, red = "EVI", green = "NDVI", blue = "EVI", time = 1)
@@ -37,6 +39,28 @@ test_that("View", {
     expect_true(grepl("EPSG3857", v3$x$options$crs$crsClass))
     expect_true(all(v$x$calls[[6]]$args[[1]]$labels %in% c("Cerrado", "Pasture", "Forest", "Soy_Corn")))
 
+
+    v4 <- sits_view(modis_cube, red = "EVI", green = "NDVI", blue = "EVI",
+                    class_cube = modis_label,
+                    time = 1)
+
+    expect_true(grepl("EPSG3857", v4$x$options$crs$crsClass))
+    expect_equal(v4$x$calls[[1]]$method, "addProviderTiles")
+
     expect_true(all(file.remove(unlist(modis_probs$file_info[[1]]$path))))
     expect_true(all(file.remove(unlist(modis_label$file_info[[1]]$path))))
+
+    modis_bdc <- sits_cube(
+        source = "BDC",
+        collection = "MOD13Q1-6",
+        tiles = "012010",
+        bands = c("NDVI", "EVI"),
+        start_date = timeline[1],
+        end_date = timeline[length(timeline)]
+    )
+    v5 <- sits_view(modis_bdc,
+                    red = "EVI",
+                    green = "NDVI",
+                    blue = "EVI",
+                    time = 1)
 })

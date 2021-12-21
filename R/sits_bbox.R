@@ -86,31 +86,6 @@ sits_bbox.sits_cube <- function(data, wgs84 = FALSE, ...) {
 
     return(bbox)
 }
-
-
-#' @title Find the bounding box for a set of time series
-#' @name .sits_bbox_time_series
-#' @keywords internal
-#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
-#'
-#' @description Given a set of time series, find the bounding box.
-#'
-#' @param data            A tibble with a set of time series
-#' @return A vector the bounding box
-.sits_bbox_time_series <- function(data) {
-    # check if the data is a time series
-    .sits_tibble_test(data)
-    # return the bounding box
-    bbox <- vector(length = 4)
-    names(bbox) <- c("xmin", "xmax", "ymin", "ymax")
-
-    bbox["xmin"] <- min(data$longitude)
-    bbox["xmax"] <- max(data$longitude)
-    bbox["ymin"] <- min(data$latitude)
-    bbox["ymax"] <- max(data$latitude)
-
-    return(bbox)
-}
 #' @title Intersection between a bounding box and a cube
 #' @name .sits_bbox_intersect
 #' @keywords internal
