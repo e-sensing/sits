@@ -471,14 +471,8 @@ test_that("Creating cubes from USGS", {
     file_info <- usgs_cube$file_info[[1]]
     r <- .raster_open_rast(file_info$path[[1]])
 
-<<<<<<< HEAD
     expect_equal(usgs_cube$xmax[[1]], .raster_xmax(r), tolerance = 1)
     expect_equal(usgs_cube$xmin[[1]], .raster_xmin(r), tolerance = 1)
-=======
-    expect_equal(usgs_cube$xmax[[1]], sits:::.raster_xmax(r), tolerance = 1)
-    expect_equal(usgs_cube$xmin[[1]], sits:::.raster_xmin(r), tolerance = 1)
-
->>>>>>> dev
 })
 
 test_that("Creating Sentinel cubes from MSPC", {
