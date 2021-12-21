@@ -79,21 +79,20 @@
 #' @param  sf_region       spatial region of interest (sf_object)
 #' @return                 vector with information on the subimage
 .sits_raster_sub_image_default <- function(cube) {
-    # by default, the sub_image has the same dimension as the main cube
-    sub_image <- vector("integer", length = 8)
-    names(sub_image) <- c(
-        "first_row", "first_col", "nrows", "ncols",
-        "xmin", "ymin", "xmax", "ymax"
-    )
 
-    sub_image["first_row"] <- 1
-    sub_image["first_col"] <- 1
-    sub_image["nrows"] <- .cube_size(cube)["nrows"]
-    sub_image["ncols"] <- .cube_size(cube)["ncols"]
-    sub_image["xmin"] <- cube[1, ]$xmin
-    sub_image["xmax"] <- cube[1, ]$xmax
-    sub_image["ymin"] <- cube[1, ]$ymin
-    sub_image["ymax"] <- cube[1, ]$ymax
+    # by default, the sub_image has the same dimension as the main cube
+
+    size <- .cube_size(cube)
+    bbox <- .cube_tile_bbox(cube)
+
+    sub_image <- c(first_row = 1,
+                   first_col = 1,
+                   nrows = size[["nrows"]],
+                   ncols = size[["ncols"]],
+                   xmin = bbox[["xmin"]],
+                   xmax = bbox[["xmax"]],
+                   ymin = bbox[["ymin"]],
+                   ymax = bbox[["ymax"]])
 
     return(sub_image)
 }
@@ -109,60 +108,89 @@
 #'                       first col, nrows, ncols
 #'
 .sits_raster_sub_image_from_bbox <- function(bbox, cube) {
-    si <- vector("double", length = 8)
-    names(si) <- c("first_row", "first_col", "nrows", "ncols",
-                   "xmin", "xmax", "ymin", "ymax")
 
-    si[c("xmin", "xmax", "ymin", "ymax")] <-
-        bbox[c("xmin", "xmax", "ymin", "ymax")]
+    # pre-conditions
+    .check_num(bbox[["xmin"]], max = bbox[["xmax"]],
+               msg = "invalid bbox value")
 
-    # get the resolution, ncols and nrows
-    # throw an error if resolution and size are not the same
+    .check_num(bbox[["ymin"]], max = bbox[["ymax"]],
+               msg = "invalid bbox value")
+
+    .check_num(bbox[["xmin"]], min = cube[["xmin"]], max = cube[["xmax"]],
+               msg = "bbox value is outside the cube")
+
+    .check_num(bbox[["xmax"]], min = cube[["xmin"]], max = cube[["xmax"]],
+               msg = "bbox value is outside the cube")
+
+    .check_num(bbox[["ymin"]], min = cube[["ymin"]], max = cube[["ymax"]],
+               msg = "bbox value is outside the cube")
+
+    .check_num(bbox[["ymax"]], min = cube[["ymin"]], max = cube[["ymax"]],
+               msg = "bbox value is outside the cube")
+
+    # get the resolution
+    # throw an error if resolution are not the same
     # for all bands of the cube
     res   <- .cube_resolution(cube)
+
+    # get ncols and nrows
+    # throw an error if size are not the same
     size  <- .cube_size(cube)
-    ncols <- size[["ncols"]]
-    nrows <- size[["nrows"]]
+
+    # set initial values
+    si <- c(first_row = 1, first_col = 1,
+            nrows = size[["nrows"]], ncols = size[["ncols"]],
+            xmin = cube[["xmin"]], xmax = cube[["xmax"]],
+            ymin = cube[["ymin"]], ymax = cube[["ymax"]])
 
     # find the first row (remember that rows runs from top to bottom and
     # Y coordinates increase from bottom to top)
-    if (bbox["ymax"]  == cube$ymax)
-        si["first_row"] <- 1
-    else {
-        si["first_row"] <- unname(
-            floor((cube$ymax - bbox["ymax"]) / res)) + 1
-        # adjust to fit bbox in cube resolution
-        si["ymax"] <- cube$ymax - res * (si["first_row"] - 1)
-    }
+    si[["first_row"]] <- unname(
+        floor((cube[["ymax"]] - bbox[["ymax"]]) / res[["yres"]])) + 1
+
+    # adjust to fit bbox in cube resolution
+    si[["ymax"]] <- cube[["ymax"]] - res[["yres"]] * (si[["first_row"]] - 1)
+
     # find the first col (remember that rows runs from left to right and
     # X coordinates increase from left to right)
-    if (bbox["xmin"] == cube$xmin)
-        si["first_col"] <- 1
-    else {
-        si["first_col"] <- unname(
-            floor((bbox["xmin"] - cube$xmin) / res)
-        ) + 1
-        # adjust to fit bbox in cube resolution
-        si["xmin"] <- cube$xmin + res * (si["first_col"] - 1)
-    }
+    si[["first_col"]] <- unname(
+        floor((bbox[["xmin"]] - cube[["xmin"]]) / res[["xres"]])) + 1
+
+    # adjust to fit bbox in cube resolution
+    si[["xmin"]] <- cube[["xmin"]] + res[["xres"]] * (si[["first_col"]] - 1)
 
     # find the number of rows (remember that rows runs from top to bottom and
     # Y coordinates increase from bottom to top)
-    if (bbox["ymin"] == cube$ymin)
-        si["nrows"] <- nrows - unname(si["first_row"]) + 1
-    else {
-        si["nrows"] <- unname(floor((bbox["ymax"] - bbox["ymin"]) / res)) + 1
-        # adjust to fit bbox in cube resolution
-        si["ymin"] <- si["ymax"] - res * si["nrows"]
-    }
+    si[["nrows"]] <- unname(
+        floor((bbox[["ymax"]] - bbox[["ymin"]]) / res[["yres"]])) + 1
 
-    if (si["xmax"] == cube$xmax)
-        si["ncols"] <- ncols - unname(si["first_col"]) + 1
-    else {
-        si["ncols"] <- unname(floor((bbox["xmax"] - bbox["xmin"]) / res)) + 1
-        # adjust to fit bbox in cube resolution
-        si["xmax"] <- si["xmin"] + res * si["ncols"]
-    }
+    # adjust to fit bbox in cube resolution
+    si[["ymin"]] <- si[["ymax"]] - res[["yres"]] * si[["nrows"]]
+
+    si[["ncols"]] <- unname(
+        floor((bbox[["xmax"]] - bbox[["xmin"]]) / res[["xres"]])) + 1
+
+    # adjust to fit bbox in cube resolution
+    si[["xmax"]] <- si[["xmin"]] + res[["xres"]] * si[["ncols"]]
+
+    # pre-conditions
+    .check_num(si[["xmin"]], max = si[["xmax"]],
+               msg = "invalid subimage value")
+
+    .check_num(si[["ymin"]], max = si[["ymax"]],
+               msg = "invalid subimage value")
+
+    .check_num(si[["xmin"]], min = cube[["xmin"]], max = cube[["xmax"]],
+               msg = "invalid subimage value")
+
+    .check_num(si[["xmax"]], min = cube[["xmin"]], max = cube[["xmax"]],
+               msg = "invalid subimage value")
+
+    .check_num(si[["ymin"]], min = cube[["ymin"]], max = cube[["ymax"]],
+               msg = "invalid subimage value")
+
+    .check_num(si[["ymax"]], min = cube[["ymin"]], max = cube[["ymax"]],
+               msg = "invalid subimage value")
 
     return(si)
 }

@@ -578,7 +578,7 @@ sits_timeline.classified_image <- function(data) {
         # check if some format was not guessed
         .check_that(
             x = length(guessed_format) == length(tile_date_band$date),
-            msg = "Invalid date format in some file"
+            msg = "invalid date format in some file"
         )
 
         # convert to date
@@ -590,7 +590,7 @@ sits_timeline.classified_image <- function(data) {
     # check if there are NAs values
     .check_that(
         x = all(!is.na(converted_date)),
-        msg = "Invalid date format in file"
+        msg = "invalid date format in file"
     )
 
     tile_date_band$date <- converted_date

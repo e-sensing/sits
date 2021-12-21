@@ -13,9 +13,14 @@
 \alias{.cube_collection}
 \alias{.cube_has_cloud}
 \alias{.cube_is_regular}
+\alias{.cube_labels}
 \alias{.cube_resolution}
 \alias{.cube_s3class}
 \alias{.cube_size}
+\alias{.cube_timeline}
+\alias{.cube_start_date}
+\alias{.cube_end_date}
+\alias{.cube_tiles}
 \alias{.cube_tile_check}
 \alias{.cube_tile_get_fields}
 \alias{.cube_tile_bbox}
@@ -43,11 +48,21 @@
 
 .cube_is_regular(cube)
 
+.cube_labels(cube)
+
 .cube_resolution(cube, ..., bands = NULL)
 
 .cube_s3class(cube)
 
 .cube_size(cube, ..., bands = NULL)
+
+.cube_timeline(cube)
+
+.cube_start_date(cube)
+
+.cube_end_date(cube)
+
+.cube_tiles(cube)
 
 .cube_tile_check(cube, tile)
 

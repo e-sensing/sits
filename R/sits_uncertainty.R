@@ -105,12 +105,18 @@ sits_uncertainty.entropy <- function(cube, type = "entropy", ...,
     cube_uncert <- slider::slide_dfr(cube, function(row) {
 
         # create metadata for raster cube
-        row_uncert <- .cube_probs_label(
+        row_uncert <- .cube_derived_create(
             cube       = row,
-            ext        = "uncert",
+            cube_class = "uncertainty_cube",
+            band_name  = "entropy",
+            labels     = .cube_labels(row),
+            start_date = row$file_info[[1]]$start_date,
+            end_date   = row$file_info[[1]]$end_date,
+            bbox       = .cube_tile_bbox(row),
             output_dir = output_dir,
             version    = version
         )
+
 
         .sits_smooth_map_layer(
             cube = row,

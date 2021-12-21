@@ -7,6 +7,7 @@
 .gc_new_cube(
   tile,
   cv,
+  roi,
   fill_method,
   img_col,
   path_db,
@@ -20,6 +21,8 @@
 \item{tile}{A data cube tile}
 
 \item{cv}{A \code{list} 'cube_view' with values from cube.}
+
+\item{roi}{A region of interest.}
 
 \item{fill_method}{A \code{character} indicating which interpolation method
 will be applied. Options: \code{near} for nearest neighbor; \code{linear}

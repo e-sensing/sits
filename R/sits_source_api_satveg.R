@@ -1,6 +1,7 @@
 #' @keywords internal
 #' @export
-.source_collection_access_test.satveg_cube <- function(source, ..., collection) {
+.source_collection_access_test.satveg_cube <- function(source,
+                                                       collection, ...) {
 
     url <- .config_get(key = c("sources", source, "url_test"))
 
@@ -15,7 +16,7 @@
 
 #' @keywords internal
 #' @export
-.source_cube.satveg_cube <- function(source, ..., collection) {
+.source_cube.satveg_cube <- function(source, collection, ...) {
 
     # get the bands
     bands <- .source_bands(source = source, collection = collection)

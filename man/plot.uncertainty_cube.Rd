@@ -28,7 +28,19 @@ The plot itself.
 plots a probability cube using stars
 }
 \note{
-
+\itemize{Possible class intervals
+ \item{"sd":} {intervals based on the average and standard deviation.}
+ \item{"equal": } {divides the range of the variable into n parts.}
+ \item{"pretty": } {number of breaks likely to be legible.}
+ \item{"quantile": } {quantile breaks}
+ \item{"kmeans" :} {uses kmeans to generate the breaks.}
+ \item{"hclust" :} {breaks defined by hierarchical clustering.}
+ \item{"bclust" :} {breaks defined by bagged clustering.}
+ \item{"fisher" :} {method proposed by Fischer (1958).}
+ \item{"jenks" :} {method proposed by Jenks.}
+ \item{"dpih" :} {based on the bin width of a histogram.}
+ \item{"headtails" :} {algorithm proposed by Bin Jiang (2013)}
+ }
 }
 \author{
 Gilberto Camara, \email{gilberto.camara@inpe.br}

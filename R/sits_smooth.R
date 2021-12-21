@@ -223,9 +223,14 @@ sits_smooth.bayes <- function(cube, type = "bayes", ...,
     cube_bayes <- slider::slide_dfr(cube, function(row) {
 
         # create metadata for raster cube
-        row_bayes <- .cube_probs_label(
+        row_bayes <- .cube_derived_create(
             cube       = row,
-            ext        = "probs_bayes",
+            cube_class = "probs_cube",
+            band_name  = "probs_bayes",
+            labels     = .cube_labels(row),
+            start_date = row$file_info[[1]]$start_date,
+            end_date   = row$file_info[[1]]$end_date,
+            bbox       = .cube_tile_bbox(row),
             output_dir = output_dir,
             version    = version
         )
@@ -339,9 +344,14 @@ sits_smooth.gaussian <- function(cube, type = "gaussian", ...,
     cube_gauss <- slider::slide_dfr(cube, function(row) {
 
         # create metadata for Gauss smoothed raster cube
-        row_gauss <- .cube_probs_label(
+        row_gauss <- .cube_derived_create(
             cube       = row,
-            ext        = "probs_gauss",
+            cube_class = "probs_cube",
+            band_name  = "probs_gauss",
+            labels     = .cube_labels(row),
+            start_date = row$file_info[[1]]$start_date,
+            end_date   = row$file_info[[1]]$end_date,
+            bbox       = .cube_tile_bbox(row),
             output_dir = output_dir,
             version    = version
         )
@@ -459,9 +469,14 @@ sits_smooth.bilateral <- function(cube,
     cube_bilat <- slider::slide_dfr(cube, function(row) {
 
         # create metadata for bilateral smoothed raster cube
-        row_bilat <- .cube_probs_label(
+        row_bilat <- .cube_derived_create(
             cube       = row,
-            ext        = "probs_bilat",
+            cube_class = "probs_cube",
+            band_name  = "probs_bilat",
+            labels     = .cube_labels(row),
+            start_date = row$file_info[[1]]$start_date,
+            end_date   = row$file_info[[1]]$end_date,
+            bbox       = .cube_tile_bbox(row),
             output_dir = output_dir,
             version    = version
         )

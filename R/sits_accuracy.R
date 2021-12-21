@@ -346,7 +346,7 @@ sits_accuracy.classified_image <- function(data, ..., validation_csv) {
         msg = "not a classified cube")
 
     if (any(dim(error_matrix) == 0)) {
-        stop("Invalid dimensions in error matrix.", call. = FALSE)
+        stop("invalid dimensions in error matrix.", call. = FALSE)
     }
     if (length(unique(dim(error_matrix))) != 1) {
         stop("The error matrix is not square.", call. = FALSE)
@@ -372,7 +372,7 @@ sits_accuracy.classified_image <- function(data, ..., validation_csv) {
     res <- .cube_resolution(cube)
 
     # convert the area to hectares
-    area <- area * res * res / 10000
+    area <- area * prod(res) / 10000
 
     #
     weight <- area / sum(area)

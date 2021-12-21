@@ -72,6 +72,9 @@ valid_raster_data_types : ["INT1U", "INT2U", "INT2S", "INT4U",
 # deep learning activation methods
 dl_activation_methods : ["relu", "elu", "selu", "sigmoid"]
 
+# metadata search strategy
+metadata_search_strategies : ["tile", "feature"]
+
 # class interval methods for plotting
 class_intervals: ["fixed", "sd", "equal", "pretty", "quantile",
                   "kmeans", "hclust", "bclust", "fisher",

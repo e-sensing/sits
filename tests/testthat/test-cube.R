@@ -96,8 +96,8 @@ test_that("Creating a raster stack cube and selecting bands", {
 
     expect_true(all(sits_bands(modis_cube) %in%
                         c("EVI", "NDVI")))
-    rast <- sits:::.raster_open_rast(modis_cube$file_info[[1]]$path[[1]])
-    expect_true(sits:::.raster_nrows(rast) == .cube_size(modis_cube)[["nrows"]])
+    rast <- .raster_open_rast(modis_cube$file_info[[1]]$path[[1]])
+    expect_true(.raster_nrows(rast) == .cube_size(modis_cube)[["nrows"]])
     timeline <- sits_timeline(modis_cube)
     expect_true(timeline[1] == "2013-09-14")
 
@@ -135,7 +135,7 @@ test_that("Creating cubes from BDC", {
     expect_true(all(sits_bands(cbers_cube) %in%
                         c("NDVI", "EVI", "B13", "B14", "B15", "B16", "CLOUD")))
     bbox <- sits_bbox(cbers_cube)
-    int_bbox <- sits:::.sits_bbox_intersect(bbox, cbers_cube[1, ])
+    int_bbox <- .sits_bbox_intersect(bbox, cbers_cube[1, ])
     expect_true(all(int_bbox == sits_bbox(cbers_cube[1, ])))
 
     timeline <- sits_timeline(cbers_cube)
@@ -355,10 +355,10 @@ test_that("Creating cubes from AWS", {
     expect_error(.cube_resolution(s2_cube))
 
     file_info <- s2_cube$file_info[[1]]
-    r <- sits:::.raster_open_rast(file_info$path[[1]])
+    r <- .raster_open_rast(file_info$path[[1]])
 
-    expect_equal(s2_cube$xmax[[1]], sits:::.raster_xmax(r), tolerance = 1)
-    expect_equal(s2_cube$xmin[[1]], sits:::.raster_xmin(r), tolerance = 1)
+    expect_equal(s2_cube$xmax[[1]], .raster_xmax(r), tolerance = 1)
+    expect_equal(s2_cube$xmin[[1]], .raster_xmin(r), tolerance = 1)
 })
 
 test_that("Creating cubes from AWS Open Data and regularizing them", {
@@ -382,7 +382,7 @@ test_that("Creating cubes from AWS Open Data and regularizing them", {
     expect_error(.cube_size(s2_cube_open))
     expect_error(.cube_resolution(s2_cube_open))
 
-    expect_equal(nrow(.cube_file_info(s2_cube_open)), 12)
+    expect_equal(nrow(.cube_file_info(s2_cube_open)), 14)
     dir_images <-  paste0(tempdir(), "/images/")
     if (!dir.exists(dir_images))
         suppressWarnings(dir.create(dir_images))
@@ -466,15 +466,13 @@ test_that("Creating cubes from USGS", {
 
     expect_true(all(sits_bands(usgs_cube) %in% c("B04", "CLOUD")))
 
-    expect_equal(class(.cube_size(usgs_cube)), "numeric")
-    expect_equal(class(.cube_resolution(usgs_cube)), "integer")
+    expect_equal(class(.cube_resolution(usgs_cube)), "numeric")
 
     file_info <- usgs_cube$file_info[[1]]
-    r <- sits:::.raster_open_rast(file_info$path[[1]])
+    r <- .raster_open_rast(file_info$path[[1]])
 
-    expect_equal(usgs_cube$xmax[[1]], sits:::.raster_xmax(r), tolerance = 1)
-    expect_equal(usgs_cube$xmin[[1]], sits:::.raster_xmin(r), tolerance = 1)
-
+    expect_equal(usgs_cube$xmax[[1]], .raster_xmax(r), tolerance = 1)
+    expect_equal(usgs_cube$xmin[[1]], .raster_xmin(r), tolerance = 1)
 })
 
 test_that("Creating Sentinel cubes from MSPC", {
@@ -499,13 +497,13 @@ test_that("Creating Sentinel cubes from MSPC", {
     expect_true(all(sits_bands(s2_cube) %in% c("B05", "CLOUD")))
 
     expect_equal(class(.cube_size(s2_cube)), "numeric")
-    expect_equal(class(.cube_resolution(s2_cube)), "integer")
+    expect_equal(class(.cube_resolution(s2_cube)), "numeric")
 
     file_info <- s2_cube$file_info[[1]]
-    r <- sits:::.raster_open_rast(file_info$path[[1]])
+    r <- .raster_open_rast(file_info$path[[1]])
 
-    expect_equal(s2_cube$xmax[[1]], sits:::.raster_xmax(r), tolerance = 1)
-    expect_equal(s2_cube$xmin[[1]], sits:::.raster_xmin(r), tolerance = 1)
+    expect_equal(s2_cube$xmax[[1]], .raster_xmax(r), tolerance = 1)
+    expect_equal(s2_cube$xmin[[1]], .raster_xmin(r), tolerance = 1)
 })
 
 test_that("Creating Landsat cubes from MSPC", {
@@ -525,14 +523,14 @@ test_that("Creating Landsat cubes from MSPC", {
 
     expect_true(all(sits_bands(l8_cube) %in% c("B03", "CLOUD")))
 
-    expect_equal(class(.cube_size(l8_cube)), "numeric")
-    expect_equal(class(.cube_resolution(l8_cube)), "integer")
+    # expect_equal(class(.cube_size(l8_cube)), "numeric")
+    expect_equal(class(.cube_resolution(l8_cube)), "numeric")
 
     file_info <- l8_cube$file_info[[1]]
-    r <- sits:::.raster_open_rast(file_info$path[[1]])
+    r <- .raster_open_rast(file_info$path[[1]])
 
-    expect_equal(l8_cube$xmax[[1]], sits:::.raster_xmax(r), tolerance = 1)
-    expect_equal(l8_cube$xmin[[1]], sits:::.raster_xmin(r), tolerance = 1)
+    expect_equal(l8_cube$xmax[[1]], .raster_xmax(r), tolerance = 1)
+    expect_equal(l8_cube$xmin[[1]], .raster_xmin(r), tolerance = 1)
 })
 
 test_that("Creating a raster stack cube with BDC band names", {

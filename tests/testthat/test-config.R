@@ -263,6 +263,14 @@ test_that("Configs AWS", {
         "invalid names for 'zzz' key"
     )
 
+    .source_collection_access_vars_set(source = "AWS",
+                                       collection = "SENTINEL-S2-L2A")
+
+    expect_equal(
+        Sys.getenv("AWS_DEFAULT_REGION"),
+        "eu-central-1"
+    )
+
     expect_equal(
         .config_get(key = c("sources", "AWS", "collections",
                             "SENTINEL-S2-L2A", "access_vars")),

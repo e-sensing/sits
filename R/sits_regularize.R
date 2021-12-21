@@ -131,11 +131,11 @@ sits_regularize <- function(cube,
     )
 
     # append gdalcubes path
-    path_db <- paste0(output_dir, "/gdalcubes.db")
+    path_db <- tempfile("database_", tmpdir = output_dir, fileext = ".db")
 
     # precondition - is the period valid?
     duration <- lubridate::duration(period)
-    .check_na(duration, msg = "Invalid period. Please see ISO 8601 format.")
+    .check_na(duration, msg = "invalid period, please see ISO 8601 format")
 
     # precondition - is the resolution valid?
     .check_num(x = res,
@@ -187,7 +187,7 @@ sits_regularize <- function(cube,
         min = 1,
         len_min = 1,
         len_max = 1,
-        msg = "invalid 'multicores' parameter."
+        msg = "invalid 'multicores' parameter"
     )
 
     if (!is.null(roi)) {
@@ -201,142 +201,8 @@ sits_regularize <- function(cube,
         cube <- cube[intersects, ]
     }
 
-    # get the interval of intersection in all tiles
-    .get_valid_interval <- function(cube) {
-
-        # start date - maximum of all minimums
-        max_min_date <- do.call(
-            what = max,
-            args = purrr::map(cube[["file_info"]], function(file_info){
-                return(min(file_info[["date"]]))
-            })
-        )
-
-        # end date - minimum of all maximums
-        min_max_date <- do.call(
-            what = min,
-            args = purrr::map(cube[["file_info"]], function(file_info){
-                return(max(file_info[["date"]]))
-            }))
-
-        # check if all timeline of tiles intersects
-        .check_that(
-            x = max_min_date < min_max_date,
-            msg = "the timeline of the cube tiles do not intersect."
-        )
-
-        # finds the length of the timeline
-        tl_length <- max(2, ceiling(
-            lubridate::interval(start = max_min_date,
-                                end = min_max_date) / duration
-        )
-        )
-
-        # timeline dates
-        tl <- duration * (seq_len(tl_length) - 1) + as.Date(max_min_date)
-
-        # the count starts from the second valid day
-        # it is necessary to return one day
-        if (tl[tl_length] >= min_max_date)
-            tl[tl_length] <- tl[tl_length] - 1
-
-        # timeline cube
-        tiles_tl <- suppressWarnings(sits_timeline(cube))
-
-        if (!is.list(tiles_tl))
-            tiles_tl <- list(tiles_tl)
-
-        # checks if the timelines intersect
-        tl_check <- vapply(tiles_tl, function(tile_tl) {
-
-            # at least one image must be in begin and end in timeline interval
-            begin <- any(tile_tl >= tl[1] & tile_tl < tl[2])
-            end <- any(tile_tl >= tl[tl_length - 1] & tile_tl < tl[tl_length])
-
-            return(begin && end)
-        }, logical(1))
-
-        .check_that(x = all(tl_check), msg = "invalid images interval")
-
-        return(list(max_min_date = tl[1], min_max_date = tl[length(tl)]))
-    }
-
-    # adds the bbox for each image in the file_info
-    .add_bbox_fileinfo <- function(cube) {
-
-        # number of requests in parallel
-        n_workers <- .config_gdalcubes_open_connections()
-
-        # progress bar
-        progress <- TRUE
-
-        # adds crs to the file_info that is used in the bbox transformation
-        cube[["file_info"]] <- lapply(seq_along(cube[["file_info"]]), function(i) {
-            cube[["file_info"]][[i]] <- dplyr::mutate(cube[["file_info"]][[i]],
-                                                      crs = cube[i, ][["crs"]])
-
-            cube[["file_info"]][[i]]
-        })
-
-        if (sum(lengths(cube)) < .config_gdalcubes_min_files_for_parallel()) {
-            n_workers <- 1
-            progress <- FALSE
-        }
-
-        cube <- .sits_fast_apply(cube, col = "file_info", fn = function(x) {
-
-            # prepare parallelization
-            .sits_parallel_start(workers = 1, log = FALSE)
-            on.exit(.sits_parallel_stop(), add = TRUE)
-
-            x[["bbox"]] <- .sits_parallel_map(seq_len(nrow(x)), function(i) {
-
-                r_obj <- tryCatch({
-                    .raster_open_rast(x[["path"]][[i]])
-                }, error = function(e) {
-                    return(NULL)
-                })
-
-                if (is.null(r_obj))
-                    return(NULL)
-
-                bbox <- .raster_extent(r_obj)
-
-                bbox <- c(
-                    .sits_proj_to_latlong(x = bbox[["xmin"]],
-                                          y = bbox[["ymin"]],
-                                          crs = x[["crs"]][[i]]),
-                    .sits_proj_to_latlong(x = bbox[["xmax"]],
-                                          y = bbox[["ymax"]],
-                                          crs = x[["crs"]][[i]])
-                )
-
-                names(bbox) <- c("left", "bottom", "right", "top")
-                tibble::as_tibble(lapply(bbox, identity))
-            }, progress = progress, n_retries = 0)
-
-            x
-        })
-
-        cube[["file_info"]] <- lapply(cube[["file_info"]], function(fi) {
-
-            # removing invalid bbox
-            dplyr::group_by(fi, .data[["date"]]) %>%
-                dplyr::mutate(valid_image = all(
-                    vapply(.data[["bbox"]], Negate(is.null), logical(1)))) %>%
-                dplyr::filter(.data[["valid_image"]]) %>%
-                dplyr::ungroup() %>%
-                dplyr::select(-.data[["valid_image"]]) %>%
-                tidyr::unnest(cols = "bbox")
-        })
-
-        cube
-    }
-
-    cube <- .add_bbox_fileinfo(cube)
-
     # timeline of intersection
-    toi <- .get_valid_interval(cube)
+    toi <- .gc_get_valid_interval(cube, period = period)
 
     # matches the start dates of different tiles
     cube[["file_info"]] <- purrr::map(cube[["file_info"]], function(file_info) {
@@ -365,6 +231,7 @@ sits_regularize <- function(cube,
         # create of the aggregate cubes
         gc_tile <- .gc_new_cube(tile = tile,
                                 cv = cv,
+                                roi = roi,
                                 fill_method = fill_method,
                                 img_col = img_col,
                                 path_db = path_db,

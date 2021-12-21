@@ -14,9 +14,6 @@
 #' @param xmax        Spatial extent (xmax).
 #' @param ymax        Spatial extent (ymin).
 #' @param crs         CRS for cube (EPSG code or PROJ4 string).
-#' @param period      A \code{character} with ISO8601 time period for regular
-#'  data cubes produced by \code{gdalcubes}, with number and unit, e.g., "P16D"
-#'  for 16 days. Use "D", "M" and "Y" for days, month and year.
 #' @param file_info   Tibble with information about files
 #'
 #' @return  A tibble containing a data cube
@@ -31,7 +28,6 @@
                          ymin,
                          ymax,
                          crs,
-                         period = NULL,
                          labels = NULL,
                          file_info = NULL) {
 
@@ -49,11 +45,6 @@
         ymax = ymax,
         crs = crs
     )
-
-    # if there are labels, include them
-    if (!purrr::is_null(period)) {
-        cube <- tibble::add_column(cube, period = period)
-    }
 
     # if there are labels, include them
     if (!purrr::is_null(labels)) {
@@ -384,20 +375,50 @@ NULL
 .cube_is_regular <- function(cube){
 
     # check if the resolutions are unique
-    res_cube.lst <- slider::slide(cube, function(row){
-       return(unique(.cube_file_info(row)[["res"]]))
+    res_cube.lst <- slider::slide(cube, function(tile){
+       return(unique(.cube_file_info(tile)[["xres"]]))
     })
+
+    if (length(unique(unlist(res_cube.lst))) != 1)
+        return(FALSE)
+
+    # check if the resolutions are unique
+    res_cube.lst <- slider::slide(cube, function(tile){
+        return(unique(.cube_file_info(tile)[["yres"]]))
+    })
+
     if (length(unique(unlist(res_cube.lst))) != 1)
         return(FALSE)
 
     # check if timelines are unique
-    timelines <- slider::slide(cube, function(row){
-        return(sits_timeline(row))
+    timelines <- slider::slide(cube, function(tile){
+        return(sits_timeline(tile))
     })
+
     # function to test timelines
-    all_same <- function(x) length(unique(x)) == 1
-    return(all_same(timelines))
+    return(length(unique(timelines)) == 1)
 }
+
+#' @rdname cube_functions
+.cube_labels <- function(cube) {
+
+    labs <- unique(cube[["labels"]])
+
+    # post-condition
+    .check_lst(labs, min_len = 1, max_len = 1,
+               is_named = FALSE,
+               msg = "invalid 'labels' value")
+
+    labs <- unlist(labs, use.names = FALSE)
+
+    # post-condition
+    .check_chr(labs, allow_na = TRUE, allow_empty = FALSE,
+               len_min = 1, allow_null = TRUE,
+               msg = "invalid 'labels' value")
+
+    return(labs)
+}
+
 #' @title Determine the block spatial parameters of a given cube
 #' @name .cube_params_block
 #' @keywords internal
@@ -410,14 +431,32 @@ NULL
 #' @return A tibble with the cube parameters
 .cube_params_block <- function(cube, block) {
 
+    size <- .cube_size(cube)
+    nrows <- size[["nrows"]]
+    ncols <- size[["ncols"]]
+
+    # pre-conditions
+    .check_num(block[["first_row"]], min = 1, max = nrows,
+               msg = "invalid block value")
+
+    .check_num(block[["first_col"]], min = 1, max = ncols,
+               msg = "invalid block value")
+
+    .check_num(block[["nrows"]], min = 1, max = nrows,
+               msg = "invalid block value")
+
+    .check_num(block[["ncols"]], min = 1, max = ncols,
+               msg = "invalid block value")
+
     res <- .cube_resolution(cube)
+
     # compute new Y extent
-    ymax  <-  cube$ymax - (block[["first_row"]] - 1) * res
-    ymin  <-  ymax - block[["nrows"]] * res
+    ymax  <-  cube[["ymax"]] - (block[["first_row"]] - 1) * res[["yres"]]
+    ymin  <-  ymax - block[["nrows"]] * res[["yres"]]
 
     # compute new X extent
-    xmin  <-  cube$xmin + (block[["first_col"]] - 1) * res
-    xmax  <-  xmin + block[["ncols"]] * res
+    xmin  <-  cube[["xmin"]] + (block[["first_col"]] - 1) * res[["xres"]]
+    xmax  <-  xmin + block[["ncols"]] * res[["xres"]]
 
     # prepare result
     params <- tibble::tibble(
@@ -427,8 +466,22 @@ NULL
         xmax  = xmax,
         ymin  = ymin,
         ymax  = ymax,
-        crs   = cube$crs
+        crs   = cube[["crs"]]
     )
+
+
+    # post-conditions
+    .check_num(params[["xmin"]], min = cube[["xmin"]], max = cube[["xmax"]],
+               msg = "invalid params value")
+
+    .check_num(params[["xmax"]], min = cube[["xmin"]], max = cube[["xmax"]],
+               msg = "invalid params value")
+
+    .check_num(params[["ymin"]], min = cube[["ymin"]], max = cube[["ymax"]],
+               msg = "invalid params value")
+
+    .check_num(params[["ymax"]], min = cube[["ymin"]], max = cube[["ymax"]],
+               msg = "invalid params value")
 
     return(params)
 }
@@ -444,120 +497,95 @@ NULL
 #' Each RasterLayer corresponds to one time step.
 #' The time steps are specified in a list of dates.
 #'
-#' @param  tile              input tile (subset of a data cube).
-#' @param  samples           samples used for training the classification model.
-#' @param  sub_image         bounding box of the ROI
-#' @param  output_dir        prefix of the output files.
-#' @param  version           version of the output files
-#' @return                   output data cube
-#'
-.cube_probs_create <- function(tile, samples, sub_image,
-                               output_dir, version) {
+#' @param cube         input tile (subset of a data cube).
+#' @param cube_class   class to be attributed to created cube
+#' @param band_name    name of band in created cube
+#' @param labels       labels of derived cube
+#' @param start_date   start date of the cube interval
+#' @param end_date     end date of the cube interval
+#' @param bbox         bounding box of the ROI
+#' @param output_dir   prefix of the output files.
+#' @param version      version of the output files
+#' @return             output data cube
+.cube_derived_create <- function(cube, cube_class, band_name, labels,
+                                 start_date, end_date, bbox, output_dir,
+                                 version) {
 
     # set caller to show in errors
-    .check_set_caller(".cube_probs_create")
+    .check_set_caller(".cube_derived_create")
 
     # ensure metadata tibble exists
-    .check_that(x = nrow(tile) == 1,
+    .check_that(x = nrow(cube) == 1,
                 msg = "accepts only one tile at a time")
-
-    # get the timeline of of the data cube
-    timeline <- lubridate::as_date(sits_timeline(tile))
-    start_date <- as.Date(timeline[1])
-    end_date <- as.Date(timeline[length(timeline)])
-
-    # labels come from samples
-    labels <- sits_labels(samples)
-
-    # copy the cube information
-    probs_cube <- tile
 
     # output filename
     file_name <- paste0(output_dir, "/",
-                        tile$satellite, "_",
-                        tile$sensor,"_",
-                        tile$tile,"_",
-                        start_date,"_",
+                        cube$satellite, "_",
+                        cube$sensor,"_",
+                        cube$tile,"_",
+                        start_date, "_",
                         end_date,"_",
-                        "probs", "_",
+                        band_name, "_",
                         version, ".tif")
+
+    res <- .cube_resolution(cube)
 
     # set the file information
     file_info <- tibble::tibble(
-        band       = "probs",
-        res        =  .cube_resolution(tile),
+        band       = band_name,
         start_date = start_date,
         end_date   = end_date,
+        xmin       = bbox[["xmin"]],
+        xmax       = bbox[["xmax"]],
+        ymin       = bbox[["ymin"]],
+        ymax       = bbox[["ymax"]],
+        xres       = res[["xres"]],
+        yres       = res[["yres"]],
+        nrows      = cube$file_info[[1]]$nrows[[1]],
+        ncols      = cube$file_info[[1]]$ncols[[1]],
         path       = file_name
     )
 
     # set the metadata for the probability cube
-    probs_cube <- .cube_create(
-        source     = tile$source,
-        collection = tile$collection,
-        satellite  = tile$satellite,
-        sensor     = tile$sensor,
-        tile       = tile$tile,
-        xmin       = sub_image[["xmin"]],
-        xmax       = sub_image[["xmax"]],
-        ymin       = sub_image[["ymin"]],
-        ymax       = sub_image[["ymax"]],
-        crs        = tile$crs,
+    dev_cube <- .cube_create(
+        source     = cube$source,
+        collection = cube$collection,
+        satellite  = cube$satellite,
+        sensor     = cube$sensor,
+        tile       = cube$tile,
+        xmin       = bbox[["xmin"]],
+        xmax       = bbox[["xmax"]],
+        ymin       = bbox[["ymin"]],
+        ymax       = bbox[["ymax"]],
+        crs        = cube$crs,
         labels     = labels,
         file_info  = file_info
     )
 
-    class(probs_cube) <- c("probs_cube", "raster_cube", class(probs_cube))
-    return(probs_cube)
-}
-#' @title Clone a probs or label cube with a new extension
-#' @name .cube_probs_label
-#' @keywords internal
-#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
-#'
-#' @param  cube              input data cube
-#' @param  ext               file extension
-#' @param  output_dir        prefix of the output files
-#' @param  version           version of the output files
-#' @return                   output data cube
-.cube_probs_label <- function(cube, ext, output_dir, version) {
+    class(dev_cube) <- unique(c(cube_class, "raster_cube", class(dev_cube)))
 
-    # copy the cube information
-    cube_clone <- cube
-
-    file_info_in <- .cube_file_info(cube)
-
-    cube_clone$file_info <- file_info_in %>%
-        slider::slide(function(row) {
-            tibble::tibble(
-                band = toupper(ext),
-                start_date = row$start_date,
-                end_date   = row$end_date,
-                res        = .cube_resolution(cube),
-                path = paste0(output_dir, "/",
-                              cube$satellite[[1]], "_",
-                              cube$sensor[[1]],"_",
-                              cube$tile[[1]],"_",
-                              row$start_date,"_",
-                              row$end_date,"_",
-                              ext, "_",
-                              version, ".tif")
-            )
-        })
-
-    return(cube_clone)
+    return(dev_cube)
 }
 #' @rdname cube_functions
 .cube_resolution <- function(cube, ..., bands = NULL) {
 
-    file_info <- .cube_file_info(cube, bands)
-    res <- unique(file_info$res)
+    # get first file_info
+    file_info <- .cube_file_info(cube, bands = bands)
+
+    xres <- unique(file_info[["xres"]])
+    yres <- unique(file_info[["yres"]])
 
     # post-condition
-    .check_length(res,
-                  len_min = 1,
-                  len_max = 1,
-                  msg = "Cube has bands with more than one resolution")
+    .check_num(xres, min = 0, allow_zero = FALSE,
+               len_min = 1, len_max = 1,
+               msg = "invalid xres value")
+
+    # post-condition
+    .check_num(yres, min = 0, allow_zero = FALSE,
+               len_min = 1, len_max = 1,
+               msg = "invalid yres value")
+
+    res <- c(xres = xres, yres = yres)
 
     return(res)
 }
@@ -571,26 +599,22 @@ NULL
 
 #' @rdname cube_functions
 .cube_size <- function(cube, ..., bands = NULL) {
+
     # get the file information
-    file_info <- .cube_file_info(cube, bands)
-    # get the file resolution
-    res <- unique(file_info$res)
-    # post-condition
-    .check_length(res,
-                  len_min = 1, len_max = 1,
-                  msg = "cube has bands of different sizes")
+    file_info <- .cube_file_info(cube, bands = bands)
 
-    # obtain the size by querying the raster data
-    r_obj <- .raster_open_rast(file_info$path[[1]])
+    # get the file size
+    nrows <- unique(file_info[["nrows"]])
+    ncols <- unique(file_info[["ncols"]])
 
-    size <- c(
-        nrows = .raster_nrows(r_obj),
-        ncols = .raster_ncols(r_obj)
-    )
-    .check_num(size[["nrows"]], min = 1, allow_null = FALSE,
-               is_integer = TRUE, msg = "Invalid number of rows")
-    .check_num(size[["ncols"]], min = 1, allow_null = FALSE,
-               is_integer = TRUE, msg = "Invalid number of columns")
+    # post-conditions
+    .check_num(nrows, min = 1, len_min = 1, len_max = 1,
+               is_integer = TRUE, msg = "invalid number of rows")
+
+    .check_num(ncols, min = 1, len_min = 1, len_max = 1,
+               is_integer = TRUE, msg = "invalid number of columns")
+
+    size <- c(nrows = nrows, ncols = ncols)
 
     return(size)
 }
@@ -614,6 +638,51 @@ NULL
                   msg = "cube has different sources.")
 
     return(src)
+}
+
+#' @rdname cube_functions
+.cube_timeline <- function(cube) {
+
+    timeline <- unique(cube[["file_info"]][["date"]])
+
+    # post-condition
+    # check if all tiles have same timeline
+    .check_lst(timeline, min_len = 1, max_len = 1,
+               msg = "invalid cube timeline values")
+
+    # simplify
+    timeline <- unlist(timeline)
+
+    return(timeline)
+}
+
+#' @rdname cube_functions
+.cube_start_date <- function(cube) {
+
+    timeline <- unlist(.cube_timeline(cube))
+
+    return(timeline[[1]])
+}
+
+#' @rdname cube_functions
+.cube_end_date <- function(cube) {
+
+    timeline <- unlist(.cube_timeline(cube))
+
+    return(timeline[[length(timeline)]])
+}
+
+#' @rdname cube_functions
+.cube_tiles <- function(cube) {
+
+    tiles <- unique(cube[["tile"]])
+
+    # post-condition
+    .check_chr(tiles, allow_empty = FALSE, len_min = nrow(cube),
+               len_max = nrow(cube),
+               msg = "invalid cube 'tile' values")
+
+    return(tiles)
 }
 
 #' @rdname cube_functions
