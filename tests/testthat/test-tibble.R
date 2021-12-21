@@ -18,10 +18,10 @@ test_that("Align dates", {
 test_that("Apply", {
     point_ndvi <- sits_select(point_mt_6bands, bands = "NDVI")
     point2 <- sits_apply(point_ndvi,
-                         NDVI_norm = (NDVI - min(NDVI)) / (max(NDVI) - min(NDVI))
-                         )
+                         NDVI = (NDVI - min(NDVI)) / (max(NDVI) - min(NDVI))
+    )
 
-    expect_equal(sum((sits_time_series(point2))$NDVI_norm),
+    expect_equal(sum((sits_time_series(point2))$NDVI),
                  216.6617,
                  tolerance = 0.1
     )

@@ -215,7 +215,7 @@ plot.raster_cube <- function(x, ...,
     # extract region of interest
     if (!purrr::is_null(roi)) {
         sub_image <- .sits_raster_sub_image(cube = x, roi = roi)
-        r_obj <- .raster_crop.raster(r_obj = r_obj, block = sub_image)
+        r_obj <- .raster_crop.terra(r_obj = r_obj, block = sub_image)
     }
 
     .check_that(
@@ -337,6 +337,7 @@ plot.probs_cube <- function(x, y, ...,
 #'  \item{"jenks" :} {method proposed by Jenks.}
 #'  \item{"dpih" :} {based on the bin width of a histogram.}
 #'  \item{"headtails" :} {algorithm proposed by Bin Jiang (2013)}
+#'  }
 #'
 #' @export
 #'

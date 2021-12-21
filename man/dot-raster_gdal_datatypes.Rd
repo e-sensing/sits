@@ -6,6 +6,13 @@
 \usage{
 .raster_gdal_datatypes(sits_names = TRUE)
 }
+\arguments{
+\item{sits_names}{a \code{logical} indicating whether the types are supported
+by sits.}
+}
+\value{
+a \code{character} with datatypes.
+}
 \description{
 Match sits data types to GDAL data types
 }
