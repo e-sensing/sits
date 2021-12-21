@@ -286,34 +286,6 @@
     # set caller to show in errors
     .check_set_caller(".gc_new_cube")
 
-    bbox <- sits_bbox(tile)
-
-    if (!is.null(roi))
-        bbox <- .sits_roi_bbox(roi, tile)
-
-    cube_gc <- .cube_create(
-        source     = tile[["source"]],
-        collection = tile[["collection"]],
-        satellite  = tile[["satellite"]],
-        sensor     = tile[["sensor"]],
-        tile       = tile[["tile"]],
-        xmin       = bbox[["xmin"]],
-        xmax       = bbox[["xmax"]],
-        ymin       = bbox[["ymin"]],
-        ymax       = bbox[["ymax"]],
-        crs        = tile[["crs"]],
-        file_info  = NA
-    )
-
-    # update cube metadata
-    cube_gc <- .gc_update_metadata(cube = cube_gc, cube_view = cv)
-
-    # create file info column
-    cube_gc[["file_info"]][[1]] <- tibble::tibble(band = character(),
-                                                  date = lubridate::as_date(""),
-                                                  res  = numeric(),
-                                                  path = character())
-
     # create a list of creation options and metadata
     .get_gdalcubes_pack <- function(cube, band) {
 
@@ -337,7 +309,7 @@
         threads = min(multicores, .config_gdalcubes_max_threads())
     )
 
-    for (band in .cube_bands(tile, add_cloud = FALSE)) {
+    file_info <- purrr::map_dfr(.cube_bands(tile, add_cloud = FALSE), function(band) {
 
         # create a raster_cube object to each band the select below change
         # the object value
@@ -346,7 +318,8 @@
         # add the filling method
         cube_brick <- gdalcubes::fill_time(cube_brick, method = fill_method)
 
-        message(paste("Writing images of band", band, "of tile", tile[["tile"]]))
+        message(paste("Writing images of band", band, "of tile",
+                      tile[["tile"]]))
 
         # write the aggregated cubes
         path_write <- gdalcubes::write_tif(
@@ -357,18 +330,52 @@
             pack = .get_gdalcubes_pack(tile, band), ...
         )
 
+        # post-condition
+        .check_length(path_write, len_min = 1,
+                      msg = "no image was created")
+
         # retrieving image date
         images_date <- .gc_get_date(path_write)
 
+        # post-condition
+        .check_length(images_date, len_min = length(path_write))
+
+        # open first image to retrieve metadata
+        r_obj <- .raster_open_rast(path_write[[1]])
+
         # set file info values
-        cube_gc[["file_info"]][[1]] <- tibble::add_row(
-            cube_gc[["file_info"]][[1]],
-            band = rep(band, length(path_write)),
+        tibble::tibble(
+            fid = paste("cube", .cube_tiles(tile), images_date, sep = "_"),
             date = images_date,
-            res  = rep(cv[["space"]][["dx"]], length(path_write)),
+            band = band,
+            xres  = .raster_xres(r_obj),
+            yres  = .raster_yres(r_obj),
+            xmin  = .raster_xmin(r_obj),
+            xmax  = .raster_xmax(r_obj),
+            ymin  = .raster_ymin(r_obj),
+            ymax  = .raster_ymax(r_obj),
+            nrows = .raster_nrows(r_obj),
+            ncols = .raster_ncols(r_obj),
             path = path_write
         )
-    }
+    })
+
+    # arrange file_info by date and band
+    file_info <- dplyr::arrange(file_info, .data[["date"]], .data[["band"]])
+
+    cube_gc <- .cube_create(
+        source     = tile[["source"]],
+        collection = tile[["collection"]],
+        satellite  = tile[["satellite"]],
+        sensor     = tile[["sensor"]],
+        tile       = tile[["tile"]],
+        xmin       = cv[["space"]][["left"]],
+        xmax       = cv[["space"]][["right"]],
+        ymin       = cv[["space"]][["bottom"]],
+        ymax       = cv[["space"]][["top"]],
+        crs        = tile[["crs"]],
+        file_info  = file_info
+    )
 
     return(cube_gc)
 }

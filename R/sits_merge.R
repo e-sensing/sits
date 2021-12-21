@@ -46,7 +46,7 @@ sits_merge <- function(data1, data2, ..., suffix = c(".1", ".2")) {
 }
 
 #' @export
-sits_merge.sits <- function(data1, data2, ..., suffix) {
+sits_merge.sits <- function(data1, data2, ..., suffix = c(".1", ".2")) {
 
     # precondition
     .sits_tibble_test(data1)
@@ -103,7 +103,7 @@ sits_merge.sits <- function(data1, data2, ..., suffix) {
 
 #' @export
 #'
-sits_merge.raster_cube <- function(data1, data2, suffix = c(".1", ".2")) {
+sits_merge.raster_cube <- function(data1, data2, ..., suffix = c(".1", ".2")) {
 
     # pre-condition - check cube type
     .cube_check(data1)

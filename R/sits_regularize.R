@@ -131,7 +131,7 @@ sits_regularize <- function(cube,
     )
 
     # append gdalcubes path
-    path_db <- paste0(output_dir, "/gdalcubes.db")
+    path_db <- tempfile("database_", tmpdir = output_dir, fileext = ".db")
 
     # precondition - is the period valid?
     duration <- lubridate::duration(period)

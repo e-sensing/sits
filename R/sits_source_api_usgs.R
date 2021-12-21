@@ -111,9 +111,9 @@
                                              collection = NULL) {
 
 
-    href <- purrr::map_chr(item[["assets"]], function(x) {
+    href <- unname(purrr::map_chr(item[["assets"]], function(x) {
         x[["alternate"]][[c("s3", "href")]]
-    })
+    }))
 
     # add gdal vsi in href urls
     return(.stac_add_gdal_vsi(href))

@@ -164,7 +164,7 @@
                 msg = "invalid 'items' parameter")
 
     # add feature id (fid)
-    items <- dplyr::group_by(items, tile, date) %>%
+    items <- dplyr::group_by(items, .data[["tile"]], .data[["date"]]) %>%
         dplyr::mutate(fid = dplyr::cur_group_id()) %>%
         dplyr::ungroup()
 
@@ -180,7 +180,7 @@
                                            collection = collection) == "tile") {
 
         # get first item
-        item <- dplyr::filter(items, fid == 1)
+        item <- dplyr::filter(items, .data[["fid"]] == 1)
 
         # open bands raster
         assets <- purrr::map(item[["path"]], .raster_open_rast)
@@ -201,7 +201,7 @@
         function(i) {
 
             # filter by feature
-            item <- dplyr::filter(items, fid == i)
+            item <- dplyr::filter(items, .data[["fid"]] == !!i)
 
             # do in case of 'tile' strategy
             if (.source_collection_metadata_search(source = source,
@@ -222,8 +222,10 @@
             }
 
             dplyr::bind_cols(item, asset_info) %>%
-                dplyr::select(fid, band, date, xmin, ymin, xmax, ymax,
-                              xres, yres, nrows, ncols, path, crs)
+                dplyr::select(dplyr::all_of(c("fid", "band", "date", "xmin",
+                                              "ymin", "xmax", "ymax", "xres",
+                                              "yres", "nrows", "ncols", "path",
+                                              "crs")))
 
         },
         progress = progress
