@@ -303,29 +303,29 @@ test_that("tempCNN model-2 classes", {
 })
 
 test_that("normalization", {
-    stats <- sits:::.sits_ml_normalization_param(cerrado_2classes)
+    stats <- .sits_ml_normalization_param(cerrado_2classes)
 
-    norm1 <- sits:::.sits_ml_normalize_data(
+    norm1 <- .sits_ml_normalize_data(
         cerrado_2classes,
         stats
     )
 
-    stats1 <- sits:::.sits_ml_normalization_param(norm1)
+    stats1 <- .sits_ml_normalization_param(norm1)
     expect_true(stats1[2, NDVI] < 0.1)
     expect_true(stats1[3, NDVI] > 0.99)
 
-    norm2 <- sits:::.sits_ml_normalize_data(cerrado_2classes,
+    norm2 <- .sits_ml_normalize_data(cerrado_2classes,
         stats
     )
 
-    stats2 <- sits:::.sits_ml_normalization_param(norm2)
+    stats2 <- .sits_ml_normalization_param(norm2)
 
     expect_equal(stats1[1, NDVI], stats2[1, NDVI], tolerance = 0.001)
     expect_equal(stats1[2, NDVI], stats2[2, NDVI], tolerance = 0.001)
 
-    norm3 <- sits:::.sits_ml_normalize_data(cerrado_2classes, stats)
+    norm3 <- .sits_ml_normalize_data(cerrado_2classes, stats)
 
-    stats3 <- sits:::.sits_ml_normalization_param(norm3)
+    stats3 <- .sits_ml_normalization_param(norm3)
 
     expect_equal(stats1[1, NDVI], stats3[1, NDVI], tolerance = 0.001)
     expect_equal(stats1[2, NDVI], stats3[2, NDVI], tolerance = 0.001)

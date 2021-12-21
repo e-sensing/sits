@@ -2,17 +2,36 @@
 % Please edit documentation in R/sits_cube_aux_functions.R
 \name{.cube_probs_create}
 \alias{.cube_probs_create}
+\alias{.cube_derived_create}
 \title{Create a set of RasterLayer objects to store
 data cube classification results (only the probs)}
 \usage{
-.cube_probs_create(tile, samples, sub_image, output_dir, version)
+.cube_derived_create(
+  cube,
+  cube_class,
+  band_name,
+  labels,
+  start_date,
+  end_date,
+  bbox,
+  output_dir,
+  version
+)
 }
 \arguments{
-\item{tile}{input tile (subset of a data cube).}
+\item{cube}{input tile (subset of a data cube).}
 
-\item{samples}{samples used for training the classification model.}
+\item{cube_class}{class to be attributed to created cube}
 
-\item{sub_image}{bounding box of the ROI}
+\item{band_name}{name of band in created cube}
+
+\item{labels}{labels of derived cube}
+
+\item{start_date}{start date of the cube interval}
+
+\item{end_date}{end date of the cube interval}
+
+\item{bbox}{bounding box of the ROI}
 
 \item{output_dir}{prefix of the output files.}
 

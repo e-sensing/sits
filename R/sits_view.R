@@ -53,8 +53,7 @@ sits_view <- function(x, ...){
 #' @rdname   sits_view
 #'
 #' @export
-sits_view.sits <- function(x,
-                           ...,
+sits_view.sits <- function(x, ...,
                            legend = NULL,
                            palette = "Harmonic") {
 

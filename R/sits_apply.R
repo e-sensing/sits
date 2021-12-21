@@ -47,72 +47,99 @@ sits_apply.raster_cube <- function(data, ..., output_dir = getwd()) {
 
     .check_set_caller("sits_apply.raster_cube")
 
-    toi <- .gc_get_valid_interval(data)
-
-    ic <- .gc_create_database(data, path_db = tempfile(fileext = ".db"))
-
     # capture dots as a list of quoted expressions
     list_expr <- lapply(substitute(list(...), env = environment()),
                         unlist, recursive = F)[-1]
 
-    bands <- names(list_expr)
+    # suppress gdalcubes progress bar
+    gdalcubes::gdalcubes_options(show_progress = FALSE)
 
-    .check_that(length(bands) == length(list_expr),
-                local_msg = "not all expressions have names",
-                msg = "invalid expressions parameters")
-
+    # slide tiles
     result <- slider::slide_dfr(data, function(tile) {
 
-        cv <- .gc_create_cube_view(
-            tile = tile,
-            period = tile[["period"]],
-            res = .cube_resolution(tile),
-            roi = NULL,
-            toi = toi,
-            agg_method = "first",
-            resampling = "bilinear"
-        )
+        fids <- unique(.cube_file_info(tile)[["fid"]])
+        tile[["file_info"]][[1]] <- purrr::map_dfr(fids, function(fid) {
 
-        rc <- gdalcubes::raster_cube(ic, view = cv)
+            tile_fid <- tile
 
-        output_files <- purrr::map(bands, function(band) {
+            tile_fid[["file_info"]][[1]] <-
+                dplyr::filter(.cube_file_info(tile),
+                              .data[["fid"]] == !!fid)
 
-            cc <- gdalcubes::apply_pixel(rc,
-                                         expr = deparse(list_expr[[band]]),
-                                         names = band)
+            toi <- .gc_get_valid_interval(tile_fid, period = "P1D")
 
-            gdalcubes::write_tif(
-                cc,
-                dir = output_dir,
-                prefix = paste("cube", tile[["tile"]], band, "", sep = "_"),
-                creation_options = list("COMPRESS" = "LZW", "BIGTIFF" = "YES"),
-                pack = list(type = "int16", nodata = -9999, scale = 1,
-                            offset = 0)
+            ic <- .gc_create_database(tile_fid,
+                                      path_db = tempfile(fileext = ".db"))
+
+            bands <- names(list_expr)
+
+            .check_that(length(bands) == length(list_expr),
+                        local_msg = "not all expressions have names",
+                        msg = "invalid expressions parameters")
+
+
+            cv <- .gc_create_cube_view(
+                tile = tile_fid,
+                period = "P1D",
+                res = .cube_resolution(tile_fid),
+                roi = NULL,
+                toi = toi,
+                agg_method = "first",
+                resampling = "bilinear"
             )
+
+            rc <- gdalcubes::raster_cube(ic, view = cv)
+
+            output_files <- purrr::map(bands, function(band) {
+
+                cc <- gdalcubes::apply_pixel(rc,
+                                             expr = deparse(list_expr[[band]]),
+                                             names = band)
+
+                # file prefix
+                prefix <- paste("cube", tile_fid[["tile"]], band, "", sep = "_")
+
+                gdalcubes::write_tif(
+                    cc,
+                    dir = output_dir,
+                    prefix = prefix,
+                    creation_options = list("COMPRESS" = "LZW",
+                                            "BIGTIFF" = "YES"),
+                    pack = list(type = "int16", nodata = -9999,
+                                scale = 1, offset = 0)
+                )
+
+                file_name <- paste0(output_dir, "/", prefix,
+                                    .cube_file_info(tile_fid)[["date"]][[1]],
+                                    ".tif")
+                return(file_name)
+            })
+
+            file_info <- .cube_file_info(tile_fid)
+
+            file_info <- tidyr::unnest(tibble::tibble(
+                fid = file_info[["fid"]][[1]],
+                date = file_info[["date"]][[1]],
+                band = bands,
+                xmin = file_info[["xmin"]][[1]],
+                xmax = file_info[["xmax"]][[1]],
+                ymin = file_info[["ymin"]][[1]],
+                ymax = file_info[["ymax"]][[1]],
+                xres = file_info[["xres"]][[1]],
+                yres = file_info[["yres"]][[1]],
+                nrows = file_info[["nrows"]][[1]],
+                ncols = file_info[["ncols"]][[1]],
+                path = output_files
+            ), cols = c("date", "path"))
+
+            file_info_fid <- dplyr::bind_rows(tile_fid[["file_info"]][[1]],
+                                              file_info) %>%
+                dplyr::arrange(date, band)
+
+            return(file_info_fid)
         })
 
-        # retrieve dates
-        dates <- purrr::map(output_files, function(x) {
-            dplyr::tibble(date = .gc_get_date(x))
-        })
-
-        output_files <- purrr::map(output_files, function(x) {
-            dplyr::tibble(path = x)
-        })
-
-        file_info <- tidyr::unnest(tibble::tibble(
-            date = dates,
-            band = bands,
-            res = .cube_resolution(tile),
-            path = output_files
-        ), cols = c("date", "path"))
-
-        tile[["file_info"]][[1]] <-
-            dplyr::bind_rows(tile[["file_info"]][[1]],
-                             file_info) %>%
-            dplyr::arrange(date, .data[["band"]])
-
-        tile
+        return(tile)
     })
 
     return(result)

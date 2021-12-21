@@ -35,9 +35,8 @@
                                 end = max(x[["date"]])) / duration
         ))
 
-        dplyr::group_by(
-            x, .data[["left"]], .data[["bottom"]],  .data[["right"]],
-            .data[["top"]], date_interval = cut(.data[["date"]], tl_length)) %>%
+        dplyr::group_by(x, date_interval = cut(.data[["date"]], tl_length),
+                        .add = TRUE) %>%
             dplyr::arrange(.data[["cloud_cover"]], .by_group = TRUE) %>%
             dplyr::ungroup() %>%
             dplyr::select(-.data[["date_interval"]])
@@ -170,22 +169,19 @@
     create_gc_database <- function(cube) {
 
         file_info <- dplyr::select(cube, .data[["file_info"]],
-                                   .data[["collection"]], .data[["tile"]]) %>%
-            tidyr::unnest(cols = c(file_info)) %>%
-            dplyr::transmute(xmin = .data[["left"]],
-                             ymin = .data[["bottom"]],
-                             xmax = .data[["right"]],
-                             ymax = .data[["top"]],
+                                   .data[["crs"]]) %>%
+            tidyr::unnest(cols = c("file_info")) %>%
+            dplyr::transmute(fid = .data[["fid"]],
+                             xmin = .data[["xmin"]],
+                             ymin = .data[["ymin"]],
+                             xmax = .data[["xmax"]],
+                             ymax = .data[["ymax"]],
                              href = .data[["path"]],
                              datetime = as.character(.data[["date"]]),
-                             href = .data[["href"]],
                              band = .data[["band"]],
-                             `proj:epsg` =  gsub("^EPSG:", "", .data[["crs"]]),
-                             id = paste(.data[["collection"]], .data[["tile"]],
-                                        as.character(.data[["date"]]),
-                                        sep = "_"))
+                             `proj:epsg` = gsub("^EPSG:", "", .data[["crs"]]))
 
-        features <- dplyr::mutate(file_info, fid = .data[["id"]]) %>%
+        features <- dplyr::mutate(file_info, id = .data[["fid"]]) %>%
             tidyr::nest(features = -.data[["fid"]])
 
         purrr::map(features[["features"]], function(feature) {
@@ -259,6 +255,7 @@
 #' @param img_col     A \code{object} 'image_collection' containing information
 #'  about the images metadata.
 #' @param cv          A \code{list} 'cube_view' with values from cube.
+#' @param roi         A region of interest.
 #' @param fill_method A \code{character} indicating which interpolation method
 #'  will be applied. Options: \code{near} for nearest neighbor; \code{linear}
 #'  for linear interpolation; \code{locf} for ast observation carried forward,
@@ -278,40 +275,16 @@
 #' @return  A data cube tile with information used in its creation.
 .gc_new_cube <- function(tile,
                          cv,
+                         roi,
                          fill_method,
                          img_col,
                          path_db,
                          output_dir,
                          cloud_mask,
-                         multicores, ...) {
+                         multicores,...) {
 
     # set caller to show in errors
     .check_set_caller(".gc_new_cube")
-
-    bbox <- .cube_tile_bbox(cube = tile)
-    cube_gc <- .cube_create(
-        source     = tile[["source"]],
-        collection = tile[["collection"]],
-        satellite  = tile[["satellite"]],
-        sensor     = tile[["sensor"]],
-        tile       = tile[["tile"]],
-        xmin       = bbox[["xmin"]],
-        xmax       = bbox[["xmax"]],
-        ymin       = bbox[["ymin"]],
-        ymax       = bbox[["ymax"]],
-        crs        = tile[["crs"]],
-        period     = cv[["time"]][["dt"]],
-        file_info  = NA
-    )
-
-    # update cube metadata
-    cube_gc <- .gc_update_metadata(cube = cube_gc, cube_view = cv)
-
-    # create file info column
-    cube_gc[["file_info"]][[1]] <- tibble::tibble(band = character(),
-                                                  date = lubridate::as_date(""),
-                                                  res  = numeric(),
-                                                  path = character())
 
     # create a list of creation options and metadata
     .get_gdalcubes_pack <- function(cube, band) {
@@ -336,7 +309,7 @@
         threads = min(multicores, .config_gdalcubes_max_threads())
     )
 
-    for (band in .cube_bands(tile, add_cloud = FALSE)) {
+    file_info <- purrr::map_dfr(.cube_bands(tile, add_cloud = FALSE), function(band) {
 
         # create a raster_cube object to each band the select below change
         # the object value
@@ -345,7 +318,8 @@
         # add the filling method
         cube_brick <- gdalcubes::fill_time(cube_brick, method = fill_method)
 
-        message(paste("Writing images of band", band, "of tile", tile[["tile"]]))
+        message(paste("Writing images of band", band, "of tile",
+                      tile[["tile"]]))
 
         # write the aggregated cubes
         path_write <- gdalcubes::write_tif(
@@ -356,18 +330,52 @@
             pack = .get_gdalcubes_pack(tile, band), ...
         )
 
+        # post-condition
+        .check_length(path_write, len_min = 1,
+                      msg = "no image was created")
+
         # retrieving image date
         images_date <- .gc_get_date(path_write)
 
+        # post-condition
+        .check_length(images_date, len_min = length(path_write))
+
+        # open first image to retrieve metadata
+        r_obj <- .raster_open_rast(path_write[[1]])
+
         # set file info values
-        cube_gc[["file_info"]][[1]] <- tibble::add_row(
-            cube_gc[["file_info"]][[1]],
-            band = rep(band, length(path_write)),
+        tibble::tibble(
+            fid = paste("cube", .cube_tiles(tile), images_date, sep = "_"),
             date = images_date,
-            res  = rep(cv[["space"]][["dx"]], length(path_write)),
+            band = band,
+            xres  = .raster_xres(r_obj),
+            yres  = .raster_yres(r_obj),
+            xmin  = .raster_xmin(r_obj),
+            xmax  = .raster_xmax(r_obj),
+            ymin  = .raster_ymin(r_obj),
+            ymax  = .raster_ymax(r_obj),
+            nrows = .raster_nrows(r_obj),
+            ncols = .raster_ncols(r_obj),
             path = path_write
         )
-    }
+    })
+
+    # arrange file_info by date and band
+    file_info <- dplyr::arrange(file_info, .data[["date"]], .data[["band"]])
+
+    cube_gc <- .cube_create(
+        source     = tile[["source"]],
+        collection = tile[["collection"]],
+        satellite  = tile[["satellite"]],
+        sensor     = tile[["sensor"]],
+        tile       = tile[["tile"]],
+        xmin       = cv[["space"]][["left"]],
+        xmax       = cv[["space"]][["right"]],
+        ymin       = cv[["space"]][["bottom"]],
+        ymax       = cv[["space"]][["top"]],
+        crs        = tile[["crs"]],
+        file_info  = file_info
+    )
 
     return(cube_gc)
 }
@@ -427,15 +435,15 @@
 #' @param cube       Data cube from where data is to be retrieved.
 #'
 #' @return a \code{list} object with max_min_date and min_max_date.
-.gc_get_valid_interval <- function(cube) {
+.gc_get_valid_interval <- function(cube, period) {
 
     # pre-condition
-    .check_chr(unique(unlist(cube[["period"]])), allow_empty = FALSE,
+    .check_chr(period, allow_empty = FALSE,
                len_min = 1, len_max = 1,
-               msg = "invalid 'cube' parameter")
+               msg = "invalid 'period' parameter")
 
     # compute duration
-    duration <- lubridate::duration(unique(unlist(cube[["period"]])))
+    duration <- lubridate::duration(period)
 
     # start date - maximum of all minimums
     max_min_date <- do.call(
@@ -454,16 +462,16 @@
 
     # check if all timeline of tiles intersects
     .check_that(
-        x = max_min_date < min_max_date,
+        x = max_min_date <= min_max_date,
         msg = "the timeline of the cube tiles do not intersect."
     )
 
     # finds the length of the timeline
-    tl_length <- max(2, ceiling(
+    tl_length <- ceiling(
         lubridate::interval(start = lubridate::as_date(max_min_date),
                             end = lubridate::as_date(min_max_date) + 1) /
             duration
-    ))
+    )
 
     # timeline dates
     tl <- duration * (seq_len(tl_length) - 1) + as.Date(max_min_date)
@@ -475,16 +483,20 @@
         tiles_tl <- list(tiles_tl)
 
     # checks if the timelines intersect
-    tl_check <- vapply(tiles_tl, function(tile_tl) {
+    if (length(tl) > 1) {
 
-        # at least one image must be in begin and end in timeline interval
-        begin <- any(tile_tl >= tl[1] & tile_tl < tl[2])
-        end <- any(tile_tl >= tl[tl_length - 1] & tile_tl < tl[tl_length])
+        tl_check <- vapply(tiles_tl, function(tile_tl) {
 
-        return(begin && end)
-    }, logical(1))
+            # at least one image must be in begin and end in timeline interval
+            begin <- any(tile_tl >= tl[[1]] & tile_tl <= tl[[2]])
+            end <- any(tile_tl >= tl[[tl_length - 1]] &
+                           tile_tl <= tl[[tl_length]])
 
-    .check_that(x = all(tl_check), msg = "invalid images interval")
+            return(begin && end)
+        }, logical(1))
 
-    return(list(max_min_date = tl[1], min_max_date = tl[length(tl)]))
+        .check_that(x = all(tl_check), msg = "invalid images interval")
+    }
+
+    return(list(max_min_date = tl[[1]], min_max_date = tl[[length(tl)]]))
 }

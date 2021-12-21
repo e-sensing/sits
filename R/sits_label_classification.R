@@ -104,11 +104,19 @@ sits_label_classification <- function(cube,
     # process each brick layer (each tile) individually
     label_cube <- slider::slide_dfr(cube, function(row) {
 
+        # get file_info
+        file_info <- .cube_file_info(row)
+
         # create metadata for labeled raster cube
-        row_label <- .cube_probs_label(
+        row_label <- .cube_derived_create(
             cube       = row,
+            cube_class = "classified_image",
+            band_name  = "class",
+            labels     = .cube_labels(row),
+            start_date = file_info[["start_date"]],
+            end_date   = file_info[["end_date"]],
+            bbox       = .cube_tile_bbox(row),
             output_dir = output_dir,
-            ext        = "class",
             version    = version
         )
 

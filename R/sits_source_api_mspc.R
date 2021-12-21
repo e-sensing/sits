@@ -1,7 +1,8 @@
 #' @keywords internal
 #' @export
-.source_collection_access_test.mspc_cube <- function(source, ...,
-                                                     collection, bands,
+.source_collection_access_test.mspc_cube <- function(source,
+                                                     collection,
+                                                     bands, ...,
                                                      dry_run = TRUE) {
     # require package
     if (!requireNamespace("rstac", quietly = TRUE)) {
@@ -26,14 +27,14 @@
         rstac::items_sign(items, sign_fn = rstac::sign_planetary_computer())
     )
 
-    items <- .source_items_bands_select(source = source, ...,
-                                        collection = collection,
+    items <- .source_items_bands_select(source = source,
                                         items = items,
-                                        bands = bands[[1]])
+                                        bands = bands[[1]],
+                                        collection = collection, ...)
 
-    href <- .source_item_get_hrefs(source = source, ...,
+    href <- .source_item_get_hrefs(source = source,
                                    item = items$feature[[1]],
-                                   collection = collection)
+                                   collection = collection, ...)
 
     # assert that token and/or href is valid
     if (dry_run)
@@ -50,9 +51,9 @@
 
 #' @keywords internal
 #' @export
-`.source_items_new.mspc_cube_sentinel-2-l2a` <- function(source, ...,
+`.source_items_new.mspc_cube_sentinel-2-l2a` <- function(source,
                                                          collection,
-                                                         stac_query,
+                                                         stac_query, ...,
                                                          tiles = NULL) {
 
     # set caller to show in errors
@@ -115,26 +116,17 @@
 
 #' @keywords internal
 #' @export
-`.source_items_tiles_group.mspc_cube_sentinel-2-l2a` <- function(source, ...,
-                                                                 items,
+`.source_items_tile.mspc_cube_sentinel-2-l2a` <- function(source,
+                                                                 items, ...,
                                                                  collection = NULL) {
 
-    rstac::items_group(items, field = c("properties", "s2:mgrs_tile"))
+    rstac::items_reap(items, field = c("properties", "s2:mgrs_tile"))
 }
 
 #' @keywords internal
 #' @export
-`.source_items_tile_get_name.mspc_cube_sentinel-2-l2a` <- function(source, ...,
-                                                                   tile_items,
-                                                                   collection = NULL) {
-
-    tile_items[["features"]][[1]][[c("properties", "s2:mgrs_tile")]]
-}
-
-#' @keywords internal
-#' @export
-`.source_items_tile_get_crs.mspc_cube_sentinel-2-l2a` <- function(source,...,
-                                                                  tile_items,
+`.source_items_tile_get_crs.mspc_cube_sentinel-2-l2a` <- function(source,
+                                                                  tile_items, ...,
                                                                   collection = NULL) {
 
     # format collection crs
@@ -147,9 +139,9 @@
 
 #' @keywords internal
 #' @export
-`.source_items_new.mspc_cube_landsat-8-c2-l2` <- function(source, ...,
+`.source_items_new.mspc_cube_landsat-8-c2-l2` <- function(source,
                                                           collection,
-                                                          stac_query,
+                                                          stac_query, ...,
                                                           tiles = NULL) {
 
     # set caller to show in errors
@@ -219,8 +211,8 @@
 
 #' @keywords internal
 #' @export
-`.source_items_tiles_group.mspc_cube_landsat-8-c2-l2` <- function(source, ...,
-                                                                  items,
+`.source_items_tile.mspc_cube_landsat-8-c2-l2` <- function(source,
+                                                                  items, ...,
                                                                   collection = NULL) {
 
     # store tile info in items object
@@ -233,7 +225,7 @@
         feature
     })
 
-    rstac::items_group(items, field = c("properties", "tile"))
+    rstac::items_reap(items, field = c("properties", "tile"))
 }
 
 #' @keywords internal
@@ -251,23 +243,4 @@
     crs <- paste0("EPSG:", terra::crs(r_obj, describe = TRUE)$EPSG)
 
     return(crs)
-}
-
-#' @keywords internal
-#' @export
-.source_items_tile_get_bbox.mspc_cube <- function(source,
-                                                  tile_items, ...,
-                                                  collection = NULL) {
-    r_obj <- .raster_open_rast(
-        .source_item_get_hrefs(source = source,
-                               item = tile_items$features[[1]])[[1]]
-    )
-
-    # get image bbox
-    bbox <- .raster_extent(r_obj)
-
-    if (is.null(names(bbox)))
-        names(bbox) <- c("xmin", "xmax", "ymin", "ymax")
-
-    return(bbox)
 }

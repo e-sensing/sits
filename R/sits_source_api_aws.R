@@ -29,9 +29,9 @@
 
 #' @keywords internal
 #' @export
-.source_items_new.aws_cube <- function(source, ...,
+.source_items_new.aws_cube <- function(source,
                                        collection,
-                                       stac_query,
+                                       stac_query, ...,
                                        tiles = NULL) {
 
     # set caller to show in errors
@@ -69,9 +69,9 @@
 
 #' @keywords internal
 #' @export
-.source_items_tiles_group.aws_cube <- function(source, ...,
-                                               items,
-                                               collection = NULL) {
+.source_items_tile.aws_cube <- function(source,
+                                         items, ...,
+                                         collection = NULL) {
 
     # store tile info in items object
     items$features <- purrr::map(items$features, function(feature) {
@@ -83,13 +83,13 @@
         feature
     })
 
-    rstac::items_group(items, field = c("properties", "tile"))
+    rstac::items_reap(items, field = c("properties", "tile"))
 }
 
 #' @keywords internal
 #' @export
-.source_items_tile_get_crs.aws_cube <- function(source,...,
-                                                tile_items,
+.source_items_tile_get_crs.aws_cube <- function(source,
+                                                tile_items, ...,
                                                 collection = NULL) {
 
     # format collection crs
@@ -98,23 +98,4 @@
     )
 
     return(crs)
-}
-
-#' @keywords internal
-#' @export
-.source_items_tile_get_bbox.aws_cube <- function(source, ...,
-                                                 tile_items,
-                                                 collection = NULL) {
-    r_obj <- .raster_open_rast(
-        .source_item_get_hrefs(source = source,
-                               item = tile_items$features[[1]])[[1]]
-    )
-
-    # get image bbox
-    bbox <- .raster_extent(r_obj)
-
-    if (is.null(names(bbox)))
-        names(bbox) <- c("xmin", "xmax", "ymin", "ymax")
-
-    return(bbox)
 }

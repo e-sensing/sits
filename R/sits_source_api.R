@@ -657,6 +657,28 @@ NULL
 
 #' @rdname source_collection
 #'
+#' @description \code{.source_collection_metadata_search()} retrieves the
+#' metadadata search strategy for a given source and collection.
+#'
+#' @return \code{.source_collection_metadata_search()} returns a character
+#' value with the metadata search strategy.
+.source_collection_metadata_search <- function(source, collection){
+
+    # try to find the gdalcubes configuration
+    metadata_search <- .config_get(key = c("sources", source, "collections",
+                                           collection, "metadata_search"),
+                                   default = NA)
+
+    # if the collection cant be supported the user is reported
+    .check_na(metadata_search,
+              msg = paste("no type was found for collection", collection,
+                          "and source", source))
+
+    return(invisible(metadata_search))
+}
+
+#' @rdname source_collection
+#'
 #' @description \code{.source_collection_name()} returns the name of a
 #' collection in its original source.
 #'
@@ -861,14 +883,14 @@ NULL
 
 #' @rdname source_cube
 #'
-#' @description \code{.source_item_get_cc()} retrieves the percentage of cloud
+#' @description \code{.source_item_get_cloud_cover()} retrieves the percentage of cloud
 #' cover of an image.
-#' @return \code{.source_item_get_cc()} returns a \code{numeric} vector
+#' @return \code{.source_item_get_cloud_cover()} returns a \code{numeric} vector
 #' containing the percentage of cloud cover to each image band of an item.
 #'
-.source_item_get_cc <- function(source, ..., item, collection = NULL) {
+.source_item_get_cloud_cover <- function(source, ..., item, collection = NULL) {
     source <- .source_new(source)
-    UseMethod(".source_item_get_cc", source)
+    UseMethod(".source_item_get_cloud_cover", source)
 }
 
 #' @rdname source_cube
@@ -882,19 +904,6 @@ NULL
 .source_item_get_bands <- function(source, item, ..., collection = NULL) {
     source <- .source_new(source)
     UseMethod(".source_item_get_bands", source)
-}
-
-#' @rdname source_cube
-#'
-#' @description \code{.source_item_get_resolution()} retrieves the supported
-#' resolution of an item (for each band).
-#'
-#' @return \code{.source_item_get_resolution()} returns a named \code{list}
-#' with \code{numeric} vectors containing the supported resolution for each band
-#'
-.source_item_get_resolution <- function(source, ..., item, collection = NULL) {
-    source <- .source_new(source)
-    UseMethod(".source_item_get_resolution", source)
 }
 
 #' @rdname source_cube
@@ -929,6 +938,18 @@ NULL
 
 #' @rdname source_cube
 #'
+#' @description \code{.source_items_fid()} retrieves the feature id of
+#' all items.
+#'
+#' @return \code{.source_items_fid()} returns a \code{character} vector.
+#'
+.source_items_fid <- function(source, items, ..., collection = NULL) {
+    source <- .source_new(source)
+    UseMethod(".source_items_fid", source)
+}
+
+#' @rdname source_cube
+#'
 #' @description \code{.source_items_file_info()} creates the \code{fileinfo}
 #' specification from items object.
 #'
@@ -942,15 +963,15 @@ NULL
 
 #' @rdname source_cube
 #'
-#' @description \code{.source_items_tiles_group()} organizes items by tiles
+#' @description \code{.source_items_tile()} organizes items by tiles
 #' and arrange items in each tile by date.
 #'
-#' @return \code{.source_items_tiles_group()} returns a \code{list} of
+#' @return \code{.source_items_tile()} returns a \code{list} of
 #' items.
 #'
-.source_items_tiles_group <- function(source, items, ..., collection = NULL) {
+.source_items_tile <- function(source, items, ..., collection = NULL) {
     source <- .source_new(source = source, collection = collection)
-    UseMethod(".source_items_tiles_group", source)
+    UseMethod(".source_items_tile", source)
 }
 
 #' @rdname source_cube
@@ -1007,45 +1028,30 @@ NULL
 
 #' @rdname source_cube
 #'
-#' @description \code{.source_items_tile_get_name()} retrieves the tile name
-#' from items.
-#'
-#' @return \code{.source_items_tile_get_name()} returns a \code{character}
-#' value.
-#'
-.source_items_tile_get_name <- function(source,
-                                        tile_items, ...,
-                                        collection = NULL) {
-    source <- .source_new(source = source, collection = collection)
-    UseMethod(".source_items_tile_get_name", source)
-}
-
-#' @rdname source_cube
-#'
-#' @description \code{.source_items_tile_get_bbox()} retrieves the bounding
+#' @description \code{.source_tile_get_bbox()} retrieves the bounding
 #' box from items of a tile.
 #'
-#' @return \code{.source_items_tile_get_bbox()} returns a \code{numeric}
+#' @return \code{.source_tile_get_bbox()} returns a \code{numeric}
 #' vector with 4 elements (xmin, ymin, xmax, ymax).
 #'
-.source_items_tile_get_bbox <- function(source, ...,
-                                        tile_items,
-                                        collection = NULL) {
+.source_tile_get_bbox <- function(source, ...,
+                                  file_info,
+                                  collection = NULL) {
+
     source <- .source_new(source = source, collection = collection)
-    UseMethod(".source_items_tile_get_bbox", source)
+    UseMethod(".source_tile_get_bbox", source)
 }
 
 #' @rdname source_cube
 #'
-#' @description \code{.source_itimes_cube()} is called to create a data cubes tile,
+#' @description \code{.source_items_cube()} is called to create a data cubes tile,
 #' that is, a row in sits data cube.
 #'
 #' @return \code{.source_items_cube()} returns a \code{tibble} containing a sits
 #' cube tile (one row).
 .source_items_cube <- function(source,
                                collection,
-                               items,
-                               file_info, ...) {
+                               items, ...) {
     source <- .source_new(source = source, collection = collection)
     UseMethod(".source_items_cube", source)
 }

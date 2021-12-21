@@ -92,11 +92,18 @@
                        " x ", unname(blocks[[1]]["ncols"]), ")"
         ))
 
+    # get timeline
+    timeline <- sits_timeline(tile)
+
     # create the metadata for the probability cube
-    probs_cube <- .cube_probs_create(
-        tile       = tile,
-        samples    = samples,
-        sub_image  = sub_image,
+    probs_cube <- .cube_derived_create(
+        cube       = tile,
+        cube_class = "probs_cube",
+        band_name  = "PROBS",
+        labels     = labels,
+        start_date = timeline[[1]],
+        end_date   = timeline[[length(timeline)]],
+        bbox       = sub_image,
         output_dir = output_dir,
         version    = version
     )
