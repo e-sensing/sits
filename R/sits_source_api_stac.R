@@ -145,16 +145,18 @@
 
         # tile by tile
         data <- data %>%
-            tidyr::nest(items = dplyr::matches(c("fid", "features")))
+            tidyr::nest(items = dplyr::all_of(c("fid", "features")))
 
     } else {
 
         # item by item
         data <- data %>%
-            dplyr::transmute(tile = tile,
-                             items = purrr::map2(fid, features, function(x, y) {
-                                 dplyr::tibble(fid = x, features = list(y))
-                             }))
+            dplyr::transmute(
+                tile = tile,
+                items = purrr::map2(
+                    .data[["fid"]], .data[["features"]], function(x, y) {
+                        dplyr::tibble(fid = x, features = list(y))
+                    }))
     }
 
     if (.config_gdalcubes_min_files_for_parallel() > nrow(data)) {
@@ -170,7 +172,7 @@
     tiles <- .sits_parallel_map(seq_len(nrow(data)), function(i) {
 
         # get tile name
-        tile = data[["tile"]][[i]]
+        tile <- data[["tile"]][[i]]
 
         # get fids
         fids <- data[["items"]][[i]][["fid"]]
@@ -236,11 +238,8 @@
                 collection = collection) == "feature") {
 
                 # open band rasters
-                assets <- tryCatch({
-                    purrr::map(paths, .raster_open_rast)
-                }, error = function(e) {
-                    .sits_parallel_error_retry(e) # if an error occurs, retry
-                })
+                # TODO: implement sits_parallel_error_retry()
+                assets <- purrr::map(paths, .raster_open_rast)
 
                 # get asset info
                 asset_info <- purrr::map(assets, function(asset) {
