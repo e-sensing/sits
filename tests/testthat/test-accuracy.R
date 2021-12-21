@@ -59,6 +59,14 @@ test_that("K-fold validate", {
 
     expect_true(acc$overall["Accuracy"] > 0.90)
     expect_true(acc$overall["Kappa"] > 0.90)
+
+    results <- list()
+    acc$name <- "modis_4bands"
+    results[[length(results) + 1]] <- acc
+    xls_file <- paste0(tempdir(), "/accuracy.xlsx")
+    sits_to_xlsx(results, file = xls_file)
+
+    expect_true(file.remove(xls_file))
 })
 test_that("Accuracy areas", {
     set.seed(1234)

@@ -42,6 +42,36 @@ test_that("Reading a raster cube", {
     expect_true(params$xres >= 231.5)
 })
 
+test_that("Backwards compatibility", {
+    data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
+
+    raster_cube <- tryCatch({
+        sits_cube(
+            source = "LOCAL",
+            collection = "MOD13Q1-6",
+            data_dir = data_dir,
+            delim = "_",
+            parse_info = c("X1", "X2", "tile", "band", "date")
+        )
+    }, error = function(e) {
+        return(NULL)
+    })
+
+    expect_null(raster_cube)
+
+    msg <- capture_messages(sits_cube(
+            source = "LOCAL",
+            origin = "BDC",
+            collection = "MOD13Q1-6",
+            data_dir = data_dir,
+            delim = "_",
+            parse_info = c("X1", "X2", "tile", "band", "date")
+        )
+    )
+
+    expect_true(grepl("LOCAL value is deprecated", msg))
+})
+
 test_that("Creating a raster stack cube and selecting bands", {
     # Create a raster cube based on MODIS data
     data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
@@ -90,7 +120,6 @@ test_that("Creating cubes from BDC", {
             sits_cube(
                 source = "BDC",
                 collection = "CB4_64_16D_STK-1",
-                bands = c("NDVI", "EVI"),
                 tiles = c("022024", "022023"),
                 start_date = "2018-09-01",
                 end_date = "2019-08-29"
@@ -103,7 +132,8 @@ test_that("Creating cubes from BDC", {
     testthat::skip_if(purrr::is_null(cbers_cube),
                       message = "BDC is not accessible")
 
-    expect_true(all(sits_bands(cbers_cube) %in% c("NDVI", "EVI")))
+    expect_true(all(sits_bands(cbers_cube) %in%
+                        c("NDVI", "EVI", "B13", "B14", "B15", "B16", "CLOUD")))
     bbox <- sits_bbox(cbers_cube)
     int_bbox <- .sits_bbox_intersect(bbox, cbers_cube[1, ])
     expect_true(all(int_bbox == sits_bbox(cbers_cube[1, ])))
@@ -112,8 +142,51 @@ test_that("Creating cubes from BDC", {
     expect_true(timeline[1] <= as.Date("2018-09-01"))
     expect_true(timeline[length(timeline)] <= as.Date("2019-08-29"))
 
-    r_obj <- .raster_open_rast(cbers_cube$file_info[[1]]$path[1])
-    expect_true(terra::nrow(r_obj) == .cube_size(cbers_cube)[["nrows"]])
+    r_obj <- sits:::.raster_open_rast(cbers_cube$file_info[[1]]$path[1])
+    expect_true(terra::nrow(r_obj) == sits:::.cube_size(cbers_cube)[["nrows"]])
+})
+
+test_that("Creating cubes from BDC - based on ROI", {
+    testthat::skip_on_cran()
+
+    # check "BDC_ACCESS_KEY" - mandatory one per user
+    bdc_access_key <- Sys.getenv("BDC_ACCESS_KEY")
+
+    testthat::skip_if(nchar(bdc_access_key) == 0,
+                      message = "No BDC_ACCESS_KEY defined in environment.")
+
+    shp_file <- system.file("extdata/shapefiles/brazilian_legal_amazon/brazilian_legal_amazon.shp",
+                           package = "sits")
+    sf_bla <- sf::read_sf(shp_file)
+
+    # create a raster cube file based on the information about the files
+    modis_cube <-
+        tryCatch({
+            sits_cube(
+                source = "BDC",
+                collection = "MOD13Q1-6",
+                bands = c("NDVI", "EVI"),
+                roi = sf_bla,
+                start_date = "2018-09-01",
+                end_date = "2019-08-29"
+            )
+        },
+        error = function(e) {
+            return(NULL)
+        })
+
+    testthat::skip_if(purrr::is_null(modis_cube),
+                      message = "BDC is not accessible")
+
+    expect_true(all(sits_bands(modis_cube) %in% c("NDVI", "EVI")))
+    bbox <- sits_bbox(modis_cube, wgs84 = TRUE)
+    bbox_shp <- sf::st_bbox(sf_bla)
+    expect_gt(bbox["lat_max"], bbox_shp["ymax"])
+    expect_gt(bbox["lon_max"], bbox_shp["xmax"])
+    expect_lt(bbox["lat_min"], bbox_shp["ymin"])
+    expect_lt(bbox["lon_min"], bbox_shp["xmin"])
+
+    expect_true(sits:::.sits_raster_sub_image_intersects(modis_cube, sf_bla))
 })
 
 test_that("Creating cubes from WTSS", {
@@ -180,11 +253,6 @@ test_that("Creating cubes from DEA", {
     error = function(e) {
         return(NULL)
     })
-
-    testthat::skip_if(
-        purrr::is_null(dea_cube),
-        message = "DEAFRICA is not accessible"
-    )
 
     expect_true(all(sits_bands(dea_cube) %in% c("B01", "B04", "B05")))
 
@@ -381,6 +449,18 @@ test_that("Creating cubes from USGS", {
             return(NULL)
         })
 
+    usgs_cube <-  tryCatch({
+        sits_cube(source = "USGS",
+                  collection = "landsat-c2l2-sr",
+                  bands = c("B04", "CLOUD"),
+                  tiles = "223067",
+                  start_date = "2019-01-01",
+                  end_date = "2019-10-28"
+        )},
+        error = function(e){
+            return(NULL)
+        })
+
     testthat::skip_if(purrr::is_null(usgs_cube),
                       "AWS is not accessible")
 
@@ -391,8 +471,14 @@ test_that("Creating cubes from USGS", {
     file_info <- usgs_cube$file_info[[1]]
     r <- .raster_open_rast(file_info$path[[1]])
 
+<<<<<<< HEAD
     expect_equal(usgs_cube$xmax[[1]], .raster_xmax(r), tolerance = 1)
     expect_equal(usgs_cube$xmin[[1]], .raster_xmin(r), tolerance = 1)
+=======
+    expect_equal(usgs_cube$xmax[[1]], sits:::.raster_xmax(r), tolerance = 1)
+    expect_equal(usgs_cube$xmin[[1]], sits:::.raster_xmin(r), tolerance = 1)
+
+>>>>>>> dev
 })
 
 test_that("Creating Sentinel cubes from MSPC", {

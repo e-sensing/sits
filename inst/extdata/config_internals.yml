@@ -74,3 +74,8 @@ dl_activation_methods : ["relu", "elu", "selu", "sigmoid"]
 
 # metadata search strategy
 metadata_search_strategies : ["tile", "feature"]
+
+# class interval methods for plotting
+class_intervals: ["fixed", "sd", "equal", "pretty", "quantile",
+                  "kmeans", "hclust", "bclust", "fisher",
+                  "jenks", "dpih", "headtails"]

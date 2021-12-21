@@ -99,9 +99,17 @@ test_that("Values", {
     expect_equal(sum(values$NDVI[, "NDVI"]), 13.6291, tolerance = 0.001)
 })
 
+<<<<<<< HEAD
 test_that("Ops Compute", {
     ndwi <- .sits_ops_compute(samples_modis_4bands,
                               NDWI = (1.5) * (NIR - MIR) / (NIR + MIR))
+=======
+test_that("Apply", {
+    samples_modis_index <- sits_apply(samples_modis_4bands,
+                                      NDWI = (1.5) * (NIR - MIR) / (NIR + MIR))
 
-    expect_true("NDWI" %in% names(sits_time_series(ndwi)))
+    expect_true("NDWI" %in% sits_bands(samples_modis_index))
+
+>>>>>>> dev
+
 })

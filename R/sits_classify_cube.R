@@ -44,8 +44,7 @@
     .check_set_caller(".sits_classify_multicores")
 
     # some models have parallel processing built in
-    if ("ranger_model" %in% class(ml_model) |
-        "xgb_model"    %in% class(ml_model))
+    if ("xgb_model" %in% class(ml_model))
         multicores <- 1
 
     # retrieve the samples from the model

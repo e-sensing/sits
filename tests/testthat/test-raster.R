@@ -152,7 +152,60 @@ test_that("One-year, single core classification with filter", {
     sits:::.sits_debug(flag = FALSE)
 })
 
-test_that("One-year, multicore classification with filter", {
+test_that("One-year, multicore classification with Savitsky-Golay filter", {
+
+    samples_filt <-
+        sits_select(samples_modis_4bands, bands = c("NDVI", "EVI")) %>%
+        sits_apply(NDVI = sits_sgolay(NDVI),
+                   EVI = sits_sgolay(EVI))
+
+    rfor_model <- sits_train(samples_filt, sits_rfor())
+
+    data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
+    sinop <- sits_cube(
+        source = "BDC",
+        collection = "MOD13Q1-6",
+        data_dir = data_dir,
+        delim = "_",
+        parse_info = c("X1", "X2", "tile", "band", "date")
+    )
+
+    sinop_2014_probs <- tryCatch({
+        suppressMessages(
+            sits_classify(
+                data = sinop,
+                ml_model = rfor_model,
+                filter = sits_sgolay(),
+                output_dir = tempdir(),
+                memsize = 4,
+                multicores = 2
+            )
+        )
+    },
+    error = function(e) {
+        return(NULL)
+    })
+
+    if (purrr::is_null(sinop_2014_probs)) {
+        skip("Unable to allocated multicores")
+    }
+    expect_true(all(file.exists(unlist(sinop_2014_probs$file_info[[1]]$path))))
+
+    r_obj <- sits:::.raster_open_rast(sinop_2014_probs$file_info[[1]]$path[[1]])
+
+    expect_true(sits:::.raster_nrows(r_obj) ==
+                sits:::.cube_size(sinop_2014_probs)[["nrows"]])
+
+    max_lyr2 <- max(sits:::.raster_get_values(r_obj)[, 2])
+    expect_true(max_lyr2 <= 10000)
+
+    max_lyr3 <- max(sits:::.raster_get_values(r_obj)[, 3])
+    expect_true(max_lyr3 <= 10000)
+
+    expect_true(all(file.remove(unlist(sinop_2014_probs$file_info[[1]]$path))))
+})
+
+test_that("One-year, multicore classification with Whittaker filter", {
 
     samples_filt <-
         sits_select(samples_modis_4bands, bands = c("NDVI", "EVI")) %>%
@@ -327,4 +380,10 @@ test_that("One-year, multicore classification with post-processing", {
 
     expect_true(all(file.remove(unlist(sinop_probs$file_info[[1]]$path))))
     expect_true(all(file.remove(unlist(sinop_uncert$file_info[[1]]$path))))
+})
+
+test_that("Raster GDAL datatypes", {
+
+    gdal_type <- sits:::.raster_gdal_datatype("INT2U")
+    expect_equal(gdal_type, "UInt16")
 })

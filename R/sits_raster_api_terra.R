@@ -280,11 +280,3 @@
 
     terra::freq(x = r_obj, bylayer = TRUE)
 }
-
-#' @keywords internal
-#' @export
-.raster_resample_methods.terra <- function(sits_names = TRUE) {
-
-    # raster package resample names
-    return(c("near", "bilinear"))
-}

@@ -269,6 +269,19 @@ sits_cube.stac_cube <- function(source,
     if (!purrr::is_null(name)) {
         message("name parameter is no longer required")
     }
+    # deal with wrong parameter "band"
+    call_names <- deparse(sys.call())
+    if (grepl("band", call_names) && missing(bands)) {
+        bands <- band
+        message("please use bands instead of band as parameter")
+    }
+    # deal with wrong parameter "tile"
+    if (grepl("tile", call_names) && missing(tiles)) {
+        tiles <- tile
+        message("please use tiles instead of tile as parameter")
+    }
+
+
     # source is upper case
     source <- toupper(source)
 

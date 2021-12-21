@@ -4,7 +4,7 @@
 \alias{plot.uncertainty_cube}
 \title{Plot uncertainty cubes}
 \usage{
-\method{plot}{uncertainty_cube}(x, y, ..., tile = 1, n_colors = 20, palette = "Blues")
+\method{plot}{uncertainty_cube}(x, y, ..., tile = 1, n_breaks = 11, breaks = "pretty", palette = "Blues")
 }
 \arguments{
 \item{x}{object of class "probs_image"}
@@ -15,7 +15,9 @@
 
 \item{tile}{tile number to be plotted}
 
-\item{n_colors}{number of colors to plot}
+\item{n_breaks}{number of breaks to plot}
+
+\item{breaks}{type of class intervals}
 
 \item{palette}{hcl palette used for visualisation}
 }
@@ -24,6 +26,21 @@ The plot itself.
 }
 \description{
 plots a probability cube using stars
+}
+\note{
+\itemize{Possible class intervals
+ \item{"sd":} {intervals based on the average and standard deviation.}
+ \item{"equal": } {divides the range of the variable into n parts.}
+ \item{"pretty": } {number of breaks likely to be legible.}
+ \item{"quantile": } {quantile breaks}
+ \item{"kmeans" :} {uses kmeans to generate the breaks.}
+ \item{"hclust" :} {breaks defined by hierarchical clustering.}
+ \item{"bclust" :} {breaks defined by bagged clustering.}
+ \item{"fisher" :} {method proposed by Fischer (1958).}
+ \item{"jenks" :} {method proposed by Jenks.}
+ \item{"dpih" :} {based on the bin width of a histogram.}
+ \item{"headtails" :} {algorithm proposed by Bin Jiang (2013)}
+ }
 }
 \author{
 Gilberto Camara, \email{gilberto.camara@inpe.br}

@@ -25,39 +25,9 @@
     return(tiles_tbl)
 }
 
-#' @title Filter datetime in STAC items
-#' @name .usgs_filter_datetime
 #' @keywords internal
-#'
-#' @param items      a \code{STACItemCollection} object returned by rstac
-#' package.
-#' @param datetime  a \code{character} ...
-#'
-#' @return  a \code{STACItemCollection} object with datetime filtered.
-.usgs_filter_datetime <- function(items, datetime) {
-
-    split_datetime <- strsplit(x = datetime, split = "/")
-
-    start_date <- split_datetime[[1]][[1]]
-    end_date <- split_datetime[[1]][[2]]
-
-    # checks if the supplied tiles are in the searched items
-    index_features <- purrr::map_lgl(items$features, function(feature) {
-        datetime <- lubridate::date(feature[["properties"]][["datetime"]])
-
-        if (datetime >= start_date && datetime <= end_date)
-            return(TRUE)
-        return(FALSE)
-    })
-
-    # select the tiles found in the search
-    items$features <- items$features[index_features]
-
-    items
-}
-
-.source_collection_access_test.usgs_cube <- function(source, collection,
-                                                     bands, ...) {
+#' @export
+.source_collection_access_test.usgs_cube <- function(source, ..., collection, bands) {
 
     # require package
     if (!requireNamespace("rstac", quietly = TRUE)) {

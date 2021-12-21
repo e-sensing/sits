@@ -272,32 +272,7 @@ NULL
     return(ov)
 }
 
-#' @rdname cube_functions
-.cube_band_resolution <- function(cube, band) {
 
-    # pre-condition
-    .check_chr(band, len_min = 1, len_max = 1,
-               msg = "invalid 'band' parameter")
-
-    .check_chr_within(band,
-                      within = .cube_bands(cube = cube, add_cloud = TRUE),
-                      discriminator = "one_of",
-                      case_sensitive = FALSE,
-                      msg = "invalid 'band' parameter")
-
-    # bands names are upper case
-    band <- toupper(band)
-
-    res_band <- .config_get(key = c("sources", .cube_source(cube = cube),
-                                    "collections", .cube_collection(cube = cube),
-                                    "bands", band, "resolution"))
-
-    # post-condition
-    .check_num(res_band, min = 0, allow_zero = FALSE, len_min = 1,
-               msg = "invalid 'resolution' value")
-
-    return(res_band)
-}
 #' @rdname cube_functions
 .cube_check <- function(cube) {
 
@@ -443,6 +418,7 @@ NULL
 
     return(labs)
 }
+
 #' @title Determine the block spatial parameters of a given cube
 #' @name .cube_params_block
 #' @keywords internal
@@ -642,31 +618,6 @@ NULL
 
     return(size)
 }
-
-#' @rdname cube_functions
-.cube_size_max <- function(cube, ..., bands = NULL) {
-    # get the file information
-    file_info <- .cube_file_info(cube, bands)
-    # get the file resolution
-    res_min <- min(file_info$res)
-
-    # select only files with the smallest resolution
-    file_info <- dplyr::filter(file_info, res == res_min)
-
-    # obtain the size by querying the raster data
-    r_obj <- .raster_open_rast(file_info$path[[1]])
-
-    size <- c(
-        nrows = .raster_nrows(r_obj),
-        ncols = .raster_ncols(r_obj)
-    )
-    .check_num(size[["nrows"]], min = 1, allow_null = FALSE,
-               is_integer = TRUE, msg = "invalid number of rows")
-    .check_num(size[["ncols"]], min = 1, allow_null = FALSE,
-               is_integer = TRUE, msg = "invalid number of columns")
-
-    return(size)
-}
 #' @title Get cube source
 #' @name .cube_source
 #' @keywords internal
@@ -688,7 +639,6 @@ NULL
 
     return(src)
 }
-
 
 #' @rdname cube_functions
 .cube_timeline <- function(cube) {
@@ -783,22 +733,6 @@ NULL
                msg = "invalid 'fields' parameter")
 
     return(result)
-}
-
-#' @rdname cube_functions
-.cube_tile_crs <- function(cube, ...,
-                           tile = 1) {
-
-    crs <- .cube_tile_get_fields(cube = cube,  tile = tile, fields = "crs")
-
-    # simplify
-    crs <- unlist(res, use.names = FALSE)
-
-    # post-condition
-    .check_chr(crs, allow_empty = FALSE, len_min = 1, len_max = 1,
-               "invalid tile 'crs' value")
-
-    return(crs)
 }
 
 #' @rdname cube_functions

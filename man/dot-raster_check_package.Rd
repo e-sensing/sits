@@ -2,12 +2,9 @@
 % Please edit documentation in R/sits_raster_api.R
 \name{.raster_check_package}
 \alias{.raster_check_package}
-\alias{.raster_check_package.default}
 \title{Check for raster package availability}
 \usage{
 .raster_check_package()
-
-\method{.raster_check_package}{default}()
 }
 \value{
 package representation class

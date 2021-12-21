@@ -19,14 +19,6 @@
     UseMethod(".raster_check_package", pkg_class)
 }
 
-#' @name .raster_check_package
-#' @keywords internal
-#' @export
-.raster_check_package.default <- function() {
-
-    stop("No API defined for this raster package.")
-}
-
 #' @title Check for block object consistency
 #' @name .raster_check_block
 #' @keywords internal
@@ -516,47 +508,6 @@
     pkg_class <- .raster_check_package()
 
     UseMethod(".raster_freq", pkg_class)
-}
-
-#' @title Convert sits internal resample methods
-#' @name .raster_resample_method
-#' @keywords internal
-#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
-#' @param method     A \code{character} value indicating a resampling
-#' method name
-#' @param sits_names A \code{logical} indicating if method names to be returned
-#' must be sits names or package names
-#'
-#' @return character string
-.raster_resample_method <- function(method) {
-
-    # package supported resample methods
-    convert_methods <- .raster_resample_methods(sits_names = FALSE)
-    names(convert_methods) <- .raster_resample_methods(sits_names = TRUE)
-
-    # check method type
-    .check_chr(method, len_min = 1, len_max = 1,
-               msg = "invalid 'method' parameter")
-
-    .check_chr_within(method,
-                      within = .raster_resample_methods(sits_names = TRUE),
-                      discriminator = "one_of",
-                      msg = "invalid 'method' parameter")
-    # convert
-    return(convert_methods[[method]])
-}
-
-#' @name .raster_resample_method
-.raster_resample_methods <- function(sits_names = TRUE) {
-
-    # show sits methods names
-    if (sits_names)
-        return(c("near", "bilinear"))
-
-    # check package
-    pkg_class <- .raster_check_package()
-
-    UseMethod(".raster_resample_methods", pkg_class)
 }
 
 #' @title Determine the file params to write in the metadata
