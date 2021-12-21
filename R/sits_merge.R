@@ -103,7 +103,7 @@ sits_merge.sits <- function(data1, data2, ..., suffix) {
 
 #' @export
 #'
-sits_merge.raster_cube <- function(data1, data2, suffix = c(".1", ".2")) {
+sits_merge.raster_cube <- function(data1, data2, ..., suffix = c(".1", ".2")) {
 
     # pre-condition - check cube type
     .cube_check(data1)

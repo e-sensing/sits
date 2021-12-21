@@ -116,8 +116,7 @@
 
 #' @keywords internal
 #' @export
-.source_items_file_info.stac_cube <- function(source, items,
-                                              ...,
+.source_items_file_info.stac_cube <- function(source, items, ...,
                                               collection = NULL) {
 
     # set caller to show in errors
