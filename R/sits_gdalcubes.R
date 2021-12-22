@@ -184,6 +184,25 @@
         features <- dplyr::mutate(file_info, id = .data[["fid"]]) %>%
             tidyr::nest(features = -.data[["fid"]])
 
+        features <- slider::slide_dfr(features, function(feat) {
+
+            bbox <- .coords_to_bbox(
+                xmin = feat$features[[1]][["xmin"]][[1]],
+                xmax = feat$features[[1]][["xmax"]][[1]],
+                ymin = feat$features[[1]][["ymin"]][[1]],
+                ymax = feat$features[[1]][["ymax"]][[1]],
+                crs = as.numeric(feat$features[[1]][["proj:epsg"]][[1]])
+            )
+
+            feat$features[[1]] <- dplyr::mutate(feat$features[[1]],
+                                                xmin = bbox[["lat_min"]],
+                                                xmax = bbox[["lat_max"]],
+                                                ymin = bbox[["lon_min"]],
+                                                ymax = bbox[["lon_max"]])
+
+            feat
+        })
+
         purrr::map(features[["features"]], function(feature) {
 
             feature <- feature %>%
