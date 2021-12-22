@@ -195,10 +195,10 @@
             )
 
             feat$features[[1]] <- dplyr::mutate(feat$features[[1]],
-                                                xmin = bbox[["lat_min"]],
-                                                xmax = bbox[["lat_max"]],
-                                                ymin = bbox[["lon_min"]],
-                                                ymax = bbox[["lon_max"]])
+                                                xmin = bbox[["lon_min"]],
+                                                xmax = bbox[["lon_max"]],
+                                                ymin = bbox[["lat_min"]],
+                                                ymax = bbox[["lat_max"]])
 
             feat
         })
