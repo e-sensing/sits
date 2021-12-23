@@ -32,6 +32,7 @@ sits_bbox <- function(data, wgs84 = FALSE, ...) {
 #' @export
 #'
 sits_bbox.sits <- function(data, ...) {
+
     # is the data a valid set of time series
     .sits_tibble_test(data)
 
@@ -53,39 +54,48 @@ sits_bbox.sits_cube <- function(data, wgs84 = FALSE, ...) {
     # pre-condition
     .cube_check(data)
 
+    if (!wgs84)
+        .check_that(length(unique(.crs(data))) == 1,
+                    local_msg = "use `wgs84 = TRUE` for a global bbox",
+                    msg = "cube has more than one projection")
+
     # create and return the bounding box
-    if (nrow(data) == 1) {
-        bbox <- c(xmin = data$xmin,
-                  xmax = data$xmax,
-                  ymin = data$ymin,
-                  ymax = data$ymax)
-    } else {
-        bbox <- c(xmin = min(data$xmin),
-                  xmax = max(data$xmax),
-                  ymin = min(data$ymin),
-                  ymax = max(data$ymax)
-        )
-    }
+    bbox <- c(xmin = min(data[["xmin"]]),
+              xmax = max(data[["xmax"]]),
+              ymin = min(data[["ymin"]]),
+              ymax = max(data[["ymax"]]))
 
     # convert to WGS84?
-    if (wgs84) {
-
-        bbox <- c(
-            .sits_proj_to_latlong(x = bbox[["xmin"]],
-                                  y = bbox[["ymin"]],
-                                  crs = data$crs[[1]]),
-            .sits_proj_to_latlong(x = bbox[["xmax"]],
-                                  y = bbox[["ymax"]],
-                                  crs = data$crs[[1]])
-        )
-
-        names(bbox) <- c("lon_min", "lat_min", "lon_max", "lat_max")
-
-        bbox <- bbox[c("lon_min", "lon_max", "lat_min", "lat_max")]
-    }
+    if (wgs84)
+        bbox <- .sits_coords_to_bbox(
+            xmin = bbox[["xmin"]],
+            xmax = bbox[["xmax"]],
+            ymin = bbox[["ymin"]],
+            ymax = bbox[["ymax"]],
+            crs = data[["crs"]][[1]])
 
     return(bbox)
 }
+
+.sits_coords_to_bbox <- function(xmin, xmax, ymin, ymax, crs) {
+
+    pt1 <- c(xmin, ymax)
+    pt2 <- c(xmax, ymax)
+    pt3 <- c(xmax, ymin)
+    pt4 <- c(xmin, ymin)
+
+    bbox <- sf::st_sfc(
+        sf::st_polygon(list(rbind(pt1, pt2, pt3, pt4, pt1))), crs = crs
+    )
+
+    # create a polygon and transform the proj
+    bbox_latlng <- sf::st_bbox(sf::st_transform(bbox, crs = 4326))
+
+    names(bbox_latlng) <- c("lon_min", "lat_min", "lon_max", "lat_max")
+
+    return(bbox_latlng)
+}
+
 #' @title Intersection between a bounding box and a cube
 #' @name .sits_bbox_intersect
 #' @keywords internal
