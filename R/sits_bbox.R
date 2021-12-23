@@ -32,6 +32,7 @@ sits_bbox <- function(data, wgs84 = FALSE, ...) {
 #' @export
 #'
 sits_bbox.sits <- function(data, ...) {
+
     # is the data a valid set of time series
     .sits_tibble_test(data)
 
@@ -53,34 +54,30 @@ sits_bbox.sits_cube <- function(data, wgs84 = FALSE, ...) {
     # pre-condition
     .cube_check(data)
 
+    if (!wgs84)
+        .check_that(length(unique(.crs(data))) == 1,
+                    local_msg = "use `wgs84 = TRUE` for a global bbox",
+                    msg = "cube has more than one projection")
+
     # create and return the bounding box
-    if (nrow(data) == 1) {
-        bbox <- c(xmin = data$xmin,
-                  xmax = data$xmax,
-                  ymin = data$ymin,
-                  ymax = data$ymax)
-    } else {
-        bbox <- c(xmin = min(data$xmin),
-                  xmax = max(data$xmax),
-                  ymin = min(data$ymin),
-                  ymax = max(data$ymax)
-        )
-    }
+    bbox <- c(xmin = min(data[["xmin"]]),
+              xmax = max(data[["xmax"]]),
+              ymin = min(data[["ymin"]]),
+              ymax = max(data[["ymax"]]))
 
     # convert to WGS84?
-    if (wgs84) {
-
-        .coords_to_bbox(xmin = bbox[["xmin"]],
-                        xmax = bbox[["xmax"]],
-                        ymin = bbox[["ymin"]],
-                        ymax = bbox[["ymax"]])
-
-    }
+    if (wgs84)
+        bbox <- .sits_coords_to_bbox(
+            xmin = bbox[["xmin"]],
+            xmax = bbox[["xmax"]],
+            ymin = bbox[["ymin"]],
+            ymax = bbox[["ymax"]],
+            crs = data[["crs"]][[1]])
 
     return(bbox)
 }
 
-.coords_to_bbox <- function(xmin, xmax, ymin, ymax, crs) {
+.sits_coords_to_bbox <- function(xmin, xmax, ymin, ymax, crs) {
 
     pt1 <- c(xmin, ymax)
     pt2 <- c(xmax, ymax)
