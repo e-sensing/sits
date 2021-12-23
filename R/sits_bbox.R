@@ -68,14 +68,14 @@ sits_bbox.sits_cube <- function(data, wgs84 = FALSE, ...) {
     }
 
     # convert to WGS84?
-    if (wgs84) {
+    if (wgs84)
 
-        .coords_to_bbox(xmin = bbox[["xmin"]],
-                        xmax = bbox[["xmax"]],
-                        ymin = bbox[["ymin"]],
-                        ymax = bbox[["ymax"]])
+        bbox <- .coords_to_bbox(xmin = bbox[["xmin"]],
+                                xmax = bbox[["xmax"]],
+                                ymin = bbox[["ymin"]],
+                                ymax = bbox[["ymax"]],
+                                crs = data[["crs"]][[1]])
 
-    }
 
     return(bbox)
 }
