@@ -55,7 +55,7 @@ sits_bbox.sits_cube <- function(data, wgs84 = FALSE, ...) {
     .cube_check(data)
 
     if (!wgs84)
-        .check_that(length(unique(.crs(data))) == 1,
+        .check_that(length(unique(data[["crs"]])) == 1,
                     local_msg = "use `wgs84 = TRUE` for a global bbox",
                     msg = "cube has more than one projection")
 
