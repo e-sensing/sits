@@ -36,38 +36,47 @@
 #' gc_cube <- sits_regularize(cube       = s2_cube,
 #'                            output_dir = paste0(tempdir(),"/images/"),
 #'                            period     = "P1M",
-#'                            res        = 60)
+#'                            res        = 320)
 #' }
 #' }
 #'
 #' @param cube        A \code{sits_cube} object whose spacing of observation
 #'  times is not constant and will be regularized by the \code{gdalcubes}
 #'  package.
+#'
 #' @param output_dir  A \code{character} with a valid directory where the
 #'  regularized images will be written by \code{gdalcubes}.
+#'
 #' @param period      A \code{character} with ISO8601 time period for regular
 #'  data cubes produced by \code{gdalcubes}, with number and unit, e.g., "P16D"
 #'  for 16 days. Use "D", "M" and "Y" for days, month and year.
+#'
 #' @param res         A \code{numeric} with spatial resolution of the image that
 #'  will be aggregated.
+#'
 #' @param roi         A named \code{numeric} vector with a region of interest.
 #'  See above
+#'
 #' @param multicores  A \code{numeric} with the number of cores will be used in
 #'  the regularize. By default is used 1 core.
+#'
 #' @param agg_method  A \code{character} with method that will be applied by
 #'  \code{gdalcubes} for aggregation. Options: \code{median} and
 #'  \code{least_cc_first}.
 #'  The default aggregation method is \code{least_cc_first}. See more above.
+#'
 #' @param fill_method A \code{character} indicating which interpolation method
 #'  will be applied. Options: \code{near} for nearest neighbor; \code{linear}
 #'  for linear interpolation; \code{locf} for ast observation carried forward,
 #'  or \code{nocb} for next observation carried backward.
 #'  Default is \code{near}.
+#'
 #' @param resampling  A \code{character} with method to be used by
 #'  \code{gdalcubes} for resampling in mosaic operation.
 #'  Options: \code{near}, \code{bilinear}, \code{bicubic} or others supported by
 #'  gdalwarp (see https://gdal.org/programs/gdalwarp.html).
 #'  By default is bilinear.
+#'
 #' @param cloud_mask A \code{logical} to use cloud band for aggregation by
 #' \code{gdalcubes}. Deprecated as of SITS version 0.16.0.
 #'
@@ -192,13 +201,11 @@ sits_regularize <- function(cube,
 
     if (!is.null(roi)) {
 
-        # filter only intersecting tiles
-        intersects <- slider::slide_lgl(cube,
-                                        .sits_raster_sub_image_intersects,
-                                        roi)
+        intersects_tiles <- slider::slide_lgl(
+            cube, .sits_raster_sub_image_intersects, roi
+        )
 
-        # retrieve only intersecting tiles
-        cube <- cube[intersects, ]
+        cube <- cube[intersects_tiles, ]
     }
 
     # timeline of intersection

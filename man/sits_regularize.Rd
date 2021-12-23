@@ -103,7 +103,7 @@ dir.create(paste0(tempdir(),"/images/"))
 gc_cube <- sits_regularize(cube       = s2_cube,
                            output_dir = paste0(tempdir(),"/images/"),
                            period     = "P1M",
-                           res        = 60)
+                           res        = 320)
 }
 }
 
