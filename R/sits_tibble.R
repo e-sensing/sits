@@ -119,23 +119,6 @@ sits_time_series <- function(data) {
   class(sits) <- c("sits", class(sits))
   return(sits)
 }
-#' @title Rename a tibble to use "cube" instead of "coverage"
-#' @name .sits_tibble_rename
-#'
-#' @keywords internal
-#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
-#' @param data   A sits tibble.
-#'
-.sits_tibble_rename <- function(data) {
-
-  # is the input data a valid sits tibble?
-  if ("coverage" %in% names(data)) {
-
-    data <- dplyr::rename(data, cube = "coverage")
-  }
-
-  return(data)
-}
 
 #' @title Aligns dates of time series to a reference date
 #' @name .sits_tibble_align_dates

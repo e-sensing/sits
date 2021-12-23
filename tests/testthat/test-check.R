@@ -123,6 +123,10 @@ test_that("Checks", {
         .check_length("abc", len_max = 0),
         "test: length should be <= 0"
     )
+    expect_error(
+        .check_length(c("a", "b", "c", "d"), len_min = 1, len_max = 3),
+        "test: length should be between 1 and 3"
+    )
 
     # .check_apply
     expect_equal(
@@ -239,7 +243,24 @@ test_that("Checks", {
                           discriminator = "all_of"),
         c("a", "b", "b", "c")
     )
-
+    expect_equal(
+        .check_chr_within(c("a", "b", "c"),
+                          within = c("d"),
+                          discriminator = "none_of"),
+        c("a", "b", "c")
+    )
+    expect_error(
+        .check_chr_within(c("a", "b", "c"),
+                          within = c("a", "b"),
+                          discriminator = "exactly"),
+        "test: values should have exactly"
+    )
+    expect_error(
+        .check_chr_within(c("a", "b", "b", "c"),
+                          within = c("a", "b", "c"),
+                          discriminator = "true_of"),
+        ".check_chr_within: discriminator should be one of"
+    )
     # .check_chr_contains
     expect_error(
         .check_chr_contains(character(0),
@@ -253,6 +274,7 @@ test_that("Checks", {
                             discriminator = "one_of"),
         "test: values should contain only one of: 'a', 'b'"
     )
+
     expect_equal(
         .check_chr_contains(c("a", "b", "c"),
                             contains = c("a", "b"),
@@ -338,6 +360,14 @@ test_that("Checks", {
     expect_error(
         .check_num(c(1, NA, 3), allow_na = FALSE),
         "test: NA value is not allowed"
+    )
+    expect_error(
+        .check_num(c(1, 2, 3), min = "a"),
+        ".check_num: min parameter should be numeric"
+    )
+    expect_error(
+        .check_num(c(1, 2, 3), max = "a"),
+        ".check_num: max parameter should be numeric"
     )
     expect_equal(
         .check_num(c(1, NA, 3), allow_na = TRUE),

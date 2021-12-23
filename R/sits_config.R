@@ -603,20 +603,6 @@ sits_list_collections <- function(source = NULL) {
 
     return(res)
 }
-#' @title Get local S3 class
-#' @name .config_local_s3_class
-#' @keywords internal
-#' @return classes associated to local cubes
-.config_local_s3_class <- function() {
-
-    res <- .config_get(key = c("local_s3_class"))
-
-    # post-condition
-    .check_chr(res, len_min = 1,
-               msg = "invalid 'local_s3_class' in config file")
-
-    return(res)
-}
 #' @title Get names associated to a configuration key
 #' @name .config_names
 #' @param key   key combination to access config information

@@ -50,6 +50,9 @@ test_that("Merge", {
 
     expect_true(length(sits_timeline(result)) == 412)
     expect_true(ncol(sits_time_series(result)) == 3)
+
+    result2 <- sits_merge(point_ndvi, point_ndvi)
+    expect_true(all(sits_bands(result2) %in% c("NDVI.1", "NDVI.2")))
 })
 
 test_that("Prune", {
@@ -72,6 +75,9 @@ test_that("Sample", {
     data <- sits_sample(cerrado_2classes, frac = 0.1)
     expect_true(nrow(dplyr::filter(data, label == "Cerrado")) == 40)
     expect_true(nrow(dplyr::filter(data, label == "Pasture")) == 35)
+
+    data2 <- sits_sample(cerrado_2classes, frac = 1.3)
+    expect_true(nrow(data2) > nrow(cerrado_2classes))
 })
 
 test_that("Select", {

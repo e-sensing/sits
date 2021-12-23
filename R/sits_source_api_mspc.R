@@ -125,20 +125,6 @@
 
 #' @keywords internal
 #' @export
-`.source_items_tile_get_crs.mspc_cube_sentinel-2-l2a` <- function(source,
-                                                                  tile_items, ...,
-                                                                  collection = NULL) {
-
-    # format collection crs
-    crs <- .sits_proj_format_crs(
-        tile_items[["features"]][[1]][[c("properties", "proj:epsg")]]
-    )
-
-    return(crs)
-}
-
-#' @keywords internal
-#' @export
 `.source_items_new.mspc_cube_landsat-8-c2-l2` <- function(source,
                                                           collection,
                                                           stac_query, ...,
@@ -226,21 +212,4 @@
     })
 
     rstac::items_reap(items, field = c("properties", "tile"))
-}
-
-#' @keywords internal
-#' @export
-.source_items_tile_get_crs.mspc_cube <- function(source,
-                                                 tile_items, ...,
-                                                 collection = NULL) {
-
-    r_obj <- .raster_open_rast(
-        .source_item_get_hrefs(source = source,
-                               item = tile_items$features[[1]])[[1]]
-    )
-
-    # get image bbox
-    crs <- paste0("EPSG:", terra::crs(r_obj, describe = TRUE)$EPSG)
-
-    return(crs)
 }

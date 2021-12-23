@@ -32,7 +32,9 @@ test_that("One-year, single core classification", {
             multicores = 1
         )
     )
-
+    sits_labels(sinop_probs) <- c("Cerrado", "Floresta", "Pastagem", "Soja_Milho")
+    expect_true(all(sits_labels(sinop_probs) %in%
+                        c("Cerrado", "Floresta", "Pastagem", "Soja_Milho")))
     expect_true(all(file.exists(unlist(sinop_probs$file_info[[1]]$path))))
     r_obj <- .raster_open_rast(sinop_probs$file_info[[1]]$path[[1]])
 

@@ -49,9 +49,5 @@
 #'
 #' @return  a \code{character} with the formatted CRS.
 .sits_proj_format_crs <- function(crs) {
-
-  if (is.null(crs))
-    stop(paste(".sits_proj_format_crs: The CRS in this catalog is null, please",
-               "enter a valid CRS."))
   return(sf::st_crs(crs)[["input"]])
 }

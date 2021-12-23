@@ -1013,21 +1013,6 @@ NULL
 
 #' @rdname source_cube
 #'
-#' @description \code{.source_items_tile_get_crs()} retrieves the CRS
-#' string from items.
-#'
-#' @return \code{.source_items_tile_get_crs()} returns a \code{character}
-#' value.
-#'
-.source_items_tile_get_crs <- function(source,
-                                       tile_items, ...,
-                                       collection = NULL) {
-    source <- .source_new(source = source, collection = collection)
-    UseMethod(".source_items_tile_get_crs", source)
-}
-
-#' @rdname source_cube
-#'
 #' @description \code{.source_tile_get_bbox()} retrieves the bounding
 #' box from items of a tile.
 #'

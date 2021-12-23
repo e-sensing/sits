@@ -45,23 +45,32 @@ test_that("Classify a set of time series with svm + filter", {
 test_that("Classify time series with TWDTW method", {
     testthat::skip_on_cran()
     samples_mt_ndvi <- sits_select(samples_modis_4bands, bands = "NDVI")
-    points_mt_ndvi <- samples_mt_ndvi[1:15,]
     patterns <- sits_patterns(samples_mt_ndvi)
     expect_true(all(sits_labels(patterns) %in% sits_labels(samples_mt_ndvi)))
-    matches <- sits_twdtw_classify(points_mt_ndvi,
+    point_mt_ndvi <- sits_select(point_mt_6bands, bands = "NDVI")
+    matches <- sits_twdtw_classify(point_mt_ndvi,
                                    patterns,
                                    bands = "NDVI",
                                    alpha = -0.1,
                                    beta = 100,
                                    theta = 0.5,
-                                   keep = TRUE,
-                                   .plot = TRUE
-
+                                   keep = TRUE
     )
 
 
     expect_true(all(unique(matches$predicted[[1]]$predicted) %in%
         sits_labels(samples_mt_ndvi)))
+
+    matches <- sits_twdtw_classify(point_mt_ndvi,
+                                   patterns,
+                                   bands = "NDVI",
+                                   alpha = -0.1,
+                                   beta = 100,
+                                   theta = 0.5,
+                                   start_date = "2005-01-01",
+                                   end_date = "2015-12-31",
+                                   keep = TRUE
+    )
 })
 
 test_that("Classify error bands 1", {

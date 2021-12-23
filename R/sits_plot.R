@@ -178,7 +178,6 @@ plot.raster_cube <- function(x, ...,
 
         # filter only intersecting tiles
         intersects <- slider::slide(x, function(row) {
-
             .sits_raster_sub_image_intersects(row, roi)
         }) %>% unlist()
 

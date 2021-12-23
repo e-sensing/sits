@@ -233,8 +233,8 @@ sits_filter <- function(data, filter = sits_whittaker()) {
     }
     ## The filters shifted to the right are symmetric with those to the left.
     Fm[(k + 2):n,] <- (-1)^m * Fm[k:1,n:1]
-    if (m > 0)
-        Fm <- Fm * prod(1:m) / (ts^m)
+    # if (m > 0)
+    #     Fm <- Fm * prod(1:m) / (ts^m)
     class(Fm) <- "sgolayFilter"
     return(Fm)
 }
@@ -244,20 +244,20 @@ sits_filter <- function(data, filter = sits_whittaker()) {
 .sits_signal_filter <- function(filt, a, x, init, init.x, init.y, ...) {
     if (missing(init.x))
         init.x <- c(rep(0, length(filt) - 1))
-    if (length(init.x) != length(filt) - 1)
-        stop("length of init.x should match filter length-1 = ", length(filt) - 1)
-    if (missing(init) && !missing(init.y))
-        init <- rev(init.y)
-    if (all(is.na(x)))
-        return(x)
+    # if (length(init.x) != length(filt) - 1)
+    #     stop("length of init.x should match filter length-1 = ", length(filt) - 1)
+    # if (missing(init) && !missing(init.y))
+    #     init <- rev(init.y)
+    # if (all(is.na(x)))
+    #     return(x)
     if (length(filt)) {
         x1 <- stats::filter(c(init.x, x), filt / a[1], sides = 1)
-        if (all(is.na(x1)))
-            return(x)
+        # if (all(is.na(x1)))
+        #     return(x)
         x <- stats::na.omit(x1, filt / a[1] , sides = 1)
     }
-    if (length(a) >= 2)
-        x <- stats::filter(x, -a[-1] / a[1], method = "recursive", init = init)
+    # if (length(a) >= 2)
+    #     x <- stats::filter(x, -a[-1] / a[1], method = "recursive", init = init)
     return(x)
 }
 #' @title Generalized Inverse of a Matrix
@@ -284,9 +284,10 @@ sits_filter <- function(data, filter = sits_whittaker()) {
     # if (!is.matrix(X)) X <- as.matrix(X)
     Xsvd <- svd(X)
     # if (is.complex(X)) Xsvd$u <- Conj(Xsvd$u)
-    Positive <- Xsvd$d > max(tol * Xsvd$d[1L], 0)
-    if (all(Positive)) Xsvd$v %*% (1/Xsvd$d * t(Xsvd$u))
-    else if (!any(Positive)) array(0, dim(X)[2L:1L])
-    else Xsvd$v[, Positive, drop = FALSE] %*% ((1/Xsvd$d[Positive]) * t(Xsvd$u[, Positive, drop = FALSE]))
+    # Positive <- Xsvd$d > max(tol * Xsvd$d[1L], 0)
+    # if (all(Positive)) Xsvd$v %*% (1/Xsvd$d * t(Xsvd$u))
+    # else if (!any(Positive)) array(0, dim(X)[2L:1L])
+    # else Xsvd$v[, Positive, drop = FALSE] %*% ((1/Xsvd$d[Positive]) * t(Xsvd$u[, Positive, drop = FALSE]))
+    Xsvd$v %*% (1/Xsvd$d * t(Xsvd$u))
 }
 
