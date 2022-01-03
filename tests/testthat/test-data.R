@@ -26,6 +26,39 @@ test_that("Creating a WTSS data cube", {
     expect_gt(length(sits_timeline(cube_wtss)), 1)
 })
 
+test_that("Obtaining a point in WTSS", {
+    testthat::skip_on_cran()
+
+    # check "BDC_ACCESS_KEY" - mandatory one per user
+    bdc_access_key <- Sys.getenv("BDC_ACCESS_KEY")
+
+    testthat::skip_if(nchar(bdc_access_key) == 0,
+                      message = "No BDC_ACCESS_KEY defined in environment.")
+
+    cube_wtss <- tryCatch({
+        suppressMessages(
+            sits_cube(
+                source = "WTSS",
+                collection = "MOD13Q1-6"
+            )
+        )
+    },
+    error = function(e) {
+        return(NULL)
+    })
+
+    testthat::skip_if(purrr::is_null(cube_wtss),
+                      message = "WTSS is not accessible")
+
+    point <- sits_get_data(cube_wtss,
+                           longitude = -55.0399,
+                           latitude = -15.1933)
+    expect_equal(as.Date(point$start_date), as.Date("2000-02-18"))
+
+    expect_true(all(sits_bands(point) %in%
+                 c("NDVI","EVI","BLUE", "RED", "NIR", "MIR")))
+
+})
 test_that("Reading a CSV file from WTSS", {
     testthat::skip_on_cran()
 

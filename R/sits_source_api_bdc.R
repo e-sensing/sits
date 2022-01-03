@@ -56,19 +56,3 @@
 
     rstac::items_reap(items, field = c("properties", "bdc:tiles"))
 }
-
-#' @keywords internal
-#' @export
-.source_items_tile_get_crs.bdc_cube <- function(source, ...,
-                                                tile_items,
-                                                collection = NULL) {
-
-    # making request to collection endpoint to get crs info
-    url <- .source_url(source = source)
-    query_search <- rstac::collections(q = rstac::stac(url),
-                                       collection_id = collection)
-
-    col <- rstac::get_request(q = query_search)
-
-    return(col[["bdc:crs"]])
-}

@@ -15,4 +15,7 @@ test_that("Savitsky Golay filter", {
 
     expect_true(length(sits_timeline(point_ndvi)) ==
         length(sits_timeline(point_sg)))
+
+    expect_error(sits_sgolay(point_ndvi, length = 6))
+    expect_error(sits_sgolay(point_ndvi, order = 5, length = 5))
 })

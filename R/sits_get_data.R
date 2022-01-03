@@ -899,9 +899,6 @@ sits_get_data.shp_raster_cube <- function(cube, file, ...,
         if (label != "NoClass") {
             ts$label <- label
         }
-        # convert name
-        ts <- .sits_tibble_rename(ts)
-        # band names are uppercase in SITS
     }
 
     # return the tibble with the time series

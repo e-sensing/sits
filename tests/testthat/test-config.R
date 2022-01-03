@@ -228,6 +228,8 @@ test_that("User functions", {
         .source_collection_check(source = "TEST", collection = "TEST"),
         NULL
     )
+    expect_equal(sits:::.source_collection_tile_check("MSPC", "LANDSAT-8-C2-L2", "232067"),
+                 NULL)
 
     # reset config
     expect_true(
@@ -382,6 +384,36 @@ test_that("Configs WTSS", {
                                 bands = c("BLUE", "RED")),
         c("blue_reflectance", "red_reflectance")
     )
+})
+
+test_that("Metatype", {
+    expect_error(sits:::.config_data_meta_type("abc"),
+                 "Data not recognized as a sits object")
+})
+
+test_that("List collections", {
+    col <- capture.output(sits_list_collections())
+    expect_true("BDC:" %in% col)
+    expect_true("AWS:" %in% col)
+    expect_true("- MOD13Q1-6 (TERRA/MODIS)" %in% col)
+})
+
+test_that("Config colors",{
+    labels1 <- c("Evergreen_Needleleaf_Forest",
+                 "Forest",
+                 "Floresta",
+                 "Tropical Forest")
+    warn1 <- capture_warning(sits:::.config_colors(labels1))
+    expect_true(grepl("Some labels are not available in the chosen palette",
+                      warn1))
+    labels2 <- c("Evergreen_Needleleaf_Forest",
+                 "Forest",
+                 "Floresta Tropical",
+                 "Floresta Amazonica",
+                 "Tropical Forest")
+    warn2 <- capture_warning(sits:::.config_colors(labels2))
+    expect_true(grepl("Most labels are not available in the chosen palette",
+                      warn2))
 })
 
 # restore variable value

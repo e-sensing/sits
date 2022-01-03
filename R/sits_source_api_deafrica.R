@@ -42,16 +42,3 @@
     rstac::items_reap(items, field = c("properties", "odc:region_code"))
 }
 
-#' @keywords internal
-#' @export
-.source_items_tile_get_crs.deafrica_cube <- function(source, ...,
-                                                     tile_items,
-                                                     collection = NULL) {
-
-    # format collection crs
-    crs <- .sits_proj_format_crs(
-        tile_items[["features"]][[1]][[c("properties", "proj:epsg")]]
-    )
-
-    return(crs)
-}

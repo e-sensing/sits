@@ -9,7 +9,6 @@ test_that("View", {
     modis_cube <- sits_cube(
         source = "BDC",
         collection = "MOD13Q1-6",
-        bands = "NDVI",
         data_dir = data_dir,
         parse_info = c("X1", "X2", "tile", "band", "date")
     )

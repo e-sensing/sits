@@ -14,7 +14,6 @@
 \alias{.source_items_tile}
 \alias{.source_collection_sensor}
 \alias{.source_collection_satellite}
-\alias{.source_items_tile_get_crs}
 \alias{.source_tile_get_bbox}
 \alias{.source_items_cube}
 \alias{.source_tile_get_bbox.stac_cube}
@@ -43,8 +42,6 @@
 .source_collection_sensor(source, collection)
 
 .source_collection_satellite(source, collection)
-
-.source_items_tile_get_crs(source, tile_items, ..., collection = NULL)
 
 .source_tile_get_bbox(source, ..., file_info, collection = NULL)
 
@@ -108,9 +105,6 @@ items.
 \code{.source_items_get_satellite()} returns a \code{character}
 value.
 
-\code{.source_items_tile_get_crs()} returns a \code{character}
-value.
-
 \code{.source_tile_get_bbox()} returns a \code{numeric}
 vector with 4 elements (xmin, ymin, xmax, ymax).
 
@@ -162,9 +156,6 @@ items object.
 
 \code{.source_items_get_satellite()} retrieves the satellite
 name (platform) from items object.
-
-\code{.source_items_tile_get_crs()} retrieves the CRS
-string from items.
 
 \code{.source_tile_get_bbox()} retrieves the bounding
 box from items of a tile.

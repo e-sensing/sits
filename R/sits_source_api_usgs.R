@@ -180,16 +180,3 @@
 
     rstac::items_reap(items, field = c("properties", "tile"))
 }
-
-#' @keywords internal
-#' @export
-.source_items_tile_get_crs.usgs_cube <- function(source,
-                                                 tile_items, ...,
-                                                 collection = NULL) {
-
-    epsg_code <- tile_items[["features"]][[1]][[c("properties", "proj:epsg")]]
-    # format collection crs
-    crs <- .sits_proj_format_crs(epsg_code)
-
-    return(crs)
-}
