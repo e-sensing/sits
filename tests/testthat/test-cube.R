@@ -259,7 +259,7 @@ test_that("Creating cubes from DEA", {
     dea_cube <- tryCatch({
         sits_cube(source = "DEAFRICA",
                   collection = "s2_l2a",
-                  band = c("B01", "B04", "B05"),
+                  bands = c("B01", "B04", "B05"),
                   roi = c(lon_min = 17.379,
                           lat_min = 1.1573,
                           lon_max = 17.410,
@@ -287,7 +287,7 @@ test_that("Creating cubes from DEA - error using tiles", {
                      sits_cube(source = "DEAFRICA",
                                collection = "s2_l2a",
                                bands = c("B01", "B04", "B05"),
-                               tile = "37MEP",
+                               tiles = "37MEP",
                                start_date = "2019-01-01",
                                end_date = "2019-10-28"),
                  "DEAFRICA cubes do not support searching for tiles"
@@ -576,10 +576,12 @@ test_that("Creating Sentinel cubes from MSPC with ROI", {
     r <- .raster_open_rast(file_info$path[[1]])
 
     expect_equal(nrow(s2_cube), 3)
-    bbox_cube <- sits_bbox(s2_cube)
-    bbox_cube_1 <- sits_bbox(s2_cube[1,])
-    expect_true(bbox_cube["xmax"] >= bbox_cube_1["xmax"])
-    expect_true(bbox_cube["ymax"] >= bbox_cube_1["ymax"])
+    expect_error(sits_bbox(s2_cube))
+
+    bbox_cube <- sits_bbox(s2_cube, wgs84 = TRUE)
+    bbox_cube_1 <- sits_bbox(s2_cube[1,], wgs84 = TRUE)
+    expect_true(bbox_cube["lon_max"] >= bbox_cube_1["lon_max"])
+    expect_true(bbox_cube["lat_max"] >= bbox_cube_1["lat_max"])
 
     msg <- capture_warnings(sits_timeline(s2_cube))
     expect_true(grepl("Cube is not regular. Returning all timelines", msg))
