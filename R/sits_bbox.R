@@ -43,7 +43,7 @@ sits_bbox.sits <- function(data, ...) {
     lat_min <- min(data$latitude)
     # create and return the bounding box
     bbox <- c(lon_min, lon_max, lat_min, lat_max)
-    names(bbox) <- c("lon_min", "lon_max", "lat_min", "lat_max")
+    names(bbox) <- c("xmin", "xmax", "ymin", "ymax")
     return(bbox)
 }
 
@@ -54,30 +54,37 @@ sits_bbox.sits_cube <- function(data, wgs84 = FALSE, ...) {
     # pre-condition
     .cube_check(data)
 
-    if (!wgs84)
-        .check_that(length(unique(data[["crs"]])) == 1,
-                    local_msg = "use `wgs84 = TRUE` for a global bbox",
-                    msg = "cube has more than one projection")
+    if (!wgs84 && length(unique(data[["crs"]])) > 1) {
+        warning("cube has more than one projection - using wgs84 coords")
+        wgs84 <- TRUE
+    }
 
-    # create and return the bounding box
-    bbox <- c(xmin = min(data[["xmin"]]),
-              xmax = max(data[["xmax"]]),
-              ymin = min(data[["ymin"]]),
-              ymax = max(data[["ymax"]]))
+    if (wgs84) {
+        bbox_dfr <- slider::slide_dfr(data, function(tile) {
+            # create and return the bounding box
 
-    # convert to WGS84?
-    if (wgs84)
-        bbox <- .sits_coords_to_bbox(
-            xmin = bbox[["xmin"]],
-            xmax = bbox[["xmax"]],
-            ymin = bbox[["ymin"]],
-            ymax = bbox[["ymax"]],
-            crs = data[["crs"]][[1]])
+            bbox <- .sits_coords_to_bbox_wgs84(
+                xmin = tile[["xmin"]],
+                xmax = tile[["xmax"]],
+                ymin = tile[["ymin"]],
+                ymax = tile[["ymax"]],
+                crs  = tile[["crs"]][[1]])
+            tibble::as_tibble_row(c(bbox))
+        })
+    }
+    else {
+        bbox_dfr <- data[c("xmin", "xmax", "ymin", "ymax")]
+    }
+    bbox <- c("xmin" = min(bbox_dfr[["xmin"]]),
+              "xmax" = max(bbox_dfr[["xmax"]]),
+              "ymin" = min(bbox_dfr[["ymin"]]),
+              "ymax" = max(bbox_dfr[["ymax"]])
+    )
 
     return(bbox)
 }
 
-.sits_coords_to_bbox <- function(xmin, xmax, ymin, ymax, crs) {
+.sits_coords_to_bbox_wgs84 <- function(xmin, xmax, ymin, ymax, crs) {
 
     pt1 <- c(xmin, ymax)
     pt2 <- c(xmax, ymax)
@@ -89,9 +96,7 @@ sits_bbox.sits_cube <- function(data, wgs84 = FALSE, ...) {
     )
 
     # create a polygon and transform the proj
-    bbox_latlng <- sf::st_bbox(sf::st_transform(bbox, crs = 4326))
-
-    names(bbox_latlng) <- c("lon_min", "lat_min", "lon_max", "lat_max")
+    bbox_latlng <- c(sf::st_bbox(sf::st_transform(bbox, crs = 4326)))
 
     return(bbox_latlng)
 }

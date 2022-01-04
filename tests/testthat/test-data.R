@@ -50,9 +50,18 @@ test_that("Obtaining a point in WTSS", {
     testthat::skip_if(purrr::is_null(cube_wtss),
                       message = "WTSS is not accessible")
 
-    point <- sits_get_data(cube_wtss,
-                           longitude = -55.0399,
-                           latitude = -15.1933)
+    point <- tryCatch({
+        sits_get_data(cube_wtss,
+                      longitude = -55.0399,
+                      latitude = -15.1933)
+    },
+    error = function(e){
+        return(NULL)
+    })
+
+    testthat::skip_if(purrr::is_null(point),
+                      message = "WTSS is not accessible")
+
     expect_equal(as.Date(point$start_date), as.Date("2000-02-18"))
 
     expect_true(all(sits_bands(point) %in%

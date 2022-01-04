@@ -49,14 +49,24 @@ test_that("View", {
     expect_true(all(file.remove(unlist(modis_probs$file_info[[1]]$path))))
     expect_true(all(file.remove(unlist(modis_label$file_info[[1]]$path))))
 
-    modis_bdc <- sits_cube(
+    modis_bdc <- tryCatch({
+        sits_cube(
         source = "BDC",
         collection = "MOD13Q1-6",
         tiles = "012010",
         bands = c("NDVI", "EVI"),
         start_date = timeline[1],
         end_date = timeline[length(timeline)]
-    )
+        )
+    },
+    error = function(e) {
+        return(NULL)
+    })
+
+    testthat::skip_if(purrr::is_null(cbers_cube),
+                      message = "BDC is not accessible")
+
+
     v5 <- sits_view(modis_bdc,
                     red = "EVI",
                     green = "NDVI",

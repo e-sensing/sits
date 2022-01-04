@@ -53,7 +53,6 @@
 .sits_raster_blocks_estimate <- function(tile,
                                          ml_model,
                                          sub_image,
-                                         timeline,
                                          memsize,
                                          multicores) {
     # total number of instances in the time

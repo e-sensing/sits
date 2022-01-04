@@ -197,10 +197,10 @@ test_that("Creating cubes from BDC - based on ROI", {
     expect_true(all(sits_bands(modis_cube) %in% c("NDVI", "EVI")))
     bbox <- sits_bbox(modis_cube, wgs84 = TRUE)
     bbox_shp <- sf::st_bbox(sf_bla)
-    expect_gt(bbox["lat_max"], bbox_shp["ymax"])
-    expect_gt(bbox["lon_max"], bbox_shp["xmax"])
-    expect_lt(bbox["lat_min"], bbox_shp["ymin"])
-    expect_lt(bbox["lon_min"], bbox_shp["xmin"])
+    expect_gt(bbox["ymax"], bbox_shp["ymax"])
+    expect_gt(bbox["xmax"], bbox_shp["xmax"])
+    expect_lt(bbox["ymin"], bbox_shp["ymin"])
+    expect_lt(bbox["xmin"], bbox_shp["xmin"])
 
     expect_true(sits:::.sits_raster_sub_image_intersects(modis_cube, sf_bla))
 })
@@ -573,13 +573,10 @@ test_that("Creating Sentinel cubes from MSPC with ROI", {
     expect_equal(class(sits:::.cube_resolution(s2_cube)), "numeric")
 
     file_info <- s2_cube$file_info[[1]]
-    r <- .raster_open_rast(file_info$path[[1]])
+    r <- sits:::.raster_open_rast(file_info$path[[1]])
 
     expect_equal(nrow(s2_cube), 3)
-    bbox_cube <- sits_bbox(s2_cube)
-    bbox_cube_1 <- sits_bbox(s2_cube[1,])
-    expect_true(bbox_cube["xmax"] >= bbox_cube_1["xmax"])
-    expect_true(bbox_cube["ymax"] >= bbox_cube_1["ymax"])
+    expect_warning(sits_bbox(s2_cube), "cube has more than one projection")
 
     msg <- capture_warnings(sits_timeline(s2_cube))
     expect_true(grepl("Cube is not regular. Returning all timelines", msg))
