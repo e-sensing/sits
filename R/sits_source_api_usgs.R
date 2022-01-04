@@ -34,9 +34,9 @@
         stop("Please install package rstac", call. = FALSE)
     }
 
-    items_query <- .stac_items_query(source = source,
-                                     collection = collection,
-                                     limit = 1)
+    items_query <- .stac_create_items_query(source = source,
+                                            collection = collection,
+                                            limit = 1)
 
 
     items_query$version <- .config_get(key = c("sources", source,
@@ -86,7 +86,7 @@
     }))
 
     # add gdal vsi in href urls
-    return(.stac_add_gdal_vsi(href))
+    return(.stac_add_gdal_fs(href))
 }
 
 #' @keywords internal

@@ -67,6 +67,7 @@ sits_bbox.sits_cube <- function(data, wgs84 = FALSE, ...) {
 
     # convert to WGS84?
     if (wgs84)
+
         bbox <- .sits_coords_to_bbox(
             xmin = bbox[["xmin"]],
             xmax = bbox[["xmax"]],

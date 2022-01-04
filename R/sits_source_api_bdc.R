@@ -10,7 +10,7 @@
            "?access_token=", access_key)
 
     # add gdal vsi in href urls
-    return(.stac_add_gdal_vsi(href))
+    return(.stac_add_gdal_fs(href))
 }
 
 

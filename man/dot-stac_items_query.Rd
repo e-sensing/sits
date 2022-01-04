@@ -2,9 +2,10 @@
 % Please edit documentation in R/sits_stac.R
 \name{.stac_items_query}
 \alias{.stac_items_query}
+\alias{.stac_create_items_query}
 \title{Creates a query to send to STAC api}
 \usage{
-.stac_items_query(
+.stac_create_items_query(
   source,
   collection,
   ...,
