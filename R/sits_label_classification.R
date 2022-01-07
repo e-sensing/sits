@@ -102,27 +102,27 @@ sits_label_classification <- function(cube,
     }
 
     # process each brick layer (each tile) individually
-    label_cube <- slider::slide_dfr(cube, function(row) {
+    label_cube <- slider::slide_dfr(cube, function(tile) {
 
         # get file_info
-        file_info <- .cube_file_info(row)
+        file_info <- .file_info(tile)
 
         # create metadata for labeled raster cube
-        row_label <- .cube_derived_create(
-            cube       = row,
+        tile_label <- .cube_derived_create(
+            cube       = tile,
             cube_class = "classified_image",
             band_name  = "class",
-            labels     = .cube_labels(row),
-            start_date = file_info[["start_date"]],
-            end_date   = file_info[["end_date"]],
-            bbox       = .cube_tile_bbox(row),
+            labels     = .cube_labels(tile),
+            start_date = .file_info_start_date(tile),
+            end_date   = .file_info_end_date(tile),
+            bbox       = .cube_tile_bbox(tile),
             output_dir = output_dir,
             version    = version
         )
 
         .sits_smooth_map_layer(
-            cube = row,
-            cube_out = row_label,
+            cube = tile,
+            cube_out = tile_label,
             overlapping_y_size = 0,
             func = .do_map,
             multicores = multicores,
@@ -131,7 +131,7 @@ sits_label_classification <- function(cube,
             gdal_options = .config_gtiff_default_options()
         )
 
-        return(row_label)
+        return(tile_label)
     })
 
     class(label_cube) <- unique(c("classified_image", class(label_cube)))

@@ -265,26 +265,30 @@ sits_cube.stac_cube <- function(source,
                                 end_date = NULL,
                                 name = NULL) {
 
+    dots <- list(...)
+
+    # deal with wrong parameter "band"
+    if ("band" %in% names(dots) && missing(bands)) {
+        message("please use bands instead of band as parameter")
+        bands <- as.character(dots[["band"]])
+    }
+
+    # deal with wrong parameter "tile"
+    if ("tile" %in% names(dots) && missing(tiles)) {
+        message("please use tiles instead of tile as parameter")
+        tiles <- as.character(dots[["tile"]])
+    }
+
+    if (!is.null(roi) && !is.null(tiles)) {
+        stop(paste("It is not possible to search with roi and tiles.",
+                   "Please provide only roi or tiles."))
+    }
+
     # name parameter has been deprecated
     if (!purrr::is_null(name)) {
         message("name parameter is no longer required")
     }
-    # deal with wrong parameter "band"
-    # deal with wrong parameter "band"
-    params <- as.list(match.call())
-    if (!is.null(params$band) && missing(bands)) {
-        bands <- as.character(params$band)
-        if (length(bands) > 1 )
-            bands <- bands[-1]
-        message("please use bands instead of band as parameter")
-    }
-    # deal with wrong parameter "tile"
-    if (!is.null(params$tile) && missing(tiles)) {
-        tiles <- as.character(params$tile)
-        if (length(tiles) > 1 )
-            tiles <- tiles[-1]
-        message("please use tiles instead of tile as parameter")
-    }
+
     # source is upper case
     source <- toupper(source)
 
@@ -322,7 +326,7 @@ sits_cube.stac_cube <- function(source,
                  collection = collection,
                  bands = bands,
                  tiles = tiles,
-                 bbox = roi,
+                 roi = roi,
                  start_date = start_date,
                  end_date = end_date, ...)
 }
@@ -344,8 +348,7 @@ sits_cube.local_cube <- function(source,
 
 
     # precondition - data directory must be provided
-    .check_file(x = data_dir,
-                msg = "data_dir must be to be provided.")
+    .check_file(x = data_dir, msg = "data_dir must be to be provided.")
 
     # compatibility with earlier versions
     if (source == "LOCAL") {
@@ -360,27 +363,30 @@ sits_cube.local_cube <- function(source,
             source <- origin
         }
     }
+
+    # precondition - check source and collection
+    .source_check(source = source)
+    .source_collection_check(source = source, collection = collection)
+
     # name parameter has been deprecated
     if (!purrr::is_null(name)) {
         message("name parameter is no longer required")
     }
+
+    dots <- list(...)
+
     # deal with wrong parameter "band"
-    params <- as.list(match.call())
-    if (!is.null(params$band) && missing(bands)) {
-        bands <- as.character(params$band)
-        if (length(bands) > 1 )
-            bands <- bands[-1]
+    if ("band" %in% names(dots) && missing(bands)) {
         message("please use bands instead of band as parameter")
+        bands <- as.character(dots[["band"]])
     }
-    # precondition - check source and collection
-    .source_check(source = source)
-    .source_collection_check(source = source, collection = collection)
 
     # precondition - does the parse info have band and date?
     .check_chr_contains(
         parse_info,
         contains = c("tile", "band", "date"),
-        msg = "parse_info must include tile, date, and band.")
+        msg = "parse_info must include tile, date, and band."
+    )
 
     # bands in upper case
     if (!purrr::is_null(bands))
@@ -401,11 +407,9 @@ sits_cube.local_cube <- function(source,
 #' @rdname sits_cube
 #'
 #' @export
-sits_cube.satveg_cube <- function(
-    source = "SATVEG",
-    collection = "TERRA",
-    data_dir = NULL,
-    ...) {
+sits_cube.satveg_cube <- function(source = "SATVEG",
+                                  collection = "TERRA",
+                                  data_dir = NULL, ...) {
 
     # verifies if httr package is installed
     if (!requireNamespace("httr", quietly = TRUE)) {

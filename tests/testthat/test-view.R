@@ -63,7 +63,7 @@ test_that("View", {
         return(NULL)
     })
 
-    testthat::skip_if(purrr::is_null(cbers_cube),
+    testthat::skip_if(purrr::is_null(modis_bdc),
                       message = "BDC is not accessible")
 
 

@@ -7,6 +7,9 @@ sits_s3_classes :   ["sits", "patterns", "predicted", "sits_model",
                     "stac_cube", "bdc_cube", "aws_cube",
                     "usgs_cube", "deafrica_cube"]
 
+# s3 classes resulting from classification and post-classification
+sits_s3_classes_proc :   ["probs_cube","uncertainty_cube", "classified_image"]
+
 # mandatory columns in data cube description
 sits_cube_cols :    ["source", "collection", "satellite", "sensor",
                     "tile", "bands", "xmin", "xmax", "ymin", "ymax",

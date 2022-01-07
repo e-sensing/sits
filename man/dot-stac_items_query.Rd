@@ -2,13 +2,14 @@
 % Please edit documentation in R/sits_stac.R
 \name{.stac_items_query}
 \alias{.stac_items_query}
+\alias{.stac_create_items_query}
 \title{Creates a query to send to STAC api}
 \usage{
-.stac_items_query(
+.stac_create_items_query(
   source,
   collection,
   ...,
-  bbox = NULL,
+  roi = NULL,
   start_date = NULL,
   end_date = NULL,
   limit = NULL
@@ -21,7 +22,7 @@
 
 \item{...}{Other parameters to be passed for specific types.}
 
-\item{bbox}{Area of interest.}
+\item{roi}{Region of interest.}
 
 \item{start_date}{Initial date for the cube (optional).}
 

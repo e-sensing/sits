@@ -29,7 +29,7 @@
 #' modis_cube <- sits_cube(
 #'     source = "BDC",
 #'     collection = "MOD13Q1-6",
-#'     band = "NDVI",
+#'     band = c("NDVI", "EVI"),
 #'     data_dir = data_dir,
 #'     parse_info = c("X1", "X2", "tile", "band", "date")
 #' )
@@ -189,7 +189,7 @@ sits_view.raster_cube <- function(x, ...,
     # plot only the selected tiles
     # select only the bands for the times chosen
     r_objs <- purrr::map(times, function(t) {
-        bands_date <- x$file_info[[1]] %>%
+        bands_date <- .file_info(x) %>%
             dplyr::filter(date == as.Date(timeline[[t]]))
 
         # get RGB files for the requested timeline
@@ -417,7 +417,9 @@ sits_view.classified_image <- function(x,...,
     labels <- sits_labels(class_cube)
 
     # obtain the raster
-    r_obj <- suppressWarnings(raster::raster(class_cube[tile,]$file_info[[1]]$path[[1]]))
+    r_obj <- suppressWarnings(
+        raster::raster(.file_info_path_single(class_cube[tile,]))
+    )
     # did we get the data?
     .check_that(
         x = raster::ncol(r_obj) > 0 &&

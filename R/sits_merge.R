@@ -173,7 +173,7 @@ sits_merge.raster_cube <- function(data1, data2, ..., suffix = c(".1", ".2")) {
         }
 
         x[["file_info"]][[1]] <- dplyr::arrange(
-            dplyr::bind_rows(.cube_file_info(x), .cube_file_info(y)),
+            dplyr::bind_rows(.file_info(x), .file_info(y)),
             .data[["date"]], .data[["band"]]
         )
 

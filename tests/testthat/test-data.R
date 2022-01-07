@@ -443,7 +443,7 @@ test_that("Test reading shapefile from BDC", {
         skip("BDC not accessible")
     expect_equal(nrow(time_series_bdc), 10)
     bbox <- sits_bbox(time_series_bdc)
-    expect_true(bbox["lon_min"] < -46.)
+    expect_true(bbox["xmin"] < -46.)
     expect_true(all(sits_bands(time_series_bdc) %in% c("NDVI", "EVI")))
     ts <- time_series_bdc$time_series[[1]]
     expect_true(max(ts["EVI"]) < 1.)

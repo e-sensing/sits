@@ -39,7 +39,7 @@ sits_timeline.raster_cube <- function(data) {
 
     # pick the list of timelines
     timelines.lst <- slider::slide(data, function(tile) {
-        timeline_tile <- unique(lubridate::as_date(tile$file_info[[1]]$date))
+        timeline_tile <- .file_info_timeline(tile)
         return(timeline_tile)
     })
     names(timelines.lst) <- data$tile
@@ -71,39 +71,40 @@ sits_timeline.satveg_cube <- function(data) {
 sits_timeline.wtss_cube <- function(data) {
 
     # return the timeline of the cube
-    return(data[1,]$file_info[[1]]$date[[1]])
+    return(.file_info_timeline_wtss(data))
 }
 
 #' @export
 #'
 sits_timeline.probs_cube <- function(data) {
 
-    .check_that(
-        x = nrow(data) == 1,
-        msg = "requires a single cube tile"
-    )
-
     # return the timeline of the cube
-    start_date <- lubridate::as_date(data$file_info[[1]]$start_date)
-    end_date <- lubridate::as_date(data$file_info[[1]]$end_date)
-    timeline <- c(start_date, end_date)
-    return(timeline)
+    start_date <- .file_info_start_date(data)
+    end_date   <- .file_info_end_date(data)
+    timeline_probs <- c(start_date, end_date)
+    return(timeline_probs)
 }
 
 #' @export
 #'
-sits_timeline.classified_image <- function(data) {
-
-    .check_that(
-        x = nrow(data) == 1,
-        msg = "requires a single cube tile"
-    )
+sits_timeline.uncertainty_cube <- function(data) {
 
     # return the timeline of the cube
-    start_date <- lubridate::as_date(data$file_info[[1]]$start_date)
-    end_date <- lubridate::as_date(data$file_info[[1]]$end_date)
-    timeline <- c(start_date, end_date)
-    return(timeline)
+    start_date <- .file_info_start_date(data)
+    end_date   <- .file_info_end_date(data)
+    timeline_probs <- c(start_date, end_date)
+    return(timeline_probs)
+}
+#' @export
+#'
+sits_timeline.classified_image <- function(data) {
+
+    # return the timeline of the cube
+    start_date <- .file_info_start_date(data)
+    end_date   <- .file_info_end_date(data)
+
+    timeline_class <- c(start_date, end_date)
+    return(timeline_class)
 }
 
 #' @title Check cube timeline against requested start and end dates
@@ -535,17 +536,12 @@ sits_timeline.classified_image <- function(data) {
 }
 
 #' @title Find if the date information is correct
-#'
 #' @name  .sits_timeline_date_format
-#'
 #' @keywords internal
-#'
 #' @description Given a information about dates, check if the date can be
 #'              interpreted by lubridate
-#'
-#' @param file_info     a tibble with date and band information
-#'
-#' @return              Tibble with corrected date information
+#' @param tile_date_band    a tibble with date and band information
+#' @return                  tibble with corrected date information
 #'
 .sits_timeline_date_format <- function(tile_date_band) {
 

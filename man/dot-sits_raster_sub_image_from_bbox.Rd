@@ -4,12 +4,12 @@
 \alias{.sits_raster_sub_image_from_bbox}
 \title{Extract a sub_image from a bounding box and a cube}
 \usage{
-.sits_raster_sub_image_from_bbox(bbox, cube)
+.sits_raster_sub_image_from_bbox(bbox, tile)
 }
 \arguments{
 \item{bbox}{bounding box for a region of interest}
 
-\item{cube}{data cube}
+\item{tile}{tile of data cube}
 }
 \value{
 sub_image with additional info on first row,

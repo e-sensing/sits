@@ -7,7 +7,7 @@
 .cube_area_freq(cube)
 }
 \arguments{
-\item{cube}{Metadata about a data cube}
+\item{cube}{Data cube}
 }
 \value{
 Frequency of each label in the data cube

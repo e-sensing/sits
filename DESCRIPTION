@@ -104,6 +104,7 @@ Collate:
     'sits_distances.R'
     'sits_dt_reference.R'
     'sits_factory.R'
+    'sits_file_info.R'
     'sits_filters.R'
     'sits_gdalcubes.R'
     'sits_get_data.R'

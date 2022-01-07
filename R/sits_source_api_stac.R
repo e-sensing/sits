@@ -9,9 +9,9 @@
         )
     }
 
-    items_query <- .stac_items_query(source = source,
-                                     collection = collection,
-                                     limit = 1)
+    items_query <- .stac_create_items_query(source = source,
+                                            collection = collection,
+                                            limit = 1)
 
     # assert that service is online
     tryCatch({
@@ -49,7 +49,7 @@
                                    collection,
                                    bands,
                                    tiles,
-                                   bbox,
+                                   roi,
                                    start_date,
                                    end_date, ...) {
 
@@ -57,11 +57,11 @@
     .check_set_caller(".source_cube.stac_cube")
 
     # prepares a query object
-    items_query <- .stac_items_query(source = source,
-                                     collection = collection,
-                                     bbox = bbox,
-                                     start_date = start_date,
-                                     end_date = end_date, ...)
+    items_query <- .stac_create_items_query(source = source,
+                                            collection = collection,
+                                            roi = roi,
+                                            start_date = start_date,
+                                            end_date = end_date, ...)
 
     # make query and retrieve items
     items <- .source_items_new(source = source,
@@ -104,7 +104,7 @@
                                                  bands,
                                                  collection, ...) {
 
-    items <- .stac_bands_select(
+    items <- .stac_select_bands(
         items = items,
         bands_source = .source_bands_to_source(source = source,
                                                collection = collection,
@@ -340,7 +340,7 @@
     .check_chr(hrefs, allow_empty = FALSE)
 
     # add gdal vsi in href urls
-    hrefs <- .stac_add_gdal_vsi(hrefs)
+    hrefs <- .stac_add_gdal_fs(hrefs)
 
     return(hrefs)
 }

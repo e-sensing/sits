@@ -9,7 +9,7 @@
 \arguments{
 \item{cube}{A valid cube}
 
-\item{block}{A block insider the cube}
+\item{block}{A block inside the cube}
 }
 \value{
 A tibble with the cube parameters

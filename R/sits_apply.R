@@ -57,13 +57,13 @@ sits_apply.raster_cube <- function(data, ..., output_dir = getwd()) {
     # slide tiles
     result <- slider::slide_dfr(data, function(tile) {
 
-        fids <- unique(.cube_file_info(tile)[["fid"]])
+        fids <- .file_info_fid(tile)
         tile[["file_info"]][[1]] <- purrr::map_dfr(fids, function(fid) {
 
             tile_fid <- tile
 
             tile_fid[["file_info"]][[1]] <-
-                dplyr::filter(.cube_file_info(tile),
+                dplyr::filter(.file_info(tile),
                               .data[["fid"]] == !!fid)
 
             toi <- .gc_get_valid_interval(tile_fid, period = "P1D")
@@ -110,12 +110,12 @@ sits_apply.raster_cube <- function(data, ..., output_dir = getwd()) {
                 )
 
                 file_name <- paste0(output_dir, "/", prefix,
-                                    .cube_file_info(tile_fid)[["date"]][[1]],
+                                    .file_info(tile_fid)[["date"]][[1]],
                                     ".tif")
                 return(file_name)
             })
 
-            file_info <- .cube_file_info(tile_fid)
+            file_info <- .file_info(tile_fid)
 
             file_info <- tidyr::unnest(tibble::tibble(
                 fid = file_info[["fid"]][[1]],

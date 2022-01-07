@@ -220,24 +220,24 @@ sits_smooth.bayes <- function(cube, type = "bayes", ...,
     }
 
     # process each brick layer (each time step) individually
-    cube_bayes <- slider::slide_dfr(cube, function(row) {
+    cube_bayes <- slider::slide_dfr(cube, function(tile) {
 
         # create metadata for raster cube
-        row_bayes <- .cube_derived_create(
-            cube       = row,
+        tile_bayes <- .cube_derived_create(
+            cube       = tile,
             cube_class = "probs_cube",
             band_name  = "probs_bayes",
-            labels     = .cube_labels(row),
-            start_date = row$file_info[[1]]$start_date,
-            end_date   = row$file_info[[1]]$end_date,
-            bbox       = .cube_tile_bbox(row),
+            labels     = .cube_labels(tile),
+            start_date = .file_info_start_date(tile),
+            end_date   = .file_info_end_date(tile),
+            bbox       = .cube_tile_bbox(tile),
             output_dir = output_dir,
             version    = version
         )
 
         .sits_smooth_map_layer(
-            cube = row,
-            cube_out = row_bayes,
+            cube = tile,
+            cube_out = tile_bayes,
             overlapping_y_size =
                 ceiling(window_size / 2) - 1,
             func = .do_bayes,
@@ -247,7 +247,7 @@ sits_smooth.bayes <- function(cube, type = "bayes", ...,
             gdal_options = .config_gtiff_default_options()
         )
 
-        return(row_bayes)
+        return(tile_bayes)
     })
 
     class(cube_bayes) <- class(cube)
@@ -341,24 +341,24 @@ sits_smooth.gaussian <- function(cube, type = "gaussian", ...,
     }
 
     # process each brick layer (each time step) individually
-    cube_gauss <- slider::slide_dfr(cube, function(row) {
+    cube_gauss <- slider::slide_dfr(cube, function(tile) {
 
         # create metadata for Gauss smoothed raster cube
-        row_gauss <- .cube_derived_create(
-            cube       = row,
+        tile_gauss <- .cube_derived_create(
+            cube       = tile,
             cube_class = "probs_cube",
             band_name  = "probs_gauss",
-            labels     = .cube_labels(row),
-            start_date = row$file_info[[1]]$start_date,
-            end_date   = row$file_info[[1]]$end_date,
-            bbox       = .cube_tile_bbox(row),
+            labels     = .cube_labels(tile),
+            start_date = .file_info_start_date(tile),
+            end_date   = .file_info_end_date(tile),
+            bbox       = .cube_tile_bbox(tile),
             output_dir = output_dir,
             version    = version
         )
 
         .sits_smooth_map_layer(
-            cube = row,
-            cube_out = row_gauss,
+            cube = tile,
+            cube_out = tile_gauss,
             overlapping_y_size =
                 ceiling(window_size / 2) - 1,
             func = .do_gauss,
@@ -368,7 +368,7 @@ sits_smooth.gaussian <- function(cube, type = "gaussian", ...,
             gdal_options = .config_gtiff_default_options()
         )
 
-        return(row_gauss)
+        return(tile_gauss)
     })
 
     class(cube_gauss) <- class(cube)
@@ -466,24 +466,24 @@ sits_smooth.bilateral <- function(cube,
     }
 
     # process each brick layer (each time step) individually
-    cube_bilat <- slider::slide_dfr(cube, function(row) {
+    cube_bilat <- slider::slide_dfr(cube, function(tile) {
 
         # create metadata for bilateral smoothed raster cube
-        row_bilat <- .cube_derived_create(
-            cube       = row,
+        tile_bilat <- .cube_derived_create(
+            cube       = tile,
             cube_class = "probs_cube",
             band_name  = "probs_bilat",
-            labels     = .cube_labels(row),
-            start_date = row$file_info[[1]]$start_date,
-            end_date   = row$file_info[[1]]$end_date,
-            bbox       = .cube_tile_bbox(row),
+            labels     = .cube_labels(tile),
+            start_date = .file_info_start_date(tile),
+            end_date   = .file_info_end_date(tile),
+            bbox       = .cube_tile_bbox(tile),
             output_dir = output_dir,
             version    = version
         )
 
         .sits_smooth_map_layer(
-            cube = row,
-            cube_out = row_bilat,
+            cube = tile,
+            cube_out = tile_bilat,
             overlapping_y_size =
                 ceiling(window_size / 2) - 1,
             func = .do_bilateral,
@@ -493,7 +493,7 @@ sits_smooth.bilateral <- function(cube,
             gdal_options = .config_gtiff_default_options()
         )
 
-        return(row_bilat)
+        return(tile_bilat)
     })
 
     class(cube_bilat) <- class(cube)

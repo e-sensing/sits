@@ -265,7 +265,7 @@ sits_classify.raster_cube <- function(data, ml_model, ...,
 
             # filter the cube by start and end dates
             tile$file_info[[1]] <- dplyr::filter(
-                tile$file_info[[1]],
+                .file_info(tile),
                 date >= new_timeline[1] &
                     date <= new_timeline[length(new_timeline)]
             )
