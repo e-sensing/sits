@@ -1,12 +1,16 @@
 #' @title Images arrangement in sits cube
 #' @name .gc_arrange_images
+#'
 #' @keywords internal
 #'
 #' @param cube       A sits data cube
+#'
 #' @param agg_method A \code{character} with method that will be applied by
 #'  \code{gdalcubes} for aggregation. Options: \code{min}, \code{max},
 #'  \code{mean}, \code{median} and \code{first}. Default is \code{median}.
+#'
 #' @param duration   A \code{Duration} object from lubridate package.
+#'
 #' @param ...        Additional parameters.
 #'
 #' @return  A sits cube with the images arranged according to some criteria.
@@ -45,6 +49,7 @@
 
 #' @title Create an object image_mask with information about mask band
 #' @name .gc_cloud_mask
+#'
 #' @keywords internal
 #'
 #' @param tile Data cube tile from where data is to be retrieved.
@@ -95,19 +100,26 @@
 
 #' @title Create a cube_view object
 #' @name .gc_create_cube_view
+#'
 #' @keywords internal
 #'
 #' @param tile       A data cube tile
+#'
 #' @param period     A \code{character} with the The period of time in which it
 #'  is desired to apply in the cube, must be provided based on ISO8601, where 1
 #'  number and a unit are provided, for example "P16D".
+#'
 #' @param res        A \code{numeric} with spatial resolution of the image that
 #'  will be aggregated.
+#'
 #' @param roi        A region of interest.
+#'
 #' @param toi        A timeline of intersection
+#'
 #' @param agg_method A \code{character} with the method that will be applied in
 #'  the aggregation, the following are available: "min", "max", "mean",
 #'  "median" or "first".
+#'
 #' @param resampling A \code{character} with method to be used by
 #'  \code{gdalcubes} for resampling in mosaic operation.
 #'  Options: \code{near}, \code{bilinear}, \code{bicubic} or others supported by
@@ -152,9 +164,11 @@
 
 #' @title Create an image_collection object
 #' @name .gc_create_database
+#'
 #' @keywords internal
 #'
 #' @param cube      Data cube from where data is to be retrieved.
+#'
 #' @param path_db   A \code{character} with the path and name where the
 #'  database will be create. E.g. "my/path/gdalcubes.db"
 #'
@@ -186,7 +200,7 @@
 
         features <- slider::slide_dfr(features, function(feat) {
 
-            bbox <- .coords_to_bbox(
+            bbox <- .sits_coords_to_bbox(
                 xmin = feat$features[[1]][["xmin"]][[1]],
                 xmax = feat$features[[1]][["xmax"]][[1]],
                 ymin = feat$features[[1]][["ymin"]][[1]],
@@ -236,6 +250,7 @@
 
 #' @title Extracted date from aggregated cubes
 #' @name .gc_get_date
+#'
 #' @keywords internal
 #'
 #' @param dir_images A \code{character}  corresponds to the path on which the
@@ -268,26 +283,37 @@
 
 #' @title Save the images based on an aggregation method.
 #' @name .gc_new_cube
+#'
 #' @keywords internal
 #'
 #' @param tile        A data cube tile
+#'
 #' @param img_col     A \code{object} 'image_collection' containing information
 #'  about the images metadata.
+#'
 #' @param cv          A \code{list} 'cube_view' with values from cube.
+#'
 #' @param roi         A region of interest.
+#'
 #' @param fill_method A \code{character} indicating which interpolation method
 #'  will be applied. Options: \code{near} for nearest neighbor; \code{linear}
 #'  for linear interpolation; \code{locf} for ast observation carried forward,
 #'  or \code{nocb} for next observation carried backward.
 #'  Default is \code{near}..
+#'
 #' @param cloud_mask  A \code{logical} corresponds to the use of the cloud band
 #'  for aggregation.
+#'
 #' @param path_db     Database to be created by gdalcubes
+#'
 #' @param output_dir  Directory where the aggregated images will be written.
+#'
 #' @param cloud_mask  A \code{logical} corresponds to the use of the cloud band
 #'  for aggregation.
+#'
 #' @param multicores  A \code{numeric} with the number of cores will be used in
 #'  the regularize. By default is used 1 core.
+#'
 #' @param ...         Additional parameters that can be included. See
 #'  '?gdalcubes::write_tif'.
 #'
@@ -401,12 +427,16 @@
 
 #' @title Create a raster_cube object
 #' @name .gc_raster_cube
+#'
 #' @keywords internal
 #'
 #' @param cube       Data cube from where data is to be retrieved.
+#'
 #' @param img_col    A \code{object} 'image_collection' containing information
 #'  about the images metadata.
+#'
 #' @param cv         A \code{object} 'cube_view' with values from cube.
+#'
 #' @param cloud_mask A \code{logical} corresponds to the use of the cloud band
 #'  for aggregation.
 #'
@@ -428,30 +458,15 @@
     return(cube_brick)
 }
 
-#' @title Update metadata from sits cube using gdalcubes metadata
-#' @name .gc_update_metadata
-#' @keywords internal
-#'
-#' @param cube       Data cube from where data is to be retrieved.
-#' @param cv         A \code{object} 'cube_view' with values from cube.
-#'  for aggregation.
-#'
-#' @return a \code{sits_cube} object with updated metadata.
-.gc_update_metadata <- function(cube, cube_view) {
-
-    # update bbox
-    bbox_names <- c("xmin", "xmax", "ymin", "ymax")
-    cube[, bbox_names] <- cube_view[["space"]][c("left", "right",
-                                                 "bottom", "top")]
-
-    return(cube)
-}
-
 #' @title Get the interval of intersection in all tiles
 #' @name .gc_get_valid_interval
+#'
 #' @keywords internal
 #'
 #' @param cube       Data cube from where data is to be retrieved.
+#' @param period     A \code{character} with ISO8601 time period for regular
+#'  data cubes produced by \code{gdalcubes}, with number and unit, e.g., "P16D"
+#'  for 16 days. Use "D", "M" and "Y" for days, month and year.
 #'
 #' @return a \code{list} object with max_min_date and min_max_date.
 .gc_get_valid_interval <- function(cube, period) {
