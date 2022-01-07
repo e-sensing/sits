@@ -122,14 +122,6 @@ sits_apply.raster_cube <- function(data, ...,
                 values[values < minimum_value] <- NA
                 values[values > maximum_value] <- NA
 
-                # # impute NA pixels
-                # if (!is.null(impute_fn) && any(is.na(values))) {
-                #
-                #     .check_that(inherits(impute_fn, "function"))
-                #
-                #     values <- impute_fn(values)
-                # }
-
                 # compute scale and offset
                 values <- scale_factor * values + offset_value
 
