@@ -412,6 +412,9 @@ sources:
         s3_class            : ["wtss_cube"]
         service             : "WTSS"
         url                 : "https://brazildatacube.dpi.inpe.br/wtss/"
+        point_test          :
+            longitude       : -55.50563
+            latitude        : -11.71557
         collections         :
             MOD13Q1-6       :
                 <<: *bdc_mod
