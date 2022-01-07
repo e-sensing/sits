@@ -221,8 +221,6 @@
     if (cld_band %in% cube_bands) {
         nbands <- nbands + 1
     }
-    # number of instances
-    ninterval <- length(sits_timeline(tile))
     # number of bytes per pixel
     nbytes <- 8
     # estimated processing bloat
@@ -233,15 +231,13 @@
     nrows <- sub_image[["nrows"]]
     ncols <- sub_image[["ncols"]]
     # single instance size
-    single_data_size <- nrows * ncols * nbytes
+    output_data_size <- nrows * ncols * nbytes
     # total size including all bands
-    nbands_data_size <- single_data_size * nbands
+    input_data_size <- output_data_size * nbands
 
     # number of output instances is the same as input
     # estimated size of the data for apply
-    input_data_size <- as.numeric(ninterval) * nbands_data_size
-    output_data_size <- as.numeric(ninterval) * single_data_size
-    class_data_size <- (input_data_size + output_data_size) * proc_bloat
+    class_data_size <- (input_data_size + input_data_size) * proc_bloat
 
     # number of passes to read the full data sets
     nblocks <- ceiling(class_data_size * 1e-09 / memsize * multicores)
