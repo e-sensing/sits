@@ -78,10 +78,9 @@
 #' @name .sits_check_roi_cube
 #' @keywords internal
 #' @param  roi             spatial region of interest
-#' @param  cube            input data cube.
-#' @return                 vector with information on the subimage
+#' @return                 roi in WGS84 projection or NULL if error
 #' @export
-.sits_check_roi_cube <- function(roi, cube) {
+.sits_check_roi_cube <- function(roi) {
     # set caller to show in errors
     .check_set_caller(".sits_check_roi_cube")
 
@@ -106,9 +105,59 @@
 #' @name .sits_check_roi_cube.sf
 #' @keywords internal
 #' @param  roi             spatial region of interest
-#' @param  cube            input data cube.
-#' @return                 vector with information on the subimage
+#' @return                 roi in WGS84 projection
 #' @export
-.sits_check_roi_cube.sf <- function(roi, cube) {
-
+.sits_check_roi_cube.sf <- function(roi) {
+    roi_wgs84 <- sf::st_transform(roi, crs = sf::st_crs("EPSG:4326"))
+    return(roi_wgs84)
+}
+#' @title Check is a ROI defined as ll is valid for an existing data cube
+#' @name .sits_check_roi_cube.ll
+#' @keywords internal
+#' @param  roi             spatial region of interest
+#' @return                 roi in WGS84 projection
+#' @export
+.sits_check_roi_cube.ll <- function(roi) {
+    .check_num(
+        roi["lon_min"], min = -180.0, max = 180.00,
+        msg = "roi should be provided in WGS84 coordinates"
+    )
+    .check_num(
+        roi["lon_max"], min = -180.0, max = 180.00,
+        msg = "roi should be provided in WGS84 coordinates"
+    )
+    .check_num(
+        roi["lat_min"], min = -90.0, max = 90.00,
+        msg = "roi should be provided in WGS84 coordinates"
+    )
+    .check_num(
+        roi["lat_max"], min = -90.0, max = 90.00,
+        msg = "roi should be provided in WGS84 coordinates"
+    )
+    return(roi)
+}
+#' @title Check is a ROI defined as XY is valid for an existing data cube
+#' @name .sits_check_roi_cube.xy
+#' @keywords internal
+#' @param  roi             spatial region of interest
+#' @return                 roi in WGS84 projection
+#' @export
+.sits_check_roi_cube.xy <- function(roi) {
+    .check_num(
+        roi["xmin"], min = -180.0, max = 180.00,
+        msg = "roi should be provided in WGS84 coordinates"
+    )
+    .check_num(
+        roi["xmax"], min = -180.0, max = 180.00,
+        msg = "roi should be provided in WGS84 coordinates"
+    )
+    .check_num(
+        roi["ymin"], min = -90.0, max = 90.00,
+        msg = "roi should be provided in WGS84 coordinates"
+    )
+    .check_num(
+        roi["ymax"], min = -90.0, max = 90.00,
+        msg = "roi should be provided in WGS84 coordinates"
+    )
+    return(roi)
 }

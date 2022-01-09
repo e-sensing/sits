@@ -4,15 +4,13 @@
 \alias{.sits_check_roi_cube}
 \title{Check is a ROI is valid for an existing data cube}
 \usage{
-.sits_check_roi_cube(roi, cube)
+.sits_check_roi_cube(roi)
 }
 \arguments{
 \item{roi}{spatial region of interest}
-
-\item{cube}{input data cube.}
 }
 \value{
-vector with information on the subimage
+roi in WGS84 projection or NULL if error
 }
 \description{
 Check is a ROI is valid for an existing data cube

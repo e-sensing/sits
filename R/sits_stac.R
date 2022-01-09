@@ -40,8 +40,7 @@
 #' @keywords internal
 #'
 #' @param roi  the "roi" parameter defines a region of interest. It can be
-#'  an \code{sfc} or \code{sf} object from sf package, a \code{character} with
-#'  GeoJSON following the rules from RFC 7946, or a \code{vector}
+#'  an \code{sfc} or \code{sf} object from sf package, or a \code{vector}
 #'  bounding box \code{vector} with named XY values
 #'  ("xmin", "xmax", "ymin", "ymax").
 #'
@@ -61,13 +60,6 @@
 .stac_get_roi.default <- function(roi) {
 
     stop("Invalid roi parameter. Please see the documentation on ?sits_cube")
-}
-
-#' @keywords internal
-#' @export
-.stac_get_roi.NULL <- function(roi) {
-
-    return(list(bbox = NULL, intersects = NULL))
 }
 
 #' @keywords internal

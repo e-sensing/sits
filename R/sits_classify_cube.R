@@ -110,7 +110,7 @@
 
     # resume feature
     # if tile already exists, return probs_cube
-    if (file.exists(.file_info_path_single(probs_cube)))
+    if (file.exists(.file_info_path(probs_cube)))
         return(probs_cube)
 
     # show initial time for classification
@@ -135,7 +135,7 @@
 
         # define the file name of the raster file to be written
         filename_block <- paste0(
-            tools::file_path_sans_ext(.file_info_path_single(probs_cube)),
+            tools::file_path_sans_ext(.file_info_path(probs_cube)),
             "_block_", b[["first_row"]], "_", b[["nrows"]], ".tif"
         )
 
@@ -248,7 +248,7 @@
     # join predictions
     .raster_merge(
         in_files = filenames,
-        out_file = .file_info_path_single(probs_cube),
+        out_file = .file_info_path(probs_cube),
         format = "GTiff",
         gdal_datatype = .raster_gdal_datatype(.config_get("probs_cube_data_type")),
         gdal_options = .config_gtiff_default_options(),

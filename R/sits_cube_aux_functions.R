@@ -88,7 +88,7 @@
     file_info <- .file_info(cube)
 
     # open first raster
-    r_obj <- .raster_open_rast(.file_info_path_single(cube))
+    r_obj <- .raster_open_rast(.file_info_path(cube))
 
     # retrieve the frequency
     freq <- tibble::as_tibble(.raster_freq(r_obj))

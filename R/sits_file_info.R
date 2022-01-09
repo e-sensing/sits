@@ -69,28 +69,11 @@ NULL
 #' @details
 #' Returns a single path to a file
 #' Throws an error if there is more than one path
-.file_info_path_single <- function(cube){
+.file_info_path <- function(cube){
 
     file_info <- .file_info(cube)
     path <- file_info$path[[1]]
     .check_num(length(path), min = 1, max = 1, is_integer = TRUE,
-               msg = "wrong path parameter in file_info")
-
-    return(path)
-}
-#' @rdname file_info_functions
-#'
-#' @details
-#' Returns a multiple path to a file for a single tiled cube
-.file_info_path_multiple <- function(cube, bands = NULL){
-
-    file_info <- .file_info(cube)
-
-    if (!purrr::is_null(bands))
-        file_info <- dplyr::filter(file_info, band %in% bands)
-
-    path <- file_info$path
-    .check_num(length(path), min = 1, max = nrow(file_info), is_integer = TRUE,
                msg = "wrong path parameter in file_info")
 
     return(path)
@@ -127,27 +110,13 @@ NULL
 #'
 #' @details
 #' Returns the file ids for a single tiled cube
-.file_info_fid <- function(cube){
+.file_info_fids <- function(cube){
 
     file_info <- .file_info(cube)
     fids <- unique(file_info[["fid"]])
 
     .check_num(length(fids), min = 1, is_integer = TRUE,
                msg = "wrong fid parameter in file_info")
-    return(fids)
-}
-#' @rdname file_info_functions
-#'
-#' @details
-#' Returns one file id for a single tiled cube
-#' Throws an error if resolution is not unique
-.file_info_fid_single <- function(cube){
-
-    file_info <- .file_info(cube)
-    fids <- unique(file_info[["fid"]])[[1]]
-
-    .check_num(length(fids), min = 1, max = 1, is_integer = TRUE,
-               msg = "wrong fids parameter in file_info")
     return(fids)
 }
 #' @rdname file_info_functions
@@ -223,11 +192,11 @@ NULL
         within = colnames(file_info),
         msg = "invalid file_info for cube")
 
-    start_date <- unique(lubridate::as_date(file_info$start_date))
+    end_date <- unique(lubridate::as_date(file_info$end_date))
 
-    .check_num(length(start_date), min = 1, max = 1,
-               msg = "wrong start_date parameter in file_info")
-    return(start_date)
+    .check_num(length(end_date), min = 1, max = 1,
+               msg = "wrong end_date parameter in file_info")
+    return(end_date)
 }
 #' @rdname file_info_functions
 #'

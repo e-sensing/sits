@@ -80,10 +80,10 @@ sits_apply.raster_cube <- function(data, ...,
     result <- slider::slide_dfr(data, function(tile) {
 
         # get file_info filtered by bands
-        in_file_info <- .cube_file_info(tile)
+        in_file_info <- .file_info(tile)
 
-        # get all fids of file_info
-        fids <- unique(in_file_info[["fid"]])
+        fids <- .file_info_fids(tile)
+        # tile[["file_info"]][[1]] <- purrr::map_dfr(fids, function(fid) {
 
         # traverse each date in file info
         out_file_info <- purrr::map_dfr(fids, function(fid) {

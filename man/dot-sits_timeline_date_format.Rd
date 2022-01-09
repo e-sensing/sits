@@ -7,10 +7,10 @@
 .sits_timeline_date_format(tile_date_band)
 }
 \arguments{
-\item{file_info}{a tibble with date and band information}
+\item{tile_date_band}{a tibble with date and band information}
 }
 \value{
-Tibble with corrected date information
+tibble with corrected date information
 }
 \description{
 Given a information about dates, check if the date can be
