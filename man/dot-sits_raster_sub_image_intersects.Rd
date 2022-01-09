@@ -4,10 +4,10 @@
 \alias{.sits_raster_sub_image_intersects}
 \title{Informs if a spatial ROI intersects a data cube}
 \usage{
-.sits_raster_sub_image_intersects(tile, roi)
+.sits_raster_sub_image_intersects(cube, roi)
 }
 \arguments{
-\item{tile}{tile of data cube.}
+\item{cube}{data cube (one tile only).}
 
 \item{roi}{spatial region of interest}
 }

@@ -262,10 +262,10 @@
 
 
     # open probability file
-    in_file <- .file_info_path_single(cube)
+    in_file <- .file_info_path(cube)
 
     # retrieve the file to be written
-    out_file <- .file_info_path_single(cube_out)
+    out_file <- .file_info_path(cube_out)
 
     # compute how many tiles to be computed
     block_size <- .sits_smooth_blocks_size_estimate(cube = cube,

@@ -168,40 +168,6 @@
 
 }
 
-#' @title Split a data.table or a matrix for parallel processing
-#' @name .sits_raster_data_split
-#' @keywords internal
-#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
-#'
-#' @description This function splits a data.table into a
-#'              list of chunks for parallel processing.
-#'
-#' @param data             Data (data.table or matrix).
-#' @param ncores           Number of cores for processing.
-#' @return                 List of pairs of positions (first row, last row)
-#'                         to be assigned to each core.
-#'
-.sits_raster_data_split <- function(data, ncores) {
-    # number of rows in the data
-    nrows <- nrow(data)
-    # find the number of rows per core
-    step <- ceiling(nrows / ncores)
-
-    # create a vector with the initial rows per block
-    blocks <- seq(from = 1, to = nrows, by = step)
-
-    # fill the list with the initial and final row per block
-    block_lst <- purrr::map2(blocks, 1:ncores, function(blk, i) {
-        start <- blk
-        end <- start + step - 1
-        if (i == ncores) {
-            end <- nrows
-        }
-        return(data[start:end, ])
-    })
-    return(block_lst)
-}
-
 #' @title Extract a time series from raster
 #' @name .sits_raster_data_get_ts
 #' @keywords internal

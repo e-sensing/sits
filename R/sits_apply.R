@@ -57,7 +57,7 @@ sits_apply.raster_cube <- function(data, ..., output_dir = getwd()) {
     # slide tiles
     result <- slider::slide_dfr(data, function(tile) {
 
-        fids <- .file_info_fid(tile)
+        fids <- .file_info_fids(tile)
         tile[["file_info"]][[1]] <- purrr::map_dfr(fids, function(fid) {
 
             tile_fid <- tile
