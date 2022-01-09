@@ -146,3 +146,25 @@ sits_bbox.sits_cube <- function(data, wgs84 = FALSE, ...) {
 
     return(bbox_out)
 }
+
+#' @title Convert a bounding box to a sf object (polygon)
+#' @name .sits_bbox_to_sf
+#' @keywords internal
+#' @param xmin,xmax,ymin,ymax  a numeric value with bound box values
+#' @param crs                  a valid crs value
+#' @return a sf object
+#'
+.sits_bbox_to_sf <- function(xmin, xmax, ymin, ymax, crs) {
+
+    pt1 <- c(xmin, ymax)
+    pt2 <- c(xmax, ymax)
+    pt3 <- c(xmax, ymin)
+    pt4 <- c(xmin, ymin)
+
+    sf_obj <- sf::st_sf(geometry = sf::st_sfc(
+        sf::st_polygon(list(rbind(pt1, pt2, pt3, pt4, pt1)))
+    ), crs = crs)
+
+    return(sf_obj)
+}
+

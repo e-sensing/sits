@@ -285,7 +285,9 @@ sits_cube.stac_cube <- function(source,
                    "Please provide only roi or tiles."))
     }
     # check if roi is provided correctly
-    .sits_check_roi_cube <- function(roi)
+    if (!purrr::is_null(roi)) {
+        roi <- .sits_parse_roi_cube(roi)
+    }
 
     # name parameter has been deprecated
     if (!purrr::is_null(name)) {
@@ -329,7 +331,7 @@ sits_cube.stac_cube <- function(source,
                  collection = collection,
                  bands = bands,
                  tiles = tiles,
-                 roi = roi,
+                 roi_sf = roi,
                  start_date = start_date,
                  end_date = end_date, ...)
 }

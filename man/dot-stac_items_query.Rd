@@ -9,7 +9,7 @@
   source,
   collection,
   ...,
-  roi = NULL,
+  roi_sf = NULL,
   start_date = NULL,
   end_date = NULL,
   limit = NULL
@@ -22,7 +22,7 @@
 
 \item{...}{Other parameters to be passed for specific types.}
 
-\item{roi}{Region of interest.}
+\item{roi_sf}{Region of interest as sf object.}
 
 \item{start_date}{Initial date for the cube (optional).}
 
