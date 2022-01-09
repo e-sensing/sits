@@ -35,7 +35,7 @@
 #' @export
 .sits_roi_bbox.sf <- function(roi, cube) {
     bbox <- roi %>%
-        sf::st_transform(crs = cube$crs[[1]]) %>%
+        sf::st_transform(crs = .cube_crs(cube)) %>%
         suppressWarnings() %>%
         sf::st_bbox()
 
@@ -70,6 +70,45 @@
         dplyr::summarise(geometry = sf::st_combine(geometry)) %>%
         sf::st_cast("POLYGON")
 
-    bbox <- sf::st_bbox(suppressWarnings(sf::st_transform(sf_region,
-                                                          crs = cube$crs[[1]])))
+    bbox <- sf::st_bbox(
+        suppressWarnings(
+            sf::st_transform(sf_region, crs = .cube_crs(cube))))
+}
+#' @title Check is a ROI is valid for an existing data cube
+#' @name .sits_check_roi_cube
+#' @keywords internal
+#' @param  roi             spatial region of interest
+#' @param  cube            input data cube.
+#' @return                 vector with information on the subimage
+#' @export
+.sits_check_roi_cube <- function(roi, cube) {
+    # set caller to show in errors
+    .check_set_caller(".sits_check_roi_cube")
+
+    if (!(inherits(roi, "sf"))) {
+
+        if (all(c("xmin", "xmax", "ymin", "ymax") %in% names(roi))) {
+            class(roi) <- c("xy", class(roi))
+        } else if (all(
+            c("lon_min", "lon_max", "lat_min", "lat_max") %in% names(roi))) {
+            class(roi) <- c("ll", class(roi))
+        }
+    }
+
+    .check_that(
+        x = inherits(roi, c("sf", "xy", "ll")),
+        msg = "invalid definition of ROI"
+    )
+
+    UseMethod(".sits_check_roi_cube", roi)
+}
+#' @title Check is a ROI defined as sf is valid for an existing data cube
+#' @name .sits_check_roi_cube.sf
+#' @keywords internal
+#' @param  roi             spatial region of interest
+#' @param  cube            input data cube.
+#' @return                 vector with information on the subimage
+#' @export
+.sits_check_roi_cube.sf <- function(roi, cube) {
+
 }

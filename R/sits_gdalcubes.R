@@ -200,7 +200,7 @@
 
         features <- slider::slide_dfr(features, function(feat) {
 
-            bbox <- .sits_coords_to_bbox(
+            bbox <- .sits_coords_to_bbox_wgs84(
                 xmin = feat$features[[1]][["xmin"]][[1]],
                 xmax = feat$features[[1]][["xmax"]][[1]],
                 ymin = feat$features[[1]][["ymin"]][[1]],
@@ -209,10 +209,10 @@
             )
 
             feat$features[[1]] <- dplyr::mutate(feat$features[[1]],
-                                                xmin = bbox[["lon_min"]],
-                                                xmax = bbox[["lon_max"]],
-                                                ymin = bbox[["lat_min"]],
-                                                ymax = bbox[["lat_max"]])
+                                                xmin = bbox[["xmin"]],
+                                                xmax = bbox[["xmax"]],
+                                                ymin = bbox[["ymin"]],
+                                                ymax = bbox[["ymax"]])
 
             feat
         })

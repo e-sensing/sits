@@ -66,7 +66,7 @@ test_that("Bbox in WGS 84", {
     )
 
     bbox <- sits_bbox(sinop, wgs84 = TRUE)
-    expect_true(all(names(bbox) %in% c("lon_min", "lat_min", "lon_max", "lat_max")))
+    expect_true(all(names(bbox) %in% c("xmin", "ymin", "xmax", "ymax")))
 })
 test_that("Functions that work with ROI", {
 

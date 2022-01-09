@@ -464,10 +464,10 @@ sits_get_data.raster_cube <- function(cube, file = NULL, ...,
         cld_band <- NULL
     }
     # get the time series
-    data <- slider::slide_dfr(cube, function(row) {
+    data <- slider::slide_dfr(cube, function(tile) {
         # get the data
         ts <- .sits_raster_data_get_ts(
-            cube = row,
+            tile = tile,
             points = ll,
             bands = bands,
             cld_band = cld_band,
@@ -527,7 +527,7 @@ sits_get_data.csv_raster_cube <- function(cube, file, ...,
     data <- slider::slide_dfr(cube, function(tile) {
         # get the data
         ts <- .sits_raster_data_get_ts(
-            cube = tile,
+            tile = tile,
             points = csv,
             bands = bands,
             cld_band = cld_band,
@@ -598,10 +598,10 @@ sits_get_data.shp_raster_cube <- function(cube, file, ...,
     on.exit(.sits_parallel_stop(), add = TRUE)
 
     # for each row of the cube, get the points inside
-    data <- slider::slide_dfr(cube, function(row) {
+    data <- slider::slide_dfr(cube, function(tile) {
         # retrieve the data from raster
         ts <- .sits_raster_data_get_ts(
-            cube = row,
+            tile = tile,
             points = points,
             bands = bands,
             cld_band = cld_band,
@@ -772,7 +772,7 @@ sits_get_data.shp_raster_cube <- function(cube, file, ...,
 
     # retrieve the time series from the service
     tryCatch({
-        ts <- Rwtss::time_series(URL = cube$file_info[[1]]$path[[1]],
+        ts <- Rwtss::time_series(URL = .file_info_path_single(cube),
                                  name = cube$collection,
                                  attributes = bands,
                                  longitude = longitude,

@@ -178,7 +178,7 @@
 #' @param source     Name of the STAC provider
 #' @param collection Collection to be searched in the data source
 #' @param ...        Other parameters to be passed for specific types.
-#' @param bbox       Area of interest.
+#' @param roi        Region of interest.
 #' @param start_date Initial date for the cube (optional).
 #' @param end_date   Final date for the cube  (optional).
 #' @param limit      limit items to be returned in requisition.
@@ -186,7 +186,7 @@
 #' @return an \code{RSTACQuery} object.
 .stac_create_items_query <- function(source,
                                      collection, ...,
-                                     bbox = NULL,
+                                     roi = NULL,
                                      start_date = NULL,
                                      end_date = NULL,
                                      limit = NULL) {
@@ -202,7 +202,7 @@
     datetime <- .stac_format_datetime(start_date, end_date)
 
     # obtain the bounding box and intersects parameters
-    roi <- .stac_get_roi(bbox)
+    roi_stac <- .stac_get_roi(roi)
 
     # get the limit items to be returned in each page
     if (is.null(limit))
@@ -211,8 +211,8 @@
     # creating an query object to be search
     rstac_query <-  rstac::stac_search(q = rstac::stac(url),
                                        collections = collection,
-                                       bbox        = roi$bbox,
-                                       intersects  = roi$intersects,
+                                       bbox        = roi_stac$bbox,
+                                       intersects  = roi_stac$intersects,
                                        datetime    = datetime,
                                        limit       = limit)
 

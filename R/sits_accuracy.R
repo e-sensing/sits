@@ -179,7 +179,7 @@ sits_accuracy.classified_image <- function(data, ..., validation_csv) {
     xy_tb <- .sits_proj_from_latlong(
         longitude = csv_tb$longitude,
         latitude = csv_tb$latitude,
-        crs = data$crs[[1]]
+        crs = .cube_crs(data)
     )
 
     # join lat-long with XY values in a single tibble

@@ -159,7 +159,8 @@ test_that("Creating cubes from BDC", {
     expect_true(timeline[length(timeline)] <= as.Date("2019-08-29"))
 
     r_obj <- sits:::.raster_open_rast(cbers_cube$file_info[[1]]$path[1])
-    expect_true(terra::nrow(r_obj) == sits:::.cube_size(cbers_cube)[["nrows"]])
+    expect_error(sits:::.cube_size(cbers_cube), "process one tile at a time")
+    expect_true(terra::nrow(r_obj) == sits:::.cube_size(cbers_cube[1,])[["nrows"]])
 })
 
 test_that("Creating cubes from BDC - based on ROI with shapefile", {
@@ -202,12 +203,17 @@ test_that("Creating cubes from BDC - based on ROI with shapefile", {
     expect_true(all(sits_bands(modis_cube) %in% c("NDVI", "EVI")))
     bbox <- sits_bbox(modis_cube, wgs84 = TRUE)
     bbox_shp <- sf::st_bbox(sf_bla)
-    expect_gt(bbox["lat_max"], bbox_shp["ymax"])
-    expect_gt(bbox["lon_max"], bbox_shp["xmax"])
-    expect_lt(bbox["lat_min"], bbox_shp["ymin"])
-    expect_lt(bbox["lon_min"], bbox_shp["xmin"])
 
-    expect_true(sits:::.sits_raster_sub_image_intersects(modis_cube, sf_bla))
+    expect_lt(bbox["xmin"], bbox_shp["xmin"])
+    expect_lt(bbox["ymin"], bbox_shp["ymin"])
+    expect_gt(bbox["xmax"], bbox_shp["xmax"])
+    expect_gt(bbox["ymax"], bbox_shp["ymax"])
+    intersects <- slider::slide_lgl(modis_cube, function(tile){
+        sits:::.sits_raster_sub_image_intersects(tile, sf_bla)
+    } )
+    expect_true(all(intersects))
+
+
 })
 
 test_that("Creating cubes from BDC - based on ROI with geojson", {
@@ -495,8 +501,8 @@ test_that("Creating cubes from AWS Open Data and regularizing them", {
 
     expect_error(.cube_size(s2_cube_open))
     expect_error(.cube_resolution(s2_cube_open))
+    expect_error(.file_info_nrows(s2_cube_open[1,]))
 
-    expect_equal(nrow(.cube_file_info(s2_cube_open)), 14)
     dir_images <-  paste0(tempdir(), "/images/")
     if (!dir.exists(dir_images))
         suppressWarnings(dir.create(dir_images))
@@ -645,19 +651,19 @@ test_that("Creating Sentinel cubes from MSPC with ROI", {
 
     expect_true(all(sits_bands(s2_cube) %in% c("B05", "CLOUD")))
 
-    expect_equal(class(sits:::.cube_size(s2_cube)), "numeric")
-    expect_equal(class(sits:::.cube_resolution(s2_cube)), "numeric")
+    expect_equal(class(sits:::.cube_size(s2_cube[1,])), "numeric")
+    expect_equal(class(sits:::.cube_resolution(s2_cube[1,])), "numeric")
 
     file_info <- s2_cube$file_info[[1]]
-    r <- .raster_open_rast(file_info$path[[1]])
+    r <- sits:::.raster_open_rast(file_info$path[[1]])
 
     expect_equal(nrow(s2_cube), 3)
-    expect_error(sits_bbox(s2_cube))
+    expect_warning(sits_bbox(s2_cube), "cube has more than one projection")
 
     bbox_cube <- sits_bbox(s2_cube, wgs84 = TRUE)
     bbox_cube_1 <- sits_bbox(s2_cube[1,], wgs84 = TRUE)
-    expect_true(bbox_cube["lon_max"] >= bbox_cube_1["lon_max"])
-    expect_true(bbox_cube["lat_max"] >= bbox_cube_1["lat_max"])
+    expect_true(bbox_cube["xmax"] >= bbox_cube_1["xmax"])
+    expect_true(bbox_cube["ymax"] >= bbox_cube_1["ymax"])
 
     msg <- capture_warnings(sits_timeline(s2_cube))
     expect_true(grepl("Cube is not regular. Returning all timelines", msg))

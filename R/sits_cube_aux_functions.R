@@ -66,13 +66,17 @@
 #' @keywords internal
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'
-#' @param cube           Metadata about a data cube
+#' @param cube           Data cube
 #' @return               Frequency of each label in the data cube
 #'
 .cube_area_freq <- function(cube) {
 
     # set caller to show in errors
     .check_set_caller(".cube_area_freq")
+
+    # pre-condition - one tile at a time
+    .check_num(nrow(cube), min = 1, max = 1, is_integer = TRUE,
+               msg = "process one tile at a time")
 
     # precondition
     .check_that(
@@ -81,10 +85,10 @@
     )
 
     # retrieve the r object associated to the labelled cube
-    file_info <- .cube_file_info(cube)
+    file_info <- .file_info(cube)
 
     # open first raster
-    r_obj <- .raster_open_rast(file_info$path[[1]])
+    r_obj <- .raster_open_rast(.file_info_path_single(cube))
 
     # retrieve the frequency
     freq <- tibble::as_tibble(.raster_freq(r_obj))
@@ -92,9 +96,13 @@
     return(freq)
 }
 
-#' @rdname cube_functions
-.cube_bands <- function(cube, ...,
-                        add_cloud = TRUE) {
+#' @title Return bands of a data cube
+#' @keywords internal
+#' @name .cube_bands
+#' @param cube       Data cube
+#' @param add_cloud  Include the cloud band?
+#' @return a \code{vector} with the bands.
+.cube_bands <- function(cube, add_cloud = TRUE) {
 
     bands <- sits_bands(cube)
 
@@ -107,10 +115,15 @@
 
     return(bands)
 }
-
+#' @title Check if bands are part of a data cube
+#' @keywords internal
+#' @name .cube_bands_check
+#' @param cube          Data cube
+#' @param bands         Bands to be check
+#' @param add_cloud     Include the cloud band?
+#' @return              NULL if function fails
 #' @rdname cube_functions
-.cube_bands_check <- function(cube, bands, ...,
-                              add_cloud = TRUE) {
+.cube_bands_check <- function(cube, bands, add_cloud = TRUE) {
 
     # all bands are upper case
     .check_chr_within(bands,
@@ -121,23 +134,14 @@
 
     return(invisible(NULL))
 }
-#' @title Auxiliary functions for sits cubes
-#' @keywords internal
-#'
-#' @name cube_functions
-#'
-#' @description Auxiliary functions for extracting information from sits cubes.
-#'
-#' @param cube  Data cube from where data is to be retrieved.
-#' @param tile  Tiles from the collection to be included in the data cube
-#' @param bands Bands to be included.
-#' @param ....  Additional parameters to be included.
-#'
-#' @return a \code{vector} for get attributes functions and NULL or error for
-#' check parameters functions.
-NULL
 
-#' @rdname cube_functions
+
+#' @title Missing value of a cube band
+#' @keywords internal
+#' @name .cube_band_missing_value
+#' @param cube  Data cube
+#' @param band  Band
+#' @return the missing value for the band.
 .cube_band_missing_value <- function(cube, band) {
 
     # pre-condition
@@ -164,7 +168,13 @@ NULL
     return(mv)
 }
 
-#' @rdname cube_functions
+#' @title Minimum value of a cube band
+#' @keywords internal
+#' @name .cube_band_missing_value
+#' @param cube  Data cube
+#' @param band  Band
+#' @return minimum value for the band in the data cube
+#'
 .cube_band_minimum_value <- function(cube, band) {
 
     # pre-condition
@@ -191,7 +201,13 @@ NULL
     return(mv)
 }
 
-#' @rdname cube_functions
+#' @title Maximum value of a cube band
+#' @keywords internal
+#' @name .cube_band_maximum_value
+#' @param cube  Data cube
+#' @param band  Band
+#' @return maximum value for the band in the data cube
+#'
 .cube_band_maximum_value <- function(cube, band) {
 
     # pre-condition
@@ -217,8 +233,13 @@ NULL
 
     return(mv)
 }
-
-#' @rdname cube_functions
+#' @title Scale factor of a cube band
+#' @keywords internal
+#' @name .cube_band_scale_factor
+#' @param cube  Data cube
+#' @param band  Band
+#' @return scale factor for the band in the data cube
+#'
 .cube_band_scale_factor <- function(cube, band) {
 
     # pre-condition
@@ -245,7 +266,13 @@ NULL
     return(sf)
 }
 
-#' @rdname cube_functions
+#' @title Offset value of a cube band
+#' @keywords internal
+#' @name .cube_band_offset_value
+#' @param cube  Data cube
+#' @param band  Band
+#' @return offset value for the band in the data cube
+#'
 .cube_band_offset_value <- function(cube, band) {
 
     # pre-condition
@@ -273,13 +300,21 @@ NULL
 }
 
 
-#' @rdname cube_functions
+#' @title Check if R object is a data cube
+#' @keywords internal
+#' @name .cube_check
+#' @param cube  R object to be checked
+#' @return TRUE/FALSE
 .cube_check <- function(cube) {
 
     return(inherits(cube, "sits_cube"))
 }
 
-#' @rdname cube_functions
+#' @title Return collection of a data cube
+#' @keywords internal
+#' @name .cube_collection
+#' @param cube  data cube
+#' @return collection associated to the cube
 .cube_collection <- function(cube) {
 
     col <- unique(cube[["collection"]])
@@ -290,214 +325,32 @@ NULL
 
     return(col)
 }
-
-
-#' @title Given a band, return a set of values for chosen location
-#' @name .cube_extract
+#' @title Return crs of a data cube
 #' @keywords internal
-#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
-#'
-#' @description          Given a data cube, retrieve the time series
-#'                       of XY locations
-#'
-#' @param cube           Metadata about a data cube
-#' @param band_cube      Name of the band to the retrieved
-#' @param xy             Matrix with XY location
-.cube_extract <- function(cube, band_cube, xy) {
+#' @name .cube_crs
+#' @param cube  data cube
+#' @return crs associated to the cube
+.cube_crs <- function(cube) {
 
-
-    # set caller to show in errors
-    .check_set_caller(".cube_extract")
-
-    # precondition 2
-    .check_chr_within(
-        x = band_cube,
-        within = sits_bands(cube),
-        discriminator = "one_of",
-        msg = paste("band", band_cube,
-                    "is not available in the cube")
-    )
-
-    # filter the files that contain the band
-    band <- dplyr::filter(cube$file_info[[1]], band == band_cube)
-
-    # create a stack object
-    r_obj <- .raster_open_stack(band$path)
-
-    # extract the values
-    values <- .raster_extract(r_obj, xy)
-
-    # is the data valid?
-    .check_that(
-        x = nrow(values) == nrow(xy),
-        msg = "error in retrieving data"
-    )
-    return(values)
-}
-#' @title Get cube file info
-#' @name .cube_file_info
-#' @keywords internal
-#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
-#'
-#' @param  cube         input data cube
-#' @param  bands        bands to be filtered
-#'
-#' @return A file_info tibble
-.cube_file_info <- function(cube, bands = NULL) {
-
-    # check bands
-    if (!is.null(bands))
-        .cube_bands_check(cube, bands = bands)
-
-    # get the first tile
-    file_info <- cube$file_info[[1]]
-
-    # return filter
-    if (!purrr::is_null(bands))
-        file_info <- file_info[file_info$band %in% bands, ]
-
-    return(file_info)
-}
-
-#' @rdname cube_functions
-.cube_has_cloud <- function(cube) {
-
-    .source_cloud() %in% .cube_bands(cube = cube, add_cloud = TRUE)
-}
-
-#' @rdname cube_functions
-#'
-#' @keywords internal
-#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
-#'
-#' @description          verify is the cube is a regular one
-#'
-.cube_is_regular <- function(cube){
-
-    # check if the resolutions are unique
-    res_cube.lst <- slider::slide(cube, function(tile){
-       return(unique(.cube_file_info(tile)[["xres"]]))
-    })
-
-    if (length(unique(unlist(res_cube.lst))) != 1)
-        return(FALSE)
-
-    # check if the resolutions are unique
-    res_cube.lst <- slider::slide(cube, function(tile){
-        return(unique(.cube_file_info(tile)[["yres"]]))
-    })
-
-    if (length(unique(unlist(res_cube.lst))) != 1)
-        return(FALSE)
-
-    # check if timelines are unique
-    timelines <- slider::slide(cube, function(tile){
-        return(sits_timeline(tile))
-    })
-
-    # function to test timelines
-    return(length(unique(timelines)) == 1)
-}
-
-#' @rdname cube_functions
-.cube_labels <- function(cube) {
-
-    labs <- unique(cube[["labels"]])
+    crs <- unique(cube[["crs"]])
 
     # post-condition
-    .check_lst(labs, min_len = 1, max_len = 1,
-               is_named = FALSE,
-               msg = "invalid 'labels' value")
+    .check_chr(crs, allow_empty = FALSE, allow_NA = FALSE,
+               len_min = 1, len_max = 1,
+               msg = "invalid crs value")
 
-    labs <- unlist(labs, use.names = FALSE)
-
-    # post-condition
-    .check_chr(labs, allow_na = TRUE, allow_empty = FALSE,
-               len_min = 1, allow_null = TRUE,
-               msg = "invalid 'labels' value")
-
-    return(labs)
+    return(crs)
 }
-
-#' @title Determine the block spatial parameters of a given cube
-#' @name .cube_params_block
-#' @keywords internal
-#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
-#'
-#' @description    Based on the R object associated to a raster object,
-#'                 determine its parameters
-#' @param cube     A valid cube
-#' @param block    A block insider the cube
-#' @return A tibble with the cube parameters
-.cube_params_block <- function(cube, block) {
-
-    size <- .cube_size(cube)
-    nrows <- size[["nrows"]]
-    ncols <- size[["ncols"]]
-
-    # pre-conditions
-    .check_num(block[["first_row"]], min = 1, max = nrows,
-               msg = "invalid block value")
-
-    .check_num(block[["first_col"]], min = 1, max = ncols,
-               msg = "invalid block value")
-
-    .check_num(block[["nrows"]], min = 1, max = nrows,
-               msg = "invalid block value")
-
-    .check_num(block[["ncols"]], min = 1, max = ncols,
-               msg = "invalid block value")
-
-    res <- .cube_resolution(cube)
-
-    # compute new Y extent
-    ymax  <-  cube[["ymax"]] - (block[["first_row"]] - 1) * res[["yres"]]
-    ymin  <-  ymax - block[["nrows"]] * res[["yres"]]
-
-    # compute new X extent
-    xmin  <-  cube[["xmin"]] + (block[["first_col"]] - 1) * res[["xres"]]
-    xmax  <-  xmin + block[["ncols"]] * res[["xres"]]
-
-    # prepare result
-    params <- tibble::tibble(
-        nrows = block[["nrows"]],
-        ncols = block[["ncols"]],
-        xmin  = xmin,
-        xmax  = xmax,
-        ymin  = ymin,
-        ymax  = ymax,
-        crs   = cube[["crs"]]
-    )
-
-
-    # post-conditions
-    .check_num(params[["xmin"]], min = cube[["xmin"]], max = cube[["xmax"]],
-               msg = "invalid params value")
-
-    .check_num(params[["xmax"]], min = cube[["xmin"]], max = cube[["xmax"]],
-               msg = "invalid params value")
-
-    .check_num(params[["ymin"]], min = cube[["ymin"]], max = cube[["ymax"]],
-               msg = "invalid params value")
-
-    .check_num(params[["ymax"]], min = cube[["ymin"]], max = cube[["ymax"]],
-               msg = "invalid params value")
-
-    return(params)
-}
-#' @title Create a set of RasterLayer objects to store
-#' data cube classification results (only the probs)
-#' @name .cube_probs_create
+#' @title Create a data cube derived from another
+#' @name .cube_derived_create
 #' @keywords internal
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'
 #' @description Take a tibble containing metadata about a data cube
 #' containing time series and create a
-#' set of RasterLayers to store the classification result.
-#' Each RasterLayer corresponds to one time step.
-#' The time steps are specified in a list of dates.
+#' set of files to store the result of a classification or smoothing
 #'
-#' @param cube         input tile (subset of a data cube).
+#' @param cube         input data cube
 #' @param cube_class   class to be attributed to created cube
 #' @param band_name    name of band in created cube
 #' @param labels       labels of derived cube
@@ -541,11 +394,13 @@ NULL
         ymax       = bbox[["ymax"]],
         xres       = res[["xres"]],
         yres       = res[["yres"]],
-        nrows      = cube$file_info[[1]]$nrows[[1]],
-        ncols      = cube$file_info[[1]]$ncols[[1]],
+        nrows      = .file_info_nrows(cube),
+        ncols      = .file_info_ncols(cube),
         path       = file_name
     )
-
+    # get source and collection
+    source     = .cube_source(cube)
+    collection = .cube_collection(cube)
     # set the metadata for the probability cube
     dev_cube <- .cube_create(
         source     = cube$source,
@@ -566,14 +421,195 @@ NULL
 
     return(dev_cube)
 }
-#' @rdname cube_functions
-.cube_resolution <- function(cube, ..., bands = NULL) {
+#' @title Given a band, return a set of values for chosen location
+#' @name .cube_extract
+#' @keywords internal
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
+#'
+#' @description          Given a data cube, retrieve the time series
+#'                       of XY locations
+#'
+#' @param cube           Metadata about a data cube
+#' @param band_cube      Name of the band to the retrieved
+#' @param xy             Matrix with XY location
+.cube_extract <- function(cube, band_cube, xy) {
+
+
+    # set caller to show in errors
+    .check_set_caller(".cube_extract")
+
+    # pre-condition - one tile at a time
+    .check_num(nrow(cube), min = 1, max = 1, is_integer = TRUE,
+               msg = "process one tile at a time")
+
+    # precondition 2
+    .check_chr_within(
+        x = band_cube,
+        within = sits_bands(cube),
+        discriminator = "one_of",
+        msg = paste("band", band_cube,
+                    "is not available in the cube")
+    )
+
+    # filter the files that contain the band
+    band <- dplyr::filter(.file_info(cube), band == band_cube)
+
+    # create a stack object
+    r_obj <- .raster_open_stack(band$path)
+
+    # extract the values
+    values <- .raster_extract(r_obj, xy)
+
+    # is the data valid?
+    .check_that(
+        x = nrow(values) == nrow(xy),
+        msg = "error in retrieving data"
+    )
+    return(values)
+}
+
+#' @title Check if cube is regular
+#' @name .cube_is_regular
+#' @keywords internal
+#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
+#'
+#' @param  cube         input data cube
+#' @return TRUE/FALSE
+#'
+.cube_is_regular <- function(cube){
+
+    # check if the resolutions are unique
+    res_cube_x <- slider::slide(cube, function(tile){
+       .file_info_xres(tile)
+    })
+
+    if (length(unique(unlist(res_cube_x))) != 1)
+        return(FALSE)
+
+    # check if the resolutions are unique
+    res_cube_y <- slider::slide(cube, function(tile){
+        .file_info_yres(tile)
+    })
+
+    if (length(unique(unlist(res_cube_y))) != 1)
+        return(FALSE)
+
+    # check if timelines are unique
+    timelines <- slider::slide(cube, function(tile){
+        sits_timeline(tile)
+    })
+
+    # function to test timelines
+    return(length(unique(timelines)) == 1)
+}
+
+#' @title Return the labels of the cube
+#' @name .cube_labels
+#' @keywords internal
+#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
+#'
+#' @param  cube         input data cube
+#' @return a vector with the labels of the cube
+.cube_labels <- function(cube) {
+
+    labs <- unique(cube[["labels"]])
+
+    # post-condition
+    .check_lst(labs, min_len = 1, max_len = 1,
+               is_named = FALSE,
+               msg = "invalid 'labels' value")
+
+    labs <- unlist(labs, use.names = FALSE)
+
+    # post-condition
+    .check_chr(labs, allow_na = TRUE, allow_empty = FALSE,
+               len_min = 1, allow_null = TRUE,
+               msg = "invalid 'labels' value")
+
+    return(labs)
+}
+
+#' @title Determine the block spatial parameters of a given cube
+#' @name .cube_params_block
+#' @keywords internal
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
+#'
+#' @description    Based on the R object associated to a raster object,
+#'                 determine its parameters
+#' @param cube     A valid cube
+#' @param block    A block inside the cube
+#' @return A tibble with the cube parameters
+.cube_params_block <- function(cube, block) {
+
+    # pre-condition - one tile at a time
+    .check_num(nrow(cube), min = 1, max = 1, is_integer = TRUE,
+               msg = "process one tile at a time")
+
+    size <- .cube_size(cube)
+    nrows <- size[["nrows"]]
+    ncols <- size[["ncols"]]
+
+    # pre-conditions
+    .check_num(block[["first_row"]], min = 1, max = nrows,
+               msg = "invalid block value")
+
+    .check_num(block[["first_col"]], min = 1, max = ncols,
+               msg = "invalid block value")
+
+    .check_num(block[["nrows"]], min = 1, max = nrows,
+               msg = "invalid block value")
+
+    .check_num(block[["ncols"]], min = 1, max = ncols,
+               msg = "invalid block value")
+
+    res <- .cube_resolution(cube)
+
+    # compute new Y extent
+    ymax  <-  cube[["ymax"]] - (block[["first_row"]] - 1) * res[["yres"]]
+    ymin  <-  ymax - block[["nrows"]] * res[["yres"]]
+
+    # compute new X extent
+    xmin  <-  cube[["xmin"]] + (block[["first_col"]] - 1) * res[["xres"]]
+    xmax  <-  xmin + block[["ncols"]] * res[["xres"]]
+
+    # prepare result
+    params <- tibble::tibble(
+        nrows = block[["nrows"]],
+        ncols = block[["ncols"]],
+        xmin  = xmin,
+        xmax  = xmax,
+        ymin  = ymin,
+        ymax  = ymax,
+        crs   = .cube_crs(cube)
+    )
+    # post-conditions
+    .check_num(params[["xmin"]], min = cube[["xmin"]], max = cube[["xmax"]],
+               msg = "invalid params value")
+
+    .check_num(params[["xmax"]], min = cube[["xmin"]], max = cube[["xmax"]],
+               msg = "invalid params value")
+
+    .check_num(params[["ymin"]], min = cube[["ymin"]], max = cube[["ymax"]],
+               msg = "invalid params value")
+
+    .check_num(params[["ymax"]], min = cube[["ymin"]], max = cube[["ymax"]],
+               msg = "invalid params value")
+
+    return(params)
+}
+
+#' @title Return the resolution of the cube
+#' @name .cube_resolution
+#' @keywords internal
+#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
+#'
+#' @param  cube         input data cube
+#' @return a vector with the x and y resolution
+.cube_resolution <- function(cube, bands = NULL) {
 
     # get first file_info
-    file_info <- .cube_file_info(cube, bands = bands)
-
-    xres <- unique(file_info[["xres"]])
-    yres <- unique(file_info[["yres"]])
+    xres <- .file_info_xres(cube)
+    yres <- .file_info_yres(cube)
 
     # post-condition
     .check_num(xres, min = 0, allow_zero = FALSE,
@@ -590,22 +626,31 @@ NULL
     return(res)
 }
 
-#' @rdname cube_functions
+#' @title Return the S3 class of the cube
+#' @name .cube_s3class
+#' @keywords internal
+#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
+#'
+#' @param  cube         input data cube
+#' @return class of the cube
 .cube_s3class <- function(cube) {
 
     unique(c(.source_s3class(source = .cube_source(cube = cube)),
              class(cube)))
 }
 
-#' @rdname cube_functions
+#' @title Return the size of the cube (nrows x ncols)
+#' @name .cube_size
+#' @keywords internal
+#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
+#'
+#' @param  cube         input data cube
+#' @return a vector with the labels of the cube
 .cube_size <- function(cube, ..., bands = NULL) {
 
-    # get the file information
-    file_info <- .cube_file_info(cube, bands = bands)
-
     # get the file size
-    nrows <- unique(file_info[["nrows"]])
-    ncols <- unique(file_info[["ncols"]])
+    nrows <- .file_info_nrows(cube)
+    ncols <- .file_info_ncols(cube)
 
     # post-conditions
     .check_num(nrows, min = 1, len_min = 1, len_max = 1,
@@ -640,39 +685,14 @@ NULL
     return(src)
 }
 
-#' @rdname cube_functions
-.cube_timeline <- function(cube) {
-
-    timeline <- unique(cube[["file_info"]][["date"]])
-
-    # post-condition
-    # check if all tiles have same timeline
-    .check_lst(timeline, min_len = 1, max_len = 1,
-               msg = "invalid cube timeline values")
-
-    # simplify
-    timeline <- unlist(timeline)
-
-    return(timeline)
-}
-
-#' @rdname cube_functions
-.cube_start_date <- function(cube) {
-
-    timeline <- unlist(.cube_timeline(cube))
-
-    return(timeline[[1]])
-}
-
-#' @rdname cube_functions
-.cube_end_date <- function(cube) {
-
-    timeline <- unlist(.cube_timeline(cube))
-
-    return(timeline[[length(timeline)]])
-}
-
-#' @rdname cube_functions
+#' @title Get cube tiles
+#' @name .cube_tiles
+#' @keywords internal
+#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
+#'
+#' @param  cube input data cube
+#'
+#' @return A vector with tile names
 .cube_tiles <- function(cube) {
 
     tiles <- unique(cube[["tile"]])
@@ -685,63 +705,27 @@ NULL
     return(tiles)
 }
 
-#' @rdname cube_functions
-.cube_tile_check <- function(cube, tile) {
+#' @title Get bbox of a cube (single tile)
+#' @name .cube_tile_bbox
+#' @keywords internal
+#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
+#'
+#' @param  cube input data cube
+#'
+#' @return A vector with tile names
+.cube_tile_bbox <- function(cube) {
 
-    .check_that(
-        is.numeric(tile) || is.character(tile),
-        local_msg = "'tile' parameter must be numeric or character"
-    )
+    # pre-condition - one tile at a time
+    .check_num(nrow(cube), min = 1, max = 1, is_integer = TRUE,
+               msg = "process one tile at a time")
 
-    .check_length(tile, len_min = 1, len_max = nrow(cube),
-                  "invalid 'tile' parameter")
+    bbox <- vector("double", length = 4)
+    names(bbox) <- c("xmin", "ymin", "xmax", "ymax")
 
-    if (is.numeric(tile)) {
-        .check_num(tile, min = 1, max = nrow(cube),
-                   len_min = 1, is_integer = TRUE,
-                   msg = "invalid 'tile' parameter"
-        )
-    } else if (is.character(tile)) {
-        .check_chr_within(tile,
-                          within = .cube_tiles(cube = cube),
-                          discriminator = "one_of",
-                          msg = "invalid 'tile' parameter"
-        )
-    }
-
-    return(invisible(tile))
-}
-
-#' @rdname cube_functions
-.cube_tile_get_fields <- function(cube, tile, fields = NULL) {
-
-    # pre-condition
-    .cube_tile_check(cube = cube, tile = tile)
-
-    .check_chr_within(fields,
-                      within = names(cube),
-                      discriminator = "any_of",
-                      msg = "invalid 'fields' parameter")
-
-    if (is.numeric(tile))
-        result <- c(cube[tile, fields])
-    else
-        result <- c(cube[which(.cube_tiles(cube = cube) %in% tile), fields])
-
-    # post-condition
-    .check_lst(result, min_len = length(fields), max_len = length(fields),
-               msg = "invalid 'fields' parameter")
-
-    return(result)
-}
-
-#' @rdname cube_functions
-.cube_tile_bbox <- function(cube, ...,
-                            tile = 1) {
-
-    bbox <- .cube_tile_get_fields(cube = cube, tile = tile,
-                                 fields = c("xmin", "ymin", "xmax", "ymax"))
-
+    bbox["xmin"] <-  cube["xmin"]
+    bbox["ymin"] <-  cube["ymin"]
+    bbox["xmax"] <-  cube["xmax"]
+    bbox["ymax"] <-  cube["ymax"]
     # post-condition
     .check_lst(bbox, min_len = 4, max_len = 4, fn_check = .check_num,
                len_min = 1, len_max = 1,

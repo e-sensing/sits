@@ -101,26 +101,26 @@ sits_uncertainty.entropy <- function(cube, type = "entropy", ...,
 
         return(res)
     }
-    # process each brick layer (each time step) individually
-    cube_uncert <- slider::slide_dfr(cube, function(row) {
+    # process each tile individually
+    cube_uncert <- slider::slide_dfr(cube, function(tile) {
 
         # create metadata for raster cube
-        row_uncert <- .cube_derived_create(
-            cube       = row,
+        tile_uncert <- .cube_derived_create(
+            cube       = tile,
             cube_class = "uncertainty_cube",
             band_name  = "entropy",
-            labels     = .cube_labels(row),
-            start_date = row$file_info[[1]]$start_date,
-            end_date   = row$file_info[[1]]$end_date,
-            bbox       = .cube_tile_bbox(row),
+            labels     = .cube_labels(tile),
+            start_date = .file_info_start_date(tile),
+            end_date   = .file_info_end_date(tile),
+            bbox       = .cube_tile_bbox(tile),
             output_dir = output_dir,
             version    = version
         )
 
 
         .sits_smooth_map_layer(
-            cube = row,
-            cube_out = row_uncert,
+            cube = tile,
+            cube_out = tile_uncert,
             overlapping_y_size = 0,
             func = .do_entropy,
             multicores = multicores,
@@ -129,7 +129,7 @@ sits_uncertainty.entropy <- function(cube, type = "entropy", ...,
             gdal_options = .config_gtiff_default_options()
         )
 
-        return(row_uncert)
+        return(tile_uncert)
     })
 
     class(cube_uncert) <- c("uncertainty_cube", "raster_cube", "sits_cube",

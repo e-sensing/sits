@@ -177,8 +177,9 @@ plot.raster_cube <- function(x, ...,
         }
 
         # filter only intersecting tiles
-        intersects <- slider::slide(x, function(row) {
-            .sits_raster_sub_image_intersects(row, roi)
+        intersects <- slider::slide(x, function(tile) {
+            .sits_raster_sub_image_intersects(cube = tile,
+                                              roi = roi)
         }) %>% unlist()
 
         # check if intersection is not empty
@@ -192,7 +193,7 @@ plot.raster_cube <- function(x, ...,
 
     # plot only the selected tile
     # select only the bands for the timeline
-    bands_date <- x$file_info[[1]] %>%
+    bands_date <- .file_info(x) %>%
         dplyr::filter(date == as.Date(timeline[[time]]))
 
     # Are we plotting a grey image
@@ -213,7 +214,7 @@ plot.raster_cube <- function(x, ...,
 
     # extract region of interest
     if (!purrr::is_null(roi)) {
-        sub_image <- .sits_raster_sub_image(cube = x, roi = roi)
+        sub_image <- .sits_raster_sub_image(tile = x, roi = roi)
         r_obj <- .raster_crop.terra(r_obj = r_obj, block = sub_image)
     }
 
@@ -279,7 +280,7 @@ plot.probs_cube <- function(x, y, ...,
                                  alpha = 1,
                                  rev = TRUE)
     # create a stars object
-    st <- stars::read_stars(x[tile,]$file_info[[1]]$path[[1]])
+    st <- stars::read_stars(.file_info_path_single(x[tile,]))
     # get the labels
     labels_cube <- sits_labels(x)
 
@@ -362,7 +363,7 @@ plot.uncertainty_cube <- function(x, y, ...,
     col <- grDevices::hcl.colors(n = n_colors, palette = palette,
                                  alpha = 1, rev = TRUE)
     # create a stars object
-    st <- stars::read_stars(x[tile,]$file_info[[1]]$path[[1]])
+    st <- stars::read_stars(.file_info_path_single(x[tile,]))
     p <- suppressMessages(plot(st,
                                breaks = breaks,
                                nbreaks = n_breaks,
@@ -1198,7 +1199,7 @@ plot.keras_model <- function(x, y, ...) {
     )
 
     # get the raster object
-    r <- suppressWarnings(terra::rast(cube$file_info[[1]]$path[[1]]))
+    r <- suppressWarnings(terra::rast(.file_info_path_single(cube)))
 
     # convert from raster to points
     df <- terra::as.data.frame(r, xy = TRUE)

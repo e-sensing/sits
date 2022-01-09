@@ -9,7 +9,7 @@
   source,
   collection,
   ...,
-  bbox = NULL,
+  roi = NULL,
   start_date = NULL,
   end_date = NULL,
   limit = NULL
@@ -22,7 +22,7 @@
 
 \item{...}{Other parameters to be passed for specific types.}
 
-\item{bbox}{Area of interest.}
+\item{roi}{Region of interest.}
 
 \item{start_date}{Initial date for the cube (optional).}
 

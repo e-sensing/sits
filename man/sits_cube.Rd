@@ -127,8 +127,8 @@ stored in local disks)}
 \details{
 The \code{roi} parameter allows a selection of an area of interest.
 Either using a named \code{vector} ("lon_min", "lat_min", "lon_max", "lat_max") with
-values in WGS 84, a \code{sfc} or \code{sf} object from sf package, or a
-GeoJSON geometry (RFC 7946). Note that this parameter does not crop a
+values in WGS 84, a \code{sfc} or \code{sf} object from sf package in WGS84 projection,
+or a GeoJSON geometry (RFC 7946). Note that this parameter does not crop a
 region, but only selects the images that intersect with it.
 }
 \note{

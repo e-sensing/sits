@@ -18,7 +18,7 @@
 )
 }
 \arguments{
-\item{cube}{Probability data cube}
+\item{cube}{Probability data cube tile}
 
 \item{cube_out}{Output probability data cube}
 
@@ -38,7 +38,7 @@ smoothing.}
 \item{args}{additional arguments to pass to \code{fun} function.}
 }
 \value{
-RasterBrick object
+Output data cube
 }
 \description{
 Process chunks of raster bricks individually in parallel.

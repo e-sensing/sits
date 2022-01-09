@@ -5,7 +5,7 @@
 \title{Extract a time series from raster}
 \usage{
 .sits_raster_data_get_ts(
-  cube,
+  tile,
   points,
   bands,
   cld_band = NULL,
@@ -13,7 +13,7 @@
 )
 }
 \arguments{
-\item{cube}{Metadata describing a raster data cube.}
+\item{tile}{Metadata describing a tile of a raster data cube.}
 
 \item{points}{tibble with points}
 

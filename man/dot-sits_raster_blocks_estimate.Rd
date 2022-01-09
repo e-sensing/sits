@@ -4,14 +4,7 @@
 \alias{.sits_raster_blocks_estimate}
 \title{Estimate the number of blocks}
 \usage{
-.sits_raster_blocks_estimate(
-  tile,
-  ml_model,
-  sub_image,
-  timeline,
-  memsize,
-  multicores
-)
+.sits_raster_blocks_estimate(tile, ml_model, sub_image, memsize, multicores)
 }
 \arguments{
 \item{tile}{tile of data cube}

@@ -138,8 +138,8 @@
 #'
 #' @details The \code{roi} parameter allows a selection of an area of interest.
 #' Either using a named \code{vector} ("lon_min", "lat_min", "lon_max", "lat_max") with
-#' values in WGS 84, a \code{sfc} or \code{sf} object from sf package, or a
-#' GeoJSON geometry (RFC 7946). Note that this parameter does not crop a
+#' values in WGS 84, a \code{sfc} or \code{sf} object from sf package in WGS84 projection,
+#' or a GeoJSON geometry (RFC 7946). Note that this parameter does not crop a
 #' region, but only selects the images that intersect with it.
 #'
 #' @return The description of a data cube
@@ -326,7 +326,7 @@ sits_cube.stac_cube <- function(source,
                  collection = collection,
                  bands = bands,
                  tiles = tiles,
-                 bbox = roi,
+                 roi = roi,
                  start_date = start_date,
                  end_date = end_date, ...)
 }

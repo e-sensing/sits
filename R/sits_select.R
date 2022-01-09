@@ -65,7 +65,7 @@ sits_select.sits_cube <- function(data, bands) {
     .cube_bands_check(data, bands = bands)
 
     # filter the file info
-    db_info <- data$file_info[[1]]
+    db_info <- .file_info(data)
     db_info <- dplyr::filter(db_info, band %in% bands)
     data$file_info[[1]] <- db_info
 

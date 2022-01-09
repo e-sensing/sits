@@ -75,7 +75,7 @@
     if (purrr::is_null(roi))
         sub_image <- .sits_raster_sub_image_default(tile)
     else
-        sub_image <- .sits_raster_sub_image(cube = tile, roi = roi)
+        sub_image <- .sits_raster_sub_image(tile = tile, roi = roi)
 
     # divide the input data in blocks
     blocks <- .sits_raster_blocks(
@@ -110,10 +110,8 @@
 
     # resume feature
     # if tile already exists, return probs_cube
-    if (file.exists(probs_cube$file_info[[1]]$path[[1]])) {
-
+    if (file.exists(.file_info_path_single(probs_cube)))
         return(probs_cube)
-    }
 
     # show initial time for classification
     if (verbose) {
@@ -137,7 +135,7 @@
 
         # define the file name of the raster file to be written
         filename_block <- paste0(
-            tools::file_path_sans_ext(probs_cube$file_info[[1]]$path),
+            tools::file_path_sans_ext(.file_info_path_single(probs_cube)),
             "_block_", b[["first_row"]], "_", b[["nrows"]], ".tif"
         )
 
@@ -250,7 +248,7 @@
     # join predictions
     .raster_merge(
         in_files = filenames,
-        out_file = probs_cube$file_info[[1]]$path,
+        out_file = .file_info_path_single(probs_cube),
         format = "GTiff",
         gdal_datatype = .raster_gdal_datatype(.config_get("probs_cube_data_type")),
         gdal_options = .config_gtiff_default_options(),
