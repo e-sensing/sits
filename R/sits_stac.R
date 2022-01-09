@@ -59,7 +59,7 @@
 #' @export
 .stac_get_roi.default <- function(roi) {
 
-    stop("Invalid roi parameter. Please see the documentation on ?sits_cube")
+    return(list(bbox = NULL, intersects = NULL))
 }
 
 #' @keywords internal
@@ -86,6 +86,8 @@
 
     sits_bbox <- sf_bbox[c("xmin", "ymin", "xmax", "ymax")]
     names(sits_bbox) <- c("lon_min", "lat_min", "lon_max", "lat_max")
+
+    # TODO: convert to geojson
 
     return(list(bbox = sits_bbox, intersects = NULL))
 }
@@ -170,7 +172,7 @@
 #' @param source     Name of the STAC provider
 #' @param collection Collection to be searched in the data source
 #' @param ...        Other parameters to be passed for specific types.
-#' @param roi        Region of interest.
+#' @param roi_sf     Region of interest as sf object.
 #' @param start_date Initial date for the cube (optional).
 #' @param end_date   Final date for the cube  (optional).
 #' @param limit      limit items to be returned in requisition.
@@ -178,7 +180,7 @@
 #' @return an \code{RSTACQuery} object.
 .stac_create_items_query <- function(source,
                                      collection, ...,
-                                     roi = NULL,
+                                     roi_sf = NULL,
                                      start_date = NULL,
                                      end_date = NULL,
                                      limit = NULL) {
@@ -194,7 +196,18 @@
     datetime <- .stac_format_datetime(start_date, end_date)
 
     # obtain the bounding box and intersects parameters
-    roi_stac <- .stac_get_roi(roi)
+    if (!purrr::is_null(roi_sf)) {
+
+        # convert to geojson
+        roi_geojson <- .sits_roi_sf_to_geojson(roi_sf)
+
+        # get bbox from roi_sf
+        bbox <- unname(sf::st_bbox(roi_sf))
+    } else {
+
+        roi_geojson <- NULL
+        bbox <- NULL
+    }
 
     # get the limit items to be returned in each page
     if (is.null(limit))
@@ -203,8 +216,8 @@
     # creating an query object to be search
     rstac_query <-  rstac::stac_search(q = rstac::stac(url),
                                        collections = collection,
-                                       bbox        = roi_stac$bbox,
-                                       intersects  = roi_stac$intersects,
+                                       bbox        = bbox,
+                                       intersects  = roi_geojson,
                                        datetime    = datetime,
                                        limit       = limit)
 

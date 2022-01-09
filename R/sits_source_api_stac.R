@@ -49,7 +49,7 @@
                                    collection,
                                    bands,
                                    tiles,
-                                   roi,
+                                   roi_sf,
                                    start_date,
                                    end_date, ...) {
 
@@ -59,7 +59,7 @@
     # prepares a query object
     items_query <- .stac_create_items_query(source = source,
                                             collection = collection,
-                                            roi = roi,
+                                            roi_sf = roi_sf,
                                             start_date = start_date,
                                             end_date = end_date, ...)
 
