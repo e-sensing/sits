@@ -35,6 +35,7 @@ Imports:
     data.table (>= 1.13),
     dplyr (>= 1.0.0),
     gdalUtilities,
+    geojsonsf,
     grDevices,
     ggplot2,
     graphics,
