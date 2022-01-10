@@ -148,7 +148,7 @@ test_that("Creating cubes from BDC", {
 
     expect_true(grepl("please use tiles instead of tile as parameter", msg))
 
-    expect_true(all(sits_bands(cbers_cube) %in%
+    expect_true(all(sits_bands(cbers_cube[1, ]) %in%
                         c("NDVI", "EVI", "B13", "B14", "B15", "B16", "CLOUD")))
     bbox <- sits_bbox(cbers_cube)
     int_bbox <- sits:::.sits_bbox_intersect(bbox, cbers_cube[1, ])
