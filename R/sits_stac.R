@@ -35,84 +35,6 @@
     items
 }
 
-#' @title Get bbox and intersects parameters
-#' @name .stac_get_roi
-#' @keywords internal
-#'
-#' @param roi  the "roi" parameter defines a region of interest. It can be
-#'  an \code{sfc} or \code{sf} object from sf package, or a \code{vector}
-#'  bounding box \code{vector} with named XY values
-#'  ("xmin", "xmax", "ymin", "ymax").
-#'
-#' @return A named \code{list} with the values of the intersection and bbox
-#'         parameters. If bbox is supplied, the intersection parameter gets
-#'         NULL, otherwise bbox gets NULL if intersects is specified.
-.stac_get_roi <- function(roi) {
-
-    # set caller to show in errors
-    .check_set_caller(".stac_get_roi")
-
-    UseMethod(".stac_get_roi", roi)
-}
-
-#' @keywords internal
-#' @export
-.stac_get_roi.default <- function(roi) {
-
-    return(list(bbox = NULL, intersects = NULL))
-}
-
-#' @keywords internal
-#' @export
-.stac_get_roi.sfc <- function(roi) {
-
-    return(.stac_get_roi.sf(roi))
-}
-
-#' @keywords internal
-#' @export
-.stac_get_roi.sf <- function(roi) {
-
-    roi_crs <- sf::st_crs(roi, parameters = TRUE)
-    .check_lst(roi_crs, min_len = 1, msg = "invalid crs in provided roi.")
-
-    if (roi_crs[["epsg"]] != 4326) {
-        message("The supplied roi will be transformed to the WGS 84.")
-        roi <- sf::st_transform(roi, crs = 4326)
-    }
-
-    # it does not remove the names from vector
-    sf_bbox <- c(sf::st_bbox(roi))
-
-    sits_bbox <- sf_bbox[c("xmin", "ymin", "xmax", "ymax")]
-    names(sits_bbox) <- c("lon_min", "lat_min", "lon_max", "lat_max")
-
-    # TODO: convert to geojson
-
-    return(list(bbox = sits_bbox, intersects = NULL))
-}
-
-#' @keywords internal
-#' @export
-.stac_get_roi.numeric <- function(roi) {
-
-    .check_chr_within(x = names(roi),
-                      within = c("lon_min", "lat_min", "lon_max", "lat_max"),
-                      msg = "invalid roi parameter")
-
-    return(
-        list(bbox = roi[c("lon_min", "lat_min", "lon_max", "lat_max")],
-         intersects = NULL)
-    )
-}
-
-#' @keywords internal
-#' @export
-.stac_get_roi.character <- function(roi) {
-
-    return(list(bbox = NULL, intersects = roi))
-}
-
 #' @title Datetime format
 #' @name .stac_format_datetime
 #' @keywords internal
@@ -195,18 +117,21 @@
     # obtain the datetime parameter for STAC like parameter
     datetime <- .stac_format_datetime(start_date, end_date)
 
+    # by default, roi is NULL
+    roi_geojson <- NULL
+    bbox <- NULL
+
     # obtain the bounding box and intersects parameters
     if (!purrr::is_null(roi_sf)) {
 
-        # convert to geojson
+        # convert to geojson (not working)
         roi_geojson <- .sits_roi_sf_to_geojson(roi_sf)
+        class(roi_geojson) <- c("character", class(roi_geojson))
 
         # get bbox from roi_sf
-        bbox <- unname(sf::st_bbox(roi_sf))
-    } else {
-
-        roi_geojson <- NULL
-        bbox <- NULL
+        bbox <- sf::st_bbox(roi_sf)
+        names(bbox) <- c("lon_min", "lat_min", "lon_max", "lat_max")
+        class(bbox) <- c("numeric", class(bbox))
     }
 
     # get the limit items to be returned in each page
