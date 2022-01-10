@@ -150,16 +150,12 @@ sits_accuracy.sits <- function(data, ...) {
 #' @rdname sits_accuracy
 #' @export
 sits_accuracy.classified_image <- function(data, ..., validation_csv) {
+
+    # sits only accepts "csv" files
     .check_file(
         x = validation_csv,
-        msg = "validation file missing."
-    )
-    # get the file extension
-    file_ext <- tolower(tools::file_ext(validation_csv))
-    # sits only accepts "csv" files
-    .check_that(
-        x = file_ext == c("csv"),
-        msg = "csv file not available"
+        extensions = "csv",
+        msg = "csv file not available",
     )
 
     # read sample information from CSV file and put it in a tibble
@@ -170,37 +166,41 @@ sits_accuracy.classified_image <- function(data, ..., validation_csv) {
     .check_chr_contains(
         x = colnames(csv_tb),
         contains = c("longitude", "latitude", "label"),
-        msg = "invalid csv file")
+        msg = "invalid csv file"
+    )
 
     # find the labels of the cube
     labels_cube <- sits_labels(data)
-
-    # get xy in cube projection
-    xy_tb <- .sits_proj_from_latlong(
-        longitude = csv_tb$longitude,
-        latitude = csv_tb$latitude,
-        crs = .cube_crs(data)
-    )
-
-    # join lat-long with XY values in a single tibble
-    points <- dplyr::bind_cols(csv_tb, xy_tb)
-
-    # are there points to be retrieved from the cube?
-    .check_that(
-        x = nrow(points) != 0,
-        msg = paste("no validation point intersects the map's",
-                    "spatiotemporal extent.")
-    )
 
     # the label cube may contain several classified images
     pred_ref_lst <- slider::slide(data, function(row) {
 
         # find the labelled band
         labelled_band <- sits_bands(row)
+
         # the labelled band must be unique
-        .check_that(
-            x = length(labelled_band) == 1,
+        .check_length(
+            x = labelled_band,
+            len_min = 1,
+            len_max = 1,
             msg = "invalid labelled cube"
+        )
+
+        # get xy in cube projection
+        xy_tb <- .sits_proj_from_latlong(
+            longitude = csv_tb$longitude,
+            latitude = csv_tb$latitude,
+            crs = .cube_crs(row)
+        )
+
+        # join lat-long with XY values in a single tibble
+        points <- dplyr::bind_cols(csv_tb, xy_tb)
+
+        # are there points to be retrieved from the cube?
+        .check_that(
+            x = nrow(points) != 0,
+            msg = paste("no validation point intersects the map's",
+                        "spatiotemporal extent.")
         )
 
         # filter the points inside the data cube
