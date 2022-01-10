@@ -227,7 +227,7 @@ test_that("Creating cubes from BDC - based on ROI with geojson", {
 
     gj_file <- system.file("extdata/stac/polygon_example.json",
                            package = "sits")
-    roi <- readChar(gj_file, file.size(gj_file))
+    roi <- suppressMessages(sf::st_read(gj_file))
 
     modis_cube <-
         tryCatch({

@@ -772,7 +772,7 @@ sits_get_data.shp_raster_cube <- function(cube, file, ...,
 
     # retrieve the time series from the service
     tryCatch({
-        ts <- Rwtss::time_series(URL = .file_info_path_single(cube),
+        ts <- Rwtss::time_series(URL = .file_info_path(cube),
                                  name = cube$collection,
                                  attributes = bands,
                                  longitude = longitude,

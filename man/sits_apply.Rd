@@ -4,13 +4,16 @@
 \alias{sits_apply}
 \alias{sits_apply.sits}
 \alias{sits_apply.raster_cube}
+\alias{.apply_across}
 \title{Apply a function on a set of time series}
 \usage{
 sits_apply(data, ...)
 
 \method{sits_apply}{sits}(data, ...)
 
-\method{sits_apply}{raster_cube}(data, ..., output_dir = getwd())
+\method{sits_apply}{raster_cube}(data, ..., impute_fn = sits_impute_linear(), output_dir = getwd())
+
+.apply_across(data, fn, ...)
 }
 \arguments{
 \item{data}{Valid sits tibble or cube}
@@ -44,3 +47,4 @@ Felipe Carvalho, \email{felipe.carvalho@inpe.br}
 
 Gilberto Camara, \email{gilberto.camara@inpe.br}
 }
+\keyword{internal}

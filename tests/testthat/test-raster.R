@@ -374,6 +374,19 @@ test_that("One-year, multicore classification with post-processing", {
     max_unc <- max(.raster_get_values(r_unc))
     expect_true(max_unc <= 10000)
 
+    timeline_orig <- sits_timeline(sinop)
+    timeline_probs <- sits_timeline(sinop_probs)
+    timeline_unc  <- sits_timeline(sinop_uncert)
+    timeline_class <- sits_timeline(sinop_class)
+    timeline_model <- sits_timeline(rfor_model)
+    timeline_ts <- sits_timeline(samples_modis_4bands)
+
+    expect_equal(timeline_ts, timeline_model)
+    expect_equal(timeline_ts, timeline_orig)
+    expect_equal(timeline_probs, timeline_unc)
+    expect_equal(timeline_probs, timeline_class)
+    expect_equal(timeline_orig[1], timeline_class[1])
+    expect_equal(timeline_orig[length(timeline_orig)], timeline_class[2])
 
     expect_true(all(file.remove(unlist(sinop_class$file_info[[1]]$path))))
     expect_true(all(file.remove(unlist(sinop_bayes$file_info[[1]]$path))))

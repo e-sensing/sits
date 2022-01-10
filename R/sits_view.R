@@ -418,7 +418,7 @@ sits_view.classified_image <- function(x,...,
 
     # obtain the raster
     r_obj <- suppressWarnings(
-        raster::raster(.file_info_path_single(class_cube[tile,]))
+        raster::raster(.file_info_path(class_cube[tile,]))
     )
     # did we get the data?
     .check_that(

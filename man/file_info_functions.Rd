@@ -5,12 +5,10 @@
 \alias{.file_info}
 \alias{.file_info_nrows}
 \alias{.file_info_ncols}
-\alias{.file_info_path_single}
-\alias{.file_info_path_multiple}
+\alias{.file_info_path}
 \alias{.file_info_xres}
 \alias{.file_info_yres}
-\alias{.file_info_fid}
-\alias{.file_info_fid_single}
+\alias{.file_info_fids}
 \alias{.file_info_timeline}
 \alias{.file_info_timeline_wtss}
 \alias{.file_info_start_date}
@@ -24,17 +22,13 @@
 
 .file_info_ncols(cube)
 
-.file_info_path_single(cube)
-
-.file_info_path_multiple(cube, bands = NULL)
+.file_info_path(cube)
 
 .file_info_xres(cube)
 
 .file_info_yres(cube)
 
-.file_info_fid(cube)
-
-.file_info_fid_single(cube)
+.file_info_fids(cube)
 
 .file_info_timeline(cube)
 
@@ -70,8 +64,6 @@ Throws an error if cols are not equal
 Returns a single path to a file
 Throws an error if there is more than one path
 
-Returns a multiple path to a file for a single tiled cube
-
 Returns the X resolution for a single tiled cube
 Throws an error if resolution is not unique
 
@@ -79,9 +71,6 @@ Returns the Y resolution for a single tiled cube
 Throws an error if resolution is not unique
 
 Returns the file ids for a single tiled cube
-
-Returns one file id for a single tiled cube
-Throws an error if resolution is not unique
 
 Returns timeline  for a single tiled cube
 
