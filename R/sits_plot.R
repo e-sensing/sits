@@ -280,7 +280,7 @@ plot.probs_cube <- function(x, y, ...,
                                  alpha = 1,
                                  rev = TRUE)
     # create a stars object
-    st <- stars::read_stars(.file_info_path_single(x[tile,]))
+    st <- stars::read_stars(.file_info_path(x[tile,]))
     # get the labels
     labels_cube <- sits_labels(x)
 
@@ -363,7 +363,7 @@ plot.uncertainty_cube <- function(x, y, ...,
     col <- grDevices::hcl.colors(n = n_colors, palette = palette,
                                  alpha = 1, rev = TRUE)
     # create a stars object
-    st <- stars::read_stars(.file_info_path_single(x[tile,]))
+    st <- stars::read_stars(.file_info_path(x[tile,]))
     p <- suppressMessages(plot(st,
                                breaks = breaks,
                                nbreaks = n_breaks,
@@ -1199,7 +1199,7 @@ plot.keras_model <- function(x, y, ...) {
     )
 
     # get the raster object
-    r <- suppressWarnings(terra::rast(.file_info_path_single(cube)))
+    r <- suppressWarnings(terra::rast(.file_info_path(cube)))
 
     # convert from raster to points
     df <- terra::as.data.frame(r, xy = TRUE)
