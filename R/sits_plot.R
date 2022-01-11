@@ -136,9 +136,9 @@ plot.predicted <- function(x, y, ...,
 #' @export
 plot.raster_cube <- function(x, ...,
                                   band = NULL,
-                                  red,
-                                  green,
-                                  blue,
+                                  red = NULL,
+                                  green = NULL,
+                                  blue = NULL,
                                   tile = 1,
                                   time = 1,
                                   roi = NULL) {
@@ -156,6 +156,11 @@ plot.raster_cube <- function(x, ...,
         red = band
         green = band
         blue = band
+    }
+    else
+    {
+        if (purrr::is_null(red) || purrr::is_null(green) || purrr::is_null(blue))
+            stop("missing red, green, or blue bands")
     }
 
     # preconditions

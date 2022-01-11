@@ -115,7 +115,7 @@ sits_apply.raster_cube <- function(data, ...,
                 offset_value <- .cube_band_offset_value(data, band = band)
 
                 # read the values
-                values <- .raster_read_stack(file)
+                values <- .raster_read_stack(in_files[[band]])
 
                 # correct NA, minimum, maximum, and missing values
                 values[values == missing_value] <- NA
@@ -203,6 +203,11 @@ sits_apply.raster_cube <- function(data, ...,
 
             return(out_file_info_fid)
         })
+
+
+        out_file_info <- out_file_info %>%
+            dplyr::bind_rows(in_file_info) %>%
+            dplyr::arrange(date, band)
 
         out_tile <- .cube_create(
             source = .cube_source(tile),
