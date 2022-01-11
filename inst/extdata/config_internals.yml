@@ -39,10 +39,13 @@ sf_geom_types_supported : ["POINT", "POLYGON", "MULTIPOLYGON"]
 local_s3_class          : ["local_cube", "raster_cube"]
 local_file_extensions   : ["tiff", "tif", "jp2", "hdf", "vrt"]
 
-# configuration for raster cubes
+# default configuration for raster cubes
 raster_cube_scale_factor : 0.0001
 raster_cube_data_type    : "INT2S"
 raster_cube_offset_value : 0
+raster_cube_missing_value : -9999
+raster_cube_minimum_value : -10000
+raster_cube_maximum_value : 10000
 
 # configuration for probability cubes
 probs_cube_scale_factor : 0.0001

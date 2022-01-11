@@ -119,19 +119,17 @@
 
     # by default, roi is NULL
     roi_geojson <- NULL
-    bbox <- NULL
+    # bbox <- NULL
 
     # obtain the bounding box and intersects parameters
     if (!purrr::is_null(roi_sf)) {
-
-        # convert to geojson (not working)
+        # convert to geojson
         roi_geojson <- .sits_roi_sf_to_geojson(roi_sf)
-        class(roi_geojson) <- c("character", class(roi_geojson))
 
-        # get bbox from roi_sf
-        bbox <- sf::st_bbox(roi_sf)
-        names(bbox) <- c("lon_min", "lat_min", "lon_max", "lat_max")
-        class(bbox) <- c("numeric", class(bbox))
+        # # get bbox from roi_sf
+        # bbox <- sf::st_bbox(roi_sf)
+        # names(bbox) <- c("lon_min", "lat_min", "lon_max", "lat_max")
+        # class(bbox) <- c("numeric", class(bbox))
     }
 
     # get the limit items to be returned in each page
@@ -141,7 +139,7 @@
     # creating an query object to be search
     rstac_query <-  rstac::stac_search(q = rstac::stac(url),
                                        collections = collection,
-                                       bbox        = bbox,
+                                       bbox        = NULL,
                                        intersects  = roi_geojson,
                                        datetime    = datetime,
                                        limit       = limit)
