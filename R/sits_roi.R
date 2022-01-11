@@ -189,11 +189,11 @@
     return(sf_obj)
 }
 
-#' @title Convert a ROI defined as sf object to a geojson object
+#' @title Convert a ROI defined as sf object to a geojson polygon geometry
 #' @name .sits_roi_sf_to_geojson
 #' @keywords internal
 #' @param  roi_sf   region of interest as sf object
-#' @return a geojson object
+#' @return a geojson polygon geometry
 #' @export
 .sits_roi_sf_to_geojson <- function(roi_sf) {
 
@@ -203,7 +203,7 @@
                 msg = "invalid roi_sf value")
 
     # convert roi_sf to geojson (character)
-    geojson <- geojsonsf::sf_geojson(roi_sf, atomise = TRUE)
+    geojson <- geojsonsf::sfc_geojson(sf::st_geometry(roi_sf))
 
     return(geojson)
 }

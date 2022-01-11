@@ -17,10 +17,6 @@ NULL
 #'
 .file_info <- function(cube, bands = NULL) {
 
-    # check bands
-    if (!is.null(bands))
-        .cube_bands_check(cube, bands = bands)
-
     # pre-condition - one tile at a time
     .check_num(nrow(cube), min = 1, max = 1, is_integer = TRUE,
                msg = "process one tile at a time for file_info")
@@ -28,9 +24,11 @@ NULL
     # get the file info associated with the tile
     file_info <- cube$file_info[[1]]
 
-    # return filter
-    if (!purrr::is_null(bands))
+    # check bands
+    if (!is.null(bands)) {
+        .cube_bands_check(cube, bands = bands)
         file_info <- file_info[file_info$band %in% bands, ]
+    }
 
     return(file_info)
 }
@@ -205,7 +203,7 @@ NULL
 #' Throws an error bands are NULL
 .file_info_bands <- function(cube){
 
-    file_info <- cube$file_info[[1]]
+    file_info <- .file_info(cube)
     bands <- unique(unlist(file_info$band))
 
     .check_num(length(bands), min = 1, is_integer = TRUE,

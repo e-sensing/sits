@@ -6,6 +6,7 @@
 #'
 #' @param  x             object of class "sits", "raster_cube" or "classified image"
 #' @param  ...           further specifications for \link{sits_view}.
+#' @param  band          for plotting grey images
 #' @param  red           band for red color.
 #' @param  green         band for green color.
 #' @param  blue          band for blue color.
@@ -130,9 +131,10 @@ sits_view.sits <- function(x, ...,
 #'
 #' @export
 sits_view.raster_cube <- function(x, ...,
-                                  red,
-                                  green,
-                                  blue,
+                                  band = NULL,
+                                  red = NULL,
+                                  green = NULL,
+                                  blue = NULL,
                                   tile  = 1,
                                   times = c(1),
                                   class_cube = NULL,
@@ -182,6 +184,18 @@ sits_view.raster_cube <- function(x, ...,
 
     # get the maximum number of bytes to be displayed
     max_Mbytes <- .config_get(key = "leaflet_max_Mbytes")
+
+    # for plotting grey images
+    if (!purrr::is_null(band)) {
+        red = band
+        green = band
+        blue = band
+    }
+    else {
+        if (purrr::is_null(red) || purrr::is_null(green) || purrr::is_null(blue))
+            stop("missing red, green, or blue bands")
+    }
+
 
     # filter the cube for the bands to be displayed
     cube_bands <- sits_select(x, bands = c(red, green, blue))
