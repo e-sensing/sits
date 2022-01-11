@@ -12,6 +12,8 @@
 #' cubes, it materializes a new band in `output_dir` using `gdalcubes`.
 #'
 #' @param data          Valid sits tibble or cube
+#' @param memsize           memory available for classification (in GB).
+#' @param multicores        number of cores to be used for classification.
 #' @param output_dir    Directory where files will be saved.
 #' @param ...           Named expressions to be evaluated.
 #'
@@ -47,7 +49,8 @@ sits_apply.sits <- function(data, ...) {
 #' @rdname sits_apply
 #' @export
 sits_apply.raster_cube <- function(data, ...,
-                                   impute_fn = sits_impute_linear(),
+                                   memsize = 8,
+                                   multicores = 2,
                                    output_dir = getwd()) {
 
     .check_set_caller("sits_apply.raster_cube")
