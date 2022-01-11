@@ -159,7 +159,9 @@
 
     mv <- .config_get(key = c("sources", .cube_source(cube = cube),
                                "collections", .cube_collection(cube = cube),
-                               "bands", band, "missing_value"))
+                               "bands", band, "missing_value",),
+                      default = .config_get(key = "raster_cube_missing_value")
+    )
 
     # post-condition
     .check_num(mv, len_min = 1, len_max = 1,
@@ -170,7 +172,7 @@
 
 #' @title Minimum value of a cube band
 #' @keywords internal
-#' @name .cube_band_missing_value
+#' @name .cube_band_minimum_value
 #' @param cube  Data cube
 #' @param band  Band
 #' @return minimum value for the band in the data cube
@@ -192,7 +194,9 @@
 
     mv <- .config_get(key = c("sources", .cube_source(cube = cube),
                                "collections", .cube_collection(cube = cube),
-                               "bands", band, "minimum_value"))
+                               "bands", band, "minimum_value"),
+                      default = .config_get(key = "raster_cube_minimum_value")
+    )
 
     # post-condition
     .check_num(mv, len_min = 1, len_max = 1,
@@ -225,7 +229,9 @@
 
     mv <- .config_get(key = c("sources", .cube_source(cube = cube),
                                "collections", .cube_collection(cube = cube),
-                               "bands", band, "maximum_value"))
+                               "bands", band, "maximum_value"),
+                      default = .config_get(key = "raster_cube_maximum_value")
+    )
 
     # post-condition
     .check_num(mv, len_min = 1, len_max = 1,
@@ -251,13 +257,14 @@
                       discriminator = "one_of",
                       case_sensitive = FALSE,
                       msg = "invalid 'band' parameter")
-
     # bands names are upper case
     band <- toupper(band)
 
     sf <- .config_get(key = c("sources", .cube_source(cube = cube),
                                "collections", .cube_collection(cube = cube),
-                               "bands", band, "scale_factor"))
+                               "bands", band, "scale_factor"),
+                      default = .config_get(key = "raster_cube_scale_factor")
+    )
 
     # post-condition
     .check_num(sf, allow_zero = FALSE, len_min = 1, len_max = 1,
@@ -290,7 +297,9 @@
 
     ov <- .config_get(key = c("sources", .cube_source(cube = cube),
                                "collections", .cube_collection(cube = cube),
-                               "bands", band, "offset_value"))
+                               "bands", band, "offset_value"),
+                      default = .config_get(key = "raster_cube_offset_value")
+    )
 
     # post-condition
     .check_num(ov, len_min = 1, len_max = 1,
