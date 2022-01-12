@@ -61,7 +61,7 @@ gdalcubes_open_connections : 4
 gdalcubes_min_files_for_parallel : 10
 
 # configuration for gdalcubes chunk
-gdalcubes_chunk_size   : [1, 2048, 2048]
+gdalcubes_chunk_size   : [1, 1024, 1024]
 
 # maximum number of threads in gdalcubes
 gdalcubes_max_threads : 24
