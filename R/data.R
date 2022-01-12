@@ -57,3 +57,31 @@ NULL
 #'   cube (the name of the cube associated with the data),
 #'   time_series (list containing a tibble with the values of the time series).
 NULL
+
+#'@title Samples of Amazon tropical forest biome for deforestation analysis
+#'
+#'
+#' @docType data
+#' @name samples_l8_rondonia_2bands.rda
+#' @keywords datasets
+#'
+#' @description
+#' A sits tibble with time series samples from Brazilian Amazonia rain forest.
+#'
+#' The labels are: "Deforestation", "Forest", "NatNonForest" and "Pasture".
+#'
+#' The time series were extracted from the Landsat-8 BDC data cube
+#' (collection = "LC8_30_16D_STK-1", tiles = "038047").
+#' These time series comprehends a period of 12 months
+#' (25 observations) from "2018-07-12" to "2019-07-28".
+#' The extracted bands are NDVI and EVI.
+#' Cloudy values were removed and interpolated.
+#'
+#' @format
+#' A \code{sits} tibble with 160 samples.
+#'
+#'
+#' @usage data("samples_l8_rondonia_2bands")
+#'
+NULL
+
