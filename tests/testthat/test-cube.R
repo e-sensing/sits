@@ -216,41 +216,6 @@ test_that("Creating cubes from BDC - based on ROI with shapefile", {
 
 })
 
-test_that("Creating cubes from BDC - based on ROI with geojson", {
-    testthat::skip_on_cran()
-
-    # check "BDC_ACCESS_KEY" - mandatory one per user
-    bdc_access_key <- Sys.getenv("BDC_ACCESS_KEY")
-
-    testthat::skip_if(nchar(bdc_access_key) == 0,
-                      message = "No BDC_ACCESS_KEY defined in environment.")
-
-    gj_file <- system.file("extdata/stac/polygon_example.json",
-                           package = "sits")
-    roi <- suppressMessages(sf::st_read(gj_file))
-
-    modis_cube <-
-        tryCatch({
-            sits_cube(
-                source = "BDC",
-                collection = "MOD13Q1-6",
-                bands = c("NDVI", "EVI"),
-                roi = roi,
-                start_date = "2018-09-01",
-                end_date = "2019-08-29"
-            )
-        },
-        error = function(e) {
-            return(NULL)
-        })
-
-    testthat::skip_if(purrr::is_null(modis_cube),
-                      message = "BDC is not accessible")
-
-    expect_true(all(sits_bands(modis_cube) %in% c("NDVI", "EVI")))
-    expect_equal(object = modis_cube[["tile"]], expected = "012010")
-})
-
 test_that("Creating cubes from BDC - invalid roi", {
     testthat::skip_on_cran()
 
@@ -510,20 +475,20 @@ test_that("Creating cubes from AWS Open Data and regularizing them", {
     gc_cube <- sits_regularize(
         cube        = s2_cube_open,
         output_dir  = dir_images,
-        res         = 120,
+        res         = 160,
         roi = c("xmin" = 234872.7,
                 "ymin" = 8847983.0,
                 "xmax" = 239532.6,
                 "ymax" = 8852017.0),
         period      = "P16D",
-        multicores = 2)
+        multicores = 4)
 
     size <- .cube_size(gc_cube)
 
-    expect_equal(size[["nrows"]], 34)
-    expect_equal(size[["ncols"]], 39)
-    expect_equal(gc_cube$xmax, 239542.7, tolerance = 1e-1)
-    expect_equal(gc_cube$xmin, 234862.7, tolerance = 1e-1)
+    expect_equal(size[["nrows"]], 26)
+    expect_equal(size[["ncols"]], 30)
+    expect_equal(gc_cube$xmax, 239602.7, tolerance = 1e-1)
+    expect_equal(gc_cube$xmin, 234802.7, tolerance = 1e-1)
 
     file_info2 <- gc_cube$file_info[[1]]
 
@@ -558,10 +523,10 @@ test_that("Creating cubes from USGS", {
         sits_cube(source = "USGS",
                   collection = "landsat-c2l2-sr",
                   bands = c("B04", "CLOUD"),
-                  roi = c("lon_min" = 17.379,
-                          "lat_min" = 1.1573,
-                          "lon_max" = 17.410,
-                          "lat_max" = 1.1910),
+                  roi = c("xmin" = 17.379,
+                          "ymin" = 1.1573,
+                          "xmax" = 17.410,
+                          "ymax" = 1.1910),
                   start_date = "2019-01-01",
                   end_date = "2019-10-28"
         )},

@@ -130,19 +130,19 @@
 #' @export
 .sits_parse_roi_cube.ll <- function(roi) {
     .check_num(
-        roi["lon_min"], min = -180.0, max = 180.00,
+        roi[["lon_min"]], min = -180.0, max = 180.00,
         msg = "roi should be provided in WGS84 coordinates"
     )
     .check_num(
-        roi["lon_max"], min = -180.0, max = 180.00,
+        roi[["lon_max"]], min = -180.0, max = 180.00,
         msg = "roi should be provided in WGS84 coordinates"
     )
     .check_num(
-        roi["lat_min"], min = -90.0, max = 90.00,
+        roi[["lat_min"]], min = -90.0, max = 90.00,
         msg = "roi should be provided in WGS84 coordinates"
     )
     .check_num(
-        roi["lat_max"], min = -90.0, max = 90.00,
+        roi[["lat_max"]], min = -90.0, max = 90.00,
         msg = "roi should be provided in WGS84 coordinates"
     )
 
@@ -163,19 +163,19 @@
 #' @export
 .sits_parse_roi_cube.xy <- function(roi) {
     .check_num(
-        roi["xmin"], min = -180.0, max = 180.00,
+        roi[["xmin"]], min = -180.0, max = 180.00,
         msg = "roi should be provided in WGS84 coordinates"
     )
     .check_num(
-        roi["xmax"], min = -180.0, max = 180.00,
+        roi[["xmax"]], min = -180.0, max = 180.00,
         msg = "roi should be provided in WGS84 coordinates"
     )
     .check_num(
-        roi["ymin"], min = -90.0, max = 90.00,
+        roi[["ymin"]], min = -90.0, max = 90.00,
         msg = "roi should be provided in WGS84 coordinates"
     )
     .check_num(
-        roi["ymax"], min = -90.0, max = 90.00,
+        roi[["ymax"]], min = -90.0, max = 90.00,
         msg = "roi should be provided in WGS84 coordinates"
     )
 
@@ -202,8 +202,15 @@
                 local_msg = "roi_sf should have only one row",
                 msg = "invalid roi_sf value")
 
-    # convert roi_sf to geojson (character)
-    geojson <- geojsonsf::sfc_geojson(sf::st_geometry(roi_sf))
+    # convert roi_sf to geojson
+    geojson <- roi_sf %>%
+        sf::st_convex_hull() %>%
+        sf::st_geometry() %>%
+        geojsonsf::sfc_geojson()
+    geojson <- jsonlite::fromJSON(geojson,
+                                  simplifyVector = TRUE,
+                                  simplifyDataFrame = FALSE,
+                                  simplifyMatrix = FALSE)
 
     return(geojson)
 }
