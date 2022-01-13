@@ -2,7 +2,7 @@
 % Please edit documentation in R/sits_roi.R
 \name{.sits_roi_sf_to_geojson}
 \alias{.sits_roi_sf_to_geojson}
-\title{Convert a ROI defined as sf object to a geojson object}
+\title{Convert a ROI defined as sf object to a geojson polygon geometry}
 \usage{
 .sits_roi_sf_to_geojson(roi_sf)
 }
@@ -10,9 +10,9 @@
 \item{roi_sf}{region of interest as sf object}
 }
 \value{
-a geojson object
+a geojson polygon geometry
 }
 \description{
-Convert a ROI defined as sf object to a geojson object
+Convert a ROI defined as sf object to a geojson polygon geometry
 }
 \keyword{internal}

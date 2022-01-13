@@ -14,9 +14,10 @@ sits_view(x, ...)
 \method{sits_view}{raster_cube}(
   x,
   ...,
-  red,
-  green,
-  blue,
+  band = NULL,
+  red = NULL,
+  green = NULL,
+  blue = NULL,
   tile = 1,
   times = c(1),
   class_cube = NULL,
@@ -34,6 +35,8 @@ sits_view(x, ...)
 \item{legend}{named vector that associates labels to colors}
 
 \item{palette}{palette provided in the configuration file}
+
+\item{band}{for plotting grey images}
 
 \item{red}{band for red color.}
 
