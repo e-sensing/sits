@@ -4,12 +4,17 @@
 \alias{sits_merge}
 \title{Merge two data sets (time series or cubes)}
 \usage{
-sits_merge(data1, data2)
+sits_merge(data1, data2, ..., suffix = c(".1", ".2"))
 }
 \arguments{
 \item{data1}{sits tibble or cube to be merged.}
 
 \item{data2}{sits tibble or cube to be merged.}
+
+\item{...}{additional parameters}
+
+\item{suffix}{If there are duplicate bands in data1 and data2
+these suffixes will be added to the output to disambiguate them.}
 }
 \value{
 merged data sets
@@ -28,10 +33,12 @@ bounding box, timeline, and have different bands.
 {
 # Retrieve a time series with values of NDVI
 point_ndvi <- sits_select(point_mt_6bands, bands = "NDVI")
-# Filter the point using the whittaker smoother
-point_ws.tb <- sits_whittaker(point_ndvi, lambda = 3.0)
-# Plot the two points to see the smoothing effect
-plot(sits_merge(point_ndvi, point_ws.tb))
+# Apply Savitsky-Golay filter on NDVI
+point_ndvi_sg <- point_ndvi \%>\%
+   sits_filter(sits_sgolay())
+
+# Merge time series back
+point <- sits_merge(point_ndvi, point_ndvi_sg, suffix = c("", ".SG"))
 }
 
 }

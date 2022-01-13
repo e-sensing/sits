@@ -1,7 +1,7 @@
 #' @keywords internal
 #' @export
-.source_collection_access_test.stac_cube <- function(source, ...,
-                                                     collection, bands,
+.source_collection_access_test.stac_cube <- function(source, collection,
+                                                     bands, ...,
                                                      dry_run = TRUE) {
     # require package
     if (!requireNamespace("rstac", quietly = TRUE)) {
@@ -9,9 +9,9 @@
         )
     }
 
-    items_query <- .stac_items_query(source = source,
-                                     collection = collection,
-                                     limit = 1)
+    items_query <- .stac_create_items_query(source = source,
+                                            collection = collection,
+                                            limit = 1)
 
     # assert that service is online
     tryCatch({
@@ -21,14 +21,14 @@
                    e$message), call. = FALSE)
     })
 
-    items <- .source_items_bands_select(source = source, ...,
-                                        collection = collection,
+    items <- .source_items_bands_select(source = source,
                                         items = items,
-                                        bands = bands[[1]])
+                                        bands = bands[[1]],
+                                        collection = collection, ...)
 
-    href <- .source_item_get_hrefs(source = source, ...,
+    href <- .source_item_get_hrefs(source = source,
                                    item = items$feature[[1]],
-                                   collection = collection)
+                                   collection = collection, ...)
 
     # assert that token and/or href is valid
     if (dry_run)
@@ -45,50 +45,52 @@
 
 #' @keywords internal
 #' @export
-.source_cube.stac_cube <- function(source, ...,
+.source_cube.stac_cube <- function(source,
                                    collection,
                                    bands,
                                    tiles,
-                                   bbox,
+                                   roi_sf,
                                    start_date,
-                                   end_date) {
+                                   end_date, ...) {
 
     # set caller to show in errors
     .check_set_caller(".source_cube.stac_cube")
 
-    items_query <- .stac_items_query(source = source,
-                                     collection = collection,
-                                     bbox = bbox,
-                                     start_date = start_date,
-                                     end_date = end_date, ...)
+    # prepares a query object
+    items_query <- .stac_create_items_query(source = source,
+                                            collection = collection,
+                                            roi_sf = roi_sf,
+                                            start_date = start_date,
+                                            end_date = end_date, ...)
 
-    items <- .source_items_new(source = source, ...,
+    # make query and retrieve items
+    items <- .source_items_new(source = source,
                                collection = collection,
                                stac_query = items_query,
-                               tiles = tiles)
+                               tiles = tiles, ...)
 
-    items <- .source_items_bands_select(source = source, ...,
-                                        collection = collection,
+    # filter bands in items
+    items <- .source_items_bands_select(source = source,
                                         items = items,
-                                        bands = bands)
+                                        bands = bands,
+                                        collection = collection, ...)
 
-    items_lst <- .source_items_tiles_group(source = source, ...,
-                                           collection = collection,
-                                           items = items)
 
-    cube <- purrr::map_dfr(items_lst, function(tile) {
+    # make a cube
+    cube <- .source_items_cube(source = source,
+                               items = items,
+                               collection = collection, ...)
 
-        file_info <- .source_items_fileinfo(source = source, ...,
-                                            items = tile,
-                                            collection = collection)
+    if (is.character(tiles)) {
 
-        tile_cube <- .source_items_cube(source = source, ...,
-                                        collection = collection,
-                                        items = tile,
-                                        file_info = file_info)
+        # post-condition
+        .check_chr_within(.cube_tiles(cube), within = tiles,
+                          can_repeat = FALSE, msg = "invalid tile returned in cube")
 
-        return(tile_cube)
-    })
+        # arrange cube tiles according with 'tiles' parameter
+        tiles <- tiles[tiles %in% .cube_tiles(cube)]
+        cube <- cube[match(.cube_tiles(cube), tiles),]
+    }
 
     class(cube) <- .cube_s3class(cube)
 
@@ -97,12 +99,12 @@
 
 #' @keywords internal
 #' @export
-.source_items_bands_select.stac_cube <- function(source, ...,
-                                                 collection,
+.source_items_bands_select.stac_cube <- function(source,
                                                  items,
-                                                 bands) {
+                                                 bands,
+                                                 collection, ...) {
 
-    items <- .stac_bands_select(
+    items <- .stac_select_bands(
         items = items,
         bands_source = .source_bands_to_source(source = source,
                                                collection = collection,
@@ -111,153 +113,247 @@
                                            collection = collection,
                                            bands = bands)
     )
-        return(items)
+    return(items)
 }
 
 #' @keywords internal
 #' @export
-.source_items_fileinfo.stac_cube <- function(source, ...,
-                                             items,
-                                             collection = NULL) {
-
-    # set caller to show in errors
-    .check_set_caller(".source_items_fileinfo.stac_cube")
-
-    file_info <- purrr::map_dfr(items$features, function(item){
-
-        date <- suppressWarnings(
-            lubridate::as_date(.source_item_get_date(source = source,
-                                                     item = item, ...,
-                                                     collection = collection))
-        )
-
-        bands <- .source_item_get_bands(source = source, ...,
-                                        item = item,
-                                        collection = collection)
-
-        res <- .source_item_get_resolution(source = source, ...,
-                                           item = item,
-                                           collection = collection)
-
-        paths <- .source_item_get_hrefs(source = source, ...,
-                                        item = item,
-                                        collection = collection)
-
-        .check_that(
-            x = !is.na(date),
-            msg = "invalid date format."
-        )
-
-        .check_that(
-            x = is.character(bands),
-            msg = "invalid band format."
-        )
-
-        .check_that(
-            x = is.numeric(res),
-            msg = "invalid res format."
-        )
-
-        .check_that(
-            x = is.character(paths),
-            msg = "invalid path format."
-        )
-
-        tidyr::unnest(
-            tibble::tibble(
-                date = date,
-                band = list(bands),
-                res = list(res),
-                path = list(paths)
-            ), cols = c("band", "res", "path")
-        )
-    }) %>% dplyr::arrange(date)
-
-    file_info <- dplyr::group_by(file_info, date, band, res) %>%
-        dplyr::summarise(
-            path = dplyr::first(path, order_by = path),
-            .groups = "drop"
-        )
-
-    return(file_info)
-}
-
-#' @keywords internal
-#' @export
-.source_items_cube.stac_cube <- function(source, ...,
-                                         collection,
-                                         items,
-                                         file_info) {
+.source_items_cube.stac_cube <- function(source,
+                                         items, ...,
+                                         collection = NULL) {
 
     # set caller to show in errors
     .check_set_caller(".source_items_cube.stac_cube")
 
-    t_bbox <- .source_items_tile_get_bbox(source = source, ...,
-                                          tile_items = items,
-                                          collection = collection)
-
-    .check_chr_within(
-        x = names(t_bbox),
-        within = c("xmin", "ymin", "xmax", "ymax"),
-        msg = paste(".source_items_cube.stac_cube: bbox must be have",
-                    "'xmin', 'ymin', 'xmax', and 'ymax' names.")
+    # start by tile and items
+    data <- tibble::tibble(
+        tile = .source_items_tile(source = source,
+                                  collection = collection,
+                                  items = items, ...),
+        fid = .source_items_fid(source = source,
+                                collection = collection,
+                                items = items, ...),
+        features = items[["features"]]
     )
 
-    .check_num_type(x = t_bbox,
-                    msg = "bbox must be numeric.")
+    # prepare number of workers
+    progress <- TRUE
+    n_workers <- .config_gdalcubes_open_connections()
+    if (.source_collection_metadata_search(
+        source = source,
+        collection = collection) == "tile") {
 
-    # tile name
-    t_name <- .source_items_tile_get_name(source = source, ...,
-                                          tile_items = items,
-                                          collection = collection)
+        # tile by tile
+        data <- data %>%
+            tidyr::nest(items = dplyr::all_of(c("fid", "features")))
 
-    .check_chr_type(
-        x = t_name,
-        msg = "name must be a character value."
-    )
+    } else {
 
-    t_crs <- .source_items_tile_get_crs(source = source, ...,
-                                        tile_items = items,
-                                        collection = collection)
-    .check_that(
-        x = is.character(t_crs) || is.numeric(t_crs),
-        msg = "name must be a character or numeric value."
-    )
+        # item by item
+        data <- data %>%
+            dplyr::transmute(
+                tile = tile,
+                items = purrr::map2(
+                    .data[["fid"]], .data[["features"]], function(x, y) {
+                        dplyr::tibble(fid = x, features = list(y))
+                    }))
+    }
 
-    tile <- .cube_create(
-        source     = source[[1]],
-        collection = collection[[1]],
-        satellite  = .source_collection_satellite(source, collection),
-        sensor     = .source_collection_sensor(source, collection),
-        tile       = t_name[[1]],
-        xmin       = t_bbox[["xmin"]],
-        xmax       = t_bbox[["xmax"]],
-        ymin       = t_bbox[["ymin"]],
-        ymax       = t_bbox[["ymax"]],
-        crs        = t_crs[[1]],
-        file_info  = file_info)
+    if (.config_gdalcubes_min_files_for_parallel() > nrow(data)) {
+        n_workers <- 1
+        progress <- FALSE
+    }
 
-    return(tile)
+    # prepare parallel requests
+    .sits_parallel_start(n_workers, log = FALSE)
+    on.exit(.sits_parallel_stop(), add = TRUE)
+
+    # do parallel requests
+    tiles <- .sits_parallel_map(seq_len(nrow(data)), function(i) {
+
+        # get tile name
+        tile <- data[["tile"]][[i]]
+
+        # get fids
+        fids <- data[["items"]][[i]][["fid"]]
+
+        # get features
+        features <- data[["items"]][[i]][["features"]]
+
+        # post-condition
+        .check_num(length(features), min = 1, msg = "invalid features value")
+
+        # get item
+        item <- features[[1]]
+
+        # get file paths
+        paths = .source_item_get_hrefs(source = source,
+                                       item = item,
+                                       collection = collection, ...)
+
+        # post-condition
+        .check_num(length(paths), min = 1, msg = "invalid href values")
+
+        # TODO: implement sits_parallel_error_retry()
+        # open band rasters
+        assets <- purrr::map(paths, .raster_open_rast)
+
+        # get asset info
+        asset_info <- purrr::map(assets, function(asset) {
+            tibble::as_tibble_row(c(
+                .raster_res(asset),
+                .raster_bbox(asset),
+                .raster_size(asset)))
+        })
+
+        # get crs
+        crs <- .raster_crs(assets[[1]])
+
+        # generate file_info
+        file_info <- purrr::map2_dfr(fids, features, function(fid, item) {
+
+            # get assets name
+            bands <- .source_item_get_bands(source = source,
+                                            item = item,
+                                            collection = collection, ...)
+
+            # get date
+            date <- .source_item_get_date(source = source,
+                                          item = item,
+                                          collection = collection, ...)
+
+            # get file paths
+            paths <- .source_item_get_hrefs(source = source,
+                                            item = item,
+                                            collection = collection, ...)
+
+            # add cloud cover statistics
+            cloud_cover <- .source_item_get_cloud_cover(source = source,
+                                                        item = item,
+                                                        collection = collection, ...)
+
+            # do in case of 'tile' strategy
+            if (.source_collection_metadata_search(
+                source = source,
+                collection = collection) == "feature") {
+
+                # open band rasters
+                # TODO: implement sits_parallel_error_retry()
+                assets <- purrr::map(paths, .raster_open_rast)
+
+                # get asset info
+                asset_info <- purrr::map(assets, function(asset) {
+
+                    tibble::as_tibble_row(c(
+                        .raster_res(asset),
+                        .raster_bbox(asset),
+                        .raster_size(asset)))
+                })
+            }
+
+            # post-conditions
+            .check_na(date, msg = "invalid date value")
+
+            .check_length(date, len_min = 1, len_max = 1,
+                          msg = "invalid date value")
+
+            .check_chr(bands, len_min = 1, msg = "invalid band value")
+
+            .check_chr(paths, allow_empty = FALSE, len_min = length(bands),
+                       len_max = length(bands),
+                       msg = "invalid path value")
+
+            tidyr::unnest(
+                tibble::tibble(
+                    tile = tile,
+                    crs = crs,
+                    fid = fid,
+                    date = date,
+                    band = bands,
+                    asset_info = asset_info,
+                    path = paths,
+                    cloud_cover = cloud_cover
+                ), cols = c("band", "asset_info", "path", "cloud_cover"))
+        })
+
+        return(file_info)
+
+    }, progress = progress)
+
+    # bind cube rows
+    cube <- dplyr::bind_rows(tiles) %>%
+        tidyr::nest(file_info = -dplyr::matches(c("tile", "crs"))) %>%
+        slider::slide_dfr(function(tile) {
+
+            # get file_info
+            file_info <- tile[["file_info"]][[1]]
+
+            # arrange file_info
+            file_info <- dplyr::arrange(file_info, .data[["date"]],
+                                        .data[["fid"]], .data[["band"]])
+
+            # get tile bbox
+            bbox <- .source_tile_get_bbox(source = source,
+                                          file_info = file_info,
+                                          collection = collection, ...)
+
+            # create cube row
+            tile <- .cube_create(
+                source     = source,
+                collection = collection,
+                satellite  = .source_collection_satellite(source, collection),
+                sensor     = .source_collection_sensor(source, collection),
+                tile       = tile[["tile"]],
+                xmin       = bbox[["xmin"]],
+                xmax       = bbox[["xmax"]],
+                ymin       = bbox[["ymin"]],
+                ymax       = bbox[["ymax"]],
+                crs        = tile[["crs"]],
+                file_info  = file_info)
+
+            return(tile)
+        })
+
+    return(cube)
 }
+
 #' @keywords internal
 #' @export
-.source_item_get_date.stac_cube <- function(source, ...,
-                                            item,
+.source_item_get_date.stac_cube <- function(source,
+                                            item, ...,
                                             collection = NULL) {
-    item[[c("properties", "datetime")]]
+
+    suppressWarnings(
+        lubridate::as_date(item[[c("properties", "datetime")]])
+    )
 }
 
 #' @keywords internal
 #' @export
-.source_item_get_hrefs.stac_cube <- function(source, ...,
-                                             item,
+.source_item_get_hrefs.stac_cube <- function(source,
+                                             item, ...,
                                              collection = NULL) {
 
-    href <- unname(purrr::map_chr(item[["assets"]], `[[`, "href"))
+    hrefs <- unname(purrr::map_chr(item[["assets"]], `[[`, "href"))
+
+    # post-conditions
+    .check_chr(hrefs, allow_empty = FALSE)
 
     # add gdal vsi in href urls
-    return(.stac_add_gdal_vsi(href))
+    hrefs <- .stac_add_gdal_fs(hrefs)
+
+    return(hrefs)
 }
+
+#' @keywords internal
+#' @export
+.source_item_get_cloud_cover.stac_cube <- function(source, ...,
+                                                   item,
+                                                   collection = NULL) {
+
+    item[["properties"]][["eo:cloud_cover"]]
+}
+
 #' @keywords internal
 #' @export
 .source_item_get_bands.stac_cube <- function(source,
@@ -265,42 +361,56 @@
                                              collection = NULL) {
     names(item[["assets"]])
 }
-#' @keywords internal
-#' @export
-.source_item_get_resolution.stac_cube <- function(source, ...,
-                                                   item,
-                                                   collection = NULL) {
-    # use config information to get resolution
-    res <- .source_bands_resolution(
-        source = source,
-        collection = collection,
-        bands = .source_item_get_bands(source = source,
-                                       item = item)
-    )
 
-    return(unlist(res))
-}
-#' @keywords internal
-#' @export
-.source_items_tile_get_name.stac_cube <- function(source, ...,
-                                                  tile_items,
-                                                  collection = NULL) {
+#' @rdname source_cube
+#'
+#' @description \code{.source_tile_get_bbox()} retrieves the bounding
+#' box from items of a tile.
+#'
+#' @return \code{.source_tile_get_bbox()} returns a \code{list}
+#' vector with 4 elements (xmin, ymin, xmax, ymax).
+#'
+.source_tile_get_bbox.stac_cube <- function(source,
+                                            file_info, ...,
+                                            collection = NULL) {
 
-    tile_items[["features"]][[1]][[c("properties", "tile")]]
-}
+    .check_set_caller(".source_tile_get_bbox.stac_cube")
 
-#' @keywords internal
-#' @export
-.source_items_tile_get_bbox.stac_cube <- function(source, ...,
-                                                  tile_items,
-                                                  collection = NULL) {
+    # pre-condition
+    .check_num(nrow(file_info), min = 1, msg = "invalid 'file_info' value")
 
-    # get collection crs
-    crs <- .source_items_tile_get_crs(source = source, ...,
-                                      tile_items = tile_items,
-                                      collection = collection)
+    # get bbox based on file_info
+    xmin <- max(file_info[["xmin"]])
+    ymin <- max(file_info[["ymin"]])
+    xmax <- min(file_info[["xmax"]])
+    ymax <- min(file_info[["ymax"]])
 
-    bbox <- .stac_get_bbox(tile_items, crs)
+    # post-condition
+    .check_that(xmin < xmax,
+                local_msg = "xmin is greater than xmax",
+                msg = "invalid bbox value")
+
+    .check_that(ymin < ymax,
+                local_msg = "ymin is greater than ymax",
+                msg = "invalid bbox value")
+
+    # create a bbox
+    bbox <- c(xmin = xmin, ymin = ymin, xmax = xmax, ymax = ymax)
 
     return(bbox)
+}
+
+#' @keywords internal
+#' @export
+.source_items_fid.stac_cube <- function(source,
+                                        items, ...,
+                                        collection = NULL) {
+
+    fid <- rstac::items_reap(items, field = "id")
+
+    # post-conditions
+    .check_length(unique(fid), len_min = length(fid), len_max = length(fid),
+                  msg = "invalid feature id value")
+
+    return(fid)
 }

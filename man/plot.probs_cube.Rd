@@ -4,15 +4,7 @@
 \alias{plot.probs_cube}
 \title{Plot probability cubes}
 \usage{
-\method{plot}{probs_cube}(
-  x,
-  y,
-  ...,
-  time = 1,
-  title = "Probabilities for Classes",
-  labels = NULL,
-  palette = "Terrain"
-)
+\method{plot}{probs_cube}(x, y, ..., tile = 1, labels = NULL, n_colors = 20, palette = "Terrain")
 }
 \arguments{
 \item{x}{object of class "probs_image"}
@@ -21,11 +13,11 @@
 
 \item{...}{further specifications for \link{plot}.}
 
-\item{time}{temporal reference for plot.}
-
-\item{title}{string.}
+\item{tile}{tile number to be plotted}
 
 \item{labels}{labels to plot (optional)}
+
+\item{n_colors}{number of colors to plot}
 
 \item{palette}{hcl palette used for visualisation}
 }

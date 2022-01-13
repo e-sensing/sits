@@ -2,12 +2,9 @@
 % Please edit documentation in R/sits_raster_api.R
 \name{.raster_gdal_datatype}
 \alias{.raster_gdal_datatype}
-\alias{.raster_gdal_datatypes}
 \title{Convert internal data type to gdal data type}
 \usage{
 .raster_gdal_datatype(data_type)
-
-.raster_gdal_datatypes(sits_names = TRUE)
 }
 \value{
 character string

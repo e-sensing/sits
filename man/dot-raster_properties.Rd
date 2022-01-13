@@ -12,7 +12,9 @@
 \alias{.raster_xres}
 \alias{.raster_yres}
 \alias{.raster_crs}
-\alias{.raster_extent}
+\alias{.raster_bbox}
+\alias{.raster_res}
+\alias{.raster_size}
 \title{Raster package internal object properties}
 \usage{
 .raster_nrows(r_obj, ...)
@@ -35,7 +37,11 @@
 
 .raster_crs(r_obj, ...)
 
-.raster_extent(r_obj, ...)
+.raster_bbox(r_obj, ...)
+
+.raster_res(r_obj, ...)
+
+.raster_size(r_obj, ...)
 }
 \arguments{
 \item{r_obj}{raster package object}

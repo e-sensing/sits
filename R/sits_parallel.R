@@ -104,7 +104,8 @@
             .sits_parallel_reset_node(worker_id)
 
             return(list(node = worker_id,
-                        value = list(value = NULL, tag = NULL)))
+                        value = list(value = structure(list(), class = "retry"),
+                                     tag = NULL)))
         }
 
         # otherwise rise error
@@ -208,10 +209,12 @@
 #' @param fn  a function to be applied to each list element
 #' @param progress  a logical value indicating if a progress bar should
 #' be shown
+#' @param n_retries a number of retries before fail
+#' @param sleep     a number in seconds to wait before try again
 #'
 #' @return  a list with the function results in the same order
 #' as the input list
-.sits_parallel_map <- function(x, fn, ..., progress) {
+.sits_parallel_map <- function(x, fn, ..., progress, n_retries = 3, sleep = 0) {
 
     # create progress bar
     pb <- NULL
@@ -247,23 +250,28 @@
     values <- .sits_parallel_cluster_apply(x, fn, ..., pb = pb)
 
     # check for faults
-    retry <- vapply(values, is.null, TRUE)
+    retry <- vapply(values, inherits, logical(1), "retry")
 
     # is there any node to be recovered?
     if (any(retry)) {
 
         # message("Trying to recover failed nodes...")
 
+
         # try three times
-        for (i in seq_len(3)) {
+        for (i in seq_len(n_retries)) {
+
+            # seconds to wait before try again
+            Sys.sleep(sleep)
 
             # retry for faulted values
-            values[retry] <- suppressMessages(
-                .sits_parallel_cluster_apply(x[retry], fn, ..., pb = pb)
+            values[retry] <- .sits_parallel_cluster_apply(
+                x[retry], fn, ..., pb = pb
             )
 
+
             # check for faults again
-            retry <- vapply(values, is.null, TRUE)
+            retry <- vapply(values, inherits, logical(1), "retry")
 
             if (!any(retry)) break
         }

@@ -73,16 +73,6 @@
 
 #' @keywords internal
 #' @export
-.raster_read_rast.terra <- function(file,
-                                    block = NULL, ...) {
-
-    return(.raster_read_stack.terra(files = file,
-                                    block = block))
-
-}
-
-#' @keywords internal
-#' @export
 .raster_write_rast.terra <- function(r_obj,
                                      file,
                                      format,
@@ -274,18 +264,14 @@
 #' @export
 .raster_crs.terra <- function(r_obj, ...) {
 
-    suppressWarnings(
-        as.character(terra::crs(x = r_obj))
-    )
-}
+    crs <- suppressWarnings(
+        terra::crs(x = r_obj, describe = TRUE))
 
-#' @keywords internal
-#' @export
-.raster_extent.terra <- function(r_obj, ...) {
+    if (!is.na(crs[["EPSG"]]))
+        return(c(crs = paste("EPSG", crs[["EPSG"]], sep = ":")))
 
     suppressWarnings(
-        as.vector(terra::ext(x = r_obj))
-    )
+        c(crs = as.character(terra::crs(x = r_obj))))
 }
 
 #' @keywords internal
@@ -293,37 +279,4 @@
 .raster_freq.terra <- function(r_obj, ...) {
 
     terra::freq(x = r_obj, bylayer = TRUE)
-}
-
-#' @keywords internal
-#' @export
-.raster_focal.terra <- function(r_obj,
-                                window_size,
-                                fn, ...) {
-
-    # check fun parameter
-    if (is.character(fn)) {
-
-        if (fn == "modal")
-            fn <- terra::modal
-    }
-
-    suppressWarnings(
-        terra::focal(
-            x   = r_obj,
-            w   = window_size,
-            fun = fn,
-            na.rm = TRUE,
-            fillvalue = NA,
-            expand = TRUE, ...
-        )
-    )
-}
-
-#' @keywords internal
-#' @export
-.raster_resample_methods.terra <- function(sits_names = TRUE) {
-
-    # raster package resample names
-    return(c("near", "bilinear"))
 }

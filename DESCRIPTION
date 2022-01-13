@@ -1,6 +1,6 @@
 Package: sits
 Type: Package
-Version: 0.15.1-1
+Version: 0.16.0
 Title: Satellite Image Time Series Analysis for Remote Sensing Data Cubes
 Authors@R: c(person('Rolf', 'Simoes', role = c('aut'), email = 'rolf.simoes@inpe.br'),
              person('Gilberto', 'Camara', role = c('aut', 'cre'), email = 'gilberto.camara@inpe.br'),
@@ -35,14 +35,15 @@ Imports:
     data.table (>= 1.13),
     dplyr (>= 1.0.0),
     gdalUtilities,
+    geojsonsf,
     grDevices,
     ggplot2,
     graphics,
+    jsonlite,
     knitr,
     lubridate (>= 1.7.0),
     parallel,
     purrr (>= 0.3.0),
-    raster (>= 3.4),
     Rcpp (>= 1.0.7),
     rstac (>= 0.9.1-5),
     sf (>= 0.9),
@@ -68,6 +69,7 @@ Suggests:
     nnet,
     openxlsx,
     randomForest,
+    raster (>= 3.4),
     RcppArmadillo,
     Rwtss (>= 0.9.1),
     scales,
@@ -77,7 +79,7 @@ Suggests:
     xgboost,
     zoo
 Config/testthat/edition: 3
-Config/testthat/parallel: true
+Config/testthat/parallel: false
 Config/testthat/start-first: cube, wtss, raster, bdc, ml
 LinkingTo:
     Rcpp,
@@ -87,6 +89,7 @@ Collate:
     'RcppExports.R'
     'data.R'
     'sits-package.R'
+    'sits_apply.R'
     'sits_accuracy.R'
     'sits_bands.R'
     'sits_bbox.R'
@@ -103,24 +106,21 @@ Collate:
     'sits_distances.R'
     'sits_dt_reference.R'
     'sits_factory.R'
+    'sits_file_info.R'
     'sits_filters.R'
     'sits_gdalcubes.R'
     'sits_get_data.R'
     'sits_imputation.R'
-    'sits_keras.R'
     'sits_labels.R'
     'sits_label_classification.R'
     'sits_machine_learning.R'
     'sits_merge.R'
     'sits_mlp.R'
-    'sits_ops_bands.R'
     'sits_parallel.R'
     'sits_patterns.R'
     'sits_pipe.R'
     'sits_plot.R'
-    'sits_processing_estimate.R'
     'sits_raster_api.R'
-    'sits_raster_api_raster.R'
     'sits_raster_api_terra.R'
     'sits_raster_blocks.R'
     'sits_raster_data.R'
@@ -130,7 +130,6 @@ Collate:
     'sits_roi.R'
     'sits_satveg.R'
     'sits_select.R'
-    'sits_signal.R'
     'sits_shp.R'
     'sits_smooth.R'
     'sits_smooth_aux_functions.R'
@@ -151,6 +150,7 @@ Collate:
     'sits_tibble.R'
     'sits_timeline.R'
     'sits_twdtw.R'
+    'sits_uncertainty.R'
     'sits_validate.R'
     'sits_view.R'
     'sits_values.R'

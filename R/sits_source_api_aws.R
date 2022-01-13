@@ -16,25 +16,22 @@
                    "pattern. See the user guide for more information."))
 
     # list to store the info about the tiles to provide the query in STAC
-    list_tiles <- list()
-    list_tiles <- purrr::map(tiles, function(tile) {
-        list_tiles$utm_zone <- substring(tile, 1, 2)
-        list_tiles$lat_band <- substring(tile, 3, 3)
-        list_tiles$grid_square <- substring(tile, 4, 5)
-
-        list_tiles
+    tiles_tbl <- purrr::map_dfr(tiles, function(tile) {
+        tile_aws <- tibble::tibble(
+            utm_zone = substring(tile, 1, 2),
+            lat_band = substring(tile, 3, 3),
+            grid_square = substring(tile, 4, 5)
+        )
     })
-
-    tiles_tbl <- dplyr::bind_rows(list_tiles)
 
     return(tiles_tbl)
 }
 
 #' @keywords internal
 #' @export
-.source_items_new.aws_cube <- function(source, ...,
+.source_items_new.aws_cube <- function(source,
                                        collection,
-                                       stac_query,
+                                       stac_query, ...,
                                        tiles = NULL) {
 
     # set caller to show in errors
@@ -72,9 +69,9 @@
 
 #' @keywords internal
 #' @export
-.source_items_tiles_group.aws_cube <- function(source, ...,
-                                               items,
-                                               collection = NULL) {
+.source_items_tile.aws_cube <- function(source,
+                                         items, ...,
+                                         collection = NULL) {
 
     # store tile info in items object
     items$features <- purrr::map(items$features, function(feature) {
@@ -86,38 +83,6 @@
         feature
     })
 
-    rstac::items_group(items, field = c("properties", "tile"))
+    rstac::items_reap(items, field = c("properties", "tile"))
 }
 
-#' @keywords internal
-#' @export
-.source_items_tile_get_crs.aws_cube <- function(source,...,
-                                                tile_items,
-                                                collection = NULL) {
-
-    # format collection crs
-    crs <- .sits_proj_format_crs(
-        tile_items[["features"]][[1]][[c("properties", "proj:epsg")]]
-    )
-
-    return(crs)
-}
-
-#' @keywords internal
-#' @export
-.source_items_tile_get_bbox.aws_cube <- function(source, ...,
-                                                 tile_items,
-                                                 collection = NULL) {
-    r_obj <- .raster_open_rast(
-        .source_item_get_hrefs(source = source,
-                               item = tile_items$features[[1]])[[1]]
-    )
-
-    # get image bbox
-    bbox <- .raster_extent(r_obj)
-
-    if (is.null(names(bbox)))
-        names(bbox) <- c("xmin", "xmax", "ymin", "ymax")
-
-    return(bbox)
-}

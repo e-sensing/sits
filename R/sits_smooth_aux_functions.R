@@ -90,7 +90,7 @@
 #'
 #' @description Process chunks of raster bricks individually in parallel.
 #'
-#' @param cube              Probability data cube
+#' @param cube              Probability data cube tile
 #' @param cube_out          Output probability data cube
 #' @param overlapping_rows  number of overlapping rows of each chunk.
 #' @param func              a function that receives RasterBrick and
@@ -102,7 +102,7 @@
 #'                          smoothing.
 #' @param ...               optional arguments to merge final raster
 #'
-#' @return  RasterBrick object
+#' @return  Output data cube
 #'
 .sits_smooth_map_layer <- function(cube,
                                    cube_out,
@@ -117,13 +117,17 @@
     # set caller to show in errors
     .check_set_caller(".sits_smooth_map_layer")
 
-    # precondition 1 - check if cube has probability data
+    # pre-condition - one tile at a time
+    .check_num(nrow(cube), min = 1, max = 1, is_integer = TRUE,
+               msg = "process one tile only")
+
+    # precondition - check if cube has probability data
     .check_that(
         x = inherits(cube, "probs_cube"),
         msg = "input is not probability cube"
     )
 
-    # precondition 2 - overlapping rows must be non negative
+    # precondition - overlapping rows must be non negative
     .check_num(
         x = overlapping_y_size,
         min = 0,
@@ -178,7 +182,7 @@
         raster_out <- .raster_crop(raster_out, block = blk_no_overlap)
 
         # export to temp file
-        filename <- tempfile(tmpdir = dirname(cube$file_info[[1]]$path),
+        filename <- tempfile(tmpdir = dirname(.file_info(cube)$path),
                              fileext = ".tif")
 
         # save chunk
@@ -255,31 +259,29 @@
         on.exit(parallel::stopCluster(cl))
     }
 
-    # traverse all tiles
-    slider::slide2(cube, cube_out, function(cube_row, out_file_row) {
 
-        # open probability file
-        in_file <- cube_row$file_info[[1]]$path
 
-        # retrieve the files to be read and written
-        out_file <- out_file_row$file_info[[1]]$path
+    # open probability file
+    in_file <- .file_info_path(cube)
 
-        # compute how many tiles to be computed
-        block_size <- .sits_smooth_blocks_size_estimate(cube = cube_row,
-                                                        multicores = multicores,
-                                                        memsize = memsize)
+    # retrieve the file to be written
+    out_file <- .file_info_path(cube_out)
 
-        # for now, only vertical blocks are allowed, i.e. 'x_blocks' is 1
-        blocks <- .sits_compute_blocks(
-            img_y_size = .cube_size(cube)["nrows"],
-            block_y_size = block_size[["block_y_size"]],
-            overlapping_y_size = overlapping_y_size)
+    # compute how many tiles to be computed
+    block_size <- .sits_smooth_blocks_size_estimate(cube = cube,
+                                                    multicores = multicores,
+                                                    memsize = memsize)
 
-        .sits_call_workers_cluster(in_file = in_file,
-                                   out_file = out_file,
-                                   blocks = blocks,
-                                   cl = cl)
-    })
+    # for now, only vertical blocks are allowed, i.e. 'x_blocks' is 1
+    blocks <- .sits_compute_blocks(
+        img_y_size = .cube_size(cube)["nrows"],
+        block_y_size = block_size[["block_y_size"]],
+        overlapping_y_size = overlapping_y_size)
+
+    .sits_call_workers_cluster(in_file = in_file,
+                               out_file = out_file,
+                               blocks = blocks,
+                               cl = cl)
 
     return(invisible(cube_out))
 }

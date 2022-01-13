@@ -11,19 +11,6 @@ Rcpp::Rostream<true>&  Rcpp::Rcout = Rcpp::Rcpp_cout_get();
 Rcpp::Rostream<false>& Rcpp::Rcerr = Rcpp::Rcpp_cerr_get();
 #endif
 
-// apply_transition_matrix
-NumericMatrix apply_transition_matrix(NumericMatrix data_before, NumericMatrix data, NumericMatrix transition_matrix);
-RcppExport SEXP _sits_apply_transition_matrix(SEXP data_beforeSEXP, SEXP dataSEXP, SEXP transition_matrixSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< NumericMatrix >::type data_before(data_beforeSEXP);
-    Rcpp::traits::input_parameter< NumericMatrix >::type data(dataSEXP);
-    Rcpp::traits::input_parameter< NumericMatrix >::type transition_matrix(transition_matrixSEXP);
-    rcpp_result_gen = Rcpp::wrap(apply_transition_matrix(data_before, data, transition_matrix));
-    return rcpp_result_gen;
-END_RCPP
-}
 // bayes_smoother
 arma::mat bayes_smoother(const arma::mat& m, const arma::uword m_nrow, const arma::uword m_ncol, const arma::mat& w, const arma::mat& sigma, bool covar_sigma0);
 RcppExport SEXP _sits_bayes_smoother(SEXP mSEXP, SEXP m_nrowSEXP, SEXP m_ncolSEXP, SEXP wSEXP, SEXP sigmaSEXP, SEXP covar_sigma0SEXP) {
@@ -67,6 +54,18 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< const arma::mat& >::type w(wSEXP);
     Rcpp::traits::input_parameter< double >::type tau(tauSEXP);
     rcpp_result_gen = Rcpp::wrap(bilateral_smoother(m, m_nrow, m_ncol, w, tau));
+    return rcpp_result_gen;
+END_RCPP
+}
+// entropy_probs
+IntegerVector entropy_probs(const IntegerMatrix& mtx, const int& n);
+RcppExport SEXP _sits_entropy_probs(SEXP mtxSEXP, SEXP nSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< const IntegerMatrix& >::type mtx(mtxSEXP);
+    Rcpp::traits::input_parameter< const int& >::type n(nSEXP);
+    rcpp_result_gen = Rcpp::wrap(entropy_probs(mtx, n));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -120,10 +119,10 @@ END_RCPP
 }
 
 static const R_CallMethodDef CallEntries[] = {
-    {"_sits_apply_transition_matrix", (DL_FUNC) &_sits_apply_transition_matrix, 3},
     {"_sits_bayes_smoother", (DL_FUNC) &_sits_bayes_smoother, 6},
     {"_sits_kernel_smoother", (DL_FUNC) &_sits_kernel_smoother, 5},
     {"_sits_bilateral_smoother", (DL_FUNC) &_sits_bilateral_smoother, 5},
+    {"_sits_entropy_probs", (DL_FUNC) &_sits_entropy_probs, 2},
     {"_sits_linear_interp", (DL_FUNC) &_sits_linear_interp, 1},
     {"_sits_linear_interp_vec", (DL_FUNC) &_sits_linear_interp_vec, 1},
     {"_sits_normalize_data", (DL_FUNC) &_sits_normalize_data, 3},

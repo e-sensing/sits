@@ -28,7 +28,7 @@
 #' @param  data              data cube
 #' @param  ml_model          R model trained by \code{\link[sits]{sits_train}}.
 #' @param  ...               other parameters to be passed to specific functions
-#' @param  roi               a region of interest (see above)
+#' @param  roi               a region of interest (see below)
 #' @param  filter_fn         smoothing filter to be applied (if desired).
 #' @param  impute_fn         impute function to replace NA
 #' @param  start_date        starting date for the classification
@@ -63,7 +63,8 @@
 #'    The "memsize" and "multicores" parameters are used for multiprocessing.
 #'    The "multicores" parameter defines the number of cores used for
 #'    processing. The "memsize" parameter  controls the amount of memory
-#'    available for classification.
+#'    available for classification. We recommend using a 4:1 relation between
+#'    "memsize" and "multicores".
 #'
 #' @examples
 #' \donttest{
@@ -71,13 +72,13 @@
 #' # Retrieve the samples for Mato Grosso
 #' # select an extreme gradient boosting model
 #' samples_2bands <- sits_select(samples_modis_4bands,
-#'                             bands = c("NDVI", "EVI"))
+#'                             bands = c("EVI", "NDVI"))
 #' xgb_model <- sits_train(samples_2bands,
 #'     ml_method = sits_xgboost(verbose = FALSE)
 #' )
 #' # classify the point
 #' point_2bands <- sits_select(point_mt_6bands,
-#'                             bands = c("NDVI", "EVI"))
+#'                             bands = c("EVI", "NDVI"))
 #' point_class <- sits_classify(point_2bands, xgb_model)
 #' plot(point_class)
 #'
@@ -133,15 +134,9 @@ sits_classify.sits <- function(data,
         msg = "please provide a trained ML model"
     )
 
-    # Precondition: only savitsky-golay and whittaker filters are supported
+    # Apply filter
     if (!purrr::is_null(filter_fn)) {
-        call_names <- deparse(sys.call())
-        .check_that(
-            x = any(grepl("sgolay", (call_names))) ||
-                any(grepl("whittaker", (call_names))),
-            msg = "only savitsky-golay and whittaker filters are supported"
-        )
-        data <- filter_fn(data)
+        data <- .apply_across(data, fn = filter_fn)
     }
 
     # precondition - are the samples valid?
@@ -150,6 +145,11 @@ sits_classify.sits <- function(data,
         x = nrow(samples) > 0,
         msg = "missing original samples"
     )
+    # check band order is the same
+    bands_samples <- sits_bands(samples)
+    bands_data <- sits_bands(data)
+    .check_that(all(bands_samples == bands_data),
+                msg = "Order of the bands must be the same in samples and in data")
 
     # get normalization params
     stats <- environment(ml_model)$stats
@@ -186,12 +186,13 @@ sits_classify.sits <- function(data,
     )
 
     # Store the result in the input data
-    data <- .sits_tibble_prediction(
+    data_pred <- .sits_tibble_prediction(
         data = data,
         class_info = class_info,
         prediction = prediction
     )
-    return(data)
+    class(data_pred) <- c("predicted", class(data))
+    return(data_pred)
 }
 #' @rdname sits_classify
 #'
@@ -217,6 +218,29 @@ sits_classify.raster_cube <- function(data, ml_model, ...,
         stop("sits can only classify regular cubes. \n
              Please use sits_regularize()")
 
+    # precondition - multicores
+    .check_num(x = multicores,
+               len_max = 1,
+               min = 1,
+               allow_zero = FALSE,
+               msg = "multicores must be at least 1")
+
+    # precondition - memory
+    .check_num(x = memsize,
+               len_max = 1,
+               min = 1,
+               allow_zero = FALSE,
+               msg = "memsize must be positive")
+
+    # precondition - output dir
+    .check_file(x = output_dir,
+                msg = "invalid output dir")
+
+    # precondition - version
+    .check_chr(x = version,
+               len_min = 1,
+               msg = "invalid version")
+
     # filter only intersecting tiles
     intersects <- slider::slide_lgl(data,
                                     .sits_raster_sub_image_intersects,
@@ -229,7 +253,7 @@ sits_classify.raster_cube <- function(data, ml_model, ...,
     samples <- .sits_ml_model_samples(ml_model)
 
     # deal with the case where the cube has multiple rows
-    probs_rows <- slider::slide(data, function(tile) {
+    probs_cube <- slider::slide_dfr(data, function(tile) {
 
         # find out what is the row subset that is contained
         # inside the start_date and end_date
@@ -241,13 +265,13 @@ sits_classify.raster_cube <- function(data, ml_model, ...,
 
             # filter the cube by start and end dates
             tile$file_info[[1]] <- dplyr::filter(
-                tile$file_info[[1]],
+                .file_info(tile),
                 date >= new_timeline[1] &
                     date <= new_timeline[length(new_timeline)]
             )
         }
 
-        # temporary fix
+        # check
         n_samples <- length(sits_timeline(samples))
         n_tile <- length(sits_timeline(tile))
 
@@ -272,7 +296,5 @@ sits_classify.raster_cube <- function(data, ml_model, ...,
 
         return(probs_row)
     })
-
-    probs_cube <- dplyr::bind_rows(probs_rows)
     return(probs_cube)
 }

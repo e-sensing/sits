@@ -14,9 +14,10 @@ sits_view(x, ...)
 \method{sits_view}{raster_cube}(
   x,
   ...,
-  red,
-  green,
-  blue,
+  band = NULL,
+  red = NULL,
+  green = NULL,
+  blue = NULL,
   tile = 1,
   times = c(1),
   class_cube = NULL,
@@ -34,6 +35,8 @@ sits_view(x, ...)
 \item{legend}{named vector that associates labels to colors}
 
 \item{palette}{palette provided in the configuration file}
+
+\item{band}{for plotting grey images}
 
 \item{red}{band for red color.}
 
@@ -55,12 +58,17 @@ Uses leaflet to visualize time series, raster cube and classified images
 }
 \examples{
 \donttest{
+# view a collection of time series
+sits_view(samples_modis_4bands)
+
+# view a temporal instance of a cube
+
 data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
 
 modis_cube <- sits_cube(
     source = "BDC",
     collection = "MOD13Q1-6",
-    band = "NDVI",
+    band = c("NDVI", "EVI"),
     data_dir = data_dir,
     parse_info = c("X1", "X2", "tile", "band", "date")
 )

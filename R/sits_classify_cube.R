@@ -44,8 +44,7 @@
     .check_set_caller(".sits_classify_multicores")
 
     # some models have parallel processing built in
-    if ("ranger_model" %in% class(ml_model) |
-        "xgb_model"    %in% class(ml_model))
+    if ("xgb_model" %in% class(ml_model))
         multicores <- 1
 
     # retrieve the samples from the model
@@ -76,7 +75,7 @@
     if (purrr::is_null(roi))
         sub_image <- .sits_raster_sub_image_default(tile)
     else
-        sub_image <- .sits_raster_sub_image(cube = tile, roi = roi)
+        sub_image <- .sits_raster_sub_image(tile = tile, roi = roi)
 
     # divide the input data in blocks
     blocks <- .sits_raster_blocks(
@@ -93,21 +92,26 @@
                        " x ", unname(blocks[[1]]["ncols"]), ")"
         ))
 
+    # get timeline
+    timeline <- sits_timeline(tile)
+
     # create the metadata for the probability cube
-    probs_cube <- .cube_probs_create(
-        tile       = tile,
-        samples    = samples,
-        sub_image  = sub_image,
+    probs_cube <- .cube_derived_create(
+        cube       = tile,
+        cube_class = "probs_cube",
+        band_name  = "PROBS",
+        labels     = labels,
+        start_date = timeline[[1]],
+        end_date   = timeline[[length(timeline)]],
+        bbox       = sub_image,
         output_dir = output_dir,
         version    = version
     )
 
     # resume feature
     # if tile already exists, return probs_cube
-    if (file.exists(probs_cube$file_info[[1]]$path[[1]])) {
-
+    if (file.exists(.file_info_path(probs_cube)))
         return(probs_cube)
-    }
 
     # show initial time for classification
     if (verbose) {
@@ -131,7 +135,7 @@
 
         # define the file name of the raster file to be written
         filename_block <- paste0(
-            tools::file_path_sans_ext(probs_cube$file_info[[1]]$path),
+            tools::file_path_sans_ext(.file_info_path(probs_cube)),
             "_block_", b[["first_row"]], "_", b[["nrows"]], ".tif"
         )
 
@@ -169,7 +173,7 @@
             extent     = b,
             stats      = stats,
             filter_fn  = filter_fn,
-            impute_fn  = impute_fn,
+            impute_fn  = impute_fn
         )
         # log
         .sits_debug_log(output_dir = output_dir,
@@ -242,14 +246,22 @@
                     event      = "end classification")
 
     # join predictions
+    out_file = .file_info_path(probs_cube)
     .raster_merge(
         in_files = filenames,
-        out_file = probs_cube$file_info[[1]]$path,
+        out_file = out_file,
         format = "GTiff",
         gdal_datatype = .raster_gdal_datatype(.config_get("probs_cube_data_type")),
         gdal_options = .config_gtiff_default_options(),
         overwrite = TRUE
     )
+
+    # adjust nrows and ncols
+    r_obj <- sits:::.raster_open_rast(out_file)
+    file_info <- .file_info(probs_cube)
+    file_info$nrows <- nrow(r_obj)
+    file_info$ncols <- ncol(r_obj)
+    probs_cube$file_info[[1]] <- file_info
 
     # log
     .sits_debug_log(output_dir = output_dir,
@@ -288,31 +300,4 @@
                 msg = "trained ML model not available")
 
     return(invisible(TRUE))
-}
-
-#' @title Classify one interval of data
-#' @name  .sits_classify_interval
-#' @keywords internal
-#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
-#'
-#' @param  data              A data.table with distance values.
-#' @param  ml_model          Machine learning model to be applied.
-#' @return                   A data table with predicted values of probs
-.sits_classify_interval <- function(data, ml_model) {
-
-    # set caller to show in errors
-    .check_set_caller(".sits_classify_interval")
-
-    # single core
-    # estimate the prediction vector
-    prediction <- ml_model(data)
-
-    # are the results consistent with the data input?
-    .check_that(
-        x = nrow(prediction) == nrow(data),
-        msg = paste("number of rows of probability matrix is different from",
-                    "number of input pixels")
-    )
-
-    return(prediction)
 }

@@ -2,7 +2,7 @@
 #' @keywords internal
 .raster_supported_packages <- function() {
 
-    return(c("raster", "terra"))
+    return(c("terra"))
 }
 
 #' @title Check for raster package availability
@@ -17,13 +17,6 @@
     class(pkg_class) <- pkg_class
 
     UseMethod(".raster_check_package", pkg_class)
-}
-
-#' @keywords internal
-#' @export
-.raster_check_package.default <- function() {
-
-    stop("No API defined for this raster package.")
 }
 
 #' @title Check for block object consistency
@@ -81,8 +74,13 @@
     # convert
     return(gdal_data_types[[data_type]])
 }
-
-#' @name .raster_gdal_datatype
+#' @title Match sits data types to GDAL data types
+#' @name .raster_gdal_datatypes
+#'
+#' @param sits_names a \code{logical} indicating whether the types are supported
+#'  by sits.
+#'
+#' @return a \code{character} with datatypes.
 .raster_gdal_datatypes <- function(sits_names = TRUE) {
 
     if (sits_names)
@@ -218,42 +216,8 @@
     UseMethod(".raster_open_rast", pkg_class)
 }
 
-#' @title Raster package internal read raster file function
-#' @name .raster_read_rast
-#' @keywords internal
-#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
-#'
-#' @param file    raster file to be read
-#' @param block   numeric vector with names "first_col", "ncols", "first_row", "nrows".
-#' @param ...     additional parameters to be passed to raster package
-#'
-#' @return numeric matrix
-.raster_read_rast <- function(file,
-                              block = NULL, ...) {
-
-    # set caller to show in errors
-    .check_set_caller(".raster_read_rast")
-
-    # check for files length == 1
-    .check_that(
-        x = length(file) == 1,
-        msg = "more than one file were informed"
-    )
-
-    # check block
-    if (!purrr::is_null(block)) {
-
-        .raster_check_block(block = block)
-    }
-
-    # check package
-    pkg_class <- .raster_check_package()
-
-    UseMethod(".raster_read_rast", pkg_class)
-}
-
 #' @title Raster package internal write raster file function
-#' @name .raster_read_rast
+#' @name .raster_write_rast
 #' @keywords internal
 #' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
 #'
@@ -405,6 +369,7 @@
 }
 
 #' @name .raster_properties
+#' @keywords internal
 .raster_ncols <- function(r_obj, ...) {
 
     # check package
@@ -414,6 +379,7 @@
 }
 
 #' @name .raster_properties
+#' @keywords internal
 .raster_nlayers <- function(r_obj, ...) {
 
     # check package
@@ -423,6 +389,7 @@
 }
 
 #' @name .raster_properties
+#' @keywords internal
 .raster_xmax <- function(r_obj, ...) {
 
     # check package
@@ -432,6 +399,7 @@
 }
 
 #' @name .raster_properties
+#' @keywords internal
 .raster_xmin <- function(r_obj, ...) {
 
     # check package
@@ -441,6 +409,7 @@
 }
 
 #' @name .raster_properties
+#' @keywords internal
 .raster_ymax <- function(r_obj, ...) {
 
     # check package
@@ -450,6 +419,7 @@
 }
 
 #' @name .raster_properties
+#' @keywords internal
 .raster_ymin <- function(r_obj, ...) {
 
     # check package
@@ -459,6 +429,7 @@
 }
 
 #' @name .raster_properties
+#' @keywords internal
 .raster_xres <- function(r_obj, ...) {
 
     # check package
@@ -468,6 +439,7 @@
 }
 
 #' @name .raster_properties
+#' @keywords internal
 .raster_yres <- function(r_obj, ...) {
 
     # check package
@@ -477,6 +449,7 @@
 }
 
 #' @name .raster_properties
+#' @keywords internal
 .raster_crs <- function(r_obj, ...) {
 
     # check package
@@ -486,12 +459,38 @@
 }
 
 #' @name .raster_properties
-.raster_extent <- function(r_obj, ...) {
+#' @keywords internal
+.raster_bbox <- function(r_obj, ...) {
 
-    # check package
-    pkg_class <- .raster_check_package()
+    # return a named bbox
+    bbox <- c(xmin = .raster_xmin(r_obj),
+              xmax = .raster_xmax(r_obj),
+              ymin = .raster_ymin(r_obj),
+              ymax = .raster_ymax(r_obj))
 
-    UseMethod(".raster_extent", pkg_class)
+    return(bbox)
+}
+
+#' @name .raster_properties
+#' @keywords internal
+.raster_res <- function(r_obj, ...) {
+
+    # return a named resolution
+    res <- list(xres = .raster_xres(r_obj),
+                yres = .raster_yres(r_obj))
+
+    return(res)
+}
+
+#' @name .raster_properties
+#' @keywords internal
+.raster_size <- function(r_obj, ...) {
+
+    # return a named size
+    size <- list(nrows = .raster_nrows(r_obj),
+                 ncols = .raster_ncols(r_obj))
+
+    return(size)
 }
 
 #' @title Raster package internal frequency values function
@@ -509,95 +508,6 @@
     pkg_class <- .raster_check_package()
 
     UseMethod(".raster_freq", pkg_class)
-}
-
-#' @title Raster package internal moving window function
-#' @name .raster_focal
-#' @keywords internal
-#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
-#'
-#' @param r_obj        raster package object to pass a window function
-#' @param window_size  number indicating the length of a squared window's side.
-#' @param fn           a function to be convoluted. Can be either a string or
-#'                     a R function. Character strings options are: "sum",
-#'                     "mean", and "modal".
-#' @param ...          additional parameters to be passed to raster package
-#'
-#' @return raster package object
-.raster_focal <- function(r_obj,
-                          window_size,
-                          fn, ...) {
-
-    # set caller to show in errors
-    .check_set_caller(".raster_focal")
-
-    # check window_size
-    .check_that(
-        x = window_size %% 2 == 1,
-        msg = "window_size must be an odd number"
-    )
-
-    # check fn parameter
-    if (is.character(fn)) {
-
-        .check_that(
-            x = length(fn) == 1,
-            msg = "length of fn parameter must be one"
-        )
-
-        .check_chr_within(
-            x = fn,
-            within = c("modal", "sum", "mean"),
-            discriminator = "one_of",
-            msg = "invalid function"
-        )
-    }
-
-    # check package
-    pkg_class <- .raster_check_package()
-
-    UseMethod(".raster_focal", pkg_class)
-}
-
-#' @title Convert sits internal resample methods
-#' @name .raster_resample_method
-#' @keywords internal
-#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
-#' @param method     A \code{character} value indicating a resampling
-#' method name
-#' @param sits_names A \code{logical} indicating if method names to be returned
-#' must be sits names or package names
-#'
-#' @return character string
-.raster_resample_method <- function(method) {
-
-    # package supported resample methods
-    convert_methods <- .raster_resample_methods(sits_names = FALSE)
-    names(convert_methods) <- .raster_resample_methods(sits_names = TRUE)
-
-    # check method type
-    .check_chr(method, len_min = 1, len_max = 1,
-               msg = "invalid 'method' parameter")
-
-    .check_chr_within(method,
-                      within = .raster_resample_methods(sits_names = TRUE),
-                      discriminator = "one_of",
-                      msg = "invalid 'method' parameter")
-    # convert
-    return(convert_methods[[method]])
-}
-
-#' @name .raster_resample_method
-.raster_resample_methods <- function(sits_names = TRUE) {
-
-    # show sits methods names
-    if (sits_names)
-        return(c("near", "bilinear"))
-
-    # check package
-    pkg_class <- .raster_check_package()
-
-    UseMethod(".raster_resample_methods", pkg_class)
 }
 
 #' @title Determine the file params to write in the metadata
@@ -689,7 +599,7 @@
         unlink(out_file)
 
     # maximum files to merge at a time
-    # these values were obtained empirically
+    # this value was obtained empirically
     group_len <- 32
 
     # keep in_files

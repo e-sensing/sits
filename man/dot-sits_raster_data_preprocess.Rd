@@ -10,8 +10,7 @@
   extent,
   filter_fn = NULL,
   stats = NULL,
-  impute_fn,
-  .verbose = FALSE
+  impute_fn
 )
 }
 \arguments{
@@ -26,8 +25,6 @@
 \item{stats}{normalization parameters.}
 
 \item{impute_fn}{imputing function to be applied to replace NA}
-
-\item{.verbose}{prints information about processing times}
 }
 \value{
 Matrix with pre-processed values.

@@ -7,6 +7,8 @@
 .gc_new_cube(
   tile,
   cv,
+  roi,
+  fill_method,
   img_col,
   path_db,
   output_dir,
@@ -19,6 +21,14 @@
 \item{tile}{A data cube tile}
 
 \item{cv}{A \code{list} 'cube_view' with values from cube.}
+
+\item{roi}{A region of interest.}
+
+\item{fill_method}{A \code{character} indicating which interpolation method
+will be applied. Options: \code{near} for nearest neighbor; \code{linear}
+for linear interpolation; \code{locf} for ast observation carried forward,
+or \code{nocb} for next observation carried backward.
+Default is \code{near}..}
 
 \item{img_col}{A \code{object} 'image_collection' containing information
 about the images metadata.}

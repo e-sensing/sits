@@ -4,10 +4,10 @@
 \alias{.sits_raster_sub_image_default}
 \title{Find the dimensions of the sub image without ROI}
 \usage{
-.sits_raster_sub_image_default(cube)
+.sits_raster_sub_image_default(tile)
 }
 \arguments{
-\item{cube}{input data cube.}
+\item{tile}{tile of data cube.}
 
 \item{sf_region}{spatial region of interest (sf_object)}
 }

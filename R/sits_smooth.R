@@ -169,6 +169,15 @@ sits_smooth.bayes <- function(cube, type = "bayes", ...,
                allow_zero = FALSE,
                msg = "memsize must be positive")
 
+    # precondition 6 - output dir
+    .check_file(x = output_dir,
+                msg = "invalid output dir")
+
+    # precondition 7 - version
+    .check_chr(x = version,
+               len_min = 1,
+               msg = "invalid version")
+
     # create a window
     window <- matrix(1, nrow = window_size, ncol = window_size)
 
@@ -211,19 +220,24 @@ sits_smooth.bayes <- function(cube, type = "bayes", ...,
     }
 
     # process each brick layer (each time step) individually
-    cube_bayes <- slider::slide_dfr(cube, function(row) {
+    cube_bayes <- slider::slide_dfr(cube, function(tile) {
 
         # create metadata for raster cube
-        row_bayes <- .cube_probs_label(
-            cube       = row,
-            ext        = "probs_bayes",
+        tile_bayes <- .cube_derived_create(
+            cube       = tile,
+            cube_class = "probs_cube",
+            band_name  = "probs_bayes",
+            labels     = .cube_labels(tile),
+            start_date = .file_info_start_date(tile),
+            end_date   = .file_info_end_date(tile),
+            bbox       = .cube_tile_bbox(tile),
             output_dir = output_dir,
             version    = version
         )
 
         .sits_smooth_map_layer(
-            cube = row,
-            cube_out = row_bayes,
+            cube = tile,
+            cube_out = tile_bayes,
             overlapping_y_size =
                 ceiling(window_size / 2) - 1,
             func = .do_bayes,
@@ -233,7 +247,7 @@ sits_smooth.bayes <- function(cube, type = "bayes", ...,
             gdal_options = .config_gtiff_default_options()
         )
 
-        return(row_bayes)
+        return(tile_bayes)
     })
 
     class(cube_bayes) <- class(cube)
@@ -284,7 +298,16 @@ sits_smooth.gaussian <- function(cube, type = "gaussian", ...,
                len_max = 1,
                min = 1,
                allow_zero = FALSE,
-               msg = "memsize must be positiv")
+               msg = "memsize must be positive")
+
+    # precondition 6 - output dir
+    .check_file(x = output_dir,
+                msg = "invalid output dir")
+
+    # precondition 7 - version
+    .check_chr(x = version,
+               len_min = 1,
+               msg = "invalid version")
 
     # create output window
     gauss_kernel <- .sits_smooth_gauss_kernel(window_size = window_size,
@@ -318,19 +341,24 @@ sits_smooth.gaussian <- function(cube, type = "gaussian", ...,
     }
 
     # process each brick layer (each time step) individually
-    cube_gauss <- slider::slide_dfr(cube, function(row) {
+    cube_gauss <- slider::slide_dfr(cube, function(tile) {
 
         # create metadata for Gauss smoothed raster cube
-        row_gauss <- .cube_probs_label(
-            cube       = row,
-            ext        = "probs_gauss",
+        tile_gauss <- .cube_derived_create(
+            cube       = tile,
+            cube_class = "probs_cube",
+            band_name  = "probs_gauss",
+            labels     = .cube_labels(tile),
+            start_date = .file_info_start_date(tile),
+            end_date   = .file_info_end_date(tile),
+            bbox       = .cube_tile_bbox(tile),
             output_dir = output_dir,
             version    = version
         )
 
         .sits_smooth_map_layer(
-            cube = row,
-            cube_out = row_gauss,
+            cube = tile,
+            cube_out = tile_gauss,
             overlapping_y_size =
                 ceiling(window_size / 2) - 1,
             func = .do_gauss,
@@ -340,7 +368,7 @@ sits_smooth.gaussian <- function(cube, type = "gaussian", ...,
             gdal_options = .config_gtiff_default_options()
         )
 
-        return(row_gauss)
+        return(tile_gauss)
     })
 
     class(cube_gauss) <- class(cube)
@@ -396,6 +424,15 @@ sits_smooth.bilateral <- function(cube,
                allow_zero = FALSE,
                msg = "memsize must be positive")
 
+    # precondition 6 - output dir
+    .check_file(x = output_dir,
+                msg = "invalid output dir")
+
+    # precondition 7 - version
+    .check_chr(x = version,
+               len_min = 1,
+               msg = "invalid version")
+
     # create output window
     gauss_kernel <- .sits_smooth_gauss_kernel(window_size = window_size,
                                               sigma = sigma)
@@ -429,19 +466,24 @@ sits_smooth.bilateral <- function(cube,
     }
 
     # process each brick layer (each time step) individually
-    cube_bilat <- slider::slide_dfr(cube, function(row) {
+    cube_bilat <- slider::slide_dfr(cube, function(tile) {
 
         # create metadata for bilateral smoothed raster cube
-        row_bilat <- .cube_probs_label(
-            cube       = row,
-            ext        = "probs_bilat",
+        tile_bilat <- .cube_derived_create(
+            cube       = tile,
+            cube_class = "probs_cube",
+            band_name  = "probs_bilat",
+            labels     = .cube_labels(tile),
+            start_date = .file_info_start_date(tile),
+            end_date   = .file_info_end_date(tile),
+            bbox       = .cube_tile_bbox(tile),
             output_dir = output_dir,
             version    = version
         )
 
         .sits_smooth_map_layer(
-            cube = row,
-            cube_out = row_bilat,
+            cube = tile,
+            cube_out = tile_bilat,
             overlapping_y_size =
                 ceiling(window_size / 2) - 1,
             func = .do_bilateral,
@@ -451,7 +493,7 @@ sits_smooth.bilateral <- function(cube,
             gdal_options = .config_gtiff_default_options()
         )
 
-        return(row_bilat)
+        return(tile_bilat)
     })
 
     class(cube_bilat) <- class(cube)

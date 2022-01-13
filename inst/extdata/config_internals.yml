@@ -2,10 +2,13 @@
 # s3 classes known to sits
 sits_s3_classes :   ["sits", "patterns", "predicted", "sits_model",
                     "sits_cube", "raster_cube", "probs_cube",
-                    "classified_image",
+                    "uncertainty_cube", "classified_image",
                     "wtss_cube", "satveg_cube",
                     "stac_cube", "bdc_cube", "aws_cube",
                     "usgs_cube", "deafrica_cube"]
+
+# s3 classes resulting from classification and post-classification
+sits_s3_classes_proc :   ["probs_cube","uncertainty_cube", "classified_image"]
 
 # mandatory columns in data cube description
 sits_cube_cols :    ["source", "collection", "satellite", "sensor",
@@ -18,7 +21,7 @@ sits_tibble_cols :  ["longitude", "latitude", "start_date",
                     "time_series"]
 
 # mandatory columns in predicted time series classification
-ts_predicted_cols:  ["from", "to", "class", "probs"]
+ts_predicted_cols:  ["from", "to", "class"]
 
 # supported user sample file formats
 sample_file_formats : ["csv", "shp"]
@@ -36,6 +39,14 @@ sf_geom_types_supported : ["POINT", "POLYGON", "MULTIPOLYGON"]
 local_s3_class          : ["local_cube", "raster_cube"]
 local_file_extensions   : ["tiff", "tif", "jp2", "hdf", "vrt"]
 
+# default configuration for raster cubes
+raster_cube_scale_factor : 0.0001
+raster_cube_data_type    : "INT2S"
+raster_cube_offset_value : 0
+raster_cube_missing_value : -9999
+raster_cube_minimum_value : -10000
+raster_cube_maximum_value : 10000
+
 # configuration for probability cubes
 probs_cube_scale_factor : 0.0001
 probs_cube_data_type    : "INT2U"
@@ -43,8 +54,23 @@ probs_cube_data_type    : "INT2U"
 # configuration for classified cubes
 class_cube_data_type    : "INT1U"
 
+# simultaneous connections for gdalcubes database creation
+gdalcubes_open_connections : 4
+
+# minimum number of files for gdalcubes to be run on parallel
+gdalcubes_min_files_for_parallel : 10
+
+# configuration for gdalcubes chunk
+gdalcubes_chunk_size   : [1, 2048, 2048]
+
+# maximum number of threads in gdalcubes
+gdalcubes_max_threads : 24
+
 # valid aggregation methods for gdalcubes
-gdalcubes_aggreg_methods : ["min", "max", "mean", "median", "first"]
+gdalcubes_aggreg_methods : {median : "median", least_cc_first : "first"}
+
+# valid filling NA values methods for gdalcubes
+gdalcubes_filling_methods : ["near", "linear", "locf", "nocb"]
 
 # valid resampling methods for gdalcubes
 gdalcubes_resampling_methods : ["near", "bilinear", "bicubic", "cubicspline",
@@ -56,3 +82,11 @@ valid_raster_data_types : ["INT1U", "INT2U", "INT2S", "INT4U",
 
 # deep learning activation methods
 dl_activation_methods : ["relu", "elu", "selu", "sigmoid"]
+
+# metadata search strategy
+metadata_search_strategies : ["tile", "feature"]
+
+# class interval methods for plotting
+class_intervals: ["fixed", "sd", "equal", "pretty", "quantile",
+                  "kmeans", "hclust", "bclust", "fisher",
+                  "jenks", "dpih", "headtails"]

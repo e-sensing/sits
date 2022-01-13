@@ -4,7 +4,13 @@
 \alias{.config_new_collection}
 \title{Include a new collection in the configuration}
 \usage{
-.config_new_collection(bands, ..., satellite = NULL, sensor = NULL)
+.config_new_collection(
+  bands,
+  ...,
+  satellite = NULL,
+  sensor = NULL,
+  metadata_search = NULL
+)
 }
 \arguments{
 \item{bands}{bands associated to the collection}

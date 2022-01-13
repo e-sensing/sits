@@ -2,17 +2,19 @@
 % Please edit documentation in R/sits_stac.R
 \name{.stac_add_gdal_vsi}
 \alias{.stac_add_gdal_vsi}
-\title{...}
+\alias{.stac_add_gdal_fs}
+\title{Add gdal file system in a href}
 \usage{
-.stac_add_gdal_vsi(href)
+.stac_add_gdal_fs(href)
 }
 \arguments{
-\item{href}{a \code{character} ...}
+\item{href}{a \code{character} with link to the asset object.}
 }
 \value{
-...
+a \code{character} with the signed href.
 }
 \description{
-...
+Currently, HTTP, S3 (AWS), and google storage (gs)
+ links are supported.
 }
 \keyword{internal}

@@ -7,7 +7,7 @@
 .sits_raster_sub_image_intersects(cube, roi)
 }
 \arguments{
-\item{cube}{input data cube.}
+\item{cube}{data cube (one tile only).}
 
 \item{roi}{spatial region of interest}
 }

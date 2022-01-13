@@ -16,49 +16,17 @@
                    "pattern. See the user guide for more information."))
 
     # list to store the info about the tiles to provide the query in STAC
-    list_tiles <- purrr::map(tiles, function(tile) {
+    tiles_tbl <- purrr::map_dfr(tiles, function(tile) {
 
         c(wrs_path = substring(tile, 1, 3),
           wrs_row = substring(tile, 4, 6))
     })
 
-    # bind into a tibble all tiles
-    tiles_tbl <- dplyr::bind_rows(list_tiles)
-
     return(tiles_tbl)
 }
 
-#' @title Filter datetime in STAC items
-#' @name .usgs_filter_datetime
 #' @keywords internal
-#'
-#' @param items      a \code{STACItemCollection} object returned by rstac
-#' package.
-#' @param datetime  a \code{character} ...
-#'
-#' @return  a \code{STACItemCollection} object with datetime filtered.
-.usgs_filter_datetime <- function(items, datetime) {
-
-    split_datetime <- strsplit(x = datetime, split = "/")
-
-    start_date <- split_datetime[[1]][[1]]
-    end_date <- split_datetime[[1]][[2]]
-
-    # checks if the supplied tiles are in the searched items
-    index_features <- purrr::map_lgl(items$features, function(feature) {
-        datetime <- lubridate::date(feature[["properties"]][["datetime"]])
-
-        if (datetime >= start_date && datetime <= end_date)
-            return(TRUE)
-        return(FALSE)
-    })
-
-    # select the tiles found in the search
-    items$features <- items$features[index_features]
-
-    items
-}
-
+#' @export
 .source_collection_access_test.usgs_cube <- function(source, ..., collection, bands) {
 
     # require package
@@ -66,9 +34,9 @@
         stop("Please install package rstac", call. = FALSE)
     }
 
-    items_query <- .stac_items_query(source = source,
-                                     collection = collection,
-                                     limit = 1)
+    items_query <- .stac_create_items_query(source = source,
+                                            collection = collection,
+                                            limit = 1)
 
 
     items_query$version <- .config_get(key = c("sources", source,
@@ -87,14 +55,14 @@
                    "unreachable\n", e$message), call. = FALSE)
     })
 
-    items <- .source_items_bands_select(source = source, ...,
-                                        collection = collection,
+    items <- .source_items_bands_select(source = source,
                                         items = items,
-                                        bands = bands[[1]])
+                                        bands = bands[[1]],
+                                        collection = collection, ...)
 
-    href <- .source_item_get_hrefs(source = source, ...,
+    href <- .source_item_get_hrefs(source = source,
                                    item = items$feature[[1]],
-                                   collection = collection)
+                                   collection = collection, ...)
 
     # assert that token and/or href is valid
     tryCatch({
@@ -109,24 +77,23 @@
 
 #' @keywords internal
 #' @export
-.source_item_get_hrefs.usgs_cube <- function(source, ...,
-                                             item,
+.source_item_get_hrefs.usgs_cube <- function(source, item, ...,
                                              collection = NULL) {
 
 
-    href <- purrr::map_chr(item[["assets"]], function(x) {
+    href <- unname(purrr::map_chr(item[["assets"]], function(x) {
         x[["alternate"]][[c("s3", "href")]]
-    })
+    }))
 
     # add gdal vsi in href urls
-    return(.stac_add_gdal_vsi(href))
+    return(.stac_add_gdal_fs(href))
 }
 
 #' @keywords internal
 #' @export
-.source_items_new.usgs_cube <- function(source, ...,
+.source_items_new.usgs_cube <- function(source,
                                         collection,
-                                        stac_query,
+                                        stac_query, ...,
                                         tiles = NULL) {
 
     # set caller to show in errors
@@ -197,8 +164,8 @@
 
 #' @keywords internal
 #' @export
-.source_items_tiles_group.usgs_cube <- function(source, ...,
-                                                items,
+.source_items_tile.usgs_cube <- function(source,
+                                                items, ...,
                                                 collection = NULL) {
 
     # store tile info in items object
@@ -211,18 +178,5 @@
         feature
     })
 
-    rstac::items_group(items, field = c("properties", "tile"))
-}
-
-#' @keywords internal
-#' @export
-.source_items_tile_get_crs.usgs_cube <- function(source,
-                                                 tile_items, ...,
-                                                 collection = NULL) {
-
-    epsg_code <- tile_items[["features"]][[1]][[c("properties", "proj:epsg")]]
-    # format collection crs
-    crs <- .sits_proj_format_crs(epsg_code)
-
-    return(crs)
+    rstac::items_reap(items, field = c("properties", "tile"))
 }

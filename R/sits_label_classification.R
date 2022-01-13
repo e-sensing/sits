@@ -47,8 +47,8 @@
 #'
 #' @export
 sits_label_classification <- function(cube,
-                                      multicores = 1,
-                                      memsize = 1,
+                                      multicores = 2,
+                                      memsize = 4,
                                       output_dir = ".",
                                       version = "v1") {
 
@@ -60,6 +60,28 @@ sits_label_classification <- function(cube,
         x = inherits(cube, "probs_cube"),
         msg = "input is not probability cube"
     )
+    # precondition 2 - multicores
+    .check_num(x = multicores,
+               len_max = 1,
+               min = 1,
+               allow_zero = FALSE,
+               msg = "multicores must be at least 1")
+
+    # precondition 3 - memory
+    .check_num(x = memsize,
+               len_max = 1,
+               min = 1,
+               allow_zero = FALSE,
+               msg = "memsize must be positive")
+
+    # precondition 4 - output dir
+    .check_file(x = output_dir,
+                msg = "invalid output dir")
+
+    # precondition 5 - version
+    .check_chr(x = version,
+               len_min = 1,
+               msg = "invalid version")
 
     # mapping function to be executed by workers cluster
     .do_map <- function(chunk) {
@@ -80,19 +102,27 @@ sits_label_classification <- function(cube,
     }
 
     # process each brick layer (each tile) individually
-    label_cube <- slider::slide_dfr(cube, function(row) {
+    label_cube <- slider::slide_dfr(cube, function(tile) {
+
+        # get file_info
+        file_info <- .file_info(tile)
 
         # create metadata for labeled raster cube
-        row_label <- .cube_probs_label(
-            cube       = row,
+        tile_label <- .cube_derived_create(
+            cube       = tile,
+            cube_class = "classified_image",
+            band_name  = "class",
+            labels     = .cube_labels(tile),
+            start_date = .file_info_start_date(tile),
+            end_date   = .file_info_end_date(tile),
+            bbox       = .cube_tile_bbox(tile),
             output_dir = output_dir,
-            ext        = "class",
             version    = version
         )
 
         .sits_smooth_map_layer(
-            cube = row,
-            cube_out = row_label,
+            cube = tile,
+            cube_out = tile_label,
             overlapping_y_size = 0,
             func = .do_map,
             multicores = multicores,
@@ -101,7 +131,7 @@ sits_label_classification <- function(cube,
             gdal_options = .config_gtiff_default_options()
         )
 
-        return(row_label)
+        return(tile_label)
     })
 
     class(label_cube) <- unique(c("classified_image", class(label_cube)))

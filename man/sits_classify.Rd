@@ -38,7 +38,7 @@ sits_classify(data, ml_model, ...)
 
 \item{multicores}{number of cores to be used for classification.}
 
-\item{roi}{a region of interest (see above)}
+\item{roi}{a region of interest (see below)}
 
 \item{impute_fn}{impute function to replace NA}
 
@@ -96,7 +96,8 @@ The "roi" parameter defines a region of interest. It can be
    The "memsize" and "multicores" parameters are used for multiprocessing.
    The "multicores" parameter defines the number of cores used for
    processing. The "memsize" parameter  controls the amount of memory
-   available for classification.
+   available for classification. We recommend using a 4:1 relation between
+   "memsize" and "multicores".
 }
 \examples{
 \donttest{
@@ -104,13 +105,13 @@ The "roi" parameter defines a region of interest. It can be
 # Retrieve the samples for Mato Grosso
 # select an extreme gradient boosting model
 samples_2bands <- sits_select(samples_modis_4bands,
-                            bands = c("NDVI", "EVI"))
+                            bands = c("EVI", "NDVI"))
 xgb_model <- sits_train(samples_2bands,
     ml_method = sits_xgboost(verbose = FALSE)
 )
 # classify the point
 point_2bands <- sits_select(point_mt_6bands,
-                            bands = c("NDVI", "EVI"))
+                            bands = c("EVI", "NDVI"))
 point_class <- sits_classify(point_2bands, xgb_model)
 plot(point_class)
 

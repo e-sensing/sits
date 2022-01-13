@@ -32,6 +32,7 @@ sits_bbox <- function(data, wgs84 = FALSE, ...) {
 #' @export
 #'
 sits_bbox.sits <- function(data, ...) {
+
     # is the data a valid set of time series
     .sits_tibble_test(data)
 
@@ -41,8 +42,8 @@ sits_bbox.sits <- function(data, ...) {
     lat_max <- max(data$latitude)
     lat_min <- min(data$latitude)
     # create and return the bounding box
-    bbox <- c(lon_min, lon_max, lat_min, lat_max)
-    names(bbox) <- c("lon_min", "lon_max", "lat_min", "lat_max")
+    bbox <- c(lon_min, lat_min, lon_max, lat_max)
+    names(bbox) <- c("xmin", "ymin", "xmax", "ymax")
     return(bbox)
 }
 
@@ -53,64 +54,52 @@ sits_bbox.sits_cube <- function(data, wgs84 = FALSE, ...) {
     # pre-condition
     .cube_check(data)
 
-    # create and return the bounding box
-    if (nrow(data) == 1) {
-        bbox <- c(xmin = data$xmin,
-                  xmax = data$xmax,
-                  ymin = data$ymin,
-                  ymax = data$ymax)
-    } else {
-        bbox <- c(xmin = min(data$xmin),
-                  xmax = max(data$xmax),
-                  ymin = min(data$ymin),
-                  ymax = max(data$ymax)
-        )
+    if (!wgs84 && length(unique(data[["crs"]])) > 1) {
+        warning("cube has more than one projection - using wgs84 coords")
+        wgs84 <- TRUE
     }
-
-    # convert to WGS84?
     if (wgs84) {
+        bbox_dfr <- slider::slide_dfr(data, function(tile) {
+            # create and return the bounding box
 
-        bbox <- c(
-            .sits_proj_to_latlong(x = bbox[["xmin"]],
-                                  y = bbox[["ymin"]],
-                                  crs = data$crs[[1]]),
-            .sits_proj_to_latlong(x = bbox[["xmax"]],
-                                  y = bbox[["ymax"]],
-                                  crs = data$crs[[1]])
-        )
-
-        names(bbox) <- c("lon_min", "lat_min", "lon_max", "lat_max")
-
-        bbox <- bbox[c("lon_min", "lon_max", "lat_min", "lat_max")]
+            bbox <- .sits_coords_to_bbox_wgs84(
+                xmin = tile[["xmin"]],
+                ymin = tile[["ymin"]],
+                xmax = tile[["xmax"]],
+                ymax = tile[["ymax"]],
+                crs  = tile[["crs"]][[1]])
+            tibble::as_tibble_row(c(bbox))
+        })
     }
+    else {
+        bbox_dfr <- data[c("xmin", "ymin", "xmax", "ymax")]
+    }
+    bbox <- c("xmin" = min(bbox_dfr[["xmin"]]),
+              "ymin" = min(bbox_dfr[["ymin"]]),
+              "xmax" = max(bbox_dfr[["xmax"]]),
+              "ymax" = max(bbox_dfr[["ymax"]])
+    )
 
     return(bbox)
 }
 
+.sits_coords_to_bbox_wgs84 <- function(xmin, xmax, ymin, ymax, crs) {
 
-#' @title Find the bounding box for a set of time series
-#' @name .sits_bbox_time_series
-#' @keywords internal
-#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
-#'
-#' @description Given a set of time series, find the bounding box.
-#'
-#' @param data            A tibble with a set of time series
-#' @return A vector the bounding box
-.sits_bbox_time_series <- function(data) {
-    # check if the data is a time series
-    .sits_tibble_test(data)
-    # return the bounding box
-    bbox <- vector(length = 4)
-    names(bbox) <- c("xmin", "xmax", "ymin", "ymax")
+    pt1 <- c(xmin, ymax)
+    pt2 <- c(xmax, ymax)
+    pt3 <- c(xmax, ymin)
+    pt4 <- c(xmin, ymin)
 
-    bbox["xmin"] <- min(data$longitude)
-    bbox["xmax"] <- max(data$longitude)
-    bbox["ymin"] <- min(data$latitude)
-    bbox["ymax"] <- max(data$latitude)
+    bbox <- sf::st_sfc(
+        sf::st_polygon(list(rbind(pt1, pt2, pt3, pt4, pt1))), crs = crs
+    )
 
-    return(bbox)
+    # create a polygon and transform the proj
+    bbox_latlng <- c(sf::st_bbox(sf::st_transform(bbox, crs = 4326)))
+
+    return(bbox_latlng)
 }
+
 #' @title Intersection between a bounding box and a cube
 #' @name .sits_bbox_intersect
 #' @keywords internal
@@ -122,11 +111,11 @@ sits_bbox.sits_cube <- function(data, wgs84 = FALSE, ...) {
 #'
 .sits_bbox_intersect <- function(bbox, cube) {
     bbox_out <- vector("double", length = 4)
-    names(bbox_out) <- c("xmin", "xmax", "ymin", "ymax")
+    names(bbox_out) <- c("xmin", "ymin", "xmax", "ymax")
 
     if (bbox["xmin"] > cube$xmax |
-        bbox["xmax"] < cube$xmin |
         bbox["ymin"] > cube$ymax |
+        bbox["xmax"] < cube$xmin |
         bbox["ymax"] < cube$ymin) {
         return(NULL)
     }
@@ -137,16 +126,16 @@ sits_bbox.sits_cube <- function(data, wgs84 = FALSE, ...) {
         bbox_out["xmin"] <- bbox["xmin"]
     }
 
-    if (bbox["xmax"] > cube$xmax) {
-        bbox_out["xmax"] <- cube$xmax
-    } else {
-        bbox_out["xmax"] <- bbox["xmax"]
-    }
-
     if (bbox["ymin"] < cube$ymin) {
         bbox_out["ymin"] <- cube$ymin
     } else {
         bbox_out["ymin"] <- bbox["ymin"]
+    }
+
+    if (bbox["xmax"] > cube$xmax) {
+        bbox_out["xmax"] <- cube$xmax
+    } else {
+        bbox_out["xmax"] <- bbox["xmax"]
     }
 
     if (bbox["ymax"] > cube$ymax) {
@@ -157,3 +146,25 @@ sits_bbox.sits_cube <- function(data, wgs84 = FALSE, ...) {
 
     return(bbox_out)
 }
+
+#' @title Convert a bounding box to a sf object (polygon)
+#' @name .sits_bbox_to_sf
+#' @keywords internal
+#' @param xmin,xmax,ymin,ymax  a numeric value with bound box values
+#' @param crs                  a valid crs value
+#' @return a sf object
+#'
+.sits_bbox_to_sf <- function(xmin, xmax, ymin, ymax, crs) {
+
+    pt1 <- c(xmin, ymax)
+    pt2 <- c(xmax, ymax)
+    pt3 <- c(xmax, ymin)
+    pt4 <- c(xmin, ymin)
+
+    sf_obj <- sf::st_sf(geometry = sf::st_sfc(
+        sf::st_polygon(list(rbind(pt1, pt2, pt3, pt4, pt1)))
+    ), crs = crs)
+
+    return(sf_obj)
+}
+

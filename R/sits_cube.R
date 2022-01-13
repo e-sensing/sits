@@ -138,8 +138,9 @@
 #'
 #' @details The \code{roi} parameter allows a selection of an area of interest.
 #' Either using a named \code{vector} ("lon_min", "lat_min", "lon_max", "lat_max") with
-#' values in WGS 84, a \code{sfc} or \code{sf} object from sf package, or a
-#' GeoJSON geometry (RFC 7946). Note that this parameter does not crop a
+#' values in WGS 84, a \code{sfc} or \code{sf} object from sf package in WGS84 projection.
+#' GeoJSON geometries (RFC 7946) and shapefiles should be converted to sf objects before
+#' being used to define a region of interest. This parameter does not crop a
 #' region, but only selects the images that intersect with it.
 #'
 #' @return The description of a data cube
@@ -248,7 +249,7 @@ sits_cube.wtss_cube <- function(source = "WTSS", ...,
 
     # builds a sits data cube
     .source_cube(source = source,
-                 collection = collection)
+                 collection = collection, ...)
 }
 
 #' @rdname sits_cube
@@ -265,10 +266,34 @@ sits_cube.stac_cube <- function(source,
                                 end_date = NULL,
                                 name = NULL) {
 
+    dots <- list(...)
+
+    # deal with wrong parameter "band"
+    if ("band" %in% names(dots) && missing(bands)) {
+        message("please use bands instead of band as parameter")
+        bands <- as.character(dots[["band"]])
+    }
+
+    # deal with wrong parameter "tile"
+    if ("tile" %in% names(dots) && missing(tiles)) {
+        message("please use tiles instead of tile as parameter")
+        tiles <- as.character(dots[["tile"]])
+    }
+
+    if (!is.null(roi) && !is.null(tiles)) {
+        stop(paste("It is not possible to search with roi and tiles.",
+                   "Please provide only roi or tiles."))
+    }
+    # check if roi is provided correctly
+    if (!purrr::is_null(roi)) {
+        roi <- .sits_parse_roi_cube(roi)
+    }
+
     # name parameter has been deprecated
     if (!purrr::is_null(name)) {
         message("name parameter is no longer required")
     }
+
     # source is upper case
     source <- toupper(source)
 
@@ -297,18 +322,18 @@ sits_cube.stac_cube <- function(source,
                         bands = bands)
 
     # dry run to verify if service is running
-    .source_collection_access_test(source = source, ...,
+    .source_collection_access_test(source = source,
                                    collection = collection,
-                                   bands = bands)
+                                   bands = bands, ...)
 
     # builds a sits data cube
-    .source_cube(source = source, ...,
+    .source_cube(source = source,
                  collection = collection,
                  bands = bands,
                  tiles = tiles,
-                 bbox = roi,
+                 roi_sf = roi,
                  start_date = start_date,
-                 end_date = end_date)
+                 end_date = end_date, ...)
 }
 
 #' @rdname sits_cube
@@ -328,8 +353,7 @@ sits_cube.local_cube <- function(source,
 
 
     # precondition - data directory must be provided
-    .check_file(x = data_dir,
-                msg = "data_dir must be to be provided.")
+    .check_file(x = data_dir, msg = "data_dir must be to be provided.")
 
     # compatibility with earlier versions
     if (source == "LOCAL") {
@@ -344,44 +368,53 @@ sits_cube.local_cube <- function(source,
             source <- origin
         }
     }
+
+    # precondition - check source and collection
+    .source_check(source = source)
+    .source_collection_check(source = source, collection = collection)
+
     # name parameter has been deprecated
     if (!purrr::is_null(name)) {
         message("name parameter is no longer required")
     }
-    # precondition - check source and collection
-    .source_check(source = source)
-    .source_collection_check(source = source, collection = collection)
+
+    dots <- list(...)
+
+    # deal with wrong parameter "band"
+    if ("band" %in% names(dots) && missing(bands)) {
+        message("please use bands instead of band as parameter")
+        bands <- as.character(dots[["band"]])
+    }
 
     # precondition - does the parse info have band and date?
     .check_chr_contains(
         parse_info,
         contains = c("tile", "band", "date"),
-        msg = "parse_info must include tile, date, and band.")
+        msg = "parse_info must include tile, date, and band."
+    )
 
     # bands in upper case
     if (!purrr::is_null(bands))
         bands <- toupper(bands)
 
     # builds a sits data cube
-    .source_cube_local_cube(source = source,
-                            collection = collection,
-                            data_dir = data_dir,
-                            parse_info = parse_info,
-                            delim = delim,
-                            bands = bands,
-                            start_date = start_date,
-                            end_date = end_date)
+    .local_cube(source = source,
+                collection = collection,
+                data_dir = data_dir,
+                parse_info = parse_info,
+                delim = delim,
+                bands = bands,
+                start_date = start_date,
+                end_date = end_date, ...)
 }
 
 
 #' @rdname sits_cube
 #'
 #' @export
-sits_cube.satveg_cube <- function(
-    source = "SATVEG",
-    collection = "TERRA",
-    data_dir = NULL,
-    ...) {
+sits_cube.satveg_cube <- function(source = "SATVEG",
+                                  collection = "TERRA",
+                                  data_dir = NULL, ...) {
 
     # verifies if httr package is installed
     if (!requireNamespace("httr", quietly = TRUE)) {
@@ -398,10 +431,10 @@ sits_cube.satveg_cube <- function(
     .source_collection_access_test(source = source, collection = collection)
 
     # creating satveg cube
-    .source_cube(source = source, collection = collection)
+    .source_cube(source = source, collection = collection, ...)
 }
 
 #' @export
-sits_cube.default <- function(source, ...) {
-    stop("source not found.")
+sits_cube.default <- function(source, collection, ...) {
+    stop("sits_cube: source not found.")
 }

@@ -1,6 +1,6 @@
 #' @keywords internal
 #' @export
-.source_collection_access_test.wtss_cube <- function(source, ..., collection) {
+.source_collection_access_test.wtss_cube <- function(source, collection, ...) {
 
     # require package
     if (!requireNamespace("Rwtss", quietly = TRUE)) {
@@ -11,9 +11,8 @@
     coverages <- Rwtss::list_coverages(url)
 
     # is the WTSS service working?
-    .check_null(x = coverages,
-                msg = "WTSS is unreachable"
-    )
+    .check_null(coverages,
+                msg = "WTSS service is unreachable")
 
     # is the cube in the list of cubes?
     .check_chr_within(
@@ -23,25 +22,42 @@
         msg = paste(collection, "not available in the WTSS server")
     )
 
+    # test point
+    point <- .config_get(key = c("sources", source, "point_test"))
+
+    band <- .source_bands(source, collection)[[1]]
+
+    access <-
+        tryCatch({
+            Rwtss::time_series(url, name = collection,
+                               attributes = band,
+                               longitude = point[["longitude"]],
+                               latitude = point[["latitude"]],
+                               token = Sys.getenv("BDC_ACCESS_KEY"))
+        }, error = function(e) NULL)
+
+    # did we get the data?
+    .check_that(!is.null(access),
+                local_msg = "test point returned NULL",
+                msg = "WTSS service is unreachable")
+
     return(invisible(NULL))
 }
 #' @keywords internal
 #' @export
-.source_cube.wtss_cube <- function(source, ...,
-                                   collection,
-                                   name) {
+.source_cube.wtss_cube <- function(source, collection, name, ...) {
 
-    cov <- .source_items_new(source = source, ...,
-                             collection = collection)
+    cov <- .source_items_new(source = source,
+                             collection = collection, ...)
 
-    file_info <- .source_items_fileinfo(source = source, ...,
-                                        collection = collection,
-                                        wtss_cov = cov)
+    file_info <- .source_items_file_info(source = source,
+                                         collection = collection,
+                                         wtss_cov = cov, ...)
 
-    cube <- .source_items_cube(source = source, ...,
+    cube <- .source_items_cube(source = source,
                                collection = collection,
                                items = cov,
-                               file_info = file_info)
+                               file_info = file_info, ...)
 
     return(cube)
 }
@@ -49,7 +65,7 @@
 #' @keywords internal
 #' @export
 .source_items_new.wtss_cube <- function(source = source, ...,
-                                        collection = collection) {
+                                        collection = NULL) {
 
     # set caller to show in errors
     .check_set_caller(".source_items_new.wtss_cube")
@@ -67,9 +83,9 @@
 
 #' @keywords internal
 #' @export
-.source_items_fileinfo.wtss_cube <- function(source, ...,
-                                             collection,
-                                             wtss_cov) {
+.source_items_file_info.wtss_cube <- function(source,
+                                              collection,
+                                              wtss_cov, ...) {
 
     bands <- .source_bands(source = source, collection = collection)
 
@@ -82,10 +98,10 @@
 
 #' @keywords internal
 #' @export
-.source_items_cube.wtss_cube <- function(source, ...,
+.source_items_cube.wtss_cube <- function(source,
                                          collection,
                                          items,
-                                         file_info) {
+                                         file_info, ...) {
 
 
     # create a tibble to store the metadata

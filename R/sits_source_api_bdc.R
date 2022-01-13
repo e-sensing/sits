@@ -10,7 +10,7 @@
            "?access_token=", access_key)
 
     # add gdal vsi in href urls
-    return(.stac_add_gdal_vsi(href))
+    return(.stac_add_gdal_fs(href))
 }
 
 
@@ -50,34 +50,9 @@
 
 #' @keywords internal
 #' @export
-.source_items_tiles_group.bdc_cube <- function(source, ...,
+.source_items_tile.bdc_cube <- function(source, ...,
                                                items,
                                                collection = NULL) {
 
-    rstac::items_group(items, field = c("properties", "bdc:tiles"))
-}
-
-#' @keywords internal
-#' @export
-.source_items_tile_get_crs.bdc_cube <- function(source, ...,
-                                                tile_items,
-                                                collection = NULL) {
-
-    # making request to collection endpoint to get crs info
-    url <- .source_url(source = source)
-    query_search <- rstac::collections(q = rstac::stac(url),
-                                       collection_id = collection)
-
-    col <- rstac::get_request(q = query_search)
-
-    return(col[["bdc:crs"]])
-}
-
-#' @keywords internal
-#' @export
-.source_items_tile_get_name.bdc_cube <- function(source, ...,
-                                                 collection,
-                                                 tile_items) {
-
-    tile_items[["features"]][[1]][[c("properties", "bdc:tiles")]]
+    rstac::items_reap(items, field = c("properties", "bdc:tiles"))
 }

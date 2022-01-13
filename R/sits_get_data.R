@@ -223,7 +223,7 @@ sits_get_data.csv_wtss_cube <- function(cube,
     .cube_bands_check(cube, bands = bands)
 
     # for each row of the input, retrieve the time series
-    data_lst <- purrr::pmap(
+    data <- purrr::pmap_dfr(
         list(csv$longitude,
              csv$latitude,
              csv$start_date,
@@ -243,8 +243,6 @@ sits_get_data.csv_wtss_cube <- function(cube,
             return(row)
         }
     )
-    # unroll the list
-    data <- dplyr::bind_rows(data_lst)
     # check if data has been retrieved
     .sits_get_data_check(nrow(csv), nrow(data))
 
@@ -277,7 +275,7 @@ sits_get_data.csv_satveg_cube <- function(cube, file, ...) {
     end_date_cube <- timeline[length(timeline)]
 
     # for each row of the input, retrieve the time series
-    data_lst <- purrr::pmap(
+    data <- purrr::pmap_dfr(
         list(
             csv$longitude,
             csv$latitude,
@@ -301,8 +299,6 @@ sits_get_data.csv_satveg_cube <- function(cube, file, ...) {
             return(row)
         }
     )
-    # unroll the list
-    data <- dplyr::bind_rows(data_lst)
 
     # check if data has been retrieved
     .sits_get_data_check(nrow(csv), nrow(data))
@@ -344,7 +340,7 @@ sits_get_data.shp_wtss_cube <- function(cube, file, ...,
 
     # read the points
     # for each row of the input, retrieve the time series
-    data_lst <- purrr::pmap(
+    data <- purrr::pmap_dfr(
         list(
             points$longitude,
             points$latitude,
@@ -364,9 +360,6 @@ sits_get_data.shp_wtss_cube <- function(cube, file, ...,
             return(row)
         }
     )
-    # unroll the list
-    data <- dplyr::bind_rows(data_lst)
-
     return(data)
 }
 
@@ -405,7 +398,7 @@ sits_get_data.shp_satveg_cube <- function(cube, file, ...,
 
     # read the points
     # for each row of the input, retrieve the time series
-    data_lst <- purrr::pmap(
+    data <- purrr::pmap_dfr(
         list(
             points$longitude,
             points$latitude,
@@ -423,9 +416,6 @@ sits_get_data.shp_satveg_cube <- function(cube, file, ...,
             return(row)
         }
     )
-    # unroll the list
-    data <- dplyr::bind_rows(data_lst)
-
     return(data)
 }
 
@@ -473,11 +463,11 @@ sits_get_data.raster_cube <- function(cube, file = NULL, ...,
     } else {
         cld_band <- NULL
     }
-
-    ts_rows <- slider::slide(cube, function(row) {
+    # get the time series
+    data <- slider::slide_dfr(cube, function(tile) {
         # get the data
         ts <- .sits_raster_data_get_ts(
-            cube = row,
+            tile = tile,
             points = ll,
             bands = bands,
             cld_band = cld_band,
@@ -485,8 +475,6 @@ sits_get_data.raster_cube <- function(cube, file = NULL, ...,
         )
         return(ts)
     })
-    data <- dplyr::bind_rows(ts_rows)
-
     if (!inherits(data, "sits")) {
         class(data) <- c("sits", class(data))
     }
@@ -536,10 +524,10 @@ sits_get_data.csv_raster_cube <- function(cube, file, ...,
     .sits_parallel_start(workers = multicores, log = FALSE)
     on.exit(.sits_parallel_stop(), add = TRUE)
 
-    ts_rows <- slider::slide(cube, function(tile) {
+    data <- slider::slide_dfr(cube, function(tile) {
         # get the data
         ts <- .sits_raster_data_get_ts(
-            cube = tile,
+            tile = tile,
             points = csv,
             bands = bands,
             cld_band = cld_band,
@@ -547,8 +535,6 @@ sits_get_data.csv_raster_cube <- function(cube, file, ...,
         )
         return(ts)
     })
-    data <- dplyr::bind_rows(ts_rows)
-
     # check if data has been retrieved
     .sits_get_data_check(nrow(csv), nrow(data))
 
@@ -612,10 +598,10 @@ sits_get_data.shp_raster_cube <- function(cube, file, ...,
     on.exit(.sits_parallel_stop(), add = TRUE)
 
     # for each row of the cube, get the points inside
-    ts_rows <- slider::slide(cube, function(row) {
+    data <- slider::slide_dfr(cube, function(tile) {
         # retrieve the data from raster
         ts <- .sits_raster_data_get_ts(
-            cube = row,
+            tile = tile,
             points = points,
             bands = bands,
             cld_band = cld_band,
@@ -623,8 +609,6 @@ sits_get_data.shp_raster_cube <- function(cube, file, ...,
         )
         return(ts)
     })
-    # join the results
-    data <- dplyr::bind_rows(ts_rows)
     # adjust for the class of the data
     if (!inherits(data, "sits")) {
         class(data) <- c("sits", class(data))
@@ -788,7 +772,7 @@ sits_get_data.shp_raster_cube <- function(cube, file, ...,
 
     # retrieve the time series from the service
     tryCatch({
-        ts <- Rwtss::time_series(URL = cube$file_info[[1]]$path[[1]],
+        ts <- Rwtss::time_series(URL = .file_info_path(cube),
                                  name = cube$collection,
                                  attributes = bands,
                                  longitude = longitude,
@@ -915,9 +899,6 @@ sits_get_data.shp_raster_cube <- function(cube, file, ...,
         if (label != "NoClass") {
             ts$label <- label
         }
-        # convert name
-        ts <- .sits_tibble_rename(ts)
-        # band names are uppercase in SITS
     }
 
     # return the tibble with the time series

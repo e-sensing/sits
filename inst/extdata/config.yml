@@ -12,9 +12,6 @@ raster_api_package      : "terra"
 # GDAL GTiff default creation options
 gdal_creation_options   : ["COMPRESS=LZW", "BIGTIFF=YES"]
 
-# configuration for gdalcubes chunk
-gdalcubes_chunk_size   : [1, 2048, 2048]
-
 # maxbytes for leaflet (in MB)
 leaflet_max_Mbytes : 16
 # estimated compression factor for leaflet
@@ -70,13 +67,15 @@ sources:
                 collection_name: "CB4_64-1"
                 token_vars  :  ["BDC_ACCESS_KEY"]
                 open_data   : true
-                open_data_token       : true
+                open_data_token : true
+                metadata_search : "tile"
             CB4_64_16D_STK-1:
                 <<: *bdc_cb4
                 collection_name: "CB4_64_16D_STK-1"
                 token_vars  :  ["BDC_ACCESS_KEY"]
                 open_data   : true
-                open_data_token       : true
+                open_data_token : true
+                metadata_search : "tile"
             CB4MUX_20-1     : &bdc_cb4_mux
                 bands       :
                     NDVI    : &bdc_mux_ndvi
@@ -121,7 +120,8 @@ sources:
                 collection_name: "CB4MUX_20-1"
                 token_vars  :  ["BDC_ACCESS_KEY"]
                 open_data   : true
-                open_data_token       : true
+                open_data_token : true
+                metadata_search : "tile"
             CB4_20_1M_STK-1 : &bdc_cb4_mux_stk
                 bands:
                     NDVI    : *bdc_mux_ndvi
@@ -147,6 +147,7 @@ sources:
                 token_vars  :  ["BDC_ACCESS_KEY"]
                 open_data   : true
                 open_data_token: true
+                metadata_search : "tile"
             LC8_30-1        : &bdc_lc8
                 bands       :
                     NDVI    : &bdc_oli_ndvi
@@ -204,12 +205,14 @@ sources:
                 token_vars  :  ["BDC_ACCESS_KEY"]
                 open_data   : true
                 open_data_token: true
+                metadata_search : "tile"
             LC8_30_16D_STK-1:
                 <<: *bdc_lc8
                 collection_name: "LC8_30_16D_STK-1"
                 token_vars  :  ["BDC_ACCESS_KEY"]
                 open_data   : true
                 open_data_token: true
+                metadata_search : "tile"
             MOD13Q1-6       : &bdc_mod
                 bands       :
                     NDVI              : &bdc_modis_ndvi
@@ -257,6 +260,7 @@ sources:
                 token_vars  :  ["BDC_ACCESS_KEY"]
                 open_data   : true
                 open_data_token: true
+                metadata_search : "tile"
             MYD13Q1-6       :
                 <<: *bdc_mod
                 satellite   : "AQUA"
@@ -264,6 +268,7 @@ sources:
                 collection_name: "MYD13Q1-6"
                 open_data   : true
                 open_data_token: true
+                metadata_search : "tile"
             S2-SEN2COR_10_16D_STK-1: &bdc_s2_sen2cor
                 bands       :
                     NDVI    : &bdc_sen2cor_msi_ndvi
@@ -342,6 +347,7 @@ sources:
                 token_vars  :  ["BDC_ACCESS_KEY"]
                 open_data   : true
                 open_data_token: true
+                metadata_search : "tile"
             LANDSAT-MOZ_30_1M_STK-1: &bdc_lc8
                 bands       :
                     NDVI    : &bdc_oli_ndvi
@@ -401,10 +407,14 @@ sources:
                 token_vars  :  ["BDC_ACCESS_KEY"]
                 open_data   : true
                 open_data_token: true
+                metadata_search : "tile"
     WTSS                    :
         s3_class            : ["wtss_cube"]
         service             : "WTSS"
         url                 : "https://brazildatacube.dpi.inpe.br/wtss/"
+        point_test          :
+            longitude       : -55.50563
+            latitude        : -11.71557
         collections         :
             MOD13Q1-6       :
                 <<: *bdc_mod
@@ -581,8 +591,9 @@ sources:
                     AWS_S3_ENDPOINT      : "s3.amazonaws.com"
                     AWS_REQUEST_PAYER    : "requester"
                 open_data   : false
-                gdalcubes_format_col : "s2la_aws.json"
+                gdalcubes_support : true
                 gdalcubes_type_format: "int16"
+                metadata_search : "tile"
             SENTINEL-S2-L2A-COGS :
                 bands       :
                     B01     : &aws_cog_msi_60m
@@ -662,8 +673,9 @@ sources:
                     AWS_S3_ENDPOINT      : "s3.amazonaws.com"
                 open_data: true
                 open_data_token: false
-                gdalcubes_format_col : "s2la_aws_cogs.json"
+                gdalcubes_support : true
                 gdalcubes_type_format: "int16"
+                metadata_search : "tile"
     DEAFRICA                :
         s3_class            : ["deafrica_cube", "stac_cube", "raster_cube"]
         service             : "STAC"
@@ -748,8 +760,9 @@ sources:
                     AWS_S3_ENDPOINT   : "s3.af-south-1.amazonaws.com"
                 open_data: true
                 open_data_token: false
-                gdalcubes_format_col : "s2_l2a_deafrica.json"
+                gdalcubes_support : true
                 gdalcubes_type_format: "int16"
+                metadata_search : "tile"
             LS8_SR          : &deafrica_l8
                 bands       :
                     B01     : &deafrica_oli_30m
@@ -805,8 +818,9 @@ sources:
                     AWS_S3_ENDPOINT   : "s3.af-south-1.amazonaws.com"
                 open_data: true
                 open_data_token: false
-                gdalcubes_format_col : "ls8_sr_deafrica.json"
+                gdalcubes_support : true
                 gdalcubes_type_format: "int16"
+                metadata_search : "feature"
     USGS                    :
         s3_class            : ["usgs_cube", "stac_cube", "raster_cube"]
         service             : "STAC"
@@ -871,8 +885,9 @@ sources:
                 open_data: false
                 open_data_token: false
                 tile_required: false
-                gdalcubes_format_col : "l8c2l2_usgs.json"
+                gdalcubes_support : true
                 gdalcubes_type_format: "int16"
+                metadata_search : "feature"
     MSPC                    :
         s3_class            : ["mspc_cube", "stac_cube", "raster_cube"]
         service             : "STAC"
@@ -933,8 +948,9 @@ sources:
                 open_data: true
                 open_data_token: false
                 tile_required: false
-                gdalcubes_format_col : "landsat_8_c2_l2_mspc.json"
+                gdalcubes_support : true
                 gdalcubes_type_format: "int16"
+                metadata_search : "feature"
             SENTINEL-2-L2A  : &mspc_msi
                 bands       :
                     B01     : &mspc_msi_60m
@@ -1011,5 +1027,6 @@ sources:
                 collection_name: "sentinel-2-l2a"
                 open_data: true
                 open_data_token: false
-                gdalcubes_format_col : "sentinel_2_l2a_mspc.json"
+                gdalcubes_support : true
                 gdalcubes_type_format: "int16"
+                metadata_search : "tile"

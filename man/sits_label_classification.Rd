@@ -6,8 +6,8 @@
 \usage{
 sits_label_classification(
   cube,
-  multicores = 1,
-  memsize = 1,
+  multicores = 2,
+  memsize = 4,
   output_dir = ".",
   version = "v1"
 )

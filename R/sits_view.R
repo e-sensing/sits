@@ -6,6 +6,7 @@
 #'
 #' @param  x             object of class "sits", "raster_cube" or "classified image"
 #' @param  ...           further specifications for \link{sits_view}.
+#' @param  band          for plotting grey images
 #' @param  red           band for red color.
 #' @param  green         band for green color.
 #' @param  blue          band for blue color.
@@ -19,12 +20,17 @@
 #'
 #' @examples
 #' \donttest{
+#' # view a collection of time series
+#' sits_view(samples_modis_4bands)
+#'
+#' # view a temporal instance of a cube
+#'
 #' data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
 #'
 #' modis_cube <- sits_cube(
 #'     source = "BDC",
 #'     collection = "MOD13Q1-6",
-#'     band = "NDVI",
+#'     band = c("NDVI", "EVI"),
 #'     data_dir = data_dir,
 #'     parse_info = c("X1", "X2", "tile", "band", "date")
 #' )
@@ -48,8 +54,7 @@ sits_view <- function(x, ...){
 #' @rdname   sits_view
 #'
 #' @export
-sits_view.sits <- function(x,
-                           ...,
+sits_view.sits <- function(x, ...,
                            legend = NULL,
                            palette = "Harmonic") {
 
@@ -126,9 +131,10 @@ sits_view.sits <- function(x,
 #'
 #' @export
 sits_view.raster_cube <- function(x, ...,
-                                  red,
-                                  green,
-                                  blue,
+                                  band = NULL,
+                                  red = NULL,
+                                  green = NULL,
+                                  blue = NULL,
                                   tile  = 1,
                                   times = c(1),
                                   class_cube = NULL,
@@ -179,13 +185,25 @@ sits_view.raster_cube <- function(x, ...,
     # get the maximum number of bytes to be displayed
     max_Mbytes <- .config_get(key = "leaflet_max_Mbytes")
 
+    # for plotting grey images
+    if (!purrr::is_null(band)) {
+        red = band
+        green = band
+        blue = band
+    }
+    else {
+        if (purrr::is_null(red) || purrr::is_null(green) || purrr::is_null(blue))
+            stop("missing red, green, or blue bands")
+    }
+
+
     # filter the cube for the bands to be displayed
     cube_bands <- sits_select(x, bands = c(red, green, blue))
 
     # plot only the selected tiles
     # select only the bands for the times chosen
     r_objs <- purrr::map(times, function(t) {
-        bands_date <- x$file_info[[1]] %>%
+        bands_date <- .file_info(x) %>%
             dplyr::filter(date == as.Date(timeline[[t]]))
 
         # get RGB files for the requested timeline
@@ -413,7 +431,9 @@ sits_view.classified_image <- function(x,...,
     labels <- sits_labels(class_cube)
 
     # obtain the raster
-    r_obj <- suppressWarnings(raster::raster(class_cube[tile,]$file_info[[1]]$path[[1]]))
+    r_obj <- suppressWarnings(
+        raster::raster(.file_info_path(class_cube[tile,]))
+    )
     # did we get the data?
     .check_that(
         x = raster::ncol(r_obj) > 0 &&
