@@ -12,6 +12,8 @@
 #' cubes, it materializes a new band in `output_dir` using `gdalcubes`.
 #'
 #' @param data          Valid sits tibble or cube
+#' @param memsize           memory available for classification (in GB).
+#' @param multicores        number of cores to be used for classification.
 #' @param output_dir    Directory where files will be saved.
 #' @param ...           Named expressions to be evaluated.
 #'
@@ -47,7 +49,8 @@ sits_apply.sits <- function(data, ...) {
 #' @rdname sits_apply
 #' @export
 sits_apply.raster_cube <- function(data, ...,
-                                   impute_fn = sits_impute_linear(),
+                                   memsize = 1,
+                                   multicores = 2,
                                    output_dir = getwd()) {
 
     .check_set_caller("sits_apply.raster_cube")
@@ -56,117 +59,170 @@ sits_apply.raster_cube <- function(data, ...,
     list_expr <- lapply(substitute(list(...), env = environment()),
                         unlist, recursive = F)[-1]
 
-    # get new band names from expression
-    .check_lst(list_expr, min_len = 1, msg = "invalid expression value")
+    # check bands names from expression
+    .check_lst(list_expr, min_len = 1, max_len = 1,
+               msg = "invalid expression value")
 
-    # get all input bands
+    # get all input bands in cube data
     in_bands <- .cube_bands(data)
 
+    # get out band
+    out_band <- toupper(names(list_expr))
+    names(list_expr) <- out_band
+
+    # define function to give a name to output new file
+    out_file_name <- function(tile_name, band, date, output_dir) {
+        # prepare file name
+        file_prefix <- paste("cube", tile_name, band, date, sep = "_")
+        file_name <- paste(file_prefix, "tif", sep = ".")
+        file_path <- paste(output_dir, file_name, sep = "/")
+        return(file_path)
+    }
+
+    # define function to return a file_info of created band
+    out_file_info <- function(in_fi_fid, band, output_file) {
+
+        tibble::tibble(
+            fid = in_fi_fid[["fid"]][[1]],
+            date = in_fi_fid[["date"]][[1]],
+            band = band,
+            xmin = in_fi_fid[["xmin"]][[1]],
+            xmax = in_fi_fid[["xmax"]][[1]],
+            ymin = in_fi_fid[["ymin"]][[1]],
+            ymax = in_fi_fid[["ymax"]][[1]],
+            xres = in_fi_fid[["xres"]][[1]],
+            yres = in_fi_fid[["yres"]][[1]],
+            nrows = in_fi_fid[["nrows"]][[1]],
+            ncols = in_fi_fid[["ncols"]][[1]],
+            path = output_file)
+    }
+
     # find which bands are in input expressions
-    char_exprs <- paste(unlist(lapply(list_expr, deparse)), collapse = " ")
-    used_bands <- purrr::map_lgl(in_bands, grepl, char_exprs)
+    char_expr <- toupper(deparse(list_expr[[out_band]]))
+    used_bands <- purrr::map_lgl(in_bands, grepl, char_expr)
 
     # pre-condition
     .check_that(any(used_bands),
                 local_msg = "no valid band was informed",
                 msg = "invalid expression value")
 
-    # select used bands
+    # get input bands
     in_bands <- in_bands[used_bands]
 
-    # TODO: dryrun expression
+    # TODO: dry run expression
+
+
+    # prepare parallelization
+    .sits_parallel_start(workers = multicores, log = FALSE)
+    on.exit(.sits_parallel_stop(), add = TRUE)
 
     # traverse each tile
     result <- slider::slide_dfr(data, function(tile) {
 
-        # get file_info filtered by bands
-        in_file_info <- .file_info(tile)
-
+        # get all fids for this tile
         fids <- .file_info_fids(tile)
-        # tile[["file_info"]][[1]] <- purrr::map_dfr(fids, function(fid) {
 
-        # traverse each date in file info
-        out_file_info <- purrr::map_dfr(fids, function(fid) {
+        # traverse each fid
+        file_info <- purrr::map_dfr(fids, function(fid) {
 
-            # filter fid
-            in_file_info_fid <- in_file_info %>%
-                dplyr::filter(.data[["fid"]] == !!fid)
+            # get file_info filtered by bands
+            in_fi_fid <- .file_info(tile, bands = in_bands,
+                                    fid = fid)
 
-            # filter bands
-            in_files <- in_file_info_fid %>%
-                dplyr::filter(.data[["band"]] == !!in_bands) %>%
-                dplyr::select(dplyr::all_of(c("band", "path"))) %>%
-                tidyr::pivot_wider(names_from = "band",
-                                   values_from = "path")
+            # prepare output file name
+            out_file_path <- out_file_name(
+                tile_name = .cube_tiles(tile),
+                band = out_band,
+                date = in_fi_fid[["date"]][[1]],
+                output_dir = output_dir)
 
-            # get input bands
-            in_bands <- names(in_files)
+            # check if output file exists and returns it
+            if (file.exists(out_file_path)) {
+                return(out_file_info(in_fi_fid = in_fi_fid,
+                                     band = out_band,
+                                     output_file = out_file_path))
+            }
 
-            # load bands data
-            in_values <- purrr::map(in_bands, function(band) {
-
-                # get the missing values, minimum values and scale factors
-                missing_value <- .cube_band_missing_value(data, band = band)
-                minimum_value <- .cube_band_minimum_value(data, band = band)
-                maximum_value <- .cube_band_maximum_value(data, band = band)
-
-                # scale the data set
-                scale_factor <- .cube_band_scale_factor(data, band = band)
-                offset_value <- .cube_band_offset_value(data, band = band)
-
-                # read the values
-                values <- .raster_read_stack(in_files[[band]])
-
-                # correct NA, minimum, maximum, and missing values
-                values[values == missing_value] <- NA
-                values[values < minimum_value] <- NA
-                values[values > maximum_value] <- NA
-
-                # compute scale and offset
-                values <- scale_factor * values + offset_value
-
-                return(values)
-
-            })
-
-            # set band names
-            names(in_values) <- names(in_files)
-
-            # get new band names
-            new_bands <- toupper(unique(names(list_expr)))
-
-            # pre-condition
-            .check_length(new_bands, len_min = length(list_expr),
-                          len_max = length(list_expr),
-                          msg = "invalid new bands name")
+            # divide the input data in blocks
+            blocks <- .sits_raster_blocks_apply(
+                tile = tile,
+                sub_image = .sits_raster_sub_image_default(tile),
+                memsize = memsize,
+                multicores = multicores)
 
             # save each output value
-            output_files <- purrr::map_chr(new_bands, function(new_band) {
+            blocks_path <- .sits_parallel_map(blocks, function(b) {
 
-                file_prefix <- paste("cube", tile[["tile"]], new_band,
-                                     in_file_info_fid[["date"]][[1]],
-                                     sep = "_")
-                file_name <- paste(file_prefix, "tif", sep = ".")
-                file_path <- paste(output_dir, file_name, sep = "/")
 
-                if (file.exists(file_path))
-                    return(file_path)
+                # define the file name of the raster file to be written
+                filename_block <- paste0(
+                    tools::file_path_sans_ext(out_file_path),
+                    "_block_", b[["first_row"]], "_", b[["nrows"]], ".tif")
+
+                # load bands data
+                in_values <- purrr::map(in_bands, function(band) {
+
+                    # transform file_info columns as bands and values
+                    # as paths
+                    in_files <- in_fi_fid %>%
+                        dplyr::select(dplyr::all_of(c("band", "path"))) %>%
+                        tidyr::pivot_wider(names_from = "band",
+                                           values_from = "path")
+
+                    # get the missing values, minimum values and scale
+                    # factors
+                    missing_value <-
+                        .cube_band_missing_value(data, band = band)
+                    minimum_value <-
+                        .cube_band_minimum_value(data, band = band)
+                    maximum_value <-
+                        .cube_band_maximum_value(data, band = band)
+
+                    # scale the data set
+                    scale_factor <-
+                        .cube_band_scale_factor(data, band = band)
+                    offset_value <-
+                        .cube_band_offset_value(data, band = band)
+
+                    # read the values
+                    values <- .raster_read_stack(in_files[[band]],
+                                                 block = b)
+
+                    # correct NA, minimum, maximum, and missing values
+                    values[values == missing_value] <- NA
+                    values[values < minimum_value] <- NA
+                    values[values > maximum_value] <- NA
+
+                    # compute scale and offset
+                    values <- scale_factor * values + offset_value
+
+                    return(values)
+                })
+
+                # set band names
+                names(in_values) <- in_bands
 
                 # evaluate expressions, scale and offset values
-                out_values <- eval(list_expr[[new_band]], in_values) /
+                out_values <- eval(list_expr[[out_band]], in_values)
+
+                # apply scale and offset
+                out_values <- out_values /
                     .config_get("raster_cube_scale_factor") -
                     .config_get("raster_cube_offset_value")
 
+                # compute block spatial parameters
+                params <- .cube_params_block(tile, block = b)
+
                 # new raster
                 r_obj <- .raster_new_rast(
-                    nrows = in_file_info_fid[["nrows"]][[1]],
-                    ncols = in_file_info_fid[["ncols"]][[1]],
-                    xmin = in_file_info_fid[["xmin"]][[1]],
-                    xmax = in_file_info_fid[["xmax"]][[1]],
-                    ymin = in_file_info_fid[["ymin"]][[1]],
-                    ymax = in_file_info_fid[["ymax"]][[1]],
+                    nrows = params[["nrows"]],
+                    ncols = params[["ncols"]],
+                    xmin = params[["xmin"]],
+                    xmax = params[["xmax"]],
+                    ymin = params[["ymin"]],
+                    ymax = params[["ymax"]],
                     nlayers = 1,
-                    crs = tile[["crs"]])
+                    crs = params[["crs"]])
 
                 # set values
                 r_obj <- .raster_set_values(r_obj, out_values)
@@ -174,40 +230,42 @@ sits_apply.raster_cube <- function(data, ...,
                 # write values
                 .raster_write_rast(
                     r_obj = r_obj,
-                    file = file_path,
+                    file = filename_block,
                     format = "GTiff",
                     data_type = .config_get("raster_cube_data_type"),
                     gdal_options = .config_gtiff_default_options(),
                     overwrite = FALSE)
 
-                return(file_path)
-            })
+                # clean memory
+                gc()
 
-            # clean memory
-            gc()
+                return(filename_block)
+            }, progress = FALSE)
+
+            # join predictions
+            .raster_merge(
+                in_files = unlist(blocks_path),
+                out_file = out_file_path,
+                format = "GTiff",
+                gdal_datatype = .raster_gdal_datatype(
+                    .config_get("raster_cube_data_type")),
+                gdal_options = .config_gtiff_default_options(),
+                overwrite = TRUE
+            )
 
             # prepare output file_info
-            out_file_info_fid <- tibble::tibble(
-                fid = in_file_info_fid[["fid"]][[1]],
-                date = in_file_info_fid[["date"]][[1]],
-                band = new_bands,
-                xmin = in_file_info_fid[["xmin"]][[1]],
-                xmax = in_file_info_fid[["xmax"]][[1]],
-                ymin = in_file_info_fid[["ymin"]][[1]],
-                ymax = in_file_info_fid[["ymax"]][[1]],
-                xres = in_file_info_fid[["xres"]][[1]],
-                yres = in_file_info_fid[["yres"]][[1]],
-                nrows = in_file_info_fid[["nrows"]][[1]],
-                ncols = in_file_info_fid[["ncols"]][[1]],
-                path = output_files)
+            out_file_info_fid <- out_file_info(
+                in_fi_fid = in_fi_fid,
+                band = out_band,
+                output_file = out_file_path)
 
             return(out_file_info_fid)
         })
 
 
-        out_file_info <- out_file_info %>%
-            dplyr::bind_rows(in_file_info) %>%
-            dplyr::arrange(date, band)
+        file_info <-  dplyr::bind_rows(file_info, .file_info(tile)) %>%
+            dplyr::arrange(dplyr::across(
+                dplyr::all_of(c("date", "band", "fid"))))
 
         out_tile <- .cube_create(
             source = .cube_source(tile),
@@ -223,7 +281,7 @@ sits_apply.raster_cube <- function(data, ...,
             ymax = tile[["ymax"]],
             crs = tile[["crs"]],
             labels = tile[["labels"]],
-            file_info = out_file_info)
+            file_info = file_info)
 
         return(out_tile)
     })
