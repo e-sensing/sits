@@ -3,8 +3,9 @@
 #' @keywords internal
 #' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
 #'
-#' @param  cube         input data cube
-#' @param  bands        bands to be filtered
+#' @param cube    input data cube
+#' @param bands   bands to be filtered
+#' @param fid     feature id (fid) to be filtered
 #'
 #' @return vector with requested information
 NULL
@@ -15,7 +16,7 @@ NULL
 #' Return the file info for a cube with a single tile
 #' Filter by bands if required
 #'
-.file_info <- function(cube, bands = NULL) {
+.file_info <- function(cube, bands = NULL, fid = NULL) {
 
     # pre-condition - one tile at a time
     .check_num(nrow(cube), min = 1, max = 1, is_integer = TRUE,
@@ -28,6 +29,14 @@ NULL
     if (!is.null(bands)) {
         .cube_bands_check(cube, bands = bands)
         file_info <- file_info[file_info$band %in% bands, ]
+    }
+
+    # filter fid
+    if (!is.null(fid)) {
+        fids <- .file_info_fids(cube)
+        .check_chr_contains(paste0(fids), contains = paste0(fid),
+                            msg = "invalid fid value")
+        file_info <- file_info[file_info$fid == fid, ]
     }
 
     return(file_info)
