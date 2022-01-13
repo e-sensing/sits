@@ -246,14 +246,22 @@
                     event      = "end classification")
 
     # join predictions
+    out_file = .file_info_path(probs_cube)
     .raster_merge(
         in_files = filenames,
-        out_file = .file_info_path(probs_cube),
+        out_file = out_file,
         format = "GTiff",
         gdal_datatype = .raster_gdal_datatype(.config_get("probs_cube_data_type")),
         gdal_options = .config_gtiff_default_options(),
         overwrite = TRUE
     )
+
+    # adjust nrows and ncols
+    r_obj <- sits:::.raster_open_rast(out_file)
+    file_info <- .file_info(probs_cube)
+    file_info$nrows <- nrow(r_obj)
+    file_info$ncols <- ncol(r_obj)
+    probs_cube$file_info[[1]] <- file_info
 
     # log
     .sits_debug_log(output_dir = output_dir,

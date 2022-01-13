@@ -34,8 +34,9 @@
 
     .sits_fast_apply(data = cube, col = "file_info", fn = function(x) {
 
-        tl_length <- max(2, lubridate::interval(
-            start = min(x[["date"]]), end = max(x[["date"]])) / duration
+        tl_length <- max(2,
+            lubridate::interval(start = min(x[["date"]]),
+                                end = max(x[["date"]])) / duration
         )
 
         dplyr::group_by(x, date_interval = cut(.data[["date"]], tl_length),
