@@ -16,7 +16,7 @@
 \alias{.file_info_bands}
 \title{Functions to work with file info tibble}
 \usage{
-.file_info(cube, bands = NULL)
+.file_info(cube, bands = NULL, fid = NULL)
 
 .file_info_nrows(cube)
 
@@ -44,6 +44,8 @@
 \item{cube}{input data cube}
 
 \item{bands}{bands to be filtered}
+
+\item{fid}{feature id (fid) to be filtered}
 }
 \value{
 vector with requested information

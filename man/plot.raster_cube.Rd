@@ -4,7 +4,17 @@
 \alias{plot.raster_cube}
 \title{Plot RGB data cubes}
 \usage{
-\method{plot}{raster_cube}(x, ..., band = NULL, red, green, blue, tile = 1, time = 1, roi = NULL)
+\method{plot}{raster_cube}(
+  x,
+  ...,
+  band = NULL,
+  red = NULL,
+  green = NULL,
+  blue = NULL,
+  tile = 1,
+  time = 1,
+  roi = NULL
+)
 }
 \arguments{
 \item{x}{object of class "raster_cube" or "classified image"}
