@@ -392,6 +392,15 @@
 
     res <- .cube_resolution(cube)
 
+    if (!purrr::is_null(bbox)) {
+        sub_image <- .sits_raster_sub_image(tile = cube, roi = bbox)
+        nrows_cube_class <-  sub_image[["nrows"]]
+        ncols_cube_class <-  sub_image[["ncols"]]
+    } else {
+        nrows_cube_class <- .file_info_nrows(cube)
+        ncols_cube_class <- .file_info_ncols(cube)
+    }
+
     # set the file information
     file_info <- tibble::tibble(
         band       = band_name,
@@ -403,8 +412,8 @@
         ymax       = bbox[["ymax"]],
         xres       = res[["xres"]],
         yres       = res[["yres"]],
-        nrows      = .file_info_nrows(cube),
-        ncols      = .file_info_ncols(cube),
+        nrows      = nrows_cube_class,
+        ncols      = ncols_cube_class,
         path       = file_name
     )
     # get source and collection
@@ -554,21 +563,17 @@
     .check_num(nrow(cube), min = 1, max = 1, is_integer = TRUE,
                msg = "process one tile at a time")
 
-    size <- .cube_size(cube)
-    nrows <- size[["nrows"]]
-    ncols <- size[["ncols"]]
-
     # pre-conditions
-    .check_num(block[["first_row"]], min = 1, max = nrows,
+    .check_num(block[["first_row"]], min = 1, max = .cube_size(cube)[["nrows"]],
                msg = "invalid block value")
 
-    .check_num(block[["first_col"]], min = 1, max = ncols,
+    .check_num(block[["first_col"]], min = 1, max = .cube_size(cube)[["ncols"]],
                msg = "invalid block value")
 
-    .check_num(block[["nrows"]], min = 1, max = nrows,
+    .check_num(block[["nrows"]], min = 1, max = .cube_size(cube)[["nrows"]],
                msg = "invalid block value")
 
-    .check_num(block[["ncols"]], min = 1, max = ncols,
+    .check_num(block[["ncols"]], min = 1, max = .cube_size(cube)[["ncols"]],
                msg = "invalid block value")
 
     res <- .cube_resolution(cube)

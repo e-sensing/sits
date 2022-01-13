@@ -1,24 +1,56 @@
 test_that("One-year, multi-core classification in parallel", {
+    testthat::skip_on_cran()
 
-    s2_cube <- sits_cube(
-        source = "MSPC",
-        collection = "SENTINEL-2-L2A",
-        tiles = c("20LKP"),
-        bands = c("B8A", "B11", "CLOUD"),
-        start_date = "2018-07-12",
-        end_date = "2019-07-28"
-    )
+    l8_cube <- tryCatch({
+        sits_cube(
+            source = "BDC",
+            collection = "LC8_30_16D_STK-1",
+            tiles = c("038047"),
+            bands = c("NDVI", "EVI", "CLOUD"),
+            start_date = "2018-07-12",
+            end_date = "2019-07-28"
+        )
+    }, error = function(e) {
+        return(NULL)
+    })
+
+    testthat::skip_if(purrr::is_null(l8_cube),
+                      message = "BDC is not accessible")
+
+    rfor_model <- sits_train(samples_l8_rondonia_2bands, sits_rfor())
+
+    roi <- c("lon_min" = -65.2313, "lat_min" = -10.5411,
+             "lon_max" = -64.6915, "lat_max" = -10.3122)
+
     dir_images <-  paste0(tempdir(), "/images/")
-
     if (!dir.exists(dir_images))
         suppressWarnings(dir.create(dir_images))
 
-    gc_cube <- sits_regularize(
-        cube        = s2_cube,
-        output_dir  = dir_images,
-        res         = 40,
-        period      = "P16D",
-        multicores = 4)
+
+    l8_probs <- sits_classify(l8_cube,
+                              rfor_model,
+                              roi = roi,
+                              memsize = 24,
+                              multicores = 2,
+                              output_dir = dir_images)
+
+
+    r_obj <- sits:::.raster_open_rast(.file_info_path(l8_probs))
+
+    expect_true(l8_probs[["xmin"]] > l8_cube[["xmin"]])
+    expect_true(l8_probs[["xmax"]] < l8_cube[["xmax"]])
+
+    expect_true(sits:::.raster_nrows(r_obj) < sits:::.cube_size(l8_cube)[["nrows"]])
+    expect_equal(sits:::.raster_nrows(r_obj),  sits:::.cube_size(l8_probs)[["nrows"]])
+
+    max_lyr2 <- max(sits:::.raster_get_values(r_obj)[, 2])
+    expect_true(max_lyr2 <= 10000)
+
+    max_lyr3 <- max(sits:::.raster_get_values(r_obj)[, 3])
+    expect_true(max_lyr3 <= 10000)
+
+    min_lyr3 <- min(sits:::.raster_get_values(r_obj)[, 3])
+    expect_true(min_lyr3 >= 0)
 
 })
 

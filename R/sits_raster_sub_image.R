@@ -162,33 +162,31 @@
 
     # find the first row (remember that rows runs from top to bottom and
     # Y coordinates increase from bottom to top)
-    si[["first_row"]] <- unname(
-        floor((tile[["ymax"]] - bbox[["ymax"]]) / res[["yres"]])) + 1
+    si[["first_row"]] <- floor((tile[["ymax"]] - bbox[["ymax"]]) / res[["yres"]]) + 1
+
+    # adjust Y coords to fit bbox in cube resolution
+    si[["ymax"]] <- tile[["ymax"]] - res[["yres"]] * (si[["first_row"]] - 1)
+
+    # find the number of rows (remember that rows runs from top to bottom and
+    # Y coordinates increase from bottom to top)
+    si[["nrows"]] <- ceiling((si[["ymax"]] - bbox[["ymin"]]) / res[["yres"]])
 
     # adjust to fit bbox in cube resolution
-    si[["ymax"]] <- tile[["ymax"]] - res[["yres"]] * (si[["first_row"]] - 1)
+    si[["ymin"]] <- max(si[["ymax"]] - res[["yres"]] * si[["nrows"]], tile[["ymin"]])
 
     # find the first col (remember that rows runs from left to right and
     # X coordinates increase from left to right)
-    si[["first_col"]] <- unname(
-        floor((bbox[["xmin"]] - tile[["xmin"]]) / res[["xres"]])) + 1
+    si[["first_col"]] <- floor((bbox[["xmin"]] - tile[["xmin"]]) / res[["xres"]]) + 1
 
     # adjust to fit bbox in cube resolution
     si[["xmin"]] <- tile[["xmin"]] + res[["xres"]] * (si[["first_col"]] - 1)
 
-    # find the number of rows (remember that rows runs from top to bottom and
+    # find the number of cols (remember that rows runs from top to bottom and
     # Y coordinates increase from bottom to top)
-    si[["nrows"]] <- unname(
-        floor((bbox[["ymax"]] - bbox[["ymin"]]) / res[["yres"]])) + 1
+    si[["ncols"]] <- ceiling((bbox[["xmax"]] - si[["xmin"]]) / res[["xres"]])
 
     # adjust to fit bbox in cube resolution
-    si[["ymin"]] <- si[["ymax"]] - res[["yres"]] * si[["nrows"]]
-
-    si[["ncols"]] <- unname(
-        floor((bbox[["xmax"]] - bbox[["xmin"]]) / res[["xres"]])) + 1
-
-    # adjust to fit bbox in cube resolution
-    si[["xmax"]] <- si[["xmin"]] + res[["xres"]] * si[["ncols"]]
+    si[["xmax"]] <- min(si[["xmin"]] + res[["xres"]] * si[["ncols"]], tile[["xmax"]])
 
     # pre-conditions
     .check_num(si[["xmin"]], max = si[["xmax"]],

@@ -41,7 +41,7 @@ test_that("One-year, multicore classification with ROI", {
     # expect_true(.raster_nrows(rc_obj) == sinop_probs$nrows)
 
     bbox_p <- sits_bbox(sinop_probs)
-    expect_lte(bbox["xmax"], bbox_p["xmax"])
+    expect_lte(bbox[["xmax"]], bbox_p[["xmax"]])
     expect_lte(bbox["xmin"], bbox_p["xmin"])
     expect_lte(bbox["ymax"], bbox_p["ymax"])
     expect_lte(bbox["ymin"], bbox_p["ymin"])
@@ -122,12 +122,14 @@ test_that("Internal functions in ROI", {
     )
     # create a roi
     roi <- sits_bbox(cube)
-    x_size <- as.numeric(roi["xmax"] - roi["xmin"])
-    y_size <- as.numeric(roi["ymax"] - roi["ymin"])
+    x_size <- as.numeric(roi[["xmax"]] - roi[["xmin"]])
+    y_size <- as.numeric(roi[["ymax"]] - roi[["ymin"]])
 
-    roi["xmax"] <- roi["xmax"] - 2 * x_size
-    roi["xmin"] <- roi["xmin"] - 2 * x_size
-    expect_null(.sits_bbox_intersect(roi, cube))
+    roi_2size <- roi
+
+    roi_2size["xmax"] <- roi[["xmax"]] - 2 * x_size
+    roi_2size["xmin"] <- roi[["xmin"]] - 2 * x_size
+    expect_null(.sits_bbox_intersect(roi_2size, cube))
 
     bbox <- sits_bbox(cube)
     bbox["xmax"] <- bbox["xmax"] + x_size
@@ -146,5 +148,5 @@ test_that("Internal functions in ROI", {
     expect_true(si["first_row"] == 1)
     expect_true(si["first_col"] == 64)
     expect_true(si["nrows"] == 81)
-    expect_true(si["ncols"] == 191)
+    expect_true(si["ncols"] == 192)
 })
