@@ -2,6 +2,17 @@
 
 We are preparing to release the package on CRAN and are making relevant changes in the development version.
 
+# What's new in SITS version 0.16.0
+
+### New features in SITS version 0.16.0
+* Include `sits_apply()` function to generate new bands from existing ones;
+* Improve `sits_accuracy()` function to work with multiple cubes;
+* Add band parameter to `sits_view()`
+* Introduce `sits_uncertainty()` function to provide uncertainty measure to probability maps;
+* Improve `sits_regularize()` by taking least cloud cover by default method to compose images
+* Bug fixes;
+
+
 # What's new in SITS version 0.15.1
 
 ### New features in SITS version 0.15.1-1
