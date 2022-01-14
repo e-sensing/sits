@@ -62,7 +62,7 @@ NULL
 #'
 #'
 #' @docType data
-#' @name samples_l8_rondonia_2bands.rda
+#' @name samples_l8_rondonia_2bands
 #' @keywords datasets
 #'
 #' @description

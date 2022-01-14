@@ -9,7 +9,7 @@
 \arguments{
 \item{nblocks}{number of blocks to read from each image}
 
-\item{sub_image}{nrea of interest in the image}
+\item{sub_image}{area of interest in the image}
 }
 \value{
 a list with named vectors ("first_row", "nrows", "first_col", "ncols")

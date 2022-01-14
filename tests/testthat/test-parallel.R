@@ -6,7 +6,7 @@ test_that("One-year, multi-core classification in parallel", {
             source = "BDC",
             collection = "LC8_30_16D_STK-1",
             tiles = c("038047"),
-            bands = c("NDVI", "EVI", "CLOUD"),
+            bands = c("NDVI", "EVI"),
             start_date = "2018-07-12",
             end_date = "2019-07-28"
         )
@@ -30,7 +30,7 @@ test_that("One-year, multi-core classification in parallel", {
     l8_probs <- sits_classify(l8_cube,
                               rfor_model,
                               roi = roi,
-                              memsize = 24,
+                              memsize = 8,
                               multicores = 2,
                               output_dir = dir_images)
 
