@@ -49,7 +49,7 @@ Imports:
     sf (>= 0.9),
     slider (>= 0.1.5),
     stats,
-    terra (>= 1.4-11),
+    terra (>= 1.5-12),
     tibble (>= 3.0),
     utils
 Suggests:
