@@ -4,7 +4,7 @@
 processing_bloat        : 5
 
 # number of items returned by stac service
-rstac_pagination_limit  : 1000
+rstac_pagination_limit  : 400
 
 # default raster package
 raster_api_package      : "terra"

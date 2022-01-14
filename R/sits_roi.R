@@ -207,10 +207,7 @@
         sf::st_convex_hull() %>%
         sf::st_geometry() %>%
         geojsonsf::sfc_geojson()
-    geojson <- jsonlite::fromJSON(geojson,
-                                  simplifyVector = TRUE,
-                                  simplifyDataFrame = FALSE,
-                                  simplifyMatrix = FALSE)
+    geojson <- jsonlite::fromJSON(geojson)
 
     return(geojson)
 }
