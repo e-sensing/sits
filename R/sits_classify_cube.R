@@ -257,7 +257,7 @@
     )
 
     # adjust nrows and ncols
-    r_obj <- sits:::.raster_open_rast(out_file)
+    r_obj <- .raster_open_rast(out_file)
     file_info <- .file_info(probs_cube)
     file_info$nrows <- nrow(r_obj)
     file_info$ncols <- ncol(r_obj)
