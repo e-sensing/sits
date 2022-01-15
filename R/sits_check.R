@@ -869,8 +869,9 @@ NULL
                           msg = "invalid file extension")
 
     existing_files <- file.exists(x)
+    existing_dirs <- dir.exists(x)
     .check_that(
-        all(existing_files),
+        all(existing_files | existing_dirs),
         local_msg = paste("file does not exist:",
                             paste0("'", x[!existing_files], "'",
                                    collapse = ", ")),

@@ -196,7 +196,14 @@
 
         # TODO: implement sits_parallel_error_retry()
         # open band rasters
-        assets <- purrr::map(paths, .raster_open_rast)
+        assets <- tryCatch({
+            purrr::map(paths, .raster_open_rast)
+        }, error = function(e) {
+            NULL
+        })
+
+        if (is.null(assets))
+            return(NULL)
 
         # get asset info
         asset_info <- purrr::map(assets, function(asset) {
@@ -281,7 +288,38 @@
     }, progress = progress)
 
     # bind cube rows
-    cube <- dplyr::bind_rows(tiles) %>%
+    cube <- dplyr::bind_rows(tiles)
+
+    # post-condition
+    .check_num(nrow(cube), min = 1, msg = "number metadata rows is empty")
+
+    # review known malformed paths
+    review_date <- .config_get(c("sources", source, "collections",
+                                 collection, "review_dates"), default = NA)
+
+    if (!is.na(review_date)) {
+        data <- dplyr::filter(cube, date == !!review_date) %>%
+            tidyr::nest(assets = -tile)
+
+        # test paths by open files...
+        val <- .sits_parallel_map(seq_len(nrow(data)), function(i) {
+            tryCatch({
+                lapply(data$assets[[i]]$path, .raster_open_rast)
+                TRUE
+            }, error = function(e) FALSE)
+        }, progress = FALSE)
+
+        # which tiles have passed on check
+        passed_tiles <- data$tile[unlist(val)]
+
+        # exclude features by date but passed tiles
+        cube <- dplyr::filter(
+            cube, date != !!review_date |
+                tile %in% !!passed_tiles)
+    }
+
+    # prepare cube
+    cube <- cube %>%
         tidyr::nest(file_info = -dplyr::matches(c("tile", "crs"))) %>%
         slider::slide_dfr(function(tile) {
 

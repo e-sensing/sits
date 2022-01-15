@@ -50,7 +50,7 @@
 #' @export
 .raster_extract.terra <- function(r_obj, xy, ...) {
 
-    terra::extract(x = r_obj, y = xy, fun = NULL, cells = FALSE, ...)
+    terra::extract(x = r_obj, y = xy, ...)
 }
 
 #' @keywords internal

@@ -219,8 +219,7 @@
     # create progress bar
     pb <- NULL
     if (progress)
-        pb <- utils::txtProgressBar(min = 0, max = length(x),
-                                    style = 3, width = 50)
+        pb <- utils::txtProgressBar(min = 0, max = length(x), style = 3)
 
     # sequential processing
     if (purrr::is_null(sits_env$cluster)) {

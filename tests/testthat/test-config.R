@@ -26,7 +26,7 @@ test_that("User functions", {
 
     expect_equal(
         .config_rstac_limit(),
-        1000
+        400
     )
 
     expect_equal(
