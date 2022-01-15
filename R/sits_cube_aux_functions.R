@@ -159,7 +159,7 @@
 
     mv <- .config_get(key = c("sources", .cube_source(cube = cube),
                                "collections", .cube_collection(cube = cube),
-                               "bands", band, "missing_value",),
+                               "bands", band, "missing_value"),
                       default = .config_get(key = "raster_cube_missing_value")
     )
 
