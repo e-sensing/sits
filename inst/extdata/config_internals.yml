@@ -67,7 +67,7 @@ gdalcubes_chunk_size   : [1, 2048, 2048]
 gdalcubes_max_threads : 24
 
 # valid aggregation methods for gdalcubes
-gdalcubes_aggreg_methods : {median : "median", least_cc_first : "first"}
+gdalcubes_aggreg_methods : ["median", "first"]
 
 # valid filling NA values methods for gdalcubes
 gdalcubes_filling_methods : ["near", "linear", "locf", "nocb"]

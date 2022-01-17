@@ -223,7 +223,8 @@ sits_view.raster_cube <- function(x, ...,
     leaf_mapRGB <- leaflet::leaflet() %>%
         leaflet::addProviderTiles(leaflet::providers$Esri.WorldImagery, group = "ESRI") %>%
         leaflet::addProviderTiles(leaflet::providers$GeoportailFrance.orthos, group = "GeoPortalFrance") %>%
-        leaflet::addProviderTiles(leaflet::providers$OpenStreetMap, group = "OSM")
+        leaflet::addProviderTiles(leaflet::providers$OpenStreetMap, group = "OSM") %>%
+        leafem::addMouseCoordinates()
 
     # include raster RGB maps
     for (t in seq_along(times)) {

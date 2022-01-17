@@ -453,8 +453,8 @@ test_that("Creating cubes from AWS Open Data and regularizing them", {
                   collection = "SENTINEL-S2-L2A-COGS",
                   tiles = c("20LKP", "20LLP"),
                   bands = c("B08", "SCL"),
-                  start_date = "2018-07-30",
-                  end_date = "2018-08-30"
+                  start_date = "2018-10-01",
+                  end_date = "2018-12-30"
         )},
         error = function(e){
             return(NULL)
@@ -475,13 +475,15 @@ test_that("Creating cubes from AWS Open Data and regularizing them", {
     gc_cube <- sits_regularize(
         cube        = s2_cube_open,
         output_dir  = dir_images,
-        res         = 160,
-        roi = c("xmin" = 234872.7,
-                "ymin" = 8847983.0,
-                "xmax" = 239532.6,
-                "ymax" = 8852017.0),
-        period      = "P16D",
+        res         = 40,
+        agg_method  = "first",
+        roi = c("lon_min" = -65.3811,
+                "lat_min" = -10.6645,
+                "lon_max" = -64.86069,
+                "lat_max" = -10.491988),
+        period      = "P30D",
         multicores = 4)
+
 
     size <- .cube_size(gc_cube)
 
