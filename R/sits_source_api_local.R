@@ -165,7 +165,7 @@
 
     # add feature id (fid)
     items <- dplyr::group_by(items, .data[["tile"]], .data[["date"]]) %>%
-        dplyr::mutate(fid = dplyr::cur_group_id()) %>%
+        dplyr::mutate(fid = paste0(dplyr::cur_group_id())) %>%
         dplyr::ungroup()
 
     # set progress bar

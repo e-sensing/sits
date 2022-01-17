@@ -81,7 +81,8 @@ sits_regularize <- function(cube,
                             agg_method = "median",
                             resampling = "bilinear",
                             cloud_mask = FALSE,
-                            multicores = 2) {
+                            multicores = 2,
+                            multithreads = 2) {
 
     # set caller to show in errors
     .check_set_caller("sits_regularize")
@@ -92,7 +93,7 @@ sits_regularize <- function(cube,
 
     # collections
     .check_null(.source_collection_gdalcubes_support(.cube_source(cube),
-                                               .cube_collection(cube)),
+                                                     .cube_collection(cube)),
                 msg = "sits_regularize not available for collection ",
                 cube$collection, " from ", cube$source
     )
@@ -152,13 +153,13 @@ sits_regularize <- function(cube,
     if ("CLOUD" %in% sits_bands(cube))
         cloud_mask <- TRUE
 
-    # precondition - is the multicores valid?
+    # precondition - is the multithreads valid?
     .check_num(
-        x = multicores,
+        x = multithreads,
         min = 1,
         len_min = 1,
         len_max = 1,
-        msg = "invalid 'multicores' parameter."
+        msg = "invalid 'multithreads' parameter."
     )
 
     if (!is.null(roi)) {
@@ -173,7 +174,8 @@ sits_regularize <- function(cube,
     }
 
     # timeline of intersection
-    toi <- .gc_get_valid_interval(cube, period = period)
+    tl <- .gc_get_valid_timeline(cube, period = period)
+    toi <- c(tl[[1]], tl[[length(tl)]])
 
     # matches the start dates of different tiles
     cube[["file_info"]] <- purrr::map(cube[["file_info"]], function(file_info) {
@@ -185,34 +187,103 @@ sits_regularize <- function(cube,
     # create an image collection
     img_col <- .gc_create_database(cube = cube, path_db = path_db)
 
-    gc_cube <- slider::slide_dfr(cube, function(tile){
+    # get all cube bands
+    bands <- .cube_bands(cube, add_cloud = FALSE)
 
-        # create a list of cube view object
-        cv <- .gc_create_cube_view(tile = tile,
-                                   period = period,
-                                   roi = roi,
-                                   res = res,
-                                   toi = toi,
-                                   agg_method = agg_method,
-                                   resampling = resampling)
+    # start process
+    multicores <- min(multicores, length(bands))
+    .sits_parallel_start(multicores, log = FALSE)
+    on.exit(.sits_parallel_stop())
+
+    # process bands in parallel
+    gc_cube_lst <- .sits_parallel_map(bands, function(band) {
+
+        # open db in each process
+        img_col <- gdalcubes::image_collection(path_db)
+
+        # filter cube band
+        process_bands <- band
+        if (.source_cloud() %in% .cube_bands(cube))
+            process_bands <- c(process_bands, .source_cloud())
+        cube <- sits_select(cube, bands = process_bands)
 
 
-        # create of the aggregate cubes
-        gc_tile <- .gc_new_cube(tile = tile,
-                                cv = cv,
-                                img_col = img_col,
-                                path_db = path_db,
-                                output_dir = output_dir,
-                                cloud_mask = cloud_mask,
-                                multicores = multicores)
-        return(gc_tile)
+        # resume feature:
+        # filter remaining tiles of current band
+        fields <- do.call(
+            rbind,
+            strsplit(list.files(output_dir, pattern = "\\.tif$"),
+                     split = "_"))
 
-    })
+        # initialize processed cubes
+        processed_cube <- NULL
 
-    # reset global option
-    gdalcubes::gdalcubes_options(threads = 1)
+        if (!is.null(fields)) {
 
-    class(gc_cube) <- .cube_s3class(gc_cube)
+            # canonical output name from sits_regularize()
+            colnames(fields) <- c("cube", "tile", "band", "date")
+
+            # get all remaining tile for this band
+            processed_tiles <-
+                dplyr::select(tibble::as_tibble(fields),
+                              dplyr::all_of(c("tile", "band"))) %>%
+                dplyr::distinct() %>%
+                dplyr::filter(band == !!band) %>%
+                dplyr::pull("tile")
+
+            if (length(processed_tiles) > 0) {
+
+                # get processed files for the current band of processed tiles
+                processed_cube <-
+                    sits_cube(source = .cube_source(cube),
+                              collection = .cube_collection(cube),
+                              data_dir = output_dir,
+                              bands = band,
+                              parse_info = c("X1", "tile", "band", "date"))
+            }
+
+            # filter remaining tiles
+            cube <- dplyr::filter(cube, !tile %in% !!processed_tiles)
+        }
+
+        # slide cube to process each remaining tile
+        gc_cube <- slider::slide_dfr(cube, function(tile) {
+
+            # create a list of cube view object
+            cv <- .gc_create_cube_view(tile = tile,
+                                       period = period,
+                                       roi = roi,
+                                       res = res,
+                                       toi = toi,
+                                       agg_method = agg_method,
+                                       resampling = resampling)
+
+            # create of the aggregate cubes
+            gc_tile <- .gc_new_cube(tile = tile,
+                                    cv = cv,
+                                    img_col = img_col,
+                                    path_db = path_db,
+                                    output_dir = output_dir,
+                                    cloud_mask = cloud_mask,
+                                    multithreads = multithreads)
+
+            return(gc_tile)
+        })
+
+        # bind results
+        gc_cube <- dplyr::bind_rows(processed_cube, gc_cube)
+
+        # prepare class result
+        class(gc_cube) <- .cube_s3class(gc_cube)
+
+        return(gc_cube)
+
+    }, progress = multicores > 1)
+
+    # merge bands
+    gc_cube <- Reduce(f = sits_merge, x = gc_cube_lst[-1],
+                      init = gc_cube_lst[[1]])
 
     return(gc_cube)
 }
+
