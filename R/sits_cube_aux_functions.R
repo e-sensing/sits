@@ -496,6 +496,14 @@
 #'
 .cube_is_regular <- function(cube){
 
+    # check if all tiles have the same bands
+    bands <- slider::slide(cube, function(tile) {
+        .cube_bands(tile)
+    })
+
+    if (length(unique(bands)) == 1)
+        return(FALSE)
+
     # check if the resolutions are unique
     res_cube_x <- slider::slide(cube, function(tile){
        .file_info_xres(tile)
