@@ -185,7 +185,7 @@ sits_regularize <- function(cube,
     })
 
     # create an image collection
-    img_col <- .gc_create_database(cube = cube, path_db = path_db)
+    img_col <- .gc_create_database_stac(cube = cube, path_db = path_db)
 
     # get all cube bands
     bands <- .cube_bands(cube, add_cloud = FALSE)
@@ -281,8 +281,15 @@ sits_regularize <- function(cube,
     }, progress = multicores > 1)
 
     # merge bands
-    gc_cube <- Reduce(f = sits_merge, x = gc_cube_lst[-1],
-                      init = gc_cube_lst[[1]])
+    gc_cube <- sits_cube(source = .cube_source(cube),
+                         collection = .cube_collection(cube),
+                         data_dir = output_dir,
+                         parse_info = c("x1", "tile", "band", "date"))
+
+    # post-condition
+    if (!.cube_is_regular(gc_cube))
+        warning(paste0("please, run sits_regularize() again",
+                       "generated cube is not regular"))
 
     return(gc_cube)
 }
