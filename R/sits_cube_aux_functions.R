@@ -501,7 +501,7 @@
         .cube_bands(tile)
     })
 
-    if (length(unique(bands)) == 1)
+    if (length(unique(bands)) != 1)
         return(FALSE)
 
     # check if the resolutions are unique
