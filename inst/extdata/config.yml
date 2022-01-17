@@ -593,6 +593,7 @@ sources:
                 open_data   : false
                 gdalcubes_support : true
                 gdalcubes_type_format: "int16"
+                gdalcubes_format_col : "s2la_aws.json"
                 metadata_search : "tile"
             SENTINEL-S2-L2A-COGS :
                 bands       :
@@ -675,6 +676,7 @@ sources:
                 open_data_token: false
                 gdalcubes_support: true
                 gdalcubes_type_format: "int16"
+                gdalcubes_format_col : "s2la_aws_cogs.json"
                 metadata_search: "tile"
                 review_dates: ["2020-08-16"]
     DEAFRICA                :
@@ -763,6 +765,7 @@ sources:
                 open_data_token: false
                 gdalcubes_support : true
                 gdalcubes_type_format: "int16"
+                gdalcubes_format_col : "s2_l2a_deafrica.json"
                 metadata_search : "tile"
             LS8_SR          : &deafrica_l8
                 bands       :
@@ -821,6 +824,7 @@ sources:
                 open_data_token: false
                 gdalcubes_support : true
                 gdalcubes_type_format: "int16"
+                gdalcubes_format_col : "ls8_sr_deafrica.json"
                 metadata_search : "feature"
     USGS                    :
         s3_class            : ["usgs_cube", "stac_cube", "raster_cube"]
@@ -888,6 +892,7 @@ sources:
                 tile_required: false
                 gdalcubes_support : true
                 gdalcubes_type_format: "int16"
+                gdalcubes_format_col : "l8c2l2_usgs.json"
                 metadata_search : "feature"
     MSPC                    :
         s3_class            : ["mspc_cube", "stac_cube", "raster_cube"]
@@ -951,6 +956,7 @@ sources:
                 tile_required: false
                 gdalcubes_support : true
                 gdalcubes_type_format: "int16"
+                gdalcubes_format_col : "landsat_8_c2_l2_mspc.json"
                 metadata_search : "feature"
             SENTINEL-2-L2A  : &mspc_msi
                 bands       :
@@ -1030,4 +1036,5 @@ sources:
                 open_data_token: false
                 gdalcubes_support : true
                 gdalcubes_type_format: "int16"
+                gdalcubes_format_col : "sentinel_2_l2a_mspc.json"
                 metadata_search : "tile"

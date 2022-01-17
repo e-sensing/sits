@@ -612,10 +612,10 @@ NULL
 
 #' @rdname source_collection
 #'
-#' @description \code{.source_collection_gdal_type()} checks if a collection
+#' @description \code{.source_collection_gdalcubes_type()} checks if a collection
 #' has a gdalcubes type for writing files.
 #'
-#' @return \code{.source_collection_gdal_type()} returns the gdal type.
+#' @return \code{.source_collection_gdalcubes_type()} returns the gdal type.
 .source_collection_gdalcubes_type <- function(source, collection){
 
     # try to find the gdalcubes configuration type for this collection
@@ -635,10 +635,10 @@ NULL
 
 #' @rdname source_collection
 #'
-#' @description \code{.source_collection_gdal_type()} checks if a collection
-#' has a gdalcubes type for writing files.
+#' @description \code{.source_collection_gdalcubes_support()} checks if a collection
+#' can be regularized using gdalcubes.
 #'
-#' @return \code{.source_collection_gdal_type()} returns the gdal type.
+#' @return true/false
 .source_collection_gdalcubes_support <- function(source, collection){
 
     # try to find the gdalcubes configuration
@@ -654,7 +654,26 @@ NULL
     return(invisible(gdal_support))
 }
 
+#' @rdname source_collection
+#'
+#' @description \code{.source_collection_gdalcubes_config()} checks if a collection
+#' has a gdalcubes format description.
+#'
+#' @return \code{.source_collection_gdal_config()} returns the gdal format file path.
+.source_collection_gdalcubes_config <- function(source, collection){
+    # try to find the gdalcubes configuration format for this collection
+    gdal_config <- .config_get(key = c("sources", source, "collections",
+                                       collection, "gdalcubes_format_col"),
+                               default = NA)
+    # if the format does not exist, report to the user
+    .check_that(!(is.na(gdal_config)),
+                msg = paste0("collection ", collection, " in source ", source,
+                             " not supported yet\n",
+                             "Please raise an issue in github"))
 
+    # return the gdal format file path
+    system.file(paste0("extdata/gdalcubes/", gdal_config), package = "sits")
+}
 #' @rdname source_collection
 #'
 #' @description \code{.source_collection_metadata_search()} retrieves the

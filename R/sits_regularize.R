@@ -11,10 +11,6 @@
 #'  from satellite image collections with the gdalcubes library. Data, v. 4,
 #'  n. 3, p. 92, 2019. DOI: 10.3390/data4030092.
 #'
-#' @references Ferreira, Karine R., et al. "Earth observation data cubes for
-#' Brazil: Requirements, methodology and products." Remote Sensing 12.24 (2020):
-#'  4033. DOI: 10.3390/rs12244033.
-#'
 #' @examples{
 #' \dontrun{
 #'
@@ -36,65 +32,43 @@
 #' gc_cube <- sits_regularize(cube       = s2_cube,
 #'                            output_dir = paste0(tempdir(),"/images/"),
 #'                            period     = "P1M",
-#'                            res        = 320)
+#'                            agg_method = "median",
+#'                            resampling = "bilinear",
+#'                            res        = 60,
+#'                            cloud_mask = TRUE)
 #' }
 #' }
 #'
-#' @param cube        A \code{sits_cube} object whose spacing of observation
+#' @param cube       A \code{sits_cube} object whose spacing of observation
 #'  times is not constant and will be regularized by the \code{gdalcubes}
 #'  package.
-#'
-#' @param output_dir  A \code{character} with a valid directory where the
+#' @param output_dir A \code{character} with a valid directory where the
 #'  regularized images will be written by \code{gdalcubes}.
-#'
-#' @param period      A \code{character} with ISO8601 time period for regular
+#' @param period     A \code{character} with ISO8601 time period for regular
 #'  data cubes produced by \code{gdalcubes}, with number and unit, e.g., "P16D"
 #'  for 16 days. Use "D", "M" and "Y" for days, month and year.
-#'
-#' @param res         A \code{numeric} with spatial resolution of the image that
+#' @param res        A \code{numeric} with spatial resolution of the image that
 #'  will be aggregated.
-#'
-#' @param roi         A named \code{numeric} vector with a region of interest.
+#' @param roi        A named \code{numeric} vector with a region of interest.
 #'  See above
-#'
-#' @param multicores  A \code{numeric} with the number of cores will be used in
+#' @param multicores A \code{numeric} with the number of cores will be used in
 #'  the regularize. By default is used 1 core.
-#'
-#' @param agg_method  A \code{character} with method that will be applied by
-#'  \code{gdalcubes} for aggregation. Options: \code{median} and
-#'  \code{least_cc_first}.
-#'  The default aggregation method is \code{least_cc_first}. See more above.
-#'
-#' @param fill_method A \code{character} indicating which interpolation method
-#'  will be applied. Options: \code{near} for nearest neighbor; \code{linear}
-#'  for linear interpolation; \code{locf} for ast observation carried forward,
-#'  or \code{nocb} for next observation carried backward.
-#'  Default is \code{near}.
-#'
-#' @param resampling  A \code{character} with method to be used by
+#' @param agg_method A \code{character} with method that will be applied by
+#'  \code{gdalcubes} for aggregation. Options: \code{min}, \code{max},
+#'  \code{mean}, \code{median} and \code{first}. Default is \code{median}.
+#' @param resampling A \code{character} with method to be used by
 #'  \code{gdalcubes} for resampling in mosaic operation.
 #'  Options: \code{near}, \code{bilinear}, \code{bicubic} or others supported by
 #'  gdalwarp (see https://gdal.org/programs/gdalwarp.html).
 #'  By default is bilinear.
-#'
 #' @param cloud_mask A \code{logical} to use cloud band for aggregation by
-#' \code{gdalcubes}. Deprecated as of SITS version 0.16.0.
+#' \code{gdalcubes}. Default is \code{TRUE}.
 #'
 #' @note
 #'    The "roi" parameter defines a region of interest. It can be
 #'    an sf_object, a shapefile, or a bounding box vector with
 #'    named XY values ("xmin", "xmax", "ymin", "ymax") or
 #'    named lat/long values ("lat_min", "lat_max", "long_min", "long_max")
-#'
-#' @note
-#'    The \code{least_cc_first} aggregation method sorts the images based on
-#'    cloud coverage, images with the least clouds are at the top of the stack.
-#'    Once the stack of images is sorted the method uses the first valid value
-#'    to generate the temporal aggregation.
-#'
-#' @note
-#'    If the supplied data cube contains cloud band, the values indicated as
-#'    clouds or cloud shadow will be removed.
 #'
 #' @return A \code{sits_cube} object with aggregated images.
 #'
@@ -104,8 +78,7 @@ sits_regularize <- function(cube,
                             period,
                             res,
                             roi = NULL,
-                            agg_method = "least_cc_first",
-                            fill_method = "near",
+                            agg_method = "median",
                             resampling = "bilinear",
                             cloud_mask = FALSE,
                             multicores = 2) {
@@ -117,6 +90,13 @@ sits_regularize <- function(cube,
     if (!requireNamespace("gdalcubes", quietly = TRUE))
         stop("Please install package gdalcubes", call. = FALSE)
 
+    # collections
+    .check_null(.source_collection_gdalcubes_support(.cube_source(cube),
+                                               .cube_collection(cube)),
+                msg = "sits_regularize not available for collection ",
+                cube$collection, " from ", cube$source
+    )
+
     # precondition - test if provided object is a raster cube
     .check_that(
         x = inherits(cube, "raster_cube"),
@@ -125,26 +105,19 @@ sits_regularize <- function(cube,
                     "see '?sits_cube' for more information.")
     )
 
-    # precondition - check if this cube could be regularized
-    .source_collection_gdalcubes_support(
-        source = .cube_source(cube), collection = .cube_collection(cube)
-    )
-
-    # ensuring the path is accepted in all OS
+    # precondition - check output dir fix
     output_dir <- normalizePath(output_dir)
-
-    # precondition - is the path valid?
+    # verifies the path to save the images
     .check_that(
         x = dir.exists(output_dir),
         msg = "invalid 'output_dir' parameter."
     )
 
     # append gdalcubes path
-    path_db <- tempfile("database_", tmpdir = output_dir, fileext = ".db")
+    path_db <- paste0(output_dir, "/gdalcubes.db")
 
     # precondition - is the period valid?
-    duration <- lubridate::duration(period)
-    .check_na(duration, msg = "invalid period, please see ISO 8601 format")
+    .check_na(lubridate::duration(period), msg = "invalid period specified")
 
     # precondition - is the resolution valid?
     .check_num(x = res,
@@ -155,23 +128,11 @@ sits_regularize <- function(cube,
                msg = "a valid resolution needs to be provided")
 
     # precondition - is the aggregation valid?
-    agg_methods <- .config_get("gdalcubes_aggreg_methods")
     .check_chr_within(
         x = agg_method,
-        within = names(agg_methods),
+        within = .config_get("gdalcubes_aggreg_methods"),
         discriminator = "any_of",
         msg = "invalid aggregation method"
-    )
-
-    # get the valid name for gdalcubes aggregation method
-    agg_method <- agg_methods[[agg_method]]
-
-    # precondition - is the filling valid?
-    .check_chr_within(
-        x = fill_method,
-        within = .config_get("gdalcubes_filling_methods"),
-        discriminator = "any_of",
-        msg = "invalid filling methods"
     )
 
     # precondition - is the resampling valid?
@@ -181,6 +142,7 @@ sits_regularize <- function(cube,
         discriminator = "any_of",
         msg = "invalid resampling method"
     )
+
     # as of SITS 0.16.0, parameter "cloud_mask" is deprecated
     if (!missing(cloud_mask))
         warning("cloud_mask parameter is deprecated and no longer required")
@@ -196,16 +158,18 @@ sits_regularize <- function(cube,
         min = 1,
         len_min = 1,
         len_max = 1,
-        msg = "invalid 'multicores' parameter"
+        msg = "invalid 'multicores' parameter."
     )
 
     if (!is.null(roi)) {
 
-        intersects_tiles <- slider::slide_lgl(
-            cube, .sits_raster_sub_image_intersects, roi
-        )
+        # filter only intersecting tiles
+        intersects <- slider::slide_lgl(cube,
+                                        .sits_raster_sub_image_intersects,
+                                        roi)
 
-        cube <- cube[intersects_tiles, ]
+        # retrieve only intersecting tiles
+        cube <- cube[intersects, ]
     }
 
     # timeline of intersection
@@ -218,10 +182,7 @@ sits_regularize <- function(cube,
         file_info
     })
 
-    # least_cc_first requires images ordered based on cloud cover
-    cube <- .gc_arrange_images(cube, agg_method, duration)
-
-    # create an image collection using stac
+    # create an image collection
     img_col <- .gc_create_database(cube = cube, path_db = path_db)
 
     gc_cube <- slider::slide_dfr(cube, function(tile){
@@ -235,11 +196,10 @@ sits_regularize <- function(cube,
                                    agg_method = agg_method,
                                    resampling = resampling)
 
+
         # create of the aggregate cubes
         gc_tile <- .gc_new_cube(tile = tile,
                                 cv = cv,
-                                roi = roi,
-                                fill_method = fill_method,
                                 img_col = img_col,
                                 path_db = path_db,
                                 output_dir = output_dir,
@@ -251,9 +211,6 @@ sits_regularize <- function(cube,
 
     # reset global option
     gdalcubes::gdalcubes_options(threads = 1)
-
-    # the database is not used to generate new cubes
-    unlink(path_db)
 
     class(gc_cube) <- .cube_s3class(gc_cube)
 
