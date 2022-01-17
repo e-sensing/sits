@@ -327,6 +327,94 @@
     return(ic_cube)
 }
 
+#' @title Create an image_collection object
+#' @name .gc_create_database_stac
+#'
+#' @keywords internal
+#'
+#' @param cube      Data cube from where data is to be retrieved.
+#'
+#' @param path_db   A \code{character} with the path and name where the
+#'  database will be create. E.g. "my/path/gdalcubes.db"
+#'
+#' @return a \code{object} 'image_collection' containing information about the
+#'  images metadata.
+.gc_create_database_stac <- function(cube, path_db) {
+
+    # deleting the existing database to avoid errors in the stac database
+    if (file.exists(path_db))
+        unlink(path_db)
+
+    create_gc_database <- function(cube) {
+
+        file_info <- dplyr::select(cube, .data[["file_info"]],
+                                   .data[["crs"]]) %>%
+            tidyr::unnest(cols = c("file_info")) %>%
+            dplyr::transmute(fid = .data[["fid"]],
+                             xmin = .data[["xmin"]],
+                             ymin = .data[["ymin"]],
+                             xmax = .data[["xmax"]],
+                             ymax = .data[["ymax"]],
+                             href = .data[["path"]],
+                             datetime = as.character(.data[["date"]]),
+                             band = .data[["band"]],
+                             `proj:epsg` = gsub("^EPSG:", "", .data[["crs"]]))
+
+        features <- dplyr::mutate(file_info, id = .data[["fid"]]) %>%
+            tidyr::nest(features = -.data[["fid"]])
+
+        features <- slider::slide_dfr(features, function(feat) {
+
+            bbox <- .sits_coords_to_bbox_wgs84(
+                xmin = feat$features[[1]][["xmin"]][[1]],
+                xmax = feat$features[[1]][["xmax"]][[1]],
+                ymin = feat$features[[1]][["ymin"]][[1]],
+                ymax = feat$features[[1]][["ymax"]][[1]],
+                crs = as.numeric(feat$features[[1]][["proj:epsg"]][[1]])
+            )
+
+            feat$features[[1]] <- dplyr::mutate(feat$features[[1]],
+                                                xmin = bbox[["xmin"]],
+                                                xmax = bbox[["xmax"]],
+                                                ymin = bbox[["ymin"]],
+                                                ymax = bbox[["ymax"]])
+
+            feat
+        })
+
+        purrr::map(features[["features"]], function(feature) {
+
+            feature <- feature %>%
+                tidyr::nest(assets = c(.data[["href"]], .data[["band"]])) %>%
+                tidyr::nest(properties = c(.data[["datetime"]],
+                                           .data[["proj:epsg"]])) %>%
+                tidyr::nest(bbox = c(.data[["xmin"]], .data[["ymin"]],
+                                     .data[["xmax"]], .data[["ymax"]]))
+
+            feature[["assets"]] <- purrr::map(feature[["assets"]], function(asset) {
+
+                asset %>%
+                    tidyr::pivot_wider(names_from = .data[["band"]],
+                                       values_from = .data[["href"]]) %>%
+                    purrr::map(
+                        function(x) list(href = x, `eo:bands` = list(NULL))
+                    )
+            })
+
+            feature <- unlist(feature, recursive = FALSE)
+            feature[["properties"]] <- c(feature[["properties"]])
+            feature[["bbox"]] <- unlist(feature[["bbox"]])
+            feature
+        })
+    }
+
+    ic_cube <- gdalcubes::stac_image_collection(
+        s = create_gc_database(cube),
+        out_file = path_db,
+        url_fun = identity)
+
+    return(ic_cube)
+}
 
 #' @title Internal function to handle with different file collection formats
 #'  for each provider.
