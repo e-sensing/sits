@@ -11,7 +11,7 @@ Cubes
 
 [![Build
 Status](https://cloud.drone.io/api/badges/e-sensing/sits/status.svg)](https://cloud.drone.io/e-sensing/sits)
-[![codecov](https://codecov.io/gh/e-sensing/sits/branch/master/graph/badge.svg?token=hZxdJgKGcE)](https://codecov.io/gh/e-sensing/sits)
+[![codecov](https://codecov.io/gh/e-sensing/sits/branch/dev/graph/badge.svg?token=hZxdJgKGcE)](https://codecov.io/gh/e-sensing/sits)
 [![Documentation](https://img.shields.io/badge/docs-online-blueviolet)](https://e-sensing.github.io/sitsbook/)
 [![Software Life
 Cycle](https://img.shields.io/badge/lifecycle-maturing-blue.svg)](https://www.tidyverse.org/lifecycle/#maturing)
@@ -87,10 +87,6 @@ devtools::install_github("e-sensing/sits", dependencies = TRUE)
 ``` r
 # load the sits library
 library(sits)
-#> Using configuration file: /home/sits/R/x86_64-pc-linux-gnu-library/4.1/sits/extdata/config.yml
-#> Color configurations found in /home/sits/R/x86_64-pc-linux-gnu-library/4.1/sits/extdata/config_colors.yml
-#> To provide additional configurations, create an YAML file and inform its path to environment variable 'SITS_CONFIG_USER_FILE'.
-#> Using raster package: terra
 #> SITS - satellite image time series analysis.
 #> Loaded sits v0.16.0.
 #>         See ?sits for help, citation("sits") for use in publication.
@@ -222,12 +218,12 @@ points <- sits_get_data(raster_cube, file = csv_file)
 #> All points have been retrieved
 # show the time series
 points[1:3,]
-#> # A tibble: 3 × 7
+#> # A tibble: 3 x 7
 #>   longitude latitude start_date end_date   label   cube      time_series      
 #>       <dbl>    <dbl> <date>     <date>     <chr>   <chr>     <list>           
-#> 1     -55.7    -11.8 2013-09-14 2014-08-29 Pasture MOD13Q1-6 <tibble [23 × 3]>
-#> 2     -55.6    -11.8 2013-09-14 2014-08-29 Pasture MOD13Q1-6 <tibble [23 × 3]>
-#> 3     -55.7    -11.8 2013-09-14 2014-08-29 Forest  MOD13Q1-6 <tibble [23 × 3]>
+#> 1     -55.7    -11.8 2013-09-14 2014-08-29 Pasture MOD13Q1-6 <tibble [23 x 3]>
+#> 2     -55.6    -11.8 2013-09-14 2014-08-29 Pasture MOD13Q1-6 <tibble [23 x 3]>
+#> 3     -55.7    -11.8 2013-09-14 2014-08-29 Forest  MOD13Q1-6 <tibble [23 x 3]>
 ```
 
 After a time series has been obtained, it is loaded in a tibble. The

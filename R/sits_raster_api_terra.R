@@ -50,7 +50,7 @@
 #' @export
 .raster_extract.terra <- function(r_obj, xy, ...) {
 
-    terra::extract(x = r_obj, y = xy, fun = NULL, cells = FALSE, ...)
+    terra::extract(x = r_obj, y = xy, ...)
 }
 
 #' @keywords internal
@@ -267,8 +267,8 @@
     crs <- suppressWarnings(
         terra::crs(x = r_obj, describe = TRUE))
 
-    if (!is.na(crs[["EPSG"]]))
-        return(c(crs = paste("EPSG", crs[["EPSG"]], sep = ":")))
+    if (!is.na(crs[["code"]]))
+        return(c(crs = paste(crs[["authority"]], crs[["code"]], sep = ":")))
 
     suppressWarnings(
         c(crs = as.character(terra::crs(x = r_obj))))

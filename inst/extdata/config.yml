@@ -4,7 +4,7 @@
 processing_bloat        : 5
 
 # number of items returned by stac service
-rstac_pagination_limit  : 1000
+rstac_pagination_limit  : 400
 
 # default raster package
 raster_api_package      : "terra"
@@ -673,9 +673,10 @@ sources:
                     AWS_S3_ENDPOINT      : "s3.amazonaws.com"
                 open_data: true
                 open_data_token: false
-                gdalcubes_support : true
+                gdalcubes_support: true
                 gdalcubes_type_format: "int16"
-                metadata_search : "tile"
+                metadata_search: "tile"
+                review_dates: ["2020-08-16"]
     DEAFRICA                :
         s3_class            : ["deafrica_cube", "stac_cube", "raster_cube"]
         service             : "STAC"
