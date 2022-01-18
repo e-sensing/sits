@@ -101,7 +101,7 @@
         # select the relevant parts
         dplyr::select(tile, date, band, path) %>%
         # check the date format
-        .sits_timeline_date_format() %>%
+        dplyr::mutate(date = .sits_timeline_date_format(date)) %>%
         # filter to remove duplicate combinations of file and band
         dplyr::distinct(tile, band, date, .keep_all = TRUE) %>%
         # order by dates

@@ -4,13 +4,13 @@
 \alias{.sits_timeline_date_format}
 \title{Find if the date information is correct}
 \usage{
-.sits_timeline_date_format(tile_date_band)
+.sits_timeline_date_format(date)
 }
 \arguments{
-\item{tile_date_band}{a tibble with date and band information}
+\item{date}{a date information}
 }
 \value{
-tibble with corrected date information
+date class vector
 }
 \description{
 Given a information about dates, check if the date can be
