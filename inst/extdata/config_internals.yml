@@ -54,6 +54,12 @@ probs_cube_data_type    : "INT2U"
 # configuration for classified cubes
 class_cube_data_type    : "INT1U"
 
+# simultaneous processes for sits local cube  creation
+local_parallel_processing : 4
+
+# minimum number of files for sits local cube to be run on parallel
+local_min_files_for_parallel : 20
+
 # simultaneous connections for gdalcubes database creation
 gdalcubes_open_connections : 8
 
@@ -67,7 +73,7 @@ gdalcubes_chunk_size   : [1, 2048, 2048]
 gdalcubes_max_threads : 24
 
 # valid aggregation methods for gdalcubes
-gdalcubes_aggreg_methods : ["median", "first"]
+gdalcubes_aggreg_methods : {median : "median", least_cc_first : "first"}
 
 # valid filling NA values methods for gdalcubes
 gdalcubes_filling_methods : ["near", "linear", "locf", "nocb"]
