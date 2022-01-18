@@ -1,3 +1,52 @@
+#' @title Images arrangement in sits cube
+#' @name .gc_arrange_images
+#'
+#' @keywords internal
+#'
+#' @param cube       A sits data cube
+#'
+#' @param agg_method A \code{character} with method that will be applied by
+#'  \code{gdalcubes} for aggregation. Options: \code{min}, \code{max},
+#'  \code{mean}, \code{median} and \code{first}. Default is \code{median}.
+#'
+#' @param duration   A \code{Duration} object from lubridate package.
+#'
+#' @param ...        Additional parameters.
+#'
+#' @return  A sits cube with the images arranged according to some criteria.
+.gc_arrange_images <- function(cube, agg_method, duration, ...) {
+
+    class(agg_method) <- agg_method
+
+    UseMethod(".gc_arrange_images", agg_method)
+}
+
+#' @keywords internal
+#' @export
+.gc_arrange_images.default <- function(cube, agg_method, duration, ...) {
+
+    return(cube)
+}
+
+#' @keywords internal
+#' @export
+.gc_arrange_images.first <- function(cube, agg_method, duration, ...) {
+
+    .sits_fast_apply(data = cube, col = "file_info", fn = function(x) {
+
+        tl_length <- max(2,
+                         lubridate::interval(start = min(x[["date"]]),
+                                             end = max(x[["date"]]))  / duration
+        )
+
+        dplyr::group_by(x, date_interval = cut(.data[["date"]], tl_length),
+                        .add = TRUE) %>%
+            dplyr::arrange(.data[["cloud_cover"]], .by_group = TRUE) %>%
+            dplyr::ungroup() %>%
+            dplyr::select(-.data[["date_interval"]])
+    })
+}
+
 #' @title Save the images based on an aggregation method.
 #' @name .gc_new_cube
 #' @keywords internal

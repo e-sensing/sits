@@ -42,27 +42,42 @@
 #' @param cube       A \code{sits_cube} object whose spacing of observation
 #'  times is not constant and will be regularized by the \code{gdalcubes}
 #'  package.
+#'
 #' @param output_dir A \code{character} with a valid directory where the
 #'  regularized images will be written by \code{gdalcubes}.
+#'
 #' @param period     A \code{character} with ISO8601 time period for regular
 #'  data cubes produced by \code{gdalcubes}, with number and unit, e.g., "P16D"
 #'  for 16 days. Use "D", "M" and "Y" for days, month and year.
+#'
 #' @param res        A \code{numeric} with spatial resolution of the image that
 #'  will be aggregated.
+#'
 #' @param roi        A named \code{numeric} vector with a region of interest.
 #'  See above
+#'
 #' @param multicores A \code{numeric} with the number of cores will be used in
 #'  the regularize. By default is used 1 core.
-#' @param agg_method A \code{character} with method that will be applied by
-#'  \code{gdalcubes} for aggregation. Options: \code{min}, \code{max},
-#'  \code{mean}, \code{median} and \code{first}. Default is \code{median}.
+#'
+#' @param agg_method  A \code{character} with method that will be applied by
+#'  \code{gdalcubes} for aggregation. Options: \code{median} and
+#'  \code{least_cc_first}.
+#'  The default aggregation method is \code{least_cc_first}. See more above.
+#'
 #' @param resampling A \code{character} with method to be used by
 #'  \code{gdalcubes} for resampling in mosaic operation.
 #'  Options: \code{near}, \code{bilinear}, \code{bicubic} or others supported by
 #'  gdalwarp (see https://gdal.org/programs/gdalwarp.html).
 #'  By default is bilinear.
+#'
 #' @param cloud_mask A \code{logical} to use cloud band for aggregation by
 #' \code{gdalcubes}. Default is \code{TRUE}.
+#'
+#' @note
+#'    The \code{least_cc_first} aggregation method sorts the images based on
+#'    cloud coverage, images with the least clouds are at the top of the stack.
+#'    Once the stack of images is sorted the method uses the first valid value
+#'    to generate the temporal aggregation.
 #'
 #' @note
 #'    The "roi" parameter defines a region of interest. It can be
@@ -108,6 +123,7 @@ sits_regularize <- function(cube,
 
     # precondition - check output dir fix
     output_dir <- normalizePath(output_dir)
+
     # verifies the path to save the images
     .check_that(
         x = dir.exists(output_dir),
@@ -118,7 +134,8 @@ sits_regularize <- function(cube,
     path_db <- paste0(output_dir, "/gdalcubes.db")
 
     # precondition - is the period valid?
-    .check_na(lubridate::duration(period), msg = "invalid period specified")
+    duration <- lubridate::duration(period)
+    .check_na(duration, msg = "invalid period specified")
 
     # precondition - is the resolution valid?
     .check_num(x = res,
@@ -129,12 +146,16 @@ sits_regularize <- function(cube,
                msg = "a valid resolution needs to be provided")
 
     # precondition - is the aggregation valid?
+    agg_methods <- .config_get("gdalcubes_aggreg_methods")
     .check_chr_within(
         x = agg_method,
-        within = .config_get("gdalcubes_aggreg_methods"),
+        within = names(agg_methods),
         discriminator = "any_of",
         msg = "invalid aggregation method"
     )
+
+    # get the valid name for gdalcubes aggregation method
+    agg_method <- agg_methods[[agg_method]]
 
     # precondition - is the resampling valid?
     .check_chr_within(
@@ -183,6 +204,13 @@ sits_regularize <- function(cube,
         file_info[["date"]][idx] <- toi[[1]]
         file_info
     })
+
+    # least_cc_first requires images ordered based on cloud cover
+    cube <- .gc_arrange_images(
+        cube = cube,
+        agg_method = agg_method,
+        duration = duration
+    )
 
     # create an image collection
     img_col <- .gc_create_database_stac(cube = cube, path_db = path_db)
@@ -261,7 +289,7 @@ sits_regularize <- function(cube,
         # inform the user
         if (!finished)
             message(paste0("Tiles ", paste0(missing_tiles, collapse = ", "),
-                       " have errors and will be reprocessed"))
+                           " have errors and will be reprocessed"))
     }
 
     # post-condition
