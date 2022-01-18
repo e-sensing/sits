@@ -1,3 +1,52 @@
+#' @title Images arrangement in sits cube
+#' @name .gc_arrange_images
+#'
+#' @keywords internal
+#'
+#' @param cube       A sits data cube
+#'
+#' @param agg_method A \code{character} with method that will be applied by
+#'  \code{gdalcubes} for aggregation. Options: \code{min}, \code{max},
+#'  \code{mean}, \code{median} and \code{first}. Default is \code{median}.
+#'
+#' @param duration   A \code{Duration} object from lubridate package.
+#'
+#' @param ...        Additional parameters.
+#'
+#' @return  A sits cube with the images arranged according to some criteria.
+.gc_arrange_images <- function(cube, agg_method, duration, ...) {
+
+    class(agg_method) <- agg_method
+
+    UseMethod(".gc_arrange_images", agg_method)
+}
+
+#' @keywords internal
+#' @export
+.gc_arrange_images.default <- function(cube, agg_method, duration, ...) {
+
+    return(cube)
+}
+
+#' @keywords internal
+#' @export
+.gc_arrange_images.first <- function(cube, agg_method, duration, ...) {
+
+    .sits_fast_apply(data = cube, col = "file_info", fn = function(x) {
+
+        tl_length <- max(2,
+                         lubridate::interval(start = min(x[["date"]]),
+                                             end = max(x[["date"]]))  / duration
+        )
+
+        dplyr::group_by(x, date_interval = cut(.data[["date"]], tl_length),
+                        .add = TRUE) %>%
+            dplyr::arrange(.data[["cloud_cover"]], .by_group = TRUE) %>%
+            dplyr::ungroup() %>%
+            dplyr::select(-.data[["date_interval"]])
+    })
+}
+
 #' @title Save the images based on an aggregation method.
 #' @name .gc_new_cube
 #' @keywords internal
@@ -30,28 +79,6 @@
     .check_set_caller(".gc_new_cube")
 
     bbox <- .cube_tile_bbox(cube = tile)
-    cube_gc <- .cube_create(
-        source     = tile$source,
-        collection = tile$collection,
-        satellite  = tile$satellite,
-        sensor     = tile$sensor,
-        tile       = tile$tile,
-        xmin       = bbox$xmin,
-        xmax       = bbox$xmax,
-        ymin       = bbox$ymin,
-        ymax       = bbox$ymax,
-        crs        = tile$crs,
-        file_info  = NA
-    )
-
-    # update cube metadata
-    cube_gc <- .gc_update_metadata(cube = cube_gc, cube_view = cv)
-
-    # create file info column
-    cube_gc$file_info[[1]] <- tibble::tibble(band = character(),
-                                             date = lubridate::as_date(""),
-                                             res  = numeric(),
-                                             path = character())
 
     # create a list of creation options and metadata
     .get_gdalcubes_pack <- function(cube, band) {
@@ -226,24 +253,6 @@
         chunking = .config_gdalcubes_chunk_size())
 
     return(cube_brick)
-}
-
-#' @title Update metadata from sits cube using gdalcubes metadata
-#' @name .gc_update_metadata
-#' @keywords internal
-#'
-#' @param cube       Data cube from where data is to be retrieved.
-#' @param cv         A \code{object} 'cube_view' with values from cube.
-#'  for aggregation.
-#'
-#' @return a \code{sits_cube} object with updated metadata.
-.gc_update_metadata <- function(cube, cube_view) {
-
-    # update bbox
-    bbox_names <- c("xmin", "xmax", "ymin", "ymax")
-    cube[, bbox_names] <- cube_view$space[c("left", "right", "bottom", "top")]
-
-    return(cube)
 }
 
 #' @title Create an object image_mask with information about mask band

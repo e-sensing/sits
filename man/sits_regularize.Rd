@@ -13,7 +13,8 @@ sits_regularize(
   agg_method = "median",
   resampling = "bilinear",
   cloud_mask = FALSE,
-  multicores = 2
+  multicores = 2,
+  multithreads = 2
 )
 }
 \arguments{
@@ -35,8 +36,9 @@ will be aggregated.}
 See above}
 
 \item{agg_method}{A \code{character} with method that will be applied by
-\code{gdalcubes} for aggregation. Options: \code{min}, \code{max},
-\code{mean}, \code{median} and \code{first}. Default is \code{median}.}
+\code{gdalcubes} for aggregation. Options: \code{median} and
+\code{least_cc_first}.
+The default aggregation method is \code{least_cc_first}. See more above.}
 
 \item{resampling}{A \code{character} with method to be used by
 \code{gdalcubes} for resampling in mosaic operation.
@@ -60,6 +62,11 @@ Creates cubes with regular time intervals
  interval which is used by the composition function.
 }
 \note{
+The \code{least_cc_first} aggregation method sorts the images based on
+   cloud coverage, images with the least clouds are at the top of the stack.
+   Once the stack of images is sorted the method uses the first valid value
+   to generate the temporal aggregation.
+
 The "roi" parameter defines a region of interest. It can be
    an sf_object, a shapefile, or a bounding box vector with
    named XY values ("xmin", "xmax", "ymin", "ymax") or

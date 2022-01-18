@@ -11,7 +11,7 @@
   path_db,
   output_dir,
   cloud_mask,
-  multicores,
+  multithreads,
   ...
 )
 }
@@ -30,7 +30,7 @@ about the images metadata.}
 \item{cloud_mask}{A \code{logical} corresponds to the use of the cloud band
 for aggregation.}
 
-\item{multicores}{A \code{numeric} with the number of cores will be used in
+\item{multithreads}{A \code{numeric} with the number of cores will be used in
 the regularize. By default is used 1 core.}
 
 \item{...}{Additional parameters that can be included. See
