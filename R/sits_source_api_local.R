@@ -168,21 +168,25 @@
         dplyr::mutate(fid = paste0(dplyr::cur_group_id())) %>%
         dplyr::ungroup()
 
-    # set progress bar
-    progress <- (nrow(items) >= .config_gdalcubes_min_files_for_parallel())
+    progress <- FALSE
+    workers <- 1
+    # check if progress bar and multicores processing can be enabled
+    if (nrow(items) >= .config_get("local_min_files_for_parallel")) {
+        progress <- TRUE
+        workers <- .config_get("local_parallel_processing")
+    }
 
     # prepare parallel requests
-    .sits_parallel_start(workers = 1, log = FALSE)
+    .sits_parallel_start(workers = workers, log = FALSE)
     on.exit(.sits_parallel_stop(), add = TRUE)
 
-    # do in case of 'tile' strategy
-    if (.source_collection_metadata_search(source = source,
-                                           collection = collection) == "tile") {
+    # do parallel requests
+    items <- .sits_parallel_map(unique(items[["fid"]]), function(i) {
 
-        # get first item
-        item <- dplyr::filter(items, .data[["fid"]] == 1)
+        # filter by feature
+        item <- dplyr::filter(items, .data[["fid"]] == !!i)
 
-        # open bands raster
+        # open band rasters
         assets <- purrr::map(item[["path"]], .raster_open_rast)
 
         # get asset info
@@ -193,42 +197,15 @@
             crs <- .raster_crs(asset)
             tibble::as_tibble_row(c(res, bbox, size, list(crs = crs)))
         }) %>% dplyr::bind_rows()
-    }
 
-    # do parallel requests
-    items <- .sits_parallel_map(
-        unique(items[["fid"]]),
-        function(i) {
+        dplyr::bind_cols(item, asset_info) %>%
+            dplyr::select(dplyr::all_of(c("fid", "band", "date", "xmin",
+                                          "ymin", "xmax", "ymax", "xres",
+                                          "yres", "nrows", "ncols", "path",
+                                          "crs")))
 
-            # filter by feature
-            item <- dplyr::filter(items, .data[["fid"]] == !!i)
-
-            # do in case of 'tile' strategy
-            if (.source_collection_metadata_search(source = source,
-                                                   collection = collection) ==
-                "feature") {
-
-                # open band rasters
-                assets <- purrr::map(item[["path"]], .raster_open_rast)
-
-                # get asset info
-                asset_info <- purrr::map(assets, function(asset) {
-                    res <- .raster_res(asset)
-                    bbox <- .raster_bbox(asset)
-                    size <- .raster_size(asset)
-                    crs <- .raster_crs(asset)
-                    tibble::as_tibble_row(c(res, bbox, size, list(crs = crs)))
-                }) %>% dplyr::bind_rows()
-            }
-
-            dplyr::bind_cols(item, asset_info) %>%
-                dplyr::select(dplyr::all_of(c("fid", "band", "date", "xmin",
-                                              "ymin", "xmax", "ymax", "xres",
-                                              "yres", "nrows", "ncols", "path",
-                                              "crs")))
-
-        },
-        progress = progress
+    },
+    progress = progress
     ) %>% dplyr::bind_rows()
 
     return(items)
