@@ -448,6 +448,54 @@ test_that("Creating cubes from AWS", {
 
 test_that("Creating cubes from AWS Open Data and regularizing them", {
 
+    testthat::skip_on_cran()
+    s2_cube_open <- tryCatch({
+        sits_cube(source = "AWS",
+                  collection = "SENTINEL-S2-L2A-COGS",
+                  tiles = c("20LKP", "20LLP"),
+                  bands = c("B8A", "B11", "SCL"),
+                  start_date = "2018-10-01",
+                  end_date = "2018-11-01"
+        )},
+        error = function(e){
+            return(NULL)
+        })
+    testthat::skip_if(purrr::is_null(s2_cube_open),
+                      "AWS is not accessible")
+    expect_false(.cube_is_regular(s2_cube_open))
+    expect_true(all(sits_bands(s2_cube_open) %in% c("B08", "B03", "CLOUD")))
+
+    expect_error(.cube_size(s2_cube_open))
+    expect_error(.cube_resolution(s2_cube_open))
+    expect_error(.file_info_nrows(s2_cube_open[1,]))
+
+    dir_images <-  paste0(tempdir(), "/images/")
+    if (!dir.exists(dir_images))
+        suppressWarnings(dir.create(dir_images))
+
+    gc_cube <- sits_regularize(
+        cube        = s2_cube_open,
+        output_dir  = dir_images,
+        res         = 320,
+        agg_method  = "median",
+        period      = "P30D",
+        multicores = 4,
+        multithreads = 16)
+
+    size <- .cube_size(gc_cube)
+
+    expect_equal(size[["nrows"]], 26)
+    expect_equal(size[["ncols"]], 30)
+    expect_equal(gc_cube$xmax, 239602.7, tolerance = 1e-1)
+    expect_equal(gc_cube$xmin, 234802.7, tolerance = 1e-1)
+
+    file_info2 <- gc_cube$file_info[[1]]
+
+    expect_equal(nrow(file_info2), 2)
+})
+
+test_that("Creating cubes from AWS Open Data and regularizing with ROI", {
+
     s2_cube_open <- tryCatch({
         sits_cube(source = "AWS",
                   collection = "SENTINEL-S2-L2A-COGS",
