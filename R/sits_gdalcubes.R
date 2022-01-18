@@ -2,17 +2,17 @@
 #' @name .gc_new_cube
 #' @keywords internal
 #'
-#' @param tile        A data cube tile
-#' @param img_col     A \code{object} 'image_collection' containing information
+#' @param tile          A data cube tile
+#' @param img_col       A \code{object} 'image_collection' containing information
 #'  about the images metadata.
-#' @param cv          A \code{list} 'cube_view' with values from cube.
-#' @param cloud_mask  A \code{logical} corresponds to the use of the cloud band
+#' @param cv            A \code{list} 'cube_view' with values from cube.
+#' @param cloud_mask    A \code{logical} corresponds to the use of the cloud band
 #'  for aggregation.
-#' @param path_db     Database to be created by gdalcubes
-#' @param output_dir  Directory where the aggregated images will be written.
-#' @param cloud_mask  A \code{logical} corresponds to the use of the cloud band
+#' @param path_db       Database to be created by gdalcubes
+#' @param output_dir    Directory where the aggregated images will be written.
+#' @param cloud_mask    A \code{logical} corresponds to the use of the cloud band
 #'  for aggregation.
-#' @param multicores  A \code{numeric} with the number of cores will be used in
+#' @param multithreads  A \code{numeric} with the number of cores will be used in
 #'  the regularize. By default is used 1 core.
 #' @param ...         Additional parameters that can be included. See
 #'  '?gdalcubes::write_tif'.
@@ -24,7 +24,7 @@
                          path_db,
                          output_dir,
                          cloud_mask,
-                         multicores, ...) {
+                         multithreads, ...) {
 
     # set caller to show in errors
     .check_set_caller(".gc_new_cube")
@@ -96,39 +96,73 @@
     # setting threads to process
     # multicores number must be smaller than chunks
     gdalcubes::gdalcubes_options(
-        threads = min(multicores, .get_cube_chunks(cv))
+        threads = min(multithreads, .get_cube_chunks(cv))
     )
 
-    for (band in .cube_bands(tile, add_cloud = FALSE)) {
+    file_info <- purrr::map_dfr(.cube_bands(tile, add_cloud = FALSE), function(band) {
 
         # create a raster_cube object to each band the select below change
         # the object value
         cube_brick <- .gc_raster_cube(tile, img_col, cv, cloud_mask)
 
-        message(paste("Writing images of band", band, "of tile", tile$tile))
-
         # write the aggregated cubes
         path_write <- gdalcubes::write_tif(
             gdalcubes::select_bands(cube_brick, band),
             dir = output_dir,
-            prefix = paste("cube", tile$tile, band, "", sep = "_"),
+            prefix = paste("cube", tile[["tile"]], band, "", sep = "_"),
             creation_options = list("COMPRESS" = "LZW", "BIGTIFF" = "YES"),
-            pack = .get_gdalcubes_pack(tile, band),
-            write_json_descr = TRUE, ...
+            pack = .get_gdalcubes_pack(tile, band), ...
         )
+
+        # post-condition
+        .check_length(path_write, len_min = 1,
+                      msg = "no image was created")
 
         # retrieving image date
         images_date <- .gc_get_date(path_write)
 
+        # post-condition
+        .check_length(images_date, len_min = length(path_write))
+
+        # open first image to retrieve metadata
+        r_obj <- .raster_open_rast(path_write[[1]])
+
         # set file info values
-        cube_gc$file_info[[1]] <- tibble::add_row(
-            cube_gc$file_info[[1]],
-            band = rep(band, length(path_write)),
+        tibble::tibble(
+            fid = paste("cube", .cube_tiles(tile), images_date, sep = "_"),
             date = images_date,
-            res  = rep(cv$space$dx, length(path_write)),
+            band = band,
+            xres  = .raster_xres(r_obj),
+            yres  = .raster_yres(r_obj),
+            xmin  = .raster_xmin(r_obj),
+            xmax  = .raster_xmax(r_obj),
+            ymin  = .raster_ymin(r_obj),
+            ymax  = .raster_ymax(r_obj),
+            nrows = .raster_nrows(r_obj),
+            ncols = .raster_ncols(r_obj),
             path = path_write
         )
-    }
+    })
+
+    # arrange file_info by date and band
+    file_info <- dplyr::arrange(file_info, .data[["date"]], .data[["band"]])
+
+    # generate sequential fid
+    file_info[["fid"]] <- paste0(seq_along(file_info[["fid"]]))
+
+    cube_gc <- .cube_create(
+        source     = tile[["source"]],
+        collection = tile[["collection"]],
+        satellite  = tile[["satellite"]],
+        sensor     = tile[["sensor"]],
+        tile       = tile[["tile"]],
+        xmin       = cv[["space"]][["left"]],
+        xmax       = cv[["space"]][["right"]],
+        ymin       = cv[["space"]][["bottom"]],
+        ymax       = cv[["space"]][["top"]],
+        crs        = tile[["crs"]],
+        file_info  = file_info
+    )
 
     return(cube_gc)
 }
@@ -298,6 +332,94 @@
     return(ic_cube)
 }
 
+#' @title Create an image_collection object
+#' @name .gc_create_database_stac
+#'
+#' @keywords internal
+#'
+#' @param cube      Data cube from where data is to be retrieved.
+#'
+#' @param path_db   A \code{character} with the path and name where the
+#'  database will be create. E.g. "my/path/gdalcubes.db"
+#'
+#' @return a \code{object} 'image_collection' containing information about the
+#'  images metadata.
+.gc_create_database_stac <- function(cube, path_db) {
+
+    # deleting the existing database to avoid errors in the stac database
+    if (file.exists(path_db))
+        unlink(path_db)
+
+    create_gc_database <- function(cube) {
+
+        file_info <- dplyr::select(cube, .data[["file_info"]],
+                                   .data[["crs"]]) %>%
+            tidyr::unnest(cols = c("file_info")) %>%
+            dplyr::transmute(fid = .data[["fid"]],
+                             xmin = .data[["xmin"]],
+                             ymin = .data[["ymin"]],
+                             xmax = .data[["xmax"]],
+                             ymax = .data[["ymax"]],
+                             href = .data[["path"]],
+                             datetime = as.character(.data[["date"]]),
+                             band = .data[["band"]],
+                             `proj:epsg` = gsub("^EPSG:", "", .data[["crs"]]))
+
+        features <- dplyr::mutate(file_info, id = .data[["fid"]]) %>%
+            tidyr::nest(features = -.data[["fid"]])
+
+        features <- slider::slide_dfr(features, function(feat) {
+
+            bbox <- .sits_coords_to_bbox_wgs84(
+                xmin = feat$features[[1]][["xmin"]][[1]],
+                xmax = feat$features[[1]][["xmax"]][[1]],
+                ymin = feat$features[[1]][["ymin"]][[1]],
+                ymax = feat$features[[1]][["ymax"]][[1]],
+                crs = as.numeric(feat$features[[1]][["proj:epsg"]][[1]])
+            )
+
+            feat$features[[1]] <- dplyr::mutate(feat$features[[1]],
+                                                xmin = bbox[["xmin"]],
+                                                xmax = bbox[["xmax"]],
+                                                ymin = bbox[["ymin"]],
+                                                ymax = bbox[["ymax"]])
+
+            feat
+        })
+
+        purrr::map(features[["features"]], function(feature) {
+
+            feature <- feature %>%
+                tidyr::nest(assets = c(.data[["href"]], .data[["band"]])) %>%
+                tidyr::nest(properties = c(.data[["datetime"]],
+                                           .data[["proj:epsg"]])) %>%
+                tidyr::nest(bbox = c(.data[["xmin"]], .data[["ymin"]],
+                                     .data[["xmax"]], .data[["ymax"]]))
+
+            feature[["assets"]] <- purrr::map(feature[["assets"]], function(asset) {
+
+                asset %>%
+                    tidyr::pivot_wider(names_from = .data[["band"]],
+                                       values_from = .data[["href"]]) %>%
+                    purrr::map(
+                        function(x) list(href = x, `eo:bands` = list(NULL))
+                    )
+            })
+
+            feature <- unlist(feature, recursive = FALSE)
+            feature[["properties"]] <- c(feature[["properties"]])
+            feature[["bbox"]] <- unlist(feature[["bbox"]])
+            feature
+        })
+    }
+
+    ic_cube <- gdalcubes::stac_image_collection(
+        s = create_gc_database(cube),
+        out_file = path_db,
+        url_fun = identity)
+
+    return(ic_cube)
+}
 
 #' @title Internal function to handle with different file collection formats
 #'  for each provider.
@@ -401,8 +523,8 @@
                       right  = roi[["right"]],
                       bottom = roi[["bottom"]],
                       top    = roi[["top"]],
-                      t0 = format(toi[["max_min_date"]], "%Y-%m-%d"),
-                      t1 = format(toi[["min_max_date"]], "%Y-%m-%d")),
+                      t0 = format(toi[[1]], "%Y-%m-%d"),
+                      t1 = format(toi[[2]], "%Y-%m-%d")),
         srs = tile[["crs"]][[1]],
         dt = period,
         dx = res,
@@ -413,8 +535,8 @@
 
     return(cv)
 }
-#' @title Get the interval of intersection in all tiles
-#' @name .gc_get_valid_interval
+#' @title Get the timeline of intersection in all tiles
+#' @name .gc_get_valid_timeline
 #'
 #' @keywords internal
 #'
@@ -423,8 +545,8 @@
 #'  data cubes produced by \code{gdalcubes}, with number and unit, e.g., "P16D"
 #'  for 16 days. Use "D", "M" and "Y" for days, month and year.
 #'
-#' @return a \code{list} object with max_min_date and min_max_date.
-.gc_get_valid_interval <- function(cube, period) {
+#' @return a \code{vector} with all timeline values.
+.gc_get_valid_timeline <- function(cube, period) {
 
     # pre-condition
     .check_chr(period, allow_empty = FALSE,
@@ -487,5 +609,5 @@
         .check_that(x = all(tl_check), msg = "invalid images interval")
     }
 
-    return(list(max_min_date = tl[[1]], min_max_date = tl[[length(tl)]]))
+    return(tl)
 }

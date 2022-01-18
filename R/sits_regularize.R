@@ -81,7 +81,8 @@ sits_regularize <- function(cube,
                             agg_method = "median",
                             resampling = "bilinear",
                             cloud_mask = FALSE,
-                            multicores = 2) {
+                            multicores = 2,
+                            multithreads = 2) {
 
     # set caller to show in errors
     .check_set_caller("sits_regularize")
@@ -92,7 +93,7 @@ sits_regularize <- function(cube,
 
     # collections
     .check_null(.source_collection_gdalcubes_support(.cube_source(cube),
-                                               .cube_collection(cube)),
+                                                     .cube_collection(cube)),
                 msg = "sits_regularize not available for collection ",
                 cube$collection, " from ", cube$source
     )
@@ -152,13 +153,13 @@ sits_regularize <- function(cube,
     if ("CLOUD" %in% sits_bands(cube))
         cloud_mask <- TRUE
 
-    # precondition - is the multicores valid?
+    # precondition - is the multithreads valid?
     .check_num(
-        x = multicores,
+        x = multithreads,
         min = 1,
         len_min = 1,
         len_max = 1,
-        msg = "invalid 'multicores' parameter."
+        msg = "invalid 'multithreads' parameter."
     )
 
     if (!is.null(roi)) {
@@ -173,7 +174,8 @@ sits_regularize <- function(cube,
     }
 
     # timeline of intersection
-    toi <- .gc_get_valid_interval(cube, period = period)
+    timeline <- .gc_get_valid_timeline(cube, period = period)
+    toi <- c(timeline[[1]], timeline[[length(timeline)]])
 
     # matches the start dates of different tiles
     cube[["file_info"]] <- purrr::map(cube[["file_info"]], function(file_info) {
@@ -183,36 +185,134 @@ sits_regularize <- function(cube,
     })
 
     # create an image collection
-    img_col <- .gc_create_database(cube = cube, path_db = path_db)
+    img_col <- .gc_create_database_stac(cube = cube, path_db = path_db)
 
-    gc_cube <- slider::slide_dfr(cube, function(tile){
+    # get all cube bands
+    bands <- .cube_bands(cube, add_cloud = FALSE)
 
-        # create a list of cube view object
-        cv <- .gc_create_cube_view(tile = tile,
-                                   period = period,
-                                   roi = roi,
-                                   res = res,
-                                   toi = toi,
-                                   agg_method = agg_method,
-                                   resampling = resampling)
-
-
-        # create of the aggregate cubes
-        gc_tile <- .gc_new_cube(tile = tile,
-                                cv = cv,
-                                img_col = img_col,
-                                path_db = path_db,
-                                output_dir = output_dir,
-                                cloud_mask = cloud_mask,
-                                multicores = multicores)
-        return(gc_tile)
-
+    # does a local cube exist
+    gc_cube <- tryCatch({
+        sits_cube(source = .cube_source(cube),
+                  collection = .cube_collection(cube),
+                  data_dir = output_dir,
+                  parse_info = c("x1", "tile", "band", "date"))
+    },
+    error = function(e){
+        return(NULL)
     })
+    # find the tiles that have not been processed yet
+    missing_tiles <- .reg_missing_tiles(cube, gc_cube, timeline)
+    # original number of bands
+    tiles_bands <- purrr::cross2(missing_tiles, bands)
+    # start process
+    multicores <- min(multicores, length(tiles_bands))
+    .sits_parallel_start(multicores, log = FALSE)
+    on.exit(.sits_parallel_stop())
 
-    # reset global option
-    gdalcubes::gdalcubes_options(threads = 1)
+    # recovery mode
+    finished <- length(missing_tiles) == 0
+    while (!finished) {
+        # process bands and tiles in parallel
+        tiles_bands <- purrr::cross2(missing_tiles, bands)
+        .sits_parallel_map(tiles_bands, function(tile_band) {
+            tile <- tile_band[[1]]
+            band <- tile_band[[2]]
+            cube <- dplyr::filter(cube, tile == !!tile)
+            if (.source_cloud() %in% .cube_bands(cube))
+                band <- c(band, .source_cloud())
+            cube <- sits_select(cube, bands = band)
+            # open db in each process
+            img_col <- gdalcubes::image_collection(path_db)
 
-    class(gc_cube) <- .cube_s3class(gc_cube)
+            # create a list of cube view object
+            cv <- .gc_create_cube_view(tile = cube,
+                                       period = period,
+                                       roi = roi,
+                                       res = res,
+                                       toi = toi,
+                                       agg_method = agg_method,
+                                       resampling = resampling)
+
+            # create of the aggregate cubes
+            gc_tile <- .gc_new_cube(tile = cube,
+                                    cv = cv,
+                                    img_col = img_col,
+                                    path_db = path_db,
+                                    output_dir = output_dir,
+                                    cloud_mask = cloud_mask,
+                                    multithreads = multithreads)
+
+            # prepare class result
+            class(gc_tile) <- .cube_s3class(gc_tile)
+
+            return(gc_tile)
+
+        }, progress = multicores > 1)
+
+        # create local cube from files in output directory
+        gc_cube <- sits_cube(source = .cube_source(cube),
+                             collection = .cube_collection(cube),
+                             data_dir = output_dir,
+                             parse_info = c("x1", "tile", "band", "date"))
+        # find if there are missing tiles
+        missing_tiles <- .reg_missing_tiles(cube, gc_cube, timeline)
+        # have we finished?
+        finished <- length(missing_tiles) == 0
+        # inform the user
+        if (!finished)
+            message(paste0("Tiles ", paste0(missing_tiles, collapse = ", "),
+                       " have errors and will be reprocessed"))
+    }
+
+    # post-condition
+    if (!.cube_is_regular(gc_cube))
+        warning(paste0("please, run sits_regularize() again",
+                       "generated cube is not regular"))
 
     return(gc_cube)
+}
+#' @title Finds the missing tiles in a regularized cube
+#'
+#' @name .reg_missing_tiles
+#' @keywords internal
+#' @param   cube        original cube to be regularized
+#' @param   gc_cube     regularized cube (may be missing tile)
+#' @param   timeline    timeline used by gdalcube for regularized cube
+#' @return              tiles that are missing from the regularized cube
+.reg_missing_tiles <- function(cube, gc_cube = NULL, timeline){
+
+    # if regularized cube does not exist, return all tiles from original cube
+    if (purrr::is_null(gc_cube))
+        return(cube[["tile"]])
+
+    # first, include tiles that have not been processed
+    missing_tiles <- setdiff(cube[["tile"]], gc_cube[["tile"]])
+    # these are the tiles that have been processed
+    proc_tiles <- gc_cube[["tile"]]
+    # original bands in the non-regularized cube
+    orig_bands <- .cube_bands(cube, add_cloud = FALSE)
+    # do all tiles in gc_cube have the same bands as the original cube?
+    tiles_mis_bands <- slider::slide_lgl(gc_cube, function(row){
+        tl_bands <- sits_bands(row)
+        return(!(all(orig_bands %in% tl_bands)))
+    })
+    # do all tiles in gc_cube have the same timeline as the original cube?
+    tiles_mis_time <- slider::slide_lgl(gc_cube, function(row){
+        return(!(all(timeline %in% sits_timeline(row))))
+    })
+    # return all tiles from the original cube
+    # that have not been regularized correctly
+    missing_tiles <- unique(c(missing_tiles,
+                              proc_tiles[tiles_mis_bands],
+                              proc_tiles[tiles_mis_time]))
+
+    # find the malformed tiles
+    bad_tiles <- unique(proc_tiles[tiles_mis_bands], proc_tiles[tiles_mis_time])
+    if (length(bad_tiles) > 0 ) {
+        # clean all files from bad tiles
+        gc_cube_bad_tiles <- dplyr::filter(gc_cube, tile %in% bad_tiles)
+        bad_files <- dplyr::bind_rows(gc_cube_bad_tiles[["file_info"]])[["path"]]
+        unlink(bad_files)
+    }
+    return(missing_tiles)
 }
