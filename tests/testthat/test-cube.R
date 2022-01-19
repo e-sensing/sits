@@ -478,7 +478,7 @@ test_that("Creating cubes from AWS Open Data and regularizing them", {
         output_dir  = dir_images,
         res         = 320,
         agg_method  = "median",
-        period      = "P30D",
+        period      = "P1M",
         multicores = 4,
         multithreads = 16)
 
