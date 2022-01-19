@@ -13,7 +13,7 @@ sits_regularize(
   agg_method = "least_cc_first",
   resampling = "bilinear",
   cloud_mask = FALSE,
-  multicores = 2,
+  multicores = 1,
   multithreads = 2
 )
 }
@@ -29,48 +29,62 @@ regularized images will be written by \code{gdalcubes}.}
 data cubes produced by \code{gdalcubes}, with number and unit, e.g., "P16D"
 for 16 days. Use "D", "M" and "Y" for days, month and year.}
 
-\item{res}{A \code{numeric} with spatial resolution of the image that
-will be aggregated.}
+\item{res}{A \code{numeric} with spatial resolution of the image
+that will be aggregated.}
 
 \item{roi}{A named \code{numeric} vector with a region of interest.
-See above}
+See more above}
 
 \item{agg_method}{A \code{character} with method that will be applied by
 \code{gdalcubes} for aggregation. Options: \code{median} and
-\code{least_cc_first}.
-The default aggregation method is \code{least_cc_first}. See more above.}
+\code{least_cc_first}. The default aggregation method is
+\code{least_cc_first}. See more above.}
 
 \item{resampling}{A \code{character} with method to be used by
 \code{gdalcubes} for resampling in mosaic operation.
 Options: \code{near}, \code{bilinear}, \code{bicubic} or others supported by
 gdalwarp (see https://gdal.org/programs/gdalwarp.html).
-By default is bilinear.}
+Default is bilinear.}
 
 \item{cloud_mask}{A \code{logical} to use cloud band for aggregation by
-\code{gdalcubes}. Default is \code{TRUE}.}
+\code{gdalcubes}. Deprecated as of SITS version 0.16.0. Default
+is \code{FALSE}.}
 
-\item{multicores}{A \code{numeric} with the number of cores will be used in
-the regularize. By default is used 1 core.}
+\item{multicores}{A \code{numeric} with the number of cores used for
+regularization. This parameter specifies how many bands from different tiles
+should be processed in parallel. By default, 1 core is used.}
+
+\item{multithreads}{A \code{numeric} value that specifies the number of
+threads used in the gdalcubes package. This parameter determines how many
+chunks are executed in parallel. The gdalcubes package divides data cubes
+into smaller chunks, where the generated chunk creates a 3-dimensional array
+of band, latitude, and longitude information. By default 2 threads are used.}
 }
 \value{
 A \code{sits_cube} object with aggregated images.
 }
 \description{
 Creates cubes with regular time intervals
- using the gdalcubes package. Cubes can be composed using "min", "max",
- "mean", "median" or "first" functions. Users need to provide an time
+ using the gdalcubes package. Cubes can be composed using "median" or
+ "least_cc_first" functions. Users need to provide an time
  interval which is used by the composition function.
 }
 \note{
-The \code{least_cc_first} aggregation method sorts the images based on
-   cloud coverage, images with the least clouds are at the top of the stack.
-   Once the stack of images is sorted the method uses the first valid value
-   to generate the temporal aggregation.
+If malformed images with the same required tiles and bands are found in
+   the current directory, these images are deleted and recreated.
 
 The "roi" parameter defines a region of interest. It can be
    an sf_object, a shapefile, or a bounding box vector with
    named XY values ("xmin", "xmax", "ymin", "ymax") or
    named lat/long values ("lat_min", "lat_max", "long_min", "long_max")
+
+The "least_cc_first" aggregation method sorts the images based on cloud
+   cover, where images with the fewest clouds at the top of the stack. Once
+   the stack of images is sorted, the method uses the first valid value to
+   create the temporal aggregation.
+
+If the supplied data cube contains cloud band, the values indicated as
+   clouds or cloud shadow will be removed.
 }
 \examples{
 {
@@ -94,10 +108,7 @@ dir.create(paste0(tempdir(),"/images/"))
 gc_cube <- sits_regularize(cube       = s2_cube,
                            output_dir = paste0(tempdir(),"/images/"),
                            period     = "P1M",
-                           agg_method = "median",
-                           resampling = "bilinear",
-                           res        = 60,
-                           cloud_mask = TRUE)
+                           res        = 320)
 }
 }
 
