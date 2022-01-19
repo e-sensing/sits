@@ -557,9 +557,6 @@
                len_min = 1, len_max = 1,
                msg = "invalid 'period' parameter")
 
-    # compute duration
-    duration <- lubridate::duration(period)
-
     # start date - maximum of all minimums
     max_min_date <- do.call(
         what = max,
@@ -581,37 +578,32 @@
         msg = "the timeline of the cube tiles do not intersect."
     )
 
-    # finds the length of the timeline
-    tl_length <- ceiling(
-        lubridate::interval(start = lubridate::as_date(max_min_date),
-                            end = lubridate::as_date(min_max_date) + 1) /
-            duration
-    )
+    if (substr(period, 3, 3) == "M") {
+        max_min_date <- lubridate::date(paste(
+            lubridate::year(max_min_date),
+            lubridate::month(max_min_date),
+            "01", sep = "-"))
+    } else if (substr(period, 3, 3) == "Y") {
+        max_min_date <- lubridate::date(paste(
+            lubridate::year(max_min_date),
+            "01", "01", sep = "-"))
+    }
 
-    # timeline dates
-    tl <- duration * (seq_len(tl_length) - 1) + as.Date(max_min_date)
+    # generate timeline
+    date <- lubridate::ymd(max_min_date)
+    min_max_date <- lubridate::ymd(min_max_date)
+    tl <- date
+    while (TRUE) {
+        date <- lubridate::ymd(date) %m+% lubridate::period(period)
+        if (date > min_max_date) break
+        tl <- c(tl, date)
+    }
 
     # timeline cube
     tiles_tl <- suppressWarnings(sits_timeline(cube))
 
     if (!is.list(tiles_tl))
         tiles_tl <- list(tiles_tl)
-
-    # checks if the timelines intersect
-    if (length(tl) > 1) {
-
-        tl_check <- vapply(tiles_tl, function(tile_tl) {
-
-            # at least one image must be in begin and end in timeline interval
-            begin <- any(tile_tl >= tl[[1]] & tile_tl <= tl[[2]])
-            end <- any(tile_tl >= tl[[tl_length - 1]] &
-                           tile_tl <= tl[[tl_length]])
-
-            return(begin && end)
-        }, logical(1))
-
-        .check_that(x = all(tl_check), msg = "invalid images interval")
-    }
 
     return(tl)
 }

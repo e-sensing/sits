@@ -540,48 +540,29 @@ sits_timeline.classified_image <- function(data) {
 #' @keywords internal
 #' @description Given a information about dates, check if the date can be
 #'              interpreted by lubridate
-#' @param tile_date_band    a tibble with date and band information
-#' @return                  tibble with corrected date information
+#' @param date   a date information
+#' @return date class vector
 #'
-.sits_timeline_date_format <- function(tile_date_band) {
+.sits_timeline_date_format <- function(date) {
 
     # set caller to show in errors
     .check_set_caller(".sits_timeline_date_format")
 
-    .check_that(
-        x = nrow(tile_date_band) > 0,
-        msg = "invalid information"
-    )
+    .check_length(
+        x = date,
+        len_min = 1,
+        msg = "invalid date parameter")
 
-    .check_chr_within(
-        x = c("tile", "date", "band"),
-        within = colnames(tile_date_band),
-        msg = paste("error in obtaining tile, date and band information")
-    )
+    # check type of date interval
+    if (length(strsplit(date, "-")[[1]]) == 1)
+        converted_date <- lubridate::fast_strptime(date, "%Y")
+    else if (length(strsplit(date, "-")[[1]]) == 2)
+        converted_date <- lubridate::fast_strptime(date, "%Y-%m")
+    else
+        converted_date <- lubridate::fast_strptime(date, "%Y-%m-%d")
 
-    # convert to datetime
-    converted_date <- suppressWarnings(
-        lubridate::as_date(as.character(tile_date_band$date))
-    )
-
-    # try julian date format
-    if (all(is.na(converted_date))) {
-
-        # guess julian date format
-        guessed_format <- lubridate::guess_formats(tile_date_band$date,
-                                                   orders = "%Y%j")
-
-        # check if some format was not guessed
-        .check_that(
-            x = length(guessed_format) == length(tile_date_band$date),
-            msg = "invalid date format in some file"
-        )
-
-        # convert to date
-        converted_date <- lubridate::as_date(tile_date_band$date,
-                                             format = guessed_format)
-
-    }
+    # transform to date object
+    converted_date <- lubridate::as_date(converted_date)
 
     # check if there are NAs values
     .check_that(
@@ -589,10 +570,9 @@ sits_timeline.classified_image <- function(data) {
         msg = "invalid date format in file"
     )
 
-    tile_date_band$date <- converted_date
-
-    return(tile_date_band)
+    return(converted_date)
 }
+
 #' @title Checks that the timeline of all time series of a data set are equal
 #' @name .sits_timeline_check
 #' @keywords internal

@@ -307,7 +307,7 @@ sits_regularize <- function(cube,
 #' @param   gc_cube     regularized cube (may be missing tile)
 #' @param   timeline    timeline used by gdalcube for regularized cube
 #' @return              tiles that are missing from the regularized cube
-.reg_missing_tiles <- function(cube, gc_cube = NULL, timeline){
+.reg_missing_tiles <- function(cube, gc_cube = NULL, timeline) {
 
     # if regularized cube does not exist, return all tiles from original cube
     if (purrr::is_null(gc_cube))
@@ -320,22 +320,26 @@ sits_regularize <- function(cube,
     # original bands in the non-regularized cube
     orig_bands <- .cube_bands(cube, add_cloud = FALSE)
     # do all tiles in gc_cube have the same bands as the original cube?
-    tiles_mis_bands <- slider::slide_lgl(gc_cube, function(row){
-        tl_bands <- sits_bands(row)
+    tiles_miss_bands <- slider::slide_lgl(gc_cube, function(tile){
+        tl_bands <- sits_bands(tile)
         return(!(all(orig_bands %in% tl_bands)))
     })
     # do all tiles in gc_cube have the same timeline as the original cube?
-    tiles_mis_time <- slider::slide_lgl(gc_cube, function(row){
-        return(!(all(timeline %in% sits_timeline(row))))
+    tiles_miss_time <- slider::slide_lgl(gc_cube, function(tile){
+        bands_miss_time <- purrr::map_lgl(.cube_bands(tile), function(band) {
+            tile_band <- sits_select(tile, bands = band)
+            return(!(all(timeline %in% sits_timeline(tile_band))))
+        })
+        return(any(bands_miss_time))
     })
     # return all tiles from the original cube
     # that have not been regularized correctly
     missing_tiles <- unique(c(missing_tiles,
-                              proc_tiles[tiles_mis_bands],
-                              proc_tiles[tiles_mis_time]))
+                              proc_tiles[tiles_miss_bands],
+                              proc_tiles[tiles_miss_time]))
 
     # find the malformed tiles
-    bad_tiles <- unique(proc_tiles[tiles_mis_bands], proc_tiles[tiles_mis_time])
+    bad_tiles <- unique(c(proc_tiles[tiles_miss_bands], proc_tiles[tiles_miss_time]))
     if (length(bad_tiles) > 0 ) {
         # clean all files from bad tiles
         gc_cube_bad_tiles <- dplyr::filter(gc_cube, tile %in% bad_tiles)
