@@ -10,7 +10,7 @@ sits_regularize(
   period,
   res,
   roi = NULL,
-  agg_method = "median",
+  agg_method = "least_cc_first",
   resampling = "bilinear",
   cloud_mask = FALSE,
   multicores = 2,
