@@ -453,9 +453,57 @@ test_that("Creating cubes from AWS Open Data and regularizing them", {
         sits_cube(source = "AWS",
                   collection = "SENTINEL-S2-L2A-COGS",
                   tiles = c("20LKP", "20LLP"),
-                  bands = c("B8A", "B11", "SCL"),
+                  bands = c("B8A", "SCL"),
                   start_date = "2018-10-01",
                   end_date = "2018-11-01"
+        )},
+        error = function(e){
+            return(NULL)
+        })
+    testthat::skip_if(purrr::is_null(s2_cube_open),
+                      "AWS is not accessible")
+    expect_false(.cube_is_regular(s2_cube_open))
+    expect_true(all(sits_bands(s2_cube_open) %in% c("B8A", "CLOUD")))
+
+    expect_error(.cube_size(s2_cube_open))
+    expect_error(.cube_resolution(s2_cube_open))
+    expect_error(.file_info_nrows(s2_cube_open))
+
+    dir_images <-  paste0(tempdir(), "/images2/")
+    if (!dir.exists(dir_images))
+        suppressWarnings(dir.create(dir_images))
+
+    gc_cube <- sits_regularize(
+        cube        = s2_cube_open,
+        output_dir  = dir_images,
+        res         = 320,
+        agg_method  = "median",
+        period      = "P1M",
+        multicores = 4,
+        multithreads = 16)
+
+    tile_size <- .cube_size(gc_cube[1, ])
+    tile_bbox <- .cube_tile_bbox(gc_cube[1, ])
+
+    expect_equal(tile_size[["nrows"]], 344)
+    expect_equal(tile_size[["ncols"]], 344)
+    expect_equal(tile_bbox$xmax, 309920, tolerance = 1e-1)
+    expect_equal(tile_bbox$xmin, 199840, tolerance = 1e-1)
+
+    tile_fileinfo <- .file_info(gc_cube[1, ])
+
+    expect_equal(nrow(tile_fileinfo), 1)
+})
+
+test_that("Creating cubes from AWS Open Data and regularizing with ROI", {
+
+    s2_cube_open <- tryCatch({
+        sits_cube(source = "AWS",
+                  collection = "SENTINEL-S2-L2A-COGS",
+                  tiles = c("20LKP", "20LLP"),
+                  bands = c("B08", "B03", "SCL"),
+                  start_date = "2018-12-01",
+                  end_date = "2018-12-30"
         )},
         error = function(e){
             return(NULL)
@@ -477,67 +525,20 @@ test_that("Creating cubes from AWS Open Data and regularizing them", {
         cube        = s2_cube_open,
         output_dir  = dir_images,
         res         = 320,
-        agg_method  = "median",
-        period      = "P1M",
-        multicores = 4,
-        multithreads = 16)
-
-    size <- .cube_size(gc_cube)
-
-    expect_equal(size[["nrows"]], 26)
-    expect_equal(size[["ncols"]], 30)
-    expect_equal(gc_cube$xmax, 239602.7, tolerance = 1e-1)
-    expect_equal(gc_cube$xmin, 234802.7, tolerance = 1e-1)
-
-    file_info2 <- gc_cube$file_info[[1]]
-
-    expect_equal(nrow(file_info2), 2)
-})
-
-test_that("Creating cubes from AWS Open Data and regularizing with ROI", {
-
-    s2_cube_open <- tryCatch({
-        sits_cube(source = "AWS",
-                  collection = "SENTINEL-S2-L2A-COGS",
-                  tiles = c("20LKP", "20LLP"),
-                  bands = c("B08", "B03", "SCL"),
-                  start_date = "2018-10-01",
-                  end_date = "2018-12-30"
-        )},
-        error = function(e){
-            return(NULL)
-        })
-    testthat::skip_if(purrr::is_null(s2_cube_open),
-                      "AWS is not accessible")
-    expect_false(.cube_is_regular(s2_cube_open))
-    expect_true(all(sits_bands(s2_cube_open) %in% c("B08", "CLOUD")))
-
-    expect_error(.cube_size(s2_cube_open))
-    expect_error(.cube_resolution(s2_cube_open))
-    expect_error(.file_info_nrows(s2_cube_open[1,]))
-
-    dir_images <-  paste0(tempdir(), "/images/")
-    if (!dir.exists(dir_images))
-        suppressWarnings(dir.create(dir_images))
-
-    gc_cube <- sits_regularize(
-        cube        = s2_cube_open,
-        output_dir  = dir_images,
-        res         = 160,
-        agg_method  = "first",
+        agg_method  = "least_cc_first",
         roi = c("lon_min" = -65.3811,
                 "lat_min" = -10.6645,
                 "lon_max" = -64.86069,
                 "lat_max" = -10.491988),
         period      = "P30D",
         multicores = 2,
-        multithreads = 2)
+        multithreads = 4)
 
     size <- .cube_size(gc_cube)
 
-    expect_equal(size[["nrows"]], 26)
-    expect_equal(size[["ncols"]], 30)
-    expect_equal(gc_cube$xmax, 239602.7, tolerance = 1e-1)
+    expect_equal(size[["nrows"]], 61)
+    expect_equal(size[["ncols"]], 179)
+    expect_equal(gc_cube$xmax, 296562, tolerance = 1e-1)
     expect_equal(gc_cube$xmin, 234802.7, tolerance = 1e-1)
 
     file_info2 <- gc_cube$file_info[[1]]
