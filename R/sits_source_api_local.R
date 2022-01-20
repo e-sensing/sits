@@ -6,7 +6,8 @@
                         delim,
                         bands,
                         start_date,
-                        end_date, ...) {
+                        end_date,
+                        multicores, ...) {
 
     # set caller to show in errors
     .check_set_caller(".local_cube")
@@ -33,7 +34,8 @@
         # make a new file info for one tile
         file_info <- .local_cube_items_file_info(source = source,
                                                  items = items_tile,
-                                                 collection = collection)
+                                                 collection = collection,
+                                                 multicores = multicores)
 
         # make a new cube tile
         tile_cube <- .local_cube_items_cube(source = source,
@@ -154,7 +156,8 @@
 #' @keywords internal
 .local_cube_items_file_info <- function(source,
                                         items,
-                                        collection) {
+                                        collection,
+                                        multicores) {
 
     # set caller to show in errors
     .check_set_caller(".local_cube_items_file_info")
@@ -169,15 +172,15 @@
         dplyr::ungroup()
 
     progress <- FALSE
-    workers <- 1
+    n_workers <- 1
     # check if progress bar and multicores processing can be enabled
     if (nrow(items) >= .config_get("local_min_files_for_parallel")) {
         progress <- TRUE
-        workers <- .config_get("local_parallel_processing")
+        n_workers <- multicores
     }
 
     # prepare parallel requests
-    .sits_parallel_start(workers = workers, log = FALSE)
+    .sits_parallel_start(workers = n_workers, log = FALSE)
     on.exit(.sits_parallel_stop(), add = TRUE)
 
     # do parallel requests

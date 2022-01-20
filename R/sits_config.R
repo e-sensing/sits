@@ -88,7 +88,6 @@ sits_config <- function(processing_bloat = NULL,
     # set options defined in sits config
     do.call(.config_set_options, args = config_internals)
 
-
     # get and check the default configuration file path
     yml_file <- .config_file()
 
