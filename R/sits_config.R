@@ -85,9 +85,12 @@ sits_config <- function(processing_bloat = NULL,
     config_internals <- yaml::yaml.load_file(input = config_internals_file,
                                              merge.precedence = "override")
 
+    # cran environment requires only two cores
+    if (Sys.getenv("NOT_CRAN") == "false")
+        config_internals[["local_parallel_processing"]] <- 2
+
     # set options defined in sits config
     do.call(.config_set_options, args = config_internals)
-
 
     # get and check the default configuration file path
     yml_file <- .config_file()
