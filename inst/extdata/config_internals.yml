@@ -54,9 +54,6 @@ probs_cube_data_type    : "INT2U"
 # configuration for classified cubes
 class_cube_data_type    : "INT1U"
 
-# simultaneous processes for sits local cube  creation
-local_parallel_processing : 2
-
 # minimum number of files for sits local cube to be run on parallel
 local_min_files_for_parallel : 20
 

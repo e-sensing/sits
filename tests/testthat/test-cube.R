@@ -15,6 +15,7 @@ test_that("Creating a SATVEG data cube", {
 })
 
 test_that("Reading a raster cube", {
+
     data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
 
     raster_cube <- tryCatch({
@@ -23,7 +24,8 @@ test_that("Reading a raster cube", {
             collection = "MOD13Q1-6",
             data_dir = data_dir,
             delim = "_",
-            parse_info = c("X1", "X2", "tile", "band", "date")
+            parse_info = c("X1", "X2", "tile", "band", "date"),
+            multicores = 2
         )
     }, error = function(e) {
         return(NULL)
@@ -43,6 +45,7 @@ test_that("Reading a raster cube", {
 })
 
 test_that("Backwards compatibility", {
+
     data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
 
     raster_cube <- tryCatch({
@@ -51,7 +54,8 @@ test_that("Backwards compatibility", {
             collection = "MOD13Q1-6",
             data_dir = data_dir,
             delim = "_",
-            parse_info = c("X1", "X2", "tile", "band", "date")
+            parse_info = c("X1", "X2", "tile", "band", "date"),
+            multicores = 2
         )
     }, error = function(e) {
         return(NULL)
@@ -59,30 +63,31 @@ test_that("Backwards compatibility", {
 
     expect_null(raster_cube)
 
-    msg <- capture_messages(sits_cube(
-        source = "LOCAL",
-        origin = "BDC",
-        collection = "MOD13Q1-6",
-        data_dir = data_dir,
-        delim = "_",
-        parse_info = c("X1", "X2", "tile", "band", "date")
-    )
+    expect_message(
+        object = sits_cube(
+            source = "LOCAL",
+            origin = "BDC",
+            collection = "MOD13Q1-6",
+            data_dir = data_dir,
+            delim = "_",
+            parse_info = c("X1", "X2", "tile", "band", "date"),
+            multicores = 2
+        ),
+        regexp = "LOCAL value is deprecated"
     )
 
-    expect_true(grepl("LOCAL value is deprecated", msg))
-
-    msg <- capture_messages(
-        raster_cube <- sits_cube(
+    expect_message(
+        object = sits_cube(
             source = "BDC",
             collection = "MOD13Q1-6",
             band = c("NDVI", "EVI"),
             data_dir = data_dir,
             delim = "_",
-            parse_info = c("X1", "X2", "tile", "band", "date")
-        )
+            parse_info = c("X1", "X2", "tile", "band", "date"),
+            multicores = 2
+        ),
+        regexp = "please use bands instead of band as parameter"
     )
-    expect_true(grepl("please use bands instead of band as parameter",
-                      msg))
 })
 
 test_that("Creating a raster stack cube and selecting bands", {
@@ -96,7 +101,8 @@ test_that("Creating a raster stack cube and selecting bands", {
             collection = "MOD13Q1-6",
             data_dir = data_dir,
             delim = "_",
-            parse_info = c("X1", "X2", "tile", "band", "date")
+            parse_info = c("X1", "X2", "tile", "band", "date"),
+            multicores = 2
         )
     },
     error = function(e) {
@@ -111,6 +117,7 @@ test_that("Creating a raster stack cube and selecting bands", {
                         c("EVI", "NDVI")))
     rast <- .raster_open_rast(modis_cube$file_info[[1]]$path[[1]])
     expect_true(.raster_nrows(rast) == .cube_size(modis_cube)[["nrows"]])
+
     timeline <- sits_timeline(modis_cube)
     expect_true(timeline[1] == "2013-09-14")
 
@@ -128,25 +135,26 @@ test_that("Creating cubes from BDC", {
                       message = "No BDC_ACCESS_KEY defined in environment.")
 
     # create a raster cube file based on the information about the files
-    msg <- capture_messages(
-        cbers_cube <-
-            tryCatch({
-                sits_cube(
-                    source = "BDC",
-                    collection = "CB4_64_16D_STK-1",
-                    tile = c("022024", "022023"),
-                    start_date = "2018-09-01",
-                    end_date = "2019-08-29"
-                )
-            },
-            error = function(e) {
-                return(NULL)
-            })
+    expect_message(
+        object = (cbers_cube <-
+                      tryCatch({
+                          sits_cube(
+                              source = "BDC",
+                              collection = "CB4_64_16D_STK-1",
+                              tile = c("022024", "022023"),
+                              start_date = "2018-09-01",
+                              end_date = "2019-08-29"
+                          )
+                      },
+                      error = function(e) {
+                          return(NULL)
+                      })
+        ),
+        regexp = "please use tiles instead of tile as parameter"
     )
+
     testthat::skip_if(purrr::is_null(cbers_cube),
                       message = "BDC is not accessible")
-
-    expect_true(grepl("please use tiles instead of tile as parameter", msg))
 
     expect_true(all(sits_bands(cbers_cube) %in%
                         c("NDVI", "EVI", "B13", "B14", "B15", "B16", "CLOUD")))
@@ -350,7 +358,8 @@ test_that("Merging cubes", {
         collection = "MOD13Q1-6",
         data_dir = data_dir,
         delim = "_",
-        parse_info = c("X1", "X2", "tile", "band", "date")
+        parse_info = c("X1", "X2", "tile", "band", "date"),
+        multicores = 2
     )
 
     testthat::skip_if(purrr::is_null(ndvi_cube),
@@ -363,7 +372,8 @@ test_that("Merging cubes", {
             bands = "EVI",
             data_dir = data_dir,
             delim = "_",
-            parse_info = c("X1", "X2", "tile", "band", "date")
+            parse_info = c("X1", "X2", "tile", "band", "date"),
+            multicores = 2
         )
     },
     error = function(e) {
@@ -745,7 +755,8 @@ test_that("Creating a raster stack cube with BDC band names", {
             collection = "CB4_64-1",
             data_dir = data_dir,
             parse_info = c("X1", "X2", "X3", "X4", "X5", "tile",
-                           "date", "X6", "band")
+                           "date", "X6", "band"),
+            multicores = 2
         )
     },
     error = function(e) {
