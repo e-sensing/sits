@@ -36,7 +36,8 @@ sits_cube(source, ..., collection, data_dir = NULL)
   parse_info,
   delim = "_",
   name = NULL,
-  origin = NULL
+  origin = NULL,
+  multicores = 2
 )
 
 \method{sits_cube}{satveg_cube}(source = "SATVEG", collection = "TERRA", data_dir = NULL, ...)
@@ -77,6 +78,8 @@ information
 
 \item{origin}{deprecated parameter formely used for local cubes
 (see documentation)}
+
+\item{multicores}{a number of workers for parallel processing}
 }
 \value{
 The description of a data cube
