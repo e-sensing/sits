@@ -539,13 +539,13 @@ print.sits_assessment <- function(x, ...,
 
         cat("\nStatistics by Class:\n\n")
         x$byClass <- x$byClass[, grepl(
-            "(Sensitivity)|(Specificity)|(Pos Pred Value)|(Neg Pred Value)",
+            "(Sensitivity)|(Specificity)|(Pos Pred Value)|(Neg Pred Value)|(F1)",
             colnames(x$byClass)
         )]
         measures <- t(x$byClass)
         rownames(measures) <- c(
             "Prod Acc (Sensitivity)", "Specificity",
-            "User Acc (Pos Pred Value)", "Neg Pred Value"
+            "User Acc (Pos Pred Value)", "Neg Pred Value", "F1"
         )
         print(measures, digits = digits)
     } else {
