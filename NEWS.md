@@ -2,6 +2,16 @@
 
 We are preparing to release the package on CRAN and are making relevant changes in the development version.
 
+# What's new in SITS version 0.16.1
+
+### New features in SITS version 0.16.1
+* Update `AWS_NO_SIGN_REQUEST` environment variable
+* Solved bug in `.gc_get_valid_interval()` function.
+* Now `sits_regularize` has a fault tolerance system, so that if there is a processing error the function will delete the malformed files and create them again.
+* `sits_regularize` function has a new parameter called `multithreads`.
+* `sits_cube` function for `local cubes` has a new parameter called `multicores`.
+* Print `F1 score` in `sits_kfold_validate` with more than 2 labels.
+
 # What's new in SITS version 0.16.0
 
 ### New features in SITS version 0.16.0-1
