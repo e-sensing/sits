@@ -302,7 +302,6 @@ test_that("Creating cubes from WTSS", {
 test_that("Creating cubes from DEA", {
     testthat::skip_on_cran()
 
-
     dea_cube <- tryCatch({
         sits_cube(source = "DEAFRICA",
                   collection = "s2_l2a",
@@ -317,6 +316,8 @@ test_that("Creating cubes from DEA", {
     error = function(e) {
         return(NULL)
     })
+    testthat::skip_if(purrr::is_null(dea_cube),
+                      message = "DEAFRICA is not accessible")
 
     expect_true(all(sits_bands(dea_cube) %in% c("B01", "B04", "B05")))
 
@@ -390,27 +391,6 @@ test_that("Creating cubes from AWS", {
 
     testthat::skip_on_cran()
 
-    # check "AWS_ACCESS_KEY_ID" - mandatory one per user
-    aws_access_key_id <- Sys.getenv("AWS_ACCESS_KEY_ID")
-
-    # check "AWS_SECRET_ACCESS_KEY" - mandatory one per user
-    aws_secret_access_key <- Sys.getenv("AWS_SECRET_ACCESS_KEY")
-
-    testthat::skip_if(
-        nchar(aws_access_key_id) == 0,
-        message = "No AWS_ACCESS_KEY_ID defined in environment."
-    )
-
-    testthat::skip_if(
-        nchar(aws_secret_access_key) == 0,
-        message = "No AWS_SECRET_ACCESS_KEY defined in environment."
-    )
-
-    Sys.unsetenv("AWS_DEFAULT_REGION")
-    Sys.unsetenv("AWS_S3_ENDPOINT")
-    Sys.unsetenv("AWS_REQUEST_PAYER")
-
-
     s2_cube <- tryCatch({sits_cube(source = "AWS",
                                    collection = "sentinel-s2-l2a",
                                    tiles = c("20LKP"),
@@ -449,6 +429,7 @@ test_that("Creating cubes from AWS", {
 test_that("Creating cubes from AWS Open Data and regularizing them", {
 
     testthat::skip_on_cran()
+
     s2_cube_open <- tryCatch({
         sits_cube(source = "AWS",
                   collection = "SENTINEL-S2-L2A-COGS",
@@ -463,11 +444,11 @@ test_that("Creating cubes from AWS Open Data and regularizing them", {
     testthat::skip_if(purrr::is_null(s2_cube_open),
                       "AWS is not accessible")
     expect_false(.cube_is_regular(s2_cube_open))
-    expect_true(all(sits_bands(s2_cube_open) %in% c("B08", "B03", "CLOUD")))
+    expect_true(all(sits_bands(s2_cube_open) %in% c("B11", "B8A", "CLOUD")))
 
     expect_error(.cube_size(s2_cube_open))
     expect_error(.cube_resolution(s2_cube_open))
-    expect_error(.file_info_nrows(s2_cube_open[1,]))
+    expect_error(.file_info_nrows(s2_cube_open))
 
     dir_images <-  paste0(tempdir(), "/images/")
     if (!dir.exists(dir_images))

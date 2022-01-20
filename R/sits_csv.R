@@ -38,7 +38,7 @@ sits_metadata_to_csv <- function(data, file) {
     csv_columns <- c("longitude", "latitude", "start_date", "end_date", "label")
 
     # select the parts of the tibble to be saved
-    csv <- dplyr::select(data, csv_columns)
+    csv <- dplyr::select(data, dplyr::all_of(csv_columns))
 
     .check_that(
         x = nrow(csv) > 0,
