@@ -454,11 +454,7 @@ test_that("Creating cubes from AWS Open Data and regularizing them", {
     testthat::skip_if(purrr::is_null(s2_cube_open),
                       "AWS is not accessible")
     expect_false(.cube_is_regular(s2_cube_open))
-<<<<<<< HEAD
-    expect_true(all(sits_bands(s2_cube_open) %in% c("B11", "B8A", "CLOUD")))
-=======
     expect_true(all(sits_bands(s2_cube_open) %in% c("B8A", "CLOUD")))
->>>>>>> 21f182230d18b7528990d9edf4ab5b2203804f6b
 
     expect_error(.cube_size(s2_cube_open))
     expect_error(.cube_resolution(s2_cube_open))
