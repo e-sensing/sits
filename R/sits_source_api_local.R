@@ -169,15 +169,15 @@
         dplyr::ungroup()
 
     progress <- FALSE
-    workers <- 1
+    n_workers <- 1
     # check if progress bar and multicores processing can be enabled
     if (nrow(items) >= .config_get("local_min_files_for_parallel")) {
         progress <- TRUE
-        workers <- .config_get("local_parallel_processing")
+        n_workers <- .config_get("local_parallel_processing")
     }
 
     # prepare parallel requests
-    .sits_parallel_start(workers = workers, log = FALSE)
+    .sits_parallel_start(workers = n_workers, log = FALSE)
     on.exit(.sits_parallel_stop(), add = TRUE)
 
     # do parallel requests
