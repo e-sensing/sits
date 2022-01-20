@@ -278,7 +278,8 @@ test_that("Configs AWS", {
                             "SENTINEL-S2-L2A", "access_vars")),
         list(AWS_DEFAULT_REGION = "eu-central-1",
              AWS_S3_ENDPOINT    = "s3.amazonaws.com",
-             AWS_REQUEST_PAYER  = "requester")
+             AWS_REQUEST_PAYER  = "requester",
+             AWS_NO_SIGN_REQUEST = FALSE)
     )
 
     expect_true(
