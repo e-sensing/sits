@@ -159,45 +159,56 @@ sits_apply.raster_cube <- function(data, ...,
                     tools::file_path_sans_ext(out_file_path),
                     "_block_", b[["first_row"]], "_", b[["nrows"]], ".tif")
 
+                # resume feature
+                if (file.exists(filename_block))
+                    return(filename_block)
+
                 # load bands data
-                in_values <- purrr::map(in_bands, function(band) {
+                in_values <- tryCatch({
+                    purrr::map(in_bands, function(band) {
 
-                    # transform file_info columns as bands and values
-                    # as paths
-                    in_files <- in_fi_fid %>%
-                        dplyr::select(dplyr::all_of(c("band", "path"))) %>%
-                        tidyr::pivot_wider(names_from = "band",
-                                           values_from = "path")
+                        # transform file_info columns as bands and values
+                        # as paths
+                        in_files <- in_fi_fid %>%
+                            dplyr::select(dplyr::all_of(c("band", "path"))) %>%
+                            tidyr::pivot_wider(names_from = "band",
+                                               values_from = "path")
 
-                    # get the missing values, minimum values and scale
-                    # factors
-                    missing_value <-
-                        .cube_band_missing_value(data, band = band)
-                    minimum_value <-
-                        .cube_band_minimum_value(data, band = band)
-                    maximum_value <-
-                        .cube_band_maximum_value(data, band = band)
+                        # get the missing values, minimum values and scale
+                        # factors
+                        missing_value <-
+                            .cube_band_missing_value(data, band = band)
+                        minimum_value <-
+                            .cube_band_minimum_value(data, band = band)
+                        maximum_value <-
+                            .cube_band_maximum_value(data, band = band)
 
-                    # scale the data set
-                    scale_factor <-
-                        .cube_band_scale_factor(data, band = band)
-                    offset_value <-
-                        .cube_band_offset_value(data, band = band)
+                        # scale the data set
+                        scale_factor <-
+                            .cube_band_scale_factor(data, band = band)
+                        offset_value <-
+                            .cube_band_offset_value(data, band = band)
 
-                    # read the values
-                    values <- .raster_read_stack(in_files[[band]],
-                                                 block = b)
+                        # read the values
+                        values <- .raster_read_stack(in_files[[band]],
+                                                     block = b)
 
-                    # correct NA, minimum, maximum, and missing values
-                    values[values == missing_value] <- NA
-                    values[values < minimum_value] <- NA
-                    values[values > maximum_value] <- NA
+                        # correct NA, minimum, maximum, and missing values
+                        values[values == missing_value] <- NA
+                        values[values < minimum_value] <- NA
+                        values[values > maximum_value] <- NA
 
-                    # compute scale and offset
-                    values <- scale_factor * values + offset_value
+                        # compute scale and offset
+                        values <- scale_factor * values + offset_value
 
-                    return(values)
-                })
+                        return(values)
+                    })
+                }, error = function(e) NULL)
+
+                # check if an error occured
+                if (is.null(in_values)) {
+                    return(NULL)
+                }
 
                 # set band names
                 names(in_values) <- in_bands
