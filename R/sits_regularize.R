@@ -3,8 +3,8 @@
 #' @name sits_regularize
 #'
 #' @description Creates cubes with regular time intervals
-#'  using the gdalcubes package. Cubes can be composed using "min", "max",
-#'  "mean", "median" or "first" functions. Users need to provide an time
+#'  using the gdalcubes package. Cubes can be composed using "median" or
+#'  "least_cc_first" functions. Users need to provide an time
 #'  interval which is used by the composition function.
 #'
 #' @references APPEL, Marius; PEBESMA, Edzer. On-demand processing of data cubes
@@ -32,58 +32,71 @@
 #' gc_cube <- sits_regularize(cube       = s2_cube,
 #'                            output_dir = paste0(tempdir(),"/images/"),
 #'                            period     = "P1M",
-#'                            agg_method = "median",
-#'                            resampling = "bilinear",
-#'                            res        = 60,
-#'                            cloud_mask = TRUE)
+#'                            res        = 320)
 #' }
 #' }
 #'
-#' @param cube       A \code{sits_cube} object whose spacing of observation
+#' @param cube         A \code{sits_cube} object whose spacing of observation
 #'  times is not constant and will be regularized by the \code{gdalcubes}
 #'  package.
 #'
-#' @param output_dir A \code{character} with a valid directory where the
+#' @param output_dir   A \code{character} with a valid directory where the
 #'  regularized images will be written by \code{gdalcubes}.
 #'
-#' @param period     A \code{character} with ISO8601 time period for regular
+#' @param period       A \code{character} with ISO8601 time period for regular
 #'  data cubes produced by \code{gdalcubes}, with number and unit, e.g., "P16D"
 #'  for 16 days. Use "D", "M" and "Y" for days, month and year.
 #'
-#' @param res        A \code{numeric} with spatial resolution of the image that
-#'  will be aggregated.
+#' @param res          A \code{numeric} with spatial resolution of the image
+#'  that will be aggregated.
 #'
-#' @param roi        A named \code{numeric} vector with a region of interest.
-#'  See above
+#' @param roi          A named \code{numeric} vector with a region of interest.
+#'  See more above
 #'
-#' @param multicores A \code{numeric} with the number of cores will be used in
-#'  the regularize. By default is used 1 core.
+#' @param multicores   A \code{numeric} with the number of cores used for
+#'  regularization. This parameter specifies how many bands from different tiles
+#'  should be processed in parallel. By default, 1 core is used.
 #'
-#' @param agg_method  A \code{character} with method that will be applied by
+#' @param multithreads A \code{numeric} value that specifies the number of
+#'  threads used in the gdalcubes package. This parameter determines how many
+#'  chunks are executed in parallel. The gdalcubes package divides data cubes
+#'  into smaller chunks, where the generated chunk creates a 3-dimensional array
+#'  of band, latitude, and longitude information. By default 2 threads are used.
+#'
+#' @param agg_method   A \code{character} with method that will be applied by
 #'  \code{gdalcubes} for aggregation. Options: \code{median} and
-#'  \code{least_cc_first}.
-#'  The default aggregation method is \code{least_cc_first}. See more above.
+#'  \code{least_cc_first}. The default aggregation method is
+#'  \code{least_cc_first}. See more above.
 #'
-#' @param resampling A \code{character} with method to be used by
+#' @param resampling   A \code{character} with method to be used by
 #'  \code{gdalcubes} for resampling in mosaic operation.
 #'  Options: \code{near}, \code{bilinear}, \code{bicubic} or others supported by
 #'  gdalwarp (see https://gdal.org/programs/gdalwarp.html).
-#'  By default is bilinear.
+#'  Default is bilinear.
 #'
-#' @param cloud_mask A \code{logical} to use cloud band for aggregation by
-#' \code{gdalcubes}. Default is \code{TRUE}.
+#' @param cloud_mask   A \code{logical} to use cloud band for aggregation by
+#'  \code{gdalcubes}. Deprecated as of SITS version 0.16.0. Default
+#'  is \code{FALSE}.
 #'
 #' @note
-#'    The \code{least_cc_first} aggregation method sorts the images based on
-#'    cloud coverage, images with the least clouds are at the top of the stack.
-#'    Once the stack of images is sorted the method uses the first valid value
-#'    to generate the temporal aggregation.
+#'    If malformed images with the same required tiles and bands are found in
+#'    the current directory, these images are deleted and recreated.
 #'
 #' @note
 #'    The "roi" parameter defines a region of interest. It can be
 #'    an sf_object, a shapefile, or a bounding box vector with
 #'    named XY values ("xmin", "xmax", "ymin", "ymax") or
 #'    named lat/long values ("lat_min", "lat_max", "long_min", "long_max")
+#'
+#' @note
+#'    The "least_cc_first" aggregation method sorts the images based on cloud
+#'    cover, where images with the fewest clouds at the top of the stack. Once
+#'    the stack of images is sorted, the method uses the first valid value to
+#'    create the temporal aggregation.
+#'
+#' @note
+#'    If the supplied data cube contains cloud band, the values indicated as
+#'    clouds or cloud shadow will be removed.
 #'
 #' @return A \code{sits_cube} object with aggregated images.
 #'
@@ -93,10 +106,10 @@ sits_regularize <- function(cube,
                             period,
                             res,
                             roi = NULL,
-                            agg_method = "median",
+                            agg_method = "least_cc_first",
                             resampling = "bilinear",
                             cloud_mask = FALSE,
-                            multicores = 2,
+                            multicores = 1,
                             multithreads = 2) {
 
     # set caller to show in errors
@@ -143,7 +156,8 @@ sits_regularize <- function(cube,
                min = 1,
                len_min = 1,
                len_max = 1,
-               msg = "a valid resolution needs to be provided")
+               msg = "a valid resolution needs to be provided"
+    )
 
     # precondition - is the aggregation valid?
     agg_methods <- .config_get("gdalcubes_aggreg_methods")
@@ -183,12 +197,21 @@ sits_regularize <- function(cube,
         msg = "invalid 'multithreads' parameter."
     )
 
+    # precondition - is the multicores valid?
+    .check_num(
+        x = multicores,
+        min = 1,
+        len_min = 1,
+        len_max = 1,
+        msg = "invalid 'multicores' parameter."
+    )
+
     if (!is.null(roi)) {
 
         # filter only intersecting tiles
-        intersects <- slider::slide_lgl(cube,
-                                        .sits_raster_sub_image_intersects,
-                                        roi)
+        intersects <- slider::slide_lgl(
+            cube, .sits_raster_sub_image_intersects, roi
+        )
 
         # retrieve only intersecting tiles
         cube <- cube[intersects, ]
@@ -216,22 +239,27 @@ sits_regularize <- function(cube,
     img_col <- .gc_create_database_stac(cube = cube, path_db = path_db)
 
     # get all cube bands
-    bands <- .cube_bands(cube, add_cloud = FALSE)
+    bands <- .cube_bands(cube = cube, add_cloud = FALSE)
 
     # does a local cube exist
     gc_cube <- tryCatch({
-        sits_cube(source = .cube_source(cube),
-                  collection = .cube_collection(cube),
-                  data_dir = output_dir,
-                  parse_info = c("x1", "tile", "band", "date"))
+        sits_cube(
+            source = .cube_source(cube),
+            collection = .cube_collection(cube),
+            data_dir = output_dir,
+            parse_info = c("x1", "tile", "band", "date")
+        )
     },
     error = function(e){
         return(NULL)
     })
+
     # find the tiles that have not been processed yet
     missing_tiles <- .reg_missing_tiles(cube, gc_cube, timeline)
-    # original number of bands
+
+    # combination of tiles and bands
     tiles_bands <- purrr::cross2(missing_tiles, bands)
+
     # start process
     multicores <- min(multicores, length(tiles_bands))
     .sits_parallel_start(multicores, log = FALSE)
@@ -239,36 +267,46 @@ sits_regularize <- function(cube,
 
     # recovery mode
     finished <- length(missing_tiles) == 0
+
     while (!finished) {
         # process bands and tiles in parallel
         tiles_bands <- purrr::cross2(missing_tiles, bands)
+
         .sits_parallel_map(tiles_bands, function(tile_band) {
+
             tile <- tile_band[[1]]
             band <- tile_band[[2]]
             cube <- dplyr::filter(cube, tile == !!tile)
+
             if (.source_cloud() %in% .cube_bands(cube))
                 band <- c(band, .source_cloud())
-            cube <- sits_select(cube, bands = band)
+
+            cube <- sits_select(data = cube, bands = band)
+
             # open db in each process
             img_col <- gdalcubes::image_collection(path_db)
 
             # create a list of cube view object
-            cv <- .gc_create_cube_view(tile = cube,
-                                       period = period,
-                                       roi = roi,
-                                       res = res,
-                                       toi = toi,
-                                       agg_method = agg_method,
-                                       resampling = resampling)
+            cv <- .gc_create_cube_view(
+                tile = cube,
+                period = period,
+                roi = roi,
+                res = res,
+                toi = toi,
+                agg_method = agg_method,
+                resampling = resampling
+            )
 
             # create of the aggregate cubes
-            gc_tile <- .gc_new_cube(tile = cube,
-                                    cv = cv,
-                                    img_col = img_col,
-                                    path_db = path_db,
-                                    output_dir = output_dir,
-                                    cloud_mask = cloud_mask,
-                                    multithreads = multithreads)
+            gc_tile <- .gc_new_cube(
+                tile = cube,
+                cv = cv,
+                img_col = img_col,
+                path_db = path_db,
+                output_dir = output_dir,
+                cloud_mask = cloud_mask,
+                multithreads = multithreads
+            )
 
             # prepare class result
             class(gc_tile) <- .cube_s3class(gc_tile)
@@ -278,18 +316,23 @@ sits_regularize <- function(cube,
         }, progress = multicores > 1)
 
         # create local cube from files in output directory
-        gc_cube <- sits_cube(source = .cube_source(cube),
-                             collection = .cube_collection(cube),
-                             data_dir = output_dir,
-                             parse_info = c("x1", "tile", "band", "date"))
+        gc_cube <- sits_cube(
+            source = .cube_source(cube),
+            collection = .cube_collection(cube),
+            data_dir = output_dir,
+            parse_info = c("x1", "tile", "band", "date")
+        )
+
         # find if there are missing tiles
         missing_tiles <- .reg_missing_tiles(cube, gc_cube, timeline)
+
         # have we finished?
         finished <- length(missing_tiles) == 0
+
         # inform the user
         if (!finished)
-            message(paste0("Tiles ", paste0(missing_tiles, collapse = ", "),
-                           " have errors and will be reprocessed"))
+            message(paste("Tiles", paste0(missing_tiles, collapse = ", "),
+                          "have errors and will be reprocessed."))
     }
 
     # post-condition
@@ -299,13 +342,16 @@ sits_regularize <- function(cube,
 
     return(gc_cube)
 }
+
 #' @title Finds the missing tiles in a regularized cube
 #'
 #' @name .reg_missing_tiles
 #' @keywords internal
+#'
 #' @param   cube        original cube to be regularized
 #' @param   gc_cube     regularized cube (may be missing tile)
 #' @param   timeline    timeline used by gdalcube for regularized cube
+#'
 #' @return              tiles that are missing from the regularized cube
 .reg_missing_tiles <- function(cube, gc_cube = NULL, timeline) {
 
@@ -315,10 +361,13 @@ sits_regularize <- function(cube,
 
     # first, include tiles that have not been processed
     missing_tiles <- setdiff(cube[["tile"]], gc_cube[["tile"]])
+
     # these are the tiles that have been processed
     proc_tiles <- gc_cube[["tile"]]
+
     # original bands in the non-regularized cube
     orig_bands <- .cube_bands(cube, add_cloud = FALSE)
+
     # do all tiles in gc_cube have the same bands as the original cube?
     tiles_miss_bands <- slider::slide_lgl(gc_cube, function(tile){
         tl_bands <- sits_bands(tile)
@@ -332,6 +381,7 @@ sits_regularize <- function(cube,
         })
         return(any(bands_miss_time))
     })
+
     # return all tiles from the original cube
     # that have not been regularized correctly
     missing_tiles <- unique(c(missing_tiles,
