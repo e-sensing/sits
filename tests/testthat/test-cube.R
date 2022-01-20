@@ -15,6 +15,7 @@ test_that("Creating a SATVEG data cube", {
 })
 
 test_that("Reading a raster cube", {
+
     data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
 
     raster_cube <- tryCatch({
@@ -23,7 +24,8 @@ test_that("Reading a raster cube", {
             collection = "MOD13Q1-6",
             data_dir = data_dir,
             delim = "_",
-            parse_info = c("X1", "X2", "tile", "band", "date")
+            parse_info = c("X1", "X2", "tile", "band", "date"),
+            multicores = 2
         )
     }, error = function(e) {
         return(NULL)
@@ -43,6 +45,7 @@ test_that("Reading a raster cube", {
 })
 
 test_that("Backwards compatibility", {
+
     data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
 
     raster_cube <- tryCatch({
@@ -51,7 +54,8 @@ test_that("Backwards compatibility", {
             collection = "MOD13Q1-6",
             data_dir = data_dir,
             delim = "_",
-            parse_info = c("X1", "X2", "tile", "band", "date")
+            parse_info = c("X1", "X2", "tile", "band", "date"),
+            multicores = 2
         )
     }, error = function(e) {
         return(NULL)
@@ -59,30 +63,31 @@ test_that("Backwards compatibility", {
 
     expect_null(raster_cube)
 
-    msg <- capture_messages(sits_cube(
-        source = "LOCAL",
-        origin = "BDC",
-        collection = "MOD13Q1-6",
-        data_dir = data_dir,
-        delim = "_",
-        parse_info = c("X1", "X2", "tile", "band", "date")
-    )
+    expect_message(
+        object = sits_cube(
+            source = "LOCAL",
+            origin = "BDC",
+            collection = "MOD13Q1-6",
+            data_dir = data_dir,
+            delim = "_",
+            parse_info = c("X1", "X2", "tile", "band", "date"),
+            multicores = 2
+        ),
+        regexp = "LOCAL value is deprecated"
     )
 
-    expect_true(grepl("LOCAL value is deprecated", msg))
-
-    msg <- capture_messages(
-        raster_cube <- sits_cube(
+    expect_message(
+        object = sits_cube(
             source = "BDC",
             collection = "MOD13Q1-6",
             band = c("NDVI", "EVI"),
             data_dir = data_dir,
             delim = "_",
-            parse_info = c("X1", "X2", "tile", "band", "date")
-        )
+            parse_info = c("X1", "X2", "tile", "band", "date"),
+            multicores = 2
+        ),
+        regexp = "please use bands instead of band as parameter"
     )
-    expect_true(grepl("please use bands instead of band as parameter",
-                      msg))
 })
 
 test_that("Creating a raster stack cube and selecting bands", {
@@ -96,7 +101,8 @@ test_that("Creating a raster stack cube and selecting bands", {
             collection = "MOD13Q1-6",
             data_dir = data_dir,
             delim = "_",
-            parse_info = c("X1", "X2", "tile", "band", "date")
+            parse_info = c("X1", "X2", "tile", "band", "date"),
+            multicores = 2
         )
     },
     error = function(e) {
@@ -111,6 +117,7 @@ test_that("Creating a raster stack cube and selecting bands", {
                         c("EVI", "NDVI")))
     rast <- .raster_open_rast(modis_cube$file_info[[1]]$path[[1]])
     expect_true(.raster_nrows(rast) == .cube_size(modis_cube)[["nrows"]])
+
     timeline <- sits_timeline(modis_cube)
     expect_true(timeline[1] == "2013-09-14")
 
@@ -128,25 +135,26 @@ test_that("Creating cubes from BDC", {
                       message = "No BDC_ACCESS_KEY defined in environment.")
 
     # create a raster cube file based on the information about the files
-    msg <- capture_messages(
-        cbers_cube <-
-            tryCatch({
-                sits_cube(
-                    source = "BDC",
-                    collection = "CB4_64_16D_STK-1",
-                    tile = c("022024", "022023"),
-                    start_date = "2018-09-01",
-                    end_date = "2019-08-29"
-                )
-            },
-            error = function(e) {
-                return(NULL)
-            })
+    expect_message(
+        object = (cbers_cube <-
+                      tryCatch({
+                          sits_cube(
+                              source = "BDC",
+                              collection = "CB4_64_16D_STK-1",
+                              tile = c("022024", "022023"),
+                              start_date = "2018-09-01",
+                              end_date = "2019-08-29"
+                          )
+                      },
+                      error = function(e) {
+                          return(NULL)
+                      })
+        ),
+        regexp = "please use tiles instead of tile as parameter"
     )
+
     testthat::skip_if(purrr::is_null(cbers_cube),
                       message = "BDC is not accessible")
-
-    expect_true(grepl("please use tiles instead of tile as parameter", msg))
 
     expect_true(all(sits_bands(cbers_cube) %in%
                         c("NDVI", "EVI", "B13", "B14", "B15", "B16", "CLOUD")))
@@ -302,7 +310,6 @@ test_that("Creating cubes from WTSS", {
 test_that("Creating cubes from DEA", {
     testthat::skip_on_cran()
 
-
     dea_cube <- tryCatch({
         sits_cube(source = "DEAFRICA",
                   collection = "s2_l2a",
@@ -317,6 +324,8 @@ test_that("Creating cubes from DEA", {
     error = function(e) {
         return(NULL)
     })
+    testthat::skip_if(purrr::is_null(dea_cube),
+                      message = "DEAFRICA is not accessible")
 
     expect_true(all(sits_bands(dea_cube) %in% c("B01", "B04", "B05")))
 
@@ -350,7 +359,8 @@ test_that("Merging cubes", {
         collection = "MOD13Q1-6",
         data_dir = data_dir,
         delim = "_",
-        parse_info = c("X1", "X2", "tile", "band", "date")
+        parse_info = c("X1", "X2", "tile", "band", "date"),
+        multicores = 2
     )
 
     testthat::skip_if(purrr::is_null(ndvi_cube),
@@ -363,7 +373,8 @@ test_that("Merging cubes", {
             bands = "EVI",
             data_dir = data_dir,
             delim = "_",
-            parse_info = c("X1", "X2", "tile", "band", "date")
+            parse_info = c("X1", "X2", "tile", "band", "date"),
+            multicores = 2
         )
     },
     error = function(e) {
@@ -389,27 +400,6 @@ test_that("Merging cubes", {
 test_that("Creating cubes from AWS", {
 
     testthat::skip_on_cran()
-
-    # check "AWS_ACCESS_KEY_ID" - mandatory one per user
-    aws_access_key_id <- Sys.getenv("AWS_ACCESS_KEY_ID")
-
-    # check "AWS_SECRET_ACCESS_KEY" - mandatory one per user
-    aws_secret_access_key <- Sys.getenv("AWS_SECRET_ACCESS_KEY")
-
-    testthat::skip_if(
-        nchar(aws_access_key_id) == 0,
-        message = "No AWS_ACCESS_KEY_ID defined in environment."
-    )
-
-    testthat::skip_if(
-        nchar(aws_secret_access_key) == 0,
-        message = "No AWS_SECRET_ACCESS_KEY defined in environment."
-    )
-
-    Sys.unsetenv("AWS_DEFAULT_REGION")
-    Sys.unsetenv("AWS_S3_ENDPOINT")
-    Sys.unsetenv("AWS_REQUEST_PAYER")
-
 
     s2_cube <- tryCatch({sits_cube(source = "AWS",
                                    collection = "sentinel-s2-l2a",
@@ -448,13 +438,15 @@ test_that("Creating cubes from AWS", {
 
 test_that("Creating cubes from AWS Open Data and regularizing them", {
 
+    testthat::skip_on_cran()
+
     s2_cube_open <- tryCatch({
         sits_cube(source = "AWS",
                   collection = "SENTINEL-S2-L2A-COGS",
                   tiles = c("20LKP", "20LLP"),
-                  bands = c("B08", "SCL"),
-                  start_date = "2018-07-30",
-                  end_date = "2018-08-30"
+                  bands = c("B8A", "SCL"),
+                  start_date = "2018-10-01",
+                  end_date = "2018-11-01"
         )},
         error = function(e){
             return(NULL)
@@ -462,7 +454,55 @@ test_that("Creating cubes from AWS Open Data and regularizing them", {
     testthat::skip_if(purrr::is_null(s2_cube_open),
                       "AWS is not accessible")
     expect_false(.cube_is_regular(s2_cube_open))
-    expect_true(all(sits_bands(s2_cube_open) %in% c("B08", "CLOUD")))
+    expect_true(all(sits_bands(s2_cube_open) %in% c("B8A", "CLOUD")))
+
+    expect_error(.cube_size(s2_cube_open))
+    expect_error(.cube_resolution(s2_cube_open))
+    expect_error(.file_info_nrows(s2_cube_open))
+
+    dir_images <-  paste0(tempdir(), "/images2/")
+    if (!dir.exists(dir_images))
+        suppressWarnings(dir.create(dir_images))
+
+    gc_cube <- sits_regularize(
+        cube        = s2_cube_open,
+        output_dir  = dir_images,
+        res         = 320,
+        agg_method  = "median",
+        period      = "P1M",
+        multicores = 4,
+        multithreads = 16)
+
+    tile_size <- .cube_size(gc_cube[1, ])
+    tile_bbox <- .cube_tile_bbox(gc_cube[1, ])
+
+    expect_equal(tile_size[["nrows"]], 344)
+    expect_equal(tile_size[["ncols"]], 344)
+    expect_equal(tile_bbox$xmax, 309920, tolerance = 1e-1)
+    expect_equal(tile_bbox$xmin, 199840, tolerance = 1e-1)
+
+    tile_fileinfo <- .file_info(gc_cube[1, ])
+
+    expect_equal(nrow(tile_fileinfo), 1)
+})
+
+test_that("Creating cubes from AWS Open Data and regularizing with ROI", {
+
+    s2_cube_open <- tryCatch({
+        sits_cube(source = "AWS",
+                  collection = "SENTINEL-S2-L2A-COGS",
+                  tiles = c("20LKP", "20LLP"),
+                  bands = c("B08", "B03", "SCL"),
+                  start_date = "2018-12-01",
+                  end_date = "2018-12-30"
+        )},
+        error = function(e){
+            return(NULL)
+        })
+    testthat::skip_if(purrr::is_null(s2_cube_open),
+                      "AWS is not accessible")
+    expect_false(.cube_is_regular(s2_cube_open))
+    expect_true(all(sits_bands(s2_cube_open) %in% c("B08", "B03", "CLOUD")))
 
     expect_error(.cube_size(s2_cube_open))
     expect_error(.cube_resolution(s2_cube_open))
@@ -475,19 +515,21 @@ test_that("Creating cubes from AWS Open Data and regularizing them", {
     gc_cube <- sits_regularize(
         cube        = s2_cube_open,
         output_dir  = dir_images,
-        res         = 160,
-        roi = c("xmin" = 234872.7,
-                "ymin" = 8847983.0,
-                "xmax" = 239532.6,
-                "ymax" = 8852017.0),
-        period      = "P16D",
-        multicores = 4)
+        res         = 320,
+        agg_method  = "least_cc_first",
+        roi = c("lon_min" = -65.3811,
+                "lat_min" = -10.6645,
+                "lon_max" = -64.86069,
+                "lat_max" = -10.491988),
+        period      = "P30D",
+        multicores = 2,
+        multithreads = 4)
 
     size <- .cube_size(gc_cube)
 
-    expect_equal(size[["nrows"]], 26)
-    expect_equal(size[["ncols"]], 30)
-    expect_equal(gc_cube$xmax, 239602.7, tolerance = 1e-1)
+    expect_equal(size[["nrows"]], 61)
+    expect_equal(size[["ncols"]], 179)
+    expect_equal(gc_cube$xmax, 296562, tolerance = 1e-1)
     expect_equal(gc_cube$xmin, 234802.7, tolerance = 1e-1)
 
     file_info2 <- gc_cube$file_info[[1]]
@@ -694,7 +736,8 @@ test_that("Creating a raster stack cube with BDC band names", {
             collection = "CB4_64-1",
             data_dir = data_dir,
             parse_info = c("X1", "X2", "X3", "X4", "X5", "tile",
-                           "date", "X6", "band")
+                           "date", "X6", "band"),
+            multicores = 2
         )
     },
     error = function(e) {

@@ -54,6 +54,9 @@ probs_cube_data_type    : "INT2U"
 # configuration for classified cubes
 class_cube_data_type    : "INT1U"
 
+# minimum number of files for sits local cube to be run on parallel
+local_min_files_for_parallel : 20
+
 # simultaneous connections for gdalcubes database creation
 gdalcubes_open_connections : 8
 
