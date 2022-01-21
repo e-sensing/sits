@@ -399,7 +399,7 @@ sits_regularize <- function(cube,
 
     # do all tiles and bands in gc_cube have the same timeline as
     # the original cube?
-    bad_timeline <- purrr::pmap(
+    bad_timeline <- purrr::pmap_lgl(
         purrr::transpose(proc_tiles_bands), function(tile, band) {
             tile <- dplyr::filter(cube, tile == !!tile)
             tile <- sits_select(tile, bands = band)
