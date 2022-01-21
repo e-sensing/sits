@@ -555,12 +555,12 @@ sits_timeline.classified_image <- function(data) {
 
     # check type of date interval
     converted_date <- purrr::map_dbl(date, function(dt) {
-        if (length(strsplit(date, "-")[[1]]) == 1)
-            converted_date <- lubridate::fast_strptime(date, "%Y")
-        else if (length(strsplit(date, "-")[[1]]) == 2)
-            converted_date <- lubridate::fast_strptime(date, "%Y-%m")
+        if (length(strsplit(dt, "-")[[1]]) == 1)
+            converted_date <- lubridate::fast_strptime(dt, "%Y")
+        else if (length(strsplit(dt, "-")[[1]]) == 2)
+            converted_date <- lubridate::fast_strptime(dt, "%Y-%m")
         else
-            converted_date <- lubridate::fast_strptime(date, "%Y-%m-%d")
+            converted_date <- lubridate::fast_strptime(dt, "%Y-%m-%d")
 
         # transform to date object
         converted_date <- lubridate::as_date(converted_date)
