@@ -374,11 +374,11 @@ sits_regularize <- function(cube,
     # get all tiles from cube
     tiles <- .cube_tiles(cube)
 
-    # get all bands from cube
-    bands <- .cube_bands(cube, add_cloud = FALSE)
-
     # do a cross product on tiles and bands
-    tiles_bands <- purrr::cross2(tiles, bands)
+    tiles_bands <- unlist(purrr::map(tiles, function(tile) {
+        bands <- .cube_bands(tile, add_cloud = FALSE)
+        purrr::cross2(tile, bands)
+    }), recursive = FALSE)
 
     # if regularized cube does not exist, return all tiles from original cube
     if (is.null(gc_cube)) {
