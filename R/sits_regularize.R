@@ -53,16 +53,6 @@
 #' @param roi          A named \code{numeric} vector with a region of interest.
 #'  See more above
 #'
-#' @param multicores   A \code{numeric} with the number of cores used for
-#'  regularization. This parameter specifies how many bands from different tiles
-#'  should be processed in parallel. By default, 1 core is used.
-#'
-#' @param multithreads A \code{numeric} value that specifies the number of
-#'  threads used in the gdalcubes package. This parameter determines how many
-#'  chunks are executed in parallel. The gdalcubes package divides data cubes
-#'  into smaller chunks, where the generated chunk creates a 3-dimensional array
-#'  of band, latitude, and longitude information. By default 2 threads are used.
-#'
 #' @param agg_method   A \code{character} with method that will be applied by
 #'  \code{gdalcubes} for aggregation. Options: \code{median} and
 #'  \code{least_cc_first}. The default aggregation method is
@@ -74,6 +64,17 @@
 #'  gdalwarp (see https://gdal.org/programs/gdalwarp.html).
 #'  Default is bilinear.
 #'
+#' @param multicores   A \code{numeric} with the number of cores used for
+#'  regularization. This parameter specifies how many bands from different tiles
+#'  should be processed in parallel. By default, 1 core is used.
+#'
+#' @param multithreads A \code{numeric} value that specifies the number of
+#'  threads used in the gdalcubes package. This parameter determines how many
+#'  chunks are executed in parallel. The gdalcubes package divides data cubes
+#'  into smaller chunks, where the generated chunk creates a 3-dimensional array
+#'  of band, latitude, and longitude information. By default 2 threads are used.
+#'
+#' @param progress     A \code{logical} value. Show progress bar?
 #' @param cloud_mask   A \code{logical} to use cloud band for aggregation by
 #'  \code{gdalcubes}. Deprecated as of SITS version 0.16.0. Default
 #'  is \code{FALSE}.
@@ -108,9 +109,10 @@ sits_regularize <- function(cube,
                             roi = NULL,
                             agg_method = "least_cc_first",
                             resampling = "bilinear",
-                            cloud_mask = FALSE,
                             multicores = 1,
-                            multithreads = 2) {
+                            multithreads = 2,
+                            progress = TRUE,
+                            cloud_mask = FALSE) {
 
     # set caller to show in errors
     .check_set_caller("sits_regularize")
