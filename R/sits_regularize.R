@@ -247,6 +247,7 @@ sits_regularize <- function(cube,
             collection = .cube_collection(cube),
             data_dir = output_dir,
             parse_info = c("x1", "tile", "band", "date"),
+            multicores = multicores,
             progress = progress
         )
     },
