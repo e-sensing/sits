@@ -374,25 +374,22 @@ sits_regularize <- function(cube,
     # get all tiles from cube
     tiles <- .cube_tiles(cube)
 
+    # get all bands from cube
+    bands <- .cube_bands(cube, add_cloud = FALSE)
+
     # do a cross product on tiles and bands
-    tiles_bands <- unlist(purrr::map(tiles, function(tile) {
-        bands <- .cube_bands(tile, add_cloud = FALSE)
-        purrr::cross2(tile, bands)
-    }), recursive = FALSE)
+    tiles_bands <- purrr::cross2(tiles, bands)
 
     # if regularized cube does not exist, return all tiles from original cube
     if (is.null(gc_cube)) {
         return(tiles_bands)
     }
 
-    # get all tiles from cube
-    gc_tiles <- .cube_tiles(gc_cube)
-
-    # get all bands from cube
-    gc_bands <- .cube_bands(gc_cube, add_cloud = FALSE)
-
     # do a cross product on tiles and bands
-    gc_tiles_bands <- purrr::cross2(gc_tiles, gc_bands)
+    gc_tiles_bands <- unlist(slider::slide(gc_cube, function(tile) {
+        bands <- .cube_bands(tile, add_cloud = FALSE)
+        purrr::cross2(.cube_tiles(tile), bands)
+    }), recursive = FALSE)
 
     # first, include tiles and bands that have not been processed
     miss_tiles_bands <- tiles_bands[!tiles_bands %in% gc_tiles_bands]
