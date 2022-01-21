@@ -11,7 +11,14 @@ sits_apply(data, ...)
 
 \method{sits_apply}{sits}(data, ...)
 
-\method{sits_apply}{raster_cube}(data, ..., memsize = 1, multicores = 2, output_dir = getwd())
+\method{sits_apply}{raster_cube}(
+  data,
+  ...,
+  memsize = 1,
+  multicores = 2,
+  output_dir = getwd(),
+  progress = TRUE
+)
 
 .apply_across(data, fn, ...)
 }
