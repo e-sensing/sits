@@ -136,6 +136,7 @@
 #'                          (see documentation)
 #' @param name              deprecated parameter formely used to describe cubes
 #' @param multicores        a number of workers for parallel processing
+#' @param progress          Show a progress bar?
 #'
 #' @details The \code{roi} parameter allows a selection of an area of interest.
 #' Either using a named \code{vector} ("lon_min", "lat_min", "lon_max", "lat_max") with
@@ -351,7 +352,8 @@ sits_cube.local_cube <- function(source,
                                  delim = "_",
                                  name = NULL,
                                  origin = NULL,
-                                 multicores = 2) {
+                                 multicores = 2,
+                                 progress = TRUE) {
 
 
     # precondition - data directory must be provided
@@ -408,7 +410,8 @@ sits_cube.local_cube <- function(source,
                 bands = bands,
                 start_date = start_date,
                 end_date = end_date,
-                multicores = multicores, ...)
+                multicores = multicores,
+                progress = progress, ...)
 }
 
 
