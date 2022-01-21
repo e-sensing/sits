@@ -554,20 +554,35 @@ sits_timeline.classified_image <- function(data) {
         msg = "invalid date parameter")
 
     # check type of date interval
-    if (length(strsplit(date, "-")[[1]]) == 1)
-        converted_date <- lubridate::fast_strptime(date, "%Y")
-    else if (length(strsplit(date, "-")[[1]]) == 2)
-        converted_date <- lubridate::fast_strptime(date, "%Y-%m")
-    else
-        converted_date <- lubridate::fast_strptime(date, "%Y-%m-%d")
+    converted_date <- purrr::map_dbl(date, function(dt) {
+        if (length(strsplit(date, "-")[[1]]) == 1)
+            converted_date <- lubridate::fast_strptime(date, "%Y")
+        else if (length(strsplit(date, "-")[[1]]) == 2)
+            converted_date <- lubridate::fast_strptime(date, "%Y-%m")
+        else
+            converted_date <- lubridate::fast_strptime(date, "%Y-%m-%d")
 
-    # transform to date object
+        # transform to date object
+        converted_date <- lubridate::as_date(converted_date)
+
+        # check if there are NAs values
+        .check_that(
+            x = !is.na(converted_date),
+            msg = paste0("invalid date format '", dt, "' in file name")
+        )
+
+        return(converted_date)
+    })
+
+    # convert to a vector of dates
     converted_date <- lubridate::as_date(converted_date)
 
-    # check if there are NAs values
-    .check_that(
-        x = all(!is.na(converted_date)),
-        msg = "invalid date format in file"
+    # post-condition
+    .check_length(
+        x = converted_date,
+        len_min = length(date),
+        len_max = length(date),
+        msg = "invalid date values"
     )
 
     return(converted_date)
