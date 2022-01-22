@@ -177,17 +177,14 @@
     # add feature id (fid)
     items <- dplyr::group_by(items, .data[["tile"]], .data[["date"]]) %>%
         dplyr::mutate(fid = paste0(dplyr::cur_group_id())) %>%
-        dplyr::ungroup()
-
-    n_workers <- 1
-    # check if progress bar and multicores processing can be enabled
-    if (nrow(items) >= .config_get("local_min_files_for_parallel")) {
-        n_workers <- multicores
-    }
+        dplyr::ungroup() %>%
+        dplyr::arrange(.data[["fid"]], .data[["date"]])
 
     # prepare parallel requests
-    .sits_parallel_start(workers = n_workers, log = FALSE)
-    on.exit(.sits_parallel_stop(), add = TRUE)
+    if (is.null(sits_env[["cluster"]])) {
+        .sits_parallel_start(workers = multicores, log = FALSE)
+        on.exit(.sits_parallel_stop(), add = TRUE)
+    }
 
     # do parallel requests
     items <- .sits_parallel_map(unique(items[["fid"]]), function(i) {
@@ -195,20 +192,29 @@
         # filter by feature
         item <- dplyr::filter(items, .data[["fid"]] == !!i)
 
-        # open band rasters
-        assets <- purrr::map(item[["path"]], .raster_open_rast)
+        # open band rasters and get assets info
+        assets_info <- purrr::map(item[["path"]], function(path) {
+            tryCatch({
+                asset <- .raster_open_rast(path)
+                res <- .raster_res(asset)
+                bbox <- .raster_bbox(asset)
+                size <- .raster_size(asset)
+                crs <- .raster_crs(asset)
 
-        # get asset info
-        asset_info <- purrr::map(assets, function(asset) {
-            res <- .raster_res(asset)
-            bbox <- .raster_bbox(asset)
-            size <- .raster_size(asset)
-            crs <- .raster_crs(asset)
-            tibble::as_tibble_row(c(res, bbox, size, list(crs = crs)))
-        }) %>% dplyr::bind_rows()
+                tibble::as_tibble_row(c(res, bbox, size, list(crs = crs)))
+            }, error = function(e) {
+                NULL
+            })
+        })
 
-        dplyr::bind_cols(item, asset_info)
+        # remove corrupted assets
+        bad_assets <- purrr::map_lgl(assets_info, purrr::is_null)
+        item <- item[!bad_assets,]
 
+        # bind items and assets info
+        item <- dplyr::bind_cols(item, dplyr::bind_rows(assets_info))
+
+        return(item)
     }, progress = progress)
 
     items <- dplyr::bind_rows(items)
