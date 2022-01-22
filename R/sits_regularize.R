@@ -401,7 +401,7 @@ sits_regularize <- function(cube,
     # the original cube?
     bad_timeline <- purrr::pmap_lgl(
         purrr::transpose(proc_tiles_bands), function(tile, band) {
-            tile <- dplyr::filter(cube, tile == !!tile)
+            tile <- dplyr::filter(gc_cube, tile == !!tile)
             tile <- sits_select(tile, bands = band)
             return(!(all(timeline %in% sits_timeline(tile))))
         })
