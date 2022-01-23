@@ -400,7 +400,17 @@ sits_regularize <- function(cube,
 
     # if regularized cube does not exist, return all tiles from original cube
     if (is.null(gc_cube)) {
-        return(tiles_bands_times)
+        # compute end_date
+        miss_tiles_bands_times <- purrr::map(
+            tiles_bands_times,
+            function(tile_band_time) {
+                start_date <- tile_band_time[[3]]
+                end_date <- start_date %m+% lubridate::period(period)
+                tile_band_time[[4]] <- end_date
+                return(tile_band_time)
+            }
+        )
+        return(miss_tiles_bands_times)
     }
 
     # do a cross product on tiles and bands
