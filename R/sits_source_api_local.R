@@ -177,8 +177,7 @@
     # add feature id (fid)
     items <- dplyr::group_by(items, .data[["tile"]], .data[["date"]]) %>%
         dplyr::mutate(fid = paste0(dplyr::cur_group_id())) %>%
-        dplyr::ungroup() %>%
-        dplyr::arrange(.data[["fid"]], .data[["date"]])
+        dplyr::ungroup()
 
     # prepare parallel requests
     if (is.null(sits_env[["cluster"]])) {
@@ -217,7 +216,8 @@
         return(item)
     }, progress = progress)
 
-    items <- dplyr::bind_rows(items)
+    items <- dplyr::bind_rows(items) %>%
+        dplyr::arrange(.data[["date"]], .data[["fid"]], .data[["band"]])
 
     return(items)
 }
