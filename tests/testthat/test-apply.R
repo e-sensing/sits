@@ -19,6 +19,9 @@ test_that("EVI generation", {
     dir_images <-  paste0(tempdir(), "/images/")
     if (!dir.exists(dir_images))
         suppressWarnings(dir.create(dir_images))
+    unlink(list.files(dir_images,
+                      pattern = "\\.tif$",
+                      full.names = TRUE))
 
     gc_cube <- sits_regularize(
         cube        = s2_cube,
