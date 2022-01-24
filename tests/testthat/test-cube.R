@@ -405,8 +405,8 @@ test_that("Creating cubes from AWS", {
                                    collection = "sentinel-s2-l2a",
                                    tiles = c("20LKP"),
                                    bands = c("B08", "SCL"),
-                                   start_date = "2018-07-30",
-                                   end_date = "2018-08-30"
+                                   start_date = "2021-06-01",
+                                   end_date = "2021-08-31"
     )
     },
     error = function(e) {
