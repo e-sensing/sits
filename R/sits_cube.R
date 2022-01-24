@@ -135,7 +135,8 @@
 #' @param origin            deprecated parameter formely used for local cubes
 #'                          (see documentation)
 #' @param name              deprecated parameter formely used to describe cubes
-#' @param multicores        a number of workers for parallel processing
+#' @param multicores        a number of workers for parallel processing in
+#'  local cubes
 #' @param progress          Show a progress bar?
 #'
 #' @details The \code{roi} parameter allows a selection of an area of interest.

@@ -73,7 +73,7 @@ test_that("User functions", {
 
     expect_equal(
         unname(.config_colors(labels = c("Cropland", "Deforestation",
-                                        "Forest", "Grassland", "NonForest"))),
+                                         "Forest", "Grassland", "NonForest"))),
 
         c("khaki", "sienna", "darkgreen", "lightgreen",
           "lightsteelblue1")
@@ -108,33 +108,16 @@ test_that("User functions", {
         c("BIGTIFF=YES")
     )
 
-    config_txt <- capture.output({
-        sits_config_show()
-    })
 
-    config_txt <- capture.output({
-        sits_config_show(source = "BDC")
-    })
-
-    expect_true(
-        any(grepl(
-            "s3_class: bdc_cube, stac_cube, raster_cube",
-            config_txt
-        ))
+    expect_output(
+        object = sits_config_show(source = "BDC"),
+        regexp = "s3_class: bdc_cube, stac_cube, raster_cube"
     )
 
-    config_txt <- capture.output({
-        sits_config_show(source = "BDC",
-                         collection = "CB4_64-1")
-    })
-
-    expect_true(
-        any(grepl(
-            "bands:",
-            config_txt
-        ))
+    expect_output(
+        object = sits_config_show(source = "BDC", collection = "CB4_64-1"),
+        regexp = "bands:"
     )
-
 
 
     # add a new source, collection
@@ -321,8 +304,8 @@ test_that("Configs AWS", {
 
     expect_equal(
         .source_bands_resolution(source = "AWS",
-                                  collection = "SENTINEL-S2-L2A",
-                                  bands = c("B01", "B03")),
+                                 collection = "SENTINEL-S2-L2A",
+                                 bands = c("B01", "B03")),
         list(B01 = 60, B03 = 10)
     )
 
@@ -393,10 +376,10 @@ test_that("Metatype", {
 })
 
 test_that("List collections", {
-    col <- capture.output(sits_list_collections())
-    expect_true("BDC:" %in% col)
-    expect_true("AWS:" %in% col)
-    expect_true("- MOD13Q1-6 (TERRA/MODIS)" %in% col)
+    expect_output(
+        object = sits_list_collections(),
+        regexp = "(BDC)|(AWS)|(- MOD13Q1-6 (TERRA/MODIS))"
+    )
 })
 
 test_that("Config colors",{
@@ -404,17 +387,43 @@ test_that("Config colors",{
                  "Forest",
                  "Floresta",
                  "Tropical Forest")
-    warn1 <- capture_warning(sits:::.config_colors(labels1))
-    expect_true(grepl("Some labels are not available in the chosen palette",
-                      warn1))
+
+    # get the warning message with call. parameter
+    warn1 <- tryCatch({
+        sits:::.config_colors(labels1)
+    }, warning = function(x) { x }
+    )
+
+    expect_s3_class(
+        object = warn1,
+        class = "simpleWarning"
+    )
+
+    expect_match(
+        object = warn1[["message"]],
+        regexp = "Some labels are not available in the chosen palette"
+    )
+
     labels2 <- c("Evergreen_Needleleaf_Forest",
                  "Forest",
                  "Floresta Tropical",
                  "Floresta Amazonica",
                  "Tropical Forest")
-    warn2 <- capture_warning(sits:::.config_colors(labels2))
-    expect_true(grepl("Most labels are not available in the chosen palette",
-                      warn2))
+
+    warn2 <- tryCatch({
+        sits:::.config_colors(labels2)
+    }, warning = function(x) { x }
+    )
+
+    expect_s3_class(
+        object = warn2,
+        class = "simpleWarning"
+    )
+
+    expect_match(
+        object = warn2[["message"]],
+        regexp = "Most labels are not available in the chosen palette"
+    )
 })
 
 # restore variable value
