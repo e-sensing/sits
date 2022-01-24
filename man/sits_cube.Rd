@@ -79,7 +79,8 @@ information
 \item{origin}{deprecated parameter formely used for local cubes
 (see documentation)}
 
-\item{multicores}{a number of workers for parallel processing}
+\item{multicores}{a number of workers for parallel processing in
+local cubes}
 }
 \value{
 The description of a data cube
