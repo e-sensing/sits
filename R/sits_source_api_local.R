@@ -7,7 +7,8 @@
                         bands,
                         start_date,
                         end_date,
-                        multicores, ...) {
+                        multicores,
+                        progress, ...) {
 
     # set caller to show in errors
     .check_set_caller(".local_cube")
@@ -25,11 +26,29 @@
                                             bands = bands,
                                             items = items)
 
-    # make a new file info for one tile
-    cube <- .local_cube_items_cube(source = source,
-                                   items = items,
-                                   collection = collection,
-                                   multicores = multicores)
+    # retrieve all information of file_info
+    items <- .local_cube_items_file_info(source = source,
+                                         items = items,
+                                         collection = collection,
+                                         multicores = multicores,
+                                         progress = progress)
+
+    # get all tiles
+    tiles <- unique(items[["tile"]])
+
+    # make a cube for each tile (rows)
+    cube <- purrr::map_dfr(tiles, function(tile) {
+
+        # filter tile
+        items_tile <- dplyr::filter(items, .data[["tile"]] == !!tile)
+
+        # make a new cube tile
+        tile_cube <- .local_cube_items_cube(source = source,
+                                            collection = collection,
+                                            items = items_tile)
+
+        return(tile_cube)
+    })
 
     class(cube) <- .cube_s3class(cube)
 
@@ -120,9 +139,12 @@
     # convert the band names to SITS bands
     items <- dplyr::mutate(
         items,
-        band = .source_bands_to_sits(source = source,
-                                     collection = collection,
-                                     bands = band))
+        band = .source_bands_to_sits(
+            source = source,
+            collection = collection,
+            bands = band
+        )
+    )
 
     # filter bands
     if (!purrr::is_null(bands)) {
@@ -132,20 +154,21 @@
                           msg = "invalid 'bands' value")
 
         # select the requested bands
-        items <- dplyr::filter(items, band %in% bands)
+        items <- dplyr::filter(items, band %in% !!bands)
     }
 
     return(items)
 }
 
 #' @keywords internal
-.local_cube_items_cube <- function(source,
-                                   items,
-                                   collection,
-                                   multicores) {
+.local_cube_items_file_info <- function(source,
+                                        items,
+                                        collection,
+                                        multicores,
+                                        progress) {
 
     # set caller to show in errors
-    .check_set_caller(".local_cube_items_cube")
+    .check_set_caller(".local_cube_items_file_info")
 
     # post-condition
     .check_that(nrow(items) > 0,
@@ -154,100 +177,95 @@
     # add feature id (fid)
     items <- dplyr::group_by(items, .data[["tile"]], .data[["date"]]) %>%
         dplyr::mutate(fid = paste0(dplyr::cur_group_id())) %>%
-        dplyr::ungroup() %>%
-        tidyr::nest(features = c(.data[["band"]],
-                                 .data[["date"]],
-                                 .data[["path"]]))
-
-    progress <- TRUE
-    # check if progress bar and multicores processing can be enabled
-    if (nrow(items) < .config_get("local_min_files_for_parallel")) {
-        progress <- FALSE
-        multicores <- 2
-    }
+        dplyr::ungroup()
 
     # prepare parallel requests
-    .sits_parallel_start(workers = multicores, log = FALSE)
-    on.exit(.sits_parallel_stop(), add = TRUE)
+    if (is.null(sits_env[["cluster"]])) {
+        .sits_parallel_start(workers = multicores, log = FALSE)
+        on.exit(.sits_parallel_stop(), add = TRUE)
+    }
 
     # do parallel requests
-    cube <- .sits_parallel_map(seq_len(nrow(items)), function(i) {
+    items <- .sits_parallel_map(unique(items[["fid"]]), function(i) {
 
-        # get tile name
-        tile <- items[["tile"]][[i]]
+        # filter by feature
+        item <- dplyr::filter(items, .data[["fid"]] == !!i)
 
-        # get fid name
-        fid <- items[["fid"]][[i]]
+        # open band rasters and get assets info
+        assets_info <- purrr::map(item[["path"]], function(path) {
+            tryCatch({
+                asset <- .raster_open_rast(path)
+                res <- .raster_res(asset)
+                bbox <- .raster_bbox(asset)
+                size <- .raster_size(asset)
+                crs <- .raster_crs(asset)
 
-        # get item
-        item <- items[["features"]][[i]]
-
-        # open band rasters
-        assets <- purrr::map(item[["path"]], .raster_open_rast)
-
-        # get asset info
-        asset_info <- purrr::map(assets, function(asset) {
-            res <- .raster_res(asset)
-            bbox <- .raster_bbox(asset)
-            size <- .raster_size(asset)
-            crs <- .raster_crs(asset)
-            tibble::as_tibble_row(c(res, bbox, size, list(crs = crs)))
-        }) %>% dplyr::bind_rows()
-
-        assets_info <- dplyr::bind_cols(item, asset_info) %>%
-            dplyr::select(dplyr::all_of(c("band", "date", "xmin",
-                                          "ymin", "xmax", "ymax", "xres",
-                                          "yres", "nrows", "ncols", "path",
-                                          "crs")))
-        tidyr::unnest(
-            tibble::tibble(
-                tile = tile,
-                fid = fid,
-                date = item[["date"]],
-                band = item[["band"]],
-                asset_info = asset_info,
-                path = item[["path"]],
-            ), cols = c("band", "asset_info", "path"))
-    },
-    progress = progress
-    ) %>% dplyr::bind_rows()
-
-    # post-condition
-    .check_num(nrow(cube), min = 1, msg = "number metadata rows is empty")
-
-    # prepare cube
-    cube <- cube %>%
-        tidyr::nest(file_info = -dplyr::matches(c("tile", "crs"))) %>%
-        slider::slide_dfr(function(tile) {
-
-            # get file_info
-            file_info <- tile[["file_info"]][[1]]
-
-            # arrange file_info
-            file_info <- dplyr::arrange(file_info, .data[["date"]],
-                                        .data[["fid"]], .data[["band"]])
-
-            # get tile bbox
-            bbox <- .source_tile_get_bbox(source = source,
-                                          file_info = file_info,
-                                          collection = collection)
-
-            # create cube row
-            tile <- .cube_create(
-                source     = source,
-                collection = collection,
-                satellite  = .source_collection_satellite(source, collection),
-                sensor     = .source_collection_sensor(source, collection),
-                tile       = tile[["tile"]],
-                xmin       = bbox[["xmin"]],
-                xmax       = bbox[["xmax"]],
-                ymin       = bbox[["ymin"]],
-                ymax       = bbox[["ymax"]],
-                crs        = tile[["crs"]],
-                file_info  = file_info)
-
-            return(tile)
+                tibble::as_tibble_row(c(res, bbox, size, list(crs = crs)))
+            }, error = function(e) {
+                NULL
+            })
         })
 
-    return(cube)
+        # remove corrupted assets
+        bad_assets <- purrr::map_lgl(assets_info, purrr::is_null)
+        item <- item[!bad_assets,]
+
+        # bind items and assets info
+        item <- dplyr::bind_cols(item, dplyr::bind_rows(assets_info))
+
+        return(item)
+    }, progress = progress)
+
+    items <- dplyr::bind_rows(items) %>%
+        dplyr::arrange(.data[["date"]], .data[["fid"]], .data[["band"]])
+
+    return(items)
+}
+
+#' @keywords internal
+.local_cube_items_cube <- function(source,
+                                   collection,
+                                   items) {
+
+    # pre-condition
+    .check_length(unique(items[["tile"]]), len_min = 1,
+                  msg = "invalid number of tiles")
+
+    # get crs from file_info
+    crs <- unique(items[["crs"]])
+
+    # check crs
+    .check_length(crs, len_min = 1, len_max = 1,
+                  msg = "invalid crs value")
+
+    # get tile from file_info
+    tile <- unique(items[["tile"]])
+
+    # check tile
+    .check_length(tile, len_min = 1, len_max = 1,
+                  msg = "invalid tile value")
+
+    # make a new file info for one tile
+    file_info <- dplyr::select(
+        items,
+        dplyr::all_of(c("fid", "band", "date", "xmin",
+                        "ymin", "xmax", "ymax", "xres",
+                        "yres", "nrows", "ncols", "path")))
+
+    # create a tibble to store the metadata
+    cube_tile <- .cube_create(
+        source = source,
+        collection = collection,
+        satellite = .source_collection_satellite(source, collection),
+        sensor = .source_collection_sensor(source, collection),
+        tile = tile,
+        xmin = max(file_info[["xmin"]]),
+        xmax = min(file_info[["xmax"]]),
+        ymin = max(file_info[["ymin"]]),
+        ymax = min(file_info[["ymax"]]),
+        crs = crs,
+        file_info = file_info
+    )
+
+    return(cube_tile)
 }

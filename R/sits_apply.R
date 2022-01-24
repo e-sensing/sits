@@ -51,7 +51,8 @@ sits_apply.sits <- function(data, ...) {
 sits_apply.raster_cube <- function(data, ...,
                                    memsize = 1,
                                    multicores = 2,
-                                   output_dir = getwd()) {
+                                   output_dir = getwd(),
+                                   progress = TRUE) {
 
     .check_set_caller("sits_apply.raster_cube")
 
@@ -251,7 +252,7 @@ sits_apply.raster_cube <- function(data, ...,
                 gc()
 
                 return(filename_block)
-            }, progress = FALSE)
+            }, progress = progress)
 
             # join predictions
             .raster_merge(
@@ -261,7 +262,8 @@ sits_apply.raster_cube <- function(data, ...,
                 gdal_datatype = .raster_gdal_datatype(
                     .config_get("raster_cube_data_type")),
                 gdal_options = .config_gtiff_default_options(),
-                overwrite = TRUE
+                overwrite = TRUE,
+                progress = progress
             )
 
             # prepare output file_info

@@ -19,6 +19,9 @@ test_that("EVI generation", {
     dir_images <-  paste0(tempdir(), "/images/")
     if (!dir.exists(dir_images))
         suppressWarnings(dir.create(dir_images))
+    unlink(list.files(dir_images,
+                      pattern = "\\.tif$",
+                      full.names = TRUE))
 
     gc_cube <- sits_regularize(
         cube        = s2_cube,
@@ -40,13 +43,13 @@ test_that("EVI generation", {
     expect_true(start_date == as.Date("2019-07-01"))
     expect_true(end_date == as.Date("2019-08-01"))
 
-    file_info_b05 <- .file_info(gc_cube_new, band = "B05")
+    file_info_b05 <- .file_info(gc_cube_new, bands = "B05")
     b05_band_1 <- terra::rast(file_info_b05$path[[1]])
 
-    file_info_b8a <- .file_info(gc_cube_new, band = "B8A")
+    file_info_b8a <- .file_info(gc_cube_new, bands = "B8A")
     b8a_band_1 <- terra::rast(file_info_b8a$path[[1]])
 
-    file_info_evi2 <- .file_info(gc_cube_new, band = "EVI2")
+    file_info_evi2 <- .file_info(gc_cube_new, bands = "EVI2")
     evi2_band_1 <- terra::rast(file_info_evi2$path[[1]])
 
     b05_100 <- as.numeric(b05_band_1[100]/10000)
