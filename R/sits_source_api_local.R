@@ -25,26 +25,11 @@
                                             bands = bands,
                                             items = items)
 
-    # make a cube for each tile (rows)
-    cube <- purrr::map_dfr(unique(items[["tile"]]), function(t) {
-
-        # filter tile
-        items_tile <- dplyr::filter(items, tile == t)
-
-        # make a new file info for one tile
-        file_info <- .local_cube_items_file_info(source = source,
-                                                 items = items_tile,
-                                                 collection = collection,
-                                                 multicores = multicores)
-
-        # make a new cube tile
-        tile_cube <- .local_cube_items_cube(source = source,
-                                            collection = collection,
-                                            items = items_tile,
-                                            file_info = file_info)
-
-        return(tile_cube)
-    })
+    # make a new file info for one tile
+    cube <- .local_cube_items_cube(source = source,
+                                   items = items,
+                                   collection = collection,
+                                   multicores = multicores)
 
     class(cube) <- .cube_s3class(cube)
 
@@ -154,13 +139,13 @@
 }
 
 #' @keywords internal
-.local_cube_items_file_info <- function(source,
-                                        items,
-                                        collection,
-                                        multicores) {
+.local_cube_items_cube <- function(source,
+                                   items,
+                                   collection,
+                                   multicores) {
 
     # set caller to show in errors
-    .check_set_caller(".local_cube_items_file_info")
+    .check_set_caller(".local_cube_items_cube")
 
     # post-condition
     .check_that(nrow(items) > 0,
@@ -169,25 +154,30 @@
     # add feature id (fid)
     items <- dplyr::group_by(items, .data[["tile"]], .data[["date"]]) %>%
         dplyr::mutate(fid = paste0(dplyr::cur_group_id())) %>%
-        dplyr::ungroup()
+        dplyr::ungroup() %>%
+        tidyr::nest(features = c(.data[["band"]],
+                                 .data[["date"]],
+                                 .data[["path"]]))
 
-    progress <- FALSE
-    n_workers <- 1
+    progress <- TRUE
     # check if progress bar and multicores processing can be enabled
-    if (nrow(items) >= .config_get("local_min_files_for_parallel")) {
-        progress <- TRUE
-        n_workers <- multicores
+    if (nrow(items) < .config_get("local_min_files_for_parallel")) {
+        progress <- FALSE
+        multicores <- 2
     }
 
     # prepare parallel requests
-    .sits_parallel_start(workers = n_workers, log = FALSE)
+    .sits_parallel_start(workers = multicores, log = FALSE)
     on.exit(.sits_parallel_stop(), add = TRUE)
 
     # do parallel requests
-    items <- .sits_parallel_map(unique(items[["fid"]]), function(i) {
+    cube <- .sits_parallel_map(seq_len(nrow(items)), function(i) {
 
-        # filter by feature
-        item <- dplyr::filter(items, .data[["fid"]] == !!i)
+        # get tile name
+        tile <- items[["tile"]][[i]]
+
+        # get item
+        item <- items[["features"]][[i]]
 
         # open band rasters
         assets <- purrr::map(item[["path"]], .raster_open_rast)
@@ -201,63 +191,60 @@
             tibble::as_tibble_row(c(res, bbox, size, list(crs = crs)))
         }) %>% dplyr::bind_rows()
 
-        dplyr::bind_cols(item, asset_info) %>%
-            dplyr::select(dplyr::all_of(c("fid", "band", "date", "xmin",
+        assets_info <- dplyr::bind_cols(item, asset_info) %>%
+            dplyr::select(dplyr::all_of(c("band", "date", "xmin",
                                           "ymin", "xmax", "ymax", "xres",
                                           "yres", "nrows", "ncols", "path",
                                           "crs")))
-
+        tidyr::unnest(
+            tibble::tibble(
+                tile = tile,
+                fid = item[["fid"]],
+                date = item[["date"]],
+                band = item[["band"]],
+                asset_info = asset_info,
+                path = item[["path"]],
+            ), cols = c("band", "asset_info", "path"))
     },
     progress = progress
     ) %>% dplyr::bind_rows()
 
-    return(items)
-}
+    # post-condition
+    .check_num(nrow(cube), min = 1, msg = "number metadata rows is empty")
 
-#' @keywords internal
-.local_cube_items_cube <- function(source,
-                                   collection,
-                                   items,
-                                   file_info) {
+    # prepare cube
+    cube <- cube %>%
+        tidyr::nest(file_info = -dplyr::matches(c("tile", "crs"))) %>%
+        slider::slide_dfr(function(tile) {
 
-    # pre-condition
-    .check_length(unique(items[["tile"]]), len_min = 1,
-                  msg = "invalid number of tiles")
+            # get file_info
+            file_info <- tile[["file_info"]][[1]]
 
-    # get crs from file_info
-    crs <- unique(file_info[["crs"]])
+            # arrange file_info
+            file_info <- dplyr::arrange(file_info, .data[["date"]],
+                                        .data[["fid"]], .data[["band"]])
 
-    # discard crs from file_info
-    file_info[["crs"]] <- NULL
+            # get tile bbox
+            bbox <- .source_tile_get_bbox(source = source,
+                                          file_info = file_info,
+                                          collection = collection)
 
-    # check crs
-    .check_length(crs, len_min = 1, len_max = 1,
-                  msg = "invalid crs value")
+            # create cube row
+            tile <- .cube_create(
+                source     = source,
+                collection = collection,
+                satellite  = .source_collection_satellite(source, collection),
+                sensor     = .source_collection_sensor(source, collection),
+                tile       = tile[["tile"]],
+                xmin       = bbox[["xmin"]],
+                xmax       = bbox[["xmax"]],
+                ymin       = bbox[["ymin"]],
+                ymax       = bbox[["ymax"]],
+                crs        = tile[["crs"]],
+                file_info  = file_info)
 
-    # get tile from file_info
-    tile <- unique(items[["tile"]])
+            return(tile)
+        })
 
-    # discard tile from file_info
-    file_info[["tile"]] <- NULL
-
-    # check tile
-    .check_length(tile, len_min = 1, len_max = 1,
-                  msg = "invalid tile value")
-
-    # create a tibble to store the metadata
-    cube_tile <- .cube_create(
-        source = source,
-        collection = collection,
-        satellite = .source_collection_satellite(source, collection),
-        sensor = .source_collection_sensor(source, collection),
-        tile = tile,
-        xmin = max(file_info[["xmin"]]),
-        xmax = min(file_info[["xmax"]]),
-        ymin = max(file_info[["ymin"]]),
-        ymax = min(file_info[["ymax"]]),
-        crs = crs,
-        file_info = file_info
-    )
-
-    return(cube_tile)
+    return(cube)
 }
