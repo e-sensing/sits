@@ -176,6 +176,9 @@
         # get tile name
         tile <- items[["tile"]][[i]]
 
+        # get fid name
+        fid <- items[["fid"]][[i]]
+
         # get item
         item <- items[["features"]][[i]]
 
@@ -199,7 +202,7 @@
         tidyr::unnest(
             tibble::tibble(
                 tile = tile,
-                fid = item[["fid"]],
+                fid = fid,
                 date = item[["date"]],
                 band = item[["band"]],
                 asset_info = asset_info,
