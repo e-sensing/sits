@@ -370,9 +370,10 @@ sits_regularize <- function(cube,
                 bad_tiles,
                 purrr::map_chr(bad_tiles, function(tile) {
                     paste0("(",
-                           unique(tiles_bands[[2]][tiles_bands[[1]] == tile]),
-                           ")",
-                           collapse = ", ")
+                           paste0(unique(
+                               tiles_bands[[2]][tiles_bands[[1]] == tile]),
+                               collapse = ", "),
+                           ")")
                 }),
                 collapse = ", ")
 
