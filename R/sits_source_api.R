@@ -45,8 +45,8 @@ NULL
     .check_chr(source, len_min = 1, len_max = 1,
                msg = "invalid 'source' parameter")
     .check_chr_within(source, within = .sources(),
-               msg = paste0("invalid 'source' parameter.", "\n",
-                            "please check valid sources with sits_list_sources()"))
+                      msg = paste0("invalid 'source' parameter.", "\n",
+                                   "please check valid sources with sits_list_sources()"))
 
     return(invisible(NULL))
 }
@@ -208,7 +208,7 @@ NULL
     .source_collection_check(source = source, collection = collection)
 
     bands <- .config_names(key = c("sources", source, "collections",
-                                 collection, "bands"))
+                                   collection, "bands"))
     # bands names are upper case
     bands <- toupper(bands)
 
@@ -302,9 +302,9 @@ NULL
     .source_collection_check(source = source, collection = collection)
 
     bands <- .source_bands_reap(source = source,
-                              collection = collection,
-                              key = "band_name",
-                              bands = bands)
+                                collection = collection,
+                                key = "band_name",
+                                bands = bands)
 
     # simplify to a unnamed character vector
     bands <- unlist(bands, recursive = FALSE, use.names = FALSE)
@@ -379,7 +379,10 @@ NULL
         .source_bands_band_name(source = source,
                                 collection = collection))
 
-    bands_converter <- c(bands_to_sits, bands_sits)
+    unknown_bands <- setdiff(unique(bands), names(bands_sits))
+    names(unknown_bands) <- unknown_bands
+
+    bands_converter <- c(bands_to_sits, bands_sits, unknown_bands)
 
     # post-condition
     .check_chr_within(bands, within = names(bands_converter),
@@ -578,11 +581,11 @@ NULL
     collection <- toupper(collection)
     # get access variables for this source/collection
     vars <- .config_get(key = c("sources", source, "collections", collection,
-                               "access_vars"),
-                       default = list())
+                                "access_vars"),
+                        default = list())
     # post-condition
     .check_lst(vars, msg = paste0("invalid access vars for collection ", collection,
-                                 " in source ", source))
+                                  " in source ", source))
     if (length(vars) > 0)
         do.call(Sys.setenv, args = vars)
 

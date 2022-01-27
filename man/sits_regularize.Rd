@@ -12,9 +12,10 @@ sits_regularize(
   roi = NULL,
   agg_method = "least_cc_first",
   resampling = "bilinear",
-  cloud_mask = FALSE,
   multicores = 1,
-  multithreads = 2
+  multithreads = 2,
+  progress = TRUE,
+  cloud_mask = FALSE
 )
 }
 \arguments{
@@ -46,10 +47,6 @@ Options: \code{near}, \code{bilinear}, \code{bicubic} or others supported by
 gdalwarp (see https://gdal.org/programs/gdalwarp.html).
 Default is bilinear.}
 
-\item{cloud_mask}{A \code{logical} to use cloud band for aggregation by
-\code{gdalcubes}. Deprecated as of SITS version 0.16.0. Default
-is \code{FALSE}.}
-
 \item{multicores}{A \code{numeric} with the number of cores used for
 regularization. This parameter specifies how many bands from different tiles
 should be processed in parallel. By default, 1 core is used.}
@@ -59,6 +56,12 @@ threads used in the gdalcubes package. This parameter determines how many
 chunks are executed in parallel. The gdalcubes package divides data cubes
 into smaller chunks, where the generated chunk creates a 3-dimensional array
 of band, latitude, and longitude information. By default 2 threads are used.}
+
+\item{progress}{A \code{logical} value. Show progress bar?}
+
+\item{cloud_mask}{A \code{logical} to use cloud band for aggregation by
+\code{gdalcubes}. Deprecated as of SITS version 0.16.0. Default
+is \code{FALSE}.}
 }
 \value{
 A \code{sits_cube} object with aggregated images.

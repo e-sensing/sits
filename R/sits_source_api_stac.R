@@ -5,8 +5,7 @@
                                                      dry_run = TRUE) {
     # require package
     if (!requireNamespace("rstac", quietly = TRUE)) {
-        stop("Please install package rstac", call. = FALSE
-        )
+        stop("Please install package rstac", call. = FALSE)
     }
 
     items_query <- .stac_create_items_query(source = source,
@@ -152,7 +151,7 @@
         # item by item
         data <- data %>%
             dplyr::transmute(
-                tile = tile,
+                tile = .data[["tile"]],
                 items = purrr::map2(
                     .data[["fid"]], .data[["features"]], function(x, y) {
                         dplyr::tibble(fid = x, features = list(y))
@@ -194,69 +193,56 @@
         # post-condition
         .check_num(length(paths), min = 1, msg = "invalid href values")
 
-        # TODO: implement sits_parallel_error_retry()
-        # open band rasters
-        assets <- tryCatch({
-            purrr::map(paths, .raster_open_rast)
+        # open band rasters and retrieve asset info
+        asset_info <- tryCatch({
+            purrr::map(paths, function(path) {
+                asset <- .raster_open_rast(path)
+
+                info <- tibble::as_tibble_row(c(
+                    .raster_res(asset),
+                    .raster_bbox(asset),
+                    .raster_size(asset),
+                    list(crs = .raster_crs(asset))))
+
+                return(info)
+            })
         }, error = function(e) {
             NULL
         })
 
-        if (is.null(assets))
+        # check if metadata was retrieved
+        if (is.null(asset_info)) {
+            warning(paste("cannot open files:\n",
+                          paste(paths, collapse = ", ")), call. = FALSE)
             return(NULL)
-
-        # get asset info
-        asset_info <- purrr::map(assets, function(asset) {
-            tibble::as_tibble_row(c(
-                .raster_res(asset),
-                .raster_bbox(asset),
-                .raster_size(asset)))
-        })
-
-        # get crs
-        crs <- .raster_crs(assets[[1]])
+        }
 
         # generate file_info
-        file_info <- purrr::map2_dfr(fids, features, function(fid, item) {
+        items_info <- purrr::map2_dfr(fids, features, function(fid, item) {
 
             # get assets name
-            bands <- .source_item_get_bands(source = source,
-                                            item = item,
-                                            collection = collection, ...)
+            bands <- .source_item_get_bands(
+                source = source,
+                item = item,
+                collection = collection, ...)
 
             # get date
-            date <- .source_item_get_date(source = source,
-                                          item = item,
-                                          collection = collection, ...)
+            date <- .source_item_get_date(
+                source = source,
+                item = item,
+                collection = collection, ...)
 
             # get file paths
-            paths <- .source_item_get_hrefs(source = source,
-                                            item = item,
-                                            collection = collection, ...)
+            paths <- .source_item_get_hrefs(
+                source = source,
+                item = item,
+                collection = collection, ...)
 
             # add cloud cover statistics
-            cloud_cover <- .source_item_get_cloud_cover(source = source,
-                                                        item = item,
-                                                        collection = collection, ...)
-
-            # do in case of 'tile' strategy
-            if (.source_collection_metadata_search(
+            cloud_cover <- .source_item_get_cloud_cover(
                 source = source,
-                collection = collection) == "feature") {
-
-                # open band rasters
-                # TODO: implement sits_parallel_error_retry()
-                assets <- purrr::map(paths, .raster_open_rast)
-
-                # get asset info
-                asset_info <- purrr::map(assets, function(asset) {
-
-                    tibble::as_tibble_row(c(
-                        .raster_res(asset),
-                        .raster_bbox(asset),
-                        .raster_size(asset)))
-                })
-            }
+                item = item,
+                collection = collection, ...)
 
             # post-conditions
             .check_na(date, msg = "invalid date value")
@@ -270,10 +256,40 @@
                        len_max = length(bands),
                        msg = "invalid path value")
 
-            tidyr::unnest(
+            # do in case of 'feature' strategy
+            if (.source_collection_metadata_search(
+                source = source,
+                collection = collection) == "feature") {
+
+                # open band rasters and retrieve asset info
+                asset_info <- tryCatch({
+                    purrr::map(paths, function(path) {
+                        asset <- .raster_open_rast(path)
+
+                        info <- tibble::as_tibble_row(c(
+                            .raster_res(asset),
+                            .raster_bbox(asset),
+                            .raster_size(asset),
+                            list(crs = .raster_crs(asset))))
+
+                        return(info)
+                    })
+                }, error = function(e) {
+                    NULL
+                })
+
+                # check if metadata was retrieved
+                if (is.null(asset_info)) {
+                    warning(paste("cannot open files:\n",
+                                  paste(paths, collapse = ", ")), call. = FALSE)
+                    return(NULL)
+                }
+            }
+
+            # prepare result
+            assets_info <- tidyr::unnest(
                 tibble::tibble(
                     tile = tile,
-                    crs = crs,
                     fid = fid,
                     date = date,
                     band = bands,
@@ -281,9 +297,11 @@
                     path = paths,
                     cloud_cover = cloud_cover
                 ), cols = c("band", "asset_info", "path", "cloud_cover"))
+
+            return(assets_info)
         })
 
-        return(file_info)
+        return(items_info)
 
     }, progress = progress)
 
@@ -291,14 +309,17 @@
     cube <- dplyr::bind_rows(tiles)
 
     # post-condition
-    .check_num(nrow(cube), min = 1, msg = "number metadata rows is empty")
+    .check_that(
+        x = nrow(cube) > 0,
+        local_msg = "could not retrieve cube metadata",
+        msg = "empty cube metadata")
 
     # review known malformed paths
     review_date <- .config_get(c("sources", source, "collections",
                                  collection, "review_dates"), default = NA)
 
     if (!is.na(review_date)) {
-        data <- dplyr::filter(cube, date == !!review_date) %>%
+        data <- dplyr::filter(cube, .data[["date"]] == !!review_date) %>%
             tidyr::nest(assets = -tile)
 
         # test paths by open files...

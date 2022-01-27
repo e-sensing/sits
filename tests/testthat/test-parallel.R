@@ -25,6 +25,9 @@ test_that("One-year, multi-core classification in parallel", {
     dir_images <-  paste0(tempdir(), "/images/")
     if (!dir.exists(dir_images))
         suppressWarnings(dir.create(dir_images))
+    unlink(list.files(dir_images,
+                      pattern = "\\.tif$",
+                      full.names = TRUE))
 
 
     l8_probs <- sits_classify(l8_cube,
