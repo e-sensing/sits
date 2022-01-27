@@ -435,7 +435,7 @@ test_that("Creating cubes from AWS", {
     )
 })
 
-test_that("Creating cubes from AWS Open Data and regularizing them", {
+test_that("Creating regular cubes from AWS Open Data, and extracting samples from them", {
 
     testthat::skip_on_cran()
 
@@ -483,6 +483,20 @@ test_that("Creating cubes from AWS Open Data and regularizing them", {
     tile_fileinfo <- .file_info(gc_cube[1, ])
 
     expect_equal(nrow(tile_fileinfo), 1)
+
+    csv_file <- system.file("extdata/samples/samples_amazonia_sentinel2.csv",
+                            package = "sits")
+
+    # read sample information from CSV file and put it in a tibble
+    samples <- tibble::as_tibble(utils::read.csv(csv_file))
+    expect_equal(nrow(samples), 1202)
+    samples <- dplyr::sample_n(samples, size = 10, replace = FALSE)
+
+    ts <- sits_get_data(cube = gc_cube, samples = samples)
+    vls <- unlist(sits_values(ts))
+    expect_true(all(vls > 0 & vls < 1.))
+    expect_equal(sits_bands(ts), sits_bands(gc_cube))
+    expect_equal(sits_timeline(ts), sits_timeline(gc_cube))
 })
 
 test_that("Creating cubes from AWS Open Data and regularizing with ROI", {

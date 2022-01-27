@@ -1227,9 +1227,10 @@ plot.keras_model <- function(x, y, ...) {
         .check_chr_within(
             x = labels,
             within = names(legend),
+            discriminator = "all_of",
             msg = "some labels are missing from the legend")
-        colors <- unname(legend[labels])
 
+        colors <- unname(legend[labels])
     }
     # set the names of the color vector
     names(colors) <- as.character(c(1:nclasses))

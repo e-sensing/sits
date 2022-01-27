@@ -668,11 +668,11 @@ NULL
                msg = "invalid 'within' parameter")
 
     # allowed discriminators and its print values
-    discriminators <- c(one_of  = "have only one of",
-                        any_of  = "have at least one of",
-                        all_of  = "have",
-                        none_of = "have none of",
-                        exactly = "have exactly")
+    discriminators <- c(one_of  = "be only one of",
+                        any_of  = "be at least one of",
+                        all_of  = "be",
+                        none_of = "be none of",
+                        exactly = "be exactly")
 
     if (length(discriminator) != 1 ||
         !discriminator %in% names(discriminators))

@@ -69,9 +69,10 @@ sits_metadata_to_csv <- function(data, file) {
     .check_set_caller(".sits_csv_check")
 
     # check if required col names are available
-    .check_chr_within(
-        x = .config_get("csv_sample_columns"),
-        within = colnames(csv),
+    .check_chr_contains(
+        x = colnames(csv),
+        contains = .config_get("df_sample_columns"),
+        discriminator = "all_of",
         msg = "invalid csv file")
 
     return(invisible(TRUE))
