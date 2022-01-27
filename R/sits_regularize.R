@@ -469,8 +469,7 @@ sits_regularize <- function(cube,
     return(miss_tiles_bands_times)
 }
 
-.reg_diagnostic <- function(data_dir,
-                            multicores = 2) {
+.reg_diagnostic <- function(data_dir) {
 
     # how many of those files are images?
     # retrieve the known file extensions
