@@ -330,8 +330,7 @@ sits_regularize <- function(cube,
 
         # detect malformed files
         bad_files <- .reg_diagnostic(
-            data_dir = output_dir,
-            multicores = multicores
+            data_dir = output_dir
         )
 
         # delete malformed files
