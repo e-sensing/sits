@@ -74,6 +74,8 @@ sources:
                 collection_name: "CB4_64_16D_STK-1"
                 token_vars  :  ["BDC_ACCESS_KEY"]
                 open_data   : true
+                gdalcubes_support: true
+                gdalcubes_type_format: "INT2S"
                 open_data_token : true
                 metadata_search : "tile"
             CB4MUX_20-1     : &bdc_cb4_mux
@@ -677,7 +679,7 @@ sources:
                 open_data: true
                 open_data_token: false
                 gdalcubes_support: true
-                gdalcubes_type_format: "int16"
+                gdalcubes_type_format: "INT2S"
                 gdalcubes_format_col : "s2la_aws_cogs.json"
                 metadata_search: "tile"
                 review_dates: ["2020-08-16"]

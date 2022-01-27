@@ -6,6 +6,7 @@
 \alias{.file_info_nrows}
 \alias{.file_info_ncols}
 \alias{.file_info_path}
+\alias{.file_info_paths}
 \alias{.file_info_xres}
 \alias{.file_info_yres}
 \alias{.file_info_fids}
@@ -23,6 +24,8 @@
 .file_info_ncols(cube)
 
 .file_info_path(cube)
+
+.file_info_paths(cube, bands = NULL)
 
 .file_info_xres(cube)
 
@@ -62,6 +65,9 @@ Throws an error if rows are not equal
 
 Returns number of cols for a given tile
 Throws an error if cols are not equal
+
+Returns a single path to a file
+Throws an error if there is more than one path
 
 Returns a single path to a file
 Throws an error if there is more than one path

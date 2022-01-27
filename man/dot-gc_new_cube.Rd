@@ -6,11 +6,11 @@
 \usage{
 .gc_new_cube(
   tile,
-  cv,
-  img_col,
-  path_db,
+  res,
+  start_date,
+  resampling,
+  roi,
   output_dir,
-  cloud_mask,
   multithreads,
   ...
 )
@@ -18,23 +18,18 @@
 \arguments{
 \item{tile}{A data cube tile}
 
-\item{cv}{A \code{list} 'cube_view' with values from cube.}
+\item{res}{...}
 
-\item{img_col}{A \code{object} 'image_collection' containing information
-about the images metadata.}
+\item{resampling}{...}
 
-\item{path_db}{Database to be created by gdalcubes}
+\item{roi}{...}
 
 \item{output_dir}{Directory where the aggregated images will be written.}
-
-\item{cloud_mask}{A \code{logical} corresponds to the use of the cloud band
-for aggregation.}
 
 \item{multithreads}{A \code{numeric} with the number of cores will be used in
 the regularize. By default is used 1 core.}
 
-\item{...}{Additional parameters that can be included. See
-'?gdalcubes::write_tif'.}
+\item{...}{...}
 }
 \value{
 A data cube tile with information used in its creation.

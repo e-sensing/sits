@@ -111,8 +111,7 @@ sits_regularize <- function(cube,
                             resampling = "bilinear",
                             multicores = 1,
                             multithreads = 2,
-                            progress = TRUE,
-                            cloud_mask = FALSE) {
+                            progress = TRUE) {
 
     # set caller to show in errors
     .check_set_caller("sits_regularize")
@@ -122,11 +121,11 @@ sits_regularize <- function(cube,
         stop("Please install package gdalcubes", call. = FALSE)
 
     # collections
-    .check_null(.source_collection_gdalcubes_support(.cube_source(cube),
-                                                     .cube_collection(cube)),
-                msg = "sits_regularize not available for collection ",
-                cube$collection, " from ", cube$source
-    )
+    # .check_null(.source_collection_gdalcubes_support(.cube_source(cube),
+    #                                                  .cube_collection(cube)),
+    #             msg = "sits_regularize not available for collection ",
+    #             cube$collection, " from ", cube$source
+    # )
 
     # precondition - test if provided object is a raster cube
     .check_that(
@@ -144,9 +143,6 @@ sits_regularize <- function(cube,
         x = dir.exists(output_dir),
         msg = "invalid 'output_dir' parameter."
     )
-
-    # append gdalcubes path
-    path_db <- paste0(output_dir, "/gdalcubes.db")
 
     # precondition - is the period valid?
     duration <- lubridate::duration(period)
@@ -181,14 +177,9 @@ sits_regularize <- function(cube,
         msg = "invalid resampling method"
     )
 
-    # as of SITS 0.16.0, parameter "cloud_mask" is deprecated
-    if (!missing(cloud_mask))
-        warning("cloud_mask parameter is deprecated and no longer required")
-
     # is there a cloud band?
-    cloud_mask <- FALSE
-    if ("CLOUD" %in% sits_bands(cube))
-        cloud_mask <- TRUE
+    if (!"CLOUD" %in% sits_bands(cube))
+        stop("cloud_mask...")
 
     # precondition - is the multithreads valid?
     .check_num(
@@ -240,10 +231,6 @@ sits_regularize <- function(cube,
         duration = duration
     )
 
-    # create an image collection
-    img_col <- .gc_create_database_stac(cube = cube, path_db = path_db)
-
-
     # start process
     .sits_parallel_start(multicores, log = FALSE)
     on.exit(.sits_parallel_stop())
@@ -254,7 +241,7 @@ sits_regularize <- function(cube,
             source = .cube_source(cube),
             collection = .cube_collection(cube),
             data_dir = output_dir,
-            parse_info = c("x1", "tile", "band", "date"),
+            parse_info = c("x1", "tile", "date", "band"),
             multicores = multicores,
             progress = progress
         )
@@ -296,28 +283,14 @@ sits_regularize <- function(cube,
                               date >= !!start_date,
                               date < !!end_date)
 
-            # open db in each process
-            img_col <- gdalcubes::image_collection(path_db)
-
-            # create a list of cube view object
-            cv <- .gc_create_cube_view(
-                tile = cube,
-                period = period,
-                roi = roi,
-                res = res,
-                toi = c(start_date, start_date),
-                agg_method = agg_method,
-                resampling = resampling
-            )
-
             # create of the aggregate cubes
             gc_tile <- .gc_new_cube(
                 tile = cube,
-                cv = cv,
-                img_col = img_col,
-                path_db = path_db,
+                res = res,
+                start_date = start_date,
+                resampling = resampling,
+                roi = roi,
                 output_dir = output_dir,
-                cloud_mask = cloud_mask,
                 multithreads = multithreads
             )
 
@@ -333,7 +306,7 @@ sits_regularize <- function(cube,
             source = .cube_source(cube),
             collection = .cube_collection(cube),
             data_dir = output_dir,
-            parse_info = c("x1", "tile", "band", "date"),
+            parse_info = c("x1", "tile", "date", "band"),
             multicores = multicores
         )
 

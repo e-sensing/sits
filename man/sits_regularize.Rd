@@ -14,8 +14,7 @@ sits_regularize(
   resampling = "bilinear",
   multicores = 1,
   multithreads = 2,
-  progress = TRUE,
-  cloud_mask = FALSE
+  progress = TRUE
 )
 }
 \arguments{

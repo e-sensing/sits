@@ -85,6 +85,24 @@ NULL
 
     return(path)
 }
+
+#' @rdname file_info_functions
+#'
+#' @details
+#' Returns a single path to a file
+#' Throws an error if there is more than one path
+.file_info_paths <- function(cube, bands = NULL){
+
+    file_info <- .file_info(cube)
+    if (!is.null(bands))
+        file_info <- dplyr::filter(file_info, .data[["band"]] %in% !!bands)
+
+    .check_num(nrow(file_info), min = 1, is_integer = TRUE,
+               msg = "wrong path parameter in file_info")
+
+    return(file_info[["path"]])
+}
+
 #' @rdname file_info_functions
 #'
 #' @details
