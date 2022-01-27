@@ -328,6 +328,14 @@ sits_regularize <- function(cube,
 
         }, progress = progress)
 
+        # detect malformed files
+        bad_files <- .reg_diagnostic(
+            data_dir = output_dir
+        )
+
+        # delete malformed files
+        unlink(bad_files)
+
         # create local cube from files in output directory
         gc_cube <- sits_cube(
             source = .cube_source(cube),
@@ -361,9 +369,10 @@ sits_regularize <- function(cube,
                 bad_tiles,
                 purrr::map_chr(bad_tiles, function(tile) {
                     paste0("(",
-                           unique(tiles_bands[[2]][tiles_bands[[1]] == tile]),
-                           ")",
-                           collapse = ", ")
+                           paste0(unique(
+                               tiles_bands[[2]][tiles_bands[[1]] == tile]),
+                               collapse = ", "),
+                           ")")
                 }),
                 collapse = ", ")
 
@@ -458,3 +467,33 @@ sits_regularize <- function(cube,
 
     return(miss_tiles_bands_times)
 }
+
+.reg_diagnostic <- function(data_dir) {
+
+    # how many of those files are images?
+    # retrieve the known file extensions
+    file_ext <- .config_local_file_extensions()
+
+    # list the files in the data directory
+    paths <- list.files(
+        path = data_dir,
+        pattern = paste0("\\.(", paste0(file_ext, collapse = "|"), ")$"),
+        full.names = TRUE
+    )
+
+    # open and read files
+    bad_paths <- .sits_parallel_map(paths, function(path) {
+        val <- tryCatch({
+            img <- terra::rast(path)
+            sum(is.na(terra::values(img)))
+            FALSE
+        }, error = function(e) TRUE)
+        val
+    }, progress = TRUE)
+
+    bad_paths <- paths[unlist(bad_paths)]
+    existing_files <- file.exists(bad_paths)
+
+    return(bad_paths[existing_files])
+}
+

@@ -59,7 +59,25 @@ A tibble with the metadata and data for each time series
 <longitude, latitude, start_date, end_date, label, cube, time_series>.
 }
 \description{
-
+Retrieve a set of time series from a data cube or from
+a time series service. Data cubes and puts it in a "sits tibble".
+Sits tibbles are the main structures of sits package.
+They contain both the satellite image time series and their metadata.
+There are four ways of specifying data to be retrieved:
+\itemize{
+\item{CSV file:}{Provide a CSV file with columns
+"longitude", "latitude", "start_date", "end_date" and "label" for
+each sample}
+\item{SHP file:}{Provide a shapefile in POINT or POLYGON geometry
+containing the location of the samples and an attribute to be
+used as label. Also, provide start and end date for the time series.}
+\item{samples:}{A data.frame with with columns
+"longitude", "latitude", "start_date", "end_date" and "label" for
+each sample}
+\item{single point:}{Provide the values
+"longitude", "latitude", "start_date", "end_date" and "label" to
+obtain a time series for a spacetime location}
+}
 }
 \examples{
 \donttest{

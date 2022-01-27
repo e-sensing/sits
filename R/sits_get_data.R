@@ -14,7 +14,7 @@
 #' \item{SHP file:}{Provide a shapefile in POINT or POLYGON geometry
 #' containing the location of the samples and an attribute to be
 #' used as label. Also, provide start and end date for the time series.}
-#' \item{samples:} A data.frame with with columns
+#' \item{samples:}{A data.frame with with columns
 #' "longitude", "latitude", "start_date", "end_date" and "label" for
 #' each sample}
 #' \item{single point:}{Provide the values
