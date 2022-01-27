@@ -472,7 +472,7 @@ sits_regularize <- function(cube,
 
     # how many of those files are images?
     # retrieve the known file extensions
-    file_ext <- sits:::.config_local_file_extensions()
+    file_ext <- .config_local_file_extensions()
 
     # list the files in the data directory
     paths <- list.files(
