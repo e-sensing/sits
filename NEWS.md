@@ -2,6 +2,14 @@
 
 We are preparing to release the package on CRAN and are making relevant changes in the development version.
 
+# What's new in SITS version 0.16.2
+
+### New features in SITS version 0.16.2
+* Improve `sits_get_data()` to accept tibbles
+* Remove multiples progress bar from `sits_cube()`
+* Improve `sits_regularize()` to process in parallel by tiles, bands, and dates
+* Improve `sits_regularize()` to check malformed files
+
 # What's new in SITS version 0.16.1
 
 ### New features in SITS version 0.16.1
