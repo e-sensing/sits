@@ -2,106 +2,23 @@
 % Please edit documentation in R/sits_get_data.R
 \name{sits_get_data}
 \alias{sits_get_data}
-\alias{sits_get_data.wtss_cube}
-\alias{sits_get_data.satveg_cube}
-\alias{sits_get_data.csv_wtss_cube}
-\alias{sits_get_data.csv_satveg_cube}
-\alias{sits_get_data.shp_wtss_cube}
-\alias{sits_get_data.shp_satveg_cube}
-\alias{sits_get_data.raster_cube}
-\alias{sits_get_data.csv_raster_cube}
-\alias{sits_get_data.shp_raster_cube}
 \title{Get time series from data cubes and cloud services}
 \usage{
-sits_get_data(cube, file = NULL, ..., multicores = 1)
-
-\method{sits_get_data}{wtss_cube}(
+sits_get_data(
   cube,
   file = NULL,
-  ...,
+  samples = NULL,
   longitude = NULL,
   latitude = NULL,
   start_date = NULL,
   end_date = NULL,
-  bands = NULL,
   label = "NoClass",
-  impute_fn = sits_impute_linear()
-)
-
-\method{sits_get_data}{satveg_cube}(
-  cube,
-  file = NULL,
-  ...,
-  longitude = NULL,
-  latitude = NULL,
-  start_date = NULL,
-  end_date = NULL,
-  label = "NoClass"
-)
-
-\method{sits_get_data}{csv_wtss_cube}(cube, file, ..., bands = NULL, impute_fn = sits_impute_linear())
-
-\method{sits_get_data}{csv_satveg_cube}(cube, file, ...)
-
-\method{sits_get_data}{shp_wtss_cube}(
-  cube,
-  file,
-  ...,
-  start_date = NULL,
-  end_date = NULL,
-  bands = NULL,
-  label = "NoClass",
-  impute_fn = sits_impute_linear(),
-  shp_attr = NULL,
-  .n_shp_pol = 30
-)
-
-\method{sits_get_data}{shp_satveg_cube}(
-  cube,
-  file,
-  ...,
-  start_date = NULL,
-  end_date = NULL,
-  label = "NoClass",
-  shp_attr = NULL,
-  .n_shp_pol = 30
-)
-
-\method{sits_get_data}{raster_cube}(
-  cube,
-  file = NULL,
-  ...,
-  longitude = NULL,
-  latitude = NULL,
-  start_date = NULL,
-  end_date = NULL,
-  bands = NULL,
-  label = "NoClass",
-  impute_fn = sits_impute_linear()
-)
-
-\method{sits_get_data}{csv_raster_cube}(
-  cube,
-  file,
-  ...,
   bands = NULL,
   impute_fn = sits_impute_linear(),
-  multicores = 1,
-  .n_pts_csv = NULL
-)
-
-\method{sits_get_data}{shp_raster_cube}(
-  cube,
-  file,
-  ...,
-  start_date = NULL,
-  end_date = NULL,
-  bands = NULL,
-  label = "NoClass",
-  impute_fn = sits_impute_linear(),
-  multicores = 1,
   shp_attr = NULL,
-  .n_shp_pol = 30
+  .n_pts_csv = NULL,
+  .n_shp_pol = 30,
+  multicores = 1
 )
 }
 \arguments{
@@ -109,9 +26,7 @@ sits_get_data(cube, file = NULL, ..., multicores = 1)
 
 \item{file}{File with information on the data to be retrieved.}
 
-\item{...}{Other parameters to be passed for specific types.}
-
-\item{multicores}{Number of threads to process the time series.}
+\item{samples}{Data.frame with samples location in spacetime.}
 
 \item{longitude}{Longitude of the chosen location.}
 
@@ -123,19 +38,21 @@ in "YYYY-MM-DD" format (optional).}
 \item{end_date}{End of the interval for the time series in
 "YYYY-MM-DD" format (optional).}
 
-\item{bands}{Bands to be retrieved (optional).}
-
 \item{label}{Label to be assigned to the time series (optional).}
+
+\item{bands}{Bands to be retrieved (optional).}
 
 \item{impute_fn}{Imputation function for NA values.}
 
 \item{shp_attr}{Attribute in the shapefile to be used
 as a polygon label.}
 
+\item{.n_pts_csv}{Number of points from CSV file to be retrieved.}
+
 \item{.n_shp_pol}{Number of samples per polygon to be read
 (for POLYGON or MULTIPOLYGON shapefile).}
 
-\item{.n_pts_csv}{Number of points from CSV file to be retrieved.}
+\item{multicores}{Number of threads to process the time series.}
 }
 \value{
 A tibble with the metadata and data for each time series
@@ -146,29 +63,21 @@ Retrieve a set of time series from a data cube or from
 a time series service. Data cubes and puts it in a "sits tibble".
 Sits tibbles are the main structures of sits package.
 They contain both the satellite image time series and their metadata.
-A sits tibble is a tibble with pre-defined columns that
-has the metadata and data for each time series. The columns are
-<longitude, latitude, start_date, end_date, label, cube, time_series>.
-There are three ways of retrieving time series: (a)
+There are four ways of specifying data to be retrieved:
 \itemize{
-\item{SATVEG:}{Retrieve data from SATVEG service using a lat/long point
- (see S3 method for class 'satveg_cube'),
- a CSV file (see S3 method for class 'csv_satveg_cube')
- or a SHP file (see S3 method for class 'shp_satveg_cube')}
-
-\item{RASTER: }{Retrieve data from any raster cube using a lat/long point
- (see S3 method for class 'raster_cube'),
- a CSV file (see S3 method for class 'csv_raster_cube')
- or a SHP file (see S3 method for class 'shp_raster_cube')}
-
+\item{CSV file:}{Provide a CSV file with columns
+"longitude", "latitude", "start_date", "end_date" and "label" for
+each sample}
+\item{SHP file:}{Provide a shapefile in POINT or POLYGON geometry
+containing the location of the samples and an attribute to be
+used as label. Also, provide start and end date for the time series.}
+\item{samples:}{A data.frame with with columns
+"longitude", "latitude", "start_date", "end_date" and "label" for
+each sample}
+\item{single point:}{Provide the values
+"longitude", "latitude", "start_date", "end_date" and "label" to
+obtain a time series for a spacetime location}
 }
-
-The URL and other parameters for accessing the time series services
-are defined in the package configuration file. This file is "config.yml".
-Please see the \code{\link[sits]{sits_config}} for more information.
-
-Before using this service, the user should create a valid description
-of a data cube using the \code{\link[sits]{sits_cube}} function.
 }
 \examples{
 \donttest{
@@ -198,12 +107,6 @@ csv_file <- system.file("extdata/samples/samples_sinop_crop.csv",
 )
 points_csv <- sits_get_data(raster_cube, file = csv_file)
 }
-}
-\references{
-Lubia Vinhas, Gilberto Queiroz, Karine Ferreira, Gilberto Camara,
-Web Services for Big Earth Observation Data.
-In: XVII Brazilian Symposium on Geoinformatics, 2016, Campos do Jordao.
-Proceedings of GeoInfo 2016. Sao Jose dos Campos: INPE/SBC, 2016. p.166-177.
 }
 \author{
 Gilberto Camara

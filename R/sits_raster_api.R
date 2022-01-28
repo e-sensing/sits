@@ -564,12 +564,14 @@
 #' @param gdal_datatype  Data type in gdal format
 #' @param gdal_options   Compression method to be used
 #' @param overwrite      Overwrite the file?
+#' @param progress       Show progress bar?
 .raster_merge <- function(in_files,
                           out_file,
                           format,
                           gdal_datatype,
                           gdal_options,
-                          overwrite) {
+                          overwrite,
+                          progress = FALSE) {
 
     # set caller to show in errors
     .check_set_caller(".raster_merge")
@@ -642,7 +644,7 @@
             if (delete_files) unlink(srcfile)
 
             return(dstfile)
-        }, progress = FALSE)
+        }, progress = progress)
 
         loop_files <- unlist(loop_files)
 

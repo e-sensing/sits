@@ -10,7 +10,8 @@
   format,
   gdal_datatype,
   gdal_options,
-  overwrite
+  overwrite,
+  progress = FALSE
 )
 }
 \arguments{
@@ -25,6 +26,8 @@
 \item{gdal_options}{Compression method to be used}
 
 \item{overwrite}{Overwrite the file?}
+
+\item{progress}{Show progress bar?}
 }
 \description{
 Merge all input files into one raster file

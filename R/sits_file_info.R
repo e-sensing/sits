@@ -23,12 +23,12 @@ NULL
                msg = "process one tile at a time for file_info")
 
     # get the file info associated with the tile
-    file_info <- cube$file_info[[1]]
+    file_info <- cube[["file_info"]][[1]]
 
     # check bands
     if (!is.null(bands)) {
         .cube_bands_check(cube, bands = bands)
-        file_info <- file_info[file_info$band %in% bands, ]
+        file_info <- file_info[file_info[["band"]] %in% bands, ]
     }
 
     # filter fid
@@ -36,7 +36,7 @@ NULL
         fids <- .file_info_fids(cube)
         .check_chr_contains(paste0(fids), contains = paste0(fid),
                             msg = "invalid fid value")
-        file_info <- file_info[file_info$fid == fid, ]
+        file_info <- file_info[file_info[["fid"]] == fid, ]
     }
 
     return(file_info)

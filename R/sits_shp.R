@@ -158,8 +158,6 @@
         x = !purrr::is_null(label) || !purrr::is_null(shp_attr),
         msg = "label or shape attribute should be valid"
     )
-
-
     # precondition - is the shape attribute valid?
     # get the data frame associated to the shapefile
     shp_df <- sf::st_drop_geometry(sf_shape)
@@ -169,7 +167,5 @@
             msg = "invalid shapefile attribute"
         )
     }
-
-
     return(sf_shape)
 }

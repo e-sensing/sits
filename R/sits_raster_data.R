@@ -181,7 +181,9 @@
 #' @param cld_band          Cloud band (if available)
 #' @param impute_fn         Imputation function for NA values
 #' @return                  A sits tibble with the time series.
-.sits_raster_data_get_ts <- function(tile, points, bands,
+.sits_raster_data_get_ts <- function(tile,
+                                     points,
+                                     bands,
                                      cld_band = NULL,
                                      impute_fn = sits_impute_linear()) {
 
@@ -196,7 +198,7 @@
     )
 
     .check_chr_within(
-        x = .config_get("csv_sample_columns"),
+        x = .config_get("df_sample_columns"),
         within = colnames(points),
         msg = "data input is not valid"
     )

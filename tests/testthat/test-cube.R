@@ -185,29 +185,28 @@ test_that("Creating cubes from BDC - based on ROI with shapefile", {
     sf_bla <- sf::read_sf(shp_file)
 
     # create a raster cube file based on the information about the files
-    msg <- capture_messages(
-        modis_cube <-
-            tryCatch({
-                sits_cube(
-                    source = "BDC",
-                    collection = "MOD13Q1-6",
-                    bands = c("NDVI", "EVI"),
-                    roi = sf_bla,
-                    start_date = "2018-09-01",
-                    end_date = "2019-08-29"
-                )
-            },
-            error = function(e) {
-                return(NULL)
-            })
+    expect_message(
+        object = (modis_cube <-
+                      tryCatch({
+                          sits_cube(
+                              source = "BDC",
+                              collection = "MOD13Q1-6",
+                              bands = c("NDVI", "EVI"),
+                              roi = sf_bla,
+                              start_date = "2018-09-01",
+                              end_date = "2019-08-29"
+                          )
+                      },
+                      error = function(e) {
+                          return(NULL)
+                      })
+        ),
+        regexp = "The supplied roi will be transformed to the WGS 84."
     )
 
     testthat::skip_if(purrr::is_null(modis_cube),
                       message = "BDC is not accessible")
 
-    expect_true(
-        grepl("The supplied roi will be transformed to the WGS 84.", msg)
-    )
     expect_true(all(sits_bands(modis_cube) %in% c("NDVI", "EVI")))
     bbox <- sits_bbox(modis_cube, wgs84 = TRUE)
     bbox_shp <- sf::st_bbox(sf_bla)
@@ -405,8 +404,8 @@ test_that("Creating cubes from AWS", {
                                    collection = "sentinel-s2-l2a",
                                    tiles = c("20LKP"),
                                    bands = c("B08", "SCL"),
-                                   start_date = "2018-07-30",
-                                   end_date = "2018-08-30"
+                                   start_date = "2021-06-01",
+                                   end_date = "2021-08-31"
     )
     },
     error = function(e) {
@@ -436,7 +435,7 @@ test_that("Creating cubes from AWS", {
     )
 })
 
-test_that("Creating cubes from AWS Open Data and regularizing them", {
+test_that("Creating regular cubes from AWS Open Data, and extracting samples from them", {
 
     testthat::skip_on_cran()
 
@@ -484,6 +483,20 @@ test_that("Creating cubes from AWS Open Data and regularizing them", {
     tile_fileinfo <- .file_info(gc_cube[1, ])
 
     expect_equal(nrow(tile_fileinfo), 1)
+
+    csv_file <- system.file("extdata/samples/samples_amazonia_sentinel2.csv",
+                            package = "sits")
+
+    # read sample information from CSV file and put it in a tibble
+    samples <- tibble::as_tibble(utils::read.csv(csv_file))
+    expect_equal(nrow(samples), 1202)
+    samples <- dplyr::sample_n(samples, size = 10, replace = FALSE)
+
+    ts <- sits_get_data(cube = gc_cube, samples = samples)
+    vls <- unlist(sits_values(ts))
+    expect_true(all(vls > 0 & vls < 1.))
+    expect_equal(sits_bands(ts), sits_bands(gc_cube))
+    expect_equal(sits_timeline(ts), sits_timeline(gc_cube))
 })
 
 test_that("Creating cubes from AWS Open Data and regularizing with ROI", {
@@ -511,6 +524,9 @@ test_that("Creating cubes from AWS Open Data and regularizing with ROI", {
     dir_images <-  paste0(tempdir(), "/images/")
     if (!dir.exists(dir_images))
         suppressWarnings(dir.create(dir_images))
+    unlink(list.files(dir_images,
+                      pattern = "\\.tif$",
+                      full.names = TRUE))
 
     gc_cube <- sits_regularize(
         cube        = s2_cube_open,
@@ -672,8 +688,10 @@ test_that("Creating Sentinel cubes from MSPC with ROI", {
     expect_true(bbox_cube["xmax"] >= bbox_cube_1["xmax"])
     expect_true(bbox_cube["ymax"] >= bbox_cube_1["ymax"])
 
-    msg <- capture_warnings(sits_timeline(s2_cube))
-    expect_true(grepl("Cube is not regular. Returning all timelines", msg))
+    expect_warning(
+        object = sits_timeline(s2_cube),
+        regexp = "Cube is not regular. Returning all timelines"
+    )
 })
 
 test_that("Creating Landsat cubes from MSPC", {

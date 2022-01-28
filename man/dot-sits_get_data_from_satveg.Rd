@@ -8,9 +8,9 @@
   cube,
   longitude,
   latitude,
-  start_date = NULL,
-  end_date = NULL,
-  label = "NoClass"
+  start_date,
+  end_date,
+  label
 )
 }
 \arguments{

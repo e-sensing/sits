@@ -27,7 +27,7 @@ ts_predicted_cols:  ["from", "to", "class"]
 sample_file_formats : ["csv", "shp"]
 
 # mandatory columns in CSV input files
-csv_sample_columns : ["longitude", "latitude", "start_date", "end_date", "label"]
+df_sample_columns : ["longitude", "latitude", "start_date", "end_date", "label"]
 
 # possible som evaluations
 som_outcomes    : ["clean", "analyze", "remove"]
