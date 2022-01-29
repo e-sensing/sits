@@ -48,7 +48,9 @@
 }
 
 #' @title Save the images based on an aggregation method.
-#' @name .gc_new_cube
+#'
+#' @name .reg_new_cube
+#'
 #' @keywords internal
 #'
 #' @param tile          A data cube tile
@@ -67,145 +69,252 @@
 #' @param ...         ...
 #'
 #' @return  A data cube tile with information used in its creation.
-.gc_new_cube <- function(tile,
-                         res,
-                         start_date,
-                         resampling,
-                         roi,
-                         output_dir,
-                         multithreads, ...) {
+.reg_new_cube <- function(tile,
+                          res,
+                          start_date,
+                          resampling,
+                          roi,
+                          output_dir,
+                          multithreads, ...) {
 
     # set caller to show in errors
     .check_set_caller(".gc_new_cube")
 
-    #bbox <- .cube_tile_bbox(cube = tile)
+    t_file_info <- .file_info(tile)
+    t_band <- .cube_bands(tile, add_cloud = FALSE)
 
-    tile <- .reg_apply_resample(
+    memsize <- 4
+
+    if (purrr::is_null(roi))
+        sub_image <- .sits_raster_sub_image_default(tile)
+    else
+        sub_image <- .sits_raster_sub_image(tile = tile, roi = roi)
+
+    blocks <- .sits_raster_blocks_apply(
         tile = tile,
-        resolution = res,
-        resampling = resampling,
-        output_dir = output_dir
+        sub_image = sub_image,
+        memsize = memsize,
+        multicores = multithreads
     )
 
-    if (.source_cloud() %in% .cube_bands(tile))
-        tile <- .reg_apply_mask(tile = tile)
+    c_path <- .file_info_paths(tile, bands = .source_cloud())
+    b_path <- .file_info_paths(tile, bands = .cube_bands(tile, FALSE))
 
-    tile <- .reg_merge_images(tile = tile,
-                              output_dir = output_dir,
-                              start_date = start_date)
+    interp_values <- .source_cloud_interp_values(
+        source = .cube_source(cube = tile),
+        collection = .cube_collection(cube = tile)
+    )
+
+    # TODO: add resampling method for cloud in config_internals
+
+    # calc block
+    .sits_parallel_start(4, log = FALSE)
+    b_reg_path <- .sits_parallel_map(blocks, function(b) {
+
+        b_filename_block <- paste0(
+            tools::file_path_sans_ext(b_path),
+            "_block_", b[["first_row"]], "_", b[["nrows"]], ".tif"
+        )
+
+        c_filename_block <- paste0(
+            tools::file_path_sans_ext(c_path),
+            "_block_", b[["first_row"]], "_", b[["nrows"]], ".tif"
+        )
+
+        # TODO: adapt this if for this function
+        if (file.exists(b_filename_block)) {
+            # try to open the file
+            r_obj <-
+                tryCatch({
+                    .raster_open_rast(b_filename_block)
+                }, error = function(e) {
+                    return(NULL)
+                })
+            # if file can be opened, check if the result is correct
+            # this file will not be processed again
+            if (!purrr::is_null(r_obj))
+                if (.raster_nrows(r_obj) == b[["nrows"]]) {
+                    # log
+                    .sits_debug_log(output_dir = output_dir,
+                                    event      = "skipping block",
+                                    key        = "block file",
+                                    value      = b_filename_block)
+                    return(b_filename_block)
+                }
+        }
+
+
+        currently_row <- b[["first_row"]]
+        row_after <- b[["nrows"]] + b[["first_row"]]
+
+        c_chunk_rast <- .reg_get_chunk(c_path, b)
+        b_chunk_rast <- .reg_get_chunk(b_path, b)
+
+        b_filename <- paste0(
+            output_dir, "/",
+            paste("cube", .cube_tiles(tile), unique(t_file_info[["date"]]),
+                  t_band, currently_row, row_after, sep = "_"),
+            ".tif"
+        )
+
+        c_filename <- paste0(
+            output_dir, "/",
+            paste("cube", .cube_tiles(tile), unique(t_file_info[["date"]]),
+                  "CLOUD", currently_row, row_after, sep = "_"),
+            ".tif"
+        )
+
+        # resample chunks
+        c_chunk_res <- .reg_apply_resample(
+            rast = c_chunk_rast,
+            tile = tile,
+            resolution = res,
+            resampling = resampling
+        )
+
+        b_chunk_res <- .reg_apply_resample(
+            rast = b_chunk_rast,
+            tile = tile,
+            resolution = res,
+            resampling = resampling
+        )
+
+        # mask band
+        b_mask <- .reg_apply_mask(
+            b_rast = b_chunk_res,
+            mask_rast = c_chunk_res,
+            interp_values = interp_values
+        )
+
+        # join chunks
+        b_merged <- .reg_merge_images(
+            tile = tile,
+            b_rast = b_mask,
+            output_dir = output_dir,
+            start_date = start_date,
+            block = b
+        )
+
+        b_merged
+    }, progress = FALSE)
+
+
+    # TODO: adjust this function
+    r_filename <- paste0(
+        output_dir, "/",
+        paste("cube", .cube_tiles(tile), start_date, t_band, sep = "_"),
+        ".", "tif"
+    )
+
+    .raster_merge(
+        in_files = unlist(b_reg_path),
+        out_file = r_filename,
+        format = "GTiff",
+        gdal_datatype = "Int16",
+        gdal_options = .config_gtiff_default_options(),
+        overwrite = TRUE
+    )
+
+    b_reg_rast <- terra::rast(r_filename)
+
+    # set file info values
+    file_info <- tibble::tibble(
+        fid = paste("cube", .cube_tiles(tile), start_date, sep = "_"),
+        date = start_date,
+        band = t_band,
+        xres  = terra::xres(b_reg_rast),
+        yres  = terra::yres(b_reg_rast),
+        xmin  = terra::xmin(b_reg_rast),
+        xmax  = terra::xmax(b_reg_rast),
+        ymin  = terra::ymin(b_reg_rast),
+        ymax  = terra::ymax(b_reg_rast),
+        nrows = terra::nrow(b_reg_rast),
+        ncols = terra::ncol(b_reg_rast),
+        path = r_filename
+    )
+
+    tile[["file_info"]][[1]] <- file_info
 
     return(tile)
 }
 
-.reg_apply_resample <- function(tile, resolution, resampling, output_dir) {
+.reg_get_chunk <- function(path, b) {
 
-    t_bands <- .cube_bands(tile)
-    t_file_info <- .file_info(tile)
-    t_bbox <- .cube_tile_bbox(tile)
+    r <- terra::rast(path)
 
-    b_file_info <- dplyr::filter(t_file_info, .data[["xres"]] != resolution &
-                                     .data[["yres"]] != resolution) %>%
-        slider::slide_dfr(function(fl) {
+    r_ext <- terra::rast(
+        resolution = c(terra::xres(r), terra::yres(r)),
+        xmin = terra::xmin(r),
+        xmax = terra::xmax(r),
+        ymin = terra::ymin(r),
+        ymax = terra::ymax(r),
+        crs = terra::crs(r)
+    )
 
-            band_in <- fl[["band"]]
-            img_in <- terra::rast(fl[["path"]])
+    bbox_ext <-  c(
+        xmin = terra::xFromCol(r, b[["first_col"]]),
+        xmax = terra::xFromCol(r, (1 + b[["ncols"]]) - 1),
+        ymin = terra::yFromRow(r, (b[["nrows"]] + b[["first_row"]]) - 1),
+        ymax = terra::yFromRow(r, b[["first_row"]])
+    )
 
-            img_out_name <- tempfile(
-                pattern = band_in,
-                tmpdir = output_dir,
-                fileext = ".tif"
-            )
+    terra::ext(r_ext) <- bbox_ext
 
-            # output template
-            new_rast <- terra::rast(
-                resolution = resolution,
-                xmin  = t_bbox[["xmin"]],
-                xmax  = t_bbox[["xmax"]],
-                ymin  = t_bbox[["ymin"]],
-                ymax  = t_bbox[["ymax"]],
-                nrows = terra::nrow(img_in),
-                ncols = terra::ncol(img_in),
-                crs   = terra::crs(img_in)
-            )
+    r_croped <- terra::crop(x = r, y = r_ext)
 
-            terra_datatype <- .source_collection_gdalcubes_type(
-                .cube_source(cube = tile),
-                collection = .cube_collection(cube = tile)
-            )
-
-            img_out <- terra::resample(
-                x = img_in,
-                y = new_rast,
-                method = resampling,
-                datatype = terra_datatype,
-                gdal = .config_gtiff_default_options(),
-                filename = img_out_name,
-                memmax = 3
-            )
-
-            fl[["path"]] <- img_out_name
-            fl[["xres"]] <- terra::xres(img_out)
-            fl[["yres"]] <- terra::yres(img_out)
-            fl[["xmin"]] <- terra::xmin(img_out)
-            fl[["xmax"]] <- terra::xmax(img_out)
-            fl[["ymin"]] <- terra::ymin(img_out)
-            fl[["ymax"]] <- terra::ymax(img_out)
-            fl[["nrows"]] <- terra::ncol(img_out)
-            fl[["ncols"]] <- terra::nrow(img_out)
-
-            return(fl)
-        })
-
-    if (nrow(b_file_info) == 0)
-        return(tile)
-
-    native_bands <- setdiff(t_bands, unique(b_file_info[["band"]]))
-    if (length(native_bands) > 0)
-        b_file_info <- dplyr::filter(t_file_info,
-                                     .data[["band"]] %in% native_bands) %>%
-        dplyr::bind_rows(b_file_info) %>%
-        dplyr::arrange(.data[["date"]], .data[["fid"]], .data[["band"]])
-
-    tile[["file_info"]][[1]] <- b_file_info
-
-    return(tile)
+    return(r_croped)
 }
 
+.reg_apply_resample <- function(rast, tile, resolution, resampling) {
 
-.reg_apply_mask <- function(tile) {
 
-    t_bands <- .cube_bands(tile, add_cloud = FALSE)
+    t_bbox <- terra::ext(rast)
 
-    purrr::map(t_bands, function(t_band) {
+    # output template
+    new_rast <- terra::rast(
+        resolution = resolution,
+        xmin  = terra::xmin(t_bbox),
+        xmax  = terra::xmax(t_bbox),
+        ymin  = terra::ymin(t_bbox),
+        ymax  = terra::ymax(t_bbox),
+        nrows = terra::nrow(rast),
+        ncols = terra::ncol(rast),
+        crs   = terra::crs(rast)
+    )
 
-        t_band <- .file_info(tile, bands = t_band)
-        c_band <- .file_info(tile, bands = .source_cloud())
+    img_out <- terra::resample(
+        x = rast,
+        y = new_rast,
+        method = resampling,
+        datatype = "INT2S"
+    )
 
-        fl <- slider::slide2_dfr(t_band, c_band, function(t_b, t_c) {
-
-            t_cloud <- terra::rast(t_c[["path"]])
-            b_cloud <- terra::rast(t_b[["path"]])
-
-            interp_values <- .source_cloud_interp_values(
-                source = .cube_source(cube = tile),
-                collection = .cube_collection(cube = tile)
-            )
-
-            img_r <- terra::mask(b_cloud,
-                                 mask = t_cloud,
-                                 maskvalues = interp_values,
-                                 filename = t_b[["path"]],
-                                 overwrite = TRUE)
-        })
-    })
-
-    return(tile)
+    return(img_out)
 }
 
-.reg_merge_images <- function(tile, output_dir, start_date) {
+.reg_apply_mask <- function(b_rast, mask_rast, interp_values) {
+
+    img_r <- terra::mask(
+        x = b_rast,
+        mask = mask_rast,
+        maskvalues = interp_values,
+        datatype = "INT2S",
+        gdal = .config_gtiff_default_options()
+    )
+
+    return(img_r)
+}
+
+.reg_merge_images <- function(tile, b_rast, output_dir, start_date, block) {
+
+    # TODO: remove this function and implement in .reg_new_cube body
 
     t_file_info <- .file_info(tile)
     t_band <- .cube_bands(tile, add_cloud = FALSE)
+
+    currently_row <- block[["first_row"]]
+    row_after <- block[["nrows"]] + block[["first_row"]]
+
 
     file_ext <- tools::file_ext(
         gsub(".*/([^?]*)\\??.*$", "\\1", t_file_info[["path"]][[1]])
@@ -213,7 +322,8 @@
 
     r_filename <- paste0(
         output_dir, "/",
-        paste("cube", .cube_tiles(tile), start_date, t_band, sep = "_"),
+        paste("cube", .cube_tiles(tile), start_date,
+              t_band, currently_row, row_after, sep = "_"),
         ".", file_ext
     )
 
@@ -222,38 +332,20 @@
         collection = .cube_collection(cube = tile)
     )
 
-    t_rast_list <- purrr::map(t_file_info[["path"]], terra::rast)
+    #t_rast_list <- purrr::map(t_file_info[["path"]], terra::rast)
 
-    r_merged <- terra::merge(
+    t_rast_list <- purrr::map(seq_len(terra::nlyr(b_rast)), function(i) {
+        b_rast[[i]]
+    })
+    terra::merge(
         x =  terra::src(t_rast_list),
         filename = r_filename,
-        datatype = t_datatype,
-        gdal = .config_gtiff_default_options(),
-        steps = 10,
+        wopt = list(datatype = t_datatype,
+                    gdal = .config_gtiff_default_options()),
         overwrite = TRUE
     )
 
-    unlink(t_file_info[["path"]])
-
-    # set file info values
-    n_file_info <- tibble::tibble(
-        fid = paste("cube", .cube_tiles(tile), start_date, sep = "_"),
-        date = start_date,
-        band = t_band,
-        xres  = terra::xres(r_merged),
-        yres  = terra::yres(r_merged),
-        xmin  = terra::xmin(r_merged),
-        xmax  = terra::xmax(r_merged),
-        ymin  = terra::ymin(r_merged),
-        ymax  = terra::ymax(r_merged),
-        nrows = terra::nrow(r_merged),
-        ncols = terra::ncol(r_merged),
-        path = r_filename
-    )
-
-    tile[["file_info"]][[1]] <- n_file_info
-
-    return(tile)
+    r_filename
 }
 
 #' @title Create an object image_mask with information about mask band

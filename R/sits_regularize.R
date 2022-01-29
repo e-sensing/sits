@@ -232,8 +232,11 @@ sits_regularize <- function(cube,
     )
 
     # start process
-    .sits_parallel_start(multicores, log = FALSE)
+    #.sits_parallel_start(multicores, log = FALSE)
+    .sits_parallel_start(1, log = FALSE)
     on.exit(.sits_parallel_stop())
+
+    progress <- TRUE
 
     # does a local cube exist
     gc_cube <- tryCatch({
@@ -243,7 +246,7 @@ sits_regularize <- function(cube,
             data_dir = output_dir,
             parse_info = c("x1", "tile", "date", "band"),
             multicores = multicores,
-            progress = progress
+            progress = TRUE
         )
     },
     error = function(e){
@@ -284,7 +287,7 @@ sits_regularize <- function(cube,
                               date < !!end_date)
 
             # create of the aggregate cubes
-            gc_tile <- .gc_new_cube(
+            gc_tile <- .reg_new_cube(
                 tile = cube,
                 res = res,
                 start_date = start_date,
@@ -368,7 +371,7 @@ sits_regularize <- function(cube,
     # get all bands from cube
     bands <- .cube_bands(cube, add_cloud = FALSE)
 
-    # do a cross product on tiles and bands
+    # do a cross product on tiles, bands, and timeline
     tiles_bands_times <- purrr::cross3(tiles, bands, timeline)
 
     # if regularized cube does not exist, return all tiles from original cube
