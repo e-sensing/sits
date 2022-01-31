@@ -58,14 +58,11 @@ sits_apply.raster_cube <- function(data, ...,
 
     # capture dots as a list of quoted expressions
     list_expr <- lapply(substitute(list(...), env = environment()),
-                        unlist, recursive = F)[-1]
+                        unlist, recursive = FALSE)[-1]
 
     # check bands names from expression
     .check_lst(list_expr, min_len = 1, max_len = 1,
                msg = "invalid expression value")
-
-    # get all input bands in cube data
-    in_bands <- .cube_bands(data)
 
     # get out band
     out_band <- toupper(names(list_expr))
@@ -98,20 +95,7 @@ sits_apply.raster_cube <- function(data, ...,
             path = output_file)
     }
 
-    # find which bands are in input expressions
-    char_expr <- toupper(deparse(list_expr[[out_band]]))
-    used_bands <- purrr::map_lgl(in_bands, grepl, char_expr)
-
-    # pre-condition
-    .check_that(any(used_bands),
-                local_msg = "no valid band was informed",
-                msg = "invalid expression value")
-
-    # get input bands
-    in_bands <- in_bands[used_bands]
-
     # TODO: dry run expression
-
 
     # prepare parallelization
     .sits_parallel_start(workers = multicores, log = FALSE)
@@ -119,6 +103,22 @@ sits_apply.raster_cube <- function(data, ...,
 
     # traverse each tile
     result <- slider::slide_dfr(data, function(tile) {
+
+
+        # get all input bands in cube data
+        in_bands <- .cube_bands(tile)
+
+        # find which bands are in input expressions
+        char_expr <- toupper(deparse(list_expr[[out_band]]))
+        used_bands <- purrr::map_lgl(in_bands, grepl, char_expr)
+
+        # pre-condition
+        .check_that(any(used_bands),
+                    local_msg = "no valid band was informed",
+                    msg = "invalid expression value")
+
+        # get input bands
+        in_bands <- in_bands[used_bands]
 
         # get all fids for this tile
         fids <- .file_info_fids(tile)
