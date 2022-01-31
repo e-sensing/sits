@@ -11,7 +11,7 @@
 #' @param  green         band for green color.
 #' @param  blue          band for blue color.
 #' @param  times         temporal instances to be plotted.
-#' @param  tile          tile to be plotted (in case of a multi-tile cube).
+#' @param  tiles         tiles to be plotted (in case of a multi-tile cube).
 #' @param  class_cube    classified cube to be overlayed on top on image
 #' @param  legend        named vector that associates labels to colors
 #' @param  palette       palette provided in the configuration file
@@ -135,15 +135,15 @@ sits_view.raster_cube <- function(x, ...,
                                   red = NULL,
                                   green = NULL,
                                   blue = NULL,
-                                  tile  = 1,
+                                  tiles  = NULL,
                                   times = c(1),
                                   class_cube = NULL,
                                   legend = NULL,
                                   palette = "default") {
 
+
+    dots <- list(...)
     # preconditions
-    # pick only the selected tile
-    x <- x[tile,]
     # verifies if leafem and leaflet packages are installed
     .check_that(
         requireNamespace("leafem", quietly = TRUE),
@@ -158,6 +158,29 @@ sits_view.raster_cube <- function(x, ...,
         x = requireNamespace("raster", quietly = TRUE),
         msg = "Please install package 'raster'"
     )
+
+    # deal with wrong parameter "time"
+    if ("time" %in% names(dots) && missing(times)) {
+        message("please use times instead of time as parameter")
+        times <- as.character(dots[["time"]])
+    }
+    # deal with wrong parameter "tile"
+    if ("tile" %in% names(dots) && missing(tiles)) {
+        message("please use tiles instead of tile as parameter")
+        tiles <- dots[["tile"]]
+    }
+    # deal with tiles
+    # check if tile exists
+    if (purrr::is_null(tiles)) {
+        tiles <- x$tile[[1]]
+    } else {
+        if (is.numeric(tiles))
+            tiles <- x$tile[[tiles]]
+        # try to find tiles in the list of tiles of the cube
+        .check_chr_contains(x$tile, tiles,
+                            msg = "requested tiles are not part of cube")
+    }
+
     # check that the RGB bands are available in the cube
     .check_that(
         x = all(c(red, green, blue) %in% sits_bands(x)),
@@ -174,12 +197,6 @@ sits_view.raster_cube <- function(x, ...,
         x = times >= 1 & times <= length(timeline),
         msg = paste0("time parameter out of bounds: should be between 1 and ",
                      length(timeline))
-    )
-    # check that requested tile exists
-    .check_that(
-        x = tile >= 1 & tile <= nrow(x),
-        msg = paste0("tile parameter out of bounds: should be between 1 and ",
-                     nrow(x))
     )
 
     # get the maximum number of bytes to be displayed
@@ -200,25 +217,34 @@ sits_view.raster_cube <- function(x, ...,
     # filter the cube for the bands to be displayed
     cube_bands <- sits_select(x, bands = c(red, green, blue))
 
+    # filter the tiles to be processed
+    cube_bands <- dplyr::filter(cube_bands, tile %in% tiles)
+
     # plot only the selected tiles
-    # select only the bands for the times chosen
-    r_objs <- purrr::map(times, function(t) {
-        bands_date <- .file_info(x) %>%
-            dplyr::filter(date == as.Date(timeline[[t]]))
+    t_objs <- slider::slide(cube_bands, function(tile){
+        # retrieve the file info for the tile
+        fi <- .file_info(tile)
+        # select only the bands for the times chosen
+        r_objs <- purrr::map(times, function(t) {
+            bands_date <- fi %>%
+                dplyr::filter(date == as.Date(timeline[[t]]))
 
-        # get RGB files for the requested timeline
-        red_file <- dplyr::filter(bands_date, band == red)$path
-        green_file <- dplyr::filter(bands_date, band == green)$path
-        blue_file <- dplyr::filter(bands_date, band == blue)$path
+            # get RGB files for the requested timeline
+            red_file <- dplyr::filter(bands_date, band == red)$path
+            green_file <- dplyr::filter(bands_date, band == green)$path
+            blue_file <- dplyr::filter(bands_date, band == blue)$path
 
-        rgb_files <- c(r = red_file, g = green_file, b = blue_file)
-        # compress and reshape the image
-        r_obj <- .view_reshape_image(cube = cube_bands,
-                                     rgb_files = rgb_files,
-                                     max_Mbytes = max_Mbytes)
+            rgb_files <- c(r = red_file, g = green_file, b = blue_file)
+            # compress and reshape the image
+            r_obj <- .view_reshape_image(cube = cube_bands,
+                                         rgb_files = rgb_files,
+                                         max_Mbytes = max_Mbytes)
 
-        return(r_obj)
+            return(r_obj)
+        })
+        return(r_objs)
     })
+
     # create a leaflet and add providers
     leaf_mapRGB <- leaflet::leaflet() %>%
         leaflet::addProviderTiles(leaflet::providers$Esri.WorldImagery, group = "ESRI") %>%
@@ -227,18 +253,22 @@ sits_view.raster_cube <- function(x, ...,
         leafem::addMouseCoordinates()
 
     # include raster RGB maps
-    for (t in seq_along(times)) {
-        leaf_mapRGB <- suppressWarnings(
-            leafem::addRasterRGB(leaf_mapRGB,
-                                 x = r_objs[[t]],
-                                 r = 1,
-                                 g = 2,
-                                 b = 3,
-                                 quantiles = c(0.1, 0.9),
-                                 method = "ngb",
-                                 group = paste0(timeline[times[t]]),
-                                 maxBytes = max_Mbytes*1024*1024))
+    for (t_ind in seq_len(length(tiles))) {
+        r_objs <- t_objs[[t_ind]]
+        for (time in seq_along(times)) {
+            leaf_mapRGB <- suppressWarnings(
+                leafem::addRasterRGB(leaf_mapRGB,
+                                     x = r_objs[[time]],
+                                     r = 1,
+                                     g = 2,
+                                     b = 3,
+                                     quantiles = c(0.1, 0.9),
+                                     method = "ngb",
+                                     group = paste0(timeline[times[time]]),
+                                     maxBytes = max_Mbytes*1024*1024))
+        }
     }
+
     # should we overlay a classified image?
     if (!purrr::is_null(class_cube)) {
 
