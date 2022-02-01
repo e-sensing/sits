@@ -18,7 +18,7 @@ sits_view(x, ...)
   red = NULL,
   green = NULL,
   blue = NULL,
-  tile = 1,
+  tiles = NULL,
   times = c(1),
   class_cube = NULL,
   legend = NULL,
@@ -44,7 +44,7 @@ sits_view(x, ...)
 
 \item{blue}{band for blue color.}
 
-\item{tile}{tile to be plotted (in case of a multi-tile cube).}
+\item{tiles}{tiles to be plotted (in case of a multi-tile cube).}
 
 \item{times}{temporal instances to be plotted.}
 
