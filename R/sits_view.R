@@ -66,8 +66,8 @@ sits_view.sits <- function(x, ...,
     x <- dplyr::distinct(x, longitude, latitude, label)
     # convert tibble to sf
     samples <- sf::st_as_sf(x[c("longitude", "latitude", "label")],
-                         coords = c("longitude", "latitude"),
-                         crs = 4326)
+                            coords = c("longitude", "latitude"),
+                            crs = 4326)
     # get the bounding box
     samples_bbox <- sf::st_bbox(samples)
     dist_x <- (samples_bbox[["xmax"]] - samples_bbox[["xmin"]])
@@ -401,8 +401,8 @@ sits_view.classified_image <- function(x,...,
 #' @keywords internal
 
 .view_reshape_image <- function(cube,
-                          rgb_files,
-                          max_Mbytes) {
+                                rgb_files,
+                                max_Mbytes) {
 
     # open raster object
     r_obj <- suppressWarnings(raster::stack(rgb_files))
@@ -425,22 +425,23 @@ sits_view.classified_image <- function(x,...,
         new_nrows <- round(nrows/sqrt(ratio))
         new_ncols <- round(ncols*(new_nrows/nrows))
 
-        temp_files <- purrr::map2_chr(rgb_files, c("r", "g", "b"),
-                                      function(f, c) {
-            # destination file is in tempdir
-            dest_file <- paste0(tempdir(),"/", basename(rgb_files[[c]]))
-            # use gdal_translate to obtain the temp file
-            suppressWarnings(
-                gdalUtilities::gdalwarp(
-                    srcfile     = rgb_files[[c]],
-                    dstfile     = dest_file,
-                    t_srs       = "EPSG:3857",
-                    ts          = c(new_ncols, new_nrows),
-                    co          = .config_get("gdal_creation_options")
+        temp_files <- purrr::map2_chr(
+            rgb_files, c("r", "g", "b"),
+            function(f, c) {
+                # destination file is in tempdir
+                dest_file <- paste0(tempdir(),"/", basename(rgb_files[[c]]))
+                # use gdal_translate to obtain the temp file
+                suppressWarnings(
+                    gdalUtilities::gdalwarp(
+                        srcfile     = path.expand(rgb_files[[c]]),
+                        dstfile     = dest_file,
+                        t_srs       = "EPSG:3857",
+                        ts          = c(new_ncols, new_nrows),
+                        co          = .config_get("gdal_creation_options")
+                    )
                 )
-            )
-            return(dest_file)
-        })
+                return(dest_file)
+            })
         # if temp_files are created use them as sources for r_obj
         r_obj <- suppressWarnings(raster::stack(temp_files))
     }
