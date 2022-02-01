@@ -72,12 +72,11 @@ gdalcubes_max_threads : 24
 # valid aggregation methods for gdalcubes
 gdalcubes_aggreg_methods : {median : "median", least_cc_first : "first"}
 
-# valid filling NA values methods for gdalcubes
-gdalcubes_filling_methods : ["near", "linear", "locf", "nocb"]
+# valid resampling methods for continuous values
+cont_resampling_methods : ["bilinear", "cubic", "cubicspline", "lanczos"]
 
-# valid resampling methods for gdalcubes
-gdalcubes_resampling_methods : ["near", "bilinear", "bicubic", "cubicspline",
-                                "lanczos"]
+# valid resampling methods for categorical values
+cat_resampling_methods : ["near"]
 
 # valid raster data types
 valid_raster_data_types : ["INT1U", "INT2U", "INT2S", "INT4U",
