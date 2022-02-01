@@ -178,17 +178,17 @@ sits_apply.raster_cube <- function(data, ...,
                         # get the missing values, minimum values and scale
                         # factors
                         missing_value <-
-                            .cube_band_missing_value(data, band = band)
+                            .cube_band_missing_value(tile, band = band)
                         minimum_value <-
-                            .cube_band_minimum_value(data, band = band)
+                            .cube_band_minimum_value(tile, band = band)
                         maximum_value <-
-                            .cube_band_maximum_value(data, band = band)
+                            .cube_band_maximum_value(tile, band = band)
 
                         # scale the data set
                         scale_factor <-
-                            .cube_band_scale_factor(data, band = band)
+                            .cube_band_scale_factor(tile, band = band)
                         offset_value <-
-                            .cube_band_offset_value(data, band = band)
+                            .cube_band_offset_value(tile, band = band)
 
                         # read the values
                         values <- .raster_read_stack(in_files[[band]],
@@ -206,7 +206,7 @@ sits_apply.raster_cube <- function(data, ...,
                     })
                 }, error = function(e) NULL)
 
-                # check if an error occured
+                # check if an error occurred
                 if (is.null(in_values)) {
                     return(NULL)
                 }
@@ -254,17 +254,22 @@ sits_apply.raster_cube <- function(data, ...,
                 return(filename_block)
             }, progress = progress)
 
+            # merge result
+            blocks_path <- unlist(blocks_path)
+
             # join predictions
-            .raster_merge(
-                in_files = unlist(blocks_path),
-                out_file = out_file_path,
-                format = "GTiff",
-                gdal_datatype = .raster_gdal_datatype(
-                    .config_get("raster_cube_data_type")),
-                gdal_options = .config_gtiff_default_options(),
-                overwrite = TRUE,
-                progress = progress
-            )
+            if (!is.null(blocks_path)) {
+                .raster_merge(
+                    in_files = blocks_path,
+                    out_file = out_file_path,
+                    format = "GTiff",
+                    gdal_datatype = .raster_gdal_datatype(
+                        .config_get("raster_cube_data_type")),
+                    gdal_options = .config_gtiff_default_options(),
+                    overwrite = TRUE,
+                    progress = progress
+                )
+            }
 
             # prepare output file_info
             out_file_info_fid <- out_file_info(
