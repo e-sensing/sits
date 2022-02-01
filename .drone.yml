@@ -11,5 +11,9 @@ steps:
   - R CMD build .
   - set -e; R CMD check *.tar.gz --as-cran >&1 | tee stdfile && cat stdfile | (grep -E "(WARNING|ERROR)" > /dev/null) && exit 1 || exit 0
   when:
+    branch:
+      exclude:
+      - master
     event:
+    - push
     - pull_request
