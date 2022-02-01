@@ -74,10 +74,10 @@
 #'  into smaller chunks, where the generated chunk creates a 3-dimensional array
 #'  of band, latitude, and longitude information. By default 2 threads are used.
 #'
+#' @param memsize A \code{numeric} with memory available for regularization
+#'  (in GB).
+#'
 #' @param progress     A \code{logical} value. Show progress bar?
-#' @param cloud_mask   A \code{logical} to use cloud band for aggregation by
-#'  \code{gdalcubes}. Deprecated as of SITS version 0.16.0. Default
-#'  is \code{FALSE}.
 #'
 #' @note
 #'    If malformed images with the same required tiles and bands are found in
@@ -111,6 +111,7 @@ sits_regularize <- function(cube,
                             resampling = "bilinear",
                             multicores = 1,
                             multithreads = 2,
+                            memsize = 4,
                             progress = TRUE) {
 
     # set caller to show in errors
@@ -172,14 +173,18 @@ sits_regularize <- function(cube,
     # precondition - is the resampling valid?
     .check_chr_within(
         x = resampling,
-        within = .config_get("gdalcubes_resampling_methods"),
+        within = .config_get("cont_resampling_methods"),
         discriminator = "any_of",
         msg = "invalid resampling method"
     )
 
-    # is there a cloud band?
-    if (!"CLOUD" %in% sits_bands(cube))
-        stop("cloud_mask...")
+    # precondition - is there a cloud band?
+    .check_chr_within(
+        x = .source_cloud(),
+        within = sits_bands(cube),
+        discriminator = "all_of",
+        msg = "cloud band should be in cube"
+    )
 
     # precondition - is the multithreads valid?
     .check_num(
@@ -232,11 +237,8 @@ sits_regularize <- function(cube,
     )
 
     # start process
-    #.sits_parallel_start(multicores, log = FALSE)
-    .sits_parallel_start(1, log = FALSE)
+    .sits_parallel_start(multicores, log = FALSE)
     on.exit(.sits_parallel_stop())
-
-    progress <- TRUE
 
     # does a local cube exist
     gc_cube <- tryCatch({
@@ -294,7 +296,8 @@ sits_regularize <- function(cube,
                 resampling = resampling,
                 roi = roi,
                 output_dir = output_dir,
-                multithreads = multithreads
+                multithreads = multithreads,
+                memsize = memsize
             )
 
             # prepare class result

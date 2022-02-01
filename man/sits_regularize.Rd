@@ -14,6 +14,7 @@ sits_regularize(
   resampling = "bilinear",
   multicores = 1,
   multithreads = 2,
+  memsize = 4,
   progress = TRUE
 )
 }
@@ -56,11 +57,10 @@ chunks are executed in parallel. The gdalcubes package divides data cubes
 into smaller chunks, where the generated chunk creates a 3-dimensional array
 of band, latitude, and longitude information. By default 2 threads are used.}
 
-\item{progress}{A \code{logical} value. Show progress bar?}
+\item{memsize}{A \code{numeric} with memory available for regularization
+(in GB).}
 
-\item{cloud_mask}{A \code{logical} to use cloud band for aggregation by
-\code{gdalcubes}. Deprecated as of SITS version 0.16.0. Default
-is \code{FALSE}.}
+\item{progress}{A \code{logical} value. Show progress bar?}
 }
 \value{
 A \code{sits_cube} object with aggregated images.

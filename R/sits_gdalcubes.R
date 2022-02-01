@@ -66,6 +66,9 @@
 #' @param multithreads  A \code{numeric} with the number of cores will be used in
 #'  the regularize. By default is used 1 core.
 #'
+#' @param memsize A \code{numeric} with memory available for regularization
+#'  (in GB).
+#'
 #' @param ...         ...
 #'
 #' @return  A data cube tile with information used in its creation.
@@ -75,21 +78,20 @@
                           resampling,
                           roi,
                           output_dir,
-                          multithreads, ...) {
+                          multithreads,
+                          memsize) {
 
     # set caller to show in errors
-    .check_set_caller(".gc_new_cube")
+    .check_set_caller(".reg_new_cube")
 
-    t_file_info <- .file_info(tile)
     t_band <- .cube_bands(tile, add_cloud = FALSE)
-
-    memsize <- 4
 
     if (purrr::is_null(roi))
         sub_image <- .sits_raster_sub_image_default(tile)
     else
         sub_image <- .sits_raster_sub_image(tile = tile, roi = roi)
 
+    # TODO: is it worth create a new function to calc the number of blocks?
     blocks <- .sits_raster_blocks_apply(
         tile = tile,
         sub_image = sub_image,
@@ -97,39 +99,43 @@
         multicores = multithreads
     )
 
+    # paths for band and cloud
     c_path <- .file_info_paths(tile, bands = .source_cloud())
     b_path <- .file_info_paths(tile, bands = .cube_bands(tile, FALSE))
 
+    # get the interp values
     interp_values <- .source_cloud_interp_values(
         source = .cube_source(cube = tile),
         collection = .cube_collection(cube = tile)
     )
 
-    # TODO: add resampling method for cloud in config_internals
+    reg_datatype <- .config_get("raster_cube_data_type")
 
-    # calc block
-    .sits_parallel_start(4, log = FALSE)
+    # prepare parallel requests
+    if (is.null(sits_env[["cluster"]])) {
+        .sits_parallel_start(workers = multithreads, log = FALSE)
+        on.exit(.sits_parallel_stop(), add = TRUE)
+    }
+
+    # for each block
     b_reg_path <- .sits_parallel_map(blocks, function(b) {
 
-        b_filename_block <- paste0(
-            tools::file_path_sans_ext(b_path),
-            "_block_", b[["first_row"]], "_", b[["nrows"]], ".tif"
+        band_filename_block <- .reg_create_filaname(
+            tile = tile,
+            block = b,
+            start_date = start_date,
+            output_dir = output_dir
         )
 
-        c_filename_block <- paste0(
-            tools::file_path_sans_ext(c_path),
-            "_block_", b[["first_row"]], "_", b[["nrows"]], ".tif"
-        )
+        if (file.exists(band_filename_block)) {
 
-        # TODO: adapt this if for this function
-        if (file.exists(b_filename_block)) {
-            # try to open the file
-            r_obj <-
-                tryCatch({
-                    .raster_open_rast(b_filename_block)
-                }, error = function(e) {
-                    return(NULL)
-                })
+            # try to open the band files
+            r_obj <- tryCatch({
+                .raster_open_rast(band_filename_block)
+            }, error = function(e) {
+                return(NULL)
+            })
+
             # if file can be opened, check if the result is correct
             # this file will not be processed again
             if (!purrr::is_null(r_obj))
@@ -138,66 +144,46 @@
                     .sits_debug_log(output_dir = output_dir,
                                     event      = "skipping block",
                                     key        = "block file",
-                                    value      = b_filename_block)
-                    return(b_filename_block)
+                                    value      = band_filename_block)
+                    return(band_filename_block)
                 }
         }
 
-
-        currently_row <- b[["first_row"]]
-        row_after <- b[["nrows"]] + b[["first_row"]]
-
-        c_chunk_rast <- .reg_get_chunk(c_path, b)
-        b_chunk_rast <- .reg_get_chunk(b_path, b)
-
-        b_filename <- paste0(
-            output_dir, "/",
-            paste("cube", .cube_tiles(tile), unique(t_file_info[["date"]]),
-                  t_band, currently_row, row_after, sep = "_"),
-            ".tif"
-        )
-
-        c_filename <- paste0(
-            output_dir, "/",
-            paste("cube", .cube_tiles(tile), unique(t_file_info[["date"]]),
-                  "CLOUD", currently_row, row_after, sep = "_"),
-            ".tif"
-        )
-
-        # resample chunks
-        c_chunk_res <- .reg_apply_resample(
-            rast = c_chunk_rast,
+        # cloud preprocess
+        c_chunk_res <- .reg_preprocess_rast(
             tile = tile,
+            band_paths = c_path,
             resolution = res,
-            resampling = resampling
+            resampling = resampling,
+            block = b,
+            datatype = reg_datatype
         )
 
-        b_chunk_res <- .reg_apply_resample(
-            rast = b_chunk_rast,
+        # band preprocess
+        b_chunk_res <- .reg_preprocess_rast(
             tile = tile,
+            band_paths = b_path,
             resolution = res,
-            resampling = resampling
+            resampling = resampling,
+            block = b,
+            datatype = reg_datatype,
         )
 
         # mask band
-        b_mask <- .reg_apply_mask(
-            b_rast = b_chunk_res,
+        b_mask <- .reg_apply_mask_rast(
+            rast = b_chunk_res,
             mask_rast = c_chunk_res,
             interp_values = interp_values
         )
 
         # join chunks
-        b_merged <- .reg_merge_images(
-            tile = tile,
-            b_rast = b_mask,
-            output_dir = output_dir,
-            start_date = start_date,
-            block = b
+        .reg_merge_chunks(
+            rast = b_mask,
+            filename = band_filename_block
         )
 
-        b_merged
+        return(band_filename_block)
     }, progress = FALSE)
-
 
     # TODO: adjust this function
     r_filename <- paste0(
@@ -210,7 +196,7 @@
         in_files = unlist(b_reg_path),
         out_file = r_filename,
         format = "GTiff",
-        gdal_datatype = "Int16",
+        gdal_datatype = .raster_gdal_datatype(reg_datatype),
         gdal_options = .config_gtiff_default_options(),
         overwrite = TRUE
     )
@@ -238,35 +224,78 @@
     return(tile)
 }
 
-.reg_get_chunk <- function(path, b) {
+.reg_preprocess_rast <- function(tile, band_paths, resolution, resampling, block, ...) {
 
-    r <- terra::rast(path)
+    rast <- terra::rast(band_paths)
+
+    chunk_rast <- .reg_get_chunk_rast(rast = rast, block = block)
+
+    res_rast <- .reg_resample_rast(
+        rast = chunk_rast,
+        resolution = resolution,
+        resampling = resampling,
+        block = block
+    )
+
+    return(res_rast)
+}
+
+.reg_create_filaname <- function(tile, block, start_date, output_dir) {
+
+    t_file_info <- .file_info(tile)
+    t_band <- .cube_bands(tile, add_cloud = FALSE)
+
+    files_ext <- tools::file_ext(
+        x = gsub(".*/([^?]*)\\??.*$", "\\1", .file_info_paths(tile))
+    )
+
+    .check_length(
+        x = unique(files_ext),
+        len_min = 1,
+        len_max = 1,
+        msg = "invalid files extensions."
+    )
+
+    currently_row <- block[["first_row"]]
+    next_rows <- (block[["nrows"]] + block[["first_row"]]) - 1
+
+    b_filename <- paste0(
+        output_dir, "/",
+        paste("cube", .cube_tiles(tile), start_date,
+              t_band, currently_row, next_rows, sep = "_"),
+        ".", unique(files_ext)
+    )
+
+
+    return(b_filename)
+}
+
+.reg_get_chunk_rast <- function(rast, block) {
 
     r_ext <- terra::rast(
-        resolution = c(terra::xres(r), terra::yres(r)),
-        xmin = terra::xmin(r),
-        xmax = terra::xmax(r),
-        ymin = terra::ymin(r),
-        ymax = terra::ymax(r),
-        crs = terra::crs(r)
+        resolution = c(terra::xres(rast), terra::yres(rast)),
+        xmin = terra::xmin(rast),
+        xmax = terra::xmax(rast),
+        ymin = terra::ymin(rast),
+        ymax = terra::ymax(rast),
+        crs = terra::crs(rast)
     )
 
     bbox_ext <-  c(
-        xmin = terra::xFromCol(r, b[["first_col"]]),
-        xmax = terra::xFromCol(r, (1 + b[["ncols"]]) - 1),
-        ymin = terra::yFromRow(r, (b[["nrows"]] + b[["first_row"]]) - 1),
-        ymax = terra::yFromRow(r, b[["first_row"]])
+        xmin = terra::xFromCol(rast, block[["first_col"]]),
+        xmax = terra::xFromCol(rast, (1 + block[["ncols"]]) - 1),
+        ymin = terra::yFromRow(rast, (block[["nrows"]] + block[["first_row"]]) - 1),
+        ymax = terra::yFromRow(rast, block[["first_row"]])
     )
 
     terra::ext(r_ext) <- bbox_ext
 
-    r_croped <- terra::crop(x = r, y = r_ext)
-
-    return(r_croped)
+    return(
+        terra::crop(x = rast, y = r_ext)
+    )
 }
 
-.reg_apply_resample <- function(rast, tile, resolution, resampling) {
-
+.reg_resample_rast <- function(rast, resolution, resampling, block = NULL, ...) {
 
     t_bbox <- terra::ext(rast)
 
@@ -286,114 +315,44 @@
         x = rast,
         y = new_rast,
         method = resampling,
-        datatype = "INT2S"
+        ...
     )
 
     return(img_out)
 }
 
-.reg_apply_mask <- function(b_rast, mask_rast, interp_values) {
+.reg_apply_mask_rast <- function(rast, mask_rast, interp_values, ...) {
 
     img_r <- terra::mask(
-        x = b_rast,
+        x = rast,
         mask = mask_rast,
         maskvalues = interp_values,
-        datatype = "INT2S",
-        gdal = .config_gtiff_default_options()
+        gdal = .config_gtiff_default_options(),
+        ...
     )
 
     return(img_r)
 }
 
-.reg_merge_images <- function(tile, b_rast, output_dir, start_date, block) {
+.reg_merge_chunks <- function(rast, filename, ...) {
 
-    # TODO: remove this function and implement in .reg_new_cube body
+    # TODO: remove this function?
 
-    t_file_info <- .file_info(tile)
-    t_band <- .cube_bands(tile, add_cloud = FALSE)
-
-    currently_row <- block[["first_row"]]
-    row_after <- block[["nrows"]] + block[["first_row"]]
-
-
-    file_ext <- tools::file_ext(
-        gsub(".*/([^?]*)\\??.*$", "\\1", t_file_info[["path"]][[1]])
-    )
-
-    r_filename <- paste0(
-        output_dir, "/",
-        paste("cube", .cube_tiles(tile), start_date,
-              t_band, currently_row, row_after, sep = "_"),
-        ".", file_ext
-    )
-
-    t_datatype <- .source_collection_gdalcubes_type(
-        .cube_source(cube = tile),
-        collection = .cube_collection(cube = tile)
-    )
-
-    #t_rast_list <- purrr::map(t_file_info[["path"]], terra::rast)
-
-    t_rast_list <- purrr::map(seq_len(terra::nlyr(b_rast)), function(i) {
-        b_rast[[i]]
+    t_rast_list <- purrr::map(seq_len(terra::nlyr(rast)), function(i) {
+        rast[[i]]
     })
+
     terra::merge(
         x =  terra::src(t_rast_list),
-        filename = r_filename,
-        wopt = list(datatype = t_datatype,
-                    gdal = .config_gtiff_default_options()),
-        overwrite = TRUE
+        filename = filename,
+        gdal = .config_gtiff_default_options(),
+        overwrite = TRUE,
+        ...
     )
 
-    r_filename
+    return(invisible(NULL))
 }
 
-#' @title Create an object image_mask with information about mask band
-#' @name .gc_cloud_mask
-#' @keywords internal
-#'
-#' @param tile Data cube tile from where data is to be retrieved.
-#'
-#' @return A \code{object} 'image_mask' from gdalcubes containing information
-#'  about the mask band.
-.gc_cloud_mask <- function(tile) {
-
-    bands <- .cube_bands(tile)
-    cloud_band <- .source_cloud()
-
-    # checks if the cube has a cloud band
-    .check_chr_within(
-        x = cloud_band,
-        within = unique(bands),
-        discriminator = "any_of",
-        msg = paste("It was not possible to use the cloud",
-                    "mask, please include the cloud band in your cube")
-    )
-
-    # create a image mask object
-    mask_values <- gdalcubes::image_mask(
-        cloud_band,
-
-    )
-
-    # is this a bit mask cloud?
-    if (.source_cloud_bit_mask(
-        source = .cube_source(cube = tile),
-        collection = .cube_collection(cube = tile)))
-
-        mask_values <- list(
-            band = cloud_band,
-            min = 1,
-            max = 2^16,
-            bits = mask_values$values,
-            values = NULL,
-            invert = FALSE
-        )
-
-    class(mask_values) <- "image_mask"
-
-    return(mask_values)
-}
 
 #' @title Get the timeline of intersection in all tiles
 #' @name .gc_get_valid_timeline

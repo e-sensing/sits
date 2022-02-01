@@ -12,7 +12,7 @@
   roi,
   output_dir,
   multithreads,
-  ...
+  memsize
 )
 }
 \arguments{
@@ -28,6 +28,9 @@
 
 \item{multithreads}{A \code{numeric} with the number of cores will be used in
 the regularize. By default is used 1 core.}
+
+\item{memsize}{A \code{numeric} with memory available for regularization
+(in GB).}
 
 \item{...}{...}
 }
