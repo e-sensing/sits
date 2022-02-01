@@ -218,6 +218,7 @@
 
     # create progress bar
     pb <- NULL
+    progress <- progress && (length(x) > 0)
     if (progress)
         pb <- utils::txtProgressBar(min = 0, max = length(x), style = 3)
 
