@@ -248,6 +248,15 @@ sits_regularize <- function(cube,
     .sits_parallel_start(multicores, log = FALSE)
     on.exit(.sits_parallel_stop())
 
+    # detect malformed files
+    bad_files <- .reg_diagnostic(
+        data_dir = output_dir
+    )
+
+    # delete malformed files
+    unlink(bad_files)
+    gc()
+
     # does a local cube exist
     gc_cube <- tryCatch({
         sits_cube(
@@ -335,21 +344,30 @@ sits_regularize <- function(cube,
 
         # delete malformed files
         unlink(bad_files)
+        gc()
 
         # create local cube from files in output directory
-        gc_cube <- sits_cube(
-            source = .cube_source(cube),
-            collection = .cube_collection(cube),
-            data_dir = output_dir,
-            parse_info = c("x1", "tile", "band", "date"),
-            multicores = multicores
-        )
+        gc_cube <- tryCatch({
+            sits_cube(
+                source = .cube_source(cube),
+                collection = .cube_collection(cube),
+                data_dir = output_dir,
+                parse_info = c("x1", "tile", "band", "date"),
+                multicores = multicores,
+                progress = progress
+            )
+        },
+        error = function(e){
+            return(NULL)
+        })
 
         # find if there are missing tiles
-        miss_tiles_bands_times <- .reg_missing_tiles(cube = cube,
-                                                     gc_cube = gc_cube,
-                                                     timeline = timeline,
-                                                     period = period)
+        miss_tiles_bands_times <- .reg_missing_tiles(
+            cube = cube,
+            gc_cube = gc_cube,
+            timeline = timeline,
+            period = period
+        )
 
         # have we finished?
         finished <- length(miss_tiles_bands_times) == 0
