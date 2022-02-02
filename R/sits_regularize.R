@@ -286,60 +286,72 @@ sits_regularize <- function(cube,
     while (!finished) {
 
         # process bands and tiles in parallel
-        .sits_parallel_map(miss_tiles_bands_times, function(tile_band_time) {
+        gc_tiles_lst <- .sits_parallel_map(
+            miss_tiles_bands_times,
+            function(tile_band_time) {
 
-            tile <- tile_band_time[[1]]
-            band <- tile_band_time[[2]]
-            start_date <- tile_band_time[[3]]
-            end_date <- tile_band_time[[4]]
+                tile <- tile_band_time[[1]]
+                band <- tile_band_time[[2]]
+                start_date <- tile_band_time[[3]]
+                end_date <- tile_band_time[[4]]
 
-            cube <- dplyr::filter(cube, tile == !!tile)
+                cube <- dplyr::filter(cube, tile == !!tile)
 
-            if (.source_cloud() %in% .cube_bands(cube))
-                band <- c(band, .source_cloud())
+                if (.source_cloud() %in% .cube_bands(cube))
+                    band <- c(band, .source_cloud())
 
-            cube <- sits_select(data = cube, bands = band)
+                cube <- sits_select(data = cube, bands = band)
 
-            cube[["file_info"]][[1]] <-
-                dplyr::filter(cube[["file_info"]][[1]],
-                              date >= !!start_date,
-                              date < !!end_date)
+                cube[["file_info"]][[1]] <-
+                    dplyr::filter(cube[["file_info"]][[1]],
+                                  date >= !!start_date,
+                                  date < !!end_date)
 
-            # open db in each process
-            img_col <- gdalcubes::image_collection(path_db)
+                # open db in each process
+                img_col <- gdalcubes::image_collection(path_db)
 
-            # create a list of cube view object
-            cv <- .gc_create_cube_view(
-                tile = cube,
-                period = period,
-                roi = roi,
-                res = res,
-                toi = c(start_date, start_date),
-                agg_method = agg_method,
-                resampling = resampling
-            )
+                # create a list of cube view object
+                cv <- .gc_create_cube_view(
+                    tile = cube,
+                    period = period,
+                    roi = roi,
+                    res = res,
+                    toi = c(start_date, start_date),
+                    agg_method = agg_method,
+                    resampling = resampling
+                )
 
-            # create of the aggregate cubes
-            gc_tile <- .gc_new_cube(
-                tile = cube,
-                cv = cv,
-                img_col = img_col,
-                path_db = path_db,
-                output_dir = output_dir,
-                cloud_mask = cloud_mask,
-                multithreads = multithreads
-            )
+                # create of the aggregate cubes
+                gc_tile <- .gc_new_cube(
+                    tile = cube,
+                    cv = cv,
+                    img_col = img_col,
+                    path_db = path_db,
+                    output_dir = output_dir,
+                    cloud_mask = cloud_mask,
+                    multithreads = multithreads
+                )
 
-            # prepare class result
-            class(gc_tile) <- .cube_s3class(gc_tile)
+                # prepare class result
+                class(gc_tile) <- .cube_s3class(gc_tile)
 
-            return(gc_tile)
+                return(gc_tile)
 
-        }, progress = progress)
+            }, progress = progress)
+
+        # bind produced images
+        gc_tiles <- dplyr::bind_rows(gc_tiles_lst)
+
+        # get a list of produced images paths
+        gc_tiles_paths <- unlist(
+            purrr::map(gc_tiles[["file_info"]], function(fi) {
+                return(fi[["path"]])
+            }))
 
         # detect malformed files
         bad_files <- .reg_diagnostic(
-            data_dir = output_dir
+            data_dir = output_dir,
+            file_paths = gc_tiles_paths
         )
 
         # delete malformed files
@@ -397,6 +409,9 @@ sits_regularize <- function(cube,
             # show message
             message(paste("Tiles", msg, "are missing or malformed",
                           "and will be reprocessed."))
+
+            # try a lower multithread
+            multithreads <- max(round(multithreads / 2), 1)
         }
     }
 
@@ -486,18 +501,25 @@ sits_regularize <- function(cube,
     return(miss_tiles_bands_times)
 }
 
-.reg_diagnostic <- function(data_dir) {
+.reg_diagnostic <- function(data_dir, file_paths = NULL) {
 
-    # how many of those files are images?
-    # retrieve the known file extensions
-    file_ext <- .config_local_file_extensions()
+    # get file_paths parameter as default path list
+    paths <- file_paths
 
-    # list the files in the data directory
-    paths <- list.files(
-        path = data_dir,
-        pattern = paste0("\\.(", paste0(file_ext, collapse = "|"), ")$"),
-        full.names = TRUE
-    )
+    # otherwise search in data_dir
+    if (is.null(file_paths)) {
+
+        # how many of those files are images?
+        # retrieve the known file extensions
+        file_ext <- .config_local_file_extensions()
+
+        # list the files in the data directory
+        paths <- list.files(
+            path = data_dir,
+            pattern = paste0("\\.(", paste0(file_ext, collapse = "|"), ")$"),
+            full.names = TRUE
+        )
+    }
 
     # open and read files
     bad_paths <- .sits_parallel_map(paths, function(path) {
