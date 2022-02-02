@@ -128,7 +128,7 @@
     # all bands are upper case
     .check_chr_within(bands,
                       within = .cube_bands(cube = cube,
-                                                  add_cloud = add_cloud),
+                                           add_cloud = add_cloud),
                       case_sensitive = FALSE,
                       msg = "invalid 'bands' parameter")
 
@@ -158,8 +158,8 @@
     band <- toupper(band)
 
     mv <- .config_get(key = c("sources", .cube_source(cube = cube),
-                               "collections", .cube_collection(cube = cube),
-                               "bands", band, "missing_value"),
+                              "collections", .cube_collection(cube = cube),
+                              "bands", band, "missing_value"),
                       default = .config_get(key = "raster_cube_missing_value")
     )
 
@@ -193,8 +193,8 @@
     band <- toupper(band)
 
     mv <- .config_get(key = c("sources", .cube_source(cube = cube),
-                               "collections", .cube_collection(cube = cube),
-                               "bands", band, "minimum_value"),
+                              "collections", .cube_collection(cube = cube),
+                              "bands", band, "minimum_value"),
                       default = .config_get(key = "raster_cube_minimum_value")
     )
 
@@ -228,8 +228,8 @@
     band <- toupper(band)
 
     mv <- .config_get(key = c("sources", .cube_source(cube = cube),
-                               "collections", .cube_collection(cube = cube),
-                               "bands", band, "maximum_value"),
+                              "collections", .cube_collection(cube = cube),
+                              "bands", band, "maximum_value"),
                       default = .config_get(key = "raster_cube_maximum_value")
     )
 
@@ -261,8 +261,8 @@
     band <- toupper(band)
 
     sf <- .config_get(key = c("sources", .cube_source(cube = cube),
-                               "collections", .cube_collection(cube = cube),
-                               "bands", band, "scale_factor"),
+                              "collections", .cube_collection(cube = cube),
+                              "bands", band, "scale_factor"),
                       default = .config_get(key = "raster_cube_scale_factor")
     )
 
@@ -296,8 +296,8 @@
     band <- toupper(band)
 
     ov <- .config_get(key = c("sources", .cube_source(cube = cube),
-                               "collections", .cube_collection(cube = cube),
-                               "bands", band, "offset_value"),
+                              "collections", .cube_collection(cube = cube),
+                              "bands", band, "offset_value"),
                       default = .config_get(key = "raster_cube_offset_value")
     )
 
@@ -506,7 +506,7 @@
 
     # check if the resolutions are unique
     res_cube_x <- slider::slide(cube, function(tile){
-       .file_info_xres(tile)
+        .file_info_xres(tile)
     })
 
     if (length(unique(unlist(res_cube_x))) != 1)
@@ -522,11 +522,15 @@
 
     # check if timelines are unique
     timelines <- slider::slide(cube, function(tile){
-        sits_timeline(tile)
+        unique(purrr::map(unlist(unique(bands)), function(band) {
+            tile_band <- sits_select(tile, bands = band)
+            sits_timeline(tile_band)
+        }))
     })
 
     # function to test timelines
-    return(length(unique(timelines)) == 1)
+    return(length(unique(timelines)) == 1 &&
+               any(sapply(timelines, length) == 1))
 }
 
 #' @title Return the labels of the cube
