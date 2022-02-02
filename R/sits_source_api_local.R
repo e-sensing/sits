@@ -13,6 +13,9 @@
     # set caller to show in errors
     .check_set_caller(".local_cube")
 
+    # check documentation mode
+    progress <- .check_documentation(progress)
+
     # make query and retrieve items
     items <- .local_cube_items_new(data_dir = data_dir,
                                    parse_info = parse_info,

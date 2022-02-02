@@ -27,7 +27,7 @@
 #' @param ml_method       Machine learning method.
 #' @param multicores      Number of cores for processing.
 #' @param progress        A logical value indicating if a progress bar should
-#' be shown
+#'                        be shown
 #' @return A tibble containing pairs of reference and predicted values.
 #'
 #' @examples

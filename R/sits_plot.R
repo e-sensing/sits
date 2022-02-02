@@ -293,25 +293,29 @@ plot.probs_cube <- function(x, y, ...,
     if (!purrr::is_null(labels)) {
         # label is not null, then plot only the label
         layers <- match(labels, labels_cube)
-        p <- st %>%
-            dplyr::slice(index = layers, along = "band") %>%
-            plot(breaks = breaks,
-                 nbreaks = n_breaks,
-                 col = col,
-                 main = labels) %>%
-            suppressMessages()
+
+        out <- capture.output({
+            p <- st %>%
+                dplyr::slice(index = layers, along = "band") %>%
+                plot(breaks = breaks,
+                     nbreaks = n_breaks,
+                     col = col,
+                     main = labels)
+        })
     }
     else {
-        p <- suppressMessages(plot(st,
-                                   breaks = breaks,
-                                   nbreaks = n_breaks,
-                                   col = col,
-                                   main = labels_cube)
+        out <- capture.output({p <- plot(st,
+                                       breaks = breaks,
+                                       nbreaks = n_breaks,
+                                       col = col,
+                                       main = labels_cube)}
         )
     }
 
-    return(invisible(p))
+    return(invisible(out))
 }
+
+
 
 #' @title  Plot uncertainty cubes
 #' @name   plot.uncertainty_cube
