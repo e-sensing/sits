@@ -53,28 +53,40 @@
 #'
 #' @keywords internal
 #'
-#' @param tile          A data cube tile
+#' @param tile         A unique tile from \code{sits_cube} object
 #'
-#' @param res           ...
+#' @param res          A \code{numeric} with spatial resolution of the image
+#'  that will be aggregated.
 #'
-#' @param resampling    ...
+#' @param period       A \code{character} vector with two position, first one is
+#' the start date and second one is the end date.
 #'
-#' @param roi    ...
+#' @param resampling   A \code{character} with method to be used  for resampling in mosaic operation.
+#'  Options: \code{near}, \code{bilinear}, \code{bicubic}, \code{cubicspline},
+#'  and \code{lanczos}.
+#' Default is bilinear.
 #'
-#' @param output_dir    Directory where the aggregated images will be written.
+#' @param roi          A named \code{numeric} vector with a region of interest.
 #'
-#' @param multithreads  A \code{numeric} with the number of cores will be used in
-#'  the regularize. By default is used 1 core.
+#' @param output_dir   A \code{character} with a valid directory where the
+#'  regularized images will be written.
+#'
+#' @param agg_method   A \code{character} with method that will be applied by
+#'  \code{gdalcubes} for aggregation. Options: \code{median} and
+#'  \code{least_cc_first}. The default aggregation method is
+#'  \code{least_cc_first}. See more above.
+#'
+#' @param multithreads A \code{numeric} value that specifies the number of
+#'  threads used in the regularization process.
+#'  By default 2 threads are used.
 #'
 #' @param memsize A \code{numeric} with memory available for regularization
 #'  (in GB).
 #'
-#' @param ...         ...
-#'
 #' @return  A data cube tile with information used in its creation.
 .reg_new_cube <- function(tile,
                           res,
-                          start_date,
+                          period,
                           resampling,
                           roi,
                           output_dir,
@@ -91,7 +103,6 @@
     else
         sub_image <- .sits_raster_sub_image(tile = tile, roi = roi)
 
-    # TODO: is it worth create a new function to calc the number of blocks?
     blocks <- .sits_raster_blocks_apply(
         tile = tile,
         sub_image = sub_image,
@@ -123,7 +134,7 @@
         band_filename_block <- .reg_create_filaname(
             tile = tile,
             block = b,
-            start_date = start_date,
+            period = period,
             output_dir = output_dir
         )
 
@@ -154,9 +165,8 @@
             tile = tile,
             band_paths = c_path,
             resolution = res,
-            resampling = resampling,
-            block = b,
-            datatype = reg_datatype
+            resampling = .config_get("cat_resampling_methods"),
+            block = b
         )
 
         # band preprocess
@@ -165,8 +175,7 @@
             band_paths = b_path,
             resolution = res,
             resampling = resampling,
-            block = b,
-            datatype = reg_datatype,
+            block = b
         )
 
         # mask band
@@ -179,16 +188,16 @@
         # join chunks
         .reg_merge_chunks(
             rast = b_mask,
-            filename = band_filename_block
+            filename = band_filename_block,
+            datatype = reg_datatype
         )
 
         return(band_filename_block)
     }, progress = FALSE)
 
-    # TODO: adjust this function
     r_filename <- paste0(
         output_dir, "/",
-        paste("cube", .cube_tiles(tile), start_date, t_band, sep = "_"),
+        paste("cube", .cube_tiles(tile), period[[1]], t_band, sep = "_"),
         ".", "tif"
     )
 
@@ -224,7 +233,27 @@
     return(tile)
 }
 
-.reg_preprocess_rast <- function(tile, band_paths, resolution, resampling, block, ...) {
+#' @title Preprocessing steps of sits regularize
+#'
+#' @name .reg_preprocess_rast
+#'
+#' @keywords internal
+#'
+#' @param tile         A unique tile from \code{sits_cube} object
+#'
+#' @param band_paths   A \code{character} with paths for a unique band
+#'
+#' @param resolution   A \code{numeric} with spatial resolution of the image
+#'  that will be aggregated.
+#'
+#' @param resampling   A \code{character} with method to be used  for resampling
+#'  in mosaic operation. Options: \code{near}, \code{bilinear}, \code{bicubic},
+#'  \code{cubicspline}, and \code{lanczos}. Default is bilinear.
+#'
+#' @param block      A \code{numeric} vector with information about a block
+#'
+#' @return A \code{SpatRast} object resampled
+.reg_preprocess_rast <- function(tile, band_paths, resolution, resampling, block) {
 
     rast <- terra::rast(band_paths)
 
@@ -233,16 +262,31 @@
     res_rast <- .reg_resample_rast(
         rast = chunk_rast,
         resolution = resolution,
-        resampling = resampling,
-        block = block
+        resampling = resampling
     )
 
     return(res_rast)
 }
 
-.reg_create_filaname <- function(tile, block, start_date, output_dir) {
+#' @title Create the merge image filename
+#'
+#' @name .reg_create_filaname
+#'
+#' @keywords internal
+#'
+#' @param tile         A unique tile from \code{sits_cube} object
+#'
+#' @param period       A \code{character} vector with two position, first one is
+#' the start date and second one is the end date.
+#'
+#' @param output_dir   A \code{character} with a valid directory where the
+#'  regularized images will be written.
+#'
+#' @param block      A \code{numeric} vector with information about a block
+#'
+#' @return A \code{character} with the file name of resampled image.
+.reg_create_filaname <- function(tile, period, output_dir, block) {
 
-    t_file_info <- .file_info(tile)
     t_band <- .cube_bands(tile, add_cloud = FALSE)
 
     files_ext <- tools::file_ext(
@@ -261,15 +305,25 @@
 
     b_filename <- paste0(
         output_dir, "/",
-        paste("cube", .cube_tiles(tile), start_date,
+        paste("cube", .cube_tiles(tile), period[[1]],
               t_band, currently_row, next_rows, sep = "_"),
         ".", unique(files_ext)
     )
 
-
     return(b_filename)
 }
 
+#' @title Get chunks from rasters
+#'
+#' @name .reg_get_chunk_rast
+#'
+#' @keywords internal
+#'
+#' @param rast  A \code{SpatRast} object
+#'
+#' @param block A \code{numeric} vector with information about a block
+#'
+#' @return A \code{SpatRast} object cropped.
 .reg_get_chunk_rast <- function(rast, block) {
 
     r_ext <- terra::rast(
@@ -295,7 +349,25 @@
     )
 }
 
-.reg_resample_rast <- function(rast, resolution, resampling, block = NULL, ...) {
+#' @title Resample raster to a resolution
+#'
+#' @name .reg_resample_rast
+#'
+#' @keywords internal
+#'
+#' @param rast       A \code{SpatRast} object
+#'
+#' @param resolution A \code{numeric} with spatial resolution of the image
+#'  that will be aggregated.
+#'
+#' @param resampling A \code{character} with method to be used  for resampling
+#'  in mosaic operation. Options: \code{near}, \code{bilinear}, \code{bicubic},
+#'  \code{cubicspline}, and \code{lanczos}. Default is bilinear.
+#'
+#' @param ...        additional paramters for terra resample methods.
+#'
+#' @return A \code{SpatRast} object resample
+.reg_resample_rast <- function(rast, resolution, resampling, ...) {
 
     t_bbox <- terra::ext(rast)
 
@@ -321,6 +393,21 @@
     return(img_out)
 }
 
+#' @title Apply a cloud mask in a raster
+#'
+#' @name .reg_apply_mask_rast
+#'
+#' @keywords internal
+#'
+#' @param rast       A \code{SpatRast} object
+#'
+#' @param mask_rast  A \code{numeric}
+#'
+#' @param interp_values A \code{numeric} with
+#'
+#' @param ...        additional paramters for terra mask methods.
+#'
+#' @return A \code{SpatRast} object masked.
 .reg_apply_mask_rast <- function(rast, mask_rast, interp_values, ...) {
 
     img_r <- terra::mask(
@@ -334,9 +421,21 @@
     return(img_r)
 }
 
-.reg_merge_chunks <- function(rast, filename, ...) {
-
-    # TODO: remove this function?
+#' @title Merge raster chunks
+#' @name .reg_merge_chunks
+#'
+#' @keywords internal
+#'
+#' @param rast     A \code{SpatRast} object
+#'
+#' @param filename A \code{character} with filename of the rast.
+#'
+#' @param datatype A \code{character} with terra datatype.
+#'
+#' @param ...      additional paramters for terra merge methods.
+#'
+#' @return An invisible null
+.reg_merge_chunks <- function(rast, filename, datatype, ...) {
 
     t_rast_list <- purrr::map(seq_len(terra::nlyr(rast)), function(i) {
         rast[[i]]
@@ -345,6 +444,7 @@
     terra::merge(
         x =  terra::src(t_rast_list),
         filename = filename,
+        datatype = datatype,
         gdal = .config_gtiff_default_options(),
         overwrite = TRUE,
         ...
@@ -352,7 +452,6 @@
 
     return(invisible(NULL))
 }
-
 
 #' @title Get the timeline of intersection in all tiles
 #' @name .gc_get_valid_timeline

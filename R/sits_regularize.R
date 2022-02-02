@@ -121,13 +121,6 @@ sits_regularize <- function(cube,
     if (!requireNamespace("gdalcubes", quietly = TRUE))
         stop("Please install package gdalcubes", call. = FALSE)
 
-    # collections
-    # .check_null(.source_collection_gdalcubes_support(.cube_source(cube),
-    #                                                  .cube_collection(cube)),
-    #             msg = "sits_regularize not available for collection ",
-    #             cube$collection, " from ", cube$source
-    # )
-
     # precondition - test if provided object is a raster cube
     .check_that(
         x = inherits(cube, "raster_cube"),
@@ -237,8 +230,8 @@ sits_regularize <- function(cube,
     )
 
     # start process
-    .sits_parallel_start(multicores, log = FALSE)
-    on.exit(.sits_parallel_stop())
+    #.sits_parallel_start(multicores, log = FALSE)
+    #on.exit(.sits_parallel_stop())
 
     # does a local cube exist
     gc_cube <- tryCatch({
@@ -269,12 +262,14 @@ sits_regularize <- function(cube,
     while (!finished) {
 
         # process bands and tiles in parallel
-        .sits_parallel_map(miss_tiles_bands_times, function(tile_band_time) {
+        #.sits_parallel_map(miss_tiles_bands_times, function(tile_band_time) {
+        purrr::map(miss_tiles_bands_times, function(tile_band_time) {
 
             tile <- tile_band_time[[1]]
             band <- tile_band_time[[2]]
             start_date <- tile_band_time[[3]]
             end_date <- tile_band_time[[4]]
+            period_dates <- c(start_date, end_date)
 
             cube <- dplyr::filter(cube, tile == !!tile)
 
@@ -292,7 +287,7 @@ sits_regularize <- function(cube,
             gc_tile <- .reg_new_cube(
                 tile = cube,
                 res = res,
-                start_date = start_date,
+                period = period_dates,
                 resampling = resampling,
                 roi = roi,
                 output_dir = output_dir,
@@ -305,7 +300,8 @@ sits_regularize <- function(cube,
 
             return(gc_tile)
 
-        }, progress = progress)
+        #}, progress = progress)
+        })
 
         # create local cube from files in output directory
         gc_cube <- sits_cube(

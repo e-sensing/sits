@@ -7,7 +7,7 @@
 .reg_new_cube(
   tile,
   res,
-  start_date,
+  period,
   resampling,
   roi,
   output_dir,
@@ -16,23 +16,35 @@
 )
 }
 \arguments{
-\item{tile}{A data cube tile}
+\item{tile}{A unique tile from \code{sits_cube} object}
 
-\item{res}{...}
+\item{res}{A \code{numeric} with spatial resolution of the image
+that will be aggregated.}
 
-\item{resampling}{...}
+\item{period}{A \code{character} vector with two position, first one is
+the start date and second one is the end date.}
 
-\item{roi}{...}
+\item{resampling}{A \code{character} with method to be used  for resampling in mosaic operation.
+ Options: \code{near}, \code{bilinear}, \code{bicubic}, \code{cubicspline},
+ and \code{lanczos}.
+Default is bilinear.}
 
-\item{output_dir}{Directory where the aggregated images will be written.}
+\item{roi}{A named \code{numeric} vector with a region of interest.}
 
-\item{multithreads}{A \code{numeric} with the number of cores will be used in
-the regularize. By default is used 1 core.}
+\item{output_dir}{A \code{character} with a valid directory where the
+regularized images will be written.}
+
+\item{multithreads}{A \code{numeric} value that specifies the number of
+threads used in the regularization process.
+By default 2 threads are used.}
 
 \item{memsize}{A \code{numeric} with memory available for regularization
 (in GB).}
 
-\item{...}{...}
+\item{agg_method}{A \code{character} with method that will be applied by
+\code{gdalcubes} for aggregation. Options: \code{median} and
+\code{least_cc_first}. The default aggregation method is
+\code{least_cc_first}. See more above.}
 }
 \value{
 A data cube tile with information used in its creation.
