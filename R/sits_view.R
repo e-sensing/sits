@@ -30,13 +30,13 @@
 #' modis_cube <- sits_cube(
 #'     source = "BDC",
 #'     collection = "MOD13Q1-6",
-#'     band = c("NDVI", "EVI"),
+#'     bands = c("NDVI", "EVI"),
 #'     data_dir = data_dir,
 #'     parse_info = c("X1", "X2", "tile", "band", "date")
 #' )
 #'
 #' # plot the data cube
-#' sits_view(modis_cube, red = "EVI", green = "NDVI", blue = "EVI", time = 1)
+#' sits_view(modis_cube, red = "EVI", green = "NDVI", blue = "EVI", times = 1)
 #' }
 #'
 #' @export
@@ -162,7 +162,7 @@ sits_view.raster_cube <- function(x, ...,
     # deal with wrong parameter "time"
     if ("time" %in% names(dots) && missing(times)) {
         message("please use times instead of time as parameter")
-        times <- as.character(dots[["time"]])
+        times <- as.numeric(dots[["time"]])
     }
     # deal with wrong parameter "tile"
     if ("tile" %in% names(dots) && missing(tiles)) {
