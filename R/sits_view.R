@@ -11,7 +11,9 @@
 #' @param  green         band for green color.
 #' @param  blue          band for blue color.
 #' @param  times         temporal instances to be plotted.
-#' @param  tiles         tiles to be plotted (in case of a multi-tile cube).
+#' @param  tiles         tiles to be plotted in raster cubes
+#'  (in case of a multi-tile cube).
+#' @param  tile          tile to be plotted in classified cubes.
 #' @param  class_cube    classified cube to be overlayed on top on image
 #' @param  legend        named vector that associates labels to colors
 #' @param  palette       palette provided in the configuration file

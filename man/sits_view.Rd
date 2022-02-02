@@ -44,11 +44,14 @@ sits_view(x, ...)
 
 \item{blue}{band for blue color.}
 
-\item{tiles}{tiles to be plotted (in case of a multi-tile cube).}
+\item{tiles}{tiles to be plotted in raster cubes
+(in case of a multi-tile cube).}
 
 \item{times}{temporal instances to be plotted.}
 
 \item{class_cube}{classified cube to be overlayed on top on image}
+
+\item{tile}{tile to be plotted in classified cubes.}
 }
 \value{
 leaflet object
