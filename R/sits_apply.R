@@ -55,6 +55,7 @@ sits_apply.raster_cube <- function(data, ...,
                                    progress = TRUE) {
 
     .check_set_caller("sits_apply.raster_cube")
+    progress <- .check_documentation(progress)
 
     # capture dots as a list of quoted expressions
     list_expr <- lapply(substitute(list(...), env = environment()),

@@ -953,3 +953,13 @@ NULL
 
     return(invisible(result))
 }
+#' @rdname check_functions
+#' @keywords internal
+.check_documentation <- function(progress){
+    # if working on sits documentation mode, no progress bar
+    doc <- as.logical(Sys.getenv("SITS_DOCUMENTATION_MODE"))
+    if (!purrr::is_null(doc) && doc)
+        progress <- FALSE
+
+    return(progress)
+}

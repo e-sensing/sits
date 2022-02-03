@@ -43,6 +43,9 @@
     # set caller to show in errors
     .check_set_caller(".sits_classify_multicores")
 
+    # check documentation mode
+    progress <- .check_documentation(progress)
+
     # some models have parallel processing built in
     if ("xgb_model" %in% class(ml_model))
         multicores <- 1
