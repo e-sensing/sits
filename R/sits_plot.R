@@ -294,7 +294,7 @@ plot.probs_cube <- function(x, y, ...,
         # label is not null, then plot only the label
         layers <- match(labels, labels_cube)
 
-        out <- capture.output({
+        out <- utils::capture.output({
             p <- st %>%
                 dplyr::slice(index = layers, along = "band") %>%
                 plot(breaks = breaks,
@@ -304,7 +304,7 @@ plot.probs_cube <- function(x, y, ...,
         })
     }
     else {
-        out <- capture.output({p <- plot(st,
+        out <- utils::capture.output({p <- plot(st,
                                        breaks = breaks,
                                        nbreaks = n_breaks,
                                        col = col,
@@ -312,7 +312,7 @@ plot.probs_cube <- function(x, y, ...,
         )
     }
 
-    return(invisible(out))
+    return(invisible(p))
 }
 
 
