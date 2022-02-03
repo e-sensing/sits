@@ -16,7 +16,8 @@ test_that("View", {
     timeline <- sits_timeline(modis_cube)
 
     # plot the data cube
-    v2 <- sits_view(modis_cube, red = "EVI", green = "NDVI", blue = "EVI", time = 1)
+    v2 <- sits_view(modis_cube, red = "EVI", green = "NDVI", blue = "EVI",
+                    dates = timeline[[1]])
     expect_true("leaflet" %in% class(v2))
     expect_true(grepl("EPSG3857", v2$x$options$crs$crsClass))
 
@@ -41,7 +42,7 @@ test_that("View", {
 
     v4 <- sits_view(modis_cube, red = "EVI", green = "NDVI", blue = "EVI",
                     class_cube = modis_label,
-                    time = 1)
+                    dates = timeline[[1]])
 
     expect_true(grepl("EPSG3857", v4$x$options$crs$crsClass))
     expect_equal(v4$x$calls[[1]]$method, "addProviderTiles")

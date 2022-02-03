@@ -10,7 +10,7 @@
 #' @param  red           band for red color.
 #' @param  green         band for green color.
 #' @param  blue          band for blue color.
-#' @param  times         temporal instances to be plotted.
+#' @param  dates         dates to be plotted
 #' @param  tiles         tiles to be plotted (in case of a multi-tile cube).
 #' @param  class_cube    classified cube to be overlayed on top on image
 #' @param  legend        named vector that associates labels to colors
@@ -58,10 +58,11 @@ sits_view.sits <- function(x, ...,
                            legend = NULL,
                            palette = "Harmonic") {
 
+    # precondition
     .check_that(
         requireNamespace("leaflet", quietly = TRUE),
-        msg = "Please install package leaflet"
-    )
+        msg = "Please install package leaflet")
+
     # first select unique locations
     x <- dplyr::distinct(x, longitude, latitude, label)
     # convert tibble to sf
@@ -96,8 +97,7 @@ sits_view.sits <- function(x, ...,
     #
     factpal <- leaflet::colorFactor(
         palette = colors,
-        domain = labels
-    )
+        domain = labels)
     #
     # create an interative map
     #
@@ -158,18 +158,17 @@ sits_view.raster_cube <- function(x, ...,
         x = requireNamespace("raster", quietly = TRUE),
         msg = "Please install package 'raster'"
     )
-
-
     # deal with parameter "time"
     if ("time" %in% names(dots)) {
         warning("time parameter is deprecated, please use dates")
         dates <- sits_timeline(x)[as.integer(dots[["time"]])]
     }
-    # deal with wrong parameter "times"
+    # deal with parameter "times"
     if ("times" %in% names(dots)) {
         warning("times parameter is deprecated, please use dates")
         dates <- sits_timeline(x)[as.numeric(dots[["times"]])]
     }
+    # deal with parameter "date"
     if ("date" %in% names(dots)) {
         warning("use dates instead of date")
         dates <- as.Date(dots[["date"]])
@@ -196,11 +195,6 @@ sits_view.raster_cube <- function(x, ...,
         .check_that(
             x = inherits(class_cube, c("classified_image")),
             msg = "classified cube to be overlayed is invalid")
-    # check that times are valid
-    timeline <- sits_timeline(x)
-    .check_that(all(as.Date(dates) %in% timeline),
-                msg = paste0("requested dates are not part of the cube timeline")
-    )
 
     # get the maximum number of bytes to be displayed
     max_Mbytes <- .config_get(key = "leaflet_max_Mbytes")
@@ -228,7 +222,14 @@ sits_view.raster_cube <- function(x, ...,
     timeline <- sits_timeline(cube_tiles)
     .check_that(!is.list(timeline),
                 local_msg = "more than one timeline per cube",
-                msg = "cannot visualize cube")
+                msg = "cannot visualize cube"
+    )
+
+    # check that times are valid
+    .check_that(all(as.Date(dates) %in% timeline),
+                msg = paste0("requested dates are not part of the cube timeline")
+    )
+
 
     # plot only the selected tiles
     t_objs <- slider::slide(cube_tiles, function(tile){
@@ -238,8 +239,8 @@ sits_view.raster_cube <- function(x, ...,
         r_objs <- purrr::map(dates, function(d) {
             # filter by date
             images_date <- dplyr::filter(fi, date == as.Date(d))
-
-            if(purrr::is_null(band)){
+            # deal with RGB images
+            if (purrr::is_null(band)) {
                 # get RGB files for the requested timeline
                 red_file   <- dplyr::filter(images_date, band == red)$path[[1]]
                 green_file <- dplyr::filter(images_date, band == green)$path[[1]]
@@ -251,6 +252,7 @@ sits_view.raster_cube <- function(x, ...,
                                            date = as.Date(d),
                                            max_Mbytes = max_Mbytes)
             } else {
+                # deal with single band images
                 band_file   <- dplyr::filter(images_date, band == !!band)$path[[1]]
                 r_obj <- .view_reshape_band(band_file = band_file,
                                             date = as.Date(d),
@@ -272,7 +274,7 @@ sits_view.raster_cube <- function(x, ...,
     for (t_ind in seq_along(tiles)) {
         r_objs <- t_objs[[t_ind]]
         for (d_ind in seq_along(dates)) {
-            if (purrr::is_null(band)){
+            if (purrr::is_null(band)) {
                 leaf_mapRGB <- suppressWarnings(
                     leafem::addRasterRGB(leaf_mapRGB,
                                          x = r_objs[[d_ind]],
@@ -295,51 +297,55 @@ sits_view.raster_cube <- function(x, ...,
                                          group = paste0(dates[d_ind]),
                                          maxBytes = max_Mbytes*1024*1024))
 
+
+        }
+        # should we overlay a classified image?
+        if (!purrr::is_null(class_cube)) {
+
+            # get the labels
+            labels <- sits_labels(class_cube)
+            # obtain the colors
+            colors <- .view_get_colors(labels  = labels,
+                                       legend  = legend,
+                                       palette = palette)
+
+            # retrieve the classified object (which is RATified)
+            r_obj_class <- .view_class_cube(class_cube = class_cube, tile = tile)
+
+            # retrieve the colors of the r_obj
+            # some labels may not be present in the final image
+            rat <- raster::levels(r_obj_class)[[1]]
+            colors <- unname(colors[rat$landcover])
+            labels <- labels[rat$ID]
+            .check_that(length(colors) == length(labels),
+                        msg = "mismatch btw labels and colors in classified image")
+            #
+            # create a palette of colors
+            #
+            fact_pal <- leaflet::colorFactor(
+                palette = colors,
+                domain = labels
+            )
+
+            # add the classified image object
+            leaf_mapRGB <- suppressWarnings(
+                leaflet::addRasterImage(leaf_mapRGB,
+                                        x = r_obj_class,
+                                        colors = colors,
+                                        method = "ngb",
+                                        group = "classification",
+                                        maxBytes = max_Mbytes*1024*1024)) %>%
+                leaflet::addLegend("topright",
+                                   pal     = fact_pal,
+                                   values  = labels,
+                                   title   = "Classes",
+                                   opacity = 1)
+
+
         }
     }
-
-    # should we overlay a classified image?
+    # define overlay groups
     if (!purrr::is_null(class_cube)) {
-
-        # get the labels
-        labels <- sits_labels(class_cube)
-        # obtain the colors
-        colors <- .view_get_colors(labels  = labels,
-                                   legend  = legend,
-                                   palette = palette)
-
-        # retrieve the classified object (which is RATified)
-        r_obj_class <- .view_class_cube(class_cube = class_cube, tile = tile)
-
-        # retrieve the colors of the r_obj
-        # some labels may not be present in the final image
-        rat <- raster::levels(r_obj_class)[[1]]
-        colors <- unname(colors[rat$landcover])
-        labels <- labels[rat$ID]
-        .check_that(length(colors) == length(labels),
-                    msg = "mismatch btw labels and colors in classified image")
-        #
-        # create a palette of colors
-        #
-        fact_pal <- leaflet::colorFactor(
-            palette = colors,
-            domain = labels
-        )
-
-        # add the classified image object
-        leaf_mapRGB <- suppressWarnings(
-            leaflet::addRasterImage(leaf_mapRGB,
-                                    x = r_obj_class,
-                                    colors = colors,
-                                    method = "ngb",
-                                    group = "classification",
-                                    maxBytes = max_Mbytes*1024*1024)) %>%
-            leaflet::addLegend("topright",
-                               pal     = fact_pal,
-                               values  = labels,
-                               title   = "Classes",
-                               opacity = 1)
-
         overlay_grps = c(dates, "classification")
     }
     else
@@ -359,51 +365,65 @@ sits_view.raster_cube <- function(x, ...,
 #' @export
 #'
 sits_view.classified_image <- function(x,...,
-                                       tile,
+                                       tiles = NULL,
                                        legend = NULL,
                                        palette = "default") {
+
+    dots <- list(...)
+    # preconditions
+    .check_that(
+        requireNamespace("leaflet", quietly = TRUE),
+        msg = "Please install package 'leaflet'"
+    )
+    # precondition - check tiles
+    if (purrr::is_null(tiles))
+        tiles <- x$tile
+    .check_chr_contains(x$tile, tiles, msg = "tiles not available in the cube")
+
+    # create lealet map
+    leaf_map <- leaflet::leaflet() %>%
+        leaflet::addProviderTiles(leaflet::providers$Esri.WorldImagery, group = "ESRI") %>%
+        leaflet::addProviderTiles(leaflet::providers$GeoportailFrance.orthos, group = "GeoPortalFrance") %>%
+        leaflet::addProviderTiles(leaflet::providers$OpenStreetMap, group = "OSM")
 
     # get the labels
     labels <- sits_labels(x)
     # obtain the colors
     colors <- .view_get_colors(labels = labels, legend = legend, palette = palette)
 
-    # retrieve the classified object (which is RATified)
-    r_obj <- .view_class_cube(x, tile)
+    for (tile in tiles) {
+        # retrieve the classified object (which is RATified)
+        r_obj <- .view_class_cube(x, tile)
 
-    # retrieve the colors of the r_obj
-    # some labels may not be present in the final image
-    rat <- raster::levels(r_obj)[[1]]
-    colors <- unname(colors[rat$landcover])
-    labels <- labels[rat$ID]
-    .check_that(length(colors) == length(labels),
-                msg = "mismatch btw labels and colors in classified image")
-    #
-    # create a palette of colors
-    #
-    fact_pal <- leaflet::colorFactor(
-        palette = colors,
-        domain = labels
-    )
-
-    # get the maximum number of bytes
-    max_Mbytes <- .config_get(key = "leaflet_max_Mbytes")
-
-    leaf_map <- leaflet::leaflet() %>%
-        leaflet::addProviderTiles(leaflet::providers$Esri.WorldImagery, group = "ESRI") %>%
-        leaflet::addProviderTiles(leaflet::providers$GeoportailFrance.orthos, group = "GeoPortalFrance") %>%
-        leaflet::addProviderTiles(leaflet::providers$OpenStreetMap, group = "OSM")
-
-    # add the classified image object
-    leaf_map <- suppressWarnings(
-        leaflet::addRasterImage(leaf_map,
-                                x = r_obj,
-                                colors = colors,
-                                method = "ngb",
-                                group = "class",
-                                maxBytes = max_Mbytes*1024*1024
+        # retrieve the colors of the r_obj
+        # some labels may not be present in the final image
+        rat <- raster::levels(r_obj)[[1]]
+        colors <- unname(colors[rat$landcover])
+        labels <- labels[rat$ID]
+        .check_that(length(colors) == length(labels),
+                    msg = "mismatch btw labels and colors in classified image")
+        #
+        # create a palette of colors
+        #
+        fact_pal <- leaflet::colorFactor(
+            palette = colors,
+            domain = labels
         )
-    )
+
+        # get the maximum number of bytes
+        max_Mbytes <- .config_get(key = "leaflet_max_Mbytes")
+
+        # add the classified image object
+        leaf_map <- suppressWarnings(
+            leaflet::addRasterImage(leaf_map,
+                                    x = r_obj,
+                                    colors = colors,
+                                    method = "ngb",
+                                    group = "class",
+                                    maxBytes = max_Mbytes*1024*1024
+            )
+        )
+    }
 
     # add the the layers control
     leaf_map <- leaf_map %>%
@@ -470,7 +490,7 @@ sits_view.classified_image <- function(x,...,
     r_obj_green <- suppressWarnings(raster::stack(rgb_files[["g"]]))
     t_extent  <- c(raster::xmin(r_obj_green), raster::ymin(r_obj_green),
                    raster::xmax(r_obj_green), raster::ymax(r_obj_green))
-    t_srs     <- paste0(raster::crs(r_obj_green))
+    t_srs     <- suppressWarnings(paste0(raster::crs(r_obj_green)))
 
     temp_files <- purrr::map_chr(c("r", "g", "b"), function(color) {
         # destination file is in tempdir
@@ -491,7 +511,7 @@ sits_view.classified_image <- function(x,...,
         return(dest_file)
     })
     # if temp_files are created use them as sources for r_obj
-    r_obj <- raster::stack(temp_files)
+    r_obj <- suppressWarnings(raster::stack(temp_files))
 
     return(r_obj)
 }
@@ -542,7 +562,7 @@ sits_view.classified_image <- function(x,...,
             )
         )
         # if temp_files are created use them as sources for r_obj
-        r_obj <- raster::stack(dest_file)
+        r_obj <- suppressWarnings(raster::stack(dest_file))
     }
     return(r_obj)
 }
@@ -561,9 +581,10 @@ sits_view.classified_image <- function(x,...,
     # get the labels
     labels <- sits_labels(class_cube)
 
+    class_cube <- dplyr::filter(class_cube, tile == !!tile)
     # obtain the raster
     r_obj <- suppressWarnings(
-        raster::raster(.file_info_path(class_cube[tile,]))
+        raster::raster(.file_info_path(class_cube))
     )
     # did we get the data?
     .check_that(

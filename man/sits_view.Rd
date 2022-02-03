@@ -18,8 +18,8 @@ sits_view(x, ...)
   red = NULL,
   green = NULL,
   blue = NULL,
-  tile = 1,
-  times = c(1),
+  tiles = NULL,
+  dates = sits_timeline(x)[1],
   class_cube = NULL,
   legend = NULL,
   palette = "default"
@@ -44,11 +44,13 @@ sits_view(x, ...)
 
 \item{blue}{band for blue color.}
 
-\item{tile}{tile to be plotted (in case of a multi-tile cube).}
+\item{tiles}{tiles to be plotted (in case of a multi-tile cube).}
 
-\item{times}{temporal instances to be plotted.}
+\item{dates}{dates to be plotted}
 
 \item{class_cube}{classified cube to be overlayed on top on image}
+
+\item{times}{temporal instances to be plotted (deprecated)}
 }
 \value{
 leaflet object
