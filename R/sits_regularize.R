@@ -356,9 +356,14 @@ sits_regularize <- function(cube,
             file_paths = gc_tiles_paths
         )
 
-        # delete malformed files
-        unlink(bad_files)
-        gc()
+        if (length(bad_files) > 0 && multithreads == 1)
+            # bad files cannot be generated anyway!
+            .reg_create_empty_tifs(bad_files)
+        else {
+            # delete malformed files
+            unlink(bad_files)
+            gc()
+        }
 
         # create local cube from files in output directory
         gc_cube <- tryCatch({
@@ -414,6 +419,10 @@ sits_regularize <- function(cube,
 
             # try a lower multithread
             multithreads <- max(round(multithreads / 2), 1)
+
+            # remove cache
+            .sits_parallel_stop()
+            .sits_parallel_start(multicores, log = FALSE)
         }
     }
 
@@ -505,6 +514,10 @@ sits_regularize <- function(cube,
 
 .reg_diagnostic <- function(data_dir, file_paths = NULL) {
 
+    # check only if ...
+    if (!is.null(file_paths) && length(file_paths) == 0)
+        return(character(0))
+
     # get file_paths parameter as default path list
     paths <- file_paths
 
@@ -541,5 +554,43 @@ sits_regularize <- function(cube,
     existing_files <- file.exists(bad_paths)
 
     return(bad_paths[existing_files])
+}
+
+
+.reg_create_empty_tifs <- function(images_path) {
+
+    # check documentation mode
+    progress <- TRUE
+    progress <- .check_documentation(progress)
+
+    .sits_parallel_map(images_path, function(img_path) {
+
+        t_img <- .raster_open_rast(img_path)
+
+        r_obj <- .raster_new_rast(
+            nrows = .raster_nrows(t_img),
+            ncols = .raster_ncols(t_img),
+            xmin  = .raster_xmin(t_img),
+            xmax  = .raster_xmax(t_img),
+            ymin  = .raster_ymin(t_img),
+            ymax  = .raster_ymax(t_img),
+            nlayers = 1,
+            crs   = .raster_crs(t_img)
+        )
+
+        .raster_set_values(r_obj, values = NA)
+
+        .raster_write_rast(
+            r_obj        = r_obj,
+            file         = img_path,
+            format       = "GTiff",
+            data_type    = .config_get("raster_cube_data_type"),
+            gdal_options = .config_gtiff_default_options(),
+            overwrite    = TRUE
+        )
+
+    }, progress = progress)
+
+    return(images_path)
 }
 
