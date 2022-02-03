@@ -230,8 +230,8 @@ sits_regularize <- function(cube,
     )
 
     # start process
-    #.sits_parallel_start(multicores, log = FALSE)
-    #on.exit(.sits_parallel_stop())
+    .sits_parallel_start(multicores, log = FALSE)
+    on.exit(.sits_parallel_stop())
 
     # does a local cube exist
     gc_cube <- tryCatch({
@@ -262,8 +262,7 @@ sits_regularize <- function(cube,
     while (!finished) {
 
         # process bands and tiles in parallel
-        #.sits_parallel_map(miss_tiles_bands_times, function(tile_band_time) {
-        purrr::map(miss_tiles_bands_times, function(tile_band_time) {
+        .sits_parallel_map(miss_tiles_bands_times, function(tile_band_time) {
 
             tile <- tile_band_time[[1]]
             band <- tile_band_time[[2]]
@@ -300,8 +299,8 @@ sits_regularize <- function(cube,
 
             return(gc_tile)
 
-        #}, progress = progress)
-        })
+        }, progress = progress)
+        #})
 
         # create local cube from files in output directory
         gc_cube <- sits_cube(

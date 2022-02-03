@@ -64,7 +64,7 @@
 #' @param resampling   A \code{character} with method to be used  for resampling in mosaic operation.
 #'  Options: \code{near}, \code{bilinear}, \code{bicubic}, \code{cubicspline},
 #'  and \code{lanczos}.
-#' Default is bilinear.
+#'  Default is bilinear.
 #'
 #' @param roi          A named \code{numeric} vector with a region of interest.
 #'
@@ -110,6 +110,8 @@
         multicores = multithreads
     )
 
+    blocks_dates <- purrr::cross2(blocks, sits_timeline(tile))
+
     # paths for band and cloud
     c_path <- .file_info_paths(tile, bands = .source_cloud())
     b_path <- .file_info_paths(tile, bands = .cube_bands(tile, FALSE))
@@ -123,13 +125,14 @@
     reg_datatype <- .config_get("raster_cube_data_type")
 
     # prepare parallel requests
-    if (is.null(sits_env[["cluster"]])) {
-        .sits_parallel_start(workers = multithreads, log = FALSE)
-        on.exit(.sits_parallel_stop(), add = TRUE)
-    }
+    # if (is.null(sits_env[["cluster"]])) {
+    #     .sits_parallel_start(workers = multithreads, log = FALSE)
+    #     on.exit(.sits_parallel_stop(), add = TRUE)
+    # }
 
     # for each block
-    b_reg_path <- .sits_parallel_map(blocks, function(b) {
+    #b_reg_path <- .sits_parallel_map(blocks, function(b) {
+    b_reg_path <- purrr::map(blocks, function(b) {
 
         band_filename_block <- .reg_create_filaname(
             tile = tile,
@@ -193,7 +196,8 @@
         )
 
         return(band_filename_block)
-    }, progress = FALSE)
+    #}, progress = FALSE)
+    })
 
     r_filename <- paste0(
         output_dir, "/",

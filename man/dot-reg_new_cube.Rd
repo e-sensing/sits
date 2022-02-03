@@ -25,8 +25,8 @@ that will be aggregated.}
 the start date and second one is the end date.}
 
 \item{resampling}{A \code{character} with method to be used  for resampling in mosaic operation.
- Options: \code{near}, \code{bilinear}, \code{bicubic}, \code{cubicspline},
- and \code{lanczos}.
+Options: \code{near}, \code{bilinear}, \code{bicubic}, \code{cubicspline},
+and \code{lanczos}.
 Default is bilinear.}
 
 \item{roi}{A named \code{numeric} vector with a region of interest.}
