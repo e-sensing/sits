@@ -930,6 +930,78 @@ NULL
 
 #' @rdname source_cube
 #'
+#' @description \code{.source_item_get_fid()} retrieves the feature id of
+#' one item.
+#'
+#' @return \code{.source_item_get_fid()} returns a \code{character}.
+#'
+.source_item_get_fid <- function(source, item, ..., collection = NULL) {
+    source <- .source_new(source)
+    UseMethod(".source_item_get_fid", source)
+}
+
+#' @rdname source_cube
+#'
+#' @description \code{.source_item_get_resolution()} retrieves the feature
+#' resolution.
+#'
+#' @return \code{.source_item_get_resolution()} returns a \code{numeric}.
+#'
+.source_item_get_resolution <- function(source, item, ..., collection = NULL) {
+    source <- .source_new(source)
+    UseMethod(".source_item_get_resolution", source)
+}
+
+#' @rdname source_cube
+#'
+#' @description \code{.source_item_get_tile()} retrieves the feature
+#' tile.
+#'
+#' @return \code{.source_item_get_tile()} returns a \code{character}.
+#'
+.source_item_get_tile <- function(source, item, ..., collection = NULL) {
+    source <- .source_new(source)
+    UseMethod(".source_item_get_tile", source)
+}
+
+#' @rdname source_cube
+#'
+#' @description \code{.source_item_get_bbox()} retrieves the feature
+#' bounding box.
+#'
+#' @return \code{.source_item_get_bbox()} returns a \code{numeric}.
+#'
+.source_item_get_bbox <- function(source, item, ..., collection = NULL) {
+    source <- .source_new(source)
+    UseMethod(".source_item_get_bbox", source)
+}
+
+#' @rdname source_cube
+#'
+#' @description \code{.source_item_get_crs()} retrieves the feature
+#' crs.
+#'
+#' @return \code{.source_item_get_crs()} returns a \code{character}.
+#'
+.source_item_get_crs <- function(source, item, ..., collection = NULL) {
+    source <- .source_new(source)
+    UseMethod(".source_item_get_crs", source)
+}
+
+#' @rdname source_cube
+#'
+#' @description \code{.source_item_get_size()} retrieves the feature
+#' raster sizes.
+#'
+#' @return \code{.source_item_get_size()} returns a \code{numeric}.
+#'
+.source_item_get_size <- function(source, item, ..., collection = NULL) {
+    source <- .source_new(source)
+    UseMethod(".source_item_get_size", source)
+}
+
+#' @rdname source_cube
+#'
 #' @description \code{.source_items_new()} this function is called to create
 #' an items object. In case of Web services, this function is responsible for
 #' making the Web requests to the server.
