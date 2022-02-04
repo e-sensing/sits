@@ -5,6 +5,7 @@
 #'
 #' @param cube    input data cube
 #' @param bands   bands to be filtered
+#' @param dates   dates to be filtered
 #' @param fid     feature id (fid) to be filtered
 #'
 #' @return vector with requested information
@@ -91,11 +92,14 @@ NULL
 #' @details
 #' Returns a single path to a file
 #' Throws an error if there is more than one path
-.file_info_paths <- function(cube, bands = NULL){
+.file_info_paths <- function(cube, bands = NULL, dates = NULL){
 
     file_info <- .file_info(cube)
     if (!is.null(bands))
         file_info <- dplyr::filter(file_info, .data[["band"]] %in% !!bands)
+
+    if (!is.null(dates))
+        file_info <- dplyr::filter(file_info, .data[["date"]] %in% !!dates)
 
     .check_num(nrow(file_info), min = 1, is_integer = TRUE,
                msg = "wrong path parameter in file_info")

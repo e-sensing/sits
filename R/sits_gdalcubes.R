@@ -112,10 +112,6 @@
 
     blocks_dates <- purrr::cross2(blocks, sits_timeline(tile))
 
-    # paths for band and cloud
-    c_path <- .file_info_paths(tile, bands = .source_cloud())
-    b_path <- .file_info_paths(tile, bands = .cube_bands(tile, FALSE))
-
     # get the interp values
     interp_values <- .source_cloud_interp_values(
         source = .cube_source(cube = tile),
@@ -132,13 +128,28 @@
 
     # for each block
     #b_reg_path <- .sits_parallel_map(blocks, function(b) {
-    b_reg_path <- purrr::map(blocks, function(b) {
+    b_reg_path <- purrr::map_dfr(blocks_dates, function(block_date) {
+
+        block <- block_date[[1]]
+        date <- block_date[[2]]
+
+        c_path <- .file_info_paths(
+            cube = tile,
+            bands = .source_cloud(),
+            dates = date
+        )
+
+        b_path <- .file_info_paths(
+            cube = tile,
+            bands = .cube_bands(tile, FALSE),
+            dates = date
+        )
 
         band_filename_block <- .reg_create_filaname(
             tile = tile,
-            block = b,
-            period = period,
-            output_dir = output_dir
+            date = date,
+            output_dir = output_dir,
+            block = block
         )
 
         if (file.exists(band_filename_block)) {
@@ -169,7 +180,7 @@
             band_paths = c_path,
             resolution = res,
             resampling = .config_get("cat_resampling_methods"),
-            block = b
+            block = block
         )
 
         # band preprocess
@@ -178,26 +189,37 @@
             band_paths = b_path,
             resolution = res,
             resampling = resampling,
-            block = b
+            block = block
         )
 
         # mask band
         b_mask <- .reg_apply_mask_rast(
             rast = b_chunk_res,
             mask_rast = c_chunk_res,
-            interp_values = interp_values
-        )
-
-        # join chunks
-        .reg_merge_chunks(
-            rast = b_mask,
+            interp_values = interp_values,
             filename = band_filename_block,
-            datatype = reg_datatype
+            datatype = reg_datatype,
         )
 
-        return(band_filename_block)
+        tibble::tibble(
+            date = date,
+            path = band_filename_block
+        )
     #}, progress = FALSE)
     })
+
+    b_merge_filename <- .reg_create_filaname(
+        tile = tile,
+        date = period[[1]],
+        output_dir = output_dir
+    )
+
+    # join chunks
+    .reg_merge_chunks(
+        tbl_rast = b_reg_path,
+        filename = b_merge_filename,
+        datatype = reg_datatype
+    )
 
     r_filename <- paste0(
         output_dir, "/",
@@ -289,32 +311,35 @@
 #' @param block      A \code{numeric} vector with information about a block
 #'
 #' @return A \code{character} with the file name of resampled image.
-.reg_create_filaname <- function(tile, period, output_dir, block) {
+.reg_create_filaname <- function(tile, date, output_dir, block = NULL) {
 
     t_band <- .cube_bands(tile, add_cloud = FALSE)
 
-    files_ext <- tools::file_ext(
-        x = gsub(".*/([^?]*)\\??.*$", "\\1", .file_info_paths(tile))
+    file_ext <- unique(
+        tools::file_ext(
+            x = gsub(".*/([^?]*)\\??.*$", "\\1", .file_info_paths(tile))
+        )
     )
 
     .check_length(
-        x = unique(files_ext),
+        x = file_ext,
         len_min = 1,
         len_max = 1,
         msg = "invalid files extensions."
     )
 
-    currently_row <- block[["first_row"]]
-    next_rows <- (block[["nrows"]] + block[["first_row"]]) - 1
+    b_filename <- paste("cube", .cube_tiles(tile), date, t_band, sep = "_")
+    if (!is.null(block)) {
 
-    b_filename <- paste0(
-        output_dir, "/",
-        paste("cube", .cube_tiles(tile), period[[1]],
-              t_band, currently_row, next_rows, sep = "_"),
-        ".", unique(files_ext)
-    )
+        currently_row <- block[["first_row"]]
+        next_rows <- (block[["nrows"]] + block[["first_row"]]) - 1
 
-    return(b_filename)
+        b_filename <- paste(b_filename, currently_row, next_rows, sep = "_")
+    }
+
+    b_path <- paste0(output_dir, "/", b_filename, ".", file_ext)
+
+    return(b_path)
 }
 
 #' @title Get chunks from rasters
@@ -439,7 +464,9 @@
 #' @param ...      additional paramters for terra merge methods.
 #'
 #' @return An invisible null
-.reg_merge_chunks <- function(rast, filename, datatype, ...) {
+.reg_merge_chunks <- function(tbl_rast, filename, datatype, ...) {
+
+    dplyr::filter()
 
     t_rast_list <- purrr::map(seq_len(terra::nlyr(rast)), function(i) {
         rast[[i]]

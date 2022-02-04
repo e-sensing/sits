@@ -25,7 +25,7 @@
 
 .file_info_path(cube)
 
-.file_info_paths(cube, bands = NULL)
+.file_info_paths(cube, bands = NULL, dates = NULL)
 
 .file_info_xres(cube)
 
@@ -49,6 +49,8 @@
 \item{bands}{bands to be filtered}
 
 \item{fid}{feature id (fid) to be filtered}
+
+\item{dates}{dates to be filtered}
 }
 \value{
 vector with requested information
