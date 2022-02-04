@@ -22,7 +22,8 @@
 .sits_parallel_is_open <- function() {
 
     tryCatch({
-        !is.null(sits_env[["cluster"]]) && isOpen(sits_env[["cluster"]])
+        !is.null(sits_env[["cluster"]]) &&
+            socketSelect(list(sits_env[["cluster"]][[1]]$con), write = TRUE)
     }, error = function(e) FALSE)
 }
 
