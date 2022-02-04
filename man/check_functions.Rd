@@ -24,6 +24,7 @@
 \alias{.check_env_var}
 \alias{.check_warn}
 \alias{.check_error}
+\alias{.check_documentation}
 \title{Check functions}
 \usage{
 .check_set_caller(caller)
@@ -127,6 +128,8 @@
 .check_warn(expr)
 
 .check_error(expr, ..., msg = NULL)
+
+.check_documentation(progress)
 }
 \arguments{
 \item{caller}{A \code{character} value with the caller name.}

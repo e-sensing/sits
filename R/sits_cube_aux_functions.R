@@ -504,22 +504,24 @@
     if (length(unique(bands)) != 1)
         return(FALSE)
 
-    # check if the resolutions are unique
-    res_cube_x <- slider::slide(cube, function(tile){
-       .file_info_xres(tile)
-    })
+    if (!("wtss_cube" %in% class(cube)) &&
+        !("satveg_cube" %in% class(cube))) {
+        # check if the resolutions are unique
+        res_cube_x <- slider::slide(cube, function(tile){
+            .file_info_xres(tile)
+        })
 
-    if (length(unique(unlist(res_cube_x))) != 1)
-        return(FALSE)
+        if (length(unique(unlist(res_cube_x))) != 1)
+            return(FALSE)
 
-    # check if the resolutions are unique
-    res_cube_y <- slider::slide(cube, function(tile){
-        .file_info_yres(tile)
-    })
+        # check if the resolutions are unique
+        res_cube_y <- slider::slide(cube, function(tile){
+            .file_info_yres(tile)
+        })
 
-    if (length(unique(unlist(res_cube_y))) != 1)
-        return(FALSE)
-
+        if (length(unique(unlist(res_cube_y))) != 1)
+            return(FALSE)
+    }
     # check if timelines are unique
     timelines <- slider::slide(cube, function(tile){
         sits_timeline(tile)

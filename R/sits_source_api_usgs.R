@@ -150,13 +150,14 @@
     matched_items  <- rstac::items_matched(items = items,
                                            matched_field = c("meta", "found"))
 
-    pgr_fetch <- matched_items > 2 * .config_rstac_limit()
-
+    progress <- matched_items > 2 * .config_rstac_limit()
+    # check documentation mode
+    progress <- .check_documentation(progress)
 
     # fetching all the metadata and updating to upper case instruments
     items_info <- suppressWarnings(
         rstac::items_fetch(items = items,
-                           progress = pgr_fetch,
+                           progress = progress,
                            matched_field = c("meta", "found"))
     )
     return(items_info)

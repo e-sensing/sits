@@ -19,13 +19,13 @@ sits_view(x, ...)
   green = NULL,
   blue = NULL,
   tiles = NULL,
-  times = c(1),
+  dates = sits_timeline(x)[1],
   class_cube = NULL,
   legend = NULL,
   palette = "default"
 )
 
-\method{sits_view}{classified_image}(x, ..., tile, legend = NULL, palette = "default")
+\method{sits_view}{classified_image}(x, ..., tiles = NULL, legend = NULL, palette = "default")
 }
 \arguments{
 \item{x}{object of class "sits", "raster_cube" or "classified image"}
@@ -44,14 +44,11 @@ sits_view(x, ...)
 
 \item{blue}{band for blue color.}
 
-\item{tiles}{tiles to be plotted in raster cubes
-(in case of a multi-tile cube).}
+\item{tiles}{tiles to be plotted (in case of a multi-tile cube).}
 
-\item{times}{temporal instances to be plotted.}
+\item{dates}{dates to be plotted}
 
 \item{class_cube}{classified cube to be overlayed on top on image}
-
-\item{tile}{tile to be plotted in classified cubes.}
 }
 \value{
 leaflet object

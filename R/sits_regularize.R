@@ -116,6 +116,8 @@ sits_regularize <- function(cube,
 
     # set caller to show in errors
     .check_set_caller("sits_regularize")
+    # check documentation mode
+    progress <- .check_documentation(progress)
 
     # require gdalcubes package
     if (!requireNamespace("gdalcubes", quietly = TRUE))
@@ -480,6 +482,9 @@ sits_regularize <- function(cube,
         pattern = paste0("\\.(", paste0(file_ext, collapse = "|"), ")$"),
         full.names = TRUE
     )
+    # check documentation mode
+    progress <- TRUE
+    progress <- .check_documentation(progress)
 
     # open and read files
     bad_paths <- .sits_parallel_map(paths, function(path) {
@@ -489,7 +494,7 @@ sits_regularize <- function(cube,
             FALSE
         }, error = function(e) TRUE)
         val
-    }, progress = TRUE)
+    }, progress = progress)
 
     bad_paths <- paths[unlist(bad_paths)]
     existing_files <- file.exists(bad_paths)

@@ -360,6 +360,9 @@ sits_cube.local_cube <- function(source,
     # precondition - data directory must be provided
     .check_file(x = data_dir, msg = "data_dir must be to be provided.")
 
+    # check documentation mode
+    progress <- .check_documentation(progress)
+
     # compatibility with earlier versions
     if (source == "LOCAL") {
         if (purrr::is_null(origin))
