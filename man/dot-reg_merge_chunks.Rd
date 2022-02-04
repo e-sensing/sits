@@ -4,16 +4,16 @@
 \alias{.reg_merge_chunks}
 \title{Merge raster chunks}
 \usage{
-.reg_merge_chunks(rast, filename, datatype, ...)
+.reg_merge_chunks(file_paths, filename, datatype, ...)
 }
 \arguments{
-\item{rast}{A \code{SpatRast} object}
-
 \item{filename}{A \code{character} with filename of the rast.}
 
 \item{datatype}{A \code{character} with terra datatype.}
 
 \item{...}{additional paramters for terra merge methods.}
+
+\item{rast}{A \code{SpatRast} object}
 }
 \value{
 An invisible null

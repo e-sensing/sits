@@ -203,7 +203,8 @@
 
         tibble::tibble(
             date = date,
-            path = band_filename_block
+            path = band_filename_block,
+            block = block[["first_row"]]
         )
     #}, progress = FALSE)
     })
@@ -213,6 +214,28 @@
         date = period[[1]],
         output_dir = output_dir
     )
+
+    blocks <- unique(b_reg_path[["block"]])
+    purrr::map(blocks, function(block) {
+
+        # b_merge_filename_block <- .reg_create_filaname(
+        #     tile = tile,
+        #     date = period[[1]],
+        #     output_dir = output_dir,
+        #     block = block
+        # )
+        b_merge_filename_block <- tempfile(pattern = block)
+
+        block_paths <- dplyr::filter(b_reg_path, .data[["block"]] == !!block)
+
+        .reg_merge_chunks(
+            tbl_rast = block_paths[["rast"]],
+            filename = b_merge_filename_block,
+            datatype = reg_datatype
+        )
+
+        b_merge_filename_block
+    })
 
     # join chunks
     .reg_merge_chunks(
@@ -464,12 +487,10 @@
 #' @param ...      additional paramters for terra merge methods.
 #'
 #' @return An invisible null
-.reg_merge_chunks <- function(tbl_rast, filename, datatype, ...) {
+.reg_merge_chunks <- function(file_paths, filename, datatype, ...) {
 
-    dplyr::filter()
-
-    t_rast_list <- purrr::map(seq_len(terra::nlyr(rast)), function(i) {
-        rast[[i]]
+    t_rast_list <- purrr::map(file_paths, function(file_path) {
+        terra::rast(file_path)
     })
 
     terra::merge(
