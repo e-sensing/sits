@@ -604,18 +604,23 @@
         ymax  = ymax,
         crs   = .cube_crs(cube)
     )
+
+    tolerance <- .config_get(key = c("sources", .cube_source(cube),
+                                     "collections", .cube_collection(cube),
+                                     "ext_tolerance_factor"))
+
     # post-conditions
     .check_num(params[["xmin"]], min = cube[["xmin"]], max = cube[["xmax"]],
-               msg = "invalid params value")
+               tolerance_factor = tolerance, msg = "invalid params value")
 
     .check_num(params[["xmax"]], min = cube[["xmin"]], max = cube[["xmax"]],
-               msg = "invalid params value")
+               tolerance_factor = tolerance, msg = "invalid params value")
 
     .check_num(params[["ymin"]], min = cube[["ymin"]], max = cube[["ymax"]],
-               msg = "invalid params value")
+               tolerance_factor = tolerance, msg = "invalid params value")
 
     .check_num(params[["ymax"]], min = cube[["ymin"]], max = cube[["ymax"]],
-               msg = "invalid params value")
+               tolerance_factor = tolerance, msg = "invalid params value")
 
     return(params)
 }
