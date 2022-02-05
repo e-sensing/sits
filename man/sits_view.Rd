@@ -25,7 +25,7 @@ sits_view(x, ...)
   palette = "default"
 )
 
-\method{sits_view}{classified_image}(x, ..., tile, legend = NULL, palette = "default")
+\method{sits_view}{classified_image}(x, ..., tiles = NULL, legend = NULL, palette = "default")
 }
 \arguments{
 \item{x}{object of class "sits", "raster_cube" or "classified image"}
@@ -49,8 +49,6 @@ sits_view(x, ...)
 \item{dates}{dates to be plotted}
 
 \item{class_cube}{classified cube to be overlayed on top on image}
-
-\item{times}{temporal instances to be plotted (deprecated)}
 }
 \value{
 leaflet object
