@@ -58,7 +58,7 @@
 #' @param expr          A R \code{expression} to be evaluated.
 #' @param tolerance_factor A code{numeric} with the tolerance percentage to be
 #' accepted. Values range from 0 to 1, where 1 means 100% tolerance.
-#' Default is NULL.
+#' The default value is NULL.
 #' @param ...           Additional parameters for \code{fn_check} function.
 #'
 #' @return

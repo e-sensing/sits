@@ -176,7 +176,7 @@ values. Default is TRUE.}
 
 \item{tolerance_factor}{A code{numeric} with the tolerance percentage to be
 accepted. Values range from 0 to 1, where 1 means 100% tolerance.
-Default is NULL.}
+The default value is NULL.}
 
 \item{allow_empty}{A \code{logical} indicating if the check permits empty
 list. Default is TRUE.}
