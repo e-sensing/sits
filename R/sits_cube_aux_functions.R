@@ -128,7 +128,7 @@
     # all bands are upper case
     .check_chr_within(bands,
                       within = .cube_bands(cube = cube,
-                                                  add_cloud = add_cloud),
+                                           add_cloud = add_cloud),
                       case_sensitive = FALSE,
                       msg = "invalid 'bands' parameter")
 
@@ -158,8 +158,8 @@
     band <- toupper(band)
 
     mv <- .config_get(key = c("sources", .cube_source(cube = cube),
-                               "collections", .cube_collection(cube = cube),
-                               "bands", band, "missing_value"),
+                              "collections", .cube_collection(cube = cube),
+                              "bands", band, "missing_value"),
                       default = .config_get(key = "raster_cube_missing_value")
     )
 
@@ -193,8 +193,8 @@
     band <- toupper(band)
 
     mv <- .config_get(key = c("sources", .cube_source(cube = cube),
-                               "collections", .cube_collection(cube = cube),
-                               "bands", band, "minimum_value"),
+                              "collections", .cube_collection(cube = cube),
+                              "bands", band, "minimum_value"),
                       default = .config_get(key = "raster_cube_minimum_value")
     )
 
@@ -228,8 +228,8 @@
     band <- toupper(band)
 
     mv <- .config_get(key = c("sources", .cube_source(cube = cube),
-                               "collections", .cube_collection(cube = cube),
-                               "bands", band, "maximum_value"),
+                              "collections", .cube_collection(cube = cube),
+                              "bands", band, "maximum_value"),
                       default = .config_get(key = "raster_cube_maximum_value")
     )
 
@@ -261,8 +261,8 @@
     band <- toupper(band)
 
     sf <- .config_get(key = c("sources", .cube_source(cube = cube),
-                               "collections", .cube_collection(cube = cube),
-                               "bands", band, "scale_factor"),
+                              "collections", .cube_collection(cube = cube),
+                              "bands", band, "scale_factor"),
                       default = .config_get(key = "raster_cube_scale_factor")
     )
 
@@ -296,8 +296,8 @@
     band <- toupper(band)
 
     ov <- .config_get(key = c("sources", .cube_source(cube = cube),
-                               "collections", .cube_collection(cube = cube),
-                               "bands", band, "offset_value"),
+                              "collections", .cube_collection(cube = cube),
+                              "bands", band, "offset_value"),
                       default = .config_get(key = "raster_cube_offset_value")
     )
 
@@ -439,6 +439,94 @@
 
     return(dev_cube)
 }
+#' @title Create a data cube derived from another
+#' @name .cube_derived_create_probs
+#' @keywords internal
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
+#'
+#' @description Take a tibble containing metadata about a data cube
+#' containing time series and create a
+#' set of files to store the result of a classification or smoothing
+#'
+#' @param cube         input data cube
+#' @param cube_class   class to be attributed to created cube
+#' @param band_name    name of band in created cube
+#' @param labels       labels of derived cube
+#' @param start_date   start date of the cube interval
+#' @param end_date     end date of the cube interval
+#' @param bbox         bounding box of the ROI
+#' @param output_dir   prefix of the output files.
+#' @param version      version of the output files
+#' @return             output data cube
+.cube_derived_create_probs <- function(cube, cube_class, band_name, labels,
+                                       start_date, end_date, bbox, output_dir,
+                                       version) {
+
+    # set caller to show in errors
+    .check_set_caller(".cube_derived_create_probs")
+
+    # ensure metadata tibble exists
+    .check_that(x = nrow(cube) == 1,
+                msg = "accepts only one tile at a time")
+
+    # output filename
+    file_name <- paste0(output_dir, "/",
+                        cube$satellite, "_",
+                        cube$sensor,"_",
+                        cube$tile,"_",
+                        start_date, "_",
+                        end_date,"_",
+                        band_name, "_",
+                        version, ".tif")
+
+    res <- .cube_resolution(cube)
+
+    if (!purrr::is_null(bbox)) {
+        nrows_cube_class <-  bbox[["nrows"]]
+        ncols_cube_class <-  bbox[["ncols"]]
+    } else {
+        nrows_cube_class <- .file_info_nrows(cube)
+        ncols_cube_class <- .file_info_ncols(cube)
+    }
+
+    # set the file information
+    file_info <- tibble::tibble(
+        band       = band_name,
+        start_date = start_date,
+        end_date   = end_date,
+        xmin       = bbox[["xmin"]],
+        xmax       = bbox[["xmax"]],
+        ymin       = bbox[["ymin"]],
+        ymax       = bbox[["ymax"]],
+        xres       = res[["xres"]],
+        yres       = res[["yres"]],
+        nrows      = nrows_cube_class,
+        ncols      = ncols_cube_class,
+        path       = file_name
+    )
+    # get source and collection
+    source     = .cube_source(cube)
+    collection = .cube_collection(cube)
+    # set the metadata for the probability cube
+    dev_cube <- .cube_create(
+        source     = cube$source,
+        collection = cube$collection,
+        satellite  = cube$satellite,
+        sensor     = cube$sensor,
+        tile       = cube$tile,
+        xmin       = bbox[["xmin"]],
+        xmax       = bbox[["xmax"]],
+        ymin       = bbox[["ymin"]],
+        ymax       = bbox[["ymax"]],
+        crs        = cube$crs,
+        labels     = labels,
+        file_info  = file_info
+    )
+
+    class(dev_cube) <- unique(c(cube_class, "raster_cube", class(dev_cube)))
+
+    return(dev_cube)
+}
 #' @title Given a band, return a set of values for chosen location
 #' @name .cube_extract
 #' @keywords internal
@@ -506,7 +594,7 @@
 
     # check if the resolutions are unique
     res_cube_x <- slider::slide(cube, function(tile){
-       .file_info_xres(tile)
+        .file_info_xres(tile)
     })
 
     if (length(unique(unlist(res_cube_x))) != 1)
