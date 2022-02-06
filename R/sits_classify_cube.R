@@ -102,7 +102,7 @@
     probs_cube <- .cube_derived_create(
         cube       = tile,
         cube_class = "probs_cube",
-        band_name  = "PROBS",
+        band_name  = "probs",
         labels     = labels,
         start_date = timeline[[1]],
         end_date   = timeline[[length(timeline)]],
