@@ -481,7 +481,7 @@
 
     res <- .cube_resolution(cube)
 
-    if (!purrr::is_null(bbox)) {
+    if (!purrr::is_null(bbox[["nrows"]]) && !purrr::is_null(bbox[["ncols"]])) {
         nrows_cube_class <-  bbox[["nrows"]]
         ncols_cube_class <-  bbox[["ncols"]]
     } else {
