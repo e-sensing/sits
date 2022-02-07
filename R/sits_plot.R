@@ -303,6 +303,9 @@ plot.raster_cube <- function(x, ...,
 #'  \item{"headtails" :} {algorithm proposed by Bin Jiang (2013)}
 #'  }
 #'
+#' @note
+#' The function accepts color palettes are defined in grDevices::hcl.pals()
+#'
 #' @return               The plot itself.
 #'
 #' @export
@@ -318,6 +321,20 @@ plot.probs_cube <- function(x, y, ...,
     if (!requireNamespace("stars", quietly = TRUE)) {
         stop("Please install package stars.", call. = FALSE)
     }
+    # precondition - check breaks parameter
+    .check_chr_within(
+        x = breaks,
+        within = .config_get("class_intervals"),
+        discriminator = "any_of",
+        msg = "invalid class interval"
+    )
+    # precondition - check palette
+    .check_chr_within(
+        x = palette,
+        within = grDevices::hcl.pals(),
+        discriminator = "any_of",
+        msg = "invalid color palette"
+    )
     # precondition
     if (purrr::is_null(tiles)) {
         tiles <- x$tile[[1]]
@@ -329,6 +346,8 @@ plot.probs_cube <- function(x, y, ...,
                             can_repeat = FALSE,
                             msg = "tiles are not included in the cube")
     }
+    # filter the cube
+    x <- dplyr::filter(x, tile %in% tiles)
     # define the number of colors
     n_breaks <- n_colors + 1
     # define the output color palette
@@ -344,9 +363,12 @@ plot.probs_cube <- function(x, y, ...,
     })
     if (length(paths) == 1)
         stars_mosaic <- stars::read_stars(paths[[1]])
-    else
-        stars_mosaic <- stars::st_mosaic(paths)
-
+    else {
+        stars.lst <- purrr::map(paths, function(path){
+            stars::read_stars(path)
+        })
+        stars_mosaic <- stars::st_mosaic(stars.lst[[1]], stars.lst[[2:length(stars.lst)]])
+    }
     # get the labels
     labels_cube <- sits_labels(x)
 
@@ -413,7 +435,7 @@ plot.probs_cube <- function(x, y, ...,
 #' @export
 #'
 plot.uncertainty_cube <- function(x, y, ...,
-                                  tile = 1,
+                                  tiles = NULL,
                                   n_colors = 10,
                                   breaks = "pretty",
                                   palette = "Blues") {
@@ -422,29 +444,54 @@ plot.uncertainty_cube <- function(x, y, ...,
     if (!requireNamespace("stars", quietly = TRUE)) {
         stop("Please install package stars.", call. = FALSE)
     }
-    # check class interval
+    # precondition - check breaks parameter
     .check_chr_within(
         x = breaks,
         within = .config_get("class_intervals"),
         discriminator = "any_of",
         msg = "invalid class interval"
     )
-    # define the number of breaks
+    # precondition - check palette
+    .check_chr_within(
+        x = palette,
+        within = grDevices::hcl.pals(),
+        discriminator = "any_of",
+        msg = "invalid color palette"
+    )
+    # precondition
+    if (purrr::is_null(tiles)) {
+        tiles <- x$tile[[1]]
+    } else {
+        .check_chr_contains(x = x$tile,
+                            contains = tiles,
+                            case_sensitive = FALSE,
+                            discriminator = "all_of",
+                            can_repeat = FALSE,
+                            msg = "tiles are not included in the cube")
+    }
+    # filter the cube
+    x <- dplyr::filter(x, tile %in% tiles)
+    # define the number of colors
     n_breaks <- n_colors + 1
     # define the output color palette
     col <- grDevices::hcl.colors(n = n_colors,
                                  palette = palette,
                                  alpha = 1,
-                                 rev = TRUE
-    )
+                                 rev = TRUE)
+
+
     # read the paths to plot
     paths <- slider::slide_chr(x, function(row) {
         return(.file_info_path(row))
     })
     if (length(paths) == 1)
         stars_mosaic <- stars::read_stars(paths[[1]])
-    else
-        stars_mosaic <- stars::st_mosaic(paths)
+    else {
+        stars.lst <- purrr::map(paths, function(path){
+            stars::read_stars(path)
+        })
+        stars_mosaic <- stars::st_mosaic(stars.lst[[1]], stars.lst[[2:length(stars.lst)]])
+    }
 
     p <- suppressMessages(plot(stars_mosaic,
                                breaks = breaks,
@@ -1269,12 +1316,20 @@ plot.keras_model <- function(x, y, ...) {
     # set caller to show in errors
     .check_set_caller(".sits_plot_classified_image")
 
-    #precondition 1 - cube must be a labelled cube
+    # precondition - cube must be a labelled cube
     .check_chr_within(
         x = "classified_image",
         within = class(cube),
         discriminator = "any_of",
         msg = "cube must be a classified image")
+
+    # precondition - check palette
+    .check_chr_within(
+        x = palette,
+        within = grDevices::hcl.pals(),
+        discriminator = "any_of",
+        msg = "invalid color palette"
+    )
 
     # precondition
     if (purrr::is_null(tiles)) {
