@@ -4,12 +4,12 @@
 \alias{.sits_plot_classified_image}
 \title{Plot a raster classified image}
 \usage{
-.sits_plot_classified_image(cube, time, title, legend, palette, rev)
+.sits_plot_classified_image(cube, tiles, title, legend, palette, rev)
 }
 \arguments{
 \item{cube}{metadata for a labelled data cube.}
 
-\item{time}{temporal reference for plot.}
+\item{tiles}{tiles to be plotted}
 
 \item{title}{title of the plot}
 

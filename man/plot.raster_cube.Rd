@@ -11,8 +11,8 @@
   red = NULL,
   green = NULL,
   blue = NULL,
-  tile = 1,
-  time = 1,
+  tiles = NULL,
+  date = NULL,
   roi = NULL
 )
 }
@@ -29,9 +29,9 @@
 
 \item{blue}{band for blue color.}
 
-\item{tile}{tile number to be plotted}
+\item{tiles}{tiles to be plotted}
 
-\item{time}{temporal instances to be plotted.}
+\item{date}{date to be plotted.}
 
 \item{roi}{sf object giving a region of interest.}
 }
