@@ -45,7 +45,7 @@ test_that("Plot Time Series and Images", {
                   roi = roi)
 
     expect_equal(terra::nlyr(r_obj), 3)
-    expect_equal(terra::ncol(r_obj), 128)
+    expect_equal(terra::ncol(r_obj), 127)
 
     r_obj <- plot(sinop, band = "EVI")
 
