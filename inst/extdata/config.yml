@@ -596,6 +596,76 @@ sources:
                 gdalcubes_type_format: "int16"
                 gdalcubes_format_col : "s2la_aws.json"
                 metadata_search : "tile"
+            SENTINEL-S2-L1C :
+                bands       :
+                    B01     : &aws_msi_l1c_60m
+                        missing_value: -9999
+                        minimum_value: 0
+                        maximum_value: 10000
+                        scale_factor : 0.0001
+                        offset_value : 0
+                        resolution  :  60
+                        band_name    : "B01"
+                    B02     : &aws_msi_l1c_10m
+                        missing_value: -9999
+                        minimum_value: 0
+                        maximum_value: 10000
+                        scale_factor : 0.0001
+                        offset_value : 0
+                        resolution  :  10
+                        band_name    : "B02"
+                    B03     :
+                        <<: *aws_msi_l1c_10m
+                        band_name    : "B03"
+                    B04     :
+                        <<: *aws_msi_l1c_10m
+                        band_name    : "B04"
+                    B05     : &aws_msi_l1c_20m
+                        missing_value: -9999
+                        minimum_value: 0
+                        maximum_value: 10000
+                        scale_factor : 0.0001
+                        offset_value : 0
+                        resolution  :  20
+                        band_name    : "B05"
+                    B06     :
+                        <<: *aws_msi_l1c_20m
+                        band_name    : "B06"
+                    B07     :
+                        <<: *aws_msi_l1c_20m
+                        band_name    : "B07"
+                    B08     :
+                        <<: *aws_msi_l1c_10m
+                        band_name    : "B08"
+                    B8A     :
+                        <<: *aws_msi_l1c_20m
+                        band_name    : "B8A"
+                    B09     :
+                        <<: *aws_msi_l1c_60m
+                        band_name    : "B09"
+                    B10     :
+                        <<: *aws_msi_l1c_60m
+                        band_name    : "B10"
+                    B11     :
+                        <<: *aws_msi_l1c_20m
+                        band_name    : "B11"
+                    B12     :
+                        <<: *aws_msi_l1c_20m
+                        band_name    : "B12"
+                satellite   : "SENTINEL-2"
+                sensor      : "MSI"
+                collection_name: "sentinel-s2-l1c"
+                token_vars  :  ["AWS_ACCESS_KEY_ID","AWS_SECRET_ACCESS_KEY"]
+                access_vars :
+                    AWS_DEFAULT_REGION   : "eu-central-1"
+                    AWS_S3_ENDPOINT      : "s3.amazonaws.com"
+                    AWS_REQUEST_PAYER    : "requester"
+                    AWS_NO_SIGN_REQUEST  : FALSE
+                open_data   : false
+                gdalcubes_support : true
+                gdalcubes_type_format: "int16"
+                gdalcubes_format_col : "s2la_aws.json"
+                metadata_search : "tile"
             SENTINEL-S2-L2A-COGS :
                 bands       :
                     B01     : &aws_cog_msi_60m

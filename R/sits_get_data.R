@@ -92,9 +92,14 @@ sits_get_data <- function(cube,
     # set caller to show in errors
     .check_set_caller("sits_get_data")
 
-    # pre-condition - cube must be regular
-    .check_lgl(.cube_is_regular(cube),
-               msg = "sits_get_data")
+    # pre-condition - all tiles have same bands
+    regular <- slider::slide_lgl(cube, function(tile) {
+        .cube_is_regular(tile)
+    })
+    .check_that(all(regular),
+                local_msg = "tiles have different bands and dates",
+                msg = "cube is inconsistent"
+    )
 
     # pre-condition - file parameter
     .check_chr(file, allow_empty = FALSE, len_min = 1, len_max = 1,
@@ -215,18 +220,18 @@ sits_get_data <- function(cube,
 
     # for each row of the input, retrieve the time series
     data <- slider::slide_dfr(samples, function(row){
-            row_ts <- .sits_get_data_from_wtss(
-                cube = cube,
-                longitude  = row[["longitude"]],
-                latitude   = row[["latitude"]],
-                start_date = lubridate::as_date(row[["start_date"]]),
-                end_date   = lubridate::as_date(row[["end_date"]]),
-                label      = row[["label"]],
-                bands      = bands,
-                impute_fn  = impute_fn
-            )
-            return(row_ts)
-        }
+        row_ts <- .sits_get_data_from_wtss(
+            cube = cube,
+            longitude  = row[["longitude"]],
+            latitude   = row[["latitude"]],
+            start_date = lubridate::as_date(row[["start_date"]]),
+            end_date   = lubridate::as_date(row[["end_date"]]),
+            label      = row[["label"]],
+            bands      = bands,
+            impute_fn  = impute_fn
+        )
+        return(row_ts)
+    }
     )
     # check if data has been retrieved
     .sits_get_data_check(nrow(samples), nrow(data))
@@ -253,16 +258,16 @@ sits_get_data <- function(cube,
 
     # for each row of the input, retrieve the time series
     data <- slider::slide_dfr(samples, function(row){
-            row_ts <- .sits_get_data_from_satveg(
-                cube = cube,
-                longitude  = row[["longitude"]],
-                latitude   = row[["latitude"]],
-                start_date = row[["start_date"]],
-                end_date   = row[["end_date"]],
-                label      = row[["label"]]
-            )
-            return(row_ts)
-        }
+        row_ts <- .sits_get_data_from_satveg(
+            cube = cube,
+            longitude  = row[["longitude"]],
+            latitude   = row[["latitude"]],
+            start_date = row[["start_date"]],
+            end_date   = row[["end_date"]],
+            label      = row[["label"]]
+        )
+        return(row_ts)
+    }
     )
     # check if data has been retrieved
     .sits_get_data_check(nrow(samples), nrow(data))

@@ -524,7 +524,6 @@ sits_view.classified_image <- function(x,...,
 #' @param  max_Mbytes    maximum number of megabytes to be shown in leaflet
 #' @return               Raster Stack with RGB object
 #' @keywords internal
-
 .view_reshape_band <- function(band_file, date, max_Mbytes) {
 
     # open raster object
@@ -561,6 +560,7 @@ sits_view.classified_image <- function(x,...,
                 co          = .config_get("gdal_creation_options")
             )
         )
+
         # if temp_files are created use them as sources for r_obj
         r_obj <- suppressWarnings(raster::stack(dest_file))
     }
