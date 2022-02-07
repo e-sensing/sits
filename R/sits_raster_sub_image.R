@@ -44,7 +44,7 @@
 
         # check for intersection
         return(apply(sf::st_intersects(sf_region, roi), 1, any) ||
-               apply(sf::st_within(sf_region, roi), 1, any)
+                   apply(sf::st_within(sf_region, roi), 1, any)
         )
     }
 
@@ -148,7 +148,7 @@
     # get the resolution
     # throw an error if resolution are not the same
     # for all bands of the cube
-    res   <- .cube_resolution(tile)
+    res  <- .cube_resolution(tile)
 
     # get ncols and nrows
     # throw an error if size are not the same
@@ -157,36 +157,44 @@
     # set initial values
     si <- c(first_row = 1, first_col = 1,
             nrows = size[["nrows"]], ncols = size[["ncols"]],
-            xmin = tile[["xmin"]], xmax = tile[["xmax"]],
-            ymin = tile[["ymin"]], ymax = tile[["ymax"]])
+            xmin = bbox[["xmin"]], xmax = bbox[["xmax"]],
+            ymin = bbox[["ymin"]], ymax = bbox[["ymax"]])
 
-    # find the first row (remember that rows runs from top to bottom and
-    # Y coordinates increase from bottom to top)
-    si[["first_row"]] <- floor((tile[["ymax"]] - bbox[["ymax"]]) / res[["yres"]]) + 1
+    if (bbox[["ymax"]]  != tile[["ymax"]]) {
+        si[["first_row"]] <- unname(
+            floor((tile[["ymax"]] - bbox[["ymax"]]) / res[["yres"]])) + 1
 
-    # adjust Y coords to fit bbox in cube resolution
-    si[["ymax"]] <- tile[["ymax"]] - res[["yres"]] * (si[["first_row"]] - 1)
-
-    # find the number of rows (remember that rows runs from top to bottom and
-    # Y coordinates increase from bottom to top)
-    si[["nrows"]] <- ceiling((si[["ymax"]] - bbox[["ymin"]]) / res[["yres"]])
-
-    # adjust to fit bbox in cube resolution
-    si[["ymin"]] <- max(si[["ymax"]] - res[["yres"]] * si[["nrows"]], tile[["ymin"]])
+        # adjust to fit bbox in cube resolution
+        si[["ymax"]] <- tile[["ymax"]] - res[["yres"]] * (si[["first_row"]] - 1)
+    }
 
     # find the first col (remember that rows runs from left to right and
     # X coordinates increase from left to right)
-    si[["first_col"]] <- floor((bbox[["xmin"]] - tile[["xmin"]]) / res[["xres"]]) + 1
+    if (bbox[["xmin"]] != tile[["xmin"]]) {
+        si[["first_col"]]  <- unname(
+            floor((bbox[["xmin"]] - tile[["xmin"]]) / res[["xres"]])
+        ) + 1
+        # adjust to fit bbox in cube resolution
+        si[["xmin"]] <- tile[["xmin"]] + res[["xres"]] * (si[["first_col"]] - 1)
+    }
 
-    # adjust to fit bbox in cube resolution
-    si[["xmin"]] <- tile[["xmin"]] + res[["xres"]] * (si[["first_col"]] - 1)
-
-    # find the number of cols (remember that rows runs from top to bottom and
+    # find the number of rows (remember that rows runs from top to bottom and
     # Y coordinates increase from bottom to top)
-    si[["ncols"]] <- ceiling((bbox[["xmax"]] - si[["xmin"]]) / res[["xres"]])
+    if (bbox[["ymin"]] == tile[["ymin"]])
+        si[["nrows"]] <- size[["nrows"]] - unname(si[["first_row"]]) + 1
+    else {
+        si[["nrows"]] <- unname(floor((bbox[["ymax"]] - bbox[["ymin"]]) / res[["yres"]])) + 1
+        # adjust to fit bbox in cube resolution
+        si[["ymin"]] <- si[["ymax"]] - res[["yres"]] * si[["nrows"]]
+    }
 
-    # adjust to fit bbox in cube resolution
-    si[["xmax"]] <- min(si[["xmin"]] + res[["xres"]] * si[["ncols"]], tile[["xmax"]])
+    if (si[["xmax"]] == tile[["xmax"]])
+        si[["ncols"]] <- size[["ncols"]] - unname(si[["first_col"]]) + 1
+    else {
+        si[["ncols"]] <- unname(floor((bbox[["xmax"]] - bbox[["xmin"]]) / res[["xres"]])) + 1
+        # adjust to fit bbox in cube resolution
+        si[["xmax"]] <- si[["xmin"]] + res[["xres"]] * si[["ncols"]]
+    }
 
     # pre-conditions
     .check_num(si[["xmin"]], max = si[["xmax"]],

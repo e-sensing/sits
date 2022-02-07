@@ -73,6 +73,7 @@
   allow_null = FALSE,
   is_integer = FALSE,
   is_named = FALSE,
+  tolerance_factor = NULL,
   msg = NULL
 )
 
@@ -172,6 +173,10 @@ numeric check. By default is \code{Inf}.}
 
 \item{allow_zero}{A \code{logical} indicating if the check permits zero
 values. Default is TRUE.}
+
+\item{tolerance_factor}{A code{numeric} with the tolerance percentage to be
+accepted. Values range from 0 to 1, where 1 means 100% tolerance.
+The default value is NULL.}
 
 \item{allow_empty}{A \code{logical} indicating if the check permits empty
 list. Default is TRUE.}

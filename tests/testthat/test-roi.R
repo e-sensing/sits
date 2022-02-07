@@ -148,5 +148,5 @@ test_that("Internal functions in ROI", {
     expect_true(si["first_row"] == 1)
     expect_true(si["first_col"] == 64)
     expect_true(si["nrows"] == 81)
-    expect_true(si["ncols"] == 192)
+    expect_true(si["ncols"] == 191)
 })
