@@ -30,13 +30,13 @@
 #' modis_cube <- sits_cube(
 #'     source = "BDC",
 #'     collection = "MOD13Q1-6",
-#'     band = c("NDVI", "EVI"),
+#'     bands = c("NDVI", "EVI"),
 #'     data_dir = data_dir,
 #'     parse_info = c("X1", "X2", "tile", "band", "date")
 #' )
 #'
 #' # plot the data cube
-#' sits_view(modis_cube, red = "EVI", green = "NDVI", blue = "EVI", time = 1)
+#' sits_view(modis_cube, red = "EVI", green = "NDVI", blue = "EVI", times = 1)
 #' }
 #'
 #' @export
