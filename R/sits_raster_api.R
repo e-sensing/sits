@@ -576,6 +576,9 @@
     # set caller to show in errors
     .check_set_caller(".raster_merge")
 
+    # check documentation mode
+    progress <- .check_documentation(progress)
+
     # check if in_file length is at least one
     .check_length(
         x = in_files,

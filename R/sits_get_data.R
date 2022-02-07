@@ -92,6 +92,10 @@ sits_get_data <- function(cube,
     # set caller to show in errors
     .check_set_caller("sits_get_data")
 
+    # pre-condition - cube must be regular
+    .check_lgl(.cube_is_regular(cube),
+               msg = "sits_get_data")
+
     # pre-condition - file parameter
     .check_chr(file, allow_empty = FALSE, len_min = 1, len_max = 1,
                allow_null = TRUE, msg = "invalid 'file' parameter")
