@@ -4,7 +4,15 @@
 \alias{plot.uncertainty_cube}
 \title{Plot uncertainty cubes}
 \usage{
-\method{plot}{uncertainty_cube}(x, y, ..., tile = 1, n_breaks = 11, breaks = "pretty", palette = "Blues")
+\method{plot}{uncertainty_cube}(
+  x,
+  y,
+  ...,
+  tiles = NULL,
+  n_colors = 10,
+  breaks = "pretty",
+  palette = "Blues"
+)
 }
 \arguments{
 \item{x}{object of class "probs_image"}
@@ -13,9 +21,9 @@
 
 \item{...}{further specifications for \link{plot}.}
 
-\item{tile}{tile number to be plotted}
+\item{tiles}{tiles to be plotted}
 
-\item{n_breaks}{number of breaks to plot}
+\item{n_colors}{number of colors to plot}
 
 \item{breaks}{type of class intervals}
 

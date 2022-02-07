@@ -132,6 +132,7 @@
 #' @param parse_info        parsing information for files without STAC
 #'                          information
 #'                          (only for creating data cubes from local files).
+#' @param labels            labels associated to the classes
 #' @param origin            deprecated parameter formely used for local cubes
 #'                          (see documentation)
 #' @param name              deprecated parameter formely used to describe cubes
@@ -349,8 +350,10 @@ sits_cube.local_cube <- function(source,
                                  bands = NULL,
                                  start_date = NULL,
                                  end_date = NULL,
-                                 parse_info,
+                                 labels = NULL,
+                                 parse_info = NULL,
                                  delim = "_",
+                                 version = "v1",
                                  name = NULL,
                                  origin = NULL,
                                  multicores = 2,
@@ -393,29 +396,37 @@ sits_cube.local_cube <- function(source,
         message("please use bands instead of band as parameter")
         bands <- as.character(dots[["band"]])
     }
+    # is this a cube wih results?
+    if (!purrr::is_null(bands) && bands %in% .config_get("sits_results_bands")) {
+        .check_that(length(bands) == 1,
+                    msg = "results cube should have only one band")
+        cube <- .local_results_cube(source = source,
+                                    collection = collection,
+                                    data_dir = data_dir,
+                                    parse_info = parse_info,
+                                    delim = delim,
+                                    bands = bands,
+                                    labels = labels,
+                                    start_date = start_date,
+                                    end_date = end_date,
+                                    version = version,
+                                    ...
 
-    # precondition - does the parse info have band and date?
-    .check_chr_contains(
-        parse_info,
-        contains = c("tile", "band", "date"),
-        msg = "parse_info must include tile, date, and band."
-    )
-
-    # bands in upper case
-    if (!purrr::is_null(bands))
-        bands <- toupper(bands)
-
-    # builds a sits data cube
-    .local_cube(source = source,
-                collection = collection,
-                data_dir = data_dir,
-                parse_info = parse_info,
-                delim = delim,
-                bands = bands,
-                start_date = start_date,
-                end_date = end_date,
-                multicores = multicores,
-                progress = progress, ...)
+        )
+    } else
+        # builds a sits data cube
+        cube <- .local_cube(source = source,
+                            collection = collection,
+                            data_dir = data_dir,
+                            parse_info = parse_info,
+                            delim = delim,
+                            bands = bands,
+                            start_date = start_date,
+                            end_date = end_date,
+                            multicores = multicores,
+                            progress = progress, ...
+        )
+    return(cube)
 }
 
 

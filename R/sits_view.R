@@ -310,7 +310,7 @@ sits_view.raster_cube <- function(x, ...,
                                        palette = palette)
 
             # retrieve the classified object (which is RATified)
-            r_obj_class <- .view_class_cube(class_cube = class_cube, tile = tile)
+            r_obj_class <- .view_class_cube(class_cube = class_cube, tile = x$tile[[t_ind]])
 
             # retrieve the colors of the r_obj
             # some labels may not be present in the final image
@@ -346,7 +346,7 @@ sits_view.raster_cube <- function(x, ...,
     }
     # define overlay groups
     if (!purrr::is_null(class_cube)) {
-        overlay_grps = c(dates, "classification")
+        overlay_grps = c(paste0(dates), "classification")
     }
     else
         overlay_grps = paste0(dates)
