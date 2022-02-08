@@ -7,6 +7,12 @@
 \alias{.source_item_get_hrefs}
 \alias{.source_item_get_cloud_cover}
 \alias{.source_item_get_bands}
+\alias{.source_item_get_fid}
+\alias{.source_item_get_resolution}
+\alias{.source_item_get_tile}
+\alias{.source_item_get_bbox}
+\alias{.source_item_get_crs}
+\alias{.source_item_get_size}
 \alias{.source_items_new}
 \alias{.source_items_bands_select}
 \alias{.source_items_fid}
@@ -28,6 +34,18 @@
 .source_item_get_cloud_cover(source, ..., item, collection = NULL)
 
 .source_item_get_bands(source, item, ..., collection = NULL)
+
+.source_item_get_fid(source, item, ..., collection = NULL)
+
+.source_item_get_resolution(source, item, ..., collection = NULL)
+
+.source_item_get_tile(source, item, ..., collection = NULL)
+
+.source_item_get_bbox(source, item, ..., collection = NULL)
+
+.source_item_get_crs(source, item, ..., collection = NULL)
+
+.source_item_get_size(source, item, ..., collection = NULL)
 
 .source_items_new(source, ..., collection = NULL)
 
@@ -86,6 +104,18 @@ containing the percentage of cloud cover to each image band of an item.
 \code{.source_item_get_bands()} returns a \code{character} vector
 containing bands name of an item.
 
+\code{.source_item_get_fid()} returns a \code{character}.
+
+\code{.source_item_get_resolution()} returns a \code{numeric}.
+
+\code{.source_item_get_tile()} returns a \code{character}.
+
+\code{.source_item_get_bbox()} returns a \code{numeric}.
+
+\code{.source_item_get_crs()} returns a \code{character}.
+
+\code{.source_item_get_size()} returns a \code{numeric}.
+
 \code{.source_items_new()} returns any object referring the images
 of a sits cube.
 
@@ -137,6 +167,24 @@ cover of an image.
 
 \code{.source_item_get_bands()} retrieves the bands present
 in an item.
+
+\code{.source_item_get_fid()} retrieves the feature id of
+one item.
+
+\code{.source_item_get_resolution()} retrieves the feature
+resolution.
+
+\code{.source_item_get_tile()} retrieves the feature
+tile.
+
+\code{.source_item_get_bbox()} retrieves the feature
+bounding box.
+
+\code{.source_item_get_crs()} retrieves the feature
+crs.
+
+\code{.source_item_get_size()} retrieves the feature
+raster sizes.
 
 \code{.source_items_new()} this function is called to create
 an items object. In case of Web services, this function is responsible for

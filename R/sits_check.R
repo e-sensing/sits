@@ -56,6 +56,9 @@
 #' @param extensions    A \code{character} vector with all allowed file
 #' extensions.
 #' @param expr          A R \code{expression} to be evaluated.
+#' @param tolerance_factor A code{numeric} with the tolerance percentage to be
+#' accepted. Values range from 0 to 1, where 1 means 100% tolerance.
+#' The default value is NULL.
 #' @param ...           Additional parameters for \code{fn_check} function.
 #'
 #' @return
@@ -481,6 +484,7 @@ NULL
                        allow_null = FALSE,
                        is_integer = FALSE,
                        is_named = FALSE,
+                       tolerance_factor = NULL,
                        msg = NULL) {
 
     # check for NULL and exit if it is allowed
@@ -514,6 +518,23 @@ NULL
     # remove NAs before check
     result <- x
     x <- x[!is.na(x)]
+
+    if (!is.null(tolerance_factor) && tolerance_factor > 0) {
+
+        .check_that(
+            x = tolerance_factor <= 1,
+            msg = "Values should be less or equal than 1. "
+        )
+
+        min <- ifelse(min < 0,
+                      min * (1 + tolerance_factor),
+                      min - (min * tolerance_factor))
+
+        max <- ifelse(max > 0,
+                      max * (1 + tolerance_factor),
+                      max - (max * tolerance_factor))
+    }
+
     .check_that(
         all(min <= x) && all(x <= max),
         local_msg = "value is out of range",
@@ -873,8 +894,8 @@ NULL
     .check_that(
         all(existing_files | existing_dirs),
         local_msg = paste("file does not exist:",
-                            paste0("'", x[!existing_files], "'",
-                                   collapse = ", ")),
+                          paste0("'", x[!existing_files], "'",
+                                 collapse = ", ")),
         msg = msg
     )
 
