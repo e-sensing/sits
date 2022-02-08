@@ -1347,7 +1347,7 @@ plot.keras_model <- function(x, y, ...) {
 
     r_objs <- slider::slide(cube, function(row) {
         # get the raster object
-        r <- suppressWarnings(terra::rast(.file_info_path(cube)))
+        r <- suppressWarnings(terra::rast(.file_info_path(row)))
     })
 
     # merge two or more raster objects
