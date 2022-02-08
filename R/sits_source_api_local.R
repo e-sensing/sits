@@ -374,6 +374,9 @@
     .check_chr(img_files, allow_empty = FALSE, len_min = 1,
                msg = "no file found in provided directory")
 
+    # select only images that have the chosen band
+    img_files <- img_files[grepl(band, img_files)]
+
     # remove the extension
     img_files_noext <- tools::file_path_sans_ext(img_files)
 
