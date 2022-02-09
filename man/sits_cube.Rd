@@ -33,8 +33,10 @@ sits_cube(source, ..., collection, data_dir = NULL)
   bands = NULL,
   start_date = NULL,
   end_date = NULL,
-  parse_info,
+  labels = NULL,
+  parse_info = NULL,
   delim = "_",
+  version = "v1",
   name = NULL,
   origin = NULL,
   multicores = 2,
@@ -69,6 +71,8 @@ data cube.}
 \item{end_date}{Final date for the cube  (optional).}
 
 \item{name}{deprecated parameter formely used to describe cubes}
+
+\item{labels}{labels associated to the classes}
 
 \item{parse_info}{parsing information for files without STAC
 information

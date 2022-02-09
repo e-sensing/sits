@@ -310,7 +310,7 @@ sits_view.raster_cube <- function(x, ...,
                                        palette = palette)
 
             # retrieve the classified object (which is RATified)
-            r_obj_class <- .view_class_cube(class_cube = class_cube, tile = tile)
+            r_obj_class <- .view_class_cube(class_cube = class_cube, tile = x$tile[[t_ind]])
 
             # retrieve the colors of the r_obj
             # some labels may not be present in the final image
@@ -346,7 +346,7 @@ sits_view.raster_cube <- function(x, ...,
     }
     # define overlay groups
     if (!purrr::is_null(class_cube)) {
-        overlay_grps = c(dates, "classification")
+        overlay_grps = c(paste0(dates), "classification")
     }
     else
         overlay_grps = paste0(dates)
@@ -524,7 +524,6 @@ sits_view.classified_image <- function(x,...,
 #' @param  max_Mbytes    maximum number of megabytes to be shown in leaflet
 #' @return               Raster Stack with RGB object
 #' @keywords internal
-
 .view_reshape_band <- function(band_file, date, max_Mbytes) {
 
     # open raster object
@@ -561,6 +560,7 @@ sits_view.classified_image <- function(x,...,
                 co          = .config_get("gdal_creation_options")
             )
         )
+
         # if temp_files are created use them as sources for r_obj
         r_obj <- suppressWarnings(raster::stack(dest_file))
     }

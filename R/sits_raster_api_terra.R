@@ -174,21 +174,35 @@
 
 #' @keywords internal
 #' @export
-.raster_crop.terra <- function(r_obj, block, ...) {
+.raster_crop.terra <- function(r_obj, ...,
+                               block = NULL,
+                               bbox = NULL) {
 
     # obtain coordinates from columns and rows
-    x1 <- terra::xFromCol(object = r_obj,
-                          col    = c(block[["first_col"]]))
-    x2 <- terra::xFromCol(object = r_obj,
-                          col    = block[["first_col"]] + block[["ncols"]] - 1)
-    y1 <- terra::yFromRow(object = r_obj,
-                          row    = c(block[["first_row"]]))
-    y2 <- terra::yFromRow(object = r_obj,
-                          row    = block[["first_row"]] + block[["nrows"]] - 1)
+    if (!is.null(block)) {
+        # xmin
+        x1 <- terra::xFromCol(object = r_obj,
+                              col    = c(block[["first_col"]]))
+        # xmax
+        x2 <- terra::xFromCol(object = r_obj,
+                              col    = block[["first_col"]] + block[["ncols"]] - 1)
+        # ymax
+        y1 <- terra::yFromRow(object = r_obj,
+                              row    = c(block[["first_row"]]))
+        # ymin
+        y2 <- terra::yFromRow(object = r_obj,
+                              row    = block[["first_row"]] + block[["nrows"]] - 1)
+    } else if (!is.null(bbox)) {
+
+        x1 <- bbox[["xmin"]]
+        x2 <- bbox[["xmax"]]
+        y2 <- bbox[["ymin"]]
+        y1 <- bbox[["ymax"]]
+    }
 
     # xmin, xmax, ymin, ymax
     extent <- terra::ext(
-        x = c(min(x1, x2), max(x1, x2), min(y1, y2), max(y1, y2))
+        x = c(x1, x2, y2, y1)
     )
 
     # crop raster
@@ -279,4 +293,19 @@
 .raster_freq.terra <- function(r_obj, ...) {
 
     terra::freq(x = r_obj, bylayer = TRUE)
+}
+
+#' @keywords internal
+#' @export
+.raster_col.terra <- function(r_obj, x) {
+
+    terra::colFromX(r_obj, x)
+}
+
+
+#' @keywords internal
+#' @export
+.raster_row.terra <- function(r_obj, y) {
+
+    terra::rowFromY(r_obj, y)
 }

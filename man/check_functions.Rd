@@ -74,6 +74,7 @@
   allow_null = FALSE,
   is_integer = FALSE,
   is_named = FALSE,
+  tolerance = NULL,
   msg = NULL
 )
 
@@ -175,6 +176,9 @@ numeric check. By default is \code{Inf}.}
 
 \item{allow_zero}{A \code{logical} indicating if the check permits zero
 values. Default is TRUE.}
+
+\item{tolerance}{A \code{numeric} with the tolerance to be
+accepted in range test. The default value is NULL.}
 
 \item{allow_empty}{A \code{logical} indicating if the check permits empty
 list. Default is TRUE.}

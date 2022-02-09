@@ -146,7 +146,7 @@ test_that("Internal functions in ROI", {
 
     si <- .sits_raster_sub_image_from_bbox(bb, cube)
     expect_true(si["first_row"] == 1)
-    expect_true(si["first_col"] == 64)
+    expect_true(si["first_col"] == 63)
     expect_true(si["nrows"] == 81)
-    expect_true(si["ncols"] == 192)
+    expect_true(si["ncols"] == 191)
 })

@@ -250,6 +250,15 @@ sits_regularize <- function(cube,
     .sits_parallel_start(multicores, log = FALSE)
     on.exit(.sits_parallel_stop())
 
+    # detect malformed files
+    bad_files <- .reg_diagnostic(
+        data_dir = output_dir
+    )
+
+    # delete malformed files
+    unlink(bad_files)
+    gc()
+
     # does a local cube exist
     gc_cube <- tryCatch({
         sits_cube(
@@ -279,79 +288,105 @@ sits_regularize <- function(cube,
     while (!finished) {
 
         # process bands and tiles in parallel
-        .sits_parallel_map(miss_tiles_bands_times, function(tile_band_time) {
+        gc_tiles_lst <- .sits_parallel_map(
+            miss_tiles_bands_times,
+            function(tile_band_time) {
 
-            tile <- tile_band_time[[1]]
-            band <- tile_band_time[[2]]
-            start_date <- tile_band_time[[3]]
-            end_date <- tile_band_time[[4]]
+                tile <- tile_band_time[[1]]
+                band <- tile_band_time[[2]]
+                start_date <- tile_band_time[[3]]
+                end_date <- tile_band_time[[4]]
 
-            cube <- dplyr::filter(cube, tile == !!tile)
+                cube <- dplyr::filter(cube, tile == !!tile)
 
-            if (.source_cloud() %in% .cube_bands(cube))
-                band <- c(band, .source_cloud())
+                if (.source_cloud() %in% .cube_bands(cube))
+                    band <- c(band, .source_cloud())
 
-            cube <- sits_select(data = cube, bands = band)
+                cube <- sits_select(data = cube, bands = band)
 
-            cube[["file_info"]][[1]] <-
-                dplyr::filter(cube[["file_info"]][[1]],
-                              date >= !!start_date,
-                              date < !!end_date)
+                cube[["file_info"]][[1]] <-
+                    dplyr::filter(cube[["file_info"]][[1]],
+                                  date >= !!start_date,
+                                  date < !!end_date)
 
-            # open db in each process
-            img_col <- gdalcubes::image_collection(path_db)
+                # open db in each process
+                img_col <- gdalcubes::image_collection(path_db)
 
-            # create a list of cube view object
-            cv <- .gc_create_cube_view(
-                tile = cube,
-                period = period,
-                roi = roi,
-                res = res,
-                toi = c(start_date, start_date),
-                agg_method = agg_method,
-                resampling = resampling
-            )
+                # create a list of cube view object
+                cv <- .gc_create_cube_view(
+                    tile = cube,
+                    period = period,
+                    roi = roi,
+                    res = res,
+                    toi = c(start_date, start_date),
+                    agg_method = agg_method,
+                    resampling = resampling
+                )
 
-            # create of the aggregate cubes
-            gc_tile <- .gc_new_cube(
-                tile = cube,
-                cv = cv,
-                img_col = img_col,
-                path_db = path_db,
-                output_dir = output_dir,
-                cloud_mask = cloud_mask,
-                multithreads = multithreads
-            )
+                # create of the aggregate cubes
+                gc_tile <- .gc_new_cube(
+                    tile = cube,
+                    cv = cv,
+                    img_col = img_col,
+                    path_db = path_db,
+                    output_dir = output_dir,
+                    cloud_mask = cloud_mask,
+                    multithreads = multithreads
+                )
 
-            # prepare class result
-            class(gc_tile) <- .cube_s3class(gc_tile)
+                # prepare class result
+                class(gc_tile) <- .cube_s3class(gc_tile)
 
-            return(gc_tile)
+                return(gc_tile)
 
-        }, progress = progress)
+            }, progress = progress)
+
+        # bind produced images
+        gc_tiles <- dplyr::bind_rows(gc_tiles_lst)
+
+        # get a list of produced images paths
+        gc_tiles_paths <- unlist(
+            purrr::map(gc_tiles[["file_info"]], function(fi) {
+                return(fi[["path"]])
+            }))
 
         # detect malformed files
         bad_files <- .reg_diagnostic(
-            data_dir = output_dir
+            data_dir = output_dir,
+            file_paths = gc_tiles_paths
         )
 
-        # delete malformed files
-        unlink(bad_files)
+        if (length(bad_files) > 0 && multithreads == 1)
+            # bad files cannot be generated anyway!
+            .reg_create_empty_tifs(bad_files)
+        else {
+            # delete malformed files
+            unlink(bad_files)
+            gc()
+        }
 
         # create local cube from files in output directory
-        gc_cube <- sits_cube(
-            source = .cube_source(cube),
-            collection = .cube_collection(cube),
-            data_dir = output_dir,
-            parse_info = c("x1", "tile", "band", "date"),
-            multicores = multicores
-        )
+        gc_cube <- tryCatch({
+            sits_cube(
+                source = .cube_source(cube),
+                collection = .cube_collection(cube),
+                data_dir = output_dir,
+                parse_info = c("x1", "tile", "band", "date"),
+                multicores = multicores,
+                progress = progress
+            )
+        },
+        error = function(e){
+            return(NULL)
+        })
 
         # find if there are missing tiles
-        miss_tiles_bands_times <- .reg_missing_tiles(cube = cube,
-                                                     gc_cube = gc_cube,
-                                                     timeline = timeline,
-                                                     period = period)
+        miss_tiles_bands_times <- .reg_missing_tiles(
+            cube = cube,
+            gc_cube = gc_cube,
+            timeline = timeline,
+            period = period
+        )
 
         # have we finished?
         finished <- length(miss_tiles_bands_times) == 0
@@ -381,6 +416,13 @@ sits_regularize <- function(cube,
             # show message
             message(paste("Tiles", msg, "are missing or malformed",
                           "and will be reprocessed."))
+
+            # try a lower multithread
+            multithreads <- max(round(multithreads / 2), 1)
+
+            # remove cache
+            .sits_parallel_stop()
+            .sits_parallel_start(multicores, log = FALSE)
         }
     }
 
@@ -470,18 +512,30 @@ sits_regularize <- function(cube,
     return(miss_tiles_bands_times)
 }
 
-.reg_diagnostic <- function(data_dir) {
+.reg_diagnostic <- function(data_dir, file_paths = NULL) {
 
-    # how many of those files are images?
-    # retrieve the known file extensions
-    file_ext <- .config_local_file_extensions()
+    # check only if ...
+    if (!is.null(file_paths) && length(file_paths) == 0)
+        return(character(0))
 
-    # list the files in the data directory
-    paths <- list.files(
-        path = data_dir,
-        pattern = paste0("\\.(", paste0(file_ext, collapse = "|"), ")$"),
-        full.names = TRUE
-    )
+    # get file_paths parameter as default path list
+    paths <- file_paths
+
+    # otherwise search in data_dir
+    if (is.null(file_paths)) {
+
+        # how many of those files are images?
+        # retrieve the known file extensions
+        file_ext <- .config_local_file_extensions()
+
+        # list the files in the data directory
+        paths <- list.files(
+            path = data_dir,
+            pattern = paste0("\\.(", paste0(file_ext, collapse = "|"), ")$"),
+            full.names = TRUE
+        )
+    }
+
     # check documentation mode
     progress <- TRUE
     progress <- .check_documentation(progress)
@@ -500,5 +554,43 @@ sits_regularize <- function(cube,
     existing_files <- file.exists(bad_paths)
 
     return(bad_paths[existing_files])
+}
+
+
+.reg_create_empty_tifs <- function(images_path) {
+
+    # check documentation mode
+    progress <- TRUE
+    progress <- .check_documentation(progress)
+
+    .sits_parallel_map(images_path, function(img_path) {
+
+        t_img <- .raster_open_rast(img_path)
+
+        r_obj <- .raster_new_rast(
+            nrows = .raster_nrows(t_img),
+            ncols = .raster_ncols(t_img),
+            xmin  = .raster_xmin(t_img),
+            xmax  = .raster_xmax(t_img),
+            ymin  = .raster_ymin(t_img),
+            ymax  = .raster_ymax(t_img),
+            nlayers = 1,
+            crs   = .raster_crs(t_img)
+        )
+
+        .raster_set_values(r_obj, values = NA)
+
+        .raster_write_rast(
+            r_obj        = r_obj,
+            file         = img_path,
+            format       = "GTiff",
+            data_type    = .config_get("raster_cube_data_type"),
+            gdal_options = .config_gtiff_default_options(),
+            overwrite    = TRUE
+        )
+
+    }, progress = progress)
+
+    return(images_path)
 }
 

@@ -99,10 +99,10 @@
     timeline <- sits_timeline(tile)
 
     # create the metadata for the probability cube
-    probs_cube <- .cube_derived_create(
+    probs_cube <- .cube_derived_create_probs(
         cube       = tile,
         cube_class = "probs_cube",
-        band_name  = "PROBS",
+        band_name  = "probs",
         labels     = labels,
         start_date = timeline[[1]],
         end_date   = timeline[[length(timeline)]],

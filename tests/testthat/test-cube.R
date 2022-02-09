@@ -219,8 +219,6 @@ test_that("Creating cubes from BDC - based on ROI with shapefile", {
         sits:::.sits_raster_sub_image_intersects(tile, sf_bla)
     } )
     expect_true(all(intersects))
-
-
 })
 
 test_that("Creating cubes from BDC - invalid roi", {

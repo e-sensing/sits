@@ -4,7 +4,16 @@
 \alias{plot.probs_cube}
 \title{Plot probability cubes}
 \usage{
-\method{plot}{probs_cube}(x, y, ..., tile = 1, labels = NULL, n_colors = 20, palette = "Terrain")
+\method{plot}{probs_cube}(
+  x,
+  y,
+  ...,
+  tiles = NULL,
+  labels = NULL,
+  breaks = "pretty",
+  n_colors = 20,
+  palette = "Terrain"
+)
 }
 \arguments{
 \item{x}{object of class "probs_image"}
@@ -13,9 +22,11 @@
 
 \item{...}{further specifications for \link{plot}.}
 
-\item{tile}{tile number to be plotted}
+\item{tiles}{tiles to be plotted}
 
 \item{labels}{labels to plot (optional)}
+
+\item{breaks}{type of class intervals}
 
 \item{n_colors}{number of colors to plot}
 
@@ -26,6 +37,23 @@ The plot itself.
 }
 \description{
 plots a probability cube using stars
+}
+\note{
+\itemize{Possible class intervals
+ \item{"sd":} {intervals based on the average and standard deviation.}
+ \item{"equal": } {divides the range of the variable into n parts.}
+ \item{"pretty": } {number of breaks likely to be legible.}
+ \item{"quantile": } {quantile breaks}
+ \item{"kmeans" :} {uses kmeans to generate the breaks.}
+ \item{"hclust" :} {breaks defined by hierarchical clustering.}
+ \item{"bclust" :} {breaks defined by bagged clustering.}
+ \item{"fisher" :} {method proposed by Fischer (1958).}
+ \item{"jenks" :} {method proposed by Jenks.}
+ \item{"dpih" :} {based on the bin width of a histogram.}
+ \item{"headtails" :} {algorithm proposed by Bin Jiang (2013)}
+ }
+
+The function accepts color palettes are defined in grDevices::hcl.pals()
 }
 \author{
 Gilberto Camara, \email{gilberto.camara@inpe.br}

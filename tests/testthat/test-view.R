@@ -37,7 +37,7 @@ test_that("View", {
 
     v3 <- sits_view(modis_label)
     expect_true(grepl("EPSG3857", v3$x$options$crs$crsClass))
-    expect_true(all(v$x$calls[[6]]$args[[1]]$labels %in% c("Cerrado", "Pasture", "Forest", "Soy_Corn")))
+    expect_true(all(v3$x$calls[[6]]$args[[1]]$labels %in% c("Cerrado", "Pasture", "Forest", "Soy_Corn")))
 
 
     v4 <- sits_view(modis_cube, red = "EVI", green = "NDVI", blue = "EVI",
@@ -49,28 +49,4 @@ test_that("View", {
 
     expect_true(all(file.remove(unlist(modis_probs$file_info[[1]]$path))))
     expect_true(all(file.remove(unlist(modis_label$file_info[[1]]$path))))
-
-    modis_bdc <- tryCatch({
-        sits_cube(
-        source = "BDC",
-        collection = "MOD13Q1-6",
-        tiles = "012010",
-        bands = c("NDVI", "EVI"),
-        start_date = timeline[1],
-        end_date = timeline[length(timeline)]
-        )
-    },
-    error = function(e) {
-        return(NULL)
-    })
-
-    testthat::skip_if(purrr::is_null(modis_bdc),
-                      message = "BDC is not accessible")
-
-
-    v5 <- sits_view(modis_bdc,
-                    red = "EVI",
-                    green = "NDVI",
-                    blue = "EVI",
-                    time = 1)
 })
