@@ -145,56 +145,62 @@
     .check_num(bbox[["ymax"]], min = tile[["ymin"]], max = tile[["ymax"]],
                msg = "bbox value is outside the cube")
 
-    # get the resolution
-    # throw an error if resolution are not the same
-    # for all bands of the cube
-    res  <- .cube_resolution(tile)
-
     # get ncols and nrows
     # throw an error if size are not the same
     size  <- .cube_size(tile)
 
+    # tile template
+    r_obj <- .raster_new_rast(
+        nrows = size[["nrows"]],
+        ncols = size[["ncols"]],
+        xmin = tile[["xmin"]],
+        xmax = tile[["xmax"]],
+        ymin = tile[["ymin"]],
+        ymax = tile[["ymax"]],
+        nlayers = 1,
+        crs = tile[["crs"]]
+    )
+
+    # compute block
+    r_crop <- .raster_crop(r_obj, bbox = bbox)
+    row <- .raster_row(r_obj, y = .raster_ymax(r_crop))
+    if (is.na(row)) row <- 1
+    col <- .raster_col(r_obj, x = .raster_xmin(r_crop))
+    if (is.na(col)) col <- 1
+
     # set initial values
-    si <- c(first_row = 1, first_col = 1,
-            nrows = size[["nrows"]], ncols = size[["ncols"]],
-            xmin = bbox[["xmin"]], xmax = bbox[["xmax"]],
-            ymin = bbox[["ymin"]], ymax = bbox[["ymax"]])
+    si <- c(first_row = row,
+            first_col = col,
+            nrows = .raster_nrows(r_crop),
+            ncols = .raster_ncols(r_crop),
+            xmin = .raster_xmin(r_crop),
+            xmax = .raster_xmax(r_crop),
+            ymin = .raster_ymin(r_crop),
+            ymax = .raster_ymax(r_crop))
 
-    if (bbox[["ymax"]]  != tile[["ymax"]]) {
-        si[["first_row"]] <- unname(
-            floor((tile[["ymax"]] - bbox[["ymax"]]) / res[["yres"]])) + 1
+    # compute first_col (terra code below)
+    # if (bbox[["xmin"]] >= tile[["xmin"]] && bbox[["xmin"]] < tile[["xmax"]]) {
+    #
+    #     first_col <- trunc((bbox[["xmin"]] - tile[["xmin"]]) / res[["xres"]]) + 1
+    #
+    # } else if (bbox[["xmin"]] == tile[["xmax"]]) {
+    #
+    #     first_col <- size[["ncols"]]
+    # }
 
-        # adjust to fit bbox in cube resolution
-        si[["ymax"]] <- tile[["ymax"]] - res[["yres"]] * (si[["first_row"]] - 1)
-    }
+    # compute first_row (terra code below)
+    # if (bbox[["ymax"]] > tile[["ymin"]] && bbox[["ymax"]] <= tile[["ymax"]]) {
+    #
+    #     first_row <- trunc((tile[["ymax"]] - bbox[["ymax"]]) / res[["yres"]]) + 1
+    #
+    # } else if (bbox[["ymax"]] == tile[["ymin"]]) {
+    #
+    #     first_row <- size[["nrows"]]
+    # }
 
-    # find the first col (remember that rows runs from left to right and
-    # X coordinates increase from left to right)
-    if (bbox[["xmin"]] != tile[["xmin"]]) {
-        si[["first_col"]]  <- unname(
-            floor((bbox[["xmin"]] - tile[["xmin"]]) / res[["xres"]])
-        ) + 1
-        # adjust to fit bbox in cube resolution
-        si[["xmin"]] <- tile[["xmin"]] + res[["xres"]] * (si[["first_col"]] - 1)
-    }
-
-    # find the number of rows (remember that rows runs from top to bottom and
-    # Y coordinates increase from bottom to top)
-    if (bbox[["ymin"]] == tile[["ymin"]])
-        si[["nrows"]] <- size[["nrows"]] - unname(si[["first_row"]]) + 1
-    else {
-        si[["nrows"]] <- unname(floor((bbox[["ymax"]] - bbox[["ymin"]]) / res[["yres"]])) + 1
-        # adjust to fit bbox in cube resolution
-        si[["ymin"]] <- si[["ymax"]] - res[["yres"]] * si[["nrows"]]
-    }
-
-    if (si[["xmax"]] == tile[["xmax"]])
-        si[["ncols"]] <- size[["ncols"]] - unname(si[["first_col"]]) + 1
-    else {
-        si[["ncols"]] <- unname(floor((bbox[["xmax"]] - bbox[["xmin"]]) / res[["xres"]])) + 1
-        # adjust to fit bbox in cube resolution
-        si[["xmax"]] <- si[["xmin"]] + res[["xres"]] * si[["ncols"]]
-    }
+    tolerance <- .config_get(key = c("sources", .cube_source(tile),
+                                     "collections", .cube_collection(tile),
+                                     "ext_tolerance"))
 
     # pre-conditions
     .check_num(si[["xmin"]], max = si[["xmax"]],
@@ -204,16 +210,16 @@
                msg = "invalid subimage value")
 
     .check_num(si[["xmin"]], min = tile[["xmin"]], max = tile[["xmax"]],
-               msg = "invalid subimage value")
+               tolerance = tolerance, msg = "invalid subimage value")
 
     .check_num(si[["xmax"]], min = tile[["xmin"]], max = tile[["xmax"]],
-               msg = "invalid subimage value")
+               tolerance = tolerance, msg = "invalid subimage value")
 
     .check_num(si[["ymin"]], min = tile[["ymin"]], max = tile[["ymax"]],
-               msg = "invalid subimage value")
+               tolerance = tolerance, msg = "invalid subimage value")
 
     .check_num(si[["ymax"]], min = tile[["ymin"]], max = tile[["ymax"]],
-               msg = "invalid subimage value")
+               tolerance = tolerance, msg = "invalid subimage value")
 
     return(si)
 }
