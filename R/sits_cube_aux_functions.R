@@ -679,24 +679,59 @@
     .check_num(block[["ncols"]], min = 1, max = .cube_size(cube)[["ncols"]],
                msg = "invalid block value")
 
-    res <- .cube_resolution(cube)
+    # res <- .cube_resolution(cube)
+#
+#     # compute new Y extent
+#     ymax  <-  cube[["ymax"]] - (block[["first_row"]] - 1) * res[["yres"]]
+#     ymin  <-  ymax - block[["nrows"]] * res[["yres"]]
+#
+#     # compute new X extent
+#     xmin  <-  cube[["xmin"]] + (block[["first_col"]] - 1) * res[["xres"]]
+#     xmax  <-  xmin + block[["ncols"]] * res[["xres"]]
 
-    # compute new Y extent
-    ymax  <-  cube[["ymax"]] - (block[["first_row"]] - 1) * res[["yres"]]
-    ymin  <-  ymax - block[["nrows"]] * res[["yres"]]
+    size <- .cube_size(cube)
 
-    # compute new X extent
-    xmin  <-  cube[["xmin"]] + (block[["first_col"]] - 1) * res[["xres"]]
-    xmax  <-  xmin + block[["ncols"]] * res[["xres"]]
+    r_obj <- .raster_new_rast(
+        nrows = size[["nrows"]],
+        ncols = size[["ncols"]],
+        xmin = cube[["xmin"]],
+        xmax = cube[["xmax"]],
+        ymin = cube[["ymin"]],
+        ymax = cube[["ymax"]],
+        nlayers = 1,
+        crs = cube[["crs"]]
+    )
+
+    xmin <- terra::xFromCol(r_obj, block[["first_col"]])
+    xmax <- terra::xFromCol(r_obj, block[["ncols"]] + block[["first_col"]])
+
+    ymin <- terra::yFromRow(r_obj, block[["nrows"]] + block[["first_row"]])
+    ymax <- terra::yFromRow(r_obj, block[["first_row"]])
+
+    bbox <- c(
+        xmin = xmin,
+        xmax = xmax,
+        ymin = ymin,
+        ymax = ymax
+    )
+
+    # compute block
+    r_crop <- .raster_crop(r_obj, bbox = bbox, snap = "out")
+
+    row <- .raster_row(r_obj, y = .raster_ymax(r_crop))
+    if (is.na(row)) row <- 1
+
+    col <- .raster_col(r_obj, x = .raster_xmin(r_crop))
+    if (is.na(col)) col <- 1
 
     # prepare result
     params <- tibble::tibble(
         nrows = block[["nrows"]],
         ncols = block[["ncols"]],
-        xmin  = xmin,
-        xmax  = xmax,
-        ymin  = ymin,
-        ymax  = ymax,
+        xmin  = .raster_xmin(r_crop),
+        xmax  = .raster_xmax(r_crop),
+        ymin  = .raster_ymin(r_crop),
+        ymax  = .raster_ymax(r_crop),
         crs   = .cube_crs(cube)
     )
 

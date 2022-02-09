@@ -162,7 +162,7 @@
     )
 
     # compute block
-    r_crop <- .raster_crop(r_obj, bbox = bbox, snap = "near")
+    r_crop <- .raster_crop(r_obj, bbox = bbox, snap = "out")
     row <- .raster_row(r_obj, y = .raster_ymax(r_crop))
     if (is.na(row)) row <- 1
     col <- .raster_col(r_obj, x = .raster_xmin(r_crop))
