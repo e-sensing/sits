@@ -207,7 +207,7 @@
 
     # crop raster
     suppressWarnings(
-        terra::crop(x = r_obj, y = extent, snap = "out")
+        terra::crop(x = r_obj, y = extent, ...)
     )
 }
 
