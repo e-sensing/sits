@@ -439,94 +439,7 @@
 
     return(dev_cube)
 }
-#' @title Create a data cube derived from another
-#' @name .cube_derived_create_probs
-#' @keywords internal
-#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
-#'
-#' @description Take a tibble containing metadata about a data cube
-#' containing time series and create a
-#' set of files to store the result of a classification or smoothing
-#'
-#' @param cube         input data cube
-#' @param cube_class   class to be attributed to created cube
-#' @param band_name    name of band in created cube
-#' @param labels       labels of derived cube
-#' @param start_date   start date of the cube interval
-#' @param end_date     end date of the cube interval
-#' @param bbox         bounding box of the ROI
-#' @param output_dir   prefix of the output files.
-#' @param version      version of the output files
-#' @return             output data cube
-.cube_derived_create_probs <- function(cube, cube_class, band_name, labels,
-                                       start_date, end_date, bbox, output_dir,
-                                       version) {
 
-    # set caller to show in errors
-    .check_set_caller(".cube_derived_create_probs")
-
-    # ensure metadata tibble exists
-    .check_that(x = nrow(cube) == 1,
-                msg = "accepts only one tile at a time")
-
-    # output filename
-    file_name <- paste0(output_dir, "/",
-                        cube$satellite, "_",
-                        cube$sensor,"_",
-                        cube$tile,"_",
-                        start_date, "_",
-                        end_date,"_",
-                        band_name, "_",
-                        version, ".tif")
-
-    res <- .cube_resolution(cube)
-
-    if (!purrr::is_null(bbox[["nrows"]]) && !purrr::is_null(bbox[["ncols"]])) {
-        nrows_cube_class <-  bbox[["nrows"]]
-        ncols_cube_class <-  bbox[["ncols"]]
-    } else {
-        nrows_cube_class <- .file_info_nrows(cube)
-        ncols_cube_class <- .file_info_ncols(cube)
-    }
-
-    # set the file information
-    file_info <- tibble::tibble(
-        band       = band_name,
-        start_date = start_date,
-        end_date   = end_date,
-        xmin       = bbox[["xmin"]],
-        xmax       = bbox[["xmax"]],
-        ymin       = bbox[["ymin"]],
-        ymax       = bbox[["ymax"]],
-        xres       = res[["xres"]],
-        yres       = res[["yres"]],
-        nrows      = nrows_cube_class,
-        ncols      = ncols_cube_class,
-        path       = file_name
-    )
-    # get source and collection
-    source     = .cube_source(cube)
-    collection = .cube_collection(cube)
-    # set the metadata for the probability cube
-    dev_cube <- .cube_create(
-        source     = cube$source,
-        collection = cube$collection,
-        satellite  = cube$satellite,
-        sensor     = cube$sensor,
-        tile       = cube$tile,
-        xmin       = bbox[["xmin"]],
-        xmax       = bbox[["xmax"]],
-        ymin       = bbox[["ymin"]],
-        ymax       = bbox[["ymax"]],
-        crs        = cube$crs,
-        labels     = labels,
-        file_info  = file_info
-    )
-
-    class(dev_cube) <- unique(c(cube_class, "raster_cube", class(dev_cube)))
-
-    return(dev_cube)
-}
 #' @title Given a band, return a set of values for chosen location
 #' @name .cube_extract
 #' @keywords internal
@@ -679,61 +592,7 @@
     .check_num(block[["ncols"]], min = 1, max = .cube_size(cube)[["ncols"]],
                msg = "invalid block value")
 
-    # res <- .cube_resolution(cube)
-#
-#     # compute new Y extent
-#     ymax  <-  cube[["ymax"]] - (block[["first_row"]] - 1) * res[["yres"]]
-#     ymin  <-  ymax - block[["nrows"]] * res[["yres"]]
-#
-#     # compute new X extent
-#     xmin  <-  cube[["xmin"]] + (block[["first_col"]] - 1) * res[["xres"]]
-#     xmax  <-  xmin + block[["ncols"]] * res[["xres"]]
-
-    size <- .cube_size(cube)
-
-    r_obj <- .raster_new_rast(
-        nrows = size[["nrows"]],
-        ncols = size[["ncols"]],
-        xmin = cube[["xmin"]],
-        xmax = cube[["xmax"]],
-        ymin = cube[["ymin"]],
-        ymax = cube[["ymax"]],
-        nlayers = 1,
-        crs = cube[["crs"]]
-    )
-
-    xmin <- terra::xFromCol(r_obj, block[["first_col"]])
-    xmax <- terra::xFromCol(r_obj, block[["ncols"]] + block[["first_col"]])
-
-    ymin <- terra::yFromRow(r_obj, block[["nrows"]] + block[["first_row"]])
-    ymax <- terra::yFromRow(r_obj, block[["first_row"]])
-
-    bbox <- c(
-        xmin = xmin,
-        xmax = xmax,
-        ymin = ymin,
-        ymax = ymax
-    )
-
-    # compute block
-    r_crop <- .raster_crop(r_obj, bbox = bbox, snap = "out")
-
-    row <- .raster_row(r_obj, y = .raster_ymax(r_crop))
-    if (is.na(row)) row <- 1
-
-    col <- .raster_col(r_obj, x = .raster_xmin(r_crop))
-    if (is.na(col)) col <- 1
-
-    # prepare result
-    params <- tibble::tibble(
-        nrows = block[["nrows"]],
-        ncols = block[["ncols"]],
-        xmin  = .raster_xmin(r_crop),
-        xmax  = .raster_xmax(r_crop),
-        ymin  = .raster_ymin(r_crop),
-        ymax  = .raster_ymax(r_crop),
-        crs   = .cube_crs(cube)
-    )
+    params <- .sits_raster_sub_image_from_block(block = block, tile = cube)
 
     tolerance <- .config_get(key = c("sources", .cube_source(cube),
                                      "collections", .cube_collection(cube),

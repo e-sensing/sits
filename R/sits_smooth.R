@@ -223,7 +223,7 @@ sits_smooth.bayes <- function(cube, type = "bayes", ...,
     cube_bayes <- slider::slide_dfr(cube, function(tile) {
 
         # create metadata for raster cube
-        tile_bayes <- .cube_derived_create_probs(
+        tile_bayes <- .cube_derived_create(
             cube       = tile,
             cube_class = "probs_cube",
             band_name  = "bayes",

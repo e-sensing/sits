@@ -162,21 +162,24 @@
     )
 
     # compute block
-    r_crop <- .raster_crop(r_obj, bbox = bbox, snap = "out")
+    r_crop <- .raster_crop(r_obj, bbox = bbox)
     row <- .raster_row(r_obj, y = .raster_ymax(r_crop))
     if (is.na(row)) row <- 1
     col <- .raster_col(r_obj, x = .raster_xmin(r_crop))
     if (is.na(col)) col <- 1
 
     # set initial values
-    si <- c(first_row = row,
-            first_col = col,
-            nrows = .raster_nrows(r_crop),
-            ncols = .raster_ncols(r_crop),
-            xmin = .raster_xmin(r_crop),
-            xmax = .raster_xmax(r_crop),
-            ymin = .raster_ymin(r_crop),
-            ymax = .raster_ymax(r_crop))
+    si <- list(
+        first_row = row,
+        first_col = col,
+        nrows = .raster_nrows(r_crop),
+        ncols = .raster_ncols(r_crop),
+        xmin = .raster_xmin(r_crop),
+        xmax = .raster_xmax(r_crop),
+        ymin = .raster_ymin(r_crop),
+        ymax = .raster_ymax(r_crop),
+        crs = tile[["crs"]]
+    )
 
     # compute first_col (terra code below)
     # if (bbox[["xmin"]] >= tile[["xmin"]] && bbox[["xmin"]] < tile[["xmax"]]) {
@@ -197,6 +200,101 @@
     #
     #     first_row <- size[["nrows"]]
     # }
+
+    tolerance <- .config_get(key = c("sources", .cube_source(tile),
+                                     "collections", .cube_collection(tile),
+                                     "ext_tolerance"))
+
+    # pre-conditions
+    .check_num(si[["xmin"]], max = si[["xmax"]],
+               msg = "invalid subimage value")
+
+    .check_num(si[["ymin"]], max = si[["ymax"]],
+               msg = "invalid subimage value")
+
+    .check_num(si[["xmin"]], min = tile[["xmin"]], max = tile[["xmax"]],
+               tolerance = tolerance, msg = "invalid subimage value")
+
+    .check_num(si[["xmax"]], min = tile[["xmin"]], max = tile[["xmax"]],
+               tolerance = tolerance, msg = "invalid subimage value")
+
+    .check_num(si[["ymin"]], min = tile[["ymin"]], max = tile[["ymax"]],
+               tolerance = tolerance, msg = "invalid subimage value")
+
+    .check_num(si[["ymax"]], min = tile[["ymin"]], max = tile[["ymax"]],
+               tolerance = tolerance, msg = "invalid subimage value")
+
+    return(si)
+}
+
+#' @title Extract a sub_image from a valid block
+#' @name .sits_raster_sub_image_from_block
+#' @keywords internal
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
+#'
+#' @param block          a valid block with \code{first_col}, \code{first_row},
+#'  \code{nrows}, and \code{ncols}.
+#' @param tile           tile of data cube
+#' @return               sub_image with additional info on first row,
+#'                       first col, nrows, ncols, and crs.
+.sits_raster_sub_image_from_block <- function(block, tile) {
+
+    # pre-condition
+    .check_num(nrow(tile), min = 1, max = 1, is_integer = TRUE,
+               msg = "process one tile only")
+
+    # get ncols and nrows
+    # throw an error if size are not the same
+    size <- .cube_size(tile)
+
+    # pre-conditions
+    .check_num(block[["first_col"]], min = 1, max = size[["ncols"]],
+               msg = "invalid 'first_col' of block parameter")
+
+    .check_num(block[["ncols"]], min = 1,
+               max = size[["ncols"]] - block[["first_col"]] + 1,
+               msg = "invalid 'ncols' of block parameter")
+
+    .check_num(block[["first_row"]], min = 1, max = size[["nrows"]],
+               msg = "invalid 'first_row' of block parameter")
+
+    .check_num(block[["nrows"]], min = 1,
+               max = size[["nrows"]] - block[["first_row"]] + 1,
+               msg = "invalid 'nrows' of block parameter")
+
+    # tile template
+    r_obj <- .raster_new_rast(
+        nrows = size[["nrows"]],
+        ncols = size[["ncols"]],
+        xmin = tile[["xmin"]],
+        xmax = tile[["xmax"]],
+        ymin = tile[["ymin"]],
+        ymax = tile[["ymax"]],
+        nlayers = 1,
+        crs = tile[["crs"]]
+    )
+
+    # compute block
+    r_crop <- .raster_crop(r_obj, block = block)
+
+    row <- .raster_row(r_obj, y = .raster_ymax(r_crop))
+    if (is.na(row)) row <- 1
+
+    col <- .raster_col(r_obj, x = .raster_xmin(r_crop))
+    if (is.na(col)) col <- 1
+
+    # set initial values
+    si <- list(
+        first_row = row + 1,
+        first_col = col + 1,
+        nrows = .raster_nrows(r_crop),
+        ncols = .raster_ncols(r_crop),
+        xmin = .raster_xmin(r_crop),
+        xmax = .raster_xmax(r_crop),
+        ymin = .raster_ymin(r_crop),
+        ymax = .raster_ymax(r_crop),
+        crs = tile[["crs"]]
+    )
 
     tolerance <- .config_get(key = c("sources", .cube_source(tile),
                                      "collections", .cube_collection(tile),

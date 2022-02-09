@@ -69,7 +69,7 @@
         nbands <- nbands + 1
     }
     # number of instances per classification interval
-    ninterval <- nrow(samples[1, ]$time_series[[1]])
+    ninterval <- nrow(samples$time_series[[1]])
     # number of bytes per pixel
     nbytes <- 8
     # estimated processing bloat
@@ -109,10 +109,10 @@
     .check_set_caller(".sits_raster_block_list")
 
     # number of rows per block
-    block_rows <- ceiling(sub_image["nrows"] / nblocks)
+    block_rows <- ceiling(sub_image[["nrows"]] / nblocks)
 
-    first_row <- unname(sub_image["first_row"])
-    last_row <- first_row + unname(sub_image["nrows"]) - 1
+    first_row <- unname(sub_image[["first_row"]])
+    last_row <- first_row + unname(sub_image[["nrows"]]) - 1
 
     # initial row of each block
     row_vec <- seq.int(
@@ -131,9 +131,9 @@
 
     # check that total number of rows is the same as the sum of all blocks
     # correct the last block for overflow
-    if (sum(nrows_vec) != sub_image["nrows"]) {
+    if (sum(nrows_vec) != sub_image[["nrows"]]) {
         nrows_vec[length(nrows_vec)] <-
-            sub_image["nrows"] - sum(nrows_vec[1:(length(nrows_vec) - 1)])
+            sub_image[["nrows"]] - sum(nrows_vec[1:(length(nrows_vec) - 1)])
     }
 
     # elements of the block list

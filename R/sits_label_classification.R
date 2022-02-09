@@ -108,7 +108,7 @@ sits_label_classification <- function(cube,
         file_info <- .file_info(tile)
 
         # create metadata for labeled raster cube
-        tile_label <- .cube_derived_create_probs(
+        tile_label <- .cube_derived_create(
             cube       = tile,
             cube_class = "classified_image",
             band_name  = "class",

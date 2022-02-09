@@ -166,7 +166,7 @@
                             ncols = .raster_ncols(b))
 
         # crop adding overlaps
-        chunk <- .raster_crop(r_obj = b, block = blk_overlap, snap = "out")
+        chunk <- .raster_crop(r_obj = b, block = blk_overlap)
 
         # process it
         raster_out <- do.call(func, args = c(list(chunk = chunk), args))
@@ -179,9 +179,7 @@
                                ncols = .raster_ncols(raster_out))
 
         # crop removing overlaps
-        raster_out <- .raster_crop(raster_out,
-                                   block = blk_no_overlap,
-                                   snap = "out")
+        raster_out <- .raster_crop(raster_out, block = blk_no_overlap)
 
         # export to temp file
         filename <- tempfile(tmpdir = dirname(.file_info(cube)$path),

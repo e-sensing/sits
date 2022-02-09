@@ -88,18 +88,12 @@
         memsize = memsize,
         multicores = multicores
     )
-    # show the number of blocks and block size
-    if (verbose)
-        message(paste0("Using ", length(blocks),
-                       " blocks of size (", unname(blocks[[1]]["nrows"]),
-                       " x ", unname(blocks[[1]]["ncols"]), ")"
-        ))
 
     # get timeline
     timeline <- sits_timeline(tile)
 
     # create the metadata for the probability cube
-    probs_cube <- .cube_derived_create_probs(
+    probs_cube <- .cube_derived_create(
         cube       = tile,
         cube_class = "probs_cube",
         band_name  = "probs",
@@ -118,6 +112,12 @@
 
     # show initial time for classification
     if (verbose) {
+
+        message(paste0("Using ", length(blocks),
+                       " blocks of size (", blocks[[1]][["nrows"]],
+                       " x ", blocks[[1]][["ncols"]], ")"
+        ))
+
         start_time <- Sys.time()
         message(paste0("Starting classification of '", tile$tile,
                        "' at ", start_time))
