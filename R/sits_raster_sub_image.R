@@ -163,10 +163,15 @@
 
     # compute block
     r_crop <- .raster_crop(r_obj, bbox = bbox)
-    row <- .raster_row(r_obj, y = .raster_ymax(r_crop))
-    if (is.na(row)) row <- 1
-    col <- .raster_col(r_obj, x = .raster_xmin(r_crop))
-    if (is.na(col)) col <- 1
+    row <- .raster_row(
+        r_obj,
+        y = .raster_ymax(r_crop) - 0.5 * .raster_yres(r_crop)
+    )
+
+    col <- .raster_col(
+        r_obj,
+        x = .raster_xmin(r_crop) + 0.5 * .raster_xres(r_crop)
+    )
 
     # set initial values
     si <- list(
@@ -277,16 +282,20 @@
     # compute block
     r_crop <- .raster_crop(r_obj, block = block)
 
-    row <- .raster_row(r_obj, y = .raster_ymax(r_crop))
-    if (is.na(row)) row <- 1
+    row <- .raster_row(
+        r_obj,
+        y = .raster_ymax(r_crop) - 0.5 * .raster_yres(r_crop)
+    )
 
-    col <- .raster_col(r_obj, x = .raster_xmin(r_crop))
-    if (is.na(col)) col <- 1
+    col <- .raster_col(
+        r_obj,
+        x = .raster_xmin(r_crop) + 0.5 * .raster_xres(r_crop)
+    )
 
     # set initial values
     si <- list(
-        first_row = row + 1,
-        first_col = col + 1,
+        first_row = row,
+        first_col = col,
         nrows = .raster_nrows(r_crop),
         ncols = .raster_ncols(r_crop),
         xmin = .raster_xmin(r_crop),
