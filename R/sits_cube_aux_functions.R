@@ -505,6 +505,12 @@
     if (length(unique(bands)) != 1)
         return(FALSE)
 
+    tolerance <- .config_get(
+        key = c("sources", .cube_source(cube),
+                "collections", .cube_collection(cube),
+                "ext_tolerance")
+    )
+
     if (!("wtss_cube" %in% class(cube)) &&
         !("satveg_cube" %in% class(cube))) {
         # check if the resolutions are unique
@@ -512,7 +518,13 @@
             .file_info_xres(tile)
         })
 
-        if (length(unique(unlist(res_cube_x))) != 1)
+        # tolerance between two resolutions
+        if (length(unique(unlist(res_cube_x))) > 2)
+            return(FALSE)
+
+        if (!all.equal(target = max(unlist(res_cube_x)),
+                       current = min(unlist(res_cube_x)),
+                       tolerance = tolerance))
             return(FALSE)
 
         # check if the resolutions are unique
@@ -520,7 +532,12 @@
             .file_info_yres(tile)
         })
 
-        if (length(unique(unlist(res_cube_y))) != 1)
+        if (length(unique(unlist(res_cube_y))) > 2)
+            return(FALSE)
+
+        if (!all.equal(target = max(unlist(res_cube_y)),
+                       current = min(unlist(res_cube_y)),
+                       tolerance = tolerance))
             return(FALSE)
     }
 
