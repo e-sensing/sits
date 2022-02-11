@@ -14,8 +14,8 @@ test_that("One-year, multicore classification with ROI", {
     )
 
     bbox <- sits_bbox(sinop)
-    bbox["xmax"] <- (bbox["xmax"] - bbox["xmin"]) / 2 + bbox["xmin"]
-    bbox["ymax"] <- (bbox["ymax"] - bbox["ymin"]) / 2 + bbox["ymin"]
+    bbox[["xmax"]] <- (bbox[["xmax"]] - bbox[["xmin"]]) / 2 + bbox[["xmin"]]
+    bbox[["ymax"]] <- (bbox[["ymax"]] - bbox[["ymin"]]) / 2 + bbox[["ymin"]]
 
 
     sinop_probs <- tryCatch({
@@ -42,9 +42,9 @@ test_that("One-year, multicore classification with ROI", {
 
     bbox_p <- sits_bbox(sinop_probs)
     expect_lte(bbox[["xmax"]], bbox_p[["xmax"]])
-    expect_lte(bbox["xmin"], bbox_p["xmin"])
-    expect_lte(bbox["ymax"], bbox_p["ymax"])
-    expect_lte(bbox["ymin"], bbox_p["ymin"])
+    expect_lte(bbox[["xmin"]], bbox_p[["xmin"]])
+    expect_lte(bbox[["ymax"]], bbox_p[["ymax"]])
+    expect_lte(bbox[["ymin"]], bbox_p[["ymin"]])
 
     max_lyr2 <- max(.raster_get_values(rc_obj)[, 2])
     expect_true(max_lyr2 <= 10000)
@@ -80,8 +80,8 @@ test_that("Functions that work with ROI", {
     )
     # create a roi
     roi <- sits_bbox(cube)
-    roi["xmax"] <- (roi["xmax"] - roi["xmin"]) / 2 + roi["xmin"]
-    roi["ymax"] <- (roi["ymax"] - roi["ymin"]) / 2 + roi["ymin"]
+    roi[["xmax"]] <- (roi[["xmax"]] - roi[["xmin"]]) / 2 + roi[["xmin"]]
+    roi[["ymax"]] <- (roi[["ymax"]] - roi[["ymin"]]) / 2 + roi[["ymin"]]
 
     # retrieve the bounding box for this ROI
     bbox_1 <- .sits_roi_bbox(roi, cube)
@@ -132,21 +132,21 @@ test_that("Internal functions in ROI", {
     expect_null(.sits_bbox_intersect(roi_2size, cube))
 
     bbox <- sits_bbox(cube)
-    bbox["xmax"] <- bbox["xmax"] + x_size
-    bbox["xmin"] <- bbox["xmin"] - x_size
-    bbox["ymax"] <- bbox["ymax"] + x_size
-    bbox["ymin"] <- bbox["ymin"] - x_size
+    bbox[["xmax"]] <- bbox[["xmax"]] + x_size
+    bbox[["xmin"]] <- bbox[["xmin"]] - x_size
+    bbox[["ymax"]] <- bbox[["ymax"]] + x_size
+    bbox[["ymin"]] <- bbox[["ymin"]] - x_size
 
     int_bbox <- .sits_bbox_intersect(bbox, cube)
     expect_true(all(int_bbox == sits_bbox(cube)))
 
     bb <- sits_bbox(cube)
-    bb["xmin"] <- bb["xmin"] + x_size / 4
-    bb["ymin"] <- bb["ymin"] + x_size / 4
+    bb[["xmin"]] <- bb[["xmin"]] + x_size / 4
+    bb[["ymin"]] <- bb[["ymin"]] + x_size / 4
 
     si <- .sits_raster_sub_image_from_bbox(bb, cube)
-    expect_true(si["first_row"] == 1)
-    expect_true(si["first_col"] == 63)
-    expect_true(si["nrows"] == 81)
-    expect_true(si["ncols"] == 191)
+    expect_equal(si[["first_row"]], 1)
+    expect_equal(si[["first_col"]], 64)
+    expect_equal(si[["nrows"]], 81)
+    expect_equal(si[["ncols"]], 191)
 })
