@@ -180,30 +180,31 @@
 
     # obtain coordinates from columns and rows
     if (!is.null(block)) {
-        # xmin
-        x1 <- terra::xFromCol(object = r_obj,
-                              col    = c(block[["first_col"]]))
-        # xmax
-        x2 <- terra::xFromCol(object = r_obj,
-                              col    = block[["first_col"]] + block[["ncols"]] - 1)
-        # ymax
-        y1 <- terra::yFromRow(object = r_obj,
-                              row    = c(block[["first_row"]]))
-        # ymin
-        y2 <- terra::yFromRow(object = r_obj,
-                              row    = block[["first_row"]] + block[["nrows"]] - 1)
+
+        # get extent
+        xmin <- terra::xFromCol(
+            object = r_obj,
+            col    = block[["first_col"]])
+        xmax <- terra::xFromCol(
+            object = r_obj,
+            col    = block[["first_col"]] + block[["ncols"]] - 1)
+        ymax <- terra::yFromRow(
+            object = r_obj,
+            row    = block[["first_row"]])
+        ymin <- terra::yFromRow(
+            object = r_obj,
+            row    = block[["first_row"]] + block[["nrows"]] - 1)
+
     } else if (!is.null(bbox)) {
 
-        x1 <- bbox[["xmin"]]
-        x2 <- bbox[["xmax"]]
-        y2 <- bbox[["ymin"]]
-        y1 <- bbox[["ymax"]]
+        xmin <- bbox[["xmin"]]
+        xmax <- bbox[["xmax"]]
+        ymin <- bbox[["ymin"]]
+        ymax <- bbox[["ymax"]]
     }
 
     # xmin, xmax, ymin, ymax
-    extent <- terra::ext(
-        x = c(x1, x2, y2, y1)
-    )
+    extent <- terra::ext(x = c(xmin, xmax, ymin, ymax))
 
     # crop raster
     suppressWarnings(
