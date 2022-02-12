@@ -81,6 +81,8 @@ information
 \item{delim}{delimiter for parsing files without STAC information
 (only for creating data cubes from local files).}
 
+\item{version}{a version of the classified cube.}
+
 \item{origin}{deprecated parameter formely used for local cubes
 (see documentation)}
 

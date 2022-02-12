@@ -139,6 +139,7 @@
 #' @param multicores        a number of workers for parallel processing in
 #'  local cubes
 #' @param progress          Show a progress bar?
+#' @param version           a version of the classified cube.
 #'
 #' @details The \code{roi} parameter allows a selection of an area of interest.
 #' Either using a named \code{vector} ("lon_min", "lat_min", "lon_max", "lat_max") with
