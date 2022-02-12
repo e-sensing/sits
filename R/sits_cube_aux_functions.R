@@ -369,8 +369,14 @@
 #' @param output_dir   prefix of the output files.
 #' @param version      version of the output files
 #' @return             output data cube
-.cube_derived_create <- function(cube, cube_class, band_name, labels,
-                                 start_date, end_date, bbox, output_dir,
+.cube_derived_create <- function(cube,
+                                 cube_class,
+                                 band_name,
+                                 labels,
+                                 start_date,
+                                 end_date,
+                                 bbox,
+                                 output_dir,
                                  version) {
 
     # set caller to show in errors
@@ -390,10 +396,7 @@
                         band_name, "_",
                         version, ".tif")
 
-    if (length(.file_info_xres(cube)) > 1 || length(.file_info_yres(cube)) > 1)
-        res <- .cube_resolution_template(cube)
-    else
-        res <- .cube_resolution(cube)
+    res <- .cube_resolution(cube)
 
     if (!purrr::is_null(bbox)) {
         sub_image <- .sits_raster_sub_image(tile = cube, roi = bbox)
@@ -410,8 +413,8 @@
         start_date = start_date,
         end_date   = end_date,
         xmin       = bbox[["xmin"]],
-        xmax       = bbox[["xmax"]],
         ymin       = bbox[["ymin"]],
+        xmax       = bbox[["xmax"]],
         ymax       = bbox[["ymax"]],
         xres       = res[["xres"]],
         yres       = res[["yres"]],
@@ -488,6 +491,40 @@
     return(values)
 }
 
+#' @title Verify if two cubes are equal
+#'
+#' @name .cube_is_equal
+#'
+#' @keywords internal
+#'
+#' @description Given two cubes verify if they are equal
+#'
+#' @param x,y   a sits cube
+#'
+#' @return a \code{logical} value.
+.cube_is_equal <- function(x, y) {
+
+    if (nrow(x) != nrow(y))
+        return(FALSE)
+
+    slider::slide2_lgl(x, y, function(xtile, ytile) {
+
+        test_metadata <- isTRUE(dplyr::all_equal(
+            dplyr::select(xtile, -.data[["file_info"]], -.data[["crs"]]),
+            dplyr::select(ytile, -.data[["file_info"]], -.data[["crs"]])
+        ))
+
+        test_file_info <- isTRUE(dplyr::all_equal(
+            xtile[["file_info"]][[1]],
+            ytile[["file_info"]][[1]]
+        ))
+
+        test_crs <- sf::st_crs(xtile[["crs"]]) == sf::st_crs(ytile[["crs"]])
+
+        return(all(c(test_metadata, test_file_info, test_crs)))
+    })
+}
+
 #' @title Check if cube is regular
 #' @name .cube_is_regular
 #' @keywords internal
@@ -495,8 +532,17 @@
 #'
 #' @param  cube         input data cube
 #' @return TRUE/FALSE
-#'
-.cube_is_regular <- function(cube){
+.cube_is_regular <- function(cube) {
+
+    source <- .source_new(source = .cube_source(cube))
+
+    # Dispatch
+    UseMethod(".cube_is_regular", source)
+}
+
+#' @name .cube_is_regular
+#' @export
+.cube_is_regular.raster_cube <- function(cube) {
 
     # check if all tiles have the same bands
     bands <- slider::slide(cube, function(tile) {
@@ -512,35 +558,41 @@
                 "ext_tolerance")
     )
 
-    if (!("wtss_cube" %in% class(cube)) &&
-        !("satveg_cube" %in% class(cube))) {
-        # check if the resolutions are unique
-        res_cube_x <- slider::slide(cube, function(tile){
-            .file_info_xres(tile)
-        })
+    # check if the resolutions are unique
+    equal_bbox <- slider::slide_lgl(cube, function(tile) {
 
-        # tolerance between two resolutions
-        if (length(unique(unlist(res_cube_x))) > 2)
-            return(FALSE)
+        file_info <- .file_info(tile)
 
-        if (!all.equal(target = max(unlist(res_cube_x)),
-                       current = min(unlist(res_cube_x)),
+        test <-
+            (.is_eq(max(file_info[["xmax"]]),
+                    min(file_info[["xmax"]]),
+                    tolerance = tolerance)
+             && .is_eq(max(file_info[["xmin"]]),
+                       min(file_info[["xmin"]]),
+                       tolerance = tolerance)
+             && .is_eq(max(file_info[["ymin"]]),
+                       min(file_info[["ymin"]]),
+                       tolerance = tolerance)
+             && .is_eq(max(file_info[["ymax"]]),
+                       min(file_info[["ymax"]]),
                        tolerance = tolerance))
-            return(FALSE)
 
-        # check if the resolutions are unique
-        res_cube_y <- slider::slide(cube, function(tile){
-            .file_info_yres(tile)
-        })
+        return(test)
+    })
 
-        if (length(unique(unlist(res_cube_y))) > 2)
-            return(FALSE)
+    if (!all(equal_bbox))
+        return(FALSE)
 
-        if (!all.equal(target = max(unlist(res_cube_y)),
-                       current = min(unlist(res_cube_y)),
-                       tolerance = tolerance))
-            return(FALSE)
-    }
+    # check if the resolutions are unique
+    cube_nrows <- slider::slide_int(cube, .file_info_nrows)
+
+    if (length(unique(unlist(cube_nrows))) != 1)
+        return(FALSE)
+
+    cube_ncols <- slider::slide_int(cube, .file_info_ncols)
+
+    if (length(unique(unlist(cube_ncols))) != 1)
+        return(FALSE)
 
     # check if timelines are unique
     timelines <- slider::slide(cube, function(tile){
@@ -632,6 +684,57 @@
     return(params)
 }
 
+#' @title Return the cube resolution of the x axis
+#' @name .cube_xres
+#' @keywords internal
+#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
+#'
+#' @param  cube         input data cube
+#' @return a numeric with the x resolution
+.cube_xres <- function(cube, bands = NULL) {
+
+    # get first file_info
+    tile_bbox <- .cube_tile_bbox(cube)
+
+    # tile template
+    xres <- abs(
+        (tile_bbox[["xmax"]] - tile_bbox[["xmin"]]) / .file_info_ncols(cube)
+    )
+
+
+    # post-condition
+    .check_num(xres, min = 0, allow_zero = FALSE,
+               len_min = 1, len_max = 1,
+               msg = "invalid xres value")
+
+    return(xres)
+}
+
+#' @title Return the cube resolution of the y axis
+#' @name .cube_yres
+#' @keywords internal
+#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
+#'
+#' @param  cube         input data cube
+#' @return a numeric with the y resolution
+.cube_yres <- function(cube, bands = NULL) {
+
+    # get first file_info
+    tile_bbox <- .cube_tile_bbox(cube)
+
+    # tile template
+    yres <- abs(
+        (tile_bbox[["ymax"]] - tile_bbox[["ymin"]]) / .file_info_nrows(cube)
+    )
+
+    # post-condition
+    .check_num(yres, min = 0, allow_zero = FALSE,
+               len_min = 1, len_max = 1,
+               msg = "invalid xres value")
+
+    return(yres)
+}
+
 #' @title Return the resolution of the cube
 #' @name .cube_resolution
 #' @keywords internal
@@ -641,54 +744,7 @@
 #' @return a vector with the x and y resolution
 .cube_resolution <- function(cube, bands = NULL) {
 
-    # get first file_info
-    xres <- .file_info_xres(cube)
-    yres <- .file_info_yres(cube)
-
-    # post-condition
-    .check_num(xres, min = 0, allow_zero = FALSE,
-               len_min = 1, len_max = 1,
-               msg = "invalid xres value")
-
-    # post-condition
-    .check_num(yres, min = 0, allow_zero = FALSE,
-               len_min = 1, len_max = 1,
-               msg = "invalid yres value")
-
-    res <- c(xres = xres, yres = yres)
-
-    return(res)
-}
-
-#' @title Return the resolution by the template of a tile
-#' @name .cube_resolution_template
-#' @keywords internal
-#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
-#'
-#' @param  cube input data cube
-#' @return a vector with the x and y resolution generate by the raster package.
-#'  By default the terra package is used.
-.cube_resolution_template <- function(cube, bands = NULL) {
-
-    tile_bbox <- .cube_tile_bbox(cube)
-
-    # tile template
-    template_rast <- .raster_new_rast(
-        nrows = .file_info_nrows(cube),
-        ncols = .file_info_ncols(cube),
-        xmin = tile_bbox[["xmin"]],
-        xmax = tile_bbox[["xmax"]],
-        ymin = tile_bbox[["ymin"]],
-        ymax = tile_bbox[["ymax"]],
-        crs = .cube_crs(cube)
-    )
-
-    res <- c(
-        xres = terra::xres(template_rast),
-        yres = terra::yres(template_rast)
-    )
-
-    return(res)
+    return(c(xres = .cube_xres(cube), yres = .cube_yres(cube)))
 }
 
 #' @title Return the S3 class of the cube
@@ -791,6 +847,7 @@
     bbox["ymin"] <-  cube["ymin"]
     bbox["xmax"] <-  cube["xmax"]
     bbox["ymax"] <-  cube["ymax"]
+
     # post-condition
     .check_lst(bbox, min_len = 4, max_len = 4, fn_check = .check_num,
                len_min = 1, len_max = 1,
@@ -798,6 +855,3 @@
 
     return(bbox)
 }
-
-
-
