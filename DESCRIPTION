@@ -96,6 +96,7 @@ Collate:
     'sits_classification.R'
     'sits_classify_ts.R'
     'sits_classify_cube.R'
+    'sits_compare.R'
     'sits_config.R'
     'sits_csv.R'
     'sits_cube.R'

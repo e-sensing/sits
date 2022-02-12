@@ -2,6 +2,7 @@
 
 S3method("sits_labels<-",probs_cube)
 S3method("sits_labels<-",sits)
+S3method(.cube_is_regular,raster_cube)
 S3method(.gc_arrange_images,default)
 S3method(.gc_arrange_images,first)
 S3method(.raster_check_package,terra)
