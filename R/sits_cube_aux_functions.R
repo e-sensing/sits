@@ -390,7 +390,10 @@
                         band_name, "_",
                         version, ".tif")
 
-    res <- .cube_resolution(cube)
+    if (length(.file_info_xres(cube)) > 1 || length(.file_info_yres(cube)) > 1)
+        res <- .cube_resolution_template(cube)
+    else
+        res <- .cube_resolution(cube)
 
     if (!purrr::is_null(bbox)) {
         sub_image <- .sits_raster_sub_image(tile = cube, roi = bbox)
@@ -416,13 +419,11 @@
         ncols      = ncols_cube_class,
         path       = file_name
     )
-    # get source and collection
-    source     = .cube_source(cube)
-    collection = .cube_collection(cube)
+
     # set the metadata for the probability cube
     dev_cube <- .cube_create(
-        source     = cube$source,
-        collection = cube$collection,
+        source     = .cube_source(cube),
+        collection = .cube_collection(cube),
         satellite  = cube$satellite,
         sensor     = cube$sensor,
         tile       = cube$tile,
@@ -655,6 +656,37 @@
                msg = "invalid yres value")
 
     res <- c(xres = xres, yres = yres)
+
+    return(res)
+}
+
+#' @title Return the resolution by the template of a tile
+#' @name .cube_resolution_template
+#' @keywords internal
+#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
+#'
+#' @param  cube input data cube
+#' @return a vector with the x and y resolution generate by the raster package.
+#'  By default the terra package is used.
+.cube_resolution_template <- function(cube, bands = NULL) {
+
+    tile_bbox <- .cube_tile_bbox(cube)
+
+    # tile template
+    template_rast <- .raster_new_rast(
+        nrows = .file_info_nrows(cube),
+        ncols = .file_info_ncols(cube),
+        xmin = tile_bbox[["xmin"]],
+        xmax = tile_bbox[["xmax"]],
+        ymin = tile_bbox[["ymin"]],
+        ymax = tile_bbox[["ymax"]],
+        crs = .cube_crs(cube)
+    )
+
+    res <- c(
+        xres = terra::xres(template_rast),
+        yres = terra::yres(template_rast)
+    )
 
     return(res)
 }

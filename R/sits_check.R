@@ -514,8 +514,11 @@ NULL
     if (!is.null(max) && !is.numeric(max))
         stop(".check_num: max parameter should be numeric.")
 
-    if (!is.null(tolerance) && !tolerance > 0)
-        stop(".check_num: tolerance parameter should be greater than zero.")
+    if (!is.null(tolerance))
+        .check_num(
+            x = tolerance,
+            msg = "tolerance must be numeric."
+        )
 
     # remove NAs before check
     result <- x
