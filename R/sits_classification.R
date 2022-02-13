@@ -237,14 +237,12 @@ sits_classify.raster_cube <- function(data, ml_model, ...,
                 msg = "invalid output dir")
 
     # precondition - version
-    .check_chr(x = version,
-               len_min = 1,
-               msg = "invalid version")
+    .check_chr(x = version, len_min = 1, msg = "invalid version")
 
     # filter only intersecting tiles
-    intersects <- slider::slide_lgl(data,
-                                    .sits_raster_sub_image_intersects,
-                                    roi)
+    intersects <- slider::slide_lgl(
+        data, .sits_raster_sub_image_intersects, roi = roi
+    )
 
     # retrieve only intersecting tiles
     data <- data[intersects, ]
@@ -276,9 +274,10 @@ sits_classify.raster_cube <- function(data, ml_model, ...,
         n_tile <- length(sits_timeline(tile))
 
         .check_that(
-            x = n_samples == n_tile,
+            n_samples == n_tile,
             msg = "number of instances of samples and cube differ"
         )
+
         # classify the data
         probs_row <- .sits_classify_multicores(
             tile       = tile,
