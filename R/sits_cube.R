@@ -397,35 +397,39 @@ sits_cube.local_cube <- function(source,
         message("please use bands instead of band as parameter")
         bands <- as.character(dots[["band"]])
     }
+
     # is this a cube wih results?
-    if (!purrr::is_null(bands) && bands %in% .config_get("sits_results_bands")) {
+    if (!purrr::is_null(bands)
+        && bands %in% .config_get("sits_results_bands")) {
+
         .check_that(length(bands) == 1,
                     msg = "results cube should have only one band")
-        cube <- .local_results_cube(source = source,
-                                    collection = collection,
-                                    data_dir = data_dir,
-                                    parse_info = parse_info,
-                                    delim = delim,
-                                    bands = bands,
-                                    labels = labels,
-                                    start_date = start_date,
-                                    end_date = end_date,
-                                    version = version,
-                                    ...
 
+        cube <- .local_results_cube(
+            source     = source,
+            collection = collection,
+            data_dir   = data_dir,
+            parse_info = parse_info,
+            delim      = delim,
+            bands      = bands,
+            labels     = labels,
+            start_date = start_date,
+            end_date   = end_date,
+            version    = version, ...
         )
     } else
         # builds a sits data cube
-        cube <- .local_cube(source = source,
-                            collection = collection,
-                            data_dir = data_dir,
-                            parse_info = parse_info,
-                            delim = delim,
-                            bands = bands,
-                            start_date = start_date,
-                            end_date = end_date,
-                            multicores = multicores,
-                            progress = progress, ...
+        cube <- .local_cube(
+            source     = source,
+            collection = collection,
+            data_dir   = data_dir,
+            parse_info = parse_info,
+            delim      = delim,
+            bands      = bands,
+            start_date = start_date,
+            end_date   = end_date,
+            multicores = multicores,
+            progress   = progress, ...
         )
     return(cube)
 }

@@ -2,7 +2,7 @@
 #' @export
 .source_collection_access_test.stac_cube <- function(source, collection,
                                                      bands, ...,
-                                                     dry_run = TRUE) {
+                                                     dry_run = FALSE) {
     # require package
     if (!requireNamespace("rstac", quietly = TRUE)) {
         stop("Please install package rstac", call. = FALSE)
