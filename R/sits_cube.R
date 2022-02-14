@@ -400,7 +400,7 @@ sits_cube.local_cube <- function(source,
 
     # is this a cube wih results?
     if (!purrr::is_null(bands)
-        && bands %in% .config_get("sits_results_bands")) {
+        && all(bands %in% .config_get("sits_results_bands"))) {
 
         .check_that(length(bands) == 1,
                     msg = "results cube should have only one band")
