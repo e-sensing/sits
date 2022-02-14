@@ -4,7 +4,15 @@
 \alias{.reg_preprocess_rast}
 \title{Preprocessing steps of sits regularize}
 \usage{
-.reg_preprocess_rast(tile, band_paths, resolution, resampling, block)
+.reg_preprocess_rast(
+  tile,
+  band_paths,
+  resolution,
+  resampling,
+  block,
+  datatype,
+  filename
+)
 }
 \arguments{
 \item{tile}{A unique tile from \code{sits_cube} object}

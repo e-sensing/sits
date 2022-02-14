@@ -92,6 +92,8 @@
     # set caller to show in errors
     .check_set_caller(".reg_new_cube")
 
+    fi <- .file_info(tile_period_band)
+
     t_band <- .cube_bands(tile_period_band, add_cloud = FALSE)
 
     # get the interp values
@@ -105,54 +107,97 @@
     # for each block
     blocks_reg_path <- purrr::map_chr(blocks, function(block) {
 
-        c_paths <- .file_info_paths(
-            cube = tile_period_band,
-            bands = .source_cloud()
-        )
+        block_band_dates <- slider::slide_chr(unique(fi[["fid"]]), function(fid) {
 
-        b_paths <- .file_info_paths(
-            cube = tile_period_band,
-            bands = t_band
-        )
+            fi_fid <- dplyr::filter(fi, .data[["fid"]] == !!fid)
+            fid_date <- unique(fi_fid[["date"]])
 
-        band_filename_block <- .reg_create_filename(
-            tile = tile_period_band,
+            band_date_block <- .reg_create_filename(
+                file_info = fi_fid,
+                date_period = fid_date,
+                output_dir = output_dir,
+                band = t_band,
+                block = block
+            )
+
+            cloud_date_block <- .reg_create_filename(
+                file_info = fi_fid,
+                date_period = fid_date,
+                output_dir = output_dir,
+                band = .source_cloud(),
+                block = block
+            )
+
+            c_paths <- .file_info_paths(
+                cube = tile_period_band,
+                bands = .source_cloud(),
+                dates = fid_date
+            )
+
+            b_paths <- .file_info_paths(
+                cube = tile_period_band,
+                bands = t_band,
+                dates = fid_date
+            )
+
+            # cloud preprocess
+            c_chunk_res <- .reg_preprocess_rast(
+                tile = tile_period_band,
+                band_paths = c_paths,
+                resolution = res,
+                resampling = .config_get("cat_resampling_methods"),
+                block = block,
+                datatype = reg_datatype,
+                filename = cloud_date_block
+            )
+
+            # band preprocess
+            b_chunk_res <- .reg_preprocess_rast(
+                tile = tile_period_band,
+                band_paths = b_paths,
+                resolution = res,
+                resampling = resampling,
+                block = block,
+                datatype = reg_datatype,
+                filename = band_date_block
+            )
+
+            # mask band
+            b_mask <- .reg_apply_mask_rast(
+                rast = b_chunk_res,
+                mask_rast = c_chunk_res,
+                interp_values = interp_values,
+                filename = band_date_block,
+                datatype = reg_datatype,
+            )
+
+            unlink(cloud_date_block)
+            gc()
+
+            return(band_date_block)
+        })
+
+        # .reg_aggregate_chunk(
+        #     rast_stack = b_mask,
+        #     filename = band_filename_block,
+        #     datatype = reg_datatype
+        # )
+
+        band_date_block <- .reg_create_filename(
+            file_info = .file_info(tile_period_band),
             date_period = date_period,
             output_dir = output_dir,
+            band = t_band,
             block = block
         )
 
-        # cloud preprocess
-        c_chunk_res <- .reg_preprocess_rast(
-            tile = tile_period_band,
-            band_paths = c_paths,
-            resolution = res,
-            resampling = .config_get("cat_resampling_methods"),
-            block = block
-        )
-
-        # band preprocess
-        b_chunk_res <- .reg_preprocess_rast(
-            tile = tile_period_band,
-            band_paths = b_paths,
-            resolution = res,
-            resampling = resampling,
-            block = block
-        )
-
-        # mask band
-        b_mask <- .reg_apply_mask_rast(
-            rast = b_chunk_res,
-            mask_rast = c_chunk_res,
-            interp_values = interp_values,
-            filename = band_filename_block,
-            datatype = reg_datatype,
-        )
-
-        .reg_aggregate_chunk(
-            rast_stack = b_mask,
-            filename = band_filename_block,
-            datatype = reg_datatype
+        .raster_merge(
+            in_files = block_band_dates,
+            out_file = output_filename,
+            format = "GTiff",
+            gdal_datatype = .raster_gdal_datatype(reg_datatype),
+            gdal_options = .config_gtiff_default_options(),
+            overwrite = TRUE
         )
 
         return(band_filename_block)
@@ -196,16 +241,29 @@
 #' @param block      A \code{numeric} vector with information about a block
 #'
 #' @return A \code{SpatRast} object resampled
-.reg_preprocess_rast <- function(tile, band_paths, resolution, resampling, block) {
+.reg_preprocess_rast <- function(tile,
+                                 band_paths,
+                                 resolution,
+                                 resampling,
+                                 block,
+                                 datatype,
+                                 filename) {
 
     rast <- terra::rast(band_paths)
 
-    chunk_rast <- .reg_get_chunk_rast(rast = rast, block = block)
+    chunk_rast <- .reg_get_chunk_rast(
+        rast = rast,
+        block = block,
+        datatype = datatype,
+        filename = filename
+        )
 
     res_rast <- .reg_resample_rast(
         rast = chunk_rast,
         resolution = resolution,
-        resampling = resampling
+        resampling = resampling,
+        datatype = datatype,
+        filename = filename
     )
 
     return(res_rast)
@@ -217,7 +275,7 @@
 #'
 #' @keywords internal
 #'
-#' @param tile         A unique tile from \code{sits_cube} object
+#' @param file_info         A unique tile from \code{sits_cube} object
 #'
 #' @param date_period  A \code{character} vector with two position, first one is
 #' the start date and second one is the end date.
@@ -227,14 +285,18 @@
 #'
 #' @param block      A \code{numeric} vector with information about a block
 #'
+#' @param band       ....
+#'
 #' @return A \code{character} with the file name of resampled image.
-.reg_create_filename <- function(tile, date_period, output_dir, block = NULL) {
+.reg_create_filename <- function(file_info, date_period, output_dir, band, block = NULL) {
 
-    t_band <- .cube_bands(tile, add_cloud = FALSE)
+    file_info_band <- dplyr::filter(file_info, .data[["band"]] == !!band)
+
+    # TODO: check if nrow is one
 
     file_ext <- unique(
         tools::file_ext(
-            x = gsub(".*/([^?]*)\\??.*$", "\\1", .file_info_paths(tile))
+            x = gsub(".*/([^?]*)\\??.*$", "\\1", file_info_band[["path"]])
         )
     )
 
@@ -245,7 +307,7 @@
         msg = "invalid files extensions."
     )
 
-    b_filename <- paste("cube", .cube_tiles(tile), date_period, t_band, sep = "_")
+    b_filename <- paste("cube", unique(file_info[["tile"]]), date_period, band, sep = "_")
 
     if (!is.null(block)) {
 
@@ -271,7 +333,7 @@
 #' @param block A \code{numeric} vector with information about a block
 #'
 #' @return A \code{SpatRast} object cropped.
-.reg_get_chunk_rast <- function(rast, block) {
+.reg_get_chunk_rast <- function(rast, block, filename, datatype) {
 
     r_ext <- terra::rast(
         resolution = c(terra::xres(rast), terra::yres(rast)),
@@ -291,9 +353,16 @@
 
     terra::ext(r_ext) <- bbox_ext
 
-    return(
-        terra::crop(x = rast, y = r_ext)
+    cropped_rast <- terra::crop(
+        x = rast,
+        y = r_ext,
+        NAflag = .config_get("raster_cube_missing_value"),
+        filename = filename,
+        datatype = datatype,
+        overwrite = TRUE
     )
+
+    return(cropped_rast)
 }
 
 #' @title Resample raster to a resolution
@@ -314,7 +383,11 @@
 #' @param ...        additional paramters for terra resample methods.
 #'
 #' @return A \code{SpatRast} object resample
-.reg_resample_rast <- function(rast, resolution, resampling, ...) {
+.reg_resample_rast <- function(rast,
+                               resolution,
+                               resampling,
+                               datatype,
+                               filename, ...) {
 
     t_bbox <- terra::ext(rast)
 
@@ -334,7 +407,10 @@
         x = rast,
         y = new_rast,
         method = resampling,
-        ...
+        NAflag = .config_get("raster_cube_missing_value"),
+        datatype = datatype,
+        filename = filename,
+        overwrite = TRUE, ...
     )
 
     return(img_out)
@@ -362,7 +438,8 @@
         mask = mask_rast,
         maskvalues = interp_values,
         gdal = .config_gtiff_default_options(),
-        ...
+        NAflag = .config_get("raster_cube_missing_value"),
+        overwrite = TRUE, ...
     )
 
     return(img_r)
@@ -389,7 +466,8 @@
         filename = filename,
         datatype = datatype,
         gdal = .config_gtiff_default_options(),
-        overwrite = TRUE, ...
+        overwrite = TRUE,
+        NAflag = .config_get("raster_cube_missing_value"), ...
     )
 
     return(invisible(NULL))

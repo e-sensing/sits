@@ -4,16 +4,18 @@
 \alias{.reg_create_filename}
 \title{Create the merge image filename}
 \usage{
-.reg_create_filename(tile, date_period, output_dir, block = NULL)
+.reg_create_filename(file_info, date_period, output_dir, band, block = NULL)
 }
 \arguments{
-\item{tile}{A unique tile from \code{sits_cube} object}
+\item{file_info}{A unique tile from \code{sits_cube} object}
 
 \item{date_period}{A \code{character} vector with two position, first one is
 the start date and second one is the end date.}
 
 \item{output_dir}{A \code{character} with a valid directory where the
 regularized images will be written.}
+
+\item{band}{....}
 
 \item{block}{A \code{numeric} vector with information about a block}
 }

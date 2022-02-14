@@ -4,7 +4,7 @@
 \alias{.reg_resample_rast}
 \title{Resample raster to a resolution}
 \usage{
-.reg_resample_rast(rast, resolution, resampling, ...)
+.reg_resample_rast(rast, resolution, resampling, datatype, filename, ...)
 }
 \arguments{
 \item{rast}{A \code{SpatRast} object}
