@@ -150,7 +150,7 @@
         )
 
         .reg_aggregate_chunk(
-            stack_rast = b_mask,
+            rast_stack = b_mask,
             filename = band_filename_block,
             datatype = reg_datatype
         )
@@ -173,7 +173,7 @@
         overwrite = TRUE
     )
 
-    return(r_filename)
+    return(output_filename)
 }
 
 #' @title Preprocessing steps of sits regularize
