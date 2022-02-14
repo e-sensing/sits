@@ -583,15 +583,16 @@
     if (!all(equal_bbox))
         return(FALSE)
 
-    # check if the resolutions are unique
-    cube_nrows <- slider::slide_int(cube, .file_info_nrows)
+    # check if the size are unique
+    test_cube_size <- slider::slide_lgl(cube, function(tile) {
 
-    if (length(unique(unlist(cube_nrows))) != 1)
-        return(FALSE)
+        if (length(unique(.file_info(tile)[["nrows"]])) > 1
+            || length(unique(.file_info(tile)[["ncols"]])) > 1)
+            return(FALSE)
+        return(TRUE)
+    })
 
-    cube_ncols <- slider::slide_int(cube, .file_info_ncols)
-
-    if (length(unique(unlist(cube_ncols))) != 1)
+    if (!all(test_cube_size))
         return(FALSE)
 
     # check if timelines are unique
@@ -605,6 +606,13 @@
     # function to test timelines
     return(length(unique(timelines)) == 1 &&
                any(sapply(timelines, length) == 1))
+}
+
+#' @name .cube_is_regular
+#' @export
+.cube_is_regular.default <- function(cube) {
+
+    return(TRUE)
 }
 
 #' @title Return the labels of the cube
