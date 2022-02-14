@@ -11,6 +11,9 @@
 
 \item{tile}{tile to be plotted (in case of a multi-tile cube)}
 }
+\value{
+a \code{raster} object
+}
 \description{
 Return the r_object associated to classified cube (RATified)
 }

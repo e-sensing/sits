@@ -366,7 +366,6 @@ sits_view.raster_cube <- function(x, ...,
 #' @rdname sits_view
 #'
 #' @export
-#'
 sits_view.classified_image <- function(x,...,
                                        tiles = NULL,
                                        legend = NULL,
@@ -445,14 +444,16 @@ sits_view.classified_image <- function(x,...,
 
 #' @title  Reduce an RGB image for visualisation and load files in tempdir
 #' @name .view_reshape_rgb
+#'
+#' @keywords internal
+#'
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'
 #' @param  rgb_files     vector with RGB files.
 #' @param  date          date reference for the file
 #' @param  max_Mbytes    maximum number of megabytes to be shown in leaflet
+#'
 #' @return               Raster Stack with RGB object
-#' @keywords internal
-
 .view_reshape_rgb <- function(rgb_files, date, max_Mbytes) {
 
 
@@ -518,15 +519,18 @@ sits_view.classified_image <- function(x,...,
 
     return(r_obj)
 }
+
 #' @title  Reduce B/W image for visualisation and load files in tempdir
 #' @name .view_reshape_band
+#'
+#' @keywords internal
+#'
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'
 #' @param  band_file     file for B/W band.
 #' @param  date          date reference for the file
 #' @param  max_Mbytes    maximum number of megabytes to be shown in leaflet
 #' @return               Raster Stack with RGB object
-#' @keywords internal
 .view_reshape_band <- function(band_file, date, max_Mbytes) {
 
     # open raster object
@@ -572,13 +576,15 @@ sits_view.classified_image <- function(x,...,
 
 #' @title  Return the r_object associated to classified cube (RATified)
 #' @name .view_class_cube
+#'
+#' @keywords internal
+#'
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'
 #' @param  class_cube    object of class "classified image"
 #' @param  tile          tile to be plotted (in case of a multi-tile cube)
-#' @keywords internal
 #'
-#'
+#' @return a \code{raster} object
 .view_class_cube <- function(class_cube, tile){
 
     # get the labels
@@ -610,14 +616,16 @@ sits_view.classified_image <- function(x,...,
 
 #' @title  Return the colors associated to the classified image
 #' @name .view_get_colors
+#'
+#' @keywords internal
+#'
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'
 #' @param  labels        labels of the classified cube
 #' @param  legend        named vector that associates labels to colors
 #' @param  palette       palette provided in the configuration file
-#' @keywords internal
 #'
-#'
+#' @return a \code{character} vector with colors palette.
 .view_get_colors <- function(labels, legend, palette){
     # if colors are not specified, get them from the configuration file
     if (purrr::is_null(legend)) {

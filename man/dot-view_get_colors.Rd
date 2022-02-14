@@ -13,6 +13,9 @@
 
 \item{palette}{palette provided in the configuration file}
 }
+\value{
+a \code{character} vector with colors palette.
+}
 \description{
 Return the colors associated to the classified image
 }
