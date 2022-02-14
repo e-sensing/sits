@@ -53,7 +53,7 @@
 #'
 #' @keywords internal
 #'
-#' @param tile         A unique tile from \code{sits_cube} object
+#' @param tile_period_band A unique tile from \code{sits_cube} object
 #'
 #' @param res          A \code{numeric} with spatial resolution of the image
 #'  that will be aggregated.
@@ -76,108 +76,56 @@
 #'  \code{least_cc_first}. The default aggregation method is
 #'  \code{least_cc_first}. See more above.
 #'
-#' @param multithreads A \code{numeric} value that specifies the number of
-#'  threads used in the regularization process.
-#'  By default 2 threads are used.
+#' @param blocks ...
 #'
-#' @param memsize A \code{numeric} with memory available for regularization
-#'  (in GB).
+#' @param date_period ...
 #'
 #' @return  A data cube tile with information used in its creation.
-.reg_new_cube <- function(tile,
+.reg_new_cube <- function(tile_period_band,
                           res,
-                          period,
+                          blocks,
+                          date_period,
                           resampling,
                           roi,
-                          output_dir,
-                          multithreads,
-                          memsize) {
+                          output_dir) {
 
     # set caller to show in errors
     .check_set_caller(".reg_new_cube")
 
-    t_band <- .cube_bands(tile, add_cloud = FALSE)
-
-    if (purrr::is_null(roi))
-        sub_image <- .sits_raster_sub_image_default(tile)
-    else
-        sub_image <- .sits_raster_sub_image(tile = tile, roi = roi)
-
-    blocks <- .sits_raster_blocks_apply(
-        tile = tile,
-        sub_image = sub_image,
-        memsize = memsize,
-        multicores = multithreads
-    )
-
-    blocks_dates <- purrr::cross2(blocks, sits_timeline(tile))
+    t_band <- .cube_bands(tile_period_band, add_cloud = FALSE)
 
     # get the interp values
     interp_values <- .source_cloud_interp_values(
-        source = .cube_source(cube = tile),
-        collection = .cube_collection(cube = tile)
+        source = .cube_source(cube = tile_period_band),
+        collection = .cube_collection(cube = tile_period_band)
     )
 
     reg_datatype <- .config_get("raster_cube_data_type")
 
-    # prepare parallel requests
-    # if (is.null(sits_env[["cluster"]])) {
-    #     .sits_parallel_start(workers = multithreads, log = FALSE)
-    #     on.exit(.sits_parallel_stop(), add = TRUE)
-    # }
-
     # for each block
-    #b_reg_path <- .sits_parallel_map(blocks, function(b) {
-    b_reg_path <- purrr::map_dfr(blocks_dates, function(block_date) {
+    blocks_reg_path <- purrr::map_chr(blocks, function(block) {
 
-        block <- block_date[[1]]
-        date <- block_date[[2]]
-
-        c_path <- .file_info_paths(
-            cube = tile,
-            bands = .source_cloud(),
-            dates = date
+        c_paths <- .file_info_paths(
+            cube = tile_period_band,
+            bands = .source_cloud()
         )
 
-        b_path <- .file_info_paths(
-            cube = tile,
-            bands = .cube_bands(tile, FALSE),
-            dates = date
+        b_paths <- .file_info_paths(
+            cube = tile_period_band,
+            bands = t_band
         )
 
-        band_filename_block <- .reg_create_filaname(
-            tile = tile,
-            date = date,
+        band_filename_block <- .reg_create_filename(
+            tile = tile_period_band,
+            date_period = date_period,
             output_dir = output_dir,
             block = block
         )
 
-        if (file.exists(band_filename_block)) {
-
-            # try to open the band files
-            r_obj <- tryCatch({
-                .raster_open_rast(band_filename_block)
-            }, error = function(e) {
-                return(NULL)
-            })
-
-            # if file can be opened, check if the result is correct
-            # this file will not be processed again
-            if (!purrr::is_null(r_obj))
-                if (.raster_nrows(r_obj) == b[["nrows"]]) {
-                    # log
-                    .sits_debug_log(output_dir = output_dir,
-                                    event      = "skipping block",
-                                    key        = "block file",
-                                    value      = band_filename_block)
-                    return(band_filename_block)
-                }
-        }
-
         # cloud preprocess
         c_chunk_res <- .reg_preprocess_rast(
-            tile = tile,
-            band_paths = c_path,
+            tile = tile_period_band,
+            band_paths = c_paths,
             resolution = res,
             resampling = .config_get("cat_resampling_methods"),
             block = block
@@ -185,8 +133,8 @@
 
         # band preprocess
         b_chunk_res <- .reg_preprocess_rast(
-            tile = tile,
-            band_paths = b_path,
+            tile = tile_period_band,
+            band_paths = b_paths,
             resolution = res,
             resampling = resampling,
             block = block
@@ -201,85 +149,31 @@
             datatype = reg_datatype,
         )
 
-        tibble::tibble(
-            date = date,
-            path = band_filename_block,
-            block = block[["first_row"]]
-        )
-    #}, progress = FALSE)
-    })
-
-    b_merge_filename <- .reg_create_filaname(
-        tile = tile,
-        date = period[[1]],
-        output_dir = output_dir
-    )
-
-    blocks <- unique(b_reg_path[["block"]])
-    purrr::map(blocks, function(block) {
-
-        # b_merge_filename_block <- .reg_create_filaname(
-        #     tile = tile,
-        #     date = period[[1]],
-        #     output_dir = output_dir,
-        #     block = block
-        # )
-        b_merge_filename_block <- tempfile(pattern = block)
-
-        block_paths <- dplyr::filter(b_reg_path, .data[["block"]] == !!block)
-
-        .reg_merge_chunks(
-            tbl_rast = block_paths[["rast"]],
-            filename = b_merge_filename_block,
+        .reg_aggregate_chunk(
+            stack_rast = b_mask,
+            filename = band_filename_block,
             datatype = reg_datatype
         )
 
-        b_merge_filename_block
+        return(band_filename_block)
     })
 
-    # join chunks
-    .reg_merge_chunks(
-        tbl_rast = b_reg_path,
-        filename = b_merge_filename,
-        datatype = reg_datatype
-    )
-
-    r_filename <- paste0(
+    output_filename <- paste0(
         output_dir, "/",
-        paste("cube", .cube_tiles(tile), period[[1]], t_band, sep = "_"),
+        paste("cube", .cube_tiles(tile_period_band), date_period, t_band, sep = "_"),
         ".", "tif"
     )
 
     .raster_merge(
-        in_files = unlist(b_reg_path),
-        out_file = r_filename,
+        in_files = blocks_reg_path,
+        out_file = output_filename,
         format = "GTiff",
         gdal_datatype = .raster_gdal_datatype(reg_datatype),
         gdal_options = .config_gtiff_default_options(),
         overwrite = TRUE
     )
 
-    b_reg_rast <- terra::rast(r_filename)
-
-    # set file info values
-    file_info <- tibble::tibble(
-        fid = paste("cube", .cube_tiles(tile), start_date, sep = "_"),
-        date = start_date,
-        band = t_band,
-        xres  = terra::xres(b_reg_rast),
-        yres  = terra::yres(b_reg_rast),
-        xmin  = terra::xmin(b_reg_rast),
-        xmax  = terra::xmax(b_reg_rast),
-        ymin  = terra::ymin(b_reg_rast),
-        ymax  = terra::ymax(b_reg_rast),
-        nrows = terra::nrow(b_reg_rast),
-        ncols = terra::ncol(b_reg_rast),
-        path = r_filename
-    )
-
-    tile[["file_info"]][[1]] <- file_info
-
-    return(tile)
+    return(r_filename)
 }
 
 #' @title Preprocessing steps of sits regularize
@@ -319,13 +213,13 @@
 
 #' @title Create the merge image filename
 #'
-#' @name .reg_create_filaname
+#' @name .reg_create_filename
 #'
 #' @keywords internal
 #'
 #' @param tile         A unique tile from \code{sits_cube} object
 #'
-#' @param period       A \code{character} vector with two position, first one is
+#' @param date_period  A \code{character} vector with two position, first one is
 #' the start date and second one is the end date.
 #'
 #' @param output_dir   A \code{character} with a valid directory where the
@@ -334,7 +228,7 @@
 #' @param block      A \code{numeric} vector with information about a block
 #'
 #' @return A \code{character} with the file name of resampled image.
-.reg_create_filaname <- function(tile, date, output_dir, block = NULL) {
+.reg_create_filename <- function(tile, date_period, output_dir, block = NULL) {
 
     t_band <- .cube_bands(tile, add_cloud = FALSE)
 
@@ -351,7 +245,8 @@
         msg = "invalid files extensions."
     )
 
-    b_filename <- paste("cube", .cube_tiles(tile), date, t_band, sep = "_")
+    b_filename <- paste("cube", .cube_tiles(tile), date_period, t_band, sep = "_")
+
     if (!is.null(block)) {
 
         currently_row <- block[["first_row"]]
@@ -473,12 +368,12 @@
     return(img_r)
 }
 
-#' @title Merge raster chunks
-#' @name .reg_merge_chunks
+#' @title Aggregate raster chunk
+#' @name .reg_aggregate_chunk
 #'
 #' @keywords internal
 #'
-#' @param rast     A \code{SpatRast} object
+#' @param rast_stack     A \code{SpatRast} object
 #'
 #' @param filename A \code{character} with filename of the rast.
 #'
@@ -487,19 +382,14 @@
 #' @param ...      additional paramters for terra merge methods.
 #'
 #' @return An invisible null
-.reg_merge_chunks <- function(file_paths, filename, datatype, ...) {
-
-    t_rast_list <- purrr::map(file_paths, function(file_path) {
-        terra::rast(file_path)
-    })
+.reg_aggregate_chunk <- function(rast_stack, filename, datatype, ...) {
 
     terra::merge(
-        x =  terra::src(t_rast_list),
+        x =  terra::src(rast_stack),
         filename = filename,
         datatype = datatype,
         gdal = .config_gtiff_default_options(),
-        overwrite = TRUE,
-        ...
+        overwrite = TRUE, ...
     )
 
     return(invisible(NULL))

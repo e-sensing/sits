@@ -208,9 +208,9 @@ sits_regularize <- function(cube,
         cube <- cube[intersects, ]
     }
 
-    # timeline of intersection
-    timeline <- .gc_get_valid_timeline(cube, period = period)
-    toi <- c(timeline[[1]], timeline[[length(timeline)]])
+    # timeline of intersection (toi)
+    reg_timeline <- .gc_get_valid_timeline(cube, period = period)
+    toi <- c(reg_timeline[[1]], reg_timeline[[length(reg_timeline)]])
 
     # matches the start dates of different tiles
     cube[["file_info"]] <- purrr::map(
@@ -228,10 +228,6 @@ sits_regularize <- function(cube,
         agg_method = agg_method,
         duration = duration
     )
-
-    # start process
-    .sits_parallel_start(multicores, log = FALSE)
-    on.exit(.sits_parallel_stop())
 
     # does a local cube exist
     gc_cube <- tryCatch({
@@ -252,9 +248,42 @@ sits_regularize <- function(cube,
     miss_tiles_bands_times <- .reg_missing_tiles(
         cube = cube,
         gc_cube = gc_cube,
-        timeline = timeline,
+        timeline = reg_timeline,
         period = period
     )
+
+    max_times <- max(slider::slide_int(cube, function(tile) {
+        length(sits_timeline(tile))
+    }))
+
+    max_nrows <- max(slider::slide_int(cube, function(tile) {
+        fi <- .file_info(tile)
+        max(fi[["nrows"]])
+    }))
+
+    max_ncols <- max(slider::slide_int(cube, function(tile) {
+        fi <- .file_info(tile)
+        max(fi[["ncols"]])
+    }))
+
+    sub_image <- c(
+        first_row = 1,
+        first_col = 1,
+        nrows = max_nrows,
+        ncols = max_ncols
+    )
+
+    blocks_list <- .sits_raster_blocks_regularize(
+        cube = cube,
+        n_images_interval = round(max_times / length(reg_timeline)),
+        sub_image = sub_image,
+        memsize = memsize,
+        multicores = multicores
+    )
+
+    # start process
+    .sits_parallel_start(multicores, log = FALSE)
+    on.exit(.sits_parallel_stop())
 
     # recovery mode
     finished <- length(miss_tiles_bands_times) == 0
@@ -283,24 +312,19 @@ sits_regularize <- function(cube,
                               date < !!end_date)
 
             # create of the aggregate cubes
-            gc_tile <- .reg_new_cube(
-                tile = cube,
+            reg_filename <- .reg_new_cube(
+                tile_period_band = cube,
                 res = res,
-                period = period_dates,
+                blocks = blocks_list,
+                date_period = start_date,
                 resampling = resampling,
                 roi = roi,
-                output_dir = output_dir,
-                multithreads = multithreads,
-                memsize = memsize
+                output_dir = output_dir
             )
 
-            # prepare class result
-            class(gc_tile) <- .cube_s3class(gc_tile)
-
-            return(gc_tile)
+            return(reg_filename)
 
         }, progress = progress)
-        #})
 
         # create local cube from files in output directory
         gc_cube <- sits_cube(
@@ -314,7 +338,7 @@ sits_regularize <- function(cube,
         # find if there are missing tiles
         miss_tiles_bands_times <- .reg_missing_tiles(cube = cube,
                                                      gc_cube = gc_cube,
-                                                     timeline = timeline,
+                                                     timeline = reg_timeline,
                                                      period = period)
 
         # have we finished?

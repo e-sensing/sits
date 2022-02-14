@@ -5,24 +5,24 @@
 \title{Save the images based on an aggregation method.}
 \usage{
 .reg_new_cube(
-  tile,
+  tile_period_band,
   res,
-  period,
+  blocks,
+  date_period,
   resampling,
   roi,
-  output_dir,
-  multithreads,
-  memsize
+  output_dir
 )
 }
 \arguments{
-\item{tile}{A unique tile from \code{sits_cube} object}
+\item{tile_period_band}{A unique tile from \code{sits_cube} object}
 
 \item{res}{A \code{numeric} with spatial resolution of the image
 that will be aggregated.}
 
-\item{period}{A \code{character} vector with two position, first one is
-the start date and second one is the end date.}
+\item{blocks}{...}
+
+\item{date_period}{...}
 
 \item{resampling}{A \code{character} with method to be used  for resampling in mosaic operation.
 Options: \code{near}, \code{bilinear}, \code{bicubic}, \code{cubicspline},
@@ -34,12 +34,8 @@ Default is bilinear.}
 \item{output_dir}{A \code{character} with a valid directory where the
 regularized images will be written.}
 
-\item{multithreads}{A \code{numeric} value that specifies the number of
-threads used in the regularization process.
-By default 2 threads are used.}
-
-\item{memsize}{A \code{numeric} with memory available for regularization
-(in GB).}
+\item{period}{A \code{character} vector with two position, first one is
+the start date and second one is the end date.}
 
 \item{agg_method}{A \code{character} with method that will be applied by
 \code{gdalcubes} for aggregation. Options: \code{median} and
