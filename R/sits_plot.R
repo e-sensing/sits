@@ -1357,8 +1357,20 @@ plot.keras_model <- function(x, y, ...) {
         raster_collection <- terra::sprc(r_objs)
         r_merge <- terra::merge(raster_collection)
     }
+    # compress the image
+    max_Mbytes <- .config_get("plot_max_Mbytes")
 
-
+    # find out of image needs to be resampled
+    size <- .sits_plot_resample_class(terra::nrow(r_merge),
+                                      terra::ncol(r_merge),
+                                      max_Mbytes)
+    # resample image
+    if (as.numeric(size[["ratio"]] > 1)) {
+        new_nrows <- as.integer(size[["nrows"]])
+        new_ncols <- as.integer(size[["ncols"]])
+        new_rast <- terra::rast(nrows = new_nrows, ncols = new_ncols)
+        r_merge <- terra::resample(r_merge, new_rast, method = "near")
+    }
     # convert from raster to points
     df <- terra::as.data.frame(r_merge, xy = TRUE)
     # define the column names for the data frame
@@ -1400,6 +1412,30 @@ plot.keras_model <- function(x, y, ...) {
 
     graphics::plot(g)
     return(g)
+}
+#' @title Calculate resample params for classified images
+#' @name .sits_plot_resample_class
+#' @keywords internal
+#' @param nrows    number of rows in the input image
+#' @param ncols    number of cols in the input image
+#' @param max_Mbytes maximum number of MB per plot
+#' @return         ratio and new size of output plot
+.sits_plot_resample_class <- function(nrows, ncols, max_Mbytes){
+
+    # input size
+    in_size_Mbytes <- (nrows * ncols)/(1000 * 1000)
+    # do we need to compress?
+    ratio <- max((in_size_Mbytes/max_Mbytes), 1)
+
+    # only create local files if required
+    if (ratio > 1) {
+        new_nrows <- round(nrows/sqrt(ratio))
+        new_ncols <- round(ncols*(new_nrows/nrows))
+    } else {
+        new_nrows <- nrows
+        new_ncols <- ncols
+    }
+    return(c("ratio" = ratio, "nrows" = nrows, "ncols" = ncols))
 }
 
 #' @title Plot classification alignments using the dtwSat package
