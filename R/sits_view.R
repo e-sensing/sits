@@ -170,6 +170,7 @@ sits_view.raster_cube <- function(x, ...,
         requireNamespace("leafem", quietly = TRUE),
         msg = "Plase install package 'leafem'"
     )
+
     .check_that(
         requireNamespace("leaflet", quietly = TRUE),
         msg = "Please install package 'leaflet'"
