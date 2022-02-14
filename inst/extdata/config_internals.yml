@@ -76,7 +76,7 @@ gdalcubes_aggreg_methods : {median : "median", least_cc_first : "first"}
 cont_resampling_methods : ["bilinear", "cubic", "cubicspline", "lanczos"]
 
 # valid resampling methods for categorical values
-cat_resampling_methods : ["near"]
+cloud_resampling_methods : ["near"]
 
 # valid raster data types
 valid_raster_data_types : ["INT1U", "INT2U", "INT2S", "INT4U",

@@ -109,35 +109,35 @@
 
         block_band_dates <- slider::slide_chr(unique(fi[["fid"]]), function(fid) {
 
-            fi_fid <- dplyr::filter(fi, .data[["fid"]] == !!fid)
-            fid_date <- unique(fi_fid[["date"]])
+            tile_fid <- tile_period_band
+            tile_fid[["file_info"]][[1]]  <- .file_info(tile_fid, fid = fid)
+
+            fi_fid <- .file_info(tile_fid)
 
             band_date_block <- .reg_create_filename(
-                file_info = fi_fid,
-                date_period = fid_date,
+                tile = tile_fid,
+                date_period = unique(fi_fid[["date"]]),
                 output_dir = output_dir,
                 band = t_band,
                 block = block
             )
 
             cloud_date_block <- .reg_create_filename(
-                file_info = fi_fid,
-                date_period = fid_date,
+                tile = tile_fid,
+                date_period = unique(fi_fid[["date"]]),
                 output_dir = output_dir,
                 band = .source_cloud(),
                 block = block
             )
 
             c_paths <- .file_info_paths(
-                cube = tile_period_band,
-                bands = .source_cloud(),
-                dates = fid_date
+                cube = tile_fid,
+                bands = .source_cloud()
             )
 
             b_paths <- .file_info_paths(
-                cube = tile_period_band,
-                bands = t_band,
-                dates = fid_date
+                cube = tile_fid,
+                bands = t_band
             )
 
             # cloud preprocess
@@ -145,7 +145,7 @@
                 tile = tile_period_band,
                 band_paths = c_paths,
                 resolution = res,
-                resampling = .config_get("cat_resampling_methods"),
+                resampling = .config_get("cloud_resampling_methods"),
                 block = block,
                 datatype = reg_datatype,
                 filename = cloud_date_block
@@ -275,7 +275,7 @@
 #'
 #' @keywords internal
 #'
-#' @param file_info         A unique tile from \code{sits_cube} object
+#' @param tile         A unique tile from \code{sits_cube} object
 #'
 #' @param date_period  A \code{character} vector with two position, first one is
 #' the start date and second one is the end date.
@@ -285,18 +285,19 @@
 #'
 #' @param block      A \code{numeric} vector with information about a block
 #'
+#' @param tile ...
+#'
 #' @param band       ....
 #'
 #' @return A \code{character} with the file name of resampled image.
-.reg_create_filename <- function(file_info, date_period, output_dir, band, block = NULL) {
-
-    file_info_band <- dplyr::filter(file_info, .data[["band"]] == !!band)
+.reg_create_filename <- function(tile, date_period, output_dir, band, block = NULL) {
 
     # TODO: check if nrow is one
 
     file_ext <- unique(
         tools::file_ext(
-            x = gsub(".*/([^?]*)\\??.*$", "\\1", file_info_band[["path"]])
+            x = gsub(".*/([^?]*)\\??.*$", "\\1",
+                     .file_info_paths(tile, bands = band))
         )
     )
 
@@ -307,7 +308,7 @@
         msg = "invalid files extensions."
     )
 
-    b_filename <- paste("cube", unique(file_info[["tile"]]), date_period, band, sep = "_")
+    b_filename <- paste("cube", .cube_tiles(tile), date_period, band, sep = "_")
 
     if (!is.null(block)) {
 
