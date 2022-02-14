@@ -28,7 +28,8 @@ sits_view(x, ...)
 \method{sits_view}{classified_image}(x, ..., tiles = NULL, legend = NULL, palette = "default")
 }
 \arguments{
-\item{x}{object of class "sits", "raster_cube" or "classified image"}
+\item{x}{object of class "sits", "raster_cube" or
+"classified image"}
 
 \item{...}{further specifications for \link{sits_view}.}
 
@@ -54,7 +55,8 @@ sits_view(x, ...)
 leaflet object
 }
 \description{
-Uses leaflet to visualize time series, raster cube and classified images
+Uses leaflet to visualize time series, raster cube and
+ classified images
 }
 \examples{
 \donttest{
@@ -70,11 +72,12 @@ modis_cube <- sits_cube(
     collection = "MOD13Q1-6",
     bands = c("NDVI", "EVI"),
     data_dir = data_dir,
-    parse_info = c("X1", "X2", "tile", "band", "date")
+    parse_info = c("X1", "X2", "tile", "band", "date"),
+    multicores = 1
 )
 
 # plot the data cube
-sits_view(modis_cube, red = "EVI", green = "NDVI", blue = "EVI", times = 1)
+sits_view(modis_cube, red = "EVI", green = "NDVI", blue = "EVI", dates = "2013-09-14")
 }
 
 }

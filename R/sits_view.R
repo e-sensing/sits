@@ -2,9 +2,11 @@
 #' @name sits_view
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'
-#' @description Uses leaflet to visualize time series, raster cube and classified images
+#' @description Uses leaflet to visualize time series, raster cube and
+#'  classified images
 #'
-#' @param  x             object of class "sits", "raster_cube" or "classified image"
+#' @param  x             object of class "sits", "raster_cube" or
+#'  "classified image"
 #' @param  ...           further specifications for \link{sits_view}.
 #' @param  band          for plotting grey images
 #' @param  red           band for red color.
@@ -32,11 +34,12 @@
 #'     collection = "MOD13Q1-6",
 #'     bands = c("NDVI", "EVI"),
 #'     data_dir = data_dir,
-#'     parse_info = c("X1", "X2", "tile", "band", "date")
+#'     parse_info = c("X1", "X2", "tile", "band", "date"),
+#'     multicores = 1
 #' )
 #'
 #' # plot the data cube
-#' sits_view(modis_cube, red = "EVI", green = "NDVI", blue = "EVI", times = 1)
+#' sits_view(modis_cube, red = "EVI", green = "NDVI", blue = "EVI", dates = "2013-09-14")
 #' }
 #'
 #' @export
