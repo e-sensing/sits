@@ -1,5 +1,5 @@
-^\.Rproj$
-^\.py$
+^.*\.Rproj$
+^.*\.py$
 ^\.Rproj\.user$
 ^\.drone.yml$
 ^packrat/
