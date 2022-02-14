@@ -174,11 +174,6 @@ sits_view.raster_cube <- function(x, ...,
         requireNamespace("leaflet", quietly = TRUE),
         msg = "Please install package 'leaflet'"
     )
-    # verifies if raster package is installed
-    .check_that(
-        x = requireNamespace("raster", quietly = TRUE),
-        msg = "Please install package 'raster'"
-    )
     # deal with parameter "time"
     if ("time" %in% names(dots)) {
         warning("time parameter is deprecated, please use dates")
