@@ -69,7 +69,6 @@ Suggests:
     nnet,
     openxlsx,
     randomForest,
-    raster (>= 3.4),
     RcppArmadillo,
     Rwtss (>= 0.9.1),
     scales,
