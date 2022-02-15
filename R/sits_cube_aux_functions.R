@@ -128,7 +128,7 @@
     # all bands are upper case
     .check_chr_within(bands,
                       within = .cube_bands(cube = cube,
-                                                  add_cloud = add_cloud),
+                                           add_cloud = add_cloud),
                       case_sensitive = FALSE,
                       msg = "invalid 'bands' parameter")
 
@@ -158,8 +158,8 @@
     band <- toupper(band)
 
     mv <- .config_get(key = c("sources", .cube_source(cube = cube),
-                               "collections", .cube_collection(cube = cube),
-                               "bands", band, "missing_value"),
+                              "collections", .cube_collection(cube = cube),
+                              "bands", band, "missing_value"),
                       default = .config_get(key = "raster_cube_missing_value")
     )
 
@@ -193,8 +193,8 @@
     band <- toupper(band)
 
     mv <- .config_get(key = c("sources", .cube_source(cube = cube),
-                               "collections", .cube_collection(cube = cube),
-                               "bands", band, "minimum_value"),
+                              "collections", .cube_collection(cube = cube),
+                              "bands", band, "minimum_value"),
                       default = .config_get(key = "raster_cube_minimum_value")
     )
 
@@ -228,8 +228,8 @@
     band <- toupper(band)
 
     mv <- .config_get(key = c("sources", .cube_source(cube = cube),
-                               "collections", .cube_collection(cube = cube),
-                               "bands", band, "maximum_value"),
+                              "collections", .cube_collection(cube = cube),
+                              "bands", band, "maximum_value"),
                       default = .config_get(key = "raster_cube_maximum_value")
     )
 
@@ -261,8 +261,8 @@
     band <- toupper(band)
 
     sf <- .config_get(key = c("sources", .cube_source(cube = cube),
-                               "collections", .cube_collection(cube = cube),
-                               "bands", band, "scale_factor"),
+                              "collections", .cube_collection(cube = cube),
+                              "bands", band, "scale_factor"),
                       default = .config_get(key = "raster_cube_scale_factor")
     )
 
@@ -296,8 +296,8 @@
     band <- toupper(band)
 
     ov <- .config_get(key = c("sources", .cube_source(cube = cube),
-                               "collections", .cube_collection(cube = cube),
-                               "bands", band, "offset_value"),
+                              "collections", .cube_collection(cube = cube),
+                              "bands", band, "offset_value"),
                       default = .config_get(key = "raster_cube_offset_value")
     )
 
@@ -369,8 +369,14 @@
 #' @param output_dir   prefix of the output files.
 #' @param version      version of the output files
 #' @return             output data cube
-.cube_derived_create <- function(cube, cube_class, band_name, labels,
-                                 start_date, end_date, bbox, output_dir,
+.cube_derived_create <- function(cube,
+                                 cube_class,
+                                 band_name,
+                                 labels,
+                                 start_date,
+                                 end_date,
+                                 bbox,
+                                 output_dir,
                                  version) {
 
     # set caller to show in errors
@@ -407,8 +413,8 @@
         start_date = start_date,
         end_date   = end_date,
         xmin       = bbox[["xmin"]],
-        xmax       = bbox[["xmax"]],
         ymin       = bbox[["ymin"]],
+        xmax       = bbox[["xmax"]],
         ymax       = bbox[["ymax"]],
         xres       = res[["xres"]],
         yres       = res[["yres"]],
@@ -416,13 +422,11 @@
         ncols      = ncols_cube_class,
         path       = file_name
     )
-    # get source and collection
-    source     = .cube_source(cube)
-    collection = .cube_collection(cube)
+
     # set the metadata for the probability cube
     dev_cube <- .cube_create(
-        source     = cube$source,
-        collection = cube$collection,
+        source     = .cube_source(cube),
+        collection = .cube_collection(cube),
         satellite  = cube$satellite,
         sensor     = cube$sensor,
         tile       = cube$tile,
@@ -439,6 +443,7 @@
 
     return(dev_cube)
 }
+
 #' @title Given a band, return a set of values for chosen location
 #' @name .cube_extract
 #' @keywords internal
@@ -486,6 +491,40 @@
     return(values)
 }
 
+#' @title Verify if two cubes are equal
+#'
+#' @name .cube_is_equal
+#'
+#' @keywords internal
+#'
+#' @description Given two cubes verify if they are equal
+#'
+#' @param x,y   a sits cube
+#'
+#' @return a \code{logical} value.
+.cube_is_equal <- function(x, y) {
+
+    if (nrow(x) != nrow(y))
+        return(FALSE)
+
+    slider::slide2_lgl(x, y, function(xtile, ytile) {
+
+        test_metadata <- isTRUE(dplyr::all_equal(
+            dplyr::select(xtile, -.data[["file_info"]], -.data[["crs"]]),
+            dplyr::select(ytile, -.data[["file_info"]], -.data[["crs"]])
+        ))
+
+        test_file_info <- isTRUE(dplyr::all_equal(
+            xtile[["file_info"]][[1]],
+            ytile[["file_info"]][[1]]
+        ))
+
+        test_crs <- sf::st_crs(xtile[["crs"]]) == sf::st_crs(ytile[["crs"]])
+
+        return(all(c(test_metadata, test_file_info, test_crs)))
+    })
+}
+
 #' @title Check if cube is regular
 #' @name .cube_is_regular
 #' @keywords internal
@@ -493,8 +532,17 @@
 #'
 #' @param  cube         input data cube
 #' @return TRUE/FALSE
-#'
-.cube_is_regular <- function(cube){
+.cube_is_regular <- function(cube) {
+
+    source <- .source_new(source = .cube_source(cube))
+
+    # Dispatch
+    UseMethod(".cube_is_regular", source)
+}
+
+#' @name .cube_is_regular
+#' @export
+.cube_is_regular.raster_cube <- function(cube) {
 
     # check if all tiles have the same bands
     bands <- slider::slide(cube, function(tile) {
@@ -504,29 +552,67 @@
     if (length(unique(bands)) != 1)
         return(FALSE)
 
+    tolerance <- .config_get(
+        key = c("sources", .cube_source(cube),
+                "collections", .cube_collection(cube),
+                "ext_tolerance")
+    )
+
     # check if the resolutions are unique
-    res_cube_x <- slider::slide(cube, function(tile){
-       .file_info_xres(tile)
+    equal_bbox <- slider::slide_lgl(cube, function(tile) {
+
+        file_info <- .file_info(tile)
+
+        test <-
+            (.is_eq(max(file_info[["xmax"]]),
+                    min(file_info[["xmax"]]),
+                    tolerance = tolerance)
+             && .is_eq(max(file_info[["xmin"]]),
+                       min(file_info[["xmin"]]),
+                       tolerance = tolerance)
+             && .is_eq(max(file_info[["ymin"]]),
+                       min(file_info[["ymin"]]),
+                       tolerance = tolerance)
+             && .is_eq(max(file_info[["ymax"]]),
+                       min(file_info[["ymax"]]),
+                       tolerance = tolerance))
+
+        return(test)
     })
 
-    if (length(unique(unlist(res_cube_x))) != 1)
+    if (!all(equal_bbox))
         return(FALSE)
 
-    # check if the resolutions are unique
-    res_cube_y <- slider::slide(cube, function(tile){
-        .file_info_yres(tile)
+    # check if the size are unique
+    test_cube_size <- slider::slide_lgl(cube, function(tile) {
+
+        if (length(unique(.file_info(tile)[["nrows"]])) > 1
+            || length(unique(.file_info(tile)[["ncols"]])) > 1)
+            return(FALSE)
+        return(TRUE)
     })
 
-    if (length(unique(unlist(res_cube_y))) != 1)
+    if (!all(test_cube_size))
         return(FALSE)
 
     # check if timelines are unique
     timelines <- slider::slide(cube, function(tile){
-        sits_timeline(tile)
+        unique(purrr::map(unlist(unique(bands)), function(band) {
+            tile_band <- sits_select(tile, bands = band)
+            sits_timeline(tile_band)
+        }))
     })
 
     # function to test timelines
-    return(length(unique(timelines)) == 1)
+    return(length(unique(timelines)) == 1 &&
+               any(sapply(timelines, length) == 1))
+}
+
+#' @name .cube_is_regular
+#' @export
+.cube_is_regular.default <- function(cube) {
+
+    return(TRUE)
 }
 
 #' @title Return the labels of the cube
@@ -584,40 +670,77 @@
     .check_num(block[["ncols"]], min = 1, max = .cube_size(cube)[["ncols"]],
                msg = "invalid block value")
 
-    res <- .cube_resolution(cube)
+    params <- .sits_raster_sub_image_from_block(block = block, tile = cube)
 
-    # compute new Y extent
-    ymax  <-  cube[["ymax"]] - (block[["first_row"]] - 1) * res[["yres"]]
-    ymin  <-  ymax - block[["nrows"]] * res[["yres"]]
+    tolerance <- .config_get(key = c("sources", .cube_source(cube),
+                                     "collections", .cube_collection(cube),
+                                     "ext_tolerance"))
 
-    # compute new X extent
-    xmin  <-  cube[["xmin"]] + (block[["first_col"]] - 1) * res[["xres"]]
-    xmax  <-  xmin + block[["ncols"]] * res[["xres"]]
-
-    # prepare result
-    params <- tibble::tibble(
-        nrows = block[["nrows"]],
-        ncols = block[["ncols"]],
-        xmin  = xmin,
-        xmax  = xmax,
-        ymin  = ymin,
-        ymax  = ymax,
-        crs   = .cube_crs(cube)
-    )
     # post-conditions
     .check_num(params[["xmin"]], min = cube[["xmin"]], max = cube[["xmax"]],
-               msg = "invalid params value")
+               tolerance = tolerance, msg = "invalid params value")
 
     .check_num(params[["xmax"]], min = cube[["xmin"]], max = cube[["xmax"]],
-               msg = "invalid params value")
+               tolerance = tolerance, msg = "invalid params value")
 
     .check_num(params[["ymin"]], min = cube[["ymin"]], max = cube[["ymax"]],
-               msg = "invalid params value")
+               tolerance = tolerance, msg = "invalid params value")
 
     .check_num(params[["ymax"]], min = cube[["ymin"]], max = cube[["ymax"]],
-               msg = "invalid params value")
+               tolerance = tolerance, msg = "invalid params value")
 
     return(params)
+}
+
+#' @title Return the cube resolution of the x axis
+#' @name .cube_xres
+#' @keywords internal
+#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
+#'
+#' @param  cube         input data cube
+#' @return a numeric with the x resolution
+.cube_xres <- function(cube, bands = NULL) {
+
+    # get first file_info
+    tile_bbox <- .cube_tile_bbox(cube)
+
+    # tile template
+    xres <- abs(
+        (tile_bbox[["xmax"]] - tile_bbox[["xmin"]]) / .file_info_ncols(cube)
+    )
+
+
+    # post-condition
+    .check_num(xres, min = 0, allow_zero = FALSE,
+               len_min = 1, len_max = 1,
+               msg = "invalid xres value")
+
+    return(xres)
+}
+
+#' @title Return the cube resolution of the y axis
+#' @name .cube_yres
+#' @keywords internal
+#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
+#'
+#' @param  cube         input data cube
+#' @return a numeric with the y resolution
+.cube_yres <- function(cube, bands = NULL) {
+
+    # get first file_info
+    tile_bbox <- .cube_tile_bbox(cube)
+
+    # tile template
+    yres <- abs(
+        (tile_bbox[["ymax"]] - tile_bbox[["ymin"]]) / .file_info_nrows(cube)
+    )
+
+    # post-condition
+    .check_num(yres, min = 0, allow_zero = FALSE,
+               len_min = 1, len_max = 1,
+               msg = "invalid xres value")
+
+    return(yres)
 }
 
 #' @title Return the resolution of the cube
@@ -629,23 +752,7 @@
 #' @return a vector with the x and y resolution
 .cube_resolution <- function(cube, bands = NULL) {
 
-    # get first file_info
-    xres <- .file_info_xres(cube)
-    yres <- .file_info_yres(cube)
-
-    # post-condition
-    .check_num(xres, min = 0, allow_zero = FALSE,
-               len_min = 1, len_max = 1,
-               msg = "invalid xres value")
-
-    # post-condition
-    .check_num(yres, min = 0, allow_zero = FALSE,
-               len_min = 1, len_max = 1,
-               msg = "invalid yres value")
-
-    res <- c(xres = xres, yres = yres)
-
-    return(res)
+    return(c(xres = .cube_xres(cube), yres = .cube_yres(cube)))
 }
 
 #' @title Return the S3 class of the cube
@@ -748,6 +855,7 @@
     bbox["ymin"] <-  cube["ymin"]
     bbox["xmax"] <-  cube["xmax"]
     bbox["ymax"] <-  cube["ymax"]
+
     # post-condition
     .check_lst(bbox, min_len = 4, max_len = 4, fn_check = .check_num,
                len_min = 1, len_max = 1,
@@ -755,6 +863,3 @@
 
     return(bbox)
 }
-
-
-

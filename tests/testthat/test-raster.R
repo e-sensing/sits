@@ -269,9 +269,7 @@ test_that("One-year, multicore classification with post-processing", {
     sinop <- sits_cube(
         source = "BDC",
         collection = "MOD13Q1-6",
-        data_dir = data_dir,
-        delim = "_",
-        parse_info = c("X1", "X2", "tile", "band", "date")
+        data_dir = data_dir
     )
 
     sinop_probs <- tryCatch({
@@ -293,6 +291,16 @@ test_that("One-year, multicore classification with post-processing", {
     }
     expect_true(all(file.exists(unlist(sinop_probs$file_info[[1]]$path))))
 
+    sinop_probs_2 <- sits_cube(
+        source = "BDC",
+        collection = "MOD13Q1-6",
+        bands = "probs",
+        data_dir = tempdir(),
+        labels = sits_labels(sinop_probs)
+    )
+
+    expect_true(.cube_is_equal(sinop_probs, sinop_probs_2))
+
     sinop_class <- sits_label_classification(
         sinop_probs,
         output_dir = tempdir()
@@ -308,6 +316,16 @@ test_that("One-year, multicore classification with post-processing", {
     min_lab <- min(.raster_get_values(r_obj))
     expect_true(max_lab <= 9)
     expect_true(min_lab >= 1)
+
+    sinop_class_2 <- sits_cube(
+        source = "BDC",
+        collection = "MOD13Q1-6",
+        bands = "class",
+        labels = sits_labels(sinop_class),
+        data_dir = tempdir()
+    )
+
+    expect_true(.cube_is_equal(sinop_class, sinop_class_2))
 
     sinop_bayes <- sits_smooth(
         sinop_probs,
@@ -327,6 +345,16 @@ test_that("One-year, multicore classification with post-processing", {
 
     max_bay3 <- max(.raster_get_values(r_bay)[, 3])
     expect_true(max_bay3 <= 10000)
+
+    sinop_bayes_2 <- sits_cube(
+        source = "BDC",
+        collection = "MOD13Q1-6",
+        bands = "bayes",
+        labels = sits_labels(sinop_class),
+        data_dir = tempdir()
+    )
+
+    expect_true(.cube_is_equal(sinop_bayes, sinop_bayes))
 
     sinop_gauss <- sits_smooth(
         cube = sinop_probs,
@@ -373,6 +401,14 @@ test_that("One-year, multicore classification with post-processing", {
 
     max_unc <- max(.raster_get_values(r_unc))
     expect_true(max_unc <= 10000)
+
+    sinop_uncert_2 <- sits_cube(
+        source = "BDC",
+        collection = "MOD13Q1-6",
+        bands = "entropy",
+        labels = sits_labels(sinop_class),
+        data_dir = tempdir()
+    )
 
     timeline_orig <- sits_timeline(sinop)
     timeline_probs <- sits_timeline(sinop_probs)

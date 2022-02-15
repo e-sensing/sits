@@ -2,7 +2,7 @@
 #' @export
 .source_collection_access_test.stac_cube <- function(source, collection,
                                                      bands, ...,
-                                                     dry_run = TRUE) {
+                                                     dry_run = FALSE) {
     # require package
     if (!requireNamespace("rstac", quietly = TRUE)) {
         stop("Please install package rstac", call. = FALSE)
@@ -137,6 +137,9 @@
 
     # prepare number of workers
     progress <- TRUE
+    # check documentation mode
+    progress <- .check_documentation(progress)
+
     n_workers <- .config_gdalcubes_open_connections()
     if (.source_collection_metadata_search(
         source = source,
@@ -157,7 +160,6 @@
                         dplyr::tibble(fid = x, features = list(y))
                     }))
     }
-
     if (.config_gdalcubes_min_files_for_parallel() > nrow(data)) {
         n_workers <- 1
         progress <- FALSE

@@ -80,6 +80,8 @@
 #'
 #' @param date_period ...
 #'
+#' @param multithreads ...
+#'
 #' @return  A data cube tile with information used in its creation.
 .reg_new_cube <- function(tile_period_band,
                           res,
@@ -87,9 +89,8 @@
                           date_period,
                           resampling,
                           roi,
-                          output_dir) {
-
-    multithreads <- 6
+                          output_dir,
+                          multithreads) {
 
     # set caller to show in errors
     .check_set_caller(".reg_new_cube")
@@ -108,6 +109,8 @@
 
     # for each block
     blocks_reg_path <- purrr::map_chr(blocks, function(block) {
+
+        multithreads <- min(multithreads, length(unique(fi[["fid"]])))
 
         .sits_parallel_start(multithreads, log = FALSE)
         on.exit(.sits_parallel_stop())
@@ -255,6 +258,7 @@
 
     chunk_rast <- .reg_get_chunk_rast(
         rast = rast,
+        tile = tile,
         block = block,
         datatype = datatype,
         filename = filename
@@ -337,29 +341,20 @@
 #' @param block A \code{numeric} vector with information about a block
 #'
 #' @return A \code{SpatRast} object cropped.
-.reg_get_chunk_rast <- function(rast, block, filename, datatype) {
+.reg_get_chunk_rast <- function(rast, tile, block, filename, datatype) {
 
-    r_ext <- terra::rast(
-        resolution = c(terra::xres(rast), terra::yres(rast)),
-        xmin = terra::xmin(rast),
-        xmax = terra::xmax(rast),
-        ymin = terra::ymin(rast),
-        ymax = terra::ymax(rast),
-        crs = terra::crs(rast)
+    sub_image <- .sits_raster_sub_image_from_block(block = block, tile = tile)
+
+    sub_image_ext <- terra::ext(
+        c(xmin = sub_image[["xmin"]],
+          xmax = sub_image[["xmax"]],
+          ymin = sub_image[["ymin"]],
+          ymax = sub_image[["ymax"]])
     )
-
-    bbox_ext <-  c(
-        xmin = terra::xFromCol(rast, block[["first_col"]]),
-        xmax = terra::xFromCol(rast, block[["ncols"]] + block[["first_col"]] - 1),
-        ymin = terra::yFromRow(rast, block[["nrows"]] + block[["first_row"]] - 1),
-        ymax = terra::yFromRow(rast, block[["first_row"]])
-    )
-
-    terra::ext(r_ext) <- bbox_ext
 
     cropped_rast <- terra::crop(
         x = rast,
-        y = r_ext,
+        y = sub_image_ext,
         NAflag = .config_get("raster_cube_missing_value"),
         #filename = filename,
         datatype = datatype,

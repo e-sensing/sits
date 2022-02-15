@@ -8,11 +8,11 @@
   cube,
   longitude,
   latitude,
-  start_date = NULL,
-  end_date = NULL,
+  start_date,
+  end_date,
+  label,
   bands = NULL,
-  label = "NoClass",
-  impute_fn = sits_impute_linear()
+  impute_fn
 )
 }
 \arguments{
@@ -26,9 +26,11 @@
 
 \item{end_date}{Date with the end of the period.}
 
+\item{label}{Label to attach to the time series (optional).}
+
 \item{bands}{Names of the bands of the cube.}
 
-\item{label}{Label to attach to the time series (optional).}
+\item{impute_fn}{Function to impute NA values}
 }
 \value{
 A sits tibble.

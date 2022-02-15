@@ -18,10 +18,13 @@
 
     # if more than 2 times items pagination are found the progress bar
     # is displayed
-    pgr_fetch <- rstac::items_matched(items_info) > 2 * .config_rstac_limit()
+    progress <- rstac::items_matched(items_info) > 2 * .config_rstac_limit()
+
+    # check documentation mode
+    progress <- .check_documentation(progress)
 
     # fetching all the metadata and updating to upper case instruments
-    items_info <- rstac::items_fetch(items = items_info, progress = pgr_fetch)
+    items_info <- rstac::items_fetch(items = items_info, progress = progress)
 
     # checks if the items returned any items
     .check_that(

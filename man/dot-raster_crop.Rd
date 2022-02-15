@@ -4,14 +4,16 @@
 \alias{.raster_crop}
 \title{Raster package internal crop raster function}
 \usage{
-.raster_crop(r_obj, block, ...)
+.raster_crop(r_obj, ..., block = NULL, bbox = NULL)
 }
 \arguments{
 \item{r_obj}{raster package object to be written}
 
+\item{...}{additional parameters to be passed to raster package}
+
 \item{block}{numeric vector with names "first_col", "ncols", "first_row", "nrows".}
 
-\item{...}{additional parameters to be passed to raster package}
+\item{bbox}{numeric vector with names "xmin", "xmax", "ymin", "ymax".}
 }
 \value{
 numeric matrix
@@ -20,7 +22,7 @@ numeric matrix
 Raster package internal crop raster function
 }
 \note{
-block starts at (0,0)
+block starts at (1, 1)
 }
 \author{
 Rolf Simoes, \email{rolf.simoes@inpe.br}

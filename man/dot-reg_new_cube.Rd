@@ -11,7 +11,8 @@
   date_period,
   resampling,
   roi,
-  output_dir
+  output_dir,
+  multithreads
 )
 }
 \arguments{
@@ -33,6 +34,8 @@ Default is bilinear.}
 
 \item{output_dir}{A \code{character} with a valid directory where the
 regularized images will be written.}
+
+\item{multithreads}{...}
 
 \item{period}{A \code{character} vector with two position, first one is
 the start date and second one is the end date.}

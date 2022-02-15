@@ -1,6 +1,6 @@
 Package: sits
 Type: Package
-Version: 0.16.2
+Version: 0.16.2-1
 Title: Satellite Image Time Series Analysis for Remote Sensing Data Cubes
 Authors@R: c(person('Rolf', 'Simoes', role = c('aut'), email = 'rolf.simoes@inpe.br'),
              person('Gilberto', 'Camara', role = c('aut', 'cre'), email = 'gilberto.camara@inpe.br'),
@@ -49,7 +49,7 @@ Imports:
     sf (>= 0.9),
     slider (>= 0.1.5),
     stats,
-    terra (>= 1.5-12),
+    terra (>= 1.5-17),
     tibble (>= 3.0),
     utils
 Suggests:
@@ -69,7 +69,6 @@ Suggests:
     nnet,
     openxlsx,
     randomForest,
-    raster (>= 3.4),
     RcppArmadillo,
     Rwtss (>= 0.9.1),
     scales,
@@ -96,6 +95,7 @@ Collate:
     'sits_classification.R'
     'sits_classify_ts.R'
     'sits_classify_cube.R'
+    'sits_compare.R'
     'sits_config.R'
     'sits_csv.R'
     'sits_cube.R'

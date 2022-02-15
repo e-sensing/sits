@@ -4,7 +4,7 @@
 \alias{.reg_get_chunk_rast}
 \title{Get chunks from rasters}
 \usage{
-.reg_get_chunk_rast(rast, block, filename, datatype)
+.reg_get_chunk_rast(rast, tile, block, filename, datatype)
 }
 \arguments{
 \item{rast}{A \code{SpatRast} object}

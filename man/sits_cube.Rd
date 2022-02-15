@@ -33,8 +33,10 @@ sits_cube(source, ..., collection, data_dir = NULL)
   bands = NULL,
   start_date = NULL,
   end_date = NULL,
-  parse_info,
+  labels = NULL,
+  parse_info = NULL,
   delim = "_",
+  version = "v1",
   name = NULL,
   origin = NULL,
   multicores = 2,
@@ -70,12 +72,16 @@ data cube.}
 
 \item{name}{deprecated parameter formely used to describe cubes}
 
+\item{labels}{labels associated to the classes}
+
 \item{parse_info}{parsing information for files without STAC
 information
 (only for creating data cubes from local files).}
 
 \item{delim}{delimiter for parsing files without STAC information
 (only for creating data cubes from local files).}
+
+\item{version}{a version of the classified cube.}
 
 \item{origin}{deprecated parameter formely used for local cubes
 (see documentation)}
@@ -95,7 +101,7 @@ on a collection available in repositories such as AWS, Brazil Data Cube
 endpoints. Users can also create data cubes from local files.
 
 A data cube does not contain actual data; it points to the files where the
-required data is archived. Other functions (e.g. `sits_classify`) use
+required data is archived. Other functions (e.g. `sits_classify()`) use
 that information to retrieve and process data.
 
 Currently, users can create data cube from the following sources:
@@ -186,7 +192,7 @@ To create a cube from local files, the user needs to inform:
 \item{delim: }{Delimiter for parsing files (see below)}
 }
 
-To create a cube from local files, all image files should have
+To create a cube from local image files, all image files should have
 the same spatial resolution and projection. Files can belong to different
 tiles of a spatial reference system.
 Each file should contain a single image band for a single date.
@@ -196,6 +202,25 @@ and "cube_20LKP_B02_2018-07-18.jp2" are accepted names.
 The user has to provide parsing information to allow `sits`
 to extract the tile, the band and the date. In the examples above,
 the parsing info is c("X1", "X2", "tile", "band", "date") and the delimiter is "_".
+
+it is possible to create a cube from local files which have been produced
+by classification or post-classification algorithms. In this case, there are
+more parameters that are required which include "band", "labels" and "version".
+Also,  the parameter "parse_info" is specified differently:
+\itemize{
+\item{band: }{The band name is associated to the results. Use "probs"
+for probability cubes produced by `sits_classify()`, "bayes", "bilateral",
+or "gaussian" according to the function selected when using `sits_smooth()`,
+"entropy" when using `sits_uncertainty()`, or "class" for cubes produced by
+`sits_label_classification()`}
+\item{labels: }{:abels associated to the classification results}
+\item{version: }{Inform the version of the result (default = "v1")}
+\item{parse_info: }{File name parsing information has to allow `sits` to
+deduce "tile", "start_date", "end_date", and "version" from filename.
+Default is `c("X1", "X2", "tile", "start_date", "end_date", "band", "version").`
+Note that, unlike non-classified image files, cubes with results have both
+"start_date" and "end_date".}
+}
 
 The SATVEG service is run by Embrapa Agricultural
  Informatics Centre provides access to time series from the MODIS sensor.

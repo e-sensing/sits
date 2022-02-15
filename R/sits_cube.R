@@ -9,7 +9,7 @@
 #' endpoints. Users can also create data cubes from local files.
 #'
 #' A data cube does not contain actual data; it points to the files where the
-#' required data is archived. Other functions (e.g. `sits_classify`) use
+#' required data is archived. Other functions (e.g. `sits_classify()`) use
 #' that information to retrieve and process data.
 #'
 #' Currently, users can create data cube from the following sources:
@@ -81,7 +81,7 @@
 #'     BDC_ACCESS_KEY = <your_bdc_access_key>
 #' )
 #'
-#'@note To create a cube from local files, the user needs to inform:
+#' @note To create a cube from local files, the user needs to inform:
 #'\itemize{
 #'\item{source:} {Provider from where the data has been downloaded
 #'               (e.g, "BDC", "AWS)}
@@ -91,7 +91,7 @@
 #'\item{delim: }{Delimiter for parsing files (see below)}
 #'}
 #'
-#'@note To create a cube from local files, all image files should have
+#' @note To create a cube from local image files, all image files should have
 #' the same spatial resolution and projection. Files can belong to different
 #' tiles of a spatial reference system.
 #' Each file should contain a single image band for a single date.
@@ -101,6 +101,25 @@
 #' The user has to provide parsing information to allow `sits`
 #' to extract the tile, the band and the date. In the examples above,
 #' the parsing info is c("X1", "X2", "tile", "band", "date") and the delimiter is "_".
+#'
+#' @note it is possible to create a cube from local files which have been produced
+#' by classification or post-classification algorithms. In this case, there are
+#' more parameters that are required which include "band", "labels" and "version".
+#' Also,  the parameter "parse_info" is specified differently:
+#' \itemize{
+#' \item{band: }{The band name is associated to the results. Use "probs"
+#' for probability cubes produced by `sits_classify()`, "bayes", "bilateral",
+#' or "gaussian" according to the function selected when using `sits_smooth()`,
+#' "entropy" when using `sits_uncertainty()`, or "class" for cubes produced by
+#' `sits_label_classification()`}
+#' \item{labels: }{:abels associated to the classification results}
+#' \item{version: }{Inform the version of the result (default = "v1")}
+#' \item{parse_info: }{File name parsing information has to allow `sits` to
+#' deduce "tile", "start_date", "end_date", and "version" from filename.
+#' Default is `c("X1", "X2", "tile", "start_date", "end_date", "band", "version").`
+#' Note that, unlike non-classified image files, cubes with results have both
+#' "start_date" and "end_date".}
+#' }
 #'
 #'
 #' @note The SATVEG service is run by Embrapa Agricultural
@@ -132,12 +151,15 @@
 #' @param parse_info        parsing information for files without STAC
 #'                          information
 #'                          (only for creating data cubes from local files).
+#' @param labels            labels associated to the classes
+#' @param version           results version to be used (only for results cube)
 #' @param origin            deprecated parameter formely used for local cubes
 #'                          (see documentation)
 #' @param name              deprecated parameter formely used to describe cubes
 #' @param multicores        a number of workers for parallel processing in
 #'  local cubes
 #' @param progress          Show a progress bar?
+#' @param version           a version of the classified cube.
 #'
 #' @details The \code{roi} parameter allows a selection of an area of interest.
 #' Either using a named \code{vector} ("lon_min", "lat_min", "lon_max", "lat_max") with
@@ -349,8 +371,10 @@ sits_cube.local_cube <- function(source,
                                  bands = NULL,
                                  start_date = NULL,
                                  end_date = NULL,
-                                 parse_info,
+                                 labels = NULL,
+                                 parse_info = NULL,
                                  delim = "_",
+                                 version = "v1",
                                  name = NULL,
                                  origin = NULL,
                                  multicores = 2,
@@ -359,6 +383,9 @@ sits_cube.local_cube <- function(source,
 
     # precondition - data directory must be provided
     .check_file(x = data_dir, msg = "data_dir must be to be provided.")
+
+    # check documentation mode
+    progress <- .check_documentation(progress)
 
     # compatibility with earlier versions
     if (source == "LOCAL") {
@@ -391,28 +418,40 @@ sits_cube.local_cube <- function(source,
         bands <- as.character(dots[["band"]])
     }
 
-    # precondition - does the parse info have band and date?
-    .check_chr_contains(
-        parse_info,
-        contains = c("tile", "band", "date"),
-        msg = "parse_info must include tile, date, and band."
-    )
+    # is this a cube wih results?
+    if (!purrr::is_null(bands)
+        && all(bands %in% .config_get("sits_results_bands"))) {
 
-    # bands in upper case
-    if (!purrr::is_null(bands))
-        bands <- toupper(bands)
+        .check_that(length(bands) == 1,
+                    msg = "results cube should have only one band")
 
-    # builds a sits data cube
-    .local_cube(source = source,
-                collection = collection,
-                data_dir = data_dir,
-                parse_info = parse_info,
-                delim = delim,
-                bands = bands,
-                start_date = start_date,
-                end_date = end_date,
-                multicores = multicores,
-                progress = progress, ...)
+        cube <- .local_results_cube(
+            source     = source,
+            collection = collection,
+            data_dir   = data_dir,
+            parse_info = parse_info,
+            delim      = delim,
+            bands      = bands,
+            labels     = labels,
+            start_date = start_date,
+            end_date   = end_date,
+            version    = version, ...
+        )
+    } else
+        # builds a sits data cube
+        cube <- .local_cube(
+            source     = source,
+            collection = collection,
+            data_dir   = data_dir,
+            parse_info = parse_info,
+            delim      = delim,
+            bands      = bands,
+            start_date = start_date,
+            end_date   = end_date,
+            multicores = multicores,
+            progress   = progress, ...
+        )
+    return(cube)
 }
 
 

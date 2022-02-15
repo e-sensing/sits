@@ -29,11 +29,10 @@
     .check_set_caller(".raster_check_block")
 
     # precondition 1
-    .check_chr_within(
+    .check_chr_contains(
         x = names(block),
-        within = c("first_row", "nrows", "first_col", "ncols"),
-        msg = paste("block object must contain",
-                    "'first_row', 'nrows', 'first_col', 'ncols' entries")
+        contains = c("first_row", "nrows", "first_col", "ncols"),
+        msg = "invalid 'block' parameter"
     )
 
     # precondition 2
@@ -46,6 +45,30 @@
     .check_that(
         x = block[["nrows"]] > 0 && block[["ncols"]] > 0,
         msg = "invalid block"
+    )
+
+}
+
+#' @title Check for bbox object consistency
+#' @name .raster_check_bbox
+#' @keywords internal
+#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
+.raster_check_bbox <- function(bbox) {
+
+    # set caller to show in errors
+    .check_set_caller(".raster_check_bbox")
+
+    # precondition 1
+    .check_chr_contains(
+        x = names(bbox),
+        contains = c("xmin", "xmax", "ymin", "ymax"),
+        msg = "invalid 'bbox' parameter"
+    )
+
+    # precondition 2
+    .check_that(
+        x = bbox[["ymin"]] < bbox[["ymax"]],
+        msg = "invalid 'bbox' parameter"
     )
 
 }
@@ -335,15 +358,28 @@
 #'
 #' @param r_obj   raster package object to be written
 #' @param block   numeric vector with names "first_col", "ncols", "first_row", "nrows".
+#' @param bbox    numeric vector with names "xmin", "xmax", "ymin", "ymax".
 #' @param ...     additional parameters to be passed to raster package
 #'
-#' @note block starts at (0,0)
+#' @note block starts at (1, 1)
 #'
 #' @return numeric matrix
-.raster_crop <- function(r_obj, block, ...) {
+.raster_crop <- function(r_obj, ..., block = NULL, bbox = NULL) {
+
+    # pre-condition
+    .check_that(
+        is.null(block) || is.null(bbox),
+        local_msg = "only either 'block' or 'bbox' should be informed",
+        msg = "invalid crop parameter"
+    )
 
     # check block
-    .raster_check_block(block = block)
+    if (!is.null(block))
+        .raster_check_block(block = block)
+
+    # check bbox
+    if (!is.null(bbox))
+        .raster_check_bbox(bbox = bbox)
 
     # check package
     pkg_class <- .raster_check_package()
@@ -510,6 +546,34 @@
     UseMethod(".raster_freq", pkg_class)
 }
 
+#' @title Raster package internal frequency values function
+#' @name .raster_colrow
+#' @keywords internal
+#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
+#'
+#' @param r_obj  raster package object
+#' @param x,y    coordinates (either x or y) in raster projection
+#'
+#' @return integer with column or row
+.raster_col <- function(r_obj, x) {
+
+    # check package
+    pkg_class <- .raster_check_package()
+
+    UseMethod(".raster_col", pkg_class)
+}
+
+
+#' @name .raster_colrow
+#' @keywords internal
+.raster_row <- function(r_obj, y) {
+
+    # check package
+    pkg_class <- .raster_check_package()
+
+    UseMethod(".raster_row", pkg_class)
+}
+
 #' @title Determine the file params to write in the metadata
 #' @name .raster_params_file
 #' @keywords internal
@@ -575,6 +639,9 @@
 
     # set caller to show in errors
     .check_set_caller(".raster_merge")
+
+    # check documentation mode
+    progress <- .check_documentation(progress)
 
     # check if in_file length is at least one
     .check_length(

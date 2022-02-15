@@ -128,8 +128,8 @@ plot.predicted <- function(x, y, ...,
 #' @param  red           band for red color.
 #' @param  green         band for green color.
 #' @param  blue          band for blue color.
-#' @param  tile          tile number to be plotted
-#' @param  time          temporal instances to be plotted.
+#' @param  tiles         tiles to be plotted
+#' @param  date          date to be plotted.
 #' @param  roi           sf object giving a region of interest.
 #'
 #' @return               plot object
@@ -139,18 +139,23 @@ plot.raster_cube <- function(x, ...,
                                   red = NULL,
                                   green = NULL,
                                   blue = NULL,
-                                  tile = 1,
-                                  time = 1,
+                                  tiles = NULL,
+                                  date = NULL,
                                   roi = NULL) {
 
     # precondition
-    .check_num(
-        tile, min = 1, max = nrow(x), is_integer = TRUE,
-        len_min = 1, len_max = 1,
-        msg = "invalid tile parameter"
-    )
+    if (purrr::is_null(tiles)) {
+        tiles <- x$tile[[1]]
+    } else {
+        .check_chr_contains(x = x$tile,
+                            contains = tiles,
+                            case_sensitive = FALSE,
+                            discriminator = "all_of",
+                            can_repeat = FALSE,
+                            msg = "tiles are not included in the cube")
+    }
     # select only one tile
-    x <- x[tile, ]
+    x <- dplyr::filter(x, tile %in% tiles)
 
     if (!purrr::is_null(band)) {
         red = band
@@ -170,9 +175,17 @@ plot.raster_cube <- function(x, ...,
     )
 
     timeline <- sits_timeline(x)
+    if (purrr::is_null(date))
+        date <- timeline[[1]]
+    else
+        date <- as.Date(date)
     .check_that(
-        x = time >= 1 & time <= length(timeline),
-        msg = "time parameter out of bounds"
+        length(date) == 1,
+        msg = "plot handles one date at a time"
+    )
+    .check_that(
+        date %in% timeline,
+        msg = "requested date is not part of the cube"
     )
 
     # verify sf package if roi is informed
@@ -196,41 +209,54 @@ plot.raster_cube <- function(x, ...,
         x <- x[intersects, ]
     }
 
-    # plot only the selected tile
-    # select only the bands for the timeline
-    bands_date <- .file_info(x) %>%
-        dplyr::filter(date == as.Date(timeline[[time]]))
+    r_objs <- slider::slide(x, function(row){
+        # plot only the selected tile
+        # select only the bands for the timeline
+        bands_date <- .file_info(row) %>%
+            dplyr::filter(date == !!date)
 
-    # Are we plotting a grey image
-    if (!purrr::is_null(band)) {
-        rgb_stack <- dplyr::filter(bands_date, band == red)$path
-    }
-    else
-    {
-        # get RGB files for the requested timeline
-        red_file <- dplyr::filter(bands_date, band == red)$path
-        green_file <- dplyr::filter(bands_date, band == green)$path
-        blue_file <- dplyr::filter(bands_date, band == blue)$path
-        # put the band on a raster/terra stack
-        rgb_stack <- c(red_file, green_file, blue_file)
-    }
-    # use the raster package to obtain a raster object from a stack
-    r_obj <- .raster_open_stack.terra(rgb_stack)
+        # Are we plotting a grey image
+        if (!purrr::is_null(band)) {
+            rgb_stack <- dplyr::filter(bands_date, band == red)$path
+        }
+        else
+        {
+            # get RGB files for the requested timeline
+            red_file <- dplyr::filter(bands_date, band == red)$path
+            green_file <- dplyr::filter(bands_date, band == green)$path
+            blue_file <- dplyr::filter(bands_date, band == blue)$path
+            # put the band on a raster/terra stack
+            rgb_stack <- c(red_file, green_file, blue_file)
+        }
+        # use the raster package to obtain a raster object from a stack
+        r_obj <- .raster_open_stack.terra(rgb_stack)
 
-    # extract region of interest
-    if (!purrr::is_null(roi)) {
-        sub_image <- .sits_raster_sub_image(tile = x, roi = roi)
-        r_obj <- .raster_crop.terra(r_obj = r_obj, block = sub_image)
+        # extract region of interest
+        if (!purrr::is_null(roi)) {
+            sub_image <- .sits_raster_sub_image(tile = row, roi = roi)
+            r_obj <- .raster_crop.terra(r_obj = r_obj, block = sub_image)
+        }
+
+        .check_that(
+            x = .raster_ncols(r_obj) > 0 && .raster_nrows(r_obj) > 0,
+            msg = "unable to retrieve raster data"
+        )
+
+        return(r_obj)
+    })
+
+    # merge two or more raster objects
+    if (length(r_objs) == 1)
+        r_merge <- r_objs[[1]]
+    else {
+        raster_collection <- terra::sprc(r_objs)
+        r_merge <- terra::merge(raster_collection)
     }
 
-    .check_that(
-        x = .raster_ncols(r_obj) > 0 && .raster_nrows(r_obj) > 0,
-        msg = "unable to retrieve raster data"
-    )
     # view the RGB file
     if (!purrr::is_null(band)) {
-        rgb <- suppressWarnings(
-            terra::plotRGB(r_obj,
+        suppressWarnings(
+            terra::plotRGB(r_merge,
                            r = 1,
                            g = 1,
                            b = 1,
@@ -238,17 +264,15 @@ plot.raster_cube <- function(x, ...,
         )
     }
     else {
-        rgb <- suppressWarnings(
-            terra::plotRGB(r_obj,
+        suppressWarnings(
+            terra::plotRGB(r_merge,
                            r = 1,
                            g = 2,
                            b = 3,
                            stretch = "hist")
         )
     }
-
-
-    return(invisible(r_obj))
+    return(invisible(r_merge))
 }
 #' @title  Plot probability cubes
 #' @name   plot.probs_cube
@@ -258,18 +282,38 @@ plot.raster_cube <- function(x, ...,
 #' @param  x             object of class "probs_image"
 #' @param  y             ignored
 #' @param  ...           further specifications for \link{plot}.
-#' @param tile           tile number to be plotted
+#' @param tiles          tiles to be plotted
 #' @param labels         labels to plot (optional)
+#' @param breaks         type of class intervals
 #' @param n_colors       number of colors to plot
 #' @param palette        hcl palette used for visualisation
+#'
+#' @note
+#' \itemize{Possible class intervals
+#'  \item{"sd":} {intervals based on the average and standard deviation.}
+#'  \item{"equal": } {divides the range of the variable into n parts.}
+#'  \item{"pretty": } {number of breaks likely to be legible.}
+#'  \item{"quantile": } {quantile breaks}
+#'  \item{"kmeans" :} {uses kmeans to generate the breaks.}
+#'  \item{"hclust" :} {breaks defined by hierarchical clustering.}
+#'  \item{"bclust" :} {breaks defined by bagged clustering.}
+#'  \item{"fisher" :} {method proposed by Fischer (1958).}
+#'  \item{"jenks" :} {method proposed by Jenks.}
+#'  \item{"dpih" :} {based on the bin width of a histogram.}
+#'  \item{"headtails" :} {algorithm proposed by Bin Jiang (2013)}
+#'  }
+#'
+#' @note
+#' The function accepts color palettes are defined in grDevices::hcl.pals()
 #'
 #' @return               The plot itself.
 #'
 #' @export
 #'
 plot.probs_cube <- function(x, y, ...,
-                            tile = 1,
+                            tiles = NULL,
                             labels = NULL,
+                            breaks = "pretty",
                             n_colors = 20,
                             palette = "Terrain") {
     stopifnot(missing(y))
@@ -277,15 +321,54 @@ plot.probs_cube <- function(x, y, ...,
     if (!requireNamespace("stars", quietly = TRUE)) {
         stop("Please install package stars.", call. = FALSE)
     }
-    breaks <- "pretty"
+    # precondition - check breaks parameter
+    .check_chr_within(
+        x = breaks,
+        within = .config_get("class_intervals"),
+        discriminator = "any_of",
+        msg = "invalid class interval"
+    )
+    # precondition - check palette
+    .check_chr_within(
+        x = palette,
+        within = grDevices::hcl.pals(),
+        discriminator = "any_of",
+        msg = "invalid color palette"
+    )
+    # precondition
+    if (purrr::is_null(tiles)) {
+        tiles <- x$tile[[1]]
+    } else {
+        .check_chr_contains(x = x$tile,
+                            contains = tiles,
+                            case_sensitive = FALSE,
+                            discriminator = "all_of",
+                            can_repeat = FALSE,
+                            msg = "tiles are not included in the cube")
+    }
+    # filter the cube
+    x <- dplyr::filter(x, tile %in% tiles)
+    # define the number of colors
     n_breaks <- n_colors + 1
     # define the output color palette
     col <- grDevices::hcl.colors(n = n_colors,
                                  palette = palette,
                                  alpha = 1,
                                  rev = TRUE)
-    # create a stars object
-    st <- stars::read_stars(.file_info_path(x[tile,]))
+
+
+    # read the paths to plot
+    paths <- slider::slide_chr(x, function(row) {
+        return(.file_info_path(row))
+    })
+    if (length(paths) == 1)
+        stars_mosaic <- stars::read_stars(paths[[1]])
+    else {
+        stars.lst <- purrr::map(paths, function(path){
+            stars::read_stars(path)
+        })
+        stars_mosaic <- stars::st_mosaic(stars.lst[[1]], stars.lst[[2:length(stars.lst)]])
+    }
     # get the labels
     labels_cube <- sits_labels(x)
 
@@ -293,25 +376,30 @@ plot.probs_cube <- function(x, y, ...,
     if (!purrr::is_null(labels)) {
         # label is not null, then plot only the label
         layers <- match(labels, labels_cube)
-        p <- st %>%
-            dplyr::slice(index = layers, along = "band") %>%
-            plot(breaks = breaks,
-                 nbreaks = n_breaks,
-                 col = col,
-                 main = labels) %>%
-            suppressMessages()
+
+        out <- utils::capture.output({
+            p <- stars_mosaic %>%
+                dplyr::slice(index = layers, along = "band") %>%
+                plot(breaks = breaks,
+                     nbreaks = n_breaks,
+                     col = col,
+                     main = labels)
+        })
     }
     else {
-        p <- suppressMessages(plot(st,
-                                   breaks = breaks,
-                                   nbreaks = n_breaks,
-                                   col = col,
-                                   main = labels_cube)
+        out <- utils::capture.output({
+            p <- plot(stars_mosaic,
+                      breaks = breaks,
+                      nbreaks = n_breaks,
+                      col = col,
+                      main = labels_cube)}
         )
     }
 
     return(invisible(p))
 }
+
+
 
 #' @title  Plot uncertainty cubes
 #' @name   plot.uncertainty_cube
@@ -321,8 +409,8 @@ plot.probs_cube <- function(x, y, ...,
 #' @param  x             object of class "probs_image"
 #' @param  y             ignored
 #' @param  ...           further specifications for \link{plot}.
-#' @param tile           tile number to be plotted
-#' @param n_breaks       number of breaks to plot
+#' @param tiles          tiles to be plotted
+#' @param n_colors       number of colors to plot
 #' @param breaks         type of class intervals
 #' @param palette        hcl palette used for visualisation
 #'
@@ -347,8 +435,8 @@ plot.probs_cube <- function(x, y, ...,
 #' @export
 #'
 plot.uncertainty_cube <- function(x, y, ...,
-                                  tile = 1,
-                                  n_breaks = 11,
+                                  tiles = NULL,
+                                  n_colors = 10,
                                   breaks = "pretty",
                                   palette = "Blues") {
     stopifnot(missing(y))
@@ -356,20 +444,56 @@ plot.uncertainty_cube <- function(x, y, ...,
     if (!requireNamespace("stars", quietly = TRUE)) {
         stop("Please install package stars.", call. = FALSE)
     }
-    # check class interval
+    # precondition - check breaks parameter
     .check_chr_within(
         x = breaks,
         within = .config_get("class_intervals"),
         discriminator = "any_of",
         msg = "invalid class interval"
     )
-    n_colors <- n_breaks - 1
+    # precondition - check palette
+    .check_chr_within(
+        x = palette,
+        within = grDevices::hcl.pals(),
+        discriminator = "any_of",
+        msg = "invalid color palette"
+    )
+    # precondition
+    if (purrr::is_null(tiles)) {
+        tiles <- x$tile[[1]]
+    } else {
+        .check_chr_contains(x = x$tile,
+                            contains = tiles,
+                            case_sensitive = FALSE,
+                            discriminator = "all_of",
+                            can_repeat = FALSE,
+                            msg = "tiles are not included in the cube")
+    }
+    # filter the cube
+    x <- dplyr::filter(x, tile %in% tiles)
+    # define the number of colors
+    n_breaks <- n_colors + 1
     # define the output color palette
-    col <- grDevices::hcl.colors(n = n_colors, palette = palette,
-                                 alpha = 1, rev = TRUE)
-    # create a stars object
-    st <- stars::read_stars(.file_info_path(x[tile,]))
-    p <- suppressMessages(plot(st,
+    col <- grDevices::hcl.colors(n = n_colors,
+                                 palette = palette,
+                                 alpha = 1,
+                                 rev = TRUE)
+
+
+    # read the paths to plot
+    paths <- slider::slide_chr(x, function(row) {
+        return(.file_info_path(row))
+    })
+    if (length(paths) == 1)
+        stars_mosaic <- stars::read_stars(paths[[1]])
+    else {
+        stars.lst <- purrr::map(paths, function(path){
+            stars::read_stars(path)
+        })
+        stars_mosaic <- stars::st_mosaic(stars.lst[[1]], stars.lst[[2:length(stars.lst)]])
+    }
+
+    p <- suppressMessages(plot(stars_mosaic,
                                breaks = breaks,
                                nbreaks = n_breaks,
                                col = col,
@@ -387,7 +511,7 @@ plot.uncertainty_cube <- function(x, y, ...,
 #' @param  x               object of class "classified_image"
 #' @param  y               ignored
 #' @param  ...             further specifications for \link{plot}.
-#' @param  time            temporal reference for plot.
+#' @param  tiles           tiles to be plotted
 #' @param  title           title of the plot
 #' @param  legend          named vector that associates labels to colors
 #' @param  palette         alternative palette that uses grDevices::hcl.pals()
@@ -396,7 +520,7 @@ plot.uncertainty_cube <- function(x, y, ...,
 #' @export
 #'
 plot.classified_image <- function(x, y, ...,
-                                  time = 1,
+                                  tiles = NULL,
                                   title = "Classified Image",
                                   legend = NULL,
                                   palette = "Spectral",
@@ -404,7 +528,7 @@ plot.classified_image <- function(x, y, ...,
     stopifnot(missing(y))
 
     p <- .sits_plot_classified_image(cube = x,
-                                     time = time,
+                                     tiles = tiles,
                                      title = title,
                                      legend = legend,
                                      palette = palette,
@@ -1176,13 +1300,13 @@ plot.keras_model <- function(x, y, ...) {
 #' for showing the same lat/long location in a series of time steps.
 #'
 #' @param cube             metadata for a labelled data cube.
-#' @param time             temporal reference for plot.
+#' @param tiles            tiles to be plotted
 #' @param title            title of the plot
 #' @param legend           named vector that associates labels to colors.
 #' @param palette          palette (one of grDevices::hcl.pals())
 #' @param rev              revert the order of hcl palette (TRUE/FALSE)
 .sits_plot_classified_image <- function(cube,
-                                        time,
+                                        tiles,
                                         title,
                                         legend,
                                         palette,
@@ -1192,22 +1316,63 @@ plot.keras_model <- function(x, y, ...) {
     # set caller to show in errors
     .check_set_caller(".sits_plot_classified_image")
 
-    #precondition 1 - cube must be a labelled cube
+    # precondition - cube must be a labelled cube
     .check_chr_within(
         x = "classified_image",
         within = class(cube),
         discriminator = "any_of",
         msg = "cube must be a classified image")
-    #precondition 2 - time must be a positive integer
-    .check_that(x = time >= 1,
-                msg = paste("time must be a positive integer")
+
+    # precondition - check palette
+    .check_chr_within(
+        x = palette,
+        within = grDevices::hcl.pals(),
+        discriminator = "any_of",
+        msg = "invalid color palette"
     )
 
-    # get the raster object
-    r <- suppressWarnings(terra::rast(.file_info_path(cube)))
+    # precondition
+    if (purrr::is_null(tiles)) {
+        tiles <- cube$tile[[1]]
+    } else {
+        .check_chr_contains(x = cube$tile,
+                            contains = tiles,
+                            case_sensitive = FALSE,
+                            discriminator = "all_of",
+                            can_repeat = FALSE,
+                            msg = "tiles are not included in the cube")
+    }
+    # select only one tile
+    cube <- dplyr::filter(cube, tile %in% tiles)
 
+    r_objs <- slider::slide(cube, function(row) {
+        # get the raster object
+        r <- suppressWarnings(terra::rast(.file_info_path(row)))
+    })
+
+    # merge two or more raster objects
+    if (length(r_objs) == 1)
+        r_merge <- r_objs[[1]]
+    else {
+        raster_collection <- terra::sprc(r_objs)
+        r_merge <- terra::merge(raster_collection)
+    }
+    # compress the image
+    max_Mbytes <- .config_get("plot_max_Mbytes")
+
+    # find out of image needs to be resampled
+    size <- .sits_plot_resample_class(terra::nrow(r_merge),
+                                      terra::ncol(r_merge),
+                                      max_Mbytes)
+    # resample image
+    if (as.numeric(size[["ratio"]] > 1)) {
+        new_nrows <- as.integer(size[["nrows"]])
+        new_ncols <- as.integer(size[["ncols"]])
+        new_rast <- terra::rast(nrows = new_nrows, ncols = new_ncols)
+        r_merge <- terra::resample(r_merge, new_rast, method = "near")
+    }
     # convert from raster to points
-    df <- terra::as.data.frame(r, xy = TRUE)
+    df <- terra::as.data.frame(r_merge, xy = TRUE)
     # define the column names for the data frame
     colnames(df) <- c("x", "y", "class")
 
@@ -1227,9 +1392,10 @@ plot.keras_model <- function(x, y, ...) {
         .check_chr_within(
             x = labels,
             within = names(legend),
+            discriminator = "all_of",
             msg = "some labels are missing from the legend")
-        colors <- unname(legend[labels])
 
+        colors <- unname(legend[labels])
     }
     # set the names of the color vector
     names(colors) <- as.character(c(1:nclasses))
@@ -1246,6 +1412,30 @@ plot.keras_model <- function(x, y, ...) {
 
     graphics::plot(g)
     return(g)
+}
+#' @title Calculate resample params for classified images
+#' @name .sits_plot_resample_class
+#' @keywords internal
+#' @param nrows    number of rows in the input image
+#' @param ncols    number of cols in the input image
+#' @param max_Mbytes maximum number of MB per plot
+#' @return         ratio and new size of output plot
+.sits_plot_resample_class <- function(nrows, ncols, max_Mbytes){
+
+    # input size
+    in_size_Mbytes <- (nrows * ncols)/(1000 * 1000)
+    # do we need to compress?
+    ratio <- max((in_size_Mbytes/max_Mbytes), 1)
+
+    # only create local files if required
+    if (ratio > 1) {
+        new_nrows <- round(nrows/sqrt(ratio))
+        new_ncols <- round(ncols*(new_nrows/nrows))
+    } else {
+        new_nrows <- nrows
+        new_ncols <- ncols
+    }
+    return(c("ratio" = ratio, "nrows" = nrows, "ncols" = ncols))
 }
 
 #' @title Plot classification alignments using the dtwSat package

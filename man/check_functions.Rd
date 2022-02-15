@@ -24,6 +24,7 @@
 \alias{.check_env_var}
 \alias{.check_warn}
 \alias{.check_error}
+\alias{.check_documentation}
 \title{Check functions}
 \usage{
 .check_set_caller(caller)
@@ -73,6 +74,7 @@
   allow_null = FALSE,
   is_integer = FALSE,
   is_named = FALSE,
+  tolerance = NULL,
   msg = NULL
 )
 
@@ -127,6 +129,8 @@
 .check_warn(expr)
 
 .check_error(expr, ..., msg = NULL)
+
+.check_documentation(progress)
 }
 \arguments{
 \item{caller}{A \code{character} value with the caller name.}
@@ -172,6 +176,9 @@ numeric check. By default is \code{Inf}.}
 
 \item{allow_zero}{A \code{logical} indicating if the check permits zero
 values. Default is TRUE.}
+
+\item{tolerance}{A \code{numeric} with the tolerance to be
+accepted in range test. The default value is NULL.}
 
 \item{allow_empty}{A \code{logical} indicating if the check permits empty
 list. Default is TRUE.}

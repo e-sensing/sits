@@ -223,7 +223,7 @@ test_that("Checks", {
         .check_chr_within(c("a", "b"),
                           within = c("a", "b", "c"),
                           discriminator = "one_of"),
-        "test: values should have only one of: 'a', 'b', 'c'"
+        "test: values should be only one of: 'a', 'b', 'c'"
     )
     expect_equal(
         .check_chr_within(c("a", "b"),
@@ -253,7 +253,7 @@ test_that("Checks", {
         .check_chr_within(c("a", "b", "c"),
                           within = c("a", "b"),
                           discriminator = "exactly"),
-        "test: values should have exactly"
+        "test: values should be exactly"
     )
     expect_error(
         .check_chr_within(c("a", "b", "b", "c"),
@@ -428,6 +428,20 @@ test_that("Checks", {
     expect_equal(
         .check_num(c(1, 1.23, 2)),
         c(1, 1.23, 2)
+    )
+    expect_equal(
+        .check_num(x = 1, min = 1.1, max = 1.1, tolerance = 0.1),
+        1
+    )
+    expect_error(
+        .check_num(x = 1, min = 1.1, max = 1.1, tolerance = 0)
+    )
+    expect_equal(
+        .check_num(x = -1, min = -0.99, max = -1, tolerance = 0.1),
+        -1
+    )
+    expect_error(
+        .check_num(x = -1, min = -0.99, max = -1),
     )
     expect_error(
         .check_num(c(1, 1.23, 2), is_integer = TRUE),

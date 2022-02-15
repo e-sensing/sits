@@ -56,6 +56,8 @@
 #' @param extensions    A \code{character} vector with all allowed file
 #' extensions.
 #' @param expr          A R \code{expression} to be evaluated.
+#' @param tolerance     A \code{numeric} with the tolerance to be
+#' accepted in range test. The default value is NULL.
 #' @param ...           Additional parameters for \code{fn_check} function.
 #'
 #' @return
@@ -481,6 +483,7 @@ NULL
                        allow_null = FALSE,
                        is_integer = FALSE,
                        is_named = FALSE,
+                       tolerance = NULL,
                        msg = NULL) {
 
     # check for NULL and exit if it is allowed
@@ -511,9 +514,23 @@ NULL
     if (!is.null(max) && !is.numeric(max))
         stop(".check_num: max parameter should be numeric.")
 
+    if (!is.null(tolerance))
+        .check_num(
+            x = tolerance,
+            msg = "tolerance must be numeric."
+        )
+
     # remove NAs before check
     result <- x
     x <- x[!is.na(x)]
+
+    # adjust min and max to tolerance
+    if (!is.null(tolerance)) {
+
+        min <- min - tolerance
+        max <- max + tolerance
+    }
+
     .check_that(
         all(min <= x) && all(x <= max),
         local_msg = "value is out of range",
@@ -668,11 +685,11 @@ NULL
                msg = "invalid 'within' parameter")
 
     # allowed discriminators and its print values
-    discriminators <- c(one_of  = "have only one of",
-                        any_of  = "have at least one of",
-                        all_of  = "have",
-                        none_of = "have none of",
-                        exactly = "have exactly")
+    discriminators <- c(one_of  = "be only one of",
+                        any_of  = "be at least one of",
+                        all_of  = "be",
+                        none_of = "be none of",
+                        exactly = "be exactly")
 
     if (length(discriminator) != 1 ||
         !discriminator %in% names(discriminators))
@@ -873,8 +890,8 @@ NULL
     .check_that(
         all(existing_files | existing_dirs),
         local_msg = paste("file does not exist:",
-                            paste0("'", x[!existing_files], "'",
-                                   collapse = ", ")),
+                          paste0("'", x[!existing_files], "'",
+                                 collapse = ", ")),
         msg = msg
     )
 
@@ -952,4 +969,13 @@ NULL
     })
 
     return(invisible(result))
+}
+#' @rdname check_functions
+#' @keywords internal
+.check_documentation <- function(progress){
+    # if working on sits documentation mode, no progress bar
+    if (Sys.getenv("SITS_DOCUMENTATION_MODE") == "true")
+        progress <- FALSE
+
+    return(progress)
 }
