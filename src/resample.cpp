@@ -3,23 +3,10 @@
 #include <vector>
 using namespace Rcpp;
 
-// This is a simple example of exporting a C++ function to R. You can
-// source this function into an R session using the Rcpp::sourceCpp
-// function (or via the Source button on the editor toolbar). Learn
-// more about Rcpp at:
-//
-//   http://www.rcpp.org/
-//   http://adv-r.had.co.nz/Rcpp.html
-//   http://gallery.rcpp.org/
-//
-
 std::vector< std::pair<int,int>> reverse(const int& i_out,
                                          const int& j_out,
                                          const int& ratio_in_out){
 
-
-    int i_in = i_out * ratio_in_out;
-    int j_in = j_out * ratio_in_out;
 
     std::vector< std::pair<int,int> > points_in;
     std::pair<int,int> point_in(0,0);
@@ -36,12 +23,12 @@ std::vector< std::pair<int,int>> reverse(const int& i_out,
 
 // [[Rcpp::export]]
 IntegerMatrix reg_resample(const IntegerMatrix& band,
-                       const IntegerMatrix& cloud,
-                       const int& ratio_band_out,
-                       const int& ratio_cloud_out,
-                       const int& nrows_out,
-                       const int& ncols_out,
-                       IntegerVector& cloud_values) {
+                           const IntegerMatrix& cloud,
+                           const int& ratio_band_out,
+                           const int& ratio_cloud_out,
+                           const int& nrows_out,
+                           const int& ncols_out,
+                           IntegerVector& cloud_values) {
 
     IntegerMatrix  band_out(nrows_out, ncols_out);
     band_out.fill(0);

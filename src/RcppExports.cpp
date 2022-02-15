@@ -104,6 +104,36 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// reg_resample
+IntegerMatrix reg_resample(const IntegerMatrix& band, const IntegerMatrix& cloud, const int& ratio_band_out, const int& ratio_cloud_out, const int& nrows_out, const int& ncols_out, IntegerVector& cloud_values);
+RcppExport SEXP _sits_reg_resample(SEXP bandSEXP, SEXP cloudSEXP, SEXP ratio_band_outSEXP, SEXP ratio_cloud_outSEXP, SEXP nrows_outSEXP, SEXP ncols_outSEXP, SEXP cloud_valuesSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< const IntegerMatrix& >::type band(bandSEXP);
+    Rcpp::traits::input_parameter< const IntegerMatrix& >::type cloud(cloudSEXP);
+    Rcpp::traits::input_parameter< const int& >::type ratio_band_out(ratio_band_outSEXP);
+    Rcpp::traits::input_parameter< const int& >::type ratio_cloud_out(ratio_cloud_outSEXP);
+    Rcpp::traits::input_parameter< const int& >::type nrows_out(nrows_outSEXP);
+    Rcpp::traits::input_parameter< const int& >::type ncols_out(ncols_outSEXP);
+    Rcpp::traits::input_parameter< IntegerVector& >::type cloud_values(cloud_valuesSEXP);
+    rcpp_result_gen = Rcpp::wrap(reg_resample(band, cloud, ratio_band_out, ratio_cloud_out, nrows_out, ncols_out, cloud_values));
+    return rcpp_result_gen;
+END_RCPP
+}
+// reg_merge
+IntegerMatrix reg_merge(const List& bands, const int& nrows, const int& ncols);
+RcppExport SEXP _sits_reg_merge(SEXP bandsSEXP, SEXP nrowsSEXP, SEXP ncolsSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< const List& >::type bands(bandsSEXP);
+    Rcpp::traits::input_parameter< const int& >::type nrows(nrowsSEXP);
+    Rcpp::traits::input_parameter< const int& >::type ncols(ncolsSEXP);
+    rcpp_result_gen = Rcpp::wrap(reg_merge(bands, nrows, ncols));
+    return rcpp_result_gen;
+END_RCPP
+}
 // smooth_whit
 NumericVector smooth_whit(const NumericVector& data, const double& lambda, const int& length);
 RcppExport SEXP _sits_smooth_whit(SEXP dataSEXP, SEXP lambdaSEXP, SEXP lengthSEXP) {
@@ -126,6 +156,8 @@ static const R_CallMethodDef CallEntries[] = {
     {"_sits_linear_interp", (DL_FUNC) &_sits_linear_interp, 1},
     {"_sits_linear_interp_vec", (DL_FUNC) &_sits_linear_interp_vec, 1},
     {"_sits_normalize_data", (DL_FUNC) &_sits_normalize_data, 3},
+    {"_sits_reg_resample", (DL_FUNC) &_sits_reg_resample, 7},
+    {"_sits_reg_merge", (DL_FUNC) &_sits_reg_merge, 3},
     {"_sits_smooth_whit", (DL_FUNC) &_sits_smooth_whit, 3},
     {NULL, NULL, 0}
 };

@@ -29,6 +29,14 @@ normalize_data <- function(data, min, max) {
     .Call(`_sits_normalize_data`, data, min, max)
 }
 
+reg_resample <- function(band, cloud, ratio_band_out, ratio_cloud_out, nrows_out, ncols_out, cloud_values) {
+    .Call(`_sits_reg_resample`, band, cloud, ratio_band_out, ratio_cloud_out, nrows_out, ncols_out, cloud_values)
+}
+
+reg_merge <- function(bands, nrows, ncols) {
+    .Call(`_sits_reg_merge`, bands, nrows, ncols)
+}
+
 smooth_whit <- function(data, lambda, length) {
     .Call(`_sits_smooth_whit`, data, lambda, length)
 }
