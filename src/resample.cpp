@@ -13,8 +13,8 @@ std::vector< std::pair<int,int>> reverse(const int& i_out,
 
     for (int i = 0; i < ratio_in_out; i++){
         for (int j = 0; j < ratio_in_out; j++){
-            point_in.first = i_out + i;
-            point_in.second = j_out + j;
+            point_in.first = ratio_in_out * i_out + i;
+            point_in.second = ratio_in_out * j_out + j;
             points_in.push_back(point_in);
         }
     }
@@ -28,7 +28,8 @@ IntegerMatrix reg_resample(const IntegerMatrix& band,
                            const int& ratio_cloud_out,
                            const int& nrows_out,
                            const int& ncols_out,
-                           IntegerVector& cloud_values) {
+                           IntegerVector& cloud_values,
+                           const int& missing_value) {
 
     IntegerMatrix  band_out(nrows_out, ncols_out);
     band_out.fill(0);
@@ -42,22 +43,28 @@ IntegerMatrix reg_resample(const IntegerMatrix& band,
             points_band = reverse(i, j, ratio_band_out);
             points_cloud = reverse(i, j, ratio_cloud_out);
             std::vector< std::pair<int,int>>::iterator cloud_iter = points_cloud.begin();
-            while(cloud_iter++ !=  points_cloud.end()){
+
+            std::cout << points_cloud.size() << std::endl;
+
+             while(cloud_iter++ !=  points_cloud.end()){
+
+                //std::cout << cloud_iter->first << " " << cloud_iter->second << std::endl;
+
                 int cloud_value = cloud(cloud_iter->first, cloud_iter->second);
                 IntegerVector::iterator f = std::find(cloud_values.begin(),cloud_values.end(),
                                                       cloud_value);
                 if (f != cloud_values.end()){
-                    band_out(i,j) = NA_INTEGER;
+                    band_out(i,j) = missing_value;
                     break;
                 }
             }
-            if (band_out(i,j) != NA_INTEGER) {
+            if (band_out(i,j) != missing_value) {
                 int band_sum = 0;
                 int num_band = 0;
                 std::vector< std::pair<int,int>>::iterator band_iter = points_band.begin();
                 while(band_iter++ !=  points_band.end()){
                     double band_val = band(band_iter->first, band_iter->second);
-                    if (band_val != NA_INTEGER) {
+                    if (band_val != missing_value) {
                         band_sum += band_val;
                         num_band++;
                     }

@@ -105,8 +105,8 @@ BEGIN_RCPP
 END_RCPP
 }
 // reg_resample
-IntegerMatrix reg_resample(const IntegerMatrix& band, const IntegerMatrix& cloud, const int& ratio_band_out, const int& ratio_cloud_out, const int& nrows_out, const int& ncols_out, IntegerVector& cloud_values);
-RcppExport SEXP _sits_reg_resample(SEXP bandSEXP, SEXP cloudSEXP, SEXP ratio_band_outSEXP, SEXP ratio_cloud_outSEXP, SEXP nrows_outSEXP, SEXP ncols_outSEXP, SEXP cloud_valuesSEXP) {
+IntegerMatrix reg_resample(const IntegerMatrix& band, const IntegerMatrix& cloud, const int& ratio_band_out, const int& ratio_cloud_out, const int& nrows_out, const int& ncols_out, IntegerVector& cloud_values, const int& missing_value);
+RcppExport SEXP _sits_reg_resample(SEXP bandSEXP, SEXP cloudSEXP, SEXP ratio_band_outSEXP, SEXP ratio_cloud_outSEXP, SEXP nrows_outSEXP, SEXP ncols_outSEXP, SEXP cloud_valuesSEXP, SEXP missing_valueSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -117,7 +117,8 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< const int& >::type nrows_out(nrows_outSEXP);
     Rcpp::traits::input_parameter< const int& >::type ncols_out(ncols_outSEXP);
     Rcpp::traits::input_parameter< IntegerVector& >::type cloud_values(cloud_valuesSEXP);
-    rcpp_result_gen = Rcpp::wrap(reg_resample(band, cloud, ratio_band_out, ratio_cloud_out, nrows_out, ncols_out, cloud_values));
+    Rcpp::traits::input_parameter< const int& >::type missing_value(missing_valueSEXP);
+    rcpp_result_gen = Rcpp::wrap(reg_resample(band, cloud, ratio_band_out, ratio_cloud_out, nrows_out, ncols_out, cloud_values, missing_value));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -156,7 +157,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"_sits_linear_interp", (DL_FUNC) &_sits_linear_interp, 1},
     {"_sits_linear_interp_vec", (DL_FUNC) &_sits_linear_interp_vec, 1},
     {"_sits_normalize_data", (DL_FUNC) &_sits_normalize_data, 3},
-    {"_sits_reg_resample", (DL_FUNC) &_sits_reg_resample, 7},
+    {"_sits_reg_resample", (DL_FUNC) &_sits_reg_resample, 8},
     {"_sits_reg_merge", (DL_FUNC) &_sits_reg_merge, 3},
     {"_sits_smooth_whit", (DL_FUNC) &_sits_smooth_whit, 3},
     {NULL, NULL, 0}
