@@ -4,7 +4,14 @@
 \alias{.reg_create_filename}
 \title{Create the merge image filename}
 \usage{
-.reg_create_filename(tile, date_period, output_dir, band, block = NULL)
+.reg_create_filename(
+  tile,
+  date_period,
+  output_dir,
+  band,
+  block = NULL,
+  posfix = NULL
+)
 }
 \arguments{
 \item{tile}{...}

@@ -4,10 +4,10 @@
 \alias{.reg_aggregate_chunk}
 \title{Aggregate raster chunk}
 \usage{
-.reg_aggregate_chunk(rast_stack, filename, datatype, ...)
+.reg_aggregate_chunk(rast_files, filename, datatype, ...)
 }
 \arguments{
-\item{rast_stack}{A \code{SpatRast} object}
+\item{rast_files}{A \code{SpatRast} object}
 
 \item{filename}{A \code{character} with filename of the rast.}
 

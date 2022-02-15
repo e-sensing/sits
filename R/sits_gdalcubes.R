@@ -89,6 +89,8 @@
                           roi,
                           output_dir) {
 
+    multithreads <- 6
+
     # set caller to show in errors
     .check_set_caller(".reg_new_cube")
 
@@ -107,8 +109,11 @@
     # for each block
     blocks_reg_path <- purrr::map_chr(blocks, function(block) {
 
-        block_band_dates <- slider::slide_chr(unique(fi[["fid"]]), function(fid) {
+        .sits_parallel_start(multithreads, log = FALSE)
+        on.exit(.sits_parallel_stop())
 
+        #block_band_dates <- slider::slide_chr(unique(fi[["fid"]]), function(fid) {
+        block_band_dates <- .sits_parallel_map(unique(fi[["fid"]]), function(fid) {
             tile_fid <- tile_period_band
             tile_fid[["file_info"]][[1]]  <- .file_info(tile_fid, fid = fid)
 
@@ -119,7 +124,8 @@
                 date_period = unique(fi_fid[["date"]]),
                 output_dir = output_dir,
                 band = t_band,
-                block = block
+                block = block,
+                posfix = "reg"
             )
 
             cloud_date_block <- .reg_create_filename(
@@ -127,7 +133,8 @@
                 date_period = unique(fi_fid[["date"]]),
                 output_dir = output_dir,
                 band = .source_cloud(),
-                block = block
+                block = block,
+                posfix = "reg"
             )
 
             c_paths <- .file_info_paths(
@@ -175,32 +182,27 @@
             gc()
 
             return(band_date_block)
-        })
-
-        # .reg_aggregate_chunk(
-        #     rast_stack = b_mask,
-        #     filename = band_filename_block,
-        #     datatype = reg_datatype
-        # )
+        }, progress = TRUE)
 
         band_date_block <- .reg_create_filename(
-            file_info = .file_info(tile_period_band),
+            tile = tile_period_band,
             date_period = date_period,
             output_dir = output_dir,
             band = t_band,
             block = block
         )
 
-        .raster_merge(
-            in_files = block_band_dates,
-            out_file = output_filename,
-            format = "GTiff",
-            gdal_datatype = .raster_gdal_datatype(reg_datatype),
-            gdal_options = .config_gtiff_default_options(),
-            overwrite = TRUE
+        .reg_aggregate_chunk(
+            rast_files = unlist(block_band_dates),
+            filename = band_date_block,
+            datatype = reg_datatype
         )
 
-        return(band_filename_block)
+
+        unlink(unlist(block_band_dates))
+        gc()
+
+        return(band_date_block)
     })
 
     output_filename <- paste0(
@@ -256,7 +258,7 @@
         block = block,
         datatype = datatype,
         filename = filename
-        )
+    )
 
     res_rast <- .reg_resample_rast(
         rast = chunk_rast,
@@ -290,9 +292,7 @@
 #' @param band       ....
 #'
 #' @return A \code{character} with the file name of resampled image.
-.reg_create_filename <- function(tile, date_period, output_dir, band, block = NULL) {
-
-    # TODO: check if nrow is one
+.reg_create_filename <- function(tile, date_period, output_dir, band, block = NULL, posfix = NULL) {
 
     file_ext <- unique(
         tools::file_ext(
@@ -317,6 +317,9 @@
 
         b_filename <- paste(b_filename, currently_row, next_rows, sep = "_")
     }
+
+    if (!is.null(posfix))
+        b_filename <- paste(b_filename, posfix, sep = "_")
 
     b_path <- paste0(output_dir, "/", b_filename, ".", file_ext)
 
@@ -347,8 +350,8 @@
 
     bbox_ext <-  c(
         xmin = terra::xFromCol(rast, block[["first_col"]]),
-        xmax = terra::xFromCol(rast, (1 + block[["ncols"]]) - 1),
-        ymin = terra::yFromRow(rast, (block[["nrows"]] + block[["first_row"]]) - 1),
+        xmax = terra::xFromCol(rast, block[["ncols"]] + block[["first_col"]] - 1),
+        ymin = terra::yFromRow(rast, block[["nrows"]] + block[["first_row"]] - 1),
         ymax = terra::yFromRow(rast, block[["first_row"]])
     )
 
@@ -358,9 +361,9 @@
         x = rast,
         y = r_ext,
         NAflag = .config_get("raster_cube_missing_value"),
-        filename = filename,
+        #filename = filename,
         datatype = datatype,
-        overwrite = TRUE
+        #overwrite = TRUE
     )
 
     return(cropped_rast)
@@ -394,7 +397,7 @@
 
     # output template
     new_rast <- terra::rast(
-        resolution = resolution,
+        resolution = c(x = resolution, y = resolution),
         xmin  = terra::xmin(t_bbox),
         xmax  = terra::xmax(t_bbox),
         ymin  = terra::ymin(t_bbox),
@@ -451,7 +454,7 @@
 #'
 #' @keywords internal
 #'
-#' @param rast_stack     A \code{SpatRast} object
+#' @param rast_files     A \code{SpatRast} object
 #'
 #' @param filename A \code{character} with filename of the rast.
 #'
@@ -460,10 +463,14 @@
 #' @param ...      additional paramters for terra merge methods.
 #'
 #' @return An invisible null
-.reg_aggregate_chunk <- function(rast_stack, filename, datatype, ...) {
+.reg_aggregate_chunk <- function(rast_files, filename, datatype, ...) {
 
-    terra::merge(
-        x =  terra::src(rast_stack),
+
+    rast_list <- purrr::map(rast_files, terra::rast)
+
+    terra::mosaic(
+        x =  terra::sprc(rast_list),
+        fun = "first",
         filename = filename,
         datatype = datatype,
         gdal = .config_gtiff_default_options(),
