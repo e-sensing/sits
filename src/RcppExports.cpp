@@ -137,20 +137,20 @@ BEGIN_RCPP
 END_RCPP
 }
 // compose_first
-IntegerMatrix compose_first(const List& band_block_dates, const IntegerMatrix& cloud, IntegerVector& cloud_values, const double& ratio_band_out, const double& ratio_cloud_out, const int& nrows_out, const int& ncols_out, const int& missing_value);
-RcppExport SEXP _sits_compose_first(SEXP band_block_datesSEXP, SEXP cloudSEXP, SEXP cloud_valuesSEXP, SEXP ratio_band_outSEXP, SEXP ratio_cloud_outSEXP, SEXP nrows_outSEXP, SEXP ncols_outSEXP, SEXP missing_valueSEXP) {
+IntegerMatrix compose_first(const List& band_block_dates, const List& cloud_block_dates, IntegerVector& cloud_values, const double& ratio_band_out, const double& ratio_cloud_out, const int& nrows_out, const int& ncols_out, const int& missing_value);
+RcppExport SEXP _sits_compose_first(SEXP band_block_datesSEXP, SEXP cloud_block_datesSEXP, SEXP cloud_valuesSEXP, SEXP ratio_band_outSEXP, SEXP ratio_cloud_outSEXP, SEXP nrows_outSEXP, SEXP ncols_outSEXP, SEXP missing_valueSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< const List& >::type band_block_dates(band_block_datesSEXP);
-    Rcpp::traits::input_parameter< const IntegerMatrix& >::type cloud(cloudSEXP);
+    Rcpp::traits::input_parameter< const List& >::type cloud_block_dates(cloud_block_datesSEXP);
     Rcpp::traits::input_parameter< IntegerVector& >::type cloud_values(cloud_valuesSEXP);
     Rcpp::traits::input_parameter< const double& >::type ratio_band_out(ratio_band_outSEXP);
     Rcpp::traits::input_parameter< const double& >::type ratio_cloud_out(ratio_cloud_outSEXP);
     Rcpp::traits::input_parameter< const int& >::type nrows_out(nrows_outSEXP);
     Rcpp::traits::input_parameter< const int& >::type ncols_out(ncols_outSEXP);
     Rcpp::traits::input_parameter< const int& >::type missing_value(missing_valueSEXP);
-    rcpp_result_gen = Rcpp::wrap(compose_first(band_block_dates, cloud, cloud_values, ratio_band_out, ratio_cloud_out, nrows_out, ncols_out, missing_value));
+    rcpp_result_gen = Rcpp::wrap(compose_first(band_block_dates, cloud_block_dates, cloud_values, ratio_band_out, ratio_cloud_out, nrows_out, ncols_out, missing_value));
     return rcpp_result_gen;
 END_RCPP
 }

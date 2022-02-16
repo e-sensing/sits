@@ -118,7 +118,7 @@ IntegerMatrix reg_merge_first(const List& band_block_dates,
 
 // [[Rcpp::export]]
 IntegerMatrix compose_first(const List& band_block_dates,
-                            const IntegerMatrix& cloud,
+                            const List& cloud_block_dates,
                             IntegerVector& cloud_values,
                             const double& ratio_band_out,
                             const double& ratio_cloud_out,
@@ -126,14 +126,15 @@ IntegerMatrix compose_first(const List& band_block_dates,
                             const int& ncols_out,
                             const int& missing_value){
 
-
     int num_bands = band_block_dates.length();
     List bands_resampled;
 
     for (int k = 0; k < num_bands; k++) {
         IntegerMatrix band_k = band_block_dates[k];
+        IntegerMatrix cloud_k = cloud_block_dates[k];
+
         IntegerMatrix band_k_out = reg_resample(band_k,
-                                                cloud,
+                                                cloud_k,
                                                 ratio_band_out,
                                                 ratio_cloud_out,
                                                 nrows_out,
