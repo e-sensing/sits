@@ -33,8 +33,12 @@ reg_resample <- function(band, cloud, ratio_band_out, ratio_cloud_out, nrows_out
     .Call(`_sits_reg_resample`, band, cloud, ratio_band_out, ratio_cloud_out, nrows_out, ncols_out, cloud_values, missing_value)
 }
 
-reg_merge <- function(bands, nrows, ncols) {
-    .Call(`_sits_reg_merge`, bands, nrows, ncols)
+reg_merge_first <- function(band_block_dates, nrows, ncols, missing_value) {
+    .Call(`_sits_reg_merge_first`, band_block_dates, nrows, ncols, missing_value)
+}
+
+compose_first <- function(band_block_dates, cloud, cloud_values, ratio_band_out, ratio_cloud_out, nrows_out, ncols_out, missing_value) {
+    .Call(`_sits_compose_first`, band_block_dates, cloud, cloud_values, ratio_band_out, ratio_cloud_out, nrows_out, ncols_out, missing_value)
 }
 
 smooth_whit <- function(data, lambda, length) {
