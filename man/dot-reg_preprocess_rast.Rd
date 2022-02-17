@@ -2,6 +2,7 @@
 % Please edit documentation in R/sits_gdalcubes.R
 \name{.reg_preprocess_rast}
 \alias{.reg_preprocess_rast}
+\alias{.reg_preprocess_new}
 \title{Preprocessing steps of sits regularize}
 \usage{
 .reg_preprocess_rast(
@@ -12,6 +13,19 @@
   block,
   datatype,
   filename
+)
+
+.reg_preprocess_new(
+  tile,
+  band_path,
+  cloud_path,
+  resolution,
+  resampling,
+  block,
+  datatype,
+  filename,
+  cloud_interp,
+  missing_value
 )
 }
 \arguments{
@@ -30,8 +44,12 @@ in mosaic operation. Options: \code{near}, \code{bilinear}, \code{bicubic},
 }
 \value{
 A \code{SpatRast} object resampled
+
+A \code{SpatRast} object resampled
 }
 \description{
+Preprocessing steps of sits regularize
+
 Preprocessing steps of sits regularize
 }
 \keyword{internal}

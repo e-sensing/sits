@@ -97,7 +97,7 @@
 
     fi <- .file_info(tile_period_band)
 
-    t_band <- .cube_bands(tile_period_band, add_cloud = FALSE)
+    tile_band <- .cube_bands(tile_period_band, add_cloud = FALSE)
 
     # get the interp values
     interp_values <- .source_cloud_interp_values(
@@ -126,7 +126,7 @@
                 tile = tile_fid,
                 date_period = unique(fi_fid[["date"]]),
                 output_dir = output_dir,
-                band = t_band,
+                band = tile_band,
                 block = block,
                 posfix = "reg"
             )
@@ -140,14 +140,14 @@
                 posfix = "reg"
             )
 
-            c_paths <- .file_info_paths(
+            c_path <- .file_info_paths(
                 cube = tile_fid,
                 bands = .source_cloud()
             )
 
-            b_paths <- .file_info_paths(
+            b_path <- .file_info_paths(
                 cube = tile_fid,
-                bands = t_band
+                bands = tile_band
             )
 
             # cloud preprocess
@@ -191,7 +191,7 @@
             tile = tile_period_band,
             date_period = date_period,
             output_dir = output_dir,
-            band = t_band,
+            band = tile_band,
             block = block
         )
 
@@ -210,7 +210,7 @@
 
     output_filename <- paste0(
         output_dir, "/",
-        paste("cube", .cube_tiles(tile_period_band), date_period, t_band, sep = "_"),
+        paste("cube", .cube_tiles(tile_period_band), date_period, tile_band, sep = "_"),
         ".", "tif"
     )
 
@@ -271,6 +271,68 @@
         datatype = datatype,
         filename = filename
     )
+
+    return(res_rast)
+}
+
+#' @title Preprocessing steps of sits regularize
+#'
+#' @name .reg_preprocess_rast
+#'
+#' @keywords internal
+#'
+#' @param tile         A unique tile from \code{sits_cube} object
+#'
+#' @param band_paths   A \code{character} with paths for a unique band
+#'
+#' @param resolution   A \code{numeric} with spatial resolution of the image
+#'  that will be aggregated.
+#'
+#' @param resampling   A \code{character} with method to be used  for resampling
+#'  in mosaic operation. Options: \code{near}, \code{bilinear}, \code{bicubic},
+#'  \code{cubicspline}, and \code{lanczos}. Default is bilinear.
+#'
+#' @param block      A \code{numeric} vector with information about a block
+#'
+#' @return A \code{SpatRast} object resampled
+.reg_preprocess_new <- function(tile,
+                                band_path,
+                                cloud_path,
+                                resolution,
+                                resampling,
+                                block,
+                                datatype,
+                                filename,
+                                cloud_interp,
+                                missing_value) {
+
+    band_values <- .raster_read_stack(files = band_path,
+                                      block = block)
+
+    cloud_values <- .raster_read_stack(files = cloud_path,
+                                       block = block)
+
+    band_chunk_rast <- .reg_get_chunk_rast(
+        rast = band_rast,
+        tile = tile,
+        block = block,
+        datatype = datatype,
+        filename = filename
+    )
+
+
+    reg_resample(
+        band = band_values,
+        cloud = cloud_values,
+        ratio_band_out = ,
+        ratio_cloud_out = ,
+        nrows_out = ,
+        ncols_out = ,
+        cloud_interp = cloud_interp,
+        missing_value = missing_value
+    )
+
+
 
     return(res_rast)
 }
