@@ -48,9 +48,9 @@ NULL
 #' Return number of rows for a given tile
 #' Throws an error if rows are not equal
 #'
-.file_info_nrows <- function(cube){
+.file_info_nrows <- function(cube, bands = NULL){
 
-    file_info <- .file_info(cube)
+    file_info <- .file_info(cube, bands = bands)
     nrows <- unique(file_info[["nrows"]])
 
     .check_num(length(nrows), min = 1, max = 1, is_integer = TRUE,
@@ -63,9 +63,9 @@ NULL
 #' @details
 #' Returns number of cols for a given tile
 #' Throws an error if cols are not equal
-.file_info_ncols <- function(cube){
+.file_info_ncols <- function(cube, bands = NULL){
 
-    file_info <- .file_info(cube)
+    file_info <- .file_info(cube, bands = bands)
     ncols <- unique(file_info[["ncols"]])
 
     .check_num(length(ncols), min = 1, max = 1, is_integer = TRUE,

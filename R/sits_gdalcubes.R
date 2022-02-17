@@ -246,93 +246,40 @@
 #' @param block      A \code{numeric} vector with information about a block
 #'
 #' @return A \code{SpatRast} object resampled
-.reg_preprocess_rast <- function(tile,
-                                 band_paths,
-                                 resolution,
-                                 resampling,
-                                 block,
-                                 datatype,
-                                 filename) {
-
-    rast <- terra::rast(band_paths)
-
-    chunk_rast <- .reg_get_chunk_rast(
-        rast = rast,
-        tile = tile,
-        block = block,
-        datatype = datatype,
-        filename = filename
-    )
-
-    res_rast <- .reg_resample_rast(
-        rast = chunk_rast,
-        resolution = resolution,
-        resampling = resampling,
-        datatype = datatype,
-        filename = filename
-    )
-
-    return(res_rast)
-}
-
-#' @title Preprocessing steps of sits regularize
-#'
-#' @name .reg_preprocess_rast
-#'
-#' @keywords internal
-#'
-#' @param tile         A unique tile from \code{sits_cube} object
-#'
-#' @param band_paths   A \code{character} with paths for a unique band
-#'
-#' @param resolution   A \code{numeric} with spatial resolution of the image
-#'  that will be aggregated.
-#'
-#' @param resampling   A \code{character} with method to be used  for resampling
-#'  in mosaic operation. Options: \code{near}, \code{bilinear}, \code{bicubic},
-#'  \code{cubicspline}, and \code{lanczos}. Default is bilinear.
-#'
-#' @param block      A \code{numeric} vector with information about a block
-#'
-#' @return A \code{SpatRast} object resampled
-.reg_preprocess_new <- function(tile,
-                                band_path,
-                                cloud_path,
-                                resolution,
-                                resampling,
-                                block,
-                                datatype,
-                                filename,
-                                cloud_interp,
-                                missing_value) {
+.reg_preprocess <- function(tile,
+                            band,
+                            band_path,
+                            cloud_path,
+                            cloud_block,
+                            band_block,
+                            resolution,
+                            resampling,
+                            datatype,
+                            filename,
+                            cloud_interp,
+                            missing_value) {
 
     band_values <- .raster_read_stack(files = band_path,
-                                      block = block)
+                                      block = band_block)
 
     cloud_values <- .raster_read_stack(files = cloud_path,
-                                       block = block)
+                                       block = cloud_block)
 
-    band_chunk_rast <- .reg_get_chunk_rast(
-        rast = band_rast,
-        tile = tile,
-        block = block,
-        datatype = datatype,
-        filename = filename
-    )
-
+    ratio_band <- sits_regularize_get_ratio(tile, band = band, res_out = resolution)
+    ratio_cloud <- sits_regularize_get_ratio(tile,
+                                             band = .source_cloud(),
+                                             res_out = resolution)
 
     reg_resample(
         band = band_values,
         cloud = cloud_values,
-        ratio_band_out = ,
-        ratio_cloud_out = ,
+        ratio_band_out = ratio_band,
+        ratio_cloud_out = ratio_cloud,
         nrows_out = ,
         ncols_out = ,
         cloud_interp = cloud_interp,
         missing_value = missing_value
     )
-
-
 
     return(res_rast)
 }

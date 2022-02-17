@@ -19,9 +19,9 @@
 \usage{
 .file_info(cube, bands = NULL, fid = NULL)
 
-.file_info_nrows(cube)
+.file_info_nrows(cube, bands = NULL)
 
-.file_info_ncols(cube)
+.file_info_ncols(cube, bands = NULL)
 
 .file_info_path(cube)
 

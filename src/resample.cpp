@@ -21,55 +21,6 @@ std::vector< std::pair<int,int>> reverse(const int& i_out,
     return (points_in);
 }
 
-
-IntegerMatrix reg_mask_band(const IntegerMatrix& band,
-                            const IntegerMatrix& cloud,
-                            const double& ratio_band_out,
-                            const double& ratio_cloud_out,
-                            const int& nrows_out,
-                            const int& ncols_out,
-                            IntegerVector& cloud_values,
-                            const int& missing_value) {
-
-    // output matrix
-    IntegerMatrix band_out(nrows_out, ncols_out);
-    band_out.fill(0);
-
-    // a pair vector with corresponding points between two matrices
-    std::vector< std::pair<int,int>> points_band(std::max(1, (int)(ratio_band_out*ratio_band_out)));
-    std::vector< std::pair<int,int>> points_cloud(std::max(1, (int)(ratio_cloud_out*ratio_cloud_out)));
-    std::vector< std::pair<int,int>>::iterator points_iter;
-
-    // loop in out matrix
-    for (int i = 0; i < nrows_out; i++) {
-        for (int j = 0; j < ncols_out; j++) {
-
-            // for each point of output matrix get the corresponding point in
-            // input matrix
-            points_band = reverse(i, j, ratio_band_out);
-            points_cloud = reverse(i, j, ratio_cloud_out);
-            std::vector< std::pair<int,int>>::iterator cloud_iter = points_cloud.begin();
-
-            while(cloud_iter !=  points_cloud.end()) {
-
-                int cloud_value = cloud(cloud_iter->first, cloud_iter->second);
-
-                IntegerVector::iterator f = std::find(cloud_values.begin(),
-                                                      cloud_values.end(),
-                                                      cloud_value);
-                if (f != cloud_values.end()){
-
-                    band_out(i,j) = missing_value;
-                    break;
-                }
-                cloud_iter++;
-            }
-        }
-    }
-    return band_out;
-}
-
-
 // [[Rcpp::export]]
 IntegerMatrix reg_resample(const IntegerMatrix& band,
                            const IntegerMatrix& cloud,

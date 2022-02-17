@@ -80,9 +80,7 @@
         )
 
         cld_files <- dplyr::filter(file_info, band == cld_band)$path
-        clouds <- .raster_read_stack(files  = cld_files,
-                                     block = extent)
-
+        clouds <- .raster_read_stack(files  = cld_files, block = extent)
 
         # get information about cloud bitmask
         if (.source_cloud_bit_mask(

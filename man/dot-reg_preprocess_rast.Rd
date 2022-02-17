@@ -2,26 +2,18 @@
 % Please edit documentation in R/sits_gdalcubes.R
 \name{.reg_preprocess_rast}
 \alias{.reg_preprocess_rast}
-\alias{.reg_preprocess_new}
+\alias{.reg_preprocess}
 \title{Preprocessing steps of sits regularize}
 \usage{
-.reg_preprocess_rast(
+.reg_preprocess(
   tile,
-  band_paths,
-  resolution,
-  resampling,
-  block,
-  datatype,
-  filename
-)
-
-.reg_preprocess_new(
-  tile,
+  band,
   band_path,
   cloud_path,
+  cloud_block,
+  band_block,
   resolution,
   resampling,
-  block,
   datatype,
   filename,
   cloud_interp,
@@ -31,8 +23,6 @@
 \arguments{
 \item{tile}{A unique tile from \code{sits_cube} object}
 
-\item{band_paths}{A \code{character} with paths for a unique band}
-
 \item{resolution}{A \code{numeric} with spatial resolution of the image
 that will be aggregated.}
 
@@ -40,16 +30,14 @@ that will be aggregated.}
 in mosaic operation. Options: \code{near}, \code{bilinear}, \code{bicubic},
 \code{cubicspline}, and \code{lanczos}. Default is bilinear.}
 
+\item{band_paths}{A \code{character} with paths for a unique band}
+
 \item{block}{A \code{numeric} vector with information about a block}
 }
 \value{
 A \code{SpatRast} object resampled
-
-A \code{SpatRast} object resampled
 }
 \description{
-Preprocessing steps of sits regularize
-
 Preprocessing steps of sits regularize
 }
 \keyword{internal}
