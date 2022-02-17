@@ -17,7 +17,7 @@ plot_max_Mbytes: 16
 # maxbytes for leaflet (in MB)
 leaflet_max_Mbytes : 16
 # estimated compression factor for leaflet
-leaflet_comp_factor : 0.20
+leaflet_comp_factor : 0.50
 
 sources:
     BDC                     :
