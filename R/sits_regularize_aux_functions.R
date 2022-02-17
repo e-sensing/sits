@@ -92,3 +92,74 @@ sits_regularize_raster_blocks <- function(n_tiles,
     })
     return(blocks)
 }
+
+#' @title Compute the timeline of the regularized cube
+#' @name .reg_timeline
+#'
+#' @keywords internal
+#'
+#' @param cube       Data cube from where data is to be retrieved.
+#' @param period     A \code{character} with ISO8601 time period for regular
+#'  data cubes produced by \code{gdalcubes}, with number and unit, e.g., "P16D"
+#'  for 16 days. Use "D", "M" and "Y" for days, month and year.
+#'
+#' @return a \code{vector} with all timeline values.
+.reg_timeline <- function(cube, period) {
+
+    .check_set_caller(".reg_timeline")
+
+    # pre-condition
+    .check_chr(period, allow_empty = FALSE,
+               len_min = 1, len_max = 1,
+               msg = "invalid 'period' parameter")
+
+    # start date - maximum of all minimums
+    max_min_date <- do.call(
+        what = max,
+        args = purrr::map(cube[["file_info"]], function(file_info){
+            return(min(file_info[["date"]]))
+        })
+    )
+
+    # end date - minimum of all maximums
+    min_max_date <- do.call(
+        what = min,
+        args = purrr::map(cube[["file_info"]], function(file_info){
+            return(max(file_info[["date"]]))
+        }))
+
+    # check if all timeline of tiles intersects
+    .check_that(
+        x = max_min_date <= min_max_date,
+        msg = "the timeline of the cube tiles do not intersect."
+    )
+
+    if (substr(period, 3, 3) == "M") {
+        max_min_date <- lubridate::date(paste(
+            lubridate::year(max_min_date),
+            lubridate::month(max_min_date),
+            "01", sep = "-"))
+    } else if (substr(period, 3, 3) == "Y") {
+        max_min_date <- lubridate::date(paste(
+            lubridate::year(max_min_date),
+            "01", "01", sep = "-"))
+    }
+
+    # generate timeline
+    date <- lubridate::ymd(max_min_date)
+    min_max_date <- lubridate::ymd(min_max_date)
+    tl <- date
+    while (TRUE) {
+        date <- lubridate::ymd(date) %m+% lubridate::period(period)
+        if (date > min_max_date) break
+        tl <- c(tl, date)
+    }
+
+    # timeline cube
+    tiles_tl <- suppressWarnings(sits_timeline(cube))
+
+    if (!is.list(tiles_tl))
+        tiles_tl <- list(tiles_tl)
+
+    return(tl)
+}

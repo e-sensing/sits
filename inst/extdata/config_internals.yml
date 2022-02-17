@@ -78,28 +78,6 @@ class_cube_data_type    : "INT1U"
 # minimum number of files for sits local cube to be run on parallel
 local_min_files_for_parallel : 20
 
-# simultaneous connections for gdalcubes database creation
-gdalcubes_open_connections : 8
-
-# minimum number of files for gdalcubes to be run on parallel
-gdalcubes_min_files_for_parallel : 8
-
-# configuration for gdalcubes chunk
-gdalcubes_chunk_size   : [1, 2048, 2048]
-
-# maximum number of threads in gdalcubes
-gdalcubes_max_threads : 24
-
-# valid aggregation methods for gdalcubes
-gdalcubes_aggreg_methods : {median : "median", least_cc_first : "first"}
-
-# valid filling NA values methods for gdalcubes
-gdalcubes_filling_methods : ["near", "linear", "locf", "nocb"]
-
-# valid resampling methods for gdalcubes
-gdalcubes_resampling_methods : ["near", "bilinear", "bicubic", "cubicspline",
-                                "lanczos"]
-
 # valid raster data types
 valid_raster_data_types : ["INT1U", "INT2U", "INT2S", "INT4U",
                           "INT4S", "FLT4S", "FLT8S"]

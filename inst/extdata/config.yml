@@ -615,9 +615,6 @@ sources:
                     AWS_REQUEST_PAYER    : "requester"
                     AWS_NO_SIGN_REQUEST  : FALSE
                 open_data   : false
-                gdalcubes_support : true
-                gdalcubes_type_format: "int16"
-                gdalcubes_format_col : "s2la_aws.json"
                 metadata_search : "tile"
                 ext_tolerance: 0
             SENTINEL-S2-L1C :
@@ -686,9 +683,6 @@ sources:
                     AWS_REQUEST_PAYER    : "requester"
                     AWS_NO_SIGN_REQUEST  : FALSE
                 open_data   : false
-                gdalcubes_support : true
-                gdalcubes_type_format: "int16"
-                gdalcubes_format_col : "s2la_aws.json"
                 metadata_search : "tile"
                 ext_tolerance: 0
             SENTINEL-S2-L2A-COGS :
@@ -771,9 +765,6 @@ sources:
                     AWS_NO_SIGN_REQUEST  : TRUE
                 open_data: true
                 open_data_token: false
-                gdalcubes_support: true
-                gdalcubes_type_format: "int16"
-                gdalcubes_format_col : "s2la_aws_cogs.json"
                 metadata_search: "tile"
                 review_dates: ["2020-08-16"]
                 ext_tolerance: 0
@@ -862,9 +853,6 @@ sources:
                     AWS_NO_SIGN_REQUEST: TRUE
                 open_data: true
                 open_data_token: false
-                gdalcubes_support : true
-                gdalcubes_type_format: "int16"
-                gdalcubes_format_col : "s2_l2a_deafrica.json"
                 metadata_search : "tile"
                 ext_tolerance: 0
             LS8_SR          : &deafrica_l8
@@ -923,9 +911,6 @@ sources:
                     AWS_NO_SIGN_REQUEST: TRUE
                 open_data: true
                 open_data_token: false
-                gdalcubes_support : true
-                gdalcubes_type_format: "int16"
-                gdalcubes_format_col : "ls8_sr_deafrica.json"
                 metadata_search : "feature"
                 ext_tolerance: 0
     USGS                    :
@@ -993,9 +978,6 @@ sources:
                 open_data: false
                 open_data_token: false
                 tile_required: false
-                gdalcubes_support : true
-                gdalcubes_type_format: "int16"
-                gdalcubes_format_col : "l8c2l2_usgs.json"
                 metadata_search : "feature"
                 ext_tolerance: 0
     MSPC                    :
@@ -1058,9 +1040,6 @@ sources:
                 open_data: true
                 open_data_token: false
                 tile_required: false
-                gdalcubes_support : true
-                gdalcubes_type_format: "int16"
-                gdalcubes_format_col : "landsat_8_c2_l2_mspc.json"
                 metadata_search : "feature"
                 ext_tolerance: 0
             SENTINEL-2-L2A  : &mspc_msi
@@ -1139,8 +1118,5 @@ sources:
                 collection_name: "sentinel-2-l2a"
                 open_data: true
                 open_data_token: false
-                gdalcubes_support : true
-                gdalcubes_type_format: "int16"
-                gdalcubes_format_col : "sentinel_2_l2a_mspc.json"
                 metadata_search : "tile"
                 ext_tolerance: 0
