@@ -334,7 +334,7 @@ sits_view.raster_cube <- function(x, ...,
         } else
             leaf_map <- leafem::addRasterRGB(
                 leaf_map,
-                x = st_merge,
+                x = st_obj_new,
                 r = 1,
                 g = 1,
                 b = 1,
