@@ -47,7 +47,8 @@ sits_view <- function(x, ...){
 
     .check_that(
         x = inherits(x, c("sits", "raster_cube", "classified_image")),
-        msg = "only works with time series, raster cubes and classified images")
+        msg = "only works with time series, raster cubes and classified images"
+    )
 
     UseMethod("sits_view", x)
 }
@@ -61,14 +62,17 @@ sits_view.sits <- function(x, ...,
     # precondition
     .check_that(
         requireNamespace("leaflet", quietly = TRUE),
-        msg = "Please install package leaflet")
+        msg = "Please install package leaflet"
+    )
 
     # first select unique locations
     x <- dplyr::distinct(x, longitude, latitude, label)
     # convert tibble to sf
-    samples <- sf::st_as_sf(x[c("longitude", "latitude", "label")],
-                            coords = c("longitude", "latitude"),
-                            crs = 4326)
+    samples <- sf::st_as_sf(
+        x[c("longitude", "latitude", "label")],
+        coords = c("longitude", "latitude"),
+        crs = 4326
+    )
     # get the bounding box
     samples_bbox <- sf::st_bbox(samples)
     dist_x <- (samples_bbox[["xmax"]] - samples_bbox[["xmin"]])
@@ -80,15 +84,18 @@ sits_view.sits <- function(x, ...,
 
     # if colors are not specified, get them from the configuration file
     if (purrr::is_null(legend)) {
-        colors <- .config_colors(labels = labels,
-                                 palette = palette,
-                                 rev = TRUE)
+        colors <- .config_colors(
+            labels = labels,
+            palette = palette,
+            rev = TRUE
+        )
     }
     else {
         .check_chr_within(
             x = labels,
             within = names(legend),
-            msg = "some labels are missing from the legend")
+            msg = "some labels are missing from the legend"
+        )
         colors <- unname(legend[labels])
 
     }
@@ -97,34 +104,48 @@ sits_view.sits <- function(x, ...,
     #
     factpal <- leaflet::colorFactor(
         palette = colors,
-        domain = labels)
+        domain = labels
+    )
     #
     # create an interative map
     #
     leaf_map <- leaflet::leaflet() %>%
-        leaflet::addProviderTiles(leaflet::providers$Esri.WorldImagery, group = "ESRI") %>%
-        leaflet::addProviderTiles(leaflet::providers$GeoportailFrance.orthos, group = "GeoPortalFrance") %>%
-        leaflet::addProviderTiles(leaflet::providers$OpenStreetMap.Mapnik, group = "OSM") %>%
-        leaflet::flyToBounds(lng1 = samples_bbox[["xmin"]],
-                             lat1 = samples_bbox[["ymin"]],
-                             lng2 = samples_bbox[["xmax"]],
-                             lat2 = samples_bbox[["ymax"]]) %>%
-        leaflet::addCircleMarkers(data   = samples,
-                                  popup  = ~label,
-                                  color  = ~factpal(label),
-                                  radius = 4,
-                                  stroke = FALSE,
-                                  fillOpacity = 1,
-                                  group = "Samples") %>%
+        leaflet::addProviderTiles(
+            leaflet::providers$Esri.WorldImagery, group = "ESRI"
+        ) %>%
+        leaflet::addProviderTiles(
+            leaflet::providers$GeoportailFrance.orthos, group = "GeoPortalFrance"
+        ) %>%
+        leaflet::addProviderTiles(
+            leaflet::providers$OpenStreetMap, group = "OSM"
+        ) %>%
+        leafem::addMouseCoordinates() %>%
+        leaflet::flyToBounds(
+            lng1 = samples_bbox[["xmin"]],
+            lat1 = samples_bbox[["ymin"]],
+            lng2 = samples_bbox[["xmax"]],
+            lat2 = samples_bbox[["ymax"]]
+        ) %>%
+        leaflet::addCircleMarkers(
+            data   = samples,
+            popup  = ~label,
+            color  = ~factpal(label),
+            radius = 4,
+            stroke = FALSE,
+            fillOpacity = 1,
+            group = "Samples"
+        ) %>%
         leaflet::addLayersControl(
             baseGroups = c("ESRI", "GeoPortalFrance", "OSM"),
             overlayGroups = c("Samples"),
-            options = leaflet::layersControlOptions(collapsed = FALSE)) %>%
+            options = leaflet::layersControlOptions(collapsed = FALSE)
+        ) %>%
         leaflet::addLegend("topright",
                            pal     = factpal,
                            values  = samples$label,
                            title   = "Training Samples",
-                           opacity = 1)
+                           opacity = 1
+        )
     return(leaf_map)
 }
 #' @rdname   sits_view
@@ -152,11 +173,6 @@ sits_view.raster_cube <- function(x, ...,
     .check_that(
         requireNamespace("leaflet", quietly = TRUE),
         msg = "Please install package 'leaflet'"
-    )
-    # verifies if raster package is installed
-    .check_that(
-        x = requireNamespace("raster", quietly = TRUE),
-        msg = "Please install package 'raster'"
     )
     # deal with parameter "time"
     if ("time" %in% names(dots)) {
@@ -187,17 +203,18 @@ sits_view.raster_cube <- function(x, ...,
             tiles <- x$tile[[tiles]]
     }
     # try to find tiles in the list of tiles of the cube
-    .check_chr_contains(x$tile, tiles,
-                        msg = "requested tiles are not part of cube")
+    .check_chr_contains(
+        x$tile,
+        tiles,
+        msg = "requested tiles are not part of cube"
+    )
 
     # check that classified map is a proper cube
     if (!purrr::is_null(class_cube))
         .check_that(
             x = inherits(class_cube, c("classified_image")),
-            msg = "classified cube to be overlayed is invalid")
-
-    # get the maximum number of bytes to be displayed
-    max_Mbytes <- .config_get(key = "leaflet_max_Mbytes")
+            msg = "classified cube to be overlayed is invalid"
+        )
 
     # for plotting grey images
     if (purrr::is_null(band)) {
@@ -206,14 +223,12 @@ sits_view.raster_cube <- function(x, ...,
             x = all(c(red, green, blue) %in% sits_bands(x)),
             msg = "requested RGB bands are not available in data cube"
         )
-    } else
+    } else {
         .check_that(band %in% sits_bands(x),
                     msg = "requested RGB bands are not available in data cube"
         )
+    }
 
-
-    # filter the cube for the bands to be displayed
-    # cube_bands <- sits_select(x, bands = c(red, green, blue))
 
     # filter the tiles to be processed
     cube_tiles <- dplyr::filter(x, tile %in% tiles)
@@ -231,119 +246,168 @@ sits_view.raster_cube <- function(x, ...,
     )
 
 
-    # plot only the selected tiles
-    t_objs <- slider::slide(cube_tiles, function(tile){
+    nrows_merge <- sum(slider::slide_dbl(cube_tiles, function(tile){
         # retrieve the file info for the tile
         fi <- .file_info(tile)
-        # obtain the raster objects for the dates chosen
-        r_objs <- purrr::map(dates, function(d) {
-            # filter by date
-            images_date <- dplyr::filter(fi, date == as.Date(d))
-            # deal with RGB images
-            if (purrr::is_null(band)) {
-                # get RGB files for the requested timeline
-                red_file   <- dplyr::filter(images_date, band == red)$path[[1]]
-                green_file <- dplyr::filter(images_date, band == green)$path[[1]]
-                blue_file  <- dplyr::filter(images_date, band == blue)$path[[1]]
+        return(max(fi[["nrows"]]))
+    }))
+    ncols_merge <- sum(slider::slide_dbl(cube_tiles, function(tile){
+        # retrieve the file info for the tile
+        fi <- .file_info(tile)
+        return(max(fi[["ncols"]]))
+    }))
 
-                rgb_files <- c(r = red_file, g = green_file, b = blue_file)
-                # compress and reshape the image
-                r_obj <- .view_reshape_rgb(rgb_files = rgb_files,
-                                           date = as.Date(d),
-                                           max_Mbytes = max_Mbytes)
-            } else {
-                # deal with single band images
-                band_file   <- dplyr::filter(images_date, band == !!band)$path[[1]]
-                r_obj <- .view_reshape_band(band_file = band_file,
-                                            date = as.Date(d),
-                                            max_Mbytes = max_Mbytes)
-            }
-            return(r_obj)
-        })
-        return(r_objs)
-    })
+    # find out if resampling is required (for big images)
+    size <- .view_resample_size(
+        nrows = nrows_merge,
+        ncols = ncols_merge,
+        ntiles = nrow(cube_tiles)
+    )
 
     # create a leaflet and add providers
-    leaf_mapRGB <- leaflet::leaflet() %>%
-        leaflet::addProviderTiles(leaflet::providers$Esri.WorldImagery, group = "ESRI") %>%
-        leaflet::addProviderTiles(leaflet::providers$GeoportailFrance.orthos, group = "GeoPortalFrance") %>%
-        leaflet::addProviderTiles(leaflet::providers$OpenStreetMap, group = "OSM") %>%
+    leaf_map <- leaflet::leaflet() %>%
+        leaflet::addProviderTiles(
+            leaflet::providers$Esri.WorldImagery, group = "ESRI"
+        ) %>%
+        leaflet::addProviderTiles(
+            leaflet::providers$GeoportailFrance.orthos, group = "GeoPortalFrance"
+        ) %>%
+        leaflet::addProviderTiles(
+            leaflet::providers$OpenStreetMap, group = "OSM"
+        ) %>%
         leafem::addMouseCoordinates()
 
-    # include raster RGB maps
-    for (t_ind in seq_along(tiles)) {
-        r_objs <- t_objs[[t_ind]]
-        for (d_ind in seq_along(dates)) {
-            if (purrr::is_null(band)) {
-                leaf_mapRGB <- suppressWarnings(
-                    leafem::addRasterRGB(leaf_mapRGB,
-                                         x = r_objs[[d_ind]],
-                                         r = 1,
-                                         g = 2,
-                                         b = 3,
-                                         quantiles = c(0.1, 0.9),
-                                         method = "ngb",
-                                         group = paste0(dates[d_ind]),
-                                         maxBytes = max_Mbytes*1024*1024))
-            } else
-                leaf_mapRGB <- suppressWarnings(
-                    leafem::addRasterRGB(leaf_mapRGB,
-                                         x = r_objs[[d_ind]],
-                                         r = 1,
-                                         g = 1,
-                                         b = 1,
-                                         quantiles = c(0.1, 0.9),
-                                         method = "ngb",
-                                         group = paste0(dates[d_ind]),
-                                         maxBytes = max_Mbytes*1024*1024))
+    # obtain the raster objects for the dates chosen
+    for (date in dates) {
+        st_objs <- slider::slide(cube_tiles, function(tile) {
+            # retrieve the file info for the tile
+            fi <- .file_info(tile)
+            # filter by date
+            images_date <- dplyr::filter(fi, as.Date(date) == !!as.Date(date))
+            if (purrr::is_null(band)){
+                red_file    <- dplyr::filter(images_date, band == red)$path[[1]]
+                green_file  <- dplyr::filter(images_date, band == green)$path[[1]]
+                blue_file   <- dplyr::filter(images_date, band == blue)$path[[1]]
+                rgb_files   <- c(r = red_file, g = green_file, b = blue_file)
 
+            } else {
+                band_file   <- dplyr::filter(images_date, band == !!band)$path[[1]]
+                rgb_files   <- c(r = band_file, g = band_file, b = band_file)
+            }
+            st_obj      <- stars::read_stars(
+                rgb_files,
+                along = "band",
+                RasterIO = list("nBufXSize" = size["xsize"],
+                                "nBufYSize" = size["ysize"]
+                )
+            )
+            return(st_obj)
+        })
+        # mosaic the data
+        # if there is more than one stars object, merge them
+        if (length(st_objs) > 1)
+            st_merge <- stars::st_mosaic(
+                st_objs[[1]],
+                st_objs[[2:length(st_objs)]]
+            )
+        else
+            # keep the first object
+            st_merge <- st_objs[[1]]
 
-        }
-        # should we overlay a classified image?
-        if (!purrr::is_null(class_cube)) {
-
-            # get the labels
-            labels <- sits_labels(class_cube)
-            # obtain the colors
-            colors <- .view_get_colors(labels  = labels,
-                                       legend  = legend,
-                                       palette = palette)
-
-            # retrieve the classified object (which is RATified)
-            r_obj_class <- .view_class_cube(class_cube = class_cube, tile = x$tile[[t_ind]])
-
-            # retrieve the colors of the r_obj
-            # some labels may not be present in the final image
-            rat <- raster::levels(r_obj_class)[[1]]
-            colors <- unname(colors[rat$landcover])
-            labels <- labels[rat$ID]
-            .check_that(length(colors) == length(labels),
-                        msg = "mismatch btw labels and colors in classified image")
-            #
-            # create a palette of colors
-            #
-            fact_pal <- leaflet::colorFactor(
-                palette = colors,
-                domain = labels
+        # resample and warp the image
+        st_obj_new <- stars::st_warp(
+            src = st_merge,
+            crs = sf::st_crs("EPSG:3857")
+        )
+        if (purrr::is_null(band)) {
+            leaf_map <- leafem::addRasterRGB(
+                leaf_map,
+                x = st_obj_new,
+                r = 1,
+                g = 2,
+                b = 3,
+                quantiles = c(0.1, 0.9),
+                project = FALSE,
+                group = paste0(date),
+                maxBytes = size["leaflet_maxBytes"]
+            )
+        } else
+            leaf_map <- leafem::addRasterRGB(
+                leaf_map,
+                x = st_merge,
+                r = 1,
+                g = 1,
+                b = 1,
+                quantiles = c(0.1, 0.9),
+                project = FALSE,
+                group = paste0(date),
+                maxBytes = size["leaflet_maxBytes"]
             )
 
-            # add the classified image object
-            leaf_mapRGB <- suppressWarnings(
-                leaflet::addRasterImage(leaf_mapRGB,
-                                        x = r_obj_class,
-                                        colors = colors,
-                                        method = "ngb",
-                                        group = "classification",
-                                        maxBytes = max_Mbytes*1024*1024)) %>%
-                leaflet::addLegend("topright",
-                                   pal     = fact_pal,
-                                   values  = labels,
-                                   title   = "Classes",
-                                   opacity = 1)
-
-
-        }
     }
+
+    # should we overlay a classified image?
+    if (!purrr::is_null(class_cube)) {
+        # get the labels
+        labels <- sits_labels(class_cube)
+        names(labels) <- c(1:length(labels))
+        # obtain the colors
+        colors <- .view_get_colors(
+            labels = labels,
+            legend = legend,
+            palette = palette
+        )
+
+        # select the tiles that will be shown
+        cube_tiles <- dplyr::filter(class_cube, tile %in% tiles)
+
+        # create the stars objects that correspond to the tiles
+        # create the stars objects that correspond to the tiles
+        st_objs <- slider::slide(cube_tiles, function(tile){
+            # obtain the raster stars object
+            st_obj <- stars::read_stars(
+                .file_info_path(tile),
+                RAT = labels,
+                RasterIO = list("nBufXSize" = size["xsize"],
+                                "nBufYSize" = size["ysize"]
+                )
+            )
+        })
+        # if there is more than one stars object, merge them
+        if (length(st_objs) > 1)
+            st_merge <- stars::st_mosaic(
+                st_objs[[1]],
+                st_objs[[2:length(st_objs)]]
+            )
+        else
+            # keep the first object
+            st_merge <- st_objs[[1]]
+
+        # resample and warp the image
+        st_obj_new <- stars::st_warp(
+            src = st_merge,
+            crs = sf::st_crs("EPSG:3857")
+        )
+        #
+        # create a palette of colors
+        #
+        fact_pal <- leaflet::colorFactor(
+            palette = colors,
+            domain = labels
+        )
+
+        # add the classified image object
+        leaf_map <- leafem::addStarsImage(
+            leaf_map,
+            x = st_obj_new,
+            colors = colors,
+            method = "ngb",
+            group = "classification",
+            project = FALSE,
+            maxBytes = size["leaflet_maxBytes"]
+        )
+    }
+
     # define overlay groups
     if (!purrr::is_null(class_cube)) {
         overlay_grps = c(paste0(dates), "classification")
@@ -351,13 +415,24 @@ sits_view.raster_cube <- function(x, ...,
     else
         overlay_grps = paste0(dates)
 
-    leaf_mapRGB <- leaf_mapRGB %>%
+    leaf_map <- leaf_map %>%
         leaflet::addLayersControl(
             baseGroups = c("ESRI", "GeoPortalFrance", "OSM"),
             overlayGroups = overlay_grps,
             options = leaflet::layersControlOptions(collapsed = FALSE))
 
-    return(leaf_mapRGB)
+    if (!purrr::is_null(class_cube)) {
+        leaf_map <- leaf_map %>%
+            leaflet::addLegend(
+                "topright",
+                pal     = fact_pal,
+                values  = labels,
+                title   = "Classes",
+                opacity = 1
+            )
+    }
+
+    return(leaf_map)
 }
 
 #' @rdname sits_view
@@ -375,234 +450,122 @@ sits_view.classified_image <- function(x,...,
         requireNamespace("leaflet", quietly = TRUE),
         msg = "Please install package 'leaflet'"
     )
-    # precondition - check tiles
-    if (purrr::is_null(tiles))
-        tiles <- x$tile
-    .check_chr_contains(x$tile, tiles, msg = "tiles not available in the cube")
+    # deal with wrong parameter "tile"
+    if ("tile" %in% names(dots) && missing(tiles)) {
+        message("please use tiles instead of tile as parameter")
+        tiles <- dots[["tile"]]
+    }
+    # deal with tiles
+    # check if tile exists
+    if (purrr::is_null(tiles)) {
+        tiles <- x$tile[[1]]
+    } else {
+        if (is.numeric(tiles))
+            tiles <- x$tile[[tiles]]
+    }
+    # try to find tiles in the list of tiles of the cube
+    .check_chr_contains(x$tile, tiles,
+                        msg = "requested tiles are not part of cube")
 
-    # create lealet map
-    leaf_map <- leaflet::leaflet() %>%
-        leaflet::addProviderTiles(leaflet::providers$Esri.WorldImagery, group = "ESRI") %>%
-        leaflet::addProviderTiles(leaflet::providers$GeoportailFrance.orthos, group = "GeoPortalFrance") %>%
-        leaflet::addProviderTiles(leaflet::providers$OpenStreetMap, group = "OSM")
+    # create leaflet map
 
     # get the labels
     labels <- sits_labels(x)
+    names(labels) <- c(1:length(labels))
     # obtain the colors
-    colors <- .view_get_colors(labels = labels, legend = legend, palette = palette)
+    colors <- .view_get_colors(
+        labels = labels,
+        legend = legend,
+        palette = palette
+    )
 
-    for (tile in tiles) {
-        # retrieve the classified object (which is RATified)
-        r_obj <- .view_class_cube(x, tile)
+    # select the tiles that will be shown
+    cube_tiles <- dplyr::filter(x, tile %in% tiles)
 
-        # retrieve the colors of the r_obj
-        # some labels may not be present in the final image
-        rat <- raster::levels(r_obj)[[1]]
-        colors <- unname(colors[rat$landcover])
-        labels <- labels[rat$ID]
-        .check_that(length(colors) == length(labels),
-                    msg = "mismatch btw labels and colors in classified image")
-        #
-        # create a palette of colors
-        #
-        fact_pal <- leaflet::colorFactor(
-            palette = colors,
-            domain = labels
-        )
+    nrows_merge <- sum(slider::slide_dbl(cube_tiles, function(tile){
+        # retrieve the file info for the tile
+        fi <- .file_info(tile)
+        return(max(fi[["nrows"]]))
+    }))
+    ncols_merge <- sum(slider::slide_dbl(cube_tiles, function(tile){
+        # retrieve the file info for the tile
+        fi <- .file_info(tile)
+        return(max(fi[["ncols"]]))
+    }))
 
-        # get the maximum number of bytes
-        max_Mbytes <- .config_get(key = "leaflet_max_Mbytes")
-
-        # add the classified image object
-        leaf_map <- suppressWarnings(
-            leaflet::addRasterImage(leaf_map,
-                                    x = r_obj,
-                                    colors = colors,
-                                    method = "ngb",
-                                    group = "class",
-                                    maxBytes = max_Mbytes*1024*1024
+    # find out if resampling is required (for big images)
+    size <- .view_resample_size(
+        nrows = nrows_merge,
+        ncols = ncols_merge,
+        ntiles = nrow(cube_tiles)
+    )
+    # create the stars objects that correspond to the tiles
+    st_objs <- slider::slide(cube_tiles, function(tile){
+        # obtain the raster stars object
+        st_obj <- stars::read_stars(
+            .file_info_path(tile),
+            RAT = labels,
+            RasterIO = list(
+                "nBufXSize" = size["xsize"],
+                "nBufYSize" = size["ysize"]
             )
         )
-    }
+    })
+    # if there is more than one stars object, merge them
+    if (length(st_objs) > 1)
+        st_merge <- stars::st_mosaic(
+            st_objs[[1]],
+            st_objs[[2:length(st_objs)]]
+        )
+    else
+        # keep the first object
+        st_merge <- st_objs[[1]]
 
-    # add the the layers control
-    leaf_map <- leaf_map %>%
+    # resample and warp the image
+    st_obj_new <- stars::st_warp(
+        src = st_merge,
+        crs = sf::st_crs("EPSG:3857")
+    )
+    #
+    # create a palette of colors
+    #
+    fact_pal <- leaflet::colorFactor(
+        palette = colors,
+        domain = labels
+    )
+    # create the leaflet map
+    leaf_map <- leaflet::leaflet() %>%
+        leaflet::addProviderTiles(
+            leaflet::providers$Esri.WorldImagery, group = "ESRI"
+        ) %>%
+        leaflet::addProviderTiles(
+            leaflet::providers$GeoportailFrance.orthos, group = "GeoPortalFrance"
+        ) %>%
+        leaflet::addProviderTiles(
+            leaflet::providers$OpenStreetMap, group = "OSM"
+        ) %>%
+        leafem::addMouseCoordinates() %>%
+        leafem::addStarsImage(
+            x = st_obj_new,
+            colors = colors,
+            method = "ngb",
+            group = "classification",
+            project = FALSE,
+            maxBytes = size["leaflet_maxBytes"]
+        ) %>%
+        # add the the layers control
         leaflet::addLayersControl(
             baseGroups = c("ESRI", "GeoPortalFrance", "OSM"),
-            overlayGroups = "class",
-            options = leaflet::layersControlOptions(collapsed = FALSE)) %>%
-        leaflet::addLegend("topright",
-                           pal     = fact_pal,
-                           values  = labels,
-                           title   = "Classes",
-                           opacity = 1)
-
+            overlayGroups = "classification",
+            options = leaflet::layersControlOptions(collapsed = FALSE)
+        ) %>%
+        leaflet::addLegend(
+            "topright",
+            pal     = fact_pal,
+            values  = labels,
+            title   = "Classes",
+            opacity = 1)
     return(leaf_map)
-}
-
-#' @title  Reduce an RGB image for visualisation and load files in tempdir
-#' @name .view_reshape_rgb
-#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
-#'
-#' @param  rgb_files     vector with RGB files.
-#' @param  date          date reference for the file
-#' @param  max_Mbytes    maximum number of megabytes to be shown in leaflet
-#' @return               Raster Stack with RGB object
-#' @keywords internal
-
-.view_reshape_rgb <- function(rgb_files, date, max_Mbytes) {
-
-
-    nrows <- purrr::map_int(c("r", "g", "b"), function(color) {
-        # open raster object
-        r_obj <- suppressWarnings(raster::stack(rgb_files[[color]]))
-        # get number of rows
-        return(raster::nrow(r_obj))
-    })
-    nrows_max <- max(nrows)
-
-    ncols <- purrr::map_int(c("r", "g", "b"), function(color) {
-        # open raster object
-        r_obj <- suppressWarnings(raster::stack(rgb_files[[color]]))
-        # get number of cols
-        return(raster::ncol(r_obj))
-    })
-    ncols_max <- max(ncols)
-
-    # retrieve the compression ratio
-    comp <- .config_get("leaflet_comp_factor")
-    # calculate the size of the input image in bytes
-    # note that leaflet considers 4 bytes per pixel
-    # but compresses the image
-    in_size_Mbytes <- (4 * nrows_max * ncols_max * comp)/(1000 * 1000)
-    # do we need to compress?
-    ratio <- max((in_size_Mbytes/max_Mbytes), 1)
-
-    # only create local files if required
-    message("Please wait...resampling images")
-    if (ratio > 1) {
-        new_nrows <- round(nrows_max/sqrt(ratio))
-        new_ncols <- round(ncols_max*(new_nrows/nrows_max))
-    } else {
-        new_nrows <- nrows_max
-        new_ncols <- ncols_max
-    }
-    r_obj_green <- suppressWarnings(raster::stack(rgb_files[["g"]]))
-    t_extent  <- c(raster::xmin(r_obj_green), raster::ymin(r_obj_green),
-                   raster::xmax(r_obj_green), raster::ymax(r_obj_green))
-    t_srs     <- suppressWarnings(paste0(raster::crs(r_obj_green)))
-
-    temp_files <- purrr::map_chr(c("r", "g", "b"), function(color) {
-        # destination file is in tempdir
-        b_name <- basename(tools::file_path_sans_ext(rgb_files[[color]]))
-        dest_file <- paste0(tempdir(),"/", b_name,  "_",date,".tif")
-        # use gdal_translate to obtain the temp file
-        suppressWarnings(
-            gdalUtilities::gdalwarp(
-                srcfile     = rgb_files[[color]],
-                dstfile     = dest_file,
-                t_srs       = "EPSG:3857",
-                ts          = c(new_ncols, new_nrows),
-                te          = t_extent,
-                te_srs      = t_srs,
-                co          = .config_get("gdal_creation_options")
-            )
-        )
-        return(dest_file)
-    })
-    # if temp_files are created use them as sources for r_obj
-    r_obj <- suppressWarnings(raster::stack(temp_files))
-
-    return(r_obj)
-}
-#' @title  Reduce B/W image for visualisation and load files in tempdir
-#' @name .view_reshape_band
-#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
-#'
-#' @param  band_file     file for B/W band.
-#' @param  date          date reference for the file
-#' @param  max_Mbytes    maximum number of megabytes to be shown in leaflet
-#' @return               Raster Stack with RGB object
-#' @keywords internal
-.view_reshape_band <- function(band_file, date, max_Mbytes) {
-
-    # open raster object
-    r_obj <- suppressWarnings(raster::raster(band_file))
-    # get number of rows and cols
-    ncols <- raster::ncol(r_obj)
-    nrows <- raster::nrow(r_obj)
-
-    # retrieve the compression ratio
-    comp <- .config_get("leaflet_comp_factor")
-    # calculate the size of the input image in bytes
-    # note that leaflet considers 4 bytes per pixel
-    # but compresses the image
-    in_size_Mbytes <- (4 * nrows * ncols * comp)/(1000 * 1000)
-    # do we need to compress?
-    ratio <- max((in_size_Mbytes/max_Mbytes), 1)
-
-    # only create local files if required
-    if (ratio > 1) {
-        message("Please wait...resampling images")
-        new_nrows <- round(nrows/sqrt(ratio))
-        new_ncols <- round(ncols*(new_nrows/nrows))
-
-        # destination file is in tempdir
-        b_name <- basename(tools::file_path_sans_ext(band_file))
-        dest_file <- paste0(tempdir(),"/", b_name,  "_", date, ".tif")
-        # use gdal_translate to obtain the temp file
-        suppressWarnings(
-            gdalUtilities::gdalwarp(
-                srcfile     = band_file,
-                dstfile     = dest_file,
-                t_srs       = "EPSG:3857",
-                ts          = c(new_ncols, new_nrows),
-                co          = .config_get("gdal_creation_options")
-            )
-        )
-
-        # if temp_files are created use them as sources for r_obj
-        r_obj <- suppressWarnings(raster::stack(dest_file))
-    }
-    return(r_obj)
-}
-
-#' @title  Return the r_object associated to classified cube (RATified)
-#' @name .view_class_cube
-#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
-#'
-#' @param  class_cube    object of class "classified image"
-#' @param  tile          tile to be plotted (in case of a multi-tile cube)
-#' @keywords internal
-#'
-#'
-.view_class_cube <- function(class_cube, tile){
-
-    # get the labels
-    labels <- sits_labels(class_cube)
-
-    class_cube <- dplyr::filter(class_cube, tile == !!tile)
-    # obtain the raster
-    r_obj <- suppressWarnings(
-        raster::raster(.file_info_path(class_cube))
-    )
-    # did we get the data?
-    .check_that(
-        x = raster::ncol(r_obj) > 0 &&
-            raster::nrow(r_obj) > 0,
-        msg = "unable to retrieve raster data"
-    )
-    # create a RAT
-    r_obj <- raster::ratify(r_obj)
-    rat <- raster::levels(r_obj)[[1]]
-
-    # include labels in the RAT
-    # be careful - some labels may not exist in the classified image
-    rat$landcover <- labels[rat$ID]
-    # assign the RAT to the raster object
-    levels(r_obj) <- rat
-
-    return(r_obj)
 }
 
 #' @title  Return the colors associated to the classified image
@@ -618,17 +581,58 @@ sits_view.classified_image <- function(x,...,
 .view_get_colors <- function(labels, legend, palette){
     # if colors are not specified, get them from the configuration file
     if (purrr::is_null(legend)) {
-        colors <- .config_colors(labels = labels,
-                                 palette = palette,
-                                 rev = TRUE)
+        colors <- .config_colors(
+            labels = labels,
+            palette = palette,
+            rev = TRUE
+        )
     }
     else {
         .check_chr_within(
             x = labels,
             within = names(legend),
-            msg = "some labels are missing from the legend")
+            msg = "some labels are missing from the legend"
+        )
         colors <- unname(legend[labels])
-
     }
     return(colors)
 }
+#' @title  Return the cell size for the image to be resamples
+#' @name .view_resample_size
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
+#'
+#' @param  nrows         number of rows in the input image
+#' @param  ncols         number of cols in the input image
+#' @param  ntiles        number of tiles in the input image
+#' @return               vector with cell size for x and y coordinates
+#' @keywords internal
+#'
+#'
+.view_resample_size <- function(nrows, ncols, ntiles){
+
+    # get the maximum number of bytes to be displayed per tile
+    max_Mbytes <- .config_get(key = "leaflet_max_Mbytes")
+    # get the compression factor
+    comp <- .config_get(key = "leaflet_comp_factor")
+
+    # calculate the size of the input image in bytes
+    # note that leaflet considers 4 bytes per pixel
+    in_size_Mbytes <- 4 * nrows * ncols * comp * ntiles
+    # do we need to compress?
+    ratio <- max((in_size_Mbytes/(max_Mbytes * ntiles * 1024 * 1024)), 1)
+
+
+    # only create local files if required
+    if (ratio > 1) {
+        new_nrows <- round(nrows/sqrt(ratio))
+        new_ncols <- round(ncols*(new_nrows/nrows))
+    } else {
+        new_nrows <- round(nrows)
+        new_ncols <- round(ncols)
+    }
+    leaflet_maxBytes <- 4 * new_nrows * new_ncols * ntiles
+    return(c("xsize" = new_ncols, "ysize" = new_nrows,
+             "leaflet_maxBytes" = leaflet_maxBytes))
+}
+
+

@@ -348,8 +348,8 @@ sits_list_collections <- function(source = NULL) {
     }
     if (!is.null(leaflet_comp_factor)) {
         .check_num(leaflet_comp_factor,
-                   min = 0.45,
-                   max = 0.75,
+                   min = 0.20,
+                   max = 1.00,
                    is_named = FALSE,
                    msg = "invalid leaflet_comp_factor")
         sits_env$config[["leaflet_comp_factor"]] <- leaflet_comp_factor
