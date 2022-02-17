@@ -74,10 +74,10 @@
 #'  into smaller chunks, where the generated chunk creates a 3-dimensional array
 #'  of band, latitude, and longitude information. By default 2 threads are used.
 #'
+#' @param memsize A \code{numeric} with memory available for regularization
+#'  (in GB).
+#'
 #' @param progress     A \code{logical} value. Show progress bar?
-#' @param cloud_mask   A \code{logical} to use cloud band for aggregation by
-#'  \code{gdalcubes}. Deprecated as of SITS version 0.16.0. Default
-#'  is \code{FALSE}.
 #'
 #' @note
 #'    If malformed images with the same required tiles and bands are found in
@@ -111,8 +111,8 @@ sits_regularize <- function(cube,
                             resampling = "bilinear",
                             multicores = 1,
                             multithreads = 2,
-                            progress = TRUE,
-                            cloud_mask = FALSE) {
+                            memsize = 4,
+                            progress = TRUE) {
 
     # set caller to show in errors
     .check_set_caller("sits_regularize")
@@ -150,6 +150,15 @@ sits_regularize <- function(cube,
                msg = "a valid resolution needs to be provided"
     )
 
+
+    # precondition - is there a cloud band?
+    .check_chr_within(
+        x = .source_cloud(),
+        within = sits_bands(cube),
+        discriminator = "all_of",
+        msg = "cloud band should be in cube"
+    )
+
     # precondition - is the multithreads valid?
     .check_num(
         x = multithreads,
@@ -183,9 +192,9 @@ sits_regularize <- function(cube,
             source = .cube_source(cube),
             collection = .cube_collection(cube),
             data_dir = output_dir,
-            parse_info = c("x1", "tile", "band", "date"),
+            parse_info = c("x1", "tile", "date", "band"),
             multicores = multicores,
-            progress = progress
+            progress = TRUE
         )
     },
     error = function(e) {
@@ -198,6 +207,39 @@ sits_regularize <- function(cube,
         local_cube = local_cube,
         timeline = timeline
     )
+
+    max_times <- max(slider::slide_int(cube, function(tile) {
+        length(sits_timeline(tile))
+    }))
+
+    max_nrows <- max(slider::slide_int(cube, function(tile) {
+        fi <- .file_info(tile)
+        max(fi[["nrows"]])
+    }))
+
+    max_ncols <- max(slider::slide_int(cube, function(tile) {
+        fi <- .file_info(tile)
+        max(fi[["ncols"]])
+    }))
+
+    sub_image <- c(
+        first_row = 1,
+        first_col = 1,
+        nrows = max_nrows,
+        ncols = max_ncols
+    )
+
+    blocks_list <- .sits_raster_blocks_regularize(
+        cube = cube,
+        n_images_interval = round(max_times / length(reg_timeline)),
+        sub_image = sub_image,
+        memsize = memsize,
+        multicores = multicores
+    )
+
+    # start process
+    .sits_parallel_start(multicores, log = FALSE)
+    on.exit(.sits_parallel_stop())
 
     # recovery mode
     finished <- length(jobs) == 0
@@ -250,14 +292,8 @@ sits_regularize <- function(cube,
 
         }, progress = progress)
 
-        # bind produced images
-        gc_tiles <- dplyr::bind_rows(gc_tiles_lst)
-
-        # get a list of produced images paths
-        gc_tiles_paths <- unlist(
-            purrr::map(gc_tiles[["file_info"]], function(fi) {
-                return(fi[["path"]])
-            }))
+        # get a vector of produced images paths
+        gc_tiles_paths <- unlist(gc_tiles_lst)
 
         # detect malformed files
         bad_files <- .reg_diagnostic(
@@ -280,7 +316,7 @@ sits_regularize <- function(cube,
                 source = .cube_source(cube),
                 collection = .cube_collection(cube),
                 data_dir = output_dir,
-                parse_info = c("x1", "tile", "band", "date"),
+                parse_info = c("x1", "tile", "date", "band"),
                 multicores = multicores,
                 progress = progress
             )
@@ -292,9 +328,8 @@ sits_regularize <- function(cube,
         # find if there are missing tiles
         jobs <- .reg_missing_tiles(
             cube = cube,
-            gc_cube = local_cube,
+            local_cube = local_cube,
             timeline = timeline,
-            period = period
         )
 
         # have we finished?
@@ -325,9 +360,6 @@ sits_regularize <- function(cube,
             # show message
             message(paste("Tiles", msg, "are missing or malformed",
                           "and will be reprocessed."))
-
-            # try a lower multithread
-            multithreads <- max(round(multithreads / 2), 1)
 
             # remove cache
             .sits_parallel_stop()

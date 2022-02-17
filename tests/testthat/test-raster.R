@@ -298,8 +298,8 @@ test_that("One-year, multicore classification with post-processing", {
         data_dir = tempdir(),
         labels = sits_labels(sinop_probs)
     )
-    expect_true(dplyr::all_equal(sinop_probs[,1:11], sinop_probs_2[,1:11],
-                                 .ignore_col_order = TRUE))
+
+    expect_true(.cube_is_equal(sinop_probs, sinop_probs_2))
 
     sinop_class <- sits_label_classification(
         sinop_probs,
@@ -324,8 +324,9 @@ test_that("One-year, multicore classification with post-processing", {
         labels = sits_labels(sinop_class),
         data_dir = tempdir()
     )
-    expect_true(dplyr::all_equal(sinop_class[,1:11], sinop_class_2[,1:11],
-                                 .ignore_col_order = TRUE))
+
+    expect_true(.cube_is_equal(sinop_class, sinop_class_2))
+
     sinop_bayes <- sits_smooth(
         sinop_probs,
         output_dir = tempdir()
@@ -353,8 +354,7 @@ test_that("One-year, multicore classification with post-processing", {
         data_dir = tempdir()
     )
 
-    expect_true(dplyr::all_equal(sinop_bayes[,1:11], sinop_bayes_2[,1:11],
-                                 .ignore_col_order = TRUE))
+    expect_true(.cube_is_equal(sinop_bayes, sinop_bayes))
 
     sinop_gauss <- sits_smooth(
         cube = sinop_probs,

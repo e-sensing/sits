@@ -21,7 +21,6 @@ std::vector< std::pair<int,int>> reverse(const int& i_out,
     return (points_in);
 }
 
-
 // [[Rcpp::export]]
 IntegerMatrix reg_resample(const IntegerMatrix& band,
                            const IntegerMatrix& cloud,
@@ -29,7 +28,7 @@ IntegerMatrix reg_resample(const IntegerMatrix& band,
                            const double& ratio_cloud_out,
                            const int& nrows_out,
                            const int& ncols_out,
-                           IntegerVector& cloud_values,
+                           IntegerVector& cloud_interp,
                            const int& missing_value) {
 
     // output matrix
@@ -51,14 +50,15 @@ IntegerMatrix reg_resample(const IntegerMatrix& band,
             points_cloud = reverse(i, j, ratio_cloud_out);
             std::vector< std::pair<int,int>>::iterator cloud_iter = points_cloud.begin();
 
+            // mark uncleaned pixels with missing value
             while(cloud_iter !=  points_cloud.end()) {
 
                 int cloud_value = cloud(cloud_iter->first, cloud_iter->second);
 
-                IntegerVector::iterator f = std::find(cloud_values.begin(),
-                                                      cloud_values.end(),
+                IntegerVector::iterator f = std::find(cloud_interp.begin(),
+                                                      cloud_interp.end(),
                                                       cloud_value);
-                if (f != cloud_values.end()){
+                if (f != cloud_interp.end()){
 
                     band_out(i,j) = missing_value;
                     break;
@@ -81,6 +81,7 @@ IntegerMatrix reg_resample(const IntegerMatrix& band,
                     }
                     band_iter++;
                 }
+
                 // equivalent to bilinear method
                 band_out(i,j) = (int)(band_sum/num_band);
             }
@@ -115,10 +116,10 @@ IntegerMatrix reg_merge_first(const List& band_block_dates,
     }
     return band_out;
 }
-// [[Rcpp::export]]
 
+// [[Rcpp::export]]
 IntegerMatrix compose_first(const List& band_block_dates,
-                            const IntegerMatrix& cloud,
+                            const List& cloud_block_dates,
                             IntegerVector& cloud_values,
                             const double& ratio_band_out,
                             const double& ratio_cloud_out,
@@ -126,14 +127,15 @@ IntegerMatrix compose_first(const List& band_block_dates,
                             const int& ncols_out,
                             const int& missing_value){
 
-
     int num_bands = band_block_dates.length();
     List bands_resampled;
 
     for (int k = 0; k < num_bands; k++) {
         IntegerMatrix band_k = band_block_dates[k];
+        IntegerMatrix cloud_k = cloud_block_dates[k];
+
         IntegerMatrix band_k_out = reg_resample(band_k,
-                                                cloud,
+                                                cloud_k,
                                                 ratio_band_out,
                                                 ratio_cloud_out,
                                                 nrows_out,

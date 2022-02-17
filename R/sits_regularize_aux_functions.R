@@ -1,3 +1,41 @@
+sits_regularize_get_ratio <- function(tile, band, res_out) {
+
+    tile_size <- sits_regularize_get_size(tile, res_out = res_out)
+
+    ratio_band <- unique(c(
+        .file_info_nrows(tile, bands = band) / tile_size[["nrows"]],
+        .file_info_ncols(tile, bands = band) / tile_size[["ncols"]]
+    ))
+
+    .check_length(
+        ratio_band,
+        len_min = 1,
+        len_max = 1,
+        msg = "invalid nrows and ncols from cube."
+    )
+
+    return(ratio_band)
+}
+
+sits_regularize_get_size <- function(tile, res_out) {
+
+    tile_bbox <- .cube_tile_bbox(tile)
+
+    tile_rast <- terra::rast(
+        xmin = tile_bbox[["xmin"]],
+        xmax = tile_bbox[["xmax"]],
+        ymin = tile_bbox[["ymin"]],
+        ymax = tile_bbox[["ymax"]],
+        resolution = c(x = res_out, y = res_out),
+        crs = .cube_crs(tile)
+    )
+
+    tile_size <- c(nrows = .raster_nrows(tile_rast),
+                   ncols = .raster_ncols(tile_rast))
+
+    return(tile_size)
+}
+
 sits_regularize_raster_blocks <- function(n_tiles,
                                           max_images_interval,
                                           nrows_out,
@@ -9,30 +47,37 @@ sits_regularize_raster_blocks <- function(n_tiles,
 
 
     # size of the output (using RasterIO)
-    output_size <- 4 * nrows_out * ncols_out
+    nbytes <- 4
+    output_size <- nbytes * nrows_out * ncols_out
+
     # size of the input
     band_in_size <- output_size * ratio_in_out
     cloud_in_size <- output_size * ratio_cloud_out
 
     proc_bloat <- .config_processing_bloat()
+
     # total memory required
     total_mem_required <- (max_images_interval * (band_in_size + cloud_in_size) +
-        output_size) * n_tiles * proc_bloat * 1e-09
+                               output_size) * n_tiles * proc_bloat * 1e-09
+
     # total memory required per core
     total_mem_per_core <- total_mem_required/multicores
+
     # memory available per core
     avail_mem_per_core <- memsize/multicores
+
     # number of blocks
     num_blocks_per_core <- ceiling(total_mem_per_core/avail_mem_per_core)
 
-    blocks_out <- .sits_regularize_block_list(nblocks,
+    blocks_out <- .sits_regularize_block_list(num_blocks_per_core,
                                               nrows_out,
                                               ncols_out)
 
-    blocks_in <- .sits_regularize_block_list(nblocks,
+    blocks_in <- .sits_regularize_block_list(num_blocks_per_core,
                                              ceiling(nrows_out * ratio_in_out),
                                              ceiling(ncols_out * ratio_in_out))
-    blocks_cloud <- .sits_regularize_block_list(nblocks,
+
+    blocks_cloud <- .sits_regularize_block_list(num_blocks_per_core,
                                                 ceiling(nrows_out * ratio_cloud_out),
                                                 ceiling(ncols_out * ratio_cloud_out))
 
@@ -41,8 +86,8 @@ sits_regularize_raster_blocks <- function(n_tiles,
         "blocks_in" = blocks_in,
         "blocks_cloud" = blocks_cloud
     )
-    return (blocks.lst)
 
+    return(blocks.lst)
 }
 
 .sits_regularize_block_list <- function(nblocks,
@@ -73,7 +118,7 @@ sits_regularize_raster_blocks <- function(n_tiles,
     # correct the last block for overflow
     if (sum(nrows_vec) != nrows) {
         nrows_vec[length(nrows_vec)] <-
-           nrows - sum(nrows_vec[1:(length(nrows_vec) - 1)])
+            nrows - sum(nrows_vec[1:(length(nrows_vec) - 1)])
     }
 
     # elements of the block list

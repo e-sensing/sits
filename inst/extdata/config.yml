@@ -77,6 +77,8 @@ sources:
                 collection_name: "CB4_64_16D_STK-1"
                 token_vars  :  ["BDC_ACCESS_KEY"]
                 open_data   : true
+                gdalcubes_support: true
+                reg_type_format: "INT2S"
                 open_data_token : true
                 metadata_search : "tile"
                 ext_tolerance: 0.01
@@ -217,6 +219,8 @@ sources:
                 <<: *bdc_lc8
                 collection_name: "LC8_30_16D_STK-1"
                 token_vars  :  ["BDC_ACCESS_KEY"]
+                gdalcubes_support: true
+                reg_type_format: "INT2S"
                 open_data   : true
                 open_data_token: true
                 metadata_search : "tile"

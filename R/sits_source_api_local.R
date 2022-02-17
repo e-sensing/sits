@@ -296,11 +296,10 @@
                                 labels,
                                 start_date,
                                 end_date,
-                                version,
-                                ...) {
+                                version, ...) {
 
     # set caller to show in errors
-    .check_set_caller(".local_cube")
+    .check_set_caller(".local_results_cube")
 
     # precondition - for result cubes, labels must be provided
     .check_chr(labels, len_min = 1,
@@ -316,16 +315,23 @@
         contains = .config_get("results_parse_info_col"),
         msg = "parse_info must include tile, start_date, end_date, and band."
     )
+
     # make query and retrieve items
-    items <- .local_results_cube_items_new(data_dir = data_dir,
-                                           band = bands[[1]],
-                                           parse_info = parse_info,
-                                           delim = delim,
-                                           version = version)
+    items <- .local_results_cube_items_new(
+        data_dir   = data_dir,
+        band       = bands[[1]],
+        parse_info = parse_info,
+        delim      = delim,
+        version    = version
+    )
+
     # retrieve all information of file_info
-    items <- .local_results_cube_file_info(source = source,
-                                           items = items,
-                                           collection = collection)
+    items <- .local_results_cube_file_info(
+        source     = source,
+        items      = items,
+        collection = collection
+    )
+
     # get all tiles
     tiles <- unique(items[["tile"]])
 
@@ -336,10 +342,12 @@
         items_tile <- dplyr::filter(items, .data[["tile"]] == !!tile)
 
         # make a new cube tile
-        tile_cube <- .local_results_items_cube(source = source,
-                                               collection = collection,
-                                               items = items_tile,
-                                               labels = labels)
+        tile_cube <- .local_results_items_cube(
+            source     = source,
+            collection = collection,
+            items      = items_tile,
+            labels     = labels
+        )
 
         return(tile_cube)
     })

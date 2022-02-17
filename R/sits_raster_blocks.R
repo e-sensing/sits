@@ -153,9 +153,6 @@
     return(blocks)
 }
 
-
-
-
 #' @title Define a reasonable block size to process an image subset
 #' @name .sits_raster_blocks_apply
 #' @keywords internal
@@ -173,7 +170,6 @@
 #' @return                 list with three attributes: n (number of blocks),
 #'                         rows (list of rows to begin),
 #'                         nrows (number of rows to read at each iteration).
-#'
 .sits_raster_blocks_apply <- function(tile, sub_image, memsize, multicores) {
 
     # get the number of blocks
@@ -191,6 +187,44 @@
 
     return(blocks)
 }
+
+#' @title Define a reasonable block size to process an image subset
+#' @name .sits_raster_blocks_regularize
+#' @keywords internal
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
+#'
+#' @description Defines the size of the block of an image to be read.
+#' For example, a Raster Brick with 500 rows and 500 columns
+#' and 400 time instances will have a total pixel size
+#' of 800 Mb if pixels are 64-bit.
+#'
+#' @param  cube            input data cube.
+#' @param  n_images_interval ...
+#' @param  sub_image       bounding box of the ROI
+#' @param  memsize         memory available for classification (in GB).
+#' @param  multicores      number of threads to process the time series.
+#' @return                 list with three attributes: n (number of blocks),
+#'                         rows (list of rows to begin),
+#'                         nrows (number of rows to read at each iteration).
+.sits_raster_blocks_regularize <- function(cube, n_images_interval, sub_image, memsize, multicores) {
+
+    # get the number of blocks
+    nblocks <- .sits_raster_blocks_estimate_regularize(
+        cube = cube,
+        n_images_interval = n_images_interval,
+        sub_image = sub_image,
+        memsize = memsize,
+        multicores = multicores
+    )
+
+    blocks <- .sits_raster_block_list(
+        nblocks = nblocks,
+        sub_image = sub_image
+    )
+
+    return(blocks)
+}
+
 #' @title Estimate the number of blocks
 #' @name .sits_raster_blocks_estimate_apply
 #' @keywords internal
@@ -238,6 +272,52 @@
 
     # number of passes to read the full data sets
     nblocks <- ceiling(class_data_size * 1e-09 / memsize * multicores)
+
+    return(nblocks)
+}
+
+#' @title Estimate the number of blocks for regularize
+#' @name .sits_raster_blocks_estimate_regularize
+#' @keywords internal
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
+#'
+#' @description Defines the number of blocks of a Raster Brick
+#'              to be read into memory.
+#'
+#' @param  cube            tile of data cube
+#' @param  n_images_interval ...
+#' @param  sub_image       area of interest in the image
+#' @param  memsize         Memory available for classification (in GB).
+#' @param  multicores      Number of threads to process the time series.
+#' @return Number of blocks to be read.
+.sits_raster_blocks_estimate_regularize <- function(cube,
+                                                    n_images_interval,
+                                                    sub_image,
+                                                    memsize,
+                                                    multicores) {
+
+    # number of bytes per pixel
+    nbytes <- 8
+
+    # estimated processing bloat
+    proc_bloat <- as.numeric(.config_processing_bloat())
+
+    # number of rows and cols
+    nrows <- sub_image[["nrows"]]
+    ncols <- sub_image[["ncols"]]
+
+    # single instance size
+    output_data_size <- nrows * ncols * nbytes
+
+    # total size including all bands
+    input_data_size <- output_data_size * n_images_interval * 2
+
+    # number of output instances is the same as input
+    # estimated size of the data for apply
+    reg_data_size <- (input_data_size + output_data_size) * proc_bloat
+
+    # number of passes to read the full data sets
+    nblocks <- ceiling(reg_data_size * 1e-09 / memsize) * multicores
 
     return(nblocks)
 }

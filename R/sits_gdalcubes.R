@@ -48,494 +48,508 @@
 }
 
 #' @title Save the images based on an aggregation method.
-#' @name .gc_new_cube
+#'
+#' @name .reg_new_cube
+#'
 #' @keywords internal
 #'
-#' @param tile          A data cube tile
-#' @param img_col       A \code{object} 'image_collection' containing information
-#'  about the images metadata.
-#' @param cv            A \code{list} 'cube_view' with values from cube.
-#' @param cloud_mask    A \code{logical} corresponds to the use of the cloud band
-#'  for aggregation.
-#' @param path_db       Database to be created by gdalcubes
-#' @param output_dir    Directory where the aggregated images will be written.
-#' @param cloud_mask    A \code{logical} corresponds to the use of the cloud band
-#'  for aggregation.
-#' @param multithreads  A \code{numeric} with the number of cores will be used in
-#'  the regularize. By default is used 1 core.
-#' @param ...         Additional parameters that can be included. See
-#'  '?gdalcubes::write_tif'.
+#' @param tile_period_band A unique tile from \code{sits_cube} object
+#'
+#' @param res          A \code{numeric} with spatial resolution of the image
+#'  that will be aggregated.
+#'
+#' @param period       A \code{character} vector with two position, first one is
+#' the start date and second one is the end date.
+#'
+#' @param resampling   A \code{character} with method to be used  for resampling in mosaic operation.
+#'  Options: \code{near}, \code{bilinear}, \code{bicubic}, \code{cubicspline},
+#'  and \code{lanczos}.
+#'  Default is bilinear.
+#'
+#' @param roi          A named \code{numeric} vector with a region of interest.
+#'
+#' @param output_dir   A \code{character} with a valid directory where the
+#'  regularized images will be written.
+#'
+#' @param agg_method   A \code{character} with method that will be applied by
+#'  \code{gdalcubes} for aggregation. Options: \code{median} and
+#'  \code{least_cc_first}. The default aggregation method is
+#'  \code{least_cc_first}. See more above.
+#'
+#' @param blocks ...
+#'
+#' @param date_period ...
+#'
+#' @param multithreads ...
 #'
 #' @return  A data cube tile with information used in its creation.
-.gc_new_cube <- function(tile,
-                         cv,
-                         img_col,
-                         path_db,
-                         output_dir,
-                         cloud_mask,
-                         multithreads, ...) {
+.reg_new_cube <- function(tile_period_band,
+                          res,
+                          blocks,
+                          date_period,
+                          resampling,
+                          roi,
+                          output_dir,
+                          multithreads) {
 
     # set caller to show in errors
-    .check_set_caller(".gc_new_cube")
+    .check_set_caller(".reg_new_cube")
 
-    bbox <- .cube_tile_bbox(cube = tile)
+    fi <- .file_info(tile_period_band)
 
-    # create a list of creation options and metadata
-    .get_gdalcubes_pack <- function(cube, band) {
+    tile_band <- .cube_bands(tile_period_band, add_cloud = FALSE)
 
-        # returns the type that the file will write
-        format_type <- .source_collection_gdalcubes_type(
-            .cube_source(cube = tile),
-            collection = .cube_collection(cube = tile)
-        )
-
-        return(
-            list(type   = format_type,
-                 nodata = .cube_band_missing_value(cube = cube, band = band),
-                 scale  = 1,
-                 offset = 0
-            )
-        )
-    }
-
-    .get_cube_chunks <- function(cv) {
-
-        bbox <- c(xmin = cv[["space"]][["left"]],
-                  xmax = cv[["space"]][["right"]],
-                  ymin = cv[["space"]][["bottom"]],
-                  ymax = cv[["space"]][["top"]])
-
-        size_x <- (max(bbox[c("xmin", "xmax")]) - min(bbox[c("xmin", "xmax")]))
-        size_y <- (max(bbox[c("ymin", "ymax")]) - min(bbox[c("ymin", "ymax")]))
-
-        # a vector with time, x and y
-        chunk_size <- .config_gdalcubes_chunk_size()
-
-        chunks_x <- round(size_x / cv[["space"]][["dx"]]) / chunk_size[[2]]
-        chunks_y <- round(size_y / cv[["space"]][["dy"]]) / chunk_size[[3]]
-
-        # guaranteeing that it will return fewer blocks than calculated
-        num_chunks <- (ceiling(chunks_x) * ceiling(chunks_y)) - 1
-
-        return(max(1, num_chunks))
-    }
-
-    # setting threads to process
-    # multicores number must be smaller than chunks
-    gdalcubes::gdalcubes_options(
-        threads = min(multithreads, .get_cube_chunks(cv))
+    # get the interp values
+    interp_values <- .source_cloud_interp_values(
+        source = .cube_source(cube = tile_period_band),
+        collection = .cube_collection(cube = tile_period_band)
     )
 
-    file_info <- purrr::map_dfr(.cube_bands(tile, add_cloud = FALSE), function(band) {
+    reg_datatype <- .config_get("raster_cube_data_type")
 
-        # create a raster_cube object to each band the select below change
-        # the object value
-        cube_brick <- .gc_raster_cube(tile, img_col, cv, cloud_mask)
+    # for each block
+    blocks_reg_path <- purrr::map_chr(blocks, function(block) {
 
-        # write the aggregated cubes
-        path_write <- gdalcubes::write_tif(
-            gdalcubes::select_bands(cube_brick, band),
-            dir = output_dir,
-            prefix = paste("cube", tile[["tile"]], band, "", sep = "_"),
-            creation_options = list("COMPRESS" = "LZW", "BIGTIFF" = "YES"),
-            pack = .get_gdalcubes_pack(tile, band), ...
+        multithreads <- min(multithreads, length(unique(fi[["fid"]])))
+
+        .sits_parallel_start(multithreads, log = FALSE)
+        on.exit(.sits_parallel_stop())
+
+        #block_band_dates <- slider::slide_chr(unique(fi[["fid"]]), function(fid) {
+        block_band_dates <- .sits_parallel_map(unique(fi[["fid"]]), function(fid) {
+            tile_fid <- tile_period_band
+            tile_fid[["file_info"]][[1]]  <- .file_info(tile_fid, fid = fid)
+
+            fi_fid <- .file_info(tile_fid)
+
+            band_date_block <- .reg_create_filename(
+                tile = tile_fid,
+                date_period = unique(fi_fid[["date"]]),
+                output_dir = output_dir,
+                band = tile_band,
+                block = block,
+                posfix = "reg"
+            )
+
+            cloud_date_block <- .reg_create_filename(
+                tile = tile_fid,
+                date_period = unique(fi_fid[["date"]]),
+                output_dir = output_dir,
+                band = .source_cloud(),
+                block = block,
+                posfix = "reg"
+            )
+
+            c_path <- .file_info_paths(
+                cube = tile_fid,
+                bands = .source_cloud()
+            )
+
+            b_path <- .file_info_paths(
+                cube = tile_fid,
+                bands = tile_band
+            )
+
+            # cloud preprocess
+            c_chunk_res <- .reg_preprocess_rast(
+                tile = tile_period_band,
+                band_paths = c_paths,
+                resolution = res,
+                resampling = .config_get("cloud_resampling_methods"),
+                block = block,
+                datatype = reg_datatype,
+                filename = cloud_date_block
+            )
+
+            # band preprocess
+            b_chunk_res <- .reg_preprocess_rast(
+                tile = tile_period_band,
+                band_paths = b_paths,
+                resolution = res,
+                resampling = resampling,
+                block = block,
+                datatype = reg_datatype,
+                filename = band_date_block
+            )
+
+            # mask band
+            b_mask <- .reg_apply_mask_rast(
+                rast = b_chunk_res,
+                mask_rast = c_chunk_res,
+                interp_values = interp_values,
+                filename = band_date_block,
+                datatype = reg_datatype,
+            )
+
+            unlink(cloud_date_block)
+            gc()
+
+            return(band_date_block)
+        }, progress = TRUE)
+
+        band_date_block <- .reg_create_filename(
+            tile = tile_period_band,
+            date_period = date_period,
+            output_dir = output_dir,
+            band = tile_band,
+            block = block
         )
 
-        # post-condition
-        .check_length(path_write, len_min = 1,
-                      msg = "no image was created")
-
-        # retrieving image date
-        images_date <- .gc_get_date(path_write)
-
-        # post-condition
-        .check_length(images_date, len_min = length(path_write))
-
-        # open first image to retrieve metadata
-        r_obj <- .raster_open_rast(path_write[[1]])
-
-        # set file info values
-        tibble::tibble(
-            fid = paste("cube", .cube_tiles(tile), images_date, sep = "_"),
-            date = images_date,
-            band = band,
-            xres  = .raster_xres(r_obj),
-            yres  = .raster_yres(r_obj),
-            xmin  = .raster_xmin(r_obj),
-            xmax  = .raster_xmax(r_obj),
-            ymin  = .raster_ymin(r_obj),
-            ymax  = .raster_ymax(r_obj),
-            nrows = .raster_nrows(r_obj),
-            ncols = .raster_ncols(r_obj),
-            path = path_write
+        .reg_aggregate_chunk(
+            rast_files = unlist(block_band_dates),
+            filename = band_date_block,
+            datatype = reg_datatype
         )
+
+
+        unlink(unlist(block_band_dates))
+        gc()
+
+        return(band_date_block)
     })
 
-    # arrange file_info by date and band
-    file_info <- dplyr::arrange(file_info, .data[["date"]], .data[["band"]])
-
-    # generate sequential fid
-    file_info[["fid"]] <- paste0(seq_along(file_info[["fid"]]))
-
-    cube_gc <- .cube_create(
-        source     = tile[["source"]],
-        collection = tile[["collection"]],
-        satellite  = tile[["satellite"]],
-        sensor     = tile[["sensor"]],
-        tile       = tile[["tile"]],
-        xmin       = cv[["space"]][["left"]],
-        xmax       = cv[["space"]][["right"]],
-        ymin       = cv[["space"]][["bottom"]],
-        ymax       = cv[["space"]][["top"]],
-        crs        = tile[["crs"]],
-        file_info  = file_info
+    output_filename <- paste0(
+        output_dir, "/",
+        paste("cube", .cube_tiles(tile_period_band), date_period, tile_band, sep = "_"),
+        ".", "tif"
     )
 
-    return(cube_gc)
+    .raster_merge(
+        in_files = blocks_reg_path,
+        out_file = output_filename,
+        format = "GTiff",
+        gdal_datatype = .raster_gdal_datatype(reg_datatype),
+        gdal_options = .config_gtiff_default_options(),
+        overwrite = TRUE
+    )
+
+    return(output_filename)
 }
 
-#' @title Extracted date from aggregated cubes
-#' @name .gc_get_date
+#' @title Preprocessing steps of sits regularize
+#'
+#' @name .reg_preprocess_rast
+#'
 #' @keywords internal
 #'
-#' @param dir_images A \code{character}  corresponds to the path on which the
-#'  images will be saved.
+#' @param tile         A unique tile from \code{sits_cube} object
 #'
-#' @return a \code{character} vector with the dates extracted.
-.gc_get_date <- function(dir_images) {
+#' @param band_paths   A \code{character} with paths for a unique band
+#'
+#' @param resolution   A \code{numeric} with spatial resolution of the image
+#'  that will be aggregated.
+#'
+#' @param resampling   A \code{character} with method to be used  for resampling
+#'  in mosaic operation. Options: \code{near}, \code{bilinear}, \code{bicubic},
+#'  \code{cubicspline}, and \code{lanczos}. Default is bilinear.
+#'
+#' @param block      A \code{numeric} vector with information about a block
+#'
+#' @return A \code{SpatRast} object resampled
+.reg_preprocess <- function(tile,
+                            band,
+                            band_path,
+                            cloud_path,
+                            cloud_block,
+                            band_block,
+                            resolution,
+                            resampling,
+                            datatype,
+                            filename,
+                            cloud_interp,
+                            missing_value) {
 
-    # get image name
-    image_name <- basename(dir_images)
+    band_values <- .raster_read_stack(files = band_path,
+                                      block = band_block)
 
-    date_files <-
-        purrr::map_chr(strsplit(image_name, "_"), function(split_path) {
-            tools::file_path_sans_ext(split_path[[4]])
-        })
+    cloud_values <- .raster_read_stack(files = cloud_path,
+                                       block = cloud_block)
 
-    # check type of date interval
-    if (length(strsplit(date_files, "-")[[1]]) == 1)
-        date_files <- lubridate::fast_strptime(date_files, "%Y")
-    else if (length(strsplit(date_files, "-")[[1]]) == 2)
-        date_files <- lubridate::fast_strptime(date_files, "%Y-%m")
-    else
-        date_files <- lubridate::fast_strptime(date_files, "%Y-%m-%d")
+    ratio_band <- sits_regularize_get_ratio(tile, band = band, res_out = resolution)
+    ratio_cloud <- sits_regularize_get_ratio(tile,
+                                             band = .source_cloud(),
+                                             res_out = resolution)
 
-    # transform to date object
-    date_files <- lubridate::as_date(date_files)
+    reg_resample(
+        band = band_values,
+        cloud = cloud_values,
+        ratio_band_out = ratio_band,
+        ratio_cloud_out = ratio_cloud,
+        nrows_out = ,
+        ncols_out = ,
+        cloud_interp = cloud_interp,
+        missing_value = missing_value
+    )
 
-    return(date_files)
+    return(res_rast)
 }
 
-#' @title Create a raster_cube object
-#' @name .gc_raster_cube
+#' @title Create the merge image filename
+#'
+#' @name .reg_create_filename
+#'
+#' @keywords internal
+#'
+#' @param tile         A unique tile from \code{sits_cube} object
+#'
+#' @param date_period  A \code{character} vector with two position, first one is
+#' the start date and second one is the end date.
+#'
+#' @param output_dir   A \code{character} with a valid directory where the
+#'  regularized images will be written.
+#'
+#' @param block      A \code{numeric} vector with information about a block
+#'
+#' @param tile ...
+#'
+#' @param band       ....
+#'
+#' @return A \code{character} with the file name of resampled image.
+.reg_create_filename <- function(tile, date_period, output_dir, band, block = NULL, posfix = NULL) {
+
+    file_ext <- unique(
+        tools::file_ext(
+            x = gsub(".*/([^?]*)\\??.*$", "\\1",
+                     .file_info_paths(tile, bands = band))
+        )
+    )
+
+    .check_length(
+        x = file_ext,
+        len_min = 1,
+        len_max = 1,
+        msg = "invalid files extensions."
+    )
+
+    b_filename <- paste("cube", .cube_tiles(tile), date_period, band, sep = "_")
+
+    if (!is.null(block)) {
+
+        currently_row <- block[["first_row"]]
+        next_rows <- (block[["nrows"]] + block[["first_row"]]) - 1
+
+        b_filename <- paste(b_filename, currently_row, next_rows, sep = "_")
+    }
+
+    if (!is.null(posfix))
+        b_filename <- paste(b_filename, posfix, sep = "_")
+
+    b_path <- paste0(output_dir, "/", b_filename, ".", file_ext)
+
+    return(b_path)
+}
+
+#' @title Get chunks from rasters
+#'
+#' @name .reg_get_chunk_rast
+#'
+#' @keywords internal
+#'
+#' @param rast  A \code{SpatRast} object
+#'
+#' @param block A \code{numeric} vector with information about a block
+#'
+#' @return A \code{SpatRast} object cropped.
+.reg_get_chunk_rast <- function(rast, tile, block, filename, datatype) {
+
+    sub_image <- .sits_raster_sub_image_from_block(block = block, tile = tile)
+
+    sub_image_ext <- terra::ext(
+        c(xmin = sub_image[["xmin"]],
+          xmax = sub_image[["xmax"]],
+          ymin = sub_image[["ymin"]],
+          ymax = sub_image[["ymax"]])
+    )
+
+    cropped_rast <- terra::crop(
+        x = rast,
+        y = sub_image_ext,
+        NAflag = .config_get("raster_cube_missing_value"),
+        #filename = filename,
+        datatype = datatype,
+        #overwrite = TRUE
+    )
+
+    return(cropped_rast)
+}
+
+#' @title Resample raster to a resolution
+#'
+#' @name .reg_resample_rast
+#'
+#' @keywords internal
+#'
+#' @param rast       A \code{SpatRast} object
+#'
+#' @param resolution A \code{numeric} with spatial resolution of the image
+#'  that will be aggregated.
+#'
+#' @param resampling A \code{character} with method to be used  for resampling
+#'  in mosaic operation. Options: \code{near}, \code{bilinear}, \code{bicubic},
+#'  \code{cubicspline}, and \code{lanczos}. Default is bilinear.
+#'
+#' @param ...        additional paramters for terra resample methods.
+#'
+#' @return A \code{SpatRast} object resample
+.reg_resample_rast <- function(rast,
+                               resolution,
+                               resampling,
+                               datatype,
+                               filename, ...) {
+
+    t_bbox <- terra::ext(rast)
+
+    # output template
+    new_rast <- terra::rast(
+        resolution = c(x = resolution, y = resolution),
+        xmin  = terra::xmin(t_bbox),
+        xmax  = terra::xmax(t_bbox),
+        ymin  = terra::ymin(t_bbox),
+        ymax  = terra::ymax(t_bbox),
+        nrows = terra::nrow(rast),
+        ncols = terra::ncol(rast),
+        crs   = terra::crs(rast)
+    )
+
+    img_out <- terra::resample(
+        x = rast,
+        y = new_rast,
+        method = resampling,
+        NAflag = .config_get("raster_cube_missing_value"),
+        datatype = datatype,
+        filename = filename,
+        overwrite = TRUE, ...
+    )
+
+    return(img_out)
+}
+
+#' @title Apply a cloud mask in a raster
+#'
+#' @name .reg_apply_mask_rast
+#'
+#' @keywords internal
+#'
+#' @param rast       A \code{SpatRast} object
+#'
+#' @param mask_rast  A \code{numeric}
+#'
+#' @param interp_values A \code{numeric} with
+#'
+#' @param ...        additional paramters for terra mask methods.
+#'
+#' @return A \code{SpatRast} object masked.
+.reg_apply_mask_rast <- function(rast, mask_rast, interp_values, ...) {
+
+    img_r <- terra::mask(
+        x = rast,
+        mask = mask_rast,
+        maskvalues = interp_values,
+        gdal = .config_gtiff_default_options(),
+        NAflag = .config_get("raster_cube_missing_value"),
+        overwrite = TRUE, ...
+    )
+
+    return(img_r)
+}
+
+#' @title Aggregate raster chunk
+#' @name .reg_aggregate_chunk
+#'
+#' @keywords internal
+#'
+#' @param rast_files     A \code{SpatRast} object
+#'
+#' @param filename A \code{character} with filename of the rast.
+#'
+#' @param datatype A \code{character} with terra datatype.
+#'
+#' @param ...      additional paramters for terra merge methods.
+#'
+#' @return An invisible null
+.reg_aggregate_chunk <- function(rast_files, filename, datatype, ...) {
+
+
+    rast_list <- purrr::map(rast_files, terra::rast)
+
+    terra::mosaic(
+        x =  terra::sprc(rast_list),
+        fun = "first",
+        filename = filename,
+        datatype = datatype,
+        gdal = .config_gtiff_default_options(),
+        overwrite = TRUE,
+        NAflag = .config_get("raster_cube_missing_value"), ...
+    )
+
+    return(invisible(NULL))
+}
+
+#' @title Get the timeline of intersection in all tiles
+#' @name .gc_get_valid_timeline
+#'
 #' @keywords internal
 #'
 #' @param cube       Data cube from where data is to be retrieved.
-#' @param img_col    A \code{object} 'image_collection' containing information
-#'  about the images metadata.
-#' @param cv         A \code{object} 'cube_view' with values from cube.
-#' @param cloud_mask A \code{logical} corresponds to the use of the cloud band
-#'  for aggregation.
+#' @param period     A \code{character} with ISO8601 time period for regular
+#'  data cubes produced by \code{gdalcubes}, with number and unit, e.g., "P16D"
+#'  for 16 days. Use "D", "M" and "Y" for days, month and year.
 #'
-#' @return a \code{object} 'raster_cube' from gdalcubes containing information
-#'  about the cube brick metadata.
-.gc_raster_cube <- function(cube, img_col, cv, cloud_mask) {
+#' @return a \code{vector} with all timeline values.
+.gc_get_valid_timeline <- function(cube, period) {
 
-    mask_band <- NULL
-    if (cloud_mask)
-        mask_band <- .gc_cloud_mask(cube)
+    # pre-condition
+    .check_chr(period, allow_empty = FALSE,
+               len_min = 1, len_max = 1,
+               msg = "invalid 'period' parameter")
 
-    # create a brick of raster_cube object
-    cube_brick <- gdalcubes::raster_cube(
-        image_collection = img_col,
-        view = cv,
-        mask = mask_band,
-        chunking = .config_gdalcubes_chunk_size())
-
-    return(cube_brick)
-}
-
-#' @title Create an object image_mask with information about mask band
-#' @name .gc_cloud_mask
-#' @keywords internal
-#'
-#' @param tile Data cube tile from where data is to be retrieved.
-#'
-#' @return A \code{object} 'image_mask' from gdalcubes containing information
-#'  about the mask band.
-.gc_cloud_mask <- function(tile) {
-
-    bands <- .cube_bands(tile)
-    cloud_band <- .source_cloud()
-
-    # checks if the cube has a cloud band
-    .check_chr_within(
-        x = cloud_band,
-        within = unique(bands),
-        discriminator = "any_of",
-        msg = paste("It was not possible to use the cloud",
-                    "mask, please include the cloud band in your cube")
-    )
-
-    # create a image mask object
-    mask_values <- gdalcubes::image_mask(
-        cloud_band,
-        values = .source_cloud_interp_values(
-            source = .cube_source(cube = tile),
-            collection = .cube_collection(cube = tile)
-        )
-    )
-
-    # is this a bit mask cloud?
-    if (.source_cloud_bit_mask(
-        source = .cube_source(cube = tile),
-        collection = .cube_collection(cube = tile)))
-
-        mask_values <- list(
-            band = cloud_band,
-            min = 1,
-            max = 2^16,
-            bits = mask_values$values,
-            values = NULL,
-            invert = FALSE
-        )
-
-    class(mask_values) <- "image_mask"
-
-    return(mask_values)
-}
-
-#' @title Create an image_collection object
-#' @name .gc_create_database
-#' @keywords internal
-#'
-#' @param cube      Data cube from where data is to be retrieved.
-#' @param path_db   A \code{character} with the path and name where the
-#'  database will be create. E.g. "my/path/gdalcubes.db"
-#'
-#' @return a \code{object} 'image_collection' containing information about the
-#'  images metadata.
-.gc_create_database <- function(cube, path_db) {
-
-    # set caller to show in errors
-    .check_set_caller(".gc_create_database")
-
-    file_info <- dplyr::bind_rows(cube$file_info)
-    # retrieving the collection format
-    format_col <- .source_collection_gdalcubes_config(
-        .cube_source(cube = cube),
-        collection = .cube_collection(cube = cube)
-    )
-
-    message("Creating database of images...")
-    ic_cube <- gdalcubes::create_image_collection(
-        files    = file_info$path,
-        format   = format_col,
-        out_file = path_db
-    )
-    return(ic_cube)
-}
-
-#' @title Create an image_collection object
-#' @name .gc_create_database_stac
-#'
-#' @keywords internal
-#'
-#' @param cube      Data cube from where data is to be retrieved.
-#'
-#' @param path_db   A \code{character} with the path and name where the
-#'  database will be create. E.g. "my/path/gdalcubes.db"
-#'
-#' @return a \code{object} 'image_collection' containing information about the
-#'  images metadata.
-.gc_create_database_stac <- function(cube, path_db) {
-
-    # deleting the existing database to avoid errors in the stac database
-    if (file.exists(path_db))
-        unlink(path_db)
-
-    create_gc_database <- function(cube) {
-
-        file_info <- dplyr::select(cube, .data[["file_info"]],
-                                   .data[["crs"]]) %>%
-            tidyr::unnest(cols = c("file_info")) %>%
-            dplyr::transmute(fid = .data[["fid"]],
-                             xmin = .data[["xmin"]],
-                             ymin = .data[["ymin"]],
-                             xmax = .data[["xmax"]],
-                             ymax = .data[["ymax"]],
-                             href = .data[["path"]],
-                             datetime = as.character(.data[["date"]]),
-                             band = .data[["band"]],
-                             `proj:epsg` = gsub("^EPSG:", "", .data[["crs"]]))
-
-        features <- dplyr::mutate(file_info, id = .data[["fid"]]) %>%
-            tidyr::nest(features = -.data[["fid"]])
-
-        features <- slider::slide_dfr(features, function(feat) {
-
-            bbox <- .sits_coords_to_bbox_wgs84(
-                xmin = feat$features[[1]][["xmin"]][[1]],
-                xmax = feat$features[[1]][["xmax"]][[1]],
-                ymin = feat$features[[1]][["ymin"]][[1]],
-                ymax = feat$features[[1]][["ymax"]][[1]],
-                crs = as.numeric(feat$features[[1]][["proj:epsg"]][[1]])
-            )
-
-            feat$features[[1]] <- dplyr::mutate(feat$features[[1]],
-                                                xmin = bbox[["xmin"]],
-                                                xmax = bbox[["xmax"]],
-                                                ymin = bbox[["ymin"]],
-                                                ymax = bbox[["ymax"]])
-
-            feat
+    # start date - maximum of all minimums
+    max_min_date <- do.call(
+        what = max,
+        args = purrr::map(cube[["file_info"]], function(file_info){
+            return(min(file_info[["date"]]))
         })
+    )
 
-        purrr::map(features[["features"]], function(feature) {
+    # end date - minimum of all maximums
+    min_max_date <- do.call(
+        what = min,
+        args = purrr::map(cube[["file_info"]], function(file_info){
+            return(max(file_info[["date"]]))
+        }))
 
-            feature <- feature %>%
-                tidyr::nest(assets = c(.data[["href"]], .data[["band"]])) %>%
-                tidyr::nest(properties = c(.data[["datetime"]],
-                                           .data[["proj:epsg"]])) %>%
-                tidyr::nest(bbox = c(.data[["xmin"]], .data[["ymin"]],
-                                     .data[["xmax"]], .data[["ymax"]]))
+    # check if all timeline of tiles intersects
+    .check_that(
+        x = max_min_date <= min_max_date,
+        msg = "the timeline of the cube tiles do not intersect."
+    )
 
-            feature[["assets"]] <- purrr::map(feature[["assets"]], function(asset) {
-
-                asset %>%
-                    tidyr::pivot_wider(names_from = .data[["band"]],
-                                       values_from = .data[["href"]]) %>%
-                    purrr::map(
-                        function(x) list(href = x, `eo:bands` = list(NULL))
-                    )
-            })
-
-            feature <- unlist(feature, recursive = FALSE)
-            feature[["properties"]] <- c(feature[["properties"]])
-            feature[["bbox"]] <- unlist(feature[["bbox"]])
-            feature
-        })
+    if (substr(period, 3, 3) == "M") {
+        max_min_date <- lubridate::date(paste(
+            lubridate::year(max_min_date),
+            lubridate::month(max_min_date),
+            "01", sep = "-"))
+    } else if (substr(period, 3, 3) == "Y") {
+        max_min_date <- lubridate::date(paste(
+            lubridate::year(max_min_date),
+            "01", "01", sep = "-"))
     }
 
-    ic_cube <- gdalcubes::stac_image_collection(
-        s = create_gc_database(cube),
-        out_file = path_db,
-        url_fun = identity)
+    # generate timeline
+    date <- lubridate::ymd(max_min_date)
+    min_max_date <- lubridate::ymd(min_max_date)
+    tl <- date
+    while (TRUE) {
+        date <- lubridate::ymd(date) %m+% lubridate::period(period)
+        if (date > min_max_date) break
+        tl <- c(tl, date)
+    }
 
-    return(ic_cube)
-}
+    # timeline cube
+    tiles_tl <- suppressWarnings(sits_timeline(cube))
 
-#' @title Internal function to handle with different file collection formats
-#'  for each provider.
-#' @name .gc_format_col
-#' @keywords internal
-#'
-#' @description
-#' Generic function with the goal that each source implements its own way of
-#' localizing the collection format file.
-#'
-#' @param source     A \code{character} value referring to a valid data source.
-#' @param collection A \code{character} value referring to a valid collection.
-#' @param ...        Additional parameters.
-#'
-#' @return A \code{character} path with format collection.
-.gc_format_col <- function(source, collection, ...) {
+    if (!is.list(tiles_tl))
+        tiles_tl <- list(tiles_tl)
 
-    # set caller to show in errors
-    .check_set_caller("sits_cube")
-    # try to find the gdalcubes configuration format for this collection
-    gdal_config <- .config_get(key = c("sources", source, "collections",
-                                       collection, "gdalcubes_format_col"),
-                               default = NA)
-    # if the format does not exist, report to the user
-    .check_that(!(is.na(gdal_config)),
-                msg = paste0("collection ", collection, " in source ", source,
-                             "not supported yet\n",
-                             "Please raise an issue in github"))
-    # return the gdal format file path
-    system.file(paste0("extdata/gdalcubes/", gdal_config), package = "sits")
-}
-
-#' @title Create a cube_view object
-#' @name .gc_create_cube_view
-#' @keywords internal
-#'
-#' @param tile       A data cube tile
-#' @param period     A \code{character} with the The period of time in which it
-#'  is desired to apply in the cube, must be provided based on ISO8601, where 1
-#'  number and a unit are provided, for example "P16D".
-#' @param res        A \code{numeric} with spatial resolution of the image that
-#'  will be aggregated.
-#' @param roi        A region of interest.
-#' @param toi        A timeline of intersection
-#' @param agg_method A \code{character} with the method that will be applied in
-#'  the aggregation, the following are available: "min", "max", "mean",
-#'  "median" or "first".
-#' @param resampling A \code{character} with method to be used by
-#'  \code{gdalcubes} for resampling in mosaic operation.
-#'  Options: \code{near}, \code{bilinear}, \code{bicubic} or others supported by
-#'  gdalwarp (see https://gdal.org/programs/gdalwarp.html).
-#'  By default is bilinear.
-#'
-#' @return a \code{cube_view} object from gdalcubes.
-.gc_create_cube_view <- function(tile,
-                                 period,
-                                 res,
-                                 roi,
-                                 toi,
-                                 agg_method,
-                                 resampling) {
-
-    # set caller to show in errors
-    .check_set_caller(".gc_create_cube_view")
-
-    .check_that(
-        x = nrow(tile) == 1,
-        msg = "tile must have only one row."
-    )
-
-    .check_null(
-        x = period,
-        msg = "the parameter 'period' must be provided."
-    )
-
-    .check_null(
-        x = agg_method,
-        msg = "the parameter 'method' must be provided."
-    )
-
-    .check_num(
-        x = res,
-        msg = "the parameter 'res' is invalid.",
-        allow_null = TRUE,
-        len_max = 1
-    )
-
-    bbox_roi <- sits_bbox(tile)
-
-    if (!is.null(roi))
-        bbox_roi <- .sits_roi_bbox(roi, tile)
-
-    roi <- list(left   = bbox_roi[["xmin"]],
-                right  = bbox_roi[["xmax"]],
-                bottom = bbox_roi[["ymin"]],
-                top    = bbox_roi[["ymax"]])
-
-    # create a list of cube view
-    cv <- gdalcubes::cube_view(
-        extent = list(left   = roi[["left"]],
-                      right  = roi[["right"]],
-                      bottom = roi[["bottom"]],
-                      top    = roi[["top"]],
-                      t0 = format(toi[[1]], "%Y-%m-%d"),
-                      t1 = format(toi[[2]], "%Y-%m-%d")),
-        srs = tile[["crs"]][[1]],
-        dt = period,
-        dx = res,
-        dy = res,
-        aggregation = agg_method,
-        resampling = resampling
-    )
-
-    return(cv)
+    return(tl)
 }

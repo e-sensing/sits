@@ -4,16 +4,14 @@
 \alias{.reg_missing_tiles}
 \title{Finds the missing tiles in a regularized cube}
 \usage{
-.reg_missing_tiles(cube, gc_cube, timeline, period)
+.reg_missing_tiles(cube, local_cube, timeline)
 }
 \arguments{
 \item{cube}{original cube to be regularized}
 
-\item{gc_cube}{regularized cube (may be missing tile)}
+\item{local_cube}{regularized cube (may be missing tile)}
 
 \item{timeline}{timeline used by gdalcube for regularized cube}
-
-\item{period}{period of timeline regularization}
 }
 \value{
 tiles that are missing from the regularized cube
