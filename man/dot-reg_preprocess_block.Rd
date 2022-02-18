@@ -7,6 +7,7 @@
 .reg_preprocess_block(
   tile_fid,
   band,
+  out_size,
   band_block,
   cloud_block,
   output_block,

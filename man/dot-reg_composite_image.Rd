@@ -6,19 +6,15 @@
 \usage{
 .reg_composite_image(
   tile_band_period,
-  res,
+  out_size,
   blocks,
   ratio_band_out,
   ratio_cloud_out,
   date,
-  output_dir,
-  multithreads
+  output_dir
 )
 }
 \arguments{
-\item{res}{A \code{numeric} with spatial resolution of the image
-that will be aggregated.}
-
 \item{blocks}{A \code{list} with: blocks of output band,
 blocks of input band, and blocks of cloud band}
 
@@ -28,10 +24,10 @@ composite}
 \item{output_dir}{A \code{character} with a valid directory where the
 regularized images will be written.}
 
-\item{multithreads}{A \code{integer} with number of cores to process each
-image in the interval}
-
 \item{tile_period_band}{A unique tile from \code{sits_cube} object}
+
+\item{output_size}{A \code{numeric} vector with nrows and ncols of
+image to be generated}
 }
 \value{
 A data cube tile with information used in its creation.

@@ -55,3 +55,9 @@ NULL
 
     return((x - y) > tolerance)
 }
+
+#' @rdname comparison_functions
+.is_int <- function(x, tolerance = 0) {
+
+    .is_eq(x, round(x), tolerance = tolerance)
+}

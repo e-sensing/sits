@@ -251,7 +251,7 @@
         msg = "invalid files extensions."
     )
 
-    b_filename <- paste("cube", .cube_tiles(tile), date, band, sep = "_")
+    b_filename <- paste("cube", .cube_tiles(tile), band, date, sep = "_")
 
     if (!is.null(block)) {
 

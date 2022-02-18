@@ -50,14 +50,14 @@ IntegerMatrix reg_resample(const IntegerMatrix& band,
             std::vector< std::pair<int,int>>::iterator cloud_iter = points_cloud.begin();
 
             // mark uncleaned pixels with missing value (NA_INTEGER)
-            while(cloud_iter !=  points_cloud.end()) {
+            while (cloud_iter <  points_cloud.end()) {
 
                 int cloud_value = cloud(cloud_iter->first, cloud_iter->second);
 
                 IntegerVector::iterator f = std::find(cloud_interp.begin(),
                                                       cloud_interp.end(),
                                                       cloud_value);
-                if (f != cloud_interp.end()){
+                if (f != cloud_interp.end()) {
 
                     band_out(i,j) = NA_INTEGER;
                     break;
@@ -71,18 +71,23 @@ IntegerMatrix reg_resample(const IntegerMatrix& band,
                 int band_sum = 0;
                 int num_band = 0;
                 std::vector< std::pair<int,int>>::iterator band_iter = points_band.begin();
-                while(band_iter !=  points_band.end()) {
+                while (band_iter < points_band.end()) {
                     double band_val = band(band_iter->first, band_iter->second);
 
                     if (band_val != NA_INTEGER) {
                         band_sum += band_val;
                         num_band++;
                     }
+
                     band_iter++;
                 }
 
                 // equivalent to bilinear method
-                band_out(i,j) = (int)(band_sum/num_band);
+                if (num_band > 0) {
+                    band_out(i,j) = (int)(band_sum / num_band);
+                } else {
+                    band_out(i,j) = NA_INTEGER;
+                }
             }
         }
     }
@@ -95,7 +100,7 @@ IntegerMatrix reg_agg_first(const IntegerMatrix& band_dates){
 
     int num_bands = band_dates.ncol();
 
-    IntegerMatrix band_out(band_dates.nrow() * band_dates.ncol(), 1);
+    IntegerMatrix band_out(band_dates.nrow(), 1);
     band_out.fill(NA_INTEGER);
 
     if (num_bands == 0)

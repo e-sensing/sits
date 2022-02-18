@@ -5,6 +5,7 @@
 \alias{.is_eq}
 \alias{.is_lt}
 \alias{.is_gt}
+\alias{.is_int}
 \title{Comparison functions}
 \usage{
 .is_eq(x, y, tolerance = 0)
@@ -12,6 +13,8 @@
 .is_lt(x, y, tolerance = 0)
 
 .is_gt(x, y, tolerance = 0)
+
+.is_int(x, tolerance = 0)
 }
 \arguments{
 \item{x, y}{a \code{numeric} value to compare.}
