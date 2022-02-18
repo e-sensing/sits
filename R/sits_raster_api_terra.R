@@ -118,20 +118,41 @@
                                    xres = NULL,
                                    yres = NULL) {
 
-    # create a raster object
-    suppressWarnings(
-        terra::rast(
-            nrows = nrows,
-            ncols = ncols,
-            nlyrs = nlayers,
-            xmin  = xmin,
-            xmax  = xmax,
-            ymin  = ymin,
-            ymax  = ymax,
-            crs   = crs,
-            resolution = c(xres, yres)
+    # prepare resolution
+    resolution <- c(xres, yres)
+
+    if (is.null(resolution)) {
+
+        # create a raster object
+        r_obj <- suppressWarnings(
+            terra::rast(
+                nrows = nrows,
+                ncols = ncols,
+                nlyrs = nlayers,
+                xmin  = xmin,
+                xmax  = xmax,
+                ymin  = ymin,
+                ymax  = ymax,
+                crs   = crs
+            )
         )
-    )
+    } else {
+
+        # create a raster object
+        r_obj <- suppressWarnings(
+            terra::rast(
+                nlyrs = nlayers,
+                xmin  = xmin,
+                xmax  = xmax,
+                ymin  = ymin,
+                ymax  = ymax,
+                crs   = crs,
+                resolution = resolution
+            )
+        )
+    }
+
+    return(r_obj)
 }
 
 #' @keywords internal
