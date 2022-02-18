@@ -11,7 +11,8 @@
   data_type,
   gdal_options,
   overwrite,
-  ...
+  ...,
+  missing_value = NULL
 )
 }
 \arguments{
@@ -29,6 +30,8 @@
 \item{overwrite}{logical indicating if file can be overwritten}
 
 \item{...}{additional parameters to be passed to raster package}
+
+\item{missing_value}{A \code{integer} with image's missing value}
 }
 \value{
 numeric matrix

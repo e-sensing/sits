@@ -6,12 +6,9 @@
 \usage{
 sits_regularize(
   cube,
-  output_dir,
   period,
   res,
-  roi = NULL,
-  agg_method = "least_cc_first",
-  resampling = "bilinear",
+  output_dir,
   multicores = 1,
   multithreads = 2,
   memsize = 4,
@@ -23,9 +20,6 @@ sits_regularize(
 times is not constant and will be regularized by the \code{gdalcubes}
 package.}
 
-\item{output_dir}{A \code{character} with a valid directory where the
-regularized images will be written by \code{gdalcubes}.}
-
 \item{period}{A \code{character} with ISO8601 time period for regular
 data cubes produced by \code{gdalcubes}, with number and unit, e.g., "P16D"
 for 16 days. Use "D", "M" and "Y" for days, month and year.}
@@ -33,19 +27,8 @@ for 16 days. Use "D", "M" and "Y" for days, month and year.}
 \item{res}{A \code{numeric} with spatial resolution of the image
 that will be aggregated.}
 
-\item{roi}{A named \code{numeric} vector with a region of interest.
-See more above}
-
-\item{agg_method}{A \code{character} with method that will be applied by
-\code{gdalcubes} for aggregation. Options: \code{median} and
-\code{least_cc_first}. The default aggregation method is
-\code{least_cc_first}. See more above.}
-
-\item{resampling}{A \code{character} with method to be used by
-\code{gdalcubes} for resampling in mosaic operation.
-Options: \code{near}, \code{bilinear}, \code{bicubic} or others supported by
-gdalwarp (see https://gdal.org/programs/gdalwarp.html).
-Default is bilinear.}
+\item{output_dir}{A \code{character} with a valid directory where the
+regularized images will be written by \code{gdalcubes}.}
 
 \item{multicores}{A \code{numeric} with the number of cores used for
 regularization. This parameter specifies how many bands from different tiles

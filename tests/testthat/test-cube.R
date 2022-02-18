@@ -462,13 +462,12 @@ test_that("Creating regular cubes from AWS Open Data, and extracting samples fro
         suppressWarnings(dir.create(dir_images))
 
     gc_cube <- sits_regularize(
-        cube        = s2_cube_open,
+        cube        = s2_cube_open[1,],
         output_dir  = dir_images,
-        res         = 320,
-        agg_method  = "median",
-        period      = "P1M",
-        multicores = 4,
-        multithreads = 16)
+        res         = 240,
+        period      = "P16D",
+        multicores = 1,
+        multithreads = 1)
 
     tile_size <- .cube_size(gc_cube[1, ])
     tile_bbox <- .cube_tile_bbox(gc_cube[1, ])

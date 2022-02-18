@@ -40,9 +40,6 @@
 #'  times is not constant and will be regularized by the \code{gdalcubes}
 #'  package.
 #'
-#' @param output_dir   A \code{character} with a valid directory where the
-#'  regularized images will be written by \code{gdalcubes}.
-#'
 #' @param period       A \code{character} with ISO8601 time period for regular
 #'  data cubes produced by \code{gdalcubes}, with number and unit, e.g., "P16D"
 #'  for 16 days. Use "D", "M" and "Y" for days, month and year.
@@ -50,19 +47,8 @@
 #' @param res          A \code{numeric} with spatial resolution of the image
 #'  that will be aggregated.
 #'
-#' @param roi          A named \code{numeric} vector with a region of interest.
-#'  See more above
-#'
-#' @param agg_method   A \code{character} with method that will be applied by
-#'  \code{gdalcubes} for aggregation. Options: \code{median} and
-#'  \code{least_cc_first}. The default aggregation method is
-#'  \code{least_cc_first}. See more above.
-#'
-#' @param resampling   A \code{character} with method to be used by
-#'  \code{gdalcubes} for resampling in mosaic operation.
-#'  Options: \code{near}, \code{bilinear}, \code{bicubic} or others supported by
-#'  gdalwarp (see https://gdal.org/programs/gdalwarp.html).
-#'  Default is bilinear.
+#' @param output_dir   A \code{character} with a valid directory where the
+#'  regularized images will be written by \code{gdalcubes}.
 #'
 #' @param multicores   A \code{numeric} with the number of cores used for
 #'  regularization. This parameter specifies how many bands from different tiles
@@ -103,12 +89,9 @@
 #'
 #' @export
 sits_regularize <- function(cube,
-                            output_dir,
                             period,
                             res,
-                            roi = NULL,
-                            agg_method = "least_cc_first",
-                            resampling = "bilinear",
+                            output_dir,
                             multicores = 1,
                             multithreads = 2,
                             memsize = 4,
@@ -178,7 +161,7 @@ sits_regularize <- function(cube,
     )
 
     # timeline of intersection
-    timeline <- .reg_timeline(cube, period = period)
+    reg_timeline <- .reg_timeline(cube, period = period)
 
     # start process
     .sits_parallel_start(multicores, log = FALSE)
@@ -192,7 +175,7 @@ sits_regularize <- function(cube,
             source = .cube_source(cube),
             collection = .cube_collection(cube),
             data_dir = output_dir,
-            parse_info = c("x1", "tile", "date", "band"),
+            parse_info = .config_get("reg_file_parse_info"),
             multicores = multicores,
             progress = TRUE
         )
@@ -202,39 +185,10 @@ sits_regularize <- function(cube,
     })
 
     # find the tiles that have not been processed yet
-    jobs <- .reg_missing_tiles(
+    jobs <- .reg_missing_files(
         cube = cube,
         local_cube = local_cube,
-        timeline = timeline
-    )
-
-    max_times <- max(slider::slide_int(cube, function(tile) {
-        length(sits_timeline(tile))
-    }))
-
-    max_nrows <- max(slider::slide_int(cube, function(tile) {
-        fi <- .file_info(tile)
-        max(fi[["nrows"]])
-    }))
-
-    max_ncols <- max(slider::slide_int(cube, function(tile) {
-        fi <- .file_info(tile)
-        max(fi[["ncols"]])
-    }))
-
-    sub_image <- c(
-        first_row = 1,
-        first_col = 1,
-        nrows = max_nrows,
-        ncols = max_ncols
-    )
-
-    blocks_list <- .sits_raster_blocks_regularize(
-        cube = cube,
-        n_images_interval = round(max_times / length(reg_timeline)),
-        sub_image = sub_image,
-        memsize = memsize,
-        multicores = multicores
+        reg_timeline = reg_timeline
     )
 
     # start process
@@ -247,7 +201,7 @@ sits_regularize <- function(cube,
     while (!finished) {
 
         # process bands and tiles in parallel
-        tiles_lst <- .sits_parallel_map(jobs, function(job) {
+        image_lst <- .sits_parallel_map(jobs, function(job) {
 
             tile_name <- job[[1]]
             band <- job[[2]]
@@ -263,28 +217,65 @@ sits_regularize <- function(cube,
             )
 
             # filter band and cloud
-            tile <- sits_select(data = tile, bands = c(band, .source_cloud()))
+            tile_band <- sits_select(
+                data = tile,
+                bands = c(band, .source_cloud())
+            )
 
             # filter date interval
             end_date <- date %m+% lubridate::period(period)
-            tile[["file_info"]][[1]] <-
-                dplyr::filter(tile[["file_info"]][[1]],
+            tile_band_interval <- tile_band
+
+            tile_band_interval[["file_info"]][[1]] <-
+                dplyr::filter(.file_info(tile_band_interval),
                               .data[["date"]] >= !!date,
                               .data[["date"]] < !!end_date)
 
             # least_cc_first requires images ordered based on cloud cover
-            tile[["file_info"]][[1]] <-
-                dplyr::arrange(tile[["file_info"]][[1]],
+            tile_band_interval[["file_info"]][[1]] <-
+                dplyr::arrange(.file_info(tile_band_interval),
                                .data[["cloud_cover"]])
 
-            # create of the aggregate cubes
+            # get output size
+            out_size <- .reg_get_output_size(
+                tile = tile_band_interval,
+                out_res = res
+            )
+
+            # get band_in_out ratio
+            ratio_band_in_out <- .reg_get_ratio_in_out(
+                tile_band_interval,
+                band = band,
+                out_size = out_size
+            )
+
+            # get cloud_in_out ratio
+            ratio_cloud_in_out <- .reg_get_ratio_in_out(
+                tile_band_interval,
+                band = .source_cloud(),
+                out_size = out_size
+            )
+
+            # compute blocks to be processed
+            blocks_list <- .reg_blocks_per_core(
+                n_images_interval = nrow(.file_info(tile_band_interval)),
+                nrows_out = out_size[["nrows"]],
+                ncols_out = out_size[["ncols"]],
+                ratio_in_out = ratio_band_in_out,
+                ratio_cloud_out = ratio_cloud_in_out,
+                memsize = memsize,
+                multicores = multicores
+            )
+
+            # create of the composite cubes
             composite_file <- .reg_composite_image(
-                tile = cube,
-                cv = cv,
-                img_col = img_col,
-                path_db = path_db,
+                tile_band_period = tile_band_interval,
+                res = res,
+                blocks = blocks_list,
+                ratio_band_out = ratio_band_in_out,
+                ratio_cloud_out = ratio_cloud_in_out,
+                date = date,
                 output_dir = output_dir,
-                cloud_mask = cloud_mask,
                 multithreads = multithreads
             )
 
@@ -293,22 +284,9 @@ sits_regularize <- function(cube,
         }, progress = progress)
 
         # get a vector of produced images paths
-        gc_tiles_paths <- unlist(gc_tiles_lst)
+        image_paths <- unlist(image_lst)
 
-        # detect malformed files
-        bad_files <- .reg_diagnostic(
-            data_dir = output_dir,
-            file_paths = gc_tiles_paths
-        )
-
-        if (length(bad_files) > 0 && multithreads == 1)
-            # bad files cannot be generated anyway!
-            .reg_create_empty_tifs(bad_files)
-        else {
-            # delete malformed files
-            unlink(bad_files)
-            gc()
-        }
+        # TODO: detect malformed files?
 
         # create local cube from files in output directory
         local_cube <- tryCatch({
@@ -316,7 +294,7 @@ sits_regularize <- function(cube,
                 source = .cube_source(cube),
                 collection = .cube_collection(cube),
                 data_dir = output_dir,
-                parse_info = c("x1", "tile", "date", "band"),
+                parse_info = .config_get("reg_file_parse_info"),
                 multicores = multicores,
                 progress = progress
             )
@@ -326,10 +304,10 @@ sits_regularize <- function(cube,
         })
 
         # find if there are missing tiles
-        jobs <- .reg_missing_tiles(
+        jobs <- .reg_missing_files(
             cube = cube,
             local_cube = local_cube,
-            timeline = timeline,
+            reg_timeline = reg_timeline
         )
 
         # have we finished?
@@ -370,17 +348,17 @@ sits_regularize <- function(cube,
     return(local_cube)
 }
 
-#' @title Finds the missing tiles in a regularized cube
+#' @title Finds the missing files in a regularized cube
 #'
-#' @name .reg_missing_tiles
+#' @name .reg_missing_files
 #' @keywords internal
 #'
-#' @param cube        original cube to be regularized
-#' @param local_cube  regularized cube (may be missing tile)
-#' @param timeline    timeline used by gdalcube for regularized cube
+#' @param cube         original cube to be regularized
+#' @param local_cube   regularized cube (may have missing files)
+#' @param reg_timeline timeline used to regularize cube
 #'
 #' @return              tiles that are missing from the regularized cube
-.reg_missing_tiles <- function(cube, local_cube, timeline) {
+.reg_missing_files <- function(cube, local_cube, reg_timeline) {
 
     # get all tiles from cube
     tiles <- .cube_tiles(cube)
@@ -391,7 +369,7 @@ sits_regularize <- function(cube,
     # do a cross product on tiles and bands
     tiles_bands_times <- unlist(slider::slide(cube, function(tile) {
         bands <- .cube_bands(tile, add_cloud = FALSE)
-        purrr::cross3(.cube_tiles(tile), bands, timeline)
+        purrr::cross3(.cube_tiles(tile), bands, reg_timeline)
     }), recursive = FALSE)
 
     # if regularized cube does not exist, return all tiles from original cube
@@ -402,7 +380,7 @@ sits_regularize <- function(cube,
     # do a cross product on tiles and bands
     gc_tiles_bands_times <- unlist(slider::slide(local_cube, function(tile) {
         bands <- .cube_bands(tile, add_cloud = FALSE)
-        purrr::cross3(.cube_tiles(tile), bands, timeline)
+        purrr::cross3(.cube_tiles(tile), bands, reg_timeline)
     }), recursive = FALSE)
 
     # first, include tiles and bands that have not been processed
@@ -478,41 +456,271 @@ sits_regularize <- function(cube,
     return(bad_paths[existing_files])
 }
 
+#' @title Generate a composite image based on tile interval.
+#'
+#' @name .reg_composite_image
+#'
+#' @keywords internal
+#'
+#' @param tile_period_band A unique tile from \code{sits_cube} object
+#' @param res          A \code{numeric} with spatial resolution of the image
+#'  that will be aggregated.
+#' @param blocks       A \code{list} with: blocks of output band,
+#' blocks of input band, and blocks of cloud band
+#' @param date         A \code{Date} of reference to generate the image
+#' composite
+#' @param output_dir   A \code{character} with a valid directory where the
+#'  regularized images will be written.
+#' @param multithreads A \code{integer} with number of cores to process each
+#' image in the interval
+#'
+#' @return  A data cube tile with information used in its creation.
+.reg_composite_image <- function(tile_band_period,
+                                 res,
+                                 blocks,
+                                 ratio_band_out,
+                                 ratio_cloud_out,
+                                 date,
+                                 output_dir,
+                                 multithreads) {
 
-.reg_create_empty_tifs <- function(images_path) {
+    # set caller to show in errors
+    .check_set_caller(".reg_composite_image")
 
-    # check documentation mode
-    progress <- TRUE
-    progress <- .check_documentation(progress)
+    fi <- .file_info(tile_band_period)
 
-    .sits_parallel_map(images_path, function(img_path) {
+    # get the band to be processed
+    band <- .cube_bands(tile_band_period, add_cloud = FALSE)
 
-        t_img <- .raster_open_rast(img_path)
 
-        r_obj <- .raster_new_rast(
-            nrows = .raster_nrows(t_img),
-            ncols = .raster_ncols(t_img),
-            xmin  = .raster_xmin(t_img),
-            xmax  = .raster_xmax(t_img),
-            ymin  = .raster_ymin(t_img),
-            ymax  = .raster_ymax(t_img),
-            nlayers = 1,
-            crs   = .raster_crs(t_img)
+    # output file name
+    output_filename <- .reg_filename(
+        tile = tile_band_period,
+        band = band,
+        date = date,
+        output_dir = output_dir
+    )
+
+    if (file.exists(output_filename))
+        return(output_filename)
+
+    # get output datatype
+    reg_datatype <- .config_get("raster_cube_data_type")
+
+    # start a new parallel process for workers ("multithreads")
+    .sits_parallel_start(multithreads, log = FALSE)
+    on.exit(.sits_parallel_stop())
+
+    # open parallel process to read all interval dates
+    reg_masked_blocks_lst <- .sits_parallel_map(
+        .file_info_fids(tile_band_period),
+        function(fid) {
+
+            # for each block
+            blocks_reg_path <- purrr::pmap_chr(
+                blocks,
+                function(block_out, block_in, block_cloud) {
+
+                    tile_fid <- tile_band_period
+                    tile_fid[["file_info"]][[1]] <-
+                        .file_info(tile_fid, fid = fid)
+
+                    fi_fid <- .file_info(tile_fid)
+
+                    # name of output block
+                    output_file_block <- .reg_filename(
+                        tile = tile_fid,
+                        band = band,
+                        date = unique(fi_fid[["date"]]),
+                        output_dir = output_dir,
+                        block = block_out
+                    )
+
+                    # cloud preprocess
+                    .reg_preprocess_block(
+                        tile_fid = tile_fid,
+                        band = band,
+                        band_block = block_in,
+                        cloud_block = block_cloud,
+                        output_block = block_out,
+                        ratio_band_out = ratio_band_out,
+                        ratio_cloud_out = ratio_cloud_out,
+                        data_type = reg_datatype,
+                        output_file = output_file_block
+                    )
+
+                    return(output_file_block)
+                })
+
+            return(blocks_reg_path)
+        })
+
+    # aggregate first method
+    agg_block_paths <- purrr::pmap_chr(reg_masked_blocks_lst, function(...) {
+
+        block_files <- unlist(list(...))
+
+        # read values for all corresponding blocks in interval
+        mtx <- .raster_read_stack(block_files)
+
+        # make a local template
+        r_obj <- .raster_rast(.raster_open_rast(block_files[[1]]))
+
+        # remove blocks
+        unlink(block_files)
+        gc()
+
+        # do merge using first available pixel
+        r_obj <- .raster_set_values(
+            r_obj = r_obj,
+            values = reg_agg_first(mtx)
         )
 
-        .raster_set_values(r_obj, values = NA)
+        # get band missing value
+        missing_value <- .cube_band_missing_value(
+            cube = tile_band_period,
+            band = band
+        )
 
+        # write merged regularized masked block
         .raster_write_rast(
-            r_obj        = r_obj,
-            file         = img_path,
+            r_obj = r_obj,
+            file = block_files[[1]],
             format       = "GTiff",
-            data_type    = .config_get("raster_cube_data_type"),
+            data_type    = reg_datatype,
             gdal_options = .config_gtiff_default_options(),
-            overwrite    = TRUE
+            overwrite    = TRUE,
+            missing_value = missing_value
         )
 
-    }, progress = progress)
+        return(block_files[[1]])
+    })
 
-    return(images_path)
+    # merge file info
+    .raster_merge(
+        in_files = agg_block_paths,
+        out_file = output_filename,
+        format = "GTiff",
+        gdal_datatype = .raster_gdal_datatype(reg_datatype),
+        gdal_options = .config_gtiff_default_options(),
+        overwrite = TRUE
+    )
+
+    return(output_filename)
 }
 
+#' @title Preprocessing steps of sits regularize
+#'
+#' @name .reg_preprocess_block
+#'
+#' @keywords internal
+#'
+#' @param tile         A unique tile from \code{sits_cube} object
+#'
+#' @param band_paths   A \code{character} with paths for a unique band
+#'
+#' @param resolution   A \code{numeric} with spatial resolution of the image
+#'  that will be aggregated.
+#'
+#' @param resampling   A \code{character} with method to be used  for resampling
+#'  in mosaic operation. Options: \code{near}, \code{bilinear}, \code{bicubic},
+#'  \code{cubicspline}, and \code{lanczos}. Default is bilinear.
+#'
+#' @param block      A \code{numeric} vector with information about a block
+#'
+#' @return A \code{SpatRast} object resampled
+.reg_preprocess_block <- function(tile_fid,
+                                  band,
+                                  band_block,
+                                  cloud_block,
+                                  output_block,
+                                  ratio_band_out,
+                                  ratio_cloud_out,
+                                  data_type,
+                                  output_file) {
+
+    # get input band path
+    band_path <- .file_info_paths(
+        cube = tile_fid,
+        bands = band
+    )
+
+    # check if cloud_path has length one
+    .check_chr(band_path,
+               allow_empty = FALSE, len_min = 1, len_max = 1,
+               msg = "invalid band path value")
+
+    # get input cloud path
+    cloud_path <- .file_info_paths(
+        cube = tile_fid,
+        bands = .source_cloud()
+    )
+
+    # check if cloud_path has length one
+    .check_chr(cloud_path,
+               allow_empty = FALSE, len_min = 1, len_max = 1,
+               msg = "invalid cloud path value")
+
+    # read input band and change its dimension to input block
+    band_values <- .raster_read_stack(files = band_path,
+                                      block = band_block)
+    dim(band_values) <- c(band_block[["nrows"]], band_block[["ncols"]])
+
+    # read input band and change its dimension to cloud block
+    cloud_values <- .raster_read_stack(files = cloud_path,
+                                       block = cloud_block)
+    dim(cloud_values) <- c(cloud_block[["nrows"]], cloud_block[["ncols"]])
+
+    # get the interpolation values (cloud values)
+    cloud_interp <- .source_cloud_interp_values(
+        source = .cube_source(cube = tile_fid),
+        collection = .cube_collection(cube = tile_fid)
+    )
+
+    reg_masked_mtx <- reg_resample(
+        band = band_values,
+        cloud = cloud_values,
+        ratio_band_out = ratio_band_out,
+        ratio_cloud_out = ratio_cloud_out,
+        nrows_out = output_block[["nrows"]],
+        ncols_out = output_block[["ncols"]],
+        cloud_interp = cloud_interp
+    )
+
+    # compute bound box of output block
+    sub_image <- .sits_raster_sub_image_from_block(
+        block = output_block,
+        tile = tile_fid
+    )
+
+    # create output block raster
+    r_obj <- .raster_new_rast(
+        nrows = output_block[["nrows"]],
+        ncols = output_block[["ncols"]],
+        xmin = sub_image[["xmin"]],
+        xmax = sub_image[["xmax"]],
+        ymin = sub_image[["ymin"]],
+        ymax = sub_image[["ymax"]],
+        nlayers = 1,
+        crs = .cube_crs(tile_fid)
+    )
+
+    # set values
+    r_obj <- .raster_set_values(r_obj = r_obj, values = reg_masked_mtx)
+
+    # get band missing value
+    missing_value <- .cube_band_missing_value(tile_fid, band = band)
+
+    # write to disk
+    .raster_write_rast(
+        r_obj        = r_obj,
+        file         = output_file,
+        format       = "GTiff",
+        data_type    = data_type,
+        gdal_options = .config_gtiff_default_options(),
+        overwrite    = TRUE,
+        missing_value = missing_value
+    )
+
+    return(output_file)
+}

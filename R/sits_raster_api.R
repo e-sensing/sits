@@ -252,6 +252,7 @@
 #' @param gdal_options  GDAL creation option string (e.g. COMPRESS=LZW)
 #' @param overwrite     logical indicating if file can be overwritten
 #' @param ...           additional parameters to be passed to raster package
+#' @param missing_value A \code{integer} with image's missing value
 #'
 #' @return numeric matrix
 .raster_write_rast <- function(r_obj,
@@ -259,7 +260,8 @@
                                format,
                                data_type,
                                gdal_options,
-                               overwrite, ...) {
+                               overwrite, ...,
+                               missing_value = NULL) {
 
     # check package
     pkg_class <- .raster_check_package()

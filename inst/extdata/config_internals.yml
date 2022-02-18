@@ -92,3 +92,6 @@ metadata_search_strategies : ["tile", "feature"]
 class_intervals: ["fixed", "sd", "equal", "pretty", "quantile",
                   "kmeans", "hclust", "bclust", "fisher",
                   "jenks", "dpih", "headtails"]
+
+# parse info of generated regular cubes
+reg_file_parse_info: ["cube", "tile", "band", "date"]

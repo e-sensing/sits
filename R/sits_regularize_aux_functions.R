@@ -1,50 +1,43 @@
-sits_regularize_get_ratio <- function(tile, band, res_out) {
 
-    tile_size <- sits_regularize_get_size(tile, res_out = res_out)
+.reg_get_ratio_in_out <- function(tile, band, out_size) {
 
-    ratio_band <- unique(c(
-        .file_info_nrows(tile, bands = band) / tile_size[["nrows"]],
-        .file_info_ncols(tile, bands = band) / tile_size[["ncols"]]
-    ))
-
-    .check_length(
-        ratio_band,
-        len_min = 1,
-        len_max = 1,
-        msg = "invalid nrows and ncols from cube."
-    )
+    # band
+    ratio_band <-
+        .file_info_nrows(tile, bands = band) / out_size[["nrows"]]
 
     return(ratio_band)
 }
 
-sits_regularize_get_size <- function(tile, res_out) {
+.reg_get_output_size <- function(tile, out_res) {
 
     tile_bbox <- .cube_tile_bbox(tile)
 
-    tile_rast <- terra::rast(
+    tile_rast <- .raster_new_rast(
+        nrows = NA,
+        ncols = NA,
         xmin = tile_bbox[["xmin"]],
         xmax = tile_bbox[["xmax"]],
         ymin = tile_bbox[["ymin"]],
         ymax = tile_bbox[["ymax"]],
-        resolution = c(x = res_out, y = res_out),
-        crs = .cube_crs(tile)
+        nlayers = 1,
+        crs = .cube_crs(tile),
+        xres = out_res,
+        yres = out_res
     )
 
-    tile_size <- c(nrows = .raster_nrows(tile_rast),
-                   ncols = .raster_ncols(tile_rast))
+    size <- c(nrows = .raster_nrows(tile_rast),
+              ncols = .raster_ncols(tile_rast))
 
-    return(tile_size)
+    return(size)
 }
 
-sits_regularize_raster_blocks <- function(n_tiles,
-                                          max_images_interval,
-                                          nrows_out,
-                                          ncols_out,
-                                          ratio_in_out,
-                                          ratio_cloud_out,
-                                          memsize,
-                                          multicores) {
-
+.reg_blocks_per_core <- function(n_images_interval,
+                                 nrows_out,
+                                 ncols_out,
+                                 ratio_in_out,
+                                 ratio_cloud_out,
+                                 memsize,
+                                 multicores) {
 
     # size of the output (using RasterIO)
     nbytes <- 4
@@ -57,45 +50,52 @@ sits_regularize_raster_blocks <- function(n_tiles,
     proc_bloat <- .config_processing_bloat()
 
     # total memory required
-    total_mem_required <- (max_images_interval * (band_in_size + cloud_in_size) +
-                               output_size) * n_tiles * proc_bloat * 1e-09
-
-    # total memory required per core
-    total_mem_per_core <- total_mem_required/multicores
+    required_mem_per_core <-
+        (n_images_interval * (band_in_size + cloud_in_size) +
+             output_size) * proc_bloat * 1e-09
 
     # memory available per core
-    avail_mem_per_core <- memsize/multicores
+    avail_mem_per_core <- memsize / multicores
 
     # number of blocks
-    num_blocks_per_core <- ceiling(total_mem_per_core/avail_mem_per_core)
+    num_blocks_per_core <- ceiling(required_mem_per_core / avail_mem_per_core)
 
-    blocks_out <- .sits_regularize_block_list(num_blocks_per_core,
-                                              nrows_out,
-                                              ncols_out)
-
-    blocks_in <- .sits_regularize_block_list(num_blocks_per_core,
-                                             ceiling(nrows_out * ratio_in_out),
-                                             ceiling(ncols_out * ratio_in_out))
-
-    blocks_cloud <- .sits_regularize_block_list(num_blocks_per_core,
-                                                ceiling(nrows_out * ratio_cloud_out),
-                                                ceiling(ncols_out * ratio_cloud_out))
-
-    blocks.lst <- list(
-        "blocks_out" = blocks_out,
-        "blocks_in" = blocks_in,
-        "blocks_cloud" = blocks_cloud
+    # compute blocks of the output image
+    blocks_out <- .reg_block_list(
+        nblocks = num_blocks_per_core,
+        nrows = nrows_out,
+        ncols = ncols_out
     )
 
-    return(blocks.lst)
+    # compute blocks of the input band
+    blocks_in <- .reg_block_list(
+        nblocks = num_blocks_per_core,
+        nrows = ceiling(nrows_out * ratio_in_out),
+        ncols = ceiling(ncols_out * ratio_in_out)
+    )
+
+    # compute blocks of the input cloud
+    blocks_cloud <- .reg_block_list(
+        nblocks = num_blocks_per_core,
+        nrows = ceiling(nrows_out * ratio_cloud_out),
+        ncols = ceiling(ncols_out * ratio_cloud_out)
+    )
+
+    blocks_lst <- list(
+        "block_out" = blocks_out,
+        "block_in" = blocks_in,
+        "block_cloud" = blocks_cloud
+    )
+
+    return(blocks_lst)
 }
 
-.sits_regularize_block_list <- function(nblocks,
-                                        nrows,
-                                        ncols) {
+.reg_block_list <- function(nblocks,
+                            nrows,
+                            ncols) {
 
     # set caller to show in errors
-    .check_set_caller(".sits_regularize_block_list")
+    .check_set_caller(".reg_block_list")
 
     # number of rows per block
     block_rows <- ceiling(nrows/nblocks)
@@ -207,4 +207,61 @@ sits_regularize_raster_blocks <- function(n_tiles,
         tiles_tl <- list(tiles_tl)
 
     return(tl)
+}
+
+
+#' @title Create the merge image filename
+#'
+#' @name .reg_filename
+#'
+#' @keywords internal
+#'
+#' @param tile         A unique tile from \code{sits_cube} object
+#'
+#' @param date_period  A \code{character} vector with two position, first one is
+#' the start date and second one is the end date.
+#'
+#' @param output_dir   A \code{character} with a valid directory where the
+#'  regularized images will be written.
+#'
+#' @param block      A \code{numeric} vector with information about a block
+#'
+#' @param tile ...
+#'
+#' @param band       ....
+#'
+#' @return A \code{character} with the file name of resampled image.
+.reg_filename <- function(tile,
+                          band,
+                          date,
+                          output_dir, ...,
+                          block = NULL) {
+
+    file_ext <- unique(
+        tools::file_ext(
+            x = gsub(".*/([^?]*)\\??.*$", "\\1",
+                     .file_info_paths(tile, bands = band))
+        )
+    )
+
+    .check_length(
+        x = file_ext,
+        len_min = 1,
+        len_max = 1,
+        msg = "invalid files extensions."
+    )
+
+    b_filename <- paste("cube", .cube_tiles(tile), date, band, sep = "_")
+
+    if (!is.null(block)) {
+
+        currently_row <- block[["first_row"]]
+        next_rows <- (block[["nrows"]] + block[["first_row"]]) - 1
+
+        b_filename <- paste(b_filename, currently_row, next_rows, sep = "_")
+    }
+
+    b_path <- paste0(output_dir, "/", b_filename, ".", file_ext)
+
+    return(b_path)
 }

@@ -78,7 +78,8 @@
                                      format,
                                      data_type,
                                      gdal_options,
-                                     overwrite, ...) {
+                                     overwrite, ...,
+                                     missing_value = NULL) {
 
     # set caller to show in errors
     .check_set_caller(".raster_write_rast.terra")
@@ -90,6 +91,7 @@
             wopt      = list(filetype = format,
                              datatype = data_type,
                              gdal     = gdal_options),
+            NAflag    = missing_value,
             overwrite = overwrite, ...
         )
     )
@@ -112,7 +114,9 @@
                                    ymin,
                                    ymax,
                                    nlayers,
-                                   crs, ...) {
+                                   crs, ...,
+                                   xres = NULL,
+                                   yres = NULL) {
 
     # create a raster object
     suppressWarnings(
@@ -124,7 +128,8 @@
             xmax  = xmax,
             ymin  = ymin,
             ymax  = ymax,
-            crs   = crs
+            crs   = crs,
+            resolution = c(xres, yres)
         )
     )
 }

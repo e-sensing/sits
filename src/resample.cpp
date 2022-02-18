@@ -28,8 +28,7 @@ IntegerMatrix reg_resample(const IntegerMatrix& band,
                            const double& ratio_cloud_out,
                            const int& nrows_out,
                            const int& ncols_out,
-                           IntegerVector& cloud_interp,
-                           const int& missing_value) {
+                           IntegerVector& cloud_interp) {
 
     // output matrix
     IntegerMatrix band_out(nrows_out, ncols_out);
@@ -50,7 +49,7 @@ IntegerMatrix reg_resample(const IntegerMatrix& band,
             points_cloud = reverse(i, j, ratio_cloud_out);
             std::vector< std::pair<int,int>>::iterator cloud_iter = points_cloud.begin();
 
-            // mark uncleaned pixels with missing value
+            // mark uncleaned pixels with missing value (NA_INTEGER)
             while(cloud_iter !=  points_cloud.end()) {
 
                 int cloud_value = cloud(cloud_iter->first, cloud_iter->second);
@@ -60,7 +59,7 @@ IntegerMatrix reg_resample(const IntegerMatrix& band,
                                                       cloud_value);
                 if (f != cloud_interp.end()){
 
-                    band_out(i,j) = missing_value;
+                    band_out(i,j) = NA_INTEGER;
                     break;
                 }
                 cloud_iter++;
@@ -68,14 +67,14 @@ IntegerMatrix reg_resample(const IntegerMatrix& band,
 
             // for each valid value in band_out apply the bilinear method
             // in band_values
-            if (band_out(i,j) != missing_value) {
+            if (band_out(i,j) != NA_INTEGER) {
                 int band_sum = 0;
                 int num_band = 0;
                 std::vector< std::pair<int,int>>::iterator band_iter = points_band.begin();
                 while(band_iter !=  points_band.end()) {
                     double band_val = band(band_iter->first, band_iter->second);
 
-                    if (band_val != missing_value) {
+                    if (band_val != NA_INTEGER) {
                         band_sum += band_val;
                         num_band++;
                     }
@@ -92,61 +91,24 @@ IntegerMatrix reg_resample(const IntegerMatrix& band,
 }
 
 // [[Rcpp::export]]
-IntegerMatrix reg_merge_first(const List& band_block_dates,
-                              const int& nrows,
-                              const int& ncols,
-                              const int& missing_value){
-    int num_bands = band_block_dates.length();
+IntegerMatrix reg_agg_first(const IntegerMatrix& band_dates){
 
-    IntegerMatrix band_out (nrows, ncols);
-    band_out.fill(missing_value);
+    int num_bands = band_dates.ncol();
+
+    IntegerMatrix band_out(band_dates.nrow() * band_dates.ncol(), 1);
+    band_out.fill(NA_INTEGER);
 
     if (num_bands == 0)
         return band_out;
 
     // equivalent to first method
-    for (int i = 0; i < nrows; i++) {
-        for (int j = 0; j < ncols; j++) {
-            for (int k = 0; k < num_bands; k++) {
-                if (band_out(i,j) != missing_value) break;
-                IntegerMatrix band_k = band_block_dates[k];
-                band_out(i,j) = band_k(i,j);
+    for (int i = 0; i < band_out.nrow(); i++) {
+        for (int k = 0; k < num_bands; k++) {
+            if (band_dates(i, k) != NA_INTEGER) {
+                band_out(i, 0) = band_dates(i, k);
+                break;
             }
         }
     }
-    return band_out;
-}
-
-// [[Rcpp::export]]
-IntegerMatrix compose_first(const List& band_block_dates,
-                            const List& cloud_block_dates,
-                            IntegerVector& cloud_values,
-                            const double& ratio_band_out,
-                            const double& ratio_cloud_out,
-                            const int& nrows_out,
-                            const int& ncols_out,
-                            const int& missing_value){
-
-    int num_bands = band_block_dates.length();
-    List bands_resampled;
-
-    for (int k = 0; k < num_bands; k++) {
-        IntegerMatrix band_k = band_block_dates[k];
-        IntegerMatrix cloud_k = cloud_block_dates[k];
-
-        IntegerMatrix band_k_out = reg_resample(band_k,
-                                                cloud_k,
-                                                ratio_band_out,
-                                                ratio_cloud_out,
-                                                nrows_out,
-                                                ncols_out,
-                                                cloud_values,
-                                                missing_value);
-        bands_resampled.push_back(band_k_out);
-    }
-    IntegerMatrix band_out = reg_merge_first(bands_resampled,
-                                             nrows_out,
-                                             ncols_out,
-                                             missing_value);
     return band_out;
 }
