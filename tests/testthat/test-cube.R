@@ -65,19 +65,6 @@ test_that("Backwards compatibility", {
 
     expect_message(
         object = sits_cube(
-            source = "LOCAL",
-            origin = "BDC",
-            collection = "MOD13Q1-6",
-            data_dir = data_dir,
-            delim = "_",
-            parse_info = c("X1", "X2", "tile", "band", "date"),
-            multicores = 2
-        ),
-        regexp = "LOCAL value is deprecated"
-    )
-
-    expect_message(
-        object = sits_cube(
             source = "BDC",
             collection = "MOD13Q1-6",
             band = c("NDVI", "EVI"),

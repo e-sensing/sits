@@ -10,7 +10,7 @@
 \usage{
 sits_cube(source, ..., collection, data_dir = NULL)
 
-\method{sits_cube}{wtss_cube}(source = "WTSS", ..., collection, data_dir = NULL, url = NULL)
+\method{sits_cube}{wtss_cube}(source = "WTSS", ..., collection, data_dir = NULL)
 
 \method{sits_cube}{stac_cube}(
   source,
@@ -21,8 +21,7 @@ sits_cube(source, ..., collection, data_dir = NULL)
   tiles = NULL,
   roi = NULL,
   start_date = NULL,
-  end_date = NULL,
-  name = NULL
+  end_date = NULL
 )
 
 \method{sits_cube}{local_cube}(
@@ -37,8 +36,6 @@ sits_cube(source, ..., collection, data_dir = NULL)
   parse_info = NULL,
   delim = "_",
   version = "v1",
-  name = NULL,
-  origin = NULL,
   multicores = 2,
   progress = TRUE
 )
@@ -53,16 +50,11 @@ sits_cube(source, ..., collection, data_dir = NULL)
 
 \item{collection}{Collection to be searched in the data source.}
 
-\item{data_dir}{directory where local data is located
-(only for creating data cubes from local files).}
+\item{data_dir}{directory of local files.}
 
-\item{url}{URL for the STAC endpoint of the data source.
-(if not provided, `sits` uses the URL from the configuration file)}
+\item{bands}{Bands to be included (optional).}
 
-\item{bands}{Bands to be included (optional)}
-
-\item{tiles}{Tiles from the collection to be included in the
-data cube.}
+\item{tiles}{Tiles from the collection (see details below).}
 
 \item{roi}{Region of interest (see details below).}
 
@@ -70,24 +62,15 @@ data cube.}
 
 \item{end_date}{Final date for the cube  (optional).}
 
-\item{name}{deprecated parameter formely used to describe cubes}
+\item{labels}{labels associated to the classes.}
 
-\item{labels}{labels associated to the classes}
+\item{parse_info}{parsing information for local files.}
 
-\item{parse_info}{parsing information for files without STAC
-information
-(only for creating data cubes from local files).}
+\item{delim}{delimiter for parsing local files.}
 
-\item{delim}{delimiter for parsing files without STAC information
-(only for creating data cubes from local files).}
+\item{version}{results version to be used.}
 
-\item{version}{results version to be used (only for results cube)}
-
-\item{origin}{deprecated parameter formely used for local cubes
-(see documentation)}
-
-\item{multicores}{a number of workers for parallel processing in
-local cubes}
+\item{multicores}{workers for parallel processing}
 
 \item{progress}{Show a progress bar?}
 }
@@ -96,54 +79,88 @@ The description of a data cube
 }
 \description{
 Creates a data cube based on spatial and temporal restrictions
-on a collection available in repositories such as AWS, Brazil Data Cube
-(BDC), and Digital Earth Africa (DEA) using information provided by STAC
-endpoints. Users can also create data cubes from local files.
-
-A data cube does not contain actual data; it points to the files where the
-required data is archived. Other functions (e.g. `sits_classify()`) use
-that information to retrieve and process data.
-
-Currently, users can create data cube from the following sources:
+on a collection available in cloud services or local repositories.
+The following cloud providers are supported, based on the STAC protocol:
 \itemize{
+  \item{"AWS": }{Amazon Web Services (AWS),
+  see also https://registry.opendata.aws/ }
+  \item{"DEAFRICA": }{Digital Earth Africa,
+  see also https://www.digitalearthafrica.org/}
  \item{"BDC": }{Brazil Data Cube (BDC),
   see also https://brazil-data-cube.github.io/applications/stac.html}
-  \item{"WTSS": }{Web Time Series Service from BDC,
-   see also https://brazil-data-cube.github.io/applications/wtss.html}
- \item{"DEAFRICA": }{Digital Earth Africa,
-  see also https://www.digitalearthafrica.org/}
- \item{"AWS": }{Amazon Web Services (AWS),
-  see also https://earth-search.aws.element84.com/v0/ }
- \item{"USGS":}{USGS LANDSAT collection}
- \item{"SATVEG": }{Defines a cube to use the SATVEG web service,
-  see also https://www.satveg.cnptia.embrapa.br/satveg/login.html}
+  \item{"MSPC": }{Microsoft Planetary Computer,
+   see also https://planetarycomputer.microsoft.com/}
+ \item{"USGS":}{USGS LANDSAT collection,
+  see also https://registry.opendata.aws/usgs-landsat/}
  }
-
-For all cubes, users need to provide information on:
+ Users can also create data cubes based on web services:
 \itemize{
-\item{collection: }{Collections are the highest level of aggregation on
-big data repositories. Use `sits_list_collections()` to see which collections
-are supported by `sits`}
-\item{spatial extent: }{The spatial extent of the data cube can be defined
-in two ways: (a) a region of interest(`bbox`) in WGS 84 coordinates;
-(b) a set of tiles defined according the collection tiling system.}
-\item{temporal extent: }{The start and end date of the cube}
+\item{"SATVEG": }{Defines a cube to use the SATVEG web service,
+  see also https://www.satveg.cnptia.embrapa.br/satveg/login.html}
+\item{"WTSS": }{Web Time Series Service from BDC,
+   see also https://brazil-data-cube.github.io/applications/wtss.html}
 }
 
-Optional parameters include:
-\itemize{
-\item{data_dir: }{Directory where data is installed (required for data sets
-stored in local disks)}
-\item{bands: }{Bands used to build the cube}
-}
+Data cubes can also be created based on local files (see details).
 }
 \details{
+To create cubes from cloud providers, users need to provide information on:
+\itemize{
+\item{source: }{One of "AWS", "BDC", "DEAFRICA", "MSPC", "USGS"}
+\item{collection: }{Use `sits_list_collections()` to see which collections
+are supported by `sits`}
+\item{tiles: }{A set of tiles defined according the collection tiling system}
+\item{roi: } {Region of interest in WGS 84 coordinates }
+}
+Either `tiles` or  `roi` must be informed. The parameters `bands`, `start_date` and
+`end_date` parameters are optional for cubes created from cloud providers.
+
 The \code{roi} parameter allows a selection of an area of interest.
 Either using a named \code{vector} ("lon_min", "lat_min", "lon_max", "lat_max") with
 values in WGS 84, a \code{sfc} or \code{sf} object from sf package in WGS84 projection.
 GeoJSON geometries (RFC 7946) and shapefiles should be converted to sf objects before
 being used to define a region of interest. This parameter does not crop a
 region, but only selects the images that intersect with it.
+
+To create a cube from local files, the user needs to inform:
+\itemize{
+\item{source:} {Provider from where the data has been downloaded (e.g, "BDC", "AWS)}
+\item{collection:}{Collection where the data has been extracted from}
+\item{data_dir: }{Local directory where the files are stored}
+\item{parse_info: }{Parsing information for files (see below)}
+\item{delim: }{Delimiter for parsing files (see below)}
+}
+
+To create a cube from local files, all images should have
+the same spatial resolution and projection and  each file should contain
+a single image band for a single date.
+Files can belong to different tiles of a spatial reference system and
+file names  need to include tile, date and band information.
+For example: "CBERS-4_022024_B13_2018-02-02.tif"
+and "cube_20LKP_B02_2018-07-18.jp2" are accepted names.
+The user has to provide parsing information to allow `sits`
+to extract the tile, the band and the date. In the examples above,
+the parsing info is c("X1", "X2", "tile", "band", "date")
+and the delimiter is "_".
+
+It is also possible to create a cube from local files which have been produced
+by classification or post-classification algorithms. In this case, there are
+more parameters that are required (see below) and the parameter "parse_info"
+is specified differently:
+\itemize{
+\item{band: }{The band name is associated to the results. Use "probs"
+for probability cubes produced by `sits_classify()`, "bayes", "bilateral",
+or "gaussian" according to the function selected when using `sits_smooth()`,
+"entropy" when using `sits_uncertainty()`, or "class" for cubes produced by
+`sits_label_classification()`}
+\item{labels: }{Labels associated to the classification results.}
+\item{version: }{The version of the result (default = "v1")}
+\item{parse_info: }{File name parsing information has to allow `sits` to
+deduce "tile", "start_date", "end_date", and "version" from the file name.
+Default is `c("X1", "X2", "tile", "start_date", "end_date", "band", "version").`
+Note that, unlike non-classified image files, cubes with results have both
+"start_date" and "end_date".}
+}
 }
 \note{
 In AWS, there are two types of collections: open data and
@@ -169,7 +186,8 @@ No payment for access is required.
 
 For USGS, sits currently works with collection 'landsat-c2l2-sr', which
 corresponds to Landsat Collection 2 Level-2 surface reflectance data,
-covering datasets from Landsat-4 to Landsat-8. This collection is open data.
+covering datasets from Landsat-4 to Landsat-8. This collection is open data,
+but requires payment for accessing.
 
 All BDC collections have been regularized.
 BDC users need to provide their credentials using environment
@@ -181,46 +199,6 @@ an environment variable, as follows:
 Sys.setenv(
     BDC_ACCESS_KEY = <your_bdc_access_key>
 )
-
-To create a cube from local files, the user needs to inform:
-\itemize{
-\item{source:} {Provider from where the data has been downloaded
-              (e.g, "BDC", "AWS)}
-\item{collection:}{Collection from which the data has been extracted}
-\item{data_dir: }{Local directory where the files are stored}
-\item{parse_info: }{Parsing information for files (see below)}
-\item{delim: }{Delimiter for parsing files (see below)}
-}
-
-To create a cube from local image files, all image files should have
-the same spatial resolution and projection. Files can belong to different
-tiles of a spatial reference system.
-Each file should contain a single image band for a single date.
-File names must include tile, date and band information.
-For example: "CBERS-4_022024_B13_2018-02-02.tif"
-and "cube_20LKP_B02_2018-07-18.jp2" are accepted names.
-The user has to provide parsing information to allow `sits`
-to extract the tile, the band and the date. In the examples above,
-the parsing info is c("X1", "X2", "tile", "band", "date") and the delimiter is "_".
-
-it is possible to create a cube from local files which have been produced
-by classification or post-classification algorithms. In this case, there are
-more parameters that are required which include "band", "labels" and "version".
-Also,  the parameter "parse_info" is specified differently:
-\itemize{
-\item{band: }{The band name is associated to the results. Use "probs"
-for probability cubes produced by `sits_classify()`, "bayes", "bilateral",
-or "gaussian" according to the function selected when using `sits_smooth()`,
-"entropy" when using `sits_uncertainty()`, or "class" for cubes produced by
-`sits_label_classification()`}
-\item{labels: }{:abels associated to the classification results}
-\item{version: }{Inform the version of the result (default = "v1")}
-\item{parse_info: }{File name parsing information has to allow `sits` to
-deduce "tile", "start_date", "end_date", and "version" from filename.
-Default is `c("X1", "X2", "tile", "start_date", "end_date", "band", "version").`
-Note that, unlike non-classified image files, cubes with results have both
-"start_date" and "end_date".}
-}
 
 The SATVEG service is run by Embrapa Agricultural
  Informatics Centre provides access to time series from the MODIS sensor.
@@ -262,6 +240,7 @@ cube_wtss <- sits_cube(source = "WTSS",
 
 # --- Access to Digital Earth Africa
 # create a raster cube file based on the information about the files
+# DEAFRICA does not support definition of tiles
 cube_dea <- sits_cube(source = "DEAFRICA",
                       collection = "s2_l2a",
                       bands = c("B04", "B08"),
@@ -273,14 +252,35 @@ cube_dea <- sits_cube(source = "DEAFRICA",
                       end_date = "2019-10-28"
 )
 
-# --- Access to open data Sentinel 2/2A level 2 collection in AWS
+# --- Access to AWS open data Sentinel 2/2A level 2 collection
 s2_cube <- sits_cube(source = "AWS",
-                      collection = "sentinel-s2-l2a-cogs",
-                      tiles = c("20LKP","20LLP"),
-                      bands = c("B04", "B08", "B11"),
-                      start_date = as.Date("2018-07-18"),
-                      end_date = as.Date("2019-07-23")
+                     collection = "sentinel-s2-l2a-cogs",
+                     tiles = c("20LKP","20LLP"),
+                     bands = c("B04", "B08", "B11"),
+                     start_date = as.Date("2018-07-18"),
+                     end_date = as.Date("2019-07-23")
 )
+
+# --- Access to USGS Landsat cubes (requester pays)
+# --- Need to provide AWS_ACCESS_KEY_ID and AWS_SECRET_ACCESS_KEY
+usgs_cube <-  sits_cube(source = "USGS",
+               collection = "landsat-c2l2-sr",
+               bands = c("B04", "CLOUD"),
+               roi = c("xmin" = 17.379,
+               "ymin" = 1.1573,
+               "xmax" = 17.410,
+               "ymax" = 1.1910),
+               start_date = "2019-01-01",
+               end_date = "2019-10-28")
+
+
+# -- Creating Sentinel cubes from MSPC"
+s2_cube <- sits_cube(source = "MSPC",
+                     collection = "sentinel-2-l2a",
+                     tiles = "20LKP",
+                     bands = c("B05", "CLOUD"),
+                     start_date = as.Date("2018-07-18"),
+                     end_date = as.Date("2018-08-23"))
 
 # --- Create a cube based on a local MODIS data
 data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
