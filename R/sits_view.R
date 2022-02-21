@@ -284,9 +284,10 @@ sits_view.raster_cube <- function(x, ...,
         st_objs <- slider::slide(cube_tiles, function(tile) {
             # retrieve the file info for the tile
             fi <- .file_info(tile)
+            date <- lubridate::as_date(date)
             # filter by date
-            images_date <- dplyr::filter(fi, as.Date(date) == !!as.Date(date))
-            if (purrr::is_null(band)){
+            images_date <- dplyr::filter(fi, as.Date(date) == !!date)
+            if (purrr::is_null(band)) {
                 red_file    <- dplyr::filter(images_date, band == red)$path[[1]]
                 green_file  <- dplyr::filter(images_date, band == green)$path[[1]]
                 blue_file   <- dplyr::filter(images_date, band == blue)$path[[1]]
