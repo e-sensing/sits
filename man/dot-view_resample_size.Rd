@@ -4,16 +4,14 @@
 \alias{.view_resample_size}
 \title{Return the cell size for the image to be resamples}
 \usage{
-.view_resample_size(nrows, ncols, xres, yres)
+.view_resample_size(nrows, ncols, ntiles)
 }
 \arguments{
 \item{nrows}{number of rows in the input image}
 
 \item{ncols}{number of cols in the input image}
 
-\item{xres}{x resolution}
-
-\item{yres}{y resolution}
+\item{ntiles}{number of tiles in the input image}
 }
 \value{
 vector with cell size for x and y coordinates

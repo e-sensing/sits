@@ -230,7 +230,8 @@
 #'
 #' @return  a list with the function results in the same order
 #' as the input list
-.sits_parallel_map <- function(x, fn, ..., progress, n_retries = 3, sleep = 0) {
+.sits_parallel_map <- function(x, fn, ..., progress = FALSE,
+                               n_retries = 3, sleep = 0) {
 
     # create progress bar
     pb <- NULL

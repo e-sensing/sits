@@ -78,7 +78,8 @@
                                      format,
                                      data_type,
                                      gdal_options,
-                                     overwrite, ...) {
+                                     overwrite, ...,
+                                     missing_value = NULL) {
 
     # set caller to show in errors
     .check_set_caller(".raster_write_rast.terra")
@@ -90,6 +91,7 @@
             wopt      = list(filetype = format,
                              datatype = data_type,
                              gdal     = gdal_options),
+            NAflag    = missing_value,
             overwrite = overwrite, ...
         )
     )
@@ -112,21 +114,45 @@
                                    ymin,
                                    ymax,
                                    nlayers,
-                                   crs, ...) {
+                                   crs, ...,
+                                   xres = NULL,
+                                   yres = NULL) {
 
-    # create a raster object
-    suppressWarnings(
-        terra::rast(
-            nrows = nrows,
-            ncols = ncols,
-            nlyrs = nlayers,
-            xmin  = xmin,
-            xmax  = xmax,
-            ymin  = ymin,
-            ymax  = ymax,
-            crs   = crs
+    # prepare resolution
+    resolution <- c(xres, yres)
+
+    if (is.null(resolution)) {
+
+        # create a raster object
+        r_obj <- suppressWarnings(
+            terra::rast(
+                nrows = nrows,
+                ncols = ncols,
+                nlyrs = nlayers,
+                xmin  = xmin,
+                xmax  = xmax,
+                ymin  = ymin,
+                ymax  = ymax,
+                crs   = crs
+            )
         )
-    )
+    } else {
+
+        # create a raster object
+        r_obj <- suppressWarnings(
+            terra::rast(
+                nlyrs = nlayers,
+                xmin  = xmin,
+                xmax  = xmax,
+                ymin  = ymin,
+                ymax  = ymax,
+                crs   = crs,
+                resolution = resolution
+            )
+        )
+    }
+
+    return(r_obj)
 }
 
 #' @keywords internal

@@ -752,6 +752,7 @@
 #' @return a vector with the x and y resolution
 .cube_resolution <- function(cube, bands = NULL) {
 
+    cube <- sits_select(cube, bands = bands)
     return(c(xres = .cube_xres(cube), yres = .cube_yres(cube)))
 }
 

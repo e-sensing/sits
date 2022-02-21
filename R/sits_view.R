@@ -225,10 +225,12 @@ sits_view.raster_cube <- function(x, ...,
             x = all(c(red, green, blue) %in% sits_bands(x)),
             msg = "requested RGB bands are not available in data cube"
         )
-    } else
+    } else {
         .check_that(band %in% sits_bands(x),
                     msg = "requested RGB bands are not available in data cube"
         )
+    }
+
 
     # filter the tiles to be processed
     cube_tiles <- dplyr::filter(x, tile %in% tiles)
@@ -246,53 +248,23 @@ sits_view.raster_cube <- function(x, ...,
     )
 
 
-    # get the maximum number of bytes to be displayed
-    max_Mbytes <- .config_get(key = "leaflet_max_Mbytes")
+    nrows_merge <- sum(slider::slide_dbl(cube_tiles, function(tile){
+        # retrieve the file info for the tile
+        fi <- .file_info(tile)
+        return(max(fi[["nrows"]]))
+    }))
+    ncols_merge <- sum(slider::slide_dbl(cube_tiles, function(tile){
+        # retrieve the file info for the tile
+        fi <- .file_info(tile)
+        return(max(fi[["ncols"]]))
+    }))
 
-    # obtain the raster objects for the dates chosen
-    st_merge_objs <- purrr::map(dates, function(d) {
-        st_objs <- slider::slide(cube_tiles, function(tile){
-            # retrieve the file info for the tile
-            fi <- .file_info(tile)
-            # filter by date
-            images_date <- dplyr::filter(fi, date == as.Date(d))
-            red_file    <- dplyr::filter(images_date, band == red)$path[[1]]
-            green_file  <- dplyr::filter(images_date, band == green)$path[[1]]
-            blue_file   <- dplyr::filter(images_date, band == blue)$path[[1]]
-            rgb_files   <- c(r = red_file, g = green_file, b = blue_file)
-            st_obj      <- stars::read_stars(rgb_files, along = "band", proxy = TRUE)
-        })
-
-        # if there is more than one stars object, merge them
-        if (length(st_objs) > 1)
-            st_merge <- stars::st_mosaic(
-                st_objs[[1]],
-                st_objs[[2:length(st_objs)]]
-            )
-        else
-            # keep the first object
-            st_merge <- st_objs[[1]]
-
-        dim <- stars::st_dimensions(st_merge)
-        xres <- abs(dim$x$delta)
-        yres <- abs(dim$y$delta)
-        # find out if resampling is required (for big images)
-        size <- .view_resample_size(
-            nrows = unname(nrow(st_merge)),
-            ncols = unname(ncol(st_merge)),
-            xres = xres,
-            yres = yres
-        )
-
-        # resample and warp the image
-        st_obj_new <- stars::st_warp(
-            src = st_merge,
-            crs = sf::st_crs("EPSG:3857"),
-            cellsize = c(size[["cell_x"]],
-                         size[["cell_y"]])
-        )
-        return(st_obj_new)
-    })
+    # find out if resampling is required (for big images)
+    size <- .view_resample_size(
+        nrows = nrows_merge,
+        ncols = ncols_merge,
+        ntiles = nrow(cube_tiles)
+    )
 
     # create a leaflet and add providers
     leaf_map <- leaflet::leaflet() %>%
@@ -307,34 +279,74 @@ sits_view.raster_cube <- function(x, ...,
         ) %>%
         leafem::addMouseCoordinates()
 
-    # include raster RGB maps
-    for (d_ind in seq_along(dates)) {
+    # obtain the raster objects for the dates chosen
+    for (date in dates) {
+        st_objs <- slider::slide(cube_tiles, function(tile) {
+            # retrieve the file info for the tile
+            fi <- .file_info(tile)
+            date <- lubridate::as_date(date)
+            # filter by date
+            images_date <- dplyr::filter(fi, as.Date(date) == !!date)
+            if (purrr::is_null(band)) {
+                red_file    <- dplyr::filter(images_date, band == red)$path[[1]]
+                green_file  <- dplyr::filter(images_date, band == green)$path[[1]]
+                blue_file   <- dplyr::filter(images_date, band == blue)$path[[1]]
+                rgb_files   <- c(r = red_file, g = green_file, b = blue_file)
+
+            } else {
+                band_file   <- dplyr::filter(images_date, band == !!band)$path[[1]]
+                rgb_files   <- c(r = band_file, g = band_file, b = band_file)
+            }
+            st_obj      <- stars::read_stars(
+                rgb_files,
+                along = "band",
+                RasterIO = list("nBufXSize" = size["xsize"],
+                                "nBufYSize" = size["ysize"]
+                )
+            )
+            return(st_obj)
+        })
+        # mosaic the data
+        # if there is more than one stars object, merge them
+        if (length(st_objs) > 1)
+            st_merge <- stars::st_mosaic(
+                st_objs[[1]],
+                st_objs[[2:length(st_objs)]]
+            )
+        else
+            # keep the first object
+            st_merge <- st_objs[[1]]
+
+        # resample and warp the image
+        st_obj_new <- stars::st_warp(
+            src = st_merge,
+            crs = sf::st_crs("EPSG:3857")
+        )
         if (purrr::is_null(band)) {
-            leaf_map <- suppressWarnings(
-                leafem::addRasterRGB(
-                    leaf_map,
-                    x = st_merge_objs[[d_ind]],
-                    r = 1,
-                    g = 2,
-                    b = 3,
-                    quantiles = c(0.1, 0.9),
-                    method = "ngb",
-                    group = paste0(dates[d_ind]),
-                    maxBytes = max_Mbytes*1024*1024)
+            leaf_map <- leafem::addRasterRGB(
+                leaf_map,
+                x = st_obj_new,
+                r = 1,
+                g = 2,
+                b = 3,
+                quantiles = c(0.1, 0.9),
+                project = FALSE,
+                group = paste0(date),
+                maxBytes = size["leaflet_maxBytes"]
             )
         } else
-            leaf_map <- suppressWarnings(
-                leafem::addRasterRGB(
-                    leaf_map,
-                    x = st_merge_objs[[d_ind]],
-                    r = 1,
-                    g = 1,
-                    b = 1,
-                    quantiles = c(0.1, 0.9),
-                    method = "ngb",
-                    group = paste0(dates[d_ind]),
-                    maxBytes = max_Mbytes*1024*1024)
+            leaf_map <- leafem::addRasterRGB(
+                leaf_map,
+                x = st_obj_new,
+                r = 1,
+                g = 1,
+                b = 1,
+                quantiles = c(0.1, 0.9),
+                project = FALSE,
+                group = paste0(date),
+                maxBytes = size["leaflet_maxBytes"]
             )
+
     }
 
     # should we overlay a classified image?
@@ -353,12 +365,15 @@ sits_view.raster_cube <- function(x, ...,
         cube_tiles <- dplyr::filter(class_cube, tile %in% tiles)
 
         # create the stars objects that correspond to the tiles
+        # create the stars objects that correspond to the tiles
         st_objs <- slider::slide(cube_tiles, function(tile){
             # obtain the raster stars object
             st_obj <- stars::read_stars(
                 .file_info_path(tile),
                 RAT = labels,
-                proxy = TRUE
+                RasterIO = list("nBufXSize" = size["xsize"],
+                                "nBufYSize" = size["ysize"]
+                )
             )
         })
         # if there is more than one stars object, merge them
@@ -371,27 +386,10 @@ sits_view.raster_cube <- function(x, ...,
             # keep the first object
             st_merge <- st_objs[[1]]
 
-        # get the maximum number of bytes to be displayed
-        max_Mbytes <- .config_get(key = "leaflet_max_Mbytes")
-
-        # find out the resolution of the stars object
-        dim <- stars::st_dimensions(st_merge)
-        xres <- abs(dim$x$delta)
-        yres <- abs(dim$y$delta)
-        # find out if resampling is required (for big images)
-        size <- .view_resample_size(
-            nrows = unname(nrow(st_merge)),
-            ncols = unname(ncol(st_merge)),
-            xres = xres,
-            yres = yres
-        )
-
         # resample and warp the image
         st_obj_new <- stars::st_warp(
             src = st_merge,
-            crs = sf::st_crs("EPSG:3857"),
-            cellsize = c(size[["cell_x"]],
-                         size[["cell_y"]])
+            crs = sf::st_crs("EPSG:3857")
         )
         #
         # create a palette of colors
@@ -408,7 +406,8 @@ sits_view.raster_cube <- function(x, ...,
             colors = colors,
             method = "ngb",
             group = "classification",
-            maxBytes = max_Mbytes*1024*1024
+            project = FALSE,
+            maxBytes = size["leaflet_maxBytes"]
         )
     }
 
@@ -486,13 +485,33 @@ sits_view.classified_image <- function(x,...,
     # select the tiles that will be shown
     cube_tiles <- dplyr::filter(x, tile %in% tiles)
 
+    nrows_merge <- sum(slider::slide_dbl(cube_tiles, function(tile){
+        # retrieve the file info for the tile
+        fi <- .file_info(tile)
+        return(max(fi[["nrows"]]))
+    }))
+    ncols_merge <- sum(slider::slide_dbl(cube_tiles, function(tile){
+        # retrieve the file info for the tile
+        fi <- .file_info(tile)
+        return(max(fi[["ncols"]]))
+    }))
+
+    # find out if resampling is required (for big images)
+    size <- .view_resample_size(
+        nrows = nrows_merge,
+        ncols = ncols_merge,
+        ntiles = nrow(cube_tiles)
+    )
     # create the stars objects that correspond to the tiles
     st_objs <- slider::slide(cube_tiles, function(tile){
         # obtain the raster stars object
         st_obj <- stars::read_stars(
             .file_info_path(tile),
             RAT = labels,
-            proxy = TRUE
+            RasterIO = list(
+                "nBufXSize" = size["xsize"],
+                "nBufYSize" = size["ysize"]
+            )
         )
     })
     # if there is more than one stars object, merge them
@@ -505,27 +524,10 @@ sits_view.classified_image <- function(x,...,
         # keep the first object
         st_merge <- st_objs[[1]]
 
-    # get the maximum number of bytes to be displayed
-    max_Mbytes <- .config_get(key = "leaflet_max_Mbytes")
-
-    # find out the resolution of the stars object
-    dim <- stars::st_dimensions(st_merge)
-    xres <- abs(dim$x$delta)
-    yres <- abs(dim$y$delta)
-    # find out the size of cells in output image
-    size <- .view_resample_size(
-        nrows = unname(nrow(st_merge)),
-        ncols = unname(ncol(st_merge)),
-        xres = xres,
-        yres = yres
-    )
-
     # resample and warp the image
     st_obj_new <- stars::st_warp(
         src = st_merge,
-        crs = sf::st_crs("EPSG:3857"),
-        cellsize = c(size[["cell_x"]],
-                     size[["cell_y"]])
+        crs = sf::st_crs("EPSG:3857")
     )
     #
     # create a palette of colors
@@ -551,7 +553,8 @@ sits_view.classified_image <- function(x,...,
             colors = colors,
             method = "ngb",
             group = "classification",
-            maxBytes = max_Mbytes*1024*1024
+            project = FALSE,
+            maxBytes = size["leaflet_maxBytes"]
         ) %>%
         # add the the layers control
         leaflet::addLayersControl(
@@ -603,32 +606,34 @@ sits_view.classified_image <- function(x,...,
 #'
 #' @param  nrows         number of rows in the input image
 #' @param  ncols         number of cols in the input image
-#' @param  xres          x resolution
-#' @param  yres          y resolution
+#' @param  ntiles        number of tiles in the input image
 #' @return               vector with cell size for x and y coordinates
 #' @keywords internal
 #'
 #'
-.view_resample_size <- function(nrows, ncols, xres, yres){
+.view_resample_size <- function(nrows, ncols, ntiles){
 
-    # get the maximum number of bytes to be displayed
+    # get the maximum number of bytes to be displayed per tile
     max_Mbytes <- .config_get(key = "leaflet_max_Mbytes")
+    # get the compression factor
+    comp <- .config_get(key = "leaflet_comp_factor")
 
     # calculate the size of the input image in bytes
     # note that leaflet considers 4 bytes per pixel
-    in_size_Mbytes <- (4 * nrows * ncols)/(1000 * 1000)
+    in_size_Mbytes <- 4 * nrows * ncols * comp * ntiles
     # do we need to compress?
-    ratio <- max((in_size_Mbytes/max_Mbytes), 1)
+    ratio <- max((in_size_Mbytes/(max_Mbytes * ntiles * 1024 * 1024)), 1)
+
 
     # only create local files if required
     if (ratio > 1) {
         new_nrows <- round(nrows/sqrt(ratio))
         new_ncols <- round(ncols*(new_nrows/nrows))
     } else {
-        new_nrows <- nrows
-        new_ncols <- ncols
+        new_nrows <- round(nrows)
+        new_ncols <- round(ncols)
     }
-    cell_x <- round(ncols*xres/new_ncols)
-    cell_y <- round(nrows*yres/new_nrows)
-    return(c("cell_x" = cell_x, "cell_y" = cell_y))
+    leaflet_maxBytes <- 4 * new_nrows * new_ncols * ntiles
+    return(c("xsize" = new_ncols, "ysize" = new_nrows,
+             "leaflet_maxBytes" = leaflet_maxBytes))
 }
