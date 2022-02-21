@@ -27,6 +27,13 @@
 
 #' @keywords internal
 #' @export
+.raster_resampling <- function(method, ...) {
+
+    return(method)
+}
+
+#' @keywords internal
+#' @export
 .raster_get_values.terra <- function(r_obj, ...) {
 
     # read values and close connection
@@ -166,33 +173,69 @@
 
 #' @keywords internal
 #' @export
-.raster_read_stack.terra <- function(files,
-                                     block = NULL, ...) {
+.raster_read_stack.terra <- function(files, ...,
+                                     block = NULL,
+                                     out_size = NULL,
+                                     method = "bilinear") {
+
+    # convert the method to the actual package
+    method <- .raster_resampling(method = method)
 
     # create raster objects
     r_obj <- .raster_open_stack.terra(files = files, ...)
 
-    # start read
-    if (purrr::is_null(block)) {
+    # do resample
+    if (!is.null(out_size)) {
+
+        bbox <- .raster_bbox(r_obj, block = block)
+
+        out_r_obj <- .raster_new_rast(
+            nrows = out_size[["nrows"]],
+            ncols = out_size[["ncols"]],
+            xmin = bbox[["xmin"]],
+            xmax = bbox[["xmax"]],
+            ymin = bbox[["ymin"]],
+            ymax = bbox[["ymax"]],
+            nlayers = .raster_nlayers(r_obj),
+            crs = .raster_crs(r_obj)
+        )
+
+        out_r_obj <- terra::resample(r_obj, out_r_obj, method = method)
 
         # read values
-        terra::readStart(r_obj)
-        values <- terra::readValues(x   = r_obj,
-                                    mat = TRUE)
+        terra::readStart(out_r_obj)
+        values <- terra::readValues(
+            x   = out_r_obj,
+            mat = TRUE)
         # close file descriptor
-        terra::readStop(r_obj)
+        terra::readStop(out_r_obj)
+
     } else {
 
-        # read values
-        terra::readStart(r_obj)
-        values <- terra::readValues(x      = r_obj,
-                                    row    = block[["first_row"]],
-                                    nrows  = block[["nrows"]],
-                                    col    = block[["first_col"]],
-                                    ncols  = block[["ncols"]],
-                                    mat    = TRUE)
-        # close file descriptor
-        terra::readStop(r_obj)
+        # start read
+        if (purrr::is_null(block)) {
+
+            # read values
+            terra::readStart(r_obj)
+            values <- terra::readValues(
+                x   = r_obj,
+                mat = TRUE)
+            # close file descriptor
+            terra::readStop(r_obj)
+        } else {
+
+            # read values
+            terra::readStart(r_obj)
+            values <- terra::readValues(
+                x      = r_obj,
+                row    = block[["first_row"]],
+                nrows  = block[["nrows"]],
+                col    = block[["first_col"]],
+                ncols  = block[["ncols"]],
+                mat    = TRUE)
+            # close file descriptor
+            terra::readStop(r_obj)
+        }
     }
 
     return(values)

@@ -120,8 +120,7 @@
 #' @keywords internal
 #' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
 #'
-#' @param data_type   sits internal raster data type. One of "INT1U", "INT2U",
-#'                    "INT2S", "INT4U", "INT4S", "FLT4S", "FLT8S".
+#' @param data_type   sits internal raster data type.
 #'
 #' @return character string
 .raster_data_type <- function(data_type) {
@@ -130,8 +129,7 @@
     .check_chr_within(
         x = data_type,
         within = .config_get("valid_raster_data_types"),
-        msg = paste(".raster_data_type: valid data types are",
-                    paste0("'", .config_get("valid_raster_data_types"), "'", collapse = ", "))
+        msg = "invalid 'data_type' parameter"
     )
 
     # check package
@@ -139,6 +137,30 @@
 
     # call function
     UseMethod(".raster_data_type", pkg_class)
+}
+
+#' @title Raster package internal resampling method
+#' @name .raster_resampling
+#' @keywords internal
+#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
+#'
+#' @param method   sits internal raster resampling method.
+#'
+#' @return character string
+.raster_resampling <- function(method) {
+
+    # check data type
+    .check_chr_within(
+        x = method,
+        within = .config_get("valid_raster_resampling"),
+        msg = "invalid resampling 'method' parameter"
+    )
+
+    # check package
+    pkg_class <- .raster_check_package()
+
+    # call function
+    UseMethod(".raster_resampling", pkg_class)
 }
 
 #' @title Raster package internal get values function
@@ -334,12 +356,31 @@
 #' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
 #'
 #' @param files   raster files to be read
-#' @param block   numeric vector with names "first_col", "ncols", "first_row", "nrows".
+#' @param block   numeric vector with names "first_col", "ncols",
+#'   "first_row", "nrows".
+#' @param out_size a numeric vector with names "nrows" and "ncols"
+#' @param method  method used to resample pixels (used only in case of
+#' out_size parameter is informed)
 #' @param ...     additional parameters to be passed to raster package
 #'
 #' @return numeric matrix
-.raster_read_stack <- function(files,
-                               block = NULL, ...) {
+.raster_read_stack <- function(files, ...,
+                               block = NULL,
+                               out_size = NULL,
+                               method = "bilinear") {
+
+    # pre-conditions
+    .check_chr_contains(
+        names(out_size),
+        contains = c("nrows", "ncols"),
+        msg = "invalid 'out_size' parameter"
+    )
+
+    .check_chr_within(
+        method,
+        within = .config_get("valid_raster_resampling"),
+        msg = "invalid 'method' parameter"
+    )
 
     # check block
     if (!purrr::is_null(block)) {
@@ -498,13 +539,20 @@
 
 #' @name .raster_properties
 #' @keywords internal
-.raster_bbox <- function(r_obj, ...) {
+.raster_bbox <- function(r_obj, ...,
+                         block = NULL) {
 
-    # return a named bbox
-    bbox <- c(xmin = .raster_xmin(r_obj),
-              xmax = .raster_xmax(r_obj),
-              ymin = .raster_ymin(r_obj),
-              ymax = .raster_ymax(r_obj))
+    if (is.null(block)) {
+        # return a named bbox
+        bbox <- c(xmin = .raster_xmin(r_obj),
+                  xmax = .raster_xmax(r_obj),
+                  ymin = .raster_ymin(r_obj),
+                  ymax = .raster_ymax(r_obj))
+    } else {
+
+        r_crop <- .raster_crop(.raster_rast(r_obj = r_obj), block = block)
+        bbox <- .raster_bbox(r_crop)
+    }
 
     return(bbox)
 }

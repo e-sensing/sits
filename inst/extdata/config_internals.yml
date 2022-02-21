@@ -82,6 +82,10 @@ local_min_files_for_parallel : 20
 valid_raster_data_types : ["INT1U", "INT2U", "INT2S", "INT4U",
                           "INT4S", "FLT4S", "FLT8S"]
 
+# valid raster resampling methods
+valid_raster_resampling : ["near", "bilinear", "cubic",
+                          "cubicspline", "lanczos"]
+
 # deep learning activation methods
 dl_activation_methods : ["relu", "elu", "selu", "sigmoid"]
 
