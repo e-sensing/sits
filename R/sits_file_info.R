@@ -17,7 +17,11 @@ NULL
 #' Return the file info for a cube with a single tile
 #' Filter by bands if required
 #'
-.file_info <- function(cube, bands = NULL, fid = NULL) {
+.file_info <- function(cube,
+                       bands = NULL,
+                       fid = NULL,
+                       start_date = NULL,
+                       end_date = NULL) {
 
     # pre-condition - one tile at a time
     .check_num(nrow(cube), min = 1, max = 1, is_integer = TRUE,
@@ -38,6 +42,24 @@ NULL
         .check_chr_contains(paste0(fids), contains = paste0(fid),
                             msg = "invalid fid value")
         file_info <- file_info[file_info[["fid"]] == fid, ]
+    }
+
+    if (!is.null(start_date)) {
+
+        cube_start_date <- .file_info_start_date(cube)
+
+        .check_that(start_date >= cube_start_date, msg = "invalid start date")
+
+        file_info <- file_info[file_info[["date"]] >= start_date, ]
+    }
+
+    if (!is.null(end_date)) {
+
+        cube_end_date <- .file_info_end_date(cube)
+
+        .check_that(end_date < cube_end_date, msg = "invalid end date")
+
+        file_info <- file_info[file_info[["date"]] < end_date, ]
     }
 
     return(file_info)
