@@ -7,7 +7,7 @@
     access_key <- Sys.getenv("BDC_ACCESS_KEY")
 
     href <- paste0(unname(purrr::map_chr(item[["assets"]], `[[`, "href")),
-           "?access_token=", access_key)
+                   "?access_token=", access_key)
 
     # add gdal vsi in href urls
     return(.stac_add_gdal_fs(href))
@@ -54,8 +54,8 @@
 #' @keywords internal
 #' @export
 .source_items_tile.bdc_cube <- function(source, ...,
-                                               items,
-                                               collection = NULL) {
+                                        items,
+                                        collection = NULL) {
 
     rstac::items_reap(items, field = c("properties", "bdc:tiles"))
 }

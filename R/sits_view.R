@@ -170,10 +170,12 @@ sits_view.raster_cube <- function(x, ...,
         requireNamespace("leafem", quietly = TRUE),
         msg = "Plase install package 'leafem'"
     )
+
     .check_that(
         requireNamespace("leaflet", quietly = TRUE),
         msg = "Please install package 'leaflet'"
     )
+
     # deal with parameter "time"
     if ("time" %in% names(dots)) {
         warning("time parameter is deprecated, please use dates")
@@ -635,5 +637,3 @@ sits_view.classified_image <- function(x,...,
     return(c("xsize" = new_ncols, "ysize" = new_nrows,
              "leaflet_maxBytes" = leaflet_maxBytes))
 }
-
-

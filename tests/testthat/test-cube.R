@@ -206,8 +206,6 @@ test_that("Creating cubes from BDC - based on ROI with shapefile", {
         sits:::.sits_raster_sub_image_intersects(tile, sf_bla)
     } )
     expect_true(all(intersects))
-
-
 })
 
 test_that("Creating cubes from BDC - invalid roi", {
@@ -451,13 +449,12 @@ test_that("Creating regular cubes from AWS Open Data, and extracting samples fro
         suppressWarnings(dir.create(dir_images))
 
     gc_cube <- sits_regularize(
-        cube        = s2_cube_open,
+        cube        = s2_cube_open[1,],
         output_dir  = dir_images,
-        res         = 320,
-        agg_method  = "median",
-        period      = "P1M",
-        multicores = 4,
-        multithreads = 16)
+        res         = 240,
+        period      = "P16D",
+        multicores = 1,
+        multithreads = 1)
 
     tile_size <- .cube_size(gc_cube[1, ])
     tile_bbox <- .cube_tile_bbox(gc_cube[1, ])
@@ -656,8 +653,7 @@ test_that("Creating Sentinel cubes from MSPC with ROI", {
             return(NULL)
         })
 
-    testthat::skip_if(purrr::is_null(s2_cube),
-                      "MSPC is not accessible")
+    testthat::skip_if(purrr::is_null(s2_cube), "MSPC is not accessible")
 
     expect_true(all(sits_bands(s2_cube) %in% c("B05", "CLOUD")))
 
@@ -685,27 +681,53 @@ test_that("Creating Landsat cubes from MSPC", {
 
     testthat::skip_on_cran()
 
-    l8_cube <- sits_cube(source = "MSPC",
-                         collection = "landsat-8-c2-l2",
-                         roi = c("lon_min" = 17.379,
-                                 "lat_min" = 1.1573,
-                                 "lon_max" = 17.410,
-                                 "lat_max" = 1.1910),
-                         bands = c("B03","CLOUD"),
-                         start_date = as.Date("2019-07-18"),
-                         end_date = as.Date("2019-10-23")
-    )
+    tryCatch({
+        l8_cube <- sits_cube(source = "MSPC",
+                             collection = "landsat-8-c2-l2",
+                             roi = c("lon_min" = 17.379,
+                                     "lat_min" = 1.1573,
+                                     "lon_max" = 17.410,
+                                     "lat_max" = 1.1910),
+                             bands = c("B03","CLOUD"),
+                             start_date = as.Date("2019-07-18"),
+                             end_date = as.Date("2019-10-23"))
+    },
+    error = function(e) {
+        return(NULL)
+    })
+
+    testthat::skip_if(purrr::is_null(l8_cube), "MSPC is not accessible")
 
     expect_true(all(sits_bands(l8_cube) %in% c("B03", "CLOUD")))
-
-    # expect_equal(class(.cube_size(l8_cube)), "numeric")
-    expect_equal(class(.cube_resolution(l8_cube)), "numeric")
+    expect_false(.cube_is_regular(l8_cube))
+    expect_equal(class(.file_info_xres(l8_cube)), "numeric")
 
     file_info <- l8_cube$file_info[[1]]
     r <- .raster_open_rast(file_info$path[[1]])
 
     expect_equal(l8_cube$xmax[[1]], .raster_xmax(r), tolerance = 1)
     expect_equal(l8_cube$xmin[[1]], .raster_xmin(r), tolerance = 1)
+
+    gc_l8 <- sits_regularize(
+        cube        = l8_cube,
+        output_dir  = tempdir(),
+        res         = 320,
+        agg_method  = "least_cc_first",
+        roi = c("lon_min" = 17.379,
+                "lat_min" = 1.1573,
+                "lon_max" = 17.410,
+                "lat_max" = 1.1910),
+        period      = "P30D",
+        multicores = 2,
+        multithreads = 4
+    )
+
+    size <- .cube_size(gc_l8)
+
+    expect_equal(size[["nrows"]], 12)
+    expect_equal(size[["ncols"]], 11)
+
+    expect_true(.cube_is_regular(gc_l8))
 
     l8_cube_tile <-  tryCatch({
         sits_cube(source = "MSPC",

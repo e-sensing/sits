@@ -498,8 +498,7 @@ NULL
 #'
 #' @return \code{.source_cloud_interp_values()} returns a \code{numeric}
 #' vector with all values/or bits to be interpolated if found in the cloud band.
-.source_cloud_interp_values <- function(source,
-                                        collection) {
+.source_cloud_interp_values <- function(source, collection) {
 
     # source is upper case
     source <- toupper(source)

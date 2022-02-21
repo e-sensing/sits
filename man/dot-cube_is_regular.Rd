@@ -2,9 +2,15 @@
 % Please edit documentation in R/sits_cube_aux_functions.R
 \name{.cube_is_regular}
 \alias{.cube_is_regular}
+\alias{.cube_is_regular.raster_cube}
+\alias{.cube_is_regular.default}
 \title{Check if cube is regular}
 \usage{
 .cube_is_regular(cube)
+
+\method{.cube_is_regular}{raster_cube}(cube)
+
+\method{.cube_is_regular}{default}(cube)
 }
 \arguments{
 \item{cube}{input data cube}

@@ -56,6 +56,8 @@
 #' @param extensions    A \code{character} vector with all allowed file
 #' extensions.
 #' @param expr          A R \code{expression} to be evaluated.
+#' @param tolerance     A \code{numeric} with the tolerance to be
+#' accepted in range test. The default value is NULL.
 #' @param ...           Additional parameters for \code{fn_check} function.
 #'
 #' @return
@@ -481,6 +483,7 @@ NULL
                        allow_null = FALSE,
                        is_integer = FALSE,
                        is_named = FALSE,
+                       tolerance = NULL,
                        msg = NULL) {
 
     # check for NULL and exit if it is allowed
@@ -511,9 +514,23 @@ NULL
     if (!is.null(max) && !is.numeric(max))
         stop(".check_num: max parameter should be numeric.")
 
+    if (!is.null(tolerance))
+        .check_num(
+            x = tolerance,
+            msg = "tolerance must be numeric."
+        )
+
     # remove NAs before check
     result <- x
     x <- x[!is.na(x)]
+
+    # adjust min and max to tolerance
+    if (!is.null(tolerance)) {
+
+        min <- min - tolerance
+        max <- max + tolerance
+    }
+
     .check_that(
         all(min <= x) && all(x <= max),
         local_msg = "value is out of range",
@@ -873,8 +890,8 @@ NULL
     .check_that(
         all(existing_files | existing_dirs),
         local_msg = paste("file does not exist:",
-                            paste0("'", x[!existing_files], "'",
-                                   collapse = ", ")),
+                          paste0("'", x[!existing_files], "'",
+                                 collapse = ", ")),
         msg = msg
     )
 

@@ -8,15 +8,15 @@
 \alias{sits_cube.satveg_cube}
 \title{Create data cubes from image collections}
 \usage{
-sits_cube(source, ..., collection, data_dir = NULL)
+sits_cube(source, collection, ..., data_dir = NULL)
 
-\method{sits_cube}{wtss_cube}(source = "WTSS", ..., collection, data_dir = NULL)
+\method{sits_cube}{wtss_cube}(source = "WTSS", collection, ..., data_dir = NULL)
 
 \method{sits_cube}{stac_cube}(
   source,
   collection,
-  data_dir = NULL,
   ...,
+  data_dir = NULL,
   bands = NULL,
   tiles = NULL,
   roi = NULL,
@@ -40,177 +40,200 @@ sits_cube(source, ..., collection, data_dir = NULL)
   progress = TRUE
 )
 
-\method{sits_cube}{satveg_cube}(source = "SATVEG", collection = "TERRA", data_dir = NULL, ...)
+\method{sits_cube}{satveg_cube}(source = "SATVEG", collection = "TERRA", ..., data_dir = NULL)
 }
 \arguments{
-\item{source}{Data source (one of "AWS", "BDC", "DEAFRICA",
-"SATVEG", "USGS", "WTSS").}
+\item{source}{data source (one of \code{"AWS"}, \code{"BDC"},
+\code{"DEAFRICA"}, \code{"MSPC"}, \code{"SATVEG"}, \code{"USGS"}, and
+\code{"WTSS"}).}
 
-\item{...}{Other parameters to be passed for specific types.}
+\item{collection}{image collection in data source (To find out
+the supported collections, use \code{\link{sits_list_collections}()}).}
 
-\item{collection}{Collection to be searched in the data source.}
+\item{...}{other parameters to be passed for specific types.}
 
-\item{data_dir}{directory of local files.}
+\item{data_dir}{local directory where images are stored (only used for
+local cubes).}
 
-\item{bands}{Bands to be included (optional).}
+\item{bands}{spectral bands and indices to be included
+in the cube (optional).}
 
-\item{tiles}{Tiles from the collection (see details below).}
+\item{tiles}{tiles from the collection to be included in
+the cube (see details below).}
 
-\item{roi}{Region of interest (see details below).}
+\item{roi}{filter collection by region of interest
+(see details below).}
 
-\item{start_date}{Initial date for the cube (optional).}
+\item{start_date, end_date}{initial and final dates to include
+images from the collection in the cube (optional).}
 
-\item{end_date}{Final date for the cube  (optional).}
-
-\item{labels}{labels associated to the classes.}
+\item{labels}{labels associated to the classes (only
+required for result cubes).}
 
 \item{parse_info}{parsing information for local files.}
 
 \item{delim}{delimiter for parsing local files.}
 
-\item{version}{results version to be used.}
+\item{version}{version of results to be included in the cube
+(only required for result cubes).}
 
-\item{multicores}{workers for parallel processing}
+\item{multicores}{number of workers for parallel processing}
 
-\item{progress}{Show a progress bar?}
+\item{progress}{show a progress bar?}
 }
 \value{
-The description of a data cube
+A \code{tibble} describing the contents of a data cube.
 }
 \description{
 Creates a data cube based on spatial and temporal restrictions
-on a collection available in cloud services or local repositories.
+in collections available in cloud services or local repositories.
 The following cloud providers are supported, based on the STAC protocol:
 \itemize{
-  \item{"AWS": }{Amazon Web Services (AWS),
-  see also https://registry.opendata.aws/ }
-  \item{"DEAFRICA": }{Digital Earth Africa,
-  see also https://www.digitalearthafrica.org/}
- \item{"BDC": }{Brazil Data Cube (BDC),
-  see also https://brazil-data-cube.github.io/applications/stac.html}
-  \item{"MSPC": }{Microsoft Planetary Computer,
-   see also https://planetarycomputer.microsoft.com/}
- \item{"USGS":}{USGS LANDSAT collection,
-  see also https://registry.opendata.aws/usgs-landsat/}
+  \item{\code{"AWS"}: }{Amazon Web Services (AWS),
+  see https://registry.opendata.aws/ }
+  \item{\code{"BDC"}: }{Brazil Data Cube (BDC),
+  see http://brazildatacube.org/}
+  \item{\code{"DEAFRICA"}: }{Digital Earth Africa,
+  see https://www.digitalearthafrica.org/}
+  \item{\code{"MSPC"}: }{Microsoft Planetary Computer,
+  see https://planetarycomputer.microsoft.com/}
+  \item{\code{"USGS"}:}{USGS LANDSAT collection,
+  see https://registry.opendata.aws/usgs-landsat/}
  }
- Users can also create data cubes based on web services:
+Users can also create data cubes using web services:
 \itemize{
-\item{"SATVEG": }{Defines a cube to use the SATVEG web service,
-  see also https://www.satveg.cnptia.embrapa.br/satveg/login.html}
-\item{"WTSS": }{Web Time Series Service from BDC,
-   see also https://brazil-data-cube.github.io/applications/wtss.html}
+\item{\code{"SATVEG"}: }{Defines a cube to use the SATVEG web service,
+  see https://www.satveg.cnptia.embrapa.br/satveg/login.html}
+\item{\code{"WTSS"}: }{Web Time Series Service from BDC,
+  see https://brazil-data-cube.github.io/applications/wtss.html}
 }
 
-Data cubes can also be created based on local files (see details).
+Data cubes can also be created using local files (see details).
 }
 \details{
-To create cubes from cloud providers, users need to provide information on:
+To create cubes from cloud providers, users need to inform:
 \itemize{
-\item{source: }{One of "AWS", "BDC", "DEAFRICA", "MSPC", "USGS"}
-\item{collection: }{Use `sits_list_collections()` to see which collections
-are supported by `sits`}
-\item{tiles: }{A set of tiles defined according the collection tiling system}
-\item{roi: } {Region of interest in WGS 84 coordinates }
+\item{\code{source}: }{One of \code{"AWS"}, \code{"BDC"}, \code{"DEAFRICA"},
+\code{"MSPC"}, \code{"SATVEG"}, \code{"USGS"},
+\code{"WTSS"}.}
+\item{\code{collection}: }{Use \code{sits_list_collections()} to see which
+  collections are supported.}
+\item{\code{tiles}: }{A set of tiles defined according to the collection
+  tiling grid.}
+\item{\code{roi}: }{Region of interest in WGS84 coordinates.}
 }
-Either `tiles` or  `roi` must be informed. The parameters `bands`, `start_date` and
-`end_date` parameters are optional for cubes created from cloud providers.
+Either \code{tiles} or  \code{roi} must be informed.
+The parameters \code{bands}, \code{start_date}, and
+\code{end_date} are optional for cubes created from cloud providers.
 
-The \code{roi} parameter allows a selection of an area of interest.
-Either using a named \code{vector} ("lon_min", "lat_min", "lon_max", "lat_max") with
-values in WGS 84, a \code{sfc} or \code{sf} object from sf package in WGS84 projection.
-GeoJSON geometries (RFC 7946) and shapefiles should be converted to sf objects before
-being used to define a region of interest. This parameter does not crop a
-region, but only selects the images that intersect with it.
+The \code{roi} parameter allows a selection of an area of interest,
+either using a named \code{vector} (\code{"lon_min"}, \code{"lat_min"},
+\code{"lon_max"}, \code{"lat_max"}) in WGS84, a \code{sfc} or \code{sf} object from sf package also
+in WGS84 projection.
+GeoJSON geometries (RFC 7946) and shapefiles should be converted to
+\code{sf} objects before being used to define a region of interest.
+This parameter does not crop a region; it only selects images that
+intersect the \code{roi}.
 
-To create a cube from local files, the user needs to inform:
+To create a cube from local files, users need to inform:
 \itemize{
-\item{source:} {Provider from where the data has been downloaded (e.g, "BDC", "AWS)}
-\item{collection:}{Collection where the data has been extracted from}
-\item{data_dir: }{Local directory where the files are stored}
-\item{parse_info: }{Parsing information for files (see below)}
-\item{delim: }{Delimiter for parsing files (see below)}
+\item{\code{source}:} {Provider from where the data has been
+ downloaded (e.g, "BDC", "AWS).}
+\item{\code{collection}:}{Collection where the data has been extracted from.}
+\item{\code{data_dir}: }{Local directory where images are stored.}
+\item{\code{parse_info}: }{Parsing information for files (see below).}
+\item{\code{delim}: }{Delimiter character for parsing files (see below).}
 }
 
 To create a cube from local files, all images should have
-the same spatial resolution and projection and  each file should contain
+the same spatial resolution and projection and each file should contain
 a single image band for a single date.
 Files can belong to different tiles of a spatial reference system and
-file names  need to include tile, date and band information.
-For example: "CBERS-4_022024_B13_2018-02-02.tif"
-and "cube_20LKP_B02_2018-07-18.jp2" are accepted names.
-The user has to provide parsing information to allow `sits`
-to extract the tile, the band and the date. In the examples above,
-the parsing info is c("X1", "X2", "tile", "band", "date")
-and the delimiter is "_".
+file names need to include tile, date, and band information.
+For example: \code{"CBERS-4_022024_B13_2018-02-02.tif"}
+and \code{"cube_20LKP_B02_2018-07-18.jp2"} are accepted names.
+The user has to provide parsing information to allow \code{sits}
+to extract values of tile, band, and date. In the examples above,
+the parsing info is \code{c("X1", "tile", "band", "date")}
+and the delimiter is \code{"_"}.
 
-It is also possible to create a cube from local files which have been produced
-by classification or post-classification algorithms. In this case, there are
-more parameters that are required (see below) and the parameter "parse_info"
-is specified differently:
+It is also possible to create result cubes; these are local cubes that have
+been produced by classification or post-classification algorithms. In
+this case, there are more parameters that are required (see below) and the
+parameter \code{parse_info} is specified differently:
 \itemize{
-\item{band: }{The band name is associated to the results. Use "probs"
-for probability cubes produced by `sits_classify()`, "bayes", "bilateral",
-or "gaussian" according to the function selected when using `sits_smooth()`,
-"entropy" when using `sits_uncertainty()`, or "class" for cubes produced by
-`sits_label_classification()`}
-\item{labels: }{Labels associated to the classification results.}
-\item{version: }{The version of the result (default = "v1")}
-\item{parse_info: }{File name parsing information has to allow `sits` to
-deduce "tile", "start_date", "end_date", and "version" from the file name.
-Default is `c("X1", "X2", "tile", "start_date", "end_date", "band", "version").`
-Note that, unlike non-classified image files, cubes with results have both
-"start_date" and "end_date".}
+\item{\code{band}: }{The band name is associated to the type of result. Use
+  \code{"probs"}, for probability cubes produced by \code{sits_classify()};
+  \code{"bayes"}, \code{"bilateral"}, or \code{"gaussian"} according to
+  the function selected when using \code{sits_smooth()};
+  \code{"entropy"} when using \code{sits_uncertainty()}, or \code{"class"}
+  for cubes produced by \code{sits_label_classification()}.}
+\item{\code{labels}: }{Labels associated to the classification results.}
+\item{\code{version}: }{The version of the result (default = \code{"v1"})}
+\item{\code{parse_info}: }{File name parsing information has to allow
+\code{sits} to deduce the values of "tile", "start_date", "end_date",
+  and "version" from the file name.
+  Default is \code{c("X1", "X2", "tile", "start_date", "end_date", "band", "version")}.
+  Note that, unlike non-classified image files, cubes with results have both
+  "start_date" and "end_date".}
 }
 }
 \note{
 In AWS, there are two types of collections: open data and
-requester-pays. Currently, `sits` supports collection "SENTINEL-S2-L2A"
-(requester-pays) and "SENTINEL-S2-L2A-COGS" (open data). There is no need
-to provide AWS credentials to access open data collections.
-For requester-pays data, users need to provide their access codes as
-environment variables, as follows:
+requester-pays. Currently, \code{sits} supports collection
+\code{"SENTINEL-S2-L2A"}
+(requester-pays) and \code{"SENTINEL-S2-L2A-COGS"} (open data).
+There is no need to provide AWS credentials to access open data
+collections. For requester-pays data, users need to provide their
+access codes as environment variables, as follows:
+\code{
 Sys.setenv(
     AWS_ACCESS_KEY_ID     = <your_access_key>,
     AWS_SECRET_ACCESS_KEY = <your_secret_access_key>
-)
+)}
 
 Sentinel-2/2A level 2A files in AWS are organized by sensor
-resolution. The AWS bands in 10m resolution are "B02", "B03", "B04", and
-"B08". The  20m bands are "B05", "B06", "B07", B8A",
-"B8A", "B11", and "B12". Bands "B01" and "B09" are available at 60m resolution.
+resolution. The AWS bands in 10m resolution are \code{"B02"}, \code{"B03"},
+\code{"B04"}, and \code{"B08"}. The  20m bands are \code{"B05"},
+\code{"B06"}, \code{"B07"}, \code{"B8A"}, \code{"B11"}, and \code{"B12"}.
+Bands \code{"B01"} and \code{"B09"} are available at 60m resolution.
 
-For DEAFRICA, sits currently works with collection 'S2_L2A' (open data).
-This collection is the same as AWS collection "SENTINEL-S2-L2A-COGS",
-and is located in Africa (Capetown) for faster access to African users.
-No payment for access is required.
+For DEAFRICA, sits currently works with collection \code{"S2_L2A"}
+(open data). This collection is the same as AWS collection
+\code{"SENTINEL-S2-L2A-COGS"}, and is located in Africa
+(Capetown) for faster access to African users. No payment for access
+is required.
 
-For USGS, sits currently works with collection 'landsat-c2l2-sr', which
-corresponds to Landsat Collection 2 Level-2 surface reflectance data,
-covering datasets from Landsat-4 to Landsat-8. This collection is open data,
-but requires payment for accessing.
+For USGS, sits currently works with collection
+\code{"LANDSAT-C2L2-SR"}, which corresponds to Landsat
+Collection 2 Level-2 surface reflectance data, covering
+Landsat-8 dataset. This collection is requester-pays and
+requires payment for accessing.
 
-All BDC collections have been regularized.
+All BDC collections are regularized.
 BDC users need to provide their credentials using environment
 variables. To create your credentials, please see
-"https://brazildatacube.dpi.inpe.br/portal/explore". There is no
-cost for accessing data in the BDC.
+https://brazil-data-cube.github.io/applications/dc_explorer/token-module.html.
+Accessing data in the BDC is free.
 After obtaining the BDC access key, please include it as
 an environment variable, as follows:
+\code{
 Sys.setenv(
     BDC_ACCESS_KEY = <your_bdc_access_key>
-)
+)}
 
 The SATVEG service is run by Embrapa Agricultural
- Informatics Centre provides access to time series from the MODIS sensor.
- There are three collections: "terra" (from the TERRA satellite),
- "aqua" (from the AQUA satellite) and "comb" (combination of
- both satellites).
+ Informatics Centre and provides access to individual time series from
+ the MODIS sensor. There are three collections: \code{"terra"}
+ (from the TERRA satellite), \code{"aqua"} (from the AQUA satellite) and
+ \code{"comb"} (combination of both satellites).
 
 WTSS is a web service for providing individual time series from BDC.
 Users specify a list of spatio-temporal positions and a collection where they
 want to extract the data.
 }
 \examples{
+
 \dontrun{
 
 # --- Access to the Brazil Data Cube
@@ -296,5 +319,5 @@ modis_cube <- sits_cube(
 
 }
 \references{
-`rstac` package (https://github.com/brazil-data-cube/rstac)
+\code{rstac} package (https://github.com/brazil-data-cube/rstac)
 }

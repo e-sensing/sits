@@ -6,25 +6,19 @@
 \usage{
 sits_regularize(
   cube,
-  output_dir,
   period,
   res,
-  roi = NULL,
-  agg_method = "least_cc_first",
-  resampling = "bilinear",
+  output_dir,
   multicores = 1,
   multithreads = 2,
-  progress = TRUE,
-  cloud_mask = FALSE
+  memsize = 4,
+  progress = TRUE
 )
 }
 \arguments{
 \item{cube}{A \code{sits_cube} object whose spacing of observation
 times is not constant and will be regularized by the \code{gdalcubes}
 package.}
-
-\item{output_dir}{A \code{character} with a valid directory where the
-regularized images will be written by \code{gdalcubes}.}
 
 \item{period}{A \code{character} with ISO8601 time period for regular
 data cubes produced by \code{gdalcubes}, with number and unit, e.g., "P16D"
@@ -33,19 +27,8 @@ for 16 days. Use "D", "M" and "Y" for days, month and year.}
 \item{res}{A \code{numeric} with spatial resolution of the image
 that will be aggregated.}
 
-\item{roi}{A named \code{numeric} vector with a region of interest.
-See more above}
-
-\item{agg_method}{A \code{character} with method that will be applied by
-\code{gdalcubes} for aggregation. Options: \code{median} and
-\code{least_cc_first}. The default aggregation method is
-\code{least_cc_first}. See more above.}
-
-\item{resampling}{A \code{character} with method to be used by
-\code{gdalcubes} for resampling in mosaic operation.
-Options: \code{near}, \code{bilinear}, \code{bicubic} or others supported by
-gdalwarp (see https://gdal.org/programs/gdalwarp.html).
-Default is bilinear.}
+\item{output_dir}{A \code{character} with a valid directory where the
+regularized images will be written by \code{gdalcubes}.}
 
 \item{multicores}{A \code{numeric} with the number of cores used for
 regularization. This parameter specifies how many bands from different tiles
@@ -57,11 +40,10 @@ chunks are executed in parallel. The gdalcubes package divides data cubes
 into smaller chunks, where the generated chunk creates a 3-dimensional array
 of band, latitude, and longitude information. By default 2 threads are used.}
 
-\item{progress}{A \code{logical} value. Show progress bar?}
+\item{memsize}{A \code{numeric} with memory available for regularization
+(in GB).}
 
-\item{cloud_mask}{A \code{logical} to use cloud band for aggregation by
-\code{gdalcubes}. Deprecated as of SITS version 0.16.0. Default
-is \code{FALSE}.}
+\item{progress}{A \code{logical} value. Show progress bar?}
 }
 \value{
 A \code{sits_cube} object with aggregated images.

@@ -247,7 +247,8 @@ sits_apply.raster_cube <- function(data, ...,
                     format = "GTiff",
                     data_type = .config_get("raster_cube_data_type"),
                     gdal_options = .config_gtiff_default_options(),
-                    overwrite = FALSE)
+                    overwrite = FALSE,
+                    missing_value = .config_get("raster_cube_missing_value"))
 
                 # clean memory
                 gc()

@@ -5,6 +5,7 @@
 #'
 #' @param cube    input data cube
 #' @param bands   bands to be filtered
+#' @param dates   dates to be filtered
 #' @param fid     feature id (fid) to be filtered
 #'
 #' @return vector with requested information
@@ -47,9 +48,9 @@ NULL
 #' Return number of rows for a given tile
 #' Throws an error if rows are not equal
 #'
-.file_info_nrows <- function(cube){
+.file_info_nrows <- function(cube, bands = NULL){
 
-    file_info <- .file_info(cube)
+    file_info <- .file_info(cube, bands = bands)
     nrows <- unique(file_info[["nrows"]])
 
     .check_num(length(nrows), min = 1, max = 1, is_integer = TRUE,
@@ -62,9 +63,9 @@ NULL
 #' @details
 #' Returns number of cols for a given tile
 #' Throws an error if cols are not equal
-.file_info_ncols <- function(cube){
+.file_info_ncols <- function(cube, bands = NULL){
 
-    file_info <- .file_info(cube)
+    file_info <- .file_info(cube, bands = bands)
     ncols <- unique(file_info[["ncols"]])
 
     .check_num(length(ncols), min = 1, max = 1, is_integer = TRUE,
@@ -85,6 +86,27 @@ NULL
 
     return(path)
 }
+
+#' @rdname file_info_functions
+#'
+#' @details
+#' Returns a single path to a file
+#' Throws an error if there is more than one path
+.file_info_paths <- function(cube, bands = NULL, dates = NULL){
+
+    file_info <- .file_info(cube)
+    if (!is.null(bands))
+        file_info <- dplyr::filter(file_info, .data[["band"]] %in% !!bands)
+
+    if (!is.null(dates))
+        file_info <- dplyr::filter(file_info, .data[["date"]] %in% !!dates)
+
+    .check_num(nrow(file_info), min = 1, is_integer = TRUE,
+               msg = "wrong path parameter in file_info")
+
+    return(file_info[["path"]])
+}
+
 #' @rdname file_info_functions
 #'
 #' @details

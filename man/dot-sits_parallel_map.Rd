@@ -4,7 +4,7 @@
 \alias{.sits_parallel_map}
 \title{Maps a function to a given list in parallel or sequential processing}
 \usage{
-.sits_parallel_map(x, fn, ..., progress, n_retries = 3, sleep = 0)
+.sits_parallel_map(x, fn, ..., progress = FALSE, n_retries = 3, sleep = 0)
 }
 \arguments{
 \item{x}{a given list to be passed to a function}

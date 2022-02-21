@@ -88,12 +88,6 @@
         memsize = memsize,
         multicores = multicores
     )
-    # show the number of blocks and block size
-    if (verbose)
-        message(paste0("Using ", length(blocks),
-                       " blocks of size (", unname(blocks[[1]]["nrows"]),
-                       " x ", unname(blocks[[1]]["ncols"]), ")"
-        ))
 
     # get timeline
     timeline <- sits_timeline(tile)
@@ -118,6 +112,12 @@
 
     # show initial time for classification
     if (verbose) {
+
+        message(paste0("Using ", length(blocks),
+                       " blocks of size (", blocks[[1]][["nrows"]],
+                       " x ", blocks[[1]][["ncols"]], ")"
+        ))
+
         start_time <- Sys.time()
         message(paste0("Starting classification of '", tile$tile,
                        "' at ", start_time))
