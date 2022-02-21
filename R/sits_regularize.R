@@ -257,12 +257,13 @@ sits_regularize <- function(cube,
                 out_res = res
             )
 
-            # get band_in_out ratio
-            ratio_band_in_out <- .reg_get_ratio_in_out(
-                tile_band_interval,
-                band = band,
-                out_size = out_size
-            )
+            # # get band_in_out ratio
+            # ratio_band_in_out <- .reg_get_ratio_in_out(
+            #     tile_band_interval,
+            #     band = band,
+            #     out_size = out_size
+            # )
+            ratio_band_in_out <- 1
 
             # get cloud_in_out ratio
             ratio_cloud_in_out <- .reg_get_ratio_in_out(
