@@ -37,7 +37,7 @@
 
 .raster_crs(r_obj, ...)
 
-.raster_bbox(r_obj, ...)
+.raster_bbox(r_obj, ..., block = NULL)
 
 .raster_res(r_obj, ...)
 

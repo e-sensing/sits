@@ -369,13 +369,15 @@
                                out_size = NULL,
                                method = "bilinear") {
 
-    # pre-conditions
+    # check out_size
+    if (!purrr::is_null(out_size))
     .check_chr_contains(
         names(out_size),
         contains = c("nrows", "ncols"),
         msg = "invalid 'out_size' parameter"
     )
 
+    # check method
     .check_chr_within(
         method,
         within = .config_get("valid_raster_resampling"),
