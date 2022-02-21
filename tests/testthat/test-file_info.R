@@ -20,12 +20,22 @@ test_that("file_info functions", {
     expect_s3_class(.file_info(cbers_tile), "tbl_df")
     expect_equal(.file_info(cbers_tile), cbers_tile[["file_info"]][[1]])
 
-    # file info nrows
+    # tile size
     expect_equal(.file_info_nrows(cbers_tile), 6865)
+    expect_equal(.file_info_ncols(cbers_tile), 10504)
 
-    # file info nrows
+    # tile paths
+    expect_length(.file_info_path(cbers_tile), 1)
+    expect_length(.file_info_paths(cbers_tile), 46)
 
+    # tile resolutions
+    expect_equal(.file_info_xres(cbers_tile), 63.99735, tolerance = 10e-6)
+    expect_equal(.file_info_yres(cbers_tile), 64.00234, tolerance = 10e-6)
 
+    # tile properties
+    expect_length(.file_info_fids(cbers_tile), 23)
+    expect_length(.file_info_timeline(cbers_tile), 23)
+    #expect_length(.file_info_start_date(cbers_tile))
 })
 
 test_that("file_info errors", {
@@ -49,13 +59,7 @@ test_that("file_info errors", {
     # file info
     expect_s3_class(.file_info(s2_tile), "tbl_df")
 
-    # file info nrows
+    # raster size
     expect_error(.file_info_nrows(s2_tile))
-
-    # file info ncols
     expect_error(.file_info_ncols(s2_tile))
-
-    expect_error(.file_info_ncols(s2_tile))
-
-
 })

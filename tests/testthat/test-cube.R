@@ -453,8 +453,7 @@ test_that("Creating regular cubes from AWS Open Data, and extracting samples fro
         output_dir  = dir_images,
         res         = 240,
         period      = "P16D",
-        multicores = 1,
-        multithreads = 1)
+        multicores = 1)
 
     tile_size <- .cube_size(gc_cube[1, ])
     tile_bbox <- .cube_tile_bbox(gc_cube[1, ])
@@ -516,14 +515,8 @@ test_that("Creating cubes from AWS Open Data and regularizing with ROI", {
         cube        = s2_cube_open,
         output_dir  = dir_images,
         res         = 320,
-        agg_method  = "least_cc_first",
-        roi = c("lon_min" = -65.3811,
-                "lat_min" = -10.6645,
-                "lon_max" = -64.86069,
-                "lat_max" = -10.491988),
         period      = "P30D",
-        multicores = 2,
-        multithreads = 4)
+        multicores = 2)
 
     size <- .cube_size(gc_cube)
 
@@ -712,14 +705,8 @@ test_that("Creating Landsat cubes from MSPC", {
         cube        = l8_cube,
         output_dir  = tempdir(),
         res         = 320,
-        agg_method  = "least_cc_first",
-        roi = c("lon_min" = 17.379,
-                "lat_min" = 1.1573,
-                "lon_max" = 17.410,
-                "lat_max" = 1.1910),
         period      = "P30D",
-        multicores = 2,
-        multithreads = 4
+        multicores = 2
     )
 
     size <- .cube_size(gc_l8)
