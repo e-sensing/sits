@@ -118,10 +118,11 @@ NULL
 
     file_info <- .file_info(cube, bands = bands)
 
-    .check_num(nrow(file_info), min = 1, is_integer = TRUE,
-               msg = "wrong path parameter in file_info")
+    paths <- file_info[["path"]]
 
-    return(file_info[["path"]])
+    .check_chr_type(paths, msg = "wrong paths type in file_info")
+
+    return(paths)
 }
 
 #' @rdname file_info_functions
@@ -135,7 +136,7 @@ NULL
     xres <- unique(file_info[["xres"]])
 
     .check_num(length(xres), min = 1, is_integer = TRUE,
-               msg = "wrong xres parameter in file_info")
+               msg = "wrong xres in file_info")
     return(xres)
 }
 #' @rdname file_info_functions
@@ -149,7 +150,7 @@ NULL
     yres <- unique(file_info[["yres"]])
 
     .check_num(length(yres), min = 1, is_integer = TRUE,
-               msg = "wrong yres parameter in file_info")
+               msg = "wrong yres in file_info")
     return(yres)
 }
 #' @rdname file_info_functions
@@ -162,7 +163,7 @@ NULL
     fids <- unique(file_info[["fid"]])
 
     .check_num(length(fids), min = 1, is_integer = TRUE,
-               msg = "wrong fid parameter in file_info")
+               msg = "wrong fid in file_info")
     return(fids)
 }
 #' @rdname file_info_functions
@@ -175,7 +176,7 @@ NULL
     timeline <- unique(lubridate::as_date(file_info[["date"]]))
 
     .check_num(length(timeline), min = 1, is_integer = TRUE,
-               msg = "wrong timeline parameter in file_info")
+               msg = "wrong timeline in file_info")
     return(timeline)
 }
 #' @rdname file_info_functions
@@ -188,7 +189,7 @@ NULL
     timeline <- unique(lubridate::as_date(file_info[["date"]][[1]]))
 
     .check_num(length(timeline), min = 1, is_integer = TRUE,
-               msg = "wrong timeline parameter in file_info")
+               msg = "wrong timeline in file_info")
     return(timeline)
 }
 #' @rdname file_info_functions
