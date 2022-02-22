@@ -851,10 +851,10 @@
     bbox <- vector("double", length = 4)
     names(bbox) <- c("xmin", "ymin", "xmax", "ymax")
 
-    bbox["xmin"] <-  cube["xmin"]
-    bbox["ymin"] <-  cube["ymin"]
-    bbox["xmax"] <-  cube["xmax"]
-    bbox["ymax"] <-  cube["ymax"]
+    bbox["xmin"] <- cube["xmin"]
+    bbox["ymin"] <- cube["ymin"]
+    bbox["xmax"] <- cube["xmax"]
+    bbox["ymax"] <- cube["ymax"]
 
     # post-condition
     .check_lst(bbox, min_len = 4, max_len = 4, fn_check = .check_num,
