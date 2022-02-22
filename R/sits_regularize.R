@@ -54,16 +54,12 @@
 #'  regularization. This parameter specifies how many bands from different tiles
 #'  should be processed in parallel. By default, 1 core is used.
 #'
-#' @param multithreads A \code{numeric} value that specifies the number of
-#'  threads used in the gdalcubes package. This parameter determines how many
-#'  chunks are executed in parallel. The gdalcubes package divides data cubes
-#'  into smaller chunks, where the generated chunk creates a 3-dimensional array
-#'  of band, latitude, and longitude information. By default 2 threads are used.
-#'
-#' @param memsize A \code{numeric} with memory available for regularization
+#' @param memsize      A \code{numeric} with memory available for regularization
 #'  (in GB).
 #'
 #' @param progress     A \code{logical} value. Show progress bar?
+#'
+#' @param ...          Deprecated parameters are controlled with ellipses.
 #'
 #' @note
 #'    If malformed images with the same required tiles and bands are found in
@@ -93,12 +89,28 @@ sits_regularize <- function(cube,
                             res,
                             output_dir,
                             multicores = 1,
-                            multithreads = 2,
                             memsize = 4,
-                            progress = TRUE) {
+                            progress = TRUE, ...) {
 
     # set caller to show in errors
     .check_set_caller("sits_regularize")
+
+    dots <- list(...)
+
+    if ("agg_method" %in% names(dots))
+        message(
+            paste("'sits_regularize' no longer supports the 'agg_method'",
+                  "parameter. Now the first clean pixel is chosen for",
+                  "aggregation."
+            )
+        )
+
+    if ("roi" %in% names(dots))
+        message(
+            paste("'sits_regularize' no longer supports the 'roi'",
+                  "parameter. Now the entire tile is processed by default."
+            )
+        )
 
     # check documentation mode
     progress <- .check_documentation(progress)
@@ -155,15 +167,6 @@ sits_regularize <- function(cube,
         within = sits_bands(cube),
         discriminator = "all_of",
         msg = "cloud band should be in cube"
-    )
-
-    # precondition - is the multithreads valid?
-    .check_num(
-        x = multithreads,
-        min = 1,
-        len_min = 1,
-        len_max = 1,
-        msg = "invalid 'multithreads' parameter."
     )
 
     # precondition - is the multicores valid?
@@ -611,7 +614,7 @@ sits_regularize <- function(cube,
             )
 
             return(output_file_block)
-    })
+        })
 
     # # get tile bbox
     # bbox <- .cube_tile_bbox(tile_band_period)

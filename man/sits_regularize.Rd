@@ -10,9 +10,9 @@ sits_regularize(
   res,
   output_dir,
   multicores = 1,
-  multithreads = 2,
   memsize = 4,
-  progress = TRUE
+  progress = TRUE,
+  ...
 )
 }
 \arguments{
@@ -34,16 +34,12 @@ regularized images will be written by \code{gdalcubes}.}
 regularization. This parameter specifies how many bands from different tiles
 should be processed in parallel. By default, 1 core is used.}
 
-\item{multithreads}{A \code{numeric} value that specifies the number of
-threads used in the gdalcubes package. This parameter determines how many
-chunks are executed in parallel. The gdalcubes package divides data cubes
-into smaller chunks, where the generated chunk creates a 3-dimensional array
-of band, latitude, and longitude information. By default 2 threads are used.}
-
 \item{memsize}{A \code{numeric} with memory available for regularization
 (in GB).}
 
 \item{progress}{A \code{logical} value. Show progress bar?}
+
+\item{...}{Deprecated parameters are controlled with ellipses.}
 }
 \value{
 A \code{sits_cube} object with aggregated images.

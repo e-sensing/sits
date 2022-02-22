@@ -86,7 +86,7 @@
                                      data_type,
                                      gdal_options,
                                      overwrite, ...,
-                                     missing_value = NULL) {
+                                     missing_value = NA) {
 
     # set caller to show in errors
     .check_set_caller(".raster_write_rast.terra")
