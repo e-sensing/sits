@@ -259,7 +259,7 @@
         currently_row <- block[["first_row"]]
         next_rows <- (block[["nrows"]] + block[["first_row"]]) - 1
 
-        b_filename <- paste(b_filename, currently_row, next_rows, sep = "_")
+        b_filename <- paste(b_filename, "block", currently_row, next_rows, sep = "_")
     }
 
     b_path <- paste0(output_dir, "/", b_filename, ".", file_ext)

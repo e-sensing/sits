@@ -490,8 +490,8 @@ test_that("Creating cubes from AWS Open Data and regularizing with ROI", {
                   collection = "SENTINEL-S2-L2A-COGS",
                   tiles = c("20LKP", "20LLP"),
                   bands = c("B08", "B03", "SCL"),
-                  start_date = "2018-12-01",
-                  end_date = "2018-12-30"
+                  start_date = "2018-07-01",
+                  end_date = "2018-07-30"
         )},
         error = function(e){
             return(NULL)
@@ -512,18 +512,15 @@ test_that("Creating cubes from AWS Open Data and regularizing with ROI", {
                       pattern = "\\.tif$",
                       full.names = TRUE))
 
-    gc_cube <- sits_regularize(
-        cube        = s2_cube_open,
-        output_dir  = dir_images,
-        res         = 320,
-        agg_method  = "least_cc_first",
-        roi = c("lon_min" = -65.3811,
-                "lat_min" = -10.6645,
-                "lon_max" = -64.86069,
-                "lat_max" = -10.491988),
-        period      = "P30D",
-        multicores = 2,
-        multithreads = 4)
+    system.time({
+        gc_cube <- sits_regularize(
+            cube        = s2_cube_open,
+            output_dir  = dir_images,
+            res         = 320,
+            period      = "P30D",
+            multicores = 1,
+            multithreads = 1)
+    })
 
     size <- .cube_size(gc_cube)
 

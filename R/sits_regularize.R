@@ -17,22 +17,24 @@
 #' # --- Access to the AWS STAC
 #'
 #' # define an AWS data cube
-#'   s2_cube <- sits_cube(source = "AWS",
-#'                       collection = "sentinel-s2-l2a-cogs",
-#'                       bands = c("B08", "SCL"),
-#'                       tiles = c("20LKP"),
-#'                       start_date = as.Date("2018-07-18"),
-#'                       end_date = as.Date("2018-08-18")
+#'   s2_cube <- sits_cube(
+#'       source = "AWS",
+#'       collection = "sentinel-s2-l2a-cogs",
+#'       bands = c("B08", "SCL"),
+#'       tiles = c("20LKP"),
+#'       start_date = "2018-07-18",
+#'       end_date = "2018-08-18"
 #'   )
 #'
 #' # create a directory to store the resulting images
 #' dir.create(paste0(tempdir(),"/images/"))
 #'
 #' # Build a data cube of equal intervals using the "gdalcubes" package
-#' gc_cube <- sits_regularize(cube       = s2_cube,
-#'                            output_dir = paste0(tempdir(),"/images/"),
-#'                            period     = "P1M",
-#'                            res        = 320)
+#' gc_cube <- sits_regularize(
+#'     cube       = s2_cube,
+#'     output_dir = paste0(tempdir(),"/images/"),
+#'     period     = "P1M",
+#'     res        = 320)
 #' }
 #' }
 #'
@@ -524,7 +526,7 @@ sits_regularize <- function(cube,
         .file_info_fids(tile_band_period),
         function(fid) {
 
-            # for each block
+            # get output file name for each block
             blocks_reg_path <- purrr::pmap_chr(
                 blocks,
                 function(block_out, block_in, block_cloud) {
@@ -544,51 +546,59 @@ sits_regularize <- function(cube,
                         block = block_out
                     )
 
-                    # cloud preprocess
-                    .reg_preprocess_block(
-                        tile_fid = tile_fid,
-                        band = band,
-                        out_size = out_size,
-                        band_block = block_in,
-                        cloud_block = block_cloud,
-                        output_block = block_out,
-                        ratio_band_out = ratio_band_out,
-                        ratio_cloud_out = ratio_cloud_out,
-                        data_type = reg_datatype,
-                        output_file = output_file_block
-                    )
-
                     return(output_file_block)
                 })
+
+            # process mask for each block
+            tryCatch({
+                purrr::pmap_chr(
+                    blocks,
+                    function(block_out, block_in, block_cloud) {
+
+                        tile_fid <- tile_band_period
+                        tile_fid[["file_info"]][[1]] <-
+                            .file_info(tile_fid, fid = fid)
+
+                        fi_fid <- .file_info(tile_fid)
+
+                        # name of output block
+                        output_file_block <- .reg_filename(
+                            tile = tile_fid,
+                            band = band,
+                            date = unique(fi_fid[["date"]]),
+                            output_dir = output_dir,
+                            block = block_out
+                        )
+
+                        # cloud preprocess
+                        .reg_preprocess_block(
+                            tile_fid = tile_fid,
+                            band = band,
+                            out_size = out_size,
+                            band_block = block_in,
+                            cloud_block = block_cloud,
+                            output_block = block_out,
+                            ratio_band_out = ratio_band_out,
+                            ratio_cloud_out = ratio_cloud_out,
+                            data_type = reg_datatype,
+                            output_file = output_file_block
+                        )
+
+                        return(output_file_block)
+                    })
+            },
+            error = function(e) {
+                unlink(blocks_reg_path)
+                stop(e$message, call. = FALSE)
+            })
 
             return(blocks_reg_path)
         })
 
-    # aggregate first method
+    # get file block names for aggregate blocks
     agg_block_paths <- purrr::map_chr(
         seq_along(blocks[["block_out"]]),
         function(i) {
-
-            # get i-th block for all dates in interval
-            block_files <- purrr::map_chr(reg_masked_blocks_lst, `[[`, i)
-
-            # read values for all corresponding blocks in interval
-            mtx <- .raster_read_stack(block_files)
-
-            # make a local template
-            r_obj <- .raster_rast(.raster_open_rast(block_files[[1]]))
-
-            # do merge using first available pixel
-            r_obj <- .raster_set_values(
-                r_obj  = r_obj,
-                values = reg_agg_first(mtx)
-            )
-
-            # get band missing value
-            missing_value <- .cube_band_missing_value(
-                cube = tile_band_period,
-                band = band
-            )
 
             # name of output block
             output_file_block <- .reg_filename(
@@ -599,55 +609,65 @@ sits_regularize <- function(cube,
                 block      = blocks[["block_out"]][[i]]
             )
 
-            # write merged regularized masked block
-            .raster_write_rast(
-                r_obj         = r_obj,
-                file          = output_file_block,
-                format        = "GTiff",
-                data_type     = reg_datatype,
-                gdal_options  = .config_gtiff_default_options(),
-                overwrite     = TRUE,
-                missing_value = missing_value
-            )
-
             return(output_file_block)
+        })
+
+    # process aggregate blocks using first method
+    tryCatch({
+        purrr::map_chr(
+            seq_along(blocks[["block_out"]]),
+            function(i) {
+
+                # get i-th block for all dates in interval
+                block_files <- purrr::map_chr(reg_masked_blocks_lst, `[[`, i)
+
+                # read values for all corresponding blocks in interval
+                mtx <- .raster_read_stack(block_files)
+
+                # make a local template
+                r_obj <- .raster_rast(.raster_open_rast(block_files[[1]]))
+
+                # do merge using first available pixel
+                r_obj <- .raster_set_values(
+                    r_obj  = r_obj,
+                    values = reg_agg_first(mtx)
+                )
+
+                # get band missing value
+                missing_value <- .cube_band_missing_value(
+                    cube = tile_band_period,
+                    band = band
+                )
+
+                # name of output block
+                output_file_block <- .reg_filename(
+                    tile       = tile_band_period,
+                    band       = band,
+                    date       = date,
+                    output_dir = output_dir,
+                    block      = blocks[["block_out"]][[i]]
+                )
+
+                # write merged regularized masked block
+                .raster_write_rast(
+                    r_obj         = r_obj,
+                    file          = output_file_block,
+                    format        = "GTiff",
+                    data_type     = reg_datatype,
+                    gdal_options  = .config_gtiff_default_options(),
+                    overwrite     = TRUE,
+                    missing_value = missing_value
+                )
+
+                return(output_file_block)
+            })
+    },
+    error = function(e) {
+        unlink(unlist(reg_masked_blocks_lst))
+        unlink(agg_block_paths)
+        stop(e$message, call. = FALSE)
     })
 
-    # # get tile bbox
-    # bbox <- .cube_tile_bbox(tile_band_period)
-    #
-    # # create output raster
-    # r_obj <- .raster_new_rast(
-    #     nrows = out_size[["nrows"]],
-    #     ncols = out_size[["ncols"]],
-    #     xmin = bbox[["xmin"]],
-    #     xmax = bbox[["xmax"]],
-    #     ymin = bbox[["ymin"]],
-    #     ymax = bbox[["ymax"]],
-    #     nlayers = 1,
-    #     crs = .cube_crs(tile_band_period)
-    # )
-    #
-    # # set values
-    # values <- reg_agg_first(do.call(rbind, agg_block_lst))
-    # r_obj <- .raster_set_values(r_obj = r_obj, values = values)
-    #
-    # # get band missing value
-    # missing_value <- .cube_band_missing_value(
-    #     cube = tile_band_period,
-    #     band = band
-    # )
-    #
-    # # write raster
-    # .raster_write_rast(
-    #     r_obj = r_obj,
-    #     file = output_filename,
-    #     format = "GTiff",
-    #     data_type = reg_datatype,
-    #     gdal_options = .config_gtiff_default_options(),
-    #     overwrite = FALSE,
-    #     missing_value = missing_value
-    # )
 
     # merge file info
     .raster_merge(
