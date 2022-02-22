@@ -35,7 +35,97 @@ test_that("file_info functions", {
     # tile properties
     expect_length(.file_info_fids(cbers_tile), 23)
     expect_length(.file_info_timeline(cbers_tile), 23)
-    #expect_length(.file_info_start_date(cbers_tile))
+    expect_equal(.file_info_bands(cbers_tile), c("EVI", "NDVI"))
+
+    # tile filters
+    tile_fid <- .file_info(
+        cbers_tile,
+        fid = "CB4_64_16D_STK_v001_022024_2019-08-13_2019-08-28"
+    )
+
+    expect_s3_class(tile_fid, "tbl_df")
+    expect_equal(nrow(tile_fid), 2)
+
+    expect_error(
+        .file_info(
+            cbers_tile,
+            fid = "CB4_64_16D_STK_v001_022024_2019-08-13_2019-08-28_ABC"
+        )
+    )
+
+    tile_sliced_date <- .file_info(
+        cbers_tile,
+        start_date = "2019-07-12",
+        end_date = "2019-07-28"
+    )
+
+    expect_s3_class(tile_sliced_date, "tbl_df")
+    expect_equal(nrow(tile_sliced_date), 2)
+
+    expect_error(
+        .file_info(
+            cbers_tile,
+            start_date = "2020-07-12",
+            end_date = "2021-07-28"
+        )
+    )
+
+    expect_error(
+        .file_info(
+            cbers_tile,
+            start_date = "2019-07-12",
+            end_date = "2021-07-28"
+        )
+    )
+
+    tile_band <- .file_info(cbers_tile, bands = "NDVI")
+
+    expect_s3_class(tile_band, "tbl_df")
+    expect_equal(nrow(tile_band), 23)
+
+    expect_error(
+        .file_info(cbers_tile, bands = "NDVIABC")
+    )
+})
+
+
+test_that("file_info functions for result cubes", {
+
+    testthat::skip_on_cran()
+
+    samples_modis_2bands <- sits_select(samples_modis_4bands,
+                                        bands = c("EVI", "NDVI"))
+
+    # build an extreme gradient boosting model
+    xgb_model <- sits_train(
+        samples_modis_2bands,
+        sits_xgboost(nrounds = 50, verbose = FALSE)
+    )
+
+    # create a data cube based on files
+    data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
+
+    local_cube <- sits_cube(
+        source = "BDC",
+        collection = "MOD13Q1-6",
+        data_dir = data_dir,
+        delim = "_",
+        parse_info = c("X1", "X2", "tile", "band", "date"),
+        multicores = 2
+    )
+
+    # classify the data cube with xgb model
+    probs_cube <- sits_classify(
+        local_cube,
+        xgb_model,
+        output_dir = tempdir(),
+        memsize = 4,
+        multicores = 2
+    )
+
+    expect_error(.file_info_start_date(local_cube))
+    expect_error(.file_info_end_date(local_cube))
+
 })
 
 test_that("file_info errors", {
@@ -62,4 +152,6 @@ test_that("file_info errors", {
     # raster size
     expect_error(.file_info_nrows(s2_tile))
     expect_error(.file_info_ncols(s2_tile))
+
+    s2_tile[["path"]][[1]] <- 12
 })

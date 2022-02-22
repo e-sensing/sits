@@ -25,7 +25,7 @@
 
 .file_info_path(cube)
 
-.file_info_paths(cube, bands = NULL, dates = NULL)
+.file_info_paths(cube, bands = NULL)
 
 .file_info_xres(cube)
 

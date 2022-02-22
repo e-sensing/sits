@@ -76,7 +76,6 @@ cube <- sits_cube(
     multicores = 2
 )
 
-
 # classify the data cube with xgb model
 probs_cube <- sits_classify(cube,
   xgb_model,

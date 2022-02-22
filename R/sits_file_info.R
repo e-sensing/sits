@@ -39,14 +39,15 @@ NULL
     # filter fid
     if (!is.null(fid)) {
         fids <- .file_info_fids(cube)
-        .check_chr_contains(paste0(fids), contains = paste0(fid),
-                            msg = "invalid fid value")
+        .check_chr_within(paste0(fid), within = paste0(fids),
+                          msg = "invalid fid value")
         file_info <- file_info[file_info[["fid"]] == fid, ]
     }
 
     if (!is.null(start_date)) {
 
-        cube_start_date <- .file_info_start_date(cube)
+        cube_start_date <- sort(.file_info_timeline(cube))[[1]]
+
 
         .check_that(start_date >= cube_start_date, msg = "invalid start date")
 
@@ -55,7 +56,7 @@ NULL
 
     if (!is.null(end_date)) {
 
-        cube_end_date <- .file_info_end_date(cube)
+        cube_end_date <- sort(.file_info_timeline(cube), decreasing = TRUE)[[1]]
 
         .check_that(end_date < cube_end_date, msg = "invalid end date")
 
@@ -102,9 +103,8 @@ NULL
 .file_info_path <- function(cube){
 
     file_info <- .file_info(cube)
-    path <- file_info$path[[1]]
-    .check_num(length(path), min = 1, max = 1, is_integer = TRUE,
-               msg = "wrong path parameter in file_info")
+    path <- file_info[["path"]][[1]]
+    .check_chr_type(path, msg = "wrong path parameter in file_info")
 
     return(path)
 }
@@ -114,14 +114,9 @@ NULL
 #' @details
 #' Returns a single path to a file
 #' Throws an error if there is more than one path
-.file_info_paths <- function(cube, bands = NULL, dates = NULL){
+.file_info_paths <- function(cube, bands = NULL){
 
-    file_info <- .file_info(cube)
-    if (!is.null(bands))
-        file_info <- dplyr::filter(file_info, .data[["band"]] %in% !!bands)
-
-    if (!is.null(dates))
-        file_info <- dplyr::filter(file_info, .data[["date"]] %in% !!dates)
+    file_info <- .file_info(cube, bands = bands)
 
     .check_num(nrow(file_info), min = 1, is_integer = TRUE,
                msg = "wrong path parameter in file_info")
@@ -177,7 +172,7 @@ NULL
 .file_info_timeline <- function(cube){
 
     file_info <- .file_info(cube)
-    timeline <- unique(lubridate::as_date(file_info$date))
+    timeline <- unique(lubridate::as_date(file_info[["date"]]))
 
     .check_num(length(timeline), min = 1, is_integer = TRUE,
                msg = "wrong timeline parameter in file_info")
@@ -190,7 +185,7 @@ NULL
 .file_info_timeline_wtss <- function(cube){
 
     file_info <- .file_info(cube)
-    timeline <- unique(lubridate::as_date(file_info$date[[1]]))
+    timeline <- unique(lubridate::as_date(file_info[["date"]][[1]]))
 
     .check_num(length(timeline), min = 1, is_integer = TRUE,
                msg = "wrong timeline parameter in file_info")
@@ -217,8 +212,7 @@ NULL
         within = colnames(file_info),
         msg = "invalid file_info for cube")
 
-    start_date <- unique(lubridate::as_date(file_info$start_date))
-
+    start_date <- unique(lubridate::as_date(file_info[["start_date"]]))
     .check_num(length(start_date), min = 1, max = 1,
                msg = "wrong start_date parameter in file_info")
     return(start_date)
@@ -243,7 +237,7 @@ NULL
         within = colnames(file_info),
         msg = "invalid file_info for cube")
 
-    end_date <- unique(lubridate::as_date(file_info$end_date))
+    end_date <- unique(lubridate::as_date(file_info[["end_date"]]))
 
     .check_num(length(end_date), min = 1, max = 1,
                msg = "wrong end_date parameter in file_info")
@@ -257,7 +251,7 @@ NULL
 .file_info_bands <- function(cube){
 
     file_info <- .file_info(cube)
-    bands <- unique(unlist(file_info$band))
+    bands <- unique(unlist(file_info[["band"]]))
 
     .check_num(length(bands), min = 1, is_integer = TRUE,
                msg = "wrong bands parameter in file_info")

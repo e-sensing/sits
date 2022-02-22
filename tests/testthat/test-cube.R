@@ -516,7 +516,8 @@ test_that("Creating cubes from AWS Open Data and regularizing with ROI", {
         output_dir  = dir_images,
         res         = 320,
         period      = "P30D",
-        multicores = 2)
+        multicores = 2
+    )
 
     size <- .cube_size(gc_cube)
 
