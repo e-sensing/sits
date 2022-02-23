@@ -283,8 +283,8 @@ sits_regularize <- function(cube,
                 multicores = multicores
             )
 
-            # change ratio band (access pyramid)
-            ratio_band_in_out <- 1
+            # # change ratio band (access pyramid)
+            # ratio_band_in_out <- 1
 
             # create of the composite cubes
             composite_file <- .reg_composite_image(
@@ -522,7 +522,7 @@ sits_regularize <- function(cube,
     # get output datatype
     reg_datatype <- .config_get("raster_cube_data_type")
 
-    # open parallel process to read all interval dates
+    # process all interval dates
     reg_masked_blocks_lst <- .reg_map_probably(
         .file_info_fids(tile_band_period),
         function(fid) {
@@ -705,11 +705,12 @@ sits_regularize <- function(cube,
                allow_empty = FALSE, len_min = 1, len_max = 1,
                msg = "invalid cloud path value")
 
+    #### C++ from here...
+
     # read input band and change its dimension to input block
     band_values <- matrix(as.integer(
         .raster_read_stack(files = band_path,
-                           block = band_block,
-                           out_size = output_block)),
+                           block = band_block)),
         nrow = output_block[["nrows"]],
         ncol = output_block[["ncols"]],
         byrow = TRUE
@@ -733,7 +734,7 @@ sits_regularize <- function(cube,
     reg_masked_mtx <- reg_resample(
         band = band_values,
         cloud = cloud_values,
-        ratio_band_out = 1,
+        ratio_band_out = ratio_band_out,
         ratio_cloud_out = ratio_cloud_out,
         nrows_out = output_block[["nrows"]],
         ncols_out = output_block[["ncols"]],
@@ -774,6 +775,8 @@ sits_regularize <- function(cube,
         overwrite    = TRUE,
         missing_value = missing_value
     )
+
+    #### to here
 
     return(output_file)
 }
