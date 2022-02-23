@@ -525,14 +525,19 @@ sits_regularize <- function(cube,
     reg_datatype <- .config_get("raster_cube_data_type")
 
     # open parallel process to read all interval dates
-    reg_masked_blocks_lst <- purrr::map(
+    reg_masked_blocks_lst <- .reg_map_probably(
         .file_info_fids(tile_band_period),
         function(fid) {
 
-            # get output file name for each block
-            blocks_reg_path <- purrr::pmap_chr(
-                blocks,
-                function(block_out, block_in, block_cloud) {
+            # process mask for each block
+            blocks_reg_path_lst <- .reg_map_securely(
+                purrr::transpose(blocks),
+                function(block) {
+
+                    # get block input parameters
+                    block_out <- block[["block_out"]]
+                    block_in <- block[["block_in"]]
+                    block_cloud <- block[["block_cloud"]]
 
                     tile_fid <- tile_band_period
                     tile_fid[["file_info"]][[1]] <-
@@ -549,59 +554,65 @@ sits_regularize <- function(cube,
                         block = block_out
                     )
 
+                    # cloud preprocess
+                    .reg_preprocess_block(
+                        tile_fid = tile_fid,
+                        band = band,
+                        out_size = out_size,
+                        band_block = block_in,
+                        cloud_block = block_cloud,
+                        output_block = block_out,
+                        ratio_band_out = ratio_band_out,
+                        ratio_cloud_out = ratio_cloud_out,
+                        data_type = reg_datatype,
+                        output_file = output_file_block
+                    )
+
                     return(output_file_block)
                 })
 
-            # process mask for each block
-            tryCatch({
-                purrr::pmap_chr(
-                    blocks,
-                    function(block_out, block_in, block_cloud) {
+            # remove blocks if some error occur
+            if (length(blocks_reg_path_lst) !=
+                length(purrr::transpose(blocks))) {
 
-                        tile_fid <- tile_band_period
-                        tile_fid[["file_info"]][[1]] <-
-                            .file_info(tile_fid, fid = fid)
+                unlink(unlist(blocks_reg_path_lst))
+                return(structure(list("skip me"),
+                                 class = "error"))
+            }
 
-                        fi_fid <- .file_info(tile_fid)
-
-                        # name of output block
-                        output_file_block <- .reg_filename(
-                            tile = tile_fid,
-                            band = band,
-                            date = unique(fi_fid[["date"]]),
-                            output_dir = output_dir,
-                            block = block_out
-                        )
-
-                        # cloud preprocess
-                        .reg_preprocess_block(
-                            tile_fid = tile_fid,
-                            band = band,
-                            out_size = out_size,
-                            band_block = block_in,
-                            cloud_block = block_cloud,
-                            output_block = block_out,
-                            ratio_band_out = ratio_band_out,
-                            ratio_cloud_out = ratio_cloud_out,
-                            data_type = reg_datatype,
-                            output_file = output_file_block
-                        )
-
-                        return(output_file_block)
-                    })
-            },
-            error = function(e) {
-                unlink(blocks_reg_path)
-                stop(e$message, call. = FALSE)
-            })
-
-            return(blocks_reg_path)
+            return(unlist(blocks_reg_path_lst))
         })
 
-    # get file block names for aggregate blocks
+    # return NULL if some error occurs
+    if (length(reg_masked_blocks_lst) == 0) {
+        return(NULL)
+    }
+
+    # process aggregate blocks using first method
     agg_block_paths <- purrr::map_chr(
         seq_along(blocks[["block_out"]]),
         function(i) {
+
+            # get i-th block for all dates in interval
+            block_files <- purrr::map_chr(reg_masked_blocks_lst, `[[`, i)
+
+            # read values for all corresponding blocks in interval
+            mtx <- .raster_read_stack(block_files)
+
+            # make a local template
+            r_obj <- .raster_rast(.raster_open_rast(block_files[[1]]))
+
+            # do merge using first available pixel
+            r_obj <- .raster_set_values(
+                r_obj  = r_obj,
+                values = reg_agg_first(mtx)
+            )
+
+            # get band missing value
+            missing_value <- .cube_band_missing_value(
+                cube = tile_band_period,
+                band = band
+            )
 
             # name of output block
             output_file_block <- .reg_filename(
@@ -612,64 +623,19 @@ sits_regularize <- function(cube,
                 block      = blocks[["block_out"]][[i]]
             )
 
+            # write merged regularized masked block
+            .raster_write_rast(
+                r_obj         = r_obj,
+                file          = output_file_block,
+                format        = "GTiff",
+                data_type     = reg_datatype,
+                gdal_options  = .config_gtiff_default_options(),
+                overwrite     = TRUE,
+                missing_value = missing_value
+            )
+
             return(output_file_block)
         })
-
-    # process aggregate blocks using first method
-    tryCatch({
-        purrr::map_chr(
-            seq_along(blocks[["block_out"]]),
-            function(i) {
-
-                # get i-th block for all dates in interval
-                block_files <- purrr::map_chr(reg_masked_blocks_lst, `[[`, i)
-
-                # read values for all corresponding blocks in interval
-                mtx <- .raster_read_stack(block_files)
-
-                # make a local template
-                r_obj <- .raster_rast(.raster_open_rast(block_files[[1]]))
-
-                # do merge using first available pixel
-                r_obj <- .raster_set_values(
-                    r_obj  = r_obj,
-                    values = reg_agg_first(mtx)
-                )
-
-                # get band missing value
-                missing_value <- .cube_band_missing_value(
-                    cube = tile_band_period,
-                    band = band
-                )
-
-                # name of output block
-                output_file_block <- .reg_filename(
-                    tile       = tile_band_period,
-                    band       = band,
-                    date       = date,
-                    output_dir = output_dir,
-                    block      = blocks[["block_out"]][[i]]
-                )
-
-                # write merged regularized masked block
-                .raster_write_rast(
-                    r_obj         = r_obj,
-                    file          = output_file_block,
-                    format        = "GTiff",
-                    data_type     = reg_datatype,
-                    gdal_options  = .config_gtiff_default_options(),
-                    overwrite     = TRUE,
-                    missing_value = missing_value
-                )
-
-                return(output_file_block)
-            })
-    },
-    error = function(e) {
-        unlink(unlist(reg_masked_blocks_lst))
-        unlink(agg_block_paths)
-        stop(e$message, call. = FALSE)
-    })
 
     # merge file info
     .raster_merge(
@@ -812,4 +778,40 @@ sits_regularize <- function(cube,
     )
 
     return(output_file)
+}
+
+.reg_map_securely <- function(x, fn) {
+
+    result <- list()
+    for (x_i in x) {
+        value <- tryCatch(
+            fn(x_i),
+            error = function(e) return(e))
+
+        if (inherits(value, "error")) {
+            break
+        }
+
+        result[[length(result) + 1]] <- value
+    }
+
+    return(result)
+}
+
+.reg_map_probably <- function(x, fn) {
+
+    result <- list()
+    for (x_i in x) {
+        value <- tryCatch(
+            fn(x_i),
+            error = function(e) return(e))
+
+        if (inherits(value, "error")) {
+            next
+        }
+
+        result[[length(result) + 1]] <- value
+    }
+
+    return(result)
 }
