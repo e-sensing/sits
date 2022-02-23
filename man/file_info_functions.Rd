@@ -27,9 +27,9 @@
 
 .file_info_paths(cube, bands = NULL)
 
-.file_info_xres(cube)
+.file_info_xres(cube, bands = NULL)
 
-.file_info_yres(cube)
+.file_info_yres(cube, bands = NULL)
 
 .file_info_fids(cube)
 
