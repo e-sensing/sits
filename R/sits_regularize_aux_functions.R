@@ -238,20 +238,6 @@
                           output_dir, ...,
                           block = NULL) {
 
-    file_ext <- unique(
-        tools::file_ext(
-            x = gsub(".*/([^?]*)\\??.*$", "\\1",
-                     .file_info_paths(tile, bands = band))
-        )
-    )
-
-    .check_length(
-        x = file_ext,
-        len_min = 1,
-        len_max = 1,
-        msg = "invalid files extensions."
-    )
-
     b_filename <- paste("cube", .cube_tiles(tile), band, date, sep = "_")
 
     if (!is.null(block)) {
@@ -259,10 +245,11 @@
         currently_row <- block[["first_row"]]
         next_rows <- (block[["nrows"]] + block[["first_row"]]) - 1
 
-        b_filename <- paste(b_filename, "block", currently_row, next_rows, sep = "_")
+        b_filename <- paste(b_filename, "block", currently_row, next_rows,
+                            sep = "_")
     }
 
-    b_path <- paste0(output_dir, "/", b_filename, ".", file_ext)
+    b_path <- paste0(output_dir, "/", b_filename, ".tif")
 
     return(b_path)
 }
