@@ -17,7 +17,7 @@
 \alias{.file_info_bands}
 \title{Functions to work with file info tibble}
 \usage{
-.file_info(cube, bands = NULL, fid = NULL)
+.file_info(cube, bands = NULL, fid = NULL, start_date = NULL, end_date = NULL)
 
 .file_info_nrows(cube, bands = NULL)
 
@@ -25,11 +25,11 @@
 
 .file_info_path(cube)
 
-.file_info_paths(cube, bands = NULL, dates = NULL)
+.file_info_paths(cube, bands = NULL)
 
-.file_info_xres(cube)
+.file_info_xres(cube, bands = NULL)
 
-.file_info_yres(cube)
+.file_info_yres(cube, bands = NULL)
 
 .file_info_fids(cube)
 

@@ -105,6 +105,13 @@
     # bind rows
     img_files_mx <- do.call(rbind, img_files_lst)
 
+    # post condition
+    .check_that(
+        all(sapply(img_files_lst, length) == length(parse_info)),
+        local_msg = "some files does not match fields of parse_info",
+        msg = "invalid file names or 'parse_info' parameter"
+    )
+
     # read the image files into a tibble with added parse info
     colnames(img_files_mx) <- parse_info
 

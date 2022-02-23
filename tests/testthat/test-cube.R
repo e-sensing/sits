@@ -448,25 +448,24 @@ test_that("Creating regular cubes from AWS Open Data, and extracting samples fro
     if (!dir.exists(dir_images))
         suppressWarnings(dir.create(dir_images))
 
-    gc_cube <- sits_regularize(
+    rg_cube <- sits_regularize(
         cube        = s2_cube_open[1,],
         output_dir  = dir_images,
         res         = 240,
         period      = "P16D",
-        multicores = 1,
-        multithreads = 1)
+        multicores  = 1)
 
-    tile_size <- .cube_size(gc_cube[1, ])
-    tile_bbox <- .cube_tile_bbox(gc_cube[1, ])
+    tile_size <- .cube_size(rg_cube[1, ])
+    tile_bbox <- .cube_tile_bbox(rg_cube[1, ])
 
-    expect_equal(tile_size[["nrows"]], 344)
-    expect_equal(tile_size[["ncols"]], 344)
-    expect_equal(tile_bbox$xmax, 309920, tolerance = 1e-1)
-    expect_equal(tile_bbox$xmin, 199840, tolerance = 1e-1)
+    expect_equal(tile_size[["nrows"]], 458)
+    expect_equal(tile_size[["ncols"]], 458)
+    expect_equal(tile_bbox$xmax, 309780, tolerance = 1e-1)
+    expect_equal(tile_bbox$xmin, 199980, tolerance = 1e-1)
 
-    tile_fileinfo <- .file_info(gc_cube[1, ])
+    tile_fileinfo <- .file_info(rg_cube[1, ])
 
-    expect_equal(nrow(tile_fileinfo), 1)
+    expect_equal(nrow(tile_fileinfo), 2)
 
     csv_file <- system.file("extdata/samples/samples_amazonia_sentinel2.csv",
                             package = "sits")
@@ -476,11 +475,11 @@ test_that("Creating regular cubes from AWS Open Data, and extracting samples fro
     expect_equal(nrow(samples), 1202)
     samples <- dplyr::sample_n(samples, size = 10, replace = FALSE)
 
-    ts <- sits_get_data(cube = gc_cube, samples = samples)
+    ts <- sits_get_data(cube = rg_cube, samples = samples)
     vls <- unlist(sits_values(ts))
     expect_true(all(vls > 0 & vls < 1.))
-    expect_equal(sits_bands(ts), sits_bands(gc_cube))
-    expect_equal(sits_timeline(ts), sits_timeline(gc_cube))
+    expect_equal(sits_bands(ts), sits_bands(rg_cube))
+    expect_equal(sits_timeline(ts), sits_timeline(rg_cube))
 })
 
 test_that("Creating cubes from AWS Open Data and regularizing with ROI", {
@@ -489,9 +488,9 @@ test_that("Creating cubes from AWS Open Data and regularizing with ROI", {
         sits_cube(source = "AWS",
                   collection = "SENTINEL-S2-L2A-COGS",
                   tiles = c("20LKP", "20LLP"),
-                  bands = c("B08", "B03", "SCL"),
-                  start_date = "2018-12-01",
-                  end_date = "2018-12-30"
+                  bands = c("B08", "SCL"),
+                  start_date = "2018-07-01",
+                  end_date = "2018-07-30"
         )},
         error = function(e){
             return(NULL)
@@ -512,29 +511,24 @@ test_that("Creating cubes from AWS Open Data and regularizing with ROI", {
                       pattern = "\\.tif$",
                       full.names = TRUE))
 
-    gc_cube <- sits_regularize(
+    rg_cube <- sits_regularize(
         cube        = s2_cube_open,
         output_dir  = dir_images,
         res         = 320,
-        agg_method  = "least_cc_first",
-        roi = c("lon_min" = -65.3811,
-                "lat_min" = -10.6645,
-                "lon_max" = -64.86069,
-                "lat_max" = -10.491988),
         period      = "P30D",
-        multicores = 2,
-        multithreads = 4)
+        multicores  = 2
+    )
 
-    size <- .cube_size(gc_cube)
+    size <- .cube_size(rg_cube[1,])
 
-    expect_equal(size[["nrows"]], 61)
-    expect_equal(size[["ncols"]], 179)
-    expect_equal(gc_cube$xmax, 296562, tolerance = 1e-1)
-    expect_equal(gc_cube$xmin, 234802.7, tolerance = 1e-1)
+    expect_equal(size[["nrows"]], 343)
+    expect_equal(size[["ncols"]], 343)
+    expect_equal(rg_cube$xmax[[1]], 309780, tolerance = 1e-1)
+    expect_equal(rg_cube$xmin[[1]], 199980, tolerance = 1e-1)
 
-    file_info2 <- gc_cube$file_info[[1]]
+    file_info2 <- rg_cube$file_info[[1]]
 
-    expect_equal(nrow(file_info2), 2)
+    expect_equal(nrow(file_info2), 1)
 })
 
 test_that("Creating cubes from USGS", {
@@ -708,26 +702,24 @@ test_that("Creating Landsat cubes from MSPC", {
     expect_equal(l8_cube$xmax[[1]], .raster_xmax(r), tolerance = 1)
     expect_equal(l8_cube$xmin[[1]], .raster_xmin(r), tolerance = 1)
 
-    gc_l8 <- sits_regularize(
+    output_dir <- paste0(tempdir(), "/images")
+    if (!dir.exists(output_dir))
+        dir.create(output_dir)
+
+    rg_l8 <- sits_regularize(
         cube        = l8_cube,
-        output_dir  = tempdir(),
-        res         = 320,
-        agg_method  = "least_cc_first",
-        roi = c("lon_min" = 17.379,
-                "lat_min" = 1.1573,
-                "lon_max" = 17.410,
-                "lat_max" = 1.1910),
+        output_dir  = output_dir,
+        res         = 330,
         period      = "P30D",
-        multicores = 2,
-        multithreads = 4
+        multicores  = 1
     )
 
-    size <- .cube_size(gc_l8)
+    size <- .cube_size(rg_l8)
 
-    expect_equal(size[["nrows"]], 12)
-    expect_equal(size[["ncols"]], 11)
+    expect_equal(size[["nrows"]], 704)
+    expect_equal(size[["ncols"]], 685)
 
-    expect_true(.cube_is_regular(gc_l8))
+    expect_true(.cube_is_regular(rg_l8))
 
     l8_cube_tile <-  tryCatch({
         sits_cube(source = "MSPC",

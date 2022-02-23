@@ -28,7 +28,7 @@ test_that("EVI generation", {
         output_dir  = dir_images,
         res         = 160,
         period      = "P1M",
-        multicores = 4)
+        multicores  = 2)
 
     gc_cube_new <- sits_apply(gc_cube,
                               EVI2 = 2.5*(B8A - B05)/(B8A + 2.4*B05 + 1),

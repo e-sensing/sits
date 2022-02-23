@@ -17,22 +17,24 @@
 #' # --- Access to the AWS STAC
 #'
 #' # define an AWS data cube
-#'   s2_cube <- sits_cube(source = "AWS",
-#'                       collection = "sentinel-s2-l2a-cogs",
-#'                       bands = c("B08", "SCL"),
-#'                       tiles = c("20LKP"),
-#'                       start_date = as.Date("2018-07-18"),
-#'                       end_date = as.Date("2018-08-18")
+#'   s2_cube <- sits_cube(
+#'       source = "AWS",
+#'       collection = "sentinel-s2-l2a-cogs",
+#'       bands = c("B08", "SCL"),
+#'       tiles = c("20LKP"),
+#'       start_date = "2018-07-18",
+#'       end_date = "2018-08-18"
 #'   )
 #'
 #' # create a directory to store the resulting images
 #' dir.create(paste0(tempdir(),"/images/"))
 #'
 #' # Build a data cube of equal intervals using the "gdalcubes" package
-#' gc_cube <- sits_regularize(cube       = s2_cube,
-#'                            output_dir = paste0(tempdir(),"/images/"),
-#'                            period     = "P1M",
-#'                            res        = 320)
+#' gc_cube <- sits_regularize(
+#'     cube       = s2_cube,
+#'     output_dir = paste0(tempdir(),"/images/"),
+#'     period     = "P1M",
+#'     res        = 320)
 #' }
 #' }
 #'
@@ -54,16 +56,12 @@
 #'  regularization. This parameter specifies how many bands from different tiles
 #'  should be processed in parallel. By default, 1 core is used.
 #'
-#' @param multithreads A \code{numeric} value that specifies the number of
-#'  threads used in the gdalcubes package. This parameter determines how many
-#'  chunks are executed in parallel. The gdalcubes package divides data cubes
-#'  into smaller chunks, where the generated chunk creates a 3-dimensional array
-#'  of band, latitude, and longitude information. By default 2 threads are used.
-#'
-#' @param memsize A \code{numeric} with memory available for regularization
+#' @param memsize      A \code{numeric} with memory available for regularization
 #'  (in GB).
 #'
 #' @param progress     A \code{logical} value. Show progress bar?
+#'
+#' @param ...          Deprecated parameters are controlled with ellipses.
 #'
 #' @note
 #'    If malformed images with the same required tiles and bands are found in
@@ -93,12 +91,28 @@ sits_regularize <- function(cube,
                             res,
                             output_dir,
                             multicores = 1,
-                            multithreads = 2,
                             memsize = 4,
-                            progress = TRUE) {
+                            progress = TRUE, ...) {
 
     # set caller to show in errors
     .check_set_caller("sits_regularize")
+
+    dots <- list(...)
+
+    if ("agg_method" %in% names(dots))
+        message(
+            paste("'sits_regularize' no longer supports the 'agg_method'",
+                  "parameter. Now the first clean pixel is chosen for",
+                  "aggregation."
+            )
+        )
+
+    if ("roi" %in% names(dots))
+        message(
+            paste("'sits_regularize' no longer supports the 'roi'",
+                  "parameter. Now the entire tile is processed by default."
+            )
+        )
 
     # check documentation mode
     progress <- .check_documentation(progress)
@@ -157,15 +171,6 @@ sits_regularize <- function(cube,
         msg = "cloud band should be in cube"
     )
 
-    # precondition - is the multithreads valid?
-    .check_num(
-        x = multithreads,
-        min = 1,
-        len_min = 1,
-        len_max = 1,
-        msg = "invalid 'multithreads' parameter."
-    )
-
     # precondition - is the multicores valid?
     .check_num(
         x = multicores,
@@ -205,10 +210,6 @@ sits_regularize <- function(cube,
         local_cube = local_cube,
         reg_timeline = reg_timeline
     )
-
-    # start process
-    .sits_parallel_start(multicores, log = FALSE)
-    on.exit(.sits_parallel_stop())
 
     # recovery mode
     finished <- length(jobs) == 0
@@ -281,6 +282,9 @@ sits_regularize <- function(cube,
                 memsize = memsize,
                 multicores = multicores
             )
+
+            # change ratio band (access pyramid)
+            ratio_band_in_out <- 1
 
             # create of the composite cubes
             composite_file <- .reg_composite_image(
@@ -519,14 +523,19 @@ sits_regularize <- function(cube,
     reg_datatype <- .config_get("raster_cube_data_type")
 
     # open parallel process to read all interval dates
-    reg_masked_blocks_lst <- purrr::map(
+    reg_masked_blocks_lst <- .reg_map_probably(
         .file_info_fids(tile_band_period),
         function(fid) {
 
-            # for each block
-            blocks_reg_path <- purrr::pmap_chr(
-                blocks,
-                function(block_out, block_in, block_cloud) {
+            # process mask for each block
+            blocks_reg_path_lst <- .reg_map_securely(
+                purrr::transpose(blocks),
+                function(block) {
+
+                    # get block input parameters
+                    block_out <- block[["block_out"]]
+                    block_in <- block[["block_in"]]
+                    block_cloud <- block[["block_cloud"]]
 
                     tile_fid <- tile_band_period
                     tile_fid[["file_info"]][[1]] <-
@@ -560,10 +569,24 @@ sits_regularize <- function(cube,
                     return(output_file_block)
                 })
 
-            return(blocks_reg_path)
+            # remove blocks if some error occur
+            if (length(blocks_reg_path_lst) !=
+                length(purrr::transpose(blocks))) {
+
+                unlink(unlist(blocks_reg_path_lst))
+                return(structure(list("skip me"),
+                                 class = "error"))
+            }
+
+            return(unlist(blocks_reg_path_lst))
         })
 
-    # aggregate first method
+    # return NULL if some error occurs
+    if (length(reg_masked_blocks_lst) == 0) {
+        return(NULL)
+    }
+
+    # process aggregate blocks using first method
     agg_block_paths <- purrr::map_chr(
         seq_along(blocks[["block_out"]]),
         function(i) {
@@ -610,43 +633,7 @@ sits_regularize <- function(cube,
             )
 
             return(output_file_block)
-    })
-
-    # # get tile bbox
-    # bbox <- .cube_tile_bbox(tile_band_period)
-    #
-    # # create output raster
-    # r_obj <- .raster_new_rast(
-    #     nrows = out_size[["nrows"]],
-    #     ncols = out_size[["ncols"]],
-    #     xmin = bbox[["xmin"]],
-    #     xmax = bbox[["xmax"]],
-    #     ymin = bbox[["ymin"]],
-    #     ymax = bbox[["ymax"]],
-    #     nlayers = 1,
-    #     crs = .cube_crs(tile_band_period)
-    # )
-    #
-    # # set values
-    # values <- reg_agg_first(do.call(rbind, agg_block_lst))
-    # r_obj <- .raster_set_values(r_obj = r_obj, values = values)
-    #
-    # # get band missing value
-    # missing_value <- .cube_band_missing_value(
-    #     cube = tile_band_period,
-    #     band = band
-    # )
-    #
-    # # write raster
-    # .raster_write_rast(
-    #     r_obj = r_obj,
-    #     file = output_filename,
-    #     format = "GTiff",
-    #     data_type = reg_datatype,
-    #     gdal_options = .config_gtiff_default_options(),
-    #     overwrite = FALSE,
-    #     missing_value = missing_value
-    # )
+        })
 
     # merge file info
     .raster_merge(
@@ -721,9 +708,10 @@ sits_regularize <- function(cube,
     # read input band and change its dimension to input block
     band_values <- matrix(as.integer(
         .raster_read_stack(files = band_path,
-                           block = band_block)),
-        nrow = band_block[["nrows"]],
-        ncol = band_block[["ncols"]],
+                           block = band_block,
+                           out_size = output_block)),
+        nrow = output_block[["nrows"]],
+        ncol = output_block[["ncols"]],
         byrow = TRUE
     )
 
@@ -745,7 +733,7 @@ sits_regularize <- function(cube,
     reg_masked_mtx <- reg_resample(
         band = band_values,
         cloud = cloud_values,
-        ratio_band_out = ratio_band_out,
+        ratio_band_out = 1,
         ratio_cloud_out = ratio_cloud_out,
         nrows_out = output_block[["nrows"]],
         ncols_out = output_block[["ncols"]],
@@ -788,4 +776,40 @@ sits_regularize <- function(cube,
     )
 
     return(output_file)
+}
+
+.reg_map_securely <- function(x, fn) {
+
+    result <- list()
+    for (x_i in x) {
+        value <- tryCatch(
+            fn(x_i),
+            error = function(e) return(e))
+
+        if (inherits(value, "error")) {
+            break
+        }
+
+        result[[length(result) + 1]] <- value
+    }
+
+    return(result)
+}
+
+.reg_map_probably <- function(x, fn) {
+
+    result <- list()
+    for (x_i in x) {
+        value <- tryCatch(
+            fn(x_i),
+            error = function(e) return(e))
+
+        if (inherits(value, "error")) {
+            next
+        }
+
+        result[[length(result) + 1]] <- value
+    }
+
+    return(result)
 }

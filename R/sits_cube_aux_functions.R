@@ -127,8 +127,7 @@
 
     # all bands are upper case
     .check_chr_within(bands,
-                      within = .cube_bands(cube = cube,
-                                           add_cloud = add_cloud),
+                      within = .cube_bands(cube = cube, add_cloud = add_cloud),
                       case_sensitive = FALSE,
                       msg = "invalid 'bands' parameter")
 
@@ -701,13 +700,8 @@
 #' @return a numeric with the x resolution
 .cube_xres <- function(cube, bands = NULL) {
 
-    # get first file_info
-    tile_bbox <- .cube_tile_bbox(cube)
-
     # tile template
-    xres <- abs(
-        (tile_bbox[["xmax"]] - tile_bbox[["xmin"]]) / .file_info_ncols(cube)
-    )
+    xres <- .file_info_xres(cube, bands = bands)
 
 
     # post-condition
@@ -727,13 +721,8 @@
 #' @return a numeric with the y resolution
 .cube_yres <- function(cube, bands = NULL) {
 
-    # get first file_info
-    tile_bbox <- .cube_tile_bbox(cube)
-
     # tile template
-    yres <- abs(
-        (tile_bbox[["ymax"]] - tile_bbox[["ymin"]]) / .file_info_nrows(cube)
-    )
+    yres <- .file_info_yres(cube, bands = bands)
 
     # post-condition
     .check_num(yres, min = 0, allow_zero = FALSE,
@@ -779,8 +768,8 @@
 .cube_size <- function(cube, ..., bands = NULL) {
 
     # get the file size
-    nrows <- .file_info_nrows(cube)
-    ncols <- .file_info_ncols(cube)
+    nrows <- .file_info_nrows(cube, bands = bands)
+    ncols <- .file_info_ncols(cube, bands = bands)
 
     # post-conditions
     .check_num(nrows, min = 1, len_min = 1, len_max = 1,
@@ -852,10 +841,10 @@
     bbox <- vector("double", length = 4)
     names(bbox) <- c("xmin", "ymin", "xmax", "ymax")
 
-    bbox["xmin"] <-  cube["xmin"]
-    bbox["ymin"] <-  cube["ymin"]
-    bbox["xmax"] <-  cube["xmax"]
-    bbox["ymax"] <-  cube["ymax"]
+    bbox["xmin"] <- cube["xmin"]
+    bbox["ymin"] <- cube["ymin"]
+    bbox["xmax"] <- cube["xmax"]
+    bbox["ymax"] <- cube["ymax"]
 
     # post-condition
     .check_lst(bbox, min_len = 4, max_len = 4, fn_check = .check_num,

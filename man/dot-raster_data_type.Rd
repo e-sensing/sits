@@ -7,8 +7,7 @@
 .raster_data_type(data_type)
 }
 \arguments{
-\item{data_type}{sits internal raster data type. One of "INT1U", "INT2U",
-"INT2S", "INT4U", "INT4S", "FLT4S", "FLT8S".}
+\item{data_type}{sits internal raster data type.}
 }
 \value{
 character string
