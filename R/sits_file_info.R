@@ -130,9 +130,9 @@ NULL
 #' @details
 #' Returns the X resolution for a single tiled cube
 #' Throws an error if resolution is not unique
-.file_info_xres <- function(cube){
+.file_info_xres <- function(cube, bands = NULL){
 
-    file_info <- .file_info(cube)
+    file_info <- .file_info(cube, bands = bands)
     xres <- unique(file_info[["xres"]])
 
     .check_num(length(xres), min = 1, is_integer = TRUE,
@@ -144,9 +144,9 @@ NULL
 #' @details
 #' Returns the Y resolution for a single tiled cube
 #' Throws an error if resolution is not unique
-.file_info_yres <- function(cube){
+.file_info_yres <- function(cube, bands = NULL) {
 
-    file_info <- .file_info(cube)
+    file_info <- .file_info(cube, bands = bands)
     yres <- unique(file_info[["yres"]])
 
     .check_num(length(yres), min = 1, is_integer = TRUE,
