@@ -211,10 +211,6 @@ sits_regularize <- function(cube,
         reg_timeline = reg_timeline
     )
 
-    # start process
-    .sits_parallel_start(multicores, log = FALSE)
-    on.exit(.sits_parallel_stop())
-
     # recovery mode
     finished <- length(jobs) == 0
 
@@ -262,13 +258,12 @@ sits_regularize <- function(cube,
                 out_res = res
             )
 
-            # # get band_in_out ratio
-            # ratio_band_in_out <- .reg_get_ratio_in_out(
-            #     tile_band_interval,
-            #     band = band,
-            #     out_size = out_size
-            # )
-            ratio_band_in_out <- 1
+            # get band_in_out ratio
+            ratio_band_in_out <- .reg_get_ratio_in_out(
+                tile_band_interval,
+                band = band,
+                out_size = out_size
+            )
 
             # get cloud_in_out ratio
             ratio_cloud_in_out <- .reg_get_ratio_in_out(
@@ -287,6 +282,9 @@ sits_regularize <- function(cube,
                 memsize = memsize,
                 multicores = multicores
             )
+
+            # change ratio band (access pyramid)
+            ratio_band_in_out <- 1
 
             # create of the composite cubes
             composite_file <- .reg_composite_image(
