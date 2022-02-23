@@ -33,19 +33,19 @@ test_that("Plot Time Series and Images", {
         parse_info = c("X1", "X2", "tile", "band", "date")
     )
     bbox <- sits_bbox(sinop)
-    size_x <- bbox["xmax"] - bbox["xmin"]
-    size_y <- bbox["ymax"] - bbox["ymin"]
+    size_x <- bbox[["xmax"]] - bbox[["xmin"]]
+    size_y <- bbox[["ymax"]] - bbox[["ymin"]]
 
-    roi <- c(floor(bbox["xmin"] + size_x/4),
-             floor(bbox["xmax"] - size_x/4),
-             floor(bbox["ymin"] + size_y/4),
-             floor(bbox["ymax"] - size_y/4))
+    roi <- c(xmin = floor(bbox[["xmin"]] + size_x/4),
+             xmax = floor(bbox[["xmax"]] - size_x/4),
+             ymin = floor(bbox[["ymin"]] + size_y/4),
+             ymax = floor(bbox[["ymax"]] - size_y/4))
 
     r_obj <- plot(sinop, red = "EVI", blue = "EVI", green = "NDVI",
                   roi = roi)
 
     expect_equal(terra::nlyr(r_obj), 3)
-    expect_equal(terra::ncol(r_obj), 127)
+    expect_equal(terra::ncol(r_obj), 128)
 
     r_obj <- plot(sinop, band = "EVI")
 

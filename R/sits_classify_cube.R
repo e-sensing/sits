@@ -43,6 +43,9 @@
     # set caller to show in errors
     .check_set_caller(".sits_classify_multicores")
 
+    # check documentation mode
+    progress <- .check_documentation(progress)
+
     # some models have parallel processing built in
     if ("xgb_model" %in% class(ml_model))
         multicores <- 1
@@ -85,21 +88,15 @@
         memsize = memsize,
         multicores = multicores
     )
-    # show the number of blocks and block size
-    if (verbose)
-        message(paste0("Using ", length(blocks),
-                       " blocks of size (", unname(blocks[[1]]["nrows"]),
-                       " x ", unname(blocks[[1]]["ncols"]), ")"
-        ))
 
     # get timeline
     timeline <- sits_timeline(tile)
 
     # create the metadata for the probability cube
-    probs_cube <- .cube_derived_create_probs(
+    probs_cube <- .cube_derived_create(
         cube       = tile,
         cube_class = "probs_cube",
-        band_name  = "PROBS",
+        band_name  = "probs",
         labels     = labels,
         start_date = timeline[[1]],
         end_date   = timeline[[length(timeline)]],
@@ -115,6 +112,12 @@
 
     # show initial time for classification
     if (verbose) {
+
+        message(paste0("Using ", length(blocks),
+                       " blocks of size (", blocks[[1]][["nrows"]],
+                       " x ", blocks[[1]][["ncols"]], ")"
+        ))
+
         start_time <- Sys.time()
         message(paste0("Starting classification of '", tile$tile,
                        "' at ", start_time))

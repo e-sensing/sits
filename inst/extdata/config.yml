@@ -12,10 +12,12 @@ raster_api_package      : "terra"
 # GDAL GTiff default creation options
 gdal_creation_options   : ["COMPRESS=LZW", "BIGTIFF=YES"]
 
+# maxbytes per plot (in MB)
+plot_max_Mbytes: 16
 # maxbytes for leaflet (in MB)
 leaflet_max_Mbytes : 16
 # estimated compression factor for leaflet
-leaflet_comp_factor : 0.75
+leaflet_comp_factor : 0.50
 
 sources:
     BDC                     :
@@ -69,15 +71,17 @@ sources:
                 open_data   : true
                 open_data_token : true
                 metadata_search : "tile"
-                ext_tolerance_factor: 0.01
+                ext_tolerance: 0.01
             CB4_64_16D_STK-1:
                 <<: *bdc_cb4
                 collection_name: "CB4_64_16D_STK-1"
                 token_vars  :  ["BDC_ACCESS_KEY"]
                 open_data   : true
+                gdalcubes_support: true
+                reg_type_format: "INT2S"
                 open_data_token : true
                 metadata_search : "tile"
-                ext_tolerance_factor: 0.01
+                ext_tolerance: 0.01
             CB4MUX_20-1     : &bdc_cb4_mux
                 bands       :
                     NDVI    : &bdc_mux_ndvi
@@ -124,7 +128,7 @@ sources:
                 open_data   : true
                 open_data_token : true
                 metadata_search : "tile"
-                ext_tolerance_factor: 0.01
+                ext_tolerance: 0.01
             CB4_20_1M_STK-1 : &bdc_cb4_mux_stk
                 bands:
                     NDVI    : *bdc_mux_ndvi
@@ -151,7 +155,7 @@ sources:
                 open_data   : true
                 open_data_token: true
                 metadata_search : "tile"
-                ext_tolerance_factor: 0.01
+                ext_tolerance: 0.01
             LC8_30-1        : &bdc_lc8
                 bands       :
                     NDVI    : &bdc_oli_ndvi
@@ -210,15 +214,17 @@ sources:
                 open_data   : true
                 open_data_token: true
                 metadata_search : "tile"
-                ext_tolerance_factor: 0.01
+                ext_tolerance: 0.01
             LC8_30_16D_STK-1:
                 <<: *bdc_lc8
                 collection_name: "LC8_30_16D_STK-1"
                 token_vars  :  ["BDC_ACCESS_KEY"]
+                gdalcubes_support: true
+                reg_type_format: "INT2S"
                 open_data   : true
                 open_data_token: true
                 metadata_search : "tile"
-                ext_tolerance_factor: 0.01
+                ext_tolerance: 0.01
             MOD13Q1-6       : &bdc_mod
                 bands       :
                     NDVI              : &bdc_modis_ndvi
@@ -267,7 +273,7 @@ sources:
                 open_data   : true
                 open_data_token: true
                 metadata_search : "tile"
-                ext_tolerance_factor: 0.01
+                ext_tolerance: 0.01
             MYD13Q1-6       :
                 <<: *bdc_mod
                 satellite   : "AQUA"
@@ -276,7 +282,7 @@ sources:
                 open_data   : true
                 open_data_token: true
                 metadata_search : "tile"
-                ext_tolerance_factor: 0.01
+                ext_tolerance: 0.01
             S2-SEN2COR_10_16D_STK-1: &bdc_s2_sen2cor
                 bands       :
                     NDVI    : &bdc_sen2cor_msi_ndvi
@@ -356,7 +362,7 @@ sources:
                 open_data   : true
                 open_data_token: true
                 metadata_search : "tile"
-                ext_tolerance_factor: 0.01
+                ext_tolerance: 0.01
             LANDSAT-MOZ_30_1M_STK-1: &bdc_lc8
                 bands       :
                     NDVI    : &bdc_oli_ndvi
@@ -417,7 +423,7 @@ sources:
                 open_data   : true
                 open_data_token: true
                 metadata_search : "tile"
-                ext_tolerance_factor: 0.01
+                ext_tolerance: 0.01
     WTSS                    :
         s3_class            : ["wtss_cube"]
         service             : "WTSS"
@@ -432,48 +438,56 @@ sources:
                 token_vars  :  ["BDC_ACCESS_KEY"]
                 open_data   : true
                 open_data_token: true
+                ext_tolerance: 0
             MYD13Q1-6       :
                 <<: *bdc_mod
                 collection_name: "MYD13Q1-6"
                 token_vars  :  ["BDC_ACCESS_KEY"]
                 open_data   : true
                 open_data_token: true
+                ext_tolerance: 0
             S2-SEN2COR_10_16D_STK-1 :
                 <<: *bdc_s2_sen2cor
                 collection_name: "S2-SEN2COR_10_16D_STK-1"
                 token_vars  :  ["BDC_ACCESS_KEY"]
                 open_data   : true
                 open_data_token: true
+                ext_tolerance: 0
             LC8_30-1        :
                 <<: *bdc_lc8
                 collection_name: "LC8_30-1"
                 token_vars  :  ["BDC_ACCESS_KEY"]
                 open_data   : true
                 open_data_token: true
+                ext_tolerance: 0
             LC8_30_16D_STK-1:
                 <<: *bdc_lc8
                 collection_name: "LC8_30_16D_STK-1"
                 token_vars  :  ["BDC_ACCESS_KEY"]
                 open_data   : true
                 open_data_token: true
+                ext_tolerance: 0
             CB4_20_1M_STK-1 :
                 <<: *bdc_cb4_mux
                 collection_name: "CB4_20_1M_STK-1"
                 token_vars  :  ["BDC_ACCESS_KEY"]
                 open_data   : true
                 open_data_token: true
+                ext_tolerance: 0
             CB4_64_16D_STK-1:
                 <<: *bdc_cb4
                 collection_name: "CB4_64_16D_STK-1"
                 token_vars  :  ["BDC_ACCESS_KEY"]
                 open_data   : true
                 open_data_token: true
+                ext_tolerance: 0
             CB4_64-1        :
                 <<: *bdc_cb4
                 collection_name: "CB4_64-1"
                 token_vars  :  ["BDC_ACCESS_KEY"]
                 open_data   : true
                 open_data_token: true
+                ext_tolerance: 0
     SATVEG                  :
         s3_class            : ["satveg_cube"]
         service             : "SATVEG"
@@ -504,18 +518,21 @@ sources:
                 collection_name: "terra"
                 open_data   : true
                 open_data_token: false
+                ext_tolerance: 0
             AQUA            :
                 <<: *satveg_terra
                 satellite   : "AQUA"
                 collection_name: "aqua"
                 open_data   : true
                 open_data_token: false
+                ext_tolerance: 0
             COMB            :
                 <<: *satveg_terra
                 satellite   : "AQUA + TERRA"
                 collection_name: "comb"
                 open_data   : true
                 open_data_token: false
+                ext_tolerance: 0
     AWS                     :
         s3_class            : ["aws_cube", "stac_cube", "raster_cube"]
         service             : "STAC"
@@ -602,11 +619,76 @@ sources:
                     AWS_REQUEST_PAYER    : "requester"
                     AWS_NO_SIGN_REQUEST  : FALSE
                 open_data   : false
-                gdalcubes_support : true
-                gdalcubes_type_format: "int16"
-                gdalcubes_format_col : "s2la_aws.json"
                 metadata_search : "tile"
-                ext_tolerance_factor: 0
+                ext_tolerance: 0
+            SENTINEL-S2-L1C :
+                bands       :
+                    B01     : &aws_msi_l1c_60m
+                        missing_value: -9999
+                        minimum_value: 0
+                        maximum_value: 10000
+                        scale_factor : 0.0001
+                        offset_value : 0
+                        resolution  :  60
+                        band_name    : "B01"
+                    B02     : &aws_msi_l1c_10m
+                        missing_value: -9999
+                        minimum_value: 0
+                        maximum_value: 10000
+                        scale_factor : 0.0001
+                        offset_value : 0
+                        resolution  :  10
+                        band_name    : "B02"
+                    B03     :
+                        <<: *aws_msi_l1c_10m
+                        band_name    : "B03"
+                    B04     :
+                        <<: *aws_msi_l1c_10m
+                        band_name    : "B04"
+                    B05     : &aws_msi_l1c_20m
+                        missing_value: -9999
+                        minimum_value: 0
+                        maximum_value: 10000
+                        scale_factor : 0.0001
+                        offset_value : 0
+                        resolution  :  20
+                        band_name    : "B05"
+                    B06     :
+                        <<: *aws_msi_l1c_20m
+                        band_name    : "B06"
+                    B07     :
+                        <<: *aws_msi_l1c_20m
+                        band_name    : "B07"
+                    B08     :
+                        <<: *aws_msi_l1c_10m
+                        band_name    : "B08"
+                    B8A     :
+                        <<: *aws_msi_l1c_20m
+                        band_name    : "B8A"
+                    B09     :
+                        <<: *aws_msi_l1c_60m
+                        band_name    : "B09"
+                    B10     :
+                        <<: *aws_msi_l1c_60m
+                        band_name    : "B10"
+                    B11     :
+                        <<: *aws_msi_l1c_20m
+                        band_name    : "B11"
+                    B12     :
+                        <<: *aws_msi_l1c_20m
+                        band_name    : "B12"
+                satellite   : "SENTINEL-2"
+                sensor      : "MSI"
+                collection_name: "sentinel-s2-l1c"
+                token_vars  :  ["AWS_ACCESS_KEY_ID","AWS_SECRET_ACCESS_KEY"]
+                access_vars :
+                    AWS_DEFAULT_REGION   : "eu-central-1"
+                    AWS_S3_ENDPOINT      : "s3.amazonaws.com"
+                    AWS_REQUEST_PAYER    : "requester"
+                    AWS_NO_SIGN_REQUEST  : FALSE
+                open_data   : false
+                metadata_search : "tile"
+                ext_tolerance: 0
             SENTINEL-S2-L2A-COGS :
                 bands       :
                     B01     : &aws_cog_msi_60m
@@ -687,12 +769,9 @@ sources:
                     AWS_NO_SIGN_REQUEST  : TRUE
                 open_data: true
                 open_data_token: false
-                gdalcubes_support: true
-                gdalcubes_type_format: "int16"
-                gdalcubes_format_col : "s2la_aws_cogs.json"
                 metadata_search: "tile"
                 review_dates: ["2020-08-16"]
-                ext_tolerance_factor: 0
+                ext_tolerance: 0
     DEAFRICA                :
         s3_class            : ["deafrica_cube", "stac_cube", "raster_cube"]
         service             : "STAC"
@@ -778,11 +857,8 @@ sources:
                     AWS_NO_SIGN_REQUEST: TRUE
                 open_data: true
                 open_data_token: false
-                gdalcubes_support : true
-                gdalcubes_type_format: "int16"
-                gdalcubes_format_col : "s2_l2a_deafrica.json"
                 metadata_search : "tile"
-                ext_tolerance_factor: 0
+                ext_tolerance: 0
             LS8_SR          : &deafrica_l8
                 bands       :
                     B01     : &deafrica_oli_30m
@@ -839,11 +915,8 @@ sources:
                     AWS_NO_SIGN_REQUEST: TRUE
                 open_data: true
                 open_data_token: false
-                gdalcubes_support : true
-                gdalcubes_type_format: "int16"
-                gdalcubes_format_col : "ls8_sr_deafrica.json"
                 metadata_search : "feature"
-                ext_tolerance_factor: 0
+                ext_tolerance: 0
     USGS                    :
         s3_class            : ["usgs_cube", "stac_cube", "raster_cube"]
         service             : "STAC"
@@ -909,11 +982,8 @@ sources:
                 open_data: false
                 open_data_token: false
                 tile_required: false
-                gdalcubes_support : true
-                gdalcubes_type_format: "int16"
-                gdalcubes_format_col : "l8c2l2_usgs.json"
                 metadata_search : "feature"
-                ext_tolerance_factor: 0
+                ext_tolerance: 0
     MSPC                    :
         s3_class            : ["mspc_cube", "stac_cube", "raster_cube"]
         service             : "STAC"
@@ -974,11 +1044,8 @@ sources:
                 open_data: true
                 open_data_token: false
                 tile_required: false
-                gdalcubes_support : true
-                gdalcubes_type_format: "int16"
-                gdalcubes_format_col : "landsat_8_c2_l2_mspc.json"
                 metadata_search : "feature"
-                ext_tolerance_factor: 0
+                ext_tolerance: 0
             SENTINEL-2-L2A  : &mspc_msi
                 bands       :
                     B01     : &mspc_msi_60m
@@ -1055,8 +1122,5 @@ sources:
                 collection_name: "sentinel-2-l2a"
                 open_data: true
                 open_data_token: false
-                gdalcubes_support : true
-                gdalcubes_type_format: "int16"
-                gdalcubes_format_col : "sentinel_2_l2a_mspc.json"
                 metadata_search : "tile"
-                ext_tolerance_factor: 0
+                ext_tolerance: 0

@@ -430,14 +430,14 @@ test_that("Checks", {
         c(1, 1.23, 2)
     )
     expect_equal(
-        .check_num(x = 1, min = 1.1, max = 1.1, tolerance_factor = 0.1),
+        .check_num(x = 1, min = 1.1, max = 1.1, tolerance = 0.1),
         1
     )
     expect_error(
-        .check_num(x = 1, min = 1.1, max = 1.1, tolerance_factor = 0)
+        .check_num(x = 1, min = 1.1, max = 1.1, tolerance = 0)
     )
     expect_equal(
-        .check_num(x = -1, min = -0.99, max = -1, tolerance_factor = 0.1),
+        .check_num(x = -1, min = -0.99, max = -1, tolerance = 0.1),
         -1
     )
     expect_error(

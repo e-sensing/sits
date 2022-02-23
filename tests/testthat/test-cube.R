@@ -65,19 +65,6 @@ test_that("Backwards compatibility", {
 
     expect_message(
         object = sits_cube(
-            source = "LOCAL",
-            origin = "BDC",
-            collection = "MOD13Q1-6",
-            data_dir = data_dir,
-            delim = "_",
-            parse_info = c("X1", "X2", "tile", "band", "date"),
-            multicores = 2
-        ),
-        regexp = "LOCAL value is deprecated"
-    )
-
-    expect_message(
-        object = sits_cube(
             source = "BDC",
             collection = "MOD13Q1-6",
             band = c("NDVI", "EVI"),
@@ -461,26 +448,24 @@ test_that("Creating regular cubes from AWS Open Data, and extracting samples fro
     if (!dir.exists(dir_images))
         suppressWarnings(dir.create(dir_images))
 
-    gc_cube <- sits_regularize(
-        cube        = s2_cube_open,
+    rg_cube <- sits_regularize(
+        cube        = s2_cube_open[1,],
         output_dir  = dir_images,
-        res         = 320,
-        agg_method  = "median",
-        period      = "P1M",
-        multicores = 4,
-        multithreads = 16)
+        res         = 240,
+        period      = "P16D",
+        multicores  = 1)
 
-    tile_size <- .cube_size(gc_cube[1, ])
-    tile_bbox <- .cube_tile_bbox(gc_cube[1, ])
+    tile_size <- .cube_size(rg_cube[1, ])
+    tile_bbox <- .cube_tile_bbox(rg_cube[1, ])
 
-    expect_equal(tile_size[["nrows"]], 344)
-    expect_equal(tile_size[["ncols"]], 344)
-    expect_equal(tile_bbox$xmax, 309920, tolerance = 1e-1)
-    expect_equal(tile_bbox$xmin, 199840, tolerance = 1e-1)
+    expect_equal(tile_size[["nrows"]], 458)
+    expect_equal(tile_size[["ncols"]], 458)
+    expect_equal(tile_bbox$xmax, 309780, tolerance = 1e-1)
+    expect_equal(tile_bbox$xmin, 199980, tolerance = 1e-1)
 
-    tile_fileinfo <- .file_info(gc_cube[1, ])
+    tile_fileinfo <- .file_info(rg_cube[1, ])
 
-    expect_equal(nrow(tile_fileinfo), 1)
+    expect_equal(nrow(tile_fileinfo), 2)
 
     csv_file <- system.file("extdata/samples/samples_amazonia_sentinel2.csv",
                             package = "sits")
@@ -490,11 +475,11 @@ test_that("Creating regular cubes from AWS Open Data, and extracting samples fro
     expect_equal(nrow(samples), 1202)
     samples <- dplyr::sample_n(samples, size = 10, replace = FALSE)
 
-    ts <- sits_get_data(cube = gc_cube, samples = samples)
+    ts <- sits_get_data(cube = rg_cube, samples = samples)
     vls <- unlist(sits_values(ts))
     expect_true(all(vls > 0 & vls < 1.))
-    expect_equal(sits_bands(ts), sits_bands(gc_cube))
-    expect_equal(sits_timeline(ts), sits_timeline(gc_cube))
+    expect_equal(sits_bands(ts), sits_bands(rg_cube))
+    expect_equal(sits_timeline(ts), sits_timeline(rg_cube))
 })
 
 test_that("Creating cubes from AWS Open Data and regularizing with ROI", {
@@ -503,9 +488,9 @@ test_that("Creating cubes from AWS Open Data and regularizing with ROI", {
         sits_cube(source = "AWS",
                   collection = "SENTINEL-S2-L2A-COGS",
                   tiles = c("20LKP", "20LLP"),
-                  bands = c("B08", "B03", "SCL"),
-                  start_date = "2018-12-01",
-                  end_date = "2018-12-30"
+                  bands = c("B08", "SCL"),
+                  start_date = "2018-07-01",
+                  end_date = "2018-07-30"
         )},
         error = function(e){
             return(NULL)
@@ -526,29 +511,24 @@ test_that("Creating cubes from AWS Open Data and regularizing with ROI", {
                       pattern = "\\.tif$",
                       full.names = TRUE))
 
-    gc_cube <- sits_regularize(
+    rg_cube <- sits_regularize(
         cube        = s2_cube_open,
         output_dir  = dir_images,
         res         = 320,
-        agg_method  = "least_cc_first",
-        roi = c("lon_min" = -65.3811,
-                "lat_min" = -10.6645,
-                "lon_max" = -64.86069,
-                "lat_max" = -10.491988),
         period      = "P30D",
-        multicores = 2,
-        multithreads = 4)
+        multicores  = 2
+    )
 
-    size <- .cube_size(gc_cube)
+    size <- .cube_size(rg_cube[1,])
 
-    expect_equal(size[["nrows"]], 61)
-    expect_equal(size[["ncols"]], 179)
-    expect_equal(gc_cube$xmax, 296562, tolerance = 1e-1)
-    expect_equal(gc_cube$xmin, 234802.7, tolerance = 1e-1)
+    expect_equal(size[["nrows"]], 343)
+    expect_equal(size[["ncols"]], 343)
+    expect_equal(rg_cube$xmax[[1]], 309780, tolerance = 1e-1)
+    expect_equal(rg_cube$xmin[[1]], 199980, tolerance = 1e-1)
 
-    file_info2 <- gc_cube$file_info[[1]]
+    file_info2 <- rg_cube$file_info[[1]]
 
-    expect_equal(nrow(file_info2), 2)
+    expect_equal(nrow(file_info2), 1)
 })
 
 test_that("Creating cubes from USGS", {
@@ -667,8 +647,7 @@ test_that("Creating Sentinel cubes from MSPC with ROI", {
             return(NULL)
         })
 
-    testthat::skip_if(purrr::is_null(s2_cube),
-                      "MSPC is not accessible")
+    testthat::skip_if(purrr::is_null(s2_cube), "MSPC is not accessible")
 
     expect_true(all(sits_bands(s2_cube) %in% c("B05", "CLOUD")))
 
@@ -696,27 +675,51 @@ test_that("Creating Landsat cubes from MSPC", {
 
     testthat::skip_on_cran()
 
-    l8_cube <- sits_cube(source = "MSPC",
-                         collection = "landsat-8-c2-l2",
-                         roi = c("lon_min" = 17.379,
-                                 "lat_min" = 1.1573,
-                                 "lon_max" = 17.410,
-                                 "lat_max" = 1.1910),
-                         bands = c("B03","CLOUD"),
-                         start_date = as.Date("2019-07-18"),
-                         end_date = as.Date("2019-10-23")
-    )
+    tryCatch({
+        l8_cube <- sits_cube(source = "MSPC",
+                             collection = "landsat-8-c2-l2",
+                             roi = c("lon_min" = 17.379,
+                                     "lat_min" = 1.1573,
+                                     "lon_max" = 17.410,
+                                     "lat_max" = 1.1910),
+                             bands = c("B03","CLOUD"),
+                             start_date = as.Date("2019-07-18"),
+                             end_date = as.Date("2019-10-23"))
+    },
+    error = function(e) {
+        return(NULL)
+    })
+
+    testthat::skip_if(purrr::is_null(l8_cube), "MSPC is not accessible")
 
     expect_true(all(sits_bands(l8_cube) %in% c("B03", "CLOUD")))
-
-    # expect_equal(class(.cube_size(l8_cube)), "numeric")
-    expect_equal(class(.cube_resolution(l8_cube)), "numeric")
+    expect_false(.cube_is_regular(l8_cube))
+    expect_equal(class(.file_info_xres(l8_cube)), "numeric")
 
     file_info <- l8_cube$file_info[[1]]
     r <- .raster_open_rast(file_info$path[[1]])
 
     expect_equal(l8_cube$xmax[[1]], .raster_xmax(r), tolerance = 1)
     expect_equal(l8_cube$xmin[[1]], .raster_xmin(r), tolerance = 1)
+
+    output_dir <- paste0(tempdir(), "/images")
+    if (!dir.exists(output_dir))
+        dir.create(output_dir)
+
+    rg_l8 <- sits_regularize(
+        cube        = l8_cube,
+        output_dir  = output_dir,
+        res         = 330,
+        period      = "P30D",
+        multicores  = 1
+    )
+
+    size <- .cube_size(rg_l8)
+
+    expect_equal(size[["nrows"]], 704)
+    expect_equal(size[["ncols"]], 685)
+
+    expect_true(.cube_is_regular(rg_l8))
 
     l8_cube_tile <-  tryCatch({
         sits_cube(source = "MSPC",

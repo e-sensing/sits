@@ -127,8 +127,7 @@
 
     # all bands are upper case
     .check_chr_within(bands,
-                      within = .cube_bands(cube = cube,
-                                           add_cloud = add_cloud),
+                      within = .cube_bands(cube = cube, add_cloud = add_cloud),
                       case_sensitive = FALSE,
                       msg = "invalid 'bands' parameter")
 
@@ -369,8 +368,14 @@
 #' @param output_dir   prefix of the output files.
 #' @param version      version of the output files
 #' @return             output data cube
-.cube_derived_create <- function(cube, cube_class, band_name, labels,
-                                 start_date, end_date, bbox, output_dir,
+.cube_derived_create <- function(cube,
+                                 cube_class,
+                                 band_name,
+                                 labels,
+                                 start_date,
+                                 end_date,
+                                 bbox,
+                                 output_dir,
                                  version) {
 
     # set caller to show in errors
@@ -407,8 +412,8 @@
         start_date = start_date,
         end_date   = end_date,
         xmin       = bbox[["xmin"]],
-        xmax       = bbox[["xmax"]],
         ymin       = bbox[["ymin"]],
+        xmax       = bbox[["xmax"]],
         ymax       = bbox[["ymax"]],
         xres       = res[["xres"]],
         yres       = res[["yres"]],
@@ -416,13 +421,11 @@
         ncols      = ncols_cube_class,
         path       = file_name
     )
-    # get source and collection
-    source     = .cube_source(cube)
-    collection = .cube_collection(cube)
+
     # set the metadata for the probability cube
     dev_cube <- .cube_create(
-        source     = cube$source,
-        collection = cube$collection,
+        source     = .cube_source(cube),
+        collection = .cube_collection(cube),
         satellite  = cube$satellite,
         sensor     = cube$sensor,
         tile       = cube$tile,
@@ -439,94 +442,7 @@
 
     return(dev_cube)
 }
-#' @title Create a data cube derived from another
-#' @name .cube_derived_create_probs
-#' @keywords internal
-#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
-#'
-#' @description Take a tibble containing metadata about a data cube
-#' containing time series and create a
-#' set of files to store the result of a classification or smoothing
-#'
-#' @param cube         input data cube
-#' @param cube_class   class to be attributed to created cube
-#' @param band_name    name of band in created cube
-#' @param labels       labels of derived cube
-#' @param start_date   start date of the cube interval
-#' @param end_date     end date of the cube interval
-#' @param bbox         bounding box of the ROI
-#' @param output_dir   prefix of the output files.
-#' @param version      version of the output files
-#' @return             output data cube
-.cube_derived_create_probs <- function(cube, cube_class, band_name, labels,
-                                       start_date, end_date, bbox, output_dir,
-                                       version) {
 
-    # set caller to show in errors
-    .check_set_caller(".cube_derived_create_probs")
-
-    # ensure metadata tibble exists
-    .check_that(x = nrow(cube) == 1,
-                msg = "accepts only one tile at a time")
-
-    # output filename
-    file_name <- paste0(output_dir, "/",
-                        cube$satellite, "_",
-                        cube$sensor,"_",
-                        cube$tile,"_",
-                        start_date, "_",
-                        end_date,"_",
-                        band_name, "_",
-                        version, ".tif")
-
-    res <- .cube_resolution(cube)
-
-    if (!purrr::is_null(bbox[["nrows"]]) && !purrr::is_null(bbox[["ncols"]])) {
-        nrows_cube_class <-  bbox[["nrows"]]
-        ncols_cube_class <-  bbox[["ncols"]]
-    } else {
-        nrows_cube_class <- .file_info_nrows(cube)
-        ncols_cube_class <- .file_info_ncols(cube)
-    }
-
-    # set the file information
-    file_info <- tibble::tibble(
-        band       = band_name,
-        start_date = start_date,
-        end_date   = end_date,
-        xmin       = bbox[["xmin"]],
-        xmax       = bbox[["xmax"]],
-        ymin       = bbox[["ymin"]],
-        ymax       = bbox[["ymax"]],
-        xres       = res[["xres"]],
-        yres       = res[["yres"]],
-        nrows      = nrows_cube_class,
-        ncols      = ncols_cube_class,
-        path       = file_name
-    )
-    # get source and collection
-    source     = .cube_source(cube)
-    collection = .cube_collection(cube)
-    # set the metadata for the probability cube
-    dev_cube <- .cube_create(
-        source     = cube$source,
-        collection = cube$collection,
-        satellite  = cube$satellite,
-        sensor     = cube$sensor,
-        tile       = cube$tile,
-        xmin       = bbox[["xmin"]],
-        xmax       = bbox[["xmax"]],
-        ymin       = bbox[["ymin"]],
-        ymax       = bbox[["ymax"]],
-        crs        = cube$crs,
-        labels     = labels,
-        file_info  = file_info
-    )
-
-    class(dev_cube) <- unique(c(cube_class, "raster_cube", class(dev_cube)))
-
-    return(dev_cube)
-}
 #' @title Given a band, return a set of values for chosen location
 #' @name .cube_extract
 #' @keywords internal
@@ -574,6 +490,40 @@
     return(values)
 }
 
+#' @title Verify if two cubes are equal
+#'
+#' @name .cube_is_equal
+#'
+#' @keywords internal
+#'
+#' @description Given two cubes verify if they are equal
+#'
+#' @param x,y   a sits cube
+#'
+#' @return a \code{logical} value.
+.cube_is_equal <- function(x, y) {
+
+    if (nrow(x) != nrow(y))
+        return(FALSE)
+
+    slider::slide2_lgl(x, y, function(xtile, ytile) {
+
+        test_metadata <- isTRUE(dplyr::all_equal(
+            dplyr::select(xtile, -.data[["file_info"]], -.data[["crs"]]),
+            dplyr::select(ytile, -.data[["file_info"]], -.data[["crs"]])
+        ))
+
+        test_file_info <- isTRUE(dplyr::all_equal(
+            xtile[["file_info"]][[1]],
+            ytile[["file_info"]][[1]]
+        ))
+
+        test_crs <- sf::st_crs(xtile[["crs"]]) == sf::st_crs(ytile[["crs"]])
+
+        return(all(c(test_metadata, test_file_info, test_crs)))
+    })
+}
+
 #' @title Check if cube is regular
 #' @name .cube_is_regular
 #' @keywords internal
@@ -581,8 +531,17 @@
 #'
 #' @param  cube         input data cube
 #' @return TRUE/FALSE
-#'
-.cube_is_regular <- function(cube){
+.cube_is_regular <- function(cube) {
+
+    source <- .source_new(source = .cube_source(cube))
+
+    # Dispatch
+    UseMethod(".cube_is_regular", source)
+}
+
+#' @name .cube_is_regular
+#' @export
+.cube_is_regular.raster_cube <- function(cube) {
 
     # check if all tiles have the same bands
     bands <- slider::slide(cube, function(tile) {
@@ -592,29 +551,67 @@
     if (length(unique(bands)) != 1)
         return(FALSE)
 
+    tolerance <- .config_get(
+        key = c("sources", .cube_source(cube),
+                "collections", .cube_collection(cube),
+                "ext_tolerance")
+    )
+
     # check if the resolutions are unique
-    res_cube_x <- slider::slide(cube, function(tile){
-        .file_info_xres(tile)
+    equal_bbox <- slider::slide_lgl(cube, function(tile) {
+
+        file_info <- .file_info(tile)
+
+        test <-
+            (.is_eq(max(file_info[["xmax"]]),
+                    min(file_info[["xmax"]]),
+                    tolerance = tolerance)
+             && .is_eq(max(file_info[["xmin"]]),
+                       min(file_info[["xmin"]]),
+                       tolerance = tolerance)
+             && .is_eq(max(file_info[["ymin"]]),
+                       min(file_info[["ymin"]]),
+                       tolerance = tolerance)
+             && .is_eq(max(file_info[["ymax"]]),
+                       min(file_info[["ymax"]]),
+                       tolerance = tolerance))
+
+        return(test)
     })
 
-    if (length(unique(unlist(res_cube_x))) != 1)
+    if (!all(equal_bbox))
         return(FALSE)
 
-    # check if the resolutions are unique
-    res_cube_y <- slider::slide(cube, function(tile){
-        .file_info_yres(tile)
+    # check if the size are unique
+    test_cube_size <- slider::slide_lgl(cube, function(tile) {
+
+        if (length(unique(.file_info(tile)[["nrows"]])) > 1
+            || length(unique(.file_info(tile)[["ncols"]])) > 1)
+            return(FALSE)
+        return(TRUE)
     })
 
-    if (length(unique(unlist(res_cube_y))) != 1)
+    if (!all(test_cube_size))
         return(FALSE)
 
     # check if timelines are unique
     timelines <- slider::slide(cube, function(tile){
-        sits_timeline(tile)
+        unique(purrr::map(unlist(unique(bands)), function(band) {
+            tile_band <- sits_select(tile, bands = band)
+            sits_timeline(tile_band)
+        }))
     })
 
     # function to test timelines
-    return(length(unique(timelines)) == 1)
+    return(length(unique(timelines)) == 1 &&
+               any(sapply(timelines, length) == 1))
+}
+
+#' @name .cube_is_regular
+#' @export
+.cube_is_regular.default <- function(cube) {
+
+    return(TRUE)
 }
 
 #' @title Return the labels of the cube
@@ -672,45 +669,67 @@
     .check_num(block[["ncols"]], min = 1, max = .cube_size(cube)[["ncols"]],
                msg = "invalid block value")
 
-    res <- .cube_resolution(cube)
-
-    # compute new Y extent
-    ymax  <-  cube[["ymax"]] - (block[["first_row"]] - 1) * res[["yres"]]
-    ymin  <-  ymax - block[["nrows"]] * res[["yres"]]
-
-    # compute new X extent
-    xmin  <-  cube[["xmin"]] + (block[["first_col"]] - 1) * res[["xres"]]
-    xmax  <-  xmin + block[["ncols"]] * res[["xres"]]
-
-    # prepare result
-    params <- tibble::tibble(
-        nrows = block[["nrows"]],
-        ncols = block[["ncols"]],
-        xmin  = xmin,
-        xmax  = xmax,
-        ymin  = ymin,
-        ymax  = ymax,
-        crs   = .cube_crs(cube)
-    )
+    params <- .sits_raster_sub_image_from_block(block = block, tile = cube)
 
     tolerance <- .config_get(key = c("sources", .cube_source(cube),
                                      "collections", .cube_collection(cube),
-                                     "ext_tolerance_factor"))
+                                     "ext_tolerance"))
 
     # post-conditions
     .check_num(params[["xmin"]], min = cube[["xmin"]], max = cube[["xmax"]],
-               tolerance_factor = tolerance, msg = "invalid params value")
+               tolerance = tolerance, msg = "invalid params value")
 
     .check_num(params[["xmax"]], min = cube[["xmin"]], max = cube[["xmax"]],
-               tolerance_factor = tolerance, msg = "invalid params value")
+               tolerance = tolerance, msg = "invalid params value")
 
     .check_num(params[["ymin"]], min = cube[["ymin"]], max = cube[["ymax"]],
-               tolerance_factor = tolerance, msg = "invalid params value")
+               tolerance = tolerance, msg = "invalid params value")
 
     .check_num(params[["ymax"]], min = cube[["ymin"]], max = cube[["ymax"]],
-               tolerance_factor = tolerance, msg = "invalid params value")
+               tolerance = tolerance, msg = "invalid params value")
 
     return(params)
+}
+
+#' @title Return the cube resolution of the x axis
+#' @name .cube_xres
+#' @keywords internal
+#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
+#'
+#' @param  cube         input data cube
+#' @return a numeric with the x resolution
+.cube_xres <- function(cube, bands = NULL) {
+
+    # tile template
+    xres <- .file_info_xres(cube, bands = bands)
+
+
+    # post-condition
+    .check_num(xres, min = 0, allow_zero = FALSE,
+               len_min = 1, len_max = 1,
+               msg = "invalid xres value")
+
+    return(xres)
+}
+
+#' @title Return the cube resolution of the y axis
+#' @name .cube_yres
+#' @keywords internal
+#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
+#'
+#' @param  cube         input data cube
+#' @return a numeric with the y resolution
+.cube_yres <- function(cube, bands = NULL) {
+
+    # tile template
+    yres <- .file_info_yres(cube, bands = bands)
+
+    # post-condition
+    .check_num(yres, min = 0, allow_zero = FALSE,
+               len_min = 1, len_max = 1,
+               msg = "invalid xres value")
+
+    return(yres)
 }
 
 #' @title Return the resolution of the cube
@@ -722,23 +741,8 @@
 #' @return a vector with the x and y resolution
 .cube_resolution <- function(cube, bands = NULL) {
 
-    # get first file_info
-    xres <- .file_info_xres(cube)
-    yres <- .file_info_yres(cube)
-
-    # post-condition
-    .check_num(xres, min = 0, allow_zero = FALSE,
-               len_min = 1, len_max = 1,
-               msg = "invalid xres value")
-
-    # post-condition
-    .check_num(yres, min = 0, allow_zero = FALSE,
-               len_min = 1, len_max = 1,
-               msg = "invalid yres value")
-
-    res <- c(xres = xres, yres = yres)
-
-    return(res)
+    cube <- sits_select(cube, bands = bands)
+    return(c(xres = .cube_xres(cube), yres = .cube_yres(cube)))
 }
 
 #' @title Return the S3 class of the cube
@@ -764,8 +768,8 @@
 .cube_size <- function(cube, ..., bands = NULL) {
 
     # get the file size
-    nrows <- .file_info_nrows(cube)
-    ncols <- .file_info_ncols(cube)
+    nrows <- .file_info_nrows(cube, bands = bands)
+    ncols <- .file_info_ncols(cube, bands = bands)
 
     # post-conditions
     .check_num(nrows, min = 1, len_min = 1, len_max = 1,
@@ -837,10 +841,11 @@
     bbox <- vector("double", length = 4)
     names(bbox) <- c("xmin", "ymin", "xmax", "ymax")
 
-    bbox["xmin"] <-  cube["xmin"]
-    bbox["ymin"] <-  cube["ymin"]
-    bbox["xmax"] <-  cube["xmax"]
-    bbox["ymax"] <-  cube["ymax"]
+    bbox["xmin"] <- cube["xmin"]
+    bbox["ymin"] <- cube["ymin"]
+    bbox["xmax"] <- cube["xmax"]
+    bbox["ymax"] <- cube["ymax"]
+
     # post-condition
     .check_lst(bbox, min_len = 4, max_len = 4, fn_check = .check_num,
                len_min = 1, len_max = 1,
@@ -848,6 +853,3 @@
 
     return(bbox)
 }
-
-
-

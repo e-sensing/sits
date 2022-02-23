@@ -61,11 +61,16 @@ sits_select.sits_cube <- function(data, bands) {
     # pre-condition - cube
     .cube_check(data)
 
-    # pre-condition - check bands
-    .cube_bands_check(data, bands = bands)
-
     # filter the file info
     data <- slider::slide_dfr(data, function(tile) {
+
+        # default bands
+        if (is.null(bands))
+            bands <- .cube_bands(tile)
+
+        # pre-condition - check bands
+        .cube_bands_check(tile, bands = bands)
+
         db_info <- .file_info(tile)
         db_info <- dplyr::filter(db_info, band %in% bands)
         tile$file_info[[1]] <- db_info

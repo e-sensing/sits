@@ -223,10 +223,10 @@ sits_smooth.bayes <- function(cube, type = "bayes", ...,
     cube_bayes <- slider::slide_dfr(cube, function(tile) {
 
         # create metadata for raster cube
-        tile_bayes <- .cube_derived_create_probs(
+        tile_bayes <- .cube_derived_create(
             cube       = tile,
             cube_class = "probs_cube",
-            band_name  = "probs_bayes",
+            band_name  = "bayes",
             labels     = .cube_labels(tile),
             start_date = .file_info_start_date(tile),
             end_date   = .file_info_end_date(tile),
@@ -347,7 +347,7 @@ sits_smooth.gaussian <- function(cube, type = "gaussian", ...,
         tile_gauss <- .cube_derived_create(
             cube       = tile,
             cube_class = "probs_cube",
-            band_name  = "probs_gauss",
+            band_name  = "gauss",
             labels     = .cube_labels(tile),
             start_date = .file_info_start_date(tile),
             end_date   = .file_info_end_date(tile),
@@ -472,7 +472,7 @@ sits_smooth.bilateral <- function(cube,
         tile_bilat <- .cube_derived_create(
             cube       = tile,
             cube_class = "probs_cube",
-            band_name  = "probs_bilat",
+            band_name  = "bilat",
             labels     = .cube_labels(tile),
             start_date = .file_info_start_date(tile),
             end_date   = .file_info_end_date(tile),

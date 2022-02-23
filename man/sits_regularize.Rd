@@ -6,25 +6,19 @@
 \usage{
 sits_regularize(
   cube,
-  output_dir,
   period,
   res,
-  roi = NULL,
-  agg_method = "least_cc_first",
-  resampling = "bilinear",
+  output_dir,
   multicores = 1,
-  multithreads = 2,
+  memsize = 4,
   progress = TRUE,
-  cloud_mask = FALSE
+  ...
 )
 }
 \arguments{
 \item{cube}{A \code{sits_cube} object whose spacing of observation
 times is not constant and will be regularized by the \code{gdalcubes}
 package.}
-
-\item{output_dir}{A \code{character} with a valid directory where the
-regularized images will be written by \code{gdalcubes}.}
 
 \item{period}{A \code{character} with ISO8601 time period for regular
 data cubes produced by \code{gdalcubes}, with number and unit, e.g., "P16D"
@@ -33,35 +27,19 @@ for 16 days. Use "D", "M" and "Y" for days, month and year.}
 \item{res}{A \code{numeric} with spatial resolution of the image
 that will be aggregated.}
 
-\item{roi}{A named \code{numeric} vector with a region of interest.
-See more above}
-
-\item{agg_method}{A \code{character} with method that will be applied by
-\code{gdalcubes} for aggregation. Options: \code{median} and
-\code{least_cc_first}. The default aggregation method is
-\code{least_cc_first}. See more above.}
-
-\item{resampling}{A \code{character} with method to be used by
-\code{gdalcubes} for resampling in mosaic operation.
-Options: \code{near}, \code{bilinear}, \code{bicubic} or others supported by
-gdalwarp (see https://gdal.org/programs/gdalwarp.html).
-Default is bilinear.}
+\item{output_dir}{A \code{character} with a valid directory where the
+regularized images will be written by \code{gdalcubes}.}
 
 \item{multicores}{A \code{numeric} with the number of cores used for
 regularization. This parameter specifies how many bands from different tiles
 should be processed in parallel. By default, 1 core is used.}
 
-\item{multithreads}{A \code{numeric} value that specifies the number of
-threads used in the gdalcubes package. This parameter determines how many
-chunks are executed in parallel. The gdalcubes package divides data cubes
-into smaller chunks, where the generated chunk creates a 3-dimensional array
-of band, latitude, and longitude information. By default 2 threads are used.}
+\item{memsize}{A \code{numeric} with memory available for regularization
+(in GB).}
 
 \item{progress}{A \code{logical} value. Show progress bar?}
 
-\item{cloud_mask}{A \code{logical} to use cloud band for aggregation by
-\code{gdalcubes}. Deprecated as of SITS version 0.16.0. Default
-is \code{FALSE}.}
+\item{...}{Deprecated parameters are controlled with ellipses.}
 }
 \value{
 A \code{sits_cube} object with aggregated images.
@@ -96,22 +74,24 @@ If the supplied data cube contains cloud band, the values indicated as
 # --- Access to the AWS STAC
 
 # define an AWS data cube
-  s2_cube <- sits_cube(source = "AWS",
-                      collection = "sentinel-s2-l2a-cogs",
-                      bands = c("B08", "SCL"),
-                      tiles = c("20LKP"),
-                      start_date = as.Date("2018-07-18"),
-                      end_date = as.Date("2018-08-18")
+  s2_cube <- sits_cube(
+      source = "AWS",
+      collection = "sentinel-s2-l2a-cogs",
+      bands = c("B08", "SCL"),
+      tiles = c("20LKP"),
+      start_date = "2018-07-18",
+      end_date = "2018-08-18"
   )
 
 # create a directory to store the resulting images
 dir.create(paste0(tempdir(),"/images/"))
 
 # Build a data cube of equal intervals using the "gdalcubes" package
-gc_cube <- sits_regularize(cube       = s2_cube,
-                           output_dir = paste0(tempdir(),"/images/"),
-                           period     = "P1M",
-                           res        = 320)
+gc_cube <- sits_regularize(
+    cube       = s2_cube,
+    output_dir = paste0(tempdir(),"/images/"),
+    period     = "P1M",
+    res        = 320)
 }
 }
 

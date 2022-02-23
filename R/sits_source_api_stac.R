@@ -2,7 +2,7 @@
 #' @export
 .source_collection_access_test.stac_cube <- function(source, collection,
                                                      bands, ...,
-                                                     dry_run = TRUE) {
+                                                     dry_run = FALSE) {
     # require package
     if (!requireNamespace("rstac", quietly = TRUE)) {
         stop("Please install package rstac", call. = FALSE)
@@ -119,7 +119,8 @@
 #' @export
 .source_items_cube.stac_cube <- function(source,
                                          items, ...,
-                                         collection = NULL) {
+                                         collection = NULL,
+                                         multicores = 2) {
 
     # set caller to show in errors
     .check_set_caller(".source_items_cube.stac_cube")
@@ -137,7 +138,9 @@
 
     # prepare number of workers
     progress <- TRUE
-    n_workers <- .config_gdalcubes_open_connections()
+    # check documentation mode
+    progress <- .check_documentation(progress)
+
     if (.source_collection_metadata_search(
         source = source,
         collection = collection) == "tile") {
@@ -158,13 +161,8 @@
                     }))
     }
 
-    if (.config_gdalcubes_min_files_for_parallel() > nrow(data)) {
-        n_workers <- 1
-        progress <- FALSE
-    }
-
     # prepare parallel requests
-    .sits_parallel_start(n_workers, log = FALSE)
+    .sits_parallel_start(multicores, log = FALSE)
     on.exit(.sits_parallel_stop(), add = TRUE)
 
     # do parallel requests

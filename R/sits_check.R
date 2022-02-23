@@ -56,9 +56,8 @@
 #' @param extensions    A \code{character} vector with all allowed file
 #' extensions.
 #' @param expr          A R \code{expression} to be evaluated.
-#' @param tolerance_factor A code{numeric} with the tolerance percentage to be
-#' accepted. Values range from 0 to 1, where 1 means 100% tolerance.
-#' The default value is NULL.
+#' @param tolerance     A \code{numeric} with the tolerance to be
+#' accepted in range test. The default value is NULL.
 #' @param ...           Additional parameters for \code{fn_check} function.
 #'
 #' @return
@@ -484,7 +483,7 @@ NULL
                        allow_null = FALSE,
                        is_integer = FALSE,
                        is_named = FALSE,
-                       tolerance_factor = NULL,
+                       tolerance = NULL,
                        msg = NULL) {
 
     # check for NULL and exit if it is allowed
@@ -515,24 +514,21 @@ NULL
     if (!is.null(max) && !is.numeric(max))
         stop(".check_num: max parameter should be numeric.")
 
+    if (!is.null(tolerance))
+        .check_num(
+            x = tolerance,
+            msg = "tolerance must be numeric."
+        )
+
     # remove NAs before check
     result <- x
     x <- x[!is.na(x)]
 
-    if (!is.null(tolerance_factor) && tolerance_factor > 0) {
+    # adjust min and max to tolerance
+    if (!is.null(tolerance)) {
 
-        .check_that(
-            x = tolerance_factor <= 1,
-            msg = "Values should be less or equal than 1. "
-        )
-
-        min <- ifelse(min < 0,
-                      min * (1 + tolerance_factor),
-                      min - (min * tolerance_factor))
-
-        max <- ifelse(max > 0,
-                      max * (1 + tolerance_factor),
-                      max - (max * tolerance_factor))
+        min <- min - tolerance
+        max <- max + tolerance
     }
 
     .check_that(
@@ -973,4 +969,13 @@ NULL
     })
 
     return(invisible(result))
+}
+#' @rdname check_functions
+#' @keywords internal
+.check_documentation <- function(progress){
+    # if working on sits documentation mode, no progress bar
+    if (Sys.getenv("SITS_DOCUMENTATION_MODE") == "true")
+        progress <- FALSE
+
+    return(progress)
 }

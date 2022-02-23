@@ -5,10 +5,26 @@
 #' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
 .sits_parallel_stop <- function() {
 
-    if (!purrr::is_null(sits_env$cluster)) {
-        parallel::stopCluster(sits_env$cluster)
-        sits_env$cluster <- NULL
+    if (.sits_parallel_is_open()) {
+
+        tryCatch({
+            parallel::stopCluster(sits_env[["cluster"]])
+        }, finally = {
+            sits_env[["cluster"]] <- NULL
+        })
     }
+}
+
+#' @title Check if sits clusters are open or not
+#' @name .sits_parallel_is_open
+#' @keywords internal
+#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
+.sits_parallel_is_open <- function() {
+
+    tryCatch({
+        !is.null(sits_env[["cluster"]]) &&
+            socketSelect(list(sits_env[["cluster"]][[1]]$con), write = TRUE)
+    }, error = function(e) FALSE)
 }
 
 #' @title Start a new sits cluster for parallel processing
@@ -20,23 +36,23 @@
 #' @param log       a logical indicating if log files must be written
 .sits_parallel_start <- function(workers, log) {
 
-    if (purrr::is_null(sits_env$cluster) ||
-        length(sits_env$cluster) != workers) {
+    if (!.sits_parallel_is_open() ||
+        length(sits_env[["cluster"]]) != workers) {
 
         .sits_parallel_stop()
 
         if (workers > 1) {
-            sits_env$cluster <- parallel::makePSOCKcluster(workers)
+            sits_env[["cluster"]] <- parallel::makePSOCKcluster(workers)
 
             # make sure library paths is the same as actual environment
             lib_paths <- .libPaths()
-            parallel::clusterExport(cl = sits_env$cluster,
+            parallel::clusterExport(cl = sits_env[["cluster"]],
                                     varlist = c("lib_paths", "log"),
                                     envir = environment())
-            parallel::clusterEvalQ(cl = sits_env$cluster,
+            parallel::clusterEvalQ(cl = sits_env[["cluster"]],
                                    expr = .libPaths(lib_paths))
             # export debug flag
-            parallel::clusterEvalQ(cl = sits_env$cluster,
+            parallel::clusterEvalQ(cl = sits_env[["cluster"]],
                                    expr = sits:::.sits_debug(flag = log))
         }
     }
@@ -52,13 +68,13 @@
 
     # stop node
     tryCatch({
-        if (isOpen(sits_env$cluster[[worker_id]]$con)) {
-            close(sits_env$cluster[[worker_id]]$con)
+        if (isOpen(sits_env[["cluster"]][[worker_id]]$con)) {
+            close(sits_env[["cluster"]][[worker_id]]$con)
         }
     })
 
     # create a new node
-    sits_env$cluster[[worker_id]] <- parallel::makePSOCKcluster(1)[[1]]
+    sits_env[["cluster"]][[worker_id]] <- parallel::makePSOCKcluster(1)[[1]]
 }
 
 #' @title Fault tolerant version of some parallel functions
@@ -74,7 +90,7 @@
 
     # fault tolerant version of parallel:::recvOneData
 
-    cl <- sits_env$cluster
+    cl <- sits_env[["cluster"]]
 
     # get connections
     socklist <- lapply(cl, function(x) x$con)
@@ -120,7 +136,7 @@
 
     # fault tolerant version of parallel:::recvOneResult
 
-    cl <- sits_env$cluster
+    cl <- sits_env[["cluster"]]
 
     # fault tolerant version of parallel:::recvOneData
     v <- .sits_parallel_recv_one_data()
@@ -133,7 +149,7 @@
 
     # fault tolerant version of parallel::clusterApplyLB
 
-    cl <- sits_env$cluster
+    cl <- sits_env[["cluster"]]
 
     # number of jobs
     n <- length(x)
@@ -214,15 +230,17 @@
 #'
 #' @return  a list with the function results in the same order
 #' as the input list
-.sits_parallel_map <- function(x, fn, ..., progress, n_retries = 3, sleep = 0) {
+.sits_parallel_map <- function(x, fn, ..., progress = FALSE,
+                               n_retries = 3, sleep = 0) {
 
     # create progress bar
     pb <- NULL
+    progress <- progress && (length(x) > 0)
     if (progress)
         pb <- utils::txtProgressBar(min = 0, max = length(x), style = 3)
 
     # sequential processing
-    if (purrr::is_null(sits_env$cluster)) {
+    if (purrr::is_null(sits_env[["cluster"]])) {
 
         result <- lapply(seq_along(x), function(i) {
 

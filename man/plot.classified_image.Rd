@@ -8,7 +8,7 @@
   x,
   y,
   ...,
-  time = 1,
+  tiles = NULL,
   title = "Classified Image",
   legend = NULL,
   palette = "Spectral",
@@ -22,7 +22,7 @@
 
 \item{...}{further specifications for \link{plot}.}
 
-\item{time}{temporal reference for plot.}
+\item{tiles}{tiles to be plotted}
 
 \item{title}{title of the plot}
 
