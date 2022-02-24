@@ -2,12 +2,26 @@
 % Please edit documentation in R/sits_regularize.R
 \name{.reg_missing_files}
 \alias{.reg_missing_files}
+\alias{.reg_regularize}
 \title{Finds the missing files in a regularized cube}
 \usage{
+.reg_regularize(
+  cube,
+  period,
+  res,
+  output_dir,
+  multicores = 1,
+  memsize = 4,
+  progress = TRUE,
+  ...
+)
+
 .reg_missing_files(cube, local_cube, reg_timeline)
 }
 \arguments{
 \item{cube}{original cube to be regularized}
+
+\item{...}{...}
 
 \item{local_cube}{regularized cube (may have missing files)}
 
@@ -15,8 +29,12 @@
 }
 \value{
 tiles that are missing from the regularized cube
+
+tiles that are missing from the regularized cube
 }
 \description{
+Finds the missing files in a regularized cube
+
 Finds the missing files in a regularized cube
 }
 \keyword{internal}

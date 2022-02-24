@@ -92,7 +92,49 @@ sits_regularize <- function(cube,
                             output_dir,
                             multicores = 1,
                             memsize = 4,
+                            progress = TRUE,
+                            use_gdalcubes = FALSE, ...) {
+
+    if (use_gdalcubes) {
+        return(.gc_regularize(
+            cube = cube,
+            period = period,
+            res = res,
+            output_dir = output_dir,
+            multicores = multicores,
+            progress = progress
+        ))
+
+    }
+
+    # else...
+    return(.reg_regularize(
+        cube = cube,
+        period = period,
+        res = res,
+        output_dir = output_dir,
+        multicores = multicores,
+        memsize = memsize,
+        progress = progress
+    ))
+}
+
+
+#' @title Finds the missing files in a regularized cube
+#'
+#' @name .reg_missing_files
+#' @keywords internal
+#' @param ... ...
+#'
+#' @return              tiles that are missing from the regularized cube
+.reg_regularize <- function(cube,
+                            period,
+                            res,
+                            output_dir,
+                            multicores = 1,
+                            memsize = 4,
                             progress = TRUE, ...) {
+
 
     # set caller to show in errors
     .check_set_caller("sits_regularize")
