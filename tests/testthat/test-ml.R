@@ -159,7 +159,16 @@ test_that("XGBoost", {
         sits_labels(samples_mt_ndvi)))
     expect_true(nrow(sits_show_prediction(point_class)) == 17)
 })
+test_that("lightGBM", {
+    lgbm_model <- sits_train(samples_modis_4bands, sits_lightgbm)
+    point_4class <- sits_select(point_mt_6bands,
+                                bands = sits_bands(samples_modis_4bands))
+    point_class <- sits_classify(point_4class, lgbm_model)
 
+    expect_true(all(point_class$predicted[[1]]$class %in%
+                        sits_labels(samples_modis_4bands)))
+    expect_true(nrow(sits_show_prediction(point_class)) == 17)
+})
 test_that("DL-MLP", {
     # skip_on_cran()
     Sys.setenv(TF_CPP_MIN_LOG_LEVEL = "1")

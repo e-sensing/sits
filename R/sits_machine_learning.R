@@ -13,6 +13,7 @@
 #' 'lasso' (see \code{\link[sits]{sits_mlr}}) and
 #' 'ridge' (see \code{\link[sits]{sits_mlr}}),
 #' extreme gradient boosting (see \code{\link[sits]{sits_xgboost}}),
+#' light gradient boosting machine (see \code{\link[sits]{sits_lightgbm}}),
 #' and different deep learning functions, including multi-layer perceptrons
 #' (see \code{\link[sits]{sits_mlp}}), 1D convolution neural
 #' networks \code{\link[sits]{sits_TempCNN}},
@@ -358,7 +359,127 @@ sits_svm <- function(data = NULL, formula = sits_formula_logref(),
     result <- .sits_factory_function(data, result_fun)
     return(result)
 }
+#' @title Train models using lightGBM algorithm
+#' @name sits_lightgbm
+#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
+#' @author Alber Sanchez, \email{alber.ipia@@inpe.br}
+#'
+#' @description This function uses the lightGBM algorithm for model training.
+#' LightGBM is a fast, distributed, high performance gradient boosting
+#' framework based on decision trees.
+#'
+#' @references
+#' Guolin Ke, Qi Meng, Thomas Finley, Taifeng Wang, Wei Chen,
+#' Weidong Ma, Qiwei Ye, Tie-Yan Liu.
+#' "LightGBM: A Highly Efficient Gradient Boosting Decision Tree".
+#' Advances in Neural Information Processing Systems 30 (NIPS 2017), pp. 3149-3157.
+#'
+#' @param data                 time series with the training samples.
+#' @param boosting_type        type of boosting algorithm
+#'                             (options: "gbdt", "rf", "dart", "goss")
+#' @param num_iterations       number of iterations
+#' @param max_depth            limit the max depth for tree model
+#' @param min_samples_leaf     minimal number of data in one leaf
+#'                             (can be used to deal with over-fitting)
+#' @param learning_rate        learning rate of the algorithm
+#' @param n_iter_no_change     number of iterations to stop training
+#'                             when validation metrics don't improve
+#' @param n_folds              number of folds for cross-validation.
+#' @param record               record iteration message?
+#'
+#' @export
+sits_lightgbm <- function(data = NULL,
+                          boosting_type = "gbdt",
+                          num_iterations = 100,
+                          max_depth = 6,
+                          min_samples_leaf = 10,
+                          learning_rate = 0.1,
+                          n_iter_no_change = 0,
+                          n_folds = 5,
+                          record = TRUE, ...) {
 
+    # set caller to show in errors
+    .check_set_caller("sits_lightgbm")
+
+    # function that returns lightgbm model
+    result_fun <- function(data) {
+
+        # verifies if lightgbm package is installed
+        if (!requireNamespace("lightgbm", quietly = TRUE)) {
+            stop("Please install package lightgbm", call. = FALSE)
+        }
+        labels <- sits_labels(data)
+        n_labels <- length(labels)
+        # lightGBM uses numerical labels starting from 0
+        int_labels <- c(1:n_labels) - 1
+        # create a named vector with integers match the class labels
+        names(int_labels) <- labels
+
+        # data normalization
+        stats <- .sits_ml_normalization_param(data)
+        train_data <- .sits_distances(.sits_ml_normalize_data(data, stats))
+
+        # transform the training data to LGBM
+        lgbm_train_data <- lightgbm::lgb.Dataset(
+            data = as.matrix(train_data[,-2:0]),
+            label = unname(int_labels[train_data[[2]]])
+        )
+        if (n_labels > 2) {
+            objective <-  "multiclass"
+        } else {
+            objective <-  "binary"
+        }
+        # set the training params
+        train_params <- list(
+            boosting_type = boosting_type,
+            objective = objective,
+            min_samples_leaf = min_samples_leaf,
+            max_depth = max_depth,
+            learning_rate = learning_rate,
+            num_class = n_labels,
+            num_iterations = num_iterations,
+            n_iter_no_change = n_iter_no_change
+        )
+        # train the model
+        lgbm_model <- lightgbm::lgb.train(
+                data    = lgbm_train_data,
+                params  = train_params,
+                verbose = -1,
+                record  = record,
+                ...
+        )
+        # save the model to string
+        lgbm_model_string <- lgbm_model$save_model_to_string(NULL)
+
+        # construct model predict enclosure function and returns
+        model_predict <- function(values) {
+
+            # verifies if ranger package is installed
+            if (!requireNamespace("lightgbm", quietly = TRUE)) {
+                stop("Please install package lightgbm", call. = FALSE)
+            }
+            # reload the model
+            lgbm_model <- lightgbm::lgb.load(model_str = lgbm_model_string)
+            # predict values
+            prediction <- data.table::as.data.table(
+                stats::predict(lgbm_model,
+                               data = as.matrix(values[,-2:0]),
+                               rawscore = FALSE,
+                               reshape = TRUE
+            ))
+            # adjust the names of the columns of the probs
+            colnames(prediction) <- labels
+            # retrieve the prediction results
+            return(prediction)
+        }
+        class(model_predict) <- c("lightgbm_model", "sits_model",
+                                  class(model_predict))
+        return(model_predict)
+    }
+    result <- .sits_factory_function(data, result_fun)
+    return(result)
+}
 
 #' @title Train extreme gradient boosting models
 #' @name sits_xgboost

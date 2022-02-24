@@ -239,6 +239,7 @@ available in SITS:
 -   Support vector machines (`sits_svm()`)
 -   Random forests (`sits_rfor()`)
 -   Extreme gradient boosting (`sits_xgboost()`)
+-   Light gradient boosting machine (`sits_lightgbm()`)
 -   Deep learning (DL) using multi-layer perceptrons (`sits_mlp()`)
 -   DL using Deep Residual Networks (`sits_ResNet`) (see reference [7])
 -   DL combining 1D convolution neural networks and multi-layer perceptrons 

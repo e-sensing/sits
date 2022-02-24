@@ -214,7 +214,7 @@ test_that("One-year, multicore classification with Whittaker filter", {
         sits_apply(NDVI = sits_whittaker(NDVI, lambda = 0.5),
                    EVI = sits_whittaker(EVI, lambda = 0.5))
 
-    rfor_model <- sits_train(samples_filt, sits_rfor())
+    lgbm_model <- sits_train(samples_filt, sits_lightgbm())
 
     data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
     sinop <- sits_cube(
@@ -229,7 +229,7 @@ test_that("One-year, multicore classification with Whittaker filter", {
         suppressMessages(
             sits_classify(
                 data = sinop,
-                ml_model = rfor_model,
+                ml_model = lgbm_model,
                 filter = sits_whittaker(lambda = 3.0),
                 output_dir = tempdir(),
                 memsize = 4,
