@@ -24,6 +24,7 @@ multinomial logit (see \code{\link[sits]{sits_mlr}}) and its variants
 'lasso' (see \code{\link[sits]{sits_mlr}}) and
 'ridge' (see \code{\link[sits]{sits_mlr}}),
 extreme gradient boosting (see \code{\link[sits]{sits_xgboost}}),
+light gradient boosting machine (see \code{\link[sits]{sits_lightgbm}}),
 and different deep learning functions, including multi-layer perceptrons
 (see \code{\link[sits]{sits_mlp}}), 1D convolution neural
 networks \code{\link[sits]{sits_TempCNN}},
