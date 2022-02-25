@@ -109,6 +109,7 @@ Collate:
     'sits_factory.R'
     'sits_file_info.R'
     'sits_filters.R'
+    'sits_gdalcubes.R'
     'sits_get_data.R'
     'sits_imputation.R'
     'sits_labels.R'
