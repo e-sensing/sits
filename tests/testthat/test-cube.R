@@ -482,7 +482,7 @@ test_that("Creating regular cubes from AWS Open Data, and extracting samples fro
     expect_equal(sits_timeline(ts), sits_timeline(rg_cube))
 })
 
-test_that("Creating cubes from AWS Open Data and regularizing with ROI", {
+test_that("Creating cubes from AWS Open Data and regularizing with gdalcubes", {
 
     s2_cube_open <- tryCatch({
         sits_cube(source = "AWS",
@@ -504,7 +504,7 @@ test_that("Creating cubes from AWS Open Data and regularizing with ROI", {
     expect_error(.cube_resolution(s2_cube_open))
     expect_error(.file_info_nrows(s2_cube_open[1,]))
 
-    dir_images <-  paste0(tempdir(), "/images/")
+    dir_images <-  paste0(tempdir(), "/images1/")
     if (!dir.exists(dir_images))
         suppressWarnings(dir.create(dir_images))
     unlink(list.files(dir_images,
@@ -520,10 +520,26 @@ test_that("Creating cubes from AWS Open Data and regularizing with ROI", {
         use_gdalcubes = TRUE
     )
 
+    dir_images_2 <-  paste0(tempdir(), "/images2/")
+    if (!dir.exists(dir_images_2))
+        suppressWarnings(dir.create(dir_images_2))
+    unlink(list.files(dir_images_2,
+                      pattern = "\\.tif$",
+                      full.names = TRUE))
+
+    rg_cube2 <- sits_regularize(
+        cube        = s2_cube_open,
+        output_dir  = dir_images_2,
+        res         = 320,
+        period      = "P30D",
+        multicores  = 2,
+        use_gdalcubes = FALSE
+    )
+
     size <- .cube_size(rg_cube[1,])
 
-    expect_equal(size[["nrows"]], 343)
-    expect_equal(size[["ncols"]], 343)
+    expect_equal(size[["nrows"]], 344)
+    expect_equal(size[["ncols"]], 344)
     expect_equal(rg_cube$xmax[[1]], 309780, tolerance = 1e-1)
     expect_equal(rg_cube$xmin[[1]], 199980, tolerance = 1e-1)
 

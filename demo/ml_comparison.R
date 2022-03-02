@@ -36,7 +36,7 @@ print("== Accuracy Assessment = RFOR =======================")
 acc_rfor <- sits_kfold_validate(samples_modis_4bands,
     folds = 5,
     multicores = 2,
-    ml_method = sits_rfor(num_trees = 2000)
+    ml_method = sits_rfor(num_trees = 100)
 )
 acc_rfor$name <- "rfor"
 

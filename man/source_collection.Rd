@@ -6,9 +6,6 @@
 \alias{.source_collection_access_test}
 \alias{.source_collection_access_vars_set}
 \alias{.source_collection_check}
-\alias{.source_collection_gdalcubes_type}
-\alias{.source_collection_gdalcubes_support}
-\alias{.source_collection_gdalcubes_config}
 \alias{.source_collection_metadata_search}
 \alias{.source_collection_name}
 \alias{.source_collection_open_data}
@@ -24,12 +21,6 @@
 .source_collection_access_vars_set(source, collection)
 
 .source_collection_check(source, collection)
-
-.source_collection_gdalcubes_type(source, collection)
-
-.source_collection_gdalcubes_support(source, collection)
-
-.source_collection_gdalcubes_config(source, collection)
 
 .source_collection_metadata_search(source, collection)
 
@@ -63,12 +54,6 @@ no error occurs.
 \code{.source_collection_check()} returns \code{NULL} if
 no error occurs.
 
-\code{.source_collection_gdalcubes_type()} returns the gdal type.
-
-true/false
-
-\code{.source_collection_gdal_config()} returns the gdal format file path.
-
 \code{.source_collection_metadata_search()} returns a character
 value with the metadata search strategy.
 
@@ -95,15 +80,6 @@ collections.
 
 \code{.source_collection_check()} checks if a collection
 is from a source.
-
-\code{.source_collection_gdalcubes_type()} checks if a collection
-has a gdalcubes type for writing files.
-
-\code{.source_collection_gdalcubes_support()} checks if a collection
-can be regularized using gdalcubes.
-
-\code{.source_collection_gdalcubes_config()} checks if a collection
-has a gdalcubes format description.
 
 \code{.source_collection_metadata_search()} retrieves the
 metadadata search strategy for a given source and collection.

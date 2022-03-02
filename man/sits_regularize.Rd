@@ -17,56 +17,62 @@ sits_regularize(
 )
 }
 \arguments{
-\item{cube}{A \code{sits_cube} object whose spacing of observation
-times is not constant and will be regularized by the \code{gdalcubes}
-package.}
+\item{cube}{\code{sits_cube} object whose observation
+period and/or spatial resolution is not constant.}
 
-\item{period}{A \code{character} with ISO8601 time period for regular
-data cubes produced by \code{gdalcubes}, with number and unit, e.g., "P16D"
-for 16 days. Use "D", "M" and "Y" for days, month and year.}
+\item{period}{ISO8601-compliant time period for regular
+data cubes, with number and unit, where
+"D", "M" and "Y" stand for days, month and year;
+ e.g., "P16D" for 16 days.}
 
-\item{res}{A \code{numeric} with spatial resolution of the image
-that will be aggregated.}
+\item{res}{spatial resolution of regularized images (in meters).}
 
-\item{output_dir}{A \code{character} with a valid directory where the
-regularized images will be written by \code{gdalcubes}.}
+\item{output_dir}{valid directory for storing regularized images.}
 
-\item{multicores}{A \code{numeric} with the number of cores used for
-regularization. This parameter specifies how many bands from different tiles
-should be processed in parallel. By default, 1 core is used.}
+\item{multicores}{number of cores used for regularization;
+used for parallel processing of input.}
 
-\item{memsize}{A \code{numeric} with memory available for regularization
-(in GB).}
+\item{memsize}{memory available for regularization (in GB).}
 
-\item{progress}{A \code{logical} value. Show progress bar?}
+\item{progress}{show progress bar?}
 
-\item{...}{Deprecated parameters are controlled with ellipses.}
+\item{use_gdalcubes}{use gdalcubes package? (see details).}
+
+\item{...}{deprecated parameters are controlled with ellipses.}
 }
 \value{
 A \code{sits_cube} object with aggregated images.
 }
 \description{
-Creates cubes with regular time intervals
- using the gdalcubes package. Cubes can be composed using "median" or
- "least_cc_first" functions. Users need to provide an time
- interval which is used by the composition function.
+Produces regular data cubes for analysis-ready data (ARD)
+image collections. Analysis-ready data (ARD) collections available in
+AWS, MSPC, USGS and DEAfrica are not regular in space and time.
+Bands may have different resolutions,
+images may not cover the entire time, and time intervals are not regular.
+For this reason, subsets of these collection need to be converted to
+regular data cubes before further processing and data analysis.
+
+This function requires users to include the cloud band in their ARD-based
+data cubes.
 }
 \note{
+As of sits version 0.16.3 and \code{gdalcubes} version 0.6.0,
+      \code{gdalcubes} is having some inconsistent behavior when
+      dealing with large data sets. For this reason, \code{sits}
+      provides an alternative algorithm for regularization, which is slower
+      but is more reliable for large data sets than \code{gdalcubes}.
+
 If malformed images with the same required tiles and bands are found in
-   the current directory, these images are deleted and recreated.
+      the current directory, these images are deleted and recreated.
 
-The "roi" parameter defines a region of interest. It can be
-   an sf_object, a shapefile, or a bounding box vector with
-   named XY values ("xmin", "xmax", "ymin", "ymax") or
-   named lat/long values ("lat_min", "lat_max", "long_min", "long_max")
+The aggregation method used in \code{sits_regularize}
+      sorts the images based on cloudcover, where images with the fewest
+      clouds at the top of the stack. Once
+      the stack of images is sorted, the method uses the first valid value to
+      create the temporal aggregation.
 
-The "least_cc_first" aggregation method sorts the images based on cloud
-   cover, where images with the fewest clouds at the top of the stack. Once
-   the stack of images is sorted, the method uses the first valid value to
-   create the temporal aggregation.
-
-If the supplied data cube contains cloud band, the values indicated as
-   clouds or cloud shadow will be removed.
+The input (non-regular) ARD cube needs to include the cloud band for
+      the regularization to work.
 }
 \examples{
 {
@@ -95,7 +101,6 @@ gc_cube <- sits_regularize(
     res        = 320)
 }
 }
-
 }
 \references{
 APPEL, Marius; PEBESMA, Edzer. On-demand processing of data cubes
