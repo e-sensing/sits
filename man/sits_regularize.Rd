@@ -56,14 +56,11 @@ This function requires users to include the cloud band in their ARD-based
 data cubes.
 }
 \note{
-As of sits version 0.16.3 and \code{gdalcubes} version 0.6.0,
+As of sits version 0.16.3 and \code{gdalcubes} version 0.5.1,
       \code{gdalcubes} is having some inconsistent behavior when
       dealing with large data sets. For this reason, \code{sits}
       provides an alternative algorithm for regularization, which is slower
       but is more reliable for large data sets than \code{gdalcubes}.
-
-If malformed images with the same required tiles and bands are found in
-      the current directory, these images are deleted and recreated.
 
 The aggregation method used in \code{sits_regularize}
       sorts the images based on cloudcover, where images with the fewest
