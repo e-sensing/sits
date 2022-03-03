@@ -374,7 +374,11 @@ sits_cube.stac_cube <- function(source,
     # dry run to verify if service is running
     .source_collection_access_test(source = source,
                                    collection = collection,
-                                   bands = bands, ...)
+                                   bands = bands,
+                                   ...,
+                                   start_date = start_date,
+                                   end_date = end_date
+                                   )
 
     # builds a sits data cube
     .source_cube(source = source,
