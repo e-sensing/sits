@@ -531,6 +531,8 @@ NULL
 #' @param collection A \code{string} value referring to a collection of the
 #' source.
 #' @param tiles      A \code{vector} with the tile names
+#' @param start_date A date.
+#' @param end_date   A date.
 #'
 #' @return
 #' The values returned by each function are described as follows.

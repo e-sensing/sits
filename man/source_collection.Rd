@@ -41,6 +41,10 @@
 source.}
 
 \item{tiles}{A \code{vector} with the tile names}
+
+\item{start_date}{A date.}
+
+\item{end_date}{A date.}
 }
 \value{
 The values returned by each function are described as follows.

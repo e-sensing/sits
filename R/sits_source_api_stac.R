@@ -2,6 +2,8 @@
 #' @export
 .source_collection_access_test.stac_cube <- function(source, collection,
                                                      bands, ...,
+                                                     start_date = NULL,
+                                                     end_date = NULL,
                                                      dry_run = FALSE) {
     # require package
     if (!requireNamespace("rstac", quietly = TRUE)) {
@@ -10,6 +12,8 @@
 
     items_query <- .stac_create_items_query(source = source,
                                             collection = collection,
+                                            start_date = start_date,
+                                            end_date = end_date,
                                             limit = 1)
 
     # assert that service is online

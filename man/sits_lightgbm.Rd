@@ -38,6 +38,9 @@ when validation metrics don't improve}
 \item{n_folds}{number of folds for cross-validation.}
 
 \item{record}{record iteration message?}
+
+\item{...}{Additional parameters for
+\code{lightgbm::lgb.train} function.}
 }
 \description{
 This function uses the lightGBM algorithm for model training.
