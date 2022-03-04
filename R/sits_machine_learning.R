@@ -388,7 +388,7 @@ sits_svm <- function(data = NULL, formula = sits_formula_logref(),
 #' @param n_folds              number of folds for cross-validation.
 #' @param record               record iteration message?
 #' @param ...                  Additional parameters for
-#' \code{lightgbm::lgb.train} function.
+#'  \code{lightgbm::lgb.train} function.
 #'
 #' @export
 sits_lightgbm <- function(data = NULL,
