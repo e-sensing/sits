@@ -102,16 +102,27 @@
     # split the file names
     img_files_lst <- strsplit(img_files_noext, split = delim)
 
-    # bind rows
-    img_files_mx <- do.call(rbind, img_files_lst)
-
+    img_files_ok <- purrr::map(img_files_lst, function(img_file) {
+        if (length(img_file) == length(parse_info))
+            return(img_file)
+        else
+            return(NULL)
+    })
     # post condition
     .check_that(
-        all(sapply(img_files_lst, length) == length(parse_info)),
-        local_msg = "some files does not match fields of parse_info",
+        all(sapply(img_files_ok, length) == length(parse_info)),
+        local_msg = "some files do not match fields of parse_info",
         msg = "invalid file names or 'parse_info' parameter"
     )
 
+    # bind rows
+    img_files_mx <- do.call(rbind, img_files_ok)
+
+    # joint the list into a tibble and convert bands name to upper case
+    items <- suppressMessages(
+        tibble::as_tibble(img_files_mx,
+                          .name_repair = "universal")
+    )
     # read the image files into a tibble with added parse info
     colnames(img_files_mx) <- parse_info
 
