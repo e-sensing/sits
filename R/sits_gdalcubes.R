@@ -481,7 +481,7 @@
     )
 
     # append gdalcubes path
-    path_db <- paste0(output_dir, "/gdalcubes.db")
+    path_db <- file.path(output_dir, "gdalcubes.db")
 
     # precondition - is the period valid?
     .check_na(lubridate::duration(period),

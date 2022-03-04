@@ -249,7 +249,7 @@
                             sep = "_")
     }
 
-    b_path <- paste0(output_dir, "/", b_filename, ".tif")
+    b_path <- paste0(file.path(output_dir, b_filename), ".tif")
 
     return(b_path)
 }
