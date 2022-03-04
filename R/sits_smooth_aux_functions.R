@@ -230,20 +230,20 @@
         tmp_blocks <- unlist(tmp_blocks)
 
         # # on exit, remove temp files
-        # on.exit(unlink(tmp_blocks))
-        #
-        # # merge to save final result
-        #
-        # suppressWarnings(
-        #     .raster_merge(
-        #         in_files = tmp_blocks,
-        #         out_file = out_file,
-        #         format = "GTiff",
-        #         gdal_datatype = gdal_datatype,
-        #         gdal_options = gdal_options,
-        #         overwrite = TRUE
-        #     )
-        # )
+        on.exit(unlink(tmp_blocks))
+
+        # merge to save final result
+
+        suppressWarnings(
+            .raster_merge(
+                in_files = tmp_blocks,
+                out_file = out_file,
+                format = "GTiff",
+                gdal_datatype = gdal_datatype,
+                gdal_options = gdal_options,
+                overwrite = TRUE
+            )
+        )
 
         return(tmp_blocks)
     }
