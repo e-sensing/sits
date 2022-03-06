@@ -20,70 +20,6 @@
     matrix(x / sum(x), nrow = window_size, byrow = T)
 }
 
-#' @title Estimate the number of blocks to run .sits_split_cluster
-#' @name .sits_smooth_blocks_size_estimate
-#' @keywords internal
-#'
-#' @param cube         input data cube
-#' @param multicores   number of processes to split up the data
-#' @param memsize      maximum overall memory size (in GB)
-#'
-#' @return  returns a list with following information:
-#'             - multicores theoretical upper bound;
-#'             - block x_size (horizontal) and y_size (vertical)
-#'
-.sits_smooth_blocks_size_estimate <- function(cube, multicores, memsize) {
-
-    # set caller to show in errors
-    .check_set_caller(".sits_smooth_blocks_size_estimate")
-
-    # precondition 1 - check if cube has probability data
-    .check_that(
-        x = inherits(cube, "probs_cube"),
-        msg = "input is not probability cube"
-    )
-    size <- .cube_size(cube)
-    n_layers <- length(cube$labels[[1]])
-    bloat_mem <- .config_processing_bloat()
-    n_bytes <- 8
-
-    # total memory needed to do all work in GB
-    needed_memory <-  1E-09 * size[["ncols"]] * size[["nrows"]] * n_layers * bloat_mem * n_bytes
-
-    # minimum block size
-    min_block_x_size <- size["ncols"] # for now, only vertical blocking
-    min_block_y_size <- 1
-
-    # compute factors
-    memory_factor <- needed_memory / memsize
-    blocking_factor <- size[["ncols"]] / min_block_x_size * size[["nrows"]] / min_block_y_size
-
-    # stop if blocking factor is less than memory factor!
-    # reason: the provided memory is not enough to process the data by
-    # breaking it into small chunks
-    .check_that(
-        x = memory_factor <= blocking_factor,
-        msg = "provided memory not enough to run the job"
-    )
-
-    # update multicores to the maximum possible processes given the available
-    # memory and blocking factor
-    multicores <- min(floor(blocking_factor / memory_factor), multicores)
-
-    # compute blocking allocation that maximizes the
-    # block / (memory * multicores) ratio, i.e. maximize parallel processes
-    # and returns the following information:
-    # - multicores theoretical upper bound;
-    # - block x_size (horizontal) and y_size (vertical)
-    blocks <- list(
-        # theoretical max_multicores = floor(blocking_factor / memory_factor),
-        block_x_size = floor(min_block_x_size),
-        block_y_size = min(floor(blocking_factor / memory_factor / multicores),
-                           size[["nrows"]])
-    )
-
-    return(blocks)
-}
 #' @title Parallel processing of classified images
 #' @name .sits_smooth_map_layer
 #' @keywords internal
@@ -170,7 +106,6 @@
 
         # process it
         raster_out <- do.call(func, args = c(list(chunk = chunk), args))
-        # stopifnot(inherits(res, c("RasterLayer", "RasterStack", "RasterBrick")))
 
         # create extent
         blk_no_overlap <- list(first_row = block$o1,
@@ -182,7 +117,7 @@
         raster_out <- .raster_crop(raster_out, block = blk_no_overlap)
 
         # export to temp file
-        filename <- tempfile(tmpdir = dirname(.file_info(cube)$path),
+        filename <- tempfile(tmpdir = dirname(.file_info(cube_out)$path),
                              fileext = ".tif")
 
         # save chunk
@@ -247,21 +182,6 @@
 
         return(tmp_blocks)
     }
-
-    # make snow cluster
-    cl <- NULL
-    if (multicores > 1) {
-        # start clusters
-        cl <- parallel::makeCluster(multicores)
-        # make sure library paths is the same as actual environment
-        lib_paths <- .libPaths()
-        parallel::clusterExport(cl, "lib_paths", envir = environment())
-        parallel::clusterEvalQ(cl, .libPaths(lib_paths))
-        # stop all workers when finish
-        on.exit(parallel::stopCluster(cl))
-    }
-
-
 
     # open probability file
     in_file <- .file_info_path(cube)
