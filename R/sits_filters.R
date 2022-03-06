@@ -60,7 +60,16 @@ sits_sgolay <- function(data = NULL, order = 3, length = 5, scaling = 1) {
         }
     }
 
-    result <- .sits_factory_function(data, filter_fun)
+    filter_call <- function(data) {
+
+        if (inherits(data, "sits")) {
+            .apply_across(data, fn = filter_fun)
+        } else
+            filter_fun(data)
+    }
+
+
+    result <- .sits_factory_function(data, filter_call)
 
     return(result)
 }
@@ -103,7 +112,15 @@ sits_whittaker <- function(data = NULL, lambda = 0.5) {
         }
     }
 
-    result <- .sits_factory_function(data, filter_fun)
+    filter_call <- function(data) {
+
+        if (inherits(data, "sits")) {
+            .apply_across(data, fn = filter_fun)
+        } else
+            filter_fun(data)
+    }
+
+    result <- .sits_factory_function(data, filter_call)
 
     return(result)
 }

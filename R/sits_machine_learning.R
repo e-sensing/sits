@@ -599,30 +599,13 @@ sits_xgboost <- function(data = NULL,
             subsample = subsample
         )
 
-        # run the cross-validation
-        xgbcv <- xgboost::xgb.cv(
-            params = params,
-            data = as.matrix(train_data[, 3:length(train_data)]),
-            label = references,
-            num_class = length(labels),
-            nrounds = nrounds,
-            nfold = nfold,
-            early_stopping_rounds = early_stopping_rounds,
-            print_every_n = 10,
-            verbose = verbose,
-            maximize = FALSE
-        )
-
-        # get the best iteration of the model based on the CV
-        nrounds_best <- xgbcv$best_iteration
-
         # define the model
         model_xgb <- xgboost::xgboost(
-            data = as.matrix(train_data[, 3:length(train_data)]),
+            data = as.matrix(train_data[, -2:0]),
             label = references,
             num_class = length(labels),
             params = params,
-            nrounds = nrounds_best,
+            nrounds = nrounds,
             verbose = FALSE
         )
 

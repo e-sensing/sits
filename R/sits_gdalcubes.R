@@ -421,78 +421,29 @@
 #' @name .gc_regularize
 #'
 #' @description Creates cubes with regular time intervals
-#'  using the gdalcubes package. Cubes can be composed using "median" or
-#'  "least_cc_first" functions. Users need to provide an time
-#'  interval which is used by the composition function.
+#'  using the gdalcubes package.
 #'
 #' @references APPEL, Marius; PEBESMA, Edzer. On-demand processing of data cubes
 #'  from satellite image collections with the gdalcubes library. Data, v. 4,
 #'  n. 3, p. 92, 2019. DOI: 10.3390/data4030092.
 #'
-#' @examples{
-#' \dontrun{
 #'
-#' # --- Access to the AWS STAC
+#' @param cube         \code{sits_cube} object whose spacing of observation
+#'                     times is not constant and will be regularized
+#'                     by the \code{gdalcubes} package.
 #'
-#' # define an AWS data cube
-#'   s2_cube <- sits_cube(source = "AWS",
-#'                       collection = "sentinel-s2-l2a-cogs",
-#'                       bands = c("B08", "SCL"),
-#'                       tiles = c("20LKP"),
-#'                       start_date = as.Date("2018-07-18"),
-#'                       end_date = as.Date("2018-08-18")
-#'   )
+#' @param output_dir   valid directory where the
+#'                     regularized images will be written.
 #'
-#' # create a directory to store the resulting images
-#' dir.create(paste0(tempdir(),"/images/"))
+#' @param period       ISO8601 time period for regular data cubes
+#'                     with number and unit, e.g., "P16D" for 16 days.
+#'                     Use "D", "M" and "Y" for days, month and year.
 #'
-#' # Build a data cube of equal intervals using the "gdalcubes" package
-#' gc_cube <- sits_regularize(cube       = s2_cube,
-#'                            output_dir = paste0(tempdir(),"/images/"),
-#'                            period     = "P1M",
-#'                            res        = 320)
-#' }
-#' }
+#' @param res          spatial resolution of the regularized images.
 #'
-#' @param cube         A \code{sits_cube} object whose spacing of observation
-#'  times is not constant and will be regularized by the \code{gdalcubes}
-#'  package.
+#' @param multicores   number of cores used for regularization.
 #'
-#' @param output_dir   A \code{character} with a valid directory where the
-#'  regularized images will be written by \code{gdalcubes}.
-#'
-#' @param period       A \code{character} with ISO8601 time period for regular
-#'  data cubes produced by \code{gdalcubes}, with number and unit, e.g., "P16D"
-#'  for 16 days. Use "D", "M" and "Y" for days, month and year.
-#'
-#' @param res          A \code{numeric} with spatial resolution of the image
-#'  that will be aggregated.
-#'
-#' @param multicores   A \code{numeric} with the number of cores used for
-#'  regularization. This parameter specifies how many bands from different tiles
-#'  should be processed in parallel. By default, 1 core is used.
-#'
-#' @param progress     A \code{logical} value. Show progress bar?
-#'
-#' @note
-#'    If malformed images with the same required tiles and bands are found in
-#'    the current directory, these images are deleted and recreated.
-#'
-#' @note
-#'    The "roi" parameter defines a region of interest. It can be
-#'    an sf_object, a shapefile, or a bounding box vector with
-#'    named XY values ("xmin", "xmax", "ymin", "ymax") or
-#'    named lat/long values ("lat_min", "lat_max", "long_min", "long_max")
-#'
-#' @note
-#'    The "least_cc_first" aggregation method sorts the images based on cloud
-#'    cover, where images with the fewest clouds at the top of the stack. Once
-#'    the stack of images is sorted, the method uses the first valid value to
-#'    create the temporal aggregation.
-#'
-#' @note
-#'    If the supplied data cube contains cloud band, the values indicated as
-#'    clouds or cloud shadow will be removed.
+#' @param progress     show progress bar?
 #'
 #' @return A \code{sits_cube} object with aggregated images.
 .gc_regularize <- function(cube,

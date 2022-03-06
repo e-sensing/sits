@@ -2,14 +2,36 @@
 #'
 #' @name sits_regularize
 #'
-#' @description Creates cubes with regular time intervals
-#'  using the gdalcubes package. Cubes can be composed using "median" or
-#'  "least_cc_first" functions. Users need to provide an time
-#'  interval which is used by the composition function.
+#' @description Produces regular data cubes for analysis-ready data (ARD)
+#' image collections. Analysis-ready data (ARD) collections available in
+#' AWS, MSPC, USGS and DEAfrica are not regular in space and time.
+#' Bands may have different resolutions,
+#' images may not cover the entire time, and time intervals are not regular.
+#' For this reason, subsets of these collection need to be converted to
+#' regular data cubes before further processing and data analysis.
+#'
+#' This function requires users to include the cloud band in their ARD-based
+#' data cubes.
 #'
 #' @references APPEL, Marius; PEBESMA, Edzer. On-demand processing of data cubes
 #'  from satellite image collections with the gdalcubes library. Data, v. 4,
 #'  n. 3, p. 92, 2019. DOI: 10.3390/data4030092.
+#'
+#' @param cube              \code{sits_cube} object whose observation
+#'                          period and/or spatial resolution is not constant.
+#' @param period            ISO8601-compliant time period for regular
+#'                          data cubes, with number and unit, where
+#'                          "D", "M" and "Y" stand for days, month and year;
+#'                           e.g., "P16D" for 16 days.
+#' @param res               spatial resolution of regularized images (in meters).
+#' @param output_dir        valid directory for storing regularized images.
+#' @param multicores        number of cores used for regularization;
+#'                          used for parallel processing of input.
+#' @param memsize           memory available for regularization (in GB).
+#' @param progress          show progress bar?
+#' @param use_gdalcubes     use gdalcubes package? (see details).
+#'
+#' @param ...               deprecated parameters are controlled with ellipses.
 #'
 #' @examples{
 #' \dontrun{
@@ -37,51 +59,20 @@
 #'     res        = 320)
 #' }
 #' }
-#'
-#' @param cube         A \code{sits_cube} object whose spacing of observation
-#'  times is not constant and will be regularized by the \code{gdalcubes}
-#'  package.
-#'
-#' @param period       A \code{character} with ISO8601 time period for regular
-#'  data cubes produced by \code{gdalcubes}, with number and unit, e.g., "P16D"
-#'  for 16 days. Use "D", "M" and "Y" for days, month and year.
-#'
-#' @param res          A \code{numeric} with spatial resolution of the image
-#'  that will be aggregated.
-#'
-#' @param output_dir   A \code{character} with a valid directory where the
-#'  regularized images will be written by \code{gdalcubes}.
-#'
-#' @param multicores   A \code{numeric} with the number of cores used for
-#'  regularization. This parameter specifies how many bands from different tiles
-#'  should be processed in parallel. By default, 1 core is used.
-#'
-#' @param memsize      A \code{numeric} with memory available for regularization
-#'  (in GB).
-#'
-#' @param progress     A \code{logical} value. Show progress bar?
-#'
-#' @param ...          Deprecated parameters are controlled with ellipses.
-#'
+#' @note As of sits version 0.16.3 and \code{gdalcubes} version 0.5.1,
+#'       \code{gdalcubes} is having some inconsistent behavior when
+#'       dealing with large data sets. For this reason, \code{sits}
+#'       provides an alternative algorithm for regularization, which is slower
+#'       but is more reliable for large data sets than \code{gdalcubes}.
 #' @note
-#'    If malformed images with the same required tiles and bands are found in
-#'    the current directory, these images are deleted and recreated.
-#'
+#'       The aggregation method used in \code{sits_regularize}
+#'       sorts the images based on cloudcover, where images with the fewest
+#'       clouds at the top of the stack. Once
+#'       the stack of images is sorted, the method uses the first valid value to
+#'       create the temporal aggregation.
 #' @note
-#'    The "roi" parameter defines a region of interest. It can be
-#'    an sf_object, a shapefile, or a bounding box vector with
-#'    named XY values ("xmin", "xmax", "ymin", "ymax") or
-#'    named lat/long values ("lat_min", "lat_max", "long_min", "long_max")
-#'
-#' @note
-#'    The "least_cc_first" aggregation method sorts the images based on cloud
-#'    cover, where images with the fewest clouds at the top of the stack. Once
-#'    the stack of images is sorted, the method uses the first valid value to
-#'    create the temporal aggregation.
-#'
-#' @note
-#'    If the supplied data cube contains cloud band, the values indicated as
-#'    clouds or cloud shadow will be removed.
+#'       The input (non-regular) ARD cube needs to include the cloud band for
+#'       the regularization to work.
 #'
 #' @return A \code{sits_cube} object with aggregated images.
 #'
@@ -122,7 +113,7 @@ sits_regularize <- function(cube,
 
 #' @title Finds the missing files in a regularized cube
 #'
-#' @name .reg_missing_files
+#' @name .reg_regularize
 #' @keywords internal
 #' @param ... ...
 #'
@@ -753,8 +744,8 @@ sits_regularize <- function(cube,
     band_values <- matrix(as.integer(
         .raster_read_stack(files = band_path,
                            block = band_block)),
-        nrow = output_block[["nrows"]],
-        ncol = output_block[["ncols"]],
+        nrow = band_block[["nrows"]],
+        ncol = band_block[["ncols"]],
         byrow = TRUE
     )
 
