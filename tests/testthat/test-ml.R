@@ -175,25 +175,21 @@ test_that("DL-MLP", {
     samples_mt_2bands <- sits_select(samples_modis_4bands,
                                      bands = c("NDVI", "EVI")
     )
-    model <- suppress_keras(
-        sits_train(
-            samples_mt_2bands,
-            sits_mlp(
-                layers = c(128, 128),
-                dropout_rates = c(0.5, 0.4),
-                epochs = 50,
-                verbose = 0
-            )
+    model <- sits_train(
+        samples_mt_2bands,
+        sits_mlp(
+            units = c(128, 128),
+            dropout_rates = c(0.5, 0.4),
+            epochs = 50,
+            verbose = 0
         )
     )
 
     point_2bands <- sits_select(point_mt_6bands, bands = c("NDVI", "EVI"))
 
-    point_class <- suppress_keras(
-        sits_classify(
-            data = point_2bands,
-            ml_model = model
-        )
+    point_class <- sits_classify(
+        data = point_2bands,
+        ml_model = model
     )
 
     expect_true(all(point_class$predicted[[1]]$class %in%
