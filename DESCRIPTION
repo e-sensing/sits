@@ -53,6 +53,7 @@ Imports:
     tibble (>= 3.0),
     utils
 Suggests:
+    brulee,
     caret,
     dendextend,
     dtwclust,
@@ -65,6 +66,7 @@ Suggests:
     leafem,
     leaflet,
     lightgbm,
+    luz,
     methods,
     mgcv,
     nnet,
@@ -76,6 +78,7 @@ Suggests:
     stars,
     testthat (>= 3.0.2),
     tidyr,
+    torch,
     xgboost,
     zoo
 Config/testthat/edition: 3

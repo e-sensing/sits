@@ -259,6 +259,58 @@ test_that("One-year, multicore classification with Whittaker filter", {
     expect_true(all(file.remove(unlist(sinop_2014_probs$file_info[[1]]$path))))
 })
 
+test_that("One-year, multicore classification with torch", {
+
+    samples_filt <-
+        sits_select(samples_modis_4bands, bands = c("NDVI", "EVI")) %>%
+        sits_apply(NDVI = sits_whittaker(NDVI, lambda = 0.5),
+                   EVI = sits_whittaker(EVI, lambda = 0.5))
+
+    torch_model <- sits_train(samples_filt, sits_mlp())
+
+    data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
+    sinop <- sits_cube(
+        source = "BDC",
+        collection = "MOD13Q1-6",
+        data_dir = data_dir,
+        delim = "_",
+        parse_info = c("X1", "X2", "tile", "band", "date")
+    )
+
+    sinop_2014_probs <- tryCatch({
+        suppressMessages(
+            sits_classify(
+                data = sinop,
+                ml_model = torch_model,
+                filter = sits_whittaker(lambda = 3.0),
+                output_dir = tempdir(),
+                memsize = 8,
+                multicores = 2
+            )
+        )
+    },
+    error = function(e) {
+        return(NULL)
+    })
+
+    if (purrr::is_null(sinop_2014_probs)) {
+        skip("Unable to allocated multicores")
+    }
+    expect_true(all(file.exists(unlist(sinop_2014_probs$file_info[[1]]$path))))
+
+    r_obj <- .raster_open_rast(sinop_2014_probs$file_info[[1]]$path[[1]])
+
+    expect_true(.raster_nrows(r_obj) == .cube_size(sinop_2014_probs)[["nrows"]])
+
+    max_lyr2 <- max(.raster_get_values(r_obj)[, 2])
+    expect_true(max_lyr2 <= 10000)
+
+    max_lyr3 <- max(.raster_get_values(r_obj)[, 3])
+    expect_true(max_lyr3 <= 10000)
+
+    expect_true(all(file.remove(unlist(sinop_2014_probs$file_info[[1]]$path))))
+})
+
 test_that("One-year, multicore classification with post-processing", {
     samples_2bands <- sits_select(samples_modis_4bands,
                                   bands = c("NDVI", "EVI"))

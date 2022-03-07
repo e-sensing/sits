@@ -35,7 +35,6 @@ sits_cube(source, collection, ..., data_dir = NULL)
   labels = NULL,
   parse_info = NULL,
   delim = "_",
-  version = "v1",
   multicores = 2,
   progress = TRUE
 )
@@ -52,8 +51,7 @@ the supported collections, use \code{\link{sits_list_collections}()}).}
 
 \item{...}{other parameters to be passed for specific types.}
 
-\item{data_dir}{local directory where images are stored (only used for
-local cubes).}
+\item{data_dir}{local directory where images are stored (for local cubes).}
 
 \item{bands}{spectral bands and indices to be included
 in the cube (optional).}
@@ -67,15 +65,11 @@ the cube (see details below).}
 \item{start_date, end_date}{initial and final dates to include
 images from the collection in the cube (optional).}
 
-\item{labels}{labels associated to the classes (only
-required for result cubes).}
+\item{labels}{labels associated to the classes (only for result cubes).}
 
 \item{parse_info}{parsing information for local files.}
 
 \item{delim}{delimiter for parsing local files.}
-
-\item{version}{version of results to be included in the cube
-(only required for result cubes).}
 
 \item{multicores}{number of workers for parallel processing}
 
@@ -138,7 +132,7 @@ intersect the \code{roi}.
 To create a cube from local files, users need to inform:
 \itemize{
 \item{\code{source}:} {Provider from where the data has been
- downloaded (e.g, "BDC", "AWS).}
+ downloaded (e.g, "BDC", "AWS").}
 \item{\code{collection}:}{Collection where the data has been extracted from.}
 \item{\code{data_dir}: }{Local directory where images are stored.}
 \item{\code{parse_info}: }{Parsing information for files (see below).}
@@ -169,11 +163,9 @@ parameter \code{parse_info} is specified differently:
   \code{"entropy"} when using \code{sits_uncertainty()}, or \code{"class"}
   for cubes produced by \code{sits_label_classification()}.}
 \item{\code{labels}: }{Labels associated to the classification results.}
-\item{\code{version}: }{The version of the result (default = \code{"v1"})}
-\item{\code{parse_info}: }{File name parsing information has to allow
-\code{sits} to deduce the values of "tile", "start_date", "end_date",
-  and "version" from the file name.
-  Default is \code{c("X1", "X2", "tile", "start_date", "end_date", "band", "version")}.
+\item{\code{parse_info}: }{File name parsing information has to allow \code{sits}
+  to deduce the values of "tile", "start_date", "end_date" from the file name.
+  Default is \code{c("X1", "X2", "tile", "start_date", "end_date", "band")}.
   Note that, unlike non-classified image files, cubes with results have both
   "start_date" and "end_date".}
 }
