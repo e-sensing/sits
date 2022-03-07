@@ -42,9 +42,9 @@ source.}
 
 \item{tiles}{A \code{vector} with the tile names}
 
-\item{start_date}{A date.}
+\item{start_date}{A starting date.}
 
-\item{end_date}{A date.}
+\item{end_date}{An ending date.}
 }
 \value{
 The values returned by each function are described as follows.
