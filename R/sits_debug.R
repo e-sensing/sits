@@ -60,7 +60,7 @@ NULL
     }
 
     # output log file
-    log_file = paste0(output_dir, "/", basename(tempdir()), ".log")
+    log_file <- paste0(file.path(output_dir, basename(tempdir())), ".log")
 
     # elapsed time
     elapsed_time <- NULL

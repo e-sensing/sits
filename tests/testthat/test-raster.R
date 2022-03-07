@@ -338,6 +338,7 @@ test_that("One-year, multicore classification with post-processing", {
     error = function(e){
         return(NULL)
     })
+
     if (purrr::is_null(sinop_probs)) {
         skip("Unable to allocate multicores")
     }
@@ -413,7 +414,7 @@ test_that("One-year, multicore classification with post-processing", {
         type = "gaussian",
         output_dir = tempdir(),
         memsize = 4,
-        multicores = 2
+        multicores = 1
     )
     expect_true(all(file.exists(unlist(sinop_gauss$file_info[[1]]$path))))
 

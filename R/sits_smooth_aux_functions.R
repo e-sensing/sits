@@ -203,7 +203,7 @@
 
         # if file exists skip it (resume feature)
         if (file.exists(out_file))
-            return(NULL)
+            return(out_file)
 
         # apply function to blocks
         if (purrr::is_null(cl)) {
@@ -229,21 +229,23 @@
 
         tmp_blocks <- unlist(tmp_blocks)
 
-        # on exit, remove temp files
-        on.exit(unlink(tmp_blocks))
+        # # on exit, remove temp files
+        # on.exit(unlink(tmp_blocks))
+        #
+        # # merge to save final result
+        #
+        # suppressWarnings(
+        #     .raster_merge(
+        #         in_files = tmp_blocks,
+        #         out_file = out_file,
+        #         format = "GTiff",
+        #         gdal_datatype = gdal_datatype,
+        #         gdal_options = gdal_options,
+        #         overwrite = TRUE
+        #     )
+        # )
 
-        # merge to save final result
-
-        suppressWarnings(
-            .raster_merge(
-                in_files = tmp_blocks,
-                out_file = out_file,
-                format = "GTiff",
-                gdal_datatype = gdal_datatype,
-                gdal_options = gdal_options,
-                overwrite = TRUE
-            )
-        )
+        return(tmp_blocks)
     }
 
     # make snow cluster
@@ -278,10 +280,10 @@
         block_y_size = block_size[["block_y_size"]],
         overlapping_y_size = overlapping_y_size)
 
-    .sits_call_workers_cluster(in_file = in_file,
-                               out_file = out_file,
-                               blocks = blocks,
-                               cl = cl)
+    out_blocks <- .sits_call_workers_cluster(in_file = in_file,
+                                             out_file = out_file,
+                                             blocks = blocks,
+                                             cl = cl)
 
-    return(invisible(cube_out))
+    return(invisible(out_blocks))
 }

@@ -386,14 +386,17 @@
                 msg = "accepts only one tile at a time")
 
     # output filename
-    file_name <- paste0(output_dir, "/",
-                        cube$satellite, "_",
-                        cube$sensor,"_",
-                        cube$tile,"_",
-                        start_date, "_",
-                        end_date,"_",
-                        band_name, "_",
-                        version, ".tif")
+    file_name <- paste0(
+        cube[["satellite"]], "_",
+        cube[["sensor"]], "_",
+        cube[["tile"]], "_",
+        start_date, "_",
+        end_date, "_",
+        band_name, "_",
+        version, ".tif"
+    )
+
+    file_name <- file.path(output_dir, file_name)
 
     res <- .cube_resolution(cube)
 
