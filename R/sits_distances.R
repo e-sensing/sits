@@ -65,7 +65,7 @@
     .check_set_caller(".sits_distances_classify")
 
     # keras-based models run in single-core mode
-    if (inherits(ml_model, c("keras_model", "ranger_model", "xgb_model"))) {
+    if (inherits(ml_model, c("keras_model", "xgb_model"))) {
         multicores <- 1
     }
     # are we running on Windows?

@@ -1506,3 +1506,19 @@ plot.keras_model <- function(x, y, ...) {
         })
     return(invisible(matches))
 }
+# .sits_plot_torch_model <- function(model) {
+#
+#     # prepare data to plot as a data.frame
+#     df <- data.frame(
+#         epoch = seq_len(x$params$epochs),
+#         value = unlist(values),
+#         metric = rep(sub("^val_", "", names(x$metrics)), each = x$params$epochs),
+#         data = rep(grepl("^val_", names(x$metrics)), each = x$params$epochs)
+#     )
+#     rownames(df) <- NULL
+#
+#     # order factor levels appropriately
+#     df$data <- factor(df$data, c(FALSE, TRUE), c('training', 'validation'))
+#     df$metric <- factor(df$metric, unique(sub("^val_", "", names(x$metrics))))
+#
+# }

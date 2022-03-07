@@ -43,14 +43,10 @@
 #'  in the cube (optional).
 #' @param start_date,end_date initial and final dates to include
 #'  images from the collection in the cube (optional).
-#' @param data_dir     local directory where images are stored (only used for
-#'  local cubes).
+#' @param data_dir     local directory where images are stored (for local cubes).
 #' @param parse_info   parsing information for local files.
 #' @param delim        delimiter for parsing local files.
-#' @param labels       labels associated to the classes (only
-#'  required for result cubes).
-#' @param version      version of results to be included in the cube
-#'  (only required for result cubes).
+#' @param labels       labels associated to the classes (only for result cubes).
 #' @param multicores   number of workers for parallel processing
 #' @param progress     show a progress bar?
 #'
@@ -83,7 +79,7 @@
 #' To create a cube from local files, users need to inform:
 #'\itemize{
 #'\item{\code{source}:} {Provider from where the data has been
-#'  downloaded (e.g, "BDC", "AWS).}
+#'  downloaded (e.g, "BDC", "AWS").}
 #'\item{\code{collection}:}{Collection where the data has been extracted from.}
 #'\item{\code{data_dir}: }{Local directory where images are stored.}
 #'\item{\code{parse_info}: }{Parsing information for files (see below).}
@@ -114,11 +110,9 @@
 #'   \code{"entropy"} when using \code{sits_uncertainty()}, or \code{"class"}
 #'   for cubes produced by \code{sits_label_classification()}.}
 #' \item{\code{labels}: }{Labels associated to the classification results.}
-#' \item{\code{version}: }{The version of the result (default = \code{"v1"})}
-#' \item{\code{parse_info}: }{File name parsing information has to allow
-#' \code{sits} to deduce the values of "tile", "start_date", "end_date",
-#'   and "version" from the file name.
-#'   Default is \code{c("X1", "X2", "tile", "start_date", "end_date", "band", "version")}.
+#' \item{\code{parse_info}: }{File name parsing information has to allow \code{sits}
+#'   to deduce the values of "tile", "start_date", "end_date" from the file name.
+#'   Default is \code{c("X1", "X2", "tile", "start_date", "end_date", "band")}.
 #'   Note that, unlike non-classified image files, cubes with results have both
 #'   "start_date" and "end_date".}
 #' }
@@ -398,7 +392,6 @@ sits_cube.local_cube <- function(source,
                                  labels = NULL,
                                  parse_info = NULL,
                                  delim = "_",
-                                 version = "v1",
                                  multicores = 2,
                                  progress = TRUE) {
 
@@ -420,39 +413,20 @@ sits_cube.local_cube <- function(source,
         bands <- as.character(dots[["band"]])
     }
 
-    # is this a cube wih results?
-    if (!purrr::is_null(bands)
-        && all(bands %in% .config_get("sits_results_bands"))) {
-
-        .check_that(length(bands) == 1,
-                    msg = "results cube should have only one band")
-
-        cube <- .local_results_cube(
-            source     = source,
-            collection = collection,
-            data_dir   = data_dir,
-            parse_info = parse_info,
-            delim      = delim,
-            bands      = bands,
-            labels     = labels,
-            start_date = start_date,
-            end_date   = end_date,
-            version    = version, ...
-        )
-    } else
-        # builds a sits data cube
-        cube <- .local_cube(
-            source     = source,
-            collection = collection,
-            data_dir   = data_dir,
-            parse_info = parse_info,
-            delim      = delim,
-            bands      = bands,
-            start_date = start_date,
-            end_date   = end_date,
-            multicores = multicores,
-            progress   = progress, ...
-        )
+    # builds a sits data cube
+    cube <- .local_cube(
+        source     = source,
+        collection = collection,
+        data_dir   = data_dir,
+        parse_info = parse_info,
+        delim      = delim,
+        bands      = bands,
+        labels     = labels,
+        start_date = start_date,
+        end_date   = end_date,
+        multicores = multicores,
+        progress   = progress, ...
+    )
     return(cube)
 }
 
