@@ -18,7 +18,7 @@ sits_TempCNN(
   epochs = 150,
   batch_size = 128,
   validation_split = 0.2,
-  verbose = 0
+  verbose = FALSE
 )
 }
 \arguments{

@@ -261,12 +261,10 @@ test_that("One-year, multicore classification with Whittaker filter", {
 
 test_that("One-year, multicore classification with torch", {
 
-    samples_filt <-
-        sits_select(samples_modis_4bands, bands = c("NDVI", "EVI")) %>%
-        sits_apply(NDVI = sits_whittaker(NDVI, lambda = 0.5),
-                   EVI = sits_whittaker(EVI, lambda = 0.5))
+    samples_2bands <-
+        sits_select(samples_modis_4bands, bands = c("NDVI", "EVI"))
 
-    torch_model <- sits_train(samples_filt, sits_mlp())
+    torch_model <- sits_train(samples_2bands, sits_mlp())
 
     data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
     sinop <- sits_cube(
@@ -282,7 +280,6 @@ test_that("One-year, multicore classification with torch", {
             sits_classify(
                 data = sinop,
                 ml_model = torch_model,
-                filter = sits_whittaker(lambda = 3.0),
                 output_dir = tempdir(),
                 memsize = 8,
                 multicores = 2
@@ -315,7 +312,7 @@ test_that("One-year, multicore classification with post-processing", {
     samples_2bands <- sits_select(samples_modis_4bands,
                                   bands = c("NDVI", "EVI"))
 
-    rfor_model <- sits_train(samples_2bands, sits_rfor())
+    torch_model <- sits_train(samples_2bands, sits_TempCNN(verbose = TRUE))
 
     data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
     sinop <- sits_cube(
@@ -328,7 +325,7 @@ test_that("One-year, multicore classification with post-processing", {
         suppressMessages(
             sits_classify(
                 sinop,
-                rfor_model,
+                torch_model,
                 output_dir = tempdir(),
                 memsize = 4,
                 multicores = 2

@@ -265,23 +265,17 @@ test_that("ResNet-2 classes", {
 })
 test_that("tempCNN model", {
     # skip_on_cran()
-    samples_mt_ndvi <- sits_select(samples_modis_4bands, bands = "NDVI")
-    model <- suppress_keras(
-        sits_train(
-            samples_mt_ndvi,
-            sits_TempCNN(
-                epochs = 50,
-                verbose = 0
-            )
-        )
+    model <- sits_train(
+        samples_matogrosso_mod13q1,
+        sits_TempCNN(verbose = TRUE)
     )
-    point_ndvi <- sits_select(point_mt_6bands, bands = "NDVI")
-    point_class <- suppress_keras(
+    point_4bands <- sits_select(point_mt_6bands,
+                                bands = c("NDVI", "EVI", "NIR", "MIR"))
+    point_class <-
         sits_classify(
-            data = point_ndvi,
+            data = point_4bands,
             ml_model = model
         )
-    )
 
     expect_true(all(point_class$predicted[[1]]$class %in%
         sits_labels(samples_mt_ndvi)))
