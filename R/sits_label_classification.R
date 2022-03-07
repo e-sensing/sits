@@ -102,7 +102,7 @@ sits_label_classification <- function(cube,
     }
 
     # process each brick layer (each tile) individually
-    label_cube <- slider::slide_dfr(cube, function(tile) {
+    tiles_blocks_lst <- slider::slide(cube, function(tile) {
 
         # get file_info
         file_info <- .file_info(tile)
@@ -120,7 +120,7 @@ sits_label_classification <- function(cube,
             version    = version
         )
 
-        .sits_smooth_map_layer(
+        file_blocks <- .sits_smooth_map_layer(
             cube = tile,
             cube_out = tile_label,
             overlapping_y_size = 0,
@@ -131,10 +131,65 @@ sits_label_classification <- function(cube,
             gdal_options = .config_gtiff_default_options()
         )
 
+        return(file_blocks)
+    })
+
+    # start parallel processes
+    .sits_parallel_start(workers = multicores, log = FALSE)
+    on.exit(.sits_parallel_stop())
+
+    # process each brick layer (each time step) individually
+    cube_label <- .sits_parallel_map(seq_along(tiles_blocks_lst), function(i) {
+
+        # get tile from cube
+        tile <- cube[i,]
+
+        # create metadata for raster cube
+        tile_label <- .cube_derived_create(
+            cube       = tile,
+            cube_class = "classified_image",
+            band_name  = "class",
+            labels     = .cube_labels(tile),
+            start_date = .file_info_start_date(tile),
+            end_date   = .file_info_end_date(tile),
+            bbox       = .cube_tile_bbox(tile),
+            output_dir = output_dir,
+            version    = version
+        )
+
+        # prepare output filename
+        out_file <- .file_info_path(tile_label)
+
+        # if file exists skip it (resume feature)
+        if (file.exists(out_file))
+            return(tile_label)
+
+        tmp_blocks <- tiles_blocks_lst[[i]]
+
+        # apply function to blocks
+        on.exit(unlink(tmp_blocks))
+
+        # merge to save final result
+        suppressWarnings(
+            .raster_merge(
+                in_files = tmp_blocks,
+                out_file = out_file,
+                format   = "GTiff",
+                gdal_datatype =
+                    .raster_gdal_datatype(.config_get("class_cube_data_type")),
+                gdal_options =
+                    .config_gtiff_default_options(),
+                overwrite = TRUE
+            )
+        )
+
         return(tile_label)
     })
 
-    class(label_cube) <- unique(c("classified_image", class(label_cube)))
+    # bind rows
+    cube_label <- dplyr::bind_rows(cube_label)
 
-    return(label_cube)
+    class(cube_label) <- unique(c("classified_image", class(cube_label)))
+
+    return(cube_label)
 }
