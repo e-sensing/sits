@@ -51,26 +51,22 @@
 .source_cloud_interp_values(source, collection)
 }
 \arguments{
-\item{source}{A \code{character} value referring to a valid data source.}
+\item{source}{Valid data source.}
 
-\item{collection}{A \code{character} value referring to a collection of the
+\item{collection}{Image collection.
 source.}
 
 \item{fn_filter}{A \code{function} that will be applied in each band
 to filter selection. The provided function must have an input parameter to
 receive band object and return a \code{logical} value.}
 
-\item{add_cloud}{A \code{logical} value indicating if cloud band
-must be returned.}
+\item{add_cloud}{Should the cloud band be returned?}
 
-\item{key}{A \code{character} containing a valid key of a
-band object. The corresponding band attribute will be returned as result.}
+\item{key}{Key of a band object.}
 
-\item{bands}{A \code{character} vector containing all bands to
-be considered. If a \code{NULL} value is provided (default) all bands are
-considered.}
+\item{bands}{Bands to be retrieved}
 
-\item{default}{Any value to be returned if an attribute or key is not
+\item{default}{Value to be returned if an attribute or key is not
 found.}
 }
 \value{

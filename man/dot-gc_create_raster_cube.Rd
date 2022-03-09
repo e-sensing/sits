@@ -7,17 +7,17 @@
 .gc_create_raster_cube(cube_view, path_db, band, mask_band)
 }
 \arguments{
-\item{cube_view}{A \code{gdalcubes::cube_view} object.}
+\item{cube_view}{\code{gdalcubes::cube_view} object.}
 
-\item{path_db}{A \code{character} path to a gdalcubes database.}
+\item{path_db}{Path to a gdalcubes database.}
 
-\item{band}{A \code{character} with band name to be generated}
+\item{band}{Band name to be generated}
 
-\item{mask_band}{An \code{gdalcubes::image_mask} object with metadata
-about the band to be used to mask clouds}
+\item{mask_band}{\code{gdalcubes::image_mask} object with metadata
+about the band to be used to mask clouds.}
 }
 \value{
-A \code{gdalcubes::image_mask} with information about mask band.
+\code{gdalcubes::image_mask} with info on mask band.
 }
 \description{
 Create an gdalcubes::raster_cube object

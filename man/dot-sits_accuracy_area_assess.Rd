@@ -7,13 +7,13 @@
 .sits_accuracy_area_assess(cube, error_matrix, area)
 }
 \arguments{
-\item{cube}{A data cube}
+\item{cube}{Data cube.}
 
-\item{error_matrix}{A matrix given in sample counts.
+\item{error_matrix}{Matrix given in sample counts.
 Columns represent the reference data and
 rows the results of the classification}
 
-\item{area}{A named vector of the total area of each class on
+\item{area}{Named vector of the total area of each class on
 the map}
 }
 \value{

@@ -7,7 +7,7 @@
 sits_metadata_to_csv(data, file)
 }
 \arguments{
-\item{data}{A sits time series.}
+\item{data}{Time series.}
 
 \item{file}{Name of the exported CSV file.}
 }
@@ -28,7 +28,6 @@ data(cerrado_2classes)
 # export a time series
 csv_file <- paste0(tempdir(), "/cerrado_2classes.csv")
 sits_metadata_to_csv(cerrado_2classes, file = csv_file)
-
 }
 \author{
 Gilberto Camara, \email{gilberto.camara@inpe.br}

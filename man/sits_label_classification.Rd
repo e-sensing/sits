@@ -15,16 +15,16 @@ sits_label_classification(
 \arguments{
 \item{cube}{Classified image data cube.}
 
-\item{multicores}{Number of process to label the classification in
-snow subprocess.}
+\item{multicores}{Number of workers to label the classification in
+parallel.}
 
-\item{memsize}{Maximum overall memory (in GB) to label the
+\item{memsize}{maximum overall memory (in GB) to label the
 classification.}
 
-\item{output_dir}{Output directory where to out the file}
+\item{output_dir}{Output directory for classified files.}
 
 \item{version}{Version of resulting image
-(in the case of multiple tests)}
+(in the case of multiple runs).}
 }
 \value{
 A data cube
@@ -45,18 +45,18 @@ rfor_model <- sits_train(samples_ndvi, sits_rfor(num_trees = 500))
 # create a data cube based on the information about the files
 data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
 cube <- sits_cube(
-    source = "BDC",
-    collection = "MOD13Q1-6",
-    data_dir = data_dir,
-    delim = "_",
-    parse_info = c("X1", "X2", "tile", "band", "date")
+  source = "BDC",
+  collection = "MOD13Q1-6",
+  data_dir = data_dir,
+  delim = "_",
+  parse_info = c("X1", "X2", "tile", "band", "date")
 )
 
 # classify the raster image
 probs_cube <- sits_classify(cube,
-    ml_model = rfor_model,
-    output_dir = tempdir(),
-    memsize = 4, multicores = 2
+  ml_model = rfor_model,
+  output_dir = tempdir(),
+  memsize = 4, multicores = 2
 )
 
 # label the classification

@@ -26,8 +26,8 @@
 #' @export
 sits_sample <- function(data, n = NULL, frac = NULL) {
 
-  # set caller to show in errors
-  .check_set_caller("sits_sample")
+    # set caller to show in errors
+    .check_set_caller("sits_sample")
 
     # verify if data is valid
     .sits_tibble_test(data)
@@ -37,34 +37,33 @@ sits_sample <- function(data, n = NULL, frac = NULL) {
         x = !(purrr::is_null(n) & purrr::is_null(frac)),
         msg = "neither n or frac parameters informed"
     )
-
     # prepare sampling function
     sampling_fun <- if (!purrr::is_null(n)) {
-          function(tb) {
-              if (nrow(tb) >= n) {
-                  return(dplyr::sample_n(tb,
-                      size = n,
-                      replace = FALSE
-                  ))
-              } else {
-                  return(tb)
-              }
-          }
-      } else if (frac <= 1) {
-          function(tb) tb %>% dplyr::sample_frac(size = frac, replace = FALSE)
-      } else {
-          function(tb) tb %>% dplyr::sample_frac(size = frac, replace = TRUE)
-      }
-
+        function(tb) {
+            if (nrow(tb) >= n) {
+                return(dplyr::sample_n(tb,
+                                       size = n,
+                                       replace = FALSE
+                ))
+            } else {
+                return(tb)
+            }
+        }
+    } else if (frac <= 1) {
+        function(tb) tb %>% dplyr::sample_frac(size = frac, replace = FALSE)
+    } else {
+        function(tb) tb %>% dplyr::sample_frac(size = frac, replace = TRUE)
+    }
     # compute sampling
     result <- .sits_tibble()
     labels <- sits_labels(data)
-    result <- purrr::map_dfr(labels,
+    result <- purrr::map_dfr(
+        labels,
         function(l) {
-            tb_l <- dplyr::filter(data, label == l)
+            tb_l <- dplyr::filter(data, .data[["label"]] == l)
             tb_s <- sampling_fun(tb_l)
-        })
-
+        }
+    )
     return(result)
 }
 
@@ -83,7 +82,6 @@ sits_sample <- function(data, n = NULL, frac = NULL) {
 #' sits_time_series(cerrado_2classes)
 #' @export
 sits_time_series <- function(data) {
-
     .sits_tibble_test(data)
 
     return(data$time_series[[1]])
@@ -107,17 +105,17 @@ sits_time_series <- function(data) {
 #' @return A sits tibble.
 #'
 .sits_tibble <- function() {
-  sits <- tibble::tibble(
-    longitude = double(),
-    latitude = double(),
-    start_date = as.Date(character()),
-    end_date = as.Date(character()),
-    label = character(),
-    cube = character(),
-    time_series = list()
-  )
-  class(sits) <- c("sits", class(sits))
-  return(sits)
+    sits <- tibble::tibble(
+        longitude = double(),
+        latitude = double(),
+        start_date = as.Date(character()),
+        end_date = as.Date(character()),
+        label = character(),
+        cube = character(),
+        time_series = list()
+    )
+    class(sits) <- c("sits", class(sits))
+    return(sits)
 }
 
 #' @title Aligns dates of time series to a reference date
@@ -148,11 +146,8 @@ sits_time_series <- function(data) {
             utils::head(d, -k)
         )
     }
-
     # get the reference date
     start_date <- lubridate::as_date(ref_dates[1])
-
-
     # align the dates in the data
     data <- purrr::pmap_dfr(
         list(
@@ -172,7 +167,6 @@ sits_time_series <- function(data) {
                 if (idx != 1) ts <- shift_ts(ts, -(idx - 1))
                 # change the dates to the reference dates
                 ts1 <- dplyr::mutate(ts, Index = ref_dates)
-
                 # save the resulting row in the output tibble
                 row <- tibble::tibble(
                     longitude = long,
@@ -189,9 +183,7 @@ sits_time_series <- function(data) {
     )
     return(data)
 }
-
-
-
+#'
 #' @title Checks that the timeline of all time series of a data set are equal
 #' @name .sits_tibble_prune
 #' @keywords internal
@@ -217,18 +209,14 @@ sits_time_series <- function(data) {
     if (all(n_samples == stats::median(n_samples))) {
         message("Success!! All samples have the same number of time indices")
         return(data)
-    }
-    else {
+    } else {
         message("Some samples of time series do not have the same time indices
                 as the majority of the data")
-
         # return the time series that have the same number of samples
         ind2 <- which(n_samples == stats::median(n_samples))
-
         return(data[ind2, ])
     }
 }
-
 #' @title Check that the requested bands exist in the samples
 #' @name .sits_tibble_bands_check
 #' @keywords internal
@@ -236,13 +224,12 @@ sits_time_series <- function(data) {
 #'
 #' @param samples       Time series with the samples
 #' @param bands         Requested bands of the data sample
-#' @return              Checked bands (cube bands if bands are NULL)
+#' @return              Checked bands (cube bands if bands are NULL).
 #'
 .sits_tibble_bands_check <- function(samples, bands = NULL) {
 
     # set caller to show in errors
     .check_set_caller(".sits_tibble_bands_check")
-
     # check the bands are available
     sp_bands <- sits_bands(samples)
     if (purrr::is_null(bands)) {
@@ -272,72 +259,71 @@ sits_time_series <- function(data) {
 
     # set caller to show in errors
     .check_set_caller(".sits_tibble_test")
-
     .check_null(x = data, "invalid data parameter")
-
     .check_num(
         x = nrow(data),
         min = 1, msg = "invalid number of rows"
     )
-
     .check_chr_contains(
         x = colnames(data),
         contains = .config_get("sits_tibble_cols"),
         discriminator = "all_of",
         msg = "Data is not a valid sits tibble"
     )
-
     return(TRUE)
 }
-
+#' @title Apply a function to one band of a time series
+#' @name .sits_fast_apply
+#' @keywords internal
+#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
+#'
+#' @param  data      Tibble.
+#' @param  col       Column where function should be applied
+#' @param  fn        Function to be applied.
+#' @return           Tibble where function has been applied.
+#'
 .sits_fast_apply <- function(data, col, fn, ...) {
 
     # pre-condition
-    .check_chr_within(col, within = names(data),
-                      msg = "invalid column name")
-
+    .check_chr_within(col,
+                      within = names(data),
+                      msg = "invalid column name"
+    )
     # select data do unpack
     x <- data[col]
-
     # prepare to unpack
     x[["#.."]] <- seq_len(nrow(data))
-
     # unpack
     x <- tidyr::unnest(x, cols = dplyr::all_of(col))
     x <- dplyr::group_by(x, .data[["#.."]])
-
     # apply user function
     x <- fn(x, ...)
-
     # pack
     x <- dplyr::ungroup(x)
     x <- tidyr::nest(x, `..unnest_col` = -dplyr::any_of("#.."))
-
     # remove garbage
     x[["#.."]] <- NULL
     names(x) <- col
-
     # prepare result
     data[[col]] <- x[[col]]
-
     return(data)
 }
 
 #' @keywords internal
 .sits_rename_bands <- function(x, bands) {
-
-  UseMethod(".sits_rename_bands", x)
+    UseMethod(".sits_rename_bands", x)
 }
 
 #' @export
 .sits_rename_bands.sits <- function(x, bands) {
-
     data_bands <- sits_bands(x)
 
     # pre-condition
-    .check_chr(bands, allow_empty = FALSE, len_min = length(data_bands),
+    .check_chr(bands,
+               allow_empty = FALSE, len_min = length(data_bands),
                len_max = length(data_bands),
-               msg = "invalid 'bands' value")
+               msg = "invalid 'bands' value"
+    )
 
     .sits_fast_apply(x, col = "time_series", fn = function(x) {
 
@@ -350,40 +336,39 @@ sits_time_series <- function(data) {
         colnames(x) <- unname(new_bands)
 
         return(x)
-
     })
 }
 
 #' @export
 .sits_rename_bands.raster_cube <- function(x, bands) {
+    data_bands <- sits_bands(x)
+    # pre-condition
+    .check_chr(bands,
+               allow_empty = FALSE,
+               len_min = length(data_bands),
+               len_max = length(data_bands),
+               msg = "invalid 'bands' value"
+    )
+    .sits_fast_apply(x, col = "file_info", fn = function(x) {
+        x <- tidyr::pivot_wider(x,
+                                names_from = "band",
+                                values_from = "path"
+        )
 
-  data_bands <- sits_bands(x)
+        # create a conversor
+        new_bands <- colnames(x)
+        names(new_bands) <- new_bands
 
-  # pre-condition
-  .check_chr(bands, allow_empty = FALSE,
-             len_min = length(data_bands),
-             len_max = length(data_bands),
-             msg = "invalid 'bands' value")
+        # rename
+        new_bands[data_bands] <- toupper(bands)
+        colnames(x) <- unname(new_bands)
 
-  .sits_fast_apply(x, col = "file_info", fn = function(x) {
+        x <- tidyr::pivot_longer(x,
+                                 cols = toupper(bands),
+                                 names_to = "band",
+                                 values_to = "path"
+        )
 
-    x <- tidyr::pivot_wider(x,
-                            names_from = "band",
-                            values_from = "path")
-
-    # create a conversor
-    new_bands <- colnames(x)
-    names(new_bands) <- new_bands
-
-    # rename
-    new_bands[data_bands] <- toupper(bands)
-    colnames(x) <- unname(new_bands)
-
-    x <- tidyr::pivot_longer(x,
-                             cols = toupper(bands),
-                             names_to = "band",
-                             values_to = "path")
-
-    return(x)
-  })
+        return(x)
+    })
 }

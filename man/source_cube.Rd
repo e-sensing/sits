@@ -50,22 +50,20 @@
 \method{.source_tile_get_bbox}{stac_cube}(source, file_info, ..., collection = NULL)
 }
 \arguments{
-\item{source}{A \code{character} value referring to a valid data source.}
+\item{source}{Data source.}
 
-\item{collection}{A \code{character} value referring to a collection of the
-source.}
+\item{collection}{Image collection.}
 
 \item{...}{Additional parameters.}
 
-\item{items}{Any object referring to the images bands (scenes) that
-compose a cube.}
+\item{items}{Images that compose a cube.}
 
 \item{bands}{Bands to be selected in the collection.}
 
 \item{file_info}{A \code{tibble} that organizes the metadata about each
 file in the tile: date, band, resolution, and path (or URL).}
 
-\item{asset}{Any supported \code{raster} object to retrieve information.}
+\item{asset}{A \code{raster} object to retrieve information.}
 
 \item{data_dir}{Directory where local files are stored}
 }

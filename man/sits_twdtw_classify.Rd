@@ -92,8 +92,8 @@ plot(patterns)
 # using the TWDTW algorithm
 # (uses the dtwSat R package)
 matches <- sits_twdtw_classify(point, patterns,
-    bands = c("NDVI", "EVI"),
-    alpha = -0.1, beta = 100, theta = 0.5, keep = TRUE
+  bands = c("NDVI", "EVI"),
+  alpha = -0.1, beta = 100, theta = 0.5, keep = TRUE
 )
 }
 }

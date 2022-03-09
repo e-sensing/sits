@@ -7,18 +7,18 @@
 .sits_raster_blocks(tile, ml_model, sub_image, memsize, multicores)
 }
 \arguments{
-\item{tile}{tile of input data cube.}
+\item{tile}{Tile of input data cube.}
 
-\item{ml_model}{machine learning model.}
+\item{ml_model}{Machine learning model.}
 
-\item{sub_image}{bounding box of the ROI}
+\item{sub_image}{Bounding box of the ROI}
 
-\item{memsize}{memory available for classification (in GB).}
+\item{memsize}{Memory available for classification (in GB).}
 
-\item{multicores}{number of threads to process the time series.}
+\item{multicores}{Number of threads to process the time series.}
 }
 \value{
-list with three attributes: n (number of blocks),
+List with three attributes: n (number of blocks),
                         rows (list of rows to begin),
                         nrows (number of rows to read at each iteration).
 }

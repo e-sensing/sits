@@ -8,7 +8,7 @@
 sits_labels(data) <- value
 }
 \arguments{
-\item{data}{A sits tibble.}
+\item{data}{Data cube or time series.}
 
 \item{value}{A character vector used to convert labels. Labels will
 be renamed to the respective value positioned at the
@@ -28,11 +28,12 @@ data("samples_modis_4bands")
 sits_labels(samples_modis_4bands)
 # Create a conversion list.
 # relabel the data
-sits_labels(samples_modis_4bands) <- c("Natural", "Natural",
-                                       "Anthropic", "Anthropic")
+sits_labels(samples_modis_4bands) <- c(
+  "Natural", "Natural",
+  "Anthropic", "Anthropic"
+)
 # show the new labels
 sits_labels(samples_modis_4bands)
-
 }
 \author{
 Rolf Simoes, \email{rolf.simoes@inpe.br}

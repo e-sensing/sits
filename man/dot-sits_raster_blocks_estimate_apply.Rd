@@ -10,18 +10,18 @@
 .sits_raster_blocks_estimate_apply(tile, sub_image, memsize, multicores)
 }
 \arguments{
-\item{nbands}{a \code{integer} with number of bands to open}
+\item{nbands}{Number of bands to open.}
 
-\item{sub_image}{area of interest in the image}
+\item{sub_image}{Area of interest in the image.}
 
 \item{memsize}{Memory available for classification (in GB).}
 
 \item{multicores}{Number of threads to process the time series.}
 
-\item{tile}{tile of data cube}
+\item{tile}{Tile of data cube.}
 }
 \value{
-number of blocks to be read.
+Number of blocks to be read.
 
 Number of blocks to be read.
 }

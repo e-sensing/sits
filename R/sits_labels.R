@@ -4,22 +4,20 @@
 #' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
 #' @description  Finds labels in a sits tibble or data cube
 #'
-#' @param data      Valid sits tibble (time series or a cube)
-#' @return A string vector with the labels.
+#' @param data      Time series or a cube.
+#' @return          Labels.
 #'
 #' @examples
 #' # read a tibble with 400 samples of Cerrado and 346 samples of Pasture
 #' data(cerrado_2classes)
 #' # print the labels
 #' sits_labels(cerrado_2classes)
-#'
 #' @export
 #'
 sits_labels <- function(data) {
 
     # get the meta-type (sits or cube)
     data <- .config_data_meta_type(data)
-
     UseMethod("sits_labels", data)
 }
 
@@ -29,21 +27,18 @@ sits_labels.sits <- function(data) {
 
     # pre-condition
     .cube_check(data)
-
     return(sort(unique(data$label)))
 }
 
 #' @export
 #'
 sits_labels.sits_cube <- function(data) {
-
     return(data$labels[[1]])
 }
 
 #' @export
 #'
 sits_labels.patterns <- function(data) {
-
     return(data$label)
 }
 
@@ -53,21 +48,17 @@ sits_labels.sits_model <- function(data) {
 
     # set caller to show in errors
     .check_set_caller("sits_labels.sits_model")
-
     .check_that(
         x = inherits(data, "function"),
         msg = "invalid sits model"
     )
-
     .check_chr_within(
         x = "data",
         within = ls(environment(data)),
         discriminator = "any_of",
         msg = "no samples found in the sits model"
     )
-
     return(sits_labels.sits(environment(data)$data))
-
 }
 #' @title Change the labels of a set of time series
 #'
@@ -78,7 +69,7 @@ sits_labels.sits_model <- function(data) {
 #' @description Given a sits tibble with a set of labels, renames the labels
 #' to the specified in value.
 #'
-#' @param  data      A sits tibble.
+#' @param  data      Data cube or time series.
 #' @param  value     A character vector used to convert labels. Labels will
 #'                   be renamed to the respective value positioned at the
 #'                   labels order returned by \code{\link{sits_labels}}.
@@ -92,21 +83,20 @@ sits_labels.sits_model <- function(data) {
 #' sits_labels(samples_modis_4bands)
 #' # Create a conversion list.
 #' # relabel the data
-#' sits_labels(samples_modis_4bands) <- c("Natural", "Natural",
-#'                                        "Anthropic", "Anthropic")
+#' sits_labels(samples_modis_4bands) <- c(
+#'   "Natural", "Natural",
+#'   "Anthropic", "Anthropic"
+#' )
 #' # show the new labels
 #' sits_labels(samples_modis_4bands)
-#'
 #' @export
 #'
 `sits_labels<-` <- function(data, value) {
 
     # set caller to show in errors
     .check_set_caller("sits_labels")
-
     # get the meta-type (sits or cube)
     data <- .config_data_meta_type(data)
-
     UseMethod("sits_labels<-", data)
 }
 
@@ -120,8 +110,10 @@ sits_labels.sits_model <- function(data) {
     labels <- sits_labels(data)
 
     # check if value is an atomic vector
-    .check_chr_type(x = value,
-                    msg = "value must be a character vetor")
+    .check_chr_type(
+        x = value,
+        msg = "value must be a character vetor"
+    )
 
     # check if length is correct
     .check_length(
@@ -144,9 +136,7 @@ sits_labels.sits_model <- function(data) {
     )
 
     names(value) <- labels
-
     data$label <- value[data$label]
-
     return(data)
 }
 #' @export
@@ -154,9 +144,11 @@ sits_labels.sits_model <- function(data) {
 `sits_labels<-.probs_cube` <- function(data, value) {
     # precondition
     n_labels <- length(sits_labels(data))
-    .check_chr(value, len_min = n_labels,
-               msg = "not enough new labels to replace current ones")
-    rows <- slider::slide_dfr(data, function(row){
+    .check_chr(value,
+               len_min = n_labels,
+               msg = "not enough new labels to replace current ones"
+    )
+    rows <- slider::slide_dfr(data, function(row) {
         row$labels <- list(value)
         return(row)
     })
@@ -176,11 +168,9 @@ sits_labels.sits_model <- function(data) {
 #' data(cerrado_2classes)
 #' # print the labels
 #' sits_labels_summary(cerrado_2classes)
-#'
 #' @export
 #'
 sits_labels_summary <- function(data) {
-
     UseMethod("sits_labels_summary", data)
 }
 

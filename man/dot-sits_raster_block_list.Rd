@@ -7,12 +7,13 @@
 .sits_raster_block_list(nblocks, sub_image)
 }
 \arguments{
-\item{nblocks}{number of blocks to read from each image}
+\item{nblocks}{Number of blocks to read from each image.}
 
-\item{sub_image}{area of interest in the image}
+\item{sub_image}{Area of interest in the image.}
 }
 \value{
-a list with named vectors ("first_row", "nrows", "first_col", "ncols")
+List with named vectors
+                        ("first_row", "nrows", "first_col", "ncols").
 }
 \description{
 Calculate a list of blocks to be read from disk to memory

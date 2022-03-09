@@ -8,11 +8,11 @@
 \method{plot}{sits}(x, y, ...)
 }
 \arguments{
-\item{x}{object of class "sits"}
+\item{x}{Object of class "sits"}
 
-\item{y}{ignored}
+\item{y}{Ignored.}
 
-\item{...}{further specifications for \link{plot}.}
+\item{...}{Further specifications for \link{plot}.}
 }
 \value{
 The plot itself.

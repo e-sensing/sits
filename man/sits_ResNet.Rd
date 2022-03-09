@@ -7,13 +7,14 @@
 sits_ResNet(
   samples = NULL,
   blocks = c(64, 128, 128),
-  kernels = c(8, 5, 3),
+  kernels = c(7, 5, 3),
   activation = "relu",
-  optimizer = keras::optimizer_adam(learning_rate = 0.001),
+  optimizer = torch::optim_adam,
+  learning_rate = 0.001,
   epochs = 300,
   batch_size = 64,
   validation_split = 0.2,
-  verbose = 0
+  verbose = FALSE
 )
 }
 \arguments{
@@ -56,7 +57,7 @@ before shuffling.}
 A fitted model to be passed to \code{\link[sits]{sits_classify}}
 }
 \description{
-Use a ResNet architecture for classifiying image time series.
+Use a ResNet architecture for classifying image time series.
 The ResNet (or deep residual network) was proposed by a team
 in Microsoft Research for 2D image classification.
 ResNet tries to address the degradation of accuracy
@@ -66,10 +67,10 @@ In the paper by Fawaz et al. (2019), ResNet was considered the best method
 for time series classification, using the UCR dataset.
 Please refer to the paper for more details.
 
-The SITS implementation of RestNet is based on the work of Hassan Fawaz and
-collaborators, and also inspired by the paper of Wang et al (see below).
-Fawaz provides a reference code  in https://github.com/hfawaz/dl-4-tsc.
-If you use this function, please cite the references.
+The R-torch version is based on the code made available by the BreizhCrops
+team: Marc Russwurm, Charlotte Pelletier, Marco Korner, Maximilian Zollner.
+The original python code is available at the website
+https://github.com/dl4sits/BreizhCrops. This code is licensed as GPL-3.
 }
 \examples{
 \dontrun{
@@ -102,7 +103,9 @@ Zhiguang Wang, Weizhong Yan, and Tim Oates,
 \author{
 Gilberto Camara, \email{gilberto.camara@inpe.br}
 
-Alexandre Ywata de Carvalho, \email{alexandre.ywata@ipea.gov.br}
-
 Rolf Simoes, \email{rolf.simoes@inpe.br}
+
+Felipe Souza, \email{lipecaso@gmail.com}
+
+Alber Sanchez, \email{alber.ipia@inpe.br}
 }

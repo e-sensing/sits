@@ -13,11 +13,11 @@
 )
 }
 \arguments{
-\item{cube}{tile of data cube}
+\item{cube}{Tile of data cube.}
 
-\item{n_images_interval}{...}
+\item{n_images_interval}{Number of images per interval.}
 
-\item{sub_image}{area of interest in the image}
+\item{sub_image}{Area of interest in the image.}
 
 \item{memsize}{Memory available for classification (in GB).}
 

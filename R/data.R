@@ -58,7 +58,7 @@ NULL
 #'   time_series (list containing a tibble with the values of the time series).
 NULL
 
-#'@title Samples of Amazon tropical forest biome for deforestation analysis
+#' @title Samples of Amazon tropical forest biome for deforestation analysis
 #'
 #'
 #' @docType data
@@ -84,4 +84,3 @@ NULL
 #' @usage data("samples_l8_rondonia_2bands")
 #'
 NULL
-

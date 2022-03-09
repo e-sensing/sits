@@ -7,16 +7,16 @@
 .sits_raster_blocks_apply(tile, sub_image, memsize, multicores)
 }
 \arguments{
-\item{tile}{tile of input data cube.}
+\item{tile}{Tile of input data cube.}
 
-\item{sub_image}{bounding box of the ROI}
+\item{sub_image}{Bounding box of the ROI.}
 
-\item{memsize}{memory available for classification (in GB).}
+\item{memsize}{Memory available for classification (in GB).}
 
-\item{multicores}{number of threads to process the time series.}
+\item{multicores}{Number of threads to process the time series.}
 }
 \value{
-list with three attributes: n (number of blocks),
+List with three attributes: n (number of blocks),
                         rows (list of rows to begin),
                         nrows (number of rows to read at each iteration).
 }

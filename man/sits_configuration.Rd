@@ -23,40 +23,29 @@ sits_config_show(source = NULL, collection = NULL, colors = FALSE)
 sits_list_collections(source = NULL)
 }
 \arguments{
-\item{processing_bloat}{A \code{numeric} value to estimate
-growth size of R memory relative to block size.}
+\item{processing_bloat}{Estimated growth size of R memory relative
+to block size.}
 
-\item{rstac_pagination_limit}{A \code{numeric} value indicating number of
-items returned by STAC service.}
+\item{rstac_pagination_limit}{Limit of number of items returned by STAC.}
 
-\item{raster_api_package}{A \code{character} value indicating a
-supported raster handling package.}
+\item{raster_api_package}{Supported raster handling package.}
 
-\item{gdal_creation_options}{A \code{character} vector specifying GDAL
-creation option for GeoTiff image format.}
+\item{gdal_creation_options}{GDAL creation options for GeoTiff.}
 
-\item{gdalcubes_chunk_size}{A \code{numeric} vector specifying the chunk size
-to be used by gdalcubes}
+\item{gdalcubes_chunk_size}{Chunk size to be used by gdalcubes}
 
-\item{leaflet_max_Mbytes}{A \code{numeric} value indicating the maximum
-size of an image to be shown by leaflet (in MB)}
+\item{leaflet_max_Mbytes}{Maximage size of an image for leaflet (in MB)}
 
-\item{leaflet_comp_factor}{A \code{numeric} value indicating the compression
-factor for leaflet RGB display}
+\item{leaflet_comp_factor}{Compression factor for leaflet RGB display.}
 
-\item{reset}{A \code{logical} value indicating if current
-configuration options must be cleaned before
-load config files. Default \code{FALSE}.}
+\item{reset}{Should current configuration options be cleaned
+before loading config files? Default \code{FALSE}.}
 
-\item{source}{A \code{character} value indicating a source
-key entry to be shown in detail.}
+\item{source}{Data source to be shown in detail.}
 
-\item{collection}{A \code{character} value used in conjunction
-with \code{source} parameter to indicate a collection key entry to be shown
-in detail.}
+\item{collection}{Collection key entry to be shown in detail.}
 
-\item{colors}{A \code{logical} value indicating if colors
-will to be shown in detail.}
+\item{colors}{Show colors?}
 }
 \value{
 \code{sits_config()} returns a \code{list} containing the final

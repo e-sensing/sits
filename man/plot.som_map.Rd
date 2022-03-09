@@ -7,9 +7,9 @@
 \method{plot}{som_map}(x, y, ..., type = "codes", band = 1)
 }
 \arguments{
-\item{x}{Object of class "som_map"}
+\item{x}{Object of class "som_map".}
 
-\item{y}{Ignored}
+\item{y}{Ignored.}
 
 \item{...}{Further specifications for \link{plot}.}
 

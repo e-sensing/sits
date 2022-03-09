@@ -13,7 +13,7 @@ sits_kfold_validate(
 )
 }
 \arguments{
-\item{data}{A sits tibble.}
+\item{data}{Time series.}
 
 \item{folds}{Number of partitions to create.}
 
@@ -21,11 +21,11 @@ sits_kfold_validate(
 
 \item{multicores}{Number of cores for processing.}
 
-\item{progress}{A logical value indicating if a progress bar should
-be shown}
+\item{progress}{Show progress bar?}
 }
 \value{
-A tibble containing pairs of reference and predicted values.
+A tibble containing pairs of
+                       reference and predicted values.
 }
 \description{
 Splits the set of time series into training and validation and
@@ -53,11 +53,10 @@ This function returns the confusion matrix, and Kappa values.
 data(cerrado_2classes)
 # two fold validation with random forest
 acc <- sits_kfold_validate(cerrado_2classes,
-    folds = 2,
-    ml_method = sits_rfor(num_trees = 300)
+  folds = 2,
+  ml_method = sits_rfor(num_trees = 300)
 )
 }
-
 }
 \author{
 Rolf Simoes, \email{rolf.simoes@inpe.br}

@@ -86,10 +86,10 @@ NULL
 #'
 #' @return \code{.check_set_caller()} returns \code{NULL}.
 .check_set_caller <- function(caller) {
-
     envir <- parent.frame()
-    if (length(sys.frames()) > 1)
+    if (length(sys.frames()) > 1) {
         envir <- sys.frame(-1)
+    }
     assign(".check_caller", caller, envir = envir)
 
     return(invisible(NULL))
@@ -117,8 +117,10 @@ NULL
 
     # no caller defined, get first function in calling stack
     caller <- sys.calls()[[1]]
-    caller <- gsub(pattern = "^(.*)\\(.*$", replacement = "\\1",
-                   x = paste(caller)[[1]])
+    caller <- gsub(
+        pattern = "^(.*)\\(.*$", replacement = "\\1",
+        x = paste(caller)[[1]]
+    )
     return(caller)
 }
 
@@ -165,7 +167,6 @@ NULL
 .check_that <- function(x, ...,
                         local_msg = NULL,
                         msg = NULL) {
-
     value <- (is.logical(x) && all(x)) || (!is.logical(x) && length(x) > 0)
 
     if (!value) {
@@ -174,10 +175,11 @@ NULL
         caller <- .check_identify_caller()
 
         # format error message
-        if (is.null(msg))
+        if (is.null(msg)) {
             msg <- sprintf("%s: %%s", caller)
-        else
+        } else {
             msg <- sprintf("%s: %s (%%s)", caller, msg)
+        }
 
         if (is.null(local_msg)) {
             expr <- deparse(substitute(expr = x, env = environment()))
@@ -195,7 +197,6 @@ NULL
 #' @keywords internal
 .check_null <- function(x, ...,
                         msg = NULL) {
-
     .check_that(
         !is.null(x),
         local_msg = msg
@@ -208,7 +209,6 @@ NULL
 #' @keywords internal
 .check_na <- function(x, ...,
                       msg = NULL) {
-
     .check_that(
         !any(is.na(x)),
         local_msg = "NA value is not allowed",
@@ -226,8 +226,9 @@ NULL
                          msg = NULL) {
 
     # cannot test zero length arguments
-    if (length(x) == 0)
+    if (length(x) == 0) {
         return(invisible(x))
+    }
 
     if (is_named) {
         .check_that(
@@ -241,12 +242,13 @@ NULL
             local_msg = "names should be unique",
             msg = msg
         )
-    } else
+    } else {
         .check_that(
             is.null(names(x)),
             local_msg = "value should be unnamed",
             msg = msg
         )
+    }
 
     return(invisible(x))
 }
@@ -259,30 +261,38 @@ NULL
                           msg = NULL) {
 
     # pre-condition
-    if (!is.null(len_min) && !is.numeric(len_min))
+    if (!is.null(len_min) && !is.numeric(len_min)) {
         stop(".check_length: len_min parameter should be numeric.")
+    }
 
-    if (!is.null(len_max) && !is.numeric(len_max))
+    if (!is.null(len_max) && !is.numeric(len_max)) {
         stop(".check_length: len_max parameter should be numeric.")
+    }
 
     # set error message
-    if (!is.null(len_min) && !is.null(len_max) && len_min == len_max)
+    if (!is.null(len_min) && !is.null(len_max) && len_min == len_max) {
         local_msg <- sprintf("length should be == %s", len_min)
-    else if (is.null(len_min) && is.null(len_max))
-        local_msg <- "invalid length" # never throws an error in this case!
-    else if (is.null(len_max))
+    } else if (is.null(len_min) && is.null(len_max)) {
+        local_msg <- "invalid length"
+    } # never throws an error in this case!
+    else if (is.null(len_max)) {
         local_msg <- sprintf("length should be >= %s", len_min)
-    else if (is.null(len_min))
+    } else if (is.null(len_min)) {
         local_msg <- sprintf("length should be <= %s", len_max)
-    else
-        local_msg <- sprintf("length should be between %s and %s",
-                             len_min, len_max)
+    } else {
+        local_msg <- sprintf(
+            "length should be between %s and %s",
+            len_min, len_max
+        )
+    }
 
-    if (is.null(len_min))
+    if (is.null(len_min)) {
         len_min <- 0
+    }
 
-    if (is.null(len_max))
+    if (is.null(len_max)) {
         len_max <- 2^31
+    }
 
     .check_that(
         len_min <= length(x) && length(x) <= len_max,
@@ -296,9 +306,9 @@ NULL
 #' @rdname check_functions
 #' @keywords internal
 .check_apply <- function(x, fn_check, ...) {
-
-    if (!is.function(fn_check))
+    if (!is.function(fn_check)) {
         stop(".check_apply: fn_check should be a function.", call. = TRUE)
+    }
 
     # check all elements
     lapply(x, fn_check, ...)
@@ -337,7 +347,6 @@ NULL
 #' @keywords internal
 .check_lgl_type <- function(x, ...,
                             msg = NULL) {
-
     .check_that(
         is.logical(x),
         local_msg = "value is not logical",
@@ -352,7 +361,6 @@ NULL
 .check_num_type <- function(x, ...,
                             is_integer = FALSE,
                             msg = NULL) {
-
     .check_that(
         is.numeric(x),
         local_msg = "value is not a number",
@@ -363,8 +371,9 @@ NULL
     if (is_integer) {
 
         # if length is zero there is nothing to check
-        if (length(x) == 0)
+        if (length(x) == 0) {
             return(invisible(x))
+        }
 
         .check_that(
             is.numeric(x) && all(x == as.integer(x)),
@@ -380,7 +389,6 @@ NULL
 #' @keywords internal
 .check_chr_type <- function(x, ...,
                             msg = NULL) {
-
     .check_that(
         is.character(x),
         local_msg = "value is not character type",
@@ -394,7 +402,6 @@ NULL
 #' @keywords internal
 .check_lst_type <- function(x, ...,
                             msg = NULL) {
-
     .check_that(
         is.list(x),
         local_msg = "value is not a list",
@@ -449,8 +456,9 @@ NULL
                        msg = NULL) {
 
     # check for NULL and exit if it is allowed
-    if (allow_null && is.null(x))
+    if (allow_null && is.null(x)) {
         return(invisible(x))
+    }
 
     # check NULL
     .check_null(x, msg = msg)
@@ -462,8 +470,9 @@ NULL
     .check_length(x, len_min = len_min, len_max = len_max, msg = msg)
 
     # check NA
-    if (!allow_na)
+    if (!allow_na) {
         .check_na(x, msg = msg)
+    }
 
     # check names
     .check_names(x, is_named = is_named, msg = msg)
@@ -487,8 +496,9 @@ NULL
                        msg = NULL) {
 
     # check for NULL and exit if it is allowed
-    if (allow_null && is.null(x))
+    if (allow_null && is.null(x)) {
         return(invisible(x))
+    }
 
     # check NULL
     .check_null(x, msg = msg)
@@ -500,25 +510,29 @@ NULL
     .check_length(x, len_min = len_min, len_max = len_max, msg = msg)
 
     # check NA
-    if (!allow_na)
+    if (!allow_na) {
         .check_na(x, msg = msg)
+    }
 
     # check names
     .check_names(x, is_named = is_named, msg = msg)
 
     # check range
     # pre-condition
-    if (!is.null(min) && !is.numeric(min))
+    if (!is.null(min) && !is.numeric(min)) {
         stop(".check_num: min parameter should be numeric.")
+    }
 
-    if (!is.null(max) && !is.numeric(max))
+    if (!is.null(max) && !is.numeric(max)) {
         stop(".check_num: max parameter should be numeric.")
+    }
 
-    if (!is.null(tolerance))
+    if (!is.null(tolerance)) {
         .check_num(
             x = tolerance,
             msg = "tolerance must be numeric."
         )
+    }
 
     # remove NAs before check
     result <- x
@@ -526,7 +540,6 @@ NULL
 
     # adjust min and max to tolerance
     if (!is.null(tolerance)) {
-
         min <- min - tolerance
         max <- max + tolerance
     }
@@ -538,12 +551,13 @@ NULL
     )
 
     # allow zero
-    if (!allow_zero)
+    if (!allow_zero) {
         .check_that(
             all(x != 0),
             local_msg = "value cannot be zero",
             msg = msg
         )
+    }
 
     return(invisible(result))
 }
@@ -561,8 +575,9 @@ NULL
                        msg = NULL) {
 
     # check for null and exit if it is allowed
-    if (allow_null && is.null(x))
+    if (allow_null && is.null(x)) {
         return(invisible(x))
+    }
 
     # check NULL
     .check_null(x, msg = msg)
@@ -574,28 +589,31 @@ NULL
     .check_length(x, len_min = len_min, len_max = len_max, msg = msg)
 
     # check NA
-    if (!allow_na)
+    if (!allow_na) {
         .check_na(x, msg = msg)
+    }
 
     # check empty
-    if (!allow_empty)
+    if (!allow_empty) {
         .check_that(
             all(nchar(x[!is.na(x)]) > 0),
             local_msg = "empty value is not allowed",
             msg = msg
         )
+    }
 
 
     # check names
     .check_names(x, is_named = is_named, msg = msg)
 
     # check regular expression pattern
-    if (!is.null(regex))
+    if (!is.null(regex)) {
         .check_that(
             all(grepl(pattern = regex, x = x)),
             local_msg = "value did not match pattern",
             msg = msg
         )
+    }
 
     return(invisible(x))
 }
@@ -611,8 +629,9 @@ NULL
                        msg = NULL) {
 
     # check for null and exit if it is allowed
-    if (allow_null && is.null(x))
+    if (allow_null && is.null(x)) {
         return(invisible(x))
+    }
 
     # check NULL
     .check_null(x, msg = msg)
@@ -627,8 +646,9 @@ NULL
     .check_names(x, is_named = is_named, msg = msg)
 
     # check using function
-    if (!is.null(fn_check))
+    if (!is.null(fn_check)) {
         .check_apply(x, fn_check = fn_check, msg = msg, ...)
+    }
 
     return(invisible(x))
 }
@@ -672,7 +692,7 @@ NULL
 #' (can it repeat?) equal to \code{x}.
 #' }
 #' }
-#'@keywords internal
+#' @keywords internal
 .check_chr_within <- function(x,
                               within, ...,
                               case_sensitive = TRUE,
@@ -681,32 +701,41 @@ NULL
                               msg = NULL) {
 
     # pre-condition
-    .check_chr(within, len_min = 1,
-               msg = "invalid 'within' parameter")
+    .check_chr(within,
+               len_min = 1,
+               msg = "invalid 'within' parameter"
+    )
 
     # allowed discriminators and its print values
-    discriminators <- c(one_of  = "be only one of",
-                        any_of  = "be at least one of",
-                        all_of  = "be",
-                        none_of = "be none of",
-                        exactly = "be exactly")
+    discriminators <- c(
+        one_of = "be only one of",
+        any_of = "be at least one of",
+        all_of = "be",
+        none_of = "be none of",
+        exactly = "be exactly"
+    )
 
     if (length(discriminator) != 1 ||
-        !discriminator %in% names(discriminators))
-        stop(paste(".check_chr_within: discriminator should be one of",
-                   "'one_of', 'any_of', 'all_of', 'none_of', or 'exactly'."),
-             call. = TRUE)
+        !discriminator %in% names(discriminators)) {
+        stop(paste(
+            ".check_chr_within: discriminator should be one of",
+            "'one_of', 'any_of', 'all_of', 'none_of', or 'exactly'."
+        ),
+        call. = TRUE
+        )
+    }
 
     # check type
     .check_chr_type(x, msg = msg)
 
     # check for repeated values
-    if (!can_repeat)
+    if (!can_repeat) {
         .check_that(
             length(x) == length(unique(x)),
             local_msg = "values can not repeat",
             msg = msg
         )
+    }
 
     result <- x
 
@@ -722,42 +751,46 @@ NULL
     }
 
     # prepare local message
-    local_msg <- sprintf("values should %s: %s",
-                         discriminators[[discriminator]],
-                         paste0("'", original_within, "'",
-                                collapse = ", "))
+    local_msg <- sprintf(
+        "values should %s: %s",
+        discriminators[[discriminator]],
+        paste0("'", original_within, "'",
+               collapse = ", "
+        )
+    )
 
     # check discriminator
-    if (discriminator == "one_of")
+    if (discriminator == "one_of") {
         .check_that(
             sum(x %in% within) == 1,
             local_msg = local_msg,
             msg = msg
         )
-    else if (discriminator == "any_of")
+    } else if (discriminator == "any_of") {
         .check_that(
             any(x %in% within),
             local_msg = local_msg,
             msg = msg
         )
-    else if (discriminator == "all_of")
+    } else if (discriminator == "all_of") {
         .check_that(
             all(x %in% within),
             local_msg = local_msg,
             msg = msg
         )
-    else if (discriminator == "none_of")
+    } else if (discriminator == "none_of") {
         .check_that(
             !any(x %in% within),
             local_msg = local_msg,
             msg = msg
         )
-    else if (discriminator == "exactly")
+    } else if (discriminator == "exactly") {
         .check_that(
             all(x %in% within) && all(within %in% x),
             local_msg = local_msg,
             msg = msg
         )
+    }
 
     return(invisible(result))
 }
@@ -772,32 +805,41 @@ NULL
                                 msg = NULL) {
 
     # pre-condition
-    .check_chr(contains, len_min = 1,
-               msg = "invalid 'contains' parameter")
+    .check_chr(contains,
+               len_min = 1,
+               msg = "invalid 'contains' parameter"
+    )
 
     # allowed discriminators and its print values
-    discriminators <- c(one_of  = "contain only one of",
-                        any_of  = "contain at least one of",
-                        all_of  = "contain",
-                        none_of = "not contain any of",
-                        exactly = "be exactly")
+    discriminators <- c(
+        one_of = "contain only one of",
+        any_of = "contain at least one of",
+        all_of = "contain",
+        none_of = "not contain any of",
+        exactly = "be exactly"
+    )
 
     if (length(discriminator) != 1 ||
-        !discriminator %in% names(discriminators))
-        stop(paste(".check_chr_contains: discriminator should be one of",
-                   "'one_of', 'any_of', or 'all_of'."),
-             call. = TRUE)
+        !discriminator %in% names(discriminators)) {
+        stop(paste(
+            ".check_chr_contains: discriminator should be one of",
+            "'one_of', 'any_of', or 'all_of'."
+        ),
+        call. = TRUE
+        )
+    }
 
     # check type
     .check_chr_type(x, msg = msg)
 
     # check for repeated values
-    if (!can_repeat)
+    if (!can_repeat) {
         .check_that(
             length(contains) == length(unique(contains)),
             local_msg = "values can not repeat",
             msg = msg
         )
+    }
 
     result <- x
 
@@ -813,41 +855,44 @@ NULL
     }
 
     # prepare local message
-    local_msg <- sprintf("values should %s: %s",
-                         discriminators[[discriminator]],
-                         paste0("'", original_contains, "'", collapse = ", "))
+    local_msg <- sprintf(
+        "values should %s: %s",
+        discriminators[[discriminator]],
+        paste0("'", original_contains, "'", collapse = ", ")
+    )
 
     # check discriminator
-    if (discriminator == "one_of")
+    if (discriminator == "one_of") {
         .check_that(
             sum(contains %in% x) == 1,
             local_msg = local_msg,
             msg = msg
         )
-    else if (discriminator == "any_of")
+    } else if (discriminator == "any_of") {
         .check_that(
             any(contains %in% x),
             local_msg = local_msg,
             msg = msg
         )
-    else if (discriminator == "all_of")
+    } else if (discriminator == "all_of") {
         .check_that(
             all(contains %in% x),
             local_msg = local_msg,
             msg = msg
         )
-    else if (discriminator == "none_of")
+    } else if (discriminator == "none_of") {
         .check_that(
             !any(contains %in% x),
             local_msg = local_msg,
             msg = msg
         )
-    else if (discriminator == "exactly")
+    } else if (discriminator == "exactly") {
         .check_that(
             all(contains %in% x) && all(x %in% contains),
             local_msg = local_msg,
             msg = msg
         )
+    }
 
     return(invisible(result))
 }
@@ -870,28 +915,38 @@ NULL
 
     # file extension
     ext_file <- function(x) {
-        gsub(pattern = "[^?]+\\.([^?/.]+).*$",
-             replacement = "\\1",
-             basename(x))
+        gsub(
+            pattern = "[^?]+\\.([^?/.]+).*$",
+            replacement = "\\1",
+            basename(x)
+        )
     }
 
     # check parameter
-    .check_chr(x, allow_empty = FALSE, len_min = 1,
-               allow_null = FALSE, msg = msg)
+    .check_chr(x,
+               allow_empty = FALSE, len_min = 1,
+               allow_null = FALSE, msg = msg
+    )
 
     # check extension
-    if (!is.null(extensions))
-        .check_chr_within(ext_file(x), within = extensions,
+    if (!is.null(extensions)) {
+        .check_chr_within(ext_file(x),
+                          within = extensions,
                           case_sensitive = FALSE,
-                          msg = "invalid file extension")
+                          msg = "invalid file extension"
+        )
+    }
 
     existing_files <- file.exists(x)
     existing_dirs <- dir.exists(x)
     .check_that(
         all(existing_files | existing_dirs),
-        local_msg = paste("file does not exist:",
-                          paste0("'", x[!existing_files], "'",
-                                 collapse = ", ")),
+        local_msg = paste(
+            "file does not exist:",
+            paste0("'", x[!existing_files], "'",
+                   collapse = ", "
+            )
+        ),
         msg = msg
     )
 
@@ -912,20 +967,26 @@ NULL
 #' @keywords internal
 .check_env_var <- function(x, ...,
                            msg = NULL) {
-
     .check_null(x, msg = msg)
 
     .check_chr_type(x, msg = msg)
 
-    if (length(x) > 0)
+    if (length(x) > 0) {
         .check_apply(
             x,
-            fn_check = function(x) .check_that(x = nzchar(Sys.getenv(x)),
-                                               msg = paste(sprintf("%s: ", x),
-                                                           msg))
+            fn_check = function(x) {
+                .check_that(
+                    x = nzchar(Sys.getenv(x)),
+                    msg = paste(
+                        sprintf("%s: ", x),
+                        msg
+                    )
+                )
+            }
         )
-    else
+    } else {
         .check_that(x = nzchar(Sys.getenv(x)), msg = msg)
+    }
 
     return(invisible(x))
 }
@@ -947,12 +1008,14 @@ NULL
 #' }
 #' @keywords internal
 .check_warn <- function(expr) {
-
-    result <- tryCatch({
-        expr
-    }, error = function(e) {
-        warning(e$message, call. = FALSE)
-    })
+    result <- tryCatch(
+        {
+            expr
+        },
+        error = function(e) {
+            warning(e$message, call. = FALSE)
+        }
+    )
 
     return(invisible(result))
 }
@@ -961,21 +1024,24 @@ NULL
 #' @keywords internal
 .check_error <- function(expr, ...,
                          msg = NULL) {
-
-    result <- tryCatch({
-        expr
-    }, error = function(e) {
-        .check_that(FALSE, local_msg = e$message, msg = msg)
-    })
+    result <- tryCatch(
+        {
+            expr
+        },
+        error = function(e) {
+            .check_that(FALSE, local_msg = e$message, msg = msg)
+        }
+    )
 
     return(invisible(result))
 }
 #' @rdname check_functions
 #' @keywords internal
-.check_documentation <- function(progress){
+.check_documentation <- function(progress) {
     # if working on sits documentation mode, no progress bar
-    if (Sys.getenv("SITS_DOCUMENTATION_MODE") == "true")
+    if (Sys.getenv("SITS_DOCUMENTATION_MODE") == "true") {
         progress <- FALSE
+    }
 
     return(progress)
 }

@@ -11,7 +11,7 @@
 #'              ground information ("latitude", "longitude", "start_date",
 #'              "end_date", "cube", "label").
 #'
-#' @param  data       A sits time series.
+#' @param  data       Time series.
 #' @param  file       Name of the exported CSV file.
 #'
 #' @return The status of the operation.
@@ -22,7 +22,6 @@
 #' # export a time series
 #' csv_file <- paste0(tempdir(), "/cerrado_2classes.csv")
 #' sits_metadata_to_csv(cerrado_2classes, file = csv_file)
-#'
 #' @export
 #'
 sits_metadata_to_csv <- function(data, file) {
@@ -73,7 +72,8 @@ sits_metadata_to_csv <- function(data, file) {
         x = colnames(csv),
         contains = .config_get("df_sample_columns"),
         discriminator = "all_of",
-        msg = "invalid csv file")
+        msg = "invalid csv file"
+    )
 
     return(invisible(TRUE))
 }

@@ -7,14 +7,14 @@
 .view_resample_size(nrows, ncols, ntiles)
 }
 \arguments{
-\item{nrows}{number of rows in the input image}
+\item{nrows}{Number of rows in the input image.}
 
-\item{ncols}{number of cols in the input image}
+\item{ncols}{Number of cols in the input image.}
 
-\item{ntiles}{number of tiles in the input image}
+\item{ntiles}{Number of tiles in the input image.}
 }
 \value{
-vector with cell size for x and y coordinates
+Cell size for x and y coordinates.
 }
 \description{
 Return the cell size for the image to be resamples

@@ -9,12 +9,10 @@
 \arguments{
 \item{cube}{Data cube from where data is to be retrieved.}
 
-\item{period}{A \code{character} with ISO8601 time period for regular
-data cubes produced by \code{gdalcubes}, with number and unit, e.g., "P16D"
-for 16 days. Use "D", "M" and "Y" for days, month and year.}
+\item{period}{ISO8601 time period.}
 }
 \value{
-a \code{vector} with all timeline values.
+Timeline values.
 }
 \description{
 Compute the timeline of the regularized cube

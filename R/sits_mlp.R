@@ -7,11 +7,11 @@
 #' @author Alber Sanchez, \email{alber.ipia@@inpe.br}
 #'
 #' @description Use a multi-layer perceptron algorithm to classify data.
-#' This function is a front-end to the "keras" method R package.
-#' Please refer to the documentation in that package for more details.
+#' This function uses the R "torch" and "luz" packages.
+#' Please refer to the documentation of those package for more details.
 #'
 #' @param samples           Time series with the training samples.
-#' @param units             Vector with number of hidden nodes in each layer.
+#' @param layers            Vector with number of hidden nodes in each layer.
 #' @param activation        Vector with the names of activation functions.
 #'                          Valid values are {'relu', 'elu', 'selu', 'sigmoid'}.
 #' @param dropout_rates     Vector with the dropout rates (0,1)
@@ -42,19 +42,7 @@
 #' (g) a validation percentage of 20%, which means 20% of the samples
 #' will be randomly set side for validation.
 #'
-#' @references
-#' Hassan Fawaz, Germain Forestier, Jonathan Weber,
-#' Lhassane Idoumghar,  and Pierre-Alain Muller,
-#' "Deep learning for time series classification: a review",
-#' Data Mining and Knowledge Discovery, 33(4): 917--963, 2019.
 #'
-#' Zhiguang Wang, Weizhong Yan, and Tim Oates,
-#' "Time series classification from scratch with deep neural networks:
-#' A strong baseline",
-#' 2017 international joint conference on neural networks (IJCNN).
-#'
-#' Implementation based on the python keras implementation provided in
-#' https://github.com/hfawaz/dl-4-tsc.
 #'
 #' @examples
 #' \dontrun{
@@ -73,9 +61,9 @@
 #' @export
 #'
 sits_mlp <- function(samples = NULL,
-                     units = c(512, 512, 512),
+                     layers = c(512, 512, 512),
                      activation = "relu",
-                     dropout_rates = c(0.10, 0.20, 0.30),
+                     dropout_rates = c(0.20, 0.30, 0.40),
                      learning_rate = 0.001,
                      epochs = 100,
                      batch_size = 64,
@@ -92,15 +80,9 @@ sits_mlp <- function(samples = NULL,
         if (!requireNamespace("torch", quietly = TRUE)) {
             stop("Please install package torch", call. = FALSE)
         }
-
-        # verifies if coro package is installed
-        if (!requireNamespace("coro", quietly = TRUE)) {
-            stop("Please install package coro", call. = FALSE)
-        }
-
         # pre-conditions
         .check_that(
-            x = length(units) == length(dropout_rates),
+            x = length(layers) == length(dropout_rates),
             msg = "number of layers does not match number of dropout rates"
         )
         .check_that(
@@ -169,24 +151,24 @@ sits_mlp <- function(samples = NULL,
                 # create a torch tensor for y data
                 self$y <- torch::torch_tensor(labels_y)
             },
-            .getitem = function(i){
+            .getitem = function(i) {
                 list(x = self$x[i, ], y = self$y[i])
             },
-            .length = function(){
+            .length = function() {
                 self$y$size()[[1]]
             }
         )
 
         # create train and test datasets
         train_ds <- sits_dataset(train_x, train_y)
-        test_ds  <- sits_dataset(test_x, test_y)
+        test_ds <- sits_dataset(test_x, test_y)
 
         # create the dataloaders for torch
         train_dl <- torch::dataloader(train_ds, batch_size = batch_size)
-        test_dl  <- torch::dataloader(test_ds, batch_size = batch_size)
+        test_dl <- torch::dataloader(test_ds, batch_size = batch_size)
 
         # activation function
-        get_activation_fn <- function(activation,...) {
+        get_activation_fn <- function(activation, ...) {
             if (activation == "relu") {
                 res <- torch::nn_relu(...)
             } else if (activation == "elu") {
@@ -202,29 +184,29 @@ sits_mlp <- function(samples = NULL,
 
         torch_module <- torch::nn_module(
             "torch_module",
-            initialize = function(num_pred, units, activation, dropout_rates, y_dim) {
+            initialize = function(num_pred, layers, activation, dropout_rates, y_dim) {
                 tensors <- list()
 
                 # input layer
-                tensors[[1]] <- torch::nn_linear(num_pred, units[1])
+                tensors[[1]] <- torch::nn_linear(num_pred, layers[1])
                 tensors[[2]] <- get_activation_fn(activation)
                 tensors[[3]] <- torch::nn_dropout(p = dropout_rates[1])
 
-                # if hidden units is a vector then we add those layers
-                if (length(units) > 1) {
-                    for (i in 2:length(units)) {
+                # if hidden layers is a vector then we add those layers
+                if (length(layers) > 1) {
+                    for (i in 2:length(layers)) {
                         tensors[[length(tensors) + 1]] <-
-                            torch::nn_linear(units[i - 1], units[i])
+                            torch::nn_linear(layers[i - 1], layers[i])
 
                         tensors[[length(tensors) + 1]] <- get_activation_fn(activation)
                         tensors[[length(tensors) + 1]] <- torch::nn_dropout(p = dropout_rates[i])
-                        tensors[[length(tensors) + 1]] <- torch::nn_batch_norm1d(num_features = units[i])
+                        tensors[[length(tensors) + 1]] <- torch::nn_batch_norm1d(num_features = layers[i])
                     }
                 }
                 # add output layer
                 # output layer
                 tensors[[length(tensors) + 1]] <-
-                    torch::nn_linear(units[length(units)], y_dim)
+                    torch::nn_linear(layers[length(layers)], y_dim)
                 # add softmax tensor
                 tensors[[length(tensors) + 1]] <- torch::nn_softmax(dim = 2)
 
@@ -235,17 +217,17 @@ sits_mlp <- function(samples = NULL,
                 self$model(x)
             }
         )
-        # train the model
+        # train the model using the "luz" package
         torch_model <-
             luz::setup(
                 module = torch_module,
                 loss = torch::nn_cross_entropy_loss(),
-                metrics = list(luz::luz_metric_multiclass_auroc()),
+                metrics = list(luz::luz_metric_accuracy()),
                 optimizer = torch::optim_adam
             ) %>%
             luz::set_hparams(
                 num_pred = ncol(train_x),
-                units = units,
+                layers = layers,
                 activation = activation,
                 dropout_rates = dropout_rates,
                 y_dim = length(int_labels)
@@ -267,14 +249,14 @@ sits_mlp <- function(samples = NULL,
         model_to_raw <- function(model) {
             con <- rawConnection(raw(), open = "wr")
             torch::torch_save(model, con)
-            on.exit({close(con)}, add = TRUE)
+            on.exit( {close(con)}, add = TRUE)
             r <- rawConnectionValue(con)
             r
         }
 
         model_from_raw <- function(object) {
             con <- rawConnection(object)
-            on.exit({close(con)}, add = TRUE)
+            on.exit( {close(con)}, add = TRUE)
             module <- torch::torch_load(con)
             module
         }
@@ -308,8 +290,10 @@ sits_mlp <- function(samples = NULL,
 
             return(predicted)
         }
-        class(model_predict) <- c("torch_model", "sits_model",
-                                  class(model_predict))
+        class(model_predict) <- c(
+            "torch_model", "sits_model",
+            class(model_predict)
+        )
         return(model_predict)
     }
 

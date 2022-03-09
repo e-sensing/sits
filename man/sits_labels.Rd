@@ -7,10 +7,10 @@
 sits_labels(data)
 }
 \arguments{
-\item{data}{Valid sits tibble (time series or a cube)}
+\item{data}{Time series or a cube.}
 }
 \value{
-A string vector with the labels.
+Labels.
 }
 \description{
 Finds labels in a sits tibble or data cube
@@ -20,7 +20,6 @@ Finds labels in a sits tibble or data cube
 data(cerrado_2classes)
 # print the labels
 sits_labels(cerrado_2classes)
-
 }
 \author{
 Rolf Simoes, \email{rolf.simoes@inpe.br}

@@ -7,10 +7,10 @@
 #'
 #' @description Retrieves a time series from the SATVEG service.
 #'
-#' @param longitude       The longitude of the chosen location.
-#' @param latitude        The latitude of the chosen location.
-#' @param cube            SATVEG cube
-#' @return                A tibble containing a time series
+#' @param longitude       Longitude of the chosen location.
+#' @param latitude        Latitude of the chosen location.
+#' @param cube            SATVEG cube.
+#' @return                A tibble containing a time series.
 .sits_satveg_ts_from_txt <- function(longitude, latitude, cube) {
     # set the prefilter
     .prefilter <- 1
@@ -22,12 +22,14 @@
     url <- .source_url(source = .cube_source(cube = cube))
 
     # bands available in SATVEG
-    bands <- .source_bands_band_name(source = .cube_source(cube = cube),
-                                     collection = .cube_collection(cube = cube))
+    bands <- .source_bands_band_name(
+        source = .cube_source(cube = cube),
+        collection = .cube_collection(cube = cube)
+    )
     # bands in SATVEG are lowercase
     bands <- tolower(bands)
     # vector to hold the timeline (used once only)
-    get_times <- rep(FALSE,  times = length(bands))
+    get_times <- rep(FALSE, times = length(bands))
     get_times[1] <- TRUE
 
     # read each of the bands separately
@@ -35,7 +37,9 @@
         # Build the URL to retrieve the time series
         url_ts <- paste(url, b, "ponto", longitude, latitude,
                         .cube_collection(cube = cube), .prefilter,
-                        filter,filter_par, sep = "/")
+                        filter, filter_par,
+                        sep = "/"
+        )
 
         # Get the data from SATVEG service
         satveg <- httr::GET(url_ts)
@@ -67,10 +71,11 @@
         return(ts)
     })
     # hack - SATVEG has different timelines for EVI and NDVI bands - 15 June 2021
-    if (nrow(ts_bands_lst[[1]]) == nrow(ts_bands_lst[[2]]))
+    if (nrow(ts_bands_lst[[1]]) == nrow(ts_bands_lst[[2]])) {
         ts_satveg <- tibble::as_tibble(do.call(cbind, ts_bands_lst))
-    else
+    } else {
         ts_satveg <- ts_bands_lst[[1]]
+    }
 
     return(ts_satveg)
 }

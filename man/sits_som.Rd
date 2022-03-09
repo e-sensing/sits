@@ -41,19 +41,19 @@ sits_som_evaluate_cluster(som_map)
 
 \item{distance}{The type of similarity measure (distance).}
 
-\item{som_radius}{Radius of SOM neighborhood}
+\item{som_radius}{Radius of SOM neighborhood.}
 
-\item{mode}{Type of learning algorithm (default = "online")}
+\item{mode}{Type of learning algorithm (default = "online").}
 
-\item{som_map}{An object returned by \code{\link[sits]{sits_som_map}}}
+\item{som_map}{Object returned by \code{\link[sits]{sits_som_map}}.}
 
 \item{prior_threshold}{Threshold of conditional probability
-(frequency of samples assigned to the same SOM neuron)}
+(frequency of samples assigned to the same SOM neuron).}
 
 \item{posterior_threshold}{Threshold of posterior probability
-(influenced by the SOM neighborhood)}
+(influenced by the SOM neighborhood).}
 
-\item{keep}{Which types of evaluation to be maintained in the data}
+\item{keep}{Which types of evaluation to be maintained in the data.}
 }
 \value{
 \code{sits_som_map()} prodices a list with three members:
@@ -118,7 +118,6 @@ plot(eval)
 # Clean the samples to get better quality ones
 clean_samples <- sits_som_clean_samples(som_map)
 }
-
 
 }
 \references{

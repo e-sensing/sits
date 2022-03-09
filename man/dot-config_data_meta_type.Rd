@@ -7,7 +7,7 @@
 .config_data_meta_type(data)
 }
 \arguments{
-\item{data}{time series or cube}
+\item{data}{Time series or data cube.}
 }
 \value{
 an error if the meta data type is wrong

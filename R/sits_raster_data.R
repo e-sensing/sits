@@ -73,29 +73,27 @@
     # does the cube have a cloud band?
     cld_band <- .source_cloud()
     if (cld_band %in% sits_bands(cube)) {
-
         cld_index <- .source_cloud_interp_values(
             source = .cube_source(cube = cube),
             collection = .cube_collection(cube = cube)
         )
 
-        cld_files <- dplyr::filter(file_info, band == cld_band)$path
-        clouds <- .raster_read_stack(files  = cld_files, block = extent)
+        cld_files <- dplyr::filter(file_info, .data[["band"]] == cld_band)$path
+        clouds <- .raster_read_stack(files = cld_files, block = extent)
 
         # get information about cloud bitmask
         if (.source_cloud_bit_mask(
             source = .cube_source(cube = cube),
-            collection = .cube_collection(cube = cube))) {
-
+            collection = .cube_collection(cube = cube)
+        )) {
             clouds <- as.matrix(clouds)
             cld_rows <- nrow(clouds)
-            clouds <- matrix(bitwAnd(clouds, sum(2 ^ cld_index)),
-                             nrow = cld_rows) > 0
+            clouds <- matrix(bitwAnd(clouds, sum(2^cld_index)),
+                             nrow = cld_rows
+            ) > 0
         } else {
-
             clouds <- clouds %in% cld_index
         }
-
     } else {
         clouds <- NULL
     }
@@ -104,7 +102,7 @@
     values_bands <- purrr::map(bands, function(b) {
 
         # define the input raster files for band
-        bnd_files <- dplyr::filter(file_info, band == b)$path
+        bnd_files <- dplyr::filter(file_info, .data[["band"]] == b)$path
 
         # are there bands associated to the files?
         .check_length(
@@ -114,8 +112,10 @@
         )
 
         # read the values
-        values <- .raster_read_stack(files = bnd_files,
-                                     block = extent)
+        values <- .raster_read_stack(
+            files = bnd_files,
+            block = extent
+        )
 
         # get the missing values, minimum values and scale factors
         missing_value <- .cube_band_missing_value(cube = cube, band = b)
@@ -154,7 +154,6 @@
         }
 
         return(values)
-
     })
 
     data <- NULL
@@ -163,7 +162,6 @@
     data <- do.call(cbind, values_bands)
 
     return(data)
-
 }
 
 #' @title Extract a time series from raster
@@ -205,8 +203,14 @@
     timeline <- sits_timeline(tile)
 
     # make sure we get only the relevant columns
-    points <- dplyr::select(points, longitude, latitude,
-                            start_date, end_date, label)
+    points <- dplyr::select(
+        points,
+        .data[["longitude"]],
+        .data[["latitude"]],
+        .data[["start_date"]],
+        .data[["end_date"]],
+        .data[["label"]]
+    )
 
     # get XY
     xy_tb <- .sits_proj_from_latlong(
@@ -221,10 +225,12 @@
     # filter the points inside the data cube space-time extent
     points <- dplyr::filter(
         points,
-        X > tile$xmin & X < tile$xmax &
-            Y > tile$ymin & Y < tile$ymax &
-            start_date <= as.Date(timeline[length(timeline)]) &
-            end_date >= as.Date(timeline[1])
+        .data[["X"]] > tile$xmin &
+            .data[["X"]] < tile$xmax &
+            .data[["Y"]] > tile$ymin &
+            .data[["Y"]] < tile$ymax &
+            .data[["start_date"]] <= as.Date(timeline[length(timeline)]) &
+            .data[["end_date"]] >= as.Date(timeline[1])
     )
 
     # are there points to be retrieved from the cube?
@@ -283,12 +289,13 @@
         # get information about cloud bitmask
         if (.source_cloud_bit_mask(
             source = .cube_source(cube = tile),
-            collection = .cube_collection(cube = tile))) {
-
+            collection = .cube_collection(cube = tile)
+        )) {
             cld_values <- as.matrix(cld_values)
             cld_rows <- nrow(cld_values)
-            cld_values <- matrix(bitwAnd(cld_values, sum(2 ^ cld_index)),
-                                 nrow = cld_rows)
+            cld_values <- matrix(bitwAnd(cld_values, sum(2^cld_index)),
+                                 nrow = cld_rows
+            )
         }
     }
 
@@ -304,14 +311,14 @@
         offset_value <- .cube_band_offset_value(cube = tile, band = band)
 
         # get the values of the time series as matrix
-        values_band <- .cube_extract(cube = tile,
-                                     band_cube = band,
-                                     xy = xy
+        values_band <- .cube_extract(
+            cube = tile,
+            band_cube = band,
+            xy = xy
         )
 
         # each row of the values matrix is a spatial point
         ts_band_lst <- purrr::map(seq_len(nrow(values_band)), function(i) {
-
             t_point <- .sits_timeline_during(
                 timeline   = timeline,
                 start_date = lubridate::as_date(points$start_date[[i]]),
@@ -324,18 +331,22 @@
 
             # get only valid values for the timeline
             values_ts <- unlist(values_band[i, start_idx:end_idx],
-                                use.names = FALSE)
+                                use.names = FALSE
+            )
 
             # include information from cloud band
             if (!purrr::is_null(cld_band)) {
                 cld_values <- unlist(cld_values[i, start_idx:end_idx],
-                                     use.names = FALSE)
+                                     use.names = FALSE
+                )
                 if (.source_cloud_bit_mask(
                     source = .cube_source(cube = tile),
-                    collection = .cube_collection(cube = tile)))
+                    collection = .cube_collection(cube = tile)
+                )) {
                     values_ts[cld_values > 0] <- NA
-                else
+                } else {
                     values_ts[cld_values %in% cld_index] <- NA
+                }
             }
 
             # adjust maximum and minimum values
@@ -366,9 +377,11 @@
         purrr::transpose() %>%
         purrr::map(tibble::as_tibble)
 
-    samples$time_series <- purrr::map2(samples$time_series,
-                                       ts_samples,
-                                       dplyr::bind_cols)
+    samples$time_series <- purrr::map2(
+        samples$time_series,
+        ts_samples,
+        dplyr::bind_cols
+    )
 
     class(samples) <- c("sits", class(samples))
     return(samples)

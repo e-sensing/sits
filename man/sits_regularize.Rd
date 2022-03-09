@@ -25,18 +25,18 @@ data cubes, with number and unit, where
 "D", "M" and "Y" stand for days, month and year;
  e.g., "P16D" for 16 days.}
 
-\item{res}{spatial resolution of regularized images (in meters).}
+\item{res}{Spatial resolution of regularized images (in meters).}
 
-\item{output_dir}{valid directory for storing regularized images.}
+\item{output_dir}{Valid directory for storing regularized images.}
 
-\item{multicores}{number of cores used for regularization;
+\item{multicores}{Number of cores used for regularization;
 used for parallel processing of input.}
 
-\item{memsize}{memory available for regularization (in GB).}
+\item{memsize}{Memory available for regularization (in GB).}
 
 \item{progress}{show progress bar?}
 
-\item{use_gdalcubes}{use gdalcubes package? (see details).}
+\item{use_gdalcubes}{Use gdalcubes package? (see details).}
 
 \item{...}{deprecated parameters are controlled with ellipses.}
 }

@@ -9,9 +9,9 @@
 \arguments{
 \item{x}{An object of class \code{sits_area_assessment}.}
 
-\item{\dots}{other parameters passed to the "print" function}
+\item{\dots}{Other parameters passed to the "print" function}
 
-\item{digits}{significant digits}
+\item{digits}{Significant digits}
 }
 \value{
 \code{x}   is invisibly returned.

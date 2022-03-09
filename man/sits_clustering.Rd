@@ -23,13 +23,13 @@ sits_cluster_frequency(samples)
 sits_cluster_clean(samples)
 }
 \arguments{
-\item{samples}{A tibble with input set of time series}
+\item{samples}{Tibble with input set of time series.}
 
-\item{bands}{Bands to be used in the clustering}
+\item{bands}{Bands to be used in the clustering.}
 
-\item{dist_method}{String with one of the supported distances.}
+\item{dist_method}{Distance method.}
 
-\item{linkage}{String with agglomeration method to be used.
+\item{linkage}{Agglomeration method.
 Can be any `hclust` method (see `hclust`).
 Default is 'ward.D2'.}
 
@@ -43,8 +43,7 @@ Default is 'ward.D2'.}
 to dtwclust::tsclust() function.}
 }
 \value{
-\code{sits_cluster_dendro()} takes a tibble containing time series and produces
-a sits tibble with an added "cluster" column.
+Tibble with added "cluster" column.
 
 \code{sits_cluster_frequency()} returns a matrix containing
 all frequencies of labels in clusters.
