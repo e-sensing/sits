@@ -2,14 +2,14 @@
 % Please edit documentation in R/sits_mlp.R
 \name{sits_mlp}
 \alias{sits_mlp}
-\title{Train multi-layer perceptron models}
+\title{Train multi-layer perceptron models using torch}
 \usage{
 sits_mlp(
   samples = NULL,
-  layers = c(512, 512, 512),
+  units = c(512, 512, 512),
   activation = "relu",
   dropout_rates = c(0.1, 0.2, 0.3),
-  optimizer = keras::optimizer_adam(learning_rate = 0.001),
+  learning_rate = 0.001,
   epochs = 100,
   batch_size = 64,
   validation_split = 0.2,
@@ -19,7 +19,7 @@ sits_mlp(
 \arguments{
 \item{samples}{Time series with the training samples.}
 
-\item{layers}{Vector with number of hidden nodes in each layer.}
+\item{units}{Vector with number of hidden nodes in each layer.}
 
 \item{activation}{Vector with the names of activation functions.
 Valid values are {'relu', 'elu', 'selu', 'sigmoid'}.}
@@ -27,12 +27,7 @@ Valid values are {'relu', 'elu', 'selu', 'sigmoid'}.}
 \item{dropout_rates}{Vector with the dropout rates (0,1)
 for each layer.}
 
-\item{optimizer}{Function with a pointer to the optimizer function
-(default is optimization_adam()).
-Options are optimizer_adadelta(),
-optimizer_adagrad(), optimizer_adam(),
-optimizer_adamax(), optimizer_nadam(),
-optimizer_rmsprop(), optimizer_sgd()}
+\item{learning_rate}{Learning rate of the optimizer}
 
 \item{epochs}{Number of iterations to train the model.}
 
@@ -102,4 +97,8 @@ https://github.com/hfawaz/dl-4-tsc.
 Gilberto Camara, \email{gilberto.camara@inpe.br}
 
 Rolf Simoes, \email{rolf.simoes@inpe.br}
+
+Felipe Souza, \email{lipecaso@gmail.com}
+
+Alber Sanchez, \email{alber.ipia@inpe.br}
 }

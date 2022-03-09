@@ -1,25 +1,22 @@
-#' @title Train multi-layer perceptron models
+#' @title Train multi-layer perceptron models using torch
 #' @name sits_mlp
 #'
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
+#' @author Felipe Souza, \email{lipecaso@@gmail.com}
+#' @author Alber Sanchez, \email{alber.ipia@@inpe.br}
 #'
 #' @description Use a multi-layer perceptron algorithm to classify data.
 #' This function is a front-end to the "keras" method R package.
 #' Please refer to the documentation in that package for more details.
 #'
 #' @param samples           Time series with the training samples.
-#' @param layers            Vector with number of hidden nodes in each layer.
+#' @param units             Vector with number of hidden nodes in each layer.
 #' @param activation        Vector with the names of activation functions.
 #'                          Valid values are {'relu', 'elu', 'selu', 'sigmoid'}.
 #' @param dropout_rates     Vector with the dropout rates (0,1)
 #'                          for each layer.
-#' @param optimizer         Function with a pointer to the optimizer function
-#'                          (default is optimization_adam()).
-#'                          Options are optimizer_adadelta(),
-#'                          optimizer_adagrad(), optimizer_adam(),
-#'                          optimizer_adamax(), optimizer_nadam(),
-#'                          optimizer_rmsprop(), optimizer_sgd()
+#' @param learning_rate     Learning rate of the optimizer
 #' @param epochs            Number of iterations to train the model.
 #' @param batch_size        Number of samples per gradient update.
 #' @param validation_split  Number between 0 and 1.
@@ -76,10 +73,10 @@
 #' @export
 #'
 sits_mlp <- function(samples = NULL,
-                     layers = c(512, 512, 512),
+                     units = c(512, 512, 512),
                      activation = "relu",
                      dropout_rates = c(0.10, 0.20, 0.30),
-                     optimizer = keras::optimizer_adam(learning_rate = 0.001),
+                     learning_rate = 0.001,
                      epochs = 100,
                      batch_size = 64,
                      validation_split = 0.2,
@@ -91,14 +88,19 @@ sits_mlp <- function(samples = NULL,
     # function that returns a keras model based on samples
     result_fun <- function(data) {
 
-        # verifies if keras package is installed
-        if (!requireNamespace("keras", quietly = TRUE)) {
-            stop("Please install package keras", call. = FALSE)
+        # verifies if torch package is installed
+        if (!requireNamespace("torch", quietly = TRUE)) {
+            stop("Please install package torch", call. = FALSE)
+        }
+
+        # verifies if coro package is installed
+        if (!requireNamespace("coro", quietly = TRUE)) {
+            stop("Please install package coro", call. = FALSE)
         }
 
         # pre-conditions
         .check_that(
-            x = length(layers) == length(dropout_rates),
+            x = length(units) == length(dropout_rates),
             msg = "number of layers does not match number of dropout rates"
         )
         .check_that(
@@ -134,7 +136,7 @@ sits_mlp <- function(samples = NULL,
         # split the data into training and validation data sets
         # create partitions different splits of the input data
         test_data <- .sits_distances_sample(train_data,
-            frac = validation_split
+                                            frac = validation_split
         )
 
         # remove the lines used for validation
@@ -152,79 +154,143 @@ sits_mlp <- function(samples = NULL,
 
         # organize data for model training
         train_x <- data.matrix(train_data[, -2:0])
-        train_y <- unname(int_labels[as.vector(train_data$reference)]) - 1
+        train_y <- unname(int_labels[as.vector(train_data$reference)])
 
         # create the test data for keras
         test_x <- data.matrix(test_data[, -2:0])
-        test_y <- unname(int_labels[as.vector(test_data$reference)]) - 1
+        test_y <- unname(int_labels[as.vector(test_data$reference)])
 
-        # build the model step by step
-        # create the input_tensor
-        input_tensor <- keras::layer_input(shape = c(NCOL(train_x)))
-        output_tensor <- input_tensor
-
-        # build the nodes
-        n_layers <- length(layers)
-        for (i in seq_len(n_layers)) {
-            output_tensor <- keras::layer_dense(output_tensor,
-                units = layers[[i]],
-                activation = activation
-            )
-            output_tensor <- keras::layer_dropout(output_tensor,
-                rate = dropout_rates[[i]]
-            )
-            output_tensor <- keras::layer_batch_normalization(output_tensor)
-        }
-        # create the final tensor
-        if (n_labels == 2) {
-            output_tensor <- keras::layer_dense(output_tensor,
-                units = 1,
-                activation = "sigmoid"
-            )
-            model_loss <- "binary_crossentropy"
-        }
-        else {
-            output_tensor <- keras::layer_dense(output_tensor,
-                units = n_labels,
-                activation = "softmax"
-            )
-            # keras requires categorical data to be put in a matrix
-            train_y <- keras::to_categorical(train_y, n_labels)
-            test_y <- keras::to_categorical(test_y, n_labels)
-            model_loss <- "categorical_crossentropy"
-        }
-        # create the model
-        model_keras <- keras::keras_model(input_tensor, output_tensor)
-        # compile the model
-        model_keras %>% keras::compile(
-            loss = model_loss,
-            optimizer = optimizer,
-            metrics = "accuracy"
+        # Function to create torch datasets
+        sits_dataset <- torch::dataset(
+            name = "sits_dataset",
+            initialize = function(dist_x, labels_y) {
+                # create a torch tensor for x data
+                self$x <- torch::torch_tensor(dist_x)
+                # create a torch tensor for y data
+                self$y <- torch::torch_tensor(labels_y)
+            },
+            .getitem = function(i){
+                list(x = self$x[i, ], y = self$y[i])
+            },
+            .length = function(){
+                self$y$size()[[1]]
+            }
         )
 
-        options(keras.fit_verbose = verbose)
+        # create train and test datasets
+        train_ds <- sits_dataset(train_x, train_y)
+        test_ds  <- sits_dataset(test_x, test_y)
 
-        # fit the model
-        history <- model_keras %>% keras::fit(
-            train_x, train_y,
-            epochs = epochs, batch_size = batch_size,
-            validation_data = list(test_x, test_y),
-            verbose = verbose, view_metrics = "auto"
+        # create the dataloaders for torch
+        train_dl <- torch::dataloader(train_ds, batch_size = batch_size)
+        test_dl  <- torch::dataloader(test_ds, batch_size = batch_size)
+
+        # activation function
+        get_activation_fn <- function(activation,...) {
+            if (activation == "relu") {
+                res <- torch::nn_relu(...)
+            } else if (activation == "elu") {
+                res <- torch::nn_elu(...)
+            } else if (activation == "tanh") {
+                res <- torch::nn_tanh(...)
+            } else {
+                res <- identity
+            }
+            return(res)
+        }
+        torch::torch_manual_seed(sample.int(10^5, 1))
+
+        torch_module <- torch::nn_module(
+            "torch_module",
+            initialize = function(num_pred, units, activation, dropout_rates, y_dim) {
+                tensors <- list()
+
+                # input layer
+                tensors[[1]] <- torch::nn_linear(num_pred, units[1])
+                tensors[[2]] <- get_activation_fn(activation)
+                tensors[[3]] <- torch::nn_dropout(p = dropout_rates[1])
+
+                # if hidden units is a vector then we add those layers
+                if (length(units) > 1) {
+                    for (i in 2:length(units)) {
+                        tensors[[length(tensors) + 1]] <-
+                            torch::nn_linear(units[i - 1], units[i])
+
+                        tensors[[length(tensors) + 1]] <- get_activation_fn(activation)
+                        tensors[[length(tensors) + 1]] <- torch::nn_dropout(p = dropout_rates[i])
+                        tensors[[length(tensors) + 1]] <- torch::nn_batch_norm1d(num_features = units[i])
+                    }
+                }
+                # add output layer
+                # output layer
+                tensors[[length(tensors) + 1]] <-
+                    torch::nn_linear(units[length(units)], y_dim)
+                # add softmax tensor
+                tensors[[length(tensors) + 1]] <- torch::nn_softmax(dim = 2)
+
+                # create a sequential module that calls the layers in the same order.
+                self$model <- torch::nn_sequential(!!!tensors)
+            },
+            forward = function(x) {
+                self$model(x)
+            }
         )
+        # train the model
+        torch_model <-
+            luz::setup(
+                module = torch_module,
+                loss = torch::nn_cross_entropy_loss(),
+                metrics = list(luz::luz_metric_multiclass_auroc()),
+                optimizer = torch::optim_adam
+            ) %>%
+            luz::set_hparams(
+                num_pred = ncol(train_x),
+                units = units,
+                activation = activation,
+                dropout_rates = dropout_rates,
+                y_dim = length(int_labels)
+            ) %>%
+            luz::set_opt_hparams(
+                lr = learning_rate
+            ) %>%
+            luz::fit(
+                data = train_dl,
+                epochs = epochs,
+                valid_data = test_dl,
+                callbacks = list(luz::luz_callback_early_stopping(
+                    patience = 10,
+                    min_delta = 0.05
+                )),
+                verbose = verbose
+            )
 
-        # import model to R
-        R_model_keras <- keras::serialize_model(model_keras)
+        model_to_raw <- function(model) {
+            con <- rawConnection(raw(), open = "wr")
+            torch::torch_save(model, con)
+            on.exit({close(con)}, add = TRUE)
+            r <- rawConnectionValue(con)
+            r
+        }
+
+        model_from_raw <- function(object) {
+            con <- rawConnection(object)
+            on.exit({close(con)}, add = TRUE)
+            module <- torch::torch_load(con)
+            module
+        }
+        # serialize model
+        serialized_model <- model_to_raw(torch_model$model)
 
         # build predict closure function
         model_predict <- function(values) {
 
             # verifies if keras package is installed
-            if (!requireNamespace("keras", quietly = TRUE)) {
-                stop("Please install package keras", call. = FALSE)
+            if (!requireNamespace("torch", quietly = TRUE)) {
+                stop("Please install package torch", call. = FALSE)
             }
 
-            # restore model keras
-            model_keras <- keras::unserialize_model(R_model_keras)
+            # restore model
+            torch_model$model <- model_from_raw(serialized_model)
 
             # transform input (data.table) into a matrix
             # (remove first two columns)
@@ -232,50 +298,21 @@ sits_mlp <- function(samples = NULL,
 
             # retrieve the prediction probabilities
             predicted <- data.table::as.data.table(
-                stats::predict(model_keras, values)
+                torch::as_array(
+                    stats::predict(torch_model, values)
+                )
             )
-
-            # binary classification case
-            # adjust prediction values to match binary classification
-            if (n_labels == 2) {
-                predicted <- .sits_keras_binary_class(predicted)
-            }
 
             # add the class labels as the column names
             colnames(predicted) <- labels
 
             return(predicted)
         }
-        class(model_predict) <- c("keras_model", "sits_model",
+        class(model_predict) <- c("torch_model", "sits_model",
                                   class(model_predict))
         return(model_predict)
     }
 
     result <- .sits_factory_function(samples, result_fun)
     return(result)
-}
-#' @title Adjust keras prediction for the binary classification case
-#' @name .sits_keras_binary_class
-#' @keywords internal
-#'
-#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
-#'
-#' @description For binary classification, the prediction function produces only
-#' one column (the probability of label 1). For compatibility with the
-#' code in the sits package, this function includes a second column
-#' in the prediction values to match the results of multi-class classification.
-#'
-#' @param prediction        Predicted values from the keras model
-#'                          for the binary classification case
-#'                          (data.table with one column)
-#' @return                  Data.table with an additional column for multi-class
-#'                          compatibility
-#'
-.sits_keras_binary_class <- function(prediction) {
-    # binary classification prediction has one column (the second label)
-    # create a second column for compatibility with the rest of the code
-    prediction <- prediction[, V0 := 1.0 - V1]
-    # swap columns
-    prediction <- prediction[, c("V0", "V1")]
-    return(prediction)
 }

@@ -135,13 +135,13 @@ plot.predicted <- function(x, y, ...,
 #' @return               plot object
 #' @export
 plot.raster_cube <- function(x, ...,
-                                  band = NULL,
-                                  red = NULL,
-                                  green = NULL,
-                                  blue = NULL,
-                                  tiles = NULL,
-                                  date = NULL,
-                                  roi = NULL) {
+                             band = NULL,
+                             red = NULL,
+                             green = NULL,
+                             blue = NULL,
+                             tiles = NULL,
+                             date = NULL,
+                             roi = NULL) {
 
     # precondition
     if (purrr::is_null(tiles)) {
@@ -1505,4 +1505,44 @@ plot.keras_model <- function(x, y, ...) {
             graphics::plot(dplot)
         })
     return(invisible(matches))
+}
+
+
+.sits_plot_torch_model <- function(model) {
+
+    metrics_lst <- environment(model)[["torch_model"]][[c("records", "metrics")]]
+
+    metrics_dfr <- purrr::map_dfr(names(metrics_lst), function(name) {
+
+        x <- metrics_lst[[name]]
+
+        purrr::map_dfr(x, tibble::as_tibble_row) %>%
+            dplyr::mutate(epoch = seq_len(dplyr::n()), data = name) %>%
+            tidyr::pivot_longer(cols = 1:2, names_to = "metric")
+    })
+
+
+    p <- ggplot2::ggplot(metrics_dfr, ggplot2::aes(x = .data[["epoch"]],
+                                                   y = .data[["value"]],
+                                                   color = .data[["data"]],
+                                                   fill = .data[["data"]]))
+
+    p <- p + ggplot2::geom_point(shape = 21, col = 1, na.rm = TRUE, size = 2) +
+        ggplot2::geom_smooth(formula = y ~ x,
+                             se = FALSE,
+                             method = 'loess',
+                             na.rm = TRUE)
+
+    p <- p + ggplot2::facet_grid(metric ~ ., switch = "y", scales = "free_y") +
+
+        ggplot2::theme(axis.title.y = ggplot2::element_blank(),
+                       strip.placement = 'outside',
+                       strip.text = ggplot2::element_text(colour = 'black',
+                                                          size = 11),
+                       strip.background = ggplot2::element_rect(fill = NA,
+                                                                color = NA))
+
+    p + labs()
+
+    return(p)
 }

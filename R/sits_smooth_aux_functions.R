@@ -138,7 +138,7 @@
 
         # if file exists skip it (resume feature)
         if (file.exists(out_file))
-            return(NULL)
+            return(out_file)
 
         # apply function to blocks
         if (purrr::is_null(cl)) {
@@ -200,10 +200,10 @@
         block_y_size = block_size[["block_y_size"]],
         overlapping_y_size = overlapping_y_size)
 
-    .sits_call_workers_cluster(in_file = in_file,
-                               out_file = out_file,
-                               blocks = blocks,
-                               cl = cl)
+    out_blocks <- .sits_call_workers_cluster(in_file = in_file,
+                                             out_file = out_file,
+                                             blocks = blocks,
+                                             cl = cl)
 
-    return(invisible(cube_out))
+    return(invisible(out_blocks))
 }

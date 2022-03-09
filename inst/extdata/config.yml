@@ -10,7 +10,7 @@ rstac_pagination_limit  : 400
 raster_api_package      : "terra"
 
 # GDAL GTiff default creation options
-gdal_creation_options   : ["COMPRESS=LZW", "BIGTIFF=YES"]
+gdal_creation_options   : ["COMPRESS=LZW", "PREDICTOR=2", "BIGTIFF=YES"]
 
 # maxbytes per plot (in MB)
 plot_max_Mbytes: 16
