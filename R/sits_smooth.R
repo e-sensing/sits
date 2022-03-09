@@ -227,7 +227,7 @@ sits_smooth.bayes <- function(cube, type = "bayes", ...,
     on.exit(.sits_parallel_stop())
 
     # process each brick layer (each time step) individually
-    tiles_blocks_lst <- slider::slide(cube, function(tile) {
+    blocks_tile_lst <- slider::slide(cube, function(tile) {
 
         # create metadata for raster cube
         tile_bayes <- .cube_derived_create(
@@ -248,28 +248,6 @@ sits_smooth.bayes <- function(cube, type = "bayes", ...,
         # retrieve the file to be written
         out_file <- .file_info_path(tile_bayes)
 
-        #
-        # .smth_map_layer <- function(cube,
-        #                             cube_out,
-        #                             overlapping_y_size = 0,
-        #                             func,
-        #                             func_args = NULL,
-        #                             multicores = 1,
-        #                             memsize = 1,
-        #                             gdal_datatype,
-        #                             gdal_options, ...)
-        # file_blocks <- .sits_smooth_map_layer(
-        #     cube = tile,
-        #     cube_out = tile_bayes,
-        #     overlapping_y_size =
-        #         ceiling(window_size / 2) - 1,
-        #     func = .do_bayes,
-        #     multicores = multicores,
-        #     memsize = memsize,
-        #     gdal_datatype = .raster_gdal_datatype(.config_get("probs_cube_data_type")),
-        #     gdal_options = .config_gtiff_default_options()
-        # )
-
         # overlapping pixels
         overlapping_y_size <- ceiling(window_size / 2) - 1
 
@@ -287,73 +265,55 @@ sits_smooth.bayes <- function(cube, type = "bayes", ...,
             overlapping_y_size = overlapping_y_size)
 
         # process blocks in parallel
-        block_files_lst <- .sits_parallel_map(blocks, function(block, in_file, func, args) {
+        block_files_lst <-
+            .sits_parallel_map(blocks, function(block, in_file, func, args) {
 
-            # open brick
-            b <- .raster_open_rast(in_file)
+                # open brick
+                b <- .raster_open_rast(in_file)
 
-            # create extent
-            blk_overlap <- list(first_row = block$r1,
-                                nrows = block$r2 - block$r1 + 1,
-                                first_col = 1,
-                                ncols = .raster_ncols(b))
+                # crop adding overlaps
+                chunk <- .raster_crop(r_obj = b, block = block)
 
-            # crop adding overlaps
-            chunk <- .raster_crop(r_obj = b, block = blk_overlap)
+                # process it
+                raster_out <- do.call(func, args = c(list(chunk = chunk), args))
 
-            # process it
-            raster_out <- do.call(func, args = c(list(chunk = chunk), args))
+                # create extent
+                blk_no_overlap <- list(first_row = block$crop_first_row,
+                                       nrows = block$crop_nrows,
+                                       first_col = block$crop_first_col,
+                                       ncols = block$crop_ncols)
 
-            # create extent
-            blk_no_overlap <- list(first_row = block$o1,
-                                   nrows = block$o2 - block$o1 + 1,
-                                   first_col = 1,
-                                   ncols = .raster_ncols(raster_out))
+                # crop removing overlaps
+                raster_out <- .raster_crop(raster_out, block = blk_no_overlap)
 
-            # crop removing overlaps
-            raster_out <- .raster_crop(raster_out, block = blk_no_overlap)
+                # export to temp file
+                block_file <- .smth_filename(tile = tile_bayes,
+                                             output_dir = output_dir,
+                                             block = blk_no_overlap)
 
-            # export to temp file
-            block_file <- tempfile(tmpdir = dirname(.file_info(cube_out)$path),
-                                   fileext = ".tif")
+                # save chunk
+                .raster_write_rast(
+                    r_obj = raster_out,
+                    file = block_file,
+                    format = "GTiff",
+                    data_type = .raster_data_type(
+                        .config_get("probs_cube_data_type")
+                    ),
+                    gdal_options = .config_gtiff_default_options(),
+                    overwrite = TRUE
+                )
 
-            # save chunk
-            .raster_write_rast(
-                r_obj = raster_out,
-                file = block_file,
-                format = "GTiff",
-                data_type = .raster_data_type(.config_get("probs_cube_data_type")),
-                gdal_options = .config_gtiff_default_options(),
-                overwrite = TRUE
-            )
-
-            return(block_file)
-        })
+                return(block_file)
+            })
 
         block_files <- unlist(block_files_lst)
 
-        return(invisible(cube_out))
-
-
-
-        file_blocks <- .sits_smooth_map_layer(
-            cube = tile,
-            cube_out = tile_bayes,
-            overlapping_y_size =
-                ceiling(window_size / 2) - 1,
-            func = .do_bayes,
-            multicores = multicores,
-            memsize = memsize,
-            gdal_datatype = .raster_gdal_datatype(.config_get("probs_cube_data_type")),
-            gdal_options = .config_gtiff_default_options()
-        )
-
-        return(file_blocks)
+        return(invisible(block_files))
     })
 
 
     # process each brick layer (each time step) individually
-    cube_bayes <- .sits_parallel_map(seq_along(tiles_blocks_lst), function(i) {
+    cube_bayes <- .sits_parallel_map(seq_along(blocks_tile_lst), function(i) {
 
         # get tile from cube
         tile <- cube[i,]
@@ -378,7 +338,7 @@ sits_smooth.bayes <- function(cube, type = "bayes", ...,
         if (file.exists(out_file))
             return(NULL)
 
-        tmp_blocks <- tiles_blocks_lst[[i]]
+        tmp_blocks <- blocks_tile_lst[[i]]
 
         # apply function to blocks
         on.exit(unlink(tmp_blocks))
@@ -654,6 +614,35 @@ sits_smooth.bilateral <- function(cube,
     return(cube_bilat)
 }
 
+.smth_filename <- function(tile,
+                           band,
+                           date,
+                           output_dir,
+                           block, ...) {
+
+    band <- .file_info_bands(tile)
+
+    start_date <- .file_info_start_date(tile)
+
+    end_date <- .file_info_end_date(tile)
+
+    b_filename <- paste("cube",
+                        .cube_tiles(tile),
+                        band,
+                        start_date,
+                        end_date, sep = "_")
+
+    b_filename <- paste(b_filename,
+                        "block",
+                        block[["first_row"]],
+                        block[["nrows"]] + block[["first_row"]] - 1,
+                        sep = "_")
+
+    b_path <- paste0(output_dir, "/", b_filename, ".tif")
+
+    return(b_path)
+}
+
 
 #' @title Estimate the number of blocks to run .sits_split_cluster
 #' @name .smth_estimate_block_size
@@ -722,22 +711,33 @@ sits_smooth.bilateral <- function(cube,
 
 
 # function to compute blocks grid
-.smth_compute_blocks <- function(img_y_size,
+.smth_compute_blocks <- function(xsize,
+                                 ysize,
                                  block_y_size,
                                  overlapping_y_size) {
 
-    r1 <- ceiling(seq(1, img_y_size - 1, by = block_y_size))
-    r2 <- c(r1[-1] - 1, img_y_size)
+    r1 <- seq(1, ysize - 1, by = block_y_size)
+    r2 <- c(r1[-1] - 1, ysize)
+    nr1 <- r2 - r1 + 1
     ovr_r1 <- c(1, c(r1[-1] - overlapping_y_size))
-    ovr_r2 <- c(r2[-length(r2)] + overlapping_y_size, img_y_size)
+    ovr_r2 <- c(r2[-length(r2)] + overlapping_y_size, ysize)
+    ovr_nr1 <- ovr_r2 - ovr_r1 + 1
 
     # define each block as a list element
-    mapply(list,
-           r1 = ovr_r1,
-           r2 = ovr_r2,
-           o1 = r1 - ovr_r1 + 1,
-           o2 = r2 - ovr_r1 + 1,
-           SIMPLIFY = FALSE)
+    blocks <- mapply(
+        list,
+        first_row      = ovr_r1,
+        nrows          = ovr_nr1,
+        first_col      = 1,
+        ncols          = xsize,
+        crop_first_row = r1 - ovr_r1 + 1,
+        crop_nrows     = nr1,
+        crop_first_col = 1,
+        crop_ncols     = ysize,
+        SIMPLIFY       = FALSE
+    )
+
+    return(blocks)
 }
 
 
