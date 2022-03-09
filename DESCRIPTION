@@ -61,7 +61,6 @@ Suggests:
     e1071,
     gdalcubes,
     httr,
-    keras (>= 2.6.0),
     kohonen,
     leafem,
     leaflet,
