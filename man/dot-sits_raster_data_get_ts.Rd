@@ -6,22 +6,28 @@
 \usage{
 .sits_raster_data_get_ts(
   tile,
-  points,
+  point,
   bands,
+  xy,
   cld_band = NULL,
-  impute_fn = sits_impute_linear()
+  impute_fn = sits_impute_linear(),
+  output_dir = output_dir
 )
 }
 \arguments{
 \item{tile}{Metadata describing a tile of a raster data cube.}
 
-\item{points}{tibble with points}
-
 \item{bands}{Bands to be retrieved.}
+
+\item{xy}{A matrix with longitude as X and latitude as Y.}
 
 \item{cld_band}{Cloud band (if available)}
 
 \item{impute_fn}{Imputation function for NA values}
+
+\item{output_dir}{An output directory to save temporary time series.}
+
+\item{points}{tibble with points}
 }
 \value{
 A sits tibble with the time series.

@@ -4,7 +4,15 @@
 \alias{.sits_get_ts}
 \title{Dispatch function to get time series from data cubes and cloud services}
 \usage{
-.sits_get_ts(cube, samples, ..., bands = NULL, impute_fn, multicores)
+.sits_get_ts(
+  cube,
+  samples,
+  ...,
+  bands = NULL,
+  impute_fn,
+  multicores,
+  output_dir
+)
 }
 \arguments{
 \item{cube}{Data cube from where data is to be retrieved.}

@@ -18,7 +18,8 @@ sits_get_data(
   shp_attr = NULL,
   .n_pts_csv = NULL,
   .n_shp_pol = 30,
-  multicores = 1
+  multicores = 1,
+  output_dir
 )
 }
 \arguments{
