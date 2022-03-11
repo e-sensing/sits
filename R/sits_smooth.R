@@ -236,96 +236,6 @@ sits_smooth.bayes <- function(cube, type = "bayes", ...,
         return(res)
     }
 
-    # process each brick layer (each time step) individually
-    tiles_blocks_lst <- slider::slide(cube, function(tile) {
-
-        # create metadata for raster cube
-        tile_bayes <- .cube_derived_create(
-            cube       = tile,
-            cube_class = "probs_cube",
-            band_name  = "bayes",
-            labels     = .cube_labels(tile),
-            start_date = .file_info_start_date(tile),
-            end_date   = .file_info_end_date(tile),
-            bbox       = .cube_tile_bbox(tile),
-            output_dir = output_dir,
-            version    = version
-        )
-
-        file_blocks <- .sits_smooth_map_layer(
-            cube = tile,
-            cube_out = tile_bayes,
-            overlapping_y_size =
-                ceiling(window_size / 2) - 1,
-            func = .do_bayes,
-            multicores = multicores,
-            memsize = memsize,
-            gdal_datatype = .raster_gdal_datatype(.config_get("probs_cube_data_type")),
-            gdal_options = .config_gtiff_default_options()
-        )
-
-        return(file_blocks)
-    })
-
-
-    # start parallel processes
-    .sits_parallel_start(workers = multicores, log = FALSE)
-    on.exit(.sits_parallel_stop())
-
-    # process each brick layer (each time step) individually
-    cube_bayes <- .sits_parallel_map(seq_along(tiles_blocks_lst), function(i) {
-
-        # get tile from cube
-        tile <- cube[i, ]
-
-        # create metadata for raster cube
-        tile_bayes <- .cube_derived_create(
-            cube       = tile,
-            cube_class = "probs_cube",
-            band_name  = "bayes",
-            labels     = .cube_labels(tile),
-            start_date = .file_info_start_date(tile),
-            end_date   = .file_info_end_date(tile),
-            bbox       = .cube_tile_bbox(tile),
-            output_dir = output_dir,
-            version    = version
-        )
-
-        # prepare output filename
-        out_file <- .file_info_path(tile_bayes)
-
-        # if file exists skip it (resume feature)
-        if (file.exists(out_file)) {
-            return(out_file)
-        }
-
-        tmp_blocks <- tiles_blocks_lst[[i]]
-
-        # apply function to blocks
-        on.exit(unlink(tmp_blocks))
-
-        # merge to save final result
-        suppressWarnings(
-            .raster_merge(
-                in_files = tmp_blocks,
-                out_file = out_file,
-                format = "GTiff",
-                gdal_datatype =
-                    .raster_gdal_datatype(.config_get("probs_cube_data_type")),
-                gdal_options =
-                    .config_gtiff_default_options(),
-                overwrite = TRUE
-            )
-        )
-
-        return(tile_bayes)
-    })
-
-    # bind rows
-    cube_bayes <- dplyr::bind_rows(cube_bayes)
-
-    class(cube_bayes) <- class(cube)
-
     # compute which block size is many tiles to be computed
     block_size <- .smth_estimate_block_size(
         cube = cube,
@@ -353,69 +263,62 @@ sits_smooth.bayes <- function(cube, type = "bayes", ...,
             version    = version
         )
 
-        # open probability file
-        in_file <- .file_info_path(tile)
-
-        # retrieve the file to be written
-        out_file <- .file_info_path(tile_bayes)
-
         # overlapping pixels
         overlapping_y_size <- ceiling(window_size / 2) - 1
 
-        # precondition - overlapping rows must be non negative
-        .check_num(
-            x = overlapping_y_size,
-            min = 0,
-            msg = "overlaping rows must be non negative"
-        )
+        # get cube size
+        size <- .cube_size(tile)
 
         # for now, only vertical blocks are allowed, i.e. 'x_blocks' is 1
         blocks <- .smth_compute_blocks(
-            img_y_size = .cube_size(cube)["nrows"],
+            xsize = size[["ncols"]],
+            ysize = size[["nrows"]],
             block_y_size = block_size[["block_y_size"]],
             overlapping_y_size = overlapping_y_size)
 
+        # open probability file
+        in_file <- .file_info_path(tile)
+
         # process blocks in parallel
-        block_files_lst <-
-            .sits_parallel_map(blocks, function(block, in_file, func, args) {
+        block_files_lst <- .sits_parallel_map(blocks, function(block) {
 
-                # open brick
-                b <- .raster_open_rast(in_file)
+            # open brick
+            b <- .raster_open_rast(in_file)
 
-                # crop adding overlaps
-                chunk <- .raster_crop(r_obj = b, block = block)
+            # crop adding overlaps
+            chunk <- .raster_crop(r_obj = b, block = block)
 
-                # process it
-                raster_out <- do.call(func, args = c(list(chunk = chunk), args))
+            # process it
+            raster_out <- .do_bayes(chunk = chunk)
 
-                # create extent
-                blk_no_overlap <- list(first_row = block$crop_first_row,
-                                       nrows = block$crop_nrows,
-                                       first_col = block$crop_first_col,
-                                       ncols = block$crop_ncols)
+            # create extent
+            blk_no_overlap <- list(first_row = block$crop_first_row,
+                                   nrows = block$crop_nrows,
+                                   first_col = block$crop_first_col,
+                                   ncols = block$crop_ncols)
 
-                # crop removing overlaps
-                raster_out <- .raster_crop(raster_out, block = blk_no_overlap)
+            # crop removing overlaps
+            raster_out <- .raster_crop(raster_out, block = blk_no_overlap)
 
-                # export to temp file
-                block_file <- .smth_filename(tile = tile_bayes,
-                                             output_dir = output_dir,
-                                             block = blk_no_overlap)
+            # export to temp file
+            block_file <- .smth_filename(tile = tile_bayes,
+                                         output_dir = output_dir,
+                                         block = blk_no_overlap)
 
-                # save chunk
-                .raster_write_rast(
-                    r_obj = raster_out,
-                    file = block_file,
-                    format = "GTiff",
-                    data_type = .raster_data_type(
-                        .config_get("probs_cube_data_type")
-                    ),
-                    gdal_options = .config_gtiff_default_options(),
-                    overwrite = TRUE
-                )
+            # save chunk
+            .raster_write_rast(
+                r_obj = raster_out,
+                file = block_file,
+                format = "GTiff",
+                data_type = .raster_data_type(
+                    .config_get("probs_cube_data_type")
+                ),
+                gdal_options = .config_gtiff_default_options(),
+                overwrite = TRUE
+            )
 
-                return(block_file)
-            })
+            return(block_file)
+        })
 
         block_files <- unlist(block_files_lst)
 
@@ -424,7 +327,7 @@ sits_smooth.bayes <- function(cube, type = "bayes", ...,
 
 
     # process each brick layer (each time step) individually
-    cube_bayes <- .sits_parallel_map(seq_along(blocks_tile_lst), function(i) {
+    result_cube <- .sits_parallel_map(seq_along(blocks_tile_lst), function(i) {
 
         # get tile from cube
         tile <- cube[i,]
@@ -472,11 +375,11 @@ sits_smooth.bayes <- function(cube, type = "bayes", ...,
     })
 
     # bind rows
-    cube_bayes <- dplyr::bind_rows(cube_bayes)
+    result_cube <- dplyr::bind_rows(result_cube)
 
-    class(cube_bayes) <- class(cube)
+    class(result_cube) <- class(cube)
 
-    return(cube_bayes)
+    return(result_cube)
 }
 
 #' @rdname sits_smooth
@@ -582,11 +485,23 @@ sits_smooth.gaussian <- function(cube, type = "gaussian", ...,
         return(res)
     }
 
-    # process each brick layer (each time step) individually
-    tiles_blocks_lst <- slider::slide_dfr(cube, function(tile) {
 
-        # create metadata for Gauss smoothed raster cube
-        tile_gauss <- .cube_derived_create(
+    # compute which block size is many tiles to be computed
+    block_size <- .smth_estimate_block_size(
+        cube = cube,
+        multicores = multicores,
+        memsize = memsize
+    )
+
+    # start parallel processes
+    .sits_parallel_start(workers = multicores, log = FALSE)
+    on.exit(.sits_parallel_stop())
+
+    # process each brick layer (each time step) individually
+    blocks_tile_lst <- slider::slide(cube, function(tile) {
+
+        # create metadata for raster cube
+        tile_bayes <- .cube_derived_create(
             cube       = tile,
             cube_class = "probs_cube",
             band_name  = "gauss",
@@ -598,33 +513,77 @@ sits_smooth.gaussian <- function(cube, type = "gaussian", ...,
             version    = version
         )
 
-        file_blocks <- .sits_smooth_map_layer(
-            cube = tile,
-            cube_out = tile_gauss,
-            overlapping_y_size =
-                ceiling(window_size / 2) - 1,
-            func = .do_gauss,
-            multicores = multicores,
-            memsize = memsize,
-            gdal_datatype = .raster_gdal_datatype(.config_get("probs_cube_data_type")),
-            gdal_options = .config_gtiff_default_options()
-        )
+        # overlapping pixels
+        overlapping_y_size <- ceiling(window_size / 2) - 1
 
-        return(file_blocks)
+        # get cube size
+        size <- .cube_size(tile)
+
+        # for now, only vertical blocks are allowed, i.e. 'x_blocks' is 1
+        blocks <- .smth_compute_blocks(
+            xsize = size[["ncols"]],
+            ysize = size[["nrows"]],
+            block_y_size = block_size[["block_y_size"]],
+            overlapping_y_size = overlapping_y_size)
+
+        # open probability file
+        in_file <- .file_info_path(tile)
+
+        # process blocks in parallel
+        block_files_lst <- .sits_parallel_map(blocks, function(block) {
+
+            # open brick
+            b <- .raster_open_rast(in_file)
+
+            # crop adding overlaps
+            chunk <- .raster_crop(r_obj = b, block = block)
+
+            # process it
+            raster_out <- .do_gauss(chunk = chunk)
+
+            # create extent
+            blk_no_overlap <- list(first_row = block$crop_first_row,
+                                   nrows = block$crop_nrows,
+                                   first_col = block$crop_first_col,
+                                   ncols = block$crop_ncols)
+
+            # crop removing overlaps
+            raster_out <- .raster_crop(raster_out, block = blk_no_overlap)
+
+            # export to temp file
+            block_file <- .smth_filename(tile = tile_bayes,
+                                         output_dir = output_dir,
+                                         block = blk_no_overlap)
+
+            # save chunk
+            .raster_write_rast(
+                r_obj = raster_out,
+                file = block_file,
+                format = "GTiff",
+                data_type = .raster_data_type(
+                    .config_get("probs_cube_data_type")
+                ),
+                gdal_options = .config_gtiff_default_options(),
+                overwrite = TRUE
+            )
+
+            return(block_file)
+        })
+
+        block_files <- unlist(block_files_lst)
+
+        return(invisible(block_files))
     })
 
-    # start parallel processes
-    .sits_parallel_start(workers = multicores, log = FALSE)
-    on.exit(.sits_parallel_stop())
 
     # process each brick layer (each time step) individually
-    cube_gauss <- .sits_parallel_map(seq_along(tiles_blocks_lst), function(i) {
+    result_cube <- .sits_parallel_map(seq_along(blocks_tile_lst), function(i) {
 
         # get tile from cube
-        tile <- cube[i, ]
+        tile <- cube[i,]
 
         # create metadata for raster cube
-        tile_gauss <- .cube_derived_create(
+        tile_bayes <- .cube_derived_create(
             cube       = tile,
             cube_class = "probs_cube",
             band_name  = "gauss",
@@ -637,14 +596,13 @@ sits_smooth.gaussian <- function(cube, type = "gaussian", ...,
         )
 
         # prepare output filename
-        out_file <- .file_info_path(tile_gauss)
+        out_file <- .file_info_path(tile_bayes)
 
         # if file exists skip it (resume feature)
-        if (file.exists(out_file)) {
+        if (file.exists(out_file))
             return(out_file)
-        }
 
-        tmp_blocks <- tiles_blocks_lst[[i]]
+        tmp_blocks <- blocks_tile_lst[[i]]
 
         # apply function to blocks
         on.exit(unlink(tmp_blocks))
@@ -654,7 +612,7 @@ sits_smooth.gaussian <- function(cube, type = "gaussian", ...,
             .raster_merge(
                 in_files = tmp_blocks,
                 out_file = out_file,
-                format = "GTiff",
+                format   = "GTiff",
                 gdal_datatype =
                     .raster_gdal_datatype(.config_get("probs_cube_data_type")),
                 gdal_options =
@@ -663,15 +621,15 @@ sits_smooth.gaussian <- function(cube, type = "gaussian", ...,
             )
         )
 
-        return(tile_gauss)
+        return(tile_bayes)
     })
 
     # bind rows
-    cube_gauss <- dplyr::bind_rows(cube_gauss)
+    result_cube <- dplyr::bind_rows(result_cube)
 
-    class(cube_gauss) <- class(cube)
+    class(result_cube) <- class(cube)
 
-    return(cube_gauss)
+    return(result_cube)
 }
 
 #' @rdname sits_smooth
@@ -781,11 +739,23 @@ sits_smooth.bilateral <- function(cube,
         return(res)
     }
 
-    # process each brick layer (each time step) individually
-    tiles_blocks_lst <- slider::slide_dfr(cube, function(tile) {
 
-        # create metadata for bilateral smoothed raster cube
-        tile_bilat <- .cube_derived_create(
+    # compute which block size is many tiles to be computed
+    block_size <- .smth_estimate_block_size(
+        cube = cube,
+        multicores = multicores,
+        memsize = memsize
+    )
+
+    # start parallel processes
+    .sits_parallel_start(workers = multicores, log = FALSE)
+    on.exit(.sits_parallel_stop())
+
+    # process each brick layer (each time step) individually
+    blocks_tile_lst <- slider::slide(cube, function(tile) {
+
+        # create metadata for raster cube
+        tile_bayes <- .cube_derived_create(
             cube       = tile,
             cube_class = "probs_cube",
             band_name  = "bilat",
@@ -797,33 +767,77 @@ sits_smooth.bilateral <- function(cube,
             version    = version
         )
 
-        file_blocks <- .sits_smooth_map_layer(
-            cube = tile,
-            cube_out = tile_bilat,
-            overlapping_y_size =
-                ceiling(window_size / 2) - 1,
-            func = .do_bilateral,
-            multicores = multicores,
-            memsize = memsize,
-            gdal_datatype = .raster_gdal_datatype(.config_get("probs_cube_data_type")),
-            gdal_options = .config_gtiff_default_options()
-        )
+        # overlapping pixels
+        overlapping_y_size <- ceiling(window_size / 2) - 1
 
-        return(file_blocks)
+        # get cube size
+        size <- .cube_size(tile)
+
+        # for now, only vertical blocks are allowed, i.e. 'x_blocks' is 1
+        blocks <- .smth_compute_blocks(
+            xsize = size[["ncols"]],
+            ysize = size[["nrows"]],
+            block_y_size = block_size[["block_y_size"]],
+            overlapping_y_size = overlapping_y_size)
+
+        # open probability file
+        in_file <- .file_info_path(tile)
+
+        # process blocks in parallel
+        block_files_lst <- .sits_parallel_map(blocks, function(block) {
+
+            # open brick
+            b <- .raster_open_rast(in_file)
+
+            # crop adding overlaps
+            chunk <- .raster_crop(r_obj = b, block = block)
+
+            # process it
+            raster_out <- .do_bilateral(chunk = chunk)
+
+            # create extent
+            blk_no_overlap <- list(first_row = block$crop_first_row,
+                                   nrows = block$crop_nrows,
+                                   first_col = block$crop_first_col,
+                                   ncols = block$crop_ncols)
+
+            # crop removing overlaps
+            raster_out <- .raster_crop(raster_out, block = blk_no_overlap)
+
+            # export to temp file
+            block_file <- .smth_filename(tile = tile_bayes,
+                                         output_dir = output_dir,
+                                         block = blk_no_overlap)
+
+            # save chunk
+            .raster_write_rast(
+                r_obj = raster_out,
+                file = block_file,
+                format = "GTiff",
+                data_type = .raster_data_type(
+                    .config_get("probs_cube_data_type")
+                ),
+                gdal_options = .config_gtiff_default_options(),
+                overwrite = TRUE
+            )
+
+            return(block_file)
+        })
+
+        block_files <- unlist(block_files_lst)
+
+        return(invisible(block_files))
     })
 
-    # start parallel processes
-    .sits_parallel_start(workers = multicores, log = FALSE)
-    on.exit(.sits_parallel_stop())
 
     # process each brick layer (each time step) individually
-    cube_bilat <- .sits_parallel_map(seq_along(tiles_blocks_lst), function(i) {
+    result_cube <- .sits_parallel_map(seq_along(blocks_tile_lst), function(i) {
 
         # get tile from cube
-        tile <- cube[i, ]
+        tile <- cube[i,]
 
         # create metadata for raster cube
-        tile_bilat <- .cube_derived_create(
+        tile_bayes <- .cube_derived_create(
             cube       = tile,
             cube_class = "probs_cube",
             band_name  = "bilat",
@@ -836,14 +850,13 @@ sits_smooth.bilateral <- function(cube,
         )
 
         # prepare output filename
-        out_file <- .file_info_path(tile_bilat)
+        out_file <- .file_info_path(tile_bayes)
 
         # if file exists skip it (resume feature)
-        if (file.exists(out_file)) {
+        if (file.exists(out_file))
             return(out_file)
-        }
 
-        tmp_blocks <- tiles_blocks_lst[[i]]
+        tmp_blocks <- blocks_tile_lst[[i]]
 
         # apply function to blocks
         on.exit(unlink(tmp_blocks))
@@ -853,7 +866,7 @@ sits_smooth.bilateral <- function(cube,
             .raster_merge(
                 in_files = tmp_blocks,
                 out_file = out_file,
-                format = "GTiff",
+                format   = "GTiff",
                 gdal_datatype =
                     .raster_gdal_datatype(.config_get("probs_cube_data_type")),
                 gdal_options =
@@ -862,15 +875,15 @@ sits_smooth.bilateral <- function(cube,
             )
         )
 
-        return(tile_bilat)
+        return(tile_bayes)
     })
 
     # bind rows
-    cube_bilat <- dplyr::bind_rows(cube_bilat)
+    result_cube <- dplyr::bind_rows(result_cube)
 
-    class(cube_bilat) <- class(cube)
+    class(result_cube) <- class(cube)
 
-    return(cube_bilat)
+    return(result_cube)
 }
 
 .smth_filename <- function(tile,
@@ -992,7 +1005,7 @@ sits_smooth.bilateral <- function(cube,
         crop_first_row = r1 - ovr_r1 + 1,
         crop_nrows     = nr1,
         crop_first_col = 1,
-        crop_ncols     = ysize,
+        crop_ncols     = xsize,
         SIMPLIFY       = FALSE
     )
 
