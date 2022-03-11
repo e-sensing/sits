@@ -176,93 +176,24 @@
 #' @param tile              Metadata describing a tile of a raster data cube.
 #' @param points            tibble with points
 #' @param bands             Bands to be retrieved.
+#' @param xy                A matrix with longitude as X and latitude as Y.
 #' @param cld_band          Cloud band (if available)
 #' @param impute_fn         Imputation function for NA values
+#' @param output_dir        An output directory to save temporary time series.
 #' @return                  A sits tibble with the time series.
 .sits_raster_data_get_ts <- function(tile,
-                                     points,
+                                     point,
                                      bands,
+                                     xy,
                                      cld_band = NULL,
-                                     impute_fn = sits_impute_linear()) {
+                                     impute_fn = sits_impute_linear(),
+                                     output_dir = output_dir) {
 
 
     # set caller to show in errors
     .check_set_caller(".sits_raster_data_get_ts")
 
-    # ensure metadata tibble exists
-    .check_that(
-        x = nrow(tile) >= 1,
-        msg = "process one tile at a time"
-    )
-
-    .check_chr_within(
-        x = .config_get("df_sample_columns"),
-        within = colnames(points),
-        msg = "data input is not valid"
-    )
-
-    # get the timeline
     timeline <- sits_timeline(tile)
-
-    # make sure we get only the relevant columns
-    points <- dplyr::select(points, longitude, latitude,
-                            start_date, end_date, label)
-
-    # get XY
-    xy_tb <- .sits_proj_from_latlong(
-        longitude = points$longitude,
-        latitude  = points$latitude,
-        crs       = .cube_crs(tile)
-    )
-
-    # join lat-long with XY values in a single tibble
-    points <- dplyr::bind_cols(points, xy_tb)
-
-    # filter the points inside the data cube space-time extent
-    points <- dplyr::filter(
-        points,
-        X > tile$xmin & X < tile$xmax &
-            Y > tile$ymin & Y < tile$ymax &
-            start_date <= as.Date(timeline[length(timeline)]) &
-            end_date >= as.Date(timeline[1])
-    )
-
-    # are there points to be retrieved from the cube?
-    if (nrow(points) == 0) {
-        return(NULL)
-    }
-
-    # build the sits tibble for the storing the points
-    samples <- slider::slide_dfr(points, function(point) {
-
-        # get the valid timeline
-        dates <- .sits_timeline_during(
-            timeline   = timeline,
-            start_date = as.Date(point$start_date),
-            end_date   = as.Date(point$end_date)
-        )
-        sample <- tibble::tibble(
-            longitude  = point$longitude,
-            latitude   = point$latitude,
-            start_date = dates[[1]],
-            end_date   = dates[[length(dates)]],
-            label      = point$label,
-            cube       = tile$collection
-        )
-
-        # put them on a tibble
-        ts <- tibble::tibble(Index = dates)
-
-        # store them in the sample tibble
-        sample$time_series <- list(ts)
-
-        # return valid row of time series
-        return(sample)
-    })
-
-    # create a matrix to extract the values
-    xy <- matrix(c(points$X, points$Y), nrow = nrow(points), ncol = 2)
-    colnames(xy) <- c("X", "Y")
 
     # retrieve values for the cloud band (if available)
     if (!purrr::is_null(cld_band)) {
@@ -294,7 +225,7 @@
 
     # Retrieve values on a band by band basis
     # using parallel processing
-    ts_bands <- .sits_parallel_map(bands, function(band) {
+    ts_bands <- purrr::map(bands, function(band) {
 
         # get the scale factors, max, min and missing values
         missing_value <- .cube_band_missing_value(cube = tile, band = band)
@@ -314,8 +245,8 @@
 
             t_point <- .sits_timeline_during(
                 timeline   = timeline,
-                start_date = lubridate::as_date(points$start_date[[i]]),
-                end_date   = lubridate::as_date(points$end_date[[i]])
+                start_date = lubridate::as_date(point$start_date[[i]]),
+                end_date   = lubridate::as_date(point$end_date[[i]])
             )
 
             # select the valid dates in the timeline
@@ -357,7 +288,7 @@
 
         # return the values of all points xy for one band
         return(ts_band_lst)
-    }, progress = FALSE)
+    })
 
 
     # now we have to transpose the data
@@ -366,10 +297,10 @@
         purrr::transpose() %>%
         purrr::map(tibble::as_tibble)
 
-    samples$time_series <- purrr::map2(samples$time_series,
+    point$time_series <- purrr::map2(point$time_series,
                                        ts_samples,
                                        dplyr::bind_cols)
 
-    class(samples) <- c("sits", class(samples))
-    return(samples)
+    class(point) <- c("sits", class(point))
+    return(point)
 }

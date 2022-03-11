@@ -87,16 +87,21 @@ sits_get_data <- function(cube,
                           shp_attr = NULL,
                           .n_pts_csv = NULL,
                           .n_shp_pol = 30,
-                          multicores = 1) {
+                          multicores = 1,
+                          output_dir) {
 
     # set caller to show in errors
     .check_set_caller("sits_get_data")
 
+    .check_that(
+        dir.exists(output_dir),
+        msg = "invalid output directory"
+    )
+
     # pre-condition - all tiles have same bands
-    regular <- slider::slide_lgl(cube, function(tile) {
-        .cube_is_regular(tile)
-    })
-    .check_that(all(regular),
+    is_regular <- .cube_is_regular(cube)
+
+    .check_that(is_regular,
                 local_msg = "tiles have different bands and dates",
                 msg = "cube is inconsistent"
     )
@@ -107,15 +112,19 @@ sits_get_data <- function(cube,
 
     # no start or end date? get them from the timeline
     timeline <- sits_timeline(cube)
+
     if (purrr::is_null(start_date))
         start_date <- as.Date(timeline[1])
+
     if (purrr::is_null(end_date))
         end_date <- as.Date(timeline[length(timeline)])
 
     # is there a shapefile or a CSV file?
     if (!purrr::is_null(file)) {
+
         # get the file extension
         file_ext <- tolower(tools::file_ext(file))
+
         # sits only accepts "csv" or "shp" files
         .check_chr_within(
             x = file_ext,
@@ -179,7 +188,8 @@ sits_get_data <- function(cube,
         samples    = samples,
         bands      = bands,
         impute_fn  = impute_fn,
-        multicores = multicores
+        multicores = multicores,
+        output_dir = output_dir
     )
     return(data)
 }
@@ -198,7 +208,8 @@ sits_get_data <- function(cube,
                          ...,
                          bands = NULL,
                          impute_fn,
-                         multicores) {
+                         multicores,
+                         output_dir) {
 
     # Dispatch
     UseMethod(".sits_get_ts", cube)
@@ -286,38 +297,151 @@ sits_get_data <- function(cube,
                                      ...,
                                      bands,
                                      impute_fn,
-                                     multicores) {
+                                     multicores,
+                                     output_dir) {
+
+    .check_chr_within(
+        x = .config_get("df_sample_columns"),
+        within = colnames(samples),
+        msg = "data input is not valid"
+    )
 
     # pre-condition - check bands
     if (is.null(bands))
-        bands <- .cube_bands(cube)
+        bands <- .cube_bands(cube, add_cloud = TRUE)
+
     .cube_bands_check(cube, bands = bands)
 
     # is the cloud band available?
     cld_band <- .source_cloud()
+
     if (cld_band %in% bands) {
         bands <- bands[bands != cld_band]
     } else {
         cld_band <- NULL
     }
 
+
+    tiles_bands <- unlist(slider::slide(cube, function(tile) {
+        purrr::cross2(.cube_tiles(cube), bands)
+    }), recursive = FALSE)
+
+
     # prepare parallelization
     .sits_parallel_start(workers = multicores, log = FALSE)
     on.exit(.sits_parallel_stop(), add = TRUE)
 
-    data <- slider::slide_dfr(cube, function(tile) {
+    samples_tiles_bands <- .sits_parallel_map(tiles_bands, function(tile_band) {
         # get the data
+
+        tile_id <- tile_band[[1]]
+        band <- tile_band[[2]]
+
+        # TODO: add cube name??
+        file_name <- paste0(paste("samples", tile_id, band, sep = "_"), ".rds")
+        file_name <- file.path(output_dir, file_name)
+
+        if (file.exists(file_name))
+            tryCatch({
+                timeseries <- readRDS(file_name)
+
+                return(timeseries)
+            },
+            error = function(e) { return(NULL) }
+            )
+
+
+        tile <- dplyr::filter(cube, tile == !!tile_id)
+        tile <- sits_select(tile, band)
+
+        # get the timeline
+        timeline <- sits_timeline(tile)
+
+        # make sure we get only the relevant columns
+        samples <- dplyr::select(
+            samples, "longitude", "latitude", "start_date", "end_date", "label"
+        )
+
+        # get XY
+        xy_tb <- .sits_proj_from_latlong(
+            longitude = samples[["longitude"]],
+            latitude  = samples[["latitude"]],
+            crs       = .cube_crs(tile)
+        )
+
+        # join lat-long with XY values in a single tibble
+        samples <- dplyr::bind_cols(samples, xy_tb)
+
+        # filter the points inside the data cube space-time extent
+        samples <- dplyr::filter(
+            samples,
+            .data[["X"]] > tile$xmin & .data[["X"]] < tile$xmax &
+                .data[["Y"]] > tile$ymin & .data[["Y"]] < tile$ymax &
+                .data[["start_date"]] <= as.Date(timeline[length(timeline)]) &
+                .data[["end_date"]] >= as.Date(timeline[1])
+        )
+
+        # are there points to be retrieved from the cube?
+        if (nrow(samples) == 0) {
+            return(NULL)
+        }
+
+        # create a matrix to extract the values
+        xy <- matrix(
+            c(samples[["X"]], samples[["Y"]]),
+            nrow = nrow(samples),
+            ncol = 2
+        )
+
+        colnames(xy) <- c("X", "Y")
+
+        # build the sits tibble for the storing the points
+        samples <- slider::slide_dfr(samples, function(point) {
+
+            # get the valid timeline
+            dates <- .sits_timeline_during(
+                timeline   = timeline,
+                start_date = as.Date(point[["start_date"]]),
+                end_date   = as.Date(point[["end_date"]])
+            )
+
+            sample <- tibble::tibble(
+                longitude  = point[["longitude"]],
+                latitude   = point[["latitude"]],
+                start_date = dates[[1]],
+                end_date   = dates[[length(dates)]],
+                label      = point[["label"]],
+                cube       = tile[["collection"]]
+            )
+
+            # store them in the sample tibble
+            sample$time_series <- list(tibble::tibble(Index = dates))
+
+            # return valid row of time series
+            return(sample)
+        })
+
         ts <- .sits_raster_data_get_ts(
             tile = tile,
-            points = samples,
-            bands = bands,
+            point = samples,
+            bands = band,
+            xy    = xy,
             cld_band = cld_band,
-            impute_fn = impute_fn
+            impute_fn = impute_fn,
+            output_dir = output_dir
         )
+
+        saveRDS(ts, file_name)
+
         return(ts)
     })
+
+    # TODO?: commbine bands
+    data <- dplyr::bind_rows(samples_tiles_bands)
+    #samples_tbl %>% dplyr::group_by(.data[["tile"]]) %>%
+
     # check if data has been retrieved
-    .sits_get_data_check(nrow(samples), nrow(data))
+    #.sits_get_data_check(nrow(samples), nrow(data))
 
     if (!inherits(data, "sits")) {
         class(data) <- c("sits", class(data))
