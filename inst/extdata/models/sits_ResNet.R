@@ -187,16 +187,15 @@ sits_ResNet <- function(samples = NULL,
         torch::torch_manual_seed(sample.int(10^5, 1))
 
         conv_block <- torch::nn_module(
-            classname = "conv_block",
             initialize = function(in_channels,
                                   out_channels,
-                                  kernel_size,
+                                  kernel,
                                   activate = TRUE){
 
                 tensors <- list(
                     torch::nn_conv1d(in_channels,
                                      out_channels,
-                                     kernel_size),
+                                     kernel),
                     torch::nn_batch_norm1d(out_channels)
                 )
                 if (activate) {
@@ -231,16 +230,15 @@ sits_ResNet <- function(samples = NULL,
                                            out_channels,
                                            kernel_size = 1,
                                            activate = FALSE)
-                self$act = torch::nn_relu()
+                self$act = torch::nn_reLU()
 
             },
             forward = function(x){
-                x <-  torch::torch_transpose(x, 2, 3)
                 res <-  x
                 x <-  self$conv_block1(x)
                 x <-  self$conv_block2(x)
                 x <-  self$conv_block3(x)
-                x <-  torch::torch_add(x, self$shortcut(res))
+                x <-  torch::add(x, self$shortcut(res))
                 x <-  self$act(x)
                 return(x)
             }
@@ -255,20 +253,19 @@ sits_ResNet <- function(samples = NULL,
                 self$res_block1 <- res_block(n_bands, blocks[1], kernels)
                 self$res_block2 <- res_block(blocks[1], blocks[2], kernels)
                 self$res_block3 <- res_block(blocks[2], blocks[3], kernels)
-                #self$gap <- torch::nn_adaptive_avg_pool1d(output_size = 1)
+                self$gap <- torch::nn_avg_pool1d(kernel_size = 1)
                 # classification using softmax
                 self$softmax <- torch::nn_sequential(
-                    torch::nn_linear(blocks[3], n_labels),
+                    torch::nn_linear(blocks[3]*n_times, n_labels),
                     torch::nn_softmax(dim = -1)
                 )
             },
             forward = function(x){
-                x <- x %>%
-                    self$res_block1() %>%
-                    self$res_block2() %>%
-                    self$res_block3() %>%
-                    # self$gap() %>%
-                    self$softmax()
+                x  <-  self$res_block1(x)
+                x  <-  self$res_block2(x)
+                x  <-  self$res_block3(x)
+                x  <-  self$gap(x)
+                return(self$softmax(x))
             }
         )
         # train the model using luz

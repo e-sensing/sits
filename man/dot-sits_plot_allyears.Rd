@@ -7,7 +7,7 @@
 .sits_plot_allyears(data)
 }
 \arguments{
-\item{data}{One or more time series (stored in a sits tibble).}
+\item{data}{One or more time series.}
 }
 \description{
 For each lat/long location in the data, join temporal

@@ -8,9 +8,7 @@
 #' that require values that are rowwise or colwise organised.
 #'
 #' @param  data       A sits tibble with time series for different bands.
-#' @param  bands      A string with a group of bands whose
-#'                    values are to be extracted. If no bands are informed
-#'                    extract ALL bands.
+#' @param  bands      Bands whose values are to be extracted.
 #' @param  format     A string with either "cases_dates_bands"
 #'                    or "bands_cases_dates" or "bands_dates_cases".
 #'
@@ -29,17 +27,19 @@ sits_values <- function(data, bands = NULL, format = "cases_dates_bands") {
 
     # set caller to show in errors
     .check_set_caller("sits_values")
-
     .check_chr_within(
         x = format,
-        within = c("cases_dates_bands",
-                   "bands_cases_dates",
-                   "bands_dates_cases"),
+        within = c(
+            "cases_dates_bands",
+            "bands_cases_dates",
+            "bands_dates_cases"
+        ),
         discriminator = "one_of",
-        msg = paste("valid format parameter are 'cases_dates_bands',",
-                    "'bands_cases_dates' or 'bands_dates_cases'")
+        msg = paste(
+            "valid format parameter are 'cases_dates_bands',",
+            "'bands_cases_dates' or 'bands_dates_cases'"
+        )
     )
-
     class(format) <- c(format, class(format))
     UseMethod("sits_values", format)
 }

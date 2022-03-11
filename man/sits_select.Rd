@@ -7,9 +7,9 @@
 sits_select(data, bands)
 }
 \arguments{
-\item{data}{A sits tibble or data cube}
+\item{data}{A sits tibble or data cube.}
 
-\item{bands}{Character vector with the names of the bands}
+\item{bands}{Character vector with the names of the bands.}
 }
 \value{
 For sits tibble, returns a sits tibble with the selected bands.
@@ -27,7 +27,6 @@ sits_bands(cerrado_2classes)
 data <- sits_select(cerrado_2classes, bands = c("NDVI"))
 # Print the labels of the resulting tibble
 sits_bands(data)
-
 }
 \author{
 Rolf Simoes, \email{rolf.simoes@inpe.br}

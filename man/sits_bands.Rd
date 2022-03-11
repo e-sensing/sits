@@ -10,7 +10,7 @@ sits_bands(x)
 \item{x}{Valid sits tibble (time series or a cube)}
 }
 \value{
-A string vector with the names of the bands.
+A vector with the names of the bands.
 }
 \description{
 Finds the names of the bands of
@@ -18,11 +18,10 @@ Finds the names of the bands of
 }
 \examples{
 {
-# Retrieve the set of samples for Mato Grosso (provided by EMBRAPA)
-# show the bands
-sits_bands(samples_modis_4bands)
+  # Retrieve the set of samples for Mato Grosso (provided by EMBRAPA)
+  # show the bands
+  sits_bands(samples_modis_4bands)
 }
-
 }
 \author{
 Gilberto Camara, \email{gilberto.camara@inpe.br}

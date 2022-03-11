@@ -8,15 +8,15 @@
 #' @return  returns a squared matrix filled with Gaussian function
 #'
 .sits_smooth_gauss_kernel <- function(window_size, sigma = 1) {
-
     stopifnot(window_size %% 2 != 0)
 
     w_center <- ceiling(window_size / 2)
     w_seq <- seq_len(window_size)
     x <- stats::dnorm(
-        (abs(rep(w_seq, each = window_size) - w_center) ^ 2 +
-             abs(rep(w_seq, window_size) - w_center) ^ 2) ^ (1 / 2),
-        sd = sigma) / stats::dnorm(0)
+        (abs(rep(w_seq, each = window_size) - w_center)^2 +
+             abs(rep(w_seq, window_size) - w_center)^2)^(1 / 2),
+        sd = sigma
+    ) / stats::dnorm(0)
     matrix(x / sum(x), nrow = window_size, byrow = T)
 }
 
@@ -54,8 +54,10 @@
     .check_set_caller(".sits_smooth_map_layer")
 
     # pre-condition - one tile at a time
-    .check_num(nrow(cube), min = 1, max = 1, is_integer = TRUE,
-               msg = "process one tile only")
+    .check_num(nrow(cube),
+               min = 1, max = 1, is_integer = TRUE,
+               msg = "process one tile only"
+    )
 
     # precondition - check if cube has probability data
     .check_that(
@@ -74,7 +76,6 @@
     .sits_compute_blocks <- function(img_y_size,
                                      block_y_size,
                                      overlapping_y_size) {
-
         r1 <- ceiling(seq(1, img_y_size - 1, by = block_y_size))
         r2 <- c(r1[-1] - 1, img_y_size)
         ovr_r1 <- c(1, c(r1[-1] - overlapping_y_size))
@@ -86,7 +87,8 @@
                r2 = ovr_r2,
                o1 = r1 - ovr_r1 + 1,
                o2 = r2 - ovr_r1 + 1,
-               SIMPLIFY = FALSE)
+               SIMPLIFY = FALSE
+        )
     }
 
     # function that run on workers...
@@ -96,10 +98,12 @@
         b <- .raster_open_rast(in_file)
 
         # create extent
-        blk_overlap <- list(first_row = block$r1,
-                            nrows = block$r2 - block$r1 + 1,
-                            first_col = 1,
-                            ncols = .raster_ncols(b))
+        blk_overlap <- list(
+            first_row = block$r1,
+            nrows = block$r2 - block$r1 + 1,
+            first_col = 1,
+            ncols = .raster_ncols(b)
+        )
 
         # crop adding overlaps
         chunk <- .raster_crop(r_obj = b, block = blk_overlap)
@@ -108,17 +112,21 @@
         raster_out <- do.call(func, args = c(list(chunk = chunk), args))
 
         # create extent
-        blk_no_overlap <- list(first_row = block$o1,
-                               nrows = block$o2 - block$o1 + 1,
-                               first_col = 1,
-                               ncols = .raster_ncols(raster_out))
+        blk_no_overlap <- list(
+            first_row = block$o1,
+            nrows = block$o2 - block$o1 + 1,
+            first_col = 1,
+            ncols = .raster_ncols(raster_out)
+        )
 
         # crop removing overlaps
         raster_out <- .raster_crop(raster_out, block = blk_no_overlap)
 
         # export to temp file
-        filename <- tempfile(tmpdir = dirname(.file_info(cube_out)$path),
-                             fileext = ".tif")
+        filename <- tempfile(
+            tmpdir = dirname(.file_info(cube)$path),
+            fileext = ".tif"
+        )
 
         # save chunk
         .raster_write_rast(
@@ -137,8 +145,9 @@
     .sits_call_workers_cluster <- function(in_file, out_file, blocks, cl) {
 
         # if file exists skip it (resume feature)
-        if (file.exists(out_file))
+        if (file.exists(out_file)) {
             return(out_file)
+        }
 
         # apply function to blocks
         if (purrr::is_null(cl)) {
@@ -149,7 +158,8 @@
                 FUN = .sits_cluster_worker_fun,
                 in_file = in_file,
                 func = func,
-                args = func_args)
+                args = func_args
+            )
         } else {
 
             # do parallel
@@ -159,7 +169,8 @@
                 fun = .sits_cluster_worker_fun,
                 in_file = in_file,
                 func = func,
-                args = func_args)
+                args = func_args
+            )
         }
 
         tmp_blocks <- unlist(tmp_blocks)
@@ -190,20 +201,25 @@
     out_file <- .file_info_path(cube_out)
 
     # compute how many tiles to be computed
-    block_size <- .sits_smooth_blocks_size_estimate(cube = cube,
-                                                    multicores = multicores,
-                                                    memsize = memsize)
+    block_size <- .sits_smooth_blocks_size_estimate(
+        cube = cube,
+        multicores = multicores,
+        memsize = memsize
+    )
 
     # for now, only vertical blocks are allowed, i.e. 'x_blocks' is 1
     blocks <- .sits_compute_blocks(
         img_y_size = .cube_size(cube)["nrows"],
         block_y_size = block_size[["block_y_size"]],
-        overlapping_y_size = overlapping_y_size)
+        overlapping_y_size = overlapping_y_size
+    )
 
-    out_blocks <- .sits_call_workers_cluster(in_file = in_file,
-                                             out_file = out_file,
-                                             blocks = blocks,
-                                             cl = cl)
+    out_blocks <- .sits_call_workers_cluster(
+        in_file = in_file,
+        out_file = out_file,
+        blocks = blocks,
+        cl = cl
+    )
 
     return(invisible(out_blocks))
 }

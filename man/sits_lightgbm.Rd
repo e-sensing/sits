@@ -11,33 +11,30 @@ sits_lightgbm(
   max_depth = 6,
   min_samples_leaf = 10,
   learning_rate = 0.1,
-  n_iter_no_change = 0,
-  n_folds = 5,
+  n_iter_no_change = 10,
   record = TRUE,
   ...
 )
 }
 \arguments{
-\item{data}{time series with the training samples.}
+\item{data}{Time series with the training samples.}
 
-\item{boosting_type}{type of boosting algorithm
-(options: "gbdt", "rf", "dart", "goss")}
+\item{boosting_type}{Type of boosting algorithm
+(options: "gbdt", "rf", "dart", "goss").}
 
-\item{num_iterations}{number of iterations}
+\item{num_iterations}{Number of iterations.}
 
-\item{max_depth}{limit the max depth for tree model}
+\item{max_depth}{Limit the max depth for tree model.}
 
-\item{min_samples_leaf}{minimal number of data in one leaf
-(can be used to deal with over-fitting)}
+\item{min_samples_leaf}{Min size of data in one leaf
+(can be used to deal with over-fitting).}
 
-\item{learning_rate}{learning rate of the algorithm}
+\item{learning_rate}{Learning rate of the algorithm}
 
-\item{n_iter_no_change}{number of iterations to stop training
-when validation metrics don't improve}
+\item{n_iter_no_change}{Number of iterations to stop training
+when validation metrics don't improve.}
 
-\item{n_folds}{number of folds for cross-validation.}
-
-\item{record}{record iteration message?}
+\item{record}{Record iteration message?}
 
 \item{...}{Additional parameters for
 \code{lightgbm::lgb.train} function.}

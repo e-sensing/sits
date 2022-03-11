@@ -35,16 +35,15 @@
 .source_collection_tile_check(source, collection, tiles)
 }
 \arguments{
-\item{source}{A \code{string} value referring to a valid data source.}
+\item{source}{Data source.}
 
-\item{collection}{A \code{string} value referring to a collection of the
-source.}
+\item{collection}{Image collection.}
 
-\item{tiles}{A \code{vector} with the tile names}
+\item{tiles}{Tile names}
 
-\item{start_date}{A starting date.}
+\item{start_date}{Start date.}
 
-\item{end_date}{An ending date.}
+\item{end_date}{End date.}
 }
 \value{
 The values returned by each function are described as follows.

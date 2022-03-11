@@ -23,8 +23,8 @@ and saves them in an Excel spreadsheet.
 data(cerrado_2classes)
 # perform a 2 fold validation of this sample file
 accuracy <- sits_kfold_validate(cerrado_2classes,
-    folds = 2,
-    ml_method = sits_rfor(num_trees = 300)
+  folds = 2,
+  ml_method = sits_rfor(num_trees = 300)
 )
 # create a list to store the results
 results <- list()

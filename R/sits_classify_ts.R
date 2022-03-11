@@ -7,8 +7,8 @@
 #' @description This function takes a tibble with a classified time series
 #' by a machine learning method and displays the result.
 #'
-#' @param  class    A SITS tibble that has been classified
-#' @return returns a tibble with the columns "from", "to", "class"
+#' @param  class    A SITS tibble that has been classified.
+#' @return          Tibble with the columns "from", "to", "class"
 #'
 #' @examples
 #' # Retrieve the samples for Mato Grosso
@@ -47,11 +47,12 @@ sits_show_prediction <- function(class) {
 #' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
 #'
 #' @description Create a tibble to store the results of predictions.
-#' @param  data             A tibble with the input data.
-#' @param  class_info       A tibble with the information on classification.
-#' @param  prediction       A matrix with the result of the classification
+#' @param  data             Tibble with the input data.
+#' @param  class_info       Tibble with the information on classification.
+#' @param  prediction       Matrix with the result of the classification
 #'                          (one class per column and one row per interval).
-#' @return A tibble storing the predictions.
+#' @return                  Tibble storing the predictions.
+#'
 .sits_tibble_prediction <- function(data, class_info, prediction) {
 
     # this list is a global one and it is created based on the samples
@@ -73,38 +74,37 @@ sits_show_prediction <- function(class) {
 
     data_pred <- slider::slide_dfr(data, function(row) {
 
-            # get the timeline of the row
-            timeline_row <- lubridate::as_date(row$time_series[[1]]$Index)
+        # get the timeline of the row
+        timeline_row <- lubridate::as_date(row$time_series[[1]]$Index)
 
-            # the timeline of the row may differ from the global timeline
-            # this happens when we are processing samples with different dates
-            if (timeline_row[1] != timeline_global[1]) {
-                # what are the reference dates to do the classification?
-                ref_dates_lst <- .sits_timeline_match(
-                    timeline = timeline_row,
-                    ref_start_date = lubridate::as_date(row$start_date),
-                    ref_end_date = lubridate::as_date(row$end_date),
-                    num_samples = nrow(row$time_series[[1]])
-                )
-            }
-
-            # store the classification results
-            pred_sample <- ref_dates_lst %>%
-                purrr::map_dfr(function(rd) {
-                    probs_date <- rbind.data.frame(prediction[idx,])
-                    names(probs_date) <- names(prediction[idx,])
-                    pred_date <- tibble::tibble(
-                        from = as.Date(rd[1]),
-                        to = as.Date(rd[2]),
-                        class = pred[idx]
-                    )
-                    idx <<- idx + 1
-                    pred_date <- dplyr::bind_cols(pred_date, probs_date)
-                })
-            row$predicted <- list(pred_sample)
-            return(row)
+        # the timeline of the row may differ from the global timeline
+        # this happens when we are processing samples with different dates
+        if (timeline_row[1] != timeline_global[1]) {
+            # what are the reference dates to do the classification?
+            ref_dates_lst <- .sits_timeline_match(
+                timeline = timeline_row,
+                ref_start_date = lubridate::as_date(row$start_date),
+                ref_end_date = lubridate::as_date(row$end_date),
+                num_samples = nrow(row$time_series[[1]])
+            )
         }
-    )
+
+        # store the classification results
+        pred_sample <- ref_dates_lst %>%
+            purrr::map_dfr(function(rd) {
+                probs_date <- rbind.data.frame(prediction[idx, ])
+                names(probs_date) <- names(prediction[idx, ])
+                pred_date <- tibble::tibble(
+                    from = as.Date(rd[1]),
+                    to = as.Date(rd[2]),
+                    class = pred[idx]
+                )
+                idx <<- idx + 1
+                pred_date <- dplyr::bind_cols(pred_date, probs_date)
+            })
+        row$predicted <- list(pred_sample)
+        return(row)
+    })
 
     return(data_pred)
 }

@@ -61,7 +61,6 @@ Suggests:
     e1071,
     gdalcubes,
     httr,
-    keras (>= 2.6.0),
     kohonen,
     leafem,
     leaflet,
@@ -91,6 +90,7 @@ RoxygenNote: 7.1.2
 Collate: 
     'RcppExports.R'
     'data.R'
+    'pipe.R'
     'sits-package.R'
     'sits_apply.R'
     'sits_accuracy.R'
@@ -122,7 +122,6 @@ Collate:
     'sits_mlp.R'
     'sits_parallel.R'
     'sits_patterns.R'
-    'sits_pipe.R'
     'sits_plot.R'
     'sits_raster_api.R'
     'sits_raster_api_terra.R'

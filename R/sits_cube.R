@@ -29,26 +29,26 @@
 #' Data cubes can also be created using local files (see details).
 #'
 #'
-#' @param source       data source (one of \code{"AWS"}, \code{"BDC"},
+#' @param source       Data source (one of \code{"AWS"}, \code{"BDC"},
 #' \code{"DEAFRICA"}, \code{"MSPC"}, \code{"SATVEG"}, \code{"USGS"}, and
 #' \code{"WTSS"}).
-#' @param collection   image collection in data source (To find out
+#' @param collection   Image collection in data source (To find out
 #'  the supported collections, use \code{\link{sits_list_collections}()}).
-#' @param ...          other parameters to be passed for specific types.
-#' @param tiles        tiles from the collection to be included in
-#'  the cube (see details below).
-#' @param roi          filter collection by region of interest
-#'  (see details below).
-#' @param bands        spectral bands and indices to be included
-#'  in the cube (optional).
-#' @param start_date,end_date initial and final dates to include
-#'  images from the collection in the cube (optional).
-#' @param data_dir     local directory where images are stored (for local cubes).
-#' @param parse_info   parsing information for local files.
-#' @param delim        delimiter for parsing local files.
-#' @param labels       labels associated to the classes (only for result cubes).
-#' @param multicores   number of workers for parallel processing
-#' @param progress     show a progress bar?
+#' @param ...          Other parameters to be passed for specific types.
+#' @param tiles        Tiles from the collection to be included in
+#'                     the cube (see details below).
+#' @param roi          Filter collection by region of interest
+#'                     (see details below).
+#' @param bands        Spectral bands and indices to be included
+#'                     in the cube (optional).
+#' @param start_date,end_date Initial and final dates to include
+#'                     images from the collection in the cube (optional).
+#' @param data_dir     Local directory where images are stored (for local cubes).
+#' @param parse_info   Parsing information for local files.
+#' @param delim        Delimiter for parsing local files.
+#' @param labels       Labels associated to the classes (only for result cubes).
+#' @param multicores   Number of workers for parallel processing
+#' @param progress     Show a progress bar?
 #'
 #' @details
 #'
@@ -69,22 +69,22 @@
 #'
 #' The \code{roi} parameter allows a selection of an area of interest,
 #' either using a named \code{vector} (\code{"lon_min"}, \code{"lat_min"},
-#' \code{"lon_max"}, \code{"lat_max"}) in WGS84, a \code{sfc} or \code{sf} object from sf package also
-#' in WGS84 projection.
+#' \code{"lon_max"}, \code{"lat_max"}) in WGS84, a \code{sfc} or \code{sf}
+#' object from sf package in WGS84 projection.
 #' GeoJSON geometries (RFC 7946) and shapefiles should be converted to
 #' \code{sf} objects before being used to define a region of interest.
 #' This parameter does not crop a region; it only selects images that
 #' intersect the \code{roi}.
 #'
 #' To create a cube from local files, users need to inform:
-#'\itemize{
-#'\item{\code{source}:} {Provider from where the data has been
+#' \itemize{
+#' \item{\code{source}:} {Provider from where the data has been
 #'  downloaded (e.g, "BDC", "AWS").}
-#'\item{\code{collection}:}{Collection where the data has been extracted from.}
-#'\item{\code{data_dir}: }{Local directory where images are stored.}
-#'\item{\code{parse_info}: }{Parsing information for files (see below).}
-#'\item{\code{delim}: }{Delimiter character for parsing files (see below).}
-#'}
+#' \item{\code{collection}:}{Collection where the data has been extracted from.}
+#' \item{\code{data_dir}: }{Local directory where images are stored.}
+#' \item{\code{parse_info}: }{Parsing information for files (see below).}
+#' \item{\code{delim}: }{Delimiter character for parsing files (see below).}
+#' }
 #'
 #' To create a cube from local files, all images should have
 #' the same spatial resolution and projection and each file should contain
@@ -175,87 +175,100 @@
 #' want to extract the data.
 #'
 #' @examples
-#'
 #' \dontrun{
 #'
 #' # --- Access to the Brazil Data Cube
 #' # Provide your BDC credentials as environment variables
 #' bdc_access_key <- Sys.getenv("BDC_ACCESS_KEY")
-#' if (nchar(bdc_access_key) == 0)
-#'        stop("No BDC_ACCESS_KEY defined in environment.")
+#' if (nchar(bdc_access_key) == 0) {
+#'   stop("No BDC_ACCESS_KEY defined in environment.")
+#' }
 #'
 #' # create a raster cube file based on the information in the BDC
 #' cbers_tile <- sits_cube(
-#'     source = "BDC",
-#'     collection = "CB4_64_16D_STK-1",
-#'     bands = c("NDVI", "EVI"),
-#'     tiles = "022024",
-#'     start_date = "2018-09-01",
-#'     end_date = "2019-08-28"
+#'   source = "BDC",
+#'   collection = "CB4_64_16D_STK-1",
+#'   bands = c("NDVI", "EVI"),
+#'   tiles = "022024",
+#'   start_date = "2018-09-01",
+#'   end_date = "2019-08-28"
 #' )
 #'
 #' # --- Create a WTSS cube from BDC cubes
 #' # Provide your BDC credentials as environment variables
 #' bdc_access_key <- Sys.getenv("BDC_ACCESS_KEY")
-#' if (nchar(bdc_access_key) == 0)
-#'        stop("No BDC_ACCESS_KEY defined in environment.")
+#' if (nchar(bdc_access_key) == 0) {
+#'   stop("No BDC_ACCESS_KEY defined in environment.")
+#' }
 #'
-#' cube_wtss <- sits_cube(source = "WTSS",
-#'                        collection = "MOD13Q1-6")
+#' cube_wtss <- sits_cube(
+#'   source = "WTSS",
+#'   collection = "MOD13Q1-6"
+#' )
 #'
 #' # --- Access to Digital Earth Africa
 #' # create a raster cube file based on the information about the files
 #' # DEAFRICA does not support definition of tiles
-#' cube_dea <- sits_cube(source = "DEAFRICA",
-#'                       collection = "s2_l2a",
-#'                       bands = c("B04", "B08"),
-#'                       roi   = c("lat_min" = 17.379,
-#'                                 "lon_min" = 1.1573,
-#'                                 "lat_max" = 17.410,
-#'                                 "lon_max" = 1.1910),
-#'                       start_date = "2019-01-01",
-#'                       end_date = "2019-10-28"
+#' cube_dea <- sits_cube(
+#'   source = "DEAFRICA",
+#'   collection = "s2_l2a",
+#'   bands = c("B04", "B08"),
+#'   roi = c(
+#'     "lat_min" = 17.379,
+#'     "lon_min" = 1.1573,
+#'     "lat_max" = 17.410,
+#'     "lon_max" = 1.1910
+#'   ),
+#'   start_date = "2019-01-01",
+#'   end_date = "2019-10-28"
 #' )
 #'
 #' # --- Access to AWS open data Sentinel 2/2A level 2 collection
-#' s2_cube <- sits_cube(source = "AWS",
-#'                      collection = "sentinel-s2-l2a-cogs",
-#'                      tiles = c("20LKP","20LLP"),
-#'                      bands = c("B04", "B08", "B11"),
-#'                      start_date = as.Date("2018-07-18"),
-#'                      end_date = as.Date("2019-07-23")
+#' s2_cube <- sits_cube(
+#'   source = "AWS",
+#'   collection = "sentinel-s2-l2a-cogs",
+#'   tiles = c("20LKP", "20LLP"),
+#'   bands = c("B04", "B08", "B11"),
+#'   start_date = as.Date("2018-07-18"),
+#'   end_date = as.Date("2019-07-23")
 #' )
 #'
 #' # --- Access to USGS Landsat cubes (requester pays)
 #' # --- Need to provide AWS_ACCESS_KEY_ID and AWS_SECRET_ACCESS_KEY
-#' usgs_cube <-  sits_cube(source = "USGS",
-#'                collection = "landsat-c2l2-sr",
-#'                bands = c("B04", "CLOUD"),
-#'                roi = c("xmin" = 17.379,
-#'                "ymin" = 1.1573,
-#'                "xmax" = 17.410,
-#'                "ymax" = 1.1910),
-#'                start_date = "2019-01-01",
-#'                end_date = "2019-10-28")
+#' usgs_cube <- sits_cube(
+#'   source = "USGS",
+#'   collection = "landsat-c2l2-sr",
+#'   bands = c("B04", "CLOUD"),
+#'   roi = c(
+#'     "xmin" = 17.379,
+#'     "ymin" = 1.1573,
+#'     "xmax" = 17.410,
+#'     "ymax" = 1.1910
+#'   ),
+#'   start_date = "2019-01-01",
+#'   end_date = "2019-10-28"
+#' )
 #'
 #'
 #' # -- Creating Sentinel cubes from MSPC"
-#' s2_cube <- sits_cube(source = "MSPC",
-#'                      collection = "sentinel-2-l2a",
-#'                      tiles = "20LKP",
-#'                      bands = c("B05", "CLOUD"),
-#'                      start_date = as.Date("2018-07-18"),
-#'                      end_date = as.Date("2018-08-23"))
+#' s2_cube <- sits_cube(
+#'   source = "MSPC",
+#'   collection = "sentinel-2-l2a",
+#'   tiles = "20LKP",
+#'   bands = c("B05", "CLOUD"),
+#'   start_date = as.Date("2018-07-18"),
+#'   end_date = as.Date("2018-08-23")
+#' )
 #'
 #' # --- Create a cube based on a local MODIS data
 #' data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
 #'
 #' modis_cube <- sits_cube(
-#'     source = "BDC",
-#'     collection = "MOD13Q1-6",
-#'     data_dir = data_dir,
-#'     delim = "_",
-#'     parse_info = c("X1", "X2", "tile", "band", "date")
+#'   source = "BDC",
+#'   collection = "MOD13Q1-6",
+#'   data_dir = data_dir,
+#'   delim = "_",
+#'   parse_info = c("X1", "X2", "tile", "band", "date")
 #' )
 #' }
 #'
@@ -266,10 +279,11 @@ sits_cube <- function(source, collection, ..., data_dir = NULL) {
     # set caller to show in errors
     .check_set_caller("sits_cube")
 
-    if (purrr::is_null(data_dir))
+    if (purrr::is_null(data_dir)) {
         source <- .source_new(source = source, collection = collection)
-    else
+    } else {
         source <- .source_new(source = source, is_local = TRUE)
+    }
 
     # Dispatch
     UseMethod("sits_cube", source)
@@ -284,23 +298,31 @@ sits_cube.wtss_cube <- function(source = "WTSS",
                                 data_dir = NULL) {
 
     # pre-condition
-    .source_collection_check(source = source,
-                             collection = collection)
+    .source_collection_check(
+        source = source,
+        collection = collection
+    )
 
     # Does the collection need a token for access?
-    .source_collection_token_check(source = source,
-                                   collection = collection)
+    .source_collection_token_check(
+        source = source,
+        collection = collection
+    )
 
     # Does the collection need environmental variables for access?
-    .source_collection_access_vars_set(source = source,
-                                       collection = collection)
+    .source_collection_access_vars_set(
+        source = source,
+        collection = collection
+    )
 
     # dry run to verify if service is running
     .source_collection_access_test(source = source, collection = collection)
 
     # builds a sits data cube
-    .source_cube(source = source,
-                 collection = collection, ...)
+    .source_cube(
+        source = source,
+        collection = collection, ...
+    )
 }
 
 #' @rdname sits_cube
@@ -314,7 +336,6 @@ sits_cube.stac_cube <- function(source,
                                 roi = NULL,
                                 start_date = NULL,
                                 end_date = NULL) {
-
     dots <- list(...)
 
     # deal with wrong parameter "band"
@@ -330,8 +351,10 @@ sits_cube.stac_cube <- function(source,
     }
 
     if (!is.null(roi) && !is.null(tiles)) {
-        stop(paste("It is not possible to search with roi and tiles.",
-                   "Please provide only roi or tiles."))
+        stop(paste(
+            "It is not possible to search with roi and tiles.",
+            "Please provide only roi or tiles."
+        ))
     }
     # check if roi is provided correctly
     if (!purrr::is_null(roi)) {
@@ -345,43 +368,57 @@ sits_cube.stac_cube <- function(source,
     collection <- toupper(collection)
 
     # pre-condition - check if source and collection exist
-    .source_collection_check(source = source,
-                             collection = collection)
+    .source_collection_check(
+        source = source,
+        collection = collection
+    )
 
     # Does the collection need a token for access?
-    .source_collection_token_check(source = source,
-                                   collection = collection)
+    .source_collection_token_check(
+        source = source,
+        collection = collection
+    )
 
     # Does the collection need environmental variables for access?
-    .source_collection_access_vars_set(source = source,
-                                       collection = collection)
+    .source_collection_access_vars_set(
+        source = source,
+        collection = collection
+    )
 
-    if (is.null(bands))
-        bands <- .source_bands(source = source,
-                               collection = collection)
+    if (is.null(bands)) {
+        bands <- .source_bands(
+            source = source,
+            collection = collection
+        )
+    }
 
     # Pre-condition - checks if the bands are supported by the collection
-    .config_check_bands(source = source,
-                        collection = collection,
-                        bands = bands)
+    .config_check_bands(
+        source = source,
+        collection = collection,
+        bands = bands
+    )
 
     # dry run to verify if service is running
-    .source_collection_access_test(source = source,
-                                   collection = collection,
-                                   bands = bands,
-                                   ...,
-                                   start_date = start_date,
-                                   end_date = end_date
-                                   )
+    .source_collection_access_test(
+        source = source,
+        collection = collection,
+        bands = bands,
+        ...,
+        start_date = start_date,
+        end_date = end_date
+    )
 
     # builds a sits data cube
-    .source_cube(source = source,
-                 collection = collection,
-                 bands = bands,
-                 tiles = tiles,
-                 roi_sf = roi,
-                 start_date = start_date,
-                 end_date = end_date, ...)
+    .source_cube(
+        source = source,
+        collection = collection,
+        bands = bands,
+        tiles = tiles,
+        roi_sf = roi,
+        start_date = start_date,
+        end_date = end_date, ...
+    )
 }
 
 #' @rdname sits_cube
@@ -449,9 +486,11 @@ sits_cube.satveg_cube <- function(source = "SATVEG",
 
 
     # precondition
-    .check_chr_within(x = collection,
-                      within = .source_collections(source = "SATVEG"),
-                      msg = "invalid SATVEG collection.")
+    .check_chr_within(
+        x = collection,
+        within = .source_collections(source = "SATVEG"),
+        msg = "invalid SATVEG collection."
+    )
 
     # precondition - is service online?
     .source_collection_access_test(source = source, collection = collection)

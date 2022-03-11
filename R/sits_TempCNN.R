@@ -3,17 +3,22 @@
 #' @name sits_TempCNN
 #'
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
-#' @author Alexandre Ywata de Carvalho, \email{alexandre.ywata@@ipea.gov.br}
 #' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
+#' @author Felipe Souza, \email{lipecaso@@gmail.com}
+#' @author Alber Sanchez, \email{alber.ipia@@inpe.br}
 #'
 #' @description Use a TempCNN algorithm to classify data, which has
 #' two stages: a 1D CNN and a  multi-layer perceptron.
 #' Users can define the depth of the 1D network, as well as
 #' the number of perceptron layers.
 #'
-#' This function is based on the paper by Charlotte Pelletier referenced below
-#' and code available on github (https://github.com/charlotte-pel/temporalCNN).
+#' This function is based on the paper by Charlotte Pelletier referenced below.
 #' If you use this method, please cite the original tempCNN paper.
+#'
+#' The torch version is based on the code made available by the BreizhCrops
+#' team: Marc Russwurm, Charlotte Pelletier, Marco Korner, Maximilian Zollner.
+#' The original python code is available at the website
+#' https://github.com/dl4sits/BreizhCrops. This code is licensed as GPL-3.
 #'
 #' @references Charlotte Pelletier, Geoffrey Webb and François Petitjean,
 #' "Temporal Convolutional Neural Network for the Classification
@@ -23,20 +28,9 @@
 #' @param samples           Time series with the training samples.
 #' @param cnn_layers        Number of 1D convolutional filters per layer
 #' @param cnn_kernels       Size of the 1D convolutional kernels.
-#' @param cnn_activation    Activation function for 1D convolution.
-#'                          Valid values: {'relu', 'elu', 'selu', 'sigmoid'}.
-#' @param cnn_L2_rate       Regularization rate for 1D convolution.
 #' @param cnn_dropout_rates Dropout rates for 1D convolutional filters.
 #' @param dense_layer_nodes Number of nodes in the dense layer.
-#' @param dense_layer_activation    Activation functions for the dense layer.
-#'                                  Valid values: {'relu', 'elu', 'selu', 'sigmoid'}.
 #' @param dense_layer_dropout_rate  Dropout rate (0,1) for the dense layer.
-#' @param optimizer         Function with a pointer to the optimizer function
-#'                          (default is optimization_adam()).
-#'                          Options: optimizer_adadelta(), optimizer_adagrad(),
-#'                          optimizer_adam(), optimizer_adamax(),
-#'                          optimizer_nadam(), optimizer_rmsprop(),
-#'                          optimizer_sgd().
 #' @param epochs            Number of iterations to train the model.
 #' @param batch_size        Number of samples per gradient update.
 #' @param validation_split  Number between 0 and 1. Fraction of training data
@@ -70,18 +64,14 @@
 #' }
 #' @export
 sits_TempCNN <- function(samples = NULL,
-                         cnn_layers        = c(64, 64, 64),
-                         cnn_kernels       = c(5, 5, 5),
-                         cnn_activation    = "relu",
-                         cnn_L2_rate       = 1e-06,
+                         cnn_layers = c(64, 64, 64),
+                         cnn_kernels = c(5, 5, 5),
                          cnn_dropout_rates = c(0.50, 0.50, 0.50),
                          dense_layer_nodes = 256,
-                         dense_layer_activation    = "relu",
-                         dense_layer_dropout_rate  = 0.50,
-                         optimizer = keras::optimizer_adam(learning_rate = 0.001),
-                         epochs            = 150,
-                         batch_size        = 128,
-                         validation_split  = 0.2,
+                         dense_layer_dropout_rate = 0.50,
+                         epochs = 60,
+                         batch_size = 64,
+                         validation_split = 0.2,
                          verbose = FALSE) {
 
     # set caller to show in errors
@@ -98,45 +88,27 @@ sits_TempCNN <- function(samples = NULL,
         if (!requireNamespace("luz", quietly = TRUE)) {
             stop("Please install package luz", call. = FALSE)
         }
-
+        # preconditions
         .check_length(
             x = cnn_layers,
-            len_min = length(cnn_kernels),
-            len_max = length(cnn_kernels),
-            msg = "1D layers must match 1D kernel sizes"
+            len_min = 3,
+            len_max = 3,
+            msg = "tempCNN uses three CNN layers"
         )
-
         .check_length(
-            x = cnn_layers,
-            len_min = length(cnn_dropout_rates),
-            len_max = length(cnn_dropout_rates),
-            msg = "1D layers must match 1D dropout rates"
+            x = cnn_dropout_rates,
+            len_min = 3,
+            len_max = 3,
+            msg = "tempCNN uses three dropout rates"
         )
-
         .check_that(
             x = length(dense_layer_nodes) == 1,
             msg = "There is only one dense layer"
         )
-
         .check_that(
             x = length(dense_layer_dropout_rate) == 1,
             msg = "dropout rates must be provided for the dense layer"
         )
-
-        .check_chr_within(
-            x = cnn_activation,
-            within = .config_get("dl_activation_methods"),
-            discriminator = "one_of",
-            msg = "invalid CNN activation method"
-        )
-
-        .check_chr_within(
-            x = dense_layer_activation,
-            within = .config_get("dl_activation_methods"),
-            discriminator = "one_of",
-            msg = "invalid node activation method"
-        )
-
         # get the labels of the data
         labels <- sits_labels(data)
         # create a named vector with integers match the class labels
@@ -173,18 +145,24 @@ sits_TempCNN <- function(samples = NULL,
             nrow(test_data)
         ), ]
 
-        # organize data for model training
+        # transform training data into a 3D tensor
+        # remove first two columns
+        # reshape the 2D matrix into a 3D array
         train_x <- array(
-            data = as.matrix(train_data[, 3:ncol(train_data)]),
+            data = as.matrix(train_data[, -2:0]),
             dim = c(n_samples_train, n_times, n_bands)
         )
+        # transform training reference to an integer vector
         train_y <- unname(int_labels[as.vector(train_data$reference)])
 
-        # create the test data for keras
+        # transform test data into a 3D tensor
+        # remove first two columns
+        # reshape the 2D matrix into a 3D array
         test_x <- array(
-            data = as.matrix(test_data[, 3:ncol(test_data)]),
+            data = as.matrix(test_data[, -2:0]),
             dim = c(n_samples_test, n_times, n_bands)
         )
+        # transform test reference to an integer vector
         test_y <- unname(int_labels[as.vector(test_data$reference)])
 
         # Function to create torch datasets
@@ -196,102 +174,110 @@ sits_TempCNN <- function(samples = NULL,
                 # create a torch tensor for y data
                 self$y <- torch::torch_tensor(labels_y)
             },
-            .getitem = function(i){
+            .getitem = function(i) {
                 list(x = self$x[i, ], y = self$y[i])
             },
-            .length = function(){
+            .length = function() {
                 self$y$size()[[1]]
             }
         )
         # create train and test datasets
         train_ds <- sits_dataset(train_x, train_y)
-        test_ds  <- sits_dataset(test_x, test_y)
+        test_ds <- sits_dataset(test_x, test_y)
 
         # create the dataloaders for torch
         train_dl <- torch::dataloader(train_ds, batch_size = batch_size)
-        test_dl  <- torch::dataloader(test_ds, batch_size = batch_size)
+        test_dl <- torch::dataloader(test_ds, batch_size = batch_size)
 
+        # set random seed for torch
         torch::torch_manual_seed(sample.int(10^5, 1))
 
-        # define a 1D convolution with batch normalization and dropout
+        # module for 1D convolution with batch normalization and dropout
         conv1D_batch_norm_relu_dropout <- torch::nn_module(
             classname = "conv1D_batch_norm_relu_dropout",
             initialize = function(input_dim,
-                                 hidden_dim,
-                                 kernel_size,
-                                 dropout_rate) {
-                self$block = torch::nn_sequential(
+                                  hidden_dim,
+                                  kernel_size,
+                                  dropout_rate) {
+                self$block <- torch::nn_sequential(
                     torch::nn_conv1d(input_dim, hidden_dim, kernel_size,
-                                     padding = as.integer(kernel_size %/% 2)),
+                                     padding = as.integer(kernel_size %/% 2)
+                    ),
                     torch::nn_batch_norm1d(hidden_dim),
                     torch::nn_relu(),
-                    torch::nn_dropout(p = dropout_rate)
+                    torch::nn_dropout(dropout_rate)
                 )
             },
-            forward = function(x){
+            forward = function(x) {
                 self$block(x)
             }
         )
+        # module for linear transformation with batch normalization and dropout
         fc_batch_norm_relu_dropout <- torch::nn_module(
             classname = "fc_batch_norm_relu_dropout",
-            initialize = function(input_dim, hidden_dims, dropout_rate){
+            initialize = function(input_dim, hidden_dims, dropout_rate) {
                 self$block <- torch::nn_sequential(
                     torch::nn_linear(input_dim, hidden_dims),
                     torch::nn_batch_norm1d(hidden_dims),
                     torch::nn_relu(),
-                    torch::nn_dropout(p = dropout_rate)
+                    torch::nn_dropout(dropout_rate)
                 )
             },
-            forward = function(x){
+            forward = function(x) {
                 self$block(x)
             }
         )
-
+        # define main torch tempCNN module
         tcnn_module <- torch::nn_module(
             classname = "tcnn_module",
-            initialize = function(
-                n_bands,
-                n_times,
-                n_labels,
-                kernel_sizes,
-                hidden_dims,
-                dropout_rates,
-                dense_layer_nodes,
-                dense_layer_dropout_rate) {
-
+            initialize = function(n_bands,
+                                  n_times,
+                                  n_labels,
+                                  kernel_sizes,
+                                  hidden_dims,
+                                  dropout_rates,
+                                  dense_layer_nodes,
+                                  dense_layer_dropout_rate) {
                 self$hidden_dims <- hidden_dims
+                # first module - transform input to hidden dims
                 self$conv_bn_relu1 <- conv1D_batch_norm_relu_dropout(
                     input_dim = n_bands,
                     hidden_dim = hidden_dims[1],
                     kernel_size = kernel_sizes[1],
                     dropout_rate = dropout_rates[1]
                 )
+                # second module - 1D CNN
                 self$conv_bn_relu2 <- conv1D_batch_norm_relu_dropout(
                     input_dim = hidden_dims[1],
                     hidden_dim = hidden_dims[2],
                     kernel_size = kernel_sizes[2],
                     dropout_rate = dropout_rates[2]
                 )
+                # third module - 1D CNN
                 self$conv_bn_relu3 <- conv1D_batch_norm_relu_dropout(
                     input_dim    = hidden_dims[2],
                     hidden_dim   = hidden_dims[3],
                     kernel_size  = kernel_sizes[3],
                     dropout_rate = dropout_rates[3]
                 )
-                self$flatten = torch::nn_flatten()
-                self$dense = fc_batch_norm_relu_dropout(
+                # flatten 3D tensor to 2D tensor
+                self$flatten <- torch::nn_flatten()
+                # create a dense tensor
+                self$dense <- fc_batch_norm_relu_dropout(
                     input_dim    = hidden_dims[3] * n_times,
                     hidden_dim   = dense_layer_nodes,
-                    dropout_rate = dense_layer_dropout_rate)
-                self$softmax = torch::nn_sequential(
+                    dropout_rate = dense_layer_dropout_rate
+                )
+                # classification using softmax
+                self$softmax <- torch::nn_sequential(
                     torch::nn_linear(dense_layer_nodes, n_labels),
                     torch::nn_softmax(dim = -1)
                 )
             },
             forward = function(x) {
-                    # require NxTxD
+                # input is 3D n_samples x n_times x n_bands
                 x <- x %>%
-                    torch::torch_transpose(2,3) %>%
+                    torch::torch_transpose(2, 3) %>%
                     self$conv_bn_relu1() %>%
                     self$conv_bn_relu2() %>%
                     self$conv_bn_relu3() %>%
@@ -300,7 +286,7 @@ sits_TempCNN <- function(samples = NULL,
                     self$softmax()
             }
         )
-        # train the model
+        # train the model using luz
         torch_model <-
             luz::setup(
                 module = tcnn_module,
@@ -309,11 +295,11 @@ sits_TempCNN <- function(samples = NULL,
                 optimizer = torch::optim_adam
             ) %>%
             luz::set_hparams(
-                n_bands      =  n_bands,
-                n_times      =  n_times,
-                n_labels     =  n_labels,
-                kernel_sizes =  cnn_kernels,
-                hidden_dims  =  cnn_layers,
+                n_bands = n_bands,
+                n_times = n_times,
+                n_labels = n_labels,
+                kernel_sizes = cnn_kernels,
+                hidden_dims = cnn_layers,
                 dropout_rates = cnn_dropout_rates,
                 dense_layer_nodes = dense_layer_nodes,
                 dense_layer_dropout_rate = dense_layer_dropout_rate
@@ -332,16 +318,26 @@ sits_TempCNN <- function(samples = NULL,
         model_to_raw <- function(model) {
             con <- rawConnection(raw(), open = "wr")
             torch::torch_save(model, con)
-            on.exit({close(con)}, add = TRUE)
+            on.exit(
+                {
+                    close(con)
+                },
+                add = TRUE
+            )
             r <- rawConnectionValue(con)
-            r
+            return(r)
         }
 
         model_from_raw <- function(object) {
             con <- rawConnection(object)
-            on.exit({close(con)}, add = TRUE)
+            on.exit(
+                {
+                    close(con)
+                },
+                add = TRUE
+            )
             module <- torch::torch_load(con)
-            module
+            return(module)
         }
         # serialize model
         serialized_model <- model_to_raw(torch_model$model)
@@ -358,13 +354,14 @@ sits_TempCNN <- function(samples = NULL,
             torch_model$model <- model_from_raw(serialized_model)
 
             # transform input (data.table) into a 3D tensor
-            # (remove first two columns)
+            # remove first two columns
+            # reshape the 2D matrix into a 3D array
             n_samples <- nrow(values)
-            n_timesteps <- nrow(sits_time_series(data[1, ]))
+            n_times <- nrow(sits_time_series(data[1, ]))
             n_bands <- length(sits_bands(data))
             values_x <- array(
                 data = as.matrix(values[, -2:0]),
-                dim = c(n_samples, n_timesteps, n_bands)
+                dim = c(n_samples, n_times, n_bands)
             )
             # retrieve the prediction probabilities
             predicted <- data.table::as.data.table(
@@ -378,8 +375,10 @@ sits_TempCNN <- function(samples = NULL,
             return(predicted)
         }
 
-        class(model_predict) <- c("torch_model", "sits_model",
-                                  class(model_predict))
+        class(model_predict) <- c(
+            "torch_model", "sits_model",
+            class(model_predict)
+        )
         return(model_predict)
     }
 

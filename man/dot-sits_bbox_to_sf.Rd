@@ -7,12 +7,12 @@
 .sits_bbox_to_sf(xmin, xmax, ymin, ymax, crs)
 }
 \arguments{
-\item{xmin, xmax, ymin, ymax}{a numeric value with bound box values}
+\item{xmin, xmax, ymin, ymax}{Bounding box values.}
 
-\item{crs}{a valid crs value}
+\item{crs}{Valid crs value.}
 }
 \value{
-a sf object
+An sf object.
 }
 \description{
 Convert a bounding box to a sf object (polygon)

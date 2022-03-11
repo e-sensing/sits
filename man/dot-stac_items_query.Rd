@@ -3,7 +3,7 @@
 \name{.stac_items_query}
 \alias{.stac_items_query}
 \alias{.stac_create_items_query}
-\title{Creates a query to send to STAC api}
+\title{Creates a query to send to  the STAC API}
 \usage{
 .stac_create_items_query(
   source,
@@ -16,9 +16,9 @@
 )
 }
 \arguments{
-\item{source}{Name of the STAC provider}
+\item{source}{Name of the STAC provider.}
 
-\item{collection}{Collection to be searched in the data source}
+\item{collection}{Collection to be searched in the data source.}
 
 \item{...}{Other parameters to be passed for specific types.}
 
@@ -28,7 +28,7 @@
 
 \item{end_date}{Final date for the cube  (optional).}
 
-\item{limit}{limit items to be returned in requisition.}
+\item{limit}{Limit items to be returned in requisition.}
 }
 \value{
 an \code{RSTACQuery} object.

@@ -7,31 +7,28 @@
 .gc_create_cube_view(tile, period, res, roi, date, agg_method, resampling)
 }
 \arguments{
-\item{tile}{A data cube tile}
+\item{tile}{Data cube tile}
 
-\item{period}{A \code{character} with the The period of time in which it
+\item{period}{Period of time in which it
 is desired to apply in the cube, must be provided based on ISO8601, where 1
 number and a unit are provided, for example "P16D".}
 
-\item{res}{A \code{numeric} with spatial resolution of the image that
+\item{res}{Spatial resolution of the image that
 will be aggregated.}
 
-\item{roi}{A region of interest.}
+\item{roi}{Region of interest.}
 
-\item{agg_method}{A \code{character} with the method that will be applied in
-the aggregation, the following are available: "min", "max", "mean",
-"median" or "first".}
+\item{agg_method}{Aggregation method.}
 
-\item{resampling}{A \code{character} with method to be used by
-\code{gdalcubes} for resampling in mosaic operation.
+\item{resampling}{Resampling method.
 Options: \code{near}, \code{bilinear}, \code{bicubic} or others supported by
 gdalwarp (see https://gdal.org/programs/gdalwarp.html).
-By default is bilinear.}
+Default is "bilinear".}
 
-\item{toi}{A timeline of intersection}
+\item{toi}{Timeline of intersection.}
 }
 \value{
-a \code{cube_view} object from gdalcubes.
+\code{Cube_view} object from gdalcubes.
 }
 \description{
 Create a cube_view object

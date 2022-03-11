@@ -7,16 +7,16 @@
 \method{plot}{predicted}(x, y, ..., bands = "NDVI", palette = "Harmonic")
 }
 \arguments{
-\item{x}{object of class "predicted"}
+\item{x}{Object of class "predicted".}
 
-\item{y}{ignored}
+\item{y}{Ignored.}
 
-\item{...}{further specifications for \link{plot}.}
+\item{...}{Further specifications for \link{plot}.}
 
-\item{bands}{bands used for visualisation}
+\item{bands}{Bands for visualisation.}
 
-\item{palette}{hcl palette used for visualisation
-(in case classes are not in the default sits palette)}
+\item{palette}{HCL palette used for visualisation
+in case classes are not in the default sits palette.}
 }
 \value{
 The plot itself.

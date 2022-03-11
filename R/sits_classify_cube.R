@@ -15,18 +15,17 @@
 #' After all cores process their blocks, it joins the result and then writes it
 #' in the classified images for each corresponding year.
 #'
-#' @param  tile            a single tile of a data cube.
-#' @param  ml_model        model trained by \code{\link[sits]{sits_train}}.
-#' @param  roi             region of interest
-#' @param  filter_fn       smoothing filter function to be applied to the data.
-#' @param  impute_fn       impute function to replace NA
-#' @param  memsize         memory available for classification (in GB).
-#' @param  multicores      number of cores.
-#' @param  output_dir      output directory
-#' @param  version         version of result
+#' @param  tile            Single tile of a data cube.
+#' @param  ml_model        Model trained by \code{\link[sits]{sits_train}}.
+#' @param  roi             Region of interest.
+#' @param  filter_fn       Smoothing filter function to be applied to the data.
+#' @param  impute_fn       Impute function to replace NA.
+#' @param  memsize         Memory available for classification (in GB).
+#' @param  multicores      Number of cores.
+#' @param  output_dir      Output directory.
+#' @param  version         Version of result.
 #' @param  verbose         print processing information?
-#' @param  progress        a logical value indicating if a progress bar should
-#' be shown
+#' @param  progress        Show progress bar?
 #' @return List of the classified raster layers.
 .sits_classify_multicores <- function(tile,
                                       ml_model,
@@ -47,8 +46,9 @@
     progress <- .check_documentation(progress)
 
     # some models have parallel processing built in
-    if ("xgb_model" %in% class(ml_model))
+    if ("xgb_model" %in% class(ml_model)) {
         multicores <- 1
+    }
 
     # retrieve the samples from the model
     samples <- .sits_ml_model_samples(ml_model)
@@ -75,10 +75,11 @@
     stats <- environment(ml_model)$stats
 
     # is there a region of interest?
-    if (purrr::is_null(roi))
+    if (purrr::is_null(roi)) {
         sub_image <- .sits_raster_sub_image_default(tile)
-    else
+    } else {
         sub_image <- .sits_raster_sub_image(tile = tile, roi = roi)
+    }
 
     # divide the input data in blocks
     blocks <- .sits_raster_blocks(
@@ -107,20 +108,23 @@
 
     # resume feature
     # if tile already exists, return probs_cube
-    if (file.exists(.file_info_path(probs_cube)))
+    if (file.exists(.file_info_path(probs_cube))) {
         return(probs_cube)
+    }
 
     # show initial time for classification
     if (verbose) {
-
-        message(paste0("Using ", length(blocks),
-                       " blocks of size (", blocks[[1]][["nrows"]],
-                       " x ", blocks[[1]][["ncols"]], ")"
+        message(paste0(
+            "Using ", length(blocks),
+            " blocks of size (", blocks[[1]][["nrows"]],
+            " x ", blocks[[1]][["ncols"]], ")"
         ))
 
         start_time <- Sys.time()
-        message(paste0("Starting classification of '", tile$tile,
-                       "' at ", start_time))
+        message(paste0(
+            "Starting classification of '", tile$tile,
+            "' at ", start_time
+        ))
     }
 
     # prepare parallelization
@@ -128,10 +132,12 @@
     on.exit(.sits_parallel_stop(), add = TRUE)
 
     # log
-    .sits_debug_log(output_dir = output_dir,
-                    event      = "start classification",
-                    key        = "blocks",
-                    value      = length(blocks))
+    .sits_debug_log(
+        output_dir = output_dir,
+        event = "start classification",
+        key = "blocks",
+        value = length(blocks)
+    )
 
     # read the blocks and compute the probabilities
     filenames <- .sits_parallel_map(blocks, function(b) {
@@ -146,28 +152,36 @@
         if (file.exists(filename_block)) {
             # try to open the file
             r_obj <-
-                tryCatch({
-                    .raster_open_rast(filename_block)
-                }, error = function(e) {
-                    return(NULL)
-                })
+                tryCatch(
+                    {
+                        .raster_open_rast(filename_block)
+                    },
+                    error = function(e) {
+                        return(NULL)
+                    }
+                )
             # if file can be opened, check if the result is correct
             # this file will not be processed again
-            if (!purrr::is_null(r_obj))
+            if (!purrr::is_null(r_obj)) {
                 if (.raster_nrows(r_obj) == b[["nrows"]]) {
                     # log
-                    .sits_debug_log(output_dir = output_dir,
-                                    event      = "skipping block",
-                                    key        = "block file",
-                                    value      = filename_block)
+                    .sits_debug_log(
+                        output_dir = output_dir,
+                        event = "skipping block",
+                        key = "block file",
+                        value = filename_block
+                    )
                     return(filename_block)
                 }
+            }
         }
         # log
-        .sits_debug_log(output_dir = output_dir,
-                        event      = "before preprocess block",
-                        key        = "block",
-                        value      = b)
+        .sits_debug_log(
+            output_dir = output_dir,
+            event = "before preprocess block",
+            key = "block",
+            value = b
+        )
 
         # read the data
         distances <- .sits_raster_data_read(
@@ -179,26 +193,34 @@
             impute_fn  = impute_fn
         )
         # log
-        .sits_debug_log(output_dir = output_dir,
-                        event      = "before classification block")
+        .sits_debug_log(
+            output_dir = output_dir,
+            event = "before classification block"
+        )
 
         # predict the classification values
         pred_block <- ml_model(distances)
         # log
-        .sits_debug_log(output_dir = output_dir,
-                        event      = "classification block",
-                        key        = "ml_model",
-                        value      = class(ml_model)[[1]])
+        .sits_debug_log(
+            output_dir = output_dir,
+            event = "classification block",
+            key = "ml_model",
+            value = class(ml_model)[[1]]
+        )
 
         # are the results consistent with the data input?
         .check_that(
             x = nrow(pred_block) == nrow(distances),
-            msg = paste("number of rows of probability matrix is different",
-                        "from number of input pixels")
+            msg = paste(
+                "number of rows of probability matrix is different",
+                "from number of input pixels"
+            )
         )
         # log
-        .sits_debug_log(output_dir = output_dir,
-                        event      = "before save classified block")
+        .sits_debug_log(
+            output_dir = output_dir,
+            event = "before save classified block"
+        )
 
         # convert probabilities matrix to INT2U
         scale_factor_save <- round(1 / .config_get("probs_cube_scale_factor"))
@@ -220,8 +242,10 @@
         )
 
         # copy values
-        r_obj <- .raster_set_values(r_obj  = r_obj,
-                                    values = pred_block)
+        r_obj <- .raster_set_values(
+            r_obj = r_obj,
+            values = pred_block
+        )
 
         # write the probabilities to a raster file
         .raster_write_rast(
@@ -233,8 +257,10 @@
             overwrite    = TRUE
         )
         # log
-        .sits_debug_log(output_dir = output_dir,
-                        event      = "save classified block")
+        .sits_debug_log(
+            output_dir = output_dir,
+            event = "save classified block"
+        )
 
         # call garbage collector
         gc()
@@ -245,11 +271,13 @@
     # put the filenames in a vector
     filenames <- unlist(filenames)
     # log
-    .sits_debug_log(output_dir = output_dir,
-                    event      = "end classification")
+    .sits_debug_log(
+        output_dir = output_dir,
+        event = "end classification"
+    )
 
     # join predictions
-    out_file = .file_info_path(probs_cube)
+    out_file <- .file_info_path(probs_cube)
     .raster_merge(
         in_files = filenames,
         out_file = out_file,
@@ -267,8 +295,10 @@
     probs_cube$file_info[[1]] <- file_info
 
     # log
-    .sits_debug_log(output_dir = output_dir,
-                    event      = "merge")
+    .sits_debug_log(
+        output_dir = output_dir,
+        event = "merge"
+    )
 
     # show final time for classification
     if (verbose) {
@@ -299,8 +329,10 @@
     )
 
     # ensure the machine learning model has been built
-    .check_null(x = ml_model,
-                msg = "trained ML model not available")
+    .check_null(
+        x = ml_model,
+        msg = "trained ML model not available"
+    )
 
     return(invisible(TRUE))
 }

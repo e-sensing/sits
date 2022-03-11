@@ -1,6 +1,5 @@
 
 .reg_get_ratio_in_out <- function(tile, band, out_size) {
-
     # band
     ratio_band <-
         .file_info_nrows(tile, bands = band) / out_size[["nrows"]]
@@ -9,7 +8,6 @@
 }
 
 .reg_get_output_size <- function(tile, out_res) {
-
     tile_bbox <- .cube_tile_bbox(tile)
 
     tile_rast <- .raster_new_rast(
@@ -25,8 +23,10 @@
         yres = out_res
     )
 
-    size <- c(nrows = .raster_nrows(tile_rast),
-              ncols = .raster_ncols(tile_rast))
+    size <- c(
+        nrows = .raster_nrows(tile_rast),
+        ncols = .raster_ncols(tile_rast)
+    )
 
     return(size)
 }
@@ -99,7 +99,7 @@
     .check_set_caller(".reg_block_list")
 
     # number of rows per block
-    block_rows <- ceiling(nrows/nblocks)
+    block_rows <- ceiling(nrows / nblocks)
 
     first_row <- 1
     last_row <- nrows
@@ -127,11 +127,12 @@
     # nrows      number of rows in each block
     # col        first col
     # ncols      number of cols in each block
-    blocks <- purrr::map2(row_vec, nrows_vec, function(rv, nr){
-        block <- c("first_row"   = rv,
-                   "nrows"       = nr,
-                   "first_col"   = 1,
-                   "ncols"       = ncols
+    blocks <- purrr::map2(row_vec, nrows_vec, function(rv, nr) {
+        block <- c(
+            "first_row" = rv,
+            "nrows" = nr,
+            "first_col" = 1,
+            "ncols" = ncols
         )
 
         return(block)
@@ -145,24 +146,23 @@
 #' @keywords internal
 #'
 #' @param cube       Data cube from where data is to be retrieved.
-#' @param period     A \code{character} with ISO8601 time period for regular
-#'  data cubes produced by \code{gdalcubes}, with number and unit, e.g., "P16D"
-#'  for 16 days. Use "D", "M" and "Y" for days, month and year.
+#' @param period     ISO8601 time period.
+#' @return           Timeline values.
 #'
-#' @return a \code{vector} with all timeline values.
 .reg_timeline <- function(cube, period) {
-
     .check_set_caller(".reg_timeline")
 
     # pre-condition
-    .check_chr(period, allow_empty = FALSE,
+    .check_chr(period,
+               allow_empty = FALSE,
                len_min = 1, len_max = 1,
-               msg = "invalid 'period' parameter")
+               msg = "invalid 'period' parameter"
+    )
 
     # start date - maximum of all minimums
     max_min_date <- do.call(
         what = max,
-        args = purrr::map(cube[["file_info"]], function(file_info){
+        args = purrr::map(cube[["file_info"]], function(file_info) {
             return(min(file_info[["date"]]))
         })
     )
@@ -170,9 +170,10 @@
     # end date - minimum of all maximums
     min_max_date <- do.call(
         what = min,
-        args = purrr::map(cube[["file_info"]], function(file_info){
+        args = purrr::map(cube[["file_info"]], function(file_info) {
             return(max(file_info[["date"]]))
-        }))
+        })
+    )
 
     # check if all timeline of tiles intersects
     .check_that(
@@ -184,11 +185,15 @@
         max_min_date <- lubridate::date(paste(
             lubridate::year(max_min_date),
             lubridate::month(max_min_date),
-            "01", sep = "-"))
+            "01",
+            sep = "-"
+        ))
     } else if (substr(period, 3, 3) == "Y") {
         max_min_date <- lubridate::date(paste(
             lubridate::year(max_min_date),
-            "01", "01", sep = "-"))
+            "01", "01",
+            sep = "-"
+        ))
     }
 
     # generate timeline
@@ -204,49 +209,41 @@
     # timeline cube
     tiles_tl <- suppressWarnings(sits_timeline(cube))
 
-    if (!is.list(tiles_tl))
+    if (!is.list(tiles_tl)) {
         tiles_tl <- list(tiles_tl)
+    }
 
     return(tl)
 }
 
 
 #' @title Create the merge image filename
-#'
 #' @name .reg_filename
-#'
 #' @keywords internal
 #'
-#' @param tile         A unique tile from \code{sits_cube} object
+#' @param tile         A unique tile from \code{sits_cube} object.
+#' @param date         Vector with two position, first one is
+#'                     the start date and second one is the end date.
+#' @param output_dir   Directory where the regularized images will be written.
+#' @param block        Vector with information about a block.
+#' @param band         Band to be written.
 #'
-#' @param date_period  A \code{character} vector with two position, first one is
-#' the start date and second one is the end date.
+#' @return             File name of resampled image.
 #'
-#' @param output_dir   A \code{character} with a valid directory where the
-#'  regularized images will be written.
-#'
-#' @param block      A \code{numeric} vector with information about a block
-#'
-#' @param tile ...
-#'
-#' @param band       ....
-#'
-#' @return A \code{character} with the file name of resampled image.
 .reg_filename <- function(tile,
                           band,
                           date,
                           output_dir, ...,
                           block = NULL) {
-
     b_filename <- paste("cube", .cube_tiles(tile), band, date, sep = "_")
 
     if (!is.null(block)) {
-
         currently_row <- block[["first_row"]]
         next_rows <- (block[["nrows"]] + block[["first_row"]]) - 1
 
         b_filename <- paste(b_filename, "block", currently_row, next_rows,
-                            sep = "_")
+                            sep = "_"
+        )
     }
 
     b_path <- paste0(file.path(output_dir, b_filename), ".tif")

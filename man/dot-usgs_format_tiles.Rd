@@ -7,10 +7,10 @@
 .usgs_format_tiles(tiles)
 }
 \arguments{
-\item{tiles}{a \code{character} vector with the tiles provided by users.}
+\item{tiles}{Tiles provided by users.}
 }
 \value{
-a \code{tibble} with attributes of wrs path and row.
+Attributes of wrs path and row.
 }
 \description{
 Format tile parameter provided by users

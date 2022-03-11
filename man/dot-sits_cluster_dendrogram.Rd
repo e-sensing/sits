@@ -18,10 +18,10 @@ to be used to generate the dendrogram.}
 
 \item{bands}{Vector of bands to be clustered.}
 
-\item{dist_method}{String with one of the supported distance
+\item{dist_method}{One of the supported distance
 from proxy's dist, e.g. \code{TWDTW}.}
 
-\item{linkage}{String with agglomeration method to be used.
+\item{linkage}{Agglomeration method to be used.
 Can be any `hclust` method (see `hclust`).
 Default is 'ward.D2'.}
 
@@ -29,7 +29,7 @@ Default is 'ward.D2'.}
 to dtwclust::tsclust() function.}
 }
 \value{
-A full dendrogram tree for data analysis.
+Full dendrogram tree for data analysis.
 }
 \description{
 Cluster time series in hierarchical mode.

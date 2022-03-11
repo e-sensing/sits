@@ -7,20 +7,19 @@
 .reg_filename(tile, band, date, output_dir, ..., block = NULL)
 }
 \arguments{
-\item{tile}{...}
+\item{tile}{A unique tile from \code{sits_cube} object.}
 
-\item{band}{....}
+\item{band}{Band to be written.}
 
-\item{output_dir}{A \code{character} with a valid directory where the
-regularized images will be written.}
-
-\item{block}{A \code{numeric} vector with information about a block}
-
-\item{date_period}{A \code{character} vector with two position, first one is
+\item{date}{Vector with two position, first one is
 the start date and second one is the end date.}
+
+\item{output_dir}{Directory where the regularized images will be written.}
+
+\item{block}{Vector with information about a block.}
 }
 \value{
-A \code{character} with the file name of resampled image.
+File name of resampled image.
 }
 \description{
 Create the merge image filename

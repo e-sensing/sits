@@ -7,13 +7,13 @@
 .sits_timeline_match(timeline, ref_start_date, ref_end_date, num_samples)
 }
 \arguments{
-\item{timeline}{timeline of input observations (vector).}
+\item{timeline}{Timeline of input observations (vector).}
 
-\item{ref_start_date}{reference for starting the classification.}
+\item{ref_start_date}{Reference for starting the classification.}
 
-\item{ref_end_date}{reference for end the classification.}
+\item{ref_end_date}{Reference for ending the classification.}
 
-\item{num_samples}{number of samples.}
+\item{num_samples}{Number of samples.}
 }
 \value{
 A list of breaks that will be applied to the input data set.

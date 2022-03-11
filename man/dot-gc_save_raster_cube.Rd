@@ -7,13 +7,13 @@
 .gc_save_raster_cube(raster_cube, pack, output_dir, files_prefix, ...)
 }
 \arguments{
-\item{raster_cube}{A \code{gdalcubes::raster_cube} object.}
+\item{raster_cube}{\code{gdalcubes::raster_cube} object.}
 
-\item{pack}{A \code{gdalcubes::pack} object.}
+\item{pack}{\code{gdalcubes::pack} object.}
 
 \item{output_dir}{Directory where the aggregated images will be written.}
 
-\item{files_prefix}{A \code{character} containing file names prefix}
+\item{files_prefix}{File names prefix.}
 
 \item{...}{Additional parameters that can be included. See
 '?gdalcubes::write_tif'.}

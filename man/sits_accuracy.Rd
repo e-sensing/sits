@@ -45,55 +45,57 @@ and error matrix (confusion matrix)
 \examples{
 \donttest{
 # Case (1) - Accuracy for classification of time series
-# read a tibble with 400 time series of Cerrado and 346 of Pasture
+# Read a tibble with 400 time series of Cerrado and 346 of Pasture
 data(cerrado_2classes)
-# create a model for classification of time series
+# Create a model for classification of time series
 svm_model <- sits_train(cerrado_2classes, sits_svm())
-# classify the time series
+# Classify the time series
 predicted <- sits_classify(cerrado_2classes, svm_model)
-# calculate the classification accuracy
+# Calculate the classification accuracy
 acc <- sits_accuracy(predicted)
 
 # Case (2) - Accuracy for classification of raster data
-# select a training set with two bands
+# Select a training set with two bands
 samples_modis_2bands <- sits_select(samples_modis_4bands,
-                                    bands = c("EVI", "NDVI"))
+  bands = c("EVI", "NDVI")
+)
 
-# build an extreme gradient boosting model
+# Build an extreme gradient boosting model
 xgb_model <- sits_train(
   samples_modis_2bands,
   sits_xgboost(nrounds = 50, verbose = FALSE)
 )
 
-# create a data cube based on files
+# Create a data cube based on files
 data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
 cube <- sits_cube(
-    source = "BDC",
-    collection = "MOD13Q1-6",
-    data_dir = data_dir,
-    delim = "_",
-    parse_info = c("X1", "X2", "tile", "band", "date"),
-    multicores = 2
+   source = "BDC",
+  collection = "MOD13Q1-6",
+  data_dir = data_dir,
+  delim = "_",
+  parse_info = c("X1", "X2", "tile", "band", "date"),
+  multicores = 2
 )
 
-# classify the data cube with xgb model
+# Classify the data cube with xgb model
 probs_cube <- sits_classify(cube,
   xgb_model,
   output_dir = tempdir(),
   memsize = 4,
   multicores = 2
 )
-# label the classification
+# Label the classification
 label_cube <- sits_label_classification(probs_cube,
   output_dir = tempdir()
 )
-# get ground truth points
+# Get ground truth points
 ground_truth <- system.file("extdata/samples/samples_sinop_crop.csv",
   package = "sits"
 )
-# calculate accuracy according to Olofsson's method
+# Calculate accuracy according to Olofsson's method
 accuracy <- suppressWarnings(sits_accuracy(label_cube,
-            validation_csv = ground_truth))
+  validation_csv = ground_truth
+))
 }
 }
 \references{

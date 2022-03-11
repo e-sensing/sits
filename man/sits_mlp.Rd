@@ -6,9 +6,9 @@
 \usage{
 sits_mlp(
   samples = NULL,
-  units = c(512, 512, 512),
+  layers = c(512, 512, 512),
   activation = "relu",
-  dropout_rates = c(0.1, 0.2, 0.3),
+  dropout_rates = c(0.2, 0.3, 0.4),
   learning_rate = 0.001,
   epochs = 100,
   batch_size = 64,
@@ -19,7 +19,7 @@ sits_mlp(
 \arguments{
 \item{samples}{Time series with the training samples.}
 
-\item{units}{Vector with number of hidden nodes in each layer.}
+\item{layers}{Vector with number of hidden nodes in each layer.}
 
 \item{activation}{Vector with the names of activation functions.
 Valid values are {'relu', 'elu', 'selu', 'sigmoid'}.}
@@ -48,8 +48,8 @@ Either a model to be passed in sits_predict
 }
 \description{
 Use a multi-layer perceptron algorithm to classify data.
-This function is a front-end to the "keras" method R package.
-Please refer to the documentation in that package for more details.
+This function uses the R "torch" and "luz" packages.
+Please refer to the documentation of those package for more details.
 }
 \note{
 The parameters for the MLP have been chosen based on the work by Wang et al. 2017
@@ -78,20 +78,6 @@ point_class <- sits_classify(point_ndvi, dl_model)
 # plot the classified point
 plot(point_class)
 }
-}
-\references{
-Hassan Fawaz, Germain Forestier, Jonathan Weber,
-Lhassane Idoumghar,  and Pierre-Alain Muller,
-"Deep learning for time series classification: a review",
-Data Mining and Knowledge Discovery, 33(4): 917--963, 2019.
-
-Zhiguang Wang, Weizhong Yan, and Tim Oates,
-"Time series classification from scratch with deep neural networks:
-A strong baseline",
-2017 international joint conference on neural networks (IJCNN).
-
-Implementation based on the python keras implementation provided in
-https://github.com/hfawaz/dl-4-tsc.
 }
 \author{
 Gilberto Camara, \email{gilberto.camara@inpe.br}

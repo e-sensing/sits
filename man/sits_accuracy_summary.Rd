@@ -2,19 +2,12 @@
 % Please edit documentation in R/sits_accuracy.R
 \name{sits_accuracy_summary}
 \alias{sits_accuracy_summary}
-\title{Print the ssumary of the accuracy}
+\title{Print accuracy summary}
 \usage{
-sits_accuracy_summary(
-  x,
-  mode = "sens_spec",
-  digits = max(3, getOption("digits") - 3)
-)
+sits_accuracy_summary(x, digits = max(3, getOption("digits") - 3))
 }
 \arguments{
-\item{x}{An object of class \code{sits_assessment}.}
-
-\item{mode}{A single character string either "sens_spec",
-"prec_recall", or "everything".}
+\item{x}{Object of class \code{sits_assessment}.}
 
 \item{digits}{Number of significant digits when printed.}
 }

@@ -10,9 +10,8 @@
 #' Filtering functions should be used with `sits_filter()`.
 #' The following filtering functions is supported by `sits`:
 #'
-#' @param data          A time series vector or matrix.
-#'
-#' @return              A set of filtered time series
+#' @param data          Time series or matrix.
+#' @return              Filtered time series
 #'
 #' @seealso \link[sits]{sits_apply}
 NULL
@@ -40,23 +39,26 @@ NULL
 #'
 #' # Filter the point using the Savitsky Golay smoother
 #' point_sg <- sits_filter(point_ndvi,
-#'                         filter = sits_sgolay(order = 3, length = 5))
+#'   filter = sits_sgolay(order = 3, length = 5)
+#' )
 #' # Merge time series
 #' point_ndvi <- sits_merge(point_ndvi, point_sg, suffix = c("", ".SG"))
 #'
 #' # Plot the two points to see the smoothing effect
 #' plot(point_ndvi)
-#'
 #' @export
 sits_sgolay <- function(data = NULL, order = 3, length = 5, scaling = 1) {
-
     filter_fun <- function(data) {
         if (inherits(data, "matrix")) {
-            return(t(apply(data, 1, .sits_signal_sgolayfilt, p = order,
-                         n = length, ts = scaling)))
+            return(t(apply(data, 1, .sits_signal_sgolayfilt,
+                           p = order,
+                           n = length, ts = scaling
+            )))
         } else {
-            return(.sits_signal_sgolayfilt(data, p = order,
-                                           n = length, ts = scaling))
+            return(.sits_signal_sgolayfilt(data,
+                                           p = order,
+                                           n = length, ts = scaling
+            ))
         }
     }
 
@@ -99,14 +101,14 @@ sits_sgolay <- function(data = NULL, order = 3, length = 5, scaling = 1) {
 #' point_ndvi <- sits_merge(point_ndvi, point_wt, suffix = c("", ".WT"))
 #' # Plot the two points to see the smoothing effect
 #' plot(point_ndvi)
-#'
 #' @export
 sits_whittaker <- function(data = NULL, lambda = 0.5) {
-
     filter_fun <- function(data) {
         if (inherits(data, "matrix")) {
-            return(t(apply(data, 1, smooth_whit, lambda = lambda,
-                           length = ncol(data))))
+            return(t(apply(data, 1, smooth_whit,
+                           lambda = lambda,
+                           length = ncol(data)
+            )))
         } else {
             return(smooth_whit(data, lambda = lambda, length = length(data)))
         }
@@ -135,7 +137,6 @@ sits_whittaker <- function(data = NULL, lambda = 0.5) {
 #'
 #' @export
 sits_filter <- function(data, filter = sits_whittaker()) {
-
     result <- .apply_across(data, fn = filter)
 
     return(result)
@@ -185,7 +186,7 @@ sits_filter <- function(data, filter = sits_whittaker()) {
 #' @param ts           Time scaling (integer).
 #' @return             A time series with filtered values.
 #'
-.sits_signal_sgolayfilt <- function(x, p = 3, n = p + 3 - p %% 2, m = 0, ts = 1)  {
+.sits_signal_sgolayfilt <- function(x, p = 3, n = p + 3 - p %% 2, m = 0, ts = 1) {
 
     ## The first k rows of F are used to filter the first k points
     ## of the data set based on the first n points of the data set.
@@ -195,12 +196,12 @@ sits_filter <- function(data, filter = sits_whittaker()) {
     ## As the filter coefficients are used in the reverse order of what
     ## seems the logical notation, reverse F[k+1,] so that antisymmetric
     ## sequences are used with the right sign.
-    len <-  length(x)
+    len <- length(x)
 
-    F <-  .sits_signal_sgolay(p, n, m, ts)
-    k <-  floor(n/2)
-    z <-  .sits_signal_filter(F[k + 1,n:1], 1, x)
-    y <- c(F[1:k,] %*% x[1:n], z[n:len], F[(k + 2):n,] %*% x[(len - n + 1):len])
+    F <- .sits_signal_sgolay(p, n, m, ts)
+    k <- floor(n / 2)
+    z <- .sits_signal_filter(F[k + 1, n:1], 1, x)
+    y <- c(F[1:k, ] %*% x[1:n], z[n:len], F[(k + 2):n, ] %*% x[(len - n + 1):len])
     return(y)
 }
 
@@ -224,32 +225,33 @@ sits_filter <- function(data, filter = sits_whittaker()) {
 #' @param m            Derivative to calculate (default = 0)
 #' @param ts           Time scaling (integer).
 #' @return             filter coefficients
-.sits_signal_sgolay <- function(p, n, m = 0, ts = 1)  {
-
-    if (n %% 2 != 1)
+.sits_signal_sgolay <- function(p, n, m = 0, ts = 1) {
+    if (n %% 2 != 1) {
         stop("sgolay needs an odd filter length n")
-    if (p >= n)
+    }
+    if (p >= n) {
         stop("sgolay needs filter length n larger than polynomial order p")
+    }
 
     ## Construct a set of filters from complete causal to completely
     ## noncausal, one filter per row.  For the bulk of your data you
     ## will use the central filter, but towards the ends you will need
     ## a filter that doesn't go beyond the end points.
     Fm <- matrix(0., n, n)
-    k <- floor(n/2)
-    for (row  in  1:(k + 1)) {
+    k <- floor(n / 2)
+    for (row in 1:(k + 1)) {
         ## Construct a matrix of weights Cij = xi ^ j.  The points xi are
         ## equally spaced on the unit grid, with past points using negative
         ## values and future points using positive values.
-        Ce <- ( ((1:n) - row) %*% matrix(1, 1, p + 1) ) ^ ( matrix(1, n) %*% (0:p) )
+        Ce <- (((1:n) - row) %*% matrix(1, 1, p + 1))^(matrix(1, n) %*% (0:p))
         ## A = pseudo-inverse (C), so C*A = I; this is constructed from the SVD
         A <- .sits_MASS_ginv(Ce, tol = .Machine$double.eps)
         ## Take the row of the matrix corresponding to the derivative
         ## you want to compute.
-        Fm[row,] <- A[1 + m,]
+        Fm[row, ] <- A[1 + m, ]
     }
     ## The filters shifted to the right are symmetric with those to the left.
-    Fm[(k + 2):n,] <- (-1)^m * Fm[k:1,n:1]
+    Fm[(k + 2):n, ] <- (-1)^m * Fm[k:1, n:1]
     # if (m > 0)
     #     Fm <- Fm * prod(1:m) / (ts^m)
     class(Fm) <- "sgolayFilter"
@@ -259,8 +261,9 @@ sits_filter <- function(data, filter = sits_whittaker()) {
 # Octave/Matlab-compatible filter function
 # y = filter (b, a, x)
 .sits_signal_filter <- function(filt, a, x, init, init.x, init.y, ...) {
-    if (missing(init.x))
+    if (missing(init.x)) {
         init.x <- c(rep(0, length(filt) - 1))
+    }
     # if (length(init.x) != length(filt) - 1)
     #     stop("length of init.x should match filter length-1 = ", length(filt) - 1)
     # if (missing(init) && !missing(init.y))
@@ -271,7 +274,7 @@ sits_filter <- function(data, filter = sits_whittaker()) {
         x1 <- stats::filter(c(init.x, x), filt / a[1], sides = 1)
         # if (all(is.na(x1)))
         #     return(x)
-        x <- stats::na.omit(x1, filt / a[1] , sides = 1)
+        x <- stats::na.omit(x1, filt / a[1], sides = 1)
     }
     # if (length(a) >= 2)
     #     x <- stats::filter(x, -a[-1] / a[1], method = "recursive", init = init)
@@ -291,8 +294,7 @@ sits_filter <- function(data, filter = sits_whittaker()) {
 #' Venables, W. N. and Ripley, B. D. (1999)
 #' Modern Applied Statistics with S-PLUS.
 #'
-.sits_MASS_ginv <- function(X, tol = sqrt(.Machine$double.eps))
-{
+.sits_MASS_ginv <- function(X, tol = sqrt(.Machine$double.eps)) {
     #
     # based on suggestions of R. M. Heiberger, T. M. Hesterberg and WNV
     #
@@ -305,6 +307,5 @@ sits_filter <- function(data, filter = sits_whittaker()) {
     # if (all(Positive)) Xsvd$v %*% (1/Xsvd$d * t(Xsvd$u))
     # else if (!any(Positive)) array(0, dim(X)[2L:1L])
     # else Xsvd$v[, Positive, drop = FALSE] %*% ((1/Xsvd$d[Positive]) * t(Xsvd$u[, Positive, drop = FALSE]))
-    Xsvd$v %*% (1/Xsvd$d * t(Xsvd$u))
+    Xsvd$v %*% (1 / Xsvd$d * t(Xsvd$u))
 }
-

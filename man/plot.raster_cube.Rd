@@ -17,26 +17,26 @@
 )
 }
 \arguments{
-\item{x}{object of class "raster_cube" or "classified image"}
+\item{x}{Object of class "raster_cube".}
 
-\item{...}{further specifications for \link{sits_view}.}
+\item{...}{Further specifications for \link{plot}.}
 
-\item{band}{for plotting grey images}
+\item{band}{Band for plotting grey images.}
 
-\item{red}{band for red color.}
+\item{red}{Band for red color.}
 
-\item{green}{band for green color.}
+\item{green}{Band for green color.}
 
-\item{blue}{band for blue color.}
+\item{blue}{Band for blue color.}
 
-\item{tiles}{tiles to be plotted}
+\item{tiles}{Tiles to be plotted.}
 
-\item{date}{date to be plotted.}
+\item{date}{Date to be plotted.}
 
 \item{roi}{sf object giving a region of interest.}
 }
 \value{
-plot object
+Plot object.
 }
 \description{
 Uses mapview to visualize raster cube and classified images

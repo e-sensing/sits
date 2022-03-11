@@ -19,28 +19,27 @@
 )
 }
 \arguments{
-\item{tile}{a single tile of a data cube.}
+\item{tile}{Single tile of a data cube.}
 
-\item{ml_model}{model trained by \code{\link[sits]{sits_train}}.}
+\item{ml_model}{Model trained by \code{\link[sits]{sits_train}}.}
 
-\item{roi}{region of interest}
+\item{roi}{Region of interest.}
 
-\item{filter_fn}{smoothing filter function to be applied to the data.}
+\item{filter_fn}{Smoothing filter function to be applied to the data.}
 
-\item{impute_fn}{impute function to replace NA}
+\item{impute_fn}{Impute function to replace NA.}
 
-\item{memsize}{memory available for classification (in GB).}
+\item{memsize}{Memory available for classification (in GB).}
 
-\item{multicores}{number of cores.}
+\item{multicores}{Number of cores.}
 
-\item{output_dir}{output directory}
+\item{output_dir}{Output directory.}
 
-\item{version}{version of result}
+\item{version}{Version of result.}
 
 \item{verbose}{print processing information?}
 
-\item{progress}{a logical value indicating if a progress bar should
-be shown}
+\item{progress}{Show progress bar?}
 }
 \value{
 List of the classified raster layers.

@@ -38,7 +38,6 @@ ml_model <- sits_train(samples, sits_rfor(num_trees = 100))
 # get a point and classify the point with the ml_model
 point_ndvi <- sits_select(point_mt_6bands, bands = "NDVI")
 class <- sits_classify(point_ndvi, ml_model)
-
 }
 \author{
 Rolf Simoes, \email{rolf.simoes@inpe.br}

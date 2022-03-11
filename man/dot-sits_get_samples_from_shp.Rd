@@ -18,17 +18,17 @@
 
 \item{label}{Default label for samples.}
 
-\item{shp_attr}{Shapefile attribute that describes the label}
+\item{shp_attr}{Shapefile attribute that describes the label.}
 
-\item{start_date}{Start date for the data set}
+\item{start_date}{Start date for the data set.}
 
-\item{end_date}{End date for the data set}
+\item{end_date}{End date for the data set.}
 
-\item{.n_shp_pol}{Number of samples per polygon to be read
+\item{.n_shp_pol}{Number of samples per polygon to be read.
 (for POLYGON or MULTIPOLYGON shapefile).}
 }
 \value{
-A tibble with information the samples to be retrieved
+A tibble with information the samples to be retrieved.
 }
 \description{
 Transform a shapefile into a samples file

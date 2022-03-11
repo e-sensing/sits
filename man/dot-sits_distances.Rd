@@ -7,10 +7,10 @@
 .sits_distances(data)
 }
 \arguments{
-\item{data}{A tibble with time series data and metadata.}
+\item{data}{Tibble with time series data and metadata.}
 }
 \value{
-A data.table where columns have the reference label
+Data.table where columns have the reference label
                    and the time series values as distances.
 }
 \description{

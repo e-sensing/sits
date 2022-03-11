@@ -7,11 +7,11 @@
 .sits_raster_blocks_estimate(tile, ml_model, sub_image, memsize, multicores)
 }
 \arguments{
-\item{tile}{tile of data cube}
+\item{tile}{Tile of data cube}
 
-\item{ml_model}{machine learning model.}
+\item{ml_model}{Machine learning model.}
 
-\item{sub_image}{area of interest in the image}
+\item{sub_image}{Area of interest in the image.}
 
 \item{memsize}{Memory available for classification (in GB).}
 

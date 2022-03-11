@@ -7,13 +7,13 @@
 #'              and label them based on the maximum probability for each pixel.
 #'
 #' @param  cube              Classified image data cube.
-#' @param  multicores        Number of process to label the classification in
-#'                           snow subprocess.
-#' @param  memsize           Maximum overall memory (in GB) to label the
+#' @param  multicores        Number of workers to label the classification in
+#'                           parallel.
+#' @param  memsize           maximum overall memory (in GB) to label the
 #'                           classification.
-#' @param  output_dir        Output directory where to out the file
+#' @param  output_dir        Output directory for classified files.
 #' @param  version           Version of resulting image
-#'                           (in the case of multiple tests)
+#'                           (in the case of multiple runs).
 #' @return A data cube
 #' @examples
 #' \dontrun{
@@ -27,18 +27,18 @@
 #' # create a data cube based on the information about the files
 #' data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
 #' cube <- sits_cube(
-#'     source = "BDC",
-#'     collection = "MOD13Q1-6",
-#'     data_dir = data_dir,
-#'     delim = "_",
-#'     parse_info = c("X1", "X2", "tile", "band", "date")
+#'   source = "BDC",
+#'   collection = "MOD13Q1-6",
+#'   data_dir = data_dir,
+#'   delim = "_",
+#'   parse_info = c("X1", "X2", "tile", "band", "date")
 #' )
 #'
 #' # classify the raster image
 #' probs_cube <- sits_classify(cube,
-#'     ml_model = rfor_model,
-#'     output_dir = tempdir(),
-#'     memsize = 4, multicores = 2
+#'   ml_model = rfor_model,
+#'   output_dir = tempdir(),
+#'   memsize = 4, multicores = 2
 #' )
 #'
 #' # label the classification
@@ -61,43 +61,47 @@ sits_label_classification <- function(cube,
         msg = "input is not probability cube"
     )
     # precondition 2 - multicores
-    .check_num(x = multicores,
-               len_max = 1,
-               min = 1,
-               allow_zero = FALSE,
-               msg = "multicores must be at least 1")
+    .check_num(
+        x = multicores,
+        len_max = 1,
+        min = 1,
+        allow_zero = FALSE,
+        msg = "multicores must be at least 1"
+    )
 
     # precondition 3 - memory
-    .check_num(x = memsize,
-               len_max = 1,
-               min = 1,
-               allow_zero = FALSE,
-               msg = "memsize must be positive")
+    .check_num(
+        x = memsize,
+        len_max = 1,
+        min = 1,
+        allow_zero = FALSE,
+        msg = "memsize must be positive"
+    )
 
     # precondition 4 - output dir
-    .check_file(x = output_dir,
-                msg = "invalid output dir")
+    .check_file(
+        x = output_dir,
+        msg = "invalid output dir"
+    )
 
     # precondition 5 - version
-    .check_chr(x = version,
-               len_min = 1,
-               msg = "invalid version")
+    .check_chr(
+        x = version,
+        len_min = 1,
+        msg = "invalid version"
+    )
 
     # mapping function to be executed by workers cluster
     .do_map <- function(chunk) {
 
         # read raster
         data <- .raster_get_values(r_obj = chunk)
-
         # get layer of max probability
         data <- apply(data, 1, which.max)
-
         # create cube labels
         res <- .raster_rast(r_obj = chunk, nlayers = 1)
-
         # copy values
         res <- .raster_set_values(r_obj = res, values = data)
-
         return(res)
     }
 
@@ -142,7 +146,7 @@ sits_label_classification <- function(cube,
     cube_label <- .sits_parallel_map(seq_along(tiles_blocks_lst), function(i) {
 
         # get tile from cube
-        tile <- cube[i,]
+        tile <- cube[i, ]
 
         # create metadata for raster cube
         tile_label <- .cube_derived_create(
@@ -161,8 +165,9 @@ sits_label_classification <- function(cube,
         out_file <- .file_info_path(tile_label)
 
         # if file exists skip it (resume feature)
-        if (file.exists(out_file))
+        if (file.exists(out_file)) {
             return(tile_label)
+        }
 
         tmp_blocks <- tiles_blocks_lst[[i]]
 
@@ -174,7 +179,7 @@ sits_label_classification <- function(cube,
             .raster_merge(
                 in_files = tmp_blocks,
                 out_file = out_file,
-                format   = "GTiff",
+                format = "GTiff",
                 gdal_datatype =
                     .raster_gdal_datatype(.config_get("class_cube_data_type")),
                 gdal_options =
