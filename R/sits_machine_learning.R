@@ -392,6 +392,8 @@ sits_svm <- function(data = NULL, formula = sits_formula_logref(),
 #' @param learning_rate        Learning rate of the algorithm
 #' @param n_iter_no_change     Number of iterations to stop training
 #'                             when validation metrics don't improve.
+#' @param validation_split     Fraction of training data
+#'                             to be used as validation data.
 #' @param record               Record iteration message?
 #' @param ...                  Additional parameters for
 #'                             \code{lightgbm::lgb.train} function.
@@ -404,6 +406,7 @@ sits_lightgbm <- function(data = NULL,
                           min_samples_leaf = 10,
                           learning_rate = 0.1,
                           n_iter_no_change = 10,
+                          validation_split = 0.2,
                           record = TRUE, ...) {
 
     # set caller to show in errors
@@ -427,10 +430,36 @@ sits_lightgbm <- function(data = NULL,
         stats <- .sits_ml_normalization_param(data)
         train_data <- .sits_distances(.sits_ml_normalize_data(data, stats))
 
+        # split the data into training and validation data sets
+        # create partitions different splits of the input data
+        test_data <- .sits_distances_sample(train_data,
+                                            frac = validation_split
+        )
+        # remove the lines used for validation
+        train_data <- train_data[!test_data, on = "original_row"]
+
+        n_samples_train <- nrow(train_data)
+        n_samples_test <- nrow(test_data)
+
+        # shuffle the data
+        train_data <- train_data[sample(
+            nrow(train_data),
+            nrow(train_data)
+        ), ]
+        test_data <- test_data[sample(
+            nrow(test_data),
+            nrow(test_data)
+        ), ]
+
         # transform the training data to LGBM
         lgbm_train_data <- lightgbm::lgb.Dataset(
             data = as.matrix(train_data[, -2:0]),
             label = unname(int_labels[train_data[[2]]])
+        )
+        # transform the training data to LGBM
+        lgbm_test_data <- lightgbm::lgb.Dataset(
+            data = as.matrix(test_data[, -2:0]),
+            label = unname(int_labels[test_data[[2]]])
         )
         if (n_labels > 2) {
             objective <- "multiclass"
@@ -451,6 +480,7 @@ sits_lightgbm <- function(data = NULL,
         # train the model
         lgbm_model <- lightgbm::lgb.train(
             data    = lgbm_train_data,
+            valids  = list(test_data = lgbm_test_data),
             params  = train_params,
             verbose = -1,
             record  = record,

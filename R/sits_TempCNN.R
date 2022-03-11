@@ -200,7 +200,9 @@ sits_TempCNN <- function(samples = NULL,
                                   kernel_size,
                                   dropout_rate) {
                 self$block <- torch::nn_sequential(
-                    torch::nn_conv1d(input_dim, hidden_dim, kernel_size,
+                    torch::nn_conv1d(input_dim,
+                                     hidden_dim,
+                                     kernel_size,
                                      padding = as.integer(kernel_size %/% 2)
                     ),
                     torch::nn_batch_norm1d(hidden_dim),
@@ -215,7 +217,9 @@ sits_TempCNN <- function(samples = NULL,
         # module for linear transformation with batch normalization and dropout
         fc_batch_norm_relu_dropout <- torch::nn_module(
             classname = "fc_batch_norm_relu_dropout",
-            initialize = function(input_dim, hidden_dims, dropout_rate) {
+            initialize = function(input_dim,
+                                  hidden_dims,
+                                  dropout_rate) {
                 self$block <- torch::nn_sequential(
                     torch::nn_linear(input_dim, hidden_dims),
                     torch::nn_batch_norm1d(hidden_dims),
