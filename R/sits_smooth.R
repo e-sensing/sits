@@ -251,7 +251,7 @@ sits_smooth.bayes <- function(cube, type = "bayes", ...,
     blocks_tile_lst <- slider::slide(cube, function(tile) {
 
         # create metadata for raster cube
-        tile_bayes <- .cube_derived_create(
+        tile_new <- .cube_derived_create(
             cube       = tile,
             cube_class = "probs_cube",
             band_name  = "bayes",
@@ -262,6 +262,13 @@ sits_smooth.bayes <- function(cube, type = "bayes", ...,
             output_dir = output_dir,
             version    = version
         )
+
+        # prepare output filename
+        out_file <- .file_info_path(tile_new)
+
+        # if file exists skip it (resume feature)
+        if (file.exists(out_file))
+            return(NULL)
 
         # overlapping pixels
         overlapping_y_size <- ceiling(window_size / 2) - 1
@@ -301,7 +308,7 @@ sits_smooth.bayes <- function(cube, type = "bayes", ...,
             raster_out <- .raster_crop(raster_out, block = blk_no_overlap)
 
             # export to temp file
-            block_file <- .smth_filename(tile = tile_bayes,
+            block_file <- .smth_filename(tile = tile_new,
                                          output_dir = output_dir,
                                          block = blk_no_overlap)
 
@@ -333,7 +340,7 @@ sits_smooth.bayes <- function(cube, type = "bayes", ...,
         tile <- cube[i,]
 
         # create metadata for raster cube
-        tile_bayes <- .cube_derived_create(
+        tile_new <- .cube_derived_create(
             cube       = tile,
             cube_class = "probs_cube",
             band_name  = "bayes",
@@ -346,11 +353,11 @@ sits_smooth.bayes <- function(cube, type = "bayes", ...,
         )
 
         # prepare output filename
-        out_file <- .file_info_path(tile_bayes)
+        out_file <- .file_info_path(tile_new)
 
         # if file exists skip it (resume feature)
         if (file.exists(out_file))
-            return(out_file)
+            return(tile_new)
 
         tmp_blocks <- blocks_tile_lst[[i]]
 
@@ -371,7 +378,7 @@ sits_smooth.bayes <- function(cube, type = "bayes", ...,
             )
         )
 
-        return(tile_bayes)
+        return(tile_new)
     })
 
     # bind rows
@@ -501,7 +508,7 @@ sits_smooth.gaussian <- function(cube, type = "gaussian", ...,
     blocks_tile_lst <- slider::slide(cube, function(tile) {
 
         # create metadata for raster cube
-        tile_bayes <- .cube_derived_create(
+        tile_new <- .cube_derived_create(
             cube       = tile,
             cube_class = "probs_cube",
             band_name  = "gauss",
@@ -512,6 +519,13 @@ sits_smooth.gaussian <- function(cube, type = "gaussian", ...,
             output_dir = output_dir,
             version    = version
         )
+
+        # prepare output filename
+        out_file <- .file_info_path(tile_new)
+
+        # if file exists skip it (resume feature)
+        if (file.exists(out_file))
+            return(NULL)
 
         # overlapping pixels
         overlapping_y_size <- ceiling(window_size / 2) - 1
@@ -551,7 +565,7 @@ sits_smooth.gaussian <- function(cube, type = "gaussian", ...,
             raster_out <- .raster_crop(raster_out, block = blk_no_overlap)
 
             # export to temp file
-            block_file <- .smth_filename(tile = tile_bayes,
+            block_file <- .smth_filename(tile = tile_new,
                                          output_dir = output_dir,
                                          block = blk_no_overlap)
 
@@ -583,7 +597,7 @@ sits_smooth.gaussian <- function(cube, type = "gaussian", ...,
         tile <- cube[i,]
 
         # create metadata for raster cube
-        tile_bayes <- .cube_derived_create(
+        tile_new <- .cube_derived_create(
             cube       = tile,
             cube_class = "probs_cube",
             band_name  = "gauss",
@@ -596,11 +610,11 @@ sits_smooth.gaussian <- function(cube, type = "gaussian", ...,
         )
 
         # prepare output filename
-        out_file <- .file_info_path(tile_bayes)
+        out_file <- .file_info_path(tile_new)
 
         # if file exists skip it (resume feature)
         if (file.exists(out_file))
-            return(out_file)
+            return(tile_new)
 
         tmp_blocks <- blocks_tile_lst[[i]]
 
@@ -621,7 +635,7 @@ sits_smooth.gaussian <- function(cube, type = "gaussian", ...,
             )
         )
 
-        return(tile_bayes)
+        return(tile_new)
     })
 
     # bind rows
@@ -755,7 +769,7 @@ sits_smooth.bilateral <- function(cube,
     blocks_tile_lst <- slider::slide(cube, function(tile) {
 
         # create metadata for raster cube
-        tile_bayes <- .cube_derived_create(
+        tile_new <- .cube_derived_create(
             cube       = tile,
             cube_class = "probs_cube",
             band_name  = "bilat",
@@ -766,6 +780,13 @@ sits_smooth.bilateral <- function(cube,
             output_dir = output_dir,
             version    = version
         )
+
+        # prepare output filename
+        out_file <- .file_info_path(tile_new)
+
+        # if file exists skip it (resume feature)
+        if (file.exists(out_file))
+            return(NULL)
 
         # overlapping pixels
         overlapping_y_size <- ceiling(window_size / 2) - 1
@@ -805,7 +826,7 @@ sits_smooth.bilateral <- function(cube,
             raster_out <- .raster_crop(raster_out, block = blk_no_overlap)
 
             # export to temp file
-            block_file <- .smth_filename(tile = tile_bayes,
+            block_file <- .smth_filename(tile = tile_new,
                                          output_dir = output_dir,
                                          block = blk_no_overlap)
 
@@ -837,7 +858,7 @@ sits_smooth.bilateral <- function(cube,
         tile <- cube[i,]
 
         # create metadata for raster cube
-        tile_bayes <- .cube_derived_create(
+        tile_new <- .cube_derived_create(
             cube       = tile,
             cube_class = "probs_cube",
             band_name  = "bilat",
@@ -850,11 +871,11 @@ sits_smooth.bilateral <- function(cube,
         )
 
         # prepare output filename
-        out_file <- .file_info_path(tile_bayes)
+        out_file <- .file_info_path(tile_new)
 
         # if file exists skip it (resume feature)
         if (file.exists(out_file))
-            return(out_file)
+            return(tile_new)
 
         tmp_blocks <- blocks_tile_lst[[i]]
 
@@ -875,7 +896,7 @@ sits_smooth.bilateral <- function(cube,
             )
         )
 
-        return(tile_bayes)
+        return(tile_new)
     })
 
     # bind rows

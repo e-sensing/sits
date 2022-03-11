@@ -105,51 +105,22 @@ sits_label_classification <- function(cube,
         return(res)
     }
 
-    # process each brick layer (each tile) individually
-    tiles_blocks_lst <- slider::slide(cube, function(tile) {
-
-        # get file_info
-        file_info <- .file_info(tile)
-
-        # create metadata for labeled raster cube
-        tile_label <- .cube_derived_create(
-            cube       = tile,
-            cube_class = "classified_image",
-            band_name  = "class",
-            labels     = .cube_labels(tile),
-            start_date = .file_info_start_date(tile),
-            end_date   = .file_info_end_date(tile),
-            bbox       = .cube_tile_bbox(tile),
-            output_dir = output_dir,
-            version    = version
-        )
-
-        file_blocks <- .sits_smooth_map_layer(
-            cube = tile,
-            cube_out = tile_label,
-            overlapping_y_size = 0,
-            func = .do_map,
-            multicores = multicores,
-            memsize = memsize,
-            gdal_datatype = .raster_gdal_datatype(.config_get("class_cube_data_type")),
-            gdal_options = .config_gtiff_default_options()
-        )
-
-        return(file_blocks)
-    })
+    # compute which block size is many tiles to be computed
+    block_size <- .smth_estimate_block_size(
+        cube = cube,
+        multicores = multicores,
+        memsize = memsize
+    )
 
     # start parallel processes
     .sits_parallel_start(workers = multicores, log = FALSE)
     on.exit(.sits_parallel_stop())
 
     # process each brick layer (each time step) individually
-    cube_label <- .sits_parallel_map(seq_along(tiles_blocks_lst), function(i) {
-
-        # get tile from cube
-        tile <- cube[i, ]
+    blocks_tile_lst <- slider::slide(cube, function(tile) {
 
         # create metadata for raster cube
-        tile_label <- .cube_derived_create(
+        tile_new <- .cube_derived_create(
             cube       = tile,
             cube_class = "classified_image",
             band_name  = "class",
@@ -162,14 +133,90 @@ sits_label_classification <- function(cube,
         )
 
         # prepare output filename
-        out_file <- .file_info_path(tile_label)
+        out_file <- .file_info_path(tile_new)
 
         # if file exists skip it (resume feature)
-        if (file.exists(out_file)) {
-            return(tile_label)
-        }
+        if (file.exists(out_file))
+            return(NULL)
 
-        tmp_blocks <- tiles_blocks_lst[[i]]
+        # get cube size
+        size <- .cube_size(tile)
+
+        # for now, only vertical blocks are allowed, i.e. 'x_blocks' is 1
+        blocks <- .smth_compute_blocks(
+            xsize = size[["ncols"]],
+            ysize = size[["nrows"]],
+            block_y_size = block_size[["block_y_size"]],
+            overlapping_y_size = 0)
+
+        # open probability file
+        in_file <- .file_info_path(tile)
+
+        # process blocks in parallel
+        block_files_lst <- .sits_parallel_map(blocks, function(block) {
+
+            # open brick
+            b <- .raster_open_rast(in_file)
+
+            # crop adding overlaps
+            chunk <- .raster_crop(r_obj = b, block = block)
+
+            # process it
+            raster_out <- .do_map(chunk = chunk)
+
+            # export to temp file
+            block_file <- .smth_filename(tile = tile_new,
+                                         output_dir = output_dir,
+                                         block = block)
+
+            # save chunk
+            .raster_write_rast(
+                r_obj = raster_out,
+                file = block_file,
+                format = "GTiff",
+                data_type = .raster_data_type(
+                    .config_get("class_cube_data_type")
+                ),
+                gdal_options = .config_gtiff_default_options(),
+                overwrite = TRUE
+            )
+
+            return(block_file)
+        })
+
+        block_files <- unlist(block_files_lst)
+
+        return(invisible(block_files))
+    })
+
+
+    # process each brick layer (each time step) individually
+    result_cube_lst <- .sits_parallel_map(seq_along(blocks_tile_lst), function(i) {
+
+        # get tile from cube
+        tile <- cube[i,]
+
+        # create metadata for raster cube
+        tile_new <- .cube_derived_create(
+            cube       = tile,
+            cube_class = "classified_image",
+            band_name  = "class",
+            labels     = .cube_labels(tile),
+            start_date = .file_info_start_date(tile),
+            end_date   = .file_info_end_date(tile),
+            bbox       = .cube_tile_bbox(tile),
+            output_dir = output_dir,
+            version    = version
+        )
+
+        # prepare output filename
+        out_file <- .file_info_path(tile_new)
+
+        # if file exists skip it (resume feature)
+        if (file.exists(out_file))
+            return(tile_new)
+
+        tmp_blocks <- blocks_tile_lst[[i]]
 
         # apply function to blocks
         on.exit(unlink(tmp_blocks))
@@ -179,7 +226,7 @@ sits_label_classification <- function(cube,
             .raster_merge(
                 in_files = tmp_blocks,
                 out_file = out_file,
-                format = "GTiff",
+                format   = "GTiff",
                 gdal_datatype =
                     .raster_gdal_datatype(.config_get("class_cube_data_type")),
                 gdal_options =
@@ -188,13 +235,13 @@ sits_label_classification <- function(cube,
             )
         )
 
-        return(tile_label)
+        return(tile_new)
     })
 
     # bind rows
-    cube_label <- dplyr::bind_rows(cube_label)
+    result_cube <- dplyr::bind_rows(result_cube_lst)
 
-    class(cube_label) <- unique(c("classified_image", class(cube_label)))
+    class(result_cube) <- unique(c("classified_image", class(result_cube)))
 
-    return(cube_label)
+    return(result_cube)
 }
