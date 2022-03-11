@@ -39,7 +39,7 @@ test_that("User functions", {
 
   expect_equal(
     .config_gtiff_default_options(),
-    c("COMPRESS=LZW", "BIGTIFF=YES")
+    c("COMPRESS=LZW", "PREDICTOR=2", "BIGTIFF=YES")
   )
 
   # load default + user config

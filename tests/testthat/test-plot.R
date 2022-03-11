@@ -80,6 +80,7 @@ test_that("Plot Time Series and Images", {
 
     expect_equal(p_uncert$adj, 0.5)
     expect_equal(p_uncert$lend, "round")
+
     expect_equal(p_uncert$lty, "solid")
 
     sinop_labels <- sits_label_classification(sinop_probs,
@@ -126,24 +127,20 @@ test_that("Dendrogram Plot", {
     )
     expect_equal(class(dend), "dendrogram")
 })
-source("./test-utils.R")
 
-test_that("Plot keras model", {
+test_that("Plot torch model", {
     # skip_on_cran()
-    Sys.setenv(TF_CPP_MIN_LOG_LEVEL = "1")
     samples_mt_2bands <- sits_select(samples_modis_4bands,
                                      bands = c("NDVI", "EVI")
     )
-    model <- suppress_keras(
-        sits_train(
+    model <- sits_train(
             samples_mt_2bands,
             sits_mlp(
-                units = c(128, 128),
+                layers = c(128, 128),
                 dropout_rates = c(0.5, 0.4),
                 epochs = 50,
                 verbose = 0
             )
-        )
     )
     pk <- plot(model)
     expect_true(length(pk$layers) == 2)

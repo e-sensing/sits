@@ -1,5 +1,5 @@
 #' @title Train ResNet classification models
-#' @name sits_ResNet
+#' @name sits_ResNet_f
 #'
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
@@ -77,16 +77,13 @@
 #' plot(class, bands = c("NDVI", "EVI"))
 #' }
 #' @export
-sits_ResNet <- function(samples = NULL,
-                        blocks = c(64, 128, 128),
-                        kernels = c(7, 5, 3),
-                        activation = "relu",
-                        optimizer = torch::optim_adam,
-                        learning_rate = 0.001,
-                        epochs = 300,
-                        batch_size = 64,
-                        validation_split = 0.2,
-                        verbose = FALSE) {
+sits_ResNet_f <- function(samples = NULL,
+                          blocks = c(64, 128, 128),
+                          kernels = c(7, 5, 3),
+                          epochs = 300,
+                          batch_size = 64,
+                          validation_split = 0.2,
+                          verbose = FALSE) {
 
     # set caller to show in errors
     .check_set_caller("sits_ResNet")
@@ -151,14 +148,14 @@ sits_ResNet <- function(samples = NULL,
             data = as.matrix(train_data[, 3:ncol(train_data)]),
             dim = c(n_samples_train, n_times, n_bands)
         )
-        train_y <- unname(int_labels[as.vector(train_data$reference)])
+        train_y <- unname(int_labels[as.vector(train_data$reference)]) - 1
 
         # create the test data
         test_x <- array(
             data = as.matrix(test_data[, 3:ncol(test_data)]),
             dim = c(n_samples_test, n_times, n_bands)
         )
-        test_y <- unname(int_labels[as.vector(test_data$reference)])
+        test_y <- unname(int_labels[as.vector(test_data$reference)]) - 1
 
         # Function to create torch datasets
         sits_dataset <- torch::dataset(
@@ -186,6 +183,67 @@ sits_ResNet <- function(samples = NULL,
 
         torch::torch_manual_seed(sample.int(10^5, 1))
 
+        # create an input tensor
+        input_tensor <- torch::torch_empty(c(batch_size, n_bands, n_times))
+
+        output_tensor <- input_tensor
+        shortcut <- input_tensor
+
+        n_blocks <- length(blocks)
+
+        for (i in seq_len(n_blocks)) {
+            # Add a Convolution1D
+            b11 <- torch::nn_conv1d(in_channels = n_bands,
+                                    out_channels = blocks[[i]],
+                                    kernel_size = kernels[i])
+            output_tensor_x <- b11(output_tensor)
+            # normalization
+            output_tensor_x <- torch::nnf_batch_norm(output_tensor_x)
+
+            # activation
+            output_tensor_x <- keras::layer_activation(output_tensor_x,
+                                                       activation = activation
+            )
+
+            # Add a new convolution
+            output_tensor_y <- keras::layer_conv_1d(output_tensor_x,
+                                                    filters = blocks[[i]],
+                                                    kernel_size = kernels[2],
+                                                    padding = "same"
+            )
+            # normalization
+            output_tensor_y <- keras::layer_batch_normalization(output_tensor_y)
+
+            # activation
+            output_tensor_y <- keras::layer_activation(output_tensor_y,
+                                                       activation = activation
+            )
+
+            # Add a third convolution
+            output_tensor_z <- keras::layer_conv_1d(output_tensor_y,
+                                                    filters = blocks[[i]],
+                                                    kernel_size = kernels[3],
+                                                    padding = "same"
+            )
+            output_tensor_z <- keras::layer_batch_normalization(output_tensor_z)
+
+            # include the shortcut
+            shortcut <- keras::layer_conv_1d(shortcut,
+                                             filters = blocks[[i]],
+                                             kernel_size = 1,
+                                             padding = "same"
+            )
+            shortcut <- keras::layer_batch_normalization(shortcut)
+
+            # get the output tensor
+            output_tensor <- keras::layer_add(list(shortcut, output_tensor_z))
+            output_tensor <- keras::layer_activation(output_tensor,
+                                                     activation = activation
+            )
+            shortcut <- output_tensor
+        }
+        }
+
         conv_block <- torch::nn_module(
             classname = "conv_block",
             initialize = function(in_channels,
@@ -193,24 +251,16 @@ sits_ResNet <- function(samples = NULL,
                                   kernel_size,
                                   activate = TRUE){
 
+                tensors <- list(
+                    torch::nn_conv1d(in_channels,
+                                     out_channels,
+                                     kernel_size),
+                    torch::nn_batch_norm1d(out_channels)
+                )
                 if (activate) {
-                    self$block <- torch::nn_sequential(
-                        torch::nn_conv1d(in_channels,
-                                         out_channels,
-                                         kernel_size,
-                                         padding = as.integer(kernel_size %/% 2)),
-                        torch::nn_batch_norm1d(out_channels),
-                        torch::nn_relu()
-                    )
-                } else {
-                    self$block <- torch::nn_sequential(
-                        torch::nn_conv1d(in_channels,
-                                         out_channels,
-                                         kernel_size,
-                                         padding = as.integer(kernel_size %/% 2)),
-                        torch::nn_batch_norm1d(out_channels)
-                    )
+                    tensors[[length(tensors) + 1]] <- torch::nn_relu()
                 }
+                self$block <- torch::nn_sequential(!!!tensors)
             },
             forward = function(x){
                 self$block(x)
@@ -225,6 +275,7 @@ sits_ResNet <- function(samples = NULL,
                 self$conv_block1 <- conv_block(in_channels,
                                                out_channels,
                                                kernels[1])
+
                 self$conv_block2 <- conv_block(out_channels,
                                                out_channels,
                                                kernels[2])
@@ -242,16 +293,16 @@ sits_ResNet <- function(samples = NULL,
 
             },
             forward = function(x){
-                res <-  self$shortcut(x)
+                x <-  torch::torch_transpose(x, 2, 3)
+                res <-  x
                 x <-  self$conv_block1(x)
                 x <-  self$conv_block2(x)
                 x <-  self$conv_block3(x)
-                x <-  torch::torch_add(x, res)
+                x <-  torch::torch_add(x, self$shortcut(res))
                 x <-  self$act(x)
                 return(x)
             }
         )
-
         res_net <- torch::nn_module(
             classname = "res_net",
             initialize = function(n_bands,
@@ -262,25 +313,18 @@ sits_ResNet <- function(samples = NULL,
                 self$res_block1 <- res_block(n_bands, blocks[1], kernels)
                 self$res_block2 <- res_block(blocks[1], blocks[2], kernels)
                 self$res_block3 <- res_block(blocks[2], blocks[3], kernels)
-                self$gap <- torch::nn_adaptive_avg_pool1d(output_size = n_bands)
-
-                # flatten 3D tensor to 2D tensor
-                self$flatten <- torch::nn_flatten()
-                # classification using softmax
-                self$softmax <- torch::nn_sequential(
-                    torch::nn_linear(blocks[3]*n_bands, n_labels),
-                    torch::nn_softmax(dim = -1)
-                )
+                self$gap <- torch::nn_adaptive_avg_pool1d(output_size = 1)
+                self$out_linear <- torch::nn_linear(blocks[3], n_labels)
             },
             forward = function(x){
-                x <- torch::torch_transpose(x, 2, 3)
                 x <- x %>%
                     self$res_block1() %>%
                     self$res_block2() %>%
                     self$res_block3() %>%
                     self$gap() %>%
-                    self$flatten() %>%
-                    self$softmax()
+                    torch::torch_squeeze(dim = 2) %>%
+                    self$out_linear()
+                return(torch::nnf_softmax(input = x, dim = -1))
             }
         )
         # train the model using luz
@@ -348,7 +392,7 @@ sits_ResNet <- function(samples = NULL,
                 dim = c(n_samples, n_times, n_bands)
             )
             # retrieve the prediction probabilities
-            prediction <- data.table::as.data.table(
+            predicted <- data.table::as.data.table(
                 torch::as_array(
                     stats::predict(torch_model, values_x)
                 )

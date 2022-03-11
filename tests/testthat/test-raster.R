@@ -1,11 +1,8 @@
-source("./test-utils.R")
-
 test_that("One-year, single core classification", {
   samples_2bands <- sits_select(samples_modis_4bands,
     bands = c("NDVI", "EVI")
   )
-  dl_model <- suppress_keras(
-    sits_train(
+  dl_model <- sits_train(
       samples_2bands,
       sits_mlp(
         layers = c(256, 256, 256),
@@ -14,7 +11,6 @@ test_that("One-year, single core classification", {
         batch_size = 64,
         verbose = 0
       )
-    )
   )
 
   data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
@@ -25,14 +21,12 @@ test_that("One-year, single core classification", {
     delim = "_",
     parse_info = c("X1", "X2", "tile", "band", "date")
   )
-  sinop_probs <- suppress_keras(
-    sits_classify(
+  sinop_probs <- sits_classify(
       data = sinop,
       ml_model = dl_model,
       output_dir = tempdir(),
       memsize = 4,
       multicores = 1
-    )
   )
   sits_labels(sinop_probs) <- c("Cerrado", "Floresta", "Pastagem", "Soja_Milho")
   expect_true(all(sits_labels(sinop_probs) %in%
@@ -320,12 +314,62 @@ test_that("One-year, multicore classification with torch", {
   expect_true(all(file.remove(unlist(sinop_2014_probs$file_info[[1]]$path))))
 })
 
+test_that("One-year, multicore classification with ResNet", {
+    samples_2bands <-
+        sits_select(samples_modis_4bands, bands = c("NDVI", "EVI"))
+
+    torch_model <- sits_train(samples_2bands, sits_ResNet())
+
+    data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
+    sinop <- sits_cube(
+        source = "BDC",
+        collection = "MOD13Q1-6",
+        data_dir = data_dir,
+        delim = "_",
+        parse_info = c("X1", "X2", "tile", "band", "date")
+    )
+
+    sinop_2014_probs <- tryCatch(
+        {
+            suppressMessages(
+                sits_classify(
+                    data = sinop,
+                    ml_model = torch_model,
+                    output_dir = tempdir(),
+                    memsize = 8,
+                    multicores = 2
+                )
+            )
+        },
+        error = function(e) {
+            return(NULL)
+        }
+    )
+
+    if (purrr::is_null(sinop_2014_probs)) {
+        skip("Unable to allocated multicores")
+    }
+    expect_true(all(file.exists(unlist(sinop_2014_probs$file_info[[1]]$path))))
+
+    r_obj <- .raster_open_rast(sinop_2014_probs$file_info[[1]]$path[[1]])
+
+    expect_true(.raster_nrows(r_obj) == .cube_size(sinop_2014_probs)[["nrows"]])
+
+    max_lyr2 <- max(.raster_get_values(r_obj)[, 2])
+    expect_true(max_lyr2 <= 10000)
+
+    max_lyr3 <- max(.raster_get_values(r_obj)[, 3])
+    expect_true(max_lyr3 <= 10000)
+
+    expect_true(all(file.remove(unlist(sinop_2014_probs$file_info[[1]]$path))))
+})
+
 test_that("One-year, multicore classification with post-processing", {
   samples_2bands <- sits_select(samples_modis_4bands,
     bands = c("NDVI", "EVI")
   )
 
-  torch_model <- sits_train(samples_2bands, sits_TempCNN(verbose = TRUE))
+  torch_model <- sits_train(samples_2bands, sits_TempCNN())
 
   data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
   sinop <- sits_cube(
@@ -361,7 +405,8 @@ test_that("One-year, multicore classification with post-processing", {
     collection = "MOD13Q1-6",
     bands = "probs",
     data_dir = tempdir(),
-    labels = sits_labels(sinop_probs)
+    labels = sits_labels(sinop_probs),
+    parse_info = c("X1", "X2", "tile", "start_date", "end_date", "band", "version")
   )
 
   expect_true(.cube_is_equal(sinop_probs, sinop_probs_2))
