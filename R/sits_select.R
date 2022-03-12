@@ -5,6 +5,9 @@
 #'
 #' @param data         A sits tibble or data cube
 #' @param bands        Character vector with the names of the bands
+#' @param tile         Character vector with the names of the tiles
+#' @param ...          Additional parameters to be provided in the select
+#'  function
 #'
 #' @description Filter only the selected bands from a tibble or a data cube.
 #'
@@ -24,7 +27,7 @@
 #'
 #' @export
 #'
-sits_select <- function(data, bands) {
+sits_select <- function(data, bands, ...) {
 
     # set caller to show in errors
     .check_set_caller("sits_select")
@@ -56,10 +59,16 @@ sits_select.sits <- function(data, bands) {
 
 #' @export
 #'
-sits_select.sits_cube <- function(data, bands) {
+sits_select.sits_cube <- function(data, bands, ..., tiles = NULL) {
 
     # pre-condition - cube
     .cube_check(data)
+
+    if (!is.null(tiles)) {
+
+        .check_chr_type(tiles)
+        data <- dplyr::filter(data, .data[["tile"]] %in% !!tiles)
+    }
 
     # filter the file info
     data <- slider::slide_dfr(data, function(tile) {
@@ -72,7 +81,7 @@ sits_select.sits_cube <- function(data, bands) {
         .cube_bands_check(tile, bands = bands)
 
         db_info <- .file_info(tile)
-        db_info <- dplyr::filter(db_info, band %in% bands)
+        db_info <- dplyr::filter(db_info, .data[["band"]] %in% !!bands)
         tile$file_info[[1]] <- db_info
         return(tile)
     })

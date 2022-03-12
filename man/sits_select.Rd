@@ -4,12 +4,17 @@
 \alias{sits_select}
 \title{Filter bands on a data set (tibble or cube)}
 \usage{
-sits_select(data, bands)
+sits_select(data, bands, ...)
 }
 \arguments{
 \item{data}{A sits tibble or data cube}
 
 \item{bands}{Character vector with the names of the bands}
+
+\item{...}{Additional parameters to be provided in the select
+function}
+
+\item{tile}{Character vector with the names of the tiles}
 }
 \value{
 For sits tibble, returns a sits tibble with the selected bands.

@@ -321,41 +321,58 @@ sits_get_data <- function(cube,
         cld_band <- NULL
     }
 
+    # get cubes timeline
+    tl <- sits_timeline(cube)
 
-    tiles_bands <- unlist(slider::slide(cube, function(tile) {
-        purrr::cross2(.cube_tiles(cube), bands)
-    }), recursive = FALSE)
+    timeseries_filename <- .make_filename(
+        "samples", .cube_collection(cube), tl[[1]], tl[[length(tl)]],
+        sep = "_",
+        ext = "rds",
+        output_dir = output_dir
+    )
 
+    if (file.exists(timeseries_filename))
+        tryCatch({
+            timeseries <- readRDS(timeseries_filename)
+
+            return(timeseries)
+        },
+        error = function(e) {
+            unlink(timeseries_filename)
+            gc()
+        })
+
+    tiles_bands <- purrr::cross2(.cube_tiles(cube), bands)
 
     # prepare parallelization
     .sits_parallel_start(workers = multicores, log = FALSE)
     on.exit(.sits_parallel_stop(), add = TRUE)
 
     samples_tiles_bands <- .sits_parallel_map(tiles_bands, function(tile_band) {
-        # get the data
 
         tile_id <- tile_band[[1]]
         band <- tile_band[[2]]
 
-        # TODO: add cube name??
-        file_name <- paste0(paste("samples", tile_id, band, sep = "_"), ".rds")
-        file_name <- file.path(output_dir, file_name)
+        tile <- sits_select(cube, bands = band, tiles = tile_id)
 
-        if (file.exists(file_name))
+        filename <- .make_filename(
+            "samples", .cube_collection(cube = tile), tile_id, band,
+            sep = "_",
+            ext = ".rds",
+            output_dir = output_dir
+        )
+
+        if (file.exists(filename))
             tryCatch({
-                timeseries <- readRDS(file_name)
+                timeseries <- readRDS(filename)
 
                 return(timeseries)
             },
-            error = function(e) { return(NULL) }
-            )
+            error = function(e) {
+                unlink(filename)
+                gc()
+            })
 
-
-        tile <- dplyr::filter(cube, tile == !!tile_id)
-        tile <- sits_select(tile, band)
-
-        # get the timeline
-        timeline <- sits_timeline(tile)
 
         # make sure we get only the relevant columns
         samples <- dplyr::select(
@@ -377,8 +394,8 @@ sits_get_data <- function(cube,
             samples,
             .data[["X"]] > tile$xmin & .data[["X"]] < tile$xmax &
                 .data[["Y"]] > tile$ymin & .data[["Y"]] < tile$ymax &
-                .data[["start_date"]] <= as.Date(timeline[length(timeline)]) &
-                .data[["end_date"]] >= as.Date(timeline[1])
+                .data[["start_date"]] <= as.Date(tl[length(tl)]) &
+                .data[["end_date"]] >= as.Date(tl[1])
         )
 
         # are there points to be retrieved from the cube?
@@ -400,7 +417,7 @@ sits_get_data <- function(cube,
 
             # get the valid timeline
             dates <- .sits_timeline_during(
-                timeline   = timeline,
+                timeline   = tl,
                 start_date = as.Date(point[["start_date"]]),
                 end_date   = as.Date(point[["end_date"]])
             )
@@ -423,29 +440,55 @@ sits_get_data <- function(cube,
 
         ts <- .sits_raster_data_get_ts(
             tile = tile,
-            point = samples,
+            points = samples,
             bands = band,
-            xy    = xy,
+            xy = xy,
             cld_band = cld_band,
             impute_fn = impute_fn,
             output_dir = output_dir
         )
 
-        saveRDS(ts, file_name)
+        saveRDS(ts, filename)
 
         return(ts)
     })
 
-    # TODO?: commbine bands
-    data <- dplyr::bind_rows(samples_tiles_bands)
-    #samples_tbl %>% dplyr::group_by(.data[["tile"]]) %>%
+    data <- samples_tiles_bands %>%
+        dplyr::bind_rows() %>%
+        tidyr::unnest(.data[["time_series"]]) %>%
+        dplyr::group_by(.data[["longitude"]], .data[["latitude"]],
+                        .data[["start_date"]], .data[["end_date"]],
+                        .data[["label"]], .data[["cube"]],
+                        .data[["Index"]]) %>%
+        dplyr::summarise(dplyr::across(bands, na.omit)) %>%
+        dplyr::arrange(.data[["Index"]]) %>%
+        tidyr::nest(time_series = !!c("Index", bands))
+
+
+    # bands tiles combinations
+    bands_tiles_comb <- purrr::map_chr(tiles_bands, paste, collapse = "_")
+
+    # recreate file names
+    temp_timeseries <- .make_filename(
+        "samples", .cube_collection(cube), bands_tiles_comb,
+        sep = "_",
+        ext = "rds",
+        output_dir = output_dir
+    )
+
+    # delete temporary rds
+    unlink(temp_timeseries)
+    gc()
 
     # check if data has been retrieved
-    #.sits_get_data_check(nrow(samples), nrow(data))
+    .sits_get_data_check(nrow(samples), nrow(data))
 
     if (!inherits(data, "sits")) {
         class(data) <- c("sits", class(data))
     }
+
+    saveRDS(data, timeseries_filename)
+
     return(data)
 }
 
@@ -777,3 +820,23 @@ sits_get_data <- function(cube,
 
 }
 
+
+.make_filename <- function(..., sep = "_", ext = NULL, output_dir = NULL) {
+
+    dots <- list(...)
+
+    filename <- do.call(paste, c(dots, sep = sep))
+
+    if (!is.null(ext)) {
+
+        # remove extension final point
+        ext <- gsub("^[.*]*", "\\1", ext)
+
+        filename <- paste(filename, ext, sep = ".")
+    }
+
+    if (!is.null(output_dir))
+        filename <- file.path(output_dir, filename)
+
+    return(filename)
+}

@@ -182,7 +182,7 @@
 #' @param output_dir        An output directory to save temporary time series.
 #' @return                  A sits tibble with the time series.
 .sits_raster_data_get_ts <- function(tile,
-                                     point,
+                                     points,
                                      bands,
                                      xy,
                                      cld_band = NULL,
@@ -245,8 +245,8 @@
 
             t_point <- .sits_timeline_during(
                 timeline   = timeline,
-                start_date = lubridate::as_date(point$start_date[[i]]),
-                end_date   = lubridate::as_date(point$end_date[[i]])
+                start_date = lubridate::as_date(points$start_date[[i]]),
+                end_date   = lubridate::as_date(points$end_date[[i]])
             )
 
             # select the valid dates in the timeline
@@ -290,6 +290,7 @@
         return(ts_band_lst)
     })
 
+    cube_tile <- .cube_tiles(tile)
 
     # now we have to transpose the data
     ts_samples <- ts_bands %>%
@@ -297,10 +298,11 @@
         purrr::transpose() %>%
         purrr::map(tibble::as_tibble)
 
-    point$time_series <- purrr::map2(point$time_series,
-                                       ts_samples,
-                                       dplyr::bind_cols)
 
-    class(point) <- c("sits", class(point))
-    return(point)
+    points$time_series <- purrr::map2(points$time_series,
+                                     ts_samples,
+                                     dplyr::bind_cols)
+
+    class(points) <- c("sits", class(points))
+    return(points)
 }
