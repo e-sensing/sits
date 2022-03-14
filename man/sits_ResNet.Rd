@@ -67,10 +67,10 @@ In the paper by Fawaz et al. (2019), ResNet was considered the best method
 for time series classification, using the UCR dataset.
 Please refer to the paper for more details.
 
-The R-torch version is based on the code made available by the BreizhCrops
-team: Marc Russwurm, Charlotte Pelletier, Marco Korner, Maximilian Zollner.
-The original python code is available at the website
-https://github.com/dl4sits/BreizhCrops. This code is licensed as GPL-3.
+The R-torch version is based on the code made available by Ignacio Oguiza
+who maintains the timeseriesAI github repository. The pytorch ResNet
+implementation is available at
+https://github.com/timeseriesAI/tsai/blob/main/tsai/models/ResNet.py.
 }
 \examples{
 \dontrun{

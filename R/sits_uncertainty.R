@@ -116,7 +116,7 @@ sits_uncertainty.entropy <- function(cube, type = "entropy", ...,
             output_dir = output_dir,
             version    = version
         )
-        .sits_smooth_map_layer(
+        .smth_map_layer(
             cube = tile,
             cube_out = tile_uncert,
             overlapping_y_size = 0,

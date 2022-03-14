@@ -431,14 +431,16 @@ test_that("One-year, multicore classification with post-processing", {
     collection = "MOD13Q1-6",
     bands = "class",
     labels = sits_labels(sinop_class),
-    data_dir = tempdir()
+    data_dir = tempdir(),
+    parse_info = c("X1", "X2", "tile", "start_date", "end_date", "band", "version")
   )
 
   expect_true(.cube_is_equal(sinop_class, sinop_class_2))
 
   sinop_bayes <- sits_smooth(
     sinop_probs,
-    output_dir = tempdir()
+    output_dir = tempdir(),
+    multicores = 1
   )
   expect_true(all(file.exists(unlist(sinop_bayes$file_info[[1]]$path))))
 
@@ -459,33 +461,17 @@ test_that("One-year, multicore classification with post-processing", {
     collection = "MOD13Q1-6",
     bands = "bayes",
     labels = sits_labels(sinop_class),
-    data_dir = tempdir()
+    data_dir = tempdir(),
+    parse_info = c("X1", "X2", "tile", "start_date", "end_date", "band", "version")
   )
 
   expect_true(.cube_is_equal(sinop_bayes, sinop_bayes))
 
-  sinop_gauss <- sits_smooth(
-    cube = sinop_probs,
-    type = "gaussian",
-    output_dir = tempdir(),
-    memsize = 4,
-    multicores = 1
-  )
-  expect_true(all(file.exists(unlist(sinop_gauss$file_info[[1]]$path))))
-
-  r_gau <- .raster_open_rast(sinop_gauss$file_info[[1]]$path[[1]])
-  expect_true(.raster_nrows(r_gau) == .cube_size(sinop_probs)[["nrows"]])
-
-  max_gau2 <- max(.raster_get_values(r_gau)[, 2])
-  expect_true(max_gau2 <= 10000)
-
-  max_gau3 <- max(.raster_get_values(r_gau)[, 3])
-  expect_true(max_gau3 <= 10000)
-
   sinop_bil <- sits_smooth(
     cube = sinop_probs,
     type = "bilateral",
-    output_dir = tempdir()
+    output_dir = tempdir(),
+    multicores = 1
   )
   expect_true(all(file.exists(unlist(sinop_bil$file_info[[1]]$path))))
 

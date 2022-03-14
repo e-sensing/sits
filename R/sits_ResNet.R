@@ -16,10 +16,10 @@
 #' for time series classification, using the UCR dataset.
 #' Please refer to the paper for more details.
 #'
-#' The R-torch version is based on the code made available by the BreizhCrops
-#' team: Marc Russwurm, Charlotte Pelletier, Marco Korner, Maximilian Zollner.
-#' The original python code is available at the website
-#' https://github.com/dl4sits/BreizhCrops. This code is licensed as GPL-3.
+#' The R-torch version is based on the code made available by Ignacio Oguiza
+#' who maintains the timeseriesAI github repository. The pytorch ResNet
+#' implementation is available at
+#' https://github.com/timeseriesAI/tsai/blob/main/tsai/models/ResNet.py.
 #'
 #' @references Hassan Fawaz, Germain Forestier, Jonathan Weber,
 #' Lhassane Idoumghar,  and Pierre-Alain Muller,
@@ -183,6 +183,7 @@ sits_ResNet <- function(samples = NULL,
         # create the dataloaders for torch
         train_dl <- torch::dataloader(train_ds, batch_size = batch_size)
         test_dl  <- torch::dataloader(test_ds, batch_size = batch_size)
+
 
         torch::torch_manual_seed(sample.int(10^5, 1))
 

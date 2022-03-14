@@ -3,7 +3,6 @@
 \name{sits_smooth}
 \alias{sits_smooth}
 \alias{sits_smooth.bayes}
-\alias{sits_smooth.gaussian}
 \alias{sits_smooth.bilateral}
 \title{Smooth probability cubes with spatial predictors}
 \usage{
@@ -16,18 +15,6 @@ sits_smooth(cube, type = "bayes", ...)
   window_size = 5,
   smoothness = 20,
   covar = FALSE,
-  multicores = 2,
-  memsize = 4,
-  output_dir = ".",
-  version = "v1"
-)
-
-\method{sits_smooth}{gaussian}(
-  cube,
-  type = "gaussian",
-  ...,
-  window_size = 5,
-  sigma = 1,
   multicores = 2,
   memsize = 4,
   output_dir = ".",
@@ -75,7 +62,7 @@ smoothing.}
 (in the case of multiple tests)}
 
 \item{sigma}{Standard deviation of the spatial Gaussian kernel
-(for gaussian and bilateral smoothing)}
+(for bilateral smoothing)}
 
 \item{tau}{Standard deviation of the class probs value
 (for bilateral smoothing)}
@@ -90,7 +77,6 @@ Takes a set of classified raster layers with probabilities,
              defined by the "type" parameter:
 \itemize{
    \item{"bayes": }{Use a bayesian smoother}
-   \item{"gaussian": }{Use a gaussian smoother}
    \item{"bilateral: }{Use a bilateral smoother}
 
 }
@@ -125,11 +111,6 @@ probs_cube <- sits_classify(cube,
 # smooth the result with a bayesian filter
 bayes_cube <- sits_smooth(probs_cube,
   type = "bayes", output_dir = tempdir()
-)
-
-# smooth the result with a gaussian filter
-gauss_cube <- sits_smooth(probs_cube,
-  type = "gaussian", output_dir = tempdir()
 )
 
 # smooth the result with a bilateral filter

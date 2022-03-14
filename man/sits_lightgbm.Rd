@@ -12,6 +12,7 @@ sits_lightgbm(
   min_samples_leaf = 10,
   learning_rate = 0.1,
   n_iter_no_change = 10,
+  validation_split = 0.2,
   record = TRUE,
   ...
 )
@@ -33,6 +34,9 @@ sits_lightgbm(
 
 \item{n_iter_no_change}{Number of iterations to stop training
 when validation metrics don't improve.}
+
+\item{validation_split}{Fraction of training data
+to be used as validation data.}
 
 \item{record}{Record iteration message?}
 

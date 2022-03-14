@@ -309,14 +309,15 @@ sits_TempCNN <- function(samples = NULL,
                 dense_layer_dropout_rate = dense_layer_dropout_rate
             ) %>%
             luz::fit(
-                data = train_dl,
+                data = train_dl, # data = list(train_x, train_y)
                 epochs = epochs,
-                valid_data = test_dl,
+                valid_data = test_dl, # valid_data = list(train_x, train_y)
                 callbacks = list(luz::luz_callback_early_stopping(
                     patience = 10,
                     min_delta = 0.05
                 )),
                 verbose = verbose
+                # dataloader_options = list(batch_size = batch_size)
             )
 
         model_to_raw <- function(model) {
