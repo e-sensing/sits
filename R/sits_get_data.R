@@ -353,7 +353,7 @@ sits_get_data <- function(cube,
         tile_id <- tile_band[[1]]
         band <- tile_band[[2]]
 
-        tile <- sits_select(cube, bands = band, tiles = tile_id)
+        tile <- sits_select(cube, bands = c(band, cld_band), tiles = tile_id)
 
         filename <- .make_filename(
             "samples", .cube_collection(cube = tile), tile_id, band,
