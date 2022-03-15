@@ -475,7 +475,10 @@ test_that("Creating regular cubes from AWS Open Data, and extracting samples fro
     expect_equal(nrow(samples), 1202)
     samples <- dplyr::sample_n(samples, size = 10, replace = FALSE)
 
-    ts <- sits_get_data(cube = rg_cube, samples = samples)
+    ts <- sits_get_data(cube = rg_cube,
+                        samples = samples,
+                        output_dir = dir_images)
+
     vls <- unlist(sits_values(ts))
     expect_true(all(vls > 0 & vls < 1.))
     expect_equal(sits_bands(ts), sits_bands(rg_cube))

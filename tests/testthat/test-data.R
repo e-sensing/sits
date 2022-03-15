@@ -53,7 +53,8 @@ test_that("Obtaining a point in WTSS", {
     point <- tryCatch({
         sits_get_data(cube_wtss,
                       longitude = -55.0399,
-                      latitude = -15.1933)
+                      latitude = -15.1933,
+                      output_dir = tempdir())
     },
     error = function(e){
         return(NULL)
@@ -95,7 +96,7 @@ test_that("Reading a CSV file from WTSS", {
     testthat::skip_if(purrr::is_null(cube_wtss),
                       message = "WTSS is not accessible")
 
-    points <- sits_get_data(cube_wtss, file = csv_file)
+    points <- sits_get_data(cube_wtss, file = csv_file, output_dir = tempdir())
 
     expect_true(all(unique(points$label) == c("Pasture", "Cerrado")))
 
@@ -144,7 +145,8 @@ test_that("Reading a POLYGON shapefile from WTSS", {
                              shp_attr = "ext_na",
                              .n_shp_pol = 3,
                              start_date = "2019-01-01",
-                             end_date = "2019-06-01"
+                             end_date = "2019-06-01",
+                             output_dir = tempdir()
     )
 
     sf_shape <- sf::read_sf(shp_file)
@@ -186,7 +188,8 @@ test_that("Reading a POINT shapefile from WTSS", {
                             file = shp_file,
                             label = "Cerrado_Forested",
                             start_date = "2019-01-01",
-                            end_date = "2019-06-01"
+                            end_date = "2019-06-01",
+                            output_dir = tempdir()
     )
 
     expect_true(all(points$label == "Cerrado_Forested"))
@@ -208,7 +211,9 @@ test_that("Reading a point from SATVEG ", {
     )
 
     point_terra <- sits_get_data(cube_1,
-                                 longitude = -55.50563, latitude = -11.71557
+                                 longitude = -55.50563,
+                                 latitude = -11.71557,
+                                 output_dir = tempdir()
     )
 
     if (purrr::is_null(point_terra)) {
@@ -232,7 +237,9 @@ test_that("Reading a point from SATVEG ", {
         message = "SATVEG is not accessible for collection AQUA")
 
     point_aqua <- sits_get_data(cube_2,
-                                longitude = -55.50563, latitude = -11.71557
+                                longitude = -55.50563,
+                                latitude = -11.71557,
+                                output_dir = tempdir()
     )
 
     if (purrr::is_null(point_aqua)) {
@@ -254,7 +261,9 @@ test_that("Reading a point from SATVEG ", {
         skip("SATVEG is not accessible for collection comb")
     }
     point_comb <- sits_get_data(cube_3,
-                                longitude = -55.50563, latitude = -11.71557
+                                longitude = -55.50563,
+                                latitude = -11.71557,
+                                output_dir = tempdir()
     )
     if (purrr::is_null(point_comb)) {
         skip("points in SATVEG for collection comb cannnot be recovered")
@@ -284,7 +293,10 @@ test_that("Reading a CSV file from SATVEG", {
     testthat::skip_if(purrr::is_null(cube_satveg),
                       message = "SATVEG is not accessible")
 
-    points <- sits_get_data(cube_satveg, file = csv_file)
+    points <- sits_get_data(cube_satveg,
+                            file = csv_file,
+                            output_dir = tempdir())
+
     if (purrr::is_null(points)) {
         skip("points in SATVEG for csv file cannnot be recovered")
     }
@@ -325,7 +337,8 @@ test_that("Reading a POLYGON shapefile from SATVEG", {
     parcels <- sits_get_data(cube_satveg,
                              file = shp_file,
                              shp_attr = "ext_na",
-                             .n_shp_pol = 3
+                             .n_shp_pol = 3,
+                             output_dir = tempdir()
     )
     if (purrr::is_null(parcels)) {
         skip("points in SATVEG for shpfile cannnot be recovered")
@@ -362,7 +375,9 @@ test_that("Reading a LAT/LONG from RASTER", {
 
     point_ndvi <- sits_select(point_mt_6bands, bands = "NDVI")
     point_ndvi <- sits_get_data(raster_cube,
-                                longitude = -55.66738, latitude = -11.76990
+                                longitude = -55.66738,
+                                latitude = -11.76990,
+                                output_dir = tempdir()
     )
 
     expect_equal(names(point_ndvi)[1], "longitude")
@@ -392,7 +407,9 @@ test_that("Reading a CSV file from RASTER", {
     csv_raster_file <- system.file("extdata/samples/samples_sinop_crop.csv",
                                    package = "sits"
     )
-    points <- sits_get_data(raster_cube, file = csv_raster_file)
+    points <- sits_get_data(raster_cube,
+                            file = csv_raster_file,
+                            output_dir = tempdir())
 
     df_csv <- utils::read.csv(
         system.file("extdata/samples/samples_sinop_crop.csv", package = "sits"),
@@ -438,13 +455,19 @@ test_that("Test reading shapefile from BDC", {
                             package = "sits"
     )
 
-    time_series_bdc <- sits::sits_get_data(cbers_stac_tile, file = shp_path)
+    time_series_bdc <- sits::sits_get_data(cbers_stac_tile,
+                                           file = shp_path,
+                                           output_dir = tempdir())
+
     if (purrr::is_null(time_series_bdc))
         skip("BDC not accessible")
+
     expect_equal(nrow(time_series_bdc), 10)
+
     bbox <- sits_bbox(time_series_bdc)
     expect_true(bbox["xmin"] < -46.)
     expect_true(all(sits_bands(time_series_bdc) %in% c("NDVI", "EVI")))
+
     ts <- time_series_bdc$time_series[[1]]
     expect_true(max(ts["EVI"]) < 1.)
 })
