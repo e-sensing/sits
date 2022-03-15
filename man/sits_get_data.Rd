@@ -19,7 +19,8 @@ sits_get_data(
   .n_pts_csv = NULL,
   .n_shp_pol = 30,
   multicores = 1,
-  output_dir
+  output_dir = ".",
+  progress = FALSE
 )
 }
 \arguments{
@@ -54,6 +55,12 @@ as a polygon label.}
 (for POLYGON or MULTIPOLYGON shapefile).}
 
 \item{multicores}{Number of threads to process the time series.}
+
+\item{output_dir}{Directory where the time series will be saved as rds.
+Default is the current path.}
+
+\item{progress}{A logical value indicating if a progress bar
+should be shown. Default is \code{FALSE}.}
 }
 \value{
 A tibble with the metadata and data for each time series

@@ -11,7 +11,8 @@
   bands = NULL,
   impute_fn,
   multicores,
-  output_dir
+  output_dir,
+  progress
 )
 }
 \arguments{
@@ -24,6 +25,9 @@
 \item{impute_fn}{Imputation function for NA values.}
 
 \item{multicores}{Number of threads to process the time series.}
+
+\item{progress}{A logical value indicating if a progress bar
+should be shown. Default is \code{FALSE}.}
 }
 \description{
 Dispatch function to get time series from data cubes and cloud services
