@@ -58,6 +58,7 @@ Suggests:
     dendextend,
     dtwclust,
     dtwSat,
+    digest,
     e1071,
     gdalcubes,
     httr,
