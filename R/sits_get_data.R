@@ -65,7 +65,8 @@
 #' # read the time series of the point from the raster
 #' point_ts <- sits_get_data(raster_cube,
 #'     longitude = -55.554,
-#'     latitude = -11.525
+#'     latitude = -11.525,
+#'     output_dir = tempdir()
 #' )
 #'
 #' # --- Read a set of points described by a CSV file
@@ -74,7 +75,9 @@
 #' csv_file <- system.file("extdata/samples/samples_sinop_crop.csv",
 #'     package = "sits"
 #' )
-#' points_csv <- sits_get_data(raster_cube, file = csv_file)
+#' points_csv <- sits_get_data(raster_cube,
+#'                             file = csv_file,
+#'                             output_dir = tempdir())
 #' }
 #' @export
 #'
@@ -251,9 +254,15 @@ sits_get_data <- function(cube,
         output_dir = output_dir
     )
 
+    samples_hash <- digest::digest(samples, algo = "md5")
+
     if (file.exists(ts_filename))
         tryCatch({
             ts_tbl <- readRDS(ts_filename)
+
+            .check_that(
+                attributes(ts_tbl)[["hash_id"]] == samples_hash,
+            )
 
             return(ts_tbl)
         },
@@ -295,6 +304,8 @@ sits_get_data <- function(cube,
         class(ts_tbl) <- c("sits", class(ts_tbl))
     }
 
+    attributes(ts_tbl) <- c(attributes(ts_tbl), "hash_id" = samples_hash)
+
     saveRDS(ts_tbl, ts_filename)
 
     return(ts_tbl)
@@ -319,11 +330,17 @@ sits_get_data <- function(cube,
         output_dir = output_dir
     )
 
+    samples_hash <- digest::digest(samples, algo = "md5")
+
     if (file.exists(ts_filename))
         tryCatch({
-            timeseries <- readRDS(ts_filename)
+            ts_tbl <- readRDS(ts_filename)
 
-            return(timeseries)
+            .check_that(
+                attributes(ts_tbl)[["hash_id"]] == samples_hash,
+            )
+
+            return(ts_tbl)
         },
         error = function(e) {
             unlink(ts_filename)
@@ -360,6 +377,9 @@ sits_get_data <- function(cube,
     if (!inherits(ts_tbl, "sits")) {
         class(ts_tbl) <- c("sits", class(ts_tbl))
     }
+
+
+    attributes(ts_tbl) <- c(attributes(ts_tbl), "hash_id" = samples_hash)
 
     saveRDS(ts_tbl, ts_filename)
 
@@ -407,11 +427,17 @@ sits_get_data <- function(cube,
         output_dir = output_dir
     )
 
+    samples_hash <- digest::digest(samples, algo = "md5")
+
     if (file.exists(ts_filename))
         tryCatch({
-            timeseries <- readRDS(ts_filename)
+            ts_tbl <- readRDS(ts_filename)
 
-            return(timeseries)
+            .check_that(
+                attributes(ts_tbl)[["hash_id"]] == samples_hash,
+            )
+
+            return(ts_tbl)
         },
         error = function(e) {
             unlink(ts_filename)
@@ -561,6 +587,8 @@ sits_get_data <- function(cube,
     if (!inherits(ts_tbl, "sits")) {
         class(ts_tbl) <- c("sits", class(ts_tbl))
     }
+
+    attributes(ts_tbl) <- c(attributes(ts_tbl), "hash_id" = samples_hash)
 
     saveRDS(ts_tbl, ts_filename)
 

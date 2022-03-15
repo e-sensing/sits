@@ -104,7 +104,8 @@ raster_cube <- sits_cube(
 # read the time series of the point from the raster
 point_ts <- sits_get_data(raster_cube,
     longitude = -55.554,
-    latitude = -11.525
+    latitude = -11.525,
+    output_dir = tempdir()
 )
 
 # --- Read a set of points described by a CSV file
@@ -113,7 +114,9 @@ point_ts <- sits_get_data(raster_cube,
 csv_file <- system.file("extdata/samples/samples_sinop_crop.csv",
     package = "sits"
 )
-points_csv <- sits_get_data(raster_cube, file = csv_file)
+points_csv <- sits_get_data(raster_cube,
+                            file = csv_file,
+                            output_dir = tempdir())
 }
 }
 \author{
