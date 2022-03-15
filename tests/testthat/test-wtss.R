@@ -59,8 +59,14 @@ test_that("Reading a CSV file from WTSS", {
         message = "WTSS is not accessible"
     )
 
+    dir_samples <-  file.path(tempdir(), "samples")
+    if (!dir.exists(dir_samples))
+        suppressWarnings(dir.create(dir_samples))
+
+    unlink(list.files(dir_samples, pattern = "\\.rds$", full.names = TRUE))
+
     points <- tryCatch({
-        sits_get_data(cube_wtss, file = csv_file)
+        sits_get_data(cube_wtss, file = csv_file, output_dir = dir_samples)
     },
     error = function(e) {
         return(NULL)
@@ -105,21 +111,31 @@ test_that("Reading a POLYGON shapefile from WTSS", {
     error = function(e) {
         return(NULL)
     })
+
     testthat::skip_if(
         purrr::is_null(cube_wtss),
         message = "WTSS is not accessible"
     )
 
     shp_file <- system.file(
-        "extdata/shapefiles/agriculture/parcel_agriculture.shp", package = "sits"
+        "extdata/shapefiles/agriculture/parcel_agriculture.shp",
+        package = "sits"
     )
+
+    dir_samples <-  file.path(tempdir(), "samples")
+    if (!dir.exists(dir_samples))
+        suppressWarnings(dir.create(dir_samples))
+
+    unlink(list.files(dir_samples, pattern = "\\.rds$", full.names = TRUE))
+
     parcels <- tryCatch({
         sits_get_data(cube_wtss,
-                             file = shp_file,
-                             shp_attr = "ext_na",
-                             .n_shp_pol = 3,
-                             start_date = "2019-01-01",
-                             end_date = "2019-06-01"
+                      file = shp_file,
+                      shp_attr = "ext_na",
+                      .n_shp_pol = 3,
+                      start_date = "2019-01-01",
+                      end_date = "2019-06-01",
+                      output_dir = dir_samples
         )
     },
     error = function(e) {
@@ -130,7 +146,6 @@ test_that("Reading a POLYGON shapefile from WTSS", {
         purrr::is_null(parcels),
         message = "WTSS is not accessible"
     )
-
 
     sf_shape <- sf::read_sf(shp_file)
     sf_shape <- sf::st_transform(sf_shape, crs = "EPSG:4326")
@@ -169,12 +184,20 @@ test_that("Reading a POINT shapefile from WTSS", {
     shp_file <- system.file("extdata/shapefiles/cerrado/cerrado_forested.shp",
                             package = "sits"
     )
+
+    dir_samples <-  file.path(tempdir(), "samples")
+    if (!dir.exists(dir_samples))
+        suppressWarnings(dir.create(dir_samples))
+
+    unlink(list.files(dir_samples, pattern = "\\.rds$", full.names = TRUE))
+
     points <- tryCatch({
         sits_get_data(cube_wtss,
-                            file = shp_file,
-                            label = "Cerrado_Forested",
-                            start_date = "2019-01-01",
-                            end_date = "2019-06-01"
+                      file = shp_file,
+                      label = "Cerrado_Forested",
+                      start_date = "2019-01-01",
+                      end_date = "2019-06-01",
+                      output_dir = dir_samples
         )
     },
     error = function(e) {
@@ -203,9 +226,18 @@ test_that("Reading a point from SATVEG ", {
         message = "SATVEG is not accessible for collection terra"
     )
 
+    dir_samples <-  file.path(tempdir(), "samples")
+    if (!dir.exists(dir_samples))
+        suppressWarnings(dir.create(dir_samples))
+
+    unlink(list.files(dir_samples, pattern = "\\.rds$", full.names = TRUE))
+
     point_terra <- sits_get_data(cube_1,
-                                 longitude = -55.50563, latitude = -11.71557
+                                 longitude = -55.50563,
+                                 latitude = -11.71557,
+                                 output_dir = dir_samples
     )
+
     testthat::skip_if(
         purrr::is_null(point_terra),
         message = "points in SATVEG for collection terra cannnot be recovered"
@@ -225,7 +257,9 @@ test_that("Reading a point from SATVEG ", {
     )
 
     point_aqua <- sits_get_data(cube_2,
-                                longitude = -55.50563, latitude = -11.71557
+                                longitude = -55.50563,
+                                latitude = -11.71557,
+                                output_dir = dir_samples
     )
     testthat::skip_if(
         purrr::is_null(point_aqua),
@@ -246,7 +280,9 @@ test_that("Reading a point from SATVEG ", {
     )
 
     point_comb <- sits_get_data(cube_3,
-                                longitude = -55.50563, latitude = -11.71557
+                                longitude = -55.50563,
+                                latitude = -11.71557,
+                                output_dir = dir_samples
     )
     testthat::skip_if(
         purrr::is_null(point_aqua),
@@ -262,6 +298,7 @@ test_that("Reading a point from SATVEG ", {
 
 test_that("Reading a CSV file from SATVEG", {
     testthat::skip_on_cran()
+
     csv_file <- system.file("extdata/samples/samples_matogrosso.csv",
                             package = "sits"
     )
@@ -278,7 +315,15 @@ test_that("Reading a CSV file from SATVEG", {
         message = "SATVEG is not accessible for collection terra"
     )
 
-    points <- sits_get_data(cube_satveg, file = csv_file)
+    dir_samples <-  file.path(tempdir(), "samples")
+    if (!dir.exists(dir_samples))
+        suppressWarnings(dir.create(dir_samples))
+
+    unlink(list.files(dir_samples, pattern = "\\.rds$", full.names = TRUE))
+
+    points <- sits_get_data(cube_satveg,
+                            file = csv_file,
+                            output_dir = dir_samples)
 
     testthat::skip_if(
         purrr::is_null(points),
@@ -323,10 +368,18 @@ test_that("Reading a POLYGON shapefile from SATVEG", {
     shp_file <- system.file(
         "extdata/shapefiles/agriculture/parcel_agriculture.shp", package = "sits"
     )
+
+    dir_samples <-  file.path(tempdir(), "samples")
+    if (!dir.exists(dir_samples))
+        suppressWarnings(dir.create(dir_samples))
+
+    unlink(list.files(dir_samples, pattern = "\\.rds$", full.names = TRUE))
+
     parcels <- sits_get_data(cube_satveg,
                              file = shp_file,
                              shp_attr = "ext_na",
-                             .n_shp_pol = 3
+                             .n_shp_pol = 3,
+                             output_dir = dir_samples
     )
     testthat::skip_if(
         purrr::is_null(parcels),
@@ -378,8 +431,17 @@ test_that("Test reading shapefile from BDC", {
     shp_path <- system.file("extdata/shapefiles/bdc-test/samples.shp",
                             package = "sits"
     )
+
+    dir_samples <-  file.path(tempdir(), "samples")
+    if (!dir.exists(dir_samples))
+        suppressWarnings(dir.create(dir_samples))
+
+    unlink(list.files(dir_samples, pattern = "\\.rds$", full.names = TRUE))
+
     time_series_bdc <- tryCatch({
-        sits::sits_get_data(cbers_stac_tile, file = shp_path)
+        sits::sits_get_data(cbers_stac_tile,
+                            file = shp_path,
+                            output_dir = dir_samples)
     },
     error = function(e){
         return(NULL)
@@ -419,9 +481,17 @@ test_that("Reading a LAT/LONG from RASTER", {
         message = "LOCAL cube was not found"
     )
 
+    dir_samples <-  file.path(tempdir(), "samples")
+    if (!dir.exists(dir_samples))
+        suppressWarnings(dir.create(dir_samples))
+
+    unlink(list.files(dir_samples, pattern = "\\.rds$", full.names = TRUE))
+
     point_ndvi <- sits_select(point_mt_6bands, bands = "NDVI")
     point_ndvi <- sits_get_data(raster_cube,
-                                longitude = -55.66738, latitude = -11.76990
+                                longitude = -55.66738,
+                                latitude = -11.76990,
+                                output_dir = dir_samples
     )
 
     expect_equal(names(point_ndvi)[1], "longitude")
@@ -453,7 +523,16 @@ test_that("Reading a CSV file from RASTER", {
     csv_raster_file <- system.file("extdata/samples/samples_sinop_crop.csv",
                                    package = "sits"
     )
-    points <- sits_get_data(raster_cube, file = csv_raster_file)
+
+    dir_samples <-  file.path(tempdir(), "samples")
+    if (!dir.exists(dir_samples))
+        suppressWarnings(dir.create(dir_samples))
+
+    unlink(list.files(dir_samples, pattern = "\\.rds$", full.names = TRUE))
+
+    points <- sits_get_data(raster_cube,
+                            file = csv_raster_file,
+                            output_dir = dir_samples)
 
     df_csv <- utils::read.csv(
         system.file("extdata/samples/samples_sinop_crop.csv", package = "sits"),
