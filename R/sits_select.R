@@ -3,11 +3,11 @@
 #' @name sits_select
 #' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
 #'
-#' @param data         A sits tibble or data cube
-#' @param bands        Character vector with the names of the bands
-#' @param tile         Character vector with the names of the tiles
+#' @param data         A sits tibble or data cube.
+#' @param bands        Character vector with the names of the bands.
+#' @param tiles        Character vector with the names of the tiles.
 #' @param ...          Additional parameters to be provided in the select
-#'  function
+#'  function.
 #'
 #' @description Filter only the selected bands from a tibble or a data cube.
 #'
@@ -38,9 +38,10 @@ sits_select <- function(data, bands, ...) {
     UseMethod("sits_select", data)
 }
 
-#' @export
+#' @rdname sits_select
 #'
-sits_select.sits <- function(data, bands) {
+#' @export
+sits_select.sits <- function(data, bands, ...) {
 
     # bands names in SITS are uppercase
     bands <- toupper(bands)
@@ -57,8 +58,9 @@ sits_select.sits <- function(data, bands) {
     return(data)
 }
 
-#' @export
+#' @rdname sits_select
 #'
+#' @export
 sits_select.sits_cube <- function(data, bands, ..., tiles = NULL) {
 
     # pre-condition - cube
@@ -89,9 +91,10 @@ sits_select.sits_cube <- function(data, bands, ..., tiles = NULL) {
     return(data)
 }
 
-#' @export
+#' @rdname sits_select
 #'
-sits_select.patterns <- function(data, bands) {
+#' @export
+sits_select.patterns <- function(data, bands, ...) {
 
     return(sits_select.sits(data, bands))
 }

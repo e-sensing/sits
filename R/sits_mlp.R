@@ -93,9 +93,9 @@ sits_mlp <- function(samples = NULL,
             stop("Please install package torch", call. = FALSE)
         }
 
-        # verifies if coro package is installed
-        if (!requireNamespace("coro", quietly = TRUE)) {
-            stop("Please install package coro", call. = FALSE)
+        # verifies if luz package is installed
+        if (!requireNamespace("luz", quietly = TRUE)) {
+            stop("Please install package luz", call. = FALSE)
         }
 
         # pre-conditions
