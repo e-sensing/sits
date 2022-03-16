@@ -160,8 +160,36 @@ sits_LTAE <- function(samples = NULL,
         # set torch seed
         torch::torch_manual_seed(sample.int(10^5, 1))
 
-        #
+        # Positional Encoder
+        positional_encoding <- torch::nn_module(
+            classname = "positional_encoding",
+            # dates is a vector with the number of days since
+            # the first observation
+            initialize = function(d_e = 128, dates){
 
+                # length of positional encoder is the length of dates vector
+                max_len <- length(dates)
+                # keep the dates vector
+                self$dates <- dates
+                # initialize the torch 'days' tensor
+                days <- torch::torch_tensor(dates)
+                days <- torch::torch_unsqueeze(days, 2)
+
+                # Calculate the positional encoding p
+                p <- torch::torch_zeros(max_len, d_e)
+                div_term <-  torch::torch_exp(torch::torch_arange(0, d_e, 2)
+                                              * (-log(1000.0) / d_e))
+                p <-  torch::torch_sin(days * div_term)
+                p[:, 1::2] = torch.cos(days * div_term)
+                p = p.unsqueeze(0)
+                self.register_buffer('p', p)
+            }
+        )
+
+
+        def forward(self, x):
+            x = x + self.p
+        return x
 
 
 

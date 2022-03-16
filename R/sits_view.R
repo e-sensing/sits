@@ -161,6 +161,14 @@ sits_view.raster_cube <- function(x, ...,
                                   palette = "default") {
     dots <- list(...)
     # preconditions
+    # Remote files not working in Windows (bug in stars)
+    if (.Platform$OS.type == "windows") {
+        path <- .file_info_path(cube[1,])
+        if (grepl("^/vsi", path)) {
+            stop("sits_view not working in Windows OS for remote files",
+                 call. = FALSE)
+        }
+    }
     # verifies if leafem and leaflet packages are installed
     .check_that(
         requireNamespace("leafem", quietly = TRUE),
@@ -298,7 +306,8 @@ sits_view.raster_cube <- function(x, ...,
                 RasterIO = list(
                     "nBufXSize" = size["xsize"],
                     "nBufYSize" = size["ysize"]
-                )
+                ),
+                proxy = FALSE
             )
             return(st_obj)
         })
