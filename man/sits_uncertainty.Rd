@@ -26,20 +26,20 @@ sits_uncertainty(
 )
 }
 \arguments{
-\item{cube}{Probability data cube}
+\item{cube}{Probability data cube.}
 
-\item{type}{Method to measure uncertainty}
+\item{type}{Method to measure uncertainty.}
 
-\item{...}{Parameters for specific functions}
+\item{...}{Parameters for specific functions.}
 
-\item{multicores}{Number of cores to run the function}
+\item{multicores}{Number of cores to run the function.}
 
 \item{memsize}{Maximum overall memory (in GB) to run the
 function.}
 
-\item{output_dir}{Output directory for image files}
+\item{output_dir}{Output directory for image files.}
 
-\item{version}{Version of resulting image
+\item{version}{Version of resulting image.
 (in the case of multiple tests)}
 }
 \value{

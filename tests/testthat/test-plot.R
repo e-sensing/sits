@@ -1,5 +1,4 @@
 test_that("Plot Time Series and Images", {
-
     cerrado_ndvi <- sits_select(cerrado_2classes, "NDVI")
 
     p <- plot(cerrado_ndvi[1, ])
@@ -36,13 +35,17 @@ test_that("Plot Time Series and Images", {
     size_x <- bbox[["xmax"]] - bbox[["xmin"]]
     size_y <- bbox[["ymax"]] - bbox[["ymin"]]
 
-    roi <- c(xmin = floor(bbox[["xmin"]] + size_x/4),
-             xmax = floor(bbox[["xmax"]] - size_x/4),
-             ymin = floor(bbox[["ymin"]] + size_y/4),
-             ymax = floor(bbox[["ymax"]] - size_y/4))
+    roi <- c(
+        xmin = floor(bbox[["xmin"]] + size_x / 4),
+        xmax = floor(bbox[["xmax"]] - size_x / 4),
+        ymin = floor(bbox[["ymin"]] + size_y / 4),
+        ymax = floor(bbox[["ymax"]] - size_y / 4)
+    )
 
-    r_obj <- plot(sinop, red = "EVI", blue = "EVI", green = "NDVI",
-                  roi = roi)
+    r_obj <- plot(sinop,
+                  red = "EVI", blue = "EVI", green = "NDVI",
+                  roi = roi
+    )
 
     expect_equal(terra::nlyr(r_obj), 3)
     expect_equal(terra::ncol(r_obj), 128)
@@ -70,27 +73,34 @@ test_that("Plot Time Series and Images", {
     expect_equal(p_probs$lend, "round")
 
     sinop_uncert <- sits_uncertainty(sinop_probs,
-                                     output_dir = tempdir())
+                                     output_dir = tempdir()
+    )
 
     p_uncert <- plot(sinop_uncert, n_breaks = 11, breaks = "pretty")
 
     expect_equal(p_uncert$adj, 0.5)
     expect_equal(p_uncert$lend, "round")
+
     expect_equal(p_uncert$lty, "solid")
 
     sinop_labels <- sits_label_classification(sinop_probs,
-                                              output_dir = tempdir())
+                                              output_dir = tempdir()
+    )
 
     p4 <- plot(sinop_labels, title = "Classified image")
     expect_equal(p4$labels$title, "Classified image")
     expect_equal(p4$layers[[1]]$geom_params$hjust, 0.5)
     expect_true(p4$layers[[1]]$inherit.aes)
 
-    p5 <- plot(sinop_labels, title = "Classified image",
-               legend = c("Cerrado" = "#B9E3B2",
-                          "Forest"  = "#68BE70",
-                          "Pasture" = "#EEF8EB",
-                          "Soy_Corn" = "#F17C1A"))
+    p5 <- plot(sinop_labels,
+               title = "Classified image",
+               legend = c(
+                   "Cerrado" = "#B9E3B2",
+                   "Forest" = "#68BE70",
+                   "Pasture" = "#EEF8EB",
+                   "Soy_Corn" = "#F17C1A"
+               )
+    )
 
     expect_equal(p5$labels$title, "Classified image")
     expect_equal(p5$layers[[1]]$geom_params$hjust, 0.5)
@@ -117,16 +127,13 @@ test_that("Dendrogram Plot", {
     )
     expect_equal(class(dend), "dendrogram")
 })
-source("./test-utils.R")
 
-test_that("Plot keras model", {
+test_that("Plot torch model", {
     # skip_on_cran()
-    Sys.setenv(TF_CPP_MIN_LOG_LEVEL = "1")
     samples_mt_2bands <- sits_select(samples_modis_4bands,
                                      bands = c("NDVI", "EVI")
     )
-    model <- suppress_keras(
-        sits_train(
+    model <- sits_train(
             samples_mt_2bands,
             sits_mlp(
                 layers = c(128, 128),
@@ -134,7 +141,6 @@ test_that("Plot keras model", {
                 epochs = 50,
                 verbose = 0
             )
-        )
     )
     pk <- plot(model)
     expect_true(length(pk$layers) == 2)
@@ -144,14 +150,13 @@ test_that("Plot keras model", {
 })
 
 test_that("Plot series with NA", {
-
     cerrado_ndvi <- cerrado_2classes %>%
         sits_select(bands = "NDVI") %>%
         dplyr::filter(label == "Cerrado")
-    cerrado_ndvi_1 <- cerrado_ndvi[1,]
+    cerrado_ndvi_1 <- cerrado_ndvi[1, ]
     ts <- cerrado_ndvi_1$time_series[[1]]
-    ts[1,2] <- NA
-    ts[10,2] <- NA
+    ts[1, 2] <- NA
+    ts[10, 2] <- NA
     cerrado_ndvi_1$time_series[[1]] <- ts
     pna <- suppressWarnings(plot(cerrado_ndvi_1))
     expect_true(pna$labels$x == "Index")
@@ -190,4 +195,3 @@ test_that("SOM evaluate cluster plot", {
     expect_equal(p$labels$title, "Confusion by cluster")
     expect_equal(p$labels$y, "Percentage of mixture")
 })
-

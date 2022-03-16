@@ -7,12 +7,12 @@
 .sits_ml_normalize_data(data, stats)
 }
 \arguments{
-\item{data}{A sits tibble.}
+\item{data}{Time series.}
 
 \item{stats}{Statistics for normalization.}
 }
 \value{
-A normalized sits tibble.
+Normalized time series.
 }
 \description{
 This function normalizes the time series using the mean and

@@ -9,9 +9,7 @@ sits_values(data, bands = NULL, format = "cases_dates_bands")
 \arguments{
 \item{data}{A sits tibble with time series for different bands.}
 
-\item{bands}{A string with a group of bands whose
-values are to be extracted. If no bands are informed
-extract ALL bands.}
+\item{bands}{Bands whose values are to be extracted.}
 
 \item{format}{A string with either "cases_dates_bands"
 or "bands_cases_dates" or "bands_dates_cases".}

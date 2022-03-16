@@ -94,11 +94,11 @@ obtain a time series for a spacetime location}
 # Create a data cube based on files
 data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
 raster_cube <- sits_cube(
-    source = "BDC",
-    collection = "MOD13Q1-6",
-    data_dir = data_dir,
-    delim = "_",
-    parse_info = c("X1", "X2", "tile", "band", "date")
+  source = "BDC",
+  collection = "MOD13Q1-6",
+  data_dir = data_dir,
+  delim = "_",
+  parse_info = c("X1", "X2", "tile", "band", "date")
 )
 
 # read the time series of the point from the raster
@@ -112,7 +112,7 @@ point_ts <- sits_get_data(raster_cube,
 
 # read data from a CSV file
 csv_file <- system.file("extdata/samples/samples_sinop_crop.csv",
-    package = "sits"
+  package = "sits"
 )
 points_csv <- sits_get_data(raster_cube,
                             file = csv_file,

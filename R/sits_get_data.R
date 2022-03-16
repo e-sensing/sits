@@ -55,11 +55,11 @@
 #' # Create a data cube based on files
 #' data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
 #' raster_cube <- sits_cube(
-#'     source = "BDC",
-#'     collection = "MOD13Q1-6",
-#'     data_dir = data_dir,
-#'     delim = "_",
-#'     parse_info = c("X1", "X2", "tile", "band", "date")
+#'   source = "BDC",
+#'   collection = "MOD13Q1-6",
+#'   data_dir = data_dir,
+#'   delim = "_",
+#'   parse_info = c("X1", "X2", "tile", "band", "date")
 #' )
 #'
 #' # read the time series of the point from the raster
@@ -73,7 +73,7 @@
 #'
 #' # read data from a CSV file
 #' csv_file <- system.file("extdata/samples/samples_sinop_crop.csv",
-#'     package = "sits"
+#'   package = "sits"
 #' )
 #' points_csv <- sits_get_data(raster_cube,
 #'                             file = csv_file,
@@ -85,7 +85,7 @@ sits_get_data <- function(cube,
                           file = NULL,
                           samples = NULL,
                           longitude = NULL,
-                          latitude  = NULL,
+                          latitude = NULL,
                           start_date = NULL,
                           end_date = NULL,
                           label = "NoClass",
@@ -116,17 +116,20 @@ sits_get_data <- function(cube,
     )
 
     # pre-condition - file parameter
-    .check_chr(file, allow_empty = FALSE, len_min = 1, len_max = 1,
-               allow_null = TRUE, msg = "invalid 'file' parameter")
+    .check_chr(file,
+               allow_empty = FALSE, len_min = 1, len_max = 1,
+               allow_null = TRUE, msg = "invalid 'file' parameter"
+    )
 
     # no start or end date? get them from the timeline
     timeline <- sits_timeline(cube)
 
-    if (purrr::is_null(start_date))
+    if (purrr::is_null(start_date)) {
         start_date <- as.Date(timeline[1])
-
-    if (purrr::is_null(end_date))
+    }
+    if (purrr::is_null(end_date)) {
         end_date <- as.Date(timeline[length(timeline)])
+    }
 
     # is there a shapefile or a CSV file?
     if (!purrr::is_null(file)) {
@@ -138,17 +141,21 @@ sits_get_data <- function(cube,
         .check_chr_within(
             x = file_ext,
             within = .config_get("sample_file_formats"),
-            msg = paste0("samples should be of type ",
-                         paste(.config_get("sample_file_formats"),
-                               collapse = " or "))
+            msg = paste0(
+                "samples should be of type ",
+                paste(.config_get("sample_file_formats"),
+                      collapse = " or "
+                )
+            )
         )
-        if (file_ext == "csv")
+        if (file_ext == "csv") {
             samples <- .sits_get_samples_from_csv(
                 csv_file   = file,
                 .n_pts_csv = .n_pts_csv
             )
+        }
 
-        if (file_ext == "shp")
+        if (file_ext == "shp") {
             samples <- .sits_get_samples_from_shp(
                 shp_file = file,
                 label = label,
@@ -157,6 +164,7 @@ sits_get_data <- function(cube,
                 end_date = end_date,
                 .n_shp_pol = .n_shp_pol
             )
+        }
     } else {
         if (!purrr::is_null(samples)) {
             # check if samples are a data.frame
@@ -193,7 +201,7 @@ sits_get_data <- function(cube,
         msg = "data input is not valid"
     )
 
-    data <-  .sits_get_ts(
+    data <- .sits_get_ts(
         cube       = cube,
         samples    = samples,
         bands      = bands,
@@ -240,8 +248,9 @@ sits_get_data <- function(cube,
                                    progress) {
 
     # pre-condition - check bands
-    if (is.null(bands))
+    if (is.null(bands)) {
         bands <- .cube_bands(cube)
+    }
 
     .cube_bands_check(cube, bands = bands)
 
@@ -282,13 +291,13 @@ sits_get_data <- function(cube,
 
         row_ts <- .sits_get_data_from_wtss(
             cube = cube,
-            longitude  = row[["longitude"]],
-            latitude   = row[["latitude"]],
+            longitude = row[["longitude"]],
+            latitude = row[["latitude"]],
             start_date = lubridate::as_date(row[["start_date"]]),
-            end_date   = lubridate::as_date(row[["end_date"]]),
-            label      = row[["label"]],
-            bands      = bands,
-            impute_fn  = impute_fn
+            end_date = lubridate::as_date(row[["end_date"]]),
+            label = row[["label"]],
+            bands = bands,
+            impute_fn = impute_fn
         )
 
         return(row_ts)
@@ -359,15 +368,14 @@ sits_get_data <- function(cube,
 
         row_ts <- .sits_get_data_from_satveg(
             cube = cube,
-            longitude  = row[["longitude"]],
-            latitude   = row[["latitude"]],
+            longitude = row[["longitude"]],
+            latitude = row[["latitude"]],
             start_date = row[["start_date"]],
-            end_date   = row[["end_date"]],
-            label      = row[["label"]]
+            end_date = row[["end_date"]],
+            label = row[["label"]]
         )
         return(row_ts)
     })
-
 
     ts_tbl <- dplyr::bind_rows(ts_lst)
 
@@ -377,7 +385,6 @@ sits_get_data <- function(cube,
     if (!inherits(ts_tbl, "sits")) {
         class(ts_tbl) <- c("sits", class(ts_tbl))
     }
-
 
     attributes(ts_tbl) <- c(attributes(ts_tbl), "hash_id" = samples_hash)
 
@@ -403,8 +410,9 @@ sits_get_data <- function(cube,
     )
 
     # pre-condition - check bands
-    if (is.null(bands))
-        bands <- .cube_bands(cube, add_cloud = TRUE)
+    if (is.null(bands)) {
+        bands <- .cube_bands(cube)
+    }
 
     .cube_bands_check(cube, bands = bands)
 
@@ -598,8 +606,8 @@ sits_get_data <- function(cube,
 #' @title check if all points have been retrieved
 #' @name .sits_get_data_check
 #' @keywords internal
-#' @param n_rows_input     Number of rows in input
-#' @param n_rows_output    Number of rows in output
+#' @param n_rows_input     Number of rows in input.
+#' @param n_rows_output    Number of rows in output.
 #'
 #' @return A logical value
 #'
@@ -648,9 +656,11 @@ sits_get_data <- function(cube,
     .check_set_caller(".sits_get_data_from_satveg")
 
     # retrieve the time series
-    ts <- .sits_satveg_ts_from_txt(longitude = longitude,
-                                   latitude = latitude,
-                                   cube = cube)
+    ts <- .sits_satveg_ts_from_txt(
+        longitude = longitude,
+        latitude = latitude,
+        cube = cube
+    )
 
     # filter the dates
     ts <- dplyr::filter(ts, dplyr::between(
@@ -718,37 +728,43 @@ sits_get_data <- function(cube,
     )
 
     # converts bands to corresponding names used by SITS
-    bands <- .source_bands_to_source(source = .cube_source(cube = cube),
-                                     collection = .cube_collection(cube = cube),
-                                     bands = bands)
+    bands <- .source_bands_to_source(
+        source = .cube_source(cube = cube),
+        collection = .cube_collection(cube = cube),
+        bands = bands
+    )
 
     # retrieve the time series from the service
-    tryCatch({
-        ts <- Rwtss::time_series(URL = .file_info_path(cube),
-                                 name = cube$collection,
-                                 attributes = bands,
-                                 longitude = longitude,
-                                 latitude = latitude,
-                                 start_date = start_date,
-                                 end_date = end_date,
-                                 token = bdc_access_key
-        )
-    },
-    warning = function(e) {
-        paste(e)
-    },
-    error = function(e) {
-        message(e)
-    })
+    tryCatch(
+        {
+            ts <- Rwtss::time_series(
+                URL = .file_info_path(cube),
+                name = cube$collection,
+                attributes = bands,
+                longitude = longitude,
+                latitude = latitude,
+                start_date = start_date,
+                end_date = end_date,
+                token = bdc_access_key
+            )
+        },
+        warning = function(e) {
+            paste(e)
+        },
+        error = function(e) {
+            message(e)
+        }
+    )
 
     # interpolate clouds
-    cld_band <- .source_bands_band_name(source = "WTSS",
-                                        collection = cube$collection,
-                                        bands = .source_cloud())
+    cld_band <- .source_bands_band_name(
+        source = "WTSS",
+        collection = cube$collection,
+        bands = .source_cloud()
+    )
 
     # retrieve values for the cloud band (if available)
     if (cld_band %in% bands) {
-
         bands <- bands[bands != cld_band]
 
         # retrieve values that indicate clouds
@@ -763,25 +779,28 @@ sits_get_data <- function(cube,
         # get information about cloud bitmask
         if (.source_cloud_bit_mask(
             source = .cube_source(cube = cube),
-            collection = .cube_collection(cube = cube))) {
-
+            collection = .cube_collection(cube = cube)
+        )) {
             cld_values <- as.matrix(cld_values)
             cld_rows <- nrow(cld_values)
-            cld_values <- matrix(bitwAnd(cld_values, sum(2 ^ cld_index)),
-                                 nrow = cld_rows)
+            cld_values <- matrix(bitwAnd(cld_values, sum(2^cld_index)),
+                                 nrow = cld_rows
+            )
         }
     }
 
-    # Retrieve values on a band by band basis
+    # retrieve values on a band by band basis
     ts_bands <- lapply(bands, function(band) {
 
         # get the values of the time series as matrix
         values_band <- ts$time_series[[1]][[band]]
 
         # convert to sits band
-        band_sits <- .source_bands_to_sits(source = cube$source[[1]],
-                                           collection = cube$collection[[1]],
-                                           bands = band)
+        band_sits <- .source_bands_to_sits(
+            source = cube$source[[1]],
+            collection = cube$collection[[1]],
+            bands = band
+        )
 
         if (!purrr::is_null(impute_fn)) {
 
@@ -807,10 +826,12 @@ sits_get_data <- function(cube,
             if (!purrr::is_null(cld_band)) {
                 if (.source_cloud_bit_mask(
                     source = .cube_source(cube = cube),
-                    collection = .cube_collection(cube = cube)))
+                    collection = .cube_collection(cube = cube)
+                )) {
                     values_band[cld_values > 0] <- NA
-                else
+                } else {
                     values_band[cld_values %in% cld_index] <- NA
+                }
             }
 
             # adjust maximum and minimum values
@@ -828,9 +849,11 @@ sits_get_data <- function(cube,
     })
 
     # rename bands to sits band names
-    bands_sits <- .source_bands_to_sits(source = cube$source[[1]],
-                                        collection = cube$collection[[1]],
-                                        bands = bands)
+    bands_sits <- .source_bands_to_sits(
+        source = cube$source[[1]],
+        collection = cube$collection[[1]],
+        bands = bands
+    )
 
     # now we have to transpose the data
     ts_samples <- ts_bands %>%
@@ -862,19 +885,19 @@ sits_get_data <- function(cube,
 #' @keywords internal
 #' @param shp_file        Shapefile that describes the data to be retrieved.
 #' @param label           Default label for samples.
-#' @param shp_attr        Shapefile attribute that describes the label
-#' @param start_date      Start date for the data set
-#' @param end_date        End date for the data set
-#' @param .n_shp_pol      Number of samples per polygon to be read
+#' @param shp_attr        Shapefile attribute that describes the label.
+#' @param start_date      Start date for the data set.
+#' @param end_date        End date for the data set.
+#' @param .n_shp_pol      Number of samples per polygon to be read.
 #'                        (for POLYGON or MULTIPOLYGON shapefile).
-#' @return                A tibble with information the samples to be retrieved
+#' @return                A tibble with information the samples to be retrieved.
 #'
 .sits_get_samples_from_shp <- function(shp_file,
                                        label,
                                        shp_attr,
                                        start_date,
                                        end_date,
-                                       .n_shp_pol){
+                                       .n_shp_pol) {
 
     # pre-condition - check the shape file and its attribute
     sf_shape <- .sits_shp_check_validity(
@@ -907,7 +930,7 @@ sits_get_data <- function(cube,
 #' @return                A tibble with information the samples to be retrieved
 #'
 .sits_get_samples_from_csv <- function(csv_file,
-                                       .n_pts_csv){
+                                       .n_pts_csv) {
 
     # read sample information from CSV file and put it in a tibble
     samples <- tibble::as_tibble(utils::read.csv(csv_file))
@@ -916,12 +939,13 @@ sits_get_data <- function(cube,
     .sits_csv_check(samples)
 
     if (!purrr::is_null(.n_pts_csv) &&
-        .n_pts_csv > 1 && .n_pts_csv < nrow(samples))
-        samples <- samples[1:.n_pts_csv,]
+        .n_pts_csv > 1 && .n_pts_csv < nrow(samples)) {
+        samples <- samples[1:.n_pts_csv, ]
+    }
 
     samples <- dplyr::mutate(samples,
-                             start_date = as.Date(start_date),
-                             end_date = as.Date(end_date)
+                             start_date = as.Date(.data[["start_date"]]),
+                             end_date = as.Date(.data[["end_date"]])
     )
 
     return(samples)

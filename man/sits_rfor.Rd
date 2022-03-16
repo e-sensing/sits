@@ -7,22 +7,22 @@
 sits_rfor(data = NULL, num_trees = 200, nodesize = 1, ...)
 }
 \arguments{
-\item{data}{time series with the training samples}
+\item{data}{Time series with the training samples.}
 
-\item{num_trees}{number of trees to grow.
+\item{num_trees}{Number of trees to grow.
 This should not be set to too small a number,
 to ensure that every input row gets predicted
 at least a few times (default: 200).}
 
-\item{nodesize}{minimum size of terminal nodes
-(default 1 for classification)}
+\item{nodesize}{Minimum size of terminal nodes
+(default 1 for classification).}
 
-\item{...}{other parameters to be passed
-to `randomForest::randomForest` function}
+\item{...}{Other parameters to be passed
+to `randomForest::randomForest` function.}
 }
 \value{
-model fitted to input data
-                        (to be passed to \code{\link[sits]{sits_classify}})
+Model fitted to input data
+                        (to be passed to \code{\link[sits]{sits_classify}}).
 }
 \description{
 Use Random Forest algorithm to classify data.
@@ -38,7 +38,6 @@ rfor_model <- sits_train(samples_MT_ndvi, sits_rfor(num_trees = 200))
 point_ndvi <- sits_select(point_mt_6bands, bands = "NDVI")
 # classify the point
 class.tb <- sits_classify(point_ndvi, rfor_model)
-
 }
 \author{
 Alexandre Ywata de Carvalho, \email{alexandre.ywata@ipea.gov.br}

@@ -7,16 +7,16 @@
 sits_patterns(data = NULL, freq = 8, formula = y ~ s(x), ...)
 }
 \arguments{
-\item{data}{A tibble in sits format with time series.}
+\item{data}{Time series.}
 
-\item{freq}{Interval in days for the estimates to be generated.}
+\item{freq}{Interval in days for estimates.}
 
 \item{formula}{Formula to be applied in the estimate.}
 
 \item{...}{Any additional parameters.}
 }
 \value{
-A sits tibble with the patterns.
+Time series with patterns.
 }
 \description{
 This function takes a set of time series samples as input

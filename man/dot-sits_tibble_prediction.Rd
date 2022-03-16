@@ -7,15 +7,15 @@
 .sits_tibble_prediction(data, class_info, prediction)
 }
 \arguments{
-\item{data}{A tibble with the input data.}
+\item{data}{Tibble with the input data.}
 
-\item{class_info}{A tibble with the information on classification.}
+\item{class_info}{Tibble with the information on classification.}
 
-\item{prediction}{A matrix with the result of the classification
+\item{prediction}{Matrix with the result of the classification
 (one class per column and one row per interval).}
 }
 \value{
-A tibble storing the predictions.
+Tibble storing the predictions.
 }
 \description{
 Create a tibble to store the results of predictions.

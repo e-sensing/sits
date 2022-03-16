@@ -7,11 +7,14 @@
 .view_get_colors(labels, legend, palette)
 }
 \arguments{
-\item{labels}{labels of the classified cube}
+\item{labels}{Labels of the classified cube.}
 
-\item{legend}{named vector that associates labels to colors}
+\item{legend}{Named vector that associates labels to colors.}
 
-\item{palette}{palette provided in the configuration file}
+\item{palette}{Palette provided in the configuration file.}
+}
+\value{
+Colors for legand of classified image.
 }
 \description{
 Return the colors associated to the classified image

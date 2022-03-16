@@ -22,11 +22,11 @@
 #' Earth Observations and Remote Sensing, 9(8):3729-3739,
 #' August 2016. ISSN 1939-1404. doi:10.1109/JSTARS.2016.2517118.
 #'
-#' @param  data          A tibble in sits format with time series.
-#' @param  freq          Interval in days for the estimates to be generated.
+#' @param  data          Time series.
+#' @param  freq          Interval in days for estimates.
 #' @param  formula       Formula to be applied in the estimate.
 #' @param  ...           Any additional parameters.
-#' @return A sits tibble with the patterns.
+#' @return               Time series with patterns.
 #'
 #' @examples
 #' \dontrun{
@@ -54,47 +54,37 @@ sits_patterns <- function(data = NULL, freq = 8, formula = y ~ s(x), ...) {
     result_fun <- function(tb) {
         # does the input data exist?
         .sits_tibble_test(tb)
-
         # find the bands of the data
         bds <- sits_bands(tb)
-
         # create a tibble to store the results
         patterns <- .sits_tibble()
-
         # what are the variables in the formula?
         vars <- all.vars(formula)
-
         # align all samples to the same time series intervals
         sample_dates <- lubridate::as_date(sits_timeline(tb))
         tb <- .sits_tibble_align_dates(tb, sample_dates)
-
         # extract the start and and dates
         start_date <- lubridate::as_date(utils::head(sample_dates, n = 1))
         end_date <- lubridate::as_date(utils::tail(sample_dates, n = 1))
-
-
         # determine the sequence of prediction times
         pred_time <- seq(
             from = lubridate::as_date(start_date),
             to = lubridate::as_date(end_date),
             by = freq
         )
-
         # how many different labels are there?
-        labels <- dplyr::distinct(tb, label)$label
+        labels <- dplyr::distinct(tb, .data[["label"]])$label
 
         # traverse labels
         patterns <- labels %>%
             purrr::map_dfr(function(lb) {
                 # filter only those rows with the same label
-                label_rows <- dplyr::filter(tb, label == lb)
+                label_rows <- dplyr::filter(tb, .data[["label"]] == lb)
 
                 # create a data frame to store the time instances
                 time <- data.frame(as.numeric(pred_time))
-
                 # name the time as the second variable of the formula
                 names(time) <- vars[2]
-
                 # store the time series associated to the pattern
                 index <- tibble::tibble(Index = lubridate::as_date(pred_time))
 
@@ -108,9 +98,11 @@ sits_patterns <- function(data = NULL, freq = 8, formula = y ~ s(x), ...) {
                         # melt the time series for each band into a long table
                         # with all values together
                         ts2 <- ts %>%
-                            tidyr::pivot_longer(cols = -Index, names_to = "variable") %>%
-                            dplyr::select(Index, value) %>%
-                            dplyr::transmute(x = as.numeric(Index), y = value)
+                            tidyr::pivot_longer(cols = -.data[["Index"]],
+                                                names_to = "variable") %>%
+                            dplyr::select(.data[["Index"]], .data[["value"]]) %>%
+                            dplyr::transmute(x = as.numeric(.data[["Index"]]),
+                                             y = .data[["value"]])
 
                         # calculate the best fit for the data set
                         fit <- mgcv::gam(data = ts2, formula = formula)

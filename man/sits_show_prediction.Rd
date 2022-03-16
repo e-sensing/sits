@@ -7,10 +7,10 @@
 sits_show_prediction(class)
 }
 \arguments{
-\item{class}{A SITS tibble that has been classified}
+\item{class}{A SITS tibble that has been classified.}
 }
 \value{
-returns a tibble with the columns "from", "to", "class"
+Tibble with the columns "from", "to", "class"
 }
 \description{
 This function takes a tibble with a classified time series

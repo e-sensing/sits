@@ -13,7 +13,8 @@
 \code{\link[sits]{.sits_cluster_dendrogram}}.}
 }
 \value{
-Vector with best number of clusters (k) and its respective height.
+Vector with best number of clusters (k)
+                        and its respective height.
 }
 \description{
 Reads a dendrogram object and its corresponding sits tibble and

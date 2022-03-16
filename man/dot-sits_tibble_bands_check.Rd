@@ -12,7 +12,7 @@
 \item{bands}{Requested bands of the data sample}
 }
 \value{
-Checked bands (cube bands if bands are NULL)
+Checked bands (cube bands if bands are NULL).
 }
 \description{
 Check that the requested bands exist in the samples

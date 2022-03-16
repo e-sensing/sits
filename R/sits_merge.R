@@ -13,35 +13,32 @@
 #' To merge data cubes, they should share the same sensor, resolution,
 #' bounding box, timeline, and have different bands.
 #'
-#' @param data1      sits tibble or cube to be merged.
-#' @param data2      sits tibble or cube to be merged.
-#' @param ...        additional parameters
+#' @param data1      Time series or cube to be merged.
+#' @param data2      Time series or cube to be merged.
+#' @param ...        Additional parameters
 #' @param suffix     If there are duplicate bands in data1 and data2
-#' these suffixes will be added to the output to disambiguate them.
+#'                   these suffixes will be added.
 #'
 #' @return merged data sets
 #'
 #' @examples {
-#' # Retrieve a time series with values of NDVI
-#' point_ndvi <- sits_select(point_mt_6bands, bands = "NDVI")
-#' # Apply Savitsky-Golay filter on NDVI
-#' point_ndvi_sg <- point_ndvi %>%
-#'    sits_filter(sits_sgolay())
+#'   # Retrieve a time series with values of NDVI
+#'   point_ndvi <- sits_select(point_mt_6bands, bands = "NDVI")
+#'   # Apply Savitsky-Golay filter on NDVI
+#'   point_ndvi_sg <- point_ndvi %>%
+#'     sits_filter(sits_sgolay())
 #'
-#' # Merge time series back
-#' point <- sits_merge(point_ndvi, point_ndvi_sg, suffix = c("", ".SG"))
+#'   # Merge time series back
+#'   point <- sits_merge(point_ndvi, point_ndvi_sg, suffix = c("", ".SG"))
 #' }
-#'
 #' @export
 #'
 sits_merge <- function(data1, data2, ..., suffix = c(".1", ".2")) {
 
     # set caller to show in errors
     .check_set_caller("sits_merge")
-
     # get the meta-type (sits or cube)
     data1 <- .config_data_meta_type(data1)
-
     UseMethod("sits_merge", data1)
 }
 
@@ -94,7 +91,7 @@ sits_merge.sits <- function(data1, data2, ..., suffix = c(".1", ".2")) {
         data1$time_series,
         data2$time_series,
         function(ts1, ts2) {
-            ts3 <- dplyr::bind_cols(ts1, dplyr::select(ts2, -Index))
+            ts3 <- dplyr::bind_cols(ts1, dplyr::select(ts2, -.data[["Index"]]))
             return(ts3)
         }
     )
@@ -117,12 +114,10 @@ sits_merge.raster_cube <- function(data1, data2, ..., suffix = c(".1", ".2")) {
         x = data1$sensor == data2$sensor,
         msg = "cubes from different sensors"
     )
-
     .check_that(
         all(.cube_resolution(data1) == .cube_resolution(data2)),
         msg = "merge cubes requires same resolution"
     )
-
     .check_that(
         length(.cube_tiles(data1)) == length(.cube_tiles(data2)),
         msg = "merge cubes requires same number of tiles"
@@ -131,22 +126,17 @@ sits_merge.raster_cube <- function(data1, data2, ..., suffix = c(".1", ".2")) {
     # para manter a pariedade
     data1 <- dplyr::arrange(data1, .data[["tile"]])
     data2 <- dplyr::arrange(data2, .data[["tile"]])
-
     .check_that(
         x = all(.cube_tiles(data1) == .cube_tiles(data2)),
         msg = "merge cubes requires same tiles"
     )
 
-    data1 <- slider::slide2_dfr(data1, data2, function(x, y){
-
+    data1 <- slider::slide2_dfr(data1, data2, function(x, y) {
         .check_that(
             x = all(sits_timeline(x) == sits_timeline(y)),
             msg = "merge cubes requires same timeline"
         )
-
-
         # are the names of the bands different?
-        # if they are not
         bands1 <- sits_bands(x)
         bands2 <- sits_bands(y)
 
@@ -155,19 +145,16 @@ sits_merge.raster_cube <- function(data1, data2, ..., suffix = c(".1", ".2")) {
         if (any(coincidences1) || any(coincidences2)) {
             bands1[coincidences1] <- paste0(bands1[coincidences1], suffix[[1]])
             bands2[coincidences2] <- paste0(bands2[coincidences2], suffix[[2]])
-
             .check_that(
                 !any(bands1 %in% bands2),
                 local_msg = "use suffix to avoid band duplication",
                 msg = "duplicated band names"
             )
-
             .check_that(
                 !any(bands2 %in% bands1),
                 local_msg = "use suffix to avoid band duplication",
                 msg = "duplicated band names"
             )
-
             x <- .sits_rename_bands(x, bands1)
             y <- .sits_rename_bands(y, bands2)
         }

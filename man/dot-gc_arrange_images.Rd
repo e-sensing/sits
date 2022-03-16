@@ -7,16 +7,16 @@
 .gc_arrange_images(cube, timeline, period, ...)
 }
 \arguments{
-\item{cube}{A sits data cube}
+\item{cube}{Data cube.}
 
-\item{timeline}{A timeline of regularized cube}
+\item{timeline}{Timeline of regularized cube}
 
-\item{period}{A period of interval to aggregate images}
+\item{period}{Period of interval to aggregate images}
 
 \item{...}{Additional parameters.}
 }
 \value{
-A sits cube with the images arranged by cloud
+Data cube with the images arranged by cloud.
 }
 \description{
 Images arrangement in sits cube

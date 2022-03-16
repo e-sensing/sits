@@ -16,21 +16,21 @@
 )
 }
 \arguments{
-\item{x}{object of class "classified_image"}
+\item{x}{Object of class "classified_image".}
 
-\item{y}{ignored}
+\item{y}{Ignored.}
 
-\item{...}{further specifications for \link{plot}.}
+\item{...}{Further specifications for \link{plot}.}
 
-\item{tiles}{tiles to be plotted}
+\item{tiles}{Tiles to be plotted.}
 
-\item{title}{title of the plot}
+\item{title}{Title of the plot.}
 
-\item{legend}{named vector that associates labels to colors}
+\item{legend}{Named vector that associates labels to colors.}
 
-\item{palette}{alternative palette that uses grDevices::hcl.pals()}
+\item{palette}{Alternative palette that uses grDevices::hcl.pals().}
 
-\item{rev}{invert the order of hcl palette (TRUE/FALSE)}
+\item{rev}{Invert the order of hcl palette?}
 }
 \description{
 plots a classified raster using ggplot.

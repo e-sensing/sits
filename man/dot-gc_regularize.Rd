@@ -7,7 +7,7 @@
 .gc_regularize(cube, period, res, output_dir, multicores = 1, progress = TRUE)
 }
 \arguments{
-\item{cube}{\code{sits_cube} object whose spacing of observation
+\item{cube}{Data cube whose spacing of observation
 times is not constant and will be regularized
 by the \code{gdalcubes} package.}
 
@@ -15,17 +15,17 @@ by the \code{gdalcubes} package.}
 with number and unit, e.g., "P16D" for 16 days.
 Use "D", "M" and "Y" for days, month and year.}
 
-\item{res}{spatial resolution of the regularized images.}
+\item{res}{Spatial resolution of the regularized images.}
 
-\item{output_dir}{valid directory where the
+\item{output_dir}{Valid directory where the
 regularized images will be written.}
 
-\item{multicores}{number of cores used for regularization.}
+\item{multicores}{Number of cores used for regularization.}
 
-\item{progress}{show progress bar?}
+\item{progress}{Show progress bar?}
 }
 \value{
-A \code{sits_cube} object with aggregated images.
+Data cube with aggregated images.
 }
 \description{
 Creates cubes with regular time intervals

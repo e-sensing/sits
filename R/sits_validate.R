@@ -22,13 +22,14 @@
 #'
 #' This function returns the confusion matrix, and Kappa values.
 #'
-#' @param data            A sits tibble.
+#' @param data            Time series.
 #' @param folds           Number of partitions to create.
 #' @param ml_method       Machine learning method.
 #' @param multicores      Number of cores for processing.
-#' @param progress        A logical value indicating if a progress bar should
-#'                        be shown
-#' @return A tibble containing pairs of reference and predicted values.
+#' @param progress        Show progress bar?
+#'
+#' @return                A tibble containing pairs of
+#'                        reference and predicted values.
 #'
 #' @examples
 #' \donttest{
@@ -36,11 +37,10 @@
 #' data(cerrado_2classes)
 #' # two fold validation with random forest
 #' acc <- sits_kfold_validate(cerrado_2classes,
-#'     folds = 2,
-#'     ml_method = sits_rfor(num_trees = 300)
+#'   folds = 2,
+#'   ml_method = sits_rfor(num_trees = 300)
 #' )
 #' }
-#'
 #' @export
 #'
 sits_kfold_validate <- function(data,
@@ -51,19 +51,10 @@ sits_kfold_validate <- function(data,
 
     # set caller to show in errors
     .check_set_caller("sits_kfold_validate")
-
     # require package
     if (!requireNamespace("caret", quietly = TRUE)) {
         stop("Please install package caret", call. = FALSE)
     }
-
-    # keras models needs sequential processing
-    call_names <- deparse(sys.call())
-    if (any(grepl("mlp", (call_names))) |
-        any(grepl("TempCNN", (call_names))) |
-        any(grepl("ResNet", (call_names))))
-        multicores <- 1
-
     # get the labels of the data
     labels <- sits_labels(data)
 
@@ -120,12 +111,12 @@ sits_kfold_validate <- function(data,
     }, progress = progress)
 
     pred <- unlist(lapply(conf_lst, function(x) x$pred))
-    ref  <- unlist(lapply(conf_lst, function(x) x$ref))
+    ref <- unlist(lapply(conf_lst, function(x) x$ref))
 
     # call caret to provide assessment
     unique_ref <- unique(ref)
-    pred_fac   <- factor(pred, levels = unique_ref)
-    ref_fac    <- factor(ref, levels = unique_ref)
+    pred_fac <- factor(pred, levels = unique_ref)
+    ref_fac <- factor(ref, levels = unique_ref)
 
     # call caret package to the classification statistics
     assess <- caret::confusionMatrix(pred_fac, ref_fac)
@@ -149,12 +140,10 @@ sits_kfold_validate <- function(data,
 .sits_create_folds <- function(data, folds = 5) {
     # verify if data exists
     .sits_tibble_test(data)
-
     # splits the data into k groups
     data$folds <- caret::createFolds(data$label,
                                      k = folds,
                                      returnTrain = FALSE, list = FALSE
     )
-
     return(data)
 }

@@ -41,7 +41,6 @@ sits_bands(cerrado_2classes)
 data <- sits_select(cerrado_2classes, bands = c("NDVI"))
 # Print the labels of the resulting tibble
 sits_bands(data)
-
 }
 \author{
 Rolf Simoes, \email{rolf.simoes@inpe.br}

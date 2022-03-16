@@ -1,7 +1,6 @@
 #' @title Supported raster packages
 #' @keywords internal
 .raster_supported_packages <- function() {
-
     return(c("terra"))
 }
 
@@ -12,7 +11,6 @@
 #'
 #' @return package representation class
 .raster_check_package <- function() {
-
     pkg_class <- .config_raster_pkg()
     class(pkg_class) <- pkg_class
 
@@ -46,7 +44,6 @@
         x = block[["nrows"]] > 0 && block[["ncols"]] > 0,
         msg = "invalid block"
     )
-
 }
 
 #' @title Check for bbox object consistency
@@ -70,7 +67,6 @@
         x = bbox[["ymin"]] < bbox[["ymax"]],
         msg = "invalid 'bbox' parameter"
     )
-
 }
 
 #' @title Convert internal data type to gdal data type
@@ -86,13 +82,16 @@
     names(gdal_data_types) <- .raster_gdal_datatypes(sits_names = TRUE)
 
     # check data_type type
-    .check_chr(data_type, len_min = 1, len_max = 1,
-               msg = "invalid 'data_type' parameter")
+    .check_chr(data_type,
+               len_min = 1, len_max = 1,
+               msg = "invalid 'data_type' parameter"
+    )
 
     .check_chr_within(data_type,
                       within = .raster_gdal_datatypes(sits_names = TRUE),
                       discriminator = "one_of",
-                      msg = "invalid 'data_type' parameter")
+                      msg = "invalid 'data_type' parameter"
+    )
 
     # convert
     return(gdal_data_types[[data_type]])
@@ -105,13 +104,17 @@
 #'
 #' @return a \code{character} with datatypes.
 .raster_gdal_datatypes <- function(sits_names = TRUE) {
+    if (sits_names) {
+        return(c(
+            "INT1U", "INT2U", "INT2S", "INT4U", "INT4S",
+            "FLT4S", "FLT8S"
+        ))
+    }
 
-    if (sits_names)
-        return(c("INT1U", "INT2U", "INT2S", "INT4U", "INT4S",
-                 "FLT4S", "FLT8S"))
-
-    return(c("Byte", "UInt16", "Int16", "UInt32", "Int32",
-             "Float32", "Float64"))
+    return(c(
+        "Byte", "UInt16", "Int16", "UInt32", "Int32",
+        "Float32", "Float64"
+    ))
 }
 
 
@@ -370,12 +373,13 @@
                                method = "bilinear") {
 
     # check out_size
-    if (!purrr::is_null(out_size))
-    .check_chr_contains(
-        names(out_size),
-        contains = c("nrows", "ncols"),
-        msg = "invalid 'out_size' parameter"
-    )
+    if (!purrr::is_null(out_size)) {
+        .check_chr_contains(
+            names(out_size),
+            contains = c("nrows", "ncols"),
+            msg = "invalid 'out_size' parameter"
+        )
+    }
 
     # check method
     .check_chr_within(
@@ -386,7 +390,6 @@
 
     # check block
     if (!purrr::is_null(block)) {
-
         .raster_check_block(block = block)
     }
 
@@ -419,12 +422,14 @@
     )
 
     # check block
-    if (!is.null(block))
+    if (!is.null(block)) {
         .raster_check_block(block = block)
+    }
 
     # check bbox
-    if (!is.null(bbox))
+    if (!is.null(bbox)) {
         .raster_check_bbox(bbox = bbox)
+    }
 
     # check package
     pkg_class <- .raster_check_package()
@@ -543,15 +548,15 @@
 #' @keywords internal
 .raster_bbox <- function(r_obj, ...,
                          block = NULL) {
-
     if (is.null(block)) {
         # return a named bbox
-        bbox <- c(xmin = .raster_xmin(r_obj),
-                  xmax = .raster_xmax(r_obj),
-                  ymin = .raster_ymin(r_obj),
-                  ymax = .raster_ymax(r_obj))
+        bbox <- c(
+            xmin = .raster_xmin(r_obj),
+            xmax = .raster_xmax(r_obj),
+            ymin = .raster_ymin(r_obj),
+            ymax = .raster_ymax(r_obj)
+        )
     } else {
-
         r_crop <- .raster_crop(.raster_rast(r_obj = r_obj), block = block)
         bbox <- .raster_bbox(r_crop)
     }
@@ -564,8 +569,10 @@
 .raster_res <- function(r_obj, ...) {
 
     # return a named resolution
-    res <- list(xres = .raster_xres(r_obj),
-                yres = .raster_yres(r_obj))
+    res <- list(
+        xres = .raster_xres(r_obj),
+        yres = .raster_yres(r_obj)
+    )
 
     return(res)
 }
@@ -575,8 +582,10 @@
 .raster_size <- function(r_obj, ...) {
 
     # return a named size
-    size <- list(nrows = .raster_nrows(r_obj),
-                 ncols = .raster_ncols(r_obj))
+    size <- list(
+        nrows = .raster_nrows(r_obj),
+        ncols = .raster_ncols(r_obj)
+    )
 
     return(size)
 }
@@ -716,8 +725,9 @@
     )
 
     # delete result file
-    if (file.exists(out_file))
+    if (file.exists(out_file)) {
         unlink(out_file)
+    }
 
     # maximum files to merge at a time
     # this value was obtained empirically
@@ -737,17 +747,19 @@
             loop_files,
             rep(seq_len(ceiling(length(loop_files) / group_len)),
                 each = group_len,
-                length.out = length(loop_files)), c
+                length.out = length(loop_files)
+            ), c
         )
 
         # merge groups
         loop_files <- .sits_parallel_map(group_files, function(group) {
-
             srcfile <- unlist(group)
 
             # temp output file
-            dstfile <- tempfile(tmpdir = dirname(out_file[[1]]),
-                                fileext = ".tif")
+            dstfile <- tempfile(
+                tmpdir = dirname(out_file[[1]]),
+                fileext = ".tif"
+            )
 
             # merge using gdal warp
             gdalUtilities::gdalwarp(
@@ -769,7 +781,6 @@
 
         # delete temp files
         delete_files <- TRUE
-
     }
 
     # in_files is the output of above loop
@@ -780,5 +791,3 @@
 
     return(invisible(NULL))
 }
-
-

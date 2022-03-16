@@ -12,9 +12,7 @@
 #' @export
 #'
 sits_timeline <- function(data) {
-
     .check_set_caller("sits_timeline")
-
     # get the meta-type (sits or cube)
     data <- .config_data_meta_type(data)
 
@@ -45,9 +43,9 @@ sits_timeline.raster_cube <- function(data) {
     names(timelines.lst) <- data$tile
     timeline_unique <- unname(unique(timelines.lst))
 
-    if (length(timeline_unique) == 1)
+    if (length(timeline_unique) == 1) {
         return(timeline_unique[[1]])
-    else {
+    } else {
         warning("Cube is not regular. Returning all timelines")
         return(timelines.lst)
     }
@@ -58,10 +56,11 @@ sits_timeline.raster_cube <- function(data) {
 sits_timeline.satveg_cube <- function(data) {
 
     # retrieve the time series
-    ts <- .sits_satveg_ts_from_txt(longitude = -55.50563,
-                                   latitude = -11.71557,
-                                   data)
-
+    ts <- .sits_satveg_ts_from_txt(
+        longitude = -55.50563,
+        latitude = -11.71557,
+        data
+    )
     # return the timeline of the cube
     return(as.Date(ts$Index))
 }
@@ -80,18 +79,16 @@ sits_timeline.probs_cube <- function(data) {
 
     # return the timeline of the cube
     start_date <- .file_info_start_date(data)
-    end_date   <- .file_info_end_date(data)
+    end_date <- .file_info_end_date(data)
     timeline_probs <- c(start_date, end_date)
     return(timeline_probs)
 }
-
 #' @export
 #'
 sits_timeline.uncertainty_cube <- function(data) {
-
     # return the timeline of the cube
     start_date <- .file_info_start_date(data)
-    end_date   <- .file_info_end_date(data)
+    end_date <- .file_info_end_date(data)
     timeline_uncert <- c(start_date, end_date)
     return(timeline_uncert)
 }
@@ -101,8 +98,7 @@ sits_timeline.classified_image <- function(data) {
 
     # return the timeline of the cube
     start_date <- .file_info_start_date(data)
-    end_date   <- .file_info_end_date(data)
-
+    end_date <- .file_info_end_date(data)
     timeline_class <- c(start_date, end_date)
     return(timeline_class)
 }
@@ -129,7 +125,6 @@ sits_timeline.classified_image <- function(data) {
 
     # get the timeline
     timeline <- sits_timeline(cube)
-
     # if null use the cube timeline, else test if dates are valid
     if (purrr::is_null(start_date)) {
         start_date <- lubridate::as_date(timeline[1])
@@ -147,7 +142,6 @@ sits_timeline.classified_image <- function(data) {
             msg = paste("end_date is not inside the cube timeline")
         )
     }
-
     # build a vector to return the values
     start_end <- c(lubridate::as_date(start_date), lubridate::as_date(end_date))
     names(start_end) <- c("start_date", "end_date")
@@ -187,42 +181,36 @@ sits_timeline.classified_image <- function(data) {
 
     # find the timeline
     timeline <- sits_timeline(data)
-
     # precondition is the timeline correct?
     .check_length(
         x = timeline,
         len_min = 1,
         msg = "sits_timeline_class_info: invalid timeline"
     )
-
     # precondition: are the samples valid?
     .sits_tibble_test(samples)
-
     # find the labels
     labels <- sits_labels(samples)
     # find the bands
     bands <- sits_bands(samples)
-
     # what is the reference start date?
     ref_start_date <- lubridate::as_date(samples[1, ]$start_date)
     # what is the reference end date?
     ref_end_date <- lubridate::as_date(samples[1, ]$end_date)
-
     # number of samples
     num_samples <- nrow(samples[1, ]$time_series[[1]])
-
     # obtain the reference dates that match the patterns in the full timeline
-    ref_dates <- .sits_timeline_match(timeline,
-                                      ref_start_date,
-                                      ref_end_date,
-                                      num_samples)
-
+    ref_dates <- .sits_timeline_match(
+        timeline,
+        ref_start_date,
+        ref_end_date,
+        num_samples
+    )
     # obtain the indexes of the timeline that match the reference dates
     dates_index <- .sits_timeline_match_indexes(timeline, ref_dates)
-
     # find the number of the samples
     nsamples <- dates_index[[1]][2] - dates_index[[1]][1] + 1
-
+    # create a class_info tibble to be used in the classification
     class_info <- tibble::tibble(
         bands = list(bands),
         labels = list(labels),
@@ -256,9 +244,12 @@ sits_timeline.classified_image <- function(data) {
 .sits_timeline_valid_date <- function(date, timeline) {
 
     # is the date inside the timeline?
-    if (date %within% lubridate::interval(timeline[1],
-                                          timeline[length(timeline)]))
+    if (date %within% lubridate::interval(
+        timeline[1],
+        timeline[length(timeline)]
+    )) {
         return(TRUE)
+    }
 
     # what is the difference in days between the last two days of the timeline?
     timeline_diff <- as.integer(timeline[2] - timeline[1])
@@ -278,7 +269,6 @@ sits_timeline.classified_image <- function(data) {
     if (abs(as.integer(date - timeline[length(timeline)])) <= timeline_diff) {
         return(TRUE)
     }
-
     return(FALSE)
 }
 
@@ -294,10 +284,10 @@ sits_timeline.classified_image <- function(data) {
 #'              should be aligned to that of the reference data set.
 #'              This function aligns these data sets.
 #'
-#' @param timeline              timeline of input observations (vector).
-#' @param ref_start_date        reference for starting the classification.
-#' @param ref_end_date          reference for end the classification.
-#' @param num_samples           number of samples.
+#' @param timeline              Timeline of input observations (vector).
+#' @param ref_start_date        Reference for starting the classification.
+#' @param ref_end_date          Reference for ending the classification.
+#' @param num_samples           Number of samples.
 #'
 #' @return A list of breaks that will be applied to the input data set.
 #'
@@ -312,22 +302,21 @@ sits_timeline.classified_image <- function(data) {
 
     # make sure the timelines is a valid set of dates
     timeline <- lubridate::as_date(timeline)
-
     # define the input start and end dates
     input_start_date <- timeline[1]
-
     # what is the expected start and end dates based on the patterns?
     ref_st_mday <- as.character(lubridate::mday(ref_start_date))
     ref_st_month <- as.character(lubridate::month(ref_start_date))
     year_st_date <- as.character(lubridate::year(input_start_date))
-    est_start_date <- lubridate::as_date(paste0(year_st_date, "-",
-                                                ref_st_month, "-",
-                                                ref_st_mday)
-    )
+    est_start_date <- lubridate::as_date(paste0(
+        year_st_date, "-",
+        ref_st_month, "-",
+        ref_st_mday
+    ))
+
     # find the actual starting date by searching the timeline
     idx_start_date <- which.min(abs(est_start_date - timeline))
     start_date <- timeline[idx_start_date]
-
     # is the start date a valid one?
     .check_that(
         x = .sits_timeline_valid_date(start_date, timeline),
@@ -337,17 +326,16 @@ sits_timeline.classified_image <- function(data) {
     # obtain the subset dates to break the input data set
     # adjust the dates to match the timeline
     subset_dates <- list()
-
     # what is the expected end date of the classification?
     idx_end_date <- idx_start_date + (num_samples - 1)
-
     end_date <- timeline[idx_end_date]
-
     # is the start date a valid one?
     .check_that(
         x = !(is.na(end_date)),
-        msg = paste("start and end date do not match timeline/n",
-                    "Please compare your timeline with your samples")
+        msg = paste(
+            "start and end date do not match timeline/n",
+            "Please compare your timeline with your samples"
+        )
     )
 
     # go through the timeline of the data
@@ -369,7 +357,6 @@ sits_timeline.classified_image <- function(data) {
         x = .sits_timeline_valid_date(end_date, timeline),
         msg = "end_date not inside timeline"
     )
-
     return(subset_dates)
 }
 
@@ -430,13 +417,10 @@ sits_timeline.classified_image <- function(data) {
 
     # set caller to show in errors
     .check_set_caller(".sits_timeline_dist_indexes")
-
     # find the subsets of the input data
     dates_index <- class_info$dates_index[[1]]
-
     # retrieve the timeline of the data
     timeline <- class_info$timeline[[1]]
-
     # retrieve the bands
     bands <- class_info$bands[[1]]
     n_bands <- length(bands)
@@ -444,10 +428,9 @@ sits_timeline.classified_image <- function(data) {
         x = n_bands > 0,
         msg = "no bands in cube"
     )
-
     # retrieve the time index
     time_index <- .sits_timeline_idx_from_dates(dates_index, timeline, bands)
-
+    # create a list to store the output
     size_lst <- n_bands * ntimes + 2
 
     dist_indexes <- purrr::map(time_index, function(idx) {
@@ -516,7 +499,6 @@ sits_timeline.classified_image <- function(data) {
 
     # set caller to show in errors
     .check_set_caller(".sits_timeline_during")
-
     # obtain the start and end indexes
     if (purrr::is_null(start_date)) {
         start_date <- timeline[1]
@@ -526,11 +508,12 @@ sits_timeline.classified_image <- function(data) {
     }
     valid <- timeline >= lubridate::as_date(start_date) &
         timeline <= lubridate::as_date(end_date)
-
     .check_that(
         x = any(valid),
-        msg = paste("no valid data between ",
-                    as.Date(start_date), " and ", as.Date(end_date))
+        msg = paste(
+            "no valid data between ",
+            as.Date(start_date), " and ", as.Date(end_date)
+        )
     )
     return(timeline[valid])
 }
@@ -547,36 +530,32 @@ sits_timeline.classified_image <- function(data) {
 
     # set caller to show in errors
     .check_set_caller(".sits_timeline_date_format")
-
     .check_length(
         x = date,
         len_min = 1,
-        msg = "invalid date parameter")
-
+        msg = "invalid date parameter"
+    )
     # check type of date interval
     converted_date <- purrr::map_dbl(date, function(dt) {
-        if (length(strsplit(dt, "-")[[1]]) == 1)
+        if (length(strsplit(dt, "-")[[1]]) == 1) {
             converted_date <- lubridate::fast_strptime(dt, "%Y")
-        else if (length(strsplit(dt, "-")[[1]]) == 2)
+        } else if (length(strsplit(dt, "-")[[1]]) == 2) {
             converted_date <- lubridate::fast_strptime(dt, "%Y-%m")
-        else
+        } else {
             converted_date <- lubridate::fast_strptime(dt, "%Y-%m-%d")
-
+        }
         # transform to date object
         converted_date <- lubridate::as_date(converted_date)
-
         # check if there are NAs values
         .check_that(
             x = !is.na(converted_date),
             msg = paste0("invalid date format '", dt, "' in file name")
         )
-
         return(converted_date)
     })
 
     # convert to a vector of dates
     converted_date <- lubridate::as_date(converted_date)
-
     # post-condition
     .check_length(
         x = converted_date,
@@ -584,7 +563,6 @@ sits_timeline.classified_image <- function(data) {
         len_max = length(date),
         msg = "invalid date values"
     )
-
     return(converted_date)
 }
 
@@ -600,11 +578,10 @@ sits_timeline.classified_image <- function(data) {
 #' @return       TRUE if the length of time series is unique
 #'
 .sits_timeline_check <- function(data) {
-
     .sits_tibble_test(data)
-
-    if (length(unique(lapply(data$time_series, nrow))) == 1)
+    if (length(unique(lapply(data$time_series, nrow))) == 1) {
         return(TRUE)
-    else
+    } else {
         return(FALSE)
+    }
 }

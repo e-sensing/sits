@@ -28,35 +28,34 @@ sits_classify(data, ml_model, ...)
 )
 }
 \arguments{
-\item{data}{data cube}
+\item{data}{Data cube.}
 
 \item{ml_model}{R model trained by \code{\link[sits]{sits_train}}.}
 
-\item{...}{other parameters to be passed to specific functions}
+\item{...}{Other parameters for specific functions.}
 
-\item{filter_fn}{smoothing filter to be applied (if desired).}
+\item{filter_fn}{Smoothing filter to be applied (if desired).}
 
-\item{multicores}{number of cores to be used for classification.}
+\item{multicores}{Number of cores to be used for classification.}
 
-\item{roi}{a region of interest (see below)}
+\item{roi}{Region of interest (see below)}
 
-\item{impute_fn}{impute function to replace NA}
+\item{impute_fn}{Impute function to replace NA.}
 
-\item{start_date}{starting date for the classification}
+\item{start_date}{Start date for the classification.}
 
-\item{end_date}{end date for the classification}
+\item{end_date}{End date for the classification.}
 
-\item{memsize}{memory available for classification (in GB).}
+\item{memsize}{Memory available for classification (in GB).}
 
-\item{output_dir}{directory for output file}
+\item{output_dir}{Directory for output file.}
 
-\item{version}{version of the output (for multiple
-classifications)}
+\item{version}{Version of the output (for multiple
+classifications).}
 
-\item{verbose}{print information about processing time?}
+\item{verbose}{Print information about processing time?}
 
-\item{progress}{a logical value indicating if a progress bar
-should be shown}
+\item{progress}{Show progress bar?}
 }
 \value{
 Predicted data (classified time series)
@@ -105,31 +104,33 @@ The "roi" parameter defines a region of interest. It can be
 # Retrieve the samples for Mato Grosso
 # select an extreme gradient boosting model
 samples_2bands <- sits_select(samples_modis_4bands,
-                            bands = c("EVI", "NDVI"))
+  bands = c("EVI", "NDVI")
+)
 xgb_model <- sits_train(samples_2bands,
-    ml_method = sits_xgboost(verbose = FALSE)
+  ml_method = sits_xgboost(verbose = FALSE)
 )
 # classify the point
 point_2bands <- sits_select(point_mt_6bands,
-                            bands = c("EVI", "NDVI"))
+  bands = c("EVI", "NDVI")
+)
 point_class <- sits_classify(point_2bands, xgb_model)
 plot(point_class)
 
 # create a data cube based on files
 data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
 cube <- sits_cube(
-    source = "BDC",
-    collection = "MOD13Q1-6",
-    data_dir = data_dir,
-    delim = "_",
-    parse_info = c("X1", "X2", "tile", "band", "date")
+  source = "BDC",
+  collection = "MOD13Q1-6",
+  data_dir = data_dir,
+  delim = "_",
+  parse_info = c("X1", "X2", "tile", "band", "date")
 )
 
 # classify the raster image
 probs_cube <- sits_classify(cube,
-    ml_model = xgb_model,
-    output_dir = tempdir(),
-    memsize = 4, multicores = 2
+  ml_model = xgb_model,
+  output_dir = tempdir(),
+  memsize = 4, multicores = 2
 )
 
 # label the classified image

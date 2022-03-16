@@ -7,9 +7,9 @@
 .sits_get_data_check(n_rows_input, n_rows_output)
 }
 \arguments{
-\item{n_rows_input}{Number of rows in input}
+\item{n_rows_input}{Number of rows in input.}
 
-\item{n_rows_output}{Number of rows in output}
+\item{n_rows_output}{Number of rows in output.}
 }
 \value{
 A logical value

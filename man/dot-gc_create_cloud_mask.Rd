@@ -7,10 +7,10 @@
 .gc_create_cloud_mask(cube)
 }
 \arguments{
-\item{cube}{a sits cube object}
+\item{cube}{Data cube.}
 }
 \value{
-A \code{gdalcubes::image_mask} with information about mask band.
+\code{Gdalcubes::image_mask} with information about mask band.
 }
 \description{
 Create an gdalcubes::image_mask object

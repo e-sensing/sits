@@ -20,19 +20,18 @@
 \arguments{
 \item{tile}{A unique tile from \code{sits_cube} object}
 
-\item{band_paths}{A \code{character} with paths for a unique band}
+\item{band_paths}{Paths for one band}
 
-\item{resolution}{A \code{numeric} with spatial resolution of the image
+\item{resolution}{Spatial resolution of the image
 that will be aggregated.}
 
-\item{resampling}{A \code{character} with method to be used  for resampling
-in mosaic operation. Options: \code{near}, \code{bilinear}, \code{bicubic},
-\code{cubicspline}, and \code{lanczos}. Default is bilinear.}
+\item{resampling}{Resampling method.
+\code{cubicspline}, and \code{lanczos}.}
 
-\item{block}{A \code{numeric} vector with information about a block}
+\item{block}{Information about a block.}
 }
 \value{
-A \code{SpatRast} object resampled
+A \code{SpatRast} object resampled.
 }
 \description{
 Preprocessing steps of sits regularize

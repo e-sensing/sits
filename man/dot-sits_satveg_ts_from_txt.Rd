@@ -7,14 +7,14 @@
 .sits_satveg_ts_from_txt(longitude, latitude, cube)
 }
 \arguments{
-\item{longitude}{The longitude of the chosen location.}
+\item{longitude}{Longitude of the chosen location.}
 
-\item{latitude}{The latitude of the chosen location.}
+\item{latitude}{Latitude of the chosen location.}
 
-\item{cube}{SATVEG cube}
+\item{cube}{SATVEG cube.}
 }
 \value{
-A tibble containing a time series
+A tibble containing a time series.
 }
 \description{
 Retrieves a time series from the SATVEG service.

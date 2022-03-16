@@ -10,7 +10,7 @@
 \item{samples}{A tibble with `cluster` column.}
 }
 \value{
-A vector with four external validity indices.
+A vector with four validity indices.
 }
 \description{
 Compute different cluster validity indices. This function needs

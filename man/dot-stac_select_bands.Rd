@@ -7,11 +7,11 @@
 .stac_select_bands(items, bands_source, bands_sits)
 }
 \arguments{
-\item{items}{a \code{STACItemcollection} object from rstac package.}
+\item{items}{\code{STACItemcollection} object from rstac package.}
 
-\item{bands_source}{a \code{character} with source bands (provider bands).}
+\item{bands_source}{Source bands (provider bands).}
 
-\item{bands_sits}{a \code{character} with sits bands.}
+\item{bands_sits}{Sits bands.}
 }
 \value{
 a \code{STACItemcollection} object with selected items by bands.

@@ -28,30 +28,31 @@ sits_view(x, ...)
 \method{sits_view}{classified_image}(x, ..., tiles = NULL, legend = NULL, palette = "default")
 }
 \arguments{
-\item{x}{object of class "sits", "raster_cube" or "classified image"}
+\item{x}{Object of class "sits",
+"raster_cube" or "classified image".}
 
-\item{...}{further specifications for \link{sits_view}.}
+\item{...}{Further specifications for \link{sits_view}.}
 
-\item{legend}{named vector that associates labels to colors}
+\item{legend}{Named vector that associates labels to colors.}
 
-\item{palette}{palette provided in the configuration file}
+\item{palette}{Palette provided in the configuration file.}
 
-\item{band}{for plotting grey images}
+\item{band}{For plotting grey images.}
 
-\item{red}{band for red color.}
+\item{red}{Band for red color.}
 
-\item{green}{band for green color.}
+\item{green}{Band for green color.}
 
-\item{blue}{band for blue color.}
+\item{blue}{Band for blue color.}
 
-\item{tiles}{tiles to be plotted (in case of a multi-tile cube).}
+\item{tiles}{Tiles to be plotted (in case of a multi-tile cube).}
 
-\item{dates}{dates to be plotted}
+\item{dates}{Dates to be plotted.}
 
-\item{class_cube}{classified cube to be overlayed on top on image}
+\item{class_cube}{Classified cube to be overlayed on top on image.}
 }
 \value{
-leaflet object
+Leaflet object.
 }
 \description{
 Uses leaflet to visualize time series, raster cube and classified images
@@ -66,11 +67,11 @@ sits_view(samples_modis_4bands)
 data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
 
 modis_cube <- sits_cube(
-    source = "BDC",
-    collection = "MOD13Q1-6",
-    bands = c("NDVI", "EVI"),
-    data_dir = data_dir,
-    parse_info = c("X1", "X2", "tile", "band", "date")
+  source = "BDC",
+  collection = "MOD13Q1-6",
+  bands = c("NDVI", "EVI"),
+  data_dir = data_dir,
+  parse_info = c("X1", "X2", "tile", "band", "date")
 )
 
 # plot the data cube

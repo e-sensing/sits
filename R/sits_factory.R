@@ -17,7 +17,7 @@
 #' for filtering, pattern creation, training, and cross-validation
 #'
 #' @param data      Tibble with time series data and metadata.
-#' @param fun       The function that performs calculation on the input data.
+#' @param fun       Function that performs calculation on the input data.
 .sits_factory_function <- function(data, fun) {
     # if no data is given, we prepare a
     # function to be called as a parameter of other functions
@@ -29,4 +29,3 @@
     }
     return(result)
 }
-

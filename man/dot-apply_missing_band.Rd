@@ -7,13 +7,13 @@
 .apply_missing_band(cube, band)
 }
 \arguments{
-\item{cube}{a sits cube object}
+\item{cube}{Data cube.}
 
-\item{band}{a \code{character} band name}
+\item{band}{Band name.}
 }
 \value{
-list of combination among tiles, bands, and dates that are missing
-from the cube
+List of combination among tiles, bands, and dates
+                  that are missing from the cube.
 }
 \description{
 Finds the missing bands in a cube

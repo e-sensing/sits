@@ -3,12 +3,12 @@
 \name{.stac_add_gdal_vsi}
 \alias{.stac_add_gdal_vsi}
 \alias{.stac_add_gdal_fs}
-\title{Add gdal file system in a href}
+\title{Add href locator to gdal file}
 \usage{
 .stac_add_gdal_fs(href)
 }
 \arguments{
-\item{href}{a \code{character} with link to the asset object.}
+\item{href}{Link to the asset object.}
 }
 \value{
 a \code{character} with the signed href.

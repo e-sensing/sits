@@ -63,8 +63,8 @@
 #' # using the TWDTW algorithm
 #' # (uses the dtwSat R package)
 #' matches <- sits_twdtw_classify(point, patterns,
-#'     bands = c("NDVI", "EVI"),
-#'     alpha = -0.1, beta = 100, theta = 0.5, keep = TRUE
+#'   bands = c("NDVI", "EVI"),
+#'   alpha = -0.1, beta = 100, theta = 0.5, keep = TRUE
 #' )
 #' }
 #' @export
@@ -81,7 +81,7 @@ sits_twdtw_classify <- function(samples,
                                 end_date = NULL,
                                 interval = "12 month",
                                 overlap = 0.5,
-                                .plot   = TRUE) {
+                                .plot = TRUE) {
     # verifies if dtwSat package is installed
     if (!(suppressWarnings(requireNamespace("dtwSat", quietly = TRUE)))) {
         stop("Please install package dtwSat", call. = FALSE)
@@ -125,25 +125,27 @@ sits_twdtw_classify <- function(samples,
             return(matches)
         })
 
-    if (.plot)
+    if (.plot) {
         .sits_plot_twdtw_alignments(matches_lst)
+    }
 
     # Classify a sits tibble using the matches found by the TWDTW methods
     samples <- .sits_twdtw_breaks(matches_lst,
-        samples,
-        start_date = start_date,
-        end_date = end_date,
-        interval,
-        overlap
+                                  samples,
+                                  start_date = start_date,
+                                  end_date = end_date,
+                                  interval,
+                                  overlap
     )
     # plot the classification
-    if (.plot)
+    if (.plot) {
         .sits_plot_twdtw_class(matches_lst,
                                start_date = start_date,
                                end_date = end_date,
                                interval = interval,
                                overlap = overlap
         )
+    }
     return(samples)
 }
 
@@ -186,7 +188,8 @@ sits_twdtw_classify <- function(samples,
 
     # create a tibble to store the results
     predicted_lst <-
-        purrr::map2(matches, seq_len(nrow(samples)),
+        purrr::map2(
+            matches, seq_len(nrow(samples)),
             function(match, i) {
                 if (purrr::is_null(start_date)) {
                     start_date <- lubridate::as_date(samples[i, ]$start_date)
@@ -202,10 +205,11 @@ sits_twdtw_classify <- function(samples,
                     by = interval,
                     overlap = overlap
                 )
-            predicted <- .sits_twdtw_matches_to_prediction(twdtw_obj)
-            # add the classification results to the input row
-            return(predicted)
-        })
+                predicted <- .sits_twdtw_matches_to_prediction(twdtw_obj)
+                # add the classification results to the input row
+                return(predicted)
+            }
+        )
     samples$predicted <- predicted_lst
 
     return(samples)
@@ -240,8 +244,8 @@ sits_twdtw_classify <- function(samples,
 
     # create a new twdtwTimeSeries object from list above
     ts_twdtw <- methods::new("twdtwTimeSeries",
-        timeseries = ts,
-        labels = as.character(samples$label)
+                             timeseries = ts,
+                             labels = as.character(samples$label)
     )
     return(ts_twdtw)
 }
@@ -257,8 +261,8 @@ sits_twdtw_classify <- function(samples,
 #' @return A list with information on the matches
 .sits_twdtw_matches_to_prediction <- function(match) {
     results <- tibble::as_tibble(match[[1]]) %>%
-        dplyr::mutate(predicted = as.character(label)) %>%
-        dplyr::select(-Alig.N, -label) %>%
+        dplyr::mutate(predicted = as.character(.data[["label"]])) %>%
+        dplyr::select(-.data[["Alig.N"]], -.data[["label"]]) %>%
         list()
     return(results)
 }

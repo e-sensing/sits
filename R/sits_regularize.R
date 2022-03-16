@@ -23,13 +23,13 @@
 #'                          data cubes, with number and unit, where
 #'                          "D", "M" and "Y" stand for days, month and year;
 #'                           e.g., "P16D" for 16 days.
-#' @param res               spatial resolution of regularized images (in meters).
-#' @param output_dir        valid directory for storing regularized images.
-#' @param multicores        number of cores used for regularization;
+#' @param res               Spatial resolution of regularized images (in meters).
+#' @param output_dir        Valid directory for storing regularized images.
+#' @param multicores        Number of cores used for regularization;
 #'                          used for parallel processing of input.
-#' @param memsize           memory available for regularization (in GB).
+#' @param memsize           Memory available for regularization (in GB).
 #' @param progress          show progress bar?
-#' @param use_gdalcubes     use gdalcubes package? (see details).
+#' @param use_gdalcubes     Use gdalcubes package? (see details).
 #'
 #' @param ...               deprecated parameters are controlled with ellipses.
 #'
@@ -85,7 +85,6 @@ sits_regularize <- function(cube,
                             memsize = 4,
                             progress = TRUE,
                             use_gdalcubes = FALSE, ...) {
-
     if (use_gdalcubes) {
         return(.gc_regularize(
             cube = cube,
@@ -95,7 +94,6 @@ sits_regularize <- function(cube,
             multicores = multicores,
             progress = progress
         ))
-
     }
 
     # else...
@@ -132,20 +130,24 @@ sits_regularize <- function(cube,
 
     dots <- list(...)
 
-    if ("agg_method" %in% names(dots))
+    if ("agg_method" %in% names(dots)) {
         message(
-            paste("'sits_regularize' no longer supports the 'agg_method'",
-                  "parameter. Now the first clean pixel is chosen for",
-                  "aggregation."
+            paste(
+                "'sits_regularize' no longer supports the 'agg_method'",
+                "parameter. Now the first clean pixel is chosen for",
+                "aggregation."
             )
         )
+    }
 
-    if ("roi" %in% names(dots))
+    if ("roi" %in% names(dots)) {
         message(
-            paste("'sits_regularize' no longer supports the 'roi'",
-                  "parameter. Now the entire tile is processed by default."
+            paste(
+                "'sits_regularize' no longer supports the 'roi'",
+                "parameter. Now the entire tile is processed by default."
             )
         )
+    }
 
     # check documentation mode
     progress <- .check_documentation(progress)
@@ -153,9 +155,11 @@ sits_regularize <- function(cube,
     # precondition - test if provided object is a raster cube
     .check_that(
         x = inherits(cube, "raster_cube"),
-        msg = paste("provided cube is invalid,",
-                    "please provide a 'raster_cube' object.",
-                    "see '?sits_cube' for more information.")
+        msg = paste(
+            "provided cube is invalid,",
+            "please provide a 'raster_cube' object.",
+            "see '?sits_cube' for more information."
+        )
     )
 
     # precondition - check output dir fix
@@ -169,16 +173,18 @@ sits_regularize <- function(cube,
 
     # precondition - is the period valid?
     .check_na(lubridate::duration(period),
-              msg = "invalid period specified")
+              msg = "invalid period specified"
+    )
 
     # TODO: check resolution as a multiple of input cube
     # precondition - is the resolution valid?
-    .check_num(x = res,
-               allow_zero = FALSE,
-               min = 0,
-               len_min = 1,
-               len_max = 1,
-               msg = "a valid resolution needs to be provided"
+    .check_num(
+        x = res,
+        allow_zero = FALSE,
+        min = 0,
+        len_min = 1,
+        len_max = 1,
+        msg = "a valid resolution needs to be provided"
     )
 
     # check if output resolution is multiple of all input bands
@@ -186,13 +192,16 @@ sits_regularize <- function(cube,
         all(slider::slide_lgl(cube, function(tile) {
             res_tile <- .cube_resolution(cube = tile, bands = band)
             .is_int(max(res_tile[["yres"]], res) / min(res_tile[["yres"]], res),
-                    tolerance = 0.01)
+                    tolerance = 0.01
+            )
         }))
     })
     .check_that(
         all(is_valid_res),
-        local_msg = paste0("provided resolution should be a multiple of",
-                           "all input bands resolution"),
+        local_msg = paste0(
+            "provided resolution should be a multiple of",
+            "all input bands resolution"
+        ),
         msg = "invalid 'res' parameter"
     )
 
@@ -223,19 +232,21 @@ sits_regularize <- function(cube,
     # TODO: check if files are corrupt?
 
     # does a local cube exist
-    local_cube <- tryCatch({
-        sits_cube(
-            source = .cube_source(cube),
-            collection = .cube_collection(cube),
-            data_dir = output_dir,
-            parse_info = .config_get("reg_file_parse_info"),
-            multicores = multicores,
-            progress = TRUE
-        )
-    },
-    error = function(e) {
-        return(NULL)
-    })
+    local_cube <- tryCatch(
+        {
+            sits_cube(
+                source = .cube_source(cube),
+                collection = .cube_collection(cube),
+                data_dir = output_dir,
+                parse_info = .config_get("reg_file_parse_info"),
+                multicores = multicores,
+                progress = TRUE
+            )
+        },
+        error = function(e) {
+            return(NULL)
+        }
+    )
 
     # find the tiles that have not been processed yet
     jobs <- .reg_missing_files(
@@ -251,7 +262,6 @@ sits_regularize <- function(cube,
 
         # process bands and tiles in parallel
         image_lst <- .sits_parallel_map(jobs, function(job) {
-
             tile_name <- job[[1]]
             band <- job[[2]]
             date <- job[[3]]
@@ -276,14 +286,18 @@ sits_regularize <- function(cube,
             tile_band_interval <- tile_band
 
             tile_band_interval[["file_info"]][[1]] <-
-                dplyr::filter(.file_info(tile_band_interval),
-                              .data[["date"]] >= !!date,
-                              .data[["date"]] < !!end_date)
+                dplyr::filter(
+                    .file_info(tile_band_interval),
+                    .data[["date"]] >= !!date,
+                    .data[["date"]] < !!end_date
+                )
 
             # least_cc_first requires images ordered based on cloud cover
             tile_band_interval[["file_info"]][[1]] <-
-                dplyr::arrange(.file_info(tile_band_interval),
-                               .data[["cloud_cover"]])
+                dplyr::arrange(
+                    .file_info(tile_band_interval),
+                    .data[["cloud_cover"]]
+                )
 
             # get output size
             out_size <- .reg_get_output_size(
@@ -331,7 +345,6 @@ sits_regularize <- function(cube,
             )
 
             return(composite_file)
-
         }, progress = progress)
 
         # get a vector of produced images paths
@@ -340,19 +353,21 @@ sits_regularize <- function(cube,
         # TODO: detect malformed files?
 
         # create local cube from files in output directory
-        local_cube <- tryCatch({
-            sits_cube(
-                source = .cube_source(cube),
-                collection = .cube_collection(cube),
-                data_dir = output_dir,
-                parse_info = .config_get("reg_file_parse_info"),
-                multicores = multicores,
-                progress = progress
-            )
-        },
-        error = function(e){
-            return(NULL)
-        })
+        local_cube <- tryCatch(
+            {
+                sits_cube(
+                    source = .cube_source(cube),
+                    collection = .cube_collection(cube),
+                    data_dir = output_dir,
+                    parse_info = .config_get("reg_file_parse_info"),
+                    multicores = multicores,
+                    progress = progress
+                )
+            },
+            error = function(e) {
+                return(NULL)
+            }
+        )
 
         # find if there are missing tiles
         jobs <- .reg_missing_files(
@@ -378,17 +393,24 @@ sits_regularize <- function(cube,
             msg <- paste(
                 bad_tiles,
                 purrr::map_chr(bad_tiles, function(tile) {
-                    paste0("(",
-                           paste0(unique(
-                               tiles_bands[[2]][tiles_bands[[1]] == tile]),
-                               collapse = ", "),
-                           ")")
+                    paste0(
+                        "(",
+                        paste0(unique(
+                            tiles_bands[[2]][tiles_bands[[1]] == tile]
+                        ),
+                        collapse = ", "
+                        ),
+                        ")"
+                    )
                 }),
-                collapse = ", ")
+                collapse = ", "
+            )
 
             # show message
-            message(paste("Tiles", msg, "are missing or malformed",
-                          "and will be reprocessed."))
+            message(paste(
+                "Tiles", msg, "are missing or malformed",
+                "and will be reprocessed."
+            ))
 
             # remove cache
             .sits_parallel_stop()
@@ -450,7 +472,8 @@ sits_regularize <- function(cube,
             tile <- local_cube[local_cube[["tile"]] == tile, ]
             tile <- sits_select(tile, bands = band)
             return(!date %in% sits_timeline(tile))
-        })
+        }
+    )
 
     # update malformed processed tiles and bands
     proc_tiles_bands_times <- proc_tiles_bands_times[bad_timeline]
@@ -466,8 +489,9 @@ sits_regularize <- function(cube,
 .reg_diagnostic <- function(data_dir, file_paths = NULL) {
 
     # check only if ...
-    if (!is.null(file_paths) && length(file_paths) == 0)
+    if (!is.null(file_paths) && length(file_paths) == 0) {
         return(character(0))
+    }
 
     # get file_paths parameter as default path list
     paths <- file_paths
@@ -493,11 +517,14 @@ sits_regularize <- function(cube,
 
     # open and read files
     bad_paths <- .sits_parallel_map(paths, function(path) {
-        val <- tryCatch({
-            img <- terra::rast(path)
-            sum(is.na(terra::values(img)))
-            FALSE
-        }, error = function(e) TRUE)
+        val <- tryCatch(
+            {
+                img <- terra::rast(path)
+                sum(is.na(terra::values(img)))
+                FALSE
+            },
+            error = function(e) TRUE
+        )
         val
     }, progress = progress)
 
@@ -549,8 +576,9 @@ sits_regularize <- function(cube,
         output_dir = output_dir
     )
 
-    if (file.exists(output_filename))
+    if (file.exists(output_filename)) {
         return(output_filename)
+    }
 
     # get output datatype
     reg_datatype <- .config_get("raster_cube_data_type")
@@ -600,19 +628,21 @@ sits_regularize <- function(cube,
                     )
 
                     return(output_file_block)
-                })
+                }
+            )
 
             # remove blocks if some error occur
             if (length(blocks_reg_path_lst) !=
                 length(purrr::transpose(blocks))) {
-
                 unlink(unlist(blocks_reg_path_lst))
                 return(structure(list("skip me"),
-                                 class = "error"))
+                                 class = "error"
+                ))
             }
 
             return(unlist(blocks_reg_path_lst))
-        })
+        }
+    )
 
     # return NULL if some error occurs
     if (length(reg_masked_blocks_lst) == 0) {
@@ -666,7 +696,8 @@ sits_regularize <- function(cube,
             )
 
             return(output_file_block)
-        })
+        }
+    )
 
     # merge file info
     .raster_merge(
@@ -690,21 +721,17 @@ sits_regularize <- function(cube,
 #' @name .reg_preprocess_block
 #'
 #' @keywords internal
-#'
 #' @param tile         A unique tile from \code{sits_cube} object
+#' @param band_paths   Paths for one band
+#' @param resolution   Spatial resolution of the image
+#'                     that will be aggregated.
+#' @param resampling   Resampling method.
+#                      Options: \code{near}, \code{bilinear}, \code{bicubic},
+#'                     \code{cubicspline}, and \code{lanczos}.
+#' @param block        Information about a block.
 #'
-#' @param band_paths   A \code{character} with paths for a unique band
+#' @return             A \code{SpatRast} object resampled.
 #'
-#' @param resolution   A \code{numeric} with spatial resolution of the image
-#'  that will be aggregated.
-#'
-#' @param resampling   A \code{character} with method to be used  for resampling
-#'  in mosaic operation. Options: \code{near}, \code{bilinear}, \code{bicubic},
-#'  \code{cubicspline}, and \code{lanczos}. Default is bilinear.
-#'
-#' @param block      A \code{numeric} vector with information about a block
-#'
-#' @return A \code{SpatRast} object resampled
 .reg_preprocess_block <- function(tile_fid,
                                   band,
                                   out_size,
@@ -725,7 +752,8 @@ sits_regularize <- function(cube,
     # check if cloud_path has length one
     .check_chr(band_path,
                allow_empty = FALSE, len_min = 1, len_max = 1,
-               msg = "invalid band path value")
+               msg = "invalid band path value"
+    )
 
     # get input cloud path
     cloud_path <- .file_info_paths(
@@ -736,26 +764,33 @@ sits_regularize <- function(cube,
     # check if cloud_path has length one
     .check_chr(cloud_path,
                allow_empty = FALSE, len_min = 1, len_max = 1,
-               msg = "invalid cloud path value")
+               msg = "invalid cloud path value"
+    )
 
     #### C++ from here...
 
     # read input band and change its dimension to input block
     band_values <- matrix(as.integer(
-        .raster_read_stack(files = band_path,
-                           block = band_block)),
-        nrow = band_block[["nrows"]],
-        ncol = band_block[["ncols"]],
-        byrow = TRUE
+        .raster_read_stack(
+            files = band_path,
+            block = band_block
+        )
+    ),
+    nrow = band_block[["nrows"]],
+    ncol = band_block[["ncols"]],
+    byrow = TRUE
     )
 
     # read input band and change its dimension to cloud block
     cloud_values <- matrix(as.integer(
-        .raster_read_stack(files = cloud_path,
-                           block = cloud_block)),
-        nrow = cloud_block[["nrows"]],
-        ncol = cloud_block[["ncols"]],
-        byrow = TRUE
+        .raster_read_stack(
+            files = cloud_path,
+            block = cloud_block
+        )
+    ),
+    nrow = cloud_block[["nrows"]],
+    ncol = cloud_block[["ncols"]],
+    byrow = TRUE
     )
 
     # get the interpolation values (cloud values)
@@ -800,12 +835,12 @@ sits_regularize <- function(cube,
 
     # write to disk
     .raster_write_rast(
-        r_obj        = r_obj,
-        file         = output_file,
-        format       = "GTiff",
-        data_type    = data_type,
+        r_obj = r_obj,
+        file = output_file,
+        format = "GTiff",
+        data_type = data_type,
         gdal_options = .config_gtiff_default_options(),
-        overwrite    = TRUE,
+        overwrite = TRUE,
         missing_value = missing_value
     )
 
@@ -815,37 +850,34 @@ sits_regularize <- function(cube,
 }
 
 .reg_map_securely <- function(x, fn) {
-
     result <- list()
     for (x_i in x) {
         value <- tryCatch(
             fn(x_i),
-            error = function(e) return(e))
-
+            error = function(e) {
+                return(e)
+            }
+        )
         if (inherits(value, "error")) {
             break
         }
-
         result[[length(result) + 1]] <- value
     }
-
     return(result)
 }
-
 .reg_map_probably <- function(x, fn) {
-
     result <- list()
     for (x_i in x) {
         value <- tryCatch(
             fn(x_i),
-            error = function(e) return(e))
-
+            error = function(e) {
+                return(e)
+            }
+        )
         if (inherits(value, "error")) {
             next
         }
-
         result[[length(result) + 1]] <- value
     }
-
     return(result)
 }

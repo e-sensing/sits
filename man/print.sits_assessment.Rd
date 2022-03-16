@@ -4,15 +4,12 @@
 \alias{print.sits_assessment}
 \title{Print the values of a confusion matrix}
 \usage{
-\method{print}{sits_assessment}(x, ..., mode = "sens_spec", digits = max(3, getOption("digits") - 3))
+\method{print}{sits_assessment}(x, ..., digits = max(3, getOption("digits") - 3))
 }
 \arguments{
-\item{x}{An object of class \code{confusionMatrix}.}
+\item{x}{Object of class \code{confusionMatrix}.}
 
-\item{\dots}{other parameters passed to the "print" function}
-
-\item{mode}{A single character string either "sens_spec",
-"prec_recall", or "everything".}
+\item{\dots}{Other parameters passed to the "print" function.}
 
 \item{digits}{Number of significant digits when printed.}
 }

@@ -9,12 +9,11 @@
 \arguments{
 \item{cube}{Data cube from where data is to be retrieved.}
 
-\item{path_db}{A \code{character} with the path and name where the
-database will be create. E.g. "my/path/gdalcubes.db"}
+\item{path_db}{Path and name for gdalcubes database.}
 }
 \value{
-a \code{object} 'image_collection' containing information about the
- images metadata.
+Image_collection containing information on the
+                 images metadata.
 }
 \description{
 Create an image_collection object
