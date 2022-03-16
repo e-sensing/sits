@@ -80,6 +80,12 @@ sits_mlp <- function(samples = NULL,
         if (!requireNamespace("torch", quietly = TRUE)) {
             stop("Please install package torch", call. = FALSE)
         }
+
+        # verifies if luz package is installed
+        if (!requireNamespace("luz", quietly = TRUE)) {
+            stop("Please install package luz", call. = FALSE)
+        }
+
         # pre-conditions
         .check_that(
             x = length(layers) == length(dropout_rates),

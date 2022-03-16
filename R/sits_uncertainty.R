@@ -84,7 +84,7 @@ sits_uncertainty.entropy <- function(cube, type = "entropy", ...,
     # find out how many labels exist
     n_labels <- length(sits_labels(cube[1, ]))
 
-    # Bayesian smoother to be executed by workers cluster
+    # entropy uncertainty index to be executed by workers cluster
     .do_entropy <- function(chunk) {
         data <- .raster_get_values(r_obj = chunk)
         # process entropy
@@ -101,11 +101,23 @@ sits_uncertainty.entropy <- function(cube, type = "entropy", ...,
         )
         return(res)
     }
-    # process each tile individually
-    cube_uncert <- slider::slide_dfr(cube, function(tile) {
+
+    # compute which block size is many tiles to be computed
+    block_size <- .smth_estimate_block_size(
+        cube = cube,
+        multicores = multicores,
+        memsize = memsize
+    )
+
+    # start parallel processes
+    .sits_parallel_start(workers = multicores, log = FALSE)
+    on.exit(.sits_parallel_stop())
+
+    # process each brick layer (each time step) individually
+    blocks_tile_lst <- slider::slide(cube, function(tile) {
 
         # create metadata for raster cube
-        tile_uncert <- .cube_derived_create(
+        tile_new <- .cube_derived_create(
             cube       = tile,
             cube_class = "uncertainty_cube",
             band_name  = "entropy",
@@ -116,25 +128,125 @@ sits_uncertainty.entropy <- function(cube, type = "entropy", ...,
             output_dir = output_dir,
             version    = version
         )
-        .smth_map_layer(
-            cube = tile,
-            cube_out = tile_uncert,
-            overlapping_y_size = 0,
-            func = .do_entropy,
-            multicores = multicores,
-            memsize = memsize,
-            gdal_datatype = .raster_gdal_datatype(
-                .config_get("probs_cube_data_type")),
-            gdal_options = .config_gtiff_default_options()
-        )
 
-        return(tile_uncert)
+        # prepare output filename
+        out_file <- .file_info_path(tile_new)
+
+        # if file exists skip it (resume feature)
+        if (file.exists(out_file))
+            return(NULL)
+
+        # get cube size
+        size <- .cube_size(tile)
+
+        # for now, only vertical blocks are allowed, i.e. 'x_blocks' is 1
+        blocks <- .smth_compute_blocks(
+            xsize = size[["ncols"]],
+            ysize = size[["nrows"]],
+            block_y_size = block_size[["block_y_size"]],
+            overlapping_y_size = 0)
+
+        # open probability file
+        in_file <- .file_info_path(tile)
+
+        # process blocks in parallel
+        block_files_lst <- .sits_parallel_map(blocks, function(block) {
+
+            # open brick
+            b <- .raster_open_rast(in_file)
+
+            # crop adding overlaps
+            chunk <- .raster_crop(r_obj = b, block = block)
+
+            # process it
+            raster_out <- .do_entropy(chunk = chunk)
+
+            # create extent
+            blk_no_overlap <- list(first_row = block$crop_first_row,
+                                   nrows = block$crop_nrows,
+                                   first_col = block$crop_first_col,
+                                   ncols = block$crop_ncols)
+
+            # crop removing overlaps
+            raster_out <- .raster_crop(raster_out, block = blk_no_overlap)
+
+            # export to temp file
+            block_file <- .smth_filename(tile = tile_new,
+                                         output_dir = output_dir,
+                                         block = blk_no_overlap)
+
+            # save chunk
+            .raster_write_rast(
+                r_obj = raster_out,
+                file = block_file,
+                format = "GTiff",
+                data_type = .raster_data_type(
+                    .config_get("probs_cube_data_type")
+                ),
+                gdal_options = .config_gtiff_default_options(),
+                overwrite = TRUE
+            )
+
+            return(block_file)
+        })
+
+        block_files <- unlist(block_files_lst)
+
+        return(invisible(block_files))
     })
 
-    class(cube_uncert) <- c(
-        "uncertainty_cube", "raster_cube", "sits_cube",
-        "tbl_df", "tbl", "data.frame"
-    )
+    # process each brick layer (each time step) individually
+    result_cube <- .sits_parallel_map(seq_along(blocks_tile_lst), function(i) {
 
-    return(cube_uncert)
+        # get tile from cube
+        tile <- cube[i,]
+
+        # create metadata for raster cube
+        tile_new <- .cube_derived_create(
+            cube       = tile,
+            cube_class = "uncertainty_cube",
+            band_name  = "entropy",
+            labels     = .cube_labels(tile),
+            start_date = .file_info_start_date(tile),
+            end_date   = .file_info_end_date(tile),
+            bbox       = .cube_tile_bbox(tile),
+            output_dir = output_dir,
+            version    = version
+        )
+
+        # prepare output filename
+        out_file <- .file_info_path(tile_new)
+
+        # if file exists skip it (resume feature)
+        if (file.exists(out_file))
+            return(tile_new)
+
+        tmp_blocks <- blocks_tile_lst[[i]]
+
+        # apply function to blocks
+        on.exit(unlink(tmp_blocks))
+
+        # merge to save final result
+        suppressWarnings(
+            .raster_merge(
+                in_files = tmp_blocks,
+                out_file = out_file,
+                format   = "GTiff",
+                gdal_datatype =
+                    .raster_gdal_datatype(.config_get("probs_cube_data_type")),
+                gdal_options =
+                    .config_gtiff_default_options(),
+                overwrite = TRUE
+            )
+        )
+
+        return(tile_new)
+    })
+
+    # bind rows
+    result_cube <- dplyr::bind_rows(result_cube)
+
+    class(result_cube) <- c("uncertainty_cube", class(cube))
+
+    return(result_cube)
 }

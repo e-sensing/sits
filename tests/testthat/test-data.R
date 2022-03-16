@@ -5,26 +5,22 @@ test_that("Creating a WTSS data cube", {
   bdc_access_key <- Sys.getenv("BDC_ACCESS_KEY")
 
   testthat::skip_if(nchar(bdc_access_key) == 0,
-    message = "No BDC_ACCESS_KEY defined in environment."
-  )
+                    message = "No BDC_ACCESS_KEY defined in environment.")
 
-  cube_wtss <- tryCatch(
-    {
-      suppressMessages(
-        sits_cube(
-          source = "WTSS",
-          collection = "MOD13Q1-6"
-        )
+  cube_wtss <- tryCatch({
+    suppressMessages(
+      sits_cube(
+        source = "WTSS",
+        collection = "MOD13Q1-6"
       )
-    },
-    error = function(e) {
-      return(NULL)
-    }
-  )
+    )
+  },
+  error = function(e) {
+    return(NULL)
+  })
 
   testthat::skip_if(purrr::is_null(cube_wtss),
-    message = "WTSS is not accessible"
-  )
+                    message = "WTSS is not accessible")
 
   expect_true(cube_wtss$source == "WTSS")
   expect_gt(length(sits_timeline(cube_wtss)), 1)
@@ -37,47 +33,41 @@ test_that("Obtaining a point in WTSS", {
   bdc_access_key <- Sys.getenv("BDC_ACCESS_KEY")
 
   testthat::skip_if(nchar(bdc_access_key) == 0,
-    message = "No BDC_ACCESS_KEY defined in environment."
-  )
+                    message = "No BDC_ACCESS_KEY defined in environment.")
 
-  cube_wtss <- tryCatch(
-    {
-      suppressMessages(
-        sits_cube(
-          source = "WTSS",
-          collection = "MOD13Q1-6"
-        )
+  cube_wtss <- tryCatch({
+    suppressMessages(
+      sits_cube(
+        source = "WTSS",
+        collection = "MOD13Q1-6"
       )
-    },
-    error = function(e) {
-      return(NULL)
-    }
-  )
+    )
+  },
+  error = function(e) {
+    return(NULL)
+  })
 
   testthat::skip_if(purrr::is_null(cube_wtss),
-    message = "WTSS is not accessible"
-  )
+                    message = "WTSS is not accessible")
 
-  point <- tryCatch(
-    {
-      sits_get_data(cube_wtss,
-        longitude = -55.0399,
-        latitude = -15.1933
-      )
-    },
-    error = function(e) {
-      return(NULL)
-    }
-  )
+  point <- tryCatch({
+    sits_get_data(cube_wtss,
+                  longitude = -55.0399,
+                  latitude = -15.1933,
+                  output_dir = tempdir())
+  },
+  error = function(e){
+    return(NULL)
+  })
 
   testthat::skip_if(purrr::is_null(point),
-    message = "WTSS is not accessible"
-  )
+                    message = "WTSS is not accessible")
 
   expect_equal(as.Date(point$start_date), as.Date("2000-02-18"))
 
   expect_true(all(sits_bands(point) %in%
-    c("NDVI", "EVI", "BLUE", "RED", "NIR", "MIR")))
+                    c("NDVI","EVI","BLUE", "RED", "NIR", "MIR")))
+
 })
 test_that("Reading a CSV file from WTSS", {
   testthat::skip_on_cran()
@@ -86,31 +76,27 @@ test_that("Reading a CSV file from WTSS", {
   bdc_access_key <- Sys.getenv("BDC_ACCESS_KEY")
 
   testthat::skip_if(nchar(bdc_access_key) == 0,
-    message = "No BDC_ACCESS_KEY defined in environment."
-  )
+                    message = "No BDC_ACCESS_KEY defined in environment.")
 
   csv_file <- system.file("extdata/samples/samples_matogrosso.csv",
-    package = "sits"
+                          package = "sits"
   )
-  cube_wtss <- tryCatch(
-    {
-      suppressMessages(
-        sits_cube(
-          source = "WTSS",
-          collection = "MOD13Q1-6"
-        )
+  cube_wtss <- tryCatch({
+    suppressMessages(
+      sits_cube(
+        source = "WTSS",
+        collection = "MOD13Q1-6"
       )
-    },
-    error = function(e) {
-      return(NULL)
-    }
-  )
+    )
+  },
+  error = function(e) {
+    return(NULL)
+  })
 
   testthat::skip_if(purrr::is_null(cube_wtss),
-    message = "WTSS is not accessible"
-  )
+                    message = "WTSS is not accessible")
 
-  points <- sits_get_data(cube_wtss, file = csv_file)
+  points <- sits_get_data(cube_wtss, file = csv_file, output_dir = tempdir())
 
   expect_true(all(unique(points$label) == c("Pasture", "Cerrado")))
 
@@ -137,34 +123,30 @@ test_that("Reading a POLYGON shapefile from WTSS", {
   bdc_access_key <- Sys.getenv("BDC_ACCESS_KEY")
 
   testthat::skip_if(nchar(bdc_access_key) == 0,
-    message = "No BDC_ACCESS_KEY defined in environment."
-  )
+                    message = "No BDC_ACCESS_KEY defined in environment.")
 
-  cube_wtss <- tryCatch(
-    {
-      suppressMessages(
-        sits_cube(source = "WTSS", collection = "MOD13Q1-6")
-      )
-    },
-    error = function(e) {
-      return(NULL)
-    }
-  )
+  cube_wtss <- tryCatch({
+    suppressMessages(
+      sits_cube(source = "WTSS", collection = "MOD13Q1-6")
+    )
+  },
+  error = function(e) {
+    return(NULL)
+  })
 
   testthat::skip_if(purrr::is_null(cube_wtss),
-    message = "WTSS is not accessible"
-  )
+                    message = "WTSS is not accessible")
 
   shp_file <- system.file(
-    "extdata/shapefiles/agriculture/parcel_agriculture.shp",
-    package = "sits"
+    "extdata/shapefiles/agriculture/parcel_agriculture.shp", package = "sits"
   )
   parcels <- sits_get_data(cube_wtss,
-    file = shp_file,
-    shp_attr = "ext_na",
-    .n_shp_pol = 3,
-    start_date = "2019-01-01",
-    end_date = "2019-06-01"
+                           file = shp_file,
+                           shp_attr = "ext_na",
+                           .n_shp_pol = 3,
+                           start_date = "2019-01-01",
+                           end_date = "2019-06-01",
+                           output_dir = tempdir()
   )
 
   sf_shape <- sf::read_sf(shp_file)
@@ -185,32 +167,29 @@ test_that("Reading a POINT shapefile from WTSS", {
   bdc_access_key <- Sys.getenv("BDC_ACCESS_KEY")
 
   testthat::skip_if(nchar(bdc_access_key) == 0,
-    message = "No BDC_ACCESS_KEY defined in environment."
-  )
+                    message = "No BDC_ACCESS_KEY defined in environment.")
 
-  cube_wtss <- tryCatch(
-    {
-      suppressMessages(
-        sits_cube(source = "WTSS", collection = "MOD13Q1-6")
-      )
-    },
-    error = function(e) {
-      return(NULL)
-    }
-  )
+  cube_wtss <- tryCatch({
+    suppressMessages(
+      sits_cube(source = "WTSS", collection = "MOD13Q1-6")
+    )
+  },
+  error = function(e) {
+    return(NULL)
+  })
 
   testthat::skip_if(purrr::is_null(cube_wtss),
-    message = "WTSS is not accessible"
-  )
+                    message = "WTSS is not accessible")
 
   shp_file <- system.file("extdata/shapefiles/cerrado/cerrado_forested.shp",
-    package = "sits"
+                          package = "sits"
   )
   points <- sits_get_data(cube_wtss,
-    file = shp_file,
-    label = "Cerrado_Forested",
-    start_date = "2019-01-01",
-    end_date = "2019-06-01"
+                          file = shp_file,
+                          label = "Cerrado_Forested",
+                          start_date = "2019-01-01",
+                          end_date = "2019-06-01",
+                          output_dir = tempdir()
   )
 
   expect_true(all(points$label == "Cerrado_Forested"))
@@ -219,14 +198,12 @@ test_that("Reading a POINT shapefile from WTSS", {
 test_that("Reading a point from SATVEG ", {
   testthat::skip_on_cran()
 
-  cube_1 <- tryCatch(
-    {
-      sits_cube(source = "SATVEG", collection = "TERRA")
-    },
-    error = function(e) {
-      return(NULL)
-    }
-  )
+  cube_1 <- tryCatch({
+    sits_cube(source = "SATVEG", collection = "TERRA")
+  },
+  error = function(e) {
+    return(NULL)
+  })
 
   testthat::skip_if(
     purrr::is_null(cube_1),
@@ -234,7 +211,9 @@ test_that("Reading a point from SATVEG ", {
   )
 
   point_terra <- sits_get_data(cube_1,
-    longitude = -55.50563, latitude = -11.71557
+                               longitude = -55.50563,
+                               latitude = -11.71557,
+                               output_dir = tempdir()
   )
 
   if (purrr::is_null(point_terra)) {
@@ -243,26 +222,24 @@ test_that("Reading a point from SATVEG ", {
 
   expect_equal(ncol(sits_time_series(point_terra)), 3)
   expect_equal(sum(sits_time_series(point_terra)$EVI),
-    158.11,
-    tolerance = 2
+               158.11, tolerance = 2
   )
 
-  cube_2 <- tryCatch(
-    {
-      sits_cube(source = "SATVEG", collection = "AQUA")
-    },
-    error = function(e) {
-      return(NULL)
-    }
-  )
+  cube_2 <- tryCatch({
+    sits_cube(source = "SATVEG", collection = "AQUA")
+  },
+  error = function(e) {
+    return(NULL)
+  })
 
   testthat::skip_if(
     purrr::is_null(cube_2),
-    message = "SATVEG is not accessible for collection AQUA"
-  )
+    message = "SATVEG is not accessible for collection AQUA")
 
   point_aqua <- sits_get_data(cube_2,
-    longitude = -55.50563, latitude = -11.71557
+                              longitude = -55.50563,
+                              latitude = -11.71557,
+                              output_dir = tempdir()
   )
 
   if (purrr::is_null(point_aqua)) {
@@ -270,57 +247,56 @@ test_that("Reading a point from SATVEG ", {
   }
   expect_equal(ncol(sits_time_series(point_aqua)), 3)
   expect_equal(sum(sits_time_series(point_aqua)$EVI),
-    132.3852,
-    tolerance = 2
+               132.3852, tolerance = 2
   )
 
-  cube_3 <- tryCatch(
-    {
-      sits_cube(source = "SATVEG", collection = "COMB")
-    },
-    error = function(e) {
-      return(NULL)
-    }
-  )
+  cube_3 <- tryCatch({
+    sits_cube(source = "SATVEG", collection = "COMB")
+  },
+  error = function(e) {
+    return(NULL)
+  })
 
   if (purrr::is_null(cube_3)) {
     skip("SATVEG is not accessible for collection comb")
   }
   point_comb <- sits_get_data(cube_3,
-    longitude = -55.50563, latitude = -11.71557
+                              longitude = -55.50563,
+                              latitude = -11.71557,
+                              output_dir = tempdir()
   )
   if (purrr::is_null(point_comb)) {
     skip("points in SATVEG for collection comb cannnot be recovered")
   }
   expect_equal(ncol(sits_time_series(point_comb)), 3)
   expect_equal(sum(sits_time_series(point_comb)$EVI),
-    290.3342,
-    tolerance = 2
+               290.3342, tolerance = 2
   )
 
   expect_true(length(sits_timeline(point_comb)) >=
-    length(sits_timeline(point_terra)))
+                length(sits_timeline(point_terra))
+  )
 })
 
 test_that("Reading a CSV file from SATVEG", {
   testthat::skip_on_cran()
   csv_file <- system.file("extdata/samples/samples_matogrosso.csv",
-    package = "sits"
+                          package = "sits"
   )
-  cube_satveg <- tryCatch(
-    {
-      sits_cube(source = "SATVEG", collection = "TERRA")
-    },
-    error = function(e) {
-      return(NULL)
-    }
-  )
+  cube_satveg <- tryCatch({
+    sits_cube(source = "SATVEG", collection = "TERRA")
+  },
+  error = function(e) {
+    return(NULL)
+  })
 
   testthat::skip_if(purrr::is_null(cube_satveg),
-    message = "SATVEG is not accessible"
-  )
+                    message = "SATVEG is not accessible")
 
-  points <- sits_get_data(cube_satveg, file = csv_file)
+  points <- sits_get_data(cube_satveg,
+                          file = csv_file,
+                          output_dir = tempdir())
+
   if (purrr::is_null(points)) {
     skip("points in SATVEG for csv file cannnot be recovered")
   }
@@ -345,27 +321,24 @@ test_that("Reading a CSV file from SATVEG", {
 
 test_that("Reading a POLYGON shapefile from SATVEG", {
   testthat::skip_on_cran()
-  cube_satveg <- tryCatch(
-    {
-      sits_cube(source = "SATVEG", collection = "TERRA")
-    },
-    error = function(e) {
-      return(NULL)
-    }
-  )
+  cube_satveg <- tryCatch({
+    sits_cube(source = "SATVEG", collection = "TERRA")
+  },
+  error = function(e) {
+    return(NULL)
+  })
 
   testthat::skip_if(purrr::is_null(cube_satveg),
-    message = "SATVEG is not accessible"
-  )
+                    message = "SATVEG is not accessible")
 
   shp_file <- system.file(
-    "extdata/shapefiles/agriculture/parcel_agriculture.shp",
-    package = "sits"
+    "extdata/shapefiles/agriculture/parcel_agriculture.shp", package = "sits"
   )
   parcels <- sits_get_data(cube_satveg,
-    file = shp_file,
-    shp_attr = "ext_na",
-    .n_shp_pol = 3
+                           file = shp_file,
+                           shp_attr = "ext_na",
+                           .n_shp_pol = 3,
+                           output_dir = tempdir()
   )
   if (purrr::is_null(parcels)) {
     skip("points in SATVEG for shpfile cannnot be recovered")
@@ -382,29 +355,29 @@ test_that("Reading a POLYGON shapefile from SATVEG", {
 })
 
 test_that("Reading a LAT/LONG from RASTER", {
+
   data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
-  raster_cube <- tryCatch(
-    {
-      sits_cube(
-        source = "BDC",
-        collection = "MOD13Q1-6",
-        data_dir = data_dir,
-        delim = "_",
-        parse_info = c("X1", "X2", "tile", "band", "date")
-      )
-    },
-    error = function(e) {
-      return(NULL)
-    }
-  )
+  raster_cube <- tryCatch({
+    sits_cube(
+      source  = "BDC",
+      collection = "MOD13Q1-6",
+      data_dir = data_dir,
+      delim = "_",
+      parse_info = c("X1", "X2", "tile", "band", "date")
+    )
+  },
+  error = function(e) {
+    return(NULL)
+  })
 
   testthat::skip_if(purrr::is_null(raster_cube),
-    message = "LOCAL cube was not found"
-  )
+                    message = "LOCAL cube was not found")
 
   point_ndvi <- sits_select(point_mt_6bands, bands = "NDVI")
   point_ndvi <- sits_get_data(raster_cube,
-    longitude = -55.66738, latitude = -11.76990
+                              longitude = -55.66738,
+                              latitude = -11.76990,
+                              output_dir = tempdir()
   )
 
   expect_equal(names(point_ndvi)[1], "longitude")
@@ -415,29 +388,28 @@ test_that("Reading a LAT/LONG from RASTER", {
 test_that("Reading a CSV file from RASTER", {
   # skip_on_cran()
   data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
-  raster_cube <- tryCatch(
-    {
-      sits_cube(
-        source = "BDC",
-        collection = "MOD13Q1-6",
-        data_dir = data_dir,
-        delim = "_",
-        parse_info = c("X1", "X2", "tile", "band", "date")
-      )
-    },
-    error = function(e) {
-      return(NULL)
-    }
-  )
+  raster_cube <- tryCatch({
+    sits_cube(
+      source = "BDC",
+      collection = "MOD13Q1-6",
+      data_dir = data_dir,
+      delim = "_",
+      parse_info = c("X1", "X2", "tile", "band", "date")
+    )
+  },
+  error = function(e) {
+    return(NULL)
+  })
 
   testthat::skip_if(purrr::is_null(raster_cube),
-    message = "LOCAL cube was not found"
-  )
+                    message = "LOCAL cube was not found")
 
   csv_raster_file <- system.file("extdata/samples/samples_sinop_crop.csv",
-    package = "sits"
+                                 package = "sits"
   )
-  points <- sits_get_data(raster_cube, file = csv_raster_file)
+  points <- sits_get_data(raster_cube,
+                          file = csv_raster_file,
+                          output_dir = tempdir())
 
   df_csv <- utils::read.csv(
     system.file("extdata/samples/samples_sinop_crop.csv", package = "sits"),
@@ -459,53 +431,54 @@ test_that("Test reading shapefile from BDC", {
   bdc_access_key <- Sys.getenv("BDC_ACCESS_KEY")
 
   testthat::skip_if(nchar(bdc_access_key) == 0,
-    message = "No BDC_ACCESS_KEY defined in environment."
-  )
+                    message = "No BDC_ACCESS_KEY defined in environment.")
 
   # create a raster cube file based on the information about the files
-  cbers_stac_tile <- tryCatch(
-    {
-      sits_cube(
-        source = "BDC",
-        collection = "CB4_64_16D_STK-1",
-        bands = c("NDVI", "EVI"),
-        tiles = c("022024", "022025"),
-        start_date = "2018-09-01",
-        end_date = "2018-10-28"
-      )
-    },
-    error = function(e) {
-      return(NULL)
-    }
-  )
+  cbers_stac_tile <- tryCatch({
+    sits_cube(
+      source = "BDC",
+      collection = "CB4_64_16D_STK-1",
+      bands = c("NDVI", "EVI"),
+      tiles = c("022024", "022025"),
+      start_date = "2018-09-01",
+      end_date = "2018-10-28"
+    )
+  },
+  error = function(e) {
+    return(NULL)
+  })
 
   testthat::skip_if(purrr::is_null(cbers_stac_tile),
-    message = "BDC is not accessible"
-  )
+                    message = "BDC is not accessible")
 
   shp_path <- system.file("extdata/shapefiles/bdc-test/samples.shp",
-    package = "sits"
+                          package = "sits"
   )
 
-  time_series_bdc <- sits::sits_get_data(cbers_stac_tile, file = shp_path)
-  if (purrr::is_null(time_series_bdc)) {
+  time_series_bdc <- sits::sits_get_data(cbers_stac_tile,
+                                         file = shp_path,
+                                         output_dir = tempdir())
+
+  if (purrr::is_null(time_series_bdc))
     skip("BDC not accessible")
-  }
+
   expect_equal(nrow(time_series_bdc), 10)
+
   bbox <- sits_bbox(time_series_bdc)
   expect_true(bbox["xmin"] < -46.)
   expect_true(all(sits_bands(time_series_bdc) %in% c("NDVI", "EVI")))
+
   ts <- time_series_bdc$time_series[[1]]
   expect_true(max(ts["EVI"]) < 1.)
 })
 
 test_that("Reading metadata from CSV file", {
+
   csv_file <- paste0(tempdir(), "/cerrado_2classes.csv")
   sits_metadata_to_csv(cerrado_2classes, file = csv_file)
   csv <- read.csv(csv_file)
   expect_true(nrow(csv) == 746)
-  expect_true(all(names(csv) %in% c(
-    "id", "longitude", "latitude",
-    "start_date", "end_date", "label"
-  )))
+  expect_true(all(names(csv) %in% c("id", "longitude", "latitude",
+                                    "start_date", "end_date", "label")))
+
 })

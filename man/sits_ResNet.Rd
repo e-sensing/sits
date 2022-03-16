@@ -36,6 +36,8 @@ optimizer_adam(), optimizer_adamax(),
 optimizer_nadam(), optimizer_rmsprop(),
 optimizer_sgd().}
 
+\item{learning_rate}{Nunber with learning rate of model.}
+
 \item{epochs}{Number of iterations to train the model.}
 
 \item{batch_size}{Number of samples per gradient update.}

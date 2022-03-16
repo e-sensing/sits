@@ -8,8 +8,10 @@
   tile,
   points,
   bands,
+  xy,
   cld_band = NULL,
-  impute_fn = sits_impute_linear()
+  impute_fn = sits_impute_linear(),
+  output_dir = output_dir
 )
 }
 \arguments{
@@ -19,9 +21,13 @@
 
 \item{bands}{Bands to be retrieved.}
 
+\item{xy}{A matrix with longitude as X and latitude as Y.}
+
 \item{cld_band}{Cloud band (if available)}
 
 \item{impute_fn}{Imputation function for NA values}
+
+\item{output_dir}{An output directory to save temporary time series.}
 }
 \value{
 A sits tibble with the time series.
