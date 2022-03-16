@@ -2,10 +2,10 @@
 #' @title Train temporal convolutional neural network models
 #' @name sits_TempCNN
 #'
+#' @author Charlotte Pelletier, \email{charlotte.pelletier@@univ-ubs.fr}
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
 #' @author Felipe Souza, \email{lipecaso@@gmail.com}
-#' @author Alber Sanchez, \email{alber.ipia@@inpe.br}
 #'
 #' @description Use a TempCNN algorithm to classify data, which has
 #' two stages: a 1D CNN and a  multi-layer perceptron.
@@ -165,30 +165,6 @@ sits_TempCNN <- function(samples = NULL,
         # transform test reference to an integer vector
         test_y <- unname(int_labels[as.vector(test_data$reference)])
 
-        # Function to create torch datasets
-        sits_dataset <- torch::dataset(
-            name = "sits_dataset",
-            initialize = function(dist_x, labels_y) {
-                # create a torch tensor for x data
-                self$x <- torch::torch_tensor(dist_x)
-                # create a torch tensor for y data
-                self$y <- torch::torch_tensor(labels_y)
-            },
-            .getitem = function(i) {
-                list(x = self$x[i, ], y = self$y[i])
-            },
-            .length = function() {
-                self$y$size()[[1]]
-            }
-        )
-        # create train and test datasets
-        train_ds <- sits_dataset(train_x, train_y)
-        test_ds <- sits_dataset(test_x, test_y)
-
-        # create the dataloaders for torch
-        train_dl <- torch::dataloader(train_ds, batch_size = batch_size)
-        test_dl <- torch::dataloader(test_ds, batch_size = batch_size)
-
         # set random seed for torch
         torch::torch_manual_seed(sample.int(10^5, 1))
 
@@ -309,15 +285,15 @@ sits_TempCNN <- function(samples = NULL,
                 dense_layer_dropout_rate = dense_layer_dropout_rate
             ) %>%
             luz::fit(
-                data = train_dl, # data = list(train_x, train_y)
+                data = list(train_x, train_y),
                 epochs = epochs,
-                valid_data = test_dl, # valid_data = list(train_x, train_y)
+                valid_data = list(test_x, test_y),
                 callbacks = list(luz::luz_callback_early_stopping(
                     patience = 10,
                     min_delta = 0.05
                 )),
-                verbose = verbose
-                # dataloader_options = list(batch_size = batch_size)
+                verbose = verbose,
+                dataloader_options = list(batch_size = batch_size)
             )
 
         model_to_raw <- function(model) {

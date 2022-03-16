@@ -1,36 +1,32 @@
-#' @title Train ResNet classification models
-#' @name sits_ResNet
+#' @title Train a model using  Pixel-Set Encoders and Temporal Self-Attention
+#' @name sits_PSE-LTAE
 #'
 #' @author Charlotte Pelletier, \email{charlotte.pelletier@@univ-ubs.fr}
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
-#' @author Felipe Souza, \email{lipecaso@@gmail.com}
-#' @author Alber Sanchez, \email{alber.ipia@@inpe.br}
 #'
-#' @description Use a ResNet architecture for classifying image time series.
-#' The ResNet (or deep residual network) was proposed by a team
-#' in Microsoft Research for 2D image classification.
-#' ResNet tries to address the degradation of accuracy
-#' in a deep network. The idea is to replace a deep network
-#' with a combination of shallow ones.
-#' In the paper by Fawaz et al. (2019), ResNet was considered the best method
-#' for time series classification, using the UCR dataset.
-#' Please refer to the paper for more details.
+#' @description Implementation of the PSE (Pixel Set Encoding) +
+#' Light Temporal Attention Encoder (L-TAE)
+#' for satellite image time series classification.
 #'
-#' The R-torch version is based on the code made available by Ignacio Oguiza
-#' who maintains the timeseriesAI github repository. The pytorch ResNet
-#' implementation is available at
-#' https://github.com/timeseriesAI/tsai/blob/main/tsai/models/ResNet.py.
+#' This function is based on the paper by Vivien Garnot referenced below
+#' and code available on github at
+#' https://github.com/VSainteuf/lightweight-temporal-attention-pytorch/blob/master/models/ltae.py.
+#' If you use this method, please cite the original LTAE paper.
 #'
-#' @references Hassan Fawaz, Germain Forestier, Jonathan Weber,
-#' Lhassane Idoumghar,  and Pierre-Alain Muller,
-#' "Deep learning for time series classification: a review",
-#' Data Mining and Knowledge Discovery, 33(4): 917--963, 2019.
+#' We also used the code made available by Maja Schneider in her work with
+#' Marco Körner referenced below and available at
+#' https://github.com/maja601/RC2020-psetae.
 #'
-#' Zhiguang Wang, Weizhong Yan, and Tim Oates,
-#' "Time series classification from scratch with deep neural networks:
-#'  A strong baseline",
-#'  2017 international joint conference on neural networks (IJCNN).
+#'
+#' @references
+#' Vivien Sainte Fare Garnot and Loic Landrieu,
+#' "Lightweight Temporal Self-Attention
+#' for Classifying Satellite Image Time Series", https://arxiv.org/abs/2007.00586
+#'
+#' Schneider, Maja; Körner, Marco,
+#' "[Re] Satellite Image Time Series Classification
+#' with Pixel-Set Encoders and Temporal Self-Attention." ReScience C 7 (2), 2021.
 #'
 #' @param samples           Time series with the training samples.
 #' @param blocks            Number of 1D convolutional filters for
@@ -66,7 +62,7 @@
 #' # Retrieve the set of samples for the Mato Grosso (provided by EMBRAPA)
 #'
 #' # Build a machine learning model based on deep learning
-#' rn_model <- sits_train(samples_modis_4bands, sits_ResNet(epochs = 75))
+#' rn_model <- sits_train(samples_modis_4bands, sits_LTAE(epochs = 75))
 #' # Plot the model
 #' plot(rn_model)
 #'
@@ -78,7 +74,7 @@
 #' plot(class, bands = c("NDVI", "EVI"))
 #' }
 #' @export
-sits_ResNet <- function(samples = NULL,
+sits_LTAE <- function(samples = NULL,
                         blocks = c(64, 128, 128),
                         kernels = c(7, 5, 3),
                         activation = "relu",
@@ -164,103 +160,11 @@ sits_ResNet <- function(samples = NULL,
         # set torch seed
         torch::torch_manual_seed(sample.int(10^5, 1))
 
-        conv_block <- torch::nn_module(
-            classname = "conv_block",
-            initialize = function(in_channels,
-                                  out_channels,
-                                  kernel_size,
-                                  activate = TRUE){
+        #
 
-                if (activate) {
-                    self$block <- torch::nn_sequential(
-                        torch::nn_conv1d(in_channels,
-                                         out_channels,
-                                         kernel_size,
-                                         padding = as.integer(kernel_size %/% 2)),
-                        torch::nn_batch_norm1d(out_channels),
-                        torch::nn_relu()
-                    )
-                } else {
-                    self$block <- torch::nn_sequential(
-                        torch::nn_conv1d(in_channels,
-                                         out_channels,
-                                         kernel_size,
-                                         padding = as.integer(kernel_size %/% 2)),
-                        torch::nn_batch_norm1d(out_channels)
-                    )
-                }
-            },
-            forward = function(x){
-                self$block(x)
-            }
-        )
 
-        res_block <- torch::nn_module(
-            classname = "ResBlock",
-            initialize = function(in_channels,
-                                  out_channels,
-                                  kernels){
-                self$conv_block1 <- conv_block(in_channels,
-                                               out_channels,
-                                               kernels[1])
-                self$conv_block2 <- conv_block(out_channels,
-                                               out_channels,
-                                               kernels[2])
-                self$conv_block3 <- conv_block(out_channels,
-                                               out_channels,
-                                               kernels[3],
-                                               activate = FALSE)
 
-                # expand channels for the sum if necessary
-                self$shortcut = conv_block(in_channels,
-                                           out_channels,
-                                           kernel_size = 1,
-                                           activate = FALSE)
-                self$act = torch::nn_relu()
 
-            },
-            forward = function(x){
-                res <-  self$shortcut(x)
-                x <-  self$conv_block1(x)
-                x <-  self$conv_block2(x)
-                x <-  self$conv_block3(x)
-                x <-  torch::torch_add(x, res)
-                x <-  self$act(x)
-                return(x)
-            }
-        )
-
-        res_net <- torch::nn_module(
-            classname = "res_net",
-            initialize = function(n_bands,
-                                  n_times,
-                                  n_labels,
-                                  blocks,
-                                  kernels){
-                self$res_block1 <- res_block(n_bands, blocks[1], kernels)
-                self$res_block2 <- res_block(blocks[1], blocks[2], kernels)
-                self$res_block3 <- res_block(blocks[2], blocks[3], kernels)
-                self$gap <- torch::nn_adaptive_avg_pool1d(output_size = n_bands)
-
-                # flatten 3D tensor to 2D tensor
-                self$flatten <- torch::nn_flatten()
-                # classification using softmax
-                self$softmax <- torch::nn_sequential(
-                    torch::nn_linear(blocks[3]*n_bands, n_labels),
-                    torch::nn_softmax(dim = -1)
-                )
-            },
-            forward = function(x){
-                x <- torch::torch_transpose(x, 2, 3)
-                x <- x %>%
-                    self$res_block1() %>%
-                    self$res_block2() %>%
-                    self$res_block3() %>%
-                    self$gap() %>%
-                    self$flatten() %>%
-                    self$softmax()
-            }
-        )
         # train the model using luz
         torch_model <-
             luz::setup(
@@ -284,7 +188,8 @@ sits_ResNet <- function(samples = NULL,
                     patience = 10,
                     min_delta = 0.05
                 )),
-                verbose = verbose
+                verbose = verbose,
+                dataloader_options = list(batch_size = batch_size)
             )
 
         model_to_raw <- function(model) {
