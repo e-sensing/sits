@@ -620,4 +620,3 @@ test_that("Reading a CSV file from RASTER", {
   expect_true(length(sits_timeline(points)) == 23)
   return(NULL)
 })
-

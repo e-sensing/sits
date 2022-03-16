@@ -473,6 +473,7 @@ test_that("One-year, multicore classification with post-processing", {
     output_dir = tempdir(),
     multicores = 1
   )
+
   expect_true(all(file.exists(unlist(sinop_bil$file_info[[1]]$path))))
 
   r_bil <- .raster_open_rast(sinop_bil$file_info[[1]]$path[[1]])
@@ -509,7 +510,7 @@ test_that("One-year, multicore classification with post-processing", {
   timeline_probs <- sits_timeline(sinop_probs)
   timeline_unc <- sits_timeline(sinop_uncert)
   timeline_class <- sits_timeline(sinop_class)
-  timeline_model <- sits_timeline(rfor_model)
+  timeline_model <- sits_timeline(torch_model)
   timeline_ts <- sits_timeline(samples_modis_4bands)
 
   expect_equal(timeline_ts, timeline_model)
@@ -521,7 +522,6 @@ test_that("One-year, multicore classification with post-processing", {
 
   expect_true(all(file.remove(unlist(sinop_class$file_info[[1]]$path))))
   expect_true(all(file.remove(unlist(sinop_bayes$file_info[[1]]$path))))
-  expect_true(all(file.remove(unlist(sinop_gauss$file_info[[1]]$path))))
   expect_true(all(file.remove(unlist(sinop_bil$file_info[[1]]$path))))
 
   expect_true(all(file.remove(unlist(sinop_probs$file_info[[1]]$path))))
