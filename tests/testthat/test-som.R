@@ -1,6 +1,5 @@
 test_that("Creating clustering using Self-organizing Maps", {
   # skip_on_cran()
-  data("cerrado_2classes")
   set.seed(2903)
   som_map <- sits_som_map(
     samples_modis_4bands,

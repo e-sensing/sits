@@ -231,13 +231,28 @@ sits_som_clean_samples <- function(som_map,
             )
         )
     }
+
     data <- som_map$data %>%
+        dplyr::select(.data[["longitude"]],
+                      .data[["latitude"]],
+                      .data[["start_date"]],
+                      .data[["end_date"]],
+                      .data[["label"]],
+                      .data[["cube"]],
+                      .data[["time_series"]],
+                      .data[["id_sample"]],
+                      .data[["id_neuron"]]
+        ) %>%
         dplyr::inner_join(som_map$labelled_neurons,
                           by = c("id_neuron", "label" = "label_samples")
         ) %>%
-        dplyr::mutate(eval = .detect_class_noise(.data[["prior_prob"]],
-                                                 .data[["post_prob"]])) %>%
-        dplyr::select(-.data[["count"]], -.data[["prior_prob"]]) %>%
+        dplyr::mutate(
+            eval = .detect_class_noise(.data[["prior_prob"]],
+                                       .data[["post_prob"]])
+        ) %>%
+        dplyr::select(-.data[["count"]],
+                      -.data[["prior_prob"]]
+        ) %>%
         dplyr::filter(.data[["eval"]] %in% keep)
 
     return(data)
