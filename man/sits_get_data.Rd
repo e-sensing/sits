@@ -18,7 +18,9 @@ sits_get_data(
   shp_attr = NULL,
   .n_pts_csv = NULL,
   .n_shp_pol = 30,
-  multicores = 1
+  multicores = 1,
+  output_dir = ".",
+  progress = FALSE
 )
 }
 \arguments{
@@ -53,6 +55,12 @@ as a polygon label.}
 (for POLYGON or MULTIPOLYGON shapefile).}
 
 \item{multicores}{Number of threads to process the time series.}
+
+\item{output_dir}{Directory where the time series will be saved as rds.
+Default is the current path.}
+
+\item{progress}{A logical value indicating if a progress bar
+should be shown. Default is \code{FALSE}.}
 }
 \value{
 A tibble with the metadata and data for each time series
@@ -95,8 +103,9 @@ raster_cube <- sits_cube(
 
 # read the time series of the point from the raster
 point_ts <- sits_get_data(raster_cube,
-  longitude = -55.554,
-  latitude = -11.525
+    longitude = -55.554,
+    latitude = -11.525,
+    output_dir = tempdir()
 )
 
 # --- Read a set of points described by a CSV file
@@ -105,7 +114,9 @@ point_ts <- sits_get_data(raster_cube,
 csv_file <- system.file("extdata/samples/samples_sinop_crop.csv",
   package = "sits"
 )
-points_csv <- sits_get_data(raster_cube, file = csv_file)
+points_csv <- sits_get_data(raster_cube,
+                            file = csv_file,
+                            output_dir = tempdir())
 }
 }
 \author{

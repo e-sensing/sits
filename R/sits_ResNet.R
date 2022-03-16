@@ -45,6 +45,7 @@
 #'                          optimizer_nadam(), optimizer_rmsprop(),
 #'                          optimizer_sgd().
 #' @param epochs            Number of iterations to train the model.
+#' @param learning_rate     Nunber with learning rate of model.
 #' @param batch_size        Number of samples per gradient update.
 #' @param validation_split  Number between 0 and 1. Fraction of training data
 #'                          to be used as validation data.

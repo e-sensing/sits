@@ -26,7 +26,7 @@ sits_results_s3_class:
 
 # parsing info contents for results cube
 results_parse_info_def : ["X1", "X2", "tile", "start_date", "end_date",
-                                "band"]
+                                "band", "version"]
 results_parse_info_col : ["tile", "start_date", "end_date", "band"]
 
 # mandatory columns in data cube description

@@ -472,73 +472,68 @@ test_that("Creating cubes from AWS", {
 })
 
 test_that("Creating regular cubes from AWS Open Data, and extracting samples from them", {
-  testthat::skip_on_cran()
 
-  s2_cube_open <- tryCatch(
-    {
-      sits_cube(
-        source = "AWS",
-        collection = "SENTINEL-S2-L2A-COGS",
-        tiles = c("20LKP", "20LLP"),
-        bands = c("B8A", "SCL"),
-        start_date = "2018-10-01",
-        end_date = "2018-11-01"
-      )
-    },
-    error = function(e) {
-      return(NULL)
-    }
-  )
-  testthat::skip_if(
-    purrr::is_null(s2_cube_open),
-    "AWS is not accessible"
-  )
-  expect_false(.cube_is_regular(s2_cube_open))
-  expect_true(all(sits_bands(s2_cube_open) %in% c("B8A", "CLOUD")))
+    testthat::skip_on_cran()
 
-  expect_error(.cube_size(s2_cube_open))
-  expect_error(.cube_resolution(s2_cube_open))
-  expect_error(.file_info_nrows(s2_cube_open))
+    s2_cube_open <- tryCatch({
+        sits_cube(source = "AWS",
+                  collection = "SENTINEL-S2-L2A-COGS",
+                  tiles = c("20LKP", "20LLP"),
+                  bands = c("B8A", "SCL"),
+                  start_date = "2018-10-01",
+                  end_date = "2018-11-01"
+        )},
+        error = function(e){
+            return(NULL)
+        })
+    testthat::skip_if(purrr::is_null(s2_cube_open),
+                      "AWS is not accessible")
+    expect_false(.cube_is_regular(s2_cube_open))
+    expect_true(all(sits_bands(s2_cube_open) %in% c("B8A", "CLOUD")))
 
-  dir_images <- paste0(tempdir(), "/images2/")
-  if (!dir.exists(dir_images)) {
-    suppressWarnings(dir.create(dir_images))
-  }
+    expect_error(.cube_size(s2_cube_open))
+    expect_error(.cube_resolution(s2_cube_open))
+    expect_error(.file_info_nrows(s2_cube_open))
 
-  rg_cube <- sits_regularize(
-    cube        = s2_cube_open[1, ],
-    output_dir  = dir_images,
-    res         = 240,
-    period      = "P16D",
-    multicores  = 1
-  )
+    dir_images <-  paste0(tempdir(), "/images2/")
+    if (!dir.exists(dir_images))
+        suppressWarnings(dir.create(dir_images))
 
-  tile_size <- .cube_size(rg_cube[1, ])
-  tile_bbox <- .cube_tile_bbox(rg_cube[1, ])
+    rg_cube <- sits_regularize(
+        cube        = s2_cube_open[1,],
+        output_dir  = dir_images,
+        res         = 240,
+        period      = "P16D",
+        multicores  = 1)
 
-  expect_equal(tile_size[["nrows"]], 458)
-  expect_equal(tile_size[["ncols"]], 458)
-  expect_equal(tile_bbox$xmax, 309780, tolerance = 1e-1)
-  expect_equal(tile_bbox$xmin, 199980, tolerance = 1e-1)
+    tile_size <- .cube_size(rg_cube[1, ])
+    tile_bbox <- .cube_tile_bbox(rg_cube[1, ])
 
-  tile_fileinfo <- .file_info(rg_cube[1, ])
+    expect_equal(tile_size[["nrows"]], 458)
+    expect_equal(tile_size[["ncols"]], 458)
+    expect_equal(tile_bbox$xmax, 309780, tolerance = 1e-1)
+    expect_equal(tile_bbox$xmin, 199980, tolerance = 1e-1)
 
-  expect_equal(nrow(tile_fileinfo), 2)
+    tile_fileinfo <- .file_info(rg_cube[1, ])
 
-  csv_file <- system.file("extdata/samples/samples_amazonia_sentinel2.csv",
-    package = "sits"
-  )
+    expect_equal(nrow(tile_fileinfo), 2)
 
-  # read sample information from CSV file and put it in a tibble
-  samples <- tibble::as_tibble(utils::read.csv(csv_file))
-  expect_equal(nrow(samples), 1202)
-  samples <- dplyr::sample_n(samples, size = 10, replace = FALSE)
+    csv_file <- system.file("extdata/samples/samples_amazonia_sentinel2.csv",
+                            package = "sits")
 
-  ts <- sits_get_data(cube = rg_cube, samples = samples)
-  vls <- unlist(sits_values(ts))
-  expect_true(all(vls > 0 & vls < 1.))
-  expect_equal(sits_bands(ts), sits_bands(rg_cube))
-  expect_equal(sits_timeline(ts), sits_timeline(rg_cube))
+    # read sample information from CSV file and put it in a tibble
+    samples <- tibble::as_tibble(utils::read.csv(csv_file))
+    expect_equal(nrow(samples), 1202)
+    samples <- dplyr::sample_n(samples, size = 10, replace = FALSE)
+
+    ts <- sits_get_data(cube = rg_cube,
+                        samples = samples,
+                        output_dir = dir_images)
+
+    vls <- unlist(sits_values(ts))
+    expect_true(all(vls > 0 & vls < 1.))
+    expect_equal(sits_bands(ts), sits_bands(rg_cube))
+    expect_equal(sits_timeline(ts), sits_timeline(rg_cube))
 })
 
 test_that("Creating cubes from AWS Open Data and regularizing with gdalcubes", {

@@ -24,20 +24,17 @@
 
     # get a tibble with points and labels
     if (geom_type == "POINT") {
-        points.tb <- .sits_shp_point_to_tibble(
-            sf_shape,
-            shp_attr,
-            label
-        )
+        points_tbl <- .sits_shp_point_to_tibble(sf_shape,
+                                                shp_attr,
+                                                label)
     } else {
-        points.tb <- .sits_shp_polygon_to_tibble(
-            sf_shape,
-            shp_attr,
-            label,
-            .n_shp_pol
-        )
+        points_tbl <- .sits_shp_polygon_to_tibble(sf_shape,
+                                                  shp_attr,
+                                                  label,
+                                                  .n_shp_pol)
     }
-    return(points.tb)
+
+    return(points_tbl)
 }
 
 #' @title Obtain a tibble with latitude and longitude points from POINT geometry
@@ -62,12 +59,13 @@
         labels <- rep(label, times = nrow(points))
     }
     # build a tibble with lat/long and label
-    points.tb <- tibble::tibble(
+    points_tbl <- tibble::tibble(
         longitude = points[, 1],
         latitude = points[, 2],
         label = labels
     )
-    return(points.tb)
+
+    return(points_tbl)
 }
 
 #' @title Obtain a tibble from POLYGON geometry
@@ -125,6 +123,7 @@
     .check_file(x = shp_file, msg = "shapefile does not exist")
     # read the shapefile
     sf_shape <- sf::read_sf(shp_file)
+
     # pre-condition - is the default label valid?
     .check_that(
         x = nrow(sf_shape) > 0,
@@ -132,7 +131,6 @@
     )
     # get the geometry type
     geom_type <- sf::st_geometry_type(sf_shape)[1]
-    # get the data frame associated to the shapefile
 
     # precondition - are all geometries compatible?
     .check_that(
@@ -154,6 +152,7 @@
         x = !purrr::is_null(label) || !purrr::is_null(shp_attr),
         msg = "label or shape attribute should be valid"
     )
+
     # precondition - is the shape attribute valid?
     # get the data frame associated to the shapefile
     shp_df <- sf::st_drop_geometry(sf_shape)

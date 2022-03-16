@@ -655,15 +655,3 @@ sits_smooth.bilateral <- function(cube,
 
     return(result_cube)
 }
-
-
-
-
-
-
-
-
-
-
-
-
