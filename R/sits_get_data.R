@@ -254,31 +254,7 @@ sits_get_data <- function(cube,
 
     .cube_bands_check(cube, bands = bands)
 
-    tl <- sits_timeline(cube)
-
-    ts_filename <- .make_filename(
-        "samples", "wtss", .cube_collection(cube), tl[[1]], tl[[length(tl)]],
-        sep = "_",
-        ext = "rds",
-        output_dir = output_dir
-    )
-
-    samples_hash <- digest::digest(samples, algo = "md5")
-
-    if (file.exists(ts_filename))
-        tryCatch({
-            ts_tbl <- readRDS(ts_filename)
-
-            .check_that(
-                attributes(ts_tbl)[["hash_id"]] == samples_hash,
-            )
-
-            return(ts_tbl)
-        },
-        error = function(e) {
-            unlink(ts_filename)
-            gc()
-        })
+    # TODO: aplicar o kmeans com k = multicores
 
     # for each row of the input, retrieve the time series
     # prepare parallelization
@@ -313,10 +289,6 @@ sits_get_data <- function(cube,
         class(ts_tbl) <- c("sits", class(ts_tbl))
     }
 
-    attributes(ts_tbl) <- c(attributes(ts_tbl), "hash_id" = samples_hash)
-
-    saveRDS(ts_tbl, ts_filename)
-
     return(ts_tbl)
 }
 
@@ -329,32 +301,7 @@ sits_get_data <- function(cube,
                                      output_dir,
                                      progress) {
 
-    # get the cube timeline
-    tl <- sits_timeline(cube)
-
-    ts_filename <- .make_filename(
-        "samples", "satveg", .cube_collection(cube), tl[[1]], tl[[length(tl)]],
-        sep = "_",
-        ext = "rds",
-        output_dir = output_dir
-    )
-
-    samples_hash <- digest::digest(samples, algo = "md5")
-
-    if (file.exists(ts_filename))
-        tryCatch({
-            ts_tbl <- readRDS(ts_filename)
-
-            .check_that(
-                attributes(ts_tbl)[["hash_id"]] == samples_hash,
-            )
-
-            return(ts_tbl)
-        },
-        error = function(e) {
-            unlink(ts_filename)
-            gc()
-        })
+    # TODO: aplicar o kmeans com k = multicores
 
     # for each row of the input, retrieve the time series
     # prepare parallelization
@@ -385,10 +332,6 @@ sits_get_data <- function(cube,
     if (!inherits(ts_tbl, "sits")) {
         class(ts_tbl) <- c("sits", class(ts_tbl))
     }
-
-    attributes(ts_tbl) <- c(attributes(ts_tbl), "hash_id" = samples_hash)
-
-    saveRDS(ts_tbl, ts_filename)
 
     return(ts_tbl)
 }
@@ -428,30 +371,6 @@ sits_get_data <- function(cube,
     # get cubes timeline
     tl <- sits_timeline(cube)
 
-    ts_filename <- .make_filename(
-        "samples", "raster", .cube_collection(cube), tl[[1]], tl[[length(tl)]],
-        sep = "_",
-        ext = "rds",
-        output_dir = output_dir
-    )
-
-    samples_hash <- digest::digest(samples, algo = "md5")
-
-    if (file.exists(ts_filename))
-        tryCatch({
-            ts_tbl <- readRDS(ts_filename)
-
-            .check_that(
-                attributes(ts_tbl)[["hash_id"]] == samples_hash,
-            )
-
-            return(ts_tbl)
-        },
-        error = function(e) {
-            unlink(ts_filename)
-            gc()
-        })
-
     tiles_bands <- purrr::cross2(.cube_tiles(cube), bands)
 
     # prepare parallelization
@@ -465,9 +384,10 @@ sits_get_data <- function(cube,
 
         tile <- sits_select(cube, bands = c(band, cld_band), tiles = tile_id)
 
-        filename <- .make_filename(
-            "samples", .cube_collection(cube = tile), tile_id, band,
-            sep = "_",
+        hash_bundle <- digest::digest(list(tile, samples), algo = "md5")
+
+        filename <- .create_filename(
+            "samples", hash_bundle,
             ext = ".rds",
             output_dir = output_dir
         )
@@ -574,13 +494,19 @@ sits_get_data <- function(cube,
         tidyr::nest(time_series = !!c("Index", bands))
 
 
-    # bands tiles combinations
-    bands_tiles_comb <- purrr::map_chr(tiles_bands, paste, collapse = "_")
+    # recreate hash values
+    hash_bundle <- purrr::map_chr(tiles_bands, function(tile_band) {
+
+        tile_id <- tile_band[[1]]
+        band <- tile_band[[2]]
+        tile <- sits_select(cube, bands = c(band, cld_band), tiles = tile_id)
+
+        digest::digest(list(tile, samples), algo = "md5")
+    })
 
     # recreate file names
-    temp_timeseries <- .make_filename(
-        "samples", .cube_collection(cube), bands_tiles_comb,
-        sep = "_",
+    temp_timeseries <- .create_filename(
+        "samples", hash_bundle,
         ext = "rds",
         output_dir = output_dir
     )
@@ -595,10 +521,6 @@ sits_get_data <- function(cube,
     if (!inherits(ts_tbl, "sits")) {
         class(ts_tbl) <- c("sits", class(ts_tbl))
     }
-
-    attributes(ts_tbl) <- c(attributes(ts_tbl), "hash_id" = samples_hash)
-
-    saveRDS(ts_tbl, ts_filename)
 
     return(ts_tbl)
 }
@@ -951,7 +873,19 @@ sits_get_data <- function(cube,
     return(samples)
 }
 
-.make_filename <- function(..., sep = "_", ext = NULL, output_dir = NULL) {
+#' @title Create file name
+#' @name .create_filename
+#' @keywords internal
+#
+#' @description Create a file name from a character vectors.
+#'
+#' @param ...         A vector of characters that will be concatenated.
+#' @param sep         A character with a file name separator.
+#' @param ext         A character with the extension of file.
+#' @param output_dir  A character with the output directory to be concatenated.
+#'
+#' @return A character with the file name.
+.create_filename <- function(..., sep = "_", ext = NULL, output_dir = NULL) {
 
     dots <- list(...)
     filename <- do.call(paste, c(dots, sep = sep))
