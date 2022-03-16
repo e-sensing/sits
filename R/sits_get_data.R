@@ -569,7 +569,7 @@ sits_get_data <- function(cube,
                         .data[["start_date"]], .data[["end_date"]],
                         .data[["label"]], .data[["cube"]],
                         .data[["Index"]]) %>%
-        dplyr::summarise(dplyr::across(bands, ~ na.omit)) %>%
+        dplyr::summarise(dplyr::across(bands, function(x) { na.omit(x) })) %>%
         dplyr::arrange(.data[["Index"]]) %>%
         tidyr::nest(time_series = !!c("Index", bands))
 
@@ -950,7 +950,6 @@ sits_get_data <- function(cube,
 
     return(samples)
 }
-
 
 .make_filename <- function(..., sep = "_", ext = NULL, output_dir = NULL) {
 
