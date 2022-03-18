@@ -156,17 +156,47 @@ plot.raster_cube <- function(x, ...,
             msg = "tiles are not included in the cube"
         )
     }
-    # select only one tile
-    x <- dplyr::filter(x, .data[["tile"]] %in% tiles)
 
-    if (!purrr::is_null(band)) {
+    # pre-condition 2
+    .check_that(
+        purrr::is_null(band) ||
+            (purrr::is_null(red) &&
+                 purrr::is_null(green) &&
+                 purrr::is_null(blue)),
+        local_msg = paste0("either 'band' parameter or 'red', 'green', and",
+                           "'blue' parameters should be informed")
+    )
+
+    # check if rgb bands were informed
+    if (!purrr::is_null(red) ||
+        !purrr::is_null(green) ||
+        !purrr::is_null(blue)) {
+
+        # check if all RGB bands is not null
+        .check_that(
+            !purrr::is_null(red) &&
+                !purrr::is_null(green) &&
+                !purrr::is_null(blue),
+            local_msg = "missing red, green, or blue bands",
+            msg = "invalid RGB bands"
+        )
+    } else {
+
+        # get default band (try first non-cloud band...)
+        if (purrr::is_null(band)) {
+            band <- .cube_bands(x, add_cloud = FALSE)
+            if (length(band) > 0) {
+                band <- band[[1]]
+            } else {
+                # ...else get cloud band
+                band <- .cube_bands(x)[[1]]
+            }
+        }
+
+        # plot as grayscale
         red <- band
         green <- band
         blue <- band
-    } else {
-        if (purrr::is_null(red) || purrr::is_null(green) || purrr::is_null(blue)) {
-            stop("missing red, green, or blue bands")
-        }
     }
 
     # preconditions
@@ -174,6 +204,9 @@ plot.raster_cube <- function(x, ...,
         x = all(c(red, green, blue) %in% sits_bands(x)),
         msg = "requested RGB bands are not available in data cube"
     )
+
+    # select only one tile
+    x <- dplyr::filter(x, .data[["tile"]] %in% tiles)
 
     timeline <- sits_timeline(x)
     if (purrr::is_null(date)) {
