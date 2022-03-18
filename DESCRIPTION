@@ -53,14 +53,13 @@ Imports:
     tibble (>= 3.0),
     utils
 Suggests:
-    brulee,
     caret,
     dendextend,
     dtwclust,
     dtwSat,
     digest,
     e1071,
-    gdalcubes,
+    gdalcubes (>= 0.6.0),
     httr,
     kohonen,
     leafem,
@@ -124,7 +123,6 @@ Collate:
     'sits_parallel.R'
     'sits_patterns.R'
     'sits_plot.R'
-    'sits_PSE-LTAE.R'
     'sits_raster_api.R'
     'sits_raster_api_terra.R'
     'sits_raster_blocks.R'
@@ -155,7 +153,6 @@ Collate:
     'sits_TempCNN.R'
     'sits_torch_conv1d.R'
     'sits_torch_linear.R'
-    'sits_torch_positional_encoder.R'
     'sits_tibble.R'
     'sits_timeline.R'
     'sits_twdtw.R'

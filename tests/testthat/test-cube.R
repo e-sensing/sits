@@ -50,79 +50,6 @@ test_that("Reading a raster cube", {
   expect_true(params$xres >= 231.5)
 })
 
-test_that("Backwards compatibility", {
-  data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
-
-  raster_cube <- tryCatch(
-    {
-      sits_cube(
-        source = "LOCAL",
-        collection = "MOD13Q1-6",
-        data_dir = data_dir,
-        delim = "_",
-        parse_info = c("X1", "X2", "tile", "band", "date"),
-        multicores = 2
-      )
-    },
-    error = function(e) {
-      return(NULL)
-    }
-  )
-
-  expect_null(raster_cube)
-
-  expect_message(
-    object = sits_cube(
-      source = "BDC",
-      collection = "MOD13Q1-6",
-      band = c("NDVI", "EVI"),
-      data_dir = data_dir,
-      delim = "_",
-      parse_info = c("X1", "X2", "tile", "band", "date"),
-      multicores = 2
-    ),
-    regexp = "please use bands instead of band as parameter"
-  )
-})
-
-test_that("Creating a raster stack cube and selecting bands", {
-  # Create a raster cube based on MODIS data
-  data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
-
-  # create a raster cube file based on the information about the files
-  modis_cube <- tryCatch(
-    {
-      sits_cube(
-        source = "BDC",
-        collection = "MOD13Q1-6",
-        data_dir = data_dir,
-        delim = "_",
-        parse_info = c("X1", "X2", "tile", "band", "date"),
-        multicores = 2
-      )
-    },
-    error = function(e) {
-      return(NULL)
-    }
-  )
-
-  testthat::skip_if(purrr::is_null(modis_cube),
-    message = "LOCAL cube not found"
-  )
-
-
-  expect_true(all(sits_bands(modis_cube) %in%
-    c("EVI", "NDVI")))
-  rast <- .raster_open_rast(modis_cube$file_info[[1]]$path[[1]])
-  expect_true(.raster_nrows(rast) == .cube_size(modis_cube)[["nrows"]])
-
-  timeline <- sits_timeline(modis_cube)
-  expect_true(timeline[1] == "2013-09-14")
-
-  modis_cube_evi <- sits_select(modis_cube, bands = "EVI")
-  expect_true(all(sits_bands(modis_cube_evi) == c("EVI")))
-})
-
 test_that("Creating cubes from BDC", {
   testthat::skip_on_cran()
 
@@ -289,13 +216,10 @@ test_that("Creating cubes from WTSS", {
       return(NULL)
     }
   )
-
   testthat::skip_if(purrr::is_null(wtss_cube),
     message = "WTSS server is not accessible"
   )
-
   expect_true(all(c("NDVI", "EVI") %in% sits_bands(wtss_cube)))
-
   timeline <- sits_timeline(wtss_cube)
   expect_true(as.Date("2019-11-01") %in% timeline)
 
@@ -306,12 +230,10 @@ test_that("Creating cubes from WTSS", {
       collection = "Invalid-collection"
     )
   )
-
   # provide no collection
   testthat::expect_error(
     sits_cube(source = "WTSS")
   )
-
   # try to access cube with wrong url
   testthat::expect_error(
     sits_cube(
@@ -504,7 +426,8 @@ test_that("Creating regular cubes from AWS Open Data, and extracting samples fro
         output_dir  = dir_images,
         res         = 240,
         period      = "P16D",
-        multicores  = 1)
+        multicores  = 1,
+        use_gdalcubes = FALSE)
 
     tile_size <- .cube_size(rg_cube[1, ])
     tile_bbox <- .cube_tile_bbox(rg_cube[1, ])
@@ -534,72 +457,6 @@ test_that("Creating regular cubes from AWS Open Data, and extracting samples fro
     expect_true(all(vls > 0 & vls < 1.))
     expect_equal(sits_bands(ts), sits_bands(rg_cube))
     expect_equal(sits_timeline(ts), sits_timeline(rg_cube))
-})
-
-test_that("Creating regular cubes from AWS Open Data using gdalcubes", {
-
-  testthat::skip_on_cran()
-
-  s2_cube_open <- tryCatch({
-    sits_cube(source = "AWS",
-              collection = "SENTINEL-S2-L2A-COGS",
-              tiles = c("20LKP", "20LLP"),
-              bands = c("B8A", "SCL"),
-              start_date = "2018-10-01",
-              end_date = "2018-11-01"
-    )},
-    error = function(e){
-      return(NULL)
-    })
-  testthat::skip_if(purrr::is_null(s2_cube_open),
-                    "AWS is not accessible")
-  expect_false(.cube_is_regular(s2_cube_open))
-  expect_true(all(sits_bands(s2_cube_open) %in% c("B8A", "CLOUD")))
-
-  expect_error(.cube_size(s2_cube_open))
-  expect_error(.cube_resolution(s2_cube_open))
-  expect_error(.file_info_nrows(s2_cube_open))
-
-  dir_images <-  paste0(tempdir(), "/images2/")
-  if (!dir.exists(dir_images))
-    suppressWarnings(dir.create(dir_images))
-
-  rg_cube <- sits_regularize(
-    cube        = s2_cube_open[1,],
-    output_dir  = dir_images,
-    res         = 240,
-    period      = "P16D",
-    multicores  = 1,
-    use_gdalcubes = TRUE)
-
-  tile_size <- .cube_size(rg_cube[1, ])
-  tile_bbox <- .cube_tile_bbox(rg_cube[1, ])
-
-  expect_equal(tile_size[["nrows"]], 458)
-  expect_equal(tile_size[["ncols"]], 458)
-  expect_equal(tile_bbox$xmax, 309780, tolerance = 1e-1)
-  expect_equal(tile_bbox$xmin, 199980, tolerance = 1e-1)
-
-  tile_fileinfo <- .file_info(rg_cube[1, ])
-
-  expect_equal(nrow(tile_fileinfo), 2)
-
-  csv_file <- system.file("extdata/samples/samples_amazonia_sentinel2.csv",
-                          package = "sits")
-
-  # read sample information from CSV file and put it in a tibble
-  samples <- tibble::as_tibble(utils::read.csv(csv_file))
-  expect_equal(nrow(samples), 1202)
-  samples <- dplyr::sample_n(samples, size = 10, replace = FALSE)
-
-  ts <- sits_get_data(cube = rg_cube,
-                      samples = samples,
-                      output_dir = dir_images)
-
-  vls <- unlist(sits_values(ts))
-  expect_true(all(vls > 0 & vls < 1.))
-  expect_equal(sits_bands(ts), sits_bands(rg_cube))
-  expect_equal(sits_timeline(ts), sits_timeline(rg_cube))
 })
 
 test_that("Creating cubes from AWS Open Data and regularizing with gdalcubes", {
@@ -647,24 +504,6 @@ test_that("Creating cubes from AWS Open Data and regularizing with gdalcubes", {
     use_gdalcubes = TRUE
   )
 
-  dir_images_2 <- paste0(tempdir(), "/images2/")
-  if (!dir.exists(dir_images_2)) {
-    suppressWarnings(dir.create(dir_images_2))
-  }
-  unlink(list.files(dir_images_2,
-    pattern = "\\.tif$",
-    full.names = TRUE
-  ))
-
-  rg_cube2 <- sits_regularize(
-    cube = s2_cube_open,
-    output_dir = dir_images_2,
-    res = 320,
-    period = "P30D",
-    multicores = 2,
-    use_gdalcubes = FALSE
-  )
-
   size <- .cube_size(rg_cube[1, ])
 
   expect_equal(size[["nrows"]], 344)
@@ -700,7 +539,7 @@ test_that("Creating cubes from USGS", {
   Sys.unsetenv("AWS_S3_ENDPOINT")
   Sys.unsetenv("AWS_REQUEST_PAYER")
 
-  usgs_cube <- tryCatch(
+  usgs_cube_1 <- tryCatch(
     {
       sits_cube(
         source = "USGS",
@@ -720,8 +559,21 @@ test_that("Creating cubes from USGS", {
       return(NULL)
     }
   )
+  testthat::skip_if(
+      purrr::is_null(usgs_cube_1),
+      "USGS is not accessible"
+  )
+  expect_true(all(sits_bands(usgs_cube_1) %in% c("B04", "CLOUD")))
 
-  usgs_cube <- tryCatch(
+  expect_equal(class(.cube_resolution(usgs_cube_1)), "numeric")
+
+  file_info <- usgs_cube_1$file_info[[1]]
+  r <- .raster_open_rast(file_info$path[[1]])
+
+  expect_equal(usgs_cube_1$xmax[[1]], .raster_xmax(r), tolerance = 1)
+  expect_equal(usgs_cube_1$xmin[[1]], .raster_xmin(r), tolerance = 1)
+
+  usgs_cube_2 <- tryCatch(
     {
       sits_cube(
         source = "USGS",
@@ -738,19 +590,19 @@ test_that("Creating cubes from USGS", {
   )
 
   testthat::skip_if(
-    purrr::is_null(usgs_cube),
+    purrr::is_null(usgs_cube_2),
     "USGS is not accessible"
   )
 
-  expect_true(all(sits_bands(usgs_cube) %in% c("B04", "CLOUD")))
+  expect_true(all(sits_bands(usgs_cube_2) %in% c("B04", "CLOUD")))
 
-  expect_equal(class(.cube_resolution(usgs_cube)), "numeric")
+  expect_equal(class(.cube_resolution(usgs_cube_2)), "numeric")
 
-  file_info <- usgs_cube$file_info[[1]]
+  file_info <- usgs_cube_2$file_info[[1]]
   r <- .raster_open_rast(file_info$path[[1]])
 
-  expect_equal(usgs_cube$xmax[[1]], .raster_xmax(r), tolerance = 1)
-  expect_equal(usgs_cube$xmin[[1]], .raster_xmin(r), tolerance = 1)
+  expect_equal(usgs_cube_2$xmax[[1]], .raster_xmax(r), tolerance = 1)
+  expect_equal(usgs_cube_2$xmin[[1]], .raster_xmin(r), tolerance = 1)
 })
 
 test_that("Creating Sentinel cubes from MSPC", {

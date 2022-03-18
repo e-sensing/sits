@@ -1,5 +1,5 @@
 #' @title Torch module for linear MLP
-#' @name torch_linear_batch_norm_relu_dropout
+#' @name .torch_linear_batch_norm_relu_dropout
 #'
 #' @author Charlotte Pelletier, \email{charlotte.pelletier@@univ-ubs.fr}
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
@@ -17,7 +17,7 @@
 #'
 
 # module for linear transformation with batch normalization and dropout
-torch_linear_batch_norm_relu_dropout <- torch::nn_module(
+.torch_linear_batch_norm_relu_dropout <- torch::nn_module(
     classname = "torch_linear_batch_norm_relu_dropout",
     initialize = function(input_dim,
                           output_dim,
@@ -38,7 +38,7 @@ torch_linear_batch_norm_relu_dropout <- torch::nn_module(
     }
 )
 #' @title Torch module for linear transformation with relu activation and dropout
-#' @name torch_linear_relu_dropout
+#' @name .torch_linear_relu_dropout
 #'
 #' @author Charlotte Pelletier, \email{charlotte.pelletier@@univ-ubs.fr}
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
@@ -55,7 +55,7 @@ torch_linear_batch_norm_relu_dropout <- torch::nn_module(
 #' @return A linear tensor block.
 #'
 #
-torch_linear_relu_dropout <- torch::nn_module(
+.torch_linear_relu_dropout <- torch::nn_module(
     classname = "torch_linear_batch_norm_relu_dropout",
     initialize = function(input_dim,
                           output_dim,
@@ -71,7 +71,7 @@ torch_linear_relu_dropout <- torch::nn_module(
     }
 )
 #' @title Torch module for linear MLP
-#' @name torch_linear_batch_norm_relu
+#' @name .torch_linear_batch_norm_relu
 #'
 #' @author Charlotte Pelletier, \email{charlotte.pelletier@@univ-ubs.fr}
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
@@ -88,7 +88,7 @@ torch_linear_relu_dropout <- torch::nn_module(
 #'
 
 # module for linear transformation with batch normalization and relu activation
-torch_linear_batch_norm_relu <- torch::nn_module(
+.torch_linear_batch_norm_relu <- torch::nn_module(
     classname = "torch_linear_batch_norm_relu_dropout",
     initialize = function(input_dim,
                           output_dim) {

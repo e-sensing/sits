@@ -82,7 +82,7 @@ In this case, we have used Wang's keras code as the main reference.
 # Retrieve the set of samples for the Mato Grosso (provided by EMBRAPA)
 
 # Build a machine learning model based on deep learning
-rn_model <- sits_train(samples_modis_4bands, sits_ResNet(epochs = 75))
+rn_model <- sits_train(samples_modis_4bands, sits_ResNet())
 # Plot the model
 plot(rn_model)
 
@@ -106,8 +106,6 @@ Zhiguang Wang, Weizhong Yan, and Tim Oates,
  2017 international joint conference on neural networks (IJCNN).
 }
 \author{
-Charlotte Pelletier, \email{charlotte.pelletier@univ-ubs.fr}
-
 Gilberto Camara, \email{gilberto.camara@inpe.br}
 
 Rolf Simoes, \email{rolf.simoes@inpe.br}

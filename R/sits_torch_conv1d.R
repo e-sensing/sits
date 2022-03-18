@@ -1,5 +1,5 @@
 #' @title Torch module for Conv1D + Batch Norm + Relu + Dropout
-#' @name torch_conv1D_batch_norm_relu_dropout
+#' @name .torch_conv1D_batch_norm_relu_dropout
 #'
 #' @author Charlotte Pelletier, \email{charlotte.pelletier@@univ-ubs.fr}
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
@@ -19,7 +19,7 @@
 #' @return A conv1D tensor block.
 #'
 # module for 1D convolution with batch normalization and dropout
-torch_conv1D_batch_norm_relu_dropout <- torch::nn_module(
+.torch_conv1D_batch_norm_relu_dropout <- torch::nn_module(
     classname = "conv1D_batch_norm_relu_dropout",
     initialize = function(input_dim,
                           output_dim,
@@ -42,7 +42,7 @@ torch_conv1D_batch_norm_relu_dropout <- torch::nn_module(
     }
 )
 #' @title Torch module for Conv1D + Batch Norm + Relu
-#' @name torch_conv1D_batch_norm_relu
+#' @name .torch_conv1D_batch_norm_relu
 #'
 #' @author Charlotte Pelletier, \email{charlotte.pelletier@@univ-ubs.fr}
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
@@ -61,7 +61,7 @@ torch_conv1D_batch_norm_relu_dropout <- torch::nn_module(
 #' @return A conv1D tensor block.
 #'
 # module for 1D convolution with batch normalization and dropout
-torch_conv1D_batch_norm_relu <- torch::nn_module(
+.torch_conv1D_batch_norm_relu <- torch::nn_module(
     classname = "conv1D_batch_norm_relu",
     initialize = function(input_dim,
                           output_dim,
@@ -82,7 +82,7 @@ torch_conv1D_batch_norm_relu <- torch::nn_module(
     }
 )
 #' @title Torch module for BatchNorm + Conv1D + Batch Norm + Relu
-#' @name torch_batch_conv1D_batch_norm_relu
+#' @name .torch_batch_conv1D_batch_norm_relu
 #'
 #' @author Charlotte Pelletier, \email{charlotte.pelletier@@univ-ubs.fr}
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
@@ -101,7 +101,7 @@ torch_conv1D_batch_norm_relu <- torch::nn_module(
 #' @return A conv1D tensor block.
 #'
 # module for 1D convolution with batch normalization and dropout
-torch_batch_conv1D_batch_norm_relu <- torch::nn_module(
+.torch_batch_conv1D_batch_norm_relu <- torch::nn_module(
     classname = "conv1D_batch_norm_relu",
     initialize = function(input_dim,
                           output_dim,
@@ -123,7 +123,7 @@ torch_batch_conv1D_batch_norm_relu <- torch::nn_module(
     }
 )
 #' @title Torch module for Conv1D + Batch Norm
-#' @name torch_conv1D_batch_norm
+#' @name .torch_conv1D_batch_norm
 #'
 #' @author Charlotte Pelletier, \email{charlotte.pelletier@@univ-ubs.fr}
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
@@ -141,7 +141,7 @@ torch_batch_conv1D_batch_norm_relu <- torch::nn_module(
 #' @return A conv1D tensor block.
 #'
 # module for 1D convolution with batch normalization and dropout
-torch_conv1D_batch_norm <- torch::nn_module(
+.torch_conv1D_batch_norm <- torch::nn_module(
     classname = "conv1D_batch_norm",
     initialize = function(input_dim,
                           output_dim,

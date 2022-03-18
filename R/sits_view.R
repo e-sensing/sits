@@ -164,7 +164,7 @@ sits_view.raster_cube <- function(x, ...,
     # preconditions
     # Remote files not working in Windows (bug in stars)
     if (.Platform$OS.type == "windows") {
-        path <- .file_info_path(cube[1,])
+        path <- .file_info_path(x[1,])
         if (grepl("^/vsi", path)) {
             stop("sits_view not working in Windows OS for remote files",
                  call. = FALSE)

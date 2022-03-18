@@ -255,7 +255,7 @@ sits_get_data <- function(cube,
 
     n_groups <- min(multicores, nrow(samples))
 
-    groups <- kmeans(
+    groups <- stats::kmeans(
         x = as.matrix(samples[, c("longitude", "latitude")]),
         centers = n_groups
     )
@@ -301,7 +301,7 @@ sits_get_data <- function(cube,
                         .data[["start_date"]], .data[["end_date"]],
                         .data[["label"]], .data[["cube"]],
                         .data[["Index"]]) %>%
-        dplyr::summarise(dplyr::across(ts_bands, function(x) { na.omit(x) })) %>%
+        dplyr::summarise(dplyr::across(ts_bands, function(x) { stats::na.omit(x) })) %>%
         dplyr::arrange(.data[["Index"]]) %>%
         dplyr::ungroup() %>%
         tidyr::nest(time_series = !!c("Index", ts_bands))
@@ -326,7 +326,7 @@ sits_get_data <- function(cube,
 
     n_groups <- min(multicores, nrow(samples))
 
-    groups <- kmeans(
+    groups <- stats::kmeans(
         x = as.matrix(samples[, c("longitude", "latitude")]),
         centers = n_groups
     )
@@ -370,7 +370,7 @@ sits_get_data <- function(cube,
                         .data[["start_date"]], .data[["end_date"]],
                         .data[["label"]], .data[["cube"]],
                         .data[["Index"]]) %>%
-        dplyr::summarise(dplyr::across(ts_bands, function(x) { na.omit(x) })) %>%
+        dplyr::summarise(dplyr::across(ts_bands, function(x) { stats::na.omit(x) })) %>%
         dplyr::arrange(.data[["Index"]]) %>%
         dplyr::ungroup() %>%
         tidyr::nest(time_series = !!c("Index", ts_bands))
@@ -400,20 +400,16 @@ sits_get_data <- function(cube,
         coords = c(x = "longitude", y = "latitude"),
         crs = 4326
     )
-
     are_samples_in_tiles <- purrr::map_lgl(seq_len(nrow(cube)), function(i) {
-
         .sits_raster_sub_image_intersects(
             cube = cube[i, ],
             roi = samples_sf
         )
     })
-
     .check_that(
         any(are_samples_in_tiles),
         msg = "The provided tile(s) does not intersects with samples."
     )
-
     # filter only tiles that intersects with samples
     cube <- cube[are_samples_in_tiles, ]
 
@@ -474,22 +470,18 @@ sits_get_data <- function(cube,
                 unlink(filename)
                 gc()
             })
-
         # make sure we get only the relevant columns
         samples <- dplyr::select(
             samples, "longitude", "latitude", "start_date", "end_date", "label"
         )
-
         # get XY
         xy_tb <- .sits_proj_from_latlong(
             longitude = samples[["longitude"]],
             latitude  = samples[["latitude"]],
             crs       = .cube_crs(tile)
         )
-
         # join lat-long with XY values in a single tibble
         samples <- dplyr::bind_cols(samples, xy_tb)
-
         # filter the points inside the data cube space-time extent
         samples <- dplyr::filter(
             samples,
@@ -498,21 +490,17 @@ sits_get_data <- function(cube,
                 .data[["start_date"]] <= as.Date(tl[length(tl)]) &
                 .data[["end_date"]] >= as.Date(tl[1])
         )
-
         # are there points to be retrieved from the cube?
         if (nrow(samples) == 0) {
             return(NULL)
         }
-
         # create a matrix to extract the values
         xy <- matrix(
             c(samples[["X"]], samples[["Y"]]),
             nrow = nrow(samples),
             ncol = 2
         )
-
         colnames(xy) <- c("X", "Y")
-
         # build the sits tibble for the storing the points
         samples <- slider::slide_dfr(samples, function(point) {
 
@@ -522,7 +510,6 @@ sits_get_data <- function(cube,
                 start_date = as.Date(point[["start_date"]]),
                 end_date   = as.Date(point[["end_date"]])
             )
-
             sample <- tibble::tibble(
                 longitude  = point[["longitude"]],
                 latitude   = point[["latitude"]],
@@ -531,14 +518,11 @@ sits_get_data <- function(cube,
                 label      = point[["label"]],
                 cube       = tile[["collection"]]
             )
-
             # store them in the sample tibble
             sample$time_series <- list(tibble::tibble(Index = dates))
-
             # return valid row of time series
             return(sample)
         })
-
         ts <- .sits_raster_data_get_ts(
             tile = tile,
             points = samples,
@@ -561,7 +545,7 @@ sits_get_data <- function(cube,
                         .data[["start_date"]], .data[["end_date"]],
                         .data[["label"]], .data[["cube"]],
                         .data[["Index"]]) %>%
-        dplyr::summarise(dplyr::across(bands, function(x) { na.omit(x) })) %>%
+        dplyr::summarise(dplyr::across(bands, function(x) { stats::na.omit(x) })) %>%
         dplyr::arrange(.data[["Index"]]) %>%
         dplyr::ungroup() %>%
         tidyr::nest(time_series = !!c("Index", bands))

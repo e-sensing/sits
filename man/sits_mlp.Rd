@@ -70,14 +70,13 @@ Zhiguang Wang, Weizhong Yan, and Tim Oates,
 \examples{
 \dontrun{
 # Retrieve the set of samples for the Mato Grosso region
-data(samples_modis_4bands)
-samples_mt_ndvi <- sits_select(samples_modis_4bands, bands = "NDVI")
 # Build a machine learning model based on deep learning
-dl_model <- sits_train(samples_mt_ndvi, sits_mlp())
+dl_model <- sits_train(samples_modis_4bands, sits_mlp())
 # get a point with a 16 year time series
-point_ndvi <- sits_select(point_mt_6bands, bands = "NDVI")
+point_4classes <- sits_select(point_mt_6bands,
+                              bands = c("NDVI", "EVI", "NIR", "MIR"))
 # classify the point
-point_class <- sits_classify(point_ndvi, dl_model)
+point_class <- sits_classify(point_4classes, dl_model)
 # plot the classified point
 plot(point_class)
 }

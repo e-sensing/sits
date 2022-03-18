@@ -169,28 +169,28 @@ sits_ResNet <- function(samples = NULL,
                                   out_channels,
                                   kernels){
                 # create first convolution block
-                self$conv_block1 <- torch_batch_conv1D_batch_norm_relu(
+                self$conv_block1 <- .torch_batch_conv1D_batch_norm_relu(
                     input_dim   = in_channels,
                     output_dim  = out_channels,
                     kernel_size = kernels[1],
                     padding     = "same"
                 )
                 # create second convolution block
-                self$conv_block2 <- torch_conv1D_batch_norm_relu(
+                self$conv_block2 <- .torch_conv1D_batch_norm_relu(
                     input_dim   = out_channels,
                     output_dim  = out_channels,
                     kernel_size = kernels[2],
                     padding     = "same"
                 )
                 # create third convolution block
-                self$conv_block3 <- torch_conv1D_batch_norm(
+                self$conv_block3 <- .torch_conv1D_batch_norm(
                     input_dim   = out_channels,
                     output_dim  = out_channels,
                     kernel_size = kernels[3],
                     padding     = "same"
                 )
                 # create shortcut
-                self$shortcut = torch_conv1D_batch_norm(
+                self$shortcut = .torch_conv1D_batch_norm(
                     input_dim   = in_channels,
                     output_dim  = out_channels,
                     kernel_size = 1,

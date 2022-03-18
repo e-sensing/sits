@@ -1,11 +1,11 @@
-#' @title Train a model using Lightweight Temporal Self-Attention
+#' @title Train a model using  Lightweight Temporal Self-Attention
 #' @name sits_LTAE
 #'
 #' @author Charlotte Pelletier, \email{charlotte.pelletier@@univ-ubs.fr}
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
 #'
-#' @description Implementation of the Light Temporal Attention Encoder (L-TAE)
+#' @description Implementation of Light Temporal Attention Encoder (L-TAE)
 #' for satellite image time series classification.
 #'
 #' This function is based on the paper by Vivien Garnot referenced below
@@ -13,9 +13,19 @@
 #' https://github.com/VSainteuf/lightweight-temporal-attention-pytorch/blob/master/models/ltae.py.
 #' If you use this method, please cite the original LTAE paper.
 #'
-#' @references Vivien Sainte Fare Garnot and Loic Landrieu,
+#' We also used the code made available by Maja Schneider in her work with
+#' Marco Körner referenced below and available at
+#' https://github.com/maja601/RC2020-psetae.
+#'
+#'
+#' @references
+#' Vivien Sainte Fare Garnot and Loic Landrieu,
 #' "Lightweight Temporal Self-Attention
 #' for Classifying Satellite Image Time Series", https://arxiv.org/abs/2007.00586
+#'
+#' Schneider, Maja; Körner, Marco,
+#' "[Re] Satellite Image Time Series Classification
+#' with Pixel-Set Encoders and Temporal Self-Attention." ReScience C 7 (2), 2021.
 #'
 #' @param samples           Time series with the training samples.
 #' @param blocks            Number of 1D convolutional filters for
@@ -146,105 +156,34 @@ sits_LTAE <- function(samples = NULL,
         )
         test_y <- unname(int_labels[as.vector(test_data$reference)])
 
-        # Function to create torch datasets
-        sits_dataset <- torch::dataset(
-            name = "sits_dataset",
-            initialize = function(dist_x, labels_y) {
-                # create a torch tensor for x data
-                self$x <- torch::torch_tensor(dist_x)
-                # create a torch tensor for y data
-                self$y <- torch::torch_tensor(labels_y)
-            },
-            .getitem = function(i){
-                list(x = self$x[i, ], y = self$y[i])
-            },
-            .length = function(){
-                self$y$size()[[1]]
-            }
-        )
-        # create train and test datasets
-        train_ds <- sits_dataset(train_x, train_y)
-        test_ds  <- sits_dataset(test_x, test_y)
-
-        # create the dataloaders for torch
-        train_dl <- torch::dataloader(train_ds, batch_size = batch_size)
-        test_dl  <- torch::dataloader(test_ds, batch_size = batch_size)
-
-
+        # set torch seed
         torch::torch_manual_seed(sample.int(10^5, 1))
 
-        #
 
-        scaled_dot_product_attention <- torch::nn_module(
-            classname = "scaled_dot_product_attention",
+        pse_ltae_model <- torch::nn_module(
+            classname = "pixel_encoder_light_temporal_attention_encoder",
 
-            initialize = function(temperature,
-                                  attn_dropout = 0.1){
-
-                self$temperature = temperature
-                self$dropout = torch::nn_dropout(attn_dropout)
-                self$softmax = torch::nn_softmax(dim = 2)
-
+            initialize = function(num_bands,
+                                  num_times,
+                                  batch_size,
+                                  dims_spatial_encoder) {
+                self$spatial_encoder = .torch_pixel_spatial_enconder(
+                    num_bands,
+                    num_times,
+                    batch_size,
+                    dims_spatial_encoder
+                )
+                self$temporal_attention_encoder =
+                    .torch_temporal_attention_encoder(...)
+                self$decoder = .torch_linear_batch_norm(...)
             },
-            forward = function(q, k, v){
-                attn = torch::torch.matmul(torch::torch_unsqueeze(q, dim = 1),
-                                           torch::torch_transpose(k, 1, 2))
-
-                attn = attn / self$temperature
-                attn = self$softmax(attn)
-                attn = self$dropout(attn)
-                output = torch::torch_matmul(attn, v)
-                return(list(output = output, attn = attn))
+            forward = function(x){
+                x <- x %>%
+                    self$spatial_encoder() %>%
+                    self$temporal_attention_encoder() %>%
+                    self$decoder()
+                return(x)
             }
-        )
-        multi_head_attention <- torch::nn_module(
-            classname = "multi_head_attention",
-
-            initialize = function(n_head, d_k, d_in){
-
-                self$n_head = n_head
-                self$d_k = d_k
-                self$d_in = d_in
-
-                self$Q = torch::nn_parameter(
-                    torch::torch_zeros((n_head, d_k), requires_grad = TRUE)
-
-                torch::nn_init_normal_(self$Q,
-                                       mean = 0, std = sqrt(2.0 / (d_k)))
-
-
-                self$.fc1_k = torch::nn_linear(d_in, n_head * d_k)
-                torch::nn.init.normal_(self$fc1_k$weight,
-                                       mean = 0,
-                                       std = sqrt(2.0 / (d_k)))
-
-                self.attention = scaled_dot_product_attention
-                                         (temperature = exp(d_k, 0.5))
-
-            };
-
-
-
-        def forward(self, q, k, v):
-            d_k, d_in, n_head = self.d_k, self.d_in, self.n_head
-        sz_b, seq_len, _ = q.size()
-
-        q = torch.stack([self.Q for _ in range(sz_b)], dim=1).view(-1, d_k)  # (n*b) x d_k
-
-        k = self.fc1_k(v).view(sz_b, seq_len, n_head, d_k)
-        k = k.permute(2, 0, 1, 3).contiguous().view(-1, seq_len, d_k)  # (n*b) x lk x dk
-
-        v = torch.stack(v.split(v.shape[-1] // n_head, dim=-1)).view(n_head * sz_b, seq_len, -1)
-        output, attn = self.attention(q, k, v)
-        attn = attn.view(n_head, sz_b, 1, seq_len)
-        attn = attn.squeeze(dim=2)
-
-        output = output.view(n_head, sz_b, 1, d_in // n_head)
-        output = output.squeeze(dim=2)
-
-        return(output)
-    }
-
         )
 
 
@@ -264,14 +203,15 @@ sits_LTAE <- function(samples = NULL,
                 kernels  = kernels
             ) %>%
             luz::fit(
-                data = train_dl,
+                data = list(train_x, train_y),
                 epochs = epochs,
-                valid_data = test_dl,
+                valid_data = list(test_x, test_y),
                 callbacks = list(luz::luz_callback_early_stopping(
                     patience = 10,
                     min_delta = 0.05
                 )),
-                verbose = verbose
+                verbose = verbose,
+                dataloader_options = list(batch_size = batch_size)
             )
 
         model_to_raw <- function(model) {

@@ -69,7 +69,7 @@ https://github.com/dl4sits/BreizhCrops. This code is licensed as GPL-3.
 # Retrieve the set of samples for the Mato Grosso (provided by EMBRAPA)
 
 # Build a machine learning model based on deep learning
-tc_model <- sits_train(samples_modis_4bands, sits_TempCNN(epochs = 75))
+tc_model <- sits_train(samples_modis_4bands, sits_TempCNN())
 # Plot the model
 plot(tc_model)
 

@@ -98,7 +98,7 @@ test_that("Reading a CSV file from WTSS", {
 
   points <- sits_get_data(cube_wtss, file = csv_file, output_dir = tempdir())
 
-  expect_true(all(unique(points$label) == c("Pasture", "Cerrado")))
+  expect_true(all(unique(points$label) %in% c("Pasture", "Cerrado")))
 
   expect_equal(min(points$longitude), -55.0399, tolerance = 1e-5)
   expect_equal(min(points$latitude), -15.1933, tolerance = 1e-5)
@@ -300,7 +300,7 @@ test_that("Reading a CSV file from SATVEG", {
   if (purrr::is_null(points)) {
     skip("points in SATVEG for csv file cannnot be recovered")
   }
-  expect_true(all(unique(points$label) == c("Pasture", "Cerrado")))
+  expect_true(all(unique(points$label) %in% c("Pasture", "Cerrado")))
 
   expect_equal(min(points$longitude), -55.0399, tolerance = 1e-5)
   expect_equal(min(points$latitude), -15.1933, tolerance = 1e-5)
