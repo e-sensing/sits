@@ -84,7 +84,7 @@ sits_regularize <- function(cube,
                             multicores = 1,
                             memsize = 4,
                             progress = TRUE,
-                            use_gdalcubes = FALSE, ...) {
+                            use_gdalcubes = TRUE, ...) {
     if (use_gdalcubes) {
         return(.gc_regularize(
             cube = cube,

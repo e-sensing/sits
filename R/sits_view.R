@@ -2,7 +2,8 @@
 #' @name sits_view
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'
-#' @description Uses leaflet to visualize time series, raster cube and classified images
+#' @description Uses leaflet to visualize time series, raster cube and
+#' classified images
 #'
 #' @param  x             Object of class "sits",
 #'                       "raster_cube" or "classified image".
@@ -220,18 +221,48 @@ sits_view.raster_cube <- function(x, ...,
             msg = "classified cube to be overlayed is invalid"
         )
     }
-    # for plotting grey images
-    if (purrr::is_null(band)) {
-        # check that the RGB bands are available in the cube
+    # pre-condition 2
+    .check_that(
+        purrr::is_null(band) ||
+            (purrr::is_null(red) &&
+                 purrr::is_null(green) &&
+                 purrr::is_null(blue)),
+        local_msg = paste0("either 'band' parameter or 'red', 'green', and",
+                           "'blue' parameters should be informed")
+    )
+
+    # check if rgb bands were informed
+    if (!purrr::is_null(red) ||
+        !purrr::is_null(green) ||
+        !purrr::is_null(blue)) {
+
+        # check if all RGB bands is not null
         .check_that(
-            x = all(c(red, green, blue) %in% sits_bands(x)),
-            msg = "requested RGB bands are not available in data cube"
+            !purrr::is_null(red) &&
+                !purrr::is_null(green) &&
+                !purrr::is_null(blue),
+            local_msg = "missing red, green, or blue bands",
+            msg = "invalid RGB bands"
         )
     } else {
-        .check_that(band %in% sits_bands(x),
-                    msg = "requested RGB bands are not available in data cube"
-        )
+
+        # get default band (try first non-cloud band...)
+        if (purrr::is_null(band)) {
+            band <- .cube_bands(x, add_cloud = FALSE)
+            if (length(band) > 0) {
+                band <- band[[1]]
+            } else {
+                # ...else get cloud band
+                band <- .cube_bands(x)[[1]]
+            }
+        }
+
+        # plot as grayscale
+        red <- band
+        green <- band
+        blue <- band
     }
+
     # filter the tiles to be processed
     cube_tiles <- dplyr::filter(x, .data[["tile"]] %in% tiles)
 

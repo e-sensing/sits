@@ -55,7 +55,8 @@ sits_view(x, ...)
 Leaflet object.
 }
 \description{
-Uses leaflet to visualize time series, raster cube and classified images
+Uses leaflet to visualize time series, raster cube and
+classified images
 }
 \examples{
 \donttest{
