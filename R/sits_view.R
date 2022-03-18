@@ -2,7 +2,8 @@
 #' @name sits_view
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'
-#' @description Uses leaflet to visualize time series, raster cube and classified images
+#' @description Uses leaflet to visualize time series, raster cube and
+#' classified images
 #'
 #' @param  x             Object of class "sits",
 #'                       "raster_cube" or "classified image".

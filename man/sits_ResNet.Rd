@@ -103,6 +103,8 @@ Zhiguang Wang, Weizhong Yan, and Tim Oates,
  2017 international joint conference on neural networks (IJCNN).
 }
 \author{
+Charlotte Pelletier, \email{charlotte.pelletier@univ-ubs.fr}
+
 Gilberto Camara, \email{gilberto.camara@inpe.br}
 
 Rolf Simoes, \email{rolf.simoes@inpe.br}

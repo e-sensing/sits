@@ -244,7 +244,6 @@ sits_get_data <- function(cube,
                                    bands,
                                    impute_fn,
                                    multicores,
-                                   output_dir,
                                    progress) {
 
     # pre-condition - check bands
@@ -254,33 +253,58 @@ sits_get_data <- function(cube,
 
     .cube_bands_check(cube, bands = bands)
 
-    # TODO: aplicar o kmeans com k = multicores
+    n_groups <- min(multicores, nrow(samples))
 
-    # for each row of the input, retrieve the time series
+    groups <- kmeans(
+        x = as.matrix(samples[, c("longitude", "latitude")]),
+        centers = n_groups
+    )
+
+    clusters_indexes <- groups[["cluster"]]
+
     # prepare parallelization
     .sits_parallel_start(workers = multicores, log = FALSE)
     on.exit(.sits_parallel_stop(), add = TRUE)
 
-    ts_lst <- .sits_parallel_map(seq_len(nrow(samples)), function(i) {
+    ts_groups <- .sits_parallel_map(unique(clusters_indexes), function(ci) {
 
-        row <- samples[i, ]
+        idx_group <- which(clusters_indexes == ci)
+        samples_group <- samples[idx_group, ]
 
-        row_ts <- .sits_get_data_from_wtss(
-            cube = cube,
-            longitude = row[["longitude"]],
-            latitude = row[["latitude"]],
-            start_date = lubridate::as_date(row[["start_date"]]),
-            end_date = lubridate::as_date(row[["end_date"]]),
-            label = row[["label"]],
-            bands = bands,
-            impute_fn = impute_fn
-        )
+        ts_group <- slider::slide_dfr(samples_group, function(row) {
 
-        return(row_ts)
+            row_ts <- .sits_get_data_from_wtss(
+                cube = cube,
+                longitude = row[["longitude"]],
+                latitude = row[["latitude"]],
+                start_date = lubridate::as_date(row[["start_date"]]),
+                end_date = lubridate::as_date(row[["end_date"]]),
+                label = row[["label"]],
+                bands = bands,
+                impute_fn = impute_fn
+            )
+
+            return(row_ts)
+        })
+
+        return(ts_group)
 
     }, progress = progress)
 
-    ts_tbl <- dplyr::bind_rows(ts_lst)
+    ts_tbl <- dplyr::bind_rows(ts_groups)
+    ts_bands <- sits_bands(ts_tbl)
+
+    # remove samples where all values in time series are NA
+    ts_tbl <- ts_tbl %>%
+        tidyr::unnest(.data[["time_series"]]) %>%
+        dplyr::group_by(.data[["longitude"]], .data[["latitude"]],
+                        .data[["start_date"]], .data[["end_date"]],
+                        .data[["label"]], .data[["cube"]],
+                        .data[["Index"]]) %>%
+        dplyr::summarise(dplyr::across(ts_bands, function(x) { na.omit(x) })) %>%
+        dplyr::arrange(.data[["Index"]]) %>%
+        dplyr::ungroup() %>%
+        tidyr::nest(time_series = !!c("Index", ts_bands))
 
     # check if data has been retrieved
     .sits_get_data_check(nrow(samples), nrow(ts_tbl))
@@ -298,33 +322,58 @@ sits_get_data <- function(cube,
 .sits_get_ts.satveg_cube <- function(cube,
                                      samples, ...,
                                      multicores,
-                                     output_dir,
                                      progress) {
 
-    # TODO: aplicar o kmeans com k = multicores
+    n_groups <- min(multicores, nrow(samples))
 
-    # for each row of the input, retrieve the time series
+    groups <- kmeans(
+        x = as.matrix(samples[, c("longitude", "latitude")]),
+        centers = n_groups
+    )
+
+    clusters_indexes <- groups[["cluster"]]
+
     # prepare parallelization
     .sits_parallel_start(workers = multicores, log = FALSE)
     on.exit(.sits_parallel_stop(), add = TRUE)
 
-    # for each row of the input, retrieve the time series
-    ts_lst <- .sits_parallel_map(seq_len(nrow(samples)), function(i) {
+    ts_groups <- .sits_parallel_map(unique(clusters_indexes), function(ci) {
 
-        row <- samples[i, ]
+        idx_group <- which(clusters_indexes == ci)
+        samples_group <- samples[idx_group, ]
 
-        row_ts <- .sits_get_data_from_satveg(
-            cube = cube,
-            longitude = row[["longitude"]],
-            latitude = row[["latitude"]],
-            start_date = row[["start_date"]],
-            end_date = row[["end_date"]],
-            label = row[["label"]]
-        )
-        return(row_ts)
-    })
+        ts_group <- slider::slide_dfr(samples_group, function(row) {
 
-    ts_tbl <- dplyr::bind_rows(ts_lst)
+            row_ts <- .sits_get_data_from_satveg(
+                cube = cube,
+                longitude = row[["longitude"]],
+                latitude = row[["latitude"]],
+                start_date = lubridate::as_date(row[["start_date"]]),
+                end_date = lubridate::as_date(row[["end_date"]]),
+                label = row[["label"]]
+            )
+
+            return(row_ts)
+        })
+
+        return(ts_group)
+
+    }, progress = progress)
+
+    ts_tbl <- dplyr::bind_rows(ts_groups)
+    ts_bands <- sits_bands(ts_tbl)
+
+    # remove samples where all values in time series are NA
+    ts_tbl <- ts_tbl %>%
+        tidyr::unnest(.data[["time_series"]]) %>%
+        dplyr::group_by(.data[["longitude"]], .data[["latitude"]],
+                        .data[["start_date"]], .data[["end_date"]],
+                        .data[["label"]], .data[["cube"]],
+                        .data[["Index"]]) %>%
+        dplyr::summarise(dplyr::across(ts_bands, function(x) { na.omit(x) })) %>%
+        dplyr::arrange(.data[["Index"]]) %>%
+        dplyr::ungroup() %>%
+        tidyr::nest(time_series = !!c("Index", ts_bands))
 
     # check if data has been retrieved
     .sits_get_data_check(nrow(samples), nrow(ts_tbl))
@@ -345,6 +394,28 @@ sits_get_data <- function(cube,
                                      multicores,
                                      output_dir,
                                      progress) {
+
+    samples_sf  <- sf::st_as_sf(
+        x = samples,
+        coords = c(x = "longitude", y = "latitude"),
+        crs = 4326
+    )
+
+    are_samples_in_tiles <- purrr::map_lgl(seq_len(nrow(cube)), function(i) {
+
+        .sits_raster_sub_image_intersects(
+            cube = cube[i, ],
+            roi = samples_sf
+        )
+    })
+
+    .check_that(
+        any(are_samples_in_tiles),
+        msg = "The provided tile(s) does not intersects with samples."
+    )
+
+    # filter only tiles that intersects with samples
+    cube <- cube[are_samples_in_tiles, ]
 
     .check_chr_within(
         x = .config_get("df_sample_columns"),
@@ -394,6 +465,7 @@ sits_get_data <- function(cube,
 
         if (file.exists(filename))
             tryCatch({
+                # ensuring that the file is not corrupted
                 timeseries <- readRDS(filename)
 
                 return(timeseries)
@@ -491,6 +563,7 @@ sits_get_data <- function(cube,
                         .data[["Index"]]) %>%
         dplyr::summarise(dplyr::across(bands, function(x) { na.omit(x) })) %>%
         dplyr::arrange(.data[["Index"]]) %>%
+        dplyr::ungroup() %>%
         tidyr::nest(time_series = !!c("Index", bands))
 
 
