@@ -8,10 +8,9 @@ sits_ResNet(
   samples = NULL,
   blocks = c(64, 128, 128),
   kernels = c(7, 5, 3),
-  activation = "relu",
   optimizer = torch::optim_adam,
   learning_rate = 0.001,
-  epochs = 300,
+  epochs = 100,
   batch_size = 64,
   validation_split = 0.2,
   verbose = FALSE
@@ -25,9 +24,6 @@ each block of three layers.}
 
 \item{kernels}{Size of the 1D convolutional kernels
 for each layer of each block.}
-
-\item{activation}{Activation function for 1D convolution.
-Valid values: {'relu', 'elu', 'selu', 'sigmoid'}.}
 
 \item{optimizer}{Function with a pointer to the optimizer function
 (default is optimization_adam()).
@@ -69,10 +65,17 @@ In the paper by Fawaz et al. (2019), ResNet was considered the best method
 for time series classification, using the UCR dataset.
 Please refer to the paper for more details.
 
-The R-torch version is based on the code made available by Ignacio Oguiza
-who maintains the timeseriesAI github repository. The pytorch ResNet
-implementation is available at
+The R-torch version is based on the code made available by Zhiguang Wang,
+author of the original paper. The code was developed in python using keras.
+
+https://github.com/cauchyturing/UCR_Time_Series_Classification_Deep_Learning_Baseline/blob/master/ResNet.py
+
+The R-torch version also considered the code by Ignacio Oguiza,
+whose implementation is available at
 https://github.com/timeseriesAI/tsai/blob/main/tsai/models/ResNet.py.
+
+There are differences between Wang's Keras code and Oguiza torch code.
+In this case, we have used Wang's keras code as the main reference.
 }
 \examples{
 \dontrun{
@@ -110,4 +113,8 @@ Rolf Simoes, \email{rolf.simoes@inpe.br}
 Felipe Souza, \email{lipecaso@gmail.com}
 
 Alber Sanchez, \email{alber.ipia@inpe.br}
+
+Charlotte Pelletier, \email{charlotte.pelletier@univ-ubs.fr}
+
+Daniel Falbel, \email{dfalbel@gmail.com}
 }

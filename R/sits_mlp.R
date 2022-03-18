@@ -12,8 +12,6 @@
 #'
 #' @param samples           Time series with the training samples.
 #' @param layers            Vector with number of hidden nodes in each layer.
-#' @param activation        Vector with the names of activation functions.
-#'                          Valid values are {'relu', 'elu', 'selu', 'sigmoid'}.
 #' @param dropout_rates     Vector with the dropout rates (0,1)
 #'                          for each layer.
 #' @param learning_rate     Learning rate of the optimizer
@@ -33,28 +31,33 @@
 #' The parameters for the MLP have been chosen based on the work by Wang et al. 2017
 #' that takes multilayer perceptrons as the baseline for time series classifications:
 #' (a) Three layers with 512 neurons each, specified by the parameter `layers`;
-#' (b) Using the 'relu' activation function;
-#' (c) dropout rates of 10%, 20%, and 30% for the layers;
-#' (d) the "optimizer_adam" as optimizer (default value);
-#' (e) a number of training steps (`epochs`) of 100;
-#' (f) a `batch_size` of 64, which indicates how many time series
+#' (b) dropout rates of 10%, 20%, and 30% for the layers;
+#' (c) the "optimizer_adam" as optimizer (default value);
+#' (d) a number of training steps (`epochs`) of 100;
+#' (e) a `batch_size` of 64, which indicates how many time series
 #' are used for input at a given steps;
-#' (g) a validation percentage of 20%, which means 20% of the samples
+#' (f) a validation percentage of 20%, which means 20% of the samples
 #' will be randomly set side for validation.
+#' (g) The "relu" activation function.
 #'
+#'#' @references
+#'
+#' Zhiguang Wang, Weizhong Yan, and Tim Oates,
+#' "Time series classification from scratch with deep neural networks:
+#'  A strong baseline",
+#'  2017 international joint conference on neural networks (IJCNN).
 #'
 #'
 #' @examples
 #' \dontrun{
 #' # Retrieve the set of samples for the Mato Grosso region
-#' data(samples_modis_4bands)
-#' samples_mt_ndvi <- sits_select(samples_modis_4bands, bands = "NDVI")
 #' # Build a machine learning model based on deep learning
-#' dl_model <- sits_train(samples_mt_ndvi, sits_mlp())
+#' dl_model <- sits_train(samples_modis_4bands, sits_mlp())
 #' # get a point with a 16 year time series
-#' point_ndvi <- sits_select(point_mt_6bands, bands = "NDVI")
+#' point_4classes <- sits_select(point_mt_6bands,
+#'                               bands = c("NDVI", "EVI", "NIR", "MIR"))
 #' # classify the point
-#' point_class <- sits_classify(point_ndvi, dl_model)
+#' point_class <- sits_classify(point_4classes, dl_model)
 #' # plot the classified point
 #' plot(point_class)
 #' }
@@ -62,7 +65,6 @@
 #'
 sits_mlp <- function(samples = NULL,
                      layers = c(512, 512, 512),
-                     activation = "relu",
                      dropout_rates = c(0.20, 0.30, 0.40),
                      learning_rate = 0.001,
                      epochs = 100,
@@ -91,16 +93,6 @@ sits_mlp <- function(samples = NULL,
             x = length(layers) == length(dropout_rates),
             msg = "number of layers does not match number of dropout rates"
         )
-        .check_that(
-            x = length(activation) == 1,
-            msg = "use only one activation function"
-        )
-        .check_chr_within(
-            x = activation,
-            within = .config_get("dl_activation_methods"),
-            discriminator = "any_of",
-            msg = "invalid node activation method"
-        )
         # data normalization
         stats <- .sits_ml_normalization_param(data)
         train_data <- .sits_distances(.sits_ml_normalize_data(data, stats))
@@ -126,7 +118,6 @@ sits_mlp <- function(samples = NULL,
         test_data <- .sits_distances_sample(train_data,
                                             frac = validation_split
         )
-
         # remove the lines used for validation
         train_data <- train_data[!test_data, on = "original_row"]
 
@@ -148,65 +139,30 @@ sits_mlp <- function(samples = NULL,
         test_x <- data.matrix(test_data[, -2:0])
         test_y <- unname(int_labels[as.vector(test_data$reference)])
 
-        # Function to create torch datasets
-        sits_dataset <- torch::dataset(
-            name = "sits_dataset",
-            initialize = function(dist_x, labels_y) {
-                # create a torch tensor for x data
-                self$x <- torch::torch_tensor(dist_x)
-                # create a torch tensor for y data
-                self$y <- torch::torch_tensor(labels_y)
-            },
-            .getitem = function(i) {
-                list(x = self$x[i, ], y = self$y[i])
-            },
-            .length = function() {
-                self$y$size()[[1]]
-            }
-        )
-
-        # create train and test datasets
-        train_ds <- sits_dataset(train_x, train_y)
-        test_ds <- sits_dataset(test_x, test_y)
-
-        # create the dataloaders for torch
-        train_dl <- torch::dataloader(train_ds, batch_size = batch_size)
-        test_dl <- torch::dataloader(test_ds, batch_size = batch_size)
-
-        # activation function
-        get_activation_fn <- function(activation, ...) {
-            if (activation == "relu") {
-                res <- torch::nn_relu(...)
-            } else if (activation == "elu") {
-                res <- torch::nn_elu(...)
-            } else if (activation == "tanh") {
-                res <- torch::nn_tanh(...)
-            } else {
-                res <- identity
-            }
-            return(res)
-        }
+        # set torch seed
         torch::torch_manual_seed(sample.int(10^5, 1))
 
-        torch_module <- torch::nn_module(
-            "torch_module",
-            initialize = function(num_pred, layers, activation, dropout_rates, y_dim) {
+        mlp_module <- torch::nn_module(
+            "mlp_module",
+            initialize = function(num_pred, layers, dropout_rates, y_dim) {
                 tensors <- list()
 
                 # input layer
-                tensors[[1]] <- torch::nn_linear(num_pred, layers[1])
-                tensors[[2]] <- get_activation_fn(activation)
-                tensors[[3]] <- torch::nn_dropout(p = dropout_rates[1])
+                tensors[[1]] <- torch_linear_relu_dropout(
+                    input_dim = num_pred,
+                    output_dim = layers[1],
+                    dropout_rate = dropout_rates[1]
+                )
 
                 # if hidden layers is a vector then we add those layers
                 if (length(layers) > 1) {
                     for (i in 2:length(layers)) {
                         tensors[[length(tensors) + 1]] <-
-                            torch::nn_linear(layers[i - 1], layers[i])
-
-                        tensors[[length(tensors) + 1]] <- get_activation_fn(activation)
-                        tensors[[length(tensors) + 1]] <- torch::nn_dropout(p = dropout_rates[i])
-                        tensors[[length(tensors) + 1]] <- torch::nn_batch_norm1d(num_features = layers[i])
+                            torch_linear_batch_norm_relu_dropout(
+                                input_dim = layers[i - 1],
+                                output_dim = layers[i],
+                                dropout_rate = dropout_rates[i]
+                            )
                     }
                 }
                 # add output layer
@@ -226,7 +182,7 @@ sits_mlp <- function(samples = NULL,
         # train the model using the "luz" package
         torch_model <-
             luz::setup(
-                module = torch_module,
+                module = mlp_module,
                 loss = torch::nn_cross_entropy_loss(),
                 metrics = list(luz::luz_metric_accuracy()),
                 optimizer = torch::optim_adam
@@ -234,7 +190,6 @@ sits_mlp <- function(samples = NULL,
             luz::set_hparams(
                 num_pred = ncol(train_x),
                 layers = layers,
-                activation = activation,
                 dropout_rates = dropout_rates,
                 y_dim = length(int_labels)
             ) %>%
@@ -242,9 +197,9 @@ sits_mlp <- function(samples = NULL,
                 lr = learning_rate
             ) %>%
             luz::fit(
-                data = train_dl,
+                data = list(train_x, train_y),
                 epochs = epochs,
-                valid_data = test_dl,
+                valid_data = list(test_x, test_y),
                 callbacks = list(luz::luz_callback_early_stopping(
                     patience = 10,
                     min_delta = 0.05

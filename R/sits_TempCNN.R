@@ -52,7 +52,7 @@
 #' # Retrieve the set of samples for the Mato Grosso (provided by EMBRAPA)
 #'
 #' # Build a machine learning model based on deep learning
-#' tc_model <- sits_train(samples_modis_4bands, sits_TempCNN(epochs = 75))
+#' tc_model <- sits_train(samples_modis_4bands, sits_TempCNN())
 #' # Plot the model
 #' plot(tc_model)
 #'
@@ -168,45 +168,6 @@ sits_TempCNN <- function(samples = NULL,
         # set random seed for torch
         torch::torch_manual_seed(sample.int(10^5, 1))
 
-        # module for 1D convolution with batch normalization and dropout
-        conv1D_batch_norm_relu_dropout <- torch::nn_module(
-            classname = "conv1D_batch_norm_relu_dropout",
-            initialize = function(input_dim,
-                                  hidden_dim,
-                                  kernel_size,
-                                  dropout_rate) {
-                self$block <- torch::nn_sequential(
-                    torch::nn_conv1d(input_dim,
-                                     hidden_dim,
-                                     kernel_size,
-                                     padding = as.integer(kernel_size %/% 2)
-                    ),
-                    torch::nn_batch_norm1d(hidden_dim),
-                    torch::nn_relu(),
-                    torch::nn_dropout(dropout_rate)
-                )
-            },
-            forward = function(x) {
-                self$block(x)
-            }
-        )
-        # module for linear transformation with batch normalization and dropout
-        fc_batch_norm_relu_dropout <- torch::nn_module(
-            classname = "fc_batch_norm_relu_dropout",
-            initialize = function(input_dim,
-                                  hidden_dims,
-                                  dropout_rate) {
-                self$block <- torch::nn_sequential(
-                    torch::nn_linear(input_dim, hidden_dims),
-                    torch::nn_batch_norm1d(hidden_dims),
-                    torch::nn_relu(),
-                    torch::nn_dropout(dropout_rate)
-                )
-            },
-            forward = function(x) {
-                self$block(x)
-            }
-        )
         # define main torch tempCNN module
         tcnn_module <- torch::nn_module(
             classname = "tcnn_module",
@@ -220,32 +181,35 @@ sits_TempCNN <- function(samples = NULL,
                                   dense_layer_dropout_rate) {
                 self$hidden_dims <- hidden_dims
                 # first module - transform input to hidden dims
-                self$conv_bn_relu1 <- conv1D_batch_norm_relu_dropout(
-                    input_dim = n_bands,
-                    hidden_dim = hidden_dims[1],
-                    kernel_size = kernel_sizes[1],
+                self$conv_bn_relu1 <- torch_conv1D_batch_norm_relu_dropout(
+                    input_dim    = n_bands,
+                    output_dim   = hidden_dims[1],
+                    kernel_size  = kernel_sizes[1],
+                    padding      = as.integer(kernel_sizes[[1]] %/% 2),
                     dropout_rate = dropout_rates[1]
                 )
                 # second module - 1D CNN
-                self$conv_bn_relu2 <- conv1D_batch_norm_relu_dropout(
-                    input_dim = hidden_dims[1],
-                    hidden_dim = hidden_dims[2],
-                    kernel_size = kernel_sizes[2],
+                self$conv_bn_relu2 <- torch_conv1D_batch_norm_relu_dropout(
+                    input_dim    = hidden_dims[1],
+                    output_dim   = hidden_dims[2],
+                    kernel_size  = kernel_sizes[2],
+                    padding      = as.integer(kernel_sizes[[2]] %/% 2),
                     dropout_rate = dropout_rates[2]
                 )
                 # third module - 1D CNN
-                self$conv_bn_relu3 <- conv1D_batch_norm_relu_dropout(
+                self$conv_bn_relu3 <- torch_conv1D_batch_norm_relu_dropout(
                     input_dim    = hidden_dims[2],
-                    hidden_dim   = hidden_dims[3],
+                    output_dim   = hidden_dims[3],
                     kernel_size  = kernel_sizes[3],
+                    padding      = as.integer(kernel_sizes[[3]] %/% 2),
                     dropout_rate = dropout_rates[3]
                 )
                 # flatten 3D tensor to 2D tensor
                 self$flatten <- torch::nn_flatten()
                 # create a dense tensor
-                self$dense <- fc_batch_norm_relu_dropout(
+                self$dense <- torch_linear_batch_norm_relu_dropout(
                     input_dim    = hidden_dims[3] * n_times,
-                    hidden_dim   = dense_layer_nodes,
+                    output_dim   = dense_layer_nodes,
                     dropout_rate = dense_layer_dropout_rate
                 )
                 # classification using softmax
@@ -299,24 +263,14 @@ sits_TempCNN <- function(samples = NULL,
         model_to_raw <- function(model) {
             con <- rawConnection(raw(), open = "wr")
             torch::torch_save(model, con)
-            on.exit(
-                {
-                    close(con)
-                },
-                add = TRUE
-            )
+            on.exit(close(con), add = TRUE)
             r <- rawConnectionValue(con)
             return(r)
         }
 
         model_from_raw <- function(object) {
             con <- rawConnection(object)
-            on.exit(
-                {
-                    close(con)
-                },
-                add = TRUE
-            )
+            on.exit(close(con), add = TRUE)
             module <- torch::torch_load(con)
             return(module)
         }

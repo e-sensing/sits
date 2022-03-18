@@ -7,7 +7,6 @@
 sits_mlp(
   samples = NULL,
   layers = c(512, 512, 512),
-  activation = "relu",
   dropout_rates = c(0.2, 0.3, 0.4),
   learning_rate = 0.001,
   epochs = 100,
@@ -20,9 +19,6 @@ sits_mlp(
 \item{samples}{Time series with the training samples.}
 
 \item{layers}{Vector with number of hidden nodes in each layer.}
-
-\item{activation}{Vector with the names of activation functions.
-Valid values are {'relu', 'elu', 'selu', 'sigmoid'}.}
 
 \item{dropout_rates}{Vector with the dropout rates (0,1)
 for each layer.}
@@ -55,14 +51,21 @@ Please refer to the documentation of those package for more details.
 The parameters for the MLP have been chosen based on the work by Wang et al. 2017
 that takes multilayer perceptrons as the baseline for time series classifications:
 (a) Three layers with 512 neurons each, specified by the parameter `layers`;
-(b) Using the 'relu' activation function;
-(c) dropout rates of 10%, 20%, and 30% for the layers;
-(d) the "optimizer_adam" as optimizer (default value);
-(e) a number of training steps (`epochs`) of 100;
-(f) a `batch_size` of 64, which indicates how many time series
+(b) dropout rates of 10%, 20%, and 30% for the layers;
+(c) the "optimizer_adam" as optimizer (default value);
+(d) a number of training steps (`epochs`) of 100;
+(e) a `batch_size` of 64, which indicates how many time series
 are used for input at a given steps;
-(g) a validation percentage of 20%, which means 20% of the samples
+(f) a validation percentage of 20%, which means 20% of the samples
 will be randomly set side for validation.
+(g) The "relu" activation function.
+
+#' @references
+
+Zhiguang Wang, Weizhong Yan, and Tim Oates,
+"Time series classification from scratch with deep neural networks:
+ A strong baseline",
+ 2017 international joint conference on neural networks (IJCNN).
 }
 \examples{
 \dontrun{

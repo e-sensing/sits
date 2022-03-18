@@ -87,11 +87,11 @@ of Satellite Image Time Series",
 Remote Sensing, 11,523, 2019. DOI: 10.3390/rs11050523.
 }
 \author{
+Charlotte Pelletier, \email{charlotte.pelletier@univ-ubs.fr}
+
 Gilberto Camara, \email{gilberto.camara@inpe.br}
 
 Rolf Simoes, \email{rolf.simoes@inpe.br}
 
 Felipe Souza, \email{lipecaso@gmail.com}
-
-Alber Sanchez, \email{alber.ipia@inpe.br}
 }
