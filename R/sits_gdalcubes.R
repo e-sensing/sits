@@ -629,7 +629,7 @@
             prefix <- paste("cube", .cube_tiles(tile), band, "", sep = "_")
 
             # setting threads to process
-            gdalcubes::gdalcubes_options(threads = 2)
+            gdalcubes::gdalcubes_options(parallel = 2)
 
             # create of the aggregate cubes
             gc_images <- .gc_save_raster_cube(
