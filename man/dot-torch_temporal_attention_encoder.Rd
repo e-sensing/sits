@@ -8,7 +8,6 @@
   timeline,
   dim_encoder = 128,
   n_heads = 4,
-  dim_q_k = 128,
   dim_input_mlp3 = 512,
   dim_layers_mlp3 = c(128, 128)
 )
@@ -20,10 +19,10 @@
 
 \item{n_heads}{Number of attention heads.}
 
-\item{dim_q_k}{Shared dimensions of keys and queries for attention.}
-
 \item{dim_input_mlp3}{Dimension of input to multi-layer perceptron
 (MLP3 in Garnot's paper)}
+
+\item{dim_q_k}{Shared dimensions of keys and queries for attention.}
 
 \item{dim_hidden_nodes_mlp3}{Dimensions of hidden nodes in multi-layer
 perceptrons (MLP3 in Garnot's paper)}

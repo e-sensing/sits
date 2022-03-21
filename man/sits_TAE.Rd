@@ -54,7 +54,7 @@ plot(tae_model)
 point <- sits_select(point_mt_6bands,
     bands = c("NDVI", "EVI", "NIR", "MIR")
 )
-class <- sits_classify(point, rn_model)
+class <- sits_classify(point, tae_model)
 plot(class, bands = c("NDVI", "EVI"))
 }
 }
