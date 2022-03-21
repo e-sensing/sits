@@ -44,15 +44,15 @@
 #' # Retrieve the set of samples for the Mato Grosso (provided by EMBRAPA)
 #'
 #' # Build a machine learning model based on deep learning
-#' rn_model <- sits_train(samples_modis_4bands, sits_LTAE(epochs = 75))
+#' tae_model <- sits_train(samples_modis_4bands, sits_TAE())
 #' # Plot the model
-#' plot(rn_model)
+#' plot(tae_model)
 #'
 #' # get a point and classify the point with the ml_model
 #' point <- sits_select(point_mt_6bands,
 #'     bands = c("NDVI", "EVI", "NIR", "MIR")
 #' )
-#' class <- sits_classify(point, rn_model)
+#' class <- sits_classify(point, tae_model)
 #' plot(class, bands = c("NDVI", "EVI"))
 #' }
 #' @export
@@ -63,7 +63,7 @@ sits_TAE <- function(samples = NULL,
                       verbose = FALSE) {
 
     # set caller to show in errors
-    .check_set_caller("sits_ResNet")
+    .check_set_caller("sits_TAE")
 
     # function that returns torch model based on a sits sample data.table
     result_fun <- function(data) {
@@ -71,16 +71,10 @@ sits_TAE <- function(samples = NULL,
         if (!requireNamespace("torch", quietly = TRUE)) {
             stop("Please install package torch", call. = FALSE)
         }
-        .check_chr_within(
-            x = activation,
-            within = .config_get("dl_activation_methods"),
-            discriminator = "one_of",
-            msg = "invalid CNN activation method"
-        )
-        .check_that(
-            x = length(kernels) == 3,
-            msg = "should inform size of three kernels"
-        )
+        # verifies if torch package is installed
+        if (!requireNamespace("luz", quietly = TRUE)) {
+            stop("Please install package luz", call. = FALSE)
+        }
         # get the labels of the data
         labels <- sits_labels(data)
         # create a named vector with integers match the class labels
@@ -139,8 +133,8 @@ sits_TAE <- function(samples = NULL,
             initialize = function(n_bands,
                                   n_labels,
                                   timeline,
-                                  dims_input_decoder = 128,
-                                  dims_layers_decoder = c(64, 32)) {
+                                  dim_input_decoder = 128,
+                                  dim_layers_decoder = c(64, 32)) {
                 # define an spatial encoder
                 self$spatial_encoder <-
                     .torch_pixel_spatial_enconder(n_bands = n_bands)
@@ -150,7 +144,7 @@ sits_TAE <- function(samples = NULL,
 
                 # add a final layer to the decoder
                 # with a dimension equal to the number of layers
-                dims_layers_decoder[length(dims_layers_decoder) + 1] <- n_labels
+                dim_layers_decoder[length(dim_layers_decoder) + 1] <- n_labels
                 self$decoder <- .torch_multi_linear_batch_norm_relu(
                     dim_input_decoder,
                     dim_layers_decoder
