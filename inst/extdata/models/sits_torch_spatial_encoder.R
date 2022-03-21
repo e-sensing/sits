@@ -74,13 +74,16 @@
 
     },
     forward = function(input, hidden_dims) {
+        # batch size is the first dimension of the input tensor
         batch_size <- input$shape[[1]]
+        # n_times is the second dimension
         n_times    <- input$shape[[2]]
-        n_bands    <-  input$shape[[3]]
+        # n_bands is the third dimension
+        n_bands    <- input$shape[[3]]
         input      <- input$view(batch_size * n_times, n_bands)
         output     <- self$mlp(input)
-        dim_encoder <- self$hidden_dims[[length(hidden_dims)]]
-        output     <- output$view(batch_size, n_times, dim_encoder)
+        dim_enc    <- self$hidden_dims[[length(hidden_dims)]]
+        output     <- output$view(batch_size, n_times, dim_enc)
         return(output)
     }
 )

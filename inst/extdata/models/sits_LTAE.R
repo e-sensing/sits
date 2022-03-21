@@ -160,13 +160,15 @@ sits_LTAE <- function(samples = NULL,
         torch::torch_manual_seed(sample.int(10^5, 1))
 
 
-        pse_ltae_model <- torch::nn_module(
+        pse_tae_model <- torch::nn_module(
             classname = "pixel_encoder_light_temporal_attention_encoder",
 
             initialize = function(num_bands,
                                   num_times,
                                   batch_size,
-                                  dims_spatial_encoder) {
+                                  dims_spatial_encoder = 128,
+                                  dims_input_decoder = 128,
+                                  dims_hidden_decoder = c(64, 32, 20)) {
                 self$spatial_encoder = .torch_pixel_spatial_enconder(
                     num_bands,
                     num_times,
@@ -175,7 +177,10 @@ sits_LTAE <- function(samples = NULL,
                 )
                 self$temporal_attention_encoder =
                     .torch_temporal_attention_encoder(...)
-                self$decoder = .torch_linear_batch_norm(...)
+                self$decoder <- .torch_multi_linear_batch_norm_relu(
+                    dim_input_decoder,
+                    dim_hidden_nodes_decoder
+                )
             },
             forward = function(x){
                 x <- x %>%
