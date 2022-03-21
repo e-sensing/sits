@@ -166,8 +166,8 @@
     })
     # post condition
     .check_that(
-        all(sapply(img_files_ok, length) == length(parse_info)),
-        local_msg = "some files do not match fields of parse_info",
+        length(img_files_ok) > 0,
+        local_msg = "no file matched fields of parse_info",
         msg = "invalid file names or 'parse_info' parameter"
     )
 
