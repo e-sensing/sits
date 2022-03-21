@@ -1,5 +1,5 @@
-#' @title Train a model using  Lightweight Temporal Self-Attention
-#' @name sits_LTAE
+#' @title Train a model using  Temporal Self-Attention Encoder
+#' @name sits_TAE
 #'
 #' @author Charlotte Pelletier, \email{charlotte.pelletier@@univ-ubs.fr}
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
@@ -10,8 +10,8 @@
 #'
 #' This function is based on the paper by Vivien Garnot referenced below
 #' and code available on github at
-#' https://github.com/VSainteuf/lightweight-temporal-attention-pytorch/blob/master/models/ltae.py.
-#' If you use this method, please cite the original LTAE paper.
+#' https://github.com/VSainteuf/pytorch-psetae.
+#' If you use this method, please cite the original TAE paper.
 #'
 #' We also used the code made available by Maja Schneider in her work with
 #' Marco Körner referenced below and available at
@@ -19,13 +19,15 @@
 #'
 #'
 #' @references
-#' Vivien Sainte Fare Garnot and Loic Landrieu,
-#' "Lightweight Temporal Self-Attention
-#' for Classifying Satellite Image Time Series", https://arxiv.org/abs/2007.00586
+#' Vivien Garnot, Loic Landrieu, Sebastien Giordano, and Nesrine Chehata,
+#' "Satellite Image Time Series Classification with Pixel-Set Encoders
+#' and Temporal Self-Attention",
+#' 2020 Conference on Computer Vision and Pattern Recognition
 #'
 #' Schneider, Maja; Körner, Marco,
 #' "[Re] Satellite Image Time Series Classification
-#' with Pixel-Set Encoders and Temporal Self-Attention." ReScience C 7 (2), 2021.
+#' with Pixel-Set Encoders and Temporal Self-Attention."
+#' ReScience C 7 (2), 2021.
 #'
 #' @param samples           Time series with the training samples.
 #' @param epochs            Number of iterations to train the model.
@@ -54,7 +56,7 @@
 #' plot(class, bands = c("NDVI", "EVI"))
 #' }
 #' @export
-sits_LTAE <- function(samples = NULL,
+sits_TAE <- function(samples = NULL,
                       epochs = 100,
                       batch_size = 64,
                       validation_split = 0.2,
@@ -69,19 +71,16 @@ sits_LTAE <- function(samples = NULL,
         if (!requireNamespace("torch", quietly = TRUE)) {
             stop("Please install package torch", call. = FALSE)
         }
-
         .check_chr_within(
             x = activation,
             within = .config_get("dl_activation_methods"),
             discriminator = "one_of",
             msg = "invalid CNN activation method"
         )
-
         .check_that(
             x = length(kernels) == 3,
             msg = "should inform size of three kernels"
         )
-
         # get the labels of the data
         labels <- sits_labels(data)
         # create a named vector with integers match the class labels
@@ -92,7 +91,6 @@ sits_LTAE <- function(samples = NULL,
         # number of bands and number of samples
         n_bands <- length(sits_bands(data))
         n_times <- nrow(sits_time_series(data[1, ]))
-
         # timeline of samples
         timeline <- sits_timeline(data)
 
@@ -107,7 +105,6 @@ sits_LTAE <- function(samples = NULL,
         )
         # remove the lines used for validation
         train_data <- train_data[!test_data, on = "original_row"]
-
         n_samples_train <- nrow(train_data)
         n_samples_test <- nrow(test_data)
 
@@ -120,14 +117,12 @@ sits_LTAE <- function(samples = NULL,
             nrow(test_data),
             nrow(test_data)
         ), ]
-
         # organize data for model training
         train_x <- array(
             data = as.matrix(train_data[, 3:ncol(train_data)]),
             dim = c(n_samples_train, n_times, n_bands)
         )
         train_y <- unname(int_labels[as.vector(train_data$reference)])
-
         # create the test data
         test_x <- array(
             data = as.matrix(test_data[, 3:ncol(test_data)]),
@@ -138,7 +133,7 @@ sits_LTAE <- function(samples = NULL,
         # set torch seed
         torch::torch_manual_seed(sample.int(10^5, 1))
 
-
+        # define the PSE-TAE model
         pse_tae_model <- torch::nn_module(
             classname = "pixel_encoder_light_temporal_attention_encoder",
             initialize = function(n_bands,
@@ -146,8 +141,10 @@ sits_LTAE <- function(samples = NULL,
                                   timeline,
                                   dims_input_decoder = 128,
                                   dims_layers_decoder = c(64, 32)) {
+                # define an spatial encoder
                 self$spatial_encoder <-
                     .torch_pixel_spatial_enconder(n_bands = n_bands)
+                # define a temporal encoder
                 self$temporal_attention_encoder <-
                     .torch_temporal_attention_encoder(timeline = timeline)
 
@@ -220,7 +217,6 @@ sits_LTAE <- function(samples = NULL,
             if (!requireNamespace("torch", quietly = TRUE)) {
                 stop("Please install package torch", call. = FALSE)
             }
-
             # restore model
             torch_model$model <- model_from_raw(serialized_model)
 

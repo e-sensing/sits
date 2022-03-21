@@ -38,8 +38,8 @@
 #' "Lightweight Temporal Self-Attention
 #' for Classifying Satellite Image Time Series", https://arxiv.org/abs/2007.00586
 #'
-#' @param n_bands           Number of bands per pixel.
-#' @param hidden_dims       Output dimensions of MLPs to be created
+#' @param n_bands             Number of bands per pixel.
+#' @param layers_mlp2         Layers of MLP2 spatial encoder
 #'
 #' @return A linear tensor block.
 #'
@@ -48,41 +48,32 @@
 .torch_pixel_spatial_enconder <- torch::nn_module(
     classname = "torch_pixel_spatial_encoder",
     initialize = function(n_bands,
-                          hidden_dims = c(64, 128)) {
+                          layers_mlp2 = c(64, 128)) {
 
-        self$hidden_dims <- hidden_dims
-        tensors <- list()
-
-        # input layer
-        tensors[[1]] <- .torch_linear_batch_norm_relu(
+        self$layers_mlp2 <- layers_mlp2
+        self$mlp2 <- .torch_multi_linear_batch_norm_relu(
             input_dim = n_bands,
-            output_dim = hidden_dims[1]
+            hidden_dim = layers_mlp2
         )
-
-        # if hidden layers is a vector then we add those layers
-        if (length(hidden_dims) > 1) {
-            for (i in 2:length(hidden_dims)) {
-                tensors[[length(tensors) + 1]] <-
-                    .torch_linear_batch_norm_relu(
-                        input_dim = hidden_dims[i - 1],
-                        output_dim = hidden_dims[i]
-                    )
-            }
-        }
-        # create a sequential module that calls the layers in the same order.
-        self$mlp <- torch::nn_sequential(!!!tensors)
-
     },
-    forward = function(input, hidden_dims) {
+    forward = function(input) {
         # batch size is the first dimension of the input tensor
         batch_size <- input$shape[[1]]
         # n_times is the second dimension
         n_times    <- input$shape[[2]]
         # n_bands is the third dimension
         n_bands    <- input$shape[[3]]
+        # reshape the input
+        # from a 3D shape [batch_size, n_times, n_bands]
+        # to a 2D shape [(batch_size * n_times), n_bands]
         input      <- input$view(batch_size * n_times, n_bands)
-        output     <- self$mlp(input)
-        dim_enc    <- self$hidden_dims[[length(hidden_dims)]]
+        # run the the 2D shape by a multi-layer perceptron
+        output     <- self$mlp2(input)
+        # retrieve the spatial encoding dimension
+        dim_enc    <- self$layers_mlp2[[length(layers_mlp2)]]
+        # reshape the output
+        # from a 2D shape [(batch_size * n_times), n_bands]
+        # to a 3D shape [batch_size, n_times, dim_enc]
         output     <- output$view(batch_size, n_times, dim_enc)
         return(output)
     }

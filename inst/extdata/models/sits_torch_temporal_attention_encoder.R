@@ -116,13 +116,12 @@
 .torch_temporal_attention_encoder <- torch::nn_module(
     classname = "torch_temporal_attention_encoder",
 
-
     initialize = function(timeline,
-                          dim_encoder,
-                          n_heads,
+                          dim_encoder = 128,
+                          n_heads = 4,
                           dim_q_k = 128,
                           dim_input_mlp3 = 512,
-                          dim_hidden_nodes_mlp3 = c(128, 128)){
+                          dim_layers_mlp3 = c(128, 128)){
         # store parameters
         self$dim_encoder <-  dim_enconder
         self$n_heads     <-  n_heads
@@ -142,7 +141,7 @@
         # final multi-layer perceptron
         self$mlp3  <- .torch_multi_linear_batch_norm_relu(
             dim_input_mlp3,
-            dim_hidden_nodes_mlp3
+            dim_layers_mlp3
         )
     },
     forward = function(x){
