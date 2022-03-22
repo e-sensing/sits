@@ -48,7 +48,7 @@
 .torch_pixel_spatial_enconder <- torch::nn_module(
     classname = "torch_pixel_spatial_encoder",
     initialize = function(n_bands,
-                          layers_mlp2 = c(64, 128)) {
+                          layers_mlp2 = c(32, 64, 128)) {
 
         self$layers_mlp2 <- layers_mlp2
         self$mlp2 <- .torch_multi_linear_batch_norm_relu(
@@ -66,15 +66,16 @@
         # reshape the input
         # from a 3D shape [batch_size, n_times, n_bands]
         # to a 2D shape [(batch_size * n_times), n_bands]
-        input      <- input$view(batch_size * n_times, n_bands)
+        input      <- input$view(c(batch_size * n_times, n_bands))
         # run the the 2D shape by a multi-layer perceptron
+        # input is 2D shape [(batch_size * n_times), n_bands]
+        dim_enc    <- self$layers_mlp2[[length(self$layers_mlp2)]]
         output     <- self$mlp2(input)
-        # retrieve the spatial encoding dimension
-        dim_enc    <- self$layers_mlp2[[length(layers_mlp2)]]
+        # output is a 2D shape[(batch_size * n_times), dim_enc]
         # reshape the output
         # from a 2D shape [(batch_size * n_times), n_bands]
         # to a 3D shape [batch_size, n_times, dim_enc]
-        output     <- output$view(batch_size, n_times, dim_enc)
+        output     <- output$view(c(batch_size, n_times, dim_enc))
         return(output)
     }
 )

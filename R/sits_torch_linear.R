@@ -136,10 +136,10 @@
         # if hidden layers is a vector then we add those layers
         if (length(hidden_dims) > 1) {
             for (i in 2:length(hidden_dims)) {
-                tensors[[length(hidden_dims) + 1]] <-
+                tensors[[length(tensors) + 1]] <-
                     .torch_linear_batch_norm_relu(
                         input_dim  = hidden_dims[i - 1],
-                        output_dim = hidden_dims[i],
+                        output_dim = hidden_dims[i]
                     )
             }
         }
