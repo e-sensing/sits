@@ -154,22 +154,27 @@
 
     # remove the extension
     img_files_noext <- tools::file_path_sans_ext(img_files)
+
     # split the file names
     img_files_lst <- strsplit(img_files_noext, split = delim)
 
-    img_files_ok <- purrr::map(img_files_lst, function(img_file) {
-        if (length(img_file) == length(parse_info)) {
-            return(img_file)
-        } else {
-            return(NULL)
-        }
+    are_img_files_ok <- purrr::map_lgl(img_files_lst, function(img_file) {
+        if (length(img_file) == length(parse_info))
+            return(TRUE)
+        return(FALSE)
     })
+
+    img_files_ok <- img_files_lst[are_img_files_ok]
+
     # post condition
     .check_that(
-        all(sapply(img_files_ok, length) == length(parse_info)),
-        local_msg = "some files do not match fields of parse_info",
+        length(img_files_ok) > 0,
+        local_msg = "no file matched fields of parse_info",
         msg = "invalid file names or 'parse_info' parameter"
     )
+
+    # filtered only valid files
+    img_files_filt <- img_files[are_img_files_ok]
 
     # bind rows
     img_files_mx <- do.call(rbind, img_files_ok)
@@ -197,7 +202,7 @@
             # bands are case insensitive (converted to lower case)
             dplyr::mutate(band = tolower(.data[["band"]])) %>%
             # add path
-            dplyr::mutate(path = paste(data_dir, img_files, sep = "/")) %>%
+            dplyr::mutate(path = paste(data_dir, img_files_filt, sep = "/")) %>%
             # filter by the band
             dplyr::filter(.data[["band"]] == !!band) %>%
             # select the relevant parts
@@ -227,7 +232,7 @@
         items <- items %>%
             dplyr::mutate(band = toupper(.data[["band"]])) %>%
             # add path
-            dplyr::mutate(path = paste(data_dir, img_files, sep = "/")) %>%
+            dplyr::mutate(path = paste(data_dir, img_files_filt, sep = "/")) %>%
             # select the relevant parts
             dplyr::select(
                 .data[["tile"]],

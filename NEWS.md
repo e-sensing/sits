@@ -5,8 +5,13 @@ We are preparing to release the package on CRAN and are making relevant changes 
 # What's new in SITS version 0.16.3
 
 ### New features in SITS version 0.16.3
+* reimplemented all deep learning functions using `torch` package and remove `keras` dependence
+* Introduced `sits_TAE()` classification model
+* Introduced `sits_lightgbm()` classification model
+* Simplified `sits_regularize()` parameters
 * Improve `sits_regularize()` to reach production level quality
 * Improve `sits_regularize()` to use C++ internal functions
+* Include improved version of gdalcubes
 * Improve `sits_cube()` to open results cube
 * Update `plot()` parameters on raster cubes
 * Support multi-tile for classified cube in `sits_view()`
