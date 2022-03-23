@@ -44,16 +44,16 @@
 .file_info_bands(cube)
 }
 \arguments{
-\item{cube}{input data cube}
+\item{cube}{Input data cube.}
 
-\item{bands}{bands to be filtered}
+\item{bands}{Bands to be filtered}
 
-\item{fid}{feature id (fid) to be filtered}
+\item{fid}{Feature id (fid) to be filtered.}
 
-\item{dates}{dates to be filtered}
+\item{dates}{Dates to be filtered.}
 }
 \value{
-vector with requested information
+Vector with requested information.
 }
 \description{
 Functions to work with file info tibble

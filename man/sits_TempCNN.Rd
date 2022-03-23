@@ -8,17 +8,13 @@ sits_TempCNN(
   samples = NULL,
   cnn_layers = c(64, 64, 64),
   cnn_kernels = c(5, 5, 5),
-  cnn_activation = "relu",
-  cnn_L2_rate = 1e-06,
   cnn_dropout_rates = c(0.5, 0.5, 0.5),
   dense_layer_nodes = 256,
-  dense_layer_activation = "relu",
   dense_layer_dropout_rate = 0.5,
-  optimizer = keras::optimizer_adam(learning_rate = 0.001),
-  epochs = 150,
-  batch_size = 128,
+  epochs = 60,
+  batch_size = 64,
   validation_split = 0.2,
-  verbose = 0
+  verbose = FALSE
 )
 }
 \arguments{
@@ -28,26 +24,11 @@ sits_TempCNN(
 
 \item{cnn_kernels}{Size of the 1D convolutional kernels.}
 
-\item{cnn_activation}{Activation function for 1D convolution.
-Valid values: {'relu', 'elu', 'selu', 'sigmoid'}.}
-
-\item{cnn_L2_rate}{Regularization rate for 1D convolution.}
-
 \item{cnn_dropout_rates}{Dropout rates for 1D convolutional filters.}
 
 \item{dense_layer_nodes}{Number of nodes in the dense layer.}
 
-\item{dense_layer_activation}{Activation functions for the dense layer.
-Valid values: {'relu', 'elu', 'selu', 'sigmoid'}.}
-
 \item{dense_layer_dropout_rate}{Dropout rate (0,1) for the dense layer.}
-
-\item{optimizer}{Function with a pointer to the optimizer function
-(default is optimization_adam()).
-Options: optimizer_adadelta(), optimizer_adagrad(),
-optimizer_adam(), optimizer_adamax(),
-optimizer_nadam(), optimizer_rmsprop(),
-optimizer_sgd().}
 
 \item{epochs}{Number of iterations to train the model.}
 
@@ -75,16 +56,20 @@ two stages: a 1D CNN and a  multi-layer perceptron.
 Users can define the depth of the 1D network, as well as
 the number of perceptron layers.
 
-This function is based on the paper by Charlotte Pelletier referenced below
-and code available on github (https://github.com/charlotte-pel/temporalCNN).
+This function is based on the paper by Charlotte Pelletier referenced below.
 If you use this method, please cite the original tempCNN paper.
+
+The torch version is based on the code made available by the BreizhCrops
+team: Marc Russwurm, Charlotte Pelletier, Marco Korner, Maximilian Zollner.
+The original python code is available at the website
+https://github.com/dl4sits/BreizhCrops. This code is licensed as GPL-3.
 }
 \examples{
 \dontrun{
 # Retrieve the set of samples for the Mato Grosso (provided by EMBRAPA)
 
 # Build a machine learning model based on deep learning
-tc_model <- sits_train(samples_modis_4bands, sits_TempCNN(epochs = 75))
+tc_model <- sits_train(samples_modis_4bands, sits_TempCNN())
 # Plot the model
 plot(tc_model)
 
@@ -102,9 +87,11 @@ of Satellite Image Time Series",
 Remote Sensing, 11,523, 2019. DOI: 10.3390/rs11050523.
 }
 \author{
+Charlotte Pelletier, \email{charlotte.pelletier@univ-ubs.fr}
+
 Gilberto Camara, \email{gilberto.camara@inpe.br}
 
-Alexandre Ywata de Carvalho, \email{alexandre.ywata@ipea.gov.br}
-
 Rolf Simoes, \email{rolf.simoes@inpe.br}
+
+Felipe Souza, \email{lipecaso@gmail.com}
 }

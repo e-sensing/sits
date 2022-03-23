@@ -2,15 +2,12 @@
 #' @export
 .source_collection_access_test.satveg_cube <- function(source,
                                                        collection, ...) {
-
     url <- .config_get(key = c("sources", source, "url_test"))
-
     access <- httr::GET(url)
-
     # did we get the data?
-    if (httr::http_error(access))
+    if (httr::http_error(access)) {
         stop(paste(".source_collection_access_test.satveg_cube: service is unreachable"))
-
+    }
     return(invisible(NULL))
 }
 
@@ -20,33 +17,28 @@
 
     # get the bands
     bands <- .source_bands(source = source, collection = collection)
-
     # get the bounding box of the cube
     bbox <- .satveg_get_bbox(source = source, collection = collection)
-
     # get the projection of the SATVEG data
     crs <- .satveg_get_crs(source = source, collection = collection)
-
     # get the start date of SATVEG date
     date <- .satveg_get_date(source = source)
-
     # get the URL of SATVEG cube
     url <- .satveg_get_url(source = source)
-
     # set the file information
-    file_info <- purrr::map_dfr(bands, function(band){
-
+    file_info <- purrr::map_dfr(bands, function(band) {
         t <- tibble::tibble(
-            band  = band,
-            res   =  .satveg_get_resolution(source = source,
-                                            collection = collection,
-                                            band = band),
-            date  = date,
-            path  = url)
+            band = band,
+            res = .satveg_get_resolution(
+                source = source,
+                collection = collection,
+                band = band
+            ),
+            date = date,
+            path = url
+        )
         return(t)
     })
-
-
     # create a tibble to store the metadata
     cube_satveg <- .cube_create(
         source = source,
@@ -60,9 +52,7 @@
         crs = crs,
         file_info = file_info
     )
-
     class(cube_satveg) <- .cube_s3class(cube_satveg)
-
     return(cube_satveg)
 }
 
@@ -84,21 +74,19 @@ NULL
 
     # set caller to show in errors
     .check_set_caller(".satveg_get_bbox")
-
     # get the size of the cube
-    bbox <- .config_get(key = c("sources", source, "collections",
-                                collection, "bbox"))
-
+    bbox <- .config_get(key = c(
+        "sources", source, "collections",
+        collection, "bbox"
+    ))
     # simplify
     bbox <- unlist(bbox)
-
     # post-condition
     .check_chr_within(
         x = names(bbox),
         within = c("xmin", "ymin", "xmax", "ymax"),
         msg = "invalid bbox."
     )
-
     return(bbox)
 }
 
@@ -106,12 +94,12 @@ NULL
 .satveg_get_crs <- function(source, collection) {
 
     # get cube crs
-    crs <- .config_get(key = c("sources", source, "collections",
-                               collection, "crs"))
-
+    crs <- .config_get(key = c(
+        "sources", source, "collections",
+        collection, "crs"
+    ))
     # simplify
     crs <- unlist(crs)
-
     return(.sits_proj_format_crs(crs))
 }
 
@@ -119,12 +107,12 @@ NULL
 .satveg_get_resolution <- function(source, collection, band) {
 
     # get cube crs
-    resolution <- .config_get(key = c("sources", source, "collections",
-                                      collection, "bands", band, "resolution"))
-
+    resolution <- .config_get(key = c(
+        "sources", source, "collections",
+        collection, "bands", band, "resolution"
+    ))
     # simplify
     resolution <- unlist(resolution)
-
     return(resolution)
 }
 
@@ -133,7 +121,6 @@ NULL
 
     # get cube crs
     url <- .config_get(key = c("sources", source, "url"))
-
     return(url)
 }
 
@@ -142,9 +129,7 @@ NULL
 
     # get cube crs
     date <- .config_get(key = c("sources", source, "start_date"))
-
     # simplify
     date <- as.Date(unlist(date))
-
     return(date)
 }

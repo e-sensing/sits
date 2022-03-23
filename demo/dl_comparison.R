@@ -16,8 +16,8 @@ results <- list()
 
 print("== Accuracy Assessment = DL =======================")
 acc_mlp <- sits_kfold_validate(samples_modis_4bands,
-    folds = 5,
-    ml_method = sits_mlp()
+  folds = 5,
+  ml_method = sits_mlp()
 )
 acc_mlp$name <- "mlp_default"
 
@@ -26,8 +26,8 @@ results[[length(results) + 1]] <- acc_mlp
 # Deep Learning - TempCNN
 print("== Accuracy Assessment = TempCNN =======================")
 acc_tc <- sits_kfold_validate(samples_modis_4bands,
-    folds = 5,
-    ml_method = sits_TempCNN()
+  folds = 5,
+  ml_method = sits_TempCNN()
 )
 acc_tc$name <- "TempCNN"
 
@@ -36,8 +36,8 @@ results[[length(results) + 1]] <- acc_tc
 # Deep Learning - ResNet
 print("== Accuracy Assessment = ResNet =======================")
 acc_rn <- sits_kfold_validate(samples_modis_4bands,
-                              folds = 5,
-                              ml_method = sits_ResNet()
+  folds = 5,
+  ml_method = sits_ResNet()
 )
 acc_rn$name <- "ResNet"
 

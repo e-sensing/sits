@@ -20,27 +20,23 @@
 #'  \item{deep residual netwroks:}{see \code{\link[sits]{sits_ResNet}}}
 #'  }
 #'
-#' @param  data      Tibble with time series metadata and data.
-#' @param  ml_model  Pre-built machine learning model
-#'                   (see \code{\link[sits]{sits_train}}).
-#' @param  ...       Other parameters to be passed to specific functions
 #'
-#' @param  data              data cube
+#' @param  data              Data cube.
 #' @param  ml_model          R model trained by \code{\link[sits]{sits_train}}.
-#' @param  ...               other parameters to be passed to specific functions
-#' @param  roi               a region of interest (see below)
-#' @param  filter_fn         smoothing filter to be applied (if desired).
-#' @param  impute_fn         impute function to replace NA
-#' @param  start_date        starting date for the classification
-#' @param  end_date          end date for the classification
-#' @param  memsize           memory available for classification (in GB).
-#' @param  multicores        number of cores to be used for classification.
-#' @param  output_dir        directory for output file
-#' @param  version           version of the output (for multiple
-#'                           classifications)
-#' @param  verbose           print information about processing time?
-#' @param  progress          a logical value indicating if a progress bar
-#' should be shown
+#' @param  ...               Other parameters for specific functions.
+#' @param  roi               Region of interest (see below)
+#' @param  filter_fn         Smoothing filter to be applied (if desired).
+#' @param  impute_fn         Impute function to replace NA.
+#' @param  start_date        Start date for the classification.
+#' @param  end_date          End date for the classification.
+#' @param  memsize           Memory available for classification (in GB).
+#' @param  multicores        Number of cores to be used for classification.
+#' @param  output_dir        Directory for output file.
+#' @param  version           Version of the output (for multiple
+#'                           classifications).
+#' @param  verbose           Print information about processing time?
+#' @param  progress          Show progress bar?
+#'
 #' @return                   Predicted data (classified time series)
 #'                           or a data cube with probabilities for each class.
 #'
@@ -72,31 +68,33 @@
 #' # Retrieve the samples for Mato Grosso
 #' # select an extreme gradient boosting model
 #' samples_2bands <- sits_select(samples_modis_4bands,
-#'                             bands = c("EVI", "NDVI"))
+#'   bands = c("EVI", "NDVI")
+#' )
 #' xgb_model <- sits_train(samples_2bands,
-#'     ml_method = sits_xgboost(verbose = FALSE)
+#'   ml_method = sits_xgboost(verbose = FALSE)
 #' )
 #' # classify the point
 #' point_2bands <- sits_select(point_mt_6bands,
-#'                             bands = c("EVI", "NDVI"))
+#'   bands = c("EVI", "NDVI")
+#' )
 #' point_class <- sits_classify(point_2bands, xgb_model)
 #' plot(point_class)
 #'
 #' # create a data cube based on files
 #' data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
 #' cube <- sits_cube(
-#'     source = "BDC",
-#'     collection = "MOD13Q1-6",
-#'     data_dir = data_dir,
-#'     delim = "_",
-#'     parse_info = c("X1", "X2", "tile", "band", "date")
+#'   source = "BDC",
+#'   collection = "MOD13Q1-6",
+#'   data_dir = data_dir,
+#'   delim = "_",
+#'   parse_info = c("X1", "X2", "tile", "band", "date")
 #' )
 #'
 #' # classify the raster image
 #' probs_cube <- sits_classify(cube,
-#'     ml_model = xgb_model,
-#'     output_dir = tempdir(),
-#'     memsize = 4, multicores = 2
+#'   ml_model = xgb_model,
+#'   output_dir = tempdir(),
+#'   memsize = 4, multicores = 2
 #' )
 #'
 #' # label the classified image
@@ -113,7 +111,7 @@ sits_classify <- function(data, ml_model, ...) {
     # check data type
     data <- .config_data_meta_type(data)
 
-    # Dispatch
+    # dispatch
     UseMethod("sits_classify", data)
 }
 #' @rdname sits_classify
@@ -149,20 +147,22 @@ sits_classify.sits <- function(data,
     bands_samples <- sits_bands(samples)
     bands_data <- sits_bands(data)
     .check_that(all(bands_samples == bands_data),
-                msg = "Order of the bands must be the same in samples and in data")
+                msg = "Order of the bands must be the same in samples and in data"
+    )
 
     # get normalization params
     stats <- environment(ml_model)$stats
     # has the training data been normalized?
-    if (!purrr::is_null(stats))
+    if (!purrr::is_null(stats)) {
         # yes, then normalize the input data
         distances <- .sits_distances(.sits_ml_normalize_data(
             data = data,
             stats = stats
         ))
-    else
+    } else {
         # no, input data does not need to be normalized
         distances <- .sits_distances(data)
+    }
 
 
     # post condition: is distance data valid?
@@ -214,34 +214,42 @@ sits_classify.raster_cube <- function(data, ml_model, ...,
     .sits_classify_check_params(data, ml_model)
 
     # precondition - test if cube is regular
-    if (!.cube_is_regular(data))
+    if (!.cube_is_regular(data)) {
         stop("sits can only classify regular cubes. \n
              Please use sits_regularize()")
+    }
 
     # precondition - multicores
-    .check_num(x = multicores,
-               len_max = 1,
-               min = 1,
-               allow_zero = FALSE,
-               msg = "multicores must be at least 1")
+    .check_num(
+        x = multicores,
+        len_max = 1,
+        min = 1,
+        allow_zero = FALSE,
+        msg = "multicores must be at least 1"
+    )
 
     # precondition - memory
-    .check_num(x = memsize,
-               len_max = 1,
-               min = 1,
-               allow_zero = FALSE,
-               msg = "memsize must be positive")
+    .check_num(
+        x = memsize,
+        len_max = 1,
+        min = 1,
+        allow_zero = FALSE,
+        msg = "memsize must be positive"
+    )
 
     # precondition - output dir
-    .check_file(x = output_dir,
-                msg = "invalid output dir")
+    .check_file(
+        x = output_dir,
+        msg = "invalid output dir"
+    )
 
     # precondition - version
     .check_chr(x = version, len_min = 1, msg = "invalid version")
 
     # filter only intersecting tiles
     intersects <- slider::slide_lgl(
-        data, .sits_raster_sub_image_intersects, roi = roi
+        data, .sits_raster_sub_image_intersects,
+        roi = roi
     )
 
     # retrieve only intersecting tiles
@@ -257,15 +265,17 @@ sits_classify.raster_cube <- function(data, ml_model, ...,
         # inside the start_date and end_date
         if (!purrr::is_null(start_date) && !purrr::is_null(end_date)) {
             old_timeline <- sits_timeline(tile)
-            new_timeline <- .sits_timeline_during(old_timeline,
-                                                  start_date,
-                                                  end_date)
+            new_timeline <- .sits_timeline_during(
+                old_timeline,
+                start_date,
+                end_date
+            )
 
             # filter the cube by start and end dates
             tile$file_info[[1]] <- dplyr::filter(
                 .file_info(tile),
-                date >= new_timeline[1] &
-                    date <= new_timeline[length(new_timeline)]
+                .data[["date"]] >= new_timeline[1] &
+                    .data[["date"]] <= new_timeline[length(new_timeline)]
             )
         }
 

@@ -16,8 +16,8 @@
 #' data(cerrado_2classes)
 #' # perform a 2 fold validation of this sample file
 #' accuracy <- sits_kfold_validate(cerrado_2classes,
-#'     folds = 2,
-#'     ml_method = sits_rfor(num_trees = 300)
+#'   folds = 2,
+#'   ml_method = sits_rfor(num_trees = 300)
 #' )
 #' # create a list to store the results
 #' results <- list()
@@ -36,41 +36,34 @@ sits_to_xlsx <- function(acc_lst, file) {
 
     # set caller to show in errors
     .check_set_caller("sits_to_xlsx")
-
     # create a workbook to save the results
     workbook <- openxlsx::createWorkbook("accuracy")
     # eo_names of the accuracy assessment parameters
     eo_n <- c("(Sensitivity)|(Specificity)|(Pos Pred Value)|(Neg Pred Value)")
-
+    # defined the number of sheets
     num_sheets <- length(acc_lst)
     .check_length(
         x = num_sheets,
         len_min = 1,
-        msg = "number of sheets should be at least one")
-
+        msg = "number of sheets should be at least one"
+    )
     # save all elements of the list
     purrr::map2(acc_lst, 1:num_sheets, function(cf_mat, ind) {
-
         # create a worksheet for each confusion matrix
         if (purrr::is_null(cf_mat$name)) {
             cf_mat$name <- paste0("sheet", ind)
         }
         sheet_name <- cf_mat$name
-
         # add a worksheet
         openxlsx::addWorksheet(workbook, sheet_name)
-
         # use only the class names (without the "Class: " prefix)
         new_names <- unlist(strsplit(colnames(cf_mat$table), split = ": "))
-
         # remove prefix from confusion matrix table
         colnames(cf_mat$table) <- new_names
         # write the confusion matrix table in the worksheet
         openxlsx::writeData(workbook, sheet_name, cf_mat$table)
-
         # overall assessment (accuracy and kappa)
         acc_kappa <- as.matrix(cf_mat$overall[c(1:2)])
-
         # save the accuracy data in the worksheet
         openxlsx::writeData(
             wb = workbook,
@@ -80,7 +73,7 @@ sits_to_xlsx <- function(acc_lst, file) {
             startRow = nrow(cf_mat$table) + 3,
             startCol = 1
         )
-
+        # obtain the per class accuracy assessment
         if (dim(cf_mat$table)[1] > 2) {
             # per class accuracy assessment
             acc_bc <- t(cf_mat$byClass[, c(1:4)])
@@ -92,11 +85,9 @@ sits_to_xlsx <- function(acc_lst, file) {
                 "PosPredValue (UA)",
                 "NegPredValue"
             )
-        }
-        else {
+        } else {
             # this is the case of ony two classes
             # get the values of the User's and Producer's Accuracy
-
             acc_bc <- cf_mat$byClass[grepl(eo_n, names(cf_mat$byClass))]
             # get the names of the two classes
             nm <- row.names(cf_mat$table)
@@ -122,7 +113,6 @@ sits_to_xlsx <- function(acc_lst, file) {
             startCol = 1
         )
     })
-
     # write the worksheets to the XLSX file
     openxlsx::saveWorkbook(workbook, file = file, overwrite = TRUE)
 

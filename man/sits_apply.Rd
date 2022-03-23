@@ -27,9 +27,9 @@ sits_apply(data, ...)
 
 \item{...}{Named expressions to be evaluated.}
 
-\item{memsize}{memory available for classification (in GB).}
+\item{memsize}{Memory available for classification (in GB).}
 
-\item{multicores}{number of cores to be used for classification.}
+\item{multicores}{Number of cores to be used for classification.}
 
 \item{output_dir}{Directory where files will be saved.}
 }
@@ -43,13 +43,11 @@ cubes, it materializes a new band in `output_dir` using `gdalcubes`.
 }
 \examples{
 # Get a time series
-# apply a normalization function
+# Apply a normalization function
 
 point2 <-
   sits_select(point_mt_6bands, "NDVI") \%>\%
-  sits_apply(NDVI_norm = (NDVI - min(NDVI)) / (max(NDVI) - min(NDVI))
-)
-
+  sits_apply(NDVI_norm = (NDVI - min(NDVI)) / (max(NDVI) - min(NDVI)))
 }
 \author{
 Rolf Simoes, \email{rolf.simoes@inpe.br}

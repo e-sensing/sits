@@ -7,13 +7,13 @@
 sits_ResNet(
   samples = NULL,
   blocks = c(64, 128, 128),
-  kernels = c(8, 5, 3),
-  activation = "relu",
-  optimizer = keras::optimizer_adam(learning_rate = 0.001),
-  epochs = 300,
+  kernels = c(7, 5, 3),
+  optimizer = torch::optim_adam,
+  learning_rate = 0.001,
+  epochs = 100,
   batch_size = 64,
   validation_split = 0.2,
-  verbose = 0
+  verbose = FALSE
 )
 }
 \arguments{
@@ -25,15 +25,14 @@ each block of three layers.}
 \item{kernels}{Size of the 1D convolutional kernels
 for each layer of each block.}
 
-\item{activation}{Activation function for 1D convolution.
-Valid values: {'relu', 'elu', 'selu', 'sigmoid'}.}
-
 \item{optimizer}{Function with a pointer to the optimizer function
 (default is optimization_adam()).
 Options: optimizer_adadelta(), optimizer_adagrad(),
 optimizer_adam(), optimizer_adamax(),
 optimizer_nadam(), optimizer_rmsprop(),
 optimizer_sgd().}
+
+\item{learning_rate}{Nunber with learning rate of model.}
 
 \item{epochs}{Number of iterations to train the model.}
 
@@ -56,7 +55,7 @@ before shuffling.}
 A fitted model to be passed to \code{\link[sits]{sits_classify}}
 }
 \description{
-Use a ResNet architecture for classifiying image time series.
+Use a ResNet architecture for classifying image time series.
 The ResNet (or deep residual network) was proposed by a team
 in Microsoft Research for 2D image classification.
 ResNet tries to address the degradation of accuracy
@@ -66,17 +65,24 @@ In the paper by Fawaz et al. (2019), ResNet was considered the best method
 for time series classification, using the UCR dataset.
 Please refer to the paper for more details.
 
-The SITS implementation of RestNet is based on the work of Hassan Fawaz and
-collaborators, and also inspired by the paper of Wang et al (see below).
-Fawaz provides a reference code  in https://github.com/hfawaz/dl-4-tsc.
-If you use this function, please cite the references.
+The R-torch version is based on the code made available by Zhiguang Wang,
+author of the original paper. The code was developed in python using keras.
+
+https://github.com/cauchyturing/UCR_Time_Series_Classification_Deep_Learning_Baseline/blob/master/ResNet.py
+
+The R-torch version also considered the code by Ignacio Oguiza,
+whose implementation is available at
+https://github.com/timeseriesAI/tsai/blob/main/tsai/models/ResNet.py.
+
+There are differences between Wang's Keras code and Oguiza torch code.
+In this case, we have used Wang's keras code as the main reference.
 }
 \examples{
 \dontrun{
 # Retrieve the set of samples for the Mato Grosso (provided by EMBRAPA)
 
 # Build a machine learning model based on deep learning
-rn_model <- sits_train(samples_modis_4bands, sits_ResNet(epochs = 75))
+rn_model <- sits_train(samples_modis_4bands, sits_ResNet())
 # Plot the model
 plot(rn_model)
 
@@ -102,7 +108,13 @@ Zhiguang Wang, Weizhong Yan, and Tim Oates,
 \author{
 Gilberto Camara, \email{gilberto.camara@inpe.br}
 
-Alexandre Ywata de Carvalho, \email{alexandre.ywata@ipea.gov.br}
-
 Rolf Simoes, \email{rolf.simoes@inpe.br}
+
+Felipe Souza, \email{lipecaso@gmail.com}
+
+Alber Sanchez, \email{alber.ipia@inpe.br}
+
+Charlotte Pelletier, \email{charlotte.pelletier@univ-ubs.fr}
+
+Daniel Falbel, \email{dfalbel@gmail.com}
 }

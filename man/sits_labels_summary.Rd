@@ -20,7 +20,6 @@ Describes labels in a sits tibble
 data(cerrado_2classes)
 # print the labels
 sits_labels_summary(cerrado_2classes)
-
 }
 \author{
 Rolf Simoes, \email{rolf.simoes@inpe.br}

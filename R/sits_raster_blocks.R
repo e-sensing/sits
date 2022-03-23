@@ -8,12 +8,12 @@
 #' and 400 time instances will have a total pixel size
 #' of 800 Mb if pixels are 64-bit.
 #'
-#' @param  tile            tile of input data cube.
-#' @param  ml_model        machine learning model.
-#' @param  sub_image       bounding box of the ROI
-#' @param  memsize         memory available for classification (in GB).
-#' @param  multicores      number of threads to process the time series.
-#' @return                 list with three attributes: n (number of blocks),
+#' @param  tile            Tile of input data cube.
+#' @param  ml_model        Machine learning model.
+#' @param  sub_image       Bounding box of the ROI
+#' @param  memsize         Memory available for classification (in GB).
+#' @param  multicores      Number of threads to process the time series.
+#' @return                 List with three attributes: n (number of blocks),
 #'                         rows (list of rows to begin),
 #'                         nrows (number of rows to read at each iteration).
 #'
@@ -44,9 +44,9 @@
 #' @description Defines the number of blocks of a Raster Brick
 #'              to be read into memory.
 #'
-#' @param  tile            tile of data cube
-#' @param  ml_model        machine learning model.
-#' @param  sub_image       area of interest in the image
+#' @param  tile            Tile of data cube
+#' @param  ml_model        Machine learning model.
+#' @param  sub_image       Area of interest in the image.
 #' @param  memsize         Memory available for classification (in GB).
 #' @param  multicores      Number of threads to process the time series.
 #' @return Number of blocks to be read.
@@ -99,9 +99,10 @@
 #' @title Calculate a list of blocks to be read from disk to memory
 #' @name .sits_raster_block_list
 #' @keywords internal
-#' @param  nblocks         number of blocks to read from each image
-#' @param  sub_image       area of interest in the image
-#' @return        a list with named vectors ("first_row", "nrows", "first_col", "ncols")
+#' @param  nblocks         Number of blocks to read from each image.
+#' @param  sub_image       Area of interest in the image.
+#' @return                 List with named vectors
+#'                         ("first_row", "nrows", "first_col", "ncols").
 #'
 .sits_raster_block_list <- function(nblocks, sub_image) {
 
@@ -141,11 +142,12 @@
     # nrows      number of rows in each block
     # col        first col
     # ncols      number of cols in each block
-    blocks <- purrr::map2(row_vec, nrows_vec, function(rv, nr){
-        block <- c("first_row"   = rv,
-                   "nrows"       = nr,
-                   "first_col"   = sub_image[["first_col"]],
-                   "ncols"       = sub_image[["ncols"]]
+    blocks <- purrr::map2(row_vec, nrows_vec, function(rv, nr) {
+        block <- c(
+            "first_row" = rv,
+            "nrows" = nr,
+            "first_col" = sub_image[["first_col"]],
+            "ncols" = sub_image[["ncols"]]
         )
 
         return(block)
@@ -163,13 +165,14 @@
 #' and 400 time instances will have a total pixel size
 #' of 800 Mb if pixels are 64-bit.
 #'
-#' @param  tile            tile of input data cube.
-#' @param  sub_image       bounding box of the ROI
-#' @param  memsize         memory available for classification (in GB).
-#' @param  multicores      number of threads to process the time series.
-#' @return                 list with three attributes: n (number of blocks),
+#' @param  tile            Tile of input data cube.
+#' @param  sub_image       Bounding box of the ROI.
+#' @param  memsize         Memory available for classification (in GB).
+#' @param  multicores      Number of threads to process the time series.
+#' @return                 List with three attributes: n (number of blocks),
 #'                         rows (list of rows to begin),
 #'                         nrows (number of rows to read at each iteration).
+#'
 .sits_raster_blocks_apply <- function(tile, sub_image, memsize, multicores) {
 
     # get the number of blocks
@@ -198,15 +201,21 @@
 #' and 400 time instances will have a total pixel size
 #' of 800 Mb if pixels are 64-bit.
 #'
-#' @param  cube            input data cube.
-#' @param  n_images_interval ...
-#' @param  sub_image       bounding box of the ROI
-#' @param  memsize         memory available for classification (in GB).
-#' @param  multicores      number of threads to process the time series.
-#' @return                 list with three attributes: n (number of blocks),
-#'                         rows (list of rows to begin),
-#'                         nrows (number of rows to read at each iteration).
-.sits_raster_blocks_regularize <- function(cube, n_images_interval, sub_image, memsize, multicores) {
+#' @param  cube                 Input data cube.
+#' @param  n_images_interval    Numbert of images per interval.
+#' @param  sub_image            Bounding box of the ROI.
+#' @param  memsize              Memory available for classification (in GB).
+#' @param  multicores           Number of threads to process the time series.
+#' @return                      List with three attributes:
+#'                              n (number of blocks),
+#'                              rows (list of rows to begin),
+#'                              nrows (rows to read at each iteration).
+#'
+.sits_raster_blocks_regularize <- function(cube,
+                                           n_images_interval,
+                                           sub_image,
+                                           memsize,
+                                           multicores) {
 
     # get the number of blocks
     nblocks <- .sits_raster_blocks_estimate_regularize(
@@ -233,11 +242,12 @@
 #' @description Defines the number of blocks of a Raster Brick
 #'              to be read into memory.
 #'
-#' @param  tile            tile of data cube
-#' @param  sub_image       area of interest in the image
+#' @param  tile            Tile of data cube.
+#' @param  sub_image       Area of interest in the image.
 #' @param  memsize         Memory available for classification (in GB).
 #' @param  multicores      Number of threads to process the time series.
-#' @return Number of blocks to be read.
+#' @return                 Number of blocks to be read.
+#'
 .sits_raster_blocks_estimate_apply <- function(tile,
                                                sub_image,
                                                memsize,
@@ -284,12 +294,13 @@
 #' @description Defines the number of blocks of a Raster Brick
 #'              to be read into memory.
 #'
-#' @param  cube            tile of data cube
-#' @param  n_images_interval ...
-#' @param  sub_image       area of interest in the image
-#' @param  memsize         Memory available for classification (in GB).
-#' @param  multicores      Number of threads to process the time series.
-#' @return Number of blocks to be read.
+#' @param  cube                Tile of data cube.
+#' @param  n_images_interval   Number of images per interval.
+#' @param  sub_image           Area of interest in the image.
+#' @param  memsize             Memory available for classification (in GB).
+#' @param  multicores          Number of threads to process the time series.
+#' @return                     Number of blocks to be read.
+#'
 .sits_raster_blocks_estimate_regularize <- function(cube,
                                                     n_images_interval,
                                                     sub_image,

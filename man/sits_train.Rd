@@ -24,6 +24,7 @@ multinomial logit (see \code{\link[sits]{sits_mlr}}) and its variants
 'lasso' (see \code{\link[sits]{sits_mlr}}) and
 'ridge' (see \code{\link[sits]{sits_mlr}}),
 extreme gradient boosting (see \code{\link[sits]{sits_xgboost}}),
+light gradient boosting machine (see \code{\link[sits]{sits_lightgbm}}),
 and different deep learning functions, including multi-layer perceptrons
 (see \code{\link[sits]{sits_mlp}}), 1D convolution neural
 networks \code{\link[sits]{sits_TempCNN}},
@@ -37,7 +38,6 @@ ml_model <- sits_train(samples, sits_rfor(num_trees = 100))
 # get a point and classify the point with the ml_model
 point_ndvi <- sits_select(point_mt_6bands, bands = "NDVI")
 class <- sits_classify(point_ndvi, ml_model)
-
 }
 \author{
 Rolf Simoes, \email{rolf.simoes@inpe.br}

@@ -12,7 +12,6 @@
 #' data(cerrado_2classes)
 #' # export a time series to zoo
 #' zoo.lst <- sits_to_zoo(cerrado_2classes[1:5, ])
-#'
 #' @export
 #'
 sits_to_zoo <- function(data, band = NULL) {
@@ -23,8 +22,8 @@ sits_to_zoo <- function(data, band = NULL) {
     zoo_lst <- data$time_series %>%
         purrr::map(function(ts) {
             if (purrr::is_null(band)) {
-                  band <- colnames(ts[-1:0])
-              }
+                band <- colnames(ts[-1:0])
+            }
             # transform each sits time series to the zoo format
             ts_zoo <- zoo::zoo(ts[, band, drop = FALSE], ts$Index)
             return(ts_zoo)

@@ -76,7 +76,7 @@ xgb_model <- sits_train(samples_modis_4bands, sits_xgboost(nrounds = 10))
 
 # get a point and classify the point with the ml_model
 point.tb <- sits_select(point_mt_6bands,
-    bands = c("NDVI", "EVI", "NIR", "MIR")
+  bands = c("NDVI", "EVI", "NIR", "MIR")
 )
 class.tb <- sits_classify(point.tb, xgb_model)
 plot(class.tb, bands = c("NDVI", "EVI"))
@@ -89,8 +89,6 @@ Tianqi Chen, Carlos Guestrin,
                      SIG KDD 2016.
 }
 \author{
-Alexandre Ywata de Carvalho, \email{alexandre.ywata@ipea.gov.br}
-
 Rolf Simoes, \email{rolf.simoes@inpe.br}
 
 Gilberto Camara, \email{gilberto.camara@inpe.br}

@@ -7,15 +7,15 @@
 \method{plot}{som_evaluate_cluster}(x, y, ..., name_cluster = NULL, title = "Confusion by cluster")
 }
 \arguments{
-\item{x}{object of class "plot.som_evaluate_cluster"}
+\item{x}{Object of class "plot.som_evaluate_cluster".}
 
-\item{y}{ignored}
+\item{y}{Ignored.}
 
-\item{...}{further specifications for \link{plot}.}
+\item{...}{Further specifications for \link{plot}.}
 
-\item{name_cluster}{Choose the cluster to plot}
+\item{name_cluster}{Choose the cluster to plot.}
 
-\item{title}{title of plot. default is ""Confusion by cluster"".}
+\item{title}{Title of plot.}
 }
 \value{
 The plot itself.

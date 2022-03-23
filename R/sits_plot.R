@@ -27,9 +27,9 @@
 #' will default to "all years". If there are more than 30 samples,
 #' it will default to "together".
 #'
-#' @param  x            object of class "sits"
-#' @param  y            ignored
-#' @param ...           further specifications for \link{plot}.
+#' @param  x            Object of class "sits"
+#' @param  y            Ignored.
+#' @param ...           Further specifications for \link{plot}.
 #' @return              The plot itself.
 #'
 #' @examples
@@ -62,9 +62,9 @@ plot.sits <- function(x, y, ...) {
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #' @description Given a sits tibble with a set of patterns, plot them.
 #'
-#' @param  x             object of class "patterns"
-#' @param  y             ignored
-#' @param  ...           further specifications for \link{plot}.
+#' @param  x             Object of class "patterns".
+#' @param  y             Ignored.
+#' @param  ...           Further specifications for \link{plot}.
 #' @return               The plot itself.
 #'
 #' @examples
@@ -87,12 +87,12 @@ plot.patterns <- function(x, y, ...) {
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #' @description Given a sits tibble with a set of predictions, plot them
 #'
-#' @param  x             object of class "predicted"
-#' @param  y             ignored
-#' @param  ...           further specifications for \link{plot}.
-#' @param  bands         bands used for visualisation
-#' @param  palette       hcl palette used for visualisation
-#'                       (in case classes are not in the default sits palette)
+#' @param  x             Object of class "predicted".
+#' @param  y             Ignored.
+#' @param  ...           Further specifications for \link{plot}.
+#' @param  bands         Bands for visualisation.
+#' @param  palette       HCL palette used for visualisation
+#'                       in case classes are not in the default sits palette.
 #' @return               The plot itself.
 #'
 #' @examples
@@ -122,50 +122,81 @@ plot.predicted <- function(x, y, ...,
 #'
 #' @description Uses mapview to visualize raster cube and classified images
 #'
-#' @param  x             object of class "raster_cube" or "classified image"
-#' @param  ...           further specifications for \link{sits_view}.
-#' @param  band          for plotting grey images
-#' @param  red           band for red color.
-#' @param  green         band for green color.
-#' @param  blue          band for blue color.
-#' @param  tiles         tiles to be plotted
-#' @param  date          date to be plotted.
+#' @param  x             Object of class "raster_cube".
+#' @param  ...           Further specifications for \link{plot}.
+#' @param  band          Band for plotting grey images.
+#' @param  red           Band for red color.
+#' @param  green         Band for green color.
+#' @param  blue          Band for blue color.
+#' @param  tiles         Tiles to be plotted.
+#' @param  date          Date to be plotted.
 #' @param  roi           sf object giving a region of interest.
 #'
-#' @return               plot object
+#' @return               Plot object.
 #' @export
 plot.raster_cube <- function(x, ...,
-                                  band = NULL,
-                                  red = NULL,
-                                  green = NULL,
-                                  blue = NULL,
-                                  tiles = NULL,
-                                  date = NULL,
-                                  roi = NULL) {
+                             band = NULL,
+                             red = NULL,
+                             green = NULL,
+                             blue = NULL,
+                             tiles = NULL,
+                             date = NULL,
+                             roi = NULL) {
 
     # precondition
     if (purrr::is_null(tiles)) {
         tiles <- x$tile[[1]]
     } else {
-        .check_chr_contains(x = x$tile,
-                            contains = tiles,
-                            case_sensitive = FALSE,
-                            discriminator = "all_of",
-                            can_repeat = FALSE,
-                            msg = "tiles are not included in the cube")
+        .check_chr_contains(
+            x = x$tile,
+            contains = tiles,
+            case_sensitive = FALSE,
+            discriminator = "all_of",
+            can_repeat = FALSE,
+            msg = "tiles are not included in the cube"
+        )
     }
-    # select only one tile
-    x <- dplyr::filter(x, tile %in% tiles)
 
-    if (!purrr::is_null(band)) {
-        red = band
-        green = band
-        blue = band
-    }
-    else
-    {
-        if (purrr::is_null(red) || purrr::is_null(green) || purrr::is_null(blue))
-            stop("missing red, green, or blue bands")
+    # pre-condition 2
+    .check_that(
+        purrr::is_null(band) ||
+            (purrr::is_null(red) &&
+                 purrr::is_null(green) &&
+                 purrr::is_null(blue)),
+        local_msg = paste0("either 'band' parameter or 'red', 'green', and",
+                           "'blue' parameters should be informed")
+    )
+
+    # check if rgb bands were informed
+    if (!purrr::is_null(red) ||
+        !purrr::is_null(green) ||
+        !purrr::is_null(blue)) {
+
+        # check if all RGB bands is not null
+        .check_that(
+            !purrr::is_null(red) &&
+                !purrr::is_null(green) &&
+                !purrr::is_null(blue),
+            local_msg = "missing red, green, or blue bands",
+            msg = "invalid RGB bands"
+        )
+    } else {
+
+        # get default band (try first non-cloud band...)
+        if (purrr::is_null(band)) {
+            band <- .cube_bands(x, add_cloud = FALSE)
+            if (length(band) > 0) {
+                band <- band[[1]]
+            } else {
+                # ...else get cloud band
+                band <- .cube_bands(x)[[1]]
+            }
+        }
+
+        # plot as grayscale
+        red <- band
+        green <- band
+        blue <- band
     }
 
     # preconditions
@@ -174,11 +205,15 @@ plot.raster_cube <- function(x, ...,
         msg = "requested RGB bands are not available in data cube"
     )
 
+    # select only one tile
+    x <- dplyr::filter(x, .data[["tile"]] %in% tiles)
+
     timeline <- sits_timeline(x)
-    if (purrr::is_null(date))
+    if (purrr::is_null(date)) {
         date <- timeline[[1]]
-    else
+    } else {
         date <- as.Date(date)
+    }
     .check_that(
         length(date) == 1,
         msg = "plot handles one date at a time"
@@ -196,8 +231,10 @@ plot.raster_cube <- function(x, ...,
 
         # filter only intersecting tiles
         intersects <- slider::slide(x, function(tile) {
-            .sits_raster_sub_image_intersects(cube = tile,
-                                              roi = roi)
+            .sits_raster_sub_image_intersects(
+                cube = tile,
+                roi = roi
+            )
         }) %>% unlist()
 
         # check if intersection is not empty
@@ -205,26 +242,24 @@ plot.raster_cube <- function(x, ...,
             x = any(intersects),
             msg = "informed roi does not intersect cube"
         )
-
+        # select only those tiles that intersect ROI
         x <- x[intersects, ]
     }
 
-    r_objs <- slider::slide(x, function(row){
+    r_objs <- slider::slide(x, function(row) {
         # plot only the selected tile
         # select only the bands for the timeline
         bands_date <- .file_info(row) %>%
-            dplyr::filter(date == !!date)
+            dplyr::filter(.data[["date"]] == !!date)
 
         # Are we plotting a grey image
         if (!purrr::is_null(band)) {
-            rgb_stack <- dplyr::filter(bands_date, band == red)$path
-        }
-        else
-        {
+            rgb_stack <- dplyr::filter(bands_date, .data[["band"]] == red)$path
+        } else {
             # get RGB files for the requested timeline
-            red_file <- dplyr::filter(bands_date, band == red)$path
-            green_file <- dplyr::filter(bands_date, band == green)$path
-            blue_file <- dplyr::filter(bands_date, band == blue)$path
+            red_file <- dplyr::filter(bands_date, .data[["band"]] == red)$path
+            green_file <- dplyr::filter(bands_date, .data[["band"]] == green)$path
+            blue_file <- dplyr::filter(bands_date, .data[["band"]] == blue)$path
             # put the band on a raster/terra stack
             rgb_stack <- c(red_file, green_file, blue_file)
         }
@@ -236,19 +271,17 @@ plot.raster_cube <- function(x, ...,
             sub_image <- .sits_raster_sub_image(tile = row, roi = roi)
             r_obj <- .raster_crop.terra(r_obj = r_obj, block = sub_image)
         }
-
         .check_that(
             x = .raster_ncols(r_obj) > 0 && .raster_nrows(r_obj) > 0,
             msg = "unable to retrieve raster data"
         )
-
         return(r_obj)
     })
 
     # merge two or more raster objects
-    if (length(r_objs) == 1)
+    if (length(r_objs) == 1) {
         r_merge <- r_objs[[1]]
-    else {
+    } else {
         raster_collection <- terra::sprc(r_objs)
         r_merge <- terra::merge(raster_collection)
     }
@@ -260,16 +293,17 @@ plot.raster_cube <- function(x, ...,
                            r = 1,
                            g = 1,
                            b = 1,
-                           stretch = "hist")
+                           stretch = "hist"
+            )
         )
-    }
-    else {
+    } else {
         suppressWarnings(
             terra::plotRGB(r_merge,
                            r = 1,
                            g = 2,
                            b = 3,
-                           stretch = "hist")
+                           stretch = "hist"
+            )
         )
     }
     return(invisible(r_merge))
@@ -279,14 +313,14 @@ plot.raster_cube <- function(x, ...,
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #' @description plots a probability cube using stars
 #'
-#' @param  x             object of class "probs_image"
+#' @param  x             Object of class "probs_image".
 #' @param  y             ignored
-#' @param  ...           further specifications for \link{plot}.
-#' @param tiles          tiles to be plotted
-#' @param labels         labels to plot (optional)
-#' @param breaks         type of class intervals
-#' @param n_colors       number of colors to plot
-#' @param palette        hcl palette used for visualisation
+#' @param  ...           Further specifications for \link{plot}.
+#' @param tiles          Tiles to be plotted.
+#' @param labels         Labels to plot (optional).
+#' @param breaks         Type of class intervals.
+#' @param n_colors       Number of colors to plot.
+#' @param palette        HCL palette used for visualisation.
 #'
 #' @note
 #' \itemize{Possible class intervals
@@ -339,35 +373,42 @@ plot.probs_cube <- function(x, y, ...,
     if (purrr::is_null(tiles)) {
         tiles <- x$tile[[1]]
     } else {
-        .check_chr_contains(x = x$tile,
-                            contains = tiles,
-                            case_sensitive = FALSE,
-                            discriminator = "all_of",
-                            can_repeat = FALSE,
-                            msg = "tiles are not included in the cube")
+        .check_chr_contains(
+            x = x$tile,
+            contains = tiles,
+            case_sensitive = FALSE,
+            discriminator = "all_of",
+            can_repeat = FALSE,
+            msg = "tiles are not included in the cube"
+        )
     }
     # filter the cube
-    x <- dplyr::filter(x, tile %in% tiles)
+    x <- dplyr::filter(x, .data[["tile"]] %in% tiles)
     # define the number of colors
     n_breaks <- n_colors + 1
     # define the output color palette
-    col <- grDevices::hcl.colors(n = n_colors,
-                                 palette = palette,
-                                 alpha = 1,
-                                 rev = TRUE)
+    col <- grDevices::hcl.colors(
+        n = n_colors,
+        palette = palette,
+        alpha = 1,
+        rev = TRUE
+    )
 
 
     # read the paths to plot
     paths <- slider::slide_chr(x, function(row) {
         return(.file_info_path(row))
     })
-    if (length(paths) == 1)
+    if (length(paths) == 1) {
         stars_mosaic <- stars::read_stars(paths[[1]])
-    else {
-        stars.lst <- purrr::map(paths, function(path){
+    } else {
+        stars.lst <- purrr::map(paths, function(path) {
             stars::read_stars(path)
         })
-        stars_mosaic <- stars::st_mosaic(stars.lst[[1]], stars.lst[[2:length(stars.lst)]])
+        stars_mosaic <- stars::st_mosaic(
+            stars.lst[[1]],
+            stars.lst[[2:length(stars.lst)]]
+        )
     }
     # get the labels
     labels_cube <- sits_labels(x)
@@ -380,22 +421,23 @@ plot.probs_cube <- function(x, y, ...,
         out <- utils::capture.output({
             p <- stars_mosaic %>%
                 dplyr::slice(index = layers, along = "band") %>%
-                plot(breaks = breaks,
-                     nbreaks = n_breaks,
-                     col = col,
-                     main = labels)
+                plot(
+                    breaks = breaks,
+                    nbreaks = n_breaks,
+                    col = col,
+                    main = labels
+                )
         })
-    }
-    else {
+    } else {
         out <- utils::capture.output({
             p <- plot(stars_mosaic,
                       breaks = breaks,
                       nbreaks = n_breaks,
                       col = col,
-                      main = labels_cube)}
-        )
+                      main = labels_cube
+            )
+        })
     }
-
     return(invisible(p))
 }
 
@@ -406,13 +448,13 @@ plot.probs_cube <- function(x, y, ...,
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #' @description plots a probability cube using stars
 #'
-#' @param  x             object of class "probs_image"
-#' @param  y             ignored
-#' @param  ...           further specifications for \link{plot}.
-#' @param tiles          tiles to be plotted
-#' @param n_colors       number of colors to plot
-#' @param breaks         type of class intervals
-#' @param palette        hcl palette used for visualisation
+#' @param  x             Object of class "probs_image".
+#' @param  y             Ignored.
+#' @param  ...           Further specifications for \link{plot}.
+#' @param tiles          Tiles to be plotted.
+#' @param n_colors       Number of colors to plot.
+#' @param breaks         Yype of class intervals.
+#' @param palette        HCL palette used for visualisation.
 #'
 #' @return               The plot itself.
 #'
@@ -462,44 +504,49 @@ plot.uncertainty_cube <- function(x, y, ...,
     if (purrr::is_null(tiles)) {
         tiles <- x$tile[[1]]
     } else {
-        .check_chr_contains(x = x$tile,
-                            contains = tiles,
-                            case_sensitive = FALSE,
-                            discriminator = "all_of",
-                            can_repeat = FALSE,
-                            msg = "tiles are not included in the cube")
+        .check_chr_contains(
+            x = x$tile,
+            contains = tiles,
+            case_sensitive = FALSE,
+            discriminator = "all_of",
+            can_repeat = FALSE,
+            msg = "tiles are not included in the cube"
+        )
     }
     # filter the cube
-    x <- dplyr::filter(x, tile %in% tiles)
+    x <- dplyr::filter(x, .data[["tile"]] %in% tiles)
     # define the number of colors
     n_breaks <- n_colors + 1
     # define the output color palette
-    col <- grDevices::hcl.colors(n = n_colors,
-                                 palette = palette,
-                                 alpha = 1,
-                                 rev = TRUE)
+    col <- grDevices::hcl.colors(
+        n = n_colors,
+        palette = palette,
+        alpha = 1,
+        rev = TRUE
+    )
 
 
     # read the paths to plot
     paths <- slider::slide_chr(x, function(row) {
         return(.file_info_path(row))
     })
-    if (length(paths) == 1)
+    if (length(paths) == 1) {
         stars_mosaic <- stars::read_stars(paths[[1]])
-    else {
-        stars.lst <- purrr::map(paths, function(path){
+    } else {
+        stars.lst <- purrr::map(paths, function(path) {
             stars::read_stars(path)
         })
-        stars_mosaic <- stars::st_mosaic(stars.lst[[1]], stars.lst[[2:length(stars.lst)]])
+        stars_mosaic <- stars::st_mosaic(
+            stars.lst[[1]],
+            stars.lst[[2:length(stars.lst)]])
     }
 
     p <- suppressMessages(plot(stars_mosaic,
                                breaks = breaks,
                                nbreaks = n_breaks,
                                col = col,
-                               main = "Uncertainty")
-    )
-
+                               main = "Uncertainty"
+    ))
     return(invisible(p))
 }
 
@@ -508,14 +555,14 @@ plot.uncertainty_cube <- function(x, y, ...,
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #' @description plots a classified raster using ggplot.
 #'
-#' @param  x               object of class "classified_image"
-#' @param  y               ignored
-#' @param  ...             further specifications for \link{plot}.
-#' @param  tiles           tiles to be plotted
-#' @param  title           title of the plot
-#' @param  legend          named vector that associates labels to colors
-#' @param  palette         alternative palette that uses grDevices::hcl.pals()
-#' @param  rev             invert the order of hcl palette (TRUE/FALSE)
+#' @param  x               Object of class "classified_image".
+#' @param  y               Ignored.
+#' @param  ...             Further specifications for \link{plot}.
+#' @param  tiles           Tiles to be plotted.
+#' @param  title           Title of the plot.
+#' @param  legend          Named vector that associates labels to colors.
+#' @param  palette         Alternative palette that uses grDevices::hcl.pals().
+#' @param  rev             Invert the order of hcl palette?
 #'
 #' @export
 #'
@@ -527,13 +574,14 @@ plot.classified_image <- function(x, y, ...,
                                   rev = TRUE) {
     stopifnot(missing(y))
 
-    p <- .sits_plot_classified_image(cube = x,
-                                     tiles = tiles,
-                                     title = title,
-                                     legend = legend,
-                                     palette = palette,
-                                     rev = rev)
-
+    p <- .sits_plot_classified_image(
+        cube = x,
+        tiles = tiles,
+        title = title,
+        legend = legend,
+        palette = palette,
+        rev = rev
+    )
 }
 
 #' @title  Plot confusion between clusters
@@ -543,11 +591,11 @@ plot.classified_image <- function(x, y, ...,
 #' @description Plot a bar graph with informations about each cluster.
 #' The percentage of mixture between the clusters.
 #'
-#' @param  x            object of class "plot.som_evaluate_cluster"
-#' @param  y            ignored
-#' @param  ...          further specifications for \link{plot}.
-#' @param  name_cluster Choose the cluster to plot
-#' @param  title        title of plot. default is ""Confusion by cluster"".
+#' @param  x            Object of class "plot.som_evaluate_cluster".
+#' @param  y            Ignored.
+#' @param  ...          Further specifications for \link{plot}.
+#' @param  name_cluster Choose the cluster to plot.
+#' @param  title        Title of plot.
 #' @return              The plot itself.
 #' @examples
 #' \dontrun{
@@ -580,8 +628,8 @@ plot.som_evaluate_cluster <- function(x, y, ...,
 #'  \item{"mapping": }{Shows where samples are mapped.}
 #' }
 #'
-#' @param  x          Object of class "som_map"
-#' @param  y          Ignored
+#' @param  x          Object of class "som_map".
+#' @param  y          Ignored.
 #' @param  ...        Further specifications for \link{plot}.
 #' @param  type       Type of plot: "codes" for neuron weight (time series) and
 #'                    "mapping" for the number of samples allocated in a neuron.
@@ -607,21 +655,27 @@ plot.som_map <- function(x, y, ..., type = "codes", band = 1) {
     .sits_plot_som_map(x, type, band)
 }
 
-#' @title  Plot Keras (deep learning) model
-#' @name   plot.keras_model
-#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
-#' @description plots a deep learning model developed using keras
+#' @title  Plot Torch (deep learning) model
+#' @name   plot.torch_model
+#' @author Felipe Souza, \email{lipecaso@@gmail.com}
+#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
+#' @author Alber Sanchez, \email{alber.ipia@@inpe.br}
 #'
-#' @param  x             Object of class "keras_model"
-#' @param  y             ignored
-#' @param  ...           further specifications for \link{plot}.
+#' @description Plots a deep learning model developed using torch.
+#'
+#' @note This code has been lifted from the "keras" package.
+#'
+#' @param  x             Object of class "torch_model".
+#' @param  y             Ignored.
+#' @param  ...           Further specifications for \link{plot}.
 #' @return               The plot itself.
 #'
 #' @examples
 #' \dontrun{
 #' # Get a set of samples
 #' samples_ndvi_evi <- sits_select(samples_modis_4bands,
-#'                                 bands = c("NDVI", "EVI"))
+#'   bands = c("NDVI", "EVI")
+#' )
 #'
 #' # train a deep learning model
 #' dl_model <- sits_train(samples_ndvi_evi, ml_method = sits_mlp())
@@ -630,9 +684,8 @@ plot.som_map <- function(x, y, ..., type = "codes", band = 1) {
 #'
 #' @export
 #'
-plot.keras_model <- function(x, y, ...) {
-    stopifnot(missing(y))
-    plot(environment(x)$history)
+plot.torch_model <- function(x, y, ...) {
+    .sits_plot_torch_model(x)
 }
 
 #' @title Plot all intervals of one time series for the same lat/long together
@@ -641,14 +694,17 @@ plot.keras_model <- function(x, y, ...) {
 #'
 #' @description For each lat/long location in the data, join temporal
 #' instances of the same place together for plotting.
-#' @param data    One or more time series (stored in a sits tibble).
+#' @param data    One or more time series.
+#'
 .sits_plot_allyears <- function(data) {
-    locs <- dplyr::distinct(data, longitude, latitude)
+    locs <- dplyr::distinct(data, .data[["longitude"]], .data[["latitude"]])
 
     plots <- purrr::pmap(
         list(locs$longitude, locs$latitude),
         function(long, lat) {
-            dplyr::filter(data, longitude == long, latitude == lat) %>%
+            dplyr::filter(data,
+                          .data[["longitude"]] == long,
+                          .data[["latitude"]] == lat) %>%
                 .sits_plot_ggplot_series() %>%
                 graphics::plot()
         }
@@ -715,8 +771,11 @@ plot.keras_model <- function(x, y, ...) {
 #' @param    data    A sits tibble with the list of time series to be plotted.
 #' @return           The plot itself.
 .sits_plot_together <- function(data) {
+    Index <- NULL # to avoid setting global variable
     # create a data frame with the median, and 25% and 75% quantiles
     create_iqr <- function(dt, band) {
+        V1 <- NULL # to avoid setting global variable
+
         data.table::setnames(dt, band, "V1")
         dt_med <- dt[, stats::median(V1), by = Index]
         data.table::setnames(dt_med, "V1", "med")
@@ -751,7 +810,7 @@ plot.keras_model <- function(x, y, ...) {
         purrr::map(function(l) {
             lb <- as.character(l)
             # filter only those rows with the same label
-            data2 <- dplyr::filter(data, label == lb)
+            data2 <- dplyr::filter(data, .data[["label"]] == lb)
             # how many time series are to be plotted?
             number <- nrow(data2)
             # what are the band names?
@@ -847,15 +906,15 @@ plot.keras_model <- function(x, y, ...) {
     data_ts <- dplyr::bind_rows(row$time_series)
     # melt the data into long format
     melted_ts <- data_ts %>%
-        tidyr::pivot_longer(cols = -Index, names_to = "variable") %>%
+        tidyr::pivot_longer(cols = -.data[["Index"]], names_to = "variable") %>%
         as.data.frame()
     # plot the data with ggplot
     g <- ggplot2::ggplot(melted_ts, ggplot2::aes(
-        x = Index,
-        y = value,
-        group = variable
+        x = .data[["Index"]],
+        y = .data[["value"]],
+        group = .data[["variable"]]
     )) +
-        ggplot2::geom_line(ggplot2::aes(color = variable)) +
+        ggplot2::geom_line(ggplot2::aes(color = .data[["variable"]])) +
         ggplot2::labs(title = plot_title) +
         ggplot2::scale_fill_manual(palette = colors)
     return(g)
@@ -892,21 +951,27 @@ plot.keras_model <- function(x, y, ...) {
         dplyr::select_if(function(x) any(is.na(x))) %>%
         .[, 1] %>%
         `colnames<-`(., "X1") %>%
-        dplyr::transmute(cld = replace_na(X1)) %>%
+        dplyr::transmute(cld = replace_na(.data[["X1"]])) %>%
         dplyr::bind_cols(data, .)
 
     # prepare tibble to ggplot (fortify)
-    ts1 <- tidyr::pivot_longer(data, -Index)
+    ts1 <- tidyr::pivot_longer(data, -.data[["Index"]])
     g <- ggplot2::ggplot(data = ts1 %>%
-                             dplyr::filter(name != "cld")) +
-        ggplot2::geom_col(ggplot2::aes(x = Index, y = value),
+                             dplyr::filter(.data[["name"]] != "cld")) +
+        ggplot2::geom_col(ggplot2::aes(x = .data[["Index"]],
+                                       y = .data[["value"]]),
                           fill = "sienna",
                           alpha = 0.3,
                           data = ts1 %>%
-                              dplyr::filter(name == "cld", !is.na(value))
+                              dplyr::filter(.data[["name"]] == "cld",
+                                            !is.na(.data[["value"]]))
         ) +
-        ggplot2::geom_line(ggplot2::aes(x = Index, y = value, color = name)) +
-        ggplot2::geom_point(ggplot2::aes(x = Index, y = value, color = name)) +
+        ggplot2::geom_line(ggplot2::aes(x = .data[["Index"]],
+                                        y = .data[["value"]],
+                                        color = .data[["name"]])) +
+        ggplot2::geom_point(ggplot2::aes(x = .data[["Index"]],
+                                         y = .data[["value"]],
+                                         color = .data[["name"]])) +
         ggplot2::labs(title = plot_title)
 
     return(g)
@@ -925,25 +990,25 @@ plot.keras_model <- function(x, y, ...) {
 #' @return               The plot itself.
 .sits_plot_ggplot_together <- function(melted, means, plot_title) {
     g <- ggplot2::ggplot(data = melted, ggplot2::aes(
-        x = Index,
-        y = value,
-        group = variable
+        x = .data[["Index"]],
+        y = .data[["value"]],
+        group = .data[["variable"]]
     )) +
         ggplot2::geom_line(colour = "#819BB1", alpha = 0.5) +
         ggplot2::labs(title = plot_title) +
         ggplot2::geom_line(
             data = means,
-            ggplot2::aes(x = Index, y = med),
+            ggplot2::aes(x = .data[["Index"]], y = .data[["med"]]),
             colour = "#B16240", size = 2, inherit.aes = FALSE
         ) +
         ggplot2::geom_line(
             data = means,
-            ggplot2::aes(x = Index, y = qt25),
+            ggplot2::aes(x = .data[["Index"]], y = .data[["qt25"]]),
             colour = "#B19540", size = 1, inherit.aes = FALSE
         ) +
         ggplot2::geom_line(
             data = means,
-            ggplot2::aes(x = Index, y = qt75),
+            ggplot2::aes(x = .data[["Index"]], y = .data[["qt75"]]),
             colour = "#B19540", size = 1, inherit.aes = FALSE
         )
     return(g)
@@ -989,14 +1054,17 @@ plot.keras_model <- function(x, y, ...) {
     if (purrr::is_null(bands)) {
         bands <- sits_bands(data)
     }
-    if (!all(bands %in% sits_bands(data)))
+    if (!all(bands %in% sits_bands(data))) {
         bands <- sits_bands(data)
+    }
     # configure plot colors
     # get labels from predicted tibble
     labels <- unique(data$predicted[[1]]$class)
-    colors <- .config_colors(labels = labels,
-                             palette = palette,
-                             rev = FALSE)
+    colors <- .config_colors(
+        labels = labels,
+        palette = palette,
+        rev = FALSE
+    )
 
     # put the time series in the data frame
     g_lst <- purrr::pmap(
@@ -1015,7 +1083,10 @@ plot.keras_model <- function(x, y, ...) {
                 Series = as.factor(lb)
             )
             # melt the time series data for plotting
-            df_x <- tidyr::pivot_longer(df_x, cols = -c("Time", "Series"), names_to = "variable")
+            df_x <- tidyr::pivot_longer(df_x,
+                                        cols = -c("Time", "Series"),
+                                        names_to = "variable"
+            )
             # define a nice set of breaks for value plotting
             y_labels <- scales::pretty_breaks()(range(df_x$value,
                                                       na.rm = TRUE
@@ -1080,7 +1151,7 @@ plot.keras_model <- function(x, y, ...) {
                         colour = "variable"
                     )
                 ) +
-                ggplot2::scale_color_brewer(palette = "Set1")  +
+                ggplot2::scale_color_brewer(palette = "Set1") +
                 ggplot2::scale_y_continuous(
                     expand = c(0, 0),
                     breaks = y_breaks,
@@ -1148,20 +1219,24 @@ plot.keras_model <- function(x, y, ...) {
     dend <- hclust_cl %>% stats::as.dendrogram()
 
     # colors vector
-    colors <- .config_colors(labels = data_labels,
-                             palette = palette,
-                             rev = TRUE)
+    colors <- .config_colors(
+        labels = data_labels,
+        palette = palette,
+        rev = TRUE
+    )
     colors_clust <- colors[data_labels]
 
     # set the visualisation params for dendrogram
     dend <- dend %>%
         dendextend::set(
             what = "labels",
-            value = character(length = length(data_labels))) %>%
+            value = character(length = length(data_labels))
+        ) %>%
         dendextend::set(
             what = "branches_k_color",
             value = colors_clust,
-            k = length(data_labels))
+            k = length(data_labels)
+        )
 
     p <- graphics::plot(dend,
                         ylab = paste(
@@ -1211,8 +1286,7 @@ plot.keras_model <- function(x, y, ...) {
                        "mapping", whatmap = band,
                        codeRendering = "lines"
         )
-    }
-    else if (type == "codes") {
+    } else if (type == "codes") {
         graphics::plot(koh$som_properties,
                        bgcol = koh$som_properties$paint_map,
                        "codes", whatmap = band,
@@ -1261,20 +1335,22 @@ plot.keras_model <- function(x, y, ...) {
 
     # Filter the cluster to plot
     if (!(is.null(cluster_name))) {
-        data <- dplyr::filter(data, cluster %in% cluster_name)
+        data <- dplyr::filter(data, .data[["cluster"]] %in% cluster_name)
     }
     # configure plot colors
     # get labels from cluster table
     labels <- unique(data$class)
-    colors <- .config_colors(labels = labels,
-                             palette = "Spectral",
-                             rev = TRUE)
+    colors <- .config_colors(
+        labels = labels,
+        palette = "Spectral",
+        rev = TRUE
+    )
 
     p <- ggplot2::ggplot() +
         ggplot2::geom_bar(
             ggplot2::aes(
-                y = mixture_percentage,
-                x = cluster,
+                y = .data[["mixture_percentage"]],
+                x = .data[["cluster"]],
                 fill = class
             ),
             data = data,
@@ -1282,8 +1358,10 @@ plot.keras_model <- function(x, y, ...) {
             position = ggplot2::position_dodge()
         ) +
         ggplot2::theme_minimal() +
-        ggplot2::theme(axis.text.x =
-                           ggplot2::element_text(angle = 60, hjust = 1)) +
+        ggplot2::theme(
+            axis.text.x =
+                ggplot2::element_text(angle = 60, hjust = 1)
+        ) +
         ggplot2::labs(x = "Cluster", y = "Percentage of mixture") +
         ggplot2::scale_fill_manual(name = "Class label", values = colors) +
         ggplot2::ggtitle(title)
@@ -1321,7 +1399,8 @@ plot.keras_model <- function(x, y, ...) {
         x = "classified_image",
         within = class(cube),
         discriminator = "any_of",
-        msg = "cube must be a classified image")
+        msg = "cube must be a classified image"
+    )
 
     # precondition - check palette
     .check_chr_within(
@@ -1335,15 +1414,17 @@ plot.keras_model <- function(x, y, ...) {
     if (purrr::is_null(tiles)) {
         tiles <- cube$tile[[1]]
     } else {
-        .check_chr_contains(x = cube$tile,
-                            contains = tiles,
-                            case_sensitive = FALSE,
-                            discriminator = "all_of",
-                            can_repeat = FALSE,
-                            msg = "tiles are not included in the cube")
+        .check_chr_contains(
+            x = cube$tile,
+            contains = tiles,
+            case_sensitive = FALSE,
+            discriminator = "all_of",
+            can_repeat = FALSE,
+            msg = "tiles are not included in the cube"
+        )
     }
     # select only one tile
-    cube <- dplyr::filter(cube, tile %in% tiles)
+    cube <- dplyr::filter(cube, .data[["tile"]] %in% tiles)
 
     r_objs <- slider::slide(cube, function(row) {
         # get the raster object
@@ -1351,9 +1432,9 @@ plot.keras_model <- function(x, y, ...) {
     })
 
     # merge two or more raster objects
-    if (length(r_objs) == 1)
+    if (length(r_objs) == 1) {
         r_merge <- r_objs[[1]]
-    else {
+    } else {
         raster_collection <- terra::sprc(r_objs)
         r_merge <- terra::merge(raster_collection)
     }
@@ -1361,9 +1442,11 @@ plot.keras_model <- function(x, y, ...) {
     max_Mbytes <- .config_get("plot_max_Mbytes")
 
     # find out of image needs to be resampled
-    size <- .sits_plot_resample_class(terra::nrow(r_merge),
-                                      terra::ncol(r_merge),
-                                      max_Mbytes)
+    size <- .sits_plot_resample_class(
+        terra::nrow(r_merge),
+        terra::ncol(r_merge),
+        max_Mbytes
+    )
     # resample image
     if (as.numeric(size[["ratio"]] > 1)) {
         new_nrows <- as.integer(size[["nrows"]])
@@ -1384,16 +1467,18 @@ plot.keras_model <- function(x, y, ...) {
 
     # if colors are not specified, get them from the configuration file
     if (purrr::is_null(legend)) {
-        colors <- .config_colors(labels = labels,
-                                 palette = palette,
-                                 rev = rev)
-    }
-    else {
+        colors <- .config_colors(
+            labels = labels,
+            palette = palette,
+            rev = rev
+        )
+    } else {
         .check_chr_within(
             x = labels,
             within = names(legend),
             discriminator = "all_of",
-            msg = "some labels are missing from the legend")
+            msg = "some labels are missing from the legend"
+        )
 
         colors <- unname(legend[labels])
     }
@@ -1401,13 +1486,15 @@ plot.keras_model <- function(x, y, ...) {
     names(colors) <- as.character(c(1:nclasses))
 
     # plot the data with ggplot
-    g <- ggplot2::ggplot(df, ggplot2::aes(x, y)) +
+    g <- ggplot2::ggplot(df, ggplot2::aes(.data[["x"]], .data[["y"]])) +
         ggplot2::geom_raster(ggplot2::aes(fill = factor(class))) +
         ggplot2::labs(title = title) +
-        ggplot2::scale_fill_manual(values = colors,
-                                   labels = labels,
-                                   guide = ggplot2::guide_legend(
-                                       title = "Classes")
+        ggplot2::scale_fill_manual(
+            values = colors,
+            labels = labels,
+            guide = ggplot2::guide_legend(
+                title = "Classes"
+            )
         )
 
     graphics::plot(g)
@@ -1420,17 +1507,17 @@ plot.keras_model <- function(x, y, ...) {
 #' @param ncols    number of cols in the input image
 #' @param max_Mbytes maximum number of MB per plot
 #' @return         ratio and new size of output plot
-.sits_plot_resample_class <- function(nrows, ncols, max_Mbytes){
+.sits_plot_resample_class <- function(nrows, ncols, max_Mbytes) {
 
     # input size
-    in_size_Mbytes <- (nrows * ncols)/(1000 * 1000)
+    in_size_Mbytes <- (nrows * ncols) / (1000 * 1000)
     # do we need to compress?
-    ratio <- max((in_size_Mbytes/max_Mbytes), 1)
+    ratio <- max((in_size_Mbytes / max_Mbytes), 1)
 
     # only create local files if required
     if (ratio > 1) {
-        new_nrows <- round(nrows/sqrt(ratio))
-        new_ncols <- round(ncols*(new_nrows/nrows))
+        new_nrows <- round(nrows / sqrt(ratio))
+        new_ncols <- round(ncols * (new_nrows / nrows))
     } else {
         new_nrows <- nrows
         new_ncols <- ncols
@@ -1505,4 +1592,51 @@ plot.keras_model <- function(x, y, ...) {
             graphics::plot(dplot)
         })
     return(invisible(matches))
+}
+
+
+.sits_plot_torch_model <- function(model) {
+    metrics_lst <- environment(model)[["torch_model"]][[c("records", "metrics")]]
+
+    metrics_dfr <- purrr::map_dfr(names(metrics_lst), function(name) {
+        x <- metrics_lst[[name]]
+
+        purrr::map_dfr(x, tibble::as_tibble_row) %>%
+            dplyr::mutate(epoch = seq_len(dplyr::n()), data = name) %>%
+            tidyr::pivot_longer(cols = 1:2, names_to = "metric")
+    })
+
+
+    p <- ggplot2::ggplot(metrics_dfr, ggplot2::aes(
+        x = .data[["epoch"]],
+        y = .data[["value"]],
+        color = .data[["data"]],
+        fill = .data[["data"]]
+    ))
+
+    p <- p + ggplot2::geom_point(shape = 21, col = 1, na.rm = TRUE, size = 2) +
+        ggplot2::geom_smooth(
+            formula = y ~ x,
+            se = FALSE,
+            method = "loess",
+            na.rm = TRUE
+        )
+
+    p <- p + ggplot2::facet_grid(metric ~ ., switch = "y", scales = "free_y") +
+        ggplot2::theme(
+            axis.title.y = ggplot2::element_blank(),
+            strip.placement = "outside",
+            strip.text = ggplot2::element_text(
+                colour = "black",
+                size = 11
+            ),
+            strip.background = ggplot2::element_rect(
+                fill = NA,
+                color = NA
+            )
+        )
+
+    p <- p + ggplot2::labs()
+
+    return(p)
 }

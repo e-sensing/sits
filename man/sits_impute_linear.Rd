@@ -10,7 +10,7 @@ sits_impute_linear(data = NULL)
 \item{data}{A time series vector or matrix}
 }
 \value{
-A set of filtered time series
+A set of filtered time series.
 }
 \description{
 Remove NA by linear interpolation

@@ -10,39 +10,34 @@
 #'
 #' @param x         Valid sits tibble (time series or a cube)
 #'
-#' @return A string vector with the names of the bands.
+#' @return          A vector with the names of the bands.
 #'
 #' @examples {
-#' # Retrieve the set of samples for Mato Grosso (provided by EMBRAPA)
-#' # show the bands
-#' sits_bands(samples_modis_4bands)
+#'   # Retrieve the set of samples for Mato Grosso (provided by EMBRAPA)
+#'   # show the bands
+#'   sits_bands(samples_modis_4bands)
 #' }
-#'
 #' @export
 #'
 sits_bands <- function(x) {
 
-    # set caller to show in errors
+    # Set caller to show in errors
     .check_set_caller("sits_bands")
-
-    # get the meta-type (sits or cube)
+    # Get the meta-type (sits or cube)
     x <- .config_data_meta_type(x)
-
     UseMethod("sits_bands", x)
 }
 
 #' @export
 #'
 sits_bands.sits <- function(x) {
-
     return(setdiff(names(sits_time_series(x)), "Index"))
 }
 
 #' @export
 #'
 sits_bands.sits_cube <- function(x) {
-
-    bands.lst <- slider::slide(x, function(tile){
+    bands.lst <- slider::slide(x, function(tile) {
         bands_tile <- .file_info_bands(tile)
         return(sort(bands_tile))
     })
@@ -57,14 +52,12 @@ sits_bands.sits_cube <- function(x) {
 #' @export
 #'
 sits_bands.patterns <- function(x) {
-
     return(sits_bands.sits(x))
 }
 
 #' @export
 #'
 sits_bands.sits_model <- function(x) {
-
     .check_that(
         x = inherits(x, "function"),
         msg = "invalid sits model"

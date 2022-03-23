@@ -11,9 +11,12 @@
     pattern_s2 <- "[0-9]{2}[A-Z]{3}"
 
     # verify tile pattern
-    if (!any(grepl(pattern_s2, tiles, perl = TRUE)))
-        stop(paste("The specified tiles do not match the Sentinel-2A grid",
-                   "pattern. See the user guide for more information."))
+    if (!any(grepl(pattern_s2, tiles, perl = TRUE))) {
+        stop(paste(
+            "The specified tiles do not match the Sentinel-2A grid",
+            "pattern. See the user guide for more information."
+        ))
+    }
 
     # list to store the info about the tiles to provide the query in STAC
     tiles_tbl <- purrr::map_dfr(tiles, function(tile) {
@@ -42,10 +45,12 @@
         sep_tile <- .aws_tiles(tiles)
 
         stac_query <-
-            rstac::ext_query(q = stac_query,
-                             "sentinel:utm_zone" %in% sep_tile$utm_zone,
-                             "sentinel:latitude_band" %in% sep_tile$lat_band,
-                             "sentinel:grid_square" %in% sep_tile$grid_square)
+            rstac::ext_query(
+                q = stac_query,
+                "sentinel:utm_zone" %in% sep_tile$utm_zone,
+                "sentinel:latitude_band" %in% sep_tile$lat_band,
+                "sentinel:grid_square" %in% sep_tile$grid_square
+            )
     }
 
     # making the request
@@ -65,8 +70,10 @@
     progress <- .check_documentation(progress)
 
     # fetching all the metadata
-    items_info <- rstac::items_fetch(items = items_info,
-                                     progress = progress)
+    items_info <- rstac::items_fetch(
+        items = items_info,
+        progress = progress
+    )
 
     return(items_info)
 }
@@ -74,19 +81,19 @@
 #' @keywords internal
 #' @export
 .source_items_tile.aws_cube <- function(source,
-                                         items, ...,
-                                         collection = NULL) {
+                                        items, ...,
+                                        collection = NULL) {
 
     # store tile info in items object
     items$features <- purrr::map(items$features, function(feature) {
         feature$properties$tile <- paste0(
             feature$properties[["sentinel:utm_zone"]],
             feature$properties[["sentinel:latitude_band"]],
-            feature$properties[["sentinel:grid_square"]])
+            feature$properties[["sentinel:grid_square"]]
+        )
 
         feature
     })
 
     rstac::items_reap(items, field = c("properties", "tile"))
 }
-

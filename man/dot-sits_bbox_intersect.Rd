@@ -7,12 +7,12 @@
 .sits_bbox_intersect(bbox, cube)
 }
 \arguments{
-\item{bbox}{bounding box for a region of interest}
+\item{bbox}{Bounding box for a region of interest.}
 
-\item{cube}{data cube}
+\item{cube}{Data cube.}
 }
 \value{
-vector the bounding box intersection
+Vector the bounding box intersection.
 }
 \description{
 Intersection between a bounding box and a cube

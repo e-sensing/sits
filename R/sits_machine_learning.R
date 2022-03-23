@@ -13,6 +13,7 @@
 #' 'lasso' (see \code{\link[sits]{sits_mlr}}) and
 #' 'ridge' (see \code{\link[sits]{sits_mlr}}),
 #' extreme gradient boosting (see \code{\link[sits]{sits_xgboost}}),
+#' light gradient boosting machine (see \code{\link[sits]{sits_lightgbm}}),
 #' and different deep learning functions, including multi-layer perceptrons
 #' (see \code{\link[sits]{sits_mlp}}), 1D convolution neural
 #' networks \code{\link[sits]{sits_TempCNN}},
@@ -31,7 +32,6 @@
 #' # get a point and classify the point with the ml_model
 #' point_ndvi <- sits_select(point_mt_6bands, bands = "NDVI")
 #' class <- sits_classify(point_ndvi, ml_model)
-#'
 #' @export
 #'
 sits_train <- function(data, ml_method = sits_svm()) {
@@ -55,8 +55,11 @@ sits_train <- function(data, ml_method = sits_svm()) {
 
     .check_that(
         x = .sits_timeline_check(data) == TRUE,
-        msg = paste0("Samples have different timeline lengths", "\n",
-                     "Use.sits_tibble_prune or sits_fix_timeline"))
+        msg = paste0(
+            "Samples have different timeline lengths", "\n",
+            "Use.sits_tibble_prune or sits_fix_timeline"
+        )
+    )
 
     # compute the training method by the given data
     result <- ml_method(data)
@@ -151,8 +154,10 @@ sits_mlr <- function(data = NULL, formula = sits_formula_linear(),
 
             return(prediction)
         }
-        class(model_predict) <- c("mlr_model", "sits_model",
-                                  class(model_predict))
+        class(model_predict) <- c(
+            "mlr_model", "sits_model",
+            class(model_predict)
+        )
         return(model_predict)
     }
 
@@ -171,17 +176,17 @@ sits_mlr <- function(data = NULL, formula = sits_formula_linear(),
 #' This function is a front-end to the "randomForest" package.
 #' Please refer to the documentation in that package for more details.
 #'
-#' @param data             time series with the training samples
-#' @param num_trees        number of trees to grow.
+#' @param data             Time series with the training samples.
+#' @param num_trees        Number of trees to grow.
 #'                         This should not be set to too small a number,
 #'                         to ensure that every input row gets predicted
 #'                         at least a few times (default: 200).
-#' @param nodesize         minimum size of terminal nodes
-#'                         (default 1 for classification)
-#' @param ...              other parameters to be passed
-#'                         to `randomForest::randomForest` function
-#' @return                 model fitted to input data
-#'                         (to be passed to \code{\link[sits]{sits_classify}})
+#' @param nodesize         Minimum size of terminal nodes
+#'                         (default 1 for classification).
+#' @param ...              Other parameters to be passed
+#'                         to `randomForest::randomForest` function.
+#' @return                 Model fitted to input data
+#'                         (to be passed to \code{\link[sits]{sits_classify}}).
 #' @examples
 #' # Retrieve the set of samples for the Mato Grosso region
 #' samples_MT_ndvi <- sits_select(samples_modis_4bands, bands = "NDVI")
@@ -191,7 +196,6 @@ sits_mlr <- function(data = NULL, formula = sits_formula_linear(),
 #' point_ndvi <- sits_select(point_mt_6bands, bands = "NDVI")
 #' # classify the point
 #' class.tb <- sits_classify(point_ndvi, rfor_model)
-#'
 #' @export
 #'
 sits_rfor <- function(data = NULL, num_trees = 200, nodesize = 1, ...) {
@@ -230,8 +234,10 @@ sits_rfor <- function(data = NULL, num_trees = 200, nodesize = 1, ...) {
                                   type = "prob"
             ))
         }
-        class(model_predict) <- c("rfor_model", "sits_model",
-                                  class(model_predict))
+        class(model_predict) <- c(
+            "rfor_model", "sits_model",
+            class(model_predict)
+        )
         return(model_predict)
     }
 
@@ -351,19 +357,173 @@ sits_svm <- function(data = NULL, formula = sits_formula_logref(),
 
             return(prediction)
         }
-        class(model_predict) <- c("svm_model", "sits_model",
-                                  class(model_predict))
+        class(model_predict) <- c(
+            "svm_model", "sits_model",
+            class(model_predict)
+        )
+        return(model_predict)
+    }
+    result <- .sits_factory_function(data, result_fun)
+    return(result)
+}
+#' @title Train models using lightGBM algorithm
+#' @name sits_lightgbm
+#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
+#' @author Alber Sanchez, \email{alber.ipia@@inpe.br}
+#'
+#' @description This function uses the lightGBM algorithm for model training.
+#' LightGBM is a fast, distributed, high performance gradient boosting
+#' framework based on decision trees.
+#'
+#' @references
+#' Guolin Ke, Qi Meng, Thomas Finley, Taifeng Wang, Wei Chen,
+#' Weidong Ma, Qiwei Ye, Tie-Yan Liu.
+#' "LightGBM: A Highly Efficient Gradient Boosting Decision Tree".
+#' Advances in Neural Information Processing Systems 30 (NIPS 2017), pp. 3149-3157.
+#'
+#' @param data                 Time series with the training samples.
+#' @param boosting_type        Type of boosting algorithm
+#'                             (options: "gbdt", "rf", "dart", "goss").
+#' @param num_iterations       Number of iterations.
+#' @param max_depth            Limit the max depth for tree model.
+#' @param min_samples_leaf     Min size of data in one leaf
+#'                             (can be used to deal with over-fitting).
+#' @param learning_rate        Learning rate of the algorithm
+#' @param n_iter_no_change     Number of iterations to stop training
+#'                             when validation metrics don't improve.
+#' @param validation_split     Fraction of training data
+#'                             to be used as validation data.
+#' @param record               Record iteration message?
+#' @param ...                  Additional parameters for
+#'                             \code{lightgbm::lgb.train} function.
+#'
+#' @export
+sits_lightgbm <- function(data = NULL,
+                          boosting_type = "gbdt",
+                          num_iterations = 100,
+                          max_depth = 6,
+                          min_samples_leaf = 10,
+                          learning_rate = 0.1,
+                          n_iter_no_change = 10,
+                          validation_split = 0.2,
+                          record = TRUE, ...) {
+
+    # set caller to show in errors
+    .check_set_caller("sits_lightgbm")
+
+    # function that returns lightgbm model
+    result_fun <- function(data) {
+
+        # verifies if lightgbm package is installed
+        if (!requireNamespace("lightgbm", quietly = TRUE)) {
+            stop("Please install package lightgbm", call. = FALSE)
+        }
+        labels <- sits_labels(data)
+        n_labels <- length(labels)
+        # lightGBM uses numerical labels starting from 0
+        int_labels <- c(1:n_labels) - 1
+        # create a named vector with integers match the class labels
+        names(int_labels) <- labels
+
+        # data normalization
+        stats <- .sits_ml_normalization_param(data)
+        train_data <- .sits_distances(.sits_ml_normalize_data(data, stats))
+
+        # split the data into training and validation data sets
+        # create partitions different splits of the input data
+        test_data <- .sits_distances_sample(train_data,
+                                            frac = validation_split
+        )
+        # remove the lines used for validation
+        train_data <- train_data[!test_data, on = "original_row"]
+
+        n_samples_train <- nrow(train_data)
+        n_samples_test <- nrow(test_data)
+
+        # shuffle the data
+        train_data <- train_data[sample(
+            nrow(train_data),
+            nrow(train_data)
+        ), ]
+        test_data <- test_data[sample(
+            nrow(test_data),
+            nrow(test_data)
+        ), ]
+
+        # transform the training data to LGBM
+        lgbm_train_data <- lightgbm::lgb.Dataset(
+            data = as.matrix(train_data[, -2:0]),
+            label = unname(int_labels[train_data[[2]]])
+        )
+        # transform the training data to LGBM
+        lgbm_test_data <- lightgbm::lgb.Dataset(
+            data = as.matrix(test_data[, -2:0]),
+            label = unname(int_labels[test_data[[2]]])
+        )
+        if (n_labels > 2) {
+            objective <- "multiclass"
+        } else {
+            objective <- "binary"
+        }
+        # set the training params
+        train_params <- list(
+            boosting_type = boosting_type,
+            objective = objective,
+            min_samples_leaf = min_samples_leaf,
+            max_depth = max_depth,
+            learning_rate = learning_rate,
+            num_class = n_labels,
+            num_iterations = num_iterations,
+            n_iter_no_change = n_iter_no_change
+        )
+        # train the model
+        lgbm_model <- lightgbm::lgb.train(
+            data    = lgbm_train_data,
+            valids  = list(test_data = lgbm_test_data),
+            params  = train_params,
+            verbose = -1,
+            record  = record,
+            ...
+        )
+        # save the model to string
+        lgbm_model_string <- lgbm_model$save_model_to_string(NULL)
+
+        # construct model predict enclosure function and returns
+        model_predict <- function(values) {
+
+            # verifies if ranger package is installed
+            if (!requireNamespace("lightgbm", quietly = TRUE)) {
+                stop("Please install package lightgbm", call. = FALSE)
+            }
+            # reload the model
+            lgbm_model <- lightgbm::lgb.load(model_str = lgbm_model_string)
+            # predict values
+            prediction <- data.table::as.data.table(
+                stats::predict(lgbm_model,
+                               data = as.matrix(values[, -2:0]),
+                               rawscore = FALSE,
+                               reshape = TRUE
+                )
+            )
+            # adjust the names of the columns of the probs
+            colnames(prediction) <- labels
+            # retrieve the prediction results
+            return(prediction)
+        }
+        class(model_predict) <- c(
+            "lightgbm_model", "sits_model",
+            class(model_predict)
+        )
         return(model_predict)
     }
     result <- .sits_factory_function(data, result_fun)
     return(result)
 }
 
-
 #' @title Train extreme gradient boosting models
 #' @name sits_xgboost
 #'
-#' @author Alexandre Ywata de Carvalho, \email{alexandre.ywata@@ipea.gov.br}
 #' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'
@@ -415,7 +575,7 @@ sits_svm <- function(data = NULL, formula = sits_formula_logref(),
 #'
 #' # get a point and classify the point with the ml_model
 #' point.tb <- sits_select(point_mt_6bands,
-#'     bands = c("NDVI", "EVI", "NIR", "MIR")
+#'   bands = c("NDVI", "EVI", "NIR", "MIR")
 #' )
 #' class.tb <- sits_classify(point.tb, xgb_model)
 #' plot(class.tb, bands = c("NDVI", "EVI"))
@@ -478,30 +638,13 @@ sits_xgboost <- function(data = NULL,
             subsample = subsample
         )
 
-        # run the cross-validation
-        xgbcv <- xgboost::xgb.cv(
-            params = params,
-            data = as.matrix(train_data[, 3:length(train_data)]),
-            label = references,
-            num_class = length(labels),
-            nrounds = nrounds,
-            nfold = nfold,
-            early_stopping_rounds = early_stopping_rounds,
-            print_every_n = 10,
-            verbose = verbose,
-            maximize = FALSE
-        )
-
-        # get the best iteration of the model based on the CV
-        nrounds_best <- xgbcv$best_iteration
-
         # define the model
         model_xgb <- xgboost::xgboost(
-            data = as.matrix(train_data[, 3:length(train_data)]),
+            data = as.matrix(train_data[, -2:0]),
             label = references,
             num_class = length(labels),
             params = params,
-            nrounds = nrounds_best,
+            nrounds = nrounds,
             verbose = FALSE
         )
 
@@ -528,8 +671,10 @@ sits_xgboost <- function(data = NULL,
             # retrieve the prediction results
             return(prediction)
         }
-        class(model_predict) <- c("xgb_model", "sits_model",
-                                  class(model_predict))
+        class(model_predict) <- c(
+            "xgb_model", "sits_model",
+            class(model_predict)
+        )
         return(model_predict)
     }
 
@@ -658,10 +803,11 @@ sits_formula_linear <- function(predictors_index = -2:0) {
 #' @description This function normalizes the time series using the mean and
 #' standard deviation of all the time series.
 #'
-#' @param data     A sits tibble.
+#' @param data     Time series.
 #' @param stats    Statistics for normalization.
 #'
-#' @return A normalized sits tibble.
+#' @return         Normalized time series.
+#'
 .sits_ml_normalize_data <- function(data, stats) {
 
     # set caller to show in errors
@@ -677,12 +823,13 @@ sits_formula_linear <- function(predictors_index = -2:0) {
     .check_chr_within(
         x = sort(bands),
         within = sort(colnames(stats[, -1])),
-        msg = paste0("data bands (",
-                     paste(bands, collapse = ", "),
-                     ") do not match model bands (",
-                     paste(colnames(stats[, -1]),
-                           collapse = ", "
-                     ), ")"
+        msg = paste0(
+            "data bands (",
+            paste(bands, collapse = ", "),
+            ") do not match model bands (",
+            paste(colnames(stats[, -1]),
+                  collapse = ", "
+            ), ")"
         )
     )
 
@@ -691,19 +838,19 @@ sits_formula_linear <- function(predictors_index = -2:0) {
 
     # normalise values of time series
     normalize_chunk <- function(chunk) {
-
         norm_chunk <- chunk %>%
             purrr::map(function(ts) {
                 norm <- bands %>%
                     purrr::map(function(b) {
                         # retrieve values from data table
                         # note the use of "..b" instead of ",b"
-                        quant_2 <- as.numeric(stats[2, ..b])
-                        quant_98 <- as.numeric(stats[3, ..b])
+                        quant_2 <- as.numeric(stats[2, b, with = FALSE])
+                        quant_98 <- as.numeric(stats[3, b, with = FALSE])
                         # call C++ for better performance
-                        m <- normalize_data(as.matrix(ts[, b]),
-                                            quant_2,
-                                            quant_98
+                        m <- normalize_data(
+                            as.matrix(ts[, b]),
+                            quant_2,
+                            quant_98
                         )
                         # give a name to the matrix column because
                         # tibble does not like matrices without names
@@ -740,8 +887,8 @@ sits_formula_linear <- function(predictors_index = -2:0) {
 .sits_ml_normalize_matrix <- function(data, stats, band) {
     # select the 2% and 98% quantiles
     # note the use of "..b" instead of ",b"
-    quant_2 <- as.numeric(stats[2, ..band])
-    quant_98 <- as.numeric(stats[3, ..band])
+    quant_2 <- as.numeric(stats[2, band, with = FALSE])
+    quant_98 <- as.numeric(stats[3, band, with = FALSE])
 
     # auxiliary function to normalize a block of data
     normalize_block <- function(chunk, quant_2, quant_98) {
@@ -767,6 +914,7 @@ sits_formula_linear <- function(predictors_index = -2:0) {
 #' @return A tibble with statistics.
 .sits_ml_normalization_param <- function(data) {
     .sits_tibble_test(data)
+    Index <- NULL # to avoid setting global variable
 
     dt <- data.table::data.table(dplyr::bind_rows(data$time_series))
     dt[, Index := NULL]
@@ -804,8 +952,9 @@ sits_formula_linear <- function(predictors_index = -2:0) {
 .sits_ml_model_samples <- function(ml_model) {
 
     # pre-condition
-    if (!inherits(ml_model, "function"))
+    if (!inherits(ml_model, "function")) {
         stop("invalid 'ml_model' parameter")
+    }
 
     # pre-condition
     .check_chr_contains(

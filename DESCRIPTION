@@ -42,6 +42,7 @@ Imports:
     jsonlite,
     knitr,
     lubridate (>= 1.7.0),
+    luz,
     parallel,
     purrr (>= 0.3.0),
     Rcpp (>= 1.0.7),
@@ -50,6 +51,7 @@ Imports:
     slider (>= 0.1.5),
     stats,
     terra (>= 1.5-17),
+    torch,
     tibble (>= 3.0),
     utils
 Suggests:
@@ -57,13 +59,14 @@ Suggests:
     dendextend,
     dtwclust,
     dtwSat,
+    digest,
     e1071,
-    gdalcubes,
+    gdalcubes (>= 0.6.0),
     httr,
-    keras (>= 2.6.0),
     kohonen,
     leafem,
     leaflet,
+    lightgbm,
     methods,
     mgcv,
     nnet,
@@ -87,6 +90,7 @@ RoxygenNote: 7.1.2
 Collate: 
     'RcppExports.R'
     'data.R'
+    'pipe.R'
     'sits-package.R'
     'sits_apply.R'
     'sits_accuracy.R'
@@ -108,6 +112,7 @@ Collate:
     'sits_factory.R'
     'sits_file_info.R'
     'sits_filters.R'
+    'sits_gdalcubes.R'
     'sits_get_data.R'
     'sits_imputation.R'
     'sits_labels.R'
@@ -117,7 +122,6 @@ Collate:
     'sits_mlp.R'
     'sits_parallel.R'
     'sits_patterns.R'
-    'sits_pipe.R'
     'sits_plot.R'
     'sits_raster_api.R'
     'sits_raster_api_terra.R'
@@ -146,7 +150,12 @@ Collate:
     'sits_source_api_wtss.R'
     'sits_space_time_operations.R'
     'sits_stac.R'
+    'sits_TAE.R'
     'sits_TempCNN.R'
+    'sits_torch_conv1d.R'
+    'sits_torch_linear.R'
+    'sits_torch_spatial_encoder.R'
+    'sits_torch_temporal_attention_encoder.R'
     'sits_tibble.R'
     'sits_timeline.R'
     'sits_twdtw.R'

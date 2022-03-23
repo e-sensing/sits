@@ -27,7 +27,7 @@ sits_results_s3_class:
 # parsing info contents for results cube
 results_parse_info_def : ["X1", "X2", "tile", "start_date", "end_date",
                                 "band", "version"]
-results_parse_info_col : ["tile", "start_date", "end_date", "band", "version"]
+results_parse_info_col : ["tile", "start_date", "end_date", "band"]
 
 # mandatory columns in data cube description
 sits_cube_cols :    ["source", "collection", "satellite", "sensor",
@@ -99,3 +99,7 @@ class_intervals: ["fixed", "sd", "equal", "pretty", "quantile",
 
 # parse info of generated regular cubes
 reg_file_parse_info: ["cube", "tile", "band", "date"]
+
+# gdalcubes parameters
+gdalcubes_chunk_size: [1, 2048, 2048]
+gdalcubes_type_format: "int16"

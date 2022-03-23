@@ -19,14 +19,12 @@
 #' that has an additional `cluster` produced by \code{sits_cluster_dendro()}
 #' and removes labels that are minority in each cluster.
 #'
-#'
-#'
 #' @references "dtwclust" package (https://CRAN.R-project.org/package=dtwclust)
 #'
-#' @param samples         A tibble with input set of time series
-#' @param bands           Bands to be used in the clustering
-#' @param dist_method     String with one of the supported distances.
-#' @param linkage         String with agglomeration method to be used.
+#' @param samples         Tibble with input set of time series.
+#' @param bands           Bands to be used in the clustering.
+#' @param dist_method     Distance method.
+#' @param linkage         Agglomeration method.
 #'                        Can be any `hclust` method (see `hclust`).
 #'                        Default is 'ward.D2'.
 #' @param k               Desired number of clusters (overrides default value)
@@ -34,12 +32,9 @@
 #' @param .plot           Plot the dendrogram?
 #' @param  ...            Additional parameters to be passed
 #'                        to dtwclust::tsclust() function.
+#' @return                Tibble with added "cluster" column.
 #'
 #' @rdname sits_clustering
-#' @return
-#' \code{sits_cluster_dendro()} takes a tibble containing time series and produces
-#' a sits tibble with an added "cluster" column.
-#'
 #' @examples
 #' \dontrun{
 #' # load a simple data set with two classes
@@ -90,8 +85,10 @@ sits_cluster_dendro <- function(samples = NULL,
     message("finding the best cut...")
     best_cut <- .sits_cluster_dendro_bestcut(samples, cluster)
     message(paste0("best number of clusters = ", best_cut["k"]))
-    message(paste0("best height for cutting the dendrogram = ",
-        best_cut["height"]))
+    message(paste0(
+        "best height for cutting the dendrogram = ",
+        best_cut["height"]
+    ))
 
     # cut the tree (user-defined value overrides default)
     message("cutting the tree...")
@@ -111,11 +108,14 @@ sits_cluster_dendro <- function(samples = NULL,
 
     # plot the dendrogram
     message("Plotting dendrogram...")
-    if (.plot)
-        .sits_plot_dendrogram(data = samples,
-                              cluster = cluster,
-                              cutree_height = best_cut["height"],
-                              palette = palette)
+    if (.plot) {
+        .sits_plot_dendrogram(
+            data = samples,
+            cluster = cluster,
+            cutree_height = best_cut["height"],
+            palette = palette
+        )
+    }
 
     # return the result
     message("result is a tibble with cluster indexes...")
@@ -145,8 +145,8 @@ sits_cluster_frequency <- function(samples) {
 
     # compute total row and col
     result <- stats::addmargins(result,
-        FUN = list(Total = sum),
-        quiet = TRUE
+                                FUN = list(Total = sum),
+                                quiet = TRUE
     )
     return(result)
 }
@@ -179,11 +179,15 @@ sits_cluster_clean <- function(samples) {
     lbs_max <- lbs[as.vector(apply(result, 2, which.max))]
 
     # compute the resulting table
-    clean_clusters <- purrr::map2_dfr(lbs_max, num_cls,
-                    function(lb, cl) {
-                        partial <- dplyr::filter(samples, label == lb & cluster == cl)
-                        return(partial)
-                    })
+    clean_clusters <- purrr::map2_dfr(
+        lbs_max, num_cls,
+        function(lb, cl) {
+            partial <- dplyr::filter(samples,
+                                     .data[["label"]] == lb &
+                                         .data[["cluster"]] == cl)
+            return(partial)
+        }
+    )
     return(clean_clusters)
 }
 
@@ -204,7 +208,7 @@ sits_cluster_clean <- function(samples) {
 #'
 #' @param samples   A tibble with `cluster` column.
 #'
-#' @return A vector with four external validity indices.
+#' @return          A vector with four validity indices.
 #'
 .sits_cluster_validity <- function(samples) {
 
@@ -255,14 +259,14 @@ sits_cluster_clean <- function(samples) {
 #' @param samples         Time series data and metadata
 #'                        to be used to generate the dendrogram.
 #' @param bands           Vector of bands to be clustered.
-#' @param dist_method     String with one of the supported distance
+#' @param dist_method     One of the supported distance
 #'                        from proxy's dist, e.g. \code{TWDTW}.
-#' @param linkage         String with agglomeration method to be used.
+#' @param linkage         Agglomeration method to be used.
 #'                        Can be any `hclust` method (see `hclust`).
 #'                        Default is 'ward.D2'.
 #' @param  ...            Any additional parameters to be passed
 #'                        to dtwclust::tsclust() function.
-#' @return A full dendrogram tree for data analysis.
+#' @return                Full dendrogram tree for data analysis.
 #'
 .sits_cluster_dendrogram <- function(samples,
                                      bands,
@@ -278,11 +282,11 @@ sits_cluster_clean <- function(samples) {
 
     # call dtwclust and get the resulting dendrogram
     dendro <- dtwclust::tsclust(values,
-        type = "hierarchical",
-        k = max(nrow(samples) - 1, 2),
-        distance = dist_method,
-        control = dtwclust::hierarchical_control(method = linkage),
-        ...
+                                type = "hierarchical",
+                                k = max(nrow(samples) - 1, 2),
+                                distance = dist_method,
+                                control = dtwclust::hierarchical_control(method = linkage),
+                                ...
     )
 
     # return the dendrogram
@@ -305,7 +309,8 @@ sits_cluster_clean <- function(samples) {
 #' @param samples          Input set of time series.
 #' @param dendro           Dendrogram object returned from
 #'                         \code{\link[sits]{.sits_cluster_dendrogram}}.
-#' @return Vector with best number of clusters (k) and its respective height.
+#' @return                 Vector with best number of clusters (k)
+#'                         and its respective height.
 #'
 .sits_cluster_dendro_bestcut <- function(samples, dendro) {
 
@@ -316,10 +321,9 @@ sits_cluster_clean <- function(samples) {
     ari <-
         k_range %>%
         purrr::map(function(k) {
-            x <-  stats::cutree(dendro, k = k)
+            x <- stats::cutree(dendro, k = k)
             y <- factor(samples$label)
-            .sits_cluster_rand_index(table(x,y))
-
+            .sits_cluster_rand_index(table(x, y))
         }) %>%
         unlist()
 
@@ -334,10 +338,10 @@ sits_cluster_clean <- function(samples) {
     return(best_cut)
 }
 
-.sits_cluster_rand_index <- function(x, correct = TRUE)
-{
-    if (length(dim(x)) != 2)
+.sits_cluster_rand_index <- function(x, correct = TRUE) {
+    if (length(dim(x)) != 2) {
         stop("Argument x needs to be a 2-dimensional table.")
+    }
 
     n <- sum(x)
     ni <- apply(x, 1, sum)
@@ -348,11 +352,10 @@ sits_cluster_clean <- function(samples) {
     if (correct) {
         nis2 <- sum(choose(ni[ni > 1], 2))
         njs2 <- sum(choose(nj[nj > 1], 2))
-        rand <- c( ARI = c(sum(choose(x[x > 1], 2)) -
-                            (nis2 * njs2)/n2)/((nis2 + njs2)/2 - (nis2 * njs2)/n2))
-    }
-    else {
-        rand <- c(rand, RI = 1 + (sum(x^2) - (sum(ni^2) + sum(nj^2))/2)/n2)
+        rand <- c(ARI = c(sum(choose(x[x > 1], 2)) -
+                              (nis2 * njs2) / n2) / ((nis2 + njs2) / 2 - (nis2 * njs2) / n2))
+    } else {
+        rand <- c(rand, RI = 1 + (sum(x^2) - (sum(ni^2) + sum(nj^2)) / 2) / n2)
     }
 
     return(rand)

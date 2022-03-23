@@ -8,8 +8,10 @@
 
     # check if raster package is available
     if (!requireNamespace(pkg_name, quietly = TRUE)) {
-        stop(paste(".sits_config_raster_package: package", pkg_name,
-                   "not available. Please install the package for CRAN."), call. = FALSE)
+        stop(paste(
+            ".sits_config_raster_package: package", pkg_name,
+            "not available. Please install the package for CRAN."
+        ), call. = FALSE)
     }
 
     class(pkg_name) <- pkg_name
@@ -21,14 +23,12 @@
 #' @keywords internal
 #' @export
 .raster_data_type.terra <- function(data_type, ...) {
-
     return(data_type)
 }
 
 #' @keywords internal
 #' @export
 .raster_resampling <- function(method, ...) {
-
     return(method)
 }
 
@@ -47,7 +47,6 @@
 #' @keywords internal
 #' @export
 .raster_set_values.terra <- function(r_obj, values, ...) {
-
     terra::values(x = r_obj) <- as.matrix(values)
 
     return(invisible(r_obj))
@@ -56,14 +55,12 @@
 #' @keywords internal
 #' @export
 .raster_extract.terra <- function(r_obj, xy, ...) {
-
     terra::extract(x = r_obj, y = xy, ...)
 }
 
 #' @keywords internal
 #' @export
 .raster_rast.terra <- function(r_obj, nlayers = 1, ...) {
-
     suppressWarnings(
         terra::rast(x = r_obj, nlyrs = nlayers, ...)
     )
@@ -72,7 +69,6 @@
 #' @keywords internal
 #' @export
 .raster_open_rast.terra <- function(file, ...) {
-
     suppressWarnings(
         terra::rast(x = file, ...)
     )
@@ -93,12 +89,14 @@
 
     suppressWarnings(
         terra::writeRaster(
-            x         = r_obj,
-            filename  = file,
-            wopt      = list(filetype = format,
-                             datatype = data_type,
-                             gdal     = gdal_options),
-            NAflag    = missing_value,
+            x = r_obj,
+            filename = file,
+            wopt = list(
+                filetype = format,
+                datatype = data_type,
+                gdal = gdal_options
+            ),
+            NAflag = missing_value,
             overwrite = overwrite, ...
         )
     )
@@ -149,11 +147,11 @@
         r_obj <- suppressWarnings(
             terra::rast(
                 nlyrs = nlayers,
-                xmin  = xmin,
-                xmax  = xmax,
-                ymin  = ymin,
-                ymax  = ymax,
-                crs   = crs,
+                xmin = xmin,
+                xmax = xmax,
+                ymin = ymin,
+                ymax = ymax,
+                crs = crs,
                 resolution = resolution
             )
         )
@@ -165,7 +163,6 @@
 #' @keywords internal
 #' @export
 .raster_open_stack.terra <- function(files, ...) {
-
     suppressWarnings(
         terra::rast(files, ...)
     )
@@ -184,9 +181,13 @@
     # create raster objects
     r_obj <- .raster_open_stack.terra(files = files, ...)
 
-    # do resample
-    if (!is.null(out_size)) {
+    # get raster size
+    in_size <- .raster_size(r_obj)
 
+    # do resample
+    if (!is.null(out_size) &&
+        (in_size[["nrows"]] != out_size[["nrows"]] ||
+         in_size[["ncols"]] != out_size[["ncols"]])) {
         bbox <- .raster_bbox(r_obj, block = block)
 
         out_r_obj <- .raster_new_rast(
@@ -206,10 +207,10 @@
         terra::readStart(out_r_obj)
         values <- terra::readValues(
             x   = out_r_obj,
-            mat = TRUE)
+            mat = TRUE
+        )
         # close file descriptor
         terra::readStop(out_r_obj)
-
     } else {
 
         # start read
@@ -219,7 +220,8 @@
             terra::readStart(r_obj)
             values <- terra::readValues(
                 x   = r_obj,
-                mat = TRUE)
+                mat = TRUE
+            )
             # close file descriptor
             terra::readStop(r_obj)
         } else {
@@ -232,7 +234,8 @@
                 nrows  = block[["nrows"]],
                 col    = block[["first_col"]],
                 ncols  = block[["ncols"]],
-                mat    = TRUE)
+                mat    = TRUE
+            )
             # close file descriptor
             terra::readStop(r_obj)
         }
@@ -253,19 +256,21 @@
         # get extent
         xmin <- terra::xFromCol(
             object = r_obj,
-            col    = block[["first_col"]])
+            col    = block[["first_col"]]
+        )
         xmax <- terra::xFromCol(
             object = r_obj,
-            col    = block[["first_col"]] + block[["ncols"]] - 1)
+            col    = block[["first_col"]] + block[["ncols"]] - 1
+        )
         ymax <- terra::yFromRow(
             object = r_obj,
-            row    = block[["first_row"]])
+            row    = block[["first_row"]]
+        )
         ymin <- terra::yFromRow(
             object = r_obj,
-            row    = block[["first_row"]] + block[["nrows"]] - 1)
-
+            row    = block[["first_row"]] + block[["nrows"]] - 1
+        )
     } else if (!is.null(bbox)) {
-
         xmin <- bbox[["xmin"]]
         xmax <- bbox[["xmax"]]
         ymin <- bbox[["ymin"]]
@@ -284,91 +289,82 @@
 #' @keywords internal
 #' @export
 .raster_nrows.terra <- function(r_obj, ...) {
-
     terra::nrow(x = r_obj)
 }
 
 #' @keywords internal
 #' @export
 .raster_ncols.terra <- function(r_obj, ...) {
-
     terra::ncol(x = r_obj)
 }
 
 #' @keywords internal
 #' @export
 .raster_nlayers.terra <- function(r_obj, ...) {
-
     terra::nlyr(x = r_obj)
 }
 
 #' @keywords internal
 #' @export
 .raster_xmax.terra <- function(r_obj, ...) {
-
     terra::xmax(x = r_obj)
 }
 
 #' @keywords internal
 #' @export
 .raster_xmin.terra <- function(r_obj, ...) {
-
     terra::xmin(x = r_obj)
 }
 
 #' @keywords internal
 #' @export
 .raster_ymax.terra <- function(r_obj, ...) {
-
     terra::ymax(x = r_obj)
 }
 
 #' @keywords internal
 #' @export
 .raster_ymin.terra <- function(r_obj, ...) {
-
     terra::ymin(x = r_obj)
 }
 
 #' @keywords internal
 #' @export
 .raster_xres.terra <- function(r_obj, ...) {
-
     terra::xres(x = r_obj)
 }
 
 #' @keywords internal
 #' @export
 .raster_yres.terra <- function(r_obj, ...) {
-
     terra::yres(x = r_obj)
 }
 
 #' @keywords internal
 #' @export
 .raster_crs.terra <- function(r_obj, ...) {
-
     crs <- suppressWarnings(
-        terra::crs(x = r_obj, describe = TRUE))
+        terra::crs(x = r_obj, describe = TRUE)
+    )
 
-    if (!is.na(crs[["code"]]))
+    if (!is.na(crs[["code"]])) {
         return(c(crs = paste(crs[["authority"]], crs[["code"]], sep = ":")))
+    }
 
     suppressWarnings(
-        c(crs = as.character(terra::crs(x = r_obj))))
+        c(crs = as.character(terra::crs(x = r_obj)))
+    )
 }
 
 #' @keywords internal
 #' @export
 .raster_freq.terra <- function(r_obj, ...) {
-
     terra::freq(x = r_obj, bylayer = TRUE)
 }
 
 #' @keywords internal
 #' @export
 .raster_col.terra <- function(r_obj, x) {
-
     terra::colFromX(r_obj, x)
 }
 
@@ -376,6 +372,5 @@
 #' @keywords internal
 #' @export
 .raster_row.terra <- function(r_obj, y) {
-
     terra::rowFromY(r_obj, y)
 }

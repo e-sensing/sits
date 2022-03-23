@@ -2,14 +2,28 @@
 % Please edit documentation in R/sits_select.R
 \name{sits_select}
 \alias{sits_select}
+\alias{sits_select.sits}
+\alias{sits_select.sits_cube}
+\alias{sits_select.patterns}
 \title{Filter bands on a data set (tibble or cube)}
 \usage{
-sits_select(data, bands)
+sits_select(data, bands, ...)
+
+\method{sits_select}{sits}(data, bands, ...)
+
+\method{sits_select}{sits_cube}(data, bands, ..., tiles = NULL)
+
+\method{sits_select}{patterns}(data, bands, ...)
 }
 \arguments{
-\item{data}{A sits tibble or data cube}
+\item{data}{A sits tibble or data cube.}
 
-\item{bands}{Character vector with the names of the bands}
+\item{bands}{Character vector with the names of the bands.}
+
+\item{...}{Additional parameters to be provided in the select
+function.}
+
+\item{tiles}{Character vector with the names of the tiles.}
 }
 \value{
 For sits tibble, returns a sits tibble with the selected bands.
@@ -27,7 +41,6 @@ sits_bands(cerrado_2classes)
 data <- sits_select(cerrado_2classes, bands = c("NDVI"))
 # Print the labels of the resulting tibble
 sits_bands(data)
-
 }
 \author{
 Rolf Simoes, \email{rolf.simoes@inpe.br}

@@ -7,14 +7,14 @@
 sits_merge(data1, data2, ..., suffix = c(".1", ".2"))
 }
 \arguments{
-\item{data1}{sits tibble or cube to be merged.}
+\item{data1}{Time series or cube to be merged.}
 
-\item{data2}{sits tibble or cube to be merged.}
+\item{data2}{Time series or cube to be merged.}
 
-\item{...}{additional parameters}
+\item{...}{Additional parameters}
 
 \item{suffix}{If there are duplicate bands in data1 and data2
-these suffixes will be added to the output to disambiguate them.}
+these suffixes will be added.}
 }
 \value{
 merged data sets
@@ -31,16 +31,15 @@ bounding box, timeline, and have different bands.
 }
 \examples{
 {
-# Retrieve a time series with values of NDVI
-point_ndvi <- sits_select(point_mt_6bands, bands = "NDVI")
-# Apply Savitsky-Golay filter on NDVI
-point_ndvi_sg <- point_ndvi \%>\%
-   sits_filter(sits_sgolay())
+  # Retrieve a time series with values of NDVI
+  point_ndvi <- sits_select(point_mt_6bands, bands = "NDVI")
+  # Apply Savitsky-Golay filter on NDVI
+  point_ndvi_sg <- point_ndvi \%>\%
+    sits_filter(sits_sgolay())
 
-# Merge time series back
-point <- sits_merge(point_ndvi, point_ndvi_sg, suffix = c("", ".SG"))
+  # Merge time series back
+  point <- sits_merge(point_ndvi, point_ndvi_sg, suffix = c("", ".SG"))
 }
-
 }
 \author{
 Gilberto Camara, \email{gilberto.camara@inpe.br}

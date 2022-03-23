@@ -24,30 +24,19 @@
 #' in each cloud service supported by sits. Users can select to get information
 #' only for a single service by using the \code{source} parameter.
 #'
-#' @param processing_bloat       A \code{numeric} value to estimate
-#' growth size of R memory relative to block size.
-#' @param rstac_pagination_limit A \code{numeric} value indicating number of
-#' items returned by STAC service.
-#' @param raster_api_package     A \code{character} value indicating a
-#' supported raster handling package.
-#' @param gdal_creation_options  A \code{character} vector specifying GDAL
-#' creation option for GeoTiff image format.
-#' @param gdalcubes_chunk_size   A \code{numeric} vector specifying the chunk size
-#'                               to be used by gdalcubes
-#' @param leaflet_max_Mbytes     A \code{numeric} value indicating the maximum
-#'                               size of an image to be shown by leaflet (in MB)
-#' @param leaflet_comp_factor    A \code{numeric} value indicating the compression
-#'                               factor for leaflet RGB display
-#' @param reset                  A \code{logical} value indicating if current
-#'                               configuration options must be cleaned before
-#'                               load config files. Default \code{FALSE}.
-#' @param source                 A \code{character} value indicating a source
-#' key entry to be shown in detail.
-#' @param collection             A \code{character} value used in conjunction
-#' with \code{source} parameter to indicate a collection key entry to be shown
-#' in detail.
-#' @param colors                A \code{logical} value indicating if colors
-#' will to be shown in detail.
+#' @param processing_bloat        Estimated growth size of R memory relative
+#'                                to block size.
+#' @param rstac_pagination_limit  Limit of number of items returned by STAC.
+#' @param raster_api_package      Supported raster handling package.
+#' @param gdal_creation_options   GDAL creation options for GeoTiff.
+#' @param gdalcubes_chunk_size    Chunk size to be used by gdalcubes
+#' @param leaflet_max_Mbytes      Maximage size of an image for leaflet (in MB)
+#' @param leaflet_comp_factor     Compression factor for leaflet RGB display.
+#' @param reset                   Should current configuration options be cleaned
+#'                                before loading config files? Default \code{FALSE}.
+#' @param source                  Data source to be shown in detail.
+#' @param collection              Collection key entry to be shown in detail.
+#' @param colors                  Show colors?
 #'
 #' @details
 #' Users can provide additional configuration files, by specifying the
@@ -75,15 +64,18 @@ sits_config <- function(processing_bloat = NULL,
                         reset = FALSE) {
 
     # clear current configuration
-    if (reset && !is.null(sits_env$config))
+    if (reset && !is.null(sits_env$config)) {
         sits_env$config <- list()
+    }
 
     # load the internal configuration file
     config_internals_file <- .config_internals_file()
 
     # read the configuration parameters
-    config_internals <- yaml::yaml.load_file(input = config_internals_file,
-                                             merge.precedence = "override")
+    config_internals <- yaml::yaml.load_file(
+        input = config_internals_file,
+        merge.precedence = "override"
+    )
 
     # set options defined in sits config
     do.call(.config_set_options, args = config_internals)
@@ -92,8 +84,10 @@ sits_config <- function(processing_bloat = NULL,
     yml_file <- .config_file()
 
     # read the configuration parameters
-    config <- yaml::yaml.load_file(input = yml_file,
-                                   merge.precedence = "override")
+    config <- yaml::yaml.load_file(
+        input = yml_file,
+        merge.precedence = "override"
+    )
 
     # set options defined in sits config
     do.call(.config_set_options, args = config)
@@ -102,8 +96,10 @@ sits_config <- function(processing_bloat = NULL,
     # load the color configuration file
     color_yml_file <- .config_colors_file()
     message(paste("Color configurations found in", color_yml_file))
-    config_colors <- yaml::yaml.load_file(input = color_yml_file,
-                                   merge.precedence = "override")
+    config_colors <- yaml::yaml.load_file(
+        input = color_yml_file,
+        merge.precedence = "override"
+    )
     .config_set_options(colors = config_colors[["colors"]])
 
     # try to find a valid user configuration file
@@ -111,11 +107,14 @@ sits_config <- function(processing_bloat = NULL,
 
     if (file.exists(user_yml_file)) {
         message(paste("Additional configurations found in", user_yml_file))
-        config <- yaml::yaml.load_file(input = user_yml_file,
-                                       merge.precedence = "override")
+        config <- yaml::yaml.load_file(
+            input = user_yml_file,
+            merge.precedence = "override"
+        )
         config <- utils::modifyList(sits_env[["config"]],
                                     config,
-                                    keep.null = FALSE)
+                                    keep.null = FALSE
+        )
 
         # set options defined by user (via YAML file)
         # modifying existing configuration
@@ -131,21 +130,24 @@ sits_config <- function(processing_bloat = NULL,
             colors = config[["colors"]]
         )
     } else {
-        message(paste("To provide additional configurations, create an",
-                      "YAML file and inform its path to environment variable",
-                      "'SITS_CONFIG_USER_FILE'."))
+        message(paste(
+            "To provide additional configurations, create an",
+            "YAML file and inform its path to environment variable",
+            "'SITS_CONFIG_USER_FILE'."
+        ))
     }
 
     # set options defined by user (via parameters)
     # modifying existing configuration
-    .config_set_options(processing_bloat = processing_bloat,
-                        rstac_pagination_limit = rstac_pagination_limit,
-                        raster_api_package = raster_api_package,
-                        gdal_creation_options = gdal_creation_options,
-                        gdalcubes_chunk_size = gdalcubes_chunk_size,
-                        leaflet_max_Mbytes = leaflet_max_Mbytes,
-                        leaflet_comp_factor = leaflet_comp_factor
-                        )
+    .config_set_options(
+        processing_bloat = processing_bloat,
+        rstac_pagination_limit = rstac_pagination_limit,
+        raster_api_package = raster_api_package,
+        gdal_creation_options = gdal_creation_options,
+        gdalcubes_chunk_size = gdalcubes_chunk_size,
+        leaflet_max_Mbytes = leaflet_max_Mbytes,
+        leaflet_comp_factor = leaflet_comp_factor
+    )
 
     message(paste0("Using raster package: ", .config_raster_pkg()))
 
@@ -162,19 +164,19 @@ sits_config <- function(processing_bloat = NULL,
 sits_config_show <- function(source = NULL,
                              collection = NULL,
                              colors = FALSE) {
-
     config <- sits_env$config
 
     if (!is.null(source)) {
-
         .check_chr(source,
                    allow_empty = FALSE,
                    len_min = 1,
-                   len_max = 1)
+                   len_max = 1
+        )
 
         .check_chr_within(source,
                           within = .sources(),
-                          discriminator = "one_of")
+                          discriminator = "one_of"
+        )
 
         config <- config[[c("sources", source)]]
 
@@ -182,30 +184,36 @@ sits_config_show <- function(source = NULL,
             .check_chr(collection,
                        allow_empty = FALSE,
                        len_min = 1,
-                       len_max = 1)
+                       len_max = 1
+            )
 
             .check_chr_within(collection,
                               within = .source_collections(source = source),
-                              discriminator = "one_of")
+                              discriminator = "one_of"
+            )
 
             config <- config[[c("collections", collection)]]
-        } else
+        } else {
             config <- lapply(config, function(x) {
-                if (is.atomic(x))
+                if (is.atomic(x)) {
                     return(x)
+                }
                 list(names(x))
             })
-
+        }
     } else if (colors) {
         config <- config[["colors"]]
-    } else
+    } else {
         config <- lapply(config, function(x) {
-            if (is.atomic(x))
+            if (is.atomic(x)) {
                 return(x)
+            }
             list(names(x))
         })
+    }
 
-    config_txt <- yaml::as.yaml(config, indent = 4,
+    config_txt <- yaml::as.yaml(config,
+                                indent = 4,
                                 handlers = list(
                                     character = function(x) {
                                         res <- paste0(x, collapse = ", ")
@@ -221,7 +229,9 @@ sits_config_show <- function(source = NULL,
                                         res <- paste0(x, collapse = ", ")
                                         class(res) <- "verbatim"
                                         res
-                                    }))
+                                    }
+                                )
+    )
     cat(config_txt, sep = "\n")
     return(invisible(config))
 }
@@ -250,27 +260,29 @@ sits_list_collections <- function(source = NULL) {
         sources <- source
     }
 
-    purrr::map(sources, function(s){
-
+    purrr::map(sources, function(s) {
         cat(paste0(s, ":\n"))
         collections <- .source_collections(source = s)
-        purrr::map(collections, function(c){
-
+        purrr::map(collections, function(c) {
             cat(paste0("- ", c))
-            cat(paste0(" (", .source_collection_satellite(s, c),
-                       "/", .source_collection_sensor(s, c), ")\n"))
+            cat(paste0(
+                " (", .source_collection_satellite(s, c),
+                "/", .source_collection_sensor(s, c), ")\n"
+            ))
             cat("- bands: ")
             cat(.source_bands(s, c))
             cat("\n")
             if (.source_collection_open_data(source = s, collection = c)) {
                 cat("- opendata collection ")
-                if (.source_collection_open_data_token(source = s,
-                                                       collection = c))
+                if (.source_collection_open_data_token(
+                    source = s,
+                    collection = c
+                )) {
                     cat("(requires access token)")
-
-            }
-            else
+                }
+            } else {
                 cat("- not opendata collection")
+            }
             cat("\n")
             cat("\n")
         })
@@ -291,14 +303,16 @@ sits_list_collections <- function(source = NULL) {
     .check_set_caller(".config_set_options")
 
     # initialize config
-    if (!exists("config", envir = sits_env))
+    if (!exists("config", envir = sits_env)) {
         sits_env$config <- list()
+    }
 
     # process processing_bloat
     if (!is.null(processing_bloat)) {
         .check_num(processing_bloat,
                    min = 1, len_min = 1, len_max = 1,
-                   msg = "invalid 'processing_bloat' parameter")
+                   msg = "invalid 'processing_bloat' parameter"
+        )
         sits_env$config[["processing_bloat"]] <- processing_bloat
     }
 
@@ -306,7 +320,8 @@ sits_list_collections <- function(source = NULL) {
     if (!is.null(rstac_pagination_limit)) {
         .check_num(rstac_pagination_limit,
                    min = 1, len_min = 1, len_max = 1,
-                   msg = "invalid 'rstac_pagination_limit' parameter")
+                   msg = "invalid 'rstac_pagination_limit' parameter"
+        )
         sits_env$config[["rstac_pagination_limit"]] <- rstac_pagination_limit
     }
 
@@ -314,19 +329,23 @@ sits_list_collections <- function(source = NULL) {
     if (!is.null(raster_api_package)) {
         .check_chr(raster_api_package,
                    len_min = 1, len_max = 1,
-                   msg = "invalid 'raster_api_package' parameter")
+                   msg = "invalid 'raster_api_package' parameter"
+        )
         .check_chr_within(raster_api_package,
                           within = .raster_supported_packages(),
                           discriminator = "one_of",
-                          msg = "invalid 'raster_api_package' parameter")
+                          msg = "invalid 'raster_api_package' parameter"
+        )
         sits_env$config[["raster_api_package"]] <- raster_api_package
     }
 
     # process gdal_creation_options
     if (!is.null(gdal_creation_options)) {
-        .check_chr(gdal_creation_options, allow_empty = FALSE,
+        .check_chr(gdal_creation_options,
+                   allow_empty = FALSE,
                    regex = "^.+=.+$",
-                   msg = "invalid 'gdal_creation_options' parameter")
+                   msg = "invalid 'gdal_creation_options' parameter"
+        )
         sits_env$config[["gdal_creation_options"]] <- gdal_creation_options
     }
     # process gdalcubes_chunk_size
@@ -335,7 +354,8 @@ sits_list_collections <- function(source = NULL) {
                    min_len = 3,
                    max_len = 3,
                    is_named = FALSE,
-                   msg = "invalid gdalcubes chunk size")
+                   msg = "invalid gdalcubes chunk size"
+        )
         sits_env$config[["gdalcubes_chunk_size"]] <- gdalcubes_chunk_size
     }
     if (!is.null(leaflet_max_Mbytes)) {
@@ -343,7 +363,8 @@ sits_list_collections <- function(source = NULL) {
                    min = 16,
                    max = 128,
                    is_named = FALSE,
-                   msg = "invalid leaflet max Mbytes")
+                   msg = "invalid leaflet max Mbytes"
+        )
         sits_env$config[["leaflet_max_Mbytes"]] <- leaflet_max_Mbytes
     }
     if (!is.null(leaflet_comp_factor)) {
@@ -351,12 +372,12 @@ sits_list_collections <- function(source = NULL) {
                    min = 0.20,
                    max = 1.00,
                    is_named = FALSE,
-                   msg = "invalid leaflet_comp_factor")
+                   msg = "invalid leaflet_comp_factor"
+        )
         sits_env$config[["leaflet_comp_factor"]] <- leaflet_comp_factor
     }
     # process sources
     if (!is.null(sources)) {
-
         .check_lst(sources, min_len = 1)
 
         # source names are uppercase
@@ -365,25 +386,32 @@ sits_list_collections <- function(source = NULL) {
         sources <- lapply(sources, function(source) {
 
             # pre-condition
-            .check_lst(source, min_len = 2,
-                       msg = "invalid 'source' parameter")
+            .check_lst(source,
+                       min_len = 2,
+                       msg = "invalid 'source' parameter"
+            )
 
             # check that source contains essential parameters
             .check_chr_contains(names(source),
                                 contains = c("s3_class", "collections"),
-                                msg = "invalid 'source' parameter")
+                                msg = "invalid 'source' parameter"
+            )
             names(source) <- tolower(names(source))
 
             # check source
-            source <- .check_error({
-                do.call(.config_new_source, args = source)
-            }, msg = "invalid 'source' parameter")
+            source <- .check_error(
+                {
+                    do.call(.config_new_source, args = source)
+                },
+                msg = "invalid 'source' parameter"
+            )
             return(source)
         })
 
         # initialize sources
-        if (is.null(sits_env$config[["sources"]]))
+        if (is.null(sits_env$config[["sources"]])) {
             sits_env$config[["sources"]] <- sources
+        }
 
         sits_env$config[["sources"]] <- utils::modifyList(
             sits_env$config[["sources"]],
@@ -394,8 +422,9 @@ sits_list_collections <- function(source = NULL) {
     # check and initialize palettes
     if (!is.null(colors)) {
         # initialize colors
-        if (is.null(sits_env$config[["colors"]]))
+        if (is.null(sits_env$config[["colors"]])) {
             sits_env$config[["colors"]] <- colors
+        }
         # add colors
         sits_env$config[["colors"]] <- utils::modifyList(
             sits_env$config[["colors"]],
@@ -475,8 +504,11 @@ sits_list_collections <- function(source = NULL) {
     if (nchar(yml_file) > 0) {
         .check_warn(
             .check_file(yml_file,
-                        msg = paste("invalid configuration file informed in",
-                                    "SITS_CONFIG_USER_FILE"))
+                        msg = paste(
+                            "invalid configuration file informed in",
+                            "SITS_CONFIG_USER_FILE"
+                        )
+            )
         )
     }
 
@@ -488,23 +520,28 @@ sits_list_collections <- function(source = NULL) {
 #' @keywords internal
 #' @return config values associated to a key
 .config_get <- function(key, default = NULL) {
-
-    res <- tryCatch({
-        sits_env$config[[key]]
-    },
-    error = function(e) {
-        return(default)
-    })
+    res <- tryCatch(
+        {
+            sits_env$config[[key]]
+        },
+        error = function(e) {
+            return(default)
+        }
+    )
 
     # set default
-    if (is.null(res))
+    if (is.null(res)) {
         res <- default
+    }
 
     # post-condition
     .check_null(res,
-                msg = paste("key",
-                            paste0("'", paste0(key, collapse = "$"), "'"),
-                            "not found"))
+                msg = paste(
+                    "key",
+                    paste0("'", paste0(key, collapse = "$"), "'"),
+                    "not found"
+                )
+    )
 
     return(res)
 }
@@ -523,15 +560,23 @@ sits_list_collections <- function(source = NULL) {
     # set caller to show in errors
     .check_set_caller(".config_check_bands")
 
-    sits_bands <- .source_bands(source = source,
-                                collection = collection)
-    source_bands <- .source_bands_band_name(source = source,
-                                            collection = collection)
+    sits_bands <- .source_bands(
+        source = source,
+        collection = collection
+    )
+    source_bands <- .source_bands_band_name(
+        source = source,
+        collection = collection
+    )
 
-    .check_chr_within(x = bands,
-                      within = c(sits_bands, source_bands),
-                      msg = paste("invalid bands.\nPlease verify",
-                                  "the provided bands."))
+    .check_chr_within(
+        x = bands,
+        within = c(sits_bands, source_bands),
+        msg = paste(
+            "invalid bands.\nPlease verify",
+            "the provided bands."
+        )
+    )
 
     # remove bands with equal names, like NDVI, EVI...
     source_bands <- source_bands[!source_bands %in% sits_bands]
@@ -543,12 +588,13 @@ sits_list_collections <- function(source = NULL) {
 #' @keywords internal
 #' @return  the creation options associated to the configuration
 .config_gtiff_default_options <- function() {
-
     res <- .config_get(key = c("gdal_creation_options"))
 
     # post-condition
-    .check_chr(res, allow_empty = FALSE,
-               msg = "invalid 'gdal_creation_options' in config file")
+    .check_chr(res,
+               allow_empty = FALSE,
+               msg = "invalid 'gdal_creation_options' in config file"
+    )
 
     return(res)
 }
@@ -557,7 +603,7 @@ sits_list_collections <- function(source = NULL) {
 #' @keywords internal
 #' @description associates a valid SITS class to the data
 #'
-#' @param  data    time series or cube
+#' @param  data    Time series or data cube.
 #'
 #' @return an error if the meta data type is wrong
 .config_data_meta_type <- function(data) {
@@ -568,17 +614,14 @@ sits_list_collections <- function(source = NULL) {
     # if the data is one of the classes recognized by sits
     if (inherits(data, .config_get("sits_s3_classes"))) {
         return(data)
-
     } else if (inherits(data, "tbl_df")) {
         # is this a data cube or a sits tibble?
         if (all(.config_get("sits_cube_cols")
                 %in% colnames(data))) {
-
             class(data) <- c("raster_cube", class(data))
 
             return(data)
         } else if (all(.config_get("sits_tibble_cols") %in% colnames(data))) {
-
             class(data) <- c("sits", class(data))
             return(data)
         }
@@ -586,19 +629,21 @@ sits_list_collections <- function(source = NULL) {
 
     .check_that(FALSE,
                 local_msg = "Data not recognized as a sits object",
-                msg = "invalid 'data' parameter")
+                msg = "invalid 'data' parameter"
+    )
 }
 #' @title Get local file extensions
 #' @name .config_local_file_extension
 #' @keywords internal
 #' @return local file extensions known to sits
 .config_local_file_extensions <- function() {
-
     res <- .config_get(key = c("local_file_extensions"))
 
     # post-condition
-    .check_chr(res, len_min = 1,
-               msg = "invalid 'file_extensions' in config file")
+    .check_chr(res,
+               len_min = 1,
+               msg = "invalid 'file_extensions' in config file"
+    )
 
     return(res)
 }
@@ -608,19 +653,23 @@ sits_list_collections <- function(source = NULL) {
 #' @keywords internal
 #' @return   names associated to the chosen access key
 .config_names <- function(key) {
-
-    res <- tryCatch({
-        names(sits_env$config[[key]])
-    },
-    error = function(e) {
-        return(NULL)
-    })
+    res <- tryCatch(
+        {
+            names(sits_env$config[[key]])
+        },
+        error = function(e) {
+            return(NULL)
+        }
+    )
 
     # post-condition
-    .check_chr(res, allow_empty = FALSE,
-               msg = paste("invalid names for",
-                           paste0("'", paste0(key, collapse = "$"), "'"),
-                           "key")
+    .check_chr(res,
+               allow_empty = FALSE,
+               msg = paste(
+                   "invalid names for",
+                   paste0("'", paste0(key, collapse = "$"), "'"),
+                   "key"
+               )
     )
 
     return(res)
@@ -643,17 +692,25 @@ sits_list_collections <- function(source = NULL) {
     .check_set_caller(".config_new_source")
 
     # pre-condition
-    .check_chr(s3_class, allow_empty = FALSE, len_min = 1,
-               msg = "invalid 's3_class' parameter")
+    .check_chr(s3_class,
+               allow_empty = FALSE, len_min = 1,
+               msg = "invalid 's3_class' parameter"
+    )
 
-    if (!is.null(service))
-        .check_chr(service, allow_empty = FALSE, len_min = 1, len_max = 1,
-                   msg = "invalid 'service' parameter")
+    if (!is.null(service)) {
+        .check_chr(service,
+                   allow_empty = FALSE, len_min = 1, len_max = 1,
+                   msg = "invalid 'service' parameter"
+        )
+    }
 
-    if (!is.null(url))
-        .check_chr(url, allow_empty = FALSE, len_min = 1, len_max = 1,
+    if (!is.null(url)) {
+        .check_chr(url,
+                   allow_empty = FALSE, len_min = 1, len_max = 1,
                    regex = '^(http|https)://[^ "]+$',
-                   msg = "invalid 'url' parameter")
+                   msg = "invalid 'url' parameter"
+        )
+    }
 
     .check_lst(collections, min_len = 1)
 
@@ -662,15 +719,20 @@ sits_list_collections <- function(source = NULL) {
     collections <- lapply(collections, function(collection) {
 
         # pre-condition
-        .check_lst(collection, min_len = 1,
-                   msg = "invalid 'collections' parameter")
+        .check_lst(collection,
+                   min_len = 1,
+                   msg = "invalid 'collections' parameter"
+        )
 
         # collection members must be lower case
         names(collection) <- tolower(names(collection))
 
-        collection <- .check_error({
-            do.call(.config_new_collection, args = collection)
-        }, msg = "invalid 'collections' parameter")
+        collection <- .check_error(
+            {
+                do.call(.config_new_collection, args = collection)
+            },
+            msg = "invalid 'collections' parameter"
+        )
         return(collection)
     })
 
@@ -678,10 +740,12 @@ sits_list_collections <- function(source = NULL) {
     dots <- list(...)
     .check_lst(dots, msg = "invalid extra arguments in collection")
 
-    return(c(list(s3_class = s3_class,
-                  service = service,
-                  url = url,
-                  collections = collections), dots))
+    return(c(list(
+        s3_class = s3_class,
+        service = service,
+        url = url,
+        collections = collections
+    ), dots))
 }
 #' @title Include a new collection in the configuration
 #' @name .config_new_collection
@@ -700,18 +764,24 @@ sits_list_collections <- function(source = NULL) {
     .check_set_caller(".config_new_collection")
 
     # check satellite
-    .check_chr(satellite, allow_null = TRUE,
-               msg = "invalid 'satellite' value")
+    .check_chr(satellite,
+               allow_null = TRUE,
+               msg = "invalid 'satellite' value"
+    )
 
     #  check sensor
-    .check_chr(sensor, allow_null = TRUE,
-               msg = "invalid 'sensor' value")
+    .check_chr(sensor,
+               allow_null = TRUE,
+               msg = "invalid 'sensor' value"
+    )
 
     # check metadata_search
-    if (!missing(metadata_search))
+    if (!missing(metadata_search)) {
         .check_chr_within(metadata_search,
                           within = .config_metadata_search_strategies(),
-                          msg = "invalid 'metadata_search' value")
+                          msg = "invalid 'metadata_search' value"
+        )
+    }
 
     # bands names is upper case
     names(bands) <- toupper(names(bands))
@@ -723,15 +793,20 @@ sits_list_collections <- function(source = NULL) {
     non_cloud_bands <- lapply(non_cloud_bands, function(band) {
 
         # pre-condition
-        .check_lst(bands, min_len = 1,
-                   msg = "invalid 'bands' parameter")
+        .check_lst(bands,
+                   min_len = 1,
+                   msg = "invalid 'bands' parameter"
+        )
 
         # bands' members are lower case
         names(band) <- tolower(names(band))
 
-        band <- .check_error( {
-            do.call(.config_new_band, args = band)
-        }, msg = "invalid 'bands' parameter")
+        band <- .check_error(
+            {
+                do.call(.config_new_band, args = band)
+            },
+            msg = "invalid 'bands' parameter"
+        )
 
         return(band)
     })
@@ -739,15 +814,20 @@ sits_list_collections <- function(source = NULL) {
     cloud_band <- lapply(cloud_band, function(cloud_band) {
 
         # pre-condition
-        .check_lst(bands, min_len = 1,
-                   msg = "invalid 'bands' parameter")
+        .check_lst(bands,
+                   min_len = 1,
+                   msg = "invalid 'bands' parameter"
+        )
 
         # bands' members are lower case
         names(cloud_band) <- tolower(names(cloud_band))
 
-        cloud_band <- .check_error({
-            do.call(.config_new_cloud_band, args = cloud_band)
-        }, msg = "invalid 'bands' parameter")
+        cloud_band <- .check_error(
+            {
+                do.call(.config_new_cloud_band, args = cloud_band)
+            },
+            msg = "invalid 'bands' parameter"
+        )
 
         return(cloud_band)
     })
@@ -759,14 +839,19 @@ sits_list_collections <- function(source = NULL) {
     res <- c(list(bands = c(non_cloud_bands, cloud_band)),
              "satellite" = satellite,
              "sensor" = sensor,
-             "metadata_search" = metadata_search, dots)
+             "metadata_search" = metadata_search, dots
+    )
 
     # post-condition
-    .check_lst(res, min_len = 1,
-               msg = "invalid 'collection' value")
+    .check_lst(res,
+               min_len = 1,
+               msg = "invalid 'collection' value"
+    )
 
-    .check_lst(res$bands, min_len = 1,
-               msg = "invalid collection 'bands' value")
+    .check_lst(res$bands,
+               min_len = 1,
+               msg = "invalid collection 'bands' value"
+    )
 
     # return a new collection data
     return(res)
@@ -790,47 +875,66 @@ sits_list_collections <- function(source = NULL) {
                              scale_factor,
                              offset_value,
                              band_name,
-                             resolution,...) {
+                             resolution, ...) {
 
     # pre-condition
-    .check_num(missing_value, len_min = 1, len_max = 1,
-               msg = "invalid 'missing_value' parameter")
+    .check_num(missing_value,
+               len_min = 1, len_max = 1,
+               msg = "invalid 'missing_value' parameter"
+    )
 
-    .check_num(minimum_value, len_min = 1, len_max = 1,
-               msg = "invalid 'minimum_value' parameter")
+    .check_num(minimum_value,
+               len_min = 1, len_max = 1,
+               msg = "invalid 'minimum_value' parameter"
+    )
 
-    .check_num(maximum_value, len_min = 1, len_max = 1,
-               msg = "invalid 'maximum_value' parameter")
+    .check_num(maximum_value,
+               len_min = 1, len_max = 1,
+               msg = "invalid 'maximum_value' parameter"
+    )
 
-    .check_num(scale_factor, len_min = 1, len_max = 1,
+    .check_num(scale_factor,
+               len_min = 1, len_max = 1,
                allow_zero = FALSE,
-               msg = "invalid 'scale_factor' parameter")
+               msg = "invalid 'scale_factor' parameter"
+    )
 
-    .check_num(offset_value, len_min = 1, len_max = 1,
-               msg = "invalid 'offset_value' parameter")
+    .check_num(offset_value,
+               len_min = 1, len_max = 1,
+               msg = "invalid 'offset_value' parameter"
+    )
 
-    if (!is.null(resolution))
-        .check_num(resolution, len_min = 1, allow_zero = FALSE,
-                   msg = "invalid 'resolution' parameter")
+    if (!is.null(resolution)) {
+        .check_num(resolution,
+                   len_min = 1, allow_zero = FALSE,
+                   msg = "invalid 'resolution' parameter"
+        )
+    }
 
-    .check_chr(band_name, allow_empty = FALSE, len_min = 1, len_max = 1,
-               msg = "invalid 'band_name' value")
+    .check_chr(band_name,
+               allow_empty = FALSE, len_min = 1, len_max = 1,
+               msg = "invalid 'band_name' value"
+    )
 
     # extra parameters
     dots <- list(...)
     .check_lst(dots, "invalid extra arguments in band")
 
-    res <- c(list(missing_value = missing_value,
-                  minimum_value = minimum_value,
-                  maximum_value = maximum_value,
-                  scale_factor = scale_factor,
-                  offset_value = offset_value,
-                  band_name = band_name,
-                  resolution = resolution), dots)
+    res <- c(list(
+        missing_value = missing_value,
+        minimum_value = minimum_value,
+        maximum_value = maximum_value,
+        scale_factor = scale_factor,
+        offset_value = offset_value,
+        band_name = band_name,
+        resolution = resolution
+    ), dots)
 
     # post-condition
-    .check_lst(res, min_len = 7,
-               msg = "invalid 'band' value")
+    .check_lst(res,
+               min_len = 7,
+               msg = "invalid 'band' value"
+    )
 
     # return a band object
     return(res)
@@ -855,32 +959,44 @@ sits_list_collections <- function(source = NULL) {
     .check_set_caller(".config_new_cloud_band")
 
     # pre-condition
-    .check_lgl(bit_mask, len_min = 1, len_max = 1,
-               msg = "invalid 'bit_mask' parameter")
-
-    .check_lst(values, fn_check = .check_chr,
+    .check_lgl(bit_mask,
                len_min = 1, len_max = 1,
-               msg = "invalid cloud 'values' parameter")
+               msg = "invalid 'bit_mask' parameter"
+    )
 
-    .check_num(interp_values, len_min = 1, is_integer = TRUE,
-               msg = "invalid 'interp_values' parameter")
+    .check_lst(values,
+               fn_check = .check_chr,
+               len_min = 1, len_max = 1,
+               msg = "invalid cloud 'values' parameter"
+    )
 
-    .check_chr(band_name, allow_empty = FALSE, len_min = 1, len_max = 1,
-               msg = "invalid 'band_name' value")
+    .check_num(interp_values,
+               len_min = 1, is_integer = TRUE,
+               msg = "invalid 'interp_values' parameter"
+    )
+
+    .check_chr(band_name,
+               allow_empty = FALSE, len_min = 1, len_max = 1,
+               msg = "invalid 'band_name' value"
+    )
 
     # extra parameters
     dots <- list(...)
     .check_lst(dots, "invalid extra arguments in cloud band")
 
-    res <- c(list(bit_mask = bit_mask,
-                  values = values,
-                  interp_values = interp_values,
-                  resolution = resolution,
-                  band_name = band_name), dots)
+    res <- c(list(
+        bit_mask = bit_mask,
+        values = values,
+        interp_values = interp_values,
+        resolution = resolution,
+        band_name = band_name
+    ), dots)
 
     # post-condition
-    .check_lst(res, min_len = 5,
-               msg = "invalid 'band' value")
+    .check_lst(res,
+               min_len = 5,
+               msg = "invalid 'band' value"
+    )
 
     # return a cloud band object
     return(res)
@@ -905,30 +1021,35 @@ sits_list_collections <- function(source = NULL) {
     # if labels are included in the config palette, use them
     if (all(labels %in% names(colors_palette))) {
         colors <- colors_palette[labels]
-    }
-    else {
+    } else {
         labels_found <- labels[labels %in% names(colors_palette)]
-        if (length(labels_found) > round(length(labels)/2)) {
+        if (length(labels_found) > round(length(labels) / 2)) {
             warning("Some labels are not available in the chosen palette",
-                    call. = FALSE)
+                    call. = FALSE
+            )
             missing_labels <- unique(labels[!(labels %in% labels_found)])
             warning(paste0("Consider adjusting labels: ", missing_labels),
-                    call. = FALSE)
-        }
-        else
+                    call. = FALSE
+            )
+        } else {
             warning("Most labels are not available in the chosen palette",
-                    call. = FALSE)
+                    call. = FALSE
+            )
+        }
 
         warning(paste0("Using hcl_color palette ", palette),
-                call. = FALSE)
+                call. = FALSE
+        )
 
         # get the number of labels
         n_labels <- length(unique(labels))
         # generate a set of hcl colors
-        colors <- grDevices::hcl.colors(n = n_labels,
-                                        palette = palette,
-                                        alpha = 1,
-                                        rev = rev)
+        colors <- grDevices::hcl.colors(
+            n = n_labels,
+            palette = palette,
+            alpha = 1,
+            rev = rev
+        )
         names(colors) <- labels
     }
     # post-condition
@@ -936,7 +1057,8 @@ sits_list_collections <- function(source = NULL) {
                len_min = length(labels),
                len_max = length(labels),
                is_named = TRUE,
-               msg = "invalid color values")
+               msg = "invalid color values"
+    )
 
     return(colors)
 }
@@ -945,12 +1067,13 @@ sits_list_collections <- function(source = NULL) {
 #' @keywords internal
 #' @return estimated processing bloat
 .config_processing_bloat <- function() {
-
     res <- .config_get(key = c("processing_bloat"))
 
     # post-condition
-    .check_num(res, min = 1, len_min = 1, len_max = 1,
-               msg = "invalid 'processing_bloat' in config file")
+    .check_num(res,
+               min = 1, len_min = 1, len_max = 1,
+               msg = "invalid 'processing_bloat' in config file"
+    )
 
     return(res)
 }
@@ -959,12 +1082,13 @@ sits_list_collections <- function(source = NULL) {
 #' @keywords internal
 #' @return Character values
 .config_metadata_search_strategies <- function() {
-
     res <- .config_get(key = c("metadata_search_strategies"))
 
     # post-condition
-    .check_chr(res, len_min = 1,
-               msg = "invalid 'metadata_search_strategies' in config file")
+    .check_chr(res,
+               len_min = 1,
+               msg = "invalid 'metadata_search_strategies' in config file"
+    )
 
     return(res)
 }
@@ -973,12 +1097,13 @@ sits_list_collections <- function(source = NULL) {
 #' @keywords internal
 #' @return estimated processing bloat
 .config_processing_bloat <- function() {
-
     res <- .config_get(key = c("processing_bloat"))
 
     # post-condition
-    .check_num(res, min = 1, len_min = 1, len_max = 1,
-               msg = "invalid 'processing_bloat' in config file")
+    .check_num(res,
+               min = 1, len_min = 1, len_max = 1,
+               msg = "invalid 'processing_bloat' in config file"
+    )
 
     return(res)
 }
@@ -987,12 +1112,13 @@ sits_list_collections <- function(source = NULL) {
 #' @keywords internal
 #' @return pagination limit to rstac output
 .config_rstac_limit <- function() {
-
     res <- .config_get(key = c("rstac_pagination_limit"))
 
     # post-condition
-    .check_num(res, min = 1, len_min = 1, len_max = 1,
-               msg = "invalid 'rstac_pagination_limit' in config file")
+    .check_num(res,
+               min = 1, len_min = 1, len_max = 1,
+               msg = "invalid 'rstac_pagination_limit' in config file"
+    )
 
     return(res)
 }
@@ -1003,17 +1129,19 @@ sits_list_collections <- function(source = NULL) {
 #' @return the raster package used to process raster data
 #'
 .config_raster_pkg <- function() {
-
     res <- .config_get(key = c("raster_api_package"))
 
     # post-condition
-    .check_chr(res, len_min = 1, len_max = 1,
-               msg = "invalid 'raster_api_package' in config file")
+    .check_chr(res,
+               len_min = 1, len_max = 1,
+               msg = "invalid 'raster_api_package' in config file"
+    )
 
     .check_chr_within(res,
                       within = .raster_supported_packages(),
                       discriminator = "one_of",
-                      msg = "invalid 'raster_api_package' in config file")
+                      msg = "invalid 'raster_api_package' in config file"
+    )
 
     return(res)
 }

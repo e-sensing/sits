@@ -10,11 +10,11 @@
     .check_set_caller(".sits_roi_bbox")
 
     if (!(inherits(roi, "sf"))) {
-
         if (all(c("xmin", "xmax", "ymin", "ymax") %in% names(roi))) {
             class(roi) <- c("xy", class(roi))
         } else if (all(
-            c("lon_min", "lon_max", "lat_min", "lat_max") %in% names(roi))) {
+            c("lon_min", "lon_max", "lat_min", "lat_max") %in% names(roi)
+        )) {
             class(roi) <- c("ll", class(roi))
         }
     }
@@ -68,12 +68,14 @@
 
     sf_region <- df %>%
         sf::st_as_sf(coords = c("lon", "lat"), crs = 4326) %>%
-        dplyr::summarise(geometry = sf::st_combine(geometry)) %>%
+        dplyr::summarise(geometry = sf::st_combine(.data[["geometry"]])) %>%
         sf::st_cast("POLYGON")
 
     bbox <- sf::st_bbox(
         suppressWarnings(
-            sf::st_transform(sf_region, crs = .cube_crs(cube))))
+            sf::st_transform(sf_region, crs = .cube_crs(cube))
+        )
+    )
 }
 #' @title Parse is a ROI is valid for an existing data cube
 #' @name .sits_parse_roi_cube
@@ -86,11 +88,11 @@
     .check_set_caller(".sits_parse_roi_cube")
 
     if (!(inherits(roi, "sf"))) {
-
         if (all(c("xmin", "xmax", "ymin", "ymax") %in% names(roi))) {
             class(roi) <- c("xy", class(roi))
         } else if (all(
-            c("lon_min", "lon_max", "lat_min", "lat_max") %in% names(roi))) {
+            c("lon_min", "lon_max", "lat_min", "lat_max") %in% names(roi)
+        )) {
             class(roi) <- c("ll", class(roi))
         }
     }
@@ -109,7 +111,6 @@
 #' @return       roi in WGS84 projection
 #' @export
 .sits_parse_roi_cube.sf <- function(roi) {
-
     roi_crs <- sf::st_crs(roi, parameters = TRUE)
     .check_lst(roi_crs, min_len = 1, msg = "invalid crs in provided roi.")
 
@@ -130,28 +131,34 @@
 #' @export
 .sits_parse_roi_cube.ll <- function(roi) {
     .check_num(
-        roi[["lon_min"]], min = -180.0, max = 180.00,
+        roi[["lon_min"]],
+        min = -180.0, max = 180.00,
         msg = "roi should be provided in WGS84 coordinates"
     )
     .check_num(
-        roi[["lon_max"]], min = -180.0, max = 180.00,
+        roi[["lon_max"]],
+        min = -180.0, max = 180.00,
         msg = "roi should be provided in WGS84 coordinates"
     )
     .check_num(
-        roi[["lat_min"]], min = -90.0, max = 90.00,
+        roi[["lat_min"]],
+        min = -90.0, max = 90.00,
         msg = "roi should be provided in WGS84 coordinates"
     )
     .check_num(
-        roi[["lat_max"]], min = -90.0, max = 90.00,
+        roi[["lat_max"]],
+        min = -90.0, max = 90.00,
         msg = "roi should be provided in WGS84 coordinates"
     )
 
     # convert to sf object
-    sf_obj <- .sits_bbox_to_sf(xmin = roi[["lon_min"]],
-                               xmax = roi[["lon_max"]],
-                               ymin = roi[["lat_min"]],
-                               ymax = roi[["lat_max"]],
-                               crs = 4326)
+    sf_obj <- .sits_bbox_to_sf(
+        xmin = roi[["lon_min"]],
+        xmax = roi[["lon_max"]],
+        ymin = roi[["lat_min"]],
+        ymax = roi[["lat_max"]],
+        crs = 4326
+    )
 
     return(sf_obj)
 }
@@ -163,28 +170,34 @@
 #' @export
 .sits_parse_roi_cube.xy <- function(roi) {
     .check_num(
-        roi[["xmin"]], min = -180.0, max = 180.00,
+        roi[["xmin"]],
+        min = -180.0, max = 180.00,
         msg = "roi should be provided in WGS84 coordinates"
     )
     .check_num(
-        roi[["xmax"]], min = -180.0, max = 180.00,
+        roi[["xmax"]],
+        min = -180.0, max = 180.00,
         msg = "roi should be provided in WGS84 coordinates"
     )
     .check_num(
-        roi[["ymin"]], min = -90.0, max = 90.00,
+        roi[["ymin"]],
+        min = -90.0, max = 90.00,
         msg = "roi should be provided in WGS84 coordinates"
     )
     .check_num(
-        roi[["ymax"]], min = -90.0, max = 90.00,
+        roi[["ymax"]],
+        min = -90.0, max = 90.00,
         msg = "roi should be provided in WGS84 coordinates"
     )
 
     # convert to sf object
-    sf_obj <- .sits_bbox_to_sf(xmin = roi[["xmin"]],
-                               xmax = roi[["xmax"]],
-                               ymin = roi[["ymin"]],
-                               ymax = roi[["ymax"]],
-                               crs = 4326)
+    sf_obj <- .sits_bbox_to_sf(
+        xmin = roi[["xmin"]],
+        xmax = roi[["xmax"]],
+        ymin = roi[["ymin"]],
+        ymax = roi[["ymax"]],
+        crs = 4326
+    )
 
     return(sf_obj)
 }
@@ -200,7 +213,8 @@
     # pre-conditions
     .check_that(nrow(roi_sf) == 1,
                 local_msg = "roi_sf should have only one row",
-                msg = "invalid roi_sf value")
+                msg = "invalid roi_sf value"
+    )
 
     # convert roi_sf to geojson
     geojson <- roi_sf %>%

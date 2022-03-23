@@ -4,7 +4,16 @@
 \alias{.sits_get_ts}
 \title{Dispatch function to get time series from data cubes and cloud services}
 \usage{
-.sits_get_ts(cube, samples, ..., bands = NULL, impute_fn, multicores)
+.sits_get_ts(
+  cube,
+  samples,
+  ...,
+  bands = NULL,
+  impute_fn,
+  multicores,
+  output_dir,
+  progress
+)
 }
 \arguments{
 \item{cube}{Data cube from where data is to be retrieved.}
@@ -16,6 +25,9 @@
 \item{impute_fn}{Imputation function for NA values.}
 
 \item{multicores}{Number of threads to process the time series.}
+
+\item{progress}{A logical value indicating if a progress bar
+should be shown. Default is \code{FALSE}.}
 }
 \description{
 Dispatch function to get time series from data cubes and cloud services

@@ -47,55 +47,57 @@
 #' @examples
 #' \donttest{
 #' # Case (1) - Accuracy for classification of time series
-#' # read a tibble with 400 time series of Cerrado and 346 of Pasture
+#' # Read a tibble with 400 time series of Cerrado and 346 of Pasture
 #' data(cerrado_2classes)
-#' # create a model for classification of time series
+#' # Create a model for classification of time series
 #' svm_model <- sits_train(cerrado_2classes, sits_svm())
-#' # classify the time series
+#' # Classify the time series
 #' predicted <- sits_classify(cerrado_2classes, svm_model)
-#' # calculate the classification accuracy
+#' # Calculate the classification accuracy
 #' acc <- sits_accuracy(predicted)
 #'
 #' # Case (2) - Accuracy for classification of raster data
-#' # select a training set with two bands
+#' # Select a training set with two bands
 #' samples_modis_2bands <- sits_select(samples_modis_4bands,
-#'                                     bands = c("EVI", "NDVI"))
+#'   bands = c("EVI", "NDVI")
+#' )
 #'
-#' # build an extreme gradient boosting model
+#' # Build an extreme gradient boosting model
 #' xgb_model <- sits_train(
 #'   samples_modis_2bands,
 #'   sits_xgboost(nrounds = 50, verbose = FALSE)
 #' )
 #'
-#' # create a data cube based on files
+#' # Create a data cube based on files
 #' data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
 #' cube <- sits_cube(
-#'     source = "BDC",
-#'     collection = "MOD13Q1-6",
-#'     data_dir = data_dir,
-#'     delim = "_",
-#'     parse_info = c("X1", "X2", "tile", "band", "date"),
-#'     multicores = 2
+#'    source = "BDC",
+#'   collection = "MOD13Q1-6",
+#'   data_dir = data_dir,
+#'   delim = "_",
+#'   parse_info = c("X1", "X2", "tile", "band", "date"),
+#'   multicores = 2
 #' )
 #'
-#' # classify the data cube with xgb model
+#' # Classify the data cube with xgb model
 #' probs_cube <- sits_classify(cube,
 #'   xgb_model,
 #'   output_dir = tempdir(),
 #'   memsize = 4,
 #'   multicores = 2
 #' )
-#' # label the classification
+#' # Label the classification
 #' label_cube <- sits_label_classification(probs_cube,
 #'   output_dir = tempdir()
 #' )
-#' # get ground truth points
+#' # Get ground truth points
 #' ground_truth <- system.file("extdata/samples/samples_sinop_crop.csv",
 #'   package = "sits"
 #' )
-#' # calculate accuracy according to Olofsson's method
+#' # Calculate accuracy according to Olofsson's method
 #' accuracy <- suppressWarnings(sits_accuracy(label_cube,
-#'             validation_csv = ground_truth))
+#'   validation_csv = ground_truth
+#' ))
 #' }
 #' @export
 #'
@@ -107,45 +109,45 @@ sits_accuracy <- function(data, ...) {
 #' @export
 sits_accuracy.sits <- function(data, ...) {
 
-    # set caller to show in errors
+    # Set caller to show in errors
     .check_set_caller("sits_accuracy.sits")
 
-    # require package
+    # Require package
     if (!requireNamespace("caret", quietly = TRUE)) {
         stop("Please install package caret.", call. = FALSE)
     }
 
-    # does the input data contain a set of predicted values?
+    # Does the input data contain a set of predicted values?
     .check_chr_contains(
         x = names(data),
         contains = "predicted",
         msg = "input data without predicted values"
     )
 
-    # recover predicted and reference vectors from input
-    # is the input the result of a sits_classify?
+    # Recover predicted and reference vectors from input
+    # Is the input the result of a sits_classify?
     if ("label" %in% names(data)) {
         pred_ref <- .sits_accuracy_pred_ref(data)
-        pred     <- pred_ref$predicted
-        ref      <- pred_ref$reference
-    }
-    # is the input the result of the sits_kfold_validate?
-    else {
+        pred <- pred_ref$predicted
+        ref <- pred_ref$reference
+    } else {
+        # is the input the result of the sits_kfold_validate?
         pred <- data$predicted
-        ref  <- data$reference
+        ref <- data$reference
     }
-
+    # Create factor vectors for caret
     unique_ref <- unique(ref)
-    pred_fac   <- factor(pred, levels = unique_ref)
-    ref_fac    <- factor(ref, levels = unique_ref)
-    # call caret package to the classification statistics
+    pred_fac <- factor(pred, levels = unique_ref)
+    ref_fac <- factor(ref, levels = unique_ref)
+
+    # Call caret package to the classification statistics
     assess <- caret::confusionMatrix(pred_fac, ref_fac)
 
+    # Assign class to result
     class(assess) <- c("sits_assessment", class(assess))
 
     # return caret confusion matrix
     return(assess)
-
 }
 #' @rdname sits_accuracy
 #' @export
@@ -158,9 +160,13 @@ sits_accuracy.classified_image <- function(data, ..., validation_csv) {
         msg = "csv file not available",
     )
 
-    # read sample information from CSV file and put it in a tibble
-    csv_tb <- tibble::as_tibble(utils::read.csv(validation_csv,
-                                                stringsAsFactors = FALSE))
+    # Read sample information from CSV file and put it in a tibble
+    csv_tb <- tibble::as_tibble(
+        utils::read.csv(
+            validation_csv,
+            stringsAsFactors = FALSE
+        )
+    )
 
     # Precondition - check if CSV file is correct
     .check_chr_contains(
@@ -169,16 +175,17 @@ sits_accuracy.classified_image <- function(data, ..., validation_csv) {
         msg = "invalid csv file"
     )
 
-    # find the labels of the cube
+    # Find the labels of the cube
     labels_cube <- sits_labels(data)
 
-    # the label cube may contain several classified images
+    # Create a list of (predicted, reference) values
+    # Consider all tiles of the data cube
     pred_ref_lst <- slider::slide(data, function(row) {
 
-        # find the labelled band
+        # Find the labelled band
         labelled_band <- sits_bands(row)
 
-        # the labelled band must be unique
+        # Is the labelled band unique?
         .check_length(
             x = labelled_band,
             len_min = 1,
@@ -199,48 +206,51 @@ sits_accuracy.classified_image <- function(data, ..., validation_csv) {
         # are there points to be retrieved from the cube?
         .check_that(
             x = nrow(points) != 0,
-            msg = paste("no validation point intersects the map's",
-                        "spatiotemporal extent.")
+            msg = paste(
+                "no validation point intersects the map's",
+                "spatiotemporal extent."
+            )
         )
 
-        # filter the points inside the data cube
+        # Filter the points inside the data cube
         points_row <- dplyr::filter(
             points,
-            X >= row$xmin & X <= row$xmax &
-                Y >= row$ymin & Y <= row$ymax
+            .data[["X"]] >= row$xmin & .data[["X"]]  <= row$xmax &
+                .data[["Y"]]  >= row$ymin & .data[["Y"]]  <= row$ymax
         )
 
-        # if there are no points in the cube, return an empty list
+        # No points in the cube? Return an empty list
         if (nrow(points_row) < 1) {
             return(NULL)
         }
 
-        # convert the tibble to a matrix
+        # Convert the tibble to a matrix
         xy <- matrix(c(points_row$X, points_row$Y),
-                     nrow = nrow(points_row), ncol = 2)
+                     nrow = nrow(points_row), ncol = 2
+        )
         colnames(xy) <- c("X", "Y")
 
-        # extract values from cube
+        # Extract values from cube
         values <- .cube_extract(
             cube = row,
             band_cube = labelled_band,
             xy = xy
         )
-        # get the predicted values
+        # Get the predicted values
         predicted <- labels_cube[unlist(values)]
         # Get reference classes
         reference <- points_row$label
-        # do the number of predicted and reference values match
+        # Does the number of predicted and reference values match?
         .check_that(
             x = length(reference) == length(predicted),
             msg = "predicted and reference vector do not match"
         )
-        # create a tibble to store the results
+        # Create a tibble to store the results
         tb <- tibble::tibble(predicted = predicted, reference = reference)
-        # return the list
+        # Return the list
         return(tb)
     })
-    # retrieve the predicted and reference vectors for all rows of the cube
+    # Retrieve predicted and reference vectors for all rows of the cube
     pred_ref <- do.call(rbind, pred_ref_lst)
 
     # Create the error matrix
@@ -258,22 +268,22 @@ sits_accuracy.classified_image <- function(data, ..., validation_csv) {
     # Get area for each class for each row of the cube
     freq_lst <- slider::slide(data, function(tile) {
 
-        # get the frequency count and value for each labelled image
+        # Get the frequency count and value for each labelled image
         freq <- .cube_area_freq(tile)
-        # include class names
+        # Include class names
         freq <- dplyr::mutate(freq, class = labels_cube[freq$value])
         return(freq)
     })
-    # get a tibble by binding the row (duplicated labels with different counts)
+    # Get a tibble by binding the row (duplicated labels with different counts)
     freq <- do.call(rbind, freq_lst)
     # summarize the counts for each label
     freq <- freq %>%
         dplyr::group_by(class) %>%
-        dplyr::summarise(count = sum(count))
+        dplyr::summarise(count = sum(.data[["count"]]))
 
-    # area is taken as the sum of pixels
+    # Area is taken as the sum of pixels
     area <- freq$count
-    # names of area are the classes
+    # Names of area are the classes
     names(area) <- freq$class
     # NAs are set to 0
     area[is.na(area)] <- 0
@@ -296,6 +306,7 @@ sits_accuracy.classified_image <- function(data, ..., validation_csv) {
 #' @param  class     Tibble with classified samples whose labels are known.
 #' @return           A tibble with predicted and reference values.
 .sits_accuracy_pred_ref <- function(class) {
+
     # retrieve the predicted values
     pred <- unlist(purrr::map(class$predicted, function(r) r$class))
 
@@ -306,10 +317,8 @@ sits_accuracy.classified_image <- function(data, ..., validation_csv) {
         x = !("NoClass" %in% (ref)),
         msg = "input data without labels"
     )
-
     # build the tibble
     pred_ref <- tibble::tibble("predicted" = pred, "reference" = ref)
-    # return the tibble
     return(pred_ref)
 }
 
@@ -317,11 +326,11 @@ sits_accuracy.classified_image <- function(data, ..., validation_csv) {
 #' @name .sits_accuracy_area_assess
 #' @author Alber Sanchez, \email{alber.ipia@@inpe.br}
 #' @keywords internal
-#' @param cube         A data cube
-#' @param error_matrix A matrix given in sample counts.
+#' @param cube         Data cube.
+#' @param error_matrix Matrix given in sample counts.
 #'                     Columns represent the reference data and
 #'                     rows the results of the classification
-#' @param area         A named vector of the total area of each class on
+#' @param area         Named vector of the total area of each class on
 #'                     the map
 #'
 #' @references
@@ -343,7 +352,8 @@ sits_accuracy.classified_image <- function(data, ..., validation_csv) {
     .check_chr_contains(
         x = class(cube),
         contains = "classified_image",
-        msg = "not a classified cube")
+        msg = "not a classified cube"
+    )
 
     if (any(dim(error_matrix) == 0)) {
         stop("invalid dimensions in error matrix.", call. = FALSE)
@@ -365,7 +375,7 @@ sits_accuracy.classified_image <- function(data, ..., validation_csv) {
         )
     }
 
-    # Reorder the area based on the error matrix
+    # reorder the area based on the error matrix
     area <- area[colnames(error_matrix)]
 
     # get the resolution
@@ -374,7 +384,7 @@ sits_accuracy.classified_image <- function(data, ..., validation_csv) {
     # convert the area to hectares
     area <- area * prod(res) / 10000
 
-    #
+    # calculate class areas
     weight <- area / sum(area)
     class_areas <- rowSums(error_matrix)
 
@@ -384,7 +394,7 @@ sits_accuracy.classified_image <- function(data, ..., validation_csv) {
     prop <- weight * error_matrix / class_areas
     prop[is.na(prop)] <- 0
 
-    # An unbiased estimator of the total area
+    # unbiased estimator of the total area
     # based on the reference classification
     # cf equation (2) of Olofsson et al (2013)
     error_adjusted_area <- colSums(prop) * sum(area)
@@ -393,7 +403,7 @@ sits_accuracy.classified_image <- function(data, ..., validation_csv) {
     # cf equation (3) of Olofsson et al (2013)
     stderr_prop <- sqrt(colSums((weight * prop - prop**2) / (class_areas - 1)))
 
-    # Standard error of the error-adjusted estimated area
+    # standard error of the error-adjusted estimated area
     # cf equation (4) of Olofsson et al (2013)
     stderr_area <- sum(area) * stderr_prop
 
@@ -407,8 +417,6 @@ sits_accuracy.classified_image <- function(data, ..., validation_csv) {
 
     # overall area-weighted accuracy
     over_acc <- sum(diag(prop))
-
-
     return(
         list(
             error_matrix = error_matrix,
@@ -417,29 +425,28 @@ sits_accuracy.classified_image <- function(data, ..., validation_csv) {
             stderr_prop = stderr_prop,
             stderr_area = stderr_area,
             conf_interval = 1.96 * stderr_area,
-            accuracy = list(user = user_acc,
-                            producer = prod_acc,
-                            overall = over_acc)
+            accuracy = list(
+                user = user_acc,
+                producer = prod_acc,
+                overall = over_acc
+            )
         )
     )
 }
-#' @title Print the ssumary of the accuracy
+#' @title Print accuracy summary
 #' @name sits_accuracy_summary
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #
 #' @description Adaptation of the caret::print.confusionMatrix method
 #'              for the more common usage in Earth Observation.
 #'
-#' @param x         An object of class \code{sits_assessment}.
-#' @param mode      A single character string either "sens_spec",
-#'                  "prec_recall", or "everything".
+#' @param x         Object of class \code{sits_assessment}.
 #' @param digits    Number of significant digits when printed.
 #' @return           \code{x}   is invisibly returned.
 #'
 #' @keywords internal
 #' @export
 sits_accuracy_summary <- function(x,
-                                  mode = "sens_spec",
                                   digits = max(3, getOption("digits") - 3)) {
 
     # set caller to show in errors
@@ -458,11 +465,10 @@ sits_accuracy_summary <- function(x,
     # round the data to the significant digits
     overall <- round(x$overall, digits = digits)
 
-    accuracy_ci <- paste("(",
-                         paste(overall[c("AccuracyLower", "AccuracyUpper")],
-                               collapse = ", "
-                         ), ")",
-                         sep = ""
+    accuracy_ci <- paste(
+        "(", paste(overall[c("AccuracyLower", "AccuracyUpper")],
+              collapse = ", "), ")",
+        sep = ""
     )
 
     overall_text <- c(
@@ -492,29 +498,25 @@ sits_accuracy_summary <- function(x,
 #' @description Adaptation of the caret::print.confusionMatrix method
 #'              for the more common usage in Earth Observation.
 #'
-#' @param x         An object of class \code{confusionMatrix}.
-#' @param \dots     other parameters passed to the "print" function
-#' @param mode      A single character string either "sens_spec",
-#'                  "prec_recall", or "everything".
+#' @param x         Object of class \code{confusionMatrix}.
+#' @param \dots     Other parameters passed to the "print" function.
 #' @param digits    Number of significant digits when printed.
 #' @return           \code{x}   is invisibly returned.
 #'
 #' @keywords internal
 #' @export
 print.sits_assessment <- function(x, ...,
-                                  mode = "sens_spec",
                                   digits = max(3, getOption("digits") - 3)) {
     cat("Confusion Matrix and Statistics\n\n")
     print(x$table)
 
-    # round the data to the significant digits
+    # Round the data to the significant digits
     overall <- round(x$overall, digits = digits)
-
-    accuracy_ci <- paste("(",
-                         paste(overall[c("AccuracyLower", "AccuracyUpper")],
-                               collapse = ", "
-                         ), ")",
-                         sep = ""
+    # Format accuracy
+    accuracy_ci <- paste(
+        "(", paste(overall[c("AccuracyLower", "AccuracyUpper")],
+                   collapse = ", "), ")",
+        sep = ""
     )
 
     overall_text <- c(
@@ -525,6 +527,8 @@ print.sits_assessment <- function(x, ...,
     overall_names <- c("Accuracy", "95% CI", "", "Kappa")
 
     if (dim(x$table)[1] > 2) {
+        # Multiclass case
+        # Names in caret are different from usual names in Earth observation
         cat("\nOverall Statistics\n")
         overall_names <- ifelse(overall_names == "",
                                 "",
@@ -548,22 +552,21 @@ print.sits_assessment <- function(x, ...,
         )
         print(measures, digits = digits)
     } else {
-        # this is the case of only two classes
-        # get the values of the User's and Producer's Accuracy
-        # Names in caret are different from the usual names in Earth observation
+        # Two class case
+        # Names in caret are different from usual names in Earth observation
         x$byClass <- x$byClass[
             grepl(
                 "(Sensitivity)|(Specificity)|(Pos Pred Value)|(Neg Pred Value)",
                 names(x$byClass)
             )
         ]
-        # get the names of the two classes
+        # Names of the two classes
         names_classes <- row.names(x$table)
-        # the first class (which is called the "positive" class by caret)
+        # First class is called the "positive" class by caret
         c1 <- x$positive
-        # the second class
+        # Second class
         c2 <- names_classes[!(names_classes == x$positive)]
-        # make up the values of UA and PA for the two classes
+        # Values of UA and PA for the two classes
         pa1 <- paste("Prod Acc ", c1)
         pa2 <- paste("Prod Acc ", c2)
         ua1 <- paste("User Acc ", c1)
@@ -577,7 +580,8 @@ print.sits_assessment <- function(x, ...,
         )
         overall_names <- c(overall_names, "", names(x$byClass))
         overall_names <- ifelse(overall_names == "", "",
-                                paste(overall_names, ":"))
+                                paste(overall_names, ":")
+        )
 
         out <- cbind(format(overall_names, justify = "right"), overall_text)
         colnames(out) <- rep("", ncol(out))
@@ -598,19 +602,19 @@ print.sits_assessment <- function(x, ...,
 #'              for the more common usage in Earth Observation.
 #'
 #' @param x         An object of class \code{sits_area_assessment}.
-#' @param \dots     other parameters passed to the "print" function
-#' @param digits    significant digits
+#' @param \dots     Other parameters passed to the "print" function
+#' @param digits    Significant digits
 #' @return          \code{x}   is invisibly returned.
 #'
 #' @keywords internal
 #' @export
-print.sits_area_assessment <- function(x, ..., digits = 2){
+print.sits_area_assessment <- function(x, ..., digits = 2) {
 
     # round the data to the significant digits
     overall <- round(x$accuracy$overall, digits = digits)
 
     cat("Area Weigthed Statistics\n")
-    cat(paste0("Overall Accuracy = ", overall,"\n"))
+    cat(paste0("Overall Accuracy = ", overall, "\n"))
 
     acc_user <- round(x$accuracy$user, digits = digits)
     acc_prod <- round(x$accuracy$producer, digits = digits)
@@ -628,9 +632,11 @@ print.sits_area_assessment <- function(x, ..., digits = 2){
     conf_int <- round(x$conf_interval, digits = digits)
 
     tb1 <- t(dplyr::bind_rows(area_pix, area_adj, conf_int))
-    colnames(tb1) <- c("Mapped Area (ha)", "Error-Adjusted Area (ha)", "Conf Interval (ha)")
+    colnames(tb1) <- c("Mapped Area (ha)",
+                       "Error-Adjusted Area (ha)",
+                       "Conf Interval (ha)"
+                       )
 
     cat("\nMapped Area x Estimated Area (ha)\n")
     print(tb1)
-
 }

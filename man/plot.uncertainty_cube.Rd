@@ -15,19 +15,19 @@
 )
 }
 \arguments{
-\item{x}{object of class "probs_image"}
+\item{x}{Object of class "probs_image".}
 
-\item{y}{ignored}
+\item{y}{Ignored.}
 
-\item{...}{further specifications for \link{plot}.}
+\item{...}{Further specifications for \link{plot}.}
 
-\item{tiles}{tiles to be plotted}
+\item{tiles}{Tiles to be plotted.}
 
-\item{n_colors}{number of colors to plot}
+\item{n_colors}{Number of colors to plot.}
 
-\item{breaks}{type of class intervals}
+\item{breaks}{Yype of class intervals.}
 
-\item{palette}{hcl palette used for visualisation}
+\item{palette}{HCL palette used for visualisation.}
 }
 \value{
 The plot itself.

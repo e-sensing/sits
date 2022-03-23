@@ -2,10 +2,13 @@
 #' @name sits_ResNet
 #'
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
-#' @author Alexandre Ywata de Carvalho, \email{alexandre.ywata@@ipea.gov.br}
 #' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
+#' @author Felipe Souza, \email{lipecaso@@gmail.com}
+#' @author Alber Sanchez, \email{alber.ipia@@inpe.br}
+#' @author Charlotte Pelletier, \email{charlotte.pelletier@@univ-ubs.fr}
+#' @author Daniel Falbel, \email{dfalbel@@gmail.com}
 #'
-#' @description Use a ResNet architecture for classifiying image time series.
+#' @description Use a ResNet architecture for classifying image time series.
 #' The ResNet (or deep residual network) was proposed by a team
 #' in Microsoft Research for 2D image classification.
 #' ResNet tries to address the degradation of accuracy
@@ -15,10 +18,17 @@
 #' for time series classification, using the UCR dataset.
 #' Please refer to the paper for more details.
 #'
-#' The SITS implementation of RestNet is based on the work of Hassan Fawaz and
-#' collaborators, and also inspired by the paper of Wang et al (see below).
-#' Fawaz provides a reference code  in https://github.com/hfawaz/dl-4-tsc.
-#' If you use this function, please cite the references.
+#' The R-torch version is based on the code made available by Zhiguang Wang,
+#' author of the original paper. The code was developed in python using keras.
+#'
+#' https://github.com/cauchyturing/UCR_Time_Series_Classification_Deep_Learning_Baseline/blob/master/ResNet.py
+#'
+#' The R-torch version also considered the code by Ignacio Oguiza,
+#' whose implementation is available at
+#' https://github.com/timeseriesAI/tsai/blob/main/tsai/models/ResNet.py.
+#'
+#' There are differences between Wang's Keras code and Oguiza torch code.
+#' In this case, we have used Wang's keras code as the main reference.
 #'
 #' @references Hassan Fawaz, Germain Forestier, Jonathan Weber,
 #' Lhassane Idoumghar,  and Pierre-Alain Muller,
@@ -35,8 +45,6 @@
 #'                          each block of three layers.
 #' @param kernels           Size of the 1D convolutional kernels
 #'                          for each layer of each block.
-#' @param activation        Activation function for 1D convolution.
-#'                          Valid values: {'relu', 'elu', 'selu', 'sigmoid'}.
 #' @param optimizer         Function with a pointer to the optimizer function
 #'                          (default is optimization_adam()).
 #'                          Options: optimizer_adadelta(), optimizer_adagrad(),
@@ -44,6 +52,7 @@
 #'                          optimizer_nadam(), optimizer_rmsprop(),
 #'                          optimizer_sgd().
 #' @param epochs            Number of iterations to train the model.
+#' @param learning_rate     Nunber with learning rate of model.
 #' @param batch_size        Number of samples per gradient update.
 #' @param validation_split  Number between 0 and 1. Fraction of training data
 #'                          to be used as validation data.
@@ -64,7 +73,7 @@
 #' # Retrieve the set of samples for the Mato Grosso (provided by EMBRAPA)
 #'
 #' # Build a machine learning model based on deep learning
-#' rn_model <- sits_train(samples_modis_4bands, sits_ResNet(epochs = 75))
+#' rn_model <- sits_train(samples_modis_4bands, sits_ResNet())
 #' # Plot the model
 #' plot(rn_model)
 #'
@@ -78,31 +87,23 @@
 #' @export
 sits_ResNet <- function(samples = NULL,
                         blocks = c(64, 128, 128),
-                        kernels = c(8, 5, 3),
-                        activation = "relu",
-                        optimizer = keras::optimizer_adam(learning_rate = 0.001),
-                        epochs = 300,
+                        kernels = c(7, 5, 3),
+                        optimizer = torch::optim_adam,
+                        learning_rate = 0.001,
+                        epochs = 100,
                         batch_size = 64,
                         validation_split = 0.2,
-                        verbose = 0) {
+                        verbose = FALSE) {
 
     # set caller to show in errors
     .check_set_caller("sits_ResNet")
 
-    # function that returns keras model based on a sits sample data.table
+    # function that returns torch model based on a sits sample data.table
     result_fun <- function(data) {
-        # verifies if keras package is installed
-        if (!requireNamespace("keras", quietly = TRUE)) {
-            stop("Please install package keras", call. = FALSE)
+        # verifies if torch package is installed
+        if (!requireNamespace("torch", quietly = TRUE)) {
+            stop("Please install package torch", call. = FALSE)
         }
-
-        .check_chr_within(
-            x = activation,
-            within = .config_get("dl_activation_methods"),
-            discriminator = "one_of",
-            msg = "invalid CNN activation method"
-        )
-
         .check_that(
             x = length(kernels) == 3,
             msg = "should inform size of three kernels"
@@ -149,157 +150,174 @@ sits_ResNet <- function(samples = NULL,
             data = as.matrix(train_data[, 3:ncol(train_data)]),
             dim = c(n_samples_train, n_times, n_bands)
         )
-        train_y <- unname(int_labels[as.vector(train_data$reference)]) - 1
+        train_y <- unname(int_labels[as.vector(train_data$reference)])
 
-        # create the test data for keras
+        # create the test data
         test_x <- array(
             data = as.matrix(test_data[, 3:ncol(test_data)]),
             dim = c(n_samples_test, n_times, n_bands)
         )
-        test_y <- unname(int_labels[as.vector(test_data$reference)]) - 1
-        # build the model step by step
-        # create the input_tensor for 1D convolution
-        input_tensor <- keras::layer_input(shape = c(n_times, n_bands))
+        test_y <- unname(int_labels[as.vector(test_data$reference)])
 
-        # initial assignment
-        output_tensor <- input_tensor
-        shortcut <- input_tensor
+        # set torch seed
+        torch::torch_manual_seed(sample.int(10^5, 1))
 
-        n_blocks <- length(blocks)
-        for (i in seq_len(n_blocks)) {
-            # Add a Convolution1D
-            output_tensor_x <- keras::layer_conv_1d(output_tensor,
-                                                    filters = blocks[[i]],
-                                                    kernel_size = kernels[1],
-                                                    padding = "same"
-            )
-            # normalization
-            output_tensor_x <- keras::layer_batch_normalization(output_tensor_x)
-
-            # activation
-            output_tensor_x <- keras::layer_activation(output_tensor_x,
-                                                       activation = activation
-            )
-
-            # Add a new convolution
-            output_tensor_y <- keras::layer_conv_1d(output_tensor_x,
-                                                    filters = blocks[[i]],
-                                                    kernel_size = kernels[2],
-                                                    padding = "same"
-            )
-            # normalization
-            output_tensor_y <- keras::layer_batch_normalization(output_tensor_y)
-
-            # activation
-            output_tensor_y <- keras::layer_activation(output_tensor_y,
-                                                       activation = activation
-            )
-
-            # Add a third convolution
-            output_tensor_z <- keras::layer_conv_1d(output_tensor_y,
-                                                    filters = blocks[[i]],
-                                                    kernel_size = kernels[3],
-                                                    padding = "same"
-            )
-            output_tensor_z <- keras::layer_batch_normalization(output_tensor_z)
-
-            # include the shortcut
-            shortcut <- keras::layer_conv_1d(shortcut,
-                                             filters = blocks[[i]],
-                                             kernel_size = 1,
-                                             padding = "same"
-            )
-            shortcut <- keras::layer_batch_normalization(shortcut)
-
-            # get the output tensor
-            output_tensor <- keras::layer_add(list(shortcut, output_tensor_z))
-            output_tensor <- keras::layer_activation(output_tensor,
-                                                     activation = activation
-            )
-            shortcut <- output_tensor
-        }
-
-        # reshape a tensor into a 2D shape
-        output_tensor <- keras::layer_global_average_pooling_1d(output_tensor)
-        # reshape a tensor into a 2D shape
-        output_tensor <- keras::layer_flatten(output_tensor)
-
-        # create the final tensor
-        model_loss <- ""
-        if (n_labels == 2) {
-            output_tensor <- keras::layer_dense(output_tensor,
-                                                units = 1,
-                                                activation = "sigmoid"
-            )
-            model_loss <- "binary_crossentropy"
-        }
-        else {
-            output_tensor <- keras::layer_dense(output_tensor,
-                                                units = n_labels,
-                                                activation = "softmax"
-            )
-            model_loss <- "categorical_crossentropy"
-            # keras requires categorical data to be put in a matrix
-            train_y <- keras::to_categorical(train_y, n_labels)
-            test_y <- keras::to_categorical(test_y, n_labels)
-        }
-        # create the model
-        model_keras <- keras::keras_model(input_tensor, output_tensor)
-        # compile the model
-        model_keras %>% keras::compile(
-            loss = model_loss,
-            optimizer = optimizer,
-            metrics = "accuracy"
+        # Block associated to ResNet
+        res_block <- torch::nn_module(
+            classname = "ResBlock",
+            initialize = function(in_channels,
+                                  out_channels,
+                                  kernels){
+                # create first convolution block
+                self$conv_block1 <- .torch_batch_conv1D_batch_norm_relu(
+                    input_dim   = in_channels,
+                    output_dim  = out_channels,
+                    kernel_size = kernels[1],
+                    padding     = "same"
+                )
+                # create second convolution block
+                self$conv_block2 <- .torch_conv1D_batch_norm_relu(
+                    input_dim   = out_channels,
+                    output_dim  = out_channels,
+                    kernel_size = kernels[2],
+                    padding     = "same"
+                )
+                # create third convolution block
+                self$conv_block3 <- .torch_conv1D_batch_norm(
+                    input_dim   = out_channels,
+                    output_dim  = out_channels,
+                    kernel_size = kernels[3],
+                    padding     = "same"
+                )
+                # create shortcut
+                self$shortcut = .torch_conv1D_batch_norm(
+                    input_dim   = in_channels,
+                    output_dim  = out_channels,
+                    kernel_size = 1,
+                    padding     = "same"
+                )
+                # activation
+                self$act = torch::nn_relu()
+            },
+            forward = function(x){
+                res <-  self$shortcut(x)
+                x <-  self$conv_block1(x)
+                x <-  self$conv_block2(x)
+                x <-  self$conv_block3(x)
+                x <-  torch::torch_add(x, res)
+                x <-  self$act(x)
+                return(x)
+            }
         )
+        # ResNet architecture as proposed by Wang(2017)
+        res_net <- torch::nn_module(
+            classname = "res_net",
+            initialize = function(n_bands,
+                                  n_times,
+                                  n_labels,
+                                  blocks,
+                                  kernels){
+                self$res_block1 <- res_block(n_bands, blocks[1], kernels)
+                self$res_block2 <- res_block(blocks[1], blocks[2], kernels)
+                self$res_block3 <- res_block(blocks[2], blocks[3], kernels)
+                self$gap <- torch::nn_adaptive_avg_pool1d(output_size = n_bands)
 
-        # fit the model
-        history <- model_keras %>% keras::fit(
-            train_x, train_y,
-            epochs = epochs, batch_size = batch_size,
-            validation_data = list(test_x, test_y),
-            verbose = verbose, view_metrics = "auto"
+                # flatten 3D tensor to 2D tensor
+                self$flatten <- torch::nn_flatten()
+                # classification using softmax
+                self$softmax <- torch::nn_sequential(
+                    torch::nn_linear(blocks[3]*n_bands, n_labels),
+                    torch::nn_softmax(dim = -1)
+                )
+            },
+            forward = function(x){
+                x <- torch::torch_transpose(x, 2, 3)
+                x <- x %>%
+                    self$res_block1() %>%
+                    self$res_block2() %>%
+                    self$res_block3() %>%
+                    self$gap() %>%
+                    self$flatten() %>%
+                    self$softmax()
+            }
         )
-        # import model to R
-        R_model_keras <- keras::serialize_model(model_keras)
+        # train the model using luz
+        torch_model <-
+            luz::setup(
+                module = res_net,
+                loss = torch::nn_cross_entropy_loss(),
+                metrics = list(luz::luz_metric_accuracy()),
+                optimizer = torch::optim_adam
+            ) %>%
+            luz::set_hparams(
+                n_bands  = n_bands,
+                n_times  = n_times,
+                n_labels = n_labels,
+                blocks   = blocks,
+                kernels  = kernels
+            ) %>%
+            luz::fit(
+                data = list(train_x, train_y),
+                epochs = epochs,
+                valid_data = list(test_x, test_y),
+                callbacks = list(luz::luz_callback_early_stopping(
+                    patience = 10,
+                    min_delta = 0.05
+                )),
+                verbose = verbose
+            )
+
+        model_to_raw <- function(model) {
+            con <- rawConnection(raw(), open = "wr")
+            torch::torch_save(model, con)
+            on.exit(close(con), add = TRUE)
+            r <- rawConnectionValue(con)
+            return(r)
+        }
+
+        model_from_raw <- function(object) {
+            con <- rawConnection(object)
+            on.exit(close(con), add = TRUE)
+            module <- torch::torch_load(con)
+            return(module)
+        }
+        # serialize model
+        serialized_model <- model_to_raw(torch_model$model)
 
         # construct model predict closure function and returns
         model_predict <- function(values) {
 
-            # verifies if keras package is installed
-            if (!requireNamespace("keras", quietly = TRUE)) {
-                stop("Please install package keras", call. = FALSE)
+            # verifies if torch package is installed
+            if (!requireNamespace("torch", quietly = TRUE)) {
+                stop("Please install package torch", call. = FALSE)
             }
 
-            # restore model keras
-            model_keras <- keras::unserialize_model(R_model_keras)
+            # restore model
+            torch_model$model <- model_from_raw(serialized_model)
 
             # transform input (data.table) into a 3D tensor
+            # remove first two columns
+            # reshape the 2D matrix into a 3D array
             n_samples <- nrow(values)
-            n_timesteps <- nrow(sits_time_series(data[1, ]))
+            n_times <- nrow(sits_time_series(data[1, ]))
             n_bands <- length(sits_bands(data))
             values_x <- array(
-                data = as.matrix(values[, 3:ncol(values)]),
-                dim = c(n_samples, n_timesteps, n_bands)
+                data = as.matrix(values[, -2:0]),
+                dim = c(n_samples, n_times, n_bands)
             )
             # retrieve the prediction probabilities
-            prediction <- data.table::as.data.table(stats::predict(
-                model_keras,
-                values_x
-            ))
-
-            # If binary classification,
-            # adjust the prediction values for binary classification
-            if (n_labels == 2) {
-                prediction <- .sits_keras_binary_class(prediction)
-            }
-
+            prediction <- data.table::as.data.table(
+                torch::as_array(
+                    stats::predict(torch_model, values_x)
+                )
+            )
             # adjust the names of the columns of the probs
             colnames(prediction) <- labels
 
             return(prediction)
         }
 
-        class(model_predict) <- c("keras_model", "sits_model",
+        class(model_predict) <- c("torch_model", "sits_model",
                                   class(model_predict))
 
         return(model_predict)

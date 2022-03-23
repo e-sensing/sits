@@ -9,8 +9,8 @@
 #' are the series themselves. It extracts the time series from a sits tibble
 #' and "spreads" them in time to produce a tibble with distances.
 #'
-#' @param  data       A tibble with time series data and metadata.
-#' @return            A data.table where columns have the reference label
+#' @param  data       Tibble with time series data and metadata.
+#' @return            Data.table where columns have the reference label
 #'                    and the time series values as distances.
 #'
 .sits_distances <- function(data) {
@@ -65,12 +65,13 @@
     .check_set_caller(".sits_distances_classify")
 
     # keras-based models run in single-core mode
-    if (inherits(ml_model, c("keras_model", "ranger_model", "xgb_model"))) {
+    if (inherits(ml_model, c("keras_model", "xgb_model"))) {
         multicores <- 1
     }
     # are we running on Windows?
-    if (.Platform$OS.type != "unix")
+    if (.Platform$OS.type != "unix") {
         multicores <- 1
+    }
 
     # define the column names
     attr_names <- names(.sits_distances(.sits_ml_model_samples(ml_model)[1, ]))
@@ -147,6 +148,7 @@
 #'                         of informed labels and all other.
 .sits_distances_sample <- function(distances, frac) {
     # compute sampling
+    reference <- NULL # to avoid setting global variable
     result <- distances[, .SD[sample(.N, round(frac * .N))], by = reference]
 
     return(result)

@@ -10,7 +10,7 @@
 \arguments{
 \item{data}{Tibble with time series data and metadata.}
 
-\item{fun}{The function that performs calculation on the input data.}
+\item{fun}{Function that performs calculation on the input data.}
 }
 \description{
 This internal function implements the factory method pattern.

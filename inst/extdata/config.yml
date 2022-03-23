@@ -10,7 +10,7 @@ rstac_pagination_limit  : 400
 raster_api_package      : "terra"
 
 # GDAL GTiff default creation options
-gdal_creation_options   : ["COMPRESS=LZW", "BIGTIFF=YES"]
+gdal_creation_options   : ["COMPRESS=LZW", "PREDICTOR=2", "BIGTIFF=YES"]
 
 # maxbytes per plot (in MB)
 plot_max_Mbytes: 16
@@ -758,7 +758,7 @@ sources:
                             9        : "cloud high"
                             10       : "thin cirrus"
                             11       : "snow or ice"
-                        interp_values: [0, 1, 2, 3, 8, 9, 10, 11]
+                        interp_values: [0, 1, 2, 3, 7, 8, 9, 10, 11]
                         resolution  :  20
                 satellite   : "SENTINEL-2"
                 sensor      : "MSI"

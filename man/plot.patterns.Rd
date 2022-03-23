@@ -7,11 +7,11 @@
 \method{plot}{patterns}(x, y, ...)
 }
 \arguments{
-\item{x}{object of class "patterns"}
+\item{x}{Object of class "patterns".}
 
-\item{y}{ignored}
+\item{y}{Ignored.}
 
-\item{...}{further specifications for \link{plot}.}
+\item{...}{Further specifications for \link{plot}.}
 }
 \value{
 The plot itself.

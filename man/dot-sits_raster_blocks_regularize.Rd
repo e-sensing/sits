@@ -13,20 +13,21 @@
 )
 }
 \arguments{
-\item{cube}{input data cube.}
+\item{cube}{Input data cube.}
 
-\item{n_images_interval}{...}
+\item{n_images_interval}{Numbert of images per interval.}
 
-\item{sub_image}{bounding box of the ROI}
+\item{sub_image}{Bounding box of the ROI.}
 
-\item{memsize}{memory available for classification (in GB).}
+\item{memsize}{Memory available for classification (in GB).}
 
-\item{multicores}{number of threads to process the time series.}
+\item{multicores}{Number of threads to process the time series.}
 }
 \value{
-list with three attributes: n (number of blocks),
-                        rows (list of rows to begin),
-                        nrows (number of rows to read at each iteration).
+List with three attributes:
+                             n (number of blocks),
+                             rows (list of rows to begin),
+                             nrows (rows to read at each iteration).
 }
 \description{
 Defines the size of the block of an image to be read.

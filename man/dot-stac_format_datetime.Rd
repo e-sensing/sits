@@ -7,11 +7,9 @@
 .stac_format_datetime(start_date, end_date)
 }
 \arguments{
-\item{start_date}{a \code{character} corresponds to the initial date when the
-cube will be created.}
+\item{start_date}{Initial date for cube.}
 
-\item{end_date}{a \code{character} corresponds to the final date when the
-cube will be created.}
+\item{end_date}{Final date for the cube.}
 }
 \value{
 a \code{character} formatted as parameter to STAC requisition.

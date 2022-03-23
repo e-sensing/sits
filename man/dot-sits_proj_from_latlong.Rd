@@ -7,14 +7,14 @@
 .sits_proj_from_latlong(longitude, latitude, crs)
 }
 \arguments{
-\item{longitude}{The longitude of the chosen location.}
+\item{longitude}{Longitude of the chosen location.}
 
-\item{latitude}{The latitude of the chosen location.}
+\item{latitude}{Latitude of the chosen location.}
 
 \item{crs}{Projection definition to be converted to.}
 }
 \value{
-Tibble with X and Y coordinates
+Tibble with X and Y coordinates.
 }
 \description{
 Transform a latitude and longitude coordinate to XY coordinate

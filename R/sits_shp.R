@@ -5,11 +5,11 @@
 #' @description reads a shapefile and retrieves a sits tibble
 #' containing a set of lat/long points for data retrieval
 #'
-#' @param sf_shape        sf object that contains a SHP file
-#' @param shp_attr        Attribute in the shapefile used as a polygon label
-#' @param label           Label to be assigned to points
+#' @param sf_shape        sf object that contains a SHP file.
+#' @param shp_attr        Attribute in the shapefile used as a polygon label.
+#' @param label           Label to be assigned to points.
 #' @param .n_shp_pol      Number of samples per polygon to be read
-#'                        (for POLYGON or MULTIPOLYGON shapes)
+#'                        (for POLYGON or MULTIPOLYGON shapes).
 #' @return                A sits tibble with points to to be read.
 .sits_shp_to_tibble <- function(sf_shape,
                                 shp_attr,
@@ -24,18 +24,17 @@
 
     # get a tibble with points and labels
     if (geom_type == "POINT") {
-        points.tb <- .sits_shp_point_to_tibble(sf_shape,
-                                               shp_attr,
-                                               label)
-    }
-    else {
-        points.tb <- .sits_shp_polygon_to_tibble(sf_shape,
-                                                 shp_attr,
-                                                 label,
-                                                 .n_shp_pol)
+        points_tbl <- .sits_shp_point_to_tibble(sf_shape,
+                                                shp_attr,
+                                                label)
+    } else {
+        points_tbl <- .sits_shp_polygon_to_tibble(sf_shape,
+                                                  shp_attr,
+                                                  label,
+                                                  .n_shp_pol)
     }
 
-    return(points.tb)
+    return(points_tbl)
 }
 
 #' @title Obtain a tibble with latitude and longitude points from POINT geometry
@@ -56,18 +55,17 @@
     if (!purrr::is_null(shp_attr)) {
         l1_lst <- as.list(shp_df[, shp_attr])
         labels <- as.vector(l1_lst[[1]])
-    }
-    else {
+    } else {
         labels <- rep(label, times = nrow(points))
     }
     # build a tibble with lat/long and label
-    points.tb <- tibble::tibble(
+    points_tbl <- tibble::tibble(
         longitude = points[, 1],
         latitude = points[, 2],
         label = labels
     )
 
-    return(points.tb)
+    return(points_tbl)
 }
 
 #' @title Obtain a tibble from POLYGON geometry
@@ -121,43 +119,40 @@
 
     # set caller to show in errors
     .check_set_caller(".sits_shp_check_validity")
-
     # pre-condition - does the shapefile exist?
     .check_file(x = shp_file, msg = "shapefile does not exist")
-
     # read the shapefile
     sf_shape <- sf::read_sf(shp_file)
+
     # pre-condition - is the default label valid?
     .check_that(
         x = nrow(sf_shape) > 0,
         msg = "shapefile has no content"
     )
-
     # get the geometry type
     geom_type <- sf::st_geometry_type(sf_shape)[1]
-    # get the data frame associated to the shapefile
 
     # precondition - are all geometries compatible?
-    # TODO: is it worth implements exact descriminator in .check_chr_within
     .check_that(
         x = all(sf::st_geometry_type(sf_shape) == geom_type),
         msg = "shapefile has different geometries"
     )
-
     # precondition - can the function deal with the geometry_type?
     .check_chr_within(
         x = as.character(geom_type),
         within = .config_get("sf_geom_types_supported"),
         discriminator = "one_of",
-        msg = paste0("only handles shapefiles of types",
-                     .config_get("sf_geom_types_supported"))
+        msg = paste0(
+            "only handles shapefiles of types",
+            .config_get("sf_geom_types_supported")
+        )
     )
-
     # precondition - is the default label valid?
     .check_that(
         x = !purrr::is_null(label) || !purrr::is_null(shp_attr),
         msg = "label or shape attribute should be valid"
     )
+
     # precondition - is the shape attribute valid?
     # get the data frame associated to the shapefile
     shp_df <- sf::st_drop_geometry(sf_shape)

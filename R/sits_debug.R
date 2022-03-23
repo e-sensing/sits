@@ -41,14 +41,19 @@ NULL
                             value = "") {
 
     # if debug flag is FALSE, then exit
-    if (!.sits_debug()) return(invisible(NULL))
+    if (!.sits_debug()) {
+        return(invisible(NULL))
+    }
 
     # record time to compute elapsed time
     time <- Sys.time()
-    on.exit({
-        # save the last system time on exit
-        sits_env$log_time <- Sys.time()
-    }, add = TRUE)
+    on.exit(
+        {
+            # save the last system time on exit
+            sits_env$log_time <- Sys.time()
+        },
+        add = TRUE
+    )
 
     # function to escape CSV values
     esc <- function(value) {
@@ -60,16 +65,18 @@ NULL
     }
 
     # output log file
-    log_file = paste0(output_dir, "/", basename(tempdir()), ".log")
+    log_file <- paste0(file.path(output_dir, basename(tempdir())), ".log")
 
     # elapsed time
     elapsed_time <- NULL
 
     if (!purrr::is_null(sits_env$log_time)) {
         elapsed_time <- format(
-            difftime(time1 = time,
-                     time2 = sits_env$log_time,
-                     units = "secs")[[1]],
+            difftime(
+                time1 = time,
+                time2 = sits_env$log_time,
+                units = "secs"
+            )[[1]],
             digits = 4
         )
     }
@@ -84,7 +91,8 @@ NULL
         cat(paste0(
             paste("date_time", "pid", "event", "elapsed_time",
                   "mem_used", "max_mem_used", "key", "value",
-                  sep = ", "),
+                  sep = ", "
+            ),
             "\n"
         ), file = log_file, append = TRUE)
     } else {
@@ -96,7 +104,8 @@ NULL
     cat(paste0(
         paste(esc(time), Sys.getpid(), esc(event[[1]]), elapsed_time,
               sum(mem[, 2]), sum(mem[, 6]), esc(key[[1]]),  esc(list(value)),
-              sep = ", "),
+              sep = ", "
+        ),
         "\n"
     ), file = log_file, append = TRUE)
 
@@ -122,8 +131,10 @@ NULL
         return(flag)
     }
 
-    .check_lgl(x = flag, allow_null = TRUE,
-               msg = "flag must be a logical value" )
+    .check_lgl(
+        x = flag, allow_null = TRUE,
+        msg = "flag must be a logical value"
+    )
 
     # set debug flag
     sits_env$debug_flag <- flag

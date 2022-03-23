@@ -9,15 +9,14 @@ sits_bbox(data, wgs84 = FALSE, ...)
 \arguments{
 \item{data}{Valid sits tibble (time series or a cube).}
 
-\item{wgs84}{Take effect only for data cubes.
-Reproject bbox to WGS84 (EPSG:4326).}
+\item{wgs84}{Reproject bbox to WGS84 (EPSG:4326)?}
 
 \item{...}{Additional parameters (not implemented).}
 }
 \value{
-named vector with bounding box in WGS84 for time series and
-        on the cube projection for a data cube unless wgs84 parameter
-        is TRUE.
+Bounding box in WGS84 for time series aor
+                 on the cube projection for a data cube
+                 unless wgs84 parameteris TRUE.
 }
 \description{
 Obtain a vector of limits (either on lat/long for time series

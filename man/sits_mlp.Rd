@@ -2,14 +2,13 @@
 % Please edit documentation in R/sits_mlp.R
 \name{sits_mlp}
 \alias{sits_mlp}
-\title{Train multi-layer perceptron models}
+\title{Train multi-layer perceptron models using torch}
 \usage{
 sits_mlp(
   samples = NULL,
   layers = c(512, 512, 512),
-  activation = "relu",
-  dropout_rates = c(0.1, 0.2, 0.3),
-  optimizer = keras::optimizer_adam(learning_rate = 0.001),
+  dropout_rates = c(0.2, 0.3, 0.4),
+  learning_rate = 0.001,
   epochs = 100,
   batch_size = 64,
   validation_split = 0.2,
@@ -21,18 +20,10 @@ sits_mlp(
 
 \item{layers}{Vector with number of hidden nodes in each layer.}
 
-\item{activation}{Vector with the names of activation functions.
-Valid values are {'relu', 'elu', 'selu', 'sigmoid'}.}
-
 \item{dropout_rates}{Vector with the dropout rates (0,1)
 for each layer.}
 
-\item{optimizer}{Function with a pointer to the optimizer function
-(default is optimization_adam()).
-Options are optimizer_adadelta(),
-optimizer_adagrad(), optimizer_adam(),
-optimizer_adamax(), optimizer_nadam(),
-optimizer_rmsprop(), optimizer_sgd()}
+\item{learning_rate}{Learning rate of the optimizer}
 
 \item{epochs}{Number of iterations to train the model.}
 
@@ -53,53 +44,49 @@ Either a model to be passed in sits_predict
 }
 \description{
 Use a multi-layer perceptron algorithm to classify data.
-This function is a front-end to the "keras" method R package.
-Please refer to the documentation in that package for more details.
+This function uses the R "torch" and "luz" packages.
+Please refer to the documentation of those package for more details.
 }
 \note{
 The parameters for the MLP have been chosen based on the work by Wang et al. 2017
 that takes multilayer perceptrons as the baseline for time series classifications:
 (a) Three layers with 512 neurons each, specified by the parameter `layers`;
-(b) Using the 'relu' activation function;
-(c) dropout rates of 10%, 20%, and 30% for the layers;
-(d) the "optimizer_adam" as optimizer (default value);
-(e) a number of training steps (`epochs`) of 100;
-(f) a `batch_size` of 64, which indicates how many time series
+(b) dropout rates of 10%, 20%, and 30% for the layers;
+(c) the "optimizer_adam" as optimizer (default value);
+(d) a number of training steps (`epochs`) of 100;
+(e) a `batch_size` of 64, which indicates how many time series
 are used for input at a given steps;
-(g) a validation percentage of 20%, which means 20% of the samples
+(f) a validation percentage of 20%, which means 20% of the samples
 will be randomly set side for validation.
+(g) The "relu" activation function.
+
+#' @references
+
+Zhiguang Wang, Weizhong Yan, and Tim Oates,
+"Time series classification from scratch with deep neural networks:
+ A strong baseline",
+ 2017 international joint conference on neural networks (IJCNN).
 }
 \examples{
 \dontrun{
 # Retrieve the set of samples for the Mato Grosso region
-data(samples_modis_4bands)
-samples_mt_ndvi <- sits_select(samples_modis_4bands, bands = "NDVI")
 # Build a machine learning model based on deep learning
-dl_model <- sits_train(samples_mt_ndvi, sits_mlp())
+dl_model <- sits_train(samples_modis_4bands, sits_mlp())
 # get a point with a 16 year time series
-point_ndvi <- sits_select(point_mt_6bands, bands = "NDVI")
+point_4classes <- sits_select(point_mt_6bands,
+                              bands = c("NDVI", "EVI", "NIR", "MIR"))
 # classify the point
-point_class <- sits_classify(point_ndvi, dl_model)
+point_class <- sits_classify(point_4classes, dl_model)
 # plot the classified point
 plot(point_class)
 }
-}
-\references{
-Hassan Fawaz, Germain Forestier, Jonathan Weber,
-Lhassane Idoumghar,  and Pierre-Alain Muller,
-"Deep learning for time series classification: a review",
-Data Mining and Knowledge Discovery, 33(4): 917--963, 2019.
-
-Zhiguang Wang, Weizhong Yan, and Tim Oates,
-"Time series classification from scratch with deep neural networks:
-A strong baseline",
-2017 international joint conference on neural networks (IJCNN).
-
-Implementation based on the python keras implementation provided in
-https://github.com/hfawaz/dl-4-tsc.
 }
 \author{
 Gilberto Camara, \email{gilberto.camara@inpe.br}
 
 Rolf Simoes, \email{rolf.simoes@inpe.br}
+
+Felipe Souza, \email{lipecaso@gmail.com}
+
+Alber Sanchez, \email{alber.ipia@inpe.br}
 }
