@@ -40,6 +40,8 @@
 #' @param .n_pts_csv      Number of points from CSV file to be retrieved.
 #' @param .n_shp_pol      Number of samples per polygon to be read
 #'                        (for POLYGON or MULTIPOLYGON shapefile).
+#' @param .shp_avg        Logical value to summarize samples for a same polygon.
+#' @param .shp_id         ID attribute for polygons shapefile.
 #' @param output_dir      Directory where the time series will be saved as rds.
 #'                        Default is the current path.
 #' @param  progress       A logical value indicating if a progress bar
@@ -94,6 +96,8 @@ sits_get_data <- function(cube,
                           shp_attr = NULL,
                           .n_pts_csv = NULL,
                           .n_shp_pol = 30,
+                          .shp_avg = FALSE,
+                          .shp_id = NULL,
                           multicores = 1,
                           output_dir = ".",
                           progress = FALSE) {
@@ -162,7 +166,8 @@ sits_get_data <- function(cube,
                 shp_attr = shp_attr,
                 start_date = start_date,
                 end_date = end_date,
-                .n_shp_pol = .n_shp_pol
+                .n_shp_pol = .n_shp_pol,
+                .shp_id = .shp_id
             )
         }
     } else {
@@ -210,6 +215,10 @@ sits_get_data <- function(cube,
         output_dir = output_dir,
         progress   = progress
     )
+
+    if (.shp_avg && "polygon_id" %in% colnames(data))
+        data <- .sits_shp_avg_polygon(data = data)
+
     return(data)
 }
 
@@ -868,6 +877,7 @@ sits_get_data <- function(cube,
 #' @param start_date      Start date for the data set.
 #' @param end_date        End date for the data set.
 #' @param .n_shp_pol      Number of samples per polygon to be read.
+#' @param .shp_id         ID attribute for polygons shapefile.
 #'                        (for POLYGON or MULTIPOLYGON shapefile).
 #' @return                A tibble with information the samples to be retrieved.
 #'
@@ -876,7 +886,8 @@ sits_get_data <- function(cube,
                                        shp_attr,
                                        start_date,
                                        end_date,
-                                       .n_shp_pol) {
+                                       .n_shp_pol,
+                                       .shp_id) {
 
     # pre-condition - check the shape file and its attribute
     sf_shape <- .sits_shp_check_validity(
@@ -889,7 +900,8 @@ sits_get_data <- function(cube,
         sf_shape = sf_shape,
         shp_attr = shp_attr,
         label = label,
-        .n_shp_pol = .n_shp_pol
+        .n_shp_pol = .n_shp_pol,
+        .shp_id = .shp_id
     )
 
     samples <- dplyr::mutate(samples,
