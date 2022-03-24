@@ -13,6 +13,9 @@
 
 \item{label}{Label to be used instead of shp_attr}
 }
+\value{
+A sf object.
+}
 \description{
 Check the validity of the shape file
 }
