@@ -5,29 +5,32 @@
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
 #'
-#' @description Implementation of Light Temporal Attention Encoder (L-TAE)
+#' @description Implementation of Temporal Attention Encoder (TAE)
 #' for satellite image time series classification.
 #'
 #' This function is based on the paper by Vivien Garnot referenced below
 #' and code available on github at
 #' https://github.com/VSainteuf/pytorch-psetae.
-#' If you use this method, please cite the original TAE paper.
 #'
 #' We also used the code made available by Maja Schneider in her work with
 #' Marco Körner referenced below and available at
 #' https://github.com/maja601/RC2020-psetae.
 #'
+#' If you use this method, please cite Garnot's and Schneider's work.
 #'
 #' @references
 #' Vivien Garnot, Loic Landrieu, Sebastien Giordano, and Nesrine Chehata,
 #' "Satellite Image Time Series Classification with Pixel-Set Encoders
 #' and Temporal Self-Attention",
-#' 2020 Conference on Computer Vision and Pattern Recognition
+#' 2020 Conference on Computer Vision and Pattern Recognition.
+#' pages 12322-12331.
+#' DOI: 10.1109/CVPR42600.2020.01234
 #'
 #' Schneider, Maja; Körner, Marco,
 #' "[Re] Satellite Image Time Series Classification
 #' with Pixel-Set Encoders and Temporal Self-Attention."
 #' ReScience C 7 (2), 2021.
+#' DOI: 10.5281/zenodo.4835356
 #'
 #' @param samples           Time series with the training samples.
 #' @param epochs            Number of iterations to train the model.
@@ -137,7 +140,7 @@ sits_TAE <- function(samples = NULL,
                                   dim_layers_decoder = c(64, 32)) {
                 # define an spatial encoder
                 self$spatial_encoder <-
-                    .torch_pixel_spatial_enconder(n_bands = n_bands)
+                    .torch_pixel_spatial_encoder(n_bands = n_bands)
                 # define a temporal encoder
                 self$temporal_attention_encoder <-
                     .torch_temporal_attention_encoder(timeline = timeline)

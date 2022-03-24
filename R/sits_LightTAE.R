@@ -13,12 +13,17 @@
 #' https://github.com/VSainteuf/lightweight-temporal-attention-pytorch
 #' If you use this method, please cite the original TAE and the LTAE paper.
 #'
+#' We also used the code made available by Maja Schneider in her work with
+#' Marco Körner referenced below and available at
+#' https://github.com/maja601/RC2020-psetae.
 #'
 #' @references
 #' Vivien Garnot, Loic Landrieu, Sebastien Giordano, and Nesrine Chehata,
 #' "Satellite Image Time Series Classification with Pixel-Set Encoders
 #' and Temporal Self-Attention",
 #' 2020 Conference on Computer Vision and Pattern Recognition.
+#' pages 12322-12331.
+#' DOI: 10.1109/CVPR42600.2020.01234
 #'
 #' Vivien Garnot, Loic Landrieu,
 #' "Lightweight Temporal Self-Attention  for Classifying
@@ -29,6 +34,7 @@
 #' "[Re] Satellite Image Time Series Classification
 #' with Pixel-Set Encoders and Temporal Self-Attention."
 #' ReScience C 7 (2), 2021.
+#' DOI: 10.5281/zenodo.4835356
 #'
 #' @param samples           Time series with the training samples.
 #' @param epochs            Number of iterations to train the model.
@@ -45,7 +51,7 @@
 #' # Retrieve the set of samples for the Mato Grosso (provided by EMBRAPA)
 #'
 #' # Build a machine learning model based on deep learning
-#' tae_model <- sits_train(samples_modis_4bands, sits_TAE())
+#' ltae_model <- sits_train(samples_modis_4bands, sits_LightTAE())
 #' # Plot the model
 #' plot(tae_model)
 #'
@@ -129,44 +135,59 @@ sits_LightTAE <- function(samples = NULL,
         torch::torch_manual_seed(sample.int(10^5, 1))
 
         # define the PSE-TAE model
-        pse_tae_model <- torch::nn_module(
-            classname = "pixel_encoder_light_temporal_attention_encoder",
+        light_tae_model <- torch::nn_module(
+            classname = "model_light_temporal_attention_encoder",
             initialize = function(n_bands,
                                   n_labels,
                                   timeline,
+                                  layers_spatial_encoder = c(32, 64, 128),
+                                  n_heads = 16,
+                                  n_neurons = c(256, 128),
+                                  dropout_rate = 0.2,
                                   dim_input_decoder = 128,
                                   dim_layers_decoder = c(64, 32)) {
                 # define an spatial encoder
                 self$spatial_encoder <-
-                    .torch_pixel_spatial_enconder(n_bands = n_bands)
+                    .torch_pixel_spatial_encoder(
+                        n_bands = n_bands,
+                        layers_spatial_encoder = layers_spatial_encoder
+                    )
+                # number of input channels == last layer of mlp2
+                in_channels = layers_spatial_encoder[length(layers_spatial_encoder)]
                 # define a temporal encoder
-                self$temporal_attention_encoder <-
-                    .torch_temporal_attention_encoder(timeline = timeline)
+                self$temporal_encoder <-
+                    .torch_light_temporal_attention_encoder(
+                        timeline     = timeline,
+                        in_channels  = in_channels,
+                        n_heads      = n_heads,
+                        n_neurons    = n_neurons,
+                        dropout_rate = dropout_rate
+                    )
 
                 # add a final layer to the decoder
                 # with a dimension equal to the number of layers
                 dim_layers_decoder[length(dim_layers_decoder) + 1] <- n_labels
+                # decode the tensor
                 self$decoder <- .torch_multi_linear_batch_norm_relu(
                     dim_input_decoder,
                     dim_layers_decoder
                 )
-                # classification using softmax
+                # classify using softmax
                 self$softmax <- torch::nn_softmax(dim = -1)
             },
-            forward = function(x){
-                x <- x %>%
-                    self$spatial_encoder() %>%
-                    self$temporal_attention_encoder() %>%
-                    self$decoder() %>%
-                    self$softmax()
-                return(x)
+            forward = function(input){
+                out <- self$spatial_encoder(input)
+                out <- self$temporal_encoder(out)
+                out <- self$decoder(out)
+                out <- self$softmax(out)
+                return(out)
             }
         )
 
         # train the model using luz
         torch_model <-
             luz::setup(
-                module = pse_tae_model,
+                module = light_tae_model,
                 loss = torch::nn_cross_entropy_loss(),
                 metrics = list(luz::luz_metric_accuracy()),
                 optimizer = torch::optim_adam
