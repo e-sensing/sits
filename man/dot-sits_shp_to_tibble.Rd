@@ -4,7 +4,7 @@
 \alias{.sits_shp_to_tibble}
 \title{Obtain a tibble with lat/long points to be retrieved from a SHP}
 \usage{
-.sits_shp_to_tibble(sf_shape, shp_attr, label, .n_shp_pol)
+.sits_shp_to_tibble(sf_shape, shp_attr, label, .n_shp_pol, .shp_id)
 }
 \arguments{
 \item{sf_shape}{sf object that contains a SHP file.}
@@ -15,6 +15,8 @@
 
 \item{.n_shp_pol}{Number of samples per polygon to be read
 (for POLYGON or MULTIPOLYGON shapes).}
+
+\item{.shp_id}{ID attribute for polygons shapefile.}
 }
 \value{
 A sits tibble with points to to be read.

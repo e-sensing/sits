@@ -18,6 +18,8 @@ sits_get_data(
   shp_attr = NULL,
   .n_pts_csv = NULL,
   .n_shp_pol = 30,
+  .shp_avg = FALSE,
+  .shp_id = NULL,
   multicores = 1,
   output_dir = ".",
   progress = FALSE
@@ -53,6 +55,10 @@ as a polygon label.}
 
 \item{.n_shp_pol}{Number of samples per polygon to be read
 (for POLYGON or MULTIPOLYGON shapefile).}
+
+\item{.shp_avg}{Logical value to summarize samples for a same polygon.}
+
+\item{.shp_id}{ID attribute for polygons shapefile.}
 
 \item{multicores}{Number of threads to process the time series.}
 
