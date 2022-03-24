@@ -4,7 +4,7 @@
 \alias{.sits_shp_polygon_to_tibble}
 \title{Obtain a tibble from POLYGON geometry}
 \usage{
-.sits_shp_polygon_to_tibble(sf_shape, shp_attr, label, .n_shp_pol)
+.sits_shp_polygon_to_tibble(sf_shape, shp_attr, label, .n_shp_pol, .shp_id)
 }
 \arguments{
 \item{sf_shape}{sf object linked to a shapefile}
@@ -14,6 +14,8 @@
 \item{label}{Label to be assigned to points}
 
 \item{.n_shp_pol}{Number of samples per polygon to be read}
+
+\item{.shp_id}{ID attribute for polygons shapefile.}
 }
 \description{
 Obtain a tibble from POLYGON geometry
