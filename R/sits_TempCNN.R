@@ -77,7 +77,7 @@ sits_TempCNN <- function(samples = NULL,
     # set caller to show in errors
     .check_set_caller("sits_TempCNN")
 
-    # function that returns keras model based on a sits sample data.table
+    # function that returns torch model based on a sits sample data.table
     result_fun <- function(data) {
 
         # verifies if torch package is installed

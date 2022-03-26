@@ -4,13 +4,7 @@
 \alias{sits_kfold_validate}
 \title{Cross-validate time series samples}
 \usage{
-sits_kfold_validate(
-  data,
-  folds = 5,
-  ml_method = sits_rfor(),
-  multicores = 2,
-  progress = FALSE
-)
+sits_kfold_validate(data, folds = 5, ml_method = sits_rfor())
 }
 \arguments{
 \item{data}{Time series.}
@@ -18,10 +12,6 @@ sits_kfold_validate(
 \item{folds}{Number of partitions to create.}
 
 \item{ml_method}{Machine learning method.}
-
-\item{multicores}{Number of cores for processing.}
-
-\item{progress}{Show progress bar?}
 }
 \value{
 A tibble containing pairs of
@@ -54,7 +44,7 @@ data(cerrado_2classes)
 # two fold validation with random forest
 acc <- sits_kfold_validate(cerrado_2classes,
   folds = 2,
-  ml_method = sits_rfor(num_trees = 300)
+  ml_method = sits_rfor(num_trees = 100)
 )
 }
 }

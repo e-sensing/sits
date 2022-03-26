@@ -36,13 +36,17 @@ This function is based on the paper by Vivien Garnot referenced below
 and code available on github at
 https://github.com/VSainteuf/lightweight-temporal-attention-pytorch
 If you use this method, please cite the original TAE and the LTAE paper.
+
+We also used the code made available by Maja Schneider in her work with
+Marco Körner referenced below and available at
+https://github.com/maja601/RC2020-psetae.
 }
 \examples{
 \dontrun{
 # Retrieve the set of samples for the Mato Grosso (provided by EMBRAPA)
 
 # Build a machine learning model based on deep learning
-tae_model <- sits_train(samples_modis_4bands, sits_TAE())
+ltae_model <- sits_train(samples_modis_4bands, sits_LightTAE())
 # Plot the model
 plot(tae_model)
 
@@ -59,6 +63,8 @@ Vivien Garnot, Loic Landrieu, Sebastien Giordano, and Nesrine Chehata,
 "Satellite Image Time Series Classification with Pixel-Set Encoders
 and Temporal Self-Attention",
 2020 Conference on Computer Vision and Pattern Recognition.
+pages 12322-12331.
+DOI: 10.1109/CVPR42600.2020.01234
 
 Vivien Garnot, Loic Landrieu,
 "Lightweight Temporal Self-Attention  for Classifying
@@ -69,6 +75,7 @@ Schneider, Maja; Körner, Marco,
 "[Re] Satellite Image Time Series Classification
 with Pixel-Set Encoders and Temporal Self-Attention."
 ReScience C 7 (2), 2021.
+DOI: 10.5281/zenodo.4835356
 }
 \author{
 Charlotte Pelletier, \email{charlotte.pelletier@univ-ubs.fr}

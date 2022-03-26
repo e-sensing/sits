@@ -25,8 +25,6 @@
 #' @param data            Time series.
 #' @param folds           Number of partitions to create.
 #' @param ml_method       Machine learning method.
-#' @param multicores      Number of cores for processing.
-#' @param progress        Show progress bar?
 #'
 #' @return                A tibble containing pairs of
 #'                        reference and predicted values.
@@ -38,16 +36,15 @@
 #' # two fold validation with random forest
 #' acc <- sits_kfold_validate(cerrado_2classes,
 #'   folds = 2,
-#'   ml_method = sits_rfor(num_trees = 300)
+#'   ml_method = sits_rfor(num_trees = 100)
 #' )
 #' }
 #' @export
 #'
 sits_kfold_validate <- function(data,
                                 folds = 5,
-                                ml_method = sits_rfor(),
-                                multicores = 2,
-                                progress = FALSE) {
+                                ml_method = sits_rfor()
+                                ) {
 
     # set caller to show in errors
     .check_set_caller("sits_kfold_validate")
@@ -76,7 +73,7 @@ sits_kfold_validate <- function(data,
     pred_vec <- character()
     ref_vec <- character()
 
-    conf_lst <- .sits_parallel_map(seq_len(folds), function(k) {
+    conf_lst <- purrr::map(seq_len(folds), function(k) {
 
         # split data into training and test data sets
         data_train <- data[data$folds != k, ]
@@ -108,7 +105,7 @@ sits_kfold_validate <- function(data,
         remove(ml_model)
 
         return(list(pred = pred_vec, ref = ref_vec))
-    }, progress = progress)
+    })
 
     pred <- unlist(lapply(conf_lst, function(x) x$pred))
     ref <- unlist(lapply(conf_lst, function(x) x$ref))

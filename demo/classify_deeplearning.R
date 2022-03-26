@@ -1,5 +1,4 @@
 library(sits)
-library(keras)
 
 # load the sitsdata library
 # load the sitsdata library
