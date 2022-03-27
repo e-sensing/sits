@@ -253,8 +253,8 @@ sits_TempCNN <- function(samples = NULL,
                 epochs = epochs,
                 valid_data = list(test_x, test_y),
                 callbacks = list(luz::luz_callback_early_stopping(
-                    patience = 10,
-                    min_delta = 0.05
+                    patience = 40,
+                    min_delta = 0.03
                 )),
                 verbose = verbose,
                 dataloader_options = list(batch_size = batch_size)
