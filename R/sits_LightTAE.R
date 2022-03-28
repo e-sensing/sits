@@ -39,8 +39,11 @@
 #' @param samples           Time series with the training samples.
 #' @param epochs            Number of iterations to train the model.
 #' @param batch_size        Number of samples per gradient update.
-#' @param validation_split  Number between 0 and 1. Fraction of training data
+#' @param validation_split  Fraction of training data
 #'                          to be used as validation data.
+#' @param patience          Number of epochs without improvements until
+#'                          training stops.
+#' @param min_delta	        Minimum improvement to reset the patience counter.
 #' @param verbose           Verbosity mode (0 = silent, 1 = progress bar,
 #'                          2 = one line per epoch).
 #'
@@ -67,6 +70,8 @@ sits_LightTAE <- function(samples = NULL,
                           epochs = 100,
                           batch_size = 64,
                           validation_split = 0.2,
+                          patience = 20,
+                          min_delta = 0.01,
                           verbose = FALSE) {
 
     # set caller to show in errors
@@ -202,8 +207,8 @@ sits_LightTAE <- function(samples = NULL,
                 epochs = epochs,
                 valid_data = list(test_x, test_y),
                 callbacks = list(luz::luz_callback_early_stopping(
-                    patience = 10,
-                    min_delta = 0.05
+                    patience = patience,
+                    min_delta = min_delta
                 )),
                 verbose = verbose,
                 dataloader_options = list(batch_size = batch_size)
