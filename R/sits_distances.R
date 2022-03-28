@@ -64,8 +64,8 @@
     # set caller to show in errors
     .check_set_caller(".sits_distances_classify")
 
-    # keras-based models run in single-core mode
-    if (inherits(ml_model, c("keras_model", "xgb_model"))) {
+    # torch-based models do their own arallelization
+    if (inherits(ml_model, c("torch_model", "xgb_model"))) {
         multicores <- 1
     }
     # are we running on Windows?

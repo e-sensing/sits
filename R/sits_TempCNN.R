@@ -77,7 +77,7 @@ sits_TempCNN <- function(samples = NULL,
     # set caller to show in errors
     .check_set_caller("sits_TempCNN")
 
-    # function that returns keras model based on a sits sample data.table
+    # function that returns torch model based on a sits sample data.table
     result_fun <- function(data) {
 
         # verifies if torch package is installed
@@ -253,8 +253,8 @@ sits_TempCNN <- function(samples = NULL,
                 epochs = epochs,
                 valid_data = list(test_x, test_y),
                 callbacks = list(luz::luz_callback_early_stopping(
-                    patience = 10,
-                    min_delta = 0.05
+                    patience = 40,
+                    min_delta = 0.03
                 )),
                 verbose = verbose,
                 dataloader_options = list(batch_size = batch_size)

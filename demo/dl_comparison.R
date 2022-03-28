@@ -15,13 +15,13 @@ results <- list()
 # Deep Learning - MLP
 
 print("== Accuracy Assessment = DL =======================")
-acc_mlp <- sits_kfold_validate(samples_modis_4bands,
+acc_ltae <- sits_kfold_validate(samples_modis_4bands,
   folds = 5,
-  ml_method = sits_mlp()
+  ml_method = sits_LightTAE()
 )
-acc_mlp$name <- "mlp_default"
+acc_ltae$name <- "LightTAE"
 
-results[[length(results) + 1]] <- acc_mlp
+results[[length(results) + 1]] <- acc_ltae
 
 # Deep Learning - TempCNN
 print("== Accuracy Assessment = TempCNN =======================")
