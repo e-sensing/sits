@@ -10,7 +10,8 @@
   shp_attr,
   start_date,
   end_date,
-  .n_shp_pol
+  .n_shp_pol,
+  .shp_id
 )
 }
 \arguments{
@@ -24,7 +25,9 @@
 
 \item{end_date}{End date for the data set.}
 
-\item{.n_shp_pol}{Number of samples per polygon to be read.
+\item{.n_shp_pol}{Number of samples per polygon to be read.}
+
+\item{.shp_id}{ID attribute for polygons shapefile.
 (for POLYGON or MULTIPOLYGON shapefile).}
 }
 \value{

@@ -10,11 +10,13 @@
 #' @param label           Label to be assigned to points.
 #' @param .n_shp_pol      Number of samples per polygon to be read
 #'                        (for POLYGON or MULTIPOLYGON shapes).
+#' @param .shp_id         ID attribute for polygons shapefile.
 #' @return                A sits tibble with points to to be read.
 .sits_shp_to_tibble <- function(sf_shape,
                                 shp_attr,
                                 label,
-                                .n_shp_pol) {
+                                .n_shp_pol,
+                                .shp_id) {
 
     # get the geometry type
     geom_type <- sf::st_geometry_type(sf_shape)[1]
@@ -31,7 +33,8 @@
         points_tbl <- .sits_shp_polygon_to_tibble(sf_shape,
                                                   shp_attr,
                                                   label,
-                                                  .n_shp_pol)
+                                                  .n_shp_pol,
+                                                  .shp_id)
     }
 
     return(points_tbl)
@@ -76,9 +79,10 @@
 #' @param shp_attr        Attribute in the shapefile used as a polygon label
 #' @param label           Label to be assigned to points
 #' @param .n_shp_pol      Number of samples per polygon to be read
+#' @param .shp_id         ID attribute for polygons shapefile.
 #'
-#'
-.sits_shp_polygon_to_tibble <- function(sf_shape, shp_attr, label, .n_shp_pol) {
+.sits_shp_polygon_to_tibble <- function(sf_shape, shp_attr, label,
+                                        .n_shp_pol, .shp_id) {
 
     # get the db file
     shp_df <- sf::st_drop_geometry(sf_shape)
@@ -86,9 +90,13 @@
     points.tb <- seq_len(nrow(sf_shape)) %>%
         purrr::map_dfr(function(i) {
             # retrieve the class from the shape attribute
-            if (!purrr::is_null(shp_attr)) {
+            if (!purrr::is_null(shp_attr) && shp_attr %in% colnames(shp_df)) {
                 label <- unname(as.character(shp_df[i, shp_attr]))
             }
+            if (!purrr::is_null(.shp_id) && .shp_id %in% colnames(shp_df)) {
+                polygon_id <- unname(shp_df[i, .shp_id])
+            }
+
             # obtain a set of samples based on polygons
             points <- list(sf::st_sample(sf_shape[i, ], size = .n_shp_pol))
             # get one time series per sample
@@ -100,12 +108,21 @@
                         latitude = pll[2],
                         label = label
                     )
+
+                    if (!purrr::is_null(.shp_id) &&
+                        .shp_id %in% colnames(shp_df))
+                        row <- tibble::add_column(
+                            row,
+                            polygon_id = polygon_id
+                        )
+
                     return(row)
                 })
             return(pts.tb)
         })
     return(points.tb)
 }
+
 #' @title Check the validity of the shape file
 #' @name .sits_shp_check_validity
 #' @keywords internal
@@ -114,7 +131,7 @@
 #' @param shp_attr        attribute in the shapefile that contains the label
 #' @param label           Label to be used instead of shp_attr
 #'
-
+#' @return A sf object.
 .sits_shp_check_validity <- function(shp_file, shp_attr = NULL, label = NULL) {
 
     # set caller to show in errors
@@ -163,4 +180,37 @@
         )
     }
     return(sf_shape)
+}
+
+#' @title Extracts the time series average by polygon.
+#' @name .sits_shp_avg_polygon
+#' @keywords internal
+#' @description This function extracts the average of the automatically
+#' generated points for each polygon in a shapefile.
+#'
+#' @param data A sits tibble with points time series.
+#'
+#' @return A sits tibble with the average of all points by each polygon.
+.sits_shp_avg_polygon <- function(data) {
+
+    bands <- sits_bands(data)
+    data <- data %>% tidyr::unnest(cols = "time_series") %>%
+        dplyr::group_by(.data[["Index"]],
+                        .data[["longitude"]],
+                        .data[["latitude"]],
+                        .data[["start_date"]],
+                        .data[["end_date"]],
+                        .data[["label"]],
+                        .data[["cube"]],
+                        .data[["polygon_id"]]) %>%
+        dplyr::summarise(dplyr::across(!!bands, function(x) {
+            mean(x, na.rm = TRUE)
+        }), .groups = "drop") %>%
+        dplyr::mutate("longitude" = mean(.data[["longitude"]]),
+                      "latitude"  = mean(.data[["latitude"]]),
+                      "start_date" = min(.data[["start_date"]]),
+                      "end_date"   = max(.data[["end_date"]])) %>%
+        tidyr::nest("time_series" = c("Index", bands))
+
+    return(data)
 }
