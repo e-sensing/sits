@@ -29,17 +29,18 @@ to be used as validation data.}
 A fitted model to be passed to \code{\link[sits]{sits_classify}}
 }
 \description{
-Implementation of Light Temporal Attention Encoder (L-TAE)
+Implementation of Temporal Attention Encoder (TAE)
 for satellite image time series classification.
 
 This function is based on the paper by Vivien Garnot referenced below
 and code available on github at
 https://github.com/VSainteuf/pytorch-psetae.
-If you use this method, please cite the original TAE paper.
 
 We also used the code made available by Maja Schneider in her work with
 Marco Körner referenced below and available at
 https://github.com/maja601/RC2020-psetae.
+
+If you use this method, please cite Garnot's and Schneider's work.
 }
 \examples{
 \dontrun{
@@ -62,12 +63,15 @@ plot(class, bands = c("NDVI", "EVI"))
 Vivien Garnot, Loic Landrieu, Sebastien Giordano, and Nesrine Chehata,
 "Satellite Image Time Series Classification with Pixel-Set Encoders
 and Temporal Self-Attention",
-2020 Conference on Computer Vision and Pattern Recognition
+2020 Conference on Computer Vision and Pattern Recognition.
+pages 12322-12331.
+DOI: 10.1109/CVPR42600.2020.01234
 
 Schneider, Maja; Körner, Marco,
 "[Re] Satellite Image Time Series Classification
 with Pixel-Set Encoders and Temporal Self-Attention."
 ReScience C 7 (2), 2021.
+DOI: 10.5281/zenodo.4835356
 }
 \author{
 Charlotte Pelletier, \email{charlotte.pelletier@univ-ubs.fr}
