@@ -9,6 +9,8 @@ sits_LightTAE(
   epochs = 100,
   batch_size = 64,
   validation_split = 0.2,
+  patience = 20,
+  min_delta = 0.01,
   verbose = FALSE
 )
 }
@@ -19,8 +21,13 @@ sits_LightTAE(
 
 \item{batch_size}{Number of samples per gradient update.}
 
-\item{validation_split}{Number between 0 and 1. Fraction of training data
+\item{validation_split}{Fraction of training data
 to be used as validation data.}
+
+\item{patience}{Number of epochs without improvements until
+training stops.}
+
+\item{min_delta}{Minimum improvement to reset the patience counter.}
 
 \item{verbose}{Verbosity mode (0 = silent, 1 = progress bar,
 2 = one line per epoch).}

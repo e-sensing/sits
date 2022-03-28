@@ -14,6 +14,8 @@ sits_TempCNN(
   epochs = 60,
   batch_size = 64,
   validation_split = 0.2,
+  patience = 20,
+  min_delta = 0.01,
   verbose = FALSE
 )
 }
@@ -34,18 +36,14 @@ sits_TempCNN(
 
 \item{batch_size}{Number of samples per gradient update.}
 
-\item{validation_split}{Number between 0 and 1. Fraction of training data
-to be used as validation data.
-The model will set apart this fraction of the
-training data, will not train on it,
-and will evaluate the loss and any model metrics
-on this data at the end of each epoch.
-The validation data is selected from the last
-samples in the x and y data provided,
-before shuffling.}
+\item{validation_split}{Fraction of training data to be used for validation.}
 
-\item{verbose}{Verbosity mode (0 = silent, 1 = progress bar,
-2 = one line per epoch).}
+\item{patience}{Number of epochs without improvements until
+training stops.}
+
+\item{min_delta}{Minimum improvement to reset the patience counter.}
+
+\item{verbose}{Verbosity mode (TRUE/FALSE).}
 }
 \value{
 A fitted model to be passed to \code{\link[sits]{sits_classify}}
