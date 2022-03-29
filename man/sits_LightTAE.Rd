@@ -9,6 +9,10 @@ sits_LightTAE(
   epochs = 100,
   batch_size = 64,
   validation_split = 0.2,
+  optimizer = torch::optimizer_adam,
+  learning_rate = 0.001,
+  lr_decay_epochs = 50,
+  lr_decay_rate = 1,
   patience = 20,
   min_delta = 0.01,
   verbose = FALSE
@@ -23,6 +27,14 @@ sits_LightTAE(
 
 \item{validation_split}{Fraction of training data
 to be used as validation data.}
+
+\item{optimizer}{Optimizer function to be used.}
+
+\item{learning_rate}{Initial learning rate of the optimizer.}
+
+\item{lr_decay_epochs}{Number of epochs to reduce learning rate.}
+
+\item{lr_decay_rate}{Decay factor for reducing learning rate.}
 
 \item{patience}{Number of epochs without improvements until
 training stops.}

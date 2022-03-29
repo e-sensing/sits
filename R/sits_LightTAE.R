@@ -41,6 +41,10 @@
 #' @param batch_size        Number of samples per gradient update.
 #' @param validation_split  Fraction of training data
 #'                          to be used as validation data.
+#' @param optimizer         Optimizer function to be used.
+#' @param learning_rate     Initial learning rate of the optimizer.
+#' @param lr_decay_epochs   Number of epochs to reduce learning rate.
+#' @param lr_decay_rate     Decay factor for reducing learning rate.
 #' @param patience          Number of epochs without improvements until
 #'                          training stops.
 #' @param min_delta	        Minimum improvement to reset the patience counter.
@@ -70,6 +74,10 @@ sits_LightTAE <- function(samples = NULL,
                           epochs = 100,
                           batch_size = 64,
                           validation_split = 0.2,
+                          optimizer = torch::optim_adam,
+                          learning_rate = 0.001,
+                          lr_decay_epochs = 50,
+                          lr_decay_rate = 1,
                           patience = 20,
                           min_delta = 0.01,
                           verbose = FALSE) {
@@ -195,21 +203,31 @@ sits_LightTAE <- function(samples = NULL,
                 module = light_tae_model,
                 loss = torch::nn_cross_entropy_loss(),
                 metrics = list(luz::luz_metric_accuracy()),
-                optimizer = torch::optim_adam
+                optimizer = optimizer
             ) %>%
             luz::set_hparams(
                 n_bands  = n_bands,
                 n_labels = n_labels,
                 timeline = timeline
             ) %>%
+            luz::set_opt_hparams(
+                lr = learning_rate
+            ) %>%
             luz::fit(
                 data = list(train_x, train_y),
                 epochs = epochs,
                 valid_data = list(test_x, test_y),
-                callbacks = list(luz::luz_callback_early_stopping(
-                    patience = patience,
-                    min_delta = min_delta
-                )),
+                callbacks = list(
+                    luz::luz_callback_early_stopping(
+                        patience = patience,
+                        min_delta = min_delta
+                    ),
+                    luz::luz_callback_lr_scheduler(
+                        torch::lr_step,
+                        step_size = lr_decay_epochs,
+                        gamma = lr_decay_rate
+                    )
+                ),
                 verbose = verbose,
                 dataloader_options = list(batch_size = batch_size)
             )
