@@ -281,6 +281,9 @@ sits_TempCNN <- function(samples = NULL,
                 stop("Please install package torch", call. = FALSE)
             }
 
+            # set torch threads to 1
+            torch::torch_set_num_threads(1)
+
             # restore model
             torch_model$model <- model_from_raw(serialized_model)
 

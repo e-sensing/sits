@@ -10,7 +10,8 @@
   latitude,
   start_date,
   end_date,
-  label
+  label,
+  id
 )
 }
 \arguments{
@@ -25,6 +26,8 @@
 \item{end_date}{The end date of the period.}
 
 \item{label}{Label to attach to the time series (optional).}
+
+\item{id}{Points id in case of shapefile polygons.}
 }
 \value{
 A sits tibble.
