@@ -222,7 +222,8 @@ sits_get_data <- function(cube,
     return(data)
 }
 
-#' @title Dispatch function to get time series from data cubes and cloud services
+#' @title Dispatch function to get time series from data cubes and cloud
+#' services
 #' @name .sits_get_ts
 #' @author Gilberto Camara
 #' @keywords internal
@@ -290,7 +291,8 @@ sits_get_data <- function(cube,
                 end_date = lubridate::as_date(row[["end_date"]]),
                 label = row[["label"]],
                 bands = bands,
-                impute_fn = impute_fn
+                impute_fn = impute_fn,
+                id = samples[["polygon_id"]]
             )
 
             return(row_ts)
@@ -310,7 +312,7 @@ sits_get_data <- function(cube,
                         .data[["start_date"]], .data[["end_date"]],
                         .data[["label"]], .data[["cube"]],
                         .data[["Index"]]) %>%
-        dplyr::summarise(dplyr::across(ts_bands, function(x) { stats::na.omit(x) })) %>%
+        dplyr::summarise(dplyr::across(ts_bands, stats::na.omit)) %>%
         dplyr::arrange(.data[["Index"]]) %>%
         dplyr::ungroup() %>%
         tidyr::nest(time_series = !!c("Index", ts_bands))
@@ -359,7 +361,8 @@ sits_get_data <- function(cube,
                 latitude = row[["latitude"]],
                 start_date = lubridate::as_date(row[["start_date"]]),
                 end_date = lubridate::as_date(row[["end_date"]]),
-                label = row[["label"]]
+                label = row[["label"]],
+                id = row[["polygon_id"]]
             )
 
             return(row_ts)
@@ -378,8 +381,13 @@ sits_get_data <- function(cube,
         dplyr::group_by(.data[["longitude"]], .data[["latitude"]],
                         .data[["start_date"]], .data[["end_date"]],
                         .data[["label"]], .data[["cube"]],
-                        .data[["Index"]]) %>%
-        dplyr::summarise(dplyr::across(ts_bands, function(x) { stats::na.omit(x) })) %>%
+                        .data[["Index"]])
+
+    if ("polygon_id" %in% colnames(ts_tbl))
+        ts_tbl <- dplyr::group_by(ts_tbl, .data[["polygon_id"]], .add = TRUE)
+
+    ts_tbl <- ts_tbl %>%
+        dplyr::summarise(dplyr::across(ts_bands, stats::na.omit)) %>%
         dplyr::arrange(.data[["Index"]]) %>%
         dplyr::ungroup() %>%
         tidyr::nest(time_series = !!c("Index", ts_bands))
@@ -479,10 +487,7 @@ sits_get_data <- function(cube,
                 unlink(filename)
                 gc()
             })
-        # make sure we get only the relevant columns
-        samples <- dplyr::select(
-            samples, "longitude", "latitude", "start_date", "end_date", "label"
-        )
+
         # get XY
         xy_tb <- .sits_proj_from_latlong(
             longitude = samples[["longitude"]],
@@ -511,7 +516,7 @@ sits_get_data <- function(cube,
         )
         colnames(xy) <- c("X", "Y")
         # build the sits tibble for the storing the points
-        samples <- slider::slide_dfr(samples, function(point) {
+        samples_tbl <- slider::slide_dfr(samples, function(point) {
 
             # get the valid timeline
             dates <- .sits_timeline_during(
@@ -525,7 +530,8 @@ sits_get_data <- function(cube,
                 start_date = dates[[1]],
                 end_date   = dates[[length(dates)]],
                 label      = point[["label"]],
-                cube       = tile[["collection"]]
+                cube       = tile[["collection"]],
+                polygon_id = point[["polygon_id"]]
             )
             # store them in the sample tibble
             sample$time_series <- list(tibble::tibble(Index = dates))
@@ -534,7 +540,7 @@ sits_get_data <- function(cube,
         })
         ts <- .sits_raster_data_get_ts(
             tile = tile,
-            points = samples,
+            points = samples_tbl,
             bands = band,
             xy = xy,
             cld_band = cld_band,
@@ -553,12 +559,14 @@ sits_get_data <- function(cube,
         dplyr::group_by(.data[["longitude"]], .data[["latitude"]],
                         .data[["start_date"]], .data[["end_date"]],
                         .data[["label"]], .data[["cube"]],
-                        .data[["Index"]]) %>%
-        dplyr::summarise(dplyr::across(bands, function(x) { stats::na.omit(x) })) %>%
+                        .data[["Index"]])
+    if ("polygon_id" %in% colnames(ts_tbl))
+        ts_tbl <- dplyr::group_by(ts_tbl, .data[["polygon_id"]], .add = TRUE)
+    ts_tbl <- ts_tbl %>%
+        dplyr::summarise(dplyr::across(bands, stats::na.omit)) %>%
         dplyr::arrange(.data[["Index"]]) %>%
         dplyr::ungroup() %>%
         tidyr::nest(time_series = !!c("Index", bands))
-
 
     # recreate hash values
     hash_bundle <- purrr::map_chr(tiles_bands, function(tile_band) {
@@ -632,13 +640,15 @@ sits_get_data <- function(cube,
 #' @param start_date      The start date of the period.
 #' @param end_date        The end date of the period.
 #' @param label           Label to attach to the time series (optional).
+#' @param id              Points id in case of shapefile polygons.
 #' @return A sits tibble.
 .sits_get_data_from_satveg <- function(cube,
                                        longitude,
                                        latitude,
                                        start_date,
                                        end_date,
-                                       label) {
+                                       label,
+                                       id) {
 
     # set caller to show in errors
     .check_set_caller(".sits_get_data_from_satveg")
@@ -665,6 +675,7 @@ sits_get_data <- function(cube,
                             end_date = end_date,
                             label = label,
                             cube = cube[["collection"]],
+                            polygon_id = id,
                             time_series = list(ts)
     )
     return(data)
@@ -693,6 +704,7 @@ sits_get_data <- function(cube,
 #' @param label           Label to attach to the time series (optional).
 #' @param bands           Names of the bands of the cube.
 #' @param impute_fn       Function to impute NA values
+#' @param id              Points id in case of shapefile polygons.
 #' @return                A sits tibble.
 .sits_get_data_from_wtss <- function(cube,
                                      longitude,
@@ -701,7 +713,8 @@ sits_get_data <- function(cube,
                                      end_date,
                                      label,
                                      bands = NULL,
-                                     impute_fn) {
+                                     impute_fn,
+                                     id) {
 
     # verifies if wtss package is installed
     if (!requireNamespace("Rwtss", quietly = TRUE)) {
@@ -743,6 +756,8 @@ sits_get_data <- function(cube,
             message(e)
         }
     )
+
+    ts <- tibble::add_column(ts, polygon_id = id)
 
     # interpolate clouds
     cld_band <- .source_bands_band_name(
