@@ -240,7 +240,6 @@ sits_LightTAE <- function(samples = NULL,
             }
 
             # set torch threads to 1
-            torch::torch_set_num_interop_threads(1)
             torch::torch_set_num_threads(1)
 
             # restore model
