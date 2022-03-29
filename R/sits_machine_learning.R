@@ -496,6 +496,7 @@ sits_lightgbm <- function(data = NULL,
             if (!requireNamespace("lightgbm", quietly = TRUE)) {
                 stop("Please install package lightgbm", call. = FALSE)
             }
+
             # reload the model
             lgbm_model <- lightgbm::lgb.load(model_str = lgbm_model_string)
             # predict values
