@@ -75,7 +75,7 @@ sits_mlp <- function(samples = NULL,
     # set caller to show in errors
     .check_set_caller("sits_mlp")
 
-    # function that returns a keras model based on samples
+    # function that returns a torch model based on samples
     result_fun <- function(data) {
 
         # verifies if torch package is installed
@@ -135,7 +135,7 @@ sits_mlp <- function(samples = NULL,
         train_x <- data.matrix(train_data[, -2:0])
         train_y <- unname(int_labels[as.vector(train_data$reference)])
 
-        # create the test data for keras
+        # create the test data
         test_x <- data.matrix(test_data[, -2:0])
         test_y <- unname(int_labels[as.vector(test_data$reference)])
 
@@ -227,10 +227,13 @@ sits_mlp <- function(samples = NULL,
         # build predict closure function
         model_predict <- function(values) {
 
-            # verifies if keras package is installed
+            # verifies if torch package is installed
             if (!requireNamespace("torch", quietly = TRUE)) {
                 stop("Please install package torch", call. = FALSE)
             }
+
+            # set torch threads to 1
+            torch::torch_set_num_threads(1)
 
             # restore model
             torch_model$model <- model_from_raw(serialized_model)
