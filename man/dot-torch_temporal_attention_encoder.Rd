@@ -8,8 +8,8 @@
   timeline,
   dim_encoder = 128,
   n_heads = 4,
-  dim_input_mlp3 = 512,
-  dim_layers_mlp3 = c(128, 128)
+  input_out_enc_mlp = 512,
+  hidden_nodes_out_enc_mlp = c(128, 128)
 )
 }
 \arguments{
@@ -17,36 +17,48 @@
 
 \item{dim_encoder}{Dimension of the positional enconder.}
 
-\item{n_heads}{Number of attention heads.}
+\item{n_heads}{Number of attention heads..}
 
-\item{dim_input_mlp3}{Dimension of input to multi-layer perceptron
+\item{input_out_enc_mlp}{Dimensions of multi-layer perceptron
+used to enconde the output
 (MLP3 in Garnot's paper)}
 
-\item{dim_q_k}{Shared dimensions of keys and queries for attention.}
-
-\item{dim_hidden_nodes_mlp3}{Dimensions of hidden nodes in multi-layer
-perceptrons (MLP3 in Garnot's paper)}
+\item{hidden_nodes_out_enc_mlp}{Hidden nodes in MLP used for output encoding
+(MLP3 in Garnot's paper)}
 }
 \value{
 A linear tensor block.
 }
 \description{
-Defines a torch module for temporal attention encoding.
+Defines a torch module for temporal attention encoding, inspired by the
+work of Vaswani et al(2017). Sinece Attention models contain
+no convolution, the model injects information about the relative
+position of the tokens in the sequence. Varswani et al use
+sine and cosine functions of different frequencies.
 
-This function part of the implementation of the paper by Vivien Garnot
-referenced below.
-We used the code made available by Maja Schneider in her work with
+This function is based on the paper by Vivien Garnot referenced below
+and code available on github at
+https://github.com/VSainteuf/pytorch-psetae.
+
+We also used the code made available by Maja Schneider in her work with
 Marco Körner referenced below and available at
 https://github.com/maja601/RC2020-psetae.
+
+If you use this method, please cite Garnot's and Schneider's work.
 }
 \references{
-Vivien Sainte Fare Garnot and Loic Landrieu,
-"Lightweight Temporal Self-Attention
-for Classifying Satellite Image Time Series", https://arxiv.org/abs/2007.00586
+Vivien Garnot, Loic Landrieu, Sebastien Giordano, and Nesrine Chehata,
+"Satellite Image Time Series Classification with Pixel-Set Encoders
+and Temporal Self-Attention",
+2020 Conference on Computer Vision and Pattern Recognition.
+pages 12322-12331.
+DOI: 10.1109/CVPR42600.2020.01234
 
 Schneider, Maja; Körner, Marco,
 "[Re] Satellite Image Time Series Classification
-with Pixel-Set Encoders and Temporal Self-Attention." ReScience C 7 (2), 2021.
+with Pixel-Set Encoders and Temporal Self-Attention."
+ReScience C 7 (2), 2021.
+DOI: 10.5281/zenodo.4835356
 }
 \author{
 Charlotte Pelletier, \email{charlotte.pelletier@univ-ubs.fr}
