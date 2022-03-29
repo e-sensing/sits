@@ -11,11 +11,15 @@ sits_TempCNN(
   cnn_dropout_rates = c(0.5, 0.5, 0.5),
   dense_layer_nodes = 256,
   dense_layer_dropout_rate = 0.5,
-  epochs = 60,
-  batch_size = 64,
+  epochs = 150,
+  batch_size = 128,
   validation_split = 0.2,
+  optimizer = madgrad::optim_madgrad,
+  learning_rate = 0.01,
+  lr_decay_epochs = 20,
+  lr_decay_rate = 0.1,
   patience = 20,
-  min_delta = 0.01,
+  min_delta = 0.005,
   verbose = FALSE
 )
 }
@@ -37,6 +41,14 @@ sits_TempCNN(
 \item{batch_size}{Number of samples per gradient update.}
 
 \item{validation_split}{Fraction of training data to be used for validation.}
+
+\item{optimizer}{Optimizer function to be used.}
+
+\item{learning_rate}{Initial learning rate of the optimizer.}
+
+\item{lr_decay_epochs}{Number of epochs to reduce learning rate.}
+
+\item{lr_decay_rate}{Decay factor for reducing learning rate.}
 
 \item{patience}{Number of epochs without improvements until
 training stops.}

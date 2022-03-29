@@ -67,6 +67,7 @@ Suggests:
     leafem,
     leaflet,
     lightgbm,
+    madgrad,
     methods,
     mgcv,
     nnet,

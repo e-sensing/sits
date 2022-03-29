@@ -34,6 +34,10 @@
 #' @param epochs            Number of iterations to train the model.
 #' @param batch_size        Number of samples per gradient update.
 #' @param validation_split  Fraction of training data to be used for validation.
+#' @param optimizer         Optimizer function to be used.
+#' @param learning_rate     Initial learning rate of the optimizer.
+#' @param lr_decay_epochs   Number of epochs to reduce learning rate.
+#' @param lr_decay_rate     Decay factor for reducing learning rate.
 #' @param patience          Number of epochs without improvements until
 #'                          training stops.
 #' @param min_delta	        Minimum improvement to reset the patience counter.
@@ -63,11 +67,15 @@ sits_TempCNN <- function(samples = NULL,
                          cnn_dropout_rates = c(0.50, 0.50, 0.50),
                          dense_layer_nodes = 256,
                          dense_layer_dropout_rate = 0.50,
-                         epochs = 60,
-                         batch_size = 64,
+                         epochs = 150,
+                         batch_size = 128,
                          validation_split = 0.2,
+                         optimizer = madgrad::optim_madgrad,
+                         learning_rate = 0.01,
+                         lr_decay_epochs = 20,
+                         lr_decay_rate = 0.1,
                          patience = 20,
-                         min_delta = 0.01,
+                         min_delta = 0.005,
                          verbose = FALSE) {
 
     # set caller to show in errors
@@ -80,9 +88,13 @@ sits_TempCNN <- function(samples = NULL,
         if (!requireNamespace("torch", quietly = TRUE)) {
             stop("Please install package torch", call. = FALSE)
         }
-        # verifies if torch package is installed
+        # verifies if luz package is installed
         if (!requireNamespace("luz", quietly = TRUE)) {
             stop("Please install package luz", call. = FALSE)
+        }
+        # verifies if madgrad package is installed
+        if (!requireNamespace("madgrad", quietly = TRUE)) {
+            stop("Please install package madgrad", call. = FALSE)
         }
         # preconditions
         .check_length(
@@ -104,6 +116,30 @@ sits_TempCNN <- function(samples = NULL,
         .check_that(
             x = length(dense_layer_dropout_rate) == 1,
             msg = "dropout rates must be provided for the dense layer"
+        )
+        .check_num(
+            x = learning_rate,
+            min = 0,
+            max = 0.1,
+            allow_zero = FALSE,
+            len_max = 1,
+            msg = "invalid learning rate"
+        )
+        .check_num(
+            x = lr_decay_epochs,
+            is_integer = TRUE,
+            len_max = 1,
+            min = 10,
+            msg = "invalid learning rate decay epochs"
+        )
+        .check_num(
+            x = lr_decay_rate,
+            is_integer = TRUE,
+            len_max = 1,
+            max = 1,
+            min = 0,
+            allow_zero = FALSE,
+            msg = "invalid learning rate decay"
         )
         # get the labels of the data
         labels <- sits_labels(data)
@@ -232,7 +268,10 @@ sits_TempCNN <- function(samples = NULL,
                 module = tcnn_module,
                 loss = torch::nn_cross_entropy_loss(),
                 metrics = list(luz::luz_metric_accuracy()),
-                optimizer = torch::optim_adam
+                optimizer = optimizer
+            ) %>%
+            luz::set_opt_hparams(
+                lr = learning_rate
             ) %>%
             luz::set_hparams(
                 n_bands = n_bands,
@@ -248,10 +287,18 @@ sits_TempCNN <- function(samples = NULL,
                 data = list(train_x, train_y),
                 epochs = epochs,
                 valid_data = list(test_x, test_y),
-                callbacks = list(luz::luz_callback_early_stopping(
-                    patience = patience,
-                    min_delta = min_delta
-                )),
+                callbacks = list(
+                    luz::luz_callback_early_stopping(
+                        monitor = "valid_acc",
+                        patience = patience,
+                        min_delta = min_delta,
+                        mode = "max"),
+                    luz::luz_callback_lr_scheduler(
+                        torch::lr_step,
+                        step_size = lr_decay_epochs,
+                        gamma = lr_decay_rate
+                    )
+                ),
                 verbose = verbose,
                 dataloader_options = list(batch_size = batch_size)
             )
