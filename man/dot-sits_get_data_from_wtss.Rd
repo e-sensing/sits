@@ -12,7 +12,8 @@
   end_date,
   label,
   bands = NULL,
-  impute_fn
+  impute_fn,
+  id
 )
 }
 \arguments{
@@ -31,6 +32,8 @@
 \item{bands}{Names of the bands of the cube.}
 
 \item{impute_fn}{Function to impute NA values}
+
+\item{id}{Points id in case of shapefile polygons.}
 }
 \value{
 A sits tibble.

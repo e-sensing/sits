@@ -94,7 +94,7 @@
                 label <- unname(as.character(shp_df[i, shp_attr]))
             }
             if (!purrr::is_null(.shp_id) && .shp_id %in% colnames(shp_df)) {
-                polygon_id <- unname(shp_df[i, .shp_id])
+                polygon_id <- unname(as.character(shp_df[i, .shp_id]))
             }
 
             # obtain a set of samples based on polygons
@@ -194,23 +194,21 @@
 .sits_shp_avg_polygon <- function(data) {
 
     bands <- sits_bands(data)
-    data <- data %>% tidyr::unnest(cols = "time_series") %>%
+    columns_to_avg <- c(bands, "latitude", "longitude")
+
+    data_avg <- data %>% tidyr::unnest(cols = "time_series") %>%
         dplyr::group_by(.data[["Index"]],
-                        .data[["longitude"]],
-                        .data[["latitude"]],
                         .data[["start_date"]],
                         .data[["end_date"]],
                         .data[["label"]],
                         .data[["cube"]],
                         .data[["polygon_id"]]) %>%
-        dplyr::summarise(dplyr::across(!!bands, function(x) {
-            mean(x, na.rm = TRUE)
-        }), .groups = "drop") %>%
-        dplyr::mutate("longitude" = mean(.data[["longitude"]]),
-                      "latitude"  = mean(.data[["latitude"]]),
-                      "start_date" = min(.data[["start_date"]]),
-                      "end_date"   = max(.data[["end_date"]])) %>%
-        tidyr::nest("time_series" = c("Index", bands))
+        dplyr::summarise(dplyr::across(!!columns_to_avg, mean, na.rm = TRUE),
+                         .groups = "drop") %>%
+        tidyr::nest("time_series" = c("Index", bands)) %>%
+        dplyr::select(!!colnames(data))
 
-    return(data)
+    class(data_avg) <- class(data)
+
+    return(data_avg)
 }

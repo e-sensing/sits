@@ -280,11 +280,11 @@ sits_classify.raster_cube <- function(data, ml_model, ...,
         }
 
         # check
-        n_samples <- length(sits_timeline(samples))
-        n_tile <- length(sits_timeline(tile))
+        samples_timeline_length <- length(sits_timeline(samples))
+        tiles_timeline_length <- length(sits_timeline(tile))
 
         .check_that(
-            n_samples == n_tile,
+            samples_timeline_length == tiles_timeline_length,
             msg = "number of instances of samples and cube differ"
         )
 
