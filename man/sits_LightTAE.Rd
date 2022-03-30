@@ -9,7 +9,7 @@ sits_LightTAE(
   epochs = 100,
   batch_size = 64,
   validation_split = 0.2,
-  optimizer = torch::optimizer_adam,
+  optimizer = torch::optim_adam,
   learning_rate = 0.001,
   lr_decay_epochs = 50,
   lr_decay_rate = 1,
