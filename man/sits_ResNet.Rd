@@ -8,11 +8,13 @@ sits_ResNet(
   samples = NULL,
   blocks = c(64, 128, 128),
   kernels = c(7, 5, 3),
-  optimizer = torch::optim_adam,
-  learning_rate = 0.001,
   epochs = 100,
   batch_size = 64,
   validation_split = 0.2,
+  optimizer = madgrad::optim_madgrad,
+  learning_rate = 0.005,
+  lr_decay_epochs = 1,
+  lr_decay_rate = 0.95,
   patience = 40,
   min_delta = 0.01,
   verbose = FALSE
@@ -27,21 +29,20 @@ each block of three layers.}
 \item{kernels}{Size of the 1D convolutional kernels
 for each layer of each block.}
 
-\item{optimizer}{Function with a pointer to the optimizer function
-(default is optimization_adam()).
-Options: optimizer_adadelta(), optimizer_adagrad(),
-optimizer_adam(), optimizer_adamax(),
-optimizer_nadam(), optimizer_rmsprop(),
-optimizer_sgd().}
-
-\item{learning_rate}{Nunber with learning rate of model.}
-
 \item{epochs}{Number of iterations to train the model.}
 
 \item{batch_size}{Number of samples per gradient update.}
 
-\item{validation_split}{Number between 0 and 1. Fraction of training data
+\item{validation_split}{Fraction of training data
 to be used as validation data.}
+
+\item{optimizer}{Optimizer function to be used.}
+
+\item{learning_rate}{Initial learning rate of the optimizer.}
+
+\item{lr_decay_epochs}{Number of epochs to reduce learning rate.}
+
+\item{lr_decay_rate}{Decay factor for reducing learning rate.}
 
 \item{patience}{Number of epochs without improvements until
 training stops.}

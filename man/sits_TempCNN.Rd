@@ -15,11 +15,11 @@ sits_TempCNN(
   batch_size = 128,
   validation_split = 0.2,
   optimizer = madgrad::optim_madgrad,
-  learning_rate = 0.01,
-  lr_decay_epochs = 20,
-  lr_decay_rate = 0.1,
+  learning_rate = 0.005,
+  lr_decay_epochs = 1,
+  lr_decay_rate = 0.95,
   patience = 20,
-  min_delta = 0.005,
+  min_delta = 0.01,
   verbose = FALSE
 )
 }
@@ -53,7 +53,8 @@ sits_TempCNN(
 \item{patience}{Number of epochs without improvements until
 training stops.}
 
-\item{min_delta}{Minimum improvement to reset the patience counter.}
+\item{min_delta}{Minimum improvement in loss function
+to reset the patience counter.}
 
 \item{verbose}{Verbosity mode (TRUE/FALSE).}
 }

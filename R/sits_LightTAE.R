@@ -47,9 +47,9 @@
 #' @param lr_decay_rate     Decay factor for reducing learning rate.
 #' @param patience          Number of epochs without improvements until
 #'                          training stops.
-#' @param min_delta	        Minimum improvement to reset the patience counter.
-#' @param verbose           Verbosity mode (0 = silent, 1 = progress bar,
-#'                          2 = one line per epoch).
+#' @param min_delta	        Minimum improvement in loss function
+#'                          to reset the patience counter.
+#' @param verbose           Verbosity mode (TRUE/FALSE).
 #'
 #' @return A fitted model to be passed to \code{\link[sits]{sits_classify}}
 #'
@@ -71,7 +71,7 @@
 #' }
 #' @export
 sits_LightTAE <- function(samples = NULL,
-                          epochs = 100,
+                          epochs = 150,
                           batch_size = 64,
                           validation_split = 0.2,
                           optimizer = torch::optim_adam,
@@ -95,7 +95,32 @@ sits_LightTAE <- function(samples = NULL,
         if (!requireNamespace("luz", quietly = TRUE)) {
             stop("Please install package luz", call. = FALSE)
         }
-        # get the labels of the data
+        # preconditions
+        .check_num(
+            x = learning_rate,
+            min = 0,
+            max = 0.1,
+            allow_zero = FALSE,
+            len_max = 1,
+            msg = "invalid learning rate"
+        )
+        .check_num(
+            x = lr_decay_epochs,
+            is_integer = TRUE,
+            len_max = 1,
+            min = 1,
+            msg = "invalid learning rate decay epochs"
+        )
+        .check_num(
+            x = lr_decay_rate,
+            len_max = 1,
+            max = 1,
+            min = 0,
+            allow_zero = FALSE,
+            msg = "invalid learning rate decay"
+        )
+
+        # get the labels
         labels <- sits_labels(data)
         # create a named vector with integers match the class labels
         n_labels <- length(labels)
@@ -219,6 +244,8 @@ sits_LightTAE <- function(samples = NULL,
                 valid_data = list(test_x, test_y),
                 callbacks = list(
                     luz::luz_callback_early_stopping(
+                        monitor = "valid_loss",
+                        mode = "min",
                         patience = patience,
                         min_delta = min_delta
                     ),
@@ -228,8 +255,8 @@ sits_LightTAE <- function(samples = NULL,
                         gamma = lr_decay_rate
                     )
                 ),
-                verbose = verbose,
-                dataloader_options = list(batch_size = batch_size)
+                dataloader_options = list(batch_size = batch_size),
+                verbose = verbose
             )
 
         model_to_raw <- function(model) {

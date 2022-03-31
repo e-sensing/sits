@@ -6,10 +6,14 @@
 \usage{
 sits_TAE(
   samples = NULL,
-  epochs = 100,
+  epochs = 150,
   batch_size = 64,
   validation_split = 0.2,
-  patience = 40,
+  optimizer = torch::optim_adam,
+  learning_rate = 0.001,
+  lr_decay_epochs = 1,
+  lr_decay_rate = 0.95,
+  patience = 20,
   min_delta = 0.01,
   verbose = FALSE
 )
@@ -23,6 +27,14 @@ sits_TAE(
 
 \item{validation_split}{Number between 0 and 1. Fraction of training data
 to be used as validation data.}
+
+\item{optimizer}{Optimizer function to be used.}
+
+\item{learning_rate}{Initial learning rate of the optimizer.}
+
+\item{lr_decay_epochs}{Number of epochs to reduce learning rate.}
+
+\item{lr_decay_rate}{Decay factor for reducing learning rate.}
 
 \item{patience}{Number of epochs without improvements until
 training stops.}

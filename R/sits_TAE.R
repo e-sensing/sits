@@ -37,6 +37,10 @@
 #' @param batch_size        Number of samples per gradient update.
 #' @param validation_split  Number between 0 and 1. Fraction of training data
 #'                          to be used as validation data.
+#' @param optimizer         Optimizer function to be used.
+#' @param learning_rate     Initial learning rate of the optimizer.
+#' @param lr_decay_epochs   Number of epochs to reduce learning rate.
+#' @param lr_decay_rate     Decay factor for reducing learning rate.
 #' @param patience          Number of epochs without improvements until
 #'                          training stops.
 #' @param min_delta	        Minimum improvement to reset the patience counter.
@@ -63,10 +67,14 @@
 #' }
 #' @export
 sits_TAE <- function(samples = NULL,
-                     epochs = 100,
+                     epochs = 150,
                      batch_size = 64,
                      validation_split = 0.2,
-                     patience = 40,
+                     optimizer = torch::optim_adam,
+                     learning_rate = 0.001,
+                     lr_decay_epochs = 1,
+                     lr_decay_rate = 0.95,
+                     patience = 20,
                      min_delta = 0.01,
                      verbose = FALSE) {
 
@@ -83,6 +91,30 @@ sits_TAE <- function(samples = NULL,
         if (!requireNamespace("luz", quietly = TRUE)) {
             stop("Please install package luz", call. = FALSE)
         }
+        # preconditions
+        .check_num(
+            x = learning_rate,
+            min = 0,
+            max = 0.1,
+            allow_zero = FALSE,
+            len_max = 1,
+            msg = "invalid learning rate"
+        )
+        .check_num(
+            x = lr_decay_epochs,
+            is_integer = TRUE,
+            len_max = 1,
+            min = 1,
+            msg = "invalid learning rate decay epochs"
+        )
+        .check_num(
+            x = lr_decay_rate,
+            len_max = 1,
+            max = 1,
+            min = 0,
+            allow_zero = FALSE,
+            msg = "invalid learning rate decay"
+        )
         # get the labels of the data
         labels <- sits_labels(data)
         # create a named vector with integers match the class labels
@@ -187,12 +219,21 @@ sits_TAE <- function(samples = NULL,
                 data = list(train_x, train_y),
                 epochs = epochs,
                 valid_data = list(test_x, test_y),
-                callbacks = list(luz::luz_callback_early_stopping(
-                    patience = patience,
-                    min_delta = min_delta
-                )),
-                verbose = verbose,
-                dataloader_options = list(batch_size = batch_size)
+                callbacks = list(
+                    luz::luz_callback_early_stopping(
+                        monitor = "valid_loss",
+                        mode = "min",
+                        patience = patience,
+                        min_delta = min_delta
+                    ),
+                    luz::luz_callback_lr_scheduler(
+                        torch::lr_step,
+                        step_size = lr_decay_epochs,
+                        gamma = lr_decay_rate
+                    )
+                ),
+                dataloader_options = list(batch_size = batch_size),
+                verbose = verbose
             )
 
         model_to_raw <- function(model) {

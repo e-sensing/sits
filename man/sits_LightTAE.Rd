@@ -6,10 +6,10 @@
 \usage{
 sits_LightTAE(
   samples = NULL,
-  epochs = 100,
+  epochs = 150,
   batch_size = 64,
   validation_split = 0.2,
-  optimizer = torch::optimizer_adam,
+  optimizer = torch::optim_adam,
   learning_rate = 0.001,
   lr_decay_epochs = 50,
   lr_decay_rate = 1,
@@ -39,10 +39,10 @@ to be used as validation data.}
 \item{patience}{Number of epochs without improvements until
 training stops.}
 
-\item{min_delta}{Minimum improvement to reset the patience counter.}
+\item{min_delta}{Minimum improvement in loss function
+to reset the patience counter.}
 
-\item{verbose}{Verbosity mode (0 = silent, 1 = progress bar,
-2 = one line per epoch).}
+\item{verbose}{Verbosity mode (TRUE/FALSE).}
 }
 \value{
 A fitted model to be passed to \code{\link[sits]{sits_classify}}
