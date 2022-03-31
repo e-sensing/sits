@@ -134,7 +134,6 @@ sits_TempCNN <- function(samples = NULL,
         )
         .check_num(
             x = lr_decay_rate,
-            is_integer = TRUE,
             len_max = 1,
             max = 1,
             min = 0,
