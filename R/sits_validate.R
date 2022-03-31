@@ -25,7 +25,7 @@
 #' @param data            Time series.
 #' @param folds           Number of partitions to create.
 #' @param ml_method       Machine learning method.
-#'
+#' @param multicores      Number of cores to process in parallel
 #' @return                A tibble containing pairs of
 #'                        reference and predicted values.
 #'
@@ -43,8 +43,8 @@
 #'
 sits_kfold_validate <- function(data,
                                 folds = 5,
-                                ml_method = sits_rfor()
-                                ) {
+                                ml_method = sits_rfor(),
+                                multicores = 2) {
 
     # set caller to show in errors
     .check_set_caller("sits_kfold_validate")
@@ -52,6 +52,18 @@ sits_kfold_validate <- function(data,
     if (!requireNamespace("caret", quietly = TRUE)) {
         stop("Please install package caret", call. = FALSE)
     }
+
+    # pre-condition
+    .check_that(
+        inherits(ml_method, "function"),
+        local_msg = "ml_method is not a valid sits method",
+        msg = "invalid ml_method parameter"
+    )
+
+    # pre-condition
+    .check_num(multicores, min = 1, is_integer = TRUE,
+               msg = "Invalid multicores parameter")
+
     # get the labels of the data
     labels <- sits_labels(data)
 
@@ -73,7 +85,14 @@ sits_kfold_validate <- function(data,
     pred_vec <- character()
     ref_vec <- character()
 
-    conf_lst <- purrr::map(seq_len(folds), function(k) {
+    # start parallel process
+    if (multicores > folds)
+        multicores <- folds
+
+    .sits_parallel_start(workers = multicores, log = FALSE)
+    on.exit(.sits_parallel_stop())
+
+    conf_lst <- .sits_parallel_map(seq_len(folds), function(k) {
 
         # split data into training and test data sets
         data_train <- data[data$folds != k, ]
@@ -105,7 +124,7 @@ sits_kfold_validate <- function(data,
         remove(ml_model)
 
         return(list(pred = pred_vec, ref = ref_vec))
-    })
+    }, n_retries = 0, progress = FALSE)
 
     pred <- unlist(lapply(conf_lst, function(x) x$pred))
     ref <- unlist(lapply(conf_lst, function(x) x$ref))

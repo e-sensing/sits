@@ -4,7 +4,7 @@
 \alias{sits_kfold_validate}
 \title{Cross-validate time series samples}
 \usage{
-sits_kfold_validate(data, folds = 5, ml_method = sits_rfor())
+sits_kfold_validate(data, folds = 5, ml_method = sits_rfor(), multicores = 2)
 }
 \arguments{
 \item{data}{Time series.}
@@ -12,6 +12,8 @@ sits_kfold_validate(data, folds = 5, ml_method = sits_rfor())
 \item{folds}{Number of partitions to create.}
 
 \item{ml_method}{Machine learning method.}
+
+\item{multicores}{Number of cores to process in parallel}
 }
 \value{
 A tibble containing pairs of
