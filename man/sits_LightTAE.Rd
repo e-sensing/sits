@@ -6,6 +6,7 @@
 \usage{
 sits_LightTAE(
   samples = NULL,
+  samples_validation = NULL,
   epochs = 100,
   batch_size = 64,
   validation_split = 0.2,
@@ -20,6 +21,8 @@ sits_LightTAE(
 }
 \arguments{
 \item{samples}{Time series with the training samples.}
+
+\item{samples_validation}{Time series with the validation samples.}
 
 \item{epochs}{Number of iterations to train the model.}
 

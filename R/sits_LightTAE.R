@@ -36,20 +36,21 @@
 #' ReScience C 7 (2), 2021.
 #' DOI: 10.5281/zenodo.4835356
 #'
-#' @param samples           Time series with the training samples.
-#' @param epochs            Number of iterations to train the model.
-#' @param batch_size        Number of samples per gradient update.
-#' @param validation_split  Fraction of training data
-#'                          to be used as validation data.
-#' @param optimizer         Optimizer function to be used.
-#' @param learning_rate     Initial learning rate of the optimizer.
-#' @param lr_decay_epochs   Number of epochs to reduce learning rate.
-#' @param lr_decay_rate     Decay factor for reducing learning rate.
-#' @param patience          Number of epochs without improvements until
-#'                          training stops.
-#' @param min_delta	        Minimum improvement to reset the patience counter.
-#' @param verbose           Verbosity mode (0 = silent, 1 = progress bar,
-#'                          2 = one line per epoch).
+#' @param samples            Time series with the training samples.
+#' @param samples_validation Time series with the validation samples.
+#' @param epochs             Number of iterations to train the model.
+#' @param batch_size         Number of samples per gradient update.
+#' @param validation_split   Fraction of training data
+#'                           to be used as validation data.
+#' @param optimizer          Optimizer function to be used.
+#' @param learning_rate      Initial learning rate of the optimizer.
+#' @param lr_decay_epochs    Number of epochs to reduce learning rate.
+#' @param lr_decay_rate      Decay factor for reducing learning rate.
+#' @param patience           Number of epochs without improvements until
+#'                           training stops.
+#' @param min_delta	         Minimum improvement to reset the patience counter.
+#' @param verbose            Verbosity mode (0 = silent, 1 = progress bar,
+#'                           2 = one line per epoch).
 #'
 #' @return A fitted model to be passed to \code{\link[sits]{sits_classify}}
 #'
@@ -71,6 +72,7 @@
 #' }
 #' @export
 sits_LightTAE <- function(samples = NULL,
+                          samples_validation = NULL,
                           epochs = 100,
                           batch_size = 64,
                           validation_split = 0.2,
@@ -101,6 +103,7 @@ sits_LightTAE <- function(samples = NULL,
         n_labels <- length(labels)
         int_labels <- c(1:n_labels)
         names(int_labels) <- labels
+        bands <- sits_bands(data)
 
         # number of bands and number of samples
         n_bands <- length(sits_bands(data))
@@ -114,11 +117,40 @@ sits_LightTAE <- function(samples = NULL,
 
         # split the data into training and validation data sets
         # create partitions different splits of the input data
-        test_data <- .sits_distances_sample(train_data,
-                                            frac = validation_split
-        )
-        # remove the lines used for validation
-        train_data <- train_data[!test_data, on = "original_row"]
+        if (!is.null(samples_validation)) {
+
+            if (!is.null(validation_split))
+                message(
+                    paste("samples_validation provided.",
+                          "Ignoring validation_split parameter")
+                )
+
+            # check if the labels matches with train data
+            .check_that(
+                all(sits_labels(samples_validation) %in% labels)
+            )
+            # check if the timeline matches with train data
+            .check_that(
+                all(sits_timeline(samples_validation) %in% timeline)
+            )
+            # check if the bands matches with train data
+            .check_that(
+                all(sits_bandas(samples_validation) %in% bands)
+            )
+
+            test_data <- .sits_distances(
+                .sits_ml_normalize_data(samples_validation, stats)
+            )
+        } else {
+            test_data <- .sits_distances_sample(
+                train_data,
+                frac = validation_split
+            )
+
+            # remove the lines used for validation
+            train_data <- train_data[!test_data, on = "original_row"]
+        }
+
         n_samples_train <- nrow(train_data)
         n_samples_test <- nrow(test_data)
 
