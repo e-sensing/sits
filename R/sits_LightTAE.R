@@ -1,5 +1,5 @@
 #' @title Train a model using Lightweight Temporal Self-Attention Encoder
-#' @name sits_LightTAE
+#' @name sits_lighttae
 #'
 #' @author Charlotte Pelletier, \email{charlotte.pelletier@@univ-ubs.fr}
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
@@ -58,7 +58,7 @@
 #' # Retrieve the set of samples for the Mato Grosso (provided by EMBRAPA)
 #'
 #' # Build a machine learning model based on deep learning
-#' ltae_model <- sits_train(samples_modis_4bands, sits_LightTAE())
+#' ltae_model <- sits_train(samples_modis_4bands, sits_lighttae())
 #' # Plot the model
 #' plot(tae_model)
 #'
@@ -70,7 +70,7 @@
 #' plot(class, bands = c("NDVI", "EVI"))
 #' }
 #' @export
-sits_LightTAE <- function(samples = NULL,
+sits_lighttae <- function(samples = NULL,
                           epochs = 150,
                           batch_size = 64,
                           validation_split = 0.2,
@@ -83,7 +83,7 @@ sits_LightTAE <- function(samples = NULL,
                           verbose = FALSE) {
 
     # set caller to show in errors
-    .check_set_caller("sits_LightTAE")
+    .check_set_caller("sits_lighttae")
 
     # function that returns torch model based on a sits sample data.table
     result_fun <- function(data) {

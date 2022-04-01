@@ -1,5 +1,5 @@
 #' @title Train ResNet classification models
-#' @name sits_ResNet
+#' @name sits_resnet
 #'
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
@@ -73,7 +73,7 @@
 #' # Retrieve the set of samples for the Mato Grosso (provided by EMBRAPA)
 #'
 #' # Build a machine learning model based on deep learning
-#' rn_model <- sits_train(samples_modis_4bands, sits_ResNet())
+#' rn_model <- sits_train(samples_modis_4bands, sits_resnet())
 #' # Plot the model
 #' plot(rn_model)
 #'
@@ -85,7 +85,7 @@
 #' plot(class, bands = c("NDVI", "EVI"))
 #' }
 #' @export
-sits_ResNet <- function(samples = NULL,
+sits_resnet <- function(samples = NULL,
                         blocks = c(64, 128, 128),
                         kernels = c(7, 5, 3),
                         epochs = 100,
@@ -111,10 +111,6 @@ sits_ResNet <- function(samples = NULL,
         # verifies if luz package is installed
         if (!requireNamespace("luz", quietly = TRUE)) {
             stop("Please install package luz", call. = FALSE)
-        }
-        # verifies if torch package is installed
-        if (!requireNamespace("madgrad", quietly = TRUE)) {
-            stop("Please install package torch", call. = FALSE)
         }
         .check_that(
             x = length(kernels) == 3,

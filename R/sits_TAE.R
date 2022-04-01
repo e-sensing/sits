@@ -1,5 +1,5 @@
 #' @title Train a model using  Temporal Self-Attention Encoder
-#' @name sits_TAE
+#' @name sits_tae
 #'
 #' @author Charlotte Pelletier, \email{charlotte.pelletier@@univ-ubs.fr}
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
@@ -54,7 +54,7 @@
 #' # Retrieve the set of samples for the Mato Grosso (provided by EMBRAPA)
 #'
 #' # Build a machine learning model based on deep learning
-#' tae_model <- sits_train(samples_modis_4bands, sits_TAE())
+#' tae_model <- sits_train(samples_modis_4bands, sits_tae())
 #' # Plot the model
 #' plot(tae_model)
 #'
@@ -66,7 +66,7 @@
 #' plot(class, bands = c("NDVI", "EVI"))
 #' }
 #' @export
-sits_TAE <- function(samples = NULL,
+sits_tae <- function(samples = NULL,
                      epochs = 150,
                      batch_size = 64,
                      validation_split = 0.2,
