@@ -37,7 +37,10 @@
 #' DOI: 10.5281/zenodo.4835356
 #'
 #' @param samples            Time series with the training samples.
-#' @param samples_validation Time series with the validation samples.
+#' @param samples_validation Time series with the validation samples. if the
+#'                           \code{samples_validation} parameter is provided,
+#'                           the \code{validation_split}
+#'                           parameter is ignored.
 #' @param epochs             Number of iterations to train the model.
 #' @param batch_size         Number of samples per gradient update.
 #' @param validation_split   Fraction of training data
@@ -49,8 +52,7 @@
 #' @param patience           Number of epochs without improvements until
 #'                           training stops.
 #' @param min_delta	         Minimum improvement to reset the patience counter.
-#' @param verbose            Verbosity mode (0 = silent, 1 = progress bar,
-#'                           2 = one line per epoch).
+#' @param verbose            Verbosity mode (TRUE/FALSE). Default is FALSE.
 #'
 #' @return A fitted model to be passed to \code{\link[sits]{sits_classify}}
 #'
@@ -115,33 +117,37 @@ sits_LightTAE <- function(samples = NULL,
         stats <- .sits_ml_normalization_param(data)
         train_data <- .sits_distances(.sits_ml_normalize_data(data, stats))
 
-        # split the data into training and validation data sets
-        # create partitions different splits of the input data
-        if (!is.null(samples_validation)) {
+        # is the training data correct?
+        .check_chr_within(
+            x = "reference",
+            within = names(train_data),
+            discriminator = "any_of",
+            msg = "input data does not contain distances"
+        )
 
-            if (!is.null(validation_split))
-                message(
-                    paste("samples_validation provided.",
-                          "Ignoring validation_split parameter")
-                )
+        if (!is.null(samples_validation)) {
 
             # check if the labels matches with train data
             .check_that(
-                all(sits_labels(samples_validation) %in% labels)
+                all(sits_labels(samples_validation) %in% labels) &&
+                    all(labels %in% sits_labels(samples_validation))
             )
             # check if the timeline matches with train data
             .check_that(
-                all(sits_timeline(samples_validation) %in% timeline)
+                length(sits_timeline(samples_validation)) == length(timeline)
             )
             # check if the bands matches with train data
             .check_that(
-                all(sits_bandas(samples_validation) %in% bands)
+                all(sits_bands(samples_validation) %in% bands) &&
+                    all(bands %in% sits_bands(samples_validation))
             )
 
             test_data <- .sits_distances(
                 .sits_ml_normalize_data(samples_validation, stats)
             )
         } else {
+            # split the data into training and validation data sets
+            # create partitions different splits of the input data
             test_data <- .sits_distances_sample(
                 train_data,
                 frac = validation_split
@@ -150,7 +156,6 @@ sits_LightTAE <- function(samples = NULL,
             # remove the lines used for validation
             train_data <- train_data[!test_data, on = "original_row"]
         }
-
         n_samples_train <- nrow(train_data)
         n_samples_test <- nrow(test_data)
 
