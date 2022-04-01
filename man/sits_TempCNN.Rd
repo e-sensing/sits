@@ -6,6 +6,7 @@
 \usage{
 sits_TempCNN(
   samples = NULL,
+  samples_validation = NULL,
   cnn_layers = c(64, 64, 64),
   cnn_kernels = c(5, 5, 5),
   cnn_dropout_rates = c(0.5, 0.5, 0.5),
@@ -26,6 +27,10 @@ sits_TempCNN(
 \arguments{
 \item{samples}{Time series with the training samples.}
 
+\item{samples_validation}{Time series with the validation samples. if the
+\code{samples_validation} parameter is provided,
+the \code{validation_split} parameter is ignored.}
+
 \item{cnn_layers}{Number of 1D convolutional filters per layer}
 
 \item{cnn_kernels}{Size of the 1D convolutional kernels.}
@@ -40,7 +45,8 @@ sits_TempCNN(
 
 \item{batch_size}{Number of samples per gradient update.}
 
-\item{validation_split}{Fraction of training data to be used for validation.}
+\item{validation_split}{Fraction of training data to be used for
+validation.}
 
 \item{optimizer}{Optimizer function to be used.}
 
@@ -55,7 +61,7 @@ training stops.}
 
 \item{min_delta}{Minimum improvement to reset the patience counter.}
 
-\item{verbose}{Verbosity mode (TRUE/FALSE).}
+\item{verbose}{Verbosity mode (TRUE/FALSE). Default is FALSE.}
 }
 \value{
 A fitted model to be passed to \code{\link[sits]{sits_classify}}

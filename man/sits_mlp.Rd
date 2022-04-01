@@ -6,17 +6,24 @@
 \usage{
 sits_mlp(
   samples = NULL,
+  samples_validation = NULL,
   layers = c(512, 512, 512),
   dropout_rates = c(0.2, 0.3, 0.4),
   learning_rate = 0.001,
   epochs = 100,
   batch_size = 64,
   validation_split = 0.2,
-  verbose = 0
+  patience = 20,
+  min_delta = 0.01,
+  verbose = FALSE
 )
 }
 \arguments{
 \item{samples}{Time series with the training samples.}
+
+\item{samples_validation}{Time series with the validation samples. if the
+\code{samples_validation} parameter is provided,
+the \code{validation_split} parameter is ignored.}
 
 \item{layers}{Vector with number of hidden nodes in each layer.}
 
@@ -35,12 +42,16 @@ The model will set apart this fraction
 and will evaluate the loss and any model metrics
 on this data at the end of each epoch.}
 
-\item{verbose}{Verbosity mode (0 = silent,
-1 = progress bar, 2 = one line per epoch).}
+\item{patience}{Number of epochs without improvements until
+training stops.}
+
+\item{min_delta}{Minimum improvement to reset the patience counter.}
+
+\item{verbose}{Verbosity mode (TRUE/FALSE). Default is FALSE.}
 }
 \value{
 Either a model to be passed in sits_predict
-                         or a function prepared to be called further.
+                          or a function prepared to be called further.
 }
 \description{
 Use a multi-layer perceptron algorithm to classify data.

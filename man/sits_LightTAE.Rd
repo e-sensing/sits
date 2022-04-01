@@ -22,7 +22,10 @@ sits_LightTAE(
 \arguments{
 \item{samples}{Time series with the training samples.}
 
-\item{samples_validation}{Time series with the validation samples.}
+\item{samples_validation}{Time series with the validation samples. if the
+\code{samples_validation} parameter is provided,
+the \code{validation_split}
+parameter is ignored.}
 
 \item{epochs}{Number of iterations to train the model.}
 
@@ -44,8 +47,7 @@ training stops.}
 
 \item{min_delta}{Minimum improvement to reset the patience counter.}
 
-\item{verbose}{Verbosity mode (0 = silent, 1 = progress bar,
-2 = one line per epoch).}
+\item{verbose}{Verbosity mode (TRUE/FALSE). Default is FALSE.}
 }
 \value{
 A fitted model to be passed to \code{\link[sits]{sits_classify}}
