@@ -89,3 +89,27 @@ test_that("compute distances in time series for bands and indices", {
         500
     )
 })
+
+test_that("compute distances in time series with two times", {
+
+    filter_rows <- function(ts) ts[1:2,]
+    ts <- .sits_fast_apply(samples_modis_4bands, "time_series", filter_rows)
+
+    bands_samples <- sits_bands(ts)
+    n_timeline <- length(sits_timeline(ts))
+    bands_distances_names <- as.character(
+        sapply(bands_samples, paste0, seq_len(n_timeline))
+    )
+
+    samples_distances <- .sits_distances(ts)
+
+    testthat::expect_equal(
+        colnames(samples_distances),
+        c("original_row", "reference", bands_distances_names)
+    )
+
+    testthat::expect_equal(
+        class(samples_distances),
+        c("data.table", "data.frame")
+    )
+})
