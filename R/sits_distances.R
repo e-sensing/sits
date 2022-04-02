@@ -24,23 +24,22 @@
     # get bands order
     bands <- names(data$time_series[[1]][-1])
 
-    # create a list with the time series transposed from columns to rows
-    ts <- data$time_series %>%
-        purrr::map(function(ts) {
-            as.data.frame(t(unlist(ts[bands])))
-        })
+    # create a tibble with the time series transposed from columns to rows
+    # and create original_row and reference columns as the first two
+    # columns for training
+    distances_tbl <- data %>%
+        dplyr::mutate(original_row = seq_len(nrow(data)),
+                      reference = .data[["label"]]) %>%
+        tidyr::unnest("time_series") %>%
+        dplyr::select("original_row", "reference", !!bands) %>%
+        dplyr::group_by(.data[["original_row"]]) %>%
+        dplyr::mutate(temp_index = seq_len(dplyr::n())) %>%
+        dplyr::ungroup() %>%
+        tidyr::pivot_wider(names_from = temp_index,
+                           values_from = !!bands,
+                           names_sep = "")
 
-    # bind the lists of time series together
-    dist <- data.table::rbindlist(ts, use.names = FALSE)
-
-    # create a data frame with the first two columns for training
-    distances <- data.table::data.table(
-        "original_row" = 1:n_rows_data,
-        "reference" = data$label
-    )
-
-    # join the two references columns with the data values
-    distances <- data.table::as.data.table(cbind(distances, dist))
+    distances <- data.table::data.table(distances_tbl)
 
     return(distances)
 }
