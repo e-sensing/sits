@@ -67,7 +67,6 @@ Suggests:
     leafem,
     leaflet,
     lightgbm,
-    madgrad,
     methods,
     mgcv,
     nnet,
@@ -118,7 +117,7 @@ Collate:
     'sits_imputation.R'
     'sits_labels.R'
     'sits_label_classification.R'
-    'sits_LightTAE.R'
+    'sits_lighttae.R'
     'sits_machine_learning.R'
     'sits_merge.R'
     'sits_mlp.R'
@@ -132,7 +131,7 @@ Collate:
     'sits_raster_sub_image.R'
     'sits_regularize.R'
     'sits_regularize_aux_functions.R'
-    'sits_ResNet.R'
+    'sits_resnet.R'
     'sits_roi.R'
     'sits_satveg.R'
     'sits_select.R'
@@ -152,10 +151,12 @@ Collate:
     'sits_source_api_wtss.R'
     'sits_space_time_operations.R'
     'sits_stac.R'
-    'sits_TAE.R'
-    'sits_TempCNN.R'
+    'sits_tae.R'
+    'sits_tempcnn.R'
     'sits_torch_conv1d.R'
     'sits_torch_linear.R'
+    'sits_torch_optim_adabound.R'
+    'sits_torch_optim_madgrad.R'
     'sits_torch_spatial_encoder.R'
     'sits_torch_temporal_attention_encoder.R'
     'sits_tibble.R'

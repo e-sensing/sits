@@ -201,7 +201,7 @@ test_that("ResNet", {
   samples_ndvi <- sits_select(samples_modis_4bands, bands = "NDVI")
 
   model <- tryCatch({
-      sits_train(samples_ndvi, sits_ResNet(epochs = 50))
+      sits_train(samples_ndvi, sits_resnet(epochs = 50))
   },
   error = function(e) {
       return(NULL)
@@ -220,9 +220,9 @@ test_that("ResNet", {
     sits_labels(samples_ndvi)))
   expect_true(nrow(sits_show_prediction(point_class)) == 17)
 })
-test_that("tempCNN model", {
+test_that("TempCNN model", {
   # skip_on_cran()
-  model <- sits_train(samples_modis_4bands, sits_TempCNN())
+  model <- sits_train(samples_modis_4bands, sits_tempcnn())
   point_4bands <- sits_select(point_mt_6bands,
     bands = c("NDVI", "EVI", "NIR", "MIR")
   )
@@ -237,7 +237,38 @@ test_that("tempCNN model", {
   expect_true(nrow(sits_show_prediction(point_class)) == 17)
 })
 
+test_that("LightTAE model", {
+    # skip_on_cran()
+    model <- sits_train(samples_modis_4bands, sits_lighttae())
+    point_4bands <- sits_select(point_mt_6bands,
+                                bands = c("NDVI", "EVI", "NIR", "MIR")
+    )
+    point_class <-
+        sits_classify(
+            data = point_4bands,
+            ml_model = model
+        )
 
+    expect_true(all(point_class$predicted[[1]]$class %in%
+                        sits_labels(samples_modis_4bands)))
+    expect_true(nrow(sits_show_prediction(point_class)) == 17)
+})
+test_that("PSETAE model", {
+    # skip_on_cran()
+    model <- sits_train(samples_modis_4bands, sits_tae())
+    point_4bands <- sits_select(point_mt_6bands,
+                                bands = c("NDVI", "EVI", "NIR", "MIR")
+    )
+    point_class <-
+        sits_classify(
+            data = point_4bands,
+            ml_model = model
+        )
+
+    expect_true(all(point_class$predicted[[1]]$class %in%
+                        sits_labels(samples_modis_4bands)))
+    expect_true(nrow(sits_show_prediction(point_class)) == 17)
+})
 test_that("normalization", {
   stats <- .sits_ml_normalization_param(cerrado_2classes)
 

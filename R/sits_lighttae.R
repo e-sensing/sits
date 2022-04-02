@@ -1,5 +1,5 @@
 #' @title Train a model using Lightweight Temporal Self-Attention Encoder
-#' @name sits_LightTAE
+#' @name sits_lighttae
 #'
 #' @author Charlotte Pelletier, \email{charlotte.pelletier@@univ-ubs.fr}
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
@@ -61,7 +61,7 @@
 #' # Retrieve the set of samples for the Mato Grosso (provided by EMBRAPA)
 #'
 #' # Build a machine learning model based on deep learning
-#' ltae_model <- sits_train(samples_modis_4bands, sits_LightTAE())
+#' ltae_model <- sits_train(samples_modis_4bands, sits_lighttae())
 #' # Plot the model
 #' plot(tae_model)
 #'
@@ -75,7 +75,7 @@
 #' @export
 sits_LightTAE <- function(samples = NULL,
                           samples_validation = NULL,
-                          epochs = 100,
+                          epochs = 150,
                           batch_size = 64,
                           validation_split = 0.2,
                           optimizer = torch::optim_adam,
@@ -87,7 +87,7 @@ sits_LightTAE <- function(samples = NULL,
                           verbose = FALSE) {
 
     # set caller to show in errors
-    .check_set_caller("sits_LightTAE")
+    .check_set_caller("sits_lighttae")
 
     # function that returns torch model based on a sits sample data.table
     result_fun <- function(data) {
@@ -99,7 +99,32 @@ sits_LightTAE <- function(samples = NULL,
         if (!requireNamespace("luz", quietly = TRUE)) {
             stop("Please install package luz", call. = FALSE)
         }
-        # get the labels of the data
+        # preconditions
+        .check_num(
+            x = learning_rate,
+            min = 0,
+            max = 0.1,
+            allow_zero = FALSE,
+            len_max = 1,
+            msg = "invalid learning rate"
+        )
+        .check_num(
+            x = lr_decay_epochs,
+            is_integer = TRUE,
+            len_max = 1,
+            min = 1,
+            msg = "invalid learning rate decay epochs"
+        )
+        .check_num(
+            x = lr_decay_rate,
+            len_max = 1,
+            max = 1,
+            min = 0,
+            allow_zero = FALSE,
+            msg = "invalid learning rate decay"
+        )
+
+        # get the labels
         labels <- sits_labels(data)
         # create a named vector with integers match the class labels
         n_labels <- length(labels)
@@ -256,6 +281,8 @@ sits_LightTAE <- function(samples = NULL,
                 valid_data = list(test_x, test_y),
                 callbacks = list(
                     luz::luz_callback_early_stopping(
+                        monitor = "valid_loss",
+                        mode = "min",
                         patience = patience,
                         min_delta = min_delta
                     ),
@@ -265,8 +292,8 @@ sits_LightTAE <- function(samples = NULL,
                         gamma = lr_decay_rate
                     )
                 ),
-                verbose = verbose,
-                dataloader_options = list(batch_size = batch_size)
+                dataloader_options = list(batch_size = batch_size),
+                verbose = verbose
             )
 
         model_to_raw <- function(model) {

@@ -1,6 +1,6 @@
 
 #' @title Train temporal convolutional neural network models
-#' @name sits_TempCNN
+#' @name sits_tempcnn
 #'
 #' @author Charlotte Pelletier, \email{charlotte.pelletier@@univ-ubs.fr}
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
@@ -54,7 +54,7 @@
 #' # Retrieve the set of samples for the Mato Grosso (provided by EMBRAPA)
 #'
 #' # Build a machine learning model based on deep learning
-#' tc_model <- sits_train(samples_modis_4bands, sits_TempCNN())
+#' tc_model <- sits_train(samples_modis_4bands, sits_tempcnn())
 #' # Plot the model
 #' plot(tc_model)
 #'
@@ -75,16 +75,16 @@ sits_TempCNN <- function(samples = NULL,
                          epochs = 150,
                          batch_size = 128,
                          validation_split = 0.2,
-                         optimizer = madgrad::optim_madgrad,
-                         learning_rate = 0.01,
-                         lr_decay_epochs = 20,
-                         lr_decay_rate = 0.1,
+                         optimizer = optim_adabound,
+                         learning_rate = 0.001,
+                         lr_decay_epochs = 1,
+                         lr_decay_rate = 1,
                          patience = 20,
-                         min_delta = 0.005,
+                         min_delta = 0.01,
                          verbose = FALSE) {
 
     # set caller to show in errors
-    .check_set_caller("sits_TempCNN")
+    .check_set_caller("sits_tempcnn")
 
     # function that returns torch model based on a sits sample data.table
     result_fun <- function(data) {
@@ -96,10 +96,6 @@ sits_TempCNN <- function(samples = NULL,
         # verifies if luz package is installed
         if (!requireNamespace("luz", quietly = TRUE)) {
             stop("Please install package luz", call. = FALSE)
-        }
-        # verifies if madgrad package is installed
-        if (!requireNamespace("madgrad", quietly = TRUE)) {
-            stop("Please install package madgrad", call. = FALSE)
         }
         # preconditions
         .check_length(
@@ -134,7 +130,7 @@ sits_TempCNN <- function(samples = NULL,
             x = lr_decay_epochs,
             is_integer = TRUE,
             len_max = 1,
-            min = 10,
+            min = 1,
             msg = "invalid learning rate decay epochs"
         )
         .check_num(
@@ -312,7 +308,7 @@ sits_TempCNN <- function(samples = NULL,
                 optimizer = optimizer
             ) %>%
             luz::set_opt_hparams(
-                lr = learning_rate
+                lr = learning_rate,
             ) %>%
             luz::set_hparams(
                 n_bands = n_bands,
@@ -330,18 +326,18 @@ sits_TempCNN <- function(samples = NULL,
                 valid_data = list(test_x, test_y),
                 callbacks = list(
                     luz::luz_callback_early_stopping(
-                        monitor = "valid_acc",
+                        monitor = "valid_loss",
                         patience = patience,
                         min_delta = min_delta,
-                        mode = "max"),
+                        mode = "min"),
                     luz::luz_callback_lr_scheduler(
                         torch::lr_step,
                         step_size = lr_decay_epochs,
                         gamma = lr_decay_rate
                     )
                 ),
-                verbose = verbose,
-                dataloader_options = list(batch_size = batch_size)
+                dataloader_options = list(batch_size = batch_size),
+                verbose = verbose
             )
 
         model_to_raw <- function(model) {
