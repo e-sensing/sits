@@ -2,10 +2,9 @@
 % Please edit documentation in R/sits_resnet.R
 \name{sits_resnet}
 \alias{sits_resnet}
-\alias{sits_ResNet}
 \title{Train ResNet classification models}
 \usage{
-sits_ResNet(
+sits_resnet(
   samples = NULL,
   samples_validation = NULL,
   blocks = c(64, 128, 128),

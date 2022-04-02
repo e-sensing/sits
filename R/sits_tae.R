@@ -68,7 +68,7 @@
 #' plot(class, bands = c("NDVI", "EVI"))
 #' }
 #' @export
-sits_TAE <- function(samples = NULL,
+sits_tae <- function(samples = NULL,
                      samples_validation = NULL,
                      epochs = 150,
                      batch_size = 64,

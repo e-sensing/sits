@@ -2,10 +2,9 @@
 % Please edit documentation in R/sits_tempcnn.R
 \name{sits_tempcnn}
 \alias{sits_tempcnn}
-\alias{sits_TempCNN}
 \title{Train temporal convolutional neural network models}
 \usage{
-sits_TempCNN(
+sits_tempcnn(
   samples = NULL,
   samples_validation = NULL,
   cnn_layers = c(64, 64, 64),

@@ -83,7 +83,7 @@
 #' plot(class, bands = c("NDVI", "EVI"))
 #' }
 #' @export
-sits_ResNet <- function(samples = NULL,
+sits_resnet <- function(samples = NULL,
                         samples_validation = NULL,
                         blocks = c(64, 128, 128),
                         kernels = c(7, 5, 3),
