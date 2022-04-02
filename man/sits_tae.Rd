@@ -2,10 +2,9 @@
 % Please edit documentation in R/sits_tae.R
 \name{sits_tae}
 \alias{sits_tae}
-\alias{sits_TAE}
 \title{Train a model using  Temporal Self-Attention Encoder}
 \usage{
-sits_TAE(
+sits_tae(
   samples = NULL,
   samples_validation = NULL,
   epochs = 150,

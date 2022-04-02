@@ -65,7 +65,7 @@
 #' plot(class, bands = c("NDVI", "EVI"))
 #' }
 #' @export
-sits_TempCNN <- function(samples = NULL,
+sits_tempcnn <- function(samples = NULL,
                          samples_validation = NULL,
                          cnn_layers = c(64, 64, 64),
                          cnn_kernels = c(5, 5, 5),

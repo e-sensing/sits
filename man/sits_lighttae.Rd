@@ -2,10 +2,9 @@
 % Please edit documentation in R/sits_lighttae.R
 \name{sits_lighttae}
 \alias{sits_lighttae}
-\alias{sits_LightTAE}
 \title{Train a model using Lightweight Temporal Self-Attention Encoder}
 \usage{
-sits_LightTAE(
+sits_lighttae(
   samples = NULL,
   samples_validation = NULL,
   epochs = 150,
