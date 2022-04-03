@@ -94,6 +94,7 @@ test_that("compute distances in time series with two times", {
 
     filter_rows <- function(ts) ts[1:2,]
     ts <- .sits_fast_apply(samples_modis_4bands, "time_series", filter_rows)
+    ts <- sits_select(ts, "NDVI")
 
     bands_samples <- sits_bands(ts)
     n_timeline <- length(sits_timeline(ts))
