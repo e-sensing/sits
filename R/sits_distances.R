@@ -34,10 +34,19 @@
         dplyr::select("original_row", "reference", !!bands) %>%
         dplyr::group_by(.data[["original_row"]]) %>%
         dplyr::mutate(temp_index = seq_len(dplyr::n())) %>%
-        dplyr::ungroup() %>%
-        tidyr::pivot_wider(names_from = temp_index,
-                           values_from = !!bands,
-                           names_sep = "")
+        dplyr::ungroup()
+
+    if (length(bands) > 1)
+        distances_tbl <- tidyr::pivot_wider(distances_tbl,
+                                            names_from = .data[["temp_index"]],
+                                            values_from = !!bands,
+                                            names_sep = "")
+    else
+        distances_tbl <- tidyr::pivot_wider(distances_tbl,
+                                            names_from = .data[["temp_index"]],
+                                            values_from = !!bands,
+                                            names_prefix = bands,
+                                            names_sep = "")
 
     distances <- data.table::data.table(distances_tbl)
 
