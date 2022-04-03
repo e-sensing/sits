@@ -318,7 +318,7 @@ test_that("One-year, multicore classification with ResNet", {
     samples_2bands <-
         sits_select(samples_modis_4bands, bands = c("NDVI", "EVI"))
 
-    torch_model <- sits_train(samples_2bands, sits_ResNet())
+    torch_model <- sits_train(samples_2bands, sits_resnet())
 
     data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
     sinop <- sits_cube(
@@ -368,7 +368,7 @@ test_that("One-year, multicore classification with TAE", {
     samples_2bands <-
         sits_select(samples_modis_4bands, bands = c("NDVI", "EVI"))
 
-    torch_model <- sits_train(samples_2bands, sits_TAE())
+    torch_model <- sits_train(samples_2bands, sits_tae())
 
     data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
     sinop <- sits_cube(
@@ -417,7 +417,7 @@ test_that("One-year, multicore classification with LightTAE", {
     samples_2bands <-
         sits_select(samples_modis_4bands, bands = c("NDVI", "EVI"))
 
-    torch_model <- sits_train(samples_2bands, sits_LightTAE())
+    torch_model <- sits_train(samples_2bands, sits_lighttae())
 
     data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
     sinop <- sits_cube(
@@ -467,7 +467,7 @@ test_that("One-year, multicore classification with post-processing", {
     bands = c("NDVI", "EVI")
   )
 
-  torch_model <- sits_train(samples_2bands, sits_TempCNN())
+  torch_model <- sits_train(samples_2bands, sits_tempcnn())
 
   data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
   sinop <- sits_cube(
