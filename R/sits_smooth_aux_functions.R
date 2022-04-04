@@ -56,7 +56,7 @@
         x = inherits(cube, "probs_cube"),
         msg = "input is not probability cube"
     )
-    size <- .cube_size(cube)
+    size <- .cube_size(cube[1,])
     n_layers <- length(cube$labels[[1]])
     bloat_mem <- .config_processing_bloat()
     n_bytes <- 8

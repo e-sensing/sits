@@ -6,9 +6,11 @@
 #'              returns a new tibble. For a given field as a group criterion,
 #'              this new tibble contains a given number or percentage
 #'              of the total number of samples per group.
-#'              Parameter n: number of random samples with replacement.
-#'              Parameter frac: a fraction of random samples without
-#'              replacement. If frac > 1, no sampling is done.
+#'              Parameter n: number of random samples.
+#'              Parameter frac: a fraction of random samples.
+#'              If n is greater than the number of samples for a given label,
+#'              that label will be sampled with replacement. Also,
+#'              if frac > 1 , all sampling will be done with replacement.
 #'
 #' @param  data       Input sits tibble.
 #' @param  n          Number of samples to pick from each group of data.
@@ -24,7 +26,8 @@
 #' # Print the labels of the resulting tibble
 #' sits_labels(data)
 #' @export
-sits_sample <- function(data, n = NULL, frac = NULL) {
+sits_sample <- function(data, n = NULL,
+                        frac = NULL) {
 
     # set caller to show in errors
     .check_set_caller("sits_sample")
@@ -35,35 +38,34 @@ sits_sample <- function(data, n = NULL, frac = NULL) {
     # verify if either n or frac is informed
     .check_that(
         x = !(purrr::is_null(n) & purrr::is_null(frac)),
-        msg = "neither n or frac parameters informed"
+        local_msg = "neither 'n' or 'frac' parameters were informed",
+        msg = "invalid sample parameters"
     )
-    # prepare sampling function
-    sampling_fun <- if (!purrr::is_null(n)) {
-        function(tb) {
-            if (nrow(tb) >= n) {
-                return(dplyr::sample_n(tb,
-                                       size = n,
-                                       replace = FALSE
-                ))
-            } else {
-                return(tb)
-            }
+
+    groups <- by(data, data[["label"]], list)
+
+    result_lst <- purrr::map(groups, function(data) {
+
+        if (!purrr::is_null(n)) {
+            allow_repetition <- n > nrow(data)
+            result <- dplyr::slice_sample(
+                data,
+                n = n,
+                replace = allow_repetition
+            )
+        } else {
+            allow_repetition <- frac > 1
+            result <- dplyr::slice_sample(
+                data,
+                prop = frac,
+                replace = allow_repetition
+            )
         }
-    } else if (frac <= 1) {
-        function(tb) tb %>% dplyr::sample_frac(size = frac, replace = FALSE)
-    } else {
-        function(tb) tb %>% dplyr::sample_frac(size = frac, replace = TRUE)
-    }
-    # compute sampling
-    result <- .sits_tibble()
-    labels <- sits_labels(data)
-    result <- purrr::map_dfr(
-        labels,
-        function(l) {
-            tb_l <- dplyr::filter(data, .data[["label"]] == l)
-            tb_s <- sampling_fun(tb_l)
-        }
-    )
+        return(result)
+    })
+
+    result <- dplyr::bind_rows(result_lst)
+
     return(result)
 }
 
