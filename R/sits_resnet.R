@@ -47,18 +47,24 @@
 #' @param blocks             Number of 1D convolutional filters for
 #'                           each block of three layers.
 #' @param kernels            Size of the 1D convolutional kernels
+#' @param epochs             Number of iterations to train the model.
 #'                           for each layer of each block.
+#' @param batch_size         Number of samples per gradient update.
+#' @param validation_split   Fraction of training data
+#'                           to be used as validation data.
 #' @param optimizer          Function with a pointer to the optimizer function
 #'                           (default is optimization_adam()).
-#'                           Options: optimizer_adadelta(), optimizer_adagrad(),
-#'                           optimizer_adam(), optimizer_adamax(),
-#'                           optimizer_nadam(), optimizer_rmsprop(),
-#'                           optimizer_sgd().
-#' @param epochs             Number of iterations to train the model.
-#' @param learning_rate      Nunber with learning rate of model.
-#' @param batch_size         Number of samples per gradient update.
-#' @param validation_split   Number between 0 and 1. Fraction of training data
-#'                           to be used as validation data.
+#' @param optimizer          Optimizer function to be used.
+#' @param learning_rate      Initial learning rate of the optimizer.
+#' @param eps                Term added to the denominator
+#'                           to improve numerical stability during optimization.
+#' @param weight_decay       L2 regularization param for optimizer.
+#' @param lr_decay_epochs    Number of epochs to reduce learning rate.
+#' @param lr_decay_rate      Decay factor for reducing learning rate.
+#' @param patience           Number of epochs without improvements until
+#'                           training stops.
+#' @param min_delta	         Minimum improvement in loss function
+#'                           to reset the patience counter.
 #' @param patience           Number of epochs without improvements until
 #'                           training stops.
 #' @param min_delta	         Minimum improvement to reset the patience counter.
@@ -92,6 +98,8 @@ sits_resnet <- function(samples = NULL,
                         validation_split = 0.2,
                         optimizer = torch::optim_adam,
                         learning_rate = 0.001,
+                        eps = 1e-08,
+                        weight_decay = 0,
                         lr_decay_epochs = 1,
                         lr_decay_rate = 0.95,
                         patience = 20,
@@ -324,7 +332,9 @@ sits_resnet <- function(samples = NULL,
                 kernels  = kernels
             ) %>%
             luz::set_opt_hparams(
-                lr = learning_rate
+                lr = learning_rate,
+                eps = eps,
+                weight_decay = weight_decay
             ) %>%
             luz::fit(
                 data = list(train_x, train_y),
@@ -373,7 +383,8 @@ sits_resnet <- function(samples = NULL,
             }
 
             # set torch threads to 1
-            torch::torch_set_num_threads(1)
+            # function does not work on MacOS
+            suppressWarnings(torch::torch_set_num_threads(1))
 
             # restore model
             torch_model$model <- model_from_raw(serialized_model)

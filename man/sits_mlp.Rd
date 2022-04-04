@@ -10,6 +10,8 @@ sits_mlp(
   layers = c(512, 512, 512),
   dropout_rates = c(0.2, 0.3, 0.4),
   learning_rate = 0.001,
+  eps = 1e-08,
+  weight_decay = 0,
   epochs = 100,
   batch_size = 64,
   validation_split = 0.2,
@@ -32,6 +34,11 @@ for each layer.}
 
 \item{learning_rate}{Learning rate of the optimizer}
 
+\item{eps}{Term added to the denominator
+to improve numerical stability during optimization.}
+
+\item{weight_decay}{L2 regularization param for optimizer.}
+
 \item{epochs}{Number of iterations to train the model.}
 
 \item{batch_size}{Number of samples per gradient update.}
@@ -45,7 +52,8 @@ on this data at the end of each epoch.}
 \item{patience}{Number of epochs without improvements until
 training stops.}
 
-\item{min_delta}{Minimum improvement to reset the patience counter.}
+\item{min_delta}{Minimum improvement in loss function
+to reset the patience counter.}
 
 \item{verbose}{Verbosity mode (TRUE/FALSE). Default is FALSE.}
 }

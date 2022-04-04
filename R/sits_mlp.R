@@ -18,6 +18,9 @@
 #' @param dropout_rates      Vector with the dropout rates (0,1)
 #'                           for each layer.
 #' @param learning_rate      Learning rate of the optimizer
+#' @param eps                Term added to the denominator
+#'                           to improve numerical stability during optimization.
+#' @param weight_decay       L2 regularization param for optimizer.
 #' @param epochs             Number of iterations to train the model.
 #' @param batch_size         Number of samples per gradient update.
 #' @param validation_split   Number between 0 and 1.
@@ -27,7 +30,8 @@
 #'                           on this data at the end of each epoch.
 #' @param patience           Number of epochs without improvements until
 #'                           training stops.
-#' @param min_delta	         Minimum improvement to reset the patience counter.
+#' @param min_delta	         Minimum improvement in loss function
+#'                           to reset the patience counter.
 #' @param verbose            Verbosity mode (TRUE/FALSE). Default is FALSE.
 #' @return                   Either a model to be passed in sits_predict
 #'                           or a function prepared to be called further.
@@ -73,6 +77,8 @@ sits_mlp <- function(samples = NULL,
                      layers = c(512, 512, 512),
                      dropout_rates = c(0.20, 0.30, 0.40),
                      learning_rate = 0.001,
+                     eps = 1e-08,
+                     weight_decay = 0,
                      epochs = 100,
                      batch_size = 64,
                      validation_split = 0.2,
@@ -229,7 +235,9 @@ sits_mlp <- function(samples = NULL,
                 y_dim = length(int_labels)
             ) %>%
             luz::set_opt_hparams(
-                lr = learning_rate
+                lr = learning_rate,
+                eps = eps,
+                weight_decay = weight_decay
             ) %>%
             luz::fit(
                 data = list(train_x, train_y),
@@ -268,7 +276,8 @@ sits_mlp <- function(samples = NULL,
             }
 
             # set torch threads to 1
-            torch::torch_set_num_threads(1)
+            # function does not work on MacOS
+            suppressWarnings(torch::torch_set_num_threads(1))
 
             # restore model
             torch_model$model <- model_from_raw(serialized_model)
