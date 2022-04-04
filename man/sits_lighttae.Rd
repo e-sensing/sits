@@ -12,6 +12,8 @@ sits_lighttae(
   validation_split = 0.2,
   optimizer = torch::optim_adam,
   learning_rate = 0.001,
+  eps = 1e-08,
+  weight_decay = 0,
   lr_decay_epochs = 50,
   lr_decay_rate = 1,
   patience = 20,
@@ -38,6 +40,10 @@ to be used as validation data.}
 
 \item{learning_rate}{Initial learning rate of the optimizer.}
 
+\item{eps}{Term added to the denominator to improve numerical stability.}
+
+\item{weight_decay}{L2 regularization param.}
+
 \item{lr_decay_epochs}{Number of epochs to reduce learning rate.}
 
 \item{lr_decay_rate}{Decay factor for reducing learning rate.}
@@ -45,7 +51,8 @@ to be used as validation data.}
 \item{patience}{Number of epochs without improvements until
 training stops.}
 
-\item{min_delta}{Minimum improvement to reset the patience counter.}
+\item{min_delta}{Minimum improvement in loss function
+to reset the patience counter.}
 
 \item{verbose}{Verbosity mode (TRUE/FALSE). Default is FALSE.}
 }
@@ -54,7 +61,7 @@ A fitted model to be passed to \code{\link[sits]{sits_classify}}
 }
 \description{
 Implementation of Light Temporal Attention Encoder (L-TAE)
-for satellite image time series classification.
+for satellite image time seri
 
 This function is based on the paper by Vivien Garnot referenced below
 and code available on github at

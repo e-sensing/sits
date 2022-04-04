@@ -14,6 +14,8 @@ sits_resnet(
   validation_split = 0.2,
   optimizer = torch::optim_adam,
   learning_rate = 0.001,
+  eps = 1e-08,
+  weight_decay = 0,
   lr_decay_epochs = 1,
   lr_decay_rate = 0.95,
   patience = 20,
@@ -31,24 +33,28 @@ the \code{validation_split} parameter is ignored.}
 \item{blocks}{Number of 1D convolutional filters for
 each block of three layers.}
 
-\item{kernels}{Size of the 1D convolutional kernels
-for each layer of each block.}
+\item{kernels}{Size of the 1D convolutional kernels}
 
-\item{epochs}{Number of iterations to train the model.}
+\item{epochs}{Number of iterations to train the model.
+for each layer of each block.}
 
 \item{batch_size}{Number of samples per gradient update.}
 
-\item{validation_split}{Number between 0 and 1. Fraction of training data
+\item{validation_split}{Fraction of training data
 to be used as validation data.}
 
-\item{optimizer}{Function with a pointer to the optimizer function
-(default is optimization_adam()).
-Options: optimizer_adadelta(), optimizer_adagrad(),
-optimizer_adam(), optimizer_adamax(),
-optimizer_nadam(), optimizer_rmsprop(),
-optimizer_sgd().}
+\item{optimizer}{Optimizer function to be used.}
 
-\item{learning_rate}{Nunber with learning rate of model.}
+\item{learning_rate}{Initial learning rate of the optimizer.}
+
+\item{eps}{Term added to the denominator
+to improve numerical stability during optimization.}
+
+\item{weight_decay}{L2 regularization param for optimizer.}
+
+\item{lr_decay_epochs}{Number of epochs to reduce learning rate.}
+
+\item{lr_decay_rate}{Decay factor for reducing learning rate.}
 
 \item{patience}{Number of epochs without improvements until
 training stops.}

@@ -37,7 +37,10 @@
 #'                       (default: 1e-8)
 #' @param weight_decay   Weight decay (L2 penalty) (default: 0)
 #'
-
+#' @returns
+#' An optimizer object implementing the `step` and `zero_grad` methods.
+#'
+#' @export
 optim_adabound <- torch::optimizer(
     classname = "optim_adabound",
     initialize = function(
@@ -106,7 +109,7 @@ optim_adabound <- torch::optimizer(
             state(param)[["step"]] <- state(param)[["step"]] + 1
 
             if (group[['weight_decay']] != 0)
-                grad <- grad$add(p, alpha = group[['weight_decay']])
+                grad <- grad$add(param, alpha = group[['weight_decay']])
 
             # Decay the first and second moment
             # running average coefficient
