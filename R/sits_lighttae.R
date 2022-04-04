@@ -91,6 +91,7 @@ sits_lighttae <- function(samples = NULL,
                           min_delta = 0.01,
                           verbose = FALSE) {
 
+
     # set caller to show in errors
     .check_set_caller("sits_lighttae")
 
@@ -128,6 +129,16 @@ sits_lighttae <- function(samples = NULL,
             allow_zero = FALSE,
             msg = "invalid learning rate decay"
         )
+
+        # get parameters list and remove the 'param' parameter
+        optim_params_function <- formals(optimizer)[-1]
+        if (!is.null(names(dots))) {
+            .check_chr_within(
+                x = names(dots),
+                within = names(optim_params_function)
+            )
+            optim_params_function <- modifyList(optim_params_function, dots)
+        }
 
         # get the labels
         labels <- sits_labels(data)
