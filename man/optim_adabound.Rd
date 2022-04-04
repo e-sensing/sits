@@ -31,6 +31,9 @@ and its square (default: (0.9, 0.999))}
 
 \item{weight_decay}{Weight decay (L2 penalty) (default: 0)}
 }
+\value{
+An optimizer object implementing the `step` and `zero_grad` methods.
+}
 \description{
 R implementation of the Adabound optimizer proposed
 by Luo et al.(2019). The original implementation is available at

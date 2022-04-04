@@ -312,10 +312,10 @@ sits_get_data <- function(cube,
                         .data[["start_date"]], .data[["end_date"]],
                         .data[["label"]], .data[["cube"]],
                         .data[["Index"]]) %>%
-        dplyr::summarise(dplyr::across(ts_bands, stats::na.omit)) %>%
+        dplyr::summarise(dplyr::across(dplyr::all_of(ts_bands), stats::na.omit)) %>%
         dplyr::arrange(.data[["Index"]]) %>%
         dplyr::ungroup() %>%
-        tidyr::nest(time_series = !!c("Index", ts_bands))
+        tidyr::nest(time_series = !!c("Index", dplyr::all_of(ts_bands)))
 
     # check if data has been retrieved
     .sits_get_data_check(nrow(samples), nrow(ts_tbl))
@@ -387,10 +387,10 @@ sits_get_data <- function(cube,
         ts_tbl <- dplyr::group_by(ts_tbl, .data[["polygon_id"]], .add = TRUE)
 
     ts_tbl <- ts_tbl %>%
-        dplyr::summarise(dplyr::across(ts_bands, stats::na.omit)) %>%
+        dplyr::summarise(dplyr::across(dplyr::all_of(ts_bands), stats::na.omit)) %>%
         dplyr::arrange(.data[["Index"]]) %>%
         dplyr::ungroup() %>%
-        tidyr::nest(time_series = !!c("Index", ts_bands))
+        tidyr::nest(time_series = !!c("Index", dplyr::all_of(ts_bands)))
 
     # check if data has been retrieved
     .sits_get_data_check(nrow(samples), nrow(ts_tbl))

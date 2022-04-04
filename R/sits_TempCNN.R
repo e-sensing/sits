@@ -36,6 +36,8 @@
 #' @param validation_split  Fraction of training data to be used for validation.
 #' @param optimizer         Optimizer function to be used.
 #' @param learning_rate     Initial learning rate of the optimizer.
+#' @param eps               Term added to the denominator to improve numerical stability.
+#' @param weight_decay      L2 regularization param.
 #' @param lr_decay_epochs   Number of epochs to reduce learning rate.
 #' @param lr_decay_rate     Decay factor for reducing learning rate.
 #' @param patience          Number of epochs without improvements until
@@ -71,8 +73,10 @@ sits_tempcnn <- function(samples = NULL,
                          epochs = 150,
                          batch_size = 128,
                          validation_split = 0.2,
-                         optimizer = optim_adabound,
+                         optimizer = optim_madgrad,
                          learning_rate = 0.001,
+                         eps = 1e-6,
+                         weight_decay = 1e-6,
                          lr_decay_epochs = 1,
                          lr_decay_rate = 1,
                          patience = 20,
@@ -268,6 +272,8 @@ sits_tempcnn <- function(samples = NULL,
             ) %>%
             luz::set_opt_hparams(
                 lr = learning_rate,
+                weight_decay = weight_decay,
+                eps = eps
             ) %>%
             luz::set_hparams(
                 n_bands = n_bands,
@@ -325,7 +331,8 @@ sits_tempcnn <- function(samples = NULL,
             }
 
             # set torch threads to 1
-            torch::torch_set_num_threads(1)
+            # function does not work on MacOS
+            suppressWarnings(torch::torch_set_num_threads(1))
 
             # restore model
             torch_model$model <- model_from_raw(serialized_model)

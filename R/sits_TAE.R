@@ -39,6 +39,9 @@
 #'                          to be used as validation data.
 #' @param optimizer         Optimizer function to be used.
 #' @param learning_rate     Initial learning rate of the optimizer.
+#' @param eps               Term added to the denominator
+#'                          to improve numerical stability during optimization.
+#' @param weight_decay      L2 regularization param for optimizer.
 #' @param lr_decay_epochs   Number of epochs to reduce learning rate.
 #' @param lr_decay_rate     Decay factor for reducing learning rate.
 #' @param patience          Number of epochs without improvements until
@@ -72,6 +75,8 @@ sits_tae <- function(samples = NULL,
                      validation_split = 0.2,
                      optimizer = torch::optim_adam,
                      learning_rate = 0.001,
+                     eps = 1e-08,
+                     weight_decay = 0,
                      lr_decay_epochs = 1,
                      lr_decay_rate = 0.95,
                      patience = 20,
@@ -215,6 +220,11 @@ sits_tae <- function(samples = NULL,
                 n_labels = n_labels,
                 timeline = timeline
             ) %>%
+            luz::set_opt_hparams(
+                lr = learning_rate,
+                eps = eps,
+                weight_decay = weight_decay
+            ) %>%
             luz::fit(
                 data = list(train_x, train_y),
                 epochs = epochs,
@@ -262,7 +272,8 @@ sits_tae <- function(samples = NULL,
             }
 
             # set torch threads to 1
-            torch::torch_set_num_threads(1)
+            # function does not work on MacOS
+            suppressWarnings(torch::torch_set_num_threads(1))
 
             # restore model
             torch_model$model <- model_from_raw(serialized_model)

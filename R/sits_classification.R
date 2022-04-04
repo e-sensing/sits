@@ -15,9 +15,11 @@
 #'  \item{random forests: }          {see \code{\link[sits]{sits_rfor}}}
 #'  \item{multinomial logit: }       {see \code{\link[sits]{sits_mlr}}}
 #'  \item{extreme gradient boosting: } {see \code{\link[sits]{sits_xgboost}}}
+#'  \item{light gradient boosting: } {see \code{\link[sits]{sits_lightgbm}}}
 #'  \item{multi-layer perceptrons: } {see \code{\link[sits]{sits_mlp}}}
-#'  \item{mixed 1D CNN and MLP networks: } {see \code{\link[sits]{sits_TempCNN}}}
-#'  \item{deep residual netwroks:}{see \code{\link[sits]{sits_ResNet}}}
+#'  \item{1D CNN: } {see \code{\link[sits]{sits_tempcnn}}}
+#'  \item{deep residual networks:}{see \code{\link[sits]{sits_resnet}}}
+#'  \item{self-attention encoders:}{see \code{\link[sits]{sits_lighttae}}}
 #'  }
 #'
 #'

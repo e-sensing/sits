@@ -9,6 +9,7 @@
 #'
 #' @param acc_lst        A list of accuracy statistics
 #' @param file           The file where the XLSX data is to be saved.
+#' @param data          (optional) Print information about the samples
 #'
 #' @examples
 #' \dontrun{
@@ -32,7 +33,7 @@
 #'
 #' @export
 #'
-sits_to_xlsx <- function(acc_lst, file) {
+sits_to_xlsx <- function(acc_lst, file, data = NULL) {
 
     # set caller to show in errors
     .check_set_caller("sits_to_xlsx")
@@ -104,14 +105,60 @@ sits_to_xlsx <- function(acc_lst, file) {
             acc_bc <- as.matrix(acc_bc)
         }
         # save the per class data in the worksheet
+        start_row <- nrow(cf_mat$table) + 8
         openxlsx::writeData(
             wb = workbook,
             sheet = sheet_name,
             x = acc_bc,
             rowNames = TRUE,
-            startRow = nrow(cf_mat$table) + 8,
+            startRow = start_row,
             startCol = 1
         )
+        # save the information on the configuration
+        Param <- vector(mode = "character")
+        Value <- vector(mode = "character")
+        if (!purrr::is_null(cf_mat$optimizer)) {
+            Param[length(Param) + 1] <- "optimizer"
+            Value[length(Value) + 1] <- cf_mat$optimizer
+        }
+        if (!purrr::is_null(cf_mat$learning_rate)) {
+            Param[length(Param)  + 1] <- "learning_rate"
+            Value[length(Value) + 1] <- cf_mat$learning_rate
+        }
+        if (!purrr::is_null(cf_mat$eps)) {
+            Param[length(Param)  + 1] <- "eps"
+            Value[length(Value) + 1] <- cf_mat$eps
+        }
+        if (!purrr::is_null(cf_mat$weight_decay)) {
+            Param[length(Param) + 1] <- "weight_decay"
+            Value[length(Value) + 1] <- cf_mat$weight_decay
+        }
+        if (length(Param) > 0) {
+            config_df <- data.frame(Param, Value)
+            start_row <- start_row + 6
+            openxlsx::writeData(
+                wb = workbook,
+                sheet = sheet_name,
+                x = config_df,
+                rowNames = TRUE,
+                startRow = start_row,
+                startCol = 1
+            )
+        }
+        if (!purrr::is_null(data)) {
+            if (length(Param) == 0)
+                start_row <- start_row + 6
+            df <- data.frame(sits_labels_summary(data))
+            openxlsx::writeData(
+                wb = workbook,
+                sheet = sheet_name,
+                x = config_df,
+                rowNames = TRUE,
+                startRow = start_row,
+                startCol = 6
+            )
+
+        }
     })
     # write the worksheets to the XLSX file
     openxlsx::saveWorkbook(workbook, file = file, overwrite = TRUE)

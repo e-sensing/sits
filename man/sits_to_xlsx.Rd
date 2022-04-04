@@ -4,12 +4,14 @@
 \alias{sits_to_xlsx}
 \title{Save accuracy assessments as Excel files}
 \usage{
-sits_to_xlsx(acc_lst, file)
+sits_to_xlsx(acc_lst, file, data = NULL)
 }
 \arguments{
 \item{acc_lst}{A list of accuracy statistics}
 
 \item{file}{The file where the XLSX data is to be saved.}
+
+\item{data}{(optional) Print information about the samples}
 }
 \description{
 Saves confusion matrices as Excel spreadsheets. This function
