@@ -46,6 +46,7 @@
 #'                           training stops.
 #' @param min_delta	         Minimum improvement to reset the patience counter.
 #' @param verbose            Verbosity mode (TRUE/FALSE). Default is FALSE.
+#' @param ...                Additional parameters to optimizer.
 #'
 #' @return A fitted model to be passed to \code{\link[sits]{sits_classify}}
 #'
@@ -65,7 +66,7 @@
 #' plot(class, bands = c("NDVI", "EVI"))
 #' }
 #' @export
-sits_tempcnn <- function(samples = NULL,
+sits_tempcnn <- function(samples = NULL, ...,
                          samples_validation = NULL,
                          cnn_layers = c(64, 64, 64),
                          cnn_kernels = c(5, 5, 5),
@@ -85,6 +86,8 @@ sits_tempcnn <- function(samples = NULL,
 
     # set caller to show in errors
     .check_set_caller("sits_tempcnn")
+
+    dots <- list(...)
 
     # function that returns torch model based on a sits sample data.table
     result_fun <- function(data) {
@@ -141,6 +144,16 @@ sits_tempcnn <- function(samples = NULL,
             allow_zero = FALSE,
             msg = "invalid learning rate decay"
         )
+
+        # get parameters list and remove the 'param' parameter
+        optim_params_function <- formals(optimizer)[-1]
+        if (!is.null(names(dots))) {
+            .check_chr_within(
+                x = names(dots),
+                within = names(optim_params_function)
+            )
+            optim_params_function <- modifyList(optim_params_function, dots)
+        }
 
         # get the timeline of the data
         timeline <- sits_timeline(data)
@@ -308,7 +321,7 @@ sits_tempcnn <- function(samples = NULL,
                 optimizer = optimizer
             ) %>%
             luz::set_opt_hparams(
-                lr = learning_rate,
+                !!!optim_params_function
             ) %>%
             luz::set_hparams(
                 n_bands = n_bands,

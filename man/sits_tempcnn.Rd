@@ -6,6 +6,7 @@
 \usage{
 sits_tempcnn(
   samples = NULL,
+  ...,
   samples_validation = NULL,
   cnn_layers = c(64, 64, 64),
   cnn_kernels = c(5, 5, 5),
@@ -26,6 +27,8 @@ sits_tempcnn(
 }
 \arguments{
 \item{samples}{Time series with the training samples.}
+
+\item{...}{Additional parameters to optimizer.}
 
 \item{samples_validation}{Time series with the validation samples. if the
 \code{samples_validation} parameter is provided,
