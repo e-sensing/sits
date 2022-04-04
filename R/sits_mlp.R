@@ -76,9 +76,11 @@ sits_mlp <- function(samples = NULL,
                      samples_validation = NULL,
                      layers = c(512, 512, 512),
                      dropout_rates = c(0.20, 0.30, 0.40),
-                     learning_rate = 0.001,
-                     eps = 1e-08,
-                     weight_decay = 0,
+                     optimizer = torch::optim_adam,
+                     opt_hparams = list(
+                         lr = 0.001,
+                         eps = 1e-08,
+                         weight_decay = 0),
                      epochs = 100,
                      batch_size = 64,
                      validation_split = 0.2,
@@ -119,6 +121,16 @@ sits_mlp <- function(samples = NULL,
             msg = "input data does not contain distances"
         )
 
+        # get parameters list and remove the 'param' parameter
+        optim_params_function <- formals(optimizer)[-1]
+        if (!is.null(opt_hparams)) {
+            .check_chr_within(
+                x = names(opt_hparams),
+                within = names(optim_params_function)
+            )
+            optim_params_function <- modifyList(optim_params_function,
+                                                opt_hparams)
+        }
         # get the timeline of the data
         timeline <- sits_timeline(data)
         # get the bands of the data
@@ -221,12 +233,13 @@ sits_mlp <- function(samples = NULL,
             }
         )
         # train the model using the "luz" package
+        torch::torch_set_num_threads(1)
         torch_model <-
             luz::setup(
                 module = mlp_module,
                 loss = torch::nn_cross_entropy_loss(),
                 metrics = list(luz::luz_metric_accuracy()),
-                optimizer = torch::optim_adam
+                optimizer = optimizer
             ) %>%
             luz::set_hparams(
                 num_pred = ncol(train_x),
@@ -235,9 +248,7 @@ sits_mlp <- function(samples = NULL,
                 y_dim = length(int_labels)
             ) %>%
             luz::set_opt_hparams(
-                lr = learning_rate,
-                eps = eps,
-                weight_decay = weight_decay
+                !!!optim_params_function
             ) %>%
             luz::fit(
                 data = list(train_x, train_y),

@@ -52,13 +52,8 @@
 #' @param batch_size         Number of samples per gradient update.
 #' @param validation_split   Fraction of training data
 #'                           to be used as validation data.
-#' @param optimizer          Function with a pointer to the optimizer function
-#'                           (default is optimization_adam()).
 #' @param optimizer          Optimizer function to be used.
-#' @param learning_rate      Initial learning rate of the optimizer.
-#' @param eps                Term added to the denominator
-#'                           to improve numerical stability during optimization.
-#' @param weight_decay       L2 regularization param for optimizer.
+#' @param opt_hparams        Hyperparameters for optimizer.
 #' @param lr_decay_epochs    Number of epochs to reduce learning rate.
 #' @param lr_decay_rate      Decay factor for reducing learning rate.
 #' @param patience           Number of epochs without improvements until
@@ -97,9 +92,10 @@ sits_resnet <- function(samples = NULL,
                         batch_size = 64,
                         validation_split = 0.2,
                         optimizer = torch::optim_adam,
-                        learning_rate = 0.001,
-                        eps = 1e-08,
-                        weight_decay = 0,
+                        opt_hparams = list(
+                            lr = 0.001,
+                            eps = 1e-08,
+                            weight_decay = 0),
                         lr_decay_epochs = 1,
                         lr_decay_rate = 0.95,
                         patience = 20,
@@ -123,15 +119,6 @@ sits_resnet <- function(samples = NULL,
             x = length(kernels) == 3,
             msg = "should inform size of three kernels"
         )
-        # preconditions
-        .check_num(
-            x = learning_rate,
-            min = 0,
-            max = 0.1,
-            allow_zero = FALSE,
-            len_max = 1,
-            msg = "invalid learning rate"
-        )
         .check_num(
             x = lr_decay_epochs,
             is_integer = TRUE,
@@ -147,6 +134,16 @@ sits_resnet <- function(samples = NULL,
             allow_zero = FALSE,
             msg = "invalid learning rate decay"
         )
+        # get parameters list and remove the 'param' parameter
+        optim_params_function <- formals(optimizer)[-1]
+        if (!is.null(opt_hparams)) {
+            .check_chr_within(
+                x = names(opt_hparams),
+                within = names(optim_params_function)
+            )
+            optim_params_function <- modifyList(optim_params_function,
+                                                opt_hparams)
+        }
 
         # get the timeline of the data
         timeline <- sits_timeline(data)
@@ -316,6 +313,7 @@ sits_resnet <- function(samples = NULL,
                     self$softmax()
             }
         )
+        torch::torch_set_num_threads(1)
         # train the model using luz
         torch_model <-
             luz::setup(
@@ -332,9 +330,7 @@ sits_resnet <- function(samples = NULL,
                 kernels  = kernels
             ) %>%
             luz::set_opt_hparams(
-                lr = learning_rate,
-                eps = eps,
-                weight_decay = weight_decay
+                !!!optim_params_function
             ) %>%
             luz::fit(
                 data = list(train_x, train_y),

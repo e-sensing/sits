@@ -9,9 +9,8 @@ sits_mlp(
   samples_validation = NULL,
   layers = c(512, 512, 512),
   dropout_rates = c(0.2, 0.3, 0.4),
-  learning_rate = 0.001,
-  eps = 1e-08,
-  weight_decay = 0,
+  optimizer = torch::optim_adam,
+  opt_hparams = list(lr = 0.001, eps = 1e-08, weight_decay = 0),
   epochs = 100,
   batch_size = 64,
   validation_split = 0.2,
@@ -32,13 +31,6 @@ the \code{validation_split} parameter is ignored.}
 \item{dropout_rates}{Vector with the dropout rates (0,1)
 for each layer.}
 
-\item{learning_rate}{Learning rate of the optimizer}
-
-\item{eps}{Term added to the denominator
-to improve numerical stability during optimization.}
-
-\item{weight_decay}{L2 regularization param for optimizer.}
-
 \item{epochs}{Number of iterations to train the model.}
 
 \item{batch_size}{Number of samples per gradient update.}
@@ -56,6 +48,13 @@ training stops.}
 to reset the patience counter.}
 
 \item{verbose}{Verbosity mode (TRUE/FALSE). Default is FALSE.}
+
+\item{learning_rate}{Learning rate of the optimizer}
+
+\item{eps}{Term added to the denominator
+to improve numerical stability during optimization.}
+
+\item{weight_decay}{L2 regularization param for optimizer.}
 }
 \value{
 Either a model to be passed in sits_predict

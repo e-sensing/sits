@@ -46,7 +46,7 @@
 #' @param validation_split   Fraction of training data
 #'                           to be used as validation data.
 #' @param optimizer          Optimizer function to be used.
-#' @param learning_rate      Initial learning rate of the optimizer.
+#' @param opt_hparams        Hyperparameters for optimizer.
 #' @param eps                Term added to the denominator to improve numerical stability.
 #' @param weight_decay       L2 regularization param.
 #' @param lr_decay_epochs    Number of epochs to reduce learning rate.
@@ -79,12 +79,12 @@
 sits_lighttae <- function(samples = NULL,
                           samples_validation = NULL,
                           epochs = 150,
-                          batch_size = 64,
+                          batch_size = 128,
                           validation_split = 0.2,
                           optimizer = torch::optim_adam,
-                          learning_rate = 0.001,
-                          eps = 1e-08,
-                          weight_decay = 0,
+                          opt_hparams = list(lr = 0.001,
+                                             eps = 1e-08,
+                                             weight_decay = 1e-06),
                           lr_decay_epochs = 50,
                           lr_decay_rate = 1,
                           patience = 20,
@@ -107,14 +107,6 @@ sits_lighttae <- function(samples = NULL,
         }
         # preconditions
         .check_num(
-            x = learning_rate,
-            min = 0,
-            max = 0.1,
-            allow_zero = FALSE,
-            len_max = 1,
-            msg = "invalid learning rate"
-        )
-        .check_num(
             x = lr_decay_epochs,
             is_integer = TRUE,
             len_max = 1,
@@ -132,12 +124,12 @@ sits_lighttae <- function(samples = NULL,
 
         # get parameters list and remove the 'param' parameter
         optim_params_function <- formals(optimizer)[-1]
-        if (!is.null(names(dots))) {
+        if (!is.null(names(opt_hparams))) {
             .check_chr_within(
-                x = names(dots),
+                x = names(opt_hparams),
                 within = names(optim_params_function)
             )
-            optim_params_function <- modifyList(optim_params_function, dots)
+            optim_params_function <- modifyList(optim_params_function, opt_hparams)
         }
 
         # get the labels
@@ -274,7 +266,7 @@ sits_lighttae <- function(samples = NULL,
                 return(out)
             }
         )
-
+        torch::torch_set_num_threads(1)
         # train the model using luz
         torch_model <-
             luz::setup(
@@ -289,9 +281,7 @@ sits_lighttae <- function(samples = NULL,
                 timeline = timeline
             ) %>%
             luz::set_opt_hparams(
-                lr = learning_rate,
-                eps = eps,
-                weight_decay = weight_decay
+                !!!optim_params_function
             ) %>%
             luz::fit(
                 data = list(train_x, train_y),

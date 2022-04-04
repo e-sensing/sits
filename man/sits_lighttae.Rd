@@ -8,12 +8,10 @@ sits_lighttae(
   samples = NULL,
   samples_validation = NULL,
   epochs = 150,
-  batch_size = 64,
+  batch_size = 128,
   validation_split = 0.2,
   optimizer = torch::optim_adam,
-  learning_rate = 0.001,
-  eps = 1e-08,
-  weight_decay = 0,
+  opt_hparams = list(lr = 0.001, eps = 1e-08, weight_decay = 1e-06),
   lr_decay_epochs = 50,
   lr_decay_rate = 1,
   patience = 20,
@@ -38,11 +36,7 @@ to be used as validation data.}
 
 \item{optimizer}{Optimizer function to be used.}
 
-\item{learning_rate}{Initial learning rate of the optimizer.}
-
-\item{eps}{Term added to the denominator to improve numerical stability.}
-
-\item{weight_decay}{L2 regularization param.}
+\item{opt_hparams}{Hyperparameters for optimizer.}
 
 \item{lr_decay_epochs}{Number of epochs to reduce learning rate.}
 
@@ -55,6 +49,10 @@ training stops.}
 to reset the patience counter.}
 
 \item{verbose}{Verbosity mode (TRUE/FALSE). Default is FALSE.}
+
+\item{eps}{Term added to the denominator to improve numerical stability.}
+
+\item{weight_decay}{L2 regularization param.}
 }
 \value{
 A fitted model to be passed to \code{\link[sits]{sits_classify}}

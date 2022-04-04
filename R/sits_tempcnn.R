@@ -79,7 +79,7 @@ sits_tempcnn <- function(samples = NULL,
                          optimizer = torch::optim_adam,
                          opt_hparams = list(lr = 0.001),
                          lr_decay_epochs = 1,
-                         lr_decay_rate = 1,
+                         lr_decay_rate = 0.95,
                          patience = 20,
                          min_delta = 0.01,
                          verbose = FALSE) {
