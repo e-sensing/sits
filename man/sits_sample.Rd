@@ -21,9 +21,11 @@ Takes a sits tibble with different labels and
              returns a new tibble. For a given field as a group criterion,
              this new tibble contains a given number or percentage
              of the total number of samples per group.
-             Parameter n: number of random samples with replacement.
-             Parameter frac: a fraction of random samples without
-             replacement. If frac > 1, no sampling is done.
+             Parameter n: number of random samples.
+             Parameter frac: a fraction of random samples.
+             If n is greater than the number of samples for a given label,
+             that label will be sampled with replacement. Also,
+             if frac > 1 , all sampling will be done with replacement.
 }
 \examples{
 # Retrieve a set of time series with 2 classes
