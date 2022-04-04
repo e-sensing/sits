@@ -949,6 +949,10 @@ sits_get_data <- function(cube,
     # pre-condition - check if CSV file is correct
     .sits_csv_check(samples)
 
+    # select valid columns
+    samples <- dplyr::select(samples,
+                             dplyr::all_of(.config_get("df_sample_columns")))
+
     if (!purrr::is_null(.n_pts_csv) &&
         .n_pts_csv > 1 && .n_pts_csv < nrow(samples)) {
         samples <- samples[1:.n_pts_csv, ]
