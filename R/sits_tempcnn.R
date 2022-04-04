@@ -39,14 +39,13 @@
 #' @param validation_split   Fraction of training data to be used for
 #'                           validation.
 #' @param optimizer          Optimizer function to be used.
-#' @param learning_rate      Initial learning rate of the optimizer.
+#' @param opt_hparams        Hyperparameters for optimizer.
 #' @param lr_decay_epochs    Number of epochs to reduce learning rate.
 #' @param lr_decay_rate      Decay factor for reducing learning rate.
 #' @param patience           Number of epochs without improvements until
 #'                           training stops.
 #' @param min_delta	         Minimum improvement to reset the patience counter.
 #' @param verbose            Verbosity mode (TRUE/FALSE). Default is FALSE.
-#' @param ...                Additional parameters to optimizer.
 #'
 #' @return A fitted model to be passed to \code{\link[sits]{sits_classify}}
 #'
@@ -66,7 +65,7 @@
 #' plot(class, bands = c("NDVI", "EVI"))
 #' }
 #' @export
-sits_tempcnn <- function(samples = NULL, ...,
+sits_tempcnn <- function(samples = NULL,
                          samples_validation = NULL,
                          cnn_layers = c(64, 64, 64),
                          cnn_kernels = c(5, 5, 5),
@@ -76,8 +75,8 @@ sits_tempcnn <- function(samples = NULL, ...,
                          epochs = 150,
                          batch_size = 128,
                          validation_split = 0.2,
-                         optimizer = optim_adabound,
-                         learning_rate = 0.001,
+                         optimizer = torch::optim_adam,
+                         opt_hparams = list(lr = 0.001),
                          lr_decay_epochs = 1,
                          lr_decay_rate = 1,
                          patience = 20,
@@ -86,8 +85,6 @@ sits_tempcnn <- function(samples = NULL, ...,
 
     # set caller to show in errors
     .check_set_caller("sits_tempcnn")
-
-    dots <- list(...)
 
     # function that returns torch model based on a sits sample data.table
     result_fun <- function(data) {
@@ -122,14 +119,6 @@ sits_tempcnn <- function(samples = NULL, ...,
             msg = "dropout rates must be provided for the dense layer"
         )
         .check_num(
-            x = learning_rate,
-            min = 0,
-            max = 0.1,
-            allow_zero = FALSE,
-            len_max = 1,
-            msg = "invalid learning rate"
-        )
-        .check_num(
             x = lr_decay_epochs,
             is_integer = TRUE,
             len_max = 1,
@@ -147,12 +136,13 @@ sits_tempcnn <- function(samples = NULL, ...,
 
         # get parameters list and remove the 'param' parameter
         optim_params_function <- formals(optimizer)[-1]
-        if (!is.null(names(dots))) {
+        if (!is.null(opt_hparams)) {
             .check_chr_within(
-                x = names(dots),
+                x = names(opt_hparams),
                 within = names(optim_params_function)
             )
-            optim_params_function <- modifyList(optim_params_function, dots)
+            optim_params_function <- modifyList(optim_params_function,
+                                                opt_hparams)
         }
 
         # get the timeline of the data
@@ -312,6 +302,9 @@ sits_tempcnn <- function(samples = NULL, ...,
                     self$softmax()
             }
         )
+
+        torch::torch_set_num_threads(1)
+
         # train the model using luz
         torch_model <-
             luz::setup(

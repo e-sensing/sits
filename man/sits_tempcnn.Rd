@@ -6,7 +6,6 @@
 \usage{
 sits_tempcnn(
   samples = NULL,
-  ...,
   samples_validation = NULL,
   cnn_layers = c(64, 64, 64),
   cnn_kernels = c(5, 5, 5),
@@ -16,8 +15,8 @@ sits_tempcnn(
   epochs = 150,
   batch_size = 128,
   validation_split = 0.2,
-  optimizer = optim_adabound,
-  learning_rate = 0.001,
+  optimizer = torch::optim_adam,
+  opt_hparams = list(lr = 0.001),
   lr_decay_epochs = 1,
   lr_decay_rate = 1,
   patience = 20,
@@ -27,8 +26,6 @@ sits_tempcnn(
 }
 \arguments{
 \item{samples}{Time series with the training samples.}
-
-\item{...}{Additional parameters to optimizer.}
 
 \item{samples_validation}{Time series with the validation samples. if the
 \code{samples_validation} parameter is provided,
@@ -53,7 +50,7 @@ validation.}
 
 \item{optimizer}{Optimizer function to be used.}
 
-\item{learning_rate}{Initial learning rate of the optimizer.}
+\item{opt_hparams}{Hyperparameters for optimizer.}
 
 \item{lr_decay_epochs}{Number of epochs to reduce learning rate.}
 
