@@ -6,6 +6,7 @@
 \usage{
 sits_lighttae(
   samples = NULL,
+  ...,
   samples_validation = NULL,
   epochs = 150,
   batch_size = 64,
@@ -21,6 +22,8 @@ sits_lighttae(
 }
 \arguments{
 \item{samples}{Time series with the training samples.}
+
+\item{...}{Additional parameters to optimizer.}
 
 \item{samples_validation}{Time series with the validation samples. if the
 \code{samples_validation} parameter is provided,

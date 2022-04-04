@@ -53,6 +53,7 @@
 #'                           training stops.
 #' @param min_delta	         Minimum improvement to reset the patience counter.
 #' @param verbose            Verbosity mode (TRUE/FALSE). Default is FALSE.
+#' @param ...                Additional parameters to optimizer.
 #'
 #' @return A fitted model to be passed to \code{\link[sits]{sits_classify}}
 #'
@@ -73,7 +74,7 @@
 #' plot(class, bands = c("NDVI", "EVI"))
 #' }
 #' @export
-sits_lighttae <- function(samples = NULL,
+sits_lighttae <- function(samples = NULL, ...,
                           samples_validation = NULL,
                           epochs = 150,
                           batch_size = 64,
@@ -85,6 +86,9 @@ sits_lighttae <- function(samples = NULL,
                           patience = 20,
                           min_delta = 0.01,
                           verbose = FALSE) {
+
+
+    dots <- list(...)
 
     # set caller to show in errors
     .check_set_caller("sits_lighttae")
@@ -123,6 +127,16 @@ sits_lighttae <- function(samples = NULL,
             allow_zero = FALSE,
             msg = "invalid learning rate decay"
         )
+
+        # get parameters list and remove the 'param' parameter
+        optim_params_function <- formals(optimizer)[-1]
+        if (!is.null(names(dots))) {
+            .check_chr_within(
+                x = names(dots),
+                within = names(optim_params_function)
+            )
+            optim_params_function <- modifyList(optim_params_function, dots)
+        }
 
         # get the labels
         labels <- sits_labels(data)
@@ -273,7 +287,7 @@ sits_lighttae <- function(samples = NULL,
                 timeline = timeline
             ) %>%
             luz::set_opt_hparams(
-                lr = learning_rate
+                !!!optim_params_function
             ) %>%
             luz::fit(
                 data = list(train_x, train_y),
