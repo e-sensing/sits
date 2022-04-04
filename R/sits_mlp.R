@@ -10,25 +10,31 @@
 #' This function uses the R "torch" and "luz" packages.
 #' Please refer to the documentation of those package for more details.
 #'
-#' @param samples           Time series with the training samples.
-#' @param layers            Vector with number of hidden nodes in each layer.
-#' @param dropout_rates     Vector with the dropout rates (0,1)
-#'                          for each layer.
-#' @param learning_rate     Initial learning rate of the optimizer.
-#' @param eps               Term added to the denominator
-#'                          to improve numerical stability during optimization.
-#' @param weight_decay      L2 regularization param for optimizer.
-#' @param epochs            Number of iterations to train the model.
-#' @param batch_size        Number of samples per gradient update.
-#' @param validation_split  Number between 0 and 1.
-#'                          Fraction of the training data for validation.
-#'                          The model will set apart this fraction
-#'                          and will evaluate the loss and any model metrics
-#'                          on this data at the end of each epoch.
-#' @param verbose           Verbosity mode (0 = silent,
-#'                          1 = progress bar, 2 = one line per epoch).
-#' @return                  Either a model to be passed in sits_predict
-#'                          or a function prepared to be called further.
+#' @param samples            Time series with the training samples.
+#' @param samples_validation Time series with the validation samples. if the
+#'                           \code{samples_validation} parameter is provided,
+#'                           the \code{validation_split} parameter is ignored.
+#' @param layers             Vector with number of hidden nodes in each layer.
+#' @param dropout_rates      Vector with the dropout rates (0,1)
+#'                           for each layer.
+#' @param learning_rate      Learning rate of the optimizer
+#' @param eps                Term added to the denominator
+#'                           to improve numerical stability during optimization.
+#' @param weight_decay       L2 regularization param for optimizer.
+#' @param epochs             Number of iterations to train the model.
+#' @param batch_size         Number of samples per gradient update.
+#' @param validation_split   Number between 0 and 1.
+#'                           Fraction of the training data for validation.
+#'                           The model will set apart this fraction
+#'                           and will evaluate the loss and any model metrics
+#'                           on this data at the end of each epoch.
+#' @param patience           Number of epochs without improvements until
+#'                           training stops.
+#' @param min_delta	         Minimum improvement in loss function
+#'                           to reset the patience counter.
+#' @param verbose            Verbosity mode (TRUE/FALSE). Default is FALSE.
+#' @return                   Either a model to be passed in sits_predict
+#'                           or a function prepared to be called further.
 #'
 #' @note
 #' The parameters for the MLP have been chosen based on the work by Wang et al. 2017
@@ -67,6 +73,7 @@
 #' @export
 #'
 sits_mlp <- function(samples = NULL,
+                     samples_validation = NULL,
                      layers = c(512, 512, 512),
                      dropout_rates = c(0.20, 0.30, 0.40),
                      learning_rate = 0.001,
@@ -75,7 +82,9 @@ sits_mlp <- function(samples = NULL,
                      epochs = 100,
                      batch_size = 64,
                      validation_split = 0.2,
-                     verbose = 0) {
+                     patience = 20,
+                     min_delta = 0.01,
+                     verbose = FALSE) {
 
     # set caller to show in errors
     .check_set_caller("sits_mlp")
@@ -110,6 +119,10 @@ sits_mlp <- function(samples = NULL,
             msg = "input data does not contain distances"
         )
 
+        # get the timeline of the data
+        timeline <- sits_timeline(data)
+        # get the bands of the data
+        bands <- sits_bands(data)
         # get the labels of the data
         labels <- sits_labels(data)
 
@@ -118,14 +131,37 @@ sits_mlp <- function(samples = NULL,
         int_labels <- c(1:n_labels)
         names(int_labels) <- labels
 
-        # split the data into training and validation data sets
-        # create partitions different splits of the input data
-        test_data <- .sits_distances_sample(train_data,
-                                            frac = validation_split
-        )
-        # remove the lines used for validation
-        train_data <- train_data[!test_data, on = "original_row"]
+        if (!is.null(samples_validation)) {
 
+            # check if the labels matches with train data
+            .check_that(
+                all(sits_labels(samples_validation) %in% labels) &&
+                    all(labels %in% sits_labels(samples_validation))
+            )
+            # check if the timeline matches with train data
+            .check_that(
+                length(sits_timeline(samples_validation)) == length(timeline)
+            )
+            # check if the bands matches with train data
+            .check_that(
+                all(sits_bands(samples_validation) %in% bands) &&
+                    all(bands %in% sits_bands(samples_validation))
+            )
+
+            test_data <- .sits_distances(
+                .sits_ml_normalize_data(samples_validation, stats)
+            )
+        } else {
+            # split the data into training and validation data sets
+            # create partitions different splits of the input data
+            test_data <- .sits_distances_sample(
+                train_data,
+                frac = validation_split
+            )
+
+            # remove the lines used for validation
+            train_data <- train_data[!test_data, on = "original_row"]
+        }
         # shuffle the data
         train_data <- train_data[sample(
             nrow(train_data),
@@ -208,8 +244,8 @@ sits_mlp <- function(samples = NULL,
                 epochs = epochs,
                 valid_data = list(test_x, test_y),
                 callbacks = list(luz::luz_callback_early_stopping(
-                    patience = 10,
-                    min_delta = 0.05
+                    patience = patience,
+                    min_delta = min_delta
                 )),
                 verbose = verbose
             )

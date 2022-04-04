@@ -6,7 +6,7 @@
 #' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
 #'
 #' @description Implementation of Light Temporal Attention Encoder (L-TAE)
-#' for satellite image time series classification.
+#' for satellite image time seri
 #'
 #' This function is based on the paper by Vivien Garnot referenced below
 #' and code available on github at
@@ -36,22 +36,26 @@
 #' ReScience C 7 (2), 2021.
 #' DOI: 10.5281/zenodo.4835356
 #'
-#' @param samples           Time series with the training samples.
-#' @param epochs            Number of iterations to train the model.
-#' @param batch_size        Number of samples per gradient update.
-#' @param validation_split  Fraction of training data
-#'                          to be used as validation data.
-#' @param optimizer         Optimizer function to be used.
-#' @param learning_rate     Initial learning rate of the optimizer.
-#' @param eps               Term added to the denominator to improve numerical stability.
-#' @param weight_decay      L2 regularization param.
-#' @param lr_decay_epochs   Number of epochs to reduce learning rate.
-#' @param lr_decay_rate     Decay factor for reducing learning rate.
-#' @param patience          Number of epochs without improvements until
-#'                          training stops.
-#' @param min_delta	        Minimum improvement in loss function
-#'                          to reset the patience counter.
-#' @param verbose           Verbosity mode (TRUE/FALSE).
+#' @param samples            Time series with the training samples.
+#' @param samples_validation Time series with the validation samples. if the
+#'                           \code{samples_validation} parameter is provided,
+#'                           the \code{validation_split}
+#'                           parameter is ignored.
+#' @param epochs             Number of iterations to train the model.
+#' @param batch_size         Number of samples per gradient update.
+#' @param validation_split   Fraction of training data
+#'                           to be used as validation data.
+#' @param optimizer          Optimizer function to be used.
+#' @param learning_rate      Initial learning rate of the optimizer.
+#' @param eps                Term added to the denominator to improve numerical stability.
+#' @param weight_decay       L2 regularization param.
+#' @param lr_decay_epochs    Number of epochs to reduce learning rate.
+#' @param lr_decay_rate      Decay factor for reducing learning rate.
+#' @param patience           Number of epochs without improvements until
+#'                           training stops.
+#' @param min_delta	         Minimum improvement in loss function
+#'                           to reset the patience counter.
+#' @param verbose            Verbosity mode (TRUE/FALSE). Default is FALSE.
 #'
 #' @return A fitted model to be passed to \code{\link[sits]{sits_classify}}
 #'
@@ -73,6 +77,7 @@
 #' }
 #' @export
 sits_lighttae <- function(samples = NULL,
+                          samples_validation = NULL,
                           epochs = 150,
                           batch_size = 64,
                           validation_split = 0.2,
@@ -85,6 +90,7 @@ sits_lighttae <- function(samples = NULL,
                           patience = 20,
                           min_delta = 0.01,
                           verbose = FALSE) {
+
 
     # set caller to show in errors
     .check_set_caller("sits_lighttae")
@@ -124,12 +130,23 @@ sits_lighttae <- function(samples = NULL,
             msg = "invalid learning rate decay"
         )
 
+        # get parameters list and remove the 'param' parameter
+        optim_params_function <- formals(optimizer)[-1]
+        if (!is.null(names(dots))) {
+            .check_chr_within(
+                x = names(dots),
+                within = names(optim_params_function)
+            )
+            optim_params_function <- modifyList(optim_params_function, dots)
+        }
+
         # get the labels
         labels <- sits_labels(data)
         # create a named vector with integers match the class labels
         n_labels <- length(labels)
         int_labels <- c(1:n_labels)
         names(int_labels) <- labels
+        bands <- sits_bands(data)
 
         # number of bands and number of samples
         n_bands <- length(sits_bands(data))
@@ -141,13 +158,45 @@ sits_lighttae <- function(samples = NULL,
         stats <- .sits_ml_normalization_param(data)
         train_data <- .sits_distances(.sits_ml_normalize_data(data, stats))
 
-        # split the data into training and validation data sets
-        # create partitions different splits of the input data
-        test_data <- .sits_distances_sample(train_data,
-                                            frac = validation_split
+        # is the training data correct?
+        .check_chr_within(
+            x = "reference",
+            within = names(train_data),
+            discriminator = "any_of",
+            msg = "input data does not contain distances"
         )
-        # remove the lines used for validation
-        train_data <- train_data[!test_data, on = "original_row"]
+
+        if (!is.null(samples_validation)) {
+
+            # check if the labels matches with train data
+            .check_that(
+                all(sits_labels(samples_validation) %in% labels) &&
+                    all(labels %in% sits_labels(samples_validation))
+            )
+            # check if the timeline matches with train data
+            .check_that(
+                length(sits_timeline(samples_validation)) == length(timeline)
+            )
+            # check if the bands matches with train data
+            .check_that(
+                all(sits_bands(samples_validation) %in% bands) &&
+                    all(bands %in% sits_bands(samples_validation))
+            )
+
+            test_data <- .sits_distances(
+                .sits_ml_normalize_data(samples_validation, stats)
+            )
+        } else {
+            # split the data into training and validation data sets
+            # create partitions different splits of the input data
+            test_data <- .sits_distances_sample(
+                train_data,
+                frac = validation_split
+            )
+
+            # remove the lines used for validation
+            train_data <- train_data[!test_data, on = "original_row"]
+        }
         n_samples_train <- nrow(train_data)
         n_samples_test <- nrow(test_data)
 
