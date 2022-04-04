@@ -26,7 +26,7 @@ sits_env$model_formula <- "log"
 utils::globalVariables(c(
   ".",                         # magrittr
   ":=", ".SD", ".SDcols",".N", # data.table
-  "self"                       # torch
+  "self", "ctx"                # torch
 ))
 
 #' @importFrom lubridate %within% %m+%

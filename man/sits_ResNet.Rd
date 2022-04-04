@@ -13,6 +13,8 @@ sits_resnet(
   validation_split = 0.2,
   optimizer = torch::optim_adam,
   learning_rate = 0.001,
+  eps = 1e-08,
+  weight_decay = 0,
   lr_decay_epochs = 1,
   lr_decay_rate = 0.95,
   patience = 20,
@@ -39,6 +41,11 @@ to be used as validation data.}
 \item{optimizer}{Optimizer function to be used.}
 
 \item{learning_rate}{Initial learning rate of the optimizer.}
+
+\item{eps}{Term added to the denominator
+to improve numerical stability during optimization.}
+
+\item{weight_decay}{L2 regularization param for optimizer.}
 
 \item{lr_decay_epochs}{Number of epochs to reduce learning rate.}
 

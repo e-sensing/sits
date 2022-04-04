@@ -14,8 +14,10 @@ sits_tempcnn(
   epochs = 150,
   batch_size = 128,
   validation_split = 0.2,
-  optimizer = optim_adabound,
+  optimizer = optim_madgrad,
   learning_rate = 0.001,
+  eps = 1e-06,
+  weight_decay = 1e-06,
   lr_decay_epochs = 1,
   lr_decay_rate = 1,
   patience = 20,
@@ -45,6 +47,10 @@ sits_tempcnn(
 \item{optimizer}{Optimizer function to be used.}
 
 \item{learning_rate}{Initial learning rate of the optimizer.}
+
+\item{eps}{Term added to the denominator to improve numerical stability.}
+
+\item{weight_decay}{L2 regularization param.}
 
 \item{lr_decay_epochs}{Number of epochs to reduce learning rate.}
 
