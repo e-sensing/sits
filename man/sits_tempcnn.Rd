@@ -6,6 +6,7 @@
 \usage{
 sits_tempcnn(
   samples = NULL,
+  samples_validation = NULL,
   cnn_layers = c(64, 64, 64),
   cnn_kernels = c(5, 5, 5),
   cnn_dropout_rates = c(0.5, 0.5, 0.5),
@@ -14,10 +15,8 @@ sits_tempcnn(
   epochs = 150,
   batch_size = 128,
   validation_split = 0.2,
-  optimizer = optim_madgrad,
-  learning_rate = 0.001,
-  eps = 1e-06,
-  weight_decay = 1e-06,
+  optimizer = torch::optim_adam,
+  opt_hparams = list(lr = 0.001),
   lr_decay_epochs = 1,
   lr_decay_rate = 1,
   patience = 20,
@@ -27,6 +26,10 @@ sits_tempcnn(
 }
 \arguments{
 \item{samples}{Time series with the training samples.}
+
+\item{samples_validation}{Time series with the validation samples. if the
+\code{samples_validation} parameter is provided,
+the \code{validation_split} parameter is ignored.}
 
 \item{cnn_layers}{Number of 1D convolutional filters per layer}
 
@@ -42,15 +45,12 @@ sits_tempcnn(
 
 \item{batch_size}{Number of samples per gradient update.}
 
-\item{validation_split}{Fraction of training data to be used for validation.}
+\item{validation_split}{Fraction of training data to be used for
+validation.}
 
 \item{optimizer}{Optimizer function to be used.}
 
-\item{learning_rate}{Initial learning rate of the optimizer.}
-
-\item{eps}{Term added to the denominator to improve numerical stability.}
-
-\item{weight_decay}{L2 regularization param.}
+\item{opt_hparams}{Hyperparameters for optimizer.}
 
 \item{lr_decay_epochs}{Number of epochs to reduce learning rate.}
 
@@ -62,7 +62,7 @@ training stops.}
 \item{min_delta}{Minimum improvement in loss function
 to reset the patience counter.}
 
-\item{verbose}{Verbosity mode (TRUE/FALSE).}
+\item{verbose}{Verbosity mode (TRUE/FALSE). Default is FALSE.}
 }
 \value{
 A fitted model to be passed to \code{\link[sits]{sits_classify}}

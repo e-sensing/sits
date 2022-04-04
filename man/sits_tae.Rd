@@ -6,6 +6,7 @@
 \usage{
 sits_tae(
   samples = NULL,
+  samples_validation = NULL,
   epochs = 150,
   batch_size = 64,
   validation_split = 0.2,
@@ -23,6 +24,10 @@ sits_tae(
 \arguments{
 \item{samples}{Time series with the training samples.}
 
+\item{samples_validation}{Time series with the validation samples. if the
+\code{samples_validation} parameter is provided,
+the \code{validation_split} parameter is ignored.}
+
 \item{epochs}{Number of iterations to train the model.}
 
 \item{batch_size}{Number of samples per gradient update.}
@@ -32,7 +37,7 @@ to be used as validation data.}
 
 \item{optimizer}{Optimizer function to be used.}
 
-\item{learning_rate}{Initial learning rate of the optimizer.}
+\item{learning_rate}{Learning rate of the optimizer}
 
 \item{eps}{Term added to the denominator
 to improve numerical stability during optimization.}
@@ -48,8 +53,7 @@ training stops.}
 
 \item{min_delta}{Minimum improvement to reset the patience counter.}
 
-\item{verbose}{Verbosity mode (0 = silent, 1 = progress bar,
-2 = one line per epoch).}
+\item{verbose}{Verbosity mode (TRUE/FALSE). Default is FALSE.}
 }
 \value{
 A fitted model to be passed to \code{\link[sits]{sits_classify}}

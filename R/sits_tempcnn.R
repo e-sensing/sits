@@ -25,26 +25,28 @@
 #' of Satellite Image Time Series",
 #' Remote Sensing, 11,523, 2019. DOI: 10.3390/rs11050523.
 #'
-#' @param samples           Time series with the training samples.
-#' @param cnn_layers        Number of 1D convolutional filters per layer
-#' @param cnn_kernels       Size of the 1D convolutional kernels.
-#' @param cnn_dropout_rates Dropout rates for 1D convolutional filters.
-#' @param dense_layer_nodes Number of nodes in the dense layer.
+#' @param samples            Time series with the training samples.
+#' @param samples_validation Time series with the validation samples. if the
+#'                           \code{samples_validation} parameter is provided,
+#'                           the \code{validation_split} parameter is ignored.
+#' @param cnn_layers         Number of 1D convolutional filters per layer
+#' @param cnn_kernels        Size of the 1D convolutional kernels.
+#' @param cnn_dropout_rates  Dropout rates for 1D convolutional filters.
+#' @param dense_layer_nodes  Number of nodes in the dense layer.
 #' @param dense_layer_dropout_rate  Dropout rate (0,1) for the dense layer.
-#' @param epochs            Number of iterations to train the model.
-#' @param batch_size        Number of samples per gradient update.
-#' @param validation_split  Fraction of training data to be used for validation.
-#' @param optimizer         Optimizer function to be used.
-#' @param learning_rate     Initial learning rate of the optimizer.
-#' @param eps               Term added to the denominator to improve numerical stability.
-#' @param weight_decay      L2 regularization param.
-#' @param lr_decay_epochs   Number of epochs to reduce learning rate.
-#' @param lr_decay_rate     Decay factor for reducing learning rate.
-#' @param patience          Number of epochs without improvements until
-#'                          training stops.
-#' @param min_delta	        Minimum improvement in loss function
-#'                          to reset the patience counter.
-#' @param verbose           Verbosity mode (TRUE/FALSE).
+#' @param epochs             Number of iterations to train the model.
+#' @param batch_size         Number of samples per gradient update.
+#' @param validation_split   Fraction of training data to be used for
+#'                           validation.
+#' @param optimizer          Optimizer function to be used.
+#' @param opt_hparams        Hyperparameters for optimizer.
+#' @param lr_decay_epochs    Number of epochs to reduce learning rate.
+#' @param lr_decay_rate      Decay factor for reducing learning rate.
+#' @param patience           Number of epochs without improvements until
+#'                           training stops.
+#' @param min_delta	         Minimum improvement in loss function
+#'                           to reset the patience counter.
+#' @param verbose            Verbosity mode (TRUE/FALSE). Default is FALSE.
 #'
 #' @return A fitted model to be passed to \code{\link[sits]{sits_classify}}
 #'
@@ -65,6 +67,7 @@
 #' }
 #' @export
 sits_tempcnn <- function(samples = NULL,
+                         samples_validation = NULL,
                          cnn_layers = c(64, 64, 64),
                          cnn_kernels = c(5, 5, 5),
                          cnn_dropout_rates = c(0.50, 0.50, 0.50),
@@ -73,10 +76,8 @@ sits_tempcnn <- function(samples = NULL,
                          epochs = 150,
                          batch_size = 128,
                          validation_split = 0.2,
-                         optimizer = optim_madgrad,
-                         learning_rate = 0.001,
-                         eps = 1e-6,
-                         weight_decay = 1e-6,
+                         optimizer = torch::optim_adam,
+                         opt_hparams = list(lr = 0.001),
                          lr_decay_epochs = 1,
                          lr_decay_rate = 1,
                          patience = 20,
@@ -119,14 +120,6 @@ sits_tempcnn <- function(samples = NULL,
             msg = "dropout rates must be provided for the dense layer"
         )
         .check_num(
-            x = learning_rate,
-            min = 0,
-            max = 0.1,
-            allow_zero = FALSE,
-            len_max = 1,
-            msg = "invalid learning rate"
-        )
-        .check_num(
             x = lr_decay_epochs,
             is_integer = TRUE,
             len_max = 1,
@@ -141,8 +134,25 @@ sits_tempcnn <- function(samples = NULL,
             allow_zero = FALSE,
             msg = "invalid learning rate decay"
         )
+
+        # get parameters list and remove the 'param' parameter
+        optim_params_function <- formals(optimizer)[-1]
+        if (!is.null(opt_hparams)) {
+            .check_chr_within(
+                x = names(opt_hparams),
+                within = names(optim_params_function)
+            )
+            optim_params_function <- modifyList(optim_params_function,
+                                                opt_hparams)
+        }
+
+        # get the timeline of the data
+        timeline <- sits_timeline(data)
+        # get the bands of the data
+        bands <- sits_bands(data)
         # get the labels of the data
         labels <- sits_labels(data)
+
         # create a named vector with integers match the class labels
         n_labels <- length(labels)
         int_labels <- c(1:n_labels)
@@ -156,14 +166,45 @@ sits_tempcnn <- function(samples = NULL,
         stats <- .sits_ml_normalization_param(data)
         train_data <- .sits_distances(.sits_ml_normalize_data(data, stats))
 
-        # split the data into training and validation data sets
-        # create partitions different splits of the input data
-        test_data <- .sits_distances_sample(train_data,
-                                            frac = validation_split
+        # is the training data correct?
+        .check_chr_within(
+            x = "reference",
+            within = names(train_data),
+            discriminator = "any_of",
+            msg = "input data does not contain distances"
         )
-        # remove the lines used for validation
-        train_data <- train_data[!test_data, on = "original_row"]
 
+        if (!is.null(samples_validation)) {
+
+            # check if the labels matches with train data
+            .check_that(
+                all(sits_labels(samples_validation) %in% labels) &&
+                    all(labels %in% sits_labels(samples_validation))
+            )
+            # check if the timeline matches with train data
+            .check_that(
+                length(sits_timeline(samples_validation)) == length(timeline)
+            )
+            # check if the bands matches with train data
+            .check_that(
+                all(sits_bands(samples_validation) %in% bands) &&
+                    all(bands %in% sits_bands(samples_validation))
+            )
+
+            test_data <- .sits_distances(
+                .sits_ml_normalize_data(samples_validation, stats)
+            )
+        } else {
+            # split the data into training and validation data sets
+            # create partitions different splits of the input data
+            test_data <- .sits_distances_sample(
+                train_data,
+                frac = validation_split
+            )
+
+            # remove the lines used for validation
+            train_data <- train_data[!test_data, on = "original_row"]
+        }
         n_samples_train <- nrow(train_data)
         n_samples_test <- nrow(test_data)
 
@@ -262,6 +303,9 @@ sits_tempcnn <- function(samples = NULL,
                     self$softmax()
             }
         )
+
+        torch::torch_set_num_threads(1)
+
         # train the model using luz
         torch_model <-
             luz::setup(
@@ -271,9 +315,7 @@ sits_tempcnn <- function(samples = NULL,
                 optimizer = optimizer
             ) %>%
             luz::set_opt_hparams(
-                lr = learning_rate,
-                weight_decay = weight_decay,
-                eps = eps
+                !!!optim_params_function
             ) %>%
             luz::set_hparams(
                 n_bands = n_bands,

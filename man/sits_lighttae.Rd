@@ -6,6 +6,7 @@
 \usage{
 sits_lighttae(
   samples = NULL,
+  samples_validation = NULL,
   epochs = 150,
   batch_size = 64,
   validation_split = 0.2,
@@ -22,6 +23,11 @@ sits_lighttae(
 }
 \arguments{
 \item{samples}{Time series with the training samples.}
+
+\item{samples_validation}{Time series with the validation samples. if the
+\code{samples_validation} parameter is provided,
+the \code{validation_split}
+parameter is ignored.}
 
 \item{epochs}{Number of iterations to train the model.}
 
@@ -48,14 +54,14 @@ training stops.}
 \item{min_delta}{Minimum improvement in loss function
 to reset the patience counter.}
 
-\item{verbose}{Verbosity mode (TRUE/FALSE).}
+\item{verbose}{Verbosity mode (TRUE/FALSE). Default is FALSE.}
 }
 \value{
 A fitted model to be passed to \code{\link[sits]{sits_classify}}
 }
 \description{
 Implementation of Light Temporal Attention Encoder (L-TAE)
-for satellite image time series classification.
+for satellite image time seri
 
 This function is based on the paper by Vivien Garnot referenced below
 and code available on github at
