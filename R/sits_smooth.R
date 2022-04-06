@@ -304,7 +304,7 @@ sits_smooth.bayes <- function(cube, type = "bayes", ...,
             # export to temp file
             block_file <- .smth_filename(tile = tile_new,
                                          output_dir = output_dir,
-                                         block = blk_no_overlap)
+                                         block = block)
 
             # save chunk
             .raster_write_rast(
@@ -577,7 +577,7 @@ sits_smooth.bilateral <- function(cube,
             # export to temp file
             block_file <- .smth_filename(tile = tile_new,
                                          output_dir = output_dir,
-                                         block = blk_no_overlap)
+                                         block = block)
 
             # save chunk
             .raster_write_rast(

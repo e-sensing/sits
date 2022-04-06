@@ -173,7 +173,7 @@ sits_uncertainty.entropy <- function(cube, type = "entropy", ...,
             # export to temp file
             block_file <- .smth_filename(tile = tile_new,
                                          output_dir = output_dir,
-                                         block = blk_no_overlap)
+                                         block = block)
 
             # save chunk
             .raster_write_rast(
