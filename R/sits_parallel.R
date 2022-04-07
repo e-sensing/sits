@@ -46,14 +46,25 @@
 
             # make sure library paths is the same as actual environment
             lib_paths <- .libPaths()
+            # it is necessary to export the keys from aws to access the
+            # request payer cubes
+            env_vars <- as.list(Sys.getenv())
+
             parallel::clusterExport(
                 cl = sits_env[["cluster"]],
-                varlist = c("lib_paths", "log"),
+                varlist = c("lib_paths", "log", "env_vars"),
                 envir = environment()
             )
             parallel::clusterEvalQ(
                 cl = sits_env[["cluster"]],
                 expr = .libPaths(lib_paths)
+            )
+            # export only those environment variables that are different
+            # between clusters
+            parallel::clusterEvalQ(
+                cl = sits_env[["cluster"]],
+                expr = do.call(Sys.setenv,
+                               modifyList(as.list(Sys.getenv()), env_vars))
             )
             # export debug flag
             parallel::clusterEvalQ(
