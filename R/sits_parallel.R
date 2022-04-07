@@ -59,7 +59,7 @@
                 cl = sits_env[["cluster"]],
                 expr = .libPaths(lib_paths)
             )
-            # export only those environment variables that are different
+            # set only those environment variables that are different
             # between clusters
             parallel::clusterEvalQ(
                 cl = sits_env[["cluster"]],
