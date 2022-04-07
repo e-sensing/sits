@@ -10,7 +10,7 @@ optim_yogi(
   betas = c(0.9, 0.999),
   eps = 0.001,
   initial_accumulator = 1e-06,
-  weight_decay = 0
+  weight_decay = 1e-06
 )
 }
 \arguments{

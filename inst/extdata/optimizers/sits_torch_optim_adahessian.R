@@ -87,13 +87,13 @@ optim_adahessian <- torch::optimizer(
     #     computing the gradient of <gradsH,v>.
     get_trace = function(grads){
         # Check backward was called with create_graph set to True
-        # grad_list <- purrr::map(grads, function(grad) {
-        #     if (purrr::is_null(grad$grad_fn)) {
-        #         msg <- paste("Gradient tensor does not have grad_fn",
-        #         "When calling loss.backward(), set create_graph to True.")
-        #         rlang::abort(msg)
-        #     }
-        # })
+        grad_list <- purrr::map(grads, function(grad) {
+            if (purrr::is_null(grad$grad_fn)) {
+                msg <- paste("Gradient tensor does not have grad_fn",
+                "When calling loss.backward(), set create_graph to True.")
+                rlang::abort(msg)
+            }
+        })
         params = self$param_groups[[1]][['params']]
         # random vector to estimate Hessian matrix diagonal
         v <- purrr::map(params, function(p){

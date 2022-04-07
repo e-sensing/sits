@@ -57,7 +57,7 @@ optim_yogi <- torch::optimizer(
         betas               = c(0.9, 0.999),
         eps                 = 0.001,
         initial_accumulator = 1e-6,
-        weight_decay        = 0
+        weight_decay        = 1e-6
     ) {
         if (lr <= 0.0)
             rlang::abort("Learning rate must be positive.")
@@ -127,7 +127,7 @@ optim_yogi <- torch::optimizer(
 
             # L2 correction
             if (weight_decay != 0)
-                grad <- grad$add(p, alpha = weight_decay)
+                grad <- grad$add(param, alpha = weight_decay)
 
             # Decay the first moment
             exp_avg$mul_(beta1)$add_(grad, alpha = 1 - beta1)

@@ -75,6 +75,7 @@ Suggests:
     RcppArmadillo,
     Rwtss (>= 0.9.1),
     scales,
+    scutr,
     stars,
     testthat (>= 3.0.2),
     tidyr,
