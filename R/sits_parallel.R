@@ -49,6 +49,7 @@
             # it is necessary to export the keys from aws to access the
             # request payer cubes
             env_vars <- as.list(Sys.getenv())
+            env_vars <- env_vars[grepl(pattern = "^AWS_*", names(env_vars))]
 
             parallel::clusterExport(
                 cl = sits_env[["cluster"]],
@@ -63,8 +64,7 @@
             # between clusters
             parallel::clusterEvalQ(
                 cl = sits_env[["cluster"]],
-                expr = do.call(Sys.setenv,
-                               modifyList(as.list(Sys.getenv()), env_vars))
+                expr = do.call(Sys.setenv, env_vars)
             )
             # export debug flag
             parallel::clusterEvalQ(
