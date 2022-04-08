@@ -114,12 +114,12 @@ sits_tae <- function(samples = NULL,
         )
         # get parameters list and remove the 'param' parameter
         optim_params_function <- formals(optimizer)[-1]
-        if (!is.null(names(dots))) {
+        if (!is.null(names(opt_hparams))) {
             .check_chr_within(
-                x = names(dots),
+                x = names(opt_hparams),
                 within = names(optim_params_function)
             )
-            optim_params_function <- modifyList(optim_params_function, dots)
+            optim_params_function <- modifyList(optim_params_function, opt_hparams)
         }
 
         # get the timeline of the data

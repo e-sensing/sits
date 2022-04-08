@@ -4,28 +4,20 @@
 \alias{sits_reduce_imbalance}
 \title{Reduce imbalance in a set of samples}
 \usage{
-sits_reduce_imbalance(
-  samples,
-  oversample = scutr::oversample_smote,
-  undersample = scutr::undersample_kmeans,
-  n_samples_over = 100,
-  n_samples_under = 400
-)
+sits_reduce_imbalance(samples, n_samples_over = 200, n_samples_under = 400)
 }
 \arguments{
 \item{samples}{Sample set to rebalance}
 
-\item{oversample}{Method used to oversample classes with
-limited number of samples}
-
-\item{undersample}{Method used to undersample classes with
-large number of samples}
-
 \item{n_samples_over}{Number of samples to oversample
-for classes with samples less than this number}
+for classes with samples less than this number
+(use n_samples_over = NULL to avoid
+oversampling).}
 
 \item{n_samples_under}{Number of samples to undersample
-for classes with samples more than this number}
+for classes with samples more than this number
+(use n_samples_over = NULL to avoid
+oversampling).}
 }
 \value{
 A sits tibble with a fixed quantity of samples.
@@ -33,13 +25,10 @@ A sits tibble with a fixed quantity of samples.
 \description{
 Takes a sits tibble with different labels and
              returns a new tibble. Deals with class imbalance
-             using a synthetic minority oversampling technique (SMOTE).
-             By default, does undersampling and oversampling on all classes
-             using the techniques avaliable in the SCUTR package.
-
-             By default, all classes will have m/n samples, where m
-             is the total number of samples in the original dataset,
-             and n is the number of classes.
+             using the synthetic minority oversampling technique (SMOTE)
+             for oversampling.
+             Undersampling is done using the SOM methods available in
+             the sits package.
 
              Please see the function scutr::SCUT() for more details.
 }
@@ -52,6 +41,23 @@ sits_labels_summary(samples_modis_4bands)
 new_data <- sits_reduce_imbalance(samples_modis_4bands)
 # Print the labels of the resulting tibble
 sits_labels_summary(new_data)
+}
+\references{
+Oversampling uses the "scutr::oversample_smote" function
+implemented in the "scutr" package developed by Keenan Ganz and
+avaliable in https://github.com/s-kganz/scutr
+The reference paper on SMOTE is
+N. V. Chawla, K. W. Bowyer, L. O.Hall, W. P. Kegelmeyer,
+“SMOTE: synthetic minority over-sampling technique,”
+Journal of artificial intelligence research, 321-357, 2002..
+
+Undersampling uses the SOM map developed by Lorena Santos and co-workers
+and used in the sits_som_map() function.
+The SOM map technique is described in the paper:
+Lorena Santos, Karine Ferreira, Gilberto Camara, Michelle Picoli,
+Rolf Simoes, “Quality control and class noise reduction of satellite
+image time series”. ISPRS Journal of Photogrammetry and Remote Sensing,
+vol. 177, pp 75-88, 2021. https://doi.org/10.1016/j.isprsjprs.2021.04.014.
 }
 \author{
 Gilberto Camara, \email{gilberto.camara@inpe.br}
