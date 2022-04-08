@@ -4,7 +4,7 @@
 \alias{sits_sample}
 \title{Sample a percentage of a time series}
 \usage{
-sits_sample(data, n = NULL, frac = NULL)
+sits_sample(data, n = NULL, frac = NULL, oversample = TRUE)
 }
 \arguments{
 \item{data}{Input sits tibble.}
@@ -12,6 +12,8 @@ sits_sample(data, n = NULL, frac = NULL)
 \item{n}{Number of samples to pick from each group of data.}
 
 \item{frac}{Percentage of samples to pick from each group of data.}
+
+\item{oversample}{Oversample classes with small number of samples?}
 }
 \value{
 A sits tibble with a fixed quantity of samples.
