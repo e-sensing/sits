@@ -62,10 +62,12 @@
             )
             # set only those environment variables that are different
             # between clusters
-            parallel::clusterEvalQ(
-                cl = sits_env[["cluster"]],
-                expr = do.call(Sys.setenv, env_vars)
-            )
+            if (length(env_vars) > 0) {
+                parallel::clusterEvalQ(
+                    cl = sits_env[["cluster"]],
+                    expr = do.call(Sys.setenv, env_vars)
+                )
+            }
             # export debug flag
             parallel::clusterEvalQ(
                 cl = sits_env[["cluster"]],
