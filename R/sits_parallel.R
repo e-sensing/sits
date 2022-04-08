@@ -97,8 +97,17 @@
 #' @title Fault tolerant version of some parallel functions
 #' @name sits_parallel_fault_tolerant
 #' @keywords internal
+#'
 #' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
-#' @author Derived from the snow package
+#'
+#' @description
+#' These internal functions are a reimplementation of a fault tolerant
+#' version of snow package functions \code{recv_one_data()},
+#' \code{recv_one_result()}, and \code{cluster_apply()}
+#' from Luke Tierney, A. J. Rossini, Na Li, H. Sevcikova.
+#' snow package is licensed as GPL-2 | GPL-3.
+#' This re-implementation allows `sits` cope with massive volume of data
+#' processing over networks without compromise overall results.
 #'
 #' @param x     a given list to be passed to a function
 #' @param fn    a function to be applied to each list element
