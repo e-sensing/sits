@@ -295,6 +295,7 @@ test_that("Creating cubes from DEA - error using tiles", {
         "DEAFRICA cubes do not support searching for tiles"
     )
 })
+
 test_that("Merging cubes", {
     data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
 
@@ -460,6 +461,9 @@ test_that("Creating regular cubes from AWS Open Data, and extracting samples fro
 })
 
 test_that("Creating cubes from AWS Open Data and regularizing with gdalcubes", {
+
+    testthat::skip_on_cran()
+
     s2_cube_open <- tryCatch(
         {
             sits_cube(

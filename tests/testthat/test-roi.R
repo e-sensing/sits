@@ -3,7 +3,7 @@ test_that("One-year, multicore classification with ROI", {
     bands = c("NDVI", "EVI")
   )
 
-  svm_model <- sits_train(samples_2bands, sits_svm())
+  rfor_model <- sits_train(samples_2bands, sits_rfor(num_trees = 30))
 
   data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
   sinop <- sits_cube(
@@ -24,10 +24,11 @@ test_that("One-year, multicore classification with ROI", {
       suppressMessages(
         sits_classify(
           data = sinop,
-          ml_model = svm_model,
+          ml_model = rfor_model,
           output_dir = tempdir(),
           roi = bbox,
-          memsize = 4, multicores = 2
+          memsize = 4,
+          multicores = 2
         )
       )
     },
@@ -57,6 +58,7 @@ test_that("One-year, multicore classification with ROI", {
 
   expect_true(all(file.remove(unlist(sinop_probs$file_info[[1]]$path))))
 })
+
 test_that("Bbox in WGS 84", {
   data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
   sinop <- sits_cube(
@@ -70,6 +72,7 @@ test_that("Bbox in WGS 84", {
   bbox <- sits_bbox(sinop, wgs84 = TRUE)
   expect_true(all(names(bbox) %in% c("xmin", "ymin", "xmax", "ymax")))
 })
+
 test_that("Functions that work with ROI", {
   data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
   cube <- sits_cube(

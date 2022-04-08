@@ -2,9 +2,9 @@ test_that("Creating clustering using Self-organizing Maps", {
   # skip_on_cran()
   set.seed(2903)
   som_map <- sits_som_map(
-    samples_modis_4bands,
-    grid_xdim = 10,
-    grid_ydim = 10
+    sits_select(samples_modis_4bands, bands = "NDVI"),
+    grid_xdim = 4,
+    grid_ydim = 4
   )
 
   expect_true(all(colnames(som_map$labelled_neurons) %in%
@@ -12,7 +12,7 @@ test_that("Creating clustering using Self-organizing Maps", {
 
   expect_true(som_map$labelled_neurons[1, ]$prior_prob >= 0)
   expect_true(som_map$labelled_neurons[1, ]$post_prob >= 0)
-  expect_true(all(unique(som_map$labelled_neurons$id_neuron) %in% 1:100))
+  expect_true(all(unique(som_map$labelled_neurons$id_neuron) %in% 1:16))
 
   cleaned_samples <- sits_som_clean_samples(som_map)
   expect_true("eval" %in% names(cleaned_samples))
@@ -23,6 +23,6 @@ test_that("Creating clustering using Self-organizing Maps", {
 
   cluster_purity <- suppressMessages(sits_som_evaluate_cluster(som_map))
 
-  expect_true(cluster_purity[1, ]$mixture_percentage > 90.0)
-  expect_true(cluster_purity[2, ]$mixture_percentage < 5.0)
+  expect_true(cluster_purity[1, ]$mixture_percentage > 60)
+  expect_true(cluster_purity[2, ]$mixture_percentage < 40)
 })

@@ -1,5 +1,5 @@
 test_that("SVM  - Formula logref", {
-  # skip_on_cran()
+  skip_on_cran()
   samples_mt_ndvi <- sits_select(samples_modis_4bands, bands = "NDVI")
   svm_model <- sits_train(
     samples_mt_ndvi,
@@ -83,6 +83,7 @@ test_that("Random Forest", {
 })
 
 test_that("Random Forest - Whittaker", {
+  skip_on_cran()
   samples_mt_ndvi <- sits_select(samples_modis_4bands, bands = "NDVI")
   samples_mt_whit <- sits_filter(samples_mt_ndvi, filter = sits_whittaker())
   rfor_model <- sits_train(samples_mt_whit, sits_rfor(num_trees = 200))
@@ -99,6 +100,7 @@ test_that("Random Forest - Whittaker", {
 })
 
 test_that("Random Forest - SGolay", {
+  skip_on_cran()
   samples_mt_ndvi <- sits_select(samples_modis_4bands, bands = "NDVI")
   samples_mt_sg <- sits_filter(samples_mt_ndvi, filter = sits_sgolay())
   rfor_model <- sits_train(samples_mt_sg, sits_rfor(num_trees = 200))
@@ -114,22 +116,8 @@ test_that("Random Forest - SGolay", {
   expect_true(nrow(sits_show_prediction(point_class)) == 17)
 })
 
-test_that("Random Forest", {
-  samples_mt_ndvi <- sits_select(samples_modis_4bands, bands = "NDVI")
-  rfor_model <- sits_train(samples_mt_ndvi, sits_rfor(num_trees = 200))
-  point_ndvi <- sits_select(point_mt_6bands, bands = "NDVI")
-  point_class <- sits_classify(
-    data = point_ndvi,
-    ml_model = rfor_model
-  )
-
-  expect_true(all(point_class$predicted[[1]]$class %in%
-    sits_labels(samples_mt_ndvi)))
-  expect_true(nrow(sits_show_prediction(point_class)) == 17)
-})
-
 test_that("MLR", {
-  # skip_on_cran()
+  skip_on_cran()
   samples_mt_ndvi <- sits_select(samples_modis_4bands, bands = "NDVI")
   model <- sits_train(samples_mt_ndvi, sits_mlr())
   point_ndvi <- sits_select(point_mt_6bands, bands = "NDVI")
@@ -149,7 +137,7 @@ test_that("XGBoost", {
   model <- sits_train(
     samples_mt_ndvi,
     sits_xgboost(
-      nrounds = 30,
+      nrounds = 10,
       verbose = FALSE
     )
   )
@@ -165,6 +153,7 @@ test_that("XGBoost", {
 })
 
 test_that("lightGBM", {
+  skip_on_cran()
   lgbm_model <- sits_train(samples_modis_4bands, sits_lightgbm)
   point_4class <- sits_select(point_mt_6bands,
     bands = sits_bands(samples_modis_4bands)
@@ -177,7 +166,7 @@ test_that("lightGBM", {
 })
 
 test_that("DL-MLP", {
-  # skip_on_cran()
+  skip_on_cran()
   model <- sits_train(
       samples_modis_4bands,
       sits_mlp(
@@ -202,7 +191,7 @@ test_that("DL-MLP", {
 })
 
 test_that("ResNet", {
-  # skip_on_cran()
+  skip_on_cran()
   samples_ndvi <- sits_select(samples_modis_4bands, bands = "NDVI")
 
   model <- tryCatch({
@@ -227,7 +216,7 @@ test_that("ResNet", {
 })
 
 test_that("TempCNN model", {
-  # skip_on_cran()
+  skip_on_cran()
   model <- sits_train(samples_modis_4bands, sits_tempcnn())
   point_4bands <- sits_select(point_mt_6bands,
     bands = c("NDVI", "EVI", "NIR", "MIR")
@@ -244,7 +233,7 @@ test_that("TempCNN model", {
 })
 
 test_that("LightTAE model", {
-    # skip_on_cran()
+    skip_on_cran()
     model <- sits_train(samples_modis_4bands, sits_lighttae())
     point_4bands <- sits_select(point_mt_6bands,
                                 bands = c("NDVI", "EVI", "NIR", "MIR")
@@ -261,7 +250,7 @@ test_that("LightTAE model", {
 })
 
 test_that("PSETAE model", {
-    # skip_on_cran()
+    skip_on_cran()
     model <- sits_train(samples_modis_4bands, sits_tae())
     point_4bands <- sits_select(point_mt_6bands,
                                 bands = c("NDVI", "EVI", "NIR", "MIR")
