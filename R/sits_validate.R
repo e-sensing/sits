@@ -22,12 +22,13 @@
 #'
 #' This function returns the confusion matrix, and Kappa values.
 #'
-#' @param data            Time series.
-#' @param folds           Number of partitions to create.
-#' @param ml_method       Machine learning method.
-#' @param multicores      Number of cores to process in parallel
-#' @return                A tibble containing pairs of
-#'                        reference and predicted values.
+#' @param samples            Time series.
+#' @param samples_validation Validation time series.
+#' @param folds              Number of partitions to create.
+#' @param ml_method          Machine learning method.
+#' @param multicores         Number of cores to process in parallel.
+#'
+#' @return A tibble containing pairs of reference and predicted values.
 #'
 #' @examples
 #' \donttest{
@@ -41,7 +42,7 @@
 #' }
 #' @export
 #'
-sits_kfold_validate <- function(data,
+sits_kfold_validate <- function(samples,
                                 folds = 5,
                                 ml_method = sits_rfor(),
                                 multicores = 2) {
@@ -65,7 +66,7 @@ sits_kfold_validate <- function(data,
                msg = "Invalid multicores parameter")
 
     # get the labels of the data
-    labels <- sits_labels(data)
+    labels <- sits_labels(samples)
 
     # create a named vector with integers match the class labels
     n_labels <- length(labels)
@@ -74,12 +75,12 @@ sits_kfold_validate <- function(data,
 
     # is the data labelled?
     .check_that(
-        x = !("NoClass" %in% sits_labels(data)),
+        x = !("NoClass" %in% sits_labels(samples)),
         msg = "requires labelled set of time series"
     )
 
     # create partitions different splits of the input data
-    data <- .sits_create_folds(data, folds = folds)
+    samples <- .sits_create_folds(samples, folds = folds)
 
     # create prediction and reference vector
     pred_vec <- character()
@@ -95,8 +96,8 @@ sits_kfold_validate <- function(data,
     conf_lst <- .sits_parallel_map(seq_len(folds), function(k) {
 
         # split data into training and test data sets
-        data_train <- data[data$folds != k, ]
-        data_test <- data[data$folds == k, ]
+        data_train <- samples[samples$folds != k, ]
+        data_test <- samples[samples$folds == k, ]
 
         # create a machine learning model
         ml_model <- sits_train(data_train, ml_method)
@@ -128,6 +129,86 @@ sits_kfold_validate <- function(data,
 
     pred <- unlist(lapply(conf_lst, function(x) x$pred))
     ref <- unlist(lapply(conf_lst, function(x) x$ref))
+
+    # call caret to provide assessment
+    unique_ref <- unique(ref)
+    pred_fac <- factor(pred, levels = unique_ref)
+    ref_fac <- factor(ref, levels = unique_ref)
+
+    # call caret package to the classification statistics
+    assess <- caret::confusionMatrix(pred_fac, ref_fac)
+
+    class(assess) <- c("sits_assessment", class(assess))
+
+    return(assess)
+}
+
+#' @rdname sits_kfold_validate
+#' @export
+sits_validate <- function(samples, ...,
+                          samples_validation = NULL,
+                          validation_split = 0.2,
+                          ml_method = sits_rfor()) {
+
+    # set caller to show in errors
+    .check_set_caller("sits_validate")
+    # require package
+    if (!requireNamespace("caret", quietly = TRUE)) {
+        stop("Please install package caret", call. = FALSE)
+    }
+
+    # pre-condition
+    .check_that(
+        inherits(ml_method, "function"),
+        local_msg = "ml_method is not a valid sits method",
+        msg = "invalid ml_method parameter"
+    )
+
+    # get the labels of the data
+    labels <- sits_labels(samples)
+
+    # create a named vector with integers match the class labels
+    n_labels <- length(labels)
+    int_labels <- c(1:n_labels)
+    names(int_labels) <- labels
+
+    # is the data labelled?
+    .check_that(
+        x = !("NoClass" %in% sits_labels(samples)),
+        msg = "requires labelled set of time series"
+    )
+
+    if (is.null(samples_validation)) {
+        samples <- .sits_samples_split(
+            samples = samples,
+            validation_split = validation_split
+        )
+        samples_validation <- dplyr::filter(samples, !.data[["train"]])
+        samples <- dplyr::filter(samples, .data[["train"]])
+    }
+
+    # create a machine learning model
+    ml_model <- sits_train(samples, ml_method)
+
+    # has normalization been applied to the data?
+    stats <- environment(ml_model)$stats
+
+    # obtain the distances after normalizing data by band
+    if (!purrr::is_null(stats)) {
+        distances <- .sits_distances(
+            .sits_ml_normalize_data(samples_validation, stats)
+        )
+    } else {
+        distances <- .sits_distances(samples_validation)
+    }
+
+    # classify the test data
+    prediction <- ml_model(distances)
+
+    # extract the values
+    # create prediction and reference vector
+    pred <- names(int_labels[max.col(prediction)])
+    ref <- samples_validation[["label"]]
 
     # call caret to provide assessment
     unique_ref <- unique(ref)

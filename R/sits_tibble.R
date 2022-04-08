@@ -303,3 +303,27 @@ sits_time_series <- function(data) {
         return(x)
     })
 }
+#' @title Split a sits tibble
+#' @name .sits_samples_split
+#' @keywords internal
+#'
+#' @description Add a column to sits tibble indicating if a sample is
+#' training sample or not.
+#'
+#' @param data  A sits tibble.
+#' @return Returns TRUE if data has data.
+.sits_samples_split <- function(samples, validation_split = 0.2) {
+
+    result <-
+        samples %>%
+        dplyr::group_by(.data[["label"]]) %>%
+        dplyr::mutate(
+            train = sample(
+                c(rep(TRUE, round(dplyr::n() * (1 - validation_split))),
+                  rep(FALSE, round(dplyr::n() * validation_split)))
+            )
+        ) %>%
+        dplyr::ungroup()
+
+    return(result)
+}
