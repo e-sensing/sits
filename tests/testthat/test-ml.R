@@ -68,7 +68,6 @@ test_that("SVM - Formula linear", {
   expect_true(nrow(sits_show_prediction(point_class)) == 17)
 })
 
-
 test_that("Random Forest", {
   samples_mt_ndvi <- sits_select(samples_modis_4bands, bands = "NDVI")
   rfor_model <- sits_train(samples_mt_ndvi, sits_rfor(num_trees = 200))
@@ -82,6 +81,7 @@ test_that("Random Forest", {
     sits_labels(samples_mt_ndvi)))
   expect_true(nrow(sits_show_prediction(point_class)) == 17)
 })
+
 test_that("Random Forest - Whittaker", {
   samples_mt_ndvi <- sits_select(samples_modis_4bands, bands = "NDVI")
   samples_mt_whit <- sits_filter(samples_mt_ndvi, filter = sits_whittaker())
@@ -97,6 +97,7 @@ test_that("Random Forest - Whittaker", {
     sits_labels(samples_mt_ndvi)))
   expect_true(nrow(sits_show_prediction(point_class)) == 17)
 })
+
 test_that("Random Forest - SGolay", {
   samples_mt_ndvi <- sits_select(samples_modis_4bands, bands = "NDVI")
   samples_mt_sg <- sits_filter(samples_mt_ndvi, filter = sits_sgolay())
@@ -112,6 +113,7 @@ test_that("Random Forest - SGolay", {
     sits_labels(samples_mt_ndvi)))
   expect_true(nrow(sits_show_prediction(point_class)) == 17)
 })
+
 test_that("Random Forest", {
   samples_mt_ndvi <- sits_select(samples_modis_4bands, bands = "NDVI")
   rfor_model <- sits_train(samples_mt_ndvi, sits_rfor(num_trees = 200))
@@ -125,6 +127,7 @@ test_that("Random Forest", {
     sits_labels(samples_mt_ndvi)))
   expect_true(nrow(sits_show_prediction(point_class)) == 17)
 })
+
 test_that("MLR", {
   # skip_on_cran()
   samples_mt_ndvi <- sits_select(samples_modis_4bands, bands = "NDVI")
@@ -160,6 +163,7 @@ test_that("XGBoost", {
     sits_labels(samples_mt_ndvi)))
   expect_true(nrow(sits_show_prediction(point_class)) == 17)
 })
+
 test_that("lightGBM", {
   lgbm_model <- sits_train(samples_modis_4bands, sits_lightgbm)
   point_4class <- sits_select(point_mt_6bands,
@@ -171,6 +175,7 @@ test_that("lightGBM", {
     sits_labels(samples_modis_4bands)))
   expect_true(nrow(sits_show_prediction(point_class)) == 17)
 })
+
 test_that("DL-MLP", {
   # skip_on_cran()
   model <- sits_train(
@@ -220,6 +225,7 @@ test_that("ResNet", {
     sits_labels(samples_ndvi)))
   expect_true(nrow(sits_show_prediction(point_class)) == 17)
 })
+
 test_that("TempCNN model", {
   # skip_on_cran()
   model <- sits_train(samples_modis_4bands, sits_tempcnn())
@@ -253,6 +259,7 @@ test_that("LightTAE model", {
                         sits_labels(samples_modis_4bands)))
     expect_true(nrow(sits_show_prediction(point_class)) == 17)
 })
+
 test_that("PSETAE model", {
     # skip_on_cran()
     model <- sits_train(samples_modis_4bands, sits_tae())
@@ -269,6 +276,7 @@ test_that("PSETAE model", {
                         sits_labels(samples_modis_4bands)))
     expect_true(nrow(sits_show_prediction(point_class)) == 17)
 })
+
 test_that("normalization", {
   stats <- .sits_ml_normalization_param(cerrado_2classes)
 
