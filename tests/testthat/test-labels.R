@@ -7,13 +7,6 @@ test_that("Labels", {
   expect_equal(sum(labels$count), 1218)
   expect_equal(labels$label[1], "Cerrado")
   expect_equal(sum(labels$prop), 1)
-
-  samples_mt_ndvi <- sits_select(samples_modis_4bands, bands = "NDVI")
-  model <- sits_train(samples_mt_ndvi, sits_svm())
-
-  expect_equal(sits_labels(model), sits_labels(samples_mt_ndvi))
-
-  expect_equal(sits_bands(model), sits_bands(samples_mt_ndvi))
 })
 
 test_that("Relabel", {

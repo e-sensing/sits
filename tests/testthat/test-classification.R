@@ -1,6 +1,6 @@
 test_that("Classify with random forest - single core and multicore", {
   samples_mt_ndvi <- sits_select(samples_modis_4bands, bands = "NDVI")
-  rfor_model <- sits_train(samples_mt_ndvi, sits_rfor(num_trees = 100))
+  rfor_model <- sits_train(samples_mt_ndvi, sits_rfor(num_trees = 40))
 
   expect_type(rfor_model, "closure")
   point_ndvi <- sits_select(point_mt_6bands, bands = "NDVI")
@@ -26,6 +26,8 @@ test_that("Classify with random forest - single core and multicore", {
 
 test_that("Classify a set of time series with svm + filter", {
 
+  testthat::skip_on_cran()
+
   # single core
   samples_filt <-
     sits_select(samples_modis_4bands,
@@ -44,6 +46,7 @@ test_that("Classify a set of time series with svm + filter", {
   expect_true(class1$predicted[[1]]$class %in%
     sits_labels(cerrado_2classes))
 })
+
 test_that("Classify time series with TWDTW method", {
   testthat::skip_on_cran()
   samples_mt_ndvi <- sits_select(samples_modis_4bands, bands = "NDVI")

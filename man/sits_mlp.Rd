@@ -31,6 +31,14 @@ the \code{validation_split} parameter is ignored.}
 \item{dropout_rates}{Vector with the dropout rates (0,1)
 for each layer.}
 
+\item{optimizer}{Optimizer function to be used.}
+
+\item{opt_hparams}{Hyperparameters for optimizer:
+lr : Learning rate of the optimizer
+eps: Term added to the denominator
+     to improve numerical stability..
+weight_decay:       L2 regularization}
+
 \item{epochs}{Number of iterations to train the model.}
 
 \item{batch_size}{Number of samples per gradient update.}
@@ -48,13 +56,6 @@ training stops.}
 to reset the patience counter.}
 
 \item{verbose}{Verbosity mode (TRUE/FALSE). Default is FALSE.}
-
-\item{learning_rate}{Learning rate of the optimizer}
-
-\item{eps}{Term added to the denominator
-to improve numerical stability during optimization.}
-
-\item{weight_decay}{L2 regularization param for optimizer.}
 }
 \value{
 Either a model to be passed in sits_predict

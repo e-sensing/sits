@@ -80,7 +80,7 @@ sits_tempcnn <- function(samples = NULL,
                          epochs = 150,
                          batch_size = 128,
                          validation_split = 0.2,
-                         optimizer = torch::optim_adamw,
+                         optimizer = optim_adamw,
                          opt_hparams = list(lr = 0.005,
                                             eps = 1.0e-08,
                                             weight_decay = 1.0e-06),
@@ -94,7 +94,7 @@ sits_tempcnn <- function(samples = NULL,
     .check_set_caller("sits_tempcnn")
 
     # function that returns torch model based on a sits sample data.table
-    result_fun <- function(data) {
+    result_fun <- function(samples) {
 
         # verifies if torch package is installed
         if (!requireNamespace("torch", quietly = TRUE)) {
@@ -153,11 +153,11 @@ sits_tempcnn <- function(samples = NULL,
         }
 
         # get the timeline of the data
-        timeline <- sits_timeline(data)
+        timeline <- sits_timeline(samples)
         # get the bands of the data
-        bands <- sits_bands(data)
+        bands <- sits_bands(samples)
         # get the labels of the data
-        labels <- sits_labels(data)
+        labels <- sits_labels(samples)
 
         # create a named vector with integers match the class labels
         n_labels <- length(labels)
@@ -165,17 +165,17 @@ sits_tempcnn <- function(samples = NULL,
         names(int_labels) <- labels
 
         # number of bands and number of samples
-        n_bands <- length(sits_bands(data))
-        n_times <- nrow(sits_time_series(data[1, ]))
+        n_bands <- length(sits_bands(samples))
+        n_times <- nrow(sits_time_series(samples[1, ]))
 
         # data normalization
-        stats <- .sits_ml_normalization_param(data)
-        train_data <- .sits_distances(.sits_ml_normalize_data(data, stats))
+        stats <- .sits_ml_normalization_param(samples)
+        train_samples <- .sits_distances(.sits_ml_normalize_data(samples, stats))
 
         # is the training data correct?
         .check_chr_within(
             x = "reference",
-            within = names(train_data),
+            within = names(train_samples),
             discriminator = "any_of",
             msg = "input data does not contain distances"
         )
@@ -197,52 +197,52 @@ sits_tempcnn <- function(samples = NULL,
                     all(bands %in% sits_bands(samples_validation))
             )
 
-            test_data <- .sits_distances(
+            test_samples <- .sits_distances(
                 .sits_ml_normalize_data(samples_validation, stats)
             )
         } else {
             # split the data into training and validation data sets
             # create partitions different splits of the input data
-            test_data <- .sits_distances_sample(
-                train_data,
+            test_samples <- .sits_distances_sample(
+                train_samples,
                 frac = validation_split
             )
 
             # remove the lines used for validation
-            train_data <- train_data[!test_data, on = "original_row"]
+            train_samples <- train_samples[!test_samples, on = "original_row"]
         }
-        n_samples_train <- nrow(train_data)
-        n_samples_test <- nrow(test_data)
+        n_samples_train <- nrow(train_samples)
+        n_samples_test <- nrow(test_samples)
 
         # shuffle the data
-        train_data <- train_data[sample(
-            nrow(train_data),
-            nrow(train_data)
+        train_samples <- train_samples[sample(
+            nrow(train_samples),
+            nrow(train_samples)
         ), ]
-        test_data <- test_data[sample(
-            nrow(test_data),
-            nrow(test_data)
+        test_samples <- test_samples[sample(
+            nrow(test_samples),
+            nrow(test_samples)
         ), ]
 
         # transform training data into a 3D tensor
         # remove first two columns
         # reshape the 2D matrix into a 3D array
         train_x <- array(
-            data = as.matrix(train_data[, -2:0]),
+            data = as.matrix(train_samples[, -2:0]),
             dim = c(n_samples_train, n_times, n_bands)
         )
         # transform training reference to an integer vector
-        train_y <- unname(int_labels[as.vector(train_data$reference)])
+        train_y <- unname(int_labels[as.vector(train_samples$reference)])
 
         # transform test data into a 3D tensor
         # remove first two columns
         # reshape the 2D matrix into a 3D array
         test_x <- array(
-            data = as.matrix(test_data[, -2:0]),
+            data = as.matrix(test_samples[, -2:0]),
             dim = c(n_samples_test, n_times, n_bands)
         )
         # transform test reference to an integer vector
-        test_y <- unname(int_labels[as.vector(test_data$reference)])
+        test_y <- unname(int_labels[as.vector(test_samples$reference)])
 
         # set random seed for torch
         torch::torch_manual_seed(sample.int(10^5, 1))
@@ -389,8 +389,8 @@ sits_tempcnn <- function(samples = NULL,
             # remove first two columns
             # reshape the 2D matrix into a 3D array
             n_samples <- nrow(values)
-            n_times <- nrow(sits_time_series(data[1, ]))
-            n_bands <- length(sits_bands(data))
+            n_times <- nrow(sits_time_series(samples[1, ]))
+            n_bands <- length(sits_bands(samples))
             values_x <- array(
                 data = as.matrix(values[, -2:0]),
                 dim = c(n_samples, n_times, n_bands)

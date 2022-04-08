@@ -1,4 +1,7 @@
 test_that("Align dates", {
+
+  testthat::skip_on_cran()
+
   data("samples_modis_4bands")
   timeline <- sits_timeline(point_mt_6bands)
   start_date <- lubridate::as_date("2001-08-01")
@@ -42,6 +45,7 @@ test_that("Bbox", {
     c("xmin", "ymin", "xmax", "ymax")))
   expect_true(bbox["xmin"] < -60.0)
 })
+
 test_that("Merge", {
   point_ndvi <- sits_select(point_mt_6bands, bands = "NDVI")
   point_evi <- sits_select(point_mt_6bands, bands = "EVI")
@@ -66,6 +70,9 @@ test_that("Prune", {
 })
 
 test_that("Sample", {
+
+  testthat::skip_on_cran()
+
   data(cerrado_2classes)
 
   data <- sits_sample(cerrado_2classes, n = 10)
@@ -73,9 +80,9 @@ test_that("Sample", {
 
   data <- sits_sample(cerrado_2classes, frac = 0.1)
   expect_true(nrow(dplyr::filter(data, label == "Cerrado")) == 40)
-  expect_true(nrow(dplyr::filter(data, label == "Pasture")) == 35)
+  expect_true(nrow(dplyr::filter(data, label == "Pasture")) == 34)
 
-  data2 <- sits_sample(cerrado_2classes, frac = 1.3)
+  data2 <- sits_sample(cerrado_2classes, frac = 1.3, oversample = TRUE)
   expect_true(nrow(data2) > nrow(cerrado_2classes))
 })
 
