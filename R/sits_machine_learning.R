@@ -12,7 +12,7 @@
 #' This function is a front-end to the "multinom" method in the "nnet" package.
 #' Please refer to the documentation in that package for more details.
 #'
-#' @param data             Time series with the training samples.
+#' @param samples          Time series with the training samples.
 #' @param formula          Symbolic description of the model to be fit.
 #'                         (default: sits_formula_logref).
 #' @param n_weights        Maximum number of weights
@@ -37,32 +37,32 @@
 #'
 #' @export
 #'
-sits_mlr <- function(data = NULL, formula = sits_formula_linear(),
+sits_mlr <- function(samples = NULL, formula = sits_formula_linear(),
                      n_weights = 20000, maxit = 2000, ...) {
 
     # function that returns nnet::multinom model based on a sits sample tibble
-    result_fun <- function(data) {
+    result_fun <- function(samples) {
 
         # verifies if nnet package is installed
         if (!requireNamespace("nnet", quietly = TRUE)) {
             stop("Please install package nnet", call. = FALSE)
         }
 
-        # data normalization
-        stats <- .sits_ml_normalization_param(data)
-        train_data <- .sits_distances(.sits_ml_normalize_data(data, stats))
+        # samples normalization
+        stats <- .sits_ml_normalization_param(samples)
+        train_samples <- .sits_distances(.sits_ml_normalize_data(samples, stats))
 
         # if parameter formula is a function
         # call it passing as argument the input data sample.
         # The function must return a valid formula.
         if (inherits(formula, "function")) {
-            formula <- formula(train_data)
+            formula <- formula(train_samples)
         }
 
         # call nnet::multinom method and return the trained multinom model
         result_mlr <- nnet::multinom(
             formula = formula,
-            data = train_data,
+            data = train_samples,
             maxit = maxit,
             MaxNWts = n_weights,
             trace = FALSE, ...,
@@ -91,7 +91,7 @@ sits_mlr <- function(data = NULL, formula = sits_formula_linear(),
         return(model_predict)
     }
 
-    result <- .sits_factory_function(data, result_fun)
+    result <- .sits_factory_function(samples, result_fun)
     return(result)
 }
 
@@ -102,11 +102,11 @@ sits_mlr <- function(data = NULL, formula = sits_formula_linear(),
 #' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'
-#' @description Use Random Forest algorithm to classify data.
+#' @description Use Random Forest algorithm to classify samples.
 #' This function is a front-end to the "randomForest" package.
 #' Please refer to the documentation in that package for more details.
 #'
-#' @param data             Time series with the training samples.
+#' @param samples          Time series with the training samples.
 #' @param num_trees        Number of trees to grow.
 #'                         This should not be set to too small a number,
 #'                         to ensure that every input row gets predicted
@@ -128,11 +128,11 @@ sits_mlr <- function(data = NULL, formula = sits_formula_linear(),
 #' class.tb <- sits_classify(point_ndvi, rfor_model)
 #' @export
 #'
-sits_rfor <- function(data = NULL, num_trees = 200, nodesize = 1, ...) {
+sits_rfor <- function(samples = NULL, num_trees = 200, nodesize = 1, ...) {
 
     # function that returns `randomForest::randomForest` model
-    result_fun <- function(data) {
-        train_data <- .sits_distances(data)
+    result_fun <- function(samples) {
+        train_samples <- .sits_distances(samples)
 
         # verifies if randomForest package is installed
         if (!requireNamespace("randomForest", quietly = TRUE)) {
@@ -140,11 +140,11 @@ sits_rfor <- function(data = NULL, num_trees = 200, nodesize = 1, ...) {
         }
 
         # call `randomForest::randomForest` method and return the trained model
-        reference <- train_data[, reference]
+        reference <- train_samples[, reference]
         result_rfor <- randomForest::randomForest(
-            x = train_data[, 3:ncol(train_data)],
+            x = train_samples[, 3:ncol(train_samples)],
             y = as.factor(reference),
-            data = NULL,
+            samples = NULL,
             ntree = num_trees,
             nodesize = 1,
             norm.votes = FALSE, ...,
@@ -171,7 +171,7 @@ sits_rfor <- function(data = NULL, num_trees = 200, nodesize = 1, ...) {
         return(model_predict)
     }
 
-    result <- .sits_factory_function(data, result_fun)
+    result <- .sits_factory_function(samples, result_fun)
     return(result)
 }
 #' @title Train support vector machine models
@@ -191,7 +191,7 @@ sits_rfor <- function(data = NULL, num_trees = 200, nodesize = 1, ...) {
 #' This function is a front-end to the "svm" method in the "e1071" package.
 #' Please refer to the documentation in that package for more details.
 #'
-#' @param data             Time series with the training samples.
+#' @param samples             Time series with the training samples.
 #' @param formula          Symbolic description of the model to be fit.
 #'                         (default: sits_formula_logref).
 #' @param scale            Logical vector indicating the variables to be scaled.
@@ -227,14 +227,14 @@ sits_rfor <- function(data = NULL, num_trees = 200, nodesize = 1, ...) {
 #'
 #' @export
 #'
-sits_svm <- function(data = NULL, formula = sits_formula_logref(),
+sits_svm <- function(samples = NULL, formula = sits_formula_logref(),
                      scale = FALSE, cachesize = 1000,
                      kernel = "radial", degree = 3, coef0 = 0,
                      cost = 10, tolerance = 0.001,
                      epsilon = 0.1, cross = 10, ...) {
 
     # function that returns e1071::svm model based on a sits sample tibble
-    result_fun <- function(data) {
+    result_fun <- function(samples) {
 
         # verifies if e1071 package is installed
         if (!requireNamespace("e1071", quietly = TRUE)) {
@@ -242,17 +242,17 @@ sits_svm <- function(data = NULL, formula = sits_formula_logref(),
         }
 
         # data normalization
-        stats <- .sits_ml_normalization_param(data)
-        train_data <- .sits_distances(.sits_ml_normalize_data(data, stats))
+        stats <- .sits_ml_normalization_param(samples)
+        train_samples <- .sits_distances(.sits_ml_normalize_data(samples, stats))
 
         # The function must return a valid formula.
         if (inherits(formula, "function")) {
-            formula <- formula(train_data)
+            formula <- formula(train_samples)
         }
 
         # call e1071::svm method and return the trained svm model
         result_svm <- e1071::svm(
-            formula = formula, data = train_data,
+            formula = formula, data = train_samples,
             scale = scale, kernel = kernel,
             degree = degree, cost = cost, coef0 = coef0,
             cachesize = cachesize, tolerance = tolerance,
@@ -293,7 +293,7 @@ sits_svm <- function(data = NULL, formula = sits_formula_logref(),
         )
         return(model_predict)
     }
-    result <- .sits_factory_function(data, result_fun)
+    result <- .sits_factory_function(samples, result_fun)
     return(result)
 }
 #' @title Train models using lightGBM algorithm
@@ -312,7 +312,7 @@ sits_svm <- function(data = NULL, formula = sits_formula_logref(),
 #' "LightGBM: A Highly Efficient Gradient Boosting Decision Tree".
 #' Advances in Neural Information Processing Systems 30 (NIPS 2017), pp. 3149-3157.
 #'
-#' @param data                 Time series with the training samples.
+#' @param samples              Time series with the training samples.
 #' @param boosting_type        Type of boosting algorithm
 #'                             (options: "gbdt", "rf", "dart", "goss").
 #' @param num_iterations       Number of iterations.
@@ -329,7 +329,7 @@ sits_svm <- function(data = NULL, formula = sits_formula_logref(),
 #'                             \code{lightgbm::lgb.train} function.
 #'
 #' @export
-sits_lightgbm <- function(data = NULL,
+sits_lightgbm <- function(samples = NULL,
                           boosting_type = "gbdt",
                           num_iterations = 100,
                           max_depth = 6,
@@ -343,13 +343,13 @@ sits_lightgbm <- function(data = NULL,
     .check_set_caller("sits_lightgbm")
 
     # function that returns lightgbm model
-    result_fun <- function(data) {
+    result_fun <- function(samples) {
 
         # verifies if lightgbm package is installed
         if (!requireNamespace("lightgbm", quietly = TRUE)) {
             stop("Please install package lightgbm", call. = FALSE)
         }
-        labels <- sits_labels(data)
+        labels <- sits_labels(samples)
         n_labels <- length(labels)
         # lightGBM uses numerical labels starting from 0
         int_labels <- c(1:n_labels) - 1
@@ -357,39 +357,39 @@ sits_lightgbm <- function(data = NULL,
         names(int_labels) <- labels
 
         # data normalization
-        stats <- .sits_ml_normalization_param(data)
-        train_data <- .sits_distances(.sits_ml_normalize_data(data, stats))
+        stats <- .sits_ml_normalization_param(samples)
+        train_samples <- .sits_distances(.sits_ml_normalize_data(samples, stats))
 
         # split the data into training and validation data sets
         # create partitions different splits of the input data
-        test_data <- .sits_distances_sample(train_data,
+        test_samples <- .sits_distances_sample(train_samples,
                                             frac = validation_split
         )
         # remove the lines used for validation
-        train_data <- train_data[!test_data, on = "original_row"]
+        train_samples <- train_samples[!test_samples, on = "original_row"]
 
-        n_samples_train <- nrow(train_data)
-        n_samples_test <- nrow(test_data)
+        n_samples_train <- nrow(train_samples)
+        n_samples_test <- nrow(test_samples)
 
         # shuffle the data
-        train_data <- train_data[sample(
-            nrow(train_data),
-            nrow(train_data)
+        train_samples <- train_samples[sample(
+            nrow(train_samples),
+            nrow(train_samples)
         ), ]
-        test_data <- test_data[sample(
-            nrow(test_data),
-            nrow(test_data)
+        test_samples <- test_samples[sample(
+            nrow(test_samples),
+            nrow(test_samples)
         ), ]
 
         # transform the training data to LGBM
         lgbm_train_data <- lightgbm::lgb.Dataset(
-            data = as.matrix(train_data[, -2:0]),
-            label = unname(int_labels[train_data[[2]]])
+            data = as.matrix(train_samples[, -2:0]),
+            label = unname(int_labels[train_samples[[2]]])
         )
         # transform the training data to LGBM
         lgbm_test_data <- lightgbm::lgb.Dataset(
-            data = as.matrix(test_data[, -2:0]),
-            label = unname(int_labels[test_data[[2]]])
+            data = as.matrix(test_samples[, -2:0]),
+            label = unname(int_labels[test_samples[[2]]])
         )
         if (n_labels > 2) {
             objective <- "multiclass"
@@ -448,7 +448,7 @@ sits_lightgbm <- function(data = NULL,
         )
         return(model_predict)
     }
-    result <- .sits_factory_function(data, result_fun)
+    result <- .sits_factory_function(samples, result_fun)
     return(result)
 }
 
@@ -468,7 +468,7 @@ sits_lightgbm <- function(data = NULL,
 #'                      "XGBoost : Reliable Large-scale Tree Boosting System",
 #'                      SIG KDD 2016.
 #'
-#' @param data             Time series with the training samples.
+#' @param samples          Time series with the training samples.
 #' @param learning_rate    Learning rate: scale the contribution
 #'                         of each tree by a factor of 0 < lr < 1
 #'                         when it is added to the current approximation.
@@ -514,7 +514,7 @@ sits_lightgbm <- function(data = NULL,
 #'
 #' @export
 #'
-sits_xgboost <- function(data = NULL,
+sits_xgboost <- function(samples = NULL,
                          learning_rate = 0.15,
                          min_split_loss = 1,
                          max_depth = 5,
@@ -530,7 +530,7 @@ sits_xgboost <- function(data = NULL,
     .check_set_caller("sits_xgboost")
 
     # function that returns xgb model
-    result_fun <- function(data) {
+    result_fun <- function(samples) {
 
         # verifies if xgboost package is installed
         if (!requireNamespace("xgboost", quietly = TRUE)) {
@@ -538,7 +538,7 @@ sits_xgboost <- function(data = NULL,
         }
 
         # get the labels of the data
-        labels <- sits_labels(data)
+        labels <- sits_labels(samples)
         .check_length(
             x = labels,
             len_min = 1,
@@ -551,10 +551,10 @@ sits_xgboost <- function(data = NULL,
         names(int_labels) <- labels
 
         # get the training data
-        train_data <- .sits_distances(data)
+        train_samples <- .sits_distances(samples)
 
         # reference labels for each sample expressed as numerical values
-        references <- unname(int_labels[as.vector(train_data$reference)]) - 1
+        references <- unname(int_labels[as.vector(train_samples$reference)]) - 1
 
         # define the parameters of the model
         params <- list(
@@ -571,7 +571,7 @@ sits_xgboost <- function(data = NULL,
 
         # define the model
         model_xgb <- xgboost::xgboost(
-            data = as.matrix(train_data[, -2:0]),
+            data = as.matrix(train_samples[, -2:0]),
             label = references,
             num_class = length(labels),
             params = params,
@@ -609,7 +609,7 @@ sits_xgboost <- function(data = NULL,
         return(model_predict)
     }
 
-    result <- .sits_factory_function(data, result_fun)
+    result <- .sits_factory_function(samples, result_fun)
     return(result)
 }
 
@@ -890,9 +890,9 @@ sits_formula_linear <- function(predictors_index = -2:0) {
     # pre-condition
     .check_chr_contains(
         x = ls(environment(ml_model)),
-        contains = "data",
+        contains = "samples",
         msg = "no samples found in the sits model"
     )
 
-    return(environment(ml_model)$data)
+    return(environment(ml_model)$samples)
 }

@@ -5,7 +5,7 @@
 \title{Train support vector machine models}
 \usage{
 sits_svm(
-  data = NULL,
+  samples = NULL,
   formula = sits_formula_logref(),
   scale = FALSE,
   cachesize = 1000,
@@ -20,7 +20,7 @@ sits_svm(
 )
 }
 \arguments{
-\item{data}{Time series with the training samples.}
+\item{samples}{Time series with the training samples.}
 
 \item{formula}{Symbolic description of the model to be fit.
 (default: sits_formula_logref).}

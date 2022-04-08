@@ -4,10 +4,10 @@
 \alias{sits_rfor}
 \title{Train random forest models}
 \usage{
-sits_rfor(data = NULL, num_trees = 200, nodesize = 1, ...)
+sits_rfor(samples = NULL, num_trees = 200, nodesize = 1, ...)
 }
 \arguments{
-\item{data}{Time series with the training samples.}
+\item{samples}{Time series with the training samples.}
 
 \item{num_trees}{Number of trees to grow.
 This should not be set to too small a number,
@@ -25,7 +25,7 @@ Model fitted to input data
                         (to be passed to \code{\link[sits]{sits_classify}}).
 }
 \description{
-Use Random Forest algorithm to classify data.
+Use Random Forest algorithm to classify samples.
 This function is a front-end to the "randomForest" package.
 Please refer to the documentation in that package for more details.
 }

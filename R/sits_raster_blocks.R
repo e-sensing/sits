@@ -58,7 +58,7 @@
     # total number of instances in the time
     ninstances <- length(sits_timeline(tile))
     # retrieve the samples
-    samples <- environment(ml_model)$data
+    samples <- environment(ml_model)$samples
     # get the number of bands
     nbands <- length(sits_bands(samples))
     # does the cube have a cloud band?
@@ -85,7 +85,7 @@
     nbands_data_size <- single_data_size * nbands
 
     # number of labels
-    nlabels <- length(sits_labels(environment(ml_model)$data))
+    nlabels <- length(sits_labels(environment(ml_model)$samples))
     # estimated size of the data for classification
     input_data_size <- as.numeric(ninterval) * nbands_data_size
     output_data_size <- as.numeric(nlabels) * single_data_size

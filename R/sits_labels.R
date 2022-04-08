@@ -53,12 +53,12 @@ sits_labels.sits_model <- function(data) {
         msg = "invalid sits model"
     )
     .check_chr_within(
-        x = "data",
+        x = "samples",
         within = ls(environment(data)),
         discriminator = "any_of",
         msg = "no samples found in the sits model"
     )
-    return(sits_labels.sits(environment(data)$data))
+    return(sits_labels.sits(environment(data)$samples))
 }
 #' @title Change the labels of a set of time series
 #'

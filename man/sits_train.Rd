@@ -4,10 +4,10 @@
 \alias{sits_train}
 \title{Train classification models}
 \usage{
-sits_train(data, ml_method = sits_svm())
+sits_train(samples, ml_method = sits_svm())
 }
 \arguments{
-\item{data}{Time series with the training samples.}
+\item{samples}{Time series with the training samples.}
 
 \item{ml_method}{Machine learning method.}
 }

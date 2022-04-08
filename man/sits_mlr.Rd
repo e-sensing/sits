@@ -5,7 +5,7 @@
 \title{Train multinomial log-linear models}
 \usage{
 sits_mlr(
-  data = NULL,
+  samples = NULL,
   formula = sits_formula_linear(),
   n_weights = 20000,
   maxit = 2000,
@@ -13,7 +13,7 @@ sits_mlr(
 )
 }
 \arguments{
-\item{data}{Time series with the training samples.}
+\item{samples}{Time series with the training samples.}
 
 \item{formula}{Symbolic description of the model to be fit.
 (default: sits_formula_logref).}

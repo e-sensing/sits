@@ -134,6 +134,7 @@ Collate:
     'sits_regularize_aux_functions.R'
     'sits_resnet.R'
     'sits_roi.R'
+    'sits_sample_functions.R'
     'sits_satveg.R'
     'sits_select.R'
     'sits_shp.R'

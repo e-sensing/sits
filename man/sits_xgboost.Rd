@@ -5,7 +5,7 @@
 \title{Train extreme gradient boosting models}
 \usage{
 sits_xgboost(
-  data = NULL,
+  samples = NULL,
   learning_rate = 0.15,
   min_split_loss = 1,
   max_depth = 5,
@@ -19,7 +19,7 @@ sits_xgboost(
 )
 }
 \arguments{
-\item{data}{Time series with the training samples.}
+\item{samples}{Time series with the training samples.}
 
 \item{learning_rate}{Learning rate: scale the contribution
 of each tree by a factor of 0 < lr < 1
