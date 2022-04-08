@@ -36,7 +36,11 @@ to be used as validation data.}
 
 \item{optimizer}{Optimizer function to be used.}
 
-\item{opt_hparams}{Hyperparameters for optimizer.}
+\item{opt_hparams}{Hyperparameters for optimizer:
+lr : Learning rate of the optimizer
+eps: Term added to the denominator
+     to improve numerical stability.
+weight_decay:       L2 regularization}
 
 \item{lr_decay_epochs}{Number of epochs to reduce learning rate.}
 
@@ -49,10 +53,6 @@ training stops.}
 to reset the patience counter.}
 
 \item{verbose}{Verbosity mode (TRUE/FALSE). Default is FALSE.}
-
-\item{eps}{Term added to the denominator to improve numerical stability.}
-
-\item{weight_decay}{L2 regularization param.}
 }
 \value{
 A fitted model to be passed to \code{\link[sits]{sits_classify}}

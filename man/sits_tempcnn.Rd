@@ -16,7 +16,7 @@ sits_tempcnn(
   batch_size = 128,
   validation_split = 0.2,
   optimizer = optim_adamw,
-  opt_hparams = list(lr = 0.005, eps = 1e-06, weight_decay = 1e-06),
+  opt_hparams = list(lr = 0.005, eps = 1e-08, weight_decay = 1e-06),
   lr_decay_epochs = 1,
   lr_decay_rate = 0.95,
   patience = 20,
@@ -50,7 +50,11 @@ validation.}
 
 \item{optimizer}{Optimizer function to be used.}
 
-\item{opt_hparams}{Hyperparameters for optimizer.}
+\item{opt_hparams}{Hyperparameters for optimizer:
+lr : Learning rate of the optimizer
+eps: Term added to the denominator
+     to improve numerical stability.
+weight_decay:       L2 regularization}
 
 \item{lr_decay_epochs}{Number of epochs to reduce learning rate.}
 

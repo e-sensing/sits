@@ -20,7 +20,7 @@
 #' deep residual networks \code{\link[sits]{sits_resnet}} and
 #' self-attention encoders \code{\link[sits]{sits_lighttae}}
 #'
-#' @param  data             Time series with the training samples.
+#' @param  samples          Time series with the training samples.
 #' @param  ml_method        Machine learning method.
 #' @return                  Model fitted to input data
 #'                          to be passed to \code{\link[sits]{sits_classify}}
@@ -35,7 +35,7 @@
 #' class <- sits_classify(point_ndvi, ml_model)
 #' @export
 #'
-sits_train <- function(data, ml_method = sits_svm()) {
+sits_train <- function(samples, ml_method = sits_svm()) {
 
     # set caller to show in errors
     .check_set_caller("sits_train")
@@ -43,7 +43,7 @@ sits_train <- function(data, ml_method = sits_svm()) {
     # is the input data a valid sits tibble?
     .check_chr_within(
         x = "label",
-        within = names(data),
+        within = names(samples),
         discriminator = "any_of",
         msg = "input data does not contain a valid sits tibble"
     )
@@ -55,7 +55,7 @@ sits_train <- function(data, ml_method = sits_svm()) {
     )
 
     .check_that(
-        x = .sits_timeline_check(data) == TRUE,
+        x = .sits_timeline_check(samples) == TRUE,
         msg = paste0(
             "Samples have different timeline lengths", "\n",
             "Use.sits_tibble_prune or sits_fix_timeline"
@@ -63,7 +63,7 @@ sits_train <- function(data, ml_method = sits_svm()) {
     )
 
     # compute the training method by the given data
-    result <- ml_method(data)
+    result <- ml_method(samples)
 
     # return a valid machine learning method
     return(result)

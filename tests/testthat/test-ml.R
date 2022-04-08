@@ -28,7 +28,7 @@ test_that("SVM  - Formula logref - difference", {
     bands = c("NDVI", "EVI")
   )
   svm_model <- sits_train(
-    data = samples_mt_2bands,
+    samples_mt_2bands,
     ml_method = sits_svm(
       formula = sits_formula_logref(),
       kernel = "radial",

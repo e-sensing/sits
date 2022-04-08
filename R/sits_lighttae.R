@@ -46,9 +46,11 @@
 #' @param validation_split   Fraction of training data
 #'                           to be used as validation data.
 #' @param optimizer          Optimizer function to be used.
-#' @param opt_hparams        Hyperparameters for optimizer.
-#' @param eps                Term added to the denominator to improve numerical stability.
-#' @param weight_decay       L2 regularization param.
+#' @param opt_hparams        Hyperparameters for optimizer:
+#'                           lr : Learning rate of the optimizer
+#'                           eps: Term added to the denominator
+#'                                to improve numerical stability.
+#'                           weight_decay:       L2 regularization
 #' @param lr_decay_epochs    Number of epochs to reduce learning rate.
 #' @param lr_decay_rate      Decay factor for reducing learning rate.
 #' @param patience           Number of epochs without improvements until
@@ -96,7 +98,7 @@ sits_lighttae <- function(samples = NULL,
     .check_set_caller("sits_lighttae")
 
     # function that returns torch model based on a sits sample data.table
-    result_fun <- function(data) {
+    result_fun <- function(samples) {
         # verifies if torch package is installed
         if (!requireNamespace("torch", quietly = TRUE)) {
             stop("Please install package torch", call. = FALSE)
@@ -129,31 +131,31 @@ sits_lighttae <- function(samples = NULL,
                 x = names(opt_hparams),
                 within = names(optim_params_function)
             )
-            optim_params_function <- modifyList(optim_params_function, opt_hparams)
+            optim_params_function <- utils::modifyList(optim_params_function, opt_hparams)
         }
 
         # get the labels
-        labels <- sits_labels(data)
+        labels <- sits_labels(samples)
         # create a named vector with integers match the class labels
         n_labels <- length(labels)
         int_labels <- c(1:n_labels)
         names(int_labels) <- labels
-        bands <- sits_bands(data)
+        bands <- sits_bands(samples)
 
         # number of bands and number of samples
-        n_bands <- length(sits_bands(data))
-        n_times <- nrow(sits_time_series(data[1, ]))
+        n_bands <- length(sits_bands(samples))
+        n_times <- nrow(sits_time_series(samples[1, ]))
         # timeline of samples
-        timeline <- sits_timeline(data)
+        timeline <- sits_timeline(samples)
 
         # data normalization
-        stats <- .sits_ml_normalization_param(data)
-        train_data <- .sits_distances(.sits_ml_normalize_data(data, stats))
+        stats <- .sits_ml_normalization_param(samples)
+        train_samples <- .sits_distances(.sits_ml_normalize_data(samples, stats))
 
         # is the training data correct?
         .check_chr_within(
             x = "reference",
-            within = names(train_data),
+            within = names(train_samples),
             discriminator = "any_of",
             msg = "input data does not contain distances"
         )
@@ -175,44 +177,44 @@ sits_lighttae <- function(samples = NULL,
                     all(bands %in% sits_bands(samples_validation))
             )
 
-            test_data <- .sits_distances(
+            test_samples <- .sits_distances(
                 .sits_ml_normalize_data(samples_validation, stats)
             )
         } else {
             # split the data into training and validation data sets
             # create partitions different splits of the input data
-            test_data <- .sits_distances_sample(
-                train_data,
+            test_samples <- .sits_distances_sample(
+                train_samples,
                 frac = validation_split
             )
 
             # remove the lines used for validation
-            train_data <- train_data[!test_data, on = "original_row"]
+            train_samples <- train_samples[!test_samples, on = "original_row"]
         }
-        n_samples_train <- nrow(train_data)
-        n_samples_test <- nrow(test_data)
+        n_samples_train <- nrow(train_samples)
+        n_samples_test <- nrow(test_samples)
 
         # shuffle the data
-        train_data <- train_data[sample(
-            nrow(train_data),
-            nrow(train_data)
+        train_samples <- train_samples[sample(
+            nrow(train_samples),
+            nrow(train_samples)
         ), ]
-        test_data <- test_data[sample(
-            nrow(test_data),
-            nrow(test_data)
+        test_samples <- test_samples[sample(
+            nrow(test_samples),
+            nrow(test_samples)
         ), ]
         # organize data for model training
         train_x <- array(
-            data = as.matrix(train_data[, 3:ncol(train_data)]),
+            data = as.matrix(train_samples[, 3:ncol(train_samples)]),
             dim = c(n_samples_train, n_times, n_bands)
         )
-        train_y <- unname(int_labels[as.vector(train_data$reference)])
+        train_y <- unname(int_labels[as.vector(train_samples$reference)])
         # create the test data
         test_x <- array(
-            data = as.matrix(test_data[, 3:ncol(test_data)]),
+            data = as.matrix(test_samples[, 3:ncol(test_samples)]),
             dim = c(n_samples_test, n_times, n_bands)
         )
-        test_y <- unname(int_labels[as.vector(test_data$reference)])
+        test_y <- unname(int_labels[as.vector(test_samples$reference)])
 
         # set torch seed
         torch::torch_manual_seed(sample.int(10^5, 1))
@@ -340,8 +342,8 @@ sits_lighttae <- function(samples = NULL,
             # remove first two columns
             # reshape the 2D matrix into a 3D array
             n_samples <- nrow(values)
-            n_times <- nrow(sits_time_series(data[1, ]))
-            n_bands <- length(sits_bands(data))
+            n_times <- nrow(sits_time_series(samples[1, ]))
+            n_bands <- length(sits_bands(samples))
             values_x <- array(
                 data = as.matrix(values[, -2:0]),
                 dim = c(n_samples, n_times, n_bands)
