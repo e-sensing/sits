@@ -94,7 +94,7 @@ sits_mlp <- function(samples = NULL,
     .check_set_caller("sits_mlp")
 
     # function that returns a torch model based on samples
-    result_fun <- function(data) {
+    result_fun <- function(samples) {
 
         # verifies if torch package is installed
         if (!requireNamespace("torch", quietly = TRUE)) {
@@ -112,13 +112,13 @@ sits_mlp <- function(samples = NULL,
             msg = "number of layers does not match number of dropout rates"
         )
         # data normalization
-        stats <- .sits_ml_normalization_param(data)
-        train_data <- .sits_distances(.sits_ml_normalize_data(data, stats))
+        stats <- .sits_ml_normalization_param(samples)
+        train_samples <- .sits_distances(.sits_ml_normalize_data(samples, stats))
 
         # is the training data correct?
         .check_chr_within(
             x = "reference",
-            within = names(train_data),
+            within = names(train_samples),
             discriminator = "any_of",
             msg = "input data does not contain distances"
         )
@@ -134,11 +134,11 @@ sits_mlp <- function(samples = NULL,
                                                 opt_hparams)
         }
         # get the timeline of the data
-        timeline <- sits_timeline(data)
+        timeline <- sits_timeline(samples)
         # get the bands of the data
-        bands <- sits_bands(data)
+        bands <- sits_bands(samples)
         # get the labels of the data
-        labels <- sits_labels(data)
+        labels <- sits_labels(samples)
 
         # create a named vector with integers match the class labels
         n_labels <- length(labels)
@@ -162,37 +162,37 @@ sits_mlp <- function(samples = NULL,
                     all(bands %in% sits_bands(samples_validation))
             )
 
-            test_data <- .sits_distances(
+            test_samples <- .sits_distances(
                 .sits_ml_normalize_data(samples_validation, stats)
             )
         } else {
             # split the data into training and validation data sets
             # create partitions different splits of the input data
-            test_data <- .sits_distances_sample(
-                train_data,
+            test_samples <- .sits_distances_sample(
+                train_samples,
                 frac = validation_split
             )
 
             # remove the lines used for validation
-            train_data <- train_data[!test_data, on = "original_row"]
+            train_samples <- train_samples[!test_samples, on = "original_row"]
         }
         # shuffle the data
-        train_data <- train_data[sample(
-            nrow(train_data),
-            nrow(train_data)
+        train_samples <- train_samples[sample(
+            nrow(train_samples),
+            nrow(train_samples)
         ), ]
-        test_data <- test_data[sample(
-            nrow(test_data),
-            nrow(test_data)
+        test_samples <- test_samples[sample(
+            nrow(test_samples),
+            nrow(test_samples)
         ), ]
 
         # organize data for model training
-        train_x <- data.matrix(train_data[, -2:0])
-        train_y <- unname(int_labels[as.vector(train_data$reference)])
+        train_x <- data.matrix(train_samples[, -2:0])
+        train_y <- unname(int_labels[as.vector(train_samples$reference)])
 
         # create the test data
-        test_x <- data.matrix(test_data[, -2:0])
-        test_y <- unname(int_labels[as.vector(test_data$reference)])
+        test_x <- data.matrix(test_samples[, -2:0])
+        test_y <- unname(int_labels[as.vector(test_samples$reference)])
 
         # set torch seed
         torch::torch_manual_seed(sample.int(10^5, 1))

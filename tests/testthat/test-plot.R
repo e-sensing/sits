@@ -1,4 +1,7 @@
 test_that("Plot Time Series and Images", {
+
+    testthat::skip_on_cran()
+
     cerrado_ndvi <- sits_select(cerrado_2classes, "NDVI")
 
     p <- plot(cerrado_ndvi[1, ])
@@ -111,6 +114,9 @@ test_that("Plot Time Series and Images", {
 })
 
 test_that("Dendrogram Plot", {
+
+    testthat::skip_on_cran()
+
     cluster_obj <- sits:::.sits_cluster_dendrogram(cerrado_2classes,
                                                    bands = c("NDVI", "EVI")
     )
@@ -129,18 +135,20 @@ test_that("Dendrogram Plot", {
 })
 
 test_that("Plot torch model", {
-    # skip_on_cran()
+
+    testthat::skip_on_cran()
+
     samples_mt_2bands <- sits_select(samples_modis_4bands,
                                      bands = c("NDVI", "EVI")
     )
     model <- sits_train(
-            samples_mt_2bands,
-            sits_mlp(
-                layers = c(128, 128),
-                dropout_rates = c(0.5, 0.4),
-                epochs = 50,
-                verbose = 0
-            )
+        samples_mt_2bands,
+        sits_mlp(
+            layers = c(128, 128),
+            dropout_rates = c(0.5, 0.4),
+            epochs = 50,
+            verbose = 0
+        )
     )
     pk <- plot(model)
     expect_true(length(pk$layers) == 2)
@@ -163,8 +171,10 @@ test_that("Plot series with NA", {
     expect_true(pna$labels$y == "value")
 })
 
-
 test_that("SOM map plot", {
+
+    testthat::skip_on_cran()
+
     set.seed(1234)
     som_map <-
         suppressWarnings(sits_som_map(
@@ -181,6 +191,9 @@ test_that("SOM map plot", {
 })
 
 test_that("SOM evaluate cluster plot", {
+
+    testthat::skip_on_cran()
+
     set.seed(1234)
     som_map <-
         suppressWarnings(sits_som_map(
