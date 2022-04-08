@@ -5,7 +5,7 @@
 \title{Train models using lightGBM algorithm}
 \usage{
 sits_lightgbm(
-  data = NULL,
+  samples = NULL,
   boosting_type = "gbdt",
   num_iterations = 100,
   max_depth = 6,
@@ -18,7 +18,7 @@ sits_lightgbm(
 )
 }
 \arguments{
-\item{data}{Time series with the training samples.}
+\item{samples}{Time series with the training samples.}
 
 \item{boosting_type}{Type of boosting algorithm
 (options: "gbdt", "rf", "dart", "goss").}

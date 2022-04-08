@@ -75,6 +75,7 @@ Suggests:
     RcppArmadillo,
     Rwtss (>= 0.9.1),
     scales,
+    scutr,
     stars,
     testthat (>= 3.0.2),
     tidyr,
@@ -133,6 +134,7 @@ Collate:
     'sits_regularize_aux_functions.R'
     'sits_resnet.R'
     'sits_roi.R'
+    'sits_sample_functions.R'
     'sits_satveg.R'
     'sits_select.R'
     'sits_shp.R'

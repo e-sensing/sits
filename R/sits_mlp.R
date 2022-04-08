@@ -17,10 +17,12 @@
 #' @param layers             Vector with number of hidden nodes in each layer.
 #' @param dropout_rates      Vector with the dropout rates (0,1)
 #'                           for each layer.
-#' @param learning_rate      Learning rate of the optimizer
-#' @param eps                Term added to the denominator
-#'                           to improve numerical stability during optimization.
-#' @param weight_decay       L2 regularization param for optimizer.
+#' @param optimizer          Optimizer function to be used.
+#' @param opt_hparams        Hyperparameters for optimizer:
+#'                           lr : Learning rate of the optimizer
+#'                           eps: Term added to the denominator
+#'                                to improve numerical stability..
+#'                           weight_decay:       L2 regularization
 #' @param epochs             Number of iterations to train the model.
 #' @param batch_size         Number of samples per gradient update.
 #' @param validation_split   Number between 0 and 1.
@@ -128,7 +130,7 @@ sits_mlp <- function(samples = NULL,
                 x = names(opt_hparams),
                 within = names(optim_params_function)
             )
-            optim_params_function <- modifyList(optim_params_function,
+            optim_params_function <- utils::modifyList(optim_params_function,
                                                 opt_hparams)
         }
         # get the timeline of the data

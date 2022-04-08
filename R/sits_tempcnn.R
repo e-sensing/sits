@@ -39,7 +39,11 @@
 #' @param validation_split   Fraction of training data to be used for
 #'                           validation.
 #' @param optimizer          Optimizer function to be used.
-#' @param opt_hparams        Hyperparameters for optimizer.
+#' @param opt_hparams        Hyperparameters for optimizer:
+#'                           lr : Learning rate of the optimizer
+#'                           eps: Term added to the denominator
+#'                                to improve numerical stability.
+#'                           weight_decay:       L2 regularization
 #' @param lr_decay_epochs    Number of epochs to reduce learning rate.
 #' @param lr_decay_rate      Decay factor for reducing learning rate.
 #' @param patience           Number of epochs without improvements until
@@ -76,8 +80,10 @@ sits_tempcnn <- function(samples = NULL,
                          epochs = 150,
                          batch_size = 128,
                          validation_split = 0.2,
-                         optimizer = torch::optim_adam,
-                         opt_hparams = list(lr = 0.001),
+                         optimizer = torch::optim_adamw,
+                         opt_hparams = list(lr = 0.005,
+                                            eps = 1.0e-08,
+                                            weight_decay = 1.0e-06),
                          lr_decay_epochs = 1,
                          lr_decay_rate = 0.95,
                          patience = 20,
@@ -142,7 +148,7 @@ sits_tempcnn <- function(samples = NULL,
                 x = names(opt_hparams),
                 within = names(optim_params_function)
             )
-            optim_params_function <- modifyList(optim_params_function,
+            optim_params_function <- utils::modifyList(optim_params_function,
                                                 opt_hparams)
         }
 
