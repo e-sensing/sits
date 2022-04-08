@@ -60,8 +60,6 @@
                 cl = sits_env[["cluster"]],
                 expr = .libPaths(lib_paths)
             )
-            # set only those environment variables that are different
-            # between clusters
             if (length(env_vars) > 0) {
                 parallel::clusterEvalQ(
                     cl = sits_env[["cluster"]],
