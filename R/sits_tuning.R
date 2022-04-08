@@ -20,17 +20,17 @@
 #' }
 #' @export
 #'
-sits_torch_optim_tuning <- function(samples, ...,
-                                    samples_validation = NULL,
-                                    validation_split = 0.2,
-                                    ml_fns = list(sits_tempcnn,
-                                                  sits_lighttae),
-                                    opt_fns = list(torch::optim_adam,
-                                                   optim_adamw),
-                                    lr = c(0.01, 0.005, 0.001),
-                                    eps = c(1e-06, 1e-07, 1e-08),
-                                    weight_decay = c(0, 1e-05, 1e-06),
-                                    multicores = 2) {
+sits_torch_tuning <- function(samples, ...,
+                              samples_validation = NULL,
+                              validation_split = 0.2,
+                              ml_fns = list(sits_tempcnn,
+                                            sits_lighttae),
+                              opt_fns = list(torch::optim_adam,
+                                             optim_adamw),
+                              lr = c(0.01, 0.005, 0.001),
+                              eps = c(1e-06, 1e-07, 1e-08),
+                              weight_decay = c(0, 1e-05, 1e-06),
+                              multicores = 2) {
 
     # combine hyper parameters
     params <- purrr::cross(list(ml_fns, opt_fns, lr, eps, weight_decay))
@@ -60,13 +60,13 @@ sits_torch_optim_tuning <- function(samples, ...,
         ))
 
         val <- sits_validate(
-            data = samples,
+            samples = samples,
             samples_validation = samples_validation,
             validation_split = validation_split,
             ml_method = method_fn
         )
 
-        return(x[["overall"]][["Accuracy"]])
+        return(val[["overall"]][["Accuracy"]])
     })
 
     # unlist all overall accuracies
@@ -94,5 +94,4 @@ sits_torch_optim_tuning <- function(samples, ...,
     )
 
     return(hparams)
-
 }
