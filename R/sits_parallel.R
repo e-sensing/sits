@@ -46,26 +46,15 @@
 
             # make sure library paths is the same as actual environment
             lib_paths <- .libPaths()
-            # it is necessary to export the keys from aws to access the
-            # request payer cubes
-            env_vars <- as.list(Sys.getenv())
-            env_vars <- env_vars[grepl(pattern = "^AWS_*", names(env_vars))]
-
             parallel::clusterExport(
                 cl = sits_env[["cluster"]],
-                varlist = c("lib_paths", "log", "env_vars"),
+                varlist = c("lib_paths", "log"),
                 envir = environment()
             )
             parallel::clusterEvalQ(
                 cl = sits_env[["cluster"]],
                 expr = .libPaths(lib_paths)
             )
-            if (length(env_vars) > 0) {
-                parallel::clusterEvalQ(
-                    cl = sits_env[["cluster"]],
-                    expr = do.call(Sys.setenv, env_vars)
-                )
-            }
             # export debug flag
             parallel::clusterEvalQ(
                 cl = sits_env[["cluster"]],
@@ -97,8 +86,17 @@
 #' @title Fault tolerant version of some parallel functions
 #' @name sits_parallel_fault_tolerant
 #' @keywords internal
+#'
 #' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
-#' @author Derived from the snow package
+#'
+#' @description
+#' These internal functions are a reimplementation of a fault tolerant
+#' version of snow package functions \code{recv_one_data()},
+#' \code{recv_one_result()}, and \code{cluster_apply()}
+#' from Luke Tierney, A. J. Rossini, Na Li, H. Sevcikova.
+#' snow package is licensed as GPL-2 | GPL-3.
+#' This re-implementation allows `sits` cope with massive volume of data
+#' processing over networks without compromise overall results.
 #'
 #' @param x     a given list to be passed to a function
 #' @param fn    a function to be applied to each list element
