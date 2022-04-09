@@ -7,7 +7,23 @@
 #' splitting samples using validation_split. The function returns the
 #' best hyper-parameters in a list.
 #'
-#' @param ...
+#'
+#' @param samples            Time series with the training samples.
+#' @param ...                Additional parameters.
+#' @param samples_validation Time series with the validation samples. if the
+#'                           \code{samples_validation} parameter is provided,
+#'                           the \code{validation_split}
+#'                           parameter is ignored.
+#' @param validation_split   Fraction of training data
+#'                           to be used as validation data.
+#' @param ml_fns             A list of torch functions to be used.
+#' @param opt_fns            A list of optimizer functions to be used.
+#' @param lr                 A vector with the learning rate values to
+#'                           be tested.
+#' @param eps                A vector with the term added to the denominator to
+#'                           improve numerical stability.
+#' @param weight_decay       A vector with the L2 regularization param.
+#' @param multicores         Number of cores to be used for tuning.
 #'
 #' @return A list containing the best torch optimizer and its parameters.
 #'

@@ -23,7 +23,10 @@
 #' This function returns the confusion matrix, and Kappa values.
 #'
 #' @param samples            Time series.
+#' @param ...                Additional parameters.
 #' @param samples_validation Validation time series.
+#' @param validation_split   Fraction of training data
+#'                           to be used as validation data.
 #' @param folds              Number of partitions to create.
 #' @param ml_method          Machine learning method.
 #' @param multicores         Number of cores to process in parallel.

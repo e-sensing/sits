@@ -29,7 +29,12 @@ sits_validate(
 
 \item{multicores}{Number of cores to process in parallel.}
 
+\item{...}{Additional parameters.}
+
 \item{samples_validation}{Validation time series.}
+
+\item{validation_split}{Fraction of training data
+to be used as validation data.}
 }
 \value{
 A tibble containing pairs of reference and predicted values.

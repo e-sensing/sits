@@ -18,7 +18,31 @@ sits_torch_tuning(
 )
 }
 \arguments{
-\item{...}{}
+\item{samples}{Time series with the training samples.}
+
+\item{...}{Additional parameters.}
+
+\item{samples_validation}{Time series with the validation samples. if the
+\code{samples_validation} parameter is provided,
+the \code{validation_split}
+parameter is ignored.}
+
+\item{validation_split}{Fraction of training data
+to be used as validation data.}
+
+\item{ml_fns}{A list of torch functions to be used.}
+
+\item{opt_fns}{A list of optimizer functions to be used.}
+
+\item{lr}{A vector with the learning rate values to
+be tested.}
+
+\item{eps}{A vector with the term added to the denominator to
+improve numerical stability.}
+
+\item{weight_decay}{A vector with the L2 regularization param.}
+
+\item{multicores}{Number of cores to be used for tuning.}
 }
 \value{
 A list containing the best torch optimizer and its parameters.
