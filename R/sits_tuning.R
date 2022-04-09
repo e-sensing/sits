@@ -1,5 +1,5 @@
 #' @title Tuning torch optmizer's hyper-parameters
-#' @name sits_torch_optim_tuning
+#' @name sits_torch_tuning
 #'
 #' @description
 #' This function combines all parameters and computes torch models to

@@ -31,7 +31,7 @@ A linear tensor block.
 }
 \description{
 Defines a torch module for temporal attention encoding, inspired by the
-work of Vaswani et al(2017). Sinece Attention models contain
+work of Vaswani et al(2017). Since Attention models contain
 no convolution, the model injects information about the relative
 position of the tokens in the sequence. Varswani et al use
 sine and cosine functions of different frequencies.

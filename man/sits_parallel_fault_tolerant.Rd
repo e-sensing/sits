@@ -21,11 +21,15 @@
 \item{...}{additional arguments to fn function}
 }
 \description{
-Fault tolerant version of some parallel functions
+These internal functions are a reimplementation of a fault tolerant
+version of snow package functions \code{recv_one_data()},
+\code{recv_one_result()}, and \code{cluster_apply()}
+from Luke Tierney, A. J. Rossini, Na Li, H. Sevcikova.
+snow package is licensed as GPL-2 | GPL-3.
+This re-implementation allows `sits` cope with massive volume of data
+processing over networks without compromise overall results.
 }
 \author{
 Rolf Simoes, \email{rolf.simoes@inpe.br}
-
-Derived from the snow package
 }
 \keyword{internal}
