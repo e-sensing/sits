@@ -2,29 +2,23 @@
 % Please edit documentation in R/sits_validate.R
 \name{sits_kfold_validate}
 \alias{sits_kfold_validate}
-\alias{sits_validate}
 \title{Cross-validate time series samples}
 \usage{
-sits_kfold_validate(data, folds = 5, ml_method = sits_rfor(), multicores = 2)
-
-sits_validate(
-  data,
-  ...,
-  samples_validation = NULL,
-  validation_split = 0.2,
-  ml_method = sits_rfor()
+sits_kfold_validate(
+  samples,
+  folds = 5,
+  ml_method = sits_rfor(),
+  multicores = 2
 )
 }
 \arguments{
-\item{data}{Time series.}
+\item{samples}{Time series..}
 
 \item{folds}{Number of partitions to create.}
 
 \item{ml_method}{Machine learning method.}
 
 \item{multicores}{Number of cores to process in parallel.}
-
-\item{samples_validation}{Validation time series.}
 }
 \value{
 A tibble containing pairs of reference and predicted values.

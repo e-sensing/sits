@@ -22,8 +22,7 @@
 #'
 #' This function returns the confusion matrix, and Kappa values.
 #'
-#' @param samples            Time series.
-#' @param samples_validation Validation time series.
+#' @param samples            Time series..
 #' @param folds              Number of partitions to create.
 #' @param ml_method          Machine learning method.
 #' @param multicores         Number of cores to process in parallel.
@@ -142,10 +141,35 @@ sits_kfold_validate <- function(samples,
 
     return(assess)
 }
-
-#' @rdname sits_kfold_validate
+#' @title Validate time series samples
+#' @name sits_validate
+#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
+#'
+#' @description
+#' One round of cross-validation involves partitioning a sample of data
+#' into complementary subsets, performing the analysis on one subset
+#' (called the training set), and validating the analysis on the other subset
+#' (called the validation set or testing set).
+#'
+#' The function takes two arguments: a set of time series
+#' with a machine learning model and another set with validation samples.
+#' If the validation sample set is not provided,
+#' The sample dataset is split into two parts, as defined by the parameter
+#' validation_split. The accuracy is determined by the result of
+#' the validation test set.
+#'
+#' This function returns the confusion matrix, and Kappa values.
+#'
+#' @param samples            Time series set to be validated.
+#' @param samples_validation Time series set used for validation.
+#' @param validation_split   Percent of original time series set to be used
+#'                           for validation (if samples_validation is NULL)
+#' @param ml_method          Machine learning method.
+#'
+#' @return A tibble containing pairs of reference and predicted values.
 #' @export
-sits_validate <- function(samples, ...,
+sits_validate <- function(samples,
                           samples_validation = NULL,
                           validation_split = 0.2,
                           ml_method = sits_rfor()) {
