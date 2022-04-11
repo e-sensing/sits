@@ -131,7 +131,8 @@ sits_lighttae <- function(samples = NULL,
                 x = names(opt_hparams),
                 within = names(optim_params_function)
             )
-            optim_params_function <- utils::modifyList(optim_params_function, opt_hparams)
+            optim_params_function <- utils::modifyList(optim_params_function,
+                                                       opt_hparams)
         }
 
         # get the labels
