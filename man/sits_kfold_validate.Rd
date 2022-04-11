@@ -5,10 +5,15 @@
 \alias{sits_validate}
 \title{Cross-validate time series samples}
 \usage{
-sits_kfold_validate(data, folds = 5, ml_method = sits_rfor(), multicores = 2)
+sits_kfold_validate(
+  samples,
+  folds = 5,
+  ml_method = sits_rfor(),
+  multicores = 2
+)
 
 sits_validate(
-  data,
+  samples,
   ...,
   samples_validation = NULL,
   validation_split = 0.2,
@@ -16,7 +21,7 @@ sits_validate(
 )
 }
 \arguments{
-\item{data}{Time series.}
+\item{samples}{Time series.}
 
 \item{folds}{Number of partitions to create.}
 

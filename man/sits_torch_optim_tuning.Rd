@@ -2,9 +2,10 @@
 % Please edit documentation in R/sits_tuning.R
 \name{sits_torch_optim_tuning}
 \alias{sits_torch_optim_tuning}
+\alias{sits_torch_tuning}
 \title{Tuning torch optmizer's hyper-parameters}
 \usage{
-sits_torch_optim_tuning(
+sits_torch_tuning(
   samples,
   ...,
   samples_validation = NULL,
