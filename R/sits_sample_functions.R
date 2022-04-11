@@ -79,12 +79,12 @@ sits_sample <- function(data,
 #' @name sits_reduce_imbalance
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'
-#' @description Takes a sits tibble with different labels and
-#'              returns a new tibble. Deals with class imbalance
-#'              using the synthetic minority oversampling technique (SMOTE)
-#'              for oversampling.
-#'              Undersampling is done using the SOM methods available in
-#'              the sits package.
+#' @description
+#' Takes a sits tibble with different labels and
+#' returns a new tibble. Deals with class imbalance
+#' using the synthetic minority oversampling technique (SMOTE)
+#' for oversampling. Undersampling is done using the SOM methods available in
+#' the sits package.
 #'
 #'
 #' @references
@@ -115,6 +115,7 @@ sits_sample <- function(data,
 #'                              for classes with samples more than this number
 #'                              (use n_samples_over = NULL to avoid
 #'                              oversampling).
+#' @param  multicores           Number of cores to process the data (default 2).
 #'
 #' @return A sits tibble with a fixed quantity of samples.
 #' @examples
@@ -127,10 +128,10 @@ sits_sample <- function(data,
 #' # Print the labels of the resulting tibble
 #' sits_labels_summary(new_data)
 #' @export
-sits_reduce_imbalance <- function(
-    samples,
-    n_samples_over   = 200,
-    n_samples_under  = 400) {
+sits_reduce_imbalance <- function(samples,
+                                  n_samples_over  = 200,
+                                  n_samples_under = 400,
+                                  multicores = 2) {
 
     # verifies if scutr package is installed
     if (!requireNamespace("scutr", quietly = TRUE)) {
@@ -139,16 +140,26 @@ sits_reduce_imbalance <- function(
 
     # set caller to show in errors
     .check_set_caller("sits_reduce_imbalance")
+    # pre-condition
+    .check_num(n_samples_over, min = 1, len_min = 1, len_max = 1,
+               is_integer = TRUE, allow_null = TRUE,
+               msg = "invalid 'n_samples_over' parameter")
+    .check_num(n_samples_under, min = 1, len_min = 1, len_max = 1,
+               is_integer = TRUE, allow_null = TRUE,
+               msg = "invalid 'n_samples_under' parameter")
+
     # check if number of required samples are correctly entered
-    if (!purrr::is_null(n_samples_over) || !purrr::is_null(n_samples_under)) {
+    if (!purrr::is_null(n_samples_over) && !purrr::is_null(n_samples_under))
         .check_that(
-            x = n_samples_under >= n_samples_over,
-            msg = paste0("number of samples to undersample for large classes",
-                         " should be higher or equal to number of samples to ",
-                         "oversample for small classes"
-            )
+            n_samples_under >= n_samples_over,
+            local_msg = paste0(
+                "number of samples to undersample for large ",
+                "classes should be higher or equal to number ",
+                "of samples to oversample for small classes"
+            ),
+            msg = "invalid 'n_samples_over' and 'n_samples_under' parameters"
         )
-    }
+
     bands <- sits_bands(samples)
     labels <- sits_labels(samples)
     summary <- sits_labels_summary(samples)
@@ -162,48 +173,62 @@ sits_reduce_imbalance <- function(
     timeline <- sits_timeline(samples)
     n_times <- length(timeline)
 
+    # get classes to make undersample
     if (!purrr::is_null(n_samples_under)) {
         classes_under <- samples %>%
             sits_labels_summary() %>%
             dplyr::filter(.data[["count"]] >= n_samples_under) %>%
             dplyr::pull(.data[["label"]])
     } else
-        classes_under <- vector()
+        classes_under <- character()
 
+    # get classes to make oversample
     if (!purrr::is_null(n_samples_over)) {
         classes_over <- samples %>%
             sits_labels_summary() %>%
             dplyr::filter(.data[["count"]] <= n_samples_over) %>%
             dplyr::pull(.data[["label"]])
     } else
-        classes_over <- vector()
+        classes_over <- character()
 
-    classes_ok <- labels[!(labels %in% classes_under | labels %in% classes_over)]
     new_samples <- .sits_tibble()
 
     if (length(classes_under) > 0) {
-        samples_under_new <- purrr::map_dfr(classes_under, function(cls){
-            samples_cls <- dplyr::filter(samples, .data[["label"]] == cls)
-            grid_dim <-  ceiling(sqrt(n_samples_under/4))
 
-            som_map <- sits_som_map(samples_cls,
-                                    grid_xdim = grid_dim,
-                                    grid_ydim = grid_dim,
-                                    rlen = 50
+        .sits_parallel_start(workers = multicores, log = FALSE)
+        on.exit(.sits_parallel_stop())
+
+        samples_under_new <- .sits_parallel_map(classes_under, function(cls) {
+
+            samples_cls <- dplyr::filter(samples, .data[["label"]] == cls)
+            grid_dim <-  ceiling(sqrt(n_samples_under / 4))
+
+            som_map <- sits_som_map(
+                samples_cls,
+                grid_xdim = grid_dim,
+                grid_ydim = grid_dim,
+                rlen = 50
             )
+
             samples_under <- som_map$data %>%
                 dplyr::group_by(.data[["id_neuron"]]) %>%
                 dplyr::slice_sample(n = 4, replace = TRUE) %>%
                 dplyr::ungroup()
+
             return(samples_under)
         })
-        new_samples <- dplyr::bind_rows(new_samples,
-                                        samples_under_new
-        )
+
+        # bind under samples results
+        samples_under_new <- dplyr::bind_rows(samples_under_new)
+        new_samples <- dplyr::bind_rows(new_samples, samples_under_new)
     }
 
     if (length(classes_over) > 0) {
-        samples_over_new <- purrr::map_dfr(classes_over, function(cls){
+
+        .sits_parallel_start(workers = multicores, log = FALSE)
+        on.exit(.sits_parallel_stop())
+
+        samples_over_new <- .sits_parallel_map(classes_over, function(cls){
             samples_bands <- purrr::map(bands, function(band){
                 # selection of band
                 dist_band <- samples %>%
@@ -244,15 +269,21 @@ sits_reduce_imbalance <- function(
                 tb_class_new <- sits_merge(tb_class_new, samples_bands[[i]])
             return(tb_class_new)
         })
-        new_samples <- dplyr::bind_rows(new_samples,
-                                        samples_over_new
-        )
+
+        # bind under samples results
+        samples_over_new <- dplyr::bind_rows(samples_over_new)
+        new_samples <- dplyr::bind_rows(new_samples, samples_over_new)
     }
 
+    classes_ok <- labels[!(labels %in% classes_under |
+                               labels %in% classes_over)]
     if (length(classes_ok) > 0) {
-        samples_classes_ok <- dplyr::filter(samples,
-                                            .data[["label"]] %in% classes_ok)
+        samples_classes_ok <- dplyr::filter(
+            samples,
+            .data[["label"]] %in% classes_ok
+        )
         new_samples <- dplyr::bind_rows(new_samples, samples_classes_ok)
     }
+
     return(new_samples)
 }

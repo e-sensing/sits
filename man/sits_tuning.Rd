@@ -60,6 +60,7 @@ best hyper-parameters in a list.
 \donttest{
 
 # tuning cerrado samples
+data(cerrado_2classes)
 hparams <- sits_tuning(samples        = cerrado_2classes,
                              ml_functions   = list(sits_tempcnn),
                              opt_functions  = list(torch::optim_adam),

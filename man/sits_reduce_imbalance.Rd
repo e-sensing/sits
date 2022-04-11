@@ -4,7 +4,12 @@
 \alias{sits_reduce_imbalance}
 \title{Reduce imbalance in a set of samples}
 \usage{
-sits_reduce_imbalance(samples, n_samples_over = 200, n_samples_under = 400)
+sits_reduce_imbalance(
+  samples,
+  n_samples_over = 200,
+  n_samples_under = 400,
+  multicores = 2
+)
 }
 \arguments{
 \item{samples}{Sample set to rebalance}
@@ -18,17 +23,18 @@ oversampling).}
 for classes with samples more than this number
 (use n_samples_over = NULL to avoid
 oversampling).}
+
+\item{multicores}{Number of cores to process the data (default 2).}
 }
 \value{
 A sits tibble with a fixed quantity of samples.
 }
 \description{
 Takes a sits tibble with different labels and
-             returns a new tibble. Deals with class imbalance
-             using the synthetic minority oversampling technique (SMOTE)
-             for oversampling.
-             Undersampling is done using the SOM methods available in
-             the sits package.
+returns a new tibble. Deals with class imbalance
+using the synthetic minority oversampling technique (SMOTE)
+for oversampling. Undersampling is done using the SOM methods available in
+the sits package.
 }
 \examples{
 # Retrieve a set of time series with 2 classes
