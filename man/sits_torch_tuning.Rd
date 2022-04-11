@@ -60,7 +60,7 @@ data(cerrado_2classes)
 
 # tuning cerrado samples
 hparams <- sits_torch_tuning(samples = cerrado_2classes,
-                             ml_fns = list(sits_tempcnn(epochs = 5)),
+                             ml_fns = list(sits_tempcnn),
                              opt_fns = list(torch::optim_adam),
                              lr = 0.001,
                              eps = 1e-06,
