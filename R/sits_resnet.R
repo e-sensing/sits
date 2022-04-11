@@ -146,7 +146,7 @@ sits_resnet <- function(samples = NULL,
                 within = names(optim_params_function)
             )
             optim_params_function <- utils::modifyList(optim_params_function,
-                                                opt_hparams)
+                                                       opt_hparams)
         }
 
         # get the timeline of the data
