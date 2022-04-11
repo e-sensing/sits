@@ -57,7 +57,14 @@ best hyper-parameters in a list.
 \donttest{
 # read a set of samples
 data(cerrado_2classes)
-# two fold validation with random forest
-hparams <- sits_torch_optim_tuning(cerrado_2classes)
+
+# tuning cerrado samples
+hparams <- sits_torch_tuning(samples = cerrado_2classes,
+                             ml_fns = list(sits_tempcnn(epochs = 5)),
+                             opt_fns = list(torch::optim_adam),
+                             lr = 0.001,
+                             eps = 1e-06,
+                             weight_decay = 0,
+                             multicores = 1)
 }
 }

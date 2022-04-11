@@ -31,8 +31,15 @@
 #' \donttest{
 #' # read a set of samples
 #' data(cerrado_2classes)
-#' # two fold validation with random forest
-#' hparams <- sits_torch_optim_tuning(cerrado_2classes)
+#'
+#' # tuning cerrado samples
+#' hparams <- sits_torch_tuning(samples = cerrado_2classes,
+#'                              ml_fns = list(sits_tempcnn(epochs = 5)),
+#'                              opt_fns = list(torch::optim_adam),
+#'                              lr = 0.001,
+#'                              eps = 1e-06,
+#'                              weight_decay = 0,
+#'                              multicores = 1)
 #' }
 #' @export
 #'
@@ -50,13 +57,13 @@ sits_torch_tuning <- function(samples, ...,
 
     # combine hyper parameters
     params <- purrr::cross(list(ml_fns, opt_fns, lr, eps, weight_decay))
-
+    env <- environment()
     # start processes
     .sits_parallel_start(workers = multicores, log = FALSE)
     on.exit(.sits_parallel_stop())
 
     # validate in parallel
-    val_lst <- .sits_parallel_cluster_apply(params, function(param) {
+    val_lst <- .sits_parallel_map(params, function(param) {
 
         ml_fn <- param[[1]]
         opt_fn <- param[[2]]
@@ -65,9 +72,7 @@ sits_torch_tuning <- function(samples, ...,
         weight_decay <- param[[5]]
 
         method_fn <- do.call(ml_fn, args = list(
-            optimizer = list(
-                opt_fn
-            ),
+            optimizer = opt_fn,
             opt_hparams = list(
                 lr = lr,
                 eps = eps,
