@@ -11,7 +11,7 @@ sits_tae(
   batch_size = 64,
   validation_split = 0.2,
   optimizer = torch::optim_adam,
-  opt_hparams = list(lr = 0.001, eps = 1e-08, weight_decay = 1e-06),
+  opt_hparams = list(lr = 0.001, eps = 1e-08, weight_decay = 0),
   lr_decay_epochs = 1,
   lr_decay_rate = 0.95,
   patience = 20,
