@@ -146,10 +146,11 @@ sits_tempcnn <- function(samples = NULL,
         if (!is.null(opt_hparams)) {
             .check_chr_within(
                 x = names(opt_hparams),
-                within = names(optim_params_function)
+                within = names(optim_params_function),
+                msg = "Invalid hyperparameters provided in optimizer."
             )
             optim_params_function <- utils::modifyList(optim_params_function,
-                                                opt_hparams)
+                                                       opt_hparams)
         }
 
         # get the timeline of the data

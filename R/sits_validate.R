@@ -22,7 +22,7 @@
 #'
 #' This function returns the confusion matrix, and Kappa values.
 #'
-#' @param samples            Time series..
+#' @param samples            Time series.
 #' @param folds              Number of partitions to create.
 #' @param ml_method          Machine learning method.
 #' @param multicores         Number of cores to process in parallel.

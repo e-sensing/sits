@@ -12,7 +12,7 @@ sits_kfold_validate(
 )
 }
 \arguments{
-\item{samples}{Time series..}
+\item{samples}{Time series.}
 
 \item{folds}{Number of partitions to create.}
 
