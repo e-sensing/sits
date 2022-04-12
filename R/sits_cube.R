@@ -105,7 +105,7 @@
 #' \itemize{
 #' \item{\code{band}: }{The band name is associated to the type of result. Use
 #'   \code{"probs"}, for probability cubes produced by \code{sits_classify()};
-#'   \code{"bayes"}, or \code{"bilateral"} according to
+#'   \code{"bayes"}, or \code{"bilat"} (bilateral) according to
 #'   the function selected when using \code{sits_smooth()};
 #'   \code{"entropy"} when using \code{sits_uncertainty()}, or \code{"class"}
 #'   for cubes produced by \code{sits_label_classification()}.}
@@ -447,7 +447,7 @@ sits_cube.local_cube <- function(source,
 
     dots <- list(...)
 
-    # deal with wrong parameter "band"
+    # deal with wrong parameter "band" in dots
     if ("band" %in% names(dots) && missing(bands)) {
         message("please use bands instead of band as parameter")
         bands <- as.character(dots[["band"]])
