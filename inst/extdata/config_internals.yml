@@ -24,31 +24,47 @@ sits_results_s3_class:
                     entropy: "uncertainty_cube"
                     class:  "classified_image"
 
-# parsing info contents for results cube
-results_parse_info_def : ["X1", "X2", "tile", "start_date", "end_date",
-                                "band", "version"]
-results_parse_info_col : ["tile", "start_date", "end_date", "band"]
+# sits machine learning functions supported by sits_tuning
+tuning_supported_ml_functions:
+    tempcnn: "sits_tempcnn"
+    lighttae: "sits_lighttae"
+    tae: "sits_tae"
+    resnet: "sits_resnet"
+    mlp: "sits_mlp"
 
-# mandatory columns in data cube description
-sits_cube_cols :    ["source", "collection", "satellite", "sensor",
-                    "tile", "bands", "xmin", "xmax", "ymin", "ymax",
-                    "crs", "labels"]
+# sits deep learning optimizers functions supported by sits_tuning
+tuning_supported_dl_optim_functions:
+    adam: ["torch", "optim_adam"]
+    adamw: ["sits", "optim_adamw"]
+    yogi: ["sits", "optim_yogi"]
+    adabound: ["sits", "optim_adabound"]
+    madgrad: ["sits", "optim_madgrad"]
 
-# mandatory columns in tibble description
-sits_tibble_cols :  ["longitude", "latitude", "start_date",
-                    "end_date", "label", "cube",
-                    "time_series"]
+    # parsing info contents for results cube
+    results_parse_info_def : ["X1", "X2", "tile", "start_date", "end_date",
+    "band", "version"]
+    results_parse_info_col : ["tile", "start_date", "end_date", "band"]
 
-# mandatory columns in predicted time series classification
-ts_predicted_cols:  ["from", "to", "class"]
+    # mandatory columns in data cube description
+    sits_cube_cols :    ["source", "collection", "satellite", "sensor",
+    "tile", "bands", "xmin", "xmax", "ymin", "ymax",
+    "crs", "labels"]
 
-# supported user sample file formats
-sample_file_formats : ["csv", "shp"]
+    # mandatory columns in tibble description
+    sits_tibble_cols :  ["longitude", "latitude", "start_date",
+    "end_date", "label", "cube",
+    "time_series"]
 
-# mandatory columns in CSV input files
-df_sample_columns : ["longitude", "latitude", "start_date", "end_date", "label"]
+    # mandatory columns in predicted time series classification
+    ts_predicted_cols:  ["from", "to", "class"]
 
-# possible som evaluations
+    # supported user sample file formats
+    sample_file_formats : ["csv", "shp"]
+
+    # mandatory columns in CSV input files
+    df_sample_columns : ["longitude", "latitude", "start_date", "end_date", "label"]
+
+    # possible som evaluations
 som_outcomes    : ["clean", "analyze", "remove"]
 
 # supported shp types
