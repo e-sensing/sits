@@ -8,11 +8,11 @@ sits_tuning(
   samples,
   samples_validation = NULL,
   validation_split = 0.2,
-  ml_functions = list(sits_tempcnn, sits_lighttae),
-  opt_functions = list(torch::optim_adam, optim_adamw),
-  learning_rates = c(0.01, 0.005, 0.001),
-  eps_values = c(1e-06, 1e-07, 1e-08),
-  weight_decays = c(0, 1e-05, 1e-06),
+  ml_functions = c("tempcnn", "lighttae", "tae", "resnet"),
+  opt_functions = c("adam", "adamw"),
+  opt_learning_rates = c(0.01, 0.005, 0.001),
+  opt_eps_values = c(1e-06, 1e-07, 1e-08),
+  opt_weight_decays = c(0, 1e-05, 1e-06),
   multicores = 2
 )
 }
@@ -28,16 +28,14 @@ for validation (if samples_validation is NULL)}
 
 \item{opt_functions}{Optimization functions to be tested.}
 
-\item{learning_rates}{Learning rates to be tested.}
+\item{opt_learning_rates}{Learning rates to be tested.}
 
-\item{eps_values}{Values of eps to be tested. Each eps value
-is the term added to the denominator to
-improve numerical stability.}
+\item{opt_eps_values}{Values of eps to be tested. Each eps value
+is the term added to the denominator to improve numerical stability.}
 
-\item{weight_decays}{Values of weight decay to be tested.
-These are the the L2 regularization params
-(note the weight decay is not correctly
-implemented in the adam optimization)}
+\item{opt_weight_decays}{Values of weight decay to be tested.
+These are the the L2 regularization params (note the weight decay is
+not correctly implemented in the adam optimization)}
 
 \item{multicores}{Multicores to be used}
 }
@@ -61,11 +59,12 @@ best hyper-parameters in a list.
 
 # tuning cerrado samples
 data(cerrado_2classes)
-hparams <- sits_tuning(samples        = cerrado_2classes,
-                             ml_functions   = list(sits_tempcnn),
-                             opt_functions  = list(torch::optim_adam),
-                             learning_rates = c(0.005, 0.001),
-                             eps_values     = 1e-06,
-                             weight_decays  = 0)
+hparams <- sits_tuning(
+    samples = cerrado_2classes,
+    ml_functions = list(sits_tempcnn),
+    opt_functions = list(torch::optim_adam),
+    opt_learning_rates = c(0.005, 0.001),
+    opt_eps_values = 1e-06,
+    opt_weight_decays = 0)
 }
 }
