@@ -13,7 +13,8 @@ sits_tuning(
   opt_learning_rates = c(0.01, 0.005, 0.001),
   opt_eps_values = c(1e-06, 1e-07, 1e-08),
   opt_weight_decays = c(0, 1e-05, 1e-06),
-  multicores = 2
+  multicores = 2,
+  progress = FALSE
 )
 }
 \arguments{
@@ -37,10 +38,12 @@ is the term added to the denominator to improve numerical stability.}
 These are the the L2 regularization params (note the weight decay is
 not correctly implemented in the adam optimization)}
 
-\item{multicores}{Multicores to be used}
+\item{multicores}{Number of cores to process in parallel}
+
+\item{progress}{Show progress bar?}
 }
 \value{
-A list containing the best torch optimizer and its parameters.
+A list containing the best model and a tibble with all performances
 }
 \description{
 Deep learning models use stochastic gradient descent techniques to
@@ -59,11 +62,11 @@ best hyper-parameters in a list.
 
 # tuning cerrado samples
 data(cerrado_2classes)
-hparams <- sits_tuning(
+tuning <- sits_tuning(
     samples = cerrado_2classes,
-    ml_functions = list(sits_tempcnn),
-    opt_functions = list(torch::optim_adam),
-    opt_learning_rates = c(0.005, 0.001),
+    ml_functions = c("tempcnn", "lighttae"),
+    opt_functions = "adam",
+    opt_learning_rates = 0.001,
     opt_eps_values = 1e-06,
     opt_weight_decays = 0)
 }

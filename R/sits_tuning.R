@@ -25,21 +25,21 @@
 #' @param opt_weight_decays  Values of weight decay to be tested.
 #'   These are the the L2 regularization params (note the weight decay is
 #'   not correctly implemented in the adam optimization)
-#' @param multicores         Multicores to be used
+#' @param multicores         Number of cores to process in parallel
+#' @param progress           Show progress bar?
 #'
-#'
-#' @return A list containing the best torch optimizer and its parameters.
+#' @return A list containing the best model and a tibble with all performances
 #'
 #' @examples
 #' \donttest{
 #'
 #' # tuning cerrado samples
 #' data(cerrado_2classes)
-#' hparams <- sits_tuning(
+#' tuning <- sits_tuning(
 #'     samples = cerrado_2classes,
-#'     ml_functions = list(sits_tempcnn),
-#'     opt_functions = list(torch::optim_adam),
-#'     opt_learning_rates = c(0.005, 0.001),
+#'     ml_functions = c("tempcnn", "lighttae"),
+#'     opt_functions = "adam",
+#'     opt_learning_rates = 0.001,
 #'     opt_eps_values = 1e-06,
 #'     opt_weight_decays = 0)
 #' }
@@ -54,7 +54,8 @@ sits_tuning <- function(samples,
                         opt_learning_rates = c(1e-02, 5e-03, 1e-03),
                         opt_eps_values     = c(1e-06, 1e-07, 1e-08),
                         opt_weight_decays  = c(0, 1e-05, 1e-06),
-                        multicores         = 2) {
+                        multicores         = 2,
+                        progress           = FALSE) {
 
     # set caller to show in errors
     .check_set_caller("sits_tuning")
@@ -203,7 +204,7 @@ sits_tuning <- function(samples,
         )
 
         return(result)
-    })
+    }, progress = progress, n_retries = 0)
 
     # unlist all overall accuracies
     tuning_tb <- dplyr::bind_rows(acc_lst) %>%
