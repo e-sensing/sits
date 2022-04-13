@@ -490,7 +490,7 @@ test_that("One-year, multicore classification with post-processing", {
                                   bands = c("NDVI", "EVI")
     )
 
-    torch_model <- sits_train(samples_2bands, sits_tempcnn())
+    torch_model <- sits_train(samples_2bands, sits_tempcnn(epochs = 10))
 
     data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
     sinop <- sits_cube(
@@ -647,6 +647,95 @@ test_that("One-year, multicore classification with post-processing", {
 
     expect_true(all(file.remove(unlist(sinop_probs$file_info[[1]]$path))))
     expect_true(all(file.remove(unlist(sinop_uncert$file_info[[1]]$path))))
+})
+
+test_that("Recovering mode feature", {
+
+    testthat::skip_on_cran()
+
+    samples_2bands <- sits_select(samples_modis_4bands,
+                                  bands = c("EVI", "NDVI")
+    )
+
+    rfor_model <- sits_train(
+        samples_2bands,
+        ml_method = sits_rfor(num_trees = 10, verbose = FALSE)
+    )
+
+    data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
+    cube <- sits_cube(
+        source = "BDC",
+        collection = "MOD13Q1-6",
+        data_dir = data_dir,
+        delim = "_",
+        parse_info = c("X1", "X2", "tile", "band", "date")
+    )
+
+    probs_cube <- sits_classify(
+        cube,
+        ml_model = rfor_model,
+        output_dir = tempdir(),
+        memsize = 4,
+        multicores = 2
+    )
+
+    expect_equal(
+        object = sits_bbox(probs_cube, TRUE),
+        expected = c(xmin = -55.80020,
+                     ymin = -11.79984,
+                     xmax = -55.19999,
+                     ymax = -11.49984)
+    )
+
+    probs_cube_rec <- suppressMessages(
+        sits_classify(
+            cube,
+            ml_model = rfor_model,
+            output_dir = tempdir(),
+            memsize = 4,
+            multicores = 2
+        )
+    )
+
+    expect_equal(
+        object = sits_bbox(probs_cube_rec, TRUE),
+        expected = sits_bbox(probs_cube, TRUE)
+    )
+
+    bbox <- c(
+        "lon_min" = -55.55496742,
+        "lat_min" = -11.64737218,
+        "lon_max" = -55.45142302,
+        "lat_max" = -11.59466637
+    )
+
+    testthat::expect_message(
+        sits_classify(
+            cube,
+            ml_model = rfor_model,
+            output_dir = tempdir(),
+            roi = bbox,
+            memsize = 4,
+            multicores = 2
+        ),
+        regexp = "The provided roi is different"
+    )
+    probs_cube_rec_bbox <- suppressMessages(
+        sits_classify(
+            cube,
+            ml_model = rfor_model,
+            output_dir = tempdir(),
+            roi = bbox,
+            memsize = 4,
+            multicores = 2
+        )
+    )
+    expect_equal(
+        object = sits_bbox(probs_cube_rec_bbox, TRUE),
+        expected = sits_bbox(probs_cube, TRUE)
+    )
+
+
 })
 
 test_that("Raster GDAL datatypes", {
