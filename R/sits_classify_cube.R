@@ -109,6 +109,43 @@
     # resume feature
     # if tile already exists, return probs_cube
     if (file.exists(.file_info_path(probs_cube))) {
+
+        # in case of corrupt image
+        tryCatch({
+            rast_probs <- .raster_open_rast(.file_info_path(probs_cube))
+        }, error = function(e) {
+            stop("Cannot open image", .file_info_path(probs_cube))
+        })
+
+        probs_bbox <- .cube_tile_bbox(probs_cube)
+        rast_bbox <- .raster_bbox(rast_probs)[names(probs_bbox)]
+        if (!all(probs_bbox == rast_bbox)) {
+
+            message(
+                paste("The provided roi is different from the retrieved image.",
+                      "The bounding box will be replaced by the image size.")
+            )
+
+            sub_image <- .sits_raster_sub_image_from_bbox(rast_bbox, tile)
+
+            probs_cube <- .cube_derived_create(
+                cube       = tile,
+                cube_class = "probs_cube",
+                band_name  = "probs",
+                labels     = labels,
+                start_date = timeline[[1]],
+                end_date   = timeline[[length(timeline)]],
+                bbox       = sub_image,
+                output_dir = output_dir,
+                version    = version
+            )
+        }
+
+        message(
+            paste("Recovery mode. Classified probability image detected in",
+                  "the provided directory.")
+        )
+
         return(probs_cube)
     }
 
