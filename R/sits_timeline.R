@@ -28,7 +28,7 @@ sits_timeline.sits <- function(data) {
 #' @export
 #'
 sits_timeline.sits_model <- function(data) {
-    return(environment(data)$data$time_series[[1]]$Index)
+    return(environment(data)$samples$time_series[[1]]$Index)
 }
 
 #' @export
