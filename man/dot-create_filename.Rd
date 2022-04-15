@@ -4,10 +4,23 @@
 \alias{.create_filename}
 \title{Create file name}
 \usage{
-.create_filename(..., sep = "_", ext = NULL, output_dir = NULL)
+.create_filename(
+  ...,
+  filenames = NULL,
+  sep = "_",
+  ext = NULL,
+  output_dir = NULL
+)
 }
 \arguments{
 \item{...}{A vector of characters that will be concatenated.}
+
+\item{filenames}{Named parameter to create file name. Note: There is
+a difference between \code{dots} and \code{filenames}
+parameters. The \code{filenames} parameter just
+concatenated the provided names, while \code{dots}
+recycled values for each provided vector.
+A vector of characters that will be concatenated.}
 
 \item{sep}{A character with a file name separator.}
 

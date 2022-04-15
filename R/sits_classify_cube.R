@@ -26,6 +26,7 @@
 #' @param  version         Version of result.
 #' @param  verbose         print processing information?
 #' @param  progress        Show progress bar?
+#' @param  hash_probs      A character with a hash.
 #' @return List of the classified raster layers.
 .sits_classify_multicores <- function(tile,
                                       ml_model,
@@ -37,7 +38,8 @@
                                       output_dir,
                                       version,
                                       verbose,
-                                      progress) {
+                                      progress,
+                                      hash_probs) {
 
     # set caller to show in errors
     .check_set_caller(".sits_classify_multicores")
@@ -110,36 +112,12 @@
     # if tile already exists, return probs_cube
     if (file.exists(.file_info_path(probs_cube))) {
 
-        # in case of corrupt image
-        tryCatch({
-            rast_probs <- .raster_open_rast(.file_info_path(probs_cube))
-        }, error = function(e) {
-            stop("Cannot open image", .file_info_path(probs_cube))
-        })
-
-        probs_bbox <- .cube_tile_bbox(probs_cube)
-        rast_bbox <- .raster_bbox(rast_probs)[names(probs_bbox)]
-        if (!all(probs_bbox == rast_bbox)) {
-
-            message(
-                paste("The provided roi is different from the retrieved image.",
-                      "The bounding box will be replaced by the image size.")
+        if (!is.null(attributes(tile)[["hash"]]) &&
+            attributes(tile)[["hash"]] != hash_probs)
+            warning(
+                paste("The provided parameters is different from the original",
+                      "classification. Recovering the original classification.")
             )
-
-            sub_image <- .sits_raster_sub_image_from_bbox(rast_bbox, tile)
-
-            probs_cube <- .cube_derived_create(
-                cube       = tile,
-                cube_class = "probs_cube",
-                band_name  = "probs",
-                labels     = labels,
-                start_date = timeline[[1]],
-                end_date   = timeline[[length(timeline)]],
-                bbox       = sub_image,
-                output_dir = output_dir,
-                version    = version
-            )
-        }
 
         message(
             paste("Recovery mode. Classified probability image detected in",
@@ -176,13 +154,19 @@
         value = length(blocks)
     )
 
+    hash_tile <- digest::digest(
+        object = list(blocks, ml_model),
+        algo = "md5"
+    )
+
     # read the blocks and compute the probabilities
     filenames <- .sits_parallel_map(blocks, function(b) {
 
         # define the file name of the raster file to be written
-        filename_block <- paste0(
-            tools::file_path_sans_ext(.file_info_path(probs_cube)),
-            "_block_", b[["first_row"]], "_", b[["nrows"]], ".tif"
+        filename_block <- .create_filename(
+            filenames = c(tools::file_path_sans_ext(.file_info_path(probs_cube)),
+                          "_block", b[["first_row"]], b[["nrows"]], hash_tile),
+            ext = ".tif"
         )
 
         # resume processing in case of failure

@@ -579,11 +579,11 @@ sits_get_data <- function(cube,
         tile_id <- tile_band[[1]]
         band <- tile_band[[2]]
         tile <- sits_select(cube, bands = c(band, cld_band), tiles = tile_id)
-
         digest::digest(list(tile, samples), algo = "md5")
     })
 
-    # recreate file names
+    # recreate file names to delete them
+    # samples will be recycled for each hash_bundle
     temp_timeseries <- .create_filename(
         "samples", hash_bundle,
         ext = "rds",
@@ -973,25 +973,41 @@ sits_get_data <- function(cube,
 #' @description Create a file name from a character vectors.
 #'
 #' @param ...         A vector of characters that will be concatenated.
+#' @param filenames   Named parameter to create file name. Note: There is
+#'                    a difference between \code{dots} and \code{filenames}
+#'                    parameters. The \code{filenames} parameter just
+#'                    concatenated the provided names, while \code{dots}
+#'                    recycled values for each provided vector.
+#'                    A vector of characters that will be concatenated.
 #' @param sep         A character with a file name separator.
 #' @param ext         A character with the extension of file.
 #' @param output_dir  A character with the output directory to be concatenated.
 #'
 #' @return A character with the file name.
-.create_filename <- function(..., sep = "_", ext = NULL, output_dir = NULL) {
+.create_filename <- function(...,
+                             filenames = NULL,
+                             sep = "_",
+                             ext = NULL,
+                             output_dir = NULL) {
 
-    dots <- list(...)
-    filename <- do.call(paste, c(dots, sep = sep))
+    filenames_lst <- list(...)
+
+    if (length(filenames_lst) == 0) {
+        stopifnot(!is.null(filenames))
+        filenames_lst <- as.list(filenames)
+    }
+
+    filenames <- do.call(paste, c(filenames_lst, sep = sep))
 
     if (!is.null(ext)) {
         # remove extension final point
         ext <- gsub("^[.*]*", "\\1", ext)
 
-        filename <- paste(filename, ext, sep = ".")
+        filenames <- paste(filenames, ext, sep = ".")
     }
 
     if (!is.null(output_dir))
-        filename <- file.path(output_dir, filename)
+        filenames <- file.path(output_dir, filenames)
 
-    return(filename)
+    return(filenames)
 }
