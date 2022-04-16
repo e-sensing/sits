@@ -984,7 +984,7 @@ sits_get_data <- function(cube,
     filename <- do.call(paste, c(dots, sep = sep))
 
     if (!is.null(ext)) {
-        # remove extension final point
+        # remove dot from extension
         ext <- gsub("^[.*]*", "\\1", ext)
 
         filename <- paste(filename, ext, sep = ".")
