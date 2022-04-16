@@ -120,6 +120,7 @@ Collate:
     'sits_label_classification.R'
     'sits_lighttae.R'
     'sits_machine_learning.R'
+    'sits_mesma.R'
     'sits_merge.R'
     'sits_mlp.R'
     'sits_parallel.R'
