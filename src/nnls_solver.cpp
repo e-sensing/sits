@@ -13,25 +13,19 @@ using namespace std;
 arma::mat nnls_solver(const arma::mat x,
                       const arma::mat A,
                       const int iterate = 400,
-                      const float tolerance = 0.000001) {
-
-    // pode ser resolvido no R
-    // if( A_nbands != b_nbands) { // catch false inputs
-    //     stop("A and b do not have equal column lengths.");
-    // }
+                      const float tolerance = 0.000001){
 
     int A_nEM = A.n_rows;
     int b_npix = x.n_rows;
-
-    // adiciona mais uma coluna porque é adicionado uma coluna de probabilidade
     arma::mat sol(b_npix, A_nEM+1);
 
-    for (int i = 0; i < b_npix; i++) {
+    for(int i = 0; i < b_npix; i++){ // parallelization with clusterR possible with this framework? --> test
 
-        arma::vec xv(A_nEM, arma::fill::zeros);
-        arma::vec xstore(A_nEM, arma::fill::value(-9999));
+        arma::vec xv(A_nEM), xstore(A_nEM);
+        xv.fill(0);
+        xstore.fill(-9999);
 
-        // non-negative vector
+        // create a non-negative vector
         arma::vec xdiff = xv - xstore;
 
         // switching to arma here for nice matrix multiplication
