@@ -549,6 +549,7 @@ sits_get_data <- function(cube,
         )
 
         ts[["tile"]] <- tile_id
+        ts[["#..id"]] <- seq_len(nrow(ts))
 
         saveRDS(ts, filename)
 
@@ -561,7 +562,7 @@ sits_get_data <- function(cube,
         dplyr::group_by(.data[["longitude"]], .data[["latitude"]],
                         .data[["start_date"]], .data[["end_date"]],
                         .data[["label"]], .data[["cube"]],
-                        .data[["Index"]], .data[["tile"]])
+                        .data[["Index"]], .data[["tile"]], .data[["#..id"]])
 
     if ("polygon_id" %in% colnames(ts_tbl))
         ts_tbl <- dplyr::group_by(ts_tbl, .data[["polygon_id"]], .add = TRUE)
@@ -571,7 +572,7 @@ sits_get_data <- function(cube,
         dplyr::arrange(.data[["Index"]]) %>%
         dplyr::ungroup() %>%
         tidyr::nest(time_series = !!c("Index", bands)) %>%
-        dplyr::select(-.data[["tile"]])
+        dplyr::select(-c("tile", "#..id"))
 
     # recreate hash values
     hash_bundle <- purrr::map_chr(tiles_bands, function(tile_band) {
