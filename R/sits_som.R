@@ -69,6 +69,10 @@
 #' (b) the posterior probability that this class belongs to a cluster,
 #' using data for the neighbours on the SOM map.
 #'
+#' @note
+#' Please refer to the sits documentation available in
+#' <https://e-sensing.github.io/sitsbook/> for detailed examples.
+#'
 #' @export
 sits_som_map <- function(data,
                          grid_xdim = 10,
@@ -144,7 +148,7 @@ sits_som_map <- function(data,
 
             # How many elements there are with the maximumn value?
             number_of_label_max <- which(labels_neuron$prior_prob == prob_max)
-            label_max_final <- nnet::which.is.max(labels_neuron$prior_prob)
+            label_max_final <- which.max(labels_neuron$prior_prob)
 
 
             # if more than one sample has been mapped AND their max are the same,
@@ -160,7 +164,7 @@ sits_som_map <- function(data,
                 index_prior_max <- which(label_max_post %in% number_of_label_max == TRUE)
                 label_max_final <- label_max_post[index_prior_max]
             } else {
-                label_max_final <- nnet::which.is.max(labels_neuron$prior_prob)
+                label_max_final <- which.max(labels_neuron$prior_prob)
             }
 
             return(labels_neuron[label_max_final, ]$label_samples)

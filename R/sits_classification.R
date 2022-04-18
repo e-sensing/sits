@@ -13,9 +13,7 @@
 #' \itemize{
 #'  \item{support vector machines: } {see \code{\link[sits]{sits_svm}}}
 #'  \item{random forests: }          {see \code{\link[sits]{sits_rfor}}}
-#'  \item{multinomial logit: }       {see \code{\link[sits]{sits_mlr}}}
 #'  \item{extreme gradient boosting: } {see \code{\link[sits]{sits_xgboost}}}
-#'  \item{light gradient boosting: } {see \code{\link[sits]{sits_lightgbm}}}
 #'  \item{multi-layer perceptrons: } {see \code{\link[sits]{sits_mlp}}}
 #'  \item{1D CNN: } {see \code{\link[sits]{sits_tempcnn}}}
 #'  \item{deep residual networks:}{see \code{\link[sits]{sits_resnet}}}
@@ -68,7 +66,6 @@
 #' Please refer to the sits documentation available in
 #' <https://e-sensing.github.io/sitsbook/> for detailed examples.
 #' @examples
-#' \donttest{
 #' # Example of classification of a time series
 #' # Retrieve the samples for Mato Grosso
 #' # select an extreme gradient boosting model
@@ -84,27 +81,6 @@
 #' )
 #' point_class <- sits_classify(point_2bands, rf_model)
 #' plot(point_class)
-#'
-#' # create a data cube based on files
-#' data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
-#' cube <- sits_cube(
-#'   source = "BDC",
-#'   collection = "MOD13Q1-6",
-#'   data_dir = data_dir,
-#'   delim = "_",
-#'   parse_info = c("X1", "X2", "tile", "band", "date")
-#' )
-#'
-#' # classify the raster image
-#' probs_cube <- sits_classify(cube,
-#'   ml_model = rf_model,
-#'   output_dir = tempdir(),
-#'   memsize = 4, multicores = 2
-#' )
-#'
-#' # label the classified image
-#' label_cube <- sits_label_classification(probs_cube, output_dir = tempdir())
-#' }
 #'
 #' @export
 sits_classify <- function(data, ml_model, ...) {

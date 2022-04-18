@@ -92,15 +92,6 @@ sits_sgolay <- function(data = NULL, order = 3, length = 5, scaling = 1) {
 #' Int Journal of Applied Earth Observation and Geoinformation,
 #' vol. 57, pg. 202-213, 2107.
 #'
-#' @examples
-#' # Retrieve a time series with values of NDVI
-#' point_ndvi <- sits_select(point_mt_6bands, bands = "NDVI")
-#' # Filter the point using the Whittaker smoother
-#' point_wt <- sits_filter(point_ndvi, filter = sits_whittaker(lambda = 3))
-#' # Merge time series
-#' point_ndvi <- sits_merge(point_ndvi, point_wt, suffix = c("", ".WT"))
-#' # Plot the two points to see the smoothing effect
-#' plot(point_ndvi)
 #' @export
 sits_whittaker <- function(data = NULL, lambda = 0.5) {
     filter_fun <- function(data) {

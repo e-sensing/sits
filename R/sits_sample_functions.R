@@ -114,15 +114,9 @@ sits_sample <- function(data,
 #' @param  multicores           Number of cores to process the data (default 2).
 #'
 #' @return A sits tibble with a fixed quantity of samples.
-#' @examples
-#' # Retrieve a set of time series with 2 classes
-#' data(samples_modis_4bands)
-#' # Print the labels of the resulting tibble
-#' sits_labels_summary(samples_modis_4bands)
-#' # Samples the data set
-#' new_data <- sits_reduce_imbalance(samples_modis_4bands)
-#' # Print the labels of the resulting tibble
-#' sits_labels_summary(new_data)
+#' @note
+#' Please refer to the sits documentation available in
+#' <https://e-sensing.github.io/sitsbook/> for detailed examples.
 #' @export
 sits_reduce_imbalance <- function(samples,
                                   n_samples_over  = 200,
@@ -406,17 +400,17 @@ sits_reduce_imbalance <- function(samples,
 }
 
 .sits_knearest <- function(D, P, n_clust) {
-    if(!requireNamespace("FNN", quietly = TRUE))
+    if (!requireNamespace("FNN", quietly = TRUE))
         stop("Please install package sf.", call. = FALSE)
 
-    knD <- FNN::knnx.index(D,P,k=(n_clust+1), algo="kd_tree")
-    knD <- knD*(knD!=row(knD))
+    knD <- FNN::knnx.index(D, P, k = (n_clust + 1), algorithm = "kd_tree")
+    knD <- knD*(knD != row(knD))
     que <- which(knD[,1] > 0)
     for (i in que) {
-        knD[i, which(knD[i,]==0) ] = knD[i,1]
+        knD[i, which(knD[i,] == 0) ] = knD[i,1]
         knD[i,1] <- 0
     }
-    return(knD[, 2:(n_clust+1)])
+    return(knD[, 2:(n_clust + 1)])
 
 }
 .sits_n_dup_max <- function(size_input, size_P, size_N, dup_size=0) {

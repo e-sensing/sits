@@ -21,16 +21,6 @@
 #'
 #' @return merged data sets
 #'
-#' @examples {
-#'   # Retrieve a time series with values of NDVI
-#'   point_ndvi <- sits_select(point_mt_6bands, bands = "NDVI")
-#'   # Apply Savitzky-Golay filter on NDVI
-#'   point_ndvi_sg <- point_ndvi %>%
-#'     sits_filter(sits_sgolay())
-#'
-#'   # Merge time series back
-#'   point <- sits_merge(point_ndvi, point_ndvi_sg, suffix = c("", ".SG"))
-#' }
 #' @export
 #'
 sits_merge <- function(data1, data2, ..., suffix = c(".1", ".2")) {

@@ -10,17 +10,6 @@
 #' @param  class    A SITS tibble that has been classified.
 #' @return          Tibble with the columns "from", "to", "class"
 #'
-#' @examples
-#' # Retrieve the samples for Mato Grosso
-#' # select band "NDVI"
-#' samples_ndvi <- sits_select(samples_modis_4bands, bands = "NDVI")
-#' # select a random forest model
-#' rfor_model <- sits_train(samples_ndvi, sits_rfor(num_trees = 200))
-#' # classify the point
-#' point_ndvi <- sits_select(point_mt_6bands, bands = "NDVI")
-#' point_class <- sits_classify(point_ndvi, rfor_model)
-#' # show the prediction
-#' sits_show_prediction(point_class)
 #' @export
 sits_show_prediction <- function(class) {
 
