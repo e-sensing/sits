@@ -26,7 +26,6 @@
 #' @param  version         Version of result.
 #' @param  verbose         print processing information?
 #' @param  progress        Show progress bar?
-#' @param  hash_probs      A character with a hash.
 #' @return List of the classified raster layers.
 .sits_classify_multicores <- function(tile,
                                       ml_model,
@@ -38,8 +37,7 @@
                                       output_dir,
                                       version,
                                       verbose,
-                                      progress,
-                                      hash_probs) {
+                                      progress) {
 
     # set caller to show in errors
     .check_set_caller(".sits_classify_multicores")
@@ -112,13 +110,6 @@
     # if tile already exists, return probs_cube
     if (file.exists(.file_info_path(probs_cube))) {
 
-        if (!is.null(attributes(tile)[["hash"]]) &&
-            attributes(tile)[["hash"]] != hash_probs)
-            warning(
-                paste("The provided parameters is different from the original",
-                      "classification. Recovering the original classification.")
-            )
-
         message(
             paste("Recovery mode. Classified probability image detected in",
                   "the provided directory.")
@@ -154,7 +145,7 @@
         value = length(blocks)
     )
 
-    hash_tile <- digest::digest(
+    hash_blocks_model <- digest::digest(
         object = list(blocks, ml_model),
         algo = "md5"
     )
@@ -165,7 +156,8 @@
         # define the file name of the raster file to be written
         filename_block <- .create_filename(
             filenames = c(tools::file_path_sans_ext(.file_info_path(probs_cube)),
-                          "_block", b[["first_row"]], b[["nrows"]], hash_tile),
+                          "_block", b[["first_row"]], b[["nrows"]],
+                          hash_blocks_model),
             ext = ".tif"
         )
 

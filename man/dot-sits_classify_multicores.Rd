@@ -15,8 +15,7 @@
   output_dir,
   version,
   verbose,
-  progress,
-  hash_probs
+  progress
 )
 }
 \arguments{
@@ -41,8 +40,6 @@
 \item{verbose}{print processing information?}
 
 \item{progress}{Show progress bar?}
-
-\item{hash_probs}{A character with a hash.}
 }
 \value{
 List of the classified raster layers.

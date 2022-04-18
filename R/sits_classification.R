@@ -260,12 +260,6 @@ sits_classify.raster_cube <- function(data, ml_model, ...,
     # retrieve the samples from the model
     samples <- .sits_ml_model_samples(ml_model)
 
-    hash_probs <- digest::digest(
-        object = list(data, ml_model, roi, filter_fn, impute_fn,
-                      start_date, end_date, multicores, version),
-        algo = "md5"
-    )
-
     # deal with the case where the cube has multiple rows
     probs_cube <- slider::slide_dfr(data, function(tile) {
 
@@ -308,13 +302,11 @@ sits_classify.raster_cube <- function(data, ml_model, ...,
             output_dir = output_dir,
             version    = version,
             verbose    = verbose,
-            progress   = progress,
-            hash_probs  = hash_probs
+            progress   = progress
         )
 
         return(probs_row)
     })
 
-    attributes(probs_cube) <- c(attributes(probs_cube), "hash" = hash_probs)
     return(probs_cube)
 }
