@@ -10,59 +10,61 @@
 #' @param progress   ...
 #'
 #' @return a cube ...
-sits_mesma <- function(cube,
-                       endmembers,
-                       memsize = 1,
-                       multicores = 2,
-                       output_dir = getwd(),
-                       progress = TRUE) {
+sits_spectral_unmixing <- function(cube,
+                                   endmembers_spectra,
+                                   memsize = 1,
+                                   multicores = 2,
+                                   output_dir = getwd(),
+                                   progress = TRUE) {
 
-    .check_set_caller("sits_mesma")
+    .check_set_caller("sits_spectral_unmixing")
 
     .check_that(
-        inherits(endmembers,c("tbl_df", "tbl", "data.frame", "character")),
+        inherits(endmembers_spectra, c("tbl_df", "tbl", "data.frame", "character")),
         msg = "invalid endmembers parameter."
     )
 
-    if (inherits(endmembers, "character"))
-        endmembers <- .mesma_get_data(
-            endmembers = endmembers,
-            file_ext = tolower(tools::file_ext(endmembers))
+    if (inherits(endmembers_spectra, "character"))
+        endmembers_spectra <- .mesma_get_data(
+            endmembers = endmembers_spectra,
+            file_ext = tolower(tools::file_ext(endmembers_spectra))
         )
 
-    endmembers <- dplyr::rename_with(endmembers, toupper)
+    endmembers_spectra <- dplyr::rename_with(endmembers_spectra, toupper)
 
-    # check endmember values
+    # Pre-condition
     .check_chr_contains(
-        colnames(endmembers),
+        colnames(endmembers_spectra),
         contains = c("TYPE", .cube_bands(cube, add_cloud = FALSE)),
         msg = "invalid endmembers columns"
     )
 
     # Pre-condition
     .check_that(
-        nrow(endmembers) > 1,
+        nrow(endmembers_spectra) > 1,
         msg = "at least two endmembers fractions must be provided."
+    )
+
+    # Pre-condition
+    .check_that(
+        nrow(endmembers_spectra) < .cube_bands(cube, add_cloud = FALSE),
+        msg = "Endmembers must be less than the number of spectral bands."
     )
 
     # Check output_dir
     output_dir <- path.expand(output_dir)
-    .check_file(output_dir,
-                msg = "invalid output directory"
-    )
+    .check_file(output_dir, msg = "invalid output directory")
 
-    endmembers_to_generate <- intersect(
-        setdiff(colnames(endmembers), "TYPE"),
+    # Take only columns take intersects between two tibbles
+    reference_spectra_bands <- intersect(
+        setdiff(colnames(endmembers_spectra), "TYPE"),
         .cube_bands(cube, add_cloud = FALSE)
     )
 
-    endmembers_fractions <- endmembers[["TYPE"]]
-    endmembers_values <- as.matrix(
-        endmembers[, endmembers_to_generate]
-    )
+    reference_spectra <- as.matrix(endmembers_spectra[, reference_spectra_bands])
+    endmembers_fractions <- endmembers_spectra[["TYPE"]]
 
-
-    cube_selected <- sits_select(cube, endmembers_to_generate)
+    cube_selected <- sits_select(cube, reference_spectra_bands)
 
     jobs <- .mesma_get_jobs_lst(
         cube = cube_selected,
@@ -73,7 +75,6 @@ sits_mesma <- function(cube,
     if (length(jobs) == 0) {
         return(cube)
     }
-
 
     # Prepare parallelization
     .sits_parallel_start(workers = multicores, log = FALSE)
@@ -97,13 +98,12 @@ sits_mesma <- function(cube,
             fid = fid
         )
 
-        # output fractions
+        # output fractions files
         output_filenames <- .create_filename(
             "cube", tile_name, c(endmembers_fractions, "probs"),
             in_fi_fid[["date"]],
             ext = ".tif",
             output_dir = output_dir
-
         )
 
         names(output_filenames) <- c(endmembers_fractions, "probs")
@@ -139,23 +139,16 @@ sits_mesma <- function(cube,
                     )
 
                 # Get the missing values, minimum values and scale factors
-                missing_value <-
-                    .cube_band_missing_value(tile, band = band)
-                minimum_value <-
-                    .cube_band_minimum_value(tile, band = band)
-                maximum_value <-
-                    .cube_band_maximum_value(tile, band = band)
+                missing_value <- .cube_band_missing_value(tile, band = band)
+                minimum_value <- .cube_band_minimum_value(tile, band = band)
+                maximum_value <- .cube_band_maximum_value(tile, band = band)
 
                 # Scale the data set
-                scale_factor <-
-                    .cube_band_scale_factor(tile, band = band)
-                offset_value <-
-                    .cube_band_offset_value(tile, band = band)
+                scale_factor <- .cube_band_scale_factor(tile, band = band)
+                offset_value <- .cube_band_offset_value(tile, band = band)
 
                 # Read the values
-                values <- .raster_read_stack(in_files[[band]],
-                                             block = b
-                )
+                values <- .raster_read_stack(in_files[[band]], block = b)
 
                 # # Correct NA, minimum, maximum, and missing values
                 # TODO
@@ -179,7 +172,7 @@ sits_mesma <- function(cube,
             # Evaluate expressions, scale and offset values
             out_values <- nnls_solver(
                 x = in_values,
-                A = endmembers_values
+                A = reference_spectra
             )
 
             # Apply scale and offset
