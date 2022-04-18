@@ -8,7 +8,7 @@
 #'@author Alber Sanchez, \email{alber.ipia@@inpe.br}
 #'
 #'@description  R implementation of the AdamW optimizer proposed
-#' by Loshchilov & Hutter (2019). We used the pytorch implementation
+#' by Loshchilov & Hutter (2019). We used the PyTorch implementation
 #' developed by Collin Donahue-Oponski available at:
 #' https://gist.github.com/colllin/0b146b154c4351f9a40f741a28bff1e3
 #'

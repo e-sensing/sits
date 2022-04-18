@@ -47,10 +47,6 @@ new_data <- sits_reduce_imbalance(samples_modis_4bands)
 sits_labels_summary(new_data)
 }
 \references{
-Oversampling uses the "oversample_smote" function
-implemented in the "scutr" package developed by Keenan Ganz and
-avaliable in https://github.com/s-kganz/scutr.
-
 The reference paper on SMOTE is
 N. V. Chawla, K. W. Bowyer, L. O.Hall, W. P. Kegelmeyer,
 “SMOTE: synthetic minority over-sampling technique,”

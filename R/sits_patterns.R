@@ -28,22 +28,9 @@
 #' @param  ...           Any additional parameters.
 #' @return               Time series with patterns.
 #'
-#' @examples
-#' \dontrun{
-#' # Read a set of samples for two classes
-#' data(cerrado_2classes)
-#' # Estimate a set of patterns (one for each label)
-#' patterns <- sits_patterns(cerrado_2classes)
-#' # Show the patterns
-#' plot(patterns)
-#'
-#' # Read a set of samples for the state of Mato Grosso, Brazil
-#' data(samples_modis_4bands)
-#' # Estimate a set of patterns (one for each label)
-#' patterns <- sits_patterns(samples_modis_4bands)
-#' # Show the patterns
-#' plot(patterns)
-#' }
+#' @note
+#' Please refer to the sits documentation available in
+#' <https://e-sensing.github.io/sitsbook/> for detailed examples.
 #' @export
 sits_patterns <- function(data = NULL, freq = 8, formula = y ~ s(x), ...) {
     # verifies if mgcv package is installed

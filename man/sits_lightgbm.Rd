@@ -2,7 +2,7 @@
 % Please edit documentation in R/sits_machine_learning.R
 \name{sits_lightgbm}
 \alias{sits_lightgbm}
-\title{Train models using lightGBM algorithm}
+\title{Train models using LightGBM algorithm}
 \usage{
 sits_lightgbm(
   samples = NULL,
@@ -44,9 +44,13 @@ to be used as validation data.}
 \code{lightgbm::lgb.train} function.}
 }
 \description{
-This function uses the lightGBM algorithm for model training.
+This function uses the LightGBM algorithm for model training.
 LightGBM is a fast, distributed, high performance gradient boosting
 framework based on decision trees.
+}
+\note{
+Please refer to the sits documentation available in
+<https://e-sensing.github.io/sitsbook/> for detailed examples.
 }
 \references{
 Guolin Ke, Qi Meng, Thomas Finley, Taifeng Wang, Wei Chen,

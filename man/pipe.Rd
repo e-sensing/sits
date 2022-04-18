@@ -4,7 +4,7 @@
 \alias{\%>\%}
 \title{Pipe}
 \arguments{
-\item{lhs, rhs}{A visualisation and a function to apply to it.}
+\item{lhs, rhs}{A visualization and a function to apply to it.}
 }
 \value{
 Apply lhs as input to rhs function

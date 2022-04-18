@@ -55,23 +55,10 @@
 #'                              (influenced by the SOM neighborhood).
 #' @param keep      Which types of evaluation to be maintained in the data.
 #'
-#' @examples
-#' \dontrun{
-#' # Produce a cluster map
-#' som_map <- sits_som_map(samples_modis_4bands)
-#' # plot the som map
-#' plot(som_map)
-#' # calculate the mixture inside clusters
-#' eval <- sits_som_evaluate_cluster(som_map)
-#' # plot the cluster evaluation
-#' plot(eval)
-#' # Clean the samples to get better quality ones
-#' clean_samples <- sits_som_clean_samples(som_map)
-#' }
 #'
 #' @rdname sits_som
 #' @return
-#' \code{sits_som_map()} prodices a list with three members:
+#' \code{sits_som_map()} produces a list with three members:
 #' (1) the samples tibble, with one additional column indicating
 #' to which neuron each sample has been mapped;
 #' (2) the Kohonen map, used for plotting and cluster quality measures;

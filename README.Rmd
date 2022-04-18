@@ -235,7 +235,7 @@ SITS provides support for the classification of both individual time
 series as well as data cubes. The following machine learning methods are
 available in SITS:
 
--   Multinomial logit and its variants ‘lasso’ and ‘ridge’ (`sits_mlr()`)
+-   Multinomial logit and its variants lasso and ridge (`sits_mlr()`)
 -   Support vector machines (`sits_svm()`)
 -   Random forests (`sits_rfor()`)
 -   Extreme gradient boosting (`sits_xgboost()`)
@@ -262,21 +262,21 @@ data("point_mt_6bands")
 # Select the NDVI and EVI bands 
 # Filter the band to reduce noise
 # Train a deep learning model
-tempCNN_model <- samples_modis_4bands %>% 
+tempcnn_model <- samples_modis_4bands %>% 
     sits_select(bands = c("NDVI", "EVI")) %>% 
-    sits_train(ml_method = sits_TempCNN(verbose = FALSE)) 
+    sits_train(ml_method = sits_tempcnn(verbose = FALSE)) 
 # Select NDVI and EVI bands of the  point to be classified
 # Filter the point 
 # Classify using TempCNN model
 # Plot the result
 point_mt_6bands %>% 
   sits_select(bands = c("ndvi", "evi")) %>% 
-  sits_classify(tempCNN_model) %>% 
+  sits_classify(tempcnn_model) %>% 
   plot()
 ```
 
-The following example shows how to classify a data cube organised as a
-set of raster images. The result can also be visualised interactively 
+The following example shows how to classify a data cube organized as a
+set of raster images. The result can also be visualized interactively 
 using `sits_view()`. 
 
 ```{r, fig.align="center", fig.height=4.5, fig.width=9}
@@ -293,7 +293,7 @@ sinop <- sits_cube(
 # Classify the raster cube, generating a probability file
 # Filter the pixels in the cube to remove noise
 probs_cube <- sits_classify(sinop, 
-                            ml_model = tempCNN_model
+                            ml_model = tempcnn_model
 )
 # apply a bayesian smoothing to remove outliers
 bayes_cube <- sits_smooth(probs_cube)
@@ -306,7 +306,7 @@ plot(label_cube, title = "Land use and Land cover in Sinop, MT, Brazil in 2018")
 
 ## Additional information
 
-For more information, please see the on-line book ["SITS: Data analysis and machine learning for data cubes using satellite image timeseries"](https://e-sensing.github.io/sitsbook/).
+For more information, please see the on-line book ["SITS: Data analysis and machine learning for data cubes using satellite image time series"](https://e-sensing.github.io/sitsbook/).
 
 
 ### References
@@ -317,7 +317,7 @@ If you use `sits`, please cite the following paper:
 
 - [1] Rolf Simoes, Gilberto Camara, Gilberto Queiroz, Felipe Souza, Pedro R. Andrade,  Lorena Santos, Alexandre Carvalho, and Karine Ferreira. “Satellite Image Time Series Analysis for Big Earth Observation Data”. Remote Sensing, 13, p. 2428, 2021. https://doi.org/10.3390/rs13132428. 
 
-Additionally, the sample quality control methods that use self-organised maps are described in the following reference:
+Additionally, the sample quality control methods that use self-organized maps are described in the following reference:
 
 - [2] Lorena Santos, Karine Ferreira, Gilberto Camara, Michelle Picoli, Rolf Simoes, “Quality control and class noise reduction of satellite image time series”. ISPRS Journal of Photogrammetry and Remote Sensing, vol. 177, pp 75-88, 2021. https://doi.org/10.1016/j.isprsjprs.2021.04.014.
 

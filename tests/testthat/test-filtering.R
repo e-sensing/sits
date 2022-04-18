@@ -7,7 +7,7 @@ test_that("Whittaker filter", {
   == length(sits_timeline(point_ws)))
 })
 
-test_that("Savitsky Golay filter", {
+test_that("Savitzky-Golay filter", {
 
   # skip_on_cran()
   point_ndvi <- sits_select(point_mt_6bands, bands = "NDVI")

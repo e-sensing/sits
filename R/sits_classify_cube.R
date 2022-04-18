@@ -308,7 +308,7 @@
     }
     return(probs_cube)
 }
-#' @title Check clasification parameters
+#' @title Check classification parameters
 #' @name .sits_classify_check_params
 #' @keywords internal
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}

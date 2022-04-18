@@ -15,12 +15,12 @@
 \arguments{
 \item{timeline}{Timeline of input time series.}
 
-\item{dim_encoder}{Dimension of the positional enconder.}
+\item{dim_encoder}{Dimension of the positional encoder.}
 
 \item{n_heads}{Number of attention heads..}
 
 \item{input_out_enc_mlp}{Dimensions of multi-layer perceptron
-used to enconde the output
+used to encode the output
 (MLP3 in Garnot's paper)}
 
 \item{hidden_nodes_out_enc_mlp}{Hidden nodes in MLP used for output encoding
@@ -33,7 +33,7 @@ A linear tensor block.
 Defines a torch module for temporal attention encoding, inspired by the
 work of Vaswani et al(2017). Since Attention models contain
 no convolution, the model injects information about the relative
-position of the tokens in the sequence. Varswani et al use
+position of the tokens in the sequence. Vaswani et al use
 sine and cosine functions of different frequencies.
 
 This function is based on the paper by Vivien Garnot referenced below

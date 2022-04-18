@@ -10,7 +10,7 @@
 #' .sits_debug_log: (internal) logs to a CSV file the following values:
 #' \itemize{
 #' \item date_time: event date and time
-#' \item pid: process PID
+#' \item pid: process identifier
 #' \item event: event name
 #' \item elapsed_time: duration (in seconds) from the last log call
 #' \item mem_used: session used memory (in MB)

@@ -153,7 +153,7 @@ test_that("One-year, single core classification with filter", {
     sits:::.sits_debug(flag = FALSE)
 })
 
-test_that("One-year, multicore classification with Savitsky-Golay filter", {
+test_that("One-year, multicore classification with Savitzky-Golay filter", {
 
     testthat::skip_on_cran()
 

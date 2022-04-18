@@ -58,20 +58,10 @@
 #'  A strong baseline",
 #'  2017 international joint conference on neural networks (IJCNN).
 #'
+#' @note
+#' Please refer to the sits documentation available in
+#' <https://e-sensing.github.io/sitsbook/> for detailed examples.
 #'
-#' @examples
-#' \dontrun{
-#' # Retrieve the set of samples for the Mato Grosso region
-#' # Build a machine learning model based on deep learning
-#' dl_model <- sits_train(samples_modis_4bands, sits_mlp())
-#' # get a point with a 16 year time series
-#' point_4classes <- sits_select(point_mt_6bands,
-#'                               bands = c("NDVI", "EVI", "NIR", "MIR"))
-#' # classify the point
-#' point_class <- sits_classify(point_4classes, dl_model)
-#' # plot the classified point
-#' plot(point_class)
-#' }
 #' @export
 #'
 sits_mlp <- function(samples = NULL,

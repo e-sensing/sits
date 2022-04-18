@@ -29,17 +29,9 @@ The plot function produces different plots based on the input data:
  \item{"mapping": }{Shows where samples are mapped.}
 }
 }
-\examples{
-\dontrun{
-# Produce a cluster map
-samples_mt_2bands <- sits_select(samples_modis_4bands, bands = c("NDVI", "EVI"))
-som_map <- sits_som_map(samples_mt_2bands)
-# Plot the clusters
-plot(som_map, type = "codes")
-# Plot kohonen map showing where the samples were allocated
-plot(som_map, type = "mapping")
-}
-
+\note{
+Please refer to the sits documentation available in
+<https://e-sensing.github.io/sitsbook/> for detailed examples.
 }
 \author{
 Gilberto Camara, \email{gilberto.camara@inpe.br}

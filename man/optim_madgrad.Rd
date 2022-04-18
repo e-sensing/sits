@@ -27,20 +27,9 @@ An optimizer object implementing the `step` and `zero_grad` methods.
 A Momentumized, Adaptive, Dual Averaged Gradient Method for Stochastic
 Optimization.
 }
-\examples{
-if (torch::torch_is_installed()) {
-library(torch)
-x <- torch_randn(1, requires_grad = TRUE)
-opt <- optim_madgrad(x)
-for (i in 1:100) {
-  opt$zero_grad()
-  y <- x^2
-  y$backward()
-  opt$step()
-}
-all.equal(x$item(), 0, tolerance = 1e-9)
-}
-
+\note{
+Please refer to the sits documentation available in
+<https://e-sensing.github.io/sitsbook/> for detailed examples.
 }
 \author{
 Daniel Falbel, \email{dfalbel@gmail.com}

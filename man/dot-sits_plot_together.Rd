@@ -2,7 +2,7 @@
 % Please edit documentation in R/sits_plot.R
 \name{.sits_plot_together}
 \alias{.sits_plot_together}
-\title{Plot a set of time series for the same spatio-temporal reference}
+\title{Plot a set of time series for the same spatiotemporal reference}
 \usage{
 .sits_plot_together(data)
 }

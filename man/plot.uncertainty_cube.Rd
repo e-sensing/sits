@@ -27,7 +27,7 @@
 
 \item{breaks}{Yype of class intervals.}
 
-\item{palette}{HCL palette used for visualisation.}
+\item{palette}{HCL palette used for visualization.}
 }
 \value{
 The plot itself.

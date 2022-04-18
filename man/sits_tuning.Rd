@@ -57,17 +57,7 @@ parameter combination, do a validation using validation samples or
 splitting samples using validation_split. The function returns the
 best hyper-parameters in a list.
 }
-\examples{
-\donttest{
-
-# tuning cerrado samples
-data(cerrado_2classes)
-tuning <- sits_tuning(
-    samples = cerrado_2classes,
-    ml_functions = c("tempcnn", "lighttae"),
-    opt_functions = "adam",
-    opt_learning_rates = 0.001,
-    opt_eps_values = 1e-06,
-    opt_weight_decays = 0)
-}
+\note{
+Please refer to the sits documentation available in
+<https://e-sensing.github.io/sitsbook/> for detailed examples.
 }

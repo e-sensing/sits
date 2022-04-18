@@ -6,7 +6,7 @@
 #' @param output_dir   Directory where block will be written.
 #' @param block        Block designation.
 #'
-#' @return  returns a filename witn
+#' @return  returns a filename
 #'
 .smth_filename <- function(tile,
                            output_dir,

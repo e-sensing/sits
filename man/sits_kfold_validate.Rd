@@ -50,7 +50,7 @@ data(cerrado_2classes)
 # two fold validation with random forest
 acc <- sits_kfold_validate(cerrado_2classes,
   folds = 2,
-  ml_method = sits_rfor(num_trees = 100)
+  ml_method = sits_rfor(num_trees = 50)
 )
 }
 }

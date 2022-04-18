@@ -51,7 +51,7 @@ and lambda = 5.0 for strong smoothing.
 # Retrieve a time series with values of NDVI
 point_ndvi <- sits_select(point_mt_6bands, bands = "NDVI")
 
-# Filter the point using the Savitsky Golay smoother
+# Filter the point using the Savitzky-Golay smoother
 point_sg <- sits_filter(point_ndvi,
   filter = sits_sgolay(order = 3, length = 5)
 )
@@ -75,7 +75,7 @@ Simplified Least Squares Procedures".
 Analytical Chemistry, 36 (8): 1627–39, 1964.
 
 Francesco Vuolo, Wai-Tim Ng, Clement Atzberger,
-"Smoothing and gap-filling of high resolution multi-spectral timeseries:
+"Smoothing and gap-filling of high resolution multi-spectral time series:
 Example of Landsat data",
 Int Journal of Applied Earth Observation and Geoinformation,
 vol. 57, pg. 202-213, 2107.

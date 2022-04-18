@@ -50,7 +50,7 @@
 #'
 #'    The "filter_fn" parameter specifies a smoothing filter to be applied to
 #'    time series for reducing noise. Currently, options include
-#'    Savtizky-Golay (see \code{\link[sits]{sits_sgolay}}) and Whittaker
+#'    Savitzky-Golay (see \code{\link[sits]{sits_sgolay}}) and Whittaker
 #'    (see \code{\link[sits]{sits_whittaker}}).
 #'
 #'    The "impute_fn" function is used to remove invalid or cloudy pixels
@@ -64,6 +64,9 @@
 #'    available for classification. We recommend using a 4:1 relation between
 #'    "memsize" and "multicores".
 #'
+#' @note
+#' Please refer to the sits documentation available in
+#' <https://e-sensing.github.io/sitsbook/> for detailed examples.
 #' @examples
 #' \donttest{
 #' # Example of classification of a time series
@@ -72,14 +75,14 @@
 #' samples_2bands <- sits_select(samples_modis_4bands,
 #'   bands = c("EVI", "NDVI")
 #' )
-#' xgb_model <- sits_train(samples_2bands,
-#'   ml_method = sits_xgboost(verbose = FALSE)
+#' rf_model <- sits_train(samples_2bands,
+#'   ml_method = sits_rfor(num_trees = 50)
 #' )
 #' # classify the point
 #' point_2bands <- sits_select(point_mt_6bands,
 #'   bands = c("EVI", "NDVI")
 #' )
-#' point_class <- sits_classify(point_2bands, xgb_model)
+#' point_class <- sits_classify(point_2bands, rf_model)
 #' plot(point_class)
 #'
 #' # create a data cube based on files
@@ -94,14 +97,13 @@
 #'
 #' # classify the raster image
 #' probs_cube <- sits_classify(cube,
-#'   ml_model = xgb_model,
+#'   ml_model = rf_model,
 #'   output_dir = tempdir(),
 #'   memsize = 4, multicores = 2
 #' )
 #'
 #' # label the classified image
 #' label_cube <- sits_label_classification(probs_cube, output_dir = tempdir())
-#' plot(label_cube)
 #' }
 #'
 #' @export

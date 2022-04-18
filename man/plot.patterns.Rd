@@ -19,13 +19,9 @@ The plot itself.
 \description{
 Given a sits tibble with a set of patterns, plot them.
 }
-\examples{
-\dontrun{
-# Read a set of samples with 2 classes ("Cerrado" and "Pasture")
-# Plot the patterns
-plot(sits_patterns(cerrado_2classes))
-}
-
+\note{
+Please refer to the sits documentation available in
+<https://e-sensing.github.io/sitsbook/> for detailed examples.
 }
 \author{
 Gilberto Camara, \email{gilberto.camara@inpe.br}

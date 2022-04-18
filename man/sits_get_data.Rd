@@ -93,6 +93,10 @@ each sample}
 obtain a time series for a spacetime location}
 }
 }
+\note{
+Please refer to the sits documentation available in
+<https://e-sensing.github.io/sitsbook/> for detailed examples.
+}
 \examples{
 \donttest{
 # -- Read a point in a raster data cube

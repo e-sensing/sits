@@ -13,15 +13,15 @@ Authors@R: c(person('Rolf', 'Simoes', role = c('aut'), email = 'rolf.simoes@inpe
              person('Gilberto', 'Queiroz', role = c('aut'), email = 'gilberto.queiroz@inpe.br')
              )
 Maintainer: Gilberto Camara <gilberto.camara@inpe.br>
-Description: A set of tools for working with satellite image time series, both as individual data or as part of data cubes.
-    Builds data cubes from collections in AWS, Brazil Data Cube, and Digital Earth Africa.
-    Provides different visualisation methods for image time series.
-    Provides smoothing methods for noisy time series.
-    Includes functions for smoothing based on Bayesian inference. 
+Description: A set of tools for satellite image time series analysis, both as individual data or as part of data cubes.
+    Builds data cubes from collections in AWS, Microsoft Planetary Computer, Brazil Data Cube, and Digital Earth Africa.
+    Provides visualization methods for image time series and smoothing methods for noisy time series.
     Enables different clustering methods, including dendrograms and self-organized maps (SOM).
     Matches noiseless patterns with noisy time series using the time-weighted dynamic time warping (TWDTW) method for shape recognition.
     Provides machine learning methods for time series classification, including support vector machines (SVM), random forests and deep learning.
-    Minimum recommended requirements: 8 GB RAM and 1 CPU dual-core.
+    Efficient classification of big Earth observation data cubes. 
+    Functions for post-classification smoothing based on Bayesian inference.
+    Minimum recommended requirements: 8 GB RAM and 2 CPU dual-core.
 Encoding: UTF-8
 Depends: R (>= 3.5.0)
 URL: https://github.com/e-sensing/sits/
@@ -34,15 +34,13 @@ Imports:
     yaml,
     data.table (>= 1.13),
     dplyr (>= 1.0.0),
+    FNN,
     gdalUtilities,
-    geojsonsf,
     grDevices,
     ggplot2,
     graphics,
-    jsonlite,
     knitr,
     lubridate (>= 1.7.0),
-    luz,
     parallel,
     purrr (>= 0.3.0),
     Rcpp (>= 1.0.7),
@@ -51,7 +49,6 @@ Imports:
     slider (>= 0.1.5),
     stats,
     terra (>= 1.5-17),
-    torch,
     tibble (>= 3.0),
     utils
 Suggests:
@@ -62,10 +59,13 @@ Suggests:
     digest,
     e1071,
     gdalcubes (>= 0.6.0),
+    geojsonsf,
     httr,
+    jsonlite,
     kohonen,
     leafem,
     leaflet,
+    luz,
     lightgbm,
     methods,
     mgcv,
@@ -75,10 +75,10 @@ Suggests:
     RcppArmadillo,
     Rwtss (>= 0.9.1),
     scales,
-    scutr,
     stars,
     testthat (>= 3.0.2),
     tidyr,
+    torch,
     xgboost,
     zoo
 Config/testthat/edition: 3
@@ -173,5 +173,4 @@ Collate:
     'sits_view.R'
     'sits_values.R'
     'sits_xlsx.R'
-    'sits_zoo.R'
     'zzz.R'

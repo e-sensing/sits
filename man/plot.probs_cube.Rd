@@ -30,7 +30,7 @@
 
 \item{n_colors}{Number of colors to plot.}
 
-\item{palette}{HCL palette used for visualisation.}
+\item{palette}{HCL palette used for visualization.}
 }
 \value{
 The plot itself.

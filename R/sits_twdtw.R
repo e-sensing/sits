@@ -25,7 +25,7 @@
 #' Observations and Remote Sensing, 9(8):3729-3739,
 #'  August 2016. ISSN 1939-1404. doi:10.1109/JSTARS.2016.2517118.
 #'
-#' @param  samples       A sits tibble to be classified using TWTDW.
+#' @param  samples       A sits tibble to be classified using TWDTW.
 #' @param  patterns      Patterns to be used for classification.
 #' @param  bands         Names of the bands to be used for classification.
 #' @param  dist_method   Name of the method to derive the local cost matrix.
@@ -44,29 +44,10 @@
 #'                       the interval of classification.
 #' @param  .plot         Plot the output?
 #' @return A dtwSat S4 object with the matches.
-#' @examples
-#' \dontrun{
-#' # Retrieve the set of samples for the Mato Grosso region
-#' samples <- sits_select(samples_modis_4bands, bands = c("NDVI", "EVI"))
 #'
-#' # get a point and classify the point with the ml_model
-#' point <- sits_select(samples_modis_4bands, bands = c("NDVI", "EVI"))
-#'
-#' # plot the series
-#' plot(point)
-#'
-#' # obtain a set of patterns for these samples
-#' patterns <- sits_patterns(samples)
-#' plot(patterns)
-#'
-#' # find the matches between the patterns and the time series
-#' # using the TWDTW algorithm
-#' # (uses the dtwSat R package)
-#' matches <- sits_twdtw_classify(point, patterns,
-#'   bands = c("NDVI", "EVI"),
-#'   alpha = -0.1, beta = 100, theta = 0.5, keep = TRUE
-#' )
-#' }
+#' @note
+#' Please refer to the sits documentation available in
+#' <https://e-sensing.github.io/sitsbook/> for detailed examples.
 #' @export
 sits_twdtw_classify <- function(samples,
                                 patterns,
@@ -166,7 +147,7 @@ sits_twdtw_classify <- function(samples,
 #' ISSN 1939-1404. doi:10.1109/JSTARS.2016.2517118.
 #'
 #' @param  matches       A dtwSat S4 object with the matches
-#'                       produced by the sits_TWTDW_matches function.
+#'                       produced by the sits_TWDTW_matches function.
 #' @param  samples       Input for the TWDTW matching function.
 #' @param  start_date    The start date of the classification period.
 #' @param  end_date      The end date of the classification period.
@@ -224,7 +205,7 @@ sits_twdtw_classify <- function(samples,
 #' @description Converts sits tibble to an instance of a TWDTW class.
 #'
 #' @param  samples      A tibble in sits format with time series
-#'                      to be converted to TWTDW time series.
+#'                      to be converted to TWDTW time series.
 #' @return An object of the twdtwTimeSeries class).
 .sits_twdtw_from_tibble <- function(samples) {
     # verifies if methods package is installed

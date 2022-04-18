@@ -21,19 +21,10 @@
 #' @param ...              Other parameters to be passed to nnet::multinom.
 #' @return                 Model fitted to input data
 #'                        (to be passed to \code{\link[sits]{sits_classify}})
-#' @examples
-#' \dontrun{
-#' # Retrieve the set of samples for  Mato Grosso region (provided by EMBRAPA)
-#' samples_2bands <- sits_select(samples_modis_4bands, bands = c("NDVI", "EVI"))
+#' @note
+#' Please refer to the sits documentation available in
+#' <https://e-sensing.github.io/sitsbook/> for detailed examples.
 #'
-#' # Build a machine learning model
-#' ml_model <- sits_train(samples_2bands, sits_mlr())
-#'
-#' # get a point and classify the point with the ml_model
-#' point.tb <- sits_select(point_mt_6bands, bands = c("NDVI", "EVI"))
-#' class.tb <- sits_classify(point.tb, ml_model)
-#' plot(class.tb, bands = c("NDVI", "EVI"))
-#' }
 #'
 #' @export
 #'
@@ -211,19 +202,9 @@ sits_rfor <- function(samples = NULL, num_trees = 200, nodesize = 1, ...) {
 #' @param ...              Other parameters to be passed to e1071::svm function.
 #' @return                 Model fitted to input data
 #'                         (to be passed to \code{\link[sits]{sits_classify}})
-#' @examples
-#' \dontrun{
-#' # Retrieve the set of samples for  Mato Grosso  (provided by EMBRAPA)
-#' samples_2bands <- sits_select(samples_modis_4bands, bands = c("NDVI", "EVI"))
-#'
-#' # Build a machine learning model
-#' ml_model <- sits_train(samples_2bands, sits_svm())
-#'
-#' # get a point and classify the point with the ml_model
-#' point.tb <- sits_select(point_mt_6bands, bands = c("NDVI", "EVI"))
-#' class.tb <- sits_classify(point.tb, ml_model)
-#' plot(class.tb, bands = c("NDVI", "EVI"))
-#' }
+#' @note
+#' Please refer to the sits documentation available in
+#' <https://e-sensing.github.io/sitsbook/> for detailed examples.
 #'
 #' @export
 #'
@@ -296,13 +277,13 @@ sits_svm <- function(samples = NULL, formula = sits_formula_logref(),
     result <- .sits_factory_function(samples, result_fun)
     return(result)
 }
-#' @title Train models using lightGBM algorithm
+#' @title Train models using LightGBM algorithm
 #' @name sits_lightgbm
 #' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #' @author Alber Sanchez, \email{alber.ipia@@inpe.br}
 #'
-#' @description This function uses the lightGBM algorithm for model training.
+#' @description This function uses the LightGBM algorithm for model training.
 #' LightGBM is a fast, distributed, high performance gradient boosting
 #' framework based on decision trees.
 #'
@@ -327,6 +308,10 @@ sits_svm <- function(samples = NULL, formula = sits_formula_logref(),
 #' @param record               Record iteration message?
 #' @param ...                  Additional parameters for
 #'                             \code{lightgbm::lgb.train} function.
+#'
+#' @note
+#' Please refer to the sits documentation available in
+#' <https://e-sensing.github.io/sitsbook/> for detailed examples.
 #'
 #' @export
 sits_lightgbm <- function(samples = NULL,
@@ -497,20 +482,9 @@ sits_lightgbm <- function(samples = NULL,
 #' @return                 Model fitted to input data
 #'                         (to be passed to \code{\link[sits]{sits_classify}})
 #'
-#' @examples
-#' \dontrun{
-#' # Retrieve the set of samples for Mato Grosso (provided by EMBRAPA)
-#'
-#' # Build a machine learning model based on xgboost
-#' xgb_model <- sits_train(samples_modis_4bands, sits_xgboost(nrounds = 10))
-#'
-#' # get a point and classify the point with the ml_model
-#' point.tb <- sits_select(point_mt_6bands,
-#'   bands = c("NDVI", "EVI", "NIR", "MIR")
-#' )
-#' class.tb <- sits_classify(point.tb, xgb_model)
-#' plot(class.tb, bands = c("NDVI", "EVI"))
-#' }
+#' @note
+#' Please refer to the sits documentation available in
+#' <https://e-sensing.github.io/sitsbook/> for detailed examples.
 #'
 #' @export
 #'

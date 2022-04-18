@@ -37,14 +37,7 @@ basic workflow in SITS is:
 6.  Post-process the classified images.
 7.  Evaluate the accuracy of the classification using best practices.
 
-<div class="figure" style="text-align: center">
-
-<img src="inst/extdata/markdown/figures/sits_general_view.png" alt="Conceptual view of data cubes (source: authors)" width="60%" height="60%" />
-<p class="caption">
-Conceptual view of data cubes (source: authors)
-</p>
-
-</div>
+<img src="inst/extdata/markdown/figures/sits_general_view.png" title="Conceptual view of data cubes (source: authors)" alt="Conceptual view of data cubes (source: authors)" width="60%" height="60%" style="display: block; margin: auto;" />
 
 ## SITS on Kaggle
 
@@ -87,8 +80,12 @@ devtools::install_github("e-sensing/sits", dependencies = TRUE)
 ``` r
 # load the sits library
 library(sits)
+#> Using configuration file: /Library/Frameworks/R.framework/Versions/4.1/Resources/library/sits/extdata/config.yml
+#> Color configurations found in /Library/Frameworks/R.framework/Versions/4.1/Resources/library/sits/extdata/config_colors.yml
+#> To provide additional configurations, create an YAML file and inform its path to environment variable 'SITS_CONFIG_USER_FILE'.
+#> Using raster package: terra
 #> SITS - satellite image time series analysis.
-#> Loaded sits v0.16.0.
+#> Loaded sits v0.17.0.
 #>         See ?sits for help, citation("sits") for use in publication.
 #>         See demo(package = "sits") for examples.
 ```
@@ -104,14 +101,7 @@ the same size, covering a regular area in space and time. These data
 cubes are built from analysis-ready image collections available in the
 cloud.
 
-<div class="figure" style="text-align: center">
-
-<img src="inst/extdata/markdown/figures/datacube_conception.png" alt="Conceptual view of data cubes (source: authors)" width="90%" height="90%" />
-<p class="caption">
-Conceptual view of data cubes (source: authors)
-</p>
-
-</div>
+<img src="inst/extdata/markdown/figures/datacube_conception.png" title="Conceptual view of data cubes (source: authors)" alt="Conceptual view of data cubes (source: authors)" width="90%" height="90%" style="display: block; margin: auto;" />
 
 The image collections accessible in `sits` version 0.15.1 to build EO
 data cubes are:
@@ -149,6 +139,7 @@ s2_cube <- sits_cube(source = "AWS",
                      start_date = as.Date("2018-07-01"),
                      end_date = as.Date("2019-06-30")
 )
+#>   |                                                                              |                                                                      |   0%  |                                                                              |===================================                                   |  50%  |                                                                              |======================================================================| 100%
 ```
 
 The cube can be shown in a leaflet using `sits_view()`.
@@ -210,6 +201,7 @@ raster_cube <- sits_cube(
     delim = "_",
     parse_info = c("X1", "X2", "tile", "band", "date")
 )
+#>   |                                                                              |                                                                      |   0%  |                                                                              |===                                                                   |   4%  |                                                                              |======                                                                |   9%  |                                                                              |=========                                                             |  13%  |                                                                              |============                                                          |  17%  |                                                                              |===============                                                       |  22%  |                                                                              |==================                                                    |  26%  |                                                                              |=====================                                                 |  30%  |                                                                              |========================                                              |  35%  |                                                                              |===========================                                           |  39%  |                                                                              |==============================                                        |  43%  |                                                                              |=================================                                     |  48%  |                                                                              |=====================================                                 |  52%  |                                                                              |========================================                              |  57%  |                                                                              |===========================================                           |  61%  |                                                                              |==============================================                        |  65%  |                                                                              |=================================================                     |  70%  |                                                                              |====================================================                  |  74%  |                                                                              |=======================================================               |  78%  |                                                                              |==========================================================            |  83%  |                                                                              |=============================================================         |  87%  |                                                                              |================================================================      |  91%  |                                                                              |===================================================================   |  96%  |                                                                              |======================================================================| 100%
 # obtain a set of samples defined by a CSV file
 csv_file <- system.file("extdata/samples/samples_sinop_crop.csv",
                         package = "sits")
@@ -218,12 +210,12 @@ points <- sits_get_data(raster_cube, file = csv_file)
 #> All points have been retrieved
 # show the time series
 points[1:3,]
-#> # A tibble: 3 x 7
-#>   longitude latitude start_date end_date   label   cube      time_series      
-#>       <dbl>    <dbl> <date>     <date>     <chr>   <chr>     <list>           
-#> 1     -55.7    -11.8 2013-09-14 2014-08-29 Pasture MOD13Q1-6 <tibble [23 x 3]>
-#> 2     -55.6    -11.8 2013-09-14 2014-08-29 Pasture MOD13Q1-6 <tibble [23 x 3]>
-#> 3     -55.7    -11.8 2013-09-14 2014-08-29 Forest  MOD13Q1-6 <tibble [23 x 3]>
+#> # A tibble: 3 × 7
+#>   longitude latitude start_date end_date   label    cube      time_series      
+#>       <dbl>    <dbl> <date>     <date>     <chr>    <chr>     <list>           
+#> 1     -55.8    -11.7 2013-09-14 2014-08-29 Cerrado  MOD13Q1-6 <tibble [23 × 3]>
+#> 2     -55.8    -11.7 2013-09-14 2014-08-29 Cerrado  MOD13Q1-6 <tibble [23 × 3]>
+#> 3     -55.7    -11.7 2013-09-14 2014-08-29 Soy_Corn MOD13Q1-6 <tibble [23 × 3]>
 ```
 
 After a time series has been obtained, it is loaded in a tibble. The
@@ -239,14 +231,7 @@ function.
 plot(points[1,])
 ```
 
-<div class="figure" style="text-align: center">
-
-<img src="man/figures/README-unnamed-chunk-8-1.png" alt="Plot of point at location (-55.65931, -11.76267) labelled as Pasture"  />
-<p class="caption">
-Plot of point at location (-55.65931, -11.76267) labelled as Pasture
-</p>
-
-</div>
+<img src="man/figures/README-unnamed-chunk-8-1.png" title="Plot of point at location (-55.65931, -11.76267) labelled as Pasture" alt="Plot of point at location (-55.65931, -11.76267) labelled as Pasture" style="display: block; margin: auto;" />
 
 For a large number of samples, where the amount of individual plots
 would be substantial, the default visualization combines all samples
@@ -261,14 +246,7 @@ samples_cerrado <- dplyr::filter(samples_ndvi,
 plot(samples_cerrado)
 ```
 
-<div class="figure" style="text-align: center">
-
-<img src="man/figures/README-unnamed-chunk-9-1.png" alt="Samples for NDVI band for Cerrado class"  />
-<p class="caption">
-Samples for NDVI band for Cerrado class
-</p>
-
-</div>
+<img src="man/figures/README-unnamed-chunk-9-1.png" title="Samples for NDVI band for Cerrado class" alt="Samples for NDVI band for Cerrado class" style="display: block; margin: auto;" />
 
 ## Time Series Clustering and Filtering
 
@@ -332,14 +310,7 @@ point_ndvi %>%
     plot()
 ```
 
-<div class="figure" style="text-align: center">
-
-<img src="man/figures/README-unnamed-chunk-12-1.png" alt="Whittaker filter of NDVI time series"  />
-<p class="caption">
-Whittaker filter of NDVI time series
-</p>
-
-</div>
+<img src="man/figures/README-unnamed-chunk-12-1.png" title="Whittaker filter of NDVI time series" alt="Whittaker filter of NDVI time series" style="display: block; margin: auto;" />
 
 ## Time Series Classification
 
@@ -349,11 +320,11 @@ SITS provides support for the classification of both individual time
 series as well as data cubes. The following machine learning methods are
 available in SITS:
 
--   Multinomial logit and its variants ‘lasso’ and ‘ridge’
-    (`sits_mlr()`)
+-   Multinomial logit and its variants lasso and ridge (`sits_mlr()`)
 -   Support vector machines (`sits_svm()`)
 -   Random forests (`sits_rfor()`)
 -   Extreme gradient boosting (`sits_xgboost()`)
+-   Light gradient boosting machine (`sits_lightgbm()`)
 -   Deep learning (DL) using multi-layer perceptrons (`sits_mlp()`)
 -   DL using Deep Residual Networks (`sits_ResNet`) (see reference
     \[7\])
@@ -376,23 +347,23 @@ data("point_mt_6bands")
 # Select the NDVI and EVI bands 
 # Filter the band to reduce noise
 # Train a deep learning model
-tempCNN_model <- samples_modis_4bands %>% 
+tempcnn_model <- samples_modis_4bands %>% 
     sits_select(bands = c("NDVI", "EVI")) %>% 
-    sits_train(ml_method = sits_TempCNN(verbose = FALSE)) 
+    sits_train(ml_method = sits_tempcnn(verbose = FALSE)) 
 # Select NDVI and EVI bands of the  point to be classified
 # Filter the point 
 # Classify using TempCNN model
 # Plot the result
 point_mt_6bands %>% 
   sits_select(bands = c("ndvi", "evi")) %>% 
-  sits_classify(tempCNN_model) %>% 
+  sits_classify(tempcnn_model) %>% 
   plot()
 ```
 
 <img src="man/figures/README-unnamed-chunk-13-1.png" style="display: block; margin: auto;" />
 
-The following example shows how to classify a data cube organised as a
-set of raster images. The result can also be visualised interactively
+The following example shows how to classify a data cube organized as a
+set of raster images. The result can also be visualized interactively
 using `sits_view()`.
 
 ``` r
@@ -406,10 +377,11 @@ sinop <- sits_cube(
     delim = "_",
     parse_info = c("X1", "X2", "tile", "band", "date")
 )
+#>   |                                                                              |                                                                      |   0%  |                                                                              |===                                                                   |   4%  |                                                                              |======                                                                |   9%  |                                                                              |=========                                                             |  13%  |                                                                              |============                                                          |  17%  |                                                                              |===============                                                       |  22%  |                                                                              |==================                                                    |  26%  |                                                                              |=====================                                                 |  30%  |                                                                              |========================                                              |  35%  |                                                                              |===========================                                           |  39%  |                                                                              |==============================                                        |  43%  |                                                                              |=================================                                     |  48%  |                                                                              |=====================================                                 |  52%  |                                                                              |========================================                              |  57%  |                                                                              |===========================================                           |  61%  |                                                                              |==============================================                        |  65%  |                                                                              |=================================================                     |  70%  |                                                                              |====================================================                  |  74%  |                                                                              |=======================================================               |  78%  |                                                                              |==========================================================            |  83%  |                                                                              |=============================================================         |  87%  |                                                                              |================================================================      |  91%  |                                                                              |===================================================================   |  96%  |                                                                              |======================================================================| 100%
 # Classify the raster cube, generating a probability file
 # Filter the pixels in the cube to remove noise
 probs_cube <- sits_classify(sinop, 
-                            ml_model = tempCNN_model
+                            ml_model = tempcnn_model
 )
 # apply a bayesian smoothing to remove outliers
 bayes_cube <- sits_smooth(probs_cube)
@@ -424,8 +396,8 @@ plot(label_cube, title = "Land use and Land cover in Sinop, MT, Brazil in 2018")
 ## Additional information
 
 For more information, please see the on-line book [“SITS: Data analysis
-and machine learning for data cubes using satellite image
-timeseries”](https://e-sensing.github.io/sitsbook/).
+and machine learning for data cubes using satellite image time
+series”](https://e-sensing.github.io/sitsbook/).
 
 ### References
 
@@ -439,7 +411,7 @@ If you use `sits`, please cite the following paper:
     Observation Data”. Remote Sensing, 13, p. 2428, 2021.
     <https://doi.org/10.3390/rs13132428>.
 
-Additionally, the sample quality control methods that use self-organised
+Additionally, the sample quality control methods that use self-organized
 maps are described in the following reference:
 
 -   \[2\] Lorena Santos, Karine Ferreira, Gilberto Camara, Michelle
