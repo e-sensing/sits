@@ -41,102 +41,104 @@
 #' An optimizer object implementing the `step` and `zero_grad` methods.
 #'
 #' @export
-optim_adabound <- torch::optimizer(
-    classname = "optim_adabound",
-    initialize = function(
-        params,
-        lr = 1e-3,
-        betas = c(0.9, 0.999),
-        final_lr = 0.1,
-        gamma = 1e-3,
-        eps = 1e-8,
-        weight_decay = 0
-    ) {
-        if (lr <= 0.0)
-            rlang::abort("Learning rate must be positive.")
-        if (eps < 0.0)
-            rlang::abort("eps must be non-negative.")
-        if (betas[1] > 1.0 | betas[1] <= 0.0)
-            rlang::abort("Invalid beta parameter.")
-        if (betas[2] > 1.0 | betas[1] <= 0.0)
-            rlang::abort("Invalid beta parameter.")
-        if (final_lr < 0.0)
-            rlang::abort("Learning rate must be positive.")
-        if (gamma > 1.0 | gamma <= 0.0)
-            rlang::abort("Invalid gamma parameter.")
-        if (weight_decay < 0)
-            rlang::abort("Invalid weight_decay value")
+optim_adabound <- function() {
+    torch::optimizer(
+        name = "optim_adabound",
+        initialize = function(
+            params,
+            lr = 1e-3,
+            betas = c(0.9, 0.999),
+            final_lr = 0.1,
+            gamma = 1e-3,
+            eps = 1e-8,
+            weight_decay = 0
+        ) {
+            if (lr <= 0.0)
+                stop("Learning rate must be positive.", call. = FALSE)
+            if (eps < 0.0)
+                stop("eps must be non-negative.", call. = FALSE)
+            if (betas[1] > 1.0 | betas[1] <= 0.0)
+                stop("Invalid beta parameter.", call. = FALSE)
+            if (betas[2] > 1.0 | betas[1] <= 0.0)
+                stop("Invalid beta parameter.", call. = FALSE)
+            if (final_lr < 0.0)
+                stop("Learning rate must be positive.", call. = FALSE)
+            if (gamma > 1.0 | gamma <= 0.0)
+                stop("Invalid gamma parameter.", call. = FALSE)
+            if (weight_decay < 0)
+                stop("Invalid weight_decay value", call. = FALSE)
 
-        defaults = list(
-            lr           = lr,
-            betas        = betas,
-            final_lr     = final_lr,
-            gamma        = gamma,
-            eps          = eps,
-            weight_decay = weight_decay
-        )
+            defaults = list(
+                lr           = lr,
+                betas        = betas,
+                final_lr     = final_lr,
+                gamma        = gamma,
+                eps          = eps,
+                weight_decay = weight_decay
+            )
 
-        self$base_lr <- lr
-        super$initialize(params, defaults)
-    },
-    step = function(closure = NULL){
-        loop_fun <- function(group, param, g, p) {
-            if (purrr::is_null(param$grad))
-                next
-            grad <- param$grad
+            self$base_lr <- lr
+            super$initialize(params, defaults)
+        },
+        step = function(closure = NULL){
+            loop_fun <- function(group, param, g, p) {
+                if (purrr::is_null(param$grad))
+                    next
+                grad <- param$grad
 
-            # State initialization
-            if (length(state(param)) == 0) {
-                state(param) <- list()
-                state(param)[["step"]] <- 0
-                # Exponential moving average of gradient values
-                state(param)[["exp_avg"]] <- torch::torch_zeros_like(
-                    param,
-                    memory_format = torch::torch_preserve_format()
-                )
-                # Exponential moving average of squared gradient values
-                state(param)[["exp_avg_sq"]] <- torch::torch_zeros_like(
-                    param,
-                    memory_format = torch::torch_preserve_format()
-                )
+                # State initialization
+                if (length(state(param)) == 0) {
+                    state(param) <- list()
+                    state(param)[["step"]] <- 0
+                    # Exponential moving average of gradient values
+                    state(param)[["exp_avg"]] <- torch::torch_zeros_like(
+                        param,
+                        memory_format = torch::torch_preserve_format()
+                    )
+                    # Exponential moving average of squared gradient values
+                    state(param)[["exp_avg_sq"]] <- torch::torch_zeros_like(
+                        param,
+                        memory_format = torch::torch_preserve_format()
+                    )
+                }
+                exp_avg <-  state(param)[["exp_avg"]]
+                exp_avg_sq <- state(param)[["exp_avg_sq"]]
+
+                beta1 <-  group[['betas']][[1]]
+                beta2 <-  group[['betas']][[2]]
+
+                state(param)[["step"]] <- state(param)[["step"]] + 1
+
+                if (group[['weight_decay']] != 0)
+                    grad <- grad$add(param, alpha = group[['weight_decay']])
+
+                # Decay the first and second moment
+                # running average coefficient
+                exp_avg$mul_(beta1)$add_(grad, alpha = 1 - beta1)
+                exp_avg_sq$mul_(beta2)$addcmul_(grad, grad, value = 1 - beta2)
+
+                # bias correction
+                bias_correction1 <-  1 - beta1 ^ state(param)[['step']]
+                bias_correction2 <-  1 - beta2 ^ state(param)[['step']]
+                step_size <- group[['lr']] * sqrt(bias_correction2) / bias_correction1
+
+                # Applies bounds on actual learning rate
+                # lr_scheduler cannot affect final_lr, this is a workaround to apply lr decay
+                final_lr <-  group[['final_lr']] * group[['lr']] / self$base_lr
+                lower_bound <- final_lr * (1 - 1 / (group[['gamma']] * state(param)[['step']] + 1))
+                upper_bound <- final_lr * (1 + 1 / (group[['gamma']] * state(param)[['step']]))
+
+                # calculate denominator
+                denom = exp_avg_sq$sqrt()$add_(group[['eps']])
+
+                step_size <-  torch::torch_full_like(
+                    input = denom,
+                    fill_value = step_size)
+                step_size$div_(denom)$clamp_(lower_bound, upper_bound)$mul_(exp_avg)
+
+                param$add_(-step_size)
             }
-            exp_avg <-  state(param)[["exp_avg"]]
-            exp_avg_sq <- state(param)[["exp_avg_sq"]]
-
-            beta1 <-  group[['betas']][[1]]
-            beta2 <-  group[['betas']][[2]]
-
-            state(param)[["step"]] <- state(param)[["step"]] + 1
-
-            if (group[['weight_decay']] != 0)
-                grad <- grad$add(param, alpha = group[['weight_decay']])
-
-            # Decay the first and second moment
-            # running average coefficient
-            exp_avg$mul_(beta1)$add_(grad, alpha = 1 - beta1)
-            exp_avg_sq$mul_(beta2)$addcmul_(grad, grad, value = 1 - beta2)
-
-            # bias correction
-            bias_correction1 <-  1 - beta1 ^ state(param)[['step']]
-            bias_correction2 <-  1 - beta2 ^ state(param)[['step']]
-            step_size <- group[['lr']] * sqrt(bias_correction2) / bias_correction1
-
-            # Applies bounds on actual learning rate
-            # lr_scheduler cannot affect final_lr, this is a workaround to apply lr decay
-            final_lr <-  group[['final_lr']] * group[['lr']] / self$base_lr
-            lower_bound <- final_lr * (1 - 1 / (group[['gamma']] * state(param)[['step']] + 1))
-            upper_bound <- final_lr * (1 + 1 / (group[['gamma']] * state(param)[['step']]))
-
-            # calculate denominator
-            denom = exp_avg_sq$sqrt()$add_(group[['eps']])
-
-            step_size <-  torch::torch_full_like(
-                input = denom,
-                fill_value = step_size)
-            step_size$div_(denom)$clamp_(lower_bound, upper_bound)$mul_(exp_avg)
-
-            param$add_(-step_size)
+            private$step_helper(closure, loop_fun)
         }
-        private$step_helper(closure, loop_fun)
-    }
-)
+    )
+}

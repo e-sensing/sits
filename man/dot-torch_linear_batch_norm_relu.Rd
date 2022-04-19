@@ -4,7 +4,7 @@
 \alias{.torch_linear_batch_norm_relu}
 \title{Torch module for linear MLP}
 \usage{
-.torch_linear_batch_norm_relu(input_dim, output_dim)
+.torch_linear_batch_norm_relu()
 }
 \arguments{
 \item{input_dim}{Input dimension of neural net.}

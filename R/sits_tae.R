@@ -65,7 +65,7 @@ sits_tae <- function(samples = NULL,
                      epochs = 150,
                      batch_size = 64,
                      validation_split = 0.2,
-                     optimizer = sits::optim_adamw,
+                     optimizer = optim_adamw(),
                      opt_hparams = list(lr = 0.001,
                                         eps = 1e-08,
                                         weight_decay = 1.0e-06),
@@ -214,15 +214,15 @@ sits_tae <- function(samples = NULL,
                                   dim_layers_decoder = c(64, 32)) {
                 # define an spatial encoder
                 self$spatial_encoder <-
-                    .torch_pixel_spatial_encoder(n_bands = n_bands)
+                    .torch_pixel_spatial_encoder()(n_bands = n_bands)
                 # define a temporal encoder
                 self$temporal_attention_encoder <-
-                    .torch_temporal_attention_encoder(timeline = timeline)
+                    .torch_temporal_attention_encoder()(timeline = timeline)
 
                 # add a final layer to the decoder
                 # with a dimension equal to the number of layers
                 dim_layers_decoder[length(dim_layers_decoder) + 1] <- n_labels
-                self$decoder <- .torch_multi_linear_batch_norm_relu(
+                self$decoder <- .torch_multi_linear_batch_norm_relu()(
                     dim_input_decoder,
                     dim_layers_decoder
                 )
@@ -245,7 +245,7 @@ sits_tae <- function(samples = NULL,
                 module = pse_tae_model,
                 loss = torch::nn_cross_entropy_loss(),
                 metrics = list(luz::luz_metric_accuracy()),
-                optimizer = torch::optim_adam
+                optimizer = optimizer
             ) %>%
             luz::set_hparams(
                 n_bands  = n_bands,

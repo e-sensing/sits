@@ -71,7 +71,7 @@ sits_lighttae <- function(samples = NULL,
                           epochs = 150,
                           batch_size = 128,
                           validation_split = 0.2,
-                          optimizer = sits::optim_adamw,
+                          optimizer = optim_adamw(),
                           opt_hparams = list(lr = 0.005,
                                              eps = 1e-08,
                                              weight_decay = 1e-06),
@@ -222,7 +222,7 @@ sits_lighttae <- function(samples = NULL,
                                   dim_layers_decoder = c(64, 32)) {
                 # define an spatial encoder
                 self$spatial_encoder <-
-                    .torch_pixel_spatial_encoder(
+                    .torch_pixel_spatial_encoder()(
                         n_bands = n_bands,
                         layers_spatial_encoder = layers_spatial_encoder
                     )
@@ -230,7 +230,7 @@ sits_lighttae <- function(samples = NULL,
                 in_channels = layers_spatial_encoder[length(layers_spatial_encoder)]
                 # define a temporal encoder
                 self$temporal_encoder <-
-                    .torch_light_temporal_attention_encoder(
+                    .torch_light_temporal_attention_encoder()(
                         timeline     = timeline,
                         in_channels  = in_channels,
                         n_heads      = n_heads,
@@ -242,7 +242,7 @@ sits_lighttae <- function(samples = NULL,
                 # with a dimension equal to the number of layers
                 dim_layers_decoder[length(dim_layers_decoder) + 1] <- n_labels
                 # decode the tensor
-                self$decoder <- .torch_multi_linear_batch_norm_relu(
+                self$decoder <- .torch_multi_linear_batch_norm_relu()(
                     dim_input_decoder,
                     dim_layers_decoder
                 )

@@ -4,7 +4,7 @@
 \alias{.torch_scaled_dot_product_attention}
 \title{Torch module for calculating attention from query, keys and values}
 \usage{
-.torch_scaled_dot_product_attention(temperature, attn_dropout = 0.1)
+.torch_scaled_dot_product_attention()
 }
 \arguments{
 \item{temperature}{Weight score of the attention module.}
