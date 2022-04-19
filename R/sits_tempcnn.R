@@ -68,7 +68,7 @@ sits_tempcnn <- function(samples = NULL,
                          epochs = 150,
                          batch_size = 128,
                          validation_split = 0.2,
-                         optimizer = optim_adamw,
+                         optimizer = optim_adamw(),
                          opt_hparams = list(lr = 0.005,
                                             eps = 1.0e-08,
                                             weight_decay = 1.0e-06),
@@ -249,7 +249,7 @@ sits_tempcnn <- function(samples = NULL,
                                   dense_layer_dropout_rate) {
                 self$hidden_dims <- hidden_dims
                 # first module - transform input to hidden dims
-                self$conv_bn_relu1 <- .torch_conv1D_batch_norm_relu_dropout(
+                self$conv_bn_relu1 <- .torch_conv1D_batch_norm_relu_dropout()(
                     input_dim    = n_bands,
                     output_dim   = hidden_dims[1],
                     kernel_size  = kernel_sizes[1],
@@ -257,7 +257,7 @@ sits_tempcnn <- function(samples = NULL,
                     dropout_rate = dropout_rates[1]
                 )
                 # second module - 1D CNN
-                self$conv_bn_relu2 <- .torch_conv1D_batch_norm_relu_dropout(
+                self$conv_bn_relu2 <- .torch_conv1D_batch_norm_relu_dropout()(
                     input_dim    = hidden_dims[1],
                     output_dim   = hidden_dims[2],
                     kernel_size  = kernel_sizes[2],
@@ -265,7 +265,7 @@ sits_tempcnn <- function(samples = NULL,
                     dropout_rate = dropout_rates[2]
                 )
                 # third module - 1D CNN
-                self$conv_bn_relu3 <- .torch_conv1D_batch_norm_relu_dropout(
+                self$conv_bn_relu3 <- .torch_conv1D_batch_norm_relu_dropout()(
                     input_dim    = hidden_dims[2],
                     output_dim   = hidden_dims[3],
                     kernel_size  = kernel_sizes[3],
@@ -275,7 +275,7 @@ sits_tempcnn <- function(samples = NULL,
                 # flatten 3D tensor to 2D tensor
                 self$flatten <- torch::nn_flatten()
                 # create a dense tensor
-                self$dense <- .torch_linear_batch_norm_relu_dropout(
+                self$dense <- .torch_linear_batch_norm_relu_dropout()(
                     input_dim    = hidden_dims[3] * n_times,
                     output_dim   = dense_layer_nodes,
                     dropout_rate = dense_layer_dropout_rate

@@ -49,104 +49,106 @@
 #' An optimizer object implementing the `step` and `zero_grad` methods.
 #'
 #' @export
-optim_yogi <- torch::optimizer(
-    classname = "optim_yogi",
-    initialize = function(
-        params,
-        lr                  = 0.01,
-        betas               = c(0.9, 0.999),
-        eps                 = 0.001,
-        initial_accumulator = 1e-6,
-        weight_decay        = 1e-6
-    ) {
-        if (lr <= 0.0)
-            rlang::abort("Learning rate must be positive.")
-        if (eps < 0.0)
-            rlang::abort("eps must be non-negative.")
-        if (betas[1] > 1.0 | betas[1] <= 0.0)
-            rlang::abort("Invalid beta parameter.")
-        if (betas[2] > 1.0 | betas[1] <= 0.0)
-            rlang::abort("Invalid beta parameter.")
-        if (weight_decay < 0)
-            rlang::abort("Invalid weight_decay value")
+optim_yogi <- function() {
+    torch::optimizer(
+        name = "optim_yogi",
+        initialize = function(
+            params,
+            lr                  = 0.01,
+            betas               = c(0.9, 0.999),
+            eps                 = 0.001,
+            initial_accumulator = 1e-6,
+            weight_decay        = 1e-6
+        ) {
+            if (lr <= 0.0)
+                stop("Learning rate must be positive.", call. = FALSE)
+            if (eps < 0.0)
+                stop("eps must be non-negative.", call. = FALSE)
+            if (betas[1] > 1.0 | betas[1] <= 0.0)
+                stop("Invalid beta parameter.", call. = FALSE)
+            if (betas[2] > 1.0 | betas[1] <= 0.0)
+                stop("Invalid beta parameter.", call. = FALSE)
+            if (weight_decay < 0)
+                stop("Invalid weight_decay value", call. = FALSE)
 
-        defaults = list(
-            lr                  = lr,
-            betas               = betas,
-            eps                 = eps,
-            weight_decay        = weight_decay,
-            initial_accumulator = initial_accumulator
-        )
-        super$initialize(params, defaults)
-    },
-    step = function(closure = NULL){
-        loop_fun <- function(group, param, g, p) {
-            if (purrr::is_null(param$grad))
-                next
-            grad <- param$grad
-
-            # get value of initial accumulator
-            init_acc <- group[["initial_accumulator"]]
-
-            # State initialization
-            if (length(state(param)) == 0) {
-                state(param) <- list()
-                state(param)[["step"]] <- 0
-                # Exponential moving average of gradient values
-                state(param)[["exp_avg"]] <- torch::nn_init_constant_(
-                    torch::torch_empty_like(
-                        param,
-                        memory_format = torch::torch_preserve_format()
-                    ),
-                    init_acc
-                )
-                # Exponential moving average of squared gradient values
-                state(param)[["exp_avg_sq"]] <- torch::nn_init_constant_(
-                    torch::torch_empty_like(
-                        param,
-                        memory_format = torch::torch_preserve_format()
-                    ),
-                    init_acc
-                )
-            }
-            # Define variables for optimization function
-            exp_avg    <-  state(param)[["exp_avg"]]
-            exp_avg_sq <-  state(param)[["exp_avg_sq"]]
-
-            beta1        <-  group[['betas']][[1]]
-            beta2        <-  group[['betas']][[2]]
-            weight_decay <- group[['weight_decay']]
-            eps          <- group[["eps"]]
-            lr           <- group[['lr']]
-
-            # take one step
-            state(param)[["step"]] <- state(param)[["step"]] + 1
-            # bias correction
-            bias_correction1 <-  1 - beta1 ^ state(param)[['step']]
-            bias_correction2 <-  1 - beta2 ^ state(param)[['step']]
-
-            # L2 correction
-            if (weight_decay != 0)
-                grad <- grad$add(param, alpha = weight_decay)
-
-            # Decay the first moment
-            exp_avg$mul_(beta1)$add_(grad, alpha = 1 - beta1)
-            # Decay the second moment
-            grad_squared <- grad$mul(grad)
-            exp_avg_sq$addcmul_(
-                torch::torch_sign(exp_avg_sq - grad_squared),
-                grad_squared,
-                value = -(1 - beta2)
+            defaults = list(
+                lr                  = lr,
+                betas               = betas,
+                eps                 = eps,
+                weight_decay        = weight_decay,
+                initial_accumulator = initial_accumulator
             )
+            super$initialize(params, defaults)
+        },
+        step = function(closure = NULL){
+            loop_fun <- function(group, param, g, p) {
+                if (purrr::is_null(param$grad))
+                    next
+                grad <- param$grad
 
-            # calculate denominator
-            denom = (exp_avg_sq$sqrt() / sqrt(bias_correction2))$add_(eps)
+                # get value of initial accumulator
+                init_acc <- group[["initial_accumulator"]]
 
-            # calculate step size
-            step_size <- lr / bias_correction1
-            # go to next step
-            param$addcdiv_(exp_avg, denom, value = -step_size)
+                # State initialization
+                if (length(state(param)) == 0) {
+                    state(param) <- list()
+                    state(param)[["step"]] <- 0
+                    # Exponential moving average of gradient values
+                    state(param)[["exp_avg"]] <- torch::nn_init_constant_(
+                        torch::torch_empty_like(
+                            param,
+                            memory_format = torch::torch_preserve_format()
+                        ),
+                        init_acc
+                    )
+                    # Exponential moving average of squared gradient values
+                    state(param)[["exp_avg_sq"]] <- torch::nn_init_constant_(
+                        torch::torch_empty_like(
+                            param,
+                            memory_format = torch::torch_preserve_format()
+                        ),
+                        init_acc
+                    )
+                }
+                # Define variables for optimization function
+                exp_avg    <-  state(param)[["exp_avg"]]
+                exp_avg_sq <-  state(param)[["exp_avg_sq"]]
+
+                beta1        <-  group[['betas']][[1]]
+                beta2        <-  group[['betas']][[2]]
+                weight_decay <- group[['weight_decay']]
+                eps          <- group[["eps"]]
+                lr           <- group[['lr']]
+
+                # take one step
+                state(param)[["step"]] <- state(param)[["step"]] + 1
+                # bias correction
+                bias_correction1 <-  1 - beta1 ^ state(param)[['step']]
+                bias_correction2 <-  1 - beta2 ^ state(param)[['step']]
+
+                # L2 correction
+                if (weight_decay != 0)
+                    grad <- grad$add(param, alpha = weight_decay)
+
+                # Decay the first moment
+                exp_avg$mul_(beta1)$add_(grad, alpha = 1 - beta1)
+                # Decay the second moment
+                grad_squared <- grad$mul(grad)
+                exp_avg_sq$addcmul_(
+                    torch::torch_sign(exp_avg_sq - grad_squared),
+                    grad_squared,
+                    value = -(1 - beta2)
+                )
+
+                # calculate denominator
+                denom = (exp_avg_sq$sqrt() / sqrt(bias_correction2))$add_(eps)
+
+                # calculate step size
+                step_size <- lr / bias_correction1
+                # go to next step
+                param$addcdiv_(exp_avg, denom, value = -step_size)
+            }
+            private$step_helper(closure, loop_fun)
         }
-        private$step_helper(closure, loop_fun)
-    }
-)
+    )
+}
