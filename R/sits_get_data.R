@@ -983,13 +983,15 @@ sits_get_data <- function(cube,
 #' @param sep         A character with a file name separator.
 #' @param ext         A character with the extension of file.
 #' @param output_dir  A character with the output directory to be concatenated.
+#' @param create_dir  A boolean indicating if directory should be created.
 #'
 #' @return A character with the file name.
 .create_filename <- function(...,
                              filenames = NULL,
                              sep = "_",
                              ext = NULL,
-                             output_dir = NULL) {
+                             output_dir = NULL,
+                             create_dir = FALSE) {
 
     filenames_lst <- list(...)
 
@@ -1007,8 +1009,15 @@ sits_get_data <- function(cube,
         filenames <- paste(filenames, ext, sep = ".")
     }
 
-    if (!is.null(output_dir))
+    if (!is.null(output_dir)) {
+
+        if (!dir.exists(output_dir) && !create_dir)
+            stop("Invalid output_dir")
+        if (!dir.exists(output_dir) && create_dir)
+            dir.create(output_dir)
+
         filenames <- file.path(output_dir, filenames)
+    }
 
     return(filenames)
 }

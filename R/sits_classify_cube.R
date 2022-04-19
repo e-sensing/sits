@@ -153,12 +153,19 @@
     # read the blocks and compute the probabilities
     filenames <- .sits_parallel_map(blocks, function(b) {
 
+        probs_cube_filename <- tools::file_path_sans_ext(
+            basename(.file_info_path(probs_cube))
+        )
+        # directory where will be save
+        probs_cube_dir <- dirname(.file_info_path(probs_cube))
+
         # define the file name of the raster file to be written
         filename_block <- .create_filename(
-            filenames = c(tools::file_path_sans_ext(.file_info_path(probs_cube)),
-                          "_block", b[["first_row"]], b[["nrows"]],
-                          hash_blocks_model),
-            ext = ".tif"
+            filenames = c(probs_cube_filename, "_block",
+                          b[["first_row"]], b[["nrows"]], hash_blocks_model),
+            ext = ".tif",
+            output_dir = file.path(probs_cube_dir, ".sits"),
+            create_dir = TRUE
         )
 
         # resume processing in case of failure
@@ -244,14 +251,14 @@
 
         # create a new raster
         r_obj <- .raster_new_rast(
-            nrows   = params$nrows,
-            ncols   = params$ncols,
-            xmin    = params$xmin,
-            xmax    = params$xmax,
-            ymin    = params$ymin,
-            ymax    = params$ymax,
+            nrows   = params[["nrows"]],
+            ncols   = params[["ncols"]],
+            xmin    = params[["xmin"]],
+            xmax    = params[["xmax"]],
+            ymin    = params[["ymin"]],
+            ymax    = params[["ymax"]],
             nlayers = length(labels),
-            crs     = params$crs
+            crs     = params[["crs"]]
         )
 
         # copy values

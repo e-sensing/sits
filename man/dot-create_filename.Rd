@@ -9,7 +9,8 @@
   filenames = NULL,
   sep = "_",
   ext = NULL,
-  output_dir = NULL
+  output_dir = NULL,
+  create_dir = FALSE
 )
 }
 \arguments{
@@ -27,6 +28,8 @@ A vector of characters that will be concatenated.}
 \item{ext}{A character with the extension of file.}
 
 \item{output_dir}{A character with the output directory to be concatenated.}
+
+\item{create_dir}{A boolean indicating if directory should be created.}
 }
 \value{
 A character with the file name.
