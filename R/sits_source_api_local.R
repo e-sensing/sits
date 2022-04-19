@@ -117,6 +117,12 @@
         return(tile_cube)
     })
     class(cube) <- .cube_s3class(cube)
+    if (bands == "class")
+        class(cube) <- c("classified_image", class(cube))
+    if (bands %in% c("probs", "bayes", "bilat", "gauss"))
+        class(cube) <- c("probs_cube", class(cube))
+    if (bands %in% c("uncert", "entropy"))
+        class(cube) <- c("uncertainty_cube", class(cube))
     return(cube)
 }
 
