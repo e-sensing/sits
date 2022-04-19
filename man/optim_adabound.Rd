@@ -4,15 +4,7 @@
 \alias{optim_adabound}
 \title{Adabound optimizer}
 \usage{
-optim_adabound(
-  params,
-  lr = 0.001,
-  betas = c(0.9, 0.999),
-  final_lr = 0.1,
-  gamma = 0.001,
-  eps = 1e-08,
-  weight_decay = 0
-)
+optim_adabound()
 }
 \arguments{
 \item{params}{List of parameters to optimize.}

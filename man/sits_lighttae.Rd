@@ -10,7 +10,7 @@ sits_lighttae(
   epochs = 150,
   batch_size = 128,
   validation_split = 0.2,
-  optimizer = sits::optim_adamw,
+  optimizer = optim_adamw(),
   opt_hparams = list(lr = 0.005, eps = 1e-08, weight_decay = 1e-06),
   lr_decay_epochs = 50,
   lr_decay_rate = 1,

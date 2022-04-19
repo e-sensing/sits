@@ -68,7 +68,7 @@ sits_mlp <- function(samples = NULL,
                      samples_validation = NULL,
                      layers = c(512, 512, 512),
                      dropout_rates = c(0.20, 0.30, 0.40),
-                     optimizer = sits::optim_adamw,
+                     optimizer = optim_adamw(),
                      opt_hparams = list(
                          lr = 0.001,
                          eps = 1e-08,
@@ -193,7 +193,7 @@ sits_mlp <- function(samples = NULL,
                 tensors <- list()
 
                 # input layer
-                tensors[[1]] <- .torch_linear_relu_dropout(
+                tensors[[1]] <- .torch_linear_relu_dropout()(
                     input_dim = num_pred,
                     output_dim = layers[1],
                     dropout_rate = dropout_rates[1]
@@ -203,7 +203,7 @@ sits_mlp <- function(samples = NULL,
                 if (length(layers) > 1) {
                     for (i in 2:length(layers)) {
                         tensors[[length(tensors) + 1]] <-
-                            .torch_linear_batch_norm_relu_dropout(
+                            .torch_linear_batch_norm_relu_dropout()(
                                 input_dim = layers[i - 1],
                                 output_dim = layers[i],
                                 dropout_rate = dropout_rates[i]

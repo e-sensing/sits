@@ -4,7 +4,7 @@
 \alias{.torch_multi_head_attention}
 \title{Torch module for calculating multi-head attention}
 \usage{
-.torch_multi_head_attention(n_heads, d_k, d_in)
+.torch_multi_head_attention()
 }
 \arguments{
 \item{n_heads}{Number of attention heads.}

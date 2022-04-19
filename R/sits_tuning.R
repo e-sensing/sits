@@ -166,7 +166,7 @@ sits_tuning <- function(samples,
         # prepare optimizer function
         method_fn <- do.call(
             ml_fn, args = list(
-                optimizer = opt_fn,
+                optimizer = do.call(opt_fn, args = list()),
                 opt_hparams = list(
                     lr = lr,
                     eps = eps,
@@ -224,7 +224,7 @@ sits_tuning <- function(samples,
         what = ml_fn,
         args = list(
             samples = samples,
-            optimizer = opt_fn,
+            optimizer = do.call(opt_fn, args = list()),
             opt_hparams = list(
                 lr = tuning_tb[["lr"]][[1]],
                 eps = tuning_tb[["eps"]][[1]],

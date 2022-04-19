@@ -4,7 +4,7 @@
 \alias{.torch_linear_relu_dropout}
 \title{Torch module for linear transformation with relu activation and dropout}
 \usage{
-.torch_linear_relu_dropout(input_dim, output_dim, dropout_rate)
+.torch_linear_relu_dropout()
 }
 \arguments{
 \item{input_dim}{Input dimension of neural net.}

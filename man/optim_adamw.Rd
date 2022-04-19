@@ -4,13 +4,7 @@
 \alias{optim_adamw}
 \title{AdamW optimizer}
 \usage{
-optim_adamw(
-  params,
-  lr = 0.01,
-  betas = c(0.9, 0.999),
-  eps = 0.001,
-  weight_decay = 1e-06
-)
+optim_adamw()
 }
 \arguments{
 \item{params}{List of parameters to optimize.}

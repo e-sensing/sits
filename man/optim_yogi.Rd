@@ -4,14 +4,7 @@
 \alias{optim_yogi}
 \title{Yogi optimizer}
 \usage{
-optim_yogi(
-  params,
-  lr = 0.01,
-  betas = c(0.9, 0.999),
-  eps = 0.001,
-  initial_accumulator = 1e-06,
-  weight_decay = 1e-06
-)
+optim_yogi()
 }
 \arguments{
 \item{params}{List of parameters to optimize.}

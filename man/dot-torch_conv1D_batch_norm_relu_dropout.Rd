@@ -4,13 +4,7 @@
 \alias{.torch_conv1D_batch_norm_relu_dropout}
 \title{Torch module for Conv1D + Batch Norm + Relu + Dropout}
 \usage{
-.torch_conv1D_batch_norm_relu_dropout(
-  input_dim,
-  output_dim,
-  kernel_size,
-  padding = 0,
-  dropout_rate
-)
+.torch_conv1D_batch_norm_relu_dropout()
 }
 \arguments{
 \item{input_dim}{Input dimension of neural net.}
