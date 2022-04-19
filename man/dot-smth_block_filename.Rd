@@ -5,7 +5,7 @@
 \alias{.smth_filename}
 \title{Create a filename to store an output block from smoothing operation}
 \usage{
-.smth_filename(tile, output_dir, block)
+.smth_filename(tile, output_dir, block, hash = NULL, create_dir = FALSE)
 }
 \arguments{
 \item{tile}{Output tile to be written.}
@@ -13,6 +13,10 @@
 \item{output_dir}{Directory where block will be written.}
 
 \item{block}{Block designation.}
+
+\item{hash}{Additional hash to be add in file name.}
+
+\item{create_dir}{A boolean indicating if the output dir should be created.}
 }
 \value{
 returns a filename witn

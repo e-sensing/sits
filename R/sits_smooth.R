@@ -237,6 +237,11 @@ sits_smooth.bayes <- function(cube, type = "bayes", ...,
         memsize = memsize
     )
 
+    hash_blocks_smooth <- digest::digest(
+        object = list(block_size, window_size, smoothness, covar),
+        algo = "md5"
+    )
+
     # start parallel processes
     .sits_parallel_start(workers = multicores, log = FALSE)
     on.exit(.sits_parallel_stop())
@@ -301,11 +306,12 @@ sits_smooth.bayes <- function(cube, type = "bayes", ...,
             # crop removing overlaps
             raster_out <- .raster_crop(raster_out, block = blk_no_overlap)
 
-            # export to temp file
+            temp_output_dir <- file.path(output_dir, ".sits")
             block_file <- .smth_filename(tile = tile_new,
-                                         output_dir = output_dir,
-                                         block = block)
-
+                                         output_dir = temp_output_dir,
+                                         block = block,
+                                         hash = hash_blocks_smooth,
+                                         create_dir = TRUE)
             # save chunk
             .raster_write_rast(
                 r_obj = raster_out,
@@ -382,8 +388,6 @@ sits_smooth.bayes <- function(cube, type = "bayes", ...,
 
     return(result_cube)
 }
-
-
 
 #' @rdname sits_smooth
 #'
@@ -510,6 +514,11 @@ sits_smooth.bilateral <- function(cube,
         memsize = memsize
     )
 
+    hash_blocks_smooth <- digest::digest(
+        object = list(block_size, window_size, sigma, tau),
+        algo = "md5"
+    )
+
     # start parallel processes
     .sits_parallel_start(workers = multicores, log = FALSE)
     on.exit(.sits_parallel_stop())
@@ -574,10 +583,12 @@ sits_smooth.bilateral <- function(cube,
             # crop removing overlaps
             raster_out <- .raster_crop(raster_out, block = blk_no_overlap)
 
-            # export to temp file
+            temp_output_dir <- file.path(output_dir, ".sits")
             block_file <- .smth_filename(tile = tile_new,
-                                         output_dir = output_dir,
-                                         block = block)
+                                         output_dir = temp_output_dir,
+                                         block = block,
+                                         hash = hash_blocks_smooth,
+                                         create_dir = TRUE)
 
             # save chunk
             .raster_write_rast(

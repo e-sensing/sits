@@ -112,6 +112,11 @@ sits_label_classification <- function(cube,
         memsize = memsize
     )
 
+    hash_block_class <- digest::digest(
+        object = list(block_size),
+        algo = "md5"
+    )
+
     # start parallel processes
     .sits_parallel_start(workers = multicores, log = FALSE)
     on.exit(.sits_parallel_stop())
@@ -164,10 +169,12 @@ sits_label_classification <- function(cube,
             # process it
             raster_out <- .do_map(chunk = chunk)
 
-            # export to temp file
+            temp_output_dir <- file.path(output_dir, ".sits")
             block_file <- .smth_filename(tile = tile_new,
-                                         output_dir = output_dir,
-                                         block = block)
+                                         output_dir = temp_output_dir,
+                                         block = block,
+                                         hash = hash_block_class,
+                                         create_dir = TRUE)
 
             # save chunk
             .raster_write_rast(
@@ -188,7 +195,6 @@ sits_label_classification <- function(cube,
 
         return(invisible(block_files))
     })
-
 
     # process each brick layer (each time step) individually
     result_cube_lst <- .sits_parallel_map(seq_along(blocks_tile_lst), function(i) {
