@@ -10,14 +10,14 @@
 #' @param progress   ...
 #'
 #' @return a cube ...
-sits_spectral_unmixing <- function(cube,
-                                   endmembers_spectra,
-                                   memsize = 1,
-                                   multicores = 2,
-                                   output_dir = getwd(),
-                                   progress = TRUE) {
+sits_unmixing <- function(cube,
+                          endmembers_spectra,
+                          memsize = 1,
+                          multicores = 2,
+                          output_dir = getwd(),
+                          progress = TRUE) {
 
-    .check_set_caller("sits_spectral_unmixing")
+    .check_set_caller("sits_unmixing")
 
     .check_that(
         inherits(endmembers_spectra, c("tbl_df", "tbl", "data.frame", "character")),

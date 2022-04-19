@@ -13,7 +13,7 @@ using namespace std;
 arma::mat nnls_solver(const arma::mat x,
                       const arma::mat A,
                       const int iterate = 400,
-                      const float tolerance = 0.000001){
+                      const float tolerance = 0.000001) {
 
     int A_nEM = A.n_rows;
     int b_npix = x.n_rows;
