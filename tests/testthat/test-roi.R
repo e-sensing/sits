@@ -1,9 +1,9 @@
 test_that("One-year, multicore classification with ROI", {
-  samples_2bands <- sits_select(samples_modis_4bands,
-    bands = c("NDVI", "EVI")
+  samples_ndvi <- sits_select(samples_modis_4bands,
+    bands = c("NDVI")
   )
 
-  rfor_model <- sits_train(samples_2bands, sits_rfor(num_trees = 30))
+  rfor_model <- sits_train(samples_ndvi, sits_rfor(num_trees = 30))
 
   data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
   sinop <- sits_cube(

@@ -4,7 +4,7 @@
 \alias{.torch_pixel_spatial_encoder}
 \title{Torch module for spatial encoder}
 \usage{
-.torch_pixel_spatial_encoder()
+.torch_pixel_spatial_encoder(n_bands, layers_spatial_encoder = c(32, 64, 128))
 }
 \arguments{
 \item{n_bands}{Number of bands per pixel.}

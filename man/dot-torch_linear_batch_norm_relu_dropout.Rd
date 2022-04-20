@@ -4,7 +4,7 @@
 \alias{.torch_linear_batch_norm_relu_dropout}
 \title{Torch module for linear MLP}
 \usage{
-.torch_linear_batch_norm_relu_dropout()
+.torch_linear_batch_norm_relu_dropout(input_dim, output_dim, dropout_rate)
 }
 \arguments{
 \item{input_dim}{Input dimension of neural net.}

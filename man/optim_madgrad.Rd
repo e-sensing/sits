@@ -5,7 +5,7 @@
 \title{A Momentumized, Adaptive, Dual Averaged Gradient Method for Stochastic
 Optimization.}
 \usage{
-optim_madgrad()
+optim_madgrad(params, lr = 0.01, momentum = 0.9, weight_decay = 0, eps = 1e-06)
 }
 \arguments{
 \item{params}{List of parameters to optimize.}

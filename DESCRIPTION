@@ -49,6 +49,7 @@ Imports:
     terra (>= 1.5-17),
     tibble (>= 3.0),
     tidyr,
+    torch,
     utils
 Suggests:
     caret,
@@ -75,7 +76,6 @@ Suggests:
     scales,
     stars,
     testthat (>= 3.0.2),
-    torch,
     xgboost,
     zoo
 Config/testthat/edition: 3

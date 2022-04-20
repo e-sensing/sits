@@ -116,20 +116,7 @@ test_that("Random Forest - SGolay", {
   expect_true(nrow(sits_show_prediction(point_class)) == 17)
 })
 
-test_that("MLR", {
-  skip_on_cran()
-  samples_mt_ndvi <- sits_select(samples_modis_4bands, bands = "NDVI")
-  model <- sits_train(samples_mt_ndvi, sits_mlr())
-  point_ndvi <- sits_select(point_mt_6bands, bands = "NDVI")
-  point_class <- sits_classify(
-    data = point_ndvi,
-    ml_model = model
-  )
 
-  expect_true(all(point_class$predicted[[1]]$class %in%
-    sits_labels(samples_mt_ndvi)))
-  expect_true(nrow(sits_show_prediction(point_class)) == 17)
-})
 
 test_that("XGBoost", {
   # skip_on_cran()
@@ -152,18 +139,6 @@ test_that("XGBoost", {
   expect_true(nrow(sits_show_prediction(point_class)) == 17)
 })
 
-test_that("lightGBM", {
-  skip_on_cran()
-  lgbm_model <- sits_train(sits_select(samples_modis_4bands, bands = "NDVI"),
-                                       sits_lightgbm)
-  point_ndvi <- sits_select(point_mt_6bands, bands = "NDVI")
-
-  point_class <- sits_classify(point_ndvi, lgbm_model)
-
-  expect_true(all(point_class$predicted[[1]]$class %in%
-    sits_labels(samples_modis_4bands)))
-  expect_true(nrow(sits_show_prediction(point_class)) == 17)
-})
 
 test_that("DL-MLP", {
   skip_on_cran()

@@ -43,7 +43,7 @@ machines.
 7. Evaluate the accuracy of the classification using best practices.
 
 ```{r sits, echo = FALSE, out.width = "60%", out.height = "60%", fig.align="center", fig.cap="Conceptual view of data cubes (source: authors)"}
-knitr::include_graphics("inst/extdata/markdown/figures/sits_general_view.png")
+knitr::include_graphics("inst/extdata/markdown/figures/sits_general_view.jpg")
 ```
 
 
@@ -86,7 +86,7 @@ library(sits)
 The `sits` R package allows advanced data analysis on big EO data cubes available in cloud computing services.  *Data cubes* are collections of remote sensing images that have been organized to have spatial cells of the same size, covering a regular area in space and time. These data cubes are built from analysis-ready image collections available in the cloud.
 
 ```{r dcconcept, echo = FALSE, out.width = "90%", out.height = "90%", fig.align="center", fig.cap="Conceptual view of data cubes (source: authors)"}
-knitr::include_graphics("inst/extdata/markdown/figures/datacube_conception.png")
+knitr::include_graphics("inst/extdata/markdown/figures/datacube_conception.jpg")
 ```
 
 The image collections accessible in `sits` version 0.15.1 to build EO data cubes are:

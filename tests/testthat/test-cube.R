@@ -295,60 +295,6 @@ test_that("Creating cubes from DEA - error using tiles", {
         "DEAFRICA cubes do not support searching for tiles"
     )
 })
-
-test_that("Merging cubes", {
-    data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
-
-    ndvi_cube <- sits_cube(
-        source = "BDC",
-        bands = "NDVI",
-        collection = "MOD13Q1-6",
-        data_dir = data_dir,
-        delim = "_",
-        parse_info = c("X1", "X2", "tile", "band", "date"),
-        multicores = 2
-    )
-
-    testthat::skip_if(
-        purrr::is_null(ndvi_cube),
-        "LOCAL cube was not found"
-    )
-
-    evi_cube <- tryCatch(
-        {
-            sits_cube(
-                source = "BDC",
-                collection = "MOD13Q1-6",
-                bands = "EVI",
-                data_dir = data_dir,
-                delim = "_",
-                parse_info = c("X1", "X2", "tile", "band", "date"),
-                multicores = 2
-            )
-        },
-        error = function(e) {
-            return(NULL)
-        }
-    )
-
-
-    testthat::skip_if(
-        purrr::is_null(evi_cube),
-        "LOCAL cube was not found"
-    )
-
-    cube_merge <- sits_merge(ndvi_cube, evi_cube)
-
-    expect_true(all(sits_bands(cube_merge) %in% c("NDVI", "EVI")))
-    expect_true(cube_merge$xmin == ndvi_cube$xmin)
-    expect_true(cube_merge$xmax == evi_cube$xmax)
-
-    cube_merge2 <- sits_merge(ndvi_cube, ndvi_cube)
-    expect_true(all(sits_bands(cube_merge2) %in% c("NDVI.1", "NDVI.2")))
-    expect_true(cube_merge2$xmin == ndvi_cube$xmin)
-    expect_true(cube_merge2$xmax == ndvi_cube$xmax)
-})
-
 test_that("Creating cubes from AWS", {
     testthat::skip_on_cran()
 
@@ -428,7 +374,7 @@ test_that("Creating regular cubes from AWS Open Data, and extracting samples fro
         res         = 240,
         period      = "P16D",
         multicores  = 1,
-        use_gdalcubes = FALSE)
+        use_gdalcubes = TRUE)
 
     tile_size <- .cube_size(rg_cube[1, ])
     tile_bbox <- .cube_tile_bbox(rg_cube[1, ])

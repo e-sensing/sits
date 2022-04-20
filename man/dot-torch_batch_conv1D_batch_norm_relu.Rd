@@ -4,7 +4,12 @@
 \alias{.torch_batch_conv1D_batch_norm_relu}
 \title{Torch module for BatchNorm + Conv1D + Batch Norm + Relu}
 \usage{
-.torch_batch_conv1D_batch_norm_relu()
+.torch_batch_conv1D_batch_norm_relu(
+  input_dim,
+  output_dim,
+  kernel_size,
+  padding = 0
+)
 }
 \arguments{
 \item{input_dim}{Input dimension of neural net.}

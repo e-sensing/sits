@@ -17,17 +17,17 @@ test_that("View", {
 
   # plot the data cube
   v2 <- sits_view(modis_cube,
-    red = "EVI", green = "NDVI", blue = "EVI",
+    band = "NDVI",
     dates = timeline[[1]]
   )
 
   expect_true("leaflet" %in% class(v2))
   expect_true(grepl("EPSG3857", v2$x$options$crs$crsClass))
 
-  samples_2bands <- sits_select(samples_modis_4bands,
-    bands = c("EVI", "NDVI")
+  samples_ndvi <- sits_select(samples_modis_4bands,
+    bands = c("NDVI")
   )
-  rf_model <- sits_train(samples_2bands, sits_rfor())
+  rf_model <- sits_train(samples_ndvi, sits_rfor())
 
   modis_probs <- sits_classify(
     data = modis_cube,
@@ -45,7 +45,7 @@ test_that("View", {
 
 
   v4 <- sits_view(modis_cube,
-    red = "EVI", green = "NDVI", blue = "EVI",
+    band = "NDVI",
     class_cube = modis_label,
     dates = timeline[[1]]
   )

@@ -4,7 +4,13 @@
 \alias{.torch_temporal_attention_encoder}
 \title{Torch module for temporal attention encoder}
 \usage{
-.torch_temporal_attention_encoder()
+.torch_temporal_attention_encoder(
+  timeline,
+  dim_encoder = 128,
+  n_heads = 4,
+  input_out_enc_mlp = 512,
+  hidden_nodes_out_enc_mlp = c(128, 128)
+)
 }
 \arguments{
 \item{timeline}{Timeline of input time series.}

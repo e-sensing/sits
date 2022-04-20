@@ -76,11 +76,11 @@ test_that("K-fold validate", {
 })
 test_that("Accuracy areas", {
   set.seed(1234)
-  samples_mt_2bands <- sits_select(samples_modis_4bands,
-    bands = c("EVI", "NDVI")
+  samples_ndvi <- sits_select(samples_modis_4bands,
+    bands = c("NDVI")
   )
 
-  rfor_model <- sits_train(samples_mt_2bands, sits_rfor())
+  rfor_model <- sits_train(samples_ndvi, sits_rfor())
 
   data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
   cube <- sits_cube(

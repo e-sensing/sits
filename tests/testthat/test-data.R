@@ -381,7 +381,7 @@ test_that("Reading a LAT/LONG from RASTER", {
   )
 
   expect_equal(names(point_ndvi)[1], "longitude")
-  expect_true(ncol(sits_time_series(point_ndvi)) == 3)
+  expect_true(ncol(sits_time_series(point_ndvi)) == 2)
   expect_true(length(sits_timeline(point_ndvi)) == 23)
 })
 
@@ -420,7 +420,7 @@ test_that("Reading a CSV file from RASTER", {
   expect_true("Forest" %in% sits_labels(points))
   expect_equal(names(points)[1], "longitude")
   expect_equal(length(names(points)), 7)
-  expect_true(ncol(sits_time_series(points)) == 3)
+  expect_true(ncol(sits_time_series(points)) == 2)
   expect_true(length(sits_timeline(points)) == 23)
 })
 

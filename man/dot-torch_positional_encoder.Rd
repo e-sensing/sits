@@ -5,7 +5,7 @@
 \alias{.torch_positional_encoding}
 \title{Torch module for positional encoder}
 \usage{
-.torch_positional_encoding()
+.torch_positional_encoding(timeline, dim_encoder = 128)
 }
 \arguments{
 \item{timeline}{Timeline of input time series.}

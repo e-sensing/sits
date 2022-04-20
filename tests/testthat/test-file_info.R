@@ -34,15 +34,15 @@ test_that("file_info functions", {
 
     # tile paths
     expect_length(.file_info_path(cbers_tile), 1)
-    expect_length(.file_info_paths(cbers_tile), 6)
+    expect_length(.file_info_paths(cbers_tile), 8)
 
     # tile resolutions
     expect_equal(.file_info_xres(cbers_tile), 63.99735, tolerance = 10e-6)
     expect_equal(.file_info_yres(cbers_tile), 64.00234, tolerance = 10e-6)
 
     # tile properties
-    expect_length(.file_info_fids(cbers_tile), 3)
-    expect_length(.file_info_timeline(cbers_tile), 3)
+    expect_length(.file_info_fids(cbers_tile), 4)
+    expect_length(.file_info_timeline(cbers_tile), 4)
     expect_equal(.file_info_bands(cbers_tile), c("EVI", "NDVI"))
 
     # tile filters
@@ -89,7 +89,7 @@ test_that("file_info functions", {
     tile_band <- .file_info(cbers_tile, bands = "NDVI")
 
     expect_s3_class(tile_band, "tbl_df")
-    expect_equal(nrow(tile_band), 3)
+    expect_equal(nrow(tile_band), 4)
 
     expect_error(
         .file_info(cbers_tile, bands = "NDVIABC")
@@ -100,13 +100,13 @@ test_that("file_info functions", {
 test_that("file_info functions for result cubes", {
     testthat::skip_on_cran()
 
-    samples_modis_2bands <- sits_select(samples_modis_4bands,
-                                        bands = c("EVI", "NDVI")
+    samples_modis <- sits_select(samples_modis_4bands,
+                                        bands = c("NDVI")
     )
 
     # build an extreme gradient boosting model
     xgb_model <- sits_train(
-        samples_modis_2bands,
+        samples_modis,
         sits_xgboost(nrounds = 50, verbose = FALSE)
     )
 

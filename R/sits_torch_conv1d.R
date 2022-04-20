@@ -19,30 +19,29 @@
 #' @return A conv1D tensor block.
 #'
 # module for 1D convolution with batch normalization and dropout
-.torch_conv1D_batch_norm_relu_dropout <- function() {
-    torch::nn_module(
-        classname = "conv1D_batch_norm_relu_dropout",
-        initialize = function(input_dim,
-                              output_dim,
-                              kernel_size,
-                              padding = 0,
-                              dropout_rate) {
-            self$block <- torch::nn_sequential(
-                torch::nn_conv1d(in_channels  = input_dim,
-                                 out_channels = output_dim,
-                                 kernel_size  = kernel_size,
-                                 padding      = padding
-                ),
-                torch::nn_batch_norm1d(num_features = output_dim),
-                torch::nn_relu(),
-                torch::nn_dropout(p = dropout_rate)
-            )
-        },
-        forward = function(x) {
-            self$block(x)
-        }
-    )
-}
+.torch_conv1D_batch_norm_relu_dropout <- torch::nn_module(
+    classname = "conv1D_batch_norm_relu_dropout",
+    initialize = function(input_dim,
+                          output_dim,
+                          kernel_size,
+                          padding = 0,
+                          dropout_rate) {
+        self$block <- torch::nn_sequential(
+            torch::nn_conv1d(in_channels  = input_dim,
+                             out_channels = output_dim,
+                             kernel_size  = kernel_size,
+                             padding      = padding
+            ),
+            torch::nn_batch_norm1d(num_features = output_dim),
+            torch::nn_relu(),
+            torch::nn_dropout(p = dropout_rate)
+        )
+    },
+    forward = function(x) {
+        self$block(x)
+    }
+)
+
 #' @title Torch module for Conv1D + Batch Norm + Relu
 #' @name .torch_conv1D_batch_norm_relu
 #'
@@ -63,28 +62,27 @@
 #' @return A conv1D tensor block.
 #'
 # module for 1D convolution with batch normalization and dropout
-.torch_conv1D_batch_norm_relu <- function() {
-    torch::nn_module(
-        classname = "conv1D_batch_norm_relu",
-        initialize = function(input_dim,
-                              output_dim,
-                              kernel_size,
-                              padding = 0) {
-            self$block <- torch::nn_sequential(
-                torch::nn_conv1d(in_channels  = input_dim,
-                                 out_channels = output_dim,
-                                 kernel_size  = kernel_size,
-                                 padding      = padding,
-                ),
-                torch::nn_batch_norm1d(num_features = output_dim),
-                torch::nn_relu()
-            )
-        },
-        forward = function(x) {
-            self$block(x)
-        }
-    )
-}
+.torch_conv1D_batch_norm_relu <- torch::nn_module(
+    classname = "conv1D_batch_norm_relu",
+    initialize = function(input_dim,
+                          output_dim,
+                          kernel_size,
+                          padding = 0) {
+        self$block <- torch::nn_sequential(
+            torch::nn_conv1d(in_channels  = input_dim,
+                             out_channels = output_dim,
+                             kernel_size  = kernel_size,
+                             padding      = padding,
+            ),
+            torch::nn_batch_norm1d(num_features = output_dim),
+            torch::nn_relu()
+        )
+    },
+    forward = function(x) {
+        self$block(x)
+    }
+)
+
 #' @title Torch module for BatchNorm + Conv1D + Batch Norm + Relu
 #' @name .torch_batch_conv1D_batch_norm_relu
 #'
@@ -105,29 +103,27 @@
 #' @return A conv1D tensor block.
 #'
 # module for 1D convolution with batch normalization and dropout
-.torch_batch_conv1D_batch_norm_relu <- function() {
-    torch::nn_module(
-        classname = "conv1D_batch_norm_relu",
-        initialize = function(input_dim,
-                              output_dim,
-                              kernel_size,
-                              padding = 0) {
-            self$block <- torch::nn_sequential(
-                torch::nn_batch_norm1d(num_features = input_dim),
-                torch::nn_conv1d(in_channels  = input_dim,
-                                 out_channels = output_dim,
-                                 kernel_size  = kernel_size,
-                                 padding      = padding
-                ),
-                torch::nn_batch_norm1d(num_features = output_dim),
-                torch::nn_relu()
-            )
-        },
-        forward = function(x) {
-            self$block(x)
-        }
-    )
-}
+.torch_batch_conv1D_batch_norm_relu <- torch::nn_module(
+    classname = "conv1D_batch_norm_relu",
+    initialize = function(input_dim,
+                          output_dim,
+                          kernel_size,
+                          padding = 0) {
+        self$block <- torch::nn_sequential(
+            torch::nn_batch_norm1d(num_features = input_dim),
+            torch::nn_conv1d(in_channels  = input_dim,
+                             out_channels = output_dim,
+                             kernel_size  = kernel_size,
+                             padding      = padding
+            ),
+            torch::nn_batch_norm1d(num_features = output_dim),
+            torch::nn_relu()
+        )
+    },
+    forward = function(x) {
+        self$block(x)
+    }
+)
 #' @title Torch module for Conv1D + Batch Norm
 #' @name .torch_conv1D_batch_norm
 #'
@@ -147,24 +143,22 @@
 #' @return A conv1D tensor block.
 #'
 # module for 1D convolution with batch normalization and dropout
-.torch_conv1D_batch_norm <- function() {
-    torch::nn_module(
-        classname = "conv1D_batch_norm",
-        initialize = function(input_dim,
-                              output_dim,
-                              kernel_size,
-                              padding = 0) {
-            self$block <- torch::nn_sequential(
-                torch::nn_conv1d(in_channels  = input_dim,
-                                 out_channels = output_dim,
-                                 kernel_size  = kernel_size,
-                                 padding      = padding,
-                ),
-                torch::nn_batch_norm1d(num_features = output_dim),
-            )
-        },
-        forward = function(x) {
-            self$block(x)
-        }
-    )
-}
+.torch_conv1D_batch_norm <- torch::nn_module(
+    classname = "conv1D_batch_norm",
+    initialize = function(input_dim,
+                          output_dim,
+                          kernel_size,
+                          padding = 0) {
+        self$block <- torch::nn_sequential(
+            torch::nn_conv1d(in_channels  = input_dim,
+                             out_channels = output_dim,
+                             kernel_size  = kernel_size,
+                             padding      = padding,
+            ),
+            torch::nn_batch_norm1d(num_features = output_dim),
+        )
+    },
+    forward = function(x) {
+        self$block(x)
+    }
+)
