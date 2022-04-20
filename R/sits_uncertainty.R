@@ -259,12 +259,13 @@ sits_uncertainty.entropy <- function(cube, type = "entropy", ...,
 #'
 #' @export
 #'
-sits_uncertainty_kernel <- function(cube, type = "entropy", ...,
-                                    window_size = 5,
-                                    multicores = 2,
-                                    memsize = 4,
-                                    output_dir = ".",
-                                    version = "v1") {
+sits_uncertainty.entropy <- function(cube, type = "entropy", ...,
+                                     window_size = 5,
+                                     window_fn = "median",
+                                     multicores = 2,
+                                     memsize = 4,
+                                     output_dir = ".",
+                                     version = "v1") {
 
     # precondition 1 - check if cube has probability data
     .check_that(
@@ -273,10 +274,24 @@ sits_uncertainty_kernel <- function(cube, type = "entropy", ...,
     )
 
     # precondition 2 - test window size
-    .check_that(
-        x = window_size %% 2 != 0,
-        msg = "window_size must be an odd number"
+    if (!purrr::is_null(window_size)) {
+        .check_that(
+            x = window_size %% 2 != 0,
+            msg = "window_size must be an odd number"
+        )
+    }
+
+    # precondition 3 - test window function
+    .check_chr_within(
+        x = window_fn,
+        within = .config_names("uncertainty_window_functions"),
+        msg = "Invalid 'window_fn' parameter"
     )
+    # resolve window_fn parameter
+    window_fn <- .config_get(key = c("uncertainty_window_functions",
+                                     window_fn))
+    config_fun <- strsplit(window_fn, "::")[[1]]
+    window_fn <- get(config_fun[[2]], envir = asNamespace(config_fun[[1]]))
 
     # find out how many labels exist
     n_labels <- length(sits_labels(cube[1, ]))
@@ -314,7 +329,7 @@ sits_uncertainty_kernel <- function(cube, type = "entropy", ...,
 
     # create a window
     window <- NULL
-    if (window_size > 1)
+    if (!purrr::is_null(window_size) && window_size > 1)
         window <- matrix(1, nrow = window_size, ncol = window_size)
 
     # entropy uncertainty index to be executed by workers cluster
@@ -337,7 +352,7 @@ sits_uncertainty_kernel <- function(cube, type = "entropy", ...,
             res <- terra::focal(
                 res,
                 w = window,
-                fun = stats::median,
+                fun = window_fn,
                 na.rm = TRUE
             )
         return(res)
