@@ -57,8 +57,8 @@ sits_unmixing <- function(cube,
 
     # Take only columns take intersects between two tibbles
     reference_spectra_bands <- intersect(
-        setdiff(colnames(endmembers_spectra), "TYPE"),
-        .cube_bands(cube, add_cloud = FALSE)
+        .cube_bands(cube, add_cloud = FALSE),
+        setdiff(colnames(endmembers_spectra), "TYPE")
     )
 
     reference_spectra <- as.matrix(endmembers_spectra[, reference_spectra_bands])
