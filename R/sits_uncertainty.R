@@ -313,7 +313,9 @@ sits_uncertainty_kernel <- function(cube, type = "entropy", ...,
     )
 
     # create a window
-    window <- matrix(1, nrow = window_size, ncol = window_size)
+    window <- NULL
+    if (window_size > 1)
+        window <- matrix(1, nrow = window_size, ncol = window_size)
 
     # entropy uncertainty index to be executed by workers cluster
     .do_entropy <- function(chunk) {
@@ -331,12 +333,13 @@ sits_uncertainty_kernel <- function(cube, type = "entropy", ...,
             values = unc
         )
         # process window
-        res <- terra::focal(
-            res,
-            w = window,
-            fun = stats::median,
-            na.rm = TRUE
-        )
+        if (!is.null(window))
+            res <- terra::focal(
+                res,
+                w = window,
+                fun = stats::median,
+                na.rm = TRUE
+            )
         return(res)
     }
 
