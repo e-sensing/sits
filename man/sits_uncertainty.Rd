@@ -3,6 +3,8 @@
 \name{sits_uncertainty}
 \alias{sits_uncertainty}
 \alias{sits_uncertainty.entropy}
+\alias{sits_uncertainty.least}
+\alias{sits_uncertainty.margin}
 \title{Estimate classification uncertainty based on probs cube}
 \usage{
 sits_uncertainty(
@@ -18,6 +20,26 @@ sits_uncertainty(
 \method{sits_uncertainty}{entropy}(
   cube,
   type = "entropy",
+  ...,
+  multicores = 2,
+  memsize = 8,
+  output_dir = ".",
+  version = "v1"
+)
+
+\method{sits_uncertainty}{least}(
+  cube,
+  type = "least",
+  ...,
+  multicores = 2,
+  memsize = 8,
+  output_dir = ".",
+  version = "v1"
+)
+
+\method{sits_uncertainty}{margin}(
+  cube,
+  type = "margin",
   ...,
   multicores = 2,
   memsize = 8,
