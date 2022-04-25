@@ -7,7 +7,7 @@
 #'
 #'
 #' @param  cube              Probability data cube.
-#' @param  type              Method to measure uncertainty.
+#' @param  type              Method to measure uncertainty. See details.
 #' @param  ...               Parameters for specific functions.
 #' @param  multicores        Number of cores to run the function.
 #' @param  memsize           Maximum overall memory (in GB) to run the
@@ -16,6 +16,16 @@
 #' @param  version           Version of resulting image.
 #'                           (in the case of multiple tests)
 #' @return An uncertainty data cube
+#'
+#' @details The supported types are 'entropy', 'least', and 'margin'. Entropy
+#' is the information entropy computed (in nats) for each pixel in a
+#' probability cube. Least confidence is the amount missing from total
+#' confidence to the label with the largest probabilities. Margin of confidence
+#' is the amount missng from total confidence to the difference between the
+#' probabilities of the top 2 labels. The larger the metric (either entropy,
+#' least confidence, or margin of confidence) the larger the uncertaintly
+#' regarding the label of the pixels; that is, the probabilities of each label
+#' are similar.
 #'
 #' @note
 #' Please refer to the sits documentation available in
