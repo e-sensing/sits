@@ -21,9 +21,9 @@
 #' is the information entropy computed (in nats) for each pixel in a
 #' probability cube. Least confidence is the amount missing from total
 #' confidence to the label with the largest probabilities. Margin of confidence
-#' is the amount missng from total confidence to the difference between the
+#' is the amount missing from total confidence to the difference between the
 #' probabilities of the top 2 labels. The larger the metric (either entropy,
-#' least confidence, or margin of confidence) the larger the uncertaintly
+#' least confidence, or margin of confidence) the larger the uncertainty
 #' regarding the label of the pixels; that is, the probabilities of each label
 #' are similar.
 #'
