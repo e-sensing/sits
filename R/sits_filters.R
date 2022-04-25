@@ -37,7 +37,7 @@ NULL
 #' # Retrieve a time series with values of NDVI
 #' point_ndvi <- sits_select(point_mt_6bands, bands = "NDVI")
 #'
-#' # Filter the point using the Savitsky Golay smoother
+#' # Filter the point using the Savitzky-Golay smoother
 #' point_sg <- sits_filter(point_ndvi,
 #'   filter = sits_sgolay(order = 3, length = 5)
 #' )
@@ -87,20 +87,11 @@ sits_sgolay <- function(data = NULL, order = 3, length = 5, scaling = 1) {
 #' @param lambda       Smoothing factor to be applied (default 0.5).
 #'
 #' @references Francesco Vuolo, Wai-Tim Ng, Clement Atzberger,
-#' "Smoothing and gap-filling of high resolution multi-spectral timeseries:
+#' "Smoothing and gap-filling of high resolution multi-spectral time series:
 #' Example of Landsat data",
 #' Int Journal of Applied Earth Observation and Geoinformation,
 #' vol. 57, pg. 202-213, 2107.
 #'
-#' @examples
-#' # Retrieve a time series with values of NDVI
-#' point_ndvi <- sits_select(point_mt_6bands, bands = "NDVI")
-#' # Filter the point using the Whittaker smoother
-#' point_wt <- sits_filter(point_ndvi, filter = sits_whittaker(lambda = 3))
-#' # Merge time series
-#' point_ndvi <- sits_merge(point_ndvi, point_wt, suffix = c("", ".WT"))
-#' # Plot the two points to see the smoothing effect
-#' plot(point_ndvi)
 #' @export
 sits_whittaker <- function(data = NULL, lambda = 0.5) {
     filter_fun <- function(data) {
@@ -163,17 +154,17 @@ sits_filter <- function(data, filter = sits_whittaker()) {
 
 # The code on this file has been lifted from the "signal" package
 
-# The Savitsky-Golay filter of the "signal" package has been
+# The Savitzky-Golay filter of the "signal" package has been
 # lifted to be part of "sits" and thus reduce the package load
 # Since signal is licensed as GPL >= 2,
 # sits is also licensed as GPL >= 2
 
-#' @title Savitsky-Golay smoothing filter
+#' @title Savitzky-Golay smoothing filter
 #' @name .sits_signal_sgolayfilt
 #'
 #' @keywords internal
 #'
-#' @description  Smooth the data in x with a Savitsky-Golay smoothing filter of
+#' @description  Smooth the data in x with a Savitzky-Golay smoothing filter of
 #'   polynomial order p and length n, n odd, n > p.  By default, p=3
 #'    and n=p+2 or n=p+3 if p is even. This filters is particularly good
 #'    at preserving lineshape while
@@ -205,7 +196,7 @@ sits_filter <- function(data, filter = sits_whittaker()) {
     return(y)
 }
 
-#' @title Savitsky-Golay smoothing filter coefficients
+#' @title Savitzky-Golay smoothing filter coefficients
 #' @name .sits_signal_sgolay
 #'
 #' @description  Computes the filter coefficients for all Savitzky-Golay smoothing

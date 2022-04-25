@@ -10,8 +10,8 @@ sits_tae(
   epochs = 150,
   batch_size = 64,
   validation_split = 0.2,
-  optimizer = torch::optim_adam,
-  opt_hparams = list(lr = 0.001, eps = 1e-08, weight_decay = 0),
+  optimizer = optim_adamw,
+  opt_hparams = list(lr = 0.001, eps = 1e-08, weight_decay = 1e-06),
   lr_decay_epochs = 1,
   lr_decay_rate = 0.95,
   patience = 20,
@@ -69,22 +69,9 @@ https://github.com/maja601/RC2020-psetae.
 
 If you use this method, please cite Garnot's and Schneider's work.
 }
-\examples{
-\dontrun{
-# Retrieve the set of samples for the Mato Grosso (provided by EMBRAPA)
-
-# Build a machine learning model based on deep learning
-tae_model <- sits_train(samples_modis_4bands, sits_tae())
-# Plot the model
-plot(tae_model)
-
-# get a point and classify the point with the ml_model
-point <- sits_select(point_mt_6bands,
-    bands = c("NDVI", "EVI", "NIR", "MIR")
-)
-class <- sits_classify(point, tae_model)
-plot(class, bands = c("NDVI", "EVI"))
-}
+\note{
+Please refer to the sits documentation available in
+<https://e-sensing.github.io/sitsbook/> for detailed examples.
 }
 \references{
 Vivien Garnot, Loic Landrieu, Sebastien Giordano, and Nesrine Chehata,

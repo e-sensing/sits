@@ -19,7 +19,7 @@
 \item{create_dir}{A boolean indicating if the output dir should be created.}
 }
 \value{
-returns a filename witn
+returns a filename
 }
 \description{
 Create a filename to store an output block from smoothing operation

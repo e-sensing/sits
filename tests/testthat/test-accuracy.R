@@ -37,48 +37,50 @@ test_that("conf_matrix - more than 2 classes", {
   expect_true(grepl("Kappa", p1[15]))
 })
 test_that("XLS", {
-  set.seed(1234)
-  data(cerrado_2classes)
-  acc <- sits_kfold_validate(cerrado_2classes,
-    folds = 2,
-    ml_method = sits_rfor(num_trees = 100)
-  )
-  results <- list()
-  acc$name <- "cerrado_2classes"
-  results[[length(results) + 1]] <- acc
-  xls_file <- paste0(tempdir(), "/accuracy.xlsx")
-  sits_to_xlsx(results, file = xls_file)
+    testthat::skip_on_cran()
+    set.seed(1234)
+    data(cerrado_2classes)
+    acc <- sits_kfold_validate(cerrado_2classes,
+                               folds = 2,
+                               ml_method = sits_rfor(num_trees = 100)
+    )
+    results <- list()
+    acc$name <- "cerrado_2classes"
+    results[[length(results) + 1]] <- acc
+    xls_file <- paste0(tempdir(), "/accuracy.xlsx")
+    sits_to_xlsx(results, file = xls_file)
 
-  expect_true(file.remove(xls_file))
+    expect_true(file.remove(xls_file))
 })
 
 test_that("K-fold validate", {
-  set.seed(1234)
-  data("samples_modis_4bands")
-  samples <- sits_select(samples_modis_4bands, bands = c("NDVI", "EVI"))
-  acc <- sits_kfold_validate(samples,
-    folds = 2,
-    ml_method = sits_rfor(num_trees = 100)
-  )
+    testthat::skip_on_cran()
+    set.seed(1234)
+    data("samples_modis_4bands")
+    samples <- sits_select(samples_modis_4bands, bands = c("NDVI", "EVI"))
+    acc <- sits_kfold_validate(samples,
+                               folds = 2,
+                               ml_method = sits_rfor(num_trees = 100)
+    )
 
-  expect_true(acc$overall["Accuracy"] > 0.90)
-  expect_true(acc$overall["Kappa"] > 0.90)
+    expect_true(acc$overall["Accuracy"] > 0.90)
+    expect_true(acc$overall["Kappa"] > 0.90)
 
-  results <- list()
-  acc$name <- "modis_4bands"
-  results[[length(results) + 1]] <- acc
-  xls_file <- paste0(tempdir(), "/accuracy.xlsx")
-  sits_to_xlsx(results, file = xls_file)
+    results <- list()
+    acc$name <- "modis_4bands"
+    results[[length(results) + 1]] <- acc
+    xls_file <- paste0(tempdir(), "/accuracy.xlsx")
+    sits_to_xlsx(results, file = xls_file)
 
-  expect_true(file.remove(xls_file))
+    expect_true(file.remove(xls_file))
 })
 test_that("Accuracy areas", {
   set.seed(1234)
-  samples_mt_2bands <- sits_select(samples_modis_4bands,
-    bands = c("EVI", "NDVI")
+  samples_ndvi <- sits_select(samples_modis_4bands,
+    bands = c("NDVI")
   )
 
-  rfor_model <- sits_train(samples_mt_2bands, sits_rfor())
+  rfor_model <- sits_train(samples_ndvi, sits_rfor())
 
   data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
   cube <- sits_cube(

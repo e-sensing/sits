@@ -24,18 +24,9 @@ The plot itself.
 Plot a bar graph with informations about each cluster.
 The percentage of mixture between the clusters.
 }
-\examples{
-\dontrun{
-# Produce a cluster map
-
-samples_mt_2bands <- sits_select(samples_modis_4bands, bands = c("NDVI", "EVI"))
-som_map <- sits_som_map(samples_mt_2bands)
-# Evaluate the clusters
-cluster_overall <- sits_som_evaluate_cluster(som_map)
-# Plot confusion between the clusters
-plot(cluster_overall)
-}
-
+\note{
+Please refer to the sits documentation available in
+<https://e-sensing.github.io/sitsbook/> for detailed examples.
 }
 \author{
 Lorena Santos \email{lorena.santos@inpe.br}

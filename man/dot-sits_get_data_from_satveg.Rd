@@ -2,7 +2,7 @@
 % Please edit documentation in R/sits_get_data.R
 \name{.sits_get_data_from_satveg}
 \alias{.sits_get_data_from_satveg}
-\title{Obtain one timeSeries from the EMBRAPA SATVEG server}
+\title{Obtain one time series from the EMBRAPA SATVEG server}
 \usage{
 .sits_get_data_from_satveg(
   cube,

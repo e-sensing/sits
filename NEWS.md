@@ -60,8 +60,8 @@ We are preparing to release the package on CRAN and are making relevant changes 
 * Update drone image
 * Simplify `config_colors.yml` by removing palette names
 * Temporary python files are being generated in the check
-* Organise color handling in SITS
-* Organise configuration files
+* Organize color handling in SITS
+* Organize configuration files
 * Improve preconditions in `sits_regularize()`
 * Compress external data with bzip2
 * Update gdalcubes format files
@@ -303,7 +303,7 @@ We are preparing to release the package on CRAN and are making relevant changes 
 
 * New deep learning models for time series: 1D convolutional neural networks (`sits_FCN`), combining 1D CNN and multi-layer perceptron networks (`sits_TempCNN`), 1D version of ResNet (`sits_ResNet`), and combination of long-short term memory (LSTM) and 1D CNN (`sits_LSTM_FCN`).
 
-* New version of area accuracy measures that include Oloffson metrics ()
+* New version of area accuracy measures that include Olofsson metrics ()
 
 # What's new in SITS version 0.8
 
@@ -323,7 +323,7 @@ We are preparing to release the package on CRAN and are making relevant changes 
 
 ### Configuration file
 
-* The SITS configuration file has been improved to include information about web service providers, satellites and sensor parameters. Plase use `sits_show_config()` to see the default contents. Users can override these parameters or add their own by creating a `config.yml` file in their home directory. 
+* The SITS configuration file has been improved to include information about web service providers, satellites and sensor parameters. Please use `sits_show_config()` to see the default contents. Users can override these parameters or add their own by creating a `config.yml` file in their home directory. 
 
 ### Examples and Demos
 

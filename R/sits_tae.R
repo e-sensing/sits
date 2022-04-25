@@ -55,32 +55,20 @@
 #'
 #' @return A fitted model to be passed to \code{\link[sits]{sits_classify}}
 #'
-#' @examples
-#' \dontrun{
-#' # Retrieve the set of samples for the Mato Grosso (provided by EMBRAPA)
+#' @note
+#' Please refer to the sits documentation available in
+#' <https://e-sensing.github.io/sitsbook/> for detailed examples.
 #'
-#' # Build a machine learning model based on deep learning
-#' tae_model <- sits_train(samples_modis_4bands, sits_tae())
-#' # Plot the model
-#' plot(tae_model)
-#'
-#' # get a point and classify the point with the ml_model
-#' point <- sits_select(point_mt_6bands,
-#'     bands = c("NDVI", "EVI", "NIR", "MIR")
-#' )
-#' class <- sits_classify(point, tae_model)
-#' plot(class, bands = c("NDVI", "EVI"))
-#' }
 #' @export
 sits_tae <- function(samples = NULL,
                      samples_validation = NULL,
                      epochs = 150,
                      batch_size = 64,
                      validation_split = 0.2,
-                     optimizer = torch::optim_adam,
+                     optimizer = optim_adamw,
                      opt_hparams = list(lr = 0.001,
                                         eps = 1e-08,
-                                        weight_decay = 0),
+                                        weight_decay = 1.0e-06),
                      lr_decay_epochs = 1,
                      lr_decay_rate = 0.95,
                      patience = 20,
@@ -257,7 +245,7 @@ sits_tae <- function(samples = NULL,
                 module = pse_tae_model,
                 loss = torch::nn_cross_entropy_loss(),
                 metrics = list(luz::luz_metric_accuracy()),
-                optimizer = torch::optim_adam
+                optimizer = optimizer
             ) %>%
             luz::set_hparams(
                 n_bands  = n_bands,

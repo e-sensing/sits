@@ -14,7 +14,7 @@
 \item{palette}{Palette provided in the configuration file.}
 }
 \value{
-Colors for legand of classified image.
+Colors for legend of classified image.
 }
 \description{
 Return the colors associated to the classified image

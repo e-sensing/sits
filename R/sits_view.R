@@ -20,26 +20,9 @@
 #'
 #' @return               Leaflet object.
 #'
-#' @examples
-#' \donttest{
-#' # view a collection of time series
-#' sits_view(samples_modis_4bands)
-#'
-#' # view a temporal instance of a cube
-#'
-#' data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
-#'
-#' modis_cube <- sits_cube(
-#'   source = "BDC",
-#'   collection = "MOD13Q1-6",
-#'   bands = c("NDVI", "EVI"),
-#'   data_dir = data_dir,
-#'   parse_info = c("X1", "X2", "tile", "band", "date")
-#' )
-#'
-#' # plot the data cube
-#' sits_view(modis_cube, red = "EVI", green = "NDVI", blue = "EVI", times = 1)
-#' }
+#' @note
+#' Please refer to the sits documentation available in
+#' <https://e-sensing.github.io/sitsbook/> for detailed examples.
 #'
 #' @export
 sits_view <- function(x, ...) {
@@ -173,7 +156,7 @@ sits_view.raster_cube <- function(x, ...,
     # verifies if leafem and leaflet packages are installed
     .check_that(
         requireNamespace("leafem", quietly = TRUE),
-        msg = "Plase install package 'leafem'"
+        msg = "Please install package 'leafem'"
     )
     .check_that(
         requireNamespace("leaflet", quietly = TRUE),
@@ -607,7 +590,7 @@ sits_view.classified_image <- function(x, ...,
 #' @param  labels        Labels of the classified cube.
 #' @param  legend        Named vector that associates labels to colors.
 #' @param  palette       Palette provided in the configuration file.
-#' @return               Colors for legand of classified image.
+#' @return               Colors for legend of classified image.
 #' @keywords internal
 #'
 #'

@@ -54,21 +54,9 @@
 #'
 #' @return A fitted model to be passed to \code{\link[sits]{sits_classify}}
 #'
-#' @examples
-#' \dontrun{
-#' # Retrieve the set of samples for the Mato Grosso (provided by EMBRAPA)
-#'
-#' # Build a machine learning model based on deep learning
-#' tc_model <- sits_train(samples_modis_4bands, sits_tempcnn())
-#' # Plot the model
-#' plot(tc_model)
-#'
-#' # get a point and classify the point with the ml_model
-#' point <- sits_select(point_mt_6bands, bands = c("NDVI", "EVI", "NIR", "MIR"))
-#' class <- sits_classify(point, tc_model)
-#'
-#' plot(class, bands = c("NDVI", "EVI"))
-#' }
+#' @note
+#' Please refer to the sits documentation available in
+#' <https://e-sensing.github.io/sitsbook/> for detailed examples.
 #' @export
 sits_tempcnn <- function(samples = NULL,
                          samples_validation = NULL,
@@ -109,13 +97,13 @@ sits_tempcnn <- function(samples = NULL,
             x = cnn_layers,
             len_min = 3,
             len_max = 3,
-            msg = "tempCNN uses three CNN layers"
+            msg = "tempcnn uses three CNN layers"
         )
         .check_length(
             x = cnn_dropout_rates,
             len_min = 3,
             len_max = 3,
-            msg = "tempCNN uses three dropout rates"
+            msg = "tempcnn uses three dropout rates"
         )
         .check_that(
             x = length(dense_layer_nodes) == 1,
@@ -248,7 +236,7 @@ sits_tempcnn <- function(samples = NULL,
         # set random seed for torch
         torch::torch_manual_seed(sample.int(10^5, 1))
 
-        # define main torch tempCNN module
+        # define main torch tempcnn module
         tcnn_module <- torch::nn_module(
             classname = "tcnn_module",
             initialize = function(n_bands,

@@ -21,25 +21,13 @@ merged data sets
 }
 \description{
 To merge two series, we consider that they contain different
-attributes but refer to the same data cube, and spatio-temporal location.
+attributes but refer to the same data cube, and spatiotemporal location.
 This function is useful to merge different bands of the same locations.
 For example, one may want to put the raw and smoothed bands
 for the same set of locations in the same tibble.
 
 To merge data cubes, they should share the same sensor, resolution,
 bounding box, timeline, and have different bands.
-}
-\examples{
-{
-  # Retrieve a time series with values of NDVI
-  point_ndvi <- sits_select(point_mt_6bands, bands = "NDVI")
-  # Apply Savitsky-Golay filter on NDVI
-  point_ndvi_sg <- point_ndvi \%>\%
-    sits_filter(sits_sgolay())
-
-  # Merge time series back
-  point <- sits_merge(point_ndvi, point_ndvi_sg, suffix = c("", ".SG"))
-}
 }
 \author{
 Gilberto Camara, \email{gilberto.camara@inpe.br}

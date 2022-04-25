@@ -46,14 +46,14 @@ test_that("Plot Time Series and Images", {
     )
 
     r_obj <- plot(sinop,
-                  red = "EVI", blue = "EVI", green = "NDVI",
+                  red = "NDVI", blue = "NDVI", green = "NDVI",
                   roi = roi
     )
 
     expect_equal(terra::nlyr(r_obj), 3)
     expect_equal(terra::ncol(r_obj), 128)
 
-    r_obj <- plot(sinop, band = "EVI")
+    r_obj <- plot(sinop, band = "NDVI")
 
     expect_equal(terra::nlyr(r_obj), 1)
     expect_equal(terra::ncol(r_obj), 254)
@@ -138,11 +138,11 @@ test_that("Plot torch model", {
 
     testthat::skip_on_cran()
 
-    samples_mt_2bands <- sits_select(samples_modis_4bands,
-                                     bands = c("NDVI", "EVI")
+    samples_ndvi <- sits_select(samples_modis_4bands,
+                                     bands = c("NDVI")
     )
     model <- sits_train(
-        samples_mt_2bands,
+        samples_ndvi,
         sits_mlp(
             layers = c(128, 128),
             dropout_rates = c(0.5, 0.4),

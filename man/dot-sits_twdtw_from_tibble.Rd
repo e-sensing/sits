@@ -8,7 +8,7 @@
 }
 \arguments{
 \item{samples}{A tibble in sits format with time series
-to be converted to TWTDW time series.}
+to be converted to TWDTW time series.}
 }
 \value{
 An object of the twdtwTimeSeries class).

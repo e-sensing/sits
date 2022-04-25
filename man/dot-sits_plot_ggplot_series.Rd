@@ -2,7 +2,7 @@
 % Please edit documentation in R/sits_plot.R
 \name{.sits_plot_ggplot_series}
 \alias{.sits_plot_ggplot_series}
-\title{Plot one timeSeries using ggplot}
+\title{Plot one time series using ggplot}
 \usage{
 .sits_plot_ggplot_series(row)
 }

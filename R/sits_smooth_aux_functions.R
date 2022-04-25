@@ -8,7 +8,7 @@
 #' @param hash         Additional hash to be add in file name.
 #' @param create_dir   A boolean indicating if the output dir should be created.
 #'
-#' @return  returns a filename witn
+#' @return  returns a filename
 #'
 .smth_filename <- function(tile,
                            output_dir,

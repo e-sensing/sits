@@ -17,6 +17,9 @@
 #'                           (in the case of multiple tests)
 #' @return An uncertainty data cube
 #'
+#' @note
+#' Please refer to the sits documentation available in
+#' <https://e-sensing.github.io/sitsbook/> for detailed examples.
 #' @export
 sits_uncertainty <- function(cube, type = "entropy", ...,
                              multicores = 2,

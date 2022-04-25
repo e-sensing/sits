@@ -35,23 +35,9 @@
 #' @return                Tibble with added "cluster" column.
 #'
 #' @rdname sits_clustering
-#' @examples
-#' \dontrun{
-#' # load a simple data set with two classes
-#' data(cerrado_2classes)
-#' # calculate the dendrogram and the best clusters
-#' clusters <- sits_cluster_dendro(cerrado_2classes, bands = c("NDVI", "EVI"))
-#' # show clusters samples frequency
-#' sits_cluster_frequency(clusters)
-#' # remove cluster 3 from the samples
-#' clusters_new <- dplyr::filter(clusters, cluster != 3)
-#' # show clusters samples frequency of the new data set
-#' sits_cluster_frequency(clusters_new)
-#' # clean all remaining clusters
-#' cleaned <- sits_cluster_clean(clusters_new)
-#' # show clusters samples frequency
-#' sits_cluster_frequency(cleaned)
-#' }
+#' @note
+#' Please refer to the sits documentation available in
+#' <https://e-sensing.github.io/sitsbook/> for detailed examples.
 #' @export
 sits_cluster_dendro <- function(samples = NULL,
                                 bands = NULL,

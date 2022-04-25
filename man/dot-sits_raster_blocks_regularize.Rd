@@ -15,7 +15,7 @@
 \arguments{
 \item{cube}{Input data cube.}
 
-\item{n_images_interval}{Numbert of images per interval.}
+\item{n_images_interval}{Number of images per interval.}
 
 \item{sub_image}{Bounding box of the ROI.}
 

@@ -48,6 +48,10 @@ An uncertainty data cube
 \description{
 Estimate classification uncertainty based on probs cube
 }
+\note{
+Please refer to the sits documentation available in
+<https://e-sensing.github.io/sitsbook/> for detailed examples.
+}
 \author{
 Gilberto Camara, \email{gilberto.camara@inpe.br}
 

@@ -6,14 +6,10 @@
 #' @author Alexandre Ywata de Carvalho, \email{alexandre.ywata@@ipea.gov.br}
 #'
 #' @description Given a tibble with a set of distance measures,
-#'    returns trained models. Currenly, sits supports the following models:
+#'    returns trained models. Currently, sits supports the following models:
 #' 'svm' (see \code{\link[sits]{sits_svm}}),
 #' random forests (see \code{\link[sits]{sits_rfor}}),
-#' multinomial logit (see \code{\link[sits]{sits_mlr}}) and its variants
-#' 'lasso' (see \code{\link[sits]{sits_mlr}}) and
-#' 'ridge' (see \code{\link[sits]{sits_mlr}}),
 #' extreme gradient boosting (see \code{\link[sits]{sits_xgboost}}),
-#' light gradient boosting machine (see \code{\link[sits]{sits_lightgbm}}),
 #' and different deep learning functions, including multi-layer perceptrons
 #' (see \code{\link[sits]{sits_mlp}}), 1D convolution neural
 #' networks \code{\link[sits]{sits_tempcnn}},
@@ -29,7 +25,7 @@
 #' # Retrieve the set of samples for Mato Grosso (provided by EMBRAPA)
 #' # fit a training model (RFOR model)
 #' samples <- sits_select(samples_modis_4bands, bands = c("NDVI"))
-#' ml_model <- sits_train(samples, sits_rfor(num_trees = 100))
+#' ml_model <- sits_train(samples, sits_rfor(num_trees = 50))
 #' # get a point and classify the point with the ml_model
 #' point_ndvi <- sits_select(point_mt_6bands, bands = "NDVI")
 #' class <- sits_classify(point_ndvi, ml_model)

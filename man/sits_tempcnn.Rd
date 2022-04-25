@@ -85,21 +85,9 @@ team: Marc Russwurm, Charlotte Pelletier, Marco Korner, Maximilian Zollner.
 The original python code is available at the website
 https://github.com/dl4sits/BreizhCrops. This code is licensed as GPL-3.
 }
-\examples{
-\dontrun{
-# Retrieve the set of samples for the Mato Grosso (provided by EMBRAPA)
-
-# Build a machine learning model based on deep learning
-tc_model <- sits_train(samples_modis_4bands, sits_tempcnn())
-# Plot the model
-plot(tc_model)
-
-# get a point and classify the point with the ml_model
-point <- sits_select(point_mt_6bands, bands = c("NDVI", "EVI", "NIR", "MIR"))
-class <- sits_classify(point, tc_model)
-
-plot(class, bands = c("NDVI", "EVI"))
-}
+\note{
+Please refer to the sits documentation available in
+<https://e-sensing.github.io/sitsbook/> for detailed examples.
 }
 \references{
 Charlotte Pelletier, Geoffrey Webb and François Petitjean,

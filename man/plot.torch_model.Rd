@@ -21,19 +21,9 @@ Plots a deep learning model developed using torch.
 }
 \note{
 This code has been lifted from the "keras" package.
-}
-\examples{
-\dontrun{
-# Get a set of samples
-samples_ndvi_evi <- sits_select(samples_modis_4bands,
-  bands = c("NDVI", "EVI")
-)
 
-# train a deep learning model
-dl_model <- sits_train(samples_ndvi_evi, ml_method = sits_mlp())
-plot(dl_model)
-}
-
+Please refer to the sits documentation available in
+<https://e-sensing.github.io/sitsbook/> for detailed examples.
 }
 \author{
 Felipe Souza, \email{lipecaso@gmail.com}

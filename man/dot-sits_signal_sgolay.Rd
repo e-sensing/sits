@@ -2,7 +2,7 @@
 % Please edit documentation in R/sits_filters.R
 \name{.sits_signal_sgolay}
 \alias{.sits_signal_sgolay}
-\title{Savitsky-Golay smoothing filter coefficients}
+\title{Savitzky-Golay smoothing filter coefficients}
 \usage{
 .sits_signal_sgolay(p, n, m = 0, ts = 1)
 }

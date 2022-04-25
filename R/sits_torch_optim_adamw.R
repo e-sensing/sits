@@ -8,7 +8,7 @@
 #'@author Alber Sanchez, \email{alber.ipia@@inpe.br}
 #'
 #'@description  R implementation of the AdamW optimizer proposed
-#' by Loshchilov & Hutter (2019). We used the pytorch implementation
+#' by Loshchilov & Hutter (2019). We used the PyTorch implementation
 #' developed by Collin Donahue-Oponski available at:
 #' https://gist.github.com/colllin/0b146b154c4351f9a40f741a28bff1e3
 #'
@@ -44,7 +44,7 @@
 #'
 #' @export
 optim_adamw <- torch::optimizer(
-    classname = "optim_adamw",
+    name = "optim_adamw",
     initialize = function(
         params,
         lr                  = 0.01,
@@ -53,15 +53,15 @@ optim_adamw <- torch::optimizer(
         weight_decay        = 1e-6
     ) {
         if (lr <= 0.0)
-            rlang::abort("Learning rate must be positive.")
+            stop("Learning rate must be positive.", call. = FALSE)
         if (eps < 0.0)
-            rlang::abort("eps must be non-negative.")
+            stop("eps must be non-negative.", call. = FALSE)
         if (betas[1] > 1.0 | betas[1] <= 0.0)
-            rlang::abort("Invalid beta parameter.")
+            stop("Invalid beta parameter.", call. = FALSE)
         if (betas[2] > 1.0 | betas[1] <= 0.0)
-            rlang::abort("Invalid beta parameter.")
+            stop("Invalid beta parameter.", call. = FALSE)
         if (weight_decay < 0)
-            rlang::abort("Invalid weight_decay value")
+            stop("Invalid weight_decay value", call. = FALSE)
 
         defaults = list(
             lr                  = lr,
@@ -123,3 +123,4 @@ optim_adamw <- torch::optimizer(
         private$step_helper(closure, loop_fun)
     }
 )
+

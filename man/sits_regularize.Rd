@@ -56,14 +56,11 @@ This function requires users to include the cloud band in their ARD-based
 data cubes.
 }
 \note{
-As of sits version 0.16.3 and \code{gdalcubes} version 0.5.1,
-      \code{gdalcubes} is having some inconsistent behavior when
-      dealing with large data sets. For this reason, \code{sits}
-      provides an alternative algorithm for regularization, which is slower
-      but is more reliable for large data sets than \code{gdalcubes}.
+Please refer to the sits documentation available in
+<https://e-sensing.github.io/sitsbook/> for detailed examples.
 
 The aggregation method used in \code{sits_regularize}
-      sorts the images based on cloudcover, where images with the fewest
+      sorts the images based on cloud cover, where images with the fewest
       clouds at the top of the stack. Once
       the stack of images is sorted, the method uses the first valid value to
       create the temporal aggregation.
@@ -71,36 +68,8 @@ The aggregation method used in \code{sits_regularize}
 The input (non-regular) ARD cube needs to include the cloud band for
       the regularization to work.
 }
-\examples{
-{
-\dontrun{
-
-# --- Access to the AWS STAC
-
-# define an AWS data cube
-  s2_cube <- sits_cube(
-      source = "AWS",
-      collection = "sentinel-s2-l2a-cogs",
-      bands = c("B08", "SCL"),
-      tiles = c("20LKP"),
-      start_date = "2018-07-18",
-      end_date = "2018-08-18"
-  )
-
-# create a directory to store the resulting images
-dir.create(paste0(tempdir(),"/images/"))
-
-# Build a data cube of equal intervals using the "gdalcubes" package
-gc_cube <- sits_regularize(
-    cube       = s2_cube,
-    output_dir = paste0(tempdir(),"/images/"),
-    period     = "P1M",
-    res        = 320)
-}
-}
-}
 \references{
-APPEL, Marius; PEBESMA, Edzer. On-demand processing of data cubes
+Appel, Marius; Pebesma, Edzer. On-demand processing of data cubes
  from satellite image collections with the gdalcubes library. Data, v. 4,
  n. 3, p. 92, 2019. DOI: 10.3390/data4030092.
 }

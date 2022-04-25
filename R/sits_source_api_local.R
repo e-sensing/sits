@@ -126,7 +126,7 @@
         result_class <- .config_get("sits_results_s3_class")[[bands]]
         class(cube)  <- c(result_class, "raster_cube", class(cube))
     } else {
-        class(cube) <- .cube_s3class(cube)
+
     }
 
     return(cube)

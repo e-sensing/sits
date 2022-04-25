@@ -76,19 +76,6 @@ sits_labels.sits_model <- function(data) {
 #'
 #' @return           A sits tibble with modified labels.
 #'
-#' @examples
-#' # Read a set of time series with information on deforestation
-#' data("samples_modis_4bands")
-#' # Print the labels
-#' sits_labels(samples_modis_4bands)
-#' # Create a conversion list.
-#' # relabel the data
-#' sits_labels(samples_modis_4bands) <- c(
-#'   "Natural", "Natural",
-#'   "Anthropic", "Anthropic"
-#' )
-#' # show the new labels
-#' sits_labels(samples_modis_4bands)
 #' @export
 #'
 `sits_labels<-` <- function(data, value) {

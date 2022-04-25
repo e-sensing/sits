@@ -67,21 +67,9 @@ so that each new basis function further reduces the selected loss function.
 This function is a front-end to the methods in the "xgboost" package.
 Please refer to the documentation in that package for more details.
 }
-\examples{
-\dontrun{
-# Retrieve the set of samples for Mato Grosso (provided by EMBRAPA)
-
-# Build a machine learning model based on xgboost
-xgb_model <- sits_train(samples_modis_4bands, sits_xgboost(nrounds = 10))
-
-# get a point and classify the point with the ml_model
-point.tb <- sits_select(point_mt_6bands,
-  bands = c("NDVI", "EVI", "NIR", "MIR")
-)
-class.tb <- sits_classify(point.tb, xgb_model)
-plot(class.tb, bands = c("NDVI", "EVI"))
-}
-
+\note{
+Please refer to the sits documentation available in
+<https://e-sensing.github.io/sitsbook/> for detailed examples.
 }
 \references{
 Tianqi Chen, Carlos Guestrin,

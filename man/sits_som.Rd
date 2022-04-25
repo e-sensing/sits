@@ -56,7 +56,7 @@ sits_som_evaluate_cluster(som_map)
 \item{keep}{Which types of evaluation to be maintained in the data.}
 }
 \value{
-\code{sits_som_map()} prodices a list with three members:
+\code{sits_som_map()} produces a list with three members:
 (1) the samples tibble, with one additional column indicating
 to which neuron each sample has been mapped;
 (2) the Kohonen map, used for plotting and cluster quality measures;
@@ -105,20 +105,9 @@ the posterior probability is < `posterior_threshold`, the sample is tagged as "a
 The user can define which tagged samples will be returned using the "keep"
 parameter, with the following options: "clean", "analyze", "remove".
 }
-\examples{
-\dontrun{
-# Produce a cluster map
-som_map <- sits_som_map(samples_modis_4bands)
-# plot the som map
-plot(som_map)
-# calculate the mixture inside clusters
-eval <- sits_som_evaluate_cluster(som_map)
-# plot the cluster evaluation
-plot(eval)
-# Clean the samples to get better quality ones
-clean_samples <- sits_som_clean_samples(som_map)
-}
-
+\note{
+Please refer to the sits documentation available in
+<https://e-sensing.github.io/sitsbook/> for detailed examples.
 }
 \references{
 Lorena Santos, Karine Ferreira, Gilberto Camara, Michelle Picoli,

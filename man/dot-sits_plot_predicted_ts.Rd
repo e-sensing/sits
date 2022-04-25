@@ -11,7 +11,7 @@
 
 \item{bands}{band for plotting the classification.}
 
-\item{palette}{hcl palette used for visualisation}
+\item{palette}{hcl palette used for visualization}
 }
 \value{
 The plot itself.

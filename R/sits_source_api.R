@@ -614,7 +614,7 @@ NULL
 #' @rdname source_collection
 #'
 #' @description \code{.source_collection_metadata_search()} retrieves the
-#' metadadata search strategy for a given source and collection.
+#' metadata search strategy for a given source and collection.
 #'
 #' @return \code{.source_collection_metadata_search()} returns a character
 #' value with the metadata search strategy.

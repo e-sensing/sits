@@ -12,7 +12,7 @@
 #' Defines a torch module for temporal attention encoding, inspired by the
 #' work of Vaswani et al(2017). Since Attention models contain
 #' no convolution, the model injects information about the relative
-#' position of the tokens in the sequence. Varswani et al use
+#' position of the tokens in the sequence. Vaswani et al use
 #' sine and cosine functions of different frequencies.
 #'
 #' This function is based on the paper by Vivien Garnot referenced below
@@ -40,10 +40,10 @@
 #' DOI: 10.5281/zenodo.4835356
 #'
 #' @param timeline                  Timeline of input time series.
-#' @param dim_encoder               Dimension of the positional enconder.
+#' @param dim_encoder               Dimension of the positional encoder.
 #' @param n_heads                   Number of attention heads..
 #' @param input_out_enc_mlp         Dimensions of multi-layer perceptron
-#'                                  used to enconde the output
+#'                                  used to encode the output
 #'                                  (MLP3 in Garnot's paper)
 #' @param hidden_nodes_out_enc_mlp  Hidden nodes in MLP used for output encoding
 #'                                  (MLP3 in Garnot's paper)
@@ -61,7 +61,7 @@
         # store parameters
         self$dim_encoder <-  dim_encoder
         self$n_heads     <-  n_heads
-        # calculate the dimension of split enconder
+        # calculate the dimension of split encoder
         self$dim_k <-  dim_encoder %/% n_heads
         # obtain the positional encoding
         self$pos_encoding <-  .torch_positional_encoding(
@@ -334,11 +334,11 @@
 #' @description Defines a torch module for temporal attention encoding.
 #'
 #' In order to calculate attentions with a query, as I said in the last article,
-#' this function takes the dot product of ‘query’ with the ‘keys’
-#' and gets scores/weights for the ‘values.’
-#' Each score/weight the relevance between the ‘query’ and each ‘key’.
-#' And you reweight the ‘values’ with the scores/weights,
-#' and take the summation of the reweighted ‘values.
+#' this function takes the dot product of query with the keys
+#' and gets scores/weights for the values.
+#' Each score/weight the relevance between the query and each key.
+#' And you reweight the values with the scores/weights,
+#' and take the summation of the reweighted values.
 #'
 #' This implementation is based on the code made available by Vivien Garnot
 #' https://github.com/VSainteuf/lightweight-temporal-attention-pytorch
@@ -391,7 +391,6 @@
         return(output)
     }
 )
-
 #' @title Torch module for calculating multi-head attention
 #' @name .torch_multi_head_attention
 #'
@@ -402,11 +401,11 @@
 #' @keywords internal
 #' @description
 #' In order to calculate attentions with a query,
-#' this function takes the dot product of ‘query’ with the ‘keys’
-#' and gets scores/weights for the ‘values.’
-#' Each score/weight the relevance between the ‘query’ and each ‘key’.
-#' And you reweight the ‘values’ with the scores/weights,
-#' and take the summation of the reweighted ‘values.
+#' this function takes the dot product of query with the keys
+#' and gets scores/weights for the values.
+#' Each score/weight the relevance between the query and each key.
+#' And you reweight the values with the scores/weights,
+#' and take the summation of the reweighted values.
 #'
 #' This implementation is based on the code made available by Vivien Garnot
 #' https://github.com/VSainteuf/lightweight-temporal-attention-pytorch
@@ -421,7 +420,7 @@
 #' @param d_k             Dimension of key tensor.
 #' @param d_in            Dimension of input values.
 #'
-#' @return An outout encoder tensor.
+#' @return An output encoder tensor.
 #'
 .torch_multi_head_attention <- torch::nn_module(
     classname = "multi_head_attention",

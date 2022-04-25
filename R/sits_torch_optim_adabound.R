@@ -42,7 +42,7 @@
 #'
 #' @export
 optim_adabound <- torch::optimizer(
-    classname = "optim_adabound",
+    name = "optim_adabound",
     initialize = function(
         params,
         lr = 1e-3,
@@ -53,19 +53,19 @@ optim_adabound <- torch::optimizer(
         weight_decay = 0
     ) {
         if (lr <= 0.0)
-            rlang::abort("Learning rate must be positive.")
+            stop("Learning rate must be positive.", call. = FALSE)
         if (eps < 0.0)
-            rlang::abort("eps must be non-negative.")
+            stop("eps must be non-negative.", call. = FALSE)
         if (betas[1] > 1.0 | betas[1] <= 0.0)
-            rlang::abort("Invalid beta parameter.")
+            stop("Invalid beta parameter.", call. = FALSE)
         if (betas[2] > 1.0 | betas[1] <= 0.0)
-            rlang::abort("Invalid beta parameter.")
+            stop("Invalid beta parameter.", call. = FALSE)
         if (final_lr < 0.0)
-            rlang::abort("Learning rate must be positive.")
+            stop("Learning rate must be positive.", call. = FALSE)
         if (gamma > 1.0 | gamma <= 0.0)
-            rlang::abort("Invalid gamma parameter.")
+            stop("Invalid gamma parameter.", call. = FALSE)
         if (weight_decay < 0)
-            rlang::abort("Invalid weight_decay value")
+            stop("Invalid weight_decay value", call. = FALSE)
 
         defaults = list(
             lr           = lr,

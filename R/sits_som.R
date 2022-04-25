@@ -55,23 +55,10 @@
 #'                              (influenced by the SOM neighborhood).
 #' @param keep      Which types of evaluation to be maintained in the data.
 #'
-#' @examples
-#' \dontrun{
-#' # Produce a cluster map
-#' som_map <- sits_som_map(samples_modis_4bands)
-#' # plot the som map
-#' plot(som_map)
-#' # calculate the mixture inside clusters
-#' eval <- sits_som_evaluate_cluster(som_map)
-#' # plot the cluster evaluation
-#' plot(eval)
-#' # Clean the samples to get better quality ones
-#' clean_samples <- sits_som_clean_samples(som_map)
-#' }
 #'
 #' @rdname sits_som
 #' @return
-#' \code{sits_som_map()} prodices a list with three members:
+#' \code{sits_som_map()} produces a list with three members:
 #' (1) the samples tibble, with one additional column indicating
 #' to which neuron each sample has been mapped;
 #' (2) the Kohonen map, used for plotting and cluster quality measures;
@@ -81,6 +68,10 @@
 #' based on the frequency of samples of this class allocated to the neuron;
 #' (b) the posterior probability that this class belongs to a cluster,
 #' using data for the neighbours on the SOM map.
+#'
+#' @note
+#' Please refer to the sits documentation available in
+#' <https://e-sensing.github.io/sitsbook/> for detailed examples.
 #'
 #' @export
 sits_som_map <- function(data,
@@ -157,7 +148,7 @@ sits_som_map <- function(data,
 
             # How many elements there are with the maximumn value?
             number_of_label_max <- which(labels_neuron$prior_prob == prob_max)
-            label_max_final <- nnet::which.is.max(labels_neuron$prior_prob)
+            label_max_final <- which.max(labels_neuron$prior_prob)
 
 
             # if more than one sample has been mapped AND their max are the same,
@@ -173,7 +164,7 @@ sits_som_map <- function(data,
                 index_prior_max <- which(label_max_post %in% number_of_label_max == TRUE)
                 label_max_final <- label_max_post[index_prior_max]
             } else {
-                label_max_final <- nnet::which.is.max(labels_neuron$prior_prob)
+                label_max_final <- which.max(labels_neuron$prior_prob)
             }
 
             return(labels_neuron[label_max_final, ]$label_samples)

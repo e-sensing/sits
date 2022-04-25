@@ -1,9 +1,9 @@
 test_that("One-year, single core classification", {
-    samples_2bands <- sits_select(samples_modis_4bands,
-                                  bands = c("NDVI", "EVI")
+    samples_ndvi <- sits_select(samples_modis_4bands,
+                                  bands = c("NDVI")
     )
     rfor_model <- sits_train(
-        samples_2bands,
+        samples_ndvi,
         sits_rfor(num_trees = 30)
     )
 
@@ -13,6 +13,7 @@ test_that("One-year, single core classification", {
         collection = "MOD13Q1-6",
         data_dir = data_dir,
         delim = "_",
+        bands = "NDVI",
         parse_info = c("X1", "X2", "tile", "band", "date")
     )
     sinop_probs <- sits_classify(
@@ -43,15 +44,15 @@ test_that("One-year, multicore classification", {
 
     testthat::skip_on_cran()
 
-    samples_2bands <- sits_select(samples_modis_4bands,
-                                  bands = c("EVI", "NDVI")
+    samples_ndvi <- sits_select(samples_modis_4bands,
+                                bands = c("NDVI")
     )
 
-    timeline_samples <- sits_timeline(samples_2bands)
+    timeline_samples <- sits_timeline(samples_ndvi)
     start_date <- timeline_samples[1]
     end_date <- timeline_samples[length(timeline_samples)]
 
-    svm_model <- sits_train(samples_2bands, sits_svm())
+    svm_model <- sits_train(samples_ndvi, sits_svm())
 
     data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
     sinop <- sits_cube(
@@ -59,6 +60,7 @@ test_that("One-year, multicore classification", {
         collection = "MOD13Q1-6",
         data_dir = data_dir,
         delim = "_",
+        bands = "NDVI",
         parse_info = c("X1", "X2", "tile", "band", "date")
     )
 
@@ -121,9 +123,8 @@ test_that("One-year, single core classification with filter", {
 
     testthat::skip_on_cran()
 
-    sits:::.sits_debug(flag = TRUE)
     samples_filt <-
-        sits_select(samples_modis_4bands, bands = c("EVI", "NDVI")) %>%
+        sits_select(samples_modis_4bands, bands = c("NDVI")) %>%
         sits_filter(filter = sits_whittaker())
 
     svm_model <- sits_train(samples_filt, sits_svm())
@@ -134,6 +135,7 @@ test_that("One-year, single core classification with filter", {
         collection = "MOD13Q1-6",
         data_dir = data_dir,
         delim = "_",
+        bands = "NDVI",
         parse_info = c("X1", "X2", "tile", "band", "date")
     )
 
@@ -150,18 +152,16 @@ test_that("One-year, single core classification with filter", {
 
     expect_true(all(file.exists(unlist(sinop_probs$file_info[[1]]$path))))
     expect_true(all(file.remove(unlist(sinop_probs$file_info[[1]]$path))))
-    sits:::.sits_debug(flag = FALSE)
 })
 
-test_that("One-year, multicore classification with Savitsky-Golay filter", {
+test_that("One-year, multicore classification with Savitzky-Golay filter", {
 
     testthat::skip_on_cran()
 
     samples_filt <-
-        sits_select(samples_modis_4bands, bands = c("NDVI", "EVI")) %>%
+        sits_select(samples_modis_4bands, bands = c("NDVI")) %>%
         sits_apply(
-            NDVI = sits_sgolay(NDVI),
-            EVI = sits_sgolay(EVI)
+            NDVI = sits_sgolay(NDVI)
         )
 
     rfor_model <- sits_train(samples_filt, sits_rfor())
@@ -194,7 +194,7 @@ test_that("One-year, multicore classification with Savitsky-Golay filter", {
     )
 
     if (purrr::is_null(sinop_2014_probs)) {
-        skip("Unable to allocated multicores")
+        skip("Unable to allocate multicores")
     }
     expect_true(all(file.exists(unlist(sinop_2014_probs$file_info[[1]]$path))))
 
@@ -217,13 +217,12 @@ test_that("One-year, multicore classification with Whittaker filter", {
     testthat::skip_on_cran()
 
     samples_filt <-
-        sits_select(samples_modis_4bands, bands = c("NDVI", "EVI")) %>%
+        sits_select(samples_modis_4bands, bands = c("NDVI")) %>%
         sits_apply(
-            NDVI = sits_whittaker(NDVI, lambda = 0.5),
-            EVI = sits_whittaker(EVI, lambda = 0.5)
+            NDVI = sits_whittaker(NDVI, lambda = 0.5)
         )
 
-    lgbm_model <- sits_train(samples_filt, sits_lightgbm())
+    xgb_model <- sits_train(samples_filt, sits_xgboost())
 
     data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
     sinop <- sits_cube(
@@ -274,10 +273,10 @@ test_that("One-year, multicore classification with torch", {
 
     testthat::skip_on_cran()
 
-    samples_2bands <-
-        sits_select(samples_modis_4bands, bands = c("NDVI", "EVI"))
+    samples_ndvi <-
+        sits_select(samples_modis_4bands, bands = c("NDVI"))
 
-    torch_model <- sits_train(samples_2bands, sits_mlp())
+    torch_model <- sits_train(samples_ndvi, sits_mlp())
 
     data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
     sinop <- sits_cube(
@@ -306,7 +305,7 @@ test_that("One-year, multicore classification with torch", {
     )
 
     if (purrr::is_null(sinop_2014_probs)) {
-        skip("Unable to allocated multicores")
+        skip("Unable to allocate multicores")
     }
     expect_true(all(file.exists(unlist(sinop_2014_probs$file_info[[1]]$path))))
 
@@ -327,10 +326,10 @@ test_that("One-year, multicore classification with ResNet", {
 
     testthat::skip_on_cran()
 
-    samples_2bands <-
-        sits_select(samples_modis_4bands, bands = c("NDVI", "EVI"))
+    samples_ndvi <-
+        sits_select(samples_modis_4bands, bands = c("NDVI"))
 
-    torch_model <- sits_train(samples_2bands, sits_resnet())
+    torch_model <- sits_train(samples_ndvi, sits_resnet())
 
     data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
     sinop <- sits_cube(
@@ -380,10 +379,10 @@ test_that("One-year, multicore classification with TAE", {
 
     testthat::skip_on_cran()
 
-    samples_2bands <-
-        sits_select(samples_modis_4bands, bands = c("NDVI", "EVI"))
+    samples_ndvi <-
+        sits_select(samples_modis_4bands, bands = c("NDVI"))
 
-    torch_model <- sits_train(samples_2bands, sits_tae())
+    torch_model <- sits_train(samples_ndvi, sits_tae())
 
     data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
     sinop <- sits_cube(
@@ -412,7 +411,7 @@ test_that("One-year, multicore classification with TAE", {
     )
 
     if (purrr::is_null(sinop_2014_probs)) {
-        skip("Unable to allocated multicores")
+        skip("Unable to allocate multicores")
     }
     expect_true(all(file.exists(unlist(sinop_2014_probs$file_info[[1]]$path))))
 
@@ -433,10 +432,10 @@ test_that("One-year, multicore classification with LightTAE", {
 
     testthat::skip_on_cran()
 
-    samples_2bands <-
-        sits_select(samples_modis_4bands, bands = c("NDVI", "EVI"))
+    samples_ndvi <-
+        sits_select(samples_modis_4bands, bands = c("NDVI"))
 
-    torch_model <- sits_train(samples_2bands, sits_lighttae())
+    torch_model <- sits_train(samples_ndvi, sits_lighttae())
 
     data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
     sinop <- sits_cube(
@@ -486,11 +485,14 @@ test_that("One-year, multicore classification with post-processing", {
 
     testthat::skip_on_cran()
 
-    samples_2bands <- sits_select(samples_modis_4bands,
-                                  bands = c("NDVI", "EVI")
-    )
+    samples_ndvi <-
+        sits_select(samples_modis_4bands, bands = c("NDVI"))
 
+<<<<<<< HEAD
     torch_model <- sits_train(samples_2bands, sits_tempcnn(epochs = 10))
+=======
+    torch_model <- sits_train(samples_ndvi, sits_tempcnn())
+>>>>>>> 44e7136141700cbea24b02bb884cabc22c653a82
 
     data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
     sinop <- sits_cube(

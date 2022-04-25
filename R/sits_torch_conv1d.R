@@ -41,6 +41,7 @@
         self$block(x)
     }
 )
+
 #' @title Torch module for Conv1D + Batch Norm + Relu
 #' @name .torch_conv1D_batch_norm_relu
 #'
@@ -81,6 +82,7 @@
         self$block(x)
     }
 )
+
 #' @title Torch module for BatchNorm + Conv1D + Batch Norm + Relu
 #' @name .torch_batch_conv1D_batch_norm_relu
 #'

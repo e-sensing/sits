@@ -50,39 +50,12 @@
 #' @return A tibble with the metadata and data for each time series
 #' <longitude, latitude, start_date, end_date, label, cube, time_series>.
 #'
-#' @examples
-#' \donttest{
-#' # -- Read a point in a raster data cube
+#' @note
+#' Please refer to the sits documentation available in
+#' <https://e-sensing.github.io/sitsbook/> for detailed examples.
 #'
-#' # Create a data cube based on files
-#' data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
-#' raster_cube <- sits_cube(
-#'   source = "BDC",
-#'   collection = "MOD13Q1-6",
-#'   data_dir = data_dir,
-#'   delim = "_",
-#'   parse_info = c("X1", "X2", "tile", "band", "date")
-#' )
 #'
-#' # read the time series of the point from the raster
-#' point_ts <- sits_get_data(raster_cube,
-#'     longitude = -55.554,
-#'     latitude = -11.525,
-#'     output_dir = tempdir()
-#' )
-#'
-#' # --- Read a set of points described by a CSV file
-#'
-#' # read data from a CSV file
-#' csv_file <- system.file("extdata/samples/samples_sinop_crop.csv",
-#'   package = "sits"
-#' )
-#' points_csv <- sits_get_data(raster_cube,
-#'                             file = csv_file,
-#'                             output_dir = tempdir())
-#' }
 #' @export
-#'
 sits_get_data <- function(cube,
                           file = NULL,
                           samples = NULL,
@@ -629,7 +602,7 @@ sits_get_data <- function(cube,
 
     return(invisible(TRUE))
 }
-#' @title Obtain one timeSeries from the EMBRAPA SATVEG server
+#' @title Obtain one time series from the EMBRAPA SATVEG server
 #' @name .sits_get_data_from_satveg
 #' @keywords internal
 #' @author Julio Esquerdo, \email{julio.esquerdo@@embrapa.br}
@@ -693,7 +666,7 @@ sits_get_data <- function(cube,
 #'
 #' @description Returns one set of time series provided by a WTSS server
 #' Given a location (lat/long), and start/end period, and WTSS server info,
-#' retrieve a time series and include it on a stis tibble.
+#' retrieve a time series and include it on a sits tibble.
 #' A Web Time Series Service (WTSS) is a light-weight service that
 #' retrieves one or more time series in JSON format from a data base.
 #' @references
@@ -938,7 +911,7 @@ sits_get_data <- function(cube,
 #' @author Gilberto Camara
 #' @keywords internal
 #' @param csv_file        CSV that describes the data to be retrieved.
-#' @param .n_pts_csv      number of points to be retrived
+#' @param .n_pts_csv      number of points to be retrieved
 #' @return                A tibble with information the samples to be retrieved
 #'
 .sits_get_samples_from_csv <- function(csv_file,

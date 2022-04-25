@@ -41,7 +41,7 @@ A sits tibble.
 \description{
 Returns one set of time series provided by a WTSS server
 Given a location (lat/long), and start/end period, and WTSS server info,
-retrieve a time series and include it on a stis tibble.
+retrieve a time series and include it on a sits tibble.
 A Web Time Series Service (WTSS) is a light-weight service that
 retrieves one or more time series in JSON format from a data base.
 }

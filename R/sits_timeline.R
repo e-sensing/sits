@@ -78,8 +78,8 @@ sits_timeline.wtss_cube <- function(data) {
 sits_timeline.probs_cube <- function(data) {
 
     # return the timeline of the cube
-    start_date <- .file_info_start_date(data)
-    end_date <- .file_info_end_date(data)
+    start_date <- .file_info_start_date(data[1,])
+    end_date <- .file_info_end_date(data[1,])
     timeline_probs <- c(start_date, end_date)
     return(timeline_probs)
 }
@@ -87,8 +87,8 @@ sits_timeline.probs_cube <- function(data) {
 #'
 sits_timeline.uncertainty_cube <- function(data) {
     # return the timeline of the cube
-    start_date <- .file_info_start_date(data)
-    end_date <- .file_info_end_date(data)
+    start_date <- .file_info_start_date(data[1,])
+    end_date <- .file_info_end_date(data[1,])
     timeline_uncert <- c(start_date, end_date)
     return(timeline_uncert)
 }
@@ -97,8 +97,8 @@ sits_timeline.uncertainty_cube <- function(data) {
 sits_timeline.classified_image <- function(data) {
 
     # return the timeline of the cube
-    start_date <- .file_info_start_date(data)
-    end_date <- .file_info_end_date(data)
+    start_date <- .file_info_start_date(data[1,])
+    end_date <- .file_info_end_date(data[1,])
     timeline_class <- c(start_date, end_date)
     return(timeline_class)
 }

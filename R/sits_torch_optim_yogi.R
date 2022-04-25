@@ -50,7 +50,7 @@
 #'
 #' @export
 optim_yogi <- torch::optimizer(
-    classname = "optim_yogi",
+    name = "optim_yogi",
     initialize = function(
         params,
         lr                  = 0.01,
@@ -60,15 +60,15 @@ optim_yogi <- torch::optimizer(
         weight_decay        = 1e-6
     ) {
         if (lr <= 0.0)
-            rlang::abort("Learning rate must be positive.")
+            stop("Learning rate must be positive.", call. = FALSE)
         if (eps < 0.0)
-            rlang::abort("eps must be non-negative.")
+            stop("eps must be non-negative.", call. = FALSE)
         if (betas[1] > 1.0 | betas[1] <= 0.0)
-            rlang::abort("Invalid beta parameter.")
+            stop("Invalid beta parameter.", call. = FALSE)
         if (betas[2] > 1.0 | betas[1] <= 0.0)
-            rlang::abort("Invalid beta parameter.")
+            stop("Invalid beta parameter.", call. = FALSE)
         if (weight_decay < 0)
-            rlang::abort("Invalid weight_decay value")
+            stop("Invalid weight_decay value", call. = FALSE)
 
         defaults = list(
             lr                  = lr,

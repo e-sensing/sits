@@ -26,19 +26,9 @@
 #'                      the root operation to improve numerical stability
 #'                      (default: 1e-6).
 #'
-#' @examples
-#' if (torch::torch_is_installed()) {
-#' library(torch)
-#' x <- torch_randn(1, requires_grad = TRUE)
-#' opt <- optim_madgrad(x)
-#' for (i in 1:100) {
-#'   opt$zero_grad()
-#'   y <- x^2
-#'   y$backward()
-#'   opt$step()
-#' }
-#' all.equal(x$item(), 0, tolerance = 1e-9)
-#' }
+#' @note
+#' Please refer to the sits documentation available in
+#' <https://e-sensing.github.io/sitsbook/> for detailed examples.
 #'
 #' @returns
 #' An optimizer object implementing the `step` and `zero_grad` methods.
@@ -52,16 +42,13 @@ optim_madgrad <- torch::optimizer(
                           eps = 1e-6) {
 
         if (momentum < 0 || momentum >= 1)
-            rlang::abort("Momentum must be in the range [0,1].")
-
+            stop("Momentum must be in the range [0,1].", call. = FALSE)
         if (lr <= 0)
-            rlang::abort("Learning rate must be positive.")
-
+            stop("Learning rate must be positive.", call. = FALSE)
         if (weight_decay < 0)
-            rlang::abort("Weight decay must be non-negative.")
-
+            stop("Weight decay must be non-negative.", call. = FALSE)
         if (eps < 0)
-            rlang::abort("Eps must be non-negative.")
+            stop("Eps must be non-negative.", call. = FALSE)
 
         defaults <- list(lr = lr,
                          eps = eps,
@@ -115,7 +102,7 @@ optim_madgrad <- torch::optimizer(
 
                 # Step
                 if (momentum == 0) {
-                    p$copy_(x0$addcdiv(state(param)[["s"]], rms, value = -1))
+                    param$copy_(x0$addcdiv(state(param)[["s"]], rms, value = -1))
                 } else {
                     z <- x0$addcdiv(state(param)[["s"]], rms, value = -1)
                 }
@@ -128,7 +115,6 @@ optim_madgrad <- torch::optimizer(
         loss
     }
 )
-
 
 state <- function(self) {
     attr(self, "state")

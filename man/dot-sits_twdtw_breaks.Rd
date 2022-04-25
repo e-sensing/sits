@@ -15,7 +15,7 @@
 }
 \arguments{
 \item{matches}{A dtwSat S4 object with the matches
-produced by the sits_TWTDW_matches function.}
+produced by the sits_TWDTW_matches function.}
 
 \item{samples}{Input for the TWDTW matching function.}
 

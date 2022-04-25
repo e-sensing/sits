@@ -13,9 +13,9 @@
 
 \item{...}{Further specifications for \link{plot}.}
 
-\item{bands}{Bands for visualisation.}
+\item{bands}{Bands for visualization.}
 
-\item{palette}{HCL palette used for visualisation
+\item{palette}{HCL palette used for visualization
 in case classes are not in the default sits palette.}
 }
 \value{
@@ -24,18 +24,9 @@ The plot itself.
 \description{
 Given a sits tibble with a set of predictions, plot them
 }
-\examples{
-\dontrun{
-# Retrieve the set of samples for Mato Grosso region (provided by EMBRAPA)
-samples_mt_ndvi <- sits_select(samples_modis_4bands, bands = "NDVI")
-# classify the point
-model_svm <- sits_train(samples_mt_ndvi, ml_method = sits_svm())
-point_ndvi <- sits_select(point_mt_6bands, bands = "NDVI")
-class_ndvi.tb <- sits_classify(point_ndvi, model_svm)
-# plot the classification
-plot(class_ndvi.tb)
-}
-
+\note{
+Please refer to the sits documentation available in
+<https://e-sensing.github.io/sitsbook/> for detailed examples.
 }
 \author{
 Gilberto Camara, \email{gilberto.camara@inpe.br}

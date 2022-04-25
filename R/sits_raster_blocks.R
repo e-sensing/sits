@@ -202,7 +202,7 @@
 #' of 800 Mb if pixels are 64-bit.
 #'
 #' @param  cube                 Input data cube.
-#' @param  n_images_interval    Numbert of images per interval.
+#' @param  n_images_interval    Number of images per interval.
 #' @param  sub_image            Bounding box of the ROI.
 #' @param  memsize              Memory available for classification (in GB).
 #' @param  multicores           Number of threads to process the time series.

@@ -12,9 +12,9 @@
 #' @param wgs84     Reproject bbox to WGS84 (EPSG:4326)?
 #' @param ...       Additional parameters (not implemented).
 #'
-#' @return          Bounding box in WGS84 for time series aor
+#' @return          Bounding box in WGS84 for time series or
 #'                  on the cube projection for a data cube
-#'                  unless wgs84 parameteris TRUE.
+#'                  unless wgs84 parameter is TRUE.
 #'
 #' @export
 #'

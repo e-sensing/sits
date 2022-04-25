@@ -88,10 +88,6 @@ sits_sample <- function(data,
 #'
 #'
 #' @references
-#' Oversampling uses the "oversample_smote" function
-#' implemented in the "scutr" package developed by Keenan Ganz and
-#' avaliable in https://github.com/s-kganz/scutr.
-#'
 #' The reference paper on SMOTE is
 #' N. V. Chawla, K. W. Bowyer, L. O.Hall, W. P. Kegelmeyer,
 #' “SMOTE: synthetic minority over-sampling technique,”
@@ -118,25 +114,14 @@ sits_sample <- function(data,
 #' @param  multicores           Number of cores to process the data (default 2).
 #'
 #' @return A sits tibble with a fixed quantity of samples.
-#' @examples
-#' # Retrieve a set of time series with 2 classes
-#' data(samples_modis_4bands)
-#' # Print the labels of the resulting tibble
-#' sits_labels_summary(samples_modis_4bands)
-#' # Samples the data set
-#' new_data <- sits_reduce_imbalance(samples_modis_4bands)
-#' # Print the labels of the resulting tibble
-#' sits_labels_summary(new_data)
+#' @note
+#' Please refer to the sits documentation available in
+#' <https://e-sensing.github.io/sitsbook/> for detailed examples.
 #' @export
 sits_reduce_imbalance <- function(samples,
                                   n_samples_over  = 200,
                                   n_samples_under = 400,
                                   multicores = 2) {
-
-    # verifies if scutr package is installed
-    if (!requireNamespace("scutr", quietly = TRUE)) {
-        stop("Please install package scutr", call. = FALSE)
-    }
 
     # set caller to show in errors
     .check_set_caller("sits_reduce_imbalance")
@@ -238,7 +223,7 @@ sits_reduce_imbalance <- function(samples,
                     as.data.frame() %>%
                     .[-1]
                 # oversampling of band for the class
-                dist_over <- scutr::oversample_smote(
+                dist_over <- .sits_oversample_smote(
                     data = dist_band,
                     cls = cls,
                     cls_col = "reference",
@@ -286,4 +271,165 @@ sits_reduce_imbalance <- function(samples,
     }
 
     return(new_samples)
+}
+#' Oversample a dataset by SMOTE.
+#'
+#' Lifted from R package "scutr".
+#'
+#' @param data Dataset to be oversampled.
+#' @param cls Class to be oversampled.
+#' @param cls_col Column containing class information.
+#' @param m Desired number of samples in the oversampled data.
+#'
+#' @return The oversampled dataset.
+#'
+.sits_oversample_smote <- function(data, cls, cls_col, m) {
+    col_ind <- which(names(data) == cls_col)
+    orig_cols <- names(data)
+    dup_size <- ceiling(m / sum(data[[cls_col]] == cls))
+    # set the class to whether it is equal to the minority class
+    data[[cls_col]] <- as.factor(data[[cls_col]] == cls)
+    # SMOTE breaks for one-dim datasets. This adds a dummy column
+    # so SMOTE can execute in that case. This does not affect how data is synthesized
+    if (ncol(data) == 2) {
+        data$dummy__col__ <- 0
+    }
+    # perform SMOTE
+    smoteret <- .sits_smote(data[, -col_ind],
+                            data[, col_ind],
+                            dup_size = dup_size
+    )
+    # rbind the original observations and sufficient samples of the synthetic ones
+    orig <- smoteret$orig_P
+    target_samp <- m - nrow(orig)
+    synt <- smoteret$syn_data[sample.int(nrow(smoteret$syn_data),
+                                         size = target_samp,
+                                         replace = target_samp > nrow(smoteret$syn_data)
+    ), ]
+    d_prime <- rbind(orig, synt)
+    colnames(d_prime)[ncol(d_prime)] <- cls_col
+    d_prime[[cls_col]] <- cls
+    # remove the dummy column if necessary
+    d_prime <- d_prime[, names(d_prime) != "dummy__col__"]
+    # reorder the columns to be the same as the original data
+    return(d_prime[, orig_cols])
+}
+
+#' @title Oversample a dataset by SMOTE.
+#' @name .sits_smote
+#' @description
+#' Lifted from R package "smotefamily"
+#' to reduce number of dependencies in "sits".
+#' @author Wacharasak Siriseriwan <wacharasak.s@gmail.com>
+#'
+#'
+#' @param data Dataset to be oversampled.
+#' @param target Target data set
+#' @param K The number of nearest neighbors during sampling process
+#' @param dup_size The maximum times of synthetic minority instances
+#'                  over original majority instances in the oversampling.
+#'
+#' @references
+#'   Chawla, N., Bowyer, K., Hall, L. and Kegelmeyer, W. 2002.
+#'   SMOTE: Synthetic minority oversampling technique.
+#'   Journal of Artificial Intelligence Research. 16, 321-357.
+#' @return A list with the following values.
+#'
+
+
+.sits_smote <- function(data,target,K=5,dup_size=0) {
+    ncD      <- ncol(data) #The number of attributes
+    n_target <- table(target)
+    classP   <- names(which.min(n_target))
+    # Extract a set of positive instances
+    P_set    <- subset(data,
+                       target == names(which.min(n_target))
+    )[sample(min(n_target)),]
+    N_set    <- subset(data,
+                       target!=names(which.min(n_target))
+    )
+    P_class  <- rep(names(which.min(n_target)), nrow(P_set))
+
+    N_class <- target[target!=names(which.min(n_target))]
+    # The number of positive instances
+    sizeP   <- nrow(P_set)
+    # The number of negative instances
+    sizeN   <- nrow(N_set)
+    knear   <- .sits_knearest(P_set, P_set, K)
+    sum_dup <- .sits_n_dup_max(sizeP + sizeN, sizeP, sizeN, dup_size)
+    syn_dat <- NULL
+    for(i in 1:sizeP) {
+        if (is.matrix(knear)) {
+            pair_idx = knear[i, ceiling(stats::runif(sum_dup)*K)]
+        } else {
+            pair_idx = rep(knear[i],sum_dup)
+        }
+        g <-  stats::runif(sum_dup)
+        P_i <-  matrix(unlist(P_set[i,]), sum_dup, ncD, byrow=TRUE)
+        Q_i <- as.matrix(P_set[pair_idx,])
+        syn_i <-  P_i + g*(Q_i - P_i)
+        syn_dat <-  rbind(syn_dat,syn_i)
+    }
+
+    P_set[, ncD+1]   <-  P_class
+    colnames(P_set)  <- c(colnames(data), "class")
+    N_set[,ncD+1]    <-  N_class
+    colnames(N_set)  <- c(colnames(data),"class")
+
+    rownames(syn_dat) <-  NULL
+    syn_dat <- data.frame(syn_dat)
+    syn_dat[,ncD+1] <-  rep(names(which.min(n_target)), nrow(syn_dat))
+    colnames(syn_dat) <- c(colnames(data),"class")
+    NewD <- rbind(P_set, syn_dat, N_set)
+    rownames(NewD) <-  NULL
+    D_result = list(
+        data = NewD,
+        syn_data = syn_dat,
+        orig_N = N_set,
+        orig_P = P_set,
+        K = K,
+        K_all = NULL,
+        dup_size = sum_dup,
+        outcast = NULL,
+        eps = NULL,
+        method = "SMOTE"
+    )
+    class(D_result) <-  "gen_data"
+
+    return(D_result)
+}
+
+.sits_knearest <- function(D, P, n_clust) {
+    if (!requireNamespace("FNN", quietly = TRUE))
+        stop("Please install package sf.", call. = FALSE)
+
+    knD <- FNN::knnx.index(D, P, k = (n_clust + 1), algorithm = "kd_tree")
+    knD <- knD*(knD != row(knD))
+    que <- which(knD[,1] > 0)
+    for (i in que) {
+        knD[i, which(knD[i,] == 0) ] = knD[i,1]
+        knD[i,1] <- 0
+    }
+    return(knD[, 2:(n_clust + 1)])
+
+}
+.sits_n_dup_max <- function(size_input, size_P, size_N, dup_size=0) {
+    #Size_P is the number of positive used for generating not actual size of P
+    if(is.vector(dup_size) && length(dup_size) > 1) {
+        if(length(which(dup_size==0)) > 0) {
+            sizeM <- floor((2*size_N-size_input)/size_P)
+        }
+        if(length(which(dup_size==0)) == 0) {
+            sizeM <- max(dup_size)
+        }
+    }
+    if(!is.vector(dup_size) || length(dup_size) == 1) {
+        if(dup_size == 0) {
+            sizeM <- floor((2*size_N-size_input)/size_P)
+        }
+        if(dup_size != 0) {
+            sizeM <- dup_size
+        }
+    }
+    return(sizeM)
 }

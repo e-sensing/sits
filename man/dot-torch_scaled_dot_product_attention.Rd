@@ -24,11 +24,11 @@ A list with the .
 Defines a torch module for temporal attention encoding.
 
 In order to calculate attentions with a query, as I said in the last article,
-this function takes the dot product of ‘query’ with the ‘keys’
-and gets scores/weights for the ‘values.’
-Each score/weight the relevance between the ‘query’ and each ‘key’.
-And you reweight the ‘values’ with the scores/weights,
-and take the summation of the reweighted ‘values.
+this function takes the dot product of query with the keys
+and gets scores/weights for the values.
+Each score/weight the relevance between the query and each key.
+And you reweight the values with the scores/weights,
+and take the summation of the reweighted values.
 
 This implementation is based on the code made available by Vivien Garnot
 https://github.com/VSainteuf/lightweight-temporal-attention-pytorch

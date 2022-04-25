@@ -32,14 +32,9 @@
 #' @param ...           Further specifications for \link{plot}.
 #' @return              The plot itself.
 #'
-#' @examples
-#' \dontrun{
-#' # Read a set of samples with 2 classes ("Cerrado" and "Pasture")
-#' # Plot all the samples together
-#' plot(cerrado_2classes)
-#' # Plot the first 20 samples (defaults to "allyears")
-#' plot(cerrado_2classes[1:20, ])
-#' }
+#' @note
+#' Please refer to the sits documentation available in
+#' <https://e-sensing.github.io/sitsbook/> for detailed examples.
 #'
 #' @export
 #'
@@ -67,12 +62,9 @@ plot.sits <- function(x, y, ...) {
 #' @param  ...           Further specifications for \link{plot}.
 #' @return               The plot itself.
 #'
-#' @examples
-#' \dontrun{
-#' # Read a set of samples with 2 classes ("Cerrado" and "Pasture")
-#' # Plot the patterns
-#' plot(sits_patterns(cerrado_2classes))
-#' }
+#' @note
+#' Please refer to the sits documentation available in
+#' <https://e-sensing.github.io/sitsbook/> for detailed examples.
 #'
 #' @export
 #'
@@ -90,23 +82,14 @@ plot.patterns <- function(x, y, ...) {
 #' @param  x             Object of class "predicted".
 #' @param  y             Ignored.
 #' @param  ...           Further specifications for \link{plot}.
-#' @param  bands         Bands for visualisation.
-#' @param  palette       HCL palette used for visualisation
+#' @param  bands         Bands for visualization.
+#' @param  palette       HCL palette used for visualization
 #'                       in case classes are not in the default sits palette.
 #' @return               The plot itself.
 #'
-#' @examples
-#' \dontrun{
-#' # Retrieve the set of samples for Mato Grosso region (provided by EMBRAPA)
-#' samples_mt_ndvi <- sits_select(samples_modis_4bands, bands = "NDVI")
-#' # classify the point
-#' model_svm <- sits_train(samples_mt_ndvi, ml_method = sits_svm())
-#' point_ndvi <- sits_select(point_mt_6bands, bands = "NDVI")
-#' class_ndvi.tb <- sits_classify(point_ndvi, model_svm)
-#' # plot the classification
-#' plot(class_ndvi.tb)
-#' }
-#'
+#' @note
+#' Please refer to the sits documentation available in
+#' <https://e-sensing.github.io/sitsbook/> for detailed examples.
 #' @export
 #'
 plot.predicted <- function(x, y, ...,
@@ -320,7 +303,7 @@ plot.raster_cube <- function(x, ...,
 #' @param labels         Labels to plot (optional).
 #' @param breaks         Type of class intervals.
 #' @param n_colors       Number of colors to plot.
-#' @param palette        HCL palette used for visualisation.
+#' @param palette        HCL palette used for visualization.
 #'
 #' @note
 #' \itemize{Possible class intervals
@@ -454,7 +437,7 @@ plot.probs_cube <- function(x, y, ...,
 #' @param tiles          Tiles to be plotted.
 #' @param n_colors       Number of colors to plot.
 #' @param breaks         Yype of class intervals.
-#' @param palette        HCL palette used for visualisation.
+#' @param palette        HCL palette used for visualization.
 #'
 #' @return               The plot itself.
 #'
@@ -597,17 +580,9 @@ plot.classified_image <- function(x, y, ...,
 #' @param  name_cluster Choose the cluster to plot.
 #' @param  title        Title of plot.
 #' @return              The plot itself.
-#' @examples
-#' \dontrun{
-#' # Produce a cluster map
-#'
-#' samples_mt_2bands <- sits_select(samples_modis_4bands, bands = c("NDVI", "EVI"))
-#' som_map <- sits_som_map(samples_mt_2bands)
-#' # Evaluate the clusters
-#' cluster_overall <- sits_som_evaluate_cluster(som_map)
-#' # Plot confusion between the clusters
-#' plot(cluster_overall)
-#' }
+#' @note
+#' Please refer to the sits documentation available in
+#' <https://e-sensing.github.io/sitsbook/> for detailed examples.
 #'
 #' @export
 #'
@@ -637,16 +612,9 @@ plot.som_evaluate_cluster <- function(x, y, ...,
 #'
 #' @return            The plot itself.
 #'
-#' @examples
-#' \dontrun{
-#' # Produce a cluster map
-#' samples_mt_2bands <- sits_select(samples_modis_4bands, bands = c("NDVI", "EVI"))
-#' som_map <- sits_som_map(samples_mt_2bands)
-#' # Plot the clusters
-#' plot(som_map, type = "codes")
-#' # Plot kohonen map showing where the samples were allocated
-#' plot(som_map, type = "mapping")
-#' }
+#' @note
+#' Please refer to the sits documentation available in
+#' <https://e-sensing.github.io/sitsbook/> for detailed examples.
 #'
 #' @export
 #'
@@ -670,17 +638,9 @@ plot.som_map <- function(x, y, ..., type = "codes", band = 1) {
 #' @param  ...           Further specifications for \link{plot}.
 #' @return               The plot itself.
 #'
-#' @examples
-#' \dontrun{
-#' # Get a set of samples
-#' samples_ndvi_evi <- sits_select(samples_modis_4bands,
-#'   bands = c("NDVI", "EVI")
-#' )
-#'
-#' # train a deep learning model
-#' dl_model <- sits_train(samples_ndvi_evi, ml_method = sits_mlp())
-#' plot(dl_model)
-#' }
+#' @note
+#' Please refer to the sits documentation available in
+#' <https://e-sensing.github.io/sitsbook/> for detailed examples.
 #'
 #' @export
 #'
@@ -759,7 +719,7 @@ plot.torch_model <- function(x, y, ...) {
     return(invisible(p))
 }
 
-#' @title Plot a set of time series for the same spatio-temporal reference
+#' @title Plot a set of time series for the same spatiotemporal reference
 #'
 #' @name .sits_plot_together
 #' @keywords internal
@@ -868,7 +828,7 @@ plot.torch_model <- function(x, y, ...) {
     return(invisible(label_plots[[1]][[1]]))
 }
 
-#' @title Plot one timeSeries using ggplot
+#' @title Plot one time series using ggplot
 #'
 #' @name .sits_plot_ggplot_series
 #' @keywords internal
@@ -887,7 +847,7 @@ plot.torch_model <- function(x, y, ...) {
     }
     return(g)
 }
-#' @title Plot one timeSeries using ggplot (no NAs present)
+#' @title Plot one time series using ggplot (no NAs present)
 #'
 #' @name .sits_plot_ggplot_series_no_na
 #' @keywords internal
@@ -919,7 +879,7 @@ plot.torch_model <- function(x, y, ...) {
         ggplot2::scale_fill_manual(palette = colors)
     return(g)
 }
-#' @title Plot one timeSeries wih NAs using ggplot
+#' @title Plot one time series with NAs using ggplot
 #'
 #' @name .sits_plot_ggplot_series_na
 #' @keywords internal
@@ -977,7 +937,7 @@ plot.torch_model <- function(x, y, ...) {
     return(g)
 }
 
-#' @title Plot many timeSeries together using ggplot
+#' @title Plot many time series together using ggplot
 #'
 #' @name .sits_plot_ggplot_together
 #' @keywords internal
@@ -1042,7 +1002,7 @@ plot.torch_model <- function(x, y, ...) {
 #'                     (code reused from the dtwSat package by Victor Maus).
 #' @param data         sits tibble with classified time series.
 #' @param bands        band for plotting the classification.
-#' @param palette      hcl palette used for visualisation
+#' @param palette      hcl palette used for visualization
 #'
 #' @return             The plot itself.
 .sits_plot_predicted_ts <- function(data, bands, palette) {
@@ -1226,7 +1186,7 @@ plot.torch_model <- function(x, y, ...) {
     )
     colors_clust <- colors[data_labels]
 
-    # set the visualisation params for dendrogram
+    # set the visualization params for dendrogram
     dend <- dend %>%
         dendextend::set(
             what = "labels",
@@ -1556,7 +1516,7 @@ plot.torch_model <- function(x, y, ...) {
 #'
 #' @description         Plots the results of TWDTW classification (uses dtwSat).
 #'
-#' @param  matches      dtwSatS4 matches objects produced by sits_TWDTW_matches.
+#' @param  matches      dtwSat S4 matches objects produced by sits_TWDTW_matches.
 #' @param  start_date   Start date of the plot (used for classifications).
 #' @param  end_date     End date of the plot (used for classifications).
 #' @param  interval     Interval between classifications.

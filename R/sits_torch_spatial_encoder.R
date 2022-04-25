@@ -95,7 +95,6 @@
         return(output)
     }
 )
-
 #' @title Torch module for positional encoder
 #' @name .torch_positional_encoder
 #'
@@ -192,6 +191,5 @@
         return(x)
     }
 )
-
 
 
