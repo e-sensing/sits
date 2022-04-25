@@ -4,7 +4,7 @@
 \alias{sits_smooth}
 \alias{sits_smooth.bayes}
 \alias{sits_smooth.bilateral}
-\alias{sits_uncertainty_kernel}
+\alias{sits_uncertainty.entropy}
 \title{Smooth probability cubes with spatial predictors}
 \usage{
 sits_smooth(cube, type = "bayes", ...)
@@ -35,11 +35,12 @@ sits_smooth(cube, type = "bayes", ...)
   version = "v1"
 )
 
-sits_uncertainty_kernel(
+\method{sits_uncertainty}{entropy}(
   cube,
   type = "entropy",
   ...,
   window_size = 5,
+  window_fn = "median",
   multicores = 2,
   memsize = 4,
   output_dir = ".",
