@@ -19,9 +19,10 @@
 #'
 sits_suggest_samples <- function(cube, n = 100) {
 
-    stopifnot("Cube is not an sits_uncertaintly cube" =
-              inherits(cube, what = "uncertainty_cube"))
-    stopifnot("Invalid number of new samples" = n > 0)
+    .check_that(inherits(cube, what = "uncertainty_cube"),
+                msg = "Cube is not an sits_uncertaintly cube")
+    .check_that(n > 0,
+                msg = "Invalid number of new samples")
 
     infos <- cube[["file_info"]]
     paths <- vapply(infos, function(x) {x[["path"]]}, character(1))
