@@ -145,27 +145,21 @@
         value = length(blocks)
     )
 
-    hash_blocks_model <- digest::digest(
-        object = list(blocks, ml_model),
-        algo = "md5"
-    )
-
     # read the blocks and compute the probabilities
     filenames <- .sits_parallel_map(blocks, function(b) {
 
         probs_cube_filename <- tools::file_path_sans_ext(
             basename(.file_info_path(probs_cube))
         )
-        # directory where will be save
+        # directory where probs blocks will be save
         probs_cube_dir <- dirname(.file_info_path(probs_cube))
 
         # define the file name of the raster file to be written
         filename_block <- .create_filename(
             filenames = c(probs_cube_filename, "_block",
-                          b[["first_row"]], b[["nrows"]], hash_blocks_model),
+                          b[["first_row"]], b[["nrows"]]),
             ext = ".tif",
-            output_dir = file.path(probs_cube_dir, ".sits"),
-            create_dir = TRUE
+            output_dir = probs_cube_dir
         )
 
         # resume processing in case of failure

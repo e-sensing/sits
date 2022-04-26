@@ -5,16 +5,12 @@
 #' @param tile         Output tile to be written.
 #' @param output_dir   Directory where block will be written.
 #' @param block        Block designation.
-#' @param hash         Additional hash to be add in file name.
-#' @param create_dir   A boolean indicating if the output dir should be created.
 #'
 #' @return  returns a filename
 #'
 .smth_filename <- function(tile,
                            output_dir,
-                           block,
-                           hash = NULL,
-                           create_dir = FALSE) {
+                           block) {
 
     band <- .file_info_bands(tile)
 
@@ -33,16 +29,6 @@
                         block[["first_row"]],
                         block[["nrows"]] + block[["first_row"]] - 1,
                         sep = "_")
-
-
-    if (!is.null(hash))
-        b_filename <- paste(b_filename, hash, sep = "_")
-
-    if (!dir.exists(output_dir) && !create_dir)
-        stop("Invalid output_dir")
-
-    if (!dir.exists(output_dir) && create_dir)
-        dir.create(output_dir)
 
     b_path <- paste0(file.path(output_dir, b_filename), ".tif")
 
