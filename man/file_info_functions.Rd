@@ -11,7 +11,6 @@
 \alias{.file_info_yres}
 \alias{.file_info_fids}
 \alias{.file_info_timeline}
-\alias{.file_info_timeline_wtss}
 \alias{.file_info_start_date}
 \alias{.file_info_end_date}
 \alias{.file_info_bands}
@@ -34,8 +33,6 @@
 .file_info_fids(cube)
 
 .file_info_timeline(cube)
-
-.file_info_timeline_wtss(cube)
 
 .file_info_start_date(cube)
 
@@ -81,8 +78,6 @@ Returns the Y resolution for a single tiled cube
 Throws an error if resolution is not unique
 
 Returns the file ids for a single tiled cube
-
-Returns timeline  for a single tiled cube
 
 Returns timeline  for a single tiled cube
 

@@ -53,38 +53,6 @@ sits_timeline.raster_cube <- function(data) {
 
 #' @export
 #'
-sits_timeline.satveg_cube <- function(data) {
-
-    # retrieve the time series
-    ts <- .sits_satveg_ts_from_txt(
-        longitude = -55.50563,
-        latitude = -11.71557,
-        data
-    )
-    # return the timeline of the cube
-    return(as.Date(ts$Index))
-}
-
-#' @export
-#'
-sits_timeline.wtss_cube <- function(data) {
-
-    # return the timeline of the cube
-    return(.file_info_timeline_wtss(data))
-}
-
-#' @export
-#'
-sits_timeline.probs_cube <- function(data) {
-
-    # return the timeline of the cube
-    start_date <- .file_info_start_date(data[1,])
-    end_date <- .file_info_end_date(data[1,])
-    timeline_probs <- c(start_date, end_date)
-    return(timeline_probs)
-}
-#' @export
-#'
 sits_timeline.uncertainty_cube <- function(data) {
     # return the timeline of the cube
     start_date <- .file_info_start_date(data[1,])

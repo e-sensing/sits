@@ -72,7 +72,6 @@ Suggests:
     openxlsx,
     randomForest,
     RcppArmadillo,
-    Rwtss (>= 0.9.1),
     scales,
     stars,
     testthat (>= 3.0.2),
@@ -80,7 +79,7 @@ Suggests:
     zoo
 Config/testthat/edition: 3
 Config/testthat/parallel: false
-Config/testthat/start-first: cube, wtss, raster, ml
+Config/testthat/start-first: cube, raster, ml
 LinkingTo:
     Rcpp,
     RcppArmadillo
@@ -132,7 +131,6 @@ Collate:
     'sits_resnet.R'
     'sits_roi.R'
     'sits_sample_functions.R'
-    'sits_satveg.R'
     'sits_select.R'
     'sits_shp.R'
     'sits_smooth.R'
@@ -144,10 +142,8 @@ Collate:
     'sits_source_api_deafrica.R'
     'sits_source_api_local.R'
     'sits_source_api_mspc.R'
-    'sits_source_api_satveg.R'
     'sits_source_api_stac.R'
     'sits_source_api_usgs.R'
-    'sits_source_api_wtss.R'
     'sits_space_time_operations.R'
     'sits_stac.R'
     'sits_tae.R'

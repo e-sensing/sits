@@ -2,15 +2,11 @@
 % Please edit documentation in R/sits_cube.R
 \name{sits_cube}
 \alias{sits_cube}
-\alias{sits_cube.wtss_cube}
 \alias{sits_cube.stac_cube}
 \alias{sits_cube.local_cube}
-\alias{sits_cube.satveg_cube}
 \title{Create data cubes from image collections}
 \usage{
 sits_cube(source, collection, ..., data_dir = NULL)
-
-\method{sits_cube}{wtss_cube}(source = "WTSS", collection, ..., data_dir = NULL)
 
 \method{sits_cube}{stac_cube}(
   source,
@@ -38,13 +34,10 @@ sits_cube(source, collection, ..., data_dir = NULL)
   multicores = 2,
   progress = TRUE
 )
-
-\method{sits_cube}{satveg_cube}(source = "SATVEG", collection = "TERRA", ..., data_dir = NULL)
 }
 \arguments{
 \item{source}{Data source (one of \code{"AWS"}, \code{"BDC"},
-\code{"DEAFRICA"}, \code{"MSPC"}, \code{"SATVEG"}, \code{"USGS"}, and
-\code{"WTSS"}).}
+\code{"DEAFRICA"}, \code{"MSPC"}, \code{"USGS"}).}
 
 \item{collection}{Image collection in data source (To find out
 the supported collections, use \code{\link{sits_list_collections}()}).}
@@ -94,13 +87,6 @@ The following cloud providers are supported, based on the STAC protocol:
   \item{\code{"USGS"}:}{USGS LANDSAT collection,
   see https://registry.opendata.aws/usgs-landsat/}
  }
-Users can also create data cubes using web services:
-\itemize{
-\item{\code{"SATVEG"}: }{Defines a cube to use the SATVEG web service,
-  see https://www.satveg.cnptia.embrapa.br/satveg/login.html}
-\item{\code{"WTSS"}: }{Web Time Series Service from BDC,
-  see https://brazil-data-cube.github.io/applications/wtss.html}
-}
 
 Data cubes can also be created using local files (see details).
 }
@@ -108,8 +94,7 @@ Data cubes can also be created using local files (see details).
 To create cubes from cloud providers, users need to inform:
 \itemize{
 \item{\code{source}: }{One of \code{"AWS"}, \code{"BDC"}, \code{"DEAFRICA"},
-\code{"MSPC"}, \code{"SATVEG"}, \code{"USGS"},
-\code{"WTSS"}.}
+\code{"MSPC"}, \code{"USGS"}.}
 \item{\code{collection}: }{Use \code{sits_list_collections()} to see which
   collections are supported.}
 \item{\code{tiles}: }{A set of tiles defined according to the collection
@@ -213,16 +198,6 @@ an environment variable, as follows:
 Sys.setenv(
     BDC_ACCESS_KEY = <your_bdc_access_key>
 )}
-
-The SATVEG service is run by Embrapa Agricultural
- Informatics Centre and provides access to individual time series from
- the MODIS sensor. There are three collections: \code{"terra"}
- (from the TERRA satellite), \code{"aqua"} (from the AQUA satellite) and
- \code{"comb"} (combination of both satellites).
-
-WTSS is a web service for providing individual time series from BDC.
-Users specify a list of spatiotemporal positions and a collection where they
-want to extract the data.
 
 Please refer to the sits documentation available in
 <https://e-sensing.github.io/sitsbook/> for detailed examples.

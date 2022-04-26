@@ -1,22 +1,3 @@
-test_that("Creating a SATVEG data cube", {
-    testthat::skip_on_cran()
-
-    cube_satveg <- tryCatch(
-        {
-            sits_cube(source = "SATVEG", collection = "TERRA")
-        },
-        error = function(e) {
-            return(NULL)
-        }
-    )
-
-    testthat::skip_if(purrr::is_null(cube_satveg),
-                      message = "SATVEG is not accessible"
-    )
-
-    expect_true(cube_satveg$ymin == -30.0)
-})
-
 test_that("Reading a raster cube", {
     data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
 
@@ -190,55 +171,6 @@ test_that("Creating cubes from BDC - invalid roi", {
             tiles = "012010",
             start_date = "2018-09-01",
             end_date = "2019-08-29"
-        )
-    )
-})
-
-test_that("Creating cubes from WTSS", {
-    testthat::skip_on_cran()
-
-    # check "BDC_ACCESS_KEY" - mandatory one per user
-    bdc_access_key <- Sys.getenv("BDC_ACCESS_KEY")
-
-    testthat::skip_if(nchar(bdc_access_key) == 0,
-                      message = "No BDC_ACCESS_KEY defined in environment."
-    )
-
-    # create a raster cube file based on the information about the files
-    wtss_cube <- tryCatch(
-        {
-            sits_cube(
-                source = "WTSS",
-                collection = "LC8_30_16D_STK-1"
-            )
-        },
-        error = function(e) {
-            return(NULL)
-        }
-    )
-    testthat::skip_if(purrr::is_null(wtss_cube),
-                      message = "WTSS server is not accessible"
-    )
-    expect_true(all(c("NDVI", "EVI") %in% sits_bands(wtss_cube)))
-    timeline <- sits_timeline(wtss_cube)
-    expect_true(as.Date("2019-11-01") %in% timeline)
-
-    # provide invalid collection
-    testthat::expect_error(
-        sits_cube(
-            source = "WTSS",
-            collection = "Invalid-collection"
-        )
-    )
-    # provide no collection
-    testthat::expect_error(
-        sits_cube(source = "WTSS")
-    )
-    # try to access cube with wrong url
-    testthat::expect_error(
-        sits_cube(
-            source = "WTSS",
-            collection = "invalid-collection"
         )
     )
 })
