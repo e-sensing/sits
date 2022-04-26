@@ -238,7 +238,7 @@ test_that("One-year, multicore classification with Whittaker filter", {
             suppressMessages(
                 sits_classify(
                     data = sinop,
-                    ml_model = lgbm_model,
+                    ml_model = xgb_model,
                     filter = sits_whittaker(lambda = 3.0),
                     output_dir = tempdir(),
                     memsize = 4,
@@ -488,11 +488,7 @@ test_that("One-year, multicore classification with post-processing", {
     samples_ndvi <-
         sits_select(samples_modis_4bands, bands = c("NDVI"))
 
-<<<<<<< HEAD
-    torch_model <- sits_train(samples_2bands, sits_tempcnn(epochs = 10))
-=======
-    torch_model <- sits_train(samples_ndvi, sits_tempcnn())
->>>>>>> 44e7136141700cbea24b02bb884cabc22c653a82
+    torch_model <- sits_train(samples_ndvi, sits_tempcnn(epochs = 10))
 
     data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
     sinop <- sits_cube(
