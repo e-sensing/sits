@@ -159,22 +159,22 @@ sits_reduce_imbalance <- function(samples,
     n_times <- length(timeline)
 
     # get classes to make undersample
+    classes_under <- character()
     if (!purrr::is_null(n_samples_under)) {
         classes_under <- samples %>%
             sits_labels_summary() %>%
             dplyr::filter(.data[["count"]] >= n_samples_under) %>%
             dplyr::pull(.data[["label"]])
-    } else
-        classes_under <- character()
+    }
 
     # get classes to make oversample
+    classes_over <- character()
     if (!purrr::is_null(n_samples_over)) {
         classes_over <- samples %>%
             sits_labels_summary() %>%
             dplyr::filter(.data[["count"]] <= n_samples_over) %>%
             dplyr::pull(.data[["label"]])
-    } else
-        classes_over <- character()
+    }
 
     new_samples <- .sits_tibble()
 
