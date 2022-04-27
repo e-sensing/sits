@@ -4,12 +4,18 @@
 \alias{sits_suggest_samples}
 \title{Suggest samples for enhancing classification accuracy}
 \usage{
-sits_suggest_samples(cube, n = 100)
+sits_suggest_samples(cube, n = 100, min_distance = 30, confidence = "low")
 }
 \arguments{
 \item{cube}{A `sits`uncertaintly cube. See `sits_uncertainty`.}
 
 \item{n}{Maximum number of suggested points.}
+
+\item{min_distance}{Mininum distance among suggested points. The distance
+units are the same as those of the rasters in the cube.}
+
+\item{confidence}{Level of confidence in the samples. Either 'low' or
+'high'. See details.}
 }
 \value{
 A data.frame
@@ -18,6 +24,16 @@ A data.frame
 Suggest points with higher chances of increasing classification accuracy.
 These points don't have labels and are meant to be labelled by experts
 outside R.
+}
+\details{
+'confidence' determines the level of confidence in the suggested samples. A
+low level of confidence suggest samples on which the probabilities of each
+label are similar, hence, it is hard to choose the most likely sample label.
+These suggested samples are meant to be classified by human experts before
+adding them to the training set. On the other hand, suggested samples with a
+high level of confidence are those where the difference in probabilities
+clearly allow selecting a label. These samples can be added straigh to the
+training set.
 }
 \author{
 Alber Sanchez, \email{alber.sanchez@inpe.br}
