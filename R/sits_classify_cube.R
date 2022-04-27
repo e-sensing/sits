@@ -292,11 +292,12 @@
 
     # join predictions
     out_file <- .file_info_path(probs_cube)
+    probs_cube_dt <- .config_get("probs_cube_data_type")
     .raster_merge(
         in_files = filenames,
         out_file = out_file,
         format = "GTiff",
-        gdal_datatype = .raster_gdal_datatype(.config_get("probs_cube_data_type")),
+        gdal_datatype = .raster_gdal_datatype(probs_cube_dt),
         gdal_options = .config_gtiff_default_options(),
         overwrite = TRUE
     )

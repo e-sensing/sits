@@ -139,7 +139,9 @@ sits_lighttae <- function(samples = NULL,
 
         # data normalization
         stats <- .sits_ml_normalization_param(samples)
-        train_samples <- .sits_distances(.sits_ml_normalize_data(samples, stats))
+        train_samples <- .sits_distances(
+            .sits_ml_normalize_data(samples, stats)
+        )
 
         # is the training data correct?
         .check_chr_within(
@@ -227,7 +229,7 @@ sits_lighttae <- function(samples = NULL,
                         layers_spatial_encoder = layers_spatial_encoder
                     )
                 # number of input channels == last layer of mlp2
-                in_channels = layers_spatial_encoder[length(layers_spatial_encoder)]
+                in_channels <- layers_spatial_encoder[length(layers_spatial_encoder)]
                 # define a temporal encoder
                 self$temporal_encoder <-
                     .torch_light_temporal_attention_encoder(

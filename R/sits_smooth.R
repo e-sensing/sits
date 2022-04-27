@@ -424,7 +424,7 @@ sits_smooth.bilateral <- function(cube,
             (abs(rep(w_seq, each = window_size) - w_center) ^ 2 +
                  abs(rep(w_seq, window_size) - w_center) ^ 2) ^ (1 / 2),
             sd = sigma) / stats::dnorm(0)
-        matrix(x / sum(x), nrow = window_size, byrow = T)
+        matrix(x / sum(x), nrow = window_size, byrow = TRUE)
     }
 
     gs_matrix <- gauss_kernel(window_size, sigma)

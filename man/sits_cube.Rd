@@ -44,7 +44,8 @@ the supported collections, use \code{\link{sits_list_collections}()}).}
 
 \item{...}{Other parameters to be passed for specific types.}
 
-\item{data_dir}{Local directory where images are stored (for local cubes).}
+\item{data_dir}{Local directory where images are stored
+(for local cubes).}
 
 \item{bands}{Spectral bands and indices to be included
 in the cube (optional).}
@@ -148,9 +149,10 @@ parameter \code{parse_info} is specified differently:
   \code{"entropy"} when using \code{sits_uncertainty()}, or \code{"class"}
   for cubes produced by \code{sits_label_classification()}.}
 \item{\code{labels}: }{Labels associated to the classification results.}
-\item{\code{parse_info}: }{File name parsing information has to allow \code{sits}
-  to deduce the values of "tile", "start_date", "end_date" from the file name.
-  Default is \code{c("X1", "X2", "tile", "start_date", "end_date", "band")}.
+\item{\code{parse_info}: }{File name parsing information has to allow
+  \code{sits} to deduce the values of "tile", "start_date", "end_date" from
+  the file name. Default is
+  \code{c("X1", "X2", "tile", "start_date", "end_date", "band")}.
   Note that, unlike non-classified image files, cubes with results have both
   "start_date" and "end_date".}
 }

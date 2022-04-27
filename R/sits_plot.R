@@ -810,7 +810,7 @@ plot.torch_model <- function(x, y, ...) {
                         }
                     )
                     # merge the list of data.tables into a single table
-                    dt <- Reduce(function(...) merge(..., all = T), dt_lst)
+                    dt <- Reduce(function(...) merge(..., all = TRUE), dt_lst)
 
                     # create another data.table with all the rows together
                     # (required to compute the median and quartile values)
@@ -861,7 +861,12 @@ plot.torch_model <- function(x, y, ...) {
     # create the plot title
     plot_title <- .sits_plot_title(row$latitude, row$longitude, row$label)
     #
-    colors <- grDevices::hcl.colors(n = 20, palette = "Harmonic", alpha = 1, rev = TRUE)
+    colors <- grDevices::hcl.colors(
+        n = 20,
+        palette = "Harmonic",
+        alpha = 1,
+        rev = TRUE
+    )
     # extract the time series
     data_ts <- dplyr::bind_rows(row$time_series)
     # melt the data into long format
@@ -1556,7 +1561,8 @@ plot.torch_model <- function(x, y, ...) {
 
 
 .sits_plot_torch_model <- function(model) {
-    metrics_lst <- environment(model)[["torch_model"]][[c("records", "metrics")]]
+    model_vars  <- c("records", "metrics")
+    metrics_lst <- environment(model)[["torch_model"]][[model_vars]]
 
     metrics_dfr <- purrr::map_dfr(names(metrics_lst), function(name) {
         x <- metrics_lst[[name]]
@@ -1565,7 +1571,6 @@ plot.torch_model <- function(x, y, ...) {
             dplyr::mutate(epoch = seq_len(dplyr::n()), data = name) %>%
             tidyr::pivot_longer(cols = 1:2, names_to = "metric")
     })
-
 
     p <- ggplot2::ggplot(metrics_dfr, ggplot2::aes(
         x = .data[["epoch"]],
@@ -1577,21 +1582,21 @@ plot.torch_model <- function(x, y, ...) {
     p <- p + ggplot2::geom_point(shape = 21, col = 1, na.rm = TRUE, size = 2) +
         ggplot2::geom_smooth(
             formula = y ~ x,
-            se = FALSE,
-            method = "loess",
-            na.rm = TRUE
+            se      = FALSE,
+            method  = "loess",
+            na.rm   = TRUE
         )
 
     p <- p + ggplot2::facet_grid(metric ~ ., switch = "y", scales = "free_y") +
         ggplot2::theme(
-            axis.title.y = ggplot2::element_blank(),
+            axis.title.y    = ggplot2::element_blank(),
             strip.placement = "outside",
-            strip.text = ggplot2::element_text(
+            strip.text      = ggplot2::element_text(
                 colour = "black",
-                size = 11
+                size   = 11
             ),
             strip.background = ggplot2::element_rect(
-                fill = NA,
+                fill  = NA,
                 color = NA
             )
         )

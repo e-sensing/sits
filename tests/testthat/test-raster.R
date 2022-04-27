@@ -23,7 +23,8 @@ test_that("One-year, single core classification", {
         memsize = 4,
         multicores = 1
     )
-    sits_labels(sinop_probs) <- c("Cerrado", "Floresta", "Pastagem", "Soja_Milho")
+    sits_labels(sinop_probs) <- c("Cerrado", "Floresta",
+                                  "Pastagem", "Soja_Milho")
     expect_true(all(sits_labels(sinop_probs) %in%
                         c("Cerrado", "Floresta", "Pastagem", "Soja_Milho")))
     expect_true(all(file.exists(unlist(sinop_probs$file_info[[1]]$path))))
@@ -108,7 +109,9 @@ test_that("One-year, multicore classification", {
 
     expect_true(all(file.exists(unlist(sinop_probs$file_info[[1]]$path))))
     r_obj <- sits:::.raster_open_rast(sinop_probs$file_info[[1]]$path[[1]])
-    expect_true(sits:::.raster_nrows(r_obj) == sits:::.cube_size(sinop_probs)[["nrows"]])
+    expect_true(
+        sits:::.raster_nrows(r_obj) == sits:::.cube_size(sinop_probs)[["nrows"]]
+    )
 
     max_lyr2 <- max(sits:::.raster_get_values(r_obj)[, 2])
     expect_true(max_lyr2 <= 10000)
@@ -525,7 +528,8 @@ test_that("One-year, multicore classification with post-processing", {
         bands = "probs",
         data_dir = tempdir(),
         labels = sits_labels(sinop_probs),
-        parse_info = c("X1", "X2", "tile", "start_date", "end_date", "band", "version")
+        parse_info = c("X1", "X2", "tile", "start_date",
+                       "end_date", "band", "version")
     )
 
     expect_true(.cube_is_equal(sinop_probs, sinop_probs_2))
@@ -551,7 +555,8 @@ test_that("One-year, multicore classification with post-processing", {
         bands = "class",
         labels = sits_labels(sinop_class),
         data_dir = tempdir(),
-        parse_info = c("X1", "X2", "tile", "start_date", "end_date", "band", "version")
+        parse_info = c("X1", "X2", "tile", "start_date",
+                       "end_date", "band", "version")
     )
 
     expect_true(.cube_is_equal(sinop_class, sinop_class_2))
@@ -581,7 +586,8 @@ test_that("One-year, multicore classification with post-processing", {
         bands = "bayes",
         labels = sits_labels(sinop_class),
         data_dir = tempdir(),
-        parse_info = c("X1", "X2", "tile", "start_date", "end_date", "band", "version")
+        parse_info = c("X1", "X2", "tile", "start_date",
+                       "end_date", "band", "version")
     )
 
     expect_true(.cube_is_equal(sinop_bayes, sinop_bayes))

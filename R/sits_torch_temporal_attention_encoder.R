@@ -140,25 +140,25 @@
         # q_hat has shape 3D [(batch_size * n_heads) x 1 x dim_k]
         # k transposed has 3D shape  [(batch_size * n_heads) x dim_k x seq_len]
         # output scores has 3D shape [(batch_size * n_heads) x 1 x seq_len]
-        attention_scores = torch::torch_matmul(q_hat, k)/sqrt(self$dim_k)
+        attention_scores <- torch::torch_matmul(q_hat, k)/sqrt(self$dim_k)
 
         # Attention probs are calculated as
         # softmax of the normalized query * key product using the last dimension
         # input shape is 3D  [(batch_size * n_heads) x 1 x seq_len]
         # output_shape is 3D [(batch_size * n_heads) x 1 x seq_len]
-        attention_probs = torch::nnf_softmax(attention_scores, dim = -1)
+        attention_probs <- torch::nnf_softmax(attention_scores, dim = -1)
 
         # Values with positional encoding repeated over attention heads
         # input 3D shape [batch_size x seq_len x hidden_state:128]
         # output 3D shape [(batch_size * num_heads) x seq_len x hidden:128]
-        values = e_p$`repeat`(c(self$n_heads, 1, 1))
+        values <- e_p$`repeat`(c(self$n_heads, 1, 1))
 
         # Multi-head self-attention
         # multiply values by product of query * key
         # attention_probs - 3D shape [(batch_size * n_heads) x 1 x seq_len]
         # values - 3D shape [(batch_size * num_heads) x seq_len x hidden:128]
         # result has 3D shape [(batch_size * num_heads) x 1 x hidden:128]
-        attention_output = torch::torch_matmul(attention_probs, values)
+        attention_output <- torch::torch_matmul(attention_probs, values)
 
         # squeeze attention output
         # input shape 3D [(batch_size * n_heads) x 1 x hidden:128]
@@ -168,19 +168,21 @@
         # reshape attention output to 3D shape
         # input shape is 2D [(batch_size * n_heads) x hidden:128]
         # output shape is 3D [batch_size x n_heads x hidden_state:128]
-        attention_output = attention_output$contiguous()
-        attention_output = attention_output$view(c(batch_size, self$n_heads, -1))
+        attention_output <- attention_output$contiguous()
+        attention_output <- attention_output$view(
+            c(batch_size, self$n_heads, -1)
+        )
 
         # reshape attention output to 2D shape
         # input shape is 3D [batch_size x n_heads x dim_encoder:128]
         # output shape is 2D [batch_size x (n_heads:4 * dim_encoder:128)]
-        attention_output = attention_output$contiguous()
-        attention_output = attention_output$view(c(batch_size, -1))
+        attention_output <- attention_output$contiguous()
+        attention_output <- attention_output$view(c(batch_size, -1))
 
         # Run the output by a multi-layer perceptron
         # input shape is 2D [batch_size x (n_heads:4 * dim_encoder:128)]
         # output shape is 2D [batch_size x dim_encoder:128]
-        o_hat = self$mlp(attention_output)
+        o_hat <- self$mlp(attention_output)
         return(o_hat)
     }
 )
@@ -200,8 +202,8 @@
 #'
 #' @references
 #' Vivien Sainte Fare Garnot and Loic Landrieu,
-#' "Lightweight Temporal Self-Attention
-#' for Classifying Satellite Image Time Series", https://arxiv.org/abs/2007.00586
+#' "Lightweight Temporal Self-Attention for Classifying Satellite Image
+#' Time Series", https://arxiv.org/abs/2007.00586
 #'
 #'
 #' @param timeline                  Timeline of input time series.
@@ -345,12 +347,13 @@
 #'
 #' @references
 #' Vivien Sainte Fare Garnot and Loic Landrieu,
-#' "Lightweight Temporal Self-Attention
-#' for Classifying Satellite Image Time Series", https://arxiv.org/abs/2007.00586
+#' "Lightweight Temporal Self-Attention for Classifying Satellite Image
+#' Time Series", https://arxiv.org/abs/2007.00586
 #'
 #'
 #' @param temperature               Weight score of the attention module.
-#' @param attn_dropout              Dropout rate to be applied to the attention module.
+#' @param attn_dropout              Dropout rate to be applied to the attention
+#'                                  module.
 #' @param query                     Query tensor.
 #' @param keys                      Tensor with keys.
 #' @param values                    Tensor with values.
@@ -412,8 +415,8 @@
 #'
 #' @references
 #' Vivien Sainte Fare Garnot and Loic Landrieu,
-#' "Lightweight Temporal Self-Attention
-#' for Classifying Satellite Image Time Series", https://arxiv.org/abs/2007.00586
+#' "Lightweight Temporal Self-Attention for Classifying Satellite Image
+#' Time Series", https://arxiv.org/abs/2007.00586
 #'
 #'
 #' @param n_heads         Number of attention heads.
@@ -444,7 +447,11 @@
             out_features = n_heads * d_k
         )
         # initialization with a gaussian distribution
-        torch::nn_init_normal_(self$fc_k$weight, mean = 0, std = sqrt(2.0 / (d_k)))
+        torch::nn_init_normal_(
+            self$fc_k$weight,
+            mean = 0,
+            std = sqrt(2.0 / (d_k))
+        )
 
         # module to calculate attention by product of keys and queries.
         self$attention <- .torch_scaled_dot_product_attention(
@@ -481,7 +488,7 @@
         # permute shape of keys tensor
         # from 4D shape [batch_size, seq_len, n_heads, d_k]
         # to 4D shape [n_heads, batch_size, seq_len, d_k]
-        keys = keys$permute(c(3, 1, 2, 4))$contiguous()
+        keys <- keys$permute(c(3, 1, 2, 4))$contiguous()
         # Reshape keys tensor to 3D [(n_heads * batch_size) x  seq_len x d_k]
         keys <- keys$view(c(-1, seq_len, d_k))
 

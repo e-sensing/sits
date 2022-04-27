@@ -24,10 +24,11 @@
             items <- rstac::post_request(items_query, ...)
         },
         error = function(e) {
-            stop(paste(
-                ".source_collection_access_test.stac_cube: service is unreachable\n",
-                e$message
-            ), call. = FALSE)
+            stop(
+                paste(
+                    ".source_collection_access_test.stac_cube: service is",
+                    "unreachable\n", e$message
+                ), call. = FALSE)
         }
     )
     items <- .source_items_bands_select(

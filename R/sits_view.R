@@ -257,8 +257,9 @@ sits_view.raster_cube <- function(x, ...,
     )
 
     # check that times are valid
-    .check_that(all(as.Date(dates) %in% timeline),
-                msg = paste0("requested dates are not part of the cube timeline")
+    .check_that(
+        all(as.Date(dates) %in% timeline),
+        msg = "requested dates are not part of the cube timeline"
     )
     nrows_merge <- sum(slider::slide_dbl(cube_tiles, function(tile) {
         # retrieve the file info for the tile
@@ -371,7 +372,7 @@ sits_view.raster_cube <- function(x, ...,
     if (!purrr::is_null(class_cube)) {
         # get the labels
         labels <- sits_labels(class_cube)
-        names(labels) <- c(1:length(labels))
+        names(labels) <- seq_along(labels)
         # obtain the colors
         colors <- .view_get_colors(
             labels = labels,
@@ -486,7 +487,7 @@ sits_view.classified_image <- function(x, ...,
     )
     # get the labels
     labels <- sits_labels(x)
-    names(labels) <- c(1:length(labels))
+    names(labels) <- seq_along(labels)
     # obtain the colors
     colors <- .view_get_colors(
         labels = labels,

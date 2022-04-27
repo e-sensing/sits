@@ -130,7 +130,9 @@ sits_svm <- function(samples = NULL, formula = sits_formula_logref(),
 
         # data normalization
         stats <- .sits_ml_normalization_param(samples)
-        train_samples <- .sits_distances(.sits_ml_normalize_data(samples, stats))
+        train_samples <- .sits_distances(
+            .sits_ml_normalize_data(samples, stats)
+        )
 
         # The function must return a valid formula.
         if (inherits(formula, "function")) {

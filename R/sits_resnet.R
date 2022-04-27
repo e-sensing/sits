@@ -21,7 +21,7 @@
 #' The R-torch version is based on the code made available by Zhiguang Wang,
 #' author of the original paper. The code was developed in python using keras.
 #'
-#' https://github.com/cauchyturing/UCR_Time_Series_Classification_Deep_Learning_Baseline/blob/master/ResNet.py
+#' https://github.com/cauchyturing/UCR_Time_Series_Classification_Deep_Learning_Baseline/blob/3ecc8971fa768bd01ada7f3a613688255e6256c2/ResNet.py
 #'
 #' The R-torch version also considered the code by Ignacio Oguiza,
 #' whose implementation is available at
@@ -155,7 +155,9 @@ sits_resnet <- function(samples = NULL,
 
         # data normalization
         stats <- .sits_ml_normalization_param(samples)
-        train_samples <- .sits_distances(.sits_ml_normalize_data(samples, stats))
+        train_samples <- .sits_distances(
+            .sits_ml_normalize_data(samples, stats)
+        )
 
         # is the training data correct?
         .check_chr_within(
@@ -254,14 +256,14 @@ sits_resnet <- function(samples = NULL,
                     padding     = "same"
                 )
                 # create shortcut
-                self$shortcut = .torch_conv1D_batch_norm(
+                self$shortcut <- .torch_conv1D_batch_norm(
                     input_dim   = in_channels,
                     output_dim  = out_channels,
                     kernel_size = 1,
                     padding     = "same"
                 )
                 # activation
-                self$act = torch::nn_relu()
+                self$act <- torch::nn_relu()
             },
             forward = function(x){
                 res <-  self$shortcut(x)

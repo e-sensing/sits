@@ -422,8 +422,8 @@
 
     # convert sits gtiff options to gdalcubes format
     gtiff_options <- strsplit(.config_gtiff_default_options(), split = "=")
-    gdalcubes_co <- lapply(gtiff_options, `[[`, 2)
-    names(gdalcubes_co) <- sapply(gtiff_options, `[[`, 1)
+    gdalcubes_co <- purrr::map(gtiff_options, `[[`, 2)
+    names(gdalcubes_co) <- purrr::map_chr(gtiff_options, `[[`, 1)
 
     # write the aggregated cubes
     img_paths <- gdalcubes::write_tif(

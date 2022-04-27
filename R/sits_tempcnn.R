@@ -159,7 +159,9 @@ sits_tempcnn <- function(samples = NULL,
 
         # data normalization
         stats <- .sits_ml_normalization_param(samples)
-        train_samples <- .sits_distances(.sits_ml_normalize_data(samples, stats))
+        train_samples <- .sits_distances(
+            .sits_ml_normalize_data(samples, stats)
+        )
 
         # is the training data correct?
         .check_chr_within(

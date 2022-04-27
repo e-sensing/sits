@@ -24,19 +24,20 @@
 #' in each cloud service supported by sits. Users can select to get information
 #' only for a single service by using the \code{source} parameter.
 #'
-#' @param processing_bloat        Estimated growth size of R memory relative
-#'                                to block size.
-#' @param rstac_pagination_limit  Limit of number of items returned by STAC.
-#' @param raster_api_package      Supported raster handling package.
-#' @param gdal_creation_options   GDAL creation options for GeoTiff.
-#' @param gdalcubes_chunk_size    Chunk size to be used by gdalcubes
-#' @param leaflet_max_Mbytes      Maximage size of an image for leaflet (in MB)
-#' @param leaflet_comp_factor     Compression factor for leaflet RGB display.
-#' @param reset                   Should current configuration options be cleaned
-#'                                before loading config files? Default \code{FALSE}.
-#' @param source                  Data source to be shown in detail.
-#' @param collection              Collection key entry to be shown in detail.
-#' @param colors                  Show colors?
+#' @param processing_bloat       Estimated growth size of R memory relative
+#'                               to block size.
+#' @param rstac_pagination_limit Limit of number of items returned by STAC.
+#' @param raster_api_package     Supported raster handling package.
+#' @param gdal_creation_options  GDAL creation options for GeoTiff.
+#' @param gdalcubes_chunk_size   Chunk size to be used by gdalcubes
+#' @param leaflet_max_Mbytes     Maximage size of an image for leaflet (in MB)
+#' @param leaflet_comp_factor    Compression factor for leaflet RGB display.
+#' @param reset                  Should current configuration options be cleaned
+#'                               before loading config files? Default is
+#'                               \code{FALSE}.
+#' @param source                 Data source to be shown in detail.
+#' @param collection             Collection key entry to be shown in detail.
+#' @param colors                 Show colors?
 #'
 #' @details
 #' Users can provide additional configuration files, by specifying the

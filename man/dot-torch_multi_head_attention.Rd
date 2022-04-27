@@ -29,8 +29,8 @@ https://github.com/VSainteuf/lightweight-temporal-attention-pytorch
 }
 \references{
 Vivien Sainte Fare Garnot and Loic Landrieu,
-"Lightweight Temporal Self-Attention
-for Classifying Satellite Image Time Series", https://arxiv.org/abs/2007.00586
+"Lightweight Temporal Self-Attention for Classifying Satellite Image
+Time Series", https://arxiv.org/abs/2007.00586
 }
 \author{
 Charlotte Pelletier, \email{charlotte.pelletier@univ-ubs.fr}

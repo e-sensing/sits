@@ -40,7 +40,9 @@
         .check_chr_contains(
             parse_info,
             contains = .config_get("results_parse_info_col"),
-            msg = "parse_info must include tile, start_date, end_date, and band."
+            msg = paste("parse_info must include tile, start_date, end_date,",
+                        "and band."
+            )
         )
     } else {
         .check_chr_contains(

@@ -78,7 +78,9 @@ test_that("Creating cubes from BDC", {
 
     r_obj <- sits:::.raster_open_rast(cbers_cube$file_info[[1]]$path[1])
     expect_error(sits:::.cube_size(cbers_cube), "process one tile at a time")
-    expect_true(terra::nrow(r_obj) == sits:::.cube_size(cbers_cube[1, ])[["nrows"]])
+
+    cube_nrows <- sits:::.cube_size(cbers_cube[1, ])[["nrows"]]
+    expect_true(terra::nrow(r_obj) == cube_nrows)
 })
 
 test_that("Creating cubes from BDC - based on ROI with shapefile", {
@@ -91,8 +93,9 @@ test_that("Creating cubes from BDC - based on ROI with shapefile", {
                       message = "No BDC_ACCESS_KEY defined in environment."
     )
 
-    shp_file <- system.file("extdata/shapefiles/brazilian_legal_amazon/brazilian_legal_amazon.shp",
-                            package = "sits"
+    shp_file <- system.file(
+        "extdata/shapefiles/brazilian_legal_amazon/brazilian_legal_amazon.shp",
+        package = "sits"
     )
     sf_bla <- sf::read_sf(shp_file)
 

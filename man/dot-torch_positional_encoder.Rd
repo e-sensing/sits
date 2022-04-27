@@ -20,14 +20,14 @@ Defines a torch module for positional encoding, based on
 the concepts of Vaswani et al (2017) and Garnot et al ()
 
 This function part of the implementation of the paper by Vivien Garnot
-referenced below. We used the code made available by Maja Schneider in her work with
-Marco Körner referenced below and available at
+referenced below. We used the code made available by Maja Schneider in her
+work with Marco Körner referenced below and available at
 https://github.com/maja601/RC2020-psetae.
 }
 \references{
 Vivien Sainte Fare Garnot and Loic Landrieu,
-"Lightweight Temporal Self-Attention
-for Classifying Satellite Image Time Series", https://arxiv.org/abs/2007.00586
+"Lightweight Temporal Self-Attention for Classifying Satellite Image
+Time Series", https://arxiv.org/abs/2007.00586
 
 Schneider, Maja; Körner, Marco,
 "[Re] Satellite Image Time Series Classification
@@ -41,8 +41,8 @@ Marco Körner referenced below and available at
 https://github.com/maja601/RC2020-psetae.
 
 Vivien Sainte Fare Garnot and Loic Landrieu,
-"Lightweight Temporal Self-Attention
-for Classifying Satellite Image Time Series", https://arxiv.org/abs/2007.00586
+"Lightweight Temporal Self-Attention for Classifying Satellite Image
+Time Series", https://arxiv.org/abs/2007.00586
 
 Schneider, Maja; Körner, Marco,
 "[Re] Satellite Image Time Series Classification
