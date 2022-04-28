@@ -275,7 +275,7 @@ test_that("Creating cubes from AWS", {
     ))
 })
 
-test_that("Creating regular cubes from AWS Open Data, and extracting samples from them", {
+test_that("Regularizing cubes from AWS, and extracting samples from them", {
 
     testthat::skip_on_cran()
 
