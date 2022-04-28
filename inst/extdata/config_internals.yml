@@ -23,22 +23,6 @@ sits_results_s3_class:
                     entropy: "uncertainty_cube"
                     class:  "classified_image"
 
-# sits machine learning functions supported by sits_tuning
-tuning_supported_ml_functions:
-    tempcnn: "sits_tempcnn"
-    lighttae: "sits_lighttae"
-    tae: "sits_tae"
-    resnet: "sits_resnet"
-    mlp: "sits_mlp"
-
-# sits deep learning optimizers functions supported by sits_tuning
-tuning_supported_dl_optim_functions:
-    adam: ["torch", "optim_adam"]
-    adamw: ["sits", "optim_adamw"]
-    yogi: ["sits", "optim_yogi"]
-    adabound: ["sits", "optim_adabound"]
-    madgrad: ["sits", "optim_madgrad"]
-
 # parsing info contents for results cube
 results_parse_info_def : ["X1", "X2", "tile", "start_date", "end_date",
 "band", "version"]
@@ -118,3 +102,7 @@ reg_file_parse_info: ["cube", "tile", "band", "date"]
 # gdalcubes parameters
 gdalcubes_chunk_size: [1, 2048, 2048]
 gdalcubes_type_format: "int16"
+
+# uncertainty window function
+uncertainty_window_functions:
+    median: "stats::median"

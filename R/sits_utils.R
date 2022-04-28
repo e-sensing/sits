@@ -52,3 +52,19 @@
 
     return(filenames)
 }
+
+
+#' @title Informs if sits examples should run
+#'
+#' @name sits_active_tests
+#'
+#' @description
+#' This function informs if sits examples should run.
+#' This is useful to avoid running slow examples in CRAN environment.
+#'
+#' @return A logical value
+#'
+#' @export
+sits_active_tests <- function() {
+    return(Sys.getenv("R_CONFIG_ACTIVE_TESTS", unset = "NO") != "NO")
+}

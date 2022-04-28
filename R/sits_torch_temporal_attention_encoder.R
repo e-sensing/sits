@@ -1,4 +1,3 @@
-
 #' @title Torch module for temporal attention encoder
 #' @name .torch_temporal_attention_encoder
 #'
@@ -520,7 +519,3 @@
         return(output)
     }
 )
-
-
-
-
