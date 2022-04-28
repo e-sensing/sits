@@ -89,9 +89,8 @@ sits_som_map <- function(data,
     .check_set_caller("sits_som_map")
 
     # verifies if kohonen package is installed
-    if (!requireNamespace("kohonen", quietly = TRUE)) {
-        stop("Please install package kohonen", call. = FALSE)
-    }
+    .check_require_packages("kohonen")
+
     # does the input data exist?
     .sits_tibble_test(data)
     # is are there more neurons than samples?

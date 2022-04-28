@@ -482,9 +482,7 @@
     progress <- .check_documentation(progress)
 
     # require gdalcubes package
-    if (!requireNamespace("gdalcubes", quietly = TRUE)) {
-        stop("Please install package gdalcubes", call. = FALSE)
-    }
+    .check_require_packages("gdalcubes")
 
     # precondition - test if provided object is a raster cube
     .check_that(

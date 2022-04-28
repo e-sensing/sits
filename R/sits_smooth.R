@@ -54,9 +54,7 @@ sits_smooth <- function(cube, type = "bayes", ...) {
     # set caller to show in errors
     .check_set_caller("sits_smooth")
 
-    if (!requireNamespace("parallel", quietly = TRUE)) {
-        stop("Please install package parallel.", call. = FALSE)
-    }
+    .check_require_packages("parallel")
 
     # check if cube has probability data
     .check_that(

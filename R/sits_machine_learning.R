@@ -32,9 +32,7 @@ sits_rfor <- function(samples = NULL, num_trees = 200, nodesize = 1, ...) {
         train_samples <- .sits_distances(samples)
 
         # verifies if randomForest package is installed
-        if (!requireNamespace("randomForest", quietly = TRUE)) {
-            stop("Please install package randomForest", call. = FALSE)
-        }
+        .check_require_packages("randomForest")
 
         # call `randomForest::randomForest` method and return the trained model
         reference <- train_samples[, reference]
@@ -52,9 +50,7 @@ sits_rfor <- function(samples = NULL, num_trees = 200, nodesize = 1, ...) {
         model_predict <- function(values) {
 
             # verifies if ranger package is installed
-            if (!requireNamespace("randomForest", quietly = TRUE)) {
-                stop("Please install package randomForest", call. = FALSE)
-            }
+            .check_require_packages("randomForest")
 
             return(stats::predict(result_rfor,
                                   newdata = values,
@@ -124,9 +120,7 @@ sits_svm <- function(samples = NULL, formula = sits_formula_logref(),
     result_fun <- function(samples) {
 
         # verifies if e1071 package is installed
-        if (!requireNamespace("e1071", quietly = TRUE)) {
-            stop("Please install package e1071", call. = FALSE)
-        }
+        .check_require_packages("e1071")
 
         # data normalization
         stats <- .sits_ml_normalization_param(samples)
@@ -154,9 +148,7 @@ sits_svm <- function(samples = NULL, formula = sits_formula_logref(),
         model_predict <- function(values) {
 
             # verifies if e1071 package is installed
-            if (!requireNamespace("e1071", quietly = TRUE)) {
-                stop("Please install package e1071", call. = FALSE)
-            }
+            .check_require_packages("e1071")
 
             # get the prediction
             preds <- stats::predict(result_svm,
@@ -255,9 +247,7 @@ sits_xgboost <- function(samples = NULL,
     result_fun <- function(samples) {
 
         # verifies if xgboost package is installed
-        if (!requireNamespace("xgboost", quietly = TRUE)) {
-            stop("Please install package xgboost", call. = FALSE)
-        }
+        .check_require_packages("xgboost")
 
         # get the labels of the data
         labels <- sits_labels(samples)
@@ -307,9 +297,7 @@ sits_xgboost <- function(samples = NULL,
         model_predict <- function(values) {
 
             # verifies if xgboost package is installed
-            if (!requireNamespace("xgboost", quietly = TRUE)) {
-                stop("Please install package xgboost", call. = FALSE)
-            }
+            .check_require_packages("xgboost")
 
             # transform input  into a matrix (remove first two columns)
             # retrieve the prediction probabilities

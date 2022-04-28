@@ -34,9 +34,8 @@
 #' @export
 sits_patterns <- function(data = NULL, freq = 8, formula = y ~ s(x), ...) {
     # verifies if mgcv package is installed
-    if (!requireNamespace("mgcv", quietly = TRUE)) {
-        stop("Please install package mgcv", call. = FALSE)
-    }
+    .check_require_packages("mgcv")
+
     # function that is used to be called as a value from another function
     result_fun <- function(tb) {
         # does the input data exist?

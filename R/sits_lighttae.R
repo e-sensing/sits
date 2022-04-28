@@ -87,14 +87,9 @@ sits_lighttae <- function(samples = NULL,
 
     # function that returns torch model based on a sits sample data.table
     result_fun <- function(samples) {
-        # verifies if torch package is installed
-        if (!requireNamespace("torch", quietly = TRUE)) {
-            stop("Please install package torch", call. = FALSE)
-        }
-        # verifies if torch package is installed
-        if (!requireNamespace("luz", quietly = TRUE)) {
-            stop("Please install package luz", call. = FALSE)
-        }
+        # verifies if torch and luz  packages is installed
+        .check_require_packages(c("torch", "luz"))
+
         # preconditions
         .check_num(
             x = lr_decay_epochs,
@@ -318,9 +313,7 @@ sits_lighttae <- function(samples = NULL,
         model_predict <- function(values) {
 
             # verifies if torch package is installed
-            if (!requireNamespace("torch", quietly = TRUE)) {
-                stop("Please install package torch", call. = FALSE)
-            }
+            .check_require_packages("torch")
 
             # set torch threads to 1
             # function does not work on MacOS

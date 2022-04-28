@@ -31,8 +31,6 @@
 #' @param progress          show progress bar?
 #' @param use_gdalcubes     Use gdalcubes package? (see details).
 #'
-#' @param ...               deprecated parameters are controlled with ellipses.
-#'
 #' @note
 #' Please refer to the sits documentation available in
 #' <https://e-sensing.github.io/sitsbook/> for detailed examples.

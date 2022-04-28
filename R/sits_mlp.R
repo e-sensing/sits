@@ -88,15 +88,11 @@ sits_mlp <- function(samples = NULL,
     # function that returns a torch model based on samples
     result_fun <- function(samples) {
 
-        # verifies if torch package is installed
-        if (!requireNamespace("torch", quietly = TRUE)) {
-            stop("Please install package torch", call. = FALSE)
-        }
-
-        # verifies if luz package is installed
-        if (!requireNamespace("luz", quietly = TRUE)) {
-            stop("Please install package luz", call. = FALSE)
-        }
+        # verifies if torch and luz packages is installed
+        .check_require_packages(
+            c("torch", "luz"),
+            msg = "Please install package(s)"
+        )
 
         # pre-conditions
         .check_that(
@@ -279,9 +275,7 @@ sits_mlp <- function(samples = NULL,
         model_predict <- function(values) {
 
             # verifies if torch package is installed
-            if (!requireNamespace("torch", quietly = TRUE)) {
-                stop("Please install package torch", call. = FALSE)
-            }
+            .check_require_packages("torch")
 
             # set torch threads to 1
             # function does not work on MacOS

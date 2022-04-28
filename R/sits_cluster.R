@@ -51,10 +51,7 @@ sits_cluster_dendro <- function(samples = NULL,
     # verify if data is OK
     .sits_tibble_test(samples)
 
-    .check_that(
-        requireNamespace("dtwclust", quietly = TRUE),
-        msg = "Please install package dtwclust"
-    )
+    .check_require_packages("dtwclust")
 
     # bands in sits are uppercase
     bands <- .sits_tibble_bands_check(samples, bands)
@@ -203,9 +200,7 @@ sits_cluster_clean <- function(samples) {
     .check_set_caller(".sits_cluster_validity")
 
     # verifies if dtwclust package is installed
-    if (!requireNamespace("dtwclust", quietly = TRUE)) {
-        stop("Please insall package dtwclust", call. = FALSE)
-    }
+    .check_require_packages("dtwclust")
 
     # is the input data the result of a cluster function?
     .check_chr_contains(
@@ -260,9 +255,7 @@ sits_cluster_clean <- function(samples) {
                                      dist_method = "dtw_basic",
                                      linkage = "ward.D2", ...) {
     # verifies if dtwclust package is installed
-    if (!requireNamespace("dtwclust", quietly = TRUE)) {
-        stop("Please install package dtwclust", call. = FALSE)
-    }
+    .check_require_packages("dtwclust")
 
     # get the values of the time series
     values <- sits_values(samples, bands, format = "cases_dates_bands")

@@ -59,9 +59,7 @@ sits_accuracy.sits <- function(data, ...) {
     .check_set_caller("sits_accuracy.sits")
 
     # Require package
-    if (!requireNamespace("caret", quietly = TRUE)) {
-        stop("Please install package caret.", call. = FALSE)
-    }
+    .check_require_packages("caret")
 
     # Does the input data contain a set of predicted values?
     .check_chr_contains(

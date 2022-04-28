@@ -403,8 +403,8 @@ sits_reduce_imbalance <- function(samples,
 }
 
 .sits_knearest <- function(D, P, n_clust) {
-    if (!requireNamespace("FNN", quietly = TRUE))
-        stop("Please install package sf.", call. = FALSE)
+
+    .check_require_packages("FNN")
 
     knD <- FNN::knnx.index(D, P, k = (n_clust + 1), algorithm = "kd_tree")
     knD <- knD*(knD != row(knD))

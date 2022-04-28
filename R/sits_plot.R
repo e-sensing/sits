@@ -208,9 +208,7 @@ plot.raster_cube <- function(x, ...,
 
     # verify sf package if roi is informed
     if (!purrr::is_null(roi)) {
-        if (!requireNamespace("sf", quietly = TRUE)) {
-            stop("Please install package sf.", call. = FALSE)
-        }
+        .check_require_packages("sf")
 
         # filter only intersecting tiles
         intersects <- slider::slide(x, function(tile) {
@@ -335,9 +333,8 @@ plot.probs_cube <- function(x, y, ...,
                             palette = "Terrain") {
     stopifnot(missing(y))
     # verifies if stars package is installed
-    if (!requireNamespace("stars", quietly = TRUE)) {
-        stop("Please install package stars.", call. = FALSE)
-    }
+    .check_require_packages("stars")
+
     # precondition - check breaks parameter
     .check_chr_within(
         x = breaks,
@@ -466,9 +463,8 @@ plot.uncertainty_cube <- function(x, y, ...,
                                   palette = "Blues") {
     stopifnot(missing(y))
     # verifies if stars package is installed
-    if (!requireNamespace("stars", quietly = TRUE)) {
-        stop("Please install package stars.", call. = FALSE)
-    }
+    .check_require_packages("stars")
+
     # precondition - check breaks parameter
     .check_chr_within(
         x = breaks,
@@ -685,9 +681,7 @@ plot.torch_model <- function(x, y, ...) {
 #'
 .sits_plot_patterns <- function(data) {
     # verifies if scales package is installed
-    if (!requireNamespace("scales", quietly = TRUE)) {
-        stop("Please install package scales.", call. = FALSE)
-    }
+    .check_require_packages("scales")
 
     # put the time series in the data frame
     plot.df <- purrr::pmap_dfr(
@@ -896,9 +890,7 @@ plot.torch_model <- function(x, y, ...) {
 .sits_plot_ggplot_series_na <- function(row) {
 
     # verifies if tidyr package is installed
-    if (!requireNamespace("tidyr", quietly = TRUE)) {
-        stop("Please install package tidyr", call. = FALSE)
-    }
+    .check_require_packages("tidyr")
 
     # define a function to replace the NAs for unique values
     replace_na <- function(x) {
@@ -1013,9 +1005,8 @@ plot.torch_model <- function(x, y, ...) {
 .sits_plot_predicted_ts <- function(data, bands, palette) {
 
     # verifies if scales package is installed
-    if (!requireNamespace("scales", quietly = TRUE)) {
-        stop("Please install package scales.", call. = FALSE)
-    }
+    .check_require_packages("scales")
+
     if (purrr::is_null(bands)) {
         bands <- sits_bands(data)
     }
@@ -1163,14 +1154,12 @@ plot.torch_model <- function(x, y, ...) {
     # set caller to show in errors
     .check_set_caller(".sits_plot_dendrogram")
 
-    # verifies if dendextend package is installed
-    if (!requireNamespace("dendextend", quietly = TRUE)) {
-        stop("Please install package dendextend.", call. = FALSE)
-    }
-    # verifies if methods package is installed
-    if (!requireNamespace("methods", quietly = TRUE)) {
-        stop("Please install package methods.", call. = FALSE)
-    }
+    # verifies if dendextend and methods packages is installed
+    .check_require_packages(
+        c("dendextend", "methods"),
+        msg = "please install package(s)"
+    )
+
     # ensures that a cluster object  exists
     .check_null(
         x = cluster,
@@ -1534,9 +1523,7 @@ plot.torch_model <- function(x, y, ...) {
                                    interval = "12 month",
                                    overlap = 0.5) {
     # verifies if dtwSat package is installed
-    if (!requireNamespace("dtwSat", quietly = TRUE)) {
-        stop("Please install package dtwSat", call. = FALSE)
-    }
+    .check_require_packages("dtwSat")
 
     matches %>%
         purrr::map(function(m) {

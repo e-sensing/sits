@@ -43,10 +43,8 @@ sits_view.sits <- function(x, ...,
                            palette = "Harmonic") {
 
     # precondition
-    .check_that(
-        requireNamespace("leaflet", quietly = TRUE),
-        msg = "Please install package leaflet"
-    )
+    .check_require_packages("leaflet")
+
     # first select unique locations
     x <- dplyr::distinct(x,
                          .data[["longitude"]],
@@ -133,7 +131,7 @@ sits_view.sits <- function(x, ...,
 #' @rdname   sits_view
 #'
 #' @export
-sits_view.raster_cube <- function(x, ...,
+sits_view.raster_cube <- function(x,
                                   band = NULL,
                                   red = NULL,
                                   green = NULL,
@@ -143,7 +141,6 @@ sits_view.raster_cube <- function(x, ...,
                                   class_cube = NULL,
                                   legend = NULL,
                                   palette = "default") {
-    dots <- list(...)
     # preconditions
     # Remote files not working in Windows (bug in stars)
     if (.Platform$OS.type == "windows") {
@@ -153,50 +150,42 @@ sits_view.raster_cube <- function(x, ...,
                  call. = FALSE)
         }
     }
+
     # verifies if leafem and leaflet packages are installed
+    .check_require_packages(c("leafem", "leaflet"))
+
+    if (is.character(dates)) {
+        .check_that(
+            grepl("^\\d{4}-\\d{2}-\\d{2}$", dates),
+            msg = "invalid dates pattern"
+        )
+
+        dates <- .check_error(
+            as.Date(dates),
+            msg = "invalid dates parameter"
+        )
+    }
+
     .check_that(
-        requireNamespace("leafem", quietly = TRUE),
-        msg = "Please install package 'leafem'"
+        x = inherits(dates, "Date"),
+        msg = "invalid dates parameter"
     )
-    .check_that(
-        requireNamespace("leaflet", quietly = TRUE),
-        msg = "Please install package 'leaflet'"
-    )
-    # deal with parameter "time"
-    if ("time" %in% names(dots)) {
-        warning("time parameter is deprecated, please use dates")
-        dates <- sits_timeline(x)[as.integer(dots[["time"]])]
-    }
-    # deal with parameter "times"
-    if ("times" %in% names(dots)) {
-        warning("times parameter is deprecated, please use dates")
-        dates <- sits_timeline(x)[as.numeric(dots[["times"]])]
-    }
-    # deal with parameter "date"
-    if ("date" %in% names(dots)) {
-        warning("use dates instead of date")
-        dates <- as.Date(dots[["date"]])
-    }
-    # deal with wrong parameter "tile"
-    if ("tile" %in% names(dots) && missing(tiles)) {
-        message("please use tiles instead of tile as parameter")
-        tiles <- dots[["tile"]]
-    }
+
     # deal with tiles
     # check if tile exists
-    if (purrr::is_null(tiles)) {
+    if (purrr::is_null(tiles))
         tiles <- x$tile[[1]]
-    } else {
-        if (is.numeric(tiles)) {
-            tiles <- x$tile[[tiles]]
-        }
-    }
+
+    if (is.numeric(tiles))
+        tiles <- x$tile[[tiles]]
+
     # try to find tiles in the list of tiles of the cube
-    .check_chr_contains(
-        x$tile,
+    .check_chr_within(
         tiles,
+        x$tile,
         msg = "requested tiles are not part of cube"
     )
+
     # check that classified map is a proper cube
     if (!purrr::is_null(class_cube)) {
         .check_that(
@@ -215,7 +204,7 @@ sits_view.raster_cube <- function(x, ...,
     )
 
     # check if rgb bands were informed
-    if (!purrr::is_null(red) ||
+    if (!purrr::is_null(red)   ||
         !purrr::is_null(green) ||
         !purrr::is_null(blue)) {
 
@@ -281,18 +270,21 @@ sits_view.raster_cube <- function(x, ...,
     # create a leaflet and add providers
     leaf_map <- leaflet::leaflet() %>%
         leaflet::addProviderTiles(
-            leaflet::providers$Esri.WorldImagery,
+            map = .,
+            provider = leaflet::providers$Esri.WorldImagery,
             group = "ESRI"
         ) %>%
         leaflet::addProviderTiles(
-            leaflet::providers$GeoportailFrance.orthos,
+            map = .,
+            provider = leaflet::providers$GeoportailFrance.orthos,
             group = "GeoPortalFrance"
         ) %>%
         leaflet::addProviderTiles(
-            leaflet::providers$OpenStreetMap,
+            map = .,
+            provider = leaflet::providers$OpenStreetMap,
             group = "OSM"
         ) %>%
-        leafem::addMouseCoordinates()
+        leafem::addMouseCoordinates(map = .)
 
     # obtain the raster objects for the dates chosen
     for (date in dates) {
@@ -463,10 +455,8 @@ sits_view.classified_image <- function(x, ...,
                                        palette = "default") {
     dots <- list(...)
     # preconditions
-    .check_that(
-        requireNamespace("leaflet", quietly = TRUE),
-        msg = "Please install package 'leaflet'"
-    )
+    .check_require_packages("leaflet")
+
     # deal with wrong parameter "tile"
     if ("tile" %in% names(dots) && missing(tiles)) {
         message("please use tiles instead of tile as parameter")
