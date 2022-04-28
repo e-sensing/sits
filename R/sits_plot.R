@@ -129,16 +129,16 @@ plot.raster_cube <- function(x, ...,
     # precondition
     if (purrr::is_null(tiles)) {
         tiles <- x$tile[[1]]
-    } else {
-        .check_chr_contains(
-            x = x$tile,
-            contains = tiles,
-            case_sensitive = FALSE,
-            discriminator = "all_of",
-            can_repeat = FALSE,
-            msg = "tiles are not included in the cube"
-        )
     }
+
+    .check_chr_contains(
+        x = x$tile,
+        contains = tiles,
+        case_sensitive = FALSE,
+        discriminator = "all_of",
+        can_repeat = FALSE,
+        msg = "tiles are not included in the cube"
+    )
 
     # pre-condition 2
     .check_that(
@@ -167,19 +167,16 @@ plot.raster_cube <- function(x, ...,
 
         # get default band (try first non-cloud band...)
         if (purrr::is_null(band)) {
-            band <- .cube_bands(x, add_cloud = FALSE)
+            band <- .cube_bands(x, add_cloud = TRUE)
             if (length(band) > 0) {
-                band <- band[[1]]
-            } else {
-                # ...else get cloud band
-                band <- .cube_bands(x)[[1]]
+                band <- band[!band %in% "CLOUD"]
             }
         }
 
         # plot as grayscale
-        red <- band
+        red   <- band
         green <- band
-        blue <- band
+        blue  <- band
     }
 
     # preconditions
@@ -194,9 +191,9 @@ plot.raster_cube <- function(x, ...,
     timeline <- sits_timeline(x)
     if (purrr::is_null(date)) {
         date <- timeline[[1]]
-    } else {
-        date <- as.Date(date)
     }
+
+    date <- as.Date(date)
     .check_that(
         length(date) == 1,
         msg = "plot handles one date at a time"
@@ -230,12 +227,12 @@ plot.raster_cube <- function(x, ...,
     r_objs <- slider::slide(x, function(row) {
         # plot only the selected tile
         # select only the bands for the timeline
-        bands_date <- .file_info(row) %>%
-            dplyr::filter(.data[["date"]] == !!date)
+        bands_date <- dplyr::filter(.file_info(row), .data[["date"]] == !!date)
 
         # Are we plotting a grey image
         if (!purrr::is_null(band)) {
             rgb_stack <- dplyr::filter(bands_date, .data[["band"]] == red)$path
+            bands_order <- c(r = 1, g = 1, b = 1)
         } else {
             # get RGB files for the requested timeline
             red_file <- dplyr::filter(bands_date, .data[["band"]] == red)$path
@@ -243,6 +240,7 @@ plot.raster_cube <- function(x, ...,
             blue_file <- dplyr::filter(bands_date, .data[["band"]] == blue)$path
             # put the band on a raster/terra stack
             rgb_stack <- c(red_file, green_file, blue_file)
+            bands_order <- c(r = 1, g = 2, b = 3)
         }
         # use the raster package to obtain a raster object from a stack
         r_obj <- .raster_open_stack.terra(rgb_stack)
@@ -259,34 +257,27 @@ plot.raster_cube <- function(x, ...,
         return(r_obj)
     })
 
+    r_merge <- r_objs[[1]]
+
     # merge two or more raster objects
-    if (length(r_objs) == 1) {
-        r_merge <- r_objs[[1]]
-    } else {
+    if (length(r_objs) > 1) {
         raster_collection <- terra::sprc(r_objs)
         r_merge <- terra::merge(raster_collection)
     }
 
-    # view the RGB file
-    if (!purrr::is_null(band)) {
-        suppressWarnings(
-            terra::plotRGB(r_merge,
-                           r = 1,
-                           g = 1,
-                           b = 1,
-                           stretch = "hist"
-            )
+    bands_order <- c(r = 1, g = 1, b = 1)
+    if (purrr::is_null(band))
+        bands_order <- c(r = 1, g = 2, b = 3)
+
+    suppressWarnings(
+        terra::plotRGB(r_merge,
+                       r = bands_order[["r"]],
+                       g = bands_order[["g"]],
+                       b = bands_order[["b"]],
+                       stretch = "hist"
         )
-    } else {
-        suppressWarnings(
-            terra::plotRGB(r_merge,
-                           r = 1,
-                           g = 2,
-                           b = 3,
-                           stretch = "hist"
-            )
-        )
-    }
+    )
+
     return(invisible(r_merge))
 }
 #' @title  Plot probability cubes
