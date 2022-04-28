@@ -7,7 +7,7 @@
 sits_suggest_samples(cube, n = 100, min_distance = 30, confidence = "low")
 }
 \arguments{
-\item{cube}{A `sits`uncertaintly cube. See `sits_uncertainty`.}
+\item{cube}{A `sits`uncertainty cube. See `sits_uncertainty`.}
 
 \item{n}{Maximum number of suggested points.}
 

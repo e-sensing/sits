@@ -12,7 +12,7 @@
 #' These points don't have labels and are meant to be labelled by experts
 #' outside R.
 #'
-#' @param cube         A `sits`uncertaintly cube. See `sits_uncertainty`.
+#' @param cube         A `sits`uncertainty cube. See `sits_uncertainty`.
 #' @param n            Maximum number of suggested points.
 #' @param min_distance Mininum distance among suggested points. The distance
 #' units are the same as those of the rasters in the cube.
@@ -36,7 +36,7 @@ sits_suggest_samples <- function(cube, n = 100,
                                  confidence = "low") {
 
     .check_that(inherits(cube, what = "uncertainty_cube"),
-                msg = "Cube is not an sits_uncertaintly cube")
+                msg = "Cube is not an sits_uncertainty cube")
     .check_that(n > 0,
                 msg = "Invalid number of new samples")
     .check_that(confidence %in% c("low", "high"),
