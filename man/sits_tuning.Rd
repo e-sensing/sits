@@ -2,6 +2,7 @@
 % Please edit documentation in R/sits_tuning.R
 \name{sits_tuning}
 \alias{sits_tuning}
+\alias{sits_tuning_random}
 \title{Tuning deep learning models hyper-parameters}
 \usage{
 sits_tuning(
@@ -13,6 +14,17 @@ sits_tuning(
   opt_learning_rates = c(0.01, 0.005, 0.001),
   opt_eps_values = c(1e-06, 1e-07, 1e-08),
   opt_weight_decays = c(0, 1e-05, 1e-06),
+  multicores = 2,
+  progress = FALSE
+)
+
+sits_tuning_random(
+  samples,
+  samples_validation = NULL,
+  validation_split = 0.2,
+  ml_method = sits_tempcnn(),
+  params = list(optimizer = torchopt::optim_adamw, opt_hparams = uniform(0, 1)),
+  trials = 30,
   multicores = 2,
   progress = FALSE
 )
@@ -41,6 +53,13 @@ not correctly implemented in the adam optimization)}
 \item{multicores}{Number of cores to process in parallel}
 
 \item{progress}{Show progress bar?}
+
+\item{params}{List with hyper parameters to be passed to \code{ml_method}.
+User can use \code{uniform}, \code{choice}, \code{randint},
+\code{normal}, \code{lognormal}, and \code{loguniform} functions
+to randomize parameters.}
+
+\item{trials}{Number of random trials to perform the random search.}
 }
 \value{
 A list containing the best model and a tibble with all performances

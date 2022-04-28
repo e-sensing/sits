@@ -27,39 +27,44 @@
 #'   not correctly implemented in the adam optimization)
 #' @param multicores         Number of cores to process in parallel
 #' @param progress           Show progress bar?
+#' @param params List with hyper parameters to be passed to \code{ml_method}.
+#'   User can use \code{uniform}, \code{choice}, \code{randint},
+#'   \code{normal}, \code{lognormal}, \code{loguniform}, and \code{beta}
+#'   functions to randomize parameters.
+#' @param trials Number of random trials to perform the random search.
 #'
 #' @return A list containing the best model and a tibble with all performances
 #'
 #' @note
 #' Please refer to the sits documentation available in
 #' <https://e-sensing.github.io/sitsbook/> for detailed examples.
+#'
 #' @export
 #'
-sits_tuning <- function(samples,
-                        samples_validation = NULL,
-                        validation_split   = 0.2,
-                        ml_functions       = c("tempcnn", "lighttae",
-                                               "tae", "resnet"),
-                        opt_functions      = c("adam", "adamw"),
-                        opt_learning_rates = c(1e-02, 5e-03, 1e-03),
-                        opt_eps_values     = c(1e-06, 1e-07, 1e-08),
-                        opt_weight_decays  = c(0, 1e-05, 1e-06),
-                        multicores         = 2,
-                        progress           = FALSE) {
+sits_tuning_random <- function(samples,
+                               samples_validation = NULL,
+                               validation_split = 0.2,
+                               ml_method = sits_tempcnn(),
+                               params = list(
+                                   optimizer = torchopt::optim_adamw,
+                                   opt_hparams = list(
+                                       lr = uniform(0, 1)
+                                   )
+                               ),
+                               trials = 30,
+                               multicores = 2,
+                               progress = FALSE) {
 
     # set caller to show in errors
-    .check_set_caller("sits_tuning")
+    .check_set_caller("sits_tuning_random")
 
     # pre-conditions
-
     # check samples parameter
     .sits_tibble_test(samples)
-
     # check samples_validation parameter if it is passed
     if (!purrr::is_null(samples_validation)) {
         .sits_tibble_test(samples_validation)
     }
-
     # check validation_split parameter if samples_validation is not passed
     if (purrr::is_null(samples_validation)) {
         .check_num(
@@ -70,56 +75,21 @@ sits_tuning <- function(samples,
         )
     }
     # check 'ml_functions' parameter
-    .check_chr_within(
-        x = ml_functions,
-        within = .config_names(key = "tuning_supported_ml_functions"),
-        msg = "invalid 'ml_functions' values"
-    )
-    # check 'opt_functions' parameter
-    .check_chr_within(
-        x = opt_functions,
-        within = .config_names(key = "tuning_supported_dl_optim_functions"),
-        msg = "invalid 'opt_functions' values"
-    )
-    # check necessary packages
-    purrr::map(opt_functions, function(opt) {
-        opt_conf <- .config_get(
-            key = c("tuning_supported_dl_optim_functions", opt)
-        )
-        opt_pckg <- opt_conf[[1]]
-        .check_that(
-            x = requireNamespace(opt_pckg, quietly = TRUE),
-            local_msg = paste0("Please, install ", opt_pckg, " package"),
-            msg = paste0("optimizer function '", opt, "' is not supported")
-        )
-    })
+    ml_function <- substitute(ml_method, env = environment())
+    if (is.call(ml_function)) ml_function <- ml_function[[1]]
+    ml_function <- eval(ml_function, envir = asNamespace("sits"))
 
-    # check 'opt_learning_rates' parameter
-    .check_num(
-        x = opt_learning_rates, min = 0, allow_zero = FALSE, len_min = 1,
-        msg = "invalid 'opt_learning_rates' parameter"
-    )
-    # check 'opt_eps_values' parameter
-    .check_num(
-        x = opt_eps_values, min = 0, allow_zero = FALSE, len_min = 1,
-        msg = "invalid 'opt_eps_values' parameter"
-    )
-    # check 'opt_weight_decays' parameter
-    .check_num(
-        x = opt_weight_decays, min = 0, len_min = 1,
-        msg = "invalid 'opt_weight_decays' parameter"
-    )
     # check 'multicores' parameter
     .check_num(
         x = multicores, min = 1, len_min = 1, len_max = 1, is_integer = TRUE,
-        msg = "invalid 'opt_learning_rates' parameter"
+        msg = "invalid 'multicores' parameter"
     )
 
-    # combine hyper parameters
-    params <- purrr::cross(
-        list(ml_functions, opt_functions,
-             opt_learning_rates, opt_eps_values,
-             opt_weight_decays)
+    # generate random params
+    params <- substitute(params, environment())
+    params_lst <- purrr::map(
+        seq_len(trials),
+        function(x) .sits_tuning_pick_random(params)
     )
 
     # start processes
@@ -127,70 +97,25 @@ sits_tuning <- function(samples,
     on.exit(.sits_parallel_stop())
 
     # validate in parallel
-    acc_lst <- .sits_parallel_map(params, function(param) {
-
-        # initialize variables
-        param_ml_fn <- param[[1]]
-        param_opt_fn <- param[[2]]
-        lr <- param[[3]]
-        eps <- param[[4]]
-        weight_decay <- param[[5]]
-
-        # resolve ml function
-        ml_fn <- .check_error(
-            get(.config_get(key = c("tuning_supported_ml_functions",
-                                    param_ml_fn)),
-                envir = asNamespace("sits"), inherits = FALSE),
-            msg = paste0("function '", param_ml_fn, "' not found")
-        )
-
-        # resolve optim function
-        opt_conf <- .config_get(key = c("tuning_supported_dl_optim_functions",
-                                        param_opt_fn))
-        opt_pckg <- opt_conf[[1]]
-
-        .check_that(
-            x = requireNamespace(opt_pckg, quietly = TRUE),
-            local_msg = paste0("Please, install ", opt_pckg, " package"),
-            msg = paste0("optimizer function '", param_opt_fn, "' is not supported")
-        )
-
-        opt <- opt_conf[[2]]
-        opt_fn <-
-            .check_error(
-                get(opt, envir = asNamespace(opt_pckg), inherits = FALSE),
-                msg = paste0("optimizer function '", opt, "' not found in",
-                             "package '", opt_pckg, "'")
-            )
+    acc_lst <- .sits_parallel_map(params_lst, function(params) {
 
         # prepare optimizer function
-        method_fn <- do.call(
-            ml_fn, args = list(
-                optimizer = opt_fn,
-                opt_hparams = list(
-                    lr = lr,
-                    eps = eps,
-                    weight_decay = weight_decay
-                )
-            )
-        )
+        ml_method <- do.call(ml_function, args = params)
 
         # do validation
         acc <- sits_validate(
             samples = samples,
             samples_validation = samples_validation,
             validation_split = validation_split,
-            ml_method = method_fn
+            ml_method = ml_method
         )
 
         result <- tibble::tibble(
-            ml_function = param_ml_fn,
-            opt_function = param_opt_fn,
-            lr = lr,
-            eps = eps,
-            weight_decay = weight_decay,
             accuracy = acc[["overall"]][["Accuracy"]],
-            kappa = acc[["overall"]][["Kappa"]]
+            kappa = acc[["overall"]][["Kappa"]],
+            params = list(params),
+            ml_method = list(ml_method),
+            acc = list(acc)
         )
 
         return(result)
@@ -200,37 +125,10 @@ sits_tuning <- function(samples,
     tuning_tb <- dplyr::bind_rows(acc_lst) %>%
         dplyr::arrange(dplyr::desc(.data[["accuracy"]]))
 
-    # resolve best ml function
-    ml_fn <- get(
-        x = .config_get(key = c("tuning_supported_ml_functions",
-                                tuning_tb[["ml_function"]][[1]])),
-        envir = asNamespace("sits"),
-        inherits = FALSE
-    )
-
-    # resolve optimizer function
-    opt_conf <- .config_get(key = c("tuning_supported_dl_optim_functions",
-                                    tuning_tb[["opt_function"]][[1]]))
-    opt_pckg <- opt_conf[[1]]
-    opt <- opt_conf[[2]]
-    opt_fn <- get(
-        x = opt,
-        envir = asNamespace(opt_pckg),
-        inherits = FALSE
-    )
-
     # train best model parameters
     ml_model <- do.call(
-        what = ml_fn,
-        args = list(
-            samples = samples,
-            optimizer = opt_fn,
-            opt_hparams = list(
-                lr = tuning_tb[["lr"]][[1]],
-                eps = tuning_tb[["eps"]][[1]],
-                weight_decay = tuning_tb[["weight_decay"]][[1]]
-            )
-        )
+        tuning_tb[["ml_method"]][[1]],
+        args = list(samples = samples)
     )
 
     # prepare result
@@ -239,217 +137,45 @@ sits_tuning <- function(samples,
         tuning = tuning_tb
     )
 
-    class(tuning_lst) <- c("sits_tune", class(tuning_lst))
+    class(tuning_lst) <- c("tuned_model", class(tuning_lst))
 
     return(tuning_lst)
 }
 
-sits_tuning_random <- function(samples,
-                               samples_validation = NULL,
-                               validation_split   = 0.2,
-                               ml_functions       = c("tempcnn", "lighttae",
-                                                      "tae", "resnet"),
-                               opt_functions      = c("adam", "adamw"),
-                               opt_learning_rates_min_max = c(1e-03, 1e-02),
-                               opt_eps_values_min_max = c(1e-08, 1e-06),
-                               opt_weight_decays_min_max = c(0, 1e-06),
-                               trials             = 30,
-                               multicores         = 2,
-                               progress           = FALSE) {
+#' @keywords internal
+.sits_tuning_pick_random <- function(params) {
 
-    # set caller to show in errors
-    .check_set_caller("sits_tuning")
-
-    # pre-conditions
-
-    # check samples parameter
-    .sits_tibble_test(samples)
-
-    # check samples_validation parameter if it is passed
-    if (!purrr::is_null(samples_validation)) {
-        .sits_tibble_test(samples_validation)
+    uniform <- function(min = 0, max = 1) {
+        runif(n = 1, min = min, max = max)
     }
 
-    # check validation_split parameter if samples_validation is not passed
-    if (purrr::is_null(samples_validation)) {
-        .check_num(
-            x = validation_split,
-            min = 0, max = 0.5, allow_zero = FALSE,
-            len_min = 1, len_max = 1,
-            msg = "invalid 'validation_split' parameter"
-        )
+    choice <- function(...) {
+        sample(x = list(...), size = 1)[[1]]
     }
-    # check 'ml_functions' parameter
-    .check_chr_within(
-        x = ml_functions,
-        within = .config_names(key = "tuning_supported_ml_functions"),
-        msg = "invalid 'ml_functions' values"
-    )
-    # check 'opt_functions' parameter
-    .check_chr_within(
-        x = opt_functions,
-        within = .config_names(key = "tuning_supported_dl_optim_functions"),
-        msg = "invalid 'opt_functions' values"
-    )
-    # check necessary packages
-    purrr::map(opt_functions, function(opt) {
-        opt_conf <- .config_get(
-            key = c("tuning_supported_dl_optim_functions", opt)
-        )
-        opt_pckg <- opt_conf[[1]]
-        .check_that(
-            x = requireNamespace(opt_pckg, quietly = TRUE),
-            local_msg = paste0("Please, install ", opt_pckg, " package"),
-            msg = paste0("optimizer function '", opt, "' is not supported")
-        )
-    })
 
-    # check 'opt_learning_rates' parameter
-    .check_num(
-        x = opt_learning_rates, min = 0, allow_zero = FALSE, len_min = 1,
-        msg = "invalid 'opt_learning_rates' parameter"
-    )
-    # check 'opt_eps_values' parameter
-    .check_num(
-        x = opt_eps_values, min = 0, allow_zero = FALSE, len_min = 1,
-        msg = "invalid 'opt_eps_values' parameter"
-    )
-    # check 'opt_weight_decays' parameter
-    .check_num(
-        x = opt_weight_decays, min = 0, len_min = 1,
-        msg = "invalid 'opt_weight_decays' parameter"
-    )
-    # check 'multicores' parameter
-    .check_num(
-        x = multicores, min = 1, len_min = 1, len_max = 1, is_integer = TRUE,
-        msg = "invalid 'opt_learning_rates' parameter"
-    )
+    randint <- function(min, max) {
+        rn = as.integer((max - min) * runif(1) + min)
+    }
 
-    # combine hyper parameters
-    params <- purrr::cross(
-        list(ml_functions, opt_functions,
-             opt_learning_rates, opt_eps_values,
-             opt_weight_decays)
-    )
+    normal <- function(mean = 0, sd = 1) {
+        rnorm(1, mean = mean, sd = sd)
+    }
 
-    # start processes
-    .sits_parallel_start(workers = multicores, log = FALSE)
-    on.exit(.sits_parallel_stop())
+    lognormal <- function(meanlog = 0, sdlog = 1) {
+        rlnorm(1, meanlog = meanlog, sdlog = sdlog)
+    }
 
-    # validate in parallel
-    acc_lst <- .sits_parallel_map(params, function(param) {
+    loguniform <- function(minlog = 0, maxlog = 1) {
+        exp((maxlog - minlog) * runif(1) + minlog)
+    }
 
-        # initialize variables
-        param_ml_fn <- param[[1]]
-        param_opt_fn <- param[[2]]
-        lr <- param[[3]]
-        eps <- param[[4]]
-        weight_decay <- param[[5]]
+    beta <- function(shape1, shape2) {
+        rbeta(1, shape1 = shape1, shape2 = shape2)
+    }
 
-        # resolve ml function
-        ml_fn <- .check_error(
-            get(.config_get(key = c("tuning_supported_ml_functions",
-                                    param_ml_fn)),
-                envir = asNamespace("sits"), inherits = FALSE),
-            msg = paste0("function '", param_ml_fn, "' not found")
-        )
+    params <- eval(params, envir = environment())
 
-        # resolve optim function
-        opt_conf <- .config_get(key = c("tuning_supported_dl_optim_functions",
-                                        param_opt_fn))
-        opt_pckg <- opt_conf[[1]]
+    params[["samples"]] <- NULL
 
-        .check_that(
-            x = requireNamespace(opt_pckg, quietly = TRUE),
-            local_msg = paste0("Please, install ", opt_pckg, " package"),
-            msg = paste0("optimizer function '", param_opt_fn, "' is not supported")
-        )
-
-        opt <- opt_conf[[2]]
-        opt_fn <-
-            .check_error(
-                get(opt, envir = asNamespace(opt_pckg), inherits = FALSE),
-                msg = paste0("optimizer function '", opt, "' not found in",
-                             "package '", opt_pckg, "'")
-            )
-
-        # prepare optimizer function
-        method_fn <- do.call(
-            ml_fn, args = list(
-                optimizer = opt_fn,
-                opt_hparams = list(
-                    lr = lr,
-                    eps = eps,
-                    weight_decay = weight_decay
-                )
-            )
-        )
-
-        # do validation
-        acc <- sits_validate(
-            samples = samples,
-            samples_validation = samples_validation,
-            validation_split = validation_split,
-            ml_method = method_fn
-        )
-
-        result <- tibble::tibble(
-            ml_function = param_ml_fn,
-            opt_function = param_opt_fn,
-            lr = lr,
-            eps = eps,
-            weight_decay = weight_decay,
-            accuracy = acc[["overall"]][["Accuracy"]],
-            kappa = acc[["overall"]][["Kappa"]]
-        )
-
-        return(result)
-    }, progress = progress, n_retries = 0)
-
-    # unlist all overall accuracies
-    tuning_tb <- dplyr::bind_rows(acc_lst) %>%
-        dplyr::arrange(dplyr::desc(.data[["accuracy"]]))
-
-    # resolve best ml function
-    ml_fn <- get(
-        x = .config_get(key = c("tuning_supported_ml_functions",
-                                tuning_tb[["ml_function"]][[1]])),
-        envir = asNamespace("sits"),
-        inherits = FALSE
-    )
-
-    # resolve optimizer function
-    opt_conf <- .config_get(key = c("tuning_supported_dl_optim_functions",
-                                    tuning_tb[["opt_function"]][[1]]))
-    opt_pckg <- opt_conf[[1]]
-    opt <- opt_conf[[2]]
-    opt_fn <- get(
-        x = opt,
-        envir = asNamespace(opt_pckg),
-        inherits = FALSE
-    )
-
-    # train best model parameters
-    ml_model <- do.call(
-        what = ml_fn,
-        args = list(
-            samples = samples,
-            optimizer = opt_fn,
-            opt_hparams = list(
-                lr = tuning_tb[["lr"]][[1]],
-                eps = tuning_tb[["eps"]][[1]],
-                weight_decay = tuning_tb[["weight_decay"]][[1]]
-            )
-        )
-    )
-
-    # prepare result
-    tuning_lst <- list(
-        best_ml_model = ml_model,
-        tuning = tuning_tb
-    )
-
-    class(tuning_lst) <- c("sits_tune", class(tuning_lst))
-
-    return(tuning_lst)
+    params
 }

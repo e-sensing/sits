@@ -24,9 +24,11 @@ sits_env$model_formula <- "log"
 
 # Include the following global variables in the sits package
 utils::globalVariables(c(
-  ".",                         # magrittr
-  ":=", ".SD", ".SDcols",".N", # data.table
-  "self", "ctx", "super", "private" # torch
+  ".",                                # magrittr
+  ":=", ".SD", ".SDcols",".N",        # data.table
+  "self", "ctx", "super", "private",  # torch
+  "uniform", "choice", "randint",
+  "normal", "lognormal", "loguniform" # sits_tuning_random
 ))
 
 #' @importFrom lubridate %within% %m+%
