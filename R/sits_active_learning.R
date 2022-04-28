@@ -20,13 +20,13 @@
 #'
 #' @details
 #' 'confidence' determines the level of confidence in the suggested samples. A
-#' low level of confidence suggest samples on which the probabilities of each
-#' label are similar, hence, it is hard to choose the most likely sample label.
-#' These suggested samples are meant to be classified by human experts before
-#' adding them to the training set. On the other hand, suggested samples with a
-#' high level of confidence are those where the difference in probabilities
-#' clearly allow selecting a label. These samples can be added straigh to the
-#' training set.
+#' low level of confidence suggests samples on which the probabilities of each
+#' label are similar (high uncertainty), hence, it is hard to choose the most
+#' likely sample label.  These suggested samples are meant to be classified by
+#' human experts before adding them to the training set. On the other hand,
+#' suggested samples with a high level of confidence are those where the
+#' difference in probabilities clearly allow selecting a label (low
+#' uncertainty). These samples can be added straigh to the training set.
 #'
 #' @return     A data.frame
 #'
@@ -69,8 +69,7 @@ sits_suggest_samples <- function(cube, n = 100,
         dist_mt[upper.tri(dist_mt, diag = TRUE)] <- Inf
         dist_vc <- apply(dist_mt, MARGIN = 1, FUN = min)
         min_dist <- min_dist_pixels * sqrt(sum(terra::res(raster)^2))
-        dist_vc[dist_vc > min_dist] <- NA
-        var_sf <- var_sf[is.na(dist_vc), ]
+        var_sf <- var_sf[dist_vc > min_dist, ]
         # Filter the values.
         var_sf <- var_sf[1:n, ]
         # Transform to WGS84.
