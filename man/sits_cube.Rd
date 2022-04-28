@@ -204,6 +204,104 @@ Sys.setenv(
 Please refer to the sits documentation available in
 <https://e-sensing.github.io/sitsbook/> for detailed examples.
 }
+\examples{
+if (sits_active_tests()) {
+
+# --- Access to the Brazil Data Cube
+# Provide your BDC credentials as environment variables
+bdc_access_key <- Sys.getenv("BDC_ACCESS_KEY")
+if (nchar(bdc_access_key) == 0) {
+  stop("No BDC_ACCESS_KEY defined in environment.")
+}
+
+# create a raster cube file based on the information in the BDC
+cbers_tile <- sits_cube(
+  source = "BDC",
+  collection = "CB4_64_16D_STK-1",
+  bands = c("NDVI", "EVI"),
+  tiles = "022024",
+  start_date = "2018-09-01",
+  end_date = "2019-08-28"
+)
+
+# --- Create a WTSS cube from BDC cubes
+# Provide your BDC credentials as environment variables
+bdc_access_key <- Sys.getenv("BDC_ACCESS_KEY")
+if (nchar(bdc_access_key) == 0) {
+  stop("No BDC_ACCESS_KEY defined in environment.")
+}
+
+cube_wtss <- sits_cube(
+  source = "WTSS",
+  collection = "MOD13Q1-6"
+)
+
+# --- Access to Digital Earth Africa
+# create a raster cube file based on the information about the files
+# DEAFRICA does not support definition of tiles
+cube_dea <- sits_cube(
+  source = "DEAFRICA",
+  collection = "s2_l2a",
+  bands = c("B04", "B08"),
+  roi = c(
+    "lat_min" = 17.379,
+    "lon_min" = 1.1573,
+    "lat_max" = 17.410,
+    "lon_max" = 1.1910
+  ),
+  start_date = "2019-01-01",
+  end_date = "2019-10-28"
+)
+
+# --- Access to AWS open data Sentinel 2/2A level 2 collection
+s2_cube <- sits_cube(
+  source = "AWS",
+  collection = "sentinel-s2-l2a-cogs",
+  tiles = c("20LKP", "20LLP"),
+  bands = c("B04", "B08", "B11"),
+  start_date = as.Date("2018-07-18"),
+  end_date = as.Date("2019-07-23")
+)
+
+# --- Access to USGS Landsat cubes (requester pays)
+# --- Need to provide AWS_ACCESS_KEY_ID and AWS_SECRET_ACCESS_KEY
+usgs_cube <- sits_cube(
+  source = "USGS",
+  collection = "landsat-c2l2-sr",
+  bands = c("B04", "CLOUD"),
+  roi = c(
+    "xmin" = 17.379,
+    "ymin" = 1.1573,
+    "xmax" = 17.410,
+    "ymax" = 1.1910
+  ),
+  start_date = "2019-01-01",
+  end_date = "2019-10-28"
+)
+
+
+# -- Creating Sentinel cubes from MSPC"
+s2_cube <- sits_cube(
+  source = "MSPC",
+  collection = "sentinel-2-l2a",
+  tiles = "20LKP",
+  bands = c("B05", "CLOUD"),
+  start_date = as.Date("2018-07-18"),
+  end_date = as.Date("2018-08-23")
+)
+
+# --- Create a cube based on a local MODIS data
+data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
+
+modis_cube <- sits_cube(
+  source = "BDC",
+  collection = "MOD13Q1-6",
+  data_dir = data_dir,
+  delim = "_"
+)
+}
+
+}
 \references{
 \code{rstac} package (https://github.com/brazil-data-cube/rstac)
 }
