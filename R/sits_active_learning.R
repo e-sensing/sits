@@ -12,11 +12,10 @@
 #' These points don't have labels and are meant to be labelled by experts
 #' outside R.
 #'
-#' @param cube         A `sits`uncertainty cube. See `sits_uncertainty`.
-#' @param n            Maximum number of suggested points.
-#' @param min_distance Mininum distance among suggested points. The distance
-#' units are the same as those of the rasters in the cube.
-#' @param confidence   Level of confidence in the samples. Either 'low' or
+#' @param cube            A `sits`uncertainty cube. See `sits_uncertainty`.
+#' @param n               Maximum number of suggested points.
+#' @param min_dist_pixels Mininum distance among suggested points (in pixels).
+#' @param confidence      Level of confidence in the samples. Either 'low' or
 #' 'high'. See details.
 #'
 #' @details
@@ -32,13 +31,15 @@
 #' @return     A data.frame
 #'
 sits_suggest_samples <- function(cube, n = 100,
-                                 min_distance = 30,
+                                 min_dist_pixels = 10,
                                  confidence = "low") {
 
     .check_that(inherits(cube, what = "uncertainty_cube"),
                 msg = "Cube is not an sits_uncertainty cube")
     .check_that(n > 0,
                 msg = "Invalid number of new samples")
+    .check_that(min_dist_pixels > 0,
+                msg = "Invalid minimum distance.")
     .check_that(confidence %in% c("low", "high"),
                 msg = "Invalid confidence level")
 
@@ -67,7 +68,8 @@ sits_suggest_samples <- function(cube, n = 100,
         dist_mt <- sf::st_distance(var_sf, var_sf)
         dist_mt[upper.tri(dist_mt, diag = TRUE)] <- Inf
         dist_vc <- apply(dist_mt, MARGIN = 1, FUN = min)
-        dist_vc[dist_vc > min_distance] <- NA
+        min_dist <- min_dist_pixels * sqrt(sum(terra::res(raster)^2))
+        dist_vc[dist_vc > min_dist] <- NA
         var_sf <- var_sf[is.na(dist_vc), ]
         # Filter the values.
         var_sf <- var_sf[1:n, ]

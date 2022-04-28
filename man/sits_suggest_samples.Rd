@@ -4,15 +4,14 @@
 \alias{sits_suggest_samples}
 \title{Suggest samples for enhancing classification accuracy}
 \usage{
-sits_suggest_samples(cube, n = 100, min_distance = 30, confidence = "low")
+sits_suggest_samples(cube, n = 100, min_dist_pixels = 10, confidence = "low")
 }
 \arguments{
 \item{cube}{A `sits`uncertainty cube. See `sits_uncertainty`.}
 
 \item{n}{Maximum number of suggested points.}
 
-\item{min_distance}{Mininum distance among suggested points. The distance
-units are the same as those of the rasters in the cube.}
+\item{min_dist_pixels}{Mininum distance among suggested points (in pixels).}
 
 \item{confidence}{Level of confidence in the samples. Either 'low' or
 'high'. See details.}
