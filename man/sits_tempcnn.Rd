@@ -15,7 +15,7 @@ sits_tempcnn(
   epochs = 150,
   batch_size = 128,
   validation_split = 0.2,
-  optimizer = optim_adamw,
+  optimizer = torchopt::optim_adamw,
   opt_hparams = list(lr = 0.005, eps = 1e-08, weight_decay = 1e-06),
   lr_decay_epochs = 1,
   lr_decay_rate = 0.95,

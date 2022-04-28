@@ -56,6 +56,8 @@
 #' @param extensions    A \code{character} vector with all allowed file
 #' extensions.
 #' @param expr          A R \code{expression} to be evaluated.
+#' @param show_pks_name A \code{logical} value indicating if
+#'                      uninstalled packages can be shown.
 #' @param tolerance     A \code{numeric} with the tolerance to be
 #' accepted in range test. The default value is NULL.
 #' @param ...           Additional parameters for \code{fn_check} function.
@@ -218,6 +220,22 @@ NULL
     return(invisible(x))
 }
 
+#' @rdname check_functions
+#' @keywords internal
+.check_require_packages <- function(x, ...,
+                                    msg = "Please install package(s)") {
+
+    are_packages_installed <- purrr::map_lgl(
+        x, requireNamespace, quietly = TRUE
+    )
+
+    .check_that(
+        all(are_packages_installed),
+        msg = paste(msg, x[!are_packages_installed])
+    )
+
+    return(invisible(x))
+}
 
 #' @rdname check_functions
 #' @keywords internal

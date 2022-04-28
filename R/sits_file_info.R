@@ -187,20 +187,6 @@ NULL
 #' @rdname file_info_functions
 #'
 #' @details
-#' Returns timeline  for a single tiled cube
-.file_info_timeline_wtss <- function(cube) {
-    file_info <- .file_info(cube)
-    timeline <- unique(lubridate::as_date(file_info[["date"]][[1]]))
-
-    .check_num(length(timeline),
-               min = 1, is_integer = TRUE,
-               msg = "wrong timeline in file_info"
-    )
-    return(timeline)
-}
-#' @rdname file_info_functions
-#'
-#' @details
 #' Returns start date  for a single tiled cube
 #' Throws an error if cube is not a processed one
 .file_info_start_date <- function(cube) {

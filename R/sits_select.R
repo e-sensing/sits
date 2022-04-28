@@ -79,7 +79,10 @@ sits_select.sits_cube <- function(data, bands, ..., tiles = NULL) {
         .cube_bands_check(tile, bands = bands)
 
         db_info <- .file_info(tile)
-        db_info <- dplyr::filter(db_info, .data[["band"]] %in% dplyr::all_of(bands))
+        db_info <- dplyr::filter(
+            db_info,
+            .data[["band"]] %in% dplyr::all_of(bands)
+        )
 
         tile$file_info[[1]] <- db_info
         return(tile)

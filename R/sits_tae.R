@@ -65,7 +65,7 @@ sits_tae <- function(samples = NULL,
                      epochs = 150,
                      batch_size = 64,
                      validation_split = 0.2,
-                     optimizer = optim_adamw,
+                     optimizer = torchopt::optim_adamw,
                      opt_hparams = list(lr = 0.001,
                                         eps = 1e-08,
                                         weight_decay = 1.0e-06),
@@ -80,14 +80,9 @@ sits_tae <- function(samples = NULL,
 
     # function that returns torch model based on a sits sample data.table
     result_fun <- function(samples) {
-        # verifies if torch package is installed
-        if (!requireNamespace("torch", quietly = TRUE)) {
-            stop("Please install package torch", call. = FALSE)
-        }
-        # verifies if torch package is installed
-        if (!requireNamespace("luz", quietly = TRUE)) {
-            stop("Please install package luz", call. = FALSE)
-        }
+        # verifies if torch and luz packages is installed
+        .check_require_packages(c("torch", "luz"))
+
         # preconditions
         .check_num(
             x = lr_decay_epochs,
@@ -135,7 +130,9 @@ sits_tae <- function(samples = NULL,
 
         # data normalization
         stats <- .sits_ml_normalization_param(samples)
-        train_samples <- .sits_distances(.sits_ml_normalize_data(samples, stats))
+        train_samples <- .sits_distances(
+            .sits_ml_normalize_data(samples, stats)
+        )
 
         # is the training data correct?
         .check_chr_within(
@@ -300,6 +297,7 @@ sits_tae <- function(samples = NULL,
             if (!requireNamespace("torch", quietly = TRUE)) {
                 stop("Please install package torch", call. = FALSE)
             }
+            .check_require_packages("torch")
 
             # set torch threads to 1
             # function does not work on MacOS

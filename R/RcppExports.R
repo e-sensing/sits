@@ -17,12 +17,20 @@ entropy_probs <- function(mtx, n) {
     .Call(`_sits_entropy_probs`, mtx, n)
 }
 
+least_probs <- function(mtx, n) {
+    .Call(`_sits_least_probs`, mtx, n)
+}
+
 linear_interp <- function(mtx) {
     .Call(`_sits_linear_interp`, mtx)
 }
 
 linear_interp_vec <- function(vec) {
     .Call(`_sits_linear_interp_vec`, vec)
+}
+
+margin_probs <- function(mtx, n) {
+    .Call(`_sits_margin_probs`, mtx, n)
 }
 
 normalize_data <- function(data, min, max) {

@@ -405,7 +405,8 @@
 #' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
 #'
 #' @param r_obj   raster package object to be written
-#' @param block   numeric vector with names "first_col", "ncols", "first_row", "nrows".
+#' @param block   numeric vector with names "first_col", "ncols", "first_row",
+#'                "nrows".
 #' @param bbox    numeric vector with names "xmin", "xmax", "ymin", "ymax".
 #' @param ...     additional parameters to be passed to raster package
 #'

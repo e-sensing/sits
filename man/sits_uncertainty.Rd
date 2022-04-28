@@ -2,6 +2,8 @@
 % Please edit documentation in R/sits_uncertainty.R
 \name{sits_uncertainty}
 \alias{sits_uncertainty}
+\alias{sits_uncertainty.least}
+\alias{sits_uncertainty.margin}
 \title{Estimate classification uncertainty based on probs cube}
 \usage{
 sits_uncertainty(
@@ -13,11 +15,31 @@ sits_uncertainty(
   output_dir = ".",
   version = "v1"
 )
+
+\method{sits_uncertainty}{least}(
+  cube,
+  type = "least",
+  ...,
+  multicores = 2,
+  memsize = 8,
+  output_dir = ".",
+  version = "v1"
+)
+
+\method{sits_uncertainty}{margin}(
+  cube,
+  type = "margin",
+  ...,
+  multicores = 2,
+  memsize = 8,
+  output_dir = ".",
+  version = "v1"
+)
 }
 \arguments{
 \item{cube}{Probability data cube.}
 
-\item{type}{Method to measure uncertainty.}
+\item{type}{Method to measure uncertainty. See details.}
 
 \item{...}{Parameters for specific functions.}
 
@@ -36,6 +58,17 @@ An uncertainty data cube
 }
 \description{
 Estimate classification uncertainty based on probs cube
+}
+\details{
+The supported types are 'entropy', 'least', and 'margin'. Entropy
+is the information entropy computed (in nats) for each pixel in a
+probability cube. Least confidence is the amount missing from total
+confidence to the label with the largest probabilities. Margin of confidence
+is the amount missing from total confidence to the difference between the
+probabilities of the top 2 labels. The larger the metric (either entropy,
+least confidence, or margin of confidence) the larger the uncertainty
+regarding the label of the pixels; that is, the probabilities of each label
+are similar.
 }
 \note{
 Please refer to the sits documentation available in

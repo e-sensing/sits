@@ -5,9 +5,8 @@
                                                      bands, ...,
                                                      dry_run = TRUE) {
     # require package
-    if (!requireNamespace("rstac", quietly = TRUE)) {
-        stop("Please install package rstac", call. = FALSE)
-    }
+    .check_require_packages("rstac")
+
     items_query <- .stac_create_items_query(
         source = source,
         collection = collection,

@@ -17,21 +17,14 @@
 #' @param samples_validation Time series set used for validation.
 #' @param validation_split   Percent of original time series set to be used
 #'   for validation (if samples_validation is NULL)
-#' @param ml_functions       List of machine learning functions to be tested.
-#' @param opt_functions      Optimization functions to be tested.
-#' @param opt_learning_rates Learning rates to be tested.
-#' @param opt_eps_values     Values of eps to be tested. Each eps value
-#'   is the term added to the denominator to improve numerical stability.
-#' @param opt_weight_decays  Values of weight decay to be tested.
-#'   These are the the L2 regularization params (note the weight decay is
-#'   not correctly implemented in the adam optimization)
-#' @param multicores         Number of cores to process in parallel
-#' @param progress           Show progress bar?
-#' @param params List with hyper parameters to be passed to \code{ml_method}.
-#'   User can use \code{uniform}, \code{choice}, \code{randint},
-#'   \code{normal}, \code{lognormal}, \code{loguniform}, and \code{beta}
-#'   functions to randomize parameters.
+#' @param ml_method          Machine learning method.
+#' @param params             List with hyper parameters to be passed to
+#'   \code{ml_method}. User can use \code{uniform}, \code{choice},
+#'   \code{randint}, \code{normal}, \code{lognormal}, \code{loguniform},
+#'   and \code{beta} functions to randomize parameters.
 #' @param trials Number of random trials to perform the random search.
+#' @param progress           Show progress bar?
+#' @param multicores         Number of cores to process in parallel
 #'
 #' @return A list containing the best model and a tibble with all performances
 #'

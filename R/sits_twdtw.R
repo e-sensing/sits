@@ -64,9 +64,7 @@ sits_twdtw_classify <- function(samples,
                                 overlap = 0.5,
                                 .plot = TRUE) {
     # verifies if dtwSat package is installed
-    if (!(suppressWarnings(requireNamespace("dtwSat", quietly = TRUE)))) {
-        stop("Please install package dtwSat", call. = FALSE)
-    }
+    .check_require_packages("dtwSat")
 
     # does the input data exist?
     .sits_tibble_test(samples)
@@ -163,9 +161,7 @@ sits_twdtw_classify <- function(samples,
                                overlap = 0.5) {
 
     # verifies if dtwSat package is installed
-    if (!(suppressWarnings(requireNamespace("dtwSat", quietly = TRUE)))) {
-        stop("Please install package dtwSat", call. = FALSE)
-    }
+    .check_require_packages("dtwSat")
 
     # create a tibble to store the results
     predicted_lst <-
@@ -208,15 +204,10 @@ sits_twdtw_classify <- function(samples,
 #'                      to be converted to TWDTW time series.
 #' @return An object of the twdtwTimeSeries class).
 .sits_twdtw_from_tibble <- function(samples) {
-    # verifies if methods package is installed
-    if (!requireNamespace("methods", quietly = TRUE)) {
-        stop("Please install package methods", call. = FALSE)
-    }
+    # verifies if methods and zoo packages are installed
+    .check_require_packages(c("methods", "zoo"))
 
-    # verifies if zoo package is installed
-    if (!requireNamespace("zoo", quietly = TRUE)) {
-        stop("Please install package zoo", call. = FALSE)
-    }
+    # verifies if  package is installed
     # transform each sits time series into a list of zoo
     ts <- samples$time_series %>%
         purrr::map(

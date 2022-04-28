@@ -1,22 +1,3 @@
-test_that("Creating a SATVEG data cube", {
-    testthat::skip_on_cran()
-
-    cube_satveg <- tryCatch(
-        {
-            sits_cube(source = "SATVEG", collection = "TERRA")
-        },
-        error = function(e) {
-            return(NULL)
-        }
-    )
-
-    testthat::skip_if(purrr::is_null(cube_satveg),
-                      message = "SATVEG is not accessible"
-    )
-
-    expect_true(cube_satveg$ymin == -30.0)
-})
-
 test_that("Reading a raster cube", {
     data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
 
@@ -97,7 +78,9 @@ test_that("Creating cubes from BDC", {
 
     r_obj <- sits:::.raster_open_rast(cbers_cube$file_info[[1]]$path[1])
     expect_error(sits:::.cube_size(cbers_cube), "process one tile at a time")
-    expect_true(terra::nrow(r_obj) == sits:::.cube_size(cbers_cube[1, ])[["nrows"]])
+
+    cube_nrows <- sits:::.cube_size(cbers_cube[1, ])[["nrows"]]
+    expect_true(terra::nrow(r_obj) == cube_nrows)
 })
 
 test_that("Creating cubes from BDC - based on ROI with shapefile", {
@@ -110,8 +93,9 @@ test_that("Creating cubes from BDC - based on ROI with shapefile", {
                       message = "No BDC_ACCESS_KEY defined in environment."
     )
 
-    shp_file <- system.file("extdata/shapefiles/brazilian_legal_amazon/brazilian_legal_amazon.shp",
-                            package = "sits"
+    shp_file <- system.file(
+        "extdata/shapefiles/brazilian_legal_amazon/brazilian_legal_amazon.shp",
+        package = "sits"
     )
     sf_bla <- sf::read_sf(shp_file)
 
@@ -190,55 +174,6 @@ test_that("Creating cubes from BDC - invalid roi", {
             tiles = "012010",
             start_date = "2018-09-01",
             end_date = "2019-08-29"
-        )
-    )
-})
-
-test_that("Creating cubes from WTSS", {
-    testthat::skip_on_cran()
-
-    # check "BDC_ACCESS_KEY" - mandatory one per user
-    bdc_access_key <- Sys.getenv("BDC_ACCESS_KEY")
-
-    testthat::skip_if(nchar(bdc_access_key) == 0,
-                      message = "No BDC_ACCESS_KEY defined in environment."
-    )
-
-    # create a raster cube file based on the information about the files
-    wtss_cube <- tryCatch(
-        {
-            sits_cube(
-                source = "WTSS",
-                collection = "LC8_30_16D_STK-1"
-            )
-        },
-        error = function(e) {
-            return(NULL)
-        }
-    )
-    testthat::skip_if(purrr::is_null(wtss_cube),
-                      message = "WTSS server is not accessible"
-    )
-    expect_true(all(c("NDVI", "EVI") %in% sits_bands(wtss_cube)))
-    timeline <- sits_timeline(wtss_cube)
-    expect_true(as.Date("2019-11-01") %in% timeline)
-
-    # provide invalid collection
-    testthat::expect_error(
-        sits_cube(
-            source = "WTSS",
-            collection = "Invalid-collection"
-        )
-    )
-    # provide no collection
-    testthat::expect_error(
-        sits_cube(source = "WTSS")
-    )
-    # try to access cube with wrong url
-    testthat::expect_error(
-        sits_cube(
-            source = "WTSS",
-            collection = "invalid-collection"
         )
     )
 })
@@ -340,7 +275,7 @@ test_that("Creating cubes from AWS", {
     ))
 })
 
-test_that("Creating regular cubes from AWS Open Data, and extracting samples from them", {
+test_that("Regularizing cubes from AWS, and extracting samples from them", {
 
     testthat::skip_on_cran()
 

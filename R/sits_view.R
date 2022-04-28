@@ -43,10 +43,8 @@ sits_view.sits <- function(x, ...,
                            palette = "Harmonic") {
 
     # precondition
-    .check_that(
-        requireNamespace("leaflet", quietly = TRUE),
-        msg = "Please install package leaflet"
-    )
+    .check_require_packages("leaflet")
+
     # first select unique locations
     x <- dplyr::distinct(x,
                          .data[["longitude"]],
@@ -90,25 +88,30 @@ sits_view.sits <- function(x, ...,
     # create an interative map
     leaf_map <- leaflet::leaflet() %>%
         leaflet::addProviderTiles(
-            leaflet::providers$Esri.WorldImagery,
+            map = .,
+            provider = leaflet::providers$Esri.WorldImagery,
             group = "ESRI"
         ) %>%
         leaflet::addProviderTiles(
-            leaflet::providers$GeoportailFrance.orthos,
+            map = .,
+            provider = leaflet::providers$GeoportailFrance.orthos,
             group = "GeoPortalFrance"
         ) %>%
         leaflet::addProviderTiles(
-            leaflet::providers$OpenStreetMap,
+            map = .,
+            provider = leaflet::providers$OpenStreetMap,
             group = "OSM"
         ) %>%
-        leafem::addMouseCoordinates() %>%
+        leafem::addMouseCoordinates(map = .) %>%
         leaflet::flyToBounds(
+            map = .,
             lng1 = samples_bbox[["xmin"]],
             lat1 = samples_bbox[["ymin"]],
             lng2 = samples_bbox[["xmax"]],
             lat2 = samples_bbox[["ymax"]]
         ) %>%
         leaflet::addCircleMarkers(
+            map = .,
             data = samples,
             popup = ~label,
             color = ~ factpal(label),
@@ -118,6 +121,7 @@ sits_view.sits <- function(x, ...,
             group = "Samples"
         ) %>%
         leaflet::addLayersControl(
+            map = .,
             baseGroups = c("ESRI", "GeoPortalFrance", "OSM"),
             overlayGroups = c("Samples"),
             options = leaflet::layersControlOptions(collapsed = FALSE)
@@ -143,60 +147,49 @@ sits_view.raster_cube <- function(x, ...,
                                   class_cube = NULL,
                                   legend = NULL,
                                   palette = "default") {
-    dots <- list(...)
     # preconditions
     # Remote files not working in Windows (bug in stars)
-    if (.Platform$OS.type == "windows") {
-        path <- .file_info_path(x[1,])
-        if (grepl("^/vsi", path)) {
-            stop("sits_view not working in Windows OS for remote files",
-                 call. = FALSE)
-        }
-    }
+    .check_that(
+        !(.Platform$OS.type == "windows" &&
+            grepl("^/vsi", .file_info_path(x[1,]))),
+        msg = "sits_view not working in Windows OS for remote files"
+    )
+
     # verifies if leafem and leaflet packages are installed
+    .check_require_packages(c("leafem", "leaflet"))
+
+    if (is.character(dates)) {
+        .check_that(
+            grepl("^\\d{4}-\\d{2}-\\d{2}$", dates),
+            msg = "invalid dates pattern"
+        )
+
+        dates <- .check_error(
+            as.Date(dates),
+            msg = "invalid dates parameter"
+        )
+    }
+
     .check_that(
-        requireNamespace("leafem", quietly = TRUE),
-        msg = "Please install package 'leafem'"
+        x = inherits(dates, "Date"),
+        msg = "invalid dates parameter"
     )
-    .check_that(
-        requireNamespace("leaflet", quietly = TRUE),
-        msg = "Please install package 'leaflet'"
-    )
-    # deal with parameter "time"
-    if ("time" %in% names(dots)) {
-        warning("time parameter is deprecated, please use dates")
-        dates <- sits_timeline(x)[as.integer(dots[["time"]])]
-    }
-    # deal with parameter "times"
-    if ("times" %in% names(dots)) {
-        warning("times parameter is deprecated, please use dates")
-        dates <- sits_timeline(x)[as.numeric(dots[["times"]])]
-    }
-    # deal with parameter "date"
-    if ("date" %in% names(dots)) {
-        warning("use dates instead of date")
-        dates <- as.Date(dots[["date"]])
-    }
-    # deal with wrong parameter "tile"
-    if ("tile" %in% names(dots) && missing(tiles)) {
-        message("please use tiles instead of tile as parameter")
-        tiles <- dots[["tile"]]
-    }
+
     # deal with tiles
     # check if tile exists
-    if (purrr::is_null(tiles)) {
+    if (purrr::is_null(tiles))
         tiles <- x$tile[[1]]
-    } else {
-        if (is.numeric(tiles)) {
-            tiles <- x$tile[[tiles]]
-        }
-    }
+
+    if (is.numeric(tiles))
+        tiles <- x$tile[[tiles]]
+
     # try to find tiles in the list of tiles of the cube
-    .check_chr_contains(
-        x$tile,
+    .check_chr_within(
         tiles,
+        x$tile,
         msg = "requested tiles are not part of cube"
     )
+
     # check that classified map is a proper cube
     if (!purrr::is_null(class_cube)) {
         .check_that(
@@ -207,7 +200,7 @@ sits_view.raster_cube <- function(x, ...,
     # pre-condition 2
     .check_that(
         purrr::is_null(band) ||
-            (purrr::is_null(red) &&
+            (purrr::is_null(red)       &&
                  purrr::is_null(green) &&
                  purrr::is_null(blue)),
         local_msg = paste0("either 'band' parameter or 'red', 'green', and",
@@ -215,7 +208,7 @@ sits_view.raster_cube <- function(x, ...,
     )
 
     # check if rgb bands were informed
-    if (!purrr::is_null(red) ||
+    if (!purrr::is_null(red)   ||
         !purrr::is_null(green) ||
         !purrr::is_null(blue)) {
 
@@ -257,8 +250,9 @@ sits_view.raster_cube <- function(x, ...,
     )
 
     # check that times are valid
-    .check_that(all(as.Date(dates) %in% timeline),
-                msg = paste0("requested dates are not part of the cube timeline")
+    .check_that(
+        all(as.Date(dates) %in% timeline),
+        msg = "requested dates are not part of the cube timeline"
     )
     nrows_merge <- sum(slider::slide_dbl(cube_tiles, function(tile) {
         # retrieve the file info for the tile
@@ -280,25 +274,28 @@ sits_view.raster_cube <- function(x, ...,
     # create a leaflet and add providers
     leaf_map <- leaflet::leaflet() %>%
         leaflet::addProviderTiles(
-            leaflet::providers$Esri.WorldImagery,
+            map = .,
+            provider = leaflet::providers$Esri.WorldImagery,
             group = "ESRI"
         ) %>%
         leaflet::addProviderTiles(
-            leaflet::providers$GeoportailFrance.orthos,
+            map = .,
+            provider = leaflet::providers$GeoportailFrance.orthos,
             group = "GeoPortalFrance"
         ) %>%
         leaflet::addProviderTiles(
-            leaflet::providers$OpenStreetMap,
+            map = .,
+            provider = leaflet::providers$OpenStreetMap,
             group = "OSM"
         ) %>%
-        leafem::addMouseCoordinates()
+        leafem::addMouseCoordinates(map = .)
 
     # obtain the raster objects for the dates chosen
-    for (date in dates) {
+    for (i in seq_along(dates)) {
+        date <- dates[[i]]
         st_objs <- slider::slide(cube_tiles, function(tile) {
             # retrieve the file info for the tile
             fi <- .file_info(tile)
-            date <- lubridate::as_date(date)
             # filter by date
             images_date <- dplyr::filter(fi, as.Date(.data[["date"]]) == !!date)
             if (purrr::is_null(band)) {
@@ -325,6 +322,10 @@ sits_view.raster_cube <- function(x, ...,
             )
             return(st_obj)
         })
+
+        # keep the first object
+        st_merge <- st_objs[[1]]
+
         # mosaic the data
         # if there is more than one stars object, merge them
         if (length(st_objs) > 1) {
@@ -332,9 +333,6 @@ sits_view.raster_cube <- function(x, ...,
                 st_objs[[1]],
                 st_objs[[2:length(st_objs)]]
             )
-        } else {
-            # keep the first object
-            st_merge <- st_objs[[1]]
         }
         # resample and warp the image
         st_obj_new <- stars::st_warp(
@@ -367,11 +365,16 @@ sits_view.raster_cube <- function(x, ...,
             )
         }
     }
+
+    overlay_grps <- paste0(dates)
+
     # should we overlay a classified image?
     if (!purrr::is_null(class_cube)) {
+        # define overlay groups
+        overlay_grps <- c(paste0(dates), "classification")
         # get the labels
         labels <- sits_labels(class_cube)
-        names(labels) <- c(1:length(labels))
+        names(labels) <- seq_along(labels)
         # obtain the colors
         colors <- .view_get_colors(
             labels = labels,
@@ -381,7 +384,6 @@ sits_view.raster_cube <- function(x, ...,
         # select the tiles that will be shown
         cube_tiles <- dplyr::filter(class_cube, .data[["tile"]] %in% tiles)
 
-        # create the stars objects that correspond to the tiles
         # create the stars objects that correspond to the tiles
         st_objs <- slider::slide(cube_tiles, function(tile) {
             # obtain the raster stars object
@@ -394,15 +396,16 @@ sits_view.raster_cube <- function(x, ...,
                 )
             )
         })
+
+        # keep the first object
+        st_merge <- st_objs[[1]]
+
         # if there is more than one stars object, merge them
         if (length(st_objs) > 1) {
             st_merge <- stars::st_mosaic(
                 st_objs[[1]],
                 st_objs[[2:length(st_objs)]]
             )
-        } else {
-            # keep the first object
-            st_merge <- st_objs[[1]]
         }
         # resample and warp the image
         st_obj_new <- stars::st_warp(
@@ -423,24 +426,7 @@ sits_view.raster_cube <- function(x, ...,
             group = "classification",
             project = FALSE,
             maxBytes = size["leaflet_maxBytes"]
-        )
-    }
-    # define overlay groups
-    if (!purrr::is_null(class_cube)) {
-        overlay_grps <- c(paste0(dates), "classification")
-    } else {
-        overlay_grps <- paste0(dates)
-    }
-    # add layers control to leafmap
-    leaf_map <- leaf_map %>%
-        leaflet::addLayersControl(
-            baseGroups = c("ESRI", "GeoPortalFrance", "OSM"),
-            overlayGroups = overlay_grps,
-            options = leaflet::layersControlOptions(collapsed = FALSE)
-        )
-    # add class cube
-    if (!purrr::is_null(class_cube)) {
-        leaf_map <- leaf_map %>%
+        ) %>%
             leaflet::addLegend(
                 "topright",
                 pal     = fact_pal,
@@ -449,6 +435,16 @@ sits_view.raster_cube <- function(x, ...,
                 opacity = 1
             )
     }
+
+    # add layers control to leafmap
+    leaf_map <- leaf_map %>%
+        leaflet::addLayersControl(
+            map = .,
+            baseGroups = c("ESRI", "GeoPortalFrance", "OSM"),
+            overlayGroups = overlay_grps,
+            options = leaflet::layersControlOptions(collapsed = FALSE)
+        )
+
     return(leaf_map)
 }
 
@@ -460,33 +456,27 @@ sits_view.classified_image <- function(x, ...,
                                        tiles = NULL,
                                        legend = NULL,
                                        palette = "default") {
-    dots <- list(...)
     # preconditions
-    .check_that(
-        requireNamespace("leaflet", quietly = TRUE),
-        msg = "Please install package 'leaflet'"
-    )
-    # deal with wrong parameter "tile"
-    if ("tile" %in% names(dots) && missing(tiles)) {
-        message("please use tiles instead of tile as parameter")
-        tiles <- dots[["tile"]]
-    }
+    .check_require_packages("leaflet")
+
     # deal with tiles
     # check if tile exists
     if (purrr::is_null(tiles)) {
         tiles <- x$tile[[1]]
-    } else {
-        if (is.numeric(tiles)) {
-            tiles <- x$tile[[tiles]]
-        }
+    }
+
+    if (is.numeric(tiles)) {
+        tiles <- x$tile[[tiles]]
     }
     # try to find tiles in the list of tiles of the cube
-    .check_chr_contains(x$tile, tiles,
-                        msg = "requested tiles are not part of cube"
+    .check_chr_within(
+        tiles,
+        x$tile,
+        msg = "requested tiles are not part of cube"
     )
     # get the labels
     labels <- sits_labels(x)
-    names(labels) <- c(1:length(labels))
+    names(labels) <- seq_along(labels)
     # obtain the colors
     colors <- .view_get_colors(
         labels = labels,
@@ -524,15 +514,16 @@ sits_view.classified_image <- function(x, ...,
             )
         )
     })
+
+    # keep the first object
+    st_merge <- st_objs[[1]]
+
     # if there is more than one stars object, merge them
     if (length(st_objs) > 1) {
         st_merge <- stars::st_mosaic(
             st_objs[[1]],
             st_objs[[2:length(st_objs)]]
         )
-    } else {
-        # keep the first object
-        st_merge <- st_objs[[1]]
     }
     # resample and warp the image
     st_obj_new <- stars::st_warp(
@@ -547,18 +538,21 @@ sits_view.classified_image <- function(x, ...,
     # create the leaflet map
     leaf_map <- leaflet::leaflet() %>%
         leaflet::addProviderTiles(
-            leaflet::providers$Esri.WorldImagery,
+            map = .,
+            provider = leaflet::providers$Esri.WorldImagery,
             group = "ESRI"
         ) %>%
         leaflet::addProviderTiles(
-            leaflet::providers$GeoportailFrance.orthos,
+            map = .,
+            provider =  leaflet::providers$GeoportailFrance.orthos,
             group = "GeoPortalFrance"
         ) %>%
         leaflet::addProviderTiles(
-            leaflet::providers$OpenStreetMap,
+            map = .,
+            provider = leaflet::providers$OpenStreetMap,
             group = "OSM"
         ) %>%
-        leafem::addMouseCoordinates() %>%
+        leafem::addMouseCoordinates(map = .) %>%
         leafem::addStarsImage(
             x = st_obj_new,
             colors = colors,
@@ -569,6 +563,7 @@ sits_view.classified_image <- function(x, ...,
         ) %>%
         # add the the layers control
         leaflet::addLayersControl(
+            map = .,
             baseGroups = c("ESRI", "GeoPortalFrance", "OSM"),
             overlayGroups = "classification",
             options = leaflet::layersControlOptions(collapsed = FALSE)

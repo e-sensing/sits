@@ -5,7 +5,7 @@
 \alias{.torch_positional_encoding}
 \title{Torch module for positional encoder}
 \usage{
-.torch_positional_encoding()
+.torch_positional_encoding(timeline, dim_encoder = 128)
 }
 \arguments{
 \item{timeline}{Timeline of input time series.}
@@ -20,18 +20,18 @@ Defines a torch module for positional encoding, based on
 the concepts of Vaswani et al (2017) and Garnot et al ()
 
 This function part of the implementation of the paper by Vivien Garnot
-referenced below. We used the code made available by Maja Schneider in her work with
-Marco Körner referenced below and available at
+referenced below. We used the code made available by Maja Schneider in her
+work with Marco Körner referenced below and available at
 https://github.com/maja601/RC2020-psetae.
 }
 \references{
 Vivien Sainte Fare Garnot and Loic Landrieu,
-"Lightweight Temporal Self-Attention
-for Classifying Satellite Image Time Series", https://arxiv.org/abs/2007.00586
+"Lightweight Temporal Self-Attention for Classifying Satellite Image
+Time Series", https://arxiv.org/abs/2007.00586
 
 Schneider, Maja; Körner, Marco,
 "[Re] Satellite Image Time Series Classification
-with Pixel-Set Encoders and Temporal Self-Attention." ReScience C 7 (2), 2021.
+with Pixel-Set Encoders and Temporal Self-Attention." ReScience C7(2), 2021.
 
 This function part of the implementation of the paper by Vivien Garnot
 referenced below.
@@ -41,12 +41,12 @@ Marco Körner referenced below and available at
 https://github.com/maja601/RC2020-psetae.
 
 Vivien Sainte Fare Garnot and Loic Landrieu,
-"Lightweight Temporal Self-Attention
-for Classifying Satellite Image Time Series", https://arxiv.org/abs/2007.00586
+"Lightweight Temporal Self-Attention for Classifying Satellite Image
+Time Series", https://arxiv.org/abs/2007.00586
 
 Schneider, Maja; Körner, Marco,
 "[Re] Satellite Image Time Series Classification
-with Pixel-Set Encoders and Temporal Self-Attention." ReScience C 7 (2), 2021.
+with Pixel-Set Encoders and Temporal Self-Attention." ReScience C7(2), 2021.
 }
 \author{
 Charlotte Pelletier, \email{charlotte.pelletier@univ-ubs.fr}

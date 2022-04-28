@@ -127,7 +127,8 @@ sits_classify.sits <- function(data,
     bands_samples <- sits_bands(samples)
     bands_data <- sits_bands(data)
     .check_that(all(bands_samples == bands_data),
-                msg = "Order of the bands must be the same in samples and in data"
+                msg = paste("Order of the bands must be the same in samples",
+                            "and in data")
     )
 
     # get normalization params
@@ -285,5 +286,6 @@ sits_classify.raster_cube <- function(data, ml_model, ...,
 
         return(probs_row)
     })
+
     return(probs_cube)
 }

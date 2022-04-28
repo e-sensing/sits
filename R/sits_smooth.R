@@ -54,9 +54,7 @@ sits_smooth <- function(cube, type = "bayes", ...) {
     # set caller to show in errors
     .check_set_caller("sits_smooth")
 
-    if (!requireNamespace("parallel", quietly = TRUE)) {
-        stop("Please install package parallel.", call. = FALSE)
-    }
+    .check_require_packages("parallel")
 
     # check if cube has probability data
     .check_that(
@@ -266,12 +264,9 @@ sits_smooth.bayes <- function(cube, type = "bayes", ...,
 
             # crop removing overlaps
             raster_out <- .raster_crop(raster_out, block = blk_no_overlap)
-
-            # export to temp file
             block_file <- .smth_filename(tile = tile_new,
                                          output_dir = output_dir,
                                          block = block)
-
             # save chunk
             .raster_write_rast(
                 r_obj = raster_out,
@@ -348,8 +343,6 @@ sits_smooth.bayes <- function(cube, type = "bayes", ...,
 
     return(result_cube)
 }
-
-
 
 #' @rdname sits_smooth
 #'
@@ -429,7 +422,7 @@ sits_smooth.bilateral <- function(cube,
             (abs(rep(w_seq, each = window_size) - w_center) ^ 2 +
                  abs(rep(w_seq, window_size) - w_center) ^ 2) ^ (1 / 2),
             sd = sigma) / stats::dnorm(0)
-        matrix(x / sum(x), nrow = window_size, byrow = T)
+        matrix(x / sum(x), nrow = window_size, byrow = TRUE)
     }
 
     gs_matrix <- gauss_kernel(window_size, sigma)
@@ -539,8 +532,6 @@ sits_smooth.bilateral <- function(cube,
 
             # crop removing overlaps
             raster_out <- .raster_crop(raster_out, block = blk_no_overlap)
-
-            # export to temp file
             block_file <- .smth_filename(tile = tile_new,
                                          output_dir = output_dir,
                                          block = block)

@@ -21,7 +21,8 @@
 #' The R-torch version is based on the code made available by Zhiguang Wang,
 #' author of the original paper. The code was developed in python using keras.
 #'
-#' https://github.com/cauchyturing/UCR_Time_Series_Classification_Deep_Learning_Baseline/blob/master/ResNet.py
+#' https://github.com/cauchyturing
+#' (repo: UCR_Time_Series_Classification_Deep_Learning_Baseline)
 #'
 #' The R-torch version also considered the code by Ignacio Oguiza,
 #' whose implementation is available at
@@ -83,7 +84,7 @@ sits_resnet <- function(samples = NULL,
                         epochs = 100,
                         batch_size = 64,
                         validation_split = 0.2,
-                        optimizer = optim_adamw,
+                        optimizer = torchopt::optim_adamw,
                         opt_hparams = list(
                             lr = 0.001,
                             eps = 1e-08,
@@ -99,14 +100,9 @@ sits_resnet <- function(samples = NULL,
 
     # function that returns torch model based on a sits sample data.table
     result_fun <- function(samples) {
-        # verifies if torch package is installed
-        if (!requireNamespace("torch", quietly = TRUE)) {
-            stop("Please install package torch", call. = FALSE)
-        }
-        # verifies if luz package is installed
-        if (!requireNamespace("luz", quietly = TRUE)) {
-            stop("Please install package luz", call. = FALSE)
-        }
+        # verifies if torch and luz packages is installed
+        .check_require_packages(c("torch", "luz"))
+
         .check_that(
             x = length(kernels) == 3,
             msg = "should inform size of three kernels"
@@ -155,7 +151,9 @@ sits_resnet <- function(samples = NULL,
 
         # data normalization
         stats <- .sits_ml_normalization_param(samples)
-        train_samples <- .sits_distances(.sits_ml_normalize_data(samples, stats))
+        train_samples <- .sits_distances(
+            .sits_ml_normalize_data(samples, stats)
+        )
 
         # is the training data correct?
         .check_chr_within(
@@ -254,14 +252,14 @@ sits_resnet <- function(samples = NULL,
                     padding     = "same"
                 )
                 # create shortcut
-                self$shortcut = .torch_conv1D_batch_norm(
+                self$shortcut <- .torch_conv1D_batch_norm(
                     input_dim   = in_channels,
                     output_dim  = out_channels,
                     kernel_size = 1,
                     padding     = "same"
                 )
                 # activation
-                self$act = torch::nn_relu()
+                self$act <- torch::nn_relu()
             },
             forward = function(x){
                 res <-  self$shortcut(x)
@@ -366,9 +364,7 @@ sits_resnet <- function(samples = NULL,
         model_predict <- function(values) {
 
             # verifies if torch package is installed
-            if (!requireNamespace("torch", quietly = TRUE)) {
-                stop("Please install package torch", call. = FALSE)
-            }
+            .check_require_packages("torch")
 
             # set torch threads to 1
             # function does not work on MacOS

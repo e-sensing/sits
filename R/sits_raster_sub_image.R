@@ -208,26 +208,6 @@
         crs = tile[["crs"]]
     )
 
-    # compute first_col (terra code below)
-    # if (bbox[["xmin"]] >= tile[["xmin"]] && bbox[["xmin"]] < tile[["xmax"]]) {
-    #
-    #     first_col <- trunc((bbox[["xmin"]] - tile[["xmin"]]) / res[["xres"]]) + 1
-    #
-    # } else if (bbox[["xmin"]] == tile[["xmax"]]) {
-    #
-    #     first_col <- size[["ncols"]]
-    # }
-
-    # compute first_row (terra code below)
-    # if (bbox[["ymax"]] > tile[["ymin"]] && bbox[["ymax"]] <= tile[["ymax"]]) {
-    #
-    #     first_row <- trunc((tile[["ymax"]] - bbox[["ymax"]]) / res[["yres"]]) + 1
-    #
-    # } else if (bbox[["ymax"]] == tile[["ymin"]]) {
-    #
-    #     first_row <- size[["nrows"]]
-    # }
-
     tolerance <- .config_get(key = c(
         "sources", .cube_source(tile),
         "collections", .cube_collection(tile),

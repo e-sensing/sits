@@ -129,16 +129,16 @@ plot.raster_cube <- function(x, ...,
     # precondition
     if (purrr::is_null(tiles)) {
         tiles <- x$tile[[1]]
-    } else {
-        .check_chr_contains(
-            x = x$tile,
-            contains = tiles,
-            case_sensitive = FALSE,
-            discriminator = "all_of",
-            can_repeat = FALSE,
-            msg = "tiles are not included in the cube"
-        )
     }
+
+    .check_chr_contains(
+        x = x$tile,
+        contains = tiles,
+        case_sensitive = FALSE,
+        discriminator = "all_of",
+        can_repeat = FALSE,
+        msg = "tiles are not included in the cube"
+    )
 
     # pre-condition 2
     .check_that(
@@ -167,19 +167,16 @@ plot.raster_cube <- function(x, ...,
 
         # get default band (try first non-cloud band...)
         if (purrr::is_null(band)) {
-            band <- .cube_bands(x, add_cloud = FALSE)
+            band <- .cube_bands(x, add_cloud = TRUE)
             if (length(band) > 0) {
-                band <- band[[1]]
-            } else {
-                # ...else get cloud band
-                band <- .cube_bands(x)[[1]]
+                band <- band[!band %in% "CLOUD"]
             }
         }
 
         # plot as grayscale
-        red <- band
+        red   <- band
         green <- band
-        blue <- band
+        blue  <- band
     }
 
     # preconditions
@@ -194,9 +191,9 @@ plot.raster_cube <- function(x, ...,
     timeline <- sits_timeline(x)
     if (purrr::is_null(date)) {
         date <- timeline[[1]]
-    } else {
-        date <- as.Date(date)
     }
+
+    date <- as.Date(date)
     .check_that(
         length(date) == 1,
         msg = "plot handles one date at a time"
@@ -208,9 +205,7 @@ plot.raster_cube <- function(x, ...,
 
     # verify sf package if roi is informed
     if (!purrr::is_null(roi)) {
-        if (!requireNamespace("sf", quietly = TRUE)) {
-            stop("Please install package sf.", call. = FALSE)
-        }
+        .check_require_packages("sf")
 
         # filter only intersecting tiles
         intersects <- slider::slide(x, function(tile) {
@@ -232,19 +227,20 @@ plot.raster_cube <- function(x, ...,
     r_objs <- slider::slide(x, function(row) {
         # plot only the selected tile
         # select only the bands for the timeline
-        bands_date <- .file_info(row) %>%
-            dplyr::filter(.data[["date"]] == !!date)
+        bds_date <- dplyr::filter(.file_info(row), .data[["date"]] == !!date)
 
         # Are we plotting a grey image
         if (!purrr::is_null(band)) {
-            rgb_stack <- dplyr::filter(bands_date, .data[["band"]] == red)$path
+            rgb_stack <- dplyr::filter(bds_date, .data[["band"]] == red)$path
+            bands_order <- c(r = 1, g = 1, b = 1)
         } else {
             # get RGB files for the requested timeline
-            red_file <- dplyr::filter(bands_date, .data[["band"]] == red)$path
-            green_file <- dplyr::filter(bands_date, .data[["band"]] == green)$path
-            blue_file <- dplyr::filter(bands_date, .data[["band"]] == blue)$path
+            red_file <- dplyr::filter(bds_date, .data[["band"]] == red)$path
+            green_file <- dplyr::filter(bds_date, .data[["band"]] == green)$path
+            blue_file <- dplyr::filter(bds_date, .data[["band"]] == blue)$path
             # put the band on a raster/terra stack
             rgb_stack <- c(red_file, green_file, blue_file)
+            bands_order <- c(r = 1, g = 2, b = 3)
         }
         # use the raster package to obtain a raster object from a stack
         r_obj <- .raster_open_stack.terra(rgb_stack)
@@ -261,34 +257,27 @@ plot.raster_cube <- function(x, ...,
         return(r_obj)
     })
 
+    r_merge <- r_objs[[1]]
+
     # merge two or more raster objects
-    if (length(r_objs) == 1) {
-        r_merge <- r_objs[[1]]
-    } else {
+    if (length(r_objs) > 1) {
         raster_collection <- terra::sprc(r_objs)
         r_merge <- terra::merge(raster_collection)
     }
 
-    # view the RGB file
-    if (!purrr::is_null(band)) {
-        suppressWarnings(
-            terra::plotRGB(r_merge,
-                           r = 1,
-                           g = 1,
-                           b = 1,
-                           stretch = "hist"
-            )
+    bands_order <- c(r = 1, g = 1, b = 1)
+    if (purrr::is_null(band))
+        bands_order <- c(r = 1, g = 2, b = 3)
+
+    suppressWarnings(
+        terra::plotRGB(r_merge,
+                       r = bands_order[["r"]],
+                       g = bands_order[["g"]],
+                       b = bands_order[["b"]],
+                       stretch = "hist"
         )
-    } else {
-        suppressWarnings(
-            terra::plotRGB(r_merge,
-                           r = 1,
-                           g = 2,
-                           b = 3,
-                           stretch = "hist"
-            )
-        )
-    }
+    )
+
     return(invisible(r_merge))
 }
 #' @title  Plot probability cubes
@@ -335,9 +324,8 @@ plot.probs_cube <- function(x, y, ...,
                             palette = "Terrain") {
     stopifnot(missing(y))
     # verifies if stars package is installed
-    if (!requireNamespace("stars", quietly = TRUE)) {
-        stop("Please install package stars.", call. = FALSE)
-    }
+    .check_require_packages("stars")
+
     # precondition - check breaks parameter
     .check_chr_within(
         x = breaks,
@@ -466,9 +454,8 @@ plot.uncertainty_cube <- function(x, y, ...,
                                   palette = "Blues") {
     stopifnot(missing(y))
     # verifies if stars package is installed
-    if (!requireNamespace("stars", quietly = TRUE)) {
-        stop("Please install package stars.", call. = FALSE)
-    }
+    .check_require_packages("stars")
+
     # precondition - check breaks parameter
     .check_chr_within(
         x = breaks,
@@ -685,9 +672,7 @@ plot.torch_model <- function(x, y, ...) {
 #'
 .sits_plot_patterns <- function(data) {
     # verifies if scales package is installed
-    if (!requireNamespace("scales", quietly = TRUE)) {
-        stop("Please install package scales.", call. = FALSE)
-    }
+    .check_require_packages("scales")
 
     # put the time series in the data frame
     plot.df <- purrr::pmap_dfr(
@@ -810,7 +795,7 @@ plot.torch_model <- function(x, y, ...) {
                         }
                     )
                     # merge the list of data.tables into a single table
-                    dt <- Reduce(function(...) merge(..., all = T), dt_lst)
+                    dt <- Reduce(function(...) merge(..., all = TRUE), dt_lst)
 
                     # create another data.table with all the rows together
                     # (required to compute the median and quartile values)
@@ -861,7 +846,12 @@ plot.torch_model <- function(x, y, ...) {
     # create the plot title
     plot_title <- .sits_plot_title(row$latitude, row$longitude, row$label)
     #
-    colors <- grDevices::hcl.colors(n = 20, palette = "Harmonic", alpha = 1, rev = TRUE)
+    colors <- grDevices::hcl.colors(
+        n = 20,
+        palette = "Harmonic",
+        alpha = 1,
+        rev = TRUE
+    )
     # extract the time series
     data_ts <- dplyr::bind_rows(row$time_series)
     # melt the data into long format
@@ -891,9 +881,7 @@ plot.torch_model <- function(x, y, ...) {
 .sits_plot_ggplot_series_na <- function(row) {
 
     # verifies if tidyr package is installed
-    if (!requireNamespace("tidyr", quietly = TRUE)) {
-        stop("Please install package tidyr", call. = FALSE)
-    }
+    .check_require_packages("tidyr")
 
     # define a function to replace the NAs for unique values
     replace_na <- function(x) {
@@ -1008,9 +996,8 @@ plot.torch_model <- function(x, y, ...) {
 .sits_plot_predicted_ts <- function(data, bands, palette) {
 
     # verifies if scales package is installed
-    if (!requireNamespace("scales", quietly = TRUE)) {
-        stop("Please install package scales.", call. = FALSE)
-    }
+    .check_require_packages("scales")
+
     if (purrr::is_null(bands)) {
         bands <- sits_bands(data)
     }
@@ -1158,14 +1145,12 @@ plot.torch_model <- function(x, y, ...) {
     # set caller to show in errors
     .check_set_caller(".sits_plot_dendrogram")
 
-    # verifies if dendextend package is installed
-    if (!requireNamespace("dendextend", quietly = TRUE)) {
-        stop("Please install package dendextend.", call. = FALSE)
-    }
-    # verifies if methods package is installed
-    if (!requireNamespace("methods", quietly = TRUE)) {
-        stop("Please install package methods.", call. = FALSE)
-    }
+    # verifies if dendextend and methods packages is installed
+    .check_require_packages(
+        c("dendextend", "methods"),
+        msg = "please install package(s)"
+    )
+
     # ensures that a cluster object  exists
     .check_null(
         x = cluster,
@@ -1516,7 +1501,7 @@ plot.torch_model <- function(x, y, ...) {
 #'
 #' @description         Plots the results of TWDTW classification (uses dtwSat).
 #'
-#' @param  matches      dtwSat S4 matches objects produced by sits_TWDTW_matches.
+#' @param  matches      dtwSat S4 objects produced by sits_TWDTW_matches.
 #' @param  start_date   Start date of the plot (used for classifications).
 #' @param  end_date     End date of the plot (used for classifications).
 #' @param  interval     Interval between classifications.
@@ -1529,9 +1514,7 @@ plot.torch_model <- function(x, y, ...) {
                                    interval = "12 month",
                                    overlap = 0.5) {
     # verifies if dtwSat package is installed
-    if (!requireNamespace("dtwSat", quietly = TRUE)) {
-        stop("Please install package dtwSat", call. = FALSE)
-    }
+    .check_require_packages("dtwSat")
 
     matches %>%
         purrr::map(function(m) {
@@ -1556,7 +1539,8 @@ plot.torch_model <- function(x, y, ...) {
 
 
 .sits_plot_torch_model <- function(model) {
-    metrics_lst <- environment(model)[["torch_model"]][[c("records", "metrics")]]
+    model_vars  <- c("records", "metrics")
+    metrics_lst <- environment(model)[["torch_model"]][[model_vars]]
 
     metrics_dfr <- purrr::map_dfr(names(metrics_lst), function(name) {
         x <- metrics_lst[[name]]
@@ -1565,7 +1549,6 @@ plot.torch_model <- function(x, y, ...) {
             dplyr::mutate(epoch = seq_len(dplyr::n()), data = name) %>%
             tidyr::pivot_longer(cols = 1:2, names_to = "metric")
     })
-
 
     p <- ggplot2::ggplot(metrics_dfr, ggplot2::aes(
         x = .data[["epoch"]],
@@ -1577,21 +1560,21 @@ plot.torch_model <- function(x, y, ...) {
     p <- p + ggplot2::geom_point(shape = 21, col = 1, na.rm = TRUE, size = 2) +
         ggplot2::geom_smooth(
             formula = y ~ x,
-            se = FALSE,
-            method = "loess",
-            na.rm = TRUE
+            se      = FALSE,
+            method  = "loess",
+            na.rm   = TRUE
         )
 
     p <- p + ggplot2::facet_grid(metric ~ ., switch = "y", scales = "free_y") +
         ggplot2::theme(
-            axis.title.y = ggplot2::element_blank(),
+            axis.title.y    = ggplot2::element_blank(),
             strip.placement = "outside",
-            strip.text = ggplot2::element_text(
+            strip.text      = ggplot2::element_text(
                 colour = "black",
-                size = 11
+                size   = 11
             ),
             strip.background = ggplot2::element_rect(
-                fill = NA,
+                fill  = NA,
                 color = NA
             )
         )

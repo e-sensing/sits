@@ -13,7 +13,7 @@
 )
 }
 \arguments{
-\item{matches}{dtwSat S4 matches objects produced by sits_TWDTW_matches.}
+\item{matches}{dtwSat S4 objects produced by sits_TWDTW_matches.}
 
 \item{start_date}{Start date of the plot (used for classifications).}
 

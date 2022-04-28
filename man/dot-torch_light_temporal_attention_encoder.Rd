@@ -4,7 +4,13 @@
 \alias{.torch_light_temporal_attention_encoder}
 \title{Torch module for temporal attention encoder}
 \usage{
-.torch_light_temporal_attention_encoder()
+.torch_light_temporal_attention_encoder(
+  timeline,
+  in_channels = 128,
+  n_heads = 16,
+  n_neurons = c(256, 128),
+  dropout_rate = 0.2
+)
 }
 \arguments{
 \item{timeline}{Timeline of input time series.}
@@ -31,8 +37,8 @@ https://github.com/VSainteuf/lightweight-temporal-attention-pytorch
 }
 \references{
 Vivien Sainte Fare Garnot and Loic Landrieu,
-"Lightweight Temporal Self-Attention
-for Classifying Satellite Image Time Series", https://arxiv.org/abs/2007.00586
+"Lightweight Temporal Self-Attention for Classifying Satellite Image
+Time Series", https://arxiv.org/abs/2007.00586
 }
 \author{
 Charlotte Pelletier, \email{charlotte.pelletier@univ-ubs.fr}

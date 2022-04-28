@@ -3,7 +3,6 @@
 sits_s3_classes :   ["sits", "patterns", "predicted", "sits_model",
                     "sits_cube", "raster_cube", "probs_cube",
                     "uncertainty_cube", "classified_image",
-                    "wtss_cube", "satveg_cube",
                     "stac_cube", "bdc_cube", "aws_cube",
                     "usgs_cube", "deafrica_cube"]
 
