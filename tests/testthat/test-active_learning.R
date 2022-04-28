@@ -65,5 +65,5 @@ test_that("Suggested samples have different confidence levels", {
     expect_true(conf[conf$type == "low", "min"]  > conf[conf$type == "high", "min"])
     expect_true(conf[conf$type == "low", "max"]  > conf[conf$type == "high", "max"])
     expect_true(conf[conf$type == "low", "mean"] > conf[conf$type == "high", "mean"])
-}
+})
 
