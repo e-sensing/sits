@@ -27,4 +27,7 @@ Makevars.*
 *.gcda
 *.gcno
 ^_snaps
+tags
+R/tags
+*.swp
 

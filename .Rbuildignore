@@ -17,3 +17,6 @@
 ^contributing.md$
 ^\.gcda$
 ^\.gcno$
+^tags
+^\.swp
+
