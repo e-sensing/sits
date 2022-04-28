@@ -51,7 +51,7 @@ sits_uncertainty <- function(cube, type = "entropy", ...,
     UseMethod("sits_uncertainty", type)
 }
 
-#' @rdname sits_smooth
+#' @rdname sits_uncertainty
 #'
 #' @export
 #'
