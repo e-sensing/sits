@@ -147,7 +147,7 @@
 #' @note All BDC collections are regularized.
 #' BDC users need to provide their credentials using environment
 #' variables. To create your credentials, please see
-#' https://brazil-data-cube.github.io/applications/dc_explorer/token-module.html.
+#' <brazil-data-cube.github.io/applications/dc_explorer/token-module.html>.
 #' Accessing data in the BDC is free.
 #' After obtaining the BDC access key, please include it as
 #' an environment variable, as follows:

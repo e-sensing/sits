@@ -492,7 +492,7 @@ print.sits_assessment <- function(x, ...,
               "(Neg Pred Value)",
               "(F1)"), collapse = "|"
         )
-        x$byClass <- x$byClass[, grepl(pattern_format,colnames(x$byClass))]
+        x$byClass <- x$byClass[, grepl(pattern_format, colnames(x$byClass))]
         measures <- t(x$byClass)
         rownames(measures) <- c(
             "Prod Acc (Sensitivity)", "Specificity",

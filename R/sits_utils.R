@@ -1,25 +1,3 @@
-.did_you_mean <- function(ref, candidates) {
-
-    # takes only the non-repeated candidates
-    candidates <- unique(candidates)
-
-    # compute the levenshtein distance between reference and candidates
-    min_dist <- adist(ref, candidates, ignore.case = TRUE, partial = TRUE)[1L, ]
-    names(min_dist) <- candidates
-
-    # takes the tree best suggested candidates that are similar with
-    # the reference
-    suggested <- head(sort(min_dist[min_dist <= ceiling(0.2 * nchar(ref))], ), 3L)
-
-    if (!length(suggested))
-        return("")
-
-    quote_sep  <- "'"
-    sugg_formated <- paste0(quote_sep, names(suggested), quote_sep)
-
-    sprintf(" Did you mean %s?", paste(sugg_formated, collapse = ", "))
-}
-
 #' @title Create file name
 #' @name .create_filename
 #' @keywords internal

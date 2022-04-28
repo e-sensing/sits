@@ -293,7 +293,8 @@
         x <- self$in_layer_norm(x)
 
         # apply 1D conv to the reshaped input
-        # convolution is performed in 3D shape [batch_size x in_channels:128 x seq_len]
+        # convolution is performed in 3D shape
+        # [batch_size x in_channels:128 x seq_len]
         # and returns a 3D shape [batch_size x d_model:256 x seq_len]
         x <- self$inconv(x$permute(c(1, 3, 2)))
         # reshape the input again
@@ -483,7 +484,8 @@
         # keys tensor has 3D shape [batch_size x seq_len x d_model:256]
         # output tensor has 3D shape [batch_size x seq_len x (n_heads * d_k)]
         keys <- self$fc_k(values)
-        # reshape the keys vector to 4D shape [batch_size, seq_len, n_heads, d_k]
+        # reshape the keys vector to 4D shape
+        # [batch_size, seq_len, n_heads, d_k]
         keys <- keys$view(c(batch_size, seq_len, n_heads, d_k))
         # permute shape of keys tensor
         # from 4D shape [batch_size, seq_len, n_heads, d_k]
@@ -497,15 +499,19 @@
         split_value <- dim_encoder %/% n_heads
         # reshape the values tensor by splitting
         # from 3D shape[batch_size x seq_len x dim_encoder:256]
-        # to a 4D shape [n_heads x batch_size x seq_len x (dim_encoder %/% n_heads)]
+        # to a 4D shape
+        # [n_heads x batch_size x seq_len x (dim_encoder %/% n_heads)]
         values <- torch::torch_stack(values$split(split_value, dim = -1))
         # reshape the values tensor
-        # from 4D shape [n_heads x batch_size x seq_len x (dim_encoder %/% n_heads)]
-        # to 3D shape [(n_heads * batch_size) x seq_len x (dim_encoder %/% n_heads)]
+        # from 4D shape
+        # [n_heads x batch_size x seq_len x (dim_encoder %/% n_heads)]
+        # to 3D shape
+        # [(n_heads * batch_size) x seq_len x (dim_encoder %/% n_heads)]
         values <- values$view(c(n_heads * batch_size, seq_len, -1))
         # calculate the attention values
         output <- self$attention(query, keys, values)
-        # output has 3D shape [(num_heads * batch_size) x seq_len x (dim_encoder %/% n_heads)]
+        # output has 3D shape
+        # [(num_heads * batch_size) x seq_len x (dim_encoder %/% n_heads)]
         # d_in = 256 and n_heads = 16, d_in %/% n_heads = 16
         # reshape to 4D shape [num_heads x batch_size x 1 x d_in %/% n_heads:16]
         output <-  output$view(c(n_heads, batch_size, 1, d_in %/% n_heads))

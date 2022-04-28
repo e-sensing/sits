@@ -166,13 +166,12 @@
         if (file.exists(filename_block)) {
             # try to open the file
             r_obj <-
-                tryCatch(
-                    {
-                        .raster_open_rast(filename_block)
-                    },
-                    error = function(e) {
-                        return(NULL)
-                    }
+                tryCatch({
+                    .raster_open_rast(filename_block)
+                },
+                error = function(e) {
+                    return(NULL)
+                }
                 )
             # if file can be opened, check if the result is correct
             # this file will not be processed again

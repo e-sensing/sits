@@ -487,17 +487,17 @@ sits_timeline.classified_image <- function(data) {
 }
 
 #' @title Find if the date information is correct
-#' @name  .sits_timeline_date_format
+#' @name  .sits_timeline_format
 #' @keywords internal
 #' @description Given a information about dates, check if the date can be
 #'              interpreted by lubridate
 #' @param date   a date information
 #' @return date class vector
 #'
-.sits_timeline_date_format <- function(date) {
+.sits_timeline_format <- function(date) {
 
     # set caller to show in errors
-    .check_set_caller(".sits_timeline_date_format")
+    .check_set_caller(".sits_timeline_format")
     .check_length(
         x = date,
         len_min = 1,

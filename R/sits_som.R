@@ -163,7 +163,8 @@ sits_som_map <- function(data,
 
                 # Is this value are in the maximum vector of the prior
                 # probability?
-                index_prior_max <- which(label_max_post %in% number_of_label_max == TRUE)
+                index_prior_max <-
+                    which(label_max_post %in% number_of_label_max == TRUE)
                 label_max_final <- label_max_post[index_prior_max]
             } else {
                 label_max_final <- which.max(labels_neuron$prior_prob)

@@ -85,7 +85,8 @@
         input      <- input$view(c(batch_size * n_times, n_bands))
         # run the the 2D shape by a multi-layer perceptron
         # input is 2D shape [(batch_size * n_times), n_bands]
-        dim_enc    <- self$layers_spatial_encoder[[length(self$layers_spatial_encoder)]]
+        dim_enc    <-
+            self$layers_spatial_encoder[[length(self$layers_spatial_encoder)]]
         output     <- self$spatial_encoder(input)
         # output is a 2D shape[(batch_size * n_times), dim_enc]
         # reshape the output
@@ -118,7 +119,7 @@
 #'
 #' Schneider, Maja; Körner, Marco,
 #' "[Re] Satellite Image Time Series Classification
-#' with Pixel-Set Encoders and Temporal Self-Attention." ReScience C 7 (2), 2021.
+#' with Pixel-Set Encoders and Temporal Self-Attention." ReScience C7(2), 2021.
 #'
 #' This function part of the implementation of the paper by Vivien Garnot
 #' referenced below.
@@ -134,7 +135,7 @@
 #'
 #' Schneider, Maja; Körner, Marco,
 #' "[Re] Satellite Image Time Series Classification
-#' with Pixel-Set Encoders and Temporal Self-Attention." ReScience C 7 (2), 2021.
+#' with Pixel-Set Encoders and Temporal Self-Attention." ReScience C7(2), 2021.
 #'
 #' @param timeline          Timeline of input time series.
 #' @param dim_encoder       Dimension of the positional encoder.

@@ -137,7 +137,7 @@ sits_view.sits <- function(x, ...,
 #' @rdname   sits_view
 #'
 #' @export
-sits_view.raster_cube <- function(x,
+sits_view.raster_cube <- function(x, ...,
                                   band = NULL,
                                   red = NULL,
                                   green = NULL,
@@ -452,7 +452,7 @@ sits_view.raster_cube <- function(x,
 #'
 #' @export
 #'
-sits_view.classified_image <- function(x,
+sits_view.classified_image <- function(x, ...,
                                        tiles = NULL,
                                        legend = NULL,
                                        palette = "default") {

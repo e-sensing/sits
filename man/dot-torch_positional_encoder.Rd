@@ -31,7 +31,7 @@ Time Series", https://arxiv.org/abs/2007.00586
 
 Schneider, Maja; Körner, Marco,
 "[Re] Satellite Image Time Series Classification
-with Pixel-Set Encoders and Temporal Self-Attention." ReScience C 7 (2), 2021.
+with Pixel-Set Encoders and Temporal Self-Attention." ReScience C7(2), 2021.
 
 This function part of the implementation of the paper by Vivien Garnot
 referenced below.
@@ -46,7 +46,7 @@ Time Series", https://arxiv.org/abs/2007.00586
 
 Schneider, Maja; Körner, Marco,
 "[Re] Satellite Image Time Series Classification
-with Pixel-Set Encoders and Temporal Self-Attention." ReScience C 7 (2), 2021.
+with Pixel-Set Encoders and Temporal Self-Attention." ReScience C7(2), 2021.
 }
 \author{
 Charlotte Pelletier, \email{charlotte.pelletier@univ-ubs.fr}

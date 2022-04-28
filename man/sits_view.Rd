@@ -13,6 +13,7 @@ sits_view(x, ...)
 
 \method{sits_view}{raster_cube}(
   x,
+  ...,
   band = NULL,
   red = NULL,
   green = NULL,
@@ -24,7 +25,7 @@ sits_view(x, ...)
   palette = "default"
 )
 
-\method{sits_view}{classified_image}(x, tiles = NULL, legend = NULL, palette = "default")
+\method{sits_view}{classified_image}(x, ..., tiles = NULL, legend = NULL, palette = "default")
 }
 \arguments{
 \item{x}{Object of class "sits",

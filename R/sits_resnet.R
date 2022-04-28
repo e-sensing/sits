@@ -21,7 +21,8 @@
 #' The R-torch version is based on the code made available by Zhiguang Wang,
 #' author of the original paper. The code was developed in python using keras.
 #'
-#' https://github.com/cauchyturing/UCR_Time_Series_Classification_Deep_Learning_Baseline/blob/3ecc8971fa768bd01ada7f3a613688255e6256c2/ResNet.py
+#' https://github.com/cauchyturing
+#' (repo: UCR_Time_Series_Classification_Deep_Learning_Baseline)
 #'
 #' The R-torch version also considered the code by Ignacio Oguiza,
 #' whose implementation is available at
@@ -83,7 +84,7 @@ sits_resnet <- function(samples = NULL,
                         epochs = 100,
                         batch_size = 64,
                         validation_split = 0.2,
-                        optimizer = optim_adamw,
+                        optimizer = torchopt::optim_adamw,
                         opt_hparams = list(
                             lr = 0.001,
                             eps = 1e-08,

@@ -11,8 +11,7 @@
   output_dir,
   multicores = 1,
   memsize = 4,
-  progress = TRUE,
-  ...
+  progress = TRUE
 )
 }
 \arguments{

@@ -227,17 +227,17 @@ plot.raster_cube <- function(x, ...,
     r_objs <- slider::slide(x, function(row) {
         # plot only the selected tile
         # select only the bands for the timeline
-        bands_date <- dplyr::filter(.file_info(row), .data[["date"]] == !!date)
+        bds_date <- dplyr::filter(.file_info(row), .data[["date"]] == !!date)
 
         # Are we plotting a grey image
         if (!purrr::is_null(band)) {
-            rgb_stack <- dplyr::filter(bands_date, .data[["band"]] == red)$path
+            rgb_stack <- dplyr::filter(bds_date, .data[["band"]] == red)$path
             bands_order <- c(r = 1, g = 1, b = 1)
         } else {
             # get RGB files for the requested timeline
-            red_file <- dplyr::filter(bands_date, .data[["band"]] == red)$path
-            green_file <- dplyr::filter(bands_date, .data[["band"]] == green)$path
-            blue_file <- dplyr::filter(bands_date, .data[["band"]] == blue)$path
+            red_file <- dplyr::filter(bds_date, .data[["band"]] == red)$path
+            green_file <- dplyr::filter(bds_date, .data[["band"]] == green)$path
+            blue_file <- dplyr::filter(bds_date, .data[["band"]] == blue)$path
             # put the band on a raster/terra stack
             rgb_stack <- c(red_file, green_file, blue_file)
             bands_order <- c(r = 1, g = 2, b = 3)
@@ -1501,7 +1501,7 @@ plot.torch_model <- function(x, y, ...) {
 #'
 #' @description         Plots the results of TWDTW classification (uses dtwSat).
 #'
-#' @param  matches      dtwSat S4 matches objects produced by sits_TWDTW_matches.
+#' @param  matches      dtwSat S4 objects produced by sits_TWDTW_matches.
 #' @param  start_date   Start date of the plot (used for classifications).
 #' @param  end_date     End date of the plot (used for classifications).
 #' @param  interval     Interval between classifications.

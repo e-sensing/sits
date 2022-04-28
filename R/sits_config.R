@@ -400,11 +400,10 @@ sits_list_collections <- function(source = NULL) {
             names(source) <- tolower(names(source))
 
             # check source
-            source <- .check_error(
-                {
-                    do.call(.config_new_source, args = source)
-                },
-                msg = "invalid 'source' parameter"
+            source <- .check_error({
+                do.call(.config_new_source, args = source)
+            },
+            msg = "invalid 'source' parameter"
             )
             return(source)
         })

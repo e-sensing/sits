@@ -334,7 +334,7 @@ sits_cluster_clean <- function(samples) {
         nis2 <- sum(choose(ni[ni > 1], 2))
         njs2 <- sum(choose(nj[nj > 1], 2))
         rand <- c(ARI = c(sum(choose(x[x > 1], 2)) -
-                              (nis2 * njs2) / n2) / ((nis2 + njs2) / 2 - (nis2 * njs2) / n2))
+                (nis2 * njs2) / n2) / ((nis2 + njs2) / 2 - (nis2 * njs2) / n2))
     } else {
         rand <- c(rand, RI = 1 + (sum(x^2) - (sum(ni^2) + sum(nj^2)) / 2) / n2)
     }

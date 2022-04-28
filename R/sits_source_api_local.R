@@ -15,7 +15,8 @@
     .check_set_caller(".local_cube")
 
     # is this a cube with results?
-    if (!purrr::is_null(bands) && all(bands %in% .config_get("sits_results_bands"))) {
+    if (!purrr::is_null(bands) &&
+        all(bands %in% .config_get("sits_results_bands"))) {
         results_cube <- TRUE
     } else {
         results_cube <- FALSE
@@ -146,7 +147,8 @@
     .check_set_caller(".local_cube_items_new")
 
     # is this a cube with results?
-    if (!purrr::is_null(bands) && bands[[1]] %in% .config_get("sits_results_bands")) {
+    if (!purrr::is_null(bands) &&
+        bands[[1]] %in% .config_get("sits_results_bands")) {
         results_cube <- TRUE
     } else {
         results_cube <- FALSE
@@ -228,9 +230,11 @@
                 .data[["path"]]
             ) %>%
             # check the start date format
-            dplyr::mutate(start_date = .sits_timeline_date_format(.data[["start_date"]])) %>%
+            dplyr::mutate(
+                start_date = .sits_timeline_format(.data[["start_date"]])) %>%
             # check the end date format
-            dplyr::mutate(end_date = .sits_timeline_date_format(.data[["end_date"]])) %>%
+            dplyr::mutate(
+                end_date = .sits_timeline_format(.data[["end_date"]])) %>%
             # filter to remove duplicate combinations of file and band
             dplyr::distinct(
                 .data[["tile"]],
@@ -255,7 +259,7 @@
                 .data[["path"]]
             ) %>%
             # check the date format
-            dplyr::mutate(date = .sits_timeline_date_format(.data[["date"]])) %>%
+            dplyr::mutate(date = .sits_timeline_format(.data[["date"]])) %>%
             # filter to remove duplicate combinations of file and band
             dplyr::distinct(
                 .data[["tile"]],

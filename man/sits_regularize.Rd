@@ -12,8 +12,7 @@ sits_regularize(
   multicores = 1,
   memsize = 4,
   progress = TRUE,
-  use_gdalcubes = TRUE,
-  ...
+  use_gdalcubes = TRUE
 )
 }
 \arguments{
@@ -37,8 +36,6 @@ used for parallel processing of input.}
 \item{progress}{show progress bar?}
 
 \item{use_gdalcubes}{Use gdalcubes package? (see details).}
-
-\item{...}{deprecated parameters are controlled with ellipses.}
 }
 \value{
 A \code{sits_cube} object with aggregated images.

@@ -71,7 +71,7 @@ sits_lighttae <- function(samples = NULL,
                           epochs = 150,
                           batch_size = 128,
                           validation_split = 0.2,
-                          optimizer = optim_adamw,
+                          optimizer = torchopt::optim_adamw,
                           opt_hparams = list(lr = 0.005,
                                              eps = 1e-08,
                                              weight_decay = 1e-06),
@@ -224,7 +224,8 @@ sits_lighttae <- function(samples = NULL,
                         layers_spatial_encoder = layers_spatial_encoder
                     )
                 # number of input channels == last layer of mlp2
-                in_channels <- layers_spatial_encoder[length(layers_spatial_encoder)]
+                in_channels <-
+                    layers_spatial_encoder[length(layers_spatial_encoder)]
                 # define a temporal encoder
                 self$temporal_encoder <-
                     .torch_light_temporal_attention_encoder(

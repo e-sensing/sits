@@ -148,7 +148,8 @@ sits_tuning <- function(samples,
         .check_that(
             x = requireNamespace(opt_pckg, quietly = TRUE),
             local_msg = paste0("Please, install ", opt_pckg, " package"),
-            msg = paste0("optimizer function '", param_opt_fn, "' is not supported")
+            msg = paste0("optimizer function '", param_opt_fn,
+                         "' is not supported")
         )
 
         opt <- opt_conf[[2]]

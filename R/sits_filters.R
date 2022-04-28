@@ -262,20 +262,10 @@ sits_filter <- function(data, filter = sits_whittaker()) {
     if (missing(init.x)) {
         init.x <- c(rep(0, length(filt) - 1))
     }
-    # if (length(init.x) != length(filt) - 1)
-    #     stop("length of init.x should match filter length-1 = ", length(filt) - 1)
-    # if (missing(init) && !missing(init.y))
-    #     init <- rev(init.y)
-    # if (all(is.na(x)))
-    #     return(x)
     if (length(filt)) {
         x1 <- stats::filter(c(init.x, x), filt / a[1], sides = 1)
-        # if (all(is.na(x1)))
-        #     return(x)
         x <- stats::na.omit(x1, filt / a[1], sides = 1)
     }
-    # if (length(a) >= 2)
-    #     x <- stats::filter(x, -a[-1] / a[1], method = "recursive", init = init)
     return(x)
 }
 #' @title Generalized Inverse of a Matrix
@@ -293,17 +283,6 @@ sits_filter <- function(data, filter = sits_whittaker()) {
 #' Modern Applied Statistics with S-PLUS.
 #'
 .sits_MASS_ginv <- function(X, tol = sqrt(.Machine$double.eps)) {
-    #
-    # based on suggestions of R. M. Heiberger, T. M. Hesterberg and WNV
-    #
-    # if (length(dim(X)) > 2L || !(is.numeric(X) || is.complex(X)))
-    #     stop("'X' must be a numeric or complex matrix")
-    # if (!is.matrix(X)) X <- as.matrix(X)
     Xsvd <- svd(X)
-    # if (is.complex(X)) Xsvd$u <- Conj(Xsvd$u)
-    # Positive <- Xsvd$d > max(tol * Xsvd$d[1L], 0)
-    # if (all(Positive)) Xsvd$v %*% (1/Xsvd$d * t(Xsvd$u))
-    # else if (!any(Positive)) array(0, dim(X)[2L:1L])
-    # else Xsvd$v[, Positive, drop = FALSE] %*% ((1/Xsvd$d[Positive]) * t(Xsvd$u[, Positive, drop = FALSE]))
     Xsvd$v %*% (1 / Xsvd$d * t(Xsvd$u))
 }
