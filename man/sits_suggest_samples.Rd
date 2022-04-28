@@ -26,13 +26,13 @@ outside R.
 }
 \details{
 'confidence' determines the level of confidence in the suggested samples. A
-low level of confidence suggest samples on which the probabilities of each
-label are similar, hence, it is hard to choose the most likely sample label.
-These suggested samples are meant to be classified by human experts before
-adding them to the training set. On the other hand, suggested samples with a
-high level of confidence are those where the difference in probabilities
-clearly allow selecting a label. These samples can be added straigh to the
-training set.
+low level of confidence suggests samples on which the probabilities of each
+label are similar (high uncertainty), hence, it is hard to choose the most
+likely sample label.  These suggested samples are meant to be classified by
+human experts before adding them to the training set. On the other hand,
+suggested samples with a high level of confidence are those where the
+difference in probabilities clearly allow selecting a label (low
+uncertainty). These samples can be added straigh to the training set.
 }
 \author{
 Alber Sanchez, \email{alber.sanchez@inpe.br}
