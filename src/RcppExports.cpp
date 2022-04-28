@@ -69,6 +69,18 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// least_probs
+IntegerVector least_probs(const IntegerMatrix& mtx, const int& n);
+RcppExport SEXP _sits_least_probs(SEXP mtxSEXP, SEXP nSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< const IntegerMatrix& >::type mtx(mtxSEXP);
+    Rcpp::traits::input_parameter< const int& >::type n(nSEXP);
+    rcpp_result_gen = Rcpp::wrap(least_probs(mtx, n));
+    return rcpp_result_gen;
+END_RCPP
+}
 // linear_interp
 IntegerMatrix linear_interp(IntegerMatrix& mtx);
 RcppExport SEXP _sits_linear_interp(SEXP mtxSEXP) {
@@ -88,6 +100,18 @@ BEGIN_RCPP
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< IntegerVector& >::type vec(vecSEXP);
     rcpp_result_gen = Rcpp::wrap(linear_interp_vec(vec));
+    return rcpp_result_gen;
+END_RCPP
+}
+// margin_probs
+IntegerVector margin_probs(const IntegerMatrix& mtx, const int& n);
+RcppExport SEXP _sits_margin_probs(SEXP mtxSEXP, SEXP nSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< const IntegerMatrix& >::type mtx(mtxSEXP);
+    Rcpp::traits::input_parameter< const int& >::type n(nSEXP);
+    rcpp_result_gen = Rcpp::wrap(margin_probs(mtx, n));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -151,8 +175,10 @@ static const R_CallMethodDef CallEntries[] = {
     {"_sits_kernel_smoother", (DL_FUNC) &_sits_kernel_smoother, 5},
     {"_sits_bilateral_smoother", (DL_FUNC) &_sits_bilateral_smoother, 5},
     {"_sits_entropy_probs", (DL_FUNC) &_sits_entropy_probs, 2},
+    {"_sits_least_probs", (DL_FUNC) &_sits_least_probs, 2},
     {"_sits_linear_interp", (DL_FUNC) &_sits_linear_interp, 1},
     {"_sits_linear_interp_vec", (DL_FUNC) &_sits_linear_interp_vec, 1},
+    {"_sits_margin_probs", (DL_FUNC) &_sits_margin_probs, 2},
     {"_sits_normalize_data", (DL_FUNC) &_sits_normalize_data, 3},
     {"_sits_reg_resample", (DL_FUNC) &_sits_reg_resample, 7},
     {"_sits_reg_agg_first", (DL_FUNC) &_sits_reg_agg_first, 1},

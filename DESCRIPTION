@@ -93,6 +93,7 @@ Collate:
     'sits-package.R'
     'sits_apply.R'
     'sits_accuracy.R'
+    'sits_active_learning.R'
     'sits_bands.R'
     'sits_bbox.R'
     'sits_classification.R'
