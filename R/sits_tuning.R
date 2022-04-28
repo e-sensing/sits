@@ -87,11 +87,7 @@ sits_tuning <- function(samples,
             key = c("tuning_supported_dl_optim_functions", opt)
         )
         opt_pckg <- opt_conf[[1]]
-        .check_that(
-            x = requireNamespace(opt_pckg, quietly = TRUE),
-            local_msg = paste0("Please, install ", opt_pckg, " package"),
-            msg = paste0("optimizer function '", opt, "' is not supported")
-        )
+        .check_require_packages(opt_pckg)
     })
 
     # check 'opt_learning_rates' parameter
@@ -152,7 +148,8 @@ sits_tuning <- function(samples,
         .check_that(
             x = requireNamespace(opt_pckg, quietly = TRUE),
             local_msg = paste0("Please, install ", opt_pckg, " package"),
-            msg = paste0("optimizer function '", param_opt_fn, "' is not supported")
+            msg = paste0("optimizer function '", param_opt_fn,
+                         "' is not supported")
         )
 
         opt <- opt_conf[[2]]

@@ -19,8 +19,8 @@
 filter coefficients
 }
 \description{
-Computes the filter coefficients for all Savitzky-Golay smoothing
-filters of order p for length n (odd). m can be used in order to
+Computes the filter coefficients for all Savitzky-Golay
+smoothing filters of order p for length n (odd). m can be used in order to
 get directly the mth derivative. In this case, ts is a scaling factor.
 
 The early rows of F smooth based on future values and later rows

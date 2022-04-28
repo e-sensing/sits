@@ -97,7 +97,10 @@ test_that("EVI generation", {
   write.csv(csv.tb, file = csv_file)
 
   evi_tibble <- sits_get_data(gc_cube_new, file = csv_file)
-  evi_tibble_2 <- sits_apply(evi_tibble, EVI2_NEW = 2.5 * (B8A - B05) / (B8A + 2.4 * B05 + 1))
+  evi_tibble_2 <- sits_apply(
+    evi_tibble,
+    EVI2_NEW = 2.5 * (B8A - B05) / (B8A + 2.4 * B05 + 1)
+  )
 
   values_evi2 <- sits_time_series(evi_tibble_2)$EVI2
   values_evi2_new <- sits_time_series(evi_tibble_2)$EVI2_NEW

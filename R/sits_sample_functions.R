@@ -159,22 +159,22 @@ sits_reduce_imbalance <- function(samples,
     n_times <- length(timeline)
 
     # get classes to make undersample
+    classes_under <- character()
     if (!purrr::is_null(n_samples_under)) {
         classes_under <- samples %>%
             sits_labels_summary() %>%
             dplyr::filter(.data[["count"]] >= n_samples_under) %>%
             dplyr::pull(.data[["label"]])
-    } else
-        classes_under <- character()
+    }
 
     # get classes to make oversample
+    classes_over <- character()
     if (!purrr::is_null(n_samples_over)) {
         classes_over <- samples %>%
             sits_labels_summary() %>%
             dplyr::filter(.data[["count"]] <= n_samples_over) %>%
             dplyr::pull(.data[["label"]])
-    } else
-        classes_over <- character()
+    }
 
     new_samples <- .sits_tibble()
 
@@ -231,7 +231,7 @@ sits_reduce_imbalance <- function(samples,
                 )
                 # put the oversampled data into a samples tibble
                 samples_band <- slider::slide_dfr(dist_over, function(row){
-                    time_series = tibble::tibble(
+                    time_series <- tibble::tibble(
                         Index = as.Date(timeline),
                         values = unname(as.numeric(row[-1]))
                     )
@@ -290,7 +290,8 @@ sits_reduce_imbalance <- function(samples,
     # set the class to whether it is equal to the minority class
     data[[cls_col]] <- as.factor(data[[cls_col]] == cls)
     # SMOTE breaks for one-dim datasets. This adds a dummy column
-    # so SMOTE can execute in that case. This does not affect how data is synthesized
+    # so SMOTE can execute in that case. This does not affect how data is
+    # synthesized
     if (ncol(data) == 2) {
         data$dummy__col__ <- 0
     }
@@ -299,12 +300,14 @@ sits_reduce_imbalance <- function(samples,
                             data[, col_ind],
                             dup_size = dup_size
     )
-    # rbind the original observations and sufficient samples of the synthetic ones
+    # rbind the original observations and sufficient samples of the synthetic
+    # ones
     orig <- smoteret$orig_P
     target_samp <- m - nrow(orig)
-    synt <- smoteret$syn_data[sample.int(nrow(smoteret$syn_data),
-                                         size = target_samp,
-                                         replace = target_samp > nrow(smoteret$syn_data)
+    synt <- smoteret$syn_data[sample.int(
+        nrow(smoteret$syn_data),
+        size = target_samp,
+        replace = target_samp > nrow(smoteret$syn_data)
     ), ]
     d_prime <- rbind(orig, synt)
     colnames(d_prime)[ncol(d_prime)] <- cls_col
@@ -358,14 +361,14 @@ sits_reduce_imbalance <- function(samples,
     knear   <- .sits_knearest(P_set, P_set, K)
     sum_dup <- .sits_n_dup_max(sizeP + sizeN, sizeP, sizeN, dup_size)
     syn_dat <- NULL
-    for(i in 1:sizeP) {
+    for (i in 1:sizeP) {
         if (is.matrix(knear)) {
-            pair_idx = knear[i, ceiling(stats::runif(sum_dup)*K)]
+            pair_idx <- knear[i, ceiling(stats::runif(sum_dup)*K)]
         } else {
-            pair_idx = rep(knear[i],sum_dup)
+            pair_idx <- rep(knear[i],sum_dup)
         }
         g <-  stats::runif(sum_dup)
-        P_i <-  matrix(unlist(P_set[i,]), sum_dup, ncD, byrow=TRUE)
+        P_i <-  matrix(unlist(P_set[i,]), sum_dup, ncD, byrow = TRUE)
         Q_i <- as.matrix(P_set[pair_idx,])
         syn_i <-  P_i + g*(Q_i - P_i)
         syn_dat <-  rbind(syn_dat,syn_i)
@@ -382,7 +385,7 @@ sits_reduce_imbalance <- function(samples,
     colnames(syn_dat) <- c(colnames(data),"class")
     NewD <- rbind(P_set, syn_dat, N_set)
     rownames(NewD) <-  NULL
-    D_result = list(
+    D_result <- list(
         data = NewD,
         syn_data = syn_dat,
         orig_N = N_set,
@@ -400,14 +403,14 @@ sits_reduce_imbalance <- function(samples,
 }
 
 .sits_knearest <- function(D, P, n_clust) {
-    if (!requireNamespace("FNN", quietly = TRUE))
-        stop("Please install package sf.", call. = FALSE)
+
+    .check_require_packages("FNN")
 
     knD <- FNN::knnx.index(D, P, k = (n_clust + 1), algorithm = "kd_tree")
     knD <- knD*(knD != row(knD))
     que <- which(knD[,1] > 0)
     for (i in que) {
-        knD[i, which(knD[i,] == 0) ] = knD[i,1]
+        knD[i, which(knD[i,] == 0) ] <- knD[i,1]
         knD[i,1] <- 0
     }
     return(knD[, 2:(n_clust + 1)])

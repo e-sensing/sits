@@ -59,9 +59,7 @@ sits_accuracy.sits <- function(data, ...) {
     .check_set_caller("sits_accuracy.sits")
 
     # Require package
-    if (!requireNamespace("caret", quietly = TRUE)) {
-        stop("Please install package caret.", call. = FALSE)
-    }
+    .check_require_packages("caret")
 
     # Does the input data contain a set of predicted values?
     .check_chr_contains(
@@ -487,10 +485,14 @@ print.sits_assessment <- function(x, ...,
         print(out, quote = FALSE)
 
         cat("\nStatistics by Class:\n\n")
-        x$byClass <- x$byClass[, grepl(
-            "(Sensitivity)|(Specificity)|(Pos Pred Value)|(Neg Pred Value)|(F1)",
-            colnames(x$byClass)
-        )]
+        pattern_format <- paste(
+            c("(Sensitivity)",
+              "(Specificity)",
+              "(Pos Pred Value)",
+              "(Neg Pred Value)",
+              "(F1)"), collapse = "|"
+        )
+        x$byClass <- x$byClass[, grepl(pattern_format, colnames(x$byClass))]
         measures <- t(x$byClass)
         rownames(measures) <- c(
             "Prod Acc (Sensitivity)", "Specificity",
@@ -500,12 +502,13 @@ print.sits_assessment <- function(x, ...,
     } else {
         # Two class case
         # Names in caret are different from usual names in Earth observation
-        x$byClass <- x$byClass[
-            grepl(
-                "(Sensitivity)|(Specificity)|(Pos Pred Value)|(Neg Pred Value)",
-                names(x$byClass)
-            )
-        ]
+        pattern_format <- paste(
+            c("(Sensitivity)",
+              "(Specificity)",
+              "(Pos Pred Value)",
+              "(Neg Pred Value)"), collapse = "|"
+        )
+        x$byClass <- x$byClass[grepl(pattern_format, names(x$byClass))]
         # Names of the two classes
         names_classes <- row.names(x$table)
         # First class is called the "positive" class by caret

@@ -3,7 +3,7 @@ test_that("compute distances in time series for indices", {
     bands_samples <- sits_bands(samples_modis_4bands)
     n_timeline <- length(sits_timeline(samples_modis_4bands))
     bands_distances_names <- as.character(
-        sapply(bands_samples, paste0, seq_len(n_timeline))
+        purrr::map_chr(bands_samples, paste0, seq_len(n_timeline))
     )
 
     samples_distances <- .sits_distances(samples_modis_4bands)
@@ -54,7 +54,7 @@ test_that("compute distances in time series for bands and indices", {
     bands_samples <- sits_bands(ts)
     n_timeline <- length(sits_timeline(ts))
     bands_distances_names <- as.character(
-        sapply(bands_samples, paste0, seq_len(n_timeline))
+        purrr::map_chr(bands_samples, paste0, seq_len(n_timeline))
     )
 
     samples_distances <- .sits_distances(ts)
@@ -99,7 +99,7 @@ test_that("compute distances in time series with two times", {
     bands_samples <- sits_bands(ts)
     n_timeline <- length(sits_timeline(ts))
     bands_distances_names <- as.character(
-        sapply(bands_samples, paste0, seq_len(n_timeline))
+        purrr::map_chr(bands_samples, paste0, seq_len(n_timeline))
     )
 
     samples_distances <- .sits_distances(ts)

@@ -52,8 +52,14 @@ test_that("One-year, multi-core classification in parallel", {
   expect_true(l8_probs[["xmin"]] > l8_cube[["xmin"]])
   expect_true(l8_probs[["xmax"]] < l8_cube[["xmax"]])
 
-  expect_true(sits:::.raster_nrows(r_obj) < sits:::.cube_size(l8_cube)[["nrows"]])
-  expect_equal(sits:::.raster_nrows(r_obj), sits:::.cube_size(l8_probs)[["nrows"]])
+  expect_true(
+    sits:::.raster_nrows(r_obj) < sits:::.cube_size(l8_cube)[["nrows"]]
+  )
+
+  expect_equal(
+    sits:::.raster_nrows(r_obj),
+    sits:::.cube_size(l8_probs)[["nrows"]]
+  )
 
   max_lyr2 <- max(sits:::.raster_get_values(r_obj)[, 2])
   expect_true(max_lyr2 <= 10000)

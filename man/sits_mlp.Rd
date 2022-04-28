@@ -67,8 +67,10 @@ This function uses the R "torch" and "luz" packages.
 Please refer to the documentation of those package for more details.
 }
 \note{
-The parameters for the MLP have been chosen based on the work by Wang et al. 2017
-that takes multilayer perceptrons as the baseline for time series classifications:
+The parameters for the MLP have been chosen based on the work by
+Wang et al. 2017
+that takes multilayer perceptrons as the baseline for time series
+classifications:
 (a) Three layers with 512 neurons each, specified by the parameter `layers`;
 (b) dropout rates of 10%, 20%, and 30% for the layers;
 (c) the "optimizer_adam" as optimizer (default value);

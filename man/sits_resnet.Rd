@@ -77,7 +77,8 @@ Please refer to the paper for more details.
 The R-torch version is based on the code made available by Zhiguang Wang,
 author of the original paper. The code was developed in python using keras.
 
-https://github.com/cauchyturing/UCR_Time_Series_Classification_Deep_Learning_Baseline/blob/master/ResNet.py
+https://github.com/cauchyturing
+(repo: UCR_Time_Series_Classification_Deep_Learning_Baseline)
 
 The R-torch version also considered the code by Ignacio Oguiza,
 whose implementation is available at
