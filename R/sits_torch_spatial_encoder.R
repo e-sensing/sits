@@ -85,7 +85,8 @@
         input      <- input$view(c(batch_size * n_times, n_bands))
         # run the the 2D shape by a multi-layer perceptron
         # input is 2D shape [(batch_size * n_times), n_bands]
-        dim_enc    <- self$layers_spatial_encoder[[length(self$layers_spatial_encoder)]]
+        dim_enc    <-
+            self$layers_spatial_encoder[[length(self$layers_spatial_encoder)]]
         output     <- self$spatial_encoder(input)
         # output is a 2D shape[(batch_size * n_times), dim_enc]
         # reshape the output
@@ -107,18 +108,18 @@
 #' the concepts of Vaswani et al (2017) and Garnot et al ()
 #'
 #' This function part of the implementation of the paper by Vivien Garnot
-#' referenced below. We used the code made available by Maja Schneider in her work with
-#' Marco Körner referenced below and available at
+#' referenced below. We used the code made available by Maja Schneider in her
+#' work with Marco Körner referenced below and available at
 #' https://github.com/maja601/RC2020-psetae.
 #'
 #' @references
 #' Vivien Sainte Fare Garnot and Loic Landrieu,
-#' "Lightweight Temporal Self-Attention
-#' for Classifying Satellite Image Time Series", https://arxiv.org/abs/2007.00586
+#' "Lightweight Temporal Self-Attention for Classifying Satellite Image
+#' Time Series", https://arxiv.org/abs/2007.00586
 #'
 #' Schneider, Maja; Körner, Marco,
 #' "[Re] Satellite Image Time Series Classification
-#' with Pixel-Set Encoders and Temporal Self-Attention." ReScience C 7 (2), 2021.
+#' with Pixel-Set Encoders and Temporal Self-Attention." ReScience C7(2), 2021.
 #'
 #' This function part of the implementation of the paper by Vivien Garnot
 #' referenced below.
@@ -129,12 +130,12 @@
 #'
 #' @references
 #' Vivien Sainte Fare Garnot and Loic Landrieu,
-#' "Lightweight Temporal Self-Attention
-#' for Classifying Satellite Image Time Series", https://arxiv.org/abs/2007.00586
+#' "Lightweight Temporal Self-Attention for Classifying Satellite Image
+#' Time Series", https://arxiv.org/abs/2007.00586
 #'
 #' Schneider, Maja; Körner, Marco,
 #' "[Re] Satellite Image Time Series Classification
-#' with Pixel-Set Encoders and Temporal Self-Attention." ReScience C 7 (2), 2021.
+#' with Pixel-Set Encoders and Temporal Self-Attention." ReScience C7(2), 2021.
 #'
 #' @param timeline          Timeline of input time series.
 #' @param dim_encoder       Dimension of the positional encoder.
@@ -187,9 +188,8 @@
         self$register_buffer('p', p)
     },
     forward = function(x){
-        x = x + self$p
+        x <- x + self$p
         return(x)
     }
 )
-
 

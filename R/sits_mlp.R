@@ -39,8 +39,10 @@
 #'                           or a function prepared to be called further.
 #'
 #' @note
-#' The parameters for the MLP have been chosen based on the work by Wang et al. 2017
-#' that takes multilayer perceptrons as the baseline for time series classifications:
+#' The parameters for the MLP have been chosen based on the work by
+#' Wang et al. 2017
+#' that takes multilayer perceptrons as the baseline for time series
+#' classifications:
 #' (a) Three layers with 512 neurons each, specified by the parameter `layers`;
 #' (b) dropout rates of 10%, 20%, and 30% for the layers;
 #' (c) the "optimizer_adam" as optimizer (default value);
@@ -68,7 +70,7 @@ sits_mlp <- function(samples = NULL,
                      samples_validation = NULL,
                      layers = c(512, 512, 512),
                      dropout_rates = c(0.20, 0.30, 0.40),
-                     optimizer = optim_adamw,
+                     optimizer = torchopt::optim_adamw,
                      opt_hparams = list(
                          lr = 0.001,
                          eps = 1e-08,
@@ -86,15 +88,11 @@ sits_mlp <- function(samples = NULL,
     # function that returns a torch model based on samples
     result_fun <- function(samples) {
 
-        # verifies if torch package is installed
-        if (!requireNamespace("torch", quietly = TRUE)) {
-            stop("Please install package torch", call. = FALSE)
-        }
-
-        # verifies if luz package is installed
-        if (!requireNamespace("luz", quietly = TRUE)) {
-            stop("Please install package luz", call. = FALSE)
-        }
+        # verifies if torch and luz packages is installed
+        .check_require_packages(
+            c("torch", "luz"),
+            msg = "Please install package(s)"
+        )
 
         # pre-conditions
         .check_that(
@@ -103,7 +101,9 @@ sits_mlp <- function(samples = NULL,
         )
         # data normalization
         stats <- .sits_ml_normalization_param(samples)
-        train_samples <- .sits_distances(.sits_ml_normalize_data(samples, stats))
+        train_samples <- .sits_distances(
+            .sits_ml_normalize_data(samples, stats)
+        )
 
         # is the training data correct?
         .check_chr_within(
@@ -217,7 +217,8 @@ sits_mlp <- function(samples = NULL,
                 # add softmax tensor
                 tensors[[length(tensors) + 1]] <- torch::nn_softmax(dim = 2)
 
-                # create a sequential module that calls the layers in the same order.
+                # create a sequential module that calls the layers in the same
+                # order.
                 self$model <- torch::nn_sequential(!!!tensors)
             },
             forward = function(x) {
@@ -274,9 +275,7 @@ sits_mlp <- function(samples = NULL,
         model_predict <- function(values) {
 
             # verifies if torch package is installed
-            if (!requireNamespace("torch", quietly = TRUE)) {
-                stop("Please install package torch", call. = FALSE)
-            }
+            .check_require_packages("torch")
 
             # set torch threads to 1
             # function does not work on MacOS

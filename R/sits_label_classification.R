@@ -136,8 +136,6 @@ sits_label_classification <- function(cube,
 
             # process it
             raster_out <- .do_map(chunk = chunk)
-
-            # export to temp file
             block_file <- .smth_filename(tile = tile_new,
                                          output_dir = output_dir,
                                          block = block)
@@ -162,9 +160,8 @@ sits_label_classification <- function(cube,
         return(invisible(block_files))
     })
 
-
     # process each brick layer (each time step) individually
-    result_cube_lst <- .sits_parallel_map(seq_along(blocks_tile_lst), function(i) {
+    res_cube_lst <- .sits_parallel_map(seq_along(blocks_tile_lst), function(i) {
 
         # get tile from cube
         tile <- cube[i,]
@@ -212,7 +209,7 @@ sits_label_classification <- function(cube,
     })
 
     # bind rows
-    result_cube <- dplyr::bind_rows(result_cube_lst)
+    result_cube <- dplyr::bind_rows(res_cube_lst)
 
     class(result_cube) <- unique(c("classified_image", class(result_cube)))
 

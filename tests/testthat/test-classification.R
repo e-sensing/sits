@@ -61,8 +61,6 @@ test_that("Classify time series with TWDTW method", {
     theta = 0.5,
     keep = TRUE
   )
-
-
   expect_true(all(unique(matches$predicted[[1]]$predicted) %in%
     sits_labels(samples_mt_ndvi)))
 

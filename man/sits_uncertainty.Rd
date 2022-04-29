@@ -2,22 +2,11 @@
 % Please edit documentation in R/sits_uncertainty.R
 \name{sits_uncertainty}
 \alias{sits_uncertainty}
-\alias{sits_uncertainty.entropy}
 \alias{sits_uncertainty.least}
 \alias{sits_uncertainty.margin}
 \title{Estimate classification uncertainty based on probs cube}
 \usage{
 sits_uncertainty(
-  cube,
-  type = "entropy",
-  ...,
-  multicores = 2,
-  memsize = 8,
-  output_dir = ".",
-  version = "v1"
-)
-
-\method{sits_uncertainty}{entropy}(
   cube,
   type = "entropy",
   ...,

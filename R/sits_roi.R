@@ -216,12 +216,8 @@
                 msg = "invalid roi_sf value"
     )
     # verifies if geojsonsf and jsonlite packages are installed
-    if (!requireNamespace("geojsonsf", quietly = TRUE)) {
-        stop("Please install package geojsonsf", call. = FALSE)
-    }
-    if (!requireNamespace("jsonlite", quietly = TRUE)) {
-        stop("Please install package jsonlite", call. = FALSE)
-    }
+    .check_require_packages(c("geojsonsf", "jsonlite"))
+
     # convert roi_sf to geojson
     geojson <- roi_sf %>%
         sf::st_convex_hull() %>%

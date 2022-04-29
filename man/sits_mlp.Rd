@@ -9,7 +9,7 @@ sits_mlp(
   samples_validation = NULL,
   layers = c(512, 512, 512),
   dropout_rates = c(0.2, 0.3, 0.4),
-  optimizer = optim_adamw,
+  optimizer = torchopt::optim_adamw,
   opt_hparams = list(lr = 0.001, eps = 1e-08, weight_decay = 1e-06),
   epochs = 100,
   batch_size = 64,
@@ -67,8 +67,10 @@ This function uses the R "torch" and "luz" packages.
 Please refer to the documentation of those package for more details.
 }
 \note{
-The parameters for the MLP have been chosen based on the work by Wang et al. 2017
-that takes multilayer perceptrons as the baseline for time series classifications:
+The parameters for the MLP have been chosen based on the work by
+Wang et al. 2017
+that takes multilayer perceptrons as the baseline for time series
+classifications:
 (a) Three layers with 512 neurons each, specified by the parameter `layers`;
 (b) dropout rates of 10%, 20%, and 30% for the layers;
 (c) the "optimizer_adam" as optimizer (default value);

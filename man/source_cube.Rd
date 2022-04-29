@@ -130,8 +130,8 @@ from a source.
 \code{.source_item_get_hrefs()} retrieves the paths or URLs of
 each file bands of an item.
 
-\code{.source_item_get_cloud_cover()} retrieves the percentage of cloud
-cover of an image.
+\code{.source_item_get_cloud_cover()} retrieves the percentage
+of cloud cover of an image.
 
 \code{.source_item_get_bands()} retrieves the bands present
 in an item.
@@ -158,8 +158,8 @@ name (platform) from items object.
 \code{.source_tile_get_bbox()} retrieves the bounding
 box from items of a tile.
 
-\code{.source_items_cube()} is called to create a data cubes tile,
-that is, a row in sits data cube.
+\code{.source_items_cube()} is called to create a data cubes
+tile, that is, a row in sits data cube.
 
 \code{.source_tile_get_bbox()} retrieves the bounding
 box from items of a tile.

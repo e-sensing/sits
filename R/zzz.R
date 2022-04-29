@@ -12,7 +12,7 @@
 }
 
 .onLoad <- function(lib, pkg) {
-  Sys.setenv(R_CONFIG_ACTIVE = "default")
+  Sys.setenv(R_CONFIG_ACTIVE_TESTS = "NO")
   Sys.setenv(R_CONFIG_FILE = "config.yml")
   sits_config()
 }
@@ -24,9 +24,11 @@ sits_env$model_formula <- "log"
 
 # Include the following global variables in the sits package
 utils::globalVariables(c(
-  ".",                         # magrittr
-  ":=", ".SD", ".SDcols",".N", # data.table
-  "self", "ctx", "super", "private" # torch
+  ".",                                # magrittr
+  ":=", ".SD", ".SDcols",".N",        # data.table
+  "self", "ctx", "super", "private",  # torch
+  "uniform", "choice", "randint",
+  "normal", "lognormal", "loguniform" # sits_tuning_random
 ))
 
 #' @importFrom lubridate %within% %m+%
