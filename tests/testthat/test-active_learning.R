@@ -1,4 +1,4 @@
-test_that("Suggested samples have different confidence levels", {
+test_that("Suggested samples have low confidence, high entropy", {
 
     testthat::skip_on_cran()
 
@@ -30,40 +30,97 @@ test_that("Suggested samples have different confidence levels", {
                              output_dir = out_dir)
 
     # Get sample suggestions.
-    low_conf <- sits_suggest_samples(cube,  n = 100)
-    high_conf <- sits_suggest_samples(cube, n = 100, confidence = "high")
+    samples_df <- sits_suggest_samples(cube,  n = 100, min_dist_pixels = 0)
 
-    expect_true(nrow(low_conf)  == 100)
-    expect_true(nrow(high_conf) == 100)
-    expect_error(sits_suggest_samples(cube, confidence = "INVALID"))
-
-    exp_colnames <- c("longitude", "latitude", "start_date",
-                      "end_date", "label")
-    expect_true(all(colnames(low_conf)  %in% exp_colnames))
-    expect_true(all(colnames(high_conf) %in% exp_colnames))
+    expect_true(nrow(samples_df)  == 100)
+    expect_true(all(colnames(samples_df)  %in% c("longitude", "latitude",
+                                                 "start_date", "end_date",
+                                                 "label")))
+    expect_true(all(samples_df[["label"]] == "NoClass"))
+    expect_warning(
+        # Large distance between pixels in an small raster.
+        sits_suggest_samples(cube,  n = 100, min_dist_pixels = 100) < 100
+    )
 
     unc_raster <- terra::rast(sits:::.file_info_path(cube))
-    low_conf["type"]  <- "low"
-    high_conf["type"] <- "high"
-    conf_df <- rbind(low_conf, high_conf)
-    conf_sf <- sf::st_as_sf(conf_df,
-                            coords = c("longitude", "latitude"),
-                            crs = 4326)
-    conf_sf <- sf::st_transform(conf_sf, crs = terra::crs(unc_raster))
-    var_df <- terra::extract(unc_raster, terra::vect(conf_sf))
-    conf_df <- cbind(conf_df, var_df)
+    samples_sf <- sf::st_as_sf(samples_df,
+                               coords = c("longitude", "latitude"),
+                               crs = 4326)
+    samples_sf <- sf::st_transform(samples_sf, crs = terra::crs(unc_raster))
+    var_df <- terra::extract(unc_raster, terra::vect(samples_sf))
+    samples_df <- cbind(samples_df, var_df)
 
-    conf <- conf_df %>%
-        dplyr::as_tibble() %>%
-        dplyr::arrange(type) %>%
-        dplyr::group_by(type) %>%
-        dplyr::summarize(min = min(lyr1),
-                         max = max(lyr1),
-                         mean = mean(lyr1))
-    # NOTE: The value of the metrics for the suggested samples of low
-    # confidence must be larger than those of the samples of high confidence.
-    expect_true(conf[conf$type == "low", "min"]  > conf[conf$type == "high", "min"])
-    expect_true(conf[conf$type == "low", "max"]  > conf[conf$type == "high", "max"])
-    expect_true(conf[conf$type == "low", "mean"] > conf[conf$type == "high", "mean"])
-}
+    expect_true(min(samples_df$lyr1)  > mean(unc_raster[]))
+    expect_true(max(samples_df$lyr1)  == max(unc_raster[]))
+    expect_true(mean(samples_df$lyr1) > mean(unc_raster[]))
+})
 
+
+
+test_that("increased samples have high confidence, low entropy", {
+
+    testthat::skip_on_cran()
+
+    # Get uncertaintly cube.
+    data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
+    out_dir <- tempdir()
+    cube <- sits_cube(
+        source = "BDC",
+        collection = "MOD13Q1-6",
+        data_dir = data_dir,
+        delim = "_",
+        parse_info = c("X1", "X2", "tile", "band", "date")
+    )
+    samples_2bands <- sits_select(
+        sits::samples_modis_4bands,
+        bands = c("NDVI")
+    )
+    xgb_model <- sits_train(samples_2bands,
+        ml_method = sits_xgboost(verbose = FALSE)
+    )
+    probs_cube <- sits_classify(
+        cube,
+        ml_model = xgb_model,
+        output_dir = tempdir(),
+        memsize = 4, multicores = 2
+    )
+    c_cube <- sits_label_classification(probs_cube,
+                                        output_dir = out_dir)
+    u_cube <- sits_uncertainty(probs_cube,
+                               type = "entropy",
+                               output_dir = out_dir)
+
+    # Get sample suggestions.
+    samples_df <- sits_increase_samples(u_cube = u_cube,
+                                        c_cube = c_cube,
+                                        n = 100,
+                                        min_dist_pixels = 0)
+
+    expect_true(nrow(samples_df)  == 100)
+    expect_true(all(colnames(samples_df)  %in% c("longitude", "latitude",
+                                                 "start_date", "end_date",
+                                                 "label")))
+    expect_true(all(samples_df[["label"]] != "NoClass"))
+    expect_true(all(samples_df[["label"]] != ""))
+    expect_true(sum(is.na(samples_df[["label"]])) == 0)
+    expect_true(all(samples_df[["label"]] != character(0)))
+    expect_warning(
+        # Large distance between pixels in an small raster.
+        sits_increase_samples(u_cube = u_cube,
+                              c_cube = c_cube,
+                              n = 100,
+                              min_dist_pixels = 100)
+    )
+
+    unc_raster <- terra::rast(sits:::.file_info_path(u_cube))
+    samples_sf <- sf::st_as_sf(samples_df,
+                               coords = c("longitude", "latitude"),
+                               crs = 4326)
+    samples_sf <- sf::st_transform(samples_sf, crs = terra::crs(unc_raster))
+    var_df <- terra::extract(unc_raster, terra::vect(samples_sf))
+    samples_df <- cbind(samples_df, var_df)
+
+    expect_true(min(samples_df$lyr1)  == min(unc_raster[]))
+    expect_true(max(samples_df$lyr1)  < max(unc_raster[]))
+    expect_true(mean(samples_df$lyr1) < mean(unc_raster[]))
+})
