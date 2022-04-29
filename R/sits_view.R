@@ -145,6 +145,13 @@ sits_view.raster_cube <- function(x, ...,
                                   palette = "default") {
     dots <- list(...)
     # preconditions
+    # precondition - cube should be of clas
+    .check_that(
+        ("classified_image" %in% class(x) || "raster_cube" %in% class(x) &&
+             !("probs_cube" %in% class(x))),
+        local_msg = paste0("sits_view not available for probability cube")
+
+    )
     # Remote files not working in Windows (bug in stars)
     if (.Platform$OS.type == "windows") {
         path <- .file_info_path(x[1,])
@@ -153,6 +160,7 @@ sits_view.raster_cube <- function(x, ...,
                  call. = FALSE)
         }
     }
+
     # verifies if leafem and leaflet packages are installed
     .check_that(
         requireNamespace("leafem", quietly = TRUE),
