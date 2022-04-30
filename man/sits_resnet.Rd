@@ -87,9 +87,23 @@ https://github.com/timeseriesAI/tsai/blob/main/tsai/models/ResNet.py.
 There are differences between Wang's Keras code and Oguiza torch code.
 In this case, we have used Wang's keras code as the main reference.
 }
-\note{
-Please refer to the sits documentation available in
-<https://e-sensing.github.io/sitsbook/> for detailed examples.
+\examples{
+if (sits_active_tests()) {
+# Retrieve the set of samples for the Mato Grosso (provided by EMBRAPA)
+
+# Build a machine learning model based on deep learning
+rn_model <- sits_train(samples_modis_4bands, sits_resnet())
+# Plot the model
+plot(rn_model)
+
+# get a point and classify the point with the ml_model
+point <- sits_select(point_mt_6bands,
+    bands = c("NDVI", "EVI", "NIR", "MIR")
+)
+class <- sits_classify(point, rn_model)
+plot(class, bands = c("NDVI", "EVI"))
+}
+
 }
 \references{
 Hassan Fawaz, Germain Forestier, Jonathan Weber,

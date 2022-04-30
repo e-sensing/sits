@@ -32,9 +32,14 @@
 #' @param ...           Further specifications for \link{plot}.
 #' @return              The plot itself.
 #'
-#' @note
-#' Please refer to the sits documentation available in
-#' <https://e-sensing.github.io/sitsbook/> for detailed examples.
+#' @examples
+#' if (sits_active_tests()) {
+#' # Read a set of samples with 2 classes ("Cerrado" and "Pasture")
+#' # Plot all the samples together
+#' plot(cerrado_2classes)
+#' # Plot the first 20 samples (defaults to "allyears")
+#' plot(cerrado_2classes[1:20, ])
+#' }
 #'
 #' @export
 #'
@@ -62,9 +67,12 @@ plot.sits <- function(x, y, ...) {
 #' @param  ...           Further specifications for \link{plot}.
 #' @return               The plot itself.
 #'
-#' @note
-#' Please refer to the sits documentation available in
-#' <https://e-sensing.github.io/sitsbook/> for detailed examples.
+#' @examples
+#' if (sits_active_tests()) {
+#' # Read a set of samples with 2 classes ("Cerrado" and "Pasture")
+#' # Plot the patterns
+#' plot(sits_patterns(cerrado_2classes))
+#' }
 #'
 #' @export
 #'
@@ -87,9 +95,18 @@ plot.patterns <- function(x, y, ...) {
 #'                       in case classes are not in the default sits palette.
 #' @return               The plot itself.
 #'
-#' @note
-#' Please refer to the sits documentation available in
-#' <https://e-sensing.github.io/sitsbook/> for detailed examples.
+#' @examples
+#' if (sits_active_tests()) {
+#' # Retrieve the set of samples for Mato Grosso region (provided by EMBRAPA)
+#' samples_mt_ndvi <- sits_select(samples_modis_4bands, bands = "NDVI")
+#' # classify the point
+#' model_svm <- sits_train(samples_mt_ndvi, ml_method = sits_svm())
+#' point_ndvi <- sits_select(point_mt_6bands, bands = "NDVI")
+#' class_ndvi.tb <- sits_classify(point_ndvi, model_svm)
+#' # plot the classification
+#' plot(class_ndvi.tb)
+#' }
+#'
 #' @export
 #'
 plot.predicted <- function(x, y, ...,
@@ -485,9 +502,19 @@ plot.classified_image <- function(x, y, ...,
 #' @param  name_cluster Choose the cluster to plot.
 #' @param  title        Title of plot.
 #' @return              The plot itself.
-#' @note
-#' Please refer to the sits documentation available in
-#' <https://e-sensing.github.io/sitsbook/> for detailed examples.
+#'
+#'
+#' @examples
+#' if (sits_active_tests()) {
+#' # Produce a cluster map
+#'
+#' samples_mt_2bands <- sits_select(samples_modis_4bands, bands = c("NDVI", "EVI"))
+#' som_map <- sits_som_map(samples_mt_2bands)
+#' # Evaluate the clusters
+#' cluster_overall <- sits_som_evaluate_cluster(som_map)
+#' # Plot confusion between the clusters
+#' plot(cluster_overall)
+#' }
 #'
 #' @export
 #'
@@ -517,9 +544,16 @@ plot.som_evaluate_cluster <- function(x, y, ...,
 #'
 #' @return            The plot itself.
 #'
-#' @note
-#' Please refer to the sits documentation available in
-#' <https://e-sensing.github.io/sitsbook/> for detailed examples.
+#' @examples
+#' if (sits_active_tests()) {
+#' # Produce a cluster map
+#' samples_mt_2bands <- sits_select(samples_modis_4bands, bands = c("NDVI", "EVI"))
+#' som_map <- sits_som_map(samples_mt_2bands)
+#' # Plot the clusters
+#' plot(som_map, type = "codes")
+#' # Plot kohonen map showing where the samples were allocated
+#' plot(som_map, type = "mapping")
+#' }
 #'
 #' @export
 #'
@@ -543,9 +577,17 @@ plot.som_map <- function(x, y, ..., type = "codes", band = 1) {
 #' @param  ...           Further specifications for \link{plot}.
 #' @return               The plot itself.
 #'
-#' @note
-#' Please refer to the sits documentation available in
-#' <https://e-sensing.github.io/sitsbook/> for detailed examples.
+#' @examples
+#' if (sits_active_tests()) {
+#' # Get a set of samples
+#' samples_ndvi_evi <- sits_select(samples_modis_4bands,
+#'   bands = c("NDVI", "EVI")
+#' )
+#'
+#' # train a deep learning model
+#' dl_model <- sits_train(samples_ndvi_evi, ml_method = sits_mlp())
+#' plot(dl_model)
+#' }
 #'
 #' @export
 #'
@@ -1468,12 +1510,14 @@ plot.torch_model <- function(x, y, ...) {
             tidyr::pivot_longer(cols = 1:2, names_to = "metric")
     })
 
-    p <- ggplot2::ggplot(metrics_dfr, ggplot2::aes(
-        x = .data[["epoch"]],
-        y = .data[["value"]],
-        color = .data[["data"]],
-        fill = .data[["data"]]
-    ))
+    p <- ggplot2::ggplot(metrics_dfr,
+                         ggplot2::aes(
+                             x = .data[["epoch"]],
+                             y = .data[["value"]],
+                             color = .data[["data"]],
+                             fill  = .data[["data"]]
+                         )
+    )
 
     p <- p + ggplot2::geom_point(shape = 21, col = 1, na.rm = TRUE, size = 2) +
         ggplot2::geom_smooth(

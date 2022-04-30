@@ -42,12 +42,14 @@ to be evaluated and generate new bands (indices). In the case of sits
 cubes, it materializes a new band in `output_dir` using `gdalcubes`.
 }
 \examples{
+if (sits_active_tests()) {
 # Get a time series
 # Apply a normalization function
 
 point2 <-
   sits_select(point_mt_6bands, "NDVI") \%>\%
   sits_apply(NDVI_norm = (NDVI - min(NDVI)) / (max(NDVI) - min(NDVI)))
+}
 }
 \author{
 Rolf Simoes, \email{rolf.simoes@inpe.br}

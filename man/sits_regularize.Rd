@@ -65,6 +65,34 @@ The aggregation method used in \code{sits_regularize}
 The input (non-regular) ARD cube needs to include the cloud band for
       the regularization to work.
 }
+\examples{
+if (sits_active_tests()) {
+
+# --- Access to the AWS STAC
+
+# define an AWS data cube
+  s2_cube <- sits_cube(
+      source = "AWS",
+      collection = "sentinel-s2-l2a-cogs",
+      bands = c("B08", "SCL"),
+      tiles = c("20LKP"),
+      start_date = "2018-07-18",
+      end_date = "2018-08-18"
+  )
+
+# create a directory to store the resulting images
+dir.create(paste0(tempdir(),"/images/"))
+
+# Build a data cube of equal intervals using the "gdalcubes" package
+gc_cube <- sits_regularize(
+    cube       = s2_cube,
+    output_dir = paste0(tempdir(),"/images/"),
+    period     = "P1M",
+    res        = 320
+  )
+}
+
+}
 \references{
 Appel, Marius; Pebesma, Edzer. On-demand processing of data cubes
  from satellite image collections with the gdalcubes library. Data, v. 4,

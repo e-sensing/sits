@@ -71,9 +71,19 @@
 #' (b) the posterior probability that this class belongs to a cluster,
 #' using data for the neighbours on the SOM map.
 #'
-#' @note
-#' Please refer to the sits documentation available in
-#' <https://e-sensing.github.io/sitsbook/> for detailed examples.
+#' @examples
+#' if (sits_active_tests()) {
+#' # Produce a cluster map
+#' som_map <- sits_som_map(samples_modis_4bands)
+#' # plot the som map
+#' plot(som_map)
+#' # calculate the mixture inside clusters
+#' eval <- sits_som_evaluate_cluster(som_map)
+#' # plot the cluster evaluation
+#' plot(eval)
+#' # Clean the samples to get better quality ones
+#' clean_samples <- sits_som_clean_samples(som_map)
+#' }
 #'
 #' @export
 sits_som_map <- function(data,

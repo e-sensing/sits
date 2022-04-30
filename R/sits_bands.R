@@ -12,6 +12,13 @@
 #'
 #' @return          A vector with the names of the bands.
 #'
+#' @examples
+#' if (sits_active_tests()) {
+#'   # Retrieve the set of samples for Mato Grosso (provided by EMBRAPA)
+#'   # show the bands
+#'   sits_bands(samples_modis_4bands)
+#' }
+#'
 #' @export
 #'
 sits_bands <- function(x) {

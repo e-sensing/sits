@@ -43,10 +43,63 @@
 #' estimated areas, the standard error areas, confidence interval 95% areas,
 #' and the accuracy (user, producer, and overall), or NULL if the data is empty.
 #' A confusion matrix assessment produced by the caret package.
+#'
+#' @examples
+#' if (sits_active_tests()) {
+#' # Case (1) - Accuracy for classification of time series
+#' # Read a tibble with 400 time series of Cerrado and 346 of Pasture
+#' data(cerrado_2classes)
+#' # Create a model for classification of time series
+#' svm_model <- sits_train(cerrado_2classes, sits_svm())
+#' # Classify the time series
+#' predicted <- sits_classify(cerrado_2classes, svm_model)
+#' # Calculate the classification accuracy
+#' acc <- sits_accuracy(predicted)
+#'
+#' # Case (2) - Accuracy for classification of raster data
+#' # Select a training set with two bands
+#' samples_modis_2bands <- sits_select(samples_modis_4bands,
+#'   bands = c("EVI", "NDVI")
+#' )
+#'
+#' # Build an extreme gradient boosting model
+#' xgb_model <- sits_train(
+#'   samples_modis_2bands,
+#'   sits_xgboost(nrounds = 50, verbose = FALSE)
+#' )
+#'
+#' # Create a data cube based on files
+#' data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
+#' cube <- sits_cube(
+#'    source = "BDC",
+#'   collection = "MOD13Q1-6",
+#'   data_dir = data_dir,
+#'   delim = "_",
+#'   parse_info = c("X1", "X2", "tile", "band", "date"),
+#'   multicores = 2
+#' )
+#'
+#' # Classify the data cube with xgb model
+#' probs_cube <- sits_classify(cube,
+#'   xgb_model,
+#'   output_dir = tempdir(),
+#'   memsize = 4,
+#'   multicores = 2
+#' )
+#' # Label the classification
+#' label_cube <- sits_label_classification(probs_cube,
+#'   output_dir = tempdir()
+#' )
+#' # Get ground truth points
+#' ground_truth <- system.file("extdata/samples/samples_sinop_crop.csv",
+#'   package = "sits"
+#' )
+#' # Calculate accuracy according to Olofsson's method
+#' accuracy <- suppressWarnings(sits_accuracy(label_cube,
+#'   validation_csv = ground_truth
+#' ))
+#' }
 #
-#' @note
-#' Please refer to the sits documentation available in
-#' <https://e-sensing.github.io/sitsbook/> for detailed examples.
 #' @export
 sits_accuracy <- function(data, ...) {
     UseMethod("sits_accuracy", data)

@@ -43,9 +43,43 @@
 #'             IEEE Transactions on Geoscience and Remote Sensing,
 #'             50 (11), 4534-4545, 2012 (for gaussian and bilateral smoothing)
 #'
-#' @note
-#' Please refer to the sits documentation available in
-#' <https://e-sensing.github.io/sitsbook/> for detailed examples.
+#' @examples
+#' if (sits_active_tests()) {
+#' # Retrieve the samples for Mato Grosso
+#' # select band "ndvi"
+#'
+#' samples_ndvi <- sits_select(samples_modis_4bands, bands = "NDVI")
+#'
+#' # select a random forest model
+#' rfor_model <- sits_train(samples_ndvi, sits_rfor(num_trees = 500))
+#'
+#' # create a data cube based on the information about the files
+#' data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
+#' cube <- sits_cube(
+#'   source = "BDC",
+#'   collection = "MOD13Q1-6",
+#'   data_dir = data_dir,
+#'   delim = "_",
+#'   parse_info = c("X1", "X2", "tile", "band", "date")
+#' )
+#'
+#' # classify the raster image
+#' probs_cube <- sits_classify(cube,
+#'   ml_model = rfor_model,
+#'   output_dir = tempdir(),
+#'   memsize = 4, multicores = 2
+#' )
+#'
+#' # smooth the result with a bayesian filter
+#' bayes_cube <- sits_smooth(probs_cube,
+#'   type = "bayes", output_dir = tempdir()
+#' )
+#'
+#' # smooth the result with a bilateral filter
+#' bil_cube <- sits_smooth(probs_cube,
+#'   type = "bilateral", output_dir = tempdir()
+#' )
+#' }
 #'
 #' @export
 #'

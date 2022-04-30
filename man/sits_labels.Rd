@@ -16,10 +16,12 @@ Labels.
 Finds labels in a sits tibble or data cube
 }
 \examples{
+if (sits_active_tests()) {
 # read a tibble with 400 samples of Cerrado and 346 samples of Pasture
 data(cerrado_2classes)
 # print the labels
 sits_labels(cerrado_2classes)
+}
 }
 \author{
 Rolf Simoes, \email{rolf.simoes@inpe.br}

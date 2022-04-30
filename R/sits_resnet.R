@@ -72,9 +72,22 @@
 #'
 #' @return A fitted model to be passed to \code{\link[sits]{sits_classify}}.
 #'
-#' @note
-#' Please refer to the sits documentation available in
-#' <https://e-sensing.github.io/sitsbook/> for detailed examples.
+#' @examples
+#' if (sits_active_tests()) {
+#' # Retrieve the set of samples for the Mato Grosso (provided by EMBRAPA)
+#'
+#' # Build a machine learning model based on deep learning
+#' rn_model <- sits_train(samples_modis_4bands, sits_resnet())
+#' # Plot the model
+#' plot(rn_model)
+#'
+#' # get a point and classify the point with the ml_model
+#' point <- sits_select(point_mt_6bands,
+#'     bands = c("NDVI", "EVI", "NIR", "MIR")
+#' )
+#' class <- sits_classify(point, rn_model)
+#' plot(class, bands = c("NDVI", "EVI"))
+#' }
 #'
 #' @export
 sits_resnet <- function(samples = NULL,

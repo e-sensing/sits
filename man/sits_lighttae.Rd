@@ -70,9 +70,23 @@ We also used the code made available by Maja Schneider in her work with
 Marco Körner referenced below and available at
 https://github.com/maja601/RC2020-psetae.
 }
-\note{
-Please refer to the sits documentation available in
-<https://e-sensing.github.io/sitsbook/> for detailed examples.
+\examples{
+if (sits_active_tests()) {
+# Retrieve the set of samples for the Mato Grosso (provided by EMBRAPA)
+
+# Build a machine learning model based on deep learning
+ltae_model <- sits_train(samples_modis_4bands, sits_lighttae())
+# Plot the model
+plot(tae_model)
+
+# get a point and classify the point with the ml_model
+point <- sits_select(point_mt_6bands,
+    bands = c("NDVI", "EVI", "NIR", "MIR")
+)
+class <- sits_classify(point, tae_model)
+plot(class, bands = c("NDVI", "EVI"))
+}
+
 }
 \references{
 Vivien Garnot, Loic Landrieu, Sebastien Giordano, and Nesrine Chehata,

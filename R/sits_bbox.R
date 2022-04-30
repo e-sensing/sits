@@ -16,6 +16,12 @@
 #'                  on the cube projection for a data cube
 #'                  unless wgs84 parameter is TRUE.
 #'
+#' @examples
+#' if (sits_active_tests()) {
+#'  # get bbox from cerrado samples
+#'  sits_bbox(cerrado_2classes)
+#' }
+#'
 #' @export
 #'
 sits_bbox <- function(data, wgs84 = FALSE, ...) {

@@ -14,6 +14,7 @@
 #'
 #' @return A matrix with values.
 #' @examples
+#' if (sits_active_tests()) {
 #' # Retrieve a set of time series with 2 classes
 #' data(cerrado_2classes)
 #' # retrieve the values split by bands and dates
@@ -22,6 +23,7 @@
 #' ls2 <- sits_values(cerrado_2classes[1:2, ], format = "cases_dates_bands")
 #' #' # retrieve the values split by bands and cases (occurences)
 #' ls3 <- sits_values(cerrado_2classes[1:2, ], format = "bands_cases_dates")
+#' }
 #' @export
 sits_values <- function(data, bands = NULL, format = "cases_dates_bands") {
 

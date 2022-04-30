@@ -21,6 +21,23 @@ A sits tibble with modified labels.
 Given a sits tibble with a set of labels, renames the labels
 to the specified in value.
 }
+\examples{
+if (sits_active_tests()) {
+# Read a set of time series with information on deforestation
+data("samples_modis_4bands")
+# Print the labels
+sits_labels(samples_modis_4bands)
+# Create a conversion list.
+# relabel the data
+sits_labels(samples_modis_4bands) <- c(
+  "Natural", "Natural",
+  "Anthropic", "Anthropic"
+)
+# show the new labels
+sits_labels(samples_modis_4bands)
+}
+
+}
 \author{
 Rolf Simoes, \email{rolf.simoes@inpe.br}
 }

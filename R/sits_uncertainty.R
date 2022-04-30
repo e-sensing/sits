@@ -34,9 +34,36 @@
 #'    confident predictions.}
 #'  }
 #'
-#' @note
-#' Please refer to the sits documentation available in
-#' <https://e-sensing.github.io/sitsbook/> for detailed examples.
+#' @examples
+#' if (sits_active_tests()) {
+#' data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
+#' out_dir <- tempdir()
+#' cube <- sits_cube(
+#'     source = "BDC",
+#'     collection = "MOD13Q1-6",
+#'     data_dir = data_dir,
+#'     delim = "_",
+#'     parse_info = c("X1", "X2", "tile", "band", "date")
+#' )
+#' samples_2bands <- sits_select(
+#'     sits::samples_modis_4bands,
+#'     bands = c("NDVI")
+#' )
+#' rfor_model <- sits_train(samples_2bands,
+#'                         ml_method = sits_rfor(verbose = FALSE)
+#' )
+#' probs_cube <- sits_classify(
+#'     cube,
+#'     ml_model = rfor_model,
+#'     output_dir = tempdir(),
+#'     memsize = 4, multicores = 1
+#' )
+#' cube <- sits_uncertainty(probs_cube,
+#'                          type = "entropy",
+#'                          output_dir = out_dir)
+#'
+#'}
+#'
 #' @export
 sits_uncertainty <- function(cube, type = "least", ...,
                              multicores = 2,

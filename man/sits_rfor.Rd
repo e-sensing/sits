@@ -29,9 +29,18 @@ Use Random Forest algorithm to classify samples.
 This function is a front-end to the "randomForest" package.
 Please refer to the documentation in that package for more details.
 }
-\note{
-Please refer to the sits documentation available in
-<https://e-sensing.github.io/sitsbook/> for detailed examples.
+\examples{
+if (sits_active_tests()) {
+# Retrieve the set of samples for the Mato Grosso region
+samples_MT_ndvi <- sits_select(samples_modis_4bands, bands = "NDVI")
+# Build a random forest model
+rfor_model <- sits_train(samples_MT_ndvi, sits_rfor(num_trees = 200))
+# get a point with a 16 year time series
+point_ndvi <- sits_select(point_mt_6bands, bands = "NDVI")
+# classify the point
+class.tb <- sits_classify(point_ndvi, rfor_model)
+}
+
 }
 \author{
 Alexandre Ywata de Carvalho, \email{alexandre.ywata@ipea.gov.br}

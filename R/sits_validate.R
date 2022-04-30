@@ -28,9 +28,17 @@
 #' @param multicores         Number of cores to process in parallel.
 #'
 #' @return A tibble containing pairs of reference and predicted values.
-#' @note
-#' Please refer to the sits documentation available in
-#' <https://e-sensing.github.io/sitsbook/> for detailed examples.
+#'
+#' @examples
+#' if (sits_active_tests()) {
+#' # read a set of samples
+#' data(cerrado_2classes)
+#' # two fold validation with random forest
+#' acc <- sits_kfold_validate(cerrado_2classes,
+#'   folds = 2,
+#'   ml_method = sits_rfor(num_trees = 100)
+#' )
+#' }
 #'
 #' @export
 sits_kfold_validate <- function(samples,

@@ -43,9 +43,15 @@ based on the input data. If the input data has less than 30 samples, it
 will default to "all years". If there are more than 30 samples,
 it will default to "together".
 }
-\note{
-Please refer to the sits documentation available in
-<https://e-sensing.github.io/sitsbook/> for detailed examples.
+\examples{
+if (sits_active_tests()) {
+# Read a set of samples with 2 classes ("Cerrado" and "Pasture")
+# Plot all the samples together
+plot(cerrado_2classes)
+# Plot the first 20 samples (defaults to "allyears")
+plot(cerrado_2classes[1:20, ])
+}
+
 }
 \author{
 Gilberto Camara, \email{gilberto.camara@inpe.br}

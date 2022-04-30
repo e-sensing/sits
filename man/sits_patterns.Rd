@@ -31,9 +31,23 @@ based on a smooth function.
 This method is based on the "createPatterns" method of the dtwSat package,
 which is also described in the reference paper.
 }
-\note{
-Please refer to the sits documentation available in
-<https://e-sensing.github.io/sitsbook/> for detailed examples.
+\examples{
+if (sits_active_tests()) {
+# Read a set of samples for two classes
+data(cerrado_2classes)
+# Estimate a set of patterns (one for each label)
+patterns <- sits_patterns(cerrado_2classes)
+# Show the patterns
+plot(patterns)
+
+# Read a set of samples for the state of Mato Grosso, Brazil
+data(samples_modis_4bands)
+# Estimate a set of patterns (one for each label)
+patterns <- sits_patterns(samples_modis_4bands)
+# Show the patterns
+plot(patterns)
+}
+
 }
 \references{
 Maus V, Camara G, Cartaxo R, Sanchez A, Ramos F, Queiroz GR.

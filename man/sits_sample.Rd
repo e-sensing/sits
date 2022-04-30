@@ -30,6 +30,7 @@ Takes a sits tibble with different labels and
              if frac > 1 , all sampling will be done with replacement.
 }
 \examples{
+if (sits_active_tests()) {
 # Retrieve a set of time series with 2 classes
 data(cerrado_2classes)
 # Print the labels of the resulting tibble
@@ -38,6 +39,7 @@ sits_labels(cerrado_2classes)
 data <- sits_sample(cerrado_2classes, n = 10)
 # Print the labels of the resulting tibble
 sits_labels(data)
+}
 }
 \author{
 Rolf Simoes, \email{rolf.simoes@inpe.br}

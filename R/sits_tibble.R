@@ -6,6 +6,15 @@
 #'
 #' @param data     A sits tibble with one or more time series.
 #' @return A tibble in sits format with the time series.
+#'
+#' @examples
+#' if (sits_active_tests()) {
+#' # Retrieve a set of time series with 2 classes
+#' data(cerrado_2classes)
+#' # Retrieve the first time series
+#' sits_time_series(cerrado_2classes)
+#' }
+#'
 #' @export
 sits_time_series <- function(data) {
     .sits_tibble_test(data)

@@ -200,9 +200,6 @@ an environment variable, as follows:
 Sys.setenv(
     BDC_ACCESS_KEY = <your_bdc_access_key>
 )}
-
-Please refer to the sits documentation available in
-<https://e-sensing.github.io/sitsbook/> for detailed examples.
 }
 \examples{
 if (sits_active_tests()) {
@@ -222,18 +219,6 @@ cbers_tile <- sits_cube(
   tiles = "022024",
   start_date = "2018-09-01",
   end_date = "2019-08-28"
-)
-
-# --- Create a WTSS cube from BDC cubes
-# Provide your BDC credentials as environment variables
-bdc_access_key <- Sys.getenv("BDC_ACCESS_KEY")
-if (nchar(bdc_access_key) == 0) {
-  stop("No BDC_ACCESS_KEY defined in environment.")
-}
-
-cube_wtss <- sits_cube(
-  source = "WTSS",
-  collection = "MOD13Q1-6"
 )
 
 # --- Access to Digital Earth Africa
@@ -280,7 +265,7 @@ usgs_cube <- sits_cube(
 )
 
 
-# -- Creating Sentinel cubes from MSPC"
+# --- Creating Sentinel cubes from MSPC
 s2_cube <- sits_cube(
   source = "MSPC",
   collection = "sentinel-2-l2a",

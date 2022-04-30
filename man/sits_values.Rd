@@ -24,6 +24,7 @@ This function is useful to use packages such as ggplot2, dtwclust, or kohonen
 that require values that are rowwise or colwise organized.
 }
 \examples{
+if (sits_active_tests()) {
 # Retrieve a set of time series with 2 classes
 data(cerrado_2classes)
 # retrieve the values split by bands and dates
@@ -32,6 +33,7 @@ ls1 <- sits_values(cerrado_2classes[1:2, ], format = "bands_dates_cases")
 ls2 <- sits_values(cerrado_2classes[1:2, ], format = "cases_dates_bands")
 #' # retrieve the values split by bands and cases (occurences)
 ls3 <- sits_values(cerrado_2classes[1:2, ], format = "bands_cases_dates")
+}
 }
 \author{
 Rolf Simoes, \email{rolf.simoes@inpe.br}

@@ -93,9 +93,38 @@ each sample}
 obtain a time series for a spacetime location}
 }
 }
-\note{
-Please refer to the sits documentation available in
-<https://e-sensing.github.io/sitsbook/> for detailed examples.
+\examples{
+if (sits_active_tests()) {
+# -- Read a point in a raster data cube
+
+# Create a data cube based on files
+data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
+raster_cube <- sits_cube(
+  source = "BDC",
+  collection = "MOD13Q1-6",
+  data_dir = data_dir,
+  delim = "_",
+  parse_info = c("X1", "X2", "tile", "band", "date")
+)
+
+# read the time series of the point from the raster
+point_ts <- sits_get_data(raster_cube,
+    longitude = -55.554,
+    latitude = -11.525,
+    output_dir = tempdir()
+)
+
+# --- Read a set of points described by a CSV file
+
+# read data from a CSV file
+csv_file <- system.file("extdata/samples/samples_sinop_crop.csv",
+  package = "sits"
+)
+points_csv <- sits_get_data(raster_cube,
+                            file = csv_file,
+                            output_dir = tempdir())
+}
+
 }
 \author{
 Gilberto Camara

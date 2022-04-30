@@ -20,9 +20,26 @@
 #'
 #' @return               Leaflet object.
 #'
-#' @note
-#' Please refer to the sits documentation available in
-#' <https://e-sensing.github.io/sitsbook/> for detailed examples.
+#' @examples
+#' if (sits_active_tests()) {
+#' # view a collection of time series
+#' sits_view(samples_modis_4bands)
+#'
+#' # view a temporal instance of a cube
+#'
+#' data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
+#'
+#' modis_cube <- sits_cube(
+#'   source = "BDC",
+#'   collection = "MOD13Q1-6",
+#'   bands = c("NDVI", "EVI"),
+#'   data_dir = data_dir,
+#'   parse_info = c("X1", "X2", "tile", "band", "date")
+#' )
+#'
+#' # plot the data cube
+#' sits_view(modis_cube, red = "EVI", green = "NDVI", blue = "EVI", times = 1)
+#' }
 #'
 #' @export
 sits_view <- function(x, ...) {

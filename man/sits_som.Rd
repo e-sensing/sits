@@ -107,9 +107,20 @@ the posterior probability is < `posterior_threshold`, the sample is tagged as
 The user can define which tagged samples will be returned using the "keep"
 parameter, with the following options: "clean", "analyze", "remove".
 }
-\note{
-Please refer to the sits documentation available in
-<https://e-sensing.github.io/sitsbook/> for detailed examples.
+\examples{
+if (sits_active_tests()) {
+# Produce a cluster map
+som_map <- sits_som_map(samples_modis_4bands)
+# plot the som map
+plot(som_map)
+# calculate the mixture inside clusters
+eval <- sits_som_evaluate_cluster(som_map)
+# plot the cluster evaluation
+plot(eval)
+# Clean the samples to get better quality ones
+clean_samples <- sits_som_clean_samples(som_map)
+}
+
 }
 \references{
 Lorena Santos, Karine Ferreira, Gilberto Camara, Michelle Picoli,

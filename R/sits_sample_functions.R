@@ -18,6 +18,7 @@
 #' @param  oversample Oversample classes with small number of samples?
 #' @return            A sits tibble with a fixed quantity of samples.
 #' @examples
+#' if (sits_active_tests()) {
 #' # Retrieve a set of time series with 2 classes
 #' data(cerrado_2classes)
 #' # Print the labels of the resulting tibble
@@ -26,6 +27,7 @@
 #' data <- sits_sample(cerrado_2classes, n = 10)
 #' # Print the labels of the resulting tibble
 #' sits_labels(data)
+#' }
 #' @export
 sits_sample <- function(data,
                         n = NULL,
@@ -114,9 +116,18 @@ sits_sample <- function(data,
 #' @param  multicores           Number of cores to process the data (default 2).
 #'
 #' @return A sits tibble with a fixed quantity of samples.
-#' @note
-#' Please refer to the sits documentation available in
-#' <https://e-sensing.github.io/sitsbook/> for detailed examples.
+#'
+#' @examples
+#' if (sits_active_tests()) {
+#' # Retrieve a set of time series with 2 classes
+#' data(samples_modis_4bands)
+#' # Print the labels of the resulting tibble
+#' sits_labels_summary(samples_modis_4bands)
+#' # Samples the data set
+#' new_data <- sits_reduce_imbalance(samples_modis_4bands)
+#' # Print the labels of the resulting tibble
+#' sits_labels_summary(new_data)
+#' }
 #' @export
 sits_reduce_imbalance <- function(samples,
                                   n_samples_over  = 200,

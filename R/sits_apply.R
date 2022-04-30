@@ -20,12 +20,14 @@
 #' @return A sits tibble or a sits cube with new bands.
 #'
 #' @examples
+#' if (sits_active_tests()) {
 #' # Get a time series
 #' # Apply a normalization function
 #'
 #' point2 <-
 #'   sits_select(point_mt_6bands, "NDVI") %>%
 #'   sits_apply(NDVI_norm = (NDVI - min(NDVI)) / (max(NDVI) - min(NDVI)))
+#' }
 NULL
 
 #' @rdname sits_apply

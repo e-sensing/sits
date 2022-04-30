@@ -8,10 +8,12 @@
 #' @return          Labels.
 #'
 #' @examples
+#' if (sits_active_tests()) {
 #' # read a tibble with 400 samples of Cerrado and 346 samples of Pasture
 #' data(cerrado_2classes)
 #' # print the labels
 #' sits_labels(cerrado_2classes)
+#' }
 #' @export
 #'
 sits_labels <- function(data) {
@@ -75,6 +77,22 @@ sits_labels.sits_model <- function(data) {
 #'                   labels order returned by \code{\link{sits_labels}}.
 #'
 #' @return           A sits tibble with modified labels.
+#'
+#' @examples
+#' if (sits_active_tests()) {
+#' # Read a set of time series with information on deforestation
+#' data("samples_modis_4bands")
+#' # Print the labels
+#' sits_labels(samples_modis_4bands)
+#' # Create a conversion list.
+#' # relabel the data
+#' sits_labels(samples_modis_4bands) <- c(
+#'   "Natural", "Natural",
+#'   "Anthropic", "Anthropic"
+#' )
+#' # show the new labels
+#' sits_labels(samples_modis_4bands)
+#' }
 #'
 #' @export
 #'
@@ -151,10 +169,12 @@ sits_labels.sits_model <- function(data) {
 #' @return A tibble with labels frequency.
 #'
 #' @examples
+#' if (sits_active_tests()) {
 #' # read a tibble with 400 samples of Cerrado and 346 samples of Pasture
 #' data(cerrado_2classes)
 #' # print the labels
 #' sits_labels_summary(cerrado_2classes)
+#' }
 #' @export
 #'
 sits_labels_summary <- function(data) {

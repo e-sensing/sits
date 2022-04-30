@@ -48,10 +48,11 @@ and lambda = 5.0 for strong smoothing.
 `sits_filter()`: applies a filter to all bands.
 }
 \examples{
+if (sits_active_tests()) {
 # Retrieve a time series with values of NDVI
 point_ndvi <- sits_select(point_mt_6bands, bands = "NDVI")
 
-# Filter the point using the Savitzky-Golay smoother
+# Filter the point using the Savitsky Golay smoother
 point_sg <- sits_filter(point_ndvi,
   filter = sits_sgolay(order = 3, length = 5)
 )
@@ -60,6 +61,7 @@ point_ndvi <- sits_merge(point_ndvi, point_sg, suffix = c("", ".SG"))
 
 # Plot the two points to see the smoothing effect
 plot(point_ndvi)
+}
 }
 \references{
 A. Savitzky, M. Golay, "Smoothing and Differentiation of Data by
@@ -71,6 +73,18 @@ Francesco Vuolo, Wai-Tim Ng, Clement Atzberger,
 Example of Landsat data",
 Int Journal of Applied Earth Observation and Geoinformation,
 vol. 57, pg. 202-213, 2107.
+
+#' @examples
+if (sits_active_tests()) {
+# Retrieve a time series with values of NDVI
+point_ndvi <- sits_select(point_mt_6bands, bands = "NDVI")
+# Filter the point using the Whittaker smoother
+point_wt <- sits_filter(point_ndvi, filter = sits_whittaker(lambda = 3))
+# Merge time series
+point_ndvi <- sits_merge(point_ndvi, point_wt, suffix = c("", ".WT"))
+# Plot the two points to see the smoothing effect
+plot(point_ndvi)
+}
 }
 \seealso{
 \link[sits]{sits_apply}

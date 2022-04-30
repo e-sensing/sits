@@ -16,10 +16,12 @@ A tibble with labels frequency.
 Describes labels in a sits tibble
 }
 \examples{
+if (sits_active_tests()) {
 # read a tibble with 400 samples of Cerrado and 346 samples of Pasture
 data(cerrado_2classes)
 # print the labels
 sits_labels_summary(cerrado_2classes)
+}
 }
 \author{
 Rolf Simoes, \email{rolf.simoes@inpe.br}

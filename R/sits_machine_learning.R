@@ -20,9 +20,19 @@
 #'                         to `randomForest::randomForest` function.
 #' @return                 Model fitted to input data
 #'                         (to be passed to \code{\link[sits]{sits_classify}}).
-#' @note
-#' Please refer to the sits documentation available in
-#' <https://e-sensing.github.io/sitsbook/> for detailed examples.
+#'
+#' @examples
+#' if (sits_active_tests()) {
+#' # Retrieve the set of samples for the Mato Grosso region
+#' samples_MT_ndvi <- sits_select(samples_modis_4bands, bands = "NDVI")
+#' # Build a random forest model
+#' rfor_model <- sits_train(samples_MT_ndvi, sits_rfor(num_trees = 200))
+#' # get a point with a 16 year time series
+#' point_ndvi <- sits_select(point_mt_6bands, bands = "NDVI")
+#' # classify the point
+#' class.tb <- sits_classify(point_ndvi, rfor_model)
+#' }
+#'
 #' @export
 #'
 sits_rfor <- function(samples = NULL, num_trees = 200, nodesize = 1, ...) {
@@ -104,9 +114,20 @@ sits_rfor <- function(samples = NULL, num_trees = 200, nodesize = 1, ...) {
 #' @param ...              Other parameters to be passed to e1071::svm function.
 #' @return                 Model fitted to input data
 #'                         (to be passed to \code{\link[sits]{sits_classify}})
-#' @note
-#' Please refer to the sits documentation available in
-#' <https://e-sensing.github.io/sitsbook/> for detailed examples.
+#'
+#' @examples
+#' if (sits_active_tests()) {
+#' # Retrieve the set of samples for  Mato Grosso  (provided by EMBRAPA)
+#' samples_2bands <- sits_select(samples_modis_4bands, bands = c("NDVI", "EVI"))
+#'
+#' # Build a machine learning model
+#' ml_model <- sits_train(samples_2bands, sits_svm())
+#'
+#' # get a point and classify the point with the ml_model
+#' point.tb <- sits_select(point_mt_6bands, bands = c("NDVI", "EVI"))
+#' class.tb <- sits_classify(point.tb, ml_model)
+#' plot(class.tb, bands = c("NDVI", "EVI"))
+#' }
 #'
 #' @export
 #'
@@ -220,11 +241,23 @@ sits_svm <- function(samples = NULL, formula = sits_formula_logref(),
 #'                         if the performance doesn't improve for k rounds.
 #' @param verbose          Print information on statistics during the process
 #' @return                 Model fitted to input data
-#'                         (to be passed to \code{\link[sits]{sits_classify}})
+#'                         (to be passed to \code{\link[sits]{sits_classify}}).
 #'
-#' @note
-#' Please refer to the sits documentation available in
-#' <https://e-sensing.github.io/sitsbook/> for detailed examples.
+#'
+#' #' @examples
+#' if (sits_active_tests()) {
+#' # Retrieve the set of samples for Mato Grosso (provided by EMBRAPA)
+#'
+#' # Build a machine learning model based on xgboost
+#' xgb_model <- sits_train(samples_modis_4bands, sits_xgboost(nrounds = 10))
+#'
+#' # get a point and classify the point with the ml_model
+#' point.tb <- sits_select(point_mt_6bands,
+#'   bands = c("NDVI", "EVI", "NIR", "MIR")
+#' )
+#' class.tb <- sits_classify(point.tb, xgb_model)
+#' plot(class.tb, bands = c("NDVI", "EVI"))
+#' }
 #'
 #' @export
 #'

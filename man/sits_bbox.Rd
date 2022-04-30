@@ -22,6 +22,13 @@ Bounding box in WGS84 for time series or
 Obtain a vector of limits (either on lat/long for time series
               or in projection coordinates in the case of cubes)
 }
+\examples{
+if (sits_active_tests()) {
+ # get bbox from cerrado samples
+ sits_bbox(cerrado_2classes)
+}
+
+}
 \author{
 Gilberto Camara, \email{gilberto.camara@inpe.br}
 

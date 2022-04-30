@@ -36,9 +36,17 @@ using the synthetic minority oversampling technique (SMOTE)
 for oversampling. Undersampling is done using the SOM methods available in
 the sits package.
 }
-\note{
-Please refer to the sits documentation available in
-<https://e-sensing.github.io/sitsbook/> for detailed examples.
+\examples{
+if (sits_active_tests()) {
+# Retrieve a set of time series with 2 classes
+data(samples_modis_4bands)
+# Print the labels of the resulting tibble
+sits_labels_summary(samples_modis_4bands)
+# Samples the data set
+new_data <- sits_reduce_imbalance(samples_modis_4bands)
+# Print the labels of the resulting tibble
+sits_labels_summary(new_data)
+}
 }
 \references{
 The reference paper on SMOTE is

@@ -97,26 +97,46 @@ The "roi" parameter defines a region of interest. It can be
    processing. The "memsize" parameter  controls the amount of memory
    available for classification. We recommend using a 4:1 relation between
    "memsize" and "multicores".
-
-Please refer to the sits documentation available in
-<https://e-sensing.github.io/sitsbook/> for detailed examples.
 }
 \examples{
+if (sits_active_tests()) {
 # Example of classification of a time series
 # Retrieve the samples for Mato Grosso
 # select an extreme gradient boosting model
 samples_2bands <- sits_select(samples_modis_4bands,
   bands = c("EVI", "NDVI")
 )
-rf_model <- sits_train(samples_2bands,
-  ml_method = sits_rfor(num_trees = 50)
+xgb_model <- sits_train(samples_2bands,
+  ml_method = sits_xgboost(verbose = FALSE)
 )
 # classify the point
 point_2bands <- sits_select(point_mt_6bands,
   bands = c("EVI", "NDVI")
 )
-point_class <- sits_classify(point_2bands, rf_model)
+point_class <- sits_classify(point_2bands, xgb_model)
 plot(point_class)
+
+# create a data cube based on files
+data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
+cube <- sits_cube(
+  source = "BDC",
+  collection = "MOD13Q1-6",
+  data_dir = data_dir,
+  delim = "_",
+  parse_info = c("X1", "X2", "tile", "band", "date")
+)
+
+# classify the raster image
+probs_cube <- sits_classify(cube,
+  ml_model = xgb_model,
+  output_dir = tempdir(),
+  memsize = 4, multicores = 2
+)
+
+# label the classified image
+label_cube <- sits_label_classification(probs_cube, output_dir = tempdir())
+plot(label_cube)
+}
 
 }
 \author{

@@ -11,9 +11,25 @@
 #' @param file           The file where the XLSX data is to be saved.
 #' @param data          (optional) Print information about the samples
 #'
-#' @note
-#' Please refer to the sits documentation available in
-#' <https://e-sensing.github.io/sitsbook/> for detailed examples.
+#' @examples
+#' if (sits_active_tests()) {
+#' # read a tibble with 400 samples of Cerrado and 346 samples of Pasture
+#' data(cerrado_2classes)
+#' # perform a 2 fold validation of this sample file
+#' accuracy <- sits_kfold_validate(cerrado_2classes,
+#'   folds = 2,
+#'   ml_method = sits_rfor(num_trees = 300)
+#' )
+#' # create a list to store the results
+#' results <- list()
+#' # give a name to the accuracy assessment
+#' accuracy$name <- "cerrado_2classes"
+#' # add the confusion matrix to the results
+#' results[[length(results) + 1]] <- accuracy
+#' # save the results to an XLSX file
+#' xlsx_file <- paste0(tempdir(), "accuracy.xlsx")
+#' sits_to_xlsx(results, file = xlsx_file)
+#' }
 #'
 #' @export
 #'
