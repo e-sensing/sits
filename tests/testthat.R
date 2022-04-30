@@ -1,5 +1,5 @@
 library(testthat)
 library(sits)
-if (Sys.getenv("NOT_CRAN", unset = 0) == 1) {
+if (sits_active_tests()) {
     test_check("sits")
 }
