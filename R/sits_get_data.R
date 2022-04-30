@@ -37,7 +37,6 @@
 #' @param impute_fn       Imputation function for NA values.
 #' @param shp_attr        Attribute in the shapefile to be used
 #'                        as a polygon label.
-#' @param .n_pts_csv      Number of points from CSV file to be retrieved.
 #' @param .n_shp_pol      Number of samples per polygon to be read
 #'                        (for POLYGON or MULTIPOLYGON shapefile).
 #' @param .shp_avg        Logical value to summarize samples for a same polygon.
@@ -94,7 +93,6 @@ sits_get_data <- function(cube,
                           bands = NULL,
                           impute_fn = sits_impute_linear(),
                           shp_attr = NULL,
-                          .n_pts_csv = NULL,
                           .n_shp_pol = 30,
                           .shp_avg = FALSE,
                           .shp_id = NULL,
@@ -153,10 +151,7 @@ sits_get_data <- function(cube,
             )
         )
         if (file_ext == "csv") {
-            samples <- .sits_get_samples_from_csv(
-                csv_file   = file,
-                .n_pts_csv = .n_pts_csv
-            )
+            samples <- .sits_get_samples_from_csv(csv_file   = file)
         }
 
         if (file_ext == "shp") {
@@ -524,11 +519,9 @@ sits_get_data <- function(cube,
 #' @author Gilberto Camara
 #' @keywords internal
 #' @param csv_file        CSV that describes the data to be retrieved.
-#' @param .n_pts_csv      number of points to be retrieved
 #' @return                A tibble with information the samples to be retrieved
 #'
-.sits_get_samples_from_csv <- function(csv_file,
-                                       .n_pts_csv) {
+.sits_get_samples_from_csv <- function(csv_file) {
 
     # read sample information from CSV file and put it in a tibble
     samples <- tibble::as_tibble(utils::read.csv(csv_file))
@@ -539,11 +532,6 @@ sits_get_data <- function(cube,
     # select valid columns
     samples <- dplyr::select(samples,
                              dplyr::all_of(.config_get("df_sample_columns")))
-
-    if (!purrr::is_null(.n_pts_csv) &&
-        .n_pts_csv > 1 && .n_pts_csv < nrow(samples)) {
-        samples <- samples[1:.n_pts_csv, ]
-    }
 
     samples <- dplyr::mutate(samples,
                              start_date = as.Date(.data[["start_date"]]),

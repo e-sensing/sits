@@ -16,7 +16,6 @@ sits_get_data(
   bands = NULL,
   impute_fn = sits_impute_linear(),
   shp_attr = NULL,
-  .n_pts_csv = NULL,
   .n_shp_pol = 30,
   .shp_avg = FALSE,
   .shp_id = NULL,
@@ -50,8 +49,6 @@ in "YYYY-MM-DD" format (optional).}
 
 \item{shp_attr}{Attribute in the shapefile to be used
 as a polygon label.}
-
-\item{.n_pts_csv}{Number of points from CSV file to be retrieved.}
 
 \item{.n_shp_pol}{Number of samples per polygon to be read
 (for POLYGON or MULTIPOLYGON shapefile).}
