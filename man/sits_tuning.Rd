@@ -2,10 +2,9 @@
 % Please edit documentation in R/sits_tuning.R
 \name{sits_tuning}
 \alias{sits_tuning}
-\alias{sits_tuning_random}
 \title{Tuning deep learning models hyper-parameters}
 \usage{
-sits_tuning_random(
+sits_tuning(
   samples,
   samples_validation = NULL,
   validation_split = 0.2,
@@ -53,7 +52,23 @@ parameter combination, do a validation using validation samples or
 splitting samples using validation_split. The function returns the
 best hyper-parameters in a list.
 }
-\note{
-Please refer to the sits documentation available in
-<https://e-sensing.github.io/sitsbook/> for detailed examples.
+\examples{
+if (sits_active_tests()) {
+samples <- sits_select(samples_modis_4bands, bands = "NDVI")
+
+tuned <- sits_tuning_random(
+   samples,
+   ml_method = sits_tempcnn(),
+   params = list(
+       optimizer = torchopt::optim_adamw,
+       opt_hparams = list(
+           lr = uniform(0, 1)
+       )
+   ),
+   trials = 4,
+   multicores = 1,
+   progress = FALSE
+ )
+}
+
 }

@@ -28,28 +28,43 @@
 #'
 #' @return A list containing the best model and a tibble with all performances
 #'
-#' @note
-#' Please refer to the sits documentation available in
-#' <https://e-sensing.github.io/sitsbook/> for detailed examples.
+#' @examples
+#' if (sits_active_tests()) {
+#' samples <- sits_select(samples_modis_4bands, bands = "NDVI")
+#'
+#' tuned <- sits_tuning_random(
+#'    samples,
+#'    ml_method = sits_tempcnn(),
+#'    params = list(
+#'        optimizer = torchopt::optim_adamw,
+#'        opt_hparams = list(
+#'            lr = uniform(0, 1)
+#'        )
+#'    ),
+#'    trials = 4,
+#'    multicores = 1,
+#'    progress = FALSE
+#'  )
+#'}
 #'
 #' @export
 #'
-sits_tuning_random <- function(samples,
-                               samples_validation = NULL,
-                               validation_split = 0.2,
-                               ml_method = sits_tempcnn(),
-                               params = list(
-                                   optimizer = torchopt::optim_adamw,
-                                   opt_hparams = list(
-                                       lr = uniform(0, 1)
-                                   )
-                               ),
-                               trials = 30,
-                               multicores = 2,
-                               progress = FALSE) {
+sits_tuning <- function(samples,
+                        samples_validation = NULL,
+                        validation_split = 0.2,
+                        ml_method = sits_tempcnn(),
+                        params = list(
+                            optimizer = torchopt::optim_adamw,
+                            opt_hparams = list(
+                                lr = uniform(0, 1)
+                            )
+                        ),
+                        trials = 30,
+                        multicores = 2,
+                        progress = FALSE) {
 
     # set caller to show in errors
-    .check_set_caller("sits_tuning_random")
+    .check_set_caller("sits_tuning")
 
     # pre-conditions
     # check samples parameter
