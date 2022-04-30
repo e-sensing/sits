@@ -10,6 +10,9 @@
 #' @param  type              Method to measure uncertainty. See details.
 #' @param  ...               Parameters for specific functions.
 #' @param  multicores        Number of cores to run the function.
+#' @param  window_size       Size of the neighborhood.
+#' @param  window_fn         Function used with the window filter. For now,
+#'                           only the mean is available.
 #' @param  memsize           Maximum overall memory (in GB) to run the
 #'                           function.
 #' @param  output_dir        Output directory for image files.

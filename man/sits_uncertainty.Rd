@@ -65,6 +65,11 @@ function.}
 
 \item{version}{Version of resulting image.
 (in the case of multiple tests)}
+
+\item{window_size}{Size of the neighborhood.}
+
+\item{window_fn}{Function used with the window filter. For now,
+only the mean is available.}
 }
 \value{
 An uncertainty data cube

@@ -123,7 +123,7 @@ sits_increase_samples <- function(u_cube,
         label_id <- terra::extract(raster, y = terra::vect(points_sf),
                                    xy = FALSE, cells = FALSE)
         points_df <- cbind(points_df, label_id[,2])
-        colnames(points_df) <- c(head(colnames(points_df), -1), "label")
+        colnames(points_df) <- c(utils::head(colnames(points_df), -1), "label")
         return(points_df)
     }
 

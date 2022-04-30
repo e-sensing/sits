@@ -28,7 +28,7 @@ deep residual networks \code{\link[sits]{sits_resnet}} and
 self-attention encoders \code{\link[sits]{sits_lighttae}}
 }
 \examples{
-#' if (sits_active_tests()) {
+if (sits_active_tests()) {
 # Retrieve the set of samples for Mato Grosso (provided by EMBRAPA)
 # fit a training model (RFOR model)
 samples <- sits_select(samples_modis_4bands, bands = c("NDVI"))

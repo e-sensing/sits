@@ -154,7 +154,7 @@ sits_tuning <- function(samples,
 .sits_tuning_pick_random <- function(params) {
 
     uniform <- function(min = 0, max = 1) {
-        runif(n = 1, min = min, max = max)
+        stats::runif(n = 1, min = min, max = max)
     }
 
     choice <- function(...) {
@@ -162,23 +162,23 @@ sits_tuning <- function(samples,
     }
 
     randint <- function(min, max) {
-        rn = as.integer((max - min) * runif(1) + min)
+        rn = as.integer((max - min) * stats::runif(1) + min)
     }
 
     normal <- function(mean = 0, sd = 1) {
-        rnorm(1, mean = mean, sd = sd)
+        stats::rnorm(1, mean = mean, sd = sd)
     }
 
     lognormal <- function(meanlog = 0, sdlog = 1) {
-        rlnorm(1, meanlog = meanlog, sdlog = sdlog)
+        stats::rlnorm(1, meanlog = meanlog, sdlog = sdlog)
     }
 
     loguniform <- function(minlog = 0, maxlog = 1) {
-        exp((maxlog - minlog) * runif(1) + minlog)
+        exp((maxlog - minlog) * stats::runif(1) + minlog)
     }
 
     beta <- function(shape1, shape2) {
-        rbeta(1, shape1 = shape1, shape2 = shape2)
+        stats::rbeta(1, shape1 = shape1, shape2 = shape2)
     }
 
     params <- eval(params, envir = environment())
