@@ -11,7 +11,8 @@
 
 \item{...}{additional parameters to be passed to raster package}
 
-\item{block}{numeric vector with names "first_col", "ncols", "first_row", "nrows".}
+\item{block}{numeric vector with names "first_col", "ncols", "first_row",
+"nrows".}
 
 \item{bbox}{numeric vector with names "xmin", "xmax", "ymin", "ymax".}
 }

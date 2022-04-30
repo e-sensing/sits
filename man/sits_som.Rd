@@ -97,11 +97,13 @@ based on the results of the SOM map.  The algorithm identifies noisy samples,
 using `prior_threshold` for the prior probability
 and `posterior_threshold` for the posterior probability.
 Each sample receives an evaluation tag, according to the following rule:
-(a) If the prior probability is < `prior_threshold`, the sample is tagged as "remove";
-(b) If the prior probability is >= `prior_threshold` and the posterior probability
-is >=`posterior_threshold`, the sample is tagged as "clean";
+(a) If the prior probability is < `prior_threshold`, the sample is tagged
+as "remove";
+(b) If the prior probability is >= `prior_threshold` and the posterior
+probability is >=`posterior_threshold`, the sample is tagged as "clean";
 (c) If the prior probability is >= `posterior_threshold` and
-the posterior probability is < `posterior_threshold`, the sample is tagged as "analyze" for further inspection.
+the posterior probability is < `posterior_threshold`, the sample is tagged as
+"analyze" for further inspection.
 The user can define which tagged samples will be returned using the "keep"
 parameter, with the following options: "clean", "analyze", "remove".
 }

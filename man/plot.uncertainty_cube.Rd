@@ -6,18 +6,15 @@
 \usage{
 \method{plot}{uncertainty_cube}(
   x,
-  y,
   ...,
   tiles = NULL,
-  n_colors = 10,
-  breaks = "pretty",
-  palette = "Blues"
+  n_colors = 14,
+  intervals = "log",
+  palette = "YlOrRd"
 )
 }
 \arguments{
 \item{x}{Object of class "probs_image".}
-
-\item{y}{Ignored.}
 
 \item{...}{Further specifications for \link{plot}.}
 
@@ -25,7 +22,7 @@
 
 \item{n_colors}{Number of colors to plot.}
 
-\item{breaks}{Yype of class intervals.}
+\item{intervals}{Type of class intervals.}
 
 \item{palette}{HCL palette used for visualization.}
 }
@@ -39,15 +36,9 @@ plots a probability cube using stars
 \itemize{Possible class intervals
  \item{"sd":} {intervals based on the average and standard deviation.}
  \item{"equal": } {divides the range of the variable into n parts.}
- \item{"pretty": } {number of breaks likely to be legible.}
  \item{"quantile": } {quantile breaks}
- \item{"kmeans" :} {uses kmeans to generate the breaks.}
- \item{"hclust" :} {breaks defined by hierarchical clustering.}
- \item{"bclust" :} {breaks defined by bagged clustering.}
- \item{"fisher" :} {method proposed by Fischer (1958).}
- \item{"jenks" :} {method proposed by Jenks.}
- \item{"dpih" :} {based on the bin width of a histogram.}
- \item{"headtails" :} {algorithm proposed by Bin Jiang (2013)}
+ \item{"pretty": } {number of breaks likely to be legible.}
+ \item{"log" :} {logarithm plot.}
  }
 }
 \author{

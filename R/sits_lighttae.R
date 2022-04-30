@@ -87,14 +87,9 @@ sits_lighttae <- function(samples = NULL,
 
     # function that returns torch model based on a sits sample data.table
     result_fun <- function(samples) {
-        # verifies if torch package is installed
-        if (!requireNamespace("torch", quietly = TRUE)) {
-            stop("Please install package torch", call. = FALSE)
-        }
-        # verifies if torch package is installed
-        if (!requireNamespace("luz", quietly = TRUE)) {
-            stop("Please install package luz", call. = FALSE)
-        }
+        # verifies if torch and luz  packages is installed
+        .check_require_packages(c("torch", "luz"))
+
         # preconditions
         .check_num(
             x = lr_decay_epochs,
@@ -139,7 +134,9 @@ sits_lighttae <- function(samples = NULL,
 
         # data normalization
         stats <- .sits_ml_normalization_param(samples)
-        train_samples <- .sits_distances(.sits_ml_normalize_data(samples, stats))
+        train_samples <- .sits_distances(
+            .sits_ml_normalize_data(samples, stats)
+        )
 
         # is the training data correct?
         .check_chr_within(
@@ -227,7 +224,8 @@ sits_lighttae <- function(samples = NULL,
                         layers_spatial_encoder = layers_spatial_encoder
                     )
                 # number of input channels == last layer of mlp2
-                in_channels = layers_spatial_encoder[length(layers_spatial_encoder)]
+                in_channels <-
+                    layers_spatial_encoder[length(layers_spatial_encoder)]
                 # define a temporal encoder
                 self$temporal_encoder <-
                     .torch_light_temporal_attention_encoder(
@@ -316,9 +314,7 @@ sits_lighttae <- function(samples = NULL,
         model_predict <- function(values) {
 
             # verifies if torch package is installed
-            if (!requireNamespace("torch", quietly = TRUE)) {
-                stop("Please install package torch", call. = FALSE)
-            }
+            .check_require_packages("torch")
 
             # set torch threads to 1
             # function does not work on MacOS

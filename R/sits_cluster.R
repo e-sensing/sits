@@ -2,17 +2,18 @@
 #' @name sits_clustering
 #' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
 #'
-#' @description These functions support hierarchical agglomerative clustering in sits.
-#' They provide support from creating a dendrogram and using it for cleaning samples.
+#' @description These functions support hierarchical agglomerative clustering in
+#' sits. They provide support from creating a dendrogram and using it for
+#' cleaning samples.
 #'
-#' \code{sits_cluster_dendro()} takes a tibble containing time series and produces
-#' a sits tibble with an added "cluster" column. The function first calculates a dendrogram and
-#' obtains a validity index for best clustering using the adjusted Rand Index.
-#' After cutting the dendrogram using the chosen validity index, it assigns a
-#' cluster to each sample.
+#' \code{sits_cluster_dendro()} takes a tibble containing time series and
+#' produces a sits tibble with an added "cluster" column. The function first
+#' calculates a dendrogram and obtains a validity index for best clustering
+#' using the adjusted Rand Index. After cutting the dendrogram using the chosen
+#' validity index, it assigns a cluster to each sample.
 #'
-#' \code{sits_cluster_frequency()} computes the contingency table between labels and clusters
-#' and produces a matrix
+#' \code{sits_cluster_frequency()} computes the contingency table between labels
+#' and clusters and produces a matrix.
 #' It needs as input a tibble produced by \code{sits_cluster_dendro()}.
 #'
 #' \code{sits_cluster_clean()} takes a tibble with time series
@@ -50,10 +51,7 @@ sits_cluster_dendro <- function(samples = NULL,
     # verify if data is OK
     .sits_tibble_test(samples)
 
-    .check_that(
-        requireNamespace("dtwclust", quietly = TRUE),
-        msg = "Please install package dtwclust"
-    )
+    .check_require_packages("dtwclust")
 
     # bands in sits are uppercase
     bands <- .sits_tibble_bands_check(samples, bands)
@@ -202,9 +200,7 @@ sits_cluster_clean <- function(samples) {
     .check_set_caller(".sits_cluster_validity")
 
     # verifies if dtwclust package is installed
-    if (!requireNamespace("dtwclust", quietly = TRUE)) {
-        stop("Please insall package dtwclust", call. = FALSE)
-    }
+    .check_require_packages("dtwclust")
 
     # is the input data the result of a cluster function?
     .check_chr_contains(
@@ -259,20 +255,19 @@ sits_cluster_clean <- function(samples) {
                                      dist_method = "dtw_basic",
                                      linkage = "ward.D2", ...) {
     # verifies if dtwclust package is installed
-    if (!requireNamespace("dtwclust", quietly = TRUE)) {
-        stop("Please install package dtwclust", call. = FALSE)
-    }
+    .check_require_packages("dtwclust")
 
     # get the values of the time series
     values <- sits_values(samples, bands, format = "cases_dates_bands")
 
     # call dtwclust and get the resulting dendrogram
-    dendro <- dtwclust::tsclust(values,
-                                type = "hierarchical",
-                                k = max(nrow(samples) - 1, 2),
-                                distance = dist_method,
-                                control = dtwclust::hierarchical_control(method = linkage),
-                                ...
+    dendro <- dtwclust::tsclust(
+        values,
+        type = "hierarchical",
+        k = max(nrow(samples) - 1, 2),
+        distance = dist_method,
+        control = dtwclust::hierarchical_control(method = linkage),
+        ...
     )
 
     # return the dendrogram
@@ -339,7 +334,7 @@ sits_cluster_clean <- function(samples) {
         nis2 <- sum(choose(ni[ni > 1], 2))
         njs2 <- sum(choose(nj[nj > 1], 2))
         rand <- c(ARI = c(sum(choose(x[x > 1], 2)) -
-                              (nis2 * njs2) / n2) / ((nis2 + njs2) / 2 - (nis2 * njs2) / n2))
+                (nis2 * njs2) / n2) / ((nis2 + njs2) / 2 - (nis2 * njs2) / n2))
     } else {
         rand <- c(rand, RI = 1 + (sum(x^2) - (sum(ni^2) + sum(nj^2)) / 2) / n2)
     }

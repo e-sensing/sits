@@ -135,22 +135,24 @@ sits_filter <- function(data, filter = sits_whittaker()) {
 
 # Sits interface to the "signal" package
 #
-# The "signal" package is A set of signal processing functions originally written for
-# 'Matlab' and 'Octave'.  Includes filter generation utilities,
+# The "signal" package is A set of signal processing functions originally
+# written for 'Matlab' and 'Octave'.  Includes filter generation utilities,
 # filtering functions, resampling routines, and visualization of
 # filter models. It also includes interpolation functions.
 #
 # Further information on "signal"
 # Authors:             Uwe Ligges [aut, cre] (new maintainer),
-#                      Tom Short [aut], Paul Kienzle [aut], Sarah Schnackenberg [ctb],
-#                      David Billinghurst [ctb], Hans-Werner Borchers [ctb],
-#                      Andre Carezia [ctb], Pascal Dupuis [ctb], John W. Eaton [ctb],
+#                      Tom Short [aut], Paul Kienzle [aut],
+#                      Sarah Schnackenberg [ctb], David Billinghurst [ctb],
+#                      Hans-Werner Borchers [ctb], Andre Carezia [ctb],
+#                      Pascal Dupuis [ctb], John W. Eaton [ctb],
 #                      E. Farhi [ctb], Kai Habel [ctb], Kurt Hornik [ctb],
-#                      Sebastian Krey [ctb], Bill Lash [ctb], Friedrich Leisch [ctb],
-#                      Olaf Mersmann [ctb], Paulo Neis [ctb], Jaakko Ruohio [ctb],
+#                      Sebastian Krey [ctb], Bill Lash [ctb],
+#                      Friedrich Leisch [ctb], Olaf Mersmann [ctb],
+#                      Paulo Neis [ctb], Jaakko Ruohio [ctb],
 #                      Julius O. Smith III [ctb], Doug Stewart [ctb],
 #                      Andreas Weingessel [ctb]
-# Maintainer:         Uwe Ligges <ligges@statistik.tu-dortmund.de>
+# Maintainer:          Uwe Ligges <ligges@statistik.tu-dortmund.de>
 
 # The code on this file has been lifted from the "signal" package
 
@@ -177,7 +179,11 @@ sits_filter <- function(data, filter = sits_whittaker()) {
 #' @param ts           Time scaling (integer).
 #' @return             A time series with filtered values.
 #'
-.sits_signal_sgolayfilt <- function(x, p = 3, n = p + 3 - p %% 2, m = 0, ts = 1) {
+.sits_signal_sgolayfilt <- function(x,
+                                    p  = 3,
+                                    n  = p + 3 - p %% 2,
+                                    m  = 0,
+                                    ts = 1) {
 
     ## The first k rows of F are used to filter the first k points
     ## of the data set based on the first n points of the data set.
@@ -189,18 +195,19 @@ sits_filter <- function(data, filter = sits_whittaker()) {
     ## sequences are used with the right sign.
     len <- length(x)
 
-    F <- .sits_signal_sgolay(p, n, m, ts)
+    f_res <- .sits_signal_sgolay(p, n, m, ts)
     k <- floor(n / 2)
-    z <- .sits_signal_filter(F[k + 1, n:1], 1, x)
-    y <- c(F[1:k, ] %*% x[1:n], z[n:len], F[(k + 2):n, ] %*% x[(len - n + 1):len])
+    z <- .sits_signal_filter(f_res[k + 1, n:1], 1, x)
+    y <- c(f_res[1:k, ] %*% x[1:n], z[n:len],
+           f_res[(k + 2):n, ] %*% x[(len - n + 1):len])
     return(y)
 }
 
 #' @title Savitzky-Golay smoothing filter coefficients
 #' @name .sits_signal_sgolay
 #'
-#' @description  Computes the filter coefficients for all Savitzky-Golay smoothing
-#' filters of order p for length n (odd). m can be used in order to
+#' @description  Computes the filter coefficients for all Savitzky-Golay
+#' smoothing filters of order p for length n (odd). m can be used in order to
 #' get directly the mth derivative. In this case, ts is a scaling factor.
 #'
 #' The early rows of F smooth based on future values and later rows
@@ -255,20 +262,10 @@ sits_filter <- function(data, filter = sits_whittaker()) {
     if (missing(init.x)) {
         init.x <- c(rep(0, length(filt) - 1))
     }
-    # if (length(init.x) != length(filt) - 1)
-    #     stop("length of init.x should match filter length-1 = ", length(filt) - 1)
-    # if (missing(init) && !missing(init.y))
-    #     init <- rev(init.y)
-    # if (all(is.na(x)))
-    #     return(x)
     if (length(filt)) {
         x1 <- stats::filter(c(init.x, x), filt / a[1], sides = 1)
-        # if (all(is.na(x1)))
-        #     return(x)
         x <- stats::na.omit(x1, filt / a[1], sides = 1)
     }
-    # if (length(a) >= 2)
-    #     x <- stats::filter(x, -a[-1] / a[1], method = "recursive", init = init)
     return(x)
 }
 #' @title Generalized Inverse of a Matrix
@@ -286,17 +283,6 @@ sits_filter <- function(data, filter = sits_whittaker()) {
 #' Modern Applied Statistics with S-PLUS.
 #'
 .sits_MASS_ginv <- function(X, tol = sqrt(.Machine$double.eps)) {
-    #
-    # based on suggestions of R. M. Heiberger, T. M. Hesterberg and WNV
-    #
-    # if (length(dim(X)) > 2L || !(is.numeric(X) || is.complex(X)))
-    #     stop("'X' must be a numeric or complex matrix")
-    # if (!is.matrix(X)) X <- as.matrix(X)
     Xsvd <- svd(X)
-    # if (is.complex(X)) Xsvd$u <- Conj(Xsvd$u)
-    # Positive <- Xsvd$d > max(tol * Xsvd$d[1L], 0)
-    # if (all(Positive)) Xsvd$v %*% (1/Xsvd$d * t(Xsvd$u))
-    # else if (!any(Positive)) array(0, dim(X)[2L:1L])
-    # else Xsvd$v[, Positive, drop = FALSE] %*% ((1/Xsvd$d[Positive]) * t(Xsvd$u[, Positive, drop = FALSE]))
     Xsvd$v %*% (1 / Xsvd$d * t(Xsvd$u))
 }

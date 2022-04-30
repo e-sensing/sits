@@ -15,8 +15,8 @@
 A linear tensor block.
 }
 \description{
-Defines a set of torch modules composed of; (a) linear transformation;
-(b) batch normalization; (c) relu activation
+Defines a set of torch modules composed of:
+(a) linear transformation; (b) batch normalization; (c) relu activation
 }
 \author{
 Charlotte Pelletier, \email{charlotte.pelletier@univ-ubs.fr}

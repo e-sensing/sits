@@ -39,7 +39,8 @@ to block size.}
 \item{leaflet_comp_factor}{Compression factor for leaflet RGB display.}
 
 \item{reset}{Should current configuration options be cleaned
-before loading config files? Default \code{FALSE}.}
+before loading config files? Default is
+\code{FALSE}.}
 
 \item{source}{Data source to be shown in detail.}
 

@@ -861,8 +861,8 @@ NULL
 
 #' @rdname source_cube
 #'
-#' @description \code{.source_item_get_cloud_cover()} retrieves the percentage of cloud
-#' cover of an image.
+#' @description \code{.source_item_get_cloud_cover()} retrieves the percentage
+#' of cloud cover of an image.
 #' @return \code{.source_item_get_cloud_cover()} returns a \code{numeric} vector
 #' containing the percentage of cloud cover to each image band of an item.
 #'
@@ -1008,8 +1008,8 @@ NULL
 
 #' @rdname source_cube
 #'
-#' @description \code{.source_items_cube()} is called to create a data cubes tile,
-#' that is, a row in sits data cube.
+#' @description \code{.source_items_cube()} is called to create a data cubes
+#' tile, that is, a row in sits data cube.
 #'
 #' @return \code{.source_items_cube()} returns a \code{tibble} containing a sits
 #' cube tile (one row).

@@ -62,7 +62,8 @@
     n_bytes <- 8
 
     # total memory needed to do all work in GB
-    needed_memory <-  1E-09 * size[["ncols"]] * size[["nrows"]] * n_layers * bloat_mem * n_bytes
+    image_size <- size[["ncols"]] * size[["nrows"]]
+    needed_memory <- image_size * 1E-09 * n_layers * bloat_mem * n_bytes
 
     # minimum block size
     min_block_x_size <- size["ncols"] # for now, only vertical blocking
@@ -70,7 +71,8 @@
 
     # compute factors
     memory_factor <- needed_memory / memsize
-    blocking_factor <- size[["ncols"]] / min_block_x_size * size[["nrows"]] / min_block_y_size
+
+    blocking_factor <- image_size / (min_block_x_size * min_block_y_size)
 
     # stop if blocking factor is less than memory factor!
     # reason: the provided memory is not enough to process the data by

@@ -87,8 +87,10 @@ sits_time_series <- function(data) {
             # only rows that match  reference dates are kept
             if (length(ref_dates) == nrow(ts)) {
                 # find the date of minimum distance to the reference date
-                idx <- which.min(abs((lubridate::as_date(ts$Index)
-                                      - lubridate::as_date(start_date)) / lubridate::ddays(1)))
+                idx <- which.min(
+                    abs((lubridate::as_date(ts$Index)
+                         - lubridate::as_date(start_date))
+                        / lubridate::ddays(1)))
                 # shift the time series to match dates
                 if (idx != 1) ts <- shift_ts(ts, -(idx - 1))
                 # change the dates to the reference dates

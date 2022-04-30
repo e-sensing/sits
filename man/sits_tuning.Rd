@@ -2,17 +2,17 @@
 % Please edit documentation in R/sits_tuning.R
 \name{sits_tuning}
 \alias{sits_tuning}
+\alias{sits_tuning_random}
 \title{Tuning deep learning models hyper-parameters}
 \usage{
-sits_tuning(
+sits_tuning_random(
   samples,
   samples_validation = NULL,
   validation_split = 0.2,
-  ml_functions = c("tempcnn", "lighttae", "tae", "resnet"),
-  opt_functions = c("adam", "adamw"),
-  opt_learning_rates = c(0.01, 0.005, 0.001),
-  opt_eps_values = c(1e-06, 1e-07, 1e-08),
-  opt_weight_decays = c(0, 1e-05, 1e-06),
+  ml_method = sits_tempcnn(),
+  params = list(optimizer = torchopt::optim_adamw, opt_hparams = list(lr = uniform(0,
+    1))),
+  trials = 30,
   multicores = 2,
   progress = FALSE
 )
@@ -25,18 +25,14 @@ sits_tuning(
 \item{validation_split}{Percent of original time series set to be used
 for validation (if samples_validation is NULL)}
 
-\item{ml_functions}{List of machine learning functions to be tested.}
+\item{ml_method}{Machine learning method.}
 
-\item{opt_functions}{Optimization functions to be tested.}
+\item{params}{List with hyper parameters to be passed to
+\code{ml_method}. User can use \code{uniform}, \code{choice},
+\code{randint}, \code{normal}, \code{lognormal}, \code{loguniform},
+and \code{beta} functions to randomize parameters.}
 
-\item{opt_learning_rates}{Learning rates to be tested.}
-
-\item{opt_eps_values}{Values of eps to be tested. Each eps value
-is the term added to the denominator to improve numerical stability.}
-
-\item{opt_weight_decays}{Values of weight decay to be tested.
-These are the the L2 regularization params (note the weight decay is
-not correctly implemented in the adam optimization)}
+\item{trials}{Number of random trials to perform the random search.}
 
 \item{multicores}{Number of cores to process in parallel}
 

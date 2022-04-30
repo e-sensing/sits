@@ -665,7 +665,7 @@
 
     # function to test timelines
     return(length(unique(timelines)) == 1 &&
-               any(sapply(timelines, length) == 1))
+               any(purrr::map_dbl(timelines, length) == 1))
 }
 
 #' @name .cube_is_regular

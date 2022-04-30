@@ -40,10 +40,9 @@ sits_kfold_validate <- function(samples,
 
     # set caller to show in errors
     .check_set_caller("sits_kfold_validate")
+
     # require package
-    if (!requireNamespace("caret", quietly = TRUE)) {
-        stop("Please install package caret", call. = FALSE)
-    }
+    .check_require_packages("caret")
 
     # pre-condition
     .check_that(
@@ -168,10 +167,9 @@ sits_validate <- function(samples,
 
     # set caller to show in errors
     .check_set_caller("sits_validate")
+
     # require package
-    if (!requireNamespace("caret", quietly = TRUE)) {
-        stop("Please install package caret", call. = FALSE)
-    }
+    .check_require_packages("caret")
 
     # pre-condition
     .check_that(

@@ -37,7 +37,8 @@
         self$block(x)
     }
 )
-#' @title Torch module for linear transformation with relu activation and dropout
+#' @title Torch module for linear transformation with relu activation and
+#' dropout
 #' @name .torch_linear_relu_dropout
 #'
 #' @author Charlotte Pelletier, \email{charlotte.pelletier@@univ-ubs.fr}
@@ -113,8 +114,8 @@
 #' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
 #' @author Felipe Souza, \email{lipecaso@@gmail.com}
 #' @keywords internal
-#' @description Defines a set of torch modules composed of; (a) linear transformation;
-#' (b) batch normalization; (c) relu activation
+#' @description Defines a set of torch modules composed of:
+#' (a) linear transformation; (b) batch normalization; (c) relu activation
 #'
 #' @param input_dim         Input dimension of neural net.
 #' @param hidden_dims       Hidden dimensions of neural net.

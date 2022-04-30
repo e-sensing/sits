@@ -11,9 +11,8 @@
   red = NULL,
   green = NULL,
   blue = NULL,
-  tiles = NULL,
-  date = NULL,
-  roi = NULL
+  tile = x$tile[[1]],
+  date = sits_timeline(x)[1]
 )
 }
 \arguments{
@@ -29,17 +28,15 @@
 
 \item{blue}{Band for blue color.}
 
-\item{tiles}{Tiles to be plotted.}
+\item{tile}{Tile to be plotted.}
 
 \item{date}{Date to be plotted.}
-
-\item{roi}{sf object giving a region of interest.}
 }
 \value{
 Plot object.
 }
 \description{
-Uses mapview to visualize raster cube and classified images
+Plot RGB raster cube
 }
 \author{
 Gilberto Camara, \email{gilberto.camara@inpe.br}

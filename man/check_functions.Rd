@@ -7,6 +7,7 @@
 \alias{.check_that}
 \alias{.check_null}
 \alias{.check_na}
+\alias{.check_require_packages}
 \alias{.check_names}
 \alias{.check_length}
 \alias{.check_apply}
@@ -36,6 +37,8 @@
 .check_null(x, ..., msg = NULL)
 
 .check_na(x, ..., msg = NULL)
+
+.check_require_packages(x, ..., msg = "Please install package(s)")
 
 .check_names(x, ..., is_named = TRUE, msg = NULL)
 
@@ -213,6 +216,9 @@ to which \code{x} is a kind of superset. The actual behavior is pointed by
 extensions.}
 
 \item{expr}{A R \code{expression} to be evaluated.}
+
+\item{show_pks_name}{A \code{logical} value indicating if
+uninstalled packages can be shown.}
 }
 \value{
 Unless otherwise specified, all checking functions return the same

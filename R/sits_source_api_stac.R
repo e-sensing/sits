@@ -6,9 +6,7 @@
                                                      end_date = NULL,
                                                      dry_run = FALSE) {
     # require package
-    if (!requireNamespace("rstac", quietly = TRUE)) {
-        stop("Please install package rstac", call. = FALSE)
-    }
+    .check_require_packages("rstac")
 
     items_query <- .stac_create_items_query(
         source = source,
@@ -24,10 +22,11 @@
             items <- rstac::post_request(items_query, ...)
         },
         error = function(e) {
-            stop(paste(
-                ".source_collection_access_test.stac_cube: service is unreachable\n",
-                e$message
-            ), call. = FALSE)
+            stop(
+                paste(
+                    ".source_collection_access_test.stac_cube: service is",
+                    "unreachable\n", e$message
+                ), call. = FALSE)
         }
     )
     items <- .source_items_bands_select(

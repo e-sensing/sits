@@ -109,6 +109,12 @@
     # resume feature
     # if tile already exists, return probs_cube
     if (file.exists(.file_info_path(probs_cube))) {
+
+        message(
+            paste("Recovery mode. Classified probability image detected in",
+                  "the provided directory.")
+        )
+
         return(probs_cube)
     }
 
@@ -142,23 +148,30 @@
     # read the blocks and compute the probabilities
     filenames <- .sits_parallel_map(blocks, function(b) {
 
+        probs_cube_filename <- tools::file_path_sans_ext(
+            basename(.file_info_path(probs_cube))
+        )
+        # directory where probs blocks will be save
+        probs_cube_dir <- dirname(.file_info_path(probs_cube))
+
         # define the file name of the raster file to be written
-        filename_block <- paste0(
-            tools::file_path_sans_ext(.file_info_path(probs_cube)),
-            "_block_", b[["first_row"]], "_", b[["nrows"]], ".tif"
+        filename_block <- .create_filename(
+            filenames = c(probs_cube_filename, "_block",
+                          b[["first_row"]], b[["nrows"]]),
+            ext = ".tif",
+            output_dir = probs_cube_dir
         )
 
         # resume processing in case of failure
         if (file.exists(filename_block)) {
             # try to open the file
             r_obj <-
-                tryCatch(
-                    {
-                        .raster_open_rast(filename_block)
-                    },
-                    error = function(e) {
-                        return(NULL)
-                    }
+                tryCatch({
+                    .raster_open_rast(filename_block)
+                },
+                error = function(e) {
+                    return(NULL)
+                }
                 )
             # if file can be opened, check if the result is correct
             # this file will not be processed again
@@ -231,14 +244,14 @@
 
         # create a new raster
         r_obj <- .raster_new_rast(
-            nrows   = params$nrows,
-            ncols   = params$ncols,
-            xmin    = params$xmin,
-            xmax    = params$xmax,
-            ymin    = params$ymin,
-            ymax    = params$ymax,
+            nrows   = params[["nrows"]],
+            ncols   = params[["ncols"]],
+            xmin    = params[["xmin"]],
+            xmax    = params[["xmax"]],
+            ymin    = params[["ymin"]],
+            ymax    = params[["ymax"]],
             nlayers = length(labels),
-            crs     = params$crs
+            crs     = params[["crs"]]
         )
 
         # copy values
@@ -278,11 +291,12 @@
 
     # join predictions
     out_file <- .file_info_path(probs_cube)
+    probs_cube_dt <- .config_get("probs_cube_data_type")
     .raster_merge(
         in_files = filenames,
         out_file = out_file,
         format = "GTiff",
-        gdal_datatype = .raster_gdal_datatype(.config_get("probs_cube_data_type")),
+        gdal_datatype = .raster_gdal_datatype(probs_cube_dt),
         gdal_options = .config_gtiff_default_options(),
         overwrite = TRUE
     )

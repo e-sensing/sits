@@ -9,7 +9,8 @@
 \arguments{
 \item{temperature}{Weight score of the attention module.}
 
-\item{attn_dropout}{Dropout rate to be applied to the attention module.}
+\item{attn_dropout}{Dropout rate to be applied to the attention
+module.}
 
 \item{query}{Query tensor.}
 
@@ -35,8 +36,8 @@ https://github.com/VSainteuf/lightweight-temporal-attention-pytorch
 }
 \references{
 Vivien Sainte Fare Garnot and Loic Landrieu,
-"Lightweight Temporal Self-Attention
-for Classifying Satellite Image Time Series", https://arxiv.org/abs/2007.00586
+"Lightweight Temporal Self-Attention for Classifying Satellite Image
+Time Series", https://arxiv.org/abs/2007.00586
 }
 \author{
 Charlotte Pelletier, \email{charlotte.pelletier@univ-ubs.fr}

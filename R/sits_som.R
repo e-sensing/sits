@@ -23,11 +23,13 @@
 #' using `prior_threshold` for the prior probability
 #' and `posterior_threshold` for the posterior probability.
 #' Each sample receives an evaluation tag, according to the following rule:
-#' (a) If the prior probability is < `prior_threshold`, the sample is tagged as "remove";
-#' (b) If the prior probability is >= `prior_threshold` and the posterior probability
-#' is >=`posterior_threshold`, the sample is tagged as "clean";
+#' (a) If the prior probability is < `prior_threshold`, the sample is tagged
+#' as "remove";
+#' (b) If the prior probability is >= `prior_threshold` and the posterior
+#' probability is >=`posterior_threshold`, the sample is tagged as "clean";
 #' (c) If the prior probability is >= `posterior_threshold` and
-#' the posterior probability is < `posterior_threshold`, the sample is tagged as "analyze" for further inspection.
+#' the posterior probability is < `posterior_threshold`, the sample is tagged as
+#' "analyze" for further inspection.
 #' The user can define which tagged samples will be returned using the "keep"
 #' parameter, with the following options: "clean", "analyze", "remove".
 #'
@@ -87,9 +89,8 @@ sits_som_map <- function(data,
     .check_set_caller("sits_som_map")
 
     # verifies if kohonen package is installed
-    if (!requireNamespace("kohonen", quietly = TRUE)) {
-        stop("Please install package kohonen", call. = FALSE)
-    }
+    .check_require_packages("kohonen")
+
     # does the input data exist?
     .sits_tibble_test(data)
     # is are there more neurons than samples?
@@ -151,8 +152,8 @@ sits_som_map <- function(data,
             label_max_final <- which.max(labels_neuron$prior_prob)
 
 
-            # if more than one sample has been mapped AND their max are the same,
-            # then a posteriori probability is considered
+            # if more than one sample has been mapped AND their max are the
+            # same, then a posteriori probability is considered
             if (length(number_of_label_max) > 1) {
                 # Get the maximum posterior among the tied classes
                 max_post <- max(labels_neuron[number_of_label_max, ]$post_prob)
@@ -160,8 +161,10 @@ sits_som_map <- function(data,
                 # Where are the duplicated values?
                 label_max_post <- which(labels_neuron$post_prob == max_post)
 
-                # Is this value are in the maximum vector of the prior probability?
-                index_prior_max <- which(label_max_post %in% number_of_label_max == TRUE)
+                # Is this value are in the maximum vector of the prior
+                # probability?
+                index_prior_max <-
+                    which(label_max_post %in% number_of_label_max == TRUE)
                 label_max_final <- label_max_post[index_prior_max]
             } else {
                 label_max_final <- which.max(labels_neuron$prior_prob)

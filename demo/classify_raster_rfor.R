@@ -23,8 +23,7 @@ samples_ndvi_evi <- sits_select(
 )
 
 # build the classification model
-rfor_model <- sits_train(
-  data      = samples_ndvi_evi,
+rfor_model <- sits_train(samples_ndvi_evi,
   ml_method = sits_rfor()
 )
 
@@ -62,7 +61,20 @@ sinop_uncert <- sits_uncertainty(
   memsize    = 8,
   multicores = 2
 )
-
+# calculate uncertainty
+sinop_uncert_m <- sits_uncertainty(
+  cube       = sinop_bayes,
+  type       = "least",
+  memsize    = 8,
+  multicores = 2
+)
+# calculate uncertainty
+sinop_uncert_margin <- sits_uncertainty(
+  cube       = sinop_bayes,
+  type       = "margin",
+  memsize    = 8,
+  multicores = 2
+)
 # label the classified image
 sinop_label <- sits_label_classification(
   cube       = sinop_bayes,

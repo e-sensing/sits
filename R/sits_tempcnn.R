@@ -84,14 +84,9 @@ sits_tempcnn <- function(samples = NULL,
     # function that returns torch model based on a sits sample data.table
     result_fun <- function(samples) {
 
-        # verifies if torch package is installed
-        if (!requireNamespace("torch", quietly = TRUE)) {
-            stop("Please install package torch", call. = FALSE)
-        }
-        # verifies if luz package is installed
-        if (!requireNamespace("luz", quietly = TRUE)) {
-            stop("Please install package luz", call. = FALSE)
-        }
+        # verifies if torch and luz packages are installed
+        .check_require_packages(c("torch", "luz"))
+
         # preconditions
         .check_length(
             x = cnn_layers,
@@ -159,7 +154,9 @@ sits_tempcnn <- function(samples = NULL,
 
         # data normalization
         stats <- .sits_ml_normalization_param(samples)
-        train_samples <- .sits_distances(.sits_ml_normalize_data(samples, stats))
+        train_samples <- .sits_distances(
+            .sits_ml_normalize_data(samples, stats)
+        )
 
         # is the training data correct?
         .check_chr_within(
@@ -366,6 +363,7 @@ sits_tempcnn <- function(samples = NULL,
             if (!requireNamespace("torch", quietly = TRUE)) {
                 stop("Please install package torch", call. = FALSE)
             }
+            .check_require_packages("torch")
 
             # set torch threads to 1
             # function does not work on MacOS

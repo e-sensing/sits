@@ -6,7 +6,6 @@
 \usage{
 \method{plot}{probs_cube}(
   x,
-  y,
   ...,
   tiles = NULL,
   labels = NULL,
@@ -17,8 +16,6 @@
 }
 \arguments{
 \item{x}{Object of class "probs_image".}
-
-\item{y}{ignored}
 
 \item{...}{Further specifications for \link{plot}.}
 
@@ -44,13 +41,7 @@ plots a probability cube using stars
  \item{"equal": } {divides the range of the variable into n parts.}
  \item{"pretty": } {number of breaks likely to be legible.}
  \item{"quantile": } {quantile breaks}
- \item{"kmeans" :} {uses kmeans to generate the breaks.}
- \item{"hclust" :} {breaks defined by hierarchical clustering.}
- \item{"bclust" :} {breaks defined by bagged clustering.}
- \item{"fisher" :} {method proposed by Fischer (1958).}
- \item{"jenks" :} {method proposed by Jenks.}
- \item{"dpih" :} {based on the bin width of a histogram.}
- \item{"headtails" :} {algorithm proposed by Bin Jiang (2013)}
+ \item{"log": }{logarithm plot}
  }
 
 The function accepts color palettes are defined in grDevices::hcl.pals()

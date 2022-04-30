@@ -1,4 +1,3 @@
-access_SATVEG            Access time series using the SATVEG service
 classify_cbers_bdc       Classify a set of CBERS AWFI images in the Brazil Data Cube
 classify_deeplearning    Classify MODIS image using deep learning
 classify_raster_xgb      Classify MODIS image using extreme gradient boosting

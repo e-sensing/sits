@@ -17,21 +17,24 @@
 #'                           (in the case of multiple tests)
 #' @return An uncertainty data cube
 #'
-#' @details The supported types are 'entropy', 'least', and 'margin'. Entropy
-#' is the information entropy computed (in nats) for each pixel in a
-#' probability cube. Least confidence is the amount missing from total
-#' confidence to the label with the largest probabilities. Margin of confidence
-#' is the amount missing from total confidence to the difference between the
-#' probabilities of the top 2 labels. The larger the metric (either entropy,
-#' least confidence, or margin of confidence) the larger the uncertainty
-#' regarding the label of the pixels; that is, the probabilities of each label
-#' are similar.
+#' @description Calculate the uncertainty cube based on the probabilities
+#' produced by the classifier. Takes a probability cube as input.
+#' The uncertainity measure is relevant in the context of active leaning,
+#' and helps the increase the quantity and quality of training samples by
+#' providing information about the confidence of the model.
+#'
+#' The supported types of uncertainity n_are 'entropy', 'least', and 'margin':
+#'  \itemize{
+#'  \item{"entropy":} {difference between all predictions expressed as entropy.}
+#'  \item{"least": } {difference between 100% and most confident prediction.}
+#'  \item{"margin": } {difference between the two most confident predictions.}
+#'
 #'
 #' @note
 #' Please refer to the sits documentation available in
 #' <https://e-sensing.github.io/sitsbook/> for detailed examples.
 #' @export
-sits_uncertainty <- function(cube, type = "entropy", ...,
+sits_uncertainty <- function(cube, type = "least", ...,
                              multicores = 2,
                              memsize = 8,
                              output_dir = ".",
@@ -39,9 +42,7 @@ sits_uncertainty <- function(cube, type = "entropy", ...,
     # set caller to show in errors
     .check_set_caller("sits_uncertainty")
 
-    if (!requireNamespace("parallel", quietly = TRUE)) {
-        stop("Please install package parallel.", call. = FALSE)
-    }
+    .check_require_packages("parallel")
 
     # check if cube has probability data
     .check_that(
@@ -58,16 +59,43 @@ sits_uncertainty <- function(cube, type = "entropy", ...,
 #' @export
 #'
 sits_uncertainty.entropy <- function(cube, type = "entropy", ...,
+                                     window_size = 5,
+                                     window_fn = "median",
                                      multicores = 2,
-                                     memsize = 8,
+                                     memsize = 4,
                                      output_dir = ".",
                                      version = "v1") {
+
     # precondition 1 - check if cube has probability data
     .check_that(
         x = inherits(cube, "probs_cube"),
         msg = "input is not probability cube"
     )
-    # precondition 2 - multicores
+
+    # precondition 2 - test window size
+    if (!purrr::is_null(window_size)) {
+        .check_that(
+            x = window_size %% 2 != 0,
+            msg = "window_size must be an odd number"
+        )
+    }
+
+    # precondition 3 - test window function
+    .check_chr_within(
+        x = window_fn,
+        within = .config_names("uncertainty_window_functions"),
+        msg = "Invalid 'window_fn' parameter"
+    )
+    # resolve window_fn parameter
+    window_fn <- .config_get(key = c("uncertainty_window_functions",
+                                     window_fn))
+    config_fun <- strsplit(window_fn, "::")[[1]]
+    window_fn <- get(config_fun[[2]], envir = asNamespace(config_fun[[1]]))
+
+    # find out how many labels exist
+    n_labels <- length(sits_labels(cube[1, ]))
+
+    # precondition 4 - multicores
     .check_num(
         x = multicores,
         len_max = 1,
@@ -75,7 +103,8 @@ sits_uncertainty.entropy <- function(cube, type = "entropy", ...,
         allow_zero = FALSE,
         msg = "multicores must be at least 1"
     )
-    # precondition 3 - memory
+
+    # precondition 5 - memory
     .check_num(
         x = memsize,
         len_max = 1,
@@ -83,19 +112,24 @@ sits_uncertainty.entropy <- function(cube, type = "entropy", ...,
         allow_zero = FALSE,
         msg = "memsize must be positive"
     )
-    # precondition 4 - output dir
+
+    # precondition 6 - output dir
     .check_file(
         x = output_dir,
         msg = "invalid output dir"
     )
-    # precondition 5 - version
+
+    # precondition 7 - version
     .check_chr(
         x = version,
         len_min = 1,
         msg = "invalid version"
     )
-    # find out how many labels exist
-    n_labels <- length(sits_labels(cube[1, ]))
+
+    # create a window
+    window <- NULL
+    if (!purrr::is_null(window_size) && window_size > 1)
+        window <- matrix(1, nrow = window_size, ncol = window_size)
 
     # entropy uncertainty index to be executed by workers cluster
     .do_entropy <- function(chunk) {
@@ -112,6 +146,14 @@ sits_uncertainty.entropy <- function(cube, type = "entropy", ...,
             r_obj = res,
             values = unc
         )
+        # process window
+        if (!is.null(window))
+            res <- terra::focal(
+                res,
+                w = window,
+                fun = window_fn,
+                na.rm = TRUE
+            )
         return(res)
     }
 
@@ -149,6 +191,9 @@ sits_uncertainty.entropy <- function(cube, type = "entropy", ...,
         if (file.exists(out_file))
             return(NULL)
 
+        # overlapping pixels
+        overlapping_y_size <- ceiling(window_size / 2) - 1
+
         # get cube size
         size <- .cube_size(tile)
 
@@ -157,7 +202,7 @@ sits_uncertainty.entropy <- function(cube, type = "entropy", ...,
             xsize = size[["ncols"]],
             ysize = size[["nrows"]],
             block_y_size = block_size[["block_y_size"]],
-            overlapping_y_size = 0)
+            overlapping_y_size = overlapping_y_size)
 
         # open probability file
         in_file <- .file_info_path(tile)
@@ -207,6 +252,7 @@ sits_uncertainty.entropy <- function(cube, type = "entropy", ...,
 
         return(invisible(block_files))
     })
+
 
     # process each brick layer (each time step) individually
     result_cube <- .sits_parallel_map(seq_along(blocks_tile_lst), function(i) {
@@ -259,7 +305,7 @@ sits_uncertainty.entropy <- function(cube, type = "entropy", ...,
     # bind rows
     result_cube <- dplyr::bind_rows(result_cube)
 
-    class(result_cube) <- c("uncertainty_cube", class(cube))
+    class(result_cube) <- class(cube)
 
     return(result_cube)
 }
