@@ -19,16 +19,20 @@
 #'
 #' @description Calculate the uncertainty cube based on the probabilities
 #' produced by the classifier. Takes a probability cube as input.
-#' The uncertainity measure is relevant in the context of active leaning,
+#' The uncertainty measure is relevant in the context of active leaning,
 #' and helps the increase the quantity and quality of training samples by
 #' providing information about the confidence of the model.
 #'
-#' The supported types of uncertainity n_are 'entropy', 'least', and 'margin':
+#' The supported types of uncertainty n_are \code{entropy}, \code{least}, and
+#' \code{margin}:
 #'  \itemize{
-#'  \item{"entropy":} {difference between all predictions expressed as entropy.}
-#'  \item{"least": } {difference between 100% and most confident prediction.}
-#'  \item{"margin": } {difference between the two most confident predictions.}
-#'
+#'  \item{\code{entropy}: }{difference between all predictions
+#'    expressed as entropy.}
+#'  \item{\code{least}: }{difference between 100% and most
+#'    confident prediction.}
+#'  \item{\code{margin}: }{difference between the two most
+#'    confident predictions.}
+#'  }
 #'
 #' @note
 #' Please refer to the sits documentation available in
