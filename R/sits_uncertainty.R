@@ -22,13 +22,10 @@
 #' The uncertainity measure is relevant in the context of active leaning,
 #' and helps the increase the quantity and quality of training samples by
 #' providing information about the confidence of the model.
-#'
-#' The supported types of uncertainity n_are 'entropy', 'least', and 'margin':
-#'  \itemize{
-#'  \item{"entropy":} {difference between all predictions expressed as entropy.}
-#'  \item{"least": } {difference between 100% and most confident prediction.}
-#'  \item{"margin": } {difference between the two most confident predictions.}
-#'
+#' The supported types of uncertainty are 'entropy', 'least', and 'margin'.
+#' "entropy" is the difference between all predictions expressed as entropy,
+#' "least" is the difference between 100% and most confident prediction, and
+#' "margin" is the difference between the two most confident predictions.
 #'
 #' @note
 #' Please refer to the sits documentation available in
@@ -305,7 +302,7 @@ sits_uncertainty.entropy <- function(cube, type = "entropy", ...,
     # bind rows
     result_cube <- dplyr::bind_rows(result_cube)
 
-    class(result_cube) <- class(cube)
+    class(result_cube) <- c("uncertainty_cube", class(cube))
 
     return(result_cube)
 }

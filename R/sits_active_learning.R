@@ -14,11 +14,14 @@
 #'
 #' @param cube            A `sits` uncertainty cube. See `sits_uncertainty`.
 #' @param n               Number of suggested points.
-#' @param min_dist_pixels Mininum distance among suggested points (in pixels).
+#' @param min_dist_pixels Minimum distance among suggested points (in pixels).
 #'
 #' @return     A data.frame with longitude & latitude in WGS84.
 #'
-sits_suggest_samples <- function(cube, n = 100,
+#' @export
+#'
+sits_suggest_samples <- function(cube,
+                                 n = 100,
                                  min_dist_pixels = 10) {
 
     .check_that(inherits(cube, what = "uncertainty_cube"),
@@ -28,29 +31,35 @@ sits_suggest_samples <- function(cube, n = 100,
     .check_that(min_dist_pixels >= 0,
                 msg = "Invalid minimum distance.")
 
-    infos <- cube[["file_info"]]
-    paths <- vapply(infos, function(x) {x[["path"]]}, character(1))
-    rasters <- lapply(paths, terra::rast)
 
-    top_values <- lapply(rasters, .get_values, n = n,
-                         min_dist_pixels = min_dist_pixels,
-                         top = TRUE)
-    top_values <- lapply(top_values, sf::st_drop_geometry)
-    top_values <- do.call(rbind, top_values)
-    top_values <- top_values[order(top_values[, "lyr1"],
-                                   decreasing = TRUE), ]
-    top_values <- top_values[1:min(n, nrow(top_values)), c("X", "Y")]
-    colnames(top_values) <- c("longitude", "latitude")
-    # NOTE: All the cube's uncertainty images have the same start & end dates.
-    top_values["start_date"]  <- infos[[1]]["start_date"][[1]]
-    top_values["end_date"]    <- infos[[1]]["end_date"][[1]]
+    paths <- slider::slide(cube, function(row){
+        fi <- .file_info(row)
+        return(fi[["path"]])
+    })
+    # get the raster objects associated to
+    rasters <- purrr::map(paths, function(p){
+        .raster_open_rast(p)
+    })
+    # get a list of top values
+    top_values <- purrr::map_dfr(rasters, function(r){
+        tv <-  .get_values(r,
+                           n = n,
+                           min_dist_pixels = min_dist_pixels,
+                           top = TRUE)
+    })
+    top_values <- top_values[1:min(n, nrow(top_values)),
+                             c("longitude", "latitude")]
+    # All the cube's uncertainty images have the same start & end dates.
+    fi <- .file_info(cube[1,])
+    top_values["start_date"]  <- as.Date(fi$start_date)
+    top_values["end_date"]    <- as.Date(fi$end_date)
     top_values["label"]       <- "NoClass"
     if (nrow(top_values) < n)
         warning(sprintf(paste0("Unable to suggest %s samples.",
                                "Try an smaller min_dist_pixels"),
                         n))
 
-    invisible(top_values)
+    return(top_values)
 }
 
 
@@ -67,81 +76,84 @@ sits_suggest_samples <- function(cube, n = 100,
 #' @description
 #' Suggest points for increasing the training set. These points are labelled
 #' with high confidence so they can be added to the training set.
+#' They need to have a satisfactory margin of confidence to be selected.
 #'
-#' @param u_cube          A `sits` uncertainty cube. See `sits_uncertainty`.
-#' @param c_cube          A `sits` classified cube. See
-#' `sits_label_classification`.
-#' @param n               Number of suggested points.
-#' @param min_dist_pixels Mininum distance among suggested points (in pixels).
+#' @param probs_cube      A `sits` probability cube. See `sits_classify`.
+#' @param n               Number of suggested points per class.
+#' @param min_margin      Minimum margin of confidence to select a sample
+#' @param min_dist_pixels Minimum distance among suggested points (in pixels).
 #'
 #' @return     A data.frame with longitude & latitude in WGS84.
-#'
-sits_increase_samples <- function(u_cube,
-                                  c_cube,
-                                  n = 100,
+#' @export
+sits_increase_samples <- function(probs_cube,
+                                  n = 20,
+                                  min_margin = .90,
                                   min_dist_pixels = 10) {
 
-    .check_that(inherits(u_cube, what = "uncertainty_cube"),
-                msg = "Cube is not an sits_uncertainty cube")
-    .check_that(inherits(c_cube, what = "classified_image"),
-                msg = "Cube is not an sits_label_classification cube")
+    .check_that(inherits(probs_cube, what = "probs_cube"),
+                msg = "Cube is not a probability cube")
     .check_that(n > 0,
                 msg = "Invalid number of new samples")
     .check_that(min_dist_pixels >= 0,
                 msg = "Invalid minimum distance.")
 
-    infos <- u_cube[["file_info"]]
-    paths <- vapply(infos, function(x) {x[["path"]]}, character(1))
-    rasters <- lapply(paths, terra::rast)
+    paths_prob <- slider::slide(probs_cube, function(row){
+        fi <- .file_info(row)
+        return(fi[["path"]])
+    })
+    # get the raster objects associated to
+    rasters <- purrr::map(paths_prob, function(p){
+        .raster_open_rast(p)
+    })
+    labels <- sits_labels(probs_cube)
 
-    bottom_values <- lapply(rasters, .get_values, n = n,
-                            min_dist_pixels = min_dist_pixels,
-                            top = FALSE)
-    bottom_values <- lapply(bottom_values, sf::st_drop_geometry)
-    bottom_values <- do.call(rbind, bottom_values)
-    bottom_values <- bottom_values[order(bottom_values[, "lyr1"],
-                                         decreasing = FALSE), ]
-    bottom_values <- bottom_values[1:min(n, nrow(bottom_values)), c("X", "Y")]
-    colnames(bottom_values) <- c("longitude", "latitude")
-    # NOTE: All the cube's uncertainty images have the same start & end dates.
-    bottom_values["start_date"]  <- infos[[1]]["start_date"][[1]]
-    bottom_values["end_date"]    <- infos[[1]]["end_date"][[1]]
+    # get a list of top values
+    new_samples <- purrr::map2_dfr(labels, seq_along(labels), function(lab, i){
+        label_samples <- purrr::map_dfr(rasters, function(r) {
+            # for each raster, get the probs cube associated to a label
+            # get the best values which are apart from the neighbors
+            tvs_label <- .get_values(r[[i]],
+                                     n = n,
+                                     min_dist_pixels = min_dist_pixels,
+                                     top = TRUE)
+            # calculate prob margin for each tentative label point
+            tvs_valid <- slider::slide_dfr(tvs_label, function(tv){
+                xy <- as.matrix(tv[c("X", "Y")])
+                # extract the probabilities for each tentative label point
+                probs <- unlist(.raster_extract(r, xy))
+                # is the label the most probable one?
+                if (max(probs) != probs[[i]])
+                    return(NULL)
+                # sort the probabilities
+                probs <- sort(probs, decreasing = TRUE)
+                # check probability margin between tentative label
+                # and labels with second best confidence
+                if ((probs[1] - probs[2]) <
+                    (min_margin / .config_get("probs_cube_scale_factor")))
+                    return(NULL)
+                return(tv)
+            })
+            return(tvs_valid)
+        })
+        label_samples$label <- lab
+        label_samples <- label_samples[1:min(n, nrow(label_samples)),
+                                       c("longitude", "latitude", "label")]
+        return(label_samples)
+    })
+    fi <- .file_info(probs_cube[1,])
+    new_samples["start_date"]  <- as.Date(fi$start_date)
+    new_samples["end_date"]    <- as.Date(fi$end_date)
+    row.names(new_samples) <- NULL
 
-    # Get the labels of the samples.
-    infos <- c_cube[["file_info"]]
-    paths <- vapply(infos, function(x) {x[["path"]]}, character(1))
-    rasters <- lapply(paths, terra::rast)
+    labels_low_samples <- new_samples %>%
+        dplyr::count(.data[["label"]]) %>%
+        dplyr::filter(.data[["n"]] < !!n)
+    slider::slide(labels_low_samples, function(lls){
+        warning(paste0("found only ", lls[["n"]],
+                       " samples for label ", lls[["label"]]), call. = FALSE)
+    })
 
-    # Get the label id of points_df from the given raster.
-    # NOTE: points_df's coordinates must be given in WGS84.
-    .get_labels <- function(raster, points_df){
-        points_sf <- sf::st_as_sf(points_df,
-                                  coords = c("longitude", "latitude"),
-                                  crs = 4326, dim = "XY", remove = FALSE)
-        points_sf <- sf::st_transform(points_sf,
-                                      crs = terra::crs(raster))
-        label_id <- terra::extract(raster, y = terra::vect(points_sf),
-                                   xy = FALSE, cells = FALSE)
-        points_df <- cbind(points_df, label_id[,2])
-        colnames(points_df) <- c(head(colnames(points_df), -1), "label")
-        return(points_df)
-    }
-
-    label_ls <- lapply(rasters, .get_labels,
-                       points_df = bottom_values)
-
-    samples_df <- do.call(rbind, label_ls)
-    # NOTE: Assuming all the rasters in the classification cube have the same
-    #       labels.
-    label_ch <- c_cube[["labels"]][[1]]
-    samples_df["label"] <- label_ch[samples_df[["label"]]]
-
-    if (nrow(samples_df) < n)
-        warning(sprintf(paste0("Unable to increment %s samples.",
-                               "Try an smaller min_dist_pixels"),
-                        n))
-
-    invisible(samples_df)
+    return(new_samples)
 }
 
 
@@ -194,9 +206,12 @@ sits_increase_samples <- function(u_cube,
     var_sf <- var_sf[1:min(n, nrow(var_sf)), ]
 
     # Transform to WGS84.
-    var_sf <- sf::st_transform(var_sf, crs = 4326)
     var_sf <- cbind(sf::st_coordinates(var_sf), var_sf)
-
+    var_sf <- sf::st_transform(var_sf, crs = 4326)
+    tmp_sf <- sf::st_coordinates(var_sf)
+    colnames(tmp_sf) <- c("longitude", "latitude")
+    var_sf <- sf::st_drop_geometry(var_sf)
+    var_sf <- cbind(var_sf, tmp_sf)
     return(var_sf)
 }
 

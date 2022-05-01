@@ -4,17 +4,21 @@
 \alias{sits_increase_samples}
 \title{Suggest high confidence samples to increase the training set.}
 \usage{
-sits_increase_samples(u_cube, c_cube, n = 100, min_dist_pixels = 10)
+sits_increase_samples(
+  probs_cube,
+  n = 20,
+  min_margin = 0.9,
+  min_dist_pixels = 10
+)
 }
 \arguments{
-\item{u_cube}{A `sits` uncertainty cube. See `sits_uncertainty`.}
+\item{probs_cube}{A `sits` probability cube. See `sits_classify`.}
 
-\item{c_cube}{A `sits` classified cube. See
-`sits_label_classification`.}
+\item{n}{Number of suggested points per class.}
 
-\item{n}{Number of suggested points.}
+\item{min_margin}{Minimum margin of confidence to select a sample}
 
-\item{min_dist_pixels}{Mininum distance among suggested points (in pixels).}
+\item{min_dist_pixels}{Minimum distance among suggested points (in pixels).}
 }
 \value{
 A data.frame with longitude & latitude in WGS84.
@@ -22,6 +26,7 @@ A data.frame with longitude & latitude in WGS84.
 \description{
 Suggest points for increasing the training set. These points are labelled
 with high confidence so they can be added to the training set.
+They need to have a satisfactory margin of confidence to be selected.
 }
 \author{
 Alber Sanchez, \email{alber.sanchez@inpe.br}

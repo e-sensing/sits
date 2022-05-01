@@ -2,16 +2,29 @@
 % Please edit documentation in R/sits_uncertainty.R
 \name{sits_uncertainty}
 \alias{sits_uncertainty}
+\alias{sits_uncertainty.entropy}
 \alias{sits_uncertainty.least}
 \alias{sits_uncertainty.margin}
 \title{Estimate classification uncertainty based on probs cube}
 \usage{
 sits_uncertainty(
   cube,
-  type = "entropy",
+  type = "least",
   ...,
   multicores = 2,
   memsize = 8,
+  output_dir = ".",
+  version = "v1"
+)
+
+\method{sits_uncertainty}{entropy}(
+  cube,
+  type = "entropy",
+  ...,
+  window_size = 5,
+  window_fn = "median",
+  multicores = 2,
+  memsize = 4,
   output_dir = ".",
   version = "v1"
 )
@@ -57,18 +70,15 @@ function.}
 An uncertainty data cube
 }
 \description{
-Estimate classification uncertainty based on probs cube
-}
-\details{
-The supported types are 'entropy', 'least', and 'margin'. Entropy
-is the information entropy computed (in nats) for each pixel in a
-probability cube. Least confidence is the amount missing from total
-confidence to the label with the largest probabilities. Margin of confidence
-is the amount missing from total confidence to the difference between the
-probabilities of the top 2 labels. The larger the metric (either entropy,
-least confidence, or margin of confidence) the larger the uncertainty
-regarding the label of the pixels; that is, the probabilities of each label
-are similar.
+Calculate the uncertainty cube based on the probabilities
+produced by the classifier. Takes a probability cube as input.
+The uncertainity measure is relevant in the context of active leaning,
+and helps the increase the quantity and quality of training samples by
+providing information about the confidence of the model.
+The supported types of uncertainty are 'entropy', 'least', and 'margin'.
+"entropy" is the difference between all predictions expressed as entropy,
+"least" is the difference between 100% and most confident prediction, and
+"margin" is the difference between the two most confident predictions.
 }
 \note{
 Please refer to the sits documentation available in

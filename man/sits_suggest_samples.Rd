@@ -11,7 +11,7 @@ sits_suggest_samples(cube, n = 100, min_dist_pixels = 10)
 
 \item{n}{Number of suggested points.}
 
-\item{min_dist_pixels}{Mininum distance among suggested points (in pixels).}
+\item{min_dist_pixels}{Minimum distance among suggested points (in pixels).}
 }
 \value{
 A data.frame with longitude & latitude in WGS84.

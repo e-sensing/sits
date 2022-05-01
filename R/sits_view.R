@@ -162,6 +162,7 @@ sits_view.raster_cube <- function(x, ...,
     # verifies if leafem and leaflet packages are installed
     .check_require_packages(c("leafem", "leaflet"))
     # check that dates are valid
+    timeline <- sits_timeline(x)
     .check_that(
         all(as.Date(dates) %in% timeline),
         msg = "requested dates are not part of the cube timeline"
