@@ -21,5 +21,5 @@ test_that("Tuning - random search", {
 
     expect_true(max(accuracy) > 0.8)
     expect_true(max(kappa) > 0.8)
-    expect_true(best_lr < 0.01)
+    expect_true(best_lr < 0.1)
 })
