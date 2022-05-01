@@ -37,7 +37,8 @@ sits_suggest_samples <- function(cube, n = 100,
                          top = TRUE)
     top_values <- lapply(top_values, sf::st_drop_geometry)
     top_values <- do.call(rbind, top_values)
-    top_values <- top_values[order(top_values[, "lyr1"],
+    cols_to_order <- setdiff(colnames(top_values), c("X", "Y"))
+    top_values <- top_values[order(top_values[, cols_to_order],
                                    decreasing = TRUE), ]
     top_values <- top_values[1:min(n, nrow(top_values)), c("X", "Y")]
     colnames(top_values) <- c("longitude", "latitude")
@@ -99,7 +100,8 @@ sits_increase_samples <- function(u_cube,
                             top = FALSE)
     bottom_values <- lapply(bottom_values, sf::st_drop_geometry)
     bottom_values <- do.call(rbind, bottom_values)
-    bottom_values <- bottom_values[order(bottom_values[, "lyr1"],
+    cols_to_order <- setdiff(colnames(bottom_values), c("X", "Y"))
+    bottom_values <- bottom_values[order(bottom_values[, cols_to_order],
                                          decreasing = FALSE), ]
     bottom_values <- bottom_values[1:min(n, nrow(bottom_values)), c("X", "Y")]
     colnames(bottom_values) <- c("longitude", "latitude")

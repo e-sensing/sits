@@ -329,6 +329,14 @@ test_that("Regularizing cubes from AWS, and extracting samples from them", {
     # read sample information from CSV file and put it in a tibble
     samples <- tibble::as_tibble(utils::read.csv(csv_file))
     expect_equal(nrow(samples), 1202)
+
+    tile_bbox_wgs <- sits_bbox(rg_cube[1, ], wgs84 = TRUE)
+    samples <- dplyr::filter(samples,
+                             .data[["longitude"]] >= tile_bbox_wgs[["xmin"]],
+                             .data[["longitude"]] <= tile_bbox_wgs[["xmax"]],
+                             .data[["latitude"]] >= tile_bbox_wgs[["ymin"]],
+                             .data[["latitude"]] <= tile_bbox_wgs[["ymax"]],
+                             )
     samples <- dplyr::sample_n(samples, size = 10, replace = FALSE)
 
     ts <- sits_get_data(cube = rg_cube,

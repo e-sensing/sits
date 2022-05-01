@@ -85,7 +85,7 @@ sits_twdtw_classify <- function(samples,
                                 overlap = 0.5,
                                 .plot = TRUE) {
     # verifies if dtwSat package is installed
-    .check_require_packages("dtwSat")
+    suppressWarnings(.check_require_packages("dtwSat"))
 
     # does the input data exist?
     .sits_tibble_test(samples)

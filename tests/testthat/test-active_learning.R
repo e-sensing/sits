@@ -50,9 +50,9 @@ test_that("Suggested samples have low confidence, high entropy", {
     var_df <- terra::extract(unc_raster, terra::vect(samples_sf))
     samples_df <- cbind(samples_df, var_df)
 
-    expect_true(min(samples_df$lyr1)  > mean(unc_raster[]))
-    expect_true(max(samples_df$lyr1)  == max(unc_raster[]))
-    expect_true(mean(samples_df$lyr1) > mean(unc_raster[]))
+    expect_true(min(samples_df$focal_median)  > mean(unc_raster[]))
+    expect_true(max(samples_df$focal_median)  == max(unc_raster[]))
+    expect_true(mean(samples_df$focal_median) > mean(unc_raster[]))
 })
 
 
@@ -120,7 +120,7 @@ test_that("increased samples have high confidence, low entropy", {
     var_df <- terra::extract(unc_raster, terra::vect(samples_sf))
     samples_df <- cbind(samples_df, var_df)
 
-    expect_true(min(samples_df$lyr1)  == min(unc_raster[]))
-    expect_true(max(samples_df$lyr1)  < max(unc_raster[]))
-    expect_true(mean(samples_df$lyr1) < mean(unc_raster[]))
+    expect_true(min(samples_df$focal_median)  == min(unc_raster[]))
+    expect_true(max(samples_df$focal_median)  < max(unc_raster[]))
+    expect_true(mean(samples_df$focal_median) < mean(unc_raster[]))
 })

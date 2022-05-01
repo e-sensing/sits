@@ -339,7 +339,7 @@ sits_uncertainty.entropy <- function(cube, type = "entropy", ...,
     # bind rows
     result_cube <- dplyr::bind_rows(result_cube)
 
-    class(result_cube) <- class(cube)
+    class(result_cube) <- union(class(result_cube), class(cube))
 
     return(result_cube)
 }
