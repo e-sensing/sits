@@ -1,6 +1,6 @@
 #' @title Suggest samples for enhancing classification accuracy
 #'
-#' @name sits_suggest_samples
+#' @name sits_uncertainty_sampling
 #'
 #' @author Alber Sanchez, \email{alber.sanchez@@inpe.br}
 #' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
@@ -8,9 +8,23 @@
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'
 #' @description
-#' Suggest points with higher chances of increasing classification accuracy.
-#' These points don't have labels and are meant to be labelled by experts
-#' outside R and then used to increase the classification's training set.
+#' Suggest samples for regions of high uncertainty as predicted by the model.
+#' The function selects data points that have confused an algorithm.
+#' These points don't have labels and need be manually labelled by experts
+#' and then used to increase the classification's training set.
+#'
+#' This function is best used in the following context
+#' \itemize{
+#'    \item{1. }{Select an initial set of samples.}
+#'    \item{2. }{Train a machine learning model.}
+#'    \item{3. }{Build a data cube and classify it using the model.}
+#'    \item{4. }{Run a Bayesian smoothing in the resulting probability cube.}
+#'    \item{5. }{Create an uncertainty cube.}
+#'    \item{6. }{Perform uncertainty sampling.}
+#' }
+#' The Bayesian smoothing procedure will reduce the classification outliers
+#' and thus increase the likelihood that the resulting pixels with high
+#' uncertainty have meaningful information.
 #'
 #' @param cube            A `sits` uncertainty cube. See `sits_uncertainty`.
 #' @param n               Number of suggested points.
@@ -18,11 +32,40 @@
 #'
 #' @return     A data.frame with longitude & latitude in WGS84.
 #'
+#' @references
+#' Robert Monarch, "Human-in-the-Loop Machine Learning: Active learning
+#' and annotation for human-centered AI". Manning Publications, 2021.
+#'
+#' @examples
+#' if (sits_run_examples()){
+#'     # create a data cube
+#'     data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
+#'     cube <- sits_cube(
+#'         source = "BDC",
+#'         collection = "MOD13Q1-6",
+#'         data_dir = data_dir,
+#'         delim = "_",
+#'         parse_info = c("X1", "X2", "tile", "band", "date")
+#'     )
+#'     # build a random forest model
+#'     samples_ndvi <- sits_select(samples_modis_4bands, bands = c("NDVI"))
+#'     rfor_model <- sits_train(samples_ndvi, ml_method = sits_rfor())
+#'     # classify the cube
+#'     probs_cube <- sits_classify(data = cube, ml_model = rfor_model)
+#'     # run a Bayesian smoothing
+#'     bayes_cube <- sits_smooth(probs_cube)
+#'     # create an uncertainty cube
+#'     uncert_cube <- sits_uncertainty(bayes_cube)
+#'     # obtain a new set of samples for active learning
+#'     # the samples are located in uncertain places
+#'     new_samples <- sits_uncertainty_sampling(uncert_cube)
+#' }
+#'
 #' @export
 #'
-sits_suggest_samples <- function(cube,
-                                 n = 100,
-                                 min_dist_pixels = 10) {
+sits_uncertainty_sampling <- function(cube,
+                                      n = 100,
+                                      min_dist_pixels = 10) {
 
     .check_that(inherits(cube, what = "uncertainty_cube"),
                 msg = "Cube is not an sits_uncertainty cube")
@@ -30,7 +73,6 @@ sits_suggest_samples <- function(cube,
                 msg = "Invalid number of new samples")
     .check_that(min_dist_pixels >= 0,
                 msg = "Invalid minimum distance.")
-
 
     paths <- slider::slide(cube, function(row){
         fi <- .file_info(row)
@@ -40,7 +82,7 @@ sits_suggest_samples <- function(cube,
     rasters <- purrr::map(paths, function(p){
         .raster_open_rast(p)
     })
-    # get a list of top values
+    # get a list of values of high uncertainty
     top_values <- purrr::map_dfr(rasters, function(r){
         tv <-  .get_values(r,
                            n = n,
@@ -62,11 +104,9 @@ sits_suggest_samples <- function(cube,
     return(top_values)
 }
 
-
-
 #' @title Suggest high confidence samples to increase the training set.
 #'
-#' @name sits_increase_samples
+#' @name sits_confidence_sampling
 #'
 #' @author Alber Sanchez, \email{alber.sanchez@@inpe.br}
 #' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
@@ -77,6 +117,24 @@ sits_suggest_samples <- function(cube,
 #' Suggest points for increasing the training set. These points are labelled
 #' with high confidence so they can be added to the training set.
 #' They need to have a satisfactory margin of confidence to be selected.
+#' The input is a probability cube. For each label, the algorithm finds out
+#' location where the machine learning model has high confidence in choosing
+#' this label compared to all others. The algorithm also considers a
+#' minimum distance between new labels, to minimize spatial autocorrelation
+#' effects.
+#'
+#' This function is best used in the following context
+#' \itemize{
+#'    \item{1. }{Select an initial set of samples.}
+#'    \item{2. }{Train a machine learning model.}
+#'    \item{3. }{Build a data cube and classify it using the model.}
+#'    \item{4. }{Run a Bayesian smoothing in the resulting probability cube.}
+#'    \item{5. }{Create an uncertainty cube.}
+#'    \item{6. }{Perform confidence sampling.}
+#' }
+#' The Bayesian smoothing procedure will reduce the classification outliers
+#' and thus increase the likelihood that the resulting pixels with provide
+#' good quality samples for each class.
 #'
 #' @param probs_cube      A `sits` probability cube. See `sits_classify`.
 #' @param n               Number of suggested points per class.
@@ -84,11 +142,33 @@ sits_suggest_samples <- function(cube,
 #' @param min_dist_pixels Minimum distance among suggested points (in pixels).
 #'
 #' @return     A data.frame with longitude & latitude in WGS84.
+#'
+#' if (sits_run_examples()){
+#'     # create a data cube
+#'     data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
+#'     cube <- sits_cube(
+#'         source = "BDC",
+#'         collection = "MOD13Q1-6",
+#'         data_dir = data_dir,
+#'         delim = "_",
+#'         parse_info = c("X1", "X2", "tile", "band", "date")
+#'     )
+#'     # build a random forest model
+#'     samples_ndvi <- sits_select(samples_modis_4bands, bands = c("NDVI")
+#'     rfor_model <- sits_train(samples_ndvi, ml_method = sits_rfor())
+#'     # classify the cube
+#'     probs_cube <- sits_classify(data = cube, ml_model = rfor_model)
+#'     # run a Bayesian smoothing
+#'     bayes_cube <- sits_smooth(probs_cube)
+#'     # obtain a new set of samples for active learning
+#'     # the samples are located in uncertain places
+#'     new_samples <- sits_confidence_sampling(bayes_cube)
+#' }
 #' @export
-sits_increase_samples <- function(probs_cube,
-                                  n = 20,
-                                  min_margin = .90,
-                                  min_dist_pixels = 10) {
+sits_confidence_samples <- function(probs_cube,
+                                    n = 20,
+                                    min_margin = .90,
+                                    min_dist_pixels = 10) {
 
     .check_that(inherits(probs_cube, what = "probs_cube"),
                 msg = "Cube is not a probability cube")

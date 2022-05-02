@@ -13,6 +13,7 @@
 
 .onLoad <- function(lib, pkg) {
   Sys.setenv(R_CONFIG_ACTIVE_TESTS = "NO")
+  Sys.setenv(R_CONFIG_RUN_EXAMPLES = "NO")
   Sys.setenv(R_CONFIG_FILE = "config.yml")
   sits_config()
 }

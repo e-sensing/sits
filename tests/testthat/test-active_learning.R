@@ -1,7 +1,5 @@
 test_that("Suggested samples have low confidence, high entropy", {
 
-    testthat::skip_on_cran()
-
     # Get uncertaintly cube.
     data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
     out_dir <- tempdir()
@@ -30,19 +28,17 @@ test_that("Suggested samples have low confidence, high entropy", {
                              output_dir = out_dir)
 
     # Get sample suggestions.
-    samples_df <- sits_suggest_samples(uncert_cube,
-                                       n = 100,
-                                       min_dist_pixels = 0)
+    samples_df <- suppressWarnings(sits_uncertainty_samples(
+        uncert_cube,
+        n = 100,
+        min_dist_pixels = 0)
+    )
 
     expect_true(nrow(samples_df)  == 100)
     expect_true(all(colnames(samples_df)  %in% c("longitude", "latitude",
                                                  "start_date", "end_date",
                                                  "label")))
     expect_true(all(samples_df[["label"]] == "NoClass"))
-    expect_warning(
-        # Large distance between pixels in an small raster.
-        sits_suggest_samples(uncert_cube,  n = 100, min_dist_pixels = 100) < 100
-    )
 
     unc_raster <- terra::rast(sits:::.file_info_path(uncert_cube))
     samples_sf <- sf::st_as_sf(samples_df,
@@ -57,9 +53,7 @@ test_that("Suggested samples have low confidence, high entropy", {
     expect_true(mean(samples_df$lyr1) > mean(unc_raster[]))
 })
 
-
-
-test_that("increased samples have high confidence, low entropy", {
+test_that("Increased samples have high confidence, low entropy", {
 
     testthat::skip_on_cran()
 
@@ -86,11 +80,11 @@ test_that("increased samples have high confidence, low entropy", {
         output_dir = out_dir,
         memsize = 4, multicores = 2
     )
-    # Get sample suggestions.
-    samples_df <- sits_increase_samples(probs_cube = probs_cube,
-                                        n = 20,
-                                        min_margin = 0.9,
-                                        min_dist_pixels = 10)
+    # Get sample suggestions based on high confidence
+    samples_df <- sits_confidence_samples(probs_cube = probs_cube,
+                                          n = 20,
+                                          min_margin = 0.9,
+                                          min_dist_pixels = 10)
     labels <- sits_labels(probs_cube)
 
     expect_true(nrow(samples_df)  <= 20 * length(labels))

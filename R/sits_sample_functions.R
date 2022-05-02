@@ -75,6 +75,8 @@ sits_sample <- function(data,
 
     return(result)
 }
+
+
 #' @title Reduce imbalance in a set of samples
 #' @name sits_reduce_imbalance
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}

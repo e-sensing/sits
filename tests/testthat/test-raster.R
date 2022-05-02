@@ -486,8 +486,6 @@ test_that("One-year, multicore classification with LightTAE", {
 
 test_that("One-year, multicore classification with post-processing", {
 
-    testthat::skip_on_cran()
-
     samples_ndvi <-
         sits_select(samples_modis_4bands, bands = c("NDVI"))
 
