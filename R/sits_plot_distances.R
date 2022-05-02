@@ -19,11 +19,11 @@
 #'
 #' @export
 #'
-sits_plot_distances <- function(samples_tb, roi_sf, n) {
+sits_plot_distances <- function(samples_tb, roi_sf, n = nrow(samples_tb)) {
 
     stopifnot(inherits(samples_tb, "sits"))
 
-    test_sf <- sf::st_sample(roi_sf, n)
+    pred_sf <- sf::st_sample(roi_sf, n)
 
     samples_sf <- sf::st_as_sf(samples_tb,
                                coords = c("longitude", "latitude"),
@@ -36,16 +36,42 @@ sits_plot_distances <- function(samples_tb, roi_sf, n) {
                                which = "Euclidean")
     dist_ss[upper.tri(dist_ss, diag = TRUE)] <- Inf
     dist_ss <- apply(dist_ss, MARGIN = 1, FUN = min)
+    dist_ss <- dist_ss %>%
+        dplyr::as_tibble() %>%
+        dplyr::mutate(type = "sample-to-sample")
 
-    dist_st <- sf::st_distance(samples_sf, test_sf)
-    dist_st[upper.tri(dist_st, diag = TRUE)] <- Inf
-    dist_st <- apply(dist_st, MARGIN = 1, FUN = min)
+    dist_sp <- sf::st_distance(samples_sf, pred_sf)
+    dist_sp[upper.tri(dist_sp, diag = TRUE)] <- Inf
+    dist_sp <- apply(dist_sp, MARGIN = 1, FUN = min) %>%
+        dplyr::as_tibble() %>%
+        dplyr::mutate(type = "sample-to-prediction")
 
-    density_plot <- ggplot2::ggplot() +
-        ggplot2::geom_density(ggplot2::aes(x = dist_ss)) +
-        ggplot2::geom_density(ggplot2::aes(x = dist_st)) +
+    plot_tb <-
+        dist_ss %>%
+        dplyr::bind_rows(dist_sp) %>%
+        dplyr::rename(distance = value)
+
+    if (!sf::st_is_longlat(roi_sf))
+        plot_tb <-
+            plot_tb %>%
+            dplyr::mutate(distance = distance/1000)
+
+    density_plot <-
+        plot_tb %>%
+        ggplot2::ggplot(ggplot2::aes(x = distance)) +
+        ggplot2::geom_density(ggplot2::aes(color = type,
+                                           fill = type),
+                              lwd = 1, alpha = 0.25) +
+        ggplot2::scale_x_log10(labels = scales::label_number()) +
         ggplot2::xlab("Distance") +
-        ggplot2::ylab("")
+        ggplot2::ylab("") +
+        ggplot2::theme(legend.title = ggplot2::element_blank()) +
+        ggplot2::ggtitle("Distribution of Nearest Neighbor Distances")
+
+    if (!sf::st_is_longlat(roi_sf))
+        density_plot <-
+            density_plot +
+            ggplot2::xlab("Distance (km)")
 
     return(density_plot)
 }
