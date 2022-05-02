@@ -10,7 +10,6 @@ test_that("plot_distances work", {
     my_plot <- sits_plot_distances(samples_tb, roi_sf)
     ggplot2::ggsave(filename = "~/Documents/plot_distances.png")
 
-
     # TEST 1
     samples_tb <-
         sits::samples_modis_4bands %>%
