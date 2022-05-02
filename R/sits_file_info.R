@@ -65,8 +65,83 @@ NULL
         file_info <- file_info[file_info[["date"]] < end_date, ]
     }
 
+    if (.is_token_expired(cube)) {
+        file_info <- .file_info_token_generator(cube)
+    }
+
     return(file_info)
 }
+
+.is_token_expired <- function(cube) {
+
+    file_info <- cube[["file_info"]][[1]]
+    n_tries <- min(
+        nrow(file_info[["path"]]),
+        ceiling(nrow(file_info[["path"]]) * 0.1)
+    )
+
+    href_paths <- sample(file_info[["path"]], n_tries)
+
+    is_paths_valid <- purrr::map_lgl(href_paths, function(href) {
+        tryCatch({
+            .raster_open_rast(href)
+            return(TRUE)
+        },
+        error = function(e) return(FALSE)
+        )
+    })
+
+    return(all(is_paths_valid))
+}
+
+.file_info_token_generator <- function(cube) {
+
+    source_cube <- tolower(.cube_source(cube))
+    class(source_cube) <- source_cube
+
+    UseMethod(".file_info_token_generator", cube)
+}
+
+.file_info_token_generator.mspc <- function(cube) {
+
+    file_info <- cube[["file_info"]][[1]]
+
+    token_endpoint <- .config_get(c("sources", .cube_source(cube), "token_url"))
+
+    url <- paste0(token_endpoint, "/", tolower(.cube_collection(cube)))
+
+    tryCatch({
+        res_content <- httr::content(httr::GET(url), encoding = "UTF-8")
+    },
+    error = function(e) {
+        stop(paste("Request error. %s", e$message))
+    })
+
+    #token_parsed <- httr::parse_url(paste0("?", res_content[["token"]]))
+    file_info[["path"]] <- purrr::map_chr(file_info[["path"]], function(path) {
+
+        # url_parsed <- httr::parse_url(path)
+        # url_parsed[["query"]] <- modifyList(
+        #     url_parsed[["query"]],
+        #     token_parsed[["query"]]
+        # )
+        #
+        # new_path <- httr::build_url(url_parsed)
+        # remove token
+        url_parsed <- strsplit(x = path, split = "?", fixed = TRUE)[[1]][[1]]
+        paste0(url_parsed, "?", res_content[["token"]])
+    })
+
+    file_info
+}
+
+
+.file_info_token_generator.default <- function(cube) {
+
+    # no caso do bdc o usuario remove o token do cubo??
+    stop("invalid cube paths")
+}
+
 #' @rdname file_info_functions
 #'
 #' @details
