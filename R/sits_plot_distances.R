@@ -19,10 +19,11 @@
 #'
 #' @export
 #'
-sits_plot_distances <- function(samples_tb, roi_sf, n = nrow(samples_tb)) {
+sits_plot_distances <- function(samples_tb, roi_sf, n = 1000) {
 
     stopifnot(inherits(samples_tb, "sits"))
 
+    samples_tb <- samples_tb[sample(1:nrow(samples_tb), n), ]
     pred_sf <- sf::st_sample(roi_sf, n)
 
     samples_sf <- sf::st_as_sf(samples_tb,

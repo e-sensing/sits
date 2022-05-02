@@ -4,9 +4,11 @@ test_that("plot_distances work", {
     samples_tb <- sitsdata::samples_cerrado_lc8
 
     roi_sf <- "~/Documents/data/geodata/brazil_biomes/brazil_biomes.shp" %>%
-        sf::read_sf()
+        sf::read_sf() %>%
+        dplyr::filter(name == "Cerrado")
 
-    sits_plot_distances(samples_tb, roi_sf)
+    my_plot <- sits_plot_distances(samples_tb, roi_sf)
+    ggplot2::ggsave(filename = "~/Documents/plot_distances.png")
 
 
     # TEST 1
