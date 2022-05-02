@@ -156,7 +156,7 @@
 
         # define the file name of the raster file to be written
         filename_block <- .create_filename(
-            filenames = c(probs_cube_filename, "_block",
+            filenames = c(probs_cube_filename, "block",
                           b[["first_row"]], b[["nrows"]]),
             ext = ".tif",
             output_dir = probs_cube_dir
