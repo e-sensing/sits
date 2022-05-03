@@ -23,6 +23,12 @@ Given a sits tibble with a set of patterns, plot them.
 Please refer to the sits documentation available in
 <https://e-sensing.github.io/sitsbook/> for detailed examples.
 }
+\examples{
+if (sits_run_examples()){
+# plot patterns
+plot(sits_patterns(cerrado_2classes))
+}
+}
 \author{
 Gilberto Camara, \email{gilberto.camara@inpe.br}
 }

@@ -39,6 +39,11 @@
 #' @note
 #' Please refer to the sits documentation available in
 #' <https://e-sensing.github.io/sitsbook/> for detailed examples.
+#' @examples
+#' if (sits_run_examples()){
+#' clusters <- sits_cluster_dendro(cerrado_2classes)
+#' }
+#'
 #' @export
 sits_cluster_dendro <- function(samples = NULL,
                                 bands = NULL,
@@ -110,7 +115,12 @@ sits_cluster_dendro <- function(samples = NULL,
 #' @return
 #' \code{sits_cluster_frequency()} returns a matrix containing
 #' all frequencies of labels in clusters.
-#'
+#' @examples
+#' if (sits_run_examples()){
+#'     clusters <- sits_cluster_dendro(cerrado_2classes)
+#'     freq <- sits_cluster_frequency(clusters)
+#'     freq
+#' }
 #' @export
 sits_cluster_frequency <- function(samples) {
 
@@ -140,6 +150,15 @@ sits_cluster_frequency <- function(samples) {
 #' \code{sits_cluster_clean()} takes a tibble with time series
 #' that has an additional `cluster` produced by \code{sits_cluster_dendro()}
 #' and removes labels that are minority in each cluster.
+#' @examples
+#' #' if (sits_run_examples()){
+#'     clusters <- sits_cluster_dendro(cerrado_2classes)
+#'     freq1 <- sits_cluster_frequency(clusters)
+#'     freq1
+#'     clean_clusters <- sits_cluster_clean(clusters)
+#'     freq2 <- sits_cluster_frequency(clean_clusters)
+#'     freq2
+#' }
 #' @export
 sits_cluster_clean <- function(samples) {
 

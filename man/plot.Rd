@@ -25,11 +25,13 @@ required parameters:
  \item{sits tibble: }          {see \code{\link{plot.sits}}}
  \item{patterns: }             {see \code{\link{plot.patterns}}}
  \item{SOM map: }              {see \code{\link{plot.som_map}}}
- \item{classified time series: } {see \code{\link{plot.predicted}}}
- \item{raster  cube: }         {see \code{\link{plot.raster_cube}}}
- \item{classification probabilities: }{see \code{\link{plot.probs_cube}}}
- \item{classified image: }     {see \code{\link{plot.classified_image}}}
  \item{SOM evaluate cluster: } {see \code{\link{plot.som_evaluate_cluster}}}
+ \item{classified time series: } {see \code{\link{plot.predicted}}}
+ \item{raster cube: }         {see \code{\link{plot.raster_cube}}}
+ \item{torch ML model: } {see \code{\link{plot.torch_model}}}
+ \item{classification probabilities: }{see \code{\link{plot.probs_cube}}}
+ \item{model uncertainty: } {see \code{\link{plot.uncertainty_cube}}}
+ \item{classified image: }     {see \code{\link{plot.classified_image}}}
 }
 
 In the case of time series, the plot function produces different plots
@@ -46,6 +48,11 @@ it will default to "together".
 \note{
 Please refer to the sits documentation available in
 <https://e-sensing.github.io/sitsbook/> for detailed examples.
+
+if (sits_run_examples()){
+# plot sets of time series
+plot(cerrado_2classes)
+}
 }
 \author{
 Gilberto Camara, \email{gilberto.camara@inpe.br}

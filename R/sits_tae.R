@@ -58,7 +58,36 @@
 #' @note
 #' Please refer to the sits documentation available in
 #' <https://e-sensing.github.io/sitsbook/> for detailed examples.
-#'
+#' @examples
+#' if (sits_run_examples()){
+#'     # select a set of samples
+#'     samples_ndvi <- sits_select(samples_modis_4bands, bands = c("NDVI"))
+#'     # create a TAE model
+#'     torch_model <- sits_train(samples_ndvi, sits_tae())
+#'     # plot the model
+#'     plot(torch_model)
+#'     # create a data cube from local files
+#'     data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
+#'     cube <- sits_cube(
+#'          source = "BDC",
+#'          collection = "MOD13Q1-6",
+#'          data_dir = data_dir,
+#'          delim = "_",
+#'          parse_info = c("X1", "X2", "tile", "band", "date")
+#'     )
+#'     # classify a data cube
+#'     probs_cube <- sits_classify(data = cube, ml_model = torch_model)
+#'     # plot the probability cube
+#'     plot(probs_cube)
+#'     # smooth the probability cube using Bayesian statistics
+#'     bayes_cube <- sits_smooth(probs_cube)
+#'     # plot the smoothed cube
+#'     plot(bayes_cube)
+#'     # label the probability cube
+#'     label_cube <- sits_label_classification(bayes_cube)
+#'     # plot the labelled cube
+#'     plot(label_cube)
+#' }
 #' @export
 sits_tae <- function(samples = NULL,
                      samples_validation = NULL,

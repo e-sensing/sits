@@ -56,6 +56,29 @@ best hyper-parameters in a list.
 Please refer to the sits documentation available in
 <https://e-sensing.github.io/sitsbook/> for detailed examples.
 }
+\examples{
+if (sits_run_examples()){
+# run a tuned
+tuned <- sits_tuning(samples_modis_4bands,
+            ml_method = sits_tempcnn(),
+            params = list(
+                 optimizer = torchopt::optim_adamw,
+                 opt_hparams = list(
+                     lr = beta(0.3, 5)
+                     )
+          ),
+          trials = 4,
+          multicores = 4,
+          progress = FALSE
+          )
+# obtain accuracy, kappa and best_lr
+accuracy <- tuned$tuning$accuracy
+kappa <- tuned$tuning$accuracy
+best_lr <- tuned$tuning$params[[1]]$opt_hparams
+
+}
+
+}
 \references{
 James Bergstra, Yoshua Bengio,
  "Random Search for Hyper-Parameter Optimization".

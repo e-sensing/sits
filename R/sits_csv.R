@@ -1,6 +1,6 @@
 #' @title Export a sits tibble metadata to the CSV format
 #'
-#' @name sits_metadata_to_csv
+#' @name sits_to_csv
 #'
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'
@@ -18,7 +18,7 @@
 #'
 #' @export
 #'
-sits_metadata_to_csv <- function(data, file) {
+sits_to_csv <- function(data, file) {
 
     # set caller to show in errors
     .check_set_caller("sits_metadata_to_csv")

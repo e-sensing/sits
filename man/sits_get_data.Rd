@@ -16,7 +16,6 @@ sits_get_data(
   bands = NULL,
   impute_fn = sits_impute_linear(),
   shp_attr = NULL,
-  .n_pts_csv = NULL,
   .n_shp_pol = 30,
   .shp_avg = FALSE,
   .shp_id = NULL,
@@ -50,8 +49,6 @@ in "YYYY-MM-DD" format (optional).}
 
 \item{shp_attr}{Attribute in the shapefile to be used
 as a polygon label.}
-
-\item{.n_pts_csv}{Number of points from CSV file to be retrieved.}
 
 \item{.n_shp_pol}{Number of samples per polygon to be read
 (for POLYGON or MULTIPOLYGON shapefile).}
@@ -96,6 +93,54 @@ obtain a time series for a spacetime location}
 \note{
 Please refer to the sits documentation available in
 <https://e-sensing.github.io/sitsbook/> for detailed examples.
+}
+\examples{
+if (sits_run_examples()) {
+   # reading a lat/long from a local cube
+   # create a cube from local files
+   data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
+   raster_cube <- sits_cube(
+     source  = "BDC",
+     collection = "MOD13Q1-6",
+     data_dir = data_dir,
+     delim = "_",
+     parse_info = c("X1", "X2", "tile", "band", "date")
+  )
+  point_ndvi <- sits_get_data(raster_cube,
+       longitude = -55.66738,
+       latitude = -11.76990
+  )
+  # reading samples from a cube based on a  CSV file
+  csv_file <- system.file("extdata/samples/samples_sinop_crop.csv",
+                            package = "sits"
+  )
+  points <- sits_get_data(cube = raster_cube, file = csv_file)
+
+  # reading a shapefile from BDC (Brazil Data Cube)
+  # needs a BDC access key that can be obtained
+  # for free by registering in the BDC website
+  if (nchar(Sys.getenv("BDC_ACCESS_KEY")) > 0 ){
+      # create a data cube from the BDC
+      bdc_cube <- sits_cube(
+                   source = "BDC",
+                   collection = "CB4_64_16D_STK-1",
+                   bands = c("NDVI", "EVI"),
+                   tiles = c("022024", "022025"),
+                   start_date = "2018-09-01",
+                   end_date = "2018-10-28"
+     )
+     # define a shapefile to be read from the cube
+     shp_path <- system.file("extdata/shapefiles/bdc-test/samples.shp",
+                             package = "sits"
+                             )
+     # get samples from the BDC based on the shapefile
+     time_series_bdc <- sits::sits_get_data(
+                  cube = bdc_cube
+                  file = shp_path
+     )
+  }
+}
+
 }
 \author{
 Gilberto Camara

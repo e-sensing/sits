@@ -20,8 +20,7 @@ test_that("Reading a LAT/LONG from RASTER", {
   point_ndvi <- sits_select(point_mt_6bands, bands = "NDVI")
   point_ndvi <- sits_get_data(raster_cube,
                               longitude = -55.66738,
-                              latitude = -11.76990,
-                              output_dir = tempdir()
+                              latitude = -11.76990
   )
 
   expect_equal(names(point_ndvi)[1], "longitude")

@@ -33,6 +33,14 @@ The plot function produces different plots based on the input data:
 Please refer to the sits documentation available in
 <https://e-sensing.github.io/sitsbook/> for detailed examples.
 }
+\examples{
+if (sits_run_examples()){
+# create a SOM map
+som_map <- sits_som_map(samples_modis_4bands)
+# plot the SOM map
+plot(som_map)
+}
+}
 \author{
 Gilberto Camara, \email{gilberto.camara@inpe.br}
 }

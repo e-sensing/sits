@@ -9,11 +9,13 @@
 #'  \item{sits tibble: }          {see \code{\link{plot.sits}}}
 #'  \item{patterns: }             {see \code{\link{plot.patterns}}}
 #'  \item{SOM map: }              {see \code{\link{plot.som_map}}}
-#'  \item{classified time series: } {see \code{\link{plot.predicted}}}
-#'  \item{raster  cube: }         {see \code{\link{plot.raster_cube}}}
-#'  \item{classification probabilities: }{see \code{\link{plot.probs_cube}}}
-#'  \item{classified image: }     {see \code{\link{plot.classified_image}}}
 #'  \item{SOM evaluate cluster: } {see \code{\link{plot.som_evaluate_cluster}}}
+#'  \item{classified time series: } {see \code{\link{plot.predicted}}}
+#'  \item{raster cube: }         {see \code{\link{plot.raster_cube}}}
+#'  \item{torch ML model: } {see \code{\link{plot.torch_model}}}
+#'  \item{classification probabilities: }{see \code{\link{plot.probs_cube}}}
+#'  \item{model uncertainty: } {see \code{\link{plot.uncertainty_cube}}}
+#'  \item{classified image: }     {see \code{\link{plot.classified_image}}}
 #' }
 #'
 #' In the case of time series, the plot function produces different plots
@@ -35,6 +37,11 @@
 #' @note
 #' Please refer to the sits documentation available in
 #' <https://e-sensing.github.io/sitsbook/> for detailed examples.
+#'
+#' if (sits_run_examples()){
+#' # plot sets of time series
+#' plot(cerrado_2classes)
+#' }
 #'
 #' @export
 #'
@@ -65,7 +72,11 @@ plot.sits <- function(x, y, ...) {
 #' @note
 #' Please refer to the sits documentation available in
 #' <https://e-sensing.github.io/sitsbook/> for detailed examples.
-#'
+#' @examples
+#' if (sits_run_examples()){
+#' # plot patterns
+#' plot(sits_patterns(cerrado_2classes))
+#' }
 #' @export
 #'
 plot.patterns <- function(x, y, ...) {
@@ -90,6 +101,17 @@ plot.patterns <- function(x, y, ...) {
 #' @note
 #' Please refer to the sits documentation available in
 #' <https://e-sensing.github.io/sitsbook/> for detailed examples.
+#' @examples
+#' if (sits_run_examples()){
+#'     # Retrieve the samples for Mato Grosso
+#'     # train a tempCNN model
+#'     ml_model <- sits_train(samples_modis_4bands, ml_method = sits_tempcnn)
+#'     # classify the point
+#'     bands_model <- sits_bands(ml_model)
+#'     point_4bands <- sits_select(point_mt_6bands, bands = bands_model)
+#'     point_class <- sits_classify(point_4bands, ml_model)
+#'     plot(point_class)
+#'}
 #' @export
 #'
 plot.predicted <- function(x, y, ...,
@@ -115,6 +137,21 @@ plot.predicted <- function(x, y, ...,
 #' @param  date          Date to be plotted.
 #'
 #' @return               Plot object.
+#'
+#' @examples
+#' if (sits_run_examples()){
+#' # create a data cube from local files
+#' data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
+#' cube <- sits_cube(
+#'          source = "BDC",
+#'          collection = "MOD13Q1-6",
+#'          data_dir = data_dir,
+#'          delim = "_",
+#'          parse_info = c("X1", "X2", "tile", "band", "date")
+#' )
+#' # plot NDVI band of the second date date of the data cube
+#' plot(cube, band = "NDVI", date = sits_timeline(cube)[2])
+#' }
 #' @export
 plot.raster_cube <- function(x, ...,
                              band = NULL,
@@ -235,6 +272,27 @@ plot.raster_cube <- function(x, ...,
 #'
 #' @return               The plot itself.
 #'
+#' @examples
+#' if (sits_run_examples()){
+#'     # select a set of samples
+#'     samples_ndvi <- sits_select(samples_modis_4bands, bands = c("NDVI"))
+#'     # create a random forest model
+#'     rfor_model <- sits_train(samples_ndvi, sits_rfor())
+#'     # create a data cube from local files
+#'     data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
+#'     cube <- sits_cube(
+#'          source = "BDC",
+#'          collection = "MOD13Q1-6",
+#'          data_dir = data_dir,
+#'          delim = "_",
+#'          parse_info = c("X1", "X2", "tile", "band", "date")
+#'     )
+#'     # classify a data cube
+#'     probs_cube <- sits_classify(data = cube, ml_model = rfor_model)
+#'     # plot the resulting probability cube
+#'     plot(probs_cube)
+#' }
+#'
 #' @export
 #'
 plot.probs_cube <- function(x, ...,
@@ -350,7 +408,6 @@ plot.probs_cube <- function(x, ...,
 #' @return               The plot itself.
 #'
 #' @note
-#'
 #' \itemize{Possible class intervals
 #'  \item{"sd":} {intervals based on the average and standard deviation.}
 #'  \item{"equal": } {divides the range of the variable into n parts.}
@@ -358,7 +415,28 @@ plot.probs_cube <- function(x, ...,
 #'  \item{"pretty": } {number of breaks likely to be legible.}
 #'  \item{"log" :} {logarithm plot.}
 #'  }
-#'
+#' @examples
+#' if (sits_run_examples()){
+#'     # select a set of samples
+#'     samples_ndvi <- sits_select(samples_modis_4bands, bands = c("NDVI"))
+#'     # create a random forest model
+#'     rfor_model <- sits_train(samples_ndvi, sits_rfor())
+#'     # create a data cube from local files
+#'     data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
+#'     cube <- sits_cube(
+#'          source = "BDC",
+#'          collection = "MOD13Q1-6",
+#'          data_dir = data_dir,
+#'          delim = "_",
+#'          parse_info = c("X1", "X2", "tile", "band", "date")
+#'     )
+#'     # classify a data cube
+#'     probs_cube <- sits_classify(data = cube, ml_model = rfor_model)
+#'     # calculate uncertainty
+#'     uncert_cube <- sits_uncertainty(probs_cube)
+#'     # plot the resulting uncertainty cube
+#'     plot(uncert_cube)
+#' }
 #' @export
 #'
 plot.uncertainty_cube <- function(x,...,
@@ -452,6 +530,28 @@ plot.uncertainty_cube <- function(x,...,
 #' @param  palette         Alternative palette that uses grDevices::hcl.pals().
 #' @param  rev             Invert the order of hcl palette?
 #'
+#' @examples
+#' if (sits_run_examples()){
+#'     # select a set of samples
+#'     samples_ndvi <- sits_select(samples_modis_4bands, bands = c("NDVI"))
+#'     # create a random forest model
+#'     rfor_model <- sits_train(samples_ndvi, sits_rfor())
+#'     # create a data cube from local files
+#'     data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
+#'     cube <- sits_cube(
+#'          source = "BDC",
+#'          collection = "MOD13Q1-6",
+#'          data_dir = data_dir,
+#'          delim = "_",
+#'          parse_info = c("X1", "X2", "tile", "band", "date")
+#'     )
+#'     # classify a data cube
+#'     probs_cube <- sits_classify(data = cube, ml_model = rfor_model)
+#'     # label cube with the most likely class
+#'     label_cube <- sits_label_classification(probs_cube)
+#'     # plot the resulting classified image
+#'     plot(label_cube)
+#' }
 #' @export
 #'
 plot.classified_image <- function(x, y, ...,
@@ -488,7 +588,15 @@ plot.classified_image <- function(x, y, ...,
 #' @note
 #' Please refer to the sits documentation available in
 #' <https://e-sensing.github.io/sitsbook/> for detailed examples.
-#'
+#' @examples
+#' if (sits_run_examples()){
+#' # create a SOM map
+#' som_map <- sits_som_map(samples_modis_4bands)
+#' # evaluate the SOM cluster
+#' som_clusters <- sits_som_evaluate_cluster(som_map)
+#' # plot the SOM cluster evaluation
+#' plot(som_cluster)
+#' }
 #' @export
 #'
 plot.som_evaluate_cluster <- function(x, y, ...,
@@ -520,7 +628,13 @@ plot.som_evaluate_cluster <- function(x, y, ...,
 #' @note
 #' Please refer to the sits documentation available in
 #' <https://e-sensing.github.io/sitsbook/> for detailed examples.
-#'
+#' @examples
+#' if (sits_run_examples()){
+#' # create a SOM map
+#' som_map <- sits_som_map(samples_modis_4bands)
+#' # plot the SOM map
+#' plot(som_map)
+#' }
 #' @export
 #'
 plot.som_map <- function(x, y, ..., type = "codes", band = 1) {
@@ -546,7 +660,14 @@ plot.som_map <- function(x, y, ..., type = "codes", band = 1) {
 #' @note
 #' Please refer to the sits documentation available in
 #' <https://e-sensing.github.io/sitsbook/> for detailed examples.
-#'
+#' @examples
+#' if (sits_run_examples()){
+#'     # Retrieve the samples for Mato Grosso
+#'     # train a tempCNN model
+#'     ml_model <- sits_train(samples_modis_4bands, ml_method = sits_tempcnn)
+#'     # plot the model
+#'     plot(ml_model)
+#'}
 #' @export
 #'
 plot.torch_model <- function(x, y, ...) {

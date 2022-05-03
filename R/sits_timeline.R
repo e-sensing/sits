@@ -9,6 +9,11 @@
 #'
 #' @param  data     either a sits tibble, a data cube, or a trained model.
 #'
+#' @return      Timeline of sample set or of data cube.
+#'
+#' @examples
+#' sits_timeline(sample_modis_4bands)
+#'
 #' @export
 #'
 sits_timeline <- function(data) {

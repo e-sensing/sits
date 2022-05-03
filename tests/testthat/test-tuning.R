@@ -1,12 +1,10 @@
 test_that("Tuning - random search", {
 
-    samples <- sits_select(samples_modis_4bands, bands = "NDVI")
-
     tuned <- sits_tuning(
-        samples,
+        samples_modis_4bands,
         ml_method = sits_tempcnn(),
-        params = list(
-            optimizer = torchopt::optim_adamw,
+        params = sits_tuning_params(
+            optimizer = torchopt::optim_yogi,
             opt_hparams = list(
                 lr = beta(0.3, 5)
             )

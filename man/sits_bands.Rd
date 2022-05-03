@@ -16,6 +16,9 @@ A vector with the names of the bands.
 Finds the names of the bands of
               a set of time series or of a data cube
 }
+\examples{
+bands <- sits_bands(samples_modis_4bands)
+}
 \author{
 Gilberto Camara, \email{gilberto.camara@inpe.br}
 

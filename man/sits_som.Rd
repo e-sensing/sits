@@ -111,6 +111,21 @@ parameter, with the following options: "clean", "analyze", "remove".
 Please refer to the sits documentation available in
 <https://e-sensing.github.io/sitsbook/> for detailed examples.
 }
+\examples{
+if (sits_run_examples()){
+# create a som map
+som_map <- sits_som_map(samples_modis_4bands)
+# plot the som map
+plot(som_map)
+# evaluate the som map and create clusters
+clusters_som <- sits_som_evaluate_cluster(som_map)
+# plot the cluster evaluation
+plot(clusters_som)
+# clean the samples
+new_samples <- sits_som_clean_samples(som_map)
+}
+
+}
 \references{
 Lorena Santos, Karine Ferreira, Gilberto Camara, Michelle Picoli,
 Rolf Simoes, “Quality control and class noise reduction of satellite
