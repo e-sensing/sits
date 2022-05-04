@@ -165,4 +165,5 @@ Collate:
     'sits_view.R'
     'sits_values.R'
     'sits_xlsx.R'
+    'sits_plot_distances.R'
     'zzz.R'
