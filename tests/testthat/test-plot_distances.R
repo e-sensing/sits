@@ -35,4 +35,4 @@ test_that("plot geo_distances", {
    expect_true(all(c("from", "to", "distance", "type") %in%
                    colnames(distances)))
 
-}
+})

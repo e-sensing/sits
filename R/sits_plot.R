@@ -1550,5 +1550,5 @@ plot.geo_distances <- function(x, y, ...) {
         ggplot2::ylab("") +
         ggplot2::theme(legend.title = ggplot2::element_blank()) +
         ggplot2::ggtitle("Distribution of Nearest Neighbor Distances")
-    invisible(density_plot)
+    return(density_plot)
 }
