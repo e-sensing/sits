@@ -29,6 +29,9 @@ NULL
                msg = "process one tile at a time for file_info"
     )
 
+    # for mspc cubes only
+    cube <- .file_info_token_generator(cube)
+
     # get the file info associated with the tile
     file_info <- cube[["file_info"]][[1]]
 
@@ -65,46 +68,37 @@ NULL
         file_info <- file_info[file_info[["date"]] < end_date, ]
     }
 
-    if (.is_token_expired(cube)) {
-        file_info <- .file_info_token_generator(cube)
-    }
-
     return(file_info)
 }
 
-.is_token_expired <- function(cube) {
-
-    file_info <- cube[["file_info"]][[1]]
-    n_tries <- min(
-        nrow(file_info[["path"]]),
-        ceiling(nrow(file_info[["path"]]) * 0.1)
-    )
-
-    href_paths <- sample(file_info[["path"]], n_tries)
-
-    is_paths_valid <- purrr::map_lgl(href_paths, function(href) {
-        tryCatch({
-            .raster_open_rast(href)
-            return(TRUE)
-        },
-        error = function(e) return(FALSE)
-        )
-    })
-
-    return(all(is_paths_valid))
-}
-
+#' @rdname file_info_functions
+#'
+#' @details
+#' Return the file info for a cube with a single tile
+#' Filter by bands if required
+#'
 .file_info_token_generator <- function(cube) {
 
-    source_cube <- tolower(.cube_source(cube))
-    class(source_cube) <- source_cube
+    source <- .source_new(source = .cube_source(cube),
+                          collection = .cube_collection(cube))
 
-    UseMethod(".file_info_token_generator", cube)
+    UseMethod(".file_info_token_generator", source)
 }
 
-.file_info_token_generator.mspc <- function(cube) {
+#' @rdname file_info_functions
+#'
+#' @details
+#' Return the file info for a cube with a single tile
+#' Filter by bands if required
+#'
+#' @export
+.file_info_token_generator.mspc_cube <- function(cube) {
 
     file_info <- cube[["file_info"]][[1]]
+
+    # in case regularized cubes and local, just for remote cubes
+    if (any(!grepl(pattern = "^/vsi", x = file_info[["path"]])))
+        return(cube)
 
     token_endpoint <- .config_get(c("sources", .cube_source(cube), "token_url"))
 
@@ -117,29 +111,26 @@ NULL
         stop(paste("Request error. %s", e$message))
     })
 
-    #token_parsed <- httr::parse_url(paste0("?", res_content[["token"]]))
+    token_parsed <- httr::parse_url(paste0("?", res_content[["token"]]))
     file_info[["path"]] <- purrr::map_chr(file_info[["path"]], function(path) {
 
-        # url_parsed <- httr::parse_url(path)
-        # url_parsed[["query"]] <- modifyList(
-        #     url_parsed[["query"]],
-        #     token_parsed[["query"]]
-        # )
-        #
-        # new_path <- httr::build_url(url_parsed)
-        # remove token
-        url_parsed <- strsplit(x = path, split = "?", fixed = TRUE)[[1]][[1]]
-        paste0(url_parsed, "?", res_content[["token"]])
+        url_parsed <- httr::parse_url(path)
+        url_parsed[["query"]] <- modifyList(
+            url_parsed[["query"]],
+            token_parsed[["query"]]
+        )
+
+        new_path <- gsub("^://", "", httr::build_url(url_parsed))
+        new_path
     })
 
-    file_info
+    cube[["file_info"]][[1]] <- file_info
+
+    return(cube)
 }
 
-
 .file_info_token_generator.default <- function(cube) {
-
-    # no caso do bdc o usuario remove o token do cubo??
-    stop("invalid cube paths")
+    return(cube)
 }
 
 #' @rdname file_info_functions
