@@ -20,6 +20,10 @@
 #' @export
 #'
 sits_plot_distances <- function(samples_tb, roi_sf, n = 1000) {
+# TODO:
+    # - Split this function in two: one for sampling and one for plotting.
+    # - sits_geo_dist
+    # - plot
 
     stopifnot(inherits(samples_tb, "sits"))
 
