@@ -1501,3 +1501,54 @@ plot.torch_model <- function(x, y, ...) {
 
     return(p)
 }
+
+
+#' @title Make a kernel density plot of samples distances.
+#'
+#' @name   plot.geo_distances
+#' @author Felipe Souza, \email{lipecaso@@gmail.com}
+#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
+#' @author Alber Sanchez, \email{alber.ipia@@inpe.br}
+#'
+#' @description Make a kernel density plot of samples distances.
+#'
+#' @param  x             Object of class "geo_distances".
+#' @param  y             Ignored.
+#' @param  ...           Further specifications for \link{plot}.
+#' @return               The plot itself.
+#'
+#' @note
+#' Please refer to the sits documentation available in
+#' <https://e-sensing.github.io/sitsbook/> for detailed examples.
+#'
+#' @references Hanna Meyer and Edzer Pebesma,
+#' "Machine learning-based global maps of ecological variables and the
+#' challenge of assessing them" Nature Communications, 13,2022.
+#' DOI: 10.1038/s41467-022-29838-9.
+#'
+#' @export
+#'
+plot.geo_distances <- function(x, y, ...) {
+    .sits_plot_distances(x)
+}
+
+
+.sits_plot_distances <- function (distances) {
+
+    .check_that(inherits(distances, "geo_distances"),
+                "Invalid distances object. Use sits_geo_dist to create it.")
+
+    density_plot <-
+        distances %>%
+        dplyr::mutate(distance = distance/1000) %>%
+        ggplot2::ggplot(ggplot2::aes(x = distance)) +
+        ggplot2::geom_density(ggplot2::aes(color = type,
+                                           fill = type),
+                              lwd = 1, alpha = 0.25) +
+        ggplot2::scale_x_log10(labels = scales::label_number()) +
+        ggplot2::xlab("Distance (km)") +
+        ggplot2::ylab("") +
+        ggplot2::theme(legend.title = ggplot2::element_blank()) +
+        ggplot2::ggtitle("Distribution of Nearest Neighbor Distances")
+    invisible(density_plot)
+}

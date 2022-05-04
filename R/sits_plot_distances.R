@@ -1,6 +1,6 @@
-#' @title Make a kernel density plot of samples distances.
+#' @title Compute the minimum distances among samples and prediction points.
 #'
-#' @name sits_plot_distances
+#' @name sits_geo_dist
 #'
 #' @author Alber Sanchez, \email{alber.sanchez@@inpe.br}
 #' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
@@ -8,70 +8,66 @@
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'
 #' @description
-#' Produce a figure showing the kernel density estimates of the distances
-#' among the training samples and between the samples and random points in the
-#' given region of interest.
+#' Compute the minimum distances among samples and samples to prediction
+#' points.
 #'
 #' @param samples_tb A `sits` tibble.
-#' @param roi_sf     A `sf` object (polygon).
+#' @param roi        A `sf` object (polygon).
+#' @param n          Maximum number of samples to consider.
 #'
-#' @return           A `ggplot2` object.
+#' @return           A tibble.
 #'
 #' @export
 #'
-sits_plot_distances <- function(samples_tb, roi_sf, n = 1000) {
-# TODO:
-    # - Split this function in two: one for sampling and one for plotting.
-    # - sits_geo_dist
-    # - plot
+sits_geo_dist <- function(samples, roi = NULL, n = 1000) {
 
-    stopifnot(inherits(samples_tb, "sits"))
+    stopifnot(inherits(samples, "sits"))
 
-    samples_tb <- samples_tb[sample(1:nrow(samples_tb), n), ]
-    pred_sf <- sf::st_sample(roi_sf, n)
-    pred_sf <- sf::st_as_sf(pred_sf)
+    samples <- samples[sample(1:nrow(samples), min(n, nrow(samples))), ]
 
-    samples_sf <- sf::st_as_sf(samples_tb,
+    # NOTE: sits_tibbles are always in WGS84.
+    samples_sf <- sf::st_as_sf(samples,
                                coords = c("longitude", "latitude"),
                                crs = 4326,
                                remove = FALSE)
-    samples_sf <- sf::st_transform(samples_sf,
-                                   crs = sf::st_crs(roi_sf))
 
-    dist_ss <- sf::st_distance(samples_sf, samples_sf)
-    dist_ss[upper.tri(dist_ss, diag = TRUE)] <- Inf
-    dist_ss <- apply(dist_ss, MARGIN = 1, FUN = min)
-    dist_ss <- dist_ss[2:length(dist_ss)]
-    dist_ss <- dist_ss %>%
-        dplyr::as_tibble() %>%
-        dplyr::mutate(type = "sample-to-sample")
+    pred_sf <- sf::st_sample(roi, n)
+    pred_sf <- sf::st_as_sf(pred_sf)
+    pred_sf <- sf::st_transform(pred_sf,
+                                crs = sf::st_crs(samples_sf))
 
-    dist_sp <- sf::st_distance(samples_sf, pred_sf)
-    dist_sp[upper.tri(dist_sp, diag = TRUE)] <- Inf
-    dist_sp <- apply(dist_sp, MARGIN = 1, FUN = min)
-    dist_sp <- dist_sp[2:length(dist_sp)]
-    dist_sp <- dist_sp %>%
-        dplyr::as_tibble() %>%
-        dplyr::mutate(type = "sample-to-prediction")
+    dist_ss <- .find_closest(samples_sf)
+    dist_sp <- .find_closest(samples_sf, pred_sf)
+    dist_ss["type"] <- "sample-to-sample"
+    dist_sp["type"] <- "sample-to-prediction"
+    dist_tb <- dplyr::as_tibble(dplyr::bind_rows(dist_ss, dist_sp))
+    class(dist_tb) <- c("geo_distances", class(dist_tb))
 
-    plot_tb <-
-        dist_ss %>%
-        dplyr::bind_rows(dist_sp) %>%
-        dplyr::rename(distance = value)
-
-    density_plot <-
-        plot_tb %>%
-        dplyr::mutate(distance = distance/1000) %>%
-        ggplot2::ggplot(ggplot2::aes(x = distance)) +
-        ggplot2::geom_density(ggplot2::aes(color = type,
-                                           fill = type),
-                              lwd = 1, alpha = 0.25) +
-        ggplot2::scale_x_log10(labels = scales::label_number()) +
-        ggplot2::xlab("Distance (km)") +
-        ggplot2::ylab("") +
-        ggplot2::theme(legend.title = ggplot2::element_blank()) +
-        ggplot2::ggtitle("Distribution of Nearest Neighbor Distances")
-
-    return(density_plot)
+    return(dist_tb)
 }
 
+
+
+# @title Find the closest points.
+#
+# @author Alber Sanchez, \email{alber.sanchez@@inpe.br}
+#
+# @description
+# For each point in x, find the closest point in y (and their distance).
+#
+# @param x An `sf` object (points).
+# @param y An `sf` object (points).
+#
+# @return  A data.frame with the columns from (row number in a), b
+# (row number in b), and distance (in meters).
+#
+.find_closest <- function(x, y = x) {
+    dist_xy <- sf::st_distance(x, y)
+    diag(dist_xy) <- Inf
+    rid <- apply(dist_xy, MARGIN = 1, FUN = function(x) which(x == min(x)))
+    min_dist <- apply(dist_xy, MARGIN = 1, FUN = min)
+    dist_df <- data.frame(from = 1:nrow(x),
+                          to   = rid,
+                          distance = min_dist)
+    return(dist_df)
+}

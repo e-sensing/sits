@@ -1,17 +1,6 @@
-test_that("plot_distances work", {
+test_that("plot geo_distances", {
 
-    # TEST cerrado
-    samples_tb <- sitsdata::samples_cerrado_lc8
-
-    roi_sf <- "~/Documents/data/geodata/brazil_biomes/brazil_biomes.shp" %>%
-        sf::read_sf() %>%
-        dplyr::filter(name == "Cerrado")
-
-    my_plot <- sits_plot_distances(samples_tb, roi_sf)
-    ggplot2::ggsave(filename = "~/Documents/plot_distances.png")
-
-    # TEST 1
-    samples_tb <-
+    samples <-
         sits::samples_modis_4bands %>%
         sits_select(bands = c("NDVI")) %>%
         dplyr::mutate(id = paste0(longitude, "-", latitude)) %>%
@@ -34,14 +23,16 @@ test_that("plot_distances work", {
         dplyr::first() %>%
         terra::rast()
 
-    roi_sf <-
+    roi <-
         raster %>%
         terra::ext() %>%
         terra::as.polygons(crs = terra::crs(raster)) %>%
         sf::st_as_sf()
 
-    n = nrow(samples_tb)
+   distances <- sits_geo_dist(samples, roi)
 
-    sits_plot_distances(samples_tb, roi_sf)
+   expect_true("geo_distances" %in% class(distances))
+   expect_true(all(c("from", "to", "distance", "type") %in%
+                   colnames(distances)))
 
 }
