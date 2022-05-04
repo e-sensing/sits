@@ -4,7 +4,7 @@
 \alias{sits_plot_distances}
 \title{Make a kernel density plot of samples distances.}
 \usage{
-sits_plot_distances(samples_tb, roi_sf, n)
+sits_plot_distances(samples_tb, roi_sf, n = 1000)
 }
 \arguments{
 \item{samples_tb}{A `sits` tibble.}
