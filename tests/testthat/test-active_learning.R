@@ -28,7 +28,7 @@ test_that("Suggested samples have low confidence, high entropy", {
                              output_dir = out_dir)
 
     # Get sample suggestions.
-    samples_df <- suppressWarnings(sits_uncertainty_samples(
+    samples_df <- suppressWarnings(sits_uncertainty_sampling(
         uncert_cube,
         n = 100,
         min_dist_pixels = 0)
@@ -81,10 +81,13 @@ test_that("Increased samples have high confidence, low entropy", {
         memsize = 4, multicores = 2
     )
     # Get sample suggestions based on high confidence
-    samples_df <- sits_confidence_samples(probs_cube = probs_cube,
-                                          n = 20,
-                                          min_margin = 0.9,
-                                          min_dist_pixels = 10)
+    samples_df <- suppressWarnings(
+        sits_confidence_samples(probs_cube = probs_cube,
+                                n = 20,
+                                min_margin = 0.9,
+                                min_dist_pixels = 10
+        )
+    )
     labels <- sits_labels(probs_cube)
 
     expect_true(nrow(samples_df)  <= 20 * length(labels))

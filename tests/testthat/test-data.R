@@ -118,7 +118,7 @@ test_that("Test reading shapefile from BDC", {
 test_that("Reading metadata from CSV file", {
 
   csv_file <- paste0(tempdir(), "/cerrado_2classes.csv")
-  sits_metadata_to_csv(cerrado_2classes, file = csv_file)
+  sits_to_csv(cerrado_2classes, file = csv_file)
   csv <- read.csv(csv_file)
   expect_true(nrow(csv) == 746)
   expect_true(all(names(csv) %in% c("id", "longitude", "latitude",
