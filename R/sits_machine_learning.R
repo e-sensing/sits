@@ -25,7 +25,7 @@
 #' <https://e-sensing.github.io/sitsbook/> for detailed examples.
 #'
 #' @examples
-#' if (sits_run_examples()){
+#' if (sits_run_examples()) {
 #'     # Example of training a model for time series classification
 #'     # Retrieve the samples for Mato Grosso
 #'     # train a random forest model
@@ -67,8 +67,8 @@ sits_rfor <- function(samples = NULL, num_trees = 200, nodesize = 1, ...) {
             .check_require_packages("randomForest")
 
             return(stats::predict(result_rfor,
-                                  newdata = values,
-                                  type = "prob"
+                newdata = values,
+                type = "prob"
             ))
         }
         class(model_predict) <- c(
@@ -122,7 +122,7 @@ sits_rfor <- function(samples = NULL, num_trees = 200, nodesize = 1, ...) {
 #' Please refer to the sits documentation available in
 #' <https://e-sensing.github.io/sitsbook/> for detailed examples.
 #' @examples
-#' if (sits_run_examples()){
+#' if (sits_run_examples()) {
 #'     # Example of training a model for time series classification
 #'     # Retrieve the samples for Mato Grosso
 #'     # train an SVM model
@@ -178,8 +178,8 @@ sits_svm <- function(samples = NULL, formula = sits_formula_logref(),
 
             # get the prediction
             preds <- stats::predict(result_svm,
-                                    newdata = values,
-                                    probability = TRUE
+                newdata = values,
+                probability = TRUE
             )
             # retrieve the predicted probabilities
             prediction <- data.table::as.data.table(attr(
@@ -252,7 +252,7 @@ sits_svm <- function(samples = NULL, formula = sits_formula_logref(),
 #' Please refer to the sits documentation available in
 #' <https://e-sensing.github.io/sitsbook/> for detailed examples.
 #' @examples
-#' if (sits_run_examples()){
+#' if (sits_run_examples()) {
 #'     # Example of training a model for time series classification
 #'     # Retrieve the samples for Mato Grosso
 #'     # train a xgboost model
@@ -341,8 +341,8 @@ sits_xgboost <- function(samples = NULL,
             # retrieve the prediction probabilities
             prediction <- data.table::as.data.table(
                 stats::predict(model_xgb, data.matrix(values[, -2:0]),
-                               ntreelimit = ntreelimit,
-                               reshape = TRUE
+                    ntreelimit = ntreelimit,
+                    reshape = TRUE
                 )
             )
             # adjust the names of the columns of the probs
@@ -411,7 +411,7 @@ sits_formula_logref <- function(predictors_index = -2:0) {
         result_for <- stats::as.formula(paste0(
             "factor(reference)~",
             paste0(paste0("log(`", categories, "`)"),
-                   collapse = "+"
+                collapse = "+"
             )
         ))
         return(result_for)
@@ -466,7 +466,7 @@ sits_formula_linear <- function(predictors_index = -2:0) {
         result_for <- stats::as.formula(paste0(
             "factor(reference)~",
             paste0(paste0(categories,
-                          collapse = "+"
+                collapse = "+"
             ))
         ))
         return(result_for)
@@ -507,7 +507,7 @@ sits_formula_linear <- function(predictors_index = -2:0) {
             paste(bands, collapse = ", "),
             ") do not match model bands (",
             paste(colnames(stats[, -1]),
-                  collapse = ", "
+                collapse = ", "
             ), ")"
         )
     )
@@ -602,12 +602,12 @@ sits_formula_linear <- function(predictors_index = -2:0) {
     dt_med <- dt[, lapply(.SD, stats::median, na.rm = TRUE)]
     dt_quant_2 <- dt[, lapply(.SD, function(x) {
         stats::quantile(x, 0.02,
-                        na.rm = TRUE
+            na.rm = TRUE
         )
     })]
     dt_quant_98 <- dt[, lapply(.SD, function(x) {
         stats::quantile(x, 0.98,
-                        na.rm = TRUE
+            na.rm = TRUE
         )
     })]
     stats <- dplyr::bind_cols(

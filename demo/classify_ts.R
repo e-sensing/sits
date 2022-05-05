@@ -8,8 +8,8 @@ library(sits)
 # use a sample with the bands "ndvi", "evi", "nir", and "mir"
 # select a random forest model
 rfor_model <- sits_train(
-  data      = samples_modis_4bands,
-  ml_method = sits_rfor()
+    data      = samples_modis_4bands,
+    ml_method = sits_rfor()
 )
 
 # Retrieve a time series
@@ -17,14 +17,14 @@ data("point_mt_6bands")
 
 # select the bands "ndvi", "evi", "nir", and "mir"
 point.tb <- sits_select(
-  data  = point_mt_6bands,
-  bands = c("NDVI", "EVI", "NIR", "MIR")
+    data  = point_mt_6bands,
+    bands = c("NDVI", "EVI", "NIR", "MIR")
 )
 
 # classify the point
 class.tb <- sits_classify(
-  data     = point.tb,
-  ml_model = rfor_model
+    data     = point.tb,
+    ml_model = rfor_model
 )
 
 # plot the classification

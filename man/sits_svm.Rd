@@ -70,7 +70,7 @@ Please refer to the sits documentation available in
 <https://e-sensing.github.io/sitsbook/> for detailed examples.
 }
 \examples{
-if (sits_run_examples()){
+if (sits_run_examples()) {
     # Example of training a model for time series classification
     # Retrieve the samples for Mato Grosso
     # train an SVM model

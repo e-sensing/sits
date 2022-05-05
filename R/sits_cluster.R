@@ -40,7 +40,7 @@
 #' Please refer to the sits documentation available in
 #' <https://e-sensing.github.io/sitsbook/> for detailed examples.
 #' @examples
-#' if (sits_run_examples()){
+#' if (sits_run_examples()) {
 #' clusters <- sits_cluster_dendro(cerrado_2classes)
 #' }
 #'
@@ -116,7 +116,7 @@ sits_cluster_dendro <- function(samples = NULL,
 #' \code{sits_cluster_frequency()} returns a matrix containing
 #' all frequencies of labels in clusters.
 #' @examples
-#' if (sits_run_examples()){
+#' if (sits_run_examples()) {
 #'     clusters <- sits_cluster_dendro(cerrado_2classes)
 #'     freq <- sits_cluster_frequency(clusters)
 #'     freq
@@ -151,7 +151,7 @@ sits_cluster_frequency <- function(samples) {
 #' that has an additional `cluster` produced by \code{sits_cluster_dendro()}
 #' and removes labels that are minority in each cluster.
 #' @examples
-#' #' if (sits_run_examples()){
+#' if (sits_run_examples()) {
 #'     clusters <- sits_cluster_dendro(cerrado_2classes)
 #'     freq1 <- sits_cluster_frequency(clusters)
 #'     freq1

@@ -1,5 +1,4 @@
 test_that("Tuning - random search", {
-
     tuned <- sits_tuning(
         samples_modis_4bands,
         ml_method = sits_tempcnn(),
@@ -11,7 +10,8 @@ test_that("Tuning - random search", {
         ),
         trials = 4,
         multicores = 4,
-        progress = FALSE)
+        progress = FALSE
+    )
 
     accuracy <- tuned$tuning$accuracy
     kappa <- tuned$tuning$accuracy

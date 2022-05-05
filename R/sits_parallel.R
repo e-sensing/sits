@@ -21,11 +21,12 @@
 #' @keywords internal
 #' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
 .sits_parallel_is_open <- function() {
-    tryCatch({
-        !is.null(sits_env[["cluster"]]) &&
-            socketSelect(list(sits_env[["cluster"]][[1]]$con), write = TRUE)
-    },
-    error = function(e) FALSE
+    tryCatch(
+        {
+            !is.null(sits_env[["cluster"]]) &&
+                socketSelect(list(sits_env[["cluster"]][[1]]$con), write = TRUE)
+        },
+        error = function(e) FALSE
     )
 }
 
@@ -163,8 +164,6 @@
 #' @rdname sits_parallel_fault_tolerant
 .sits_parallel_recv_one_result <- function() {
 
-    # fault tolerant version of parallel:::recvOneResult
-    cl <- sits_env[["cluster"]]
     # fault tolerant version of parallel:::recvOneData
     v <- .sits_parallel_recv_one_data()
 
@@ -185,8 +184,8 @@
         submit <- function(node, job) {
             # get hidden object from parallel
             .send_call <- get("sendCall",
-                              envir = asNamespace("parallel"),
-                              inherits = FALSE
+                envir = asNamespace("parallel"),
+                inherits = FALSE
             )
             .send_call(
                 con = cl[[node]],
@@ -223,8 +222,8 @@
         }
         # get hidden object from parallel
         .check_remote_errors <- get("checkForRemoteErrors",
-                                    envir = asNamespace("parallel"),
-                                    inherits = FALSE
+            envir = asNamespace("parallel"),
+            inherits = FALSE
         )
         .check_remote_errors(val)
     }
@@ -297,7 +296,7 @@
         }
         if (any(retry)) {
             stop("Some or all failed nodes could not be recovered",
-                 call. = FALSE
+                call. = FALSE
             )
         }
     }

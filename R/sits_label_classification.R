@@ -20,7 +20,7 @@
 #' <https://e-sensing.github.io/sitsbook/> for detailed examples.
 #'
 #' @examples
-#' if (sits_run_examples()){
+#' if (sits_run_examples()) {
 #'     # select a set of samples
 #'     samples_ndvi <- sits_select(samples_modis_4bands, bands = c("NDVI"))
 #'     # create a random forest model
@@ -28,11 +28,11 @@
 #'     # create a data cube from local files
 #'     data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
 #'     cube <- sits_cube(
-#'          source = "BDC",
-#'          collection = "MOD13Q1-6",
-#'          data_dir = data_dir,
-#'          delim = "_",
-#'          parse_info = c("X1", "X2", "tile", "band", "date")
+#'         source = "BDC",
+#'         collection = "MOD13Q1-6",
+#'         data_dir = data_dir,
+#'         delim = "_",
+#'         parse_info = c("X1", "X2", "tile", "band", "date")
 #'     )
 #'     # classify a data cube
 #'     probs_cube <- sits_classify(data = cube, ml_model = rfor_model)
@@ -138,8 +138,9 @@ sits_label_classification <- function(cube,
         out_file <- .file_info_path(tile_new)
 
         # if file exists skip it (resume feature)
-        if (file.exists(out_file))
+        if (file.exists(out_file)) {
             return(NULL)
+        }
 
         # get cube size
         size <- .cube_size(tile)
@@ -149,7 +150,8 @@ sits_label_classification <- function(cube,
             xsize = size[["ncols"]],
             ysize = size[["nrows"]],
             block_y_size = block_size[["block_y_size"]],
-            overlapping_y_size = 0)
+            overlapping_y_size = 0
+        )
 
         # open probability file
         in_file <- .file_info_path(tile)
@@ -165,9 +167,11 @@ sits_label_classification <- function(cube,
 
             # process it
             raster_out <- .do_map(chunk = chunk)
-            block_file <- .smth_filename(tile = tile_new,
-                                         output_dir = output_dir,
-                                         block = block)
+            block_file <- .smth_filename(
+                tile = tile_new,
+                output_dir = output_dir,
+                block = block
+            )
 
             # save chunk
             .raster_write_rast(
@@ -193,7 +197,7 @@ sits_label_classification <- function(cube,
     res_cube_lst <- .sits_parallel_map(seq_along(blocks_tile_lst), function(i) {
 
         # get tile from cube
-        tile <- cube[i,]
+        tile <- cube[i, ]
 
         # create metadata for raster cube
         tile_new <- .cube_derived_create(
@@ -212,8 +216,9 @@ sits_label_classification <- function(cube,
         out_file <- .file_info_path(tile_new)
 
         # if file exists skip it (resume feature)
-        if (file.exists(out_file))
+        if (file.exists(out_file)) {
             return(tile_new)
+        }
 
         tmp_blocks <- blocks_tile_lst[[i]]
 
@@ -225,7 +230,7 @@ sits_label_classification <- function(cube,
             .raster_merge(
                 in_files = tmp_blocks,
                 out_file = out_file,
-                format   = "GTiff",
+                format = "GTiff",
                 gdal_datatype =
                     .raster_gdal_datatype(.config_get("class_cube_data_type")),
                 gdal_options =

@@ -45,8 +45,8 @@ sits_select.sits <- function(data, bands, ...) {
     bands <- toupper(bands)
     # pre-condition
     .check_chr_within(bands,
-                      within = sits_bands(data),
-                      msg = "Invalid bands values"
+        within = sits_bands(data),
+        msg = "Invalid bands values"
     )
     data <- .sits_fast_apply(data, col = "time_series", function(x) {
         dplyr::select(x, dplyr::all_of(c("#..", "Index", bands)))
@@ -63,7 +63,6 @@ sits_select.sits_cube <- function(data, bands, ..., tiles = NULL) {
     .cube_check(data)
 
     if (!is.null(tiles)) {
-
         .check_chr_type(tiles)
         data <- dplyr::filter(data, .data[["tile"]] %in% !!tiles)
     }
@@ -96,6 +95,5 @@ sits_select.sits_cube <- function(data, bands, ..., tiles = NULL) {
 #'
 #' @export
 sits_select.patterns <- function(data, bands, ...) {
-
     return(sits_select.sits(data, bands))
 }

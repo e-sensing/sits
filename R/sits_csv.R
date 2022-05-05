@@ -87,12 +87,14 @@ sits_to_csv <- function(data, file) {
     .sits_csv_check(samples)
 
     # select valid columns
-    samples <- dplyr::select(samples,
-                             dplyr::all_of(.config_get("df_sample_columns")))
+    samples <- dplyr::select(
+        samples,
+        dplyr::all_of(.config_get("df_sample_columns"))
+    )
 
     samples <- dplyr::mutate(samples,
-                             start_date = as.Date(.data[["start_date"]]),
-                             end_date = as.Date(.data[["end_date"]])
+        start_date = as.Date(.data[["start_date"]]),
+        end_date = as.Date(.data[["end_date"]])
     )
 
     return(samples)

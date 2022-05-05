@@ -90,8 +90,8 @@ NULL
         # columns
         cat(paste0(
             paste("date_time", "pid", "event", "elapsed_time",
-                  "mem_used", "max_mem_used", "key", "value",
-                  sep = ", "
+                "mem_used", "max_mem_used", "key", "value",
+                sep = ", "
             ),
             "\n"
         ), file = log_file, append = TRUE)
@@ -103,8 +103,8 @@ NULL
     # log entry
     cat(paste0(
         paste(esc(time), Sys.getpid(), esc(event[[1]]), elapsed_time,
-              sum(mem[, 2]), sum(mem[, 6]), esc(key[[1]]),  esc(list(value)),
-              sep = ", "
+            sum(mem[, 2]), sum(mem[, 6]), esc(key[[1]]), esc(list(value)),
+            sep = ", "
         ),
         "\n"
     ), file = log_file, append = TRUE)

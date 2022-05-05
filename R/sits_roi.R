@@ -212,8 +212,8 @@
 
     # pre-conditions
     .check_that(nrow(roi_sf) == 1,
-                local_msg = "roi_sf should have only one row",
-                msg = "invalid roi_sf value"
+        local_msg = "roi_sf should have only one row",
+        msg = "invalid roi_sf value"
     )
     # verifies if geojsonsf and jsonlite packages are installed
     .check_require_packages(c("geojsonsf", "jsonlite"))

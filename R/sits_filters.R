@@ -39,7 +39,7 @@ NULL
 #'
 #' # Filter the point using the Savitzky-Golay smoother
 #' point_sg <- sits_filter(point_ndvi,
-#'   filter = sits_sgolay(order = 3, length = 5)
+#'     filter = sits_sgolay(order = 3, length = 5)
 #' )
 #' # Merge time series
 #' point_ndvi <- sits_merge(point_ndvi, point_sg, suffix = c("", ".SG"))
@@ -51,23 +51,23 @@ sits_sgolay <- function(data = NULL, order = 3, length = 5, scaling = 1) {
     filter_fun <- function(data) {
         if (inherits(data, "matrix")) {
             return(t(apply(data, 1, .sits_signal_sgolayfilt,
-                           p = order,
-                           n = length, ts = scaling
+                p = order,
+                n = length, ts = scaling
             )))
         } else {
             return(.sits_signal_sgolayfilt(data,
-                                           p = order,
-                                           n = length, ts = scaling
+                p = order,
+                n = length, ts = scaling
             ))
         }
     }
 
     filter_call <- function(data) {
-
         if (inherits(data, "sits")) {
             .apply_across(data, fn = filter_fun)
-        } else
+        } else {
             filter_fun(data)
+        }
     }
 
 
@@ -109,8 +109,8 @@ sits_whittaker <- function(data = NULL, lambda = 0.5) {
     filter_fun <- function(data) {
         if (inherits(data, "matrix")) {
             return(t(apply(data, 1, smooth_whit,
-                           lambda = lambda,
-                           length = ncol(data)
+                lambda = lambda,
+                length = ncol(data)
             )))
         } else {
             return(smooth_whit(data, lambda = lambda, length = length(data)))
@@ -118,11 +118,11 @@ sits_whittaker <- function(data = NULL, lambda = 0.5) {
     }
 
     filter_call <- function(data) {
-
         if (inherits(data, "sits")) {
             .apply_across(data, fn = filter_fun)
-        } else
+        } else {
             filter_fun(data)
+        }
     }
 
     result <- .sits_factory_function(data, filter_call)
@@ -192,9 +192,9 @@ sits_filter <- function(data, filter = sits_whittaker()) {
 #' @return             A time series with filtered values.
 #'
 .sits_signal_sgolayfilt <- function(x,
-                                    p  = 3,
-                                    n  = p + 3 - p %% 2,
-                                    m  = 0,
+                                    p = 3,
+                                    n = p + 3 - p %% 2,
+                                    m = 0,
                                     ts = 1) {
 
     ## The first k rows of F are used to filter the first k points
@@ -210,8 +210,10 @@ sits_filter <- function(data, filter = sits_whittaker()) {
     f_res <- .sits_signal_sgolay(p, n, m, ts)
     k <- floor(n / 2)
     z <- .sits_signal_filter(f_res[k + 1, n:1], 1, x)
-    y <- c(f_res[1:k, ] %*% x[1:n], z[n:len],
-           f_res[(k + 2):n, ] %*% x[(len - n + 1):len])
+    y <- c(
+        f_res[1:k, ] %*% x[1:n], z[n:len],
+        f_res[(k + 2):n, ] %*% x[(len - n + 1):len]
+    )
     return(y)
 }
 
@@ -247,35 +249,32 @@ sits_filter <- function(data, filter = sits_whittaker()) {
     ## noncausal, one filter per row.  For the bulk of your data you
     ## will use the central filter, but towards the ends you will need
     ## a filter that doesn't go beyond the end points.
-    Fm <- matrix(0., n, n)
+    filter_matrix <- matrix(0., n, n)
     k <- floor(n / 2)
     for (row in 1:(k + 1)) {
         ## Construct a matrix of weights Cij = xi ^ j.  The points xi are
         ## equally spaced on the unit grid, with past points using negative
         ## values and future points using positive values.
-        Ce <- (((1:n) - row) %*% matrix(1, 1, p + 1))^(matrix(1, n) %*% (0:p))
+        C <- (((1:n) - row) %*% matrix(1, 1, p + 1)) ^ (matrix(1, n) %*% (0:p))
         ## A = pseudo-inverse (C), so C*A = I; this is constructed from the SVD
-        A <- .sits_MASS_ginv(Ce, tol = .Machine$double.eps)
+        A <- .sits_mass_ginv(C, tol = .Machine$double.eps)
         ## Take the row of the matrix corresponding to the derivative
         ## you want to compute.
-        Fm[row, ] <- A[1 + m, ]
+        filter_matrix[row, ] <- A[1 + m, ]
     }
     ## The filters shifted to the right are symmetric with those to the left.
-    Fm[(k + 2):n, ] <- (-1)^m * Fm[k:1, n:1]
-    # if (m > 0)
-    #     Fm <- Fm * prod(1:m) / (ts^m)
-    class(Fm) <- "sgolayFilter"
-    return(Fm)
+    filter_matrix[(k + 2):n, ] <- (-1)^m * filter_matrix[k:1, n:1]
+    class(filter_matrix) <- "sgolayFilter"
+    return(filter_matrix)
 }
 
 # Octave/Matlab-compatible filter function
-# y = filter (b, a, x)
-.sits_signal_filter <- function(filt, a, x, init, init.x, init.y, ...) {
-    if (missing(init.x)) {
-        init.x <- c(rep(0, length(filt) - 1))
+.sits_signal_filter <- function(filt, a, x, init, init_x, init_y, ...) {
+    if (missing(init_x)) {
+        init_x <- c(rep(0, length(filt) - 1))
     }
     if (length(filt)) {
-        x1 <- stats::filter(c(init.x, x), filt / a[1], sides = 1)
+        x1 <- stats::filter(c(init_x, x), filt / a[1], sides = 1)
         x <- stats::na.omit(x1, filt / a[1], sides = 1)
     }
     return(x)
@@ -286,7 +285,7 @@ sits_filter <- function(data, filter = sits_whittaker()) {
 #'
 #' @keywords internal
 #'
-#' @param X Matrix for which the Moore-Penrose inverse is required.
+#' @param mtx Matrix for which the Moore-Penrose inverse is required.
 #' @param tol A relative tolerance to detect zero singular values.
 #' @return A MP generalized inverse matrix for X.
 #'
@@ -294,7 +293,7 @@ sits_filter <- function(data, filter = sits_whittaker()) {
 #' Venables, W. N. and Ripley, B. D. (1999)
 #' Modern Applied Statistics with S-PLUS.
 #'
-.sits_MASS_ginv <- function(X, tol = sqrt(.Machine$double.eps)) {
-    Xsvd <- svd(X)
-    Xsvd$v %*% (1 / Xsvd$d * t(Xsvd$u))
+.sits_mass_ginv <- function(mtx, tol = sqrt(.Machine$double.eps)) {
+    mtx_svd <- svd(mtx)
+    mtx_svd$v %*% (1 / mtx_svd$d * t(mtx_svd$u))
 }

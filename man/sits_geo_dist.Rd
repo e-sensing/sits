@@ -23,16 +23,17 @@ Compute the minimum distances among samples and samples to prediction
 points, following the approach proposed by Meyer and Pebesma(2022).
 }
 \examples{
-if (sits_run_examples()){
-# read a shapefile for the state of Mato Grosso, Brazil
-mt_shp <- system.file("extdata/shapefiles/mato_grosso/mt.shp",
-          package = "sits")
-# convert to an sf object
-mt_sf <- sf::read_sf(mt_shp)
-# calculate sample-to-sample and sample-to-prediction distances
-distances <- sits_geo_dist(samples_modis_4bands, mt_sf)
-# plot sample-to-sample and sample-to-prediction distances
-plot(distances)
+if (sits_run_examples()) {
+    # read a shapefile for the state of Mato Grosso, Brazil
+    mt_shp <- system.file("extdata/shapefiles/mato_grosso/mt.shp",
+        package = "sits"
+    )
+    # convert to an sf object
+    mt_sf <- sf::read_sf(mt_shp)
+    # calculate sample-to-sample and sample-to-prediction distances
+    distances <- sits_geo_dist(samples_modis_4bands, mt_sf)
+    # plot sample-to-sample and sample-to-prediction distances
+    plot(distances)
 }
 }
 \references{

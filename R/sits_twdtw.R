@@ -72,9 +72,6 @@ sits_twdtw_classify <- function(samples,
     # check the bands
     bands <- .sits_tibble_bands_check(samples, bands)
 
-    # create a list to store the results of the TWDTW matches
-    matches <- list()
-
     # select the bands for patterns time series and convert to TWDTW format
     twdtw_patterns <- patterns %>%
         sits_select(bands = bands) %>%
@@ -110,19 +107,19 @@ sits_twdtw_classify <- function(samples,
 
     # Classify a sits tibble using the matches found by the TWDTW methods
     samples <- .sits_twdtw_breaks(matches_lst,
-                                  samples,
-                                  start_date = start_date,
-                                  end_date = end_date,
-                                  interval,
-                                  overlap
+        samples,
+        start_date = start_date,
+        end_date = end_date,
+        interval,
+        overlap
     )
     # plot the classification
     if (.plot) {
         .sits_plot_twdtw_class(matches_lst,
-                               start_date = start_date,
-                               end_date = end_date,
-                               interval = interval,
-                               overlap = overlap
+            start_date = start_date,
+            end_date = end_date,
+            interval = interval,
+            overlap = overlap
         )
     }
     return(samples)
@@ -216,8 +213,8 @@ sits_twdtw_classify <- function(samples,
 
     # create a new twdtwTimeSeries object from list above
     ts_twdtw <- methods::new("twdtwTimeSeries",
-                             timeseries = ts,
-                             labels = as.character(samples$label)
+        timeseries = ts,
+        labels = as.character(samples$label)
     )
     return(ts_twdtw)
 }

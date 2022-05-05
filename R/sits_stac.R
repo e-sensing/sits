@@ -74,16 +74,16 @@
     index <- grepl("^s3://.*", href)
     if (any(index)) {
         href[index] <- paste("/vsis3",
-                             gsub("^s3://(.*)$", "\\1", href[index]),
-                             sep = "/"
+            gsub("^s3://(.*)$", "\\1", href[index]),
+            sep = "/"
         )
     }
     # reference for google cloud
     index <- grepl("^gs://.*", href)
     if (any(index)) {
         href[index] <- paste("/vsigs",
-                             gsub("^gs://(.*)$", "\\1", href[index]),
-                             sep = "/"
+            gsub("^gs://(.*)$", "\\1", href[index]),
+            sep = "/"
         )
     }
     return(href)

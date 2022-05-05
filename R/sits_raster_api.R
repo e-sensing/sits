@@ -83,14 +83,14 @@
 
     # check data_type type
     .check_chr(data_type,
-               len_min = 1, len_max = 1,
-               msg = "invalid 'data_type' parameter"
+        len_min = 1, len_max = 1,
+        msg = "invalid 'data_type' parameter"
     )
 
     .check_chr_within(data_type,
-                      within = .raster_gdal_datatypes(sits_names = TRUE),
-                      discriminator = "one_of",
-                      msg = "invalid 'data_type' parameter"
+        within = .raster_gdal_datatypes(sits_names = TRUE),
+        discriminator = "one_of",
+        msg = "invalid 'data_type' parameter"
     )
 
     # convert

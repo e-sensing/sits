@@ -38,7 +38,7 @@
 #' Please refer to the sits documentation available in
 #' <https://e-sensing.github.io/sitsbook/> for detailed examples.
 #'
-#' if (sits_run_examples()){
+#' if (sits_run_examples()) {
 #' # plot sets of time series
 #' plot(cerrado_2classes)
 #' }
@@ -73,9 +73,9 @@ plot.sits <- function(x, y, ...) {
 #' Please refer to the sits documentation available in
 #' <https://e-sensing.github.io/sitsbook/> for detailed examples.
 #' @examples
-#' if (sits_run_examples()){
-#' # plot patterns
-#' plot(sits_patterns(cerrado_2classes))
+#' if (sits_run_examples()) {
+#'     # plot patterns
+#'     plot(sits_patterns(cerrado_2classes))
 #' }
 #' @export
 #'
@@ -102,7 +102,7 @@ plot.patterns <- function(x, y, ...) {
 #' Please refer to the sits documentation available in
 #' <https://e-sensing.github.io/sitsbook/> for detailed examples.
 #' @examples
-#' if (sits_run_examples()){
+#' if (sits_run_examples()) {
 #'     # Retrieve the samples for Mato Grosso
 #'     # train a tempCNN model
 #'     ml_model <- sits_train(samples_modis_4bands, ml_method = sits_tempcnn)
@@ -111,7 +111,7 @@ plot.patterns <- function(x, y, ...) {
 #'     point_4bands <- sits_select(point_mt_6bands, bands = bands_model)
 #'     point_class <- sits_classify(point_4bands, ml_model)
 #'     plot(point_class)
-#'}
+#' }
 #' @export
 #'
 plot.predicted <- function(x, y, ...,
@@ -139,18 +139,18 @@ plot.predicted <- function(x, y, ...,
 #' @return               Plot object.
 #'
 #' @examples
-#' if (sits_run_examples()){
-#' # create a data cube from local files
-#' data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
-#' cube <- sits_cube(
-#'          source = "BDC",
-#'          collection = "MOD13Q1-6",
-#'          data_dir = data_dir,
-#'          delim = "_",
-#'          parse_info = c("X1", "X2", "tile", "band", "date")
-#' )
-#' # plot NDVI band of the second date date of the data cube
-#' plot(cube, band = "NDVI", date = sits_timeline(cube)[2])
+#' if (sits_run_examples()) {
+#'     # create a data cube from local files
+#'     data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
+#'     cube <- sits_cube(
+#'         source = "BDC",
+#'         collection = "MOD13Q1-6",
+#'         data_dir = data_dir,
+#'         delim = "_",
+#'         parse_info = c("X1", "X2", "tile", "band", "date")
+#'     )
+#'     # plot NDVI band of the second date date of the data cube
+#'     plot(cube, band = "NDVI", date = sits_timeline(cube)[2])
 #' }
 #' @export
 plot.raster_cube <- function(x, ...,
@@ -160,8 +160,6 @@ plot.raster_cube <- function(x, ...,
                              blue = NULL,
                              tile = x$tile[[1]],
                              date = sits_timeline(x)[1]) {
-
-
     .check_chr_contains(
         x = x$tile,
         contains = tile,
@@ -175,10 +173,12 @@ plot.raster_cube <- function(x, ...,
     .check_that(
         purrr::is_null(band) ||
             (purrr::is_null(red) &&
-                 purrr::is_null(green) &&
-                 purrr::is_null(blue)),
-        local_msg = paste0("either 'band' parameter or 'red', 'green', and",
-                           "'blue' parameters should be informed")
+                purrr::is_null(green) &&
+                purrr::is_null(blue)),
+        local_msg = paste0(
+            "either 'band' parameter or 'red', 'green', and",
+            "'blue' parameters should be informed"
+        )
     )
 
     # check if bands are valid
@@ -236,10 +236,10 @@ plot.raster_cube <- function(x, ...,
     # plor the data using terra
     suppressWarnings(
         terra::plotRGB(r_obj,
-                       r = r_index,
-                       g = g_index,
-                       b = b_index,
-                       stretch = "hist"
+            r = r_index,
+            g = g_index,
+            b = b_index,
+            stretch = "hist"
         )
     )
 
@@ -273,7 +273,7 @@ plot.raster_cube <- function(x, ...,
 #' @return               The plot itself.
 #'
 #' @examples
-#' if (sits_run_examples()){
+#' if (sits_run_examples()) {
 #'     # select a set of samples
 #'     samples_ndvi <- sits_select(samples_modis_4bands, bands = c("NDVI"))
 #'     # create a random forest model
@@ -281,11 +281,11 @@ plot.raster_cube <- function(x, ...,
 #'     # create a data cube from local files
 #'     data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
 #'     cube <- sits_cube(
-#'          source = "BDC",
-#'          collection = "MOD13Q1-6",
-#'          data_dir = data_dir,
-#'          delim = "_",
-#'          parse_info = c("X1", "X2", "tile", "band", "date")
+#'         source = "BDC",
+#'         collection = "MOD13Q1-6",
+#'         data_dir = data_dir,
+#'         delim = "_",
+#'         parse_info = c("X1", "X2", "tile", "band", "date")
 #'     )
 #'     # classify a data cube
 #'     probs_cube <- sits_classify(data = cube, ml_model = rfor_model)
@@ -301,7 +301,6 @@ plot.probs_cube <- function(x, ...,
                             breaks = "pretty",
                             n_colors = 20,
                             palette = "Terrain") {
-    # stopifnot(missing(y))
     # verifies if stars package is installed
     .check_require_packages("stars")
 
@@ -352,12 +351,12 @@ plot.probs_cube <- function(x, ...,
     if (length(paths) == 1) {
         stars_mosaic <- stars::read_stars(paths[[1]])
     } else {
-        stars.lst <- purrr::map(paths, function(path) {
+        stars_lst <- purrr::map(paths, function(path) {
             stars::read_stars(path)
         })
         stars_mosaic <- stars::st_mosaic(
-            stars.lst[[1]],
-            stars.lst[[2:length(stars.lst)]]
+            stars_lst[[1]],
+            stars_lst[[2:length(stars_lst)]]
         )
     }
     # get the labels
@@ -381,10 +380,10 @@ plot.probs_cube <- function(x, ...,
     } else {
         out <- utils::capture.output({
             p <- plot(stars_mosaic,
-                      breaks = breaks,
-                      nbreaks = n_breaks,
-                      col = col,
-                      main = labels_cube
+                breaks = breaks,
+                nbreaks = n_breaks,
+                col = col,
+                main = labels_cube
             )
         })
     }
@@ -416,7 +415,7 @@ plot.probs_cube <- function(x, ...,
 #'  \item{"log" :} {logarithm plot.}
 #'  }
 #' @examples
-#' if (sits_run_examples()){
+#' if (sits_run_examples()) {
 #'     # select a set of samples
 #'     samples_ndvi <- sits_select(samples_modis_4bands, bands = c("NDVI"))
 #'     # create a random forest model
@@ -424,11 +423,11 @@ plot.probs_cube <- function(x, ...,
 #'     # create a data cube from local files
 #'     data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
 #'     cube <- sits_cube(
-#'          source = "BDC",
-#'          collection = "MOD13Q1-6",
-#'          data_dir = data_dir,
-#'          delim = "_",
-#'          parse_info = c("X1", "X2", "tile", "band", "date")
+#'         source = "BDC",
+#'         collection = "MOD13Q1-6",
+#'         data_dir = data_dir,
+#'         delim = "_",
+#'         parse_info = c("X1", "X2", "tile", "band", "date")
 #'     )
 #'     # classify a data cube
 #'     probs_cube <- sits_classify(data = cube, ml_model = rfor_model)
@@ -439,12 +438,12 @@ plot.probs_cube <- function(x, ...,
 #' }
 #' @export
 #'
-plot.uncertainty_cube <- function(x,...,
+plot.uncertainty_cube <- function(x, ...,
                                   tiles = NULL,
                                   n_colors = 14,
                                   intervals = "log",
                                   palette = "YlOrRd") {
-    # stopifnot(missing(y))
+
     # verifies if stars package is installed
     .check_require_packages("stars")
     # precondition - check breaks parameter
@@ -489,8 +488,9 @@ plot.uncertainty_cube <- function(x,...,
         breaks <- as.integer(
             1e+04 * (log(c(1:n_breaks))^1.6) / (log(n_breaks)^1.6)
         )
-    } else
+    } else {
         breaks <- intervals
+    }
 
     # read the paths to plot
     paths <- slider::slide_chr(x, function(row) {
@@ -499,19 +499,20 @@ plot.uncertainty_cube <- function(x,...,
     if (length(paths) == 1) {
         stars_mosaic <- stars::read_stars(paths[[1]])
     } else {
-        stars.lst <- purrr::map(paths, function(path) {
+        stars_lst <- purrr::map(paths, function(path) {
             stars::read_stars(path)
         })
         stars_mosaic <- stars::st_mosaic(
-            stars.lst[[1]],
-            stars.lst[[2:length(stars.lst)]])
+            stars_lst[[1]],
+            stars_lst[[2:length(stars_lst)]]
+        )
     }
 
     p <- suppressMessages(plot(stars_mosaic,
-                               breaks = breaks,
-                               nbreaks = n_breaks,
-                               col = col,
-                               main = "Uncertainty"
+        breaks = breaks,
+        nbreaks = n_breaks,
+        col = col,
+        main = "Uncertainty"
     ))
     return(invisible(p))
 }
@@ -531,7 +532,7 @@ plot.uncertainty_cube <- function(x,...,
 #' @param  rev             Invert the order of hcl palette?
 #'
 #' @examples
-#' if (sits_run_examples()){
+#' if (sits_run_examples()) {
 #'     # select a set of samples
 #'     samples_ndvi <- sits_select(samples_modis_4bands, bands = c("NDVI"))
 #'     # create a random forest model
@@ -539,11 +540,11 @@ plot.uncertainty_cube <- function(x,...,
 #'     # create a data cube from local files
 #'     data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
 #'     cube <- sits_cube(
-#'          source = "BDC",
-#'          collection = "MOD13Q1-6",
-#'          data_dir = data_dir,
-#'          delim = "_",
-#'          parse_info = c("X1", "X2", "tile", "band", "date")
+#'         source = "BDC",
+#'         collection = "MOD13Q1-6",
+#'         data_dir = data_dir,
+#'         delim = "_",
+#'         parse_info = c("X1", "X2", "tile", "band", "date")
 #'     )
 #'     # classify a data cube
 #'     probs_cube <- sits_classify(data = cube, ml_model = rfor_model)
@@ -589,13 +590,13 @@ plot.classified_image <- function(x, y, ...,
 #' Please refer to the sits documentation available in
 #' <https://e-sensing.github.io/sitsbook/> for detailed examples.
 #' @examples
-#' if (sits_run_examples()){
-#' # create a SOM map
-#' som_map <- sits_som_map(samples_modis_4bands)
-#' # evaluate the SOM cluster
-#' som_clusters <- sits_som_evaluate_cluster(som_map)
-#' # plot the SOM cluster evaluation
-#' plot(som_cluster)
+#' if (sits_run_examples()) {
+#'     # create a SOM map
+#'     som_map <- sits_som_map(samples_modis_4bands)
+#'     # evaluate the SOM cluster
+#'     som_clusters <- sits_som_evaluate_cluster(som_map)
+#'     # plot the SOM cluster evaluation
+#'     plot(som_cluster)
 #' }
 #' @export
 #'
@@ -603,7 +604,7 @@ plot.som_evaluate_cluster <- function(x, y, ...,
                                       name_cluster = NULL,
                                       title = "Confusion by cluster") {
     stopifnot(missing(y))
-    p <- .sits_plot_som_evaluate_cluster(x, name_cluster, title)
+    p <- .sits_plot_som_eval_cluster(x, name_cluster, title)
     return(invisible(p))
 }
 #' @title  Plot a SOM map
@@ -629,11 +630,11 @@ plot.som_evaluate_cluster <- function(x, y, ...,
 #' Please refer to the sits documentation available in
 #' <https://e-sensing.github.io/sitsbook/> for detailed examples.
 #' @examples
-#' if (sits_run_examples()){
-#' # create a SOM map
-#' som_map <- sits_som_map(samples_modis_4bands)
-#' # plot the SOM map
-#' plot(som_map)
+#' if (sits_run_examples()) {
+#'     # create a SOM map
+#'     som_map <- sits_som_map(samples_modis_4bands)
+#'     # plot the SOM map
+#'     plot(som_map)
 #' }
 #' @export
 #'
@@ -661,13 +662,13 @@ plot.som_map <- function(x, y, ..., type = "codes", band = 1) {
 #' Please refer to the sits documentation available in
 #' <https://e-sensing.github.io/sitsbook/> for detailed examples.
 #' @examples
-#' if (sits_run_examples()){
+#' if (sits_run_examples()) {
 #'     # Retrieve the samples for Mato Grosso
 #'     # train a tempCNN model
 #'     ml_model <- sits_train(samples_modis_4bands, ml_method = sits_tempcnn)
 #'     # plot the model
 #'     plot(ml_model)
-#'}
+#' }
 #' @export
 #'
 plot.torch_model <- function(x, y, ...) {
@@ -688,9 +689,11 @@ plot.torch_model <- function(x, y, ...) {
     plots <- purrr::pmap(
         list(locs$longitude, locs$latitude),
         function(long, lat) {
-            dplyr::filter(data,
-                          .data[["longitude"]] == long,
-                          .data[["latitude"]] == lat) %>%
+            dplyr::filter(
+                data,
+                .data[["longitude"]] == long,
+                .data[["latitude"]] == lat
+            ) %>%
                 .sits_plot_ggplot_series() %>%
                 graphics::plot()
         }
@@ -720,6 +723,7 @@ plot.torch_model <- function(x, y, ...) {
             lb <- as.character(label)
             # extract the time series and convert
             df <- data.frame(Time = ts$Index, ts[-1], Pattern = lb)
+            return(df)
         }
     )
 
@@ -778,8 +782,8 @@ plot.torch_model <- function(x, y, ...) {
         dt_melted <- data.table::melt(dt, id.vars = "Index")
         # make the plot title
         title <- paste("Samples (", number, ") for class ",
-                       label, " in band = ", band,
-                       sep = ""
+            label, " in band = ", band,
+            sep = ""
         )
         # plot all data together
         g <- .sits_plot_ggplot_together(dt_melted, dt_qts, title)
@@ -944,21 +948,29 @@ plot.torch_model <- function(x, y, ...) {
     # prepare tibble to ggplot (fortify)
     ts1 <- tidyr::pivot_longer(data, -.data[["Index"]])
     g <- ggplot2::ggplot(data = ts1 %>%
-                             dplyr::filter(.data[["name"]] != "cld")) +
-        ggplot2::geom_col(ggplot2::aes(x = .data[["Index"]],
-                                       y = .data[["value"]]),
-                          fill = "sienna",
-                          alpha = 0.3,
-                          data = ts1 %>%
-                              dplyr::filter(.data[["name"]] == "cld",
-                                            !is.na(.data[["value"]]))
+        dplyr::filter(.data[["name"]] != "cld")) +
+        ggplot2::geom_col(ggplot2::aes(
+            x = .data[["Index"]],
+            y = .data[["value"]]
+        ),
+        fill = "sienna",
+        alpha = 0.3,
+        data = ts1 %>%
+            dplyr::filter(
+                .data[["name"]] == "cld",
+                !is.na(.data[["value"]])
+            )
         ) +
-        ggplot2::geom_line(ggplot2::aes(x = .data[["Index"]],
-                                        y = .data[["value"]],
-                                        color = .data[["name"]])) +
-        ggplot2::geom_point(ggplot2::aes(x = .data[["Index"]],
-                                         y = .data[["value"]],
-                                         color = .data[["name"]])) +
+        ggplot2::geom_line(ggplot2::aes(
+            x = .data[["Index"]],
+            y = .data[["value"]],
+            color = .data[["name"]]
+        )) +
+        ggplot2::geom_point(ggplot2::aes(
+            x = .data[["Index"]],
+            y = .data[["value"]],
+            color = .data[["name"]]
+        )) +
         ggplot2::labs(title = plot_title)
 
     return(g)
@@ -1013,10 +1025,10 @@ plot.torch_model <- function(x, y, ...) {
 #' @return           title to be used in the plot.
 .sits_plot_title <- function(latitude, longitude, label) {
     title <- paste("location (",
-                   signif(latitude, digits = 4), ", ",
-                   signif(longitude, digits = 4), ") - ",
-                   label,
-                   sep = ""
+        signif(latitude, digits = 4), ", ",
+        signif(longitude, digits = 4), ") - ",
+        label,
+        sep = ""
     )
     return(title)
 }
@@ -1070,12 +1082,12 @@ plot.torch_model <- function(x, y, ...) {
             )
             # melt the time series data for plotting
             df_x <- tidyr::pivot_longer(df_x,
-                                        cols = -c("Time", "Series"),
-                                        names_to = "variable"
+                cols = -c("Time", "Series"),
+                names_to = "variable"
             )
             # define a nice set of breaks for value plotting
             y_labels <- scales::pretty_breaks()(range(df_x$value,
-                                                      na.rm = TRUE
+                na.rm = TRUE
             ))
             y_breaks <- y_labels
 
@@ -1099,7 +1111,7 @@ plot.torch_model <- function(x, y, ...) {
                         Group = rep(i, 4),
                         Class = rep(best_class, 4),
                         value = rep(range(y_breaks,
-                                          na.rm = TRUE
+                            na.rm = TRUE
                         ), each = 2)
                     )
                 }
@@ -1116,7 +1128,7 @@ plot.torch_model <- function(x, y, ...) {
 
             gp <- ggplot2::ggplot() +
                 ggplot2::facet_wrap(~Series,
-                                    scales = "free_x", ncol = 1
+                    scales = "free_x", ncol = 1
                 ) +
                 ggplot2::geom_polygon(
                     data = df_pol,
@@ -1223,10 +1235,10 @@ plot.torch_model <- function(x, y, ...) {
         )
 
     p <- graphics::plot(dend,
-                        ylab = paste(
-                            tools::file_path_sans_ext(cluster@method),
-                            "linkage distance"
-                        )
+        ylab = paste(
+            tools::file_path_sans_ext(cluster@method),
+            "linkage distance"
+        )
     )
     # plot cutree line
     if (!purrr::is_null(cutree_height)) {
@@ -1235,8 +1247,8 @@ plot.torch_model <- function(x, y, ...) {
 
     # plot legend
     graphics::legend("topright",
-                     fill = colors,
-                     legend = sits_labels(data)
+        fill = colors,
+        legend = sits_labels(data)
     )
     return(invisible(dend))
 }
@@ -1266,15 +1278,15 @@ plot.torch_model <- function(x, y, ...) {
     }
     if (type == "mapping") {
         graphics::plot(koh$som_properties,
-                       bgcol = koh$som_properties$paint_map,
-                       "mapping", whatmap = band,
-                       codeRendering = "lines"
+            bgcol = koh$som_properties$paint_map,
+            "mapping", whatmap = band,
+            codeRendering = "lines"
         )
     } else if (type == "codes") {
         graphics::plot(koh$som_properties,
-                       bgcol = koh$som_properties$paint_map,
-                       "codes", whatmap = band,
-                       codeRendering = "lines"
+            bgcol = koh$som_properties$paint_map,
+            "codes", whatmap = band,
+            codeRendering = "lines"
         )
     }
 
@@ -1309,9 +1321,9 @@ plot.torch_model <- function(x, y, ...) {
 #' @param title         Title of plot.
 #'
 #' @return              ggplot2 object
-.sits_plot_som_evaluate_cluster <- function(data,
-                                            cluster_name = NULL,
-                                            title = "Confusion by cluster") {
+.sits_plot_som_eval_cluster <- function(data,
+                                        cluster_name = NULL,
+                                        title = "Confusion by cluster") {
     if (!inherits(data, "som_evaluate_cluster")) {
         message("unable to plot - please run sits_som_evaluate_cluster")
         return(invisible(NULL))
@@ -1413,6 +1425,7 @@ plot.torch_model <- function(x, y, ...) {
     r_objs <- slider::slide(cube, function(row) {
         # get the raster object
         r <- suppressWarnings(terra::rast(.file_info_path(row)))
+        return(r)
     })
 
     # merge two or more raster objects
@@ -1506,7 +1519,7 @@ plot.torch_model <- function(x, y, ...) {
         new_nrows <- nrows
         new_ncols <- ncols
     }
-    return(c("ratio" = ratio, "nrows" = nrows, "ncols" = ncols))
+    return(c("ratio" = ratio, "nrows" = new_nrows, "ncols" = new_ncols))
 }
 
 #' @title Plot classification alignments using the dtwSat package
@@ -1559,16 +1572,16 @@ plot.torch_model <- function(x, y, ...) {
         purrr::map(function(m) {
             if (purrr::is_null(start_date) | purrr::is_null(end_date)) {
                 dplot <- dtwSat::plot(m,
-                                      type = "classification",
-                                      overlap = 0.5
+                    type = "classification",
+                    overlap = 0.5
                 )
             } else {
                 dplot <- dtwSat::plot(m,
-                                      type = "classification",
-                                      from = start_date,
-                                      to = end_date,
-                                      by = interval,
-                                      overlap = overlap
+                    type = "classification",
+                    from = start_date,
+                    to = end_date,
+                    by = interval,
+                    overlap = overlap
                 )
             }
             graphics::plot(dplot)
@@ -1578,7 +1591,7 @@ plot.torch_model <- function(x, y, ...) {
 
 
 .sits_plot_torch_model <- function(model) {
-    model_vars  <- c("records", "metrics")
+    model_vars <- c("records", "metrics")
     metrics_lst <- environment(model)[["torch_model"]][[model_vars]]
 
     metrics_dfr <- purrr::map_dfr(names(metrics_lst), function(name) {
@@ -1606,9 +1619,9 @@ plot.torch_model <- function(x, y, ...) {
 
     p <- p + ggplot2::facet_grid(metric ~ ., switch = "y", scales = "free_y") +
         ggplot2::theme(
-            axis.title.y    = ggplot2::element_blank(),
+            axis.title.y = ggplot2::element_blank(),
             strip.placement = "outside",
-            strip.text      = ggplot2::element_text(
+            strip.text = ggplot2::element_text(
                 colour = "black",
                 size   = 11
             ),
@@ -1655,17 +1668,21 @@ plot.geo_distances <- function(x, y, ...) {
 
 
 .sits_plot_distances <- function(distances) {
-
-    .check_that(inherits(distances, "geo_distances"),
-                "Invalid distances object. Use sits_geo_dist to create it.")
+    .check_that(
+        inherits(distances, "geo_distances"),
+        "Invalid distances object. Use sits_geo_dist to create it."
+    )
 
     density_plot <-
         distances %>%
-        dplyr::mutate(distance = distance/1000) %>%
+        dplyr::mutate(distance = distance / 1000) %>%
         ggplot2::ggplot(ggplot2::aes(x = distance)) +
-        ggplot2::geom_density(ggplot2::aes(color = type,
-                                           fill = type),
-                              lwd = 1, alpha = 0.25) +
+        ggplot2::geom_density(ggplot2::aes(
+            color = type,
+            fill = type
+        ),
+        lwd = 1, alpha = 0.25
+        ) +
         ggplot2::scale_x_log10(labels = scales::label_number()) +
         ggplot2::xlab("Distance (km)") +
         ggplot2::ylab("") +

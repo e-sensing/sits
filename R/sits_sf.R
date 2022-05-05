@@ -9,13 +9,13 @@
 #' @return        Return a sits_tibble as a sf object of point geometry.
 #' @export
 sits_as_sf <- function(samples) {
-
     .sits_tibble_test(samples)
 
     samples_sf <- sf::st_as_sf(samples,
-                               coords = c("longitude", "latitude"),
-                               crs = 4326,
-                               remove = FALSE)
+        coords = c("longitude", "latitude"),
+        crs = 4326,
+        remove = FALSE
+    )
 
     return(samples_sf)
 }
@@ -51,8 +51,8 @@ sits_as_sf <- function(samples) {
     )
 
     samples <- dplyr::mutate(samples,
-                             start_date = as.Date(start_date),
-                             end_date = as.Date(end_date)
+        start_date = as.Date(start_date),
+        end_date = as.Date(end_date)
     )
 
     return(samples)
@@ -86,15 +86,19 @@ sits_as_sf <- function(samples) {
 
     # get a tibble with points and labels
     if (geom_type == "POINT") {
-        points_tbl <- .sits_sf_point_to_tibble(sf_object,
-                                               label_attr,
-                                               label)
+        points_tbl <- .sits_sf_point_to_tibble(
+            sf_object,
+            label_attr,
+            label
+        )
     } else {
-        points_tbl <- .sits_sf_polygon_to_tibble(sf_object,
-                                                 label_attr,
-                                                 label,
-                                                 n_sam_pol,
-                                                 pol_id)
+        points_tbl <- .sits_sf_polygon_to_tibble(
+            sf_object,
+            label_attr,
+            label,
+            n_sam_pol,
+            pol_id
+        )
     }
 
     return(points_tbl)
@@ -142,10 +146,10 @@ sits_as_sf <- function(samples) {
 #' @param pol_id          ID attribute for polygons shapefile.
 #'
 .sits_sf_polygon_to_tibble <- function(sf_object,
-                                        label_attr,
-                                        label,
-                                        n_sam_pol,
-                                        pol_id) {
+                                       label_attr,
+                                       label,
+                                       n_sam_pol,
+                                       pol_id) {
 
     # get the db file
     sf_df <- sf::st_drop_geometry(sf_object)
@@ -174,11 +178,12 @@ sits_as_sf <- function(samples) {
                     )
 
                     if (!purrr::is_null(pol_id) &&
-                        pol_id %in% colnames(sf_df))
+                        pol_id %in% colnames(sf_df)) {
                         row <- tibble::add_column(
                             row,
                             polygon_id = polygon_id
                         )
+                    }
 
                     return(row)
                 })

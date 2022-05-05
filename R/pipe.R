@@ -9,4 +9,3 @@
 #' @return Apply lhs as input to rhs function
 #' @export
 NULL
-# magrittr::`%>%`

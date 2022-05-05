@@ -132,8 +132,8 @@ sits_labels.sits_model <- function(data) {
     # precondition
     n_labels <- length(sits_labels(data))
     .check_chr(value,
-               len_min = n_labels,
-               msg = "not enough new labels to replace current ones"
+        len_min = n_labels,
+        msg = "not enough new labels to replace current ones"
     )
     rows <- slider::slide_dfr(data, function(row) {
         row$labels <- list(value)

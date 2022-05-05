@@ -15,32 +15,32 @@
 #' Please refer to the sits documentation available in
 #' <https://e-sensing.github.io/sitsbook/> for detailed examples.
 #' @examples
-#' if (sits_run_examples()){
-#' # A dataset containing a tibble with time series samples
-#' # for the Mato Grosso state in Brasil
-#' # create a list to store the results
-#' results <- list()
+#' if (sits_run_examples()) {
+#'     # A dataset containing a tibble with time series samples
+#'     # for the Mato Grosso state in Brasil
+#'     # create a list to store the results
+#'     results <- list()
 #'
-#' # accuracy assessment lightTAE
-#' acc_ltae <- sits_kfold_validate(samples_modis_4bands,
-#'             folds = 5,
-#'             ml_method = sits_lightae()
-#'             )
-#' # use a name
-#' acc_ltae$name <- "LightTAE"
-#' # put the result in a list
-#' results[[length(results) + 1]] <- acc_ltae
+#'     # accuracy assessment lightTAE
+#'     acc_ltae <- sits_kfold_validate(samples_modis_4bands,
+#'         folds = 5,
+#'         ml_method = sits_lightae()
+#'     )
+#'     # use a name
+#'     acc_ltae$name <- "LightTAE"
+#'     # put the result in a list
+#'     results[[length(results) + 1]] <- acc_ltae
 #'
-#' # Deep Learning - ResNet
-#' acc_rn <- sits_kfold_validate(samples_modis_4bands,
-#'           folds = 5,
-#'           ml_method = sits_resnet()
-#'           )
-#' acc_rn$name <- "ResNet"
-#' # put the result in a list
-#' results[[length(results) + 1]] <- acc_rn
-#' # save to xlsx file
-#' sits_to_xlsx(results, file = "./accuracy_mato_grosso_dl.xlsx")
+#'     # Deep Learning - ResNet
+#'     acc_rn <- sits_kfold_validate(samples_modis_4bands,
+#'         folds = 5,
+#'         ml_method = sits_resnet()
+#'     )
+#'     acc_rn$name <- "ResNet"
+#'     # put the result in a list
+#'     results[[length(results) + 1]] <- acc_rn
+#'     # save to xlsx file
+#'     sits_to_xlsx(results, file = "./accuracy_mato_grosso_dl.xlsx")
 #' }
 #' @export
 #'
@@ -133,11 +133,11 @@ sits_to_xlsx <- function(acc_lst, file, data = NULL) {
             Value[length(Value) + 1] <- cf_mat$optimizer
         }
         if (!purrr::is_null(cf_mat$learning_rate)) {
-            Param[length(Param)  + 1] <- "learning_rate"
+            Param[length(Param) + 1] <- "learning_rate"
             Value[length(Value) + 1] <- cf_mat$learning_rate
         }
         if (!purrr::is_null(cf_mat$eps)) {
-            Param[length(Param)  + 1] <- "eps"
+            Param[length(Param) + 1] <- "eps"
             Value[length(Value) + 1] <- cf_mat$eps
         }
         if (!purrr::is_null(cf_mat$weight_decay)) {
@@ -157,9 +157,10 @@ sits_to_xlsx <- function(acc_lst, file, data = NULL) {
             )
         }
         if (!purrr::is_null(data)) {
-            if (length(Param) == 0)
+            if (length(Param) == 0) {
                 start_row <- start_row + 6
-            df <- data.frame(sits_labels_summary(data))
+            }
+            config_df <- data.frame(sits_labels_summary(data))
             openxlsx::writeData(
                 wb = workbook,
                 sheet = sheet_name,
@@ -168,7 +169,6 @@ sits_to_xlsx <- function(acc_lst, file, data = NULL) {
                 startRow = start_row,
                 startCol = 6
             )
-
         }
     })
     # write the worksheets to the XLSX file

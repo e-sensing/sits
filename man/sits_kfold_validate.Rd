@@ -48,32 +48,32 @@ Please refer to the sits documentation available in
 <https://e-sensing.github.io/sitsbook/> for detailed examples.
 }
 \examples{
-if (sits_run_examples()){
-# A dataset containing a tibble with time series samples
-# for the Mato Grosso state in Brasil
-# create a list to store the results
-results <- list()
+if (sits_run_examples()) {
+    # A dataset containing a tibble with time series samples
+    # for the Mato Grosso state in Brasil
+    # create a list to store the results
+    results <- list()
 
-# accuracy assessment lightTAE
-acc_ltae <- sits_kfold_validate(samples_modis_4bands,
-            folds = 5,
-            ml_method = sits_lightae()
-            )
-# use a name
-acc_ltae$name <- "LightTAE"
-# put the result in a list
-results[[length(results) + 1]] <- acc_ltae
+    # accuracy assessment lightTAE
+    acc_ltae <- sits_kfold_validate(samples_modis_4bands,
+        folds = 5,
+        ml_method = sits_lightae()
+    )
+    # use a name
+    acc_ltae$name <- "LightTAE"
+    # put the result in a list
+    results[[length(results) + 1]] <- acc_ltae
 
-# Deep Learning - ResNet
-acc_rn <- sits_kfold_validate(samples_modis_4bands,
-          folds = 5,
-          ml_method = sits_resnet()
-          )
-acc_rn$name <- "ResNet"
-# put the result in a list
-results[[length(results) + 1]] <- acc_rn
-# save to xlsx file
-sits_to_xlsx(results, file = "./accuracy_mato_grosso_dl.xlsx")
+    # Deep Learning - ResNet
+    acc_rn <- sits_kfold_validate(samples_modis_4bands,
+        folds = 5,
+        ml_method = sits_resnet()
+    )
+    acc_rn$name <- "ResNet"
+    # put the result in a list
+    results[[length(results) + 1]] <- acc_rn
+    # save to xlsx file
+    sits_to_xlsx(results, file = "./accuracy_mato_grosso_dl.xlsx")
 }
 
 }

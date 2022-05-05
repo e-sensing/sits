@@ -59,7 +59,7 @@
 #' Please refer to the sits documentation available in
 #' <https://e-sensing.github.io/sitsbook/> for detailed examples.
 #' @examples
-#' if (sits_run_examples()){
+#' if (sits_run_examples()) {
 #'     # select a set of samples
 #'     samples_ndvi <- sits_select(samples_modis_4bands, bands = c("NDVI"))
 #'     # create a TAE model
@@ -69,11 +69,11 @@
 #'     # create a data cube from local files
 #'     data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
 #'     cube <- sits_cube(
-#'          source = "BDC",
-#'          collection = "MOD13Q1-6",
-#'          data_dir = data_dir,
-#'          delim = "_",
-#'          parse_info = c("X1", "X2", "tile", "band", "date")
+#'         source = "BDC",
+#'         collection = "MOD13Q1-6",
+#'         data_dir = data_dir,
+#'         delim = "_",
+#'         parse_info = c("X1", "X2", "tile", "band", "date")
 #'     )
 #'     # classify a data cube
 #'     probs_cube <- sits_classify(data = cube, ml_model = torch_model)
@@ -95,9 +95,11 @@ sits_tae <- function(samples = NULL,
                      batch_size = 64,
                      validation_split = 0.2,
                      optimizer = torchopt::optim_adamw,
-                     opt_hparams = list(lr = 0.001,
-                                        eps = 1e-08,
-                                        weight_decay = 1.0e-06),
+                     opt_hparams = list(
+                         lr = 0.001,
+                         eps = 1e-08,
+                         weight_decay = 1.0e-06
+                     ),
                      lr_decay_epochs = 1,
                      lr_decay_rate = 0.95,
                      patience = 20,
@@ -135,8 +137,10 @@ sits_tae <- function(samples = NULL,
                 x = names(opt_hparams),
                 within = names(optim_params_function)
             )
-            optim_params_function <- utils::modifyList(optim_params_function,
-                                                       opt_hparams)
+            optim_params_function <- utils::modifyList(
+                optim_params_function,
+                opt_hparams
+            )
         }
 
         # get the timeline of the data
@@ -255,7 +259,7 @@ sits_tae <- function(samples = NULL,
                 # classification using softmax
                 self$softmax <- torch::nn_softmax(dim = -1)
             },
-            forward = function(x){
+            forward = function(x) {
                 x <- x %>%
                     self$spatial_encoder() %>%
                     self$temporal_attention_encoder() %>%
@@ -357,8 +361,10 @@ sits_tae <- function(samples = NULL,
             return(prediction)
         }
 
-        class(model_predict) <- c("torch_model", "sits_model",
-                                  class(model_predict))
+        class(model_predict) <- c(
+            "torch_model", "sits_model",
+            class(model_predict)
+        )
 
         return(model_predict)
     }

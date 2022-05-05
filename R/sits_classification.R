@@ -66,7 +66,7 @@
 #' Please refer to the sits documentation available in
 #' <https://e-sensing.github.io/sitsbook/> for detailed examples.
 #' @examples
-#' if (sits_run_examples()){
+#' if (sits_run_examples()) {
 #'     # Example of classification of a time series
 #'     # Retrieve the samples for Mato Grosso
 #'     # select the NDVI band
@@ -83,11 +83,11 @@
 #'     # create a data cube from local files
 #'     data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
 #'     cube <- sits_cube(
-#'          source = "BDC",
-#'          collection = "MOD13Q1-6",
-#'          data_dir = data_dir,
-#'          delim = "_",
-#'          parse_info = c("X1", "X2", "tile", "band", "date")
+#'         source = "BDC",
+#'         collection = "MOD13Q1-6",
+#'         data_dir = data_dir,
+#'         delim = "_",
+#'         parse_info = c("X1", "X2", "tile", "band", "date")
 #'     )
 #'     # classify a data cube
 #'     probs_cube <- sits_classify(data = cube, ml_model = rf_model)
@@ -96,7 +96,6 @@
 #'     # plot the classified image
 #'     plot(label_cube)
 #' }
-#'
 #'
 #' @export
 sits_classify <- function(data, ml_model, ...) {
@@ -143,8 +142,10 @@ sits_classify.sits <- function(data,
     bands_samples <- sits_bands(samples)
     bands_data <- sits_bands(data)
     .check_that(all(bands_samples == bands_data),
-                msg = paste("Order of the bands must be the same in samples",
-                            "and in data")
+        msg = paste(
+            "Order of the bands must be the same in samples",
+            "and in data"
+        )
     )
 
     # get normalization params

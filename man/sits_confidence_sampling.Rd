@@ -24,7 +24,7 @@ sits_confidence_samples(
 \value{
 A data.frame with longitude & latitude in WGS84.
 
-if (sits_run_examples()){
+if (sits_run_examples()) {
     # create a data cube
     data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
     cube <- sits_cube(

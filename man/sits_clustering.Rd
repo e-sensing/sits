@@ -76,16 +76,16 @@ Please refer to the sits documentation available in
 <https://e-sensing.github.io/sitsbook/> for detailed examples.
 }
 \examples{
-if (sits_run_examples()){
+if (sits_run_examples()) {
 clusters <- sits_cluster_dendro(cerrado_2classes)
 }
 
-if (sits_run_examples()){
+if (sits_run_examples()) {
     clusters <- sits_cluster_dendro(cerrado_2classes)
     freq <- sits_cluster_frequency(clusters)
     freq
 }
-#' if (sits_run_examples()){
+if (sits_run_examples()) {
     clusters <- sits_cluster_dendro(cerrado_2classes)
     freq1 <- sits_cluster_frequency(clusters)
     freq1

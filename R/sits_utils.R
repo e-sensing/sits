@@ -23,7 +23,6 @@
                              ext = NULL,
                              output_dir = NULL,
                              create_dir = FALSE) {
-
     filenames_lst <- list(...)
 
     if (length(filenames_lst) == 0) {
@@ -41,11 +40,12 @@
     }
 
     if (!is.null(output_dir)) {
-
-        if (!dir.exists(output_dir) && !create_dir)
+        if (!dir.exists(output_dir) && !create_dir) {
             stop("Invalid output_dir")
-        if (!dir.exists(output_dir) && create_dir)
+        }
+        if (!dir.exists(output_dir) && create_dir) {
             dir.create(output_dir)
+        }
 
         filenames <- file.path(output_dir, filenames)
     }

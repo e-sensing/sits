@@ -48,7 +48,6 @@ sits_sample <- function(data,
     groups <- by(data, data[["label"]], list)
 
     result_lst <- purrr::map(groups, function(class_samples) {
-
         if (!purrr::is_null(n)) {
             if (n > nrow(class_samples) && !oversample) {
                 # should imbalanced class be oversampled?
@@ -120,35 +119,39 @@ sits_sample <- function(data,
 #' Please refer to the sits documentation available in
 #' <https://e-sensing.github.io/sitsbook/> for detailed examples.
 #' @examples
-#' if (sits_run_examples()){
-#' # print the labels summary for a sample set
-#' sits_labels_summary(samples_modis_4bands)
-#' # reduce the sample imbalance
-#' new_samples <- sits_reduce_imbalance(samples_modis_4bands,
-#'       n_samples_over = 200, n_samples_under = 200,
-#'       multicores = 4
-#' )
-#' # print the labels summary for the rebalanced set
-#' sits_labels_summary(new_samples)
+#' if (sits_run_examples()) {
+#'     # print the labels summary for a sample set
+#'     sits_labels_summary(samples_modis_4bands)
+#'     # reduce the sample imbalance
+#'     new_samples <- sits_reduce_imbalance(samples_modis_4bands,
+#'         n_samples_over = 200, n_samples_under = 200,
+#'         multicores = 4
+#'     )
+#'     # print the labels summary for the rebalanced set
+#'     sits_labels_summary(new_samples)
 #' }
 #' @export
 sits_reduce_imbalance <- function(samples,
-                                  n_samples_over  = 200,
+                                  n_samples_over = 200,
                                   n_samples_under = 400,
                                   multicores = 2) {
 
     # set caller to show in errors
     .check_set_caller("sits_reduce_imbalance")
     # pre-condition
-    .check_num(n_samples_over, min = 1, len_min = 1, len_max = 1,
-               is_integer = TRUE, allow_null = TRUE,
-               msg = "invalid 'n_samples_over' parameter")
-    .check_num(n_samples_under, min = 1, len_min = 1, len_max = 1,
-               is_integer = TRUE, allow_null = TRUE,
-               msg = "invalid 'n_samples_under' parameter")
+    .check_num(n_samples_over,
+        min = 1, len_min = 1, len_max = 1,
+        is_integer = TRUE, allow_null = TRUE,
+        msg = "invalid 'n_samples_over' parameter"
+    )
+    .check_num(n_samples_under,
+        min = 1, len_min = 1, len_max = 1,
+        is_integer = TRUE, allow_null = TRUE,
+        msg = "invalid 'n_samples_under' parameter"
+    )
 
     # check if number of required samples are correctly entered
-    if (!purrr::is_null(n_samples_over) && !purrr::is_null(n_samples_under))
+    if (!purrr::is_null(n_samples_over) && !purrr::is_null(n_samples_under)) {
         .check_that(
             n_samples_under >= n_samples_over,
             local_msg = paste0(
@@ -158,19 +161,18 @@ sits_reduce_imbalance <- function(samples,
             ),
             msg = "invalid 'n_samples_over' and 'n_samples_under' parameters"
         )
+    }
 
     bands <- sits_bands(samples)
     labels <- sits_labels(samples)
-    summary <- sits_labels_summary(samples)
 
     # params of output tibble
     lat <- 0.0
     long <- 0.0
     start_date <- samples$start_date[[1]]
-    end_date   <- samples$end_date[[1]]
+    end_date <- samples$end_date[[1]]
     cube <- samples$cube[[1]]
     timeline <- sits_timeline(samples)
-    n_times <- length(timeline)
 
     # get classes to make undersample
     classes_under <- character()
@@ -193,14 +195,12 @@ sits_reduce_imbalance <- function(samples,
     new_samples <- .sits_tibble()
 
     if (length(classes_under) > 0) {
-
         .sits_parallel_start(workers = multicores, log = FALSE)
         on.exit(.sits_parallel_stop())
 
         samples_under_new <- .sits_parallel_map(classes_under, function(cls) {
-
             samples_cls <- dplyr::filter(samples, .data[["label"]] == cls)
-            grid_dim <-  ceiling(sqrt(n_samples_under / 4))
+            grid_dim <- ceiling(sqrt(n_samples_under / 4))
 
             som_map <- sits_som_map(
                 samples_cls,
@@ -223,12 +223,11 @@ sits_reduce_imbalance <- function(samples,
     }
 
     if (length(classes_over) > 0) {
-
         .sits_parallel_start(workers = multicores, log = FALSE)
         on.exit(.sits_parallel_stop())
 
-        samples_over_new <- .sits_parallel_map(classes_over, function(cls){
-            samples_bands <- purrr::map(bands, function(band){
+        samples_over_new <- .sits_parallel_map(classes_over, function(cls) {
+            samples_bands <- purrr::map(bands, function(band) {
                 # selection of band
                 dist_band <- samples %>%
                     sits_select(bands = band) %>%
@@ -244,7 +243,7 @@ sits_reduce_imbalance <- function(samples,
                     m = n_samples_over
                 )
                 # put the oversampled data into a samples tibble
-                samples_band <- slider::slide_dfr(dist_over, function(row){
+                samples_band <- slider::slide_dfr(dist_over, function(row) {
                     time_series <- tibble::tibble(
                         Index = as.Date(timeline),
                         values = unname(as.numeric(row[-1]))
@@ -252,7 +251,7 @@ sits_reduce_imbalance <- function(samples,
                     colnames(time_series) <- c("Index", band)
                     tibble::tibble(
                         longitude = long,
-                        latitude  = lat,
+                        latitude = lat,
                         start_date = as.Date(start_date),
                         end_date = as.Date(end_date),
                         label = row[["reference"]],
@@ -264,8 +263,9 @@ sits_reduce_imbalance <- function(samples,
                 return(samples_band)
             })
             tb_class_new <- samples_bands[[1]]
-            for (i in seq_along(samples_bands)[-1])
+            for (i in seq_along(samples_bands)[-1]) {
                 tb_class_new <- sits_merge(tb_class_new, samples_bands[[i]])
+            }
             return(tb_class_new)
         })
 
@@ -275,7 +275,7 @@ sits_reduce_imbalance <- function(samples,
     }
 
     classes_ok <- labels[!(labels %in% classes_under |
-                               labels %in% classes_over)]
+        labels %in% classes_over)]
     if (length(classes_ok) > 0) {
         samples_classes_ok <- dplyr::filter(
             samples,
@@ -311,8 +311,8 @@ sits_reduce_imbalance <- function(samples,
     }
     # perform SMOTE
     smoteret <- .sits_smote(data[, -col_ind],
-                            data[, col_ind],
-                            dup_size = dup_size
+        data[, col_ind],
+        dup_size = dup_size
     )
     # rbind the original observations and sufficient samples of the synthetic
     # ones
@@ -354,51 +354,53 @@ sits_reduce_imbalance <- function(samples,
 #'
 
 
-.sits_smote <- function(data,target,K=5,dup_size=0) {
-    ncD      <- ncol(data) #The number of attributes
+.sits_smote <- function(data, target, K = 5, dup_size = 0) {
+    ncD <- ncol(data) # The number of attributes
     n_target <- table(target)
-    classP   <- names(which.min(n_target))
+    classP <- names(which.min(n_target))
     # Extract a set of positive instances
-    P_set    <- subset(data,
-                       target == names(which.min(n_target))
-    )[sample(min(n_target)),]
-    N_set    <- subset(data,
-                       target!=names(which.min(n_target))
+    P_set <- subset(
+        data,
+        target == names(which.min(n_target))
+    )[sample(min(n_target)), ]
+    N_set <- subset(
+        data,
+        target != names(which.min(n_target))
     )
-    P_class  <- rep(names(which.min(n_target)), nrow(P_set))
+    P_class <- rep(names(which.min(n_target)), nrow(P_set))
 
-    N_class <- target[target!=names(which.min(n_target))]
+    N_class <- target[target != names(which.min(n_target))]
     # The number of positive instances
-    sizeP   <- nrow(P_set)
+    sizeP <- nrow(P_set)
     # The number of negative instances
-    sizeN   <- nrow(N_set)
-    knear   <- .sits_knearest(P_set, P_set, K)
+    sizeN <- nrow(N_set)
+    knear <- .sits_knearest(P_set, P_set, K)
     sum_dup <- .sits_n_dup_max(sizeP + sizeN, sizeP, sizeN, dup_size)
     syn_dat <- NULL
     for (i in 1:sizeP) {
         if (is.matrix(knear)) {
-            pair_idx <- knear[i, ceiling(stats::runif(sum_dup)*K)]
+            pair_idx <- knear[i, ceiling(stats::runif(sum_dup) * K)]
         } else {
-            pair_idx <- rep(knear[i],sum_dup)
+            pair_idx <- rep(knear[i], sum_dup)
         }
-        g <-  stats::runif(sum_dup)
-        P_i <-  matrix(unlist(P_set[i,]), sum_dup, ncD, byrow = TRUE)
-        Q_i <- as.matrix(P_set[pair_idx,])
-        syn_i <-  P_i + g*(Q_i - P_i)
-        syn_dat <-  rbind(syn_dat,syn_i)
+        g <- stats::runif(sum_dup)
+        P_i <- matrix(unlist(P_set[i, ]), sum_dup, ncD, byrow = TRUE)
+        Q_i <- as.matrix(P_set[pair_idx, ])
+        syn_i <- P_i + g * (Q_i - P_i)
+        syn_dat <- rbind(syn_dat, syn_i)
     }
 
-    P_set[, ncD+1]   <-  P_class
-    colnames(P_set)  <- c(colnames(data), "class")
-    N_set[,ncD+1]    <-  N_class
-    colnames(N_set)  <- c(colnames(data),"class")
+    P_set[, ncD + 1] <- P_class
+    colnames(P_set) <- c(colnames(data), "class")
+    N_set[, ncD + 1] <- N_class
+    colnames(N_set) <- c(colnames(data), "class")
 
-    rownames(syn_dat) <-  NULL
+    rownames(syn_dat) <- NULL
     syn_dat <- data.frame(syn_dat)
-    syn_dat[,ncD+1] <-  rep(names(which.min(n_target)), nrow(syn_dat))
-    colnames(syn_dat) <- c(colnames(data),"class")
+    syn_dat[, ncD + 1] <- rep(names(which.min(n_target)), nrow(syn_dat))
+    colnames(syn_dat) <- c(colnames(data), "class")
     NewD <- rbind(P_set, syn_dat, N_set)
-    rownames(NewD) <-  NULL
+    rownames(NewD) <- NULL
     D_result <- list(
         data = NewD,
         syn_data = syn_dat,
@@ -411,40 +413,38 @@ sits_reduce_imbalance <- function(samples,
         eps = NULL,
         method = "SMOTE"
     )
-    class(D_result) <-  "gen_data"
+    class(D_result) <- "gen_data"
 
     return(D_result)
 }
 
 .sits_knearest <- function(D, P, n_clust) {
-
     .check_require_packages("FNN")
 
     knD <- FNN::knnx.index(D, P, k = (n_clust + 1), algorithm = "kd_tree")
-    knD <- knD*(knD != row(knD))
-    que <- which(knD[,1] > 0)
+    knD <- knD * (knD != row(knD))
+    que <- which(knD[, 1] > 0)
     for (i in que) {
-        knD[i, which(knD[i,] == 0) ] <- knD[i,1]
-        knD[i,1] <- 0
+        knD[i, which(knD[i, ] == 0)] <- knD[i, 1]
+        knD[i, 1] <- 0
     }
     return(knD[, 2:(n_clust + 1)])
-
 }
-.sits_n_dup_max <- function(size_input, size_P, size_N, dup_size=0) {
-    #Size_P is the number of positive used for generating not actual size of P
-    if(is.vector(dup_size) && length(dup_size) > 1) {
-        if(length(which(dup_size==0)) > 0) {
-            sizeM <- floor((2*size_N-size_input)/size_P)
+.sits_n_dup_max <- function(size_input, size_P, size_N, dup_size = 0) {
+    # Size_P is the number of positive used for generating not actual size of P
+    if (is.vector(dup_size) && length(dup_size) > 1) {
+        if (length(which(dup_size == 0)) > 0) {
+            sizeM <- floor((2 * size_N - size_input) / size_P)
         }
-        if(length(which(dup_size==0)) == 0) {
+        if (length(which(dup_size == 0)) == 0) {
             sizeM <- max(dup_size)
         }
     }
-    if(!is.vector(dup_size) || length(dup_size) == 1) {
-        if(dup_size == 0) {
-            sizeM <- floor((2*size_N-size_input)/size_P)
+    if (!is.vector(dup_size) || length(dup_size) == 1) {
+        if (dup_size == 0) {
+            sizeM <- floor((2 * size_N - size_input) / size_P)
         }
-        if(dup_size != 0) {
+        if (dup_size != 0) {
             sizeM <- dup_size
         }
     }

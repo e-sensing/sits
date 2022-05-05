@@ -1,22 +1,25 @@
 test_that("file_info functions", {
     testthat::skip_on_cran()
 
-    cbers_cube <- tryCatch({
-        sits_cube(
-            source = "BDC",
-            collection = "CB4_64_16D_STK-1",
-            bands = c("NDVI", "EVI"),
-            tiles = c("022024", "022025"),
-            start_date = "2018-09-01",
-            end_date = "2018-10-28"
-        )
-    },
-    error = function(e) {
-        return(NULL)
-    })
+    cbers_cube <- tryCatch(
+        {
+            sits_cube(
+                source = "BDC",
+                collection = "CB4_64_16D_STK-1",
+                bands = c("NDVI", "EVI"),
+                tiles = c("022024", "022025"),
+                start_date = "2018-09-01",
+                end_date = "2018-10-28"
+            )
+        },
+        error = function(e) {
+            return(NULL)
+        }
+    )
 
     testthat::skip_if(purrr::is_null(cbers_cube),
-                      message = "BDC is not accessible")
+        message = "BDC is not accessible"
+    )
 
 
     # only works with one tile
@@ -101,7 +104,7 @@ test_that("file_info functions for result cubes", {
     testthat::skip_on_cran()
 
     samples_modis <- sits_select(samples_modis_4bands,
-                                        bands = c("NDVI")
+        bands = c("NDVI")
     )
 
     # build an extreme gradient boosting model

@@ -65,7 +65,6 @@
     classname = "torch_pixel_spatial_encoder",
     initialize = function(n_bands,
                           layers_spatial_encoder = c(32, 64, 128)) {
-
         self$layers_spatial_encoder <- layers_spatial_encoder
         self$spatial_encoder <- .torch_multi_linear_batch_norm_relu(
             input_dim = n_bands,
@@ -76,23 +75,23 @@
         # batch size is the first dimension of the input tensor
         batch_size <- input$shape[[1]]
         # n_times is the second dimension
-        n_times    <- input$shape[[2]]
+        n_times <- input$shape[[2]]
         # n_bands is the third dimension
-        n_bands    <- input$shape[[3]]
+        n_bands <- input$shape[[3]]
         # reshape the input
         # from a 3D shape [batch_size, n_times, n_bands]
         # to a 2D shape [(batch_size * n_times), n_bands]
-        input      <- input$view(c(batch_size * n_times, n_bands))
+        input <- input$view(c(batch_size * n_times, n_bands))
         # run the the 2D shape by a multi-layer perceptron
         # input is 2D shape [(batch_size * n_times), n_bands]
-        dim_enc    <-
+        dim_enc <-
             self$layers_spatial_encoder[[length(self$layers_spatial_encoder)]]
-        output     <- self$spatial_encoder(input)
+        output <- self$spatial_encoder(input)
         # output is a 2D shape[(batch_size * n_times), dim_enc]
         # reshape the output
         # from a 2D shape [(batch_size * n_times), n_bands]
         # to a 3D shape [batch_size, n_times, dim_enc]
-        output     <- output$view(c(batch_size, n_times, dim_enc))
+        output <- output$view(c(batch_size, n_times, dim_enc))
         return(output)
     }
 )
@@ -147,7 +146,7 @@
 .torch_positional_encoding <- torch::nn_module(
     classname = "positional_encoding",
     # timeline is a vector with the observation dates
-    initialize = function(timeline, dim_encoder = 128){
+    initialize = function(timeline, dim_encoder = 128) {
 
         # length of positional encoder is the length of dates vector
         max_len <- length(timeline)
@@ -157,11 +156,10 @@
         # each date and the first date
         days <- unlist(purrr::map(
             timeline,
-            function(d){
+            function(d) {
                 lubridate::interval(timeline[[1]], d) / lubridate::days(1)
             }
-        )
-        )
+        ))
         # create a days tensor
         days_t <- torch::torch_tensor(days)
         days_t <- torch::torch_unsqueeze(days_t, 2)
@@ -170,7 +168,7 @@
         # 2D shape [(max_len, dim_encoder:128)]
         p <- torch::torch_zeros(max_len, dim_encoder)
         # calculate an exponential distance measure for the positions
-        div_term <-  torch::torch_exp(
+        div_term <- torch::torch_exp(
             torch::torch_arange(
                 start = 0,
                 end = dim_encoder - 1,
@@ -180,16 +178,15 @@
         )
         div_term <- torch::torch_unsqueeze(div_term, 1)
         # fill the tensor p
-        p[ , seq(1, dim_encoder, 2)] <- torch::torch_sin(days_t * div_term)
-        p[ , seq(2, dim_encoder, 2)] <- torch::torch_cos(days_t * div_term)
+        p[, seq(1, dim_encoder, 2)] <- torch::torch_sin(days_t * div_term)
+        p[, seq(2, dim_encoder, 2)] <- torch::torch_cos(days_t * div_term)
         # here p is a 2D shape [(max_len, dim_encoder:128)]
         p <- torch::torch_unsqueeze(p, 1)
         # after unsqueeze p is a 3D shape [(1, max_len, dim_encoder:128)]
-        self$register_buffer('p', p)
+        self$register_buffer("p", p)
     },
-    forward = function(x){
+    forward = function(x) {
         x <- x + self$p
         return(x)
     }
 )
-

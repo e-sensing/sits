@@ -55,8 +55,7 @@
                                          sub_image,
                                          memsize,
                                          multicores) {
-    # total number of instances in the time
-    ninstances <- length(sits_timeline(tile))
+
     # retrieve the samples
     samples <- environment(ml_model)$samples
     # get the number of bands

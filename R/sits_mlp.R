@@ -53,7 +53,7 @@
 #' will be randomly set side for validation.
 #' (g) The "relu" activation function.
 #'
-#'#' @references
+#' #' @references
 #'
 #' Zhiguang Wang, Weizhong Yan, and Tim Oates,
 #' "Time series classification from scratch with deep neural networks:
@@ -64,7 +64,7 @@
 #' Please refer to the sits documentation available in
 #' <https://e-sensing.github.io/sitsbook/> for detailed examples.
 #' @examples
-#' if (sits_run_examples()){
+#' if (sits_run_examples()) {
 #'     # select a set of samples
 #'     samples_ndvi <- sits_select(samples_modis_4bands, bands = c("NDVI"))
 #'     # create an MLP model
@@ -74,11 +74,11 @@
 #'     # create a data cube from local files
 #'     data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
 #'     cube <- sits_cube(
-#'          source = "BDC",
-#'          collection = "MOD13Q1-6",
-#'          data_dir = data_dir,
-#'          delim = "_",
-#'          parse_info = c("X1", "X2", "tile", "band", "date")
+#'         source = "BDC",
+#'         collection = "MOD13Q1-6",
+#'         data_dir = data_dir,
+#'         delim = "_",
+#'         parse_info = c("X1", "X2", "tile", "band", "date")
 #'     )
 #'     # classify a data cube
 #'     probs_cube <- sits_classify(data = cube, ml_model = torch_model)
@@ -103,7 +103,8 @@ sits_mlp <- function(samples = NULL,
                      opt_hparams = list(
                          lr = 0.001,
                          eps = 1e-08,
-                         weight_decay = 1.0e-06),
+                         weight_decay = 1.0e-06
+                     ),
                      epochs = 100,
                      batch_size = 64,
                      validation_split = 0.2,
@@ -149,8 +150,10 @@ sits_mlp <- function(samples = NULL,
                 x = names(opt_hparams),
                 within = names(optim_params_function)
             )
-            optim_params_function <- utils::modifyList(optim_params_function,
-                                                opt_hparams)
+            optim_params_function <- utils::modifyList(
+                optim_params_function,
+                opt_hparams
+            )
         }
         # get the timeline of the data
         timeline <- sits_timeline(samples)
@@ -286,14 +289,24 @@ sits_mlp <- function(samples = NULL,
         model_to_raw <- function(model) {
             con <- rawConnection(raw(), open = "wr")
             torch::torch_save(model, con)
-            on.exit( {close(con)}, add = TRUE)
+            on.exit(
+                {
+                    close(con)
+                },
+                add = TRUE
+            )
             r <- rawConnectionValue(con)
             r
         }
 
         model_from_raw <- function(object) {
             con <- rawConnection(object)
-            on.exit( {close(con)}, add = TRUE)
+            on.exit(
+                {
+                    close(con)
+                },
+                add = TRUE
+            )
             module <- torch::torch_load(con)
             module
         }

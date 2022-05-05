@@ -37,7 +37,7 @@
 #' and annotation for human-centered AI". Manning Publications, 2021.
 #'
 #' @examples
-#' if (sits_run_examples()){
+#' if (sits_run_examples()) {
 #'     # create a data cube
 #'     data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
 #'     cube <- sits_cube(
@@ -66,40 +66,50 @@
 sits_uncertainty_sampling <- function(cube,
                                       n = 100,
                                       min_dist_pixels = 10) {
-
     .check_that(inherits(cube, what = "uncertainty_cube"),
-                msg = "Cube is not an sits_uncertainty cube")
+        msg = "Cube is not an sits_uncertainty cube"
+    )
     .check_that(n > 0,
-                msg = "Invalid number of new samples")
+        msg = "Invalid number of new samples"
+    )
     .check_that(min_dist_pixels >= 0,
-                msg = "Invalid minimum distance.")
+        msg = "Invalid minimum distance."
+    )
 
-    paths <- slider::slide(cube, function(row){
+    paths <- slider::slide(cube, function(row) {
         fi <- .file_info(row)
         return(fi[["path"]])
     })
     # get the raster objects associated to
-    rasters <- purrr::map(paths, function(p){
+    rasters <- purrr::map(paths, function(p) {
         .raster_open_rast(p)
     })
     # get a list of values of high uncertainty
-    top_values <- purrr::map_dfr(rasters, function(r){
-        tv <-  .get_values(r,
-                           n = n,
-                           min_dist_pixels = min_dist_pixels,
-                           top = TRUE)
+    top_values <- purrr::map_dfr(rasters, function(r) {
+        tv <- .get_values(r,
+            n = n,
+            min_dist_pixels = min_dist_pixels,
+            top = TRUE
+        )
     })
-    top_values <- top_values[1:min(n, nrow(top_values)),
-                             c("longitude", "latitude")]
+    top_values <- top_values[
+        1:min(n, nrow(top_values)),
+        c("longitude", "latitude")
+    ]
     # All the cube's uncertainty images have the same start & end dates.
-    fi <- .file_info(cube[1,])
-    top_values["start_date"]  <- as.Date(fi$start_date)
-    top_values["end_date"]    <- as.Date(fi$end_date)
-    top_values["label"]       <- "NoClass"
-    if (nrow(top_values) < n)
-        warning(sprintf(paste0("Unable to suggest %s samples.",
-                               "Try an smaller min_dist_pixels"),
-                        n))
+    fi <- .file_info(cube[1, ])
+    top_values["start_date"] <- as.Date(fi$start_date)
+    top_values["end_date"] <- as.Date(fi$end_date)
+    top_values["label"] <- "NoClass"
+    if (nrow(top_values) < n) {
+        warning(sprintf(
+            paste0(
+                "Unable to suggest %s samples.",
+                "Try an smaller min_dist_pixels"
+            ),
+            n
+        ))
+    }
 
     return(top_values)
 }
@@ -143,7 +153,7 @@ sits_uncertainty_sampling <- function(cube,
 #'
 #' @return     A data.frame with longitude & latitude in WGS84.
 #'
-#' if (sits_run_examples()){
+#' if (sits_run_examples()) {
 #'     # create a data cube
 #'     data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
 #'     cube <- sits_cube(
@@ -169,68 +179,77 @@ sits_confidence_samples <- function(probs_cube,
                                     n = 20,
                                     min_margin = .90,
                                     min_dist_pixels = 10) {
-
     .check_that(inherits(probs_cube, what = "probs_cube"),
-                msg = "Cube is not a probability cube")
+        msg = "Cube is not a probability cube"
+    )
     .check_that(n > 0,
-                msg = "Invalid number of new samples")
+        msg = "Invalid number of new samples"
+    )
     .check_that(min_dist_pixels >= 0,
-                msg = "Invalid minimum distance.")
+        msg = "Invalid minimum distance."
+    )
 
-    paths_prob <- slider::slide(probs_cube, function(row){
+    paths_prob <- slider::slide(probs_cube, function(row) {
         fi <- .file_info(row)
         return(fi[["path"]])
     })
     # get the raster objects associated to
-    rasters <- purrr::map(paths_prob, function(p){
+    rasters <- purrr::map(paths_prob, function(p) {
         .raster_open_rast(p)
     })
     labels <- sits_labels(probs_cube)
 
     # get a list of top values
-    new_samples <- purrr::map2_dfr(labels, seq_along(labels), function(lab, i){
+    new_samples <- purrr::map2_dfr(labels, seq_along(labels), function(lab, i) {
         label_samples <- purrr::map_dfr(rasters, function(r) {
             # for each raster, get the probs cube associated to a label
             # get the best values which are apart from the neighbors
             tvs_label <- .get_values(r[[i]],
-                                     n = n,
-                                     min_dist_pixels = min_dist_pixels,
-                                     top = TRUE)
+                n = n,
+                min_dist_pixels = min_dist_pixels,
+                top = TRUE
+            )
             # calculate prob margin for each tentative label point
-            tvs_valid <- slider::slide_dfr(tvs_label, function(tv){
+            tvs_valid <- slider::slide_dfr(tvs_label, function(tv) {
                 xy <- as.matrix(tv[c("X", "Y")])
                 # extract the probabilities for each tentative label point
                 probs <- unlist(.raster_extract(r, xy))
                 # is the label the most probable one?
-                if (max(probs) != probs[[i]])
+                if (max(probs) != probs[[i]]) {
                     return(NULL)
+                }
                 # sort the probabilities
                 probs <- sort(probs, decreasing = TRUE)
                 # check probability margin between tentative label
                 # and labels with second best confidence
                 if ((probs[1] - probs[2]) <
-                    (min_margin / .config_get("probs_cube_scale_factor")))
+                    (min_margin / .config_get("probs_cube_scale_factor"))) {
                     return(NULL)
+                }
                 return(tv)
             })
             return(tvs_valid)
         })
         label_samples$label <- lab
-        label_samples <- label_samples[1:min(n, nrow(label_samples)),
-                                       c("longitude", "latitude", "label")]
+        label_samples <- label_samples[
+            1:min(n, nrow(label_samples)),
+            c("longitude", "latitude", "label")
+        ]
         return(label_samples)
     })
-    fi <- .file_info(probs_cube[1,])
-    new_samples["start_date"]  <- as.Date(fi$start_date)
-    new_samples["end_date"]    <- as.Date(fi$end_date)
+    fi <- .file_info(probs_cube[1, ])
+    new_samples["start_date"] <- as.Date(fi$start_date)
+    new_samples["end_date"] <- as.Date(fi$end_date)
     row.names(new_samples) <- NULL
 
     labels_low_samples <- new_samples %>%
         dplyr::count(.data[["label"]]) %>%
         dplyr::filter(.data[["n"]] < !!n)
-    slider::slide(labels_low_samples, function(lls){
-        warning(paste0("found only ", lls[["n"]],
-                       " samples for label ", lls[["label"]]), call. = FALSE)
+    slider::slide(labels_low_samples, function(lls) {
+        warning(paste0(
+            "found only ", lls[["n"]],
+            " samples for label ", lls[["label"]]
+        ), call. = FALSE)
     })
 
     return(new_samples)
@@ -255,13 +274,12 @@ sits_confidence_samples <- function(probs_cube,
 # @return                A point `sf` object.
 #
 .get_values <- function(raster, n, min_dist_pixels, top) {
-
     x <- terra::values(raster, mat = FALSE)
 
     # Pre-filter values to speed distance matrix computation.
     if (top) {
         qx <- stats::quantile(x, probs = c(1 - (2 * n / length(x)), 1))
-    } else{
+    } else {
         qx <- stats::quantile(x, probs = c(0, 2 * n / length(x)))
     }
     x[!(x >= qx[1] & x <= qx[2])] <- NA
@@ -273,9 +291,11 @@ sits_confidence_samples <- function(probs_cube,
 
     # Guarantee a minimum distance among points.
     var <- var[order(var[, 1], decreasing = top), ]
-    var_sf <- sf::st_as_sf(var, coords = c("x", "y"),
-                           crs = terra::crs(raster),
-                           dim = "XY", remove = TRUE)
+    var_sf <- sf::st_as_sf(var,
+        coords = c("x", "y"),
+        crs = terra::crs(raster),
+        dim = "XY", remove = TRUE
+    )
     dist_mt <- sf::st_distance(var_sf, var_sf)
     dist_mt[upper.tri(dist_mt, diag = TRUE)] <- Inf
     dist_vc <- apply(dist_mt, MARGIN = 1, FUN = min)
@@ -294,4 +314,3 @@ sits_confidence_samples <- function(probs_cube,
     var_sf <- cbind(var_sf, tmp_sf)
     return(var_sf)
 }
-

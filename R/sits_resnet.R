@@ -76,7 +76,7 @@
 #' Please refer to the sits documentation available in
 #' <https://e-sensing.github.io/sitsbook/> for detailed examples.
 #' @examples
-#' if (sits_run_examples()){
+#' if (sits_run_examples()) {
 #'     # select a set of samples
 #'     samples_ndvi <- sits_select(samples_modis_4bands, bands = c("NDVI"))
 #'     # create a ResNet model
@@ -86,11 +86,11 @@
 #'     # create a data cube from local files
 #'     data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
 #'     cube <- sits_cube(
-#'          source = "BDC",
-#'          collection = "MOD13Q1-6",
-#'          data_dir = data_dir,
-#'          delim = "_",
-#'          parse_info = c("X1", "X2", "tile", "band", "date")
+#'         source = "BDC",
+#'         collection = "MOD13Q1-6",
+#'         data_dir = data_dir,
+#'         delim = "_",
+#'         parse_info = c("X1", "X2", "tile", "band", "date")
 #'     )
 #'     # classify a data cube
 #'     probs_cube <- sits_classify(data = cube, ml_model = torch_model)
@@ -117,7 +117,8 @@ sits_resnet <- function(samples = NULL,
                         opt_hparams = list(
                             lr = 0.001,
                             eps = 1e-08,
-                            weight_decay = 1e-06),
+                            weight_decay = 1e-06
+                        ),
                         lr_decay_epochs = 1,
                         lr_decay_rate = 0.95,
                         patience = 20,
@@ -158,8 +159,10 @@ sits_resnet <- function(samples = NULL,
                 x = names(opt_hparams),
                 within = names(optim_params_function)
             )
-            optim_params_function <- utils::modifyList(optim_params_function,
-                                                       opt_hparams)
+            optim_params_function <- utils::modifyList(
+                optim_params_function,
+                opt_hparams
+            )
         }
 
         # get the timeline of the data
@@ -258,7 +261,7 @@ sits_resnet <- function(samples = NULL,
             classname = "ResBlock",
             initialize = function(in_channels,
                                   out_channels,
-                                  kernels){
+                                  kernels) {
                 # create first convolution block
                 self$conv_block1 <- .torch_batch_conv1D_batch_norm_relu(
                     input_dim   = in_channels,
@@ -290,13 +293,13 @@ sits_resnet <- function(samples = NULL,
                 # activation
                 self$act <- torch::nn_relu()
             },
-            forward = function(x){
-                res <-  self$shortcut(x)
-                x <-  self$conv_block1(x)
-                x <-  self$conv_block2(x)
-                x <-  self$conv_block3(x)
-                x <-  torch::torch_add(x, res)
-                x <-  self$act(x)
+            forward = function(x) {
+                res <- self$shortcut(x)
+                x <- self$conv_block1(x)
+                x <- self$conv_block2(x)
+                x <- self$conv_block3(x)
+                x <- torch::torch_add(x, res)
+                x <- self$act(x)
                 return(x)
             }
         )
@@ -307,7 +310,7 @@ sits_resnet <- function(samples = NULL,
                                   n_times,
                                   n_labels,
                                   blocks,
-                                  kernels){
+                                  kernels) {
                 self$res_block1 <- res_block(n_bands, blocks[1], kernels)
                 self$res_block2 <- res_block(blocks[1], blocks[2], kernels)
                 self$res_block3 <- res_block(blocks[2], blocks[3], kernels)
@@ -317,11 +320,11 @@ sits_resnet <- function(samples = NULL,
                 self$flatten <- torch::nn_flatten()
                 # classification using softmax
                 self$softmax <- torch::nn_sequential(
-                    torch::nn_linear(blocks[3]*n_bands, n_labels),
+                    torch::nn_linear(blocks[3] * n_bands, n_labels),
                     torch::nn_softmax(dim = -1)
                 )
             },
-            forward = function(x){
+            forward = function(x) {
                 x <- torch::torch_transpose(x, 2, 3)
                 x <- x %>%
                     self$res_block1() %>%
@@ -424,8 +427,10 @@ sits_resnet <- function(samples = NULL,
             return(prediction)
         }
 
-        class(model_predict) <- c("torch_model", "sits_model",
-                                  class(model_predict))
+        class(model_predict) <- c(
+            "torch_model", "sits_model",
+            class(model_predict)
+        )
 
         return(model_predict)
     }
