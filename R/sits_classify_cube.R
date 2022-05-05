@@ -145,8 +145,14 @@
         value = length(blocks)
     )
 
+    # for cubes that have a time limit to expire - mspc cubes only
+    tile <- .cube_token_generator(tile)
+
     # read the blocks and compute the probabilities
     filenames <- .sits_parallel_map(blocks, function(b) {
+
+        # for cubes that have a time limit to expire - mspc cubes only
+        tile <- .cube_token_generator(tile)
 
         probs_cube_filename <- tools::file_path_sans_ext(
             basename(.file_info_path(probs_cube))
@@ -156,7 +162,7 @@
 
         # define the file name of the raster file to be written
         filename_block <- .create_filename(
-            filenames = c(probs_cube_filename, "_block",
+            filenames = c(probs_cube_filename, "block",
                           b[["first_row"]], b[["nrows"]]),
             ext = ".tif",
             output_dir = probs_cube_dir
@@ -173,21 +179,34 @@
                     return(NULL)
                 }
                 )
+
             # if file can be opened, check if the result is correct
             # this file will not be processed again
             if (!purrr::is_null(r_obj)) {
-                if (.raster_nrows(r_obj) == b[["nrows"]]) {
+
+                # Verify if the raster is corrupted
+                block_name <- tryCatch({
+                    .raster_get_values(r_obj)
+                    return(filename_block)
+                },
+                error = function(e) {
+                    unlink(filename_block)
                     # log
                     .sits_debug_log(
                         output_dir = output_dir,
-                        event = "skipping block",
+                        event = "deleting corrupt block",
                         key = "block file",
                         value = filename_block
                     )
-                    return(filename_block)
+
+                    return(NULL)
                 }
+                )
+                if (!purrr::is_null(block_name))
+                    return(filename_block)
             }
         }
+
         # log
         .sits_debug_log(
             output_dir = output_dir,

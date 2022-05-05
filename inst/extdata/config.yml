@@ -880,6 +880,7 @@ sources:
         service             : "STAC"
         rstac_version       : "1.0.0"
         url                 : "https://planetarycomputer.microsoft.com/api/stac/v1"
+        token_url           : "https://planetarycomputer.microsoft.com/api/sas/v1/token"
         collections         :
             LANDSAT-8-C2-L2 : &mspc_oli
                 bands       :

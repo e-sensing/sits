@@ -362,11 +362,8 @@ sits_get_data.data.frame <- function(
                                      output_dir,
                                      progress) {
 
-    samples_sf  <- sf::st_as_sf(
-        x = samples,
-        coords = c(x = "longitude", y = "latitude"),
-        crs = 4326
-    )
+    samples_sf <- sits_as_sf(samples)
+
     are_samples_in_tiles <- purrr::map_lgl(seq_len(nrow(cube)), function(i) {
         .sits_raster_sub_image_intersects(
             cube = cube[i, ],

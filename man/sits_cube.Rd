@@ -259,8 +259,8 @@ s2_cube <- sits_cube(
   collection = "sentinel-s2-l2a-cogs",
   tiles = c("20LKP", "20LLP"),
   bands = c("B04", "B08", "B11"),
-  start_date = as.Date("2018-07-18"),
-  end_date = as.Date("2019-07-23")
+  start_date = "2018-07-18",
+  end_date = "2019-07-23"
 )
 
 # --- Access to USGS Landsat cubes (requester pays)
@@ -286,8 +286,8 @@ s2_cube <- sits_cube(
   collection = "sentinel-2-l2a",
   tiles = "20LKP",
   bands = c("B05", "CLOUD"),
-  start_date = as.Date("2018-07-18"),
-  end_date = as.Date("2018-08-23")
+  start_date = "2018-07-18",
+  end_date = "2018-08-23"
 )
 
 # --- Create a cube based on a local MODIS data
