@@ -2,7 +2,7 @@
 % Please edit documentation in R/sits_cube_aux_functions.R
 \name{.cube_token_generator}
 \alias{.cube_token_generator}
-\title{...}
+\title{Generate token to cube}
 \usage{
 .cube_token_generator(cube)
 }
@@ -10,9 +10,9 @@
 \item{cube}{input data cube}
 }
 \value{
-A cube ...
+A sits cube
 }
 \description{
-...
+Generate token to cube
 }
 \keyword{internal}

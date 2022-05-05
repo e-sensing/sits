@@ -952,13 +952,13 @@
     return(bbox)
 }
 
-#' @title ...
+#' @title Generate token to cube
 #' @name .cube_token_generator
 #' @keywords internal
 #'
 #' @param  cube input data cube
 #'
-#' @return A cube ...
+#' @return A sits cube
 .cube_token_generator <- function(cube) {
 
     source <- .source_new(source = .cube_source(cube),
@@ -968,7 +968,7 @@
 }
 
 #' @export
-.cube_token_generator.mspc_cube <- function(cube, n_tries = 3) {
+.cube_token_generator.mspc_cube <- function(cube) {
 
     file_info <- cube[["file_info"]][[1]]
     fi_paths <- file_info[["path"]]
@@ -995,6 +995,7 @@
     url <- paste0(token_endpoint, "/", tolower(.cube_collection(cube)))
 
     res_content <- NULL
+    n_tries <- .config_get("cube_token_generator_n_tries")
     while (is.null(res_content) && n_tries > 0) {
         res_content <- tryCatch({
             httr::content(httr::GET(url), encoding = "UTF-8")
