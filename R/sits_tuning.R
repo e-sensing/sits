@@ -46,7 +46,7 @@
 #'
 #' @examples
 #' if (sits_run_examples()){
-#' # run a tuned
+#' # find best learning rate parameters for TempCNN
 #' tuned <- sits_tuning(
 #'     samples_modis_4bands,
 #'     ml_method = sits_tempcnn(),
@@ -198,16 +198,16 @@ sits_tuning <- function(samples,
 #'   from a uniform distribution with parameters min and max.
 #'   \item \code{choice(..., replace = TRUE, n = 1)}: returns random objects
 #'   passed to \code{...} with replacement or not (parameter \code{replace}).
-#'   \item \code{randint(min, max, n = 1)}: returns random numbers
+#'   \item \code{randint(min, max, n = 1)}: returns random integers
 #'   from a uniform distribution with parameters min and max.
 #'   \item \code{normal(mean = 0, sd = 1, n = 1)}: returns random numbers
-#'   from a uniform distribution with parameters min and max.
+#'   from a normal distribution with parameters min and max.
 #'   \item \code{lognormal(meanlog = 0, sdlog = 1, n = 1)}: returns random
-#'   numbers from a uniform distribution with parameters min and max.
+#'   numbers from a lognormal distribution with parameters min and max.
 #'   \item \code{loguniform(minlog = 0, maxlog = 1, n = 1)}: returns random
-#'   numbers from a uniform distribution with parameters min and max.
+#'   numbers from a loguniform distribution with parameters min and max.
 #'   \item \code{beta(shape1, shape2, n = 1)}: returns random numbers
-#'   from a uniform distribution with parameters min and max.
+#'   from a beta distribution with parameters min and max.
 #' }
 #'
 #' These functions accepts \code{n} parameter to indicate how many values
@@ -220,7 +220,7 @@ sits_tuning <- function(samples,
 #'
 #' @examples
 #' if (sits_run_examples()){
-#' # run a tuned
+#' # find best learning rate parameters for TempCNN
 #' tuned <- sits_tuning(
 #'     samples_modis_4bands,
 #'     ml_method = sits_tempcnn(),
@@ -307,13 +307,13 @@ sits_tuning_hparams <- function(...) {
 #' Generate a tibble (one row per trial) with all model parameters
 #'
 #' @keywords internal
-.tuning_param_as_tibble <- function(params) {
+.tuning_params_as_tibble <- function(params) {
     params <- lapply(params, function(x) {
         if (purrr::is_atomic(x)) {
             if (length(x) != 1) return(list(x))
             return(x)
         }
-        if (purrr::is_list(x)) return(list(.tuning_param_as_tibble(x)))
+        if (purrr::is_list(x)) return(list(.tuning_params_as_tibble(x)))
         if (is.language(x)) return(deparse(x))
         return(list(x))
     })
