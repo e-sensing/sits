@@ -71,3 +71,29 @@ sits_to_csv <- function(data, file) {
 
     return(invisible(TRUE))
 }
+#' @title Transform a shapefile into a samples file
+#' @name .sits_get_samples_from_csv
+#' @author Gilberto Camara
+#' @keywords internal
+#' @param csv_file        CSV that describes the data to be retrieved.
+#' @return                A tibble with information the samples to be retrieved
+#'
+.sits_get_samples_from_csv <- function(csv_file) {
+
+    # read sample information from CSV file and put it in a tibble
+    samples <- tibble::as_tibble(utils::read.csv(csv_file))
+
+    # pre-condition - check if CSV file is correct
+    .sits_csv_check(samples)
+
+    # select valid columns
+    samples <- dplyr::select(samples,
+                             dplyr::all_of(.config_get("df_sample_columns")))
+
+    samples <- dplyr::mutate(samples,
+                             start_date = as.Date(.data[["start_date"]]),
+                             end_date = as.Date(.data[["end_date"]])
+    )
+
+    return(samples)
+}

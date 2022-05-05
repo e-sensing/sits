@@ -17,11 +17,9 @@ test_that("Reading a LAT/LONG from RASTER", {
   testthat::skip_if(purrr::is_null(raster_cube),
                     message = "LOCAL cube was not found")
 
-  point_ndvi <- sits_select(point_mt_6bands, bands = "NDVI")
-  point_ndvi <- sits_get_data(raster_cube,
-                              longitude = -55.66738,
-                              latitude = -11.76990
-  )
+  samples <- tibble::tibble(longitude = -55.66738, latitude = -11.76990)
+
+  point_ndvi <- sits_get_data(raster_cube, samples)
 
   expect_equal(names(point_ndvi)[1], "longitude")
   expect_true(ncol(sits_time_series(point_ndvi)) == 2)
@@ -51,7 +49,7 @@ test_that("Reading a CSV file from RASTER", {
                                  package = "sits"
   )
   points <- sits_get_data(raster_cube,
-                          file = csv_raster_file,
+                          samples = csv_raster_file,
                           output_dir = tempdir())
 
   df_csv <- utils::read.csv(
@@ -65,6 +63,16 @@ test_that("Reading a CSV file from RASTER", {
   expect_equal(length(names(points)), 7)
   expect_true(ncol(sits_time_series(points)) == 2)
   expect_true(length(sits_timeline(points)) == 23)
+
+  points_df <- sits_get_data(raster_cube,
+                             samples = df_csv,
+                             output_dir = tempdir())
+
+  expect_true("Forest" %in% sits_labels(points_df))
+  expect_equal(names(points_df)[1], "longitude")
+  expect_equal(length(names(points_df)), 7)
+  expect_true(ncol(sits_time_series(points_df)) == 2)
+  expect_true(length(sits_timeline(points_df)) == 23)
 })
 
 test_that("Test reading shapefile from BDC", {
@@ -99,7 +107,7 @@ test_that("Test reading shapefile from BDC", {
   )
 
   time_series_bdc <- sits::sits_get_data(cbers_stac_tile,
-                                         file = shp_path,
+                                         samples = shp_path,
                                          output_dir = tempdir())
 
   if (purrr::is_null(time_series_bdc))
@@ -113,12 +121,31 @@ test_that("Test reading shapefile from BDC", {
 
   ts <- time_series_bdc$time_series[[1]]
   expect_true(max(ts["EVI"]) < 1.)
+
+  sf_object <- sf::st_read(shp_path, quiet = TRUE)
+
+  time_series_sf <- sits::sits_get_data(cbers_stac_tile,
+                                        samples = sf_object,
+                                        output_dir = tempdir())
+
+  if (purrr::is_null(time_series_sf))
+    skip("BDC not accessible")
+
+  expect_equal(nrow(time_series_sf), 10)
+
+  bbox <- sits_bbox(time_series_sf)
+  expect_true(bbox["xmin"] < -46.)
+  expect_true(all(sits_bands(time_series_sf) %in% c("NDVI", "EVI")))
+
+  ts <- time_series_sf$time_series[[1]]
+  expect_true(max(ts["EVI"]) < 1.)
+
 })
 
 test_that("Reading metadata from CSV file", {
 
   csv_file <- paste0(tempdir(), "/cerrado_2classes.csv")
-  sits_metadata_to_csv(cerrado_2classes, file = csv_file)
+  sits_to_csv(cerrado_2classes, file = csv_file)
   csv <- read.csv(csv_file)
   expect_true(nrow(csv) == 746)
   expect_true(all(names(csv) %in% c("id", "longitude", "latitude",

@@ -14,27 +14,7 @@ sits_time_series <- function(data) {
 }
 
 
-#' @title Return a sits_tibble as a point sf object.
-#' @name sits_as_sf
-#' @author Felipe Carvalho, \email{felipe.carvalho@@inpe.br}
-#' @author Alber Sanchez, \email{alber.ipia@@inpe.br}
-#'
-#' @description Return a sits_tibble as a sf object of point geometry.
-#'
-#' @param samples A sits tibble with one or more time series.
-#' @return        Return a sits_tibble as a sf object of point geometry.
-#' @export
-sits_as_sf <- function(samples) {
 
-    .sits_tibble_test(samples)
-
-    samples_sf <- sf::st_as_sf(samples,
-                               coords = c("longitude", "latitude"),
-                               crs = 4326,
-                               remove = FALSE)
-
-    return(samples)
-}
 
 
 #' @title Create a sits tibble to store the time series information

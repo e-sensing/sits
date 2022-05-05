@@ -1,38 +1,15 @@
-test_that("plot geo_distances", {
+test_that("geo_distances", {
 
-    samples <-
-        sits::samples_modis_4bands %>%
-        sits_select(bands = c("NDVI")) %>%
-        dplyr::mutate(id = paste0(longitude, "-", latitude)) %>%
-        dplyr::distinct(id, .keep_all = TRUE) %>%
-        dplyr::select(-id)
+    mt_shp <- system.file("extdata/shapefiles/mato_grosso/mt.shp",
+                          package = "sits")
+    mt_sf <- sf::read_sf(mt_shp)
 
-    cube <- sits_cube(
-        source = "BDC",
-        collection = "MOD13Q1-6",
-        data_dir = system.file("extdata/raster/mod13q1", package = "sits"),
-        delim = "_",
-        parse_info = c("X1", "X2", "tile", "band", "date")
-    )
+    distances <- sits_geo_dist(samples_modis_4bands, mt_sf)
 
-    raster <-
-        cube %>%
-        dplyr::pull(file_info) %>%
-        magrittr::extract2(1) %>%
-        dplyr::pull(path) %>%
-        dplyr::first() %>%
-        terra::rast()
-
-    roi <-
-        raster %>%
-        terra::ext() %>%
-        terra::as.polygons(crs = terra::crs(raster)) %>%
-        sf::st_as_sf()
-
-   distances <- sits_geo_dist(samples, roi)
-
-   expect_true("geo_distances" %in% class(distances))
-   expect_true(all(c("from", "to", "distance", "type") %in%
-                   colnames(distances)))
-
+    expect_true("geo_distances" %in% class(distances))
+    ss <- as.vector(dplyr::filter(distances,
+                                  type == "sample-to-sample")$distance)
+    expect_true(mean(ss) > 5000.)
+    p <- plot(distances)
+    expect_equal(p$labels$title, "Distribution of Nearest Neighbor Distances")
 })

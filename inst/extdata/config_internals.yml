@@ -44,6 +44,9 @@ ts_predicted_cols:  ["from", "to", "class"]
 # supported user sample file formats
 sample_file_formats : ["csv", "shp"]
 
+# supported user sample object formats for "sits_get_data"
+sample_get_data_formats : ["data.frame", "tbl_df", "sf", "sits"]
+
 # mandatory columns in CSV input files
 df_sample_columns : ["longitude", "latitude", "start_date", "end_date", "label"]
 

@@ -135,6 +135,7 @@ Collate:
     'sits_roi.R'
     'sits_sample_functions.R'
     'sits_select.R'
+    'sits_sf.R'
     'sits_shp.R'
     'sits_smooth.R'
     'sits_smooth_aux_functions.R'
