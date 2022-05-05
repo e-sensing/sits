@@ -29,11 +29,11 @@ NULL
                msg = "process one tile at a time for file_info"
     )
 
-    # for mspc cubes only
-    cube <- .file_info_token_generator(cube)
-
     # get the file info associated with the tile
     file_info <- cube[["file_info"]][[1]]
+
+    # for mspc cubes only
+    cube <- .file_info_token_generator(cube)
 
     # check bands
     if (!is.null(bands)) {
@@ -96,9 +96,23 @@ NULL
 
     file_info <- cube[["file_info"]][[1]]
 
+
     # in case regularized cubes and local, just for remote cubes
-    if (any(!grepl(pattern = "^/vsi", x = file_info[["path"]])))
+    if (all(grepl(pattern = "^/vsi", x = file_info[["path"]])))
         return(cube)
+
+    if ("token_expires" %in% colnames(file_info)) {
+
+        difftime_token <- difftime(
+            time1 = file_info[["token_expires"]][[1]],
+            time2 = as.POSIXlt(Sys.time(), tz = "UTC"),
+            units = "mins"
+        )
+
+        # verify if there are still 25 minutes left to expire
+        if (difftime_token - 15 > 25)
+            return(cube)
+    }
 
     token_endpoint <- .config_get(c("sources", .cube_source(cube), "token_url"))
 
@@ -120,9 +134,15 @@ NULL
             token_parsed[["query"]]
         )
 
+        # remove the additional chars added by httr
         new_path <- gsub("^://", "", httr::build_url(url_parsed))
         new_path
     })
+
+    file_info[["token_expires"]] <- strptime(
+        x = token_parsed[["msft:expiry"]],
+        format = "%Y-%m-%dT%H:%M:%SZ"
+    )
 
     cube[["file_info"]][[1]] <- file_info
 
