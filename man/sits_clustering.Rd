@@ -75,6 +75,25 @@ and removes labels that are minority in each cluster.
 Please refer to the sits documentation available in
 <https://e-sensing.github.io/sitsbook/> for detailed examples.
 }
+\examples{
+if (sits_run_examples()){
+clusters <- sits_cluster_dendro(cerrado_2classes)
+}
+
+if (sits_run_examples()){
+    clusters <- sits_cluster_dendro(cerrado_2classes)
+    freq <- sits_cluster_frequency(clusters)
+    freq
+}
+#' if (sits_run_examples()){
+    clusters <- sits_cluster_dendro(cerrado_2classes)
+    freq1 <- sits_cluster_frequency(clusters)
+    freq1
+    clean_clusters <- sits_cluster_clean(clusters)
+    freq2 <- sits_cluster_frequency(clean_clusters)
+    freq2
+}
+}
 \references{
 "dtwclust" package (https://CRAN.R-project.org/package=dtwclust)
 }

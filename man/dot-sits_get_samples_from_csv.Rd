@@ -4,12 +4,10 @@
 \alias{.sits_get_samples_from_csv}
 \title{Transform a shapefile into a samples file}
 \usage{
-.sits_get_samples_from_csv(csv_file, .n_pts_csv)
+.sits_get_samples_from_csv(csv_file)
 }
 \arguments{
 \item{csv_file}{CSV that describes the data to be retrieved.}
-
-\item{.n_pts_csv}{number of points to be retrieved}
 }
 \value{
 A tibble with information the samples to be retrieved

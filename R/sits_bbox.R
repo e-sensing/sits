@@ -16,6 +16,9 @@
 #'                  on the cube projection for a data cube
 #'                  unless wgs84 parameter is TRUE.
 #'
+#' @examples
+#' bbox <- sits_bbox(samples_modis_4bands)
+#'
 #' @export
 #'
 sits_bbox <- function(data, wgs84 = FALSE, ...) {

@@ -23,6 +23,20 @@
 #' @note
 #' Please refer to the sits documentation available in
 #' <https://e-sensing.github.io/sitsbook/> for detailed examples.
+#'
+#' @examples
+#' if (sits_run_examples()){
+#'     # Example of training a model for time series classification
+#'     # Retrieve the samples for Mato Grosso
+#'     # train a random forest model
+#'     rf_model <- sits_train(samples_modis_4bands, ml_method = sits_rfor)
+#'     # select the bands to classify the point
+#'     sample_bands <- sits_bands(samples_modis_4bands)
+#'     point_4bands <- sits_select(point_mt_6bands, bands = sample_bands)
+#'     # classify the point
+#'     point_class <- sits_classify(point_4bands, rf_model)
+#'     plot(point_class)
+#' }
 #' @export
 #'
 sits_rfor <- function(samples = NULL, num_trees = 200, nodesize = 1, ...) {
@@ -107,7 +121,19 @@ sits_rfor <- function(samples = NULL, num_trees = 200, nodesize = 1, ...) {
 #' @note
 #' Please refer to the sits documentation available in
 #' <https://e-sensing.github.io/sitsbook/> for detailed examples.
-#'
+#' @examples
+#' if (sits_run_examples()){
+#'     # Example of training a model for time series classification
+#'     # Retrieve the samples for Mato Grosso
+#'     # train an SVM model
+#'     ml_model <- sits_train(samples_modis_4bands, ml_method = sits_svm)
+#'     # select the bands to classify the point
+#'     sample_bands <- sits_bands(samples_modis_4bands)
+#'     point_4bands <- sits_select(point_mt_6bands, bands = sample_bands)
+#'     # classify the point
+#'     point_class <- sits_classify(point_4bands, ml_model)
+#'     plot(point_class)
+#' }
 #' @export
 #'
 sits_svm <- function(samples = NULL, formula = sits_formula_logref(),
@@ -225,7 +251,19 @@ sits_svm <- function(samples = NULL, formula = sits_formula_logref(),
 #' @note
 #' Please refer to the sits documentation available in
 #' <https://e-sensing.github.io/sitsbook/> for detailed examples.
-#'
+#' @examples
+#' if (sits_run_examples()){
+#'     # Example of training a model for time series classification
+#'     # Retrieve the samples for Mato Grosso
+#'     # train a xgboost model
+#'     ml_model <- sits_train(samples_modis_4bands, ml_method = sits_xgboost)
+#'     # select the bands to classify the point
+#'     sample_bands <- sits_bands(samples_modis_4bands)
+#'     point_4bands <- sits_select(point_mt_6bands, bands = sample_bands)
+#'     # classify the point
+#'     point_class <- sits_classify(point_4bands, ml_model)
+#'     plot(point_class)
+#' }
 #' @export
 #'
 sits_xgboost <- function(samples = NULL,

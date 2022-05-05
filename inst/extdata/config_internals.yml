@@ -92,9 +92,7 @@ dl_activation_methods : ["relu", "elu", "selu", "sigmoid"]
 metadata_search_strategies : ["tile", "feature"]
 
 # class interval methods for plotting
-class_intervals: ["fixed", "sd", "equal", "pretty", "quantile",
-                  "kmeans", "hclust", "bclust", "fisher",
-                  "jenks", "dpih", "headtails"]
+class_intervals: ["sd", "equal", "quantile", "log", "pretty"]
 
 # parse info of generated regular cubes
 reg_file_parse_info: ["cube", "tile", "band", "date"]

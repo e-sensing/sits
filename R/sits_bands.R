@@ -11,7 +11,8 @@
 #' @param x         Valid sits tibble (time series or a cube)
 #'
 #' @return          A vector with the names of the bands.
-#'
+#' @examples
+#' bands <- sits_bands(samples_modis_4bands)
 #' @export
 #'
 sits_bands <- function(x) {

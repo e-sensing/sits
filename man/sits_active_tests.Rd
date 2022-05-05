@@ -2,7 +2,7 @@
 % Please edit documentation in R/sits_utils.R
 \name{sits_active_tests}
 \alias{sits_active_tests}
-\title{Informs if sits examples should run}
+\title{Informs if sits tests should run}
 \usage{
 sits_active_tests()
 }
@@ -10,6 +10,6 @@ sits_active_tests()
 A logical value
 }
 \description{
-This function informs if sits examples should run.
-This is useful to avoid running slow examples in CRAN environment.
+This function informs if sits test should run.
+This is useful to avoid running slow tests in CRAN environment.
 }

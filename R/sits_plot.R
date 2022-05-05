@@ -9,11 +9,13 @@
 #'  \item{sits tibble: }          {see \code{\link{plot.sits}}}
 #'  \item{patterns: }             {see \code{\link{plot.patterns}}}
 #'  \item{SOM map: }              {see \code{\link{plot.som_map}}}
-#'  \item{classified time series: } {see \code{\link{plot.predicted}}}
-#'  \item{raster  cube: }         {see \code{\link{plot.raster_cube}}}
-#'  \item{classification probabilities: }{see \code{\link{plot.probs_cube}}}
-#'  \item{classified image: }     {see \code{\link{plot.classified_image}}}
 #'  \item{SOM evaluate cluster: } {see \code{\link{plot.som_evaluate_cluster}}}
+#'  \item{classified time series: } {see \code{\link{plot.predicted}}}
+#'  \item{raster cube: }         {see \code{\link{plot.raster_cube}}}
+#'  \item{torch ML model: } {see \code{\link{plot.torch_model}}}
+#'  \item{classification probabilities: }{see \code{\link{plot.probs_cube}}}
+#'  \item{model uncertainty: } {see \code{\link{plot.uncertainty_cube}}}
+#'  \item{classified image: }     {see \code{\link{plot.classified_image}}}
 #' }
 #'
 #' In the case of time series, the plot function produces different plots
@@ -35,6 +37,11 @@
 #' @note
 #' Please refer to the sits documentation available in
 #' <https://e-sensing.github.io/sitsbook/> for detailed examples.
+#'
+#' if (sits_run_examples()){
+#' # plot sets of time series
+#' plot(cerrado_2classes)
+#' }
 #'
 #' @export
 #'
@@ -65,7 +72,11 @@ plot.sits <- function(x, y, ...) {
 #' @note
 #' Please refer to the sits documentation available in
 #' <https://e-sensing.github.io/sitsbook/> for detailed examples.
-#'
+#' @examples
+#' if (sits_run_examples()){
+#' # plot patterns
+#' plot(sits_patterns(cerrado_2classes))
+#' }
 #' @export
 #'
 plot.patterns <- function(x, y, ...) {
@@ -90,6 +101,17 @@ plot.patterns <- function(x, y, ...) {
 #' @note
 #' Please refer to the sits documentation available in
 #' <https://e-sensing.github.io/sitsbook/> for detailed examples.
+#' @examples
+#' if (sits_run_examples()){
+#'     # Retrieve the samples for Mato Grosso
+#'     # train a tempCNN model
+#'     ml_model <- sits_train(samples_modis_4bands, ml_method = sits_tempcnn)
+#'     # classify the point
+#'     bands_model <- sits_bands(ml_model)
+#'     point_4bands <- sits_select(point_mt_6bands, bands = bands_model)
+#'     point_class <- sits_classify(point_4bands, ml_model)
+#'     plot(point_class)
+#'}
 #' @export
 #'
 plot.predicted <- function(x, y, ...,
@@ -103,7 +125,7 @@ plot.predicted <- function(x, y, ...,
 #' @name plot.raster_cube
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'
-#' @description Uses mapview to visualize raster cube and classified images
+#' @description Plot RGB raster cube
 #'
 #' @param  x             Object of class "raster_cube".
 #' @param  ...           Further specifications for \link{plot}.
@@ -111,33 +133,42 @@ plot.predicted <- function(x, y, ...,
 #' @param  red           Band for red color.
 #' @param  green         Band for green color.
 #' @param  blue          Band for blue color.
-#' @param  tiles         Tiles to be plotted.
+#' @param  tile          Tile to be plotted.
 #' @param  date          Date to be plotted.
-#' @param  roi           sf object giving a region of interest.
 #'
 #' @return               Plot object.
+#'
+#' @examples
+#' if (sits_run_examples()){
+#' # create a data cube from local files
+#' data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
+#' cube <- sits_cube(
+#'          source = "BDC",
+#'          collection = "MOD13Q1-6",
+#'          data_dir = data_dir,
+#'          delim = "_",
+#'          parse_info = c("X1", "X2", "tile", "band", "date")
+#' )
+#' # plot NDVI band of the second date date of the data cube
+#' plot(cube, band = "NDVI", date = sits_timeline(cube)[2])
+#' }
 #' @export
 plot.raster_cube <- function(x, ...,
                              band = NULL,
                              red = NULL,
                              green = NULL,
                              blue = NULL,
-                             tiles = NULL,
-                             date = NULL,
-                             roi = NULL) {
+                             tile = x$tile[[1]],
+                             date = sits_timeline(x)[1]) {
 
-    # precondition
-    if (purrr::is_null(tiles)) {
-        tiles <- x$tile[[1]]
-    }
 
     .check_chr_contains(
         x = x$tile,
-        contains = tiles,
+        contains = tile,
         case_sensitive = FALSE,
-        discriminator = "all_of",
+        discriminator = "one_of",
         can_repeat = FALSE,
-        msg = "tiles are not included in the cube"
+        msg = "tile is not included in the cube"
     )
 
     # pre-condition 2
@@ -150,135 +181,69 @@ plot.raster_cube <- function(x, ...,
                            "'blue' parameters should be informed")
     )
 
-    # check if rgb bands were informed
-    if (!purrr::is_null(red) ||
-        !purrr::is_null(green) ||
-        !purrr::is_null(blue)) {
-
-        # check if all RGB bands is not null
-        .check_that(
-            !purrr::is_null(red) &&
-                !purrr::is_null(green) &&
-                !purrr::is_null(blue),
-            local_msg = "missing red, green, or blue bands",
-            msg = "invalid RGB bands"
+    # check if bands are valid
+    if (!purrr::is_null(band)) {
+        .check_chr_within(
+            band,
+            within = sits_bands(x),
+            discriminator = "any_of",
+            msg = "invalid band"
         )
-    } else {
-
-        # get default band (try first non-cloud band...)
-        if (purrr::is_null(band)) {
-            band <- .cube_bands(x, add_cloud = TRUE)
-            if (length(band) > 0) {
-                band <- band[!band %in% "CLOUD"]
-            }
-        }
-
         # plot as grayscale
-        red   <- band
+        red <- band
         green <- band
-        blue  <- band
+        blue <- band
+        r_index <- 1
+        g_index <- 1
+        b_index <- 1
+    } else {
+        .check_chr_within(
+            c(red, green, blue),
+            within = sits_bands(x),
+            discriminator = "all_of",
+            msg = "invalid RGB bands selection"
+        )
+        r_index <- 1
+        g_index <- 2
+        b_index <- 3
     }
-
-    # preconditions
-    .check_that(
-        x = all(c(red, green, blue) %in% sits_bands(x)),
-        msg = "requested RGB bands are not available in data cube"
-    )
 
     # select only one tile
-    x <- dplyr::filter(x, .data[["tile"]] %in% tiles)
-
-    timeline <- sits_timeline(x)
-    if (purrr::is_null(date)) {
-        date <- timeline[[1]]
-    }
-
+    row <- dplyr::filter(x, .data[["tile"]] == !!tile)
+    # use only one date
     date <- as.Date(date)
     .check_that(
         length(date) == 1,
         msg = "plot handles one date at a time"
     )
     .check_that(
-        date %in% timeline,
+        date %in% sits_timeline(row),
         msg = "requested date is not part of the cube"
     )
 
-    # verify sf package if roi is informed
-    if (!purrr::is_null(roi)) {
-        .check_require_packages("sf")
+    # plot the selected tile
+    # select the bands for the timeline
+    bds_date <- dplyr::filter(.file_info(row), .data[["date"]] == !!date)
+    # get RGB files for the requested timeline
+    red_file <- dplyr::filter(bds_date, .data[["band"]] == red)$path
+    green_file <- dplyr::filter(bds_date, .data[["band"]] == green)$path
+    blue_file <- dplyr::filter(bds_date, .data[["band"]] == blue)$path
+    # put the band on a raster/terra stack
+    rgb_stack <- c(red_file, green_file, blue_file)
 
-        # filter only intersecting tiles
-        intersects <- slider::slide(x, function(tile) {
-            .sits_raster_sub_image_intersects(
-                cube = tile,
-                roi = roi
-            )
-        }) %>% unlist()
-
-        # check if intersection is not empty
-        .check_that(
-            x = any(intersects),
-            msg = "informed roi does not intersect cube"
-        )
-        # select only those tiles that intersect ROI
-        x <- x[intersects, ]
-    }
-
-    r_objs <- slider::slide(x, function(row) {
-        # plot only the selected tile
-        # select only the bands for the timeline
-        bds_date <- dplyr::filter(.file_info(row), .data[["date"]] == !!date)
-
-        # Are we plotting a grey image
-        if (!purrr::is_null(band)) {
-            rgb_stack <- dplyr::filter(bds_date, .data[["band"]] == red)$path
-            bands_order <- c(r = 1, g = 1, b = 1)
-        } else {
-            # get RGB files for the requested timeline
-            red_file <- dplyr::filter(bds_date, .data[["band"]] == red)$path
-            green_file <- dplyr::filter(bds_date, .data[["band"]] == green)$path
-            blue_file <- dplyr::filter(bds_date, .data[["band"]] == blue)$path
-            # put the band on a raster/terra stack
-            rgb_stack <- c(red_file, green_file, blue_file)
-            bands_order <- c(r = 1, g = 2, b = 3)
-        }
-        # use the raster package to obtain a raster object from a stack
-        r_obj <- .raster_open_stack.terra(rgb_stack)
-
-        # extract region of interest
-        if (!purrr::is_null(roi)) {
-            sub_image <- .sits_raster_sub_image(tile = row, roi = roi)
-            r_obj <- .raster_crop.terra(r_obj = r_obj, block = sub_image)
-        }
-        .check_that(
-            x = .raster_ncols(r_obj) > 0 && .raster_nrows(r_obj) > 0,
-            msg = "unable to retrieve raster data"
-        )
-        return(r_obj)
-    })
-
-    r_merge <- r_objs[[1]]
-
-    # merge two or more raster objects
-    if (length(r_objs) > 1) {
-        raster_collection <- terra::sprc(r_objs)
-        r_merge <- terra::merge(raster_collection)
-    }
-
-    bands_order <- c(r = 1, g = 1, b = 1)
-    if (purrr::is_null(band))
-        bands_order <- c(r = 1, g = 2, b = 3)
-
+    # use the raster package to obtain a raster object from a stack
+    r_obj <- .raster_open_stack.terra(rgb_stack)
+    # plor the data using terra
     suppressWarnings(
-        terra::plotRGB(r_merge,
-                       r = bands_order[["r"]],
-                       g = bands_order[["g"]],
-                       b = bands_order[["b"]],
+        terra::plotRGB(r_obj,
+                       r = r_index,
+                       g = g_index,
+                       b = b_index,
                        stretch = "hist"
         )
     )
 
-    return(invisible(r_merge))
+    return(invisible(r_obj))
 }
 #' @title  Plot probability cubes
 #' @name   plot.probs_cube
@@ -286,7 +251,6 @@ plot.raster_cube <- function(x, ...,
 #' @description plots a probability cube using stars
 #'
 #' @param  x             Object of class "probs_image".
-#' @param  y             ignored
 #' @param  ...           Further specifications for \link{plot}.
 #' @param tiles          Tiles to be plotted.
 #' @param labels         Labels to plot (optional).
@@ -300,13 +264,7 @@ plot.raster_cube <- function(x, ...,
 #'  \item{"equal": } {divides the range of the variable into n parts.}
 #'  \item{"pretty": } {number of breaks likely to be legible.}
 #'  \item{"quantile": } {quantile breaks}
-#'  \item{"kmeans" :} {uses kmeans to generate the breaks.}
-#'  \item{"hclust" :} {breaks defined by hierarchical clustering.}
-#'  \item{"bclust" :} {breaks defined by bagged clustering.}
-#'  \item{"fisher" :} {method proposed by Fischer (1958).}
-#'  \item{"jenks" :} {method proposed by Jenks.}
-#'  \item{"dpih" :} {based on the bin width of a histogram.}
-#'  \item{"headtails" :} {algorithm proposed by Bin Jiang (2013)}
+#'  \item{"log": }{logarithm plot}
 #'  }
 #'
 #' @note
@@ -314,15 +272,36 @@ plot.raster_cube <- function(x, ...,
 #'
 #' @return               The plot itself.
 #'
+#' @examples
+#' if (sits_run_examples()){
+#'     # select a set of samples
+#'     samples_ndvi <- sits_select(samples_modis_4bands, bands = c("NDVI"))
+#'     # create a random forest model
+#'     rfor_model <- sits_train(samples_ndvi, sits_rfor())
+#'     # create a data cube from local files
+#'     data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
+#'     cube <- sits_cube(
+#'          source = "BDC",
+#'          collection = "MOD13Q1-6",
+#'          data_dir = data_dir,
+#'          delim = "_",
+#'          parse_info = c("X1", "X2", "tile", "band", "date")
+#'     )
+#'     # classify a data cube
+#'     probs_cube <- sits_classify(data = cube, ml_model = rfor_model)
+#'     # plot the resulting probability cube
+#'     plot(probs_cube)
+#' }
+#'
 #' @export
 #'
-plot.probs_cube <- function(x, y, ...,
+plot.probs_cube <- function(x, ...,
                             tiles = NULL,
                             labels = NULL,
                             breaks = "pretty",
                             n_colors = 20,
                             palette = "Terrain") {
-    stopifnot(missing(y))
+    # stopifnot(missing(y))
     # verifies if stars package is installed
     .check_require_packages("stars")
 
@@ -420,45 +399,57 @@ plot.probs_cube <- function(x, y, ...,
 #' @description plots a probability cube using stars
 #'
 #' @param  x             Object of class "probs_image".
-#' @param  y             Ignored.
 #' @param  ...           Further specifications for \link{plot}.
 #' @param tiles          Tiles to be plotted.
 #' @param n_colors       Number of colors to plot.
-#' @param breaks         Yype of class intervals.
+#' @param intervals      Type of class intervals.
 #' @param palette        HCL palette used for visualization.
 #'
 #' @return               The plot itself.
 #'
 #' @note
-#'
 #' \itemize{Possible class intervals
 #'  \item{"sd":} {intervals based on the average and standard deviation.}
 #'  \item{"equal": } {divides the range of the variable into n parts.}
-#'  \item{"pretty": } {number of breaks likely to be legible.}
 #'  \item{"quantile": } {quantile breaks}
-#'  \item{"kmeans" :} {uses kmeans to generate the breaks.}
-#'  \item{"hclust" :} {breaks defined by hierarchical clustering.}
-#'  \item{"bclust" :} {breaks defined by bagged clustering.}
-#'  \item{"fisher" :} {method proposed by Fischer (1958).}
-#'  \item{"jenks" :} {method proposed by Jenks.}
-#'  \item{"dpih" :} {based on the bin width of a histogram.}
-#'  \item{"headtails" :} {algorithm proposed by Bin Jiang (2013)}
+#'  \item{"pretty": } {number of breaks likely to be legible.}
+#'  \item{"log" :} {logarithm plot.}
 #'  }
-#'
+#' @examples
+#' if (sits_run_examples()){
+#'     # select a set of samples
+#'     samples_ndvi <- sits_select(samples_modis_4bands, bands = c("NDVI"))
+#'     # create a random forest model
+#'     rfor_model <- sits_train(samples_ndvi, sits_rfor())
+#'     # create a data cube from local files
+#'     data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
+#'     cube <- sits_cube(
+#'          source = "BDC",
+#'          collection = "MOD13Q1-6",
+#'          data_dir = data_dir,
+#'          delim = "_",
+#'          parse_info = c("X1", "X2", "tile", "band", "date")
+#'     )
+#'     # classify a data cube
+#'     probs_cube <- sits_classify(data = cube, ml_model = rfor_model)
+#'     # calculate uncertainty
+#'     uncert_cube <- sits_uncertainty(probs_cube)
+#'     # plot the resulting uncertainty cube
+#'     plot(uncert_cube)
+#' }
 #' @export
 #'
-plot.uncertainty_cube <- function(x, y, ...,
+plot.uncertainty_cube <- function(x,...,
                                   tiles = NULL,
-                                  n_colors = 10,
-                                  breaks = "pretty",
-                                  palette = "Blues") {
-    stopifnot(missing(y))
+                                  n_colors = 14,
+                                  intervals = "log",
+                                  palette = "YlOrRd") {
+    # stopifnot(missing(y))
     # verifies if stars package is installed
     .check_require_packages("stars")
-
     # precondition - check breaks parameter
     .check_chr_within(
-        x = breaks,
+        x = intervals,
         within = .config_get("class_intervals"),
         discriminator = "any_of",
         msg = "invalid class interval"
@@ -494,7 +485,12 @@ plot.uncertainty_cube <- function(x, y, ...,
         alpha = 1,
         rev = TRUE
     )
-
+    if (intervals == "log") {
+        breaks <- as.integer(
+            1e+04 * (log(c(1:n_breaks))^1.6) / (log(n_breaks)^1.6)
+        )
+    } else
+        breaks <- intervals
 
     # read the paths to plot
     paths <- slider::slide_chr(x, function(row) {
@@ -534,6 +530,28 @@ plot.uncertainty_cube <- function(x, y, ...,
 #' @param  palette         Alternative palette that uses grDevices::hcl.pals().
 #' @param  rev             Invert the order of hcl palette?
 #'
+#' @examples
+#' if (sits_run_examples()){
+#'     # select a set of samples
+#'     samples_ndvi <- sits_select(samples_modis_4bands, bands = c("NDVI"))
+#'     # create a random forest model
+#'     rfor_model <- sits_train(samples_ndvi, sits_rfor())
+#'     # create a data cube from local files
+#'     data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
+#'     cube <- sits_cube(
+#'          source = "BDC",
+#'          collection = "MOD13Q1-6",
+#'          data_dir = data_dir,
+#'          delim = "_",
+#'          parse_info = c("X1", "X2", "tile", "band", "date")
+#'     )
+#'     # classify a data cube
+#'     probs_cube <- sits_classify(data = cube, ml_model = rfor_model)
+#'     # label cube with the most likely class
+#'     label_cube <- sits_label_classification(probs_cube)
+#'     # plot the resulting classified image
+#'     plot(label_cube)
+#' }
 #' @export
 #'
 plot.classified_image <- function(x, y, ...,
@@ -570,7 +588,15 @@ plot.classified_image <- function(x, y, ...,
 #' @note
 #' Please refer to the sits documentation available in
 #' <https://e-sensing.github.io/sitsbook/> for detailed examples.
-#'
+#' @examples
+#' if (sits_run_examples()){
+#' # create a SOM map
+#' som_map <- sits_som_map(samples_modis_4bands)
+#' # evaluate the SOM cluster
+#' som_clusters <- sits_som_evaluate_cluster(som_map)
+#' # plot the SOM cluster evaluation
+#' plot(som_cluster)
+#' }
 #' @export
 #'
 plot.som_evaluate_cluster <- function(x, y, ...,
@@ -602,7 +628,13 @@ plot.som_evaluate_cluster <- function(x, y, ...,
 #' @note
 #' Please refer to the sits documentation available in
 #' <https://e-sensing.github.io/sitsbook/> for detailed examples.
-#'
+#' @examples
+#' if (sits_run_examples()){
+#' # create a SOM map
+#' som_map <- sits_som_map(samples_modis_4bands)
+#' # plot the SOM map
+#' plot(som_map)
+#' }
 #' @export
 #'
 plot.som_map <- function(x, y, ..., type = "codes", band = 1) {
@@ -628,7 +660,14 @@ plot.som_map <- function(x, y, ..., type = "codes", band = 1) {
 #' @note
 #' Please refer to the sits documentation available in
 #' <https://e-sensing.github.io/sitsbook/> for detailed examples.
-#'
+#' @examples
+#' if (sits_run_examples()){
+#'     # Retrieve the samples for Mato Grosso
+#'     # train a tempCNN model
+#'     ml_model <- sits_train(samples_modis_4bands, ml_method = sits_tempcnn)
+#'     # plot the model
+#'     plot(ml_model)
+#'}
 #' @export
 #'
 plot.torch_model <- function(x, y, ...) {
@@ -1582,4 +1621,55 @@ plot.torch_model <- function(x, y, ...) {
     p <- p + ggplot2::labs()
 
     return(p)
+}
+
+
+#' @title Make a kernel density plot of samples distances.
+#'
+#' @name   plot.geo_distances
+#' @author Felipe Souza, \email{lipecaso@@gmail.com}
+#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
+#' @author Alber Sanchez, \email{alber.ipia@@inpe.br}
+#'
+#' @description Make a kernel density plot of samples distances.
+#'
+#' @param  x             Object of class "geo_distances".
+#' @param  y             Ignored.
+#' @param  ...           Further specifications for \link{plot}.
+#' @return               The plot itself.
+#'
+#' @note
+#' Please refer to the sits documentation available in
+#' <https://e-sensing.github.io/sitsbook/> for detailed examples.
+#'
+#' @references Hanna Meyer and Edzer Pebesma,
+#' "Machine learning-based global maps of ecological variables and the
+#' challenge of assessing them" Nature Communications, 13,2022.
+#' DOI: 10.1038/s41467-022-29838-9.
+#'
+#' @export
+#'
+plot.geo_distances <- function(x, y, ...) {
+    .sits_plot_distances(x)
+}
+
+
+.sits_plot_distances <- function (distances) {
+
+    .check_that(inherits(distances, "geo_distances"),
+                "Invalid distances object. Use sits_geo_dist to create it.")
+
+    density_plot <-
+        distances %>%
+        dplyr::mutate(distance = distance/1000) %>%
+        ggplot2::ggplot(ggplot2::aes(x = distance)) +
+        ggplot2::geom_density(ggplot2::aes(color = type,
+                                           fill = type),
+                              lwd = 1, alpha = 0.25) +
+        ggplot2::scale_x_log10(labels = scales::label_number()) +
+        ggplot2::xlab("Distance (km)") +
+        ggplot2::ylab("") +
+        ggplot2::theme(legend.title = ggplot2::element_blank()) +
+        ggplot2::ggtitle("Distribution of Nearest Neighbor Distances")
+    return(density_plot)
 }

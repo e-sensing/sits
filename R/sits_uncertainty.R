@@ -9,6 +9,8 @@
 #' @param  cube              Probability data cube.
 #' @param  type              Method to measure uncertainty. See details.
 #' @param  ...               Parameters for specific functions.
+#' @param  window_size       Size of neighborhood to calculate entropy.
+#' @param  window_fn         Function to be applied in entropy calculation.
 #' @param  multicores        Number of cores to run the function.
 #' @param  memsize           Maximum overall memory (in GB) to run the
 #'                           function.
@@ -17,21 +19,44 @@
 #'                           (in the case of multiple tests)
 #' @return An uncertainty data cube
 #'
-#' @details The supported types are 'entropy', 'least', and 'margin'. Entropy
-#' is the information entropy computed (in nats) for each pixel in a
-#' probability cube. Least confidence is the amount missing from total
-#' confidence to the label with the largest probabilities. Margin of confidence
-#' is the amount missing from total confidence to the difference between the
-#' probabilities of the top 2 labels. The larger the metric (either entropy,
-#' least confidence, or margin of confidence) the larger the uncertainty
-#' regarding the label of the pixels; that is, the probabilities of each label
-#' are similar.
+#' @description Calculate the uncertainty cube based on the probabilities
+#' produced by the classifier. Takes a probability cube as input.
+#' The uncertainity measure is relevant in the context of active leaning,
+#' and helps the increase the quantity and quality of training samples by
+#' providing information about the confidence of the model.
+#' The supported types of uncertainty are 'entropy', 'least', and 'margin'.
+#' "entropy" is the difference between all predictions expressed as entropy,
+#' "least" is the difference between 100% and most confident prediction, and
+#' "margin" is the difference between the two most confident predictions.
 #'
 #' @note
 #' Please refer to the sits documentation available in
 #' <https://e-sensing.github.io/sitsbook/> for detailed examples.
+#'
+#' @examples
+#' if (sits_run_examples()){
+#'     # select a set of samples
+#'     samples_ndvi <- sits_select(samples_modis_4bands, bands = c("NDVI"))
+#'     # create a random forest model
+#'     rfor_model <- sits_train(samples_ndvi, sits_rfor())
+#'     # create a data cube from local files
+#'     data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
+#'     cube <- sits_cube(
+#'          source = "BDC",
+#'          collection = "MOD13Q1-6",
+#'          data_dir = data_dir,
+#'          delim = "_",
+#'          parse_info = c("X1", "X2", "tile", "band", "date")
+#'     )
+#'     # classify a data cube
+#'     probs_cube <- sits_classify(data = cube, ml_model = rfor_model)
+#'     # calculate uncertainty
+#'     uncert_cube <- sits_uncertainty(probs_cube)
+#'     # plot the resulting uncertainty cube
+#'     plot(uncert_cube)
+#' }
 #' @export
-sits_uncertainty <- function(cube, type = "entropy", ...,
+sits_uncertainty <- function(cube, type = "least", ...,
                              multicores = 2,
                              memsize = 8,
                              output_dir = ".",
@@ -302,7 +327,7 @@ sits_uncertainty.entropy <- function(cube, type = "entropy", ...,
     # bind rows
     result_cube <- dplyr::bind_rows(result_cube)
 
-    class(result_cube) <- class(cube)
+    class(result_cube) <- c("uncertainty_cube", class(cube))
 
     return(result_cube)
 }

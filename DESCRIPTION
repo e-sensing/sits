@@ -23,7 +23,7 @@ Description: A set of tools for satellite image time series analysis, both as in
     Functions for post-classification smoothing based on Bayesian inference.
     Minimum recommended requirements: 8 GB RAM and 2 CPU dual-core.
 Encoding: UTF-8
-Depends: R (>= 3.5.0)
+Depends: R (>= 4.1.0)
 URL: https://github.com/e-sensing/sits/
 BugReports: https://github.com/e-sensing/sits/issues
 License: GPL-2 | file LICENSE
@@ -34,50 +34,50 @@ Imports:
     yaml,
     data.table (>= 1.13),
     dplyr (>= 1.0.0),
-    gdalUtilities,
+    gdalUtilities (>= 1.2.0),
     grDevices,
     ggplot2,
     graphics,
-    lubridate (>= 1.7.0),
-    parallel,
+    lubridate (>= 1.8.0),
+    parallel (>= 4.0.0),
     purrr (>= 0.3.0),
     Rcpp (>= 1.0.7),
     rstac (>= 0.9.1-5),
-    sf (>= 0.9),
-    slider (>= 0.1.5),
+    sf (>= 1.0),
+    slider (>= 0.2.0),
     stats,
     terra (>= 1.5-17),
-    tibble (>= 3.0),
-    tidyr,
-    torch,
-    torchopt,
+    tibble (>= 3.1),
+    tidyr (>= 1.2.0),
+    torch (>= 0.7.0),
     utils
 Suggests:
-    caret,
-    dendextend,
-    dtwclust,
-    dtwSat,
-    digest,
-    e1071,
-    FNN,
+    caret(>= 6.0),
+    dendextend (>= 1.15),
+    dtwclust (>= 5.5.0),
+    dtwSat (>= 0.2.7),
+    digest (>= 0.6),
+    e1071 (>= 1.7),
+    FNN (>= 1.1),
     gdalcubes (>= 0.6.0),
-    geojsonsf,
-    httr,
-    jsonlite,
-    kohonen,
-    leafem,
-    leaflet,
-    luz,
+    geojsonsf (>= 2.0),
+    httr (>= 1.4.2),
+    jsonlite (>= 1.8.0),
+    kohonen(>= 3.0.11),
+    leafem (>= 0.2.0),
+    leaflet (>= 2.1.1),
+    luz (>= 0.2.0),
     methods,
-    mgcv,
-    openxlsx,
-    randomForest,
-    RcppArmadillo,
+    mgcv (>= 1.8),
+    openxlsx (>= 4.2.5),
+    randomForest (>= 4.7),
+    RcppArmadillo (>= 0.11),
     scales,
-    stars,
+    stars (>= 0.5),
     testthat (>= 3.0.2),
-    xgboost,
-    zoo
+    torchopt(>= 0.1.1),
+    xgboost (>= 1.6),
+    zoo (>= 1.8)
 Config/testthat/edition: 3
 Config/testthat/parallel: false
 Config/testthat/start-first: cube, raster, ml
@@ -165,4 +165,5 @@ Collate:
     'sits_view.R'
     'sits_values.R'
     'sits_xlsx.R'
+    'sits_plot_distances.R'
     'zzz.R'

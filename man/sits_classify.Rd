@@ -102,21 +102,37 @@ Please refer to the sits documentation available in
 <https://e-sensing.github.io/sitsbook/> for detailed examples.
 }
 \examples{
-# Example of classification of a time series
-# Retrieve the samples for Mato Grosso
-# select an extreme gradient boosting model
-samples_2bands <- sits_select(samples_modis_4bands,
-  bands = c("EVI", "NDVI")
-)
-rf_model <- sits_train(samples_2bands,
-  ml_method = sits_rfor(num_trees = 50)
-)
-# classify the point
-point_2bands <- sits_select(point_mt_6bands,
-  bands = c("EVI", "NDVI")
-)
-point_class <- sits_classify(point_2bands, rf_model)
-plot(point_class)
+if (sits_run_examples()){
+    # Example of classification of a time series
+    # Retrieve the samples for Mato Grosso
+    # select the NDVI band
+    samples_ndvi <- sits_select(samples_modis_4bands, bands = c("NDVI"))
+    # train a random forest model
+    rf_model <- sits_train(samples_ndvi, ml_method = sits_rfor)
+
+    # classify the point
+    point_ndvi <- sits_select(point_mt_6bands, bands = c("NDVI"))
+    point_class <- sits_classify(point_ndvi, rf_model)
+    plot(point_class)
+
+    # Example of classification of a data cube
+    # create a data cube from local files
+    data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
+    cube <- sits_cube(
+         source = "BDC",
+         collection = "MOD13Q1-6",
+         data_dir = data_dir,
+         delim = "_",
+         parse_info = c("X1", "X2", "tile", "band", "date")
+    )
+    # classify a data cube
+    probs_cube <- sits_classify(data = cube, ml_model = rf_model)
+    # label the probability cube
+    label_cube <- sits_label_classification(probs_cube)
+    # plot the classified image
+    plot(label_cube)
+}
+
 
 }
 \author{

@@ -23,7 +23,48 @@
 #' @note
 #' Please refer to the sits documentation available in
 #' <https://e-sensing.github.io/sitsbook/> for detailed examples.
+#' @examples
+#' if (sits_run_examples()) {
 #'
+#'  sits_view(cerrado_2classes)
+#'
+#'  data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
+#'
+#'  modis_cube <- sits_cube(
+#'      source = "BDC",
+#'      collection = "MOD13Q1-6",
+#'      data_dir = data_dir,
+#'      parse_info = c("X1", "X2", "tile", "band", "date")
+#'  )
+#'  # view the data cube
+#'  sits_view(modis_cube,
+#'                  band = "NDVI",
+#'                  dates = timeline[[1]]
+#'  )
+#'
+#'  samples_ndvi <- sits_select(samples_modis_4bands,
+#'                              bands = c("NDVI")
+#'  )
+#'  rf_model <- sits_train(samples_ndvi, sits_rfor())
+#'
+#'  modis_probs <- sits_classify(
+#'      data = modis_cube,
+#'      ml_model = rf_model,
+#'      output_dir = tempdir(),
+#'      memsize = 4,
+#'      multicores = 1
+#'  )
+#'  modis_label <- sits_label_classification(modis_probs,
+#'                                           output_dir = tempdir())
+#'
+#'  sits_view(modis_label)
+#'
+#'  sits_view(modis_cube,
+#'            band = "NDVI",
+#'            class_cube = modis_label,
+#'            dates = sits_timeline(modis_cube)[[1]]
+#'  )
+#'}
 #' @export
 sits_view <- function(x, ...) {
 
@@ -142,12 +183,16 @@ sits_view.raster_cube <- function(x, ...,
                                   red = NULL,
                                   green = NULL,
                                   blue = NULL,
-                                  tiles = NULL,
+                                  tiles = x$tile[[1]],
                                   dates = sits_timeline(x)[1],
                                   class_cube = NULL,
                                   legend = NULL,
                                   palette = "default") {
     # preconditions
+    # Probs cube not supported
+    .check_that(!inherits(x, "probs_cube"),
+        local_msg = paste0("sits_view not available for probability cube")
+    )
     # Remote files not working in Windows (bug in stars)
     .check_that(
         !(.Platform$OS.type == "windows" &&
@@ -157,39 +202,18 @@ sits_view.raster_cube <- function(x, ...,
 
     # verifies if leafem and leaflet packages are installed
     .check_require_packages(c("leafem", "leaflet"))
-
-    if (is.character(dates)) {
-        .check_that(
-            grepl("^\\d{4}-\\d{2}-\\d{2}$", dates),
-            msg = "invalid dates pattern"
-        )
-
-        dates <- .check_error(
-            as.Date(dates),
-            msg = "invalid dates parameter"
-        )
-    }
-
+    # check that dates are valid
+    timeline <- sits_timeline(x)
     .check_that(
-        x = inherits(dates, "Date"),
-        msg = "invalid dates parameter"
+        all(as.Date(dates) %in% timeline),
+        msg = "requested dates are not part of the cube timeline"
     )
-
-    # deal with tiles
-    # check if tile exists
-    if (purrr::is_null(tiles))
-        tiles <- x$tile[[1]]
-
-    if (is.numeric(tiles))
-        tiles <- x$tile[[tiles]]
-
     # try to find tiles in the list of tiles of the cube
     .check_chr_within(
         tiles,
         x$tile,
         msg = "requested tiles are not part of cube"
     )
-
     # check that classified map is a proper cube
     if (!purrr::is_null(class_cube)) {
         .check_that(
@@ -199,44 +223,40 @@ sits_view.raster_cube <- function(x, ...,
     }
     # pre-condition 2
     .check_that(
-        purrr::is_null(band) ||
-            (purrr::is_null(red)       &&
-                 purrr::is_null(green) &&
-                 purrr::is_null(blue)),
+        !(purrr::is_null(band)) ||
+        (!(purrr::is_null(red))
+         && !(purrr::is_null(green))
+         && !(purrr::is_null(blue))
+        ),
         local_msg = paste0("either 'band' parameter or 'red', 'green', and",
                            "'blue' parameters should be informed")
     )
 
     # check if rgb bands were informed
-    if (!purrr::is_null(red)   ||
-        !purrr::is_null(green) ||
-        !purrr::is_null(blue)) {
-
-        # check if all RGB bands is not null
-        .check_that(
-            !purrr::is_null(red) &&
-                !purrr::is_null(green) &&
-                !purrr::is_null(blue),
-            local_msg = "missing red, green, or blue bands",
-            msg = "invalid RGB bands"
+    if (!purrr::is_null(band)) {
+        .check_chr_within(
+            band,
+            within = sits_bands(x),
+            discriminator = "any_of",
+            msg = "invalid band"
         )
-    } else {
-
-        # get default band (try first non-cloud band...)
-        if (purrr::is_null(band)) {
-            band <- .cube_bands(x, add_cloud = FALSE)
-            if (length(band) > 0) {
-                band <- band[[1]]
-            } else {
-                # ...else get cloud band
-                band <- .cube_bands(x)[[1]]
-            }
-        }
-
         # plot as grayscale
         red <- band
         green <- band
         blue <- band
+        r_index <- 1
+        g_index <- 1
+        b_index <- 1
+    } else {
+        .check_chr_within(
+            c(red, green, blue),
+            within = sits_bands(x),
+            discriminator = "all_of",
+            msg = "invalid RGB bands selection"
+        )
+        r_index <- 1
+        g_index <- 2
+        b_index <- 3
     }
 
     # filter the tiles to be processed
@@ -249,11 +269,7 @@ sits_view.raster_cube <- function(x, ...,
                 msg = "cannot visualize cube"
     )
 
-    # check that times are valid
-    .check_that(
-        all(as.Date(dates) %in% timeline),
-        msg = "requested dates are not part of the cube timeline"
-    )
+
     nrows_merge <- sum(slider::slide_dbl(cube_tiles, function(tile) {
         # retrieve the file info for the tile
         fi <- .file_info(tile)
@@ -275,13 +291,13 @@ sits_view.raster_cube <- function(x, ...,
     leaf_map <- leaflet::leaflet() %>%
         leaflet::addProviderTiles(
             map = .,
-            provider = leaflet::providers$Esri.WorldImagery,
-            group = "ESRI"
+            provider = leaflet::providers$GeoportailFrance.orthos,
+            group = "GeoPortalFrance"
         ) %>%
         leaflet::addProviderTiles(
             map = .,
-            provider = leaflet::providers$GeoportailFrance.orthos,
-            group = "GeoPortalFrance"
+            provider = leaflet::providers$Esri.WorldImagery,
+            group = "ESRI"
         ) %>%
         leaflet::addProviderTiles(
             map = .,
@@ -292,25 +308,20 @@ sits_view.raster_cube <- function(x, ...,
 
     # obtain the raster objects for the dates chosen
     for (i in seq_along(dates)) {
-        date <- dates[[i]]
+        date <- as.Date(dates[[i]])
         st_objs <- slider::slide(cube_tiles, function(tile) {
             # retrieve the file info for the tile
             fi <- .file_info(tile)
             # filter by date
             images_date <- dplyr::filter(fi, as.Date(.data[["date"]]) == !!date)
-            if (purrr::is_null(band)) {
-                red_file <- dplyr::filter(images_date,
-                                          .data[["band"]] == red)$path[[1]]
-                green_file <- dplyr::filter(images_date,
-                                            .data[["band"]] == green)$path[[1]]
-                blue_file <- dplyr::filter(images_date,
-                                           .data[["band"]]  == blue)$path[[1]]
-                rgb_files <- c(r = red_file, g = green_file, b = blue_file)
-            } else {
-                band_file <- dplyr::filter(images_date,
-                                           .data[["band"]] == !!band)$path[[1]]
-                rgb_files <- c(r = band_file, g = band_file, b = band_file)
-            }
+            # if there is only one band, RGB files will be the same
+            red_file <- dplyr::filter(images_date,
+                                      .data[["band"]] == red)$path[[1]]
+            green_file <- dplyr::filter(images_date,
+                                        .data[["band"]] == green)$path[[1]]
+            blue_file <- dplyr::filter(images_date,
+                                       .data[["band"]]  == blue)$path[[1]]
+            rgb_files <- c(r = red_file, g = green_file, b = blue_file)
             st_obj <- stars::read_stars(
                 rgb_files,
                 along = "band",
@@ -339,31 +350,18 @@ sits_view.raster_cube <- function(x, ...,
             src = st_merge,
             crs = sf::st_crs("EPSG:3857")
         )
-        if (purrr::is_null(band)) {
-            leaf_map <- leafem::addRasterRGB(
-                leaf_map,
-                x = st_obj_new,
-                r = 1,
-                g = 2,
-                b = 3,
-                quantiles = c(0.1, 0.9),
-                project = FALSE,
-                group = paste0(date),
-                maxBytes = size["leaflet_maxBytes"]
-            )
-        } else {
-            leaf_map <- leafem::addRasterRGB(
-                leaf_map,
-                x = st_obj_new,
-                r = 1,
-                g = 1,
-                b = 1,
-                quantiles = c(0.1, 0.9),
-                project = FALSE,
-                group = paste0(date),
-                maxBytes = size["leaflet_maxBytes"]
-            )
-        }
+        # add raster RGB to leaflet
+        leaf_map <- leafem::addRasterRGB(
+            leaf_map,
+            x = st_obj_new,
+            r = r_index,
+            g = g_index,
+            b = b_index,
+            quantiles = c(0.1, 0.9),
+            project = FALSE,
+            group = paste0(date),
+            maxBytes = size["leaflet_maxBytes"]
+        )
     }
 
     overlay_grps <- paste0(dates)
@@ -440,7 +438,7 @@ sits_view.raster_cube <- function(x, ...,
     leaf_map <- leaf_map %>%
         leaflet::addLayersControl(
             map = .,
-            baseGroups = c("ESRI", "GeoPortalFrance", "OSM"),
+            baseGroups = c("GeoPortalFrance", "ESRI", "OSM"),
             overlayGroups = overlay_grps,
             options = leaflet::layersControlOptions(collapsed = FALSE)
         )

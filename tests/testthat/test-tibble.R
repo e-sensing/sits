@@ -118,3 +118,14 @@ test_that("Apply", {
 
   expect_true("NDWI" %in% sits_bands(samples_modis_index))
 })
+
+
+test_that("samples_as_sf works", {
+
+    samples_tb <- cerrado_2classes
+    samples_sf <- sits_as_sf(samples_tb)
+
+    expect_true(inherits(samples_sf, "sf"))
+
+})
+

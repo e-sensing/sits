@@ -11,6 +11,10 @@
 #'
 #' @description Filter only the selected bands from a tibble or a data cube.
 #'
+#' @return
+#' For sits tibble, returns a sits tibble with the selected bands.
+#' For data cube, a data cube with the selected bands.
+#'
 #' @examples
 #' # Retrieve a set of time series with 2 classes
 #' data(cerrado_2classes)
@@ -20,9 +24,6 @@
 #' data <- sits_select(cerrado_2classes, bands = c("NDVI"))
 #' # Print the labels of the resulting tibble
 #' sits_bands(data)
-#' @return
-#' For sits tibble, returns a sits tibble with the selected bands.
-#' For data cube, a data cube with the selected bands.
 #'
 #' @export
 #'

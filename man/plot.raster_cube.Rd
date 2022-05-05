@@ -11,9 +11,8 @@
   red = NULL,
   green = NULL,
   blue = NULL,
-  tiles = NULL,
-  date = NULL,
-  roi = NULL
+  tile = x$tile[[1]],
+  date = sits_timeline(x)[1]
 )
 }
 \arguments{
@@ -29,17 +28,30 @@
 
 \item{blue}{Band for blue color.}
 
-\item{tiles}{Tiles to be plotted.}
+\item{tile}{Tile to be plotted.}
 
 \item{date}{Date to be plotted.}
-
-\item{roi}{sf object giving a region of interest.}
 }
 \value{
 Plot object.
 }
 \description{
-Uses mapview to visualize raster cube and classified images
+Plot RGB raster cube
+}
+\examples{
+if (sits_run_examples()){
+# create a data cube from local files
+data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
+cube <- sits_cube(
+         source = "BDC",
+         collection = "MOD13Q1-6",
+         data_dir = data_dir,
+         delim = "_",
+         parse_info = c("X1", "X2", "tile", "band", "date")
+)
+# plot NDVI band of the second date date of the data cube
+plot(cube, band = "NDVI", date = sits_timeline(cube)[2])
+}
 }
 \author{
 Gilberto Camara, \email{gilberto.camara@inpe.br}

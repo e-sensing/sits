@@ -9,6 +9,11 @@
 #'
 #' @param  data     either a sits tibble, a data cube, or a trained model.
 #'
+#' @return      Timeline of sample set or of data cube.
+#'
+#' @examples
+#' sits_timeline(sample_modis_4bands)
+#'
 #' @export
 #'
 sits_timeline <- function(data) {
@@ -49,6 +54,16 @@ sits_timeline.raster_cube <- function(data) {
         warning("Cube is not regular. Returning all timelines")
         return(timelines.lst)
     }
+}
+
+#' @export
+#'
+sits_timeline.probs_cube <- function(data) {
+    # return the timeline of the cube
+    start_date <- .file_info_start_date(data[1,])
+    end_date <- .file_info_end_date(data[1,])
+    timeline_probs <- c(start_date, end_date)
+    return(timeline_probs)
 }
 
 #' @export

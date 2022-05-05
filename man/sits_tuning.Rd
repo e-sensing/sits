@@ -2,16 +2,15 @@
 % Please edit documentation in R/sits_tuning.R
 \name{sits_tuning}
 \alias{sits_tuning}
-\alias{sits_tuning_random}
 \title{Tuning deep learning models hyper-parameters}
 \usage{
-sits_tuning_random(
+sits_tuning(
   samples,
   samples_validation = NULL,
   validation_split = 0.2,
   ml_method = sits_tempcnn(),
-  params = list(optimizer = torchopt::optim_adamw, opt_hparams = list(lr = uniform(0,
-    1))),
+  params = list(optimizer = torchopt::optim_adamw, opt_hparams = list(lr = beta(0.3,
+    5))),
   trials = 30,
   multicores = 2,
   progress = FALSE
@@ -30,7 +29,7 @@ for validation (if samples_validation is NULL)}
 \item{params}{List with hyper parameters to be passed to
 \code{ml_method}. User can use \code{uniform}, \code{choice},
 \code{randint}, \code{normal}, \code{lognormal}, \code{loguniform},
-and \code{beta} functions to randomize parameters.}
+and \code{beta} distribution functions to randomize parameters.}
 
 \item{trials}{Number of random trials to perform the random search.}
 
@@ -42,18 +41,46 @@ and \code{beta} functions to randomize parameters.}
 A list containing the best model and a tibble with all performances
 }
 \description{
-Deep learning models use stochastic gradient descent techniques to
-find optimal solutions. To that end, these models use optimization
-algorithms that approximate the actual solution, which would be
-computationally expensive. Each of these algorithms uses a set of
-hyperparameters, that have to be adjusted to achieve best performance
-for each application.
-This function combines all parameters and computes torch models to
-parameter combination, do a validation using validation samples or
-splitting samples using validation_split. The function returns the
+Deep learning models use stochastic gradient descent (SGD) techniques to
+find optimal solutions. To perform SGD, models use optimization
+algorithms which have hyperparameters that have to be adjusted
+to achieve best performance for each application.
+
+This function performs a random search on values of selected hyperparameters.
+Instead of performing an exhaustive test of all parameter combinations,
+it selecting them randomly. Validation is done using an independent set
+of samples or by a validation split.  The function returns the
 best hyper-parameters in a list.
 }
 \note{
 Please refer to the sits documentation available in
 <https://e-sensing.github.io/sitsbook/> for detailed examples.
+}
+\examples{
+if (sits_run_examples()){
+# run a tuned
+tuned <- sits_tuning(samples_modis_4bands,
+            ml_method = sits_tempcnn(),
+            params = list(
+                 optimizer = torchopt::optim_adamw,
+                 opt_hparams = list(
+                     lr = beta(0.3, 5)
+                     )
+          ),
+          trials = 4,
+          multicores = 4,
+          progress = FALSE
+          )
+# obtain accuracy, kappa and best_lr
+accuracy <- tuned$tuning$accuracy
+kappa <- tuned$tuning$accuracy
+best_lr <- tuned$tuning$params[[1]]$opt_hparams
+
+}
+
+}
+\references{
+James Bergstra, Yoshua Bengio,
+ "Random Search for Hyper-Parameter Optimization".
+ Journal of Machine Learning Research. 13: 281–305, 2012.
 }

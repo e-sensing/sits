@@ -75,6 +75,8 @@ sits_sample <- function(data,
 
     return(result)
 }
+
+
 #' @title Reduce imbalance in a set of samples
 #' @name sits_reduce_imbalance
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
@@ -117,6 +119,18 @@ sits_sample <- function(data,
 #' @note
 #' Please refer to the sits documentation available in
 #' <https://e-sensing.github.io/sitsbook/> for detailed examples.
+#' @examples
+#' if (sits_run_examples()){
+#' # print the labels summary for a sample set
+#' sits_labels_summary(samples_modis_4bands)
+#' # reduce the sample imbalance
+#' new_samples <- sits_reduce_imbalance(samples_modis_4bands,
+#'       n_samples_over = 200, n_samples_under = 200,
+#'       multicores = 4
+#' )
+#' # print the labels summary for the rebalanced set
+#' sits_labels_summary(new_samples)
+#' }
 #' @export
 sits_reduce_imbalance <- function(samples,
                                   n_samples_over  = 200,

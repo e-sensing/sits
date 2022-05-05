@@ -47,6 +47,42 @@
 #' @note
 #' Please refer to the sits documentation available in
 #' <https://e-sensing.github.io/sitsbook/> for detailed examples.
+#'
+#' @examples
+#' if (sits_run_examples()){
+#'     # show accuracy for a set of samples
+#'     train_data <- sits_sample(samples_modis_4bands, n = 200)
+#'     test_data  <- sits_sample(samples_modis_4bands, n = 200)
+#'     rfor_model <- sits_train(train_data, sits_rfor())
+#'     points_class <- sits_classify(test_data, rfor_model)
+#'     acc <- sits_accuracy(points_class)
+#'
+#'     # show accuracy for a data cube classification
+#'     # select a set of samples
+#'     samples_ndvi <- sits_select(samples_modis_4bands, bands = c("NDVI"))
+#'     # create a random forest model
+#'     rfor_model <- sits_train(samples_ndvi, sits_rfor())
+#'     # create a data cube from local files
+#'     data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
+#'     cube <- sits_cube(
+#'          source = "BDC",
+#'          collection = "MOD13Q1-6",
+#'          data_dir = data_dir,
+#'          delim = "_",
+#'          parse_info = c("X1", "X2", "tile", "band", "date")
+#'     )
+#'     # classify a data cube
+#'     probs_cube <- sits_classify(data = cube, ml_model = rfor_model)
+#'     # label the probability cube
+#'     label_cube <- sits_label_classification(probs_cube)
+#'     # obtain the ground truth for accuracy assessment
+#'     ground_truth <- system.file("extdata/samples/samples_sinop_crop.csv",
+#'                                  package = "sits"
+#'     )
+#'     # make accuracy assessment
+#'     as <- sits_accuracy(label_cube, validation_csv = ground_truth)
+#'
+#' }
 #' @export
 sits_accuracy <- function(data, ...) {
     UseMethod("sits_accuracy", data)
