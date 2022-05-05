@@ -173,10 +173,23 @@
                     return(NULL)
                 }
                 )
+
             # if file can be opened, check if the result is correct
             # this file will not be processed again
             if (!purrr::is_null(r_obj)) {
-                if (.raster_nrows(r_obj) == b[["nrows"]]) {
+
+                # Verify if the raster is corrupted
+                rast_values <- tryCatch({
+                    .raster_get_values(r_obj)
+                },
+                error = function(e) {
+                    unlink(filename_block)
+                    return(NULL)
+                }
+                )
+
+                if (!purrr::is_null(rast_values) &&
+                    .raster_nrows(r_obj) == b[["nrows"]]) {
                     # log
                     .sits_debug_log(
                         output_dir = output_dir,
