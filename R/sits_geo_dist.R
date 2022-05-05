@@ -27,7 +27,7 @@
 #'
 #' @examples
 #' if (sits_run_examples()){
-#  # read a shapefile for the state of Mato Grosso, Brazil
+#' # read a shapefile for the state of Mato Grosso, Brazil
 #' mt_shp <- system.file("extdata/shapefiles/mato_grosso/mt.shp",
 #'           package = "sits")
 #' # convert to an sf object

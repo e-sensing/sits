@@ -2,10 +2,9 @@
 % Please edit documentation in R/sits_sf.R
 \name{.sits_sf_polygon_to_tibble}
 \alias{.sits_sf_polygon_to_tibble}
-\alias{.sits_shp_polygon_to_tibble}
 \title{Obtain a tibble from POLYGON geometry}
 \usage{
-.sits_shp_polygon_to_tibble(sf_object, label_attr, label, n_sam_pol, pol_id)
+.sits_sf_polygon_to_tibble(sf_object, label_attr, label, n_sam_pol, pol_id)
 }
 \arguments{
 \item{sf_object}{sf object linked to a shapefile}

@@ -141,7 +141,7 @@ sits_as_sf <- function(samples) {
 #' @param n_sam_pol       Number of samples per polygon to be read
 #' @param pol_id          ID attribute for polygons shapefile.
 #'
-.sits_shp_polygon_to_tibble <- function(sf_object,
+.sits_sf_polygon_to_tibble <- function(sf_object,
                                         label_attr,
                                         label,
                                         n_sam_pol,
