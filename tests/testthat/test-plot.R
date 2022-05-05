@@ -169,7 +169,7 @@ test_that("SOM map plot", {
             grid_ydim = 5
         ))
 
-    p <- plot(som_map)
+    p <- suppressWarnings(plot(som_map))
     expect_true(all(names(p$rect) %in% c("w", "h", "left", "top")))
 
     pc <- plot(som_map, type = "mapping")

@@ -2,24 +2,102 @@
 % Please edit documentation in R/sits_get_data.R
 \name{sits_get_data}
 \alias{sits_get_data}
+\alias{sits_get_data.default}
+\alias{sits_get_data.csv}
+\alias{sits_get_data.shp}
+\alias{sits_get_data.sf}
+\alias{sits_get_data.sits}
+\alias{sits_get_data.data.frame}
 \title{Get time series from data cubes and cloud services}
 \usage{
 sits_get_data(
   cube,
-  file = NULL,
-  samples = NULL,
-  longitude = NULL,
-  latitude = NULL,
-  start_date = NULL,
-  end_date = NULL,
+  samples,
+  ...,
+  start_date = as.Date(sits_timeline(cube)[1]),
+  end_date = as.Date(sits_timeline(cube)[length(sits_timeline(cube))]),
   label = "NoClass",
-  bands = NULL,
+  bands = sits_bands(cube),
   impute_fn = sits_impute_linear(),
-  shp_attr = NULL,
-  .n_shp_pol = 30,
-  .shp_avg = FALSE,
-  .shp_id = NULL,
-  multicores = 1,
+  label_attr = NULL,
+  n_sam_pol = 30,
+  pol_avg = FALSE,
+  pol_id = NULL,
+  multicores = 4,
+  output_dir = ".",
+  progress = FALSE
+)
+
+\method{sits_get_data}{default}(cube, samples, ...)
+
+\method{sits_get_data}{csv}(
+  cube,
+  samples,
+  ...,
+  bands = sits_bands(cube),
+  impute_fn = sits_impute_linear(),
+  multicores = 4,
+  output_dir = ".",
+  progress = FALSE
+)
+
+\method{sits_get_data}{shp}(
+  cube,
+  samples,
+  ...,
+  label = "NoClass",
+  start_date = as.Date(sits_timeline(cube)[1]),
+  end_date = as.Date(sits_timeline(cube)[length(sits_timeline(cube))]),
+  bands = sits_bands(cube),
+  impute_fn = sits_impute_linear(),
+  label_attr = NULL,
+  n_sam_pol = 30,
+  pol_avg = FALSE,
+  pol_id = NULL,
+  multicores = 4,
+  output_dir = ".",
+  progress = FALSE
+)
+
+\method{sits_get_data}{sf}(
+  cube,
+  samples,
+  ...,
+  bands = sits_bands(cube),
+  start_date = as.Date(sits_timeline(cube)[1]),
+  end_date = as.Date(sits_timeline(cube)[length(sits_timeline(cube))]),
+  impute_fn = sits_impute_linear(),
+  label = "NoClass",
+  label_attr = NULL,
+  n_sam_pol = 30,
+  pol_avg = FALSE,
+  pol_id = NULL,
+  multicores = 4,
+  output_dir = ".",
+  progress = FALSE
+)
+
+\method{sits_get_data}{sits}(
+  cube,
+  samples,
+  ...,
+  bands = sits_bands(cube),
+  impute_fn = sits_impute_linear(),
+  multicores = 4,
+  output_dir = ".",
+  progress = FALSE
+)
+
+\method{sits_get_data}{data.frame}(
+  cube,
+  samples,
+  ...,
+  start_date = as.Date(sits_timeline(cube)[1]),
+  end_date = as.Date(sits_timeline(cube)[length(sits_timeline(cube))]),
+  label = "NoClass",
+  bands = sits_bands(cube),
+  impute_fn = sits_impute_linear(),
+  multicores = 4,
   output_dir = ".",
   progress = FALSE
 )
@@ -27,13 +105,9 @@ sits_get_data(
 \arguments{
 \item{cube}{Data cube from where data is to be retrieved.}
 
-\item{file}{File with information on the data to be retrieved.}
+\item{samples}{Samples location (sits, sf, or data.frame).}
 
-\item{samples}{Data.frame with samples location in spacetime.}
-
-\item{longitude}{Longitude of the chosen location.}
-
-\item{latitude}{Latitude of the chosen location.}
+\item{...}{Specific parameters for specific cases.}
 
 \item{start_date}{Start of the interval for the time series
 in "YYYY-MM-DD" format (optional).}
@@ -47,15 +121,15 @@ in "YYYY-MM-DD" format (optional).}
 
 \item{impute_fn}{Imputation function for NA values.}
 
-\item{shp_attr}{Attribute in the shapefile to be used
+\item{label_attr}{Attribute in the shapefile or sf object to be used
 as a polygon label.}
 
-\item{.n_shp_pol}{Number of samples per polygon to be read
+\item{n_sam_pol}{Number of samples per polygon to be read
 (for POLYGON or MULTIPOLYGON shapefile).}
 
-\item{.shp_avg}{Logical value to summarize samples for a same polygon.}
+\item{pol_avg}{Summarize samples for each polygon?}
 
-\item{.shp_id}{ID attribute for polygons shapefile.}
+\item{pol_id}{ID attribute for polygons.}
 
 \item{multicores}{Number of threads to process the time series.}
 
@@ -74,23 +148,23 @@ Retrieve a set of time series from a data cube or from
 a time series service. Data cubes and puts it in a "sits tibble".
 Sits tibbles are the main structures of sits package.
 They contain both the satellite image time series and their metadata.
-There are four ways of specifying data to be retrieved:
-\itemize{
-\item{CSV file:}{Provide a CSV file with columns
-"longitude", "latitude", "start_date", "end_date" and "label" for
-each sample}
-\item{SHP file:}{Provide a shapefile in POINT or POLYGON geometry
-containing the location of the samples and an attribute to be
-used as label. Also, provide start and end date for the time series.}
-\item{samples:}{A data.frame with with columns
-"longitude", "latitude", "start_date", "end_date" and "label" for
-each sample}
-\item{single point:}{Provide the values
-"longitude", "latitude", "start_date", "end_date" and "label" to
-obtain a time series for a spacetime location}
-}
 }
 \note{
+There are four ways of specifying data to be retrieved using the
+"samples" parameter:
+\itemize{
+\item{CSV file: }{Provide a CSV file with columns
+"longitude", "latitude", "start_date", "end_date" and "label" for
+each sample}
+\item{SHP file: }{Provide a shapefile in POINT or POLYGON geometry
+containing the location of the samples and an attribute to be
+used as label. Also, provide start and end date for the time series.}
+\item{sits object: }{A sits tibble.}
+\item{sf object: }{An "sf" object with POINT or POLYGON geometry.}
+\item{data.frame: }{A data.frame with with mandatory columns
+"longitude", "latitude".}
+}
+
 Please refer to the sits documentation available in
 <https://e-sensing.github.io/sitsbook/> for detailed examples.
 }
@@ -106,10 +180,8 @@ if (sits_run_examples()) {
      delim = "_",
      parse_info = c("X1", "X2", "tile", "band", "date")
   )
-  point_ndvi <- sits_get_data(raster_cube,
-       longitude = -55.66738,
-       latitude = -11.76990
-  )
+  samples <- tibble::tibble(longitude = -55.66738, latitude = -11.76990)
+  point_ndvi <- sits_get_data(raster_cube, samples)
   # reading samples from a cube based on a  CSV file
   csv_file <- system.file("extdata/samples/samples_sinop_crop.csv",
                             package = "sits"
@@ -130,14 +202,11 @@ if (sits_run_examples()) {
                    end_date = "2018-10-28"
      )
      # define a shapefile to be read from the cube
-     shp_path <- system.file("extdata/shapefiles/bdc-test/samples.shp",
+     shp_file<- system.file("extdata/shapefiles/bdc-test/samples.shp",
                              package = "sits"
                              )
      # get samples from the BDC based on the shapefile
-     time_series_bdc <- sits::sits_get_data(
-                  cube = bdc_cube
-                  file = shp_path
-     )
+     time_series_bdc <- sits_get_data(cube = bdc_cube, samples = shp_file)
   }
 }
 
