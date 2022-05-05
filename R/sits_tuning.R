@@ -248,6 +248,12 @@ sits_tuning_hparams <- function(...) {
     return(params)
 }
 
+#' @title Get random hyper-parameter
+#'
+#' @description
+#' Evaluate params by returning random numbers according
+#' to params definition returned by \code{sits_tuning_hparams}
+#'
 #' @keywords internal
 .tuning_pick_random <- function(trial, params) {
 
@@ -295,6 +301,11 @@ sits_tuning_hparams <- function(...) {
     return(params)
 }
 
+#' @title Convert hyper-parameters list to a tibble
+#'
+#' @description
+#' Generate a tibble (one row per trial) with all model parameters
+#'
 #' @keywords internal
 .tuning_param_as_tibble <- function(params) {
     params <- lapply(params, function(x) {
