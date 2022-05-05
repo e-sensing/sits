@@ -51,7 +51,6 @@ NULL
     if (!is.null(start_date)) {
         cube_start_date <- sort(.file_info_timeline(cube))[[1]]
 
-
         .check_that(start_date >= cube_start_date, msg = "invalid start date")
 
         file_info <- file_info[file_info[["date"]] >= start_date, ]
@@ -67,6 +66,7 @@ NULL
 
     return(file_info)
 }
+
 #' @rdname file_info_functions
 #'
 #' @details

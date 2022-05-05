@@ -230,6 +230,7 @@ test_that("Creating cubes from DEA - error using tiles", {
         "DEAFRICA cubes do not support searching for tiles"
     )
 })
+
 test_that("Creating cubes from AWS", {
     testthat::skip_on_cran()
 
