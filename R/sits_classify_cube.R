@@ -185,28 +185,28 @@
             if (!purrr::is_null(r_obj)) {
 
                 # Verify if the raster is corrupted
-                rast_values <- tryCatch({
+                block_name <- tryCatch({
                     .raster_get_values(r_obj)
+                    return(filename_block)
                 },
                 error = function(e) {
                     unlink(filename_block)
-                    return(NULL)
-                }
-                )
-
-                if (!purrr::is_null(rast_values) &&
-                    .raster_nrows(r_obj) == b[["nrows"]]) {
                     # log
                     .sits_debug_log(
                         output_dir = output_dir,
-                        event = "skipping block",
+                        event = "deleting corrupt block",
                         key = "block file",
                         value = filename_block
                     )
-                    return(filename_block)
+
+                    return(NULL)
                 }
+                )
+                if (!purrr::is_null(block_name))
+                    return(filename_block)
             }
         }
+
         # log
         .sits_debug_log(
             output_dir = output_dir,
