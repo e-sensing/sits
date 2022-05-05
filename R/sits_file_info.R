@@ -32,9 +32,6 @@ NULL
     # get the file info associated with the tile
     file_info <- cube[["file_info"]][[1]]
 
-    # for mspc cubes only
-    cube <- .file_info_token_generator(cube)
-
     # check bands
     if (!is.null(bands)) {
         .cube_bands_check(cube, bands = bands)
@@ -54,7 +51,6 @@ NULL
     if (!is.null(start_date)) {
         cube_start_date <- sort(.file_info_timeline(cube))[[1]]
 
-
         .check_that(start_date >= cube_start_date, msg = "invalid start date")
 
         file_info <- file_info[file_info[["date"]] >= start_date, ]
@@ -69,88 +65,6 @@ NULL
     }
 
     return(file_info)
-}
-
-#' @rdname file_info_functions
-#'
-#' @details
-#' Return the file info for a cube with a single tile
-#' Filter by bands if required
-#'
-.file_info_token_generator <- function(cube) {
-
-    source <- .source_new(source = .cube_source(cube),
-                          collection = .cube_collection(cube))
-
-    UseMethod(".file_info_token_generator", source)
-}
-
-#' @rdname file_info_functions
-#'
-#' @details
-#' Return the file info for a cube with a single tile
-#' Filter by bands if required
-#'
-#' @export
-.file_info_token_generator.mspc_cube <- function(cube) {
-
-    file_info <- cube[["file_info"]][[1]]
-
-
-    # in case regularized cubes and local, just for remote cubes
-    if (all(grepl(pattern = "^/vsi", x = file_info[["path"]])))
-        return(cube)
-
-    if ("token_expires" %in% colnames(file_info)) {
-
-        difftime_token <- difftime(
-            time1 = file_info[["token_expires"]][[1]],
-            time2 = as.POSIXlt(Sys.time(), tz = "UTC"),
-            units = "mins"
-        )
-
-        # verify if there are still 25 minutes left to expire
-        if (difftime_token - 15 > 25)
-            return(cube)
-    }
-
-    token_endpoint <- .config_get(c("sources", .cube_source(cube), "token_url"))
-
-    url <- paste0(token_endpoint, "/", tolower(.cube_collection(cube)))
-
-    tryCatch({
-        res_content <- httr::content(httr::GET(url), encoding = "UTF-8")
-    },
-    error = function(e) {
-        stop(paste("Request error. %s", e$message))
-    })
-
-    token_parsed <- httr::parse_url(paste0("?", res_content[["token"]]))
-    file_info[["path"]] <- purrr::map_chr(file_info[["path"]], function(path) {
-
-        url_parsed <- httr::parse_url(path)
-        url_parsed[["query"]] <- modifyList(
-            url_parsed[["query"]],
-            token_parsed[["query"]]
-        )
-
-        # remove the additional chars added by httr
-        new_path <- gsub("^://", "", httr::build_url(url_parsed))
-        new_path
-    })
-
-    file_info[["token_expires"]] <- strptime(
-        x = token_parsed[["msft:expiry"]],
-        format = "%Y-%m-%dT%H:%M:%SZ"
-    )
-
-    cube[["file_info"]][[1]] <- file_info
-
-    return(cube)
-}
-
-.file_info_token_generator.default <- function(cube) {
-    return(cube)
 }
 
 #' @rdname file_info_functions

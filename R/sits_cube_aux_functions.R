@@ -951,3 +951,96 @@
 
     return(bbox)
 }
+
+#' @title ...
+#' @name .cube_token_generator
+#' @keywords internal
+#'
+#' @param  cube input data cube
+#'
+#' @return A cube ...
+.cube_token_generator <- function(cube) {
+
+    source <- .source_new(source = .cube_source(cube),
+                          collection = .cube_collection(cube))
+
+    UseMethod(".cube_token_generator", source)
+}
+
+#' @export
+.cube_token_generator.mspc_cube <- function(cube, n_tries = 3) {
+
+    file_info <- cube[["file_info"]][[1]]
+    fi_paths <- file_info[["path"]]
+
+    are_local_paths <- !grepl(pattern = "^/vsi", x = fi_paths)
+    # ignore in case of regularized and local cubes
+    if (all(are_local_paths))
+        return(cube)
+
+    if ("token_expires" %in% colnames(file_info)) {
+
+        difftime_token <- difftime(
+            time1 = file_info[["token_expires"]][[1]],
+            time2 = as.POSIXlt(Sys.time(), tz = "UTC"),
+            units = "mins"
+        )
+
+        # verify if there are still 25 minutes left to expire
+        if (difftime_token - 15 > 25)
+            return(cube)
+    }
+
+    token_endpoint <- .config_get(c("sources", .cube_source(cube), "token_url"))
+    url <- paste0(token_endpoint, "/", tolower(.cube_collection(cube)))
+
+    res_content <- NULL
+    while (is.null(res_content) && n_tries > 0) {
+        res_content <- tryCatch({
+            httr::content(httr::GET(url), encoding = "UTF-8")
+        },
+        error = function(e) {
+            return(NULL)
+        })
+
+        if (is.null(res_content))
+            Sys.sleep(10)
+        n_tries <- n_tries - 1
+    }
+
+    .check_that(
+        !is.null(res_content),
+        msg = "invalid mspc token."
+    )
+
+    token_parsed <- httr::parse_url(paste0("?", res_content[["token"]]))
+    file_info[["path"]] <- purrr::map_chr(seq_along(fi_paths), function(i) {
+        path <- fi_paths[[i]]
+
+        if (are_local_paths[[i]])
+            return(path)
+
+        url_parsed <- httr::parse_url(path)
+        url_parsed[["query"]] <- modifyList(
+            url_parsed[["query"]],
+            token_parsed[["query"]]
+        )
+
+        # remove the additional chars added by httr
+        new_path <- gsub("^://", "", httr::build_url(url_parsed))
+        new_path
+    })
+
+    file_info[["token_expires"]] <- strptime(
+        x = res_content[["msft:expiry"]],
+        format = "%Y-%m-%dT%H:%M:%SZ"
+    )
+
+    cube[["file_info"]][[1]] <- file_info
+
+    return(cube)
+}
+
+.file_info_token_generator.default <- function(cube) {
+    return(cube)
+}

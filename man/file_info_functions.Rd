@@ -3,8 +3,6 @@
 \name{file_info_functions}
 \alias{file_info_functions}
 \alias{.file_info}
-\alias{.file_info_token_generator}
-\alias{.file_info_token_generator.mspc_cube}
 \alias{.file_info_nrows}
 \alias{.file_info_ncols}
 \alias{.file_info_path}
@@ -19,10 +17,6 @@
 \title{Functions to work with file info tibble}
 \usage{
 .file_info(cube, bands = NULL, fid = NULL, start_date = NULL, end_date = NULL)
-
-.file_info_token_generator(cube)
-
-\method{.file_info_token_generator}{mspc_cube}(cube)
 
 .file_info_nrows(cube, bands = NULL)
 
@@ -62,12 +56,6 @@ Vector with requested information.
 Functions to work with file info tibble
 }
 \details{
-Return the file info for a cube with a single tile
-Filter by bands if required
-
-Return the file info for a cube with a single tile
-Filter by bands if required
-
 Return the file info for a cube with a single tile
 Filter by bands if required
 

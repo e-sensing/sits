@@ -547,9 +547,6 @@
         period = period
     )
 
-    # create an image collection
-    .gc_create_database_stac(cube = cube, path_db = path_db)
-
     # each process will start two threads
     multicores <- max(1, round(multicores / 2))
 
@@ -586,8 +583,13 @@
 
     while (!finished) {
 
+        # for cubes that have a time limit to expire - mspc cubes only
+        cube <- .cube_token_generator(cube)
+        # create an image collection
+        .gc_create_database_stac(cube = cube, path_db = path_db)
+
         # process bands and tiles in parallel
-        gc_images_lst <- .sits_parallel_map(jobs, function(job) {
+        .sits_parallel_map(jobs, function(job) {
 
             # get parameters from each job
             tile_name <- job[[1]]
@@ -596,6 +598,8 @@
 
             # filter tile
             tile <- dplyr::filter(cube, .data[["tile"]] == !!tile_name)
+            # for cubes that have a time limit to expire - mspc cubes only
+            tile <- .cube_token_generator(tile)
 
             # post-condition
             .check_that(
@@ -630,18 +634,18 @@
             gdalcubes::gdalcubes_options(parallel = 2)
 
             # create of the aggregate cubes
-            gc_images <- .gc_save_raster_cube(
-                raster_cube = raster_cube,
-                pack = .gc_create_pack(cube = tile, band = band),
-                output_dir = output_dir,
-                files_prefix = prefix
+            tryCatch({
+                .gc_save_raster_cube(
+                    raster_cube = raster_cube,
+                    pack = .gc_create_pack(cube = tile, band = band),
+                    output_dir = output_dir,
+                    files_prefix = prefix
+                )},
+                error = function(e) {
+                    return(NULL)
+                }
             )
-
-            return(gc_images)
         }, progress = progress)
-
-        # get a list of produced images paths
-        gc_images <- unlist(gc_images_lst)
 
         # create local cube from files in output directory
         local_cube <- tryCatch(
