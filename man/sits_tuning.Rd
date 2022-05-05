@@ -2,15 +2,15 @@
 % Please edit documentation in R/sits_tuning.R
 \name{sits_tuning}
 \alias{sits_tuning}
-\title{Tuning deep learning models hyper-parameters}
+\title{Tuning machine learning models hyper-parameters}
 \usage{
 sits_tuning(
   samples,
   samples_validation = NULL,
   validation_split = 0.2,
   ml_method = sits_tempcnn(),
-  params = list(optimizer = torchopt::optim_adamw, opt_hparams = list(lr = beta(0.3,
-    5))),
+  params = sits_tuning_hparams(optimizer = torchopt::optim_adamw, opt_hparams = list(lr
+    = beta(0.3, 5))),
   trials = 30,
   multicores = 2,
   progress = FALSE
@@ -36,12 +36,16 @@ and \code{beta} distribution functions to randomize parameters.}
 \item{multicores}{Number of cores to process in parallel}
 
 \item{progress}{Show progress bar?}
+
+\item{...}{Used by \code{sits_tuning_hparams()} to
+prepare tuning hyper-parameters}
 }
 \value{
-A list containing the best model and a tibble with all performances
+A tibble containing all parameters used to train on each trial
+  ordered by accuracy
 }
 \description{
-Deep learning models use stochastic gradient descent (SGD) techniques to
+Machine learning models use stochastic gradient descent (SGD) techniques to
 find optimal solutions. To perform SGD, models use optimization
 algorithms which have hyperparameters that have to be adjusted
 to achieve best performance for each application.
@@ -51,26 +55,33 @@ Instead of performing an exhaustive test of all parameter combinations,
 it selecting them randomly. Validation is done using an independent set
 of samples or by a validation split.  The function returns the
 best hyper-parameters in a list.
+
+hyper-parameters passed to \code{params} parameter should be passed
+by calling \code{sits_tuning_hparams()} function.
 }
 \note{
 Please refer to the sits documentation available in
-<https://e-sensing.github.io/sitsbook/> for detailed examples.
+  <https://e-sensing.github.io/sitsbook/> for detailed examples.
 }
 \examples{
 if (sits_run_examples()){
-# run a tuned
-tuned <- sits_tuning(samples_modis_4bands,
-            ml_method = sits_tempcnn(),
-            params = list(
-                 optimizer = torchopt::optim_adamw,
-                 opt_hparams = list(
-                     lr = beta(0.3, 5)
-                     )
-          ),
-          trials = 4,
-          multicores = 4,
-          progress = FALSE
-          )
+# find best learning rate parameters for TempCNN
+tuned <- sits_tuning(
+    samples_modis_4bands,
+    ml_method = sits_tempcnn(),
+    params = sits_tuning_hparams(
+        optimizer = choice(
+            torchopt::optim_adamw,
+            torchopt::optim_yogi
+        ),
+        opt_hparams = list(
+            lr = beta(0.3, 5)
+        )
+    ),
+    trials = 4,
+    multicores = 4,
+    progress = FALSE
+)
 # obtain accuracy, kappa and best_lr
 accuracy <- tuned$tuning$accuracy
 kappa <- tuned$tuning$accuracy

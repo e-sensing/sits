@@ -1,5 +1,4 @@
 test_that("Labels", {
-
     labels <- sits_labels_summary(samples_modis_4bands)
     expect_true("Cerrado" %in% sits_labels(samples_modis_4bands))
     expect_equal(sum(labels$count), 1218)
@@ -8,7 +7,6 @@ test_that("Labels", {
 })
 
 test_that("Relabel", {
-
     data("samples_modis_4bands")
     # copy result
     new_data <- samples_modis_4bands

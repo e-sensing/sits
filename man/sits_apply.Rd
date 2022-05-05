@@ -46,8 +46,8 @@ cubes, it materializes a new band in `output_dir` using `gdalcubes`.
 # Apply a normalization function
 
 point2 <-
-    sits_select(point_mt_6bands, "NDVI") \%>\%
-    sits_apply(NDVI_norm = (NDVI - min(NDVI)) / (max(NDVI) - min(NDVI)))
+  sits_select(point_mt_6bands, "NDVI") \%>\%
+  sits_apply(NDVI_norm = (NDVI - min(NDVI)) / (max(NDVI) - min(NDVI)))
 }
 \author{
 Rolf Simoes, \email{rolf.simoes@inpe.br}

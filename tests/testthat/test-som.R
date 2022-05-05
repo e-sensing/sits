@@ -1,5 +1,4 @@
 test_that("Creating clustering using Self-organizing Maps", {
-
     set.seed(2903)
     som_map <- sits_som_map(
         sits_select(samples_modis_4bands, bands = "NDVI"),

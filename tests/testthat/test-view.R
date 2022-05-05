@@ -39,7 +39,7 @@ test_that("View", {
         verbose = FALSE
     )
     modis_label <- sits_label_classification(modis_probs,
-                                             \output_dir = tempdir())
+                                             output_dir = tempdir())
 
     v3 <- sits_view(modis_label)
     expect_true(grepl("EPSG3857", v3$x$options$crs$crsClass))

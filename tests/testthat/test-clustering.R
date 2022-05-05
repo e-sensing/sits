@@ -1,5 +1,4 @@
 test_that("Creating a dendrogram and clustering the results", {
-
     suppressMessages(library(dtwclust))
     data(cerrado_2classes)
     clusters <- suppressMessages(
@@ -38,7 +37,6 @@ test_that("Creating a dendrogram and clustering the results", {
 })
 
 test_that("Creating a dendrogram with a fixed k value", {
-
     library(dtwclust)
     data(cerrado_2classes)
     clusters <- suppressMessages(

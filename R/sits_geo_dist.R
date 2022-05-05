@@ -26,35 +26,37 @@
 #'                   and sample-to-prediction distances.
 #'
 #' @examples
-#' if (sits_run_examples()){
-#' # read a shapefile for the state of Mato Grosso, Brazil
-#' mt_shp <- system.file("extdata/shapefiles/mato_grosso/mt.shp",
-#'           package = "sits")
-#' # convert to an sf object
-#' mt_sf <- sf::read_sf(mt_shp)
-#' # calculate sample-to-sample and sample-to-prediction distances
-#' distances <- sits_geo_dist(samples_modis_4bands, mt_sf)
-#' # plot sample-to-sample and sample-to-prediction distances
-#' plot(distances)
+#' if (sits_run_examples()) {
+#'     # read a shapefile for the state of Mato Grosso, Brazil
+#'     mt_shp <- system.file("extdata/shapefiles/mato_grosso/mt.shp",
+#'         package = "sits"
+#'     )
+#'     # convert to an sf object
+#'     mt_sf <- sf::read_sf(mt_shp)
+#'     # calculate sample-to-sample and sample-to-prediction distances
+#'     distances <- sits_geo_dist(samples_modis_4bands, mt_sf)
+#'     # plot sample-to-sample and sample-to-prediction distances
+#'     plot(distances)
 #' }
 #' @export
 #'
 sits_geo_dist <- function(samples, roi = NULL, n = 1000) {
-
     stopifnot(inherits(samples, "sits"))
 
     samples <- samples[sample(1:nrow(samples), min(n, nrow(samples))), ]
 
     # NOTE: sits_tibbles are always in WGS84.
     samples_sf <- sf::st_as_sf(samples,
-                               coords = c("longitude", "latitude"),
-                               crs = 4326,
-                               remove = FALSE)
+        coords = c("longitude", "latitude"),
+        crs = 4326,
+        remove = FALSE
+    )
 
     pred_sf <- sf::st_sample(roi, n)
     pred_sf <- sf::st_as_sf(pred_sf)
     pred_sf <- sf::st_transform(pred_sf,
-                                crs = sf::st_crs(samples_sf))
+        crs = sf::st_crs(samples_sf)
+    )
 
     dist_ss <- .find_closest(samples_sf)
     dist_sp <- .find_closest(samples_sf, pred_sf)

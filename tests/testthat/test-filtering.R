@@ -1,5 +1,4 @@
 test_that("Whittaker filter", {
-
     point_ndvi <- sits_select(point_mt_6bands, bands = "NDVI")
     point_ws <- sits_filter(point_ndvi, filter = sits_whittaker(lambda = 3.0))
 
@@ -8,7 +7,6 @@ test_that("Whittaker filter", {
 })
 
 test_that("Savitzky-Golay filter", {
-
     point_ndvi <- sits_select(point_mt_6bands, bands = "NDVI")
     point_sg <- sits_filter(point_ndvi, filter = sits_sgolay())
 

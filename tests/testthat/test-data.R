@@ -29,7 +29,6 @@ test_that("Reading a LAT/LONG from RASTER", {
 })
 
 test_that("Reading a CSV file from RASTER", {
-
     data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
     raster_cube <- tryCatch(
         {

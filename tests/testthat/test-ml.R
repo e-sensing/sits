@@ -23,7 +23,6 @@ test_that("SVM  - Formula logref", {
 })
 
 test_that("SVM  - Formula logref - difference", {
-
     samples_mt_2bands <- sits_select(samples_modis_4bands,
         bands = c("NDVI", "EVI")
     )
@@ -47,7 +46,6 @@ test_that("SVM  - Formula logref - difference", {
 })
 
 test_that("SVM - Formula linear", {
-
     samples_mt_ndvi <- sits_select(samples_modis_4bands, bands = "NDVI")
     svm_model <- sits_train(
         samples_mt_ndvi,
@@ -119,7 +117,6 @@ test_that("Random Forest - SGolay", {
 
 
 test_that("XGBoost", {
-
     samples_mt_ndvi <- sits_select(samples_modis_4bands, bands = "NDVI")
     model <- sits_train(
         samples_mt_ndvi,

@@ -226,9 +226,11 @@ test_that("User functions", {
         NULL
     )
     expect_equal(
-        sits:::.source_collection_tile_check("MSPC",
-                                             "LANDSAT-8-C2-L2",
-                                             "232067"),
+        sits:::.source_collection_tile_check(
+            "MSPC",
+            "LANDSAT-8-C2-L2",
+            "232067"
+        ),
         NULL
     )
 
