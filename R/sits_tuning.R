@@ -1,8 +1,8 @@
-#' @title Tuning deep learning models hyper-parameters
+#' @title Tuning machine learning models hyper-parameters
 #' @name sits_tuning
 #'
 #' @description
-#' Deep learning models use stochastic gradient descent (SGD) techniques to
+#' Machine learning models use stochastic gradient descent (SGD) techniques to
 #' find optimal solutions. To perform SGD, models use optimization
 #' algorithms which have hyperparameters that have to be adjusted
 #' to achieve best performance for each application.
@@ -13,6 +13,8 @@
 #' of samples or by a validation split.  The function returns the
 #' best hyper-parameters in a list.
 #'
+#' hyper-parameters passed to \code{params} parameter should be passed
+#' by calling \code{sits_tuning_hparams()} function.
 #'
 #' @references
 #'  James Bergstra, Yoshua Bengio,
@@ -31,28 +33,36 @@
 #' @param trials Number of random trials to perform the random search.
 #' @param progress           Show progress bar?
 #' @param multicores         Number of cores to process in parallel
+#' @param ...                Used by \code{sits_tuning_hparams()} to
+#'   prepare tuning hyper-parameters
 #'
-#' @return A list containing the best model and a tibble with all performances
+#' @return
+#' A tibble containing all parameters used to train on each trial
+#'   ordered by accuracy
 #'
 #' @note
 #' Please refer to the sits documentation available in
-#' <https://e-sensing.github.io/sitsbook/> for detailed examples.
+#'   <https://e-sensing.github.io/sitsbook/> for detailed examples.
 #'
 #' @examples
 #' if (sits_run_examples()){
-#' # run a tuned
-#' tuned <- sits_tuning(samples_modis_4bands,
-#'             ml_method = sits_tempcnn(),
-#'             params = list(
-#'                  optimizer = torchopt::optim_adamw,
-#'                  opt_hparams = list(
-#'                      lr = beta(0.3, 5)
-#'                      )
-#'           ),
-#'           trials = 4,
-#'           multicores = 4,
-#'           progress = FALSE
-#'           )
+#' # find best learning rate parameters for TempCNN
+#' tuned <- sits_tuning(
+#'     samples_modis_4bands,
+#'     ml_method = sits_tempcnn(),
+#'     params = sits_tuning_hparams(
+#'         optimizer = choice(
+#'             torchopt::optim_adamw,
+#'             torchopt::optim_yogi
+#'         ),
+#'         opt_hparams = list(
+#'             lr = beta(0.3, 5)
+#'         )
+#'     ),
+#'     trials = 4,
+#'     multicores = 4,
+#'     progress = FALSE
+#' )
 #' # obtain accuracy, kappa and best_lr
 #' accuracy <- tuned$tuning$accuracy
 #' kappa <- tuned$tuning$accuracy
@@ -66,7 +76,7 @@ sits_tuning <- function(samples,
                         samples_validation = NULL,
                         validation_split = 0.2,
                         ml_method = sits_tempcnn(),
-                        params = list(
+                        params = sits_tuning_hparams(
                             optimizer = torchopt::optim_adamw,
                             opt_hparams = list(
                                 lr = beta(0.3, 5)
@@ -99,18 +109,34 @@ sits_tuning <- function(samples,
     ml_function <- substitute(ml_method, env = environment())
     if (is.call(ml_function)) ml_function <- ml_function[[1]]
     ml_function <- eval(ml_function, envir = asNamespace("sits"))
-
+    # check 'params' parameter
+    .check_lst(
+        x = params,
+        min_len = 1,
+        msg = "invalid 'params' parameter"
+    )
+    .check_that(
+        x = !"samples" %in% names(params),
+        local_msg = "cannot pass 'samples' via hyper-parameters",
+        msg = "invalid 'params' parameter"
+    )
+    params_default <- formals(ml_function)
+    .check_chr_within(
+        x = names(params),
+        within = names(params_default),
+        msg = "invalid 'params' parameter"
+    )
+    # update formals with provided parameters in params
+    params <- utils::modifyList(params_default, params)
     # check 'multicores' parameter
     .check_num(
         x = multicores, min = 1, len_min = 1, len_max = 1, is_integer = TRUE,
         msg = "invalid 'multicores' parameter"
     )
-
     # generate random params
-    params <- substitute(params, environment())
     params_lst <- purrr::map(
         seq_len(trials),
-        function(x) .sits_tuning_pick_random(params)
+        .tuning_pick_random, params = params
     )
 
     # start processes
@@ -118,9 +144,11 @@ sits_tuning <- function(samples,
     on.exit(.sits_parallel_stop())
 
     # validate in parallel
-    acc_lst <- .sits_parallel_map(params_lst, function(params) {
+    result_lst <- .sits_parallel_map(params_lst, function(params) {
+        # prepare parameters
+        params <- purrr::map(params, eval)
 
-        # prepare optimizer function
+        # prepare ml_method
         ml_method <- do.call(ml_function, args = params)
 
         # do validation
@@ -134,69 +162,160 @@ sits_tuning <- function(samples,
         result <- tibble::tibble(
             accuracy = acc[["overall"]][["Accuracy"]],
             kappa = acc[["overall"]][["Kappa"]],
-            params = list(params),
-            ml_method = list(ml_method),
             acc = list(acc)
         )
 
         return(result)
     }, progress = progress, n_retries = 0)
 
-    # unlist all overall accuracies
-    tuning_tb <- dplyr::bind_rows(acc_lst) %>%
-        dplyr::arrange(dplyr::desc(.data[["accuracy"]]))
-
-    # train best model parameters
-    ml_model <- do.call(
-        tuning_tb[["ml_method"]][[1]],
-        args = list(samples = samples)
-    )
-
     # prepare result
-    tuning_lst <- list(
-        best_ml_model = ml_model,
-        tuning = tuning_tb
-    )
+    result <- dplyr::bind_rows(result_lst)
+    # convert parameters to a tibble
+    params_tb <- purrr::map_dfr(params_lst, .tuning_params_as_tibble)
+    # bind results and parameters
+    tuning_tb <- dplyr::bind_cols(result, params_tb)
+    # order by accuracy
+    tuning_tb <- dplyr::arrange(tuning_tb, dplyr::desc(.data[["accuracy"]]))
+    # prepare result class
+    class(tuning_tb) <- c("sits_tuned", class(tuning_tb))
 
-    class(tuning_lst) <- c("tuned_model", class(tuning_lst))
-
-    return(tuning_lst)
+    return(tuning_tb)
 }
 
+#' @title Tuning machine learning models hyper-parameters
+#' @name sits_tuning_hparams
+#'
+#' @description
+#' This function allow user building the hyper-parameters space used
+#' by \code{sits_tuning()} function search randomly the best parameter
+#' combination.
+#'
+#' User should pass the possible values for hyper-parameters as
+#' constant or by calling the following random functions:
+#'
+#' \itemize{
+#'   \item \code{uniform(min = 0, max = 1, n = 1)}: returns random numbers
+#'   from a uniform distribution with parameters min and max.
+#'   \item \code{choice(..., replace = TRUE, n = 1)}: returns random objects
+#'   passed to \code{...} with replacement or not (parameter \code{replace}).
+#'   \item \code{randint(min, max, n = 1)}: returns random integers
+#'   from a uniform distribution with parameters min and max.
+#'   \item \code{normal(mean = 0, sd = 1, n = 1)}: returns random numbers
+#'   from a normal distribution with parameters min and max.
+#'   \item \code{lognormal(meanlog = 0, sdlog = 1, n = 1)}: returns random
+#'   numbers from a lognormal distribution with parameters min and max.
+#'   \item \code{loguniform(minlog = 0, maxlog = 1, n = 1)}: returns random
+#'   numbers from a loguniform distribution with parameters min and max.
+#'   \item \code{beta(shape1, shape2, n = 1)}: returns random numbers
+#'   from a beta distribution with parameters min and max.
+#' }
+#'
+#' These functions accepts \code{n} parameter to indicate how many values
+#' should be returned.
+#'
+#' @param ...  Used to prepare hyper-parameter space
+#'
+#' @return A list containing the hyper-parameter space to be passed to
+#'   \code{sits_tuning()}'s \code{params} parameter.
+#'
+#' @examples
+#' if (sits_run_examples()){
+#' # find best learning rate parameters for TempCNN
+#' tuned <- sits_tuning(
+#'     samples_modis_4bands,
+#'     ml_method = sits_tempcnn(),
+#'     params = sits_tuning_hparams(
+#'         optimizer = choice(
+#'             torchopt::optim_adamw,
+#'             torchopt::optim_yogi
+#'         ),
+#'         opt_hparams = list(
+#'             lr = beta(0.3, 5)
+#'         )
+#'     ),
+#'     trials = 4,
+#'     multicores = 4,
+#'     progress = FALSE
+#' )
+#'
+#' }
+#'
+#' @export
+#'
+sits_tuning_hparams <- function(...) {
+    params <- substitute(list(...), environment())
+    params <- as.list(params)[-1]
+    return(params)
+}
+
+#' @title Get random hyper-parameter
+#'
+#' @description
+#' Evaluate params by returning random numbers according
+#' to params definition returned by \code{sits_tuning_hparams}
+#'
 #' @keywords internal
-.sits_tuning_pick_random <- function(params) {
+.tuning_pick_random <- function(trial, params) {
 
-    uniform <- function(min = 0, max = 1) {
-        stats::runif(n = 1, min = min, max = max)
+    uniform <- function(min = 0, max = 1, n = 1) {
+        val <- stats::runif(n = n, min = min, max = max)
+        return(val)
     }
 
-    choice <- function(...) {
-        sample(x = list(...), size = 1)[[1]]
+    choice <- function(..., replace = TRUE, n = 1) {
+        options <- as.list(substitute(list(...), environment()))[-1]
+        val <- sample(x = options, replace = replace, size = n)
+        if (length(val) == 1) val <- val[[1]]
+        return(unlist(val))
     }
 
-    randint <- function(min, max) {
-        rn = as.integer((max - min) * stats::runif(1) + min)
+    randint <- function(min, max, n = 1) {
+        val <- as.integer((max - min) * stats::runif(n = n) + min)
+        return(val)
     }
 
-    normal <- function(mean = 0, sd = 1) {
-        stats::rnorm(1, mean = mean, sd = sd)
+    normal <- function(mean = 0, sd = 1, n = 1) {
+        val <- stats::rnorm(n = n, mean = mean, sd = sd)
+        return(val)
     }
 
-    lognormal <- function(meanlog = 0, sdlog = 1) {
-        stats::rlnorm(1, meanlog = meanlog, sdlog = sdlog)
+    lognormal <- function(meanlog = 0, sdlog = 1, n = 1) {
+        val <- stats::rlnorm(n = n, meanlog = meanlog, sdlog = sdlog)
+        return(val)
     }
 
-    loguniform <- function(minlog = 0, maxlog = 1) {
-        exp((maxlog - minlog) * stats::runif(1) + minlog)
+    loguniform <- function(minlog = 0, maxlog = 1, n = 1) {
+        val <- exp((maxlog - minlog) * stats::runif(n = n) + minlog)
+        return(val)
     }
 
-    beta <- function(shape1, shape2) {
-        stats::rbeta(1, shape1 = shape1, shape2 = shape2)
+    beta <- function(shape1, shape2, n = 1) {
+        val <- stats::rbeta(n = 1, shape1 = shape1, shape2 = shape2)
+        return(val)
     }
 
-    params <- eval(params, envir = environment())
+    params <- purrr::map(params, eval, envir = environment())
 
     params[["samples"]] <- NULL
 
-    params
+    return(params)
+}
+
+#' @title Convert hyper-parameters list to a tibble
+#'
+#' @description
+#' Generate a tibble (one row per trial) with all model parameters
+#'
+#' @keywords internal
+.tuning_params_as_tibble <- function(params) {
+    params <- lapply(params, function(x) {
+        if (purrr::is_atomic(x)) {
+            if (length(x) != 1) return(list(x))
+            return(x)
+        }
+        if (purrr::is_list(x)) return(list(.tuning_params_as_tibble(x)))
+        if (is.language(x)) return(deparse(x))
+        return(list(x))
+    })
+    return(tibble::tibble(!!!params))
 }
