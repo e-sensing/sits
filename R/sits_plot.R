@@ -1654,7 +1654,7 @@ plot.geo_distances <- function(x, y, ...) {
 }
 
 
-.sits_plot_distances <- function (distances) {
+.sits_plot_distances <- function(distances) {
 
     .check_that(inherits(distances, "geo_distances"),
                 "Invalid distances object. Use sits_geo_dist to create it.")

@@ -9,14 +9,34 @@
 #'
 #' @description
 #' Compute the minimum distances among samples and samples to prediction
-#' points.
+#' points, following the approach proposed by Meyer and Pebesma(2022).
 #'
-#' @param samples_tb A `sits` tibble.
-#' @param roi        A `sf` object (polygon).
+#' @references
+#' Meyer, H., Pebesma, E. "Machine learning-based global maps of
+#' ecological variables and the challenge of assessing them",
+#' Nature Communications 13, 2208 (2022).
+#' https://doi.org/10.1038/s41467-022-29838-9
+#'
+#' @param samples_tb A `sits` tibble with time series samples.
+#' @param roi        A `sf` object (polygon) with a region of interest
+#'                   for prediction.
 #' @param n          Maximum number of samples to consider.
 #'
-#' @return           A tibble.
+#' @return           A tibble with sample-to-sample
+#'                   and sample-to-prediction distances.
 #'
+#' @examples
+#' if (sits_run_examples()){
+#  # read a shapefile for the state of Mato Grosso, Brazil
+#' mt_shp <- system.file("extdata/shapefiles/mato_grosso/mt.shp",
+#'           package = "sits")
+#' # convert to an sf object
+#' mt_sf <- sf::read_sf(mt_shp)
+#' # calculate sample-to-sample and sample-to-prediction distances
+#' distances <- sits_geo_dist(samples_modis_4bands, mt_sf)
+#' # plot sample-to-sample and sample-to-prediction distances
+#' plot(distances)
+#' }
 #' @export
 #'
 sits_geo_dist <- function(samples, roi = NULL, n = 1000) {
@@ -38,9 +58,9 @@ sits_geo_dist <- function(samples, roi = NULL, n = 1000) {
 
     dist_ss <- .find_closest(samples_sf)
     dist_sp <- .find_closest(samples_sf, pred_sf)
-    dist_ss["type"] <- "sample-to-sample"
-    dist_sp["type"] <- "sample-to-prediction"
-    dist_tb <- dplyr::as_tibble(dplyr::bind_rows(dist_ss, dist_sp))
+    dist_ss <- dplyr::mutate(dist_ss, type = "sample-to-sample")
+    dist_sp <- dplyr::mutate(dist_sp, type = "sample-to-prediction")
+    dist_tb <- dplyr::bind_rows(dist_ss, dist_sp)
     class(dist_tb) <- c("geo_distances", class(dist_tb))
 
     return(dist_tb)
@@ -62,12 +82,10 @@ sits_geo_dist <- function(samples, roi = NULL, n = 1000) {
 # (row number in b), and distance (in meters).
 #
 .find_closest <- function(x, y = x) {
-    dist_xy <- sf::st_distance(x, y)
-    diag(dist_xy) <- Inf
-    rid <- apply(dist_xy, MARGIN = 1, FUN = function(x) which(x == min(x)))
+    dist_xy <- sf::st_distance(x, y) %>%
+        units::drop_units(.)
+    dist_xy[dist_xy == 0] <- Inf
     min_dist <- apply(dist_xy, MARGIN = 1, FUN = min)
-    dist_df <- data.frame(from = 1:nrow(x),
-                          to   = rid,
-                          distance = min_dist)
+    dist_df <- tibble::tibble(distance = min_dist)
     return(dist_df)
 }
