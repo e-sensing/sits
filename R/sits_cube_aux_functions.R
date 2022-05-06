@@ -1043,7 +1043,7 @@
 
     return(cube)
 }
-
-.file_info_token_generator.default <- function(cube) {
+#' @export
+.cube_token_generator.default <- function(cube) {
     return(cube)
 }

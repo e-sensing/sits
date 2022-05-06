@@ -9,7 +9,11 @@
 #' @return        Return a sits_tibble as a sf object of point geometry.
 #' @export
 sits_as_sf <- function(samples) {
-    .sits_tibble_test(samples)
+    .check_chr_within(
+        x = .config_get("df_sample_columns"),
+        within = colnames(samples),
+        msg = "data input is not valid"
+    )
 
     samples_sf <- sf::st_as_sf(samples,
         coords = c("longitude", "latitude"),

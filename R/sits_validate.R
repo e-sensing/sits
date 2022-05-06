@@ -138,12 +138,9 @@ sits_kfold_validate <- function(samples,
 
         # extract the values
         values <- names(int_labels[max.col(prediction)])
-
-        ref_vec <- c(ref_vec, data_test$label)
-        pred_vec <- c(pred_vec, values)
         remove(ml_model)
 
-        return(list(pred = pred_vec, ref = ref_vec))
+        return(list(pred = values, ref = data_test$label))
     }, n_retries = 0, progress = FALSE)
 
     pred <- unlist(lapply(conf_lst, function(x) x$pred))

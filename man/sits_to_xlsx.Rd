@@ -32,22 +32,15 @@ if (sits_run_examples()) {
 
     # accuracy assessment lightTAE
     acc_ltae <- sits_kfold_validate(samples_modis_4bands,
-        folds = 5,
-        ml_method = sits_lightae()
+        folds = 5, multicores = 5,
+        ml_method = sits_lighttae()
     )
     # use a name
     acc_ltae$name <- "LightTAE"
+
     # put the result in a list
     results[[length(results) + 1]] <- acc_ltae
 
-    # Deep Learning - ResNet
-    acc_rn <- sits_kfold_validate(samples_modis_4bands,
-        folds = 5,
-        ml_method = sits_resnet()
-    )
-    acc_rn$name <- "ResNet"
-    # put the result in a list
-    results[[length(results) + 1]] <- acc_rn
     # save to xlsx file
     sits_to_xlsx(results, file = "./accuracy_mato_grosso_dl.xlsx")
 }
