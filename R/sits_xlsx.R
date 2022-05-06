@@ -23,22 +23,15 @@
 #'
 #'     # accuracy assessment lightTAE
 #'     acc_ltae <- sits_kfold_validate(samples_modis_4bands,
-#'         folds = 5,
-#'         ml_method = sits_lightae()
+#'         folds = 5, multicores = 5,
+#'         ml_method = sits_lighttae()
 #'     )
 #'     # use a name
 #'     acc_ltae$name <- "LightTAE"
+#'
 #'     # put the result in a list
 #'     results[[length(results) + 1]] <- acc_ltae
 #'
-#'     # Deep Learning - ResNet
-#'     acc_rn <- sits_kfold_validate(samples_modis_4bands,
-#'         folds = 5,
-#'         ml_method = sits_resnet()
-#'     )
-#'     acc_rn$name <- "ResNet"
-#'     # put the result in a list
-#'     results[[length(results) + 1]] <- acc_rn
 #'     # save to xlsx file
 #'     sits_to_xlsx(results, file = "./accuracy_mato_grosso_dl.xlsx")
 #' }
@@ -125,51 +118,6 @@ sits_to_xlsx <- function(acc_lst, file, data = NULL) {
             startRow = start_row,
             startCol = 1
         )
-        # save the information on the configuration
-        Param <- vector(mode = "character")
-        Value <- vector(mode = "character")
-        if (!purrr::is_null(cf_mat$optimizer)) {
-            Param[length(Param) + 1] <- "optimizer"
-            Value[length(Value) + 1] <- cf_mat$optimizer
-        }
-        if (!purrr::is_null(cf_mat$learning_rate)) {
-            Param[length(Param) + 1] <- "learning_rate"
-            Value[length(Value) + 1] <- cf_mat$learning_rate
-        }
-        if (!purrr::is_null(cf_mat$eps)) {
-            Param[length(Param) + 1] <- "eps"
-            Value[length(Value) + 1] <- cf_mat$eps
-        }
-        if (!purrr::is_null(cf_mat$weight_decay)) {
-            Param[length(Param) + 1] <- "weight_decay"
-            Value[length(Value) + 1] <- cf_mat$weight_decay
-        }
-        if (length(Param) > 0) {
-            config_df <- data.frame(Param, Value)
-            start_row <- start_row + 6
-            openxlsx::writeData(
-                wb = workbook,
-                sheet = sheet_name,
-                x = config_df,
-                rowNames = TRUE,
-                startRow = start_row,
-                startCol = 1
-            )
-        }
-        if (!purrr::is_null(data)) {
-            if (length(Param) == 0) {
-                start_row <- start_row + 6
-            }
-            config_df <- data.frame(sits_labels_summary(data))
-            openxlsx::writeData(
-                wb = workbook,
-                sheet = sheet_name,
-                x = config_df,
-                rowNames = TRUE,
-                startRow = start_row,
-                startCol = 6
-            )
-        }
     })
     # write the worksheets to the XLSX file
     openxlsx::saveWorkbook(workbook, file = file, overwrite = TRUE)

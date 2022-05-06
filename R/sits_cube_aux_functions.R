@@ -1044,6 +1044,6 @@
     return(cube)
 }
 
-.file_info_token_generator.default <- function(cube) {
+.cube_token_generator.default <- function(cube) {
     return(cube)
 }
