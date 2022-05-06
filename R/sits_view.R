@@ -101,8 +101,6 @@ sits_view.sits <- function(x, ...,
     )
     # get the bounding box
     samples_bbox <- sf::st_bbox(samples)
-    dist_x <- (samples_bbox[["xmax"]] - samples_bbox[["xmin"]])
-    dist_y <- (samples_bbox[["ymax"]] - samples_bbox[["ymin"]])
     # get the labels
     labels <- sits_labels(x)
 

@@ -47,7 +47,7 @@
     band_in_size <- output_size * ratio_in_out
     cloud_in_size <- output_size * ratio_cloud_out
 
-    # proc_bloat <- .config_processing_bloat()
+    #
     proc_bloat <- 1
 
     # total memory required

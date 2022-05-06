@@ -43,7 +43,7 @@
 sits_geo_dist <- function(samples, roi = NULL, n = 1000) {
     stopifnot(inherits(samples, "sits"))
 
-    samples <- samples[sample(1:nrow(samples), min(n, nrow(samples))), ]
+    samples <- samples[sample(seq_len(nrow(samples)), min(n, nrow(samples))), ]
 
     # NOTE: sits_tibbles are always in WGS84.
     samples_sf <- sf::st_as_sf(samples,

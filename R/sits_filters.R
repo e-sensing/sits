@@ -255,12 +255,13 @@ sits_filter <- function(data, filter = sits_whittaker()) {
         ## Construct a matrix of weights Cij = xi ^ j.  The points xi are
         ## equally spaced on the unit grid, with past points using negative
         ## values and future points using positive values.
-        C <- (((1:n) - row) %*% matrix(1, 1, p + 1))^(matrix(1, n) %*% (0:p))
-        ## A = pseudo-inverse (C), so C*A = I; this is constructed from the SVD
-        A <- .sits_mass_ginv(C, tol = .Machine$double.eps)
+        weigths <- (((1:n) - row) %*% matrix(1, 1, p + 1)) ^ (matrix(1, n) %*% (0:p))
+        ## pseudo-inverse (weights), so weigths*inv = I
+        ## this is constructed from the SVD
+        inv <- .sits_mass_ginv(weigths, tol = .Machine$double.eps)
         ## Take the row of the matrix corresponding to the derivative
         ## you want to compute.
-        filter_matrix[row, ] <- A[1 + m, ]
+        filter_matrix[row, ] <- inv[1 + m, ]
     }
     ## The filters shifted to the right are symmetric with those to the left.
     filter_matrix[(k + 2):n, ] <- (-1)^m * filter_matrix[k:1, n:1]
